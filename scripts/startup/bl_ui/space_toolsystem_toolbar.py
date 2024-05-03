@@ -1957,7 +1957,7 @@ class _defs_paint_grease_pencil:
         preview_icon_id = brush.preview.icon_id if brush.preview else 0
         fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
         row.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            BrushAssetShelf.get_shelf_name_from_context(context),
             name=brush.name,
             icon=fallback_icon,
             icon_value=preview_icon_id,
@@ -2347,7 +2347,7 @@ class _defs_gpencil_paint:
         preview_icon_id = brush.preview.icon_id if brush.preview else 0
         fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
         layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            BrushAssetShelf.get_shelf_name_from_context(context),
             name=brush.name,
             icon=fallback_icon,
             icon_value=preview_icon_id,

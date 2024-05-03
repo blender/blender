@@ -770,7 +770,7 @@ class _draw_tool_settings_context_mode:
         preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
         fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
         layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            BrushAssetShelf.get_shelf_name_from_context(context),
             name=brush.name if brush else None,
             icon=fallback_icon,
             icon_value=preview_icon_id,
@@ -1229,8 +1229,8 @@ class IMAGE_PT_paint_settings_advanced(Panel, ImagePaintPanel):
 
         settings = context.tool_settings.image_paint
         brush = settings.brush
-
-        brush_settings_advanced(layout.column(), context, brush, self.is_popover)
+        if brush:
+            brush_settings_advanced(layout.column(), context, brush, self.is_popover)
 
 
 class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
@@ -1243,16 +1243,17 @@ class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
     def poll(cls, context):
         settings = context.tool_settings.image_paint
         brush = settings.brush
+        if not brush:
+            return False
         capabilities = brush.image_paint_capabilities
-
         return capabilities.has_color
 
     def draw(self, context):
         layout = self.layout
         settings = context.tool_settings.image_paint
         brush = settings.brush
-
-        draw_color_settings(context, layout, brush, color_type=True)
+        if brush:
+            draw_color_settings(context, layout, brush, color_type=True)
 
 
 class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel, ColorPalettePanel):
@@ -1701,9 +1702,12 @@ class ImageAssetShelf(BrushAssetShelf):
     bl_space_type = "IMAGE_EDITOR"
 
 
-class IMAGE_AST_brush_sculpt(ImageAssetShelf, AssetShelf):
-    mode = 'TEXTURE_PAINT'
+class IMAGE_AST_brush_paint(ImageAssetShelf, AssetShelf):
     mode_prop = "use_paint_image"
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data and context.space_data.ui_mode == 'PAINT'
 
 
 classes = (
@@ -1775,7 +1779,7 @@ classes = (
     IMAGE_PT_overlay_uv_edit_geometry,
     IMAGE_PT_overlay_texture_paint,
     IMAGE_PT_overlay_image,
-    IMAGE_AST_brush_sculpt,
+    IMAGE_AST_brush_paint,
 )
 
 

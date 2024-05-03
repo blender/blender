@@ -19,8 +19,9 @@ class BrushAssetShelf:
     def asset_poll(cls, asset):
         if asset.id_type != 'BRUSH':
             return False
-
-        return asset.metadata.get(cls.mode_prop, False)
+        if hasattr(cls, "mode_prop"):
+            return asset.metadata.get(cls.mode_prop, False)
+        return True
 
     @classmethod
     def get_active_asset(cls):
@@ -35,20 +36,22 @@ class BrushAssetShelf:
         layout.menu_contents("VIEW3D_MT_brush_context_menu")
 
     @staticmethod
-    def get_shelf_name_from_mode(obmode):
+    def get_shelf_name_from_context(context):
         mode_map = {
             'SCULPT': "VIEW3D_AST_brush_sculpt",
-            'SCULPT_CURVES': "VIEW3D_AST_brush_sculpt_curves",
-            'VERTEX_PAINT': "VIEW3D_AST_brush_vertex_paint",
-            'WEIGHT_PAINT': "VIEW3D_AST_brush_weight_paint",
-            'TEXTURE_PAINT': "VIEW3D_AST_brush_texture_paint",
+            'PAINT_VERTEX': "VIEW3D_AST_brush_vertex_paint",
+            'PAINT_WEIGHT': "VIEW3D_AST_brush_weight_paint",
+            'PAINT_TEXTURE': "VIEW3D_AST_brush_texture_paint",
+            'PAINT_2D': "IMAGE_AST_brush_paint",
             'PAINT_GPENCIL': "VIEW3D_AST_brush_gpencil_paint",
-            'PAINT_GREASE_PENCIL': "VIEW3D_AST_brush_grease_pencil_paint",
             'SCULPT_GPENCIL': "VIEW3D_AST_brush_gpencil_sculpt",
-            'VERTEX_GPENCIL': "VIEW3D_AST_brush_gpencil_vertex",
             'WEIGHT_GPENCIL': "VIEW3D_AST_brush_gpencil_weight",
+            'VERTEX_GPENCIL': "VIEW3D_AST_brush_gpencil_vertex",
+            'SCULPT_CURVES': "VIEW3D_AST_brush_sculpt_curves",
+            'PAINT_GREASE_PENCIL': "VIEW3D_AST_brush_grease_pencil_paint",
         }
-        return mode_map[obmode]
+        mode = UnifiedPaintPanel.get_brush_mode(context)
+        return mode_map[mode]
 
 
 class UnifiedPaintPanel:
@@ -202,7 +205,7 @@ class BrushSelectPanel(BrushPanel):
         preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
         fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
         col.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            BrushAssetShelf.get_shelf_name_from_context(context),
             icon=fallback_icon,
             icon_value=preview_icon_id,
         )
