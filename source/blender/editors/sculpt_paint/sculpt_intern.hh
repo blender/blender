@@ -508,7 +508,7 @@ struct StrokeCache {
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   Dial *dial;
 
-  char saved_active_brush_name[MAX_ID_NAME];
+  Brush *saved_active_brush;
   char saved_mask_brush_tool;
   int saved_smooth_size; /* smooth tool copies the size of the current tool */
   bool alt_smooth;

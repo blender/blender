@@ -4227,13 +4227,13 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
   if (!smooth_brush) {
     BKE_paint_brush_set(paint, cur_brush);
     CLOG_WARN(&LOG, "Switching to the smooth brush not possible, corresponding brush not");
-    cache->saved_active_brush_name[0] = '\0';
+    cache->saved_active_brush = nullptr;
     return;
   }
 
   int cur_brush_size = BKE_brush_size_get(scene, cur_brush);
 
-  STRNCPY(cache->saved_active_brush_name, cur_brush->id.name + 2);
+  cache->saved_active_brush = cur_brush;
 
   cache->saved_smooth_size = BKE_brush_size_get(scene, smooth_brush);
   BKE_brush_size_set(scene, smooth_brush, cur_brush_size);
@@ -4242,7 +4242,6 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
 
 static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache)
 {
-  Main *bmain = CTX_data_main(C);
   Brush *brush = BKE_paint_brush(paint);
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
@@ -4260,14 +4259,13 @@ static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache
     return;
   }
 
-  /* If saved_active_brush_name is not set, brush was not switched/affected in
+  /* If saved_active_brush is not set, brush was not switched/affected in
    * smooth_brush_toggle_on(). */
-  Brush *saved_active_brush = (Brush *)BKE_libblock_find_name(
-      bmain, ID_BR, cache->saved_active_brush_name);
-  if (saved_active_brush) {
+  if (cache->saved_active_brush) {
     Scene *scene = CTX_data_scene(C);
     BKE_brush_size_set(scene, brush, cache->saved_smooth_size);
-    BKE_paint_brush_set(paint, saved_active_brush);
+    BKE_paint_brush_set(paint, cache->saved_active_brush);
+    cache->saved_active_brush = nullptr;
   }
 }
 
