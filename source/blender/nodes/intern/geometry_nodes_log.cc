@@ -247,9 +247,9 @@ void GeoTreeLog::ensure_node_warnings()
       continue;
     }
     child_log.ensure_node_warnings();
-    const std::optional<int32_t> &group_node_id = child_log.tree_loggers_[0]->group_node_id;
-    if (group_node_id.has_value()) {
-      this->nodes.lookup_or_add_default(*group_node_id).warnings.extend(child_log.all_warnings);
+    const std::optional<int32_t> &parent_node_id = child_log.tree_loggers_[0]->parent_node_id;
+    if (parent_node_id.has_value()) {
+      this->nodes.lookup_or_add_default(*parent_node_id).warnings.extend(child_log.all_warnings);
     }
     this->all_warnings.extend(child_log.all_warnings);
   }
@@ -274,9 +274,9 @@ void GeoTreeLog::ensure_node_run_time()
       continue;
     }
     child_log.ensure_node_run_time();
-    const std::optional<int32_t> &group_node_id = child_log.tree_loggers_[0]->group_node_id;
-    if (group_node_id.has_value()) {
-      this->nodes.lookup_or_add_default(*group_node_id).run_time += child_log.run_time_sum;
+    const std::optional<int32_t> &parent_node_id = child_log.tree_loggers_[0]->parent_node_id;
+    if (parent_node_id.has_value()) {
+      this->nodes.lookup_or_add_default(*parent_node_id).run_time += child_log.run_time_sum;
     }
     this->run_time_sum += child_log.run_time_sum;
   }
@@ -367,9 +367,10 @@ void GeoTreeLog::ensure_used_named_attributes()
       continue;
     }
     child_log.ensure_used_named_attributes();
-    if (const std::optional<int32_t> &group_node_id = child_log.tree_loggers_[0]->group_node_id) {
+    if (const std::optional<int32_t> &parent_node_id = child_log.tree_loggers_[0]->parent_node_id)
+    {
       for (const auto item : child_log.used_named_attributes.items()) {
-        add_attribute(*group_node_id, item.key, item.value);
+        add_attribute(*parent_node_id, item.key, item.value);
       }
     }
   }
@@ -486,7 +487,17 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
   if (const bke::GroupNodeComputeContext *node_group_compute_context =
           dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context))
   {
-    tree_logger.group_node_id.emplace(node_group_compute_context->node_id());
+    tree_logger.parent_node_id.emplace(node_group_compute_context->node_id());
+  }
+  else if (const bke::RepeatZoneComputeContext *node_group_compute_context =
+               dynamic_cast<const bke::RepeatZoneComputeContext *>(&compute_context))
+  {
+    tree_logger.parent_node_id.emplace(node_group_compute_context->output_node_id());
+  }
+  else if (const bke::SimulationZoneComputeContext *node_group_compute_context =
+               dynamic_cast<const bke::SimulationZoneComputeContext *>(&compute_context))
+  {
+    tree_logger.parent_node_id.emplace(node_group_compute_context->output_node_id());
   }
   return tree_logger;
 }
