@@ -52,7 +52,6 @@ class AssetView : public ui::AbstractGridView {
 
  public:
   AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf, bool is_popup);
-  ~AssetView();
 
   void build_items() override;
   bool begin_filtering(const bContext &C) const override;
@@ -108,8 +107,6 @@ AssetView::AssetView(const AssetLibraryReference &library_ref,
     }
   }
 }
-
-AssetView::~AssetView() {}
 
 void AssetView::build_items()
 {
