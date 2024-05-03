@@ -1152,7 +1152,6 @@ static const AssetWeakReference *asset_shelf_get_active_asset(const AssetShelfTy
   PointerRNA ptr = RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr); /* dummy */
 
   FunctionRNA *func = &rna_AssetShelf_get_active_asset_func;
-  // RNA_struct_find_function(&ptr, "get_active_asset");
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
