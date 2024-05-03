@@ -1197,23 +1197,12 @@ static bool rna_AssetShelf_unregister(Main *bmain, StructRNA *type)
     return false;
   }
 
-  SpaceType *space_type = BKE_spacetype_from_id(shelf_type->space_type);
-  if (!space_type) {
-    return false;
-  }
-
   blender::ed::asset::shelf::type_unlink(*bmain, *shelf_type);
 
   RNA_struct_free_extension(type, &shelf_type->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  const auto it = std::find_if(
-      space_type->asset_shelf_types.begin(),
-      space_type->asset_shelf_types.end(),
-      [&](const std::unique_ptr<AssetShelfType> &type) { return type.get() == shelf_type; });
-  BLI_assert(it != space_type->asset_shelf_types.end());
-
-  space_type->asset_shelf_types.remove(it - space_type->asset_shelf_types.begin());
+  blender::ed::asset::shelf::type_unregister(*shelf_type);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, nullptr);
@@ -1252,27 +1241,21 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
     return nullptr;
   }
 
-  SpaceType *space_type = BKE_spacetype_from_id(shelf_type->space_type);
-  if (!space_type) {
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-
   /* Check if we have registered this asset shelf type before, and remove it. */
-  for (std::unique_ptr<AssetShelfType> &iter_shelf_type : space_type->asset_shelf_types) {
-    if (STREQ(iter_shelf_type->idname, shelf_type->idname)) {
-      if (iter_shelf_type->rna_ext.srna) {
-        BKE_reportf(reports,
-                    RPT_INFO,
-                    "Registering asset shelf class: '%s' has been registered before, "
-                    "unregistering previous",
-                    shelf_type->idname);
+  {
+    AssetShelfType *existing_shelf_type = blender::ed::asset::shelf::type_find_from_idname(
+        shelf_type->idname);
+    if (existing_shelf_type && existing_shelf_type->rna_ext.srna) {
+      BKE_reportf(reports,
+                  RPT_INFO,
+                  "Registering asset shelf class: '%s' has been registered before, "
+                  "unregistering previous",
+                  shelf_type->idname);
 
-        rna_AssetShelf_unregister(bmain, iter_shelf_type->rna_ext.srna);
-      }
-      break;
+      rna_AssetShelf_unregister(bmain, existing_shelf_type->rna_ext.srna);
     }
   }
+
   if (!RNA_struct_available_or_report(reports, shelf_type->idname)) {
     return nullptr;
   }
@@ -1294,7 +1277,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
 
   StructRNA *srna = shelf_type->rna_ext.srna;
 
-  space_type->asset_shelf_types.append(std::move(shelf_type));
+  blender::ed::asset::shelf::type_register(std::move(shelf_type));
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, nullptr);

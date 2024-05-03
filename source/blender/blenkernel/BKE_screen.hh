@@ -143,9 +143,6 @@ struct SpaceType {
   /* region type definitions */
   ListBase regiontypes;
 
-  /** Asset shelf type definitions. */
-  blender::Vector<std::unique_ptr<AssetShelfType>> asset_shelf_types;
-
   /* read and write... */
 
   /** Default key-maps to add. */

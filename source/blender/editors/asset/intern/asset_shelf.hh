@@ -43,7 +43,7 @@ AssetShelf *active_shelf_from_context(const bContext *C);
 
 void send_redraw_notifier(const bContext &C);
 
-AssetShelfType *type_ensure(const SpaceType &space_type, AssetShelf &shelf);
+AssetShelfType *ensure_shelf_has_type(AssetShelf &shelf);
 AssetShelf *create_shelf_from_type(AssetShelfType &type);
 
 void library_selector_draw(const bContext *C, uiLayout *layout, AssetShelf &shelf);
