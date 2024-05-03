@@ -41,6 +41,7 @@ void template_asset_shelf_popover(uiLayout &layout,
 
   const ARegion *region = CTX_wm_region(&C);
   const bool use_big_size = !RGN_TYPE_IS_HEADER_ANY(region->regiontype);
+  const bool use_preview_icon = use_big_size;
   const short width = [&]() -> short {
     if (use_big_size) {
       return UI_UNIT_X * 6;
@@ -52,8 +53,13 @@ void template_asset_shelf_popover(uiLayout &layout,
   uiBlock *block = uiLayoutGetBlock(&layout);
   uiBut *but = uiDefBlockBut(
       block, asset_shelf_block_fn, shelf_type, name, 0, 0, width, height, "Select an asset");
-  ui_def_but_icon(but, icon, UI_HAS_ICON);
-  UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+  if (use_preview_icon) {
+    ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  }
+  else {
+    ui_def_but_icon(but, icon, UI_HAS_ICON);
+    UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+  }
 
   if (ed::asset::shelf::type_poll(C, *area->type, shelf_type) == false) {
     UI_but_flag_enable(but, UI_BUT_DISABLED);
