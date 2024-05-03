@@ -3382,10 +3382,11 @@ class VIEW3D_MT_object_modifiers(Menu):
 
         layout = self.layout
 
-        if active_object.type in supported_types:
-            layout.menu("OBJECT_MT_modifier_add", text="Add Modifier")
-        elif active_object.type == 'GPENCIL':
-            layout.operator("object.gpencil_modifier_add", text="Add Modifier")
+        if active_object:
+            if active_object.type in supported_types:
+                layout.menu("OBJECT_MT_modifier_add", text="Add Modifier")
+            elif active_object.type == 'GPENCIL':
+                layout.operator("object.gpencil_modifier_add", text="Add Modifier")
 
         layout.operator("object.modifiers_copy_to_selected", text="Copy Modifiers to Selected Objects")
 
