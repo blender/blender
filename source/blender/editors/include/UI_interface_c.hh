@@ -2722,7 +2722,7 @@ void uiTemplateAssetView(uiLayout *layout,
 namespace blender::ui {
 
 void template_asset_shelf_popover(
-    uiLayout *layout, const bContext *C, StringRefNull asset_shelf_id, StringRef name, int icon);
+    uiLayout &layout, const bContext &C, StringRefNull asset_shelf_id, StringRef name, int icon);
 
 }
 

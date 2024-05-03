@@ -974,7 +974,7 @@ void rna_uiTemplateAssetShelfPopover(uiLayout *layout,
     icon = icon_value;
   }
 
-  blender::ui::template_asset_shelf_popover(layout, C, asset_shelf_id, name, icon);
+  blender::ui::template_asset_shelf_popover(*layout, *C, asset_shelf_id, name, icon);
 }
 
 #else
