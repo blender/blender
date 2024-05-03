@@ -1203,7 +1203,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         header, panel = layout.panel("legacy", default_closed=True)
         header.label(text="Legacy Icon")
         if panel:
-            panel.label(text="Brush asset icons have moved to the asset preview", icon='ERROR')
+            panel.label(text="Brush icons have moved to the asset preview image", icon='ERROR')
             panel.prop(brush, "use_custom_icon")
             panel.prop(brush, "icon_filepath")
 
