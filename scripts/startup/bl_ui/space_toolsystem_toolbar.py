@@ -2755,7 +2755,6 @@ class _defs_gpencil_sculpt:
         ]
 
 
-
 class _defs_grease_pencil_sculpt:
     @staticmethod
     def poll_select_mask(context):
@@ -2892,6 +2891,7 @@ class _defs_gpencil_vertex:
                 )
             )
         ]
+
 
 class _defs_node_select:
 

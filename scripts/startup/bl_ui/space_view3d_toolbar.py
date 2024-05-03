@@ -85,7 +85,6 @@ class VIEW3D_MT_brush_gpencil_context_menu(Menu):
             return
 
 
-
 class View3DPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -1989,6 +1988,7 @@ class GreasePencilSculptPanel:
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_select(Panel, View3DPanel, GreasePencilSculptPanel, BrushSelectPanel):
     bl_label = "Brush Asset"
+
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_settings(Panel, View3DPanel, GreasePencilSculptPanel):
     bl_label = "Brush Settings"
