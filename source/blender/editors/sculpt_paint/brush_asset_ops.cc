@@ -162,7 +162,6 @@ static bool brush_asset_save_as_poll(bContext *C)
   if (!paint->brush_asset_reference) {
     /* The brush should always be an imported asset. We use this asset reference to find
      * which library and catalog the brush came from, as defaults for the popup. */
-    BLI_assert_unreachable();
     return false;
   }
 
