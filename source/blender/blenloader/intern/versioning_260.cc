@@ -1060,7 +1060,7 @@ static bNodeSocket *version_make_socket_stub(const char *idname,
   socket->storage = nullptr;
   socket->flag |= SOCK_COLLAPSED;
 
-  /* Note: technically socket values can store ref-counted ID pointers, but at this stage the
+  /* NOTE: technically socket values can store ref-counted ID pointers, but at this stage the
    * refcount can be ignored. It gets recomputed after lib-linking for all ID pointers. Socket
    * values don't have allocated data, so a simple duplication works here. */
   socket->default_value = default_value ? MEM_dupallocN(default_value) : nullptr;

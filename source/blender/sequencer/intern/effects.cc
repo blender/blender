@@ -2711,7 +2711,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
 {
-  /* Note: text rasterization only fills in part of output image,
+  /* NOTE: text rasterization only fills in part of output image,
    * need to clear it. */
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3, false);
   TextVars *data = static_cast<TextVars *>(seq->effectdata);

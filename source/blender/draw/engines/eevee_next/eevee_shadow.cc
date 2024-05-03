@@ -337,7 +337,7 @@ void ShadowPunctual::compute_projection_boundaries(eLightType light_type,
    * Alpha: FOT angle.
    * Beta: OTN angle.
    *
-   * Note: FTO, ONT and TNI are right angles.
+   * NOTE: FTO, ONT and TNI are right angles.
    */
   float cos_alpha = shadow_radius / max_lit_distance;
   float sin_alpha = sqrt(1.0f - math::square(cos_alpha));
@@ -500,7 +500,7 @@ IndexRange ShadowDirectional::cascade_level_range(const Camera &camera, float lo
   /* Tile-maps "rotate" around the first one so their effective range is only half their size. */
   float per_tilemap_coverage = ShadowDirectional::coverage_get(lod_level) * 0.5f;
   /* Number of tile-maps needed to cover the whole view. */
-  /* Note: floor + 0.5 to avoid 0 when parallel. */
+  /* NOTE: floor + 0.5 to avoid 0 when parallel. */
   int tilemap_len = ceil(0.5f + depth_range_in_shadow_space / per_tilemap_coverage);
   return IndexRange(lod_level, tilemap_len);
 }

@@ -3040,7 +3040,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   bfd->fileflags = fg->fileflags;
   bfd->globalf = fg->globalf;
 
-  /* Note: since 88b24bc6bb, `fg->filepath` is only written for crash recovery and autosave files,
+  /* NOTE: since 88b24bc6bb, `fg->filepath` is only written for crash recovery and autosave files,
    * so only overwrite `fd->relabase` if it is not empty, in case a regular blendfile is opened
    * through one of the 'recover' operators.
    *

@@ -182,7 +182,7 @@ float shadow_punctual_level_fractional(LightData light,
 {
   float ratio = shadow_punctual_pixel_ratio(
       light, lP, is_perspective, distance_to_camera, film_pixel_radius);
-  /* Note: Bias by one to counteract the ceil in the `int` variant. This is done because this
+  /* NOTE: Bias by one to counteract the ceil in the `int` variant. This is done because this
    * function should return an upper bound. */
   float lod = -log2(ratio) - 1.0 + light.lod_bias;
   lod = clamp(lod, 0.0, float(SHADOW_TILEMAP_LOD));

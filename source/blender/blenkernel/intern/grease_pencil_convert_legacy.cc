@@ -1234,7 +1234,7 @@ static void legacy_object_thickness_modifier_thickness_anim(ConversionData &conv
     return;
   }
 
-  /* Note: At this point, the animation was already transferred to the destination object. Now we
+  /* NOTE: At this point, the animation was already transferred to the destination object. Now we
    * just need to convert the fcurve data to be in the right space. */
   AnimDataConvertor animdata_convert_thickness(
       conversion_data,
@@ -1329,7 +1329,7 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
     if (has_thickness_adjustment) {
       /* Convert the "pixel" offset value into a radius value.
        * GPv2 used a conversion of 1 "px" = 0.001. */
-      /* Note: this offset may be negative. */
+      /* NOTE: this offset may be negative. */
       const float radius_offset = float(thickness_px) * LEGACY_RADIUS_CONVERSION_FACTOR;
 
       const auto offset_radius_ntree_ensure = [&](Library *owner_library) {
@@ -1904,7 +1904,7 @@ static void legacy_object_modifier_multiply(ConversionData &conversion_data,
   md_multiply.fading_thickness = legacy_md_multiply.fading_thickness;
   md_multiply.fading_opacity = legacy_md_multiply.fading_opacity;
 
-  /* Note: This looks wrong, but GPv2 version uses Mirror modifier flags in its `flag` property
+  /* NOTE: This looks wrong, but GPv2 version uses Mirror modifier flags in its `flag` property
    * and own flags in its `flags` property. */
   legacy_object_modifier_influence(md_multiply.influence,
                                    legacy_md_multiply.layername,
@@ -2360,7 +2360,7 @@ static void legacy_object_modifier_time(ConversionData &conversion_data,
     dst_segment.segment_repeat = src_segment.seg_repeat;
   }
 
-  /* Note: GPv2 time modifier has a material pointer but it is unused. */
+  /* NOTE: GPv2 time modifier has a material pointer but it is unused. */
   legacy_object_modifier_influence(md_time.influence,
                                    legacy_md_time.layername,
                                    legacy_md_time.layer_pass,

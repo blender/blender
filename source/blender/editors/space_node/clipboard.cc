@@ -33,7 +33,7 @@ struct NodeClipboardItemIDInfo {
   /**
    * Library filepath of the referenced ID, together with its name it forms a unique identifier.
    *
-   * Note: Library reference is stored as an absolute path. Since the Node clipboard is runtime
+   * \note Library reference is stored as an absolute path. Since the Node clipboard is runtime
    * data, persistent over new blend-files opening, this should guarantee that identical IDs from
    * identical libraries can be matched accordingly, even across several blend-files.
    */

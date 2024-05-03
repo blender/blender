@@ -1351,7 +1351,7 @@ TEST(path_util, HasHiddenComponents)
   EXPECT_FALSE(BLI_path_has_hidden_component("a."));
   EXPECT_FALSE(BLI_path_has_hidden_component("a./b."));
 
-  /* Note: path component that is just a dot is not considered hidden. */
+  /* NOTE: path component that is just a dot is not considered hidden. */
   EXPECT_FALSE(BLI_path_has_hidden_component("."));
   EXPECT_FALSE(BLI_path_has_hidden_component("a/."));
   EXPECT_FALSE(BLI_path_has_hidden_component("a\\."));

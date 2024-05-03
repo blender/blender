@@ -2576,7 +2576,7 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   selection.finish();
 
   /* Cyclic attribute : newly created curves cannot be cyclic.
-   * Note: if the cyclic attribute is single and false, it can be kept this way.
+   * NOTE: if the cyclic attribute is single and false, it can be kept this way.
    */
   if (src_cyclic.get_if_single().value_or(true)) {
     dst.cyclic_for_write().drop_front(old_curves_num).fill(false);

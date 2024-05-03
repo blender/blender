@@ -161,7 +161,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   }
 
   /* Determine the descriptor set locations after the inputs have been sorted. */
-  /* Note: input_tot_len is sometimes more than we need. */
+  /* NOTE: input_tot_len is sometimes more than we need. */
   const uint32_t resources_len = input_tot_len;
 
   /* Initialize the descriptor set layout. */

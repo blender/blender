@@ -555,7 +555,7 @@ static bool mesh_batch_cache_valid(Object *object, Mesh *mesh)
     return false;
   }
 
-  /* Note: PBVH draw data should not be checked here. */
+  /* NOTE: PBVH draw data should not be checked here. */
 
   if (cache->is_editmode != (mesh->runtime->edit_mesh != nullptr)) {
     return false;

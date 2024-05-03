@@ -31,7 +31,7 @@ void SummedAreaTableOperation::update_memory_buffer(MemoryBuffer *output,
                                                     const rcti &area,
                                                     Span<MemoryBuffer *> inputs)
 {
-  /* Note: although this is a single threaded call, multithreading is used. */
+  /* NOTE: although this is a single threaded call, multithreading is used. */
   MemoryBuffer *image = inputs[0];
 
   /* First pass: copy input to output and sum horizontally. */
@@ -85,7 +85,7 @@ float4 summed_area_table_sum(MemoryBuffer *buffer, const rcti &area)
    *     │      │a     b│
    *     └──────┴───────┴──────► x
    *
-   * Note: this is the same definition as in https://en.wikipedia.org/wiki/Summed-area_table
+   * NOTE: this is the same definition as in https://en.wikipedia.org/wiki/Summed-area_table
    * but using the blender convention with the origin being at the lower left.
    */
 

@@ -1149,7 +1149,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
                       0,
                       "Socket Type",
                       "Type of socket generated on nodes");
-  /* Note: itemf callback works for the function parameter, it does not require a data pointer. */
+  /* NOTE: itemf callback works for the function parameter, it does not require a data pointer. */
   RNA_def_property_enum_funcs(
       parm, nullptr, nullptr, "rna_NodeTreeInterfaceSocket_socket_type_itemf");
   RNA_def_pointer(

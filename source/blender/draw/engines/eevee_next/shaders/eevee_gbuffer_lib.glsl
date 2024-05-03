@@ -27,14 +27,14 @@
  *
  * \{ */
 
-/* Note: Only specialized for the gbuffer pass. */
+/* NOTE: Only specialized for the gbuffer pass. */
 #ifndef GBUFFER_LAYER_MAX
 #  define GBUFFER_LAYER_MAX 3
 #endif
 #define GBUFFER_NORMAL_MAX (GBUFFER_LAYER_MAX + /* Additional data */ 1)
 #define GBUFFER_DATA_MAX (GBUFFER_LAYER_MAX * 2)
 #define GBUFFER_HEADER_BITS_PER_LAYER 4
-/* Note: Reserve the last 4 bits for the normal layers ids. */
+/* NOTE: Reserve the last 4 bits for the normal layers ids. */
 #define GBUFFER_NORMAL_BITS_SHIFT 12
 
 struct GBufferData {
@@ -867,7 +867,7 @@ GBufferWriter gbuffer_pack(GBufferData data_in)
 /* Return the number of closure as encoded in the given header value. */
 int gbuffer_closure_count(uint header)
 {
-  /* Note: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
+  /* NOTE: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
   const uint bits_per_layer = uint(GBUFFER_HEADER_BITS_PER_LAYER);
   uvec3 closure_types = (uvec3(header) >> (uvec3(0u, 1u, 2u) * bits_per_layer)) &
                         ((1u << bits_per_layer) - 1);
@@ -876,7 +876,7 @@ int gbuffer_closure_count(uint header)
 
 bool gbuffer_has_transmission(uint header)
 {
-  /* Note: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
+  /* NOTE: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
   const uint bits_per_layer = uint(GBUFFER_HEADER_BITS_PER_LAYER);
   const uint header_mask = (GBUF_TRANSMISSION_BIT << (bits_per_layer * 0)) |
                            (GBUF_TRANSMISSION_BIT << (bits_per_layer * 1)) |

@@ -40,7 +40,7 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
 
   this->init_stroke(C, start_sample);
 
-  /* Note: Only one copy is created at the beginning of each stroke.
+  /* NOTE: Only one copy is created at the beginning of each stroke.
    * GPv2 supposedly has 2 modes:
    * - Stamp: Clone on stroke start and then transform (the transform part doesn't work)
    * - Continuous: Create multiple copies during the stroke (disabled)

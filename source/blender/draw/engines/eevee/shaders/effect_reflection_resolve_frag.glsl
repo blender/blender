@@ -125,7 +125,7 @@ void raytrace_resolve(ClosureInputGlossy cl_in,
                       inout ClosureEvalCommon cl_common,
                       inout ClosureOutputGlossy cl_out)
 {
-  /* Note: Reflection samples declared in function scope to avoid per-thread memory pressure on
+  /* NOTE: Reflection samples declared in function scope to avoid per-thread memory pressure on
    * tile-based GPUs e.g. Apple Silicon. */
   const SAMPLE_STORAGE_TYPE resolve_sample_offsets[36] = SAMPLE_STORAGE_TYPE[36](
       /* Set 1. */
@@ -257,7 +257,7 @@ void main()
      * diverge and only the final result is masked. */
     factor = 0.0f;
 #else
-    /* Note: In the Metal API, prior to Metal 2.3, Discard is not an explicit return and can
+    /* NOTE: In the Metal API, prior to Metal 2.3, Discard is not an explicit return and can
      * produce undefined behavior. This is especially prominent with derivatives if control-flow
      * divergence is present.
      *

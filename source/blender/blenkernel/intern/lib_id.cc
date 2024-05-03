@@ -1498,8 +1498,8 @@ void BKE_libblock_copy_in_lib(Main *bmain,
   if (is_embedded_id && (orig_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     new_id->tag &= ~LIB_TAG_NO_MAIN;
   }
-  /* Note: This also needs to run for ShapeKeys, which are not (yet) actual embedded IDs.
-   * Note: for now, keep existing owner ID (i.e. owner of the source embedded ID) if no new one
+  /* NOTE: This also needs to run for ShapeKeys, which are not (yet) actual embedded IDs.
+   * NOTE: for now, keep existing owner ID (i.e. owner of the source embedded ID) if no new one
    * is given. In some cases (e.g. depsgraph), this is important for later remapping to work
    * properly.
    */

@@ -2573,7 +2573,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   /* Speed factor for GP_BUILD_TIMEMODE_DRAWSPEED. */
-  /* Todo: Does it work? */
+  /* TODO: Does it work? */
   prop = RNA_def_property(srna, "speed_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "speed_fac");
   RNA_def_property_ui_text(prop, "Speed Factor", "Multiply recorded drawing speed by a factor");

@@ -768,7 +768,7 @@ template<typename Mesh> class Mikktspace {
       return;
     }
 
-    /* Todo: Vectorize?
+    /* TODO: Vectorize?
      * Also: Could add special case for flat shading, when all normals are equal half of the fCos
      * projections and two of the three tangent projections are unnecessary. */
     std::array<float3, 3> n, p;

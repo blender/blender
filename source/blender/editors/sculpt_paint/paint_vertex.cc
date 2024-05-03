@@ -580,7 +580,7 @@ void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
   Scene *scene = CTX_data_scene(C);
 
   /* Switch to the blur (smooth) brush if possible. */
-  /* Note: used for both vertexpaint and weightpaint, VPAINT_TOOL_BLUR & WPAINT_TOOL_BLUR are the
+  /* NOTE: used for both vertexpaint and weightpaint, VPAINT_TOOL_BLUR & WPAINT_TOOL_BLUR are the
    * same, see comments for eBrushVertexPaintTool & eBrushWeightPaintTool. */
   Brush *smooth_brush = BKE_paint_toolslots_brush_get(paint, WPAINT_TOOL_BLUR);
   if (!smooth_brush) {

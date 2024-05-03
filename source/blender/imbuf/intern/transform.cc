@@ -231,7 +231,7 @@ template<int SrcChannels> static void store_sample(const float *sample, float *d
     copy_v4_fl4(dst, sample[0], sample[1], 0.0f, 1.0f);
   }
   else if constexpr (SrcChannels == 1) {
-    /* Note: single channel sample is stored as grayscale. */
+    /* NOTE: single channel sample is stored as grayscale. */
     copy_v4_fl4(dst, sample[0], sample[0], sample[0], 1.0f);
   }
   else {

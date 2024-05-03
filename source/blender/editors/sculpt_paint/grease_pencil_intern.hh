@@ -74,7 +74,7 @@ struct GreasePencilStrokeParams {
   const ed::greasepencil::DrawingPlacement &placement;
   bke::greasepencil::Drawing &drawing;
 
-  /* Note: accessing region in worker threads will return null,
+  /* NOTE: accessing region in worker threads will return null,
    * this has to be done on the main thread and passed explicitly. */
   static GreasePencilStrokeParams from_context(const Scene &scene,
                                                Depsgraph &depsgraph,

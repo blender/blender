@@ -370,7 +370,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   float depth_point[3];
 
   /* Get origin point for OrientationType::View.
-   * Note: for projection extrusion we add depth_front here
+   * NOTE: for projection extrusion we add depth_front here
    * instead of in the loop.
    */
   if (trim_operation->extrude_mode == ExtrudeMode::Fixed) {

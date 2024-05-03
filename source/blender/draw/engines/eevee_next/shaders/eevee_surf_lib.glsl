@@ -174,7 +174,7 @@ vec3 shadow_clip_vector_get(vec3 view_position, float clip_distance_inv)
 
   if (clip_distance_inv < 0.0) {
     /* Area light side projections. Clip using the up axis (which maps to light -Z). */
-    /* Note: clip_distance_inv should already be scaled by M_SQRT3. */
+    /* NOTE: clip_distance_inv should already be scaled by M_SQRT3. */
     return vec3(view_position.y * clip_distance_inv);
   }
   /* Sphere light case. */

@@ -108,7 +108,7 @@ const EnumPropertyItem rna_enum_brush_curve_preset_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* Note: we don't actually turn these into a single enum bit-mask property,
+/* NOTE: we don't actually turn these into a single enum bit-mask property,
  * instead we construct individual boolean properties. */
 const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
     {BRUSH_AUTOMASKING_TOPOLOGY,

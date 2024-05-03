@@ -1400,7 +1400,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader);
 
 static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
 {
-  /* Note: null UI data can happen when opening more recent files with unknown types of
+  /* NOTE: null UI data can happen when opening more recent files with unknown types of
    * IDProperties. */
 
   switch (IDP_ui_data_type(prop)) {

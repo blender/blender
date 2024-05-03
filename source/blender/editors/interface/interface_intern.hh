@@ -1573,7 +1573,7 @@ namespace blender::interface::internal {
 /**
  * Get the driver(s) of the given property.
  *
- * Note: intended to be used in conjunction with `paste_property_drivers()` below.
+ * \note intended to be used in conjunction with `paste_property_drivers()` below.
  *
  * \param ptr: The RNA pointer of the property.
  * \param prop: The property RNA of the property.
@@ -1600,7 +1600,7 @@ blender::Vector<FCurve *> get_property_drivers(
  * property, just some elements of an array property, or a single driver for a
  * non-array property.
  *
- * Note: intended to be used in conjunction with `get_property_drivers()` above.
+ * \note intended to be used in conjunction with `get_property_drivers()` above.
  * The destination property should have the same type and (if an array property)
  * length as the source property passed to `get_property_drivers()`.
  *

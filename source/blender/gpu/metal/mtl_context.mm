@@ -225,7 +225,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-method-access"
   /* Enable increased concurrent shader compiler limit.
-   * Note: Disable warning for missing method when building on older OS's, as compiled code will
+   * NOTE: Disable warning for missing method when building on older OS's, as compiled code will
    * still work correctly when run on a system with the API available. */
   if (@available(macOS 13.3, *)) {
     [this->device setShouldMaximizeConcurrentCompilation:YES];
