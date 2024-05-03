@@ -553,7 +553,6 @@ AssetShelf *active_shelf_from_area(const ScrArea *area)
   const ARegion *shelf_region = BKE_area_find_region_type(area, RGN_TYPE_ASSET_SHELF);
   if (!shelf_region) {
     /* Called in wrong context, area doesn't have a shelf. */
-    BLI_assert_unreachable();
     return nullptr;
   }
 
