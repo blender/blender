@@ -178,7 +178,7 @@ extern "C" void ntreeGPUMaterialNodes(struct bNodeTree * /*localtree*/,
   BLI_assert_unreachable();
 }
 
-struct bNodeTree *ntreeLocalize(struct bNodeTree * /*ntree*/)
+struct bNodeTree *ntreeLocalize(struct bNodeTree * /*ntree*/, ID * /*new_owner_id*/)
 {
   BLI_assert_unreachable();
   return nullptr;

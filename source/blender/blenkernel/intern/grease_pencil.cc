@@ -953,7 +953,7 @@ Layer::Layer(const Layer &other) : Layer()
 
   this->set_view_layer_name(other.viewlayername);
 
-  /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
+  /* NOTE: We do not duplicate the frame storage since it is only needed for writing to file. */
   this->runtime->frames_ = other.runtime->frames_;
   this->runtime->sorted_keys_cache_ = other.runtime->sorted_keys_cache_;
   /* Tag the frames map, so the frame storage is recreated once the DNA is saved. */
@@ -2258,7 +2258,7 @@ void GreasePencil::remove_drawings_with_no_users()
 
   auto is_drawing_used = [&](const int drawing_index) {
     GreasePencilDrawingBase *drawing_base = drawings[drawing_index];
-    /* Note: GreasePencilDrawingReference does not have a user count currently, but should
+    /* NOTE: GreasePencilDrawingReference does not have a user count currently, but should
      * eventually be counted like GreasePencilDrawing. */
     if (drawing_base->type != GP_DRAWING) {
       return false;

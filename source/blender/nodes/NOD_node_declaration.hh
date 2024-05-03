@@ -445,7 +445,7 @@ class NodeDeclaration {
   /* Combined list of socket and panel declarations.
    * This determines order of sockets in the UI and panel content. */
   Vector<ItemDeclarationPtr> items;
-  /* Note: inputs and outputs pointers are owned by the items list. */
+  /* NOTE: inputs and outputs pointers are owned by the items list. */
   Vector<SocketDeclaration *> inputs;
   Vector<SocketDeclaration *> outputs;
   std::unique_ptr<aal::RelationsInNode> anonymous_attribute_relations_;

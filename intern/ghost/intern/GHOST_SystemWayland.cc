@@ -1823,12 +1823,28 @@ static const char *ghost_wl_locale_from_env_with_default()
   return locale;
 }
 
-static void ghost_wl_display_report_error_from_code(const int ecode)
+static void ghost_wl_display_report_error_from_code(wl_display *display, const int ecode)
 {
+  GHOST_ASSERT(ecode, "Error not set!");
   if (ELEM(ecode, EPIPE, ECONNRESET)) {
     fprintf(stderr, "The Wayland connection broke. Did the Wayland compositor die?\n");
     return;
   }
+
+  if (ecode == EPROTO) {
+    const struct wl_interface *interface = nullptr;
+    const int ecode_proto = wl_display_get_protocol_error(display, &interface, nullptr);
+    fprintf(stderr,
+            "The Wayland connection experienced a protocol error %d in interface: %s\n",
+            ecode_proto,
+            interface ? interface->name : "<nil>");
+    const char *env_debug = "WAYLAND_DEBUG";
+    if (getenv(env_debug) == nullptr) {
+      fprintf(stderr, "Run with the environment variable \"%s=1\" for details.\n", env_debug);
+    }
+    return;
+  }
+
   fprintf(stderr, "The Wayland connection experienced a fatal error: %s\n", strerror(ecode));
 }
 
@@ -1836,7 +1852,7 @@ static void ghost_wl_display_report_error(wl_display *display)
 {
   int ecode = wl_display_get_error(display);
   GHOST_ASSERT(ecode, "Error not set!");
-  ghost_wl_display_report_error_from_code(ecode);
+  ghost_wl_display_report_error_from_code(display, ecode);
 
   /* NOTE(@ideasman42): The application is running,
    * however an error closes all windows and most importantly:
@@ -1858,7 +1874,7 @@ bool ghost_wl_display_report_error_if_set(wl_display *display)
   if (ecode == 0) {
     return false;
   }
-  ghost_wl_display_report_error_from_code(ecode);
+  ghost_wl_display_report_error_from_code(display, ecode);
   return true;
 }
 

@@ -210,11 +210,11 @@ void BKE_mesh_mselect_validate(Mesh *mesh);
 /**
  * \return the index within `me->mselect`, or -1
  */
-int BKE_mesh_mselect_find(Mesh *mesh, int index, int type);
+int BKE_mesh_mselect_find(const Mesh *mesh, int index, int type);
 /**
  * \return The index of the active element.
  */
-int BKE_mesh_mselect_active_get(Mesh *mesh, int type);
+int BKE_mesh_mselect_active_get(const Mesh *mesh, int type);
 void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type);
 
 void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3]);

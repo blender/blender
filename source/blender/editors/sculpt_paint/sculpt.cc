@@ -6271,7 +6271,7 @@ void SCULPT_cube_tip_init(Sculpt * /*sd*/, Object *ob, Brush *brush, float mat[4
   zero_m4(mat);
   calc_brush_local_mat(0.0, ob, unused, mat);
 
-  /* Note: we ignore the radius scaling done inside of calc_brush_local_mat to
+  /* NOTE: we ignore the radius scaling done inside of calc_brush_local_mat to
    * duplicate prior behavior.
    *
    * TODO: try disabling this and check that all edge cases work properly.

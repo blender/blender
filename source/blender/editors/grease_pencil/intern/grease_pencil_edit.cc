@@ -2517,9 +2517,8 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
 
     curve_points_to_extrude.foreach_index([&](const int src_point_index) {
       if (!curve_cyclic && (src_point_index == curve_points.first())) {
-        /* Startpoint extruded, we insert a new point at the beginning of the curve.
-         * Note : all points of a cyclic curve behave like an innerpoint.
-         */
+        /* Start-point extruded, we insert a new point at the beginning of the curve.
+         * NOTE: all points of a cyclic curve behave like an inner-point. */
         dst_to_src_points.insert(src_point_index + point_offset, src_point_index);
         dst_selected.insert(src_point_index + point_offset, true);
         ++dst_curve_counts[curve_index];
@@ -2527,9 +2526,8 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
         return;
       }
       if (!curve_cyclic && (src_point_index == curve_points.last())) {
-        /* Endpoint extruded, we insert a new point at the end of the curve.
-         * Note : all points of a cyclic curve behave like an innerpoint.
-         */
+        /* End-point extruded, we insert a new point at the end of the curve.
+         * NOTE: all points of a cyclic curve behave like an inner-point. */
         dst_to_src_points.insert(src_point_index + point_offset + 1, src_point_index);
         dst_selected.insert(src_point_index + point_offset + 1, true);
         ++dst_curve_counts[curve_index];
@@ -2537,7 +2535,7 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
         return;
       }
 
-      /* Innerpoint extruded : we create a new curve made of two points located at the same
+      /* Inner-point extruded: we create a new curve made of two points located at the same
        * position. Only one of them is selected so that the other one remains stuck to the curve.
        */
       dst_to_src_points.append(src_point_index);
@@ -2578,7 +2576,7 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   selection.finish();
 
   /* Cyclic attribute : newly created curves cannot be cyclic.
-   * Note: if the cyclic attribute is single and false, it can be kept this way.
+   * NOTE: if the cyclic attribute is single and false, it can be kept this way.
    */
   if (src_cyclic.get_if_single().value_or(true)) {
     dst.cyclic_for_write().drop_front(old_curves_num).fill(false);

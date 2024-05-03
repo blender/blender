@@ -57,7 +57,7 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
     name = DATA_(bonecoll_default_name);
   }
 
-  /* Note: the collection name may change after the collection is added to an
+  /* NOTE: the collection name may change after the collection is added to an
    * armature, to ensure it is unique within the armature. */
   BoneCollection *bcoll = MEM_cnew<BoneCollection>(__func__);
 
@@ -153,7 +153,7 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
 /**
  * Inserts bcoll into armature's array of bone collections at index.
  *
- * Note: the specified index is where the given bone collection will end up.
+ * NOTE: the specified index is where the given bone collection will end up.
  * This means, for example, that for a collection array of length N, you can
  * pass N as the index to append to the end.
  */
@@ -668,7 +668,7 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
   /* Rotate the to-be-removed collection to the last array element. */
   internal::bonecolls_move_to_index(armature, index, armature->collection_array_num - 1);
 
-  /* Note: we don't bother to shrink the allocation.  It's okay if the
+  /* NOTE: we don't bother to shrink the allocation.  It's okay if the
    * capacity has extra space, because the number of valid items is tracked. */
   armature->collection_array_num--;
   armature->collection_array[armature->collection_array_num] = nullptr;

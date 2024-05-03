@@ -209,7 +209,7 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
     return {};
   }
 
-  /* Note: although Alembic can store knots, we do not read them as the functionality is not
+  /* NOTE: although Alembic can store knots, we do not read them as the functionality is not
    * exposed by the Blender's Curves API yet. */
   const Int32ArraySamplePtr per_curve_vertices_count = smp.getCurvesNumVertices();
   const P3fArraySamplePtr positions = smp.getPositions();

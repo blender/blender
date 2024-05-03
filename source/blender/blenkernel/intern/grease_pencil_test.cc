@@ -20,7 +20,7 @@ namespace blender::bke::greasepencil::tests {
 /* --------------------------------------------------------------------------------------------- */
 /* Grease Pencil ID Tests. */
 
-/* Note: Using a struct with constructor and destructor instead of a fixture here, to have all the
+/* NOTE: Using a struct with constructor and destructor instead of a fixture here, to have all the
  * tests in the same group (`greasepencil`). */
 struct GreasePencilIDTestContext {
   Main *bmain = nullptr;

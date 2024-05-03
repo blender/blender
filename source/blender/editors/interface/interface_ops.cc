@@ -1594,7 +1594,7 @@ blender::Vector<FCurve *> get_property_drivers(
   blender::Vector<FCurve *> drivers = {};
   const bool is_array_prop = RNA_property_array_check(prop);
   if (!is_array_prop) {
-    /* Note: by convention Blender assigns 0 as the index for drivers of
+    /* NOTE: by convention Blender assigns 0 as the index for drivers of
      * non-array properties, which is why we search for it here.  Values > 0 are
      * not recognized by Blender's driver system in that case.  Values < 0 are
      * recognized for driver evaluation, but `BKE_fcurve_find()` unconditionally

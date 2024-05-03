@@ -97,7 +97,7 @@ static void armature_init_data(ID *id)
  * Copies the bone collection in `bcoll_src` to `bcoll_dst`, re-hooking up all
  * of the bone relationships to the bones in `armature_dst`.
  *
- * Note: this function's use case is narrow in scope, intended only for use in
+ * \note this function's use case is narrow in scope, intended only for use in
  * `armature_copy_data()` below.  You probably don't want to use this otherwise.
  *
  * \param lib_id_flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).

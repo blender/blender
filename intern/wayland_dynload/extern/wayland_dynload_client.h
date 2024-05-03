@@ -18,6 +18,7 @@ WAYLAND_DYNLOAD_FN(wl_display_disconnect)
 WAYLAND_DYNLOAD_FN(wl_display_dispatch)
 WAYLAND_DYNLOAD_FN(wl_display_dispatch_pending)
 WAYLAND_DYNLOAD_FN(wl_display_get_fd)
+WAYLAND_DYNLOAD_FN(wl_display_get_protocol_error)
 WAYLAND_DYNLOAD_FN(wl_display_prepare_read)
 WAYLAND_DYNLOAD_FN(wl_display_read_events)
 WAYLAND_DYNLOAD_FN(wl_display_cancel_read)
@@ -77,6 +78,9 @@ struct WaylandDynload_Client {
   int WL_DYN_FN(wl_display_roundtrip)(struct wl_display *display);
   int WL_DYN_FN(wl_display_dispatch_pending)(struct wl_display *display);
   int WL_DYN_FN(wl_display_get_fd)(struct wl_display *display);
+  uint32_t WL_DYN_FN(wl_display_get_protocol_error)(struct wl_display *display,
+                                                    const struct wl_interface **interface,
+                                                    uint32_t *id);
   int WL_DYN_FN(wl_display_prepare_read)(struct wl_display *display);
   int WL_DYN_FN(wl_display_read_events)(struct wl_display *display);
   void WL_DYN_FN(wl_display_cancel_read)(struct wl_display *display);
@@ -118,6 +122,8 @@ struct WaylandDynload_Client {
 #      define wl_display_dispatch_pending(...) \
         (*wayland_dynload_client.wl_display_dispatch)(__VA_ARGS__)
 #      define wl_display_get_fd(...) (*wayland_dynload_client.wl_display_get_fd)(__VA_ARGS__)
+#      define wl_display_get_protocol_error(...) \
+        (*wayland_dynload_client.wl_display_get_protocol_error)(__VA_ARGS__)
 #      define wl_display_prepare_read(...) \
         (*wayland_dynload_client.wl_display_prepare_read)(__VA_ARGS__)
 #      define wl_display_read_events(...) \

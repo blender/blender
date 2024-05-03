@@ -690,7 +690,7 @@ ID *BKE_id_copy_in_lib(Main *bmain,
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     BLI_assert(!owner_library || newid->lib == *owner_library);
     /* Expanding local linked ID usages should never be needed with embedded IDs - this will be
-     * handeled together with their owner ID copying code. */
+     * handled together with their owner ID copying code. */
     if (!ID_IS_LINKED(newid) && (newid->flag & LIB_EMBEDDED_DATA) == 0) {
       lib_id_copy_ensure_local(bmain, id, newid, 0);
     }
@@ -1501,8 +1501,8 @@ void BKE_libblock_copy_in_lib(Main *bmain,
   if (is_embedded_id && (orig_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     new_id->tag &= ~LIB_TAG_NO_MAIN;
   }
-  /* Note: This also needs to run for ShapeKeys, which are not (yet) actual embedded IDs.
-   * Note: for now, keep existing owner ID (i.e. owner of the source embedded ID) if no new one
+  /* NOTE: This also needs to run for ShapeKeys, which are not (yet) actual embedded IDs.
+   * NOTE: for now, keep existing owner ID (i.e. owner of the source embedded ID) if no new one
    * is given. In some cases (e.g. depsgraph), this is important for later remapping to work
    * properly.
    */

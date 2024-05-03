@@ -1159,7 +1159,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     Object *obedit = objects[ob_index];
     BMesh *bm = nullptr;
     if (bmesh_override) {
-      /* Note: obedit is still required for aspect ratio and ID_RECALC_GEOMETRY. */
+      /* NOTE: obedit is still required for aspect ratio and ID_RECALC_GEOMETRY. */
       bm = bmesh_override[ob_index];
     }
     else {

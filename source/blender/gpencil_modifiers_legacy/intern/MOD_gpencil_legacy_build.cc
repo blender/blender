@@ -599,7 +599,7 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
   const bool reverse = (mmd->transition != GP_BUILD_TRANSITION_GROW);
 
   /* 1) Determine the longest stroke, to figure out when short strokes should start */
-  /* Todo: A *really* long stroke here could dwarf everything else, causing bad timings */
+  /* TODO: A *really* long stroke here could dwarf everything else, causing bad timings */
   LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
     if (gps->totpoints > max_points) {
       max_points = gps->totpoints;

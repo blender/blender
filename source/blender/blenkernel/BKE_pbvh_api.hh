@@ -187,7 +187,7 @@ bool bmesh_node_raycast_detail(PBVHNode *node,
  * For orthographic cameras, project the far away ray segment points to the root node so
  * we can have better precision.
  *
- * Note: the interval is not guaranteed to lie between ray_start and ray_end; this is
+ * \note the interval is not guaranteed to lie between ray_start and ray_end; this is
  * not necessary for orthographic views and is impossible anyhow due to the necessity of
  * projecting the far clipping plane into the local object space.  This works out to
  * dividing view3d->clip_end by the object scale, which for small object and large

@@ -30,9 +30,9 @@ ccl_device float2 fresnel_dielectric_polarized(float cos_theta_i,
        * However, for the current user of this computation (the iridescence code),
        * this doesn't actually affect the result, so don't bother with the computation for now.
        *
-       * const float fac = sqrtf(1.0f - sqr(cosThetaI) - sqr(eta));
-       * r_phi->x = -2.0f * atanf(fac / cosThetaI);
-       * r_phi->y = -2.0f * atanf(fac / (cosThetaI * sqr(eta)));
+       * `const float fac = sqrtf(1.0f - sqr(cosThetaI) - sqr(eta));`
+       * `r_phi->x = -2.0f * atanf(fac / cosThetaI);`
+       * `r_phi->y = -2.0f * atanf(fac / (cosThetaI * sqr(eta)));`
        */
       *r_phi = zero_float2();
     }
@@ -271,14 +271,15 @@ ccl_device_inline Spectrum closure_layering_weight(const Spectrum layer_albedo,
  * https://belcour.github.io/blog/research/publication/2017/05/01/brdf-thin-film.html.
  */
 
-/* Evaluate the sensitivity functions for the Fourier-space spectral integration.
+/**
+ * Evaluate the sensitivity functions for the Fourier-space spectral integration.
  * The code here uses the Gaussian fit for the CIE XYZ curves that is provided
  * in the reference implementation.
  * For details on what this actually represents, see the paper.
  * In theory we should pre-compute the sensitivity functions for the working RGB
- * colorspace, remap them to be functions of (light) frequency, take their Fourier
+ * color-space, remap them to be functions of (light) frequency, take their Fourier
  * transform and store them as a LUT that gets looked up here.
- * In practise, using the XYZ fit and converting the result from XYZ to RGB is easier.
+ * In practice, using the XYZ fit and converting the result from XYZ to RGB is easier.
  */
 ccl_device_inline Spectrum iridescence_lookup_sensitivity(float OPD, float shift)
 {
@@ -375,7 +376,7 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
    * The proper way to do this would be a Von Kries-style transform, but to keep it simple,
    * we just multiply by the white point here.
    *
-   * Note: The reference implementation sidesteps all this by just hardcoding a XYZ->CIE RGB
+   * Note: The reference implementation sidesteps all this by just hard-coding a XYZ->CIE RGB
    * matrix. Since CIE RGB uses E as its white point, this sidesteps the chromatic adaption
    * topic, but the primary colors don't match (unless you happen to actually work in CIE RGB.)
    */

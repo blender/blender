@@ -52,7 +52,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
 
     stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
 
-    /* Note: Only evaluates `stack.cl[0]`. */
+    /* NOTE: Only evaluates `stack.cl[0]`. */
     light_eval_transmission(stack, g_data.P, surface_N, V, vPz, thickness);
 
 #  if defined(MAT_SUBSURFACE)

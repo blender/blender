@@ -875,7 +875,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_RUNNING_MODAL;
   }
 
-  /* Note: some filter types are continuous, for these we store an
+  /* NOTE: some filter types are continuous, for these we store an
    * event history in RNA for continuous.
    * This way the user can tweak the last operator properties
    * or repeat the op and get expected results. */

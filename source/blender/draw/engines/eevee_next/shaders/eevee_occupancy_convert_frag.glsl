@@ -87,7 +87,7 @@ void main()
   /* Write the occupancy bits */
   for (int i = 0; i < imageSize(occupancy_img).z; i++) {
     if (occupancy.bits[i] != 0u) {
-      /* Note: Doesn't have to be atomic but we need to blend with other method. */
+      /* NOTE: Doesn't have to be atomic but we need to blend with other method. */
       imageAtomicOr(occupancy_img, ivec3(texel, i), occupancy.bits[i]);
     }
   }

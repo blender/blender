@@ -188,7 +188,7 @@ void eval_volume_step(inout vec3 Lscat, float extinction, float step_len, out fl
 
 vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max, float step_len)
 {
-  /* Note: Constant array declared inside function scope to reduce shader core thread memory
+  /* NOTE: Constant array declared inside function scope to reduce shader core thread memory
    * pressure on Apple Silicon. */
   const vec4 dither_mat[4] = vec4[4](vec4(P(0.0), P(8.0), P(2.0), P(10.0)),
                                      vec4(P(12.0), P(4.0), P(14.0), P(6.0)),

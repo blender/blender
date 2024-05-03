@@ -764,7 +764,7 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
     if (changed) {
       changed_multi = true;
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);
-      DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&arm->id, ID_RECALC_PARAMETERS);
     }
   }
 

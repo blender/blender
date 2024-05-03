@@ -802,7 +802,8 @@ class VIEW3D_HT_header(Header):
             'PARTICLE_EDIT',
             'SCULPT_GPENCIL',
             'EDIT_GPENCIL',
-                'OBJECT'} and context.mode != 'EDIT_ARMATURE':
+            'OBJECT',
+        } and context.mode != 'EDIT_ARMATURE':
             row = layout.row(align=True)
             kw = {}
             if object_mode == 'OBJECT':
@@ -1212,7 +1213,7 @@ class VIEW3D_HT_header(Header):
             sculpt.use_automasking_view_normal
         )
 
-        return "CLIPUV_DEHLT" if automask_enabled else "CLIPUV_HLT"
+        return 'CLIPUV_DEHLT' if automask_enabled else 'CLIPUV_HLT'
 
     @staticmethod
     def _gpencil_sculpt_automasking_icon(gpencil_sculpt):
@@ -1224,12 +1225,12 @@ class VIEW3D_HT_header(Header):
             gpencil_sculpt.use_automasking_layer_active
         )
 
-        return "CLIPUV_DEHLT" if automask_enabled else "CLIPUV_HLT"
+        return 'CLIPUV_DEHLT' if automask_enabled else 'CLIPUV_HLT'
 
     @staticmethod
     def _texture_mask_icon(ipaint):
         mask_enabled = ipaint.use_stencil_layer or ipaint.use_cavity
-        return "CLIPUV_DEHLT" if mask_enabled else "CLIPUV_HLT"
+        return 'CLIPUV_DEHLT' if mask_enabled else 'CLIPUV_HLT'
 
 
 class VIEW3D_MT_editor_menus(Menu):
@@ -1281,7 +1282,7 @@ class VIEW3D_MT_editor_menus(Menu):
             layout.menu("VIEW3D_MT_mesh_add", text="Add", text_ctxt=i18n_contexts.operator_default)
         elif mode_string == 'EDIT_CURVE':
             layout.menu("VIEW3D_MT_curve_add", text="Add", text_ctxt=i18n_contexts.operator_default)
-        elif mode_string == "EDIT_CURVES":
+        elif mode_string == 'EDIT_CURVES':
             layout.menu("VIEW3D_MT_edit_curves_add", text="Add", text_ctxt=i18n_contexts.operator_default)
         elif mode_string == 'EDIT_SURFACE':
             layout.menu("VIEW3D_MT_surface_add", text="Add", text_ctxt=i18n_contexts.operator_default)
@@ -6379,7 +6380,7 @@ class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
         pie.operator("paint.visibility_invert", text="Invert Visible")
 
         props = pie.operator("paint.hide_show_all", text="Show All")
-        props.action = "SHOW"
+        props.action = 'SHOW'
 
 
 class VIEW3D_MT_wpaint_vgroup_lock_pie(Menu):

@@ -953,7 +953,7 @@ static void seq_update_scene_strip_sound(Sequence *seq)
   }
 
   /* Set `seq->scene` volume.
-   * Note: Currently this doesn't work well, when this property is animated. Scene strip volume is
+   * NOTE: Currently this doesn't work well, when this property is animated. Scene strip volume is
    * also controlled by `seq_update_sound_properties()` via `seq->volume` which works if animated.
    *
    * Ideally, the entire `BKE_scene_update_sound()` will happen from a dependency graph, so

@@ -914,7 +914,7 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   if (!BLO_write_is_undo(writer)) {
     /* Generate legacy inputs/outputs socket ListBase for forward compatibility.
-     * Note: this has to happen before writing the ntree struct itself so that the ListBase
+     * NOTE: this has to happen before writing the ntree struct itself so that the ListBase
      * first/last pointers are valid. */
     blender::bke::forward_compat::construct_interface_as_legacy_sockets(ntree);
   }

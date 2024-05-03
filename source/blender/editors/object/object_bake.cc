@@ -561,6 +561,7 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
 
   if (!bkr->data.first) {
     BKE_report(op->reports, RPT_ERROR, "No objects found to bake from");
+    MEM_freeN(bkr);
     return OPERATOR_CANCELLED;
   }
 

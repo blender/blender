@@ -461,7 +461,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *active_object = CTX_data_active_object(C);
-  /* Note: `region` and `rv3d` may be null when called from a script. */
+  /* NOTE: `region` and `rv3d` may be null when called from a script. */
   const ARegion *region = CTX_wm_region(C);
   const RegionView3D *rv3d = CTX_wm_region_view3d(C);
   if (!active_object) {

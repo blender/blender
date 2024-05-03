@@ -90,7 +90,8 @@ using IDTypeForeachCacheFunction = void (*)(ID *id,
 using IDTypeForeachPathFunction = void (*)(ID *id, BPathForeachPathData *bpath_data);
 
 /**
- * Callback returning the address of the pointer to the owner ID, for embedded (and Shapekey) ones.
+ * Callback returning the address of the pointer to the owner ID,
+ * for embedded (and Shape-key) ones.
  *
  * \param debug_relationship_assert: usually the owner <-> embedded relation pointers should be
  * fully valid, and can be asserted on. But in some cases, they are not (fully) valid, e.g when

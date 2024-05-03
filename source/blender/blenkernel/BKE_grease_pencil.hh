@@ -165,7 +165,7 @@ class LayerGroup;
 class Layer;
 
 /* Defines the common functions used by #TreeNode, #Layer, and #LayerGroup.
- * Note: Because we cannot mix C-style and C++ inheritance (all of these three classes wrap a
+ * NOTE: Because we cannot mix C-style and C++ inheritance (all of these three classes wrap a
  * C-struct that already uses "inheritance"), we define and implement these methods on all these
  * classes individually. This just means that we can call `layer->name()` directly instead of
  * having to write `layer->as_node().name()`. For #Layer and #LayerGroup the calls are just
@@ -832,7 +832,7 @@ class GreasePencilEditHints {
 
   /**
    * Array of #GreasePencilDrawingEditHints. There is one edit hint for each evaluated drawing.
-   * Note: The index for each element is the layer index.
+   * \note The index for each element is the layer index.
    */
   std::optional<Array<GreasePencilDrawingEditHints>> drawing_hints;
 };
