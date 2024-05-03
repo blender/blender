@@ -5,6 +5,23 @@
 from bpy.types import Menu
 
 
+class BrushAssetShelf:
+    bl_options = {'DEFAULT_VISIBLE', 'NO_ASSET_DRAG'}
+    bl_default_preview_size = 48
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        if not prefs.experimental.use_extended_asset_browser:
+            return False
+
+        return context.mode == 'SCULPT'
+
+    @classmethod
+    def asset_poll(cls, asset):
+        return asset.id_type == 'BRUSH'
+
+
 class UnifiedPaintPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'

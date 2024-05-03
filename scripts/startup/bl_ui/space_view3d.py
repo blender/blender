@@ -13,6 +13,7 @@ from bl_ui.properties_paint_common import (
     brush_basic_texpaint_settings,
     brush_basic_gpencil_weight_settings,
     brush_basic_grease_pencil_weight_settings,
+    BrushAssetShelf,
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -9083,25 +9084,11 @@ class VIEW3D_PT_viewport_debug(Panel):
         layout.prop(overlay, "use_debug_freeze_view_culling")
 
 
-class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
+class VIEW3D_AST_sculpt_brushes(BrushAssetShelf, bpy.types.AssetShelf):
     # Experimental: Asset shelf for sculpt brushes, only shows up if both the
     # "Asset Shelf" and the "Extended Asset Browser" experimental features are
     # enabled.
-
-    bl_space_type = 'VIEW_3D'
-    bl_default_preview_size = 48
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        if not prefs.experimental.use_extended_asset_browser:
-            return False
-
-        return context.mode == 'SCULPT'
-
-    @classmethod
-    def asset_poll(cls, asset):
-        return asset.id_type == 'BRUSH'
+    bl_space_type = "VIEW_3D"
 
 
 classes = (
