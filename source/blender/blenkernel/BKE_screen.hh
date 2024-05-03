@@ -534,6 +534,9 @@ struct AssetShelfType {
 
   int space_type;
 
+  /** Operator to call when activating a grid view item. */
+  std::string activate_operator;
+
   AssetShelfTypeFlag flag;
 
   short default_preview_size;

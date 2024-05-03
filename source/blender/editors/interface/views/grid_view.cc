@@ -9,6 +9,7 @@
 #include <cfloat>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 
 #include "BKE_icons.h"
@@ -16,6 +17,8 @@
 #include "BLI_index_range.hh"
 
 #include "WM_types.hh"
+
+#include "RNA_access.hh"
 
 #include "UI_interface.hh"
 #include "interface_intern.hh"
@@ -405,23 +408,42 @@ PreviewGridItem::PreviewGridItem(StringRef identifier, StringRef label, int prev
 {
 }
 
-void PreviewGridItem::build_grid_tile(uiLayout &layout) const
+void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
+                                             const wmOperatorType *ot,
+                                             const PointerRNA *op_props) const
 {
   const GridViewStyle &style = this->get_view().get_style();
   uiBlock *block = uiLayoutGetBlock(&layout);
 
-  uiBut *but = uiDefBut(block,
+  uiBut *but;
+  if (ot) {
+    but = uiDefButO_ptr(block,
                         UI_BTYPE_PREVIEW_TILE,
-                        0,
+                        const_cast<wmOperatorType *>(ot),
+                        WM_OP_INVOKE_REGION_WIN,
                         hide_label_ ? "" : label,
                         0,
                         0,
                         style.tile_width,
                         style.tile_height,
-                        nullptr,
-                        0,
-                        0,
                         "");
+    but->opptr = MEM_new<PointerRNA>(__func__, *op_props);
+  }
+  else {
+    but = uiDefBut(block,
+                   UI_BTYPE_PREVIEW_TILE,
+                   0,
+                   hide_label_ ? "" : label,
+                   0,
+                   0,
+                   style.tile_width,
+                   style.tile_height,
+                   nullptr,
+                   0,
+                   0,
+                   "");
+  }
+
   /* Draw icons that are not previews or images as normal icons with a fixed icon size. Otherwise
    * they will be upscaled to the button size. Should probably be done by the widget code. */
   const int is_preview_flag = (BKE_icon_is_preview(preview_icon_id) ||
@@ -434,6 +456,11 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
                   UI_HAS_ICON | is_preview_flag);
   UI_but_func_tooltip_label_set(but, [this](const uiBut * /*but*/) { return label; });
   but->emboss = UI_EMBOSS_NONE;
+}
+
+void PreviewGridItem::build_grid_tile(uiLayout &layout) const
+{
+  this->build_grid_tile_button(layout);
 }
 
 void PreviewGridItem::set_on_activate_fn(ActivateFn fn)

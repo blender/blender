@@ -1279,6 +1279,24 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
   return srna;
 }
 
+static void rna_AssetShelf_activate_operator_get(PointerRNA *ptr, char *value)
+{
+  AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
+  strcpy(value, shelf->type->activate_operator.c_str());
+}
+
+static int rna_AssetShelf_activate_operator_length(PointerRNA *ptr)
+{
+  AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
+  return shelf->type->activate_operator.size();
+}
+
+static void rna_AssetShelf_activate_operator_set(PointerRNA *ptr, const char *value)
+{
+  AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
+  shelf->type->activate_operator = value;
+}
+
 static StructRNA *rna_AssetShelf_refine(PointerRNA *shelf_ptr)
 {
   AssetShelf *shelf = (AssetShelf *)shelf_ptr->data;
@@ -2308,6 +2326,17 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, asset_shelf_flag_items);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Options", "Options for this asset shelf type");
+
+  prop = RNA_def_property(srna, "bl_activate_operator", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetShelf_activate_operator_get",
+                                "rna_AssetShelf_activate_operator_length",
+                                "rna_AssetShelf_activate_operator_set");
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Activate Operator",
+      "Operator to call when activating an item with asset reference properties");
 
   prop = RNA_def_property(srna, "bl_default_preview_size", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "type->default_preview_size");
