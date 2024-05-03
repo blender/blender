@@ -1291,21 +1291,19 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext
     *tree = build_catalog_tree(C, *active_object);
   }
 
-  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
-      asset_system::all_library_reference());
-  if (!all_library) {
-    return;
+  if (asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
+          asset_system::all_library_reference()))
+  {
+    const Set<std::string> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
+                                                             eObjectMode(active_object->mode));
+
+    tree->catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
+      if (!builtin_menus.contains_as(item.catalog_path().str())) {
+        asset::draw_menu_for_catalog(
+            screen, *all_library, item, "GEO_MT_node_operator_catalog_assets", layout);
+      }
+    });
   }
-
-  const Set<std::string> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
-                                                           eObjectMode(active_object->mode));
-
-  tree->catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
-    if (!builtin_menus.contains_as(item.catalog_path().str())) {
-      asset::draw_menu_for_catalog(
-          screen, *all_library, item, "GEO_MT_node_operator_catalog_assets", layout);
-    }
-  });
 
   if (!tree->unassigned_assets.is_empty() || unassigned_local_poll(C)) {
     uiItemM(&layout, "GEO_MT_node_operator_unassigned", "", ICON_FILE_HIDDEN);
