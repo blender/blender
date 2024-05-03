@@ -22,7 +22,6 @@
 #include <variant>
 
 #include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_screen.hh"
 
