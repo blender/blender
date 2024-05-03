@@ -466,9 +466,6 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     /* Pen Soft brush. */
     brush = reinterpret_cast<Brush *>(
         do_versions_rename_id(bmain, ID_BR, "Draw Soft", "Pencil Soft"));
-    if (brush) {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
-    }
 
     /* Ink Pen brush. */
     do_versions_rename_id(bmain, ID_BR, "Draw Ink", "Ink Pen");

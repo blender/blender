@@ -550,7 +550,6 @@ void BKE_brush_init_gpencil_settings(Brush *brush)
   brush->gpencil_settings->draw_strength = 1.0f;
   brush->gpencil_settings->draw_jitter = 0.0f;
   brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
-  brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
 
   /* curves */
   brush->gpencil_settings->curve_sensitivity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -755,7 +754,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_AIRBRUSH;
 
       zero_v3(brush->secondary_rgb);
 
@@ -793,7 +791,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_INK);
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_INK;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
       zero_v3(brush->secondary_rgb);
@@ -830,7 +827,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_INKNOISE);
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_INKNOISE;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
       zero_v3(brush->secondary_rgb);
@@ -867,7 +863,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 4, GPCURVE_PRESET_MARKER);
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_MARKER;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
       zero_v3(brush->secondary_rgb);
@@ -908,7 +903,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 4, GPCURVE_PRESET_CHISEL_STRENGTH);
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_CHISEL;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
       zero_v3(brush->secondary_rgb);
@@ -939,7 +933,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_jitter = 0.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
       zero_v3(brush->secondary_rgb);
@@ -970,7 +963,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_jitter = 0.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PENCIL;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
       zero_v3(brush->secondary_rgb);
@@ -1003,7 +995,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_jitter = 0.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PENCIL;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
       zero_v3(brush->secondary_rgb);
@@ -1026,7 +1017,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->flag |= GP_BRUSH_FILL_SHOW_EXTENDLINES;
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_FILL;
       brush->gpencil_tool = GPAINT_TOOL_FILL;
       brush->gpencil_settings->vertex_mode = GPPAINT_MODE_FILL;
 
@@ -1039,7 +1029,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
       brush->gpencil_tool = GPAINT_TOOL_ERASE;
       brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
       brush->gpencil_settings->era_strength_f = 100.0f;
@@ -1054,7 +1043,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->era_strength_f = 100.0f;
       brush->gpencil_settings->era_thickness_f = 50.0f;
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
       brush->gpencil_tool = GPAINT_TOOL_ERASE;
 
       break;
@@ -1063,7 +1051,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 30.0f;
       brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_HARD;
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
       brush->gpencil_tool = GPAINT_TOOL_ERASE;
 
       break;
@@ -1072,13 +1059,11 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 30.0f;
       brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_STROKE;
 
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_STROKE;
       brush->gpencil_tool = GPAINT_TOOL_ERASE;
 
       break;
     }
     case GP_BRUSH_PRESET_TINT: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_TINT;
       brush->gpencil_tool = GPAINT_TOOL_TINT;
 
       brush->size = 25.0f;
@@ -1091,7 +1076,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_VERTEX_DRAW: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_DRAW;
       brush->gpencil_vertex_tool = GPVERTEX_TOOL_DRAW;
 
       brush->size = 25.0f;
@@ -1104,7 +1088,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_VERTEX_BLUR: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_BLUR;
       brush->gpencil_vertex_tool = GPVERTEX_TOOL_BLUR;
 
       brush->size = 25.0f;
@@ -1117,7 +1100,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_VERTEX_AVERAGE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_AVERAGE;
       brush->gpencil_vertex_tool = GPVERTEX_TOOL_AVERAGE;
 
       brush->size = 25.0f;
@@ -1130,7 +1112,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_VERTEX_SMEAR: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_SMEAR;
       brush->gpencil_vertex_tool = GPVERTEX_TOOL_SMEAR;
 
       brush->size = 25.0f;
@@ -1143,7 +1124,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_VERTEX_REPLACE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_REPLACE;
       brush->gpencil_vertex_tool = GPVERTEX_TOOL_REPLACE;
 
       brush->size = 25.0f;
@@ -1156,7 +1136,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_SMOOTH_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_SMOOTH;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_SMOOTH;
 
       brush->size = 25.0f;
@@ -1169,7 +1148,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_STRENGTH_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_STRENGTH;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_STRENGTH;
 
       brush->size = 25.0f;
@@ -1182,7 +1160,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_THICKNESS_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_THICKNESS;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_THICKNESS;
 
       brush->size = 25.0f;
@@ -1195,7 +1172,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_GRAB_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_GRAB;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_GRAB;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
 
@@ -1208,7 +1184,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_PUSH_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_PUSH;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_PUSH;
 
       brush->size = 25.0f;
@@ -1221,7 +1196,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_TWIST_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_TWIST;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_TWIST;
 
       brush->size = 50.0f;
@@ -1234,7 +1208,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_PINCH_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_PINCH;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_PINCH;
 
       brush->size = 50.0f;
@@ -1247,7 +1220,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_RANDOMIZE_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_RANDOMIZE;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_RANDOMIZE;
 
       brush->size = 25.0f;
@@ -1260,7 +1232,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_CLONE_STROKE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_CLONE;
       brush->gpencil_sculpt_tool = GPSCULPT_TOOL_CLONE;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
 
@@ -1273,7 +1244,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_WEIGHT_DRAW: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_WEIGHT;
       brush->gpencil_weight_tool = GPWEIGHT_TOOL_DRAW;
 
       brush->size = 25.0f;
@@ -1287,7 +1257,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_WEIGHT_BLUR: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_BLUR;
       brush->gpencil_weight_tool = GPWEIGHT_TOOL_BLUR;
 
       brush->size = 50.0f;
@@ -1301,7 +1270,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_WEIGHT_AVERAGE: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_BLUR;
       brush->gpencil_weight_tool = GPWEIGHT_TOOL_AVERAGE;
 
       brush->size = 50.0f;
@@ -1315,7 +1283,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_WEIGHT_SMEAR: {
-      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_BLUR;
       brush->gpencil_weight_tool = GPWEIGHT_TOOL_SMEAR;
 
       brush->size = 50.0f;

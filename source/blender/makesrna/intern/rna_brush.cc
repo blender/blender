@@ -391,50 +391,6 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
     {GP_BRUSH_MODE_VERTEXCOLOR, "VERTEXCOLOR", 0, "Vertex Color", "Use always Vertex Color mode"},
     {0, nullptr, 0, nullptr, nullptr}};
 
-static EnumPropertyItem rna_enum_gpencil_brush_paint_icons_items[] = {
-    {GP_BRUSH_ICON_PENCIL, "PENCIL", ICON_GPBRUSH_PENCIL, "Pencil", ""},
-    {GP_BRUSH_ICON_PEN, "PEN", ICON_GPBRUSH_PEN, "Pen", ""},
-    {GP_BRUSH_ICON_INK, "INK", ICON_GPBRUSH_INK, "Ink", ""},
-    {GP_BRUSH_ICON_INKNOISE, "INKNOISE", ICON_GPBRUSH_INKNOISE, "Ink Noise", ""},
-    {GP_BRUSH_ICON_BLOCK, "BLOCK", ICON_GPBRUSH_BLOCK, "Block", ""},
-    {GP_BRUSH_ICON_MARKER, "MARKER", ICON_GPBRUSH_MARKER, "Marker", ""},
-    {GP_BRUSH_ICON_AIRBRUSH, "AIRBRUSH", ICON_GPBRUSH_AIRBRUSH, "Airbrush", ""},
-    {GP_BRUSH_ICON_CHISEL, "CHISEL", ICON_GPBRUSH_CHISEL, "Chisel", ""},
-    {GP_BRUSH_ICON_FILL, "FILL", ICON_GPBRUSH_FILL, "Fill", ""},
-    {GP_BRUSH_ICON_ERASE_SOFT, "SOFT", ICON_GPBRUSH_ERASE_SOFT, "Eraser Soft", ""},
-    {GP_BRUSH_ICON_ERASE_HARD, "HARD", ICON_GPBRUSH_ERASE_HARD, "Eraser Hard", ""},
-    {GP_BRUSH_ICON_ERASE_STROKE, "STROKE", ICON_GPBRUSH_ERASE_STROKE, "Eraser Stroke", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static EnumPropertyItem rna_enum_gpencil_brush_sculpt_icons_items[] = {
-    {GP_BRUSH_ICON_GPBRUSH_SMOOTH, "SMOOTH", ICON_GPBRUSH_SMOOTH, "Smooth", ""},
-    {GP_BRUSH_ICON_GPBRUSH_THICKNESS, "THICKNESS", ICON_GPBRUSH_THICKNESS, "Thickness", ""},
-    {GP_BRUSH_ICON_GPBRUSH_STRENGTH, "STRENGTH", ICON_GPBRUSH_STRENGTH, "Strength", ""},
-    {GP_BRUSH_ICON_GPBRUSH_RANDOMIZE, "RANDOMIZE", ICON_GPBRUSH_RANDOMIZE, "Randomize", ""},
-    {GP_BRUSH_ICON_GPBRUSH_GRAB, "GRAB", ICON_GPBRUSH_GRAB, "Grab", ""},
-    {GP_BRUSH_ICON_GPBRUSH_PUSH, "PUSH", ICON_GPBRUSH_PUSH, "Push", ""},
-    {GP_BRUSH_ICON_GPBRUSH_TWIST, "TWIST", ICON_GPBRUSH_TWIST, "Twist", ""},
-    {GP_BRUSH_ICON_GPBRUSH_PINCH, "PINCH", ICON_GPBRUSH_PINCH, "Pinch", ""},
-    {GP_BRUSH_ICON_GPBRUSH_CLONE, "CLONE", ICON_GPBRUSH_CLONE, "Clone", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static EnumPropertyItem rna_enum_gpencil_brush_weight_icons_items[] = {
-    {GP_BRUSH_ICON_GPBRUSH_WEIGHT, "DRAW", ICON_GPBRUSH_WEIGHT, "Draw", ""},
-    {GP_BRUSH_ICON_GPBRUSH_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
-    {GP_BRUSH_ICON_GPBRUSH_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
-    {GP_BRUSH_ICON_GPBRUSH_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
-    {GP_BRUSH_ICON_VERTEX_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", ""},
-    {GP_BRUSH_ICON_VERTEX_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
-    {GP_BRUSH_ICON_VERTEX_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
-    {GP_BRUSH_ICON_VERTEX_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
-    {GP_BRUSH_ICON_VERTEX_REPLACE, "REPLACE", ICON_BRUSH_MIX, "Replace", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
 #endif
 
 #ifdef RNA_RUNTIME
@@ -1113,33 +1069,6 @@ static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, Pointe
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
 }
 
-static void rna_BrushGpencilSettings_eraser_mode_update(Main * /*bmain*/,
-                                                        Scene *scene,
-                                                        PointerRNA * /*ptr*/)
-{
-  ToolSettings *ts = scene->toolsettings;
-  Paint *paint = &ts->gp_paint->paint;
-  Brush *brush = BKE_paint_brush(paint);
-
-  /* set eraser icon */
-  if ((brush) && (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
-    switch (brush->gpencil_settings->eraser_mode) {
-      case GP_BRUSH_ERASER_SOFT:
-        brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
-        break;
-      case GP_BRUSH_ERASER_HARD:
-        brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
-        break;
-      case GP_BRUSH_ERASER_STROKE:
-        brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_STROKE;
-        break;
-      default:
-        brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
-        break;
-    }
-  }
-}
-
 static bool rna_BrushGpencilSettings_material_poll(PointerRNA * /*ptr*/, PointerRNA value)
 {
   Material *ma = (Material *)value.data;
@@ -1722,32 +1651,6 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
-  /* brush standard icon */
-  prop = RNA_def_property(srna, "gpencil_paint_icon", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "icon_id");
-  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_paint_icons_items);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
-
-  prop = RNA_def_property(srna, "gpencil_sculpt_icon", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "icon_id");
-  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_sculpt_icons_items);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
-  RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
-
-  prop = RNA_def_property(srna, "gpencil_weight_icon", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "icon_id");
-  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_weight_icons_items);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
-
-  prop = RNA_def_property(srna, "gpencil_vertex_icon", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "icon_id");
-  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_vertex_icons_items);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
-
   /* Mode type. */
   prop = RNA_def_property(srna, "vertex_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "vertex_mode");
@@ -1944,8 +1847,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Mode", "Eraser Mode");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(
-      prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_eraser_mode_update");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
   prop = RNA_def_property(srna, "caps_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "caps_type");
