@@ -7,7 +7,10 @@
  */
 
 #include "BLI_math_color.h"
+#include "BLI_simd.hh"
 #include "BLI_utildefines.h"
+
+#include <string.h>
 
 #include "BLI_strict_flags.h" /* Keep last. */
 
@@ -418,6 +421,244 @@ float linearrgb_to_srgb(float c)
 
   return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
+
+/* SIMD code path, with pow 2.4 and 1/2.4 approximations. */
+#if BLI_HAVE_SSE2
+
+/**
+ * Calculate initial guess for `arg^exp` based on float representation
+ * This method gives a constant bias, which can be easily compensated by
+ * multiplying with bias_coeff.
+ * Gives better results for exponents near 1 (e.g. `4/5`).
+ * exp = exponent, encoded as uint32_t
+ * `e2coeff = 2^(127/exponent - 127) * bias_coeff^(1/exponent)`, encoded as `uint32_t`.
+ *
+ * We hope that exp and e2coeff gets properly inlined.
+ */
+MALWAYS_INLINE __m128 _bli_math_fastpow(const int exp, const int e2coeff, const __m128 arg)
+{
+  __m128 ret;
+  ret = _mm_mul_ps(arg, _mm_castsi128_ps(_mm_set1_epi32(e2coeff)));
+  ret = _mm_cvtepi32_ps(_mm_castps_si128(ret));
+  ret = _mm_mul_ps(ret, _mm_castsi128_ps(_mm_set1_epi32(exp)));
+  ret = _mm_castsi128_ps(_mm_cvtps_epi32(ret));
+  return ret;
+}
+
+/** Improve `x ^ 1.0f/5.0f` solution with Newton-Raphson method */
+MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(const __m128 old_result, const __m128 x)
+{
+  __m128 approx2 = _mm_mul_ps(old_result, old_result);
+  __m128 approx4 = _mm_mul_ps(approx2, approx2);
+  __m128 t = _mm_div_ps(x, approx4);
+  __m128 summ = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(4.0f), old_result), t); /* FMA. */
+  return _mm_mul_ps(summ, _mm_set1_ps(1.0f / 5.0f));
+}
+
+/** Calculate `powf(x, 2.4)`. Working domain: `1e-10 < x < 1e+10`. */
+MALWAYS_INLINE __m128 _bli_math_fastpow24(const __m128 arg)
+{
+  /* max, avg and |avg| errors were calculated in GCC without FMA instructions
+   * The final precision should be better than `powf` in GLIBC. */
+
+  /* Calculate x^4/5, coefficient 0.994 was constructed manually to minimize
+   * avg error.
+   */
+  /* 0x3F4CCCCD = 4/5 */
+  /* 0x4F55A7FB = 2^(127/(4/5) - 127) * 0.994^(1/(4/5)) */
+  /* error max = 0.17, avg = 0.0018, |avg| = 0.05 */
+  __m128 x = _bli_math_fastpow(0x3F4CCCCD, 0x4F55A7FB, arg);
+  __m128 arg2 = _mm_mul_ps(arg, arg);
+  __m128 arg4 = _mm_mul_ps(arg2, arg2);
+  /* error max = 0.018        avg = 0.0031    |avg| = 0.0031 */
+  x = _bli_math_improve_5throot_solution(x, arg4);
+  /* error max = 0.00021    avg = 1.6e-05    |avg| = 1.6e-05 */
+  x = _bli_math_improve_5throot_solution(x, arg4);
+  /* error max = 6.1e-07    avg = 5.2e-08    |avg| = 1.1e-07 */
+  x = _bli_math_improve_5throot_solution(x, arg4);
+  return _mm_mul_ps(x, _mm_mul_ps(x, x));
+}
+
+MALWAYS_INLINE __m128 _bli_math_rsqrt(__m128 in)
+{
+  __m128 r = _mm_rsqrt_ps(in);
+  /* Only do additional Newton-Raphson iterations when using actual SSE
+   * code path. When we are emulating SSE on NEON via sse2neon, the
+   * additional NR iterations are already done inside _mm_rsqrt_ps
+   * emulation. */
+#  if defined(__SSE2__)
+  r = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(1.5f), r),
+                 _mm_mul_ps(_mm_mul_ps(_mm_mul_ps(in, _mm_set1_ps(-0.5f)), r), _mm_mul_ps(r, r)));
+#  endif
+  return r;
+}
+
+/* Calculate `powf(x, 1.0f / 2.4)`. */
+MALWAYS_INLINE __m128 _bli_math_fastpow512(const __m128 arg)
+{
+  /* 5/12 is too small, so compute the 4th root of 20/12 instead.
+   * 20/12 = 5/3 = 1 + 2/3 = 2 - 1/3. 2/3 is a suitable argument for fastpow.
+   * weighting coefficient: a^-1/2 = 2 a; a = 2^-2/3
+   */
+  __m128 xf = _bli_math_fastpow(0x3f2aaaab, 0x5eb504f3, arg);
+  __m128 xover = _mm_mul_ps(arg, xf);
+  __m128 xfm1 = _bli_math_rsqrt(xf);
+  __m128 x2 = _mm_mul_ps(arg, arg);
+  __m128 xunder = _mm_mul_ps(x2, xfm1);
+  /* sqrt2 * over + 2 * sqrt2 * under */
+  __m128 xavg = _mm_mul_ps(_mm_set1_ps(1.0f / (3.0f * 0.629960524947437f) * 0.999852f),
+                           _mm_add_ps(xover, xunder));
+  xavg = _mm_mul_ps(xavg, _bli_math_rsqrt(xavg));
+  xavg = _mm_mul_ps(xavg, _bli_math_rsqrt(xavg));
+  return xavg;
+}
+
+MALWAYS_INLINE __m128 _bli_math_blend_sse(const __m128 mask, const __m128 a, const __m128 b)
+{
+#  if BLI_HAVE_SSE4
+  return _mm_blendv_ps(b, a, mask);
+#  else
+  return _mm_or_ps(_mm_and_ps(mask, a), _mm_andnot_ps(mask, b));
+#  endif
+}
+
+MALWAYS_INLINE __m128 srgb_to_linearrgb_v4_simd(const __m128 c)
+{
+  __m128 cmp = _mm_cmplt_ps(c, _mm_set1_ps(0.04045f));
+  __m128 lt = _mm_max_ps(_mm_mul_ps(c, _mm_set1_ps(1.0f / 12.92f)), _mm_set1_ps(0.0f));
+  __m128 gtebase = _mm_mul_ps(_mm_add_ps(c, _mm_set1_ps(0.055f)),
+                              _mm_set1_ps(1.0f / 1.055f)); /* FMA. */
+  __m128 gte = _bli_math_fastpow24(gtebase);
+  return _bli_math_blend_sse(cmp, lt, gte);
+}
+
+MALWAYS_INLINE __m128 linearrgb_to_srgb_v4_simd(const __m128 c)
+{
+  __m128 cmp = _mm_cmplt_ps(c, _mm_set1_ps(0.0031308f));
+  __m128 lt = _mm_max_ps(_mm_mul_ps(c, _mm_set1_ps(12.92f)), _mm_set1_ps(0.0f));
+  __m128 gte = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(1.055f), _bli_math_fastpow512(c)),
+                          _mm_set1_ps(-0.055f));
+  return _bli_math_blend_sse(cmp, lt, gte);
+}
+
+void srgb_to_linearrgb_v3_v3(float linear[3], const float srgb[3])
+{
+  float r[4] = {srgb[0], srgb[1], srgb[2], 1.0f};
+  __m128 *rv = (__m128 *)&r;
+  *rv = srgb_to_linearrgb_v4_simd(*rv);
+  linear[0] = r[0];
+  linear[1] = r[1];
+  linear[2] = r[2];
+}
+
+void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
+{
+  float r[4] = {linear[0], linear[1], linear[2], 1.0f};
+  __m128 *rv = (__m128 *)&r;
+  *rv = linearrgb_to_srgb_v4_simd(*rv);
+  srgb[0] = r[0];
+  srgb[1] = r[1];
+  srgb[2] = r[2];
+}
+
+#else /* BLI_HAVE_SSE2 */
+
+/* Non-SIMD code path, with the same pow approximations as SIMD one. */
+
+MALWAYS_INLINE float int_as_float(int32_t v)
+{
+  float r;
+  memcpy(&r, &v, sizeof(v));
+  return r;
+}
+
+MALWAYS_INLINE int32_t float_as_int(float v)
+{
+  int32_t r;
+  memcpy(&r, &v, sizeof(v));
+  return r;
+}
+
+MALWAYS_INLINE float _bli_math_fastpow(const int exp, const int e2coeff, const float arg)
+{
+  float ret = arg * int_as_float(e2coeff);
+  ret = float(float_as_int(ret));
+  ret = ret * int_as_float(exp);
+  ret = int_as_float(int(ret));
+  return ret;
+}
+
+MALWAYS_INLINE float _bli_math_improve_5throot_solution(const float old_result, const float x)
+{
+  float approx2 = old_result * old_result;
+  float approx4 = approx2 * approx2;
+  float t = x / approx4;
+  float summ = 4.0f * old_result + t;
+  return summ * (1.0f / 5.0f);
+}
+
+MALWAYS_INLINE float _bli_math_fastpow24(const float arg)
+{
+  float x = _bli_math_fastpow(0x3F4CCCCD, 0x4F55A7FB, arg);
+  float arg2 = arg * arg;
+  float arg4 = arg2 * arg2;
+  x = _bli_math_improve_5throot_solution(x, arg4);
+  x = _bli_math_improve_5throot_solution(x, arg4);
+  x = _bli_math_improve_5throot_solution(x, arg4);
+  return x * x * x;
+}
+
+MALWAYS_INLINE float _bli_math_rsqrt(float in)
+{
+  return 1.0f / sqrtf(in);
+}
+
+MALWAYS_INLINE float _bli_math_fastpow512(const float arg)
+{
+  float xf = _bli_math_fastpow(0x3f2aaaab, 0x5eb504f3, arg);
+  float xover = arg * xf;
+  float xfm1 = _bli_math_rsqrt(xf);
+  float x2 = arg * arg;
+  float xunder = x2 * xfm1;
+  float xavg = (1.0f / (3.0f * 0.629960524947437f) * 0.999852f) * (xover + xunder);
+  xavg = xavg * _bli_math_rsqrt(xavg);
+  xavg = xavg * _bli_math_rsqrt(xavg);
+  return xavg;
+}
+
+MALWAYS_INLINE float srgb_to_linearrgb_approx(float c)
+{
+  if (c < 0.04045f) {
+    return (c < 0.0f) ? 0.0f : c * (1.0f / 12.92f);
+  }
+
+  return _bli_math_fastpow24((c + 0.055f) * (1.0f / 1.055f));
+}
+
+MALWAYS_INLINE float linearrgb_to_srgb_approx(float c)
+{
+  if (c < 0.0031308f) {
+    return (c < 0.0f) ? 0.0f : c * 12.92f;
+  }
+
+  return 1.055f * _bli_math_fastpow512(c) - 0.055f;
+}
+
+void srgb_to_linearrgb_v3_v3(float linear[3], const float srgb[3])
+{
+  linear[0] = srgb_to_linearrgb_approx(srgb[0]);
+  linear[1] = srgb_to_linearrgb_approx(srgb[1]);
+  linear[2] = srgb_to_linearrgb_approx(srgb[2]);
+}
+
+void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
+{
+  srgb[0] = linearrgb_to_srgb_approx(linear[0]);
+  srgb[1] = linearrgb_to_srgb_approx(linear[1]);
+  srgb[2] = linearrgb_to_srgb_approx(linear[2]);
+}
+
+#endif /* BLI_HAVE_SSE2 */
 
 void minmax_rgb(short c[3])
 {

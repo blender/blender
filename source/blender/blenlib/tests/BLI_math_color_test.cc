@@ -90,57 +90,51 @@ TEST(math_color, linearrgb_to_srgb_v3_v3)
   }
 
   {
-    /* SIMD implementation of linear->srgb for larger inputs
-     * is less accurate; use larger tolerance. */
-    const float kTolerance = 3.6e-5f;
+    const float kTolerance = 5.0e-7f;
     const float linear_color[3] = {0.71f, 0.75f, 0.78f};
     linearrgb_to_srgb_v3_v3(srgb_color, linear_color);
-    EXPECT_NEAR(0.859696f, srgb_color[0], kTolerance);
-    EXPECT_NEAR(0.880825f, srgb_color[1], kTolerance);
-    EXPECT_NEAR(0.896244f, srgb_color[2], kTolerance);
+    EXPECT_NEAR(0.859662f, srgb_color[0], kTolerance);
+    EXPECT_NEAR(0.880790f, srgb_color[1], kTolerance);
+    EXPECT_NEAR(0.896209f, srgb_color[2], kTolerance);
   }
 
   {
     /* Not a common, but possible case: values beyond 1.0 range. */
-    const float kTolerance = 2.3e-4f;
+    const float kTolerance = 1.3e-7f;
     const float linear_color[3] = {1.5f, 2.8f, 5.6f};
     linearrgb_to_srgb_v3_v3(srgb_color, linear_color);
-    EXPECT_NEAR(1.19418f, srgb_color[0], kTolerance);
-    EXPECT_NEAR(1.56520f, srgb_color[1], kTolerance);
-    EXPECT_NEAR(2.10771f, srgb_color[2], kTolerance);
+    EXPECT_NEAR(1.1942182f, srgb_color[0], kTolerance);
+    EXPECT_NEAR(1.5654286f, srgb_color[1], kTolerance);
+    EXPECT_NEAR(2.1076257f, srgb_color[2], kTolerance);
   }
 }
 
 TEST(math_color, srgb_to_linearrgb_v3_v3)
 {
+  const float kTolerance = 1.0e-12f;
   float linear_color[3];
   {
-    const float kTolerance = 1.0e-8f;
     const float srgb_color[3] = {0.0023f, 0.0024f, 0.0025f};
     srgb_to_linearrgb_v3_v3(linear_color, srgb_color);
-    EXPECT_NEAR(0.000178019f, linear_color[0], kTolerance);
-    EXPECT_NEAR(0.000185759f, linear_color[1], kTolerance);
-    EXPECT_NEAR(0.000193498f, linear_color[2], kTolerance);
+    EXPECT_NEAR(0.00017801858f, linear_color[0], kTolerance);
+    EXPECT_NEAR(0.00018575852f, linear_color[1], kTolerance);
+    EXPECT_NEAR(0.00019349845f, linear_color[2], kTolerance);
   }
 
   {
-    /* SIMD implementation of linear->srgb for larger inputs
-     * is less accurate; use larger tolerance. */
-    const float kTolerance = 1.5e-7f;
     const float srgb_color[3] = {0.71f, 0.72f, 0.73f};
     srgb_to_linearrgb_v3_v3(linear_color, srgb_color);
-    EXPECT_NEAR(0.4623615f, linear_color[0], kTolerance);
-    EXPECT_NEAR(0.4770000f, linear_color[1], kTolerance);
-    EXPECT_NEAR(0.4919052f, linear_color[2], kTolerance);
+    EXPECT_NEAR(0.46236148477f, linear_color[0], kTolerance);
+    EXPECT_NEAR(0.47699990869f, linear_color[1], kTolerance);
+    EXPECT_NEAR(0.49190518260f, linear_color[2], kTolerance);
   }
 
   {
     /* Not a common, but possible case: values beyond 1.0 range. */
-    const float kTolerance = 7.7e-6f;
     const float srgb_color[3] = {1.1f, 2.5f, 5.6f};
     srgb_to_linearrgb_v3_v3(linear_color, srgb_color);
-    EXPECT_NEAR(1.24277f, linear_color[0], kTolerance);
-    EXPECT_NEAR(8.35473f, linear_color[1], kTolerance);
-    EXPECT_NEAR(56.23833f, linear_color[2], kTolerance);
+    EXPECT_NEAR(1.24277031422f, linear_color[0], kTolerance);
+    EXPECT_NEAR(8.35472869873f, linear_color[1], kTolerance);
+    EXPECT_NEAR(56.2383270264f, linear_color[2], kTolerance);
   }
 }
