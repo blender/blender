@@ -452,40 +452,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     BLO_update_defaults_workspace(workspace, app_template);
   }
 
-  /* New grease pencil brushes and vertex paint setup. */
+  /* Grease pencil materials and paint modes setup. */
   {
-    /* Update Grease Pencil brushes. */
-    Brush *brush;
-
-    /* Pencil brush. */
-    do_versions_rename_id(bmain, ID_BR, "Draw Pencil", "Pencil");
-
-    /* Pen brush. */
-    do_versions_rename_id(bmain, ID_BR, "Draw Pen", "Pen");
-
-    /* Pen Soft brush. */
-    brush = reinterpret_cast<Brush *>(
-        do_versions_rename_id(bmain, ID_BR, "Draw Soft", "Pencil Soft"));
-
-    /* Ink Pen brush. */
-    do_versions_rename_id(bmain, ID_BR, "Draw Ink", "Ink Pen");
-
-    /* Ink Pen Rough brush. */
-    do_versions_rename_id(bmain, ID_BR, "Draw Noise", "Ink Pen Rough");
-
-    /* Marker Bold brush. */
-    do_versions_rename_id(bmain, ID_BR, "Draw Marker", "Marker Bold");
-
-    /* Marker Chisel brush. */
-    do_versions_rename_id(bmain, ID_BR, "Draw Block", "Marker Chisel");
-
-    /* Remove useless Fill Area.001 brush. */
-    brush = static_cast<Brush *>(
-        BLI_findstring(&bmain->brushes, "Fill Area.001", offsetof(ID, name) + 2));
-    if (brush) {
-      BKE_id_delete(bmain, brush);
-    }
-
     /* Rename and fix materials and enable default object lights on. */
     if (app_template && STREQ(app_template, "2D_Animation")) {
       Material *ma = nullptr;
@@ -536,7 +504,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       }
     }
 
-    /* Reset all grease pencil brushes. */
+    /* Reset grease pencil paint modes. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
 
@@ -694,75 +662,6 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   /* Brushes */
-  {
-    /* Enable for UV sculpt (other brush types will be created as needed),
-     * without this the grab brush will be active but not selectable from the list. */
-    const char *brush_name = "Grab";
-    Brush *brush = static_cast<Brush *>(
-        BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2));
-    if (brush) {
-      brush->ob_mode |= OB_MODE_EDIT;
-    }
-  }
-
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    brush->blur_kernel_radius = 2;
-
-    /* Use full strength for all non-sculpt brushes,
-     * when painting we want to use full color/weight always.
-     *
-     * Note that sculpt is an exception,
-     * its values are overwritten by #BKE_brush_sculpt_reset below. */
-    brush->alpha = 1.0;
-
-    /* Enable anti-aliasing by default. */
-    brush->sampling_flag |= BRUSH_PAINT_ANTIALIASING;
-
-    /* By default, each brush should use a single input sample. */
-    brush->input_samples = 1;
-  }
-
-  /* Change the spacing of the Smear brush to 3.0% */
-  if (Brush *brush = static_cast<Brush *>(
-          BLI_findstring(&bmain->brushes, "Smear", offsetof(ID, name) + 2)))
-  {
-    brush->spacing = 3.0;
-  }
-
-  {
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      /* Use the same tool icon color in the brush cursor */
-      if (brush->ob_mode & OB_MODE_SCULPT) {
-        BLI_assert(brush->sculpt_tool != 0);
-        BKE_brush_sculpt_reset(brush);
-      }
-
-      /* Set the default texture mapping.
-       * Do it for all brushes, since some of them might be coming from the startup file. */
-      brush->mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
-      brush->mask_mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
-    }
-  }
-
-  {
-    const Brush *default_brush = DNA_struct_default_get(Brush);
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      brush->automasking_start_normal_limit = default_brush->automasking_start_normal_limit;
-      brush->automasking_start_normal_falloff = default_brush->automasking_start_normal_falloff;
-
-      brush->automasking_view_normal_limit = default_brush->automasking_view_normal_limit;
-      brush->automasking_view_normal_falloff = default_brush->automasking_view_normal_falloff;
-    }
-  }
-
-  {
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (!brush->automasking_cavity_curve) {
-        brush->automasking_cavity_curve = BKE_sculpt_default_cavity_curve();
-      }
-    }
-  }
-
   {
     /* Remove default brushes replaced by assets. Also remove outliner `treestore` that may point
      * to brushes. Normally the treestore is updated properly but it doesn't seem to update during
