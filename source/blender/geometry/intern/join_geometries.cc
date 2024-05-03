@@ -73,9 +73,9 @@ static void fill_new_attribute(const Span<const GeometryComponent *> src_compone
   }
 }
 
-static void join_attributes(const Span<const GeometryComponent *> src_components,
-                            GeometryComponent &result,
-                            const Span<StringRef> ignored_attributes = {})
+void join_attributes(const Span<const GeometryComponent *> src_components,
+                     GeometryComponent &result,
+                     const Span<StringRef> ignored_attributes)
 {
   const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(src_components,
                                                                                ignored_attributes);

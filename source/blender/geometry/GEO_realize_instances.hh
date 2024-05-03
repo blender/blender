@@ -8,6 +8,9 @@
 
 namespace blender::geometry {
 
+/**
+ * General options for realize_instances.
+ */
 struct RealizeInstancesOptions {
   /**
    * The default is to generate new ids for every element (when there was any id attribute in the
@@ -26,6 +29,26 @@ struct RealizeInstancesOptions {
 };
 
 /**
+ * Allow  the user to choice which instances to realize and to what depth.
+ */
+struct VariedDepthOptions {
+  /**
+   * Selection of top-level instances to realize.
+   */
+  IndexMask selection;
+
+  /**
+   * Depth of realize instances for each selected top-level instance.
+   */
+  VArray<int> depths;
+
+  /**
+   * Use this value to realize the instance completely
+   */
+  static const int MAX_DEPTH = -1;
+};
+
+/**
  * Join all instances into a single geometry component for each geometry type. For example, all
  * mesh instances (including the already realized mesh) are joined into a single mesh. The output
  * geometry set does not contain any instances. If the input did not contain any instances, it is
@@ -37,5 +60,13 @@ struct RealizeInstancesOptions {
  */
 bke::GeometrySet realize_instances(bke::GeometrySet geometry_set,
                                    const RealizeInstancesOptions &options);
+
+/**
+ * Same #realize_instances but will realize only the instances chosen by
+ * varied_depth_option to there chosen depth.
+ */
+bke::GeometrySet realize_instances(bke::GeometrySet geometry_set,
+                                   const RealizeInstancesOptions &options,
+                                   const VariedDepthOptions &varied_depth_option);
 
 }  // namespace blender::geometry
