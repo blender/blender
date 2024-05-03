@@ -1378,7 +1378,7 @@ void BKE_mesh_mselect_validate(Mesh *mesh)
   mesh->mselect = mselect_dst;
 }
 
-int BKE_mesh_mselect_find(Mesh *mesh, int index, int type)
+int BKE_mesh_mselect_find(const Mesh *mesh, int index, int type)
 {
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
@@ -1391,7 +1391,7 @@ int BKE_mesh_mselect_find(Mesh *mesh, int index, int type)
   return -1;
 }
 
-int BKE_mesh_mselect_active_get(Mesh *mesh, int type)
+int BKE_mesh_mselect_active_get(const Mesh *mesh, int type)
 {
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
