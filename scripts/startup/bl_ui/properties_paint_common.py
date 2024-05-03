@@ -1529,7 +1529,7 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
             row.prop(gp_settings, "caps_type", text="Caps Type")
     elif grease_pencil_tool == 'ERASE':
         layout.prop(gp_settings, "eraser_mode", expand=True)
-        if gp_settings.eraser_mode == "HARD":
+        if gp_settings.eraser_mode == 'HARD':
             layout.prop(gp_settings, "use_keep_caps_eraser")
         layout.prop(gp_settings, "use_active_layer_only")
     elif grease_pencil_tool == 'TINT':

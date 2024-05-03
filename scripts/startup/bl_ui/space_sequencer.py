@@ -2697,7 +2697,7 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                             split = box.split(factor=0.4)
                             split.label(text="{.2f}".format(sound_eq.curve_mapping.clip_min_x))
                             split.label(text="Hz")
-                            split.alignment = "RIGHT"
+                            split.alignment = 'RIGHT'
                             split.label(text="{.2f}".format(sound_eq.curve_mapping.clip_max_x))
                             box.template_curve_mapping(
                                 sound_eq,

@@ -54,7 +54,7 @@ class VIEW3D_PT_animation_layers(Panel):
             # Binding selector.
             row = binding_sub.row(align=True)
             row.prop(adt, 'animation_binding', text="Binding")
-            row.operator('anim.binding_unassign_object', text="", icon="X")
+            row.operator('anim.binding_unassign_object', text="", icon='X')
 
             binding = anim.bindings.get(adt.animation_binding, None)
             if binding:
