@@ -1102,12 +1102,12 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
   PyDict_SetItemString(modules, "__main__", mod_main);
   Py_DECREF(mod_main); /* `sys.modules` owns now. */
   PyModule_AddStringConstant(mod_main, "__name__", "__main__");
-  if (filename) {
-    /* This won't map to a real file when executing text-blocks and buttons.
-     * In this case an identifier is typically used that is surrounded by angle-brackets.
-     * It's mainly helpful for the UI and messages to show *something*. */
-    PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromBytes(filename));
-  }
+
+  /* This won't map to a real file when executing text-blocks and buttons.
+   * In this case an identifier is typically used that is surrounded by angle-brackets.
+   * It's mainly helpful for the UI and messages to show *something*. */
+  PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromBytes(filename));
+
   PyModule_AddObject(mod_main, "__builtins__", builtins);
   Py_INCREF(builtins); /* AddObject steals a reference */
   return PyModule_GetDict(mod_main);

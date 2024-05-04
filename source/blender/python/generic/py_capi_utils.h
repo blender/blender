@@ -172,8 +172,8 @@ int PyC_ParseUnicodeAsBytesAndSize_OrNone(PyObject *o, void *p);
  * be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
  * any chance that python is in the call stack.
  */
-PyObject *PyC_DefaultNameSpace(const char *filename);
-void PyC_RunQuicky(const char *filepath, int n, ...);
+PyObject *PyC_DefaultNameSpace(const char *filename) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+void PyC_RunQuicky(const char *filepath, int n, ...) ATTR_NONNULL(1);
 /**
  * Import `imports` into `py_dict`.
  *
@@ -223,11 +223,11 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag);
 bool PyC_RunString_AsNumber(const char **imports,
                             const char *expr,
                             const char *filename,
-                            double *r_value);
+                            double *r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 bool PyC_RunString_AsIntPtr(const char **imports,
                             const char *expr,
                             const char *filename,
-                            intptr_t *r_value);
+                            intptr_t *r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 /**
  * \param r_value_size: The length of the string assigned: `strlen(*r_value)`.
  */
@@ -235,11 +235,12 @@ bool PyC_RunString_AsStringAndSize(const char **imports,
                                    const char *expr,
                                    const char *filename,
                                    char **r_value,
-                                   size_t *r_value_size);
+                                   size_t *r_value_size)
+    ATTR_NONNULL(2, 3, 4, 5) ATTR_WARN_UNUSED_RESULT;
 bool PyC_RunString_AsString(const char **imports,
                             const char *expr,
                             const char *filename,
-                            char **r_value);
+                            char **r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * \param r_value_size: The length of the string assigned: `strlen(*r_value)`.
@@ -248,11 +249,12 @@ bool PyC_RunString_AsStringAndSizeOrNone(const char **imports,
                                          const char *expr,
                                          const char *filename,
                                          char **r_value,
-                                         size_t *r_value_size);
+                                         size_t *r_value_size)
+    ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 bool PyC_RunString_AsStringOrNone(const char **imports,
                                   const char *expr,
                                   const char *filename,
-                                  char **r_value);
+                                  char **r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Use with PyArg_ParseTuple's "O&" formatting.
