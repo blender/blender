@@ -142,7 +142,7 @@ static std::string get_image_filepath(const bNode *tex_node)
   }
 
   if (BKE_image_has_packedfile(tex_image)) {
-    /* Put image in the same directory as the .MTL file. */
+    /* Put image in the same directory as the `.MTL` file. */
     const char *filename = BLI_path_basename(tex_image->filepath);
     fprintf(stderr,
             "Packed image found:'%s'. Unpack and place the image in the same "

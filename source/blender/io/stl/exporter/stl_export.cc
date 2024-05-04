@@ -85,7 +85,7 @@ void export_frame(Depsgraph *depsgraph,
       char filepath[FILE_MAX];
       STRNCPY(filepath, export_params.filepath);
       BLI_path_suffix(filepath, FILE_MAX, object_name, "");
-      /* Make sure we have .stl extension (case insensitive). */
+      /* Make sure we have `.stl` extension (case insensitive). */
       if (!BLI_path_extension_check(filepath, ".stl")) {
         BLI_path_extension_ensure(filepath, FILE_MAX, ".stl");
       }

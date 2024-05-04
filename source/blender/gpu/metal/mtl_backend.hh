@@ -56,8 +56,8 @@ class MTLBackend : public GPUBackend {
   void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override;
   void compute_dispatch_indirect(StorageBuf *indirect_buf) override;
 
-  /* MTL Allocators need to be implemented in separate .mm files, due to allocation of Objective-C
-   * objects. */
+  /* MTL Allocators need to be implemented in separate `.mm` files,
+   * due to allocation of Objective-C objects. */
   Context *context_alloc(void *ghost_window, void *ghost_context) override;
   Batch *batch_alloc() override;
   DrawList *drawlist_alloc(int list_length) override;

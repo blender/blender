@@ -33,7 +33,7 @@ struct IndexOffsets {
 };
 
 /**
- * Responsible for writing a .OBJ file.
+ * Responsible for writing a `.OBJ` file.
  */
 class OBJWriter : NonMovable, NonCopyable {
  private:
@@ -70,7 +70,7 @@ class OBJWriter : NonMovable, NonCopyable {
    */
   void write_object_name(FormatHandler &fh, const OBJMesh &obj_mesh_data) const;
   /**
-   * Write file name of Material Library in .OBJ file.
+   * Write file name of Material Library in `.OBJ` file.
    */
   void write_mtllib_name(const StringRefNull mtl_filepath) const;
   /**
@@ -93,7 +93,7 @@ class OBJWriter : NonMovable, NonCopyable {
    * Write face elements with at least vertex indices, and conditionally with UV vertex
    * indices and face normal indices. Also write groups: smooth, vertex, material.
    * The matname_fn turns a 0-indexed material slot number in an Object into the
-   * name used in the .obj file.
+   * name used in the `.obj` file.
    * \note UV indices were stored while writing UV vertices.
    */
   void write_face_elements(FormatHandler &fh,
@@ -107,7 +107,7 @@ class OBJWriter : NonMovable, NonCopyable {
                            const IndexOffsets &offsets,
                            const OBJMesh &obj_mesh_data) const;
   /**
-   * Write a NURBS curve to the .OBJ file in parameter form.
+   * Write a NURBS curve to the `.OBJ` file in parameter form.
    */
   void write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_data) const;
 
@@ -162,7 +162,7 @@ class OBJWriter : NonMovable, NonCopyable {
 };
 
 /**
- * Responsible for writing a .MTL file.
+ * Responsible for writing a `.MTL` file.
  */
 class MTLWriter : NonMovable, NonCopyable {
  private:
@@ -175,7 +175,7 @@ class MTLWriter : NonMovable, NonCopyable {
 
  public:
   /*
-   * Create the .MTL file.
+   * Create the `.MTL` file.
    */
   MTLWriter(const char *obj_filepath) noexcept(false);
   ~MTLWriter();

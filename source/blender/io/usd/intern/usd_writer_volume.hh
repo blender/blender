@@ -11,8 +11,8 @@ struct Volume;
 
 namespace blender::io::usd {
 
-/* Writer for writing OpenVDB assets to UsdVolVolume. Volume data is stored in separate .vdb files
- * which are referenced in USD file. */
+/* Writer for writing OpenVDB assets to UsdVolVolume. Volume data is stored in separate `.vdb`
+ * files which are referenced in USD file. */
 class USDVolumeWriter : public USDAbstractWriter {
  public:
   USDVolumeWriter(const USDExporterContext &ctx);
@@ -22,11 +22,11 @@ class USDVolumeWriter : public USDAbstractWriter {
   virtual void do_write(HierarchyContext &context) override;
 
  private:
-  /* Try to ensure that external .vdb file is available for USD to be referenced. Blender can
+  /* Try to ensure that external `.vdb` file is available for USD to be referenced. Blender can
    * either reference external OpenVDB data or generate such data internally. Latter option will
-   * mean that `resolve_vdb_file` method will try to export volume data to a new .vdb file. If
-   * successful, this method returns absolute file path to the resolved .vdb file, if not, returns
-   * `std::nullopt`. */
+   * mean that `resolve_vdb_file` method will try to export volume data to a new `.vdb` file.
+   * If successful, this method returns absolute file path to the resolved `.vdb` file, if not,
+   * returns `std::nullopt`. */
   std::optional<std::string> resolve_vdb_file(const Volume *volume) const;
 
   std::optional<std::string> construct_vdb_file_path(const Volume *volume) const;

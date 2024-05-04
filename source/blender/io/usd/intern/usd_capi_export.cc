@@ -426,9 +426,11 @@ static void export_endjob(void *customdata)
   report_job_duration(data);
 }
 
-/* To create a usdz file, we must first create a .usd/a/c file and then covert it to .usdz. The
- * temporary files will be created in Blender's temporary session storage. The .usdz file will then
- * be moved to job->usdz_filepath. */
+/**
+ * To create a USDZ file, we must first create a `.usd/a/c` file and then covert it to `.usdz`.
+ * The temporary files will be created in Blender's temporary session storage.
+ * The `.usdz` file will then be moved to `job->usdz_filepath`.
+ */
 static void create_temp_path_for_usdz_export(const char *filepath,
                                              blender::io::usd::ExportJobData *job)
 {

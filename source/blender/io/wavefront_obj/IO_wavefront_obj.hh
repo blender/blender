@@ -19,7 +19,7 @@ struct bContext;
 struct ReportList;
 
 struct OBJExportParams {
-  /** Full path to the destination .OBJ file. */
+  /** Full path to the destination `.OBJ` file. */
   char filepath[FILE_MAX];
   /** Pretend that destination file folder is this, if non-empty. Used only for tests. */
   char file_base_for_tests[FILE_MAX];

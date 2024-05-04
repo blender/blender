@@ -9,7 +9,7 @@
  *
  * \section aboutmakesdnac About makesdna tool
  *
- * `makesdna` creates a .c file with a long string of numbers that
+ * `makesdna` creates a `.c` file with a long string of numbers that
  * encode the Blender file format. It is fast, because it is basically
  * a binary dump. There are some details to mind when reconstructing
  * the file (endianness and byte-alignment).

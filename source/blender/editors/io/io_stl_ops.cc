@@ -184,7 +184,7 @@ void WM_OT_stl_export(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "apply_modifiers", true, "Apply Modifiers", "Apply modifiers to exported meshes");
 
-  /* Only show .stl files by default. */
+  /* Only show `.stl` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.stl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
@@ -300,7 +300,7 @@ void WM_OT_stl_import(wmOperatorType *ot)
       "Ensure the data is valid "
       "(when disabled, data may be imported which causes crashes displaying or editing)");
 
-  /* Only show .stl files by default. */
+  /* Only show `.stl` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.stl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }

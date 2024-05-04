@@ -392,7 +392,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "smooth_group_bitflags", false, "Generate Bitflags for Smooth Groups", "");
 
-  /* Only show .obj or .mtl files by default. */
+  /* Only show `.obj` or `.mtl` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
@@ -552,7 +552,7 @@ void WM_OT_obj_import(wmOperatorType *ot)
                  "Path Separator",
                  "Character used to separate objects name into hierarchical structure");
 
-  /* Only show .obj or .mtl files by default. */
+  /* Only show `.obj` or `.mtl` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }

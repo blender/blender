@@ -173,7 +173,7 @@ void OBJWriter::write_header() const
 
 void OBJWriter::write_mtllib_name(const StringRefNull mtl_filepath) const
 {
-  /* Split .MTL file path into parent directory and filename. */
+  /* Split `.MTL` file path into parent directory and filename. */
   char mtl_file_name[FILE_MAXFILE];
   char mtl_dir_name[FILE_MAXDIR];
   BLI_path_split_dir_file(mtl_filepath.data(),
@@ -497,7 +497,7 @@ void OBJWriter::write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_d
 }
 
 /* -------------------------------------------------------------------- */
-/** \name .MTL writers.
+/** \name `.MTL` writers.
  * \{ */
 
 static const char *tex_map_type_to_string[] = {

@@ -95,8 +95,8 @@ std::optional<std::string> USDVolumeWriter::resolve_vdb_file(const Volume *volum
   std::optional<std::string> vdb_file_path;
   if (volume->filepath[0] == '\0') {
     /* Entering this section should mean that Volume object contains OpenVDB data that is not
-     * obtained from external .vdb file but rather generated inside of Blender (i.e. by 'Mesh to
-     * Volume' modifier). Try to save this data to a .vdb file. */
+     * obtained from external `.vdb` file but rather generated inside of Blender (i.e. by 'Mesh to
+     * Volume' modifier). Try to save this data to a `.vdb` file. */
 
     vdb_file_path = construct_vdb_file_path(volume);
     if (!BKE_volume_save(

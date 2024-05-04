@@ -24,7 +24,7 @@ enum ePLYVertexColorMode {
 };
 
 struct PLYExportParams {
-  /** Full path to the destination .PLY file. */
+  /** Full path to the destination `.PLY` file. */
   char filepath[FILE_MAX];
   /** Pretend that destination file folder is this, if non-empty. Used only for tests. */
   char file_base_for_tests[FILE_MAX];

@@ -1905,7 +1905,7 @@ void add_edge_constraint(
    * Fill crossings array with CrossData points for intersection path from v1 to v2.
    *
    * At every point, the crossings array has the path so far, except that
-   * the .out field of the last element of it may not be known yet -- if that
+   * the `.out` field of the last element of it may not be known yet -- if that
    * last element is a vertex, then we won't know the output edge until we
    * find the next crossing.
    *
