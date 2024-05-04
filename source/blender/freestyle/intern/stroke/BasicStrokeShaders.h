@@ -68,7 +68,7 @@ class ConstantThicknessShader : public StrokeShader {
 /* [ Thickness Shader ].
  *  Assigns an absolute constant external thickness to every vertices of the Stroke. The external
  * thickness of a point is its thickness from the point to the strip border in the direction
- * pointing outside the object the Stroke delimitates.
+ * pointing outside the object the Stroke delimiters.
  */
 class ConstantExternThicknessShader : public StrokeShader {
  public:

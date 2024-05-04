@@ -140,8 +140,8 @@ class GHOST_SystemCocoa : public GHOST_System {
   bool handleOpenDocumentRequest(void *filepathStr);
 
   /**
-   * Handles a drag'n'drop destination event. Called by GHOST_WindowCocoa window subclass
-   * \param eventType: The type of drag'n'drop event.
+   * Handles a drag & drop destination event. Called by GHOST_WindowCocoa window subclass.
+   * \param eventType: The type of drag & drop event.
    * \param draggedObjectType: The type object concerned.
    * (currently array of file names, string, TIFF image).
    * \param mouseX: x mouse coordinate (in cocoa base window coordinates).

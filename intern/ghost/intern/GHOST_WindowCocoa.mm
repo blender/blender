@@ -172,7 +172,7 @@
   return (associatedWindow->isDialog() || !systemCocoa->hasDialogWindow());
 }
 
-/* The drag'n'drop dragging destination methods. */
+/* The drag & drop dragging destination methods. */
 - (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender
 {
   NSPoint mouseLocation = [sender draggingLocation];

@@ -475,11 +475,11 @@ extern void GHOST_setNDOFDeadZone(float deadzone);
 #endif
 
 /***************************************************************************************
- * Drag'n'drop operations
+ * Drag & drop operations
  ***************************************************************************************/
 
 /**
- * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
+ * Tells if the ongoing drag & drop object can be accepted upon mouse drop.
  */
 extern void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, bool can_accept);
 

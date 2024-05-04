@@ -264,9 +264,9 @@ class GHOST_SystemWin32 : public GHOST_System {
                                 GHOST_DialogOptions dialog_options) const;
 
   /**
-   * Creates a drag'n'drop event and pushes it immediately onto the event queue.
-   * Called by GHOST_DropTargetWin32 class.
-   * \param eventType: The type of drag'n'drop event
+   * Creates a drag & drop event and pushes it immediately onto the event queue.
+   * Called by #GHOST_DropTargetWin32 class.
+   * \param eventType: The type of drag & drop event
    * \param draggedObjectType: The type object concerned
    * (currently array of file names, string, ?bitmap)
    * \param mouseX: x mouse coordinate (in window coordinates)

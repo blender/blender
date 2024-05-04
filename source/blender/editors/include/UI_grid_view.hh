@@ -206,7 +206,7 @@ class PreviewGridItem : public AbstractGridViewItem {
   void build_grid_tile(uiLayout &layout) const override;
 
   /**
-   * \note: Takes ownership of the operator properies defined in \a op_props.
+   * \note Takes ownership of the operator properties defined in \a op_props.
    */
   void build_grid_tile_button(uiLayout &layout,
                               const wmOperatorType *ot = nullptr,
