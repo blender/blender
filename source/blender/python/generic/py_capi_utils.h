@@ -315,13 +315,21 @@ int32_t PyC_Long_AsI32(PyObject *value);
 int64_t PyC_Long_AsI64(PyObject *value);
 #endif
 
-/* Unlike Python's #PyLong_AsUnsignedLong and #PyLong_AsUnsignedLongLong, these unsigned integer
+/**
+ * Unlike Python's #PyLong_AsUnsignedLong and #PyLong_AsUnsignedLongLong, these unsigned integer
  * parsing functions fall back to calling #PyNumber_Index when their argument is not a
  * `PyLongObject`. This matches Python's signed integer parsing functions which also fall back to
- * calling #PyNumber_Index. */
+ * calling #PyNumber_Index.
+ */
 uint8_t PyC_Long_AsU8(PyObject *value);
 uint16_t PyC_Long_AsU16(PyObject *value);
 uint32_t PyC_Long_AsU32(PyObject *value);
+/**
+ * #PyLong_AsUnsignedLongLong, unlike #PyLong_AsLongLong, does not fall back to calling
+ * #PyNumber_Index when its argument is not a `PyLongObject` instance. To match parsing signed
+ * integer types with #PyLong_AsLongLong, this function performs the #PyNumber_Index fallback, if
+ * necessary, before calling #PyLong_AsUnsignedLongLong.
+ */
 uint64_t PyC_Long_AsU64(PyObject *value);
 
 /* inline so type signatures match as expected */

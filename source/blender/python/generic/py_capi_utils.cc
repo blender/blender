@@ -1103,8 +1103,9 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
   Py_DECREF(mod_main); /* `sys.modules` owns now. */
   PyModule_AddStringConstant(mod_main, "__name__", "__main__");
   if (filename) {
-    /* __file__ mainly for nice UI'ness
-     * NOTE: this won't map to a real file when executing text-blocks and buttons. */
+    /* This won't map to a real file when executing text-blocks and buttons.
+     * In this case an identifier is typically used that is surrounded by angle-brackets.
+     * It's mainly helpful for the UI and messages to show *something*. */
     PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromBytes(filename));
   }
   PyModule_AddObject(mod_main, "__builtins__", builtins);
@@ -1808,10 +1809,6 @@ uint32_t PyC_Long_AsU32(PyObject *value)
   return uint32_t(test);
 }
 
-/* #PyLong_AsUnsignedLongLong, unlike #PyLong_AsLongLong, does not fall back to calling
- * #PyNumber_Index when its argument is not a `PyLongObject` instance. To match parsing signed
- * integer types with #PyLong_AsLongLong, this function performs the #PyNumber_Index fallback, if
- * necessary, before calling #PyLong_AsUnsignedLongLong. */
 uint64_t PyC_Long_AsU64(PyObject *value)
 {
   if (value == nullptr) {

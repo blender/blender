@@ -80,14 +80,14 @@ std::pair<Vector<std::unique_ptr<OBJMesh>>, Vector<std::unique_ptr<OBJCurve>>>
 filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_params);
 
 /**
- * Makes `r_filepath_with_frames` (which should point at a character array of size `FILE_MAX`)
- * be `filepath` with its "#" characters replaced by the number representing `frame`, and with
- * an `.obj` extension.
- */
-/**
  * Append the current frame number in the `.OBJ` file name.
  *
- * \return Whether the filepath is in #FILE_MAX limits.
+ * \param r_filepath_with_frames: The result of the `filepath` with its "#" characters
+ * replaced by the number representing `frame`, and with an `.obj` extension.
+ *
+ * \return Whether the `filepath` is in #FILE_MAX limits.
  */
-bool append_frame_to_filename(const char *filepath, int frame, char *r_filepath_with_frames);
+bool append_frame_to_filename(const char *filepath,
+                              int frame,
+                              char r_filepath_with_frames[1024 /*FILE_MAX*/]);
 }  // namespace blender::io::obj
