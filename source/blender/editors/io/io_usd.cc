@@ -884,11 +884,13 @@ void WM_OT_usd_import(wmOperatorType *ot)
                "Custom Properties",
                "Behavior when importing USD attributes as Blender custom properties");
 
-  RNA_def_boolean(ot->srna,
-                  "validate_meshes",
-                  false,
-                  "Validate Meshes",
-                  "Check imported mesh objects for invalid data (slow)");
+  RNA_def_boolean(
+      ot->srna,
+      "validate_meshes",
+      false,
+      "Validate Meshes",
+      "Ensure the data is valid "
+      "(when disabled, data may be imported which causes crashes displaying or editing)");
 }
 
 namespace blender::ed::io {

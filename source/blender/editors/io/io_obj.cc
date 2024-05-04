@@ -537,11 +537,13 @@ void WM_OT_obj_import(wmOperatorType *ot)
                   false,
                   "Vertex Groups",
                   "Import OBJ groups as vertex groups");
-  RNA_def_boolean(ot->srna,
-                  "validate_meshes",
-                  false,
-                  "Validate Meshes",
-                  "Check imported mesh objects for invalid data (slow)");
+  RNA_def_boolean(
+      ot->srna,
+      "validate_meshes",
+      true,
+      "Validate Meshes",
+      "Ensure the data is valid "
+      "(when disabled, data may be imported which causes crashes displaying or editing)");
 
   RNA_def_string(ot->srna,
                  "collection_separator",

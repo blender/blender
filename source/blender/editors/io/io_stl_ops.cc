@@ -291,11 +291,14 @@ void WM_OT_stl_import(wmOperatorType *ot)
                   "Use (import) facet normals (note that this will still give flat shading)");
   RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
   RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
-  RNA_def_boolean(ot->srna,
-                  "use_mesh_validate",
-                  false,
-                  "Validate Mesh",
-                  "Validate and correct imported mesh (slow)");
+
+  RNA_def_boolean(
+      ot->srna,
+      "use_mesh_validate",
+      true,
+      "Validate Mesh",
+      "Ensure the data is valid "
+      "(when disabled, data may be imported which causes crashes displaying or editing)");
 
   /* Only show .stl files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.stl", 0, "Extension Filter", "");

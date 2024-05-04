@@ -697,11 +697,13 @@ void WM_OT_alembic_import(wmOperatorType *ot)
       "Set Frame Range",
       "If checked, update scene's start and end frame to match those of the Alembic archive");
 
-  RNA_def_boolean(ot->srna,
-                  "validate_meshes",
-                  false,
-                  "Validate Meshes",
-                  "Check imported mesh objects for invalid data (slow)");
+  RNA_def_boolean(
+      ot->srna,
+      "validate_meshes",
+      false,
+      "Validate Meshes",
+      "Ensure the data is valid "
+      "(when disabled, data may be imported which causes crashes displaying or editing)");
 
   RNA_def_boolean(ot->srna,
                   "always_add_cache_reader",
