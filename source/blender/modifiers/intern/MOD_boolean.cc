@@ -330,6 +330,9 @@ static void BMD_mesh_intersection(BMesh *bm,
       if (LIKELY(efa->mat_nr < operand_ob->totcol)) {
         efa->mat_nr = material_remap[efa->mat_nr];
       }
+      else {
+        efa->mat_nr = 0;
+      }
 
       if (++i == i_faces_end) {
         break;
@@ -373,9 +376,9 @@ static void BMD_mesh_intersection(BMesh *bm,
  * or to zero if there aren't enough slots in the destination. */
 static Array<short> get_material_remap_index_based(Object *dest_ob, Object *src_ob)
 {
-  int n = src_ob->totcol;
+  const int n = src_ob->totcol;
   if (n <= 0) {
-    n = 1;
+    return Array<short>(1, 0);
   }
   Array<short> remap(n);
   BKE_object_material_remap_calc(dest_ob, src_ob, remap.data());
