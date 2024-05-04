@@ -144,7 +144,6 @@ static bool python_script_exec(
     bContext *C, const char *filepath, Text *text, ReportList *reports, const bool do_jump)
 {
   Main *bmain_old = CTX_data_main(C);
-  PyObject *main_mod = nullptr;
   PyObject *py_dict = nullptr, *py_result = nullptr;
   PyGILState_STATE gilstate;
 
@@ -160,7 +159,7 @@ static bool python_script_exec(
 
   bpy_context_set(C, &gilstate);
 
-  PyC_MainModule_Backup(&main_mod);
+  PyObject *main_mod = PyC_MainModule_Backup();
 
   if (text) {
     bpy_text_filepath_get(filepath_dummy, sizeof(filepath_dummy), bmain_old, text);
@@ -278,7 +277,6 @@ static bool bpy_run_string_impl(bContext *C,
 {
   BLI_assert(expr);
   PyGILState_STATE gilstate;
-  PyObject *main_mod = nullptr;
   PyObject *py_dict, *retval;
   bool ok = true;
 
@@ -288,7 +286,7 @@ static bool bpy_run_string_impl(bContext *C,
 
   bpy_context_set(C, &gilstate);
 
-  PyC_MainModule_Backup(&main_mod);
+  PyObject *main_mod = PyC_MainModule_Backup();
 
   py_dict = PyC_DefaultNameSpace("<blender string>");
 

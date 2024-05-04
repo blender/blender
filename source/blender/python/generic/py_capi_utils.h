@@ -169,7 +169,7 @@ int PyC_ParseUnicodeAsBytesAndSize_OrNone(PyObject *o, void *p);
  * >> print(__import__("__main__").foo)
  *
  * NOTE: this overwrites __main__ which gives problems with nested calls.
- * be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
+ * be sure to run #PyC_MainModule_Backup & #PyC_MainModule_Restore if there is
  * any chance that python is in the call stack.
  */
 PyObject *PyC_DefaultNameSpace(const char *filename) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
@@ -187,7 +187,7 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[]);
 /**
  * #PyC_MainModule_Restore MUST be called after #PyC_MainModule_Backup.
  */
-void PyC_MainModule_Backup(PyObject **r_main_mod);
+PyObject *PyC_MainModule_Backup() ATTR_WARN_UNUSED_RESULT;
 void PyC_MainModule_Restore(PyObject *main_mod);
 
 bool PyC_IsInterpreterActive(void);

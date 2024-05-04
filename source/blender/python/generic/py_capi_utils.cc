@@ -1133,7 +1133,7 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[])
   return true;
 }
 
-void PyC_MainModule_Backup(PyObject **r_main_mod)
+PyObject *PyC_MainModule_Backup()
 {
   PyObject *modules = PyImport_GetModuleDict();
   PyObject *main_mod = PyDict_GetItemString(modules, "__main__");
@@ -1142,7 +1142,7 @@ void PyC_MainModule_Backup(PyObject **r_main_mod)
     /* is transferred back to `sys.modules`. */
     Py_INCREF(main_mod);
   }
-  *r_main_mod = main_mod;
+  return main_mod;
 }
 
 void PyC_MainModule_Restore(PyObject *main_mod)
@@ -1477,9 +1477,7 @@ static PyObject *pyc_run_string_as_py_object(const char *imports[],
                                              const char *expr,
                                              const char *filename)
 {
-  PyObject *main_mod = nullptr;
-
-  PyC_MainModule_Backup(&main_mod);
+  PyObject *main_mod = PyC_MainModule_Backup();
 
   PyObject *py_dict = PyC_DefaultNameSpace(filename);
 

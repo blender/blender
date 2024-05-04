@@ -31,8 +31,7 @@ static PyObject *bpy_rna_uilayout_introspect(PyObject *self)
   uiLayout *layout = static_cast<uiLayout *>(pyrna->ptr.data);
 
   const char *expr = UI_layout_introspect(layout);
-  PyObject *main_mod = nullptr;
-  PyC_MainModule_Backup(&main_mod);
+  PyObject *main_mod = PyC_MainModule_Backup();
   PyObject *py_dict = PyC_DefaultNameSpace("<introspect>");
   PyObject *result = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
   MEM_freeN((void *)expr);
