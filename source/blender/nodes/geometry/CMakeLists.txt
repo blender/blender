@@ -9,8 +9,8 @@ set(INC
   ../intern
   ../../editors/include
   ../../blenkernel
-  ../../blentranslation
   ../../blenloader
+  ../../blentranslation
   ../../bmesh
   ../../functions
   ../../geometry
