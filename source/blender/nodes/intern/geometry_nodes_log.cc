@@ -7,7 +7,6 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
-#include "BKE_node_enum.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
 
@@ -178,16 +177,6 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     store_logged_value(this->allocator->construct<GenericValueLog>(GMutablePointer{type, buffer}));
   };
 
-  auto log_menu_value = [&](Span<bke::RuntimeNodeEnumItem> enum_items, const int identifier) {
-    for (const bke::RuntimeNodeEnumItem &item : enum_items) {
-      if (item.identifier == identifier) {
-        log_generic_value(CPPType::get<std::string>(), &item.name);
-        return;
-      }
-    }
-    log_generic_value(CPPType::get<int>(), &identifier);
-  };
-
   if (type.is<bke::GeometrySet>()) {
     const bke::GeometrySet &geometry = *value.get<bke::GeometrySet>();
     store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
@@ -201,20 +190,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     else {
       value_variant.convert_to_single();
       const GPointer value = value_variant.get_single_ptr();
-      if (socket.type == SOCK_MENU) {
-        const bNodeSocketValueMenu &default_value =
-            *socket.default_value_typed<bNodeSocketValueMenu>();
-        if (default_value.enum_items) {
-          const int identifier = *value.get<int>();
-          log_menu_value(default_value.enum_items->items, identifier);
-        }
-        else {
-          log_generic_value(*value.type(), value.get());
-        }
-      }
-      else {
-        log_generic_value(*value.type(), value.get());
-      }
+      log_generic_value(*value.type(), value.get());
     }
   }
   else {
