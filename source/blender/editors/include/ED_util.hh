@@ -96,7 +96,9 @@ void ED_slider_allow_overshoot_set(tSlider *slider, bool lower, bool upper);
 /**
  * Set the soft limits for the slider, which are applied until the user enables overshooting.
  */
-void ED_slider_factor_bounds_set(tSlider *slider, float lower_bound, float upper_bound);
+void ED_slider_factor_bounds_set(tSlider *slider,
+                                 float factor_bound_lower,
+                                 float factor_upper_bound);
 
 bool ED_slider_allow_increments_get(const tSlider *slider);
 void ED_slider_allow_increments_set(tSlider *slider, bool value);
