@@ -176,7 +176,7 @@ int UI_searchbox_size_x()
   return 12 * UI_UNIT_X;
 }
 
-int UI_search_items_find_index(uiSearchItems *items, const char *name)
+int UI_search_items_find_index(const uiSearchItems *items, const char *name)
 {
   if (items->name_prefix_offsets != nullptr) {
     for (int i = 0; i < items->totitem; i++) {

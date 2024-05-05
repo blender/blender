@@ -1679,7 +1679,7 @@ int UI_searchbox_size_x();
 /**
  * Check if a string is in an existing search box.
  */
-int UI_search_items_find_index(uiSearchItems *items, const char *name);
+int UI_search_items_find_index(const uiSearchItems *items, const char *name);
 
 /**
  * Adds a hint to the button which draws right aligned, grayed out and never clipped.

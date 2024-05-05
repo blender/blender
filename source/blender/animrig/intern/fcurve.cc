@@ -441,7 +441,7 @@ struct TempFrameValCache {
 
 void bake_fcurve_segments(FCurve *fcu)
 {
-  BezTriple *bezt, *start = nullptr, *end = nullptr;
+  const BezTriple *bezt, *start = nullptr, *end = nullptr;
   TempFrameValCache *value_cache, *fp;
   int sfra, range;
   int i, n;
