@@ -316,45 +316,67 @@ def cppcheck_generate_summary(
 
 
 def main() -> None:
-
     cmake_dir = os.path.normpath(os.path.abspath(project_source_info.CMAKE_DIR))
-
     cppcheck_dir = os.path.join(cmake_dir, "cppcheck")
-    os.makedirs(cppcheck_dir, exist_ok=True)
 
-    filepath_output_log = os.path.join(cppcheck_dir, "cppcheck.log")
-    filepath_output_summary_log = os.path.join(cppcheck_dir, "cppcheck_summary.log")
+    filepath_output_log = os.path.join(cppcheck_dir, "cppcheck.part.log")
+    filepath_output_summary_log = os.path.join(cppcheck_dir, "cppcheck_summary.part.log")
 
-    files_old = {}
+    try:
+        os.makedirs(cppcheck_dir, exist_ok=True)
 
-    # Comparing logs is useful, keep the old ones (renamed).
-    for filepath in (
+        files_old = {}
+
+        # Comparing logs is useful, keep the old ones (renamed).
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with open(filepath_output_log, "wb") as log_fh:
+                cppcheck(cppcheck_dir, temp_dir, log_fh)
+
+        with (
+                open(filepath_output_log, "r", encoding="utf-8") as log_fh,
+                open(filepath_output_summary_log, "w", encoding="utf-8") as log_summary_fh,
+        ):
+            cppcheck_generate_summary(log_fh, log_summary_fh)
+
+    except KeyboardInterrupt:
+        print("\nCanceling...")
+        for filepath_part in (
+                filepath_output_log,
+                filepath_output_summary_log,
+        ):
+            if os.path.exists(filepath_part):
+                os.remove(filepath_part)
+        return
+
+    # The partial files have been written.
+    # - Move previous files -> `.old.log`.
+    # - Move `.log.part` -> `.log`
+    #
+    # Do this last so it's possible to cancel execution without breaking the old/new log comparison
+    # which is especially useful when comparing the old/new summary.
+
+    for filepath_part in (
             filepath_output_log,
             filepath_output_summary_log,
     ):
+        filepath = filepath_part.removesuffix(".part.log") + ".log"
         if not os.path.exists(filepath):
+            os.rename(filepath_part, filepath)
             continue
+
         filepath_old = filepath.removesuffix(".log") + ".old.log"
         if os.path.exists(filepath_old):
             os.remove(filepath_old)
         os.rename(filepath, filepath_old)
+        os.rename(filepath_part, filepath)
         files_old[filepath] = filepath_old
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(filepath_output_log, "wb") as log_fh:
-            cppcheck(cppcheck_dir, temp_dir, log_fh)
-
-    with (
-            open(filepath_output_log, "r", encoding="utf-8") as log_fh,
-            open(filepath_output_summary_log, "w", encoding="utf-8") as log_summary_fh,
-    ):
-        cppcheck_generate_summary(log_fh, log_summary_fh)
-
     print("Written:")
-    for filepath in (
+    for filepath_part in (
             filepath_output_log,
             filepath_output_summary_log,
     ):
+        filepath = filepath_part.removesuffix(".part.log") + ".log"
         print(" ", filepath, "<->", files_old.get(filepath, "<none>"))
 
 
