@@ -1515,7 +1515,7 @@ static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f)
 static void knife_recalc_ortho(KnifeTool_OpData *kcd)
 {
   kcd->is_ortho = ED_view3d_clip_range_get(
-      kcd->vc.depsgraph, kcd->vc.v3d, kcd->vc.rv3d, &kcd->clipsta, &kcd->clipend, true);
+      kcd->vc.depsgraph, kcd->vc.v3d, kcd->vc.rv3d, true, &kcd->clipsta, &kcd->clipend);
 }
 
 /** \} */

@@ -114,9 +114,9 @@ void ED_view3d_dist_range_get(const View3D *v3d, float r_dist_range[2])
 bool ED_view3d_clip_range_get(const Depsgraph *depsgraph,
                               const View3D *v3d,
                               const RegionView3D *rv3d,
+                              const bool use_ortho_factor,
                               float *r_clip_start,
-                              float *r_clip_end,
-                              const bool use_ortho_factor)
+                              float *r_clip_end)
 {
   CameraParams params;
 
