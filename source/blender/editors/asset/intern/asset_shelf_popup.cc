@@ -163,6 +163,8 @@ uiBlock *popup_block_create(const bContext *C, ARegion *region, AssetShelfType *
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
+  UI_block_direction_set(block, UI_DIR_DOWN);
 
   AssetShelf *shelf = get_shelf_for_popup(C, *shelf_type);
   if (!shelf) {
@@ -199,9 +201,6 @@ uiBlock *popup_block_create(const bContext *C, ARegion *region, AssetShelfType *
   uiLayoutSetUnitsX(asset_view_col, right_col_width / UI_UNIT_X);
   uiLayoutSetFixedSize(asset_view_col, true);
   build_asset_view(*asset_view_col, shelf->settings.asset_library_reference, *shelf, *C, *region);
-
-  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
-  UI_block_direction_set(block, UI_DIR_DOWN);
 
   return block;
 }
