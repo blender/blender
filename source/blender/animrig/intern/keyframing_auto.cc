@@ -43,6 +43,11 @@ static eInsertKeyFlags get_autokey_flags(Scene *scene)
     flag |= INSERTKEY_NEEDED;
   }
 
+  /* Only insert available. */
+  if (is_keying_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE)) {
+    flag |= INSERTKEY_AVAILABLE;
+  }
+
   /* Keyframing mode - only replace existing keyframes. */
   if (is_autokey_mode(scene, AUTOKEY_MODE_EDITKEYS)) {
     flag |= INSERTKEY_REPLACE;
