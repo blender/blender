@@ -43,6 +43,9 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_bool_copy(grp, "useWeight", use_weight);
     DRW_shgroup_uniform_texture(grp, "weightTex", G_draw.weight_ramp);
   }
+  else {
+    pd->edit_grease_pencil_wires_grp = nullptr;
+  }
 
   if (show_points) {
     sh = OVERLAY_shader_edit_particle_point();
@@ -50,6 +53,9 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_bool_copy(grp, "useWeight", use_weight);
     DRW_shgroup_uniform_texture(grp, "weightTex", G_draw.weight_ramp);
+  }
+  else {
+    pd->edit_grease_pencil_points_grp = nullptr;
   }
 }
 
