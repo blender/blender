@@ -1328,8 +1328,8 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
         DEG_id_type_tag(bmain, type);
       }
-      if (bmain->is_asset_weak_reference_main) {
-        id->tag |= LIB_TAG_ASSET_MAIN;
+      if (bmain->is_asset_edit_main) {
+        id->tag |= LIB_TAG_ASSET_EDIT_MAIN;
       }
     }
     else {
@@ -1563,8 +1563,8 @@ void BKE_libblock_copy_in_lib(Main *bmain,
     DEG_id_type_tag(bmain, GS(new_id->name));
   }
 
-  if (bmain && bmain->is_asset_weak_reference_main) {
-    new_id->tag |= LIB_TAG_ASSET_MAIN;
+  if (bmain && bmain->is_asset_edit_main) {
+    new_id->tag |= LIB_TAG_ASSET_EDIT_MAIN;
   }
 
   *r_newid = new_id;

@@ -624,7 +624,7 @@ static bool paint_brush_set_from_asset_reference(Main *bmain, Paint *paint)
 
   Brush *brush = reinterpret_cast<Brush *>(blender::bke::asset_edit_id_from_weak_reference(
       *bmain, ID_BR, *paint->brush_asset_reference));
-  BLI_assert(brush == nullptr || (brush->id.tag & LIB_TAG_ASSET_MAIN));
+  BLI_assert(brush == nullptr || (brush->id.tag & LIB_TAG_ASSET_EDIT_MAIN));
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend was manually changed. */
@@ -669,7 +669,7 @@ static void paint_brush_asset_update(Paint &paint,
   MEM_delete(paint.brush_asset_reference);
   paint.brush_asset_reference = nullptr;
 
-  if (brush == nullptr || brush != paint.brush || !(brush->id.tag & LIB_TAG_ASSET_MAIN)) {
+  if (brush == nullptr || brush != paint.brush || !(brush->id.tag & LIB_TAG_ASSET_EDIT_MAIN)) {
     return;
   }
 
@@ -723,9 +723,6 @@ static void paint_brush_set_default_reference(Paint *paint)
       break;
     case OB_MODE_SCULPT_CURVES:
       name = "Comb Curves";
-      break;
-    case OB_MODE_EDIT:
-      /* TODO: UV sculpt. */
       break;
     case OB_MODE_PAINT_GPENCIL_LEGACY:
       name = "Pencil";

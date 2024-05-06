@@ -34,7 +34,6 @@
 #include "BKE_idprop.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
-#include "BKE_preferences.h"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"

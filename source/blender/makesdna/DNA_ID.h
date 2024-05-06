@@ -1008,7 +1008,7 @@ enum {
    * Datablocks like this can not be linked to and from datablocks in regular main.
    * They should stay isolated from each other.
    */
-  LIB_TAG_ASSET_MAIN = 1 << 27,
+  LIB_TAG_ASSET_EDIT_MAIN = 1 << 27,
 
   /* ------------------------------------------------------------------------------------------- */
 

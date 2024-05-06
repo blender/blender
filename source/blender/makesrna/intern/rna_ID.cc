@@ -16,7 +16,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_asset.hh"
 #include "BKE_icons.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main_namemap.hh"
@@ -2322,7 +2321,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Is Indirect", "Is this ID block linked indirectly");
 
   prop = RNA_def_property(srna, "is_asset_library_data", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "tag", LIB_TAG_ASSET_MAIN);
+  RNA_def_property_boolean_sdna(prop, nullptr, "tag", LIB_TAG_ASSET_EDIT_MAIN);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Asset Library Data",

@@ -44,8 +44,6 @@
 #include "BLF_api.hh"
 #include "BLT_translation.hh"
 
-#include "BKE_action.h"
-#include "BKE_asset.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
 #include "BKE_colorband.hh"

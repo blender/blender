@@ -66,7 +66,7 @@ struct AssetEditBlend {
 AssetEditBlend::AssetEditBlend(const std::string &filepath)
     : filepath(std::move(filepath)), main(BKE_main_new())
 {
-  this->main->is_asset_weak_reference_main = true;
+  this->main->is_asset_edit_main = true;
   BLI_assert(!BLI_path_is_rel(filepath.c_str()));
 
   /* Simple check, based on being a writable .asset.blend file in a user asset library. */
@@ -125,7 +125,7 @@ ID *AssetEditBlend::ensure_id(const ID_Type id_type, const char *asset_name)
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
-  BKE_main_id_tag_all(this->main, LIB_TAG_ASSET_MAIN, true);
+  BKE_main_id_tag_all(this->main, LIB_TAG_ASSET_EDIT_MAIN, true);
 
   /* Verify that the name matches. It must for referencing the same asset again to work.  */
   BLI_assert(local_asset == nullptr || STREQ(local_asset->name + 2, asset_name));
@@ -294,7 +294,7 @@ void AssetEditBlend::reload(Main &global_main)
 {
   Main *old_main = this->main;
   this->main = BKE_main_new();
-  this->main->is_asset_weak_reference_main = true;
+  this->main->is_asset_edit_main = true;
 
   /* Fill fresh main database with same datablock as before. */
   LibraryLink_Params lapp_params{};
@@ -322,7 +322,7 @@ void AssetEditBlend::reload(Main &global_main)
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
-  BKE_main_id_tag_all(this->main, LIB_TAG_ASSET_MAIN, true);
+  BKE_main_id_tag_all(this->main, LIB_TAG_ASSET_EDIT_MAIN, true);
 
   /* Remap old to new. */
   bke::id::IDRemapper mappings;
@@ -361,7 +361,7 @@ static Vector<AssetEditBlend> &asset_edit_blend_get_all()
 
 static AssetEditBlend *asset_edit_blend_from_id(const ID &id)
 {
-  BLI_assert(id.tag & LIB_TAG_ASSET_MAIN);
+  BLI_assert(id.tag & LIB_TAG_ASSET_EDIT_MAIN);
 
   /* TODO: It would be good to make this more efficient, though it's unlikely to be a bottleneck
    * for brush assets. It's not easy to add a hash map here because it needs to be kept up to date
@@ -515,7 +515,7 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
 
 bool asset_edit_id_is_editable(const ID &id)
 {
-  if (!(id.tag & LIB_TAG_ASSET_MAIN)) {
+  if (!(id.tag & LIB_TAG_ASSET_EDIT_MAIN)) {
     return false;
   }
 

@@ -194,7 +194,7 @@ struct Main {
   /**
    * True if main used to store weakly referenced assets.
    */
-  bool is_asset_weak_reference_main;
+  bool is_asset_edit_main;
 
   BlendThumbnail *blen_thumb;
 
@@ -516,11 +516,14 @@ int set_listbasepointers(Main *main, ListBase *lb[]);
 /**
  * Return main database this ID is a member of.
  *
- * Use this in operator and draw code instead of assuming the main
- * in the context owns datablocks. Some datablock can be part of
- * main datablocks from asset libraries instead.
+ * This works for the global main database and asset edit databases.
+ * So only datablocks that are directly editable in the user interface.
  *
- * Optionally can verify membership of global_main, but this is expensive.
+ * Use this in operator and draw code instead of assuming the main
+ * in the context owns datablocks.
+ *
+ * Optionally can verify that this datablock is one of these databases.
+ * This is slow and mainly meant for asserts.
  */
 Main *BKE_main_from_id(Main *global_main, const ID *id, bool verify = false);
 

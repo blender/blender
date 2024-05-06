@@ -14,7 +14,7 @@
  *
  * Each asset blend file is loaded into a separate main database, including the
  * asset datablocks and their dependencies. These datablocks are all tagged with
- * LIB_TAG_ASSET_MAIN. These can not be linked with other datablocks in the
+ * LIB_TAG_ASSET_EDIT_MAIN. These can not be linked with other datablocks in the
  * current blend file.
  *
  * For editable assets in user asset libraries, each asset is stored in its own

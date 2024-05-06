@@ -663,7 +663,7 @@ static bool brush_asset_update_poll(bContext *C)
     return false;
   }
 
-  if ((brush->id.tag & LIB_TAG_ASSET_MAIN) == 0) {
+  if ((brush->id.tag & LIB_TAG_ASSET_EDIT_MAIN) == 0) {
     return false;
   }
 
@@ -721,7 +721,7 @@ static bool brush_asset_revert_poll(bContext *C)
     return false;
   }
 
-  return paint->brush_asset_reference && (brush->id.tag & LIB_TAG_ASSET_MAIN);
+  return paint->brush_asset_reference && (brush->id.tag & LIB_TAG_ASSET_EDIT_MAIN);
 }
 
 static int brush_asset_revert_exec(bContext *C, wmOperator *op)

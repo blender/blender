@@ -987,9 +987,6 @@ static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   if (scene->ed != nullptr) {
     SEQ_for_each_callback(&scene->ed->seqbase, seq_foreach_path_callback, bpath_data);
   }
-
-  /* TODO: Also handle `asset_weak_reference` here? Probably not, conceptually this is not a file
-   * path. */
 }
 
 static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)

@@ -135,8 +135,6 @@ static void rna_Main_ID_remove(Main *bmain,
                 id->name + 2);
     return;
   }
-  /* TODO: this will not clear pointers from regular main to this asset.
-   * Those probably should not exist, and be purely runtime lookups? */
 
   if (do_unlink) {
     BKE_id_delete(bmain, id);
