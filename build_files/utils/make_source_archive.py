@@ -175,9 +175,7 @@ def submodules_to_manifest(
     skip_addon_contrib = version.is_release
     assert not blender_srcdir.is_absolute()
 
-    for line in git_command("-C", blender_srcdir, "submodule"):
-        submodule = line.split()[1]
-
+    for submodule in ("release/datafiles/locale", "release/scripts/addons", "release/scripts/addons_contrib", "source/tools"):
         # Don't use native slashes as GIT for MS-Windows outputs forward slashes.
         if skip_addon_contrib and submodule == "release/scripts/addons_contrib":
             continue
