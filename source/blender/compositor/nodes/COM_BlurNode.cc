@@ -43,7 +43,7 @@ void BlurNode::convert_to_operations(NodeConverter &converter,
     input_operation = operationfgb;
     output_operation = operationfgb;
   }
-  else if (editor_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) {
+  else if ((editor_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connected_size_socket) {
     MathAddOperation *clamp = new MathAddOperation();
     SetValueOperation *zero = new SetValueOperation();
     zero->set_value(0.0f);
