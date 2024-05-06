@@ -197,6 +197,11 @@ OIDNFilter OIDNDenoiserGPU::create_filter()
 
 #  if OIDN_VERSION_MAJOR >= 2
   switch (quality_) {
+    case DENOISER_QUALITY_FAST:
+#    if OIDN_VERSION >= 20300
+      oidnSetFilterInt(filter, "quality", OIDN_QUALITY_FAST);
+      break;
+#    endif
     case DENOISER_QUALITY_BALANCED:
       oidnSetFilterInt(filter, "quality", OIDN_QUALITY_BALANCED);
       break;

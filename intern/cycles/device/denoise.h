@@ -43,6 +43,7 @@ enum DenoiserPrefilter {
 enum DenoiserQuality {
   DENOISER_QUALITY_HIGH = 1,
   DENOISER_QUALITY_BALANCED = 2,
+  DENOISER_QUALITY_FAST = 3,
   DENOISER_QUALITY_NUM,
 };
 
