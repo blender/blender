@@ -171,30 +171,36 @@ uiBlock *popup_block_create(const bContext *C, ARegion *region, AssetShelfType *
 
   const uiStyle *style = UI_style_get_dpi();
 
-  const float pad = 0.2f * UI_UNIT_Y; /* UI_MENU_PADDING */
+  const int layout_width = UI_UNIT_X * 40;
+  const int left_col_width = 10 * UI_UNIT_X;
+  const int right_col_width = layout_width - left_col_width;
   uiLayout *layout = UI_block_layout(
-      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, pad, 0, UI_UNIT_X * 40, 0, pad / 2, style);
+      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, layout_width, 0, 0, style);
 
   PointerRNA library_ref_ptr = RNA_pointer_create(
       &screen->id, &RNA_AssetLibraryReference, &shelf->settings.asset_library_reference);
   uiLayoutSetContextPointer(layout, "asset_library_reference", &library_ref_ptr);
 
   uiLayout *row = uiLayoutRow(layout, false);
-  uiLayout *sub = uiLayoutRow(row, false);
-  uiLayoutSetUnitsX(sub, 10);
-  uiLayoutSetFixedSize(sub, true);
-  uiLayout *catalogs_col = uiLayoutColumn(sub, false);
+  uiLayout *catalogs_col = uiLayoutColumn(row, false);
+  uiLayoutSetUnitsX(catalogs_col, left_col_width / UI_UNIT_X);
+  uiLayoutSetFixedSize(catalogs_col, true);
   library_selector_draw(C, catalogs_col, *shelf);
   catalog_tree_draw(*catalogs_col, *shelf);
 
   uiLayout *right_col = uiLayoutColumn(row, false);
-  sub = uiLayoutRow(right_col, false);
+  uiLayout *sub = uiLayoutRow(right_col, false);
   /* Same as file/asset browser header. */
   PointerRNA shelf_ptr = RNA_pointer_create(&screen->id, &RNA_AssetShelf, shelf);
   uiItemR(sub, &shelf_ptr, "search_filter", UI_ITEM_R_IMMEDIATE, "", ICON_VIEWZOOM);
 
   uiLayout *asset_view_col = uiLayoutColumn(right_col, false);
+  uiLayoutSetUnitsX(asset_view_col, right_col_width / UI_UNIT_X);
+  uiLayoutSetFixedSize(asset_view_col, true);
   build_asset_view(*asset_view_col, shelf->settings.asset_library_reference, *shelf, *C, *region);
+
+  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
+  UI_block_direction_set(block, UI_DIR_DOWN);
 
   return block;
 }
