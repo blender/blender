@@ -335,9 +335,9 @@ void NODE_OT_clipboard_copy(wmOperatorType *ot)
 
 static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &tree = *snode.edittree;
+  Main *bmain = CTX_data_main_from_id(C, &tree.id);
   NodeClipboard &clipboard = get_node_clipboard();
 
   if (clipboard.nodes.is_empty()) {
@@ -351,7 +351,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
                "Some nodes references to other IDs could not be restored, will be left empty");
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   node_deselect_all(tree);
 

@@ -1756,8 +1756,9 @@ bool rna_Object_constraints_override_apply(Main *bmain,
 static ModifierData *rna_Object_modifier_new(
     Object *object, bContext *C, ReportList *reports, const char *name, int type)
 {
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
   ModifierData *md = blender::ed::object::modifier_add(
-      reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
+      reports, bmain, CTX_data_scene(C), object, name, type);
 
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_ADDED, object);
 
@@ -1769,9 +1770,9 @@ static void rna_Object_modifier_remove(Object *object,
                                        ReportList *reports,
                                        PointerRNA *md_ptr)
 {
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
   ModifierData *md = static_cast<ModifierData *>(md_ptr->data);
-  if (blender::ed::object::modifier_remove(
-          reports, CTX_data_main(C), CTX_data_scene(C), object, md) == false)
+  if (blender::ed::object::modifier_remove(reports, bmain, CTX_data_scene(C), object, md) == false)
   {
     /* error is already set */
     return;
@@ -1784,7 +1785,8 @@ static void rna_Object_modifier_remove(Object *object,
 
 static void rna_Object_modifier_clear(Object *object, bContext *C)
 {
-  blender::ed::object::modifiers_clear(CTX_data_main(C), CTX_data_scene(C), object);
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
+  blender::ed::object::modifiers_clear(bmain, CTX_data_scene(C), object);
 
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
@@ -1915,8 +1917,9 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
 static GpencilModifierData *rna_Object_greasepencil_modifier_new(
     Object *object, bContext *C, ReportList *reports, const char *name, int type)
 {
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
   return blender::ed::object::gpencil_modifier_add(
-      reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
+      reports, bmain, CTX_data_scene(C), object, name, type);
 }
 
 static void rna_Object_greasepencil_modifier_remove(Object *object,
@@ -1924,10 +1927,9 @@ static void rna_Object_greasepencil_modifier_remove(Object *object,
                                                     ReportList *reports,
                                                     PointerRNA *gmd_ptr)
 {
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
   GpencilModifierData *gmd = static_cast<GpencilModifierData *>(gmd_ptr->data);
-  if (blender::ed::object::gpencil_modifier_remove(reports, CTX_data_main(C), object, gmd) ==
-      false)
-  {
+  if (blender::ed::object::gpencil_modifier_remove(reports, bmain, object, gmd) == false) {
     /* error is already set */
     return;
   }
@@ -1939,7 +1941,8 @@ static void rna_Object_greasepencil_modifier_remove(Object *object,
 
 static void rna_Object_greasepencil_modifier_clear(Object *object, bContext *C)
 {
-  blender::ed::object::gpencil_modifier_clear(CTX_data_main(C), object);
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
+  blender::ed::object::gpencil_modifier_clear(bmain, object);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
@@ -2000,8 +2003,8 @@ bool rna_Object_greasepencil_modifiers_override_apply(
 static ShaderFxData *rna_Object_shaderfx_new(
     Object *object, bContext *C, ReportList *reports, const char *name, int type)
 {
-  return blender::ed::object::shaderfx_add(
-      reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
+  return blender::ed::object::shaderfx_add(reports, bmain, CTX_data_scene(C), object, name, type);
 }
 
 static void rna_Object_shaderfx_remove(Object *object,
@@ -2009,8 +2012,9 @@ static void rna_Object_shaderfx_remove(Object *object,
                                        ReportList *reports,
                                        PointerRNA *gmd_ptr)
 {
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
   ShaderFxData *gmd = static_cast<ShaderFxData *>(gmd_ptr->data);
-  if (blender::ed::object::shaderfx_remove(reports, CTX_data_main(C), object, gmd) == false) {
+  if (blender::ed::object::shaderfx_remove(reports, bmain, object, gmd) == false) {
     /* error is already set */
     return;
   }
@@ -2022,7 +2026,8 @@ static void rna_Object_shaderfx_remove(Object *object,
 
 static void rna_Object_shaderfx_clear(Object *object, bContext *C)
 {
-  blender::ed::object::shaderfx_clear(CTX_data_main(C), object);
+  Main *bmain = CTX_data_main_from_id(C, &object->id);
+  blender::ed::object::shaderfx_clear(bmain, object);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 

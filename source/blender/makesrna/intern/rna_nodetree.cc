@@ -1084,7 +1084,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
     ntreeTexCheckCyclics(ntree);
   }
 
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
   ED_node_tree_propagate_change(C, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 
@@ -1279,7 +1279,7 @@ static bool rna_NodeTree_contains_tree(bNodeTree *tree, bNodeTree *sub_tree)
 
 static void rna_NodeTree_interface_update(bNodeTree *ntree, bContext *C)
 {
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
   ntree->tree_interface.tag_items_changed();
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
@@ -2181,8 +2181,9 @@ void rna_Node_update_relations(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Node_socket_value_update(ID *id, bNode * /*node*/, bContext *C)
 {
+  Main *bmain = CTX_data_main_from_id(C, id);
   BKE_ntree_update_tag_all(reinterpret_cast<bNodeTree *>(id));
-  ED_node_tree_propagate_change(C, CTX_data_main(C), reinterpret_cast<bNodeTree *>(id));
+  ED_node_tree_propagate_change(C, bmain, reinterpret_cast<bNodeTree *>(id));
 }
 
 static void rna_Node_select_set(PointerRNA *ptr, bool value)
@@ -3298,8 +3299,9 @@ static bool rna_Node_pair_with_output(
   int &output_node_id = zone_type.get_corresponding_output_id(*node);
   output_node_id = output_node->identifier;
 
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
   BKE_ntree_update_tag_node_property(ntree, node);
-  ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
+  ED_node_tree_propagate_change(C, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
   return true;
 }
@@ -3540,7 +3542,8 @@ static bNodeSocket *rna_NodeOutputFile_slots_new(
 
   sock = ntreeCompositOutputFileAddSocket(ntree, node, name, im_format);
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
+  ED_node_tree_propagate_change(C, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 
   return sock;

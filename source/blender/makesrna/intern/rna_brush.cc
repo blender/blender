@@ -730,20 +730,20 @@ static void rna_Brush_material_update(bContext * /*C*/, PointerRNA * /*ptr*/)
 
 static void rna_Brush_main_tex_update(bContext *C, PointerRNA *ptr)
 {
-  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Brush *br = (Brush *)ptr->data;
+  Main *bmain = CTX_data_main_from_id(C, &br->id);
   BKE_paint_invalidate_overlay_tex(scene, view_layer, br->mtex.tex);
   rna_Brush_update(bmain, scene, ptr);
 }
 
 static void rna_Brush_secondary_tex_update(bContext *C, PointerRNA *ptr)
 {
-  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Brush *br = (Brush *)ptr->data;
+  Main *bmain = CTX_data_main_from_id(C, &br->id);
   BKE_paint_invalidate_overlay_tex(scene, view_layer, br->mask_mtex.tex);
   rna_Brush_update(bmain, scene, ptr);
 }

@@ -373,7 +373,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
 {
   using namespace blender::ed::space_node;
 
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main_from_id(C, &nodetree->id);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -545,7 +545,7 @@ bool ED_node_supports_preview(SpaceNode *snode)
 
 void ED_node_shader_default(const bContext *C, ID *id)
 {
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main_from_id(C, id);
 
   if (GS(id->name) == ID_MA) {
     /* Materials */
@@ -642,7 +642,8 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
   bNodeSocket *tosock = (bNodeSocket *)out->inputs.first;
   nodeAddLink(sce->nodetree, in, fromsock, out, tosock);
 
-  BKE_ntree_update_main_tree(CTX_data_main(C), sce->nodetree, nullptr);
+  Main *bmain = CTX_data_main_from_id(C, &sce->nodetree->id);
+  BKE_ntree_update_main_tree(bmain, sce->nodetree, nullptr);
 }
 
 void ED_node_texture_default(const bContext *C, Tex *tex)
@@ -670,7 +671,8 @@ void ED_node_texture_default(const bContext *C, Tex *tex)
   bNodeSocket *tosock = (bNodeSocket *)out->inputs.first;
   nodeAddLink(tex->nodetree, in, fromsock, out, tosock);
 
-  BKE_ntree_update_main_tree(CTX_data_main(C), tex->nodetree, nullptr);
+  Main *bmain = CTX_data_main_from_id(C, &tex->nodetree->id);
+  BKE_ntree_update_main_tree(bmain, tex->nodetree, nullptr);
 }
 
 namespace blender::ed::space_node {
@@ -1364,9 +1366,9 @@ void remap_node_pairing(bNodeTree &dst_tree, const Map<const bNode *, bNode *> &
 
 static int node_duplicate_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
   const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
   bool linked = RNA_boolean_get(op->ptr, "linked") || ((U.dupflag & USER_DUP_NTREE) == 0);
   const bool dupli_node_tree = !linked;
@@ -1504,10 +1506,10 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 /* Goes over all scenes, reads render layers. */
 static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   Scene *curscene = CTX_data_scene(C);
   bNodeTree &edit_tree = *snode->edittree;
+  Main *bmain = CTX_data_main_from_id(C, &edit_tree.id);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -1698,7 +1700,8 @@ static int node_preview_toggle_exec(bContext *C, wmOperator * /*op*/)
 
   node_flag_toggle_exec(snode, NODE_PREVIEW);
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
+  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
+  ED_node_tree_propagate_change(C, bmain, snode->edittree);
 
   return OPERATOR_FINISHED;
 }
@@ -1749,7 +1752,8 @@ static int node_deactivate_viewer_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
+  Main *bmain = CTX_data_main_from_id(C, &snode.edittree->id);
+  ED_node_tree_propagate_change(C, bmain, snode.edittree);
 
   return OPERATOR_FINISHED;
 }
@@ -1803,13 +1807,14 @@ void NODE_OT_options_toggle(wmOperatorType *ot)
 static int node_socket_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
+  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
 
   /* Sanity checking (poll callback checks this already). */
   if ((snode == nullptr) || (snode->edittree == nullptr)) {
     return OPERATOR_CANCELLED;
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   /* Toggle for all selected nodes */
   bool hidden = false;
@@ -1828,7 +1833,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
+  ED_node_tree_propagate_change(C, bmain, snode->edittree);
 
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
   /* Hack to force update of the button state after drawing, see #112462. */
@@ -1860,8 +1865,8 @@ void NODE_OT_hide_socket_toggle(wmOperatorType *ot)
 
 static int node_mute_exec(bContext *C, wmOperator * /*op*/)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
+  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -1900,8 +1905,8 @@ void NODE_OT_mute_toggle(wmOperatorType *ot)
 
 static int node_delete_exec(bContext *C, wmOperator * /*op*/)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
+  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -1954,6 +1959,7 @@ static bool node_switch_view_poll(bContext *C)
 static int node_switch_view_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
+  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & SELECT) {
@@ -1962,7 +1968,7 @@ static int node_switch_view_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
+  ED_node_tree_propagate_change(C, bmain, snode->edittree);
 
   return OPERATOR_FINISHED;
 }
@@ -1990,10 +1996,10 @@ void NODE_OT_switch_view_update(wmOperatorType *ot)
 
 static int node_delete_reconnect_exec(bContext *C, wmOperator * /*op*/)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
+  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   /* Delete paired nodes as well. */
   node_select_paired(*snode->edittree);
@@ -2056,7 +2062,8 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "file_path", file_path);
   ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
+  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
+  ED_node_tree_propagate_change(C, bmain, snode->edittree);
 
   return OPERATOR_FINISHED;
 }
@@ -2109,7 +2116,8 @@ static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator * 
     return OPERATOR_CANCELLED;
   }
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
+  ED_node_tree_propagate_change(C, bmain, ntree);
 
   return OPERATOR_FINISHED;
 }
@@ -2180,8 +2188,9 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
     nimf->active_input++;
   }
 
+  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
   BKE_ntree_update_tag_node_property(snode->edittree, node);
-  ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
+  ED_node_tree_propagate_change(C, bmain, snode->edittree);
 
   return OPERATOR_FINISHED;
 }
@@ -2327,7 +2336,6 @@ static bool node_shader_script_update_text_recursive(RenderEngine *engine,
 
 static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   PointerRNA nodeptr = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript);
@@ -2360,7 +2368,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
     Text *text = (Text *)CTX_data_pointer_get_type(C, "edit_text", &RNA_Text).data;
 
     if (text) {
-
+      Main *bmain = CTX_data_main(C);
       VectorSet<bNodeTree *> done_trees;
 
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
@@ -2502,9 +2510,10 @@ static int clear_viewer_border_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *btree = snode->nodetree;
+  Main *bmain = CTX_data_main_from_id(C, &btree->id);
 
   btree->flag &= ~NTREE_VIEWER_BORDER;
-  ED_node_tree_propagate_change(C, CTX_data_main(C), btree);
+  ED_node_tree_propagate_change(C, bmain, btree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -2553,7 +2562,8 @@ static int node_cryptomatte_add_socket_exec(bContext *C, wmOperator * /*op*/)
 
   ntreeCompositCryptomatteAddSocket(ntree, node);
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
+  ED_node_tree_propagate_change(C, bmain, ntree);
 
   return OPERATOR_FINISHED;
 }
@@ -2603,7 +2613,8 @@ static int node_cryptomatte_remove_socket_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
+  ED_node_tree_propagate_change(C, bmain, ntree);
 
   return OPERATOR_FINISHED;
 }

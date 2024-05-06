@@ -2390,11 +2390,8 @@ bool RNA_property_update_check(PropertyRNA *prop)
 
 void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
-  Main *main = CTX_data_main(C);
-  if (ptr->owner_id) {
-    main = BKE_main_from_id(main, ptr->owner_id);
-  }
-  rna_property_update(C, main, CTX_data_scene(C), ptr, prop);
+  Main *bmain = (ptr->owner_id) ? CTX_data_main_from_id(C, ptr->owner_id) : CTX_data_main(C);
+  rna_property_update(C, bmain, CTX_data_scene(C), ptr, prop);
 }
 
 void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)

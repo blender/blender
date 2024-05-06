@@ -1339,14 +1339,12 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
   ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
 
-  Main *id_main = CTX_data_main(C);
-  if (iod->pprop.ptr.owner_id) {
-    id_main = BKE_main_from_id(id_main, iod->pprop.ptr.owner_id);
-  }
+  Main *bmain = (iod->pprop.ptr.owner_id) ? CTX_data_main_from_id(C, iod->pprop.ptr.owner_id) :
+                                            CTX_data_main(C);
 
-  ListBase ranges = ED_image_filesel_detect_sequences(id_main, op, use_udim);
+  ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    Image *ima_range = image_open_single(id_main, op, range, use_multiview);
+    Image *ima_range = image_open_single(bmain, op, range, use_multiview);
 
     /* take the first image */
     if ((ima == nullptr) && ima_range) {
@@ -1378,7 +1376,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
   else if (area && area->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
-    ED_space_image_set(id_main, sima, ima, false);
+    ED_space_image_set(bmain, sima, ima, false);
     iuser = &sima->iuser;
   }
   else {
@@ -1418,9 +1416,9 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
 
   /* XXX BKE_packedfile_unpack_image frees image buffers */
-  ED_preview_kill_jobs(CTX_wm_manager(C), id_main);
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-  BKE_image_signal(id_main, ima, iuser, IMA_SIGNAL_RELOAD);
+  BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_RELOAD);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
   MEM_freeN(op->customdata);
@@ -1819,6 +1817,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
  * \{ */
 
 struct ImageSaveData {
+  Main *bmain;
   ImageUser *iuser;
   Image *image;
   ImageSaveOptions opts;
@@ -1858,16 +1857,16 @@ static bool save_image_op(
 
 static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Image *image = image_from_context(C);
   ImageUser *iuser = image_user_from_context(C);
   Scene *scene = CTX_data_scene(C);
 
   ImageSaveData *isd = static_cast<ImageSaveData *>(MEM_callocN(sizeof(*isd), __func__));
+  isd->bmain = CTX_data_main_from_id(C, &image->id);
   isd->image = image;
   isd->iuser = iuser;
 
-  if (!BKE_image_save_options_init(&isd->opts, bmain, scene, image, iuser, true, false)) {
+  if (!BKE_image_save_options_init(&isd->opts, isd->bmain, scene, image, iuser, true, false)) {
     BKE_image_save_options_free(&isd->opts);
     MEM_freeN(isd);
     return nullptr;
@@ -1913,7 +1912,6 @@ static void image_save_as_free(wmOperator *op)
 
 static int image_save_as_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   ImageSaveData *isd;
 
   if (op->customdata) {
@@ -1926,10 +1924,10 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
     }
   }
 
-  image_save_options_from_op(bmain, &isd->opts, op);
+  image_save_options_from_op(isd->bmain, &isd->opts, op);
   BKE_image_save_options_update(&isd->opts, isd->image);
 
-  save_image_op(bmain, isd->image, isd->iuser, op, &isd->opts);
+  save_image_op(isd->bmain, isd->image, isd->iuser, op, &isd->opts);
 
   if (isd->opts.save_copy == false) {
     BKE_image_free_packedfiles(isd->image);
@@ -1942,10 +1940,9 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 
 static bool image_save_as_check(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   ImageSaveData *isd = static_cast<ImageSaveData *>(op->customdata);
 
-  image_save_options_from_op(bmain, &isd->opts, op);
+  image_save_options_from_op(isd->bmain, &isd->opts, op);
   BKE_image_save_options_update(&isd->opts, isd->image);
 
   return WM_operator_filesel_ensure_ext_imtype(op, &isd->opts.im_format);
@@ -2127,8 +2124,8 @@ static bool image_save_poll(bContext *C)
 
 static int image_save_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Image *image = image_from_context(C);
+  Main *bmain = CTX_data_main_from_id(C, &image->id);
   ImageUser *iuser = image_user_from_context(C);
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
@@ -2461,8 +2458,8 @@ void IMAGE_OT_save_all_modified(wmOperatorType *ot)
 
 static int image_reload_exec(bContext *C, wmOperator * /*op*/)
 {
-  Main *bmain = CTX_data_main(C);
   Image *ima = image_from_context(C);
+  Main *bmain = CTX_data_main_from_id(C, &ima->id);
   ImageUser *iuser = image_user_from_context(C);
 
   if (!ima) {
@@ -2470,7 +2467,7 @@ static int image_reload_exec(bContext *C, wmOperator * /*op*/)
   }
 
   /* XXX BKE_packedfile_unpack_image frees image buffers */
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_RELOAD);
   DEG_id_tag_update(&ima->id, 0);
@@ -2531,9 +2528,7 @@ static void image_new_free(wmOperator *op)
 
 static int image_new_exec(bContext *C, wmOperator *op)
 {
-  SpaceImage *sima;
   Image *ima;
-  Main *id_main;
   PropertyRNA *prop;
   char name_buffer[MAX_ID_NAME - 2];
   const char *name;
@@ -2544,11 +2539,9 @@ static int image_new_exec(bContext *C, wmOperator *op)
   ImageNewData *data = image_new_init(C, op);
 
   /* retrieve state */
-  sima = CTX_wm_space_image(C);
-  id_main = CTX_data_main(C);
-  if (data->pprop.ptr.owner_id) {
-    id_main = BKE_main_from_id(id_main, data->pprop.ptr.owner_id);
-  }
+  SpaceImage *sima = CTX_wm_space_image(C);
+  Main *bmain = (data->pprop.ptr.owner_id) ? CTX_data_main_from_id(C, data->pprop.ptr.owner_id) :
+                                             CTX_data_main(C);
 
   prop = RNA_struct_find_property(op->ptr, "name");
   RNA_property_string_get(op->ptr, prop, name_buffer);
@@ -2572,7 +2565,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
     color[3] = 1.0f;
   }
 
-  ima = BKE_image_add_generated(id_main,
+  ima = BKE_image_add_generated(bmain,
                                 width,
                                 height,
                                 name,
@@ -2600,7 +2593,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
     RNA_property_update(C, &data->pprop.ptr, data->pprop.prop);
   }
   else if (sima) {
-    ED_space_image_set(id_main, sima, ima, false);
+    ED_space_image_set(bmain, sima, ima, false);
   }
   else {
     /* #BKE_image_add_generated creates one user by default, remove it if image is not linked to
@@ -2608,7 +2601,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
     id_us_min(&ima->id);
   }
 
-  BKE_image_signal(id_main, ima, (sima) ? &sima->iuser : nullptr, IMA_SIGNAL_USER_NEW_IMAGE);
+  BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : nullptr, IMA_SIGNAL_USER_NEW_IMAGE);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
 
@@ -3261,28 +3254,16 @@ void IMAGE_OT_resize(wmOperatorType *ot)
 /** \name Pack Operator
  * \{ */
 
-static bool image_pack_test(bContext *C, wmOperator *op)
+static int image_pack_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
 
   if (!ima) {
-    return false;
+    return OPERATOR_CANCELLED;
   }
 
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
     BKE_report(op->reports, RPT_ERROR, "Packing movies or image sequences not supported");
-    return false;
-  }
-
-  return true;
-}
-
-static int image_pack_exec(bContext *C, wmOperator *op)
-{
-  Main *bmain = CTX_data_main(C);
-  Image *ima = image_from_context(C);
-
-  if (!image_pack_test(C, op)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3290,6 +3271,7 @@ static int image_pack_exec(bContext *C, wmOperator *op)
     BKE_image_memorypack(ima);
   }
   else {
+    Main *bmain = CTX_data_main_from_id(C, &ima->id);
     BKE_image_packfiles(op->reports, ima, ID_BLEND_PATH(bmain, &ima->id));
   }
 
@@ -3320,19 +3302,8 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
 static int image_unpack_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Image *ima = image_from_context(C);
   int method = RNA_enum_get(op->ptr, "method");
-
-  /* find the supplied image by name */
-  if (RNA_struct_property_is_set(op->ptr, "id")) {
-    char imaname[MAX_ID_NAME - 2];
-    RNA_string_get(op->ptr, "id", imaname);
-    ima = static_cast<Image *>(BLI_findstring(&bmain->images, imaname, offsetof(ID, name) + 2));
-    if (!ima) {
-      ima = image_from_context(C);
-    }
-  }
 
   if (!ima || !BKE_image_has_packedfile(ima)) {
     return OPERATOR_CANCELLED;
@@ -3350,9 +3321,10 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
   }
 
   /* XXX BKE_packedfile_unpack_image frees image buffers */
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  Main *bmain = CTX_data_main_from_id(C, &ima->id);
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-  BKE_packedfile_unpack_image(CTX_data_main(C), op->reports, ima, ePF_FileStatus(method));
+  BKE_packedfile_unpack_image(bmain, op->reports, ima, ePF_FileStatus(method));
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
@@ -3362,10 +3334,6 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 static int image_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Image *ima = image_from_context(C);
-
-  if (RNA_struct_property_is_set(op->ptr, "id")) {
-    return image_unpack_exec(C, op);
-  }
 
   if (!ima || !BKE_image_has_packedfile(ima)) {
     return OPERATOR_CANCELLED;
@@ -3384,7 +3352,6 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
 
   unpack_menu(C,
               "IMAGE_OT_unpack",
-              ima->id.name + 2,
               ima->filepath,
               "textures",
               BKE_image_has_packedfile(ima) ?
@@ -3411,9 +3378,6 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(
       ot->srna, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
-  /* XXX, weak!, will fail with library, name collisions */
-  RNA_def_string(
-      ot->srna, "id", nullptr, MAX_ID_NAME - 2, "Image Name", "Image data-block name to unpack");
 }
 
 /** \} */

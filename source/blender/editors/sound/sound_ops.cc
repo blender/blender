@@ -797,14 +797,13 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   int method = RNA_enum_get(op->ptr, "method");
-  bSound *sound = nullptr;
+  Editing *ed = CTX_data_scene(C)->ed;
 
-  /* find the supplied image by name */
-  if (RNA_struct_property_is_set(op->ptr, "id")) {
-    char sndname[MAX_ID_NAME - 2];
-    RNA_string_get(op->ptr, "id", sndname);
-    sound = static_cast<bSound *>(BLI_findstring(&bmain->sounds, sndname, offsetof(ID, name) + 2));
+  if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM) {
+    return OPERATOR_CANCELLED;
   }
+
+  bSound *sound = ed->act_seq->sound;
 
   if (!sound || !sound->packedfile) {
     return OPERATOR_CANCELLED;
@@ -824,17 +823,12 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 static int sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Editing *ed = CTX_data_scene(C)->ed;
-  bSound *sound;
-
-  if (RNA_struct_property_is_set(op->ptr, "id")) {
-    return sound_unpack_exec(C, op);
-  }
 
   if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM) {
     return OPERATOR_CANCELLED;
   }
 
-  sound = ed->act_seq->sound;
+  bSound *sound = ed->act_seq->sound;
 
   if (!sound || !sound->packedfile) {
     return OPERATOR_CANCELLED;
@@ -846,8 +840,7 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
                "AutoPack is enabled, so image will be packed again on file save");
   }
 
-  unpack_menu(
-      C, "SOUND_OT_unpack", sound->id.name + 2, sound->filepath, "sounds", sound->packedfile);
+  unpack_menu(C, "SOUND_OT_unpack", sound->filepath, "sounds", sound->packedfile);
 
   return OPERATOR_FINISHED;
 }
@@ -870,9 +863,6 @@ static void SOUND_OT_unpack(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(
       ot->srna, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
-  /* XXX: weak!, will fail with library, name collisions */
-  RNA_def_string(
-      ot->srna, "id", nullptr, MAX_ID_NAME - 2, "Sound Name", "Sound data-block name to unpack");
 }
 
 /* ******************************************************* */

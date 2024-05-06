@@ -1981,10 +1981,11 @@ static std::optional<std::string> rna_SceneRenderView_path(const PointerRNA *ptr
 static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->data;
+  Main *bmain = CTX_data_main_from_id(C, &scene->id);
   if (scene->use_nodes && scene->nodetree == nullptr) {
     ED_node_composit_default(C, scene);
   }
-  DEG_relations_tag_update(CTX_data_main(C));
+  DEG_relations_tag_update(bmain);
 }
 
 static void rna_Physics_relations_update(Main *bmain, Scene * /*scene*/, PointerRNA * /*ptr*/)
@@ -2142,7 +2143,7 @@ static void rna_Scene_simplify_update_impl(Main *bmain,
 static void rna_Scene_use_simplify_update(bContext *C, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main_from_id(C, &scene->id);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   rna_Scene_simplify_update_impl(bmain, scene, false, depsgraph);
 }
@@ -2150,7 +2151,7 @@ static void rna_Scene_use_simplify_update(bContext *C, PointerRNA *ptr)
 static void rna_Scene_simplify_volume_update(bContext *C, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main_from_id(C, &scene->id);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   if (scene->r.mode & R_SIMPLIFY) {
     rna_Scene_simplify_update_impl(bmain, scene, false, depsgraph);

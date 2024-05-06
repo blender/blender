@@ -347,6 +347,7 @@ int ctx_data_list_count(const bContext *C,
 /* Data Context Members */
 
 Main *CTX_data_main(const bContext *C);
+Main *CTX_data_main_from_id(const bContext *C, const ID *id);
 Scene *CTX_data_scene(const bContext *C);
 /**
  * This is tricky. Sometimes the user overrides the render_layer

@@ -153,7 +153,7 @@ static void rna_Material_texpaint_begin(CollectionPropertyIterator *iter, Pointe
 
 static void rna_Material_active_paint_texture_index_update(bContext *C, PointerRNA *ptr)
 {
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main_from_id(C, ptr->owner_id);
   Material *ma = (Material *)ptr->owner_id;
 
   if (ma->use_nodes && ma->nodetree) {
@@ -193,8 +193,8 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
 
 static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
+  Main *bmain = CTX_data_main_from_id(C, ptr->owner_id);
   Material *ma = (Material *)ptr->data;
-  Main *bmain = CTX_data_main(C);
 
   if (ma->use_nodes && ma->nodetree == nullptr) {
     ED_node_shader_default(C, &ma->id);

@@ -95,11 +95,12 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
       nullptr);
   socket_iface->init_from_socket_instance(&params.socket);
   params.node_tree.tree_interface.active_item_set(&socket_iface->item);
+  Main *bmain = CTX_data_main_from_id(&params.C, &params.node_tree.id);
 
   bNode &group_input = params.add_node("NodeGroupInput");
 
   /* This is necessary to create the new sockets in the other input nodes. */
-  ED_node_tree_propagate_change(&params.C, CTX_data_main(&params.C), &params.node_tree);
+  ED_node_tree_propagate_change(&params.C, bmain, &params.node_tree);
 
   /* Hide the new input in all other group input nodes, to avoid making them taller. */
   for (bNode *node : params.node_tree.all_nodes()) {
@@ -123,8 +124,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
     socket->flag &= ~SOCK_HIDDEN;
     nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
 
-    bke::node_socket_move_default_value(
-        *CTX_data_main(&params.C), params.node_tree, params.socket, *socket);
+    bke::node_socket_move_default_value(*bmain, params.node_tree, params.socket, *socket);
   }
 }
 
@@ -201,7 +201,7 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
     search_link_ops.append(
         {asset_name + " " + UI_MENU_ARROW_SEP + socket_name,
          [&asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
-           Main &bmain = *CTX_data_main(&params.C);
+           Main &bmain = *CTX_data_main_from_id(&params.C, &params.node_tree.id);
 
            bNode &node = params.add_node(params.node_tree.typeinfo->group_idname);
            node.flag &= ~NODE_OPTIONS;
@@ -345,7 +345,6 @@ static void link_drag_search_update_fn(
 
 static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
 {
-  Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
   LinkDragSearchStorage &storage = *static_cast<LinkDragSearchStorage *>(arg1);
@@ -379,6 +378,7 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
 
   /* Ideally it would be possible to tag the node tree in some way so it updates only after the
    * translate operation is finished, but normally moving nodes around doesn't cause updates. */
+  Main &bmain = *CTX_data_main_from_id(C, &node_tree.id);
   ED_node_tree_propagate_change(C, &bmain, &node_tree);
 
   /* Start translation operator with the new node. */

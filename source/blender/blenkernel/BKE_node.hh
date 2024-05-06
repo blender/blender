@@ -400,7 +400,7 @@ struct bNodeTreeType {
 
   /* callbacks */
   /* Iteration over all node classes. */
-  void (*foreach_nodeclass)(Scene *scene, void *calldata, bNodeClassCallback func);
+  void (*foreach_nodeclass)(void *calldata, bNodeClassCallback func);
   /* Check visibility in the node editor */
   bool (*poll)(const bContext *C, bNodeTreeType *ntreetype);
   /* Select a node tree from the context */

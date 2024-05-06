@@ -962,7 +962,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
   TemplateID *template_ui = (TemplateID *)arg_litem;
   PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
   ID *id = static_cast<ID *>(idptr.data);
-  Main *id_main = BKE_main_from_id(CTX_data_main(C), id);
+  Main *bmain = CTX_data_main_from_id(C, id);
   const int event = POINTER_AS_INT(arg_event);
   const char *undo_push_label = nullptr;
 
@@ -1014,11 +1014,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
     case UI_ID_LOCAL:
       if (id) {
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
-          template_id_liboverride_hierarchy_make(
-              C, id_main, template_ui, &idptr, &undo_push_label);
+          template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
         }
         else {
-          if (BKE_lib_id_make_local(id_main, id, 0)) {
+          if (BKE_lib_id_make_local(bmain, id, 0)) {
             BKE_id_newptr_and_tag_clear(id);
 
             /* Reassign to get proper updates/notifiers. */
@@ -1035,11 +1034,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
     case UI_ID_OVERRIDE:
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
-          template_id_liboverride_hierarchy_make(
-              C, id_main, template_ui, &idptr, &undo_push_label);
+          template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
         }
         else {
-          BKE_lib_override_library_make_local(id_main, id);
+          BKE_lib_override_library_make_local(bmain, id);
           /* Reassign to get proper updates/notifiers. */
           idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
           RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, nullptr);
@@ -1056,13 +1054,13 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         /* make copy */
         if (do_scene_obj) {
           Scene *scene = CTX_data_scene(C);
-          blender::ed::object::object_single_user_make(id_main, scene, (Object *)id);
+          blender::ed::object::object_single_user_make(bmain, scene, (Object *)id);
           WM_event_add_notifier(C, NC_WINDOW, nullptr);
-          DEG_relations_tag_update(id_main);
+          DEG_relations_tag_update(bmain);
         }
         else {
           id_single_user(C, id, &template_ui->ptr, template_ui->prop);
-          DEG_relations_tag_update(id_main);
+          DEG_relations_tag_update(bmain);
         }
         undo_push_label = "Make Single User";
       }
@@ -1766,15 +1764,12 @@ static void ui_template_id(uiLayout *layout,
     flag |= UI_ID_OPEN;
   }
 
-  Main *id_main = CTX_data_main(C);
-  if (ptr->owner_id) {
-    id_main = BKE_main_from_id(id_main, ptr->owner_id);
-  }
+  Main *bmain = (ptr->owner_id) ? CTX_data_main_from_id(C, ptr->owner_id) : CTX_data_main(C);
 
   StructRNA *type = RNA_property_pointer_type(ptr, prop);
   short idcode = RNA_type_to_ID_code(type);
   template_ui->idcode = idcode;
-  template_ui->idlb = which_libbase(id_main, idcode);
+  template_ui->idlb = which_libbase(bmain, idcode);
 
   /* create UI elements for this template
    * - template_ID makes a copy of the template data and assigns it to the relevant buttons

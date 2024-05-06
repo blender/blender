@@ -71,8 +71,8 @@ static void position_node_based_on_mouse(bNode &node, const float2 &location)
 bNode *add_node(const bContext &C, const StringRef idname, const float2 &location)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
-  Main &bmain = *CTX_data_main(&C);
   bNodeTree &node_tree = *snode.edittree;
+  Main &bmain = *CTX_data_main_from_id(&C, &node_tree.id);
 
   node_deselect_all(node_tree);
 
@@ -93,8 +93,8 @@ bNode *add_node(const bContext &C, const StringRef idname, const float2 &locatio
 bNode *add_static_node(const bContext &C, int type, const float2 &location)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
-  Main &bmain = *CTX_data_main(&C);
   bNodeTree &node_tree = *snode.edittree;
+  Main &bmain = *CTX_data_main_from_id(&C, &node_tree.id);
 
   node_deselect_all(node_tree);
 
@@ -145,6 +145,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   const ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
+  Main &bmain = *CTX_data_main_from_id(C, &ntree.id);
 
   Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {
@@ -168,7 +169,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   ntree.ensure_topology_cache();
   const Vector<bNode *> frame_nodes = ntree.nodes_by_type("NodeFrame");
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
 
   /* All link "cuts" that start at a particular output socket. Deduplicating new reroutes per
    * output socket is useful because it allows reusing reroutes for connected intersections.
@@ -223,7 +224,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), &ntree);
+  ED_node_tree_propagate_change(C, &bmain, &ntree);
   return OPERATOR_FINISHED;
 }
 
@@ -291,9 +292,9 @@ static bool node_group_add_poll(const bNodeTree &node_tree,
 
 static int node_add_group_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
 
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
       WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_NT));
@@ -304,7 +305,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   const char *node_idname = node_group_idname(C);
   if (node_idname[0] == '\0') {
@@ -398,9 +399,9 @@ static bool add_node_group_asset(const bContext &C,
                                  const asset_system::AssetRepresentation &asset,
                                  ReportList &reports)
 {
-  Main &bmain = *CTX_data_main(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &edit_tree = *snode.edittree;
+  Main &bmain = *CTX_data_main_from_id(&C, &edit_tree.id);
 
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
       asset::asset_local_id_ensure_imported(bmain, asset));
@@ -414,7 +415,7 @@ static bool add_node_group_asset(const bContext &C,
     return false;
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(&C), CTX_data_main(&C));
+  ED_preview_kill_jobs(CTX_wm_manager(&C), &bmain);
 
   bNode *group_node = add_node(
       C, ntreeTypeFind(node_group->idname)->group_idname, snode.runtime->cursor);
@@ -510,9 +511,9 @@ void NODE_OT_add_group_asset(wmOperatorType *ot)
 
 static int node_add_object_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
 
   Object *object = reinterpret_cast<Object *>(
       WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_OB));
@@ -521,7 +522,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   bNode *object_node = add_static_node(*C, GEO_NODE_OBJECT_INFO, snode->runtime->cursor);
   if (!object_node) {
@@ -596,9 +597,9 @@ void NODE_OT_add_object(wmOperatorType *ot)
 
 static int node_add_collection_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
+  Main *bmain = CTX_data_main_from_id(C, &ntree.id);
 
   Collection *collection = reinterpret_cast<Collection *>(
       WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_GR));
@@ -607,7 +608,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   bNode *collection_node = add_static_node(*C, GEO_NODE_COLLECTION_INFO, snode.runtime->cursor);
   if (!collection_node) {
@@ -736,8 +737,10 @@ static int node_add_file_modal(bContext *C, wmOperator *op, const wmEvent *event
 
 static int node_add_file_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &node_tree = *snode.edittree;
+  Main *bmain = CTX_data_main_from_id(C, &node_tree.id);
+
   int type = 0;
   switch (snode.nodetree->type) {
     case NTREE_SHADER:
@@ -807,14 +810,13 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
   }
 
   /* Set new nodes as selected. */
-  bNodeTree &node_tree = *snode.edittree;
   node_deselect_all(node_tree);
   for (bNode *node : nodes) {
     nodeSetSelected(node, true);
   }
   ED_node_set_active(bmain, &snode, &node_tree, nodes[0], nullptr);
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   ED_node_tree_propagate_change(C, bmain, snode.edittree);
   DEG_relations_tag_update(bmain);
@@ -898,15 +900,16 @@ static bool node_add_mask_poll(bContext *C)
 
 static int node_add_mask_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &node_tree = *snode.edittree;
+  Main *bmain = CTX_data_main_from_id(C, &node_tree.id);
 
   ID *mask = WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_MSK);
   if (!mask) {
     return OPERATOR_CANCELLED;
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   bNode *node = add_static_node(*C, CMP_NODE_MASK, snode.runtime->cursor);
 
@@ -949,9 +952,9 @@ void NODE_OT_add_mask(wmOperatorType *ot)
 
 static int node_add_material_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
+  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
 
   Material *material = reinterpret_cast<Material *>(
       WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_MA));
@@ -960,7 +963,7 @@ static int node_add_material_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   bNode *material_node = add_static_node(*C, GEO_NODE_INPUT_MATERIAL, snode->runtime->cursor);
   if (!material_node) {
@@ -1028,16 +1031,10 @@ void NODE_OT_add_material(wmOperatorType *ot)
 static int new_node_tree_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  Main *bmain = CTX_data_main(C);
-  bNodeTree *ntree;
-  PointerRNA ptr;
-  PropertyRNA *prop;
   const char *idname;
-  char treename_buf[MAX_ID_NAME - 2];
-  const char *treename;
 
   if (RNA_struct_property_is_set(op->ptr, "type")) {
-    prop = RNA_struct_find_property(op->ptr, "type");
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "type");
     RNA_property_enum_identifier(C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &idname);
   }
   else if (snode) {
@@ -1052,6 +1049,8 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  char treename_buf[MAX_ID_NAME - 2];
+  const char *treename;
   if (RNA_struct_property_is_set(op->ptr, "name")) {
     RNA_string_get(op->ptr, "name", treename_buf);
     treename = treename_buf;
@@ -1061,10 +1060,15 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     treename = type->ui_name;
   }
 
-  ntree = ntreeAddTree(bmain, treename, idname);
-
   /* Hook into UI. */
+  PointerRNA ptr;
+  PropertyRNA *prop;
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+
+  Main *bmain = (ptr.owner_id) ? CTX_data_main_from_id(C, ptr.owner_id) : CTX_data_main(C);
+
+  /* Add node tree and assign. */
+  bNodeTree *ntree = ntreeAddTree(bmain, treename, idname);
 
   if (prop) {
     /* #RNA_property_pointer_set increases the user count, fixed here as the editor is the initial
