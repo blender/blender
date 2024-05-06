@@ -17,6 +17,8 @@ struct WorkSpace;
 struct WorkSpaceInstanceHook;
 struct WorkSpaceLayout;
 
+namespace blender::bke {
+
 struct WorkSpaceStatusItem {
   int icon = 0;
   std::string text = {};
@@ -24,10 +26,8 @@ struct WorkSpaceStatusItem {
   bool inverted = false;
 };
 
-namespace blender::bke {
-
 struct WorkSpaceRuntime {
-  blender::Vector<WorkSpaceStatusItem> status;
+  Vector<WorkSpaceStatusItem> status;
 };
 
 }  // namespace blender::bke
@@ -171,7 +171,7 @@ void BKE_workspace_id_tag_all_visible(Main *bmain, int tag) ATTR_NONNULL();
 /**
  * Empty the Workspace status items to clear the status bar.
  */
-void BKE_workspace_status_clear(struct WorkSpace *workspace);
+void BKE_workspace_status_clear(WorkSpace *workspace);
 
 #undef GETTER_ATTRS
 #undef SETTER_ATTRS

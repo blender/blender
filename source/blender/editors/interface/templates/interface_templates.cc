@@ -6316,7 +6316,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
   /* Workspace status text has priority. */
   if (!workspace->runtime->status.is_empty()) {
     uiLayout *row = uiLayoutRow(layout, true);
-    for (WorkSpaceStatusItem item : workspace->runtime->status) {
+    for (const blender::bke::WorkSpaceStatusItem &item : workspace->runtime->status) {
       if (item.space_factor != 0.0f) {
         uiItemS_ex(row, item.space_factor);
       }

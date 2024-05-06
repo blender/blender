@@ -451,16 +451,15 @@ bool ED_workspace_layout_cycle(WorkSpace *workspace, short direction, bContext *
 void ED_workspace_status_text(bContext *C, const char *str);
 
 class WorkspaceStatus {
- private:
   WorkSpace *workspace_;
   wmWindowManager *wm_;
 
  public:
   WorkspaceStatus(bContext *C);
-  void item(const std::string text, int icon1, int icon2 = 0);
-  void item_bool(const std::string text, bool inverted, int icon1, int icon2 = 0);
-  void range(const std::string text, int icon1, int icon2);
-  void opmodal(const std::string text, wmOperatorType *ot, int propvalue, bool inverted = false);
+  void item(std::string text, int icon1, int icon2 = 0);
+  void item_bool(std::string text, bool inverted, int icon1, int icon2 = 0);
+  void range(std::string text, int icon1, int icon2);
+  void opmodal(std::string text, const wmOperatorType *ot, int propvalue, bool inverted = false);
 };
 
 void ED_workspace_do_listen(bContext *C, const wmNotifier *note);
