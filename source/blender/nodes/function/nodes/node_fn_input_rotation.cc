@@ -7,6 +7,9 @@
 
 #include "NOD_socket_search_link.hh"
 
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_input_rotation_cc {
