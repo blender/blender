@@ -21,45 +21,59 @@ AUD_NAMESPACE_BEGIN
 
 void OpenCloseDevice::closeAfterDelay()
 {
-	for(;;)
-	{
-		std::this_thread::sleep_for(m_device_close_delay / 10);
-		if(m_playing || m_playback_stopped_time.time_since_epoch().count() == 0)
-			m_playback_stopped_time = std::chrono::steady_clock::now();
-		if(std::chrono::steady_clock::now() < m_playback_stopped_time + m_device_close_delay)
-			continue;
+	std::unique_lock<std::mutex> lock(m_delayed_close_mutex);
 
-		break;
-	}
+	m_immediate_close_condition.wait_until(lock, m_playback_stopped_time + m_device_close_delay);
+
+	m_delayed_close_running = false;
+
+	if(m_playing)
+		return;
+
 	close();
-	m_delayed_close_finished = true;
 	m_device_opened = false;
+}
+
+void OpenCloseDevice::closeNow()
+{
+	if(m_delayed_close_thread.joinable())
+	{
+		m_immediate_close_condition.notify_all();
+		m_delayed_close_thread.join();
+	}
 }
 
 void OpenCloseDevice::playing(bool playing)
 {
+	std::lock_guard<std::mutex> lock(m_delayed_close_mutex);
+
 	if(m_playing != playing)
 	{
 		m_playing = playing;
 		if(playing)
 		{
 			if(!m_device_opened)
+			{
 				open();
-			m_device_opened = true;
+				m_device_opened = true;
+			}
+
 			start();
 		}
 		else
 		{
 			stop();
-			m_playback_stopped_time = std::chrono::steady_clock::now();
-			if(m_delayed_close_thread.joinable() && m_delayed_close_finished)
-			{
-				m_delayed_close_thread.join();
-				m_delayed_close_finished = false;
-			}
 
-			if(m_device_opened && !m_delayed_close_thread.joinable())
+			m_playback_stopped_time = std::chrono::steady_clock::now();
+
+			if(m_device_opened && !m_delayed_close_running)
+			{
+				if(m_delayed_close_thread.joinable())
+					m_delayed_close_thread.join();
+
+				m_delayed_close_running = true;
 				m_delayed_close_thread = std::thread(&OpenCloseDevice::closeAfterDelay, this);
+			}
 		}
 	}
 }
