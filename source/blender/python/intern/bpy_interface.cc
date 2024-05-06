@@ -558,7 +558,9 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 
 void BPY_python_end(const bool do_python_exit)
 {
+#ifndef WITH_PYTHON_MODULE
   BLI_assert_msg(Py_IsInitialized() != 0, "Python must be initialized");
+#endif
 
   PyGILState_STATE gilstate;
 
