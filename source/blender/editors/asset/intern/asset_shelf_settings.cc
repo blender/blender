@@ -49,7 +49,6 @@ AssetShelfSettings &AssetShelfSettings::operator=(const AssetShelfSettings &othe
   if (active_catalog_path) {
     active_catalog_path = BLI_strdup(other.active_catalog_path);
   }
-  BKE_asset_catalog_path_list_free(enabled_catalog_paths);
   enabled_catalog_paths = BKE_asset_catalog_path_list_duplicate(other.enabled_catalog_paths);
 
   return *this;
