@@ -1255,8 +1255,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
           clip->aspy = 1.0f;
         }
 
-        clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN | IMB_TC_FREE_RUN |
-                                    IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
+        clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN;
 
         if (clip->proxy.build_size_flag == 0) {
           clip->proxy.build_size_flag = IMB_PROXY_25;

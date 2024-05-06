@@ -45,28 +45,32 @@ enum eImbFileType {
 #endif
 };
 
+/**
+ * Timecode files contain timestamps (PTS, DTS) and packet seek position. These values are obtained
+ * by decoding each frame in movie stream. Timecode types define how these map to frame index in
+ * Blender. This is used when seeking in movie stream.
+ * Note, that meaning of terms timecode and record run here has little connection to their actual
+ * meaning.
+ */
 typedef enum IMB_Timecode_Type {
-  /** Don't use time-code files at all. */
+  /** Don't use time-code files at all. Use FFmpeg API to seek to PTS calculated on the fly. */
   IMB_TC_NONE = 0,
   /**
-   * Use images in the order as they are recorded
-   * (currently, this is the only one implemented
-   * and is a sane default).
+   * TC entries (and therefore frames in movie stream) are mapped to frame index, such that
+   * timestamp in Blender matches timestamp in the movie stream. This assumes, that time starts at
+   * 0 in both cases.
+   *
+   * Simplified formula is `frame_index = movie_stream_timestamp * FPS`.
    */
   IMB_TC_RECORD_RUN = 1,
   /**
-   * Use global timestamp written by recording
-   * device (prosumer camcorders e.g. can do that).
+   * Each TC entry (and therefore frame in movie stream) is mapped to new frame index in Blender.
+   *
+   * For example: FFmpeg may say, that a frame should be displayed for 0.5 seconds, but this option
+   * ignores that and only diplays it in one particular frame index in Blender.
    */
-  IMB_TC_FREE_RUN = 2,
-  /**
-   * Interpolate a global timestamp using the
-   * record date and time written by recording
-   * device (*every* consumer camcorder can do that).
-   */
-  IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN = 4,
   IMB_TC_RECORD_RUN_NO_GAPS = 8,
-  IMB_TC_MAX_SLOT = 4,
+  IMB_TC_NUM_TYPES = 2,
 } IMB_Timecode_Type;
 
 typedef enum IMB_Proxy_Size {
