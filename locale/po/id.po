@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
-"PO-Revision-Date: 2024-04-24 23:56+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"PO-Revision-Date: 2024-05-06 07:10+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
-"X-Generator: Weblate 5.0.1\n"
+"X-Generator: Weblate 5.5.2\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Bookmarks: -1,-1,-1,-1,-1,-1,-1,-1,-1,4"
 
@@ -318,7 +318,7 @@ msgstr "Optimasi Kernel"
 
 
 msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
-msgstr "Kernel bisa dioptimasi sesuai dengan isi adegan. Kernel yang teroptimasi diambil pada awal render. Jika kernel yang teroptimasi tidak tersedia, proses render akan dilanjutkan menggunakan kernel biasa sampai kernel yang teroptimasi tersedia di cache. Hal ini menggunakan penggunaan CPU tambahan untuk waktu singkat (puluhan detik)"
+msgstr "Kernel bisa dioptimalkan sesuai dengan isi adegan. Kernel yang teroptimalkan diambil pada awal render. Jika kernel yang teroptimalkan tidak tersedia, proses render akan dilanjutkan menggunakan kernel biasa sampai kernel yang teroptimalkan tersedia di cache. Hal ini menggunakan penggunaan CPU tambahan untuk waktu singkat (puluhan detik)"
 
 
 msgid "Off"
@@ -326,19 +326,31 @@ msgstr "Mati"
 
 
 msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
-msgstr "Nonaktifkan optimasi kernel. Render paling lambat, tidak ada penggunaan CPU latar belakang tambahan"
+msgstr "Nonaktifkan pengoptimalan kernel. Render paling lambat, tidak ada penggunaan CPU latar belakang tambahan"
 
 
 msgid "Intersection only"
 msgstr "Persimpangan Saja"
 
 
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Hanya optimalkan kernel persimpangan. Proses render lebih cepat, penggunaan CPU latar belakang tambahan yang dapat diabaikan"
+
+
 msgid "Full"
 msgstr "Penuh"
 
 
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Optimalkan semua kernel. Proses render tercepat, dapat menghasilkan penggunaan CPU latar belakang tambahan"
+
+
 msgid "MetalRT"
 msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT untuk pelacakan sinar menggunakan lebih sedikit memori untuk adegan yang menggunakan kurva secara ekstensif, dan dapat memberikan kinerja yang lebih baik dalam kasus tertentu"
 
 
 msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
@@ -357,6 +369,10 @@ msgid "Auto"
 msgstr "Otomatis"
 
 
+msgid "Automatically pick the fastest intersection method"
+msgstr "Secara otomatis memilih metode persimpangan tercepat"
+
+
 msgid "Distribute memory across devices"
 msgstr "Distribusikan memori antar perangkat"
 
@@ -365,8 +381,48 @@ msgid "Make more room for large scenes to fit by distributing memory across inte
 msgstr "Buat spasi lebih banyak untuk adegan besar supaya cukup dengan mendistribusikan memori antar perangkat yang terkoneksi (e.g via NVLink) daripada menduplikasikannya"
 
 
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (Eksperimental)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT menggunakan pelacakan sinar oleh perangkat keras AMD di RDNA2 dan yang lebih baru, dengan fallback peneduh pada kartu lebih tua. Fitur ini bersifat eksperimental dan beberapa adegan mungkin salah render"
+
+
 msgid "Embree on GPU"
 msgstr "Embree di GPU"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree di GPU mengaktifkan penggunaan pelacakan sinar perangkat keras pada GPU Intel, memberikan kinerja keseluruhan yang lebih baik"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Menampilkan UI glTF untuk mengelola varian bahan"
+
+
+msgid "Allow glTF Embedded format"
+msgstr "Memperbolehkan format Tertanam glTF"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "Menampilkan UI glTF untuk mengelola animasi"
+
+
+msgid "glTFpack file path"
+msgstr "jalur dokumen glTFpack"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Jalur ke biner gltfpack"
+
+
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "Menampilkan simpul Keluaran Bahan glTF di Editor Peneduh (Menu Tambah > Keluaran)"
 
 
 msgid "Fribidi Library"
@@ -533,12 +589,24 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Jumlah Aksi Aktif berkontribusi ke hasil stack NLA"
 
 
+msgid "Tweak Mode Action Storage"
+msgstr "Penyimpanan Tindakan Mode Tweak"
+
+
+msgid "Slot to temporarily hold the main action while in tweak mode"
+msgstr "Slot untuk sementara menahan aksi utama saat dalam mode tweak"
+
+
 msgid "Animation"
 msgstr "Animasi"
 
 
 msgid "Active Animation for this data-block"
 msgstr "Animasi Aktif untuk data-blok ini"
+
+
+msgid "New"
+msgstr "Baru"
 
 
 msgid "Drivers"
@@ -3280,8 +3348,76 @@ msgid "Curve Radius"
 msgstr "Radius Kurva"
 
 
+msgid "Remove"
+msgstr "Hapus"
+
+
+msgid "Remove curves whose root points are too close"
+msgstr "Hapus kurva yang titik akarnya dekat"
+
+
 msgid "Minimum Distance"
 msgstr "Jarak Minimal"
+
+
+msgid "Goal distance between curve roots for the Density brush"
+msgstr "Jarak tujuan antara akar kurva untuk kuas Kepadatan"
+
+
+msgid "Minimum Length"
+msgstr "Panjang Minimal"
+
+
+msgid "Avoid shrinking curves shorter than this length"
+msgstr "Menghindari pengecilan kurva yang lebih pendek dari panjang ini"
+
+
+msgid "Points per Curve"
+msgstr "Titik per Kurva"
+
+
+msgid "Number of control points in a newly added curve"
+msgstr "Jumlah titik kontrol di kurva yang baru ditambahkan"
+
+
+msgid "Interpolate Length"
+msgstr "Panjang Interpolasi"
+
+
+msgid "Use length of the curves in close proximity"
+msgstr "Gunakan panjang kurva yang berdekatan"
+
+
+msgid "Interpolate Point Count"
+msgstr "Hitungan Titik Interpolasi"
+
+
+msgid "Use the number of points from the curves in close proximity"
+msgstr "Gunakan hitungan titik dari kurva yang berdekatan"
+
+
+msgid "Interpolate Radius"
+msgstr "Interpolasi Radius"
+
+
+msgid "Use radius of the curves in close proximity"
+msgstr "Gunakan radius kurva yang berdekatan"
+
+
+msgid "Interpolate Shape"
+msgstr "Interpolasi Bentuk"
+
+
+msgid "Use shape of the curves in close proximity"
+msgstr "Gunakan bentuk kurva yang berdekatan"
+
+
+msgid "Scale Uniform"
+msgstr "Skala Seragam"
+
+
+msgid "Grow or shrink curves by changing their size uniformly instead of using trimming or extrapolation"
+msgstr "Membesarkan atau mengecilkan kurva dengan mengubah ukurannya secara seragam, bukan menggunakan pemangkasan atau ekstrapolasi"
 
 
 msgid "Grease Pencil Brush Settings"
@@ -12276,10 +12412,6 @@ msgid "Movie Strip"
 msgstr "Strip Film"
 
 
-msgid "Cache"
-msgstr "Cache"
-
-
 msgid "Texture Specials"
 msgstr "Spesial Tekstur"
 
@@ -12298,6 +12430,10 @@ msgstr "Buka Bahasa Bayangan"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Cache"
 
 
 msgid "Blender"
@@ -12534,10 +12670,6 @@ msgstr "Gabung sudut di duplikat yang berdekatan"
 
 msgid "Merge End Vertices"
 msgstr "Gabung Sudut Akhir"
-
-
-msgid "New"
-msgstr "Baru"
 
 
 msgid "Material Mode"
@@ -14644,30 +14776,6 @@ msgstr "Kecepatan maksimum, atau nol untuk kosong"
 
 msgid "Min Speed"
 msgstr "Kecepatan Min"
-
-
-msgid "Tile Order"
-msgstr "Urutan Ubin"
-
-
-msgid "Tile order"
-msgstr "Urutan ubin"
-
-
-msgid "Expand from center"
-msgstr "Perpanjang dari pusat"
-
-
-msgid "Random tiles"
-msgstr "Ubin Acak"
-
-
-msgid "Bottom Up"
-msgstr "Bawah Atas"
-
-
-msgid "Expand from bottom"
-msgstr "Perpanjang dari bawah"
 
 
 msgid "And"
@@ -18374,10 +18482,6 @@ msgid "Mask Box Gesture"
 msgstr "Gestur Kotak Masker"
 
 
-msgid "Add mask within the box as you move the brush"
-msgstr "Tambah masker di dalam kotak saat Anda memindahkan kuas"
-
-
 msgid "Value Inverted"
 msgstr "Nilai Terbalik"
 
@@ -21817,6 +21921,18 @@ msgid "Clock"
 msgstr "Jam"
 
 
+msgid "Mask Input Type"
+msgstr "Grup"
+
+
+msgid "Mute this modifier"
+msgstr "Modus Pahat"
+
+
+msgid "White Balance"
+msgstr "Keseimbangan Putih"
+
+
 msgid "Show Cache"
 msgstr "Tampilkan Cache"
 
@@ -21831,18 +21947,6 @@ msgstr "Gambar Final"
 
 msgid "Raw Images"
 msgstr "Gambah Mentah"
-
-
-msgid "Mask Input Type"
-msgstr "Grup"
-
-
-msgid "Mute this modifier"
-msgstr "Modus Pahat"
-
-
-msgid "White Balance"
-msgstr "Keseimbangan Putih"
 
 
 msgid "Effect name"

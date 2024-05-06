@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -344,6 +344,10 @@ msgstr "Pidä eteenpäin"
 
 msgid "Only hold last frame"
 msgstr "Pidä ainoastaan viimeinen kehys"
+
+
+msgid "New"
+msgstr "Uusi"
 
 
 msgid "Drivers"
@@ -4821,12 +4825,12 @@ msgid "Select Handle"
 msgstr "Valitse kahva"
 
 
-msgid "Cache"
-msgstr "Välimuisti"
-
-
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Välimuisti"
 
 
 msgid "Blender"
@@ -5007,10 +5011,6 @@ msgstr "V-siirros"
 
 msgid "Merge End Vertices"
 msgstr "Yhdistä päätykärjet"
-
-
-msgid "New"
-msgstr "Uusi"
 
 
 msgid "Material Mode"
@@ -8745,6 +8745,10 @@ msgid "Separated bones"
 msgstr "Erotetut luut"
 
 
+msgid "Create"
+msgstr "Luo"
+
+
 msgid "No pose to copy"
 msgstr "Ei kopioitavaa asentoa"
 
@@ -9360,10 +9364,6 @@ msgstr "Ilman kohteita"
 
 msgid "Path is already animated"
 msgstr "Polku on jo animoitu"
-
-
-msgid "Create"
-msgstr "Luo"
 
 
 msgid "No collection selected"

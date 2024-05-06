@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -485,6 +485,10 @@ msgstr "활성 액션이 NLA 스택의 결과에 기여하는 양"
 
 msgid "Animation"
 msgstr "애니메이션"
+
+
+msgid "New"
+msgstr "새로운"
 
 
 msgid "Drivers"
@@ -18285,6 +18289,10 @@ msgid "Texture Slots"
 msgstr "텍스처 슬롯"
 
 
+msgid "Thickness Mode"
+msgstr "두께 모드"
+
+
 msgid "Backface Culling"
 msgstr "뒤쪽 페이스 추려내기"
 
@@ -25941,10 +25949,6 @@ msgid "Movie Strip"
 msgstr "무비 스트립"
 
 
-msgid "Cache"
-msgstr "캐시"
-
-
 msgid "Texture Specials"
 msgstr "텍스처 지정"
 
@@ -25959,6 +25963,10 @@ msgstr "셰이딩 언어를 열기"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "캐시"
 
 
 msgid "Blender"
@@ -27087,10 +27095,6 @@ msgstr "페이스 강도를 설정할지 여부와 페이스 강도를 설정할
 
 msgid "Do not set face strength"
 msgstr "페이스 강도를 설정하지 마십시오"
-
-
-msgid "New"
-msgstr "새로운"
 
 
 msgid "Set face strength on new faces only"
@@ -29290,10 +29294,6 @@ msgstr "플렛 오픈 프리미더 셰이프"
 
 msgid "Merge Threshold"
 msgstr "병합 임계 값"
-
-
-msgid "Thickness Mode"
-msgstr "두께 모드"
 
 
 msgid "Selects the used thickness algorithm"
@@ -33270,30 +33270,6 @@ msgstr "최소 속력"
 
 msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
 msgstr "픽셀을 블러하는 최소 속력 (배경을 전경에서 분리하는 데 사용)"
-
-
-msgid "Tile Order"
-msgstr "타일 순서"
-
-
-msgid "Tile order"
-msgstr "타일 순서"
-
-
-msgid "Expand from center"
-msgstr "중심에서 확장"
-
-
-msgid "Random tiles"
-msgstr "랜덤 타일"
-
-
-msgid "Expand from bottom"
-msgstr "아래쪽에서 확장"
-
-
-msgid "Expand from 9 places"
-msgstr "9 개 장소에서 확장"
 
 
 msgid "Z Combine"
@@ -50136,10 +50112,6 @@ msgid "Mask Lasso Gesture"
 msgstr "마스크 올가미 제스처"
 
 
-msgid "Add mask within the lasso as you move the brush"
-msgstr "브러시를 움직일 때 올가미 안에 마스크를 추가"
-
-
 msgctxt "Operator"
 msgid "Project Image"
 msgstr "투사 이미지"
@@ -56481,10 +56453,6 @@ msgstr "이 옵션을 선택하면 씬의 시작과 종료 프레임을 업데�
 
 msgid "Validate Meshes"
 msgstr "메쉬를 검증"
-
-
-msgid "Check imported mesh objects for invalid data (slow)"
-msgstr "유효하지 않은 데이터에 대해 가져온 메쉬 오브젝트를 확인 (느림)"
 
 
 msgctxt "Operator"
@@ -66790,38 +66758,6 @@ msgid "All strips, recursively including those inside metastrips"
 msgstr "모든 스트립, 반복적으로 메타 스트립 내부의 것을 포함"
 
 
-msgid "Show Cache"
-msgstr "캐시를 표시"
-
-
-msgid "Visualize cached images on the timeline"
-msgstr "타임 라인에서 캐시된 이미지를 시각화"
-
-
-msgid "Composite Images"
-msgstr "컴포지트 이미지"
-
-
-msgid "Visualize cached composite images"
-msgstr "캐시된 컴포지트 이미지를 시각화"
-
-
-msgid "Final Images"
-msgstr "최종 이미지"
-
-
-msgid "Visualize cached complete frames"
-msgstr "캐시된 전체 프레임을 시각화"
-
-
-msgid "Raw Images"
-msgstr "Raw 이미지"
-
-
-msgid "Visualize cached raw images"
-msgstr "캐시된 Raw 이미지를 시각화"
-
-
 msgid "Show Overlay"
 msgstr "오버레이를 표시"
 
@@ -67060,6 +66996,38 @@ msgstr "시퀀스 변환"
 
 msgid "Transform parameters for a sequence strip"
 msgstr "시퀀스 스트립에 대한 매개 변수를 변환"
+
+
+msgid "Show Cache"
+msgstr "캐시를 표시"
+
+
+msgid "Visualize cached images on the timeline"
+msgstr "타임 라인에서 캐시된 이미지를 시각화"
+
+
+msgid "Composite Images"
+msgstr "컴포지트 이미지"
+
+
+msgid "Visualize cached composite images"
+msgstr "캐시된 컴포지트 이미지를 시각화"
+
+
+msgid "Final Images"
+msgstr "최종 이미지"
+
+
+msgid "Visualize cached complete frames"
+msgstr "캐시된 전체 프레임을 시각화"
+
+
+msgid "Raw Images"
+msgstr "Raw 이미지"
+
+
+msgid "Visualize cached raw images"
+msgstr "캐시된 Raw 이미지를 시각화"
 
 
 msgid "Show Annotation"

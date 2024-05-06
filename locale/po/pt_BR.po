@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -598,6 +598,10 @@ msgstr "Slot para segurar temporariamente a ação principal enquanto estiver no
 
 msgid "Animation"
 msgstr "Animação"
+
+
+msgid "New"
+msgstr "Novo(a)"
 
 
 msgid "Drivers"
@@ -15417,6 +15421,10 @@ msgid "Texture Slots"
 msgstr "Compartimentos de textura"
 
 
+msgid "Thickness Mode"
+msgstr "Modo de Espessura"
+
+
 msgid "Backface Culling"
 msgstr "Abate das faces oclusas"
 
@@ -22559,10 +22567,6 @@ msgid "Movie Strip"
 msgstr "Faixa de filme"
 
 
-msgid "Cache"
-msgstr "Cache"
-
-
 msgid "Texture Specials"
 msgstr "Especiais para textura"
 
@@ -22577,6 +22581,10 @@ msgstr "Linguagem de sombreamento aberto"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Cache"
 
 
 msgid "System"
@@ -23453,10 +23461,6 @@ msgstr "Afeta apenas vértices"
 
 msgid "Angle above which to bevel edges"
 msgstr "Ângulo acima do qual chanfrar arestas."
-
-
-msgid "New"
-msgstr "Novo(a)"
 
 
 msgid "Limit Method"
@@ -25436,10 +25440,6 @@ msgstr "Deslocamento de material para os aros"
 
 msgid "Offset material index of generated rim faces"
 msgstr "Permite deslocar o índice de material para as faces geradas nos aros."
-
-
-msgid "Thickness Mode"
-msgstr "Modo de Espessura"
 
 
 msgid "Even"
@@ -29144,30 +29144,6 @@ msgstr "Velocidade mínima"
 
 msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
 msgstr "Velocidade mínima para que um pixel seja desfocado (usado para separar o plano frontal do plano de fundo)."
-
-
-msgid "Tile Order"
-msgstr "Ordem dos ladrilhos"
-
-
-msgid "Tile order"
-msgstr "Ordem dos ladrilhos."
-
-
-msgid "Expand from center"
-msgstr "Expande a partir do centro."
-
-
-msgid "Random tiles"
-msgstr "Ladrilhos aleatórios."
-
-
-msgid "Expand from bottom"
-msgstr "Expande a partir da base."
-
-
-msgid "Expand from 9 places"
-msgstr "Expande a partir de nove locais."
 
 
 msgid "Z Combine"
@@ -44557,10 +44533,6 @@ msgid "Mask Lasso Gesture"
 msgstr "Gesto de laço para máscara"
 
 
-msgid "Add mask within the lasso as you move the brush"
-msgstr "Adiciona uma máscara dentro do laço conforme você move o pincel."
-
-
 msgctxt "Operator"
 msgid "Project Image"
 msgstr "Projetar imagem"
@@ -50375,10 +50347,6 @@ msgstr "Caso esteja marcado, atualiza os quadros inicial e final da cena para co
 
 msgid "Validate Meshes"
 msgstr "Validar malhas"
-
-
-msgid "Check imported mesh objects for invalid data (slow)"
-msgstr "Checa os objetos de malha importados para verificar se existem dados inválidos (pouco mais lento)."
 
 
 msgctxt "Operator"
@@ -59024,10 +58992,6 @@ msgid "All strips, recursively including those inside metastrips"
 msgstr "Todas as faixas, recursivamente incluindo aquelas que estão em faixas meta."
 
 
-msgid "Show Cache"
-msgstr "Mostrar o cache"
-
-
 msgid "Overlay Lock"
 msgstr "Trava de sobreposição"
 
@@ -59254,6 +59218,10 @@ msgstr "Mover pelo eixo X"
 
 msgid "Move along Y axis"
 msgstr "Mover pelo eixo Y"
+
+
+msgid "Show Cache"
+msgstr "Mostrar o cache"
 
 
 msgid "Show Metadata"

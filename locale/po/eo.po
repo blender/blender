@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
-"PO-Revision-Date: 2024-03-25 00:51+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"PO-Revision-Date: 2024-04-29 13:46+0000\n"
 "Last-Translator: william sélifet <williamselifet@live.be>\n"
 "Language-Team: Esperanto <https://translate.blender.org/projects/blender-ui/ui/eo/>\n"
 "Language: eo\n"
@@ -25,6 +25,10 @@ msgstr "Elektu"
 
 msgid "Add"
 msgstr "Aldonia"
+
+
+msgid "New"
+msgstr "Nova"
 
 
 msgid "F-Curves"
@@ -85,10 +89,6 @@ msgstr "Dosiero"
 
 msgid "Help"
 msgstr "Helpo"
-
-
-msgid "New"
-msgstr "Nova"
 
 
 msgctxt "Operator"

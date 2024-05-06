@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -277,6 +277,10 @@ msgstr "Утицај акције"
 
 msgid "Animation"
 msgstr "Анимација"
+
+
+msgid "New"
+msgstr "Ново"
 
 
 msgid "Drivers"
@@ -9164,10 +9168,6 @@ msgid "Movie Strip"
 msgstr "Трака филма"
 
 
-msgid "Cache"
-msgstr "Остава"
-
-
 msgid "Texture Specials"
 msgstr "Контроле текстура"
 
@@ -9182,6 +9182,10 @@ msgstr "Отворени језик сенчења OSL"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Остава"
 
 
 msgid "System"
@@ -9670,10 +9674,6 @@ msgstr "Модификатор искошавања"
 
 msgid "Angle above which to bevel edges"
 msgstr "Угао изнад ког се искоси ивице"
-
-
-msgid "New"
-msgstr "Ново"
 
 
 msgid "Limit Method"
@@ -11462,14 +11462,6 @@ msgstr "Мин. брзина"
 
 msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
 msgstr "Минимална брзина пиксела да би био замућен (користи се за раздвајање предњеги и задњег плана)"
-
-
-msgid "Tile Order"
-msgstr "Редослед плочица"
-
-
-msgid "Random tiles"
-msgstr "Насумично поплочење"
 
 
 msgid "Z Combine"
@@ -22470,10 +22462,6 @@ msgid "All Sequences"
 msgstr "Све секвенце"
 
 
-msgid "Show Cache"
-msgstr "Прикажи кеш"
-
-
 msgid "Sequence Element"
 msgstr "Елемент секвенце"
 
@@ -22500,6 +22488,10 @@ msgstr "Маскирај траку"
 
 msgid "Sequence Transform"
 msgstr "Трансформација секвенце"
+
+
+msgid "Show Cache"
+msgstr "Прикажи кеш"
 
 
 msgid "Show Grid"

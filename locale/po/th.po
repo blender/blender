@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -232,6 +232,10 @@ msgstr "คูณ"
 
 msgid "Animation"
 msgstr "แอนิเมชัน"
+
+
+msgid "New"
+msgstr "ใหม่"
 
 
 msgid "End Frame"
@@ -2236,10 +2240,6 @@ msgstr "โครงเส้น"
 
 msgid "Merge Vertices"
 msgstr "ผสานจุดยอด"
-
-
-msgid "New"
-msgstr "ใหม่"
 
 
 msgid "Patch"

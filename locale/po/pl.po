@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2024-04-13 17:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -565,6 +565,10 @@ msgstr "Slot służący do tymczasowego przechowywania głównej akcji podczas t
 
 msgid "Animation"
 msgstr "Animacja"
+
+
+msgid "New"
+msgstr "Nowy"
 
 
 msgid "Drivers"
@@ -11358,16 +11362,16 @@ msgid "Navigation"
 msgstr "Nawigacja"
 
 
-msgid "Cache"
-msgstr "Pamięć podręczna"
-
-
 msgid "Open Shading Language"
 msgstr "Open Shading Language"
 
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Pamięć podręczna"
 
 
 msgid "Blender"
@@ -11532,10 +11536,6 @@ msgstr "Połącz wierzchołki"
 
 msgid "Affect"
 msgstr "Zastosowanie"
-
-
-msgid "New"
-msgstr "Nowy"
 
 
 msgid "Randomize"
@@ -12043,6 +12043,10 @@ msgid "Clamp result of the node to 0.0 to 1.0 range"
 msgstr "Ogranicza wynik węzła do zakresu od 0,0 do 1,0"
 
 
+msgid "Generate a normal vector and a dot product"
+msgstr "Generuje wektor normalny i iloczyn skalarny"
+
+
 msgid "Pixelate"
 msgstr "Pikselizacja"
 
@@ -12134,6 +12138,14 @@ msgstr "Wydłuż siatkę"
 
 msgid "Spline Resolution"
 msgstr "Rozdzielczość Spline"
+
+
+msgid "Active Item"
+msgstr "Aktywna pozycja"
+
+
+msgid "Active item"
+msgstr "Aktywna pozycja"
 
 
 msgid "Ico Sphere"
@@ -12288,10 +12300,6 @@ msgid "Mix Shader"
 msgstr "Mieszaj shadery"
 
 
-msgid "Generate a normal vector and a dot product"
-msgstr "Generuje wektor normalny i iloczyn skalarny"
-
-
 msgid "Light Output"
 msgstr "Wyjście światła"
 
@@ -12413,14 +12421,6 @@ msgstr "Pryncypialna kubatura"
 
 msgid "Texture Node"
 msgstr "Węzeł tekstury"
-
-
-msgid "Active Item"
-msgstr "Aktywna pozycja"
-
-
-msgid "Active item"
-msgstr "Aktywna pozycja"
 
 
 msgid "Bake Item"
@@ -15974,10 +15974,6 @@ msgstr "Maska"
 
 msgid "Grease Pencil Material Slots"
 msgstr "Gniazda materiałowe Grease Pencil"
-
-
-msgid "Bake Items"
-msgstr "Wypal przedmioty"
 
 
 msgid "Slot"
@@ -24378,10 +24374,6 @@ msgid "Unable to locate link in node tree"
 msgstr "Niemożliwe odnalezienie łącza w drzewie nodów (node tree)"
 
 
-msgid "Unable to create enum item"
-msgstr "Nie można utworzyć enumerycznego przedmiotu"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Drzewo nodów (node tree) '%s' posiada niezdefiniowany typ %s"
 
@@ -24678,6 +24670,10 @@ msgstr "Edytor węzłów geometrii"
 
 msgid "Leading"
 msgstr "Prowadzenie"
+
+
+msgid "Bake Items"
+msgstr "Wypal przedmioty"
 
 
 msgid "End Radius"
