@@ -465,10 +465,10 @@ static void detect_workarounds()
     GLContext::multi_bind_image_support = false;
   }
 
-  /* #107642, #120273 Windows UHD600 series GPU but perhaps also others incorrectly report that
-   * they support image binding. But when used they can result into `GL_INVALID_OPERATION` with
+  /* #107642, #120273 Windows Intel iGPU (multiple generations) incorrectly report that
+   * they support image binding. But when used it results into `GL_INVALID_OPERATION` with
    * `internal format of texture N is not supported`. */
-  if (GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
     GLContext::multi_bind_image_support = false;
   }
 
