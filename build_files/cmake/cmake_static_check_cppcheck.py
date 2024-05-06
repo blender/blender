@@ -106,6 +106,14 @@ CHECKER_EXCLUDE_FROM_SUMMARY = {
     "useStlAlgorithm",
     # May be interesting to handle but very noisy currently.
     "variableScope",
+
+    # These could be added back, currently there are so many warnings and they don't seem especially error-prone.
+    "missingMemberCopy",
+    "missingOverride",
+    "noExplicitConstructor",
+    "uninitDerivedMemberVar",
+    "uninitMemberVar",
+    "useInitializationList",
 }
 
 
