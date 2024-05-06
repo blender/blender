@@ -66,6 +66,7 @@ static AssetShelf *get_shelf_for_popup(const bContext *C, AssetShelfType &shelf_
 
   if (type_poll_for_popup(*C, &shelf_type)) {
     AssetShelf *new_shelf = create_shelf_from_type(shelf_type);
+    new_shelf->settings.display_flag |= ASSETSHELF_SHOW_NAMES;
     popup_shelves.append(new_shelf);
     return new_shelf;
   }
