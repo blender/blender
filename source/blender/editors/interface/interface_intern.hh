@@ -1298,8 +1298,14 @@ int ui_id_icon_get(const bContext *C, ID *id, bool big);
 
 /* interface_icons_event.cc */
 
-void icon_draw_rect_input(
-    float x, float y, int w, int h, float alpha, short event_type, short event_value);
+void icon_draw_rect_input(float x,
+                          float y,
+                          int w,
+                          int h,
+                          float alpha,
+                          short event_type,
+                          short event_value,
+                          bool inverted = false);
 
 /* resources.cc */
 
