@@ -277,6 +277,7 @@ DefNode(FunctionNode, FN_NODE_FLOAT_TO_INT, def_float_to_int, "FLOAT_TO_INT", Fl
 DefNode(FunctionNode, FN_NODE_INPUT_BOOL, def_fn_input_bool, "INPUT_BOOL", InputBool, "Boolean", "")
 DefNode(FunctionNode, FN_NODE_INPUT_COLOR, def_fn_input_color, "INPUT_COLOR", InputColor, "Color", "")
 DefNode(FunctionNode, FN_NODE_INPUT_INT, def_fn_input_int, "INPUT_INT", InputInt, "Integer", "")
+DefNode(FunctionNode, FN_NODE_INPUT_ROTATION, def_fn_input_rotation, "INPUT_ROTATION", InputRotation, "Rotation", "")
 DefNode(FunctionNode, FN_NODE_INPUT_SPECIAL_CHARACTERS, 0, "INPUT_SPECIAL_CHARACTERS", InputSpecialCharacters, "Special Characters", "")
 DefNode(FunctionNode, FN_NODE_INPUT_STRING, def_fn_input_string, "INPUT_STRING", InputString, "String", "")
 DefNode(FunctionNode, FN_NODE_INPUT_VECTOR, def_fn_input_vector, "INPUT_VECTOR", InputVector, "Vector", "")
