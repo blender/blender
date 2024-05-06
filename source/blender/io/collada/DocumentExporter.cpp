@@ -317,8 +317,6 @@ int DocumentExporter::exportCurrentScene()
   return status;
 }
 
-void DocumentExporter::exportScenes(const char *filename) {}
-
 /*
  * NOTES:
  *
