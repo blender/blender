@@ -2157,7 +2157,7 @@ bool GreasePencil::insert_duplicate_frame(blender::bke::greasepencil::Layer &lay
   if (!layer.frames().contains(src_frame_number)) {
     return false;
   }
-  const GreasePencilFrame &src_frame = layer.frames().lookup(src_frame_number);
+  const GreasePencilFrame src_frame = layer.frames().lookup(src_frame_number);
 
   /* Create the new frame structure, with the same duration.
    * If we want to make an instance of the source frame, the drawing index gets copied from the

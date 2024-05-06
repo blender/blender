@@ -656,9 +656,10 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
       list(APPEND render_tests openvdb)
     endif()
 
-    if(WITH_OPENIMAGEDENOISE)
-      list(APPEND render_tests denoise)
-    endif()
+    # Temporarily disabled until all platforms upgrade to OIDN 2.3.
+    #if(WITH_OPENIMAGEDENOISE)
+    #  list(APPEND render_tests denoise)
+    #endif()
 
     # Disabled until new OpenGL version with deterministic results.
     #if(WITH_CYCLES_PATH_GUIDING)

@@ -164,17 +164,7 @@ class OIDNDenoiseContext {
     oidn_filter.setProgressMonitorFunction(oidn_progress_monitor_function, denoiser_);
     oidn_filter.set("hdr", true);
     oidn_filter.set("srgb", false);
-
-#  if OIDN_VERSION_MAJOR >= 2
-    switch (denoise_params_.quality) {
-      case DENOISER_QUALITY_BALANCED:
-        oidn_filter.set("quality", OIDN_QUALITY_BALANCED);
-        break;
-      case DENOISER_QUALITY_HIGH:
-      default:
-        oidn_filter.set("quality", OIDN_QUALITY_HIGH);
-    }
-#  endif
+    set_quality(oidn_filter);
 
     if (denoise_params_.prefilter == DENOISER_PREFILTER_NONE ||
         denoise_params_.prefilter == DENOISER_PREFILTER_ACCURATE)
@@ -211,6 +201,7 @@ class OIDNDenoiseContext {
     oidn::FilterRef oidn_filter = oidn_device.newFilter("RT");
     set_pass(oidn_filter, oidn_pass);
     set_output_pass(oidn_filter, oidn_pass);
+    set_quality(oidn_filter);
     oidn_filter.commit();
     oidn_filter.execute();
 
@@ -411,6 +402,25 @@ class OIDNDenoiseContext {
   void set_output_pass(oidn::FilterRef &oidn_filter, OIDNPass &oidn_pass)
   {
     set_pass(oidn_filter, "output", oidn_pass);
+  }
+
+  void set_quality(oidn::FilterRef &oidn_filter)
+  {
+#  if OIDN_VERSION_MAJOR >= 2
+    switch (denoise_params_.quality) {
+      case DENOISER_QUALITY_FAST:
+#    if OIDN_VERSION >= 20300
+        oidn_filter.set("quality", OIDN_QUALITY_FAST);
+        break;
+#    endif
+      case DENOISER_QUALITY_BALANCED:
+        oidn_filter.set("quality", OIDN_QUALITY_BALANCED);
+        break;
+      case DENOISER_QUALITY_HIGH:
+      default:
+        oidn_filter.set("quality", OIDN_QUALITY_HIGH);
+    }
+#  endif
   }
 
   /* Scale output pass to match adaptive sampling per-pixel scale, as well as bring alpha channel

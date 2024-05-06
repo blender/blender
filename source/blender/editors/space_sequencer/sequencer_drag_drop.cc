@@ -12,9 +12,11 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
 
 #include "BKE_context.hh"
+#include "BKE_file_handler.hh"
 #include "BKE_image.h"
 #include "BKE_main.hh"
 
@@ -75,11 +77,27 @@ static void generic_poll_operations(const wmEvent *event, uint8_t type)
   g_drop_coords.use_snapping = event->modifier & KM_CTRL;
 }
 
-static bool image_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *event)
+/* While drag-and-drop in the sequencer, the internal drop-box implementation allows to have a drop
+ * preview of the file dragged. This checks when drag-and-drop is done with a single file, and when
+ * only a expected `file_handler` can be used, so internal drop-box can be used instead of the
+ * `file_handler`. */
+static bool test_single_file_handler_poll(const bContext *C,
+                                          wmDrag *drag,
+                                          blender::StringRef file_handler)
+{
+  const auto paths = WM_drag_get_paths(drag);
+  auto file_handlers = blender::bke::file_handlers_poll_file_drop(C, paths);
+  return paths.size() == 1 && file_handlers.size() == 1 &&
+         file_handler == file_handlers[0]->idname;
+}
+
+static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (file_type == FILE_TYPE_IMAGE) {
+    if (file_type == FILE_TYPE_IMAGE &&
+        test_single_file_handler_poll(C, drag, "SEQUENCER_FH_image_strip"))
+    {
       generic_poll_operations(event, TH_SEQ_IMAGE);
       return true;
     }
@@ -107,9 +125,11 @@ static bool is_movie(wmDrag *drag)
   return false;
 }
 
-static bool movie_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *event)
+static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-  if (is_movie(drag)) {
+  if (is_movie(drag) && (drag->type != WM_DRAG_PATH ||
+                         test_single_file_handler_poll(C, drag, "SEQUENCER_FH_movie_strip")))
+  {
     generic_poll_operations(event, TH_SEQ_MOVIE);
     return true;
   }
@@ -131,9 +151,11 @@ static bool is_sound(wmDrag *drag)
   return false;
 }
 
-static bool sound_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *event)
+static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-  if (is_sound(drag)) {
+  if (is_sound(drag) && (drag->type != WM_DRAG_PATH ||
+                         test_single_file_handler_poll(C, drag, "SEQUENCER_FH_sound_strip")))
+  {
     generic_poll_operations(event, TH_SEQ_AUDIO);
     return true;
   }

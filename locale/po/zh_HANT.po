@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -573,6 +573,10 @@ msgstr "在微調模式中暫時保留主要動作的插槽"
 
 msgid "Animation"
 msgstr "動畫"
+
+
+msgid "New"
+msgstr "新增"
 
 
 msgid "Drivers"
@@ -21931,10 +21935,6 @@ msgid "Movie Strip"
 msgstr "影片片段"
 
 
-msgid "Cache"
-msgstr "快取"
-
-
 msgid "Texture Specials"
 msgstr "紋理特殊項"
 
@@ -21949,6 +21949,10 @@ msgstr "開放式著色語言"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "快取"
 
 
 msgid "System"
@@ -22709,10 +22713,6 @@ msgstr "讓邊線與頂點更圓的倒角修改器"
 
 msgid "Angle above which to bevel edges"
 msgstr "要讓邊線產生倒角是要於多少角度之上"
-
-
-msgid "New"
-msgstr "新增"
 
 
 msgid "Limit Method"
@@ -27232,6 +27232,10 @@ msgid "Motion Blur"
 msgstr "運動模糊"
 
 
+msgid "Perform math operations"
+msgstr "執行數學公式運算"
+
+
 msgctxt "NodeTree"
 msgid "Add"
 msgstr "加"
@@ -27444,6 +27448,10 @@ msgstr "影片扭曲"
 
 msgid "Distortion to use to filter image"
 msgstr "過濾影像用的扭曲"
+
+
+msgid "Generate a normal vector and a dot product"
+msgstr "生成一個法線向量和內積"
 
 
 msgid "File Output"
@@ -27756,30 +27764,6 @@ msgstr "最小速度"
 
 msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
 msgstr "像素轉為模糊的最小速度 (用來將背景從前景分離出來)"
-
-
-msgid "Tile Order"
-msgstr "鋪排順序"
-
-
-msgid "Tile order"
-msgstr "鋪排順序"
-
-
-msgid "Expand from center"
-msgstr "從中心擴展"
-
-
-msgid "Random tiles"
-msgstr "隨機鋪排"
-
-
-msgid "Expand from bottom"
-msgstr "從底部擴展"
-
-
-msgid "Expand from 9 places"
-msgstr "各自從 9 宮格之一擴展"
 
 
 msgid "Z Combine"
@@ -28194,20 +28178,12 @@ msgid "Transform a texture by inverse mapping the texture coordinate"
 msgstr "藉反轉紋理座標映射以轉換紋理"
 
 
-msgid "Perform math operations"
-msgstr "執行數學公式運算"
-
-
 msgid "MixRGB"
 msgstr "混合RGB"
 
 
 msgid "Mix Shader"
 msgstr "混合著色器"
-
-
-msgid "Generate a normal vector and a dot product"
-msgstr "生成一個法線向量和內積"
 
 
 msgid "Space of the input normal"
@@ -51184,10 +51160,6 @@ msgid "All Sequences"
 msgstr "所有序段"
 
 
-msgid "Show Cache"
-msgstr "顯示快取"
-
-
 msgid "Overlay Lock"
 msgstr "疊層鎖定"
 
@@ -51330,6 +51302,10 @@ msgstr "序段變換"
 
 msgid "Transform parameters for a sequence strip"
 msgstr "序段片段的變換參數"
+
+
+msgid "Show Cache"
+msgstr "顯示快取"
 
 
 msgid "Show Metadata"

@@ -125,12 +125,13 @@ void main()
     const uint group_size = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
 
     /* Parallel sum. Result is stored inside local_radiance[0]. */
-    local_radiance[local_index] = radiance.xyzz * sample_weight;
-    for (uint stride = group_size / 2; stride > 0; stride /= 2) {
+    uint stride = group_size / 2;
+    for (int i = 0; i < 10; i++) {
       barrier();
       if (local_index < stride) {
         local_radiance[local_index] += local_radiance[local_index + stride];
       }
+      stride /= 2;
     }
 
     barrier();

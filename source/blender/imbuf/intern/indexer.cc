@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
@@ -21,6 +22,7 @@
 #include "BLI_threads.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
+
 #ifdef _WIN32
 #  include "BLI_winstuff.h"
 #endif
@@ -43,15 +45,6 @@ static const char temp_ext[] = "_part";
 static const IMB_Proxy_Size proxy_sizes[] = {
     IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75, IMB_PROXY_100};
 static const float proxy_fac[] = {0.25, 0.50, 0.75, 1.00};
-
-#ifdef WITH_FFMPEG
-static IMB_Timecode_Type tc_types[] = {
-    IMB_TC_RECORD_RUN,
-    IMB_TC_FREE_RUN,
-    IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN,
-    IMB_TC_RECORD_RUN_NO_GAPS,
-};
-#endif
 
 #define INDEX_FILE_VERSION 2
 
@@ -358,12 +351,8 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
       return -1;
     case IMB_TC_RECORD_RUN:
       return 0;
-    case IMB_TC_FREE_RUN:
-      return 1;
-    case IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN:
-      return 2;
     case IMB_TC_RECORD_RUN_NO_GAPS:
-      return 3;
+      return 1;
     default:
       BLI_assert_msg(0, "Unhandled timecode type enum!");
       return -1;
@@ -433,8 +422,6 @@ static void get_tc_filepath(ImBufAnim *anim, IMB_Timecode_Type tc, char *filepat
 
   const char *index_names[] = {
       "record_run%s%s.blen_tc",
-      "free_run%s%s.blen_tc",
-      "interp_free_run%s%s.blen_tc",
       "record_run_no_gaps%s%s.blen_tc",
   };
 
@@ -785,6 +772,8 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
   MEM_freeN(ctx);
 }
 
+static blender::Array<IMB_Timecode_Type> tc_types{IMB_TC_RECORD_RUN, IMB_TC_RECORD_RUN_NO_GAPS};
+
 struct FFmpegIndexBuilderContext : public IndexBuildContext {
 
   AVFormatContext *iFormatCtx;
@@ -794,10 +783,9 @@ struct FFmpegIndexBuilderContext : public IndexBuildContext {
   int videoStream;
 
   int num_proxy_sizes;
-  int num_indexers;
 
   proxy_output_ctx *proxy_ctx[IMB_PROXY_MAX_SLOT];
-  anim_index_builder *indexer[IMB_TC_MAX_SLOT];
+  anim_index_builder *indexer[IMB_TC_NUM_TYPES];
 
   int tcs_in_use;
   int proxy_sizes_in_use;
@@ -827,13 +815,11 @@ static IndexBuildContext *index_ffmpeg_create_context(ImBufAnim *anim,
   FFmpegIndexBuilderContext *context = MEM_cnew<FFmpegIndexBuilderContext>(
       "FFmpeg index builder context");
   int num_proxy_sizes = IMB_PROXY_MAX_SLOT;
-  int num_indexers = IMB_TC_MAX_SLOT;
   int i, streamcount;
 
   context->tcs_in_use = tcs_in_use;
   context->proxy_sizes_in_use = proxy_sizes_in_use;
   context->num_proxy_sizes = IMB_PROXY_MAX_SLOT;
-  context->num_indexers = IMB_TC_MAX_SLOT;
   context->build_only_on_bad_performance = build_only_on_bad_performance;
 
   memset(context->proxy_ctx, 0, sizeof(context->proxy_ctx));
@@ -929,7 +915,7 @@ static IndexBuildContext *index_ffmpeg_create_context(ImBufAnim *anim,
     return nullptr; /* Nothing to transcode. */
   }
 
-  for (i = 0; i < num_indexers; i++) {
+  for (i = 0; i < tc_types.size(); i++) {
     if (tcs_in_use & tc_types[i]) {
       char filepath[FILE_MAX];
 
@@ -951,7 +937,7 @@ static void index_rebuild_ffmpeg_finish(FFmpegIndexBuilderContext *context, cons
 
   const bool do_rollback = stop || context->building_cancelled;
 
-  for (i = 0; i < context->num_indexers; i++) {
+  for (i = 0; i < tc_types.size(); i++) {
     if (context->tcs_in_use & tc_types[i]) {
       IMB_index_builder_finish(context->indexer[i], do_rollback);
     }
@@ -1003,7 +989,7 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
     s_dts = context->last_seek_pos_dts;
   }
 
-  for (i = 0; i < context->num_indexers; i++) {
+  for (i = 0; i < tc_types.size(); i++) {
     if (context->tcs_in_use & tc_types[i]) {
       int tc_frameno = context->frameno;
 
@@ -1349,11 +1335,13 @@ void IMB_free_indices(ImBufAnim *anim)
     }
   }
 
-  for (i = 0; i < IMB_TC_MAX_SLOT; i++) {
-    if (anim->curr_idx[i]) {
-      IMB_indexer_close(anim->curr_idx[i]);
-      anim->curr_idx[i] = nullptr;
-    }
+  if (anim->record_run) {
+    IMB_indexer_close(anim->record_run);
+    anim->record_run = nullptr;
+  }
+  if (anim->no_gaps) {
+    IMB_indexer_close(anim->no_gaps);
+    anim->no_gaps = nullptr;
   }
 
   anim->proxies_tried = 0;
@@ -1400,27 +1388,30 @@ ImBufAnim *IMB_anim_open_proxy(ImBufAnim *anim, IMB_Proxy_Size preview_size)
 ImBufAnimIndex *IMB_anim_open_index(ImBufAnim *anim, IMB_Timecode_Type tc)
 {
   char filepath[FILE_MAX];
-  int i = IMB_timecode_to_array_index(tc);
 
-  if (i < 0) {
-    return nullptr;
+  ImBufAnimIndex **index = nullptr;
+
+  if (tc == IMB_TC_RECORD_RUN) {
+    index = &anim->record_run;
   }
-
-  if (anim->curr_idx[i]) {
-    return anim->curr_idx[i];
+  else if (tc == IMB_TC_RECORD_RUN_NO_GAPS) {
+    index = &anim->no_gaps;
   }
 
   if (anim->indices_tried & tc) {
     return nullptr;
   }
+  if (index == nullptr) {
+    return nullptr;
+  }
 
   get_tc_filepath(anim, tc, filepath);
 
-  anim->curr_idx[i] = IMB_indexer_open(filepath);
+  *index = IMB_indexer_open(filepath);
 
   anim->indices_tried |= tc;
 
-  return anim->curr_idx[i];
+  return *index;
 }
 
 int IMB_anim_index_get_frame_index(ImBufAnim *anim, IMB_Timecode_Type tc, int position)

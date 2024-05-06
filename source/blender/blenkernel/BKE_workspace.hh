@@ -17,6 +17,21 @@ struct WorkSpace;
 struct WorkSpaceInstanceHook;
 struct WorkSpaceLayout;
 
+namespace blender::bke {
+
+struct WorkSpaceStatusItem {
+  int icon = 0;
+  std::string text = {};
+  float space_factor = 0.0f;
+  bool inverted = false;
+};
+
+struct WorkSpaceRuntime {
+  Vector<WorkSpaceStatusItem> status;
+};
+
+}  // namespace blender::bke
+
 /* -------------------------------------------------------------------- */
 /** \name Create, Delete, Initialize
  * \{ */
@@ -152,6 +167,11 @@ WorkSpaceLayout *BKE_workspace_active_layout_for_workspace_get(
 bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_id) ATTR_NONNULL();
 
 void BKE_workspace_id_tag_all_visible(Main *bmain, int tag) ATTR_NONNULL();
+
+/**
+ * Empty the Workspace status items to clear the status bar.
+ */
+void BKE_workspace_status_clear(WorkSpace *workspace);
 
 #undef GETTER_ATTRS
 #undef SETTER_ATTRS

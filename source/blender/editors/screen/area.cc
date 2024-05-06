@@ -834,33 +834,139 @@ void ED_area_status_text(ScrArea *area, const char *str)
   }
 }
 
-void ED_workspace_status_text(bContext *C, const char *str)
-{
-  wmWindow *win = CTX_wm_window(C);
-  WorkSpace *workspace = CTX_wm_workspace(C);
+/* *************************************************************** */
 
+static void ed_workspace_status_item(WorkSpace *workspace,
+                                     std::string text,
+                                     const int icon,
+                                     const float space_factor = 0.0f,
+                                     const bool inverted = false)
+{
   /* Can be nullptr when running operators in background mode. */
   if (workspace == nullptr) {
     return;
   }
 
-  if (str) {
-    if (workspace->status_text == nullptr) {
-      workspace->status_text = static_cast<char *>(MEM_mallocN(UI_MAX_DRAW_STR, "headerprint"));
-    }
-    BLI_strncpy(workspace->status_text, str, UI_MAX_DRAW_STR);
-  }
-  else {
-    MEM_SAFE_FREE(workspace->status_text);
-  }
+  blender::bke::WorkSpaceStatusItem item;
+  item.text = std::move(text);
+  item.icon = icon;
+  item.space_factor = space_factor;
+  item.inverted = inverted;
+  workspace->runtime->status.append(std::move(item));
+}
 
-  /* Redraw status bar. */
-  LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
-    if (area->spacetype == SPACE_STATUSBAR) {
-      ED_area_tag_redraw(area);
-      break;
+static void ed_workspace_status_space(WorkSpace *workspace, const float space_factor)
+{
+  ed_workspace_status_item(workspace, {}, ICON_NONE, space_factor);
+}
+
+WorkspaceStatus::WorkspaceStatus(bContext *C)
+{
+  workspace_ = CTX_wm_workspace(C);
+  wm_ = CTX_wm_manager(C);
+  if (workspace_) {
+    BKE_workspace_status_clear(workspace_);
+  }
+  ED_area_tag_redraw(WM_window_status_area_find(CTX_wm_window(C), CTX_wm_screen(C)));
+}
+
+/* Private helper functions to help ensure consistant spacing. */
+
+static constexpr float STATUS_AFTER_TEXT = 0.7f;
+static constexpr float STATUS_BEFORE_TEXT = 0.3f;
+static constexpr float STATUS_MOUSE_ICON_BEFORE = -0.5f;
+static constexpr float STATUS_MOUSE_ICON_AFTER = -0.7f;
+
+static void ed_workspace_status_text_item(WorkSpace *workspace, std::string text)
+{
+  if (!text.empty()) {
+    ed_workspace_status_space(workspace, STATUS_BEFORE_TEXT);
+    ed_workspace_status_item(workspace, std::move(text), ICON_NONE);
+    ed_workspace_status_space(workspace, STATUS_AFTER_TEXT);
+  }
+}
+
+static void ed_workspace_status_mouse_item(WorkSpace *workspace,
+                                           const int icon,
+                                           const bool inverted = false)
+{
+  if (icon) {
+    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB_DRAG) {
+      /* Negative space before all narrow mice icons. */
+      ed_workspace_status_space(workspace, STATUS_MOUSE_ICON_BEFORE);
+    }
+    ed_workspace_status_item(workspace, {}, icon, 0.0f, inverted);
+    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB) {
+      /* Negative space after non-drag mice icons. */
+      ed_workspace_status_space(workspace, STATUS_MOUSE_ICON_AFTER);
     }
   }
+}
+
+/* Public functions. */
+
+void WorkspaceStatus::item(std::string text, const int icon1, const int icon2)
+{
+  ed_workspace_status_mouse_item(workspace_, icon1);
+  ed_workspace_status_mouse_item(workspace_, icon2);
+  ed_workspace_status_text_item(workspace_, std::move(text));
+}
+
+void WorkspaceStatus::range(std::string text, const int icon1, const int icon2)
+{
+  ed_workspace_status_item(workspace_, {}, icon1);
+  ed_workspace_status_item(workspace_, "-", ICON_NONE);
+  ed_workspace_status_space(workspace_, -0.5f);
+  ed_workspace_status_item(workspace_, {}, icon2);
+  ed_workspace_status_text_item(workspace_, std::move(text));
+}
+
+void WorkspaceStatus::item_bool(std::string text,
+                                const bool interted,
+                                const int icon1,
+                                const int icon2)
+{
+  ed_workspace_status_mouse_item(workspace_, icon1, interted);
+  ed_workspace_status_mouse_item(workspace_, icon2, interted);
+  ed_workspace_status_text_item(workspace_, std::move(text));
+}
+
+void WorkspaceStatus::opmodal(std::string text,
+                              const wmOperatorType *ot,
+                              const int propvalue,
+                              const bool inverted)
+{
+  wmKeyMap *keymap = WM_keymap_active(wm_, ot->modalkeymap);
+  if (keymap) {
+    const wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(keymap, propvalue);
+    if (kmi) {
+      int icon = UI_icon_from_event_type(kmi->type, kmi->val);
+      if (!ELEM(kmi->shift, KM_NOTHING, KM_ANY)) {
+        ed_workspace_status_item(workspace_, {}, ICON_EVENT_SHIFT, 0.0f, inverted);
+      }
+      if (!ELEM(kmi->ctrl, KM_NOTHING, KM_ANY)) {
+        ed_workspace_status_item(workspace_, {}, ICON_EVENT_CTRL, 0.0f, inverted);
+      }
+      if (!ELEM(kmi->alt, KM_NOTHING, KM_ANY)) {
+        ed_workspace_status_item(workspace_, {}, ICON_EVENT_ALT, 0.0f, inverted);
+      }
+      if (!ELEM(kmi->oskey, KM_NOTHING, KM_ANY)) {
+        ed_workspace_status_item(workspace_, {}, ICON_EVENT_OS, 0.0f, inverted);
+      }
+      if (kmi->val == KM_DBL_CLICK) {
+        ed_workspace_status_item(workspace_, "2" BLI_STR_UTF8_MULTIPLICATION_SIGN, ICON_NONE);
+        ed_workspace_status_space(workspace_, -0.7f);
+      }
+      ed_workspace_status_mouse_item(workspace_, icon, inverted);
+      ed_workspace_status_text_item(workspace_, std::move(text));
+    }
+  }
+}
+
+void ED_workspace_status_text(bContext *C, const char *str)
+{
+  WorkspaceStatus status(C);
+  status.item(str ? str : "", ICON_NONE);
 }
 
 /* ************************************************************ */

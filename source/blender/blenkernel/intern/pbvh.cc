@@ -3176,7 +3176,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH &pbvh, Mesh *mesh)
 
       IndexMaskMemory memory;
       const IndexMask hidden_faces =
-          grid_hidden.is_empty() ?
+          !grid_hidden.is_empty() ?
               IndexMask::from_predicate(faces.index_range(),
                                         GrainSize(1024),
                                         memory,

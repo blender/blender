@@ -238,7 +238,7 @@ void WM_OT_ply_export(wmOperatorType *ot)
                   "ASCII Format",
                   "Export file in ASCII format, export as binary otherwise");
 
-  /* Only show .ply files by default. */
+  /* Only show `.ply` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
@@ -339,7 +339,7 @@ void WM_OT_ply_import(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "import_attributes", true, "Vertex Attributes", "Import custom vertex attributes");
 
-  /* Only show .ply files by default. */
+  /* Only show `.ply` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }

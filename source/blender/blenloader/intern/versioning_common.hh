@@ -20,6 +20,7 @@ struct IDProperty;
 struct ListBase;
 struct Main;
 struct ViewLayer;
+struct SceneRenderLayer;
 
 using blender::FunctionRef;
 
@@ -126,6 +127,7 @@ float *version_cycles_node_socket_vector_value(bNodeSocket *socket);
 
 IDProperty *version_cycles_properties_from_ID(ID *id);
 IDProperty *version_cycles_properties_from_view_layer(ViewLayer *view_layer);
+IDProperty *version_cycles_properties_from_render_layer(SceneRenderLayer *render_layer);
 IDProperty *version_cycles_visibility_properties_from_ID(ID *id);
 
 float version_cycles_property_float(IDProperty *idprop, const char *name, float default_value);

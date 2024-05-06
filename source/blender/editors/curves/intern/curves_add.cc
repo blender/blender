@@ -72,6 +72,12 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
   NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(md);
   nmd.node_group = ntreeAddTree(bmain, DATA_("Surface Deform"), "GeometryNodeTree");
 
+  if (!nmd.node_group->geometry_node_asset_traits) {
+    nmd.node_group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
+  }
+
+  nmd.node_group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
+
   bNodeTree *ntree = nmd.node_group;
   ntree->tree_interface.add_socket(
       "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);

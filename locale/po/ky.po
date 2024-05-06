@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -95,6 +95,10 @@ msgstr "Эч нерсе"
 
 msgid "Animation"
 msgstr "Анимация"
+
+
+msgid "New"
+msgstr "Жаңы"
 
 
 msgid "Drivers"
@@ -1477,10 +1481,6 @@ msgstr "Жарылыш"
 
 msgid "Ocean"
 msgstr "Океан"
-
-
-msgid "New"
-msgstr "Жаңы"
 
 
 msgid "Percent"

@@ -22,8 +22,9 @@
  * The OpenCloseDevice class.
  */
 
-#include <thread>
 #include <chrono>
+#include <condition_variable>
+#include <thread>
 
 #include "devices/SoftwareDevice.h"
 
@@ -48,7 +49,7 @@ private:
 	/**
 	 * Whether thread released the device.
 	 */
-	bool m_delayed_close_finished{false};
+	bool m_delayed_close_running{false};
 
 	/**
 	 * Thread used to release the device after time delay.
@@ -56,9 +57,19 @@ private:
 	std::thread m_delayed_close_thread;
 
 	/**
+	 * Mutex to protect members accessed by multiple threads.
+	 */
+	std::mutex m_delayed_close_mutex;
+
+	/**
+	 * Condition to close immediately. Used when object is destructed.
+	 */
+	std::condition_variable m_immediate_close_condition;
+
+	/**
 	 * How long to wait until closing the device..
 	 */
-	std::chrono::milliseconds m_device_close_delay{std::chrono::milliseconds(10000)};
+	std::chrono::milliseconds m_device_close_delay{10000};
 
 	/**
 	 * Time when playback has stopped.
@@ -96,6 +107,8 @@ private:
 
 protected:
 	OpenCloseDevice() = default;
+
+	void closeNow();
 
 	virtual void playing(bool playing);
 };

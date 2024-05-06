@@ -225,7 +225,7 @@ static void write_mesh_objects(const Span<std::unique_ptr<OBJMesh>> exportable_a
           obj_writer.write_uv_coords(fh, obj);
         }
         /* This function takes a 0-indexed slot index for the obj_mesh object and
-         * returns the material name that we are using in the .obj file for it. */
+         * returns the material name that we are using in the `.obj` file for it. */
         const auto *obj_mtlindices = mtlindices.is_empty() ? nullptr : &mtlindices[i];
         auto matname_fn = [&](int s) -> const char * {
           if (!obj_mtlindices || s < 0 || s >= obj_mtlindices->size()) {
@@ -319,7 +319,9 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
   write_nurbs_curve_objects(exportable_as_nurbs, *frame_writer);
 }
 
-bool append_frame_to_filename(const char *filepath, const int frame, char *r_filepath_with_frames)
+bool append_frame_to_filename(const char *filepath,
+                              const int frame,
+                              char r_filepath_with_frames[1024])
 {
   BLI_strncpy(r_filepath_with_frames, filepath, FILE_MAX);
   BLI_path_extension_strip(r_filepath_with_frames);

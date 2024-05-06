@@ -147,7 +147,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                     # Don't set the constraint axis since users will expect MMB
                     # to use the user setting, see: #61637
                     # "orient_type": 'NORMAL',
-                    # Not a popular choice, too restrictive for retopo.
+                    # Not a popular choice, too restrictive for retopology.
                     # "constraint_axis": (True, True, False),
                     "constraint_axis": (False, False, False),
                     "release_confirm": False,

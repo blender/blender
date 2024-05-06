@@ -73,13 +73,6 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
 
   void fcurve_is_used(FCurve *fcu);
 
-  void add_fcurves_to_object(Main *bmain,
-                             Object *ob,
-                             std::vector<FCurve *> &curves,
-                             char *rna_path,
-                             int array_index,
-                             Animation *animated);
-
   int typeFlag;
 
   std::string import_from_version;
@@ -142,9 +135,7 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
    * necessary. Same for \ref get_node_mat
    */
   void read_node_transform(COLLADAFW::Node *node, Object *ob);
-#if 0
-  virtual void change_eul_to_quat(Object *ob, bAction *act);
-#endif
+  // virtual void change_eul_to_quat(Object *ob, bAction *act);
 
   void translate_Animations(COLLADAFW::Node *Node,
                             std::map<COLLADAFW::UniqueId, COLLADAFW::Node *> &root_map,
@@ -165,12 +156,6 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
                            COLLADAFW::Node *root,
                            COLLADAFW::Node *node,
                            COLLADAFW::Transformation *tm);
-
-  void add_bone_animation_sampled(Object *ob,
-                                  std::vector<FCurve *> &animcurves,
-                                  COLLADAFW::Node *root,
-                                  COLLADAFW::Node *node,
-                                  COLLADAFW::Transformation *tm);
 
   /**
    * Creates the rna_paths and array indices of fcurves from animations using transformation and
@@ -212,22 +197,9 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
                      int array_index,
                      int scale = 1);
   void unused_fcurve(std::vector<FCurve *> *curves);
-  /**
-   * Prerequisites:
-   * animlist_map - map animlist id -> animlist
-   * curve_map - map anim id -> curve(s).
-   */
-  Object *translate_animation_OLD(COLLADAFW::Node *node,
-                                  std::map<COLLADAFW::UniqueId, Object *> &object_map,
-                                  std::map<COLLADAFW::UniqueId, COLLADAFW::Node *> &root_map,
-                                  COLLADAFW::Transformation::TransformationType tm_type,
-                                  Object *par_job = NULL);
 
   void find_frames(std::vector<float> *frames, std::vector<FCurve *> *curves);
-  /** Is not used anymore. */
-  void find_frames_old(std::vector<float> *frames,
-                       COLLADAFW::Node *node,
-                       COLLADAFW::Transformation::TransformationType tm_type);
+
   /**
    * Internal, better make it private
    * WARNING: evaluates only rotation and only assigns matrix transforms now
@@ -252,20 +224,5 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
 
   float convert_to_focal_length(float in_xfov, int fov_type, float aspect, float sensorx);
 
-#ifdef ARMATURE_TEST
-  Object *get_joint_object(COLLADAFW::Node *root, COLLADAFW::Node *node, Object *par_job);
-#endif
-
-#if 0
-  /**
-   * Recursively evaluates joint tree until end is found, mat then is world-space matrix of end
-   * mat must be identity on enter, node must be root.
-   */
-  bool evaluate_joint_world_transform_at_frame(
-      float mat[4][4], float par[4][4], COLLADAFW::Node *node, COLLADAFW::Node *end, float fra);
-#endif
-
   void add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurve *fcu);
-
-  void extra_data_importer(std::string elementName);
 };

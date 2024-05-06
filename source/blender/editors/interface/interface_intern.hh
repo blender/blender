@@ -658,7 +658,7 @@ void ui_but_to_pixelrect(rcti *rect,
                          const uiBut *but);
 rcti ui_to_pixelrect(const ARegion *region, const uiBlock *block, const rctf *src_rect);
 
-void ui_block_to_region_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y);
+void ui_block_to_region_fl(const ARegion *region, const uiBlock *block, float *x, float *y);
 void ui_block_to_window_fl(const ARegion *region, const uiBlock *block, float *x, float *y);
 void ui_block_to_window(const ARegion *region, const uiBlock *block, int *x, int *y);
 void ui_block_to_region_rctf(const ARegion *region,
@@ -1302,8 +1302,14 @@ int ui_id_icon_get(const bContext *C, ID *id, bool big);
 
 /* interface_icons_event.cc */
 
-void icon_draw_rect_input(
-    float x, float y, int w, int h, float alpha, short event_type, short event_value);
+void icon_draw_rect_input(float x,
+                          float y,
+                          int w,
+                          int h,
+                          float alpha,
+                          short event_type,
+                          short event_value,
+                          bool inverted = false);
 
 /* resources.cc */
 

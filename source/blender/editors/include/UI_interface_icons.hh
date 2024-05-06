@@ -111,7 +111,8 @@ void UI_icon_draw_ex(float x,
                      float desaturate,
                      const uchar mono_color[4],
                      bool mono_border,
-                     const IconTextOverlay *text_overlay);
+                     const IconTextOverlay *text_overlay,
+                     const bool inverted = false);
 
 /**
  * Draw an monochrome icon into a given coordinate rectangle. The rectangle is used as-is,

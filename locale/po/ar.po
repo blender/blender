@@ -1,18 +1,19 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
-"PO-Revision-Date: 2016-04-23 22:41+0300\n"
-"Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
-"Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"PO-Revision-Date: 2024-04-29 13:28+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 1.8.7"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Weblate 5.0.1\n"
+"X-Poedit-SourceCharset: utf-8"
 
 
 msgid "Valid"
@@ -349,6 +350,10 @@ msgstr "ﺔﻛﺮﺤﻟﺍ ﺭﺮﺤﻣ ﺱﺪﻜﺗ ﻲﻓ ﺔﻴﻟﺎﺤﻟ�
 
 msgid "Animation"
 msgstr "ﺔﻛﺮﺣ"
+
+
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
 
 
 msgid "Drivers"
@@ -16605,10 +16610,6 @@ msgid "Inputs"
 msgstr "ﻞﺧﺍﺪﻣ"
 
 
-msgid "Cache"
-msgstr "ﺎﻘﺒﺴﻣ ﺐﺴﺣﺍ"
-
-
 msgid "Texture Specials"
 msgstr "ﺞﻴﺴﻨﻟﺍ ﺕﺎﻓﺎﺿﺇ"
 
@@ -16623,6 +16624,10 @@ msgstr "ﺔﺣﻮﺘﻔﻤﻟﺍ ﻞﻴﻠﻈﺘﻟﺍ ﺔﻐﻟ"
 
 msgid "Python"
 msgstr "ﻥﻮﺜﻳﺎﺑ"
+
+
+msgid "Cache"
+msgstr "ﺎﻘﺒﺴﻣ ﺐﺴﺣﺍ"
 
 
 msgid "System"
@@ -17139,10 +17144,6 @@ msgstr "ﺮﺧﻵ﻿ﺍ ﻭ ﻝﻭﻷ﻿ﺍ ﺭﺍﺮﻜﺘﻟﺍ ﻲﻓ ﻂﻘ�
 
 msgid "Bevel Modifier"
 msgstr "ﺔﻔﻄﺸﻟﺍ ﺮﻴﻐﻣ"
-
-
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
 
 
 msgid "Limit Method"
@@ -20120,22 +20121,6 @@ msgstr "ءﻲﺷ ﻼ﻿ﻟ ﺮﻔﺻ ,ﺔﻋﺮﺳ ﺮﺒﻛﺍ"
 
 msgid "Min Speed"
 msgstr "ﺔﻋﺮﺳ ﻞﻗﺍ"
-
-
-msgid "Tile Order"
-msgstr "ﺔﻨﺒﻠﻟﺍ ﺐﻴﺗﺮﺗ"
-
-
-msgid "Tile order"
-msgstr "ﺔﻨﺒﻠﻟﺍ ﺐﻴﺗﺮﺗ"
-
-
-msgid "Random tiles"
-msgstr "ﺔﻴﺋﺍﻮﺸﻋ ﺕﺎﻨﺒﻟ"
-
-
-msgid "Expand from 9 places"
-msgstr "ﻦﻛﺎﻣﺍ 9 ﻦﻣ ﻊﺳﻭ"
 
 
 msgid "Anti-Alias Z"
@@ -33329,10 +33314,6 @@ msgid "All Sequences"
 msgstr "ﺕﻼ﻿ﺴﻠﺴﺘﻟﺍ ﻞﻛ"
 
 
-msgid "Show Cache"
-msgstr "ﻦﻳﺰﺨﺘﻟﺍ ﺮﻬﻇﺃ"
-
-
 msgid "Mask Strip"
 msgstr "ﻉﺎﻨﻗ ﻂﻳﺮﺷ"
 
@@ -33367,6 +33348,10 @@ msgstr "ءﺎﻨﺒﻟﺍ ﺪﻨﻋ ﺓﺪﺟﺍﻮﺘﻤﻟﺍ ﺏﻭﺪﻨﻤ�
 
 msgid "Use a custom directory to store data"
 msgstr "ﺕﺎﻧﺎﻴﺒﻟﺍ ﻦﻳﺰﺨﺘﻟ ﺺﺼﺨﻣ ﺪﻠﺠﻣ ﻡﺪﺨﺘﺳﺍ"
+
+
+msgid "Show Cache"
+msgstr "ﻦﻳﺰﺨﺘﻟﺍ ﺮﻬﻇﺃ"
 
 
 msgid "Show TV title safe and action safe areas in preview"

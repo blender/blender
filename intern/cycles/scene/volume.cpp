@@ -506,7 +506,8 @@ static int estimate_required_velocity_padding(openvdb::GridBase::ConstPtr grid,
   openvdb::math::Extrema extrema;
   openvdb::Vec3d voxel_size;
 
-  /* External .vdb files have a vec3 type for velocity, but the Blender exporter creates a vec4. */
+  /* External `.vdb` files have a vec3 type for velocity,
+   * but the Blender exporter creates a vec4. */
   if (grid->isType<openvdb::Vec3fGrid>()) {
     openvdb::Vec3fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(grid);
     extrema = openvdb::tools::extrema(vel_grid->cbeginValueOn());

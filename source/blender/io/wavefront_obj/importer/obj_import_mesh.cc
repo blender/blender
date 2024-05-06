@@ -300,7 +300,7 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
 
   uv_map.finish();
 
-  /* If we have an object without UVs which resides in the same .obj file
+  /* If we have an object without UVs which resides in the same `.obj` file
    * as an object which *does* have UVs we can end up adding a UV layer
    * filled with zeroes.
    * We could maybe check before creating this layer but that would need

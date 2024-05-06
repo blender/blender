@@ -610,7 +610,7 @@ static const EnumPropertyItem *rna_Fluid_cachetype_volume_itemf(bContext * /*C*/
   RNA_enum_item_add(&item, &totitem, &tmp);
 #  endif
 
-  /* Support for deprecated .raw format. */
+  /* Support for deprecated `.raw` format. */
   FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
   if (fds->cache_data_format == FLUID_DOMAIN_FILE_RAW ||
       fds->cache_noise_format == FLUID_DOMAIN_FILE_RAW)

@@ -3717,7 +3717,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
     copy_m4_m4(ps->projectMat, projection.ptr());
 
     ps->is_ortho = ED_view3d_clip_range_get(
-        ps->depsgraph, ps->v3d, ps->rv3d, &ps->clip_start, &ps->clip_end, true);
+        ps->depsgraph, ps->v3d, ps->rv3d, true, &ps->clip_start, &ps->clip_end);
   }
   else {
     /* re-projection */
@@ -6322,7 +6322,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
     float clip_start;
     float clip_end;
     const bool is_ortho = ED_view3d_clip_range_get(
-        depsgraph, v3d, rv3d, &clip_start, &clip_end, true);
+        depsgraph, v3d, rv3d, true, &clip_start, &clip_end);
     array.append(clip_start);
     array.append(clip_end);
     /* using float for a bool is dodgy but since its an extra member in the array...

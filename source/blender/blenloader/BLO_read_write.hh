@@ -244,11 +244,11 @@ bool BLO_write_is_undo(BlendWriter *writer);
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
 void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
                                           const void *old_address,
-                                          size_t data_size);
+                                          size_t expected_size);
 void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_address);
 void *BLO_read_struct_array_with_size(BlendDataReader *reader,
                                       const void *old_address,
-                                      size_t data_size);
+                                      size_t expected_size);
 
 #define BLO_read_data_address(reader, ptr_p) \
   *((void **)ptr_p) = BLO_read_get_new_data_address((reader), *(ptr_p))

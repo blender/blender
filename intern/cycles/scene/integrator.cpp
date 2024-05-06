@@ -139,6 +139,7 @@ NODE_DEFINE(Integrator)
   static NodeEnum denoiser_quality_enum;
   denoiser_quality_enum.insert("high", DENOISER_QUALITY_HIGH);
   denoiser_quality_enum.insert("balanced", DENOISER_QUALITY_BALANCED);
+  denoiser_quality_enum.insert("fast", DENOISER_QUALITY_FAST);
 
   /* Default to accurate denoising with OpenImageDenoise. For interactive viewport
    * it's best use OptiX and disable the normal pass since it does not always have

@@ -38,8 +38,14 @@ static void icon_draw_rect_input_text(
   BLF_batch_draw_flush();
 }
 
-void icon_draw_rect_input(
-    float x, float y, int w, int h, float /*alpha*/, short event_type, short /*event_value*/)
+void icon_draw_rect_input(float x,
+                          float y,
+                          int w,
+                          int h,
+                          float /*alpha*/,
+                          short event_type,
+                          short /*event_value*/,
+                          bool inverted)
 {
   rctf rect{};
   rect.xmin = int(x) - U.pixelsize;
@@ -49,9 +55,17 @@ void icon_draw_rect_input(
 
   float color[4];
   GPU_line_width(1.0f);
-  UI_GetThemeColor4fv(TH_TEXT, color);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_aa(&rect, false, 3.0f * U.pixelsize, color);
+
+  if (inverted) {
+    UI_GetThemeColor4fv(TH_TEXT, color);
+    UI_draw_roundbox_aa(&rect, true, 3.0f * U.pixelsize, color);
+    UI_GetThemeColor4fv(TH_BACK, color);
+  }
+  else {
+    UI_GetThemeColor4fv(TH_TEXT, color);
+    UI_draw_roundbox_aa(&rect, false, 3.0f * U.pixelsize, color);
+  }
 
   const enum {
     UNIX,

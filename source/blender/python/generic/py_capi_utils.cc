@@ -1102,11 +1102,12 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
   PyDict_SetItemString(modules, "__main__", mod_main);
   Py_DECREF(mod_main); /* `sys.modules` owns now. */
   PyModule_AddStringConstant(mod_main, "__name__", "__main__");
-  if (filename) {
-    /* __file__ mainly for nice UI'ness
-     * NOTE: this won't map to a real file when executing text-blocks and buttons. */
-    PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromBytes(filename));
-  }
+
+  /* This won't map to a real file when executing text-blocks and buttons.
+   * In this case an identifier is typically used that is surrounded by angle-brackets.
+   * It's mainly helpful for the UI and messages to show *something*. */
+  PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromBytes(filename));
+
   PyModule_AddObject(mod_main, "__builtins__", builtins);
   Py_INCREF(builtins); /* AddObject steals a reference */
   return PyModule_GetDict(mod_main);
@@ -1132,7 +1133,7 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[])
   return true;
 }
 
-void PyC_MainModule_Backup(PyObject **r_main_mod)
+PyObject *PyC_MainModule_Backup()
 {
   PyObject *modules = PyImport_GetModuleDict();
   PyObject *main_mod = PyDict_GetItemString(modules, "__main__");
@@ -1141,7 +1142,7 @@ void PyC_MainModule_Backup(PyObject **r_main_mod)
     /* is transferred back to `sys.modules`. */
     Py_INCREF(main_mod);
   }
-  *r_main_mod = main_mod;
+  return main_mod;
 }
 
 void PyC_MainModule_Restore(PyObject *main_mod)
@@ -1466,45 +1467,62 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag)
 /** \name Run String (Evaluate to Primitive Types)
  * \{ */
 
+static PyObject *pyc_run_string_as_py_object(const char *imports[],
+                                             const char *imports_star[],
+                                             const char *expr,
+                                             const char *filename)
+    ATTR_NONNULL(3, 4) ATTR_WARN_UNUSED_RESULT;
+static PyObject *pyc_run_string_as_py_object(const char *imports[],
+                                             const char *imports_star[],
+                                             const char *expr,
+                                             const char *filename)
+{
+  PyObject *main_mod = PyC_MainModule_Backup();
+
+  PyObject *py_dict = PyC_DefaultNameSpace(filename);
+
+  if (imports_star) {
+    for (int i = 0; imports_star[i]; i++) {
+      PyObject *mod = PyImport_ImportModule("math");
+      if (mod) {
+        /* Don't overwrite existing values (override=0). */
+        PyDict_Merge(py_dict, PyModule_GetDict(mod), 0);
+        Py_DECREF(mod);
+      }
+      else { /* Highly unlikely but possibly. */
+        PyErr_Print();
+        PyErr_Clear();
+      }
+    }
+  }
+
+  PyObject *retval;
+  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
+    retval = nullptr; /* Failure. */
+  }
+  else {
+    retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
+  }
+
+  PyC_MainModule_Restore(main_mod);
+
+  return retval;
+}
+
 bool PyC_RunString_AsNumber(const char *imports[],
                             const char *expr,
                             const char *filename,
                             double *r_value)
 {
-  PyObject *py_dict, *mod, *retval;
-  bool ok = true;
-  PyObject *main_mod = nullptr;
-
-  PyC_MainModule_Backup(&main_mod);
-
-  py_dict = PyC_DefaultNameSpace(filename);
-
-  mod = PyImport_ImportModule("math");
-  if (mod) {
-    PyDict_Merge(py_dict, PyModule_GetDict(mod), 0); /* 0 - don't overwrite existing values */
-    Py_DECREF(mod);
-  }
-  else { /* highly unlikely but possibly */
-    PyErr_Print();
-    PyErr_Clear();
-  }
-
-  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
-    ok = false;
-  }
-  else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == nullptr) {
-    ok = false;
-  }
-  else {
+  int ok = -1;
+  const char *imports_star[] = {"math", nullptr};
+  if (PyObject *retval = pyc_run_string_as_py_object(imports, imports_star, expr, filename)) {
     double val;
 
     if (PyTuple_Check(retval)) {
-      /* Users my have typed in 10km, 2m
-       * add up all values */
-      int i;
+      /* Users my have typed in `10km, 2m`, accumulate all values. */
       val = 0.0;
-
-      for (i = 0; i < PyTuple_GET_SIZE(retval); i++) {
+      for (int i = 0; i < PyTuple_GET_SIZE(retval); i++) {
         const double val_item = PyFloat_AsDouble(PyTuple_GET_ITEM(retval, i));
         if (val_item == -1 && PyErr_Occurred()) {
           val = -1;
@@ -1523,15 +1541,18 @@ bool PyC_RunString_AsNumber(const char *imports[],
     }
     else if (!isfinite(val)) {
       *r_value = 0.0;
+      ok = true;
     }
     else {
       *r_value = val;
+      ok = true;
     }
   }
-
-  PyC_MainModule_Restore(main_mod);
-
-  return ok;
+  else {
+    ok = false;
+  }
+  BLI_assert(ok != -1);
+  return bool(ok);
 }
 
 bool PyC_RunString_AsIntPtr(const char *imports[],
@@ -1539,36 +1560,23 @@ bool PyC_RunString_AsIntPtr(const char *imports[],
                             const char *filename,
                             intptr_t *r_value)
 {
-  PyObject *py_dict, *retval;
-  bool ok = true;
-  PyObject *main_mod = nullptr;
-
-  PyC_MainModule_Backup(&main_mod);
-
-  py_dict = PyC_DefaultNameSpace(filename);
-
-  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
-    ok = false;
-  }
-  else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == nullptr) {
-    ok = false;
-  }
-  else {
-    intptr_t val;
-
-    val = intptr_t(PyLong_AsVoidPtr(retval));
+  int ok = -1;
+  if (PyObject *retval = pyc_run_string_as_py_object(imports, nullptr, expr, filename)) {
+    const intptr_t val = intptr_t(PyLong_AsVoidPtr(retval));
     if (val == 0 && PyErr_Occurred()) {
       ok = false;
     }
     else {
       *r_value = val;
+      ok = true;
     }
 
     Py_DECREF(retval);
   }
-
-  PyC_MainModule_Restore(main_mod);
-
+  else {
+    ok = false;
+  }
+  BLI_assert(ok != -1);
   return ok;
 }
 
@@ -1578,25 +1586,10 @@ bool PyC_RunString_AsStringAndSize(const char *imports[],
                                    char **r_value,
                                    size_t *r_value_size)
 {
-  PyObject *py_dict, *retval;
-  bool ok = true;
-  PyObject *main_mod = nullptr;
-
-  PyC_MainModule_Backup(&main_mod);
-
-  py_dict = PyC_DefaultNameSpace(filename);
-
-  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
-    ok = false;
-  }
-  else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == nullptr) {
-    ok = false;
-  }
-  else {
-    const char *val;
+  int ok = -1;
+  if (PyObject *retval = pyc_run_string_as_py_object(imports, nullptr, expr, filename)) {
     Py_ssize_t val_len;
-
-    val = PyUnicode_AsUTF8AndSize(retval, &val_len);
+    const char *val = PyUnicode_AsUTF8AndSize(retval, &val_len);
     if (val == nullptr && PyErr_Occurred()) {
       ok = false;
     }
@@ -1605,13 +1598,14 @@ bool PyC_RunString_AsStringAndSize(const char *imports[],
       memcpy(val_alloc, val, val_len + 1);
       *r_value = val_alloc;
       *r_value_size = val_len;
+      ok = true;
     }
-
     Py_DECREF(retval);
   }
-
-  PyC_MainModule_Restore(main_mod);
-
+  else {
+    ok = false;
+  }
+  BLI_assert(ok != -1);
   return ok;
 }
 
@@ -1630,30 +1624,16 @@ bool PyC_RunString_AsStringAndSizeOrNone(const char *imports[],
                                          char **r_value,
                                          size_t *r_value_size)
 {
-  PyObject *py_dict, *retval;
-  bool ok = true;
-  PyObject *main_mod = nullptr;
-
-  PyC_MainModule_Backup(&main_mod);
-
-  py_dict = PyC_DefaultNameSpace(filename);
-
-  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
-    ok = false;
-  }
-  else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == nullptr) {
-    ok = false;
-  }
-  else {
+  int ok = -1;
+  if (PyObject *retval = pyc_run_string_as_py_object(imports, nullptr, expr, filename)) {
     if (retval == Py_None) {
       *r_value = nullptr;
       *r_value_size = 0;
+      ok = true;
     }
     else {
-      const char *val;
       Py_ssize_t val_len;
-
-      val = PyUnicode_AsUTF8AndSize(retval, &val_len);
+      const char *val = PyUnicode_AsUTF8AndSize(retval, &val_len);
       if (val == nullptr && PyErr_Occurred()) {
         ok = false;
       }
@@ -1662,15 +1642,16 @@ bool PyC_RunString_AsStringAndSizeOrNone(const char *imports[],
         memcpy(val_alloc, val, val_len + 1);
         *r_value = val_alloc;
         *r_value_size = val_len;
+        ok = true;
       }
     }
-
     Py_DECREF(retval);
   }
-
-  PyC_MainModule_Restore(main_mod);
-
-  return ok;
+  else {
+    ok = false;
+  }
+  BLI_assert(ok != -1);
+  return bool(ok);
 }
 
 bool PyC_RunString_AsStringOrNone(const char *imports[],
@@ -1808,10 +1789,6 @@ uint32_t PyC_Long_AsU32(PyObject *value)
   return uint32_t(test);
 }
 
-/* #PyLong_AsUnsignedLongLong, unlike #PyLong_AsLongLong, does not fall back to calling
- * #PyNumber_Index when its argument is not a `PyLongObject` instance. To match parsing signed
- * integer types with #PyLong_AsLongLong, this function performs the #PyNumber_Index fallback, if
- * necessary, before calling #PyLong_AsUnsignedLongLong. */
 uint64_t PyC_Long_AsU64(PyObject *value)
 {
   if (value == nullptr) {

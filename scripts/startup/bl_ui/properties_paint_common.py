@@ -86,8 +86,6 @@ class UnifiedPaintPanel:
         if space_data:
             space_type = space_data.type
             if space_type == 'IMAGE_EDITOR':
-                if space_data.show_uvedit:
-                    return 'UV_SCULPT'
                 return 'PAINT_2D'
             elif space_type in {'VIEW_3D', 'PROPERTIES'}:
                 if mode == 'PAINT_TEXTURE':
@@ -118,8 +116,6 @@ class UnifiedPaintPanel:
         # 2D paint settings
         elif mode == 'PAINT_2D':
             return tool_settings.image_paint
-        elif mode == 'UV_SCULPT':
-            return tool_settings.uv_sculpt
         # Grease Pencil settings
         elif mode == 'PAINT_GPENCIL':
             return tool_settings.gpencil_paint
@@ -946,11 +942,6 @@ def brush_shared_settings(layout, context, brush, popover=False):
         # Only draw blend mode for the Draw tool, because for other tools it is pointless. D5928#137944
         if brush.weight_tool == 'DRAW':
             blend_mode = True
-
-    # UV Sculpt #
-    if mode == 'UV_SCULPT':
-        size = True
-        strength = True
 
     # Sculpt Curves #
     if mode == 'SCULPT_CURVES':

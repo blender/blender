@@ -465,7 +465,7 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
 #  if 0
     /* Ideally we'd just create a render target view for the OpenXR swap-chain image texture and
      * blit from the OpenGL context into it. The NV_DX_interop extension doesn't want to work with
-     * this though. At least not with Optimus hardware. See:
+     * this though. At least not with OPTIMUS hardware. See:
      * https://github.com/mpv-player/mpv/issues/2949#issuecomment-197262807.
      */
 

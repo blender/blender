@@ -842,6 +842,12 @@ void id_or_index(const bNode & /*node*/, void *r_value)
       bke::SocketValueVariant(fn::Field<int>(std::make_shared<bke::IDAttributeFieldInput>()));
 }
 
+void instance_transform(const bNode & /*node*/, void *r_value)
+{
+  new (r_value)
+      bke::SocketValueVariant(bke::AttributeFieldInput::Create<float4x4>("instance_transform"));
+}
+
 }  // namespace implicit_field_inputs
 
 }  // namespace blender::nodes

@@ -113,41 +113,41 @@ static bool ui_but_is_unit_radians(const uiBut *but)
 
 /* ************* window matrix ************** */
 
-void ui_block_to_region_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y)
+void ui_block_to_region_fl(const ARegion *region, const uiBlock *block, float *x, float *y)
 {
   const int getsizex = BLI_rcti_size_x(&region->winrct) + 1;
   const int getsizey = BLI_rcti_size_y(&region->winrct) + 1;
 
-  float gx = *r_x;
-  float gy = *r_y;
+  float gx = *x;
+  float gy = *y;
 
   if (block->panel) {
     gx += block->panel->ofsx;
     gy += block->panel->ofsy;
   }
 
-  *r_x = float(getsizex) * (0.5f + 0.5f * (gx * block->winmat[0][0] + gy * block->winmat[1][0] +
-                                           block->winmat[3][0]));
-  *r_y = float(getsizey) * (0.5f + 0.5f * (gx * block->winmat[0][1] + gy * block->winmat[1][1] +
-                                           block->winmat[3][1]));
+  *x = float(getsizex) *
+       (0.5f + 0.5f * (gx * block->winmat[0][0] + gy * block->winmat[1][0] + block->winmat[3][0]));
+  *y = float(getsizey) *
+       (0.5f + 0.5f * (gx * block->winmat[0][1] + gy * block->winmat[1][1] + block->winmat[3][1]));
 }
 
-void ui_block_to_window_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y)
+void ui_block_to_window_fl(const ARegion *region, const uiBlock *block, float *x, float *y)
 {
-  ui_block_to_region_fl(region, block, r_x, r_y);
-  *r_x += region->winrct.xmin;
-  *r_y += region->winrct.ymin;
+  ui_block_to_region_fl(region, block, x, y);
+  *x += region->winrct.xmin;
+  *y += region->winrct.ymin;
 }
 
-void ui_block_to_window(const ARegion *region, const uiBlock *block, int *r_x, int *r_y)
+void ui_block_to_window(const ARegion *region, const uiBlock *block, int *x, int *y)
 {
-  float fx = *r_x;
-  float fy = *r_y;
+  float fx = *x;
+  float fy = *y;
 
   ui_block_to_window_fl(region, block, &fx, &fy);
 
-  *r_x = int(lround(fx));
-  *r_y = int(lround(fy));
+  *x = int(lround(fx));
+  *y = int(lround(fy));
 }
 
 void ui_block_to_region_rctf(const ARegion *region,
@@ -181,7 +181,7 @@ float ui_block_to_window_scale(const ARegion *region, const uiBlock *block)
   return max_y - min_y;
 }
 
-void ui_window_to_block_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y)
+void ui_window_to_block_fl(const ARegion *region, const uiBlock *block, float *x, float *y)
 {
   const int getsizex = BLI_rcti_size_x(&region->winrct) + 1;
   const int getsizey = BLI_rcti_size_y(&region->winrct) + 1;
@@ -196,15 +196,15 @@ void ui_window_to_block_fl(const ARegion *region, const uiBlock *block, float *r
   const float e = 0.5f * float(getsizey) * block->winmat[1][1];
   const float f = 0.5f * float(getsizey) * (1.0f + block->winmat[3][1]);
 
-  const float px = *r_x - sx;
-  const float py = *r_y - sy;
+  const float px = *x - sx;
+  const float py = *y - sy;
 
-  *r_y = (a * (py - f) + d * (c - px)) / (a * e - d * b);
-  *r_x = (px - b * (*r_y) - c) / a;
+  *y = (a * (py - f) + d * (c - px)) / (a * e - d * b);
+  *x = (px - b * (*y) - c) / a;
 
   if (block->panel) {
-    *r_x -= block->panel->ofsx;
-    *r_y -= block->panel->ofsy;
+    *x -= block->panel->ofsx;
+    *y -= block->panel->ofsy;
   }
 }
 
@@ -218,21 +218,21 @@ void ui_window_to_block_rctf(const ARegion *region,
   ui_window_to_block_fl(region, block, &rct_dst->xmax, &rct_dst->ymax);
 }
 
-void ui_window_to_block(const ARegion *region, const uiBlock *block, int *r_x, int *r_y)
+void ui_window_to_block(const ARegion *region, const uiBlock *block, int *x, int *y)
 {
-  float fx = *r_x;
-  float fy = *r_y;
+  float fx = *x;
+  float fy = *y;
 
   ui_window_to_block_fl(region, block, &fx, &fy);
 
-  *r_x = int(lround(fx));
-  *r_y = int(lround(fy));
+  *x = int(lround(fx));
+  *y = int(lround(fy));
 }
 
-void ui_window_to_region(const ARegion *region, int *r_x, int *r_y)
+void ui_window_to_region(const ARegion *region, int *x, int *y)
 {
-  *r_x -= region->winrct.xmin;
-  *r_y -= region->winrct.ymin;
+  *x -= region->winrct.xmin;
+  *y -= region->winrct.ymin;
 }
 
 void ui_window_to_region_rcti(const ARegion *region, rcti *rect_dst, const rcti *rct_src)
@@ -251,10 +251,10 @@ void ui_window_to_region_rctf(const ARegion *region, rctf *rect_dst, const rctf 
   rect_dst->ymax = rct_src->ymax - region->winrct.ymin;
 }
 
-void ui_region_to_window(const ARegion *region, int *r_x, int *r_y)
+void ui_region_to_window(const ARegion *region, int *x, int *y)
 {
-  *r_x += region->winrct.xmin;
-  *r_y += region->winrct.ymin;
+  *x += region->winrct.xmin;
+  *y += region->winrct.ymin;
 }
 
 static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
@@ -4067,7 +4067,8 @@ static uiBut *ui_def_but(uiBlock *block,
                          float max,
                          const char *tip)
 {
-  BLI_assert(width >= 0 && height >= 0);
+  /* Allow negative separators. */
+  BLI_assert(width >= 0 && height >= 0 || (type == UI_BTYPE_SEPR));
 
   if (type & UI_BUT_POIN_TYPES) { /* a pointer is required */
     if (poin == nullptr) {

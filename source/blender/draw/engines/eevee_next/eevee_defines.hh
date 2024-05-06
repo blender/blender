@@ -34,6 +34,7 @@
 #define CULLING_TILE_GROUP_SIZE 256
 
 /* Reflection Probes. */
+/* When changed update parallel sum loop in `eevee_reflection_probe_remap_comp.glsl`. */
 #define SPHERE_PROBE_REMAP_GROUP_SIZE 32
 #define SPHERE_PROBE_GROUP_SIZE 16
 #define SPHERE_PROBE_SELECT_GROUP_SIZE 64

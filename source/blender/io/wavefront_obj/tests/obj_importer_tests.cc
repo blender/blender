@@ -542,7 +542,7 @@ TEST_F(OBJImportTest, import_all_objects)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      /* .obj file has empty EmptyText and EmptyMesh objects; these are ignored and skipped */
+      /* `.obj` file has empty EmptyText and EmptyMesh objects; these are ignored and skipped. */
       {"OBBezierCurve", OB_MESH, 13, 12, 0, 0, float3(-1, -2, 0), float3(1, -2, 0)},
       {"OBBlankCube", OB_MESH, 8, 13, 7, 26, float3(1, 1, -1), float3(-1, 1, 1), float3(0, 0, 1)},
       {"OBMaterialCube",

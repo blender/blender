@@ -284,7 +284,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
   /* always copy the name, since this can be called with an uninitialized string */
   len = BLI_strncpy_rlen(name_dst, name_src, name_dst_maxncpy);
   if (len < 3) {
-    /* we don't do names like .R or .L */
+    /* We don't support names such as `.R` or `.L`. */
     return len;
   }
 

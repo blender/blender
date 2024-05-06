@@ -67,6 +67,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
+#include "BKE_workspace.hh"
 
 #include "BLO_readfile.hh"
 
@@ -6317,8 +6318,19 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
   WorkSpace *workspace = CTX_wm_workspace(C);
 
   /* Workspace status text has priority. */
-  if (workspace->status_text) {
-    uiItemL(layout, workspace->status_text, ICON_NONE);
+  if (!workspace->runtime->status.is_empty()) {
+    uiLayout *row = uiLayoutRow(layout, true);
+    for (const blender::bke::WorkSpaceStatusItem &item : workspace->runtime->status) {
+      if (item.space_factor != 0.0f) {
+        uiItemS_ex(row, item.space_factor);
+      }
+      else {
+        uiBut *but = uiItemL_ex(row, item.text.c_str(), item.icon, false, false);
+        if (item.inverted) {
+          but->drawflag |= UI_BUT_ICON_INVERT;
+        }
+      }
+    }
     return;
   }
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2024-04-29 07:29+0000\n"
 "Last-Translator: Fatih Alexandr <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -597,6 +597,10 @@ msgstr "Слот для временного удержания основног
 
 msgid "Animation"
 msgstr "Анимация"
+
+
+msgid "New"
+msgstr "Новый"
 
 
 msgid "Drivers"
@@ -30874,10 +30878,6 @@ msgid "Movie Strip"
 msgstr "Видеоклип"
 
 
-msgid "Cache"
-msgstr "Кэш"
-
-
 msgid "Texture Specials"
 msgstr "Настройки текстур"
 
@@ -30892,6 +30892,10 @@ msgstr "Open Shading Language"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Кэш"
 
 
 msgid "Blender"
@@ -31880,10 +31884,6 @@ msgstr "Нужно ли устанавливать твёрдость гране
 
 msgid "Do not set face strength"
 msgstr "Не устанавливать твёрдость граней"
-
-
-msgid "New"
-msgstr "Новый"
 
 
 msgid "Set face strength on new faces only"
@@ -37414,6 +37414,10 @@ msgid "Hue/Saturation/Value"
 msgstr "Тон/насыщенность/яркость"
 
 
+msgid "Apply a color transformation in the HSV color model"
+msgstr "Применить преобразование цвета в цветовой модели HSV"
+
+
 msgid "ID Mask"
 msgstr "Маска по ID"
 
@@ -37670,6 +37674,10 @@ msgstr "Размытие движения"
 
 msgid "Use multi-sampled motion blur of the mask"
 msgstr "Использовать размытие движения с множественной выборкой для маски"
+
+
+msgid "Perform math operations"
+msgstr "Выполнить математические операции"
 
 
 msgctxt "NodeTree"
@@ -37952,6 +37960,10 @@ msgid "Distortion to use to filter image"
 msgstr "Метод искажения для фильтрации изображения"
 
 
+msgid "Generate a normal vector and a dot product"
+msgstr "Сгенерировать вектор нормали и скалярное произведение"
+
+
 msgid "File Output"
 msgstr "Вывод в файл"
 
@@ -38010,6 +38022,10 @@ msgstr "Конвертировать прямой альфа-канал в пр�
 
 msgid "Convert premultiplied to straight"
 msgstr "Конвертировать предумноженный альфа-канал в прямой"
+
+
+msgid "A color picker"
+msgstr "Выбор цвета"
 
 
 msgid "RGB to BW"
@@ -38244,6 +38260,10 @@ msgid "Wrap all pixels on both axes"
 msgstr "Оборачивать все пиксели по обеим осям"
 
 
+msgid "Map values to colors with the use of a gradient"
+msgstr "Отобразить значения цветов с использованием градиента"
+
+
 msgid "Vector Blur"
 msgstr "Векторное размытие"
 
@@ -38270,30 +38290,6 @@ msgstr "Минимальная скорость"
 
 msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
 msgstr "Минимальная скорость для размываемого пикселя (используется для отделения фона от переднего плана)"
-
-
-msgid "Tile Order"
-msgstr "Порядок плиток"
-
-
-msgid "Tile order"
-msgstr "Порядок плиток"
-
-
-msgid "Expand from center"
-msgstr "Расширять от центра"
-
-
-msgid "Random tiles"
-msgstr "Случайные плитки"
-
-
-msgid "Expand from bottom"
-msgstr "Расширять с низа"
-
-
-msgid "Expand from 9 places"
-msgstr "Расширять с 9 мест"
 
 
 msgid "Z Combine"
@@ -38867,10 +38863,6 @@ msgid "Retrieve hair curve information"
 msgstr "Извлечь информацию о кривых волос"
 
 
-msgid "Apply a color transformation in the HSV color model"
-msgstr "Применить преобразование цвета в цветовой модели HSV"
-
-
 msgid "Invert a color, producing a negative"
 msgstr "Инвертировать цвет, создав негатив"
 
@@ -38931,10 +38923,6 @@ msgid "Transform a unit normal vector. Location is ignored"
 msgstr "Преобразовать единичный вектор нормали. Местоположение игнорируется"
 
 
-msgid "Perform math operations"
-msgstr "Выполнить математические операции"
-
-
 msgid "Mix values by a factor"
 msgstr "Смешать значения по множителю"
 
@@ -38961,10 +38949,6 @@ msgstr "Смешать два шейдера вместе. Обычно испо
 
 msgid "Retrieve geometric information about the current shading point"
 msgstr "Извлечь геометрическую информацию о текущей точке затенения"
-
-
-msgid "Generate a normal vector and a dot product"
-msgstr "Сгенерировать вектор нормали и скалярное произведение"
 
 
 msgid "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces"
@@ -39073,10 +39057,6 @@ msgstr "Информация о точке"
 
 msgid "Retrieve information about points in a point cloud"
 msgstr "Извлечь информацию о точках в облаке точек"
-
-
-msgid "A color picker"
-msgstr "Выбор цвета"
 
 
 msgid "Apply color corrections for each color channel"
@@ -39629,18 +39609,6 @@ msgstr "Извлечь UV-карту из геометрии или активн
 
 msgid "UV coordinates to be used for mapping"
 msgstr "UV-координаты, используемые для сопоставления"
-
-
-msgid "Map values to colors with the use of a gradient"
-msgstr "Отобразить значения цветов с использованием градиента"
-
-
-msgid "Used to Input numerical values to other nodes in the tree"
-msgstr "Используется для ввода числовых значений в другие ноды дерева"
-
-
-msgid "Map an input vectors to curves, used to fine-tune the interpolation of the input"
-msgstr "Отобразить входные векторы в кривые, используемые для точной настройки интерполяции входных данных"
 
 
 msgid "Displace the surface along an arbitrary direction"
@@ -55889,10 +55857,6 @@ msgid "Mask Lasso Gesture"
 msgstr "Маска произвольной формы"
 
 
-msgid "Add mask within the lasso as you move the brush"
-msgstr "Добавить маску внутри выделения обводкой"
-
-
 msgctxt "Operator"
 msgid "Project Image"
 msgstr "Проецировать изображение"
@@ -62326,10 +62290,6 @@ msgstr "Если отмечено, обновить начальный и кон
 
 msgid "Validate Meshes"
 msgstr "Проверить меши"
-
-
-msgid "Check imported mesh objects for invalid data (slow)"
-msgstr "Проверить меши на наличие неправильных данных (медленно)"
 
 
 msgctxt "Operator"
@@ -72785,38 +72745,6 @@ msgid "All strips, recursively including those inside metastrips"
 msgstr "Все клипы, включая многократно вложенные в метаклипы"
 
 
-msgid "Show Cache"
-msgstr "Отображать кэш"
-
-
-msgid "Visualize cached images on the timeline"
-msgstr "Отображать закэшированные изображения на шкале времени"
-
-
-msgid "Composite Images"
-msgstr "Обработанные изображения"
-
-
-msgid "Visualize cached composite images"
-msgstr "Отображать закэшированные обработанные изображения"
-
-
-msgid "Final Images"
-msgstr "Финальные изображения"
-
-
-msgid "Visualize cached complete frames"
-msgstr "Отображать закэшированные финальные кадры"
-
-
-msgid "Raw Images"
-msgstr "Исходные изображения"
-
-
-msgid "Visualize cached raw images"
-msgstr "Отображать закэшированные исходные изображения"
-
-
 msgid "Show Overlay"
 msgstr "Показать наложение"
 
@@ -73071,6 +72999,38 @@ msgstr "Преобразование последовательности"
 
 msgid "Transform parameters for a sequence strip"
 msgstr "Параметры трансформации для клипа последовательности"
+
+
+msgid "Show Cache"
+msgstr "Отображать кэш"
+
+
+msgid "Visualize cached images on the timeline"
+msgstr "Отображать закэшированные изображения на шкале времени"
+
+
+msgid "Composite Images"
+msgstr "Обработанные изображения"
+
+
+msgid "Visualize cached composite images"
+msgstr "Отображать закэшированные обработанные изображения"
+
+
+msgid "Final Images"
+msgstr "Финальные изображения"
+
+
+msgid "Visualize cached complete frames"
+msgstr "Отображать закэшированные финальные кадры"
+
+
+msgid "Raw Images"
+msgstr "Исходные изображения"
+
+
+msgid "Visualize cached raw images"
+msgstr "Отображать закэшированные исходные изображения"
 
 
 msgid "Show Annotation"

@@ -18,7 +18,6 @@ class DocumentExporter {
  public:
   DocumentExporter(BlenderContext &blender_context, ExportSettings *export_settings);
   int exportCurrentScene();
-  void exportScenes(const char *filename);
 
  private:
   BlenderContext &blender_context;

@@ -8,7 +8,7 @@
  * \ingroup sim
  */
 
-#include "stdio.h"
+#include <stdio.h>
 
 #include "BLI_utildefines.h"
 

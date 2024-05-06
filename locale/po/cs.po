@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
-"PO-Revision-Date: 2023-12-12 02:28+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
 "Language: cs\n"
@@ -565,6 +565,10 @@ msgstr "Částka, o kterou aktivní akce přispívá k výsledku zásobníku NLA
 
 msgid "Animation"
 msgstr "Animace"
+
+
+msgid "New"
+msgstr "Nový"
 
 
 msgid "Drivers"
@@ -14513,10 +14517,6 @@ msgid "Movie Strip"
 msgstr "Přidat action strip"
 
 
-msgid "Cache"
-msgstr "Mezipaměť"
-
-
 msgid "Texture Specials"
 msgstr "Obrázkové fonty"
 
@@ -14527,6 +14527,10 @@ msgstr "Šablony"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Mezipaměť"
 
 
 msgid "System"
@@ -15079,10 +15083,6 @@ msgstr "Ovlivnit"
 
 msgid "Face Strength"
 msgstr "Síla Ploch"
-
-
-msgid "New"
-msgstr "Nový"
 
 
 msgid "Affected"
@@ -17860,22 +17860,6 @@ msgstr "Maximální Y limitace"
 
 msgid "Min Speed"
 msgstr "Osa Zrcadlení"
-
-
-msgid "Tile Order"
-msgstr "UV souřadnice"
-
-
-msgid "Tile order"
-msgstr "UV souřadnice"
-
-
-msgid "Random tiles"
-msgstr "Náhodně"
-
-
-msgid "Expand from 9 places"
-msgstr "Konečný frame pro zobrazení rozsahu Přízraku"
 
 
 msgid "Z Combine"
@@ -27528,10 +27512,6 @@ msgid "Paint a stroke into the image"
 msgstr "Malování tahu do obrázku"
 
 
-msgid "Add mask within the box as you move the brush"
-msgstr "Přidat masku vně obdélníkového výběru"
-
-
 msgid "Invert the mask"
 msgstr "Převrátit masku"
 
@@ -36639,18 +36619,6 @@ msgid "Overlay Offset"
 msgstr "Zrušit odchylku"
 
 
-msgid "Show Cache"
-msgstr "Přidat primitivum"
-
-
-msgid "Final Images"
-msgstr "Finální Obrázky"
-
-
-msgid "Raw Images"
-msgstr "Raw Obrázky"
-
-
 msgid "Overlay Lock"
 msgstr "Uzamknout Překrytí"
 
@@ -36737,6 +36705,18 @@ msgstr "Transformace"
 
 msgid "Transform parameters for a sequence strip"
 msgstr "První frame animace"
+
+
+msgid "Show Cache"
+msgstr "Přidat primitivum"
+
+
+msgid "Final Images"
+msgstr "Finální Obrázky"
+
+
+msgid "Raw Images"
+msgstr "Raw Obrázky"
 
 
 msgid "Show Metadata"

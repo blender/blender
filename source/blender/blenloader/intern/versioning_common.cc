@@ -372,6 +372,12 @@ IDProperty *version_cycles_properties_from_view_layer(ViewLayer *view_layer)
   return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : nullptr;
 }
 
+IDProperty *version_cycles_properties_from_render_layer(SceneRenderLayer *render_layer)
+{
+  IDProperty *idprop = render_layer->prop;
+  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : nullptr;
+}
+
 float version_cycles_property_float(IDProperty *idprop, const char *name, float default_value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT);

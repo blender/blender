@@ -55,6 +55,7 @@ const NodeEnum *DenoiseParams::get_quality_enum()
   if (quality_enum.empty()) {
     quality_enum.insert("high", DENOISER_QUALITY_HIGH);
     quality_enum.insert("balanced", DENOISER_QUALITY_BALANCED);
+    quality_enum.insert("fast", DENOISER_QUALITY_FAST);
   }
 
   return &quality_enum;

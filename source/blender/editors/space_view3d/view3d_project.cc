@@ -349,7 +349,7 @@ static void view3d_win_to_ray_segment(const Depsgraph *depsgraph,
     start_offset = -end_offset;
   }
   else {
-    ED_view3d_clip_range_get(depsgraph, v3d, rv3d, &start_offset, &end_offset, false);
+    ED_view3d_clip_range_get(depsgraph, v3d, rv3d, false, &start_offset, &end_offset);
   }
 
   if (r_ray_start) {

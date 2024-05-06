@@ -105,8 +105,8 @@ set(SRC
   intern/math_geom.cc
   intern/math_geom_inline.c
   intern/math_interp.cc
-  intern/math_matrix_c.cc
   intern/math_matrix.cc
+  intern/math_matrix_c.cc
   intern/math_rotation.c
   intern/math_rotation.cc
   intern/math_solvers.c

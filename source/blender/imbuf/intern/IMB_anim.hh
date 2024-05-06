@@ -67,7 +67,8 @@ struct ImBufAnim {
   int indices_tried;
 
   ImBufAnim *proxy_anim[IMB_PROXY_MAX_SLOT];
-  ImBufAnimIndex *curr_idx[IMB_TC_MAX_SLOT];
+  ImBufAnimIndex *record_run;
+  ImBufAnimIndex *no_gaps;
 
   char colorspace[64];
   char suffix[64]; /* MAX_NAME - multiview */

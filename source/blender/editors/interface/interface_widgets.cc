@@ -1367,8 +1367,16 @@ static void widget_draw_icon(
       if (has_theme) {
         alpha *= 0.8f;
       }
-      UI_icon_draw_ex(
-          xs, ys, icon, aspect, alpha, 0.0f, color, has_theme, &but->icon_overlay_text);
+      UI_icon_draw_ex(xs,
+                      ys,
+                      icon,
+                      aspect,
+                      alpha,
+                      0.0f,
+                      color,
+                      has_theme,
+                      &but->icon_overlay_text,
+                      but->drawflag & UI_BUT_ICON_INVERT);
     }
     else {
       const bTheme *btheme = UI_GetTheme();

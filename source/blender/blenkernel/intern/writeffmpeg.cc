@@ -1380,8 +1380,7 @@ static bool start_ffmpeg_impl(FFMpegContext *context,
       break;
     default:
       /* These containers are not restricted to any specific codec types.
-       * Currently we expect these to be .avi, .mov, .mkv, and .mp4.
-       */
+       * Currently we expect these to be `.avi`, `.mov`, `.mkv`, and `.mp4`. */
       video_codec = context->ffmpeg_codec;
       break;
   }

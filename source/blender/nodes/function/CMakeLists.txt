@@ -31,6 +31,7 @@ set(SRC
   nodes/node_fn_input_bool.cc
   nodes/node_fn_input_color.cc
   nodes/node_fn_input_int.cc
+  nodes/node_fn_input_rotation.cc
   nodes/node_fn_input_special_characters.cc
   nodes/node_fn_input_string.cc
   nodes/node_fn_input_vector.cc

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -493,6 +493,10 @@ msgstr "Суми активних дій вносить свій внесок у
 
 msgid "Animation"
 msgstr "Анімація"
+
+
+msgid "New"
+msgstr "Новий"
 
 
 msgid "Drivers"
@@ -21103,6 +21107,10 @@ msgid "Texture Slots"
 msgstr "Гнізда текстур"
 
 
+msgid "Thickness Mode"
+msgstr "Режим Товщини"
+
+
 msgid "Backface Culling"
 msgstr "Відкидання Тилу"
 
@@ -29311,10 +29319,6 @@ msgid "Movie Strip"
 msgstr "Смужка відео"
 
 
-msgid "Cache"
-msgstr "Кеш"
-
-
 msgid "Texture Specials"
 msgstr "Спеціальне Текстур"
 
@@ -29333,6 +29337,10 @@ msgstr "Open Shading Language"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Кеш"
 
 
 msgid "Blender"
@@ -30577,10 +30585,6 @@ msgstr "Чи задати силу грані  і для яких граней �
 
 msgid "Do not set face strength"
 msgstr "Не задавати силу грані"
-
-
-msgid "New"
-msgstr "Новий"
 
 
 msgid "Set face strength on new faces only"
@@ -33160,10 +33164,6 @@ msgstr "Поріг Злиття"
 
 msgid "Distance within which degenerated geometry is merged"
 msgstr "Відстань, у межах якої вироджена геометрія зливається"
-
-
-msgid "Thickness Mode"
-msgstr "Режим Товщини"
 
 
 msgid "Selects the used thickness algorithm"
@@ -37556,38 +37556,6 @@ msgstr "Найменша швидкість"
 
 msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
 msgstr "Мінімальна швидкість для розмивання пікселя (використовується, щоб відокремити фон від переднього плану)"
-
-
-msgid "Tile Order"
-msgstr "Порядок плиток"
-
-
-msgid "Tile order"
-msgstr "Порядок плиток"
-
-
-msgid "Expand from center"
-msgstr "Розширити з центра"
-
-
-msgid "Random tiles"
-msgstr "Випадкові плитки"
-
-
-msgid "Bottom Up"
-msgstr "Знизу Уверх"
-
-
-msgid "Expand from bottom"
-msgstr "Розширити з низу"
-
-
-msgid "Rule of Thirds"
-msgstr "Правило Третин"
-
-
-msgid "Expand from 9 places"
-msgstr "Розширити з 9 точок"
 
 
 msgid "Z Combine"
@@ -57235,10 +57203,6 @@ msgid "Mask Box Gesture"
 msgstr "Маска Коробки Жестом"
 
 
-msgid "Add mask within the box as you move the brush"
-msgstr "Додати маску у межах коробки, коли ви переміщуєте пензель"
-
-
 msgid "Set mask to the level specified by the 'value' property"
 msgstr "Задати маску на рівні, вказаному у властивості 'value'"
 
@@ -57273,17 +57237,9 @@ msgid "Mask Lasso Gesture"
 msgstr "Маска довільної форми"
 
 
-msgid "Add mask within the lasso as you move the brush"
-msgstr "Додати маску, обвівши її пензлем"
-
-
 msgctxt "Operator"
 msgid "Mask Line Gesture"
 msgstr "Маска по Лінії Жестом"
-
-
-msgid "Add mask to the right of a line as you move the brush"
-msgstr "Додати маску управо лінії, коли ви переміщуєте пензель"
 
 
 msgctxt "Operator"
@@ -60056,10 +60012,6 @@ msgid "Face Set Box Gesture"
 msgstr "Набір Граней Коробки Жестом"
 
 
-msgid "Add face set within the box as you move the brush"
-msgstr "Додати набір граней у межах коробки, коли ви переміщуєте пензель"
-
-
 msgctxt "Operator"
 msgid "Face Sets Visibility"
 msgstr "Видимість Наборів Граней"
@@ -60137,10 +60089,6 @@ msgstr "Модифікувати Сховане"
 msgctxt "Operator"
 msgid "Face Set Lasso Gesture"
 msgstr "Набір Граней Ласо Жестом"
-
-
-msgid "Add face set within the lasso as you move the brush"
-msgstr "Додати набір граней у межах ласо, коли ви переміщуєте пензель"
 
 
 msgctxt "Operator"
@@ -60612,10 +60560,6 @@ msgid "Trim Box Gesture"
 msgstr "Підріз Коробкою Жестом"
 
 
-msgid "Trims the mesh within the box as you move the brush"
-msgstr "Підрізає сіть в межах коробки, коли ви переміщуєте пензель"
-
-
 msgid "Trim Mode"
 msgstr "Режим Підрізу"
 
@@ -60655,10 +60599,6 @@ msgstr "Вжити локацію та радіус курсора для роз
 msgctxt "Operator"
 msgid "Trim Lasso Gesture"
 msgstr "Підріз Ласо Жестом"
-
-
-msgid "Trims the mesh within the lasso as you move the brush"
-msgstr "Підрізає сіть у межах ласо, коли ви переміщуєте пензель"
 
 
 msgid "Grab UVs"
@@ -65071,10 +65011,6 @@ msgstr "Якщо обрано, оновлює стартовий та кінце
 
 msgid "Validate Meshes"
 msgstr "Перевірка сітей"
-
-
-msgid "Check imported mesh objects for invalid data (slow)"
-msgstr "Перевірити імпортовані сітьові об'єкти на хибні дані (повільно)"
 
 
 msgctxt "Operator"
@@ -76526,42 +76462,6 @@ msgid "All strips, recursively including those inside metastrips"
 msgstr "Всі смужки рекурсивно, включно з тими, що у метасмужках"
 
 
-msgid "Show Cache"
-msgstr "Показати кеш"
-
-
-msgid "Visualize cached images on the timeline"
-msgstr "Візуалізувати кешовані зображення на часолінії"
-
-
-msgid "Composite Images"
-msgstr "Зображення Композиції"
-
-
-msgid "Visualize cached composite images"
-msgstr "Візуалізувати кешовані зображення композиції"
-
-
-msgid "Final Images"
-msgstr "Фінальні Зображення"
-
-
-msgid "Visualize cached complete frames"
-msgstr "Візуалізувати кешовані завершені зображення"
-
-
-msgid "Visualize cached pre-processed images"
-msgstr "Візуалізувати кешовані перед-оброблені зображення"
-
-
-msgid "Raw Images"
-msgstr "Сирцеві Зображення"
-
-
-msgid "Visualize cached raw images"
-msgstr "Візуалізувати кешовані сирцеві зображення"
-
-
 msgid "Show Overlay"
 msgstr "Показ Накладки"
 
@@ -76828,6 +76728,42 @@ msgstr "Масштабувати уздовж осі X"
 
 msgid "Scale along Y axis"
 msgstr "Масштабувати уздовж осі Y"
+
+
+msgid "Show Cache"
+msgstr "Показати кеш"
+
+
+msgid "Visualize cached images on the timeline"
+msgstr "Візуалізувати кешовані зображення на часолінії"
+
+
+msgid "Composite Images"
+msgstr "Зображення Композиції"
+
+
+msgid "Visualize cached composite images"
+msgstr "Візуалізувати кешовані зображення композиції"
+
+
+msgid "Final Images"
+msgstr "Фінальні Зображення"
+
+
+msgid "Visualize cached complete frames"
+msgstr "Візуалізувати кешовані завершені зображення"
+
+
+msgid "Visualize cached pre-processed images"
+msgstr "Візуалізувати кешовані перед-оброблені зображення"
+
+
+msgid "Raw Images"
+msgstr "Сирцеві Зображення"
+
+
+msgid "Visualize cached raw images"
+msgstr "Візуалізувати кешовані сирцеві зображення"
 
 
 msgid "Show Annotation"

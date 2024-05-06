@@ -169,11 +169,11 @@ int PyC_ParseUnicodeAsBytesAndSize_OrNone(PyObject *o, void *p);
  * >> print(__import__("__main__").foo)
  *
  * NOTE: this overwrites __main__ which gives problems with nested calls.
- * be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
+ * be sure to run #PyC_MainModule_Backup & #PyC_MainModule_Restore if there is
  * any chance that python is in the call stack.
  */
-PyObject *PyC_DefaultNameSpace(const char *filename);
-void PyC_RunQuicky(const char *filepath, int n, ...);
+PyObject *PyC_DefaultNameSpace(const char *filename) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+void PyC_RunQuicky(const char *filepath, int n, ...) ATTR_NONNULL(1);
 /**
  * Import `imports` into `py_dict`.
  *
@@ -187,7 +187,7 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[]);
 /**
  * #PyC_MainModule_Restore MUST be called after #PyC_MainModule_Backup.
  */
-void PyC_MainModule_Backup(PyObject **r_main_mod);
+PyObject *PyC_MainModule_Backup() ATTR_WARN_UNUSED_RESULT;
 void PyC_MainModule_Restore(PyObject *main_mod);
 
 bool PyC_IsInterpreterActive(void);
@@ -223,11 +223,11 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag);
 bool PyC_RunString_AsNumber(const char **imports,
                             const char *expr,
                             const char *filename,
-                            double *r_value);
+                            double *r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 bool PyC_RunString_AsIntPtr(const char **imports,
                             const char *expr,
                             const char *filename,
-                            intptr_t *r_value);
+                            intptr_t *r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 /**
  * \param r_value_size: The length of the string assigned: `strlen(*r_value)`.
  */
@@ -235,11 +235,12 @@ bool PyC_RunString_AsStringAndSize(const char **imports,
                                    const char *expr,
                                    const char *filename,
                                    char **r_value,
-                                   size_t *r_value_size);
+                                   size_t *r_value_size)
+    ATTR_NONNULL(2, 3, 4, 5) ATTR_WARN_UNUSED_RESULT;
 bool PyC_RunString_AsString(const char **imports,
                             const char *expr,
                             const char *filename,
-                            char **r_value);
+                            char **r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * \param r_value_size: The length of the string assigned: `strlen(*r_value)`.
@@ -248,11 +249,12 @@ bool PyC_RunString_AsStringAndSizeOrNone(const char **imports,
                                          const char *expr,
                                          const char *filename,
                                          char **r_value,
-                                         size_t *r_value_size);
+                                         size_t *r_value_size)
+    ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 bool PyC_RunString_AsStringOrNone(const char **imports,
                                   const char *expr,
                                   const char *filename,
-                                  char **r_value);
+                                  char **r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Use with PyArg_ParseTuple's "O&" formatting.
@@ -315,13 +317,21 @@ int32_t PyC_Long_AsI32(PyObject *value);
 int64_t PyC_Long_AsI64(PyObject *value);
 #endif
 
-/* Unlike Python's #PyLong_AsUnsignedLong and #PyLong_AsUnsignedLongLong, these unsigned integer
+/**
+ * Unlike Python's #PyLong_AsUnsignedLong and #PyLong_AsUnsignedLongLong, these unsigned integer
  * parsing functions fall back to calling #PyNumber_Index when their argument is not a
  * `PyLongObject`. This matches Python's signed integer parsing functions which also fall back to
- * calling #PyNumber_Index. */
+ * calling #PyNumber_Index.
+ */
 uint8_t PyC_Long_AsU8(PyObject *value);
 uint16_t PyC_Long_AsU16(PyObject *value);
 uint32_t PyC_Long_AsU32(PyObject *value);
+/**
+ * #PyLong_AsUnsignedLongLong, unlike #PyLong_AsLongLong, does not fall back to calling
+ * #PyNumber_Index when its argument is not a `PyLongObject` instance. To match parsing signed
+ * integer types with #PyLong_AsLongLong, this function performs the #PyNumber_Index fallback, if
+ * necessary, before calling #PyLong_AsUnsignedLongLong.
+ */
 uint64_t PyC_Long_AsU64(PyObject *value);
 
 /* inline so type signatures match as expected */

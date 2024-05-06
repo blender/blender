@@ -306,7 +306,7 @@ void rgb_to_hsv_compat(float r, float g, float b, float *r_h, float *r_s, float 
   rgb_to_hsv(r, g, b, r_h, r_s, r_v);
 
   if (*r_v <= 1e-8) {
-    /* Very low v values will affect the hs values, correct them in post. */
+    /* Very low V values will affect the HS values, correct them in post. */
     *r_h = orig_h;
     *r_s = orig_s;
   }

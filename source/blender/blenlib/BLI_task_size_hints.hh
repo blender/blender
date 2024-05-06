@@ -112,6 +112,10 @@ inline bool use_single_thread(const TaskSizeHints &size_hints,
                               const IndexRange range,
                               const int64_t threshold)
 {
+#ifdef __GNUC__ /* False positive warning with GCC. */
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
   switch (size_hints.type) {
     case TaskSizeHints::Type::Static: {
       const int64_t size = static_cast<const detail::TaskSizeHints_Static &>(size_hints).size;
@@ -134,6 +138,9 @@ inline bool use_single_thread(const TaskSizeHints &size_hints,
       return accumulated_size <= threshold;
     }
   }
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
   BLI_assert_unreachable();
   return true;
 }

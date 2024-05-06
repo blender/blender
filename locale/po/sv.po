@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -313,6 +313,10 @@ msgstr "Håll fast framåt"
 
 msgid "Animation"
 msgstr "Animering"
+
+
+msgid "New"
+msgstr "Ny"
 
 
 msgid "Motion Paths"
@@ -5569,10 +5573,6 @@ msgid "Apply"
 msgstr "Applicera"
 
 
-msgid "Cache"
-msgstr "Cache"
-
-
 msgid "Text to 3D Object"
 msgstr "Text till 3D-objekt"
 
@@ -5587,6 +5587,10 @@ msgstr "Open Shading Language"
 
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Cache"
+msgstr "Cache"
 
 
 msgid "Blender"
@@ -5729,10 +5733,6 @@ msgid "Explode"
 msgstr "Spräng"
 
 
-msgid "New"
-msgstr "Ny"
-
-
 msgid "Face Count"
 msgstr "Sidantal"
 
@@ -5818,6 +5818,10 @@ msgid "Shadow"
 msgstr "Skugga"
 
 
+msgid "Apply a color transformation in the HSV color model"
+msgstr "Applicera en färgomvandling i HSV-färgmodellen"
+
+
 msgid "Eccentricity"
 msgstr "Eccentricitet"
 
@@ -5830,8 +5834,16 @@ msgid "Lens Distortion"
 msgstr "Linsförvrängning"
 
 
+msgid "A color picker"
+msgstr "En färgväljare"
+
+
 msgid "Rotate"
 msgstr "Rotera"
+
+
+msgid "Map values to colors with the use of a gradient"
+msgstr "Mappa värden till färger med användning av en gradient"
 
 
 msgid "Menu"
@@ -6512,10 +6524,6 @@ msgid "Curves Info"
 msgstr "Kurvinfo"
 
 
-msgid "Apply a color transformation in the HSV color model"
-msgstr "Applicera en färgomvandling i HSV-färgmodellen"
-
-
 msgid "Invert a color, producing a negative"
 msgstr "Invertera en färg, till en negativ"
 
@@ -6554,10 +6562,6 @@ msgstr "Punktinfo"
 
 msgid "Retrieve information about points in a point cloud"
 msgstr "Hämta information om punkter i ett punktmoln"
-
-
-msgid "A color picker"
-msgstr "En färgväljare"
 
 
 msgid "Apply color corrections for each color channel"
@@ -6929,14 +6933,6 @@ msgstr "Returnera slumpvis värde eller färg baserat på input-frö"
 
 msgid "UV coordinates to be used for mapping"
 msgstr "UV-koordinater som används för mappning"
-
-
-msgid "Map values to colors with the use of a gradient"
-msgstr "Mappa värden till färger med användning av en gradient"
-
-
-msgid "Map an input vectors to curves, used to fine-tune the interpolation of the input"
-msgstr "Mappa en input-vektor till kurvor, används för att finjustera interpolationen av inputen"
 
 
 msgid "Displace the surface along an arbitrary direction"

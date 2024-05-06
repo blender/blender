@@ -615,7 +615,7 @@ class CellsInfo {
 };
 
 /**
- * For Debugging: write a .obj file showing the patch/cell structure or just the cells.
+ * For Debugging: write an `.obj` file showing the patch/cell structure or just the cells.
  */
 static void write_obj_cell_patch(const IMesh &m,
                                  const CellsInfo &cinfo,

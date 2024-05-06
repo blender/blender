@@ -929,7 +929,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       IDProperty *cscene = version_cycles_properties_from_ID(&scene->id);
 
-      /* Check if any view layers had (optix) denoising enabled. */
+      /* Check if any view layers had (optix) denoising enabled.
+       * Both view and render layers because conversion only happens after linking. */
       bool use_optix = false;
       bool use_denoising = false;
       LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -939,6 +940,15 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
                           version_cycles_property_boolean(cview_layer, "use_denoising", false);
           use_optix = use_optix ||
                       version_cycles_property_boolean(cview_layer, "use_optix_denoising", false);
+        }
+      }
+      LISTBASE_FOREACH (SceneRenderLayer *, render_layer, &scene->r.layers) {
+        IDProperty *crender_layer = version_cycles_properties_from_render_layer(render_layer);
+        if (crender_layer) {
+          use_denoising = use_denoising ||
+                          version_cycles_property_boolean(crender_layer, "use_denoising", false);
+          use_optix = use_optix ||
+                      version_cycles_property_boolean(crender_layer, "use_optix_denoising", false);
         }
       }
 
@@ -968,6 +978,12 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           IDProperty *cview_layer = version_cycles_properties_from_view_layer(view_layer);
           if (cview_layer) {
             version_cycles_property_boolean_set(cview_layer, "use_denoising", true);
+          }
+        }
+        LISTBASE_FOREACH (SceneRenderLayer *, render_layer, &scene->r.layers) {
+          IDProperty *crender_layer = version_cycles_properties_from_render_layer(render_layer);
+          if (crender_layer) {
+            version_cycles_property_boolean_set(crender_layer, "use_denoising", true);
           }
         }
       }

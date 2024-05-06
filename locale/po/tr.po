@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -585,6 +585,10 @@ msgstr "İnce ayar kipindeyken ana eylemin geçici olarak tutulacağı yuva"
 
 msgid "Animation"
 msgstr "Canlandırma"
+
+
+msgid "New"
+msgstr "Yeni"
 
 
 msgid "Drivers"
@@ -7340,6 +7344,10 @@ msgid "Specular"
 msgstr "Aynasal"
 
 
+msgid "Thickness Mode"
+msgstr "Kalınlık Kipi"
+
+
 msgid "Viewport Size"
 msgstr "Görüş Alanı Boyutu"
 
@@ -8052,10 +8060,6 @@ msgid "Deform using the shape of a lattice object"
 msgstr "Bir dış kafes nesnesinin şeklini kullanarak deforme et"
 
 
-msgid "New"
-msgstr "Yeni"
-
-
 msgid "Material Mode"
 msgstr "Malzeme Kipi"
 
@@ -8144,10 +8148,6 @@ msgstr "Yuvarlak"
 msgctxt "Mesh"
 msgid "Flat"
 msgstr "Düz"
-
-
-msgid "Thickness Mode"
-msgstr "Kalınlık Kipi"
 
 
 msgid "Proximity Mode"
@@ -8296,6 +8296,10 @@ msgid "Is Viewport"
 msgstr "Görüş Alanı"
 
 
+msgid "Active item"
+msgstr "Etkin öge"
+
+
 msgid "Object Info"
 msgstr "Nesne Bilgisi"
 
@@ -8393,10 +8397,6 @@ msgstr "Olağanlaştır"
 
 msgid "Z Axis"
 msgstr "Z Eks"
-
-
-msgid "Active item"
-msgstr "Etkin öge"
 
 
 msgid "Collection of repeat items"

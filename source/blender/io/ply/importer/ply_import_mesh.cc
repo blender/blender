@@ -99,16 +99,14 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
     uv_map.finish();
   }
 
-  /* Calculate edges from the rest of the mesh. */
-  bke::mesh_calc_edges(*mesh, true, false);
-
   /* If we have custom vertex normals, set them (note: important to do this
    * after initializing the loops). */
+  bool set_custom_normals_for_verts = false;
   if (!data.vertex_normals.is_empty()) {
     if (!data.face_sizes.is_empty()) {
       /* For a non-point-cloud mesh, set custom normals. */
-      BKE_mesh_set_custom_normals_from_verts(
-          mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
+      /* Deferred because this relies on valid mesh data. */
+      set_custom_normals_for_verts = true;
     }
     else if (params.import_attributes) {
       /* If we have no faces, add vertex normals as custom attribute. */
@@ -130,6 +128,23 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
                             bke::AttrDomain::Point,
                             bke::AttributeInitVArray(VArray<float>::ForSpan(attr.data)));
     }
+  }
+
+  /* It's important to validate the mesh before using it's geometry to calculate derived data. */
+  {
+    /* Calculate edges from the rest of the mesh (this could be merged with validate). */
+    bke::mesh_calc_edges(*mesh, true, false);
+
+    bool verbose_validate = false;
+#ifndef NDEBUG
+    verbose_validate = true;
+#endif
+    BKE_mesh_validate(mesh, verbose_validate, false);
+  }
+
+  if (set_custom_normals_for_verts) {
+    BKE_mesh_set_custom_normals_from_verts(
+        mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
   }
 
   /* Merge all vertices on the same location. */

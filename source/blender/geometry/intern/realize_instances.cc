@@ -901,7 +901,7 @@ static OrderedAttributes gather_generic_instance_attributes_to_propagate(
                                     varied_depth_option.selection,
                                     options.propagation_info,
                                     attributes_to_propagate);
-  attributes_to_propagate.pop_try("id").has_value();
+  attributes_to_propagate.pop_try("id");
   OrderedAttributes ordered_attributes;
   for (const auto item : attributes_to_propagate.items()) {
     ordered_attributes.ids.add_new(item.key);

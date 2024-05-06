@@ -726,11 +726,7 @@ void SoftwareDevice::destroy()
 	if(m_playback)
 		playing(m_playback = false);
 
-	while(!m_playingSounds.empty())
-		m_playingSounds.front()->stop();
-
-	while(!m_pausedSounds.empty())
-		m_pausedSounds.front()->stop();
+	stopAll();
 }
 
 void SoftwareDevice::mix(data_t* buffer, int length)

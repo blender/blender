@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"POT-Creation-Date: 2024-05-06 10:38+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -239,6 +239,10 @@ msgstr "Többszörözés"
 
 msgid "Animation"
 msgstr "Animáció"
+
+
+msgid "New"
+msgstr "Új"
 
 
 msgid "Motion Paths"
@@ -7220,12 +7224,12 @@ msgid "Navigation"
 msgstr "Navigáció"
 
 
-msgid "Cache"
-msgstr "Gyorsítótár"
-
-
 msgid "Templates"
 msgstr "Sablonok"
+
+
+msgid "Cache"
+msgstr "Gyorsítótár"
 
 
 msgid "System"
@@ -7558,10 +7562,6 @@ msgstr "Lekerekítés módosító az élek és csúcspontok lekerekítéséhez"
 
 msgid "Angle above which to bevel edges"
 msgstr "Szög, ami alatt az élek lekerekítődnek"
-
-
-msgid "New"
-msgstr "Új"
 
 
 msgid "Limit Method"
@@ -9537,10 +9537,6 @@ msgstr "X tengely"
 
 msgid "Y Axis"
 msgstr "Y tengely"
-
-
-msgid "Tile Order"
-msgstr "Csempe sorrend"
 
 
 msgid "Menu"

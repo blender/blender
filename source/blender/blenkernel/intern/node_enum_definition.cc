@@ -26,3 +26,18 @@ blender::MutableSpan<NodeEnumItem> NodeEnumDefinition::items()
 {
   return {this->items_array, this->items_num};
 }
+
+namespace blender::bke {
+
+const RuntimeNodeEnumItem *RuntimeNodeEnumItems::find_item_by_identifier(
+    const int identifier) const
+{
+  for (const RuntimeNodeEnumItem &item : this->items) {
+    if (item.identifier == identifier) {
+      return &item;
+    }
+  }
+  return nullptr;
+}
+
+}  // namespace blender::bke

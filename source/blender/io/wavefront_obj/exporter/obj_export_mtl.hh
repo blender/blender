@@ -46,7 +46,7 @@ struct MTLTexMap {
 };
 
 /**
- * Container suited for storing Material data for/from a .MTL file.
+ * Container suited for storing Material data for/from an `.MTL` file.
  */
 struct MTLMaterial {
   const MTLTexMap &tex_map_of_type(MTLTexMapType key) const

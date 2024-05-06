@@ -699,8 +699,7 @@ static void draw_tile(const float2 &zoom,
 
   /* Trick to keep sharp rendering without jagged edges on all GPUs.
    *
-   * The idea here is to enforce driver to use linear interpolation when the image is not zoomed
-   * in.
+   * The idea here is to enforce driver to use linear interpolation when the image is zoomed out.
    * For the render result with a resolution divider in effect we always use nearest interpolation.
    *
    * Use explicit MIN assignment to make sure the driver does not have an undefined behavior at
@@ -711,8 +710,8 @@ static void draw_tile(const float2 &zoom,
     /* Resolution divider is different from 1, force nearest interpolation. */
     GPU_texture_bind_ex(texture.gpu_texture, GPUSamplerState::default_sampler(), 0);
   }
-  else if (zoomed_width - draw_tile.params.size.x > 0.5f ||
-           zoomed_height - draw_tile.params.size.y > 0.5f)
+  else if (zoomed_width - draw_tile.params.size.x > -0.5f ||
+           zoomed_height - draw_tile.params.size.y > -0.5f)
   {
     GPU_texture_bind_ex(texture.gpu_texture, GPUSamplerState::default_sampler(), 0);
   }

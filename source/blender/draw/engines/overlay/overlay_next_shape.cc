@@ -28,7 +28,7 @@ static gpu::VertBuf *vbo_from_vector(Vector<Vertex> &vector)
   gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, vector.size());
   Vertex *vbo_data = (Vertex *)GPU_vertbuf_get_data(vbo);
-  /* Copy data to VBO using a wrapper span. Could use memcpy if that's too slow. */
+  /* Copy data to VBO using a wrapper span. Could use #memcpy if that's too slow. */
   MutableSpan<Vertex> span(vbo_data, vector.size());
   span.copy_from(vector);
   return vbo;

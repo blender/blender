@@ -38,6 +38,8 @@ struct RuntimeNodeEnumItem {
 struct RuntimeNodeEnumItems : ImplicitSharingMixin {
   Vector<RuntimeNodeEnumItem> items;
 
+  const RuntimeNodeEnumItem *find_item_by_identifier(int identifier) const;
+
   void delete_self() override
   {
     delete this;
