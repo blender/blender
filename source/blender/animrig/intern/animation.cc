@@ -871,11 +871,29 @@ SingleKeyingResult KeyframeStrip::keyframe_insert(const Binding &binding,
   FCurve &fcurve = this->fcurve_find_or_create(binding, rna_path, array_index);
 
   if (!BKE_fcurve_is_keyframable(&fcurve)) {
+    /* TODO: handle this properly, in a way that can be communicated to the user. */
+    std::fprintf(stderr,
+                 "FCurve %s[%d] for binding %s doesn't allow inserting keys.\n",
+                 rna_path.c_str(),
+                 array_index,
+                 binding.name);
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
   }
 
   /* TODO: Handle the eInsertKeyFlags. */
-  return insert_vert_fcurve(&fcurve, time_value, settings, eInsertKeyFlags(0));
+  const SingleKeyingResult insert_vert_result = insert_vert_fcurve(
+      &fcurve, time_value, settings, eInsertKeyFlags(0));
+
+  if (insert_vert_result != SingleKeyingResult::SUCCESS) {
+    std::fprintf(stderr,
+                 "Could not insert key into FCurve %s[%d] for binding %s.\n",
+                 rna_path.c_str(),
+                 array_index,
+                 binding.name);
+    return insert_vert_result;
+  }
+
+  return SingleKeyingResult::SUCCESS;
 }
 
 /* AnimationChannelBag implementation. */
