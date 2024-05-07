@@ -157,7 +157,6 @@ class DATA_PT_EEVEE_light_shadow(DataButtonsPanel, Panel):
             col.prop(light, "shadow_trace_distance", text="Distance")
             col.separator()
 
-
         col.prop(light, "shadow_filter_radius", text="Filter")
         col.prop(light, "shadow_resolution_scale", text="Resolution")
 
