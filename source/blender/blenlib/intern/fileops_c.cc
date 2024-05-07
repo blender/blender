@@ -1159,7 +1159,7 @@ static int delete_single_file(const char *from, const char * /*to*/)
 }
 
 #  ifdef __APPLE__
-static int delete_soft(const char *file, const char **error_message)
+static int delete_soft(const char *filepath, const char **error_message)
 {
   int ret = -1;
 
@@ -1172,7 +1172,7 @@ static int delete_soft(const char *file, const char **error_message)
   Class NSStringClass = objc_getClass("NSString");
   SEL stringWithUTF8StringSel = sel_registerName("stringWithUTF8String:");
   id pathString = ((id(*)(Class, SEL, const char *))objc_msgSend)(
-      NSStringClass, stringWithUTF8StringSel, file);
+      NSStringClass, stringWithUTF8StringSel, filepath);
 
   Class NSFileManagerClass = objc_getClass("NSFileManager");
   SEL defaultManagerSel = sel_registerName("defaultManager");
@@ -1199,7 +1199,7 @@ static int delete_soft(const char *file, const char **error_message)
   return ret;
 }
 #  else
-static int delete_soft(const char *file, const char **error_message)
+static int delete_soft(const char *filepath, const char **error_message)
 {
   const char *args[5];
   const char *process_failed;
@@ -1214,7 +1214,7 @@ static int delete_soft(const char *file, const char **error_message)
   {
     args[0] = "kioclient5";
     args[1] = "move";
-    args[2] = file;
+    args[2] = filepath;
     args[3] = "trash:/";
     args[4] = nullptr;
     process_failed = "kioclient5 reported failure";
@@ -1222,7 +1222,7 @@ static int delete_soft(const char *file, const char **error_message)
   else {
     args[0] = "gio";
     args[1] = "trash";
-    args[2] = file;
+    args[2] = filepath;
     args[3] = nullptr;
     process_failed = "gio reported failure";
   }
@@ -1298,11 +1298,11 @@ int BLI_delete(const char *path, bool dir, bool recursive)
   return remove(path);
 }
 
-int BLI_delete_soft(const char *file, const char **error_message)
+int BLI_delete_soft(const char *filepath, const char **error_message)
 {
-  BLI_assert(!BLI_path_is_rel(file));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  return delete_soft(file, error_message);
+  return delete_soft(filepath, error_message);
 }
 
 /**
@@ -1326,14 +1326,14 @@ static bool check_the_same(const char *path_a, const char *path_b)
 /**
  * Sets the mode and ownership of file to the values from st.
  */
-static int set_permissions(const char *file, const struct stat *st)
+static int set_permissions(const char *filepath, const struct stat *st)
 {
-  if (chown(file, st->st_uid, st->st_gid)) {
+  if (chown(filepath, st->st_uid, st->st_gid)) {
     perror("chown");
     return -1;
   }
 
-  if (chmod(file, st->st_mode)) {
+  if (chmod(filepath, st->st_mode)) {
     perror("chmod");
     return -1;
   }

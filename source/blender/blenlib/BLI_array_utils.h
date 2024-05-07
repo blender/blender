@@ -21,7 +21,7 @@ extern "C" {
  *
  * Access via #BLI_array_reverse
  */
-void _bli_array_reverse(void *arr, uint arr_len, size_t arr_stride);
+void _bli_array_reverse(void *arr_v, uint arr_len, size_t arr_stride);
 #define BLI_array_reverse(arr, arr_len) _bli_array_reverse(arr, arr_len, sizeof(*(arr)))
 
 /**
@@ -30,7 +30,7 @@ void _bli_array_reverse(void *arr, uint arr_len, size_t arr_stride);
  *
  * Access via #BLI_array_wrap
  */
-void _bli_array_wrap(void *arr, uint arr_len, size_t arr_stride, int dir);
+void _bli_array_wrap(void *arr_v, uint arr_len, size_t arr_stride, int dir);
 #define BLI_array_wrap(arr, arr_len, dir) _bli_array_wrap(arr, arr_len, sizeof(*(arr)), dir)
 
 /**
@@ -128,7 +128,7 @@ bool _bli_array_iter_span(const void *arr,
 /**
  * Simple utility to check memory is zeroed.
  */
-bool _bli_array_is_zeroed(const void *arr, uint arr_len, size_t arr_stride);
+bool _bli_array_is_zeroed(const void *arr_v, uint arr_len, size_t arr_stride);
 #define BLI_array_is_zeroed(arr, arr_len) _bli_array_is_zeroed(arr, arr_len, sizeof(*(arr)))
 
 /**

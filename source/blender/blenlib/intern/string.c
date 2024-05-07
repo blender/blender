@@ -878,12 +878,12 @@ bool BLI_str_startswith(const char *__restrict str, const char *__restrict start
   return (*start == '\0');
 }
 
-bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t slength)
+bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t str_len)
 {
-  size_t elength = strlen(end);
+  size_t end_len = strlen(end);
 
-  if (elength < slength) {
-    const char *iter = &str[slength - elength];
+  if (end_len < str_len) {
+    const char *iter = &str[str_len - end_len];
     while (*iter) {
       if (*iter++ != *end++) {
         return false;
@@ -896,8 +896,8 @@ bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, s
 
 bool BLI_str_endswith(const char *__restrict str, const char *__restrict end)
 {
-  const size_t slength = strlen(str);
-  return BLI_strn_endswith(str, end, slength);
+  const size_t str_len = strlen(str);
+  return BLI_strn_endswith(str, end, str_len);
 }
 
 /** \} */
@@ -906,12 +906,12 @@ bool BLI_str_endswith(const char *__restrict str, const char *__restrict end)
 /** \name String Length
  * \{ */
 
-size_t BLI_strnlen(const char *s, const size_t maxlen)
+size_t BLI_strnlen(const char *str, const size_t maxlen)
 {
   size_t len;
 
-  for (len = 0; len < maxlen; len++, s++) {
-    if (!*s) {
+  for (len = 0; len < maxlen; len++, str++) {
+    if (!*str) {
       break;
     }
   }

@@ -432,60 +432,60 @@ void closest_to_plane3_normalized_v3(float r_close[3], const float plane[3], con
   madd_v3_v3v3fl(r_close, pt, plane, -side);
 }
 
-float dist_signed_squared_to_plane_v3(const float pt[3], const float plane[4])
+float dist_signed_squared_to_plane_v3(const float p[3], const float plane[4])
 {
   const float len_sq = len_squared_v3(plane);
-  const float side = plane_point_side_v3(plane, pt);
+  const float side = plane_point_side_v3(plane, p);
   const float fac = side / len_sq;
   return copysignf(len_sq * (fac * fac), side);
 }
-float dist_squared_to_plane_v3(const float pt[3], const float plane[4])
+float dist_squared_to_plane_v3(const float p[3], const float plane[4])
 {
   const float len_sq = len_squared_v3(plane);
-  const float side = plane_point_side_v3(plane, pt);
+  const float side = plane_point_side_v3(plane, p);
   const float fac = side / len_sq;
   /* only difference to code above - no 'copysignf' */
   return len_sq * (fac * fac);
 }
 
-float dist_signed_squared_to_plane3_v3(const float pt[3], const float plane[3])
+float dist_signed_squared_to_plane3_v3(const float p[3], const float plane[3])
 {
   const float len_sq = len_squared_v3(plane);
-  const float side = dot_v3v3(plane, pt); /* only difference with 'plane[4]' version */
+  const float side = dot_v3v3(plane, p); /* only difference with 'plane[4]' version */
   const float fac = side / len_sq;
   return copysignf(len_sq * (fac * fac), side);
 }
-float dist_squared_to_plane3_v3(const float pt[3], const float plane[3])
+float dist_squared_to_plane3_v3(const float p[3], const float plane[3])
 {
   const float len_sq = len_squared_v3(plane);
-  const float side = dot_v3v3(plane, pt); /* only difference with 'plane[4]' version */
+  const float side = dot_v3v3(plane, p); /* only difference with 'plane[4]' version */
   const float fac = side / len_sq;
   /* only difference to code above - no 'copysignf' */
   return len_sq * (fac * fac);
 }
 
-float dist_signed_to_plane_v3(const float pt[3], const float plane[4])
+float dist_signed_to_plane_v3(const float p[3], const float plane[4])
 {
   const float len_sq = len_squared_v3(plane);
-  const float side = plane_point_side_v3(plane, pt);
+  const float side = plane_point_side_v3(plane, p);
   const float fac = side / len_sq;
   return sqrtf(len_sq) * fac;
 }
-float dist_to_plane_v3(const float pt[3], const float plane[4])
+float dist_to_plane_v3(const float p[3], const float plane[4])
 {
-  return fabsf(dist_signed_to_plane_v3(pt, plane));
+  return fabsf(dist_signed_to_plane_v3(p, plane));
 }
 
-float dist_signed_to_plane3_v3(const float pt[3], const float plane[3])
+float dist_signed_to_plane3_v3(const float p[3], const float plane[3])
 {
   const float len_sq = len_squared_v3(plane);
-  const float side = dot_v3v3(plane, pt); /* only difference with 'plane[4]' version */
+  const float side = dot_v3v3(plane, p); /* only difference with 'plane[4]' version */
   const float fac = side / len_sq;
   return sqrtf(len_sq) * fac;
 }
-float dist_to_plane3_v3(const float pt[3], const float plane[3])
+float dist_to_plane3_v3(const float p[3], const float plane[3])
 {
-  return fabsf(dist_signed_to_plane3_v3(pt, plane));
+  return fabsf(dist_signed_to_plane3_v3(p, plane));
 }
 
 float dist_squared_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3])
@@ -1530,12 +1530,12 @@ int isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2], 
 }
 
 int isect_point_quad_v2(
-    const float pt[2], const float v1[2], const float v2[2], const float v3[2], const float v4[2])
+    const float p[2], const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
-  float side12 = line_point_side_v2(v1, v2, pt);
-  float side23 = line_point_side_v2(v2, v3, pt);
-  float side34 = line_point_side_v2(v3, v4, pt);
-  float side41 = line_point_side_v2(v4, v1, pt);
+  float side12 = line_point_side_v2(v1, v2, p);
+  float side23 = line_point_side_v2(v2, v3, p);
+  float side34 = line_point_side_v2(v3, v4, p);
+  float side41 = line_point_side_v2(v4, v1, p);
   if (side12 >= 0.0f && side23 >= 0.0f && side34 >= 0.0f && side41 >= 0.0f) {
     return 1;
   }
@@ -3073,7 +3073,7 @@ void isect_ray_aabb_v3_precalc(IsectRayAABB_Precalc *data,
 bool isect_ray_aabb_v3(const IsectRayAABB_Precalc *data,
                        const float bb_min[3],
                        const float bb_max[3],
-                       float *tmin_out)
+                       float *r_tmin)
 {
   /* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
 
@@ -3115,8 +3115,8 @@ bool isect_ray_aabb_v3(const IsectRayAABB_Precalc *data,
    * keeping this here for future reference. */
   // if (tzmax < tmax) tmax = tzmax;
 
-  if (tmin_out) {
-    (*tmin_out) = tmin;
+  if (r_tmin) {
+    (*r_tmin) = tmin;
   }
 
   return true;
@@ -4503,7 +4503,7 @@ void interp_barycentric_tri_v3(float data[3][3], float u, float v, float res[3])
 
 /***************************** View & Projection *****************************/
 
-void orthographic_m4(float matrix[4][4],
+void orthographic_m4(float mat[4][4],
                      const float left,
                      const float right,
                      const float bottom,
@@ -4519,13 +4519,13 @@ void orthographic_m4(float matrix[4][4],
   if (Xdelta == 0.0f || Ydelta == 0.0f || Zdelta == 0.0f) {
     return;
   }
-  unit_m4(matrix);
-  matrix[0][0] = 2.0f / Xdelta;
-  matrix[3][0] = -(right + left) / Xdelta;
-  matrix[1][1] = 2.0f / Ydelta;
-  matrix[3][1] = -(top + bottom) / Ydelta;
-  matrix[2][2] = -2.0f / Zdelta; /* NOTE: negate Z. */
-  matrix[3][2] = -(farClip + nearClip) / Zdelta;
+  unit_m4(mat);
+  mat[0][0] = 2.0f / Xdelta;
+  mat[3][0] = -(right + left) / Xdelta;
+  mat[1][1] = 2.0f / Ydelta;
+  mat[3][1] = -(top + bottom) / Ydelta;
+  mat[2][2] = -2.0f / Zdelta; /* NOTE: negate Z. */
+  mat[3][2] = -(farClip + nearClip) / Zdelta;
 }
 
 void perspective_m4(float mat[4][4],
