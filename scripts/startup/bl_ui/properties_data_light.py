@@ -167,7 +167,7 @@ class DATA_PT_EEVEE_light_influence(DataButtonsPanel, Panel):
     bl_label = "Influence"
     bl_parent_id = "DATA_PT_EEVEE_light"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
