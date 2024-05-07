@@ -525,81 +525,6 @@ class LazyFunctionForBakeNode final : public LazyFunction {
   }
 };
 
-struct BakeDrawContext {
-  const bNode *node;
-  SpaceNode *snode;
-  const Object *object;
-  const NodesModifierData *nmd;
-  const NodesModifierBake *bake;
-  PointerRNA bake_rna;
-  std::optional<IndexRange> baked_range;
-  bool bake_still;
-  bool is_baked;
-};
-
-[[nodiscard]] static bool get_bake_draw_context(const bContext *C,
-                                                const bNode &node,
-                                                BakeDrawContext &r_ctx)
-{
-  r_ctx.node = &node;
-  r_ctx.snode = CTX_wm_space_node(C);
-  if (!r_ctx.snode) {
-    return false;
-  }
-  std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-      ed::space_node::get_modifier_for_node_editor(*r_ctx.snode);
-  if (!object_and_modifier) {
-    return false;
-  }
-  r_ctx.object = object_and_modifier->object;
-  r_ctx.nmd = object_and_modifier->nmd;
-  const std::optional<int32_t> bake_id = ed::space_node::find_nested_node_id_in_root(*r_ctx.snode,
-                                                                                     *r_ctx.node);
-  if (!bake_id) {
-    return false;
-  }
-  r_ctx.bake = nullptr;
-  for (const NodesModifierBake &iter_bake : Span(r_ctx.nmd->bakes, r_ctx.nmd->bakes_num)) {
-    if (iter_bake.id == *bake_id) {
-      r_ctx.bake = &iter_bake;
-      break;
-    }
-  }
-  if (!r_ctx.bake) {
-    return false;
-  }
-
-  r_ctx.bake_rna = RNA_pointer_create(
-      const_cast<ID *>(&r_ctx.object->id), &RNA_NodesModifierBake, (void *)r_ctx.bake);
-  if (r_ctx.nmd->runtime->cache) {
-    const bake::ModifierCache &cache = *r_ctx.nmd->runtime->cache;
-    std::lock_guard lock{cache.mutex};
-    if (const std::unique_ptr<bake::BakeNodeCache> *node_cache_ptr =
-            cache.bake_cache_by_id.lookup_ptr(*bake_id))
-    {
-      const bake::BakeNodeCache &node_cache = **node_cache_ptr;
-      if (!node_cache.bake.frames.is_empty()) {
-        const int first_frame = node_cache.bake.frames.first()->frame.frame();
-        const int last_frame = node_cache.bake.frames.last()->frame.frame();
-        r_ctx.baked_range = IndexRange(first_frame, last_frame - first_frame + 1);
-      }
-    }
-  }
-
-  r_ctx.bake_still = r_ctx.bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL;
-  r_ctx.is_baked = r_ctx.baked_range.has_value();
-
-  return true;
-}
-
-static std::string get_baked_string(const BakeDrawContext &ctx)
-{
-  if (ctx.bake_still && ctx.baked_range->size() == 1) {
-    return fmt::format(RPT_("Baked Frame {}"), ctx.baked_range->first());
-  }
-  return fmt::format(RPT_("Baked {} - {}"), ctx.baked_range->first(), ctx.baked_range->last());
-}
-
 static void draw_bake_button(uiLayout *layout, const BakeDrawContext &ctx)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
@@ -745,6 +670,80 @@ NOD_REGISTER_NODE(node_register)
 }  // namespace blender::nodes::node_geo_bake_cc
 
 namespace blender::nodes {
+
+bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext &r_ctx)
+{
+  BLI_assert(ELEM(node.type, GEO_NODE_BAKE, GEO_NODE_SIMULATION_OUTPUT));
+  r_ctx.node = &node;
+  r_ctx.snode = CTX_wm_space_node(C);
+  if (!r_ctx.snode) {
+    return false;
+  }
+  std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
+      ed::space_node::get_modifier_for_node_editor(*r_ctx.snode);
+  if (!object_and_modifier) {
+    return false;
+  }
+  r_ctx.object = object_and_modifier->object;
+  r_ctx.nmd = object_and_modifier->nmd;
+  const std::optional<int32_t> bake_id = ed::space_node::find_nested_node_id_in_root(*r_ctx.snode,
+                                                                                     *r_ctx.node);
+  if (!bake_id) {
+    return false;
+  }
+  r_ctx.bake = nullptr;
+  for (const NodesModifierBake &iter_bake : Span(r_ctx.nmd->bakes, r_ctx.nmd->bakes_num)) {
+    if (iter_bake.id == *bake_id) {
+      r_ctx.bake = &iter_bake;
+      break;
+    }
+  }
+  if (!r_ctx.bake) {
+    return false;
+  }
+
+  r_ctx.bake_rna = RNA_pointer_create(
+      const_cast<ID *>(&r_ctx.object->id), &RNA_NodesModifierBake, (void *)r_ctx.bake);
+  if (r_ctx.nmd->runtime->cache) {
+    const bke::bake::ModifierCache &cache = *r_ctx.nmd->runtime->cache;
+    std::lock_guard lock{cache.mutex};
+    if (const std::unique_ptr<bke::bake::BakeNodeCache> *node_cache_ptr =
+            cache.bake_cache_by_id.lookup_ptr(*bake_id))
+    {
+      const bke::bake::BakeNodeCache &node_cache = **node_cache_ptr;
+      if (!node_cache.bake.frames.is_empty()) {
+        const int first_frame = node_cache.bake.frames.first()->frame.frame();
+        const int last_frame = node_cache.bake.frames.last()->frame.frame();
+        r_ctx.baked_range = IndexRange(first_frame, last_frame - first_frame + 1);
+      }
+    }
+    else if (const std::unique_ptr<bke::bake::SimulationNodeCache> *node_cache_ptr =
+                 cache.simulation_cache_by_id.lookup_ptr(*bake_id))
+    {
+      const bke::bake::SimulationNodeCache &node_cache = **node_cache_ptr;
+      if (!node_cache.bake.frames.is_empty() &&
+          node_cache.cache_status == bke::bake::CacheStatus::Baked)
+      {
+        const int first_frame = node_cache.bake.frames.first()->frame.frame();
+        const int last_frame = node_cache.bake.frames.last()->frame.frame();
+        r_ctx.baked_range = IndexRange(first_frame, last_frame - first_frame + 1);
+      }
+    }
+  }
+
+  r_ctx.bake_still = r_ctx.bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL;
+  r_ctx.is_baked = r_ctx.baked_range.has_value();
+
+  return true;
+}
+
+std::string get_baked_string(const BakeDrawContext &ctx)
+{
+  if (ctx.bake_still && ctx.baked_range->size() == 1) {
+    return fmt::format(RPT_("Baked Frame {}"), ctx.baked_range->first());
+  }
+  return fmt::format(RPT_("Baked {} - {}"), ctx.baked_range->first(), ctx.baked_range->last());
+}
 
 static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
                                            const bContext * /*C*/,
