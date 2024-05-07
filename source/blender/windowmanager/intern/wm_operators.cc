@@ -1631,6 +1631,8 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *user_d
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
+  UI_popup_dummy_panel_set(region, block);
+
   uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, 0, 0, style);
 
