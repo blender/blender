@@ -238,15 +238,7 @@ class _draw_tool_settings_context_mode:
         paint = context.tool_settings.sculpt
         brush = paint.brush
 
-        brush_name = brush.name if brush else None
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush_name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         if brush is None:
             return False
@@ -308,15 +300,7 @@ class _draw_tool_settings_context_mode:
         paint = context.tool_settings.image_paint
         brush = paint.brush
 
-        brush_name = brush.name if brush else None
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush_name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         if brush is None:
             return False
@@ -333,15 +317,7 @@ class _draw_tool_settings_context_mode:
         paint = context.tool_settings.vertex_paint
         brush = paint.brush
 
-        brush_name = brush.name if brush else None
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush_name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         if brush is None:
             return False
@@ -358,15 +334,7 @@ class _draw_tool_settings_context_mode:
         paint = context.tool_settings.weight_paint
         brush = paint.brush
 
-        brush_name = brush.name if brush else None
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush_name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         if brush is None:
             return False
@@ -430,14 +398,7 @@ class _draw_tool_settings_context_mode:
         row = layout.row(align=True)
         settings = tool_settings.gpencil_paint
 
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush.name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         if ob and brush.gpencil_tool in {'FILL', 'DRAW'}:
             from bl_ui.properties_paint_common import (
@@ -465,15 +426,7 @@ class _draw_tool_settings_context_mode:
         paint = tool_settings.gpencil_sculpt_paint
         brush = paint.brush
 
-        brush_name = brush.name if brush else None
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush_name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         from bl_ui.properties_paint_common import (
             brush_basic_gpencil_sculpt_settings,
@@ -492,14 +445,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return False
 
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush.name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         tool_settings = context.tool_settings
         capabilities = brush.sculpt_capabilities
@@ -556,14 +502,7 @@ class _draw_tool_settings_context_mode:
         paint = tool_settings.gpencil_weight_paint
         brush = paint.brush
 
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush.name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         brush_basic_gpencil_weight_settings(layout, context, brush, compact=True)
 
@@ -582,14 +521,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return False
 
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush.name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         brush_basic_grease_pencil_weight_settings(layout, context, brush, compact=True)
 
@@ -610,14 +542,7 @@ class _draw_tool_settings_context_mode:
         row = layout.row(align=True)
         settings = tool_settings.gpencil_vertex_paint
 
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush.name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         if brush.gpencil_vertex_tool not in {'BLUR', 'AVERAGE', 'SMEAR'}:
             row.separator(factor=0.4)
@@ -771,14 +696,7 @@ class _draw_tool_settings_context_mode:
 
         row = layout.row(align=True)
 
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush.name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         grease_pencil_tool = brush.gpencil_tool
 

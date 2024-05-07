@@ -1954,14 +1954,7 @@ class _defs_paint_grease_pencil:
         tool_settings = context.scene.tool_settings
         settings = tool_settings.gpencil_paint
 
-        preview_icon_id = brush.preview.icon_id if brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        row.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush.name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(row, context, brush)
 
         from bl_ui.properties_paint_common import (
             brush_basic_grease_pencil_paint_settings,
@@ -2344,14 +2337,7 @@ class _defs_gpencil_paint:
         tool_settings = context.scene.tool_settings
         settings = tool_settings.gpencil_paint
 
-        preview_icon_id = brush.preview.icon_id if brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            name=brush.name,
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
         from bl_ui.properties_paint_common import (
             brush_basic_gpencil_paint_settings,

@@ -53,6 +53,17 @@ class BrushAssetShelf:
         mode = UnifiedPaintPanel.get_brush_mode(context)
         return mode_map[mode]
 
+    @staticmethod
+    def draw_popup_selector(layout, context, brush, show_name=True):
+        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
+
+        layout.template_asset_shelf_popover(
+            BrushAssetShelf.get_shelf_name_from_context(context),
+            name=brush.name if (brush and show_name) else None,
+            icon='BRUSH_DATA' if not preview_icon_id else 'NONE',
+            icon_value=preview_icon_id,
+        )
+
 
 class UnifiedPaintPanel:
     # subclass must set
@@ -198,13 +209,7 @@ class BrushSelectPanel(BrushPanel):
         row = layout.row()
 
         col = row.column(align=True)
-        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
-        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        col.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
-            icon=fallback_icon,
-            icon_value=preview_icon_id,
-        )
+        BrushAssetShelf.draw_popup_selector(col, context, brush, show_name=False)
         if brush:
             col.prop(brush, "name", text="")
 
