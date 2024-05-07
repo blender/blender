@@ -29,6 +29,7 @@
 #include "RNA_define.hh"
 
 #include "SEQ_channels.hh"
+#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"
@@ -883,6 +884,14 @@ static void sequencer_select_strip_impl(const Editing *ed,
   else if (action == 0) {
     seq->flag &= ~SEQ_ALLSEL;
   }
+}
+
+bool ED_sequencer_can_select_handle(const Sequence *seq)
+{
+  if ((seq->type & SEQ_TYPE_EFFECT) && SEQ_effect_get_num_inputs(seq->type) > 0) {
+    return false;
+  }
+  return true;
 }
 
 static bool use_retiming_mode(const bContext *C, const Sequence *seq_key_test)
