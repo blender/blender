@@ -19,24 +19,21 @@
 #ifdef __GNUC__
 #  define CHECK_TYPE(var, type) \
     { \
-      typeof(var) *__tmp; \
-      __tmp = (type *)NULL; \
+      typeof(var) *__tmp = (type *)NULL; \
       (void)__tmp; \
     } \
     (void)0
 
 #  define CHECK_TYPE_PAIR(var_a, var_b) \
     { \
-      const typeof(var_a) *__tmp; \
-      __tmp = (typeof(var_b) *)NULL; \
+      const typeof(var_a) *__tmp = (typeof(var_b) *)NULL; \
       (void)__tmp; \
     } \
     (void)0
 
 #  define CHECK_TYPE_PAIR_INLINE(var_a, var_b) \
     ((void)({ \
-      const typeof(var_a) *__tmp; \
-      __tmp = (typeof(var_b) *)NULL; \
+      const typeof(var_a) *__tmp = (typeof(var_b) *)NULL; \
       (void)__tmp; \
     }))
 
