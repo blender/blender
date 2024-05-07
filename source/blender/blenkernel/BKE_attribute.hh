@@ -194,13 +194,19 @@ template<typename T> struct AttributeReader {
    */
   const ImplicitSharingInfo *sharing_info;
 
-  const VArray<T> &operator*() const
+  const VArray<T> &operator*() const &
   {
     return this->varray;
   }
-  VArray<T> &operator*()
+
+  VArray<T> &operator*() &
   {
     return this->varray;
+  }
+
+  VArray<T> operator*() &&
+  {
+    return std::move(this->varray);
   }
 
   operator bool() const
@@ -329,13 +335,19 @@ struct GAttributeReader {
     return this->varray;
   }
 
-  const GVArray &operator*() const
+  const GVArray &operator*() const &
   {
     return this->varray;
   }
-  GVArray &operator*()
+
+  GVArray &operator*() &
   {
     return this->varray;
+  }
+
+  GVArray operator*() &&
+  {
+    return std::move(this->varray);
   }
 
   template<typename T> AttributeReader<T> typed() const

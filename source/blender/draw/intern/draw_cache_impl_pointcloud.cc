@@ -263,7 +263,7 @@ static void pointcloud_extract_position_and_radius(const PointCloud &pointcloud,
   MutableSpan<float4> vbo_data{
       static_cast<float4 *>(GPU_vertbuf_get_data(cache.eval_cache.pos_rad)), pointcloud.totpoint};
   if (radii) {
-    const VArraySpan<float> radii_span(radii);
+    const VArraySpan<float> radii_span(std::move(radii));
     threading::parallel_for(vbo_data.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
         vbo_data[i].x = positions[i].x;
