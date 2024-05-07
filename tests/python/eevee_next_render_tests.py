@@ -30,6 +30,9 @@ def setup():
         # Hair
         scene.render.hair_type = 'STRIP'
 
+        # Shadow
+        eevee.shadow_step_count = 16
+
         # Volumetric
         eevee.volumetric_tile_size = '2'
         eevee.volumetric_start = 1.0
