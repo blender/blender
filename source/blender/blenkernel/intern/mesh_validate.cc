@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Authors
+/* SPDX-FileCopyrightText: 2011-2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,9 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <climits>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 
 #include "CLG_log.h"
@@ -17,11 +17,11 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_ordered_edge.hh"
+#include "BLI_sort.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
@@ -65,11 +65,11 @@ struct SortFaceLegacy {
 /* Used to detect faces using exactly the same vertices. */
 /* Used to detect corners used by no (disjoint) or more than one (intersect) faces. */
 struct SortFace {
-  int *verts;
-  int numverts;
-  int corner_start;
-  uint index;
-  bool invalid; /* Face index. */
+  int *verts = nullptr;
+  int numverts = 0;
+  int corner_start = 0;
+  uint index = 0;
+  bool invalid = false;
 };
 
 static void edge_store_assign(uint32_t verts[2], const uint32_t v1, const uint32_t v2)
@@ -84,7 +84,7 @@ static void edge_store_assign(uint32_t verts[2], const uint32_t v1, const uint32
   }
 }
 
-static void edge_store_from_mface_quad(EdgeUUID es[4], MFace *mf)
+static void edge_store_from_mface_quad(EdgeUUID es[4], const MFace *mf)
 {
   edge_store_assign(es[0].verts, mf->v1, mf->v2);
   edge_store_assign(es[1].verts, mf->v2, mf->v3);
@@ -92,7 +92,7 @@ static void edge_store_from_mface_quad(EdgeUUID es[4], MFace *mf)
   edge_store_assign(es[3].verts, mf->v4, mf->v1);
 }
 
-static void edge_store_from_mface_tri(EdgeUUID es[4], MFace *mf)
+static void edge_store_from_mface_tri(EdgeUUID es[4], const MFace *mf)
 {
   edge_store_assign(es[0].verts, mf->v1, mf->v2);
   edge_store_assign(es[1].verts, mf->v2, mf->v3);
@@ -100,97 +100,46 @@ static void edge_store_from_mface_tri(EdgeUUID es[4], MFace *mf)
   es[3].verts[0] = es[3].verts[1] = UINT_MAX;
 }
 
-static int int64_cmp(const void *v1, const void *v2)
+static bool search_legacy_face_cmp(const SortFaceLegacy &sfa, const SortFaceLegacy &sfb)
 {
-  const int64_t x1 = *(const int64_t *)v1;
-  const int64_t x2 = *(const int64_t *)v2;
-
-  if (x1 > x2) {
-    return 1;
+  if (sfa.es[0].edval != sfb.es[0].edval) {
+    return sfa.es[0].edval < sfb.es[0].edval;
   }
-  if (x1 < x2) {
-    return -1;
+  if (sfa.es[1].edval != sfb.es[1].edval) {
+    return sfa.es[1].edval < sfb.es[1].edval;
   }
-
-  return 0;
+  if (sfa.es[2].edval != sfb.es[2].edval) {
+    return sfa.es[2].edval < sfb.es[2].edval;
+  }
+  return sfa.es[3].edval < sfb.es[3].edval;
 }
 
-static int search_legacy_face_cmp(const void *v1, const void *v2)
+static bool search_face_cmp(const SortFace &sp1, const SortFace &sp2)
 {
-  const SortFaceLegacy *sfa = static_cast<const SortFaceLegacy *>(v1);
-  const SortFaceLegacy *sfb = static_cast<const SortFaceLegacy *>(v2);
-
-  if (sfa->es[0].edval > sfb->es[0].edval) {
-    return 1;
-  }
-  if (sfa->es[0].edval < sfb->es[0].edval) {
-    return -1;
-  }
-
-  if (sfa->es[1].edval > sfb->es[1].edval) {
-    return 1;
-  }
-  if (sfa->es[1].edval < sfb->es[1].edval) {
-    return -1;
-  }
-
-  if (sfa->es[2].edval > sfb->es[2].edval) {
-    return 1;
-  }
-  if (sfa->es[2].edval < sfb->es[2].edval) {
-    return -1;
-  }
-
-  if (sfa->es[3].edval > sfb->es[3].edval) {
-    return 1;
-  }
-  if (sfa->es[3].edval < sfb->es[3].edval) {
-    return -1;
-  }
-
-  return 0;
-}
-
-/* TODO: check there is not some standard define of this somewhere! */
-static int int_cmp(const void *v1, const void *v2)
-{
-  return *(int *)v1 > *(int *)v2 ? 1 : *(int *)v1 < *(int *)v2 ? -1 : 0;
-}
-
-static int search_face_cmp(const void *v1, const void *v2)
-{
-  const SortFace *sp1 = static_cast<const SortFace *>(v1);
-  const SortFace *sp2 = static_cast<const SortFace *>(v2);
-
   /* Reject all invalid faces at end of list! */
-  if (sp1->invalid || sp2->invalid) {
-    return sp1->invalid ? (sp2->invalid ? 0 : 1) : -1;
+  if (sp1.invalid || sp2.invalid) {
+    return sp1.invalid < sp2.invalid;
   }
   /* Else, sort on first non-equal verts (remember verts of valid faces are sorted). */
-  const int max_idx = sp1->numverts > sp2->numverts ? sp2->numverts : sp1->numverts;
+  const int max_idx = std::min(sp1.numverts, sp2.numverts);
   for (int idx = 0; idx < max_idx; idx++) {
-    const int v1_i = sp1->verts[idx];
-    const int v2_i = sp2->verts[idx];
+    const int v1_i = sp1.verts[idx];
+    const int v2_i = sp2.verts[idx];
     if (v1_i != v2_i) {
-      return (v1_i > v2_i) ? 1 : -1;
+      return v1_i < v2_i;
     }
   }
-  return sp1->numverts > sp2->numverts ? 1 : sp1->numverts < sp2->numverts ? -1 : 0;
+  return sp1.numverts < sp2.numverts;
 }
 
-static int search_face_corner_cmp(const void *v1, const void *v2)
+static bool search_face_corner_cmp(const SortFace &sp1, const SortFace &sp2)
 {
-  const SortFace *sp1 = static_cast<const SortFace *>(v1);
-  const SortFace *sp2 = static_cast<const SortFace *>(v2);
-
   /* Reject all invalid faces at end of list! */
-  if (sp1->invalid || sp2->invalid) {
-    return sp1->invalid && sp2->invalid ? 0 : sp1->invalid ? 1 : -1;
+  if (sp1.invalid || sp2.invalid) {
+    return sp1.invalid < sp2.invalid;
   }
-  /* Else, sort on corner_start. */
-  return sp1->corner_start > sp2->corner_start ? 1 :
-         sp1->corner_start < sp2->corner_start ? -1 :
-                                                 0;
+  /* Else, sort on corner start. */
+  return sp1.corner_start < sp2.corner_start;
 }
 
 /** \} */
@@ -221,7 +170,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                               uint edges_num,
                               MFace *legacy_faces,
                               uint legacy_faces_num,
-                              int *corner_verts,
+                              const int *corner_verts,
                               int *corner_edges,
                               uint corners_num,
                               const int *face_offsets,
@@ -252,13 +201,6 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   blender::bke::AttributeWriter<int> material_indices =
       mesh->attributes_for_write().lookup_for_write<int>("material_index");
   blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
-
-#if 0
-  const blender::OffsetIndices<int> faces({face_offsets, faces_num + 1});
-  for (const int i : faces.index_range()) {
-    BLI_assert(faces[i].size() > 2);
-  }
-#endif
 
   uint i, j;
   int *v;
@@ -382,17 +324,16 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   (void)0
 
     MFace *mf;
-    MFace *mf_prev;
+    const MFace *mf_prev;
 
-    SortFaceLegacy *sort_faces = (SortFaceLegacy *)MEM_callocN(
-        sizeof(SortFaceLegacy) * legacy_faces_num, "search faces");
+    Array<SortFaceLegacy> sort_faces(legacy_faces_num);
     SortFaceLegacy *sf;
     SortFaceLegacy *sf_prev;
     uint totsortface = 0;
 
     PRINT_ERR("No faces, only tessellated Faces");
 
-    for (i = 0, mf = legacy_faces, sf = sort_faces; i < legacy_faces_num; i++, mf++) {
+    for (i = 0, mf = legacy_faces, sf = sort_faces.data(); i < legacy_faces_num; i++, mf++) {
       bool remove = false;
       int fidx;
       uint fv[4];
@@ -443,12 +384,15 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
           if (mf->v4) {
             edge_store_from_mface_quad(sf->es, mf);
-
-            qsort(sf->es, 4, sizeof(int64_t), int64_cmp);
+            std::sort(sf->es, sf->es + 4, [](const EdgeUUID &a, const EdgeUUID &b) {
+              return a.edval < b.edval;
+            });
           }
           else {
             edge_store_from_mface_tri(sf->es, mf);
-            qsort(sf->es, 3, sizeof(int64_t), int64_cmp);
+            std::sort(sf->es, sf->es + 3, [](const EdgeUUID &a, const EdgeUUID &b) {
+              return a.edval < b.edval;
+            });
           }
 
           totsortface++;
@@ -461,9 +405,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       }
     }
 
-    qsort(sort_faces, totsortface, sizeof(SortFaceLegacy), search_legacy_face_cmp);
+    blender::parallel_sort(sort_faces.begin(), sort_faces.end(), search_legacy_face_cmp);
 
-    sf = sort_faces;
+    sf = sort_faces.data();
     sf_prev = sf;
     sf++;
 
@@ -514,8 +458,6 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       }
     }
 
-    MEM_freeN(sort_faces);
-
 #undef REMOVE_FACE_TAG
 #undef CHECK_FACE_VERT_INDEX
 #undef CHECK_FACE_EDGE
@@ -536,14 +478,13 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
    * so be sure to leave at most one face per corner!
    */
   {
-    BLI_bitmap *vert_tag = BLI_BITMAP_NEW(mesh->verts_num, __func__);
-
-    SortFace *sort_faces = (SortFace *)MEM_callocN(sizeof(SortFace) * faces_num,
-                                                   "mesh validate's sort_faces");
-    SortFace *prev_sp, *sp = sort_faces;
-    int prev_end;
+    BitVector<> vert_tag(mesh->verts_num);
+    Array<SortFace> sort_faces(faces_num);
+    Array<int> sort_face_verts(faces_num == 0 ? 0 : face_offsets[faces_num]);
+    int64_t sort_face_verts_offset = 0;
 
     for (const int64_t i : blender::IndexRange(faces_num)) {
+      SortFace *sp = &sort_faces[i];
       const int face_start = face_offsets[i];
       const int face_size = face_offsets[i + 1] - face_start;
       sp->index = i;
@@ -581,7 +522,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         /* Face itself is valid, for now. */
         int v1, v2; /* v1 is prev corner vert idx, v2 is current corner one. */
         sp->invalid = false;
-        sp->verts = v = (int *)MEM_mallocN(sizeof(int) * face_size, "Vert idx of SortFace");
+        sp->verts = v = sort_face_verts.data() + sort_face_verts_offset;
+        sort_face_verts_offset += face_size;
         sp->numverts = face_size;
         sp->corner_start = face_start;
 
@@ -591,7 +533,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         for (j = 0; j < face_size; j++) {
           const int vert = corner_verts[sp->corner_start + j];
           if (vert < verts_num) {
-            BLI_BITMAP_DISABLE(vert_tag, vert);
+            vert_tag[vert].reset();
           }
         }
 
@@ -603,12 +545,12 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
             PRINT_ERR("\tCorner %u has invalid vert reference (%d)", sp->corner_start + j, vert);
             sp->invalid = true;
           }
-          else if (BLI_BITMAP_TEST(vert_tag, vert)) {
+          else if (vert_tag[vert].test()) {
             PRINT_ERR("\tFace %u has duplicated vert reference at corner (%u)", uint(i), j);
             sp->invalid = true;
           }
           else {
-            BLI_BITMAP_ENABLE(vert_tag, vert);
+            vert_tag[vert].set();
           }
           *v = vert;
         }
@@ -682,17 +624,19 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
         if (!sp->invalid) {
           /* Needed for checking faces using same verts below. */
-          qsort(sp->verts, sp->numverts, sizeof(int), int_cmp);
+          std::sort(sp->verts, sp->verts + sp->numverts);
         }
       }
       sp++;
     }
+    BLI_assert(sort_face_verts_offset <= sort_face_verts.size());
 
-    MEM_freeN(vert_tag);
+    vert_tag.clear_and_shrink();
 
     /* Second check pass, testing faces using the same verts. */
-    qsort(sort_faces, faces_num, sizeof(SortFace), search_face_cmp);
-    sp = prev_sp = sort_faces;
+    blender::parallel_sort(sort_faces.begin(), sort_faces.end(), search_face_cmp);
+    SortFace *sp, *prev_sp;
+    sp = prev_sp = sort_faces.data();
     sp++;
 
     for (i = 1; i < faces_num; i++, sp++) {
@@ -700,8 +644,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       const int *p1_v = sp->verts, *p2_v = prev_sp->verts;
 
       if (sp->invalid) {
-        /* Break, because all known invalid faces have been put at the end
-         * by qsort with search_face_cmp. */
+        /* Break, because all known invalid faces have been put at the end by the sort above. */
         break;
       }
 
@@ -726,15 +669,13 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
 
     /* Third check pass, testing corners used by none or more than one face. */
-    qsort(sort_faces, faces_num, sizeof(SortFace), search_face_corner_cmp);
-    sp = sort_faces;
+    blender::parallel_sort(sort_faces.begin(), sort_faces.end(), search_face_corner_cmp);
+    sp = sort_faces.data();
     prev_sp = nullptr;
-    prev_end = 0;
+    int prev_end = 0;
     for (i = 0; i < faces_num; i++, sp++) {
-      /* Free this now, we don't need it anymore, and avoid us another corner! */
-      if (sp->verts) {
-        MEM_freeN(sp->verts);
-      }
+      /* We don't need the verts anymore, and avoid us another corner! */
+      sp->verts = nullptr;
 
       /* Note above prev_sp: in following code, we make sure it is always valid face (or nullptr).
        */
@@ -797,8 +738,6 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
       }
     }
-
-    MEM_freeN(sort_faces);
   }
 
   /* fix deform verts */
@@ -1106,10 +1045,12 @@ bool BKE_mesh_validate(Mesh *mesh, const bool do_verbose, const bool cddata_chec
                                    &changed);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<blender::int2> edges = mesh->edges_for_write();
-  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
-  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  Span<int> face_offsets = mesh->face_offsets();
+  Span<int> corner_verts = mesh->corner_verts();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
 
+  MDeformVert *dverts = static_cast<MDeformVert *>(
+      CustomData_get_layer_for_write(&mesh->vert_data, CD_MDEFORMVERT, mesh->verts_num));
   BKE_mesh_validate_arrays(
       mesh,
       reinterpret_cast<float(*)[3]>(positions.data()),
@@ -1123,7 +1064,7 @@ bool BKE_mesh_validate(Mesh *mesh, const bool do_verbose, const bool cddata_chec
       corner_verts.size(),
       face_offsets.data(),
       mesh->faces_num,
-      mesh->deform_verts_for_write().data(),
+      dverts,
       do_verbose,
       true,
       &changed);
@@ -1161,10 +1102,12 @@ bool BKE_mesh_is_valid(Mesh *mesh)
 
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<blender::int2> edges = mesh->edges_for_write();
-  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
-  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  Span<int> face_offsets = mesh->face_offsets();
+  Span<int> corner_verts = mesh->corner_verts();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
 
+  MDeformVert *dverts = static_cast<MDeformVert *>(
+      CustomData_get_layer_for_write(&mesh->vert_data, CD_MDEFORMVERT, mesh->verts_num));
   is_valid &= BKE_mesh_validate_arrays(
       mesh,
       reinterpret_cast<float(*)[3]>(positions.data()),
@@ -1178,7 +1121,7 @@ bool BKE_mesh_is_valid(Mesh *mesh)
       corner_verts.size(),
       face_offsets.data(),
       mesh->faces_num,
-      mesh->deform_verts_for_write().data(),
+      dverts,
       do_verbose,
       do_fixes,
       &changed);
