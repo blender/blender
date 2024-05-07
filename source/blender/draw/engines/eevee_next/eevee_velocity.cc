@@ -262,7 +262,7 @@ void VelocityModule::geometry_steps_fill()
   copy_ps.bind_ssbo("out_buf", *geometry_steps[step_]);
 
   for (VelocityGeometryData &geom : geometry_map.values()) {
-    if (!geom.pos_buf) {
+    if (!geom.pos_buf || geom.len == 0) {
       continue;
     }
     const GPUVertFormat *format = GPU_vertbuf_get_format(geom.pos_buf);
