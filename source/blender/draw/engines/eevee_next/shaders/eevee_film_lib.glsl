@@ -520,6 +520,12 @@ void film_store_color(FilmSample dst, int pass_id, vec4 color, inout vec4 displa
     color = vec4(0.0, 0.0, 0.0, 1.0);
   }
 
+  /* Fix alpha not accumulating to 1 because of float imprecision. But here we cannot assume that
+   * the alpha contains actual transparency and not user data. Only bias if very close to 1. */
+  if (color.a > 0.9999 && color.a < 1.0) {
+    color.a = 1.0;
+  }
+
   if (display_id == pass_id) {
     display = color;
   }
