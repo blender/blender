@@ -15,7 +15,6 @@
 #  include "session/buffers.h"
 #  include "util/array.h"
 #  include "util/log.h"
-#  include "util/openimagedenoise.h"
 
 #  include "kernel/device/cpu/compat.h"
 #  include "kernel/device/cpu/kernel.h"
@@ -28,6 +27,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+#  if OIDN_VERSION < 20300
 static const char *oidn_device_type_to_string(const OIDNDeviceType type)
 {
   switch (type) {
@@ -37,26 +37,40 @@ static const char *oidn_device_type_to_string(const OIDNDeviceType type)
       return "CPU";
 
       /* The initial GPU support was added in OIDN 2.0. */
-#  if OIDN_VERSION_MAJOR >= 2
+#    if OIDN_VERSION_MAJOR >= 2
     case OIDN_DEVICE_TYPE_SYCL:
       return "SYCL";
     case OIDN_DEVICE_TYPE_CUDA:
       return "CUDA";
     case OIDN_DEVICE_TYPE_HIP:
       return "HIP";
-#  endif
+#    endif
 
       /* The Metal support was added in OIDN 2.2. */
-#  if (OIDN_VERSION_MAJOR > 2) || ((OIDN_VERSION_MAJOR == 2) && (OIDN_VERSION_MINOR >= 2))
+#    if (OIDN_VERSION_MAJOR > 2) || ((OIDN_VERSION_MAJOR == 2) && (OIDN_VERSION_MINOR >= 2))
     case OIDN_DEVICE_TYPE_METAL:
       return "METAL";
-#  endif
+#    endif
   }
   return "UNKNOWN";
 }
+#  endif
 
 bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 {
+#  if OIDN_VERSION >= 20300
+  if (device.type == DEVICE_MULTI) {
+    for (const DeviceInfo &multi_device : device.multi_devices) {
+      if (multi_device.type != DEVICE_CPU && multi_device.denoisers & DENOISER_OPENIMAGEDENOISE) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return device.denoisers & DENOISER_OPENIMAGEDENOISE;
+#  else
   if (device.type == DEVICE_MULTI) {
     for (const DeviceInfo &multi_device : device.multi_devices) {
       if (multi_device.type != DEVICE_CPU && is_device_supported(multi_device)) {
@@ -72,23 +86,23 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 
   int device_type = OIDN_DEVICE_TYPE_DEFAULT;
   switch (device.type) {
-#  ifdef OIDN_DEVICE_SYCL
+#    ifdef OIDN_DEVICE_SYCL
     case DEVICE_ONEAPI:
       device_type = OIDN_DEVICE_TYPE_SYCL;
       break;
-#  endif
-#  ifdef OIDN_DEVICE_HIP
+#    endif
+#    ifdef OIDN_DEVICE_HIP
     case DEVICE_HIP:
       device_type = OIDN_DEVICE_TYPE_HIP;
       break;
-#  endif
-#  ifdef OIDN_DEVICE_CUDA
+#    endif
+#    ifdef OIDN_DEVICE_CUDA
     case DEVICE_CUDA:
     case DEVICE_OPTIX:
       device_type = OIDN_DEVICE_TYPE_CUDA;
       break;
-#  endif
-#  ifdef OIDN_DEVICE_METAL
+#    endif
+#    ifdef OIDN_DEVICE_METAL
     case DEVICE_METAL: {
       const int num_devices = oidnGetNumPhysicalDevices();
       VLOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
@@ -107,7 +121,7 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
       VLOG_DEBUG << "No matched OIDN device found";
       return false;
     }
-#  endif
+#    endif
     case DEVICE_CPU:
       /* This is the GPU denoiser - CPU devices shouldn't end up here. */
       assert(0);
@@ -142,6 +156,7 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
   }
   VLOG_DEBUG << "No matched OIDN device found";
   return false;
+#  endif
 }
 
 OIDNDenoiserGPU::OIDNDenoiserGPU(Device *path_trace_device, const DenoiseParams &params)

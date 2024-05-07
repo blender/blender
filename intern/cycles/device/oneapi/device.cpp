@@ -93,8 +93,12 @@ Device *device_oneapi_create(const DeviceInfo &info, Stats &stats, Profiler &pro
 }
 
 #ifdef WITH_ONEAPI
-static void device_iterator_cb(
-    const char *id, const char *name, int num, bool hwrt_support, void *user_ptr)
+static void device_iterator_cb(const char *id,
+                               const char *name,
+                               int num,
+                               bool hwrt_support,
+                               bool oidn_support,
+                               void *user_ptr)
 {
   vector<DeviceInfo> *devices = (vector<DeviceInfo> *)user_ptr;
 
@@ -109,10 +113,15 @@ static void device_iterator_cb(
 
   info.has_nanovdb = true;
 #  if defined(WITH_OPENIMAGEDENOISE)
+#    if OIDN_VERSION >= 20300
+  if (oidn_support) {
+#    else
   if (OIDNDenoiserGPU::is_device_supported(info)) {
+#    endif
     info.denoisers |= DENOISER_OPENIMAGEDENOISE;
   }
 #  endif
+  (void)oidn_support;
 
   info.has_gpu_queue = true;
 

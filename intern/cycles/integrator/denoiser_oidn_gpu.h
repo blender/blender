@@ -7,12 +7,9 @@
 #if defined(WITH_OPENIMAGEDENOISE)
 
 #  include "integrator/denoiser_gpu.h"
+#  include "util/openimagedenoise.h"
 #  include "util/thread.h"
 #  include "util/unique_ptr.h"
-
-typedef struct OIDNDeviceImpl *OIDNDevice;
-typedef struct OIDNFilterImpl *OIDNFilter;
-typedef struct OIDNBufferImpl *OIDNBuffer;
 
 CCL_NAMESPACE_BEGIN
 
