@@ -69,9 +69,9 @@ blender::VectorSet<Sequence *> all_strips_from_context(bContext *C)
   return SEQ_query_all_strips(seqbase);
 }
 
-blender::VectorSet<Sequence *> selected_strips_from_context(bContext *C)
+blender::VectorSet<Sequence *> ED_sequencer_selected_strips_from_context(bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   ListBase *channels = SEQ_channels_displayed_get(ed);
@@ -248,7 +248,7 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
   recurs_sel_seq(seq);
 }
 
-void seq_rectf(const Scene *scene, Sequence *seq, rctf *rect)
+void seq_rectf(const Scene *scene, const Sequence *seq, rctf *rect)
 {
   rect->xmin = SEQ_time_left_handle_frame_get(scene, seq);
   rect->xmax = SEQ_time_right_handle_frame_get(scene, seq);
@@ -448,7 +448,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(C)) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C))) {
     return sequencer_retiming_select_all_exec(C, op);
   }
 
@@ -897,7 +897,7 @@ bool ED_sequencer_can_select_handle(const Sequence *seq)
 static bool use_retiming_mode(const bContext *C, const Sequence *seq_key_test)
 {
   return seq_key_test && SEQ_retiming_data_is_editable(seq_key_test) &&
-         !sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(C);
+         !sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C));
 }
 
 int sequencer_select_exec(bContext *C, wmOperator *op)
@@ -921,7 +921,7 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(C)) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C))) {
     return sequencer_retiming_key_select_exec(C, op);
   }
 
@@ -1674,7 +1674,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(C)) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C))) {
     return sequencer_retiming_box_select_exec(C, op);
   }
 

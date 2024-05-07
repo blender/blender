@@ -103,6 +103,38 @@ struct TimelineDrawContext {
   SeqQuadsBatch *quads;
 };
 
+blender::Vector<Sequence *> sequencer_visible_strips_get(const bContext *C)
+{
+  return sequencer_visible_strips_get(CTX_data_scene(C), UI_view2d_fromcontext(C));
+}
+
+blender::Vector<Sequence *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d)
+{
+  const Editing *ed = SEQ_editing_get(scene);
+  blender::Vector<Sequence *> strips;
+
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+    if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
+        v2d->cur.xmax)
+    {
+      continue;
+    }
+    if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
+               SEQ_time_content_end_frame_get(scene, seq)) < v2d->cur.xmin)
+    {
+      continue;
+    }
+    if (seq->machine + 1.0f < v2d->cur.ymin) {
+      continue;
+    }
+    if (seq->machine > v2d->cur.ymax) {
+      continue;
+    }
+    strips.append(seq);
+  }
+  return strips;
+}
+
 static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuadsBatch *quads_batch)
 {
   TimelineDrawContext ctx;
