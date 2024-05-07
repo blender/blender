@@ -95,32 +95,14 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   if (la->mode & LA_SHADOW) {
     shadow_ensure(shadows);
     if (is_sun_light(this->type)) {
-      this->directional->sync(object_to_world,
-                              1.0f,
-                              la->sun_angle * la->shadow_softness_factor,
-                              la->shadow_trace_distance);
+      this->directional->sync(object_to_world, 1.0f, la->sun_angle, la->shadow_trace_distance);
     }
     else {
       /* Reuse shape radius as near clip plane. */
       /* This assumes `shape_parameters_set` has already set `radius_squared`. */
       float radius = math::sqrt(this->local.radius_squared);
-      float shadow_radius = la->shadow_softness_factor * radius;
-      if (ELEM(la->type, LA_LOCAL, LA_SPOT)) {
-        /* `shape_parameters_set` can increase the radius of point and spot lights to ensure a
-         * minimum radius/energy ratio.
-         * But we don't want to take that into account for computing the shadow-map projection,
-         * since non-zero radius introduces padding (required for soft-shadows tracing), reducing
-         * the effective resolution of shadow-maps.
-         * So we use the original light radius instead. */
-        shadow_radius = la->shadow_softness_factor * la->radius;
-      }
-      this->punctual->sync(this->type,
-                           object_to_world,
-                           la->spotsize,
-                           radius,
-                           this->local.influence_radius_max,
-                           la->shadow_softness_factor,
-                           shadow_radius);
+      this->punctual->sync(
+          this->type, object_to_world, la->spotsize, radius, this->local.influence_radius_max);
     }
   }
   else {

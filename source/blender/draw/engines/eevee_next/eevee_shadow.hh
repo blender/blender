@@ -408,13 +408,6 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   float max_distance_, light_radius_;
   /** Number of tile-maps needed to cover the light angular extents. */
   int tilemaps_needed_;
-  /** Scaling factor to the light shape for shadow ray casting. */
-  float softness_factor_;
-  /**
-   * `radius * softness_factor` (Bypasses LightModule radius modifications
-   * to avoid unnecessary padding in the shadow projection).
-   */
-  float shadow_radius_;
 
  public:
   ShadowPunctual(ShadowModule &module) : shadows_(module){};
@@ -433,9 +426,7 @@ class ShadowPunctual : public NonCopyable, NonMovable {
             const float4x4 &object_mat,
             float cone_aperture,
             float light_shape_radius,
-            float max_distance,
-            float softness_factor,
-            float shadow_radius);
+            float max_distance);
 
   /**
    * Release the tile-maps that will not be used in the current frame.
