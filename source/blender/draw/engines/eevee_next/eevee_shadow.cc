@@ -265,12 +265,8 @@ void ShadowPunctual::release_excess_tilemaps()
   tilemaps_ = span.take_front(tilemaps_needed_);
 }
 
-void ShadowPunctual::compute_projection_boundaries(eLightType light_type,
-                                                   float max_lit_distance,
-                                                   float &near,
-                                                   float &far,
-                                                   float &side,
-                                                   float &back_shift)
+void ShadowPunctual::compute_projection_boundaries(
+    float max_lit_distance, float &near, float &far, float &side, float &back_shift)
 {
   far = max_lit_distance;
   near = side = (max_lit_distance / 4000.0f) / M_SQRT3;
@@ -282,7 +278,7 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
   ShadowTileMapPool &tilemap_pool = shadows_.tilemap_pool;
 
   float side, near, far, shift;
-  compute_projection_boundaries(light.type, max_distance_, near, far, side, shift);
+  compute_projection_boundaries(max_distance_, near, far, side, shift);
 
   float4x4 obmat_tmp = light.object_to_world;
 

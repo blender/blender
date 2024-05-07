@@ -453,12 +453,8 @@ class ShadowPunctual : public NonCopyable, NonMovable {
    * Make sure that the projection encompass all possible rays that can start in the projection
    * quadrant.
    */
-  void compute_projection_boundaries(eLightType light_type,
-                                     float max_lit_distance,
-                                     float &near,
-                                     float &far,
-                                     float &side,
-                                     float &back_shift);
+  void compute_projection_boundaries(
+      float max_lit_distance, float &near, float &far, float &side, float &back_shift);
 };
 
 class ShadowDirectional : public NonCopyable, NonMovable {
