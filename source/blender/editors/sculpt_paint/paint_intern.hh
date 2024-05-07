@@ -111,6 +111,7 @@ bool paint_brush_tool_poll(bContext *C);
 void BRUSH_OT_asset_select(wmOperatorType *ot);
 void BRUSH_OT_asset_save_as(wmOperatorType *ot);
 void BRUSH_OT_asset_edit_metadata(wmOperatorType *ot);
+void BRUSH_OT_asset_load_preview(wmOperatorType *ot);
 void BRUSH_OT_asset_delete(wmOperatorType *ot);
 void BRUSH_OT_asset_update(wmOperatorType *ot);
 void BRUSH_OT_asset_revert(wmOperatorType *ot);

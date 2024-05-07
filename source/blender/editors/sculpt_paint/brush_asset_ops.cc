@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
@@ -16,6 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_preferences.h"
+#include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 
 #include "AS_asset_catalog_path.hh"
@@ -428,8 +430,8 @@ void BRUSH_OT_asset_save_as(wmOperatorType *ot)
 static int brush_asset_edit_metadata_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  const Paint *paint = BKE_paint_get_active_from_context(C);
-  const Brush *brush = (paint) ? BKE_paint_brush_for_read(paint) : nullptr;
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  Brush *brush = BKE_paint_brush(paint);
   BLI_assert(ID_IS_ASSET(&brush->id));
   const AssetWeakReference &brush_weak_ref = *paint->brush_asset_reference;
   const asset_system::AssetRepresentation *asset = asset::find_asset_from_weak_ref(
@@ -584,6 +586,66 @@ void BRUSH_OT_asset_edit_metadata(wmOperatorType *ot)
       prop, visit_active_library_catalogs_catalog_for_search_fn, PROP_STRING_SEARCH_SUGGESTION);
   RNA_def_string(ot->srna, "author", nullptr, MAX_NAME, "Author", "");
   RNA_def_string(ot->srna, "description", nullptr, MAX_NAME, "Description", "");
+}
+
+static int brush_asset_load_preview_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  Brush *brush = BKE_paint_brush(paint);
+  BLI_assert(ID_IS_ASSET(&brush->id));
+  const AssetWeakReference &brush_weak_ref = *paint->brush_asset_reference;
+  const asset_system::AssetRepresentation *asset = asset::find_asset_from_weak_ref(
+      *C, brush_weak_ref, op->reports);
+  if (!asset) {
+    return OPERATOR_CANCELLED;
+  }
+  const AssetLibraryReference library_ref = *library_to_library_ref(asset->owner_asset_library());
+
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
+  if (!BLI_is_file(filepath)) {
+    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", filepath);
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_previewimg_id_custom_set(&brush->id, filepath);
+
+  if (!bke::asset_edit_id_save(*bmain, brush->id, *op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  refresh_asset_library(C, library_ref);
+  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static int brush_asset_load_preview_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+    return brush_asset_load_preview_exec(C, op);
+  }
+  return WM_operator_filesel(C, op, event);
+}
+
+void BRUSH_OT_asset_load_preview(wmOperatorType *ot)
+{
+  ot->name = "Load Preview Image";
+  ot->description = "Choose a preview image for the brush";
+  ot->idname = "BRUSH_OT_asset_load_preview";
+
+  ot->exec = brush_asset_load_preview_exec;
+  ot->invoke = brush_asset_load_preview_invoke;
+  ot->poll = brush_asset_edit_metadata_poll;
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER | FILE_TYPE_IMAGE,
+                                 FILE_SPECIAL,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_FILEPATH,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
 }
 
 static bool brush_asset_delete_poll(bContext *C)
