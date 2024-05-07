@@ -1019,7 +1019,7 @@
     .strength = 1.0f, \
     .skip = 0, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilOutlineModifierData \
   { \
     .flag = MOD_GREASE_PENCIL_OUTLINE_KEEP_SHAPE, \
