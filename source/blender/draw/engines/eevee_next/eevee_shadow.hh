@@ -286,7 +286,7 @@ class ShadowModule {
   int3 scan_dispatch_size_;
   int rendering_tilemap_;
   int rendering_lod_;
-  bool do_full_update = true;
+  bool do_full_update_ = true;
 
   /** \} */
 
@@ -371,6 +371,12 @@ class ShadowModule {
   float get_global_lod_bias()
   {
     return lod_bias_;
+  }
+
+  /* Set all shadows to update. To be called before `end_sync`. */
+  void reset()
+  {
+    do_full_update_ = true;
   }
 
  private:

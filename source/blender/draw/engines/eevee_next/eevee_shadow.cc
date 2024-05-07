@@ -194,7 +194,7 @@ void ShadowTileMapPool::end_sync(ShadowModule &module)
     tilemaps_clip.resize(needed_tilemap_capacity);
     /* We reallocated the tile-map buffer, discarding all the data it contained.
      * We need to re-initialize the page heaps. */
-    module.do_full_update = true;
+    module.do_full_update_ = true;
   }
 
   tilemaps_unused.clear();
@@ -693,7 +693,7 @@ void ShadowModule::init()
   }
   if (atlas_tx_.ensure_2d_array(atlas_type, atlas_extent, atlas_layers, tex_usage)) {
     /* Global update. */
-    do_full_update = true;
+    do_full_update_ = true;
   }
 
   /* Make allocation safe. Avoids crash later on. */
@@ -910,8 +910,8 @@ void ShadowModule::end_sync()
 
   curr_casters_.push_update();
 
-  if (do_full_update) {
-    do_full_update = false;
+  if (do_full_update_) {
+    do_full_update_ = false;
     /* Put all pages in the free heap. */
     for (uint i : IndexRange(shadow_page_len_)) {
       uint3 page = {i % SHADOW_PAGE_PER_ROW,
