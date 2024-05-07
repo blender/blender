@@ -95,7 +95,7 @@ void main()
   for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++, box_min >>= 1, box_max >>= 1) {
     for (int y = box_min.y; y <= box_max.y; y++) {
       for (int x = box_min.x; x <= box_max.x; x++) {
-        int tile_index = shadow_tile_offset(ivec2(x, y), tilemap.tiles_index, lod);
+        int tile_index = shadow_tile_offset(uvec2(x, y), tilemap.tiles_index, lod);
         atomicOr(tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
       }
     }

@@ -44,9 +44,9 @@ void main()
     /* Iterate in reverse. */
     for (int lod = lod_max; lod >= 0; lod--) {
       int tilemap_index = light.tilemap_index + lod;
-      ivec2 atlas_texel = shadow_tile_coord_in_atlas(tile_co, tilemap_index);
+      uvec2 atlas_texel = shadow_tile_coord_in_atlas(uvec2(tile_co), tilemap_index);
 
-      ShadowSamplingTilePacked tile_packed = imageLoad(tilemaps_img, atlas_texel).x;
+      ShadowSamplingTilePacked tile_packed = imageLoad(tilemaps_img, ivec2(atlas_texel)).x;
       ShadowSamplingTile tile = shadow_sampling_tile_unpack(tile_packed);
 
       if (lod != lod_max && !tile.is_valid) {
@@ -81,7 +81,7 @@ void main()
 
           tile_prev_packed = shadow_sampling_tile_pack(tile_prev);
           /* Replace the missing page with the one from the lower LOD. */
-          imageStore(tilemaps_img, atlas_texel, uvec4(tile_prev_packed));
+          imageStore(tilemaps_img, ivec2(atlas_texel), uvec4(tile_prev_packed));
           /* Push this amended tile to the local tiles. */
           tile_packed = tile_prev_packed;
           tile.is_valid = true;

@@ -22,7 +22,7 @@ shared uint levels_rendered;
 
 int shadow_tile_offset_lds(ivec2 tile, int lod)
 {
-  return shadow_tile_offset(tile, 0, lod);
+  return shadow_tile_offset(uvec2(tile), 0, lod);
 }
 
 /* Deactivate threads that are not part of this LOD. Will only let pass threads which tile
@@ -46,7 +46,7 @@ void main()
      * main memory the usage bit. */
     for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++) {
       if (thread_mask(tile_co, lod)) {
-        int tile_offset = shadow_tile_offset(tile_co, tilemap.tiles_index, lod);
+        int tile_offset = shadow_tile_offset(uvec2(tile_co), tilemap.tiles_index, lod);
         ShadowTileDataPacked tile_data = tiles_buf[tile_offset];
 
         if ((tile_data & SHADOW_IS_USED) == 0) {
@@ -158,7 +158,7 @@ void main()
       if (thread_mask(tile_co, lod)) {
         int tile_lds = shadow_tile_offset_lds(tile_co, lod);
         if ((tiles_local[tile_lds] & SHADOW_TILE_AMENDED) != 0) {
-          int tile_offset = shadow_tile_offset(tile_co, tilemap.tiles_index, lod);
+          int tile_offset = shadow_tile_offset(uvec2(tile_co), tilemap.tiles_index, lod);
           /* Note that we only flush the visibility so that cached pages can be reused. */
           if ((tiles_local[tile_lds] & SHADOW_TILE_MASKED) != 0) {
             tiles_buf[tile_offset] &= ~SHADOW_IS_USED;

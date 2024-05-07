@@ -24,21 +24,19 @@ vec4 closure_to_rgba(Closure cl)
 
 void main()
 {
-  float f_depth = gl_FragCoord.z;
-  /* Slope bias.
-   * Note that we always need a minimum slope bias of 1 pixel to avoid slanted surfaces aliasing
-   * onto facing surfaces.
-   * IMPORTANT: `fwidth` needs to be inside uniform control flow. */
+  float ndc_depth = gl_FragCoord.z;
+  float linear_depth = length(shadow_clip.position);
+
 #ifdef SHADOW_UPDATE_TBDR
 /* We need to write to `gl_FragDepth` un-conditionally. So we cannot early exit or use discard. */
-#  define discard_result f_depth = 1.0;
+#  define discard_result \
+    linear_depth = FLT_MAX; \
+    ndc_depth = 1.0;
 #else
 #  define discard_result \
     discard; \
     return;
 #endif
-  /* Avoid values greater than 1. */
-  f_depth = saturate(f_depth);
 
   /* Clip to light shape. */
   if (length_squared(shadow_clip.vector) < 1.0) {
@@ -83,12 +81,12 @@ void main()
 
   ivec3 out_texel = ivec3((page.xy << page_shift) | texel_page, page.z);
 
-  uint u_depth = floatBitsToUint(f_depth);
+  uint u_depth = floatBitsToUint(linear_depth);
   imageAtomicMin(shadow_atlas_img, out_texel, u_depth);
 #endif
 
 #ifdef SHADOW_UPDATE_TBDR
-  gl_FragDepth = f_depth;
-  out_depth = f_depth;
+  gl_FragDepth = ndc_depth;
+  out_depth = linear_depth;
 #endif
 }

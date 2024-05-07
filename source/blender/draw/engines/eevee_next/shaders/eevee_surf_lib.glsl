@@ -162,6 +162,14 @@ void shadow_viewport_layer_set(int view_id, int lod)
   gpu_ViewportIndex = lod;
 }
 
+vec3 shadow_position_vector_get(vec3 view_position, ShadowRenderView view)
+{
+  if (view.is_directionnal) {
+    return vec3(0.0, 0.0, -view_position.z - view.clip_near);
+  }
+  return view_position;
+}
+
 /* In order to support physical clipping, we pass a vector to the fragment shader that then clips
  * each fragment using a unit sphere test. This allows to support both point light and area light
  * clipping at the same time. */
