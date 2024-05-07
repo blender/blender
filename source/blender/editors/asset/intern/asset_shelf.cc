@@ -656,7 +656,7 @@ int context(const bContext *C, const char *member, bContextDataResult *result)
   /* XXX hack. Get the asset from the active item, but needs to be the file... */
   if (CTX_data_equals(member, "active_file")) {
     const ARegion *region = CTX_wm_region(C);
-    const uiBut *but = UI_region_views_find_mouse_over_but(CTX_wm_window(C), region);
+    const uiBut *but = UI_region_views_find_active_item_but(region);
     if (!but) {
       return CTX_RESULT_NO_DATA;
     }
