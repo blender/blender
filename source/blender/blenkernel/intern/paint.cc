@@ -691,6 +691,17 @@ bool BKE_paint_brush_asset_set(Paint *paint,
   return true;
 }
 
+Brush *BKE_paint_brush_from_essentials(Main *bmain, const char *name)
+{
+  AssetWeakReference weak_ref;
+  weak_ref.asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
+  weak_ref.relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
+                                                    name);
+
+  return reinterpret_cast<Brush *>(
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, weak_ref));
+}
+
 static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
 {
   /* Set brush asset reference to a named brush in the essentials asset library. */

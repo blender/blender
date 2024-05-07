@@ -202,6 +202,7 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
 
 Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *paint);
+Brush *BKE_paint_brush_from_essentials(Main *bmain, const char *name);
 
 bool BKE_paint_brush_set(Paint *paint, Brush *brush);
 bool BKE_paint_brush_set_default(Main *bmain, Paint *paint);
