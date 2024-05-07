@@ -1938,7 +1938,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool image_save_as_check(bContext *C, wmOperator *op)
+static bool image_save_as_check(bContext * /*C*/, wmOperator *op)
 {
   ImageSaveData *isd = static_cast<ImageSaveData *>(op->customdata);
 
