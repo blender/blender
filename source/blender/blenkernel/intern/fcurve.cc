@@ -28,6 +28,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_sort_utils.h"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 
 #include "BLT_translation.hh"
 
@@ -1245,6 +1246,7 @@ static BezTriple *cycle_offset_triple(
 
 void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
 {
+  using namespace blender;
   /* Error checking:
    * - Need at least two points.
    * - Need bezier keys.
@@ -1257,60 +1259,55 @@ void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
   }
 
   /* If the first modifier is Cycles, smooth the curve through the cycle. */
-  BezTriple *first = &fcu->bezt[0], *last = &fcu->bezt[fcu->totvert - 1];
-  BezTriple tmp;
-
+  BezTriple *first = &fcu->bezt[0];
+  BezTriple *last = &fcu->bezt[fcu->totvert - 1];
   const bool cycle = BKE_fcurve_is_cyclic(fcu) && BEZT_IS_AUTOH(first) && BEZT_IS_AUTOH(last);
 
-  /* Get initial pointers. */
-  BezTriple *bezt = fcu->bezt;
-  BezTriple *prev = cycle_offset_triple(cycle, &tmp, &fcu->bezt[fcu->totvert - 2], last, first);
-  BezTriple *next = (bezt + 1);
+  threading::parallel_for(IndexRange(fcu->totvert), 256, [&](const IndexRange range) {
+    BezTriple tmp;
+    for (const int i : range) {
+      BezTriple *bezt = &fcu->bezt[i];
+      BezTriple *prev = nullptr;
+      BezTriple *next = nullptr;
+      if (i > 0) {
+        prev = (bezt - 1);
+      }
+      else {
+        prev = cycle_offset_triple(cycle, &tmp, &fcu->bezt[fcu->totvert - 2], last, first);
+      }
+      if (i < fcu->totvert - 1) {
+        next = (bezt + 1);
+      }
+      else {
+        next = cycle_offset_triple(cycle, &tmp, &fcu->bezt[1], first, last);
+      }
 
-  /* Loop over all beztriples, adjusting handles. */
-  int a = fcu->totvert;
-  while (a--) {
-    /* Clamp timing of handles to be on either side of beztriple. */
-    if (bezt->vec[0][0] > bezt->vec[1][0]) {
-      bezt->vec[0][0] = bezt->vec[1][0];
-    }
-    if (bezt->vec[2][0] < bezt->vec[1][0]) {
-      bezt->vec[2][0] = bezt->vec[1][0];
-    }
+      /* Clamp timing of handles to be on either side of beztriple. */
+      CLAMP_MAX(bezt->vec[0][0], bezt->vec[1][0]);
+      CLAMP_MIN(bezt->vec[2][0], bezt->vec[1][0]);
 
-    /* Calculate auto-handles. */
-    BKE_nurb_handle_calc_ex(bezt, prev, next, handle_sel_flag, true, fcu->auto_smoothing);
+      /* Calculate auto-handles. */
+      BKE_nurb_handle_calc_ex(bezt, prev, next, handle_sel_flag, true, fcu->auto_smoothing);
 
-    /* For automatic ease in and out. */
-    if (BEZT_IS_AUTOH(bezt) && !cycle) {
-      /* Only do this on first or last beztriple. */
-      if (ELEM(a, 0, fcu->totvert - 1)) {
-        /* Set both handles to have same horizontal value as keyframe. */
-        if (fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) {
-          bezt->vec[0][1] = bezt->vec[2][1] = bezt->vec[1][1];
-          /* Remember that these keyframes are special, they don't need to be adjusted. */
-          bezt->auto_handle_type = HD_AUTOTYPE_LOCKED_FINAL;
+      /* For automatic ease in and out. */
+      if (BEZT_IS_AUTOH(bezt) && !cycle) {
+        /* Only do this on first or last beztriple. */
+        if (ELEM(i, 0, fcu->totvert - 1)) {
+          /* Set both handles to have same horizontal value as keyframe. */
+          if (fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) {
+            bezt->vec[0][1] = bezt->vec[2][1] = bezt->vec[1][1];
+            /* Remember that these keyframes are special, they don't need to be adjusted. */
+            bezt->auto_handle_type = HD_AUTOTYPE_LOCKED_FINAL;
+          }
         }
       }
-    }
 
-    /* Avoid total smoothing failure on duplicate keyframes (can happen during grab). */
-    if (prev && prev->vec[1][0] >= bezt->vec[1][0]) {
-      prev->auto_handle_type = bezt->auto_handle_type = HD_AUTOTYPE_LOCKED_FINAL;
+      /* Avoid total smoothing failure on duplicate keyframes (can happen during grab). */
+      if (prev && prev->vec[1][0] >= bezt->vec[1][0]) {
+        prev->auto_handle_type = bezt->auto_handle_type = HD_AUTOTYPE_LOCKED_FINAL;
+      }
     }
-
-    /* Advance pointers for next iteration. */
-    prev = bezt;
-
-    if (a == 1) {
-      next = cycle_offset_triple(cycle, &tmp, &fcu->bezt[1], first, last);
-    }
-    else if (next != nullptr) {
-      next++;
-    }
-
-    bezt++;
-  }
+  });
 
   /* If cyclic extrapolation and Auto Clamp has triggered, ensure it is symmetric. */
   if (cycle && (first->auto_handle_type != HD_AUTOTYPE_NORMAL ||
