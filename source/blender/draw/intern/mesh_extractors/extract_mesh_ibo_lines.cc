@@ -118,7 +118,7 @@ static void extract_lines_mesh(const MeshRenderData &mr,
         });
   }
   else {
-    Array<int> map(mr.corners_num, -1);
+    Array<int> map(mr.edges_num, -1);
     threading::memory_bandwidth_bound_task(
         map.as_span().size_in_bytes() + data.size_in_bytes() + corner_edges.size_in_bytes(),
         [&]() {
