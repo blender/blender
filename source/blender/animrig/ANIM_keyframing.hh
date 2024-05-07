@@ -17,7 +17,6 @@
 #include "BLI_bit_span.hh"
 #include "BLI_vector.hh"
 #include "DNA_anim_types.h"
-#include "ED_transform.hh"
 #include "RNA_types.hh"
 
 struct ID;
@@ -33,6 +32,10 @@ namespace blender::animrig {
 
 enum class SingleKeyingResult {
   SUCCESS = 0,
+  /* TODO: remove `UNKNOWN_FAILURE` and replace all usages with proper, specific
+   * cases. This is needed right now as a stop-gap while progressively moving
+   * the keyframing code over to propagate errors properly.*/
+  UNKNOWN_FAILURE,
   CANNOT_CREATE_FCURVE,
   FCURVE_NOT_KEYFRAMEABLE,
   NO_KEY_NEEDED,
