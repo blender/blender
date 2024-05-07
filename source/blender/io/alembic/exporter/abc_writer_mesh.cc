@@ -16,6 +16,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
 
 #include "bmesh.hh"
@@ -141,6 +142,9 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
   if (mesh == nullptr) {
     return;
   }
+
+  /* Ensure data exists if currently in edit mode. */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
 
   if (args_.export_params->triangulate) {
     const bool tag_only = false;
