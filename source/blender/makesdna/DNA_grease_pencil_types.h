@@ -450,10 +450,10 @@ typedef struct GreasePencil {
   char _pad2[4];
 
   /**
-   * Pointer to the active layer. Can be NULL.
+   * Pointer to the active node. Can be NULL.
    * This pointer does not own the data.
    */
-  GreasePencilLayer *active_layer;
+  GreasePencilLayerTreeNode *active_node;
 
   /**
    * An array of materials.

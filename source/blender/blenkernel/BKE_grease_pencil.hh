@@ -925,7 +925,7 @@ inline blender::bke::greasepencil::LayerGroup &GreasePencil::root_group()
 
 inline bool GreasePencil::has_active_layer() const
 {
-  return (this->active_layer != nullptr);
+  return (this->active_node != nullptr) && (this->active_node->wrap().is_layer());
 }
 
 void *BKE_grease_pencil_add(Main *bmain, const char *name);

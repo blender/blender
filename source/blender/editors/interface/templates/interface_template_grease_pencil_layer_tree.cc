@@ -186,7 +186,8 @@ class LayerViewItem : public AbstractTreeViewItem {
   std::optional<bool> should_be_active() const override
   {
     if (this->grease_pencil_.has_active_layer()) {
-      return reinterpret_cast<GreasePencilLayer *>(&layer_) == this->grease_pencil_.active_layer;
+      return reinterpret_cast<GreasePencilLayer *>(&layer_) ==
+             reinterpret_cast<GreasePencilLayer *>(this->grease_pencil_.get_active_layer());
     }
     return {};
   }
