@@ -47,8 +47,11 @@ class BrushAssetShelf:
             'SCULPT_GPENCIL': "VIEW3D_AST_brush_gpencil_sculpt",
             'WEIGHT_GPENCIL': "VIEW3D_AST_brush_gpencil_weight",
             'VERTEX_GPENCIL': "VIEW3D_AST_brush_gpencil_vertex",
+            'PAINT_GREASE_PENCIL': "VIEW3D_AST_brush_gpencil_paint",
+            'SCULPT_GREASE_PENCIL': "VIEW3D_AST_brush_gpencil_sculpt",
+            'WEIGHT_GREASE_PENCIL': "VIEW3D_AST_brush_gpencil_weight",
+            'VERTEX_GREASE_PENCIL': "VIEW3D_AST_brush_gpencil_vertex",
             'SCULPT_CURVES': "VIEW3D_AST_brush_sculpt_curves",
-            'PAINT_GREASE_PENCIL': "VIEW3D_AST_brush_grease_pencil_paint",
         }
         mode = UnifiedPaintPanel.get_brush_mode(context)
         return mode_map[mode]
