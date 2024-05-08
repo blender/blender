@@ -130,15 +130,14 @@ void GaussianBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *outp
 
     float temp_color[4] = {0};
     float multiplier_accum = 0;
-    const int step = QualityStepHelper::get_step();
-    const int elem_step = step * input->elem_stride;
+    const int elem_step = input->elem_stride;
     const int add_const = (xmin - x + radx_);
     const int mul_const = (radx_ * 2 + 1);
-    for (int ny = ymin; ny < ymax; ny += step) {
+    for (int ny = ymin; ny < ymax; ++ny) {
       const float *color = input->get_elem(xmin, ny);
       int gauss_index = ((ny - y) + rady_) * mul_const + add_const;
       const int gauss_end = gauss_index + (xmax - xmin);
-      for (; gauss_index < gauss_end; gauss_index += step, color += elem_step) {
+      for (; gauss_index < gauss_end; gauss_index += 1, color += elem_step) {
         const float multiplier = gausstab_[gauss_index];
         madd_v4_v4fl(temp_color, color, multiplier);
         multiplier_accum += multiplier;

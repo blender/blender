@@ -13,11 +13,10 @@ DirectionalBlurNode::DirectionalBlurNode(bNode *editor_node) : Node(editor_node)
 }
 
 void DirectionalBlurNode::convert_to_operations(NodeConverter &converter,
-                                                const CompositorContext &context) const
+                                                const CompositorContext & /*context*/) const
 {
   const NodeDBlurData *data = (const NodeDBlurData *)this->get_bnode()->storage;
   DirectionalBlurOperation *operation = new DirectionalBlurOperation();
-  operation->set_quality(context.get_quality());
   operation->set_data(data);
   converter.add_operation(operation);
 

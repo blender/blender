@@ -110,12 +110,11 @@ void GaussianAlphaBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *
     float value_max = finv_test(*it.in(0), do_invert);
     float distfacinv_max = 1.0f; /* 0 to 1 */
 
-    const int step = QualityStepHelper::get_step();
     const float *in = it.in(0) + (intptr_t(coord_min) - coord) * elem_stride;
-    const int in_stride = elem_stride * step;
+    const int in_stride = elem_stride;
     int index = (coord_min - coord) + filtersize_;
     const int index_end = index + (coord_max - coord_min);
-    for (; index < index_end; in += in_stride, index += step) {
+    for (; index < index_end; in += in_stride, ++index) {
       float value = finv_test(*in, do_invert);
 
       /* Gauss. */

@@ -5,13 +5,12 @@
 #pragma once
 
 #include "COM_MultiThreadedOperation.h"
-#include "COM_QualityStepHelper.h"
 
 namespace blender::compositor {
 
 // #define COM_DEFOCUS_SEARCH
 
-class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
+class VariableSizeBokehBlurOperation : public MultiThreadedOperation {
  private:
   static constexpr int IMAGE_INPUT_INDEX = 0;
   static constexpr int BOKEH_INPUT_INDEX = 1;
@@ -27,8 +26,6 @@ class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public Qua
 
  public:
   VariableSizeBokehBlurOperation();
-
-  void init_execution() override;
 
   void set_max_blur(int max_radius)
   {

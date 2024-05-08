@@ -551,7 +551,28 @@ typedef struct GreasePencil {
 
   void remove_layer(blender::bke::greasepencil::Layer &layer);
 
-  /* Drawing API functions. */
+  /* Frames API functions. */
+
+  /**
+   * Insert a new keyframe in \a layer. If successful, this will also create a new drawing.
+   *
+   * \param frame_number: The frame number at which the keyframe is inserted (the start frame).
+   * \param duration: Duration of the keyframe. If set to 0, then the keyframe is implicitly held
+   * (until the next keyframe).
+   * \param keytype: The keyframe type (used to render different colored keys).
+   *
+   * \returns A pointer to a drawing if the keyframe was inserted, otherwise nullptr.
+   */
+  blender::bke::greasepencil::Drawing *insert_frame(
+      blender::bke::greasepencil::Layer &layer,
+      int frame_number,
+      int duration = 0,
+      eBezTriple_KeyframeType keytype = BEZT_KEYTYPE_KEYFRAME);
+  /**
+   * Removes all the frames with \a frame_numbers in the \a layer.
+   * \returns true if any frame was removed.
+   */
+  bool remove_frames(blender::bke::greasepencil::Layer &layer, blender::Span<int> frame_numbers);
 
   /**
    * Low-level resizing of drawings array. Only allocates new entries in the array, no drawings are
@@ -562,10 +583,6 @@ typedef struct GreasePencil {
   void add_empty_drawings(int add_num);
   void add_duplicate_drawings(int duplicate_num,
                               const blender::bke::greasepencil::Drawing &drawing);
-  bool insert_blank_frame(blender::bke::greasepencil::Layer &layer,
-                          int frame_number,
-                          int duration,
-                          eBezTriple_KeyframeType keytype);
   bool insert_duplicate_frame(blender::bke::greasepencil::Layer &layer,
                               const int src_frame_number,
                               const int dst_frame_number,
@@ -599,11 +616,6 @@ typedef struct GreasePencil {
                              const blender::Map<int, int> &frame_number_destinations,
                              const blender::Map<int, GreasePencilFrame> &duplicate_frames);
 
-  /**
-   * Removes all the frames with \a frame_numbers in the \a layer.
-   * \returns true if any frame was removed.
-   */
-  bool remove_frames(blender::bke::greasepencil::Layer &layer, blender::Span<int> frame_numbers);
   /**
    * Removes all the drawings that have no users. Will free the drawing data and shrink the
    * drawings array.

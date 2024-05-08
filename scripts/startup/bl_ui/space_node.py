@@ -832,12 +832,6 @@ class NODE_PT_quality(bpy.types.Panel):
 
         col = layout.column()
         col.active = not use_realtime
-        col.prop(tree, "render_quality", text="Render")
-        col.prop(tree, "edit_quality", text="Edit")
-
-        col = layout.column()
-        col.active = not use_realtime
-        col.prop(tree, "use_two_pass")
         col.prop(tree, "use_viewer_border")
 
         col = layout.column()

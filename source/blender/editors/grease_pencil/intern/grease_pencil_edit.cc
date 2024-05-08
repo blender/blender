@@ -1745,13 +1745,11 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
 
     if (!layer_dst.has_drawing_at(info.frame_number)) {
       /* Move geometry to a new drawing in target layer. */
-      grease_pencil.insert_blank_frame(layer_dst, info.frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
-      Drawing &drawing_dst = *grease_pencil.get_editable_drawing_at(layer_dst, info.frame_number);
+      Drawing &drawing_dst = *grease_pencil.insert_frame(layer_dst, info.frame_number);
       drawing_dst.strokes_for_write() = bke::curves_copy_curve_selection(
           curves_src, selected_strokes, {});
 
       curves_src.remove_curves(selected_strokes, {});
-
       drawing_dst.tag_topology_changed();
     }
     else if (Drawing *drawing_dst = grease_pencil.get_editable_drawing_at(layer_dst,
@@ -1929,17 +1927,18 @@ static bool grease_pencil_separate_selected(bContext &C,
     /* Insert Keyframe at current frame/layer. */
     Layer &layer_dst = find_or_create_layer_in_dst_by_name(
         info.layer_index, grease_pencil_src, grease_pencil_dst);
-    grease_pencil_dst.insert_blank_frame(layer_dst, info.frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+
+    Drawing *drawing_dst = grease_pencil_dst.insert_frame(layer_dst, info.frame_number);
+    /* TODO: Can we assume the insert never fails? */
+    BLI_assert(drawing_dst != nullptr);
 
     /* Copy strokes to new CurvesGeometry. */
-    Drawing &drawing_dst = *grease_pencil_dst.get_editable_drawing_at(layer_dst,
-                                                                      info.frame_number);
-    drawing_dst.strokes_for_write() = bke::curves_copy_point_selection(
+    drawing_dst->strokes_for_write() = bke::curves_copy_point_selection(
         curves_src, selected_points, {});
     curves_src = remove_points_and_split(curves_src, selected_points);
 
     info.drawing.tag_topology_changed();
-    drawing_dst.tag_topology_changed();
+    drawing_dst->tag_topology_changed();
 
     changed = true;
   }
@@ -2004,17 +2003,17 @@ static bool grease_pencil_separate_layer(bContext &C,
                                        false);
 
       /* Insert Keyframe at current frame/layer. */
-      grease_pencil_dst.insert_blank_frame(layer_dst, info.frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+      Drawing *drawing_dst = grease_pencil_dst.insert_frame(layer_dst, info.frame_number);
+      /* TODO: Can we assume the insert never fails? */
+      BLI_assert(drawing_dst != nullptr);
 
       /* Copy strokes to new CurvesGeometry. */
-      Drawing &drawing_dst = *grease_pencil_dst.get_editable_drawing_at(layer_dst,
-                                                                        info.frame_number);
-      drawing_dst.strokes_for_write() = bke::curves_copy_curve_selection(
+      drawing_dst->strokes_for_write() = bke::curves_copy_curve_selection(
           info.drawing.strokes(), strokes, {});
       curves_src.remove_curves(strokes, {});
 
       info.drawing.tag_topology_changed();
-      drawing_dst.tag_topology_changed();
+      drawing_dst->tag_topology_changed();
 
       changed = true;
     }
@@ -2074,16 +2073,17 @@ static bool grease_pencil_separate_material(bContext &C,
       /* Insert Keyframe at current frame/layer. */
       Layer &layer_dst = find_or_create_layer_in_dst_by_name(
           info.layer_index, grease_pencil_src, grease_pencil_dst);
-      grease_pencil_dst.insert_blank_frame(layer_dst, info.frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+
+      Drawing *drawing_dst = grease_pencil_dst.insert_frame(layer_dst, info.frame_number);
+      /* TODO: Can we assume the insert never fails? */
+      BLI_assert(drawing_dst != nullptr);
 
       /* Copy strokes to new CurvesGeometry. */
-      Drawing &drawing_dst = *grease_pencil_dst.get_editable_drawing_at(layer_dst,
-                                                                        info.frame_number);
-      drawing_dst.strokes_for_write() = bke::curves_copy_curve_selection(curves_src, strokes, {});
+      drawing_dst->strokes_for_write() = bke::curves_copy_curve_selection(curves_src, strokes, {});
       curves_src.remove_curves(strokes, {});
 
       info.drawing.tag_topology_changed();
-      drawing_dst.tag_topology_changed();
+      drawing_dst->tag_topology_changed();
       DEG_id_tag_update(&grease_pencil_dst.id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(&C, NC_OBJECT | ND_DRAW, &grease_pencil_dst);
 

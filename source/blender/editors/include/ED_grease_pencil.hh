@@ -146,6 +146,7 @@ struct KeyframeClipboard {
     blender::bke::greasepencil::FramesMapKey frame_number;
     bke::greasepencil::Drawing drawing;
     int duration;
+    eBezTriple_KeyframeType keytype;
   };
 
   struct LayerBufferItem {

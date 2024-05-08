@@ -27,10 +27,6 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
   do_size_scale_ = false;
 }
 
-void VariableSizeBokehBlurOperation::init_execution()
-{
-  QualityStepHelper::init_execution(COM_QH_INCREASE);
-}
 struct VariableSizeBokehBlurTileData {
   MemoryBuffer *color;
   MemoryBuffer *bokeh;
@@ -99,10 +95,9 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
 
     float4 accumulated_color = float4(input_buffer->get_elem(it.x, it.y));
     float4 accumulated_weight = float4(1.0f);
-    const int step = get_step();
     if (center_size >= threshold_) {
-      for (int yi = -search_radius; yi <= search_radius; yi += step) {
-        for (int xi = -search_radius; xi <= search_radius; xi += step) {
+      for (int yi = -search_radius; yi <= search_radius; ++yi) {
+        for (int xi = -search_radius; xi <= search_radius; ++xi) {
           if (xi == 0 && yi == 0) {
             continue;
           }

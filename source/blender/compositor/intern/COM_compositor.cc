@@ -91,32 +91,8 @@ void COM_execute(Render *render,
 
     /* Execute. */
     const bool is_rendering = render_context != nullptr;
-    const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !is_rendering;
-    if (twopass) {
-      blender::compositor::ExecutionSystem fast_pass(render_data,
-                                                     scene,
-                                                     node_tree,
-                                                     is_rendering,
-                                                     true,
-                                                     view_name,
-                                                     render_context,
-                                                     profiler_data);
-      fast_pass.execute();
-
-      if (node_tree->runtime->test_break(node_tree->runtime->tbh)) {
-        BLI_mutex_unlock(&g_compositor.mutex);
-        return;
-      }
-    }
-
-    blender::compositor::ExecutionSystem system(render_data,
-                                                scene,
-                                                node_tree,
-                                                is_rendering,
-                                                false,
-                                                view_name,
-                                                render_context,
-                                                profiler_data);
+    blender::compositor::ExecutionSystem system(
+        render_data, scene, node_tree, is_rendering, view_name, render_context, profiler_data);
     system.execute();
   }
 

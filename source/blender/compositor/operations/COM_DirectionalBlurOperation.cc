@@ -15,7 +15,6 @@ DirectionalBlurOperation::DirectionalBlurOperation()
 
 void DirectionalBlurOperation::init_execution()
 {
-  QualityStepHelper::init_execution(COM_QH_INCREASE);
   const float angle = data_->angle;
   const float zoom = data_->zoom;
   const float spin = data_->spin;

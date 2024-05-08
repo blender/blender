@@ -7,19 +7,16 @@
 #include "BLI_math_base.hh"
 
 #include "COM_MultiThreadedOperation.h"
-#include "COM_QualityStepHelper.h"
 
 namespace blender::compositor {
 
-class BilateralBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
+class BilateralBlurOperation : public MultiThreadedOperation {
  private:
   NodeBilateralBlurData *data_;
   int radius_;
 
  public:
   BilateralBlurOperation();
-
-  void init_execution() override;
 
   void set_data(NodeBilateralBlurData *data)
   {

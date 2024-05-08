@@ -21,7 +21,6 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  Scene *scene,
                                  bNodeTree *editingtree,
                                  bool rendering,
-                                 bool fastcalculation,
                                  const char *view_name,
                                  realtime_compositor::RenderContext *render_context,
                                  ProfilerData &profiler_data)
@@ -33,14 +32,6 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
   context_.set_scene(scene);
   context_.set_bnodetree(editingtree);
   context_.set_preview_hash(editingtree->previews);
-  context_.set_fast_calculation(fastcalculation);
-  /* initialize the CompositorContext */
-  if (rendering) {
-    context_.set_quality((eCompositorQuality)editingtree->render_quality);
-  }
-  else {
-    context_.set_quality((eCompositorQuality)editingtree->edit_quality);
-  }
   context_.set_rendering(rendering);
 
   context_.set_render_data(rd);

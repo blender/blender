@@ -14,11 +14,6 @@ BilateralBlurOperation::BilateralBlurOperation()
   flags_.can_be_constant = true;
 }
 
-void BilateralBlurOperation::init_execution()
-{
-  QualityStepHelper::init_execution(COM_QH_INCREASE);
-}
-
 void BilateralBlurOperation::get_area_of_interest(const int /*input_idx*/,
                                                   const rcti &output_area,
                                                   rcti &r_input_area)
@@ -82,7 +77,7 @@ void BilateralBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                           Span<MemoryBuffer *> inputs)
 {
   PixelCursor p = {};
-  p.step = QualityStepHelper::get_step();
+  p.step = 1;
   p.sigma_color = data_->sigma_color;
   p.radius = radius_;
   p.input_color = inputs[0];

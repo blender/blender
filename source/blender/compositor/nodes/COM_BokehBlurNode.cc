@@ -14,7 +14,7 @@ BokehBlurNode::BokehBlurNode(bNode *editor_node) : Node(editor_node)
 }
 
 void BokehBlurNode::convert_to_operations(NodeConverter &converter,
-                                          const CompositorContext &context) const
+                                          const CompositorContext & /*context*/) const
 {
   const bNode *b_node = this->get_bnode();
 
@@ -25,7 +25,6 @@ void BokehBlurNode::convert_to_operations(NodeConverter &converter,
 
   if ((b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connected_size_socket) {
     VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-    operation->set_quality(context.get_quality());
     operation->set_threshold(0.0f);
     operation->set_max_blur(b_node->custom4);
     operation->set_do_scale_size(true);
@@ -39,7 +38,6 @@ void BokehBlurNode::convert_to_operations(NodeConverter &converter,
   }
   else {
     BokehBlurOperation *operation = new BokehBlurOperation();
-    operation->set_quality(context.get_quality());
     operation->set_extend_bounds(extend_bounds);
 
     converter.add_operation(operation);

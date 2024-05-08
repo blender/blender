@@ -1109,7 +1109,21 @@ def _initialize_extensions_site_packages(*, create=False):
         found = os.path.exists(site_packages)
 
     if found:
-        sys.path.append(site_packages)
+        # Ensure the wheels `site-packages` are added before all other site-packages.
+        # This is important for extensions modules get priority over system modules.
+        # Without this, installing a module into the systems site-packages (`/usr/lib/python#.##/site-packages`)
+        # could break an extension which already had a different version of this module installed locally.
+        from site import getsitepackages
+        index = None
+        if builtin_site_packages := set(getsitepackages()):
+            for i, dirpath in enumerate(sys.path):
+                if dirpath in builtin_site_packages:
+                    index = i
+                    break
+        if index is None:
+            sys.path.append(site_packages)
+        else:
+            sys.path.insert(index, site_packages)
     else:
         try:
             sys.path.remove(site_packages)

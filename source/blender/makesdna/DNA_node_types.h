@@ -617,13 +617,6 @@ enum {
   NODE_LINK_MUTED = 1 << 4,
 };
 
-/** #bNodeTree::edit_quality & #bNodeTree::render_quality */
-enum {
-  NTREE_QUALITY_HIGH = 0,
-  NTREE_QUALITY_MEDIUM = 1,
-  NTREE_QUALITY_LOW = 2,
-};
-
 typedef struct bNestedNodePath {
   /** ID of the node that is or contains the nested node. */
   int32_t node_id;
@@ -682,18 +675,12 @@ typedef struct bNodeTree {
   int cur_index;
   int flag;
 
-  /** Quality setting when editing. */
-  short edit_quality;
-  /** Quality setting when rendering. */
-  short render_quality;
   /** Tile size for compositor engine. */
   int chunksize DNA_DEPRECATED;
   /** Execution mode to use for compositor engine. */
   int execution_mode;
   /** Execution mode to use for compositor engine. */
   int precision;
-
-  char _pad[4];
 
   rctf viewer_border;
 
@@ -841,7 +828,7 @@ enum {
   /** For animation editors. */
   NTREE_DS_EXPAND = 1 << 0,
   /** Two pass. */
-  NTREE_TWO_PASS = 1 << 2,
+  NTREE_UNUSED_2 = 1 << 2, /* cleared */
   /** Use a border for viewer nodes. */
   NTREE_VIEWER_BORDER = 1 << 4,
   /**

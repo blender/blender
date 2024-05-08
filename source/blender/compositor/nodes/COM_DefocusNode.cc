@@ -100,7 +100,6 @@ void DefocusNode::convert_to_operations(NodeConverter &converter,
   converter.add_operation(bounding_box_operation);
 
   VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-  operation->set_quality(eCompositorQuality::High);
   operation->set_max_blur(data->maxblur);
   operation->set_threshold(0.0f);
   converter.add_operation(operation);
