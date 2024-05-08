@@ -86,23 +86,25 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 
   this->pcf_radius = la->shadow_filter_radius;
 
-  /* TODO(fclem): Cleanup: Move that block to `ShadowPunctual::end_sync()` and
-   * `ShadowDirectional::end_sync()`. */
-  float resolution_scale = clamp(la->shadow_resolution_scale, 0.0f, 2.0f);
-  this->lod_bias = (resolution_scale < 1.0) ? -log2(resolution_scale) : -(resolution_scale - 1.0f);
-  this->lod_bias += shadows.get_global_lod_bias();
-
   if (la->mode & LA_SHADOW) {
     shadow_ensure(shadows);
     if (is_sun_light(this->type)) {
-      this->directional->sync(object_to_world, 1.0f, la->sun_angle, la->shadow_trace_distance);
+      this->directional->sync(object_to_world,
+                              1.0f,
+                              la->sun_angle,
+                              la->shadow_trace_distance,
+                              la->shadow_resolution_scale);
     }
     else {
       /* Reuse shape radius as near clip plane. */
       /* This assumes `shape_parameters_set` has already set `radius_squared`. */
       float radius = math::sqrt(this->local.radius_squared);
-      this->punctual->sync(
-          this->type, object_to_world, la->spotsize, radius, this->local.influence_radius_max);
+      this->punctual->sync(this->type,
+                           object_to_world,
+                           la->spotsize,
+                           radius,
+                           this->local.influence_radius_max,
+                           la->shadow_resolution_scale);
     }
   }
   else {
