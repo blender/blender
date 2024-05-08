@@ -11,7 +11,6 @@ CompositorContext::CompositorContext()
   scene_ = nullptr;
   rd_ = nullptr;
   quality_ = eCompositorQuality::High;
-  fast_calculation_ = false;
   bnodetree_ = nullptr;
 }
 

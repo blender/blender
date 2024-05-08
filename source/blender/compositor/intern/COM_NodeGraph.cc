@@ -110,12 +110,6 @@ void NodeGraph::add_bNode(const CompositorContext &context,
     return;
   }
 
-  /* replace slow nodes with proxies for fast execution */
-  if (context.is_fast_calculation() && !COM_bnode_is_fast_node(*b_node)) {
-    add_proxies_skip(b_ntree, b_node, key, is_active_group);
-    return;
-  }
-
   /* special node types */
   if (ELEM(b_node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
     add_proxies_group(context, b_node, key);

@@ -10527,13 +10527,6 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, node_quality_items);
   RNA_def_property_ui_text(prop, "Edit Quality", "Quality when editing");
 
-  prop = RNA_def_property(srna, "use_two_pass", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_TWO_PASS);
-  RNA_def_property_ui_text(prop,
-                           "Two Pass",
-                           "Use two pass execution during editing: first calculate fast nodes, "
-                           "second pass calculate all nodes");
-
   prop = RNA_def_property(srna, "use_viewer_border", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_VIEWER_BORDER);
   RNA_def_property_ui_text(

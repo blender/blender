@@ -60,11 +60,6 @@ class CompositorContext {
   bNodeInstanceHash *previews_;
 
   /**
-   * \brief Skip slow nodes
-   */
-  bool fast_calculation_;
-
-  /**
    * \brief active rendering view name
    */
   const char *view_name_;
@@ -211,15 +206,6 @@ class CompositorContext {
   void set_view_name(const char *view_name)
   {
     view_name_ = view_name;
-  }
-
-  void set_fast_calculation(bool fast_calculation)
-  {
-    fast_calculation_ = fast_calculation;
-  }
-  bool is_fast_calculation() const
-  {
-    return fast_calculation_;
   }
 
   /**

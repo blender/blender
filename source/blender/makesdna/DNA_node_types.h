@@ -841,7 +841,7 @@ enum {
   /** For animation editors. */
   NTREE_DS_EXPAND = 1 << 0,
   /** Two pass. */
-  NTREE_TWO_PASS = 1 << 2,
+  NTREE_UNUSED_2 = 1 << 2, /* cleared */
   /** Use a border for viewer nodes. */
   NTREE_VIEWER_BORDER = 1 << 4,
   /**

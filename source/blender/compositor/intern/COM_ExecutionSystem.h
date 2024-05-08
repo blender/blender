@@ -136,7 +136,6 @@ class ExecutionSystem {
                   Scene *scene,
                   bNodeTree *editingtree,
                   bool rendering,
-                  bool fastcalculation,
                   const char *view_name,
                   realtime_compositor::RenderContext *render_context,
                   ProfilerData &profiler_data);

@@ -28,10 +28,8 @@ FullFrameExecutionModel::FullFrameExecutionModel(CompositorContext &context,
       num_operations_finished_(0)
 {
   priorities_.append(eCompositorPriority::High);
-  if (!context.is_fast_calculation()) {
-    priorities_.append(eCompositorPriority::Medium);
-    priorities_.append(eCompositorPriority::Low);
-  }
+  priorities_.append(eCompositorPriority::Medium);
+  priorities_.append(eCompositorPriority::Low);
 }
 
 void FullFrameExecutionModel::execute(ExecutionSystem &exec_system)

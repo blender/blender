@@ -31,13 +31,6 @@ class NodeOperationBuilder;
 Node *COM_convert_bnode(bNode *b_node);
 
 /**
- * \brief True if the node is considered 'fast'.
- *
- * Slow nodes will be skipped if fast execution is required.
- */
-bool COM_bnode_is_fast_node(const bNode &b_node);
-
-/**
  * \brief This function will add a date-type conversion rule when the to-socket does not support
  * the from-socket actual data type.
  */

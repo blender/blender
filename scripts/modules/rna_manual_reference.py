@@ -983,7 +983,6 @@ url_manual_mapping = (
     ("bpy.types.clothsettings.vertex_group_mass*", "physics/cloth/settings/shape.html#bpy-types-clothsettings-vertex-group-mass"),
     ("bpy.types.compositornodeconvertcolorspace*", "compositing/types/color/convert_colorspace.html#bpy-types-compositornodeconvertcolorspace"),
     ("bpy.types.compositornodetree.edit_quality*", "compositing/sidebar.html#bpy-types-compositornodetree-edit-quality"),
-    ("bpy.types.compositornodetree.use_two_pass*", "compositing/sidebar.html#bpy-types-compositornodetree-use-two-pass"),
     ("bpy.types.cyclescurverendersettings.shape*", "render/cycles/render_settings/hair.html#bpy-types-cyclescurverendersettings-shape"),
     ("bpy.types.cycleslightsettings.cast_shadow*", "render/cycles/light_settings.html#bpy-types-cycleslightsettings-cast-shadow"),
     ("bpy.types.cycleslightsettings.max_bounces*", "render/cycles/light_settings.html#bpy-types-cycleslightsettings-max-bounces"),
