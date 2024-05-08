@@ -634,7 +634,7 @@ static void modify_geometry_set(ModifierData *md,
   const Vector<LayerDrawingInfo> drawings = modifier::greasepencil::get_drawing_infos_by_layer(
       grease_pencil, layer_mask, frame);
   threading::parallel_for_each(drawings, [&](const LayerDrawingInfo &info) {
-    const Layer &layer = *grease_pencil.layers()[info.layer_index];
+    const Layer &layer = *grease_pencil.layer(info.layer_index);
     const float4x4 viewmat = viewinv * layer.to_world_space(*ctx->object);
     modify_drawing(omd, *ctx, *info.drawing, viewmat);
   });

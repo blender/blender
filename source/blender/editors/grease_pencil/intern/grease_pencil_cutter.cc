@@ -692,7 +692,7 @@ static int stroke_cutter_execute(const bContext *C, const Span<int2> mcoords)
     const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
         ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
     threading::parallel_for_each(drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {
-      const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];
+      const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
       const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
       const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(rv3d, layer_to_world);
       if (execute_cutter_on_drawing(info.layer_index,

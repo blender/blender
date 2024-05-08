@@ -228,7 +228,7 @@ static int weight_sample_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
         ClosestGreasePencilDrawing new_closest = init;
         for (const int i : range) {
           DrawingInfo info = drawings[i];
-          const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];
+          const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
 
           /* Skip drawing when it doesn't use the active vertex group. */
           const int drawing_defgroup_nr = BLI_findstringindex(
