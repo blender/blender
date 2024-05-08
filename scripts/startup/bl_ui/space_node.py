@@ -975,8 +975,6 @@ class NODE_PT_node_tree_properties(Panel):
             return False
         if group.is_embedded_data:
             return False
-        if group.bl_idname != "GeometryNodeTree":
-            return False
         return True
 
     def draw(self, context):
@@ -986,9 +984,10 @@ class NODE_PT_node_tree_properties(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        col = layout.column()
-        col.prop(group, "is_modifier")
-        col.prop(group, "is_tool")
+        if group.bl_idname == "GeometryNodeTree":
+            col = layout.column()
+            col.prop(group, "is_modifier")
+            col.prop(group, "is_tool")
 
         if group.asset_data:
             layout.prop(group.asset_data, "description", text="Group Description")
