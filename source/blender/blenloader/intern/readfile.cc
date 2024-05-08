@@ -1317,7 +1317,7 @@ FileData *blo_filedata_from_memfile(MemFile *memfile,
 void blo_filedata_free(FileData *fd)
 {
   /* Free all BHeadN data blocks */
-#ifndef NDEBUG
+#ifdef NDEBUG
   BLI_freelistN(&fd->bhead_list);
 #else
   /* Sanity check we're not keeping memory we don't need. */
