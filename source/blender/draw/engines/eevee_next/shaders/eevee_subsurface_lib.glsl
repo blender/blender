@@ -11,6 +11,8 @@
 
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
 
+#ifdef EEVEE_UTILITY_TX
+
 float subsurface_transmittance_profile(float u)
 {
   return utility_tx_sample(utility_tx, vec2(u, 0.0), UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER).r;
@@ -30,3 +32,5 @@ vec3 subsurface_transmission(vec3 sss_radii, float thickness)
   translucency.z = (sss_radii.z > 0.0) ? subsurface_transmittance_profile(channels_co.z) : 0.0;
   return translucency;
 }
+
+#endif
