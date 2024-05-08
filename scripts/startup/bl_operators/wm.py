@@ -1286,7 +1286,7 @@ class WM_OT_doc_view_manual(Operator):
         # Adding case into all ID's isn't worth the hassle so force lowercase.
         rna_id = rna_id.lower()
 
-        # NOTE: `fnmatch` in Python is slow as it translate the string to a regular-expression
+        # NOTE: `fnmatch` in Python is slow as it translates the string to a regular-expression
         # which needs to be compiled (as of Python 3.11), this is slow enough to cause a noticeable
         # delay when opening manual links (approaching half a second).
         #
