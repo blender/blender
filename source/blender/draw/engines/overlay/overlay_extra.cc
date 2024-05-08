@@ -755,8 +755,8 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
       }
       break;
     case LIGHTPROBE_TYPE_VOLUME: {
-      instdata.clip_sta = show_clipping ? prb->clipsta : -1.0;
-      instdata.clip_end = show_clipping ? prb->clipend : -1.0;
+      instdata.clip_sta = show_clipping ? 0.0f : -1.0f;
+      instdata.clip_end = show_clipping ? prb->clipend : -1.0f;
       DRW_buffer_add_entry(cb->probe_grid, color_p, &instdata);
 
       {
