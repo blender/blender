@@ -463,12 +463,13 @@ void VolumeProbeModule::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
         if (cache->surfels == nullptr || cache->surfels_len == 0) {
           continue;
         }
+        float max_axis_len = math::reduce_max(math::to_scale(grid.object_to_world));
         debug_ps_.init();
         debug_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                             DRW_STATE_DEPTH_LESS_EQUAL);
         debug_ps_.framebuffer_set(&view_fb);
         debug_ps_.shader_set(inst_.shaders.static_shader_get(DEBUG_SURFELS));
-        debug_ps_.push_constant("debug_surfel_radius", 0.5f / grid.surfel_density);
+        debug_ps_.push_constant("debug_surfel_radius", 0.5f * max_axis_len / grid.surfel_density);
         debug_ps_.push_constant("debug_mode", int(inst_.debug_mode));
 
         debug_surfels_buf_.resize(cache->surfels_len);
@@ -646,8 +647,10 @@ void VolumeProbeModule::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
 
 void IrradianceBake::init(const Object &probe_object)
 {
+  float max_axis_len = math::reduce_max(math::to_scale(probe_object.object_to_world()));
+
   const ::LightProbe *lightprobe = static_cast<::LightProbe *>(probe_object.data);
-  surfel_density_ = lightprobe->surfel_density;
+  surfel_density_ = lightprobe->grid_surfel_density / max_axis_len;
   min_distance_to_surface_ = lightprobe->grid_surface_bias;
   max_virtual_offset_ = lightprobe->grid_escape_bias;
   clip_distance_ = lightprobe->clipend;
@@ -837,6 +840,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
 
   int3 grid_resolution = int3(&lightprobe->grid_resolution_x);
   float4x4 grid_local_to_world = invert(probe_object.world_to_object());
+  float3 grid_scale = math::to_scale(probe_object.object_to_world());
 
   /* TODO(fclem): Options. */
   capture_info_buf_.capture_world_direct = capture_world_;
@@ -859,10 +863,9 @@ void IrradianceBake::surfels_create(const Object &probe_object)
 
   capture_info_buf_.min_distance_to_surface = min_distance_to_surface_;
   capture_info_buf_.max_virtual_offset = max_virtual_offset_;
-  capture_info_buf_.surfel_radius = 0.5f / lightprobe->surfel_density;
+  capture_info_buf_.surfel_radius = 0.5f / surfel_density_;
   /* Make virtual offset distances scale relative. */
-  float3 scale = math::to_scale(grid_local_to_world) / float3(grid_resolution);
-  float min_distance_between_grid_samples = min_fff(UNPACK3(scale));
+  float min_distance_between_grid_samples = math::reduce_min(grid_scale / float3(grid_resolution));
   capture_info_buf_.min_distance_to_surface *= min_distance_between_grid_samples;
   capture_info_buf_.max_virtual_offset *= min_distance_between_grid_samples;
   capture_info_buf_.clamp_direct = (lightprobe->grid_clamp_direct > 0.0) ?

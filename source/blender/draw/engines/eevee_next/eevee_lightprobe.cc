@@ -82,7 +82,7 @@ void LightProbeModule::sync_volume(const Object *ob, ObjectHandle &handle)
 
     grid.initialized = true;
     grid.updated = true;
-    grid.surfel_density = static_cast<const ::LightProbe *>(ob->data)->surfel_density;
+    grid.surfel_density = static_cast<const ::LightProbe *>(ob->data)->grid_surfel_density;
     grid.object_to_world = ob->object_to_world();
     grid.cache = ob->lightprobe_cache;
 

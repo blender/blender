@@ -225,7 +225,7 @@ class DATA_PT_lightprobe_bake_resolution(DataButtonsPanel, Panel):
         sub.prop(probe, "grid_resolution_z", text="Z")
 
         col.prop(probe, "grid_bake_samples")
-        col.prop(probe, "surfel_density")
+        col.prop(probe, "grid_surfel_density")
 
 
 class DATA_PT_lightprobe_bake_capture(DataButtonsPanel, Panel):
