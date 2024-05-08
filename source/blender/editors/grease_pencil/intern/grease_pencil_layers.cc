@@ -45,6 +45,7 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   Scene *scene = CTX_data_scene(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  TreeNode *active_node = &grease_pencil.active_node->wrap();
 
   int new_layer_name_length;
   char *new_layer_name = RNA_string_get_alloc(
@@ -57,6 +58,10 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
     grease_pencil.move_node_after(new_layer.as_node(),
                                   grease_pencil.get_active_layer()->as_node());
   }
+  else if (active_node && active_node->is_group()) {
+    grease_pencil.move_node_into(new_layer.as_node(), active_node->as_group());
+  }
+
   grease_pencil.set_active_layer(&new_layer);
   grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
 
