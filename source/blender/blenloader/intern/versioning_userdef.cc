@@ -952,11 +952,11 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   {
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
-        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh/Sculpt/Cloth");
+        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/Cloth");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
-        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh/Sculpt/General");
+        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/General");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
-        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh/Sculpt/Painting");
+        userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/Paint");
   }
 
   /**
