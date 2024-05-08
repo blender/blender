@@ -69,15 +69,15 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
     });
     const eNodeSocketDatatype other_type = eNodeSocketDatatype(params.other_socket().type);
     if (params.node_tree().typeinfo->validate_link(other_type, SOCK_INT)) {
-      params.add_item(IFACE_("X"), [node_type](LinkSearchOpParams &params) {
+      params.add_item(IFACE_("X"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeSampleGridIndex");
         params.update_and_connect_available_socket(node, "X");
       });
-      params.add_item(IFACE_("Y"), [node_type](LinkSearchOpParams &params) {
+      params.add_item(IFACE_("Y"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeSampleGridIndex");
         params.update_and_connect_available_socket(node, "Y");
       });
-      params.add_item(IFACE_("Z"), [node_type](LinkSearchOpParams &params) {
+      params.add_item(IFACE_("Z"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeSampleGridIndex");
         params.update_and_connect_available_socket(node, "Z");
       });
