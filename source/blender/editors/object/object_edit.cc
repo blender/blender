@@ -24,6 +24,7 @@
 #include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
+#include "DNA_asset_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -49,6 +50,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
 #include "BKE_global.hh"
+#include "BKE_idprop.hh"
 #include "BKE_image.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
@@ -58,6 +60,7 @@
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
@@ -72,6 +75,8 @@
 
 #include "ED_anim_api.hh"
 #include "ED_armature.hh"
+#include "ED_asset.hh"
+#include "ED_asset_menu_utils.hh"
 #include "ED_curve.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_image.hh"
@@ -102,6 +107,8 @@
 #include "WM_message.hh"
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
+
+#include "MOD_nodes.hh"
 
 #include "object_intern.hh" /* own include */
 
@@ -1553,11 +1560,32 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 /** \name Object Shade Smooth/Flat Operator
  * \{ */
 
+static bool is_smooth_by_angle_modifier(const ModifierData &md)
+{
+  if (md.type != eModifierType_Nodes) {
+    return false;
+  }
+  const NodesModifierData &nmd = reinterpret_cast<const NodesModifierData &>(md);
+  if (!nmd.node_group) {
+    return false;
+  }
+  const LibraryWeakReference *library_ref = nmd.node_group->id.library_weak_reference;
+  if (!library_ref) {
+    return false;
+  }
+  if (!STREQ(library_ref->library_id_name + 2, "Smooth by Angle")) {
+    return false;
+  }
+  return true;
+}
+
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
+  const bool use_flat = STREQ(op->idname, "OBJECT_OT_shade_flat");
   const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
   const bool use_smooth_by_angle = STREQ(op->idname, "OBJECT_OT_shade_smooth_by_angle");
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
 
   Vector<PointerRNA> ctx_objects;
 
@@ -1581,6 +1609,18 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     Object *ob = static_cast<Object *>(ptr.data);
     if (ID *data = static_cast<ID *>(ob->data)) {
       object_data.add(data);
+
+      if (ob->type == OB_MESH) {
+        if (use_flat || use_smooth) {
+          LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+            if (is_smooth_by_angle_modifier(*md)) {
+              modifier_remove(op->reports, bmain, scene, ob, md);
+              DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+              break;
+            }
+          }
+        }
+      }
     }
   }
 
@@ -1706,6 +1746,148 @@ void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
                   true,
                   "Keep Sharp Edges",
                   "Only add sharp edges instead of clearing existing tags first");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Shade Auto Smooth Operator
+ * \{ */
+
+static int shade_auto_smooth_exec(bContext *C, wmOperator *op)
+{
+  Main &bmain = *CTX_data_main(C);
+  Scene &scene = *CTX_data_scene(C);
+
+  const bool use_auto_smooth = RNA_boolean_get(op->ptr, "use_auto_smooth");
+  const float angle = RNA_float_get(op->ptr, "angle");
+
+  Vector<PointerRNA> ctx_objects;
+  CTX_data_selected_editable_objects(C, &ctx_objects);
+
+  if (use_auto_smooth) {
+    AssetWeakReference asset_weak_ref{};
+    asset_weak_ref.asset_library_type = ASSET_LIBRARY_ESSENTIALS;
+    asset_weak_ref.relative_asset_identifier = BLI_strdup(
+        "geometry_nodes/smooth_by_angle.blend/NodeTree/Smooth by Angle");
+
+    const asset_system::AssetRepresentation *asset_representation =
+        asset::find_asset_from_weak_ref(*C, asset_weak_ref, op->reports);
+    if (!asset_representation) {
+      return OPERATOR_CANCELLED;
+    }
+
+    ID *node_group_id = asset::asset_local_id_ensure_imported(bmain, *asset_representation);
+    if (!node_group_id) {
+      return OPERATOR_CANCELLED;
+    }
+    if (GS(node_group_id->name) != ID_NT) {
+      return OPERATOR_CANCELLED;
+    }
+    bNodeTree *node_group = reinterpret_cast<bNodeTree *>(node_group_id);
+    node_group->ensure_topology_cache();
+
+    const StringRefNull angle_identifier = node_group->interface_inputs()[1]->identifier;
+
+    for (const PointerRNA &ob_ptr : ctx_objects) {
+      Object *object = static_cast<Object *>(ob_ptr.data);
+      if (object->type == OB_MESH) {
+        Mesh *mesh = static_cast<Mesh *>(object->data);
+        bke::mesh_smooth_set(*mesh, true, true);
+        DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+      }
+      NodesModifierData *smooth_by_angle_nmd = nullptr;
+      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+        if (is_smooth_by_angle_modifier(*md)) {
+          smooth_by_angle_nmd = reinterpret_cast<NodesModifierData *>(md);
+          break;
+        }
+      }
+      if (!smooth_by_angle_nmd) {
+        smooth_by_angle_nmd = reinterpret_cast<NodesModifierData *>(
+            modifier_add(op->reports, &bmain, &scene, object, nullptr, eModifierType_Nodes));
+        if (!smooth_by_angle_nmd) {
+          continue;
+        }
+        smooth_by_angle_nmd->modifier.flag |= eModifierFlag_PinLast;
+        smooth_by_angle_nmd->node_group = node_group;
+        id_us_plus(&node_group->id);
+        MOD_nodes_update_interface(object, smooth_by_angle_nmd);
+        smooth_by_angle_nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
+        STRNCPY(smooth_by_angle_nmd->modifier.name, DATA_(node_group->id.name + 2));
+        BKE_modifier_unique_name(&object->modifiers, &smooth_by_angle_nmd->modifier);
+      }
+
+      IDProperty *angle_prop = IDP_GetPropertyFromGroup(smooth_by_angle_nmd->settings.properties,
+                                                        angle_identifier.c_str());
+      if (angle_prop->type == IDP_FLOAT) {
+        IDP_Float(angle_prop) = angle;
+      }
+      else if (angle_prop->type == IDP_DOUBLE) {
+        IDP_Double(angle_prop) = angle;
+      }
+
+      DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
+    }
+  }
+  else {
+    for (const PointerRNA &ob_ptr : ctx_objects) {
+      Object *object = static_cast<Object *>(ob_ptr.data);
+      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+        if (is_smooth_by_angle_modifier(*md)) {
+          modifier_remove(op->reports, &bmain, &scene, object, md);
+          break;
+        }
+      }
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void shade_auto_smooth_ui(bContext * /*C*/, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiItemR(layout, op->ptr, "use_auto_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, RNA_boolean_get(op->ptr, "use_auto_smooth"));
+  uiItemR(layout, op->ptr, "angle", UI_ITEM_NONE, nullptr, ICON_NONE);
+}
+
+void OBJECT_OT_shade_auto_smooth(wmOperatorType *ot)
+{
+  ot->name = "Shade Auto Smooth";
+  ot->description =
+      "Add modifier to automatically set the sharpness of mesh edges based on the angle between "
+      "the neighboring faces";
+  ot->idname = "OBJECT_OT_shade_auto_smooth";
+
+  ot->poll = shade_poll;
+  ot->exec = shade_auto_smooth_exec;
+  ot->ui = shade_auto_smooth_ui;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(ot->srna,
+                         "use_auto_smooth",
+                         true,
+                         "Auto Smooth",
+                         "Add modifier to set edge sharpness automatically");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_property(ot->srna, "angle", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
+  RNA_def_property_float_default(prop, DEG2RADF(30.0f));
+  RNA_def_property_ui_text(
+      prop, "Angle", "Maximum angle between face normals that will be considered as smooth");
 }
 
 /** \} */

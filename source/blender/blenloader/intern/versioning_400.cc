@@ -2284,7 +2284,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "int", "grid_bake_samples")) {
       LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
         lightprobe->grid_bake_samples = 2048;
-        lightprobe->surfel_density = 1.0f;
         lightprobe->grid_normal_bias = 0.3f;
         lightprobe->grid_view_bias = 0.0f;
         lightprobe->grid_facing_bias = 0.5f;
@@ -3450,7 +3449,18 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 30)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 31)) {
+    LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
+      /* Guess a somewhat correct density given the resolution. But very low resolution need
+       * a decent enough density to work. */
+      lightprobe->grid_surfel_density = max_ii(20,
+                                               2 * max_iii(lightprobe->grid_resolution_x,
+                                                           lightprobe->grid_resolution_y,
+                                                           lightprobe->grid_resolution_z));
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 32)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
 

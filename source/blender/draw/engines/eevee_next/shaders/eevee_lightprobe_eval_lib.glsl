@@ -12,6 +12,7 @@
 #pragma BLENDER_REQUIRE(eevee_lightprobe_volume_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
 
 #ifdef SPHERE_PROBE
@@ -87,6 +88,8 @@ vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float pdf)
   return radiance_sh;
 }
 
+#  ifdef EEVEE_UTILITY_TX
+
 vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V)
 {
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(cl.N, samp.volume_irradiance);
@@ -95,10 +98,19 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V)
 
 vec3 lightprobe_eval(LightProbeSample samp, ClosureTranslucent cl, vec3 P, vec3 V, float thickness)
 {
-  if (thickness != 0.0) {
+  if (thickness > 0.0) {
+    /* Sphere approximation. */
     return spherical_harmonics_L0_evaluate(-cl.N, samp.volume_irradiance.L0).rgb;
   }
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(-cl.N, samp.volume_irradiance);
+  return radiance_sh;
+}
+
+vec3 lightprobe_eval(LightProbeSample samp, ClosureSubsurface cl, vec3 P, vec3 V, float thickness)
+{
+  vec3 sss_profile = subsurface_transmission(cl.sss_radius, abs(thickness));
+  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(cl.N, samp.volume_irradiance);
+  radiance_sh += spherical_harmonics_evaluate_lambert(-cl.N, samp.volume_irradiance) * sss_profile;
   return radiance_sh;
 }
 
@@ -146,8 +158,7 @@ vec3 lightprobe_eval(
     case CLOSURE_BSDF_TRANSLUCENT_ID:
       return lightprobe_eval(samp, to_closure_translucent(cl), P, V, thickness);
     case CLOSURE_BSSRDF_BURLEY_ID:
-      /* TODO: Support translucency in ray tracing first. Otherwise we have a discrepancy. */
-      return vec3(0.0);
+      return lightprobe_eval(samp, to_closure_subsurface(cl), P, V, thickness);
     case CLOSURE_BSDF_DIFFUSE_ID:
       return lightprobe_eval(samp, to_closure_diffuse(cl), P, V);
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
@@ -157,5 +168,6 @@ vec3 lightprobe_eval(
   }
   return vec3(0.0);
 }
+#  endif
 
 #endif /* SPHERE_PROBE */

@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#include "../common/IO_orientation.hh"
+
 #include "DEG_depsgraph.hh"
 
 #include "RNA_types.hh"
@@ -97,6 +99,9 @@ struct USDExportParams {
   bool relative_paths = true;
   bool export_custom_properties = true;
   bool author_blender_name = true;
+  bool convert_orientation = false;
+  enum eIOAxis forward_axis = eIOAxis::IO_AXIS_NEGATIVE_Z;
+  enum eIOAxis up_axis = eIOAxis::IO_AXIS_Y;
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
 

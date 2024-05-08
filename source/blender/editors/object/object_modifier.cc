@@ -161,7 +161,7 @@ static void object_force_modifier_bind_simple_options(Depsgraph *depsgraph,
 ModifierData *modifier_add(
     ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)
 {
-  ModifierData *md = nullptr, *new_md = nullptr;
+  ModifierData *new_md = nullptr;
   const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)type);
 
   /* Check compatibility of modifier [#25291, #50373]. */
@@ -187,20 +187,28 @@ ModifierData *modifier_add(
     /* get new modifier data to add */
     new_md = BKE_modifier_new(type);
 
-    if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
-      md = static_cast<ModifierData *>(ob->modifiers.first);
-
-      while (md &&
-             BKE_modifier_get_info((ModifierType)md->type)->type == ModifierTypeType::OnlyDeform)
-      {
-        md = md->next;
+    ModifierData *next_md = nullptr;
+    LISTBASE_FOREACH_BACKWARD (ModifierData *, md, &ob->modifiers) {
+      if (md->flag & eModifierFlag_PinLast) {
+        next_md = md;
       }
+      else {
+        break;
+      }
+    }
+    if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
+      next_md = static_cast<ModifierData *>(ob->modifiers.first);
 
-      BLI_insertlinkbefore(&ob->modifiers, md, new_md);
+      while (next_md && BKE_modifier_get_info((ModifierType)next_md->type)->type ==
+                            ModifierTypeType::OnlyDeform)
+      {
+        if (next_md->next && (next_md->next->flag & eModifierFlag_PinLast) != 0) {
+          break;
+        }
+        next_md = next_md->next;
+      }
     }
-    else {
-      BLI_addtail(&ob->modifiers, new_md);
-    }
+    BLI_insertlinkbefore(&ob->modifiers, next_md, new_md);
     BKE_modifiers_persistent_uid_init(*ob, *new_md);
 
     if (name) {
@@ -433,6 +441,9 @@ static bool object_modifier_check_move_before(ReportList *reports,
                                               ModifierData *md_prev)
 {
   if (md_prev) {
+    if (md->flag & eModifierFlag_PinLast && !(md_prev->flag & eModifierFlag_PinLast)) {
+      return false;
+    }
     const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
     if (mti->type != ModifierTypeType::OnlyDeform) {
@@ -468,6 +479,9 @@ static bool object_modifier_check_move_after(ReportList *reports,
                                              ModifierData *md_next)
 {
   if (md_next) {
+    if (md_next->flag & eModifierFlag_PinLast && !(md->flag & eModifierFlag_PinLast)) {
+      return false;
+    }
     const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
     if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {

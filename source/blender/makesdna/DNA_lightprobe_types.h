@@ -73,7 +73,7 @@ typedef struct LightProbe {
   float grid_clamp_indirect;
 
   /** Surface element density for scene surface cache. In surfel per unit distance. */
-  float surfel_density;
+  int grid_surfel_density;
 
   /** Object visibility group, inclusive or exclusive. */
   struct Collection *visibility_grp;

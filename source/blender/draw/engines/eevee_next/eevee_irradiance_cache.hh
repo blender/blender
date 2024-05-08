@@ -104,7 +104,7 @@ class IrradianceBake {
 
   /* Bounding sphere of the scene being baked. In world space. */
   float4 scene_bound_sphere_;
-  /* Surfel per unit distance. */
+  /* Surfel per unit distance in world space. */
   float surfel_density_ = 1.0f;
   /**
    * Minimum distance a grid sample point should have with a surface.

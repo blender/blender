@@ -17,6 +17,7 @@
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
+#include <pxr/usd/usdGeom/xformCommonAPI.h>
 #include <pxr/usd/usdUtils/usdzPackage.h>
 
 #include "MEM_guardedalloc.h"
@@ -37,6 +38,9 @@
 #include "BKE_scene.hh"
 
 #include "BLI_fileops.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
@@ -138,6 +142,33 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
 {
   if (params.root_prim_path[0] == '\0') {
     return;
+  }
+
+  pxr::UsdGeomXform root_xf = pxr::UsdGeomXform::Define(stage,
+                                                        pxr::SdfPath(params.root_prim_path));
+
+  if (!root_xf) {
+    return;
+  }
+
+  pxr::UsdGeomXformCommonAPI xf_api(root_xf.GetPrim());
+
+  if (!xf_api) {
+    return;
+  }
+
+  if (params.convert_orientation) {
+    float mrot[3][3];
+    mat3_from_axis_conversion(IO_AXIS_Y, IO_AXIS_Z, params.forward_axis, params.up_axis, mrot);
+    transpose_m3(mrot);
+
+    float eul[3];
+    mat3_to_eul(eul, mrot);
+
+    /* Convert radians to degrees. */
+    mul_v3_fl(eul, 180.0f / M_PI);
+
+    xf_api.SetRotate(pxr::GfVec3f(eul[0], eul[1], eul[2]));
   }
 
   for (auto path : pxr::SdfPath(params.root_prim_path).GetPrefixes()) {
@@ -259,7 +290,16 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   /* Ensure Python types for invoking hooks are registered. */
   register_hook_converters();
 
-  usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
+  pxr::VtValue upAxis = pxr::VtValue(pxr::UsdGeomTokens->z);
+  if (params.convert_orientation) {
+    if (params.up_axis == IO_AXIS_X)
+      upAxis = pxr::VtValue(pxr::UsdGeomTokens->x);
+    else if (params.up_axis == IO_AXIS_Y)
+      upAxis = pxr::VtValue(pxr::UsdGeomTokens->y);
+  }
+
+  usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, upAxis);
+
   ensure_root_prim(usd_stage, params);
 
   USDHierarchyIterator iter(bmain, depsgraph, usd_stage, params);

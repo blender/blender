@@ -217,11 +217,12 @@ static void rna_def_lightprobe(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
-  prop = RNA_def_property(srna, "surfel_density", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_text(prop,
-                           "Surfel Density",
-                           "Number of surfels per unit distance (higher values improve quality)");
+  prop = RNA_def_property(srna, "grid_surfel_density", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 1, INT_MAX);
+  RNA_def_property_ui_text(
+      prop,
+      "Surfel Resolution",
+      "Number of surfels to spawn in one local unit distance (higher values improve quality)");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
   prop = RNA_def_property(srna, "grid_validity_threshold", PROP_FLOAT, PROP_FACTOR);
