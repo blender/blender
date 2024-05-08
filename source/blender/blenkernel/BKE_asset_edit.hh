@@ -9,16 +9,17 @@
 #pragma once
 
 /**
- * Editing of datablocks from asset libraries, separate from the current open
- * blend file.
+ * Editing of datablocks from asset libraries.
  *
- * Each asset blend file is loaded into a separate main database, including the
- * asset datablocks and their dependencies. These datablocks are all tagged with
- * LIB_TAG_ASSET_EDIT_MAIN. These can not be linked with other datablocks in the
- * current blend file.
+ * Asset blend files are linked into the global main database, with the asset
+ * datablock itself and its dependencies. These datablocks remain linked but
+ * are marked as editable.
  *
- * For editable assets in user asset libraries, each asset is stored in its own
- * blend file. This way the blend file can be easily saved, reloaded and deleted.
+ * User edited asset datablocks are written to individual blend files per
+ * asset. These blend files include any datablock dependencies and packaged
+ * image files.
+ *
+ * This way the blend file can be easily saved, reloaded and deleted.
  *
  * This mechanism is currently only used for brush assets.
  */
@@ -27,8 +28,6 @@
 #include <string>
 
 #include "BLI_string_ref.hh"
-
-#include "AS_asset_catalog.hh"
 
 #include "DNA_ID_enums.h"
 
@@ -46,12 +45,10 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
                                       ID_Type id_type,
                                       const AssetWeakReference &weak_ref);
 
-/** Get main database that a given asset datablock corresponds to. */
-Main *asset_edit_main(const ID &id);
-
 /** Asset editing operations. */
 
-bool asset_edit_id_is_editable(const ID &id);
+bool asset_edit_id_is(const ID &id);
+bool asset_edit_id_is_writable(const ID &id);
 
 std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  const ID &id,
@@ -60,10 +57,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  ReportList &reports);
 
 bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports);
-bool asset_edit_id_revert(Main &global_main, const ID &id, ReportList &reports);
-bool asset_edit_id_delete(Main &global_main, const ID &id, ReportList &reports);
-
-/** Clean up on exit. */
-void asset_edit_main_free_all();
+bool asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports);
+bool asset_edit_id_delete(Main &global_main, ID &id, ReportList &reports);
 
 }  // namespace blender::bke

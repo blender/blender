@@ -563,7 +563,7 @@ static bool brush_asset_edit_metadata_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "Asset library is not editable");
     return false;
   }
-  if (!bke::asset_edit_id_is_editable(brush->id)) {
+  if (!bke::asset_edit_id_is_writable(brush->id)) {
     CTX_wm_operator_poll_msg_set(C, "Asset file is not editable");
     return false;
   }
@@ -661,7 +661,7 @@ static bool brush_asset_delete_poll(bContext *C)
 
   /* Asset brush, check if belongs to an editable blend file. */
   if (ID_IS_ASSET(brush)) {
-    if (!bke::asset_edit_id_is_editable(brush->id)) {
+    if (!bke::asset_edit_id_is_writable(brush->id)) {
       CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
       return false;
     }
@@ -725,7 +725,7 @@ static bool brush_asset_update_poll(bContext *C)
     return false;
   }
 
-  if ((brush->id.tag & LIB_TAG_ASSET_EDIT_MAIN) == 0) {
+  if (!bke::asset_edit_id_is(brush->id)) {
     return false;
   }
 
@@ -733,7 +733,7 @@ static bool brush_asset_update_poll(bContext *C)
     return false;
   }
 
-  if (!bke::asset_edit_id_is_editable(brush->id)) {
+  if (!bke::asset_edit_id_is_writable(brush->id)) {
     CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
     return false;
   }
@@ -783,7 +783,7 @@ static bool brush_asset_revert_poll(bContext *C)
     return false;
   }
 
-  return paint->brush_asset_reference && (brush->id.tag & LIB_TAG_ASSET_EDIT_MAIN);
+  return paint->brush_asset_reference && bke::asset_edit_id_is(brush->id);
 }
 
 static int brush_asset_revert_exec(bContext *C, wmOperator *op)

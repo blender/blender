@@ -581,6 +581,11 @@ typedef struct Library {
 enum eLibrary_Tag {
   /* Automatic recursive resync was needed when linking/loading data from that library. */
   LIBRARY_TAG_RESYNC_REQUIRED = 1 << 0,
+  /* Datablocks from this library are editable in the UI despite being linked.
+   * Used for asset that can be temporarily or permantently edited. */
+  LIBRARY_ASSET_EDITABLE = 1 << 1,
+  /* The blend file of this library is writable for asset editing. */
+  LIBRARY_ASSET_FILE_WRITABLE = 1 << 2,
 };
 
 /**
@@ -670,7 +675,12 @@ typedef struct PreviewImage {
 
 #define ID_IS_LINKED(_id) (((const ID *)(_id))->lib != NULL)
 
-#define ID_IS_EDITABLE(_id) (((const ID *)(_id))->lib == NULL)
+#define ID_TYPE_SUPPORTS_ASSET_EDITABLE(id_type) ELEM(id_type, ID_BR, ID_TE, ID_NT, ID_IM)
+
+#define ID_IS_EDITABLE(_id) \
+  ((((const ID *)(_id))->lib == NULL) || \
+   ((((const ID *)(_id))->lib->runtime.tag & LIBRARY_ASSET_EDITABLE) && \
+    ID_TYPE_SUPPORTS_ASSET_EDITABLE(GS((((const ID *)(_id))->name)))))
 
 /* Note that these are fairly high-level checks, should be used at user interaction level, not in
  * BKE_library_override typically (especially due to the check on LIB_TAG_EXTERN). */

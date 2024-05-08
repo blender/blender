@@ -47,7 +47,7 @@ class VIEW3D_MT_brush_context_menu(Menu):
             layout.label(text="No brush selected", icon='INFO')
             return
 
-        if brush.is_asset_library_data:
+        if brush.library and brush.library.is_editable:
             layout.operator("brush.asset_save_as", text="Duplicate Asset...", icon='DUPLICATE')
             layout.operator("brush.asset_delete", text="Delete Asset")
 

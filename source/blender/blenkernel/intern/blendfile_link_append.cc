@@ -1912,7 +1912,9 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   BKE_library_main_rebuild_hierarchy(bmain);
 
   /* Resync overrides if needed. */
-  if (!USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {
+  if (!USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync) &&
+      lapp_context->params->context.scene != nullptr)
+  {
     BlendFileReadReport report{};
     report.reports = reports;
     BKE_lib_override_library_main_resync(bmain,
