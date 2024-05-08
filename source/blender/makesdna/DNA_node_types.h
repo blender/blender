@@ -682,6 +682,10 @@ typedef struct bNodeTree {
   /** Execution mode to use for compositor engine. */
   int precision;
 
+  /** #NodeGroupColorTag. */
+  int color_tag;
+  char _pad[4];
+
   rctf viewer_border;
 
   /**

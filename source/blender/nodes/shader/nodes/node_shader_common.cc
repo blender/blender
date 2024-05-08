@@ -91,6 +91,7 @@ void register_node_type_sh_group()
   ntype.poll = sh_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;
+  ntype.ui_class = node_group_ui_class;
   ntype.ui_description_fn = node_group_ui_description;
   ntype.rna_ext.srna = RNA_struct_find("ShaderNodeGroup");
   BLI_assert(ntype.rna_ext.srna != nullptr);
