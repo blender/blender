@@ -79,6 +79,24 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
             bpy.ops.wm.open_mainfile(filepath=bfp, load_ui=False)
 
+    def link_append(self, do_link):
+        for bfp in self.blendfile_paths:
+            if os.path.basename(bfp) in self.excluded_paths:
+                continue
+            bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+            with bpy.data.libraries.load(bfp, link=do_link) as (lib_in, lib_out):
+                if len(lib_in.collections):
+                    lib_out.collections.append(lib_in.collections[0])
+                elif len(lib_in.objects):
+                    lib_out.objects.append(lib_in.objects[0])
+
+
+    def test_link(self):
+        self.link_append(do_link=True)
+
+    def test_append(self):
+        self.link_append(do_link=False)
+
 
 TESTS = (
     TestBlendFileOpenAllTestFiles,
