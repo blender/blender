@@ -315,6 +315,39 @@ Drawing::Drawing(const Drawing &other)
   this->runtime->curve_texture_matrices = other.runtime->curve_texture_matrices;
 }
 
+Drawing &Drawing::operator=(const Drawing &other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) Drawing(other);
+  return *this;
+}
+
+Drawing::Drawing(Drawing &&other)
+{
+  this->base.type = GP_DRAWING;
+  other.base.type = GP_DRAWING;
+  this->base.flag = other.base.flag;
+  other.base.flag = 0;
+
+  new (&this->geometry) bke::CurvesGeometry(std::move(other.geometry.wrap()));
+
+  this->runtime = other.runtime;
+  other.runtime = nullptr;
+}
+
+Drawing &Drawing::operator=(Drawing &&other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) Drawing(std::move(other));
+  return *this;
+}
+
 Drawing::~Drawing()
 {
   this->strokes().~CurvesGeometry();
