@@ -685,7 +685,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
  * \see #initTransform which reads values from the operator.
  */
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op);
-int transformEvent(TransInfo *t, const wmEvent *event);
+int transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event);
 void transformApply(bContext *C, TransInfo *t);
 int transformEnd(bContext *C, TransInfo *t);
 

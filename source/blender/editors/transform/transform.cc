@@ -21,6 +21,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
+#include "BKE_workspace.hh"
 
 #include "GPU_state.hh"
 
@@ -540,6 +541,10 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 static void viewRedrawPost(bContext *C, TransInfo *t)
 {
   ED_area_status_text(t->area, nullptr);
+  WorkSpace *workspace = CTX_wm_workspace(C);
+  if (workspace) {
+    BKE_workspace_status_clear(workspace);
+  }
 
   if (t->spacetype == SPACE_VIEW3D) {
     /* If auto-keying is enabled, send notifiers that keyframes were added. */
@@ -988,7 +993,7 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
   return true;
 }
 
-int transformEvent(TransInfo *t, const wmEvent *event)
+int transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event)
 {
   bool handled = false;
   bool is_navigating = t->vod ? ((RegionView3D *)t->region->regiondata)->rflag & RV3D_NAVIGATING :
@@ -1096,7 +1101,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         else {
           /* First try Edge Slide. */
-          transform_mode_init(t, nullptr, TFM_EDGE_SLIDE);
+          transform_mode_init(t, op, TFM_EDGE_SLIDE);
           /* If that fails, try Vertex Slide. */
           if (t->state == TRANS_CANCEL) {
             resetTransModal(t);
@@ -1429,6 +1434,11 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
   if (t->redraw && !ISMOUSE_MOTION(event->type)) {
     WM_window_status_area_tag_redraw(CTX_wm_window(t->context));
+  }
+
+  WorkSpace *workspace = CTX_wm_workspace(t->context);
+  if (workspace) {
+    BKE_workspace_status_clear(workspace);
   }
 
   if (!is_navigating && (handled || t->redraw)) {
