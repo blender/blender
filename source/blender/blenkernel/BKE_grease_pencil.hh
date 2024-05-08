@@ -71,8 +71,8 @@ class Drawing : public ::GreasePencilDrawing {
  public:
   Drawing();
   Drawing(const Drawing &other);
-  Drawing &operator=(const Drawing &other);
   Drawing(Drawing &&other);
+  Drawing &operator=(const Drawing &other);
   Drawing &operator=(Drawing &&other);
   ~Drawing();
 

@@ -315,16 +315,6 @@ Drawing::Drawing(const Drawing &other)
   this->runtime->curve_texture_matrices = other.runtime->curve_texture_matrices;
 }
 
-Drawing &Drawing::operator=(const Drawing &other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  std::destroy_at(this);
-  new (this) Drawing(other);
-  return *this;
-}
-
 Drawing::Drawing(Drawing &&other)
 {
   this->base.type = GP_DRAWING;
@@ -336,6 +326,16 @@ Drawing::Drawing(Drawing &&other)
 
   this->runtime = other.runtime;
   other.runtime = nullptr;
+}
+
+Drawing &Drawing::operator=(const Drawing &other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) Drawing(other);
+  return *this;
 }
 
 Drawing &Drawing::operator=(Drawing &&other)
