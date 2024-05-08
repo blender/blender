@@ -356,7 +356,13 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
   uiLayout &layout = *uiLayoutColumn(parent_layout, true);
   const GridViewStyle &style = grid_view.get_style();
 
-  const int cols_per_row = std::max(uiLayoutGetWidth(&layout) / style.tile_width, 1);
+  /* We might not actually know the width available for the grid view. Let's just assume that
+   * either there is a fixed width defined via #uiLayoutSetUnitsX() or that the layout is close to
+   * the root level and inherits its width. Might need a more reliable method. */
+  const int guessed_layout_width = (uiLayoutGetUnitsX(parent_layout) > 0) ?
+                                       uiLayoutGetUnitsX(parent_layout) * UI_UNIT_X :
+                                       uiLayoutGetWidth(parent_layout);
+  const int cols_per_row = std::max(guessed_layout_width / style.tile_width, 1);
 
   BuildOnlyVisibleButtonsHelper build_visible_helper(v2d, grid_view, cols_per_row);
 
