@@ -1392,6 +1392,54 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   }
 }
 
+static void blendfile_link_finalize(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
+{
+  LinkNode *itemlink;
+
+  /* Instantiate newly linked IDs as needed, if no append is scheduled. */
+  if (lapp_context->params->context.scene != nullptr) {
+    new_id_to_item_mapping_create(lapp_context);
+    /* NOTE: Since we append items for IDs not already listed (i.e. implicitly linked indirect
+     * dependencies), this list will grow and we will process those IDs later, leading to a flatten
+     * recursive processing of all the linked dependencies. */
+    for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
+      BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
+          itemlink->link);
+      ID *id = item->new_id;
+      if (id == nullptr) {
+        continue;
+      }
+      BLI_assert(item->userdata == nullptr);
+
+      BlendfileLinkAppendContextCallBack cb_data{};
+      cb_data.lapp_context = lapp_context;
+      cb_data.item = item;
+      cb_data.reports = reports;
+      BKE_library_foreach_ID_link(lapp_context->params->bmain,
+                                  id,
+                                  foreach_libblock_link_append_callback,
+                                  &cb_data,
+                                  IDWALK_NOP);
+    }
+
+    LooseDataInstantiateContext instantiate_context{};
+    instantiate_context.lapp_context = lapp_context;
+    instantiate_context.active_collection = nullptr;
+    loose_data_instantiate(&instantiate_context);
+  }
+
+  blendfile_link_append_proxies_convert(lapp_context->params->bmain, reports);
+  BKE_main_mesh_legacy_convert_auto_smooth(*lapp_context->params->bmain);
+
+  if (U.experimental.use_grease_pencil_version3 &&
+      U.experimental.use_grease_pencil_version3_convert_on_load)
+  {
+    BlendFileReadReport bf_reports{};
+    bf_reports.reports = reports;
+    blender::bke::greasepencil::convert::legacy_main(*lapp_context->params->bmain, bf_reports);
+  }
+}
+
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   if (lapp_context->num_items == 0) {
@@ -1468,51 +1516,13 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
   }
   (void)item_idx; /* Quiet set-but-unused warning (may be removed). */
 
-  /* Instantiate newly linked IDs as needed, if no append is scheduled. */
-  if ((lapp_context->params->flag & FILE_LINK) != 0 &&
-      lapp_context->params->context.scene != nullptr)
-  {
-    new_id_to_item_mapping_create(lapp_context);
-    /* NOTE: Since we append items for IDs not already listed (i.e. implicitly linked indirect
-     * dependencies), this list will grow and we will process those IDs later, leading to a flatten
-     * recursive processing of all the linked dependencies. */
-    for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
-      BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
-          itemlink->link);
-      ID *id = item->new_id;
-      if (id == nullptr) {
-        continue;
-      }
-      BLI_assert(item->userdata == nullptr);
-
-      BlendfileLinkAppendContextCallBack cb_data{};
-      cb_data.lapp_context = lapp_context;
-      cb_data.item = item;
-      cb_data.reports = reports;
-      BKE_library_foreach_ID_link(lapp_context->params->bmain,
-                                  id,
-                                  foreach_libblock_link_append_callback,
-                                  &cb_data,
-                                  IDWALK_NOP);
-    }
-
-    LooseDataInstantiateContext instantiate_context{};
-    instantiate_context.lapp_context = lapp_context;
-    instantiate_context.active_collection = nullptr;
-    loose_data_instantiate(&instantiate_context);
-  }
-
+  /* In linking case finalizing process (ensuring all data is valid, instantiating loose
+   * collections or objects, etc.) can be done here directly.
+   *
+   * In append case, the finalizing process is much more complex and requires and additional call
+   * to #BKE_blendfile_append for caller code. */
   if ((lapp_context->params->flag & FILE_LINK) != 0) {
-    blendfile_link_append_proxies_convert(lapp_context->params->bmain, reports);
-    BKE_main_mesh_legacy_convert_auto_smooth(*lapp_context->params->bmain);
-
-    if (U.experimental.use_grease_pencil_version3 &&
-        U.experimental.use_grease_pencil_version3_convert_on_load)
-    {
-      BlendFileReadReport bf_reports{};
-      bf_reports.reports = reports;
-      blender::bke::greasepencil::convert::legacy_main(*lapp_context->params->bmain, bf_reports);
-    }
+    blendfile_link_finalize(lapp_context, reports);
   }
 
   BKE_main_namemap_clear(lapp_context->params->bmain);
