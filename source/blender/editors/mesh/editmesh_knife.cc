@@ -1109,7 +1109,7 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
   status.opmodal(IFACE_("Confirm"), op->type, KNF_MODAL_CONFIRM);
   status.opmodal(IFACE_("Cancel"), op->type, KNF_MODAL_CANCEL);
   status.opmodal(IFACE_("Undo"), op->type, KNF_MODAL_UNDO);
-  status.opmodal("Pan View", op->type, KNF_MODAL_PANNING);
+  status.opmodal(IFACE_("Pan View"), op->type, KNF_MODAL_PANNING);
   status.opmodal(IFACE_("Midpoint Snap"), op->type, KNF_MODAL_MIDPOINT_ON, kcd->snap_midpoints);
   status.opmodal(
       IFACE_("Ignore Snap"), op->type, KNF_MODAL_IGNORE_SNAP_ON, kcd->ignore_edge_snapping);
