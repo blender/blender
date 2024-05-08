@@ -38,6 +38,7 @@
 
 #  include "DEG_depsgraph.hh"
 
+#  include "IO_orientation.hh"
 #  include "io_usd.hh"
 #  include "io_utils.hh"
 #  include "usd.hh"
@@ -209,6 +210,11 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties");
   const bool author_blender_name = RNA_boolean_get(op->ptr, "author_blender_name");
 
+  const bool convert_orientation = RNA_boolean_get(op->ptr, "convert_orientation");
+
+  const int global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
+  const int global_up = RNA_enum_get(op->ptr, "export_global_up_selection");
+
   char root_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
@@ -234,6 +240,9 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       relative_paths,
       export_custom_properties,
       author_blender_name,
+      convert_orientation,
+      eIOAxis(global_forward),
+      eIOAxis(global_up),
   };
 
   STRNCPY(params.root_prim_path, root_prim_path);
@@ -281,6 +290,12 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   col = uiLayoutColumn(box, true);
   uiItemR(col, ptr, "export_subdivision", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "root_prim_path", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  uiItemR(col, ptr, "convert_orientation", UI_ITEM_NONE, nullptr, ICON_NONE);
+  if (RNA_boolean_get(ptr, "convert_orientation")) {
+    uiItemR(col, ptr, "export_global_forward_selection", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_global_up_selection", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
 
   col = uiLayoutColumn(box, true);
   uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -335,6 +350,24 @@ static bool wm_usd_export_check(bContext * /*C*/, wmOperator *op)
   }
 
   return false;
+}
+
+static void forward_axis_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  int forward = RNA_enum_get(ptr, "forward_axis");
+  int up = RNA_enum_get(ptr, "up_axis");
+  if ((forward % 3) == (up % 3)) {
+    RNA_enum_set(ptr, "up_axis", (up + 1) % 6);
+  }
+}
+
+static void up_axis_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  int forward = RNA_enum_get(ptr, "forward_axis");
+  int up = RNA_enum_get(ptr, "up_axis");
+  if ((forward % 3) == (up % 3)) {
+    RNA_enum_set(ptr, "forward_axis", (forward + 1) % 6);
+  }
 }
 
 void WM_OT_usd_export(wmOperatorType *ot)
@@ -451,6 +484,24 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "To USD Preview Surface",
                   "Generate an approximate USD Preview Surface shader "
                   "representation of a Principled BSDF node network");
+
+  RNA_def_boolean(ot->srna,
+                  "convert_orientation",
+                  false,
+                  "Convert Orientation",
+                  "The USD exporter will convert scene orientation axis");
+
+  prop = RNA_def_enum(ot->srna,
+                      "export_global_forward_selection",
+                      io_transform_axis,
+                      IO_AXIS_NEGATIVE_Z,
+                      "Forward Axis",
+                      "");
+  RNA_def_property_update_runtime(prop, forward_axis_update);
+
+  prop = RNA_def_enum(
+      ot->srna, "export_global_up_selection", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, up_axis_update);
 
   RNA_def_boolean(ot->srna,
                   "export_textures",

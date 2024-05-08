@@ -11,25 +11,101 @@
 #include "BKE_object.hh"
 
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_string.h"
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
 
 namespace blender::io::usd {
 
 USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
-void USDTransformWriter::do_write(HierarchyContext &context)
+pxr::UsdGeomXformable USDTransformWriter::create_xformable() const
 {
-  float parent_relative_matrix[4][4]; /* The object matrix relative to the parent. */
-  mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, context.matrix_world);
+  pxr::UsdGeomXform xform;
 
-  /* Write the transform relative to the parent. */
-  pxr::UsdGeomXform xform = pxr::UsdGeomXform::Define(usd_export_context_.stage,
-                                                      usd_export_context_.usd_path);
-  if (!xformOp_) {
-    xformOp_ = xform.AddTransformOp();
+  // If prim exists, cast to UsdGeomXform (Solves merge transform and shape issue for animated
+  // exports)
+  pxr::UsdPrim existing_prim = usd_export_context_.stage->GetPrimAtPath(
+      usd_export_context_.usd_path);
+  if (existing_prim.IsValid() && existing_prim.IsA<pxr::UsdGeomXform>()) {
+    xform = pxr::UsdGeomXform(existing_prim);
+  }
+  else {
+    xform = pxr::UsdGeomXform::Define(usd_export_context_.stage, usd_export_context_.usd_path);
   }
 
-  pxr::GfMatrix4d mat_val(parent_relative_matrix);
-  usd_value_writer_.SetAttribute(xformOp_.GetAttr(), mat_val, get_export_time_code());
+  return xform;
+}
+
+bool USDTransformWriter::should_apply_root_xform(const HierarchyContext &context) const
+{
+  if (!usd_export_context_.export_params.convert_orientation) {
+    return false;
+  }
+
+  if (BLI_strnlen(usd_export_context_.export_params.root_prim_path, 1024) != 0) {
+    return false;
+  }
+
+  if (context.export_parent != nullptr) {
+    return false;
+  }
+
+  return true;
+}
+
+void USDTransformWriter::do_write(HierarchyContext &context)
+{
+  constexpr float UNIT_M4[4][4] = {
+      {1, 0, 0, 0},
+      {0, 1, 0, 0},
+      {0, 0, 1, 0},
+      {0, 0, 0, 1},
+  };
+
+  pxr::UsdGeomXformable xform = create_xformable();
+
+  if (!xform) {
+    CLOG_ERROR(&LOG, "USDTransformWriter: couldn't create xformable");
+    return;
+  }
+
+  float parent_relative_matrix[4][4];  // The object matrix relative to the parent.
+
+  if (should_apply_root_xform(context)) {
+    float matrix_world[4][4];
+    copy_m4_m4(matrix_world, context.matrix_world);
+
+    if (usd_export_context_.export_params.convert_orientation) {
+      float mrot[3][3];
+      float mat[4][4];
+      mat3_from_axis_conversion(IO_AXIS_Y,
+                                IO_AXIS_Z,
+                                usd_export_context_.export_params.forward_axis,
+                                usd_export_context_.export_params.up_axis,
+                                mrot);
+      transpose_m3(mrot);
+      copy_m4_m3(mat, mrot);
+      mul_m4_m4m4(matrix_world, mat, context.matrix_world);
+    }
+
+    mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, matrix_world);
+  }
+  else {
+    mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, context.matrix_world);
+  }
+
+  /* USD Xforms are by default set with an identity transform; only write if necessary. */
+  if (!compare_m4m4(parent_relative_matrix, UNIT_M4, 0.000000001f)) {
+    if (!xformOp_) {
+      xformOp_ = xform.AddTransformOp();
+    }
+
+    pxr::GfMatrix4d mat_val(parent_relative_matrix);
+    usd_value_writer_.SetAttribute(xformOp_.GetAttr(), mat_val, get_export_time_code());
+  }
 
   if (context.object) {
     auto prim = xform.GetPrim();
