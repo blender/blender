@@ -285,7 +285,9 @@ void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *l
 
   lib_context->path = libpath;
   lib_context->blo_handle = blo_handle;
-  lib_context->blo_handle_is_owned = (blo_handle == nullptr);
+  /* Always steal the ownership on the blendfile handle, as it may be freed by readfile code in
+   * case of endianness conversion. */
+  lib_context->blo_handle_is_owned = true;
 
   BLI_linklist_append_arena(&lapp_context->libraries, lib_context, lapp_context->memarena);
   lapp_context->num_libraries++;
@@ -1411,10 +1413,8 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
     BlendfileLinkAppendContextLibrary *lib_context =
         static_cast<BlendfileLinkAppendContextLibrary *>(liblink->link);
     const char *libname = lib_context->path;
-    BlendHandle *blo_handle = link_append_context_library_blohandle_ensure(
-        lapp_context, lib_context, reports);
 
-    if (blo_handle == nullptr) {
+    if (!link_append_context_library_blohandle_ensure(lapp_context, lib_context, reports)) {
       /* Unlikely since we just browsed it, but possible
        * Error reports will have been made by BLO_blendhandle_from_file() */
       continue;
@@ -1422,7 +1422,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
 
     /* here appending/linking starts */
 
-    mainl = BLO_library_link_begin(&blo_handle, libname, lapp_context->params);
+    mainl = BLO_library_link_begin(&lib_context->blo_handle, libname, lapp_context->params);
     lib = mainl->curlib;
     BLI_assert(lib != nullptr);
     /* In case lib was already existing but not found originally, see #99820. */
@@ -1452,7 +1452,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
       }
 
       new_id = BLO_library_link_named_part(
-          mainl, &blo_handle, item->idcode, item->name, lapp_context->params);
+          mainl, &lib_context->blo_handle, item->idcode, item->name, lapp_context->params);
 
       if (new_id) {
         /* If the link is successful, clear item's libraries 'todo' flags.
@@ -1463,7 +1463,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
       }
     }
 
-    BLO_library_link_end(mainl, &blo_handle, lapp_context->params);
+    BLO_library_link_end(mainl, &lib_context->blo_handle, lapp_context->params);
     link_append_context_library_blohandle_release(lapp_context, lib_context);
   }
   (void)item_idx; /* Quiet set-but-unused warning (may be removed). */

@@ -477,7 +477,9 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
 
   BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(
       &liblink_params);
+  /* Note: Transfers the ownership of the `blo_handle` to the `lapp_context`. */
   BKE_blendfile_link_append_context_library_add(lapp_context, self->abspath, self->blo_handle);
+  self->blo_handle = nullptr;
 
   int idcode_step = 0;
   short idcode;
@@ -568,9 +570,6 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
         &iter_data);
   }
 #endif  // USE_RNA_DATABLOCKS
-
-  BLO_blendhandle_close(self->blo_handle);
-  self->blo_handle = nullptr;
 
   BKE_blendfile_link_append_context_free(lapp_context);
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
