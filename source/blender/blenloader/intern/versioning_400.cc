@@ -2078,10 +2078,17 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
       }
       if (!ELEM(tref->mode,
                 CTX_MODE_SCULPT,
-                CTX_MODE_SCULPT_CURVES,
-                CTX_MODE_PAINT_TEXTURE,
                 CTX_MODE_PAINT_VERTEX,
-                CTX_MODE_PAINT_WEIGHT))
+                CTX_MODE_PAINT_WEIGHT,
+                CTX_MODE_PAINT_TEXTURE,
+                CTX_MODE_PAINT_GPENCIL_LEGACY,
+                CTX_MODE_PAINT_GREASE_PENCIL,
+                CTX_MODE_SCULPT_GPENCIL_LEGACY,
+                CTX_MODE_SCULPT_GREASE_PENCIL,
+                CTX_MODE_WEIGHT_GPENCIL_LEGACY,
+                CTX_MODE_WEIGHT_GREASE_PENCIL,
+                CTX_MODE_VERTEX_GPENCIL_LEGACY,
+                CTX_MODE_SCULPT_CURVES))
       {
         continue;
       }
