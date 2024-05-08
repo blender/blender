@@ -595,6 +595,7 @@ class NODE_MT_category_GEO_UTILITIES_ROTATION(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "FunctionNodeAlignRotationToVector")
+        node_add_menu.add_node_type(layout, "FunctionNodeAxesToRotation")
         node_add_menu.add_node_type(layout, "FunctionNodeAxisAngleToRotation")
         node_add_menu.add_node_type(layout, "FunctionNodeEulerToRotation")
         node_add_menu.add_node_type(layout, "FunctionNodeInvertRotation")

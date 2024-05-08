@@ -265,6 +265,7 @@ DefNode(TextureNode,    TEX_NODE_PROC+TEX_DISTNOISE, 0,                  "TEX_DI
 
 DefNode(FunctionNode, FN_NODE_ALIGN_EULER_TO_VECTOR, 0, "ALIGN_EULER_TO_VECTOR", AlignEulerToVector, "Align Euler to Vector", "")
 DefNode(FunctionNode, FN_NODE_ALIGN_ROTATION_TO_VECTOR, 0, "ALIGN_ROTATION_TO_VECTOR", AlignRotationToVector, "Align Rotation to Vector", "")
+DefNode(FunctionNode, FN_NODE_AXES_TO_ROTATION, 0, "AXES_TO_ROTATION", AxesToRotation, "Axes to Rotation", "Create a rotation from a primary and (ideally orthogonal) secondary axis")
 DefNode(FunctionNode, FN_NODE_AXIS_ANGLE_TO_ROTATION, 0, "AXIS_ANGLE_TO_ROTATION", AxisAngleToRotation, "Axis Angle to Rotation", "")
 DefNode(FunctionNode, FN_NODE_BOOLEAN_MATH, 0, "BOOLEAN_MATH", BooleanMath, "Boolean Math", "")
 DefNode(FunctionNode, FN_NODE_COMBINE_COLOR, 0, "COMBINE_COLOR", CombineColor, "Combine Color", "")
