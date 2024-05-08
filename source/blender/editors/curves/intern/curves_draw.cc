@@ -1087,7 +1087,7 @@ static int curves_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                  cdd->vc.region,
                                  cdd->vc.v3d,
                                  nullptr,
-                                 V3D_DEPTH_NO_GPENCIL,
+                                 V3D_DEPTH_NO_OVERLAYS,
                                  &cdd->depths);
 
         if (cdd->depths != nullptr) {
