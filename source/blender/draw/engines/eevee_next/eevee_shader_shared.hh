@@ -1248,11 +1248,11 @@ struct ShadowRenderView {
    * Use sign to determine with case we are in.
    */
   float clip_distance_inv;
-  /* Viewport to submit the geometry of this tilemap view to. */
+  /** Viewport to submit the geometry of this tile-map view to. */
   uint viewport_index;
-  /* True if comming from a sun light shadow. */
-  bool32_t is_directionnal;
-  /* If directionnal, distance along the negative Z axis of the near clip in view space. */
+  /** True if coming from a sun light shadow. */
+  bool32_t is_directional;
+  /** If directional, distance along the negative Z axis of the near clip in view space. */
   float clip_near;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowRenderView, 16)

@@ -115,8 +115,8 @@ void shadow_map_trace_hit_check(inout ShadowMapTracingState state, ShadowTracing
   else {
     /* Compute current occluder slope and record history for when the ray goes behind a surface. */
     vec2 delta = samp.occluder - state.occluder_history;
-    /* Clamping the slope to a mininim avoid light leaking. */
-    /* TODO(fclem): Expose as parameter? */
+    /* Clamping the slope to a minimum avoid light leaking. */
+    /* TODO(@fclem): Expose as parameter? */
     const float min_slope = tan(M_PI * 0.25);
     state.occluder_slope = max(min_slope, abs(delta.y / delta.x));
     state.occluder_history = samp.occluder;

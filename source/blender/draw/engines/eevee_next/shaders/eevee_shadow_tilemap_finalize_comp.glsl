@@ -135,7 +135,7 @@ void main()
           view_infos_buf[view_index].wininv = inverse(winmat);
 
           render_view_buf[view_index].viewport_index = viewport_index;
-          render_view_buf[view_index].is_directionnal = !is_cubemap;
+          render_view_buf[view_index].is_directional = !is_cubemap;
           render_view_buf[view_index].clip_near = clip_near;
           /* Clipping setup. */
           if (tilemap_data.is_area_side) {
