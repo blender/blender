@@ -85,6 +85,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(wmOperatorType *ot);
 void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot);
+void OBJECT_OT_shade_auto_smooth(wmOperatorType *ot);
 void OBJECT_OT_shade_flat(wmOperatorType *ot);
 void OBJECT_OT_paths_calculate(wmOperatorType *ot);
 void OBJECT_OT_paths_update(wmOperatorType *ot);

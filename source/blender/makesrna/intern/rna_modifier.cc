@@ -844,6 +844,8 @@ static const EnumPropertyItem grease_pencil_build_time_mode_items[] = {
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_query.hh"
 
+#  include "ED_object.hh"
+
 #  ifdef WITH_ALEMBIC
 #    include "ABC_alembic.h"
 #  endif
@@ -928,6 +930,30 @@ static void rna_Modifier_is_active_set(PointerRNA *ptr, bool value)
     md->flag |= eModifierFlag_Active;
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
   }
+}
+
+static void rna_Modifier_use_pin_to_last_set(PointerRNA *ptr, bool value)
+{
+  Object *object = reinterpret_cast<Object *>(ptr->owner_id);
+  ModifierData *md = static_cast<ModifierData *>(ptr->data);
+  SET_FLAG_FROM_TEST(md->flag, value, eModifierFlag_PinLast);
+
+  int to_index = BLI_findindex(&object->modifiers, md);
+  if (value) {
+    ModifierData *md_iter = md;
+    while (md_iter->next && (md_iter->next->flag & eModifierFlag_PinLast) == 0) {
+      to_index++;
+      md_iter = md_iter->next;
+    }
+  }
+  else {
+    ModifierData *md_iter = md;
+    while (md_iter->prev && (md_iter->prev->flag & eModifierFlag_PinLast)) {
+      to_index--;
+      md_iter = md_iter->prev;
+    }
+  }
+  blender::ed::object::modifier_move_to_index(nullptr, RPT_ERROR, object, md, to_index, true);
 }
 
 /* Vertex Groups */
@@ -10996,6 +11022,15 @@ void RNA_def_modifier(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Active", "The active modifier in the list");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
+
+  prop = RNA_def_property(srna, "use_pin_to_last", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", eModifierFlag_PinLast);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_Modifier_use_pin_to_last_set");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Stick to Last", "Keep the modifier at the end of the list");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
 
   prop = RNA_def_boolean(srna,

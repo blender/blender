@@ -553,6 +553,18 @@ static void set_panels_list_data_expand_flag(const bContext *C, const ARegion *r
 /** \name Panels
  * \{ */
 
+static bool panel_custom_pin_to_last_get(const Panel *panel)
+{
+  if (panel->type->pin_to_last_property[0] != '\0') {
+    PointerRNA *ptr = UI_panel_custom_data_get(panel);
+    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+      return RNA_boolean_get(ptr, panel->type->pin_to_last_property);
+    }
+  }
+
+  return false;
+}
+
 static bool panel_custom_data_active_get(const Panel *panel)
 {
   /* The caller should make sure the panel is active and has a type. */
@@ -1137,7 +1149,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   }
 
   /* Draw drag widget. */
-  if (!is_subpanel && show_background) {
+  if (!is_subpanel && show_background && !panel_custom_pin_to_last_get(panel)) {
     const int drag_widget_size = header_height * 0.7f;
     GPU_matrix_push();
     /* The magic numbers here center the widget vertically and offset it to the left.
@@ -1623,6 +1635,15 @@ static int find_highest_panel(const void *a, const void *b)
   }
   else if (panel_b->type->flag & PANEL_TYPE_NO_HEADER) {
     return 1;
+  }
+
+  const bool pin_last_a = panel_custom_pin_to_last_get(panel_a);
+  const bool pin_last_b = panel_custom_pin_to_last_get(panel_b);
+  if (pin_last_a && !pin_last_b) {
+    return 1;
+  }
+  if (!pin_last_a && pin_last_b) {
+    return -1;
   }
 
   if (panel_a->ofsy + panel_a->sizey < panel_b->ofsy + panel_b->sizey) {
@@ -2225,6 +2246,9 @@ static void ui_handle_panel_header(const bContext *C,
 
   /* Handle panel dragging. For now don't allow dragging in floating regions. */
   if (show_drag && !(region->alignment == RGN_ALIGN_FLOAT)) {
+    if (panel_custom_pin_to_last_get(panel)) {
+      return;
+    }
     const float drag_area_xmin = block->rect.xmax - (PNL_ICON * 1.5f);
     const float drag_area_xmax = block->rect.xmax;
     if (IN_RANGE(mx, drag_area_xmin, drag_area_xmax)) {

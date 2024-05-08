@@ -191,6 +191,11 @@ typedef enum {
    * to the modifier which might invalidate simulation caches.
    */
   eModifierFlag_UserModified = (1 << 3),
+  /**
+   * New modifiers are added before this modifier, and dragging non-pinned modifiers after is
+   * disabled.
+   */
+  eModifierFlag_PinLast = (1 << 4),
 } ModifierFlag;
 
 /**
