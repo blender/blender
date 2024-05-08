@@ -63,7 +63,7 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
   }
 
   grease_pencil.set_active_layer(&new_layer);
-  grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
+  grease_pencil.insert_frame(new_layer, scene->r.cfra);
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);

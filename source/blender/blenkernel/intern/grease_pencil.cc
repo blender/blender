@@ -2103,20 +2103,25 @@ void GreasePencil::add_duplicate_drawings(const int duplicate_num,
   }
 }
 
-bool GreasePencil::insert_blank_frame(blender::bke::greasepencil::Layer &layer,
-                                      int frame_number,
-                                      int duration,
-                                      eBezTriple_KeyframeType keytype)
+blender::bke::greasepencil::Drawing *GreasePencil::insert_frame(
+    blender::bke::greasepencil::Layer &layer,
+    const int frame_number,
+    const int duration,
+    const eBezTriple_KeyframeType keytype)
 {
   using namespace blender;
   GreasePencilFrame *frame = layer.add_frame(frame_number, duration);
   if (frame == nullptr) {
-    return false;
+    return nullptr;
   }
-  frame->type = int8_t(keytype);
   this->add_empty_drawings(1);
-  frame->drawing_index = int(this->drawings().size());
-  return true;
+  frame->drawing_index = this->drawings().index_range().last();
+  frame->type = int8_t(keytype);
+
+  GreasePencilDrawingBase *drawing_base = this->drawings().last();
+  BLI_assert(drawing_base->type == GP_DRAWING);
+  GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+  return &drawing->wrap();
 }
 
 bool GreasePencil::insert_duplicate_frame(blender::bke::greasepencil::Layer &layer,

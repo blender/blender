@@ -811,8 +811,7 @@ static void insert_grease_pencil_key(bAnimContext *ac,
     if (!active_frame_number || layer->frames().lookup(*active_frame_number).is_null()) {
       /* There is no active frame to hold to, or it's a null frame. Therefore just insert a blank
        * frame. */
-      changed = grease_pencil->insert_blank_frame(
-          *layer, current_frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+      changed |= grease_pencil->insert_frame(*layer, current_frame_number) != nullptr;
     }
     else {
       /* Duplicate the active frame. */
@@ -822,8 +821,7 @@ static void insert_grease_pencil_key(bAnimContext *ac,
   }
   else {
     /* Insert a blank frame. */
-    changed = grease_pencil->insert_blank_frame(
-        *layer, current_frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+    changed |= grease_pencil->insert_frame(*layer, current_frame_number) != nullptr;
   }
 
   if (changed) {

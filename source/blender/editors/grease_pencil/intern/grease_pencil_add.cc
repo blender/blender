@@ -1182,7 +1182,7 @@ void create_blank(Main &bmain, Object &object, const int frame_number)
 
   Layer &new_layer = grease_pencil.add_layer(DATA_("Layer"));
   grease_pencil.set_active_layer(&new_layer);
-  grease_pencil.insert_blank_frame(new_layer, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+  grease_pencil.insert_frame(new_layer, frame_number);
 }
 
 void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const int frame_number)
@@ -1203,11 +1203,10 @@ void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const in
   Layer &layer_color = grease_pencil.add_layer(DATA_("Color"));
   grease_pencil.set_active_layer(&layer_lines);
 
-  grease_pencil.insert_blank_frame(layer_lines, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
-  grease_pencil.insert_blank_frame(layer_color, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+  /* Note: We assume that this keyframe insertion can't fail. */
+  Drawing &drawing_lines = *grease_pencil.insert_frame(layer_lines, frame_number);
+  grease_pencil.insert_frame(layer_color, frame_number);
 
-  Drawing &drawing_lines =
-      reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(0))->wrap();
   drawing_lines.strokes_for_write() = create_drawing_data(
       stroke_positions, stroke_radii, stroke_opacities, {0, 175}, {material_index}, matrix);
   drawing_lines.tag_topology_changed();
@@ -1265,27 +1264,22 @@ void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const i
   Layer &layer_lines = grease_pencil.add_layer(DATA_("Lines"));
   grease_pencil.set_active_layer(&layer_lines);
 
-  grease_pencil.insert_blank_frame(layer_lines, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
-  grease_pencil.insert_blank_frame(layer_fills, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+  Drawing &drawing_lines = *grease_pencil.insert_frame(layer_lines, frame_number);
+  Drawing &drawing_fills = *grease_pencil.insert_frame(layer_fills, frame_number);
 
-  Drawing &drawing_lines =
-      reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(0))->wrap();
   drawing_lines.strokes_for_write() = create_drawing_data(monkey_line_positions,
                                                           monkey_line_radii,
                                                           monkey_line_opacities,
                                                           monkey_line_offsets,
                                                           monkey_line_materials,
                                                           matrix);
-  drawing_lines.tag_topology_changed();
-
-  Drawing &drawing_fills =
-      reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(1))->wrap();
   drawing_fills.strokes_for_write() = create_drawing_data(monkey_fill_positions,
                                                           monkey_fill_radii,
                                                           monkey_fill_opacities,
                                                           monkey_fill_offsets,
                                                           monkey_fill_materials,
                                                           matrix);
+  drawing_lines.tag_topology_changed();
   drawing_fills.tag_topology_changed();
 }
 
