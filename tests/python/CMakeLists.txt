@@ -211,14 +211,23 @@ add_blender_test(
   --output-dir ${TEST_OUT_DIR}/blendfile_io/
 )
 
-add_blender_test(
-  blendfile_versioning
-  --log "*blendfile*"
-  --debug-memory
-  --debug
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_versioning.py --
-  --src-test-dir ${TEST_SRC_DIR}/
-)
+# This test can be extremely long, especially in debug builds.
+# Generate BLENDFILE_VERSIONING_SPLIT_RANGE instances of the test,
+# each processing their own subset of the whole set of blendfiles.
+set(BLENDFILE_VERSIONING_SPLIT_RANGE 8)
+math(EXPR BLENDFILE_VERSIONING_SPLIT_RANGE_CMAKE "${BLENDFILE_VERSIONING_SPLIT_RANGE} - 1")
+foreach(idx RANGE ${BLENDFILE_VERSIONING_SPLIT_RANGE_CMAKE})
+  add_blender_test(
+    "blendfile_versioning_${idx}_over_${BLENDFILE_VERSIONING_SPLIT_RANGE}"
+    --log "*blendfile*"
+    --debug-memory
+    --debug
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_versioning.py --
+    --src-test-dir ${TEST_SRC_DIR}/
+    --slice-range ${BLENDFILE_VERSIONING_SPLIT_RANGE}
+    --slice-index ${idx}
+  )
+endforeach()
 
 add_blender_test(
   blendfile_liblink

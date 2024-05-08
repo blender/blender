@@ -43,6 +43,14 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             "ram_glsl.blend",
         }
 
+        # Generate the slice of blendfile paths that this instance of the test should process.
+        blendfile_paths = [p for p in self.iter_blendfiles_from_directory(self.args.src_test_dir)]
+        # `os.scandir()` used by `iter_blendfiles_from_directory` does not
+        # guarantee any form of order.
+        blendfile_paths.sort()
+        slice_indices = self.generate_slice_indices(len(blendfile_paths), self.args.slice_range, self.args.slice_index)
+        self.blendfile_paths = blendfile_paths[slice_indices[0]:slice_indices[1]]
+
     @classmethod
     def iter_blendfiles_from_directory(cls, root_path):
         for dir_entry in os.scandir(root_path):
@@ -52,12 +60,20 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 if os.path.splitext(dir_entry.path)[1] == ".blend":
                     yield dir_entry.path
 
+    @staticmethod
+    def generate_slice_indices(total_len, slice_range, slice_index):
+        slice_stride_base = total_len // slice_range
+        slice_stride_remain = total_len % slice_range
+        gen_indices = lambda i: (
+            (i * (slice_stride_base + 1))
+            if i < slice_stride_remain else
+            (slice_stride_remain * (slice_stride_base + 1)) + ((i - slice_stride_remain) * slice_stride_base)
+        )
+        slice_indices = [(gen_indices(i), gen_indices(i + 1)) for i in range(slice_range)]
+        return slice_indices[slice_index]
+
     def test_open(self):
-        blendfile_paths = [p for p in self.iter_blendfiles_from_directory(self.args.src_test_dir)]
-        # `os.scandir()` used by `iter_blendfiles_from_directory` does not
-        # guarantee any form of order.
-        blendfile_paths.sort()
-        for bfp in blendfile_paths:
+        for bfp in self.blendfile_paths:
             if os.path.basename(bfp) in self.excluded_paths:
                 continue
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
@@ -84,11 +100,33 @@ def argparse_create():
         required=False,
     )
 
+    parser.add_argument(
+        "--slice-range",
+        dest="slice_range",
+        type=int,
+        default=1,
+        help="How many instances of this test are launched in parallel, the list of available blendfiles is then sliced "
+             "and each instance only processes the part matching its given `--slice-index`.",
+        required=False,
+    )
+    parser.add_argument(
+        "--slice-index",
+        dest="slice_index",
+        type=int,
+        default=0,
+        help="The index of the slice in blendfiles that this instance should process."
+             "Should always be specified when `--slice-range` > 1",
+        required=False,
+    )
+
     return parser
 
 
 def main():
     args = argparse_create().parse_args()
+
+    assert(args.slice_range > 0)
+    assert(0 <= args.slice_index < args.slice_range)
 
     for Test in TESTS:
         Test(args).run_all_tests()
