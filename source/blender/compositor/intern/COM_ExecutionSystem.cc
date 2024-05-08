@@ -32,13 +32,6 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
   context_.set_scene(scene);
   context_.set_bnodetree(editingtree);
   context_.set_preview_hash(editingtree->previews);
-  /* initialize the CompositorContext */
-  if (rendering) {
-    context_.set_quality((eCompositorQuality)editingtree->render_quality);
-  }
-  else {
-    context_.set_quality((eCompositorQuality)editingtree->edit_quality);
-  }
   context_.set_rendering(rendering);
 
   context_.set_render_data(rd);

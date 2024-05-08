@@ -479,8 +479,6 @@ if(WITH_COMPOSITOR_CPU)
     # Distort operation
     operations/COM_DisplaceOperation.cc
     operations/COM_DisplaceOperation.h
-    operations/COM_DisplaceSimpleOperation.cc
-    operations/COM_DisplaceSimpleOperation.h
     operations/COM_FlipOperation.cc
     operations/COM_FlipOperation.h
     operations/COM_MapUVOperation.cc

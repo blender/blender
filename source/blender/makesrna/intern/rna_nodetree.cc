@@ -92,15 +92,6 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#ifndef RNA_RUNTIME
-static const EnumPropertyItem node_quality_items[] = {
-    {NTREE_QUALITY_HIGH, "HIGH", 0, "High", "High quality"},
-    {NTREE_QUALITY_MEDIUM, "MEDIUM", 0, "Medium", "Medium quality"},
-    {NTREE_QUALITY_LOW, "LOW", 0, "Low", "Low quality"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-#endif
-
 static const EnumPropertyItem rna_enum_execution_mode_items[] = {
     {NTREE_EXECUTION_MODE_CPU, "CPU", 0, "CPU", ""},
     {NTREE_EXECUTION_MODE_GPU, "GPU", 0, "GPU", ""},
@@ -10516,16 +10507,6 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_execution_mode_items);
   RNA_def_property_ui_text(prop, "Execution Mode", "Set how compositing is executed");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
-
-  prop = RNA_def_property(srna, "render_quality", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "render_quality");
-  RNA_def_property_enum_items(prop, node_quality_items);
-  RNA_def_property_ui_text(prop, "Render Quality", "Quality when rendering");
-
-  prop = RNA_def_property(srna, "edit_quality", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "edit_quality");
-  RNA_def_property_enum_items(prop, node_quality_items);
-  RNA_def_property_ui_text(prop, "Edit Quality", "Quality when editing");
 
   prop = RNA_def_property(srna, "use_viewer_border", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_VIEWER_BORDER);

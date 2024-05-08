@@ -30,13 +30,6 @@ class CompositorContext {
    */
   bool rendering_;
 
-  /**
-   * \brief The quality of the composite.
-   * This field is initialized in ExecutionSystem and must only be read from that point on.
-   * \see ExecutionSystem
-   */
-  eCompositorQuality quality_;
-
   Scene *scene_;
 
   /**
@@ -147,22 +140,6 @@ class CompositorContext {
   bNodeInstanceHash *get_preview_hash() const
   {
     return previews_;
-  }
-
-  /**
-   * \brief set the quality
-   */
-  void set_quality(eCompositorQuality quality)
-  {
-    quality_ = quality;
-  }
-
-  /**
-   * \brief get the quality
-   */
-  eCompositorQuality get_quality() const
-  {
-    return quality_;
   }
 
   /**

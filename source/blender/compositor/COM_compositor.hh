@@ -87,8 +87,6 @@ struct Render;
  *     - another quality setting can be used bNodeTree.
  *       The quality is determined by the bNodeTree fields.
  *       quality can be modified by the user from within the node panels.
- * \see bNodeTree.edit_quality
- * \see bNodeTree.render_quality
  *
  *     - output nodes can have different priorities in the WorkScheduler.
  * This is implemented in the COM_execute function.
