@@ -85,9 +85,6 @@ if(WITH_COMPOSITOR_CPU)
     intern/COM_compositor.cc
     intern/COM_profile.cc
 
-    operations/COM_QualityStepHelper.cc
-    operations/COM_QualityStepHelper.h
-
     # Internal nodes
     nodes/COM_SocketProxyNode.cc
     nodes/COM_SocketProxyNode.h

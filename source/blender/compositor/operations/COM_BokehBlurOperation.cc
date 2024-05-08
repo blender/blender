@@ -36,11 +36,6 @@ void BokehBlurOperation::init_data()
   update_size();
 }
 
-void BokehBlurOperation::init_execution()
-{
-  QualityStepHelper::init_execution(COM_QH_INCREASE);
-}
-
 void BokehBlurOperation::update_size()
 {
   if (sizeavailable_) {
@@ -124,9 +119,8 @@ void BokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
     float4 accumulated_color = float4(0.0f);
     float4 accumulated_weight = float4(0.0f);
-    const int step = get_step();
-    for (int yi = -radius; yi <= radius; yi += step) {
-      for (int xi = -radius; xi <= radius; xi += step) {
+    for (int yi = -radius; yi <= radius; ++yi) {
+      for (int xi = -radius; xi <= radius; ++xi) {
         const float2 normalized_texel = (float2(xi, yi) + radius + 0.5f) / (radius * 2.0f + 1.0f);
         const float2 weight_texel = (1.0f - normalized_texel) * float2(bokeh_size - 1);
         const float4 weight = bokeh_input->get_elem(int(weight_texel.x), int(weight_texel.y));

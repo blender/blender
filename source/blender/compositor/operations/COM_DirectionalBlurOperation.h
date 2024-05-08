@@ -5,11 +5,10 @@
 #pragma once
 
 #include "COM_MultiThreadedOperation.h"
-#include "COM_QualityStepHelper.h"
 
 namespace blender::compositor {
 
-class DirectionalBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
+class DirectionalBlurOperation : public MultiThreadedOperation {
  private:
   const NodeDBlurData *data_;
 

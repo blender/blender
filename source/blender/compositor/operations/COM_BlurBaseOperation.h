@@ -5,7 +5,6 @@
 #pragma once
 
 #include "COM_MultiThreadedOperation.h"
-#include "COM_QualityStepHelper.h"
 
 #define MAX_GAUSSTAB_RADIUS 30000
 
@@ -13,7 +12,7 @@
 
 namespace blender::compositor {
 
-class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelper {
+class BlurBaseOperation : public MultiThreadedOperation {
  private:
   bool extend_bounds_;
 
@@ -45,7 +44,6 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
 
  public:
   virtual void init_data() override;
-  void init_execution() override;
 
   void set_data(const NodeBlurData *data);
 

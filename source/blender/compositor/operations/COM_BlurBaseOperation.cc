@@ -49,11 +49,6 @@ void BlurBaseOperation::init_data()
   }
 }
 
-void BlurBaseOperation::init_execution()
-{
-  QualityStepHelper::init_execution(COM_QH_MULTIPLY);
-}
-
 float *BlurBaseOperation::make_gausstab(float rad, int size)
 {
   float *gausstab, sum, val;

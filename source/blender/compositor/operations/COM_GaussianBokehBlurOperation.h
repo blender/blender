@@ -8,7 +8,6 @@
 
 #include "COM_BlurBaseOperation.h"
 #include "COM_NodeOperation.h"
-#include "COM_QualityStepHelper.h"
 
 namespace blender::compositor {
 

@@ -19,7 +19,7 @@ BlurNode::BlurNode(bNode *editor_node) : Node(editor_node)
 }
 
 void BlurNode::convert_to_operations(NodeConverter &converter,
-                                     const CompositorContext &context) const
+                                     const CompositorContext & /*context*/) const
 {
   const bNode *editor_node = this->get_bnode();
   const NodeBlurData *data = (const NodeBlurData *)editor_node->storage;
@@ -29,7 +29,6 @@ void BlurNode::convert_to_operations(NodeConverter &converter,
   const float size = this->get_input_socket(1)->get_editor_value_float();
   const bool extend_bounds = (editor_node->custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS) != 0;
 
-  eCompositorQuality quality = context.get_quality();
   NodeOperation *input_operation = nullptr, *output_operation = nullptr;
 
   if (data->filtertype == R_FILTER_FAST_GAUSS) {
@@ -56,7 +55,6 @@ void BlurNode::convert_to_operations(NodeConverter &converter,
 
     GaussianBlurReferenceOperation *operation = new GaussianBlurReferenceOperation();
     operation->set_data(data);
-    operation->set_quality(quality);
     operation->set_extend_bounds(extend_bounds);
 
     converter.add_operation(operation);
@@ -68,7 +66,6 @@ void BlurNode::convert_to_operations(NodeConverter &converter,
   else if (!data->bokeh) {
     GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
     operationx->set_data(data);
-    operationx->set_quality(quality);
     operationx->set_extend_bounds(extend_bounds);
 
     converter.add_operation(operationx);
@@ -76,7 +73,6 @@ void BlurNode::convert_to_operations(NodeConverter &converter,
 
     GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
     operationy->set_data(data);
-    operationy->set_quality(quality);
     operationy->set_extend_bounds(extend_bounds);
 
     converter.add_operation(operationy);
@@ -94,7 +90,6 @@ void BlurNode::convert_to_operations(NodeConverter &converter,
   else {
     GaussianBokehBlurOperation *operation = new GaussianBokehBlurOperation();
     operation->set_data(data);
-    operation->set_quality(quality);
     operation->set_extend_bounds(extend_bounds);
 
     converter.add_operation(operation);

@@ -5,11 +5,10 @@
 #pragma once
 
 #include "COM_MultiThreadedOperation.h"
-#include "COM_QualityStepHelper.h"
 
 namespace blender::compositor {
 
-class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
+class BokehBlurOperation : public MultiThreadedOperation {
  private:
   void update_size();
   float size_;
@@ -21,8 +20,6 @@ class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelp
   BokehBlurOperation();
 
   void init_data() override;
-
-  void init_execution() override;
 
   void set_size(float size)
   {
