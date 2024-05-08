@@ -35,7 +35,6 @@
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_appdir.hh"
-#include "BKE_asset.hh"
 #include "BKE_blender_copybuffer.hh"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
