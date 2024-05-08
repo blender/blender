@@ -612,8 +612,9 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
       if (layer->frames().contains(target_frame_number)) {
         layer->remove_frame(target_frame_number);
       }
-      layer->add_frame(
-          target_frame_number, grease_pencil->drawings().size(), drawing_buffer.duration);
+      GreasePencilFrame *frame = layer->add_frame(target_frame_number, drawing_buffer.duration);
+      BLI_assert(frame != nullptr);
+      frame->drawing_index = grease_pencil->drawings().size();
       grease_pencil->add_duplicate_drawings(1, drawing_buffer.drawing);
       change = true;
     }

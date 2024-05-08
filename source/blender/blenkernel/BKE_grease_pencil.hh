@@ -418,7 +418,7 @@ class Layer : public ::GreasePencilLayer {
    *
    * \returns a pointer to the added frame on success, otherwise nullptr.
    */
-  GreasePencilFrame *add_frame(FramesMapKey key, int drawing_index, int duration = 0);
+  GreasePencilFrame *add_frame(FramesMapKey key, int duration = 0);
   /**
    * Removes a frame with \a key from the frames map.
    *
@@ -510,7 +510,7 @@ class Layer : public ::GreasePencilLayer {
   using SortedKeysIterator = const int *;
 
  private:
-  GreasePencilFrame *add_frame_internal(int frame_number, int drawing_index);
+  GreasePencilFrame *add_frame_internal(int frame_number);
 
   /**
    * Removes null frames starting from \a begin until \a end (excluded) or until a non-null frame

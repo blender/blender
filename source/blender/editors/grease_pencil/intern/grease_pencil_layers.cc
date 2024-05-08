@@ -505,8 +505,9 @@ static int grease_pencil_layer_duplicate_exec(bContext *C, wmOperator *op)
   new_layer.frames_for_write().clear();
   for (auto [key, frame] : active_layer.frames().items()) {
     const int duration = frame.is_implicit_hold() ? 0 : active_layer.get_frame_duration_at(key);
-    const int drawing_index = grease_pencil.drawings().size();
-    GreasePencilFrame *new_frame = new_layer.add_frame(key, drawing_index, duration);
+
+    GreasePencilFrame *new_frame = new_layer.add_frame(key, duration);
+    new_frame->drawing_index = grease_pencil.drawings().size();
     new_frame->type = frame.type;
     if (empty_keyframes) {
       grease_pencil.add_empty_drawings(1);

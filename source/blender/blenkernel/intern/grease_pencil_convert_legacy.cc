@@ -993,7 +993,8 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
       legacy_gpencil_frame_to_grease_pencil_drawing(*gpf, gpd.vertex_group_names, drawing);
 
       /* Add the frame to the layer. */
-      if (GreasePencilFrame *new_frame = new_layer.add_frame(gpf->framenum, i)) {
+      if (GreasePencilFrame *new_frame = new_layer.add_frame(gpf->framenum)) {
+        new_frame->drawing_index = i;
         new_frame->type = gpf->key_type;
         SET_FLAG_FROM_TEST(new_frame->flag, (gpf->flag & GP_FRAME_SELECT), GP_FRAME_SELECTED);
       }

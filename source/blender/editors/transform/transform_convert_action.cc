@@ -154,8 +154,7 @@ static bool grease_pencil_layer_update_trans_data(blender::bke::greasepencil::La
 
   layer.remove_frame(dst_frame_number);
 
-  GreasePencilFrame *frame = layer.add_frame(
-      dst_frame_number, src_frame.drawing_index, src_duration);
+  GreasePencilFrame *frame = layer.add_frame(dst_frame_number, src_duration);
   *frame = src_frame;
 
   trans_data.frames_destination.add_overwrite(src_frame_number, dst_frame_number);
