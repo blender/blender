@@ -198,7 +198,7 @@ class LayerViewItem : public AbstractTreeViewItem {
         &grease_pencil_.id, &RNA_GreasePencilv3Layers, nullptr);
     PointerRNA value_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
-    PropertyRNA *prop = RNA_struct_find_property(&grease_pencil_ptr, "active");
+    PropertyRNA *prop = RNA_struct_find_property(&grease_pencil_ptr, "active_layer");
 
     RNA_property_pointer_set(&grease_pencil_ptr, prop, value_ptr, nullptr);
     RNA_property_update(&C, &grease_pencil_ptr, prop);

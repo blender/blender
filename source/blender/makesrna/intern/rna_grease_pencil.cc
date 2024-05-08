@@ -522,7 +522,7 @@ static void rna_def_grease_pencil_layers_api(BlenderRNA *brna, PropertyRNA *cpro
   RNA_def_struct_sdna(srna, "GreasePencil");
   RNA_def_struct_ui_text(srna, "Grease Pencil Layers", "Collection of Grease Pencil layers");
 
-  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+  prop = RNA_def_property(srna, "active_layer", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayer");
   RNA_def_property_pointer_funcs(prop,
                                  "rna_GreasePencil_active_layer_get",
