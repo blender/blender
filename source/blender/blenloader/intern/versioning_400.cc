@@ -2097,6 +2097,25 @@ static bool seq_proxies_timecode_update(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
+static bool seq_text_data_update(Sequence *seq, void * /*user_data*/)
+{
+  if (seq->type != SEQ_TYPE_TEXT || seq->effectdata == nullptr) {
+    return true;
+  }
+
+  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  if (data->shadow_angle == 0.0f) {
+    data->shadow_angle = DEG2RADF(65.0f);
+    data->shadow_offset = 0.04f;
+    data->shadow_blur = 0.0f;
+  }
+  if (data->outline_width == 0.0f) {
+    data->outline_color[3] = 0.7f;
+    data->outline_width = 0.05f;
+  }
+  return true;
+}
+
 static void versioning_node_hue_correct_set_wrappng(bNodeTree *ntree)
 {
   if (ntree->type == NTREE_COMPOSIT) {
@@ -3375,6 +3394,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
       MovieClipProxy proxy = clip->proxy;
       versioning_update_timecode(&proxy.tc);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 29)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_text_data_update, nullptr);
+      }
     }
   }
 

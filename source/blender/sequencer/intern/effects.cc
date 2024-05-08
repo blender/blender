@@ -2583,11 +2583,16 @@ static void init_text_effect(Sequence *seq)
 
   copy_v4_fl(data->color, 1.0f);
   data->shadow_color[3] = 0.7f;
+  data->shadow_angle = DEG2RADF(65.0f);
+  data->shadow_offset = 0.04f;
+  data->shadow_blur = 0.0f;
   data->box_color[0] = 0.2f;
   data->box_color[1] = 0.2f;
   data->box_color[2] = 0.2f;
   data->box_color[3] = 0.7f;
   data->box_margin = 0.01f;
+  data->outline_color[3] = 0.7f;
+  data->outline_width = 0.05f;
 
   STRNCPY(data->text, "Text");
 
@@ -2696,31 +2701,274 @@ static StripEarlyOut early_out_text(const Sequence *seq, float /*fac*/)
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   if (data->text[0] == 0 || data->text_size < 1.0f ||
       ((data->color[3] == 0.0f) &&
-       (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0)))
+       (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0) &&
+       (data->outline_color[3] == 0.0f || data->outline_width <= 0.0f ||
+        (data->flag & SEQ_TEXT_OUTLINE) == 0)))
   {
     return StripEarlyOut::UseInput1;
   }
   return StripEarlyOut::NoInput;
 }
 
+static void draw_text_shadow(const SeqRenderData *context,
+                             const TextVars *data,
+                             int font,
+                             ColorManagedDisplay *display,
+                             int x,
+                             int y,
+                             int line_height,
+                             ImBuf *out)
+{
+  const int width = context->rectx;
+  const int height = context->recty;
+  /* Blur value of 1.0 applies blur kernel that is half of text line height. */
+  const float blur_amount = line_height * 0.5f * data->shadow_blur;
+  bool do_blur = blur_amount >= 1.0f;
+  ImBuf *tmp_out1 = nullptr, *tmp_out2 = nullptr;
+  if (do_blur) {
+    /* When shadow blur is on, it needs to first be rendered into a temporary
+     * buffer and then blurred, so that whatever is under the shadow does
+     * not get blur. */
+    tmp_out1 = prepare_effect_imbufs(context, nullptr, nullptr, nullptr, false);
+    tmp_out2 = prepare_effect_imbufs(context, nullptr, nullptr, nullptr, false);
+    BLF_buffer(font, nullptr, tmp_out1->byte_buffer.data, width, height, 4, display);
+  }
+
+  float offsetx = cosf(data->shadow_angle) * line_height * data->shadow_offset;
+  float offsety = sinf(data->shadow_angle) * line_height * data->shadow_offset;
+  BLF_position(font, x + offsetx, y - offsety, 0.0f);
+  /* If we will blur the text, rasterize at full opacity, white. Will tint
+   * with shadow color when compositing later on. */
+  float white_color[4] = {1, 1, 1, 1};
+  BLF_buffer_col(font, do_blur ? white_color : data->shadow_color);
+  BLF_draw_buffer(font, data->text, sizeof(data->text));
+
+  if (do_blur) {
+    /* Create blur kernel weights. */
+    const int half_size = int(blur_amount + 0.5f);
+    Array<float> gausstab = make_gaussian_blur_kernel(blur_amount, half_size);
+
+    /* Premultiplied shadow color. */
+    float4 color = data->shadow_color;
+    color.x *= color.w;
+    color.y *= color.w;
+    color.z *= color.w;
+
+    /* Horizontal blur: blur tmp_out1 into tmp_out2. */
+    threading::parallel_for(IndexRange(context->recty), 32, [&](const IndexRange y_range) {
+      const int y_first = y_range.first();
+      const int y_size = y_range.size();
+      gaussian_blur_x(gausstab,
+                      half_size,
+                      y_first,
+                      width,
+                      y_size,
+                      height,
+                      tmp_out1->byte_buffer.data,
+                      tmp_out2->byte_buffer.data);
+    });
+
+    /* Vertical blur: blur tmp_out2 into tmp_out1, and composite into regular output. */
+    threading::parallel_for(IndexRange(context->recty), 32, [&](const IndexRange y_range) {
+      const int y_first = y_range.first();
+      const int y_size = y_range.size();
+      gaussian_blur_y(gausstab,
+                      half_size,
+                      y_first,
+                      width,
+                      y_size,
+                      height,
+                      tmp_out2->byte_buffer.data,
+                      tmp_out1->byte_buffer.data);
+      /* Composite over regular output (which might have box drawn into it). */
+      const uchar *src = tmp_out1->byte_buffer.data + size_t(y_first) * width * 4;
+      const uchar *src_end = tmp_out1->byte_buffer.data + size_t(y_first + y_size) * width * 4;
+      uchar *dst = out->byte_buffer.data + size_t(y_first) * width * 4;
+      for (; src < src_end; src += 4, dst += 4) {
+        uchar a = src[3];
+        if (a == 0) {
+          /* Fully transparent, leave output pixel as is. */
+          continue;
+        }
+        float4 col1 = color * (a * (1.0f / 255.0f));
+        /* Blend over the output. */
+        float mfac = 1.0f - col1.w;
+        float4 col2 = load_premul_pixel(dst);
+        float4 col = col1 + mfac * col2;
+        store_premul_pixel(col, dst);
+      }
+    });
+    IMB_freeImBuf(tmp_out1);
+    IMB_freeImBuf(tmp_out2);
+    BLF_buffer(font, nullptr, out->byte_buffer.data, width, height, out->channels, display);
+  }
+}
+
+/* Text outline calculation is done by Jump Flooding Algorithm (JFA).
+ * This is similar to inpaint/jump_flooding in Compositor, also to
+ * "The Quest for Very Wide Outlines", Ben Golus 2020
+ * https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9 */
+
+constexpr uint16_t JFA_INVALID = 0xFFFF;
+
+struct JFACoord {
+  uint16_t x;
+  uint16_t y;
+};
+
+static void jump_flooding_pass(Span<JFACoord> input,
+                               MutableSpan<JFACoord> output,
+                               int2 size,
+                               int step_size)
+{
+  threading::parallel_for(IndexRange(size.y), 16, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      size_t index = y * size.x;
+      for (const int64_t x : IndexRange(size.x)) {
+        float2 coord = float2(x, y);
+
+        /* For each pixel, sample 9 pixels at +/- step size pattern,
+         * and output coordinate of closest to the boundary. */
+        JFACoord closest_texel{JFA_INVALID, JFA_INVALID};
+        float minimum_squared_distance = std::numeric_limits<float>::max();
+        for (int dy = -step_size; dy <= step_size; dy += step_size) {
+          int yy = y + dy;
+          if (yy < 0 || yy >= size.y) {
+            continue;
+          }
+          for (int dx = -step_size; dx <= step_size; dx += step_size) {
+            int xx = x + dx;
+            if (xx < 0 || xx >= size.x) {
+              continue;
+            }
+            JFACoord val = input[size_t(yy) * size.x + xx];
+            if (val.x == JFA_INVALID) {
+              continue;
+            }
+
+            float squared_distance = math::distance_squared(float2(val.x, val.y), coord);
+            if (squared_distance < minimum_squared_distance) {
+              minimum_squared_distance = squared_distance;
+              closest_texel = val;
+            }
+          }
+        }
+
+        output[index + x] = closest_texel;
+      }
+    }
+  });
+}
+
+static void draw_text_outline(const SeqRenderData *context,
+                              const TextVars *data,
+                              int font,
+                              ColorManagedDisplay *display,
+                              int x,
+                              int y,
+                              int line_height,
+                              ImBuf *out)
+{
+  /* Outline width of 1.0 maps to half of text line height. */
+  const int outline_width = int(line_height * 0.5f * data->outline_width);
+  if (outline_width < 1 || data->outline_color[3] <= 0.0f) {
+    return;
+  }
+
+  const int2 size = int2(context->rectx, context->recty);
+
+  /* Draw white text into temporary buffer. */
+  const size_t pixel_count = size_t(size.x) * size.y;
+  Array<uchar4> tmp_buf(pixel_count, uchar4(0));
+  BLF_buffer(font, nullptr, (uchar *)tmp_buf.data(), size.x, size.y, 4, display);
+  BLF_position(font, x, y, 0.0f);
+  BLF_buffer_col(font, float4(1.0f));
+  BLF_draw_buffer(font, data->text, sizeof(data->text));
+
+  /* Initialize JFA: invalid values for empty regions, pixel coordinates
+   * for opaque regions. */
+  Array<JFACoord> boundary(pixel_count);
+  threading::parallel_for(IndexRange(size.y), 16, [&](const IndexRange y_range) {
+    for (const int y : y_range) {
+      size_t index = size_t(y) * size.x;
+      for (int x = 0; x < size.x; x++, index++) {
+        bool is_opaque = tmp_buf[index].w >= 128;
+        JFACoord coord;
+        coord.x = is_opaque ? x : JFA_INVALID;
+        coord.y = is_opaque ? y : JFA_INVALID;
+        boundary[index] = coord;
+      }
+    }
+  });
+
+  /* Do jump flooding calculations. */
+  Array<JFACoord> initial_flooded_result(pixel_count, NoInitialization());
+  jump_flooding_pass(boundary, initial_flooded_result, size, 1);
+
+  Array<JFACoord> *result_to_flood = &initial_flooded_result;
+  Array<JFACoord> intermediate_result(pixel_count, NoInitialization());
+  Array<JFACoord> *result_after_flooding = &intermediate_result;
+
+  int step_size = power_of_2_max_i(outline_width) / 2;
+
+  while (step_size != 0) {
+    jump_flooding_pass(*result_to_flood, *result_after_flooding, size, step_size);
+    std::swap(result_to_flood, result_after_flooding);
+    step_size /= 2;
+  }
+
+  /* Premultiplied outline color. */
+  float4 color = data->outline_color;
+  color.x *= color.w;
+  color.y *= color.w;
+  color.z *= color.w;
+
+  /* We have distances to the closest opaque parts of the image now. Composite the
+   * outline into the output image. */
+
+  threading::parallel_for(IndexRange(size.y), 16, [&](const IndexRange y_range) {
+    for (const int y : y_range) {
+      size_t index = size_t(y) * size.x;
+      uchar *dst = out->byte_buffer.data + index * 4;
+      for (int x = 0; x < size.x; x++, index++, dst += 4) {
+        JFACoord closest_texel = (*result_to_flood)[index];
+        if (closest_texel.x == JFA_INVALID) {
+          /* Outside of outline, leave output pixel as is. */
+          continue;
+        }
+
+        /* Fade out / anti-alias the outline over one pixel towards outline distance. */
+        float distance = math::distance(float2(x, y), float2(closest_texel.x, closest_texel.y));
+        float alpha = math::clamp(outline_width - distance + 1.0f, 0.0f, 1.0f);
+        float4 col1 = color;
+        col1 *= alpha;
+
+        /* Blend over the output. */
+        float mfac = 1.0f - col1.w;
+        float4 col2 = load_premul_pixel(dst);
+        float4 col = col1 + mfac * col2;
+        store_premul_pixel(col, dst);
+      }
+    }
+  });
+  BLF_buffer(font, nullptr, out->byte_buffer.data, size.x, size.y, out->channels, display);
+}
+
 static ImBuf *do_text_effect(const SeqRenderData *context,
                              Sequence *seq,
                              float /*timeline_frame*/,
                              float /*fac*/,
-                             ImBuf *ibuf1,
-                             ImBuf *ibuf2,
-                             ImBuf *ibuf3)
+                             ImBuf * /* ibuf1*/,
+                             ImBuf * /* ibuf2*/,
+                             ImBuf * /* ibuf3*/)
 {
   /* NOTE: text rasterization only fills in part of output image,
    * need to clear it. */
-  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3, false);
+  ImBuf *out = prepare_effect_imbufs(context, nullptr, nullptr, nullptr, false);
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
-  int width = out->x;
-  int height = out->y;
-  ColorManagedDisplay *display;
-  const char *display_device;
+  const int width = out->x;
+  const int height = out->y;
   int font = blf_mono_font_render;
-  int line_height;
   int y_ofs, x, y;
   double proxy_size_comp;
 
@@ -2734,8 +2982,8 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
     font = data->text_blf_id;
   }
 
-  display_device = context->scene->display_settings.display_device;
-  display = IMB_colormanagement_display_get_named(display_device);
+  const char *display_device = context->scene->display_settings.display_device;
+  ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 
   /* Compensate text size for preview render size. */
   proxy_size_comp = context->scene->r.size / 100.0;
@@ -2754,10 +3002,9 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* use max width to enable newlines only */
   BLF_wordwrap(font, (data->wrap_width != 0.0f) ? data->wrap_width * width : -1);
 
-  BLF_buffer(
-      font, out->float_buffer.data, out->byte_buffer.data, width, height, out->channels, display);
+  BLF_buffer(font, nullptr, out->byte_buffer.data, width, height, out->channels, display);
 
-  line_height = BLF_height_max(font);
+  const int line_height = BLF_height_max(font);
 
   y_ofs = -BLF_descender(font);
 
@@ -2794,6 +3041,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
     }
   }
 
+  /* Draw box under text. */
   if (data->flag & SEQ_TEXT_BOX) {
     if (out->byte_buffer.data) {
       const int margin = data->box_margin * width;
@@ -2804,16 +3052,18 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
       IMB_rectfill_area_replace(out, data->box_color, minx, miny, maxx, maxy);
     }
   }
-  /* BLF_SHADOW won't work with buffers, instead use cheap shadow trick */
+
+  /* Draw text shadow. */
   if (data->flag & SEQ_TEXT_SHADOW) {
-    int fontx, fonty;
-    fontx = BLF_width_max(font);
-    fonty = line_height;
-    BLF_position(font, x + max_ii(fontx / 55, 1), y - max_ii(fonty / 30, 1), 0.0f);
-    BLF_buffer_col(font, data->shadow_color);
-    BLF_draw_buffer(font, data->text, sizeof(data->text));
+    draw_text_shadow(context, data, font, display, x, y, line_height, out);
   }
 
+  /* Draw text outline. */
+  if (data->flag & SEQ_TEXT_OUTLINE) {
+    draw_text_outline(context, data, font, display, x, y, line_height, out);
+  }
+
+  /* Draw text itself. */
   BLF_position(font, x, y, 0.0f);
   BLF_buffer_col(font, data->color);
   BLF_draw_buffer(font, data->text, sizeof(data->text));
