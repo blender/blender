@@ -218,7 +218,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
   prop = RNA_def_property(srna, "grid_surfel_density", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 0, INT_MAX);
+  RNA_def_property_range(prop, 1, INT_MAX);
   RNA_def_property_ui_text(
       prop,
       "Surfel Resolution",
