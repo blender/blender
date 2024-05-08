@@ -294,16 +294,6 @@ LinkNode * /*BLODataBlockInfo*/ BLO_blendhandle_get_datablock_info(BlendHandle *
                                                                    bool use_assets_only,
                                                                    int *r_tot_info_items);
 /**
- * Gets the previews of all the data-blocks in a file of a certain type
- * (e.g. all the scene previews in a file).
- *
- * \param bh: The blendhandle to access.
- * \param ofblocktype: The type of names to get.
- * \param r_tot_prev: The length of the returned list.
- * \return A BLI_linklist of #PreviewImage. The #PreviewImage links should be freed with malloc.
- */
-LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev);
-/**
  * Get the PreviewImage of a single data block in a file.
  * (e.g. all the scene previews in a file).
  *

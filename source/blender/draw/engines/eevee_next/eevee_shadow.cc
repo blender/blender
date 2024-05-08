@@ -30,19 +30,15 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
                                       int2 origin_offset,
                                       int clipmap_level,
                                       float lod_bias_,
-                                      float filter_radius_,
                                       eShadowProjectionType projection_type_)
 {
-  if ((projection_type != projection_type_) || (level != clipmap_level) ||
-      (filter_radius != filter_radius_))
-  {
+  if ((projection_type != projection_type_) || (level != clipmap_level)) {
     set_dirty();
   }
   projection_type = projection_type_;
   level = clipmap_level;
   light_type = eLightType::LIGHT_SUN;
   is_area_side = false;
-  filter_radius = filter_radius_;
 
   if (grid_shift == int2(0)) {
     /* Only replace shift if it is not already dirty. */
@@ -82,7 +78,6 @@ void ShadowTileMap::sync_cubeface(eLightType light_type_,
                                   float side_,
                                   float shift,
                                   eCubeFace face,
-                                  float filter_radius_,
                                   float lod_bias_)
 {
   if (projection_type != SHADOW_PROJECTION_CUBEFACE || (cubeface != face)) {
@@ -95,13 +90,10 @@ void ShadowTileMap::sync_cubeface(eLightType light_type_,
   light_type = light_type_;
   is_area_side = is_area_light(light_type) && (face != eCubeFace::Z_NEG);
 
-  if ((clip_near != near_) || (filter_radius != filter_radius_) || (clip_far != far_) ||
-      (half_size != side_))
-  {
+  if ((clip_near != near_) || (clip_far != far_) || (half_size != side_)) {
     set_dirty();
   }
 
-  filter_radius = filter_radius_;
   clip_near = near_;
   clip_far = far_;
   area_shift = shift;
@@ -202,7 +194,7 @@ void ShadowTileMapPool::end_sync(ShadowModule &module)
     tilemaps_clip.resize(needed_tilemap_capacity);
     /* We reallocated the tile-map buffer, discarding all the data it contained.
      * We need to re-initialize the page heaps. */
-    module.do_full_update = true;
+    module.do_full_update_ = true;
   }
 
   tilemaps_unused.clear();
@@ -240,8 +232,7 @@ void ShadowPunctual::sync(eLightType light_type,
                           float cone_aperture,
                           float light_shape_radius,
                           float max_distance,
-                          float softness_factor,
-                          float shadow_radius)
+                          float shadow_resolution_scale)
 {
   if (is_spot_light(light_type)) {
     tilemaps_needed_ = (cone_aperture > DEG2RADF(90.0f)) ? 5 : 1;
@@ -259,8 +250,10 @@ void ShadowPunctual::sync(eLightType light_type,
   light_type_ = light_type;
 
   position_ = float3(object_mat[3]);
-  softness_factor_ = softness_factor;
-  shadow_radius_ = shadow_radius;
+
+  float resolution_scale = clamp_f(shadow_resolution_scale, 0.0f, 2.0f);
+  lod_bias_ = (resolution_scale < 1.0) ? -log2(resolution_scale) : -(resolution_scale - 1.0f);
+  lod_bias_ += shadows_.get_global_lod_bias();
 }
 
 void ShadowPunctual::release_excess_tilemaps()
@@ -273,110 +266,20 @@ void ShadowPunctual::release_excess_tilemaps()
   tilemaps_ = span.take_front(tilemaps_needed_);
 }
 
-void ShadowPunctual::compute_projection_boundaries(eLightType light_type,
-                                                   float light_radius,
-                                                   float shadow_radius,
-                                                   float max_lit_distance,
-                                                   float &near,
-                                                   float &far,
-                                                   float &side,
-                                                   float &back_shift)
+void ShadowPunctual::compute_projection_boundaries(
+    float max_lit_distance, float &near, float &far, float &side, float &back_shift)
 {
-  /*
-   * In order to make sure we can trace any ray in its entirety using a single tile-map, we have
-   * to make sure that the tile-map cover all potential occluder that can intersect any ray shot
-   * in this particular shadow quadrant.
-   *
-   * To this end, we inflate the tile-map perspective sides to make sure the
-   * tile-map frustum starts where the rays cannot go.
-   *
-   * We are interesting in finding `I` the new origin and `n` the new near plane distances.
-   *
-   *                                              I .... Intersection between tangent and
-   *                                             /|      projection center axis
-   *                                            / |
-   *                                           /  |
-   *                                          /   |
-   *                                         /    |
-   *                                        /     |
-   *                                       /      |
-   *                                      /       |
-   *                                     /        |
-   *                                    /         |
-   *                                   /      ....|
-   *                                  /   ....    |
-   *                                 / ...        |
-   *                                /.            |
-   *                               /              |
-   *  Tangent to light shape .... T\--------------N
-   *                             /  --\ Beta      |
-   *                            /      -\         |
-   *                           /         --\      |
-   *                          /.            --\   |
-   *                         / .               -\ |
-   *                        /  .           Alpha -O .... Light center
-   *                       /   .              /-/ |
-   *  Inflated side       /    .        /--- -/   |
-   *                 .   /      . /----  --/      |
-   *                  . /   /---- .   --/         |
-   *                   /-------------/------------X .... Desired near plane (inscribed cube)
-   *              /----         --/ ..            |
-   *         /----   /       --/      ...         |
-   *    /----       /     --/            ....     |
-   *               /    -/                    ....| .... Shadow radius
-   *              /  --/                          |
-   *             /--/                             |
-   *            F .... Most distant shadow receiver possible.
-   *
-   * F: The most distant shadowed point at the edge of the 45° cube-face pyramid.
-   * O: The light origin.
-   * T: The tangent to the circle of radius `radius` centered at the origin and passing through F.
-   * I: Intersection between tangent and the projection center axis.
-   * N: The shifted near plane center.
-   * X: Intersection between the near plane and the projection center axis.
-   * Alpha: FOT angle.
-   * Beta: OTN angle.
-   *
-   * NOTE: FTO, ONT and TNI are right angles.
-   */
-  float cos_alpha = shadow_radius / max_lit_distance;
-  float sin_alpha = sqrt(1.0f - math::square(cos_alpha));
-  float near_shift = M_SQRT2 * shadow_radius * 0.5f * (sin_alpha - cos_alpha);
-  float side_shift = M_SQRT2 * shadow_radius * 0.5f * (sin_alpha + cos_alpha);
-  float origin_shift = M_SQRT2 * shadow_radius / (sin_alpha - cos_alpha);
-
-  float min_near = (max_lit_distance / 4000.0f) / M_SQRT3;
-
-  if (is_area_light(light_type)) {
-    /* Make near plane be inside the inscribed cube of the shadow sphere. */
-    near = max_ff(shadow_radius / M_SQRT3, min_near);
-    /* Subtract min_near to make the shadow center match the light center if there is no shadow
-     * tracing required. This avoid light leaking issues near the light plane caused by the
-     * shadow discard clipping. */
-    back_shift = (near - min_near);
-  }
-  else {
-    /* Make near plane be inside the inscribed cube of the light sphere. */
-    near = max_ff(light_radius / M_SQRT3, min_near);
-    back_shift = 0.0f;
-  }
-
   far = max_lit_distance;
-  if (shadow_radius > 1e-5f) {
-    side = ((side_shift / (origin_shift - near_shift)) * (origin_shift + near));
-  }
-  else {
-    side = near;
-  }
+  near = side = (max_lit_distance / 4000.0f) / M_SQRT3;
+  back_shift = 0.0f;
 }
 
-void ShadowPunctual::end_sync(Light &light, float lod_bias)
+void ShadowPunctual::end_sync(Light &light)
 {
   ShadowTileMapPool &tilemap_pool = shadows_.tilemap_pool;
 
   float side, near, far, shift;
-  compute_projection_boundaries(
-      light.type, light_radius_, shadow_radius_, max_distance_, near, far, side, shift);
+  compute_projection_boundaries(max_distance_, near, far, side, shift);
 
   float4x4 obmat_tmp = light.object_to_world;
 
@@ -385,21 +288,20 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
     tilemaps_.append(tilemap_pool.acquire());
   }
 
-  tilemaps_[Z_NEG]->sync_cubeface(
-      light.type, obmat_tmp, near, far, side, shift, Z_NEG, light.pcf_radius, lod_bias);
+  tilemaps_[Z_NEG]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, Z_NEG, lod_bias_);
   if (tilemaps_needed_ >= 5) {
     tilemaps_[X_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, X_POS, light.pcf_radius, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, X_POS, lod_bias_);
     tilemaps_[X_NEG]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, X_NEG, light.pcf_radius, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, X_NEG, lod_bias_);
     tilemaps_[Y_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Y_POS, light.pcf_radius, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, Y_POS, lod_bias_);
     tilemaps_[Y_NEG]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Y_NEG, light.pcf_radius, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, Y_NEG, lod_bias_);
   }
   if (tilemaps_needed_ == 6) {
     tilemaps_[Z_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Z_POS, light.pcf_radius, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, Z_POS, lod_bias_);
   }
 
   light.tilemap_index = tilemap_pool.tilemaps_data.size();
@@ -416,7 +318,6 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
   light.clip_far = as_int.i;
   light.local.clip_side = side;
   light.local.shadow_projection_shift = shift;
-  light.local.shadow_scale = softness_factor_;
 
   for (ShadowTileMap *tilemap : tilemaps_) {
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
@@ -468,7 +369,7 @@ void ShadowDirectional::cascade_tilemaps_distribution_near_far_points(const Came
 
 /* \note All tile-maps are meant to have the same LOD but we still return a range starting at the
  * unique LOD. */
-IndexRange ShadowDirectional::cascade_level_range(const Camera &camera, float lod_bias)
+IndexRange ShadowDirectional::cascade_level_range(const Camera &camera)
 {
   using namespace blender::math;
 
@@ -493,7 +394,7 @@ IndexRange ShadowDirectional::cascade_level_range(const Camera &camera, float lo
   }
 
   /* Allow better tile-map usage without missing pages near end of view. */
-  lod_bias += 0.5f;
+  float lod_bias = this->lod_bias_ + 0.5f;
   /* Level of detail (or size) of every tile-maps of this light. */
   int lod_level = ceil(log2(max_ff(min_depth_tilemap_size, min_diagonal_tilemap_size)) + lod_bias);
 
@@ -544,8 +445,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
     /* Equal spacing between cascades layers since we want uniform shadow density. */
     int2 level_offset = origin_offset +
                         shadow_cascade_grid_offset(light.sun.clipmap_base_offset_pos, i);
-    tilemap->sync_orthographic(
-        object_mat_, level_offset, level, 0.0f, light.pcf_radius, SHADOW_PROJECTION_CASCADE);
+    tilemap->sync_orthographic(object_mat_, level_offset, level, 0.0f, SHADOW_PROJECTION_CASCADE);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
     shadows_.tilemap_pool.tilemaps_data.append(*tilemap);
@@ -596,9 +496,7 @@ IndexRange ShadowDirectional::clipmap_level_range(const Camera &camera)
   return range;
 }
 
-void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
-                                                      const Camera &camera,
-                                                      float lod_bias)
+void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera &camera)
 {
   for (int lod : IndexRange(levels_range.size())) {
     ShadowTileMap *tilemap = tilemaps_[lod];
@@ -612,7 +510,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
     int2 level_offset = int2(math::round(light_space_camera_position / tile_size));
 
     tilemap->sync_orthographic(
-        object_mat_, level_offset, level, lod_bias, light.pcf_radius, SHADOW_PROJECTION_CLIPMAP);
+        object_mat_, level_offset, level, lod_bias_, SHADOW_PROJECTION_CLIPMAP);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
     shadows_.tilemap_pool.tilemaps_data.append(*tilemap);
@@ -655,13 +553,14 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
   light.sun.clipmap_lod_min = levels_range.first();
   light.sun.clipmap_lod_max = levels_range.last();
 
-  light.lod_bias = lod_bias;
+  light.lod_bias = lod_bias_;
 }
 
 void ShadowDirectional::sync(const float4x4 &object_mat,
                              float min_resolution,
                              float shadow_disk_angle,
-                             float trace_distance)
+                             float trace_distance,
+                             float shadow_resolution_scale)
 {
   object_mat_ = object_mat;
   /* Clear embedded custom data. */
@@ -673,12 +572,16 @@ void ShadowDirectional::sync(const float4x4 &object_mat,
   min_resolution_ = min_resolution;
   disk_shape_angle_ = min_ff(shadow_disk_angle, DEG2RADF(179.9f)) / 2.0f;
   trace_distance_ = trace_distance;
+
+  float resolution_scale = clamp_f(shadow_resolution_scale, 0.0f, 2.0f);
+  lod_bias_ = (resolution_scale < 1.0) ? -log2(resolution_scale) : -(resolution_scale - 1.0f);
+  lod_bias_ += shadows_.get_global_lod_bias();
 }
 
-void ShadowDirectional::release_excess_tilemaps(const Camera &camera, float lod_bias)
+void ShadowDirectional::release_excess_tilemaps(const Camera &camera)
 {
   IndexRange levels_new = directional_distribution_type_get(camera) == SHADOW_PROJECTION_CASCADE ?
-                              cascade_level_range(camera, lod_bias) :
+                              cascade_level_range(camera) :
                               clipmap_level_range(camera);
 
   if (levels_range == levels_new) {
@@ -697,11 +600,11 @@ void ShadowDirectional::release_excess_tilemaps(const Camera &camera, float lod_
   levels_range = isect_range;
 }
 
-void ShadowDirectional::end_sync(Light &light, const Camera &camera, float lod_bias)
+void ShadowDirectional::end_sync(Light &light, const Camera &camera)
 {
   ShadowTileMapPool &tilemap_pool = shadows_.tilemap_pool;
   IndexRange levels_new = directional_distribution_type_get(camera) == SHADOW_PROJECTION_CASCADE ?
-                              cascade_level_range(camera, lod_bias) :
+                              cascade_level_range(camera) :
                               clipmap_level_range(camera);
 
   if (levels_range != levels_new) {
@@ -733,7 +636,7 @@ void ShadowDirectional::end_sync(Light &light, const Camera &camera, float lod_b
     cascade_tilemaps_distribution(light, camera);
   }
   else {
-    clipmap_tilemaps_distribution(light, camera, lod_bias);
+    clipmap_tilemaps_distribution(light, camera);
   }
 }
 
@@ -798,7 +701,7 @@ void ShadowModule::init()
   }
   if (atlas_tx_.ensure_2d_array(atlas_type, atlas_extent, atlas_layers, tex_usage)) {
     /* Global update. */
-    do_full_update = true;
+    do_full_update_ = true;
   }
 
   /* Make allocation safe. Avoids crash later on. */
@@ -970,7 +873,7 @@ void ShadowModule::end_sync()
       light.shadow_discard_safe(*this);
     }
     else if (light.directional != nullptr) {
-      light.directional->release_excess_tilemaps(inst_.camera, light.lod_bias);
+      light.directional->release_excess_tilemaps(inst_.camera);
     }
     else if (light.punctual != nullptr) {
       light.punctual->release_excess_tilemaps();
@@ -984,10 +887,10 @@ void ShadowModule::end_sync()
       light.tilemap_index = LIGHT_NO_SHADOW;
     }
     else if (light.directional != nullptr) {
-      light.directional->end_sync(light, inst_.camera, light.lod_bias);
+      light.directional->end_sync(light, inst_.camera);
     }
     else if (light.punctual != nullptr) {
-      light.punctual->end_sync(light, light.lod_bias);
+      light.punctual->end_sync(light);
     }
     else {
       light.tilemap_index = LIGHT_NO_SHADOW;
@@ -1015,8 +918,8 @@ void ShadowModule::end_sync()
 
   curr_casters_.push_update();
 
-  if (do_full_update) {
-    do_full_update = false;
+  if (do_full_update_) {
+    do_full_update_ = false;
     /* Put all pages in the free heap. */
     for (uint i : IndexRange(shadow_page_len_)) {
       uint3 page = {i % SHADOW_PAGE_PER_ROW,
@@ -1460,15 +1363,18 @@ void ShadowModule::set_view(View &view, int2 extent)
             {
                 /* Depth is cleared to 0 for TBDR optimization. */
                 {GPU_LOADACTION_CLEAR, GPU_STOREACTION_DONT_CARE, {0.0f, 0.0f, 0.0f, 0.0f}},
-                {GPU_LOADACTION_CLEAR, GPU_STOREACTION_DONT_CARE, {1.0f, 1.0f, 1.0f, 1.0f}},
+                {GPU_LOADACTION_CLEAR,
+                 GPU_STOREACTION_DONT_CARE,
+                 {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX}},
             });
       }
       else if (shadow_depth_fb_tx_.is_valid()) {
-        GPU_framebuffer_bind_ex(
-            render_fb_,
-            {
-                {GPU_LOADACTION_CLEAR, GPU_STOREACTION_DONT_CARE, {1.0f, 1.0f, 1.0f, 1.0f}},
-            });
+        GPU_framebuffer_bind_ex(render_fb_,
+                                {
+                                    {GPU_LOADACTION_CLEAR,
+                                     GPU_STOREACTION_DONT_CARE,
+                                     {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX}},
+                                });
       }
       else {
         GPU_framebuffer_bind(render_fb_);

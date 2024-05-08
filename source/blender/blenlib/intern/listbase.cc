@@ -560,21 +560,21 @@ void *BLI_rfindlink(const ListBase *listbase, int number)
   return link;
 }
 
-void *BLI_findlinkfrom(Link *start, int steps)
+void *BLI_findlinkfrom(Link *start, int step)
 {
   Link *link = nullptr;
 
-  if (steps >= 0) {
+  if (step >= 0) {
     link = start;
-    while (link != nullptr && steps != 0) {
-      steps--;
+    while (link != nullptr && step != 0) {
+      step--;
       link = link->next;
     }
   }
   else {
     link = start;
-    while (link != nullptr && steps != 0) {
-      steps++;
+    while (link != nullptr && step != 0) {
+      step++;
       link = link->prev;
     }
   }

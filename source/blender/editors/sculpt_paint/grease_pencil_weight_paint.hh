@@ -205,8 +205,8 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
         }
 
         /* Convert stroke points to screen space positions. */
-        const bke::greasepencil::Layer &layer =
-            *this->grease_pencil->layers()[drawing_info.layer_index];
+        const bke::greasepencil::Layer &layer = *this->grease_pencil->layer(
+            drawing_info.layer_index);
         const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
         const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(rv3d, layer_to_world);
 

@@ -181,17 +181,16 @@ void light_eval_single(uint l_idx,
 
   float shadow = 1.0;
   if (light.tilemap_index != LIGHT_NO_SHADOW) {
-    ShadowEvalResult result = shadow_eval(light,
-                                          is_directional,
-                                          is_transmission,
-                                          is_translucent_with_thickness,
-                                          thickness,
-                                          P,
-                                          Ng,
-                                          lv.L,
-                                          ray_count,
-                                          ray_step_count);
-    shadow = result.light_visibilty;
+    shadow = shadow_eval(light,
+                         is_directional,
+                         is_transmission,
+                         is_translucent_with_thickness,
+                         thickness,
+                         P,
+                         Ng,
+                         lv.L,
+                         ray_count,
+                         ray_step_count);
   }
 
   if (is_translucent_with_thickness) {

@@ -421,7 +421,7 @@ void AnimationImporter::Assign_transform_animations(
           break;
         }
         case COLLADAFW::AnimationList::AXISANGLE:
-        /* TODO: convert axis-angle to quat? or XYZ? */
+        /* TODO: convert axis-angle to quaternion? or XYZ? */
         default:
           unused_fcurve(curves);
           fprintf(stderr,

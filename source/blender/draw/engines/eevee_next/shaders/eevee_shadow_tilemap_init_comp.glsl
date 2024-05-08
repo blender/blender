@@ -87,7 +87,7 @@ void main()
   for (int lod = 0; lod <= lod_max; lod++, lod_size >>= 1u) {
     bool thread_active = all(lessThan(tile_co, ivec2(lod_size)));
     ShadowTileDataPacked tile = 0;
-    int tile_load = shadow_tile_offset(tile_wrapped, tilemap.tiles_index, lod);
+    int tile_load = shadow_tile_offset(uvec2(tile_wrapped), tilemap.tiles_index, lod);
     if (thread_active) {
       tile = init_tile_data(tiles_buf[tile_load], do_update);
     }
@@ -96,7 +96,7 @@ void main()
     barrier();
 
     if (thread_active) {
-      int tile_store = shadow_tile_offset(tile_co, tilemap.tiles_index, lod);
+      int tile_store = shadow_tile_offset(uvec2(tile_co), tilemap.tiles_index, lod);
       if ((tile_load != tile_store) && flag_test(tile, SHADOW_IS_CACHED)) {
         /* Inlining of shadow_page_cache_update_tile_ref to avoid buffer dependencies. */
         pages_cached_buf[shadow_tile_unpack(tile).cache_index].y = tile_store;

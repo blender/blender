@@ -24,6 +24,7 @@ static void register_node_type_geo_group()
   ntype.poll = geo_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;
+  ntype.ui_description_fn = node_group_ui_description;
   ntype.rna_ext.srna = RNA_struct_find("GeometryNodeGroup");
   BLI_assert(ntype.rna_ext.srna != nullptr);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);

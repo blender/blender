@@ -870,7 +870,9 @@ WorkspaceStatus::WorkspaceStatus(bContext *C)
   ED_area_tag_redraw(WM_window_status_area_find(CTX_wm_window(C), CTX_wm_screen(C)));
 }
 
-/* Private helper functions to help ensure consistant spacing. */
+/* -------------------------------------------------------------------- */
+/** \name Private helper functions to help ensure consistent spacing
+ * \{ */
 
 static constexpr float STATUS_AFTER_TEXT = 0.7f;
 static constexpr float STATUS_BEFORE_TEXT = 0.3f;
@@ -903,7 +905,11 @@ static void ed_workspace_status_mouse_item(WorkSpace *workspace,
   }
 }
 
-/* Public functions. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Functions
+ * \{ */
 
 void WorkspaceStatus::item(std::string text, const int icon1, const int icon2)
 {
@@ -968,6 +974,8 @@ void ED_workspace_status_text(bContext *C, const char *str)
   WorkspaceStatus status(C);
   status.item(str ? str : "", ICON_NONE);
 }
+
+/** \} */
 
 /* ************************************************************ */
 

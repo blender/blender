@@ -141,7 +141,7 @@ void channel_draw_context_init(const bContext *C,
 
 /* `sequencer_edit.cc` */
 
-void seq_rectf(const Scene *scene, Sequence *seq, rctf *rectf);
+void seq_rectf(const Scene *scene, const Sequence *seq, rctf *rectf);
 Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel);
 void recurs_sel_seq(Sequence *seq_meta);
 int seq_effect_find_selected(Scene *scene,
@@ -172,16 +172,6 @@ bool sequencer_view_strips_poll(bContext *C);
  * \return collection of strips (`Sequence`)
  */
 blender::VectorSet<Sequence *> all_strips_from_context(bContext *C);
-
-/**
- * Returns collection with selected strips presented to user. If operation is done in preview,
- * collection is limited to selected presented strips, that can produce image output at current
- * frame.
- *
- * \param C: context
- * \return collection of strips (`Sequence`)
- */
-blender::VectorSet<Sequence *> selected_strips_from_context(bContext *C);
 
 /* Externals. */
 
@@ -330,12 +320,15 @@ int sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
 
 /* `sequencer_retiming_draw.cc` */
 void sequencer_draw_retiming(const bContext *C, SeqQuadsBatch *quads);
-blender::Vector<Sequence *> sequencer_visible_strips_get(const bContext *C);
 SeqRetimingKey *try_to_realize_virtual_keys(const bContext *C, Sequence *seq, const int mval[2]);
 SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], Sequence **r_seq);
 int left_fake_key_frame_get(const bContext *C, const Sequence *seq);
 int right_fake_key_frame_get(const bContext *C, const Sequence *seq);
-bool retiming_keys_are_visible(const bContext *C);
+bool retiming_keys_are_visible(const SpaceSeq *sseq);
+
+/* `sequencer_timeline_draw.cc` */
+blender::Vector<Sequence *> sequencer_visible_strips_get(const bContext *C);
+blender::Vector<Sequence *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d);
 
 /* `sequencer_clipboard.cc` */
 int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op);

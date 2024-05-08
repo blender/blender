@@ -14,7 +14,7 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 
-Sequence *SEQ_select_active_get(Scene *scene)
+Sequence *SEQ_select_active_get(const Scene *scene)
 {
   const Editing *ed = SEQ_editing_get(scene);
 

@@ -27,6 +27,7 @@
 /* For menu, popup, icons, etc. */
 #include "ED_anim_api.hh"
 #include "ED_screen.hh"
+#include "ED_sequencer.hh"
 #include "ED_time_scrub_ui.hh"
 #include "ED_util_imbuf.hh"
 
@@ -338,7 +339,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
-  blender::VectorSet strips = selected_strips_from_context(C);
+  blender::VectorSet strips = ED_sequencer_selected_strips_from_context(C);
   View2D *v2d = UI_view2d_fromcontext(C);
   rctf cur_new = v2d->cur;
 

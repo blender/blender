@@ -425,8 +425,8 @@ bool BKE_mesh_runtime_is_valid(Mesh *mesh_eval)
 
   MutableSpan<float3> positions = mesh_eval->vert_positions_for_write();
   MutableSpan<blender::int2> edges = mesh_eval->edges_for_write();
-  MutableSpan<int> face_offsets = mesh_eval->face_offsets_for_write();
-  MutableSpan<int> corner_verts = mesh_eval->corner_verts_for_write();
+  Span<int> face_offsets = mesh_eval->face_offsets();
+  Span<int> corner_verts = mesh_eval->corner_verts();
   MutableSpan<int> corner_edges = mesh_eval->corner_edges_for_write();
 
   is_valid &= BKE_mesh_validate_all_customdata(
@@ -443,6 +443,8 @@ bool BKE_mesh_runtime_is_valid(Mesh *mesh_eval)
       do_fixes,
       &changed);
 
+  MDeformVert *dverts = static_cast<MDeformVert *>(
+      CustomData_get_layer_for_write(&mesh_eval->vert_data, CD_MDEFORMVERT, mesh_eval->verts_num));
   is_valid &= BKE_mesh_validate_arrays(
       mesh_eval,
       reinterpret_cast<float(*)[3]>(positions.data()),
@@ -457,7 +459,7 @@ bool BKE_mesh_runtime_is_valid(Mesh *mesh_eval)
       corner_verts.size(),
       face_offsets.data(),
       mesh_eval->faces_num,
-      mesh_eval->deform_verts_for_write().data(),
+      dverts,
       do_verbose,
       do_fixes,
       &changed);

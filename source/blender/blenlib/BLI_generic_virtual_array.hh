@@ -190,6 +190,7 @@ class GVArray : public GVArrayCommon {
   GVArray(varray_tag::single /*tag*/, const CPPType &type, int64_t size, const void *value);
 
   template<typename T> GVArray(const VArray<T> &varray);
+  template<typename T> GVArray(VArray<T> &&varray);
   template<typename T> VArray<T> typed() const;
 
   template<typename ImplT, typename... Args> static GVArray For(Args &&...args);
@@ -870,7 +871,11 @@ template<typename ImplT, typename... Args> inline GVArray GVArray::For(Args &&..
   return varray;
 }
 
-template<typename T> inline GVArray::GVArray(const VArray<T> &varray)
+template<typename T> inline GVArray::GVArray(const VArray<T> &varray) : GVArray(VArray<T>(varray))
+{
+}
+
+template<typename T> inline GVArray::GVArray(VArray<T> &&varray)
 {
   if (!varray) {
     return;
@@ -889,7 +894,7 @@ template<typename T> inline GVArray::GVArray(const VArray<T> &varray)
   if (varray.try_assign_GVArray(*this)) {
     return;
   }
-  *this = GVArray::For<GVArrayImpl_For_VArray<T>>(varray);
+  *this = GVArray::For<GVArrayImpl_For_VArray<T>>(std::move(varray));
 }
 
 template<typename T> inline VArray<T> GVArray::typed() const

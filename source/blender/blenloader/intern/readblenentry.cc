@@ -294,68 +294,6 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
   return nullptr;
 }
 
-LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev)
-{
-  FileData *fd = (FileData *)bh;
-  LinkNode *previews = nullptr;
-  BHead *bhead;
-  int looking = 0;
-  PreviewImage *prv = nullptr;
-  PreviewImage *new_prv = nullptr;
-  int tot = 0;
-
-  for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-    if (bhead->code == ofblocktype) {
-      const char *idname = blo_bhead_id_name(fd, bhead);
-      switch (GS(idname)) {
-        case ID_MA:  /* fall through */
-        case ID_TE:  /* fall through */
-        case ID_IM:  /* fall through */
-        case ID_WO:  /* fall through */
-        case ID_LA:  /* fall through */
-        case ID_OB:  /* fall through */
-        case ID_GR:  /* fall through */
-        case ID_SCE: /* fall through */
-        case ID_AC:  /* fall through */
-        case ID_NT:  /* fall through */
-          new_prv = static_cast<PreviewImage *>(MEM_callocN(sizeof(PreviewImage), "newpreview"));
-          BLI_linklist_prepend(&previews, new_prv);
-          tot++;
-          looking = 1;
-          break;
-        default:
-          break;
-      }
-    }
-    else if (bhead->code == BLO_CODE_DATA) {
-      if (looking) {
-        if (bhead->SDNAnr == DNA_struct_find_with_alias(fd->filesdna, "PreviewImage")) {
-          prv = static_cast<PreviewImage *>(BLO_library_read_struct(fd, bhead, "PreviewImage"));
-
-          if (prv) {
-            BKE_previewimg_runtime_data_clear(prv);
-
-            memcpy(new_prv, prv, sizeof(PreviewImage));
-            bhead = blo_blendhandle_read_preview_rects(fd, bhead, new_prv, prv);
-            MEM_freeN(prv);
-          }
-        }
-      }
-    }
-    else if (bhead->code == BLO_CODE_ENDB) {
-      break;
-    }
-    else {
-      looking = 0;
-      new_prv = nullptr;
-      prv = nullptr;
-    }
-  }
-
-  *r_tot_prev = tot;
-  return previews;
-}
-
 LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 {
   FileData *fd = (FileData *)bh;

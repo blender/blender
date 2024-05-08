@@ -17,6 +17,13 @@
 #    include "bvh/embree.h"
 #  endif
 
+#  if defined(WITH_OPENIMAGEDENOISE)
+#    include <OpenImageDenoise/config.h>
+#    if OIDN_VERSION >= 20300
+#      include "util/openimagedenoise.h"
+#    endif
+#  endif
+
 #  include "kernel/device/oneapi/globals.h"
 #  include "kernel/device/oneapi/kernel.h"
 
@@ -1108,11 +1115,16 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
 #  else
     bool hwrt_support = false;
 #  endif
+#  if defined(WITH_OPENIMAGEDENOISE) && OIDN_VERSION >= 20300
+    bool oidn_support = oidnIsSYCLDeviceSupported(&device);
+#  else
+    bool oidn_support = false;
+#  endif
     std::string id = "ONEAPI_" + platform_name + "_" + name;
     if (device.has(sycl::aspect::ext_intel_pci_address)) {
       id.append("_" + device.get_info<sycl::ext::intel::info::device::pci_address>());
     }
-    (cb)(id.c_str(), name.c_str(), num, hwrt_support, user_ptr);
+    (cb)(id.c_str(), name.c_str(), num, hwrt_support, oidn_support, user_ptr);
     num++;
   }
 }

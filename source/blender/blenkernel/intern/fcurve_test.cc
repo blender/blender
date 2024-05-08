@@ -57,8 +57,12 @@ TEST(evaluate_fcurve, InterpolationConstant)
   FCurve *fcu = BKE_fcurve_create();
 
   const KeyframeSettings settings = get_keyframe_settings(false);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS), 1);
+  insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS);
+  insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[0].vec[1][0], 1.0f);
+  EXPECT_EQ(fcu->bezt[0].vec[1][1], 7.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][0], 2.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][1], 13.0f);
 
   fcu->bezt[0].ipo = BEZT_IPO_CONST;
   fcu->bezt[1].ipo = BEZT_IPO_CONST;
@@ -74,8 +78,12 @@ TEST(evaluate_fcurve, InterpolationLinear)
   FCurve *fcu = BKE_fcurve_create();
 
   const KeyframeSettings settings = get_keyframe_settings(false);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS), 1);
+  insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS);
+  insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[0].vec[1][0], 1.0f);
+  EXPECT_EQ(fcu->bezt[0].vec[1][1], 7.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][0], 2.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][1], 13.0f);
 
   fcu->bezt[0].ipo = BEZT_IPO_LIN;
   fcu->bezt[1].ipo = BEZT_IPO_LIN;
@@ -92,8 +100,12 @@ TEST(evaluate_fcurve, InterpolationBezier)
   FCurve *fcu = BKE_fcurve_create();
 
   const KeyframeSettings settings = get_keyframe_settings(false);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS), 1);
+  insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS);
+  insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[0].vec[1][0], 1.0f);
+  EXPECT_EQ(fcu->bezt[0].vec[1][1], 7.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][0], 2.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][1], 13.0f);
 
   EXPECT_EQ(fcu->bezt[0].ipo, BEZT_IPO_BEZ);
   EXPECT_EQ(fcu->bezt[1].ipo, BEZT_IPO_BEZ);
@@ -126,8 +138,12 @@ TEST(evaluate_fcurve, InterpolationBounce)
   FCurve *fcu = BKE_fcurve_create();
 
   const KeyframeSettings settings = get_keyframe_settings(false);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS), 1);
+  insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS);
+  insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[0].vec[1][0], 1.0f);
+  EXPECT_EQ(fcu->bezt[0].vec[1][1], 7.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][0], 2.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][1], 13.0f);
 
   fcu->bezt[0].ipo = BEZT_IPO_BOUNCE;
   fcu->bezt[1].ipo = BEZT_IPO_BOUNCE;
@@ -147,8 +163,13 @@ TEST(evaluate_fcurve, ExtrapolationLinearKeys)
   FCurve *fcu = BKE_fcurve_create();
 
   const KeyframeSettings settings = get_keyframe_settings(false);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS), 1);
+  insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS);
+  insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[0].vec[1][0], 1.0f);
+  EXPECT_EQ(fcu->bezt[0].vec[1][1], 7.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][0], 2.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][1], 13.0f);
+
   fcu->bezt[0].ipo = BEZT_IPO_LIN;
   fcu->bezt[1].ipo = BEZT_IPO_LIN;
 
@@ -177,8 +198,12 @@ TEST(evaluate_fcurve, ExtrapolationBezierKeys)
   FCurve *fcu = BKE_fcurve_create();
 
   const KeyframeSettings settings = get_keyframe_settings(false);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS), 1);
+  insert_vert_fcurve(fcu, {1.0f, 7.0f}, settings, INSERTKEY_NOFLAGS);
+  insert_vert_fcurve(fcu, {2.0f, 13.0f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[0].vec[1][0], 1.0f);
+  EXPECT_EQ(fcu->bezt[0].vec[1][1], 7.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][0], 2.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][1], 13.0f);
 
   fcu->bezt[0].vec[0][0] = 0.71855f; /* left handle X */
   fcu->bezt[0].vec[0][1] = 6.22482f; /* left handle Y */
@@ -215,8 +240,12 @@ TEST(fcurve_subdivide, BKE_fcurve_bezt_subdivide_handles)
 
   const KeyframeSettings settings = get_keyframe_settings(false);
   /* Insert two keyframes and set handles to something non-default. */
-  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 0.0f}, settings, INSERTKEY_NOFLAGS), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {13.0f, 2.0f}, settings, INSERTKEY_NOFLAGS), 1);
+  insert_vert_fcurve(fcu, {1.0f, 0.0f}, settings, INSERTKEY_NOFLAGS);
+  insert_vert_fcurve(fcu, {13.0f, 2.0f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[0].vec[1][0], 1.0f);
+  EXPECT_EQ(fcu->bezt[0].vec[1][1], 0.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][0], 13.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][1], 2.0f);
 
   fcu->bezt[0].h1 = fcu->bezt[0].h2 = HD_FREE;
   fcu->bezt[0].vec[0][0] = -5.0f;
@@ -282,11 +311,17 @@ TEST(fcurve_active_keyframe, ActiveKeyframe)
 
   const KeyframeSettings settings = get_keyframe_settings(false);
   /* Check that adding new points sets the active index. */
-  EXPECT_EQ(insert_vert_fcurve(fcu, {1.0f, 7.5f}, settings, INSERTKEY_NOFLAGS), 0);
+  insert_vert_fcurve(fcu, {1.0f, 7.5f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[0].vec[1][0], 1.0f);
+  EXPECT_EQ(fcu->bezt[0].vec[1][1], 7.5f);
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 0);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {8.0f, 15.0f}, settings, INSERTKEY_NOFLAGS), 1);
+  insert_vert_fcurve(fcu, {8.0f, 15.0f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[1].vec[1][0], 8.0f);
+  EXPECT_EQ(fcu->bezt[1].vec[1][1], 15.0f);
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 1);
-  EXPECT_EQ(insert_vert_fcurve(fcu, {14.0f, 8.2f}, settings, INSERTKEY_NOFLAGS), 2);
+  insert_vert_fcurve(fcu, {14.0f, 8.2f}, settings, INSERTKEY_NOFLAGS);
+  EXPECT_EQ(fcu->bezt[2].vec[1][0], 14.0f);
+  EXPECT_EQ(fcu->bezt[2].vec[1][1], 8.2f);
   EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 2);
 
   /* Check clearing the index. */

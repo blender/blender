@@ -97,8 +97,8 @@ static void remember_deformed_grease_pencil_if_necessary(const GreasePencil *gre
   MutableSpan<GreasePencilDrawingEditHints> all_hints =
       *edit_component.grease_pencil_edit_hints_->drawing_hints;
   for (const int layer_index : layers.index_range()) {
-    const greasepencil::Drawing *drawing = greasepencil::get_eval_grease_pencil_layer_drawing(
-        *grease_pencil, layer_index);
+    const greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(
+        *grease_pencil->layer(layer_index));
     const greasepencil::Layer &orig_layer = *orig_layers[layer_index];
     const greasepencil::Drawing *orig_drawing = orig_grease_pencil.get_drawing_at(
         orig_layer, grease_pencil->runtime->eval_frame);

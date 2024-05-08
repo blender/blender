@@ -98,7 +98,7 @@ struct GreasePencilHelper : public ::GreasePencil {
   GreasePencilHelper()
   {
     this->root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
-    this->active_layer = nullptr;
+    this->active_node = nullptr;
 
     CustomData_reset(&this->layers_data);
 

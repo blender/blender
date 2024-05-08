@@ -663,6 +663,8 @@ typedef struct bNodeTree {
   struct bNodeTreeType *typeinfo;
   /** Runtime type identifier. */
   char idname[64];
+  /** User-defined description of the node tree. */
+  char *description;
 
   /** Grease pencil data. */
   struct bGPdata *gpd;

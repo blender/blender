@@ -165,8 +165,7 @@ GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
   Object &ob_eval = *DEG_get_evaluated_object(&depsgraph, &object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
-  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
-
+  const bke::greasepencil::Layer &layer = *grease_pencil.layer(layer_index);
   return {*scene.toolsettings,
           region,
           object,
@@ -244,7 +243,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = get_drawings_for_sculpt(C);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    const Layer &layer = *grease_pencil.layers()[info.layer_index];
+    const Layer &layer = *grease_pencil.layer(info.layer_index);
 
     ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, layer);
     if (placement.use_project_to_surface()) {

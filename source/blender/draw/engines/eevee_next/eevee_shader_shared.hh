@@ -845,8 +845,7 @@ static inline bool is_local_light(eLightType type)
   float clip_side; \
   /** Number of allocated tilemap for this local light. */ \
   int tilemaps_count; \
-  /** Scaling factor to the light shape for shadow ray casting. */ \
-  float shadow_scale; \
+  float _pad7; \
   /** Shift to apply to the light origin to get the shadow projection origin. */ \
   float shadow_projection_shift;
 
@@ -1085,7 +1084,6 @@ static inline LightSpotData light_local_data_get(LightData light)
   SAFE_ASSIGN_FLOAT(influence_radius_invsqr_surface, influence_radius_invsqr_surface)
   SAFE_ASSIGN_FLOAT(influence_radius_invsqr_volume, influence_radius_invsqr_volume)
   SAFE_ASSIGN_FLOAT(clip_side, clip_side)
-  SAFE_ASSIGN_FLOAT(shadow_scale, shadow_scale)
   SAFE_ASSIGN_FLOAT(shadow_projection_shift, shadow_projection_shift)
   SAFE_ASSIGN_INT(tilemaps_count, tilemaps_count)
   return data;
@@ -1099,7 +1097,6 @@ static inline LightSpotData light_spot_data_get(LightData light)
   SAFE_ASSIGN_FLOAT(influence_radius_invsqr_surface, influence_radius_invsqr_surface)
   SAFE_ASSIGN_FLOAT(influence_radius_invsqr_volume, influence_radius_invsqr_volume)
   SAFE_ASSIGN_FLOAT(clip_side, clip_side)
-  SAFE_ASSIGN_FLOAT(shadow_scale, shadow_scale)
   SAFE_ASSIGN_FLOAT(shadow_projection_shift, shadow_projection_shift)
   SAFE_ASSIGN_INT(tilemaps_count, tilemaps_count)
   SAFE_ASSIGN_FLOAT(radius, _pad1)
@@ -1118,7 +1115,6 @@ static inline LightAreaData light_area_data_get(LightData light)
   SAFE_ASSIGN_FLOAT(influence_radius_invsqr_surface, influence_radius_invsqr_surface)
   SAFE_ASSIGN_FLOAT(influence_radius_invsqr_volume, influence_radius_invsqr_volume)
   SAFE_ASSIGN_FLOAT(clip_side, clip_side)
-  SAFE_ASSIGN_FLOAT(shadow_scale, shadow_scale)
   SAFE_ASSIGN_FLOAT(shadow_projection_shift, shadow_projection_shift)
   SAFE_ASSIGN_INT(tilemaps_count, tilemaps_count)
   SAFE_ASSIGN_FLOAT2(size, _pad3)
@@ -1129,7 +1125,7 @@ static inline LightSunData light_sun_data_get(LightData light)
 {
   SAFE_BEGIN(LightSunData, is_sun_light(light.type))
   SAFE_ASSIGN_FLOAT(radius, radius_squared)
-  SAFE_ASSIGN_FLOAT_AS_INT2_COMBINE(clipmap_base_offset_neg, shadow_scale, shadow_projection_shift)
+  SAFE_ASSIGN_FLOAT_AS_INT2_COMBINE(clipmap_base_offset_neg, _pad7, shadow_projection_shift)
   SAFE_ASSIGN_FLOAT_AS_INT2_COMBINE(clipmap_base_offset_pos, _pad0_reserved, _pad1_reserved)
   SAFE_ASSIGN_FLOAT(shadow_angle, _pad1)
   SAFE_ASSIGN_FLOAT(shadow_trace_distance, _pad2)
@@ -1237,11 +1233,6 @@ struct ShadowTileMapData {
   float half_size;
   /** Offset in local space to the tilemap center in world units. Used for directional winmat. */
   float2 center_offset;
-  /** Filter radius of the light in pixels. */
-  float filter_radius;
-  float _pad0;
-  float _pad1;
-  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowTileMapData, 16)
 
@@ -1257,11 +1248,12 @@ struct ShadowRenderView {
    * Use sign to determine with case we are in.
    */
   float clip_distance_inv;
-  /* Viewport to submit the geometry of this tilemap view to. */
+  /** Viewport to submit the geometry of this tile-map view to. */
   uint viewport_index;
-  /* Filter radius for this view. */
-  float filter_radius;
-  uint _pad1;
+  /** True if coming from a sun light shadow. */
+  bool32_t is_directional;
+  /** If directional, distance along the negative Z axis of the near clip in view space. */
+  float clip_near;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowRenderView, 16)
 

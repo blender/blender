@@ -118,7 +118,7 @@ static void extract_lines_mesh(const MeshRenderData &mr,
         });
   }
   else {
-    Array<int> map(mr.corners_num, -1);
+    Array<int> map(mr.edges_num, -1);
     threading::memory_bandwidth_bound_task(
         map.as_span().size_in_bytes() + data.size_in_bytes() + corner_edges.size_in_bytes(),
         [&]() {
@@ -300,9 +300,6 @@ void extract_lines_subdiv(const DRWSubdivCache &subdiv_cache,
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
   const int loose_num = loose_geom.edge_len * 2;
   no_loose_wire = loose_num == 0;
-  if (subdiv_cache.num_subdiv_loops == 0) {
-    return;
-  }
 
   if (DRW_ibo_requested(lines_loose) && !DRW_ibo_requested(lines)) {
     GPU_indexbuf_init_build_on_device(lines_loose, loose_num);
@@ -313,7 +310,9 @@ void extract_lines_subdiv(const DRWSubdivCache &subdiv_cache,
   const int non_loose_num = subdiv_cache.num_subdiv_loops * 2;
 
   GPU_indexbuf_init_build_on_device(lines, non_loose_num + loose_num);
-  draw_subdiv_build_lines_buffer(subdiv_cache, lines);
+  if (non_loose_num > 0) {
+    draw_subdiv_build_lines_buffer(subdiv_cache, lines);
+  }
   extract_lines_loose_geom_subdiv(subdiv_cache, mr, non_loose_num, lines);
 
   if (DRW_ibo_requested(lines_loose)) {

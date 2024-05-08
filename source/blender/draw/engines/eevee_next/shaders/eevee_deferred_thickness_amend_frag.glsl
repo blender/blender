@@ -50,11 +50,10 @@ void thickness_from_shadow_single(uint l_idx,
   /* Inverting this bias means we will over estimate the distance. Which removes some artifacts. */
   P_offset -= texel_radius * shadow_pcf_offset(lv.L, Ng, pcf_random);
 
-  ShadowEvalResult result = shadow_sample(
+  float occluder_delta = shadow_sample(
       is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P_offset);
-
-  if (result.light_visibilty == 0.0) {
-    float hit_distance = result.occluder_distance;
+  if (occluder_delta > 0.0) {
+    float hit_distance = abs(occluder_delta);
     /* Add back the amount of offset we added to the original position.
      * This avoids self shadowing issue. */
     hit_distance += (normal_offset + 1.0) * texel_radius;

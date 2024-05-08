@@ -831,10 +831,10 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               (MFace *)CustomData_get_layer_for_write(
                   &me->fdata_legacy, CD_MFACE, me->totface_legacy),
               me->totface_legacy,
-              me->corner_verts_for_write().data(),
+              me->corner_verts().data(),
               me->corner_edges_for_write().data(),
               me->corners_num,
-              me->face_offsets_for_write().data(),
+              me->face_offsets().data(),
               me->faces_num,
               me->deform_verts_for_write().data(),
               false,

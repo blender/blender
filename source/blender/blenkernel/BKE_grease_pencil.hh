@@ -150,10 +150,6 @@ class DrawingReference : public ::GreasePencilDrawingReference {
   ~DrawingReference();
 };
 
-const Drawing *get_eval_grease_pencil_layer_drawing(const GreasePencil &grease_pencil,
-                                                    int layer_index);
-Drawing *get_eval_grease_pencil_layer_drawing_for_write(GreasePencil &grease_pencil,
-                                                        int layer_index);
 /**
  * Copies the drawings from one array to another. Assumes that \a dst_drawings is allocated but not
  * initialized, e.g. it will allocate new drawings and store the pointers.
@@ -905,13 +901,26 @@ inline const blender::bke::greasepencil::LayerGroup &GreasePencilLayerTreeGroup:
   return *reinterpret_cast<const blender::bke::greasepencil::LayerGroup *>(this);
 }
 
-inline const GreasePencilDrawingBase *GreasePencil::drawing(int64_t index) const
+inline const GreasePencilDrawingBase *GreasePencil::drawing(const int64_t index) const
 {
+  BLI_assert(index >= 0 && index < this->drawings().size());
   return this->drawings()[index];
 }
-inline GreasePencilDrawingBase *GreasePencil::drawing(int64_t index)
+inline GreasePencilDrawingBase *GreasePencil::drawing(const int64_t index)
 {
+  BLI_assert(index >= 0 && index < this->drawings().size());
   return this->drawings()[index];
+}
+
+inline const blender::bke::greasepencil::Layer *GreasePencil::layer(const int64_t index) const
+{
+  BLI_assert(index >= 0 && index < this->layers().size());
+  return this->layers()[index];
+}
+inline blender::bke::greasepencil::Layer *GreasePencil::layer(const int64_t index)
+{
+  BLI_assert(index >= 0 && index < this->layers().size());
+  return this->layers_for_write()[index];
 }
 
 inline const blender::bke::greasepencil::LayerGroup &GreasePencil::root_group() const
@@ -925,7 +934,7 @@ inline blender::bke::greasepencil::LayerGroup &GreasePencil::root_group()
 
 inline bool GreasePencil::has_active_layer() const
 {
-  return (this->active_layer != nullptr);
+  return (this->active_node != nullptr) && (this->active_node->wrap().is_layer());
 }
 
 void *BKE_grease_pencil_add(Main *bmain, const char *name);

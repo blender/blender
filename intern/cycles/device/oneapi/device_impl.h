@@ -14,8 +14,12 @@ CCL_NAMESPACE_BEGIN
 
 class DeviceQueue;
 
-typedef void (*OneAPIDeviceIteratorCallback)(
-    const char *id, const char *name, int num, bool hwrt_support, void *user_ptr);
+typedef void (*OneAPIDeviceIteratorCallback)(const char *id,
+                                             const char *name,
+                                             int num,
+                                             bool hwrt_support,
+                                             bool oidn_support,
+                                             void *user_ptr);
 
 class OneapiDevice : public Device {
  private:

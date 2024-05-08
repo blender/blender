@@ -203,13 +203,21 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
 
   inst_.manager->register_layer_attributes(matpass.gpumat);
 
+  const bool is_transparent = GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT);
+
   if (GPU_material_recalc_flag_get(matpass.gpumat)) {
     /* TODO(Miguel Pozo): This is broken, it consumes the flag,
      * but GPUMats can be shared across viewports. */
     inst_.sampling.reset();
+
+    if ((pipeline_type == MAT_PIPE_SHADOW) && is_transparent) {
+      /* WORKAROUND: This is to avoid lingering shadows from default material.
+       * Ideally, we should tag the caster object to update only the needed areas but that's a bit
+       * more involved. */
+      inst_.shadows.reset();
+    }
   }
 
-  const bool is_transparent = GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT);
   if (is_volume || (is_forward && is_transparent)) {
     /* Sub pass is generated later. */
     matpass.sub_pass = nullptr;

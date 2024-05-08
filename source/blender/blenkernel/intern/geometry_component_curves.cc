@@ -254,7 +254,7 @@ static VArray<float> construct_curve_length_gvarray(const CurvesGeometry &curves
 {
   curves.ensure_evaluated_lengths();
 
-  const VArray<bool> cyclic = curves.cyclic();
+  VArray<bool> cyclic = curves.cyclic();
   VArray<float> lengths = VArray<float>::ForFunc(
       curves.curves_num(), [&curves, cyclic = std::move(cyclic)](int64_t index) {
         return curves.evaluated_length_total_for_curve(index, cyclic[index]);

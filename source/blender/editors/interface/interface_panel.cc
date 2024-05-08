@@ -1176,6 +1176,14 @@ void UI_draw_layout_panels_backdrop(const ARegion *region,
     panel_blockspace.ymin = panel->runtime->block->rect.ymax + body.start_y;
     BLI_rctf_translate(&panel_blockspace, 0, -layout_panel_y_offset());
 
+    if (panel_blockspace.ymax <= panel->runtime->block->rect.ymin) {
+      /* Layout panels no longer fits in block rectangle, stop drawing backdrops. */
+      break;
+    }
+    if (panel_blockspace.ymin >= panel->runtime->block->rect.ymax) {
+      /* Skip layout panels that scrolled to the top of the block rectangle. */
+      continue;
+    }
     /* If the layout panel is at the end of the root panel, it's bottom corners are rounded. */
     const bool is_main_panel_end = panel_blockspace.ymin - panel->runtime->block->rect.ymin < 10;
     if (is_main_panel_end) {
@@ -1185,6 +1193,7 @@ void UI_draw_layout_panels_backdrop(const ARegion *region,
     else {
       UI_draw_roundbox_corner_set(UI_CNR_NONE);
     }
+    panel_blockspace.ymax = std::min(panel_blockspace.ymax, panel->runtime->block->rect.ymax);
 
     rcti panel_pixelspace = ui_to_pixelrect(region, panel->runtime->block, &panel_blockspace);
     rctf panel_pixelspacef;

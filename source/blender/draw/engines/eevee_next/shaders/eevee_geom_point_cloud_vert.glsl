@@ -15,7 +15,6 @@ void main()
   DRW_VIEW_FROM_RESOURCE_ID;
 #ifdef MAT_SHADOW
   shadow_viewport_layer_set(int(drw_view_id), int(render_view_buf[drw_view_id].viewport_index));
-  shadow_flat.filter_radius = render_view_buf[drw_view_id].filter_radius;
 #endif
 
   init_interface();
@@ -53,8 +52,10 @@ void main()
 #endif
 
 #ifdef MAT_SHADOW
-  shadow_clip.vector = shadow_clip_vector_get(drw_point_world_to_view(interp.P),
-                                              render_view_buf[drw_view_id].clip_distance_inv);
+  vec3 vs_P = drw_point_world_to_view(interp.P);
+  ShadowRenderView view = render_view_buf[drw_view_id];
+  shadow_clip.position = shadow_position_vector_get(vs_P, view);
+  shadow_clip.vector = shadow_clip_vector_get(vs_P, view.clip_distance_inv);
 #endif
 
   gl_Position = drw_point_world_to_homogenous(interp.P);

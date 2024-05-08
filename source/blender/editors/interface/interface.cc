@@ -4068,7 +4068,7 @@ static uiBut *ui_def_but(uiBlock *block,
                          const char *tip)
 {
   /* Allow negative separators. */
-  BLI_assert(width >= 0 && height >= 0 || (type == UI_BTYPE_SEPR));
+  BLI_assert((width >= 0 && height >= 0) || (type == UI_BTYPE_SEPR));
 
   if (type & UI_BUT_POIN_TYPES) { /* a pointer is required */
     if (poin == nullptr) {

@@ -236,6 +236,8 @@ struct bNodeType {
 
   /** Optional override for node class, used for drawing node header. */
   int (*ui_class)(const bNode *node);
+  /** Optional dynamic description of what the node group does. */
+  std::string (*ui_description_fn)(const bNode &node);
 
   /** Called when the node is updated in the editor. */
   void (*updatefunc)(bNodeTree *ntree, bNode *node);
@@ -1296,6 +1298,7 @@ void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index
 #define GEO_NODE_SDF_GRID_BOOLEAN 2131
 #define GEO_NODE_TOOL_VIEWPORT_TRANSFORM 2132
 #define GEO_NODE_TOOL_MOUSE_POSITION 2133
+#define GEO_NODE_SAMPLE_GRID_INDEX 2134
 
 /** \} */
 

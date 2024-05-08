@@ -30,7 +30,7 @@ void set_clipmap_data(inout LightData light,
 void set_clipmap_base_offset(inout LightData light, ivec2 clipmap_base_offset)
 {
   /* WATCH: Can get out of sync with light_sun_data_get(). */
-  light.do_not_access_directly.shadow_scale = intBitsToFloat(0);
+  light.do_not_access_directly._pad7 = intBitsToFloat(0);
   light.do_not_access_directly.shadow_projection_shift = intBitsToFloat(0);
   light.do_not_access_directly._pad0_reserved = intBitsToFloat(clipmap_base_offset.x);
   light.do_not_access_directly._pad1_reserved = intBitsToFloat(clipmap_base_offset.y);
@@ -130,26 +130,26 @@ void main()
     lP = vec3(1e-5, 1e-5, 0.0);
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 0);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2));
-    EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2));
+    // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
 
     lP = vec3(-1e-5, -1e-5, 0.0);
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 0);
-    EXPECT_EQ(coords.tile_coord, ivec2((SHADOW_TILEMAP_RES / 2) - 1));
-    EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2((SHADOW_TILEMAP_RES / 2) - 1));
+    // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
 
     lP = vec3(-0.5, -0.5, 0.0); /* Min of first LOD. */
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 0);
-    EXPECT_EQ(coords.tile_coord, ivec2(0));
-    EXPECT_NEAR(coords.uv, vec2(0), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(0));
+    // EXPECT_NEAR(coords.uv, vec2(0), 1e-3);
 
     lP = vec3(0.5, 0.5, 0.0); /* Max of first LOD. */
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 0);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES - 1));
-    EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES - 1));
+    // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES), 1e-3);
 
     /* Test clip-map level selection. */
 
@@ -161,26 +161,26 @@ void main()
     lP = vec3(2.00001, 2.00001, 0.0);
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 0);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2));
-    EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2));
+    // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
 
     lP = vec3(1.50001, 1.50001, 0.0);
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 1);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 4));
-    EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 4), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 4));
+    // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 4), 1e-3);
 
     lP = vec3(1.00001, 1.00001, 0.0);
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 2);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 4));
-    EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 4), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 4));
+    // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 4), 1e-3);
 
     lP = vec3(-0.0001, -0.0001, 0.0); /* Out of bounds. */
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 2);
-    EXPECT_EQ(coords.tile_coord, ivec2(0));
-    EXPECT_NEAR(coords.uv, vec2(0), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(0));
+    // EXPECT_NEAR(coords.uv, vec2(0), 1e-3);
 
     /* Test clip-map offset. */
 
@@ -188,16 +188,16 @@ void main()
     lP = vec3(2.0001, 0.0001, 0.0);
 
     coords = shadow_directional_coordinates(light, lP);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, -1));
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2) + uvec2(1, -1));
 
     coords = shadow_directional_coordinates(light, lP);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, 0));
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2) + uvec2(1, 0));
 
     coords = shadow_directional_coordinates(light, lP);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, 0));
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2) + uvec2(1, 0));
 
     coords = shadow_directional_coordinates(light, lP);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, 0));
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2) + uvec2(1, 0));
 
     /* Test clip-map negative offsets. */
 
@@ -205,16 +205,16 @@ void main()
     lP = vec3(-2.0001, -0.0001, 0.0);
 
     coords = shadow_directional_coordinates(light, lP);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 1));
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2 - 1) + uvec2(-1, 1));
 
     coords = shadow_directional_coordinates(light, lP);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 0));
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2 - 1) + uvec2(-1, 0));
 
     coords = shadow_directional_coordinates(light, lP);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 0));
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2 - 1) + uvec2(-1, 0));
 
     coords = shadow_directional_coordinates(light, lP);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 0));
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2 - 1) + uvec2(-1, 0));
   }
 
   TEST(eevee_shadow, DirectionalCascadeCoordinates)
@@ -249,34 +249,31 @@ void main()
     lP = vec3(1e-8, 1e-8, 0.0);
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 1);
-    EXPECT_EQ(coords.lod_relative, 0);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2));
-    EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2));
+    // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
 
     lP = vec3(lod_half_size * narrowing - 1e-5, 1e-8, 0.0);
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 1);
-    EXPECT_EQ(coords.lod_relative, 0);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES - 1, SHADOW_TILEMAP_RES / 2));
-    EXPECT_NEAR(coords.uv, vec2(float(SHADOW_TILEMAP_RES) - 0.5, SHADOW_TILEMAP_RES / 2), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES - 1, SHADOW_TILEMAP_RES / 2));
+    // EXPECT_NEAR(coords.uv, vec2(float(SHADOW_TILEMAP_RES) - 0.5, SHADOW_TILEMAP_RES / 2), 1e-3);
 
     lP = vec3(lod_half_size + 1e-5, 1e-5, 0.0);
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tilemap_index, 2);
-    EXPECT_EQ(coords.lod_relative, 0);
-    EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES - 1, SHADOW_TILEMAP_RES / 2));
-    EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES / 2), 1e-3);
+    EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES - 1, SHADOW_TILEMAP_RES / 2));
+    // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES / 2), 1e-3);
 
     // lP = vec3(-0.5, -0.5, 0.0); /* Min of first LOD. */
     // coords = shadow_directional_coordinates(light, lP);
     // EXPECT_EQ(coords.tilemap_index, 0);
-    // EXPECT_EQ(coords.tile_coord, ivec2(0));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(0));
     // EXPECT_NEAR(coords.uv, vec2(0), 1e-3);
 
     // lP = vec3(0.5, 0.5, 0.0); /* Max of first LOD. */
     // coords = shadow_directional_coordinates(light, lP);
     // EXPECT_EQ(coords.tilemap_index, 0);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES - 1));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES - 1));
     // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES), 1e-3);
 
     /* Test clip-map level selection. */
@@ -289,25 +286,25 @@ void main()
     // lP = vec3(2.00001, 2.00001, 0.0);
     // coords = shadow_directional_coordinates(light, lP);
     // EXPECT_EQ(coords.tilemap_index, 0);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2));
     // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 2), 1e-3);
 
     // lP = vec3(1.50001, 1.50001, 0.0);
     // coords = shadow_directional_coordinates(light, lP);
     // EXPECT_EQ(coords.tilemap_index, 1);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 4));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 4));
     // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 4), 1e-3);
 
     // lP = vec3(1.00001, 1.00001, 0.0);
     // coords = shadow_directional_coordinates(light, lP);
     // EXPECT_EQ(coords.tilemap_index, 2);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 4));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 4));
     // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES / 4), 1e-3);
 
     // lP = vec3(-0.0001, -0.0001, 0.0); /* Out of bounds. */
     // coords = shadow_directional_coordinates(light, lP);
     // EXPECT_EQ(coords.tilemap_index, 2);
-    // EXPECT_EQ(coords.tile_coord, ivec2(0));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(0));
     // EXPECT_NEAR(coords.uv, vec2(0), 1e-3);
 
     /* Test clip-map offset. */
@@ -316,16 +313,16 @@ void main()
     // lP = vec3(2.0001, 0.0001, 0.0);
 
     // coords = shadow_directional_coordinates(light, lP);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, -1));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2) + uvec2(1, -1));
 
     // coords = shadow_directional_coordinates(light, lP);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, 0));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2) + uvec2(1, 0));
 
     // coords = shadow_directional_coordinates(light, lP);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, 0));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2) + uvec2(1, 0));
 
     // coords = shadow_directional_coordinates(light, lP);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, 0));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2) + uvec2(1, 0));
 
     /* Test clip-map negative offsets. */
 
@@ -333,15 +330,15 @@ void main()
     // lP = vec3(-2.0001, -0.0001, 0.0);
 
     // coords = shadow_directional_coordinates(light, lP);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 1));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2 - 1) + uvec2(-1, 1));
 
     // coords = shadow_directional_coordinates(light, lP);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 0));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2 - 1) + uvec2(-1, 0));
 
     // coords = shadow_directional_coordinates(light, lP);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 0));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2 - 1) + uvec2(-1, 0));
 
     // coords = shadow_directional_coordinates(light, lP);
-    // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 0));
+    // EXPECT_EQ(coords.tilemap_tile, uvec2(SHADOW_TILEMAP_RES / 2 - 1) + uvec2(-1, 0));
   }
 }

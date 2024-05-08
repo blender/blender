@@ -34,13 +34,13 @@ typedef struct BLI_memiter BLI_memiter;
  */
 BLI_memiter *BLI_memiter_create(unsigned int chunk_size_min)
     ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
-void *BLI_memiter_alloc(BLI_memiter *mi, unsigned int size)
+void *BLI_memiter_alloc(BLI_memiter *mi, unsigned int elem_size)
     /* WARNING: `ATTR_MALLOC` attribute on #BLI_memiter_alloc causes crash, see: D2756. */
     ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL ATTR_NONNULL(1);
 void BLI_memiter_alloc_from(BLI_memiter *mi, uint elem_size, const void *data_from)
     ATTR_NONNULL(1, 3);
 void *BLI_memiter_calloc(BLI_memiter *mi,
-                         unsigned int size) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL
+                         unsigned int elem_size) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL
     ATTR_NONNULL(1);
 void BLI_memiter_destroy(BLI_memiter *mi) ATTR_NONNULL(1);
 void BLI_memiter_clear(BLI_memiter *mi) ATTR_NONNULL(1);

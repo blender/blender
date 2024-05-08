@@ -437,10 +437,10 @@ TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
   KeyframeStrip &key_strip = strip.as<KeyframeStrip>();
 
   const KeyframeSettings settings = get_keyframe_settings(false);
-  FCurve *fcurve_loc_a = key_strip.keyframe_insert(
+  SingleKeyingResult result_loc_a = key_strip.keyframe_insert(
       binding, "location", 0, {1.0f, 47.0f}, settings);
-  ASSERT_NE(nullptr, fcurve_loc_a)
-      << "Expect all the necessary data structures to be created on insertion of a key";
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, result_loc_a)
+      << "Expected keyframe insertion to be successful";
 
   /* Check the strip was created correctly, with the channels for the binding. */
   ASSERT_EQ(1, key_strip.channelbags().size());
@@ -448,21 +448,25 @@ TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
   EXPECT_EQ(binding.handle, channels->binding_handle);
 
   /* Insert a second key, should insert into the same FCurve as before. */
-  FCurve *fcurve_loc_b = key_strip.keyframe_insert(
+  SingleKeyingResult result_loc_b = key_strip.keyframe_insert(
       binding, "location", 0, {5.0f, 47.1f}, settings);
-  ASSERT_EQ(fcurve_loc_a, fcurve_loc_b)
-      << "Expect same (binding/rna path/array index) tuple to return the same FCurve.";
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, result_loc_b);
+  ASSERT_EQ(1, channels->fcurves().size()) << "Expect insertion with the same (binding/rna "
+                                              "path/array index) tuple to go into the same FCurve";
+  ASSERT_EQ(2, channels->fcurves()[0]->totvert)
+      << "Expect insertion with the same (binding/rna "
+         "path/array index) tuple to go into the same FCurve";
 
-  EXPECT_EQ(2, fcurve_loc_b->totvert);
-  EXPECT_EQ(47.0f, evaluate_fcurve(fcurve_loc_a, 1.0f));
-  EXPECT_EQ(47.1f, evaluate_fcurve(fcurve_loc_a, 5.0f));
+  EXPECT_EQ(47.0f, evaluate_fcurve(channels->fcurves()[0], 1.0f));
+  EXPECT_EQ(47.1f, evaluate_fcurve(channels->fcurves()[0], 5.0f));
 
   /* Insert another key for another property, should create another FCurve. */
-  FCurve *fcurve_rot = key_strip.keyframe_insert(
+  SingleKeyingResult result_rot = key_strip.keyframe_insert(
       binding, "rotation_quaternion", 0, {1.0f, 0.25f}, settings);
-  EXPECT_NE(fcurve_loc_b, fcurve_rot)
-      << "Expected rotation and location curves to be different FCurves.";
-  EXPECT_EQ(2, channels->fcurves().size()) << "Expected a second FCurve to be created.";
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, result_rot);
+  ASSERT_EQ(2, channels->fcurves().size()) << "Expected a second FCurve to be created.";
+  ASSERT_EQ(2, channels->fcurves()[0]->totvert);
+  ASSERT_EQ(1, channels->fcurves()[1]->totvert);
 }
 
 }  // namespace blender::animrig::tests

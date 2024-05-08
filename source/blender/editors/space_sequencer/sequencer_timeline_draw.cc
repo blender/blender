@@ -64,8 +64,6 @@
 #include "sequencer_intern.hh"
 #include "sequencer_quads_batch.hh"
 
-#define SEQ_LEFTHANDLE 1
-#define SEQ_RIGHTHANDLE 2
 #define SEQ_HANDLE_SIZE 8.0f
 #define MUTE_ALPHA 120
 
@@ -104,6 +102,38 @@ struct TimelineDrawContext {
 
   SeqQuadsBatch *quads;
 };
+
+blender::Vector<Sequence *> sequencer_visible_strips_get(const bContext *C)
+{
+  return sequencer_visible_strips_get(CTX_data_scene(C), UI_view2d_fromcontext(C));
+}
+
+blender::Vector<Sequence *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d)
+{
+  const Editing *ed = SEQ_editing_get(scene);
+  blender::Vector<Sequence *> strips;
+
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+    if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
+        v2d->cur.xmax)
+    {
+      continue;
+    }
+    if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
+               SEQ_time_content_end_frame_get(scene, seq)) < v2d->cur.xmin)
+    {
+      continue;
+    }
+    if (seq->machine + 1.0f < v2d->cur.ymin) {
+      continue;
+    }
+    if (seq->machine > v2d->cur.ymax) {
+      continue;
+    }
+    strips.append(seq);
+  }
+  return strips;
+}
 
 static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuadsBatch *quads_batch)
 {
@@ -682,6 +712,48 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx, const StripDraw
   }
 }
 
+static void draw_handle_transform_text(const TimelineDrawContext *timeline_ctx,
+                                       const StripDrawContext *strip_ctx,
+                                       const short direction)
+{
+  /* Draw numbers for start and end of the strip next to its handles. */
+  if (strip_ctx->strip_is_too_small || (strip_ctx->seq->flag & SELECT) == 0) {
+    return;
+  }
+
+  if ((strip_ctx->seq->flag & direction) == 0 && (G.moving & G_TRANSFORM_SEQ) == 0) {
+    return;
+  }
+
+  char numstr[64];
+  BLF_set_default();
+
+  /* Calculate if strip is wide enough for showing the labels. */
+  size_t numstr_len = SNPRINTF_RLEN(
+      numstr, "%d%d", int(strip_ctx->left_handle), int(strip_ctx->right_handle));
+  const float tot_width = BLF_width(BLF_default(), numstr, numstr_len);
+
+  if (strip_ctx->strip_length / timeline_ctx->pixelx < 20 + tot_width) {
+    return;
+  }
+
+  const uchar col[4] = {255, 255, 255, 255};
+  const float text_margin = 1.2f * strip_ctx->handle_width;
+  const float text_y = strip_ctx->bottom + 0.09f;
+  float text_x = strip_ctx->left_handle;
+
+  if (direction == SEQ_LEFTSEL) {
+    numstr_len = SNPRINTF_RLEN(numstr, "%d", int(strip_ctx->left_handle));
+    text_x += text_margin;
+  }
+  else {
+    numstr_len = SNPRINTF_RLEN(numstr, "%d", int(strip_ctx->right_handle - 1));
+    text_x = strip_ctx->right_handle -
+             (text_margin + timeline_ctx->pixelx * BLF_width(BLF_default(), numstr, numstr_len));
+  }
+  UI_view2d_text_cache_add(timeline_ctx->v2d, text_x, text_y, numstr, numstr_len, col);
+}
+
 float sequence_handle_size_get_clamped(const Scene *scene, Sequence *seq, const float pixelx)
 {
   const float maxhandle = (pixelx * SEQ_HANDLE_SIZE) * U.pixelsize;
@@ -699,81 +771,38 @@ static void draw_seq_handle(TimelineDrawContext *timeline_ctx,
                             const short direction)
 {
   const Sequence *seq = strip_ctx->seq;
+  const bool strip_selected = (seq->flag & SELECT) != 0;
+  const bool handle_selected = (seq->flag & direction) != 0;
+
   if (SEQ_transform_is_locked(timeline_ctx->channels, seq)) {
     return;
   }
-
-  uint whichsel = 0;
-  uchar col[4];
-
-  /* Set up co-ordinates and dimensions for either left or right handle. */
-  rctf handle = {0, 0, strip_ctx->bottom, strip_ctx->top};
-  if (direction == SEQ_LEFTHANDLE) {
-    handle.xmin = strip_ctx->left_handle;
-    handle.xmax = strip_ctx->left_handle + strip_ctx->handle_width;
-    whichsel = SEQ_LEFTSEL;
-  }
-  else if (direction == SEQ_RIGHTHANDLE) {
-    handle.xmin = strip_ctx->right_handle - strip_ctx->handle_width;
-    handle.xmax = strip_ctx->right_handle;
-    whichsel = SEQ_RIGHTSEL;
-  }
-
-  if (!(seq->type & SEQ_TYPE_EFFECT) || SEQ_effect_get_num_inputs(seq->type) == 0) {
-
-    if (seq->flag & whichsel) {
-      if (strip_ctx->is_active_strip) {
-        UI_GetThemeColor3ubv(TH_SEQ_ACTIVE, col);
-      }
-      else {
-        UI_GetThemeColor3ubv(TH_SEQ_SELECTED, col);
-        /* Make handles slightly brighter than the outlines. */
-        UI_GetColorPtrShade3ubv(col, col, 50);
-      }
-      col[3] = 255;
-    }
-    else {
-      col[0] = col[1] = col[2] = 0;
-      col[3] = 50;
-    }
-
-    timeline_ctx->quads->add_quad(handle.xmin, handle.ymin, handle.xmax, handle.ymax, col);
-  }
-
-  /* Draw numbers for start and end of the strip next to its handles. */
-  if (!strip_ctx->can_draw_strip_content ||
-      !(((seq->flag & SELECT) && (G.moving & G_TRANSFORM_SEQ)) || (seq->flag & whichsel)))
-  {
+  if (!ED_sequencer_can_select_handle(seq)) {
     return;
   }
-
-  char numstr[64];
-  size_t numstr_len;
-  const int fontid = BLF_default();
-  BLF_set_default();
-
-  /* Calculate if strip is wide enough for showing the labels. */
-  numstr_len = SNPRINTF_RLEN(
-      numstr, "%d%d", int(strip_ctx->left_handle), int(strip_ctx->right_handle));
-  float tot_width = BLF_width(fontid, numstr, numstr_len);
-
-  if (strip_ctx->strip_length / timeline_ctx->pixelx > 20 + tot_width) {
-    col[0] = col[1] = col[2] = col[3] = 255;
-    float text_margin = 1.2f * strip_ctx->handle_width;
-
-    float text_x = strip_ctx->left_handle;
-    const float text_y = strip_ctx->bottom + 0.09f;
-    if (direction == SEQ_LEFTHANDLE) {
-      numstr_len = SNPRINTF_RLEN(numstr, "%d", int(strip_ctx->left_handle));
-      text_x += text_margin;
-    }
-    else {
-      numstr_len = SNPRINTF_RLEN(numstr, "%d", int(strip_ctx->right_handle - 1));
-      text_x = strip_ctx->right_handle -
-               (text_margin + timeline_ctx->pixelx * BLF_width(fontid, numstr, numstr_len));
-    }
-    UI_view2d_text_cache_add(timeline_ctx->v2d, text_x, text_y, numstr, numstr_len, col);
+  uchar col[4];
+  if (strip_selected && handle_selected && seq == SEQ_select_active_get(timeline_ctx->scene)) {
+    UI_GetThemeColor4ubv(TH_SEQ_ACTIVE, col);
   }
+  else if (strip_selected && handle_selected) {
+    UI_GetThemeColor4ubv(TH_SEQ_SELECTED, col);
+  }
+  else {
+    col[0] = col[1] = col[2] = 0;
+    col[3] = 50;
+  }
+
+  rctf handle = {0, 0, strip_ctx->bottom, strip_ctx->top};
+  if (direction == SEQ_LEFTSEL) {
+    handle.xmin = strip_ctx->left_handle;
+    handle.xmax = strip_ctx->left_handle + strip_ctx->handle_width;
+  }
+  else if (direction == SEQ_RIGHTSEL) {
+    handle.xmin = strip_ctx->right_handle - strip_ctx->handle_width;
+    handle.xmax = strip_ctx->right_handle;
+  }
+
+  timeline_ctx->quads->add_quad(handle.xmin, handle.ymin, handle.xmax, handle.ymax, col);
 }
 
 /* Strip border, and outline for selected/active strips. */
@@ -1606,8 +1635,10 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
     draw_effect_inputs_highlight(timeline_ctx, &strip_ctx);
     draw_multicam_highlight(timeline_ctx, &strip_ctx);
     draw_seq_solo_highlight(timeline_ctx, &strip_ctx);
-    draw_seq_handle(timeline_ctx, &strip_ctx, SEQ_LEFTHANDLE);
-    draw_seq_handle(timeline_ctx, &strip_ctx, SEQ_RIGHTHANDLE);
+    draw_seq_handle(timeline_ctx, &strip_ctx, SEQ_LEFTSEL);
+    draw_seq_handle(timeline_ctx, &strip_ctx, SEQ_RIGHTSEL);
+    draw_handle_transform_text(timeline_ctx, &strip_ctx, SEQ_LEFTSEL);
+    draw_handle_transform_text(timeline_ctx, &strip_ctx, SEQ_RIGHTSEL);
     draw_seq_outline(timeline_ctx, &strip_ctx);
     draw_seq_text_overlay(timeline_ctx, &strip_ctx);
   }

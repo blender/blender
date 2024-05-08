@@ -72,17 +72,11 @@ struct InsetData {
 static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
   InsetData *opdata = static_cast<InsetData *>(op->customdata);
-
-  const char *str = IFACE_(
-      "Confirm: Enter/LMB, Cancel: (Esc/RMB), Thickness: %s, "
-      "Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): "
-      "(%s)");
-
-  char msg[UI_MAX_DRAW_STR];
   ScrArea *area = CTX_wm_area(C);
   Scene *sce = CTX_data_scene(C);
 
   if (area) {
+    char msg[UI_MAX_DRAW_STR];
     char flts_str[NUM_STR_REP_LEN * 2];
     if (hasNumInput(&opdata->num_input)) {
       outputNumInput(&opdata->num_input, flts_str, &sce->unit);
@@ -103,17 +97,17 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
                                &sce->unit,
                                true);
     }
-    SNPRINTF(msg,
-             str,
-             flts_str,
-             flts_str + NUM_STR_REP_LEN,
-             WM_bool_as_string(opdata->modify_depth),
-             WM_bool_as_string(RNA_boolean_get(op->ptr, "use_outset")),
-             WM_bool_as_string(RNA_boolean_get(op->ptr, "use_boundary")),
-             WM_bool_as_string(RNA_boolean_get(op->ptr, "use_individual")));
-
+    SNPRINTF(msg, IFACE_("Thickness: %s, Depth: %s"), flts_str, flts_str + NUM_STR_REP_LEN);
     ED_area_status_text(area, msg);
   }
+
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Confirm"), ICON_EVENT_RETURN, ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC, ICON_MOUSE_RMB);
+  status.item_bool(IFACE_("Tweak"), opdata->modify_depth, ICON_EVENT_CTRL);
+  status.item_bool(IFACE_("Outset"), RNA_boolean_get(op->ptr, "use_outset"), ICON_EVENT_O);
+  status.item_bool(IFACE_("Boundary"), RNA_boolean_get(op->ptr, "use_boundary"), ICON_EVENT_B);
+  status.item_bool(IFACE_("Individual"), RNA_boolean_get(op->ptr, "use_individual"), ICON_EVENT_I);
 }
 
 static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
@@ -201,6 +195,7 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
   if (area) {
     ED_area_status_text(area, nullptr);
   }
+  ED_workspace_status_text(C, nullptr);
 
   MEM_SAFE_FREE(opdata->ob_store);
   MEM_SAFE_FREE(op->customdata);

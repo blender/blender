@@ -403,7 +403,7 @@ void BKE_nlatrack_insert_after(ListBase *nla_tracks,
          first_local = first_local->next)
     {
     }
-    prev = first_local != nullptr ? first_local->prev : nullptr;
+    prev = first_local != nullptr ? first_local->prev : prev;
   }
 
   /* Add track to stack, and make it the active one. */

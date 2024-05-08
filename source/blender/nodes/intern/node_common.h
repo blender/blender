@@ -33,4 +33,8 @@ void ntree_update_reroute_nodes(struct bNodeTree *ntree);
 
 #ifdef __cplusplus
 }
+
+#  include <string>
+
+std::string node_group_ui_description(const bNode &node);
 #endif

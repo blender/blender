@@ -28,8 +28,10 @@
 #include "UI_interface.hh"
 
 #include "NOD_common.h"
+#include "NOD_geo_bake.hh"
 #include "NOD_geo_simulation.hh"
 #include "NOD_geometry.hh"
+#include "NOD_node_extra_info.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_items_ops.hh"
 
@@ -1024,6 +1026,19 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
       *ntree, *node, *node, *link);
 }
 
+static void node_extra_info(NodeExtraInfoParams &params)
+{
+  BakeDrawContext ctx;
+  if (!get_bake_draw_context(&params.C, params.node, ctx)) {
+    return;
+  }
+  if (ctx.is_baked) {
+    NodeExtraInfoRow row;
+    row.text = get_baked_string(ctx);
+    params.rows.append(std::move(row));
+  }
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -1038,6 +1053,7 @@ static void node_register()
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.no_muting = true;
   ntype.register_operators = node_operators;
+  ntype.get_extra_info = node_extra_info;
   node_type_storage(&ntype, "NodeGeometrySimulationOutput", node_free_storage, node_copy_storage);
   nodeRegisterType(&ntype);
 }

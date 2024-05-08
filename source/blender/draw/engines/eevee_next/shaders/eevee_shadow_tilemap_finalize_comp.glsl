@@ -51,7 +51,7 @@ void main()
   int tilemap_index = int(gl_GlobalInvocationID.z);
   ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
 
-  ivec2 atlas_texel = shadow_tile_coord_in_atlas(tile_co, tilemap_index);
+  uvec2 atlas_texel = shadow_tile_coord_in_atlas(uvec2(tile_co), tilemap_index);
 
   ShadowTileMapData tilemap_data = tilemaps_buf[tilemap_index];
   bool is_cubemap = (tilemap_data.projection_type == SHADOW_PROJECTION_CUBEFACE);
@@ -64,7 +64,7 @@ void main()
    * Add one render view per LOD that has tiles to be rendered. */
   for (int lod = lod_max; lod >= 0; lod--) {
     ivec2 tile_co_lod = tile_co >> lod;
-    int tile_index = shadow_tile_offset(tile_co_lod, tilemap_data.tiles_index, lod);
+    int tile_index = shadow_tile_offset(uvec2(tile_co_lod), tilemap_data.tiles_index, lod);
 
     ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
 
@@ -103,26 +103,6 @@ void main()
         view_index = atomicAdd(statistics_buf.view_needed_count, 1);
         if (view_index < SHADOW_VIEW_MAX) {
           /* Setup the view. */
-
-          render_view_buf[view_index].viewport_index = viewport_index;
-          /* Scale by actual radius size (overestimate since scaled by bounding circle). */
-          float filter_radius = tilemap_data.filter_radius * M_SQRT2;
-          /* We need a minimum slope bias even if filter is 0 to avoid some invalid shadowing. */
-          render_view_buf[view_index].filter_radius = max(1.0, filter_radius);
-          /* Clipping setup. */
-          if (tilemap_data.is_area_side) {
-            /* Negative for tagging this case. See shadow_clip_vector_get for explanation. */
-            render_view_buf[view_index].clip_distance_inv = -M_SQRT1_3 / tilemap_data.area_shift;
-          }
-          else if (is_point_light(tilemap_data.light_type)) {
-            /* Clip as a sphere around the clip_near cube. */
-            render_view_buf[view_index].clip_distance_inv = M_SQRT1_3 / tilemap_data.clip_near;
-          }
-          else {
-            /* Disable local clipping. */
-            render_view_buf[view_index].clip_distance_inv = 0.0;
-          }
-
           view_infos_buf[view_index].viewmat = tilemap_data.viewmat;
           view_infos_buf[view_index].viewinv = inverse(tilemap_data.viewmat);
 
@@ -153,6 +133,23 @@ void main()
 
           view_infos_buf[view_index].winmat = winmat;
           view_infos_buf[view_index].wininv = inverse(winmat);
+
+          render_view_buf[view_index].viewport_index = viewport_index;
+          render_view_buf[view_index].is_directional = !is_cubemap;
+          render_view_buf[view_index].clip_near = clip_near;
+          /* Clipping setup. */
+          if (tilemap_data.is_area_side) {
+            /* Negative for tagging this case. See shadow_clip_vector_get for explanation. */
+            render_view_buf[view_index].clip_distance_inv = -M_SQRT1_3 / tilemap_data.area_shift;
+          }
+          else if (is_point_light(tilemap_data.light_type)) {
+            /* Clip as a sphere around the clip_near cube. */
+            render_view_buf[view_index].clip_distance_inv = M_SQRT1_3 / tilemap_data.clip_near;
+          }
+          else {
+            /* Disable local clipping. */
+            render_view_buf[view_index].clip_distance_inv = 0.0;
+          }
         }
       }
     }
@@ -205,7 +202,7 @@ void main()
   ShadowTileData tile_data = shadow_tile_unpack(tile_packed);
   ShadowSamplingTile tile_sampling = shadow_sampling_tile_create(tile_data, valid_lod);
   ShadowSamplingTilePacked tile_sampling_packed = shadow_sampling_tile_pack(tile_sampling);
-  imageStore(tilemaps_img, atlas_texel, uvec4(tile_sampling_packed));
+  imageStore(tilemaps_img, ivec2(atlas_texel), uvec4(tile_sampling_packed));
 
   if (all(equal(gl_GlobalInvocationID, uvec3(0)))) {
     /* Clamp it as it can underflow if there is too much tile present on screen. */

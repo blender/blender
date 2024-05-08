@@ -27,7 +27,10 @@ typedef struct KDTreeNearest {
   float co[KD_DIMS];
 } KDTreeNearest;
 
-KDTree *BLI_kdtree_nd_(new)(unsigned int maxsize);
+/**
+ * \param nodes_len_capacity: The maximum length this KD-tree may hold.
+ */
+KDTree *BLI_kdtree_nd_(new)(unsigned int nodes_len_capacity);
 void BLI_kdtree_nd_(free)(KDTree *tree);
 void BLI_kdtree_nd_(balance)(KDTree *tree) ATTR_NONNULL(1);
 
@@ -62,7 +65,7 @@ void BLI_kdtree_nd_(range_search_cb)(
 int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
                                          float range,
                                          bool use_index_order,
-                                         int *doubles);
+                                         int *duplicates);
 
 int BLI_kdtree_nd_(deduplicate)(KDTree *tree);
 

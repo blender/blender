@@ -271,10 +271,10 @@ void initialize_bezt(BezTriple *beztr,
   beztr->period = 4.1f;
 }
 
-int insert_vert_fcurve(FCurve *fcu,
-                       const float2 position,
-                       const KeyframeSettings &settings,
-                       eInsertKeyFlags flag)
+SingleKeyingResult insert_vert_fcurve(FCurve *fcu,
+                                      const float2 position,
+                                      const KeyframeSettings &settings,
+                                      eInsertKeyFlags flag)
 {
   BezTriple beztr = {{{0}}};
   initialize_bezt(&beztr, position, settings, eFCurve_Flags(fcu->flag));
@@ -286,9 +286,11 @@ int insert_vert_fcurve(FCurve *fcu,
   a = insert_bezt_fcurve(fcu, &beztr, flag);
   BKE_fcurve_active_keyframe_set(fcu, &fcu->bezt[a]);
 
-  /* If `a` is negative return to avoid segfaults. */
+  /* Key insertion failed. */
   if (a < 0) {
-    return -1;
+    /* TODO: we need more info from `insert_bezt_fcurve()` called above to
+     * return a more specific failure. */
+    return SingleKeyingResult::UNKNOWN_FAILURE;
   }
 
   /* Set handle-type and interpolation. */
@@ -323,7 +325,7 @@ int insert_vert_fcurve(FCurve *fcu,
   }
 
   /* Return the index at which the keyframe was added. */
-  return a;
+  return SingleKeyingResult::SUCCESS;
 }
 
 void sample_fcurve_segment(FCurve *fcu,

@@ -2284,19 +2284,25 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
       continue;
     }
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
-    ANIM_nla_mapping_apply_fcurve(adt, fcu, false, true);
+
     float closest_fcu_frame;
-    if (!find_closest_frame(fcu, current_frame, next, &closest_fcu_frame)) {
+    ANIM_nla_mapping_apply_fcurve(adt, fcu, false, true);
+    const bool success = find_closest_frame(fcu, current_frame, next, &closest_fcu_frame);
+    ANIM_nla_mapping_apply_fcurve(adt, fcu, true, true);
+
+    if (!success) {
       continue;
     }
+
     if ((next && closest_fcu_frame < closest_frame) ||
         (!next && closest_fcu_frame > closest_frame))
     {
       closest_frame = closest_fcu_frame;
       found = true;
     }
-    ANIM_nla_mapping_apply_fcurve(adt, fcu, true, true);
   }
+
+  ANIM_animdata_freelist(&anim_data);
 
   if (!found) {
     BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
@@ -2304,8 +2310,6 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   BKE_scene_frame_set(scene, closest_frame);
-
-  ANIM_animdata_freelist(&anim_data);
 
   /* Set notifier that things have changed. */
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);

@@ -488,10 +488,10 @@ bool BLI_str_startswith(const char *__restrict str,
  *
  * \param str: The string to search within.
  * \param end: The string we look for at the end.
- * \return If str ends with end.
+ * \return If `str` ends with `end`.
  */
 bool BLI_str_endswith(const char *__restrict str, const char *__restrict end) ATTR_NONNULL(1, 2);
-bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t length)
+bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t str_len)
     ATTR_NONNULL(1, 2);
 
 /**

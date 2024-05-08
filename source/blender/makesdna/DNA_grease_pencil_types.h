@@ -450,10 +450,10 @@ typedef struct GreasePencil {
   char _pad2[4];
 
   /**
-   * Pointer to the active layer. Can be NULL.
+   * Pointer to the active node. Can be NULL.
    * This pointer does not own the data.
    */
-  GreasePencilLayer *active_layer;
+  GreasePencilLayerTreeNode *active_node;
 
   /**
    * An array of materials.
@@ -492,6 +492,8 @@ typedef struct GreasePencil {
   /* Layers, layer groups and nodes read/write access. */
   blender::Span<const blender::bke::greasepencil::Layer *> layers() const;
   blender::Span<blender::bke::greasepencil::Layer *> layers_for_write();
+  const blender::bke::greasepencil::Layer *layer(int64_t index) const;
+  blender::bke::greasepencil::Layer *layer(int64_t index);
 
   blender::Span<const blender::bke::greasepencil::LayerGroup *> layer_groups() const;
   blender::Span<blender::bke::greasepencil::LayerGroup *> layer_groups_for_write();
@@ -618,12 +620,23 @@ typedef struct GreasePencil {
    */
   const blender::bke::greasepencil::Drawing *get_drawing_at(
       const blender::bke::greasepencil::Layer &layer, int frame_number) const;
+  blender::bke::greasepencil::Drawing *get_drawing_at(
+      const blender::bke::greasepencil::Layer &layer, int frame_number);
   /**
    * Returns an editable drawing on \a layer at frame \a frame_number or `nullptr` if no such
    * drawing exists.
    */
   blender::bke::greasepencil::Drawing *get_editable_drawing_at(
       const blender::bke::greasepencil::Layer &layer, int frame_number);
+
+  /**
+   * Returns a drawing on \a layer at the frame this grease pencil was evaluated at or `nullptr` if
+   * no such drawing exists.
+   */
+  const blender::bke::greasepencil::Drawing *get_eval_drawing(
+      const blender::bke::greasepencil::Layer &layer) const;
+  blender::bke::greasepencil::Drawing *get_eval_drawing(
+      const blender::bke::greasepencil::Layer &layer);
 
   std::optional<blender::Bounds<blender::float3>> bounds_min_max(int frame) const;
   std::optional<blender::Bounds<blender::float3>> bounds_min_max_eval() const;

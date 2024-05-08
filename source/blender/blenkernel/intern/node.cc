@@ -755,6 +755,7 @@ static void write_node_socket(BlendWriter *writer, const bNodeSocket *sock)
 void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
 {
   BKE_id_blend_write(writer, &ntree->id);
+  BLO_write_string(writer, ntree->description);
 
   for (bNode *node : ntree->all_nodes()) {
     if (ntree->type == NTREE_SHADER && node->type == SH_NODE_BSDF_HAIR_PRINCIPLED) {
@@ -1044,6 +1045,8 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   ntree->runtime = MEM_new<bNodeTreeRuntime>(__func__);
   BKE_ntree_update_tag_missing_runtime_data(ntree);
 
+  BLO_read_string(reader, &ntree->description);
+
   BLO_read_struct_list(reader, bNode, &ntree->nodes);
   int i;
   LISTBASE_FOREACH_INDEX (bNode *, node, &ntree->nodes, i) {
@@ -1288,12 +1291,32 @@ void node_update_asset_metadata(bNodeTree &node_tree)
 
 static void node_tree_asset_pre_save(void *asset_ptr, AssetMetaData * /*asset_data*/)
 {
-  node_update_asset_metadata(*static_cast<bNodeTree *>(asset_ptr));
+  bNodeTree &ntree = *static_cast<bNodeTree *>(asset_ptr);
+  node_update_asset_metadata(ntree);
 }
 
-static void node_tree_asset_on_mark_asset(void *asset_ptr, AssetMetaData * /*asset_data*/)
+static void node_tree_asset_on_mark_asset(void *asset_ptr, AssetMetaData *asset_data)
 {
-  node_update_asset_metadata(*static_cast<bNodeTree *>(asset_ptr));
+  bNodeTree &ntree = *static_cast<bNodeTree *>(asset_ptr);
+  node_update_asset_metadata(ntree);
+
+  /* Copy node tree description to asset description so that the user does not have to write it
+   * again. */
+  if (!asset_data->description) {
+    asset_data->description = BLI_strdup_null(ntree.description);
+  }
+}
+
+static void node_tree_asset_on_clear_asset(void *asset_ptr, AssetMetaData *asset_data)
+{
+  bNodeTree &ntree = *static_cast<bNodeTree *>(asset_ptr);
+
+  /* Copy asset description to node tree description so that it is not lost when the asset data is
+   * removed. */
+  if (asset_data->description) {
+    MEM_SAFE_FREE(ntree.description);
+    ntree.description = BLI_strdup_null(asset_data->description);
+  }
 }
 
 }  // namespace blender::bke
@@ -1301,6 +1324,7 @@ static void node_tree_asset_on_mark_asset(void *asset_ptr, AssetMetaData * /*ass
 static AssetTypeInfo AssetType_NT = {
     /*pre_save_fn*/ blender::bke::node_tree_asset_pre_save,
     /*on_mark_asset_fn*/ blender::bke::node_tree_asset_on_mark_asset,
+    /*on_clear_asset_fn*/ blender::bke::node_tree_asset_on_clear_asset,
 };
 
 IDTypeInfo IDType_ID_NT = {

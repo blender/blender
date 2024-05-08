@@ -2890,7 +2890,11 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
       CustomData_free_layer(cdata, attr->proptype, totelem, layer_i);
     }
 
-    sculpt_attribute_update_refs(ob, BKE_pbvh_type(*ss->pbvh));
+    if (ss->pbvh) {
+      /* If the PBVH doesn't exist, we cannot update references
+       * This can occur when all the attributes are being deleted. */
+      sculpt_attribute_update_refs(ob, BKE_pbvh_type(*ss->pbvh));
+    }
   }
 
   attr->data = nullptr;

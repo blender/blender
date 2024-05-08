@@ -41,8 +41,7 @@ using blender::MutableSpan;
 
 bool sequencer_retiming_mode_is_active(const bContext *C)
 {
-  const Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
+  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
   if (ed == nullptr) {
     return false;
   }
@@ -259,7 +258,7 @@ static int sequencer_retiming_key_add_exec(bContext *C, wmOperator *op)
   }
 
   int ret_val;
-  blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
+  blender::VectorSet<Sequence *> strips = ED_sequencer_selected_strips_from_context(C);
   if (!strips.is_empty()) {
     ret_val = retiming_key_add_from_selection(C, op, strips, timeline_frame);
   }
@@ -345,7 +344,7 @@ static bool freeze_frame_add_from_strip_selection(bContext *C,
                                                   const int duration)
 {
   Scene *scene = CTX_data_scene(C);
-  blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
+  blender::VectorSet<Sequence *> strips = ED_sequencer_selected_strips_from_context(C);
   const int timeline_frame = BKE_scene_frame_get(scene);
   bool success = false;
 
@@ -543,7 +542,7 @@ static float strip_speed_get(bContext *C, const wmOperator * /* op */)
 {
   /* Strip mode. */
   if (!sequencer_retiming_mode_is_active(C)) {
-    blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
+    blender::VectorSet<Sequence *> strips = ED_sequencer_selected_strips_from_context(C);
     if (strips.size() == 1) {
       Sequence *seq = strips[0];
       SeqRetimingKey *key = ensure_left_and_right_keys(C, seq);
@@ -566,7 +565,7 @@ static float strip_speed_get(bContext *C, const wmOperator * /* op */)
 static int strip_speed_set_exec(bContext *C, const wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
+  blender::VectorSet<Sequence *> strips = ED_sequencer_selected_strips_from_context(C);
 
   for (Sequence *seq : strips) {
     SeqRetimingKey *key = ensure_left_and_right_keys(C, seq);

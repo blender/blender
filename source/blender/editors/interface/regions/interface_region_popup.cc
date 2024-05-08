@@ -649,7 +649,19 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   /* callbacks _must_ leave this for us, otherwise we can't call UI_block_update_from_old */
   BLI_assert(!block->endblock);
 
-  /* ensure we don't use mouse coords here! */
+  /* Ensure we don't use mouse coords here.
+   *
+   * NOTE(@ideasman42): Important because failing to do will cause glitches refreshing the popup.
+   *
+   * - Many popups use #wmEvent::xy to position them.
+   * - Refreshing a pop-up must only ever change it's contents. Consider that refreshing
+   *   might be used to show a menu item as grayed out, or change a text label,
+   *   we *never* want the popup to move based on the cursor location while refreshing.
+   * - The location of the cursor at the time of creation is stored in:
+   *   `handle->popup_create_vars.event_xy` which must be used instead.
+   *
+   * Since it's difficult to control logic which is called indirectly here,
+   * clear the `eventstate` entirely to ensure it's never used when refreshing a popup. */
 #ifndef NDEBUG
   window->eventstate = nullptr;
 #endif

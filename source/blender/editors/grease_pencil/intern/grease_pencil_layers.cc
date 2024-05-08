@@ -33,7 +33,7 @@ void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer 
     layer->set_selected(true);
   }
 
-  if (grease_pencil.active_layer != layer) {
+  if (grease_pencil.get_active_layer() != layer) {
     grease_pencil.set_active_layer(layer);
     WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, &grease_pencil);
   }
@@ -209,8 +209,7 @@ static int grease_pencil_layer_active_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   int layer_index = RNA_int_get(op->ptr, "layer");
 
-  const Layer &layer = *grease_pencil.layers()[layer_index];
-
+  const Layer &layer = *grease_pencil.layer(layer_index);
   if (grease_pencil.is_layer_active(&layer)) {
     return OPERATOR_CANCELLED;
   }

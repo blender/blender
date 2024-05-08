@@ -285,9 +285,9 @@ std::optional<int> GeometryDataSetTreeViewItem::count() const
   }
 
   if (component_type_ == bke::GeometryComponent::Type::GreasePencil && layer_index_) {
-    if (const bke::greasepencil::Drawing *drawing =
-            bke::greasepencil::get_eval_grease_pencil_layer_drawing(*geometry.get_grease_pencil(),
-                                                                    *layer_index_))
+    const GreasePencil *grease_pencil = geometry.get_grease_pencil();
+    if (const bke::greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(
+            *grease_pencil->layer(*layer_index_)))
     {
       return drawing->strokes().attributes().domain_size(*domain_);
     }

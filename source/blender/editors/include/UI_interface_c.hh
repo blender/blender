@@ -3420,4 +3420,4 @@ blender::ui::AbstractView *UI_region_view_find_at(const ARegion *region, const i
 blender::ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &region,
                                                             const int xy[2]);
 blender::ui::AbstractViewItem *UI_region_views_find_active_item(const ARegion *region);
-uiBut *UI_region_views_find_mouse_over_but(const wmWindow *win, const ARegion *region);
+uiBut *UI_region_views_find_active_item_but(const ARegion *region);
