@@ -69,6 +69,14 @@ bool clear_id(ID *id)
   if (!id->asset_data) {
     return false;
   }
+
+  const IDTypeInfo *id_type_info = BKE_idtype_get_info_from_id(id);
+  if (AssetTypeInfo *type_info = id_type_info->asset_type_info) {
+    if (type_info->on_clear_asset_fn) {
+      type_info->on_clear_asset_fn(id, id->asset_data);
+    }
+  }
+
   BKE_asset_metadata_free(&id->asset_data);
   id_fake_user_clear(id);
 

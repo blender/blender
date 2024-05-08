@@ -990,6 +990,11 @@ class NODE_PT_node_tree_properties(Panel):
         col.prop(group, "is_modifier")
         col.prop(group, "is_tool")
 
+        if group.asset_data:
+            layout.prop(group.asset_data, "description", text="Group Description")
+        else:
+            layout.prop(group, "description", text="Group Description")
+
 
 # Grease Pencil properties
 class NODE_PT_annotation(AnnotationDataPanel, Panel):

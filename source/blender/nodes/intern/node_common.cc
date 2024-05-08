@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstring>
 
+#include "DNA_asset_types.h"
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"
@@ -91,6 +92,23 @@ bool node_group_poll_instance(const bNode *node,
     return true;
   }
   return nodeGroupPoll(nodetree, grouptree, disabled_hint);
+}
+
+std::string node_group_ui_description(const bNode &node)
+{
+  if (!node.id) {
+    return "";
+  }
+  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id);
+  if (group->id.asset_data) {
+    if (group->id.asset_data->description) {
+      return group->id.asset_data->description;
+    }
+  }
+  if (!group->description) {
+    return "";
+  }
+  return group->description;
 }
 
 bool nodeGroupPoll(const bNodeTree *nodetree,

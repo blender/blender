@@ -10372,6 +10372,9 @@ static void rna_def_nodetree(BlenderRNA *brna)
       prop, "", "The current location (offset) of the view for this Node Tree");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+  prop = RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Description", "Description of the node tree");
+
   /* AnimData */
   rna_def_animdata_common(srna);
 

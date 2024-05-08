@@ -3448,6 +3448,17 @@ static void node_draw_basis(const bContext &C,
                         0,
                         0,
                         TIP_(node.typeinfo->ui_description));
+  UI_but_func_tooltip_set(
+      but,
+      [](bContext * /*C*/, void *arg, const char *tip) -> std::string {
+        const bNode &node = *static_cast<const bNode *>(arg);
+        if (node.typeinfo->ui_description_fn) {
+          return node.typeinfo->ui_description_fn(node);
+        }
+        return StringRef(tip);
+      },
+      const_cast<bNode *>(&node),
+      nullptr);
 
   if (node.flag & NODE_MUTED) {
     UI_but_flag_enable(but, UI_BUT_INACTIVE);
