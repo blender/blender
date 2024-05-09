@@ -375,6 +375,15 @@ static const char *rna_Screen_statusbar_info_get(bScreen * /*screen*/, Main *bma
   return ED_info_statusbar_string(bmain, CTX_data_scene(C), CTX_data_view_layer(C));
 }
 
+static void rna_Region_tag_refresh_ui(ARegion *region, ReportList *reports)
+{
+  if (region->regiontype != RGN_TYPE_TEMPORARY) {
+    BKE_report(reports, RPT_ERROR, "Only supported for \"TEMPORARY\" type regions (pop-ups)");
+    return;
+  }
+  ED_region_tag_refresh_ui(region);
+}
+
 #else
 
 /* Area.spaces */
@@ -552,6 +561,18 @@ static void rna_def_view2d(BlenderRNA *brna)
   rna_def_view2d_api(srna);
 }
 
+static void rna_def_region_api(StructRNA *srna)
+{
+  FunctionRNA *func;
+  // PropertyRNA *parm;
+
+  RNA_def_function(srna, "tag_redraw", "ED_region_tag_redraw");
+
+  /* Wrap #ED_region_tag_refresh_ui (with some additional checks). */
+  func = RNA_def_function(srna, "tag_refresh_ui", "rna_Region_tag_refresh_ui");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+}
+
 static void rna_def_region(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -643,7 +664,7 @@ static void rna_def_region(BlenderRNA *brna)
       "support this feature (NOTE: these categories are generated at runtime, so list may be "
       "empty at initialization, before any drawing took place)");
 
-  RNA_def_function(srna, "tag_redraw", "ED_region_tag_redraw");
+  rna_def_region_api(srna);
 }
 
 static void rna_def_screen(BlenderRNA *brna)
