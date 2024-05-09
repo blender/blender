@@ -281,48 +281,9 @@ inline constexpr int64_t power_of_2_max(const int64_t x)
 /** \name Array Macros
  * \{ */
 
-/* array helpers */
-#define ARRAY_LAST_ITEM(arr_start, arr_dtype, arr_len) \
-  (arr_dtype *)((char *)(arr_start) + (sizeof(*((arr_dtype *)NULL)) * (size_t)(arr_len - 1)))
-
 #define ARRAY_HAS_ITEM(arr_item, arr_start, arr_len) \
   (CHECK_TYPE_PAIR_INLINE(arr_start, arr_item), \
    ((unsigned int)((arr_item) - (arr_start)) < (unsigned int)(arr_len)))
-
-/**
- * \note use faster #ARRAY_DELETE_REORDER_LAST when we can re-order.
- */
-#define ARRAY_DELETE(arr, index, delete_len, arr_len) \
-  { \
-    BLI_assert((&arr[index] >= arr) && ((index) + delete_len <= arr_len)); \
-    memmove(&(arr)[index], \
-            &(arr)[(index) + (delete_len)], \
-            (((arr_len) - (index)) - (delete_len)) * sizeof(*(arr))); \
-  } \
-  ((void)0)
-
-/**
- * Re-ordering array removal.
- *
- * When removing single items this compiles down to:
- * `if (index + 1 != arr_len) { arr[index] = arr[arr_len - 1]; }` (typical reordering removal),
- * with removing multiple items, overlap is detected to avoid memcpy errors.
- */
-#define ARRAY_DELETE_REORDER_LAST(arr, index, delete_len, arr_len) \
-  { \
-    BLI_assert((&arr[index] >= arr) && ((index) + delete_len <= arr_len)); \
-    if ((index) + (delete_len) != (arr_len)) { \
-      if (((delete_len) == 1) || ((delete_len) <= ((arr_len) - ((index) + (delete_len))))) { \
-        memcpy(&(arr)[index], &(arr)[(arr_len) - (delete_len)], (delete_len) * sizeof(*(arr))); \
-      } \
-      else { \
-        memcpy(&(arr)[index], \
-               &(arr)[(arr_len) - ((arr_len) - ((index) + (delete_len)))], \
-               ((arr_len) - ((index) + (delete_len))) * sizeof(*(arr))); \
-      } \
-    } \
-  } \
-  ((void)0)
 
 /* assuming a static array */
 #ifndef __cplusplus
