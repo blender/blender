@@ -146,98 +146,92 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, PointerRNA *imfptr)
+static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-  uiLayout *box, *row, *col, *sub;
-
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Manual Transform"), ICON_NONE);
+  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_general", false, IFACE_("General"))) {
+    uiLayout *col = uiLayoutColumn(panel, false);
+    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(box, imfptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  /* Scene Options */
-  box = uiLayoutBox(layout);
-  row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Scene Options"), ICON_SCENE_DATA);
-
-  col = uiLayoutColumn(box, false);
-
-  sub = uiLayoutColumn(col, true);
-  uiItemR(sub, imfptr, "start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
-  uiItemR(sub, imfptr, "end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
-
-  uiItemR(col, imfptr, "xsamples", UI_ITEM_NONE, IFACE_("Samples Transform"), ICON_NONE);
-  uiItemR(col, imfptr, "gsamples", UI_ITEM_NONE, IFACE_("Geometry"), ICON_NONE);
-
-  sub = uiLayoutColumn(col, true);
-  uiItemR(sub, imfptr, "sh_open", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(sub, imfptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
-
-  uiItemS(col);
-
-  uiItemR(col, imfptr, "flatten", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(sub, imfptr, "use_instancing", UI_ITEM_NONE, IFACE_("Use Instancing"), ICON_NONE);
-  uiItemR(sub,
-          imfptr,
-          "export_custom_properties",
-          UI_ITEM_NONE,
-          IFACE_("Custom Properties"),
-          ICON_NONE);
-
-  if (CTX_wm_space_file(C)) {
-    sub = uiLayoutColumnWithHeading(col, true, IFACE_("Only"));
-    uiItemR(sub, imfptr, "selected", UI_ITEM_NONE, IFACE_("Selected Objects"), ICON_NONE);
-    uiItemR(
-        sub, imfptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Objects"), ICON_NONE);
+    col = uiLayoutColumn(panel, false);
+    if (CTX_wm_space_file(C)) {
+      uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Include"));
+      uiItemR(sub, ptr, "selected", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
+      uiItemR(sub, ptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Only"), ICON_NONE);
+    }
   }
 
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, imfptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  /* Scene Options */
+  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_scene", false, IFACE_("Scene"))) {
+    uiLayout *col = uiLayoutColumn(panel, false);
+
+    uiLayout *sub = uiLayoutColumn(col, true);
+    uiItemR(sub, ptr, "start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
+    uiItemR(sub, ptr, "end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+
+    sub = uiLayoutColumn(col, true);
+    uiItemR(sub, ptr, "xsamples", UI_ITEM_NONE, IFACE_("Samples Transform"), ICON_NONE);
+    uiItemR(sub, ptr, "gsamples", UI_ITEM_NONE, IFACE_("Geometry"), ICON_NONE);
+
+    sub = uiLayoutColumn(col, true);
+    uiItemR(sub, ptr, "sh_open", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
+
+    uiItemS(col);
+
+    uiItemR(col, ptr, "use_instancing", UI_ITEM_NONE, IFACE_("Use Instancing"), ICON_NONE);
+    uiItemR(col,
+            ptr,
+            "export_custom_properties",
+            UI_ITEM_NONE,
+            IFACE_("Custom Properties"),
+            ICON_NONE);
+    uiItemR(col, ptr, "flatten", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+    col = uiLayoutColumn(panel, true);
+    uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
 
   /* Object Data */
-  box = uiLayoutBox(layout);
-  row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Object Options"), ICON_OBJECT_DATA);
+  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_geometry", false, IFACE_("Geometry")))
+  {
+    uiLayout *col = uiLayoutColumn(panel, true);
+    uiItemR(col, ptr, "uvs", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  col = uiLayoutColumn(box, false);
+    uiLayout *row = uiLayoutRow(col, false);
+    uiLayoutSetActive(row, RNA_boolean_get(ptr, "uvs"));
+    uiItemR(row, ptr, "packuv", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(col, imfptr, "uvs", UI_ITEM_NONE, nullptr, ICON_NONE);
-  row = uiLayoutRow(col, false);
-  uiLayoutSetActive(row, RNA_boolean_get(imfptr, "uvs"));
-  uiItemR(row, imfptr, "packuv", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "normals", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "vcolors", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "orcos", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "face_sets", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "curves_as_mesh", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(col, imfptr, "normals", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "vcolors", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "orcos", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "face_sets", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "curves_as_mesh", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemS(col);
 
-  uiItemS(col);
+    uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Subdivision"));
+    uiItemR(sub, ptr, "apply_subdiv", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
+    uiItemR(sub, ptr, "subdiv_schema", UI_ITEM_NONE, IFACE_("Use Schema"), ICON_NONE);
 
-  sub = uiLayoutColumnWithHeading(col, true, IFACE_("Subdivisions"));
-  uiItemR(sub, imfptr, "apply_subdiv", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
-  uiItemR(sub, imfptr, "subdiv_schema", UI_ITEM_NONE, IFACE_("Use Schema"), ICON_NONE);
-
-  uiItemS(col);
-
-  col = uiLayoutColumn(box, false);
-  uiItemR(col, imfptr, "triangulate", UI_ITEM_NONE, nullptr, ICON_NONE);
-  sub = uiLayoutColumn(col, false);
-  uiLayoutSetActive(sub, RNA_boolean_get(imfptr, "triangulate"));
-  uiItemR(sub, imfptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
-  uiItemR(sub, imfptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
+    col = uiLayoutColumn(panel, false);
+    uiItemR(col, ptr, "triangulate", UI_ITEM_NONE, nullptr, ICON_NONE);
+    sub = uiLayoutColumn(col, false);
+    uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate"));
+    uiItemR(sub, ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
+    uiItemR(sub, ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
+  }
 
   /* Particle Data */
-  box = uiLayoutBox(layout);
-  row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Particle Systems"), ICON_PARTICLE_DATA);
-
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, imfptr, "export_hair", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "export_particles", UI_ITEM_NONE, nullptr, ICON_NONE);
+  if (uiLayout *panel = uiLayoutPanel(
+          C, layout, "ABC_export_particles", false, IFACE_("Particle Systems")))
+  {
+    uiLayout *col = uiLayoutColumn(panel, true);
+    uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_particles", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
 }
 
 static void wm_alembic_export_draw(bContext *C, wmOperator *op)
@@ -373,9 +367,9 @@ void WM_OT_alembic_export(wmOperatorType *ot)
   prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_IDPROP_NAME, "Collection", nullptr);
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
-  RNA_def_boolean(ot->srna, "uvs", true, "UVs", "Export UVs");
+  RNA_def_boolean(ot->srna, "uvs", true, "UV Coordinates", "Export UV coordinates");
 
-  RNA_def_boolean(ot->srna, "packuv", true, "Pack UV Islands", "Export UVs with packed island");
+  RNA_def_boolean(ot->srna, "packuv", true, "Merge UVs", "");
 
   RNA_def_boolean(ot->srna, "normals", true, "Normals", "Export normals");
 
@@ -473,7 +467,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                "evaluation_mode",
                rna_enum_abc_export_evaluation_mode_items,
                DAG_EVAL_RENDER,
-               "Use Settings for",
+               "Settings",
                "Determines visibility of objects, modifier settings, and other areas where there "
                "are different settings for viewport and rendering");
 
@@ -570,33 +564,29 @@ static int get_sequence_len(const char *filepath, int *ofs)
 
 /* ************************************************************************** */
 
-static void ui_alembic_import_settings(uiLayout *layout, PointerRNA *imfptr)
+static void ui_alembic_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *box = uiLayoutBox(layout);
-  uiLayout *row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Manual Transform"), ICON_NONE);
+  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_general", false, IFACE_("General"))) {
+    uiLayout *col = uiLayoutColumn(panel, false);
+    uiItemR(col, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
 
-  uiItemR(box, imfptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  row = uiLayoutRow(box, false);
-  uiItemL(row, IFACE_("Options"), ICON_NONE);
-
-  uiLayout *col = uiLayoutColumn(box, false);
-  uiItemR(col, imfptr, "relative_path", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "set_frame_range", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "is_sequence", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "validate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "always_add_cache_reader", UI_ITEM_NONE, nullptr, ICON_NONE);
+  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_options", false, IFACE_("Options"))) {
+    uiLayout *col = uiLayoutColumn(panel, false);
+    uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "is_sequence", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "always_add_cache_reader", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
 }
 
-static void wm_alembic_import_draw(bContext * /*C*/, wmOperator *op)
+static void wm_alembic_import_draw(bContext *C, wmOperator *op)
 {
-  ui_alembic_import_settings(op->layout, op->ptr);
+  ui_alembic_import_settings(C, op->layout, op->ptr);
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
