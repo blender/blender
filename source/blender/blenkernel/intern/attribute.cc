@@ -658,7 +658,7 @@ AttrDomain BKE_id_attribute_domain(const ID *id, const CustomDataLayer *layer)
     if (customdata == nullptr) {
       continue;
     }
-    if (ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
+    if (blender::Span(customdata->layers, customdata->totlayer).contains_ptr(layer)) {
       return AttrDomain(domain);
     }
   }
@@ -692,7 +692,7 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
     if (customdata == nullptr) {
       continue;
     }
-    if (ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
+    if (blender::Span(customdata->layers, customdata->totlayer).contains_ptr(layer)) {
       return info[domain].length;
     }
   }
