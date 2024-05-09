@@ -346,14 +346,6 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
     RNA_def_property_ui_text(
         prop, "Cascade Fade", "How smooth is the transition between each cascade");
     RNA_def_property_update(prop, 0, "rna_Light_update");
-
-    prop = RNA_def_property(srna, "shadow_trace_distance", PROP_FLOAT, PROP_DISTANCE);
-    RNA_def_property_range(prop, 0.0f, FLT_MAX);
-    RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
-    RNA_def_property_ui_text(prop,
-                             "Shadow Tracing Max Distance",
-                             "Maximum distance a shadow map tracing ray can travel");
-    RNA_def_property_update(prop, 0, "rna_Light_update");
   }
 }
 

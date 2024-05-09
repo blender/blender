@@ -560,7 +560,6 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera
 void ShadowDirectional::sync(const float4x4 &object_mat,
                              float min_resolution,
                              float shadow_disk_angle,
-                             float trace_distance,
                              float shadow_resolution_scale)
 {
   object_mat_ = object_mat;
@@ -572,7 +571,6 @@ void ShadowDirectional::sync(const float4x4 &object_mat,
 
   min_resolution_ = min_resolution;
   disk_shape_angle_ = min_ff(shadow_disk_angle, DEG2RADF(179.9f)) / 2.0f;
-  trace_distance_ = trace_distance;
 
   float resolution_scale = clamp_f(shadow_resolution_scale, 0.0f, 2.0f);
   lod_bias_ = (resolution_scale < 1.0) ? -log2(resolution_scale) : -(resolution_scale - 1.0f);
@@ -630,7 +628,6 @@ void ShadowDirectional::end_sync(Light &light, const Camera &camera)
   light.tilemap_index = tilemap_pool.tilemaps_data.size();
   light.clip_near = 0x7F7FFFFF;                    /* floatBitsToOrderedInt(FLT_MAX) */
   light.clip_far = int(0xFF7FFFFFu ^ 0x7FFFFFFFu); /* floatBitsToOrderedInt(-FLT_MAX) */
-  light.sun.shadow_trace_distance = trace_distance_;
   light.sun.shadow_angle = disk_shape_angle_;
 
   if (directional_distribution_type_get(camera) == SHADOW_PROJECTION_CASCADE) {

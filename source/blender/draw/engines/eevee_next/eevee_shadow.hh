@@ -470,8 +470,6 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   IndexRange levels_range;
   /** Angle of the shadowed light shape. Might be scaled compared to the shading disk. */
   float disk_shape_angle_;
-  /** Maximum distance a shadow map ray can be travel. */
-  float trace_distance_;
   /** Shadow LOD bias calculated based on global and light shadow resolution scale. */
   float lod_bias_;
 
@@ -491,7 +489,6 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   void sync(const float4x4 &object_mat,
             float min_resolution,
             float shadow_disk_angle,
-            float trace_distance,
             float shadow_resolution_scale);
 
   /**

@@ -2622,13 +2622,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.shadow_step_count = default_scene_eevee.shadow_step_count;
       }
     }
-
-    if (!DNA_struct_member_exists(fd->filesdna, "Light", "float", "shadow_trace_distance")) {
-      Light default_light = blender::dna::shallow_copy(*DNA_struct_default_get(Light));
-      LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-        light->shadow_trace_distance = default_light.shadow_trace_distance;
-      }
-    }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 28)) {
