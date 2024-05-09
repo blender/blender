@@ -253,8 +253,8 @@ vec3 sample_uniform_sphere(vec3 rand, vec3 N, vec3 T, vec3 B, out float pdf)
 
 vec3 sample_uniform_cone(vec3 rand, float angle)
 {
-  float z = cos(angle * rand.x);         /* cos theta */
-  float r = sqrt(max(0.0, 1.0 - z * z)); /* sin theta */
+  float z = mix(cos(angle), 1.0, rand.x); /* cos theta */
+  float r = sqrt(max(0.0, 1.0 - z * z));  /* sin theta */
   float x = r * rand.y;
   float y = r * rand.z;
   return vec3(x, y, z);
