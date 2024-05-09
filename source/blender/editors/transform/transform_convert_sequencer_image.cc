@@ -163,28 +163,30 @@ static bool autokeyframe_sequencer_image(bContext *C,
   const bool do_loc = tmode == TFM_TRANSLATION || around_cursor;
   const bool do_rot = tmode == TFM_ROTATION;
   const bool do_scale = tmode == TFM_RESIZE;
+  const bool only_when_keyed = blender::animrig::is_keying_flag(scene,
+                                                                AUTOKEY_FLAG_INSERTAVAILABLE);
 
   bool changed = false;
   if (do_rot) {
     prop = RNA_struct_find_property(&ptr, "rotation");
     changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+        C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
   }
   if (do_loc) {
     prop = RNA_struct_find_property(&ptr, "offset_x");
     changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+        C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
     prop = RNA_struct_find_property(&ptr, "offset_y");
     changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+        C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
   }
   if (do_scale) {
     prop = RNA_struct_find_property(&ptr, "scale_x");
     changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+        C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
     prop = RNA_struct_find_property(&ptr, "scale_y");
     changed |= blender::animrig::autokeyframe_property(
-        C, scene, &ptr, prop, -1, scene->r.cfra, false);
+        C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
   }
 
   return changed;
