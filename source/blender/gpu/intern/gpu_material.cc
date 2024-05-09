@@ -270,6 +270,9 @@ void GPU_material_free_single(GPUMaterial *material)
   if (material->ubo != nullptr) {
     GPU_uniformbuf_free(material->ubo);
   }
+  if (material->coba_builder != nullptr) {
+    MEM_freeN(material->coba_builder);
+  }
   if (material->coba_tex != nullptr) {
     GPU_texture_free(material->coba_tex);
   }
