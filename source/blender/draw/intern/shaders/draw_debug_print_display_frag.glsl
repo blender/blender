@@ -118,8 +118,10 @@ bool char_intersect(uvec2 bitmap_position)
 void main()
 {
   uvec2 bitmap_position = uvec2(gl_PointCoord.xy * 8.0);
+#ifndef GPU_METAL /* Metal has different gl_PointCoord.y. */
   /* Point coord start from top left corner. But layout is from bottom to top. */
   bitmap_position.y = 7 - bitmap_position.y;
+#endif
 
   if (char_intersect(bitmap_position)) {
     out_color = vec4(1);
