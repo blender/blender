@@ -153,25 +153,25 @@ struct ShadowRayDirectional {
 };
 
 /* `lP` is supposed to be in light rotated space. But not translated. */
-ShadowRayDirectional shadow_ray_generate_directional(LightData light,
-                                                     vec2 random_2d,
-                                                     vec3 lP,
-                                                     vec3 lNg)
+ShadowRayDirectional shadow_ray_generate_directional(
+    LightData light, vec2 random_2d, vec3 lP, vec3 lNg, float texel_radius)
 {
   float clip_near = orderedIntBitsToFloat(light.clip_near);
   float clip_far = orderedIntBitsToFloat(light.clip_far);
   /* Assumed to be non-null. */
   float dist_to_near_plane = -lP.z - clip_near;
+  /* Trace in a radius that is covered by low resolution page inflation. */
+  float max_tracing_distance = texel_radius * float(SHADOW_PAGE_RES << SHADOW_TILEMAP_LOD);
+  float max_tracing_angle = atan(max_tracing_distance / dist_to_near_plane);
+  float shadow_angle = min(light_sun_data_get(light).shadow_angle, max_tracing_angle);
 
   /* Light shape is 1 unit away from the shading point. */
-  vec3 direction = sample_uniform_cone(sample_cylinder(random_2d),
-                                       light_sun_data_get(light).shadow_angle);
+  vec3 direction = sample_uniform_cone(sample_cylinder(random_2d), shadow_angle);
 
   direction = shadow_ray_above_horizon_ensure(direction, lNg);
 
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
-  direction *= min(light_sun_data_get(light).shadow_trace_distance,
-                   dist_to_near_plane / direction.z);
+  direction *= dist_to_near_plane / direction.z;
 
   ShadowRayDirectional ray;
   ray.origin = lP;
@@ -467,7 +467,7 @@ float shadow_eval(LightData light,
     bool has_hit;
     if (is_directional) {
       ShadowRayDirectional clip_ray = shadow_ray_generate_directional(
-          light, random_ray_2d, lP, lNg);
+          light, random_ray_2d, lP, lNg, texel_radius);
       has_hit = shadow_map_trace(clip_ray, ray_step_count, random_shadow_3d.z);
     }
     else {
