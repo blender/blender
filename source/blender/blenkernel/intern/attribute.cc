@@ -41,13 +41,13 @@ using blender::IndexRange;
 using blender::bke::AttrDomain;
 
 struct DomainInfo {
-  CustomData *customdata;
-  int length;
+  CustomData *customdata = nullptr;
+  int length = 0;
 };
 
-static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
+static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const ID *id)
 {
-  memset(info, 0, sizeof(DomainInfo) * ATTR_DOMAIN_NUM);
+  std::array<DomainInfo, ATTR_DOMAIN_NUM> info;
 
   switch (GS(id->name)) {
     case ID_PT: {
@@ -98,6 +98,8 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
     default:
       break;
   }
+
+  return info;
 }
 
 namespace blender::bke {
@@ -136,8 +138,7 @@ static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_acces
 
 bool BKE_id_attributes_supported(const ID *id)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
     if (info[domain].customdata) {
       return true;
@@ -276,8 +277,7 @@ bool BKE_id_attribute_rename(ID *id,
 
 static bool attribute_name_exists(const ID &id, const blender::StringRef name)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(&id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(&id);
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
     if (!info[domain].customdata) {
@@ -312,8 +312,7 @@ CustomDataLayer *BKE_id_attribute_new(ID *id,
                                       ReportList *reports)
 {
   using namespace blender::bke;
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   CustomData *customdata = info[int(domain)].customdata;
   if (customdata == nullptr) {
@@ -450,8 +449,7 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
     return false;
   }
 
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   if (GS(id->name) == ID_ME) {
     Mesh *mesh = reinterpret_cast<Mesh *>(id);
@@ -553,8 +551,7 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   if (!name) {
     return nullptr;
   }
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   CustomData *customdata = info[int(domain)].customdata;
   if (customdata == nullptr) {
@@ -579,8 +576,7 @@ const CustomDataLayer *BKE_id_attribute_search(const ID *id,
   if (!name) {
     return nullptr;
   }
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   for (AttrDomain domain = AttrDomain::Point; int(domain) < ATTR_DOMAIN_NUM;
        domain = AttrDomain(int(domain) + 1))
@@ -618,8 +614,7 @@ CustomDataLayer *BKE_id_attribute_search_for_write(ID *id,
     return nullptr;
   }
 
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   const AttrDomain domain = BKE_id_attribute_domain(id, layer);
   CustomData_ensure_data_is_mutable(layer, info[int(domain)].length);
@@ -629,8 +624,7 @@ CustomDataLayer *BKE_id_attribute_search_for_write(ID *id,
 
 int BKE_id_attributes_length(const ID *id, AttrDomainMask domain_mask, eCustomDataMask mask)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   int length = 0;
 
@@ -650,8 +644,7 @@ int BKE_id_attributes_length(const ID *id, AttrDomainMask domain_mask, eCustomDa
 
 AttrDomain BKE_id_attribute_domain(const ID *id, const CustomDataLayer *layer)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
     const CustomData *customdata = info[domain].customdata;
@@ -684,8 +677,7 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
       break;
   }
 
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
     const CustomData *customdata = info[domain].customdata;
@@ -722,8 +714,7 @@ CustomDataLayer *BKE_id_attributes_active_get(ID *id)
     active_index = 0;
   }
 
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   int index = 0;
 
@@ -781,8 +772,7 @@ int *BKE_id_attributes_active_index_p(ID *id)
 
 CustomData *BKE_id_attributes_iterator_next_domain(ID *id, CustomDataLayer *layers)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   bool use_next = (layers == nullptr);
 
@@ -809,8 +799,7 @@ CustomDataLayer *BKE_id_attribute_from_index(ID *id,
                                              AttrDomainMask domain_mask,
                                              eCustomDataMask layer_mask)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   int index = 0;
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
@@ -847,8 +836,7 @@ int BKE_id_attribute_to_index(const ID *id,
     return -1;
   }
 
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(id);
 
   int index = 0;
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
