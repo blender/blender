@@ -1009,7 +1009,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
       GPU_debug_group_end();
 
-      region->do_draw = false;
+      region->do_draw = 0;
       CTX_wm_region_set(C, nullptr);
     }
 
@@ -1043,7 +1043,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
     GPU_debug_group_end();
 
-    region->do_draw = false;
+    region->do_draw = 0;
     CTX_wm_menu_set(C, nullptr);
   }
 }
@@ -1610,7 +1610,7 @@ void wm_draw_region_test(bContext *C, ScrArea *area, ARegion *region)
   wm_draw_region_bind(region, 0);
   ED_region_do_draw(C, region);
   wm_draw_region_unbind(region);
-  region->do_draw = false;
+  region->do_draw = 0;
 }
 
 void WM_redraw_windows(bContext *C)
