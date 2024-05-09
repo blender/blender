@@ -268,6 +268,8 @@ static void ntree_copy_data(Main * /*bmain*/,
   else {
     BKE_previewimg_id_copy(&ntree_dst->id, &ntree_src->id);
   }
+
+  ntree_dst->description = BLI_strdup_null(ntree_src->description);
 }
 
 static void ntree_free_data(ID *id)
@@ -316,6 +318,7 @@ static void ntree_free_data(ID *id)
     MEM_freeN(ntree->nested_node_refs);
   }
 
+  MEM_SAFE_FREE(ntree->description);
   BKE_previewimg_free(&ntree->preview);
   MEM_delete(ntree->runtime);
 }
