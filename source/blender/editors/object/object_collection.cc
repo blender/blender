@@ -429,6 +429,12 @@ static bool collection_exporter_poll(bContext *C)
   return CTX_data_collection(C) != nullptr;
 }
 
+static bool collection_exporter_remove_poll(bContext *C)
+{
+  const Collection *collection = CTX_data_collection(C);
+  return collection != nullptr && !BLI_listbase_is_empty(&collection->exporters);
+}
+
 static bool collection_export_all_poll(bContext *C)
 {
   return CTX_data_view_layer(C) != nullptr;
@@ -465,6 +471,7 @@ static int collection_exporter_add_exec(bContext *C, wmOperator *op)
   data->flag |= IO_HANDLER_PANEL_OPEN;
 
   BLI_addtail(exporters, data);
+  collection->active_exporter_index = BLI_listbase_count(exporters) - 1;
 
   BKE_view_layer_need_resync_tag(CTX_data_view_layer(C));
   DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
@@ -508,6 +515,10 @@ static int collection_exporter_remove_exec(bContext *C, wmOperator *op)
 
   MEM_freeN(data);
 
+  const int count = BLI_listbase_count(exporters);
+  const int new_index = count == 0 ? 0 : std::min(collection->active_exporter_index, count - 1);
+  collection->active_exporter_index = new_index;
+
   BKE_view_layer_need_resync_tag(CTX_data_view_layer(C));
   DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
 
@@ -535,7 +546,7 @@ static void COLLECTION_OT_exporter_remove(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = collection_exporter_remove_invoke;
   ot->exec = collection_exporter_remove_exec;
-  ot->poll = collection_exporter_poll;
+  ot->poll = collection_exporter_remove_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
