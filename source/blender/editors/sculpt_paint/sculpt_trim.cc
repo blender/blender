@@ -502,6 +502,14 @@ static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
   Object *object = gesture_data.vc.obact;
   SculptSession *ss = object->sculpt;
 
+  switch (BKE_pbvh_type(*ss->pbvh)) {
+    case PBVH_FACES:
+      face_set::ensure_face_sets_mesh(*object).finish();
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
   generate_geometry(gesture_data);
   SCULPT_topology_islands_invalidate(ss);
@@ -634,12 +642,10 @@ static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
   Object *object = gesture_data.vc.obact;
   Mesh *mesh = (Mesh *)object->data;
-  const bke::AttributeAccessor attributes = mesh->attributes_for_write();
-  if (attributes.contains(".sculpt_face_set")) {
-    /* Assign a new Face Set ID to the new faces created by the trim operation. */
-    const int next_face_set_id = face_set::find_next_available_id(*object);
-    face_set::initialize_none_to_id(mesh, next_face_set_id);
-  }
+
+  /* Assign a new Face Set ID to the new faces created by the trim operation. */
+  const int next_face_set_id = face_set::find_next_available_id(*object);
+  face_set::initialize_none_to_id(mesh, next_face_set_id);
 
   free_geometry(gesture_data);
 
