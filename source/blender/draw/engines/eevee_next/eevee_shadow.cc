@@ -656,13 +656,13 @@ ShadowModule::ShadowModule(Instance &inst, ShadowSceneData &data) : inst_(inst),
 
 void ShadowModule::init()
 {
+  /* Temp: Disable TILE_COPY path while efficient solution for parameter buffer overflow is
+   * identified. This path can be re-enabled in future. */
+#if 0
   /* Determine shadow update technique and atlas format.
    * NOTE(Metal): Metal utilizes a tile-optimized approach for Apple Silicon's architecture. */
   const bool is_metal_backend = (GPU_backend_get_type() == GPU_BACKEND_METAL);
   const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
-  /* Temp: Disable TILE_COPY path while efficient solution for parameter buffer overflow is
-   * identified. This path can be re-enabled in future. */
-#if 0
   if (is_metal_backend && is_tile_based_arch) {
     ShadowModule::shadow_technique = ShadowTechnique::TILE_COPY;
   }
