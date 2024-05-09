@@ -225,8 +225,7 @@ Closure closure_eval(ClosureSubsurface diffuse, ClosureReflection reflection)
   /* Glue with the old system. */
   CLOSURE_VARS_DECLARE_2(Diffuse, Glossy);
 
-  /* WORKAROUND: This is to avoid regression in 3.2 and avoid messing with EEVEE-Next. */
-  in_common.occlusion = (diffuse.sss_radius.g == -1.0) ? diffuse.sss_radius.r : 1.0;
+  in_common.occlusion = 1.0;
   in_Diffuse_0.N = diffuse.N;
   in_Diffuse_0.albedo = diffuse.color;
   in_Glossy_1.N = reflection.N;
@@ -261,8 +260,7 @@ Closure closure_eval(ClosureSubsurface diffuse,
   /* Glue with the old system. */
   CLOSURE_VARS_DECLARE_3(Diffuse, Glossy, Glossy);
 
-  /* WORKAROUND: This is to avoid regression in 3.2 and avoid messing with EEVEE-Next. */
-  in_common.occlusion = (diffuse.sss_radius.g == -1.0) ? diffuse.sss_radius.r : 1.0;
+  in_common.occlusion = 1.0;
   in_Diffuse_0.N = diffuse.N;
   in_Diffuse_0.albedo = diffuse.color;
   in_Glossy_1.N = reflection.N;
