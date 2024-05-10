@@ -232,8 +232,13 @@ static void recalcData_sequencer_image(TransInfo *t)
     mul_v2_v2(translation, mirror);
     translation[0] *= t->scene->r.yasp / t->scene->r.xasp;
 
-    transform->xofs = tdseq->orig_translation[0] - translation[0];
-    transform->yofs = tdseq->orig_translation[1] - translation[1];
+    /* Round resulting position to integer pixels. Resulting strip
+     * will more often end up using faster interpolation (without bilinear),
+     * and avoids "text edges are too dark" artifacts with light text strips
+     * on light backgrounds. The latter happens because bilinear filtering
+     * does not do full alpha premultiplication. */
+    transform->xofs = roundf(tdseq->orig_translation[0] - translation[0]);
+    transform->yofs = roundf(tdseq->orig_translation[1] - translation[1]);
 
     /* Scale. */
     transform->scale_x = tdseq->orig_scale[0] * fabs(len_v2(handle_x));
