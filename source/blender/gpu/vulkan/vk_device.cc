@@ -85,6 +85,7 @@ void VKDevice::init(void *ghost_context)
   init_physical_device_features();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
+  init_functions();
   init_debug_callbacks();
   init_memory_allocator();
   init_pipeline_cache();
@@ -95,6 +96,15 @@ void VKDevice::init(void *ghost_context)
   debug::object_label(device_get(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");
   init_glsl_patch();
+}
+
+void VKDevice::init_functions()
+{
+#define LOAD_FUNCTION(name) (PFN_##name) vkGetInstanceProcAddr(vk_instance_, STRINGIFY(name))
+  /* VK_KHR_dynamic_rendering */
+  functions.vkCmdBeginRendering = LOAD_FUNCTION(vkCmdBeginRenderingKHR);
+  functions.vkCmdEndRendering = LOAD_FUNCTION(vkCmdEndRenderingKHR);
+#undef LOAD_FUNCTION
 }
 
 void VKDevice::init_debug_callbacks()
