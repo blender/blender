@@ -504,7 +504,7 @@ static int grease_pencil_layer_duplicate_exec(bContext *C, wmOperator *op)
   /* Clear source keyframes and recreate them with duplicated drawings. */
   new_layer.frames_for_write().clear();
   for (auto [key, frame] : active_layer.frames().items()) {
-    const int duration = frame.is_implicit_hold() ? 0 : active_layer.get_frame_duration_at(key);
+    const int duration = active_layer.get_frame_duration_at(key);
 
     GreasePencilFrame *new_frame = new_layer.add_frame(key, duration);
     new_frame->drawing_index = grease_pencil.drawings().size();

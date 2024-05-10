@@ -462,8 +462,10 @@ class Layer : public ::GreasePencilLayer {
   GreasePencilFrame *frame_at(const int frame_number);
 
   /**
-   * \returns the frame duration of the active frame at \a frame_number or -1 if there is no active
-   * frame or the active frame is the last frame.
+   * \returns the frame duration of the keyframe at \a frame_number.
+   * If there is no keyframe at \a frame_number it \returns -1.
+   * If the keyframe is an implicit hold, \returns 0.
+   * if the keyframe is the last one, \returns -1.
    */
   int get_frame_duration_at(const int frame_number) const;
 

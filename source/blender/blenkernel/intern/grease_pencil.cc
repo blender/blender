@@ -1165,10 +1165,16 @@ int Layer::get_frame_duration_at(const int frame_number) const
   if (!frame_key) {
     return -1;
   }
+  /* For frames that are implicitly held, we return a duration of 0. */
+  if (this->frames().lookup_ptr(*frame_key)->is_implicit_hold()) {
+    return 0;
+  }
   SortedKeysIterator frame_number_it = std::next(this->sorted_keys().begin(), *frame_key);
+  /* The last key has no duration. */
   if (*frame_number_it == this->sorted_keys().last()) {
     return -1;
   }
+  /* Compute the difference in frames between this key and the next key. */
   const int next_frame_number = *(std::next(frame_number_it));
   return next_frame_number - frame_number;
 }
@@ -2173,9 +2179,7 @@ bool GreasePencil::insert_duplicate_frame(blender::bke::greasepencil::Layer &lay
    * If we want to make an instance of the source frame, the drawing index gets copied from the
    * source frame. Otherwise, we set the drawing index to the size of the drawings array, since we
    * are going to add a new drawing copied from the source drawing. */
-  const int duration = src_frame.is_implicit_hold() ?
-                           0 :
-                           layer.get_frame_duration_at(src_frame_number);
+  const int duration = layer.get_frame_duration_at(src_frame_number);
   GreasePencilFrame *dst_frame = layer.add_frame(dst_frame_number, duration);
   if (dst_frame == nullptr) {
     return false;
@@ -2375,9 +2379,7 @@ void GreasePencil::move_duplicate_frames(
   /* Copy frames durations. */
   Map<int, int> src_layer_frames_durations;
   for (const auto [frame_number, frame] : layer.frames().items()) {
-    if (!frame.is_implicit_hold()) {
-      src_layer_frames_durations.add(frame_number, layer.get_frame_duration_at(frame_number));
-    }
+    src_layer_frames_durations.add(frame_number, layer.get_frame_duration_at(frame_number));
   }
 
   /* Remove original frames for duplicates before inserting any frames.

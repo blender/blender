@@ -465,8 +465,7 @@ bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard
     for (auto [frame_number, frame] : layer->frames().items()) {
       if (frame.is_selected()) {
         const Drawing *drawing = grease_pencil->get_drawing_at(*layer, frame_number);
-        const int duration = frame.is_implicit_hold() ? 0 :
-                                                        layer->get_frame_duration_at(frame_number);
+        const int duration = layer->get_frame_duration_at(frame_number);
         buf.append(
             {frame_number, Drawing(*drawing), duration, eBezTriple_KeyframeType(frame.type)});
 
