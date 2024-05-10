@@ -1711,6 +1711,9 @@ static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
       FCurve *fcu = (FCurve *)ld->data;
+      if (!fcu->bezt) {
+        continue;
+      }
       const float current_fcu_value = evaluate_fcurve(fcu, source_frame);
       LISTBASE_FOREACH (FrameLink *, target_frame, target_frames) {
         insert_vert_fcurve(
@@ -1726,16 +1729,17 @@ static float find_next_key(ListBase *pflinks, const float start_frame)
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
       FCurve *fcu = (FCurve *)ld->data;
+      if (!fcu->bezt) {
+        continue;
+      }
       bool replace;
       int current_frame_index = BKE_fcurve_bezt_binarysearch_index(
           fcu->bezt, start_frame, fcu->totvert, &replace);
       if (replace) {
-        const int bezt_index = min_ii(current_frame_index + 1, fcu->totvert - 1);
-        target_frame = min_ff(target_frame, fcu->bezt[bezt_index].vec[1][0]);
+        current_frame_index += 1;
       }
-      else {
-        target_frame = min_ff(target_frame, fcu->bezt[current_frame_index].vec[1][0]);
-      }
+      const int bezt_index = min_ii(current_frame_index, fcu->totvert - 1);
+      target_frame = min_ff(target_frame, fcu->bezt[bezt_index].vec[1][0]);
     }
   }
 
@@ -1748,6 +1752,9 @@ static float find_last_key(ListBase *pflinks)
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
       FCurve *fcu = (FCurve *)ld->data;
+      if (!fcu->bezt) {
+        continue;
+      }
       target_frame = max_ff(target_frame, fcu->bezt[fcu->totvert - 1].vec[1][0]);
     }
   }
