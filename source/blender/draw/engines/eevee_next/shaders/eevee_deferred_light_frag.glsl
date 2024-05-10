@@ -70,28 +70,22 @@ void main()
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
   light_eval_reflection(stack, P, Ng, V, vPz);
 
-#if 1 /* TODO Limit to transmission. Can bypass the check if stencil is tagged properly and use \
-         specialization constant. */
-  ClosureUndetermined cl_transmit = gbuffer_closure_get(gbuf, 0);
-  if ((cl_transmit.type == CLOSURE_BSDF_TRANSLUCENT_ID) ||
-      (cl_transmit.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) ||
-      (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID))
-  {
-
-#  if 1 /* TODO Limit to SSS. */
+  if (use_transmission) {
+    ClosureUndetermined cl_transmit = gbuffer_closure_get(gbuf, 0);
+#if 1 /* TODO Limit to SSS. */
     vec3 sss_reflect_shadowed, sss_reflect_unshadowed;
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       sss_reflect_shadowed = stack.cl[0].light_shadowed;
       sss_reflect_unshadowed = stack.cl[0].light_unshadowed;
     }
-#  endif
+#endif
 
     stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
 
     /* NOTE: Only evaluates `stack.cl[0]`. */
     light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness);
 
-#  if 1 /* TODO Limit to SSS. */
+#if 1 /* TODO Limit to SSS. */
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       /* Apply transmission profile onto transmitted light and sum with reflected light. */
       vec3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
@@ -101,9 +95,8 @@ void main()
       stack.cl[0].light_shadowed += sss_reflect_shadowed;
       stack.cl[0].light_unshadowed += sss_reflect_unshadowed;
     }
-#  endif
-  }
 #endif
+  }
 
   if (render_pass_shadow_id != -1) {
     vec3 radiance_shadowed = vec3(0);

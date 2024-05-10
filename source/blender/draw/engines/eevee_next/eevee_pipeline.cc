@@ -617,6 +617,7 @@ void DeferredLayer::end_sync(bool is_first_pass, bool is_last_pass)
         sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
       }
       {
+        const bool use_transmission = (closure_bits_ & CLOSURE_TRANSMISSION) != 0;
         const bool use_split_indirect = !use_raytracing_ && use_split_radiance_;
         PassSimple::Sub &sub = pass.sub("Eval.Light");
         /* Use depth test to reject background pixels which have not been stencil cleared. */
@@ -636,6 +637,7 @@ void DeferredLayer::end_sync(bool is_first_pass, bool is_last_pass)
           sub.specialize_constant(sh, "render_pass_shadow_id", rbuf_data.shadow_id);
           sub.specialize_constant(sh, "use_split_indirect", use_split_indirect);
           sub.specialize_constant(sh, "use_lightprobe_eval", !use_raytracing_);
+          sub.specialize_constant(sh, "use_transmission", false);
           const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
           sub.specialize_constant(sh, "shadow_ray_count", &shadow_scene.ray_count);
           sub.specialize_constant(sh, "shadow_ray_step_count", &shadow_scene.step_count);
@@ -654,11 +656,18 @@ void DeferredLayer::end_sync(bool is_first_pass, bool is_last_pass)
           sub.bind_resources(inst_.hiz_buffer.front);
           sub.bind_resources(inst_.sphere_probes);
           sub.bind_resources(inst_.volume_probes);
-          /* TODO(fclem): Transmission evaluation specialization. */
           uint8_t compare_mask = uint8_t(StencilBits::CLOSURE_COUNT_0) |
-                                 uint8_t(StencilBits::CLOSURE_COUNT_1);
+                                 uint8_t(StencilBits::CLOSURE_COUNT_1) |
+                                 uint8_t(StencilBits::TRANSMISSION);
           sub.state_stencil(0x0u, i + 1, compare_mask);
           sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+          if (use_transmission) {
+            /* Separate pass for transmission BSDF as their evaluation is quite costly. */
+            sub.specialize_constant(sh, "use_transmission", true);
+            sub.shader_set(sh);
+            sub.state_stencil(0x0u, (i + 1) | uint8_t(StencilBits::TRANSMISSION), compare_mask);
+            sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+          }
         }
       }
     }
