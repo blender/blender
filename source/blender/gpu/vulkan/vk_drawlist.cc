@@ -72,9 +72,6 @@ void VKDrawList::submit()
     batch_ = nullptr;
     return;
   }
-  if (command_index_ > 1) {
-    printf("%s: %d\n", __func__, command_index_);
-  }
 
   const VKIndexBuffer *index_buffer = batch_->index_buffer_get();
   const bool is_indexed = index_buffer != nullptr;
