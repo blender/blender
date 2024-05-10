@@ -32,6 +32,9 @@ struct VKImageAccess {
   VkImage vk_image;
   VkAccessFlags vk_access_flags;
   VkImageAspectFlags vk_image_aspect;
+
+  /** Determine the image layout for the vk_access_flags. */
+  VkImageLayout to_vk_image_layout() const;
 };
 
 /** Struct describing the access to a buffer. */

@@ -12,6 +12,27 @@
 
 namespace blender::gpu::render_graph {
 
+VkImageLayout VKImageAccess::to_vk_image_layout() const
+{
+  if (vk_access_flags & (VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)) {
+    return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  }
+
+  if (vk_access_flags &
+      (VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
+  {
+    return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  }
+
+  if (vk_access_flags &
+      (VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT))
+  {
+    return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+  }
+  BLI_assert_unreachable();
+  return VK_IMAGE_LAYOUT_UNDEFINED;
+}
+
 /** Which access flags are considered for read access. */
 static constexpr VkAccessFlags VK_ACCESS_READ_MASK = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
                                                      VK_ACCESS_INDEX_READ_BIT |
@@ -48,30 +69,21 @@ void VKResourceAccessInfo::build_links(VKResourceStateTracker &resources,
     }
   }
 
-  /* TODO: The image layouts are hard coded here. When adding dispatch/draw nodes we should find
-   * a way to determine the correct image layout. This could be determined from the access flags,
-   * if that isn't sufficient we should provide the correct layout inside the
-   * VKResourcesAccessInfo struct. The correct way how to handle this will be implemented when
-   * the validation layer will start complaining that this isn't correct. I expect that to happen
-   * when we add our first draw node. */
   for (const VKImageAccess &image_access : images) {
+    VkImageLayout image_layout = image_access.to_vk_image_layout();
     VkAccessFlags read_access = image_access.vk_access_flags & VK_ACCESS_READ_MASK;
     if (read_access != VK_ACCESS_NONE) {
       ResourceWithStamp versioned_resource = resources.get_image(image_access.vk_image);
-      node_links.inputs.append({versioned_resource,
-                                read_access,
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                image_access.vk_image_aspect});
+      node_links.inputs.append(
+          {versioned_resource, read_access, image_layout, image_access.vk_image_aspect});
     }
 
     VkAccessFlags write_access = image_access.vk_access_flags & VK_ACCESS_WRITE_MASK;
     if (write_access != VK_ACCESS_NONE) {
       ResourceWithStamp versioned_resource = resources.get_image_and_increase_stamp(
           image_access.vk_image);
-      node_links.outputs.append({versioned_resource,
-                                 write_access,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 image_access.vk_image_aspect});
+      node_links.outputs.append(
+          {versioned_resource, write_access, image_layout, image_access.vk_image_aspect});
     }
   }
 }
