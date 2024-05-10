@@ -39,9 +39,9 @@ struct RepeatItemsAccessor {
   }
   static void blend_write(BlendWriter *writer, const bNode &node);
   static void blend_read_data(BlendDataReader *reader, bNode &node);
-  static short *get_socket_type(NodeRepeatItem &item)
+  static eNodeSocketDatatype get_socket_type(const NodeRepeatItem &item)
   {
-    return &item.socket_type;
+    return eNodeSocketDatatype(item.socket_type);
   }
   static char **get_name(NodeRepeatItem &item)
   {
