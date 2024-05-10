@@ -105,16 +105,15 @@ void main()
   }
 #endif
 
-  if (render_pass_shadow_enabled) {
+  if (render_pass_shadow_id != -1) {
     vec3 radiance_shadowed = vec3(0);
     vec3 radiance_unshadowed = vec3(0);
     for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
       radiance_shadowed += closure_light_get(stack, i).light_shadowed;
       radiance_unshadowed += closure_light_get(stack, i).light_unshadowed;
     }
-    /* TODO(fclem): Change shadow pass to be colored. */
     vec3 shadows = radiance_shadowed * safe_rcp(radiance_unshadowed);
-    output_renderpass_value(uniform_buf.render_pass.shadow_id, average(shadows));
+    output_renderpass_value(render_pass_shadow_id, average(shadows));
   }
 
   if (use_lightprobe_eval) {

@@ -633,7 +633,7 @@ void DeferredLayer::end_sync(bool is_first_pass, bool is_last_pass)
           /* TODO(fclem): Could specialize directly with the pass index but this would break it for
            * OpenGL and Vulkan implementation which aren't fully supporting the specialize
            * constant. */
-          sub.specialize_constant(sh, "render_pass_shadow_enabled", rbuf_data.shadow_id != -1);
+          sub.specialize_constant(sh, "render_pass_shadow_id", rbuf_data.shadow_id);
           sub.specialize_constant(sh, "use_split_indirect", use_split_indirect);
           sub.specialize_constant(sh, "use_lightprobe_eval", !use_raytracing_);
           const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
