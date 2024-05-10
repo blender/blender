@@ -51,25 +51,36 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
 
   bool can_drop(const wmDrag &drag, const char ** /*r_disabled_hint*/) const override
   {
-    return drag.type == WM_DRAG_GREASE_PENCIL_LAYER;
+    wmDragGreasePencilLayer *active_drag_node = static_cast<wmDragGreasePencilLayer *>(drag.poin);
+    if (active_drag_node->node->wrap().is_layer()) {
+      return drag.type == WM_DRAG_GREASE_PENCIL_LAYER;
+    }
+
+    LayerGroup &group = active_drag_node->node->wrap().as_group();
+    if (drop_tree_node_.is_child_of(group)) {
+      /* Don't drop group node into its child node. */
+      return false;
+    }
+    return true;
   }
 
   std::string drop_tooltip(const DragInfo &drag_info) const override
   {
     const wmDragGreasePencilLayer *drag_grease_pencil =
         static_cast<const wmDragGreasePencilLayer *>(drag_info.drag_data.poin);
-    Layer &drag_layer = drag_grease_pencil->layer->wrap();
+    TreeNode &drag_node = drag_grease_pencil->node->wrap();
 
-    const StringRef drag_name = drag_layer.name();
+    const StringRef drag_name = drag_node.name();
     const StringRef drop_name = drop_tree_node_.name();
+    const StringRef node_type = drag_node.is_layer() ? "layer" : "group";
 
     switch (drag_info.drop_location) {
       case DropLocation::Into:
-        return fmt::format(TIP_("Move layer {} into {}"), drag_name, drop_name);
+        return fmt::format(TIP_("Move {} {} into {}"), node_type, drag_name, drop_name);
       case DropLocation::Before:
-        return fmt::format(TIP_("Move layer {} above {}"), drag_name, drop_name);
+        return fmt::format(TIP_("Move {} {} above {}"), node_type, drag_name, drop_name);
       case DropLocation::After:
-        return fmt::format(TIP_("Move layer {} below {}"), drag_name, drop_name);
+        return fmt::format(TIP_("Move {} {} below {}"), node_type, drag_name, drop_name);
       default:
         BLI_assert_unreachable();
         break;
@@ -83,7 +94,7 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
     const wmDragGreasePencilLayer *drag_grease_pencil =
         static_cast<const wmDragGreasePencilLayer *>(drag_info.drag_data.poin);
     GreasePencil &grease_pencil = *drag_grease_pencil->grease_pencil;
-    Layer &drag_layer = drag_grease_pencil->layer->wrap();
+    TreeNode &drag_node = drag_grease_pencil->node->wrap();
 
     if (!drop_tree_node_.parent_group()) {
       /* Root node is not added to the tree view, so there should never be a drop target for this.
@@ -92,7 +103,7 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
       return false;
     }
 
-    if (&drop_tree_node_ == &drag_layer.as_node()) {
+    if (&drop_tree_node_ == &drag_node) {
       return false;
     }
 
@@ -102,17 +113,17 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
                        "Inserting should not be possible for layers, only for groups, because "
                        "only groups use DropBehavior::Reorder_and_Insert");
         LayerGroup &drop_group = drop_tree_node_.as_group();
-        grease_pencil.move_node_into(drag_layer.as_node(), drop_group);
+        grease_pencil.move_node_into(drag_node, drop_group);
         break;
       }
       case DropLocation::Before: {
         /* Draw order is inverted, so inserting before (above) means inserting the node after. */
-        grease_pencil.move_node_after(drag_layer.as_node(), drop_tree_node_);
+        grease_pencil.move_node_after(drag_node, drop_tree_node_);
         break;
       }
       case DropLocation::After: {
         /* Draw order is inverted, so inserting after (below) means inserting the node before. */
-        grease_pencil.move_node_before(drag_layer.as_node(), drop_tree_node_);
+        grease_pencil.move_node_before(drag_node, drop_tree_node_);
         break;
       }
       default: {
@@ -129,32 +140,37 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
 
 class LayerViewItemDragController : public AbstractViewItemDragController {
   GreasePencil &grease_pencil_;
-  Layer &dragged_layer_;
+  TreeNode &dragged_node_;
 
  public:
-  LayerViewItemDragController(LayerTreeView &tree_view, GreasePencil &grease_pencil, Layer &layer)
+  LayerViewItemDragController(LayerTreeView &tree_view,
+                              GreasePencil &grease_pencil,
+                              GreasePencilLayerTreeNode &node)
       : AbstractViewItemDragController(tree_view),
         grease_pencil_(grease_pencil),
-        dragged_layer_(layer)
+        dragged_node_(node.wrap())
   {
   }
 
   eWM_DragDataType get_drag_type() const override
   {
-    return WM_DRAG_GREASE_PENCIL_LAYER;
+    if (dragged_node_.wrap().is_layer()) {
+      return WM_DRAG_GREASE_PENCIL_LAYER;
+    }
+    return WM_DRAG_GREASE_PENCIL_GROUP;
   }
 
   void *create_drag_data() const override
   {
     wmDragGreasePencilLayer *drag_data = MEM_new<wmDragGreasePencilLayer>(__func__);
-    drag_data->layer = &dragged_layer_;
+    drag_data->node = &dragged_node_;
     drag_data->grease_pencil = &grease_pencil_;
     return drag_data;
   }
 
   void on_drag_start() override
   {
-    grease_pencil_.set_active_layer(&dragged_layer_);
+    grease_pencil_.active_node = &dragged_node_;
   }
 };
 
@@ -231,7 +247,7 @@ class LayerViewItem : public AbstractTreeViewItem {
   std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const override
   {
     return std::make_unique<LayerViewItemDragController>(
-        static_cast<LayerTreeView &>(get_tree_view()), grease_pencil_, layer_);
+        static_cast<LayerTreeView &>(get_tree_view()), grease_pencil_, layer_.base);
   }
 
   std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
@@ -337,6 +353,12 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   StringRef get_rename_string() const override
   {
     return group_.name();
+  }
+
+  std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const override
+  {
+    return std::make_unique<LayerViewItemDragController>(
+        static_cast<LayerTreeView &>(get_tree_view()), grease_pencil_, group_.base);
   }
 
   std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
