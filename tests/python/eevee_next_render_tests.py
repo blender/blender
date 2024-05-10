@@ -27,6 +27,9 @@ def setup():
         # Ambient Occlusion Pass
         eevee.gtao_distance = 1
 
+        # Lights
+        eevee.light_threshold = 0.001
+
         # Hair
         scene.render.hair_type = 'STRIP'
 
