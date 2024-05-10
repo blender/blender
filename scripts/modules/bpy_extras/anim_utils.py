@@ -246,11 +246,19 @@ def bake_action_iter(
         if frame is None or not custom_props:
             return
         for key, value in custom_props.items():
+            if key in obj.bl_rna.properties and not obj.bl_rna.properties[key].is_animatable:
+                continue
             obj[key] = value
+            if key in obj.bl_rna.properties:
+                rna_path = key
+            else:
+                rna_path = f'["{bpy.utils.escape_identifier(key)}"]'
             try:
-                obj.keyframe_insert(f'["{bpy.utils.escape_identifier(key)}"]', frame=frame, group=group_name)
+                obj.keyframe_insert(rna_path, frame=frame, group=group_name)
             except TypeError:
-                # Non animatable properties (datablocks, etc) cannot be keyed.
+                # The is_animatable check above is per property. A property in isolation
+                # may be considered animatable, but it could be owned by a data-block that
+                # itself cannot be animated.
                 continue
 
     def pose_frame_info(obj):
