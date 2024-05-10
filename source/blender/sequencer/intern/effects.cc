@@ -2392,29 +2392,29 @@ static StripEarlyOut early_out_gaussian_blur(const Sequence *seq, float /*fac*/)
   return StripEarlyOut::DoEffect;
 }
 
-static blender::Array<float> make_gaussian_blur_kernel(float rad, int size)
+static Array<float> make_gaussian_blur_kernel(float rad, int size)
 {
   int n = 2 * size + 1;
-  blender::Array<float> gausstab(n);
+  Array<float> gaussian(n);
 
   float sum = 0.0f;
   float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
   for (int i = -size; i <= size; i++) {
     float val = RE_filter_value(R_FILTER_GAUSS, float(i) * fac);
     sum += val;
-    gausstab[i + size] = val;
+    gaussian[i + size] = val;
   }
 
   float inv_sum = 1.0f / sum;
   for (int i = 0; i < n; i++) {
-    gausstab[i] *= inv_sum;
+    gaussian[i] *= inv_sum;
   }
 
-  return gausstab;
+  return gaussian;
 }
 
 template<typename T>
-static void gaussian_blur_x(const blender::Array<float> &gausstab,
+static void gaussian_blur_x(const Span<float> gaussian,
                             int half_size,
                             int start_line,
                             int width,
@@ -2429,10 +2429,10 @@ static void gaussian_blur_x(const blender::Array<float> &gausstab,
       float4 accum(0.0f);
       float accum_weight = 0.0f;
 
-      int xmin = blender::math::max(x - half_size, 0);
-      int xmax = blender::math::min(x + half_size, width - 1);
+      int xmin = math::max(x - half_size, 0);
+      int xmax = math::min(x + half_size, width - 1);
       for (int nx = xmin, index = (xmin - x) + half_size; nx <= xmax; nx++, index++) {
-        float weight = gausstab[index];
+        float weight = gaussian[index];
         int offset = (y * width + nx) * 4;
         accum += float4(rect + offset) * weight;
         accum_weight += weight;
@@ -2448,7 +2448,7 @@ static void gaussian_blur_x(const blender::Array<float> &gausstab,
 }
 
 template<typename T>
-static void gaussian_blur_y(const blender::Array<float> &gausstab,
+static void gaussian_blur_y(const Span<float> gaussian,
                             int half_size,
                             int start_line,
                             int width,
@@ -2462,10 +2462,10 @@ static void gaussian_blur_y(const blender::Array<float> &gausstab,
     for (int x = 0; x < width; x++) {
       float4 accum(0.0f);
       float accum_weight = 0.0f;
-      int ymin = blender::math::max(y - half_size, 0);
-      int ymax = blender::math::min(y + half_size, frame_height - 1);
+      int ymin = math::max(y - half_size, 0);
+      int ymax = math::min(y + half_size, frame_height - 1);
       for (int ny = ymin, index = (ymin - y) + half_size; ny <= ymax; ny++, index++) {
-        float weight = gausstab[index];
+        float weight = gaussian[index];
         int offset = (ny * width + x) * 4;
         accum += float4(rect + offset) * weight;
         accum_weight += weight;
@@ -2494,8 +2494,8 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
   const GaussianBlurVars *data = static_cast<const GaussianBlurVars *>(seq->effectdata);
   const int half_size_x = int(data->size_x + 0.5f);
   const int half_size_y = int(data->size_y + 0.5f);
-  Array<float> gausstab_x = make_gaussian_blur_kernel(data->size_x, half_size_x);
-  Array<float> gausstab_y = make_gaussian_blur_kernel(data->size_y, half_size_y);
+  Array<float> gaussian_x = make_gaussian_blur_kernel(data->size_x, half_size_x);
+  Array<float> gaussian_y = make_gaussian_blur_kernel(data->size_y, half_size_y);
 
   const int width = context->rectx;
   const int height = context->recty;
@@ -2507,7 +2507,7 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
     const int y_first = y_range.first();
     const int y_size = y_range.size();
     if (is_float) {
-      gaussian_blur_x(gausstab_x,
+      gaussian_blur_x(gaussian_x,
                       half_size_x,
                       y_first,
                       width,
@@ -2517,7 +2517,7 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
                       out->float_buffer.data);
     }
     else {
-      gaussian_blur_x(gausstab_x,
+      gaussian_blur_x(gaussian_x,
                       half_size_x,
                       y_first,
                       width,
@@ -2535,7 +2535,7 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
     const int y_first = y_range.first();
     const int y_size = y_range.size();
     if (is_float) {
-      gaussian_blur_y(gausstab_y,
+      gaussian_blur_y(gaussian_y,
                       half_size_y,
                       y_first,
                       width,
@@ -2545,7 +2545,7 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
                       out->float_buffer.data);
     }
     else {
-      gaussian_blur_y(gausstab_y,
+      gaussian_blur_y(gaussian_y,
                       half_size_y,
                       y_first,
                       width,
@@ -2713,7 +2713,7 @@ static StripEarlyOut early_out_text(const Sequence *seq, float /*fac*/)
 /* Simplified version of gaussian blur specifically for text shadow blurring:
  * - Only blurs the alpha channel since that is all it needs,
  * - Skips blur outside of shadow rectangle. */
-static void text_gaussian_blur_x(const blender::Array<float> &gausstab,
+static void text_gaussian_blur_x(const Span<float> gaussian,
                                  int half_size,
                                  int start_line,
                                  int width,
@@ -2728,10 +2728,10 @@ static void text_gaussian_blur_x(const blender::Array<float> &gausstab,
       float accum(0.0f);
       if (x >= shadow_rect.xmin && x <= shadow_rect.xmax) {
         float accum_weight = 0.0f;
-        int xmin = blender::math::max(x - half_size, shadow_rect.xmin);
-        int xmax = blender::math::min(x + half_size, shadow_rect.xmax);
+        int xmin = math::max(x - half_size, shadow_rect.xmin);
+        int xmax = math::min(x + half_size, shadow_rect.xmax);
         for (int nx = xmin, index = (xmin - x) + half_size; nx <= xmax; nx++, index++) {
-          float weight = gausstab[index];
+          float weight = gaussian[index];
           int offset = (y * width + nx) * 4;
           accum += rect[offset + 3] * weight;
           accum_weight += weight;
@@ -2745,7 +2745,7 @@ static void text_gaussian_blur_x(const blender::Array<float> &gausstab,
   }
 }
 
-static void text_gaussian_blur_y(const blender::Array<float> &gausstab,
+static void text_gaussian_blur_y(const Span<float> gaussian,
                                  int half_size,
                                  int start_line,
                                  int width,
@@ -2760,10 +2760,10 @@ static void text_gaussian_blur_y(const blender::Array<float> &gausstab,
       float accum(0.0f);
       if (x >= shadow_rect.xmin && x <= shadow_rect.xmax) {
         float accum_weight = 0.0f;
-        int ymin = blender::math::max(y - half_size, shadow_rect.ymin);
-        int ymax = blender::math::min(y + half_size, shadow_rect.ymax);
+        int ymin = math::max(y - half_size, shadow_rect.ymin);
+        int ymax = math::min(y + half_size, shadow_rect.ymax);
         for (int ny = ymin, index = (ymin - y) + half_size; ny <= ymax; ny++, index++) {
-          float weight = gausstab[index];
+          float weight = gaussian[index];
           int offset = (ny * width + x) * 4;
           accum += rect[offset + 3] * weight;
           accum_weight += weight;
@@ -2816,7 +2816,7 @@ static void draw_text_shadow(const SeqRenderData *context,
   if (do_blur) {
     /* Create blur kernel weights. */
     const int half_size = int(blur_amount + 0.5f);
-    Array<float> gausstab = make_gaussian_blur_kernel(blur_amount, half_size);
+    Array<float> gaussian = make_gaussian_blur_kernel(blur_amount, half_size);
 
     BLI_rcti_pad(&shadow_rect, half_size + 1, half_size + 1);
     shadow_rect.xmin = clamp_i(shadow_rect.xmin, 0, width - 1);
@@ -2835,7 +2835,7 @@ static void draw_text_shadow(const SeqRenderData *context,
     threading::parallel_for(blur_y_range, 8, [&](const IndexRange y_range) {
       const int y_first = y_range.first();
       const int y_size = y_range.size();
-      text_gaussian_blur_x(gausstab,
+      text_gaussian_blur_x(gaussian,
                            half_size,
                            y_first,
                            width,
@@ -2849,7 +2849,7 @@ static void draw_text_shadow(const SeqRenderData *context,
     threading::parallel_for(blur_y_range, 8, [&](const IndexRange y_range) {
       const int y_first = y_range.first();
       const int y_size = y_range.size();
-      text_gaussian_blur_y(gausstab,
+      text_gaussian_blur_y(gaussian,
                            half_size,
                            y_first,
                            width,
@@ -3238,7 +3238,7 @@ static void get_default_fac_fade(const Scene *scene,
 {
   *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq));
   *fac /= SEQ_time_strip_length_get(scene, seq);
-  *fac = blender::math::clamp(*fac, 0.0f, 1.0f);
+  *fac = math::clamp(*fac, 0.0f, 1.0f);
 }
 
 static ImBuf *init_execution(const SeqRenderData *context,
