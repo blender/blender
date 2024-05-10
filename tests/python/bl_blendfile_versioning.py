@@ -64,7 +64,8 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
     def generate_slice_indices(total_len, slice_range, slice_index):
         slice_stride_base = total_len // slice_range
         slice_stride_remain = total_len % slice_range
-        gen_indices = lambda i: (
+
+        def gen_indices(i): return (
             (i * (slice_stride_base + 1))
             if i < slice_stride_remain else
             (slice_stride_remain * (slice_stride_base + 1)) + ((i - slice_stride_remain) * slice_stride_base)
@@ -89,7 +90,6 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                     lib_out.collections.append(lib_in.collections[0])
                 elif len(lib_in.objects):
                     lib_out.objects.append(lib_in.objects[0])
-
 
     def test_link(self):
         self.link_append(do_link=True)
