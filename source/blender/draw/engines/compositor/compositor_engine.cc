@@ -162,10 +162,10 @@ class Context : public realtime_compositor::Context {
 
   realtime_compositor::ResultPrecision get_precision() const override
   {
-    switch (get_node_tree().precision) {
-      case NODE_TREE_COMPOSITOR_PRECISION_AUTO:
+    switch (get_scene().r.compositor_precision) {
+      case SCE_COMPOSITOR_PRECISION_AUTO:
         return realtime_compositor::ResultPrecision::Half;
-      case NODE_TREE_COMPOSITOR_PRECISION_FULL:
+      case SCE_COMPOSITOR_PRECISION_FULL:
         return realtime_compositor::ResultPrecision::Full;
     }
 

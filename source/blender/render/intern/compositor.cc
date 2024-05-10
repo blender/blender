@@ -322,8 +322,8 @@ class Context : public realtime_compositor::Context {
 
   realtime_compositor::ResultPrecision get_precision() const override
   {
-    switch (input_data_.node_tree->precision) {
-      case NODE_TREE_COMPOSITOR_PRECISION_AUTO:
+    switch (input_data_.scene->r.compositor_precision) {
+      case SCE_COMPOSITOR_PRECISION_AUTO:
         /* Auto uses full precision for final renders and half procession otherwise. */
         if (this->render_context()) {
           return realtime_compositor::ResultPrecision::Full;
@@ -331,7 +331,7 @@ class Context : public realtime_compositor::Context {
         else {
           return realtime_compositor::ResultPrecision::Half;
         }
-      case NODE_TREE_COMPOSITOR_PRECISION_FULL:
+      case SCE_COMPOSITOR_PRECISION_FULL:
         return realtime_compositor::ResultPrecision::Full;
     }
 

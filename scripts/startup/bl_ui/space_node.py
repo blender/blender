@@ -823,19 +823,19 @@ class NODE_PT_quality(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
+        scene = context.scene
+        rd = scene.render
+
         snode = context.space_data
         tree = snode.node_tree
         prefs = bpy.context.preferences
 
-        use_realtime = False
         col = layout.column()
         if prefs.experimental.use_experimental_compositors:
-            col.prop(tree, "execution_mode")
-            use_realtime = tree.execution_mode == 'REALTIME'
-        col.prop(tree, "precision")
+            col.prop(rd, "compositor_device", text="Device")
+        col.prop(rd, "compositor_precision", text="Precision")
 
         col = layout.column()
-        col.active = not use_realtime
         col.prop(tree, "use_viewer_border")
 
         col = layout.column()
