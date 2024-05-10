@@ -69,6 +69,7 @@
 #  include "DNA_userdef_types.h"
 #endif
 
+using blender::Array;
 using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
@@ -316,40 +317,22 @@ void DM_interp_vert_data(const DerivedMesh *source,
       &source->vertData, &dest->vertData, src_indices, weights, nullptr, count, dest_index);
 }
 
-static float (*get_editbmesh_orco_verts(const BMEditMesh *em))[3]
-{
-  BMIter iter;
-  BMVert *eve;
-  float(*orco)[3];
-  int i;
-
-  /* these may not really be the orco's, but it's only for preview.
-   * could be solver better once, but isn't simple */
-
-  orco = (float(*)[3])MEM_malloc_arrayN(em->bm->totvert, sizeof(float[3]), "BMEditMesh Orco");
-
-  BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-    copy_v3_v3(orco[i], eve->co);
-  }
-
-  return orco;
-}
-
 /* orco custom data layer */
-static float (*get_orco_coords(const Object *ob, const BMEditMesh *em, int layer, int *free))[3]
+static Span<float3> get_orco_coords(const Object *ob,
+                                    const BMEditMesh *em,
+                                    eCustomDataType layer_type,
+                                    Array<float3> &storage)
 {
-  *free = 0;
-
-  if (layer == CD_ORCO) {
-    /* get original coordinates */
-    *free = 1;
+  if (layer_type == CD_ORCO) {
 
     if (em) {
-      return get_editbmesh_orco_verts(em);
+      storage = BM_mesh_vert_coords_alloc(em->bm);
+      return storage;
     }
-    return BKE_mesh_orco_verts_get(ob);
+    storage = BKE_mesh_orco_verts_get(ob);
+    return storage;
   }
-  if (layer == CD_CLOTH_ORCO) {
+  if (layer_type == CD_CLOTH_ORCO) {
     /* apply shape key for cloth, this should really be solved
      * by a more flexible customdata system, but not simple */
     if (!em) {
@@ -360,23 +343,23 @@ static float (*get_orco_coords(const Object *ob, const BMEditMesh *em, int layer
             BKE_key_from_object(const_cast<Object *>(ob)), clmd->sim_parms->shapekey_rest);
 
         if (kb && kb->data) {
-          return (float(*)[3])kb->data;
+          return {static_cast<const float3 *>(kb->data), kb->totelem};
         }
       }
     }
 
-    return nullptr;
+    return {};
   }
 
-  return nullptr;
+  return {};
 }
 
-static Mesh *create_orco_mesh(const Object *ob, const Mesh *mesh, const BMEditMesh *em, int layer)
+static Mesh *create_orco_mesh(const Object *ob,
+                              const Mesh *mesh,
+                              const BMEditMesh *em,
+                              eCustomDataType layer)
 {
   Mesh *orco_mesh;
-  float(*orco)[3];
-  int free;
-
   if (em) {
     orco_mesh = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, mesh);
     BKE_mesh_ensure_default_orig_index_customdata(orco_mesh);
@@ -385,15 +368,12 @@ static Mesh *create_orco_mesh(const Object *ob, const Mesh *mesh, const BMEditMe
     orco_mesh = BKE_mesh_copy_for_eval(mesh);
   }
 
-  orco = get_orco_coords(ob, em, layer, &free);
+  Array<float3> storage;
+  const Span<float3> orco = get_orco_coords(ob, em, layer, storage);
 
-  if (orco) {
-    orco_mesh->vert_positions_for_write().copy_from(
-        {reinterpret_cast<const float3 *>(orco), orco_mesh->verts_num});
+  if (!orco.is_empty()) {
+    orco_mesh->vert_positions_for_write().copy_from(orco);
     orco_mesh->tag_positions_changed();
-    if (free) {
-      MEM_freeN(orco);
-    }
   }
 
   return orco_mesh;
@@ -430,21 +410,17 @@ static void add_orco_mesh(Object *ob,
   else {
     /* TODO(sybren): totvert should potentially change here, as ob->data
      * or em may have a different number of vertices than dm. */
-    int free = 0;
-    float(*orco)[3] = get_orco_coords(ob, em, layer, &free);
-    if (orco) {
+    Array<float3> storage;
+    const Span<float3> orco = get_orco_coords(ob, em, layer, storage);
+    if (!orco.is_empty()) {
       layer_orco = orco_coord_layer_ensure(mesh, layer);
-      layer_orco.copy_from(Span<float3>(reinterpret_cast<float3 *>(orco), totvert));
-    }
-    if (free) {
-      MEM_freeN(orco);
+      layer_orco.copy_from(orco);
     }
   }
 
   if (!layer_orco.is_empty()) {
     if (layer == CD_ORCO) {
-      BKE_mesh_orco_verts_transform(
-          (Mesh *)ob->data, reinterpret_cast<float(*)[3]>(layer_orco.data()), totvert, false);
+      BKE_mesh_orco_verts_transform((Mesh *)ob->data, layer_orco, false);
     }
   }
 }

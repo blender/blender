@@ -43,8 +43,9 @@ static void extract_tan_init_common(const MeshRenderData &mr,
   const CustomData *cd_vdata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->vdata :
                                                                        &mr.mesh->vert_data;
   uint32_t tan_layers = cache.cd_used.tan;
-  const float(*orco)[3] = (const float(*)[3])CustomData_get_layer(cd_vdata, CD_ORCO);
-  float(*orco_allocated)[3] = nullptr;
+  const float3 *orco_ptr = static_cast<const float3 *>(CustomData_get_layer(cd_vdata, CD_ORCO));
+  Span<float3> orco = orco_ptr ? Span(orco_ptr, mr.verts_num) : Span<float3>();
+  Array<float3> orco_allocated;
   bool use_orco_tan = cache.cd_used.tan_orco != 0;
 
   int tan_len = 0;
@@ -81,9 +82,9 @@ static void extract_tan_init_common(const MeshRenderData &mr,
       STRNCPY(r_tangent_names[tan_len++], layer_name);
     }
   }
-  if (use_orco_tan && orco == nullptr) {
+  if (use_orco_tan && orco.is_empty()) {
     /* If `orco` is not available compute it ourselves */
-    orco_allocated = (float(*)[3])MEM_mallocN(sizeof(*orco) * mr.verts_num, __func__);
+    orco_allocated.reinitialize(mr.verts_num);
 
     if (mr.extract_type == MR_EXTRACT_BMESH) {
       BMesh *bm = mr.bm;
@@ -100,8 +101,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
       }
     }
     /* TODO: This is not thread-safe. Draw extraction should not modify the mesh. */
-    BKE_mesh_orco_verts_transform(
-        const_cast<Mesh *>(mr.mesh), orco_allocated, mr.verts_num, false);
+    BKE_mesh_orco_verts_transform(const_cast<Mesh *>(mr.mesh), orco_allocated, false);
     orco = orco_allocated;
   }
 
@@ -115,15 +115,15 @@ static void extract_tan_init_common(const MeshRenderData &mr,
                                      calc_active_tangent,
                                      r_tangent_names,
                                      tan_len,
-                                     reinterpret_cast<const float(*)[3]>(mr.face_normals.data()),
-                                     reinterpret_cast<const float(*)[3]>(mr.corner_normals.data()),
+                                     mr.face_normals,
+                                     mr.corner_normals,
                                      orco,
                                      r_loop_data,
                                      mr.corners_num,
                                      &tangent_mask);
     }
     else {
-      BKE_mesh_calc_loop_tangent_ex(reinterpret_cast<const float(*)[3]>(mr.vert_positions.data()),
+      BKE_mesh_calc_loop_tangent_ex(mr.vert_positions,
                                     mr.faces,
                                     mr.corner_verts.data(),
                                     corner_tris.data(),
@@ -134,9 +134,9 @@ static void extract_tan_init_common(const MeshRenderData &mr,
                                     calc_active_tangent,
                                     r_tangent_names,
                                     tan_len,
-                                    reinterpret_cast<const float(*)[3]>(mr.vert_normals.data()),
-                                    reinterpret_cast<const float(*)[3]>(mr.face_normals.data()),
-                                    reinterpret_cast<const float(*)[3]>(mr.corner_normals.data()),
+                                    mr.vert_normals,
+                                    mr.face_normals,
+                                    mr.corner_normals,
                                     orco,
                                     r_loop_data,
                                     mr.corner_verts.size(),
@@ -153,8 +153,6 @@ static void extract_tan_init_common(const MeshRenderData &mr,
     GPU_vertformat_alias_add(format, "t");
     GPU_vertformat_alias_add(format, "at");
   }
-
-  MEM_SAFE_FREE(orco_allocated);
 
   int v_len = mr.corners_num;
   if (format->attr_len == 0) {

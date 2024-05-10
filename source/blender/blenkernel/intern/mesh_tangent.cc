@@ -29,6 +29,10 @@
 #include "BLI_strict_flags.h" /* Keep last. */
 
 using blender::float2;
+using blender::float3;
+using blender::int3;
+using blender::OffsetIndices;
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Tangent Calculations (Single Layer)
@@ -68,13 +72,13 @@ struct BKEMeshToTangent {
     copy_v4_fl4(p_res, T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
   }
 
-  blender::OffsetIndices<int> faces; /* faces */
-  const int *corner_verts;           /* faces vertices */
-  const float (*positions)[3];       /* vertices */
-  const float (*luvs)[2];            /* texture coordinates */
-  const float (*corner_normals)[3];  /* loops' normals */
-  float (*tangents)[4];              /* output tangents */
-  int num_faces;                     /* number of polygons */
+  OffsetIndices<int> faces;         /* faces */
+  const int *corner_verts;          /* faces vertices */
+  const float (*positions)[3];      /* vertices */
+  const float (*luvs)[2];           /* texture coordinates */
+  const float (*corner_normals)[3]; /* loops' normals */
+  float (*tangents)[4];             /* output tangents */
+  int num_faces;                    /* number of polygons */
 };
 
 void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
@@ -84,7 +88,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           const float (*corner_normals)[3],
                                           const float (*loop_uvs)[2],
                                           const int /*numLoops*/,
-                                          const blender::OffsetIndices<int> faces,
+                                          const OffsetIndices<int> faces,
                                           ReportList *reports)
 {
   /* Compute Mikktspace's tangent normals. */
@@ -179,7 +183,7 @@ struct SGLSLMeshToTangent {
 #endif
   }
 
-  uint GetLoop(const uint face_num, const uint vert_num, blender::int3 &tri, int &face_index)
+  uint GetLoop(const uint face_num, const uint vert_num, int3 &tri, int &face_index)
   {
 #ifdef USE_TRI_DETECT_QUADS
     if (face_as_quad_map) {
@@ -202,7 +206,7 @@ struct SGLSLMeshToTangent {
 
   mikk::float3 GetPosition(const uint face_num, const uint vert_num)
   {
-    blender::int3 tri;
+    int3 tri;
     int face_index;
     uint loop_index = GetLoop(face_num, vert_num, tri, face_index);
     return mikk::float3(positions[corner_verts[loop_index]]);
@@ -210,7 +214,7 @@ struct SGLSLMeshToTangent {
 
   mikk::float3 GetTexCoord(const uint face_num, const uint vert_num)
   {
-    blender::int3 tri;
+    int3 tri;
     int face_index;
     uint loop_index = GetLoop(face_num, vert_num, tri, face_index);
     if (mloopuv != nullptr) {
@@ -225,15 +229,15 @@ struct SGLSLMeshToTangent {
 
   mikk::float3 GetNormal(const uint face_num, const uint vert_num)
   {
-    blender::int3 tri;
+    int3 tri;
     int face_index;
     uint loop_index = GetLoop(face_num, vert_num, tri, face_index);
-    if (precomputedLoopNormals) {
-      return mikk::float3(precomputedLoopNormals[loop_index]);
+    if (!corner_normals.is_empty()) {
+      return mikk::float3(corner_normals[loop_index]);
     }
     if (!sharp_faces.is_empty() && sharp_faces[face_index]) { /* flat */
-      if (precomputedFaceNormals) {
-        return mikk::float3(precomputedFaceNormals[face_index]);
+      if (!face_normals.is_empty()) {
+        return mikk::float3(face_normals[face_index]);
       }
 #ifdef USE_TRI_DETECT_QUADS
       const blender::IndexRange face = faces[face_index];
@@ -260,25 +264,25 @@ struct SGLSLMeshToTangent {
 
   void SetTangentSpace(const uint face_num, const uint vert_num, mikk::float3 T, bool orientation)
   {
-    blender::int3 tri;
+    int3 tri;
     int face_index;
     uint loop_index = GetLoop(face_num, vert_num, tri, face_index);
 
     copy_v4_fl4(tangent[loop_index], T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
   }
 
-  const float (*precomputedFaceNormals)[3];
-  const float (*precomputedLoopNormals)[3];
-  const blender::int3 *corner_tris;
+  Span<float3> face_normals;
+  Span<float3> corner_normals;
+  const int3 *corner_tris;
   const int *tri_faces;
   const float2 *mloopuv; /* texture coordinates */
-  blender::OffsetIndices<int> faces;
-  const int *corner_verts;     /* indices */
-  const float (*positions)[3]; /* vertex coordinates */
-  const float (*vert_normals)[3];
-  const float (*orco)[3];
+  OffsetIndices<int> faces;
+  const int *corner_verts; /* indices */
+  Span<float3> positions;  /* vertex coordinates */
+  Span<float3> vert_normals;
+  Span<float3> orco;
   float (*tangent)[4]; /* destination */
-  blender::Span<bool> sharp_faces;
+  Span<bool> sharp_faces;
   int numTessFaces;
 
 #ifdef USE_TRI_DETECT_QUADS
@@ -385,22 +389,22 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
   }
 }
 
-void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
-                                   const blender::OffsetIndices<int> faces,
+void BKE_mesh_calc_loop_tangent_ex(const Span<float3> vert_positions,
+                                   const OffsetIndices<int> faces,
                                    const int *corner_verts,
-                                   const blender::int3 *corner_tris,
+                                   const int3 *corner_tris,
                                    const int *corner_tri_faces,
                                    const uint corner_tris_len,
-                                   const blender::Span<bool> sharp_faces,
+                                   const Span<bool> sharp_faces,
 
                                    const CustomData *loopdata,
                                    bool calc_active_tangent,
                                    const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                    int tangent_names_len,
-                                   const float (*vert_normals)[3],
-                                   const float (*face_normals)[3],
-                                   const float (*corner_normals)[3],
-                                   const float (*vert_orco)[3],
+                                   const Span<float3> vert_normals,
+                                   const Span<float3> face_normals,
+                                   const Span<float3> corner_normals,
+                                   const Span<float3> vert_orco,
                                    /* result */
                                    CustomData *loopdata_out,
                                    const uint loopdata_out_len,
@@ -501,17 +505,17 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
         mesh2tangent->sharp_faces = sharp_faces;
         /* NOTE: we assume we do have tessellated loop normals at this point
          * (in case it is object-enabled), have to check this is valid. */
-        mesh2tangent->precomputedLoopNormals = corner_normals;
-        mesh2tangent->precomputedFaceNormals = face_normals;
+        mesh2tangent->corner_normals = corner_normals;
+        mesh2tangent->face_normals = face_normals;
 
-        mesh2tangent->orco = nullptr;
+        mesh2tangent->orco = {};
         mesh2tangent->mloopuv = static_cast<const float2 *>(CustomData_get_layer_named(
             loopdata, CD_PROP_FLOAT2, loopdata_out->layers[index].name));
 
         /* Fill the resulting tangent_mask */
         if (!mesh2tangent->mloopuv) {
           mesh2tangent->orco = vert_orco;
-          if (!mesh2tangent->orco) {
+          if (mesh2tangent->orco.is_empty()) {
             continue;
           }
 
@@ -573,31 +577,32 @@ void BKE_mesh_calc_loop_tangents(Mesh *mesh_eval,
   /* TODO(@ideasman42): store in Mesh.runtime to avoid recalculation. */
   using namespace blender;
   using namespace blender::bke;
-  const blender::Span<int3> corner_tris = mesh_eval->corner_tris();
+  const Span<int3> corner_tris = mesh_eval->corner_tris();
   const bke::AttributeAccessor attributes = mesh_eval->attributes();
   const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
+  const float3 *orco = static_cast<const float3 *>(
+      CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO));
   short tangent_mask = 0;
-  BKE_mesh_calc_loop_tangent_ex(
-      reinterpret_cast<const float(*)[3]>(mesh_eval->vert_positions().data()),
-      mesh_eval->faces(),
-      mesh_eval->corner_verts().data(),
-      corner_tris.data(),
-      mesh_eval->corner_tri_faces().data(),
-      uint(corner_tris.size()),
-      sharp_face,
-      &mesh_eval->corner_data,
-      calc_active_tangent,
-      tangent_names,
-      tangent_names_len,
-      reinterpret_cast<const float(*)[3]>(mesh_eval->vert_normals().data()),
-      reinterpret_cast<const float(*)[3]>(mesh_eval->face_normals().data()),
-      reinterpret_cast<const float(*)[3]>(mesh_eval->corner_normals().data()),
-      /* may be nullptr */
-      static_cast<const float(*)[3]>(CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO)),
-      /* result */
-      &mesh_eval->corner_data,
-      uint(mesh_eval->corners_num),
-      &tangent_mask);
+  BKE_mesh_calc_loop_tangent_ex(mesh_eval->vert_positions(),
+                                mesh_eval->faces(),
+                                mesh_eval->corner_verts().data(),
+                                corner_tris.data(),
+                                mesh_eval->corner_tri_faces().data(),
+                                uint(corner_tris.size()),
+                                sharp_face,
+                                &mesh_eval->corner_data,
+                                calc_active_tangent,
+                                tangent_names,
+                                tangent_names_len,
+                                mesh_eval->vert_normals(),
+                                mesh_eval->face_normals(),
+                                mesh_eval->corner_normals(),
+                                /* may be nullptr */
+                                orco ? Span(orco, mesh_eval->verts_num) : Span<float3>(),
+                                /* result */
+                                &mesh_eval->corner_data,
+                                uint(mesh_eval->corners_num),
+                                &tangent_mask);
 }
 
 /** \} */

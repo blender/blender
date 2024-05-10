@@ -477,6 +477,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
                              MFreeBakeData freeBakeData,
                              MultiresBakeResult *result)
 {
+  using namespace blender;
   DerivedMesh *dm = bkr->lores_dm;
   const int lvl = bkr->lvl;
   if (dm->getNumPolys(dm) == 0) {
@@ -485,8 +486,8 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
   MultiresBakeQueue queue;
 
-  const blender::Span<blender::float2> uv_map(
-      reinterpret_cast<const blender::float2 *>(dm->getLoopDataArray(dm, CD_PROP_FLOAT2)),
+  const Span<float2> uv_map(
+      reinterpret_cast<const float2 *>(dm->getLoopDataArray(dm, CD_PROP_FLOAT2)),
       dm->getNumLoops(dm));
 
   float *pvtangent = nullptr;
@@ -499,22 +500,22 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   Mesh *temp_mesh = BKE_mesh_new_nomain(
       dm->getNumVerts(dm), dm->getNumEdges(dm), dm->getNumPolys(dm), dm->getNumLoops(dm));
   temp_mesh->vert_positions_for_write().copy_from(
-      {reinterpret_cast<const blender::float3 *>(dm->getVertArray(dm)), temp_mesh->verts_num});
+      {reinterpret_cast<const float3 *>(dm->getVertArray(dm)), temp_mesh->verts_num});
   temp_mesh->edges_for_write().copy_from(
-      {reinterpret_cast<const blender::int2 *>(dm->getEdgeArray(dm)), temp_mesh->edges_num});
+      {reinterpret_cast<const int2 *>(dm->getEdgeArray(dm)), temp_mesh->edges_num});
   temp_mesh->face_offsets_for_write().copy_from({dm->getPolyArray(dm), temp_mesh->faces_num + 1});
   temp_mesh->corner_verts_for_write().copy_from(
       {dm->getCornerVertArray(dm), temp_mesh->corners_num});
   temp_mesh->corner_edges_for_write().copy_from(
       {dm->getCornerEdgeArray(dm), temp_mesh->corners_num});
 
-  const blender::Span<blender::float3> positions = temp_mesh->vert_positions();
-  const blender::OffsetIndices faces = temp_mesh->faces();
-  const blender::Span<int> corner_verts = temp_mesh->corner_verts();
-  const blender::Span<blender::float3> vert_normals = temp_mesh->vert_normals();
-  const blender::Span<blender::float3> face_normals = temp_mesh->face_normals();
-  const blender::Span<blender::int3> corner_tris = temp_mesh->corner_tris();
-  const blender::Span<int> tri_faces = temp_mesh->corner_tri_faces();
+  const Span<float3> positions = temp_mesh->vert_positions();
+  const OffsetIndices faces = temp_mesh->faces();
+  const Span<int> corner_verts = temp_mesh->corner_verts();
+  const Span<float3> vert_normals = temp_mesh->vert_normals();
+  const Span<float3> face_normals = temp_mesh->face_normals();
+  const Span<int3> corner_tris = temp_mesh->corner_tris();
+  const Span<int> tri_faces = temp_mesh->corner_tri_faces();
 
   if (require_tangent) {
     if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
@@ -526,41 +527,42 @@ static void do_multires_bake(MultiresBakeRender *bkr,
       /* Copy sharp faces and edges, for corner normals domain and tangents
        * to be computed correctly. */
       if (sharp_edges) {
-        blender::bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
+        bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
         attributes.add<bool>("sharp_edge",
-                             blender::bke::AttrDomain::Edge,
-                             blender::bke::AttributeInitVArray(blender::VArray<bool>::ForSpan(
-                                 blender::Span<bool>(sharp_edges, temp_mesh->edges_num))));
+                             bke::AttrDomain::Edge,
+                             bke::AttributeInitVArray(VArray<bool>::ForSpan(
+                                 Span<bool>(sharp_edges, temp_mesh->edges_num))));
       }
       if (sharp_faces) {
-        blender::bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
+        bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
         attributes.add<bool>("sharp_face",
-                             blender::bke::AttrDomain::Face,
-                             blender::bke::AttributeInitVArray(blender::VArray<bool>::ForSpan(
-                                 blender::Span<bool>(sharp_faces, temp_mesh->faces_num))));
+                             bke::AttrDomain::Face,
+                             bke::AttributeInitVArray(VArray<bool>::ForSpan(
+                                 Span<bool>(sharp_faces, temp_mesh->faces_num))));
       }
 
-      const blender::Span<blender::float3> corner_normals = temp_mesh->corner_normals();
-      BKE_mesh_calc_loop_tangent_ex(
-          reinterpret_cast<const float(*)[3]>(positions.data()),
-          faces,
-          dm->getCornerVertArray(dm),
-          corner_tris.data(),
-          tri_faces.data(),
-          corner_tris.size(),
-          sharp_faces ? blender::Span(sharp_faces, faces.size()) : blender::Span<bool>(),
-          &dm->loopData,
-          true,
-          nullptr,
-          0,
-          reinterpret_cast<const float(*)[3]>(vert_normals.data()),
-          reinterpret_cast<const float(*)[3]>(face_normals.data()),
-          reinterpret_cast<const float(*)[3]>(corner_normals.data()),
-          (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* May be nullptr. */
-          /* result */
-          &dm->loopData,
-          dm->getNumLoops(dm),
-          &dm->tangent_mask);
+      const float3 *orco = static_cast<const float3 *>(dm->getVertDataArray(dm, CD_ORCO));
+
+      const Span<float3> corner_normals = temp_mesh->corner_normals();
+      BKE_mesh_calc_loop_tangent_ex(positions,
+                                    faces,
+                                    dm->getCornerVertArray(dm),
+                                    corner_tris.data(),
+                                    tri_faces.data(),
+                                    corner_tris.size(),
+                                    sharp_faces ? Span(sharp_faces, faces.size()) : Span<bool>(),
+                                    &dm->loopData,
+                                    true,
+                                    nullptr,
+                                    0,
+                                    vert_normals,
+                                    face_normals,
+                                    corner_normals,
+                                    orco ? Span(orco, positions.size()) : Span<float3>(),
+                                    /* result */
+                                    &dm->loopData,
+                                    dm->getNumLoops(dm),
+                                    &dm->tangent_mask);
     }
 
     pvtangent = static_cast<float *>(DM_get_loop_data_layer(dm, CD_TANGENT));
@@ -575,7 +577,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     BLI_threadpool_init(&threads, do_multires_bake_thread, tot_thread);
   }
 
-  blender::Array<MultiresBakeThread> handles(tot_thread);
+  Array<MultiresBakeThread> handles(tot_thread);
 
   init_ccgdm_arrays(bkr->hires_dm);
 

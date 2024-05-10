@@ -24,6 +24,9 @@
 /* interface */
 #include "mikktspace.hh"
 
+using blender::float3;
+using blender::Span;
+
 /* -------------------------------------------------------------------- */
 /** \name Tangent Space Calculation
  * \{ */
@@ -105,12 +108,12 @@ struct SGLSLEditMeshToTangent {
   mikk::float3 GetNormal(const uint face_num, const uint vert_index)
   {
     const BMLoop *l = GetLoop(face_num, vert_index);
-    if (precomputedLoopNormals) {
-      return mikk::float3(precomputedLoopNormals[BM_elem_index_get(l)]);
+    if (!corner_normals.is_empty()) {
+      return mikk::float3(corner_normals[BM_elem_index_get(l)]);
     }
     if (BM_elem_flag_test(l->f, BM_ELEM_SMOOTH) == 0) { /* flat */
-      if (precomputedFaceNormals) {
-        return mikk::float3(precomputedFaceNormals[BM_elem_index_get(l->f)]);
+      if (!face_normals.is_empty()) {
+        return mikk::float3(face_normals[BM_elem_index_get(l->f)]);
       }
       return mikk::float3(l->f->no);
     }
@@ -127,11 +130,11 @@ struct SGLSLEditMeshToTangent {
     copy_v4_fl4(p_res, T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
   }
 
-  const float (*precomputedFaceNormals)[3];
-  const float (*precomputedLoopNormals)[3];
-  blender::Span<std::array<BMLoop *, 3>> looptris;
+  Span<float3> face_normals;
+  Span<float3> corner_normals;
+  Span<std::array<BMLoop *, 3>> looptris;
   int cd_loop_uv_offset; /* texture coordinates */
-  const float (*orco)[3];
+  Span<float3> orco;
   float (*tangent)[4]; /* destination */
   int numTessFaces;
 
@@ -155,9 +158,9 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
                                     bool calc_active_tangent,
                                     const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                     int tangent_names_len,
-                                    const float (*face_normals)[3],
-                                    const float (*corner_normals)[3],
-                                    const float (*vert_orco)[3],
+                                    const Span<float3> face_normals,
+                                    const Span<float3> corner_normals,
+                                    const Span<float3> vert_orco,
                                     /* result */
                                     CustomData *loopdata_out,
                                     const uint loopdata_out_len,
@@ -253,17 +256,17 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         mesh2tangent->face_as_quad_map = face_as_quad_map;
         mesh2tangent->num_face_as_quad_map = num_face_as_quad_map;
 #endif
-        mesh2tangent->precomputedFaceNormals = face_normals;
+        mesh2tangent->face_normals = face_normals;
         /* NOTE: we assume we do have tessellated loop normals at this point
          * (in case it is object-enabled), have to check this is valid. */
-        mesh2tangent->precomputedLoopNormals = corner_normals;
+        mesh2tangent->corner_normals = corner_normals;
         mesh2tangent->cd_loop_uv_offset = CustomData_get_n_offset(&bm->ldata, CD_PROP_FLOAT2, n);
 
         /* needed for indexing loop-tangents */
         int htype_index = BM_LOOP;
         if (mesh2tangent->cd_loop_uv_offset == -1) {
           mesh2tangent->orco = vert_orco;
-          if (!mesh2tangent->orco) {
+          if (mesh2tangent->orco.is_empty()) {
             continue;
           }
           /* needed for orco lookups */
@@ -279,7 +282,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
           BLI_assert(uv_ind - uv_start < MAX_MTFACE);
           tangent_mask_curr |= 1 << (uv_ind - uv_start);
         }
-        if (mesh2tangent->precomputedFaceNormals) {
+        if (!mesh2tangent->face_normals.is_empty()) {
           /* needed for face normal lookups */
           htype_index |= BM_FACE;
         }
