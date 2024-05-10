@@ -37,6 +37,7 @@ _modules = [
     "uvcalc_transform",
     "vertexpaint_dirt",
     "view3d",
+    "world",
     "wm",
 ]
 

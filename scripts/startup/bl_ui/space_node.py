@@ -94,10 +94,14 @@ class NODE_HT_header(Header):
 
             if snode.shader_type == 'WORLD':
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
+                world = scene.world
 
                 if snode_id:
                     row = layout.row()
                     row.prop(snode_id, "use_nodes")
+
+                    if world and world.use_eevee_finite_volume:
+                        row.operator("world.convert_volume_to_mesh", emboss=False, icon='WORLD', text="Convert Volume")
 
                 layout.separator_spacer()
 

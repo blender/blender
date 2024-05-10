@@ -3416,6 +3416,55 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 31)) {
+    /* Mark old EEVEE world volumes for showing conversion operator. */
+    LISTBASE_FOREACH (World *, world, &bmain->worlds) {
+      if (world->nodetree) {
+        /* NOTE: duplicated from `ntreeShaderOutputNode` with small adjustments so it can be called
+         * during versioning. */
+        bNode *output_node = nullptr;
+
+        LISTBASE_FOREACH (bNode *, node, &world->nodetree->nodes) {
+          if (node->type != SH_NODE_OUTPUT_WORLD) {
+            continue;
+          }
+
+          if (node->custom1 == SHD_OUTPUT_ALL) {
+            if (output_node == nullptr) {
+              output_node = node;
+            }
+            else if (output_node->custom1 == SHD_OUTPUT_ALL) {
+              if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+                output_node = node;
+              }
+            }
+          }
+          else if (node->custom1 == SHD_OUTPUT_EEVEE) {
+            if (output_node == nullptr) {
+              output_node = node;
+            }
+            else if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+              output_node = node;
+            }
+          }
+        }
+        /* End duplication. */
+
+        if (output_node) {
+          bNodeSocket *volume_input_socket = static_cast<bNodeSocket *>(
+              BLI_findlink(&output_node->inputs, 1));
+          if (volume_input_socket) {
+            LISTBASE_FOREACH (bNodeLink *, node_link, &world->nodetree->links) {
+              if (node_link->tonode == output_node && node_link->tosock == volume_input_socket) {
+                world->flag |= WO_USE_EEVEE_FINITE_VOLUME;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
