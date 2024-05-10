@@ -59,6 +59,13 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
    *   or dot(sd->Ng, ray_D)  is small. Detect such cases and skip test?
    * - Instead of ray offset, can we tweak P to lie within the triangle?
    */
+
+#ifndef __METALRT__
+  /* MetalRT and Cycles triangle tests aren't numerically identical, meaning this method
+   * isn't robust for MetalRT. In this case, just applying the ray offset uniformly gives
+   * identical looking results.
+   */
+
   float3 verts[3];
   if (sd->type == PRIMITIVE_TRIANGLE) {
     triangle_vertices(kg, sd->prim, verts);
@@ -80,7 +87,9 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
   if (ray_triangle_intersect_self(local_ray_P, local_ray_D, verts)) {
     return ray_P;
   }
-  else {
+  else
+#endif
+  {
     return ray_offset(ray_P, sd->Ng);
   }
 }

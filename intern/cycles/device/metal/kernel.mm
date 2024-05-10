@@ -459,6 +459,35 @@ static MTLFunctionConstantValues *GetConstantValues(KernelData const *data = nul
   return constant_values;
 }
 
+id<MTLFunction> MetalKernelPipeline::make_intersection_function(const char *function_name)
+{
+  MTLFunctionDescriptor *desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
+  desc.name = [@(function_name) copy];
+
+  if (pso_type != PSO_GENERIC) {
+    desc.constantValues = GetConstantValues(&kernel_data_);
+  }
+  else {
+    desc.constantValues = GetConstantValues();
+  }
+
+  NSError *error = NULL;
+  id<MTLFunction> rt_intersection_function = [mtlLibrary newFunctionWithDescriptor:desc
+                                                                             error:&error];
+
+  if (rt_intersection_function == nil) {
+    NSString *err = [error localizedDescription];
+    string errors = [err UTF8String];
+
+    error_str = string_printf(
+        "Error getting intersection function \"%s\": %s", function_name, errors.c_str());
+  }
+  else {
+    rt_intersection_function.label = [@(function_name) copy];
+  }
+  return rt_intersection_function;
+}
+
 void MetalKernelPipeline::compile()
 {
   const std::string function_name = std::string("cycles_metal_") +
@@ -487,117 +516,50 @@ void MetalKernelPipeline::compile()
 
   function.label = [@(function_name.c_str()) copy];
 
-  if (use_metalrt) {
-    /* create the id<MTLFunction> for each intersection function */
-    const char *function_names[] = {
-        "__anyhit__cycles_metalrt_visibility_test_tri",
-        "__anyhit__cycles_metalrt_visibility_test_box",
-        "__anyhit__cycles_metalrt_shadow_all_hit_tri",
-        "__anyhit__cycles_metalrt_shadow_all_hit_box",
-        "__anyhit__cycles_metalrt_volume_test_tri",
-        "__anyhit__cycles_metalrt_volume_test_box",
-        "__anyhit__cycles_metalrt_local_hit_tri",
-        "__anyhit__cycles_metalrt_local_hit_box",
-        "__anyhit__cycles_metalrt_local_hit_tri_prim",
-        "__anyhit__cycles_metalrt_local_hit_box_prim",
-        "__intersection__curve",
-        "__intersection__curve_shadow",
-        "__intersection__point",
-        "__intersection__point_shadow",
-    };
-    assert(sizeof(function_names) / sizeof(function_names[0]) == METALRT_FUNC_NUM);
-
-    MTLFunctionDescriptor *desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
-    for (int i = 0; i < METALRT_FUNC_NUM; i++) {
-      const char *function_name = function_names[i];
-      desc.name = [@(function_name) copy];
-
-      if (pso_type != PSO_GENERIC) {
-        desc.constantValues = GetConstantValues(&kernel_data_);
-      }
-      else {
-        desc.constantValues = GetConstantValues();
-      }
-
-      NSError *error = NULL;
-      rt_intersection_function[i] = [mtlLibrary newFunctionWithDescriptor:desc error:&error];
-
-      if (rt_intersection_function[i] == nil) {
-        NSString *err = [error localizedDescription];
-        string errors = [err UTF8String];
-
-        error_str = string_printf(
-            "Error getting intersection function \"%s\": %s", function_name, errors.c_str());
-        break;
-      }
-
-      rt_intersection_function[i].label = [@(function_name) copy];
-    }
-  }
-
   NSArray *table_functions[METALRT_TABLE_NUM] = {nil};
   NSArray *linked_functions = nil;
 
-  if (use_metalrt) {
-    id<MTLFunction> curve_intersect_default = nil;
-    id<MTLFunction> curve_intersect_shadow = nil;
-    id<MTLFunction> point_intersect_default = nil;
-    id<MTLFunction> point_intersect_shadow = nil;
-    if (kernel_features & KERNEL_FEATURE_HAIR) {
-      curve_intersect_default = rt_intersection_function[METALRT_FUNC_CURVE];
-      curve_intersect_shadow = rt_intersection_function[METALRT_FUNC_CURVE_SHADOW];
-    }
-    if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
-      point_intersect_default = rt_intersection_function[METALRT_FUNC_POINT];
-      point_intersect_shadow = rt_intersection_function[METALRT_FUNC_POINT_SHADOW];
-    }
-    table_functions[METALRT_TABLE_DEFAULT] = [NSArray
-        arrayWithObjects:rt_intersection_function[METALRT_FUNC_DEFAULT_TRI],
-                         curve_intersect_default ?
-                             curve_intersect_default :
-                             rt_intersection_function[METALRT_FUNC_DEFAULT_BOX],
-                         point_intersect_default ?
-                             point_intersect_default :
-                             rt_intersection_function[METALRT_FUNC_DEFAULT_BOX],
-                         nil];
-    table_functions[METALRT_TABLE_SHADOW] = [NSArray
-        arrayWithObjects:rt_intersection_function[METALRT_FUNC_SHADOW_TRI],
-                         curve_intersect_shadow ?
-                             curve_intersect_shadow :
-                             rt_intersection_function[METALRT_FUNC_SHADOW_BOX],
-                         point_intersect_shadow ?
-                             point_intersect_shadow :
-                             rt_intersection_function[METALRT_FUNC_SHADOW_BOX],
-                         nil];
-    table_functions[METALRT_TABLE_VOLUME] = [NSArray
-        arrayWithObjects:rt_intersection_function[METALRT_FUNC_VOLUME_TRI],
-                         rt_intersection_function[METALRT_FUNC_VOLUME_BOX],
-                         rt_intersection_function[METALRT_FUNC_VOLUME_BOX],
-                         nil];
-    table_functions[METALRT_TABLE_LOCAL] = [NSArray
-        arrayWithObjects:rt_intersection_function[METALRT_FUNC_LOCAL_TRI],
-                         rt_intersection_function[METALRT_FUNC_LOCAL_BOX],
-                         rt_intersection_function[METALRT_FUNC_LOCAL_BOX],
-                         nil];
-    table_functions[METALRT_TABLE_LOCAL_PRIM] = [NSArray
-        arrayWithObjects:rt_intersection_function[METALRT_FUNC_LOCAL_TRI_PRIM],
-                         rt_intersection_function[METALRT_FUNC_LOCAL_BOX_PRIM],
-                         rt_intersection_function[METALRT_FUNC_LOCAL_BOX_PRIM],
-                         nil];
+  if (use_metalrt && device_kernel_has_intersection(device_kernel)) {
 
     NSMutableSet *unique_functions = [[NSMutableSet alloc] init];
-    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_DEFAULT]];
-    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_SHADOW]];
-    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_VOLUME]];
-    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL]];
-    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL_PRIM]];
 
-    if (device_kernel_has_intersection(device_kernel)) {
-      linked_functions = [[NSArray arrayWithArray:[unique_functions allObjects]]
-          sortedArrayUsingComparator:^NSComparisonResult(id<MTLFunction> f1, id<MTLFunction> f2) {
-            return [f1.label compare:f2.label];
-          }];
-    }
+    auto add_intersection_functions = [&](int table_index,
+                                          const char *tri_fn,
+                                          const char *curve_fn = nullptr,
+                                          const char *point_fn = nullptr) {
+      table_functions[table_index] = [NSArray
+          arrayWithObjects:make_intersection_function(tri_fn),
+                           curve_fn ? make_intersection_function(curve_fn) : nil,
+                           point_fn ? make_intersection_function(point_fn) : nil,
+                           nil];
+
+      [unique_functions addObjectsFromArray:table_functions[table_index]];
+    };
+
+    add_intersection_functions(METALRT_TABLE_DEFAULT,
+                               "__intersection__tri",
+                               "__intersection__curve",
+                               "__intersection__point");
+    add_intersection_functions(METALRT_TABLE_SHADOW,
+                               "__intersection__tri_shadow",
+                               "__intersection__curve_shadow",
+                               "__intersection__point_shadow");
+    add_intersection_functions(METALRT_TABLE_SHADOW_ALL,
+                               "__intersection__tri_shadow_all",
+                               "__intersection__curve_shadow_all",
+                               "__intersection__point_shadow_all");
+    add_intersection_functions(METALRT_TABLE_VOLUME, "__intersection__volume_tri");
+    add_intersection_functions(METALRT_TABLE_LOCAL, "__intersection__local_tri");
+    add_intersection_functions(METALRT_TABLE_LOCAL_MBLUR, "__intersection__local_tri_mblur");
+    add_intersection_functions(METALRT_TABLE_LOCAL_SINGLE_HIT,
+                               "__intersection__local_tri_single_hit");
+    add_intersection_functions(METALRT_TABLE_LOCAL_SINGLE_HIT_MBLUR,
+                               "__intersection__local_tri_single_hit_mblur");
+
+    linked_functions = [[NSArray arrayWithArray:[unique_functions allObjects]]
+        sortedArrayUsingComparator:^NSComparisonResult(id<MTLFunction> f1, id<MTLFunction> f2) {
+          return [f1.label compare:f2.label];
+        }];
     unique_functions = nil;
   }
 
@@ -619,8 +581,8 @@ void MetalKernelPipeline::compile()
     computePipelineStateDescriptor.linkedFunctions.functions = linked_functions;
   }
   computePipelineStateDescriptor.maxCallStackDepth = 1;
-  if (use_metalrt) {
-    computePipelineStateDescriptor.maxCallStackDepth = 8;
+  if (use_metalrt && device_kernel_has_intersection(device_kernel)) {
+    computePipelineStateDescriptor.maxCallStackDepth = 2;
   }
 
   MTLPipelineOption pipelineOptions = MTLPipelineOptionNone;

@@ -14,29 +14,14 @@ CCL_NAMESPACE_BEGIN
 class MetalDevice;
 
 enum {
-  METALRT_FUNC_DEFAULT_TRI,
-  METALRT_FUNC_DEFAULT_BOX,
-  METALRT_FUNC_SHADOW_TRI,
-  METALRT_FUNC_SHADOW_BOX,
-  METALRT_FUNC_VOLUME_TRI,
-  METALRT_FUNC_VOLUME_BOX,
-  METALRT_FUNC_LOCAL_TRI,
-  METALRT_FUNC_LOCAL_BOX,
-  METALRT_FUNC_LOCAL_TRI_PRIM,
-  METALRT_FUNC_LOCAL_BOX_PRIM,
-  METALRT_FUNC_CURVE,
-  METALRT_FUNC_CURVE_SHADOW,
-  METALRT_FUNC_POINT,
-  METALRT_FUNC_POINT_SHADOW,
-  METALRT_FUNC_NUM
-};
-
-enum {
   METALRT_TABLE_DEFAULT,
   METALRT_TABLE_SHADOW,
+  METALRT_TABLE_SHADOW_ALL,
   METALRT_TABLE_VOLUME,
   METALRT_TABLE_LOCAL,
-  METALRT_TABLE_LOCAL_PRIM,
+  METALRT_TABLE_LOCAL_MBLUR,
+  METALRT_TABLE_LOCAL_SINGLE_HIT,
+  METALRT_TABLE_LOCAL_SINGLE_HIT_MBLUR,
   METALRT_TABLE_NUM
 };
 
@@ -94,12 +79,12 @@ struct MetalKernelPipeline {
   int num_threads_per_block = 0;
 
   bool should_use_binary_archive() const;
+  id<MTLFunction> make_intersection_function(const char *function_name);
 
   string error_str;
 
   API_AVAILABLE(macos(11.0))
   id<MTLIntersectionFunctionTable> intersection_func_table[METALRT_TABLE_NUM] = {nil};
-  id<MTLFunction> rt_intersection_function[METALRT_FUNC_NUM] = {nil};
 };
 
 /* Cache of Metal kernels for each DeviceKernel. */

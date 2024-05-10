@@ -495,13 +495,13 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                                              atIndex:2];
 
     if (@available(macos 12.0, *)) {
-      if (metal_device_->use_metalrt) {
+      if (metal_device_->use_metalrt && device_kernel_has_intersection(kernel)) {
         if (metal_device_->bvhMetalRT) {
           id<MTLAccelerationStructure> accel_struct = metal_device_->bvhMetalRT->accel_struct;
           [metal_device_->mtlAncillaryArgEncoder setAccelerationStructure:accel_struct atIndex:3];
           [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_buffer
                                                     offset:0
-                                                   atIndex:9];
+                                                   atIndex:(METALRT_TABLE_NUM + 4)];
         }
 
         for (int table = 0; table < METALRT_TABLE_NUM; table++) {
@@ -532,24 +532,10 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     [mtlComputeCommandEncoder setBuffer:arg_buffer offset:globals_offsets atIndex:1];
     [mtlComputeCommandEncoder setBuffer:arg_buffer offset:metal_offsets atIndex:2];
 
-    if (metal_device_->use_metalrt) {
+    if (metal_device_->use_metalrt && device_kernel_has_intersection(kernel)) {
       if (@available(macos 12.0, *)) {
 
-        auto bvhMetalRT = metal_device_->bvhMetalRT;
-        switch (kernel) {
-          case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST:
-          case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
-          case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
-          case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
-          case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
-          case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
-          case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
-            break;
-          default:
-            bvhMetalRT = nil;
-            break;
-        }
-
+        BVHMetal *bvhMetalRT = metal_device_->bvhMetalRT;
         if (bvhMetalRT && bvhMetalRT->accel_struct) {
           /* Mark all Accelerations resources as used */
           [mtlComputeCommandEncoder useResource:bvhMetalRT->accel_struct
