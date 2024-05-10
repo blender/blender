@@ -115,12 +115,12 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
   grease_pencil_dst->root_group_ptr = MEM_new<bke::greasepencil::LayerGroup>(
       __func__, grease_pencil_src->root_group());
 
-  /* Set active layer. */
-  if (grease_pencil_src->has_active_layer()) {
+  /* Set active node. */
+  if (grease_pencil_src->active_node) {
     bke::greasepencil::TreeNode *active_node = grease_pencil_dst->find_node_by_name(
         grease_pencil_src->active_node->wrap().name());
-    BLI_assert(active_node && active_node->is_layer());
-    grease_pencil_dst->set_active_layer(&active_node->as_layer());
+    BLI_assert(active_node);
+    grease_pencil_dst->active_node = active_node;
   }
 
   CustomData_copy(&grease_pencil_src->layers_data,
@@ -3114,7 +3114,7 @@ static void read_layer_tree(GreasePencil &grease_pencil, BlendDataReader *reader
     return;
   }
   /* Read active layer. */
-  BLO_read_struct(reader, GreasePencilLayer, &grease_pencil.active_node);
+  BLO_read_struct(reader, GreasePencilLayerTreeNode, &grease_pencil.active_node);
   read_layer_tree_group(reader, grease_pencil.root_group_ptr, nullptr);
 
   grease_pencil.root_group_ptr->wrap().update_from_dna_read();
