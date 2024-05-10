@@ -393,6 +393,8 @@ static void ui_popup_block_position(wmWindow *window,
 
 static void ui_block_region_refresh(const bContext *C, ARegion *region)
 {
+  BLI_assert(region->regiontype == RGN_TYPE_TEMPORARY);
+
   ScrArea *ctx_area = CTX_wm_area(C);
   ARegion *ctx_region = CTX_wm_region(C);
 
