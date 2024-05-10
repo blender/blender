@@ -11425,7 +11425,7 @@ static int ui_handle_menus_recursive(bContext *C,
           C, event, submenu, level + 1, is_parent_inside || inside, is_menu, false);
     }
   }
-  else if (event->val == KM_PRESS && event->type == LEFTMOUSE) {
+  else if (!but && event->val == KM_PRESS && event->type == LEFTMOUSE) {
     LISTBASE_FOREACH (uiBlock *, block, &menu->region->uiblocks) {
       if (block->panel) {
         int mx = event->xy[0];
@@ -11438,7 +11438,12 @@ static int ui_handle_menus_recursive(bContext *C,
         if (header) {
           ED_region_tag_redraw(menu->region);
           ED_region_tag_refresh_ui(menu->region);
+          ARegion *prev_region_popup = CTX_wm_region_popup(C);
+          /* Set the current context popup region so the handler context can access to it. */
+          CTX_wm_region_popup_set(C, menu->region);
           UI_panel_drag_collapse_handler_add(C, !UI_layout_panel_toggle_open(C, header));
+          /* Restore previous popup region. */
+          CTX_wm_region_popup_set(C, prev_region_popup);
           retval = WM_UI_HANDLER_BREAK;
         }
       }
