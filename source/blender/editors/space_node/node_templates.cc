@@ -617,7 +617,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
   arg->layout = split;
 
   if (ntreetype && ntreetype->foreach_nodeclass) {
-    ntreetype->foreach_nodeclass(scene, arg, node_menu_column_foreach_cb);
+    ntreetype->foreach_nodeclass(arg, node_menu_column_foreach_cb);
   }
 
   column = uiLayoutColumn(split, false);
