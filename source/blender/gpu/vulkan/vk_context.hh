@@ -72,6 +72,15 @@ class VKContext : public Context, NonCopyable {
   void deactivate_framebuffer();
   VKFrameBuffer *active_framebuffer_get() const;
 
+  /**
+   * Ensure that the active framebuffer isn't rendering.
+   *
+   * Between `vkCmdBeginRendering` and `vkCmdEndRendering` the framebuffer is rendering. Dispatch
+   * and transfer commands cannot be called between these commands. They can call this method to
+   * ensure that the framebuffer is outside these calls.
+   */
+  void rendering_end();
+
   void bind_compute_pipeline();
   render_graph::VKResourceAccessInfo &update_and_get_access_info();
 

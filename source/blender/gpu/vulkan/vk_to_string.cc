@@ -30,6 +30,11 @@ std::string to_string(VkImage vk_handle)
   return to_string_handle(uint64_t(vk_handle));
 }
 
+std::string to_string(VkImageView vk_handle)
+{
+  return to_string_handle(uint64_t(vk_handle));
+}
+
 std::string to_string(VkRenderPass vk_handle)
 {
   return to_string_handle(uint64_t(vk_handle));
@@ -835,10 +840,10 @@ std::string to_string(const VkRenderingAttachmentInfo &vk_rendering_attachment_i
 {
   UNUSED_VARS(indentation_level);
   std::stringstream ss;
-  ss << "image_view=" << vk_rendering_attachment_info.imageView;
+  ss << "image_view=" << to_string(vk_rendering_attachment_info.imageView);
   ss << ", image_layout=" << to_string(vk_rendering_attachment_info.imageLayout);
   ss << ", resolve_mode=" << to_string(vk_rendering_attachment_info.resolveMode);
-  ss << ", resolve_image_view=" << vk_rendering_attachment_info.resolveImageView;
+  ss << ", resolve_image_view=" << to_string(vk_rendering_attachment_info.resolveImageView);
   ss << ", resolve_image_layout=" << to_string(vk_rendering_attachment_info.resolveImageLayout);
   ss << ", load_op=" << to_string(vk_rendering_attachment_info.loadOp);
   ss << ", store_op=" << to_string(vk_rendering_attachment_info.storeOp);

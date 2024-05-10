@@ -15,6 +15,7 @@
 
 #include "gpu_framebuffer_private.hh"
 
+#include "render_graph/vk_render_graph.hh"
 #include "vk_common.hh"
 #include "vk_image_view.hh"
 
@@ -37,6 +38,7 @@ class VKFrameBuffer : public FrameBuffer {
   /** Is the first attachment an SRGB texture. */
   bool srgb_;
   bool enabled_srgb_;
+  bool is_rendering_ = false;
 
  public:
   /**
@@ -58,6 +60,9 @@ class VKFrameBuffer : public FrameBuffer {
                         const void *clear_value) override;
 
   void attachment_set_loadstore_op(GPUAttachmentType type, GPULoadStore /*ls*/) override;
+
+  void begin_rendering(VKContext &context);
+  void end_rendering(VKContext &context);
 
  protected:
   void subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
@@ -118,6 +123,27 @@ class VKFrameBuffer : public FrameBuffer {
   void update_srgb();
 
   /**
+   * Mark this framebuffer to be not being rendered on.
+   *
+   * Between binding a framebuffer and actually using it the state and clear operations can change.
+   * The rendering state is used to find out if the framebuffer begin rendering command should be
+   * recorded
+   */
+  void rendering_reset();
+
+  /**
+   * Ensure that the framebuffer is ready to be rendered on and that its state is up to date with
+   * the latest changes that can happen between drawing commands inside `VKStateManager`.
+   */
+  void rendering_ensure(VKContext &context);
+
+  /**
+   * End the rendering on this framebuffer.
+   * Is being triggered when framebuffer is deactivated or when
+   */
+  void rendering_end(VKContext &context);
+
+  /**
    * Return the number of color attachments of this frame buffer, including unused color
    * attachments.
    *
@@ -132,14 +158,16 @@ class VKFrameBuffer : public FrameBuffer {
   void render_pass_create();
 
   /* Clearing attachments */
-  void build_clear_attachments_depth_stencil(eGPUFrameBufferBits buffers,
-                                             float clear_depth,
-                                             uint32_t clear_stencil,
-                                             Vector<VkClearAttachment> &r_attachments) const;
-  void build_clear_attachments_color(const float (*clear_colors)[4],
-                                     const bool multi_clear_colors,
-                                     Vector<VkClearAttachment> &r_attachments) const;
-  void clear(Span<VkClearAttachment> attachments) const;
+  void build_clear_attachments_depth_stencil(
+      eGPUFrameBufferBits buffers,
+      float clear_depth,
+      uint32_t clear_stencil,
+      render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments) const;
+  void build_clear_attachments_color(
+      const float (*clear_colors)[4],
+      const bool multi_clear_colors,
+      render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments) const;
+  void clear(render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments);
 };
 
 static inline VKFrameBuffer *unwrap(FrameBuffer *framebuffer)

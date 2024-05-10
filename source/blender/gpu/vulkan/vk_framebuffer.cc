@@ -99,19 +99,23 @@ void VKFrameBuffer::build_clear_attachments_depth_stencil(
     const eGPUFrameBufferBits buffers,
     float clear_depth,
     uint32_t clear_stencil,
-    Vector<VkClearAttachment> &r_attachments) const
+    render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments) const
 {
-  VkClearAttachment clear_attachment = {};
-  clear_attachment.aspectMask = (buffers & GPU_DEPTH_BIT ? VK_IMAGE_ASPECT_DEPTH_BIT : 0) |
-                                (buffers & GPU_STENCIL_BIT ? VK_IMAGE_ASPECT_STENCIL_BIT : 0);
+  VkImageAspectFlags aspect_mask = (buffers & GPU_DEPTH_BIT ? VK_IMAGE_ASPECT_DEPTH_BIT : 0) |
+                                   (buffers & GPU_STENCIL_BIT ? VK_IMAGE_ASPECT_STENCIL_BIT : 0);
+
+  VkClearAttachment &clear_attachment =
+      clear_attachments.attachments[clear_attachments.attachment_count++];
+  clear_attachment.aspectMask = aspect_mask;
   clear_attachment.clearValue.depthStencil.depth = clear_depth;
   clear_attachment.clearValue.depthStencil.stencil = clear_stencil;
-  r_attachments.append(clear_attachment);
+  clear_attachment.colorAttachment = 0;
 }
 
-void VKFrameBuffer::build_clear_attachments_color(const float (*clear_colors)[4],
-                                                  const bool multi_clear_colors,
-                                                  Vector<VkClearAttachment> &r_attachments) const
+void VKFrameBuffer::build_clear_attachments_color(
+    const float (*clear_colors)[4],
+    const bool multi_clear_colors,
+    render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments) const
 {
   int color_index = 0;
   for (int color_slot = 0; color_slot < GPU_FB_MAX_COLOR_ATTACHMENT; color_slot++) {
@@ -119,13 +123,13 @@ void VKFrameBuffer::build_clear_attachments_color(const float (*clear_colors)[4]
     if (attachment.tex == nullptr) {
       continue;
     }
-    VkClearAttachment clear_attachment = {};
+    VkClearAttachment &clear_attachment =
+        clear_attachments.attachments[clear_attachments.attachment_count++];
     clear_attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     clear_attachment.colorAttachment = color_slot;
     eGPUDataFormat data_format = to_data_format(GPU_texture_format(attachment.tex));
     clear_attachment.clearValue.color = to_vk_clear_color_value(data_format,
                                                                 &clear_colors[color_index]);
-    r_attachments.append(clear_attachment);
 
     color_index += multi_clear_colors ? 1 : 0;
   }
@@ -135,19 +139,19 @@ void VKFrameBuffer::build_clear_attachments_color(const float (*clear_colors)[4]
 /** \name Clear
  * \{ */
 
-void VKFrameBuffer::clear(const Span<VkClearAttachment> attachments) const
+void VKFrameBuffer::clear(render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments)
 {
-  if (attachments.is_empty()) {
-    return;
-  }
-  VkClearRect clear_rect = {};
-  clear_rect.rect = vk_render_areas_get()[0];
-  clear_rect.baseArrayLayer = 0;
-  clear_rect.layerCount = 1;
-
   VKContext &context = *VKContext::get();
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.clear(attachments, Span<VkClearRect>(&clear_rect, 1));
+  if (use_render_graph) {
+    rendering_ensure(context);
+    context.render_graph.add_node(clear_attachments);
+  }
+  else {
+    VKCommandBuffers &command_buffers = context.command_buffers_get();
+    command_buffers.clear(
+        Span<VkClearAttachment>(clear_attachments.attachments, clear_attachments.attachment_count),
+        Span<VkClearRect>(&clear_attachments.vk_clear_rect, 1));
+  }
 }
 
 void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
@@ -155,7 +159,11 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
                           float clear_depth,
                           uint clear_stencil)
 {
-  Vector<VkClearAttachment> attachments;
+  render_graph::VKClearAttachmentsNode::CreateInfo clear_attachments = {};
+  clear_attachments.vk_clear_rect.rect = vk_render_areas_get()[0];
+  clear_attachments.vk_clear_rect.baseArrayLayer = 0;
+  clear_attachments.vk_clear_rect.layerCount = 1;
+
   if (buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
     VKContext &context = *VKContext::get();
     eGPUWriteMask needed_mask = GPU_WRITE_NONE;
@@ -169,7 +177,8 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
     /* Clearing depth via vkCmdClearAttachments requires a render pass with write depth or stencil
      * enabled. When not enabled, clearing should be done via texture directly. */
     if ((context.state_manager_get().state.write_mask & needed_mask) == needed_mask) {
-      build_clear_attachments_depth_stencil(buffers, clear_depth, clear_stencil, attachments);
+      build_clear_attachments_depth_stencil(
+          buffers, clear_depth, clear_stencil, clear_attachments);
     }
     else {
       VKTexture *depth_texture = unwrap(unwrap(depth_tex()));
@@ -187,19 +196,25 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
   if (buffers & GPU_COLOR_BIT) {
     float clear_color_single[4];
     copy_v4_v4(clear_color_single, clear_color);
-    build_clear_attachments_color(&clear_color_single, false, attachments);
+    build_clear_attachments_color(&clear_color_single, false, clear_attachments);
   }
 
-  if (!attachments.is_empty()) {
-    clear(attachments);
+  if (clear_attachments.attachment_count) {
+    clear(clear_attachments);
   }
 }
 
 void VKFrameBuffer::clear_multi(const float (*clear_color)[4])
 {
-  Vector<VkClearAttachment> attachments;
-  build_clear_attachments_color(clear_color, true, attachments);
-  clear(attachments);
+  render_graph::VKClearAttachmentsNode::CreateInfo clear_attachments = {};
+  clear_attachments.vk_clear_rect.rect = vk_render_areas_get()[0];
+  clear_attachments.vk_clear_rect.baseArrayLayer = 0;
+  clear_attachments.vk_clear_rect.layerCount = 1;
+
+  build_clear_attachments_color(clear_color, true, clear_attachments);
+  if (clear_attachments.attachment_count) {
+    clear(clear_attachments);
+  }
 }
 
 void VKFrameBuffer::clear_attachment(GPUAttachmentType /*type*/,
@@ -660,5 +675,63 @@ int VKFrameBuffer::color_attachments_resource_size() const
 }
 
 /** \} */
+
+void VKFrameBuffer::rendering_reset()
+{
+  is_rendering_ = false;
+}
+
+void VKFrameBuffer::rendering_ensure(VKContext &context)
+{
+  if (is_rendering_) {
+    return;
+  }
+  is_rendering_ = true;
+
+  render_graph::VKResourceAccessInfo access_info;
+  render_graph::VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+  begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+  begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+  begin_rendering.node_data.vk_rendering_info.renderArea = vk_render_areas_get()[0];
+
+  for (int color_slot : IndexRange(GPU_FB_MAX_COLOR_ATTACHMENT)) {
+    VKTexture *color_texture = unwrap(unwrap(color_tex(color_slot)));
+    if (color_texture != nullptr) {
+      VkRenderingAttachmentInfo &attachment_info =
+          begin_rendering.node_data.color_attachments[begin_rendering.node_data.vk_rendering_info
+                                                          .colorAttachmentCount++];
+      attachment_info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+      /* TODO attachment mip/layer */
+      attachment_info.imageView = color_texture->image_view_get().vk_handle();
+      attachment_info.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+      /* TODO add load store ops. */
+      attachment_info.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+      attachment_info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+      access_info.images.append(
+          {color_texture->vk_image_handle(),
+           VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+           VK_IMAGE_ASPECT_COLOR_BIT});
+
+      begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+          begin_rendering.node_data.color_attachments;
+    }
+  }
+
+  context.render_graph.add_node(begin_rendering);
+}
+
+void VKFrameBuffer::rendering_end(VKContext &context)
+{
+  if (!is_rendering_ && use_explicit_load_store_) {
+    rendering_ensure(context);
+  }
+
+  if (is_rendering_) {
+    render_graph::VKEndRenderingNode::CreateInfo end_rendering = {};
+    context.render_graph.add_node(end_rendering);
+    is_rendering_ = false;
+  }
+}
 
 }  // namespace blender::gpu

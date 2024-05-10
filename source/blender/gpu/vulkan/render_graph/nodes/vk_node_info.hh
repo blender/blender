@@ -21,6 +21,9 @@ namespace blender::gpu::render_graph {
  */
 enum class VKNodeType {
   UNUSED,
+  BEGIN_RENDERING,
+  END_RENDERING,
+  CLEAR_ATTACHMENTS,
   CLEAR_COLOR_IMAGE,
   CLEAR_DEPTH_STENCIL_IMAGE,
   FILL_BUFFER,
@@ -47,7 +50,7 @@ enum class VKNodeType {
 template<VKNodeType NodeType,
          typename NodeCreateInfo,
          typename NodeData,
-         VkPipelineStageFlagBits PipelineStage,
+         VkPipelineStageFlags PipelineStage,
          VKResourceType ResourceUsages>
 class VKNodeInfo : public NonCopyable {
 
