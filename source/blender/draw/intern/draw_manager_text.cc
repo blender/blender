@@ -142,6 +142,9 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
   BLF_default_size(UI_style_get()->widgetlabel.points);
   const int font_id = BLF_set_default();
 
+  float shadow_color[4] = {0, 0, 0, 0.8f};
+  UI_GetThemeColor3fv(TH_BACK, shadow_color);
+
   BLI_memiter_iter_init(dt->cache_strings, &it);
   while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
     if (vos->sco[0] != IS_CLIPPED) {
@@ -169,7 +172,8 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
             float(vos->sco[1] + vos->yoffs),
             2.0f,
             (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
-            vos->str_len);
+            vos->str_len,
+            shadow_color);
       }
       else {
         BLF_draw_default(float(vos->sco[0] + vos->xoffs),

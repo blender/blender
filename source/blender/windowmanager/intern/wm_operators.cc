@@ -3472,7 +3472,7 @@ static void redraw_timer_window_swap(bContext *C)
   wmWindow *win = CTX_wm_window(C);
   bScreen *screen = CTX_wm_screen(C);
 
-  CTX_wm_menu_set(C, nullptr);
+  CTX_wm_region_popup_set(C, nullptr);
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     ED_area_tag_redraw(area);
@@ -3518,7 +3518,7 @@ static void redraw_timer_step(bContext *C,
     }
   }
   else if (type == eRTDrawRegionSwap) {
-    CTX_wm_menu_set(C, nullptr);
+    CTX_wm_region_popup_set(C, nullptr);
 
     ED_region_tag_redraw(region);
     wm_draw_update(C);
@@ -3528,7 +3528,7 @@ static void redraw_timer_step(bContext *C,
   else if (type == eRTDrawWindow) {
     bScreen *screen = WM_window_get_active_screen(win);
 
-    CTX_wm_menu_set(C, nullptr);
+    CTX_wm_region_popup_set(C, nullptr);
 
     LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
       CTX_wm_area_set(C, area_iter);

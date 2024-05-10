@@ -917,8 +917,7 @@ struct LightSunData {
   int2 clipmap_base_offset_pos;
   /** Angle covered by the light shape for shadow ray casting. */
   float shadow_angle;
-  /** Trace distance around the shading point. */
-  float shadow_trace_distance;
+  float _pad5;
 
   /** Offset to convert from world units to tile space of the clipmap_lod_max. */
   float2 clipmap_origin;
@@ -1128,7 +1127,6 @@ static inline LightSunData light_sun_data_get(LightData light)
   SAFE_ASSIGN_FLOAT_AS_INT2_COMBINE(clipmap_base_offset_neg, _pad7, shadow_projection_shift)
   SAFE_ASSIGN_FLOAT_AS_INT2_COMBINE(clipmap_base_offset_pos, _pad0_reserved, _pad1_reserved)
   SAFE_ASSIGN_FLOAT(shadow_angle, _pad1)
-  SAFE_ASSIGN_FLOAT(shadow_trace_distance, _pad2)
   SAFE_ASSIGN_FLOAT2(clipmap_origin, _pad3)
   SAFE_ASSIGN_FLOAT_AS_INT(clipmap_lod_min, _pad4)
   SAFE_ASSIGN_FLOAT_AS_INT(clipmap_lod_max, _pad5)

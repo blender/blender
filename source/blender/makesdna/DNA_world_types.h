@@ -115,6 +115,11 @@ enum {
    * otherwise anim-editors will not read correctly.
    */
   WO_DS_SHOW_TEXS = 1 << 2,
+  /**
+   * World uses volume that is created in old version of EEVEE (<4.2). These volumes should be
+   * converted manually. (Ref: #119734).
+   */
+  WO_USE_EEVEE_FINITE_VOLUME = 1 << 3,
 };
 
 /** #World::probe_resolution. */

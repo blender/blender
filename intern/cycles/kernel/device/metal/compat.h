@@ -359,9 +359,12 @@ struct MetalAncillaries {
   metalrt_as_type accel_struct;
   metalrt_ift_type ift_default;
   metalrt_ift_type ift_shadow;
+  metalrt_ift_type ift_shadow_all;
   metalrt_ift_type ift_volume;
-  metalrt_ift_type ift_local;
-  metalrt_blas_ift_type ift_local_prim;
+  metalrt_blas_ift_type ift_local;
+  metalrt_ift_type ift_local_mblur;
+  metalrt_blas_ift_type ift_local_single_hit;
+  metalrt_ift_type ift_local_single_hit_mblur;
   constant MetalRTBlasWrapper *blas_accel_structs;
 #endif
 };

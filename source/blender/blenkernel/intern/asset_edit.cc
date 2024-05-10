@@ -210,8 +210,7 @@ static Main *asset_main_create_from_ID(Main *bmain_src, ID &id_asset, ID **id_as
 
   id_asset.tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
 
-  BLO_main_expander(asset_main_create_expander);
-  BLO_expand_main(nullptr, bmain_src);
+  BLO_expand_main(nullptr, bmain_src, asset_main_create_expander);
 
   /* Create main and copy all tagged datablocks. */
   Main *bmain_dst = BKE_main_new();

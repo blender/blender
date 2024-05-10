@@ -682,13 +682,14 @@ class RetimingRange {
 
   void claculate_speed_table_from_seq(const Sequence *seq)
   {
-    for (int frame = start; frame <= end; frame++) {
+    for (int timeline_frame = start; timeline_frame <= end; timeline_frame++) {
       /* We need number actual number of frames here. */
       const double normal_step = 1 / double(seq->len);
 
+      const int frame_index = timeline_frame - SEQ_time_start_frame_get(seq);
       /* Who needs calculus, when you can have slow code? */
-      const double val_prev = seq_retiming_evaluate(seq, frame - 1);
-      const double val = seq_retiming_evaluate(seq, frame);
+      const double val_prev = seq_retiming_evaluate(seq, frame_index - 1);
+      const double val = seq_retiming_evaluate(seq, frame_index);
       const double speed_at_frame = (val - val_prev) / normal_step;
       speed_table.append(speed_at_frame);
     }
@@ -726,7 +727,7 @@ class RetimingRangeData {
       int frame_start = SEQ_time_start_frame_get(seq) + key_prev->strip_frame_index;
       int frame_end = SEQ_time_start_frame_get(seq) + key.strip_frame_index;
 
-      eRangeType type = SEQ_retiming_key_is_transition_type(key_prev) ? TRANSITION : LINEAR;
+      eRangeType type = SEQ_retiming_key_is_transition_start(key_prev) ? TRANSITION : LINEAR;
       RetimingRange range = RetimingRange(seq, frame_start, frame_end, speed, type);
       ranges.append(range);
     }

@@ -92,19 +92,21 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static const EnumPropertyItem rna_enum_execution_mode_items[] = {
-    {NTREE_EXECUTION_MODE_CPU, "CPU", 0, "CPU", ""},
-    {NTREE_EXECUTION_MODE_GPU, "GPU", 0, "GPU", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static const EnumPropertyItem rna_enum_precision_items[] = {
-    {NODE_TREE_COMPOSITOR_PRECISION_AUTO,
-     "AUTO",
-     0,
-     "Auto",
-     "Full precision for final renders, half precision otherwise"},
-    {NODE_TREE_COMPOSITOR_PRECISION_FULL, "FULL", 0, "Full", "Full precision"},
+const EnumPropertyItem rna_enum_node_group_color_tag_items[] = {
+    {int(NodeGroupColorTag::None), "NONE", 0, "None", "Default tag for new node groups"},
+    {int(NodeGroupColorTag::Attribute), "ATTRIBUTE", 0, "Attribute", ""},
+    {int(NodeGroupColorTag::Color), "COLOR", 0, "Color", ""},
+    {int(NodeGroupColorTag::Converter), "CONVERTER", 0, "Converter", ""},
+    {int(NodeGroupColorTag::Distort), "DISTORT", 0, "Distort", ""},
+    {int(NodeGroupColorTag::Filter), "FILTER", 0, "Filter", ""},
+    {int(NodeGroupColorTag::Geometry), "GEOMETRY", 0, "Geometry", ""},
+    {int(NodeGroupColorTag::Input), "INPUT", 0, "Input", ""},
+    {int(NodeGroupColorTag::Matte), "MATTE", 0, "Matte", ""},
+    {int(NodeGroupColorTag::Output), "OUTPUT", 0, "Output", ""},
+    {int(NodeGroupColorTag::Script), "SCRIPT", 0, "Script", ""},
+    {int(NodeGroupColorTag::Shader), "SHADER", 0, "Shader", ""},
+    {int(NodeGroupColorTag::Texture), "TEXTURE", 0, "Texture", ""},
+    {int(NodeGroupColorTag::Vector), "VECTOR", 0, "Vector", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1024,6 +1026,55 @@ static void rna_NodeTree_update_asset(Main *bmain, Scene *scene, PointerRNA *ptr
   rna_NodeTree_update(bmain, scene, ptr);
   WM_main_add_notifier(NC_NODE | ND_NODE_ASSET_DATA, nullptr);
   blender::bke::node_update_asset_metadata(*reinterpret_cast<bNodeTree *>(ptr->owner_id));
+}
+
+static const EnumPropertyItem *rna_NodeTree_color_tag_itemf(bContext * /*C*/,
+                                                            PointerRNA *ptr,
+                                                            PropertyRNA * /*prop*/,
+                                                            bool *r_free)
+{
+  const bNodeTree &ntree = *reinterpret_cast<const bNodeTree *>(ptr->owner_id);
+
+  EnumPropertyItem *items = nullptr;
+  int items_num = 0;
+
+  for (const EnumPropertyItem *item = rna_enum_node_group_color_tag_items; item->identifier;
+       item++)
+  {
+    switch (NodeGroupColorTag(item->value)) {
+      case NodeGroupColorTag::Attribute:
+      case NodeGroupColorTag::Geometry: {
+        if (ntree.type == NTREE_GEOMETRY) {
+          RNA_enum_item_add(&items, &items_num, item);
+        }
+        break;
+      }
+      case NodeGroupColorTag::Shader:
+      case NodeGroupColorTag::Script: {
+        if (ntree.type == NTREE_SHADER) {
+          RNA_enum_item_add(&items, &items_num, item);
+        }
+        break;
+      }
+      case NodeGroupColorTag::Distort:
+      case NodeGroupColorTag::Filter:
+      case NodeGroupColorTag::Matte: {
+        if (ntree.type == NTREE_COMPOSIT) {
+          RNA_enum_item_add(&items, &items_num, item);
+        }
+        break;
+      }
+      default: {
+        RNA_enum_item_add(&items, &items_num, item);
+        break;
+      }
+    }
+  }
+
+  RNA_enum_item_end(&items, &items_num);
+
+  *r_free = true;
+  return items;
 }
 
 static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
@@ -3425,7 +3476,7 @@ static void rna_Node_ItemArray_item_color_get(PointerRNA *ptr, float *values)
 {
   using ItemT = typename Accessors::ItemT;
   ItemT &item = *static_cast<ItemT *>(ptr->data);
-  const char *socket_type_idname = nodeStaticSocketType(*Accessors::get_socket_type(item), 0);
+  const char *socket_type_idname = nodeStaticSocketType(Accessors::get_socket_type(item), 0);
   ED_node_type_draw_color(socket_type_idname, values);
 }
 
@@ -10359,6 +10410,13 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_NodeTree_refine");
   RNA_def_struct_register_funcs(srna, "rna_NodeTree_register", "rna_NodeTree_unregister", nullptr);
 
+  prop = RNA_def_property(srna, "color_tag", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_node_group_color_tag_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_NodeTree_color_tag_itemf");
+  RNA_def_property_ui_text(
+      prop, "Color Tag", "Color tag of the node group which influences the header color");
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+
   prop = RNA_def_property(srna, "view_center", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_array(prop, 2);
   RNA_def_property_float_sdna(prop, nullptr, "view_center");
@@ -10498,18 +10556,6 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
       srna, "Compositor Node Tree", "Node tree consisting of linked nodes used for compositing");
   RNA_def_struct_sdna(srna, "bNodeTree");
   RNA_def_struct_ui_icon(srna, ICON_RENDERLAYERS);
-
-  prop = RNA_def_property(srna, "precision", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "precision");
-  RNA_def_property_enum_items(prop, rna_enum_precision_items);
-  RNA_def_property_ui_text(prop, "Precision", "The precision of compositor intermediate result");
-  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
-
-  prop = RNA_def_property(srna, "execution_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "execution_mode");
-  RNA_def_property_enum_items(prop, rna_enum_execution_mode_items);
-  RNA_def_property_ui_text(prop, "Execution Mode", "Set how compositing is executed");
-  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 
   prop = RNA_def_property(srna, "use_viewer_border", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_VIEWER_BORDER);

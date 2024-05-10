@@ -1832,8 +1832,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
             break;
           }
           case DRIVERS_EDITMODE_REMOVE: {
-            /* remove driver matching the information obtained (only if valid) */
-            ANIM_remove_driver(reports, id, path, array_index, dflags);
+            ANIM_remove_driver(id, path, array_index);
             break;
           }
         }

@@ -174,7 +174,12 @@ void VKContext::activate_framebuffer(VKFrameBuffer &framebuffer)
   active_fb = &framebuffer;
   framebuffer.update_size();
   framebuffer.update_srgb();
-  command_buffers_get().begin_render_pass(framebuffer);
+  if (use_render_graph) {
+    framebuffer.rendering_reset();
+  }
+  else {
+    command_buffers_get().begin_render_pass(framebuffer);
+  }
 }
 
 VKFrameBuffer *VKContext::active_framebuffer_get() const
@@ -191,8 +196,21 @@ void VKContext::deactivate_framebuffer()
 {
   VKFrameBuffer *framebuffer = active_framebuffer_get();
   BLI_assert(framebuffer != nullptr);
-  command_buffers_get().end_render_pass(*framebuffer);
+  if (use_render_graph) {
+    framebuffer->rendering_end(*this);
+  }
+  else {
+    command_buffers_get().end_render_pass(*framebuffer);
+  }
   active_fb = nullptr;
+}
+
+void VKContext::rendering_end()
+{
+  VKFrameBuffer *framebuffer = active_framebuffer_get();
+  if (framebuffer) {
+    framebuffer->rendering_end(*this);
+  }
 }
 
 /** \} */

@@ -138,6 +138,9 @@ class EEVEE_WORLD_PT_volume(WorldButtonsPanel, Panel):
 
         layout.use_property_split = True
 
+        if world.use_eevee_finite_volume:
+            layout.operator("world.convert_volume_to_mesh", icon='WORLD', text="Convert Volume")
+
         if node:
             input = find_node_input(node, "Volume")
             if input:

@@ -6,7 +6,6 @@
  * \ingroup animrig
  */
 
-#include <cfloat>
 #include <cmath>
 #include <string>
 
@@ -425,38 +424,6 @@ static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, fl
   return type;
 }
 
-/**
- * This helper function determines whether a new keyframe is needed.
- * A keyframe doesn't get added when the FCurve already has the proposed value.
- */
-static bool new_key_needed(FCurve *fcu, const float frame, const float value)
-{
-  if (fcu == nullptr) {
-    return true;
-  }
-  if (fcu->totvert == 0) {
-    return true;
-  }
-
-  bool replace;
-  const int bezt_index = BKE_fcurve_bezt_binarysearch_index(
-      fcu->bezt, frame, fcu->totvert, &replace);
-
-  if (replace) {
-    /* If there is already a key, we only need to modify it if the proposed value is different. */
-    return fcu->bezt[bezt_index].vec[1][1] != value;
-  }
-
-  const int diff_ulp = 32;
-  const float fcu_eval = evaluate_fcurve(fcu, frame);
-  /* No need to insert a key if the same value is already the value of the FCurve at that point. */
-  if (compare_ff_relative(fcu_eval, value, FLT_EPSILON, diff_ulp)) {
-    return false;
-  }
-
-  return true;
-}
-
 static float nla_time_remap(const AnimationEvalContext *anim_eval_context,
                             PointerRNA *id_ptr,
                             AnimData *adt,
@@ -496,15 +463,7 @@ static SingleKeyingResult insert_keyframe_value(
   KeyframeSettings settings = get_keyframe_settings((flag & INSERTKEY_NO_USERPREF) == 0);
   settings.keyframe_type = keytype;
 
-  if ((flag & INSERTKEY_NEEDED) && !new_key_needed(fcu, cfra, curval)) {
-    return SingleKeyingResult::NO_KEY_NEEDED;
-  }
-
-  if (insert_vert_fcurve(fcu, {cfra, curval}, settings, flag) != SingleKeyingResult::SUCCESS) {
-    return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
-  }
-
-  return SingleKeyingResult::SUCCESS;
+  return insert_vert_fcurve(fcu, {cfra, curval}, settings, flag);
 }
 
 bool insert_keyframe_direct(ReportList *reports,

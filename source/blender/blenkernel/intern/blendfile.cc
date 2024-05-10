@@ -870,7 +870,7 @@ static void setup_app_data(bContext *C,
     CTX_wm_screen_set(C, bfd->curscreen);
     CTX_wm_area_set(C, nullptr);
     CTX_wm_region_set(C, nullptr);
-    CTX_wm_menu_set(C, nullptr);
+    CTX_wm_region_popup_set(C, nullptr);
   }
   BLI_assert(CTX_wm_manager(C) == static_cast<wmWindowManager *>(bmain->wm.first));
 
@@ -1518,8 +1518,7 @@ bool BKE_blendfile_write_partial(Main *bmain_src,
    * (otherwise `main->filepath` will not be set at read time). */
   STRNCPY(bmain_dst->filepath, bmain_src->filepath);
 
-  BLO_main_expander(blendfile_write_partial_cb);
-  BLO_expand_main(nullptr, bmain_src);
+  BLO_expand_main(nullptr, bmain_src, blendfile_write_partial_cb);
 
   /* move over all tagged blocks */
   set_listbasepointers(bmain_src, lbarray_src);

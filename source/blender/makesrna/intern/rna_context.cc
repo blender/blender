@@ -120,6 +120,14 @@ static PointerRNA rna_Context_region_data_get(PointerRNA *ptr)
   return PointerRNA_NULL;
 }
 
+static PointerRNA rna_Context_region_popup_get(PointerRNA *ptr)
+{
+  bContext *C = (bContext *)ptr->data;
+  PointerRNA newptr = RNA_pointer_create(
+      (ID *)CTX_wm_screen(C), &RNA_Region, CTX_wm_region_popup(C));
+  return newptr;
+}
+
 static PointerRNA rna_Context_gizmo_group_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
@@ -272,6 +280,13 @@ void RNA_def_context(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Region");
   RNA_def_property_pointer_funcs(prop, "rna_Context_region_get", nullptr, nullptr, nullptr);
+
+  prop = RNA_def_property(srna, "region_popup", PROP_POINTER, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "Region");
+  RNA_def_property_pointer_funcs(prop, "rna_Context_region_popup_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(
+      prop, "Popup Region", "The temporary region for pop-ups (including menus and pop-overs)");
 
   prop = RNA_def_property(srna, "region_data", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

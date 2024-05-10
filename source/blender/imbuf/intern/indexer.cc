@@ -894,12 +894,12 @@ static IndexBuildContext *index_ffmpeg_create_context(ImBufAnim *anim,
 
   for (i = 0; i < num_proxy_sizes; i++) {
     if (proxy_sizes_in_use & proxy_sizes[i]) {
-      context->proxy_ctx[i] = alloc_proxy_output_ffmpeg(anim,
-                                                        context->iStream,
-                                                        proxy_sizes[i],
-                                                        context->iCodecCtx->width * proxy_fac[i],
-                                                        context->iCodecCtx->height * proxy_fac[i],
-                                                        quality);
+      int width = context->iCodecCtx->width * proxy_fac[i];
+      int height = context->iCodecCtx->height * proxy_fac[i];
+      width += width % 2;
+      height += height % 2;
+      context->proxy_ctx[i] = alloc_proxy_output_ffmpeg(
+          anim, context->iStream, proxy_sizes[i], width, height, quality);
       if (!context->proxy_ctx[i]) {
         proxy_sizes_in_use &= ~int(proxy_sizes[i]);
       }

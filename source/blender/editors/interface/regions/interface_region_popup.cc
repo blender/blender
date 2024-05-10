@@ -393,6 +393,8 @@ static void ui_popup_block_position(wmWindow *window,
 
 static void ui_block_region_refresh(const bContext *C, ARegion *region)
 {
+  BLI_assert(region->regiontype == RGN_TYPE_TEMPORARY);
+
   ScrArea *ctx_area = CTX_wm_area(C);
   ARegion *ctx_region = CTX_wm_region(C);
 
@@ -894,12 +896,23 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
 
   UI_region_handlers_add(&region->handlers);
 
+  /* Note that this will be set in the code-path that typically calls refreshing
+   * (that loops over #Screen::regionbase and refreshes regions tagged with #RGN_REFRESH_UI).
+   * Whereas this only runs on initial creation.
+   * Set the region here so drawing logic can rely on it being set.
+   * Note that restoring the previous value may not be needed, it just avoids potential
+   * problems caused by popups manipulating the context which created them. */
+  ARegion *region_popup_prev = CTX_wm_region_popup(C);
+  CTX_wm_region_popup_set(C, region);
+
   uiBlock *block = ui_popup_block_refresh(C, handle, butregion, but);
   handle = block->handle;
 
   if (block->flag & UI_BLOCK_KEEP_OPEN) {
     handle->can_refresh = true;
   }
+
+  CTX_wm_region_popup_set(C, region_popup_prev);
 
   /* keep centered on window resizing */
   if (block->bounds_type == UI_BLOCK_BOUNDS_POPUP_CENTER) {

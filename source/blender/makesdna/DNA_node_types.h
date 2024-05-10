@@ -678,9 +678,13 @@ typedef struct bNodeTree {
   /** Tile size for compositor engine. */
   int chunksize DNA_DEPRECATED;
   /** Execution mode to use for compositor engine. */
-  int execution_mode;
-  /** Execution mode to use for compositor engine. */
-  int precision;
+  int execution_mode DNA_DEPRECATED;
+  /** Precision used by the GPU execution of the compositor tree. */
+  int precision DNA_DEPRECATED;
+
+  /** #NodeGroupColorTag. */
+  int color_tag;
+  char _pad[4];
 
   rctf viewer_border;
 
@@ -837,18 +841,6 @@ enum {
    */
   // NTREE_IS_LOCALIZED = 1 << 5,
 };
-
-/* tree->execution_mode */
-typedef enum eNodeTreeExecutionMode {
-  NTREE_EXECUTION_MODE_CPU = 0,
-  NTREE_EXECUTION_MODE_GPU = 2,
-} eNodeTreeExecutionMode;
-
-/* tree->precision */
-typedef enum eNodeTreePrecision {
-  NODE_TREE_COMPOSITOR_PRECISION_AUTO = 0,
-  NODE_TREE_COMPOSITOR_PRECISION_FULL = 1,
-} eNodeTreePrecision;
 
 typedef enum eNodeTreeRuntimeFlag {
   /** There is a node that references an image with animation. */
@@ -2865,3 +2857,8 @@ typedef enum NodeCombSepColorMode {
   NODE_COMBSEP_COLOR_HSV = 1,
   NODE_COMBSEP_COLOR_HSL = 2,
 } NodeCombSepColorMode;
+
+typedef enum NodeGeometryTransformMode {
+  GEO_NODE_TRANSFORM_MODE_COMPONENTS = 0,
+  GEO_NODE_TRANSFORM_MODE_MATRIX = 1,
+} NodeGeometryTransformMode;

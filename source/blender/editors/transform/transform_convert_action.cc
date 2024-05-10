@@ -96,9 +96,7 @@ static bool grease_pencil_layer_initialize_trans_data(blender::bke::greasepencil
     }
 
     /* Store frames' duration to keep them visually correct while moving the frames. */
-    if (!frame.is_implicit_hold()) {
-      trans_data.frames_duration.add(frame_number, layer.get_frame_duration_at(frame_number));
-    }
+    trans_data.frames_duration.add(frame_number, layer.get_frame_duration_at(frame_number));
   }
 
   trans_data.status = LayerTransformData::TRANS_INIT;

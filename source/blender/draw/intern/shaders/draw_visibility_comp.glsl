@@ -59,4 +59,13 @@ void main()
       }
     }
   }
+  else {
+    /* Culling is disabled, but we need to mask the bits for disabled views. */
+    for (drw_view_id = 0u; drw_view_id < uint(view_len); drw_view_id++) {
+      if (drw_view_culling.bound_sphere.w == -1.0) {
+        /* View disabled. */
+        mask_visibility_bit(drw_view_id);
+      }
+    }
+  }
 }

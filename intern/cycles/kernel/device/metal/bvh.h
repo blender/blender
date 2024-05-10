@@ -11,26 +11,41 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Payload types. */
+/* Payload types.
+ *
+ * Best practice is to minimize the size of MetalRT payloads to avoid heavy spilling during
+ * intersection tests.
+ */
 
 struct MetalRTIntersectionPayload {
-  RaySelfPrimitives self;
-  uint visibility;
+  int self_prim;
+  int self_object;
+};
+
+struct MetalRTIntersectionLocalPayload_single_hit {
+  int self_prim;
 };
 
 struct MetalRTIntersectionLocalPayload {
-  RaySelfPrimitives self;
-  uint local_object;
+  int self_prim;
   uint lcg_state;
-  short max_hits;
-  bool has_lcg_state;
-  bool result;
-  LocalIntersection local_isect;
+  uint hit_prim[LOCAL_MAX_HITS];
+  float hit_t[LOCAL_MAX_HITS];
+  float hit_u[LOCAL_MAX_HITS];
+  float hit_v[LOCAL_MAX_HITS];
+  uint max_hits : 3;
+  uint num_hits : 3;
+  uint has_lcg_state : 1;
 };
+static_assert(LOCAL_MAX_HITS < 8,
+              "MetalRTIntersectionLocalPayload max_hits & num_hits bitfields are too small");
 
 struct MetalRTIntersectionShadowPayload {
   RaySelfPrimitives self;
-  uint visibility;
+};
+
+struct MetalRTIntersectionShadowAllPayload {
+  RaySelfPrimitives self;
   int state;
   float throughput;
   short max_hits;
@@ -140,28 +155,6 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
                                           const uint visibility,
                                           ccl_private Intersection *isect)
 {
-  if (!intersection_ray_valid(ray)) {
-    isect->t = ray->tmax;
-    isect->type = PRIMITIVE_NONE;
-    return false;
-  }
-
-#if defined(WITH_CYCLES_DEBUG)
-  if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
-    isect->t = ray->tmax;
-    isect->type = PRIMITIVE_NONE;
-    kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
-    return false;
-  }
-
-  if (is_null_intersection_function_table(metal_ancillaries->ift_default)) {
-    isect->t = ray->tmax;
-    isect->type = PRIMITIVE_NONE;
-    kernel_assert(!"Invalid ift_default");
-    return false;
-  }
-#endif
-
   metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -172,15 +165,11 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
       (kernel_data.bvh.have_points ? metal::raytracing::geometry_type::bounding_box :
                                      metal::raytracing::geometry_type::none));
 
-  if (visibility & PATH_RAY_SHADOW_OPAQUE) {
-    metalrt_intersect.accept_any_intersection(true);
-  }
+  typename metalrt_intersector_type::result_type intersection;
 
   MetalRTIntersectionPayload payload;
-  payload.self = ray->self;
-  payload.visibility = visibility;
-
-  typename metalrt_intersector_type::result_type intersection;
+  payload.self_prim = ray->self.prim;
+  payload.self_object = ray->self.object;
 
 #if defined(__METALRT_MOTION__)
   intersection = metalrt_intersect.intersect(r,
@@ -272,7 +261,43 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   return true;
 }
 
+ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
+                                                 ccl_private const Ray *ray,
+                                                 const uint visibility)
+{
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
+  metalrt_intersector_type metalrt_intersect;
+  metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
+  metalrt_intersect.assume_geometry_type(
+      metal::raytracing::geometry_type::triangle |
+      (kernel_data.bvh.have_curves ? metal::raytracing::geometry_type::curve :
+                                     metal::raytracing::geometry_type::none) |
+      (kernel_data.bvh.have_points ? metal::raytracing::geometry_type::bounding_box :
+                                     metal::raytracing::geometry_type::none));
+
+  typename metalrt_intersector_type::result_type intersection;
+
+  metalrt_intersect.accept_any_intersection(true);
+
+  MetalRTIntersectionShadowPayload payload;
+  payload.self = ray->self;
+
+#if defined(__METALRT_MOTION__)
+  intersection = metalrt_intersect.intersect(r,
+                                             metal_ancillaries->accel_struct,
+                                             visibility,
+                                             ray->time,
+                                             metal_ancillaries->ift_shadow,
+                                             payload);
+#else
+  intersection = metalrt_intersect.intersect(
+      r, metal_ancillaries->accel_struct, visibility, metal_ancillaries->ift_shadow, payload);
+#endif
+  return (intersection.type != intersection_type::none);
+}
+
 #ifdef __BVH_LOCAL__
+template<bool single_hit = false>
 ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
                                                 ccl_private const Ray *ray,
                                                 ccl_private LocalIntersection *local_isect,
@@ -280,48 +305,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
                                                 ccl_private uint *lcg_state,
                                                 int max_hits)
 {
-  if (!intersection_ray_valid(ray)) {
-    if (local_isect) {
-      local_isect->num_hits = 0;
-    }
-    return false;
-  }
-
-#  if defined(WITH_CYCLES_DEBUG)
-  if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
-    if (local_isect) {
-      local_isect->num_hits = 0;
-    }
-    kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
-    return false;
-  }
-
-  if (is_null_intersection_function_table(metal_ancillaries->ift_local)) {
-    if (local_isect) {
-      local_isect->num_hits = 0;
-    }
-    kernel_assert(!"Invalid ift_local");
-    return false;
-  }
-  if (is_null_intersection_function_table(metal_ancillaries->ift_local_prim)) {
-    if (local_isect) {
-      local_isect->num_hits = 0;
-    }
-    kernel_assert(!"Invalid ift_local_prim");
-    return false;
-  }
-#  endif
-
-  MetalRTIntersectionLocalPayload payload;
-  payload.self = ray->self;
-  payload.local_object = local_object;
-  payload.max_hits = max_hits;
-  payload.local_isect.num_hits = 0;
-  if (lcg_state) {
-    payload.has_lcg_state = true;
-    payload.lcg_state = *lcg_state;
-  }
-  payload.result = false;
+  uint primitive_id_offset = kernel_data_fetch(object_prim_offset, local_object);
 
   metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
 
@@ -331,48 +315,130 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #  else
   metalrt_blas_intersector_type metalrt_intersect;
   typename metalrt_blas_intersector_type::result_type intersection;
-#  endif
 
-  metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
-  metalrt_intersect.assume_geometry_type(
-      metal::raytracing::geometry_type::triangle |
-      (kernel_data.bvh.have_curves ? metal::raytracing::geometry_type::curve :
-                                     metal::raytracing::geometry_type::none) |
-      (kernel_data.bvh.have_points ? metal::raytracing::geometry_type::bounding_box :
-                                     metal::raytracing::geometry_type::none));
-
-  // if we know we are going to get max one hit, like for random-sss-walk we can
-  // optimize and accept the first hit
-  if (max_hits == 1) {
-    metalrt_intersect.accept_any_intersection(true);
-  }
-
-#  if defined(__METALRT_MOTION__)
-  intersection = metalrt_intersect.intersect(
-      r, metal_ancillaries->accel_struct, ~0, ray->time, metal_ancillaries->ift_local, payload);
-#  else
   if (!(kernel_data_fetch(object_flag, local_object) & SD_OBJECT_TRANSFORM_APPLIED)) {
-    // transform the ray into object's local space
+    /* Transform the ray into object's local space. */
     Transform itfm = kernel_data_fetch(objects, local_object).itfm;
     r.origin = transform_point(&itfm, r.origin);
     r.direction = transform_direction(&itfm, r.direction);
   }
-
-  intersection = metalrt_intersect.intersect(
-      r,
-      metal_ancillaries->blas_accel_structs[local_object].blas,
-      metal_ancillaries->ift_local_prim,
-      payload);
 #  endif
 
-  if (lcg_state) {
-    *lcg_state = payload.lcg_state;
-  }
-  if (local_isect) {
-    *local_isect = payload.local_isect;
-  }
+  metalrt_intersect.assume_geometry_type(metal::raytracing::geometry_type::triangle);
 
-  return payload.result;
+  if (single_hit) {
+    MetalRTIntersectionLocalPayload_single_hit payload;
+    payload.self_prim = ray->self.prim - primitive_id_offset;
+
+    /* We know we are going to get max one hit, so we can optimize and accept the first hit. */
+    metalrt_intersect.accept_any_intersection(true);
+
+    /* We only need custom intersection filtering (i.e. non_opaque) if we are performing a
+     * self-primitive intersection check. */
+    metalrt_intersect.force_opacity((ray->self.prim == PRIM_NONE) ?
+                                        metal::raytracing::forced_opacity::opaque :
+                                        metal::raytracing::forced_opacity::non_opaque);
+
+#  if defined(__METALRT_MOTION__)
+    intersection = metalrt_intersect.intersect(r,
+                                               metal_ancillaries->accel_struct,
+                                               ~0,
+                                               ray->time,
+                                               metal_ancillaries->ift_local_single_hit_mblur,
+                                               payload);
+#  else
+    intersection = metalrt_intersect.intersect(
+        r,
+        metal_ancillaries->blas_accel_structs[local_object].blas,
+        metal_ancillaries->ift_local_single_hit,
+        payload);
+#  endif
+
+    if (intersection.type == intersection_type::none) {
+      local_isect->num_hits = 0;
+      return false;
+    }
+
+    uint prim = intersection.primitive_id + primitive_id_offset;
+    int prim_type = kernel_data_fetch(objects, local_object).primitive_type;
+
+    local_isect->num_hits = 1;
+    local_isect->hits[0].prim = prim;
+    local_isect->hits[0].type = prim_type;
+    local_isect->hits[0].object = local_object;
+    local_isect->hits[0].u = intersection.triangle_barycentric_coord.x;
+    local_isect->hits[0].v = intersection.triangle_barycentric_coord.y;
+    local_isect->hits[0].t = intersection.distance;
+
+    const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+    const float3 tri_a = float3(kernel_data_fetch(tri_verts, tri_vindex.x));
+    const float3 tri_b = float3(kernel_data_fetch(tri_verts, tri_vindex.y));
+    const float3 tri_c = float3(kernel_data_fetch(tri_verts, tri_vindex.z));
+    local_isect->Ng[0] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
+    return true;
+  }
+  else {
+    MetalRTIntersectionLocalPayload payload;
+    payload.self_prim = ray->self.prim - primitive_id_offset;
+    payload.max_hits = max_hits;
+    payload.num_hits = 0;
+    if (lcg_state) {
+      payload.has_lcg_state = 1;
+      payload.lcg_state = *lcg_state;
+    }
+
+    metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
+
+#  if defined(__METALRT_MOTION__)
+    intersection = metalrt_intersect.intersect(r,
+                                               metal_ancillaries->accel_struct,
+                                               ~0,
+                                               ray->time,
+                                               metal_ancillaries->ift_local_mblur,
+                                               payload);
+#  else
+    intersection = metalrt_intersect.intersect(
+        r,
+        metal_ancillaries->blas_accel_structs[local_object].blas,
+        metal_ancillaries->ift_local,
+        payload);
+#  endif
+
+    if (max_hits == 0) {
+      /* Special case for when no hit information is requested, just report that something was hit
+       */
+      return (intersection.type != intersection_type::none);
+    }
+
+    if (lcg_state) {
+      *lcg_state = payload.lcg_state;
+    }
+
+    const int num_hits = payload.num_hits;
+    if (local_isect) {
+
+      /* Record geometric normal */
+      int prim_type = kernel_data_fetch(objects, local_object).primitive_type;
+
+      local_isect->num_hits = num_hits;
+      for (int hit = 0; hit < num_hits; hit++) {
+        uint prim = payload.hit_prim[hit] + primitive_id_offset;
+        local_isect->hits[hit].prim = prim;
+        local_isect->hits[hit].t = payload.hit_t[hit];
+        local_isect->hits[hit].u = payload.hit_u[hit];
+        local_isect->hits[hit].v = payload.hit_v[hit];
+        local_isect->hits[hit].object = local_object;
+        local_isect->hits[hit].type = prim_type;
+
+        const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+        const float3 tri_a = float3(kernel_data_fetch(tri_verts, tri_vindex.x));
+        const float3 tri_b = float3(kernel_data_fetch(tri_verts, tri_vindex.y));
+        const float3 tri_c = float3(kernel_data_fetch(tri_verts, tri_vindex.z));
+        local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
+      }
+    }
+    return num_hits > 0;
+  }
 }
 #endif
 
@@ -385,22 +451,6 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      ccl_private uint *num_recorded_hits,
                                                      ccl_private float *throughput)
 {
-  if (!intersection_ray_valid(ray)) {
-    return false;
-  }
-
-#  if defined(WITH_CYCLES_DEBUG)
-  if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
-    kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
-    return false;
-  }
-
-  if (is_null_intersection_function_table(metal_ancillaries->ift_shadow)) {
-    kernel_assert(!"Invalid ift_shadow");
-    return false;
-  }
-#  endif
-
   metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -411,9 +461,8 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
       (kernel_data.bvh.have_points ? metal::raytracing::geometry_type::bounding_box :
                                      metal::raytracing::geometry_type::none));
 
-  MetalRTIntersectionShadowPayload payload;
+  MetalRTIntersectionShadowAllPayload payload;
   payload.self = ray->self;
-  payload.visibility = visibility;
   payload.max_hits = max_hits;
   payload.num_hits = 0;
   payload.num_recorded_hits = 0;
@@ -428,11 +477,11 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                              metal_ancillaries->accel_struct,
                                              visibility,
                                              ray->time,
-                                             metal_ancillaries->ift_shadow,
+                                             metal_ancillaries->ift_shadow_all,
                                              payload);
 #  else
   intersection = metalrt_intersect.intersect(
-      r, metal_ancillaries->accel_struct, visibility, metal_ancillaries->ift_shadow, payload);
+      r, metal_ancillaries->accel_struct, visibility, metal_ancillaries->ift_shadow_all, payload);
 #  endif
 
   *num_recorded_hits = payload.num_recorded_hits;
@@ -448,25 +497,11 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
                                                  ccl_private Intersection *isect,
                                                  const uint visibility)
 {
-  if (!intersection_ray_valid(ray)) {
-    return false;
-  }
-
-#  if defined(WITH_CYCLES_DEBUG)
-  if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
-    kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
-    return false;
-  }
-
-  if (is_null_intersection_function_table(metal_ancillaries->ift_volume)) {
-    kernel_assert(!"Invalid ift_volume");
-    return false;
-  }
-#  endif
-
   metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
+  metalrt_intersect.set_geometry_cull_mode(metal::raytracing::geometry_cull_mode::bounding_box |
+                                           metal::raytracing::geometry_cull_mode::curve);
   metalrt_intersect.assume_geometry_type(
       metal::raytracing::geometry_type::triangle |
       (kernel_data.bvh.have_curves ? metal::raytracing::geometry_type::curve :
@@ -474,9 +509,8 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
       (kernel_data.bvh.have_points ? metal::raytracing::geometry_type::bounding_box :
                                      metal::raytracing::geometry_type::none));
 
-  MetalRTIntersectionPayload payload;
+  MetalRTIntersectionShadowPayload payload;
   payload.self = ray->self;
-  payload.visibility = visibility;
 
   typename metalrt_intersector_type::result_type intersection;
 
@@ -492,78 +526,16 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
       r, metal_ancillaries->accel_struct, visibility, metal_ancillaries->ift_volume, payload);
 #  endif
 
-  if (intersection.type == intersection_type::none) {
-    return false;
-  }
-  else if (intersection.type == intersection_type::triangle) {
+  if (intersection.type == intersection_type::triangle) {
     isect->prim = intersection.primitive_id + intersection.user_instance_id;
     isect->type = kernel_data_fetch(objects, intersection.instance_id).primitive_type;
     isect->u = intersection.triangle_barycentric_coord.x;
     isect->v = intersection.triangle_barycentric_coord.y;
     isect->object = intersection.instance_id;
     isect->t = intersection.distance;
+    return true;
   }
-#  ifdef __HAIR__
-  else if (kernel_data.bvh.have_curves && intersection.type == intersection_type::curve) {
-    int prim = intersection.primitive_id + intersection.user_instance_id;
-    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
-    isect->prim = segment.prim;
-    isect->type = segment.type;
-    isect->u = intersection.curve_parameter;
-
-    if (segment.type & PRIMITIVE_CURVE_RIBBON) {
-      isect->v = curve_ribbon_v(kg,
-                                intersection.curve_parameter,
-                                intersection.distance,
-                                ray,
-                                intersection.instance_id,
-                                segment.prim,
-                                segment.type);
-    }
-    else {
-      isect->v = 0.0f;
-    }
-  }
-#  endif
-#  ifdef __POINTCLOUD__
-  else if (kernel_data.bvh.have_points && intersection.type == intersection_type::bounding_box) {
-    const int object = intersection.instance_id;
-    const uint prim = intersection.primitive_id + intersection.user_instance_id;
-    const int prim_type = kernel_data_fetch(objects, intersection.instance_id).primitive_type;
-
-    isect->object = object;
-
-    if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
-      float3 idir;
-#    if defined(__METALRT_MOTION__)
-      bvh_instance_motion_push(NULL, object, ray, &r.origin, &r.direction, &idir);
-#    else
-      bvh_instance_push(NULL, object, ray, &r.origin, &r.direction, &idir);
-#    endif
-    }
-
-    if (prim_type & PRIMITIVE_POINT) {
-      if (!point_intersect(NULL,
-                           isect,
-                           r.origin,
-                           r.direction,
-                           ray->tmin,
-                           ray->tmax,
-                           intersection.instance_id,
-                           prim,
-                           ray->time,
-                           prim_type))
-      {
-        /* Shouldn't get here */
-        kernel_assert(!"Intersection mismatch");
-        return false;
-      }
-      return true;
-    }
-  }
-#  endif
-
-  return true;
+  return false;
 }
 #endif
 

@@ -285,7 +285,9 @@ void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *l
 
   lib_context->path = libpath;
   lib_context->blo_handle = blo_handle;
-  lib_context->blo_handle_is_owned = (blo_handle == nullptr);
+  /* Always steal the ownership on the blendfile handle, as it may be freed by readfile code in
+   * case of endianness conversion. */
+  lib_context->blo_handle_is_owned = true;
 
   BLI_linklist_append_arena(&lapp_context->libraries, lib_context, lapp_context->memarena);
   lapp_context->num_libraries++;
@@ -1102,32 +1104,6 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
 /** \name Library link/append code.
  * \{ */
 
-static void blendfile_link_append_proxies_convert(Main *bmain, ReportList *reports)
-{
-  /* NOTE: Do not bother checking file versions here, if there are no proxies to convert this code
-   * is quite fast anyway. */
-
-  BlendFileReadReport bf_reports{};
-  bf_reports.reports = reports;
-  BKE_lib_override_library_main_proxy_convert(bmain, &bf_reports);
-
-  /* Currently liboverride code can generate invalid namemap. This is a known issue, requires
-   * #107847 to be properly fixed. */
-  BKE_main_namemap_validate_and_fix(bmain);
-
-  if (bf_reports.count.proxies_to_lib_overrides_success != 0 ||
-      bf_reports.count.proxies_to_lib_overrides_failures != 0)
-  {
-    BKE_reportf(bf_reports.reports,
-                RPT_WARNING,
-                "Proxies have been removed from Blender (%d proxies were automatically converted "
-                "to library overrides, %d proxies could not be converted and were cleared). "
-                "Consider re-saving any library .blend file with the newest Blender version",
-                bf_reports.count.proxies_to_lib_overrides_success,
-                bf_reports.count.proxies_to_lib_overrides_failures);
-  }
-}
-
 void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   if (lapp_context->num_items == 0) {
@@ -1378,100 +1354,17 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
   BKE_main_id_newptr_and_tag_clear(bmain);
 
-  blendfile_link_append_proxies_convert(bmain, reports);
-  BKE_main_mesh_legacy_convert_auto_smooth(*bmain);
-
-  if (U.experimental.use_grease_pencil_version3 &&
-      U.experimental.use_grease_pencil_version3_convert_on_load)
-  {
-    BlendFileReadReport bf_reports{};
-    bf_reports.reports = reports;
-    blender::bke::greasepencil::convert::legacy_main(*bmain, bf_reports);
-  }
+  BlendFileReadReport bf_reports{};
+  bf_reports.reports = reports;
+  BLO_read_do_version_after_setup(bmain, &bf_reports);
 }
 
-void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
+static void blendfile_link_finalize(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
-  if (lapp_context->num_items == 0) {
-    /* Nothing to be linked. */
-    return;
-  }
-
-  BLI_assert(lapp_context->num_libraries != 0);
-
-  Main *mainl;
-  Library *lib;
-
-  LinkNode *liblink, *itemlink;
-  int lib_idx, item_idx;
-
-  for (lib_idx = 0, liblink = lapp_context->libraries.list; liblink;
-       lib_idx++, liblink = liblink->next)
-  {
-    BlendfileLinkAppendContextLibrary *lib_context =
-        static_cast<BlendfileLinkAppendContextLibrary *>(liblink->link);
-    const char *libname = lib_context->path;
-    BlendHandle *blo_handle = link_append_context_library_blohandle_ensure(
-        lapp_context, lib_context, reports);
-
-    if (blo_handle == nullptr) {
-      /* Unlikely since we just browsed it, but possible
-       * Error reports will have been made by BLO_blendhandle_from_file() */
-      continue;
-    }
-
-    /* here appending/linking starts */
-
-    mainl = BLO_library_link_begin(&blo_handle, libname, lapp_context->params);
-    lib = mainl->curlib;
-    BLI_assert(lib != nullptr);
-    /* In case lib was already existing but not found originally, see #99820. */
-    lib->id.tag &= ~LIB_TAG_MISSING;
-
-    if (mainl->versionfile < 250) {
-      BKE_reportf(reports,
-                  RPT_WARNING,
-                  "Linking or appending from a very old .blend file format (%d.%d), no animation "
-                  "conversion will "
-                  "be done! You may want to re-save your lib file with current Blender",
-                  mainl->versionfile,
-                  mainl->subversionfile);
-    }
-
-    /* For each lib file, we try to link all items belonging to that lib,
-     * and tag those successful to not try to load them again with the other libraries. */
-    for (item_idx = 0, itemlink = lapp_context->items.list; itemlink;
-         item_idx++, itemlink = itemlink->next)
-    {
-      BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
-          itemlink->link);
-      ID *new_id;
-
-      if (!BLI_BITMAP_TEST(item->libraries, lib_idx)) {
-        continue;
-      }
-
-      new_id = BLO_library_link_named_part(
-          mainl, &blo_handle, item->idcode, item->name, lapp_context->params);
-
-      if (new_id) {
-        /* If the link is successful, clear item's libraries 'todo' flags.
-         * This avoids trying to link same item with other libraries to come. */
-        BLI_bitmap_set_all(item->libraries, false, lapp_context->num_libraries);
-        item->new_id = new_id;
-        item->source_library = new_id->lib;
-      }
-    }
-
-    BLO_library_link_end(mainl, &blo_handle, lapp_context->params);
-    link_append_context_library_blohandle_release(lapp_context, lib_context);
-  }
-  (void)item_idx; /* Quiet set-but-unused warning (may be removed). */
+  LinkNode *itemlink;
 
   /* Instantiate newly linked IDs as needed, if no append is scheduled. */
-  if ((lapp_context->params->flag & FILE_LINK) != 0 &&
-      lapp_context->params->context.scene != nullptr)
-  {
+  if (lapp_context->params->context.scene != nullptr) {
     new_id_to_item_mapping_create(lapp_context);
     /* NOTE: Since we append items for IDs not already listed (i.e. implicitly linked indirect
      * dependencies), this list will grow and we will process those IDs later, leading to a flatten
@@ -1502,17 +1395,94 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
     loose_data_instantiate(&instantiate_context);
   }
 
-  if ((lapp_context->params->flag & FILE_LINK) != 0) {
-    blendfile_link_append_proxies_convert(lapp_context->params->bmain, reports);
-    BKE_main_mesh_legacy_convert_auto_smooth(*lapp_context->params->bmain);
+  BlendFileReadReport bf_reports{};
+  bf_reports.reports = reports;
+  BLO_read_do_version_after_setup(lapp_context->params->bmain, &bf_reports);
+}
 
-    if (U.experimental.use_grease_pencil_version3 &&
-        U.experimental.use_grease_pencil_version3_convert_on_load)
-    {
-      BlendFileReadReport bf_reports{};
-      bf_reports.reports = reports;
-      blender::bke::greasepencil::convert::legacy_main(*lapp_context->params->bmain, bf_reports);
+void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
+{
+  if (lapp_context->num_items == 0) {
+    /* Nothing to be linked. */
+    return;
+  }
+
+  BLI_assert(lapp_context->num_libraries != 0);
+
+  Main *mainl;
+  Library *lib;
+
+  LinkNode *liblink, *itemlink;
+  int lib_idx, item_idx;
+
+  for (lib_idx = 0, liblink = lapp_context->libraries.list; liblink;
+       lib_idx++, liblink = liblink->next)
+  {
+    BlendfileLinkAppendContextLibrary *lib_context =
+        static_cast<BlendfileLinkAppendContextLibrary *>(liblink->link);
+    const char *libname = lib_context->path;
+
+    if (!link_append_context_library_blohandle_ensure(lapp_context, lib_context, reports)) {
+      /* Unlikely since we just browsed it, but possible
+       * Error reports will have been made by BLO_blendhandle_from_file() */
+      continue;
     }
+
+    /* here appending/linking starts */
+
+    mainl = BLO_library_link_begin(&lib_context->blo_handle, libname, lapp_context->params);
+    lib = mainl->curlib;
+    BLI_assert(lib != nullptr);
+    /* In case lib was already existing but not found originally, see #99820. */
+    lib->id.tag &= ~LIB_TAG_MISSING;
+
+    if (mainl->versionfile < 250) {
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "Linking or appending from a very old .blend file format (%d.%d), no animation "
+                  "conversion will "
+                  "be done! You may want to re-save your lib file with current Blender",
+                  mainl->versionfile,
+                  mainl->subversionfile);
+    }
+
+    /* For each lib file, we try to link all items belonging to that lib,
+     * and tag those successful to not try to load them again with the other libraries. */
+    for (item_idx = 0, itemlink = lapp_context->items.list; itemlink;
+         item_idx++, itemlink = itemlink->next)
+    {
+      BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
+          itemlink->link);
+      ID *new_id;
+
+      if (!BLI_BITMAP_TEST(item->libraries, lib_idx)) {
+        continue;
+      }
+
+      new_id = BLO_library_link_named_part(
+          mainl, &lib_context->blo_handle, item->idcode, item->name, lapp_context->params);
+
+      if (new_id) {
+        /* If the link is successful, clear item's libraries 'todo' flags.
+         * This avoids trying to link same item with other libraries to come. */
+        BLI_bitmap_set_all(item->libraries, false, lapp_context->num_libraries);
+        item->new_id = new_id;
+        item->source_library = new_id->lib;
+      }
+    }
+
+    BLO_library_link_end(mainl, &lib_context->blo_handle, lapp_context->params);
+    link_append_context_library_blohandle_release(lapp_context, lib_context);
+  }
+  (void)item_idx; /* Quiet set-but-unused warning (may be removed). */
+
+  /* In linking case finalizing process (ensuring all data is valid, instantiating loose
+   * collections or objects, etc.) can be done here directly.
+   *
+   * In append case, the finalizing process is much more complex and requires and additional call
+   * to #BKE_blendfile_append for caller code. */
+  if ((lapp_context->params->flag & FILE_LINK) != 0) {
+    blendfile_link_finalize(lapp_context, reports);
   }
 
   BKE_main_namemap_clear(lapp_context->params->bmain);

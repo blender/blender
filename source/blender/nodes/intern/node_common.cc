@@ -80,6 +80,45 @@ void node_group_label(const bNodeTree * /*ntree*/,
       label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), label_maxncpy);
 }
 
+int node_group_ui_class(const bNode *node)
+{
+  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
+  if (!group) {
+    return NODE_CLASS_GROUP;
+  }
+  switch (NodeGroupColorTag(group->color_tag)) {
+    case NodeGroupColorTag::None:
+      return NODE_CLASS_GROUP;
+    case NodeGroupColorTag::Attribute:
+      return NODE_CLASS_ATTRIBUTE;
+    case NodeGroupColorTag::Color:
+      return NODE_CLASS_OP_COLOR;
+    case NodeGroupColorTag::Converter:
+      return NODE_CLASS_CONVERTER;
+    case NodeGroupColorTag::Distort:
+      return NODE_CLASS_DISTORT;
+    case NodeGroupColorTag::Filter:
+      return NODE_CLASS_OP_FILTER;
+    case NodeGroupColorTag::Geometry:
+      return NODE_CLASS_GEOMETRY;
+    case NodeGroupColorTag::Input:
+      return NODE_CLASS_INPUT;
+    case NodeGroupColorTag::Matte:
+      return NODE_CLASS_MATTE;
+    case NodeGroupColorTag::Output:
+      return NODE_CLASS_OUTPUT;
+    case NodeGroupColorTag::Script:
+      return NODE_CLASS_SCRIPT;
+    case NodeGroupColorTag::Shader:
+      return NODE_CLASS_SHADER;
+    case NodeGroupColorTag::Texture:
+      return NODE_CLASS_TEXTURE;
+    case NodeGroupColorTag::Vector:
+      return NODE_CLASS_OP_VECTOR;
+  }
+  return NODE_CLASS_GROUP;
+}
+
 bool node_group_poll_instance(const bNode *node,
                               const bNodeTree *nodetree,
                               const char **disabled_hint)

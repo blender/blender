@@ -1651,7 +1651,7 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
   /* Draw text labels with a drop shadow. */
   const int font_id = BLF_default();
   BLF_enable(font_id, BLF_SHADOW);
-  BLF_shadow(font_id, 3, blender::float4{0.0f, 0.0f, 0.0f, 1.0f});
+  BLF_shadow(font_id, FontShadowType::Blur3x3, blender::float4{0.0f, 0.0f, 0.0f, 1.0f});
   BLF_shadow_offset(font_id, 1, -1);
   UI_view2d_text_cache_draw(timeline_ctx->region);
   BLF_disable(font_id, BLF_SHADOW);

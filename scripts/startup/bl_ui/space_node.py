@@ -94,10 +94,14 @@ class NODE_HT_header(Header):
 
             if snode.shader_type == 'WORLD':
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
+                world = scene.world
 
                 if snode_id:
                     row = layout.row()
                     row.prop(snode_id, "use_nodes")
+
+                    if world and world.use_eevee_finite_volume:
+                        row.operator("world.convert_volume_to_mesh", emboss=False, icon='WORLD', text="Convert Volume")
 
                 layout.separator_spacer()
 
@@ -819,19 +823,19 @@ class NODE_PT_quality(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
+        scene = context.scene
+        rd = scene.render
+
         snode = context.space_data
         tree = snode.node_tree
         prefs = bpy.context.preferences
 
-        use_realtime = False
         col = layout.column()
         if prefs.experimental.use_experimental_compositors:
-            col.prop(tree, "execution_mode")
-            use_realtime = tree.execution_mode == 'REALTIME'
-        col.prop(tree, "precision")
+            col.prop(rd, "compositor_device", text="Device")
+        col.prop(rd, "compositor_precision", text="Precision")
 
         col = layout.column()
-        col.active = not use_realtime
         col.prop(tree, "use_viewer_border")
 
         col = layout.column()
@@ -984,6 +988,8 @@ class NODE_PT_node_tree_properties(Panel):
             layout.prop(group.asset_data, "description", text="Description")
         else:
             layout.prop(group, "description", text="Description")
+
+        layout.prop(group, "color_tag")
 
         if group.bl_idname == "GeometryNodeTree":
             header, body = layout.panel("group_usage")

@@ -332,7 +332,19 @@ class CommandBufferLog : public VKCommandBufferInterface {
   {
     UNUSED_VARS(attachment_count, p_attachments, rect_count, p_rects);
     EXPECT_TRUE(is_recording_);
-    GTEST_FAIL() << __func__ << " not implemented!";
+    std::stringstream ss;
+    ss << "clear_attachments(";
+    for (const VkClearAttachment &attachment :
+         Span<VkClearAttachment>(p_attachments, attachment_count))
+    {
+      ss << " - attachment(" << to_string(attachment, 1) << ")" << std::endl;
+    }
+    for (const VkClearRect &rect : Span<VkClearRect>(p_rects, rect_count)) {
+      ss << " - rect(" << to_string(rect, 1) << ")" << std::endl;
+    }
+    ss << ")";
+
+    log_.append(ss.str());
   }
 
   void pipeline_barrier(VkPipelineStageFlags src_stage_mask,
@@ -378,18 +390,22 @@ class CommandBufferLog : public VKCommandBufferInterface {
     GTEST_FAIL() << __func__ << " not implemented!";
   }
 
-  void begin_render_pass(const VkRenderPassBeginInfo *p_render_pass_begin,
-                         VkSubpassContents contents) override
+  void begin_rendering(const VkRenderingInfo *p_rendering_info) override
   {
-    UNUSED_VARS(p_render_pass_begin, contents);
     EXPECT_TRUE(is_recording_);
-    GTEST_FAIL() << __func__ << " not implemented!";
+    std::stringstream ss;
+    ss << "begin_rendering(";
+    ss << "p_rendering_info=" << to_string(*p_rendering_info);
+    ss << ")";
+    log_.append(ss.str());
   }
 
-  void end_render_pass() override
+  void end_rendering() override
   {
     EXPECT_TRUE(is_recording_);
-    GTEST_FAIL() << __func__ << " not implemented!";
+    std::stringstream ss;
+    ss << "end_rendering()";
+    log_.append(ss.str());
   }
 };
 

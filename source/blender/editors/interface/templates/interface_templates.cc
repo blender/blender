@@ -2990,7 +2990,6 @@ static void draw_export_controls(
     uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
     uiItemPopoverPanel(row, C, "WM_PT_operator_presets", "", ICON_PRESET);
     uiItemIntO(row, "", ICON_EXPORT, "COLLECTION_OT_exporter_export", "index", index);
-    uiItemIntO(row, "", ICON_X, "COLLECTION_OT_exporter_remove", "index", index);
   }
 }
 
@@ -3013,43 +3012,100 @@ static void draw_export_properties(bContext *C,
       C, op, layout, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_HIDE_PRESETS);
 }
 
+static void draw_exporter_item(uiList * /*ui_list*/,
+                               const bContext * /*C*/,
+                               uiLayout *layout,
+                               PointerRNA * /*idataptr*/,
+                               PointerRNA *itemptr,
+                               int /*icon*/,
+                               PointerRNA * /*active_dataptr*/,
+                               const char * /*active_propname*/,
+                               int /*index*/,
+                               int /*flt_flag*/)
+{
+  char name[MAX_IDPROP_NAME];
+  RNA_string_get(itemptr, "name", name);
+
+  uiLayout *row = uiLayoutRow(layout, false);
+  uiItemS(row);
+  uiItemL(row, name, ICON_NONE);
+}
+
 void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
 {
   Collection *collection = CTX_data_collection(C);
   ListBase *exporters = &collection->exporters;
+  const int index = collection->active_exporter_index;
 
-  /* Draw all the IO handlers. */
-  int index = 0;
-  LISTBASE_FOREACH_INDEX (CollectionExport *, data, exporters, index) {
-    using namespace blender;
-    PointerRNA exporter_ptr = RNA_pointer_create(&collection->id, &RNA_CollectionExport, data);
-    PanelLayout panel = uiLayoutPanelProp(C, layout, &exporter_ptr, "is_open");
+  /* Register the exporter list type on first use. */
+  static const uiListType *exporter_item_list = []() {
+    uiListType *lt = MEM_cnew<uiListType>(__func__);
+    STRNCPY(lt->idname, "COLLECTION_UL_exporter_list");
+    lt->draw_item = draw_exporter_item;
+    WM_uilisttype_add(lt);
+    return lt;
+  }();
 
-    bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
-    if (!fh) {
-      std::string label = std::string(IFACE_("Undefined")) + " " + data->fh_idname;
-      draw_export_controls(C, panel.header, label, index, false);
-      continue;
-    }
+  /* Draw exporter list and controls. */
+  PointerRNA collection_ptr = RNA_pointer_create(&collection->id, &RNA_Collection, collection);
+  uiLayout *row = uiLayoutRow(layout, false);
+  uiTemplateList(row,
+                 C,
+                 exporter_item_list->idname,
+                 "",
+                 &collection_ptr,
+                 "exporters",
+                 &collection_ptr,
+                 "active_exporter_index",
+                 nullptr,
+                 3,
+                 5,
+                 UILST_LAYOUT_DEFAULT,
+                 1,
+                 UI_TEMPLATE_LIST_FLAG_NONE);
 
-    wmOperatorType *ot = WM_operatortype_find(fh->export_operator, false);
-    if (!ot) {
-      std::string label = std::string(IFACE_("Undefined")) + " " + fh->export_operator;
-      draw_export_controls(C, panel.header, label, index, false);
-      continue;
-    }
+  uiLayout *col = uiLayoutColumn(row, true);
+  uiItemM(col, "COLLECTION_MT_exporter_add", "", ICON_ADD);
+  uiItemIntO(col, "", ICON_REMOVE, "COLLECTION_OT_exporter_remove", "index", index);
 
-    /* Assign temporary operator to uiBlock, which takes ownership. */
-    PointerRNA properties = RNA_pointer_create(&collection->id, ot->srna, data->export_properties);
-    wmOperator *op = minimal_operator_create(ot, &properties);
-    UI_block_set_active_operator(uiLayoutGetBlock(panel.header), op, true);
+  col = uiLayoutColumn(layout, true);
+  uiItemO(col, nullptr, ICON_EXPORT, "COLLECTION_OT_export_all");
+  uiLayoutSetEnabled(col, !BLI_listbase_is_empty(exporters));
 
-    /* Draw panel header and contents. */
-    std::string label(fh->label);
-    draw_export_controls(C, panel.header, label, index, true);
-    if (panel.body) {
-      draw_export_properties(C, panel.body, op, fh->get_default_filename(collection->id.name + 2));
-    }
+  /* Draw the active exporter. */
+  CollectionExport *data = (CollectionExport *)BLI_findlink(exporters, index);
+  if (!data) {
+    return;
+  }
+
+  using namespace blender;
+  PointerRNA exporter_ptr = RNA_pointer_create(&collection->id, &RNA_CollectionExport, data);
+  PanelLayout panel = uiLayoutPanelProp(C, layout, &exporter_ptr, "is_open");
+
+  bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
+  if (!fh) {
+    std::string label = std::string(IFACE_("Undefined")) + " " + data->fh_idname;
+    draw_export_controls(C, panel.header, label, index, false);
+    return;
+  }
+
+  wmOperatorType *ot = WM_operatortype_find(fh->export_operator, false);
+  if (!ot) {
+    std::string label = std::string(IFACE_("Undefined")) + " " + fh->export_operator;
+    draw_export_controls(C, panel.header, label, index, false);
+    return;
+  }
+
+  /* Assign temporary operator to uiBlock, which takes ownership. */
+  PointerRNA properties = RNA_pointer_create(&collection->id, ot->srna, data->export_properties);
+  wmOperator *op = minimal_operator_create(ot, &properties);
+  UI_block_set_active_operator(uiLayoutGetBlock(panel.header), op, true);
+
+  /* Draw panel header and contents. */
+  std::string label(fh->label);
+  draw_export_controls(C, panel.header, label, index, true);
+  if (panel.body) {
+    draw_export_properties(C, panel.body, op, fh->get_default_filename(collection->id.name + 2));
   }
 }
 

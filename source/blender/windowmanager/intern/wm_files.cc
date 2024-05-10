@@ -226,14 +226,14 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
     wm->message_bus = nullptr;
   }
 
-  /* XXX Hack! We have to clear context menu here, because removing all modalhandlers
-   * above frees the active menu (at least, in the 'startup splash' case),
+  /* XXX Hack! We have to clear context popup-region here, because removing all
+   * #wmWindow::modalhandlers above frees the active menu (at least, in the 'startup splash' case),
    * causing use-after-free error in later handling of the button callbacks in UI code
-   * (see ui_apply_but_funcs_after()).
+   * (see #ui_apply_but_funcs_after()).
    * Tried solving this by always nullptr-ing context's menu when setting wm/win/etc.,
    * but it broke popups refreshing (see #47632),
    * so for now just handling this specific case here. */
-  CTX_wm_menu_set(C, nullptr);
+  CTX_wm_region_popup_set(C, nullptr);
 
   ED_editors_exit(bmain, true);
 

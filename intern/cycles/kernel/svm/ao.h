@@ -77,8 +77,7 @@ ccl_device float svm_ao(
       }
     }
     else {
-      Intersection isect;
-      if (!scene_intersect(kg, &ray, PATH_RAY_SHADOW_OPAQUE, &isect)) {
+      if (!scene_intersect_shadow(kg, &ray, PATH_RAY_SHADOW_OPAQUE)) {
         unoccluded++;
       }
     }

@@ -97,7 +97,7 @@ inline void set_item_name_and_make_unique(bNode &node,
   SocketItemsRef array = Accessor::get_items_from_node(node);
   const char *default_name = "Item";
   if constexpr (Accessor::has_type) {
-    default_name = nodeStaticSocketLabel(*Accessor::get_socket_type(item), 0);
+    default_name = nodeStaticSocketLabel(Accessor::get_socket_type(item), 0);
   }
 
   char unique_name[MAX_NAME + 4];

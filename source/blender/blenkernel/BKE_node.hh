@@ -386,6 +386,30 @@ struct bNodeType {
 #define NODE_CLASS_ATTRIBUTE 42
 #define NODE_CLASS_LAYOUT 100
 
+/**
+ * Color tag stored per node group. This affects the header color of group nodes.
+ * Note that these values are written to DNA.
+ *
+ * This is separate from the `NODE_CLASS_*` enum, because those have some additional items and are
+ * not purely color tags. Some classes also have functional effects (e.g. `NODE_CLASS_INPUT`).
+ */
+enum class NodeGroupColorTag {
+  None = 0,
+  Attribute = 1,
+  Color = 2,
+  Converter = 3,
+  Distort = 4,
+  Filter = 5,
+  Geometry = 6,
+  Input = 7,
+  Matte = 8,
+  Output = 9,
+  Script = 10,
+  Shader = 11,
+  Texture = 12,
+  Vector = 13,
+};
+
 struct bNodeTreeExec;
 
 using bNodeClassCallback = void (*)(void *calldata, int nclass, const char *name);

@@ -3112,11 +3112,10 @@ bool UI_context_copy_to_selected_check(PointerRNA *ptr,
 /* Helpers for Operators */
 uiBut *UI_context_active_but_get(const bContext *C);
 /**
- * Version of #UI_context_active_get() that uses the result of #CTX_wm_menu()
- * if set. Does not traverse into parent menus, which may be wanted in some
- * cases.
+ * Version of #UI_context_active_get() that uses the result of #CTX_wm_region_popup() if set.
+ * Does not traverse into parent menus, which may be wanted in some cases.
  */
-uiBut *UI_context_active_but_get_respect_menu(const bContext *C);
+uiBut *UI_context_active_but_get_respect_popup(const bContext *C);
 /**
  * Version of #UI_context_active_but_get that also returns RNA property info.
  * Helper function for insert keyframe, reset to default, etc operators.

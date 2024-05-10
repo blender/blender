@@ -2659,13 +2659,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.shadow_step_count = default_scene_eevee.shadow_step_count;
       }
     }
-
-    if (!DNA_struct_member_exists(fd->filesdna, "Light", "float", "shadow_trace_distance")) {
-      Light default_light = blender::dna::shallow_copy(*DNA_struct_default_get(Light));
-      LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-        light->shadow_trace_distance = default_light.shadow_trace_distance;
-      }
-    }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 28)) {
@@ -3176,6 +3169,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 3)) {
+    constexpr int NTREE_EXECUTION_MODE_CPU = 0;
     constexpr int NTREE_EXECUTION_MODE_FULL_FRAME = 1;
 
     constexpr int NTREE_COM_GROUPNODE_BUFFER = 1 << 3;
@@ -3460,7 +3454,69 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 32)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 31)) {
+    /* Mark old EEVEE world volumes for showing conversion operator. */
+    LISTBASE_FOREACH (World *, world, &bmain->worlds) {
+      if (world->nodetree) {
+        /* NOTE: duplicated from `ntreeShaderOutputNode` with small adjustments so it can be called
+         * during versioning. */
+        bNode *output_node = nullptr;
+
+        LISTBASE_FOREACH (bNode *, node, &world->nodetree->nodes) {
+          if (node->type != SH_NODE_OUTPUT_WORLD) {
+            continue;
+          }
+
+          if (node->custom1 == SHD_OUTPUT_ALL) {
+            if (output_node == nullptr) {
+              output_node = node;
+            }
+            else if (output_node->custom1 == SHD_OUTPUT_ALL) {
+              if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+                output_node = node;
+              }
+            }
+          }
+          else if (node->custom1 == SHD_OUTPUT_EEVEE) {
+            if (output_node == nullptr) {
+              output_node = node;
+            }
+            else if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+              output_node = node;
+            }
+          }
+        }
+        /* End duplication. */
+
+        if (output_node) {
+          bNodeSocket *volume_input_socket = static_cast<bNodeSocket *>(
+              BLI_findlink(&output_node->inputs, 1));
+          if (volume_input_socket) {
+            LISTBASE_FOREACH (bNodeLink *, node_link, &world->nodetree->links) {
+              if (node_link->tonode == output_node && node_link->tosock == volume_input_socket) {
+                world->flag |= WO_USE_EEVEE_FINITE_VOLUME;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 33)) {
+    constexpr int NTREE_EXECUTION_MODE_GPU = 2;
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->nodetree) {
+        if (scene->nodetree->execution_mode == NTREE_EXECUTION_MODE_GPU) {
+          scene->r.compositor_device = SCE_COMPOSITOR_DEVICE_GPU;
+        }
+        scene->r.compositor_precision = scene->nodetree->precision;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 34)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
 

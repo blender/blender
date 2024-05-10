@@ -217,20 +217,27 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
 
           arg_desc_as.index = index++;
           [ancillary_desc addObject:[arg_desc_as copy]]; /* accel_struct */
+
+          /* Intersection function tables */
           arg_desc_ift.index = index++;
           [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_default */
           arg_desc_ift.index = index++;
           [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_shadow */
           arg_desc_ift.index = index++;
+          [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_shadow_all */
+          arg_desc_ift.index = index++;
           [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_volume */
           arg_desc_ift.index = index++;
           [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local */
           arg_desc_ift.index = index++;
-          [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local_prim */
+          [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local_mblur */
+          arg_desc_ift.index = index++;
+          [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local_single_hit */
+          arg_desc_ift.index = index++;
+          [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local_single_hit_mblur */
+
           arg_desc_ptrs.index = index++;
-          [ancillary_desc addObject:[arg_desc_ptrs copy]]; /* blas array */
-          arg_desc_ptrs.index = index++;
-          [ancillary_desc addObject:[arg_desc_ptrs copy]]; /* look up table for blas */
+          [ancillary_desc addObject:[arg_desc_ptrs copy]]; /* blas_accel_structs */
 
           [arg_desc_ift release];
           [arg_desc_as release];

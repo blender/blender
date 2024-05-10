@@ -195,10 +195,8 @@ static void blf_batch_draw_init()
   g_batch.offset_loc = GPU_vertformat_attr_add(&format, "offset", GPU_COMP_I32, 1, GPU_FETCH_INT);
   g_batch.glyph_size_loc = GPU_vertformat_attr_add(
       &format, "glyph_size", GPU_COMP_I32, 2, GPU_FETCH_INT);
-  g_batch.glyph_comp_len_loc = GPU_vertformat_attr_add(
-      &format, "comp_len", GPU_COMP_I32, 1, GPU_FETCH_INT);
-  g_batch.glyph_mode_loc = GPU_vertformat_attr_add(
-      &format, "mode", GPU_COMP_I32, 1, GPU_FETCH_INT);
+  g_batch.glyph_flags_loc = GPU_vertformat_attr_add(
+      &format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   g_batch.verts = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STREAM);
   GPU_vertbuf_data_alloc(g_batch.verts, BLF_BATCH_DRAW_LEN_MAX);
@@ -207,9 +205,7 @@ static void blf_batch_draw_init()
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.offset_loc, &g_batch.offset_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_size_loc, &g_batch.glyph_size_step);
-  GPU_vertbuf_attr_get_raw_data(
-      g_batch.verts, g_batch.glyph_comp_len_loc, &g_batch.glyph_comp_len_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_mode_loc, &g_batch.glyph_mode_step);
+  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_flags_loc, &g_batch.glyph_flags_step);
   g_batch.glyph_len = 0;
 
   /* A dummy VBO containing 4 points, attributes are not used. */
@@ -362,9 +358,7 @@ void blf_batch_draw()
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.offset_loc, &g_batch.offset_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_size_loc, &g_batch.glyph_size_step);
-  GPU_vertbuf_attr_get_raw_data(
-      g_batch.verts, g_batch.glyph_comp_len_loc, &g_batch.glyph_comp_len_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_mode_loc, &g_batch.glyph_mode_step);
+  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_flags_loc, &g_batch.glyph_flags_step);
   g_batch.glyph_len = 0;
 }
 
@@ -587,14 +581,14 @@ static void blf_glyph_draw_buffer(FontBufInfoBLF *buf_info,
   if (buf_info->fbuf) {
     int yb = yb_start;
     for (int y = ((chy >= 0) ? 0 : -chy); y < height_clip; y++) {
-      for (int x = ((chx >= 0) ? 0 : -chx); x < width_clip; x++) {
-        const char a_byte = *(g->bitmap + x + (yb * g->pitch));
+      const int x_start = (chx >= 0) ? 0 : -chx;
+      const uchar *a_ptr = g->bitmap + x_start + (yb * g->pitch);
+      const int64_t buf_ofs = (int64_t(buf_info->dims[0]) * (pen_y_px + y) + (chx + x_start)) * 4;
+      float *fbuf = buf_info->fbuf + buf_ofs;
+      for (int x = x_start; x < width_clip; x++, a_ptr++, fbuf += 4) {
+        const char a_byte = *a_ptr;
         if (a_byte) {
           const float a = (a_byte / 255.0f) * b_col_float[3];
-          const size_t buf_ofs = ((size_t(chx + x) +
-                                   (size_t(pen_y_px + y) * size_t(buf_info->dims[0]))) *
-                                  size_t(buf_info->ch));
-          float *fbuf = buf_info->fbuf + buf_ofs;
 
           float font_pixel[4];
           font_pixel[0] = b_col_float[0] * a;
@@ -617,15 +611,15 @@ static void blf_glyph_draw_buffer(FontBufInfoBLF *buf_info,
   if (buf_info->cbuf) {
     int yb = yb_start;
     for (int y = ((chy >= 0) ? 0 : -chy); y < height_clip; y++) {
-      for (int x = ((chx >= 0) ? 0 : -chx); x < width_clip; x++) {
-        const char a_byte = *(g->bitmap + x + (yb * g->pitch));
+      const int x_start = (chx >= 0) ? 0 : -chx;
+      const uchar *a_ptr = g->bitmap + x_start + (yb * g->pitch);
+      const int64_t buf_ofs = (int64_t(buf_info->dims[0]) * (pen_y_px + y) + (chx + x_start)) * 4;
+      uchar *cbuf = buf_info->cbuf + buf_ofs;
+      for (int x = x_start; x < width_clip; x++, a_ptr++, cbuf += 4) {
+        const char a_byte = *a_ptr;
 
         if (a_byte) {
           const float a = (a_byte / 255.0f) * b_col_float[3];
-          const size_t buf_ofs = ((size_t(chx + x) +
-                                   (size_t(pen_y_px + y) * size_t(buf_info->dims[0]))) *
-                                  size_t(buf_info->ch));
-          uchar *cbuf = buf_info->cbuf + buf_ofs;
 
           uchar font_pixel[4];
           font_pixel[0] = b_col_char[0];
@@ -1470,7 +1464,6 @@ static void blf_font_fill(FontBLF *font)
   font->buf_info.cbuf = nullptr;
   font->buf_info.dims[0] = 0;
   font->buf_info.dims[1] = 0;
-  font->buf_info.ch = 0;
   font->buf_info.col_init[0] = 0;
   font->buf_info.col_init[1] = 0;
   font->buf_info.col_init[2] = 0;

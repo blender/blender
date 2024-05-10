@@ -44,13 +44,13 @@ void main()
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
 
+  g_thickness = nodetree_thickness() * thickness_mode;
+
   fragment_displacement();
 
   nodetree_surface(closure_rand);
 
   g_holdout = saturate(g_holdout);
-
-  g_thickness = nodetree_thickness() * thickness_mode;
 
   /** Transparency weight is already applied through dithering, remove it from other closures. */
   float transparency = 1.0 - average(g_transmittance);

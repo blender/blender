@@ -1393,9 +1393,9 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
       prop, "Character Weight", "Weight of the characters. 100-900, 400 is normal");
   RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 
-  prop = RNA_def_property(srna, "shadow", PROP_INT, PROP_PIXEL);
-  RNA_def_property_range(prop, 0, 5);
-  RNA_def_property_ui_text(prop, "Shadow Size", "Shadow size (0, 3 and 5 supported)");
+  prop = RNA_def_property(srna, "shadow", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, 6);
+  RNA_def_property_ui_text(prop, "Shadow Size", "Shadow type (0 none, 3, 5 blur, 6 outline)");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
 
   prop = RNA_def_property(srna, "shadow_offset_x", PROP_INT, PROP_PIXEL);

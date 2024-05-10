@@ -11,6 +11,7 @@
 #include "vk_buffer.hh"
 #include "vk_context.hh"
 #include "vk_data_conversion.hh"
+#include "vk_framebuffer.hh"
 #include "vk_memory.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
@@ -285,6 +286,7 @@ void VKTexture::read_sub(
 
   VKContext &context = *VKContext::get();
   if (use_render_graph) {
+    context.rendering_end();
     context.render_graph.add_node(copy_image_to_buffer);
     context.render_graph.submit_buffer_for_read(staging_buffer.vk_handle());
   }

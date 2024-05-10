@@ -80,6 +80,7 @@ struct EdgeSlideData {
 };
 
 struct EdgeSlideParams {
+  wmOperator *op = nullptr;
   float perc;
 
   /** When un-clamped - use this index: #TransDataEdgeSlideVert.dir_side. */
@@ -758,6 +759,9 @@ static void applyEdgeSlide(TransInfo *t)
   bool use_even = slp->use_even;
   const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
   const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
+  const bool is_precision = t->modifiers & MOD_PRECISION;
+  const bool is_snap = t->modifiers & MOD_SNAP;
+  const bool is_snap_invert = t->modifiers & MOD_SNAP_INVERT;
 
   final = t->values[0] + t->values_modal_offset[0];
 
@@ -785,14 +789,6 @@ static void applyEdgeSlide(TransInfo *t)
   else {
     ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, "%.4f ", final);
   }
-  ofs += BLI_snprintf_rlen(
-      str + ofs, sizeof(str) - ofs, RPT_("(E)ven: %s, "), WM_bool_as_string(use_even));
-  if (use_even) {
-    ofs += BLI_snprintf_rlen(
-        str + ofs, sizeof(str) - ofs, RPT_("(F)lipped: %s, "), WM_bool_as_string(flipped));
-  }
-  ofs += BLI_snprintf_rlen(
-      str + ofs, sizeof(str) - ofs, RPT_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));
   /* Done with header string. */
 
   /* Do stuff here. */
@@ -801,6 +797,27 @@ static void applyEdgeSlide(TransInfo *t)
   recalc_data(t);
 
   ED_area_status_text(t->area, str);
+
+  wmOperator *op = slp->op;
+  if (!op) {
+    return;
+  }
+
+  WorkspaceStatus status(t->context);
+  status.opmodal(IFACE_("Confirm"), op->type, TFM_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Cancel"), op->type, TFM_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Snap"), op->type, TFM_MODAL_SNAP_TOGGLE, is_snap);
+  status.opmodal(IFACE_("Snap Invert"), op->type, TFM_MODAL_SNAP_INV_ON, is_snap_invert);
+  status.opmodal(IFACE_("Set Snap Base"), op->type, TFM_MODAL_EDIT_SNAP_SOURCE_ON);
+  status.opmodal(IFACE_("Move"), op->type, TFM_MODAL_TRANSLATE);
+  status.opmodal(IFACE_("Rotate"), op->type, TFM_MODAL_ROTATE);
+  status.opmodal(IFACE_("Resize"), op->type, TFM_MODAL_RESIZE);
+  status.opmodal(IFACE_("Precision Mode"), op->type, TFM_MODAL_PRECISION, is_precision);
+  status.item_bool(IFACE_("Clamp"), is_clamp, ICON_EVENT_C, ICON_EVENT_ALT);
+  status.item_bool(IFACE_("Even"), use_even, ICON_EVENT_E);
+  if (use_even) {
+    status.item_bool(IFACE_("Flipped"), flipped, ICON_EVENT_F);
+  }
 }
 
 static void edge_slide_transform_matrix_fn(TransInfo *t, float mat_xform[4][4])
@@ -838,8 +855,12 @@ static void edge_slide_transform_matrix_fn(TransInfo *t, float mat_xform[4][4])
   add_v3_v3(mat_xform[3], delta);
 }
 
-static void initEdgeSlide_ex(
-    TransInfo *t, bool use_double_side, bool use_even, bool flipped, bool use_clamp)
+static void initEdgeSlide_ex(TransInfo *t,
+                             wmOperator *op,
+                             bool use_double_side,
+                             bool use_even,
+                             bool flipped,
+                             bool use_clamp)
 {
   EdgeSlideData *sld;
   bool ok = false;
@@ -848,6 +869,7 @@ static void initEdgeSlide_ex(
 
   {
     EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(MEM_callocN(sizeof(*slp), __func__));
+    slp->op = op;
     slp->use_even = use_even;
     slp->flipped = flipped;
     /* Happens to be best for single-sided. */
@@ -899,12 +921,17 @@ static void initEdgeSlide(TransInfo *t, wmOperator *op)
   bool flipped = false;
   bool use_clamp = true;
   if (op) {
-    use_double_side = !RNA_boolean_get(op->ptr, "single_side");
-    use_even = RNA_boolean_get(op->ptr, "use_even");
-    flipped = RNA_boolean_get(op->ptr, "flipped");
-    use_clamp = RNA_boolean_get(op->ptr, "use_clamp");
+    PropertyRNA *prop;
+    prop = RNA_struct_find_property(op->ptr, "single_side");
+    use_double_side = (prop) ? !RNA_property_boolean_get(op->ptr, prop) : true;
+    prop = RNA_struct_find_property(op->ptr, "use_even");
+    use_even = (prop) ? RNA_property_boolean_get(op->ptr, prop) : false;
+    prop = RNA_struct_find_property(op->ptr, "flipped");
+    flipped = (prop) ? RNA_property_boolean_get(op->ptr, prop) : false;
+    prop = RNA_struct_find_property(op->ptr, "use_clamp");
+    use_clamp = (prop) ? RNA_property_boolean_get(op->ptr, prop) : true;
   }
-  initEdgeSlide_ex(t, use_double_side, use_even, flipped, use_clamp);
+  initEdgeSlide_ex(t, op, use_double_side, use_even, flipped, use_clamp);
 }
 
 /** \} */

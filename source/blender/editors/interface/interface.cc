@@ -2029,7 +2029,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
   uiStyle style = *UI_style_get_dpi(); /* XXX pass on as arg */
 
   /* get menu region or area region */
-  ARegion *region = CTX_wm_menu(C);
+  ARegion *region = CTX_wm_region_popup(C);
   if (!region) {
     region = CTX_wm_region(C);
   }

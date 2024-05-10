@@ -512,6 +512,11 @@ typedef struct GreasePencil {
   bool is_layer_active(const blender::bke::greasepencil::Layer *layer) const;
   void autolock_inactive_layers();
 
+  /* Active group functions. */
+  bool has_active_group() const;
+  const blender::bke::greasepencil::LayerGroup *get_active_group() const;
+  blender::bke::greasepencil::LayerGroup *get_active_group();
+
   /* Adding layers and layer groups. */
   /** Adds a new layer with the given name to the top of root group. */
   blender::bke::greasepencil::Layer &add_layer(blender::StringRefNull name);
@@ -550,6 +555,7 @@ typedef struct GreasePencil {
   void rename_node(blender::bke::greasepencil::TreeNode &node, blender::StringRefNull new_name);
 
   void remove_layer(blender::bke::greasepencil::Layer &layer);
+  void remove_group(blender::bke::greasepencil::LayerGroup &group, bool keep_children = false);
 
   /* Frames API functions. */
 

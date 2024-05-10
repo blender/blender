@@ -6,12 +6,14 @@
  * \ingroup animrig
  */
 
+#include <cfloat>
 #include <cmath>
 #include <cstring>
 
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "BKE_fcurve.hh"
+#include "BLI_math_base.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "DNA_anim_types.h"
@@ -271,11 +273,57 @@ void initialize_bezt(BezTriple *beztr,
   beztr->period = 4.1f;
 }
 
+/**
+ * Return whether the given fcurve already evaluates to the same value as the
+ * proposed keyframe at the keyframe's time.
+ *
+ * This is a helper function for determining whether to insert a keyframe or not
+ * when "only insert needed" is enabled.
+ *
+ * Note: this does *not* determine whether inserting the keyframe would change
+ * the fcurve at points other than the keyframe itself. For example, even if
+ * inserting the key wouldn't change the fcurve's value at the time of the
+ * keyframe, the resulting changes to bezier interpolation could change the
+ * fcurve on either side of it. This function intentionally does not account for
+ * that, since that's not how the "only insert needed" feature is supposed to
+ * work.
+ */
+static bool new_key_needed(FCurve &fcu, const float frame, const float value)
+{
+  if (fcu.totvert == 0) {
+    return true;
+  }
+
+  bool replace;
+  const int bezt_index = BKE_fcurve_bezt_binarysearch_index(
+      fcu.bezt, frame, fcu.totvert, &replace);
+
+  if (replace) {
+    /* If there is already a key, we only need to modify it if the proposed value is different. */
+    return fcu.bezt[bezt_index].vec[1][1] != value;
+  }
+
+  const int diff_ulp = 32;
+  const float fcu_eval = evaluate_fcurve(&fcu, frame);
+  /* No need to insert a key if the same value is already the value of the FCurve at that point. */
+  if (compare_ff_relative(fcu_eval, value, FLT_EPSILON, diff_ulp)) {
+    return false;
+  }
+
+  return true;
+}
+
 SingleKeyingResult insert_vert_fcurve(FCurve *fcu,
                                       const float2 position,
                                       const KeyframeSettings &settings,
                                       eInsertKeyFlags flag)
 {
+  BLI_assert(fcu != nullptr);
+
+  if ((flag & INSERTKEY_NEEDED) && !new_key_needed(*fcu, position[0], position[1])) {
+    return SingleKeyingResult::NO_KEY_NEEDED;
+  }
+
   BezTriple beztr = {{{0}}};
   initialize_bezt(&beztr, position, settings, eFCurve_Flags(fcu->flag));
 
@@ -494,7 +542,7 @@ void bake_fcurve_segments(FCurve *fcu)
           /* Add keyframes with these, tagging as 'breakdowns'. */
           for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {
             blender::animrig::insert_vert_fcurve(
-                fcu, {fp->frame, fp->val}, settings, eInsertKeyFlags(1));
+                fcu, {fp->frame, fp->val}, settings, INSERTKEY_NOFLAGS);
           }
 
           MEM_freeN(value_cache);

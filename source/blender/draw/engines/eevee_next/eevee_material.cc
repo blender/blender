@@ -205,12 +205,17 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
 
   const bool is_transparent = GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT);
 
-  if (GPU_material_recalc_flag_get(matpass.gpumat)) {
+  if (use_deferred_compilation && GPU_material_recalc_flag_get(matpass.gpumat)) {
     /* TODO(Miguel Pozo): This is broken, it consumes the flag,
      * but GPUMats can be shared across viewports. */
     inst_.sampling.reset();
 
-    if ((pipeline_type == MAT_PIPE_SHADOW) && is_transparent) {
+    const bool has_displacement = GPU_material_has_displacement_output(matpass.gpumat) &&
+                                  (blender_mat->displacement_method != MA_DISPLACEMENT_BUMP);
+    const bool has_volume = GPU_material_has_volume_output(matpass.gpumat);
+
+    if (((pipeline_type == MAT_PIPE_SHADOW) && (is_transparent || has_displacement)) || has_volume)
+    {
       /* WORKAROUND: This is to avoid lingering shadows from default material.
        * Ideally, we should tag the caster object to update only the needed areas but that's a bit
        * more involved. */

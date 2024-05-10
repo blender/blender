@@ -90,7 +90,7 @@ static void ui_region_redraw_immediately(bContext *C, ARegion *region)
   WM_draw_region_viewport_bind(region);
   ED_region_do_draw(C, region);
   WM_draw_region_viewport_unbind(region);
-  region->do_draw = false;
+  region->do_draw = 0;
 }
 
 /** \} */
@@ -2411,7 +2411,7 @@ static void UI_OT_button_execute(wmOperatorType *ot)
 
 static int button_string_clear_exec(bContext *C, wmOperator * /*op*/)
 {
-  uiBut *but = UI_context_active_but_get_respect_menu(C);
+  uiBut *but = UI_context_active_but_get_respect_popup(C);
 
   if (but) {
     ui_but_active_string_clear_and_exit(C, but);

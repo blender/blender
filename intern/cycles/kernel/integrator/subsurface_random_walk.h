@@ -359,7 +359,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
       ray.self.object = OBJECT_NONE;
       ray.self.prim = PRIM_NONE;
     }
-    scene_intersect_local(kg, &ray, &ss_isect, object, NULL, 1);
+    scene_intersect_local<true>(kg, &ray, &ss_isect, object, NULL, 1);
     hit = (ss_isect.num_hits > 0);
 
     if (hit) {

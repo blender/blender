@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.h"
+
 #include "COM_GlareFogGlowOperation.h"
 
 namespace blender::compositor {
@@ -390,44 +393,32 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 }
 
 void GlareFogGlowOperation::generate_glare(float *data,
-                                           MemoryBuffer *input_tile,
+                                           MemoryBuffer *input_image,
                                            const NodeGlare *settings)
 {
-  int x, y;
-  float scale, u, v, r, w, d;
-  fRGB fcol;
-  MemoryBuffer *ckrn;
-  uint sz = 1 << settings->size;
-  const float cs_r = 1.0f, cs_g = 1.0f, cs_b = 1.0f;
+  const int kernel_size = 1 << settings->size;
+  MemoryBuffer kernel = MemoryBuffer(DataType::Color, kernel_size, kernel_size);
 
-  /* Temp. src image
-   * make the convolution kernel. */
-  rcti kernel_rect;
-  BLI_rcti_init(&kernel_rect, 0, sz, 0, sz);
-  ckrn = new MemoryBuffer(DataType::Color, kernel_rect);
+  const float scale = 0.25f * math::sqrt(math::square(kernel_size));
 
-  scale = 0.25f * sqrtf(float(sz * sz));
+  for (int y = 0; y < kernel_size; y++) {
+    const float v = 2.0f * (y / float(kernel_size)) - 1.0f;
+    for (int x = 0; x < kernel_size; x++) {
+      const float u = 2.0f * (x / float(kernel_size)) - 1.0f;
+      const float r = (math::square(u) + math::square(v)) * scale;
+      const float d = -math::sqrt(math::sqrt(math::sqrt(r))) * 9.0f;
+      const float kernel_value = math::exp(d);
 
-  for (y = 0; y < sz; y++) {
-    v = 2.0f * (y / float(sz)) - 1.0f;
-    for (x = 0; x < sz; x++) {
-      u = 2.0f * (x / float(sz)) - 1.0f;
-      r = (u * u + v * v) * scale;
-      d = -sqrtf(sqrtf(sqrtf(r))) * 9.0f;
-      fcol[0] = expf(d * cs_r);
-      fcol[1] = expf(d * cs_g);
-      fcol[2] = expf(d * cs_b);
-      /* Linear window good enough here, visual result counts, not scientific analysis:
-       * `w = (1.0f-fabs(u))*(1.0f-fabs(v));`
-       * actually, Hanning window is ok, `cos^2` for some reason is slower. */
-      w = (0.5f + 0.5f * cosf(u * float(M_PI))) * (0.5f + 0.5f * cosf(v * float(M_PI)));
-      mul_v3_fl(fcol, w);
-      ckrn->write_pixel(x, y, fcol);
+      const float window = (0.5f + 0.5f * math::cos(u * math::numbers::pi)) *
+                           (0.5f + 0.5f * math::cos(v * math::numbers::pi));
+      const float windowed_kernel_value = window * kernel_value;
+
+      copy_v3_fl(kernel.get_elem(x, y), windowed_kernel_value);
+      kernel.get_elem(x, y)[3] = 1.0f;
     }
   }
 
-  convolve(data, input_tile, ckrn);
-  delete ckrn;
+  convolve(data, input_image, &kernel);
 }
 
 }  // namespace blender::compositor

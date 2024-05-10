@@ -153,10 +153,6 @@ class DATA_PT_EEVEE_light_shadow(DataButtonsPanel, Panel):
         layout.active = context.scene.eevee.use_shadows and light.use_shadow
 
         col = layout.column()
-        if light.type == 'SUN':
-            col.prop(light, "shadow_trace_distance", text="Distance")
-            col.separator()
-
         col.prop(light, "shadow_filter_radius", text="Filter")
         col.prop(light, "shadow_resolution_scale", text="Resolution")
 

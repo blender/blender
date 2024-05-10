@@ -95,6 +95,10 @@ enum eV3DCursorOrient {
 };
 
 void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float r_color[3]);
+void ED_view3d_text_colors_get(const Scene *scene,
+                               const View3D *v3d,
+                               float r_text_color[4],
+                               float r_shadow_color[4]);
 bool ED_view3d_has_workbench_in_texture_color(const Scene *scene,
                                               const Object *ob,
                                               const View3D *v3d);
