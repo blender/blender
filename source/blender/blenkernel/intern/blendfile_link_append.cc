@@ -1104,32 +1104,6 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
 /** \name Library link/append code.
  * \{ */
 
-static void blendfile_link_append_proxies_convert(Main *bmain, ReportList *reports)
-{
-  /* NOTE: Do not bother checking file versions here, if there are no proxies to convert this code
-   * is quite fast anyway. */
-
-  BlendFileReadReport bf_reports{};
-  bf_reports.reports = reports;
-  BKE_lib_override_library_main_proxy_convert(bmain, &bf_reports);
-
-  /* Currently liboverride code can generate invalid namemap. This is a known issue, requires
-   * #107847 to be properly fixed. */
-  BKE_main_namemap_validate_and_fix(bmain);
-
-  if (bf_reports.count.proxies_to_lib_overrides_success != 0 ||
-      bf_reports.count.proxies_to_lib_overrides_failures != 0)
-  {
-    BKE_reportf(bf_reports.reports,
-                RPT_WARNING,
-                "Proxies have been removed from Blender (%d proxies were automatically converted "
-                "to library overrides, %d proxies could not be converted and were cleared). "
-                "Consider re-saving any library .blend file with the newest Blender version",
-                bf_reports.count.proxies_to_lib_overrides_success,
-                bf_reports.count.proxies_to_lib_overrides_failures);
-  }
-}
-
 void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   if (lapp_context->num_items == 0) {
@@ -1380,16 +1354,9 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
   BKE_main_id_newptr_and_tag_clear(bmain);
 
-  blendfile_link_append_proxies_convert(bmain, reports);
-  BKE_main_mesh_legacy_convert_auto_smooth(*bmain);
-
-  if (U.experimental.use_grease_pencil_version3 &&
-      U.experimental.use_grease_pencil_version3_convert_on_load)
-  {
-    BlendFileReadReport bf_reports{};
-    bf_reports.reports = reports;
-    blender::bke::greasepencil::convert::legacy_main(*bmain, bf_reports);
-  }
+  BlendFileReadReport bf_reports{};
+  bf_reports.reports = reports;
+  BLO_read_do_version_after_setup(bmain, &bf_reports);
 }
 
 static void blendfile_link_finalize(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
@@ -1428,16 +1395,9 @@ static void blendfile_link_finalize(BlendfileLinkAppendContext *lapp_context, Re
     loose_data_instantiate(&instantiate_context);
   }
 
-  blendfile_link_append_proxies_convert(lapp_context->params->bmain, reports);
-  BKE_main_mesh_legacy_convert_auto_smooth(*lapp_context->params->bmain);
-
-  if (U.experimental.use_grease_pencil_version3 &&
-      U.experimental.use_grease_pencil_version3_convert_on_load)
-  {
-    BlendFileReadReport bf_reports{};
-    bf_reports.reports = reports;
-    blender::bke::greasepencil::convert::legacy_main(*lapp_context->params->bmain, bf_reports);
-  }
+  BlendFileReadReport bf_reports{};
+  bf_reports.reports = reports;
+  BLO_read_do_version_after_setup(lapp_context->params->bmain, &bf_reports);
 }
 
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
