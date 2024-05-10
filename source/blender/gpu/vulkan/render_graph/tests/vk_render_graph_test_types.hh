@@ -378,18 +378,22 @@ class CommandBufferLog : public VKCommandBufferInterface {
     GTEST_FAIL() << __func__ << " not implemented!";
   }
 
-  void begin_render_pass(const VkRenderPassBeginInfo *p_render_pass_begin,
-                         VkSubpassContents contents) override
+  void begin_rendering(const VkRenderingInfo *p_rendering_info) override
   {
-    UNUSED_VARS(p_render_pass_begin, contents);
     EXPECT_TRUE(is_recording_);
-    GTEST_FAIL() << __func__ << " not implemented!";
+    std::stringstream ss;
+    ss << "begin_rendering(";
+    ss << "p_rendering_info=" << to_string(*p_rendering_info);
+    ss << ")";
+    log_.append(ss.str());
   }
 
-  void end_render_pass() override
+  void end_rendering() override
   {
     EXPECT_TRUE(is_recording_);
-    GTEST_FAIL() << __func__ << " not implemented!";
+    std::stringstream ss;
+    ss << "end_rendering()";
+    log_.append(ss.str());
   }
 };
 
