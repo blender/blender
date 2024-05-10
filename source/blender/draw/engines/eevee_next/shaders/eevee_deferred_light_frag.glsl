@@ -15,6 +15,34 @@
 #pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
 
+void write_radiance_direct(int layer_index, ivec2 texel, vec3 radiance)
+{
+  /* TODO(fclem): Layered texture. */
+  if (layer_index == 0) {
+    imageStore(direct_radiance_1_img, texel, vec4(radiance, 1.0));
+  }
+  else if (layer_index == 1) {
+    imageStore(direct_radiance_2_img, texel, vec4(radiance, 1.0));
+  }
+  else if (layer_index == 2) {
+    imageStore(direct_radiance_3_img, texel, vec4(radiance, 1.0));
+  }
+}
+
+void write_radiance_indirect(int layer_index, ivec2 texel, vec3 radiance)
+{
+  /* TODO(fclem): Layered texture. */
+  if (layer_index == 0) {
+    imageStore(indirect_radiance_1_img, texel, vec4(radiance, 1.0));
+  }
+  else if (layer_index == 1) {
+    imageStore(indirect_radiance_2_img, texel, vec4(radiance, 1.0));
+  }
+  else if (layer_index == 2) {
+    imageStore(indirect_radiance_3_img, texel, vec4(radiance, 1.0));
+  }
+}
+
 void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -33,8 +61,9 @@ void main()
   float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
 
   ClosureLightStack stack;
+  /* Unroll light stack array assignments to avoid non-constant indexing. */
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
-    stack.cl[i] = closure_light_new(gbuffer_closure_get(gbuf, i), V);
+    closure_light_set(stack, i, closure_light_new(gbuffer_closure_get(gbuf, i), V));
   }
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
@@ -80,8 +109,8 @@ void main()
     vec3 radiance_shadowed = vec3(0);
     vec3 radiance_unshadowed = vec3(0);
     for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
-      radiance_shadowed += stack.cl[i].light_shadowed;
-      radiance_unshadowed += stack.cl[i].light_unshadowed;
+      radiance_shadowed += closure_light_get(stack, i).light_shadowed;
+      radiance_unshadowed += closure_light_get(stack, i).light_unshadowed;
     }
     /* TODO(fclem): Change shadow pass to be colored. */
     vec3 shadows = radiance_shadowed * safe_rcp(radiance_unshadowed);
@@ -98,36 +127,22 @@ void main()
       ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
       vec3 indirect_light = lightprobe_eval(samp, cl, P, V, gbuf.thickness);
 
+      int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
+      vec3 direct_light = closure_light_get(stack, i).light_shadowed;
       if (use_split_indirect) {
-        int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
-        /* TODO(fclem): Layered texture. */
-        if (layer_index == 0) {
-          imageStore(indirect_radiance_1_img, texel, vec4(indirect_light, 1.0));
-        }
-        else if (layer_index == 1) {
-          imageStore(indirect_radiance_2_img, texel, vec4(indirect_light, 1.0));
-        }
-        else if (layer_index == 2) {
-          imageStore(indirect_radiance_3_img, texel, vec4(indirect_light, 1.0));
-        }
+        write_radiance_indirect(layer_index, texel, indirect_light);
+        write_radiance_direct(layer_index, texel, direct_light);
       }
       else {
-        stack.cl[i].light_shadowed += indirect_light;
+        write_radiance_direct(layer_index, texel, direct_light + indirect_light);
       }
     }
   }
-
-  for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
-    int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
-    /* TODO(fclem): Layered texture. */
-    if (layer_index == 0) {
-      imageStore(direct_radiance_1_img, texel, vec4(stack.cl[i].light_shadowed, 1.0));
-    }
-    else if (layer_index == 1) {
-      imageStore(direct_radiance_2_img, texel, vec4(stack.cl[i].light_shadowed, 1.0));
-    }
-    else if (layer_index == 2) {
-      imageStore(direct_radiance_3_img, texel, vec4(stack.cl[i].light_shadowed, 1.0));
+  else {
+    for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
+      int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
+      vec3 direct_light = closure_light_get(stack, i).light_shadowed;
+      write_radiance_direct(layer_index, texel, direct_light);
     }
   }
 }
