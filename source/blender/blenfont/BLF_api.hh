@@ -261,23 +261,12 @@ void BLF_shadow(int fontid, int level, const float rgba[4]) ATTR_NONNULL(3);
 void BLF_shadow_offset(int fontid, int x, int y);
 
 /**
- * Set the buffer, size and number of channels to draw, one thing to take care is call
- * this function with NULL pointer when we finish, for example:
- * \code{.c}
- * BLF_buffer(my_fbuf, my_cbuf, 100, 100, 4, true, NULL);
- *
- * ... set color, position and draw ...
- *
- * BLF_buffer(NULL, NULL, NULL, 0, 0, false, NULL);
- * \endcode
+ * Make font be rasterized into a given memory image/buffer.
+ * The image is assumed to have 4 color channels (RGBA) per pixel.
+ * When done, call this function with null buffer pointers.
  */
-void BLF_buffer(int fontid,
-                float *fbuf,
-                unsigned char *cbuf,
-                int w,
-                int h,
-                int nch,
-                ColorManagedDisplay *display);
+void BLF_buffer(
+    int fontid, float *fbuf, unsigned char *cbuf, int w, int h, ColorManagedDisplay *display);
 
 /**
  * Set the color to be used for text.

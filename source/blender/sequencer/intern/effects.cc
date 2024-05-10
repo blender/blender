@@ -2798,7 +2798,7 @@ static void draw_text_shadow(const SeqRenderData *context,
      * not get blur. */
     tmp_out1 = prepare_effect_imbufs(context, nullptr, nullptr, nullptr, false);
     tmp_out2 = prepare_effect_imbufs(context, nullptr, nullptr, nullptr, false);
-    BLF_buffer(font, nullptr, tmp_out1->byte_buffer.data, width, height, 4, display);
+    BLF_buffer(font, nullptr, tmp_out1->byte_buffer.data, width, height, display);
   }
 
   float offsetx = cosf(data->shadow_angle) * line_height * data->shadow_offset;
@@ -2877,7 +2877,7 @@ static void draw_text_shadow(const SeqRenderData *context,
     });
     IMB_freeImBuf(tmp_out1);
     IMB_freeImBuf(tmp_out2);
-    BLF_buffer(font, nullptr, out->byte_buffer.data, width, height, out->channels, display);
+    BLF_buffer(font, nullptr, out->byte_buffer.data, width, height, display);
   }
 }
 
@@ -2960,7 +2960,7 @@ static void draw_text_outline(const SeqRenderData *context,
   /* Draw white text into temporary buffer. */
   const size_t pixel_count = size_t(size.x) * size.y;
   Array<uchar4> tmp_buf(pixel_count, uchar4(0));
-  BLF_buffer(font, nullptr, (uchar *)tmp_buf.data(), size.x, size.y, 4, display);
+  BLF_buffer(font, nullptr, (uchar *)tmp_buf.data(), size.x, size.y, display);
   BLF_position(font, x, y, 0.0f);
   BLF_buffer_col(font, float4(1.0f));
   BLF_draw_buffer(font, data->text, sizeof(data->text));
@@ -3042,7 +3042,7 @@ static void draw_text_outline(const SeqRenderData *context,
       }
     }
   });
-  BLF_buffer(font, nullptr, out->byte_buffer.data, size.x, size.y, out->channels, display);
+  BLF_buffer(font, nullptr, out->byte_buffer.data, size.x, size.y, display);
 }
 
 static ImBuf *do_text_effect(const SeqRenderData *context,
@@ -3093,7 +3093,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* use max width to enable newlines only */
   BLF_wordwrap(font, (data->wrap_width != 0.0f) ? data->wrap_width * width : -1);
 
-  BLF_buffer(font, nullptr, out->byte_buffer.data, width, height, out->channels, display);
+  BLF_buffer(font, nullptr, out->byte_buffer.data, width, height, display);
 
   const int line_height = BLF_height_max(font);
 
@@ -3157,7 +3157,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   BLF_buffer_col(font, data->color);
   BLF_draw_buffer(font, data->text, sizeof(data->text));
 
-  BLF_buffer(font, nullptr, nullptr, 0, 0, 0, nullptr);
+  BLF_buffer(font, nullptr, nullptr, 0, 0, nullptr);
 
   BLF_disable(font, font_flags);
 

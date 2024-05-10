@@ -361,7 +361,7 @@ static void checker_board_text(
    *            this is correct since currently generated images are assumed to be in sRGB space,
    *            but this would probably needed to be fixed in some way
    */
-  BLF_buffer(mono, rect_float, rect, width, height, 4, nullptr);
+  BLF_buffer(mono, rect_float, rect, width, height, nullptr);
 
   const float text_color[4] = {0.0, 0.0, 0.0, 1.0};
   const float text_outline[4] = {1.0, 1.0, 1.0, 1.0};
@@ -413,7 +413,7 @@ static void checker_board_text(
   }
 
   /* cleanup the buffer. */
-  BLF_buffer(mono, nullptr, nullptr, 0, 0, 0, nullptr);
+  BLF_buffer(mono, nullptr, nullptr, 0, 0, nullptr);
 }
 
 static void checker_board_color_prepare_slice(

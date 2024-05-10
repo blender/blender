@@ -1360,8 +1360,7 @@ static void renderresult_stampinfo(Render *re)
                         rres.ibuf->byte_buffer.data,
                         rres.ibuf->float_buffer.data,
                         rres.rectx,
-                        rres.recty,
-                        4);
+                        rres.recty);
     RE_ReleaseResultImage(re);
     nr++;
   }

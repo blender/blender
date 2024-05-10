@@ -84,8 +84,7 @@ void BKE_image_stamp_buf(struct Scene *scene,
                          unsigned char *rect,
                          float *rectf,
                          int width,
-                         int height,
-                         int channels);
+                         int height);
 bool BKE_imbuf_alpha_test(struct ImBuf *ibuf);
 int BKE_imbuf_write_stamp(const struct Scene *scene,
                           const struct RenderResult *rr,

@@ -219,9 +219,6 @@ struct FontBufInfoBLF {
   /** Buffer size, keep signed so comparisons with negative values work. */
   int dims[2];
 
-  /** Number of channels. */
-  int ch;
-
   /** Display device used for color management. */
   ColorManagedDisplay *display;
 

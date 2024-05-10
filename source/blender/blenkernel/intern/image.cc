@@ -1978,8 +1978,7 @@ void BKE_image_stamp_buf(Scene *scene,
                          uchar *rect,
                          float *rectf,
                          int width,
-                         int height,
-                         int channels)
+                         int height)
 {
   StampData stamp_data;
   int w, h, pad;
@@ -2034,7 +2033,7 @@ void BKE_image_stamp_buf(Scene *scene,
   BLF_size(mono, scene->r.stamp_font_id);
   BLF_wordwrap(mono, width - (BUFF_MARGIN_X * 2));
 
-  BLF_buffer(mono, rectf, rect, width, height, channels, display);
+  BLF_buffer(mono, rectf, rect, width, height, display);
   BLF_buffer_col(mono, scene->r.fg_stamp);
   pad = BLF_width_max(mono);
 
@@ -2358,7 +2357,7 @@ void BKE_image_stamp_buf(Scene *scene,
   }
 
   /* cleanup the buffer. */
-  BLF_buffer(mono, nullptr, nullptr, 0, 0, 0, nullptr);
+  BLF_buffer(mono, nullptr, nullptr, 0, 0, nullptr);
   BLF_wordwrap(mono, 0);
 
 #undef TEXT_SIZE_CHECK
