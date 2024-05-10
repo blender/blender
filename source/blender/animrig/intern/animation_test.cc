@@ -450,12 +450,12 @@ TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
   /* Insert a second key, should insert into the same FCurve as before. */
   SingleKeyingResult result_loc_b = key_strip.keyframe_insert(
       binding, "location", 0, {5.0f, 47.1f}, settings);
-  ASSERT_EQ(SingleKeyingResult::SUCCESS, result_loc_b);
+  EXPECT_EQ(SingleKeyingResult::SUCCESS, result_loc_b);
   ASSERT_EQ(1, channels->fcurves().size()) << "Expect insertion with the same (binding/rna "
                                               "path/array index) tuple to go into the same FCurve";
-  ASSERT_EQ(2, channels->fcurves()[0]->totvert)
-      << "Expect insertion with the same (binding/rna "
-         "path/array index) tuple to go into the same FCurve";
+  EXPECT_EQ(2, channels->fcurves()[0]->totvert)
+      << "Expect insertion with the same (binding/rna path/array index) tuple to go into the same "
+         "FCurve";
 
   EXPECT_EQ(47.0f, evaluate_fcurve(channels->fcurves()[0], 1.0f));
   EXPECT_EQ(47.1f, evaluate_fcurve(channels->fcurves()[0], 5.0f));
@@ -463,10 +463,10 @@ TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
   /* Insert another key for another property, should create another FCurve. */
   SingleKeyingResult result_rot = key_strip.keyframe_insert(
       binding, "rotation_quaternion", 0, {1.0f, 0.25f}, settings);
-  ASSERT_EQ(SingleKeyingResult::SUCCESS, result_rot);
+  EXPECT_EQ(SingleKeyingResult::SUCCESS, result_rot);
   ASSERT_EQ(2, channels->fcurves().size()) << "Expected a second FCurve to be created.";
-  ASSERT_EQ(2, channels->fcurves()[0]->totvert);
-  ASSERT_EQ(1, channels->fcurves()[1]->totvert);
+  EXPECT_EQ(2, channels->fcurves()[0]->totvert);
+  EXPECT_EQ(1, channels->fcurves()[1]->totvert);
 }
 
 }  // namespace blender::animrig::tests
