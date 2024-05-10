@@ -1368,8 +1368,8 @@ static void blf_texture_draw(const GlyphBLF *g,
   copy_v2_v2_int(static_cast<int *>(GPU_vertbuf_raw_step(&g_batch.glyph_size_step)), g->dims);
   *((int *)GPU_vertbuf_raw_step(&g_batch.offset_step)) = g->offset;
   /* Glyph flags packs color channel count and shadow type. */
-  uint32_t flags = uint32_t(shadow) | (g->num_channels << 4);
-  *((int *)GPU_vertbuf_raw_step(&g_batch.glyph_flags_step)) = flags;
+  uint32_t flags = uint32_t(shadow) | (uint32_t(g->num_channels) << 4);
+  *((uint32_t *)GPU_vertbuf_raw_step(&g_batch.glyph_flags_step)) = flags;
 
   g_batch.glyph_len++;
   /* Flush cache if it's full. */
