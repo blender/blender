@@ -1506,8 +1506,7 @@ bool BKE_blendfile_write_partial(Main *bmain_src,
    * (otherwise `main->filepath` will not be set at read time). */
   STRNCPY(bmain_dst->filepath, bmain_src->filepath);
 
-  BLO_main_expander(blendfile_write_partial_cb);
-  BLO_expand_main(nullptr, bmain_src);
+  BLO_expand_main(nullptr, bmain_src, blendfile_write_partial_cb);
 
   /* move over all tagged blocks */
   set_listbasepointers(bmain_src, lbarray_src);

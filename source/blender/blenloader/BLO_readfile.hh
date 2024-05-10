@@ -483,19 +483,14 @@ void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname);
 using BLOExpandDoitCallback = void (*)(void *fdhandle, Main *mainvar, void *idv);
 
 /**
- * Set the callback func used over all ID data found by \a BLO_expand_main func.
- *
- * \param expand_doit_func: Called for each ID block it finds.
- */
-void BLO_main_expander(BLOExpandDoitCallback expand_doit_func);
-/**
  * Loop over all ID data in Main to mark relations.
  * Set (id->tag & LIB_TAG_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
  *
  * \param fdhandle: usually file-data, or own handle. May be nullptr.
  * \param mainvar: the Main database to expand.
+ * \param calback: Called for each ID block it finds.
  */
-void BLO_expand_main(void *fdhandle, Main *mainvar);
+void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callback);
 
 /**
  * Update defaults in startup.blend, without having to save and embed it.
