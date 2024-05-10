@@ -769,8 +769,6 @@ void ED_info_draw_stats(
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   const int font_id = BLF_default();
 
-  UI_FontThemeColor(font_id, TH_TEXT_HI);
-
   /* Translated labels for each stat row. */
   enum {
     OBJ,

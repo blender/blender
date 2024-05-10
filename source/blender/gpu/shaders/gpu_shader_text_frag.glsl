@@ -63,7 +63,7 @@ vec4 sample_glyph_rgba(vec2 uv)
 
   vec4 col = vec4(0.0);
   if (is_inside_box(texel)) {
-    int index = glyph_offset + (texel.y * glyph_dim.x + texel.x) * glyph_comp_len;
+    int index = glyph_offset + (texel.y * glyph_dim.x + texel.x) * 4;
     col.r = texel_fetch(index);
     col.g = texel_fetch(index + 1);
     col.b = texel_fetch(index + 2);
@@ -75,9 +75,11 @@ vec4 sample_glyph_rgba(vec2 uv)
 void main()
 {
   vec2 uv_base = texCoord_interp;
+  uint num_channels = (glyph_flags >> 4) & 0xF;
+  uint shadow_type = glyph_flags & 0xF;
 
   /* Colored glyphs: do not do filtering or blurring. */
-  if (glyph_comp_len == 4) {
+  if (num_channels == 4) {
     fragColor.rgba = sample_glyph_rgba(uv_base).rgba;
     return;
   }
@@ -86,20 +88,47 @@ void main()
 
   fragColor.rgb = color_flat.rgb;
 
-  if (interp_size == 0) {
+  if (shadow_type == 0) {
     /* No blurring: just a bilinear sample. */
     fragColor.a = sample_glyph_bilinear(bilin_f, uv_base);
   }
   else {
 
-    /* Blurring: will fetch (N+1)x(N+1) are of glyph texels, shifting the
-     * filter kernel weights by bilinear fraction. */
+    /* Blurring or dilation: will fetch (N+1)x(N+1) are of glyph texels,
+     * shifting the filter kernel weights by bilinear fraction. */
     fragColor.a = 0.0;
 
     ivec2 texel = ivec2(floor(uv_base)) - 1;
     int frag_offset = glyph_offset + texel.y * glyph_dim.x + texel.x;
 
-    if (interp_size == 1) {
+    if (shadow_type == 6) {
+      /* 3x3 outline by dilation */
+
+      float maxval = 0.0;
+      int idx = 0;
+      for (int iy = 0; iy < 4; ++iy) {
+        int ofsy = iy - 1;
+        for (int ix = 0; ix < 4; ++ix) {
+          int ofsx = ix - 1;
+          float v = texel_fetch(frag_offset + ofsy * glyph_dim.x + ofsx);
+          if (!is_inside_box(texel + ivec2(ofsx, ofsy))) {
+            v = 0.0;
+          }
+
+          /* Bilinearly compute weight for this sample. */
+          float w00 = ix < 3 && iy < 3 ? 1.0 : 0.0;
+          float w10 = ix > 0 && iy < 3 ? 1.0 : 0.0;
+          float w01 = ix < 3 && iy > 0 ? 1.0 : 0.0;
+          float w11 = ix > 0 && iy > 0 ? 1.0 : 0.0;
+          float w = mix(mix(w00, w10, bilin_f.x), mix(w01, w11, bilin_f.x), bilin_f.y);
+
+          maxval = max(maxval, v * w);
+          ++idx;
+        }
+      }
+      fragColor.a = maxval;
+    }
+    else if (shadow_type <= 4) {
       /* 3x3 blur */
 
       /* clang-format off */

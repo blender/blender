@@ -143,7 +143,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
     font_flag |= BLF_SHADOW;
     const float shadow_color[4] = {
         fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
-    BLF_shadow(fs->uifont_id, fs->shadow, shadow_color);
+    BLF_shadow(fs->uifont_id, FontShadowType(fs->shadow), shadow_color);
     BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
   }
   if (fs_params->word_wrap == 1) {
@@ -251,7 +251,7 @@ void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
     BLF_enable(fs->uifont_id, BLF_SHADOW);
     const float shadow_color[4] = {
         fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
-    BLF_shadow(fs->uifont_id, fs->shadow, shadow_color);
+    BLF_shadow(fs->uifont_id, FontShadowType(fs->shadow), shadow_color);
     BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
   }
 

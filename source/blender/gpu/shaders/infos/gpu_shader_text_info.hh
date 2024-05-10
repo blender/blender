@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Authors
+/* SPDX-FileCopyrightText: 2022-2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,18 +12,15 @@ GPU_SHADER_INTERFACE_INFO(text_iface, "")
     .flat(Type::VEC4, "color_flat")
     .no_perspective(Type::VEC2, "texCoord_interp")
     .flat(Type::INT, "glyph_offset")
-    .flat(Type::INT, "glyph_comp_len")
-    .flat(Type::INT, "glyph_mode")
-    .flat(Type::IVEC2, "glyph_dim")
-    .flat(Type::INT, "interp_size");
+    .flat(Type::UINT, "glyph_flags")
+    .flat(Type::IVEC2, "glyph_dim");
 
 GPU_SHADER_CREATE_INFO(gpu_shader_text)
     .vertex_in(0, Type::VEC4, "pos")
     .vertex_in(1, Type::VEC4, "col")
     .vertex_in(2, Type ::IVEC2, "glyph_size")
     .vertex_in(3, Type ::INT, "offset")
-    .vertex_in(4, Type ::INT, "comp_len")
-    .vertex_in(5, Type ::INT, "mode")
+    .vertex_in(4, Type ::UINT, "flags")
     .vertex_out(text_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")

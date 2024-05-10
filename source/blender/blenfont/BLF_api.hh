@@ -27,6 +27,13 @@ struct ListBase;
 struct ResultBLF;
 struct rcti;
 
+enum class FontShadowType {
+  None = 0,
+  Blur3x3 = 3,
+  Blur5x5 = 5,
+  Outline = 6,
+};
+
 int BLF_init();
 void BLF_exit();
 
@@ -246,11 +253,9 @@ void BLF_enable(int fontid, int option);
 void BLF_disable(int fontid, int option);
 
 /**
- * Shadow options, level is the blur level, can be 3, 5 or 0 and
- * the other argument are the RGBA color.
- * Take care that shadow need to be enable using #BLF_enable!
+ * Note that shadow needs to be enabled with #BLF_enable.
  */
-void BLF_shadow(int fontid, int level, const float rgba[4]) ATTR_NONNULL(3);
+void BLF_shadow(int fontid, FontShadowType type, const float rgba[4] = nullptr);
 
 /**
  * Set the offset for shadow text, this is the current cursor
@@ -305,8 +310,12 @@ void BLF_draw_default(float x, float y, float z, const char *str, size_t str_len
 /**
  * As above but with a very contrasting dark shadow.
  */
-void BLF_draw_default_shadowed(float x, float y, float z, const char *str, size_t str_len)
-    ATTR_NONNULL();
+void BLF_draw_default_shadowed(float x,
+                               float y,
+                               float z,
+                               const char *str,
+                               size_t str_len,
+                               const float shadow_color[4] = nullptr) ATTR_NONNULL(4);
 /**
  * Set size and DPI, and return default font ID.
  */

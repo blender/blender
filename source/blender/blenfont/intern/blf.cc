@@ -823,13 +823,15 @@ void BLF_wordwrap(int fontid, int wrap_width)
   }
 }
 
-void BLF_shadow(int fontid, int level, const float rgba[4])
+void BLF_shadow(int fontid, FontShadowType type, const float rgba[4])
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    font->shadow = level;
-    rgba_float_to_uchar(font->shadow_color, rgba);
+    font->shadow = type;
+    if (rgba) {
+      rgba_float_to_uchar(font->shadow_color, rgba);
+    }
   }
 }
 
