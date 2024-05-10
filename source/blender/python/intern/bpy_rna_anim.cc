@@ -669,7 +669,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
   BKE_reports_init(&reports, RPT_STORE);
 
-  result = ANIM_remove_driver(&reports, (ID *)self->ptr.owner_id, path_full, index, 0);
+  result = ANIM_remove_driver(self->ptr.owner_id, path_full, index);
 
   if (path != path_full) {
     MEM_freeN((void *)path_full);

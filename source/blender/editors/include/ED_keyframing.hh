@@ -353,10 +353,11 @@ int ANIM_add_driver(
 /**
  * \brief Main Driver Management API calls.
  *
- * Remove the driver for the specified property on the given ID block (if available).
+ * Remove the driver for the specified property on the given ID block.
+ *
+ * \return Whether any driver was removed.
  */
-bool ANIM_remove_driver(
-    ReportList *reports, ID *id, const char rna_path[], int array_index, short flag);
+bool ANIM_remove_driver(ID *id, const char rna_path[], int array_index);
 
 /* -------- */
 
