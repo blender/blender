@@ -962,7 +962,6 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
   TemplateID *template_ui = (TemplateID *)arg_litem;
   PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
   ID *id = static_cast<ID *>(idptr.data);
-  Main *bmain = CTX_data_main_from_id(C, id);
   const int event = POINTER_AS_INT(arg_event);
   const char *undo_push_label = nullptr;
 
@@ -1013,6 +1012,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_LOCAL:
       if (id) {
+        Main *bmain = CTX_data_main(C);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
           template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
         }
@@ -1033,6 +1033,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_OVERRIDE:
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
+        Main *bmain = CTX_data_main(C);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
           template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
         }
@@ -1053,12 +1054,14 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 
         /* make copy */
         if (do_scene_obj) {
+          Main *bmain = CTX_data_main(C);
           Scene *scene = CTX_data_scene(C);
           blender::ed::object::object_single_user_make(bmain, scene, (Object *)id);
           WM_event_add_notifier(C, NC_WINDOW, nullptr);
           DEG_relations_tag_update(bmain);
         }
         else {
+          Main *bmain = CTX_data_main(C);
           id_single_user(C, id, &template_ui->ptr, template_ui->prop);
           DEG_relations_tag_update(bmain);
         }
@@ -1762,12 +1765,10 @@ static void ui_template_id(uiLayout *layout,
     flag |= UI_ID_OPEN;
   }
 
-  Main *bmain = (ptr->owner_id) ? CTX_data_main_from_id(C, ptr->owner_id) : CTX_data_main(C);
-
   StructRNA *type = RNA_property_pointer_type(ptr, prop);
   short idcode = RNA_type_to_ID_code(type);
   template_ui->idcode = idcode;
-  template_ui->idlb = which_libbase(bmain, idcode);
+  template_ui->idlb = which_libbase(CTX_data_main(C), idcode);
 
   /* create UI elements for this template
    * - template_ID makes a copy of the template data and assigns it to the relevant buttons

@@ -463,7 +463,7 @@ static void rna_Object_to_curve_clear(Object *object)
 static PointerRNA rna_Object_shape_key_add(
     Object *ob, bContext *C, ReportList *reports, const char *name, bool from_mix)
 {
-  Main *bmain = CTX_data_main_from_id(C, &ob->id);
+  Main *bmain = CTX_data_main(C);
   KeyBlock *kb = nullptr;
 
   if ((kb = BKE_object_shapekey_insert(bmain, ob, name, from_mix))) {
@@ -815,7 +815,7 @@ bool rna_Object_generate_gpencil_strokes(Object *ob,
                 ob->id.name + 2);
     return false;
   }
-  Main *bmain = CTX_data_main_from_id(C, &ob->id);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
   BKE_gpencil_convert_curve(

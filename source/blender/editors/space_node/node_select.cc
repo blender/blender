@@ -512,9 +512,9 @@ void NODE_OT_select_grouped(wmOperatorType *ot)
 
 void node_select_single(bContext &C, bNode &node)
 {
+  Main *bmain = CTX_data_main(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &node_tree = *snode.edittree;
-  Main *bmain = CTX_data_main_from_id(&C, &node_tree.id);
   const Object *ob = CTX_data_active_object(&C);
   const Scene *scene = CTX_data_scene(&C);
   const wmWindowManager *wm = CTX_wm_manager(&C);
@@ -543,9 +543,9 @@ static bool node_mouse_select(bContext *C,
                               const int2 mval,
                               SelectPick_Params *params)
 {
+  Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
-  Main &bmain = *CTX_data_main_from_id(C, &node_tree.id);
   ARegion &region = *CTX_wm_region(C);
   const Object *ob = CTX_data_active_object(C);
   const Scene *scene = CTX_data_scene(C);

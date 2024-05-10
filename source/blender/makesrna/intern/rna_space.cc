@@ -1720,13 +1720,9 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr,
                                            PointerRNA value,
                                            ReportList * /*reports*/)
 {
+  BLI_assert(BKE_id_is_in_global_main(static_cast<ID *>(value.data)));
   SpaceImage *sima = static_cast<SpaceImage *>(ptr->data);
-  Image *image = reinterpret_cast<Image *>(value.data);
-  Main *main = BKE_main_from_id(G_MAIN, &image->id);
-  if (main == nullptr) {
-    return;
-  }
-  ED_space_image_set(main, sima, image, false);
+  ED_space_image_set(G_MAIN, sima, (Image *)value.data, false);
 }
 
 static void rna_SpaceImageEditor_mask_set(PointerRNA *ptr,

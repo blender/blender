@@ -78,15 +78,16 @@ static void rna_World_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRN
 static void rna_World_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
   World *wrld = (World *)ptr->data;
-  Main *bmain = CTX_data_main_from_id(C, &wrld->id);
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
 
   if (wrld->use_nodes && wrld->nodetree == nullptr) {
     ED_node_shader_default(C, &wrld->id);
   }
 
   DEG_relations_tag_update(bmain);
-  rna_World_update(bmain, nullptr, ptr);
-  rna_World_draw_update(bmain, nullptr, ptr);
+  rna_World_update(bmain, scene, ptr);
+  rna_World_draw_update(bmain, scene, ptr);
 }
 
 void rna_World_lightgroup_get(PointerRNA *ptr, char *value)

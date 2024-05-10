@@ -211,8 +211,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
       /* Make the output socket with the new type on the attribute input node active. */
       nodes::update_node_declaration_and_sockets(*node_tree, *node);
       BKE_ntree_update_tag_node_property(node_tree, node);
-      Main *bmain = CTX_data_main_from_id(C, &node_tree->id);
-      ED_node_tree_propagate_change(C, bmain, node_tree);
+      ED_node_tree_propagate_change(C, CTX_data_main(C), node_tree);
     }
   }
 

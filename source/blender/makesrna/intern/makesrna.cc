@@ -1269,30 +1269,14 @@ static char *rna_def_property_set_func(
       else {
         rna_print_data_get(f, dp);
 
-        PointerPropertyRNA *pprop = (PointerPropertyRNA *)dp->prop;
-        StructRNA *type = (pprop->type) ? rna_find_struct((const char *)pprop->type) : nullptr;
-
         if (prop->flag & PROP_ID_SELF_CHECK) {
-          /* No pointers to self allowed. */
           rna_print_id_get(f, dp);
           fprintf(f, "    if (id == value.data) {\n");
           fprintf(f, "      return;\n");
           fprintf(f, "    }\n");
         }
 
-        if (type && (type->flag & STRUCT_ID)) {
-          /* Can only assign pointers between datablocks in the same main database. */
-          fprintf(f, "    if (value.data) {\n");
-          fprintf(f, "        Main *owner_main = BKE_main_from_id(G_MAIN, ptr->owner_id);\n");
-          fprintf(f, "        Main *value_main = BKE_main_from_id(G_MAIN, (ID *)value.data);\n");
-          fprintf(f, "        if (owner_main && owner_main != value_main) {\n");
-          fprintf(f, "          return;\n");
-          fprintf(f, "        }\n");
-          fprintf(f, "    }\n");
-        }
-
         if (prop->flag & PROP_ID_REFCOUNT) {
-          /* Perform reference counting. */
           fprintf(f, "\n    if (data->%s) {\n", dp->dnaname);
           fprintf(f, "        id_us_min((ID *)data->%s);\n", dp->dnaname);
           fprintf(f, "    }\n");
@@ -1300,11 +1284,14 @@ static char *rna_def_property_set_func(
           fprintf(f, "        id_us_plus((ID *)value.data);\n");
           fprintf(f, "    }\n");
         }
-        else if (type && (type->flag & STRUCT_ID)) {
-          /* Still mark linked data as used if not reference counting. */
-          fprintf(f, "    if (value.data) {\n");
-          fprintf(f, "        id_lib_extern((ID *)value.data);\n");
-          fprintf(f, "    }\n");
+        else {
+          PointerPropertyRNA *pprop = (PointerPropertyRNA *)dp->prop;
+          StructRNA *type = (pprop->type) ? rna_find_struct((const char *)pprop->type) : nullptr;
+          if (type && (type->flag & STRUCT_ID)) {
+            fprintf(f, "    if (value.data) {\n");
+            fprintf(f, "        id_lib_extern((ID *)value.data);\n");
+            fprintf(f, "    }\n");
+          }
         }
 
         fprintf(f, "    *(void **)&data->%s = value.data;\n", dp->dnaname);
@@ -3378,8 +3365,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
         fprintf(f, ", ");
       }
       first = 0;
-      /* May have direct access later. */
-      fprintf(f, "(_ptr->owner_id) ? CTX_data_main_from_id(C, _ptr->owner_id) : CTX_data_main(C)");
+      fprintf(f, "CTX_data_main(C)"); /* may have direct access later */
     }
 
     if (func->flag & FUNC_USE_CONTEXT) {
@@ -4891,7 +4877,6 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"BLI_utildefines.h\"\n\n");
 
   fprintf(f, "#include \"BKE_context.hh\"\n");
-  fprintf(f, "#include \"BKE_global.hh\"\n");
   fprintf(f, "#include \"BKE_lib_id.hh\"\n");
   fprintf(f, "#include \"BKE_main.hh\"\n");
   fprintf(f, "#include \"BKE_report.hh\"\n");

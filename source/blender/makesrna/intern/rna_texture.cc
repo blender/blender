@@ -242,8 +242,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 
 void rna_TextureSlotTexture_update(bContext *C, PointerRNA *ptr)
 {
-  Main *bmain = CTX_data_main_from_id(C, ptr->owner_id);
-  DEG_relations_tag_update(bmain);
+  DEG_relations_tag_update(CTX_data_main(C));
   rna_TextureSlot_update(C, ptr);
 }
 
@@ -441,7 +440,6 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, bool value)
 static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
   Tex *tex = (Tex *)ptr->data;
-  Main *bmain = CTX_data_main_from_id(C, &tex->id);
 
   if (tex->use_nodes) {
     tex->type = 0;
@@ -451,7 +449,7 @@ static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
     }
   }
 
-  rna_Texture_nodes_update(bmain, CTX_data_scene(C), ptr);
+  rna_Texture_nodes_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, bool value)

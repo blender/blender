@@ -1335,9 +1335,6 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
         DEG_id_type_tag(bmain, type);
       }
-      if (bmain->is_asset_edit_main) {
-        id->tag |= LIB_TAG_ASSET_EDIT_MAIN;
-      }
     }
     else {
       BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
@@ -1568,10 +1565,6 @@ void BKE_libblock_copy_in_lib(Main *bmain,
 
   if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     DEG_id_type_tag(bmain, GS(new_id->name));
-  }
-
-  if (bmain && bmain->is_asset_edit_main) {
-    new_id->tag |= LIB_TAG_ASSET_EDIT_MAIN;
   }
 
   *r_newid = new_id;
@@ -2227,6 +2220,13 @@ void BKE_id_tag_set_atomic(ID *id, int tag)
 void BKE_id_tag_clear_atomic(ID *id, int tag)
 {
   atomic_fetch_and_and_int32(&id->tag, ~tag);
+}
+
+bool BKE_id_is_in_global_main(ID *id)
+{
+  /* We do not want to fail when id is nullptr here, even though this is a bit strange behavior...
+   */
+  return (id == nullptr || BLI_findindex(which_libbase(G_MAIN, GS(id->name)), id) != -1);
 }
 
 bool BKE_id_can_be_asset(const ID *id)

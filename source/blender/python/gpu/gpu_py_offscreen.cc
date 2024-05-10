@@ -18,7 +18,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.hh"
-#include "BKE_main.hh"
+#include "BKE_lib_id.hh" /* For #BKE_id_is_in_global_main. */
 #include "BKE_scene.hh"
 
 #include "DNA_view3d_types.h"
@@ -456,8 +456,9 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
     return nullptr;
   }
 
-  Main *main = BKE_main_from_id(G_MAIN, &scene->id);
-  depsgraph = BKE_scene_ensure_depsgraph(main, scene, view_layer);
+  BLI_assert(BKE_id_is_in_global_main(&scene->id));
+
+  depsgraph = BKE_scene_ensure_depsgraph(G_MAIN, scene, view_layer);
 
   /* Disable 'bgl' state since it interfere with off-screen drawing, see: #84402. */
   const bool is_bgl = GPU_bgl_get();

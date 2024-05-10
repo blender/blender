@@ -822,15 +822,12 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 
 static int new_texture_exec(bContext *C, wmOperator * /*op*/)
 {
+  Tex *tex = static_cast<Tex *>(CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data);
+  Main *bmain = CTX_data_main(C);
   PointerRNA ptr;
   PropertyRNA *prop;
 
-  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
-
-  Main *bmain = (ptr.owner_id) ? CTX_data_main_from_id(C, ptr.owner_id) : CTX_data_main(C);
-
   /* add or copy texture */
-  Tex *tex = static_cast<Tex *>(CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data);
   if (tex) {
     tex = (Tex *)BKE_id_copy(bmain, &tex->id);
   }
@@ -839,6 +836,8 @@ static int new_texture_exec(bContext *C, wmOperator * /*op*/)
   }
 
   /* hook into UI */
+  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+
   if (prop) {
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */

@@ -791,36 +791,28 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 {
   bArmature *arm = (bArmature *)ptr->owner_id;
   EditBone *ebone = (EditBone *)ptr->data;
-
-  Main *main = BKE_main_from_id(G_MAIN, &arm->id);
-  if (main == nullptr) {
-    return;
-  }
-
   char oldname[sizeof(ebone->name)], newname[sizeof(ebone->name)];
+
   /* need to be on the stack */
   STRNCPY_UTF8(newname, value);
   STRNCPY(oldname, ebone->name);
 
-  ED_armature_bone_rename(main, arm, oldname, newname);
+  BLI_assert(BKE_id_is_in_global_main(&arm->id));
+  ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
 }
 
 static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 {
   bArmature *arm = (bArmature *)ptr->owner_id;
   Bone *bone = (Bone *)ptr->data;
-
-  Main *main = BKE_main_from_id(G_MAIN, &arm->id);
-  if (main == nullptr) {
-    return;
-  }
-
   char oldname[sizeof(bone->name)], newname[sizeof(bone->name)];
+
   /* need to be on the stack */
   STRNCPY_UTF8(newname, value);
   STRNCPY(oldname, bone->name);
 
-  ED_armature_bone_rename(main, arm, oldname, newname);
+  BLI_assert(BKE_id_is_in_global_main(&arm->id));
+  ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
 }
 
 static void rna_EditBone_connected_check(EditBone *ebone)

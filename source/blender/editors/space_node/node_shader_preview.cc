@@ -803,7 +803,7 @@ static void ensure_nodetree_previews(const bContext &C,
 
   job_data->scene = scene;
   job_data->tree_previews = &tree_previews;
-  job_data->bmain = CTX_data_main_from_id(&C, &displayed_nodetree->id);
+  job_data->bmain = CTX_data_main(&C);
   job_data->mat_copy = duplicate_material(material);
   job_data->rendering_node = nullptr;
   job_data->rendering_AOVs = false;

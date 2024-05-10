@@ -61,11 +61,6 @@ void BKE_blender_free()
 
   BKE_blender_globals_clear();
 
-  /* Free separate data-bases after #BKE_blender_globals_clear in case any data-blocks in the
-   * global main use pointers to asset main data-blocks when they're freed. That generally
-   * shouldn't happen but it's better to be safe. */
-  blender::bke::asset_edit_main_free_all();
-
   if (G.log.file != nullptr) {
     fclose(static_cast<FILE *>(G.log.file));
   }

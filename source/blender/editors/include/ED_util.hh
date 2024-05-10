@@ -121,5 +121,9 @@ void apply_keyb_grid(
     bool shift, bool ctrl, float *val, float fac1, float fac2, float fac3, int invert);
 
 /* where else to go ? */
-void unpack_menu(
-    bContext *C, const char *opname, const char *abs_name, const char *folder, PackedFile *pf);
+void unpack_menu(bContext *C,
+                 const char *opname,
+                 const char *id_name,
+                 const char *abs_name,
+                 const char *folder,
+                 PackedFile *pf);

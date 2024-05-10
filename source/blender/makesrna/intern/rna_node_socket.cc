@@ -404,14 +404,13 @@ void rna_NodeSocketStandard_vector_range(
 static void rna_NodeSocketStandard_value_update(bContext *C, PointerRNA *ptr)
 {
   /* default update */
-  Main *bmain = CTX_data_main_from_id(C, ptr->owner_id);
-  rna_NodeSocket_update(bmain, CTX_data_scene(C), ptr);
+  rna_NodeSocket_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 static void rna_NodeSocketStandard_value_and_relation_update(bContext *C, PointerRNA *ptr)
 {
   rna_NodeSocketStandard_value_update(C, ptr);
-  Main *bmain = CTX_data_main_from_id(C, ptr->owner_id);
+  Main *bmain = CTX_data_main(C);
   DEG_relations_tag_update(bmain);
 }
 

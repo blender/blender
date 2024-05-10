@@ -1002,15 +1002,6 @@ enum {
    * RESET_NEVER
    */
   LIB_TAG_NOT_ALLOCATED = 1 << 26,
-  /**
-   * ID is part of an asset #Main separate from the regular main database.
-   *
-   * RESET_NEVER
-   *
-   * Datablocks like this can not be linked to and from datablocks in regular main.
-   * They should stay isolated from each other.
-   */
-  LIB_TAG_ASSET_EDIT_MAIN = 1 << 27,
 
   /* ------------------------------------------------------------------------------------------- */
 

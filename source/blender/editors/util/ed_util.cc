@@ -359,8 +359,12 @@ void apply_keyb_grid(
   }
 }
 
-void unpack_menu(
-    bContext *C, const char *opname, const char *abs_name, const char *folder, PackedFile *pf)
+void unpack_menu(bContext *C,
+                 const char *opname,
+                 const char *id_name,
+                 const char *abs_name,
+                 const char *folder,
+                 PackedFile *pf)
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA props_ptr;
@@ -382,6 +386,7 @@ void unpack_menu(
                   UI_ITEM_NONE,
                   &props_ptr);
   RNA_enum_set(&props_ptr, "method", PF_REMOVE);
+  RNA_string_set(&props_ptr, "id", id_name);
 
   if (blendfile_path[0] != '\0') {
     char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
@@ -395,6 +400,7 @@ void unpack_menu(
           uiItemFullO_ptr(
               layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
+          RNA_string_set(&props_ptr, "id", id_name);
 
           break;
         case PF_CMP_EQUAL:
@@ -403,6 +409,7 @@ void unpack_menu(
           uiItemFullO_ptr(
               layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
+          RNA_string_set(&props_ptr, "id", id_name);
 
           break;
         case PF_CMP_DIFFERS:
@@ -411,12 +418,14 @@ void unpack_menu(
           uiItemFullO_ptr(
               layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
+          RNA_string_set(&props_ptr, "id", id_name);
 
           SNPRINTF(line, IFACE_("Overwrite %s"), local_name);
           // uiItemEnumO_ptr(layout, ot, line, ICON_NONE, "method", PF_WRITE_LOCAL);
           uiItemFullO_ptr(
               layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
+          RNA_string_set(&props_ptr, "id", id_name);
           break;
       }
     }
@@ -429,6 +438,7 @@ void unpack_menu(
       uiItemFullO_ptr(
           layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
+      RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_EQUAL:
       SNPRINTF(line, IFACE_("Use %s (identical)"), abs_name);
@@ -436,6 +446,7 @@ void unpack_menu(
       uiItemFullO_ptr(
           layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
+      RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_DIFFERS:
       SNPRINTF(line, IFACE_("Use %s (differs)"), abs_name);
@@ -443,12 +454,14 @@ void unpack_menu(
       uiItemFullO_ptr(
           layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
+      RNA_string_set(&props_ptr, "id", id_name);
 
       SNPRINTF(line, IFACE_("Overwrite %s"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, ICON_NONE, "method", PF_WRITE_ORIGINAL);
       uiItemFullO_ptr(
           layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
+      RNA_string_set(&props_ptr, "id", id_name);
       break;
   }
 

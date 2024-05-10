@@ -169,11 +169,10 @@ static void remap_pairing(bNodeTree &dst_tree,
 static int node_group_edit_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
   const char *node_idname = node_group_idname(C);
   const bool exit = RNA_boolean_get(op->ptr, "exit");
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
   stop_preview_job(*CTX_wm_manager(C));
 
   bNode *gnode = node_group_get_active(C, node_idname);
@@ -454,8 +453,8 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
 static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
 {
+  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
-  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
   const char *node_idname = node_group_idname(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
@@ -476,7 +475,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
   for (bNode *node : nodes_to_ungroup) {
     node_group_ungroup(bmain, snode->edittree, node);
   }
-  ED_node_tree_propagate_change(C, bmain, nullptr);
+  ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -627,8 +626,8 @@ static const EnumPropertyItem node_group_separate_types[] = {
 
 static int node_group_separate_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
-  Main *bmain = CTX_data_main_from_id(C, &snode->edittree->id);
   int type = RNA_enum_get(op->ptr, "type");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
@@ -662,7 +661,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   /* switch to parent tree */
   ED_node_tree_pop(snode);
 
-  ED_node_tree_propagate_change(C, bmain, nullptr);
+  ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -928,7 +927,7 @@ static void node_group_make_insert_selected(const bContext &C,
                                             bNode *gnode,
                                             const VectorSet<bNode *> &nodes_to_move)
 {
-  Main *bmain = CTX_data_main_from_id(&C, &ntree.id);
+  Main *bmain = CTX_data_main(&C);
   bNodeTree &group = *reinterpret_cast<bNodeTree *>(gnode->id);
   BLI_assert(!nodes_to_move.contains(gnode));
 
@@ -1208,7 +1207,7 @@ static bNode *node_group_make_from_nodes(const bContext &C,
                                          const char *ntype,
                                          const char *ntreetype)
 {
-  Main *bmain = CTX_data_main_from_id(&C, &ntree.id);
+  Main *bmain = CTX_data_main(&C);
 
   float2 min, max;
   get_min_max_of_nodes(nodes_to_group, false, min, max);
@@ -1234,9 +1233,9 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
   bNodeTree &ntree = *snode.edittree;
   const char *ntree_idname = group_ntree_idname(C);
   const char *node_idname = node_group_idname(C);
-  Main *bmain = CTX_data_main_from_id(C, &ntree.id);
+  Main *bmain = CTX_data_main(C);
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
   stop_preview_job(*CTX_wm_manager(C));
 
   VectorSet<bNode *> nodes_to_group = get_nodes_to_group(ntree, nullptr);
@@ -1288,10 +1287,9 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
-  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
   const char *node_idname = node_group_idname(C);
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
   stop_preview_job(*CTX_wm_manager(C));
 
   bNode *gnode = node_group_get_active(C, node_idname);

@@ -368,14 +368,13 @@ static void rna_LineStyle_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA
 
 static void rna_LineStyle_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
-  Main *bmain = CTX_data_main_from_id(C, ptr->owner_id);
   FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ptr->data;
 
   if (linestyle->use_nodes && linestyle->nodetree == nullptr) {
     BKE_linestyle_default_shader(C, linestyle);
   }
 
-  rna_LineStyle_update(bmain, CTX_data_scene(C), ptr);
+  rna_LineStyle_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 static LineStyleModifier *rna_LineStyle_color_modifier_add(FreestyleLineStyle *linestyle,

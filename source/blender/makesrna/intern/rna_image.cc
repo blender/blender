@@ -86,23 +86,18 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 {
   Image *ima = (Image *)ptr->owner_id;
 
-  if (value == ima->source) {
-    return;
-  }
-  ima->source = value;
+  if (value != ima->source) {
+    ima->source = value;
+    BLI_assert(BKE_id_is_in_global_main(&ima->id));
+    BKE_image_signal(G_MAIN, ima, nullptr, IMA_SIGNAL_SRC_CHANGE);
+    if (ima->source == IMA_SRC_TILED) {
+      BKE_image_signal(G_MAIN, ima, nullptr, IMA_SIGNAL_RELOAD);
+    }
 
-  Main *main = BKE_main_from_id(G_MAIN, &ima->id);
-  if (main == nullptr) {
-    return;
+    DEG_id_tag_update(&ima->id, 0);
+    DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
+    DEG_relations_tag_update(G_MAIN);
   }
-  BKE_image_signal(main, ima, nullptr, IMA_SIGNAL_SRC_CHANGE);
-  if (ima->source == IMA_SRC_TILED) {
-    BKE_image_signal(main, ima, nullptr, IMA_SIGNAL_RELOAD);
-  }
-
-  DEG_id_tag_update(&ima->id, 0);
-  DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
-  DEG_relations_tag_update(main);
 }
 
 static void rna_Image_reload_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)

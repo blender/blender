@@ -1059,11 +1059,6 @@ Main *CTX_data_main(const bContext *C)
   return C->data.main;
 }
 
-Main *CTX_data_main_from_id(const bContext *C, const ID *id)
-{
-  return BKE_main_from_id(CTX_data_main(C), id);
-}
-
 void CTX_data_main_set(bContext *C, Main *bmain)
 {
   C->data.main = bmain;

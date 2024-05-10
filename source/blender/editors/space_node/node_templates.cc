@@ -195,7 +195,7 @@ static void node_socket_add_replace(const bContext *C,
                                     int type,
                                     NodeLinkItem *item)
 {
-  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
+  Main *bmain = CTX_data_main(C);
   bNode *node_from;
   bNodeSocket *sock_from_tmp;
   bNode *node_prev = nullptr;
@@ -604,6 +604,7 @@ static void node_menu_column_foreach_cb(void *calldata, int nclass, const char *
 
 static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_p)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   uiBlock *block = uiLayoutGetBlock(layout);
   uiBut *but = (uiBut *)but_p;
@@ -611,7 +612,6 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
   NodeLinkArg *arg = (NodeLinkArg *)but->func_argN;
   bNodeSocket *sock = arg->sock;
   bke::bNodeTreeType *ntreetype = arg->ntree->typeinfo;
-  Main *bmain = CTX_data_main_from_id(C, &arg->ntree->id);
 
   UI_block_layout_set_current(block, layout);
   split = uiLayoutSplit(layout, 0.0f, false);
@@ -726,9 +726,9 @@ static void ui_node_draw_input(uiLayout &layout,
 
 static void node_panel_toggle_button_cb(bContext *C, void *panel_state_argv, void *ntree_argv)
 {
+  Main *bmain = CTX_data_main(C);
   bNodePanelState *panel_state = static_cast<bNodePanelState *>(panel_state_argv);
   bNodeTree *ntree = static_cast<bNodeTree *>(ntree_argv);
-  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
 
   panel_state->flag ^= NODE_PANEL_COLLAPSED;
 

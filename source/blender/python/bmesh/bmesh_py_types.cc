@@ -20,7 +20,6 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
@@ -1227,7 +1226,8 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
      * anything in this case. */
   }
   else {
-    bmain = BKE_main_from_id(G_MAIN, &mesh->id); /* XXX UGLY! */
+    BLI_assert(BKE_id_is_in_global_main(&mesh->id));
+    bmain = G_MAIN; /* XXX UGLY! */
     params.calc_object_remap = true;
   }
 

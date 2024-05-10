@@ -56,7 +56,7 @@ static void rna_Image_save_render(Image *image,
                                   Scene *scene,
                                   const int quality)
 {
-  Main *bmain = CTX_data_main_from_id(C, &image->id);
+  Main *bmain = CTX_data_main(C);
 
   if (scene == nullptr) {
     scene = CTX_data_scene(C);

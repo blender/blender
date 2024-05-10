@@ -245,11 +245,6 @@ static float rna_PoseChannel_length_get(PointerRNA *ptr)
 static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 {
   Object *ob = (Object *)ptr->owner_id;
-  Main *main = BKE_main_from_id(G_MAIN, &ob->id);
-  if (main == nullptr) {
-    return;
-  }
-
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
   char oldname[sizeof(pchan->name)], newname[sizeof(pchan->name)];
 
@@ -257,7 +252,9 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
   STRNCPY_UTF8(newname, value);
   STRNCPY(oldname, pchan->name);
 
-  ED_armature_bone_rename(main, static_cast<bArmature *>(ob->data), oldname, newname);
+  BLI_assert(BKE_id_is_in_global_main(&ob->id));
+  BLI_assert(BKE_id_is_in_global_main(static_cast<ID *>(ob->data)));
+  ED_armature_bone_rename(G_MAIN, static_cast<bArmature *>(ob->data), oldname, newname);
 }
 
 /* See rna_Bone_update_renamed() */

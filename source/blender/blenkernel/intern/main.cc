@@ -963,34 +963,3 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
 
   return (INDEX_ID_MAX - 1);
 }
-
-Main *BKE_main_from_id(Main *global_main, const ID *id, const bool verify)
-{
-  if (id == nullptr || (id->tag & LIB_TAG_NO_MAIN)) {
-    return nullptr;
-  }
-  if (id->tag & LIB_TAG_ASSET_EDIT_MAIN) {
-    return blender::bke::asset_edit_main(*id);
-  }
-
-  if (verify) {
-    /* This is rather expensive, so don't do by default and assume valid input. */
-    if (BLI_findindex(which_libbase(global_main, GS(id->name)), id) == -1) {
-      return nullptr;
-    }
-  }
-  else {
-/* Debug assert, especially for places that pass in G_MAIN. */
-#ifndef NDEBUG
-    if (id->flag & LIB_EMBEDDED_DATA) {
-      const ID *id_owner = BKE_id_owner_get(const_cast<ID *>(id));
-      BLI_assert(BLI_findindex(which_libbase(global_main, GS(id_owner->name)), id_owner) != -1);
-    }
-    else {
-      BLI_assert(BLI_findindex(which_libbase(global_main, GS(id->name)), id) != -1);
-    }
-#endif
-  }
-
-  return global_main;
-}

@@ -2364,9 +2364,9 @@ static void node_draw_sockets(const View2D &v2d,
 
 static void node_panel_toggle_button_cb(bContext *C, void *panel_state_argv, void *ntree_argv)
 {
+  Main *bmain = CTX_data_main(C);
   bNodePanelState *panel_state = static_cast<bNodePanelState *>(panel_state_argv);
   bNodeTree *ntree = static_cast<bNodeTree *>(ntree_argv);
-  Main *bmain = CTX_data_main_from_id(C, &ntree->id);
 
   panel_state->flag ^= NODE_PANEL_COLLAPSED;
 

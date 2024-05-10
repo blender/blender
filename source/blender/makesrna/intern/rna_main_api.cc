@@ -127,15 +127,6 @@ static void rna_Main_ID_remove(Main *bmain,
                 id->name + 2);
     return;
   }
-  if (bmain != BKE_main_from_id(bmain, id)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "%s '%s' is part of a different main database and should be removed from there",
-                BKE_idtype_idcode_to_name(GS(id->name)),
-                id->name + 2);
-    return;
-  }
-
   if (do_unlink) {
     BKE_id_delete(bmain, id);
     RNA_POINTER_INVALIDATE(id_ptr);

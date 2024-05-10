@@ -78,7 +78,7 @@ static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
     ED_node_shader_default(C, &la->id);
   }
 
-  rna_Light_update(CTX_data_main_from_id(C, &la->id), CTX_data_scene(C), ptr);
+  rna_Light_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 #else

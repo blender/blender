@@ -191,11 +191,6 @@ struct Main {
    */
   bool is_global_main;
 
-  /**
-   * True if main used to store weakly referenced assets.
-   */
-  bool is_asset_edit_main;
-
   BlendThumbnail *blen_thumb;
 
   Library *curlib;
@@ -511,20 +506,6 @@ ListBase *which_libbase(Main *bmain, short type);
  * enum definitions in `DNA_ID.h`. See also the #FOREACH_MAIN_ID_BEGIN macro in `BKE_main.hh`
  */
 int set_listbasepointers(Main *main, ListBase *lb[]);
-
-/**
- * Return main database this ID is a member of.
- *
- * This works for the global main database and asset edit databases.
- * So only datablocks that are directly editable in the user interface.
- *
- * Use this in operator and draw code instead of assuming the main
- * in the context owns datablocks.
- *
- * Optionally can verify that this datablock is one of these databases.
- * This is slow and mainly meant for asserts.
- */
-Main *BKE_main_from_id(Main *global_main, const ID *id, bool verify = false);
 
 #define MAIN_VERSION_FILE_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \
