@@ -2423,7 +2423,7 @@ static void gaussian_blur_x(const blender::Array<float> &gausstab,
                             const T *rect,
                             T *dst)
 {
-  dst += start_line * width * 4;
+  dst += int64_t(start_line) * width * 4;
   for (int y = start_line; y < start_line + height; y++) {
     for (int x = 0; x < width; x++) {
       float4 accum(0.0f);
@@ -2457,7 +2457,7 @@ static void gaussian_blur_y(const blender::Array<float> &gausstab,
                             const T *rect,
                             T *dst)
 {
-  dst += start_line * width * 4;
+  dst += int64_t(start_line) * width * 4;
   for (int y = start_line; y < start_line + height; y++) {
     for (int x = 0; x < width; x++) {
       float4 accum(0.0f);
@@ -2710,6 +2710,72 @@ static StripEarlyOut early_out_text(const Sequence *seq, float /*fac*/)
   return StripEarlyOut::NoInput;
 }
 
+/* Simplified version of gaussian blur specifically for text shadow blurring:
+ * - Only blurs the alpha channel since that is all it needs,
+ * - Skips blur outside of shadow rectangle. */
+static void text_gaussian_blur_x(const blender::Array<float> &gausstab,
+                                 int half_size,
+                                 int start_line,
+                                 int width,
+                                 int height,
+                                 const uchar *rect,
+                                 uchar *dst,
+                                 const rcti &shadow_rect)
+{
+  dst += int64_t(start_line) * width * 4;
+  for (int y = start_line; y < start_line + height; y++) {
+    for (int x = 0; x < width; x++) {
+      float accum(0.0f);
+      if (x >= shadow_rect.xmin && x <= shadow_rect.xmax) {
+        float accum_weight = 0.0f;
+        int xmin = blender::math::max(x - half_size, shadow_rect.xmin);
+        int xmax = blender::math::min(x + half_size, shadow_rect.xmax);
+        for (int nx = xmin, index = (xmin - x) + half_size; nx <= xmax; nx++, index++) {
+          float weight = gausstab[index];
+          int offset = (y * width + nx) * 4;
+          accum += rect[offset + 3] * weight;
+          accum_weight += weight;
+        }
+        accum *= (1.0f / accum_weight);
+      }
+
+      dst[3] = accum;
+      dst += 4;
+    }
+  }
+}
+
+static void text_gaussian_blur_y(const blender::Array<float> &gausstab,
+                                 int half_size,
+                                 int start_line,
+                                 int width,
+                                 int height,
+                                 const uchar *rect,
+                                 uchar *dst,
+                                 const rcti &shadow_rect)
+{
+  dst += int64_t(start_line) * width * 4;
+  for (int y = start_line; y < start_line + height; y++) {
+    for (int x = 0; x < width; x++) {
+      float accum(0.0f);
+      if (x >= shadow_rect.xmin && x <= shadow_rect.xmax) {
+        float accum_weight = 0.0f;
+        int ymin = blender::math::max(y - half_size, shadow_rect.ymin);
+        int ymax = blender::math::min(y + half_size, shadow_rect.ymax);
+        for (int ny = ymin, index = (ymin - y) + half_size; ny <= ymax; ny++, index++) {
+          float weight = gausstab[index];
+          int offset = (ny * width + x) * 4;
+          accum += rect[offset + 3] * weight;
+          accum_weight += weight;
+        }
+        accum *= (1.0f / accum_weight);
+      }
+      dst[3] = accum;
+      dst += 4;
+    }
+  }
+}
+
 static void draw_text_shadow(const SeqRenderData *context,
                              const TextVars *data,
                              int font,
@@ -2717,6 +2783,7 @@ static void draw_text_shadow(const SeqRenderData *context,
                              int x,
                              int y,
                              int line_height,
+                             const rcti &rect,
                              ImBuf *out)
 {
   const int width = context->rectx;
@@ -2743,10 +2810,19 @@ static void draw_text_shadow(const SeqRenderData *context,
   BLF_buffer_col(font, do_blur ? white_color : data->shadow_color);
   BLF_draw_buffer(font, data->text, sizeof(data->text));
 
+  rcti shadow_rect = rect;
+  BLI_rcti_translate(&shadow_rect, offsetx, -offsety);
+  BLI_rcti_pad(&shadow_rect, 1, 1);
   if (do_blur) {
     /* Create blur kernel weights. */
     const int half_size = int(blur_amount + 0.5f);
     Array<float> gausstab = make_gaussian_blur_kernel(blur_amount, half_size);
+
+    BLI_rcti_pad(&shadow_rect, half_size + 1, half_size + 1);
+    shadow_rect.xmin = clamp_i(shadow_rect.xmin, 0, width - 1);
+    shadow_rect.xmax = clamp_i(shadow_rect.xmax, 0, width - 1);
+    shadow_rect.ymin = clamp_i(shadow_rect.ymin, 0, height - 1);
+    shadow_rect.ymax = clamp_i(shadow_rect.ymax, 0, height - 1);
 
     /* Premultiplied shadow color. */
     float4 color = data->shadow_color;
@@ -2755,31 +2831,32 @@ static void draw_text_shadow(const SeqRenderData *context,
     color.z *= color.w;
 
     /* Horizontal blur: blur tmp_out1 into tmp_out2. */
-    threading::parallel_for(IndexRange(context->recty), 32, [&](const IndexRange y_range) {
+    IndexRange blur_y_range(shadow_rect.ymin, shadow_rect.ymax - shadow_rect.ymin + 1);
+    threading::parallel_for(blur_y_range, 8, [&](const IndexRange y_range) {
       const int y_first = y_range.first();
       const int y_size = y_range.size();
-      gaussian_blur_x(gausstab,
-                      half_size,
-                      y_first,
-                      width,
-                      y_size,
-                      height,
-                      tmp_out1->byte_buffer.data,
-                      tmp_out2->byte_buffer.data);
+      text_gaussian_blur_x(gausstab,
+                           half_size,
+                           y_first,
+                           width,
+                           y_size,
+                           tmp_out1->byte_buffer.data,
+                           tmp_out2->byte_buffer.data,
+                           shadow_rect);
     });
 
     /* Vertical blur: blur tmp_out2 into tmp_out1, and composite into regular output. */
-    threading::parallel_for(IndexRange(context->recty), 32, [&](const IndexRange y_range) {
+    threading::parallel_for(blur_y_range, 8, [&](const IndexRange y_range) {
       const int y_first = y_range.first();
       const int y_size = y_range.size();
-      gaussian_blur_y(gausstab,
-                      half_size,
-                      y_first,
-                      width,
-                      y_size,
-                      height,
-                      tmp_out2->byte_buffer.data,
-                      tmp_out1->byte_buffer.data);
+      text_gaussian_blur_y(gausstab,
+                           half_size,
+                           y_first,
+                           width,
+                           y_size,
+                           tmp_out2->byte_buffer.data,
+                           tmp_out1->byte_buffer.data,
+                           shadow_rect);
       /* Composite over regular output (which might have box drawn into it). */
       const uchar *src = tmp_out1->byte_buffer.data + size_t(y_first) * width * 4;
       const uchar *src_end = tmp_out1->byte_buffer.data + size_t(y_first + y_size) * width * 4;
@@ -2819,12 +2896,14 @@ struct JFACoord {
 static void jump_flooding_pass(Span<JFACoord> input,
                                MutableSpan<JFACoord> output,
                                int2 size,
+                               IndexRange x_range,
+                               IndexRange y_range,
                                int step_size)
 {
-  threading::parallel_for(IndexRange(size.y), 16, [&](const IndexRange sub_y_range) {
+  threading::parallel_for(y_range, 8, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       size_t index = y * size.x;
-      for (const int64_t x : IndexRange(size.x)) {
+      for (const int64_t x : x_range) {
         float2 coord = float2(x, y);
 
         /* For each pixel, sample 9 pixels at +/- step size pattern,
@@ -2867,6 +2946,7 @@ static void draw_text_outline(const SeqRenderData *context,
                               int x,
                               int y,
                               int line_height,
+                              const rcti &rect,
                               ImBuf *out)
 {
   /* Outline width of 1.0 maps to half of text line height. */
@@ -2885,9 +2965,18 @@ static void draw_text_outline(const SeqRenderData *context,
   BLF_buffer_col(font, float4(1.0f));
   BLF_draw_buffer(font, data->text, sizeof(data->text));
 
+  rcti outline_rect = rect;
+  BLI_rcti_pad(&outline_rect, outline_width + 1, outline_width + 1);
+  outline_rect.xmin = clamp_i(outline_rect.xmin, 0, size.x - 1);
+  outline_rect.xmax = clamp_i(outline_rect.xmax, 0, size.x - 1);
+  outline_rect.ymin = clamp_i(outline_rect.ymin, 0, size.y - 1);
+  outline_rect.ymax = clamp_i(outline_rect.ymax, 0, size.y - 1);
+  const IndexRange rect_x_range(outline_rect.xmin, outline_rect.xmax - outline_rect.xmin + 1);
+  const IndexRange rect_y_range(outline_rect.ymin, outline_rect.ymax - outline_rect.ymin + 1);
+
   /* Initialize JFA: invalid values for empty regions, pixel coordinates
    * for opaque regions. */
-  Array<JFACoord> boundary(pixel_count);
+  Array<JFACoord> boundary(pixel_count, NoInitialization());
   threading::parallel_for(IndexRange(size.y), 16, [&](const IndexRange y_range) {
     for (const int y : y_range) {
       size_t index = size_t(y) * size.x;
@@ -2903,7 +2992,7 @@ static void draw_text_outline(const SeqRenderData *context,
 
   /* Do jump flooding calculations. */
   Array<JFACoord> initial_flooded_result(pixel_count, NoInitialization());
-  jump_flooding_pass(boundary, initial_flooded_result, size, 1);
+  jump_flooding_pass(boundary, initial_flooded_result, size, rect_x_range, rect_y_range, 1);
 
   Array<JFACoord> *result_to_flood = &initial_flooded_result;
   Array<JFACoord> intermediate_result(pixel_count, NoInitialization());
@@ -2912,7 +3001,8 @@ static void draw_text_outline(const SeqRenderData *context,
   int step_size = power_of_2_max_i(outline_width) / 2;
 
   while (step_size != 0) {
-    jump_flooding_pass(*result_to_flood, *result_after_flooding, size, step_size);
+    jump_flooding_pass(
+        *result_to_flood, *result_after_flooding, size, rect_x_range, rect_y_range, step_size);
     std::swap(result_to_flood, result_after_flooding);
     step_size /= 2;
   }
@@ -2926,11 +3016,12 @@ static void draw_text_outline(const SeqRenderData *context,
   /* We have distances to the closest opaque parts of the image now. Composite the
    * outline into the output image. */
 
-  threading::parallel_for(IndexRange(size.y), 16, [&](const IndexRange y_range) {
+  threading::parallel_for(rect_y_range, 8, [&](const IndexRange y_range) {
     for (const int y : y_range) {
-      size_t index = size_t(y) * size.x;
+      size_t index = size_t(y) * size.x + rect_x_range.start();
       uchar *dst = out->byte_buffer.data + index * 4;
-      for (int x = 0; x < size.x; x++, index++, dst += 4) {
+      for (int x = rect_x_range.start(); x < rect_x_range.one_after_last(); x++, index++, dst += 4)
+      {
         JFACoord closest_texel = (*result_to_flood)[index];
         if (closest_texel.x == JFA_INVALID) {
           /* Outside of outline, leave output pixel as is. */
@@ -3011,56 +3102,54 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   x = (data->loc[0] * width);
   y = (data->loc[1] * height) + y_ofs;
 
-  /* vars for calculating wordwrap and optional box */
-  struct {
-    ResultBLF info;
-    rcti rect;
-  } wrap;
-
-  BLF_boundbox(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
+  /* Calculate bounding box and wrapping information. */
+  rcti rect;
+  ResultBLF wrap_info;
+  BLF_boundbox(font, data->text, sizeof(data->text), &rect, &wrap_info);
 
   if ((data->align == SEQ_TEXT_ALIGN_X_LEFT) && (data->align_y == SEQ_TEXT_ALIGN_Y_TOP)) {
     y -= line_height;
   }
   else {
     if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
-      x -= BLI_rcti_size_x(&wrap.rect);
+      x -= BLI_rcti_size_x(&rect);
     }
     else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
-      x -= BLI_rcti_size_x(&wrap.rect) / 2;
+      x -= BLI_rcti_size_x(&rect) / 2;
     }
 
     if (data->align_y == SEQ_TEXT_ALIGN_Y_TOP) {
       y -= line_height;
     }
     else if (data->align_y == SEQ_TEXT_ALIGN_Y_BOTTOM) {
-      y += (wrap.info.lines - 1) * line_height;
+      y += (wrap_info.lines - 1) * line_height;
     }
     else if (data->align_y == SEQ_TEXT_ALIGN_Y_CENTER) {
-      y += (((wrap.info.lines - 1) / 2) * line_height) - (line_height / 2);
+      y += (((wrap_info.lines - 1) / 2) * line_height) - (line_height / 2);
     }
   }
+  BLI_rcti_translate(&rect, x, y);
 
   /* Draw box under text. */
   if (data->flag & SEQ_TEXT_BOX) {
     if (out->byte_buffer.data) {
       const int margin = data->box_margin * width;
-      const int minx = x + wrap.rect.xmin - margin;
-      const int maxx = x + wrap.rect.xmax + margin;
-      const int miny = y + wrap.rect.ymin - margin;
-      const int maxy = y + wrap.rect.ymax + margin;
+      const int minx = rect.xmin - margin;
+      const int maxx = rect.xmax + margin;
+      const int miny = rect.ymin - margin;
+      const int maxy = rect.ymax + margin;
       IMB_rectfill_area_replace(out, data->box_color, minx, miny, maxx, maxy);
     }
   }
 
   /* Draw text shadow. */
   if (data->flag & SEQ_TEXT_SHADOW) {
-    draw_text_shadow(context, data, font, display, x, y, line_height, out);
+    draw_text_shadow(context, data, font, display, x, y, line_height, rect, out);
   }
 
   /* Draw text outline. */
   if (data->flag & SEQ_TEXT_OUTLINE) {
-    draw_text_outline(context, data, font, display, x, y, line_height, out);
+    draw_text_outline(context, data, font, display, x, y, line_height, rect, out);
   }
 
   /* Draw text itself. */
