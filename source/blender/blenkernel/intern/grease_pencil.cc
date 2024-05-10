@@ -2615,6 +2615,32 @@ void GreasePencil::autolock_inactive_layers()
   }
 }
 
+const blender::bke::greasepencil::LayerGroup *GreasePencil::get_active_group() const
+{
+  if (this->active_node == nullptr) {
+    return nullptr;
+  }
+
+  if (!this->active_node->wrap().is_group()) {
+    return nullptr;
+  }
+
+  return &this->active_node->wrap().as_group();
+}
+
+blender::bke::greasepencil::LayerGroup *GreasePencil::get_active_group()
+{
+  if (this->active_node == nullptr) {
+    return nullptr;
+  }
+
+  if (!this->active_node->wrap().is_group()) {
+    return nullptr;
+  }
+
+  return &this->active_node->wrap().as_group();
+}
+
 static blender::VectorSet<blender::StringRefNull> get_node_names(const GreasePencil &grease_pencil)
 {
   using namespace blender;
