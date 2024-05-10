@@ -354,22 +354,13 @@ static SortedFaceData mesh_render_data_faces_sorted_build(const MeshRenderData &
   return cache;
 }
 
-static void mesh_render_data_faces_sorted_ensure(MeshRenderData &mr, MeshBufferCache &cache)
+const SortedFaceData &mesh_render_data_faces_sorted_ensure(const MeshRenderData &mr,
+                                                           MeshBufferCache &cache)
 {
-  if (cache.face_sorted.visible_tris_num > 0) {
-    return;
+  if (cache.face_sorted.visible_tris_num == 0) {
+    cache.face_sorted = mesh_render_data_faces_sorted_build(mr);
   }
-  cache.face_sorted = mesh_render_data_faces_sorted_build(mr);
-}
-
-void mesh_render_data_update_faces_sorted(MeshRenderData &mr,
-                                          MeshBufferCache &cache,
-                                          const eMRDataType data_flag)
-{
-  if (data_flag & MR_DATA_POLYS_SORTED) {
-    mesh_render_data_faces_sorted_ensure(mr, cache);
-    mr.face_sorted = &cache.face_sorted;
-  }
+  return cache.face_sorted;
 }
 
 /** \} */
@@ -451,26 +442,6 @@ const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *mesh)
 
   BLI_assert(0);
   return &mesh->vert_data;
-}
-
-void mesh_render_data_update_corner_tris(MeshRenderData &mr,
-                                         const eMRIterType iter_type,
-                                         const eMRDataType data_flag)
-{
-  if (mr.extract_type != MR_EXTRACT_BMESH) {
-    /* Mesh */
-    if ((iter_type & MR_ITER_CORNER_TRI) || (data_flag & MR_DATA_CORNER_TRI)) {
-      mr.corner_tris = mr.mesh->corner_tris();
-      mr.corner_tri_faces = mr.mesh->corner_tri_faces();
-    }
-  }
-  else {
-    /* #BMesh */
-    if ((iter_type & MR_ITER_CORNER_TRI) || (data_flag & MR_DATA_CORNER_TRI)) {
-      /* Edit mode ensures this is valid, no need to calculate. */
-      BLI_assert((mr.bm->totloop == 0) || !mr.edit_bmesh->looptris.is_empty());
-    }
-  }
 }
 
 static bool bm_edge_is_sharp(const BMEdge *const &edge)

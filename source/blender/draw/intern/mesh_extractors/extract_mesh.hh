@@ -102,8 +102,6 @@ struct MeshRenderData {
   BMFace *efa_act;
   BMFace *efa_act_uv;
   /* The triangulation of #Mesh faces, owned by the mesh. */
-  Span<int3> corner_tris;
-  Span<int> corner_tri_faces;
   VArraySpan<int> material_indices;
 
   bke::MeshNormalDomain normals_domain;
@@ -121,7 +119,6 @@ struct MeshRenderData {
 
   Span<int> loose_verts;
   Span<int> loose_edges;
-  const SortedFaceData *face_sorted;
 
   const char *active_color_name;
   const char *default_color_name;
@@ -298,15 +295,8 @@ void mesh_render_data_update_loose_geom(MeshRenderData &mr,
                                         MeshBufferCache &cache,
                                         eMRIterType iter_type,
                                         eMRDataType data_flag);
-void mesh_render_data_update_faces_sorted(MeshRenderData &mr,
-                                          MeshBufferCache &cache,
-                                          eMRDataType data_flag);
-/**
- * Part of the creation of the #MeshRenderData that happens in a thread.
- */
-void mesh_render_data_update_corner_tris(MeshRenderData &mr,
-                                         eMRIterType iter_type,
-                                         eMRDataType data_flag);
+const SortedFaceData &mesh_render_data_faces_sorted_ensure(const MeshRenderData &mr,
+                                                           MeshBufferCache &cache);
 
 /* draw_cache_extract_mesh_extractors.c */
 
@@ -352,6 +342,14 @@ void extract_mesh_loose_edge_data(const Span<T> vert_data,
   });
 }
 
+void extract_tris(const MeshRenderData &mr,
+                  const SortedFaceData &face_sorted,
+                  MeshBatchCache &cache,
+                  gpu::IndexBuf &ibo);
+void extract_tris_subdiv(const DRWSubdivCache &subdiv_cache,
+                         MeshBatchCache &cache,
+                         gpu::IndexBuf &ibo);
+
 void extract_lines(const MeshRenderData &mr,
                    gpu::IndexBuf *lines,
                    gpu::IndexBuf *lines_loose,
@@ -362,7 +360,6 @@ void extract_lines_subdiv(const DRWSubdivCache &subdiv_cache,
                           gpu::IndexBuf *lines_loose,
                           bool &no_loose_wire);
 
-extern const MeshExtract extract_tris;
 extern const MeshExtract extract_points;
 extern const MeshExtract extract_fdots;
 extern const MeshExtract extract_lines_paint_mask;

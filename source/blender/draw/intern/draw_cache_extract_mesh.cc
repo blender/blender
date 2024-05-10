@@ -398,7 +398,8 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData &mr,
   int stop;
   switch (iter_type) {
     case MR_ITER_CORNER_TRI:
-      range_data.elems = is_mesh ? mr.corner_tris.data() : (void *)mr.edit_bmesh->looptris.data();
+      range_data.elems = is_mesh ? mr.mesh->corner_tris().data() :
+                                   (void *)mr.edit_bmesh->looptris.data();
       func = is_mesh ? extract_range_iter_corner_tri_mesh : extract_range_iter_looptri_bm;
       stop = mr.corner_tris_num;
       break;
@@ -535,9 +536,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   const eMRDataType data_flag = update_task_data->data_flag;
 
   mesh_render_data_update_normals(mr, data_flag);
-  mesh_render_data_update_corner_tris(mr, iter_type, data_flag);
   mesh_render_data_update_loose_geom(mr, *update_task_data->cache, iter_type, data_flag);
-  mesh_render_data_update_faces_sorted(mr, *update_task_data->cache, data_flag);
 }
 
 static TaskNode *mesh_extract_render_data_node_create(TaskGraph *task_graph,
@@ -653,7 +652,6 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
   EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
   EXTRACT_ADD_REQUESTED(vbo, vnor);
 
-  EXTRACT_ADD_REQUESTED(ibo, tris);
   EXTRACT_ADD_REQUESTED(ibo, points);
   EXTRACT_ADD_REQUESTED(ibo, fdots);
   EXTRACT_ADD_REQUESTED(ibo, lines_paint_mask);
@@ -666,7 +664,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
 #undef EXTRACT_ADD_REQUESTED
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
-      !DRW_ibo_requested(buffers.ibo.lines_loose))
+      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris))
   {
     return;
   }
@@ -702,6 +700,24 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
   /* Simple heuristic. */
   const bool use_thread = (mr->corners_num + mr->loose_indices_num) > MIN_RANGE_LEN;
 
+  if (DRW_ibo_requested(buffers.ibo.tris)) {
+    struct LooseEdgedata {
+      MeshRenderData &mr;
+      MeshBufferCache &mbc;
+      MeshBatchCache &cache;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        task_graph,
+        [](void *__restrict task_data) {
+          const LooseEdgedata &data = *static_cast<LooseEdgedata *>(task_data);
+          const SortedFaceData &face_sorted = mesh_render_data_faces_sorted_ensure(data.mr,
+                                                                                   data.mbc);
+          extract_tris(data.mr, face_sorted, data.cache, *data.mbc.buff.ibo.tris);
+        },
+        new LooseEdgedata{*mr, mbc, cache},
+        [](void *task_data) { delete static_cast<LooseEdgedata *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
   if (DRW_ibo_requested(buffers.ibo.lines) || DRW_ibo_requested(buffers.ibo.lines_loose)) {
     struct LooseEdgedata {
       MeshRenderData &mr;
@@ -810,10 +826,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     } \
   } while (0)
 
-  /* The order in which extractors are added to the list matters somewhat, as some buffers are
-   * reused when building others. */
-  EXTRACT_ADD_REQUESTED(ibo, tris);
-
   /* Orcos are extracted at the same time as positions. */
   if (DRW_vbo_requested(buffers.vbo.pos) || DRW_vbo_requested(buffers.vbo.orco)) {
     extractors.append(&extract_pos);
@@ -854,12 +866,11 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
 #undef EXTRACT_ADD_REQUESTED
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
-      !DRW_ibo_requested(buffers.ibo.lines_loose))
+      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris))
   {
     return;
   }
 
-  mesh_render_data_update_corner_tris(mr, MR_ITER_CORNER_TRI, MR_DATA_CORNER_TRI);
   mesh_render_data_update_normals(mr, MR_DATA_TAN_LOOP_NOR);
   mesh_render_data_update_loose_geom(
       mr, mbc, MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT, MR_DATA_LOOSE_GEOM);
@@ -868,6 +879,9 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   if (DRW_ibo_requested(buffers.ibo.lines) || DRW_ibo_requested(buffers.ibo.lines_loose)) {
     extract_lines_subdiv(
         subdiv_cache, mr, buffers.ibo.lines, buffers.ibo.lines_loose, cache.no_loose_wire);
+  }
+  if (DRW_ibo_requested(buffers.ibo.tris)) {
+    extract_tris_subdiv(subdiv_cache, cache, *buffers.ibo.tris);
   }
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);

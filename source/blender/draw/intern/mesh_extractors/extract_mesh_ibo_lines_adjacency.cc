@@ -26,6 +26,7 @@ namespace blender::draw {
 #define NO_EDGE INT_MAX
 
 struct MeshExtract_LineAdjacency_Data {
+  Span<int> corner_tri_faces;
   GPUIndexBufBuilder elb;
   Map<OrderedEdge, int> *eh;
   bool is_manifold;
@@ -57,6 +58,7 @@ static void extract_lines_adjacency_init(const MeshRenderData &mr,
   uint tess_edge_len = mr.corners_num + mr.corner_tris_num - mr.faces_num;
 
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
+  data->corner_tri_faces = mr.mesh->corner_tri_faces();
   line_adjacency_data_init(data, mr.verts_num, mr.corners_num, tess_edge_len);
 }
 
@@ -131,7 +133,7 @@ static void extract_lines_adjacency_iter_corner_tri_mesh(const MeshRenderData &m
                                                          void *_data)
 {
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
-  const int face_i = mr.corner_tri_faces[elt_index];
+  const int face_i = data->corner_tri_faces[elt_index];
   const bool hidden = mr.use_hide && !mr.hide_poly.is_empty() && mr.hide_poly[face_i];
   if (hidden) {
     return;

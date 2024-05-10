@@ -217,8 +217,8 @@ static void statvis_calc_thickness(const MeshRenderData &mr, float *r_thickness)
     BVHTreeFromMesh treeData = {nullptr};
 
     BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr.mesh, BVHTREE_FROM_CORNER_TRIS, 4);
-    const Span<int3> corner_tris = mr.corner_tris;
-    const Span<int> tri_faces = mr.corner_tri_faces;
+    const Span<int3> corner_tris = mr.mesh->corner_tris();
+    const Span<int> tri_faces = mr.mesh->corner_tri_faces();
     for (const int i : corner_tris.index_range()) {
       const int index = tri_faces[i];
       const float *cos[3] = {mr.vert_positions[mr.corner_verts[corner_tris[i][0]]],
@@ -349,16 +349,16 @@ static void statvis_calc_intersect(const MeshRenderData &mr, float *r_intersect)
     BVHTree_OverlapData data = {};
     data.positions = mr.vert_positions;
     data.corner_verts = mr.corner_verts;
-    data.corner_tris = mr.corner_tris;
-    data.tri_faces = mr.corner_tri_faces;
+    data.corner_tris = mr.mesh->corner_tris();
+    data.tri_faces = mr.mesh->corner_tri_faces();
     data.epsilon = BLI_bvhtree_get_epsilon(tree);
 
     BVHTreeOverlap *overlap = BLI_bvhtree_overlap_self(tree, &overlap_len, bvh_overlap_cb, &data);
     if (overlap) {
       for (int i = 0; i < overlap_len; i++) {
 
-        for (const IndexRange f_hit : {mr.faces[mr.corner_tri_faces[overlap[i].indexA]],
-                                       mr.faces[mr.corner_tri_faces[overlap[i].indexB]]})
+        for (const IndexRange f_hit : {mr.faces[data.tri_faces[overlap[i].indexA]],
+                                       mr.faces[data.tri_faces[overlap[i].indexB]]})
         {
           int l_index = f_hit.start();
           for (int k = 0; k < f_hit.size(); k++, l_index++) {
