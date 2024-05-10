@@ -191,12 +191,6 @@ struct ExtractTaskData {
 #endif
 };
 
-static void extract_task_data_free(void *data)
-{
-  ExtractTaskData *task_data = static_cast<ExtractTaskData *>(data);
-  delete task_data;
-}
-
 /** \} */
 
 /* ---------------------------------------------------------------------- */
@@ -483,10 +477,9 @@ static TaskNode *extract_task_node_create(TaskGraph *task_graph,
 {
   ExtractTaskData *taskdata = new ExtractTaskData(mr, cache, extractors, buffers, use_threading);
   TaskNode *task_node = BLI_task_graph_node_create(
-      task_graph,
-      extract_task_range_run,
-      taskdata,
-      (TaskGraphNodeFreeFunction)extract_task_data_free);
+      task_graph, extract_task_range_run, taskdata, [](void *data) {
+        delete static_cast<ExtractTaskData *>(data);
+      });
   return task_node;
 }
 
