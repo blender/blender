@@ -125,7 +125,7 @@ void extract_tris(const MeshRenderData &mr,
     extract_tris_bmesh(mr, face_sorted, ibo);
   }
 
-  if (mr.use_final_mesh && cache.tris_per_mat) {
+  if (mr.use_final_mesh && !cache.tris_per_mat.is_empty()) {
     create_material_subranges(mr, face_sorted, cache, ibo);
   }
 }
@@ -137,7 +137,7 @@ void extract_tris_subdiv(const DRWSubdivCache &subdiv_cache,
   /* Initialize the index buffer, it was already allocated, it will be filled on the device. */
   GPU_indexbuf_init_build_on_device(&ibo, subdiv_cache.num_subdiv_triangles * 3);
 
-  if (cache.tris_per_mat) {
+  if (!cache.tris_per_mat.is_empty()) {
     for (int i = 0; i < cache.mat_len; i++) {
       if (cache.tris_per_mat[i] == nullptr) {
         cache.tris_per_mat[i] = GPU_indexbuf_calloc();

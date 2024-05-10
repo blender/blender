@@ -596,10 +596,8 @@ static void mesh_batch_cache_init(Object *object, Mesh *mesh)
   }
 
   cache->mat_len = mesh_render_mat_len_get(object, mesh);
-  cache->surface_per_mat = static_cast<gpu::Batch **>(
-      MEM_callocN(sizeof(*cache->surface_per_mat) * cache->mat_len, __func__));
-  cache->tris_per_mat = static_cast<gpu::IndexBuf **>(
-      MEM_callocN(sizeof(*cache->tris_per_mat) * cache->mat_len, __func__));
+  cache->surface_per_mat = Array<gpu::Batch *>(cache->mat_len, nullptr);
+  cache->tris_per_mat = Array<gpu::IndexBuf *>(cache->mat_len, nullptr);
 
   cache->is_dirty = false;
   cache->batch_ready = (DRWBatchFlag)0;
@@ -817,7 +815,7 @@ static void mesh_batch_cache_clear(MeshBatchCache &cache)
   for (int i = 0; i < cache.mat_len; i++) {
     GPU_INDEXBUF_DISCARD_SAFE(cache.tris_per_mat[i]);
   }
-  MEM_SAFE_FREE(cache.tris_per_mat);
+  cache.tris_per_mat = {};
 
   for (int i = 0; i < sizeof(cache.batch) / sizeof(void *); i++) {
     gpu::Batch **batch = (gpu::Batch **)&cache.batch;
@@ -826,7 +824,7 @@ static void mesh_batch_cache_clear(MeshBatchCache &cache)
 
   mesh_batch_cache_discard_shaded_tri(cache);
   mesh_batch_cache_discard_uvedit(cache);
-  MEM_SAFE_FREE(cache.surface_per_mat);
+  cache.surface_per_mat = {};
   cache.mat_len = 0;
 
   cache.batch_ready = (DRWBatchFlag)0;
@@ -989,7 +987,7 @@ gpu::Batch **DRW_mesh_batch_cache_get_surface_shaded(Object *object,
   mesh_cd_layers_type_merge(&cache.cd_needed, cd_needed);
   drw_attributes_merge(&cache.attr_needed, &attrs_needed, mesh->runtime->render_mutex);
   mesh_batch_cache_request_surface_batches(cache);
-  return cache.surface_per_mat;
+  return cache.surface_per_mat.data();
 }
 
 gpu::Batch **DRW_mesh_batch_cache_get_surface_texpaint(Object *object, Mesh *mesh)
@@ -997,7 +995,7 @@ gpu::Batch **DRW_mesh_batch_cache_get_surface_texpaint(Object *object, Mesh *mes
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
   texpaint_request_active_uv(cache, object, mesh);
   mesh_batch_cache_request_surface_batches(cache);
-  return cache.surface_per_mat;
+  return cache.surface_per_mat.data();
 }
 
 gpu::Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object *object, Mesh *mesh)

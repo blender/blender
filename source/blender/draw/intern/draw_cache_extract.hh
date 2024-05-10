@@ -256,9 +256,8 @@ struct MeshBatchCache {
   MeshBatchList batch;
 
   /* Index buffer per material. These are sub-ranges of `ibo.tris`. */
-  gpu::IndexBuf **tris_per_mat;
-
-  gpu::Batch **surface_per_mat;
+  Array<gpu::IndexBuf *> tris_per_mat;
+  Array<gpu::Batch *> surface_per_mat;
 
   DRWSubdivCache *subdiv_cache;
 
