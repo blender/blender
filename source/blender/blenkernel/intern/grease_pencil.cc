@@ -1445,11 +1445,53 @@ int64_t LayerGroup::num_nodes_total() const
   return this->runtime->nodes_cache_.size();
 }
 
-bool LayerGroup::unlink_node(TreeNode &link)
+bool LayerGroup::unlink_node(TreeNode &link, const bool keep_children)
 {
-  if (BLI_remlink_safe(&this->children, &link)) {
-    this->tag_nodes_cache_dirty();
+  if (link.is_group() && !link.as_group().is_empty() && keep_children) {
+    if (BLI_findindex(&this->children, &link) == -1) {
+      return false;
+    }
+
+    /* Take ownership of the children of `link` by replacing the node with the listbase of its
+     * children. */
+    ListBase link_children = link.as_group().children;
+    GreasePencilLayerTreeNode *first = static_cast<GreasePencilLayerTreeNode *>(
+        link_children.first);
+    GreasePencilLayerTreeNode *last = static_cast<GreasePencilLayerTreeNode *>(link_children.last);
+
+    /* Rewrite the parent pointers. */
+    LISTBASE_FOREACH (GreasePencilLayerTreeNode *, child, &link_children) {
+      child->parent = this;
+    }
+
+    /* Update previous and/or next link(s). */
+    if (link.next != nullptr) {
+      link.next->prev = last;
+      last->next = link.next;
+    }
+    if (link.prev != nullptr) {
+      link.prev->next = first;
+      first->prev = link.prev;
+    }
+
+    /* Update first and/or last link(s). */
+    if (this->children.last == &link) {
+      this->children.last = last;
+    }
+    if (this->children.first == &link) {
+      this->children.first = first;
+    }
+
+    /* Listbase has been inserted in `this->children` we can clear the pointers in `link`. */
+    BLI_listbase_clear(&link.as_group().children);
     link.parent = nullptr;
+
+    this->tag_nodes_cache_dirty();
+    return true;
+  }
+  else if (BLI_remlink_safe(&this->children, &link)) {
+    link.parent = nullptr;
+    this->tag_nodes_cache_dirty();
     return true;
   }
   return false;
@@ -2940,28 +2982,45 @@ static void shrink_customdata(CustomData &data, const int index_to_remove, const
   data = new_data;
 }
 
+static void update_active_node(GreasePencil &grease_pencil,
+                               const blender::bke::greasepencil::TreeNode &node)
+{
+  using namespace blender::bke::greasepencil;
+  if (grease_pencil.active_node == nullptr) {
+    return;
+  }
+  const TreeNode &active_node = grease_pencil.active_node->wrap();
+  if (&active_node != &node) {
+    return;
+  }
+
+  if (node.is_group()) {
+    grease_pencil.set_active_layer(nullptr);
+    return;
+  }
+
+  Span<const Layer *> layers = grease_pencil.layers();
+  /* If there is no other layer available, unset the active layer. */
+  if (layers.size() == 1) {
+    grease_pencil.set_active_layer(nullptr);
+  }
+  else {
+    /* Make the layer below active (if possible). */
+    if (&active_node.as_layer() == layers.first()) {
+      grease_pencil.set_active_layer(layers[1]);
+    }
+    else {
+      int64_t active_index = layers.first_index(&active_node.as_layer());
+      grease_pencil.set_active_layer(layers[active_index - 1]);
+    }
+  }
+}
+
 void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
 {
   using namespace blender::bke::greasepencil;
   /* If the layer is active, update the active layer. */
-  const Layer *active_layer = this->get_active_layer();
-  if (active_layer == &layer) {
-    Span<const Layer *> layers = this->layers();
-    /* If there is no other layer available, unset the active layer. */
-    if (layers.size() == 1) {
-      this->set_active_layer(nullptr);
-    }
-    else {
-      /* Make the layer below active (if possible). */
-      if (active_layer == layers.first()) {
-        this->set_active_layer(layers[1]);
-      }
-      else {
-        int64_t active_index = layers.first_index(active_layer);
-        this->set_active_layer(layers[active_index - 1]);
-      }
-    }
-  }
+  update_active_node(*this, layer.as_node());
 
   /* Remove all the layer attributes and shrink the `CustomData`. */
   const int64_t layer_index = this->layers().first_index(&layer);
@@ -2974,6 +3033,7 @@ void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
   for (const GreasePencilFrame frame : layer.frames().values()) {
     GreasePencilDrawingBase *drawing_base = this->drawing(frame.drawing_index);
     if (drawing_base->type != GP_DRAWING) {
+      /* TODO: Remove drawing reference. */
       continue;
     }
     GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
@@ -2983,6 +3043,31 @@ void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
 
   /* Delete the layer. */
   MEM_delete(&layer);
+}
+
+void GreasePencil::remove_group(blender::bke::greasepencil::LayerGroup &group,
+                                const bool keep_children)
+{
+  using namespace blender::bke::greasepencil;
+  /* If the group is active, update the active layer. */
+  update_active_node(*this, group.as_node());
+
+  if (!keep_children) {
+    /* Recursively remove sub groups. */
+    for (LayerGroup *sub_group : group.groups_for_write()) {
+      this->remove_group(*sub_group, false);
+    }
+
+    /* Remove all the layers. */
+    for (Layer *layer : group.layers_for_write()) {
+      this->remove_layer(*layer);
+    }
+  }
+  /* Unlink the group. Keep the children if we want to keep them. */
+  group.as_node().parent_group()->unlink_node(group.as_node(), keep_children);
+
+  /* Delete the group. */
+  MEM_delete(&group);
 }
 
 void GreasePencil::print_layer_tree()

@@ -294,6 +294,45 @@ static void GREASE_PENCIL_OT_layer_group_add(wmOperatorType *ot)
   ot->prop = prop;
 }
 
+static int grease_pencil_layer_group_remove_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::bke::greasepencil;
+  Object *object = CTX_data_active_object(C);
+  const bool keep_children = RNA_boolean_get(op->ptr, "keep_children");
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  if (!grease_pencil.has_active_group()) {
+    return OPERATOR_CANCELLED;
+  }
+
+  grease_pencil.remove_group(*grease_pencil.get_active_group(), keep_children);
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_group_remove(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Layer Group";
+  ot->idname = "GREASE_PENCIL_OT_layer_group_remove";
+  ot->description = "Remove Grease Pencil layer group in the active object";
+
+  /* callbacks */
+  ot->exec = grease_pencil_layer_group_remove_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "keep_children",
+                  false,
+                  "Keep children nodes",
+                  "Keep the children nodes of the group and only delete the group itself");
+}
+
 static int grease_pencil_layer_hide_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
@@ -720,6 +759,7 @@ void ED_operatortypes_grease_pencil_layers()
   WM_operatortype_append(GREASE_PENCIL_OT_layer_duplicate);
 
   WM_operatortype_append(GREASE_PENCIL_OT_layer_group_add);
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_group_remove);
 
   WM_operatortype_append(GREASE_PENCIL_OT_layer_mask_add);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_mask_remove);

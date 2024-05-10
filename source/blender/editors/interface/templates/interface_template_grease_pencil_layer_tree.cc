@@ -317,6 +317,15 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     return {};
   }
 
+  void build_context_menu(bContext &C, uiLayout &layout) const override
+  {
+    MenuType *mt = WM_menutype_find("GreasePencil_MT_group_context_menu", true);
+    if (!mt) {
+      return;
+    }
+    UI_menutype_draw(&C, mt, &layout);
+  }
+
   void on_activate(bContext &C) override
   {
     PointerRNA grease_pencil_ptr = RNA_pointer_create(
