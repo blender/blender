@@ -2360,8 +2360,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  /** Currently there is no 'all editable' option from the 3DView. */
-  const bool do_fully_editable = false;
+  const bool do_fully_editable = !user_overrides_from_selected_objects;
 
   GSet *user_overrides_objects_uids = do_fully_editable ? NULL :
                                                           BLI_gset_new(BLI_ghashutil_inthash_p,
