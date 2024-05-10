@@ -89,6 +89,7 @@ struct BlendFileReadWMSetupData {
 struct BlendFileReadParams {
   uint skip_flags : 3; /* #eBLOReadSkip */
   uint is_startup : 1;
+  uint is_factory_settings : 1;
 
   /** Whether we are reading the memfile for an undo or a redo. */
   int undo_direction; /* #eUndoStepDir */

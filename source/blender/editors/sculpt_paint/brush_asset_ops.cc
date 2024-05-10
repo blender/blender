@@ -725,7 +725,7 @@ static bool brush_asset_update_poll(bContext *C)
     return false;
   }
 
-  if (!bke::asset_edit_id_is(brush->id)) {
+  if (!bke::asset_edit_id_is_editable(brush->id)) {
     return false;
   }
 
@@ -783,7 +783,7 @@ static bool brush_asset_revert_poll(bContext *C)
     return false;
   }
 
-  return paint->brush_asset_reference && bke::asset_edit_id_is(brush->id);
+  return paint->brush_asset_reference && bke::asset_edit_id_is_editable(brush->id);
 }
 
 static int brush_asset_revert_exec(bContext *C, wmOperator *op)

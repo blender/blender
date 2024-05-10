@@ -290,7 +290,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
 
 bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports)
 {
-  if (!asset_edit_id_is(id)) {
+  if (!asset_edit_id_is_editable(id)) {
     return false;
   }
 
@@ -312,7 +312,7 @@ bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports)
 
 bool asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports)
 {
-  if (!asset_edit_id_is(id)) {
+  if (!asset_edit_id_is_editable(id)) {
     return false;
   }
 
@@ -325,7 +325,7 @@ bool asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports)
 
 bool asset_edit_id_delete(Main &global_main, ID &id, ReportList &reports)
 {
-  if (!asset_edit_id_is(id)) {
+  if (!asset_edit_id_is_editable(id)) {
     return false;
   }
 
@@ -368,14 +368,34 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
   return asset_link_id(global_main, id_type, asset_lib_path, asset_name);
 }
 
-bool asset_edit_id_is(const ID &id)
+std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(ID &id)
+{
+  if (!asset_edit_id_is_editable(id)) {
+    return std::nullopt;
+  }
+
+  bUserAssetLibrary *user_library = BKE_preferences_asset_library_containing_path(
+      &U, id.lib->runtime.filepath_abs);
+
+  const short idcode = GS(id.name);
+
+  if (user_library && user_library->dirpath[0]) {
+    return asset_weak_reference_for_user_library(
+        *user_library, idcode, id.name + 2, id.lib->runtime.filepath_abs);
+  }
+  else {
+    return asset_weak_reference_for_essentials(idcode, id.name + 2, id.lib->runtime.filepath_abs);
+  }
+}
+
+bool asset_edit_id_is_editable(const ID &id)
 {
   return (id.lib && (id.lib->runtime.tag & LIBRARY_ASSET_EDITABLE));
 }
 
 bool asset_edit_id_is_writable(const ID &id)
 {
-  return asset_edit_id_is(id) && (id.lib->runtime.tag & LIBRARY_ASSET_FILE_WRITABLE);
+  return asset_edit_id_is_editable(id) && (id.lib->runtime.tag & LIBRARY_ASSET_FILE_WRITABLE);
 }
 
 }  // namespace blender::bke

@@ -47,7 +47,7 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
 
 /** Asset editing operations. */
 
-bool asset_edit_id_is(const ID &id);
+bool asset_edit_id_is_editable(const ID &id);
 bool asset_edit_id_is_writable(const ID &id);
 
 std::optional<std::string> asset_edit_id_save_as(Main &global_main,

@@ -628,7 +628,7 @@ static bool paint_brush_set_from_asset_reference(Main *bmain, Paint *paint)
 
   Brush *brush = reinterpret_cast<Brush *>(blender::bke::asset_edit_id_from_weak_reference(
       *bmain, ID_BR, *paint->brush_asset_reference));
-  BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is(brush->id));
+  BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is_editable(brush->id));
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend was manually changed. */
@@ -856,7 +856,7 @@ static bool paint_eraser_brush_set_from_asset_reference(Main *bmain, Paint *pain
 
   Brush *brush = reinterpret_cast<Brush *>(blender::bke::asset_edit_id_from_weak_reference(
       *bmain, ID_BR, *paint->eraser_brush_asset_reference));
-  BLI_assert(brush == nullptr || (brush->id.tag & LIB_TAG_ASSET_EDIT_MAIN));
+  BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is_editable(brush->id));
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend was manually changed. */

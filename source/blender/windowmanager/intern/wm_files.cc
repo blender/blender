@@ -1360,6 +1360,7 @@ void wm_homefile_read_ex(bContext *C,
     if (BLI_access(filepath_startup, R_OK) == 0) {
       BlendFileReadParams params{};
       params.is_startup = true;
+      params.is_factory_settings = use_factory_settings;
       params.skip_flags = skip_flags | BLO_READ_SKIP_USERDEF;
       BlendFileReadReport bf_reports{};
       bf_reports.reports = reports;
@@ -1402,6 +1403,7 @@ void wm_homefile_read_ex(bContext *C,
   if (success == false) {
     BlendFileReadParams read_file_params{};
     read_file_params.is_startup = true;
+    read_file_params.is_factory_settings = use_factory_settings;
     read_file_params.skip_flags = skip_flags;
     BlendFileData *bfd = BKE_blendfile_read_from_memory(
         datatoc_startup_blend, datatoc_startup_blend_size, &read_file_params, nullptr);
