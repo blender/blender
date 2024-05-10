@@ -117,6 +117,7 @@ void ED_editors_init(bContext *C)
       }
       else if (mode & OB_MODE_ALL_PAINT_GPENCIL) {
         ED_gpencil_toggle_brush_cursor(C, true, nullptr);
+        BKE_paint_ensure_from_paintmode(bmain, scene, BKE_paintmode_get_active_from_context(C));
       }
       continue;
     }

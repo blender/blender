@@ -207,6 +207,9 @@ class BrushSelectPanel(BrushPanel):
     def draw(self, context):
         layout = self.layout
         settings = self.paint_settings(context)
+        if settings is None:
+            return
+
         brush = settings.brush
 
         row = layout.row()
