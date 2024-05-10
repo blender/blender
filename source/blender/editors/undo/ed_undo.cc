@@ -712,9 +712,9 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
       if (op->type->check) {
         if (op->type->check(C, op)) {
           /* check for popup and re-layout buttons */
-          ARegion *region_menu = CTX_wm_menu(C);
-          if (region_menu) {
-            ED_region_tag_refresh_ui(region_menu);
+          ARegion *region_popup = CTX_wm_region_popup(C);
+          if (region_popup) {
+            ED_region_tag_refresh_ui(region_popup);
           }
         }
       }

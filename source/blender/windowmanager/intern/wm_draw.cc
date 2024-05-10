@@ -1023,7 +1023,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     if (!region->visible) {
       continue;
     }
-    CTX_wm_menu_set(C, region);
+    CTX_wm_region_popup_set(C, region);
 
     GPU_debug_group_begin("Menu");
 
@@ -1044,7 +1044,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     GPU_debug_group_end();
 
     region->do_draw = 0;
-    CTX_wm_menu_set(C, nullptr);
+    CTX_wm_region_popup_set(C, nullptr);
   }
 }
 

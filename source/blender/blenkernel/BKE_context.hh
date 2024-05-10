@@ -190,7 +190,7 @@ ScrArea *CTX_wm_area(const bContext *C);
 SpaceLink *CTX_wm_space_data(const bContext *C);
 ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
-ARegion *CTX_wm_menu(const bContext *C);
+ARegion *CTX_wm_region_popup(const bContext *C);
 wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C);
 wmMsgBus *CTX_wm_message_bus(const bContext *C);
 ReportList *CTX_wm_reports(const bContext *C);
@@ -219,7 +219,7 @@ void CTX_wm_window_set(bContext *C, wmWindow *win);
 void CTX_wm_screen_set(bContext *C, bScreen *screen); /* to be removed */
 void CTX_wm_area_set(bContext *C, ScrArea *area);
 void CTX_wm_region_set(bContext *C, ARegion *region);
-void CTX_wm_menu_set(bContext *C, ARegion *menu);
+void CTX_wm_region_popup_set(bContext *C, ARegion *region_popup);
 void CTX_wm_gizmo_group_set(bContext *C, wmGizmoGroup *gzgroup);
 
 /**

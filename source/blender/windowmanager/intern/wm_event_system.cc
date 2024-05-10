@@ -784,7 +784,7 @@ static eHandlerActionFlag wm_handler_ui_call(bContext *C,
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  ARegion *menu = CTX_wm_menu(C);
+  ARegion *region_popup = CTX_wm_region_popup(C);
   static bool do_wheel_ui = true;
   const bool is_wheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN);
 
@@ -820,8 +820,8 @@ static eHandlerActionFlag wm_handler_ui_call(bContext *C,
   if (handler->context.region) {
     CTX_wm_region_set(C, handler->context.region);
   }
-  if (handler->context.menu) {
-    CTX_wm_menu_set(C, handler->context.menu);
+  if (handler->context.region_popup) {
+    CTX_wm_region_popup_set(C, handler->context.region_popup);
   }
 
   int retval = handler->handle_fn(C, event, handler->user_data);
@@ -830,13 +830,13 @@ static eHandlerActionFlag wm_handler_ui_call(bContext *C,
   if ((retval != WM_UI_HANDLER_BREAK) || always_pass) {
     CTX_wm_area_set(C, area);
     CTX_wm_region_set(C, region);
-    CTX_wm_menu_set(C, menu);
+    CTX_wm_region_popup_set(C, region_popup);
   }
   else {
     /* This special cases is for areas and regions that get removed. */
     CTX_wm_area_set(C, nullptr);
     CTX_wm_region_set(C, nullptr);
-    CTX_wm_menu_set(C, nullptr);
+    CTX_wm_region_popup_set(C, nullptr);
   }
 
   if (retval == WM_UI_HANDLER_BREAK) {
@@ -2188,9 +2188,9 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
       wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
 
       if (handler->remove_fn) {
-        ScrArea *area = CTX_wm_area(C);
-        ARegion *region = CTX_wm_region(C);
-        ARegion *menu = CTX_wm_menu(C);
+        ScrArea *area_prev = CTX_wm_area(C);
+        ARegion *region_prev = CTX_wm_region(C);
+        ARegion *region_popup_prev = CTX_wm_region_popup(C);
 
         if (handler->context.area) {
           CTX_wm_area_set(C, handler->context.area);
@@ -2198,15 +2198,15 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
         if (handler->context.region) {
           CTX_wm_region_set(C, handler->context.region);
         }
-        if (handler->context.menu) {
-          CTX_wm_menu_set(C, handler->context.menu);
+        if (handler->context.region_popup) {
+          CTX_wm_region_popup_set(C, handler->context.region_popup);
         }
 
         handler->remove_fn(C, handler->user_data);
 
-        CTX_wm_area_set(C, area);
-        CTX_wm_region_set(C, region);
-        CTX_wm_menu_set(C, menu);
+        CTX_wm_area_set(C, area_prev);
+        CTX_wm_region_set(C, region_prev);
+        CTX_wm_region_popup_set(C, region_popup_prev);
       }
     }
 
@@ -4779,12 +4779,12 @@ wmEventHandler_UI *WM_event_add_ui_handler(const bContext *C,
   if (C) {
     handler->context.area = CTX_wm_area(C);
     handler->context.region = CTX_wm_region(C);
-    handler->context.menu = CTX_wm_menu(C);
+    handler->context.region_popup = CTX_wm_region_popup(C);
   }
   else {
     handler->context.area = nullptr;
     handler->context.region = nullptr;
-    handler->context.menu = nullptr;
+    handler->context.region_popup = nullptr;
   }
 
   BLI_assert((flag & WM_HANDLER_DO_FREE) == 0);

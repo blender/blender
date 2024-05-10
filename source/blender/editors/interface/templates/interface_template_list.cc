@@ -632,7 +632,7 @@ static void uilist_resize_update(bContext *C, uiList *ui_list)
   }
 
   /* In case uilist is in popup, we need special refreshing */
-  ED_region_tag_refresh_ui(CTX_wm_menu(C));
+  ED_region_tag_refresh_ui(CTX_wm_region_popup(C));
 }
 
 static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *propname)
@@ -669,7 +669,7 @@ static uiList *ui_list_ensure(const bContext *C,
                               bool sort_lock)
 {
   /* Allows to work in popups. */
-  ARegion *region = CTX_wm_menu(C);
+  ARegion *region = CTX_wm_region_popup(C);
   if (region == nullptr) {
     region = CTX_wm_region(C);
   }

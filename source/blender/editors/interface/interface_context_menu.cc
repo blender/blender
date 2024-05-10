@@ -1069,7 +1069,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   {
-    const ARegion *region = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
+    const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
     uiButViewItem *view_item_but = (uiButViewItem *)ui_view_item_find_mouse_over(region,
                                                                                  event->xy);
     if (view_item_but) {
@@ -1382,7 +1382,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   /* UI List item context menu. Scripts can add items to it, by default there's nothing shown. */
-  const ARegion *region = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
+  const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
   const bool is_inside_listbox = ui_list_find_mouse_over(region, event) != nullptr;
   const bool is_inside_listrow = is_inside_listbox ?
                                      ui_list_row_find_mouse_over(region, event->xy) != nullptr :

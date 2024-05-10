@@ -867,7 +867,7 @@ static void setup_app_data(bContext *C,
     CTX_wm_screen_set(C, bfd->curscreen);
     CTX_wm_area_set(C, nullptr);
     CTX_wm_region_set(C, nullptr);
-    CTX_wm_menu_set(C, nullptr);
+    CTX_wm_region_popup_set(C, nullptr);
   }
   BLI_assert(CTX_wm_manager(C) == static_cast<wmWindowManager *>(bmain->wm.first));
 
