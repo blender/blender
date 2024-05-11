@@ -856,7 +856,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
 
   /* Compute distance from brush to curve roots. */
   Array<std::pair<float, int>> distances_sq_to_brush(curves.curves_num());
-  threading::EnumerableThreadSpecific<int> valid_curve_count_by_thread;
+  threading::EnumerableThreadSpecific<int> valid_curve_count_by_thread([&]() { return 0; });
   threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
     int &valid_curve_count = valid_curve_count_by_thread.local();
     for (const int curve_i : range) {
