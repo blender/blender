@@ -319,7 +319,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
 
   void build_context_menu(bContext &C, uiLayout &layout) const override
   {
-    MenuType *mt = WM_menutype_find("GreasePencil_MT_group_context_menu", true);
+    MenuType *mt = WM_menutype_find("GREASE_PENCIL_MT_group_context_menu", true);
     if (!mt) {
       return;
     }
