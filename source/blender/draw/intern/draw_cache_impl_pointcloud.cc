@@ -226,19 +226,21 @@ static const uint half_octahedron_tris[4][3] = {
 
 static void pointcloud_extract_indices(const PointCloud &pointcloud, PointCloudBatchCache &cache)
 {
-  /** \note Avoid modulo by non-power-of-two in shader. */
-  uint32_t vertid_max = pointcloud.totpoint * 32;
+  /* Overlap shape and point indices to avoid both having to store the indices into a separate
+   * buffer and avoid rendering points as instances. */
+  uint32_t vertid_max = pointcloud.totpoint << 3;
   uint32_t index_len = pointcloud.totpoint * ARRAY_SIZE(half_octahedron_tris);
 
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, index_len, vertid_max);
 
+  /* TODO(fclem): Could be build on GPU or not be built at all. */
   for (int p = 0; p < pointcloud.totpoint; p++) {
     for (int i = 0; i < ARRAY_SIZE(half_octahedron_tris); i++) {
       GPU_indexbuf_add_tri_verts(&builder,
-                                 half_octahedron_tris[i][0] + p * 32,
-                                 half_octahedron_tris[i][1] + p * 32,
-                                 half_octahedron_tris[i][2] + p * 32);
+                                 half_octahedron_tris[i][0] | (p << 3),
+                                 half_octahedron_tris[i][1] | (p << 3),
+                                 half_octahedron_tris[i][2] | (p << 3));
     }
   }
 
