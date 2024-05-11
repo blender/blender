@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BKE_global.hh"
+#include "BLI_system.h"
 #include "CLG_log.h"
 
 /** Options for organizing Metal GPU debug captures. */
@@ -36,8 +37,8 @@ void mtl_debug_init();
   { \
     if (G.debug & G_DEBUG_GPU) { \
       CLOG_ERROR(&debug::LOG, info EXPAND_ARGS(__VA_ARGS__)); \
+      BLI_system_backtrace(stderr); \
     } \
-    BLI_assert(false); \
   }
 
 #define MTL_LOG_WARNING(info, ...) \
