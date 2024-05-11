@@ -34,8 +34,10 @@ bool BLI_file_alias_target(const char *filepath, char r_targetpath[FILE_MAXDIR])
     NSURL *shortcutURL = [[NSURL alloc] initFileURLWithFileSystemRepresentation:filepath
                                                                     isDirectory:NO
                                                                   relativeToURL:nil];
+
+    /* Note, NSURLBookmarkResolutionWithoutMounting keeps blender from crashing when an alias can't be mounted */
     const NSURL *targetURL = [NSURL URLByResolvingAliasFileAtURL:shortcutURL
-                                                         options:NSURLBookmarkResolutionWithoutUI
+                                                         options:NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting
                                                            error:&error];
     const BOOL isSame = [shortcutURL isEqual:targetURL] and
                         ([[[shortcutURL path] stringByStandardizingPath]
