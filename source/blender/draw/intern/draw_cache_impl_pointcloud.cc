@@ -235,14 +235,16 @@ static void pointcloud_extract_indices(const PointCloud &pointcloud, PointCloudB
   GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, index_len, vertid_max);
 
   /* TODO(fclem): Could be build on GPU or not be built at all. */
-  for (int p = 0; p < pointcloud.totpoint; p++) {
-    for (int i = 0; i < ARRAY_SIZE(half_octahedron_tris); i++) {
-      GPU_indexbuf_add_tri_verts(&builder,
-                                 half_octahedron_tris[i][0] | (p << 3),
-                                 half_octahedron_tris[i][1] | (p << 3),
-                                 half_octahedron_tris[i][2] | (p << 3));
+  threading::parallel_for(IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
+    for (int p : range) {
+      for (int i = 0; i < ARRAY_SIZE(half_octahedron_tris); i++) {
+        GPU_indexbuf_add_tri_verts(&builder,
+                                   half_octahedron_tris[i][0] | (p << 3),
+                                   half_octahedron_tris[i][1] | (p << 3),
+                                   half_octahedron_tris[i][2] | (p << 3));
+      }
     }
-  }
+  });
 
   GPU_indexbuf_build_in_place(&builder, cache.eval_cache.geom_indices);
 }
