@@ -229,24 +229,24 @@ static void pointcloud_extract_indices(const PointCloud &pointcloud, PointCloudB
   /* Overlap shape and point indices to avoid both having to store the indices into a separate
    * buffer and avoid rendering points as instances. */
   uint32_t vertid_max = pointcloud.totpoint << 3;
-  uint32_t index_len = pointcloud.totpoint * ARRAY_SIZE(half_octahedron_tris);
+  constexpr uint32_t tri_count_per_point = ARRAY_SIZE(half_octahedron_tris);
+  uint32_t primitive_len = pointcloud.totpoint * tri_count_per_point;
 
   GPUIndexBufBuilder builder;
-  GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, index_len, vertid_max);
+  GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, primitive_len, vertid_max);
+  MutableSpan<uint3> data = GPU_indexbuf_get_data(&builder).cast<uint3>();
 
   /* TODO(fclem): Could be build on GPU or not be built at all. */
   threading::parallel_for(IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
     for (int p : range) {
-      for (int i = 0; i < ARRAY_SIZE(half_octahedron_tris); i++) {
-        GPU_indexbuf_add_tri_verts(&builder,
-                                   half_octahedron_tris[i][0] | (p << 3),
-                                   half_octahedron_tris[i][1] | (p << 3),
-                                   half_octahedron_tris[i][2] | (p << 3));
+      for (int i : IndexRange(tri_count_per_point)) {
+        data[p * tri_count_per_point + i] = uint3(half_octahedron_tris[i]) | (p << 3);
       }
     }
   });
 
-  GPU_indexbuf_build_in_place(&builder, cache.eval_cache.geom_indices);
+  GPU_indexbuf_build_in_place_ex(
+      &builder, 0, primitive_len * 3, false, cache.eval_cache.geom_indices);
 }
 
 static void pointcloud_extract_position_and_radius(const PointCloud &pointcloud,
