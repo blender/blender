@@ -964,6 +964,48 @@ class GreasePencilFlipTintColors(Operator):
         return {'FINISHED'}
 
 
+class GREASE_PENCIL_MT_snap(Menu):
+    bl_label = "Snap"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("grease_pencil.snap_to_grid", text="Selection to Grid")
+        layout.operator("grease_pencil.snap_to_cursor", text="Selection to Cursor").use_offset = False
+        layout.operator("grease_pencil.snap_to_cursor", text="Selection to Cursor (Keep Offset)").use_offset = True
+
+        layout.separator()
+
+        layout.operator("grease_pencil.snap_cursor_to_selected", text="Cursor to Selected")
+        layout.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin")
+        layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
+
+
+class GREASE_PENCIL_MT_snap_pie(Menu):
+    bl_label = "Snap"
+
+    def draw(self, _context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        pie.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='CURSOR')
+        pie.operator("grease_pencil.snap_to_grid", text="Selection to Grid", icon='RESTRICT_SELECT_OFF')
+        pie.operator("grease_pencil.snap_cursor_to_selected", text="Cursor to Selected", icon='CURSOR')
+        pie.operator(
+            "grease_pencil.snap_to_cursor",
+            text="Selection to Cursor",
+            icon='RESTRICT_SELECT_OFF',
+        ).use_offset = False
+        pie.operator(
+            "grease_pencil.snap_to_cursor",
+            text="Selection to Cursor (Keep Offset)",
+            icon='RESTRICT_SELECT_OFF',
+        ).use_offset = True
+        pie.separator()
+        pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
+        pie.separator()
+
+
 classes = (
     GPENCIL_MT_snap,
     GPENCIL_MT_snap_pie,
@@ -981,6 +1023,9 @@ classes = (
 
     GREASE_PENCIL_MT_move_to_layer,
     GREASE_PENCIL_MT_layer_active,
+
+    GREASE_PENCIL_MT_snap,
+    GREASE_PENCIL_MT_snap_pie,
 
     GreasePencilFlipTintColors,
 )
