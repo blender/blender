@@ -188,7 +188,7 @@ void BKE_pchan_minmax(const Object *ob,
  *
  * \note This uses #BKE_pchan_minmax, see its documentation for details on bounds calculation.
  */
-bool BKE_pose_minmax(const Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select);
+bool BKE_pose_minmax(const Object *ob, float r_min[3], float r_max[3], bool use_select);
 
 /**
  * Finds the best possible extension to the name on a particular axis.

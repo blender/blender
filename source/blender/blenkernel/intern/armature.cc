@@ -3030,7 +3030,7 @@ std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Objec
   blender::float3 min(std::numeric_limits<float>::max());
   blender::float3 max(std::numeric_limits<float>::lowest());
 
-  const bool has_minmax = BKE_pose_minmax(ob, &min[0], &max[0], false, false);
+  const bool has_minmax = BKE_pose_minmax(ob, &min[0], &max[0], false);
 
   if (!has_minmax) {
     return std::nullopt;
@@ -3088,8 +3088,7 @@ void BKE_pchan_minmax(const Object *ob,
   }
 }
 
-bool BKE_pose_minmax(
-    const Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select)
+bool BKE_pose_minmax(const Object *ob, float r_min[3], float r_max[3], bool use_select)
 {
   bool changed = false;
 
@@ -3099,13 +3098,17 @@ bool BKE_pose_minmax(
     LISTBASE_FOREACH (const bPoseChannel *, pchan, &ob->pose->chanbase) {
       /* XXX pchan->bone may be nullptr for duplicated bones, see duplicateEditBoneObjects()
        * comment (editarmature.c:2592)... Skip in this case too! */
-      if (pchan->bone && (!((use_hidden == false) && (PBONE_VISIBLE(arm, pchan->bone) == false)) &&
-                          !((use_select == true) && ((pchan->bone->flag & BONE_SELECTED) == 0))))
-      {
-
-        BKE_pchan_minmax(ob, pchan, false, r_min, r_max);
-        changed = true;
+      if (!pchan->bone) {
+        continue;
       }
+      if (!PBONE_VISIBLE(arm, pchan->bone)) {
+        continue;
+      }
+      if (use_select && !(pchan->bone->flag & BONE_SELECTED)) {
+        continue;
+      }
+      BKE_pchan_minmax(ob, pchan, false, r_min, r_max);
+      changed = true;
     }
   }
 
