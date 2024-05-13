@@ -38,6 +38,10 @@ void VKDrawList::append(Batch *gpu_batch, int instance_first, int instance_count
   const VKIndexBuffer *index_buffer = batch_->index_buffer_get();
   const bool is_indexed = index_buffer != nullptr;
   if (is_indexed) {
+    /* Don't record commands for invalid GPUBatches. */
+    if (index_buffer->index_len_get() == 0) {
+      return;
+    }
     VkDrawIndexedIndirectCommand &command = get_command<VkDrawIndexedIndirectCommand>();
     command.firstIndex = index_buffer->index_base_get();
     command.vertexOffset = index_buffer->index_start_get();
@@ -47,8 +51,8 @@ void VKDrawList::append(Batch *gpu_batch, int instance_first, int instance_count
   }
   else {
     const VKVertexBuffer *vertex_buffer = batch_->vertex_buffer_get(0);
-    if (vertex_buffer == nullptr) {
-      batch_ = nullptr;
+    /* Don't record commands for invalid GPUBatches. */
+    if (vertex_buffer == nullptr || vertex_buffer->vertex_len == 0) {
       return;
     }
     VkDrawIndirectCommand &command = get_command<VkDrawIndirectCommand>();
