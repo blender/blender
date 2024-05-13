@@ -1851,7 +1851,7 @@ class _defs_weight_paint:
         )
 
 
-class _defs_paint_grease_pencil:
+class _defs_grease_pencil_paint:
 
     # FIXME: Replace brush tools with code below once they are all implemented:
     #
@@ -1940,7 +1940,7 @@ class _defs_paint_grease_pencil:
     def line():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("grease_pencil.primitive_line")
-            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+            _defs_grease_pencil_paint.grease_pencil_primitive_toolbar(context, layout, tool, props)
 
         return dict(
             idname="builtin.line",
@@ -1956,7 +1956,7 @@ class _defs_paint_grease_pencil:
     def polyline():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("grease_pencil.primitive_polyline")
-            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+            _defs_grease_pencil_paint.grease_pencil_primitive_toolbar(context, layout, tool, props)
 
         return dict(
             idname="builtin.polyline",
@@ -1972,7 +1972,7 @@ class _defs_paint_grease_pencil:
     def arc():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("grease_pencil.primitive_arc")
-            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+            _defs_grease_pencil_paint.grease_pencil_primitive_toolbar(context, layout, tool, props)
 
         return dict(
             idname="builtin.arc",
@@ -1988,7 +1988,7 @@ class _defs_paint_grease_pencil:
     def curve():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("grease_pencil.primitive_curve")
-            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+            _defs_grease_pencil_paint.grease_pencil_primitive_toolbar(context, layout, tool, props)
 
         return dict(
             idname="builtin.curve",
@@ -2004,7 +2004,7 @@ class _defs_paint_grease_pencil:
     def box():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("grease_pencil.primitive_box")
-            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+            _defs_grease_pencil_paint.grease_pencil_primitive_toolbar(context, layout, tool, props)
 
         return dict(
             idname="builtin.box",
@@ -2020,7 +2020,7 @@ class _defs_paint_grease_pencil:
     def circle():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("grease_pencil.primitive_circle")
-            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+            _defs_grease_pencil_paint.grease_pencil_primitive_toolbar(context, layout, tool, props)
 
         return dict(
             idname="builtin.circle",
@@ -3500,17 +3500,17 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'PAINT_GREASE_PENCIL': [
             _defs_view3d_generic.cursor,
             None,
-            _defs_paint_grease_pencil.draw,
-            _defs_paint_grease_pencil.erase,
-            _defs_paint_grease_pencil.cutter,
-            _defs_paint_grease_pencil.tint,
+            _defs_grease_pencil_paint.draw,
+            _defs_grease_pencil_paint.erase,
+            _defs_grease_pencil_paint.cutter,
+            _defs_grease_pencil_paint.tint,
             None,
-            _defs_paint_grease_pencil.line,
-            _defs_paint_grease_pencil.polyline,
-            _defs_paint_grease_pencil.arc,
-            _defs_paint_grease_pencil.curve,
-            _defs_paint_grease_pencil.box,
-            _defs_paint_grease_pencil.circle,
+            _defs_grease_pencil_paint.line,
+            _defs_grease_pencil_paint.polyline,
+            _defs_grease_pencil_paint.arc,
+            _defs_grease_pencil_paint.curve,
+            _defs_grease_pencil_paint.box,
+            _defs_grease_pencil_paint.circle,
         ],
         'PAINT_GPENCIL': [
             _defs_view3d_generic.cursor,
