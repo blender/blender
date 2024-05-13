@@ -2067,7 +2067,7 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
 {
   /* Replace paint brushes with a reference to the default brush asset for that mode. */
   LISTBASE_FOREACH (Scene *, scene, &bmain.scenes) {
-    BKE_paint_brush_set_default_references(scene->toolsettings);
+    BKE_paint_brushes_set_default_references(scene->toolsettings);
   }
 
   /* Replace persistent tool references with the new single builtin brush tool. */

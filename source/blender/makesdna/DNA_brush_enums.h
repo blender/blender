@@ -76,8 +76,8 @@ typedef enum eGPDbrush_Flag {
   GP_BRUSH_STABILIZE_MOUSE = (1 << 8),
   /* lazy mouse override (internal only) */
   GP_BRUSH_STABILIZE_MOUSE_TEMP = (1 << 9),
-  /* default eraser brush for quick switch */
-  GP_BRUSH_DEFAULT_ERASER = (1 << 10),
+  /* deprecated, was default eraser brush for quick switch */
+  GP_BRUSH_DEPRECATED1 = (1 << 10),
   /* settings group */
   GP_BRUSH_GROUP_SETTINGS = (1 << 11),
   /* Random settings group */

@@ -208,9 +208,8 @@ bool BKE_paint_brush_set(Paint *paint, Brush *brush);
 bool BKE_paint_brush_set_default(Main *bmain, Paint *paint);
 bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
 
-void BKE_paint_brush_set_default_references(ToolSettings *ts);
-
-void BKE_paint_brush_validate(Main *bmain, Paint *paint);
+void BKE_paint_brushes_set_default_references(ToolSettings *ts);
+void BKE_paint_brushes_validate(Main *bmain, Paint *paint);
 
 /**
  * Set the active brush of given paint struct, and store the weak asset reference to it.
@@ -219,6 +218,16 @@ void BKE_paint_brush_validate(Main *bmain, Paint *paint);
 bool BKE_paint_brush_asset_set(Paint *paint,
                                Brush *brush,
                                const AssetWeakReference &weak_asset_reference);
+
+/* Secondary eraser brush. */
+
+Brush *BKE_paint_eraser_brush(Paint *paint);
+const Brush *BKE_paint_eraser_brush_for_read(const Paint *paint);
+Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, const char *name);
+
+bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush);
+bool BKE_paint_eraser_brush_set_default(Main *bmain, Paint *paint);
+bool BKE_paint_eraser_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
 
 /* Paint palette. */
 

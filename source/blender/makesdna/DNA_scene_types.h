@@ -925,7 +925,6 @@ typedef struct Paint {
   /**
    * The active brush. Possibly null. Possibly stored in a separate #Main data-base and not user-
    * counted.
-   * //TODO: Or always stored in a separate #Main?
    */
   struct Brush *brush;
 
@@ -935,6 +934,10 @@ typedef struct Paint {
    * file load.
    */
   struct AssetWeakReference *brush_asset_reference;
+
+  /** Default eraser brush and associated weak reference. */
+  struct Brush *eraser_brush;
+  struct AssetWeakReference *eraser_brush_asset_reference;
 
   struct Palette *palette;
   /** Cavity curve. */

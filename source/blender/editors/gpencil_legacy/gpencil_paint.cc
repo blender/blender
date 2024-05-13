@@ -1938,10 +1938,15 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
 
   /* Assign to temp #tGPsdata */
   p->brush = brush;
-  if (p->brush->gpencil_tool != GPAINT_TOOL_ERASE) {
-    /* TODO: make this work again with "Smooth Eraser" essentials brush.
-     * See od gpencil_set_default_eraser and gpencil_set_default_eraser. */
-    p->eraser = p->brush;
+
+  Brush *eraser_brush;
+  if (p->brush->gpencil_tool != GPAINT_TOOL_ERASE &&
+      (eraser_brush = BKE_paint_eraser_brush(paint)))
+  {
+    if (eraser_brush && !eraser_brush->gpencil_settings) {
+      BKE_brush_init_gpencil_settings(eraser_brush);
+    }
+    p->eraser = eraser_brush;
   }
   else {
     p->eraser = p->brush;

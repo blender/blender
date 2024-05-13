@@ -1029,26 +1029,6 @@ static std::optional<std::string> rna_BrushGpencilSettings_path(const PointerRNA
   return "gpencil_settings";
 }
 
-static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
-                                                           Scene *scene,
-                                                           PointerRNA * /*ptr*/)
-{
-  ToolSettings *ts = scene->toolsettings;
-  Paint *paint = &ts->gp_paint->paint;
-  Brush *brush_cur = BKE_paint_brush(paint);
-
-  /* disable default eraser in all brushes */
-  for (Brush *brush = static_cast<Brush *>(bmain->brushes.first); brush;
-       brush = static_cast<Brush *>(brush->id.next))
-  {
-    if ((brush != brush_cur) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY) &&
-        (brush->gpencil_tool == GPAINT_TOOL_ERASE))
-    {
-      brush->gpencil_settings->flag &= ~GP_BRUSH_DEFAULT_ERASER;
-    }
-  }
-}
-
 static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, PointerRNA *ptr)
 {
   const Scene *scene = CTX_data_scene(C);
@@ -1981,16 +1961,6 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Limit to Viewport", "Fill only visible areas in viewport");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
-  prop = RNA_def_property(srna, "use_default_eraser", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_BRUSH_DEFAULT_ERASER);
-  RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
-  RNA_def_property_ui_text(
-      prop, "Default Eraser", "Use this brush when enable eraser with fast switch key");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(
-      prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_default_eraser_update");
 
   prop = RNA_def_property(srna, "use_settings_postprocess", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_BRUSH_GROUP_SETTINGS);

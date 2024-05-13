@@ -431,7 +431,7 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
     if (brush && !brush->gpencil_settings) {
       BKE_brush_init_gpencil_settings(brush);
     }
-    BKE_paint_brush_validate(bmain, &ts->gp_paint->paint);
+    BKE_paint_brushes_validate(bmain, &ts->gp_paint->paint);
   }
 
   if (ob->type == OB_GPENCIL_LEGACY) {
@@ -570,7 +570,7 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
   if (mode == OB_MODE_SCULPT_GPENCIL_LEGACY) {
     /* Be sure we have brushes. */
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_sculptpaint);
-    BKE_paint_brush_validate(bmain, &ts->gp_sculptpaint->paint);
+    BKE_paint_brushes_validate(bmain, &ts->gp_sculptpaint->paint);
   }
 
   /* setup other modes */
@@ -710,7 +710,7 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
       ED_paint_cursor_start(weight_paint, grease_pencil_poll_weight_cursor);
     }
 
-    BKE_paint_brush_validate(bmain, weight_paint);
+    BKE_paint_brushes_validate(bmain, weight_paint);
   }
 
   /* setup other modes */
@@ -822,7 +822,7 @@ static int gpencil_vertexmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_vertexpaint);
 
-    BKE_paint_brush_validate(bmain, &ts->gp_vertexpaint->paint);
+    BKE_paint_brushes_validate(bmain, &ts->gp_vertexpaint->paint);
 
     /* Ensure Palette by default. */
     BKE_gpencil_palette_ensure(bmain, CTX_data_scene(C));
