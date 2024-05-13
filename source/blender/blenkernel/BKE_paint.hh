@@ -25,7 +25,6 @@
 
 #include "BKE_pbvh.hh"
 
-struct AssetWeakReference;
 struct BMFace;
 struct BMLog;
 struct BMesh;
@@ -210,14 +209,6 @@ bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
 
 void BKE_paint_brushes_set_default_references(ToolSettings *ts);
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint);
-
-/**
- * Set the active brush of given paint struct, and store the weak asset reference to it.
- * \note Takes ownership of the given `weak_asset_reference`.
- */
-bool BKE_paint_brush_asset_set(Paint *paint,
-                               Brush *brush,
-                               const AssetWeakReference &weak_asset_reference);
 
 /* Secondary eraser brush. */
 

@@ -662,36 +662,18 @@ bool BKE_paint_brush_set(Paint *paint, Brush *brush)
   }
 
   paint->brush = brush;
-  return true;
-}
 
-static void paint_brush_asset_update(Paint &paint,
-                                     Brush *brush,
-                                     const AssetWeakReference &brush_asset_reference)
-{
-  BLI_assert(&brush_asset_reference != paint.brush_asset_reference);
-  MEM_delete(paint.brush_asset_reference);
-  paint.brush_asset_reference = nullptr;
+  MEM_delete(paint->brush_asset_reference);
+  paint->brush_asset_reference = nullptr;
 
-  if (brush == nullptr || brush != paint.brush || !blender::bke::asset_edit_id_is(brush->id)) {
-    return;
+  if (brush != nullptr) {
+    std::optional<AssetWeakReference> weak_ref = blender::bke::asset_edit_weak_reference_from_id(
+        brush->id);
+    if (weak_ref.has_value()) {
+      paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, *weak_ref);
+    }
   }
 
-  paint.brush_asset_reference = MEM_new<AssetWeakReference>(__func__, brush_asset_reference);
-}
-
-bool BKE_paint_brush_asset_set(Paint *paint,
-                               Brush *brush,
-                               const AssetWeakReference &weak_asset_reference)
-{
-  /* Should not happen for users if brush assets are properly filtered by mode, but still protect
-   * against it in case of invalid API usage. */
-  if (brush && paint->runtime.ob_mode != brush->ob_mode) {
-    return false;
-  }
-
-  BKE_paint_brush_set(paint, brush);
-  paint_brush_asset_update(*paint, brush, weak_asset_reference);
   return true;
 }
 
@@ -890,6 +872,18 @@ bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush)
   }
 
   paint->eraser_brush = brush;
+
+  MEM_delete(paint->eraser_brush_asset_reference);
+  paint->eraser_brush_asset_reference = nullptr;
+
+  if (brush != nullptr) {
+    std::optional<AssetWeakReference> weak_ref = blender::bke::asset_edit_weak_reference_from_id(
+        brush->id);
+    if (weak_ref.has_value()) {
+      paint->eraser_brush_asset_reference = MEM_new<AssetWeakReference>(__func__, *weak_ref);
+    }
+  }
+
   return true;
 }
 
@@ -1392,6 +1386,7 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
 
   paint_runtime_init(ts, paint);
   BKE_paint_brush_set_default(bmain, paint);
+  BKE_paint_eraser_brush_set_default(bmain, paint);
 
   return false;
 }

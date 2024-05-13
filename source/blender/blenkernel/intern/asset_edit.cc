@@ -263,6 +263,47 @@ static void asset_reload(Main &global_main, Library *lib, ReportList &reports)
   DEG_relations_tag_update(&global_main);
 }
 
+static AssetWeakReference asset_weak_reference_for_user_library(
+    const bUserAssetLibrary &user_library,
+    const short idcode,
+    const char *idname,
+    const char *filepath)
+{
+  AssetWeakReference weak_ref;
+  weak_ref.asset_library_type = ASSET_LIBRARY_CUSTOM;
+  weak_ref.asset_library_identifier = BLI_strdup(user_library.name);
+
+  /* BLI_path_rel requires a trailing slash. */
+  char user_library_dirpath[FILE_MAX];
+  STRNCPY(user_library_dirpath, user_library.dirpath);
+  BLI_path_slash_ensure(user_library_dirpath, sizeof(user_library_dirpath));
+
+  char relative_filepath[FILE_MAX];
+  STRNCPY(relative_filepath, filepath);
+  BLI_path_rel(relative_filepath, user_library_dirpath);
+  const char *asset_blend_path = relative_filepath + 2; /* Strip out // prefix. */
+
+  weak_ref.relative_asset_identifier = BLI_sprintfN(
+      "%s/%s/%s", asset_blend_path, BKE_idtype_idcode_to_name(idcode), idname);
+
+  return weak_ref;
+}
+
+static AssetWeakReference asset_weak_reference_for_essentials(const short idcode,
+                                                              const char *idname,
+                                                              const char *filepath)
+{
+  AssetWeakReference weak_ref;
+  weak_ref.asset_library_type = ASSET_LIBRARY_ESSENTIALS;
+  weak_ref.relative_asset_identifier = BLI_sprintfN("%s/%s/%s/%s",
+                                                    BKE_idtype_idcode_to_name_plural(idcode),
+                                                    BLI_path_basename(filepath),
+                                                    BKE_idtype_idcode_to_name(idcode),
+                                                    idname);
+
+  return weak_ref;
+}
+
 /**
  * Public API
  */
@@ -270,6 +311,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  const ID &id,
                                                  const StringRef name,
                                                  const bUserAssetLibrary &user_library,
+                                                 AssetWeakReference &new_weak_ref,
                                                  ReportList &reports)
 {
   const std::string filepath = asset_blendfile_path_for_save(
@@ -282,6 +324,9 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
     BKE_report(&reports, RPT_ERROR, "Failed to write to asset library");
     return std::nullopt;
   }
+
+  new_weak_ref = asset_weak_reference_for_user_library(
+      user_library, GS(id.name), id.name + 2, filepath.c_str());
 
   BKE_reportf(&reports, RPT_INFO, "Saved \"%s\"", filepath.c_str());
 

@@ -45,6 +45,9 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
                                       ID_Type id_type,
                                       const AssetWeakReference &weak_ref);
 
+/** Get asset weak reference from ID. */
+std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(ID &id);
+
 /** Asset editing operations. */
 
 bool asset_edit_id_is_editable(const ID &id);
@@ -54,6 +57,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  const ID &id,
                                                  StringRef name,
                                                  const bUserAssetLibrary &user_library,
+                                                 AssetWeakReference &weak_ref,
                                                  ReportList &reports);
 
 bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports);
