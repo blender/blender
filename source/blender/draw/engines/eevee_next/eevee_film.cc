@@ -506,6 +506,7 @@ void Film::sync()
     cryptomatte_post_ps_.push_constant("cryptomatte_samples_per_layer",
                                        inst_.view_layer->cryptomatte_levels);
     int2 dispatch_size = math::divide_ceil(int2(cryptomatte_tx_.size()), int2(FILM_GROUP_SIZE));
+    cryptomatte_post_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
     cryptomatte_post_ps_.dispatch(int3(UNPACK2(dispatch_size), 1));
   }
 }
