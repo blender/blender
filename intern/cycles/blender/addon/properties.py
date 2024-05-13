@@ -1452,6 +1452,7 @@ class CyclesDeviceSettings(bpy.types.PropertyGroup):
 class CyclesPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
 
+    @staticmethod
     def default_device():
         import platform
         # Default to selecting the Metal compute device on Apple Silicon GPUs
