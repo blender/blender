@@ -11,7 +11,7 @@
 
 #include "DNA_anim_types.h"
 
-#include "ANIM_animation.hh"
+#include "ANIM_action.hh"
 
 struct AnimationEvalContext;
 struct PointerRNA;
@@ -27,7 +27,7 @@ namespace blender::animrig {
  * the given one is an evaluated copy) and update that too.
  */
 void evaluate_and_apply_animation(PointerRNA &animated_id_ptr,
-                                  Animation &animation,
+                                  Action &animation,
                                   binding_handle_t binding_handle,
                                   const AnimationEvalContext &anim_eval_context,
                                   bool flush_to_original);

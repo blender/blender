@@ -110,7 +110,7 @@
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
-#include "DNA_anim_defaults.h"
+#include "DNA_action_defaults.h"
 #include "DNA_armature_defaults.h"
 #include "DNA_asset_defaults.h"
 #include "DNA_brush_defaults.h"
@@ -146,9 +146,9 @@
 #define SDNA_DEFAULT_DECL_STRUCT(struct_name) \
   static const struct_name DNA_DEFAULT_##struct_name = _DNA_DEFAULT_##struct_name
 
-/* DNA_anim_defaults.h */
-SDNA_DEFAULT_DECL_STRUCT(AnimationLayer);
-SDNA_DEFAULT_DECL_STRUCT(AnimationStrip);
+/* DNA_action_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(ActionLayer);
+SDNA_DEFAULT_DECL_STRUCT(ActionStrip);
 
 /* DNA_asset_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(AssetMetaData);
@@ -397,8 +397,8 @@ extern const bTheme U_theme_default;
 const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
     /* DNA_anim_defaults.h */
-    SDNA_DEFAULT_DECL(AnimationLayer),
-    SDNA_DEFAULT_DECL(AnimationStrip),
+    SDNA_DEFAULT_DECL(ActionLayer),
+    SDNA_DEFAULT_DECL(ActionStrip),
 
     /* DNA_asset_defaults.h */
     SDNA_DEFAULT_DECL(AssetMetaData),

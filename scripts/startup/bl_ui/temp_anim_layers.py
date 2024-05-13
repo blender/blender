@@ -34,40 +34,40 @@ class VIEW3D_PT_animation_layers(Panel):
 
         # FIXME: this should be done in response to a message-bus callback, notifier, whatnot.
         adt = context.object.animation_data
-        with _wm_selected_animation_lock:
+        with _wm_selected_action_lock:
             if adt:
-                context.window_manager.selected_animation = adt.animation
+                context.window_manager.selected_action = adt.action
             else:
-                context.window_manager.selected_animation = None
+                context.window_manager.selected_action = None
 
         col = layout.column()
         # This has to go via an auxiliary property, as assigning an Animation
         # data-block should be possible even when `context.object.animation_data`
         # is `None`, and thus its `animation` property does not exist.
-        col.template_ID(context.window_manager, 'selected_animation')
+        col.template_ID(context.window_manager, 'selected_action')
 
         col = layout.column(align=False)
-        anim = adt and adt.animation
+        anim = adt and adt.action
         if anim:
             binding_sub = col.column(align=True)
 
             # Binding selector.
             row = binding_sub.row(align=True)
-            row.prop(adt, 'animation_binding', text="Binding")
+            row.prop(adt, 'action_binding', text="Binding")
             row.operator('anim.binding_unassign_object', text="", icon='X')
 
-            binding = anim.bindings.get(adt.animation_binding, None)
+            binding = anim.bindings.get(adt.action_binding, None)
             if binding:
                 binding_sub.prop(binding, 'name_display', text="Name")
 
             internal_sub = binding_sub.box().column(align=True)
             internal_sub.active = False
-            internal_sub.prop(adt, 'animation_binding_handle', text="handle")
+            internal_sub.prop(adt, 'action_binding_handle', text="handle")
             if binding:
                 internal_sub.prop(binding, 'name', text="Internal Name")
 
         if adt:
-            col.prop(adt, 'animation_binding_name', text="ADT Binding Name")
+            col.prop(adt, 'action_binding_name', text="ADT Binding Name")
         else:
             col.label(text="ADT Binding Name: -")
 
@@ -89,42 +89,35 @@ classes = (
     VIEW3D_PT_animation_layers,
 )
 
-_wm_selected_animation_lock = threading.Lock()
+_wm_selected_action_lock = threading.Lock()
 
 
-def _wm_selected_animation_update(wm, context):
+def _wm_selected_action_update(wm, context):
     # Avoid responding to changes written by the panel above.
-    lock_ok = _wm_selected_animation_lock.acquire(blocking=False)
+    lock_ok = _wm_selected_action_lock.acquire(blocking=False)
     if not lock_ok:
         return
     try:
-        if wm.selected_animation is None and context.object.animation_data is None:
+        if wm.selected_action is None and context.object.animation_data is None:
             return
 
         adt = context.object.animation_data_create()
-        if adt.animation == wm.selected_animation:
+        if adt.action == wm.selected_action:
             # Avoid writing to the property when the new value hasn't changed.
             return
-        adt.animation = wm.selected_animation
+        adt.action = wm.selected_action
     finally:
-        _wm_selected_animation_lock.release()
+        _wm_selected_action_lock.release()
 
 
 def register_props():
-    # Put behind a `try` because it won't exist when Blender is built without
-    # experimental features.
-    try:
-        from bpy.types import Animation
-    except ImportError:
-        return
-
     # Due to this hackyness, the WindowManager will increase the user count of
     # the pointed-to Animation data-block.
-    WindowManager.selected_animation = PointerProperty(
-        type=Animation,
-        name="Animation",
-        description="Animation assigned to the active Object",
-        update=_wm_selected_animation_update,
+    WindowManager.selected_action = PointerProperty(
+        type=bpy.types.Action,
+        name="Action",
+        description="Action assigned to the active Object",
+        update=_wm_selected_action_update,
     )
 
 

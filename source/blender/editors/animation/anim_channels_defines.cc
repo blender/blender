@@ -9,7 +9,6 @@
 #include <cstdio>
 
 #include "ANIM_action.hh"
-#include "ANIM_animation.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_keyframing.hh"
 
@@ -1315,9 +1314,10 @@ static void *acf_fillanim_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/** Object Animation expander type define. */
+/* TODO: merge this with the regular Action expander. */
+/** Object's Layered Action expander type define. */
 static bAnimChannelType ACF_FILLANIM = {
-    /*channel_type_name*/ "Ob-Animation Filler",
+    /*channel_type_name*/ "Ob-Layered-Action Filler",
     /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
     /*get_backdrop_color*/ acf_generic_dataexpand_color,
@@ -4372,7 +4372,7 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_NLACURVE;    /* NLA Control FCurve Channel */
 
 #ifdef WITH_ANIM_BAKLAVA
-    animchannelTypeInfo[type++] = &ACF_FILLANIM; /* Object Animation Expander */
+    animchannelTypeInfo[type++] = &ACF_FILLANIM; /* Object's Layered Action Expander */
 #else
     animchannelTypeInfo[type++] = nullptr;
 #endif
@@ -4423,8 +4423,8 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_NLAACTION; /* NLA Action */
 
 #ifdef WITH_ANIM_BAKLAVA
-    BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_FILLANIM] == &ACF_FILLANIM,
-                   "ANIMTYPE_FILLANIM does not match ACF_FILLANIM");
+    BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_FILLACT_LAYERED] == &ACF_FILLANIM,
+                   "ANIMTYPE_FILLACT_LAYERED does not match ACF_FILLANIM");
 #endif
   }
 }

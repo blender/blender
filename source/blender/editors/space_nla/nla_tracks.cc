@@ -261,7 +261,7 @@ static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, shor
       }
       break;
     }
-    case ANIMTYPE_FILLANIM:
+    case ANIMTYPE_FILLACT_LAYERED:
       /* The NLA doesn't support Animation data-blocks. */
       break;
     default:

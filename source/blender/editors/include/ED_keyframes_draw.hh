@@ -14,7 +14,6 @@
 
 #include "ED_keyframes_keylist.hh"
 
-struct Animation;
 struct AnimData;
 struct ChannelDrawList;
 struct FCurve;
@@ -73,14 +72,14 @@ void ED_add_action_group_channel(ChannelDrawList *draw_list,
                                  float ypos,
                                  float yscale_fac,
                                  int saction_flag);
-/* Animation Summary.*/
-void ED_add_animation_channel(ChannelDrawList *channel_list,
-                              AnimData *adt,
-                              Animation *anim,
-                              float ypos,
-                              float yscale_fac,
-                              int saction_flag);
-/* Action Summary */
+/* Layered Action Summary.*/
+void ED_add_action_layered_channel(ChannelDrawList *channel_list,
+                                   AnimData *adt,
+                                   bAction *action,
+                                   const float ypos,
+                                   const float yscale_fac,
+                                   int saction_flag);
+/* Legacy Action Summary */
 void ED_add_action_channel(ChannelDrawList *draw_list,
                            AnimData *adt,
                            bAction *act,

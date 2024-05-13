@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "ANIM_animation.hh"
+#include "ANIM_action.hh"
 
+#include "BKE_action.hh"
 #include "BKE_anim_data.hh"
-#include "BKE_animation.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
@@ -24,10 +24,10 @@
 #include "testing/testing.h"
 
 namespace blender::animrig::tests {
-class AnimationLayersTest : public testing::Test {
+class ActionLayersTest : public testing::Test {
  public:
   Main *bmain;
-  Animation *anim;
+  Action *anim;
   Object *cube;
   Object *suzanne;
 
@@ -48,7 +48,7 @@ class AnimationLayersTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    anim = static_cast<Animation *>(BKE_id_new(bmain, ID_AN, "ANÄnimåtië"));
+    anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
     suzanne = BKE_object_add_only_object(bmain, OB_EMPTY, "OBSuzanne");
   }
@@ -59,7 +59,7 @@ class AnimationLayersTest : public testing::Test {
   }
 };
 
-TEST_F(AnimationLayersTest, add_layer)
+TEST_F(ActionLayersTest, add_layer)
 {
   Layer &layer = anim->layer_add("layer name");
 
@@ -71,7 +71,7 @@ TEST_F(AnimationLayersTest, add_layer)
   ASSERT_EQ(0, layer.strips().size()) << "Expected newly added layer to have no strip.";
 }
 
-TEST_F(AnimationLayersTest, remove_layer)
+TEST_F(ActionLayersTest, remove_layer)
 {
   Layer &layer0 = anim->layer_add("Test Læür nul");
   Layer &layer1 = anim->layer_add("Test Læür één");
@@ -84,7 +84,7 @@ TEST_F(AnimationLayersTest, remove_layer)
   layer2.strip_add(Strip::Type::Keyframe);
 
   { /* Test removing a layer that is not owned. */
-    Animation *other_anim = static_cast<Animation *>(BKE_id_new(bmain, ID_AN, "ANOtherAnim"));
+    Action *other_anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACOtherAnim"));
     Layer &other_layer = other_anim->layer_add("Another Layer");
     EXPECT_FALSE(anim->layer_remove(other_layer))
         << "Removing a layer not owned by the animation should be gracefully rejected";
@@ -104,7 +104,7 @@ TEST_F(AnimationLayersTest, remove_layer)
   EXPECT_EQ(0, anim->layers().size());
 }
 
-TEST_F(AnimationLayersTest, add_strip)
+TEST_F(ActionLayersTest, add_strip)
 {
   Layer &layer = anim->layer_add("Test Læür");
 
@@ -133,7 +133,7 @@ TEST_F(AnimationLayersTest, add_strip)
       binding, "location", 0, {1.0f, 47.0f}, settings);
 }
 
-TEST_F(AnimationLayersTest, remove_strip)
+TEST_F(ActionLayersTest, remove_strip)
 {
   Layer &layer = anim->layer_add("Test Læür");
   Strip &strip0 = layer.strip_add(Strip::Type::Keyframe);
@@ -168,7 +168,7 @@ TEST_F(AnimationLayersTest, remove_strip)
   }
 }
 
-TEST_F(AnimationLayersTest, add_binding)
+TEST_F(ActionLayersTest, add_binding)
 {
   { /* Creating an 'unused' Binding should just be called 'Binding'. */
     Binding &binding = anim->binding_add();
@@ -189,7 +189,7 @@ TEST_F(AnimationLayersTest, add_binding)
   }
 }
 
-TEST_F(AnimationLayersTest, add_binding_multiple)
+TEST_F(ActionLayersTest, add_binding_multiple)
 {
   Binding &bind_cube = anim->binding_add();
   Binding &bind_suzanne = anim->binding_add();
@@ -201,7 +201,7 @@ TEST_F(AnimationLayersTest, add_binding_multiple)
   EXPECT_EQ(2, bind_suzanne.handle);
 }
 
-TEST_F(AnimationLayersTest, anim_assign_id)
+TEST_F(ActionLayersTest, anim_assign_id)
 {
   /* Assign to the only, 'virgin' Binding, should always work. */
   Binding &binding_cube = anim->binding_add();
@@ -219,7 +219,7 @@ TEST_F(AnimationLayersTest, anim_assign_id)
       << "The binding name should be copied to the adt";
 
   { /* Assign Cube to another animation+binding without unassigning first. */
-    Animation *another_anim = static_cast<Animation *>(BKE_id_new(bmain, ID_AN, "ANOtherAnim"));
+    Action *another_anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACOtherAnim"));
     Binding &another_binding = another_anim->binding_add();
     ASSERT_FALSE(another_anim->assign_id(&another_binding, cube->id))
         << "Assigning animation (with this function) when already assigned should fail.";
@@ -258,7 +258,7 @@ TEST_F(AnimationLayersTest, anim_assign_id)
   BKE_id_free(nullptr, mesh);
 }
 
-TEST_F(AnimationLayersTest, rename_binding)
+TEST_F(ActionLayersTest, rename_binding)
 {
   Binding &binding_cube = anim->binding_add();
   ASSERT_TRUE(anim->assign_id(&binding_cube, cube->id));
@@ -285,7 +285,7 @@ TEST_F(AnimationLayersTest, rename_binding)
   EXPECT_STREQ("Even Newer Name", cube->adt->binding_name);
 }
 
-TEST_F(AnimationLayersTest, binding_name_ensure_prefix)
+TEST_F(ActionLayersTest, binding_name_ensure_prefix)
 {
   class AccessibleBinding : public Binding {
    public:
@@ -321,7 +321,7 @@ TEST_F(AnimationLayersTest, binding_name_ensure_prefix)
   EXPECT_STREQ("XXNewName", binding.name);
 }
 
-TEST_F(AnimationLayersTest, binding_name_prefix)
+TEST_F(ActionLayersTest, binding_name_prefix)
 {
   Binding &binding = anim->binding_add();
   EXPECT_EQ("XX", binding.name_prefix_for_idtype());
@@ -330,7 +330,7 @@ TEST_F(AnimationLayersTest, binding_name_prefix)
   EXPECT_EQ("CA", binding.name_prefix_for_idtype());
 }
 
-TEST_F(AnimationLayersTest, rename_binding_name_collision)
+TEST_F(ActionLayersTest, rename_binding_name_collision)
 {
   Binding &binding1 = anim->binding_add();
   Binding &binding2 = anim->binding_add();
@@ -341,7 +341,7 @@ TEST_F(AnimationLayersTest, rename_binding_name_collision)
   EXPECT_STREQ("New Binding Name.001", binding2.name);
 }
 
-TEST_F(AnimationLayersTest, find_suitable_binding)
+TEST_F(ActionLayersTest, find_suitable_binding)
 {
   /* ===
    * Empty case, no bindings exist yet and the ID doesn't even have an AnimData. */
@@ -367,7 +367,7 @@ TEST_F(AnimationLayersTest, find_suitable_binding)
   other_binding.handle = 47;
 
   AnimData *adt = BKE_animdata_ensure_id(&cube->id);
-  adt->animation = nullptr;
+  adt->action = nullptr;
   /* Configure adt to use the handle of one binding, and the name of the other. */
   adt->binding_handle = other_binding.handle;
   STRNCPY_UTF8(adt->binding_name, binding.name);
@@ -377,7 +377,7 @@ TEST_F(AnimationLayersTest, find_suitable_binding)
    * Same situation as above (AnimData has name of one binding, but the handle of another),
    * except that the animation data-block has already been assigned. In this case the handle
    * should take precedence. */
-  adt->animation = anim;
+  adt->action = anim;
   id_us_plus(&anim->id);
   EXPECT_EQ(&other_binding, anim->find_suitable_binding_for(cube->id));
 
@@ -389,7 +389,7 @@ TEST_F(AnimationLayersTest, find_suitable_binding)
   EXPECT_EQ(&binding, anim->find_suitable_binding_for(cube->id));
 }
 
-TEST_F(AnimationLayersTest, strip)
+TEST_F(ActionLayersTest, strip)
 {
   constexpr float inf = std::numeric_limits<float>::infinity();
   Layer &layer0 = anim->layer_add("Test Læür nul");
@@ -427,7 +427,7 @@ TEST_F(AnimationLayersTest, strip)
   EXPECT_FALSE(strip.is_last_frame(172800.075f));
 }
 
-TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
+TEST_F(ActionLayersTest, KeyframeStrip__keyframe_insert)
 {
   Binding &binding = anim->binding_add();
   EXPECT_TRUE(anim->assign_id(&binding, cube->id));

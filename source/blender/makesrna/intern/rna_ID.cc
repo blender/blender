@@ -34,7 +34,6 @@
  */
 const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_AC, "ACTION", ICON_ACTION, "Action", ""},
-    {ID_AN, "ANIMATION", ICON_ACTION, "Animation", ""}, /* TODO: give Animation its own icon. */
     {ID_AR, "ARMATURE", ICON_ARMATURE_DATA, "Armature", ""},
     {ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
     {ID_CF, "CACHEFILE", ICON_FILE, "Cache File", ""},
@@ -123,9 +122,6 @@ static const EnumPropertyItem rna_enum_override_library_property_operation_items
 const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
     /* Datablocks */
     {FILTER_ID_AC, "filter_action", ICON_ACTION, "Actions", "Show Action data-blocks"},
-#ifdef WITH_ANIM_BAKLAVA
-    {FILTER_ID_AN, "filter_animation", ICON_ACTION, "Animations", "Show Animation data-blocks"},
-#endif
     {FILTER_ID_AR,
      "filter_armature",
      ICON_ARMATURE_DATA,
@@ -378,11 +374,6 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_Action) {
     return ID_AC;
   }
-#  ifdef WITH_ANIM_BAKLAVA
-  if (base_type == &RNA_Animation) {
-    return ID_AN;
-  }
-#  endif
   if (base_type == &RNA_Armature) {
     return ID_AR;
   }
@@ -505,11 +496,6 @@ StructRNA *ID_code_to_RNA_type(short idcode)
   switch ((ID_Type)idcode) {
     case ID_AC:
       return &RNA_Action;
-    case ID_AN:
-#  ifdef WITH_ANIM_BAKLAVA
-      return &RNA_Animation;
-#  endif
-      break;
     case ID_AR:
       return &RNA_Armature;
     case ID_BR:
@@ -1069,8 +1055,7 @@ static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag
         allow_flag = OB_RECALC_ALL | PSYS_RECALC;
         break;
 #  endif
-      case ID_AC: /* Fall-through. */
-      case ID_AN:
+      case ID_AC:
         allow_flag = ID_RECALC_ANIMATION;
         break;
       default:

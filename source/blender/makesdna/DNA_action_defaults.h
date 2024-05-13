@@ -13,10 +13,10 @@
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */
-/** \name AnimationLayer Struct
+/** \name ActionLayer Struct
  * \{ */
 
-#define _DNA_DEFAULT_AnimationLayer \
+#define _DNA_DEFAULT_ActionLayer \
   { \
     .influence = 1.0f, \
   }
@@ -24,10 +24,10 @@
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name AnimationStrip Struct
+/** \name ActionStrip Struct
  * \{ */
 
-#define _DNA_DEFAULT_AnimationStrip \
+#define _DNA_DEFAULT_ActionStrip \
   { \
     .frame_start = -INFINITY, \
     .frame_end = INFINITY, \

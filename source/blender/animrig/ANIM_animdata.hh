@@ -22,7 +22,7 @@ struct bAction;
 
 namespace blender::animrig {
 
-class Animation;
+class Action;
 
 /**
  * Get (or add relevant data to be able to do so) the Active Action for the given
@@ -66,7 +66,7 @@ bool animdata_remove_empty_action(AnimData *adt);
  * Again, this is just to hook up the new Animation data-block to the old
  * Blender UI code.
  */
-const FCurve *fcurve_find_by_rna_path(const Animation &anim,
+const FCurve *fcurve_find_by_rna_path(const Action &anim,
                                       const ID &animated_id,
                                       StringRefNull rna_path,
                                       int array_index);

@@ -55,10 +55,7 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
   adt = BKE_animdata_from_id(id);
   if (adt) {
     DEG_id_tag_update(id, ID_RECALC_ANIMATION);
-    if (adt->animation != nullptr) {
-      DEG_id_tag_update(&adt->animation->id, ID_RECALC_ANIMATION);
-    }
-    else if (adt->action != nullptr) {
+    if (adt->action != nullptr) {
       DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION);
     }
   }

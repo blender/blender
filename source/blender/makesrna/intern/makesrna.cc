@@ -4769,9 +4769,6 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_texture.cc", "rna_texture_api.cc", RNA_def_texture},
     {"rna_action.cc", "rna_action_api.cc", RNA_def_action},
     {"rna_animation.cc", "rna_animation_api.cc", RNA_def_animation},
-#ifdef WITH_ANIM_BAKLAVA
-    {"rna_animation_id.cc", nullptr, RNA_def_animation_id},
-#endif
     {"rna_animviz.cc", nullptr, RNA_def_animviz},
     {"rna_armature.cc", "rna_armature_api.cc", RNA_def_armature},
     {"rna_attribute.cc", nullptr, RNA_def_attribute},

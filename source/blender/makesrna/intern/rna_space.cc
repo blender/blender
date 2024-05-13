@@ -3505,11 +3505,7 @@ static const EnumPropertyItem dt_uv_items[] = {
 static IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[] = {
     /* Categories */
     {FILTER_ID_SCE, "category_scene", ICON_SCENE_DATA, "Scenes", "Show scenes"},
-    {FILTER_ID_AC | FILTER_ID_AN,
-     "category_animation",
-     ICON_ANIM_DATA,
-     "Animations",
-     "Show animation data"},
+    {FILTER_ID_AC, "category_animation", ICON_ANIM_DATA, "Animations", "Show animation data"},
     {FILTER_ID_OB | FILTER_ID_GR,
      "category_object",
      ICON_OUTLINER_COLLECTION,

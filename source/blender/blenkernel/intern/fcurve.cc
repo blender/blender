@@ -14,7 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "ANIM_animation.hh"
+#include "ANIM_action.hh"
 #include "ANIM_animdata.hh"
 
 #include "DNA_anim_types.h"
@@ -355,6 +355,28 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
   return matches;
 }
 
+FCurve *action_fcurve_find_by_rna_path(const ID *id,
+                                       blender::animrig::Action &action,
+                                       const char *rna_path,
+                                       const int rna_index)
+{
+  if (action.is_empty()) {
+    return nullptr;
+  }
+
+  if (action.is_action_layered()) {
+    BLI_assert(id);
+    const FCurve *fcu = blender::animrig::fcurve_find_by_rna_path(
+        action, *id, rna_path, rna_index);
+
+    /* The new Animation data-block is stricter with const-ness than older code, hence the
+     * const_cast. */
+    return const_cast<FCurve *>(fcu);
+  }
+
+  return BKE_fcurve_find(&action.curves, rna_path, rna_index);
+}
+
 FCurve *BKE_animadata_fcurve_find_by_rna_path(const ID *id,
                                               AnimData *animdata,
                                               const char *rna_path,
@@ -369,32 +391,16 @@ FCurve *BKE_animadata_fcurve_find_by_rna_path(const ID *id,
     *r_action = nullptr;
   }
 
-  /* Animation data-block takes priority over Action data-block. */
-  if (animdata->animation) {
-    /* TODO: this branch probably also needs a `Animation *r_anim` parameter for full
-     * compatibility with the Action-based uses.  Even better: change to return a
-     * result struct with all the relevant information/data. */
-    BLI_assert(id);
-    const FCurve *fcu = blender::animrig::fcurve_find_by_rna_path(
-        animdata->animation->wrap(), *id, rna_path, rna_index);
-    if (fcu) {
-      /* The new Animation data-block is stricter with const-ness than older code, hence the
-       * const_cast. */
-      return const_cast<FCurve *>(fcu);
-    }
-  }
-
   /* Action takes priority over drivers. */
-  const bool has_action_fcurves = animdata->action != nullptr &&
-                                  !BLI_listbase_is_empty(&animdata->action->curves);
-  if (has_action_fcurves) {
-    FCurve *fcu = BKE_fcurve_find(&animdata->action->curves, rna_path, rna_index);
-
-    if (fcu != nullptr) {
-      if (r_action != nullptr) {
-        *r_action = animdata->action;
+  if (animdata->action) {
+    blender::animrig::Action &action = animdata->action->wrap();
+    /* TODO: pass the binding handle instead of the id. */
+    FCurve *fcurve = action_fcurve_find_by_rna_path(id, action, rna_path, rna_index);
+    if (fcurve) {
+      if (r_action) {
+        *r_action = &action;
       }
-      return fcu;
+      return fcurve;
     }
   }
 
