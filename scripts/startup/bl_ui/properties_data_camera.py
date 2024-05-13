@@ -253,9 +253,15 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         col.prop(dof, "focus_object", text="Focus on Object")
         if dof.focus_object and dof.focus_object.type == 'ARMATURE':
             col.prop_search(dof, "focus_subtarget", dof.focus_object.data, "bones", text="Focus on Bone")
+
         sub = col.column()
         sub.active = (dof.focus_object is None)
-        sub.prop(dof, "focus_distance", text="Focus Distance")
+        row = sub.row(align=True)
+        row.prop(dof, "focus_distance", text="Focus Distance")
+        row.operator(
+            "ui.eyedropper_depth",
+            icon='EYEDROPPER',
+            text="").prop_data_path = "scene.camera.data.dof.focus_distance"
 
 
 class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
