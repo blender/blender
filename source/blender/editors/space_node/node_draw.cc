@@ -1615,6 +1615,9 @@ static void create_inspection_string_for_default_socket_value(const bNodeSocket 
   if (socket.is_multi_input()) {
     return;
   }
+  if (socket.owner_node().is_reroute()) {
+    return;
+  }
   const Span<const bNodeSocket *> connected_sockets = socket.directly_linked_sockets();
   if (!connected_sockets.is_empty() && !connected_sockets[0]->owner_node().is_dangling_reroute()) {
     return;
