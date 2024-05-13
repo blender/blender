@@ -3023,21 +3023,18 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
 std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob)
 {
-  BLI_assert(ob->data);
-  BLI_assert(ob->type == OB_ARMATURE);
-  BLI_assert(GS(static_cast<ID *>(ob->data)->name) == ID_AR);
+  std::optional<blender::Bounds<blender::float3>> bounds_world = BKE_pose_minmax(ob, false);
 
-  blender::float3 min(std::numeric_limits<float>::max());
-  blender::float3 max(std::numeric_limits<float>::lowest());
-
-  const bool has_minmax = BKE_pose_minmax(ob, &min[0], &max[0], false);
-
-  if (!has_minmax) {
+  if (!bounds_world) {
     return std::nullopt;
   }
 
-  return blender::Bounds<blender::float3>{math::transform_point(ob->world_to_object(), min),
-                                          math::transform_point(ob->world_to_object(), max)};
+  /* NOTE: this is not correct (after rotation the AABB may not be the smallest enclosing AABB any
+   * more), but acceptable because this is called via BKE_object_boundbox_get(), which is called by
+   * BKE_object_minmax(), which does the opposite transform. */
+  return blender::Bounds<blender::float3>{
+      math::transform_point(ob->world_to_object(), bounds_world->min),
+      math::transform_point(ob->world_to_object(), bounds_world->max)};
 }
 
 void BKE_pchan_minmax(const Object *ob,
@@ -3088,11 +3085,15 @@ void BKE_pchan_minmax(const Object *ob,
   }
 }
 
-bool BKE_pose_minmax(const Object *ob, float r_min[3], float r_max[3], bool use_select)
+std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob,
+                                                                const bool use_select)
 {
   if (!ob->pose) {
-    return false;
+    return std::nullopt;
   }
+
+  blender::float3 min(std::numeric_limits<float>::max());
+  blender::float3 max(std::numeric_limits<float>::lowest());
 
   BLI_assert(ob->type == OB_ARMATURE);
   const bArmature *arm = static_cast<const bArmature *>(ob->data);
@@ -3110,11 +3111,16 @@ bool BKE_pose_minmax(const Object *ob, float r_min[3], float r_max[3], bool use_
     if (use_select && !(pchan->bone->flag & BONE_SELECTED)) {
       continue;
     }
-    BKE_pchan_minmax(ob, pchan, false, r_min, r_max);
+
+    BKE_pchan_minmax(ob, pchan, false, &min[0], &max[0]);
     found_pchan = true;
   }
 
-  return found_pchan;
+  if (!found_pchan) {
+    return std::nullopt;
+  }
+
+  return blender::Bounds<blender::float3>(min, max);
 }
 
 /** \} */
