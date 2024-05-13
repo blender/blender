@@ -308,10 +308,10 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   prop = RNA_def_property(srna, "shadow_maximum_resolution", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0001f, 0.020f, 0.0005f, 4);
-  RNA_def_property_ui_text(
-      prop,
-      "Shadows Maximum Resolution",
-      "Lower values will reduce the cost of the shadow map in close-up regions");
+  RNA_def_property_ui_text(prop,
+                           "Shadows Resolution Limit",
+                           "Maximum size of a shadow map pixel. Higher values use less memory at "
+                           "the cost of shadow quality");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
@@ -361,9 +361,9 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
     prop = RNA_def_property(srna, "use_absolute_resolution", PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, nullptr, "mode", LA_SHAD_RES_ABSOLUTE);
     RNA_def_property_ui_text(prop,
-                             "Absolute Maximum Resolution",
-                             "Set maximum resolution at 1 unit from the light instead of relative "
-                             "to the shaded pixel distance");
+                             "Absolute Resolution Limit",
+                             "Limit the resolution at 1 unit from the light origin instead of "
+                             "relative to the shadowed pixel");
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
     RNA_def_property_update(prop, 0, "rna_Light_update");
   }
