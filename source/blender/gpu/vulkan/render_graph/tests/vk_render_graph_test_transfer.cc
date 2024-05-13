@@ -16,7 +16,6 @@ TEST(vk_render_graph, fill_and_read_back)
   VkHandle<VkBuffer> buffer(1u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -37,7 +36,6 @@ TEST(vk_render_graph, fill_transfer_and_read_back)
   VkHandle<VkBuffer> staging_buffer(2u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -81,7 +79,6 @@ TEST(vk_render_graph, fill_fill_read_back)
   VkHandle<VkBuffer> buffer(1u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -115,7 +112,6 @@ TEST(vk_render_graph, clear_clear_copy_and_read_back)
   VkHandle<VkBuffer> staging_buffer(3u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(src_image, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
@@ -257,7 +253,6 @@ TEST(vk_render_graph, clear_blit_copy_and_read_back)
   VkHandle<VkBuffer> staging_buffer(3u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(src_image, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);

@@ -16,7 +16,6 @@ TEST(vk_render_graph, dispatch_read_back)
   VkHandle<VkDescriptorSet> descriptor_set(4u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -52,7 +51,6 @@ TEST(vk_render_graph, dispatch_dispatch_read_back)
   VkHandle<VkDescriptorSet> descriptor_set(4u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -115,7 +113,6 @@ TEST(vk_render_graph, dispatch_dispatch_read_back_with_changing_descriptor_sets)
   VkHandle<VkDescriptorSet> descriptor_set_b(5u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -181,7 +178,6 @@ TEST(vk_render_graph, dispatch_dispatch_read_back_with_changing_pipelines)
   VkHandle<VkDescriptorSet> descriptor_set(5u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -247,7 +243,6 @@ TEST(vk_render_graph, dispatch_dispatch_read_back_with_changing_pipelines_descri
   VkHandle<VkDescriptorSet> descriptor_set_b(6u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -315,7 +310,6 @@ TEST(vk_render_graph, dispatch_indirect_read_back)
   VkHandle<VkDescriptorSet> descriptor_set(5u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
@@ -359,7 +353,6 @@ TEST(vk_render_graph, dispatch_indirect_dispatch_indirect_read_back)
   VkHandle<VkDescriptorSet> descriptor_set(5u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);

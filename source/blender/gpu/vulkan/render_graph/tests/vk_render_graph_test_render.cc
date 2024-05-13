@@ -16,7 +16,6 @@ TEST(vk_render_graph, begin_clear_attachments_end_read_back)
   VkHandle<VkBuffer> buffer(3u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(image, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
