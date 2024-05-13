@@ -22,6 +22,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
@@ -3020,21 +3021,23 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 /** \name Calculate Bounding Box (Armature & Pose)
  * \{ */
 
-std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const bPose *pose)
+std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob)
 {
-  if (BLI_listbase_is_empty(&pose->chanbase)) {
-    return std::nullopt;
-  }
+  BLI_assert(ob->data);
+  BLI_assert(ob->type == OB_ARMATURE);
+  BLI_assert(GS(static_cast<ID *>(ob->data)->name) == ID_AR);
+
   blender::float3 min(std::numeric_limits<float>::max());
   blender::float3 max(std::numeric_limits<float>::lowest());
-  /* For now, we assume BKE_pose_where_is has already been called
-   * (hence we have valid data in pachan). */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    minmax_v3v3_v3(min, max, pchan->pose_head);
-    minmax_v3v3_v3(min, max, pchan->pose_tail);
+
+  const bool has_minmax = BKE_pose_minmax(ob, &min[0], &max[0], false, false);
+
+  if (!has_minmax) {
+    return std::nullopt;
   }
 
-  return blender::Bounds<blender::float3>{min, max};
+  return blender::Bounds<blender::float3>{math::transform_point(ob->world_to_object(), min),
+                                          math::transform_point(ob->world_to_object(), max)};
 }
 
 void BKE_pchan_minmax(const Object *ob,

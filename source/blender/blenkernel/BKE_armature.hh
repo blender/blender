@@ -155,7 +155,10 @@ void BKE_armature_copy_bone_transforms(bArmature *armature_dst, const bArmature 
 
 void BKE_armature_transform(bArmature *arm, const float mat[4][4], bool do_props);
 
-std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const bPose *pose);
+/**
+ * Return the posed Armature bounding box in object-local coordinate space.
+ */
+std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob);
 
 /**
  * Calculate the axis-aligned bounds of `pchan` in world-space,
