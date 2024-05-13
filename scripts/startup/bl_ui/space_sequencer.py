@@ -258,7 +258,7 @@ class SEQUENCER_PT_overlay(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'HEADER'
     bl_label = "Overlays"
-    bl_ui_units_x = 7
+    bl_ui_units_x = 13
 
     def draw(self, _context):
         pass
@@ -307,27 +307,60 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
         layout = self.layout
 
         layout.active = st.show_overlays
+        split = layout.column().split()
 
-        layout.prop(overlay_settings, "show_strip_name", text="Name")
-        layout.prop(overlay_settings, "show_strip_source", text="Source")
-        layout.prop(overlay_settings, "show_strip_duration", text="Duration")
-        layout.prop(overlay_settings, "show_strip_tag_color", text="Color Tags")
+        col = split.column()
+        col.prop(overlay_settings, "show_grid", text="Grid")
 
-        layout.separator()
+        col = split.column()
+        col.prop(st.cache_overlay, "show_cache", text="Cache")
 
-        layout.prop(overlay_settings, "show_strip_offset", text="Offsets")
-        layout.prop(overlay_settings, "show_fcurves", text="F-Curves")
-        layout.prop(overlay_settings, "show_strip_retiming", text="Retiming")
-        layout.prop(overlay_settings, "show_thumbnails", text="Thumbnails")
-        layout.prop(overlay_settings, "show_grid", text="Grid")
-        layout.prop(st.cache_overlay, "show_cache", text="Cache")
 
-        layout.separator()
+class SEQUENCER_PT_sequencer_overlay_strips(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_parent_id = "SEQUENCER_PT_overlay"
+    bl_label = "Strips"
 
-        layout.label(text="Waveforms")
+    def draw(self, context):
+        st = context.space_data
+        overlay_settings = st.timeline_overlay
+        layout = self.layout
+
+        layout.active = st.show_overlays
+        split = layout.column().split()
+
+        col = split.column()
+        col.prop(overlay_settings, "show_strip_name", text="Name")
+        col.prop(overlay_settings, "show_strip_source", text="Source")
+        col.prop(overlay_settings, "show_strip_duration", text="Duration")
+        col.prop(overlay_settings, "show_fcurves", text="Animation Curves")
+
+        col = split.column()
+        col.prop(overlay_settings, "show_thumbnails", text="Thumbnails")
+        col.prop(overlay_settings, "show_strip_tag_color", text="Color Tags")
+        col.prop(overlay_settings, "show_strip_offset", text="Offsets")
+        col.prop(overlay_settings, "show_strip_retiming", text="Retiming")
+
+
+class SEQUENCER_PT_sequencer_overlay_waveforms(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_parent_id = "SEQUENCER_PT_overlay"
+    bl_label = "Waveforms"
+
+    def draw(self, context):
+        st = context.space_data
+        overlay_settings = st.timeline_overlay
+        layout = self.layout
+
+        layout.active = st.show_overlays
+
         layout.row().prop(overlay_settings, "waveform_display_type", expand=True)
-        layout.label(text="Waveform Style")
-        layout.row().prop(overlay_settings, "waveform_display_style", expand=True)
+
+        row = layout.row()
+        row.prop(overlay_settings, "waveform_display_style", expand=True)
+        row.active = overlay_settings.waveform_display_type != 'NO_WAVEFORMS'
 
 
 class SEQUENCER_MT_range(Menu):
@@ -2861,6 +2894,8 @@ classes = (
     SEQUENCER_PT_overlay,
     SEQUENCER_PT_preview_overlay,
     SEQUENCER_PT_sequencer_overlay,
+    SEQUENCER_PT_sequencer_overlay_strips,
+    SEQUENCER_PT_sequencer_overlay_waveforms,
 
     SEQUENCER_PT_effect,
     SEQUENCER_PT_scene,
