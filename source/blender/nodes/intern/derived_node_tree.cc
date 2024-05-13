@@ -14,7 +14,7 @@ DerivedNodeTree::DerivedNodeTree(const bNodeTree &btree)
    * node groups. If it still becomes a performance issue in the future, contexts could be
    * constructed lazily when they are needed. */
   root_context_ = &this->construct_context_recursively(
-      nullptr, nullptr, btree, NODE_INSTANCE_KEY_BASE);
+      nullptr, nullptr, btree, bke::NODE_INSTANCE_KEY_BASE);
 }
 
 DTreeContext &DerivedNodeTree::construct_context_recursively(DTreeContext *parent_context,
@@ -35,7 +35,7 @@ DTreeContext &DerivedNodeTree::construct_context_recursively(DTreeContext *paren
     if (bnode->is_group()) {
       bNodeTree *child_btree = reinterpret_cast<bNodeTree *>(bnode->id);
       if (child_btree != nullptr) {
-        const bNodeInstanceKey child_key = BKE_node_instance_key(instance_key, &btree, bnode);
+        const bNodeInstanceKey child_key = bke::BKE_node_instance_key(instance_key, &btree, bnode);
         DTreeContext &child = this->construct_context_recursively(
             &context, bnode, *child_btree, child_key);
         context.children_.add_new(bnode, &child);
@@ -98,7 +98,7 @@ void DerivedNodeTree::foreach_node_in_context_recursive(const DTreeContext &cont
 
 const bNodeInstanceKey DNode::instance_key() const
 {
-  return BKE_node_instance_key(context()->instance_key(), &context()->btree(), bnode());
+  return bke::BKE_node_instance_key(context()->instance_key(), &context()->btree(), bnode());
 }
 
 DOutputSocket DInputSocket::get_corresponding_group_node_output() const
@@ -343,9 +343,9 @@ static const DTreeContext *find_active_context_recursive(const DTreeContext *con
 
 const DTreeContext &DerivedNodeTree::active_context() const
 {
-  /* If the active viewer key is NODE_INSTANCE_KEY_NONE, that means it is not yet initialized and
+  /* If the active viewer key is bke::NODE_INSTANCE_KEY_NONE, that means it is not yet initialized and
    * we return the root context in that case. See the find_active_context_recursive function. */
-  if (root_context().btree().active_viewer_key.value == NODE_INSTANCE_KEY_NONE.value) {
+  if (root_context().btree().active_viewer_key.value == bke::NODE_INSTANCE_KEY_NONE.value) {
     return root_context();
   }
 

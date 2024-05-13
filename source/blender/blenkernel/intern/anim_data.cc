@@ -423,7 +423,7 @@ static void animdata_copy_id_action(Main *bmain,
                       BKE_id_copy(bmain, &adt->tmpact->id));
     }
   }
-  bNodeTree *ntree = ntreeFromID(id);
+  bNodeTree *ntree = blender::bke::ntreeFromID(id);
   if (ntree) {
     animdata_copy_id_action(bmain, &ntree->id, set_newid, do_linked_id);
   }

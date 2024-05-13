@@ -52,7 +52,7 @@ class Profiler {
    * per_node_execution_time_.
    * Returns total execution time of the given node tree. */
   timeit::Nanoseconds accumulate_node_group_times(
-      const bNodeTree &node_tree, const bNodeInstanceKey parent_key = NODE_INSTANCE_KEY_BASE);
+      const bNodeTree &node_tree, const bNodeInstanceKey parent_key = bke::NODE_INSTANCE_KEY_BASE);
 };
 
 }  // namespace blender::compositor

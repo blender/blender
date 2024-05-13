@@ -99,7 +99,7 @@ void register_node_type_cmp_antialiasing()
 {
   namespace file_ns = blender::nodes::node_composite_antialiasing_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ANTIALIASING, "Anti-Aliasing", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_antialiasing_declare;
@@ -107,9 +107,9 @@ void register_node_type_cmp_antialiasing()
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_size(&ntype, 170, 140, 200);
   ntype.initfunc = file_ns::node_composit_init_antialiasing;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeAntiAliasingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

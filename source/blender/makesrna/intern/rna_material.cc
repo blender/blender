@@ -160,7 +160,7 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
     bNode *node = BKE_texpaint_slot_material_find_node(ma, ma->paint_active_slot);
 
     if (node) {
-      nodeSetActive(ma->nodetree, node);
+      blender::bke::nodeSetActive(ma->nodetree, node);
     }
   }
 

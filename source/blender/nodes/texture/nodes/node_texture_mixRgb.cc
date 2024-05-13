@@ -14,13 +14,13 @@
 #include "BLI_math_vector.h"
 
 /* **************** MIX RGB ******************** */
-static bNodeSocketTemplate inputs[] = {
+static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_FLOAT, N_("Factor"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
     {SOCK_RGBA, N_("Color1"), 0.5f, 0.5f, 0.5f, 1.0f},
     {SOCK_RGBA, N_("Color2"), 0.5f, 0.5f, 0.5f, 1.0f},
     {-1, ""},
 };
-static bNodeSocketTemplate outputs[] = {
+static blender::bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
 };
@@ -56,12 +56,12 @@ static void exec(void *data,
 
 void register_node_type_tex_mix_rgb()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR);
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.labelfunc = node_blend_label;
   ntype.exec_fn = exec;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

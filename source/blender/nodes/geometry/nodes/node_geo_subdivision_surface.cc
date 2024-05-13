@@ -222,7 +222,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY);
@@ -231,11 +231,11 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
   bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::Middle);
-  node_type_storage(&ntype,
-                    "NodeGeometrySubdivisionSurface",
-                    node_free_standard_storage,
-                    node_copy_standard_storage);
-  nodeRegisterType(&ntype);
+  blender::bke::node_type_storage(&ntype,
+                                  "NodeGeometrySubdivisionSurface",
+                                  node_free_standard_storage,
+                                  node_copy_standard_storage);
+  blender::bke::nodeRegisterType(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

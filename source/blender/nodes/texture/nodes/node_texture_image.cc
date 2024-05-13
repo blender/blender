@@ -13,7 +13,7 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
-static bNodeSocketTemplate outputs[] = {
+static blender::bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Image")},
     {-1, ""},
 };
@@ -94,15 +94,16 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
 
 void register_node_type_tex_image()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_IMAGE, "Image", NODE_CLASS_INPUT);
   blender::bke::node_type_socket_templates(&ntype, nullptr, outputs);
   ntype.initfunc = init;
-  node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+  blender::bke::node_type_storage(
+      &ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
   ntype.exec_fn = exec;
   ntype.labelfunc = node_image_label;
   ntype.flag |= NODE_PREVIEW;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

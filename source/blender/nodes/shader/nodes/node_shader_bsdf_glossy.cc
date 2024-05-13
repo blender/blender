@@ -93,7 +93,7 @@ void register_node_type_sh_bsdf_glossy()
 {
   namespace file_ns = blender::nodes::node_shader_bsdf_glossy_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
@@ -104,9 +104,9 @@ void register_node_type_sh_bsdf_glossy()
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_glossy;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 
   /* Needed to preserve API compatibility with older versions which had separate
    * Glossy and Anisotropic nodes. */
-  nodeRegisterAlias(&ntype, "ShaderNodeBsdfGlossy");
+  blender::bke::nodeRegisterAlias(&ntype, "ShaderNodeBsdfGlossy");
 }

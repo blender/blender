@@ -130,18 +130,18 @@ void register_node_type_sh_curve_vec()
 {
   namespace file_ns = blender::nodes::node_shader_curves_cc::vec;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::sh_node_curve_vec_declare;
   ntype.initfunc = file_ns::node_shader_init_curve_vec;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);
-  node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.gpu_fn = file_ns::gpu_shader_curve_vec;
   ntype.build_multi_function = file_ns::sh_node_curve_vec_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** CURVE RGB  ******************** */
@@ -290,18 +290,18 @@ void register_node_type_sh_curve_rgb()
 {
   namespace file_ns = blender::nodes::node_shader_curves_cc::rgb;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::sh_node_curve_rgb_declare;
   ntype.initfunc = file_ns::node_shader_init_curve_rgb;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);
-  node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.gpu_fn = file_ns::gpu_shader_curve_rgb;
   ntype.build_multi_function = file_ns::sh_node_curve_rgb_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** CURVE FLOAT  ******************** */
@@ -418,16 +418,16 @@ void register_node_type_sh_curve_float()
 {
   namespace file_ns = blender::nodes::node_shader_curves_cc::flt;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_FLOAT, "Float Curve", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_curve_float_declare;
   ntype.initfunc = file_ns::node_shader_init_curve_float;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);
-  node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.gpu_fn = file_ns::gpu_shader_curve_float;
   ntype.build_multi_function = file_ns::sh_node_curve_float_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

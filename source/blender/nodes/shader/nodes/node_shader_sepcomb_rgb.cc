@@ -77,7 +77,7 @@ void register_node_type_sh_seprgb()
 {
   namespace file_ns = blender::nodes::node_shader_sepcomb_rgb_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(
       &ntype, SH_NODE_SEPRGB_LEGACY, "Separate RGB (Legacy)", NODE_CLASS_CONVERTER);
@@ -86,7 +86,7 @@ void register_node_type_sh_seprgb()
   ntype.build_multi_function = file_ns::sh_node_seprgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 namespace blender::nodes::node_shader_sepcomb_rgb_cc {
@@ -122,7 +122,7 @@ void register_node_type_sh_combrgb()
 {
   namespace file_ns = blender::nodes::node_shader_sepcomb_rgb_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(
       &ntype, SH_NODE_COMBRGB_LEGACY, "Combine RGB (Legacy)", NODE_CLASS_CONVERTER);
@@ -131,5 +131,5 @@ void register_node_type_sh_combrgb()
   ntype.build_multi_function = file_ns::sh_node_combrgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

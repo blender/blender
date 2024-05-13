@@ -53,7 +53,7 @@ void register_node_type_cmp_seprgba()
 {
   namespace file_ns = blender::nodes::node_composite_separate_rgba_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(
       &ntype, CMP_NODE_SEPRGBA_LEGACY, "Separate RGBA (Legacy)", NODE_CLASS_CONVERTER);
@@ -61,7 +61,7 @@ void register_node_type_cmp_seprgba()
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE RGBA ******************** */
@@ -120,7 +120,7 @@ void register_node_type_cmp_combrgba()
 {
   namespace file_ns = blender::nodes::node_composite_combine_rgba_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(
       &ntype, CMP_NODE_COMBRGBA_LEGACY, "Combine RGBA (Legacy)", NODE_CLASS_CONVERTER);
@@ -128,5 +128,5 @@ void register_node_type_cmp_combrgba()
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

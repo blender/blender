@@ -223,7 +223,7 @@ void register_node_type_cmp_bokehblur()
 {
   namespace file_ns = blender::nodes::node_composite_bokehblur_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, "Bokeh Blur", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
@@ -231,5 +231,5 @@ void register_node_type_cmp_bokehblur()
   ntype.initfunc = file_ns::node_composit_init_bokehblur;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

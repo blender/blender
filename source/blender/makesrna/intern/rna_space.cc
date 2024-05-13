@@ -2657,7 +2657,7 @@ static void rna_SpaceNodeEditor_tree_type_set(PointerRNA *ptr, int value)
   SpaceNode *snode = (SpaceNode *)ptr->data;
   ED_node_set_tree_type(snode, rna_node_tree_type_from_enum(value));
 }
-static bool rna_SpaceNodeEditor_tree_type_poll(void *Cv, bNodeTreeType *type)
+static bool rna_SpaceNodeEditor_tree_type_poll(void *Cv, blender::bke::bNodeTreeType *type)
 {
   bContext *C = (bContext *)Cv;
   if (type->poll) {

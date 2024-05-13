@@ -64,7 +64,7 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_modifier_init();
   DEG_register_node_types();
   RNA_init();
-  BKE_node_system_init();
+  blender::bke::BKE_node_system_init();
   BKE_callback_global_init();
   BKE_vfont_builtin_register(datatoc_bfont_pfb, datatoc_bfont_pfb_size);
   BLF_init();

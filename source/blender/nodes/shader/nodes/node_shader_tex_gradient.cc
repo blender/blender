@@ -197,17 +197,17 @@ void register_node_type_sh_tex_gradient()
 {
   namespace file_ns = blender::nodes::node_shader_tex_gradient_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_GRADIENT, "Gradient Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_gradient_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_gradient;
   ntype.initfunc = file_ns::node_shader_init_tex_gradient;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeTexGradient", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_gradient;
   ntype.build_multi_function = file_ns::sh_node_gradient_tex_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

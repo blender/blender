@@ -53,11 +53,11 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 void register_node_type_cmp_scene_time()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SCENE_TIME, "Scene Time", NODE_CLASS_INPUT);
   ntype.declare = blender::nodes::cmp_node_scene_time_declare;
   ntype.get_compositor_operation = blender::nodes::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

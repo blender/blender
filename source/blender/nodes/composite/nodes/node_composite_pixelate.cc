@@ -87,7 +87,7 @@ void register_node_type_cmp_pixelate()
 {
   namespace file_ns = blender::nodes::node_composite_pixelate_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_PIXELATE, "Pixelate", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_pixelate_declare;
@@ -95,5 +95,5 @@ void register_node_type_cmp_pixelate()
   ntype.initfunc = file_ns::node_composit_init_pixelate;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

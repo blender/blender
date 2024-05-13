@@ -1107,7 +1107,7 @@ static bNodeTree *prepare_material_nodetree(Material *ma)
 static bNode *bc_add_node(
     bContext *C, bNodeTree *ntree, int node_type, int locx, int locy, std::string label)
 {
-  bNode *node = nodeAddStaticNode(C, ntree, node_type);
+  bNode *node = blender::bke::nodeAddStaticNode(C, ntree, node_type);
   if (node) {
     if (label.length() > 0) {
       STRNCPY(node->label, label.c_str());
@@ -1130,7 +1130,7 @@ static void bc_node_add_link(
   bNodeSocket *from_socket = (bNodeSocket *)BLI_findlink(&from_node->outputs, from_index);
   bNodeSocket *to_socket = (bNodeSocket *)BLI_findlink(&to_node->inputs, to_index);
 
-  nodeAddLink(ntree, from_node, from_socket, to_node, to_socket);
+  blender::bke::nodeAddLink(ntree, from_node, from_socket, to_node, to_socket);
 }
 
 void bc_add_default_shader(bContext *C, Material *ma)
@@ -1265,7 +1265,7 @@ double bc_get_reflectivity(Material *ma)
 
 bool bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid)
 {
-  bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
+  bNodeSocket *socket = blender::bke::nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
   if (socket) {
     bNodeSocketValueFloat *ref = (bNodeSocketValueFloat *)socket->default_value;
     val = double(ref->value);
@@ -1279,7 +1279,7 @@ COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
                                                  Color &default_color,
                                                  bool with_alpha)
 {
-  bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
+  bNodeSocket *socket = blender::bke::nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
   if (socket) {
     bNodeSocketValueRGBA *dcol = (bNodeSocketValueRGBA *)socket->default_value;
     float *col = dcol->value;

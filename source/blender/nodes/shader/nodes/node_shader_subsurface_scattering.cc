@@ -113,7 +113,7 @@ void register_node_type_sh_subsurface_scattering()
 {
   namespace file_ns = blender::nodes::node_shader_subsurface_scattering_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(
       &ntype, SH_NODE_SUBSURFACE_SCATTERING, "Subsurface Scattering", NODE_CLASS_SHADER);
@@ -126,5 +126,5 @@ void register_node_type_sh_subsurface_scattering()
   ntype.updatefunc = file_ns::node_shader_update_subsurface_scattering;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

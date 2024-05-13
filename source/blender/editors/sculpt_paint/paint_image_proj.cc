@@ -6600,10 +6600,10 @@ static void default_paint_slot_color_get(int layer_type, Material *ma, float col
       if (!in_node) {
         /* An existing material or Principled BSDF node could not be found.
          * Copy default color values from a default Principled BSDF instead. */
-        ntree = ntreeAddTree(nullptr, "Temporary Shader Nodetree", ntreeType_Shader->idname);
-        in_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_PRINCIPLED);
+        ntree = blender::bke::ntreeAddTree(nullptr, "Temporary Shader Nodetree", ntreeType_Shader->idname);
+        in_node = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_PRINCIPLED);
       }
-      bNodeSocket *in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[layer_type].name);
+      bNodeSocket *in_sock = blender::bke::nodeFindSocket(in_node, SOCK_IN, layer_type_items[layer_type].name);
       switch (in_sock->type) {
         case SOCK_FLOAT: {
           bNodeSocketValueFloat *socket_data = static_cast<bNodeSocketValueFloat *>(
@@ -6681,13 +6681,13 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     /* Create a new node. */
     switch (slot_type) {
       case PAINT_CANVAS_SOURCE_IMAGE: {
-        new_node = nodeAddStaticNode(C, ntree, SH_NODE_TEX_IMAGE);
+        new_node = blender::bke::nodeAddStaticNode(C, ntree, SH_NODE_TEX_IMAGE);
         ima = proj_paint_image_create(op, bmain, is_data);
         new_node->id = &ima->id;
         break;
       }
       case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE: {
-        new_node = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
+        new_node = blender::bke::nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
         if (const char *name = proj_paint_color_attribute_create(op, ob)) {
           STRNCPY_UTF8(((NodeShaderAttribute *)new_node->storage)->name, name);
         }
@@ -6697,7 +6697,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
         BLI_assert_unreachable();
         return false;
     }
-    nodeSetActive(ntree, new_node);
+    blender::bke::nodeSetActive(ntree, new_node);
 
     /* Connect to first available principled BSDF node. */
     ntree->ensure_topology_cache();
@@ -6706,33 +6706,33 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     bNode *out_node = new_node;
 
     if (in_node != nullptr) {
-      bNodeSocket *out_sock = nodeFindSocket(out_node, SOCK_OUT, "Color");
+      bNodeSocket *out_sock = blender::bke::nodeFindSocket(out_node, SOCK_OUT, "Color");
       bNodeSocket *in_sock = nullptr;
 
       if (type >= LAYER_BASE_COLOR && type < LAYER_NORMAL) {
-        in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
+        in_sock = blender::bke::nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
       }
       else if (type == LAYER_NORMAL) {
         bNode *nor_node;
-        nor_node = nodeAddStaticNode(C, ntree, SH_NODE_NORMAL_MAP);
+        nor_node = blender::bke::nodeAddStaticNode(C, ntree, SH_NODE_NORMAL_MAP);
 
-        in_sock = nodeFindSocket(nor_node, SOCK_IN, "Color");
-        nodeAddLink(ntree, out_node, out_sock, nor_node, in_sock);
+        in_sock = blender::bke::nodeFindSocket(nor_node, SOCK_IN, "Color");
+        blender::bke::nodeAddLink(ntree, out_node, out_sock, nor_node, in_sock);
 
-        in_sock = nodeFindSocket(in_node, SOCK_IN, "Normal");
-        out_sock = nodeFindSocket(nor_node, SOCK_OUT, "Normal");
+        in_sock = blender::bke::nodeFindSocket(in_node, SOCK_IN, "Normal");
+        out_sock = blender::bke::nodeFindSocket(nor_node, SOCK_OUT, "Normal");
 
         out_node = nor_node;
       }
       else if (type == LAYER_BUMP) {
         bNode *bump_node;
-        bump_node = nodeAddStaticNode(C, ntree, SH_NODE_BUMP);
+        bump_node = blender::bke::nodeAddStaticNode(C, ntree, SH_NODE_BUMP);
 
-        in_sock = nodeFindSocket(bump_node, SOCK_IN, "Height");
-        nodeAddLink(ntree, out_node, out_sock, bump_node, in_sock);
+        in_sock = blender::bke::nodeFindSocket(bump_node, SOCK_IN, "Height");
+        blender::bke::nodeAddLink(ntree, out_node, out_sock, bump_node, in_sock);
 
-        in_sock = nodeFindSocket(in_node, SOCK_IN, "Normal");
-        out_sock = nodeFindSocket(bump_node, SOCK_OUT, "Normal");
+        in_sock = blender::bke::nodeFindSocket(in_node, SOCK_IN, "Normal");
+        out_sock = blender::bke::nodeFindSocket(bump_node, SOCK_OUT, "Normal");
 
         out_node = bump_node;
       }
@@ -6743,7 +6743,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
         in_node = output_nodes.is_empty() ? nullptr : output_nodes.first();
 
         if (in_node != nullptr) {
-          in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
+          in_sock = blender::bke::nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
         }
         else {
           in_sock = nullptr;
@@ -6753,7 +6753,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       /* Check if the socket in already connected to something */
       bNodeLink *link = in_sock ? in_sock->link : nullptr;
       if (in_sock != nullptr && link == nullptr) {
-        nodeAddLink(ntree, out_node, out_sock, in_node, in_sock);
+        blender::bke::nodeAddLink(ntree, out_node, out_sock, in_node, in_sock);
 
         blender::bke::nodePositionRelative(out_node, in_node, out_sock, in_sock);
       }

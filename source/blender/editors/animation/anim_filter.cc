@@ -1049,7 +1049,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
         BLI_str_quoted_substr(fcu->rna_path, "nodes[", node_name, sizeof(node_name)))
     {
       /* Get strip name, and check if this strip is selected. */
-      node = nodeFindNodebyName(ntree, node_name);
+      node = bke::nodeFindNodebyName(ntree, node_name);
 
       /* Can only add this F-Curve if it is selected. */
       if (node) {

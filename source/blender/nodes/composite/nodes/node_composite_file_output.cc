@@ -142,7 +142,7 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
                                               const ImageFormatData *im_format)
 {
   NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
-  bNodeSocket *sock = nodeAddStaticSocket(
+  bNodeSocket *sock = blender::bke::nodeAddStaticSocket(
       ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, nullptr, name);
 
   /* create format data for the input socket */
@@ -190,7 +190,7 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
   /* free format data */
   MEM_freeN(sock->storage);
 
-  nodeRemoveSocket(ntree, node, sock);
+  blender::bke::nodeRemoveSocket(ntree, node, sock);
   return 1;
 }
 
@@ -286,11 +286,11 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
    */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (sock->storage == nullptr) {
-      nodeRemoveSocket(ntree, node, sock);
+      blender::bke::nodeRemoveSocket(ntree, node, sock);
     }
   }
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    nodeRemoveSocket(ntree, node, sock);
+    blender::bke::nodeRemoveSocket(ntree, node, sock);
   }
 
   cmp_node_update_default(ntree, node);
@@ -301,7 +301,7 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
     if (sock->is_logically_linked()) {
       const bNodeSocket *from_socket = sock->logically_linked_sockets()[0];
       if (sock->type != from_socket->type) {
-        nodeModifySocketTypeStatic(ntree, node, sock, from_socket->type, 0);
+        blender::bke::nodeModifySocketTypeStatic(ntree, node, sock, from_socket->type, 0);
         BKE_ntree_update_tag_socket_property(ntree, sock);
       }
     }
@@ -766,18 +766,18 @@ void register_node_type_cmp_output_file()
 {
   namespace file_ns = blender::nodes::node_composite_file_output_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT);
   ntype.draw_buttons = file_ns::node_composit_buts_file_output;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_file_output_ex;
   ntype.initfunc_api = file_ns::init_output_file;
   ntype.flag |= NODE_PREVIEW;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
   ntype.updatefunc = file_ns::update_output_file;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

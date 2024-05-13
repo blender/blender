@@ -96,16 +96,16 @@ void register_node_type_cmp_curve_time()
 {
   namespace file_ns = blender::nodes::node_composite_time_curves_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TIME, "Time Curve", NODE_CLASS_INPUT);
   ntype.declare = file_ns::cmp_node_time_declare;
   blender::bke::node_type_size(&ntype, 200, 140, 320);
   ntype.initfunc = file_ns::node_composit_init_curves_time;
-  node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** CURVE VEC  ******************** */
@@ -190,17 +190,17 @@ void register_node_type_cmp_curve_vec()
 {
   namespace file_ns = blender::nodes::node_composite_vector_curves_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::cmp_node_curve_vec_declare;
   ntype.draw_buttons = file_ns::node_buts_curvevec;
   blender::bke::node_type_size(&ntype, 200, 140, 320);
   ntype.initfunc = file_ns::node_composit_init_curve_vec;
-  node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** CURVE RGB  ******************** */
@@ -335,14 +335,14 @@ void register_node_type_cmp_curve_rgb()
 {
   namespace file_ns = blender::nodes::node_composite_rgb_curves_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_rgbcurves_declare;
   blender::bke::node_type_size(&ntype, 200, 140, 320);
   ntype.initfunc = file_ns::node_composit_init_curve_rgb;
-  node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

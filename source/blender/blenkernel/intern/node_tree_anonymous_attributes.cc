@@ -32,7 +32,7 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
   if (node.is_group()) {
     if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id)) {
       /* Undefined tree types have no relations. */
-      if (!ntreeIsRegistered(group)) {
+      if (!bke::ntreeIsRegistered(group)) {
         return scope.construct<aal::RelationsInNode>();
       }
       /* It's possible that the inferencing failed on the group. */
@@ -273,7 +273,7 @@ static AnonymousAttributeInferencingResult analyze_anonymous_attribute_usages(
   /* Find input field and geometry sources. */
   for (const int i : tree.interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket &interface_socket = *tree.interface_inputs()[i];
-    const bNodeSocketType *typeinfo = nodeSocketTypeFind(interface_socket.socket_type);
+    const bNodeSocketType *typeinfo = bke::nodeSocketTypeFind(interface_socket.socket_type);
     const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
     if (type == SOCK_GEOMETRY) {
       all_geometry_sources.append_and_get_index({InputGeometrySource{i}});

@@ -380,7 +380,7 @@ void BKE_idtype_id_foreach_cache(ID *id,
   }
 
   /* Handle 'private IDs'. */
-  bNodeTree *nodetree = ntreeFromID(id);
+  bNodeTree *nodetree = blender::bke::ntreeFromID(id);
   if (nodetree != nullptr) {
     type_info = BKE_idtype_get_info_from_id(&nodetree->id);
     if (type_info == nullptr) {

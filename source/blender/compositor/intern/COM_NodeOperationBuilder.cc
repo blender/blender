@@ -207,7 +207,7 @@ PreviewOperation *NodeOperationBuilder::make_preview_operation() const
     return nullptr;
   }
 
-  bNodeInstanceHash *previews = context_->get_preview_hash();
+  bke::bNodeInstanceHash *previews = context_->get_preview_hash();
   if (previews) {
     Scene *scene = context_->get_scene();
     PreviewOperation *operation = new PreviewOperation(

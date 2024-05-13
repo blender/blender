@@ -52,7 +52,7 @@ void register_node_type_sh_light_falloff()
 {
   namespace file_ns = blender::nodes::node_shader_light_falloff_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_LIGHT_FALLOFF, "Light Falloff", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::node_declare;
@@ -60,5 +60,5 @@ void register_node_type_sh_light_falloff()
   ntype.gpu_fn = file_ns::node_shader_gpu_light_falloff;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -114,7 +114,7 @@ static void linestyle_free_data(ID *id)
 
   /* is no lib link block, but linestyle extension */
   if (linestyle->nodetree) {
-    ntreeFreeEmbeddedTree(linestyle->nodetree);
+    blender::bke::ntreeFreeEmbeddedTree(linestyle->nodetree);
     MEM_freeN(linestyle->nodetree);
     linestyle->nodetree = nullptr;
   }
@@ -450,7 +450,7 @@ static void linestyle_blend_write(BlendWriter *writer, ID *id, const void *id_ad
                                 bNodeTree,
                                 linestyle->nodetree,
                                 BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
-    ntreeBlendWrite(
+    blender::bke::ntreeBlendWrite(
         writer,
         reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
     BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
@@ -1940,30 +1940,30 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
   ntree = blender::bke::ntreeAddTreeEmbedded(
       nullptr, &linestyle->id, "stroke_shader", "ShaderNodeTree");
 
-  uv_along_stroke = nodeAddStaticNode(C, ntree, SH_NODE_UVALONGSTROKE);
+  uv_along_stroke = blender::bke::nodeAddStaticNode(C, ntree, SH_NODE_UVALONGSTROKE);
   uv_along_stroke->locx = 0.0f;
   uv_along_stroke->locy = 300.0f;
   uv_along_stroke->custom1 = 0; /* use_tips */
 
-  input_texture = nodeAddStaticNode(C, ntree, SH_NODE_TEX_IMAGE);
+  input_texture = blender::bke::nodeAddStaticNode(C, ntree, SH_NODE_TEX_IMAGE);
   input_texture->locx = 200.0f;
   input_texture->locy = 300.0f;
 
-  output_linestyle = nodeAddStaticNode(C, ntree, SH_NODE_OUTPUT_LINESTYLE);
+  output_linestyle = blender::bke::nodeAddStaticNode(C, ntree, SH_NODE_OUTPUT_LINESTYLE);
   output_linestyle->locx = 400.0f;
   output_linestyle->locy = 300.0f;
   output_linestyle->custom1 = MA_RAMP_BLEND;
   output_linestyle->custom2 = 0; /* use_clamp */
 
-  nodeSetActive(ntree, input_texture);
+  blender::bke::nodeSetActive(ntree, input_texture);
 
   fromsock = static_cast<bNodeSocket *>(BLI_findlink(&uv_along_stroke->outputs, 0)); /* UV */
   tosock = static_cast<bNodeSocket *>(BLI_findlink(&input_texture->inputs, 0));      /* UV */
-  nodeAddLink(ntree, uv_along_stroke, fromsock, input_texture, tosock);
+  blender::bke::nodeAddLink(ntree, uv_along_stroke, fromsock, input_texture, tosock);
 
   fromsock = static_cast<bNodeSocket *>(BLI_findlink(&input_texture->outputs, 0)); /* Color */
   tosock = static_cast<bNodeSocket *>(BLI_findlink(&output_linestyle->inputs, 0)); /* Color */
-  nodeAddLink(ntree, input_texture, fromsock, output_linestyle, tosock);
+  blender::bke::nodeAddLink(ntree, input_texture, fromsock, output_linestyle, tosock);
 
   BKE_ntree_update_main_tree(CTX_data_main(C), ntree, nullptr);
 }

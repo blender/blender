@@ -294,7 +294,7 @@ static void node_buts_frame_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *p
   uiItemR(layout, ptr, "text", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
-static void node_common_set_butfunc(bNodeType *ntype)
+static void node_common_set_butfunc(blender::bke::bNodeType *ntype)
 {
   switch (ntype->type) {
     case NODE_GROUP:
@@ -462,7 +462,7 @@ static void node_buts_output_shader(uiLayout *layout, bContext * /*C*/, PointerR
 }
 
 /* only once called */
-static void node_shader_set_butfunc(bNodeType *ntype)
+static void node_shader_set_butfunc(blender::bke::bNodeType *ntype)
 {
   switch (ntype->type) {
     case SH_NODE_NORMAL:
@@ -807,7 +807,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
 }
 
 /* only once called */
-static void node_composit_set_butfunc(bNodeType *ntype)
+static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
 {
   switch (ntype->type) {
     case CMP_NODE_IMAGE:
@@ -1005,7 +1005,7 @@ static void node_texture_buts_combsep_color(uiLayout *layout, bContext * /*C*/, 
 }
 
 /* only once called */
-static void node_texture_set_butfunc(bNodeType *ntype)
+static void node_texture_set_butfunc(blender::bke::bNodeType *ntype)
 {
   if (ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX) {
     ntype->draw_buttons = node_texture_buts_proc;
@@ -1072,7 +1072,8 @@ static void node_property_update_default(Main *bmain, Scene * /*scene*/, Pointer
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
-static void node_socket_template_properties_update(bNodeType *ntype, bNodeSocketTemplate *stemp)
+static void node_socket_template_properties_update(blender::bke::bNodeType *ntype,
+                                                   blender::bke::bNodeSocketTemplate *stemp)
 {
   StructRNA *srna = ntype->rna_ext.srna;
   PropertyRNA *prop = RNA_struct_type_find_property(srna, stemp->identifier);
@@ -1082,9 +1083,9 @@ static void node_socket_template_properties_update(bNodeType *ntype, bNodeSocket
   }
 }
 
-static void node_template_properties_update(bNodeType *ntype)
+static void node_template_properties_update(blender::bke::bNodeType *ntype)
 {
-  bNodeSocketTemplate *stemp;
+  blender::bke::bNodeSocketTemplate *stemp;
 
   if (ntype->inputs) {
     for (stemp = ntype->inputs; stemp->type >= 0; stemp++) {
@@ -1118,7 +1119,7 @@ static void node_socket_undefined_draw_color(bContext * /*C*/,
   r_color[3] = 1.0f;
 }
 
-static void node_socket_undefined_draw_color_simple(const bNodeSocketType * /*type*/,
+static void node_socket_undefined_draw_color_simple(const bke::bNodeSocketType * /*type*/,
                                                     float *r_color)
 {
   r_color[0] = 1.0f;
@@ -1172,9 +1173,9 @@ void ED_node_init_butfuncs()
   NODE_TYPES_END;
 }
 
-void ED_init_custom_node_type(bNodeType * /*ntype*/) {}
+void ED_init_custom_node_type(blender::bke::bNodeType * /*ntype*/) {}
 
-void ED_init_custom_node_socket_type(bNodeSocketType *stype)
+void ED_init_custom_node_socket_type(blender::bke::bNodeSocketType *stype)
 {
   stype->draw = blender::ed::space_node::node_socket_button_label;
 }
@@ -1213,7 +1214,7 @@ void std_node_socket_color_fn(bContext * /*C*/,
 {
   copy_v4_v4(r_color, std_node_socket_colors[socket_type]);
 };
-static void std_node_socket_color_simple_fn(const bNodeSocketType *type, float *r_color)
+static void std_node_socket_color_simple_fn(const bke::bNodeSocketType *type, float *r_color)
 {
   copy_v4_v4(r_color, std_node_socket_colors[type->type]);
 };
@@ -1485,7 +1486,7 @@ static void std_node_socket_interface_draw(ID *id,
 {
   PointerRNA ptr = RNA_pointer_create(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
 
-  const bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
+  const bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
   BLI_assert(typeinfo != nullptr);
   eNodeSocketDatatype type = eNodeSocketDatatype(typeinfo->type);
 
@@ -1584,14 +1585,15 @@ static void node_socket_virtual_draw_color(bContext * /*C*/,
   copy_v4_v4(r_color, virtual_node_socket_color);
 }
 
-static void node_socket_virtual_draw_color_simple(const bNodeSocketType * /*type*/, float *r_color)
+static void node_socket_virtual_draw_color_simple(const bke::bNodeSocketType * /*type*/,
+                                                  float *r_color)
 {
   copy_v4_v4(r_color, virtual_node_socket_color);
 }
 
 }  // namespace blender::ed::space_node
 
-void ED_init_standard_node_socket_type(bNodeSocketType *stype)
+void ED_init_standard_node_socket_type(blender::bke::bNodeSocketType *stype)
 {
   using namespace blender::ed::space_node;
   stype->draw = std_node_socket_draw;
@@ -1600,7 +1602,7 @@ void ED_init_standard_node_socket_type(bNodeSocketType *stype)
   stype->interface_draw = std_node_socket_interface_draw;
 }
 
-void ED_init_node_socket_type_virtual(bNodeSocketType *stype)
+void ED_init_node_socket_type_virtual(blender::bke::bNodeSocketType *stype)
 {
   using namespace blender::ed::space_node;
   stype->draw = node_socket_button_label;
@@ -1612,7 +1614,7 @@ void ED_node_type_draw_color(const char *idname, float *r_color)
 {
   using namespace blender::ed::space_node;
 
-  const bNodeSocketType *typeinfo = nodeSocketTypeFind(idname);
+  const blender::bke::bNodeSocketType *typeinfo = blender::bke::nodeSocketTypeFind(idname);
   if (!typeinfo || typeinfo->type == SOCK_CUSTOM) {
     r_color[0] = 0.0f;
     r_color[1] = 0.0f;
@@ -1636,7 +1638,7 @@ void draw_nodespace_back_pix(const bContext &C,
 {
   Main *bmain = CTX_data_main(&C);
   bNodeInstanceKey active_viewer_key = (snode.nodetree ? snode.nodetree->active_viewer_key :
-                                                         NODE_INSTANCE_KEY_NONE);
+                                                         bke::NODE_INSTANCE_KEY_NONE);
   GPU_matrix_push_projection();
   GPU_matrix_push();
   wmOrtho2_region_pixelspace(&region);

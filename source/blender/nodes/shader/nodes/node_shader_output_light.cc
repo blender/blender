@@ -34,7 +34,7 @@ void register_node_type_sh_output_light()
 {
   namespace file_ns = blender::nodes::node_shader_output_light_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_LIGHT, "Light Output", NODE_CLASS_OUTPUT);
   ntype.declare = file_ns::node_declare;
@@ -43,5 +43,5 @@ void register_node_type_sh_output_light()
 
   ntype.no_muting = true;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

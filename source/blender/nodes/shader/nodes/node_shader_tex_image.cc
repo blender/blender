@@ -260,17 +260,17 @@ void register_node_type_sh_tex_image()
 {
   namespace file_ns = blender::nodes::node_shader_tex_image_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_IMAGE, "Image Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_image_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_image;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeTexImage", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_image;
   ntype.labelfunc = node_image_label;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

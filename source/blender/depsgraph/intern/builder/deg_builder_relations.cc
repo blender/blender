@@ -1753,7 +1753,7 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
   /* See #DepsgraphNodeBuilder::build_animation_images. */
   bool has_image_animation = false;
   if (ELEM(GS(id->name), ID_MA, ID_WO)) {
-    bNodeTree *ntree = *BKE_ntree_ptr_from_id(id);
+    bNodeTree *ntree = *bke::BKE_ntree_ptr_from_id(id);
     if (ntree != nullptr && ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION)
     {
       has_image_animation = true;

@@ -291,7 +291,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
         new_node->parent = node_map.lookup(new_node->parent);
       }
       else {
-        nodeDetachNode(&tree, new_node);
+        bke::nodeDetachNode(&tree, new_node);
       }
     }
   }
@@ -399,7 +399,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
 
   for (bNode *new_node : node_map.values()) {
-    nodeSetSelected(new_node, true);
+    bke::nodeSetSelected(new_node, true);
 
     new_node->flag &= ~NODE_ACTIVE;
 
@@ -439,7 +439,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     const bNode *fromnode = link.fromnode;
     const bNode *tonode = link.tonode;
     if (node_map.lookup_key_ptr(fromnode) && node_map.lookup_key_ptr(tonode)) {
-      bNodeLink *new_link = nodeAddLink(&tree,
+      bNodeLink *new_link = bke::nodeAddLink(&tree,
                                         node_map.lookup(fromnode),
                                         socket_map.lookup(link.fromsock),
                                         node_map.lookup(tonode),

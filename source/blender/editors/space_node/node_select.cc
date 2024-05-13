@@ -249,7 +249,7 @@ bool node_deselect_all(bNodeTree &node_tree)
 {
   bool changed = false;
   for (bNode *node : node_tree.all_nodes()) {
-    changed |= nodeSetSelected(node, false);
+    changed |= bke::nodeSetSelected(node, false);
   }
   return changed;
 }
@@ -355,7 +355,7 @@ static bool node_select_grouped_type(bNodeTree &node_tree, bNode &node_act)
   for (bNode *node : node_tree.all_nodes()) {
     if ((node->flag & SELECT) == 0) {
       if (node->type == node_act.type) {
-        nodeSetSelected(node, true);
+        bke::nodeSetSelected(node, true);
         changed = true;
       }
     }
@@ -369,7 +369,7 @@ static bool node_select_grouped_color(bNodeTree &node_tree, bNode &node_act)
   for (bNode *node : node_tree.all_nodes()) {
     if ((node->flag & SELECT) == 0) {
       if (compare_v3v3(node->color, node_act.color, 0.005f)) {
-        nodeSetSelected(node, true);
+        bke::nodeSetSelected(node, true);
         changed = true;
       }
     }
@@ -410,7 +410,7 @@ static bool node_select_grouped_name(bNodeTree &node_tree, bNode &node_act, cons
         (!from_right && (pref_len_act == pref_len_curr) &&
          STREQLEN(node_act.name, node->name, pref_len_act)))
     {
-      nodeSetSelected(node, true);
+      bke::nodeSetSelected(node, true);
       changed = true;
     }
   }
@@ -429,7 +429,7 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
-  bNode *node_act = nodeGetActive(snode.edittree);
+  bNode *node_act = bke::nodeGetActive(snode.edittree);
 
   if (node_act == nullptr) {
     return OPERATOR_CANCELLED;
@@ -442,7 +442,7 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
   if (!extend) {
     node_deselect_all(node_tree);
   }
-  nodeSetSelected(node_act, true);
+  bke::nodeSetSelected(node_act, true);
 
   switch (type) {
     case NODE_SELECT_GROUPED_TYPE:
@@ -522,10 +522,10 @@ void node_select_single(bContext &C, bNode &node)
 
   for (bNode *node_iter : node_tree.all_nodes()) {
     if (node_iter != &node) {
-      nodeSetSelected(node_iter, false);
+      bke::nodeSetSelected(node_iter, false);
     }
   }
-  nodeSetSelected(&node, true);
+  bke::nodeSetSelected(&node, true);
 
   ED_node_set_active(bmain, &snode, &node_tree, &node, &active_texture_changed);
   ED_node_set_active_viewer_key(&snode);
@@ -640,19 +640,19 @@ static bool node_mouse_select(bContext *C,
     if (found) {
       switch (params->sel_op) {
         case SEL_OP_ADD:
-          nodeSetSelected(node, true);
+          bke::nodeSetSelected(node, true);
           break;
         case SEL_OP_SUB:
-          nodeSetSelected(node, false);
+          bke::nodeSetSelected(node, false);
           break;
         case SEL_OP_XOR: {
           /* Check active so clicking on an inactive node activates it. */
           bool is_selected = (node->flag & NODE_SELECT) && (node->flag & NODE_ACTIVE);
-          nodeSetSelected(node, !is_selected);
+          bke::nodeSetSelected(node, !is_selected);
           break;
         }
         case SEL_OP_SET:
-          nodeSetSelected(node, true);
+          bke::nodeSetSelected(node, true);
           break;
         case SEL_OP_AND:
           /* Doesn't make sense for picking. */
@@ -802,7 +802,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
         if (BLI_rctf_isect(&rectf, &node->runtime->totr, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf))
         {
-          nodeSetSelected(node, select);
+          bke::nodeSetSelected(node, select);
           is_inside = true;
         }
         break;
@@ -814,7 +814,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
     }
 
     if (is_inside) {
-      nodeSetSelected(node, select);
+      bke::nodeSetSelected(node, select);
     }
   }
 
@@ -908,13 +908,13 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
         if (BLI_rctf_isect_circle(&node->runtime->totr, offset, radius_adjusted) &&
             !BLI_rctf_isect_circle(&frame_inside, offset, radius_adjusted))
         {
-          nodeSetSelected(node, select);
+          bke::nodeSetSelected(node, select);
         }
         break;
       }
       default: {
         if (BLI_rctf_isect_circle(&node->runtime->totr, offset, radius / zoom)) {
-          nodeSetSelected(node, select);
+          bke::nodeSetSelected(node, select);
         }
         break;
       }
@@ -1000,7 +1000,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
         if (BLI_rctf_isect(&rectf, &node->runtime->totr, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf))
         {
-          nodeSetSelected(node, select);
+          bke::nodeSetSelected(node, select);
           changed = true;
         }
         break;
@@ -1016,7 +1016,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
             BLI_rcti_isect_pt(&rect, screen_co.x, screen_co.y) &&
             BLI_lasso_is_point_inside(mcoords, screen_co.x, screen_co.y, INT_MAX))
         {
-          nodeSetSelected(node, select);
+          bke::nodeSetSelected(node, select);
           changed = true;
         }
         break;
@@ -1110,7 +1110,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
   switch (action) {
     case SEL_SELECT:
       for (bNode *node : node_tree.all_nodes()) {
-        nodeSetSelected(node, true);
+        bke::nodeSetSelected(node, true);
       }
       break;
     case SEL_DESELECT:
@@ -1118,7 +1118,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
       break;
     case SEL_INVERT:
       for (bNode *node : node_tree.all_nodes()) {
-        nodeSetSelected(node, !(node->flag & SELECT));
+        bke::nodeSetSelected(node, !(node->flag & SELECT));
       }
       break;
   }
@@ -1170,7 +1170,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator * /*op*/)
         if (!input_socket->is_available()) {
           continue;
         }
-        nodeSetSelected(&input_socket->owner_node(), true);
+        bke::nodeSetSelected(&input_socket->owner_node(), true);
       }
     }
   }
@@ -1220,7 +1220,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator * /*op*/)
         if (!output_socket->is_available()) {
           continue;
         }
-        nodeSetSelected(&output_socket->owner_node(), true);
+        bke::nodeSetSelected(&output_socket->owner_node(), true);
       }
     }
   }
@@ -1262,7 +1262,7 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
   const bool prev = RNA_boolean_get(op->ptr, "prev");
-  bNode *active_node = nodeGetActive(snode->edittree);
+  bNode *active_node = bke::nodeGetActive(snode->edittree);
 
   if (active_node == nullptr) {
     return OPERATOR_CANCELLED;

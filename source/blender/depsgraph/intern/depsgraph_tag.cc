@@ -239,7 +239,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
 void id_tag_update_ntree_special(
     Main *bmain, Depsgraph *graph, ID *id, uint flags, eUpdateSource update_source)
 {
-  bNodeTree *ntree = ntreeFromID(id);
+  bNodeTree *ntree = bke::ntreeFromID(id);
   if (ntree == nullptr) {
     return;
   }
@@ -937,7 +937,7 @@ void DEG_editors_update(Depsgraph *depsgraph, bool time)
 static void deg_graph_clear_id_recalc_flags(ID *id)
 {
   id->recalc &= ~ID_RECALC_ALL;
-  bNodeTree *ntree = ntreeFromID(id);
+  bNodeTree *ntree = blender::bke::ntreeFromID(id);
   /* Clear embedded node trees too. */
   if (ntree) {
     ntree->id.recalc &= ~ID_RECALC_ALL;

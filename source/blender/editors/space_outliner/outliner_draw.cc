@@ -2540,7 +2540,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       return ICON_MOD_MASK;
     case ID_NT: {
       const bNodeTree *ntree = (bNodeTree *)id;
-      const bNodeTreeType *ntreetype = ntree->typeinfo;
+      const bke::bNodeTreeType *ntreetype = ntree->typeinfo;
       return ntreetype->ui_icon;
     }
     case ID_MC:

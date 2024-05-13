@@ -426,7 +426,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
 static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new_id)
 {
   /* Update all group nodes using a node group. */
-  ntreeUpdateAllUsers(bmain, new_id);
+  blender::bke::ntreeUpdateAllUsers(bmain, new_id);
 }
 
 static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, IDRemap *id_remap_data)

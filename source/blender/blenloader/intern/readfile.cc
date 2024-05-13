@@ -1892,7 +1892,7 @@ static void after_liblink_id_embedded_id_process(BlendLibReader *reader, ID *id)
 {
 
   /* Handle 'private IDs'. */
-  bNodeTree *nodetree = ntreeFromID(id);
+  bNodeTree *nodetree = blender::bke::ntreeFromID(id);
   if (nodetree != nullptr) {
     after_liblink_id_process(reader, &nodetree->id);
 
@@ -1971,13 +1971,13 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        ID *id_old)
 {
   /* Handle 'private IDs'. */
-  bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
+  bNodeTree **nodetree = blender::bke::BKE_ntree_ptr_from_id(id);
   if (nodetree != nullptr && *nodetree != nullptr) {
     BLO_read_struct(reader, bNodeTree, nodetree);
     direct_link_id_common(reader,
                           current_library,
                           (ID *)*nodetree,
-                          id_old != nullptr ? (ID *)ntreeFromID(id_old) : nullptr,
+                          id_old != nullptr ? (ID *)blender::bke::ntreeFromID(id_old) : nullptr,
                           0);
     blender::bke::ntreeBlendReadData(reader, id, *nodetree);
   }

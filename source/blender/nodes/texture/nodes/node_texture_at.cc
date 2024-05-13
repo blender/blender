@@ -8,12 +8,12 @@
 
 #include "node_texture_util.hh"
 
-static bNodeSocketTemplate inputs[] = {
+static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Texture"), 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_VECTOR, N_("Coordinates"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE},
     {-1, ""},
 };
-static bNodeSocketTemplate outputs[] = {
+static blender::bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Texture")},
     {-1, ""},
 };
@@ -40,12 +40,12 @@ static void exec(void *data,
 
 void register_node_type_tex_at()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_AT, "At", NODE_CLASS_DISTORT);
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   blender::bke::node_type_size(&ntype, 140, 100, 320);
   ntype.exec_fn = exec;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -12,7 +12,7 @@
 #include "node_util.hh"
 
 /* **************** COMPOSITE ******************** */
-static bNodeSocketTemplate inputs[] = {
+static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
@@ -136,17 +136,17 @@ static void copy(bNodeTree *dest_ntree, bNode *dest_node, const bNode *src_node)
 
 void register_node_type_tex_output()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT);
   blender::bke::node_type_socket_templates(&ntype, inputs, nullptr);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = init;
-  node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
+  blender::bke::node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
   ntype.exec_fn = exec;
 
   ntype.flag |= NODE_PREVIEW;
   ntype.no_muting = true;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -153,7 +153,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 void register_node_type_cmp_convert_color_space()
 {
   namespace file_ns = blender::nodes::node_composite_convert_color_space_cc;
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(
       &ntype, CMP_NODE_CONVERT_COLOR_SPACE, "Convert Colorspace", NODE_CLASS_CONVERTER);
@@ -161,9 +161,9 @@ void register_node_type_cmp_convert_color_space()
   ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_composit_init_convert_colorspace;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeConvertColorSpace", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

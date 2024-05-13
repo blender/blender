@@ -192,7 +192,7 @@ static void view_layer_remove_unset_nodetrees(const Main *bmain, Scene *scene, V
        sce = static_cast<Scene *>(sce->id.next))
   {
     if (sce->nodetree) {
-      BKE_nodetree_remove_layer_n(sce->nodetree, scene, act_layer_index);
+      blender::bke::BKE_nodetree_remove_layer_n(sce->nodetree, scene, act_layer_index);
     }
   }
 }

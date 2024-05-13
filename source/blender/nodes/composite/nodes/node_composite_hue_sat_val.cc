@@ -75,11 +75,11 @@ void register_node_type_cmp_hue_sat()
 {
   namespace file_ns = blender::nodes::node_composite_hue_sat_val_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_HUE_SAT, "Hue/Saturation/Value", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_huesatval_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

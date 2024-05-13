@@ -79,12 +79,12 @@ void register_node_type_sh_eevee_specular()
 {
   namespace file_ns = blender::nodes::node_shader_eevee_specular_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_EEVEE_SPECULAR, "Specular BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_eevee_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_gpu_eevee_specular;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -226,14 +226,15 @@ void register_node_type_cmp_crop()
 {
   namespace file_ns = blender::nodes::node_composite_crop_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CROP, "Crop", NODE_CLASS_DISTORT);
   ntype.declare = file_ns::cmp_node_crop_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_crop;
   ntype.initfunc = file_ns::node_composit_init_crop;
-  node_type_storage(&ntype, "NodeTwoXYs", node_free_standard_storage, node_copy_standard_storage);
+  blender::bke::node_type_storage(
+      &ntype, "NodeTwoXYs", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

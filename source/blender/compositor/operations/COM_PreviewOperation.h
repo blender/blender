@@ -32,7 +32,7 @@ class PreviewOperation : public MultiThreadedOperation {
                    const ColorManagedDisplaySettings *display_settings,
                    unsigned int default_width,
                    unsigned int default_height);
-  void verify_preview(bNodeInstanceHash *previews, bNodeInstanceKey key);
+  void verify_preview(bke::bNodeInstanceHash *previews, bNodeInstanceKey key);
 
   bool is_output_operation(bool /*rendering*/) const override
   {

@@ -50,13 +50,13 @@ void register_node_type_cmp_separate_xyz()
 {
   namespace file_ns = blender::nodes::node_composite_separate_xyz_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPARATE_XYZ, "Separate XYZ", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_separate_xyz_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE XYZ ******************** */
@@ -97,11 +97,11 @@ void register_node_type_cmp_combine_xyz()
 {
   namespace file_ns = blender::nodes::node_composite_combine_xyz_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBINE_XYZ, "Combine XYZ", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combine_xyz_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

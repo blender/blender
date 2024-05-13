@@ -328,14 +328,14 @@ void register_node_type_cmp_tonemap()
 {
   namespace file_ns = blender::nodes::node_composite_tonemap_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TONEMAP, "Tonemap", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_tonemap_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_tonemap;
   ntype.initfunc = file_ns::node_composit_init_tonemap;
-  node_type_storage(&ntype, "NodeTonemap", node_free_standard_storage, node_copy_standard_storage);
+  blender::bke::node_type_storage(&ntype, "NodeTonemap", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

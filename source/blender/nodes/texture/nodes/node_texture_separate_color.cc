@@ -13,11 +13,11 @@
 #include "node_util.hh"
 #include <cmath>
 
-static bNodeSocketTemplate inputs[] = {
+static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
-static bNodeSocketTemplate outputs[] = {
+static blender::bke::bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, N_("Red")},
     {SOCK_FLOAT, N_("Green")},
     {SOCK_FLOAT, N_("Blue")},
@@ -95,12 +95,12 @@ static void exec(void *data,
 
 void register_node_type_tex_separate_color()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_OP_COLOR);
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
   ntype.updatefunc = update;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

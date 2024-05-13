@@ -28,7 +28,7 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *view_settings
   flags_.is_preview_operation = true;
 }
 
-void PreviewOperation::verify_preview(bNodeInstanceHash *previews, bNodeInstanceKey key)
+void PreviewOperation::verify_preview(bke::bNodeInstanceHash *previews, bNodeInstanceKey key)
 {
   /* Size (0, 0) ensures the preview rect is not allocated in advance,
    * this is set later in init_execution once the resolution is determined.

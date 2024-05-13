@@ -9,11 +9,11 @@
 #include "node_texture_util.hh"
 #include <cmath>
 
-static bNodeSocketTemplate inputs[] = {
+static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
-static bNodeSocketTemplate outputs[] = {
+static blender::bke::bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, N_("Red")},
     {SOCK_FLOAT, N_("Green")},
     {SOCK_FLOAT, N_("Blue")},
@@ -61,11 +61,11 @@ static void exec(void *data,
 
 void register_node_type_tex_decompose()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_DECOMPOSE_LEGACY, "Separate RGBA", NODE_CLASS_OP_COLOR);
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

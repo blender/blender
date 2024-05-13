@@ -40,12 +40,12 @@ void register_node_type_sh_rgbtobw()
 {
   namespace file_ns = blender::nodes::node_shader_rgb_to_bw_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_rgbtobw_declare;
   ntype.gpu_fn = file_ns::gpu_shader_rgbtobw;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

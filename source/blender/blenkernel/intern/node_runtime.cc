@@ -289,7 +289,7 @@ static Vector<const bNode *> get_implicit_origin_nodes(const bNodeTree &ntree, b
     /* Can't use #zone_type.get_corresponding_input because that expects the topology cache to be
      * build already, but we are still building it here. */
     for (const bNode *input_node :
-         ntree.runtime->nodes_by_type.lookup(nodeTypeFind(zone_type.input_idname.c_str())))
+         ntree.runtime->nodes_by_type.lookup(bke::nodeTypeFind(zone_type.input_idname.c_str())))
     {
       if (zone_type.get_corresponding_output_id(*input_node) == node.identifier) {
         origin_nodes.append(input_node);
@@ -491,7 +491,7 @@ static void update_direct_frames_childrens(const bNodeTree &ntree)
 static void update_group_output_node(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  const bNodeType *node_type = nodeTypeFind("NodeGroupOutput");
+  const bke::bNodeType *node_type = bke::nodeTypeFind("NodeGroupOutput");
   const Span<bNode *> group_output_nodes = tree_runtime.nodes_by_type.lookup(node_type);
   if (group_output_nodes.is_empty()) {
     tree_runtime.group_output_node = nullptr;
