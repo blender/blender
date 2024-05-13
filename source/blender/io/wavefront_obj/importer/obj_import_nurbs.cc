@@ -78,16 +78,21 @@ void CurveFromGeometry::create_nurbs(Curve *curve)
   }
 
   BKE_nurb_knot_calc_u(nurb);
+
+  /* Figure out whether curve should have U endpoint flag set:
+   * the parameters should have at least (degree+1) values on each end,
+   * and their values should match curve range. */
   bool do_endpoints = false;
   int deg1 = nurbs_geometry.degree + 1;
   if (nurbs_geometry.parm.size() >= deg1 * 2) {
     do_endpoints = true;
+    const float2 range = nurbs_geometry.range;
     for (int i = 0; i < deg1; ++i) {
-      if (abs(nurbs_geometry.parm[i]) > 0.0001f) {
+      if (abs(nurbs_geometry.parm[i] - range.x) > 0.0001f) {
         do_endpoints = false;
         break;
       }
-      if (abs(nurbs_geometry.parm[nurbs_geometry.parm.size() - 1 - i] - 1.0f) > 0.0001f) {
+      if (abs(nurbs_geometry.parm[nurbs_geometry.parm.size() - 1 - i] - range.y) > 0.0001f) {
         do_endpoints = false;
         break;
       }

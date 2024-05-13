@@ -316,6 +316,38 @@ TEST_F(OBJImportTest, import_nurbs_cyclic)
   import_and_check("nurbs_cyclic.obj", expect, std::size(expect), 0);
 }
 
+TEST_F(OBJImportTest, import_nurbs_endpoint)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBCurveEndpointRange01",
+       OB_CURVES_LEGACY,
+       15,
+       1,
+       4,
+       0,
+       float3(0.29f, 0, -0.11f),
+       float3(22.17f, 0, -5.31f)},
+      {"OBCurveEndpointRangeNon01",
+       OB_CURVES_LEGACY,
+       15,
+       1,
+       4,
+       0,
+       float3(0.29f, 0, -0.11f),
+       float3(22.17f, 0, -5.31f)},
+      {"OBCurveNoEndpointRange01",
+       OB_CURVES_LEGACY,
+       15,
+       0,
+       4,
+       0,
+       float3(0.29f, 0, -0.11f),
+       float3(22.17f, 0, -5.31f)},
+  };
+  import_and_check("nurbs_endpoint.obj", expect, std::size(expect), 0);
+}
+
 TEST_F(OBJImportTest, import_nurbs_manual)
 {
   Expectation expect[] = {
