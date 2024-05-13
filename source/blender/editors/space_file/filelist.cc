@@ -611,7 +611,12 @@ static int compare_asset_catalog(void *user_data, const void *a1, const void *a2
     }
   }
 
-  return compare_apply_inverted(compare_tiebreaker(entry1, entry2), sort_data);
+  int order = compare_tiebreaker(entry1, entry2);
+  if (!order) {
+    order = BLI_strcasecmp_natural(asset_library1.name().c_str(), asset_library2.name().c_str());
+  }
+
+  return compare_apply_inverted(order, sort_data);
 }
 
 void filelist_sort(FileList *filelist)
