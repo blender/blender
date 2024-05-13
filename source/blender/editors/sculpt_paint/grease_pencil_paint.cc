@@ -853,12 +853,9 @@ void PaintOperation::on_stroke_done(const bContext &C)
   /* Grease Pencil should have an active layer. */
   BLI_assert(grease_pencil.has_active_layer());
   bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
-  const int drawing_index = active_layer.drawing_index_at(scene->r.cfra);
-
   /* Drawing should exist. */
-  BLI_assert(drawing_index >= 0);
-  bke::greasepencil::Drawing &drawing =
-      reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(drawing_index))->wrap();
+  bke::greasepencil::Drawing &drawing = *grease_pencil.get_editable_drawing_at(active_layer,
+                                                                               scene->r.cfra);
 
   const float simplifiy_threshold_px = 0.5f;
   this->simplify_stroke(C, drawing, simplifiy_threshold_px);
