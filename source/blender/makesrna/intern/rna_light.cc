@@ -307,7 +307,7 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
 
   prop = RNA_def_property(srna, "shadow_maximum_resolution", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0001f, 0.020f, 0.0005f, 4);
+  RNA_def_property_ui_range(prop, 0.0001f, 0.020f, 0.05f, 4);
   RNA_def_property_ui_text(prop,
                            "Shadows Resolution Limit",
                            "Maximum size of a shadow map pixel. Higher values use less memory at "
