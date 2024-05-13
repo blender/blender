@@ -316,28 +316,6 @@ Binding *Action::binding_find_by_name(const StringRefNull binding_name)
   return nullptr;
 }
 
-Binding *Action::binding_for_id(const ID &animated_id)
-{
-  const Binding *binding = const_cast<const Action *>(this)->binding_for_id(animated_id);
-  return const_cast<Binding *>(binding);
-}
-
-const Binding *Action::binding_for_id(const ID &animated_id) const
-{
-  const AnimData *adt = BKE_animdata_from_id(&animated_id);
-
-  /* Note that there is no check that `adt->action` is actually `this`. */
-
-  const Binding *binding = this->binding_for_handle(adt->binding_handle);
-  if (!binding) {
-    return nullptr;
-  }
-  if (!binding->is_suitable_for(animated_id)) {
-    return nullptr;
-  }
-  return binding;
-}
-
 Binding &Action::binding_allocate()
 {
   Binding &binding = MEM_new<ActionBinding>(__func__)->wrap();

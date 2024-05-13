@@ -163,9 +163,6 @@ class Action : public ::bAction {
 
   Binding *binding_find_by_name(StringRefNull binding_name);
 
-  Binding *binding_for_id(const ID &animated_id);
-  const Binding *binding_for_id(const ID &animated_id) const;
-
   /**
    * Create a new, unused Binding.
    *

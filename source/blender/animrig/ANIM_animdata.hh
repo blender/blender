@@ -59,15 +59,16 @@ bool animdata_remove_empty_action(AnimData *adt);
  * \note The returned FCurve should NOT be used for keyframe manipulation. Its
  * existence is an indicator for "this property is animated".
  *
+ * \note This function assumes that `adt->action` actually points to a layered
+ * Action. It is a bug to call this with a legacy Action, or without one.
+ *
  * This function should probably be limited to the active layer (for the given
  * property, once pinning to layers is there), so that the "this is keyed" color
  * is more accurate.
  *
- * Again, this is just to hook up the new Animation data-block to the old
- * Blender UI code.
+ * Again, this is just to hook up the layered Action to the old Blender UI code.
  */
-const FCurve *fcurve_find_by_rna_path(const Action &anim,
-                                      const ID &animated_id,
+const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
                                       StringRefNull rna_path,
                                       int array_index);
 

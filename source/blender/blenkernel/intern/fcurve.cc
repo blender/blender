@@ -17,6 +17,7 @@
 #include "ANIM_action.hh"
 #include "ANIM_animdata.hh"
 
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_text_types.h"
@@ -258,7 +259,7 @@ FCurve *id_data_find_fcurve(
    * needs to be re-checked I think?. */
   bool is_driven = false;
   FCurve *fcu = BKE_animadata_fcurve_find_by_rna_path(
-      id, adt, path->c_str(), index, nullptr, &is_driven);
+      adt, path->c_str(), index, nullptr, &is_driven);
   if (is_driven) {
     if (r_driven != nullptr) {
       *r_driven = is_driven;
@@ -355,34 +356,38 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
   return matches;
 }
 
-FCurve *action_fcurve_find_by_rna_path(const ID *id,
-                                       blender::animrig::Action &action,
-                                       const char *rna_path,
-                                       const int rna_index)
+static std::optional<std::pair<FCurve *, bAction *>> animdata_fcurve_find_by_rna_path(
+    AnimData &adt, const char *rna_path, const int rna_index)
 {
+  if (!adt.action) {
+    return std::nullopt;
+  }
+
+  blender::animrig::Action &action = adt.action->wrap();
   if (action.is_empty()) {
-    return nullptr;
+    return std::nullopt;
   }
 
+  FCurve *fcu = nullptr;
   if (action.is_action_layered()) {
-    BLI_assert(id);
-    const FCurve *fcu = blender::animrig::fcurve_find_by_rna_path(
-        action, *id, rna_path, rna_index);
-
-    /* The new Animation data-block is stricter with const-ness than older code, hence the
+    const FCurve *const_fcurve = blender::animrig::fcurve_find_by_rna_path(
+        adt, rna_path, rna_index);
+    /* The new layered Action code is stricter with const-ness than older code, hence the
      * const_cast. */
-    return const_cast<FCurve *>(fcu);
+    fcu = const_cast<FCurve *>(const_fcurve);
+  }
+  else {
+    fcu = BKE_fcurve_find(&action.curves, rna_path, rna_index);
   }
 
-  return BKE_fcurve_find(&action.curves, rna_path, rna_index);
+  if (!fcu) {
+    return std::nullopt;
+  }
+  return std::make_pair(fcu, &action);
 }
 
-FCurve *BKE_animadata_fcurve_find_by_rna_path(const ID *id,
-                                              AnimData *animdata,
-                                              const char *rna_path,
-                                              int rna_index,
-                                              bAction **r_action,
-                                              bool *r_driven)
+FCurve *BKE_animadata_fcurve_find_by_rna_path(
+    AnimData *animdata, const char *rna_path, int rna_index, bAction **r_action, bool *r_driven)
 {
   if (r_driven != nullptr) {
     *r_driven = false;
@@ -391,17 +396,14 @@ FCurve *BKE_animadata_fcurve_find_by_rna_path(const ID *id,
     *r_action = nullptr;
   }
 
-  /* Action takes priority over drivers. */
-  if (animdata->action) {
-    blender::animrig::Action &action = animdata->action->wrap();
-    /* TODO: pass the binding handle instead of the id. */
-    FCurve *fcurve = action_fcurve_find_by_rna_path(id, action, rna_path, rna_index);
-    if (fcurve) {
-      if (r_action) {
-        *r_action = &action;
-      }
-      return fcurve;
+  std::optional<std::pair<FCurve *, bAction *>> found = animdata_fcurve_find_by_rna_path(
+      *animdata, rna_path, rna_index);
+  if (found) {
+    /* Action takes priority over drivers. */
+    if (r_action) {
+      *r_action = found->second;
     }
+    return found->first;
   }
 
   /* If not animated, check if driven. */
@@ -496,7 +498,7 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext * /*C*/,
 
   /* Standard F-Curve from animdata - Animation (Action) or Drivers. */
   FCurve *fcu = BKE_animadata_fcurve_find_by_rna_path(
-      ptr->owner_id, adt, rna_path->c_str(), rnaindex, r_action, r_driven);
+      adt, rna_path->c_str(), rnaindex, r_action, r_driven);
 
   if (fcu != nullptr && r_animdata != nullptr) {
     *r_animdata = adt;

@@ -184,21 +184,32 @@ void reevaluate_fcurve_errors(bAnimContext *ac)
   }
 }
 
-const FCurve *fcurve_find_by_rna_path(const Action &anim,
-                                      const ID &animated_id,
+const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
                                       const StringRefNull rna_path,
                                       const int array_index)
 {
-  const Binding *binding = anim.binding_for_id(animated_id);
+  BLI_assert(adt.action);
+  if (!adt.action) {
+    return nullptr;
+  }
+
+  const Action &action = adt.action->wrap();
+  BLI_assert(action.is_action_layered());
+
+  const Binding *binding = action.binding_for_handle(adt.binding_handle);
   if (!binding) {
     /* No need to inspect anything if this ID does not have an animation Binding. */
     return nullptr;
   }
 
+  /* No check for the binding's ID type. Not only do we not have the actual ID
+   * to do this check, but also, since the Action and the binding have been
+   * assigned, just trust that it's valid. */
+
   /* Iterate the layers top-down, as higher-up animation overrides (or at least can override)
    * lower-down animation. */
-  for (int layer_idx = anim.layer_array_num - 1; layer_idx >= 0; layer_idx--) {
-    const Layer *layer = anim.layer(layer_idx);
+  for (int layer_idx = action.layer_array_num - 1; layer_idx >= 0; layer_idx--) {
+    const Layer *layer = action.layer(layer_idx);
 
     /* TODO: refactor this into something nicer once we have different strip types. */
     for (const Strip *strip : layer->strips()) {

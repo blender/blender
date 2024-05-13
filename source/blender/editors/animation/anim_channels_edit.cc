@@ -4585,7 +4585,7 @@ static blender::Vector<FCurve *> get_fcurves_of_property(
     const int length = RNA_property_array_length(ptr, prop);
     for (int i = 0; i < length; i++) {
       FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
-          id, anim_data, path->c_str(), i, nullptr, nullptr);
+          anim_data, path->c_str(), i, nullptr, nullptr);
       if (fcurve != nullptr) {
         fcurves.append(fcurve);
       }
@@ -4593,7 +4593,7 @@ static blender::Vector<FCurve *> get_fcurves_of_property(
   }
   else {
     FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
-        id, anim_data, path->c_str(), index, nullptr, nullptr);
+        anim_data, path->c_str(), index, nullptr, nullptr);
     if (fcurve != nullptr) {
       fcurves.append(fcurve);
     }

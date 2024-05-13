@@ -361,12 +361,12 @@ bool BKE_lib_override_library_property_is_animated(
       const char index_token_start_backup = *index_token_start;
       *index_token_start = '\0';
       fcurve = BKE_animadata_fcurve_find_by_rna_path(
-          id, anim_data, liboverride_prop->rna_path, rnaprop_index, nullptr, nullptr);
+          anim_data, liboverride_prop->rna_path, rnaprop_index, nullptr, nullptr);
       *index_token_start = index_token_start_backup;
     }
     else {
       fcurve = BKE_animadata_fcurve_find_by_rna_path(
-          id, anim_data, liboverride_prop->rna_path, 0, nullptr, nullptr);
+          anim_data, liboverride_prop->rna_path, 0, nullptr, nullptr);
     }
     if (fcurve != nullptr) {
       return true;
