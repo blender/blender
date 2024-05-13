@@ -1377,7 +1377,7 @@ Layer &LayerGroup::add_layer(StringRefNull name)
   return this->add_node(new_layer->as_node()).as_layer();
 }
 
-Layer &LayerGroup::add_layer(const Layer &duplicate_layer)
+Layer &LayerGroup::duplicate_layer(const Layer &duplicate_layer)
 {
   Layer *new_layer = MEM_new<Layer>(__func__, duplicate_layer);
   return this->add_node(new_layer->as_node()).as_layer();
@@ -2744,30 +2744,30 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(
     blender::bke::greasepencil::LayerGroup &parent_group, const blender::StringRefNull name)
 {
   using namespace blender;
-  blender::bke::greasepencil::Layer &new_layer = add_layer(name);
+  blender::bke::greasepencil::Layer &new_layer = this->add_layer(name);
   move_node_into(new_layer.as_node(), parent_group);
   return new_layer;
 }
 
-blender::bke::greasepencil::Layer &GreasePencil::add_layer(
+blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(
     const blender::bke::greasepencil::Layer &duplicate_layer)
 {
   using namespace blender;
   std::string unique_name = unique_layer_name(*this, duplicate_layer.name());
   const int numLayers = layers().size();
   CustomData_realloc(&layers_data, numLayers, numLayers + 1);
-  bke::greasepencil::Layer &new_layer = root_group().add_layer(duplicate_layer);
+  bke::greasepencil::Layer &new_layer = root_group().duplicate_layer(duplicate_layer);
   this->update_drawing_users_for_layer(new_layer);
   new_layer.set_name(unique_name);
   return new_layer;
 }
 
-blender::bke::greasepencil::Layer &GreasePencil::add_layer(
+blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(
     blender::bke::greasepencil::LayerGroup &parent_group,
     const blender::bke::greasepencil::Layer &duplicate_layer)
 {
   using namespace blender;
-  bke::greasepencil::Layer &new_layer = add_layer(duplicate_layer);
+  bke::greasepencil::Layer &new_layer = this->duplicate_layer(duplicate_layer);
   move_node_into(new_layer.as_node(), parent_group);
   return new_layer;
 }

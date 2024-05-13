@@ -537,7 +537,7 @@ static int grease_pencil_layer_duplicate_exec(bContext *C, wmOperator *op)
 
   /* Duplicate layer. */
   Layer &active_layer = *grease_pencil.get_active_layer();
-  Layer &new_layer = grease_pencil.add_layer(active_layer);
+  Layer &new_layer = grease_pencil.duplicate_layer(active_layer);
 
   /* Clear source keyframes and recreate them with duplicated drawings. */
   new_layer.frames_for_write().clear();
