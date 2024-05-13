@@ -29,7 +29,6 @@ ShadowTechnique ShadowModule::shadow_technique = ShadowTechnique::ATOMIC_RASTER;
 void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
                                       int2 origin_offset,
                                       int clipmap_level,
-                                      float lod_bias_,
                                       eShadowProjectionType projection_type_)
 {
   if ((projection_type != projection_type_) || (level != clipmap_level)) {
@@ -50,8 +49,6 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
     object_mat = object_mat_;
     set_dirty();
   }
-
-  lod_bias = lod_bias_;
 
   float tile_size = ShadowDirectional::tile_size_get(level);
 
@@ -77,8 +74,7 @@ void ShadowTileMap::sync_cubeface(eLightType light_type_,
                                   float far_,
                                   float side_,
                                   float shift,
-                                  eCubeFace face,
-                                  float lod_bias_)
+                                  eCubeFace face)
 {
   if (projection_type != SHADOW_PROJECTION_CUBEFACE || (cubeface != face)) {
     set_dirty();
@@ -86,7 +82,6 @@ void ShadowTileMap::sync_cubeface(eLightType light_type_,
   projection_type = SHADOW_PROJECTION_CUBEFACE;
   cubeface = face;
   grid_offset = int2(0);
-  lod_bias = lod_bias_;
   light_type = light_type_;
   is_area_side = is_area_light(light_type) && (face != eCubeFace::Z_NEG);
 
@@ -230,9 +225,7 @@ void ShadowTileMapPool::end_sync(ShadowModule &module)
 void ShadowPunctual::sync(eLightType light_type,
                           const float4x4 &object_mat,
                           float cone_aperture,
-                          float light_shape_radius,
-                          float max_distance,
-                          float shadow_resolution_scale)
+                          float max_distance)
 {
   if (is_spot_light(light_type)) {
     tilemaps_needed_ = (cone_aperture > DEG2RADF(90.0f)) ? 5 : 1;
@@ -244,16 +237,11 @@ void ShadowPunctual::sync(eLightType light_type,
     tilemaps_needed_ = 6;
   }
 
+  light_type_ = light_type;
   /* Clamp for near/far clip distance calculation. */
   max_distance_ = max_ff(max_distance, 4e-4f);
-  light_radius_ = min_ff(light_shape_radius, max_distance_ - 1e-4f);
-  light_type_ = light_type;
 
   position_ = float3(object_mat[3]);
-
-  float resolution_scale = clamp_f(shadow_resolution_scale, 0.0f, 2.0f);
-  lod_bias_ = (resolution_scale < 1.0) ? -log2(resolution_scale) : -(resolution_scale - 1.0f);
-  lod_bias_ += shadows_.get_global_lod_bias();
 }
 
 void ShadowPunctual::release_excess_tilemaps()
@@ -288,20 +276,15 @@ void ShadowPunctual::end_sync(Light &light)
     tilemaps_.append(tilemap_pool.acquire());
   }
 
-  tilemaps_[Z_NEG]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, Z_NEG, lod_bias_);
+  tilemaps_[Z_NEG]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, Z_NEG);
   if (tilemaps_needed_ >= 5) {
-    tilemaps_[X_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, X_POS, lod_bias_);
-    tilemaps_[X_NEG]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, X_NEG, lod_bias_);
-    tilemaps_[Y_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Y_POS, lod_bias_);
-    tilemaps_[Y_NEG]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Y_NEG, lod_bias_);
+    tilemaps_[X_POS]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, X_POS);
+    tilemaps_[X_NEG]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, X_NEG);
+    tilemaps_[Y_POS]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, Y_POS);
+    tilemaps_[Y_NEG]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, Y_NEG);
   }
   if (tilemaps_needed_ == 6) {
-    tilemaps_[Z_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Z_POS, lod_bias_);
+    tilemaps_[Z_POS]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, Z_POS);
   }
 
   light.tilemap_index = tilemap_pool.tilemaps_data.size();
@@ -318,7 +301,6 @@ void ShadowPunctual::end_sync(Light &light)
   light.clip_far = as_int.i;
   light.local.clip_side = side;
   light.local.shadow_projection_shift = shift;
-  light.lod_bias = lod_bias_;
 
   for (ShadowTileMap *tilemap : tilemaps_) {
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
@@ -394,10 +376,8 @@ IndexRange ShadowDirectional::cascade_level_range(const Camera &camera)
     min_diagonal_tilemap_size *= cam_data.clip_far / cam_data.clip_near;
   }
 
-  /* Allow better tile-map usage without missing pages near end of view. */
-  float lod_bias = this->lod_bias_ + 0.5f;
   /* Level of detail (or size) of every tile-maps of this light. */
-  int lod_level = ceil(log2(max_ff(min_depth_tilemap_size, min_diagonal_tilemap_size)) + lod_bias);
+  int lod_level = ceil(log2(max_ff(min_depth_tilemap_size, min_diagonal_tilemap_size)) + 0.5);
 
   /* Tile-maps "rotate" around the first one so their effective range is only half their size. */
   float per_tilemap_coverage = ShadowDirectional::coverage_get(lod_level) * 0.5f;
@@ -446,7 +426,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
     /* Equal spacing between cascades layers since we want uniform shadow density. */
     int2 level_offset = origin_offset +
                         shadow_cascade_grid_offset(light.sun.clipmap_base_offset_pos, i);
-    tilemap->sync_orthographic(object_mat_, level_offset, level, 0.0f, SHADOW_PROJECTION_CASCADE);
+    tilemap->sync_orthographic(object_mat_, level_offset, level, SHADOW_PROJECTION_CASCADE);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
     shadows_.tilemap_pool.tilemaps_data.append(*tilemap);
@@ -461,37 +441,27 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
    * the scaling. */
   light.sun.clipmap_lod_min = levels_range.first();
   light.sun.clipmap_lod_max = levels_range.last();
-
-  /* The bias is applied in cascade_level_range().
-   * Using clipmap_lod_min here simplify code in shadow_directional_level().
-   * Minus 1 because of the ceil(). */
-  light.lod_bias = light.sun.clipmap_lod_min - 1;
 }
 
 /************************************************************************
  *                         Clip-map Distribution                        *
  ************************************************************************/
 
-IndexRange ShadowDirectional::clipmap_level_range(const Camera &camera)
+IndexRange ShadowDirectional::clipmap_level_range(const Camera &cam)
 {
   using namespace blender::math;
-
-  /* 32 to be able to pack offset into two single int2. */
-  const int max_tilemap_per_shadows = 32;
-
-  int user_min_level = floorf(log2(min_resolution_));
   /* Covers the farthest points of the view. */
-  int max_level = ceil(
-      log2(camera.bound_radius() + distance(camera.bound_center(), camera.position())));
+  int max_level = ceil(log2(cam.bound_radius() + distance(cam.bound_center(), cam.position())));
   /* We actually need to cover a bit more because of clipmap origin snapping. */
   max_level += 1;
   /* Covers the closest points of the view. */
-  int min_level = floor(log2(abs(camera.data_get().clip_near)));
-  min_level = clamp_i(user_min_level, min_level, max_level);
-
+  /* FIXME: IndexRange does not support negative range. Clamp to 1 for now. */
+  int min_level = max(0.0f, floor(log2(abs(cam.data_get().clip_near))));
   IndexRange range(min_level, max_level - min_level + 1);
-  /* The maximum level count is bounded by the mantissa of a 32bit float. Take top-most level to
-   * still cover the whole view. */
+  /* 32 to be able to pack offset into a single int2.
+   * The maximum level count is bounded by the mantissa of a 32bit float.  */
+  const int max_tilemap_per_shadows = 24;
+  /* Take top-most level to still cover the whole view. */
   range = range.take_back(max_tilemap_per_shadows);
 
   return range;
@@ -510,8 +480,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera
     float2 light_space_camera_position = camera.position() * float2x3(object_mat_.view<2, 3>());
     int2 level_offset = int2(math::round(light_space_camera_position / tile_size));
 
-    tilemap->sync_orthographic(
-        object_mat_, level_offset, level, lod_bias_, SHADOW_PROJECTION_CLIPMAP);
+    tilemap->sync_orthographic(object_mat_, level_offset, level, SHADOW_PROJECTION_CLIPMAP);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
     shadows_.tilemap_pool.tilemaps_data.append(*tilemap);
@@ -553,28 +522,15 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera
 
   light.sun.clipmap_lod_min = levels_range.first();
   light.sun.clipmap_lod_max = levels_range.last();
-
-  light.lod_bias = lod_bias_;
 }
 
-void ShadowDirectional::sync(const float4x4 &object_mat,
-                             float min_resolution,
-                             float shadow_disk_angle,
-                             float shadow_resolution_scale)
+void ShadowDirectional::sync(const float4x4 &object_mat, float shadow_disk_angle)
 {
   object_mat_ = object_mat;
-  /* Clear embedded custom data. */
-  object_mat_[0][3] = object_mat_[1][3] = object_mat_[2][3] = 0.0f;
-  object_mat_[3][3] = 1.0f;
   /* Remove translation. */
   object_mat_.location() = float3(0.0f);
 
-  min_resolution_ = min_resolution;
   disk_shape_angle_ = min_ff(shadow_disk_angle, DEG2RADF(179.9f)) / 2.0f;
-
-  float resolution_scale = clamp_f(shadow_resolution_scale, 0.0f, 2.0f);
-  lod_bias_ = (resolution_scale < 1.0) ? -log2(resolution_scale) : -(resolution_scale - 1.0f);
-  lod_bias_ += shadows_.get_global_lod_bias();
 }
 
 void ShadowDirectional::release_excess_tilemaps(const Camera &camera)
@@ -692,8 +648,6 @@ void ShadowModule::init()
   const size_t page_byte_size = square_i(shadow_page_size_) * sizeof(int);
   shadow_page_len_ = int(divide_ceil_ul(pool_byte_size, page_byte_size));
   shadow_page_len_ = min_ii(shadow_page_len_, SHADOW_MAX_PAGE);
-
-  lod_bias_ = -log2f(scene.eevee.shadow_resolution_scale);
 
   const int2 atlas_extent = shadow_page_size_ * int2(SHADOW_PAGE_PER_ROW);
   const int atlas_layers = divide_ceil_u(shadow_page_len_, SHADOW_PAGE_PER_LAYER);

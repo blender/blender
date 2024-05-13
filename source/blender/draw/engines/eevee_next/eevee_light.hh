@@ -84,6 +84,7 @@ struct Light : public LightData, NonCopyable {
   void debug_draw();
 
  private:
+  float shadow_lod_min_get(const ::Light *la);
   float attenuation_radius_get(const ::Light *la, float light_threshold, float light_power);
   void shape_parameters_set(const ::Light *la, const float3 &scale, float threshold);
   float shape_radiance_get();

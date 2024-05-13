@@ -3479,6 +3479,32 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 34)) {
+    float shadow_max_res_sun = 0.001f;
+    float shadow_max_res_local = 0.001f;
+    bool shadow_resolution_absolute = false;
+    /* Try to get default resolution from scene setting. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      shadow_max_res_local = (2.0f * M_SQRT2) / scene->eevee.shadow_cube_size;
+      /* Round to avoid weird numbers in the UI. */
+      shadow_max_res_local = ceil(shadow_max_res_local * 1000.0f) / 1000.0f;
+      shadow_resolution_absolute = true;
+      break;
+    }
+
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      if (light->type == LA_SUN) {
+        /* Sun are too complex to convert. Need user interaction. */
+        light->shadow_maximum_resolution = shadow_max_res_sun;
+        SET_FLAG_FROM_TEST(light->mode, false, LA_SHAD_RES_ABSOLUTE);
+      }
+      else {
+        light->shadow_maximum_resolution = shadow_max_res_local;
+        SET_FLAG_FROM_TEST(light->mode, shadow_resolution_absolute, LA_SHAD_RES_ABSOLUTE);
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

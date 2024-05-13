@@ -154,7 +154,12 @@ class DATA_PT_EEVEE_light_shadow(DataButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(light, "shadow_filter_radius", text="Filter")
-        col.prop(light, "shadow_resolution_scale", text="Resolution")
+
+        sub = col.column(align=True)
+        row = sub.row(align=True)
+        row.prop(light, "shadow_maximum_resolution", text="Resolution")
+        row.prop(light, "use_absolute_resolution", text="", icon='DRIVER_DISTANCE')
+        sub.prop(light, "shadow_resolution_scale", text="Scale")
 
 
 class DATA_PT_EEVEE_light_influence(DataButtonsPanel, Panel):

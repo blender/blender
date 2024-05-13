@@ -354,28 +354,26 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
       /* Simplification of `coverage_get(shadow_directional_level_fractional)`. */
       const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001);
       scale = length(lP) * narrowing;
-      scale *= exp2(light.lod_bias);
-      scale = clamp(scale, float(1 << sun.clipmap_lod_min), float(1 << sun.clipmap_lod_max));
+      scale = max(scale * exp2(light.lod_bias), exp2(light.lod_min));
+      scale = min(scale, float(1 << sun.clipmap_lod_max));
     }
     else {
       /* Uniform distribution everywhere. No distance scaling.
        * shadow_directional_level_fractional returns the cascade level, but all levels have the
        * same density as the level 0. So the effective density only depends on the `lod_bias`. */
-      scale = exp2(light.lod_bias);
+      scale = max(exp2(light.lod_bias), exp2(light.lod_min));
     }
   }
   else {
-    /* Simplification of `coverage_get(shadow_punctual_level_fractional)`. */
+    /* Simplification of `exp2(shadow_punctual_level_fractional)`. */
     scale = shadow_punctual_pixel_ratio(light,
                                         lP,
                                         drw_view_is_perspective(),
                                         drw_view_z_distance(P),
                                         uniform_buf.shadow.film_pixel_radius);
     /* This gives the size of pixels at Z = 1. */
-    scale = 1.0 / scale;
-    scale *= exp2(-1.0 + light.lod_bias);
-    scale = clamp(scale, float(1 << 0), float(1 << SHADOW_TILEMAP_LOD));
-    scale *= shadow_punctual_frustum_padding_get(light);
+    scale = 0.5 / scale;
+    scale = min(scale, float(1 << (SHADOW_TILEMAP_LOD - 1)));
     /* Now scale by distance to the light. */
     scale *= reduce_max(abs(lP));
   }

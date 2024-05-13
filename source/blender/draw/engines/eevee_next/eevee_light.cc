@@ -86,21 +86,17 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 
   this->pcf_radius = la->shadow_filter_radius;
 
+  this->lod_bias = (1.0f - la->shadow_resolution_scale) * SHADOW_TILEMAP_LOD;
+  this->lod_min = shadow_lod_min_get(la);
+
   if (la->mode & LA_SHADOW) {
     shadow_ensure(shadows);
     if (is_sun_light(this->type)) {
-      this->directional->sync(object_to_world, 1.0f, la->sun_angle, la->shadow_resolution_scale);
+      this->directional->sync(object_to_world, la->sun_angle);
     }
     else {
-      /* Reuse shape radius as near clip plane. */
-      /* This assumes `shape_parameters_set` has already set `radius_squared`. */
-      float radius = math::sqrt(this->local.radius_squared);
-      this->punctual->sync(this->type,
-                           object_to_world,
-                           la->spotsize,
-                           radius,
-                           this->local.influence_radius_max,
-                           la->shadow_resolution_scale);
+      this->punctual->sync(
+          this->type, object_to_world, la->spotsize, this->local.influence_radius_max);
     }
   }
   else {
@@ -108,6 +104,17 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   }
 
   this->initialized = true;
+}
+
+float Light::shadow_lod_min_get(const ::Light *la)
+{
+  /* Property is in mm. Convert to unit. */
+  float max_res_unit = la->shadow_maximum_resolution;
+  if (is_sun_light(this->type)) {
+    return log2f(max_res_unit * SHADOW_MAP_MAX_RES) - 1.0f;
+  }
+  /* Store absolute mode as negative. */
+  return (la->mode & LA_SHAD_RES_ABSOLUTE) ? -max_res_unit : max_res_unit;
 }
 
 void Light::shadow_discard_safe(ShadowModule &shadows)
@@ -156,8 +163,12 @@ void Light::shape_parameters_set(const ::Light *la, const float3 &scale, float t
     const bool is_irregular = ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE);
     this->area.size = float2(la->area_size, is_irregular ? la->area_sizey : la->area_size);
     /* Scale and clamp to minimum value before float imprecision artifacts appear. */
-    this->area.size = max(float2(0.003f), this->area.size * scale.xy() / 2.0f);
-
+    this->area.size = this->area.size * scale.xy() / 2.0f;
+    /* Do not render lights that virtually have no area or clamp to minimum value before float
+     * imprecision artifacts appear. */
+    this->area.size = (this->area.size.x * this->area.size.y < 0.00001f) ?
+                          float2(0.0) :
+                          max(float2(0.003f), this->area.size * scale.xy() / 2.0f);
     /* For volume point lighting. */
     this->local.radius_squared = square(max(0.001f, length(this->area.size) / 2.0f));
   }
