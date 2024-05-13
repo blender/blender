@@ -2291,7 +2291,7 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
 
         layout.operator("grease_pencil.select_random")
         layout.operator("grease_pencil.select_alternate")
-        
+
         layout.separator()
 
         layout.operator("grease_pencil.select_more", text="More")
