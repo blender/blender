@@ -10,7 +10,6 @@ namespace blender::gpu::render_graph {
 
 TEST(vk_render_graph, begin_clear_attachments_end_read_back)
 {
-  GTEST_SKIP() << "Disabled as it doesn't succeed consistently on Windows";
   VkHandle<VkImage> image(1u);
   VkHandle<VkImageView> image_view(2u);
   VkHandle<VkBuffer> buffer(3u);

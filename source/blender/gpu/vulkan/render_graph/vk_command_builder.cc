@@ -65,7 +65,7 @@ void VKCommandBuilder::build_nodes(VKRenderGraph &render_graph,
 void VKCommandBuilder::build_node(VKRenderGraph &render_graph,
                                   VKCommandBufferInterface &command_buffer,
                                   NodeHandle node_handle,
-                                  const VKRenderGraphNode &node)
+                                  VKRenderGraphNode &node)
 {
   build_pipeline_barriers(render_graph, command_buffer, node_handle, node.pipeline_stage_get());
   node.build_commands(command_buffer, state_.active_pipelines);

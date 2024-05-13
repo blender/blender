@@ -59,7 +59,7 @@ class VKCopyBufferToImageNode : public VKNodeInfo<VKNodeType::COPY_BUFFER_TO_IMA
    * Build the commands and add them to the command_buffer.
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
-                      const Data &data,
+                      Data &data,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     command_buffer.copy_buffer_to_image(

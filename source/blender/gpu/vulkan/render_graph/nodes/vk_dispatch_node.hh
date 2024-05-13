@@ -73,7 +73,7 @@ class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
    * Build the commands and add them to the command_buffer.
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
-                      const Data &data,
+                      Data &data,
                       VKBoundPipelines &r_bound_pipelines) override
   {
     vk_pipeline_data_build_commands(
