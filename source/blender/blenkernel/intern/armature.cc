@@ -3085,14 +3085,15 @@ void BKE_pchan_minmax(const Object *ob,
   }
 }
 
-bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select)
+bool BKE_pose_minmax(
+    const Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select)
 {
   bool changed = false;
 
   if (ob->pose) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    const bArmature *arm = static_cast<const bArmature *>(ob->data);
 
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+    LISTBASE_FOREACH (const bPoseChannel *, pchan, &ob->pose->chanbase) {
       /* XXX pchan->bone may be nullptr for duplicated bones, see duplicateEditBoneObjects()
        * comment (editarmature.c:2592)... Skip in this case too! */
       if (pchan->bone && (!((use_hidden == false) && (PBONE_VISIBLE(arm, pchan->bone) == false)) &&
