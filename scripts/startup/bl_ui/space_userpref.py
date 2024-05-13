@@ -2136,6 +2136,8 @@ class USERPREF_PT_extensions_repos(Panel):
             split.prop(active_repo, "remote_path", text="", icon='URL', placeholder="Repository URL")
             split = row.split()
 
+            layout.prop(active_repo, "use_sync_on_startup")
+
         layout_header, layout_panel = layout.panel("advanced", default_closed=True)
         layout_header.label(text="Advanced")
         if layout_panel:
