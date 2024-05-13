@@ -24,13 +24,9 @@ struct VKBeginRenderingData {
 };
 
 struct VKBeginRenderingCreateInfo {
-  VKBeginRenderingData node_data;
+  VKBeginRenderingData node_data = {};
   const VKResourceAccessInfo &resources;
-  VKBeginRenderingCreateInfo(const VKResourceAccessInfo &resources) : resources(resources)
-  {
-    /* Using memset as MSVC didn't clear the color_attachments array. */
-    memset(&node_data, 0, sizeof(node_data));
-  }
+  VKBeginRenderingCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
 };
 
 /**
