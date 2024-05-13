@@ -160,7 +160,8 @@ bool socket_type_has_attribute_toggle(const eNodeSocketDatatype type)
 bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index)
 {
   node_tree.ensure_interface_cache();
-  const bke::bNodeSocketType *typeinfo = node_tree.interface_inputs()[socket_index]->socket_typeinfo();
+  const bke::bNodeSocketType *typeinfo =
+      node_tree.interface_inputs()[socket_index]->socket_typeinfo();
   if (ELEM(typeinfo->type, SOCK_MENU)) {
     return false;
   }

@@ -117,9 +117,9 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY);
 
   blender::bke::node_type_storage(&ntype,
-                    "NodeGeometryDeleteGeometry",
-                    node_free_standard_storage,
-                    node_copy_standard_storage);
+                                  "NodeGeometryDeleteGeometry",
+                                  node_free_standard_storage,
+                                  node_copy_standard_storage);
 
   ntype.initfunc = node_init;
   ntype.declare = node_declare;

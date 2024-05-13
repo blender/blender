@@ -102,7 +102,8 @@ static void rna_NodeSocket_draw_color(bContext *C,
   RNA_parameter_list_free(&list);
 }
 
-static void rna_NodeSocket_draw_color_simple(const blender::bke::bNodeSocketType *socket_type, float *r_color)
+static void rna_NodeSocket_draw_color_simple(const blender::bke::bNodeSocketType *socket_type,
+                                             float *r_color)
 {
   ParameterList list;
   FunctionRNA *func;
@@ -124,7 +125,8 @@ static void rna_NodeSocket_draw_color_simple(const blender::bke::bNodeSocketType
 
 static bool rna_NodeSocket_unregister(Main * /*bmain*/, StructRNA *type)
 {
-  blender::bke::bNodeSocketType *st = static_cast<blender::bke::bNodeSocketType *>(RNA_struct_blender_type_get(type));
+  blender::bke::bNodeSocketType *st = static_cast<blender::bke::bNodeSocketType *>(
+      RNA_struct_blender_type_get(type));
   if (!st) {
     return false;
   }
@@ -177,7 +179,8 @@ static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
   st = blender::bke::nodeSocketTypeFind(dummy_st.idname);
   if (!st) {
     /* create a new node socket type */
-    st = static_cast<blender::bke::bNodeSocketType *>(MEM_mallocN(sizeof(blender::bke::bNodeSocketType), "node socket type"));
+    st = static_cast<blender::bke::bNodeSocketType *>(
+        MEM_mallocN(sizeof(blender::bke::bNodeSocketType), "node socket type"));
     memcpy(st, &dummy_st, sizeof(dummy_st));
 
     blender::bke::nodeRegisterSocketType(st);
@@ -340,8 +343,8 @@ static void rna_NodeSocketStandard_draw_color(
 
 static void rna_NodeSocketStandard_draw_color_simple(StructRNA *type, float r_color[4])
 {
-  const blender::bke::bNodeSocketType *typeinfo = static_cast<const blender::bke::bNodeSocketType *>(
-      RNA_struct_blender_type_get(type));
+  const blender::bke::bNodeSocketType *typeinfo =
+      static_cast<const blender::bke::bNodeSocketType *>(RNA_struct_blender_type_get(type));
   typeinfo->draw_color_simple(typeinfo, r_color);
 }
 

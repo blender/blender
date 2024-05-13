@@ -122,9 +122,9 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(&ntype,
-                    "NodeGeometryInputNamedAttribute",
-                    node_free_standard_storage,
-                    node_copy_standard_storage);
+                                  "NodeGeometryInputNamedAttribute",
+                                  node_free_standard_storage,
+                                  node_copy_standard_storage);
   blender::bke::nodeRegisterType(&ntype);
 
   node_rna(ntype.rna_ext.srna);

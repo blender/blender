@@ -343,8 +343,9 @@ static const DTreeContext *find_active_context_recursive(const DTreeContext *con
 
 const DTreeContext &DerivedNodeTree::active_context() const
 {
-  /* If the active viewer key is bke::NODE_INSTANCE_KEY_NONE, that means it is not yet initialized and
-   * we return the root context in that case. See the find_active_context_recursive function. */
+  /* If the active viewer key is bke::NODE_INSTANCE_KEY_NONE, that means it is not yet initialized
+   * and we return the root context in that case. See the find_active_context_recursive function.
+   */
   if (root_context().btree().active_viewer_key.value == bke::NODE_INSTANCE_KEY_NONE.value) {
     return root_context();
   }

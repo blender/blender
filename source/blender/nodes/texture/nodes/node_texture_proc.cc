@@ -19,9 +19,10 @@
  * In this file: wrappers to use procedural textures as nodes
  */
 
-static blender::bke::bNodeSocketTemplate outputs_both[] = {{SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
-                                             {-1, ""}};
-static blender::bke::bNodeSocketTemplate outputs_color_only[] = {{SOCK_RGBA, N_("Color")}, {-1, ""}};
+static blender::bke::bNodeSocketTemplate outputs_both[] = {
+    {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f}, {-1, ""}};
+static blender::bke::bNodeSocketTemplate outputs_color_only[] = {{SOCK_RGBA, N_("Color")},
+                                                                 {-1, ""}};
 
 /* Inputs common to all, #defined because nodes will need their own inputs too */
 #define I 2 /* count */

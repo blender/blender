@@ -284,14 +284,16 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
   bNodeSocket *saturation = blender::bke::nodeFindSocket(node, SOCK_IN, "Saturation");
   bNodeSocket *value = blender::bke::nodeFindSocket(node, SOCK_IN, "Value");
   if (hue == nullptr) {
-    hue = blender::bke::nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
+    hue = blender::bke::nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
   }
   if (saturation == nullptr) {
     saturation = blender::bke::nodeAddStaticSocket(
         ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Saturation", "Saturation");
   }
   if (value == nullptr) {
-    value = blender::bke::nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
+    value = blender::bke::nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
   }
 
   ((bNodeSocketValueFloat *)hue->default_value)->value = nhs->hue;

@@ -75,12 +75,12 @@ static void modify_subtype_except_for_storage(bNodeSocket &socket, int new_subty
 bNodeSocket &Float::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_FLOAT,
-                                             this->subtype,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_FLOAT,
+                                                  this->subtype,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
   this->set_common_flags(socket);
   bNodeSocketValueFloat &value = *(bNodeSocketValueFloat *)socket.default_value;
   value.min = this->soft_min_value;
@@ -147,12 +147,12 @@ bNodeSocket &Float::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &
 bNodeSocket &Int::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_INT,
-                                             this->subtype,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_INT,
+                                                  this->subtype,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
   this->set_common_flags(socket);
   bNodeSocketValueInt &value = *(bNodeSocketValueInt *)socket.default_value;
   value.min = this->soft_min_value;
@@ -216,12 +216,12 @@ bNodeSocket &Int::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &so
 bNodeSocket &Vector::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_VECTOR,
-                                             this->subtype,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_VECTOR,
+                                                  this->subtype,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
   this->set_common_flags(socket);
   bNodeSocketValueVector &value = *(bNodeSocketValueVector *)socket.default_value;
   copy_v3_v3(value.value, this->default_value);
@@ -289,12 +289,12 @@ bNodeSocket &Vector::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
 bNodeSocket &Bool::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_BOOLEAN,
-                                             PROP_NONE,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_BOOLEAN,
+                                                  PROP_NONE,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
   this->set_common_flags(socket);
   bNodeSocketValueBoolean &value = *(bNodeSocketValueBoolean *)socket.default_value;
   value.value = this->default_value;
@@ -339,12 +339,12 @@ bNodeSocket &Bool::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &s
 bNodeSocket &Color::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_RGBA,
-                                             PROP_NONE,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_RGBA,
+                                                  PROP_NONE,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
   this->set_common_flags(socket);
   bNodeSocketValueRGBA &value = *(bNodeSocketValueRGBA *)socket.default_value;
   copy_v4_v4(value.value, this->default_value);
@@ -388,12 +388,12 @@ bNodeSocket &Color::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &
 bNodeSocket &Rotation::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_ROTATION,
-                                             PROP_NONE,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_ROTATION,
+                                                  PROP_NONE,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
   this->set_common_flags(socket);
   bNodeSocketValueRotation &value = *static_cast<bNodeSocketValueRotation *>(socket.default_value);
   copy_v3_v3(value.value_euler, float3(this->default_value));
@@ -441,12 +441,12 @@ bNodeSocket &Rotation::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocke
 bNodeSocket &Matrix::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_MATRIX,
-                                             PROP_NONE,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_MATRIX,
+                                                  PROP_NONE,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
   this->set_common_flags(socket);
   return socket;
 }
@@ -492,12 +492,12 @@ bNodeSocket &Matrix::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
 bNodeSocket &String::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_STRING,
-                                             PROP_NONE,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_STRING,
+                                                  PROP_NONE,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
   STRNCPY(((bNodeSocketValueString *)socket.default_value)->value, this->default_value.c_str());
   this->set_common_flags(socket);
   return socket;
@@ -538,12 +538,12 @@ bNodeSocket &String::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
 bNodeSocket &Menu::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddStaticSocket(&ntree,
-                                             &node,
-                                             this->in_out,
-                                             SOCK_MENU,
-                                             PROP_NONE,
-                                             this->identifier.c_str(),
-                                             this->name.c_str());
+                                                  &node,
+                                                  this->in_out,
+                                                  SOCK_MENU,
+                                                  PROP_NONE,
+                                                  this->identifier.c_str(),
+                                                  this->name.c_str());
 
   ((bNodeSocketValueMenu *)socket.default_value)->value = this->default_value;
   this->set_common_flags(socket);
@@ -634,11 +634,11 @@ bNodeSocket &IDSocketDeclaration::update_or_build(bNodeTree &ntree,
 bNodeSocket &Geometry::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddSocket(&ntree,
-                                       &node,
-                                       this->in_out,
-                                       "NodeSocketGeometry",
-                                       this->identifier.c_str(),
-                                       this->name.c_str());
+                                            &node,
+                                            this->in_out,
+                                            "NodeSocketGeometry",
+                                            this->identifier.c_str(),
+                                            this->name.c_str());
   this->set_common_flags(socket);
   return socket;
 }
@@ -708,11 +708,11 @@ GeometryBuilder &GeometryBuilder::only_instances(bool value)
 bNodeSocket &Shader::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddSocket(&ntree,
-                                       &node,
-                                       this->in_out,
-                                       "NodeSocketShader",
-                                       this->identifier.c_str(),
-                                       this->name.c_str());
+                                            &node,
+                                            this->in_out,
+                                            "NodeSocketShader",
+                                            this->identifier.c_str(),
+                                            this->name.c_str());
   this->set_common_flags(socket);
   return socket;
 }
@@ -750,11 +750,11 @@ bool Shader::can_connect(const bNodeSocket &socket) const
 bNodeSocket &Extend::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::nodeAddSocket(&ntree,
-                                       &node,
-                                       this->in_out,
-                                       "NodeSocketVirtual",
-                                       this->identifier.c_str(),
-                                       this->name.c_str());
+                                            &node,
+                                            this->in_out,
+                                            "NodeSocketVirtual",
+                                            this->identifier.c_str(),
+                                            this->name.c_str());
   return socket;
 }
 

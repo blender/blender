@@ -662,7 +662,8 @@ static void node_register()
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.get_extra_info = node_extra_info;
   ntype.register_operators = node_operators;
-  blender::bke::node_type_storage(&ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
+  blender::bke::node_type_storage(
+      &ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
   blender::bke::nodeRegisterType(&ntype);
 }
 NOD_REGISTER_NODE(node_register)

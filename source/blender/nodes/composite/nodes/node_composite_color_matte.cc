@@ -121,7 +121,8 @@ void register_node_type_cmp_color_matte()
   ntype.draw_buttons = file_ns::node_composit_buts_color_matte;
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc = file_ns::node_composit_init_color_matte;
-  blender::bke::node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+  blender::bke::node_type_storage(
+      &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   blender::bke::nodeRegisterType(&ntype);

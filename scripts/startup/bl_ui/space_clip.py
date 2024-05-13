@@ -1620,9 +1620,9 @@ class CLIP_MT_select_graph(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("clip.graph_select_all_markers", text="All").action="SELECT"
-        layout.operator("clip.graph_select_all_markers", text="None").action="DESELECT"
-        layout.operator("clip.graph_select_all_markers", text="Invert").action="INVERT"
+        layout.operator("clip.graph_select_all_markers", text="All").action = "SELECT"
+        layout.operator("clip.graph_select_all_markers", text="None").action = "DESELECT"
+        layout.operator("clip.graph_select_all_markers", text="Invert").action = "INVERT"
 
 
 class CLIP_MT_tracking_context_menu(Menu):

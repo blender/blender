@@ -19,7 +19,7 @@ struct bNodeTreeType;
 struct bNodeType;
 struct bNodeSocketType;
 struct RuntimeNodeEnumItems;
-}
+}  // namespace blender::bke
 
 /* Types */
 #define DEF_ENUM(id) extern const EnumPropertyItem id[];
@@ -48,15 +48,13 @@ extern const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[];
 /* API calls */
 int rna_node_tree_idname_to_enum(const char *idname);
 blender::bke::bNodeTreeType *rna_node_tree_type_from_enum(int value);
-const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
-                                                 bool (*poll)(void *data, blender::bke::bNodeTreeType *),
-                                                 bool *r_free);
+const EnumPropertyItem *rna_node_tree_type_itemf(
+    void *data, bool (*poll)(void *data, blender::bke::bNodeTreeType *), bool *r_free);
 
 int rna_node_socket_idname_to_enum(const char *idname);
 blender::bke::bNodeSocketType *rna_node_socket_type_from_enum(int value);
-const EnumPropertyItem *rna_node_socket_type_itemf(void *data,
-                                                   bool (*poll)(void *data, blender::bke::bNodeSocketType *),
-                                                   bool *r_free);
+const EnumPropertyItem *rna_node_socket_type_itemf(
+    void *data, bool (*poll)(void *data, blender::bke::bNodeSocketType *), bool *r_free);
 
 const EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C,
                                                        PointerRNA *ptr,

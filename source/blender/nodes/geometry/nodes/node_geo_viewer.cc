@@ -91,10 +91,10 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
       LISTBASE_FOREACH (bNodeSocket *, socket, &params.node.outputs) {
         if (socket->type == SOCK_GEOMETRY && socket->is_visible()) {
           bke::nodeAddLink(&params.node_tree,
-                      &params.node,
-                      socket,
-                      &node,
-                      static_cast<bNodeSocket *>(node.inputs.first));
+                           &params.node,
+                           socket,
+                           &node,
+                           static_cast<bNodeSocket *>(node.inputs.first));
         }
       }
 

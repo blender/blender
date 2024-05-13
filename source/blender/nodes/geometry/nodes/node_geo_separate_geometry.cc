@@ -113,9 +113,9 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_SEPARATE_GEOMETRY, "Separate Geometry", NODE_CLASS_GEOMETRY);
 
   blender::bke::node_type_storage(&ntype,
-                    "NodeGeometrySeparateGeometry",
-                    node_free_standard_storage,
-                    node_copy_standard_storage);
+                                  "NodeGeometrySeparateGeometry",
+                                  node_free_standard_storage,
+                                  node_copy_standard_storage);
 
   ntype.initfunc = node_init;
 

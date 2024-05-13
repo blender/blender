@@ -107,7 +107,8 @@ static void material_copy_data(Main *bmain,
 
   if (material_src->nodetree != nullptr) {
     if (is_localized) {
-      material_dst->nodetree = blender::bke::ntreeLocalize(material_src->nodetree, &material_dst->id);
+      material_dst->nodetree = blender::bke::ntreeLocalize(material_src->nodetree,
+                                                           &material_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
@@ -1995,10 +1996,10 @@ static void material_default_surface_init(Material *ma)
   bNode *output = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
   blender::bke::nodeAddLink(ntree,
-              principled,
-              blender::bke::nodeFindSocket(principled, SOCK_OUT, "BSDF"),
-              output,
-              blender::bke::nodeFindSocket(output, SOCK_IN, "Surface"));
+                            principled,
+                            blender::bke::nodeFindSocket(principled, SOCK_OUT, "BSDF"),
+                            output,
+                            blender::bke::nodeFindSocket(output, SOCK_IN, "Surface"));
 
   principled->locx = 10.0f;
   principled->locy = 300.0f;
@@ -2020,10 +2021,10 @@ static void material_default_volume_init(Material *ma)
   bNode *output = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
   blender::bke::nodeAddLink(ntree,
-              principled,
-              blender::bke::nodeFindSocket(principled, SOCK_OUT, "Volume"),
-              output,
-              blender::bke::nodeFindSocket(output, SOCK_IN, "Volume"));
+                            principled,
+                            blender::bke::nodeFindSocket(principled, SOCK_OUT, "Volume"),
+                            output,
+                            blender::bke::nodeFindSocket(output, SOCK_IN, "Volume"));
 
   principled->locx = 10.0f;
   principled->locy = 300.0f;
@@ -2045,10 +2046,10 @@ static void material_default_holdout_init(Material *ma)
   bNode *output = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
   blender::bke::nodeAddLink(ntree,
-              holdout,
-              blender::bke::nodeFindSocket(holdout, SOCK_OUT, "Holdout"),
-              output,
-              blender::bke::nodeFindSocket(output, SOCK_IN, "Surface"));
+                            holdout,
+                            blender::bke::nodeFindSocket(holdout, SOCK_OUT, "Holdout"),
+                            output,
+                            blender::bke::nodeFindSocket(output, SOCK_IN, "Surface"));
 
   holdout->locx = 10.0f;
   holdout->locy = 300.0f;

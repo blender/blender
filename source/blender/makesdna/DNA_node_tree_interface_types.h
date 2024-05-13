@@ -23,7 +23,7 @@
 namespace blender::bke {
 class bNodeTreeInterfaceRuntime;
 struct bNodeSocketType;
-}
+}  // namespace blender::bke
 using bNodeTreeInterfaceRuntimeHandle = blender::bke::bNodeTreeInterfaceRuntime;
 using bNodeSocketTypeHandle = blender::bke::bNodeSocketType;
 #else

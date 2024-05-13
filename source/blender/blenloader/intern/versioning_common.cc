@@ -283,7 +283,8 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
       bNodeSocket *old_socket = link->tosock;
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
-          bNodeSocket *new_socket = blender::bke::nodeFindSocket(&new_node, SOCK_IN, new_identifier->c_str());
+          bNodeSocket *new_socket = blender::bke::nodeFindSocket(
+              &new_node, SOCK_IN, new_identifier->c_str());
           link->tonode = &new_node;
           link->tosock = new_socket;
           old_socket->link = nullptr;
@@ -294,7 +295,8 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
       bNodeSocket *old_socket = link->fromsock;
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
-          bNodeSocket *new_socket = blender::bke::nodeFindSocket(&new_node, SOCK_OUT, new_identifier->c_str());
+          bNodeSocket *new_socket = blender::bke::nodeFindSocket(
+              &new_node, SOCK_OUT, new_identifier->c_str());
           link->fromnode = &new_node;
           link->fromsock = new_socket;
           old_socket->link = nullptr;
@@ -327,15 +329,16 @@ void add_realize_instances_before_socket(bNodeTree *ntree,
       return;
     }
 
-    bNode *realize_node = blender::bke::nodeAddStaticNode(nullptr, ntree, GEO_NODE_REALIZE_INSTANCES);
+    bNode *realize_node = blender::bke::nodeAddStaticNode(
+        nullptr, ntree, GEO_NODE_REALIZE_INSTANCES);
     realize_node->parent = node->parent;
     realize_node->locx = node->locx - 100;
     realize_node->locy = node->locy;
     blender::bke::nodeAddLink(ntree,
-                link->fromnode,
-                link->fromsock,
-                realize_node,
-                static_cast<bNodeSocket *>(realize_node->inputs.first));
+                              link->fromnode,
+                              link->fromsock,
+                              realize_node,
+                              static_cast<bNodeSocket *>(realize_node->inputs.first));
     link->fromnode = realize_node;
     link->fromsock = static_cast<bNodeSocket *>(realize_node->outputs.first);
   }

@@ -109,7 +109,8 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
   path->nodetree = ntree;
   if (gnode) {
     if (prev_path) {
-      path->parent_key = blender::bke::BKE_node_instance_key(prev_path->parent_key, prev_path->nodetree, gnode);
+      path->parent_key = blender::bke::BKE_node_instance_key(
+          prev_path->parent_key, prev_path->nodetree, gnode);
     }
     else {
       path->parent_key = blender::bke::NODE_INSTANCE_KEY_BASE;
@@ -356,8 +357,8 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
     if (tree_zones == nullptr) {
       return false;
     }
-    const Vector<const blender::bke::bNodeTreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
-        group_node->identifier);
+    const Vector<const blender::bke::bNodeTreeZone *> zone_stack =
+        tree_zones->get_zone_stack_for_node(group_node->identifier);
     for (const blender::bke::bNodeTreeZone *zone : zone_stack) {
       switch (zone->output_node->type) {
         case GEO_NODE_SIMULATION_OUTPUT: {

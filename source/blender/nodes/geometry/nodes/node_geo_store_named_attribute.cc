@@ -207,9 +207,9 @@ static void node_register()
   geo_node_type_base(
       &ntype, GEO_NODE_STORE_NAMED_ATTRIBUTE, "Store Named Attribute", NODE_CLASS_ATTRIBUTE);
   blender::bke::node_type_storage(&ntype,
-                    "NodeGeometryStoreNamedAttribute",
-                    node_free_standard_storage,
-                    node_copy_standard_storage);
+                                  "NodeGeometryStoreNamedAttribute",
+                                  node_free_standard_storage,
+                                  node_copy_standard_storage);
   blender::bke::node_type_size(&ntype, 140, 100, 700);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;

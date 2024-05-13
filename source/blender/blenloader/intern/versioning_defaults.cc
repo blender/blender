@@ -693,7 +693,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           *version_cycles_node_socket_float_value(roughness_socket) = 0.5f;
           bNodeSocket *emission = blender::bke::nodeFindSocket(node, SOCK_IN, "Emission Color");
           copy_v4_fl(version_cycles_node_socket_rgba_value(emission), 1.0f);
-          bNodeSocket *emission_strength = blender::bke::nodeFindSocket(node, SOCK_IN, "Emission Strength");
+          bNodeSocket *emission_strength = blender::bke::nodeFindSocket(
+              node, SOCK_IN, "Emission Strength");
           *version_cycles_node_socket_float_value(emission_strength) = 0.0f;
 
           node->custom1 = SHD_GLOSSY_MULTI_GGX;

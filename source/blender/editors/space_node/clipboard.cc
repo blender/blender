@@ -440,10 +440,10 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     const bNode *tonode = link.tonode;
     if (node_map.lookup_key_ptr(fromnode) && node_map.lookup_key_ptr(tonode)) {
       bNodeLink *new_link = bke::nodeAddLink(&tree,
-                                        node_map.lookup(fromnode),
-                                        socket_map.lookup(link.fromsock),
-                                        node_map.lookup(tonode),
-                                        socket_map.lookup(link.tosock));
+                                             node_map.lookup(fromnode),
+                                             socket_map.lookup(link.fromsock),
+                                             node_map.lookup(tonode),
+                                             socket_map.lookup(link.tosock));
       new_link->multi_input_sort_id = link.multi_input_sort_id;
     }
   }

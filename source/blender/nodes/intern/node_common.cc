@@ -151,8 +151,8 @@ std::string node_group_ui_description(const bNode &node)
 }
 
 bool blender::bke::nodeGroupPoll(const bNodeTree *nodetree,
-                   const bNodeTree *grouptree,
-                   const char **r_disabled_hint)
+                                 const bNodeTree *grouptree,
+                                 const char **r_disabled_hint)
 {
   /* unspecified node group, generally allowed
    * (if anything, should be avoided on operator level)
@@ -248,7 +248,8 @@ static SocketDeclarationPtr declaration_for_interface_socket(
 {
   SocketDeclarationPtr dst;
 
-  blender::bke::bNodeSocketType *base_typeinfo = blender::bke::nodeSocketTypeFind(io_socket.socket_type);
+  blender::bke::bNodeSocketType *base_typeinfo = blender::bke::nodeSocketTypeFind(
+      io_socket.socket_type);
   if (base_typeinfo == nullptr) {
     return dst;
   }
@@ -551,7 +552,8 @@ void register_node_type_frame()
 
   blender::bke::node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
   ntype->initfunc = node_frame_init;
-  blender::bke::node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
+  blender::bke::node_type_storage(
+      ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
   blender::bke::node_type_size(ntype, 150, 100, 0);
   ntype->flag |= NODE_BACKGROUND;
 
@@ -570,7 +572,8 @@ static void node_reroute_init(bNodeTree *ntree, bNode *node)
    * on each file read via the template verification procedure.
    */
   blender::bke::nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "Input", "Input");
-  blender::bke::nodeAddStaticSocket(ntree, node, SOCK_OUT, SOCK_RGBA, PROP_NONE, "Output", "Output");
+  blender::bke::nodeAddStaticSocket(
+      ntree, node, SOCK_OUT, SOCK_RGBA, PROP_NONE, "Output", "Output");
 }
 
 void register_node_type_reroute()

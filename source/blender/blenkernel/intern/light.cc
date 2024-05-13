@@ -142,7 +142,8 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
         temp_embedded_id_buffer, &la->nodetree->id, BLO_write_is_undo(writer));
     BLO_write_struct_at_address(
         writer, bNodeTree, la->nodetree, BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
-    blender::bke::ntreeBlendWrite(writer, (bNodeTree *)BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    blender::bke::ntreeBlendWrite(
+        writer, (bNodeTree *)BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
     BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 

@@ -90,15 +90,15 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
   ED_node_tree_propagate_change(&C, bmain, nmd.node_group);
 
   bke::nodeAddLink(ntree,
-              group_input,
-              static_cast<bNodeSocket *>(group_input->outputs.first),
-              deform_node,
-              bke::nodeFindSocket(deform_node, SOCK_IN, "Curves"));
+                   group_input,
+                   static_cast<bNodeSocket *>(group_input->outputs.first),
+                   deform_node,
+                   bke::nodeFindSocket(deform_node, SOCK_IN, "Curves"));
   bke::nodeAddLink(ntree,
-              deform_node,
-              bke::nodeFindSocket(deform_node, SOCK_OUT, "Curves"),
-              group_output,
-              static_cast<bNodeSocket *>(group_output->inputs.first));
+                   deform_node,
+                   bke::nodeFindSocket(deform_node, SOCK_OUT, "Curves"),
+                   group_output,
+                   static_cast<bNodeSocket *>(group_output->inputs.first));
 
   group_input->locx = -200;
   group_output->locx = 200;
