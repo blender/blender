@@ -2861,7 +2861,7 @@ static bool grease_pencil_snap_compute_centroid(const Scene &scene,
   return true;
 }
 
-static int grease_pencil_snap_cursor_to_sel_exec(bContext *C, wmOperator *op)
+static int grease_pencil_snap_cursor_to_sel_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene &scene = *CTX_data_scene(C);
   const Object &object = *CTX_data_active_object(C);
