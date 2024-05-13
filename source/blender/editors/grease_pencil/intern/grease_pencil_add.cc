@@ -1199,8 +1199,8 @@ void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const in
   add_material_from_template(bmain, object, gp_fill_material_grey);
   object.actcol = material_index + 1;
 
-  Layer &layer_lines = grease_pencil.add_layer(DATA_("Lines"));
   Layer &layer_color = grease_pencil.add_layer(DATA_("Color"));
+  Layer &layer_lines = grease_pencil.add_layer(DATA_("Lines"));
   grease_pencil.set_active_layer(&layer_lines);
 
   /* Note: We assume that this keyframe insertion can't fail. */
