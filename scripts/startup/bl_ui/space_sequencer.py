@@ -550,17 +550,6 @@ class SEQUENCER_MT_select_channel(Menu):
         layout.operator("sequencer.select_side", text="Both Sides").side = 'BOTH'
 
 
-class SEQUENCER_MT_select_linked(Menu):
-    bl_label = "Select Linked"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("sequencer.select_linked", text="All")
-        layout.operator("sequencer.select_less", text="Less")
-        layout.operator("sequencer.select_more", text="More")
-
-
 class SEQUENCER_MT_select(Menu):
     bl_label = "Select"
 
@@ -586,15 +575,20 @@ class SEQUENCER_MT_select(Menu):
         col.separator()
 
         if has_sequencer:
+            col.operator("sequencer.select_more", text="More")
+            col.operator("sequencer.select_less", text="Less")
+            col.separator()
+
+        col.operator_menu_enum("sequencer.select_grouped", "type", text="Select Grouped")
+        col.enabled = not is_retiming
+        if has_sequencer:
+            col.operator("sequencer.select_linked", text="Select Linked")
+            col.separator()
+
+        if has_sequencer:
             col.operator_menu_enum("sequencer.select_side_of_frame", "side", text="Side of Frame...")
             col.menu("SEQUENCER_MT_select_handle", text="Handle")
             col.menu("SEQUENCER_MT_select_channel", text="Channel")
-            col.menu("SEQUENCER_MT_select_linked", text="Linked")
-
-            col.separator()
-
-        col.operator_menu_enum("sequencer.select_grouped", "type", text="Grouped")
-        col.enabled = not is_retiming
 
 
 class SEQUENCER_MT_marker(Menu):
@@ -2857,7 +2851,6 @@ classes = (
     SEQUENCER_MT_proxy,
     SEQUENCER_MT_select_handle,
     SEQUENCER_MT_select_channel,
-    SEQUENCER_MT_select_linked,
     SEQUENCER_MT_select,
     SEQUENCER_MT_marker,
     SEQUENCER_MT_navigation,

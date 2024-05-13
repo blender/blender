@@ -310,25 +310,29 @@ class NODE_MT_select(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("node.select_all", text="All").action = 'SELECT'
+        layout.operator("node.select_all", text="None").action = 'DESELECT'
+        layout.operator("node.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()
+
         layout.operator("node.select_box").tweak = False
         layout.operator("node.select_circle")
         layout.operator_menu_enum("node.select_lasso", "mode")
 
         layout.separator()
-        layout.operator("node.select_all").action = 'TOGGLE'
-        layout.operator("node.select_all", text="Invert").action = 'INVERT'
-        layout.operator("node.select_linked_from")
-        layout.operator("node.select_linked_to")
+        layout.operator("node.select_linked_from", text="Linked from")
+        layout.operator("node.select_linked_to", text="Linked to")
 
         layout.separator()
 
-        layout.operator("node.select_grouped").extend = False
+        layout.operator_menu_enum("node.select_grouped", "type", text="Select Grouped")
         layout.operator("node.select_same_type_step", text="Activate Same Type Previous").prev = True
         layout.operator("node.select_same_type_step", text="Activate Same Type Next").prev = False
 
         layout.separator()
 
-        layout.operator("node.find_node")
+        layout.operator("node.find_node", text="Find Node...")
 
 
 class NODE_MT_node(Menu):

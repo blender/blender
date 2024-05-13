@@ -304,6 +304,8 @@ class CLIP_MT_tracking_editor_menus(Menu):
                 layout.menu("CLIP_MT_reconstruction")
             else:
                 layout.menu("CLIP_MT_clip")
+        elif sc.view == 'GRAPH':
+            layout.menu("CLIP_MT_select_graph")
 
 
 class CLIP_MT_masking_editor_menus(Menu):
@@ -1592,21 +1594,35 @@ class CLIP_MT_select(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("clip.select_all", text="All").action = 'SELECT'
+        layout.operator("clip.select_all", text="None").action = 'DESELECT'
+        layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
+
+        layout.separator()
+
         layout.operator("clip.select_box")
         layout.operator("clip.select_circle")
         layout.operator_menu_enum("clip.select_lasso", "mode")
 
         layout.separator()
 
-        layout.operator("clip.select_all").action = 'TOGGLE'
-        layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
-
         layout.menu("CLIP_MT_select_grouped")
 
         layout.separator()
 
-        layout.operator("clip.stabilize_2d_select")
-        layout.operator("clip.stabilize_2d_rotation_select")
+        layout.operator("clip.stabilize_2d_select", text="Stabilization Tracks")
+        layout.operator("clip.stabilize_2d_rotation_select", text="Stabilization Rotation Tracks")
+
+
+class CLIP_MT_select_graph(Menu):
+    bl_label = "Select"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("clip.graph_select_all_markers", text="All").action="SELECT"
+        layout.operator("clip.graph_select_all_markers", text="None").action="DESELECT"
+        layout.operator("clip.graph_select_all_markers", text="Invert").action="INVERT"
 
 
 class CLIP_MT_tracking_context_menu(Menu):
@@ -1995,6 +2011,7 @@ classes = (
     CLIP_MT_track_visibility,
     CLIP_MT_track_cleanup,
     CLIP_MT_select,
+    CLIP_MT_select_graph,
     CLIP_MT_select_grouped,
     CLIP_MT_tracking_context_menu,
     CLIP_MT_plane_track_image_context_menu,
