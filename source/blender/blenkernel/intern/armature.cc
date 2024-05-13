@@ -3090,29 +3090,31 @@ void BKE_pchan_minmax(const Object *ob,
 
 bool BKE_pose_minmax(const Object *ob, float r_min[3], float r_max[3], bool use_select)
 {
-  bool changed = false;
-
-  if (ob->pose) {
-    const bArmature *arm = static_cast<const bArmature *>(ob->data);
-
-    LISTBASE_FOREACH (const bPoseChannel *, pchan, &ob->pose->chanbase) {
-      /* XXX pchan->bone may be nullptr for duplicated bones, see duplicateEditBoneObjects()
-       * comment (editarmature.c:2592)... Skip in this case too! */
-      if (!pchan->bone) {
-        continue;
-      }
-      if (!PBONE_VISIBLE(arm, pchan->bone)) {
-        continue;
-      }
-      if (use_select && !(pchan->bone->flag & BONE_SELECTED)) {
-        continue;
-      }
-      BKE_pchan_minmax(ob, pchan, false, r_min, r_max);
-      changed = true;
-    }
+  if (!ob->pose) {
+    return false;
   }
 
-  return changed;
+  BLI_assert(ob->type == OB_ARMATURE);
+  const bArmature *arm = static_cast<const bArmature *>(ob->data);
+
+  bool found_pchan = false;
+  LISTBASE_FOREACH (const bPoseChannel *, pchan, &ob->pose->chanbase) {
+    /* XXX pchan->bone may be nullptr for duplicated bones, see duplicateEditBoneObjects()
+     * comment (editarmature.c:2592)... Skip in this case too! */
+    if (!pchan->bone) {
+      continue;
+    }
+    if (!PBONE_VISIBLE(arm, pchan->bone)) {
+      continue;
+    }
+    if (use_select && !(pchan->bone->flag & BONE_SELECTED)) {
+      continue;
+    }
+    BKE_pchan_minmax(ob, pchan, false, r_min, r_max);
+    found_pchan = true;
+  }
+
+  return found_pchan;
 }
 
 /** \} */
