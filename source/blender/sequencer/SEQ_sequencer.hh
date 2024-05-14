@@ -25,8 +25,8 @@ struct SequencerToolSettings;
 enum {
   SEQ_SIDE_MOUSE = -1,
   SEQ_SIDE_NONE = 0,
-  SEQ_SIDE_LEFT = (1 << 1),  /* Same as SEQ_LEFTSEL. */
-  SEQ_SIDE_RIGHT = (1 << 2), /* Same as SEQ_RIGHTSEL. */
+  SEQ_SIDE_LEFT,
+  SEQ_SIDE_RIGHT,
   SEQ_SIDE_BOTH,
   SEQ_SIDE_NO_CHANGE,
 };

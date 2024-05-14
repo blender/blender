@@ -293,7 +293,10 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
   return nullptr;
 }
 
-Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, const int mval[2], int *r_hand)
+Sequence *find_nearest_seq(const Scene *scene,
+                           const View2D *v2d,
+                           const int mval[2],
+                           eSeqHandle *r_hand)
 {
   Sequence *seq;
   Editing *ed = SEQ_editing_get(scene);
@@ -301,7 +304,7 @@ Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, const int mval
   float pixelx;
   float handsize;
   float displen;
-  *r_hand = SEQ_SIDE_NONE;
+  *r_hand = SEQ_HANDLE_NONE;
 
   if (ed == nullptr) {
     return nullptr;
@@ -346,10 +349,10 @@ Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, const int mval
             }
 
             if (handsize + SEQ_time_left_handle_frame_get(scene, seq) >= x) {
-              *r_hand = SEQ_SIDE_LEFT;
+              *r_hand = SEQ_HANDLE_LEFT;
             }
             else if (-handsize + SEQ_time_right_handle_frame_get(scene, seq) <= x) {
-              *r_hand = SEQ_SIDE_RIGHT;
+              *r_hand = SEQ_HANDLE_RIGHT;
             }
           }
         }
@@ -619,11 +622,11 @@ static void sequencer_select_side_of_frame(const bContext *C,
 
 static void sequencer_select_linked_handle(const bContext *C,
                                            Sequence *seq,
-                                           const int handle_clicked)
+                                           const eSeqHandle handle_clicked)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
-  if (!ELEM(handle_clicked, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
+  if (!ELEM(handle_clicked, SEQ_HANDLE_LEFT, SEQ_HANDLE_RIGHT)) {
     /* First click selects the strip and its adjacent handles (if valid).
      * Second click selects the strip,
      * both of its handles and its adjacent handles (if valid). */
@@ -640,7 +643,14 @@ static void sequencer_select_linked_handle(const bContext *C,
      * Second click selects all strips in that direction.
      * If there are no adjacent strips, it just selects all in that direction.
      */
-    int sel_side = handle_clicked;
+    int sel_side;
+    if (handle_clicked == SEQ_HANDLE_LEFT) {
+      sel_side = SEQ_SIDE_LEFT;
+    }
+    else if (handle_clicked == SEQ_HANDLE_RIGHT) {
+      sel_side = SEQ_SIDE_RIGHT;
+    }
+
     Sequence *neighbor = find_neighboring_sequence(scene, seq, sel_side, -1);
     if (neighbor) {
       switch (sel_side) {
@@ -823,18 +833,21 @@ static Sequence *seq_select_seq_from_preview(
   return seq_select;
 }
 
-static bool element_already_selected(const Sequence *seq, const int handle_clicked)
+bool ED_sequencer_handle_is_selected(const Sequence *seq, eSeqHandle handle)
 {
-  const bool handle_already_selected = ((handle_clicked == SEQ_SIDE_LEFT) &&
-                                        (seq->flag & SEQ_LEFTSEL)) ||
-                                       ((handle_clicked == SEQ_SIDE_RIGHT) &&
-                                        (seq->flag & SEQ_RIGHTSEL));
-  return ((seq->flag & SELECT) && handle_clicked == SEQ_SIDE_NONE) || handle_already_selected;
+  return ((handle == SEQ_HANDLE_LEFT) && (seq->flag & SEQ_LEFTSEL)) ||
+         ((handle == SEQ_HANDLE_RIGHT) && (seq->flag & SEQ_RIGHTSEL));
+}
+
+static bool element_already_selected(const Sequence *seq, const eSeqHandle handle_clicked)
+{
+  return ((seq->flag & SELECT) && handle_clicked == SEQ_HANDLE_NONE) ||
+         ED_sequencer_handle_is_selected(seq, handle_clicked);
 }
 
 static void sequencer_select_strip_impl(const Editing *ed,
                                         Sequence *seq,
-                                        const int handle_clicked,
+                                        const eSeqHandle handle_clicked,
                                         const bool extend,
                                         const bool deselect,
                                         const bool toggle)
@@ -842,14 +855,12 @@ static void sequencer_select_strip_impl(const Editing *ed,
   const bool is_active = (ed->act_seq == seq);
 
   /* Exception for active strip handles. */
-  if ((handle_clicked != SEQ_SIDE_NONE) && (seq->flag & SELECT) && is_active && toggle) {
-    switch (handle_clicked) {
-      case SEQ_SIDE_LEFT:
-        seq->flag ^= SEQ_LEFTSEL;
-        break;
-      case SEQ_SIDE_RIGHT:
-        seq->flag ^= SEQ_RIGHTSEL;
-        break;
+  if ((handle_clicked != SEQ_HANDLE_NONE) && (seq->flag & SELECT) && is_active && toggle) {
+    if (handle_clicked == SEQ_HANDLE_LEFT) {
+      seq->flag ^= SEQ_LEFTSEL;
+    }
+    else if (handle_clicked == SEQ_HANDLE_RIGHT) {
+      seq->flag ^= SEQ_RIGHTSEL;
     }
     return;
   }
@@ -874,10 +885,10 @@ static void sequencer_select_strip_impl(const Editing *ed,
 
   if (action == 1) {
     seq->flag |= SELECT;
-    if (handle_clicked == SEQ_SIDE_LEFT) {
+    if (handle_clicked == SEQ_HANDLE_LEFT) {
       seq->flag |= SEQ_LEFTSEL;
     }
-    if (handle_clicked == SEQ_SIDE_RIGHT) {
+    if (handle_clicked == SEQ_HANDLE_RIGHT) {
       seq->flag |= SEQ_RIGHTSEL;
     }
   }
@@ -935,7 +946,7 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
-  int handle_clicked = SEQ_SIDE_NONE;
+  eSeqHandle handle_clicked = SEQ_HANDLE_NONE;
   Sequence *seq = nullptr;
   if (region->regiontype == RGN_TYPE_PREVIEW) {
     seq = seq_select_seq_from_preview(C, mval, toggle, extend, center);
@@ -1264,7 +1275,8 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, cons
   bool extend = RNA_boolean_get(op->ptr, "extend");
 
   Sequence *mouse_seq;
-  int selected, hand;
+  eSeqHandle hand;
+  int selected;
 
   /* This works like UV, not mesh. */
   mouse_seq = find_nearest_seq(scene, v2d, event->mval, &hand);
@@ -1774,7 +1786,7 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
   if (tweak) {
-    int hand_dummy;
+    eSeqHandle hand_dummy;
     int mval[2];
     WM_event_drag_start_mval(event, region, mval);
     Sequence *seq = find_nearest_seq(scene, v2d, mval, &hand_dummy);
