@@ -76,8 +76,11 @@ class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
                       Data &data,
                       VKBoundPipelines &r_bound_pipelines) override
   {
-    vk_pipeline_data_build_commands(
-        command_buffer, data.pipeline_data, r_bound_pipelines, VK_PIPELINE_BIND_POINT_COMPUTE);
+    vk_pipeline_data_build_commands(command_buffer,
+                                    data.pipeline_data,
+                                    r_bound_pipelines,
+                                    VK_PIPELINE_BIND_POINT_COMPUTE,
+                                    VK_SHADER_STAGE_COMPUTE_BIT);
     command_buffer.dispatch(data.group_count_x, data.group_count_y, data.group_count_z);
   }
 };

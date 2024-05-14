@@ -25,7 +25,8 @@ void vk_pipeline_data_copy(VKPipelineData &dst, const VKPipelineData &src)
 void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
                                      const VKPipelineData &pipeline_data,
                                      VKBoundPipelines &r_bound_pipelines,
-                                     VkPipelineBindPoint vk_pipeline_bind_point)
+                                     VkPipelineBindPoint vk_pipeline_bind_point,
+                                     VkShaderStageFlags vk_shader_stage_flags)
 {
   if (assign_if_different(r_bound_pipelines.compute.vk_pipeline, pipeline_data.vk_pipeline)) {
     command_buffer.bind_pipeline(vk_pipeline_bind_point, r_bound_pipelines.compute.vk_pipeline);
@@ -45,7 +46,7 @@ void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
 
   if (pipeline_data.push_constants_size) {
     command_buffer.push_constants(pipeline_data.vk_pipeline_layout,
-                                  vk_pipeline_bind_point,
+                                  vk_shader_stage_flags,
                                   0,
                                   pipeline_data.push_constants_size,
                                   pipeline_data.push_constants_data);

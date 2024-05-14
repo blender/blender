@@ -60,12 +60,14 @@ void vk_pipeline_data_copy(VKPipelineData &dst, const VKPipelineData &src);
  * r_bound_pipelines are checked to identify if they are the last bound. Descriptor set and
  * pipeline are bound at the given pipeline bind point.
  *
- * Any available push constants in the pipeline data are always bound.
+ * Any available push constants in the pipeline data always update the shader stages provided by
+ * `vk_shader_stage_flags`.
  */
 void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
                                      const VKPipelineData &pipeline_data,
                                      VKBoundPipelines &r_bound_pipelines,
-                                     VkPipelineBindPoint vk_pipeline_bind_point);
+                                     VkPipelineBindPoint vk_pipeline_bind_point,
+                                     VkShaderStageFlags vk_shader_stage_flags);
 
 /**
  * Free localized data created by `vk_pipeline_data_copy`.

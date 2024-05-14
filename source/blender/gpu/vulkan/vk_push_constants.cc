@@ -147,7 +147,6 @@ VKPushConstants &VKPushConstants::operator=(VKPushConstants &&other)
 void VKPushConstants::update(VKContext &context)
 {
   VKShader *shader = static_cast<VKShader *>(context.shader);
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
   VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
 
   switch (layout_get().storage_type_get()) {
@@ -155,10 +154,14 @@ void VKPushConstants::update(VKContext &context)
       break;
 
     case VKPushConstants::StorageType::PUSH_CONSTANTS:
-      command_buffers.push_constants(*this,
-                                     shader->vk_pipeline_layout_get(),
-                                     shader->is_graphics_shader() ? VK_SHADER_STAGE_ALL_GRAPHICS :
-                                                                    VK_SHADER_STAGE_COMPUTE_BIT);
+      if (!use_render_graph) {
+        VKCommandBuffers &command_buffers = context.command_buffers_get();
+        command_buffers.push_constants(*this,
+                                       shader->vk_pipeline_layout_get(),
+                                       shader->is_graphics_shader() ?
+                                           VK_SHADER_STAGE_ALL_GRAPHICS :
+                                           VK_SHADER_STAGE_COMPUTE_BIT);
+      }
       break;
 
     case VKPushConstants::StorageType::UNIFORM_BUFFER:
