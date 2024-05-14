@@ -995,7 +995,7 @@ static void recalcData_actedit(TransInfo *t)
       ANIM_animdata_freelist(&anim_data);
     }
 
-    if (ac.datatype == ANIMCONT_GPENCIL) {
+    {
       filter = ANIMFILTER_DATA_VISIBLE;
       ANIM_animdata_filter(
           &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
@@ -1197,7 +1197,15 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
           }
           break;
         }
-
+        case ALE_GREASE_PENCIL_CEL: {
+          GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
+          grease_pencil_layer_apply_trans_data(
+              *grease_pencil,
+              *static_cast<blender::bke::greasepencil::Layer *>(ale->data),
+              canceled,
+              duplicate);
+          break;
+        }
         default:
           BLI_assert_msg(false, "Keys cannot be transformed into this animation type.");
       }

@@ -340,6 +340,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
     switch (ale->datatype) {
       case ALE_MASKLAY:
       case ALE_GPFRAME:
+      case ALE_GREASE_PENCIL_CEL:
         break;
 
       case ALE_FCURVE:
