@@ -781,6 +781,11 @@ static PointerRNA rna_UserDef_filepaths_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_PreferencesFilePaths, ptr->data);
 }
 
+static PointerRNA rna_UserDef_extensions_get(PointerRNA *ptr)
+{
+  return rna_pointer_inherit_refine(ptr, &RNA_PreferencesExtensions, ptr->data);
+}
+
 static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 {
   return rna_pointer_inherit_refine(ptr, &RNA_PreferencesSystem, ptr->data);
@@ -6949,7 +6954,8 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
       "Automatically convert all new tabs into spaces for new and loaded text files");
 
   prop = RNA_def_property(srna, "use_extension_online_access_handled", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "extension_flag", USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "extension_flag", USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED);
   RNA_def_property_ui_text(
       prop,
       "Online Access",
@@ -7088,15 +7094,36 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Active Asset Library",
                            "Index of the asset library being edited in the Preferences UI");
+}
+
+static void rna_def_userdef_extensions(BlenderRNA *brna)
+{
+  PropertyRNA *prop;
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "PreferencesExtensions", nullptr);
+  RNA_def_struct_sdna(srna, "UserDef");
+  RNA_def_struct_nested(brna, srna, "Preferences");
+  RNA_def_struct_ui_text(srna, "Extensions", "Settings for extensions");
+
+  prop = RNA_def_property(srna, "use_online_access_handled", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "extension_flag", USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED);
+  RNA_def_property_ui_text(
+      prop,
+      "Online Access",
+      "The user has been shown the \"Online Access\" prompt and make a choice");
 
   rna_def_userdef_filepaths_extension_repo(brna);
 
-  prop = RNA_def_property(srna, "extension_repos", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "repos", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "extension_repos", nullptr);
   RNA_def_property_struct_type(prop, "UserExtensionRepo");
   RNA_def_property_ui_text(prop, "Extension Repositories", "");
   rna_def_userdef_extension_repos_collection(brna, prop);
 
-  prop = RNA_def_property(srna, "active_extension_repo", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "active_repo", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "active_extension_repo");
   RNA_def_property_ui_text(
       prop,
       "Active Extension Repository",
@@ -7410,6 +7437,12 @@ void RNA_def_userdef(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", nullptr, nullptr, nullptr);
   RNA_def_property_ui_text(prop, "File Paths", "Default paths for external files");
 
+  prop = RNA_def_property(srna, "extensions", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "PreferencesExtensions");
+  RNA_def_property_pointer_funcs(prop, "rna_UserDef_extensions_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Extensions", "Settings for extensions");
+
   prop = RNA_def_property(srna, "system", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "PreferencesSystem");
@@ -7478,6 +7511,7 @@ void RNA_def_userdef(BlenderRNA *brna)
   rna_def_userdef_input(brna);
   rna_def_userdef_keymap(brna);
   rna_def_userdef_filepaths(brna);
+  rna_def_userdef_extensions(brna);
   rna_def_userdef_system(brna);
   rna_def_userdef_addon(brna);
   rna_def_userdef_addon_pref(brna);

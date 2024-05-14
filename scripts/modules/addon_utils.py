@@ -66,7 +66,7 @@ def _paths_with_extension_repos():
     import os
     addon_paths = [(path, "") for path in paths()]
     if _preferences.experimental.use_extension_repos:
-        for repo in _preferences.filepaths.extension_repos:
+        for repo in _preferences.extensions.repos:
             if not repo.enabled:
                 continue
             dirpath = repo.directory
@@ -413,7 +413,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                 elif is_extension and module_name.startswith(ex.name + "."):
                     repo_id = module_name[len(_ext_base_pkg_idname_with_dot):].rpartition(".")[0]
                     repo = next(
-                        (repo for repo in _preferences.filepaths.extension_repos if repo.module == repo_id),
+                        (repo for repo in _preferences.extensions.repos if repo.module == repo_id),
                         None,
                     )
                     if repo is None:
@@ -766,7 +766,7 @@ def _initialize_ensure_extensions_addon():
 class _ext_global:
     __slots__ = ()
 
-    # Store a map of `preferences.filepaths.extension_repos` -> `module_id`.
+    # Store a map of `preferences.extensions.repos` -> `module_id`.
     # Only needed to detect renaming between `bpy.app.handlers.extension_repos_update_{pre & post}` events.
     #
     # The first dictionary is for enabled repositories, the second for disabled repositories
@@ -787,7 +787,7 @@ def _extension_preferences_idmap():
     repos_idmap = {}
     repos_idmap_disabled = {}
     if _preferences.experimental.use_extension_repos:
-        for repo in _preferences.filepaths.extension_repos:
+        for repo in _preferences.extensions.repos:
             if repo.enabled:
                 repos_idmap[repo.as_pointer()] = repo.module
             else:
@@ -798,7 +798,7 @@ def _extension_preferences_idmap():
 def _extension_dirpath_from_preferences():
     repos_dict = {}
     if _preferences.experimental.use_extension_repos:
-        for repo in _preferences.filepaths.extension_repos:
+        for repo in _preferences.extensions.repos:
             if not repo.enabled:
                 continue
             repos_dict[repo.module] = repo.directory
@@ -909,7 +909,7 @@ def _initialize_extension_repos_post_addons_prepare(
             addon.module = module_name_next
 
     if submodules_del:
-        repo_module_map = {repo.module: repo for repo in _preferences.filepaths.extension_repos}
+        repo_module_map = {repo.module: repo for repo in _preferences.extensions.repos}
         for module_id in submodules_del:
             repo_userdef = addon_userdef_info.get(module_id, {})
             repo_runtime = addon_runtime_info.get(module_id, {})
@@ -1003,7 +1003,7 @@ def _initialize_extension_repos_post(*_, is_first=False):
 
     # Detect rename modules & module directories.
     for module_id_next, dirpath_next in repos_info_next.items():
-        # Lookup never fails, as the "next" values use: `preferences.filepaths.extension_repos`.
+        # Lookup never fails, as the "next" values use: `preferences.extensions.repos`.
         repo_id = repos_idmap_next_reverse[module_id_next]
         # Lookup may fail if this is a newly added module.
         # Don't attempt to setup `submodules_add` though as it's possible
