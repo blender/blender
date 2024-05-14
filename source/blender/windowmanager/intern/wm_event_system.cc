@@ -137,6 +137,35 @@ static void wm_event_state_update_and_click_set_ex(wmEvent *event,
                                                    const bool check_double_click);
 
 /* -------------------------------------------------------------------- */
+/** \name Private Utiilities
+ * \{ */
+
+/**
+ * Return true if `region` exists in any screen.
+ * Note that `region` may be freed memory so it's contents should never be read.
+ */
+static bool screen_temp_region_exists(const ARegion *region)
+{
+  /* TODO(@ideasman42): this function would ideally not be needed.
+   * It avoids problems restoring the #bContext::wm::region_popup
+   * when it's not known if the popup was removed, however it would be better to
+   * resolve this by ensuring the contexts previous state never references stale data.
+   *
+   * This could be done using a context "stack" allowing freeing windowing data to clear
+   * references at all levels in the stack. */
+
+  Main *bmain = G_MAIN;
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    if (BLI_findindex(&screen->regionbase, region) != -1) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Event Management
  * \{ */
 
@@ -2203,6 +2232,12 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
         }
 
         handler->remove_fn(C, handler->user_data);
+
+        /* Currently we don't have a practical way to check if this region
+         * was a temporary region created by `handler`, so do a full lookup. */
+        if (region_popup_prev && !screen_temp_region_exists(region_popup_prev)) {
+          region_popup_prev = nullptr;
+        }
 
         CTX_wm_area_set(C, area_prev);
         CTX_wm_region_set(C, region_prev);
