@@ -197,6 +197,73 @@ static bool action_to_hide(const VisAction action)
   return action == VisAction::Hide;
 }
 
+/* Calculates whether a face should be hidden based on all of its corner vertices.*/
+static void calc_face_hide(const Span<int> node_faces,
+                           const OffsetIndices<int> faces,
+                           const Span<int> corner_verts,
+                           const Span<bool> hide_vert,
+                           MutableSpan<bool> hide_face)
+{
+  for (const int i : node_faces.index_range()) {
+    Span<int> face_verts = corner_verts.slice(faces[node_faces[i]]);
+    hide_face[i] = std::any_of(
+        face_verts.begin(), face_verts.end(), [&](const int v) { return hide_vert[v]; });
+  }
+}
+
+/* Updates a node's face's visibility based on the updated vertex visibility. */
+static void flush_face_changes_node(Mesh &mesh,
+                                    const Span<PBVHNode *> nodes,
+                                    const Span<bool> hide_vert)
+{
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+
+  const Span<int> tri_faces = mesh.corner_tri_faces();
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+
+  bke::SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".hide_poly", bke::AttrDomain::Face);
+
+  struct TLS {
+    Vector<int> face_indices;
+    Vector<bool> new_hide;
+  };
+  threading::EnumerableThreadSpecific<TLS> all_tls;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    TLS &tls = all_tls.local();
+    for (PBVHNode *node : nodes.slice(range)) {
+      const Span<int> node_faces = bke::pbvh::node_face_indices_calc_mesh(
+          tri_faces, *node, tls.face_indices);
+
+      tls.new_hide.reinitialize(node_faces.size());
+      array_utils::gather(hide_poly.span.as_span(), node_faces, tls.new_hide.as_mutable_span());
+
+      calc_face_hide(node_faces, faces, corner_verts, hide_vert, tls.new_hide.as_mutable_span());
+
+      if (array_utils::indexed_data_equal<bool>(hide_poly.span, node_faces, tls.new_hide)) {
+        continue;
+      }
+
+      array_utils::scatter(tls.new_hide.as_span(), node_faces, hide_poly.span);
+      BKE_pbvh_node_mark_update_visibility(node);
+      bke::pbvh::node_update_visibility_mesh(hide_vert, *node);
+    }
+  });
+  hide_poly.finish();
+}
+
+/* Updates all of a mesh's edge visibility based on vertex visibility. */
+static void flush_edge_changes(Mesh &mesh, const Span<bool> hide_vert)
+{
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+
+  bke::SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+      ".hide_edge", bke::AttrDomain::Edge);
+  bke::mesh_edge_hide_from_vert(mesh.edges(), hide_vert, hide_edge.span);
+  hide_edge.finish();
+}
+
 static void vert_hide_update(Object &object,
                              const Span<PBVHNode *> nodes,
                              const FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
@@ -223,15 +290,16 @@ static void vert_hide_update(Object &object,
       any_changed = true;
       undo::push_node(object, node, undo::Type::HideVert);
       array_utils::scatter(new_hide.as_span(), verts, hide_vert.span);
-
-      BKE_pbvh_node_mark_update_visibility(node);
-      bke::pbvh::node_update_visibility_mesh(hide_vert.span, *node);
     }
   });
 
   hide_vert.finish();
   if (any_changed) {
-    bke::mesh_hide_vert_flush(mesh);
+    /* We handle flushing ourselves at the node level instead of delegating to
+     * bke::mesh_hide_vert_flush because we need to tag node visibility changes as well in cases
+     * where the vertices hidden are on a node boundary.*/
+    flush_face_changes_node(mesh, nodes, hide_vert.span);
+    flush_edge_changes(mesh, hide_vert.span);
   }
 }
 
