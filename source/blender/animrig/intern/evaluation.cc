@@ -36,7 +36,7 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
                              bool flush_to_original);
 
 static EvaluationResult evaluate_animation(PointerRNA &animated_id_ptr,
-                                           Animation &animation,
+                                           Action &animation,
                                            const binding_handle_t binding_handle,
                                            const AnimationEvalContext &anim_eval_context)
 {
@@ -70,7 +70,7 @@ static EvaluationResult evaluate_animation(PointerRNA &animated_id_ptr,
 }
 
 void evaluate_and_apply_animation(PointerRNA &animated_id_ptr,
-                                  Animation &animation,
+                                  Action &animation,
                                   const binding_handle_t binding_handle,
                                   const AnimationEvalContext &anim_eval_context,
                                   const bool flush_to_original)

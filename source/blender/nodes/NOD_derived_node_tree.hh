@@ -46,7 +46,7 @@ class DTreeContext {
   const bNode *parent_node_;
   /* The current node tree. */
   const bNodeTree *btree_;
-  /* The instance key of the parent node. NODE_INSTANCE_KEY_BASE for root contexts. */
+  /* The instance key of the parent node. bke::NODE_INSTANCE_KEY_BASE for root contexts. */
   bNodeInstanceKey instance_key_;
   /* All the children contexts of this context. */
   Map<const bNode *, DTreeContext *> children_;

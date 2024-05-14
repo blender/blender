@@ -271,10 +271,8 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
 #endif
 
   /* Create popup block. */
-  uiPopupBlockHandle *handle;
-  handle = ui_popup_block_create(
-      C, butregion, but, nullptr, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER);
-  handle->can_refresh = true;
+  uiPopupBlockHandle *handle = ui_popup_block_create(
+      C, butregion, but, nullptr, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER, true);
 
   /* Add handlers. If attached to a button, the button will already
    * add a modal handler and pass on events. */
@@ -375,9 +373,6 @@ static void popover_keymap_fn(wmKeyMap * /*keymap*/, wmKeyMapItem * /*kmi*/, voi
 void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
 {
   wmWindow *window = CTX_wm_window(C);
-  /* Create popup block. No refresh support since the buttons were created
-   * between begin/end and we have no callback to recreate them. */
-  uiPopupBlockHandle *handle;
 
   if (keymap) {
     /* Add so we get keymaps shown in the buttons. */
@@ -387,13 +382,16 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
     WM_event_set_keymap_handler_post_callback(pup->keymap_handler, popover_keymap_fn, pup);
   }
 
-  handle = ui_popup_block_create(C,
-                                 pup->butregion,
-                                 pup->but,
-                                 nullptr,
-                                 ui_block_func_POPOVER,
-                                 pup,
-                                 ui_block_free_func_POPOVER);
+  /* Create popup block. No refresh support since the buttons were created
+   * between begin/end and we have no callback to recreate them. */
+  uiPopupBlockHandle *handle = ui_popup_block_create(C,
+                                                     pup->butregion,
+                                                     pup->but,
+                                                     nullptr,
+                                                     ui_block_func_POPOVER,
+                                                     pup,
+                                                     ui_block_free_func_POPOVER,
+                                                     false);
 
   /* Add handlers. */
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);

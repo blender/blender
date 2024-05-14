@@ -166,23 +166,21 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
         vos->yoffs -= short(height / 2.0f);
       }
 
+      const int font_id = BLF_default();
       if (vos->shadow) {
-        BLF_draw_default_shadowed(
-            float(vos->sco[0] + vos->xoffs),
-            float(vos->sco[1] + vos->yoffs),
-            2.0f,
-            (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
-            vos->str_len,
-            shadow_color);
+        BLF_enable(font_id, BLF_SHADOW);
+        BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
+        BLF_shadow_offset(font_id, 0, 0);
       }
       else {
-        BLF_draw_default(float(vos->sco[0] + vos->xoffs),
-                         float(vos->sco[1] + vos->yoffs),
-                         2.0f,
-                         (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) :
-                                                                   vos->str,
-                         vos->str_len);
+        BLF_disable(font_id, BLF_SHADOW);
       }
+      BLF_draw_default(float(vos->sco[0] + vos->xoffs),
+                       float(vos->sco[1] + vos->yoffs),
+                       2.0f,
+                       (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) :
+                                                                 vos->str,
+                       vos->str_len);
     }
   }
 

@@ -38,7 +38,7 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C, const int node_type
   if (!zones) {
     return PointerRNA_NULL;
   }
-  bNode *active_node = nodeGetActive(snode->edittree);
+  bNode *active_node = bke::nodeGetActive(snode->edittree);
   if (!active_node) {
     return PointerRNA_NULL;
   }

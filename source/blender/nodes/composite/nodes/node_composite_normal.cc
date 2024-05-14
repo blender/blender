@@ -72,11 +72,11 @@ void register_node_type_cmp_normal()
 {
   namespace file_ns = blender::nodes::node_composite_normal_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::cmp_node_normal_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

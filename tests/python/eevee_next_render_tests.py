@@ -60,6 +60,10 @@ def setup():
 
         # Only include the plane in probes
         for ob in scene.objects:
+            if ob.type == 'LIGHT':
+                # Set maximum resolution
+                ob.data.shadow_maximum_resolution = 0.0
+
             if ob.name != 'Plane' and ob.type != 'LIGHT':
                 ob.hide_probe_volume = True
                 ob.hide_probe_sphere = True

@@ -181,14 +181,26 @@ void VKDescriptorSetTracker::update(VKContext &context)
     if (!binding.is_image()) {
       continue;
     }
-    /* TODO: Based on the actual usage we should use
-     * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL/VK_IMAGE_LAYOUT_GENERAL. */
-    binding.texture->layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
-    VkDescriptorImageInfo image_info = {};
-    image_info.sampler = binding.vk_sampler;
-    image_info.imageView = binding.texture->image_view_get().vk_handle();
-    image_info.imageLayout = binding.texture->current_layout_get();
-    image_infos.append(image_info);
+
+    if (use_render_graph) {
+      /* TODO: Based on the actual usage we should use
+       * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL or VK_IMAGE_LAYOUT_GENERAL. */
+      VkDescriptorImageInfo image_info = {};
+      image_info.sampler = binding.vk_sampler;
+      image_info.imageView = binding.texture->image_view_get().vk_handle();
+      image_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+      image_infos.append(image_info);
+    }
+    else {
+      /* TODO: Based on the actual usage we should use
+       * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL/VK_IMAGE_LAYOUT_GENERAL. */
+      binding.texture->layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
+      VkDescriptorImageInfo image_info = {};
+      image_info.sampler = binding.vk_sampler;
+      image_info.imageView = binding.texture->image_view_get().vk_handle();
+      image_info.imageLayout = binding.texture->current_layout_get();
+      image_infos.append(image_info);
+    }
 
     VkWriteDescriptorSet write_descriptor = {};
     write_descriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

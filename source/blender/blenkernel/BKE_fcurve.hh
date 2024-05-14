@@ -314,8 +314,7 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
  * property, what is returned is a best-effort guess. The topmost layer has priority, and it is
  * assumed that when it has a strip, it's infinite.
  */
-FCurve *BKE_animadata_fcurve_find_by_rna_path(const ID *id,
-                                              AnimData *animdata,
+FCurve *BKE_animadata_fcurve_find_by_rna_path(AnimData *animdata,
                                               const char *rna_path,
                                               const int rna_index,
                                               bAction **r_action,

@@ -702,14 +702,7 @@ class RENDER_PT_eevee_next_clamping(RenderButtonsPanel, Panel):
         return (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-        scene = context.scene
-        props = scene.eevee
-
-        col = layout.column()
-        col.prop(props, "clamp_world", text="World")
+        pass
 
 
 class RENDER_PT_eevee_next_clamping_surface(RenderButtonsPanel, Panel):
@@ -1067,6 +1060,29 @@ class RENDER_PT_eevee_performance(RenderButtonsPanel, Panel):
         layout.prop(rd, "use_high_quality_normals")
 
 
+class CompositorPerformanceButtonsPanel:
+    bl_label = "Compositor"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        rd = scene.render
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        row = col.row()
+        row.prop(rd, "compositor_device", text="Device", expand=True)
+        col.prop(rd, "compositor_precision", text="Precision")
+
+
+class RENDER_PT_eevee_performance_compositor(RenderButtonsPanel, CompositorPerformanceButtonsPanel, Panel):
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "RENDER_PT_eevee_performance"
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+
+
 class RENDER_PT_eevee_performance_memory(RenderButtonsPanel, Panel):
     bl_label = "Memory"
     bl_parent_id = "RENDER_PT_eevee_performance"
@@ -1359,6 +1375,7 @@ classes = (
     RENDER_PT_eevee_performance,
     RENDER_PT_eevee_performance_memory,
     RENDER_PT_eevee_performance_viewport,
+    RENDER_PT_eevee_performance_compositor,
 
 
     RENDER_PT_gpencil,

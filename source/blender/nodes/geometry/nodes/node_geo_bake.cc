@@ -111,8 +111,8 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 
 static const CPPType &get_item_cpp_type(const eNodeSocketDatatype socket_type)
 {
-  const char *socket_idname = nodeStaticSocketType(socket_type, 0);
-  const bNodeSocketType *typeinfo = nodeSocketTypeFind(socket_idname);
+  const char *socket_idname = bke::nodeStaticSocketType(socket_type, 0);
+  const bke::bNodeSocketType *typeinfo = bke::nodeSocketTypeFind(socket_idname);
   BLI_assert(typeinfo);
   BLI_assert(typeinfo->geometry_nodes_cpp_type);
   return *typeinfo->geometry_nodes_cpp_type;
@@ -652,7 +652,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_register()
 {
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_BAKE, "Bake", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
@@ -662,8 +662,9 @@ static void node_register()
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.get_extra_info = node_extra_info;
   ntype.register_operators = node_operators;
-  node_type_storage(&ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
-  nodeRegisterType(&ntype);
+  blender::bke::node_type_storage(
+      &ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
+  blender::bke::nodeRegisterType(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -52,7 +52,7 @@ void InstancerData::update() {}
 pxr::VtValue InstancerData::get_data(pxr::TfToken const &key) const
 {
   ID_LOG(3, "%s", key.GetText());
-  if (key == pxr::HdInstancerTokens->instanceTransform) {
+  if (key == pxr::HdInstancerTokens->instanceTransforms) {
     return pxr::VtValue(mesh_transforms_);
   }
   return pxr::VtValue();
@@ -75,7 +75,7 @@ pxr::HdPrimvarDescriptorVector InstancerData::primvar_descriptors(
   pxr::HdPrimvarDescriptorVector primvars;
   if (interpolation == pxr::HdInterpolationInstance) {
     primvars.emplace_back(
-        pxr::HdInstancerTokens->instanceTransform, interpolation, pxr::HdPrimvarRoleTokens->none);
+        pxr::HdInstancerTokens->instanceTransforms, interpolation, pxr::HdPrimvarRoleTokens->none);
   }
   return primvars;
 }

@@ -413,7 +413,7 @@ static void DEG_iterator_ids_step(BLI_Iterator *iter, deg::IDNode *id_node, bool
 
   if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
     /* Node-tree is considered part of the data-block. */
-    bNodeTree *ntree = ntreeFromID(id_cow);
+    bNodeTree *ntree = blender::bke::ntreeFromID(id_cow);
     if (ntree == nullptr) {
       iter->skip = true;
       return;

@@ -33,8 +33,6 @@ class VKFrameBuffer : public FrameBuffer {
   /* Number of layers if the attachments are layered textures. */
   int depth_ = 1;
 
-  Vector<VKImageView, GPU_FB_MAX_ATTACHMENT> image_views_;
-
   /** Is the first attachment an SRGB texture. */
   bool srgb_;
   bool enabled_srgb_;

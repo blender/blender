@@ -280,18 +280,20 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
 
   /* Convert value from old storage to new sockets. */
   NodeHueSat *nhs = static_cast<NodeHueSat *>(node->storage);
-  bNodeSocket *hue = nodeFindSocket(node, SOCK_IN, "Hue");
-  bNodeSocket *saturation = nodeFindSocket(node, SOCK_IN, "Saturation");
-  bNodeSocket *value = nodeFindSocket(node, SOCK_IN, "Value");
+  bNodeSocket *hue = blender::bke::nodeFindSocket(node, SOCK_IN, "Hue");
+  bNodeSocket *saturation = blender::bke::nodeFindSocket(node, SOCK_IN, "Saturation");
+  bNodeSocket *value = blender::bke::nodeFindSocket(node, SOCK_IN, "Value");
   if (hue == nullptr) {
-    hue = nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
+    hue = blender::bke::nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
   }
   if (saturation == nullptr) {
-    saturation = nodeAddStaticSocket(
+    saturation = blender::bke::nodeAddStaticSocket(
         ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Saturation", "Saturation");
   }
   if (value == nullptr) {
-    value = nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
+    value = blender::bke::nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
   }
 
   ((bNodeSocketValueFloat *)hue->default_value)->value = nhs->hue;
@@ -1064,7 +1066,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
          * Original commit (3fcf535d2e) forgot to handle embedded IDs. Fortunately, back then, the
          * only embedded IDs that existed were the NodeTree ones, and the current API to access
          * them should still be valid on code from 9 years ago. */
-        bNodeTree *node_tree = ntreeFromID(id);
+        bNodeTree *node_tree = blender::bke::ntreeFromID(id);
         if (node_tree) {
           node_tree->id.flag &= LIB_FAKEUSER;
         }
@@ -1459,7 +1461,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "NodeGlare", "char", "star_45")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_COMPOSIT) {
-          ntreeSetTypes(nullptr, ntree);
+          blender::bke::ntreeSetTypes(nullptr, ntree);
           LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
             if (node->type == CMP_NODE_GLARE) {
               NodeGlare *ndg = static_cast<NodeGlare *>(node->storage);
@@ -1611,7 +1613,7 @@ void do_versions_after_linking_270(Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 279, 0)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
-        ntreeSetTypes(nullptr, ntree);
+        blender::bke::ntreeSetTypes(nullptr, ntree);
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type == CMP_NODE_HUE_SAT) {
             do_version_hue_sat_node(ntree, node);

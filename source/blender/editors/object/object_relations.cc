@@ -3007,7 +3007,7 @@ static bool check_geometry_node_group_sockets(wmOperator *op, const bNodeTree *t
       BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry output socket");
       return false;
     }
-    const bNodeSocketType *typeinfo = first_output->socket_typeinfo();
+    const bke::bNodeSocketType *typeinfo = first_output->socket_typeinfo();
     const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
     if (type != SOCK_GEOMETRY) {
       BKE_report(op->reports, RPT_ERROR, "The first output must be a geometry socket");

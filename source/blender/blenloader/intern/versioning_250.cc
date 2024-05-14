@@ -1035,7 +1035,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         bNode *node = static_cast<bNode *>(ntree->nodes.first);
 
         while (node) {
-          nodeUniqueName(ntree, node);
+          blender::bke::nodeUniqueName(ntree, node);
           node = node->next;
         }
 
@@ -1876,7 +1876,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           }
         }
         LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-          if (nodeCountSocketLinks(ntree, sock) == 0 &&
+          if (blender::bke::nodeCountSocketLinks(ntree, sock) == 0 &&
               !((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0))
           {
             bNodeSocket *gsock = do_versions_node_group_add_socket_2_56_2(

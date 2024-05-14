@@ -454,9 +454,17 @@ class DOPESHEET_MT_select(Menu):
         layout.separator()
         layout.operator("action.select_box").axis_range = False
         layout.operator("action.select_box", text="Box Select (Axis Range)").axis_range = True
-
         layout.operator("action.select_circle")
         layout.operator_menu_enum("action.select_lasso", "mode")
+
+        # FIXME: grease pencil mode isn't supported for these yet, so skip for that mode only
+        if context.space_data.mode != 'GPENCIL':
+            layout.separator()
+            layout.operator("action.select_more", text="More")
+            layout.operator("action.select_less", text="Less")
+
+            layout.separator()
+            layout.operator("action.select_linked")
 
         layout.separator()
         layout.operator("action.select_column", text="Columns on Selected Keys").mode = 'KEYS'
@@ -472,15 +480,6 @@ class DOPESHEET_MT_select(Menu):
         props = layout.operator("action.select_leftright", text="After Current Frame")
         props.extend = False
         props.mode = 'RIGHT'
-
-        # FIXME: grease pencil mode isn't supported for these yet, so skip for that mode only
-        if context.space_data.mode != 'GPENCIL':
-            layout.separator()
-            layout.operator("action.select_more")
-            layout.operator("action.select_less")
-
-            layout.separator()
-            layout.operator("action.select_linked")
 
 
 class DOPESHEET_MT_marker(Menu):

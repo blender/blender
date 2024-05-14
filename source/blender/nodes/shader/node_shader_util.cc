@@ -25,7 +25,7 @@
 
 #include "node_exec.hh"
 
-bool sh_node_poll_default(const bNodeType * /*ntype*/,
+bool sh_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
                           const bNodeTree *ntree,
                           const char **r_disabled_hint)
 {
@@ -36,7 +36,7 @@ bool sh_node_poll_default(const bNodeType * /*ntype*/,
   return true;
 }
 
-static bool sh_fn_poll_default(const bNodeType * /*ntype*/,
+static bool sh_fn_poll_default(const blender::bke::bNodeType * /*ntype*/,
                                const bNodeTree *ntree,
                                const char **r_disabled_hint)
 {
@@ -47,7 +47,7 @@ static bool sh_fn_poll_default(const bNodeType * /*ntype*/,
   return true;
 }
 
-void sh_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
+void sh_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass)
 {
   blender::bke::node_type_base(ntype, type, name, nclass);
 
@@ -56,7 +56,7 @@ void sh_node_type_base(bNodeType *ntype, int type, const char *name, short nclas
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
 }
 
-void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
+void sh_fn_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass)
 {
   sh_node_type_base(ntype, type, name, nclass);
   ntype->poll = sh_fn_poll_default;
@@ -293,12 +293,12 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
   return inactivenode;
 }
 
+namespace blender::bke {
+
 bNode *nodeGetActiveTexture(bNodeTree *ntree)
 {
   return node_get_active(ntree, NODE_ACTIVE_TEXTURE);
 }
-
-namespace blender::bke {
 
 bNode *nodeGetActivePaintCanvas(bNodeTree *ntree)
 {

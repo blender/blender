@@ -55,11 +55,11 @@ void register_node_type_cmp_posterize()
 {
   namespace file_ns = blender::nodes::node_composite_posterize_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_POSTERIZE, "Posterize", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_posterize_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -168,19 +168,19 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
 
 static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *inVectorSock = nodeFindSocket(node, SOCK_IN, "Vector");
-  bNodeSocket *inWSock = nodeFindSocket(node, SOCK_IN, "W");
-  bNodeSocket *inDetailSock = nodeFindSocket(node, SOCK_IN, "Detail");
-  bNodeSocket *inRoughnessSock = nodeFindSocket(node, SOCK_IN, "Roughness");
-  bNodeSocket *inLacunaritySock = nodeFindSocket(node, SOCK_IN, "Lacunarity");
-  bNodeSocket *inSmoothnessSock = nodeFindSocket(node, SOCK_IN, "Smoothness");
-  bNodeSocket *inExponentSock = nodeFindSocket(node, SOCK_IN, "Exponent");
+  bNodeSocket *inVectorSock = bke::nodeFindSocket(node, SOCK_IN, "Vector");
+  bNodeSocket *inWSock = bke::nodeFindSocket(node, SOCK_IN, "W");
+  bNodeSocket *inDetailSock = bke::nodeFindSocket(node, SOCK_IN, "Detail");
+  bNodeSocket *inRoughnessSock = bke::nodeFindSocket(node, SOCK_IN, "Roughness");
+  bNodeSocket *inLacunaritySock = bke::nodeFindSocket(node, SOCK_IN, "Lacunarity");
+  bNodeSocket *inSmoothnessSock = bke::nodeFindSocket(node, SOCK_IN, "Smoothness");
+  bNodeSocket *inExponentSock = bke::nodeFindSocket(node, SOCK_IN, "Exponent");
 
-  bNodeSocket *outDistanceSock = nodeFindSocket(node, SOCK_OUT, "Distance");
-  bNodeSocket *outColorSock = nodeFindSocket(node, SOCK_OUT, "Color");
-  bNodeSocket *outPositionSock = nodeFindSocket(node, SOCK_OUT, "Position");
-  bNodeSocket *outWSock = nodeFindSocket(node, SOCK_OUT, "W");
-  bNodeSocket *outRadiusSock = nodeFindSocket(node, SOCK_OUT, "Radius");
+  bNodeSocket *outDistanceSock = bke::nodeFindSocket(node, SOCK_OUT, "Distance");
+  bNodeSocket *outColorSock = bke::nodeFindSocket(node, SOCK_OUT, "Color");
+  bNodeSocket *outPositionSock = bke::nodeFindSocket(node, SOCK_OUT, "Position");
+  bNodeSocket *outWSock = bke::nodeFindSocket(node, SOCK_OUT, "W");
+  bNodeSocket *outRadiusSock = bke::nodeFindSocket(node, SOCK_OUT, "Radius");
 
   const NodeTexVoronoi &storage = node_storage(*node);
 
@@ -816,17 +816,17 @@ void register_node_type_sh_tex_voronoi()
 {
   namespace file_ns = blender::nodes::node_shader_tex_voronoi_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_VORONOI, "Voronoi Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_voronoi_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_voronoi;
   ntype.initfunc = file_ns::node_shader_init_tex_voronoi;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_voronoi;
   ntype.updatefunc = file_ns::node_shader_update_tex_voronoi;
   ntype.build_multi_function = file_ns::sh_node_voronoi_build_multi_function;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

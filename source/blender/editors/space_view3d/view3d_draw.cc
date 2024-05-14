@@ -784,11 +784,11 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
   /* camera name - draw in highlighted text color */
   if (ca && ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) && (ca->flag & CAM_SHOWNAME)) {
     UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
-    BLF_draw_default_shadowed(x1i,
-                              y1i - (0.7f * U.widget_unit),
-                              0.0f,
-                              v3d->camera->id.name + 2,
-                              sizeof(v3d->camera->id.name) - 2);
+    BLF_draw_default(x1i,
+                     y1i - (0.7f * U.widget_unit),
+                     0.0f,
+                     v3d->camera->id.name + 2,
+                     sizeof(v3d->camera->id.name) - 2);
   }
 }
 
@@ -1285,7 +1285,7 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
     name = tmpstr;
   }
   *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
-  BLF_draw_default_shadowed(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
+  BLF_draw_default(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
 }
 
 /**
@@ -1423,7 +1423,7 @@ static void draw_selected_name(
   BLI_string_join_array(info, sizeof(info), info_array, i);
 
   *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
-  BLF_draw_default_shadowed(xoffset, *yoffset, 0.0f, info, sizeof(info));
+  BLF_draw_default(xoffset, *yoffset, 0.0f, info, sizeof(info));
 }
 
 static void draw_grid_unit_name(
@@ -1441,8 +1441,7 @@ static void draw_grid_unit_name(
       }
 
       *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
-      BLF_draw_default_shadowed(
-          xoffset, *yoffset, 0.0f, numstr[0] ? numstr : grid_unit, sizeof(numstr));
+      BLF_draw_default(xoffset, *yoffset, 0.0f, numstr[0] ? numstr : grid_unit, sizeof(numstr));
     }
   }
 }
@@ -1500,15 +1499,18 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     BLF_default_size(fstyle->points);
     BLF_set_default();
 
+    const int font_id = BLF_default();
     float text_color[4], shadow_color[4];
     ED_view3d_text_colors_get(scene, v3d, text_color, shadow_color);
-    BLF_color4fv(BLF_default(), text_color);
-    BLF_shadow(BLF_default(), FontShadowType::Outline, shadow_color);
+    BLF_color4fv(font_id, text_color);
+    BLF_enable(font_id, BLF_SHADOW);
+    BLF_shadow_offset(font_id, 0, 0);
+    BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
 
     if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
       if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
         ED_scene_draw_fps(scene, xoffset, &yoffset);
-        BLF_color4fv(BLF_default(), text_color);
+        BLF_color4fv(font_id, text_color);
       }
       else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
         draw_viewport_name(region, v3d, xoffset, &yoffset);
@@ -1518,7 +1520,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
         BKE_view_layer_synced_ensure(scene, view_layer);
         Object *ob = BKE_view_layer_active_object_get(view_layer);
         draw_selected_name(v3d, scene, view_layer, ob, xoffset, &yoffset);
-        BLF_color4fv(BLF_default(), text_color);
+        BLF_color4fv(font_id, text_color);
       }
 
       if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
@@ -2629,7 +2631,7 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 
   *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
 
-  BLF_draw_default_shadowed(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
+  BLF_draw_default(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
 }
 
 /** \} */

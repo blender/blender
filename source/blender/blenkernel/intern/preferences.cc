@@ -199,8 +199,11 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add_default(UserDef *userdef)
 {
   bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(
       userdef, "extensions.blender.org", "blender_org", "");
-  STRNCPY(repo->remote_path, "https://extensions.blender.org");
-  repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
+  STRNCPY(repo->remote_url, "https://extensions.blender.org/api/v1/extensions");
+  /* Disable `blender.org` by default, the initial "Online Preferences" section gives
+   * the option to enable this. */
+  repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL | USER_EXTENSION_REPO_FLAG_DISABLED |
+                USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP;
   return repo;
 }
 
@@ -295,11 +298,11 @@ static bool url_char_is_delimiter(const char ch)
   return false;
 }
 
-bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_path_prefix(
-    const UserDef *userdef, const char *path_full, const bool only_enabled)
+bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_url_prefix(
+    const UserDef *userdef, const char *remote_url_full, const bool only_enabled)
 {
-  const int path_full_len = strlen(path_full);
-  const int path_full_offset = BKE_preferences_extension_repo_remote_scheme_end(path_full);
+  const int path_full_len = strlen(remote_url_full);
+  const int path_full_offset = BKE_preferences_extension_repo_remote_scheme_end(remote_url_full);
 
   LISTBASE_FOREACH (bUserExtensionRepo *, repo, &userdef->extension_repos) {
     if (only_enabled && (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED)) {
@@ -307,16 +310,16 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_path_prefix(
     }
 
     /* Has a valid remote path to check. */
-    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH) == 0) {
+    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
       continue;
     }
-    if (repo->remote_path[0] == '\0') {
+    if (repo->remote_url[0] == '\0') {
       continue;
     }
 
     /* Set path variables which may be offset by the "scheme". */
-    const char *path_repo = repo->remote_path;
-    const char *path_test = path_full;
+    const char *path_repo = repo->remote_url;
+    const char *path_test = remote_url_full;
     int path_test_len = path_full_len;
 
     /* Allow paths beginning with both `http` & `https` to be considered equivalent.
@@ -371,18 +374,18 @@ int BKE_preferences_extension_repo_remote_scheme_end(const char *url)
   return 0;
 }
 
-void BKE_preferences_extension_remote_to_name(const char *remote_path,
+void BKE_preferences_extension_remote_to_name(const char *remote_url,
                                               char name[sizeof(bUserExtensionRepo::name)])
 {
   name[0] = '\0';
-  if (int offset = BKE_preferences_extension_repo_remote_scheme_end(remote_path)) {
-    remote_path += (offset + 3);
+  if (int offset = BKE_preferences_extension_repo_remote_scheme_end(remote_url)) {
+    remote_url += (offset + 3);
   }
-  if (UNLIKELY(remote_path[0] == '\0')) {
+  if (UNLIKELY(remote_url[0] == '\0')) {
     return;
   }
 
-  const char *c = remote_path;
+  const char *c = remote_url;
   /* Skip any delimiters (likely forward slashes for `file:///` on UNIX). */
   while (*c && url_char_is_delimiter(*c)) {
     c++;
@@ -393,7 +396,7 @@ void BKE_preferences_extension_remote_to_name(const char *remote_path,
   }
 
   BLI_strncpy_utf8(
-      name, remote_path, std::min(size_t(c - remote_path) + 1, sizeof(bUserExtensionRepo::name)));
+      name, remote_url, std::min(size_t(c - remote_url) + 1, sizeof(bUserExtensionRepo::name)));
 }
 
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,

@@ -32,8 +32,11 @@ class VKTexture : public Texture, public VKBindableResource {
   VkImage vk_image_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
 
-  /* Image view when used in a shader. */
-  std::optional<VKImageView> image_view_;
+  /**
+   * Image views are owned by VKTexture. When a specific image view is needed it will be created
+   * and stored here. Image view can be requested by calling `image_view_get` method.
+   */
+  Vector<VKImageView> image_views_;
 
   /* Last image layout of the texture. Frame-buffer and barriers can alter/require the actual
    * layout to be changed. During this it requires to set the current layout in order to know which
@@ -44,16 +47,12 @@ class VKTexture : public Texture, public VKBindableResource {
   int layer_offset_ = 0;
   bool use_stencil_ = false;
 
-  VkComponentMapping vk_component_mapping_ = {VK_COMPONENT_SWIZZLE_IDENTITY,
-                                              VK_COMPONENT_SWIZZLE_IDENTITY,
-                                              VK_COMPONENT_SWIZZLE_IDENTITY,
-                                              VK_COMPONENT_SWIZZLE_IDENTITY};
-
-  enum eDirtyFlags {
-    IMAGE_VIEW_DIRTY = (1 << 0),
-  };
-
-  int flags_ = IMAGE_VIEW_DIRTY;
+  VKImageViewInfo image_view_info_ = {eImageViewUsage::ShaderBinding,
+                                      IndexRange(0, VK_REMAINING_ARRAY_LAYERS),
+                                      IndexRange(0, VK_REMAINING_MIP_LEVELS),
+                                      {'r', 'g', 'b', 'a'},
+                                      false,
+                                      false};
 
  public:
   VKTexture(const char *name) : Texture(name) {}
@@ -106,6 +105,17 @@ class VKTexture : public Texture, public VKBindableResource {
     return device_format_;
   }
 
+  /**
+   * Get a specific image view for this texture. The specification of the image view are passed
+   * inside the `info` parameter.
+   */
+  const VKImageView &image_view_get(const VKImageViewInfo &info);
+
+  /**
+   * Get the current image view for this texture.
+   */
+  const VKImageView &image_view_get();
+
  protected:
   bool init_internal() override;
   bool init_internal(VertBuf *vbo) override;
@@ -120,8 +130,6 @@ class VKTexture : public Texture, public VKBindableResource {
    * on the device.
    */
   bool allocate();
-
-  VkImageViewType vk_image_view_type() const;
 
   /**
    * Determine the layerCount for vulkan based on the texture type. Will pass the
@@ -187,23 +195,10 @@ class VKTexture : public Texture, public VKBindableResource {
   /* -------------------------------------------------------------------- */
   /** \name Image Views
    * \{ */
- public:
-  VKImageView &image_view_get()
-  {
-    image_view_ensure();
-    return *image_view_;
-  }
-
-  const VkComponentMapping &vk_component_mapping_get() const
-  {
-    return vk_component_mapping_;
-  }
 
  private:
   IndexRange mip_map_range() const;
   IndexRange layer_range() const;
-  void image_view_ensure();
-  void image_view_update();
 
   /** \} */
 };

@@ -266,7 +266,7 @@ class NodeOperation {
  private:
   int id_;
   std::string name_;
-  bNodeInstanceKey node_instance_key_{NODE_INSTANCE_KEY_NONE};
+  bNodeInstanceKey node_instance_key_{bke::NODE_INSTANCE_KEY_NONE};
 
   Vector<NodeOperationInput> inputs_;
   Vector<NodeOperationOutput> outputs_;

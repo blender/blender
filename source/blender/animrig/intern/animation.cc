@@ -2,7 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_anim_defaults.h"
+#include "DNA_action_defaults.h"
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_array_utils.hh"
 #include "DNA_defaults.h"
@@ -14,11 +15,12 @@
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
+#include "BKE_action.hh"
 #include "BKE_anim_data.hh"
-#include "BKE_animation.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_preview_image.hh"
 
 #include "ED_keyframing.hh"
 
@@ -28,7 +30,7 @@
 
 #include "atomic_ops.h"
 
-#include "ANIM_animation.hh"
+#include "ANIM_action.hh"
 #include "ANIM_fcurve.hh"
 
 #include <cstdio>
@@ -49,17 +51,17 @@ constexpr const char *binding_unbound_prefix = "XX";
 
 }  // namespace
 
-static animrig::Layer &animationlayer_alloc()
+static animrig::Layer &ActionLayer_alloc()
 {
-  AnimationLayer *layer = DNA_struct_default_alloc(AnimationLayer);
+  ActionLayer *layer = DNA_struct_default_alloc(ActionLayer);
   return layer->wrap();
 }
-static animrig::Strip &animationstrip_alloc_infinite(const Strip::Type type)
+static animrig::Strip &ActionStrip_alloc_infinite(const Strip::Type type)
 {
-  AnimationStrip *strip = nullptr;
+  ActionStrip *strip = nullptr;
   switch (type) {
     case Strip::Type::Keyframe: {
-      KeyframeAnimationStrip *key_strip = MEM_new<KeyframeAnimationStrip>(__func__);
+      KeyframeActionStrip *key_strip = MEM_new<KeyframeActionStrip>(__func__);
       strip = &key_strip->strip;
       break;
     }
@@ -67,8 +69,8 @@ static animrig::Strip &animationstrip_alloc_infinite(const Strip::Type type)
 
   BLI_assert_msg(strip, "unsupported strip type");
 
-  /* Copy the default AnimationStrip fields into the allocated data-block. */
-  memcpy(strip, DNA_struct_default_get(AnimationStrip), sizeof(*strip));
+  /* Copy the default ActionStrip fields into the allocated data-block. */
+  memcpy(strip, DNA_struct_default_get(ActionStrip), sizeof(*strip));
   return strip->wrap();
 }
 
@@ -109,46 +111,63 @@ template<typename T> static void shrink_array(T **array, int *num, const int shr
 
 /* ----- Animation implementation ----------- */
 
-blender::Span<const Layer *> Animation::layers() const
+bool Action::is_empty() const
+{
+  return this->layer_array_num == 0 && this->binding_array_num == 0 &&
+         BLI_listbase_is_empty(&this->curves);
+}
+bool Action::is_action_legacy() const
+{
+  /* This is a valid legacy Action only if there is no layered info. */
+  return this->layer_array_num == 0 && this->binding_array_num == 0;
+}
+bool Action::is_action_layered() const
+{
+  /* This is a valid layered Action if there is ANY layered info (because that
+   * takes precedence) or when there is no legacy info. */
+  return this->layer_array_num > 0 || this->binding_array_num > 0 ||
+         BLI_listbase_is_empty(&this->curves);
+}
+
+blender::Span<const Layer *> Action::layers() const
 {
   return blender::Span<Layer *>{reinterpret_cast<Layer **>(this->layer_array),
                                 this->layer_array_num};
 }
-blender::MutableSpan<Layer *> Animation::layers()
+blender::MutableSpan<Layer *> Action::layers()
 {
   return blender::MutableSpan<Layer *>{reinterpret_cast<Layer **>(this->layer_array),
                                        this->layer_array_num};
 }
-const Layer *Animation::layer(const int64_t index) const
+const Layer *Action::layer(const int64_t index) const
 {
   return &this->layer_array[index]->wrap();
 }
-Layer *Animation::layer(const int64_t index)
+Layer *Action::layer(const int64_t index)
 {
   return &this->layer_array[index]->wrap();
 }
 
-Layer &Animation::layer_add(const StringRefNull name)
+Layer &Action::layer_add(const StringRefNull name)
 {
   using namespace blender::animrig;
 
-  Layer &new_layer = animationlayer_alloc();
+  Layer &new_layer = ActionLayer_alloc();
   STRNCPY_UTF8(new_layer.name, name.c_str());
 
-  grow_array_and_append<::AnimationLayer *>(
-      &this->layer_array, &this->layer_array_num, &new_layer);
+  grow_array_and_append<::ActionLayer *>(&this->layer_array, &this->layer_array_num, &new_layer);
   this->layer_active_index = this->layer_array_num - 1;
 
   return new_layer;
 }
 
-static void layer_ptr_destructor(AnimationLayer **dna_layer_ptr)
+static void layer_ptr_destructor(ActionLayer **dna_layer_ptr)
 {
   Layer &layer = (*dna_layer_ptr)->wrap();
   MEM_delete(&layer);
 };
 
-bool Animation::layer_remove(Layer &layer_to_remove)
+bool Action::layer_remove(Layer &layer_to_remove)
 {
   const int64_t layer_index = this->find_layer_index(layer_to_remove);
   if (layer_index < 0) {
@@ -163,7 +182,7 @@ bool Animation::layer_remove(Layer &layer_to_remove)
   return true;
 }
 
-int64_t Animation::find_layer_index(const Layer &layer) const
+int64_t Action::find_layer_index(const Layer &layer) const
 {
   for (const int64_t layer_index : this->layers().index_range()) {
     const Layer *visit_layer = this->layer(layer_index);
@@ -174,32 +193,32 @@ int64_t Animation::find_layer_index(const Layer &layer) const
   return -1;
 }
 
-blender::Span<const Binding *> Animation::bindings() const
+blender::Span<const Binding *> Action::bindings() const
 {
   return blender::Span<Binding *>{reinterpret_cast<Binding **>(this->binding_array),
                                   this->binding_array_num};
 }
-blender::MutableSpan<Binding *> Animation::bindings()
+blender::MutableSpan<Binding *> Action::bindings()
 {
   return blender::MutableSpan<Binding *>{reinterpret_cast<Binding **>(this->binding_array),
                                          this->binding_array_num};
 }
-const Binding *Animation::binding(const int64_t index) const
+const Binding *Action::binding(const int64_t index) const
 {
   return &this->binding_array[index]->wrap();
 }
-Binding *Animation::binding(const int64_t index)
+Binding *Action::binding(const int64_t index)
 {
   return &this->binding_array[index]->wrap();
 }
 
-Binding *Animation::binding_for_handle(const binding_handle_t handle)
+Binding *Action::binding_for_handle(const binding_handle_t handle)
 {
-  const Binding *binding = const_cast<const Animation *>(this)->binding_for_handle(handle);
+  const Binding *binding = const_cast<const Action *>(this)->binding_for_handle(handle);
   return const_cast<Binding *>(binding);
 }
 
-const Binding *Animation::binding_for_handle(const binding_handle_t handle) const
+const Binding *Action::binding_for_handle(const binding_handle_t handle) const
 {
   /* TODO: implement hash-map lookup. */
   for (const Binding *binding : bindings()) {
@@ -210,12 +229,12 @@ const Binding *Animation::binding_for_handle(const binding_handle_t handle) cons
   return nullptr;
 }
 
-static void anim_binding_name_ensure_unique(Animation &animation, Binding &binding)
+static void anim_binding_name_ensure_unique(Action &animation, Binding &binding)
 {
   /* Cannot capture parameters by reference in the lambda, as that would change its signature
    * and no longer be compatible with BLI_uniquename_cb(). That's why this struct is necessary. */
   struct DupNameCheckData {
-    Animation &anim;
+    Action &anim;
     Binding &binding;
   };
   DupNameCheckData check_data = {animation, binding};
@@ -241,13 +260,13 @@ static void anim_binding_name_ensure_unique(Animation &animation, Binding &bindi
  * way only `this->id_type` is responsible for the prefix. I (Sybren) think that's easier to
  * determine when the code is a bit more mature, and we can see what the majority of the calls to
  * this function actually do/need. */
-void Animation::binding_name_set(Main &bmain, Binding &binding, const StringRefNull new_name)
+void Action::binding_name_set(Main &bmain, Binding &binding, const StringRefNull new_name)
 {
   this->binding_name_define(binding, new_name);
   this->binding_name_propagate(bmain, binding);
 }
 
-void Animation::binding_name_define(Binding &binding, const StringRefNull new_name)
+void Action::binding_name_define(Binding &binding, const StringRefNull new_name)
 {
   BLI_assert_msg(
       StringRef(new_name).size() >= Binding::name_length_min,
@@ -256,7 +275,7 @@ void Animation::binding_name_define(Binding &binding, const StringRefNull new_na
   anim_binding_name_ensure_unique(*this, binding);
 }
 
-void Animation::binding_name_propagate(Main &bmain, const Binding &binding)
+void Action::binding_name_propagate(Main &bmain, const Binding &binding)
 {
   /* Just loop over all animatable IDs in the main database. */
   ListBase *lb;
@@ -270,7 +289,7 @@ void Animation::binding_name_propagate(Main &bmain, const Binding &binding)
       }
 
       AnimData *adt = BKE_animdata_from_id(id);
-      if (!adt || adt->animation != this) {
+      if (!adt || adt->action != this) {
         /* Not animated by this Animation. */
         continue;
       }
@@ -287,7 +306,7 @@ void Animation::binding_name_propagate(Main &bmain, const Binding &binding)
   FOREACH_MAIN_LISTBASE_END;
 }
 
-Binding *Animation::binding_find_by_name(const StringRefNull binding_name)
+Binding *Action::binding_find_by_name(const StringRefNull binding_name)
 {
   for (Binding *binding : bindings()) {
     if (STREQ(binding->name, binding_name.c_str())) {
@@ -297,38 +316,16 @@ Binding *Animation::binding_find_by_name(const StringRefNull binding_name)
   return nullptr;
 }
 
-Binding *Animation::binding_for_id(const ID &animated_id)
+Binding &Action::binding_allocate()
 {
-  const Binding *binding = const_cast<const Animation *>(this)->binding_for_id(animated_id);
-  return const_cast<Binding *>(binding);
-}
-
-const Binding *Animation::binding_for_id(const ID &animated_id) const
-{
-  const AnimData *adt = BKE_animdata_from_id(&animated_id);
-
-  /* Note that there is no check that `adt->animation` is actually `this`. */
-
-  const Binding *binding = this->binding_for_handle(adt->binding_handle);
-  if (!binding) {
-    return nullptr;
-  }
-  if (!binding->is_suitable_for(animated_id)) {
-    return nullptr;
-  }
-  return binding;
-}
-
-Binding &Animation::binding_allocate()
-{
-  Binding &binding = MEM_new<AnimationBinding>(__func__)->wrap();
+  Binding &binding = MEM_new<ActionBinding>(__func__)->wrap();
   this->last_binding_handle++;
   BLI_assert_msg(this->last_binding_handle > 0, "Animation Binding handle overflow");
   binding.handle = this->last_binding_handle;
   return binding;
 }
 
-Binding &Animation::binding_add()
+Binding &Action::binding_add()
 {
   Binding &binding = this->binding_allocate();
 
@@ -337,14 +334,14 @@ Binding &Animation::binding_add()
   BLI_strncpy_utf8(binding.name + 2, DATA_(binding_default_name), ARRAY_SIZE(binding.name) - 2);
 
   /* Append the Binding to the animation data-block. */
-  grow_array_and_append<::AnimationBinding *>(
+  grow_array_and_append<::ActionBinding *>(
       &this->binding_array, &this->binding_array_num, &binding);
 
   anim_binding_name_ensure_unique(*this, binding);
   return binding;
 }
 
-Binding &Animation::binding_add_for_id(const ID &animated_id)
+Binding &Action::binding_add_for_id(const ID &animated_id)
 {
   Binding &binding = this->binding_add();
 
@@ -357,13 +354,13 @@ Binding &Animation::binding_add_for_id(const ID &animated_id)
   return binding;
 }
 
-Binding *Animation::find_suitable_binding_for(const ID &animated_id)
+Binding *Action::find_suitable_binding_for(const ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
 
-  /* The binding handle is only valid when this animation has already been
+  /* The binding handle is only valid when this action has already been
    * assigned. Otherwise it's meaningless. */
-  if (adt && adt->animation == this) {
+  if (adt && adt->action == this) {
     Binding *binding = this->binding_for_handle(adt->binding_handle);
     if (binding && binding->is_suitable_for(animated_id)) {
       return binding;
@@ -387,7 +384,7 @@ Binding *Animation::find_suitable_binding_for(const ID &animated_id)
   return nullptr;
 }
 
-bool Animation::is_binding_animated(const binding_handle_t binding_handle) const
+bool Action::is_binding_animated(const binding_handle_t binding_handle) const
 {
   if (binding_handle == Binding::unassigned) {
     return false;
@@ -397,31 +394,14 @@ bool Animation::is_binding_animated(const binding_handle_t binding_handle) const
   return !fcurves.is_empty();
 }
 
-void Animation::free_data()
-{
-  /* Free layers. */
-  for (Layer *layer : this->layers()) {
-    MEM_delete(layer);
-  }
-  MEM_SAFE_FREE(this->layer_array);
-  this->layer_array_num = 0;
-
-  /* Free bindings. */
-  for (Binding *binding : this->bindings()) {
-    MEM_delete(binding);
-  }
-  MEM_SAFE_FREE(this->binding_array);
-  this->binding_array_num = 0;
-}
-
-bool Animation::assign_id(Binding *binding, ID &animated_id)
+bool Action::assign_id(Binding *binding, ID &animated_id)
 {
   AnimData *adt = BKE_animdata_ensure_id(&animated_id);
   if (!adt) {
     return false;
   }
 
-  if (adt->animation && adt->animation != this) {
+  if (adt->action && adt->action != this) {
     /* The caller should unassign the ID from its existing animation first, or
      * use the top-level function `assign_animation(anim, ID)`. */
     return false;
@@ -441,24 +421,24 @@ bool Animation::assign_id(Binding *binding, ID &animated_id)
     unassign_binding(*adt);
   }
 
-  if (!adt->animation) {
-    /* Due to the precondition check above, we know that adt->animation is either 'this' (in which
+  if (!adt->action) {
+    /* Due to the precondition check above, we know that adt->action is either 'this' (in which
      * case the user count is already correct) or `nullptr` (in which case this is a new reference,
      * and the user count should be increased). */
     id_us_plus(&this->id);
-    adt->animation = this;
+    adt->action = this;
   }
 
   return true;
 }
 
-void Animation::binding_name_ensure_prefix(Binding &binding)
+void Action::binding_name_ensure_prefix(Binding &binding)
 {
   binding.name_ensure_prefix();
   anim_binding_name_ensure_unique(*this, binding);
 }
 
-void Animation::binding_setup_for_id(Binding &binding, const ID &animated_id)
+void Action::binding_setup_for_id(Binding &binding, const ID &animated_id)
 {
   if (binding.has_idtype()) {
     BLI_assert(binding.idtype == GS(animated_id.name));
@@ -469,26 +449,26 @@ void Animation::binding_setup_for_id(Binding &binding, const ID &animated_id)
   this->binding_name_ensure_prefix(binding);
 }
 
-void Animation::unassign_id(ID &animated_id)
+void Action::unassign_id(ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
   BLI_assert_msg(adt, "ID is not animated at all");
-  BLI_assert_msg(adt->animation == this, "ID is not assigned to this Animation");
+  BLI_assert_msg(adt->action == this, "ID is not assigned to this Animation");
 
   unassign_binding(*adt);
 
   id_us_min(&this->id);
-  adt->animation = nullptr;
+  adt->action = nullptr;
 }
 
-/* ----- AnimationLayer implementation ----------- */
+/* ----- ActionLayer implementation ----------- */
 
 Layer::Layer(const Layer &other)
 {
   memcpy(this, &other, sizeof(*this));
 
   /* Strips. */
-  this->strip_array = MEM_cnew_array<AnimationStrip *>(other.strip_array_num, __func__);
+  this->strip_array = MEM_cnew_array<ActionStrip *>(other.strip_array_num, __func__);
   for (int i : other.strips().index_range()) {
     this->strip_array[i] = other.strip(i)->duplicate(__func__);
   }
@@ -524,15 +504,15 @@ Strip *Layer::strip(const int64_t index)
 
 Strip &Layer::strip_add(const Strip::Type strip_type)
 {
-  Strip &strip = animationstrip_alloc_infinite(strip_type);
+  Strip &strip = ActionStrip_alloc_infinite(strip_type);
 
   /* Add the new strip to the strip array. */
-  grow_array_and_append<::AnimationStrip *>(&this->strip_array, &this->strip_array_num, &strip);
+  grow_array_and_append<::ActionStrip *>(&this->strip_array, &this->strip_array_num, &strip);
 
   return strip;
 }
 
-static void strip_ptr_destructor(AnimationStrip **dna_strip_ptr)
+static void strip_ptr_destructor(ActionStrip **dna_strip_ptr)
 {
   Strip &strip = (*dna_strip_ptr)->wrap();
   MEM_delete(&strip);
@@ -562,7 +542,7 @@ int64_t Layer::find_strip_index(const Strip &strip) const
   return -1;
 }
 
-/* ----- AnimationBinding implementation ----------- */
+/* ----- ActionBinding implementation ----------- */
 
 bool Binding::is_suitable_for(const ID &animated_id) const
 {
@@ -581,7 +561,7 @@ bool Binding::has_idtype() const
   return this->idtype != 0;
 }
 
-bool assign_animation(Animation &anim, ID &animated_id)
+bool assign_animation(Action &anim, ID &animated_id)
 {
   unassign_animation(animated_id);
 
@@ -591,7 +571,7 @@ bool assign_animation(Animation &anim, ID &animated_id)
 
 void unassign_animation(ID &animated_id)
 {
-  Animation *anim = get_animation(animated_id);
+  Action *anim = get_animation(animated_id);
   if (!anim) {
     return;
   }
@@ -607,8 +587,8 @@ void unassign_binding(AnimData &adt)
    *
    * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure this
    * name is always correct. */
-  if (adt.animation) {
-    const Animation &anim = adt.animation->wrap();
+  if (adt.action) {
+    const Action &anim = adt.action->wrap();
     const Binding *binding = anim.binding_for_handle(adt.binding_handle);
     if (binding) {
       STRNCPY_UTF8(adt.binding_name, binding->name);
@@ -618,16 +598,17 @@ void unassign_binding(AnimData &adt)
   adt.binding_handle = Binding::unassigned;
 }
 
-Animation *get_animation(ID &animated_id)
+/* TODO: rename to get_action(). */
+Action *get_animation(ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
   if (!adt) {
     return nullptr;
   }
-  if (!adt->animation) {
+  if (!adt->action) {
     return nullptr;
   }
-  return &adt->animation->wrap();
+  return &adt->action->wrap();
 }
 
 std::string Binding::name_prefix_for_idtype() const
@@ -672,7 +653,7 @@ void Binding::name_ensure_prefix()
   *reinterpret_cast<short *>(this->name) = this->idtype;
 }
 
-/* ----- AnimationStrip implementation ----------- */
+/* ----- ActionStrip implementation ----------- */
 
 Strip *Strip::duplicate(const StringRefNull allocation_name) const
 {
@@ -720,14 +701,14 @@ void Strip::resize(const float frame_start, const float frame_end)
   this->frame_end = frame_end;
 }
 
-/* ----- KeyframeAnimationStrip implementation ----------- */
+/* ----- KeyframeActionStrip implementation ----------- */
 
 KeyframeStrip::KeyframeStrip(const KeyframeStrip &other)
 {
   memcpy(this, &other, sizeof(*this));
 
-  this->channelbags_array = MEM_cnew_array<AnimationChannelBag *>(other.channelbags_array_num,
-                                                                  __func__);
+  this->channelbags_array = MEM_cnew_array<ActionChannelBag *>(other.channelbags_array_num,
+                                                               __func__);
   Span<const ChannelBag *> channelbags_src = other.channelbags();
   for (int i : channelbags_src.index_range()) {
     this->channelbags_array[i] = MEM_new<animrig::ChannelBag>(__func__, *other.channelbag(i));
@@ -808,10 +789,10 @@ ChannelBag &KeyframeStrip::channelbag_for_binding_add(const Binding &binding)
   BLI_assert_msg(channelbag_for_binding(binding) == nullptr,
                  "Cannot add chans-for-binding for already-registered binding");
 
-  ChannelBag &channels = MEM_new<AnimationChannelBag>(__func__)->wrap();
+  ChannelBag &channels = MEM_new<ActionChannelBag>(__func__)->wrap();
   channels.binding_handle = binding.handle;
 
-  grow_array_and_append<AnimationChannelBag *>(
+  grow_array_and_append<ActionChannelBag *>(
       &this->channelbags_array, &this->channelbags_array_num, &channels);
 
   return channels;
@@ -896,7 +877,7 @@ SingleKeyingResult KeyframeStrip::keyframe_insert(const Binding &binding,
   return SingleKeyingResult::SUCCESS;
 }
 
-/* AnimationChannelBag implementation. */
+/* ActionChannelBag implementation. */
 
 ChannelBag::ChannelBag(const ChannelBag &other)
 {
@@ -949,7 +930,7 @@ const FCurve *ChannelBag::fcurve_find(const StringRefNull rna_path, const int ar
 
 /* Utility function implementations. */
 
-static const animrig::ChannelBag *channelbag_for_animation(const Animation &anim,
+static const animrig::ChannelBag *channelbag_for_animation(const Action &anim,
                                                            const binding_handle_t binding_handle)
 {
   if (binding_handle == Binding::unassigned) {
@@ -973,15 +954,15 @@ static const animrig::ChannelBag *channelbag_for_animation(const Animation &anim
   return nullptr;
 }
 
-static animrig::ChannelBag *channelbag_for_animation(Animation &anim,
+static animrig::ChannelBag *channelbag_for_animation(Action &anim,
                                                      const binding_handle_t binding_handle)
 {
-  const animrig::ChannelBag *const_bag = channelbag_for_animation(
-      const_cast<const Animation &>(anim), binding_handle);
+  const animrig::ChannelBag *const_bag = channelbag_for_animation(const_cast<const Action &>(anim),
+                                                                  binding_handle);
   return const_cast<animrig::ChannelBag *>(const_bag);
 }
 
-Span<FCurve *> fcurves_for_animation(Animation &anim, const binding_handle_t binding_handle)
+Span<FCurve *> fcurves_for_animation(Action &anim, const binding_handle_t binding_handle)
 {
   animrig::ChannelBag *bag = channelbag_for_animation(anim, binding_handle);
   if (!bag) {
@@ -990,7 +971,7 @@ Span<FCurve *> fcurves_for_animation(Animation &anim, const binding_handle_t bin
   return bag->fcurves();
 }
 
-Span<const FCurve *> fcurves_for_animation(const Animation &anim,
+Span<const FCurve *> fcurves_for_animation(const Action &anim,
                                            const binding_handle_t binding_handle)
 {
   const animrig::ChannelBag *bag = channelbag_for_animation(anim, binding_handle);

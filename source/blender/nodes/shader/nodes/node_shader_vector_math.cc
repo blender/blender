@@ -163,10 +163,10 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
   bNodeSocket *sockC = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
-  bNodeSocket *sockScale = nodeFindSocket(node, SOCK_IN, "Scale");
+  bNodeSocket *sockScale = bke::nodeFindSocket(node, SOCK_IN, "Scale");
 
-  bNodeSocket *sockVector = nodeFindSocket(node, SOCK_OUT, "Vector");
-  bNodeSocket *sockValue = nodeFindSocket(node, SOCK_OUT, "Value");
+  bNodeSocket *sockVector = bke::nodeFindSocket(node, SOCK_OUT, "Vector");
+  bNodeSocket *sockValue = bke::nodeFindSocket(node, SOCK_OUT, "Value");
 
   bke::nodeSetSocketAvailability(ntree,
                                  sockB,
@@ -463,7 +463,7 @@ void register_node_type_sh_vect_math()
 {
   namespace file_ns = blender::nodes::node_shader_vector_math_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_MATH, "Vector Math", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::sh_node_vector_math_declare;
@@ -475,5 +475,5 @@ void register_node_type_sh_vect_math()
   ntype.gather_link_search_ops = file_ns::sh_node_vector_math_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -72,7 +72,7 @@ void register_node_type_sh_bsdf_sheen()
 {
   namespace file_ns = blender::nodes::node_shader_bsdf_sheen_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_SHEEN, "Sheen BSDF", NODE_CLASS_SHADER);
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
@@ -82,5 +82,5 @@ void register_node_type_sh_bsdf_sheen()
   ntype.draw_buttons = file_ns::node_shader_buts_sheen;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -24,13 +24,9 @@ struct VKBeginRenderingData {
 };
 
 struct VKBeginRenderingCreateInfo {
-  VKBeginRenderingData node_data;
+  VKBeginRenderingData node_data = {};
   const VKResourceAccessInfo &resources;
-  VKBeginRenderingCreateInfo(const VKResourceAccessInfo &resources) : resources(resources)
-  {
-    /* Using memset as MSVC didn't clear the color_attachments array. */
-    memset(&node_data, 0, sizeof(node_data));
-  }
+  VKBeginRenderingCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
 };
 
 /**
@@ -71,19 +67,9 @@ class VKBeginRenderingNode : public VKNodeInfo<VKNodeType::BEGIN_RENDERING,
                    "When create_info.node_data.vk_rendering_info.pStencilAttachment points to "
                    "something, it should point to create_info.node_data.stencil_attachment.");
     node.begin_rendering = create_info.node_data;
-    /* Localize pointers when set.*/
-    if (node.begin_rendering.vk_rendering_info.pColorAttachments) {
-      node.begin_rendering.vk_rendering_info.pColorAttachments =
-          node.begin_rendering.color_attachments;
-    }
-    if (node.begin_rendering.vk_rendering_info.pDepthAttachment) {
-      node.begin_rendering.vk_rendering_info.pDepthAttachment =
-          &node.begin_rendering.depth_attachment;
-    }
-    if (node.begin_rendering.vk_rendering_info.pStencilAttachment) {
-      node.begin_rendering.vk_rendering_info.pStencilAttachment =
-          &node.begin_rendering.stencil_attachment;
-    }
+    /* NOTE: pointers in vk_rendering_info will be set to the correct location just before sending
+     * to the command buffer. In the meantime these pointers are invalid.
+     * VKRenderingAttachmentInfo's should be used instead.*/
   }
 
   /**
@@ -100,9 +86,21 @@ class VKBeginRenderingNode : public VKNodeInfo<VKNodeType::BEGIN_RENDERING,
    * Build the commands and add them to the command_buffer.
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
-                      const Data &data,
+                      Data &data,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
+    /* Localize pointers just before sending to the command buffer. Pointer can (and will) change
+     * as they are stored in a union which is stored in a vector. When the vector reallocates, the
+     * pointers will become invalid. */
+    if (data.vk_rendering_info.pColorAttachments) {
+      data.vk_rendering_info.pColorAttachments = data.color_attachments;
+    }
+    if (data.vk_rendering_info.pDepthAttachment) {
+      data.vk_rendering_info.pDepthAttachment = &data.depth_attachment;
+    }
+    if (data.vk_rendering_info.pStencilAttachment) {
+      data.vk_rendering_info.pStencilAttachment = &data.stencil_attachment;
+    }
     command_buffer.begin_rendering(&data.vk_rendering_info);
   }
 };

@@ -281,7 +281,7 @@ void register_node_type_cmp_movieclip()
 {
   namespace file_ns = blender::nodes::node_composite_movieclip_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MOVIECLIP, "Movie Clip", NODE_CLASS_INPUT);
   ntype.declare = file_ns::cmp_node_movieclip_declare;
@@ -290,8 +290,8 @@ void register_node_type_cmp_movieclip()
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.initfunc_api = file_ns::init;
   ntype.flag |= NODE_PREVIEW;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

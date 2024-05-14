@@ -558,10 +558,10 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
     if (!from_single_channel && !clipboard.copy_buffer.contains(layer_name)) {
       continue;
     }
-    KeyframeClipboard::LayerBufferItem layer_buffer = from_single_channel ?
-                                                          *clipboard.copy_buffer.values().begin() :
-                                                          clipboard.copy_buffer.lookup(layer_name);
-    bool change = false;
+    const KeyframeClipboard::LayerBufferItem layer_buffer =
+        from_single_channel ? *clipboard.copy_buffer.values().begin() :
+                              clipboard.copy_buffer.lookup(layer_name);
+    bool changed = false;
 
     /* Mix mode with existing data. */
     switch (merge_mode) {
@@ -576,7 +576,7 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
           frames_to_remove.append(frame_number);
         }
         grease_pencil->remove_frames(layer, frames_to_remove);
-        change = true;
+        changed = true;
         break;
       }
       case KEYFRAME_PASTE_MERGE_OVER_RANGE:
@@ -603,23 +603,23 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
             }
           }
           grease_pencil->remove_frames(layer, frames_to_remove);
-          change = true;
+          changed = true;
         }
         break;
       }
     }
-    for (KeyframeClipboard::DrawingBufferItem item : layer_buffer.drawing_buffers) {
+    for (const KeyframeClipboard::DrawingBufferItem &item : layer_buffer.drawing_buffers) {
       const int target_frame_number = item.frame_number + offset;
       if (layer.frames().contains(target_frame_number)) {
-        layer.remove_frame(target_frame_number);
+        grease_pencil->remove_frames(layer, {target_frame_number});
       }
       Drawing &dst_drawing = *grease_pencil->insert_frame(
           layer, target_frame_number, item.duration, item.keytype);
       dst_drawing = item.drawing;
-      change = true;
+      changed = true;
     }
 
-    if (change) {
+    if (changed) {
       DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
     }
   }

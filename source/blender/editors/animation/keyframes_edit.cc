@@ -30,7 +30,7 @@
 #include "ED_keyframes_edit.hh"
 #include "ED_markers.hh"
 
-#include "ANIM_animation.hh"
+#include "ANIM_action.hh"
 
 using namespace blender;
 
@@ -170,7 +170,7 @@ static short agrp_keyframes_loop(KeyframeEditData *ked,
 
 /* Loop over all keyframes in the Animation. */
 static short anim_keyframes_loop(KeyframeEditData *ked,
-                                 animrig::Animation &anim,
+                                 animrig::Action &anim,
                                  animrig::Binding *binding,
                                  KeyframeEditFunc key_ok,
                                  KeyframeEditFunc key_cb,
@@ -340,6 +340,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
     switch (ale->datatype) {
       case ALE_MASKLAY:
       case ALE_GPFRAME:
+      case ALE_GREASE_PENCIL_CEL:
         break;
 
       case ALE_FCURVE:
@@ -415,12 +416,12 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
      */
     case ALE_GROUP: /* action group */
       return agrp_keyframes_loop(ked, (bActionGroup *)ale->data, key_ok, key_cb, fcu_cb);
-    case ALE_ANIM: { /* Animation data-block. */
+    case ALE_ACTION_LAYERED: { /* Animation data-block. */
 #ifdef WITH_ANIM_BAKLAVA
-      /* This assumes that the ALE_ANIM channel is shown in the dopesheet context, underneath the
-       * data-block that owns `ale->adt`. So that means that the loop is limited to the keys that
-       * belong to that binding. */
-      animrig::Animation &anim = static_cast<Animation *>(ale->key_data)->wrap();
+      /* This assumes that the ALE_ACTION_LAYERED channel is shown in the dopesheet context,
+       * underneath the data-block that owns `ale->adt`. So that means that the loop is limited to
+       * the keys that belong to that binding. */
+      animrig::Action &anim = static_cast<bAction *>(ale->key_data)->wrap();
       animrig::Binding *binding = anim.binding_for_handle(ale->adt->binding_handle);
       return anim_keyframes_loop(ked, anim, binding, key_ok, key_cb, fcu_cb);
 #else
@@ -464,7 +465,7 @@ short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
      */
     case ALE_GROUP: /* action group */
       return agrp_keyframes_loop(ked, (bActionGroup *)data, key_ok, key_cb, fcu_cb);
-    case ALE_ANIM:
+    case ALE_ACTION_LAYERED:
       /* This function is only used in nlaedit_apply_scale_exec(). Since the NLA has no support for
        * Animation data-blocks in strips, there is no need to implement this here. */
       return 0;

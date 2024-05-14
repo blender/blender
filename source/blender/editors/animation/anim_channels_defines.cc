@@ -9,7 +9,6 @@
 #include <cstdio>
 
 #include "ANIM_action.hh"
-#include "ANIM_animation.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_keyframing.hh"
 
@@ -1315,9 +1314,10 @@ static void *acf_fillanim_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/** Object Animation expander type define. */
+/* TODO: merge this with the regular Action expander. */
+/** Object's Layered Action expander type define. */
 static bAnimChannelType ACF_FILLANIM = {
-    /*channel_type_name*/ "Ob-Animation Filler",
+    /*channel_type_name*/ "Ob-Layered-Action Filler",
     /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
     /*get_backdrop_color*/ acf_generic_dataexpand_color,
@@ -3612,6 +3612,15 @@ static void *data_block_setting_ptr(bAnimListElem *ale,
 
   return GET_ACF_FLAG_PTR(grease_pencil->flag, r_type);
 }
+static void datablock_color(bAnimContext *ac, bAnimListElem * /*ale*/, float r_color[3])
+{
+  if (ac->datatype == ANIMCONT_GPENCIL) {
+    UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
+  }
+  else {
+    UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
+  }
+}
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int data_block_setting_flag(bAnimContext * /*ac*/,
@@ -3780,11 +3789,11 @@ static bAnimChannelType ACF_GPD = {
     /*channel_type_name*/ "Grease Pencil Datablock",
     /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
-    /*get_backdrop_color*/ acf_gpd_color,
+    /*get_backdrop_color*/ greasepencil::datablock_color,
     /*get_channel_color*/ nullptr,
     /*draw_backdrop*/ acf_group_backdrop,
-    /*get_indent_level*/ acf_generic_indentation_0,
-    /*get_offset*/ acf_generic_group_offset,
+    /*get_indent_level*/ acf_generic_indentation_1,
+    /*get_offset*/ acf_generic_basic_offset,
 
     /*name*/ acf_generic_idblock_name,
     /*name_prop*/ acf_generic_idfill_name_prop,
@@ -4372,7 +4381,7 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_NLACURVE;    /* NLA Control FCurve Channel */
 
 #ifdef WITH_ANIM_BAKLAVA
-    animchannelTypeInfo[type++] = &ACF_FILLANIM; /* Object Animation Expander */
+    animchannelTypeInfo[type++] = &ACF_FILLANIM; /* Object's Layered Action Expander */
 #else
     animchannelTypeInfo[type++] = nullptr;
 #endif
@@ -4423,8 +4432,8 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_NLAACTION; /* NLA Action */
 
 #ifdef WITH_ANIM_BAKLAVA
-    BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_FILLANIM] == &ACF_FILLANIM,
-                   "ANIMTYPE_FILLANIM does not match ACF_FILLANIM");
+    BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_FILLACT_LAYERED] == &ACF_FILLANIM,
+                   "ANIMTYPE_FILLACT_LAYERED does not match ACF_FILLANIM");
 #endif
   }
 }

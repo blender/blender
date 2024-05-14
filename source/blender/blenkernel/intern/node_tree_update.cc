@@ -564,9 +564,9 @@ class NodeTreeMainUpdater {
   void update_individual_nodes(bNodeTree &ntree)
   {
     for (bNode *node : ntree.all_nodes()) {
-      blender::bke::nodeDeclarationEnsure(&ntree, node);
+      bke::nodeDeclarationEnsure(&ntree, node);
       if (this->should_update_individual_node(ntree, *node)) {
-        bNodeType &ntype = *node->typeinfo;
+        bke::bNodeType &ntype = *node->typeinfo;
         if (ntype.group_update_func) {
           ntype.group_update_func(&ntree, node);
         }

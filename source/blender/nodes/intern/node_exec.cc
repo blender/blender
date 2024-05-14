@@ -222,10 +222,11 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
       /* ns = */ setup_stack(exec->stack, ntree, node, sock);
     }
 
-    nodekey = BKE_node_instance_key(parent_key, ntree, node);
-    nodeexec->data.preview = context->previews ? (bNodePreview *)BKE_node_instance_hash_lookup(
-                                                     context->previews, nodekey) :
-                                                 nullptr;
+    nodekey = bke::BKE_node_instance_key(parent_key, ntree, node);
+    nodeexec->data.preview = context->previews ?
+                                 (bNodePreview *)bke::BKE_node_instance_hash_lookup(
+                                     context->previews, nodekey) :
+                                 nullptr;
     if (node->typeinfo->init_exec_fn) {
       nodeexec->data.data = node->typeinfo->init_exec_fn(context, node, nodekey);
     }

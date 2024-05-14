@@ -100,33 +100,6 @@ ccl_device_forceinline float4 path_rng_4D(KernelGlobals kg,
   }
 }
 
-/**
- * 1D hash recommended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
- * See https://www.shadertoy.com/view/4tXyWN and https://www.shadertoy.com/view/XlGcRh
- * http://www.jcgt.org/published/0009/03/02/paper.pdf
- */
-ccl_device_inline uint hash_iqint1(uint n)
-{
-  n = (n << 13U) ^ n;
-  n = n * (n * n * 15731U + 789221U) + 1376312589U;
-
-  return n;
-}
-
-/**
- * 2D hash recommended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
- * See https://www.shadertoy.com/view/4tXyWN and https://www.shadertoy.com/view/XlGcRh
- * http://www.jcgt.org/published/0009/03/02/paper.pdf
- */
-ccl_device_inline uint hash_iqnt2d(const uint x, const uint y)
-{
-  const uint qx = 1103515245U * ((x >> 1U) ^ (y));
-  const uint qy = 1103515245U * ((y >> 1U) ^ (x));
-  const uint n = 1103515245U * ((qx) ^ (qy >> 3U));
-
-  return n;
-}
-
 ccl_device_inline uint path_rng_hash_init(KernelGlobals kg,
                                           const int sample,
                                           const int x,

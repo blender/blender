@@ -135,17 +135,17 @@ void register_node_type_cmp_separate_color()
 {
   namespace file_ns = blender::nodes::node_composite_separate_color_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_separate_color_declare;
   ntype.initfunc = node_cmp_combsep_color_init;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::cmp_node_separate_color_update;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE COLOR ******************** */
@@ -241,15 +241,15 @@ void register_node_type_cmp_combine_color()
 {
   namespace file_ns = blender::nodes::node_composite_combine_color_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBINE_COLOR, "Combine Color", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combine_color_declare;
   ntype.initfunc = node_cmp_combsep_color_init;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::cmp_node_combine_color_update;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

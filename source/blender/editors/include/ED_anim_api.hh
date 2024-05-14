@@ -212,8 +212,8 @@ enum eAnim_ChannelType {
   ANIMTYPE_NLACONTROLS,
   ANIMTYPE_NLACURVE,
 
-  ANIMTYPE_FILLANIM,
-  ANIMTYPE_FILLACTD,
+  ANIMTYPE_FILLACT_LAYERED, /* Layered Actions. */
+  ANIMTYPE_FILLACTD,        /* Legacy Actions. */
   ANIMTYPE_FILLDRIVERS,
 
   ANIMTYPE_DSMAT,
@@ -267,12 +267,12 @@ enum eAnim_KeyType {
   ALE_MASKLAY,  /* Mask */
   ALE_NLASTRIP, /* NLA Strips */
 
-  ALE_ALL,   /* All channels summary */
-  ALE_SCE,   /* Scene summary */
-  ALE_OB,    /* Object summary */
-  ALE_ACT,   /* Action summary */
-  ALE_GROUP, /* Action Group summary */
-  ALE_ANIM,  /* Animation data-block summary. */
+  ALE_ALL,            /* All channels summary */
+  ALE_SCE,            /* Scene summary */
+  ALE_OB,             /* Object summary */
+  ALE_ACT,            /* Action summary (legacy). */
+  ALE_GROUP,          /* Action Group summary (legacy). */
+  ALE_ACTION_LAYERED, /* Action summary (layered). */
 
   ALE_GREASE_PENCIL_CEL,   /* Grease Pencil Cels. */
   ALE_GREASE_PENCIL_DATA,  /* Grease Pencil Cels summary. */

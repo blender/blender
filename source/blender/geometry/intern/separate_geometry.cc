@@ -147,7 +147,7 @@ static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
   BKE_grease_pencil_duplicate_drawing_array(&src_grease_pencil, dst_grease_pencil);
   selection.foreach_index([&](const int index) {
     const bke::greasepencil::Layer &src_layer = *src_grease_pencil.layer(index);
-    dst_grease_pencil->add_layer(src_layer);
+    dst_grease_pencil->duplicate_layer(src_layer);
   });
   dst_grease_pencil->remove_drawings_with_no_users();
 

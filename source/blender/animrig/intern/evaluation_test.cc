@@ -2,14 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "ANIM_animation.hh"
+#include "ANIM_action.hh"
 #include "ANIM_evaluation.hh"
 #include "evaluation_internal.hh"
 
-#include "BKE_animation.hh"
+#include "BKE_action.hh"
 #include "BKE_animsys.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
 
 #include "DNA_object_types.h"
@@ -22,6 +23,7 @@
 
 #include <optional>
 
+#include "CLG_log.h"
 #include "testing/testing.h"
 
 namespace blender::animrig::tests {
@@ -30,7 +32,8 @@ using namespace blender::animrig::internal;
 
 class AnimationEvaluationTest : public testing::Test {
  protected:
-  Animation anim = {};
+  Main *bmain;
+  Action *anim;
   Object *cube;
   Binding *binding;
   Layer *layer;
@@ -42,20 +45,28 @@ class AnimationEvaluationTest : public testing::Test {
  public:
   static void SetUpTestSuite()
   {
+    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
+    CLG_init();
+
     /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
     BKE_idtype_init();
   }
 
+  static void TearDownTestSuite()
+  {
+    CLG_exit();
+  }
+
   void SetUp() override
   {
-    anim = {};
-    STRNCPY_UTF8(anim.id.name, "ANÄnimåtië");
+    bmain = BKE_main_new();
+    anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
 
-    cube = BKE_object_add_only_object(nullptr, OB_EMPTY, "Küüübus");
+    cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
 
-    binding = &anim.binding_add();
-    anim.assign_id(binding, cube->id);
-    layer = &anim.layer_add("Kübus layer");
+    binding = &anim->binding_add();
+    anim->assign_id(binding, cube->id);
+    layer = &anim->layer_add("Kübus layer");
 
     /* Make it easier to predict test values. */
     settings.interpolation = BEZT_IPO_LIN;
@@ -65,9 +76,7 @@ class AnimationEvaluationTest : public testing::Test {
 
   void TearDown() override
   {
-    BKE_id_free(nullptr, &cube->id);
-
-    anim.wrap().free_data();
+    BKE_main_free(bmain);
   }
 
   /** Evaluate the layer, and return result for the given property. */

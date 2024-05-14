@@ -22,15 +22,17 @@
 #ifdef __cplusplus
 namespace blender::bke {
 class bNodeTreeInterfaceRuntime;
-}
+struct bNodeSocketType;
+}  // namespace blender::bke
 using bNodeTreeInterfaceRuntimeHandle = blender::bke::bNodeTreeInterfaceRuntime;
+using bNodeSocketTypeHandle = blender::bke::bNodeSocketType;
 #else
 typedef struct bNodeTreeInterfaceRuntimeHandle bNodeTreeInterfaceRuntimeHandle;
+typedef struct bNodeSocketTypeHandle bNodeSocketTypeHandle;
 #endif
 
 struct bContext;
 struct bNodeSocket;
-struct bNodeSocketType;
 struct bNodeTreeInterfaceItem;
 struct bNodeTreeInterfacePanel;
 struct bNodeTreeInterfaceSocket;
@@ -93,7 +95,7 @@ typedef struct bNodeTreeInterfaceSocket {
   IDProperty *properties;
 
 #ifdef __cplusplus
-  bNodeSocketType *socket_typeinfo() const;
+  bNodeSocketTypeHandle *socket_typeinfo() const;
   blender::ColorGeometry4f socket_color() const;
 
   /**

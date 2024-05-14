@@ -53,7 +53,7 @@ void register_node_type_cmp_sephsva()
 {
   namespace file_ns = blender::nodes::node_composite_separate_hsva_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(
       &ntype, CMP_NODE_SEPHSVA_LEGACY, "Separate HSVA (Legacy)", NODE_CLASS_CONVERTER);
@@ -61,7 +61,7 @@ void register_node_type_cmp_sephsva()
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE HSVA ******************** */
@@ -120,7 +120,7 @@ void register_node_type_cmp_combhsva()
 {
   namespace file_ns = blender::nodes::node_composite_combine_hsva_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(
       &ntype, CMP_NODE_COMBHSVA_LEGACY, "Combine HSVA (Legacy)", NODE_CLASS_CONVERTER);
@@ -128,5 +128,5 @@ void register_node_type_cmp_combhsva()
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -1562,8 +1562,10 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
   const rcti *rect = ED_region_visible_rect(region);
 
   View3D *v3d = nullptr;
+  Scene *scene = nullptr;
   if (t->spacetype == SPACE_VIEW3D) {
     v3d = static_cast<View3D *>(t->view);
+    scene = static_cast<Scene *>(t->scene);
   }
 
   const int font_id = BLF_set_default();
@@ -1600,10 +1602,17 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
   /* Warning text (to clarify meaning of overlays)
    * - Original color was red to match the icon, but that clashes badly with a less nasty border.
    */
-  uchar color[3];
-  UI_GetThemeColorShade3ubv(TH_TEXT_HI, -50, color);
-  BLF_color3ubv(font_id, color);
-  BLF_draw_default_shadowed(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
+
+  float text_color[4], shadow_color[4];
+  if (v3d && scene) {
+    ED_view3d_text_colors_get(scene, v3d, text_color, shadow_color);
+  }
+  else {
+    UI_GetThemeColor4fv(TH_TEXT_HI, text_color);
+    UI_GetThemeColor4fv(TH_BACK, text_color);
+  }
+  BLF_color4fv(BLF_default(), text_color);
+  BLF_shadow(BLF_default(), FontShadowType::Outline, shadow_color);
 
   /* Auto-key recording icon. */
   GPU_blend(GPU_BLEND_ALPHA);

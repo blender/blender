@@ -178,13 +178,13 @@ extern "C" void ntreeGPUMaterialNodes(struct bNodeTree * /*localtree*/,
   BLI_assert_unreachable();
 }
 
-struct bNodeTree *ntreeLocalize(struct bNodeTree * /*ntree*/, ID * /*new_owner_id*/)
+struct bNodeTree *blender::bke::ntreeLocalize(struct bNodeTree * /*ntree*/, ID * /*new_owner_id*/)
 {
   BLI_assert_unreachable();
   return nullptr;
 }
 
-void ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
+void blender::bke::ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
 {
   BLI_assert_unreachable();
 }

@@ -19,7 +19,6 @@
 
 #include "DEG_depsgraph.hh"
 
-struct Animation;
 struct CacheFile;
 struct Camera;
 struct Collection;
@@ -219,7 +218,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
    */
   virtual void build_animation_images(ID *id);
   virtual void build_action(bAction *action);
-  virtual void build_animation(Animation *animation);
 
   /**
    * Build graph node(s) for Driver

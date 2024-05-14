@@ -12,24 +12,6 @@
 
 shared vec4 local_sh_coefs[gl_WorkGroupSize.x][4];
 
-void spherical_harmonic_lds_store(uint index, SphericalHarmonicL1 sh)
-{
-  local_sh_coefs[index][0] = sh.L0.M0;
-  local_sh_coefs[index][1] = sh.L1.Mn1;
-  local_sh_coefs[index][2] = sh.L1.M0;
-  local_sh_coefs[index][3] = sh.L1.Mp1;
-}
-
-SphericalHarmonicL1 spherical_harmonic_lds_load(uint index)
-{
-  SphericalHarmonicL1 sh;
-  sh.L0.M0 = local_sh_coefs[index][0];
-  sh.L1.Mn1 = local_sh_coefs[index][1];
-  sh.L1.M0 = local_sh_coefs[index][2];
-  sh.L1.Mp1 = local_sh_coefs[index][3];
-  return sh;
-}
-
 void main()
 {
   SphericalHarmonicL1 sh;

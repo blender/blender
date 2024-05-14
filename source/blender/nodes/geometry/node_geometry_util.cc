@@ -142,7 +142,7 @@ void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params)
 
 }  // namespace blender::nodes
 
-bool geo_node_poll_default(const bNodeType * /*ntype*/,
+bool geo_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
                            const bNodeTree *ntree,
                            const char **r_disabled_hint)
 {
@@ -153,7 +153,7 @@ bool geo_node_poll_default(const bNodeType * /*ntype*/,
   return true;
 }
 
-void geo_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
+void geo_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass)
 {
   blender::bke::node_type_base(ntype, type, name, nclass);
   ntype->poll = geo_node_poll_default;

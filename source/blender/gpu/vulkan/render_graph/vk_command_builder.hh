@@ -81,7 +81,7 @@ class VKCommandBuilder {
   void build_node(VKRenderGraph &render_graph,
                   VKCommandBufferInterface &command_buffer,
                   NodeHandle node_handle,
-                  const VKRenderGraphNode &node);
+                  VKRenderGraphNode &node);
 
   /**
    * Build the pipeline barriers that should be recorded before the given node handle.

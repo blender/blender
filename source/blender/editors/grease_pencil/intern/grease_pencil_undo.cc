@@ -145,8 +145,10 @@ class StepDrawingGeometry : public StepDrawingGeometryBase {
     drawing_geometry.geometry.wrap() = geometry_;
 
     /* TODO: Check if there is a way to tell if both stored and current geometry are still the
-     * same, to avoid recomputing the cache all the time for all drawings? */
+     * same, to avoid recomputing the caches all the time for all drawings? */
     drawing_geometry.runtime->triangles_cache.tag_dirty();
+    drawing_geometry.runtime->curve_plane_normals_cache.tag_dirty();
+    drawing_geometry.runtime->curve_texture_matrices.tag_dirty();
   }
 };
 

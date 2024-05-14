@@ -35,14 +35,14 @@ void register_node_type_sh_sephsv()
 {
   namespace file_ns = blender::nodes::node_shader_sepcomb_hsv_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SEPHSV_LEGACY, "Separate HSV (Legacy)", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::node_declare_sephsv;
   ntype.gpu_fn = file_ns::gpu_shader_sephsv;
   ntype.gather_link_search_ops = nullptr;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 namespace blender::nodes::node_shader_sepcomb_hsv_cc {
@@ -72,12 +72,12 @@ void register_node_type_sh_combhsv()
 {
   namespace file_ns = blender::nodes::node_shader_sepcomb_hsv_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_COMBHSV_LEGACY, "Combine HSV (Legacy)", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::node_declare_combhsv;
   ntype.gpu_fn = file_ns::gpu_shader_combhsv;
   ntype.gather_link_search_ops = nullptr;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

@@ -32,7 +32,7 @@
 
 #include "ED_keyframing.hh"
 
-#include "ANIM_animation.hh"
+#include "ANIM_action.hh"
 
 /* exported for use in API */
 const EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
@@ -103,8 +103,9 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+#ifdef WITH_ANIM_BAKLAVA
 constexpr int binding_items_value_create_new = -1;
-const EnumPropertyItem rna_enum_animation_binding_items[] = {
+const EnumPropertyItem rna_enum_action_binding_items[] = {
     {binding_items_value_create_new,
      "NEW",
      ICON_ADD,
@@ -113,6 +114,7 @@ const EnumPropertyItem rna_enum_animation_binding_items[] = {
     {int(blender::animrig::Binding::unassigned), "UNASSIGNED", 0, "(none/legacy)", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
+#endif  // WITH_ANIM_BAKLAVA
 
 #ifdef RNA_RUNTIME
 
@@ -158,10 +160,23 @@ static int rna_AnimData_action_editable(const PointerRNA *ptr, const char ** /*r
 
 static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
-  ID *ownerId = ptr->owner_id;
+#  ifdef WITH_ANIM_BAKLAVA
+  BLI_assert(ptr->owner_id);
+  ID &animated_id = *ptr->owner_id;
 
-  /* set action */
+  /* TODO: protect against altering action in NLA tweak mode, see BKE_animdata_action_editable() */
+
+  bAction *action = static_cast<bAction *>(value.data);
+  if (!action) {
+    blender::animrig::unassign_animation(animated_id);
+    return;
+  }
+
+  blender::animrig::assign_animation(action->wrap(), animated_id);
+#  else
+  ID *ownerId = ptr->owner_id;
   BKE_animdata_set_action(nullptr, ownerId, static_cast<bAction *>(value.data));
+#  endif
 }
 
 static void rna_AnimData_tmpact_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -216,21 +231,7 @@ bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
 }
 
 #  ifdef WITH_ANIM_BAKLAVA
-static void rna_AnimData_animation_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
-{
-  BLI_assert(ptr->owner_id);
-  ID &animated_id = *ptr->owner_id;
-
-  Animation *anim = static_cast<Animation *>(value.data);
-  if (!anim) {
-    blender::animrig::unassign_animation(animated_id);
-    return;
-  }
-
-  blender::animrig::assign_animation(anim->wrap(), animated_id);
-}
-
-static void rna_AnimData_animation_binding_handle_set(
+static void rna_AnimData_action_binding_handle_set(
     PointerRNA *ptr, const blender::animrig::binding_handle_t new_binding_handle)
 {
   BLI_assert(ptr->owner_id);
@@ -252,7 +253,7 @@ static void rna_AnimData_animation_binding_handle_set(
     return;
   }
 
-  blender::animrig::Animation *anim = blender::animrig::get_animation(animated_id);
+  blender::animrig::Action *anim = blender::animrig::get_animation(animated_id);
   if (!anim) {
     /* No animation to verify the binding handle is valid. As the binding handle
      * will be completely ignored when re-assigning an Animation, better to
@@ -287,15 +288,15 @@ static AnimData &rna_animdata(const PointerRNA *ptr)
   return *reinterpret_cast<AnimData *>(ptr->data);
 }
 
-static int rna_AnimData_animation_binding_get(PointerRNA *ptr)
+static int rna_AnimData_action_binding_get(PointerRNA *ptr)
 {
   AnimData &adt = rna_animdata(ptr);
   return adt.binding_handle;
 }
 
-static void rna_AnimData_animation_binding_set(PointerRNA *ptr, int value)
+static void rna_AnimData_action_binding_set(PointerRNA *ptr, int value)
 {
-  using blender::animrig::Animation;
+  using blender::animrig::Action;
   using blender::animrig::Binding;
   using blender::animrig::binding_handle_t;
 
@@ -309,18 +310,21 @@ static void rna_AnimData_animation_binding_set(PointerRNA *ptr, int value)
     return;
   }
 
-  if (!adt.animation) {
-    /* No animation to verify the binding handle is valid. As the binding handle
+  if (!adt.action) {
+    /* No Action to verify the binding handle is valid. As the binding handle
      * will be completely ignored when re-assigning an Animation, better to
      * refuse setting it altogether. This will make bugs in Python code more obvious. */
     WM_reportf(RPT_ERROR,
-               "Data-block '%s' does not have an animation, cannot set binding handle",
+               "Data-block '%s' does not have an Action, cannot set binding handle",
                animated_id.name + 2);
     return;
   }
 
-  Animation &anim = adt.animation->wrap();
+  Action &anim = adt.action->wrap();
   Binding *binding = nullptr;
+
+  /* TODO: handle legacy Action. */
+  BLI_assert(anim.is_action_layered());
 
   if (new_binding_handle == binding_items_value_create_new) {
     /* Special case for this enum item. */
@@ -350,26 +354,26 @@ static void rna_AnimData_animation_binding_set(PointerRNA *ptr, int value)
   WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, nullptr);
 }
 
-static const EnumPropertyItem *rna_AnimData_animation_binding_itemf(bContext * /*C*/,
-                                                                    PointerRNA *ptr,
-                                                                    PropertyRNA * /*prop*/,
-                                                                    bool *r_free)
+static const EnumPropertyItem *rna_AnimData_action_binding_itemf(bContext * /*C*/,
+                                                                 PointerRNA *ptr,
+                                                                 PropertyRNA * /*prop*/,
+                                                                 bool *r_free)
 {
-  using blender::animrig::Animation;
+  using blender::animrig::Action;
   using blender::animrig::Binding;
 
   AnimData &adt = rna_animdata(ptr);
-  if (!adt.animation) {
+  if (!adt.action) {
     // TODO: handle properly.
     *r_free = false;
-    return rna_enum_animation_binding_items;
+    return rna_enum_action_binding_items;
   }
-
-  const Animation &anim = adt.animation->wrap();
 
   EnumPropertyItem item = {0};
   EnumPropertyItem *items = nullptr;
   int num_items = 0;
+
+  const Action &anim = adt.action->wrap();
 
   bool found_assigned_binding = false;
   for (const Binding *binding : anim.bindings()) {
@@ -387,14 +391,16 @@ static const EnumPropertyItem *rna_AnimData_animation_binding_itemf(bContext * /
     RNA_enum_item_add_separator(&items, &num_items);
   }
 
-  /* Only add the 'New' option. Unassigning should be done with the 'X' button. */
-  BLI_assert(rna_enum_animation_binding_items[0].value == binding_items_value_create_new);
-  RNA_enum_item_add(&items, &num_items, &rna_enum_animation_binding_items[0]);
+  /* Only add the 'New' option when this is a Layered Action. */
+  if (anim.is_action_layered()) {
+    BLI_assert(rna_enum_action_binding_items[0].value == binding_items_value_create_new);
+    RNA_enum_item_add(&items, &num_items, &rna_enum_action_binding_items[0]);
+  }
 
   if (!found_assigned_binding) {
     /* The assigned binding was not found, so show an option that reflects that. */
-    BLI_assert(rna_enum_animation_binding_items[1].value == Binding::unassigned);
-    RNA_enum_item_add(&items, &num_items, &rna_enum_animation_binding_items[1]);
+    BLI_assert(rna_enum_action_binding_items[1].value == Binding::unassigned);
+    RNA_enum_item_add(&items, &num_items, &rna_enum_action_binding_items[1]);
   }
 
   RNA_enum_item_end(&items, &num_items);
@@ -1666,43 +1672,35 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
 #  ifdef WITH_ANIM_BAKLAVA
-  /* Animation data-block */
-  prop = RNA_def_property(srna, "animation", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "Animation");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(prop, nullptr, "rna_AnimData_animation_set", nullptr, nullptr);
-  RNA_def_property_ui_text(prop, "Animation", "Active Animation for this data-block");
-  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
-
-  prop = RNA_def_property(srna, "animation_binding_handle", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "action_binding_handle", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "binding_handle");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_AnimData_animation_binding_handle_set", nullptr);
+  RNA_def_property_int_funcs(prop, nullptr, "rna_AnimData_action_binding_handle_set", nullptr);
   RNA_def_property_ui_text(prop,
-                           "Animation Binding Handle",
-                           "A number that identifies which sub-set of the Animation is considered "
+                           "Action Binding Handle",
+                           "A number that identifies which sub-set of the Action is considered "
                            "to be for this data-block");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
 
-  prop = RNA_def_property(srna, "animation_binding_name", PROP_STRING, PROP_NONE);
+  prop = RNA_def_property(srna, "action_binding_name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "binding_name");
   RNA_def_property_ui_text(
       prop,
-      "Animation Binding Name",
-      "The name of the animation binding. The binding identifies which sub-set of the Animation "
+      "Action Binding Name",
+      "The name of the action binding. The binding identifies which sub-set of the Action "
       "is considered to be for this data-block, and its name is used to find the right binding "
-      "when assigning an Animation");
+      "when assigning an Action");
 
-  prop = RNA_def_property(srna, "animation_binding", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "action_binding", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_funcs(prop,
-                              "rna_AnimData_animation_binding_get",
-                              "rna_AnimData_animation_binding_set",
-                              "rna_AnimData_animation_binding_itemf");
-  RNA_def_property_enum_items(prop, rna_enum_animation_binding_items);
+                              "rna_AnimData_action_binding_get",
+                              "rna_AnimData_action_binding_set",
+                              "rna_AnimData_action_binding_itemf");
+  RNA_def_property_enum_items(prop, rna_enum_action_binding_items);
   RNA_def_property_ui_text(
       prop,
-      "Animation Binding",
-      "The binding identifies which sub-set of the Animation is considered to be for this "
-      "data-block, and its name is used to find the right binding when assigning an Animation");
+      "Action Binding",
+      "The binding identifies which sub-set of the Action is considered to be for this "
+      "data-block, and its name is used to find the right binding when assigning an Action");
 
 #  endif
 

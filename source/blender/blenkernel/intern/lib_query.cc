@@ -462,7 +462,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id,
   /* Casting to non const.
    * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
    * interested in the result. */
-  if (ntreeFromID(const_cast<ID *>(owner_id))) {
+  if (blender::bke::ntreeFromID(const_cast<ID *>(owner_id))) {
     return FILTER_ID_ALL;
   }
 

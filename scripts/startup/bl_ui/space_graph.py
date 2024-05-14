@@ -205,9 +205,15 @@ class GRAPH_MT_select(Menu):
         props.axis_range = True
         props = layout.operator("graph.select_box", text="Box Select (Include Handles)")
         props.include_handles = True
-
         layout.operator("graph.select_circle")
         layout.operator_menu_enum("graph.select_lasso", "mode")
+
+        layout.separator()
+        layout.operator("graph.select_more", text="More")
+        layout.operator("graph.select_less", text="Less")
+
+        layout.separator()
+        layout.operator("graph.select_linked")
 
         layout.separator()
         layout.operator("graph.select_column", text="Columns on Selected Keys").mode = 'KEYS'
@@ -233,13 +239,6 @@ class GRAPH_MT_select(Menu):
         props.left_handle_action = 'DESELECT'
         props.right_handle_action = 'DESELECT'
         props.key_action = 'SELECT'
-
-        layout.separator()
-        layout.operator("graph.select_more")
-        layout.operator("graph.select_less")
-
-        layout.separator()
-        layout.operator("graph.select_linked")
 
 
 class GRAPH_MT_marker(Menu):

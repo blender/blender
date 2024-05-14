@@ -19,7 +19,7 @@ void Profiler::add_operation_execution_time(const NodeOperation &operation,
   const timeit::Nanoseconds execution_time = end - start;
 
   const bNodeInstanceKey key = operation.get_node_instance_key();
-  if (key.value == NODE_INSTANCE_KEY_NONE.value) {
+  if (key.value == bke::NODE_INSTANCE_KEY_NONE.value) {
     /* The operation does not come from any node. It was, for example, added to convert data type.
      * Do not accumulate time from its execution. */
     return;
@@ -45,7 +45,7 @@ timeit::Nanoseconds Profiler::accumulate_node_group_times(const bNodeTree &node_
   timeit::Nanoseconds tree_execution_time(0);
 
   for (const bNode *node : node_tree.all_nodes()) {
-    const bNodeInstanceKey key = BKE_node_instance_key(parent_key, &node_tree, node);
+    const bNodeInstanceKey key = bke::BKE_node_instance_key(parent_key, &node_tree, node);
 
     if (node->type != NODE_GROUP) {
       /* Non-group node, no need to recurse into. Simply accumulate the node's execution time to

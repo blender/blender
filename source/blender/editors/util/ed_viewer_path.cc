@@ -98,7 +98,7 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
     bNodeTree *tree = tree_path[i]->nodetree;
     /* The tree path contains the name of the node but not its ID. */
     const char *node_name = tree_path[i + 1]->node_name;
-    const bNode *node = nodeFindNodebyName(tree, node_name);
+    const bNode *node = bke::nodeFindNodebyName(tree, node_name);
     /* The name in the tree path should match a group node in the tree. Sometimes, the tree-path is
      * out of date though. */
     if (node == nullptr) {

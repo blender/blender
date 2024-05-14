@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-extern struct bNodeTreeType *ntreeType_Texture;
+extern struct blender::bke::bNodeTreeType *ntreeType_Texture;
 
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
 struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);

@@ -963,7 +963,8 @@ struct LightData {
 
   /* Shadow Map resolution bias. */
   float lod_bias;
-  float _pad0;
+  /* Shadow Map resolution maximum resolution. */
+  float lod_min;
   float _pad1;
   float _pad2;
 
@@ -1216,8 +1217,8 @@ struct ShadowTileMapData {
   int tiles_index;
   /** Index of persistent data in the persistent data buffer. */
   int clip_data_index;
-  /** Bias LOD to tag for usage to lower the amount of tile used. */
-  float lod_bias;
+
+  float _pad0;
   /** Light type this tilemap is from. */
   eLightType light_type;
   /** True if the tilemap is part of area light shadow and is one of the side projections. */
@@ -1559,6 +1560,13 @@ struct SphereProbeHarmonic {
 };
 BLI_STATIC_ASSERT_ALIGN(SphereProbeHarmonic, 16)
 
+struct SphereProbeSunLight {
+  float4 direction;
+  packed_float3 radiance;
+  float _pad0;
+};
+BLI_STATIC_ASSERT_ALIGN(SphereProbeSunLight, 16)
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1724,7 +1732,7 @@ BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
  * \{ */
 
 struct ClampData {
-  float world;
+  float sun_threshold;
   float surface_direct;
   float surface_indirect;
   float volume_direct;

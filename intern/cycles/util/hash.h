@@ -493,6 +493,20 @@ ccl_device_inline uint hash_shuffle_uint(uint i, uint length, uint seed)
   return i;
 }
 
+/**
+ * 2D hash recommended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
+ * See https://www.shadertoy.com/view/4tXyWN and https://www.shadertoy.com/view/XlGcRh
+ * http://www.jcgt.org/published/0009/03/02/paper.pdf
+ */
+ccl_device_inline uint hash_iqnt2d(const uint x, const uint y)
+{
+  const uint qx = 1103515245U * ((x >> 1U) ^ (y));
+  const uint qy = 1103515245U * ((y >> 1U) ^ (x));
+  const uint n = 1103515245U * ((qx) ^ (qy >> 3U));
+
+  return n;
+}
+
 /* ********** */
 
 #ifndef __KERNEL_GPU__

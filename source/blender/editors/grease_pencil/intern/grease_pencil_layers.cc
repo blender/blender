@@ -537,27 +537,27 @@ static int grease_pencil_layer_duplicate_exec(bContext *C, wmOperator *op)
 
   /* Duplicate layer. */
   Layer &active_layer = *grease_pencil.get_active_layer();
-  Layer &new_layer = grease_pencil.add_layer(active_layer);
+  Layer &new_layer = grease_pencil.duplicate_layer(active_layer);
 
   /* Clear source keyframes and recreate them with duplicated drawings. */
   new_layer.frames_for_write().clear();
-  for (auto [key, frame] : active_layer.frames().items()) {
-    const int duration = active_layer.get_frame_duration_at(key);
+  for (auto [frame_number, frame] : active_layer.frames().items()) {
+    const int duration = active_layer.get_frame_duration_at(frame_number);
 
-    GreasePencilFrame *new_frame = new_layer.add_frame(key, duration);
-    new_frame->drawing_index = grease_pencil.drawings().size();
-    new_frame->type = frame.type;
-    if (empty_keyframes) {
-      grease_pencil.add_empty_drawings(1);
-    }
-    else {
-      const Drawing &drawing = *grease_pencil.get_drawing_at(active_layer, key);
-      grease_pencil.add_duplicate_drawings(1, drawing);
+    Drawing *dst_drawing = grease_pencil.insert_frame(
+        new_layer, frame_number, duration, eBezTriple_KeyframeType(frame.type));
+    if (!empty_keyframes) {
+      BLI_assert(dst_drawing != nullptr);
+      /* TODO: This can fail (return `nullptr`) if the drawing is a drawing reference! */
+      const Drawing &src_drawing = *grease_pencil.get_drawing_at(active_layer, frame_number);
+      /* Duplicate the drawing. */
+      *dst_drawing = src_drawing;
     }
   }
 
   grease_pencil.move_node_after(new_layer.as_node(), active_layer.as_node());
   grease_pencil.set_active_layer(&new_layer);
+
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
   return OPERATOR_FINISHED;

@@ -76,7 +76,7 @@ static int gpu_shader_mapping(GPUMaterial *mat,
 
 static void node_shader_update_mapping(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock = nodeFindSocket(node, SOCK_IN, "Location");
+  bNodeSocket *sock = bke::nodeFindSocket(node, SOCK_IN, "Location");
   bke::nodeSetSocketAvailability(
       ntree, sock, ELEM(node->custom1, NODE_MAPPING_TYPE_POINT, NODE_MAPPING_TYPE_TEXTURE));
 }
@@ -119,7 +119,7 @@ void register_node_type_sh_mapping()
 {
   namespace file_ns = blender::nodes::node_shader_mapping_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::node_declare;
@@ -128,5 +128,5 @@ void register_node_type_sh_mapping()
   ntype.updatefunc = file_ns::node_shader_update_mapping;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

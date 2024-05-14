@@ -272,7 +272,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
     if (ntree) {
       LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
         if (node->flag & NODE_SELECT) {
-          nodeRemoveNode(bmain, ntree, node, true);
+          bke::nodeRemoveNode(bmain, ntree, node, true);
         }
       }
       ED_node_tree_propagate_change(C, bmain, ntree);

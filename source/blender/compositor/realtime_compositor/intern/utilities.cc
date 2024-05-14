@@ -198,7 +198,7 @@ void compute_preview_from_result(Context &context, const DNode &node, Result &in
   bNodeTree *root_tree = const_cast<bNodeTree *>(
       &node.context()->derived_tree().root_context().btree());
   if (!root_tree->previews) {
-    root_tree->previews = BKE_node_instance_hash_new("node previews");
+    root_tree->previews = bke::BKE_node_instance_hash_new("node previews");
   }
 
   const int2 preview_size = compute_preview_size(input_result.domain().size);

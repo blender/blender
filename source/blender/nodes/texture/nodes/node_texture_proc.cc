@@ -19,9 +19,10 @@
  * In this file: wrappers to use procedural textures as nodes
  */
 
-static bNodeSocketTemplate outputs_both[] = {{SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
-                                             {-1, ""}};
-static bNodeSocketTemplate outputs_color_only[] = {{SOCK_RGBA, N_("Color")}, {-1, ""}};
+static blender::bke::bNodeSocketTemplate outputs_both[] = {
+    {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f}, {-1, ""}};
+static blender::bke::bNodeSocketTemplate outputs_color_only[] = {{SOCK_RGBA, N_("Color")},
+                                                                 {-1, ""}};
 
 /* Inputs common to all, #defined because nodes will need their own inputs too */
 #define I 2 /* count */
@@ -107,7 +108,7 @@ static int count_outputs(bNode *node)
   }
 
 /* --- VORONOI -- */
-static bNodeSocketTemplate voronoi_inputs[] = {
+static blender::bke::bNodeSocketTemplate voronoi_inputs[] = {
     COMMON_INPUTS,
     {SOCK_FLOAT, N_("W1"), 1.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
     {SOCK_FLOAT, N_("W2"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
@@ -131,12 +132,12 @@ static void voronoi_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short th
 ProcDef(voronoi);
 
 /* --- BLEND -- */
-static bNodeSocketTemplate blend_inputs[] = {COMMON_INPUTS, {-1, ""}};
+static blender::bke::bNodeSocketTemplate blend_inputs[] = {COMMON_INPUTS, {-1, ""}};
 ProcNoInputs(blend);
 ProcDef(blend);
 
 /* -- MAGIC -- */
-static bNodeSocketTemplate magic_inputs[] = {
+static blender::bke::bNodeSocketTemplate magic_inputs[] = {
     COMMON_INPUTS,
     {SOCK_FLOAT, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
     {-1, ""}};
@@ -147,7 +148,7 @@ static void magic_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thre
 ProcDef(magic);
 
 /* --- MARBLE --- */
-static bNodeSocketTemplate marble_inputs[] = {
+static blender::bke::bNodeSocketTemplate marble_inputs[] = {
     COMMON_INPUTS,
     {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
     {SOCK_FLOAT, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
@@ -160,7 +161,7 @@ static void marble_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thr
 ProcDef(marble);
 
 /* --- CLOUDS --- */
-static bNodeSocketTemplate clouds_inputs[] = {
+static blender::bke::bNodeSocketTemplate clouds_inputs[] = {
     COMMON_INPUTS,
     {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
     {-1, ""}};
@@ -171,7 +172,7 @@ static void clouds_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thr
 ProcDef(clouds);
 
 /* --- DISTORTED NOISE --- */
-static bNodeSocketTemplate distnoise_inputs[] = {
+static blender::bke::bNodeSocketTemplate distnoise_inputs[] = {
     COMMON_INPUTS,
     {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
     {SOCK_FLOAT, N_("Distortion"), 1.00f, 0.0f, 0.0f, 0.0f, 0.0000f, 10.0f, PROP_UNSIGNED},
@@ -184,7 +185,7 @@ static void distnoise_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short 
 ProcDef(distnoise);
 
 /* --- WOOD --- */
-static bNodeSocketTemplate wood_inputs[] = {
+static blender::bke::bNodeSocketTemplate wood_inputs[] = {
     COMMON_INPUTS,
     {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
     {SOCK_FLOAT, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
@@ -197,7 +198,7 @@ static void wood_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short threa
 ProcDef(wood);
 
 /* --- MUSGRAVE --- */
-static bNodeSocketTemplate musgrave_inputs[] = {
+static blender::bke::bNodeSocketTemplate musgrave_inputs[] = {
     COMMON_INPUTS,
     {SOCK_FLOAT, N_("H"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
     {SOCK_FLOAT, N_("Lacunarity"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6.0f, PROP_UNSIGNED},
@@ -217,12 +218,12 @@ static void musgrave_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short t
 ProcDef(musgrave);
 
 /* --- NOISE --- */
-static bNodeSocketTemplate noise_inputs[] = {COMMON_INPUTS, {-1, ""}};
+static blender::bke::bNodeSocketTemplate noise_inputs[] = {COMMON_INPUTS, {-1, ""}};
 ProcNoInputs(noise);
 ProcDef(noise);
 
 /* --- STUCCI --- */
-static bNodeSocketTemplate stucci_inputs[] = {
+static blender::bke::bNodeSocketTemplate stucci_inputs[] = {
     COMMON_INPUTS,
     {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
     {SOCK_FLOAT, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
@@ -253,17 +254,18 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
 #define TexDef(TEXTYPE, outputs, name, Name) \
   void register_node_type_tex_proc_##name(void) \
   { \
-    static bNodeType ntype; \
+    static blender::bke::bNodeType ntype; \
 \
     tex_node_type_base(&ntype, TEX_NODE_PROC + TEXTYPE, Name, NODE_CLASS_TEXTURE); \
     blender::bke::node_type_socket_templates(&ntype, name##_inputs, outputs); \
     blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle); \
     ntype.initfunc = init; \
-    node_type_storage(&ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
+    blender::bke::node_type_storage( \
+        &ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
     ntype.exec_fn = name##_exec; \
     ntype.flag |= NODE_PREVIEW; \
 \
-    nodeRegisterType(&ntype); \
+    blender::bke::nodeRegisterType(&ntype); \
   }
 
 #define C outputs_color_only

@@ -13,7 +13,6 @@ TEST(vk_render_graph, transfer_and_present)
   VkHandle<VkImage> back_buffer(1u);
 
   Vector<std::string> log;
-  VKCommandBufferWrapper wrapper;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(

@@ -107,7 +107,8 @@ static void material_copy_data(Main *bmain,
 
   if (material_src->nodetree != nullptr) {
     if (is_localized) {
-      material_dst->nodetree = ntreeLocalize(material_src->nodetree, &material_dst->id);
+      material_dst->nodetree = blender::bke::ntreeLocalize(material_src->nodetree,
+                                                           &material_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
@@ -152,7 +153,7 @@ static void material_free_data(ID *id)
 
   /* is no lib link block, but material extension */
   if (material->nodetree) {
-    ntreeFreeEmbeddedTree(material->nodetree);
+    blender::bke::ntreeFreeEmbeddedTree(material->nodetree);
     MEM_freeN(material->nodetree);
     material->nodetree = nullptr;
   }
@@ -206,7 +207,7 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
         temp_embedded_id_buffer, &ma->nodetree->id, BLO_write_is_undo(writer));
     BLO_write_struct_at_address(
         writer, bNodeTree, ma->nodetree, BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
-    ntreeBlendWrite(
+    blender::bke::ntreeBlendWrite(
         writer,
         reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
     BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
@@ -1988,24 +1989,24 @@ static void material_default_surface_init(Material *ma)
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
-  bNode *principled = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_PRINCIPLED);
-  bNodeSocket *base_color = nodeFindSocket(principled, SOCK_IN, "Base Color");
+  bNode *principled = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_PRINCIPLED);
+  bNodeSocket *base_color = blender::bke::nodeFindSocket(principled, SOCK_IN, "Base Color");
   copy_v3_v3(((bNodeSocketValueRGBA *)base_color->default_value)->value, &ma->r);
 
-  bNode *output = nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *output = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
-  nodeAddLink(ntree,
-              principled,
-              nodeFindSocket(principled, SOCK_OUT, "BSDF"),
-              output,
-              nodeFindSocket(output, SOCK_IN, "Surface"));
+  blender::bke::nodeAddLink(ntree,
+                            principled,
+                            blender::bke::nodeFindSocket(principled, SOCK_OUT, "BSDF"),
+                            output,
+                            blender::bke::nodeFindSocket(output, SOCK_IN, "Surface"));
 
   principled->locx = 10.0f;
   principled->locy = 300.0f;
   output->locx = 300.0f;
   output->locy = 300.0f;
 
-  nodeSetActive(ntree, output);
+  blender::bke::nodeSetActive(ntree, output);
 }
 
 static void material_default_volume_init(Material *ma)
@@ -2016,21 +2017,21 @@ static void material_default_volume_init(Material *ma)
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
-  bNode *principled = nodeAddStaticNode(nullptr, ntree, SH_NODE_VOLUME_PRINCIPLED);
-  bNode *output = nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *principled = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_VOLUME_PRINCIPLED);
+  bNode *output = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
-  nodeAddLink(ntree,
-              principled,
-              nodeFindSocket(principled, SOCK_OUT, "Volume"),
-              output,
-              nodeFindSocket(output, SOCK_IN, "Volume"));
+  blender::bke::nodeAddLink(ntree,
+                            principled,
+                            blender::bke::nodeFindSocket(principled, SOCK_OUT, "Volume"),
+                            output,
+                            blender::bke::nodeFindSocket(output, SOCK_IN, "Volume"));
 
   principled->locx = 10.0f;
   principled->locy = 300.0f;
   output->locx = 300.0f;
   output->locy = 300.0f;
 
-  nodeSetActive(ntree, output);
+  blender::bke::nodeSetActive(ntree, output);
 }
 
 static void material_default_holdout_init(Material *ma)
@@ -2041,21 +2042,21 @@ static void material_default_holdout_init(Material *ma)
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
-  bNode *holdout = nodeAddStaticNode(nullptr, ntree, SH_NODE_HOLDOUT);
-  bNode *output = nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *holdout = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_HOLDOUT);
+  bNode *output = blender::bke::nodeAddStaticNode(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
 
-  nodeAddLink(ntree,
-              holdout,
-              nodeFindSocket(holdout, SOCK_OUT, "Holdout"),
-              output,
-              nodeFindSocket(output, SOCK_IN, "Surface"));
+  blender::bke::nodeAddLink(ntree,
+                            holdout,
+                            blender::bke::nodeFindSocket(holdout, SOCK_OUT, "Holdout"),
+                            output,
+                            blender::bke::nodeFindSocket(output, SOCK_IN, "Surface"));
 
   holdout->locx = 10.0f;
   holdout->locy = 300.0f;
   output->locx = 300.0f;
   output->locy = 300.0f;
 
-  nodeSetActive(ntree, output);
+  blender::bke::nodeSetActive(ntree, output);
 }
 
 Material *BKE_material_default_empty()

@@ -861,8 +861,6 @@ ListBase *which_libbase(Main *bmain, short type)
       return &(bmain->armatures);
     case ID_AC:
       return &(bmain->actions);
-    case ID_AN:
-      return &(bmain->animations);
     case ID_NT:
       return &(bmain->nodetrees);
     case ID_BR:
@@ -908,7 +906,6 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
 
   /* Moved here to avoid problems when freeing with animato (aligorith). */
   lb[INDEX_ID_AC] = &(bmain->actions);
-  lb[INDEX_ID_AN] = &(bmain->animations);
 
   lb[INDEX_ID_KE] = &(bmain->shapekeys);
 

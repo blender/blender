@@ -385,12 +385,13 @@ static void ui_block_free_func_POPUP(void *arg_pup)
   MEM_delete(pup);
 }
 
-static uiPopupBlockHandle *ui_popup_menu_create(
+static uiPopupBlockHandle *ui_popup_menu_create_impl(
     bContext *C,
     ARegion *butregion,
     uiBut *but,
     const char *title,
-    std::function<void(bContext *, uiLayout *)> menu_func)
+    std::function<void(bContext *, uiLayout *)> menu_func,
+    const bool can_refresh)
 {
   wmWindow *window = CTX_wm_window(C);
 
@@ -415,7 +416,7 @@ static uiPopupBlockHandle *ui_popup_menu_create(
     pup->popup = true;
   }
   uiPopupBlockHandle *handle = ui_popup_block_create(
-      C, butregion, but, nullptr, ui_block_func_POPUP, pup, ui_block_free_func_POPUP);
+      C, butregion, but, nullptr, ui_block_func_POPUP, pup, ui_block_free_func_POPUP, can_refresh);
 
   if (!but) {
     handle->popup = true;
@@ -430,10 +431,13 @@ static uiPopupBlockHandle *ui_popup_menu_create(
 uiPopupBlockHandle *ui_popup_menu_create(
     bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
 {
-  return ui_popup_menu_create(
-      C, butregion, but, nullptr, [menu_func, arg](bContext *C, uiLayout *layout) {
-        menu_func(C, layout, arg);
-      });
+  return ui_popup_menu_create_impl(
+      C,
+      butregion,
+      but,
+      nullptr,
+      [menu_func, arg](bContext *C, uiLayout *layout) { menu_func(C, layout, arg); },
+      false);
 }
 
 /** \} */
@@ -509,7 +513,7 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
   }
 
   uiPopupBlockHandle *menu = ui_popup_block_create(
-      C, butregion, but, nullptr, ui_block_func_POPUP, pup, nullptr);
+      C, butregion, but, nullptr, ui_block_func_POPUP, pup, nullptr, false);
   menu->popup = true;
 
   UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
@@ -600,16 +604,20 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
                                                const char *title,
                                                const int icon)
 {
-  uiPopupBlockHandle *handle = ui_popup_menu_create(
-      C, nullptr, nullptr, title, [mt, title, icon](bContext *C, uiLayout *layout) -> void {
+  uiPopupBlockHandle *handle = ui_popup_menu_create_impl(
+      C,
+      nullptr,
+      nullptr,
+      title,
+      [mt, title, icon](bContext *C, uiLayout *layout) -> void {
         if (title && title[0]) {
           create_title_button(layout, title, icon);
         }
         ui_item_menutype_func(C, layout, mt);
-      });
+      },
+      true);
 
   STRNCPY(handle->menu_idname, mt->idname);
-  handle->can_refresh = true;
 
   WorkspaceStatus status(C);
   if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
@@ -659,17 +667,13 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
  * \{ */
 
 void UI_popup_block_invoke_ex(
-    bContext *C, uiBlockCreateFunc func, void *arg, uiFreeArgFunc arg_free, bool can_refresh)
+    bContext *C, uiBlockCreateFunc func, void *arg, uiFreeArgFunc arg_free, const bool can_refresh)
 {
   wmWindow *window = CTX_wm_window(C);
 
   uiPopupBlockHandle *handle = ui_popup_block_create(
-      C, nullptr, nullptr, func, nullptr, arg, arg_free);
+      C, nullptr, nullptr, func, nullptr, arg, arg_free, can_refresh);
   handle->popup = true;
-
-  /* It can be useful to disable refresh (even though it will work)
-   * as this exists text fields which can be disruptive if refresh isn't needed. */
-  handle->can_refresh = can_refresh;
 
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
   UI_block_active_only_flagged_buttons(
@@ -692,10 +696,9 @@ void UI_popup_block_ex(bContext *C,
   wmWindow *window = CTX_wm_window(C);
 
   uiPopupBlockHandle *handle = ui_popup_block_create(
-      C, nullptr, nullptr, func, nullptr, arg, nullptr);
+      C, nullptr, nullptr, func, nullptr, arg, nullptr, true);
   handle->popup = true;
   handle->retvalue = 1;
-  handle->can_refresh = true;
 
   handle->popup_op = op;
   handle->popup_arg = arg;
@@ -716,12 +719,10 @@ void uiPupBlockOperator(bContext *C,
                         wmOperatorCallContext opcontext)
 {
   wmWindow *window = CTX_wm_window(C);
-  uiPopupBlockHandle *handle;
 
-  handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr);
+  uiPopupBlockHandle *handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr, true);
   handle->popup = 1;
   handle->retvalue = 1;
-  handle->can_refresh = true;
 
   handle->popup_arg = op;
   handle->popup_func = operator_cb;

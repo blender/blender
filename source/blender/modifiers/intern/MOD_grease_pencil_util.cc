@@ -9,6 +9,7 @@
 #include "MOD_grease_pencil_util.hh"
 
 #include "BLI_set.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
@@ -319,51 +320,37 @@ Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease
                                                             const IndexMask &layer_mask,
                                                             const int frame)
 {
-  /* Set of unique drawing indices. */
-  Set<int> drawing_indices;
-  for (const int64_t i : layer_mask.index_range()) {
-    const Layer *layer = grease_pencil.layer(layer_mask[i]);
-    const int drawing_index = layer->drawing_index_at(frame);
-    if (drawing_index >= 0) {
-      drawing_indices.add(drawing_index);
+  using namespace blender::bke::greasepencil;
+  VectorSet<Drawing *> drawings;
+  layer_mask.foreach_index([&](const int64_t layer_i) {
+    const Layer &layer = *grease_pencil.layer(layer_i);
+    /* Set of owned drawings, ignore drawing references to other data blocks. */
+    if (Drawing *drawing = grease_pencil.get_drawing_at(layer, frame)) {
+      drawings.add(drawing);
     }
-  }
-
-  /* List of owned drawings, ignore drawing references to other data blocks. */
-  Vector<bke::greasepencil::Drawing *> drawings;
-  for (const int drawing_index : drawing_indices) {
-    GreasePencilDrawingBase *drawing_base = grease_pencil.drawing(drawing_index);
-    if (drawing_base->type == GP_DRAWING) {
-      GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-      drawings.append(&drawing->wrap());
-    }
-  }
-  return drawings;
+  });
+  return Vector<Drawing *>(drawings.as_span());
 }
 
 Vector<LayerDrawingInfo> get_drawing_infos_by_layer(GreasePencil &grease_pencil,
                                                     const IndexMask &layer_mask,
                                                     const int frame)
 {
-  Set<int> drawing_indices;
+  using namespace blender::bke::greasepencil;
+  Set<Drawing *> drawings;
   Vector<LayerDrawingInfo> drawing_infos;
-  for (const int64_t i : layer_mask.index_range()) {
-    const int layer_index = layer_mask[i];
-    const Layer *layer = grease_pencil.layer(layer_index);
-    const int drawing_index = layer->drawing_index_at(frame);
-    if (drawing_index < 0) {
-      continue;
+  layer_mask.foreach_index([&](const int64_t layer_i) {
+    const Layer &layer = *grease_pencil.layer(layer_i);
+    Drawing *drawing = grease_pencil.get_drawing_at(layer, frame);
+    if (drawing == nullptr) {
+      return;
     }
 
-    if (!drawing_indices.contains(drawing_index)) {
-      drawing_indices.add(drawing_index);
-      GreasePencilDrawingBase *drawing_base = grease_pencil.drawing(drawing_index);
-      if (drawing_base->type == GP_DRAWING) {
-        GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        drawing_infos.append({&drawing->wrap(), layer_index});
-      }
+    if (!drawings.contains(drawing)) {
+      drawings.add_new(drawing);
+      drawing_infos.append({drawing, int(layer_i)});
     }
-  }
+  });
   return drawing_infos;
 }
 
@@ -371,24 +358,25 @@ Vector<FrameDrawingInfo> get_drawing_infos_by_frame(GreasePencil &grease_pencil,
                                                     const IndexMask &layer_mask,
                                                     const int frame)
 {
-  Set<int> drawing_indices;
+  using namespace blender::bke::greasepencil;
+  Set<Drawing *> drawings;
   Vector<FrameDrawingInfo> drawing_infos;
-  for (const int64_t i : layer_mask.index_range()) {
-    const Layer *layer = grease_pencil.layer(layer_mask[i]);
-    const std::optional<FramesMapKey> start_frame = layer->frame_key_at(frame);
+  layer_mask.foreach_index([&](const int64_t layer_i) {
+    const Layer &layer = *grease_pencil.layer(layer_i);
+    const std::optional<FramesMapKey> start_frame = layer.frame_key_at(frame);
     if (!start_frame) {
-      continue;
+      return;
     }
-    const GreasePencilFrame &frame = layer->frames().lookup(*start_frame);
-    if (!drawing_indices.contains(frame.drawing_index)) {
-      drawing_indices.add(frame.drawing_index);
-      GreasePencilDrawingBase *drawing_base = grease_pencil.drawing(frame.drawing_index);
-      if (drawing_base->type == GP_DRAWING) {
-        GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        drawing_infos.append({&drawing->wrap(), *start_frame});
-      }
+    Drawing *drawing = grease_pencil.get_drawing_at(layer, *start_frame);
+    if (drawing == nullptr) {
+      return;
     }
-  }
+
+    if (!drawings.contains(drawing)) {
+      drawings.add_new(drawing);
+      drawing_infos.append({drawing, *start_frame});
+    }
+  });
   return drawing_infos;
 }
 

@@ -92,7 +92,7 @@ static void texture_copy_data(Main *bmain,
     }
 
     if (is_localized) {
-      texture_dst->nodetree = ntreeLocalize(texture_src->nodetree, &texture_dst->id);
+      texture_dst->nodetree = blender::bke::ntreeLocalize(texture_src->nodetree, &texture_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
@@ -122,7 +122,7 @@ static void texture_free_data(ID *id)
 
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {
-    ntreeFreeEmbeddedTree(texture->nodetree);
+    blender::bke::ntreeFreeEmbeddedTree(texture->nodetree);
     MEM_freeN(texture->nodetree);
     texture->nodetree = nullptr;
   }
@@ -172,7 +172,7 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
                                 bNodeTree,
                                 tex->nodetree,
                                 BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
-    ntreeBlendWrite(
+    blender::bke::ntreeBlendWrite(
         writer,
         reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
     BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);

@@ -59,7 +59,7 @@ void register_node_type_cmp_switch()
 {
   namespace file_ns = blender::nodes::node_composite_switch_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH, "Switch", NODE_CLASS_LAYOUT);
   ntype.declare = file_ns::cmp_node_switch_declare;
@@ -67,5 +67,5 @@ void register_node_type_cmp_switch()
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Default);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

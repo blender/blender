@@ -97,7 +97,7 @@ inline void set_item_name_and_make_unique(bNode &node,
   SocketItemsRef array = Accessor::get_items_from_node(node);
   const char *default_name = "Item";
   if constexpr (Accessor::has_type) {
-    default_name = nodeStaticSocketLabel(Accessor::get_socket_type(item), 0);
+    default_name = bke::nodeStaticSocketLabel(Accessor::get_socket_type(item), 0);
   }
 
   char unique_name[MAX_NAME + 4];
@@ -240,11 +240,11 @@ template<typename Accessor>
   update_node_declaration_and_sockets(ntree, extend_node);
   const std::string item_identifier = Accessor::socket_identifier_for_item(*item);
   if (extend_socket.is_input()) {
-    bNodeSocket *new_socket = nodeFindSocket(&extend_node, SOCK_IN, item_identifier.c_str());
+    bNodeSocket *new_socket = bke::nodeFindSocket(&extend_node, SOCK_IN, item_identifier.c_str());
     link.tosock = new_socket;
   }
   else {
-    bNodeSocket *new_socket = nodeFindSocket(&extend_node, SOCK_OUT, item_identifier.c_str());
+    bNodeSocket *new_socket = bke::nodeFindSocket(&extend_node, SOCK_OUT, item_identifier.c_str());
     link.fromsock = new_socket;
   }
   return true;

@@ -39,8 +39,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
   const bool is_editmode = arm->edbo != nullptr;
 
   if (is_editmode == false) {
-    const std::optional<blender::Bounds<blender::float3>> bounds = BKE_armature_min_max(
-        ob_eval->pose);
+    const std::optional<blender::Bounds<blender::float3>> bounds = BKE_armature_min_max(ob_eval);
     if (bounds && !nearest2d.snap_boundbox(bounds->min, bounds->max)) {
       return retval;
     }

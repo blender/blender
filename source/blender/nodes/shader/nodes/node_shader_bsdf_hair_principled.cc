@@ -210,7 +210,7 @@ void register_node_type_sh_bsdf_hair_principled()
 {
   namespace file_ns = blender::nodes::node_shader_bsdf_hair_principled_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(
       &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER);
@@ -221,8 +221,8 @@ void register_node_type_sh_bsdf_hair_principled()
   ntype.initfunc = file_ns::node_shader_init_hair_principled;
   ntype.updatefunc = file_ns::node_shader_update_hair_principled;
   ntype.gpu_fn = file_ns::node_shader_gpu_hair_principled;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeShaderHairPrincipled", node_free_standard_storage, node_copy_standard_storage);
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

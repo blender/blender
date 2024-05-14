@@ -274,17 +274,18 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
 
   char name[sizeof(bUserExtensionRepo::name)] = "";
-  char remote_path[sizeof(bUserExtensionRepo::remote_path)] = "";
+  char remote_url[sizeof(bUserExtensionRepo::remote_url)] = "";
   char custom_directory[sizeof(bUserExtensionRepo::custom_dirpath)] = "";
 
   const bool use_custom_directory = RNA_boolean_get(op->ptr, "use_custom_directory");
+  const bool use_sync_on_startup = RNA_boolean_get(op->ptr, "use_sync_on_startup");
   if (use_custom_directory) {
     RNA_string_get(op->ptr, "custom_directory", custom_directory);
     BLI_path_slash_rstrip(custom_directory);
   }
 
   if (repo_type == bUserExtensionRepoAddType::Remote) {
-    RNA_string_get(op->ptr, "remote_path", remote_path);
+    RNA_string_get(op->ptr, "remote_url", remote_url);
   }
 
   /* Setup the name using the following logic:
@@ -302,7 +303,7 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
     if (name[0] == '\0') {
       switch (repo_type) {
         case bUserExtensionRepoAddType::Remote: {
-          BKE_preferences_extension_remote_to_name(remote_path, name);
+          BKE_preferences_extension_remote_to_name(remote_url, name);
           break;
         }
         case bUserExtensionRepoAddType::Local: {
@@ -342,13 +343,16 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(
       &U, name, module, custom_directory);
 
+  if (use_sync_on_startup) {
+    new_repo->flag |= USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP;
+  }
   if (use_custom_directory) {
     new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY;
   }
 
   if (repo_type == bUserExtensionRepoAddType::Remote) {
-    STRNCPY(new_repo->remote_path, remote_path);
-    new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
+    STRNCPY(new_repo->remote_url, remote_url);
+    new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL;
   }
 
   /* Activate new repository in the UI for further setup. */
@@ -395,7 +399,8 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
 
   switch (repo_type) {
     case bUserExtensionRepoAddType::Remote: {
-      uiItemR(layout, op->ptr, "remote_path", UI_ITEM_R_IMMEDIATE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "use_sync_on_startup", UI_ITEM_NONE, nullptr, ICON_NONE);
       break;
     }
     case bUserExtensionRepoAddType::Local: {
@@ -463,14 +468,25 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
   }
 
   { /* Remote Path. */
-    const char *prop_id = "remote_path";
+    const char *prop_id = "remote_url";
     PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
     PropertyRNA *prop = RNA_def_string(ot->srna,
                                        prop_id,
                                        nullptr,
-                                       sizeof(bUserExtensionRepo::remote_path),
+                                       sizeof(bUserExtensionRepo::remote_url),
                                        RNA_property_ui_name_raw(prop_ref),
                                        RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
+
+  { /* Check for Updated on Startup. */
+    const char *prop_id = "use_sync_on_startup";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                        prop_id,
+                                        false,
+                                        RNA_property_ui_name_raw(prop_ref),
+                                        RNA_property_ui_description_raw(prop_ref));
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   }
 
@@ -491,7 +507,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
     PropertyRNA *prop = RNA_def_string_dir_path(ot->srna,
                                                 prop_id,
                                                 nullptr,
-                                                sizeof(bUserExtensionRepo::remote_path),
+                                                sizeof(bUserExtensionRepo::custom_dirpath),
                                                 RNA_property_ui_name_raw(prop_ref),
                                                 RNA_property_ui_description_raw(prop_ref));
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -513,7 +529,7 @@ static bool preferences_extension_repo_remote_active_enabled_poll(bContext *C)
   const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
       &U, U.active_extension_repo);
   if (repo == nullptr || (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) ||
-      !(repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH))
+      !(repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL))
   {
     CTX_wm_operator_poll_msg_set(C, "An enabled remote repository must be selected");
     return false;
@@ -938,7 +954,7 @@ static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEven
   /* Check the URL has a `.zip` suffix OR has a known repository as a prefix.
    * This is needed to support redirects which don't contain an extension. */
   if (!(cstr_ext && STRCASEEQ(cstr_ext, ".zip")) &&
-      !BKE_preferences_extension_repo_find_by_remote_path_prefix(&U, cstr, true))
+      !BKE_preferences_extension_repo_find_by_remote_url_prefix(&U, cstr, true))
   {
     return false;
   }

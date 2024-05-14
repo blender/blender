@@ -962,6 +962,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
 
     # Grease Pencil #
     if mode == 'PAINT_GREASE_PENCIL':
+        size_mode = True
         size = True
         strength = True
 
@@ -1531,13 +1532,21 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
     if gp_settings is None:
         return
 
+    tool_settings = context.tool_settings
+    ups = tool_settings.unified_paint_settings
+
     grease_pencil_tool = brush.gpencil_tool
+
+    size = "size"
+    size_owner = ups if ups.use_unified_size else brush
+    if size_owner.use_locked_size == 'SCENE':
+        size = "unprojected_radius"
 
     UnifiedPaintPanel.prop_unified(
         layout,
         context,
         brush,
-        "size",
+        size,
         unified_name="use_unified_size",
         pressure_name="use_pressure_size",
         text="Radius",
@@ -1596,13 +1605,6 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
             if settings.use_thickness_curve:
                 # Pressure curve.
                 layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
-    elif grease_pencil_tool == 'DRAW':
-        layout.prop(gp_settings, "active_smooth_factor")
-        row = layout.row(align=True)
-        if compact:
-            row.prop(gp_settings, "caps_type", text="", expand=True)
-        else:
-            row.prop(gp_settings, "caps_type", text="Caps Type")
     elif grease_pencil_tool == 'ERASE':
         layout.prop(gp_settings, "eraser_mode", expand=True)
         if gp_settings.eraser_mode == 'HARD':

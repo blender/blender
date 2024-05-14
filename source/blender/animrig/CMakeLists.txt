@@ -34,7 +34,6 @@ set(SRC
   intern/visualkey.cc
 
   ANIM_action.hh
-  ANIM_animation.hh
   ANIM_animdata.hh
   ANIM_armature_iter.hh
   ANIM_bone_collections.hh

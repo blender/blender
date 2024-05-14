@@ -140,7 +140,7 @@ struct VKRenderGraphNode {
    * `VKCommandBuilder::build_node` and `VKCommandBuilder::build_pipeline_barriers.
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
-                      VKBoundPipelines &r_bound_pipelines) const
+                      VKBoundPipelines &r_bound_pipelines)
   {
     switch (type) {
       case VKNodeType::UNUSED: {

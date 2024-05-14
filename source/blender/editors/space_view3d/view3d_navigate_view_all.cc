@@ -399,7 +399,12 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     FOREACH_OBJECT_IN_MODE_BEGIN (
         scene_eval, view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter)
     {
-      ok |= BKE_pose_minmax(ob_eval_iter, min, max, true, true);
+      const std::optional<Bounds<float3>> bounds = BKE_pose_minmax(ob_eval_iter, true);
+      if (bounds) {
+        minmax_v3v3_v3(min, max, bounds->min);
+        minmax_v3v3_v3(min, max, bounds->max);
+        ok = true;
+      }
     }
     FOREACH_OBJECT_IN_MODE_END;
   }

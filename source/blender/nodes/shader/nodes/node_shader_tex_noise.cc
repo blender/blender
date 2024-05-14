@@ -145,10 +145,10 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat,
 
 static void node_shader_update_tex_noise(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
-  bNodeSocket *sockW = nodeFindSocket(node, SOCK_IN, "W");
-  bNodeSocket *inOffsetSock = nodeFindSocket(node, SOCK_IN, "Offset");
-  bNodeSocket *inGainSock = nodeFindSocket(node, SOCK_IN, "Gain");
+  bNodeSocket *sockVector = bke::nodeFindSocket(node, SOCK_IN, "Vector");
+  bNodeSocket *sockW = bke::nodeFindSocket(node, SOCK_IN, "W");
+  bNodeSocket *inOffsetSock = bke::nodeFindSocket(node, SOCK_IN, "Offset");
+  bNodeSocket *inGainSock = bke::nodeFindSocket(node, SOCK_IN, "Gain");
 
   const NodeTexNoise &storage = node_storage(*node);
   bke::nodeSetSocketAvailability(ntree, sockVector, storage.dimensions != 1);
@@ -458,18 +458,18 @@ void register_node_type_sh_tex_noise()
 {
   namespace file_ns = blender::nodes::node_shader_tex_noise_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_NOISE, "Noise Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_noise_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_noise;
   ntype.initfunc = file_ns::node_shader_init_tex_noise;
-  node_type_storage(
+  blender::bke::node_type_storage(
       &ntype, "NodeTexNoise", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_noise;
   ntype.updatefunc = file_ns::node_shader_update_tex_noise;
   ntype.build_multi_function = file_ns::sh_node_noise_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

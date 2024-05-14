@@ -122,21 +122,17 @@ using blender::nodes::OutputFieldDependency;
 using blender::nodes::OutputSocketFieldType;
 using blender::nodes::SocketDeclaration;
 
-/* Forward declaration. */
-static void write_node_socket_default_value(BlendWriter *writer, const bNodeSocket *sock);
-
 static CLG_LogRef LOG = {"bke.node"};
 
 namespace blender::bke {
+
+/* Forward declaration. */
+static void write_node_socket_default_value(BlendWriter *writer, const bNodeSocket *sock);
 
 /* Fallback types for undefined tree, nodes, sockets. */
 bNodeTreeType NodeTreeTypeUndefined;
 bNodeType NodeTypeUndefined;
 bNodeSocketType NodeSocketTypeUndefined;
-
-}  // namespace blender::bke
-
-namespace blender::bke {
 
 static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo);
 static void node_socket_set_typeinfo(bNodeTree *ntree,
@@ -229,7 +225,7 @@ static void ntree_copy_data(Main * /*bmain*/,
         *ntree_src->runtime->field_inferencing_interface);
   }
   if (ntree_src->runtime->anonymous_attribute_inferencing) {
-    using namespace blender::bke::anonymous_attribute_inferencing;
+    using namespace anonymous_attribute_inferencing;
     dst_runtime.anonymous_attribute_inferencing =
         std::make_unique<AnonymousAttributeInferencingResult>(
             *ntree_src->runtime->anonymous_attribute_inferencing);
@@ -476,9 +472,7 @@ static ID **node_owner_pointer_get(ID *id, const bool debug_relationship_assert)
   return &ntree->owner_id;
 }
 
-}  // namespace blender::bke
-
-namespace blender::bke::forward_compat {
+namespace forward_compat {
 
 static void write_node_socket_interface(BlendWriter *writer, const bNodeSocket *sock)
 {
@@ -680,7 +674,7 @@ static void cleanup_legacy_sockets(bNodeTree *ntree)
   BLI_listbase_clear(&ntree->outputs_legacy);
 }
 
-}  // namespace blender::bke::forward_compat
+}  // namespace forward_compat
 
 static void write_node_socket_default_value(BlendWriter *writer, const bNodeSocket *sock)
 {
@@ -849,7 +843,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         }
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, storage);
       }
-      else if (node->typeinfo != &blender::bke::NodeTypeUndefined) {
+      else if (node->typeinfo != &NodeTypeUndefined) {
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
     }
@@ -873,19 +867,19 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
       }
     }
     if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
-      blender::nodes::SimulationItemsAccessor::blend_write(writer, *node);
+      nodes::SimulationItemsAccessor::blend_write(writer, *node);
     }
     if (node->type == GEO_NODE_REPEAT_OUTPUT) {
-      blender::nodes::RepeatItemsAccessor::blend_write(writer, *node);
+      nodes::RepeatItemsAccessor::blend_write(writer, *node);
     }
     if (node->type == GEO_NODE_INDEX_SWITCH) {
-      blender::nodes::IndexSwitchItemsAccessor::blend_write(writer, *node);
+      nodes::IndexSwitchItemsAccessor::blend_write(writer, *node);
     }
     if (node->type == GEO_NODE_BAKE) {
-      blender::nodes::BakeItemsAccessor::blend_write(writer, *node);
+      nodes::BakeItemsAccessor::blend_write(writer, *node);
     }
     if (node->type == GEO_NODE_MENU_SWITCH) {
-      blender::nodes::MenuSwitchItemsAccessor::blend_write(writer, *node);
+      nodes::MenuSwitchItemsAccessor::blend_write(writer, *node);
     }
   }
 
@@ -895,7 +889,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
 
   ntree->tree_interface.write(writer);
   if (!BLO_write_is_undo(writer)) {
-    blender::bke::forward_compat::write_legacy_sockets(writer, ntree);
+    forward_compat::write_legacy_sockets(writer, ntree);
   }
 
   BLO_write_struct(writer, GeometryNodeAssetTraits, ntree->geometry_node_asset_traits);
@@ -905,8 +899,6 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
 
   BKE_previewimg_blend_write(writer, ntree->preview);
 }
-
-namespace blender::bke {
 
 static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
@@ -920,7 +912,7 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     /* Generate legacy inputs/outputs socket ListBase for forward compatibility.
      * NOTE: this has to happen before writing the ntree struct itself so that the ListBase
      * first/last pointers are valid. */
-    blender::bke::forward_compat::construct_interface_as_legacy_sockets(ntree);
+    forward_compat::construct_interface_as_legacy_sockets(ntree);
   }
 
   BLO_write_id_struct(writer, bNodeTree, id_address, &ntree->id);
@@ -928,7 +920,7 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   ntreeBlendWrite(writer, ntree);
 
   if (!BLO_write_is_undo(writer)) {
-    blender::bke::forward_compat::cleanup_legacy_sockets(ntree);
+    forward_compat::cleanup_legacy_sockets(ntree);
   }
 }
 
@@ -1103,7 +1095,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         }
         case SH_NODE_TEX_POINTDENSITY: {
           NodeShaderTexPointDensity *npd = static_cast<NodeShaderTexPointDensity *>(node->storage);
-          npd->pd = blender::dna::shallow_zero_initialize();
+          npd->pd = dna::shallow_zero_initialize();
           break;
         }
         case SH_NODE_TEX_IMAGE: {
@@ -1147,23 +1139,23 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
           break;
         }
         case GEO_NODE_SIMULATION_OUTPUT: {
-          blender::nodes::SimulationItemsAccessor::blend_read_data(reader, *node);
+          nodes::SimulationItemsAccessor::blend_read_data(reader, *node);
           break;
         }
         case GEO_NODE_REPEAT_OUTPUT: {
-          blender::nodes::RepeatItemsAccessor::blend_read_data(reader, *node);
+          nodes::RepeatItemsAccessor::blend_read_data(reader, *node);
           break;
         }
         case GEO_NODE_INDEX_SWITCH: {
-          blender::nodes::IndexSwitchItemsAccessor::blend_read_data(reader, *node);
+          nodes::IndexSwitchItemsAccessor::blend_read_data(reader, *node);
           break;
         }
         case GEO_NODE_BAKE: {
-          blender::nodes::BakeItemsAccessor::blend_read_data(reader, *node);
+          nodes::BakeItemsAccessor::blend_read_data(reader, *node);
           break;
         }
         case GEO_NODE_MENU_SWITCH: {
-          blender::nodes::MenuSwitchItemsAccessor::blend_read_data(reader, *node);
+          nodes::MenuSwitchItemsAccessor::blend_read_data(reader, *node);
           break;
         }
 
@@ -1395,7 +1387,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
 {
   BLI_assert(ntree != nullptr);
   bNodeType *ntype = node->typeinfo;
-  if (ntype == &blender::bke::NodeTypeUndefined) {
+  if (ntype == &NodeTypeUndefined) {
     return;
   }
 
@@ -1460,7 +1452,7 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo)
     ntree->typeinfo = typeinfo;
   }
   else {
-    ntree->typeinfo = &blender::bke::NodeTreeTypeUndefined;
+    ntree->typeinfo = &NodeTreeTypeUndefined;
   }
 
   /* Deprecated integer type. */
@@ -1490,7 +1482,7 @@ static void node_set_typeinfo(const bContext *C,
     node_init(C, ntree, node);
   }
   else {
-    node->typeinfo = &blender::bke::NodeTypeUndefined;
+    node->typeinfo = &NodeTypeUndefined;
   }
 }
 
@@ -1513,7 +1505,7 @@ static void node_socket_set_typeinfo(bNodeTree *ntree,
     }
   }
   else {
-    sock->typeinfo = &blender::bke::NodeSocketTypeUndefined;
+    sock->typeinfo = &NodeSocketTypeUndefined;
   }
   BKE_ntree_update_tag_socket_type(ntree, sock);
 }
@@ -1557,40 +1549,33 @@ static void update_typeinfo(Main *bmain,
   FOREACH_NODETREE_END;
 }
 
-}  // namespace blender::bke
-
 void ntreeSetTypes(const bContext *C, bNodeTree *ntree)
 {
-  blender::bke::ntree_set_typeinfo(ntree, ntreeTypeFind(ntree->idname));
+  ntree_set_typeinfo(ntree, ntreeTypeFind(ntree->idname));
 
   for (bNode *node : ntree->all_nodes()) {
     /* Set socket typeinfo first because node initialization may rely on socket typeinfo for
      * generating declarations. */
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      blender::bke::node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(sock->idname));
+      node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(sock->idname));
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      blender::bke::node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(sock->idname));
+      node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(sock->idname));
     }
 
-    blender::bke::node_set_typeinfo(C, ntree, node, nodeTypeFind(node->idname));
+    node_set_typeinfo(C, ntree, node, nodeTypeFind(node->idname));
   }
 }
-
-namespace blender::bke {
 
 static GHash *nodetreetypes_hash = nullptr;
 static GHash *nodetypes_hash = nullptr;
 static GHash *nodetypes_alias_hash = nullptr;
 static GHash *nodesockettypes_hash = nullptr;
 
-}  // namespace blender::bke
-
 bNodeTreeType *ntreeTypeFind(const char *idname)
 {
   if (idname[0]) {
-    bNodeTreeType *nt = static_cast<bNodeTreeType *>(
-        BLI_ghash_lookup(blender::bke::nodetreetypes_hash, idname));
+    bNodeTreeType *nt = static_cast<bNodeTreeType *>(BLI_ghash_lookup(nodetreetypes_hash, idname));
     if (nt) {
       return nt;
     }
@@ -1601,11 +1586,11 @@ bNodeTreeType *ntreeTypeFind(const char *idname)
 
 void ntreeTypeAdd(bNodeTreeType *nt)
 {
-  BLI_ghash_insert(blender::bke::nodetreetypes_hash, nt->idname, nt);
+  BLI_ghash_insert(nodetreetypes_hash, nt->idname, nt);
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  blender::bke::update_typeinfo(G_MAIN, nullptr, nt, nullptr, nullptr, false);
+  update_typeinfo(G_MAIN, nullptr, nt, nullptr, nullptr, false);
 }
 
 static void ntree_free_type(void *treetype_v)
@@ -1614,30 +1599,29 @@ static void ntree_free_type(void *treetype_v)
   /* XXX pass Main to unregister function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  blender::bke::update_typeinfo(G_MAIN, nullptr, treetype, nullptr, nullptr, true);
+  update_typeinfo(G_MAIN, nullptr, treetype, nullptr, nullptr, true);
   MEM_freeN(treetype);
 }
 
 void ntreeTypeFreeLink(const bNodeTreeType *nt)
 {
-  BLI_ghash_remove(blender::bke::nodetreetypes_hash, nt->idname, nullptr, ntree_free_type);
+  BLI_ghash_remove(nodetreetypes_hash, nt->idname, nullptr, ntree_free_type);
 }
 
 bool ntreeIsRegistered(const bNodeTree *ntree)
 {
-  return (ntree->typeinfo != &blender::bke::NodeTreeTypeUndefined);
+  return (ntree->typeinfo != &NodeTreeTypeUndefined);
 }
 
 GHashIterator *ntreeTypeGetIterator()
 {
-  return BLI_ghashIterator_new(blender::bke::nodetreetypes_hash);
+  return BLI_ghashIterator_new(nodetreetypes_hash);
 }
 
 bNodeType *nodeTypeFind(const char *idname)
 {
   if (idname[0]) {
-    bNodeType *nt = static_cast<bNodeType *>(
-        BLI_ghash_lookup(blender::bke::nodetypes_hash, idname));
+    bNodeType *nt = static_cast<bNodeType *>(BLI_ghash_lookup(nodetypes_hash, idname));
     if (nt) {
       return nt;
     }
@@ -1649,8 +1633,7 @@ bNodeType *nodeTypeFind(const char *idname)
 const char *nodeTypeFindAlias(const char *alias)
 {
   if (alias[0]) {
-    const char *idname = static_cast<const char *>(
-        BLI_ghash_lookup(blender::bke::nodetypes_alias_hash, alias));
+    const char *idname = static_cast<const char *>(BLI_ghash_lookup(nodetypes_alias_hash, alias));
     if (idname) {
       return idname;
     }
@@ -1665,7 +1648,7 @@ static void node_free_type(void *nodetype_v)
   /* XXX pass Main to unregister function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  blender::bke::update_typeinfo(G_MAIN, nullptr, nullptr, nodetype, nullptr, true);
+  update_typeinfo(G_MAIN, nullptr, nullptr, nodetype, nullptr, true);
 
   delete nodetype->static_declaration;
   nodetype->static_declaration = nullptr;
@@ -1683,28 +1666,26 @@ void nodeRegisterType(bNodeType *nt)
   BLI_assert(nt->poll != nullptr);
 
   if (nt->declare) {
-    nt->static_declaration = new blender::nodes::NodeDeclaration();
-    blender::nodes::build_node_declaration(*nt, *nt->static_declaration, nullptr, nullptr);
+    nt->static_declaration = new nodes::NodeDeclaration();
+    nodes::build_node_declaration(*nt, *nt->static_declaration, nullptr, nullptr);
   }
 
-  BLI_ghash_insert(blender::bke::nodetypes_hash, nt->idname, nt);
+  BLI_ghash_insert(nodetypes_hash, nt->idname, nt);
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  blender::bke::update_typeinfo(G_MAIN, nullptr, nullptr, nt, nullptr, false);
+  update_typeinfo(G_MAIN, nullptr, nullptr, nt, nullptr, false);
 }
 
 void nodeUnregisterType(bNodeType *nt)
 {
-  BLI_ghash_remove(blender::bke::nodetypes_hash, nt->idname, nullptr, node_free_type);
+  BLI_ghash_remove(nodetypes_hash, nt->idname, nullptr, node_free_type);
 }
 
 void nodeRegisterAlias(bNodeType *nt, const char *alias)
 {
-  BLI_ghash_insert(blender::bke::nodetypes_alias_hash, BLI_strdup(alias), BLI_strdup(nt->idname));
+  BLI_ghash_insert(nodetypes_alias_hash, BLI_strdup(alias), BLI_strdup(nt->idname));
 }
-
-namespace blender::bke {
 
 bool node_type_is_undefined(const bNode *node)
 {
@@ -1728,18 +1709,16 @@ bool node_type_is_undefined(const bNode *node)
   return false;
 }
 
-}  // namespace blender::bke
-
 GHashIterator *nodeTypeGetIterator()
 {
-  return BLI_ghashIterator_new(blender::bke::nodetypes_hash);
+  return BLI_ghashIterator_new(nodetypes_hash);
 }
 
 bNodeSocketType *nodeSocketTypeFind(const char *idname)
 {
   if (idname && idname[0]) {
     bNodeSocketType *st = static_cast<bNodeSocketType *>(
-        BLI_ghash_lookup(blender::bke::nodesockettypes_hash, idname));
+        BLI_ghash_lookup(nodesockettypes_hash, idname));
     if (st) {
       return st;
     }
@@ -1754,33 +1733,33 @@ static void node_free_socket_type(void *socktype_v)
   /* XXX pass Main to unregister function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  blender::bke::update_typeinfo(G_MAIN, nullptr, nullptr, nullptr, socktype, true);
+  update_typeinfo(G_MAIN, nullptr, nullptr, nullptr, socktype, true);
 
   socktype->free_self(socktype);
 }
 
 void nodeRegisterSocketType(bNodeSocketType *st)
 {
-  BLI_ghash_insert(blender::bke::nodesockettypes_hash, st->idname, st);
+  BLI_ghash_insert(nodesockettypes_hash, st->idname, st);
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  blender::bke::update_typeinfo(G_MAIN, nullptr, nullptr, nullptr, st, false);
+  update_typeinfo(G_MAIN, nullptr, nullptr, nullptr, st, false);
 }
 
 void nodeUnregisterSocketType(bNodeSocketType *st)
 {
-  BLI_ghash_remove(blender::bke::nodesockettypes_hash, st->idname, nullptr, node_free_socket_type);
+  BLI_ghash_remove(nodesockettypes_hash, st->idname, nullptr, node_free_socket_type);
 }
 
 bool nodeSocketIsRegistered(const bNodeSocket *sock)
 {
-  return (sock->typeinfo != &blender::bke::NodeSocketTypeUndefined);
+  return (sock->typeinfo != &NodeSocketTypeUndefined);
 }
 
 GHashIterator *nodeSocketTypeGetIterator()
 {
-  return BLI_ghashIterator_new(blender::bke::nodesockettypes_hash);
+  return BLI_ghashIterator_new(nodesockettypes_hash);
 }
 
 const char *nodeSocketTypeLabel(const bNodeSocketType *stype)
@@ -1792,8 +1771,6 @@ const char *nodeSocketTypeLabel(const bNodeSocketType *stype)
   return stype->label;
 }
 
-namespace blender::bke {
-
 const char *nodeSocketSubTypeLabel(int subtype)
 {
   const char *name;
@@ -1802,8 +1779,6 @@ const char *nodeSocketSubTypeLabel(int subtype)
   }
   return "";
 }
-
-}  // namespace blender::bke
 
 bNodeSocket *nodeFindSocket(const bNode *node,
                             const eNodeSocketInOut in_out,
@@ -1817,8 +1792,6 @@ bNodeSocket *nodeFindSocket(const bNode *node,
   }
   return nullptr;
 }
-
-namespace blender::bke {
 
 bNodeSocket *node_find_enabled_socket(bNode &node,
                                       const eNodeSocketInOut in_out,
@@ -2052,8 +2025,6 @@ void nodeModifySocketType(bNodeTree *ntree,
   node_socket_set_typeinfo(ntree, sock, socktype);
 }
 
-}  // namespace blender::bke
-
 void nodeModifySocketTypeStatic(
     bNodeTree *ntree, bNode *node, bNodeSocket *sock, const int type, const int subtype)
 {
@@ -2064,7 +2035,7 @@ void nodeModifySocketTypeStatic(
     return;
   }
 
-  blender::bke::nodeModifySocketType(ntree, node, sock, idname);
+  nodeModifySocketType(ntree, node, sock, idname);
 }
 
 bNodeSocket *nodeAddSocket(bNodeTree *ntree,
@@ -2079,7 +2050,7 @@ bNodeSocket *nodeAddSocket(bNodeTree *ntree,
   BLI_assert(!(in_out == SOCK_OUT && node->type == NODE_GROUP_OUTPUT));
 
   ListBase *lb = (in_out == SOCK_IN ? &node->inputs : &node->outputs);
-  bNodeSocket *sock = blender::bke::make_socket(ntree, node, in_out, lb, idname, identifier, name);
+  bNodeSocket *sock = make_socket(ntree, node, in_out, lb, idname, identifier, name);
 
   BLI_remlink(lb, sock); /* does nothing for new socket */
   BLI_addtail(lb, sock);
@@ -2089,8 +2060,6 @@ bNodeSocket *nodeAddSocket(bNodeTree *ntree,
   return sock;
 }
 
-namespace blender::bke {
-
 bool nodeIsStaticSocketType(const bNodeSocketType *stype)
 {
   /*
@@ -2099,8 +2068,6 @@ bool nodeIsStaticSocketType(const bNodeSocketType *stype)
    */
   return RNA_struct_is_a(stype->ext_socket.srna, &RNA_NodeSocketStandard);
 }
-
-}  // namespace blender::bke
 
 const char *nodeStaticSocketType(const int type, const int subtype)
 {
@@ -2337,8 +2304,6 @@ bNodeSocket *nodeAddStaticSocket(bNodeTree *ntree,
   return sock;
 }
 
-namespace blender::bke {
-
 static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
 {
   if (sock->prop) {
@@ -2365,14 +2330,10 @@ static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
   MEM_delete(sock->runtime);
 }
 
-}  // namespace blender::bke
-
 void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 {
-  blender::bke::nodeRemoveSocketEx(ntree, node, sock, true);
+  nodeRemoveSocketEx(ntree, node, sock, true);
 }
-
-namespace blender::bke {
 
 void nodeRemoveSocketEx(bNodeTree *ntree, bNode *node, bNodeSocket *sock, const bool do_id_user)
 {
@@ -2395,13 +2356,11 @@ void nodeRemoveSocketEx(bNodeTree *ntree, bNode *node, bNodeSocket *sock, const 
   BLI_remlink(&node->inputs, sock);
   BLI_remlink(&node->outputs, sock);
 
-  blender::bke::node_socket_free(sock, do_id_user);
+  node_socket_free(sock, do_id_user);
   MEM_freeN(sock);
 
   BKE_ntree_update_tag_socket_removed(ntree);
 }
-
-}  // namespace blender::bke
 
 bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
 {
@@ -2445,8 +2404,6 @@ bool nodeFindNodeTry(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r
   return false;
 }
 
-namespace blender::bke {
-
 bNode *nodeFindRootParent(bNode *node)
 {
   bNode *parent_iter = node;
@@ -2459,8 +2416,6 @@ bNode *nodeFindRootParent(bNode *node)
   return parent_iter;
 }
 
-}  // namespace blender::bke
-
 bool nodeIsParentAndChild(const bNode *parent, const bNode *child)
 {
   for (const bNode *child_iter = child; child_iter; child_iter = child_iter->parent) {
@@ -2470,8 +2425,6 @@ bool nodeIsParentAndChild(const bNode *parent, const bNode *child)
   }
   return false;
 }
-
-namespace blender::bke {
 
 void nodeChainIter(const bNodeTree *ntree,
                    const bNode *node_start,
@@ -2564,8 +2517,6 @@ void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userd
   }
 }
 
-}  // namespace blender::bke
-
 void nodeUniqueName(bNodeTree *ntree, bNode *node)
 {
   BLI_uniquename(
@@ -2576,7 +2527,7 @@ void nodeUniqueID(bNodeTree *ntree, bNode *node)
 {
   /* Use a pointer cast to avoid overflow warnings. */
   const double time = BLI_time_now_seconds() * 1000000.0;
-  blender::RandomNumberGenerator id_rng{*reinterpret_cast<const uint32_t *>(&time)};
+  RandomNumberGenerator id_rng{*reinterpret_cast<const uint32_t *>(&time)};
 
   /* In the unlikely case that the random ID doesn't match, choose a new one until it does. */
   int32_t new_id = id_rng.get_int32();
@@ -2599,7 +2550,7 @@ bNode *nodeAddNode(const bContext *C, bNodeTree *ntree, const char *idname)
   node->ui_order = ntree->all_nodes().size();
 
   STRNCPY(node->idname, idname);
-  blender::bke::node_set_typeinfo(C, ntree, node, nodeTypeFind(idname));
+  node_set_typeinfo(C, ntree, node, nodeTypeFind(idname));
 
   BKE_ntree_update_tag_node_new(ntree, node);
 
@@ -2639,8 +2590,6 @@ bNode *nodeAddStaticNode(const bContext *C, bNodeTree *ntree, const int type)
   }
   return nodeAddNode(C, ntree, idname);
 }
-
-namespace blender::bke {
 
 static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag)
 {
@@ -2876,8 +2825,6 @@ bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, const int flag, con
   return node_copy_with_mapping(dst_tree, src_node, flag, use_unique, socket_map);
 }
 
-}  // namespace blender::bke
-
 static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)
 {
   int count = 0;
@@ -2952,8 +2899,6 @@ void nodeRemLink(bNodeTree *ntree, bNodeLink *link)
   }
 }
 
-namespace blender::bke {
-
 void nodeLinkSetMute(bNodeTree *ntree, bNodeLink *link, const bool muted)
 {
   const bool was_muted = link->is_muted();
@@ -2962,8 +2907,6 @@ void nodeLinkSetMute(bNodeTree *ntree, bNodeLink *link, const bool muted)
     BKE_ntree_update_tag_link_mute(ntree, link);
   }
 }
-
-}  // namespace blender::bke
 
 void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 {
@@ -2978,8 +2921,6 @@ bool nodeLinkIsHidden(const bNodeLink *link)
 {
   return !(link->fromsock->is_visible() && link->tosock->is_visible());
 }
-
-namespace blender::bke {
 
 bool nodeLinkIsSelected(const bNodeLink *link)
 {
@@ -3023,7 +2964,7 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 
     if (fromlink == nullptr) {
       if (link->tosock->is_multi_input()) {
-        blender::bke::adjust_multi_input_indices_after_removed_link(
+        adjust_multi_input_indices_after_removed_link(
             ntree, link->tosock, link->multi_input_sort_id);
       }
       nodeRemLink(ntree, link);
@@ -3036,7 +2977,7 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
         if (link_to_compare->fromsock == fromlink->fromsock &&
             link_to_compare->tosock == link->tosock)
         {
-          blender::bke::adjust_multi_input_indices_after_removed_link(
+          adjust_multi_input_indices_after_removed_link(
               ntree, link_to_compare->tosock, link_to_compare->multi_input_sort_id);
           duplicate_links_to_remove.append_non_duplicates(link_to_compare);
         }
@@ -3090,19 +3031,17 @@ float2 nodeFromView(const bNode *node, const float2 view_loc)
   return loc;
 }
 
-}  // namespace blender::bke
-
 void nodeAttachNode(bNodeTree *ntree, bNode *node, bNode *parent)
 {
   BLI_assert(parent->type == NODE_FRAME);
   BLI_assert(!nodeIsParentAndChild(parent, node));
 
-  const blender::float2 loc = blender::bke::nodeToView(node, {});
+  const float2 loc = nodeToView(node, {});
 
   node->parent = parent;
   BKE_ntree_update_tag_parent_change(ntree, node);
   /* transform to parent space */
-  const blender::float2 new_loc = blender::bke::nodeFromView(parent, loc);
+  const float2 new_loc = nodeFromView(parent, loc);
   node->locx = new_loc.x;
   node->locy = new_loc.y;
 }
@@ -3113,15 +3052,13 @@ void nodeDetachNode(bNodeTree *ntree, bNode *node)
     BLI_assert(node->parent->type == NODE_FRAME);
 
     /* transform to view space */
-    const blender::float2 loc = blender::bke::nodeToView(node, {});
+    const float2 loc = nodeToView(node, {});
     node->locx = loc.x;
     node->locy = loc.y;
     node->parent = nullptr;
     BKE_ntree_update_tag_parent_change(ntree, node);
   }
 }
-
-namespace blender::bke {
 
 void nodePositionRelative(bNode *from_node,
                           const bNode *to_node,
@@ -3176,8 +3113,6 @@ void nodePositionPropagate(bNode *node)
   }
 }
 
-}  // namespace blender::bke
-
 static bNodeTree *ntreeAddTree_do(Main *bmain,
                                   std::optional<Library *> owner_library,
                                   ID *owner_id,
@@ -3210,7 +3145,7 @@ static bNodeTree *ntreeAddTree_do(Main *bmain,
   }
 
   STRNCPY(ntree->idname, idname);
-  blender::bke::ntree_set_typeinfo(ntree, ntreeTypeFind(idname));
+  ntree_set_typeinfo(ntree, ntreeTypeFind(idname));
 
   return ntree;
 }
@@ -3227,8 +3162,6 @@ bNodeTree *BKE_node_tree_add_in_lib(Main *bmain,
 {
   return ntreeAddTree_do(bmain, owner_library, nullptr, false, name, idname);
 }
-
-namespace blender::bke {
 
 bNodeTree *ntreeAddTreeEmbedded(Main * /*bmain*/,
                                 ID *owner_id,
@@ -3323,11 +3256,11 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
   for (bNode *node : ntree->all_nodes()) {
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
 
-    if (blender::bke::node_preview_used(node)) {
+    if (node_preview_used(node)) {
       node->runtime->preview_xsize = xsize;
       node->runtime->preview_ysize = ysize;
 
-      blender::bke::node_preview_verify(previews, key, xsize, ysize, false);
+      node_preview_verify(previews, key, xsize, ysize, false);
     }
 
     bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
@@ -3357,7 +3290,7 @@ static void node_preview_tag_used_recursive(bNodeInstanceHash *previews,
   for (bNode *node : ntree->all_nodes()) {
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
 
-    if (blender::bke::node_preview_used(node)) {
+    if (node_preview_used(node)) {
       BKE_node_instance_hash_tag_key(previews, key);
     }
 
@@ -3381,10 +3314,6 @@ void node_preview_remove_unused(bNodeTree *ntree)
   BKE_node_instance_hash_remove_untagged(
       ntree->previews, reinterpret_cast<bNodeInstanceValueFP>(node_preview_free));
 }
-
-}  // namespace blender::bke
-
-namespace blender::bke {
 
 void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool remove_old)
 {
@@ -3541,8 +3470,6 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
   nodeRebuildIDVector(ntree);
 }
 
-}  // namespace blender::bke
-
 void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, const bool do_id_user)
 {
   BLI_assert(ntree != nullptr);
@@ -3567,10 +3494,10 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, const bool do_id
     }
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      node_has_id |= blender::bke::socket_id_user_decrement(sock);
+      node_has_id |= socket_id_user_decrement(sock);
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      node_has_id |= blender::bke::socket_id_user_decrement(sock);
+      node_has_id |= socket_id_user_decrement(sock);
     }
   }
 
@@ -3597,15 +3524,13 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, const bool do_id
     }
   }
 
-  blender::bke::nodeUnlinkNode(ntree, node);
-  blender::bke::node_unlink_attached(ntree, node);
+  nodeUnlinkNode(ntree, node);
+  node_unlink_attached(ntree, node);
 
   /* Free node itself. */
-  blender::bke::node_free_node(ntree, node);
-  blender::bke::nodeRebuildIDVector(ntree);
+  node_free_node(ntree, node);
+  nodeRebuildIDVector(ntree);
 }
-
-namespace blender::bke {
 
 static void free_localized_node_groups(bNodeTree *ntree)
 {
@@ -3632,11 +3557,9 @@ void ntreeFreeTree(bNodeTree *ntree)
   BKE_animdata_free(&ntree->id, false);
 }
 
-}  // namespace blender::bke
-
 void ntreeFreeEmbeddedTree(bNodeTree *ntree)
 {
-  blender::bke::ntreeFreeTree(ntree);
+  ntreeFreeTree(ntree);
   BKE_libblock_free_data(&ntree->id, true);
   BKE_libblock_free_data_py(&ntree->id);
 }
@@ -3644,10 +3567,10 @@ void ntreeFreeEmbeddedTree(bNodeTree *ntree)
 void ntreeFreeLocalTree(bNodeTree *ntree)
 {
   if (ntree->id.tag & LIB_TAG_LOCALIZED) {
-    blender::bke::ntreeFreeTree(ntree);
+    ntreeFreeTree(ntree);
   }
   else {
-    blender::bke::ntreeFreeTree(ntree);
+    ntreeFreeTree(ntree);
     BKE_libblock_free_data(&ntree->id, true);
   }
 }
@@ -3740,8 +3663,6 @@ bNodeTree *ntreeFromID(ID *id)
   return (nodetree != nullptr) ? *nodetree : nullptr;
 }
 
-namespace blender::bke {
-
 void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -3753,8 +3674,6 @@ void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable)
     }
   }
 }
-
-}  // namespace blender::bke
 
 bNodeTree *ntreeLocalize(bNodeTree *ntree, ID *new_owner_id)
 {
@@ -3799,8 +3718,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree, ID *new_owner_id)
   return ltree;
 }
 
-namespace blender::bke {
-
 void ntreeLocalMerge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 {
   if (ntree && localtree) {
@@ -3835,8 +3752,6 @@ static bool ntree_contains_tree_exec(const bNodeTree *tree_to_search_in,
   return false;
 }
 
-}  // namespace blender::bke
-
 bool ntreeContainsTree(const bNodeTree *tree_to_search_in, const bNodeTree *tree_to_search_for)
 {
   if (tree_to_search_in == tree_to_search_for) {
@@ -3844,8 +3759,7 @@ bool ntreeContainsTree(const bNodeTree *tree_to_search_in, const bNodeTree *tree
   }
 
   Set<const bNodeTree *> already_passed;
-  return blender::bke::ntree_contains_tree_exec(
-      tree_to_search_in, tree_to_search_for, already_passed);
+  return ntree_contains_tree_exec(tree_to_search_in, tree_to_search_for, already_passed);
 }
 
 int nodeCountSocketLinks(const bNodeTree *ntree, const bNodeSocket *sock)
@@ -3908,9 +3822,8 @@ void nodeClearActive(bNodeTree *ntree)
 
 void nodeSetActive(bNodeTree *ntree, bNode *node)
 {
-  const bool is_paint_canvas = blender::bke::nodeSupportsActiveFlag(node,
-                                                                    NODE_ACTIVE_PAINT_CANVAS);
-  const bool is_texture_class = blender::bke::nodeSupportsActiveFlag(node, NODE_ACTIVE_TEXTURE);
+  const bool is_paint_canvas = nodeSupportsActiveFlag(node, NODE_ACTIVE_PAINT_CANVAS);
+  const bool is_texture_class = nodeSupportsActiveFlag(node, NODE_ACTIVE_TEXTURE);
   int flags_to_set = NODE_ACTIVE;
   SET_FLAG_FROM_TEST(flags_to_set, is_paint_canvas, NODE_ACTIVE_PAINT_CANVAS);
   SET_FLAG_FROM_TEST(flags_to_set, is_texture_class, NODE_ACTIVE_TEXTURE);
@@ -3921,8 +3834,6 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   }
   node->flag |= flags_to_set;
 }
-
-namespace blender::bke {
 
 void nodeSetSocketAvailability(bNodeTree *ntree, bNodeSocket *sock, const bool is_available)
 {
@@ -3937,8 +3848,6 @@ void nodeSetSocketAvailability(bNodeTree *ntree, bNodeSocket *sock, const bool i
   }
   BKE_ntree_update_tag_socket_availability(ntree, sock);
 }
-
-}  // namespace blender::bke
 
 int nodeSocketLinkLimit(const bNodeSocket *sock)
 {
@@ -3956,10 +3865,8 @@ int nodeSocketLinkLimit(const bNodeSocket *sock)
                                                      stype.output_link_limit;
 }
 
-namespace blender::bke {
-
 static void update_socket_declarations(ListBase *sockets,
-                                       Span<blender::nodes::SocketDeclaration *> declarations)
+                                       Span<nodes::SocketDeclaration *> declarations)
 {
   int index;
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, index) {
@@ -4003,7 +3910,7 @@ bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
   if (node->typeinfo->declare) {
     BLI_assert(ntree != nullptr);
     BLI_assert(node != nullptr);
-    blender::nodes::update_node_declaration_and_sockets(*ntree, *node);
+    nodes::update_node_declaration_and_sockets(*ntree, *node);
     return true;
   }
   return false;
@@ -4017,8 +3924,6 @@ bool nodeDeclarationEnsure(bNodeTree *ntree, bNode *node)
   }
   return false;
 }
-
-}  // namespace blender::bke
 
 void nodeDimensionsGet(const bNode *node, float *r_width, float *r_height)
 {
@@ -4143,11 +4048,11 @@ int BKE_node_instance_hash_size(bNodeInstanceHash *hash)
 
 void BKE_node_instance_hash_clear_tags(bNodeInstanceHash *hash)
 {
-  blender::bke::bNodeInstanceHashIterator iter;
+  bNodeInstanceHashIterator iter;
 
   NODE_INSTANCE_HASH_ITER (iter, hash) {
     bNodeInstanceHashEntry *value = static_cast<bNodeInstanceHashEntry *>(
-        blender::bke::node_instance_hash_iterator_get_value(&iter));
+        node_instance_hash_iterator_get_value(&iter));
 
     value->tag = 0;
   }
@@ -4181,14 +4086,14 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
   bNodeInstanceKey *untagged = static_cast<bNodeInstanceKey *>(
       MEM_mallocN(sizeof(bNodeInstanceKey) * BKE_node_instance_hash_size(hash),
                   "temporary node instance key list"));
-  blender::bke::bNodeInstanceHashIterator iter;
+  bNodeInstanceHashIterator iter;
   int num_untagged = 0;
   NODE_INSTANCE_HASH_ITER (iter, hash) {
     bNodeInstanceHashEntry *value = static_cast<bNodeInstanceHashEntry *>(
-        blender::bke::node_instance_hash_iterator_get_value(&iter));
+        node_instance_hash_iterator_get_value(&iter));
 
     if (!value->tag) {
-      untagged[num_untagged++] = blender::bke::node_instance_hash_iterator_get_key(&iter);
+      untagged[num_untagged++] = node_instance_hash_iterator_get_key(&iter);
     }
   }
 
@@ -4199,12 +4104,10 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
   MEM_freeN(untagged);
 }
 
-namespace blender::bke {
-
 /* Build a set of built-in node types to check for known types. */
-static blender::Set<int> get_known_node_types_set()
+static Set<int> get_known_node_types_set()
 {
-  blender::Set<int> result;
+  Set<int> result;
   NODE_TYPES_BEGIN (ntype) {
     result.add(ntype->type);
   }
@@ -4220,7 +4123,7 @@ static bool can_read_node_type(const int type)
   }
 
   /* Check known built-in types. */
-  static blender::Set<int> known_types = get_known_node_types_set();
+  static Set<int> known_types = get_known_node_types_set();
   return known_types.contains(type);
 }
 
@@ -4264,8 +4167,6 @@ void ntreeUpdateAllNew(Main *main)
   BKE_ntree_update_main(main, nullptr);
 }
 
-}  // namespace blender::bke
-
 void ntreeUpdateAllUsers(Main *main, ID *id)
 {
   if (id == nullptr) {
@@ -4291,8 +4192,6 @@ void ntreeUpdateAllUsers(Main *main, ID *id)
 
 /* ************* node type access ********** */
 
-namespace blender::bke {
-
 void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int label_maxncpy)
 {
   label[0] = '\0';
@@ -4314,7 +4213,7 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int
 const char *nodeSocketShortLabel(const bNodeSocket *sock)
 {
   if (sock->runtime->declaration != nullptr) {
-    blender::StringRefNull short_label = sock->runtime->declaration->short_label;
+    StringRefNull short_label = sock->runtime->declaration->short_label;
     if (!short_label.is_empty()) {
       return sock->runtime->declaration->short_label.data();
     }
@@ -4330,7 +4229,7 @@ const char *nodeSocketLabel(const bNodeSocket *sock)
 static void node_type_base_defaults(bNodeType *ntype)
 {
   /* default size values */
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Default);
+  node_type_size_preset(ntype, eNodeSizePreset::Default);
   ntype->height = 100;
   ntype->minheight = 30;
   ntype->maxheight = FLT_MAX;
@@ -4390,8 +4289,6 @@ void node_type_base(bNodeType *ntype, const int type, const char *name, const sh
   ntype->poll_instance = node_poll_instance_default;
 }
 
-}  // namespace blender::bke
-
 void node_type_base_custom(bNodeType *ntype,
                            const char *idname,
                            const char *name,
@@ -4404,10 +4301,8 @@ void node_type_base_custom(bNodeType *ntype,
   ntype->nclass = nclass;
   ntype->enum_name_legacy = enum_name;
 
-  blender::bke::node_type_base_defaults(ntype);
+  node_type_base_defaults(ntype);
 }
-
-namespace blender::bke {
 
 std::optional<eCustomDataType> socket_type_to_custom_data_type(eNodeSocketDatatype type)
 {
@@ -4662,8 +4557,6 @@ void node_type_size_preset(bNodeType *ntype, const eNodeSizePreset size)
   }
 }
 
-}  // namespace blender::bke
-
 void node_type_storage(bNodeType *ntype,
                        const char *storagename,
                        void (*freefunc)(bNode *node),
@@ -4683,22 +4576,22 @@ void node_type_storage(bNodeType *ntype,
 
 void BKE_node_system_init()
 {
-  blender::bke::nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
-  blender::bke::nodetypes_hash = BLI_ghash_str_new("nodetypes_hash gh");
-  blender::bke::nodetypes_alias_hash = BLI_ghash_str_new("nodetypes_alias_hash gh");
-  blender::bke::nodesockettypes_hash = BLI_ghash_str_new("nodesockettypes_hash gh");
+  nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
+  nodetypes_hash = BLI_ghash_str_new("nodetypes_hash gh");
+  nodetypes_alias_hash = BLI_ghash_str_new("nodetypes_alias_hash gh");
+  nodesockettypes_hash = BLI_ghash_str_new("nodesockettypes_hash gh");
 
   register_nodes();
 }
 
 void BKE_node_system_exit()
 {
-  if (blender::bke::nodetypes_alias_hash) {
-    BLI_ghash_free(blender::bke::nodetypes_alias_hash, MEM_freeN, MEM_freeN);
-    blender::bke::nodetypes_alias_hash = nullptr;
+  if (nodetypes_alias_hash) {
+    BLI_ghash_free(nodetypes_alias_hash, MEM_freeN, MEM_freeN);
+    nodetypes_alias_hash = nullptr;
   }
 
-  if (blender::bke::nodetypes_hash) {
+  if (nodetypes_hash) {
     NODE_TYPES_BEGIN (nt) {
       if (nt->rna_ext.free) {
         nt->rna_ext.free(nt->rna_ext.data);
@@ -4706,11 +4599,11 @@ void BKE_node_system_exit()
     }
     NODE_TYPES_END;
 
-    BLI_ghash_free(blender::bke::nodetypes_hash, nullptr, node_free_type);
-    blender::bke::nodetypes_hash = nullptr;
+    BLI_ghash_free(nodetypes_hash, nullptr, node_free_type);
+    nodetypes_hash = nullptr;
   }
 
-  if (blender::bke::nodesockettypes_hash) {
+  if (nodesockettypes_hash) {
     NODE_SOCKET_TYPES_BEGIN (st) {
       if (st->ext_socket.free) {
         st->ext_socket.free(st->ext_socket.data);
@@ -4721,11 +4614,11 @@ void BKE_node_system_exit()
     }
     NODE_SOCKET_TYPES_END;
 
-    BLI_ghash_free(blender::bke::nodesockettypes_hash, nullptr, node_free_socket_type);
-    blender::bke::nodesockettypes_hash = nullptr;
+    BLI_ghash_free(nodesockettypes_hash, nullptr, node_free_socket_type);
+    nodesockettypes_hash = nullptr;
   }
 
-  if (blender::bke::nodetreetypes_hash) {
+  if (nodetreetypes_hash) {
     NODE_TREE_TYPES_BEGIN (nt) {
       if (nt->rna_ext.free) {
         nt->rna_ext.free(nt->rna_ext.data);
@@ -4733,8 +4626,8 @@ void BKE_node_system_exit()
     }
     NODE_TREE_TYPES_END;
 
-    BLI_ghash_free(blender::bke::nodetreetypes_hash, nullptr, ntree_free_type);
-    blender::bke::nodetreetypes_hash = nullptr;
+    BLI_ghash_free(nodetreetypes_hash, nullptr, ntree_free_type);
+    nodetreetypes_hash = nullptr;
   }
 }
 
@@ -4811,3 +4704,5 @@ void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer
     }
   }
 }
+
+}  // namespace blender::bke

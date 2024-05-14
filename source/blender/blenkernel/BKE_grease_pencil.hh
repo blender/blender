@@ -57,6 +57,10 @@ class DrawingRuntime {
    */
   mutable SharedCache<Vector<float3>> curve_plane_normals_cache;
 
+  /*
+   * Matrices that transform from a 3D point in layer-space to a 2D point in texture-space. This is
+   * stored per curve.
+   */
   mutable SharedCache<Vector<float4x2>> curve_texture_matrices;
 
   /**
@@ -636,15 +640,6 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   void update_from_dna_read();
 
  protected:
-  /**
-   * Adds a new layer named \a name at the end of this group and returns it.
-   */
-  Layer &add_layer(StringRefNull name);
-  Layer &add_layer(const Layer &duplicate_layer);
-  /**
-   * Adds a new group named \a name at the end of this group and returns it.
-   */
-  LayerGroup &add_group(StringRefNull name);
   /**
    * Adds an existing \a node at the end of this group.
    */

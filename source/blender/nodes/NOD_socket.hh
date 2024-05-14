@@ -15,7 +15,7 @@ struct bNodeTree;
 
 bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
                                            bNode *node,
-                                           bNodeSocketTemplate *stemp,
+                                           blender::bke::bNodeSocketTemplate *stemp,
                                            eNodeSocketInOut in_out);
 
 void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user);

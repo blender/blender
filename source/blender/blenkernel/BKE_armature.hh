@@ -155,7 +155,10 @@ void BKE_armature_copy_bone_transforms(bArmature *armature_dst, const bArmature 
 
 void BKE_armature_transform(bArmature *arm, const float mat[4][4], bool do_props);
 
-std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const bPose *pose);
+/**
+ * Return the posed Armature bounding box in object-local coordinate space.
+ */
+std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob);
 
 /**
  * Calculate the axis-aligned bounds of `pchan` in world-space,
@@ -180,12 +183,16 @@ void BKE_pchan_minmax(const Object *ob,
 /**
  * Calculate the axis aligned bounds of the pose of `ob` in world-space.
  *
- * `r_min` and `r_max` are expanded to fit `ob->pose` so the caller must initialize them
- * (typically using #INIT_MINMAX).
+ * This only considers visible bones. When they are either directly (via a flag on the bone) or
+ * indirectly (via bone collections) hidden, they are not part of the bounds calculation. When a
+ * bone has a custom bone shape, that is included in the bounding box.
  *
  * \note This uses #BKE_pchan_minmax, see its documentation for details on bounds calculation.
+ *
+ * \param use_select When true, only consider selected bones. When false, selection state is
+ * ignored and all bones are included in the bounds.
  */
-bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select);
+std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob, bool use_select);
 
 /**
  * Finds the best possible extension to the name on a particular axis.

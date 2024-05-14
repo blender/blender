@@ -79,7 +79,7 @@ void register_node_type_sh_ambient_occlusion()
 {
   namespace file_ns = blender::nodes::node_shader_ambient_occlusion_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
@@ -88,5 +88,5 @@ void register_node_type_sh_ambient_occlusion()
   ntype.gpu_fn = file_ns::node_shader_gpu_ambient_occlusion;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }

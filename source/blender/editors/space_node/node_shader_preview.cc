@@ -119,7 +119,7 @@ static std::optional<ComputeContextHash> get_compute_context_hash_for_node_edito
   for (const int i : treepath.index_range().drop_back(1)) {
     /* The tree path contains the name of the node but not its ID. */
     bNodeTree *tree = treepath[i]->nodetree;
-    const bNode *node = nodeFindNodebyName(tree, treepath[i + 1]->node_name);
+    const bNode *node = bke::nodeFindNodebyName(tree, treepath[i + 1]->node_name);
     if (node == nullptr) {
       /* The current tree path is invalid, probably because some parent group node has been
        * deleted. */
@@ -377,7 +377,7 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
       }
     }
     if (output_node == nullptr) {
-      output_node = nodeAddStaticNode(nullptr, nested_nt, NODE_GROUP_OUTPUT);
+      output_node = bke::nodeAddStaticNode(nullptr, nested_nt, NODE_GROUP_OUTPUT);
       output_node->flag |= NODE_DO_OUTPUT;
     }
 
@@ -387,12 +387,12 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
     bNodeSocket *out_socket = blender::bke::node_find_enabled_input_socket(*output_node,
                                                                            route_name);
 
-    nodeAddLink(nested_nt, nested_node_iter, nested_socket_iter, output_node, out_socket);
+    bke::nodeAddLink(nested_nt, nested_node_iter, nested_socket_iter, output_node, out_socket);
     BKE_ntree_update_main_tree(G.pr_main, nested_nt, nullptr);
 
     /* Change the `nested_node` pointer to the nested node-group instance node. The tree path
      * contains the name of the instance node but not its ID. */
-    nested_node_iter = nodeFindNodebyName(path_prev->nodetree, path->node_name);
+    nested_node_iter = bke::nodeFindNodebyName(path_prev->nodetree, path->node_name);
 
     /* Update the sockets of the node because we added a new interface. */
     BKE_ntree_update_tag_node_property(path_prev->nodetree, nested_node_iter);
@@ -404,11 +404,11 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
                                                                        route_name);
   }
 
-  nodeAddLink(treepath.first()->nodetree,
-              nested_node_iter,
-              nested_socket_iter,
-              &final_node,
-              &final_socket);
+  bke::nodeAddLink(treepath.first()->nodetree,
+                   nested_node_iter,
+                   nested_socket_iter,
+                   &final_node,
+                   &final_socket);
 }
 
 /* Connect the node to the output of the first nodetree from `treepath`. Last element of `treepath`
@@ -430,10 +430,10 @@ static void connect_node_to_surface_output(const Span<bNodeTreePath *> treepath,
     socket_preview = socket_preview->link->fromsock;
   }
   /* Ensure output is usable. */
-  out_surface_socket = nodeFindSocket(&output_node, SOCK_IN, "Surface");
+  out_surface_socket = bke::nodeFindSocket(&output_node, SOCK_IN, "Surface");
   if (out_surface_socket->link) {
     /* Make sure no node is already wired to the output before wiring. */
-    nodeRemLink(main_nt, out_surface_socket->link);
+    bke::nodeRemLink(main_nt, out_surface_socket->link);
   }
 
   connect_nested_node_to_node(treepath,
@@ -459,13 +459,13 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
     bNode *node_preview = nodesocket.first;
     bNodeSocket *socket_preview = nodesocket.second;
 
-    bNode *aov_node = nodeAddStaticNode(nullptr, main_nt, SH_NODE_OUTPUT_AOV);
+    bNode *aov_node = bke::nodeAddStaticNode(nullptr, main_nt, SH_NODE_OUTPUT_AOV);
     STRNCPY(reinterpret_cast<NodeShaderOutputAOV *>(aov_node->storage)->name,
             nodesocket.first->name);
     if (socket_preview == nullptr) {
       continue;
     }
-    bNodeSocket *aov_socket = nodeFindSocket(aov_node, SOCK_IN, "Color");
+    bNodeSocket *aov_socket = bke::nodeFindSocket(aov_node, SOCK_IN, "Color");
     if (socket_preview->in_out == SOCK_IN) {
       if (socket_preview->link == nullptr) {
         /* Copy the custom value of the socket directly to the AOV node.
@@ -527,14 +527,14 @@ static bool prepare_viewlayer_update(void *pvl_data, ViewLayer *vl, Depsgraph *d
     return job_data->AOV_nodes.size() > 0 && !vl->prev;
   }
 
-  bNodeSocket *displacement_socket = nodeFindSocket(
+  bNodeSocket *displacement_socket = bke::nodeFindSocket(
       job_data->mat_output_copy, SOCK_IN, "Displacement");
   if (job_data->mat_displacement_copy.first != nullptr && displacement_socket->link == nullptr) {
-    nodeAddLink(job_data->treepath_copy.first()->nodetree,
-                job_data->mat_displacement_copy.first,
-                job_data->mat_displacement_copy.second,
-                job_data->mat_output_copy,
-                displacement_socket);
+    bke::nodeAddLink(job_data->treepath_copy.first()->nodetree,
+                     job_data->mat_displacement_copy.first,
+                     job_data->mat_displacement_copy.second,
+                     job_data->mat_output_copy,
+                     displacement_socket);
   }
   connect_node_to_surface_output(job_data->treepath_copy, nodesocket, *job_data->mat_output_copy);
 
@@ -703,7 +703,7 @@ static void shader_preview_startjob(void *customdata, wmJobWorkerStatus *worker_
   for (bNode *node_iter : job_data->mat_copy->nodetree->all_nodes()) {
     if (node_iter->flag & NODE_DO_OUTPUT) {
       node_iter->flag &= ~NODE_DO_OUTPUT;
-      bNodeSocket *disp_socket = nodeFindSocket(node_iter, SOCK_IN, "Displacement");
+      bNodeSocket *disp_socket = bke::nodeFindSocket(node_iter, SOCK_IN, "Displacement");
       if (disp_socket != nullptr && disp_socket->link != nullptr) {
         job_data->mat_displacement_copy = std::make_pair(disp_socket->link->fromnode,
                                                          disp_socket->link->fromsock);
@@ -714,7 +714,7 @@ static void shader_preview_startjob(void *customdata, wmJobWorkerStatus *worker_
 
   /* Add a new output node used only for the previews. This is useful to keep the previously
    * connected links (for previewing the output nodes for example). */
-  job_data->mat_output_copy = nodeAddStaticNode(
+  job_data->mat_output_copy = bke::nodeAddStaticNode(
       nullptr, job_data->mat_copy->nodetree, SH_NODE_OUTPUT_MATERIAL);
   job_data->mat_output_copy->flag |= NODE_DO_OUTPUT;
 
@@ -819,8 +819,8 @@ static void ensure_nodetree_previews(const bContext &C,
   {
     bNodeTreePath *new_path = MEM_cnew<bNodeTreePath>(__func__);
     memcpy(new_path, original_path, sizeof(bNodeTreePath));
-    bNode *parent = nodeFindNodebyName(job_data->treepath_copy.last()->nodetree,
-                                       original_path->node_name);
+    bNode *parent = bke::nodeFindNodebyName(job_data->treepath_copy.last()->nodetree,
+                                            original_path->node_name);
     new_path->nodetree = reinterpret_cast<bNodeTree *>(parent->id);
     job_data->treepath_copy.append(new_path);
   }

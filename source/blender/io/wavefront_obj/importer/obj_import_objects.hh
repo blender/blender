@@ -69,6 +69,7 @@ struct NurbsElement {
    */
   std::string group_;
   int degree = 0;
+  float2 range{0.0f, 1.0f};
   /**
    * Indices into the global list of vertex coordinates. Must be non-negative.
    */

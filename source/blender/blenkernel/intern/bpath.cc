@@ -103,7 +103,7 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
                                          sizeof(id->library_weak_reference->library_filepath));
   }
 
-  bNodeTree *embedded_node_tree = ntreeFromID(id);
+  bNodeTree *embedded_node_tree = blender::bke::ntreeFromID(id);
   if (embedded_node_tree != nullptr) {
     BKE_bpath_foreach_path_id(bpath_data, &embedded_node_tree->id);
   }

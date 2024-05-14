@@ -26,7 +26,7 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_action.h"
-#  include "BKE_animation.hh"
+#  include "BKE_action.hh"
 #  include "BKE_armature.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_camera.h"
@@ -299,9 +299,9 @@ static bNodeTree *rna_Main_nodetree_new(Main *bmain, const char *name, int type)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  bNodeTreeType *typeinfo = rna_node_tree_type_from_enum(type);
+  blender::bke::bNodeTreeType *typeinfo = rna_node_tree_type_from_enum(type);
   if (typeinfo) {
-    bNodeTree *ntree = ntreeAddTree(bmain, safe_name, typeinfo->idname);
+    bNodeTree *ntree = blender::bke::ntreeAddTree(bmain, safe_name, typeinfo->idname);
     ED_node_tree_propagate_change(nullptr, bmain, ntree);
 
     id_us_min(&ntree->id);
@@ -646,22 +646,6 @@ static bAction *rna_Main_actions_new(Main *bmain, const char *name)
   return act;
 }
 
-#  ifdef WITH_ANIM_BAKLAVA
-static Animation *rna_Main_animations_new(Main *bmain, const char *name)
-{
-  char safe_name[MAX_ID_NAME - 2];
-  rna_idname_validate(name, safe_name);
-
-  Animation *anim = BKE_animation_add(bmain, safe_name);
-  id_fake_user_clear(&anim->id);
-  id_us_min(&anim->id);
-
-  WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
-
-  return anim;
-}
-#  endif
-
 static ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
 {
   char safe_name[MAX_ID_NAME - 2];
@@ -848,9 +832,6 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(speakers, speakers, ID_SPK)
 RNA_MAIN_ID_TAG_FUNCS_DEF(sounds, sounds, ID_SO)
 RNA_MAIN_ID_TAG_FUNCS_DEF(armatures, armatures, ID_AR)
 RNA_MAIN_ID_TAG_FUNCS_DEF(actions, actions, ID_AC)
-#  ifdef WITH_ANIM_BAKLAVA
-RNA_MAIN_ID_TAG_FUNCS_DEF(animations, animations, ID_AN)
-#  endif
 RNA_MAIN_ID_TAG_FUNCS_DEF(particles, particles, ID_PA)
 RNA_MAIN_ID_TAG_FUNCS_DEF(palettes, palettes, ID_PAL)
 RNA_MAIN_ID_TAG_FUNCS_DEF(gpencils, gpencils, ID_GD_LEGACY)
@@ -1911,49 +1892,7 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_boolean(func, "value", false, "Value", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
-#  ifdef WITH_ANIM_BAKLAVA
-void RNA_def_main_animations(BlenderRNA *brna, PropertyRNA *cprop)
-{
-  StructRNA *srna;
-  FunctionRNA *func;
-  PropertyRNA *parm;
 
-  RNA_def_property_srna(cprop, "BlendDataAnimations");
-  srna = RNA_def_struct(brna, "BlendDataAnimations", nullptr);
-  RNA_def_struct_sdna(srna, "Main");
-  RNA_def_struct_ui_text(srna, "Main Animations", "Collection of animation data-blocks");
-
-  func = RNA_def_function(srna, "new", "rna_Main_animations_new");
-  RNA_def_function_ui_description(func, "Add a new animation data-block to the main database");
-  parm = RNA_def_string(func, "name", "Animation", 0, "", "Name for the new data-block");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  /* return type */
-  parm = RNA_def_pointer(func, "animation", "Animation", "", "New animation data-block");
-  RNA_def_function_return(func, parm);
-
-  func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func,
-                                  "Remove an animation data-block from the current blendfile");
-  parm = RNA_def_pointer(func, "animation", "Animation", "", "Animation to remove");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
-  RNA_def_boolean(
-      func, "do_unlink", true, "", "Unlink all usages of this animation before deleting it");
-  RNA_def_boolean(func,
-                  "do_id_user",
-                  true,
-                  "",
-                  "Decrement user counter of all datablocks used by this animation");
-  RNA_def_boolean(
-      func, "do_ui_user", true, "", "Make sure interface does not reference this animation");
-
-  /* Defined via RNA_MAIN_LISTBASE_FUNCS_DEF. */
-  func = RNA_def_function(srna, "tag", "rna_Main_animations_tag");
-  parm = RNA_def_boolean(func, "value", false, "Value", "");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-}
-#  endif
 void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;

@@ -53,7 +53,7 @@ void register_node_type_cmp_sepyuva()
 {
   namespace file_ns = blender::nodes::node_composite_separate_yuva_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(
       &ntype, CMP_NODE_SEPYUVA_LEGACY, "Separate YUVA (Legacy)", NODE_CLASS_CONVERTER);
@@ -61,7 +61,7 @@ void register_node_type_cmp_sepyuva()
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE YUVA ******************** */
@@ -120,7 +120,7 @@ void register_node_type_cmp_combyuva()
 {
   namespace file_ns = blender::nodes::node_composite_combine_yuva_cc;
 
-  static bNodeType ntype;
+  static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(
       &ntype, CMP_NODE_COMBYUVA_LEGACY, "Combine YUVA (Legacy)", NODE_CLASS_CONVERTER);
@@ -128,5 +128,5 @@ void register_node_type_cmp_combyuva()
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  nodeRegisterType(&ntype);
+  blender::bke::nodeRegisterType(&ntype);
 }
