@@ -507,7 +507,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
     PropertyRNA *prop = RNA_def_string_dir_path(ot->srna,
                                                 prop_id,
                                                 nullptr,
-                                                sizeof(bUserExtensionRepo::remote_path),
+                                                sizeof(bUserExtensionRepo::custom_dirpath),
                                                 RNA_property_ui_name_raw(prop_ref),
                                                 RNA_property_ui_description_raw(prop_ref));
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
