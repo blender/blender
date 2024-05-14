@@ -328,7 +328,7 @@ TEST(vk_render_graph, dispatch_indirect_read_back)
   EXPECT_EQ(4, log.size());
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
-      "dst_stage_mask=VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
+      "dst_stage_mask=VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
           endl() +
           " - buffer_barrier(src_access_mask=, "
           "dst_access_mask=VK_ACCESS_INDIRECT_COMMAND_READ_BIT, buffer=0x2, offset=0, "
@@ -387,7 +387,7 @@ TEST(vk_render_graph, dispatch_indirect_dispatch_indirect_read_back)
 
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
-      "dst_stage_mask=VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
+      "dst_stage_mask=VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
           endl() +
           " - buffer_barrier(src_access_mask=, "
           "dst_access_mask=VK_ACCESS_INDIRECT_COMMAND_READ_BIT, buffer=0x2, offset=0, "
@@ -402,8 +402,9 @@ TEST(vk_render_graph, dispatch_indirect_dispatch_indirect_read_back)
       log[2]);
   EXPECT_EQ("dispatch_indirect(buffer=0x2, offset=0)", log[3]);
   EXPECT_EQ(
-      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, "
-      "dst_stage_mask=VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, "
+      "VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
           endl() +
           " - buffer_barrier(src_access_mask=VK_ACCESS_SHADER_WRITE_BIT, "
           "dst_access_mask=VK_ACCESS_SHADER_WRITE_BIT, buffer=0x1, offset=0, "

@@ -31,11 +31,16 @@ struct VKDispatchIndirectCreateInfo : NonCopyable {
   VKDispatchIndirectCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
 };
 
-class VKDispatchIndirectNode : public VKNodeInfo<VKNodeType::DISPATCH_INDIRECT,
-                                                 VKDispatchIndirectCreateInfo,
-                                                 VKDispatchIndirectData,
-                                                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                                 VKResourceType::IMAGE | VKResourceType::BUFFER> {
+/* Although confusing the spec mentions that VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT should also be
+ * used for dispatches.
+ * (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPipelineStageFlagBits.html)
+ */
+class VKDispatchIndirectNode
+    : public VKNodeInfo<VKNodeType::DISPATCH_INDIRECT,
+                        VKDispatchIndirectCreateInfo,
+                        VKDispatchIndirectData,
+                        VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                        VKResourceType::IMAGE | VKResourceType::BUFFER> {
  public:
   /**
    * Update the node data with the data inside create_info.

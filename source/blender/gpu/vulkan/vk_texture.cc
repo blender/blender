@@ -458,8 +458,8 @@ bool VKTexture::init_internal(VertBuf *vbo)
   copy_buffer_to_image.region.imageExtent.width = w_;
   copy_buffer_to_image.region.imageExtent.height = 1;
   copy_buffer_to_image.region.imageExtent.depth = 1;
-  copy_buffer_to_image.region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(
-      device_format_);
+  copy_buffer_to_image.region.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(
+      to_vk_image_aspect_flag_bits(device_format_), false);
   copy_buffer_to_image.region.imageSubresource.mipLevel = 0;
   copy_buffer_to_image.region.imageSubresource.layerCount = 1;
 
@@ -643,10 +643,9 @@ void VKTexture::add_to_descriptor_set(AddToDescriptorSetContext &data,
       const VKSampler &sampler = device.samplers().get(sampler_state);
       data.descriptor_set.bind(*this, *location, sampler);
     }
-    render_graph::VKImageAccess image_access = {};
-    image_access.vk_image = vk_image_handle();
-    image_access.vk_access_flags = data.shader_interface.access_mask(bind_type, *location);
-    data.resource_access_info.images.append(image_access);
+    data.resource_access_info.images.append({vk_image_handle(),
+                                             data.shader_interface.access_mask(bind_type, binding),
+                                             to_vk_image_aspect_flag_bits(device_format_)});
   }
 }
 
