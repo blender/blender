@@ -3535,6 +3535,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 36)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      /* Only for grease pencil brushes. */
+      if (brush->gpencil_settings) {
+        /* Use the `Scene` radius unit by default (confusingly named `BRUSH_LOCK_SIZE`).
+         * Convert the radius to be the same visual size as in GPv2. */
+        brush->flag |= BRUSH_LOCK_SIZE;
+        brush->unprojected_radius = brush->size *
+                                    blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

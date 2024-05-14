@@ -2583,6 +2583,97 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_settings(Panel, View3DPanel, Grease
                 brush_basic_grease_pencil_paint_settings(layout, context, brush, compact=False)
 
 
+class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):
+    bl_context = ".greasepencil_paint"
+    bl_label = "Advanced"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brush_settings"
+    bl_category = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 13
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        if ob.type != 'GREASEPENCIL':
+            return False
+        brush = context.tool_settings.gpencil_paint.brush
+        return brush is not None and brush.gpencil_tool not in {'ERASE', 'TINT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.scene.tool_settings
+        ups = tool_settings.unified_paint_settings
+        gpencil_paint = tool_settings.gpencil_paint
+        brush = gpencil_paint.brush
+        gp_settings = brush.gpencil_settings
+
+        col = layout.column(align=True)
+        if brush is None:
+            return
+        if brush.gpencil_tool != 'FILL':
+            size_owner = ups if ups.use_unified_size else brush
+
+            row = col.row(align=True)
+            row.prop(size_owner, "use_locked_size", expand=True)
+            col.separator()
+
+            col.prop(gp_settings, "input_samples")
+            col.separator()
+
+            col.prop(gp_settings, "active_smooth_factor")
+            col.separator()
+
+            col.prop(gp_settings, "angle", slider=True)
+            col.prop(gp_settings, "angle_factor", text="Factor", slider=True)
+
+            ob = context.object
+            ma = None
+            if ob and brush.gpencil_settings.use_material_pin is False:
+                ma = ob.active_material
+            elif brush.gpencil_settings.material:
+                ma = brush.gpencil_settings.material
+
+            col.separator()
+            col.prop(gp_settings, "hardness", slider=True)
+            subcol = col.column(align=True)
+            if ma and ma.grease_pencil.mode == 'LINE':
+                subcol.enabled = False
+            subcol.prop(gp_settings, "aspect")
+
+        elif brush.gpencil_tool == 'FILL':
+            row = col.row(align=True)
+            row.prop(gp_settings, "fill_draw_mode", text="Boundary", text_ctxt=i18n_contexts.id_gpencil)
+            row.prop(
+                gp_settings,
+                "show_fill_boundary",
+                icon='HIDE_OFF' if gp_settings.show_fill_boundary else 'HIDE_ON',
+                text="",
+            )
+
+            col.separator()
+            row = col.row(align=True)
+            row.prop(gp_settings, "fill_layer_mode", text="Layers")
+
+            col.separator()
+            col.prop(gp_settings, "fill_simplify_level", text="Simplify")
+            if gp_settings.fill_draw_mode != 'STROKE':
+                col = layout.column(align=False, heading="Ignore Transparent")
+                col.use_property_decorate = False
+                row = col.row(align=True)
+                sub = row.row(align=True)
+                sub.prop(gp_settings, "show_fill", text="")
+                sub = sub.row(align=True)
+                sub.active = gp_settings.show_fill
+                sub.prop(gp_settings, "fill_threshold", text="")
+
+            col.separator()
+            row = col.row(align=True)
+            row.prop(gp_settings, "use_fill_limit")
+
+
 class VIEW3D_PT_tools_grease_pencil_v3_brush_mixcolor(View3DPanel, Panel):
     bl_context = ".grease_pencil_paint"
     bl_label = "Color"
@@ -2780,6 +2871,7 @@ classes = (
 
     VIEW3D_PT_tools_grease_pencil_v3_brush_select,
     VIEW3D_PT_tools_grease_pencil_v3_brush_settings,
+    VIEW3D_PT_tools_grease_pencil_v3_brush_advanced,
     VIEW3D_PT_tools_grease_pencil_v3_brush_mixcolor,
     VIEW3D_PT_tools_grease_pencil_v3_brush_mix_palette,
 
