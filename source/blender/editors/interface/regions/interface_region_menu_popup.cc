@@ -385,7 +385,7 @@ static void ui_block_free_func_POPUP(void *arg_pup)
   MEM_delete(pup);
 }
 
-static uiPopupBlockHandle *ui_popup_menu_create(
+static uiPopupBlockHandle *ui_popup_menu_create_impl(
     bContext *C,
     ARegion *butregion,
     uiBut *but,
@@ -430,7 +430,7 @@ static uiPopupBlockHandle *ui_popup_menu_create(
 uiPopupBlockHandle *ui_popup_menu_create(
     bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
 {
-  return ui_popup_menu_create(
+  return ui_popup_menu_create_impl(
       C, butregion, but, nullptr, [menu_func, arg](bContext *C, uiLayout *layout) {
         menu_func(C, layout, arg);
       });
@@ -600,7 +600,7 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
                                                const char *title,
                                                const int icon)
 {
-  uiPopupBlockHandle *handle = ui_popup_menu_create(
+  uiPopupBlockHandle *handle = ui_popup_menu_create_impl(
       C, nullptr, nullptr, title, [mt, title, icon](bContext *C, uiLayout *layout) -> void {
         if (title && title[0]) {
           create_title_button(layout, title, icon);
