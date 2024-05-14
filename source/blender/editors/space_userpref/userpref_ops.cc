@@ -278,6 +278,7 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   char custom_directory[sizeof(bUserExtensionRepo::custom_dirpath)] = "";
 
   const bool use_custom_directory = RNA_boolean_get(op->ptr, "use_custom_directory");
+  const bool use_sync_on_startup = RNA_boolean_get(op->ptr, "use_sync_on_startup");
   if (use_custom_directory) {
     RNA_string_get(op->ptr, "custom_directory", custom_directory);
     BLI_path_slash_rstrip(custom_directory);
@@ -342,6 +343,9 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(
       &U, name, module, custom_directory);
 
+  if (use_sync_on_startup) {
+    new_repo->flag |= USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP;
+  }
   if (use_custom_directory) {
     new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY;
   }
@@ -396,6 +400,7 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
   switch (repo_type) {
     case bUserExtensionRepoAddType::Remote: {
       uiItemR(layout, op->ptr, "remote_path", UI_ITEM_R_IMMEDIATE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "use_sync_on_startup", UI_ITEM_NONE, nullptr, ICON_NONE);
       break;
     }
     case bUserExtensionRepoAddType::Local: {
@@ -471,6 +476,17 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
                                        sizeof(bUserExtensionRepo::remote_path),
                                        RNA_property_ui_name_raw(prop_ref),
                                        RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
+
+  { /* Check for Updated on Startup. */
+    const char *prop_id = "use_sync_on_startup";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                        prop_id,
+                                        false,
+                                        RNA_property_ui_name_raw(prop_ref),
+                                        RNA_property_ui_description_raw(prop_ref));
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   }
 
