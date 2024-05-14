@@ -719,9 +719,8 @@ void uiPupBlockOperator(bContext *C,
                         wmOperatorCallContext opcontext)
 {
   wmWindow *window = CTX_wm_window(C);
-  uiPopupBlockHandle *handle;
 
-  handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr, true);
+  uiPopupBlockHandle *handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr, true);
   handle->popup = 1;
   handle->retvalue = 1;
 
