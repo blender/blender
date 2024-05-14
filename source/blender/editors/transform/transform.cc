@@ -1613,6 +1613,7 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
   }
   BLF_color4fv(BLF_default(), text_color);
   BLF_shadow(BLF_default(), FontShadowType::Outline, shadow_color);
+  BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
 
   /* Auto-key recording icon. */
   GPU_blend(GPU_BLEND_ALPHA);
