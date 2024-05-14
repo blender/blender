@@ -420,10 +420,10 @@ static void rna_userdef_extension_repo_use_custom_directory_set(PointerRNA *ptr,
       ptr, value, USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY);
 }
 
-static void rna_userdef_extension_repo_use_remote_path_set(PointerRNA *ptr, bool value)
+static void rna_userdef_extension_repo_use_remote_url_set(PointerRNA *ptr, bool value)
 {
   rna_userdef_extension_repo_generic_flag_set_impl(
-      ptr, value, USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH);
+      ptr, value, USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL);
 }
 
 static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
@@ -525,7 +525,7 @@ static void rna_userdef_asset_library_remove(ReportList *reports, PointerRNA *pt
 static bUserExtensionRepo *rna_userdef_extension_repo_new(const char *name,
                                                           const char *module,
                                                           const char *custom_directory,
-                                                          const char *remote_path)
+                                                          const char *remote_url)
 {
   Main *bmain = G.main;
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
@@ -533,12 +533,12 @@ static bUserExtensionRepo *rna_userdef_extension_repo_new(const char *name,
   bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(
       &U, name ? name : "", module ? module : "", custom_directory ? custom_directory : "");
 
-  if (remote_path) {
-    STRNCPY(repo->remote_path, remote_path);
+  if (remote_url) {
+    STRNCPY(repo->remote_url, remote_url);
   }
 
-  if (repo->remote_path[0]) {
-    repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
+  if (repo->remote_url[0]) {
+    repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL;
   }
   if (repo->custom_dirpath[0]) {
     repo->flag |= USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY;
@@ -6699,8 +6699,8 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
                                 "rna_userdef_extension_repo_directory_length",
                                 nullptr);
 
-  prop = RNA_def_property(srna, "remote_path", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "remote_path");
+  prop = RNA_def_property(srna, "remote_url", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "remote_url");
   RNA_def_property_ui_text(prop, "URL", "Remote URL or path for extension repository");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_update(prop, 0, "rna_userdef_update");
@@ -6733,11 +6733,10 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(
       prop, nullptr, "rna_userdef_extension_repo_use_custom_directory_set");
 
-  prop = RNA_def_property(srna, "use_remote_path", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH);
-  RNA_def_property_ui_text(
-      prop, "Use Remote", "Synchronize the repository with a remote URL/path");
-  RNA_def_property_boolean_funcs(prop, nullptr, "rna_userdef_extension_repo_use_remote_path_set");
+  prop = RNA_def_property(srna, "use_remote_url", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL);
+  RNA_def_property_ui_text(prop, "Use Remote", "Synchronize the repository with a remote URL");
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_userdef_extension_repo_use_remote_url_set");
 }
 
 static void rna_def_userdef_script_directory(BlenderRNA *brna)
@@ -6855,7 +6854,7 @@ static void rna_def_userdef_extension_repos_collection(BlenderRNA *brna, Propert
                  "Custom Directory",
                  "");
   RNA_def_string(
-      func, "remote_path", nullptr, sizeof(bUserExtensionRepo::remote_path), "Remote Path", "");
+      func, "remote_url", nullptr, sizeof(bUserExtensionRepo::remote_url), "Remote URL", "");
 
   /* return type */
   parm = RNA_def_pointer(func, "repo", "UserExtensionRepo", "", "Newly added repository");
