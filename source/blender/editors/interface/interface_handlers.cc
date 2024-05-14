@@ -4336,7 +4336,8 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
   }
 
   if (func || handlefunc) {
-    data->menu = ui_popup_block_create(C, data->region, but, func, handlefunc, arg, nullptr);
+    data->menu = ui_popup_block_create(
+        C, data->region, but, func, handlefunc, arg, nullptr, false);
     if (but->block->handle) {
       data->menu->popup = but->block->handle->popup;
     }

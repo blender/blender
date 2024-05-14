@@ -175,7 +175,8 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *menu;
 
-  menu = ui_popup_block_create(C, nullptr, nullptr, nullptr, ui_block_func_PIE, pie, nullptr);
+  menu = ui_popup_block_create(
+      C, nullptr, nullptr, nullptr, ui_block_func_PIE, pie, nullptr, false);
   menu->popup = true;
   menu->towardstime = BLI_time_now_seconds();
 

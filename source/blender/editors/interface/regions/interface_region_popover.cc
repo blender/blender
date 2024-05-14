@@ -273,8 +273,7 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
   /* Create popup block. */
   uiPopupBlockHandle *handle;
   handle = ui_popup_block_create(
-      C, butregion, but, nullptr, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER);
-  handle->can_refresh = true;
+      C, butregion, but, nullptr, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER, true);
 
   /* Add handlers. If attached to a button, the button will already
    * add a modal handler and pass on events. */
@@ -393,7 +392,8 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
                                  nullptr,
                                  ui_block_func_POPOVER,
                                  pup,
-                                 ui_block_free_func_POPOVER);
+                                 ui_block_free_func_POPOVER,
+                                 false);
 
   /* Add handlers. */
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
