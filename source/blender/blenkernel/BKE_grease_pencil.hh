@@ -57,6 +57,10 @@ class DrawingRuntime {
    */
   mutable SharedCache<Vector<float3>> curve_plane_normals_cache;
 
+  /*
+   * Matrices that transform from a 3D point in layer-space to a 2D point in texture-space. This is
+   * stored per curve.
+   */
   mutable SharedCache<Vector<float4x2>> curve_texture_matrices;
 
   /**
