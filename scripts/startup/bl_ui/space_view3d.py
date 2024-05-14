@@ -5921,6 +5921,13 @@ class VIEW3D_MT_weight_gpencil(Menu):
         layout.menu("VIEW3D_MT_gpencil_autoweights")
 
 
+class VIEW3D_MT_weight_grease_pencil(Menu):
+    bl_label = "Weights"
+
+    def draw(self, _context):
+        pass
+
+
 class VIEW3D_MT_gpencil_animation(Menu):
     bl_label = "Animation"
 
@@ -9232,6 +9239,7 @@ classes = (
     VIEW3D_MT_edit_gpencil_showhide,
     VIEW3D_MT_edit_greasepencil_showhide,
     VIEW3D_MT_edit_greasepencil_cleanup,
+    VIEW3D_MT_weight_grease_pencil,
     VIEW3D_MT_weight_gpencil,
     VIEW3D_MT_gpencil_animation,
     VIEW3D_MT_gpencil_simplify,
