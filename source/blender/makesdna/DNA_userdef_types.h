@@ -914,8 +914,10 @@ typedef struct UserDef {
 
   /** Index of the extension repo in the Preferences UI. */
   short active_extension_repo;
+  /** Flag for all extensions (#eUserPref_ExtensionFlag).  */
+  char extension_flag;
 
-  char _pad14[6];
+  char _pad14[5];
 
   short undosteps;
   int undomemory;
@@ -1167,6 +1169,11 @@ typedef enum eUserPref_Flag {
   USER_TOOLTIPS_PYTHON = (1 << 26),
   USER_FLAG_UNUSED_27 = (1 << 27), /* dirty */
 } eUserPref_Flag;
+
+/** #UserDef.extension_flag */
+typedef enum eUserPref_ExtensionFlag {
+  USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED = 1 << 0,
+} eUserPref_ExtensionFlag;
 
 /** #UserDef.file_preview_type */
 typedef enum eUserpref_File_Preview_Type {

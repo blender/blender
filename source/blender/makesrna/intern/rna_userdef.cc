@@ -6948,6 +6948,13 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
       "Tabs as Spaces",
       "Automatically convert all new tabs into spaces for new and loaded text files");
 
+  prop = RNA_def_property(srna, "use_extension_online_access_handled", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "extension_flag", USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED);
+  RNA_def_property_ui_text(
+      prop,
+      "Online Access",
+      "The user has been shown the \"Online Access\" prompt and make a choice");
+
   /* Directories. */
 
   prop = RNA_def_property(srna, "font_directory", PROP_STRING, PROP_DIRPATH);
