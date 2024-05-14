@@ -189,6 +189,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
+    case LIGHT_SHADOW_SETUP:
+      return "eevee_light_shadow_setup";
     case RAY_DENOISE_SPATIAL:
       return "eevee_ray_denoise_spatial";
     case RAY_DENOISE_TEMPORAL:
@@ -225,6 +227,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_reflection_probe_irradiance";
     case SPHERE_PROBE_SELECT:
       return "eevee_reflection_probe_select";
+    case SPHERE_PROBE_SUNLIGHT:
+      return "eevee_reflection_probe_sunlight";
     case SHADOW_CLIPMAP_CLEAR:
       return "eevee_shadow_clipmap_clear";
     case SHADOW_DEBUG:

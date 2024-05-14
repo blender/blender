@@ -1560,6 +1560,13 @@ struct SphereProbeHarmonic {
 };
 BLI_STATIC_ASSERT_ALIGN(SphereProbeHarmonic, 16)
 
+struct SphereProbeSunLight {
+  float4 direction;
+  packed_float3 radiance;
+  float _pad0;
+};
+BLI_STATIC_ASSERT_ALIGN(SphereProbeSunLight, 16)
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1725,7 +1732,7 @@ BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
  * \{ */
 
 struct ClampData {
-  float world;
+  float sun_threshold;
   float surface_direct;
   float surface_indirect;
   float volume_direct;

@@ -9,6 +9,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_node.hh"
 #include "BKE_world.h"
+#include "BLI_math_rotation.h"
 #include "DEG_depsgraph_query.hh"
 #include "NOD_shader.h"
 
@@ -76,6 +77,21 @@ World::~World()
   return default_world_;
 }
 
+::World *World::scene_world_get()
+{
+  return (inst_.scene->world != nullptr) ? inst_.scene->world : default_world_get();
+}
+
+float World::sun_threshold()
+{
+  float sun_threshold = scene_world_get()->sun_threshold;
+  if (inst_.use_studio_light()) {
+    /* Do not call `lookdev_world_.intensity_get()` as it might not be initialized yet. */
+    sun_threshold *= inst_.v3d->shading.studiolight_intensity;
+  }
+  return sun_threshold;
+}
+
 void World::sync()
 {
   bool has_update = false;
@@ -100,11 +116,8 @@ void World::sync()
   else if (has_volume_absorption_) {
     bl_world = default_world_get();
   }
-  else if (inst_.scene->world != nullptr) {
-    bl_world = inst_.scene->world;
-  }
   else {
-    bl_world = default_world_get();
+    bl_world = scene_world_get();
   }
 
   bNodeTree *ntree = (bl_world->nodetree && bl_world->use_nodes) ?

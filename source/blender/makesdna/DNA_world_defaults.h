@@ -16,6 +16,8 @@
 
 #define _DNA_DEFAULT_World \
   { \
+    .flag = WO_USE_SUN_SHADOW, \
+  \
     .horr = 0.05f, \
     .horg = 0.05f, \
     .horb = 0.05f, \
@@ -28,6 +30,9 @@
     .mistdist = 25.0f, \
   \
     .probe_resolution = LIGHT_PROBE_RESOLUTION_1024, \
+    .sun_threshold = 10.0f, \
+    .sun_angle = DEG2RADF(0.526f), \
+    .sun_shadow_maximum_resolution = 0.001f, \
   }
 
 /** \} */

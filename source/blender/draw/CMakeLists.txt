@@ -521,6 +521,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_light_culling_sort_comp.glsl
   engines/eevee_next/shaders/eevee_light_culling_tile_comp.glsl
   engines/eevee_next/shaders/eevee_light_culling_zbin_comp.glsl
+  engines/eevee_next/shaders/eevee_light_shadow_setup_comp.glsl
   engines/eevee_next/shaders/eevee_light_eval_lib.glsl
   engines/eevee_next/shaders/eevee_light_iter_lib.glsl
   engines/eevee_next/shaders/eevee_light_lib.glsl
@@ -564,6 +565,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_reflection_probe_mapping_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_remap_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_select_comp.glsl
+  engines/eevee_next/shaders/eevee_reflection_probe_sunlight_comp.glsl
   engines/eevee_next/shaders/eevee_renderpass_lib.glsl
   engines/eevee_next/shaders/eevee_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_shadow_debug_frag.glsl

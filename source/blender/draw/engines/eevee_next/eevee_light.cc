@@ -15,6 +15,7 @@
 #include "eevee_light.hh"
 
 #include "BLI_math_rotation.h"
+#include "DNA_defaults.h"
 
 namespace blender::eevee {
 
@@ -45,11 +46,13 @@ static eLightType to_light_type(short blender_light_type,
 /** \name Light Object
  * \{ */
 
-void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
+void Light::sync(ShadowModule &shadows,
+                 float4x4 object_to_world,
+                 char visibility_flag,
+                 const ::Light *la,
+                 float threshold)
 {
   using namespace blender::math;
-
-  const ::Light *la = (const ::Light *)ob->data;
 
   eLightType new_type = to_light_type(la->type, la->area_shape, la->mode & LA_USE_SOFT_FALLOFF);
   if (assign_if_different(this->type, new_type)) {
@@ -59,7 +62,6 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   this->color = float3(&la->r) * la->energy;
 
   float3 scale;
-  float4x4 object_to_world = ob->object_to_world();
   object_to_world.view<3, 3>() = normalize_and_get_size(object_to_world.view<3, 3>(), scale);
 
   /* Make sure we have consistent handedness (in case of negatively scaled Z axis). */
@@ -72,10 +74,10 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 
   shape_parameters_set(la, scale, threshold);
 
-  const bool diffuse_visibility = (ob->visibility_flag & OB_HIDE_DIFFUSE) == 0;
-  const bool glossy_visibility = (ob->visibility_flag & OB_HIDE_GLOSSY) == 0;
-  const bool transmission_visibility = (ob->visibility_flag & OB_HIDE_TRANSMISSION) == 0;
-  const bool volume_visibility = (ob->visibility_flag & OB_HIDE_VOLUME_SCATTER) == 0;
+  const bool diffuse_visibility = (visibility_flag & OB_HIDE_DIFFUSE) == 0;
+  const bool glossy_visibility = (visibility_flag & OB_HIDE_GLOSSY) == 0;
+  const bool transmission_visibility = (visibility_flag & OB_HIDE_TRANSMISSION) == 0;
+  const bool volume_visibility = (visibility_flag & OB_HIDE_VOLUME_SCATTER) == 0;
 
   float shape_power = shape_radiance_get();
   float point_power = point_radiance_get();
@@ -325,16 +327,37 @@ void LightModule::begin_sync()
 
   sun_lights_len_ = 0;
   local_lights_len_ = 0;
+
+  if (use_sun_lights_ && inst_.world.sun_threshold() > 0.0) {
+    /* Create a placeholder light to be fed by the GPU after sunlight extraction.
+     * Sunlight is disabled if power is zero. */
+    ::Light la = blender::dna::shallow_copy(
+        *(const ::Light *)DNA_default_table[SDNA_TYPE_FROM_STRUCT(Light)]);
+    la.type = LA_SUN;
+    /* Set on the GPU. */
+    la.r = la.g = la.b = -1.0f; /* Tag as world sun light. */
+    la.energy = 1.0f;
+    la.sun_angle = inst_.world.sun_angle();
+    la.shadow_maximum_resolution = inst_.world.sun_shadow_max_resolution();
+    SET_FLAG_FROM_TEST(la.mode, inst_.world.use_sun_shadow(), LA_SHADOW);
+
+    Light &light = light_map_.lookup_or_add_default(world_sunlight_key);
+    light.used = true;
+    light.sync(inst_.shadows, float4x4::identity(), 0, &la, light_threshold_);
+
+    sun_lights_len_ += 1;
+  }
 }
 
 void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
 {
+  const ::Light *la = static_cast<const ::Light *>(ob->data);
   if (use_scene_lights_ == false) {
     return;
   }
 
   if (use_sun_lights_ == false) {
-    if (static_cast<const ::Light *>(ob->data)->type == LA_SUN) {
+    if (la->type == LA_SUN) {
       return;
     }
   }
@@ -343,7 +366,7 @@ void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
   light.used = true;
   if (handle.recalc != 0 || !light.initialized) {
     light.initialized = true;
-    light.sync(inst_.shadows, ob, light_threshold_);
+    light.sync(inst_.shadows, ob->object_to_world(), ob->visibility_flag, la, light_threshold_);
   }
   sun_lights_len_ += int(is_sun_light(light.type));
   local_lights_len_ += int(!is_sun_light(light.type));
@@ -428,6 +451,7 @@ void LightModule::end_sync()
   culling_tile_buf_.resize(total_word_count_);
 
   culling_pass_sync();
+  update_pass_sync();
   debug_pass_sync();
 }
 
@@ -444,6 +468,7 @@ void LightModule::culling_pass_sync()
   {
     auto &sub = culling_ps_.sub("Select");
     sub.shader_set(inst_.shaders.static_shader_get(LIGHT_CULLING_SELECT));
+    sub.bind_ubo("sunlight_buf", &inst_.world.sunlight);
     sub.bind_ssbo("light_cull_buf", &culling_data_buf_);
     sub.bind_ssbo("in_light_buf", light_buf_);
     sub.bind_ssbo("out_light_buf", culling_light_buf_);
@@ -483,6 +508,20 @@ void LightModule::culling_pass_sync()
   }
 }
 
+void LightModule::update_pass_sync()
+{
+  auto &pass = update_ps_;
+  pass.init();
+  pass.shader_set(inst_.shaders.static_shader_get(LIGHT_SHADOW_SETUP));
+  pass.bind_ssbo("light_buf", &culling_light_buf_);
+  pass.bind_ssbo("light_cull_buf", &culling_data_buf_);
+  pass.bind_ssbo("tilemaps_buf", &inst_.shadows.tilemap_pool.tilemaps_data);
+  pass.bind_resources(inst_.uniform_data);
+  /* TODO(fclem): Dispatch for all light. */
+  pass.dispatch(int3(1, 1, 1));
+  pass.barrier(GPU_BARRIER_SHADER_STORAGE);
+}
+
 void LightModule::debug_pass_sync()
 {
   if (inst_.debug_mode == eDebugMode::DEBUG_LIGHT_CULLING) {
@@ -512,6 +551,7 @@ void LightModule::set_view(View &view, const int2 extent)
   culling_data_buf_.push_update();
 
   inst_.manager->submit(culling_ps_, view);
+  inst_.manager->submit(update_ps_);
 }
 
 void LightModule::debug_draw(View &view, GPUFrameBuffer *view_fb)

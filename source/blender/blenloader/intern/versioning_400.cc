@@ -3383,7 +3383,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       SceneEEVEE default_scene_eevee = *DNA_struct_default_get(SceneEEVEE);
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.shadow_resolution_scale = default_scene_eevee.shadow_resolution_scale;
-        scene->eevee.clamp_world = 10.0f;
       }
     }
   }
@@ -3545,6 +3544,16 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         brush->unprojected_radius = brush->size *
                                     blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 37)) {
+    const World *default_world = DNA_struct_default_get(World);
+    LISTBASE_FOREACH (World *, world, &bmain->worlds) {
+      world->sun_threshold = default_world->sun_threshold;
+      world->sun_angle = default_world->sun_angle;
+      world->sun_shadow_maximum_resolution = default_world->sun_shadow_maximum_resolution;
+      world->flag |= WO_USE_SUN_SHADOW;
     }
   }
 
