@@ -12,7 +12,7 @@ from bl_ui.utils import PresetPanel
 from bpy.types import Panel, Menu
 
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
-from bl_ui.properties_render import draw_curves_settings
+from bl_ui.properties_render import draw_curves_settings, CompositorPerformanceButtonsPanel
 from bl_ui.properties_view_layer import ViewLayerCryptomattePanel, ViewLayerAOVPanel, ViewLayerLightgroupsPanel
 
 
@@ -767,6 +767,11 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         pass
+
+
+class CYCLES_RENDER_PT_performance_compositor(CyclesButtonsPanel, CompositorPerformanceButtonsPanel, Panel):
+    bl_parent_id = "CYCLES_RENDER_PT_performance"
+    bl_options = {'DEFAULT_CLOSED'}
 
 
 class CYCLES_RENDER_PT_performance_threads(CyclesButtonsPanel, Panel):
@@ -2559,6 +2564,7 @@ classes = (
     CYCLES_RENDER_PT_film_pixel_filter,
     CYCLES_RENDER_PT_film_transparency,
     CYCLES_RENDER_PT_performance,
+    CYCLES_RENDER_PT_performance_compositor,
     CYCLES_RENDER_PT_performance_threads,
     CYCLES_RENDER_PT_performance_memory,
     CYCLES_RENDER_PT_performance_acceleration_structure,

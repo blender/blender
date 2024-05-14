@@ -77,9 +77,7 @@ void COM_execute(Render *render,
   compositor_init_node_previews(render_data, node_tree);
   compositor_reset_node_tree_status(node_tree);
 
-  if (U.experimental.use_full_frame_compositor &&
-      scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU)
-  {
+  if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
     /* GPU compositor. */
     RE_compositor_execute(*render, *scene, *render_data, *node_tree, view_name, render_context);
   }

@@ -348,9 +348,7 @@ static bool is_compositing_possible(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   /* CPU compositor can always run. */
-  if (!U.experimental.use_full_frame_compositor ||
-      scene->r.compositor_device != SCE_COMPOSITOR_DEVICE_GPU)
-  {
+  if (scene->r.compositor_device != SCE_COMPOSITOR_DEVICE_GPU) {
     return true;
   }
 

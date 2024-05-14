@@ -1691,9 +1691,7 @@ static int check_compositor_output(Scene *scene)
 static bool is_compositing_possible_on_gpu(Scene *scene, ReportList *reports)
 {
   /* CPU compositor can always run. */
-  if (!U.experimental.use_full_frame_compositor ||
-      scene->r.compositor_device != SCE_COMPOSITOR_DEVICE_GPU)
-  {
+  if (scene->r.compositor_device != SCE_COMPOSITOR_DEVICE_GPU) {
     return true;
   }
 

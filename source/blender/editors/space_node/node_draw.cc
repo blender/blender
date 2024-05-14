@@ -4459,9 +4459,7 @@ static bool realtime_compositor_is_in_use(const bContext &context)
     return false;
   }
 
-  if (U.experimental.use_full_frame_compositor &&
-      scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU)
-  {
+  if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
     return true;
   }
 

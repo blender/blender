@@ -835,11 +835,9 @@ class NODE_PT_quality(bpy.types.Panel):
 
         snode = context.space_data
         tree = snode.node_tree
-        prefs = bpy.context.preferences
 
         col = layout.column()
-        if prefs.experimental.use_experimental_compositors:
-            col.prop(rd, "compositor_device", text="Device")
+        col.prop(rd, "compositor_device", text="Device")
         col.prop(rd, "compositor_precision", text="Precision")
 
         col = layout.column()
