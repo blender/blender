@@ -9,6 +9,7 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
+#include "BKE_paint.hh"
 
 #include "BLI_bounds.hh"
 #include "BLI_length_parameterize.hh"

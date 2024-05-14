@@ -23,3 +23,28 @@ typedef enum eSeqImageFitMethod {
   SEQ_STRETCH_TO_FILL,
   SEQ_USE_ORIGINAL_SIZE,
 } eSeqImageFitMethod;
+
+/**
+ * #Paint::symmetry_flags
+ * (for now just a duplicate of sculpt symmetry flags).
+ */
+typedef enum ePaintSymmetryFlags {
+  PAINT_SYMM_NONE = 0,
+  PAINT_SYMM_X = (1 << 0),
+  PAINT_SYMM_Y = (1 << 1),
+  PAINT_SYMM_Z = (1 << 2),
+  PAINT_SYMMETRY_FEATHER = (1 << 3),
+  PAINT_TILE_X = (1 << 4),
+  PAINT_TILE_Y = (1 << 5),
+  PAINT_TILE_Z = (1 << 6),
+} ePaintSymmetryFlags;
+ENUM_OPERATORS(ePaintSymmetryFlags, PAINT_TILE_Z);
+#define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
+
+#ifdef __cplusplus
+inline ePaintSymmetryFlags operator++(ePaintSymmetryFlags &flags, int)
+{
+  flags = ePaintSymmetryFlags(char(flags) + 1);
+  return flags;
+}
+#endif

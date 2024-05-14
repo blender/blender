@@ -9,6 +9,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
+#include "BKE_paint.hh"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"

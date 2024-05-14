@@ -17,6 +17,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_paint.hh"
 
 #include "DEG_depsgraph_query.hh"
 #include "DNA_brush_enums.h"

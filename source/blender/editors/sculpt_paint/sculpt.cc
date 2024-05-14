@@ -23,6 +23,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_task.h"
@@ -2973,6 +2974,34 @@ ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3])
     symm_area |= PAINT_SYMM_AREA_Z;
   }
   return symm_area;
+}
+
+static void flip_qt_qt(float out[4], const float in[4], const ePaintSymmetryFlags symm)
+{
+  float axis[3], angle;
+
+  quat_to_axis_angle(axis, &angle, in);
+  normalize_v3(axis);
+
+  if (symm & PAINT_SYMM_X) {
+    axis[0] *= -1.0f;
+    angle *= -1.0f;
+  }
+  if (symm & PAINT_SYMM_Y) {
+    axis[1] *= -1.0f;
+    angle *= -1.0f;
+  }
+  if (symm & PAINT_SYMM_Z) {
+    axis[2] *= -1.0f;
+    angle *= -1.0f;
+  }
+
+  axis_angle_normalized_to_quat(out, axis, angle);
+}
+
+static void flip_qt(float quat[4], const ePaintSymmetryFlags symm)
+{
+  flip_qt_qt(quat, quat, symm);
 }
 
 void SCULPT_flip_v3_by_symm_area(float v[3],
