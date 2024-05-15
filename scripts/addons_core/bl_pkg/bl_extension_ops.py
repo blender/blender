@@ -2259,6 +2259,9 @@ class BlPkgOnlineAccess(Operator):
                 # While not expected, we want to know if this ever occurs, don't fail silently.
                 self.report({'WARNING'}, "Repository \"{:s}\" not found!".format(remote_url))
 
+            # Run the first check for updates automatically.
+            if bpy.ops.bl_pkg.repo_sync_all.poll():
+                bpy.ops.bl_pkg.repo_sync_all()
         prefs.extensions.use_online_access_handled = True
 
         return {'FINISHED'}
