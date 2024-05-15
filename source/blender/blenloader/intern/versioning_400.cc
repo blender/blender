@@ -2097,13 +2097,32 @@ static void image_settings_avi_to_ffmpeg(Scene *scene)
   }
 }
 
+/* The Hue Correct curve now wraps around by specifying CUMA_USE_WRAPPING, which means it no longer
+ * makes sense to have curve maps outside of the [0, 1] range, so enable clipping and reset the
+ * clip and view ranges. */
+static void hue_correct_set_wrapping(CurveMapping *curve_mapping)
+{
+  curve_mapping->flag |= CUMA_DO_CLIP;
+  curve_mapping->flag |= CUMA_USE_WRAPPING;
+
+  curve_mapping->clipr.xmin = 0.0f;
+  curve_mapping->clipr.xmax = 1.0f;
+  curve_mapping->clipr.ymin = 0.0f;
+  curve_mapping->clipr.ymax = 1.0f;
+
+  curve_mapping->curr.xmin = 0.0f;
+  curve_mapping->curr.xmax = 1.0f;
+  curve_mapping->curr.ymin = 0.0f;
+  curve_mapping->curr.ymax = 1.0f;
+}
+
 static bool seq_hue_correct_set_wrapping(Sequence *seq, void * /*user_data*/)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
     if (smd->type == seqModifierType_HueCorrect) {
       HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
       CurveMapping *cumap = (CurveMapping *)&hcmd->curve_mapping;
-      cumap->flag |= CUMA_USE_WRAPPING;
+      hue_correct_set_wrapping(cumap);
     }
   }
   return true;
@@ -2153,7 +2172,7 @@ static void versioning_node_hue_correct_set_wrappng(bNodeTree *ntree)
 
       if (node->type == CMP_NODE_HUECORRECT) {
         CurveMapping *cumap = (CurveMapping *)node->storage;
-        cumap->flag |= CUMA_USE_WRAPPING;
+        hue_correct_set_wrapping(cumap);
       }
     }
   }

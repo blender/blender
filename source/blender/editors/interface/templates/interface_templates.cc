@@ -4710,28 +4710,30 @@ static void curvemap_buttons_layout(uiLayout *layout,
   uiLayout *sub = uiLayoutRow(row, true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 
-  /* Zoom in */
-  bt = uiDefIconBut(
-      block, UI_BTYPE_BUT, 0, ICON_ZOOM_IN, 0, 0, dx, dx, nullptr, 0.0, 0.0, TIP_("Zoom in"));
-  UI_but_func_set(bt, [cumap](bContext &C) { curvemap_buttons_zoom_in(&C, cumap); });
-  if (!curvemap_can_zoom_in(cumap)) {
-    UI_but_disable(bt, "");
-  }
+  if (!(cumap->flag & CUMA_USE_WRAPPING)) {
+    /* Zoom in */
+    bt = uiDefIconBut(
+        block, UI_BTYPE_BUT, 0, ICON_ZOOM_IN, 0, 0, dx, dx, nullptr, 0.0, 0.0, TIP_("Zoom in"));
+    UI_but_func_set(bt, [cumap](bContext &C) { curvemap_buttons_zoom_in(&C, cumap); });
+    if (!curvemap_can_zoom_in(cumap)) {
+      UI_but_disable(bt, "");
+    }
 
-  /* Zoom out */
-  bt = uiDefIconBut(
-      block, UI_BTYPE_BUT, 0, ICON_ZOOM_OUT, 0, 0, dx, dx, nullptr, 0.0, 0.0, TIP_("Zoom out"));
-  UI_but_func_set(bt, [cumap](bContext &C) { curvemap_buttons_zoom_out(&C, cumap); });
-  if (!curvemap_can_zoom_out(cumap)) {
-    UI_but_disable(bt, "");
-  }
+    /* Zoom out */
+    bt = uiDefIconBut(
+        block, UI_BTYPE_BUT, 0, ICON_ZOOM_OUT, 0, 0, dx, dx, nullptr, 0.0, 0.0, TIP_("Zoom out"));
+    UI_but_func_set(bt, [cumap](bContext &C) { curvemap_buttons_zoom_out(&C, cumap); });
+    if (!curvemap_can_zoom_out(cumap)) {
+      UI_but_disable(bt, "");
+    }
 
-  /* Clipping button. */
-  const int icon = (cumap->flag & CUMA_DO_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
-  bt = uiDefIconBlockBut(
-      block, curvemap_clipping_func, cumap, 0, icon, 0, 0, dx, dx, TIP_("Clipping Options"));
-  bt->drawflag &= ~UI_BUT_ICON_LEFT;
-  UI_but_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
+    /* Clipping button. */
+    const int icon = (cumap->flag & CUMA_DO_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
+    bt = uiDefIconBlockBut(
+        block, curvemap_clipping_func, cumap, 0, icon, 0, 0, dx, dx, TIP_("Clipping Options"));
+    bt->drawflag &= ~UI_BUT_ICON_LEFT;
+    UI_but_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
+  }
 
   RNAUpdateCb *tools_cb = MEM_new<RNAUpdateCb>(__func__, cb);
   if (brush && neg_slope) {
