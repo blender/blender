@@ -34,6 +34,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_asset_edit.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -1262,14 +1263,20 @@ static void image_open_cancel(bContext * /*C*/, wmOperator *op)
 
 static Image *image_open_single(Main *bmain,
                                 wmOperator *op,
-                                ImageFrameRange *range,
-                                bool use_multiview)
+                                const ImageFrameRange *range,
+                                const bool use_multiview,
+                                const bool check_exists)
 {
   bool exists = false;
   Image *ima = nullptr;
 
   errno = 0;
-  ima = BKE_image_load_exists_ex(bmain, range->filepath, &exists);
+  if (check_exists) {
+    ima = BKE_image_load_exists_ex(bmain, range->filepath, &exists);
+  }
+  else {
+    ima = BKE_image_load(bmain, range->filepath);
+  }
 
   if (!ima) {
     if (op->customdata) {
@@ -1326,6 +1333,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
+  ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
   ImageUser *iuser = nullptr;
   Image *ima = nullptr;
   int frame_seq_len = 0;
@@ -1334,13 +1342,18 @@ static int image_open_exec(bContext *C, wmOperator *op)
   const bool use_multiview = RNA_boolean_get(op->ptr, "use_multiview");
   const bool use_udim = RNA_boolean_get(op->ptr, "use_udim_detecting");
 
+  /* For editable assets always create a new image datablock. We can't assign
+   * a local datablock to linked asset datablocks. */
+  const bool check_exists = !(iod->pprop.prop && iod->pprop.ptr.owner_id &&
+                              blender::bke::asset_edit_id_is_editable(*iod->pprop.ptr.owner_id));
+
   if (!op->customdata) {
     image_open_init(C, op);
   }
 
   ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    Image *ima_range = image_open_single(bmain, op, range, use_multiview);
+    Image *ima_range = image_open_single(bmain, op, range, use_multiview, check_exists);
 
     /* take the first image */
     if ((ima == nullptr) && ima_range) {
@@ -1358,12 +1371,14 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
 
   /* hook into UI */
-  ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
-
   if (iod->pprop.prop) {
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */
     id_us_min(&ima->id);
+
+    if (iod->pprop.ptr.owner_id) {
+      BKE_id_move_to_same_lib(*bmain, ima->id, *iod->pprop.ptr.owner_id);
+    }
 
     PointerRNA imaptr = RNA_id_pointer_create(&ima->id);
     RNA_property_pointer_set(&iod->pprop.ptr, iod->pprop.prop, imaptr, nullptr);
@@ -2588,6 +2603,10 @@ static int image_new_exec(bContext *C, wmOperator *op)
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */
     id_us_min(&ima->id);
+
+    if (data->pprop.ptr.owner_id) {
+      BKE_id_move_to_same_lib(*bmain, ima->id, *data->pprop.ptr.owner_id);
+    }
 
     PointerRNA imaptr = RNA_id_pointer_create(&ima->id);
     RNA_property_pointer_set(&data->pprop.ptr, data->pprop.prop, imaptr, nullptr);

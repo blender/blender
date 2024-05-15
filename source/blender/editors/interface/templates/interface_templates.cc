@@ -1382,7 +1382,7 @@ static void template_ID(const bContext *C,
 
     template_id_workspace_pin_extra_icon(template_ui, but);
 
-    if (!hide_buttons) {
+    if (!hide_buttons && !(idfrom && ID_IS_LINKED(idfrom))) {
       if (ID_IS_LINKED(id)) {
         const bool disabled = !BKE_idtype_idcode_is_localizable(GS(id->name));
         if (id->tag & LIB_TAG_INDIRECT) {

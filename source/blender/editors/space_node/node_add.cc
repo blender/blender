@@ -1071,6 +1071,10 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
      * user. */
     id_us_min(&ntree->id);
 
+    if (ptr.owner_id) {
+      BKE_id_move_to_same_lib(*bmain, ntree->id, *ptr.owner_id);
+    }
+
     PointerRNA idptr = RNA_id_pointer_create(&ntree->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);

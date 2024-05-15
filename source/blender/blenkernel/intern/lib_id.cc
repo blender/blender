@@ -822,6 +822,21 @@ ID *BKE_id_copy_for_use_in_bmain(Main *bmain, const ID *id)
   return newid;
 }
 
+void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
+{
+  BLI_assert(id.lib == nullptr);
+  if (owner_id.lib == nullptr) {
+    return;
+  }
+
+  id.lib = owner_id.lib;
+  id.tag |= LIB_TAG_INDIRECT;
+
+  BKE_main_namemap_remove_name(&bmain, &id, id.name + 2);
+  ListBase *lb = which_libbase(&bmain, GS(id.name));
+  BKE_id_new_name_validate(&bmain, lb, &id, id.name, true);
+}
+
 static void id_embedded_swap(ID **embedded_id_a,
                              ID **embedded_id_b,
                              const bool do_full_id,
@@ -2272,6 +2287,20 @@ ID *BKE_id_owner_get(ID *id, const bool debug_relationship_assert)
 bool BKE_id_is_editable(const Main *bmain, const ID *id)
 {
   return ID_IS_EDITABLE(id) && !BKE_lib_override_library_is_system_defined(bmain, id);
+}
+
+bool BKE_id_can_link(const ID &id_from, const ID &id_to)
+{
+  /* Can't link from linked to local. */
+  if (id_from.lib && !id_to.lib) {
+    return false;
+  }
+  /* Can't link from ID in main database to one outside of it. */
+  if (!(id_from.tag & LIB_TAG_NO_MAIN) && (id_to.tag & LIB_TAG_NO_MAIN)) {
+    return false;
+  }
+
+  return true;
 }
 
 /************************* Datablock order in UI **************************/

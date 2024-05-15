@@ -40,6 +40,7 @@
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -1582,22 +1583,28 @@ bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *v
 {
   prop = rna_ensure_property(prop);
 
-  if (prop->type == PROP_POINTER) {
-    PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
+  if (prop->type != PROP_POINTER) {
+    printf("%s: %s is not a pointer property.\n", __func__, prop->identifier);
+    return false;
+  }
 
-    if (pprop->poll) {
-      if (rna_idproperty_check(&prop, ptr)) {
-        return reinterpret_cast<PropPointerPollFuncPy>(reinterpret_cast<void *>(pprop->poll))(
-            ptr, *value, prop);
-      }
-      return pprop->poll(ptr, *value);
-    }
+  PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
+  /* Can't point from linked to local datablock. */
+  if (ptr->owner_id && value->owner_id && !BKE_id_can_link(*ptr->owner_id, *value->owner_id)) {
+    return false;
+  }
+
+  /* Check custom poll function. */
+  if (!pprop->poll) {
     return true;
   }
 
-  printf("%s: %s is not a pointer property.\n", __func__, prop->identifier);
-  return false;
+  if (rna_idproperty_check(&prop, ptr)) {
+    return reinterpret_cast<PropPointerPollFuncPy>(reinterpret_cast<void *>(pprop->poll))(
+        ptr, *value, prop);
+  }
+  return pprop->poll(ptr, *value);
 }
 
 void RNA_property_enum_items_ex(bContext *C,

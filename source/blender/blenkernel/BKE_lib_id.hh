@@ -250,6 +250,12 @@ void BKE_libblock_copy_in_lib(Main *bmain,
 void *BKE_libblock_copy(Main *bmain, const ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
+ * For newly created IDs, move it into same library as owner ID.
+ * This assumes the ID is local.
+ */
+void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id);
+
+/**
  * Sets the name of a block to name, suitably adjusted for uniqueness.
  */
 void BKE_libblock_rename(Main *bmain, ID *id, const char *name) ATTR_NONNULL();
@@ -745,6 +751,13 @@ ID *BKE_id_owner_get(ID *id, const bool debug_relationship_assert = true);
  * long-standing TODO of getting an efficient 'owner_id' access for all embedded ID types.
  */
 bool BKE_id_is_editable(const Main *bmain, const ID *id);
+
+/**
+ * Check that a pointer from one ID to another is possible.
+ *
+ * Taking into account lib linking and main database membership.
+ */
+bool BKE_id_can_link(const ID &id_from, const ID &id_to);
 
 /**
  * Returns ordered list of data-blocks for display in the UI.
