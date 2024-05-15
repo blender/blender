@@ -6,6 +6,7 @@
  * NVIDIA Corporation. All rights reserved. */
 
 #include "usd_reader_mesh.hh"
+#include "usd_attribute_utils.hh"
 #include "usd_hash_types.hh"
 #include "usd_mesh_utils.hh"
 #include "usd_reader_material.hh"
@@ -20,7 +21,6 @@
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
-#include "BLI_color.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
@@ -36,7 +36,6 @@
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/base/vt/array.h>
 #include <pxr/base/vt/types.h>
-#include <pxr/base/vt/value.h>
 #include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdGeom/subset.h>
@@ -160,7 +159,7 @@ USDMeshReader::USDMeshReader(const pxr::UsdPrim &prim,
 }
 
 static const std::optional<bke::AttrDomain> convert_usd_varying_to_blender(
-    const pxr::TfToken usd_domain, ReportList *reports)
+    const pxr::TfToken usd_domain)
 {
   static const blender::Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
     blender::Map<pxr::TfToken, bke::AttrDomain> map;
@@ -179,8 +178,6 @@ static const std::optional<bke::AttrDomain> convert_usd_varying_to_blender(
   const bke::AttrDomain *value = domain_map.lookup_ptr(usd_domain);
 
   if (value == nullptr) {
-    BKE_reportf(
-        reports, RPT_WARNING, "Unsupported domain for mesh data type %s", usd_domain.GetText());
     return std::nullopt;
   }
 
@@ -238,7 +235,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
-}  // namespace blender::io::usd
+}
 
 bool USDMeshReader::valid() const
 {
@@ -312,8 +309,7 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
 {
   const StringRef primvar_name(primvar.StripPrimvarsName(primvar.GetName()).GetString());
 
-  pxr::VtArray<pxr::GfVec2f> usd_uvs = get_prim_attribute_array<pxr::GfVec2f>(
-      primvar, motionSampleTime, reports());
+  pxr::VtArray<pxr::GfVec2f> usd_uvs = get_primvar_array<pxr::GfVec2f>(primvar, motionSampleTime);
 
   if (usd_uvs.empty()) {
     return;
@@ -380,136 +376,34 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
   uv_data.finish();
 }
 
-template<typename USDT, typename BlenderT> inline BlenderT convert_value(const USDT &value)
-{
-  /* Default is no conversion. */
-  return value;
-}
-
-template<> inline float2 convert_value(const pxr::GfVec2f &value)
-{
-  return float2(value[0], value[1]);
-}
-
-template<> inline float3 convert_value(const pxr::GfVec3f &value)
-{
-  return float3(value[0], value[1], value[2]);
-}
-
-template<> inline ColorGeometry4f convert_value(const pxr::GfVec3f &value)
-{
-  return ColorGeometry4f(value[0], value[1], value[2], 1.0f);
-}
-
-template<typename USDT, typename BlenderT>
-void USDMeshReader::copy_prim_array_to_blender_attribute(const Mesh *mesh,
-                                                         const pxr::UsdGeomPrimvar &primvar,
-                                                         const double motionSampleTime,
-                                                         MutableSpan<BlenderT> attribute)
-{
-  const pxr::TfToken interp = primvar.GetInterpolation();
-  pxr::VtArray<USDT> primvar_array = get_prim_attribute_array<USDT>(
-      primvar, motionSampleTime, reports());
-  if (primvar_array.empty()) {
-    BKE_reportf(reports(),
-                RPT_WARNING,
-                "Unable to get array values for primvar %s",
-                primvar.GetName().GetText());
-    return;
-  }
-
-  if (interp == pxr::UsdGeomTokens->constant) {
-    /* For situations where there's only a single item, flood fill the object. */
-    attribute.fill(convert_value<USDT, BlenderT>(primvar_array[0]));
-  }
-  else if (interp == pxr::UsdGeomTokens->faceVarying) {
-    if (is_left_handed_) {
-      /* Reverse the index order. */
-      const OffsetIndices faces = mesh->faces();
-      for (const int i : faces.index_range()) {
-        const IndexRange face = faces[i];
-        for (int j : face.index_range()) {
-          const int rev_index = face.last(j);
-          attribute[face.start() + j] = convert_value<USDT, BlenderT>(primvar_array[rev_index]);
-        }
-      }
-    }
-    else {
-      for (const int64_t i : attribute.index_range()) {
-        attribute[i] = convert_value<USDT, BlenderT>(primvar_array[i]);
-      }
-    }
-  }
-
-  else {
-    /* Assume direct one-to-one mapping. */
-    if (primvar_array.size() == attribute.size()) {
-      if constexpr (std::is_same_v<USDT, BlenderT>) {
-        const Span<USDT> src(primvar_array.data(), primvar_array.size());
-        attribute.copy_from(src);
-      }
-      else {
-        for (const int64_t i : attribute.index_range()) {
-          attribute[i] = convert_value<USDT, BlenderT>(primvar_array[i]);
-        }
-      }
-    }
-  }
-}
-
 void USDMeshReader::read_generic_data_primvar(Mesh *mesh,
                                               const pxr::UsdGeomPrimvar &primvar,
                                               const double motionSampleTime)
 {
-  const pxr::SdfValueTypeName sdf_type = primvar.GetTypeName();
-  const pxr::TfToken varying_type = primvar.GetInterpolation();
-  const pxr::TfToken name = pxr::UsdGeomPrimvar::StripPrimvarsName(primvar.GetPrimvarName());
+  const pxr::SdfValueTypeName pv_type = primvar.GetTypeName();
+  const pxr::TfToken pv_interp = primvar.GetInterpolation();
 
-  const std::optional<bke::AttrDomain> domain = convert_usd_varying_to_blender(varying_type,
-                                                                               reports());
-  const std::optional<eCustomDataType> type = convert_usd_type_to_blender(sdf_type, reports());
+  const std::optional<bke::AttrDomain> domain = convert_usd_varying_to_blender(pv_interp);
+  const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
 
   if (!domain.has_value() || !type.has_value()) {
+    const pxr::TfToken pv_name = primvar.StripPrimvarsName(primvar.GetPrimvarName());
+    BKE_reportf(reports(),
+                RPT_WARNING,
+                "Primvar '%s' (interpolation %s, type %s) cannot be converted to Blender",
+                pv_name.GetText(),
+                pv_interp.GetText(),
+                pv_type.GetAsToken().GetText());
     return;
   }
 
-  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
-      name.GetText(), *domain, *type);
-  switch (*type) {
-    case CD_PROP_FLOAT:
-      copy_prim_array_to_blender_attribute<float>(
-          mesh, primvar, motionSampleTime, attribute.span.typed<float>());
-      break;
-    case CD_PROP_INT32:
-      copy_prim_array_to_blender_attribute<int32_t>(
-          mesh, primvar, motionSampleTime, attribute.span.typed<int>());
-      break;
-    case CD_PROP_FLOAT2:
-      copy_prim_array_to_blender_attribute<pxr::GfVec2f>(
-          mesh, primvar, motionSampleTime, attribute.span.typed<float2>());
-      break;
-    case CD_PROP_FLOAT3:
-      copy_prim_array_to_blender_attribute<pxr::GfVec3f>(
-          mesh, primvar, motionSampleTime, attribute.span.typed<float3>());
-      break;
-    case CD_PROP_COLOR:
-      copy_prim_array_to_blender_attribute<pxr::GfVec3f>(
-          mesh, primvar, motionSampleTime, attribute.span.typed<ColorGeometry4f>());
-      break;
-    case CD_PROP_BOOL:
-      copy_prim_array_to_blender_attribute<bool>(
-          mesh, primvar, motionSampleTime, attribute.span.typed<bool>());
-      break;
-    default:
-      BKE_reportf(reports(),
-                  RPT_ERROR,
-                  "Generic primvar %s: invalid type %s",
-                  primvar.GetName().GetText(),
-                  sdf_type.GetAsToken().GetText());
-      break;
+  OffsetIndices<int> faces;
+  if (is_left_handed_) {
+    faces = mesh->faces();
   }
-  attribute.finish();
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  copy_primvar_to_blender_attribute(primvar, motionSampleTime, *type, *domain, faces, attributes);
 }
 
 void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTime)
@@ -756,7 +650,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
     }
 
     /* Read Color primvars. */
-    if (convert_usd_type_to_blender(type, reports()) == CD_PROP_COLOR) {
+    if (convert_usd_type_to_blender(type) == CD_PROP_COLOR) {
       if ((settings->read_flag & MOD_MESHSEQ_READ_COLOR) != 0) {
         /* Set the active color name to 'displayColor', if a color primvar
          * with this name exists.  Otherwise, use the name of the first
@@ -774,7 +668,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
                   pxr::UsdGeomTokens->vertex,
                   pxr::UsdGeomTokens->faceVarying,
                   pxr::UsdGeomTokens->varying) &&
-             convert_usd_type_to_blender(type, reports()) == CD_PROP_FLOAT2)
+             convert_usd_type_to_blender(type) == CD_PROP_FLOAT2)
     {
       if ((settings->read_flag & MOD_MESHSEQ_READ_UV) != 0) {
         /* Set the active uv set name to 'st', if a uv set primvar

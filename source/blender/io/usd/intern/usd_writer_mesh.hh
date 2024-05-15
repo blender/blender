@@ -62,11 +62,6 @@ class USDGenericMeshWriter : public USDAbstractWriter {
                         pxr::UsdGeomMesh usd_mesh,
                         const bke::AttributeIDRef &attribute_id,
                         const bke::AttributeMetaData &meta_data);
-
-  template<typename BlenderT, typename USDT>
-  void copy_blender_buffer_to_prim(const Span<BlenderT> buffer,
-                                   const pxr::UsdTimeCode timecode,
-                                   pxr::UsdGeomPrimvar attribute_pv);
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {

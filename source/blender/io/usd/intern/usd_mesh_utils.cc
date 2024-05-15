@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_mesh_utils.hh"
+#include "usd_attribute_utils.hh"
 #include "usd_hash_types.hh"
 
 #include "BKE_attribute.hh"
@@ -15,101 +16,6 @@
 
 namespace blender::io::usd {
 
-std::optional<eCustomDataType> convert_usd_type_to_blender(const pxr::SdfValueTypeName usd_type,
-                                                           ReportList *reports)
-{
-  static const blender::Map<pxr::SdfValueTypeName, eCustomDataType> type_map = []() {
-    blender::Map<pxr::SdfValueTypeName, eCustomDataType> map;
-    map.add_new(pxr::SdfValueTypeNames->FloatArray, CD_PROP_FLOAT);
-    map.add_new(pxr::SdfValueTypeNames->Double, CD_PROP_FLOAT);
-    map.add_new(pxr::SdfValueTypeNames->IntArray, CD_PROP_INT32);
-    map.add_new(pxr::SdfValueTypeNames->Float2Array, CD_PROP_FLOAT2);
-    map.add_new(pxr::SdfValueTypeNames->TexCoord2dArray, CD_PROP_FLOAT2);
-    map.add_new(pxr::SdfValueTypeNames->TexCoord2fArray, CD_PROP_FLOAT2);
-    map.add_new(pxr::SdfValueTypeNames->TexCoord2hArray, CD_PROP_FLOAT2);
-    map.add_new(pxr::SdfValueTypeNames->TexCoord3dArray, CD_PROP_FLOAT2);
-    map.add_new(pxr::SdfValueTypeNames->TexCoord3fArray, CD_PROP_FLOAT2);
-    map.add_new(pxr::SdfValueTypeNames->TexCoord3hArray, CD_PROP_FLOAT2);
-    map.add_new(pxr::SdfValueTypeNames->Float3Array, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Point3fArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Point3dArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Point3hArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Normal3fArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Normal3dArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Normal3hArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Vector3fArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Vector3hArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Vector3dArray, CD_PROP_FLOAT3);
-    map.add_new(pxr::SdfValueTypeNames->Color3fArray, CD_PROP_COLOR);
-    map.add_new(pxr::SdfValueTypeNames->Color3hArray, CD_PROP_COLOR);
-    map.add_new(pxr::SdfValueTypeNames->Color3dArray, CD_PROP_COLOR);
-    map.add_new(pxr::SdfValueTypeNames->StringArray, CD_PROP_STRING);
-    map.add_new(pxr::SdfValueTypeNames->BoolArray, CD_PROP_BOOL);
-    map.add_new(pxr::SdfValueTypeNames->QuatfArray, CD_PROP_QUATERNION);
-    map.add_new(pxr::SdfValueTypeNames->QuatdArray, CD_PROP_QUATERNION);
-    map.add_new(pxr::SdfValueTypeNames->QuathArray, CD_PROP_QUATERNION);
-    return map;
-  }();
-
-  const eCustomDataType *value = type_map.lookup_ptr(usd_type);
-  if (value == nullptr) {
-    BKE_reportf(reports,
-                RPT_WARNING,
-                "Unsupported type %s for mesh data",
-                usd_type.GetAsToken().GetText());
-    return std::nullopt;
-  }
-
-  return *value;
-}
-
-/* To avoid putting the templated method definition in the header file,
- * it is necessary to define each of the possible template instantiations
- * that we support.  Ugly here, but it keeps the header looking clean.
- */
-template pxr::VtArray<pxr::GfVec2f> get_prim_attribute_array<pxr::GfVec2f>(
-    const pxr::UsdGeomPrimvar &primvar, const double motionSampleTime, ReportList *reports);
-template pxr::VtArray<pxr::GfVec3f> get_prim_attribute_array<pxr::GfVec3f>(
-    const pxr::UsdGeomPrimvar &primvar, const double motionSampleTime, ReportList *reports);
-template pxr::VtArray<bool> get_prim_attribute_array<bool>(const pxr::UsdGeomPrimvar &primvar,
-                                                           const double motionSampleTime,
-                                                           ReportList *reports);
-template pxr::VtArray<int> get_prim_attribute_array<int>(const pxr::UsdGeomPrimvar &primvar,
-                                                         const double motionSampleTime,
-                                                         ReportList *reports);
-template pxr::VtArray<float> get_prim_attribute_array<float>(const pxr::UsdGeomPrimvar &primvar,
-                                                             const double motionSampleTime,
-                                                             ReportList *reports);
-
-template<typename T>
-pxr::VtArray<T> get_prim_attribute_array(const pxr::UsdGeomPrimvar &primvar,
-                                         const double motionSampleTime,
-                                         ReportList *reports)
-{
-  pxr::VtArray<T> array;
-
-  pxr::VtValue primvar_val;
-
-  if (!primvar.ComputeFlattened(&primvar_val, motionSampleTime)) {
-    BKE_reportf(reports,
-                RPT_WARNING,
-                "USD Import: unable to get array values for primvar '%s'",
-                primvar.GetName().GetText());
-    return array;
-  }
-
-  if (!primvar_val.CanCast<pxr::VtArray<T>>()) {
-    BKE_reportf(reports,
-                RPT_WARNING,
-                "USD Import: can't cast attribute '%s' to array",
-                primvar.GetName().GetText());
-    return array;
-  }
-
-  array = primvar_val.Cast<pxr::VtArray<T>>().template UncheckedGet<pxr::VtArray<T>>();
-  return array;
-}
-
 void read_color_data_primvar(Mesh *mesh,
                              const pxr::UsdGeomPrimvar &primvar,
                              double motion_sample_time,
@@ -120,8 +26,8 @@ void read_color_data_primvar(Mesh *mesh,
     return;
   }
 
-  pxr::VtArray<pxr::GfVec3f> usd_colors = get_prim_attribute_array<pxr::GfVec3f>(
-      primvar, motion_sample_time, reports);
+  pxr::VtArray<pxr::GfVec3f> usd_colors = get_primvar_array<pxr::GfVec3f>(primvar,
+                                                                          motion_sample_time);
 
   if (usd_colors.empty()) {
     return;
