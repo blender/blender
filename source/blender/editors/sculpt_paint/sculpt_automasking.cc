@@ -589,6 +589,28 @@ float factor_get(const Cache *automasking,
   return automasking_factor_end(ss, automasking, vert, mask);
 }
 
+NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node)
+{
+  if (!automasking) {
+    return {};
+  }
+
+  NodeData automask_data;
+  if (automasking->settings.flags &
+      (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
+  {
+    SCULPT_orig_vert_data_init(*automask_data.orig_data, object, node, undo::Type::Position);
+  }
+  return automask_data;
+}
+
+void node_update(auto_mask::NodeData &automask_data, PBVHVertexIter &vd)
+{
+  if (automask_data.orig_data) {
+    SCULPT_orig_vert_data_update(*automask_data.orig_data, vd);
+  }
+}
+
 void cache_free(Cache *automasking)
 {
   MEM_delete(automasking);

@@ -6115,32 +6115,6 @@ void SCULPT_fake_neighbors_free(Object *ob)
   sculpt_pose_fake_neighbors_free(ss);
 }
 
-namespace blender::ed::sculpt_paint::auto_mask {
-
-NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node)
-{
-  if (!automasking) {
-    return {};
-  }
-
-  NodeData automask_data;
-  if (automasking->settings.flags &
-      (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
-  {
-    SCULPT_orig_vert_data_init(*automask_data.orig_data, object, node, undo::Type::Position);
-  }
-  return automask_data;
-}
-
-void node_update(auto_mask::NodeData &automask_data, PBVHVertexIter &vd)
-{
-  if (automask_data.orig_data) {
-    SCULPT_orig_vert_data_update(*automask_data.orig_data, vd);
-  }
-}
-
-}  // namespace blender::ed::sculpt_paint::auto_mask
-
 bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool original)
 {
   using namespace blender;
