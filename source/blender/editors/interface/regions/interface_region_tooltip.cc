@@ -992,6 +992,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
 
   /* Button is disabled, we may be able to tell user why. */
   if ((but->flag & UI_BUT_DISABLED) || extra_icon) {
+    const char *disabled_msg_orig = nullptr;
     const char *disabled_msg = nullptr;
     bool disabled_msg_free = false;
 
@@ -1004,7 +1005,8 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       call_params.opcontext = opcontext;
       CTX_wm_operator_poll_msg_clear(C);
       ui_but_context_poll_operator_ex(C, but, &call_params);
-      disabled_msg = TIP_(CTX_wm_operator_poll_msg_get(C, &disabled_msg_free));
+      disabled_msg_orig = CTX_wm_operator_poll_msg_get(C, &disabled_msg_free);
+      disabled_msg = TIP_(disabled_msg_orig);
     }
     /* Alternatively, buttons can store some reasoning too. */
     else if (!extra_icon && but->disabled_info) {
@@ -1019,7 +1021,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
                                 UI_TIP_LC_ALERT);
     }
     if (disabled_msg_free) {
-      MEM_freeN((void *)disabled_msg);
+      MEM_freeN((void *)disabled_msg_orig);
     }
   }
 
