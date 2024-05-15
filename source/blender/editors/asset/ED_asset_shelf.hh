@@ -21,6 +21,7 @@ struct BlendDataReader;
 struct BlendWriter;
 struct Main;
 struct SpaceType;
+struct uiBlock;
 struct RegionPollParams;
 struct wmWindowManager;
 
@@ -73,12 +74,22 @@ void header_regiontype_register(ARegionType *region_type, const int space_type);
 void type_register(std::unique_ptr<AssetShelfType> type);
 void type_unregister(const AssetShelfType &shelf_type);
 /**
- * Poll an asset shelf type for display as a permanent region in a space of a given type (the
- * type's #bl_space_type).
+ * Poll an asset shelf type for display as a popup. Doesn't check for space-type (the type's
+ * #bl_space_type) since popups should ignore this to allow displaying in any space.
+ *
+ * Permanent/non-popup asset shelf regions should use #type_poll_for_space_type() instead.
  */
-bool type_poll(const bContext &C, const AssetShelfType *shelf_type, const int space_type);
-
+bool type_poll_for_popup(const bContext &C, const AssetShelfType *shelf_type);
 AssetShelfType *type_find_from_idname(const StringRef idname);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Asset Shelf Popup
+ * \{ */
+
+uiBlock *popup_block_create(const bContext *C, ARegion *region, AssetShelfType *shelf_type);
+void type_popup_unlink(const AssetShelfType &shelf_type);
 
 /** \} */
 

@@ -5,6 +5,7 @@
 set(INC
   .
   ../include
+  ../asset
   ../../asset_system
   ../../blenkernel
   ../../blenloader
@@ -64,6 +65,7 @@ set(SRC
   regions/interface_regions.cc
   interface_string_search.cc
   interface_style.cc
+  templates/interface_template_asset_shelf_popover.cc
   templates/interface_template_asset_view.cc
   templates/interface_template_attribute_search.cc
   templates/interface_template_bone_collection_tree.cc

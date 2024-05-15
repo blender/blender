@@ -833,6 +833,7 @@ typedef struct AssetShelf {
 
   AssetShelfSettings settings;
 
+  /** Only for the permanent asset shelf regions, not asset shelves in temporary popups. */
   short preferred_row_count;
   char _pad[6];
 } AssetShelf;

@@ -984,6 +984,10 @@ uiBlock *ui_popup_block_refresh(bContext *C,
                                 ARegion *butregion,
                                 uiBut *but);
 
+/**
+ * Note that callbacks can set the #UI_BLOCK_KEEP_OPEN flag to the block it creates, to allow
+ * refreshing the popup. That is, redrawing the layout, potentially affecting the popup size.
+ */
 uiPopupBlockHandle *ui_popup_block_create(bContext *C,
                                           ARegion *butregion,
                                           uiBut *but,
