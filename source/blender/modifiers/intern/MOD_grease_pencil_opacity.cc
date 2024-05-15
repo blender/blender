@@ -154,22 +154,21 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
   fill_opacities.finish();
 }
 
-static void modify_hardness(const GreasePencilOpacityModifierData &omd,
+static void modify_softness(const GreasePencilOpacityModifierData &omd,
                             bke::CurvesGeometry &curves,
                             const IndexMask &curves_mask)
 {
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter<float> hardnesses = attributes.lookup_or_add_for_write_span<float>(
-      "hardness",
-      bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curve_num)));
+  bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
+      "softness", bke::AttrDomain::Curve);
+
+  const float factor = 1.0f - omd.hardness_factor;
 
   curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
-    hardnesses.span[curve_i] = std::clamp(
-        hardnesses.span[curve_i] * omd.hardness_factor, 0.0f, 1.0f);
+    softness.span[curve_i] = std::clamp(softness.span[curve_i] * factor, 0.0f, 1.0f);
   });
 
-  hardnesses.finish();
+  softness.finish();
 }
 
 static void modify_curves(ModifierData *md,
@@ -194,7 +193,7 @@ static void modify_curves(ModifierData *md,
       modify_fill_color(*omd, curves, curves_mask);
       break;
     case MOD_GREASE_PENCIL_COLOR_HARDNESS:
-      modify_hardness(*omd, curves, curves_mask);
+      modify_softness(*omd, curves, curves_mask);
       break;
   }
 }
