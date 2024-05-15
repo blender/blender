@@ -1574,7 +1574,6 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
 
   /* Check to see if the Navigation Gizmo is enabled. */
   if ((t->spacetype != SPACE_VIEW3D) || (v3d == nullptr) ||
-      ((U.uiflag & USER_SHOW_GIZMO_NAVIGATE) == 0) ||
       (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
   {
     offset = 10;
