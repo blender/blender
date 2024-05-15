@@ -815,7 +815,7 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
   auto_mask::Cache *automasking = auto_mask::active_cache_get(ss);
   auto_mask::NodeData automask_data{};
 
-  automask_data.have_orig_data = true;
+  automask_data.orig_data.emplace();
 
   for (int constraint_it = 0; constraint_it < CLOTH_SIMULATION_ITERATIONS; constraint_it++) {
     for (int i = 0; i < cloth_sim->tot_length_constraints; i++) {
@@ -854,13 +854,13 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
       PBVHVertRef vertex1 = BKE_pbvh_index_to_vertex(*ss->pbvh, v1);
       PBVHVertRef vertex2 = BKE_pbvh_index_to_vertex(*ss->pbvh, v2);
 
-      automask_data.orig_data.co = cloth_sim->init_pos[v1];
-      automask_data.orig_data.no = cloth_sim->init_no[v1];
+      automask_data.orig_data->co = cloth_sim->init_pos[v1];
+      automask_data.orig_data->no = cloth_sim->init_no[v1];
       const float mask_v1 = (1.0f - get_vert_mask(*ss, *cloth_sim, v1)) *
                             auto_mask::factor_get(automasking, ss, vertex1, &automask_data);
 
-      automask_data.orig_data.co = cloth_sim->init_pos[v2];
-      automask_data.orig_data.no = cloth_sim->init_no[v2];
+      automask_data.orig_data->co = cloth_sim->init_pos[v2];
+      automask_data.orig_data->no = cloth_sim->init_no[v2];
       const float mask_v2 = (1.0f - get_vert_mask(*ss, *cloth_sim, v2)) *
                             auto_mask::factor_get(automasking, ss, vertex2, &automask_data);
 

@@ -496,12 +496,12 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
+  SCULPT_orig_vert_data_init(orig_data, *ob, *node, undo::Type::Position);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       *ob, ss->cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(orig_data, vd);
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }

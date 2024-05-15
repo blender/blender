@@ -123,8 +123,8 @@ static float normal_calc(SculptSession *ss,
 {
   float3 normal_v;
 
-  if (automask_data.have_orig_data) {
-    normal_v = automask_data.orig_data.no;
+  if (automask_data.orig_data) {
+    normal_v = automask_data.orig_data->no;
   }
   else {
     SCULPT_vertex_normal_get(ss, vertex, normal_v);
@@ -770,7 +770,6 @@ static void normal_occlusion_automasking_fill(Cache &automasking,
 
   /* No need to build original data since this is only called at the beginning of strokes. */
   NodeData nodedata;
-  nodedata.have_orig_data = false;
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);

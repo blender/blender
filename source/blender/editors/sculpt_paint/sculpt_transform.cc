@@ -140,13 +140,13 @@ static void transform_node(Object *ob, const float transform_mats[8][4][4], PBVH
   SculptSession *ss = ob->sculpt;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
+  SCULPT_orig_vert_data_init(orig_data, *ob, *node, undo::Type::Position);
 
   PBVHVertexIter vd;
 
   undo::push_node(*ob, node, undo::Type::Position);
   BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(orig_data, vd);
     float *start_co;
     float transformed_co[3], orig_co[3], disp[3];
     float fade = vd.mask;
@@ -201,7 +201,7 @@ static void elastic_transform_node(Object *ob,
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
+  SCULPT_orig_vert_data_init(orig_data, *ob, *node, undo::Type::Position);
 
   KelvinletParams params;
   /* TODO(pablodp606): These parameters can be exposed if needed as transform strength and volume
@@ -216,7 +216,7 @@ static void elastic_transform_node(Object *ob,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(orig_data, vd);
     float transformed_co[3], orig_co[3], disp[3];
     const float fade = vd.mask;
     copy_v3_v3(orig_co, orig_data.co);

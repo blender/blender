@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <optional>
 #include <queue>
 
 #include "BKE_attribute.hh"
@@ -988,21 +989,21 @@ Array<int> duplicate_face_sets(const Mesh &mesh);
  * Initialize a #SculptOrigVertData for accessing original vertex data;
  * handles #BMesh, #Mesh, and multi-resolution.
  */
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
-                                Object *ob,
-                                PBVHNode *node,
+void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
+                                Object &ob,
+                                PBVHNode &node,
                                 blender::ed::sculpt_paint::undo::Type type);
 /**
  * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
  */
-void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter);
+void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter);
 /**
  * Initialize a #SculptOrigVertData for accessing original vertex data;
  * handles #BMesh, #Mesh, and multi-resolution.
  */
-void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
-                                      Object *ob,
-                                      blender::ed::sculpt_paint::undo::Node *unode);
+void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
+                                      Object &ob,
+                                      blender::ed::sculpt_paint::undo::Node &unode);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1300,8 +1301,7 @@ struct Cache {
 };
 
 struct NodeData {
-  SculptOrigVertData orig_data;
-  bool have_orig_data;
+  std::optional<SculptOrigVertData> orig_data;
 };
 
 /**
