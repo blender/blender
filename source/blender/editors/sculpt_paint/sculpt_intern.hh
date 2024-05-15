@@ -102,7 +102,7 @@ struct SculptVertexNeighborIter {
 struct SculptOrigVertData {
   BMLog *bm_log;
 
-  blender::ed::sculpt_paint::undo::Node *unode;
+  const blender::ed::sculpt_paint::undo::Node *unode;
   const blender::float3 *coords;
   const blender::float3 *normals;
   const float *vmasks;
@@ -991,7 +991,7 @@ Array<int> duplicate_face_sets(const Mesh &mesh);
  */
 void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
                                 Object &ob,
-                                PBVHNode &node,
+                                const PBVHNode &node,
                                 blender::ed::sculpt_paint::undo::Type type);
 /**
  * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
@@ -1002,8 +1002,8 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVerte
  * handles #BMesh, #Mesh, and multi-resolution.
  */
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
-                                      Object &ob,
-                                      blender::ed::sculpt_paint::undo::Node &unode);
+                                      const Object &ob,
+                                      const blender::ed::sculpt_paint::undo::Node &unode);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1306,9 +1306,8 @@ struct NodeData {
 
 /**
  * Call before PBVH vertex iteration.
- * \param automask_data: pointer to an uninitialized #auto_mask::NodeData struct.
  */
-NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node);
+NodeData node_begin(Object &object, const Cache *automasking, const PBVHNode &node);
 
 /* Call before factor_get and SCULPT_brush_strength_factor. */
 void node_update(NodeData &automask_data, PBVHVertexIter &vd);

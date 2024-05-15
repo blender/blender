@@ -1206,16 +1206,15 @@ enum StrokeFlags {
 };
 
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
-                                      Object &ob,
-                                      blender::ed::sculpt_paint::undo::Node &unode)
+                                      const Object &ob,
+                                      const blender::ed::sculpt_paint::undo::Node &unode)
 {
-  SculptSession *ss = ob.sculpt;
-  BMesh *bm = ss->bm;
+  const SculptSession *ss = ob.sculpt;
 
   memset(&data, 0, sizeof(data));
   data.unode = &unode;
 
-  if (bm) {
+  if (ss->bm) {
     data.bm_log = ss->bm_log;
   }
   else {
@@ -1228,8 +1227,8 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
 
 void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
                                 Object &ob,
-                                PBVHNode &node,
-                                blender::ed::sculpt_paint::undo::Type type)
+                                const PBVHNode &node,
+                                const blender::ed::sculpt_paint::undo::Type type)
 {
   using namespace blender::ed::sculpt_paint;
   undo::Node *unode = undo::push_node(ob, &node, type);

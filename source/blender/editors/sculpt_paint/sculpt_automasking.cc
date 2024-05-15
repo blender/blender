@@ -589,7 +589,7 @@ float factor_get(const Cache *automasking,
   return automasking_factor_end(ss, automasking, vert, mask);
 }
 
-NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node)
+NodeData node_begin(Object &object, const Cache *automasking, const PBVHNode &node)
 {
   if (!automasking) {
     return {};
