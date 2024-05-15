@@ -611,11 +611,6 @@ void node_update(auto_mask::NodeData &automask_data, PBVHVertexIter &vd)
   }
 }
 
-void cache_free(Cache *automasking)
-{
-  MEM_delete(automasking);
-}
-
 struct AutomaskFloodFillData {
   float radius;
   bool use_radius;

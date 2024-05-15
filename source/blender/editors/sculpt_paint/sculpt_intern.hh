@@ -1330,7 +1330,6 @@ Cache *active_cache_get(SculptSession *ss);
  */
 std::unique_ptr<Cache> cache_init(const Sculpt *sd, Object *ob);
 std::unique_ptr<Cache> cache_init(const Sculpt *sd, const Brush *brush, Object *ob);
-void cache_free(Cache *automasking);
 
 bool mode_enabled(const Sculpt *sd, const Brush *br, eAutomasking_flag mode);
 bool is_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br);
