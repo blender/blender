@@ -456,9 +456,34 @@ class WorkspaceStatus {
 
  public:
   WorkspaceStatus(bContext *C);
+
+  /**
+   * Add a static status entry and up to two icons.
+   *
+   * Example:
+   *   [LMB][Enter] Confirm
+   */
   void item(std::string text, int icon1, int icon2 = 0);
+
+  /**
+   * Add a dynamic status entry with up to two icons that change appearance.
+   * Example:
+   *   [CTRL] Tweak
+   */
   void item_bool(std::string text, bool inverted, int icon1, int icon2 = 0);
+
+  /**
+   * Add a static status entry showing two icons separated by a dash.
+   * Example:
+   *   [A]-[Z] Search
+   */
   void range(std::string text, int icon1, int icon2);
+
+  /**
+   * Add a dynamic status entry for a given property in an operator's keymap.
+   * Example:
+   *   [V] X-Ray
+   */
   void opmodal(std::string text, const wmOperatorType *ot, int propvalue, bool inverted = false);
 };
 
