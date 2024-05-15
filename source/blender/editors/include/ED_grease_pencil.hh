@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "BLI_generic_span.hh"
@@ -333,6 +334,17 @@ IndexMask polyline_detect_corners(Span<float2> points,
                                   float angle_threshold,
                                   IndexMaskMemory &memory);
 
+bke::CurvesGeometry curves_merge_by_distance(
+    const bke::CurvesGeometry &src_curves,
+    const float merge_distance,
+    const IndexMask &selection,
+    const bke::AnonymousAttributePropagationInfo &propagation_info);
+
+int curve_merge_by_distance(const IndexRange points,
+                            const Span<float> distances,
+                            const IndexMask &selection,
+                            const float merge_distance,
+                            MutableSpan<int> r_merge_indices);
 /**
  * Structure describing a point in the destination relatively to the source.
  * If a point in the destination \a is_src_point, then it corresponds

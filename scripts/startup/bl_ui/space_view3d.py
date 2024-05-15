@@ -6036,10 +6036,15 @@ class VIEW3D_MT_edit_greasepencil_showhide(Menu):
 class VIEW3D_MT_edit_greasepencil_cleanup(Menu):
     bl_label = "Cleanup"
 
-    def draw(self, _context):
+    def draw(self, context):
+        ob = context.object
+
         layout = self.layout
 
         layout.operator("grease_pencil.clean_loose")
+
+        if ob.mode != 'PAINT_GREASE_PENCIL':
+            layout.operator("grease_pencil.stroke_merge_by_distance", text="Merge by Distance")
 
 
 class VIEW3D_MT_edit_greasepencil(Menu):
