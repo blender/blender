@@ -417,7 +417,7 @@ static void view_to_string__time(
 {
   const Scene *scene = (const Scene *)user_data;
 
-  int brevity_level = 0;
+  int brevity_level = -1;
   if (U.timecode_style == USER_TIMECODE_MINIMAL && v2d_step >= FPS) {
     brevity_level = 1;
   }
