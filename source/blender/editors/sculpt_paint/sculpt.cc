@@ -1219,10 +1219,10 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
     data.bm_log = ss->bm_log;
   }
   else {
-    data.coords = reinterpret_cast<float(*)[3]>(data.unode->position.data());
-    data.normals = reinterpret_cast<float(*)[3]>(data.unode->normal.data());
+    data.coords = data.unode->position.data();
+    data.normals = data.unode->normal.data();
     data.vmasks = data.unode->mask.data();
-    data.colors = reinterpret_cast<float(*)[4]>(data.unode->col.data());
+    data.colors = data.unode->col.data();
   }
 }
 
@@ -1369,7 +1369,7 @@ static void restore_color(Object &object, const Span<PBVHNode *> nodes)
   SculptSession *ss = object.sculpt;
   const auto restore_generic = [&](PBVHNode *node, undo::Node *unode) {
     SculptOrigVertData orig_vert_data;
-    SCULPT_orig_vert_data_unode_init(orig_vert_data, object, unode);
+    SCULPT_orig_vert_data_unode_init(orig_vert_data, object, *unode);
     PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
       SCULPT_orig_vert_data_update(orig_vert_data, vd);

@@ -103,10 +103,10 @@ struct SculptOrigVertData {
   BMLog *bm_log;
 
   blender::ed::sculpt_paint::undo::Node *unode;
-  float (*coords)[3];
-  float (*normals)[3];
+  const blender::float3 *coords;
+  const blender::float3 *normals;
   const float *vmasks;
-  float (*colors)[4];
+  const blender::float4 *colors;
 
   /* Original coordinate, normal, and mask. */
   const float *co;
