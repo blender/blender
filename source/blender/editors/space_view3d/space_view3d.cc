@@ -418,6 +418,14 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *region)
       wm->defaultconf, "Grease Pencil Weight Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
+  keymap = WM_keymap_ensure(
+      wm->defaultconf, "Grease Pencil Brush Stroke", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+
+  keymap = WM_keymap_ensure(
+      wm->defaultconf, "Grease Pencil Fill Tool", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+
   /* Edit-font key-map swallows almost all (because of text input). */
   keymap = WM_keymap_ensure(wm->defaultconf, "Font", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);

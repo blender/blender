@@ -702,7 +702,7 @@ class _draw_tool_settings_context_mode:
 
         grease_pencil_tool = brush.gpencil_tool
 
-        if grease_pencil_tool == 'DRAW':
+        if grease_pencil_tool in {'DRAW', 'FILL'}:
             from bl_ui.properties_paint_common import (
                 brush_basic__draw_color_selector,
             )

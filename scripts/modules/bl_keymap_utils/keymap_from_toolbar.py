@@ -191,6 +191,7 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                             'SCULPT_GPENCIL': "gpencil_sculpt_tool",
                             'WEIGHT_GPENCIL': "gpencil_weight_tool",
                             'SCULPT_CURVES': "curves_sculpt_tool",
+                            'PAINT_GREASE_PENCIL': "gpencil_tool",
                         }.get(mode, None)
                     else:
                         attr = None

@@ -2586,7 +2586,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_settings(Panel, View3DPanel, Grease
 class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Advanced"
-    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brush_settings"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_v3_brush_settings"
     bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 13
@@ -2642,7 +2642,6 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):
             if ma and ma.grease_pencil.mode == 'LINE':
                 subcol.enabled = False
             subcol.prop(gp_settings, "aspect")
-
         elif brush.gpencil_tool == 'FILL':
             row = col.row(align=True)
             row.prop(gp_settings, "fill_draw_mode", text="Boundary", text_ctxt=i18n_contexts.id_gpencil)
