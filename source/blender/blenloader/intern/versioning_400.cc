@@ -3606,6 +3606,25 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 39)) {
+    /* Unify cast shadow property with Cycles. */
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    /* Be conservative, if there is no scene, still try to do the conversion as that can happen for
+     * append and linking. We prefer breaking EEVEE rather than breaking Cycles here. */
+    bool is_eevee = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+    if (!is_eevee) {
+      const Light *default_light = DNA_struct_default_get(Light);
+      LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+        IDProperty *clight = version_cycles_properties_from_ID(&light->id);
+        if (clight) {
+          bool value = version_cycles_property_boolean(
+              clight, "use_shadow", default_light->mode & LA_SHADOW);
+          SET_FLAG_FROM_TEST(light->mode, value, LA_SHADOW);
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

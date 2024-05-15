@@ -163,6 +163,10 @@ static void rna_def_light(BlenderRNA *brna)
       prop, "Cutoff Distance", "Distance at which the light influence will be set to 0");
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
+  prop = RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "mode", LA_SHADOW);
+  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+
   /* nodes */
   prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "nodetree");
@@ -228,10 +232,6 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
 static void rna_def_light_shadow(StructRNA *srna, bool sun)
 {
   PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "mode", LA_SHADOW);
-  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
   prop = RNA_def_property(srna, "shadow_buffer_clip_start", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "clipsta");

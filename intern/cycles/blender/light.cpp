@@ -114,7 +114,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
 
   /* shadow */
   PointerRNA clight = RNA_pointer_get(&b_light.ptr, "cycles");
-  light->set_cast_shadow(get_boolean(clight, "cast_shadow"));
+  light->set_cast_shadow(b_light.use_shadow());
   light->set_use_mis(get_boolean(clight, "use_multiple_importance_sampling"));
 
   /* caustics light */

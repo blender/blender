@@ -1620,7 +1620,7 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
 
         sub = col.column(align=True)
         sub.active = not (light.type == 'AREA' and clamp.is_portal)
-        sub.prop(clamp, "cast_shadow")
+        sub.prop(light, "use_shadow", text="Cast Shadow")
         sub.prop(clamp, "use_multiple_importance_sampling", text="Multiple Importance")
         if use_mnee(context):
             sub.prop(clamp, "is_caustics_light", text="Shadow Caustics")
