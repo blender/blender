@@ -256,10 +256,12 @@ struct ShaderKey {
   GPUShader *shader;
   uint64_t options;
 
-  ShaderKey(GPUMaterial *gpumat, eMaterialProbe probe_capture)
+  ShaderKey(GPUMaterial *gpumat, ::Material *blender_mat, eMaterialProbe probe_capture)
   {
     shader = GPU_material_get_shader(gpumat);
-    options = uint64_t(probe_capture);
+    options = uint64_t(shader_closure_bits_from_flag(gpumat));
+    options = (options << 8) | blender_mat->blend_flag;
+    options = (options << 2) | uint64_t(probe_capture);
   }
 
   uint64_t hash() const
