@@ -10,7 +10,6 @@ bl_info = {
     "location": "Main \"File\" menu, text editor, any UI control",
     "description": "Allows managing UI translations directly from Blender "
     "(update main .po files, update scripts' translations, etc.)",
-    "warning": "Still in development, not all features are fully implemented yet!",
     "doc_url": "https://developer.blender.org/docs/handbook/translating/translator_guide/",
     "support": 'OFFICIAL',
     "category": "System",

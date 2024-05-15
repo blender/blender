@@ -11,8 +11,6 @@ bl_info = {
     "description": ("View the viewport with virtual reality glasses "
                     "(head-mounted displays)"),
     "support": "OFFICIAL",
-    "warning": "This is an early, limited preview of in development "
-               "VR support for Blender.",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/3d_view/vr_scene_inspection.html",
     "category": "3D View",
 }
