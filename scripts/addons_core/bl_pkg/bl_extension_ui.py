@@ -85,8 +85,27 @@ def pkg_repo_and_id_from_theme_path(repos_all, filepath):
     return None
 
 
+def module_parent_dirname(module_filepath):
+    """
+    Return the name of the directory above the module (it's name only).
+    """
+    import os
+    parts = module_filepath.rsplit(os.sep, 3)
+    # Unlikely.
+    if not parts:
+        return ""
+    if parts[-1] == "__init__.py":
+        if len(parts) >= 3:
+            return parts[-3]
+    else:
+        if len(parts) >= 2:
+            return parts[-2]
+    return ""
+
+
 # -----------------------------------------------------------------------------
 # Extensions UI (Legacy)
+
 
 def extensions_panel_draw_legacy_addons(
         layout,
@@ -153,7 +172,11 @@ def extensions_panel_draw_legacy_addons(
 
         sub = row.row()
         sub.active = is_enabled
-        sub.label(text="Legacy: " + bl_info["name"])
+
+        if module_parent_dirname(mod.__file__) == "addons_core":
+            sub.label(text="Core: " + bl_info["name"])
+        else:
+            sub.label(text="Legacy: " + bl_info["name"])
 
         if bl_info["warning"]:
             sub.label(icon='ERROR')
@@ -689,11 +712,6 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
 def extensions_panel_draw(panel, context):
     prefs = context.preferences
-
-    if not prefs.experimental.use_extension_repos:
-        # Unexpected, the extension is disabled but this add-on is.
-        # In this case don't show the UI as it is confusing.
-        return
 
     from .bl_extension_ops import (
         blender_filter_by_type_map,

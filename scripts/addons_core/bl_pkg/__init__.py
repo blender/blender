@@ -115,9 +115,6 @@ def repo_paths_or_none(repo_item):
 
 def repo_active_or_none():
     prefs = bpy.context.preferences
-    if not prefs.experimental.use_extension_repos:
-        return
-
     extensions = prefs.extensions
     active_extension_index = extensions.active_repo
     try:
@@ -147,19 +144,18 @@ def repos_to_notify():
         # if any repositories are marked to run notifications.
 
         prefs = bpy.context.preferences
-        if prefs.experimental.use_extension_repos:
-            extension_repos = prefs.extensions.repos
-            for repo_item in extension_repos:
-                if not repo_item.enabled:
-                    continue
-                if not repo_item.use_sync_on_startup:
-                    continue
-                if not repo_item.use_remote_url:
-                    continue
-                # Invalid, if there is no remote path this can't update.
-                if not repo_item.remote_url:
-                    continue
-                repos_notify.append(repo_item)
+        extension_repos = prefs.extensions.repos
+        for repo_item in extension_repos:
+            if not repo_item.enabled:
+                continue
+            if not repo_item.use_sync_on_startup:
+                continue
+            if not repo_item.use_remote_url:
+                continue
+            # Invalid, if there is no remote path this can't update.
+            if not repo_item.remote_url:
+                continue
+            repos_notify.append(repo_item)
     return repos_notify
 
 

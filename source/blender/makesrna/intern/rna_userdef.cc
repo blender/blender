@@ -60,7 +60,7 @@ const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_EDITING, "EDITING", 0, "Editing", ""},
     {USER_SECTION_ANIMATION, "ANIMATION", 0, "Animation", ""},
     RNA_ENUM_ITEM_SEPR,
-    {USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", ""},
+    {USER_SECTION_EXTENSIONS, "EXTENSIONS", 0, "Extensions", ""},
 #if 0 /* def WITH_USERDEF_WORKSPACES */
     RNA_ENUM_ITEM_SEPR,
     {USER_SECTION_WORKSPACE_CONFIG, "WORKSPACE_CONFIG", 0, "Configuration File", ""},
@@ -305,19 +305,6 @@ static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, 
     rna_userdef_screen_update(bmain, scene, ptr);
   }
   USERDEF_TAG_DIRTY;
-}
-
-static void rna_PreferencesExperimental_use_extension_repos_set(PointerRNA * /*ptr*/, bool value)
-{
-  Main *bmain = G.main;
-  if (bool(U.experimental.use_extension_repos) != value) {
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
-    U.experimental.use_extension_repos = value;
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
-  }
-
-  /* Needed to redraw the preferences window. */
-  WM_main_add_notifier(NC_WINDOW, nullptr);
 }
 
 static void rna_userdef_font_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
@@ -721,9 +708,8 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
   UserDef *userdef = static_cast<UserDef *>(ptr->data);
 
   const bool use_developer_ui = (userdef->flag & USER_DEVELOPER_UI) != 0;
-  const bool use_extension_repos = use_developer_ui && U.experimental.use_extension_repos;
 
-  if (use_developer_ui && use_extension_repos == false) {
+  if (use_developer_ui) {
     *r_free = false;
     return rna_enum_preference_section_items;
   }
@@ -741,13 +727,6 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
     }
 
     RNA_enum_item_add(&items, &totitem, it);
-
-    /* Rename "Add-ons" to "Extensions" when extensions are enabled. */
-    if (it->value == USER_SECTION_ADDONS) {
-      if (use_extension_repos) {
-        items[totitem - 1].name = "Extensions";
-      }
-    }
   }
 
   RNA_enum_item_end(&items, &totitem);
@@ -7279,14 +7258,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Shader Node Previews", "Enables previews in the shader node editor");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
-
-  prop = RNA_def_property(srna, "use_extension_repos", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_ui_text(prop,
-                           "Extensions",
-                           "Enables support for extensions, accessible from the \"Extensions\" "
-                           "section of the preferences");
-  RNA_def_property_boolean_funcs(
-      prop, nullptr, "rna_PreferencesExperimental_use_extension_repos_set");
 
   prop = RNA_def_property(srna, "use_extension_utils", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(

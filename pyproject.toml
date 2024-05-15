@@ -39,8 +39,7 @@ aggressive = 2
 # - `./scripts/modules/rna_manual_reference.py` because it's a generated data-file.
 exclude = """
 ./extern/*,
-./scripts/addons/*,
-./scripts/addons_contrib/*,
+./scripts/addons_core/*,
 ./scripts/modules/rna_manual_reference.py,
 ./tools/svn_rev_map/sha1_to_rev.py,
 ./tools/svn_rev_map/rev_to_sha1.py,

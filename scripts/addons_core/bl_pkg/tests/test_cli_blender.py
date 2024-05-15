@@ -34,18 +34,13 @@ VERBOSE_CMD = False
 
 BLENDER_BIN = os.environ.get("BLENDER_BIN")
 if BLENDER_BIN is None:
+    sys.exit(0)
     raise Exception("BLENDER_BIN: environment variable not defined")
 
 
 # Arguments to ensure extensions are enabled (currently it's an experimental feature).
 BLENDER_ENABLE_EXTENSION_ARGS = [
     "--python-exit-code", "1",
-    # Code begin/end text because of Blender's chatty reporting of version and that it quit.
-    "--python-expr", '''\
-from bpy import context
-context.preferences.view.show_developer_ui = True
-context.preferences.experimental.use_extension_repos = True
-''',
 ]
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))

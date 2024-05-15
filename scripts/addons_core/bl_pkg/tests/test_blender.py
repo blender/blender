@@ -113,9 +113,6 @@ def blender_test_run(temp_dir_local: str) -> None:
 
     preferences = bpy.context.preferences
 
-    preferences.view.show_developer_ui = True
-    preferences.experimental.use_extension_repos = True
-
     addon_dir = os.path.normpath(os.path.join(BASE_DIR, "..", "blender_addon"))
 
     ensure_script_directory(addon_dir)

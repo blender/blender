@@ -2218,7 +2218,7 @@ class BlPkgShowUpgrade(Operator):
         wm = context.window_manager
         prefs = context.preferences
 
-        prefs.active_section = 'ADDONS'
+        prefs.active_section = 'EXTENSIONS'
         prefs.view.show_addons_enabled_only = False
 
         # Show only extensions that will be updated.

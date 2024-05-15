@@ -925,9 +925,6 @@ static void PREFERENCES_OT_unassociate_blend(wmOperatorType *ot)
 
 static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
-  if (!U.experimental.use_extension_repos) {
-    return false;
-  }
   if (drag->type != WM_DRAG_STRING) {
     return false;
   }
@@ -977,9 +974,6 @@ static void drop_extension_url_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *d
 
 static bool drop_extension_path_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
-  if (!U.experimental.use_extension_repos) {
-    return false;
-  }
   if (drag->type != WM_DRAG_PATH) {
     return false;
   }

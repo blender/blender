@@ -13,7 +13,6 @@ from ...io.com import gltf2_io_constants
 from ...io.exp import gltf2_io_binary_data
 from ..com.gltf2_blender_default import BLENDER_GLTF_SPECIAL_COLLECTION
 from . import gltf2_blender_gather_accessors
-from .gltf2_blender_gather_joints import gather_joint_vnode
 
 
 class VExportNode:
