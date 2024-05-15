@@ -23,6 +23,7 @@ struct Main;
 struct SpaceType;
 struct uiBlock;
 struct RegionPollParams;
+struct wmRegionMessageSubscribeParams;
 struct wmWindowManager;
 
 namespace blender {
@@ -52,6 +53,7 @@ void region_init(wmWindowManager *wm, ARegion *region);
 int region_snap(const ARegion *region, int size, int axis);
 void region_on_user_resize(const ARegion *region);
 void region_listen(const wmRegionListenerParams *params);
+void region_message_subscribe(const wmRegionMessageSubscribeParams *params);
 void region_layout(const bContext *C, ARegion *region);
 void region_draw(const bContext *C, ARegion *region);
 void region_on_poll_success(const bContext *C, ARegion *region);
