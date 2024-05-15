@@ -923,6 +923,14 @@ static void gpu_pass_free(GPUPass *pass)
   MEM_freeN(pass);
 }
 
+void GPU_pass_acquire(GPUPass *pass)
+{
+  BLI_spin_lock(&pass_cache_spin);
+  BLI_assert(pass->refcount > 0);
+  pass->refcount++;
+  BLI_spin_unlock(&pass_cache_spin);
+}
+
 void GPU_pass_release(GPUPass *pass)
 {
   BLI_spin_lock(&pass_cache_spin);
