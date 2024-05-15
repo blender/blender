@@ -82,7 +82,7 @@ def _paths_with_extension_repos():
     return addon_paths
 
 
-def _fake_module(mod_name, mod_path, speedy=True, force_support=None):
+def _fake_module(mod_name, mod_path, speedy=True):
     global error_encoding
     import os
 
@@ -90,7 +90,7 @@ def _fake_module(mod_name, mod_path, speedy=True, force_support=None):
         print("fake_module", mod_path, mod_name)
 
     if mod_name.startswith(_ext_base_pkg_idname_with_dot):
-        return _fake_module_from_extension(mod_name, mod_path, force_support=force_support)
+        return _fake_module_from_extension(mod_name, mod_path)
 
     import ast
     ModuleType = type(ast)
@@ -162,9 +162,6 @@ def _fake_module(mod_name, mod_path, speedy=True, force_support=None):
             traceback.print_exc()
             return None
 
-        if force_support is not None:
-            mod.bl_info["support"] = force_support
-
         return mod
     else:
         print("Warning: add-on missing 'bl_info', this can cause poor performance!:", repr(mod_path))
@@ -181,14 +178,6 @@ def modules_refresh(*, module_cache=addons_fake_modules):
     modules_stale = set(module_cache.keys())
 
     for path, pkg_id in _paths_with_extension_repos():
-
-        # Force all user contributed add-ons to be 'TESTING'.
-
-        # TODO: remove this option entirely.
-        force_support = None
-        # Was part of support `addons_contrib`.
-        # `force_support = 'TESTING' if ((not pkg_id) and path.endswith("addons_contrib")) else None`
-
         for mod_name, mod_path in _bpy.path.module_names(path, package=pkg_id):
             modules_stale.discard(mod_name)
             mod = module_cache.get(mod_name)
@@ -214,7 +203,6 @@ def modules_refresh(*, module_cache=addons_fake_modules):
                 mod = _fake_module(
                     mod_name,
                     mod_path,
-                    force_support=force_support,
                 )
                 if mod:
                     module_cache[mod_name] = mod
@@ -672,7 +660,7 @@ def module_bl_info(mod, *, info_basis=None):
 # -----------------------------------------------------------------------------
 # Extension Utilities
 
-def _bl_info_from_extension(mod_name, mod_path, force_support=None):
+def _bl_info_from_extension(mod_name, mod_path):
     # Extract the `bl_info` from an extensions manifest.
     # This is returned as a module which has a `bl_info` variable.
     # When support for non-extension add-ons is dropped (Blender v5.0 perhaps)
@@ -733,15 +721,13 @@ def _bl_info_from_extension(mod_name, mod_path, force_support=None):
 
     bl_info["category"] = "Development"  # Dummy, will be removed.
 
-    if force_support is not None:
-        bl_info["support"] = force_support
     return bl_info, filepath_toml
 
 
-def _fake_module_from_extension(mod_name, mod_path, force_support=None):
+def _fake_module_from_extension(mod_name, mod_path):
     import os
 
-    bl_info, filepath_toml = _bl_info_from_extension(mod_name, mod_path, force_support=force_support)
+    bl_info, filepath_toml = _bl_info_from_extension(mod_name, mod_path)
     if bl_info is None:
         return None
 
