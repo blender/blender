@@ -643,13 +643,7 @@ static void sequencer_select_linked_handle(const bContext *C,
      * Second click selects all strips in that direction.
      * If there are no adjacent strips, it just selects all in that direction.
      */
-    int sel_side;
-    if (handle_clicked == SEQ_HANDLE_LEFT) {
-      sel_side = SEQ_SIDE_LEFT;
-    }
-    else if (handle_clicked == SEQ_HANDLE_RIGHT) {
-      sel_side = SEQ_SIDE_RIGHT;
-    }
+    const int sel_side = (handle_clicked == SEQ_HANDLE_LEFT) ? SEQ_SIDE_LEFT : SEQ_SIDE_RIGHT;
 
     Sequence *neighbor = find_neighboring_sequence(scene, seq, sel_side, -1);
     if (neighbor) {
