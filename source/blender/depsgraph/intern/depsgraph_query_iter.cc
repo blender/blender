@@ -405,8 +405,11 @@ static void DEG_iterator_ids_step(BLI_Iterator *iter, deg::IDNode *id_node, bool
   ID *id_cow = id_node->id_cow;
 
   /* Use the build time visibility so that the ID is not appearing/disappearing throughout
-   * animation export. */
-  if (!id_node->is_visible_on_build) {
+   * animation export.
+   * When the dependency graph is asked for updates report all IDs, as the user of those updates
+   * might need to react to updates coming from IDs which do change visibility throughout the
+   * life-time of the graph. */
+  if (!only_updated && !id_node->is_visible_on_build) {
     iter->skip = true;
     return;
   }
