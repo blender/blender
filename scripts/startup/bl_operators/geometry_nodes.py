@@ -361,7 +361,7 @@ class ZoneOperator:
     def poll(cls, context):
         space = context.space_data
         # Needs active node editor and a tree.
-        if not space or space.type != 'NODE_EDITOR' or not space.edit_tree or space.edit_tree.library:
+        if not space or space.type != 'NODE_EDITOR' or not space.edit_tree or not space.edit_tree.is_editable:
             return False
         if cls.get_node(context) is None:
             return False

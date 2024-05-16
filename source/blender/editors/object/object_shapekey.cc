@@ -296,8 +296,8 @@ static bool shape_key_poll(bContext *C)
   Object *ob = context_object(C);
   ID *data = static_cast<ID *>((ob) ? ob->data : nullptr);
 
-  return (ob != nullptr && !ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && data != nullptr &&
-          !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
+  return (ob != nullptr && ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && data != nullptr &&
+          ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
 static bool shape_key_exists_poll(bContext *C)

@@ -8,7 +8,8 @@ from .gltf2_blender_search_node_tree import \
     NodeSocket, \
     previous_socket, \
     previous_node, \
-    get_factor_from_socket
+    get_factor_from_socket, \
+    gather_alpha_info
 
 
 def detect_shadeless_material(blender_material_node_tree, use_nodes, export_settings):
@@ -127,7 +128,9 @@ def gather_base_color_factor(info, export_settings):
     if 'rgb_socket' in info:
         rgb, path = get_factor_from_socket(info['rgb_socket'], kind='RGB')
     if 'alpha_socket' in info:
-        alpha, path_alpha = get_factor_from_socket(info['alpha_socket'], kind='VALUE')
+        alpha_info = gather_alpha_info(info['alpha_socket'].to_node_nav())
+        alpha = alpha_info['alphaFactor']
+        path_alpha = alpha_info['alphaPath']
 
     # Storing path for KHR_animation_pointer
     if path is not None:

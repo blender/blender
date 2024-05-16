@@ -2346,7 +2346,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
 
     if (image_should_be_saved(ima, &is_format_writable)) {
       if (BKE_image_has_packedfile(ima) || image_should_pack_during_save_all(ima)) {
-        if (!ID_IS_LINKED(ima)) {
+        if (ID_IS_EDITABLE(ima)) {
           num_saveable_images++;
         }
         else {

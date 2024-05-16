@@ -924,7 +924,7 @@ class OBJECT_OT_assign_property_defaults(Operator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return obj is not None and obj.library is None and obj.mode in {'POSE', 'OBJECT'}
+        return obj is not None and obj.is_editable and obj.mode in {'POSE', 'OBJECT'}
 
     @staticmethod
     def assign_defaults(obj):
@@ -945,7 +945,7 @@ class OBJECT_OT_assign_property_defaults(Operator):
             for pbone in obj.pose.bones:
                 self.assign_defaults(pbone)
 
-        if self.process_data and obj.data and obj.data.library is None:
+        if self.process_data and obj.data and obj.data.is_editable:
             self.assign_defaults(obj.data)
 
             if self.process_bones and isinstance(obj.data, bpy.types.Armature):

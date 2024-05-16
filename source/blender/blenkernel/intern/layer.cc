@@ -2689,7 +2689,7 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
   if (scene != nullptr) {
     /* Update objects in the scene to refer to the new name instead. */
     FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
-      if (!ID_IS_LINKED(ob) && ob->lightgroup != nullptr) {
+      if (ID_IS_EDITABLE(ob) && ob->lightgroup != nullptr) {
         LightgroupMembership *lgm = ob->lightgroup;
         if (STREQ(lgm->name, old_name)) {
           STRNCPY_UTF8(lgm->name, lightgroup->name);
@@ -2699,7 +2699,7 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
     FOREACH_SCENE_OBJECT_END;
 
     /* Update the scene's world to refer to the new name instead. */
-    if (scene->world != nullptr && !ID_IS_LINKED(scene->world) &&
+    if (scene->world != nullptr && ID_IS_EDITABLE(scene->world) &&
         scene->world->lightgroup != nullptr)
     {
       LightgroupMembership *lgm = scene->world->lightgroup;

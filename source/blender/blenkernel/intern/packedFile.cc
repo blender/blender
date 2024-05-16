@@ -245,7 +245,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   for (ima = static_cast<Image *>(bmain->images.first); ima;
        ima = static_cast<Image *>(ima->id.next))
   {
-    if (BKE_image_has_packedfile(ima) == false && !ID_IS_LINKED(ima)) {
+    if (BKE_image_has_packedfile(ima) == false && ID_IS_EDITABLE(ima)) {
       if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_TILED)) {
         BKE_image_packfiles(reports, ima, ID_BLEND_PATH(bmain, &ima->id));
         tot++;
@@ -262,7 +262,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   for (vfont = static_cast<VFont *>(bmain->fonts.first); vfont;
        vfont = static_cast<VFont *>(vfont->id.next))
   {
-    if (vfont->packedfile == nullptr && !ID_IS_LINKED(vfont) &&
+    if (vfont->packedfile == nullptr && ID_IS_EDITABLE(vfont) &&
         BKE_vfont_is_builtin(vfont) == false)
     {
       vfont->packedfile = BKE_packedfile_new(
@@ -274,7 +274,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   for (sound = static_cast<bSound *>(bmain->sounds.first); sound;
        sound = static_cast<bSound *>(sound->id.next))
   {
-    if (sound->packedfile == nullptr && !ID_IS_LINKED(sound)) {
+    if (sound->packedfile == nullptr && ID_IS_EDITABLE(sound)) {
       sound->packedfile = BKE_packedfile_new(
           reports, sound->filepath, BKE_main_blendfile_path(bmain));
       tot++;
@@ -284,7 +284,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   for (volume = static_cast<Volume *>(bmain->volumes.first); volume;
        volume = static_cast<Volume *>(volume->id.next))
   {
-    if (volume->packedfile == nullptr && !ID_IS_LINKED(volume)) {
+    if (volume->packedfile == nullptr && ID_IS_EDITABLE(volume)) {
       volume->packedfile = BKE_packedfile_new(
           reports, volume->filepath, BKE_main_blendfile_path(bmain));
       tot++;

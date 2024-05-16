@@ -50,7 +50,7 @@ static bool bone_collection_add_poll(bContext *C)
     return false;
   }
 
-  if (ID_IS_LINKED(&armature->id)) {
+  if (!ID_IS_EDITABLE(&armature->id)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot add bone collections to a linked Armature without an override");
     return false;
@@ -377,7 +377,7 @@ static bool bone_collection_assign_poll(bContext *C)
   }
 
   bArmature *armature = static_cast<bArmature *>(ob->data);
-  if (ID_IS_LINKED(armature) && !ID_IS_OVERRIDE_LIBRARY(armature)) {
+  if (!ID_IS_EDITABLE(armature) && !ID_IS_OVERRIDE_LIBRARY(armature)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot edit bone collections on linked Armatures without override");
     return false;
@@ -480,7 +480,7 @@ static bool bone_collection_create_and_assign_poll(bContext *C)
   }
 
   bArmature *armature = static_cast<bArmature *>(ob->data);
-  if (ID_IS_LINKED(armature) && !ID_IS_OVERRIDE_LIBRARY(armature)) {
+  if (!ID_IS_EDITABLE(armature) && !ID_IS_OVERRIDE_LIBRARY(armature)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot edit bone collections on linked Armatures without override");
     return false;
@@ -719,7 +719,7 @@ static bool armature_bone_select_poll(bContext *C)
 
   /* For bone selection, at least the pose should be editable to actually store
    * the selection state. */
-  if (ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob)) {
+  if (!ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot (de)select bones on linked object, that would need an override");
     return false;
@@ -964,7 +964,7 @@ static bool move_to_collection_poll(bContext *C)
   }
 
   const bArmature *armature = static_cast<bArmature *>(ob->data);
-  if (ID_IS_LINKED(armature) && !ID_IS_OVERRIDE_LIBRARY(armature)) {
+  if (!ID_IS_EDITABLE(armature) && !ID_IS_OVERRIDE_LIBRARY(armature)) {
     CTX_wm_operator_poll_msg_set(C, "This needs a local Armature or an override");
     return false;
   }

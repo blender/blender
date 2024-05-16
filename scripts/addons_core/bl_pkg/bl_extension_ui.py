@@ -115,6 +115,7 @@ def extensions_panel_draw_legacy_addons(
         enabled_only,
         installed_only,
         used_addon_module_name_map,
+        addon_modules,
 ):
     # NOTE: this duplicates logic from `USERPREF_PT_addons` eventually this logic should be used instead.
     # Don't de-duplicate the logic as this is a temporary state - as long as extensions remains experimental.
@@ -126,15 +127,11 @@ def extensions_panel_draw_legacy_addons(
         pkg_info_check_exclude_filter_ex,
     )
 
-    addons = [
-        (mod, addon_utils.module_bl_info(mod))
-        for mod in addon_utils.modules(refresh=False)
-    ]
-
     # Initialized on demand.
     user_addon_paths = []
 
-    for mod, bl_info in addons:
+    for mod in addon_modules:
+        bl_info = addon_utils.module_bl_info(mod)
         module_name = mod.__name__
         is_extension = addon_utils.check_extension(module_name)
         if is_extension:
@@ -325,6 +322,7 @@ def extensions_panel_draw_impl(
     """
     Show all the items... we may want to paginate at some point.
     """
+    import addon_utils
     import os
     from .bl_extension_ops import (
         blender_extension_mark,
@@ -359,6 +357,8 @@ def extensions_panel_draw_impl(
     show_themes = filter_by_type in {"", "theme"}
     if show_addons:
         used_addon_module_name_map = {addon.module: addon for addon in prefs.addons}
+        addon_modules = [mod for mod in addon_utils.modules(refresh=False)]
+
     if show_themes:
         active_theme_info = pkg_repo_and_id_from_theme_path(repos_all, prefs.themes[0].filepath)
 
@@ -634,12 +634,50 @@ def extensions_panel_draw_impl(
             enabled_only=enabled_only,
             installed_only=installed_only,
             used_addon_module_name_map=used_addon_module_name_map,
+            addon_modules=addon_modules,
         )
 
     # Finally show any errors in a single panel which can be dismissed.
     display_errors.errors_curr = errors_on_draw
     if errors_on_draw:
         display_errors.draw(layout_topmost)
+
+    # Append missing scripts
+    # First collect scripts that are used but have no script file.
+    if show_addons:
+        module_names = {mod.__name__ for mod in addon_modules}
+        missing_modules = {
+            addon_module_name for addon_module_name in used_addon_module_name_map
+            if addon_module_name not in module_names
+        }
+
+        if missing_modules:
+            layout_topmost.column().label(text="Missing script files")
+
+            module_names = {mod.__name__ for mod in addon_modules}
+            for addon_module_name in sorted(missing_modules):
+                is_enabled = addon_module_name in used_addon_module_name_map
+                # Addon UI Code
+                box = layout_topmost.column().box()
+                colsub = box.column()
+                row = colsub.row(align=True)
+
+                row.label(text="", icon='ERROR')
+
+                if is_enabled:
+                    row.operator(
+                        "preferences.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,
+                    ).module = addon_module_name
+
+                row.label(text=addon_module_name, translate=False)
+
+                row_right = row.row()
+                row_right.alignment = 'RIGHT'
+
+                row_right.label(text="Missing   ")
+                row_right.active = False
+
+            layout_topmost.label(text="")
 
 
 class USERPREF_PT_extensions_bl_pkg_filter(Panel):

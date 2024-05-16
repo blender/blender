@@ -1118,7 +1118,7 @@ struct CollectionDrop {
 static Collection *collection_parent_from_ID(ID *id)
 {
   /* Can't change linked or override parent collections. */
-  if (!id || ID_IS_LINKED(id) || ID_IS_OVERRIDE_LIBRARY(id)) {
+  if (!id || !ID_IS_EDITABLE(id) || ID_IS_OVERRIDE_LIBRARY(id)) {
     return nullptr;
   }
 
@@ -1143,7 +1143,7 @@ static bool collection_drop_init(bContext *C, wmDrag *drag, const int xy[2], Col
   }
 
   Collection *to_collection = outliner_collection_from_tree_element(te);
-  if (ID_IS_LINKED(to_collection) || ID_IS_OVERRIDE_LIBRARY(to_collection)) {
+  if (!ID_IS_EDITABLE(to_collection) || ID_IS_OVERRIDE_LIBRARY(to_collection)) {
     return false;
   }
 

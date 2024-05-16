@@ -670,6 +670,8 @@ typedef struct PreviewImage {
 
 #define ID_IS_LINKED(_id) (((const ID *)(_id))->lib != NULL)
 
+#define ID_IS_EDITABLE(_id) (((const ID *)(_id))->lib == NULL)
+
 /* Note that these are fairly high-level checks, should be used at user interaction level, not in
  * BKE_library_override typically (especially due to the check on LIB_TAG_EXTERN). */
 #define ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(_id) \

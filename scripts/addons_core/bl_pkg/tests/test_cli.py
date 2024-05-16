@@ -37,8 +37,7 @@ REMOTE_REPO_HAS_JSON_IMPLIED = True
 
 PKG_EXT = ".zip"
 
-# PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
-PKG_MANIFEST_FILENAME = "bl_ext_pkg_manifest.json"
+# PKG_REPO_LIST_FILENAME = "index.json"
 
 PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 
@@ -293,7 +292,7 @@ class TestCLI_WithRepo(unittest.TestCase):
 
         if USE_HTTP:
             if REMOTE_REPO_HAS_JSON_IMPLIED:
-                cls.dirpath_url = "http://localhost:{:d}/bl_ext_repo.json".format(HTTP_PORT)
+                cls.dirpath_url = "http://localhost:{:d}/index.json".format(HTTP_PORT)
             else:
                 cls.dirpath_url = "http://localhost:{:d}".format(HTTP_PORT)
         else:

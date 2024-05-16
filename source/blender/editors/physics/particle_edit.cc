@@ -5446,7 +5446,7 @@ static bool particle_edit_toggle_poll(bContext *C)
   if (ob == nullptr || ob->type != OB_MESH) {
     return false;
   }
-  if (!ob->data || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+  if (!ob->data || !ID_IS_EDITABLE(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     return false;
   }
 

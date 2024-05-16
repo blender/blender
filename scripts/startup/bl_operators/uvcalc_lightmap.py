@@ -567,7 +567,7 @@ def unwrap(operator, context, **kwargs):
     meshes = list({
         me for obj in objects
         if obj.type == 'MESH'
-        if (me := obj.data).polygons and me.library is None
+        if (me := obj.data).polygons and me.is_editable
     })
 
     if not meshes:

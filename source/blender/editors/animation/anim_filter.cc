@@ -1439,7 +1439,7 @@ static size_t animfilter_action(bAnimContext *ac,
    * and we're getting stuff for editing...
    */
   if ((filter_mode & ANIMFILTER_FOREDIT) &&
-      (ID_IS_LINKED(&action) || ID_IS_OVERRIDE_LIBRARY(&action)))
+      (!ID_IS_EDITABLE(&action) || ID_IS_OVERRIDE_LIBRARY(&action)))
   {
     return 0;
   }

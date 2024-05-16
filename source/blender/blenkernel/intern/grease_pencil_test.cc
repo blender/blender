@@ -237,7 +237,7 @@ struct GreasePencilLayerFramesExample {
 TEST(greasepencil, frame_is_null)
 {
   GreasePencilLayerFramesExample ex;
-  EXPECT_TRUE(ex.layer.frames().lookup(10).is_null());
+  EXPECT_TRUE(ex.layer.frames().lookup(10).is_end());
 }
 
 TEST(greasepencil, drawing_index_at)
@@ -339,7 +339,7 @@ TEST(greasepencil, remove_frame_implicit_hold)
   layer.remove_frame(5);
   EXPECT_EQ(layer.frames().size(), 2);
   EXPECT_EQ(layer.frames().lookup(0).drawing_index, 1);
-  EXPECT_TRUE(layer.frames().lookup(4).is_null());
+  EXPECT_TRUE(layer.frames().lookup(4).is_end());
 }
 
 TEST(greasepencil, remove_frame_fixed_duration_end)
@@ -360,7 +360,7 @@ TEST(greasepencil, remove_frame_fixed_duration_overwrite_end)
   layer.remove_frame(5);
   EXPECT_EQ(layer.frames().size(), 2);
   EXPECT_EQ(layer.frames().lookup(0).drawing_index, 1);
-  EXPECT_TRUE(layer.frames().lookup(5).is_null());
+  EXPECT_TRUE(layer.frames().lookup(5).is_end());
 }
 
 TEST(greasepencil, remove_drawings_no_change)

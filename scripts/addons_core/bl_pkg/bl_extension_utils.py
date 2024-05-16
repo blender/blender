@@ -80,9 +80,9 @@ BLENDER_EXT_CMD = (
 # This directory is in the local repository.
 REPO_LOCAL_PRIVATE_DIR = ".blender_ext"
 # Locate inside `REPO_LOCAL_PRIVATE_DIR`.
-REPO_LOCAL_PRIVATE_LOCK = "bl_ext_repo.lock"
+REPO_LOCAL_PRIVATE_LOCK = "index.lock"
 
-PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
+PKG_REPO_LIST_FILENAME = "index.json"
 PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 PKG_EXT = ".zip"
 

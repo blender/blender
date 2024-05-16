@@ -48,7 +48,7 @@ static bool lib_id_preview_editing_poll(bContext *C)
   if (!id) {
     return false;
   }
-  if (ID_IS_LINKED(id)) {
+  if (!ID_IS_EDITABLE(id)) {
     CTX_wm_operator_poll_msg_set(C, "Can't edit external library data");
     return false;
   }

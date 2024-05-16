@@ -1184,10 +1184,10 @@ static int rna_Object_active_material_editable(const PointerRNA *ptr, const char
   bool is_editable;
 
   if ((ob->matbits == nullptr) || (ob->actcol == 0) || ob->matbits[ob->actcol - 1]) {
-    is_editable = !ID_IS_LINKED(ob);
+    is_editable = ID_IS_EDITABLE(ob);
   }
   else {
-    is_editable = ob->data ? !ID_IS_LINKED(ob->data) : false;
+    is_editable = ob->data ? ID_IS_EDITABLE(ob->data) : false;
   }
 
   return is_editable ? int(PROP_EDITABLE) : 0;
@@ -1370,10 +1370,10 @@ static int rna_MaterialSlot_material_editable(const PointerRNA *ptr, const char 
   bool is_editable;
 
   if ((ob->matbits == nullptr) || ob->matbits[index]) {
-    is_editable = !ID_IS_LINKED(ob);
+    is_editable = ID_IS_EDITABLE(ob);
   }
   else {
-    is_editable = ob->data ? !ID_IS_LINKED(ob->data) : false;
+    is_editable = ob->data ? ID_IS_EDITABLE(ob->data) : false;
   }
 
   return is_editable ? int(PROP_EDITABLE) : 0;

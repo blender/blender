@@ -1279,7 +1279,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
           Object *ob = (Object *)link.owner_id;
           ID *id_data = static_cast<ID *>(ob->data);
           if ((id_data == nullptr) || (id_data->tag & LIB_TAG_DOIT) == 0 ||
-              ID_IS_LINKED(id_data) || (GS(id_data->name) != id_code))
+              !ID_IS_EDITABLE(id_data) || (GS(id_data->name) != id_code))
           {
             continue;
           }

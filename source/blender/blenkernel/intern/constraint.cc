@@ -5691,7 +5691,7 @@ bool BKE_constraint_apply_for_object(Depsgraph *depsgraph,
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   bConstraint *con_eval = BKE_constraints_find_name(&ob_eval->constraints, con->name);
 
-  bConstraint *new_con = BKE_constraint_duplicate_ex(con_eval, 0, !ID_IS_LINKED(ob));
+  bConstraint *new_con = BKE_constraint_duplicate_ex(con_eval, 0, ID_IS_EDITABLE(ob));
   ListBase single_con = {new_con, new_con};
 
   bConstraintOb *cob = BKE_constraints_make_evalob(
@@ -5744,7 +5744,7 @@ bool BKE_constraint_apply_for_pose(
   bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
   bConstraint *con_eval = BKE_constraints_find_name(&pchan_eval->constraints, con->name);
 
-  bConstraint *new_con = BKE_constraint_duplicate_ex(con_eval, 0, !ID_IS_LINKED(ob));
+  bConstraint *new_con = BKE_constraint_duplicate_ex(con_eval, 0, ID_IS_EDITABLE(ob));
   ListBase single_con;
   single_con.first = new_con;
   single_con.last = new_con;
@@ -6021,14 +6021,14 @@ bConstraint *BKE_constraint_copy_for_pose(Object *ob, bPoseChannel *pchan, bCons
     return nullptr;
   }
 
-  bConstraint *new_con = BKE_constraint_duplicate_ex(src, 0, !ID_IS_LINKED(ob));
+  bConstraint *new_con = BKE_constraint_duplicate_ex(src, 0, ID_IS_EDITABLE(ob));
   add_new_constraint_to_list(ob, pchan, new_con);
   return new_con;
 }
 
 bConstraint *BKE_constraint_copy_for_object(Object *ob, bConstraint *src)
 {
-  bConstraint *new_con = BKE_constraint_duplicate_ex(src, 0, !ID_IS_LINKED(ob));
+  bConstraint *new_con = BKE_constraint_duplicate_ex(src, 0, ID_IS_EDITABLE(ob));
   add_new_constraint_to_list(ob, nullptr, new_con);
   return new_con;
 }

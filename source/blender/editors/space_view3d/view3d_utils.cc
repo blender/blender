@@ -575,7 +575,7 @@ bool ED_view3d_camera_view_pan(ARegion *region, const float event_ofs[2])
 
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
-  return ((v3d->camera) && !ID_IS_LINKED(v3d->camera) && (v3d->flag2 & V3D_LOCK_CAMERA) &&
+  return ((v3d->camera) && ID_IS_EDITABLE(v3d->camera) && (v3d->flag2 & V3D_LOCK_CAMERA) &&
           (rv3d->persp == RV3D_CAMOB));
 }
 

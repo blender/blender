@@ -128,7 +128,7 @@ static void createTransCursor_view3d(bContext * /*C*/, TransInfo *t)
   TransData *td;
 
   Scene *scene = t->scene;
-  if (ID_IS_LINKED(scene)) {
+  if (!ID_IS_EDITABLE(scene)) {
     BKE_report(t->reports, RPT_ERROR, "Linked data can't text-space transform");
     return;
   }

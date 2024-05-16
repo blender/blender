@@ -66,9 +66,9 @@ MessageFn = Callable[[str, PrimTypeOrSeq], bool]
 VERSION = "0.1"
 
 PKG_EXT = ".zip"
-# PKG_JSON_INFO = "bl_ext_repo.json"
+# PKG_JSON_INFO = "index.json"
 
-PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
+PKG_REPO_LIST_FILENAME = "index.json"
 
 # Only for building.
 PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"

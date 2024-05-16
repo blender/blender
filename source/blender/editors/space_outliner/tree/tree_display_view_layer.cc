@@ -152,7 +152,7 @@ void TreeDisplayViewLayer::add_layer_collections_recursive(ListBase &tree,
 
       /* Open by default, except linked collections, which may contain many elements. */
       TreeStoreElem *tselem = TREESTORE(ten);
-      if (!(tselem->used || ID_IS_LINKED(id) || ID_IS_OVERRIDE_LIBRARY(id))) {
+      if (!(tselem->used || !ID_IS_EDITABLE(id) || ID_IS_OVERRIDE_LIBRARY(id))) {
         tselem->flag &= ~TSE_CLOSED;
       }
     }

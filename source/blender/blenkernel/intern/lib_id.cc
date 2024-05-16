@@ -2158,7 +2158,7 @@ void BKE_library_make_local(Main *bmain,
 
 void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 {
-  BLI_assert(!ID_IS_LINKED(id));
+  BLI_assert(ID_IS_EDITABLE(id));
   if (STREQ(id->name + 2, name)) {
     return;
   }
@@ -2231,7 +2231,7 @@ void BKE_id_tag_clear_atomic(ID *id, int tag)
 
 bool BKE_id_can_be_asset(const ID *id)
 {
-  return !ID_IS_LINKED(id) && !ID_IS_OVERRIDE_LIBRARY(id) &&
+  return ID_IS_EDITABLE(id) && !ID_IS_OVERRIDE_LIBRARY(id) &&
          BKE_idtype_idcode_is_linkable(GS(id->name));
 }
 
@@ -2249,7 +2249,7 @@ ID *BKE_id_owner_get(ID *id, const bool debug_relationship_assert)
 
 bool BKE_id_is_editable(const Main *bmain, const ID *id)
 {
-  return !(ID_IS_LINKED(id) || BKE_lib_override_library_is_system_defined(bmain, id));
+  return ID_IS_EDITABLE(id) && !BKE_lib_override_library_is_system_defined(bmain, id);
 }
 
 /************************* Datablock order in UI **************************/

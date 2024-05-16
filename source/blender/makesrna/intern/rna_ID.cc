@@ -285,8 +285,9 @@ int rna_ID_name_length(PointerRNA *ptr)
 void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
   ID *id = (ID *)ptr->data;
-  Main *bmain = BKE_main_from_id(G_MAIN, id);
+  BLI_assert(ID_IS_EDITABLE(id));
 
+  Main *bmain = BKE_main_from_id(G_MAIN, id);
   BKE_libblock_rename(bmain, id, value);
 
   if (GS(id->name) == ID_OB) {
@@ -306,7 +307,7 @@ static int rna_ID_name_editable(const PointerRNA *ptr, const char **r_info)
   /* NOTE: For the time being, allow rename of local liboverrides from the RNA API.
    *       While this is not allowed from the UI, this should work with modern liboverride code,
    *       and could be useful in some cases. */
-  if (ID_IS_LINKED(id)) {
+  if (!ID_IS_EDITABLE(id)) {
     if (r_info) {
       *r_info = N_("Linked data-blocks cannot be renamed");
     }
@@ -625,6 +626,12 @@ bool rna_ID_is_runtime_get(PointerRNA *ptr)
   }
 
   return (id->tag & LIB_TAG_RUNTIME) != 0;
+}
+
+bool rna_ID_is_editable_get(PointerRNA *ptr)
+{
+  ID *id = (ID *)ptr->data;
+  return ID_IS_EDITABLE(id);
 }
 
 void rna_ID_fake_user_set(PointerRNA *ptr, bool value)
@@ -2291,6 +2298,14 @@ static void rna_def_ID(BlenderRNA *brna)
                            "This data-block is runtime data, i.e. it won't be saved in .blend "
                            "file. Note that e.g. evaluated IDs are always runtime, so this value "
                            "is only editable for data-blocks in Main data-base");
+
+  prop = RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_ID_is_editable_get", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Editable",
+                           "This data-block is editable in the user interface. Linked datablocks "
+                           "are not editable, except if they were loaded as editable assets");
 
   prop = RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "tag", LIB_TAG_DOIT);

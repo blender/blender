@@ -1347,7 +1347,7 @@ static bool object_gpencil_add_poll(bContext *C)
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
 
-  if ((scene == nullptr) || ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
+  if ((scene == nullptr) || !ID_IS_EDITABLE(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
     return false;
   }
 
@@ -3051,13 +3051,13 @@ static bool object_convert_poll(bContext *C)
   Base *base_act = CTX_data_active_base(C);
   Object *obact = base_act ? base_act->object : nullptr;
 
-  if (obact == nullptr || obact->data == nullptr || ID_IS_LINKED(obact) ||
+  if (obact == nullptr || obact->data == nullptr || !ID_IS_EDITABLE(obact) ||
       ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data))
   {
     return false;
   }
 
-  return (!ID_IS_LINKED(scene) && (BKE_object_is_in_editmode(obact) == false) &&
+  return (ID_IS_EDITABLE(scene) && (BKE_object_is_in_editmode(obact) == false) &&
           (base_act->flag & BASE_SELECTED));
 }
 
@@ -4348,7 +4348,7 @@ static bool object_join_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (ob == nullptr || ob->data == nullptr || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+  if (ob == nullptr || ob->data == nullptr || !ID_IS_EDITABLE(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data))
   {
     return false;
@@ -4455,7 +4455,7 @@ static bool join_shapes_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (ob == nullptr || ob->data == nullptr || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+  if (ob == nullptr || ob->data == nullptr || !ID_IS_EDITABLE(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data))
   {
     return false;

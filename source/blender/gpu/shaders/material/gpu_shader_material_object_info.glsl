@@ -13,7 +13,11 @@ void node_object_info(float mat_index,
   location = ModelMatrix[3].xyz;
   color = ObjectColor;
   alpha = ObjectColor.a;
+#ifdef OBINFO_NEW
+  object_index = floatBitsToUint(ObjectInfo.x);
+#else
   object_index = ObjectInfo.x;
+#endif
   /* TODO(fclem): Put that inside the Material UBO. */
   material_index = mat_index;
   random = ObjectInfo.z;

@@ -390,6 +390,229 @@ class NodeNav:
         return None, None
 
 
+# Gather information about alpha from the Alpha socket. Alpha has the
+# general form
+#
+#  alpha = alpha_clip(factor * color attribute * texture)
+#
+# Alpha mode is determined by the nodes too (previously it used the
+# Eevee blend_method).
+def gather_alpha_info(alpha_nav):
+    info = {
+        'alphaMode': None,
+        'alphaCutoff': None,
+        'alphaFactor': None,
+        'alphaColorAttrib': None,
+        'alphaPath': None,
+    }
+    if not alpha_nav:
+        return info
+
+    # Opaque?
+    c, alpha_path = alpha_nav.get_constant()
+    if c == 1:
+        info['alphaMode'] = 'OPAQUE'
+        return info
+
+    # Check for alpha clipping
+    cutoff = detect_alpha_clip(alpha_nav)
+    if cutoff is not None:
+        info['alphaMode'] = 'MASK'
+        info['alphaCutoff'] = cutoff
+
+    # Reads the factor and color attribute by checking for variations on
+    # -> [Multiply by Factor] -> [Multiply by Color Attrib Alpha] ->
+
+    for _ in range(2):  # Twice, to handle both factor and attrib
+        # No factor found yet?
+        if info['alphaFactor'] is None:
+            a, alpha_path = alpha_nav.get_constant()
+            if a is not None:
+                info['alphaFactor'] = a
+                info['alphaPath'] = alpha_path
+                break
+
+            a, alpha_path = detect_multiply_by_constant(alpha_nav)
+            if a is not None:
+                info['alphaFactor'] = a
+                info['alphaPath'] = alpha_path
+                continue
+
+        # No color attrib found yet?
+        if info['alphaColorAttrib'] is None:
+            attr = get_color_attrib(alpha_nav)
+            if attr is not None:
+                info['alphaColorAttr'] = attr
+                break
+
+            attr = detect_multiply_by_color_attrib(alpha_nav)
+            if attr is not None:
+                info['alphaColorAttr'] = attr
+                continue
+
+        break
+
+    # Set alpha mode
+    if info['alphaMode'] is None:
+        # Is zero? Weird, but okay.
+        if info['alphaFactor'] == 0:
+            info['alphaMode'] = 'MASK'
+            info['alphaCutoff'] = 0.5
+        else:
+            info['alphaMode'] = 'BLEND'
+
+    return info
+
+
+# Detects a node setup for doing alpha clip/mask, ie.
+#
+# alpha = alpha >= cutoff ? 1.0 : 0.0
+#
+# If detected, alpha_nav is advanced to point to the new Alpha socket
+# and the alphaCutoff value is returned. Otherwise, returns None.
+#
+# Nodes will look like:
+#  Alpha -> [Math:Round] -> Alpha Socket
+#  Alpha -> [Math:X < cutoff] -> [Math:1 - X] -> Alpha Socket
+def detect_alpha_clip(alpha_nav):
+    nav = alpha_nav.peek_back()
+    if not nav.moved:
+        return None
+
+    # Detect [Math:Round]
+    if nav.node.type == 'MATH' and nav.node.operation == 'ROUND':
+        nav.select_input_socket(0)
+        alpha_nav.assign(nav)
+        return 0.5
+
+    # Detect 1 - (X < cutoff)
+    # (There is no >= node)
+    elif nav.node.type == 'MATH' and nav.node.operation == 'SUBTRACT':
+        if nav.get_constant(0)[0] == 1.0:
+            nav2 = nav.peek_back(1)
+            if nav2.moved and nav2.node.type == 'MATH':
+                in0 = nav2.get_constant(0)[0]
+                in1 = nav2.get_constant(1)[0]
+                # X < cutoff
+                if nav2.node.operation == 'LESS_THAN' and in0 is None and in1 is not None:
+                    nav2.select_input_socket(0)
+                    alpha_nav.assign(nav2)
+                    return in1
+                # cutoff > X
+                elif nav2.node.operation == 'GREATER_THAN' and in0 is not None and in1 is None:
+                    nav2.select_input_socket(1)
+                    alpha_nav.assign(nav2)
+                    return in0
+
+    return None
+
+
+# When nav connects to a multiply node (A*B), returns NodeNavs that
+# point at both factors (A, B). Otherwise, returns None, None.
+#
+# Works for both colors and floats.
+def get_multiply_factors(nav):
+    prev = nav.peek_back()
+    if prev.moved:
+        if nav.in_socket.type == 'RGBA':
+            is_mul = (
+                prev.node.type == 'MIX' and
+                prev.node.data_type == 'RGBA' and
+                prev.node.blend_type == 'MULTIPLY' and
+                prev.get_constant('Fac') == 1
+            )
+            if is_mul:
+                fac1 = prev
+                fac1.select_input_socket('#A_Color')
+                fac2 = prev.copy()
+                fac2.select_input_socket('#B_Color')
+
+                return fac1, fac2
+
+        elif nav.in_socket.type == 'VALUE':
+            if prev.node.type == 'MATH' and prev.node.operation == 'MULTIPLY':
+                fac1 = prev
+                fac1.select_input_socket(0)
+                fac2 = prev.copy()
+                fac2.select_input_socket(1)
+
+                return fac1, fac2
+
+    return None, None
+
+
+# Detects if nav is multiplied by a constant. If detected, the constant
+# is returned, and nav is advanced to the other factor in the
+# multiplication. Otherwise, returns None.
+def detect_multiply_by_constant(nav):
+    fac1, fac2 = get_multiply_factors(nav)
+    if fac1 is None:
+        return None, None
+
+    c, alpha_path = fac1.get_constant()
+    if c is not None:
+        nav.assign(fac2)
+        return c, alpha_path
+
+    # Try other order too
+    c, alpha_path = fac2.get_constant()
+    if c is not None:
+        nav.assign(fac1)
+        return c, alpha_path
+
+    return None, None
+
+
+# Detects if nav is multiplied by a color attribute. If detected, the
+# color attribute name is returned, and nav is advanced to the other
+# factor in the multiplication. Otherwise, returns None.
+#
+# Note: ignores whether the multiplication is by the attribute's RGB or
+# Alpha.
+def detect_multiply_by_color_attrib(nav):
+    fac1, fac2 = get_multiply_factors(nav)
+    if fac1 is None:
+        return None
+
+    attr = get_color_attrib(fac1)
+    if attr is not None:
+        nav.assign(fac2)
+        return attr
+
+    # Try other order too
+    attr = get_color_attrib(fac2)
+    if attr is not None:
+        nav.assign(fac1)
+        return attr
+
+    return None
+
+
+# Checks if nav connects to a Color Attribute node. An Attribute node is
+# also accepted, but there's no check that the attribute is actually a
+# *color* attribute in that case.
+#
+# Returns the name of the color attribute if detected. Note that a blank
+# name, "", means to use the mesh's active render color attribute.
+# Otherwise, returns None.
+def get_color_attrib(nav):
+    nav = nav.peek_back()
+    if not nav.moved:
+        return None
+
+    if nav.node.type == 'VERTEX_COLOR':
+        return nav.node.layer_name
+
+    if nav.node.type == 'ATTRIBUTE':
+        if nav.node.attribute_type == 'GEOMETRY':
+            # Does NOT use color attribute when blank
+            name = nav.node.attribute_name
+            if name:
+                return name
+
+    return None
+
+
 class NodeSocket:
     def __init__(self, socket, group_path):
         self.socket = socket
@@ -666,25 +889,14 @@ def get_vertex_color_info(color_socket, alpha_socket, export_settings):
                     attribute_color_type = "name"
 
     if alpha_socket is not None and alpha_socket.socket is not None:
-        node = previous_node(alpha_socket)
-        if node.node is not None:
-            if node.node.type == 'MATH' and node.node.operation == 'MULTIPLY':
-                use_vc, attribute_alpha, use_active = get_attribute_name(
-                    NodeSocket(node.node.inputs[0], node.group_path), export_settings)
-                if use_vc is False:
-                    use_vc, attribute_alpha, use_active = get_attribute_name(
-                        NodeSocket(node.node.inputs[1], node.group_path), export_settings)
-                if use_vc is True and use_active is True:
-                    attribute_alpha_type = "active"
-                elif use_vc is True and use_active is None and attribute_alpha is not None:
-                    attribute_alpha_type = "name"
-            elif node.node.type in ["ATTRIBUTE", "VERTEX_COLOR"]:
-                use_vc, attribute_color, use_active = get_attribute_name(
-                    NodeSocket(node.node.outputs[0], node.group_path), export_settings)
-                if use_vc is True and use_active is True:
-                    attribute_color_type = "active"
-                elif use_vc is True and use_active is None and attribute_color is not None:
-                    attribute_color_type = "name"
+        alpha_info = gather_alpha_info(alpha_socket.to_node_nav())
+
+        if alpha_info['alphaColorAttrib'] == '':
+            attribute_alpha = None
+            attribute_alpha_type = 'active'
+        elif alpha_info['alphaColorAttrib'] is not None:
+            attribute_alpha = alpha_info['alphaColorAttrib']
+            attribute_alpha_type = 'name'
 
     return {
         "color": attribute_color,

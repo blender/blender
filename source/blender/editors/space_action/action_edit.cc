@@ -808,8 +808,8 @@ static void insert_grease_pencil_key(bAnimContext *ac,
   if (hold_previous) {
     const std::optional<FramesMapKey> active_frame_number = layer->frame_key_at(
         current_frame_number);
-    if (!active_frame_number || layer->frames().lookup(*active_frame_number).is_null()) {
-      /* There is no active frame to hold to, or it's a null frame. Therefore just insert a blank
+    if (!active_frame_number || layer->frames().lookup(*active_frame_number).is_end()) {
+      /* There is no active frame to hold to, or it's an end frame. Therefore just insert a blank
        * frame. */
       changed |= grease_pencil->insert_frame(*layer, current_frame_number) != nullptr;
     }

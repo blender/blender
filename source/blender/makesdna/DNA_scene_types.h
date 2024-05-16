@@ -2292,7 +2292,7 @@ extern const char *RE_engine_id_CYCLES;
    (((base)->flag & BASE_SELECTABLE) != 0))
 #define BASE_SELECTED(v3d, base) (BASE_VISIBLE(v3d, base) && (((base)->flag & BASE_SELECTED) != 0))
 #define BASE_EDITABLE(v3d, base) \
-  (BASE_VISIBLE(v3d, base) && !ID_IS_LINKED((base)->object) && \
+  (BASE_VISIBLE(v3d, base) && ID_IS_EDITABLE((base)->object) && \
    (!ID_IS_OVERRIDE_LIBRARY_REAL((base)->object) || \
     ((base)->object->id.override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) == 0))
 #define BASE_SELECTED_EDITABLE(v3d, base) \

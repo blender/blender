@@ -91,7 +91,7 @@ static bool grease_pencil_layer_initialize_trans_data(blender::bke::greasepencil
   trans_data.frames_destination.clear();
 
   for (const auto [frame_number, frame] : layer.frames().items()) {
-    if (frame.is_null()) {
+    if (frame.is_end()) {
       continue;
     }
 

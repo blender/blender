@@ -187,7 +187,7 @@ bool ED_operator_objectmode(bContext *C)
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
 
-  if (scene == nullptr || ID_IS_LINKED(scene)) {
+  if (scene == nullptr || !ID_IS_EDITABLE(scene)) {
     return false;
   }
   if (CTX_data_edit_object(C)) {
@@ -450,21 +450,21 @@ bool ED_operator_object_active_local_editable(bContext *C)
 bool ED_operator_object_active_editable_mesh(bContext *C)
 {
   Object *ob = blender::ed::object::context_active_object(C);
-  return ((ob != nullptr) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) && (ob->type == OB_MESH) &&
-          !ID_IS_LINKED(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
+  return ((ob != nullptr) && ID_IS_EDITABLE(ob) && !ed_object_hidden(ob) &&
+          (ob->type == OB_MESH) && ID_IS_EDITABLE(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
 bool ED_operator_object_active_editable_font(bContext *C)
 {
   Object *ob = blender::ed::object::context_active_object(C);
-  return ((ob != nullptr) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) && (ob->type == OB_FONT) &&
-          !ID_IS_LINKED(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
+  return ((ob != nullptr) && ID_IS_EDITABLE(ob) && !ed_object_hidden(ob) &&
+          (ob->type == OB_FONT) && ID_IS_EDITABLE(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
 bool ED_operator_editable_mesh(bContext *C)
 {
   Mesh *mesh = ED_mesh_context(C);
-  return (mesh != nullptr) && !ID_IS_LINKED(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh);
+  return (mesh != nullptr) && ID_IS_EDITABLE(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh);
 }
 
 bool ED_operator_editmesh(bContext *C)
@@ -690,7 +690,7 @@ bool ED_operator_editmball(bContext *C)
 bool ED_operator_camera_poll(bContext *C)
 {
   Camera *cam = static_cast<Camera *>(CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data);
-  return (cam != nullptr && !ID_IS_LINKED(cam));
+  return (cam != nullptr && ID_IS_EDITABLE(cam));
 }
 
 /** \} */

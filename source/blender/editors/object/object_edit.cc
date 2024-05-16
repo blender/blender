@@ -792,7 +792,7 @@ bool editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
 {
   bool ok = false;
 
-  if (ELEM(nullptr, ob, ob->data) || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+  if (ELEM(nullptr, ob, ob->data) || !ID_IS_EDITABLE(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data))
   {
     return false;
@@ -972,7 +972,7 @@ static bool editmode_toggle_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   /* Covers liboverrides too. */
-  if (ELEM(nullptr, ob, ob->data) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+  if (ELEM(nullptr, ob, ob->data) || !ID_IS_EDITABLE(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data))
   {
     return false;
@@ -2129,7 +2129,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (ID_IS_LINKED(collection) || ID_IS_OVERRIDE_LIBRARY(collection)) {
+  if (!ID_IS_EDITABLE(collection) || ID_IS_OVERRIDE_LIBRARY(collection)) {
     BKE_report(
         op->reports, RPT_ERROR, "Cannot add objects to a library override or linked collection");
     return OPERATOR_CANCELLED;
