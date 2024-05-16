@@ -40,18 +40,14 @@ def paths():
     import os
 
     paths = []
-    for p in _bpy.utils.script_paths():
-        # Bundled add-ons.
-        addon_dir = os.path.join(p, "addons_core")
+    for i, p in enumerate(_bpy.utils.script_paths()):
+        # Bundled add-ons are always first.
+        # Since this isn't officially part of the API, print an error so this never silently fails.
+        addon_dir = os.path.join(p, "addons_core" if i == 0 else "addons")
         if os.path.isdir(addon_dir):
             paths.append(addon_dir)
-            # The system path if for core add-ons only,
-            # if the `addons` directory exists it's likely from an old "make install" target.
-            continue
-        # User defined add-ons, custom scripts directory.
-        addon_dir = os.path.join(p, "addons")
-        if os.path.isdir(addon_dir):
-            paths.append(addon_dir)
+        elif i == 0:
+            print("Internal error:", addon_dir, "was not found!")
     return paths
 
 
