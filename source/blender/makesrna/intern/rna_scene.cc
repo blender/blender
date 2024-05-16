@@ -8876,6 +8876,7 @@ void RNA_def_scene(BlenderRNA *brna)
   /* Tool Settings */
   prop = RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_pointer_sdna(prop, nullptr, "toolsettings");
   RNA_def_property_struct_type(prop, "ToolSettings");
   RNA_def_property_ui_text(prop, "Tool Settings", "");
