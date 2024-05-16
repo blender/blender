@@ -29,7 +29,8 @@ from .gltf2_blender_search_node_tree import \
     get_node_socket, \
     get_material_nodes, \
     NodeSocket, \
-    get_vertex_color_info
+    get_vertex_color_info, \
+    gather_alpha_info
 
 
 @cached
@@ -93,9 +94,15 @@ def gather_material(blender_material, export_settings):
         emission_strength = max(emissive_factor)
         emissive_factor = [f / emission_strength for f in emissive_factor]
 
+    alpha_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Alpha")
+    if isinstance(alpha_socket.socket, bpy.types.NodeSocket):
+        alpha_info = gather_alpha_info(alpha_socket.to_node_nav())
+    else:
+        alpha_info = gather_alpha_info(None)
+
     material = gltf2_io.Material(
-        alpha_cutoff=__gather_alpha_cutoff(blender_material, export_settings),
-        alpha_mode=__gather_alpha_mode(blender_material, export_settings),
+        alpha_cutoff=__gather_alpha_cutoff(alpha_info, export_settings),
+        alpha_mode=__gather_alpha_mode(alpha_info, export_settings),
         double_sided=__gather_double_sided(blender_material, extensions, export_settings),
         emissive_factor=emissive_factor,
         emissive_texture=emissive_texture,
@@ -209,24 +216,22 @@ def __filter_material(blender_material, export_settings):
     return export_settings['gltf_materials']
 
 
-def __gather_alpha_cutoff(blender_material, export_settings):
-    if blender_material.blend_method == 'CLIP':
+def __gather_alpha_cutoff(alpha_info, export_settings):
+    if alpha_info['alphaMode'] == 'MASK':
+        cutoff = alpha_info['alphaCutoff']
 
         path_ = {}
         path_['length'] = 1
         path_['path'] = "/materials/XXX/alphaCutoff"
         export_settings['current_paths']['alpha_threshold'] = path_
 
-        return blender_material.alpha_threshold
+        return None if cutoff == 0.5 else cutoff
     return None
 
 
-def __gather_alpha_mode(blender_material, export_settings):
-    if blender_material.blend_method == 'CLIP':
-        return 'MASK'
-    elif blender_material.blend_method in ['BLEND', 'HASHED']:
-        return 'BLEND'
-    return None
+def __gather_alpha_mode(alpha_info, export_settings):
+    mode = alpha_info['alphaMode']
+    return None if mode == 'OPAQUE' else mode
 
 
 def __gather_double_sided(blender_material, extensions, export_settings):
@@ -475,11 +480,16 @@ def __export_unlit(blender_material, export_settings):
 
     base_color_texture, uvmap_info, udim_info = gltf2_unlit.gather_base_color_texture(info, export_settings)
 
+    if info.get('alpha_socket'):
+        alpha_info = gather_alpha_info(info['alpha_socket'].to_node_nav())
+    else:
+        alpha_info = gather_alpha_info(None)
+
     vc_info = get_vertex_color_info(info.get('rgb_socket'), info.get('alpha_socket'), export_settings)
 
     material = gltf2_io.Material(
-        alpha_cutoff=__gather_alpha_cutoff(blender_material, export_settings),
-        alpha_mode=__gather_alpha_mode(blender_material, export_settings),
+        alpha_cutoff=__gather_alpha_cutoff(alpha_info, export_settings),
+        alpha_mode=__gather_alpha_mode(alpha_info, export_settings),
         double_sided=__gather_double_sided(blender_material, {}, export_settings),
         extensions={"KHR_materials_unlit": Extension("KHR_materials_unlit", {}, required=False)},
         extras=__gather_extras(blender_material, export_settings),

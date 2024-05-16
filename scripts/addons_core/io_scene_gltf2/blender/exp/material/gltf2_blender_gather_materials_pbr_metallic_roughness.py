@@ -14,7 +14,8 @@ from .gltf2_blender_search_node_tree import \
     has_image_node_from_socket, \
     get_const_from_default_value_socket, \
     get_socket, \
-    get_factor_from_socket
+    get_factor_from_socket, \
+    gather_alpha_info
 
 
 @cached
@@ -70,10 +71,9 @@ def __gather_base_color_factor(blender_material, export_settings):
     path = None
     alpha_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Alpha")
     if alpha_socket.socket is not None and isinstance(alpha_socket.socket, bpy.types.NodeSocket):
-        if export_settings['gltf_image_format'] != "NONE":
-            alpha, path_alpha = get_factor_from_socket(alpha_socket, kind='VALUE')
-        else:
-            alpha, path_alpha = get_const_from_default_value_socket(alpha_socket, kind='VALUE')
+        alpha_info = gather_alpha_info(alpha_socket.to_node_nav())
+        alpha = alpha_info['alphaFactor']
+        path_alpha = alpha_info['alphaPath']
 
     base_color_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Base Color")
     if base_color_socket.socket is None:

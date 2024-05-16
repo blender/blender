@@ -29,7 +29,7 @@ def pbr_specular_glossiness(mh):
         is_diffuse=True,
         location=locs['diffuse'],
         color_socket=pbr_node.inputs['Base Color'],
-        alpha_socket=pbr_node.inputs['Alpha'] if not mh.is_opaque() else None,
+        alpha_socket=pbr_node.inputs['Alpha'],
     )
 
     emission(

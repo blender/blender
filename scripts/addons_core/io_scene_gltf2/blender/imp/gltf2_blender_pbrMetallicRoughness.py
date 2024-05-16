@@ -70,7 +70,7 @@ def pbr_metallic_roughness(mh: MaterialHelper):
         mh,
         location=locs['base_color'],
         color_socket=pbr_node.inputs['Base Color'],
-        alpha_socket=pbr_node.inputs['Alpha'] if not mh.is_opaque() else None,
+        alpha_socket=pbr_node.inputs['Alpha'],
     )
 
     metallic_roughness(
@@ -523,7 +523,7 @@ def emission(mh: MaterialHelper, location, color_socket, strength_socket):
 
 
 #      [Texture] => [Mix Colors] => [Color Factor] =>
-# [Vertex Color] => [Mix Alphas] => [Alpha Factor] =>
+# [Vertex Color] => [Mix Alphas] => [Alpha Factor] => [Alpha Clip] =>
 def base_color(
     mh: MaterialHelper,
     location,
@@ -534,33 +534,87 @@ def base_color(
     """Handle base color (= baseColorTexture * vertexColor * baseColorFactor)."""
     x, y = location
     pbr = mh.pymat.pbr_metallic_roughness
+
     if not is_diffuse:
-        base_color_factor = pbr.base_color_factor
+        base_color_factor = pbr.base_color_factor or [1, 1, 1, 1]
         base_color_texture = pbr.base_color_texture
     else:
         # Handle pbrSpecularGlossiness's diffuse with this function too,
         # since it's almost exactly the same as base color.
-        base_color_factor = \
-            mh.pymat.extensions['KHR_materials_pbrSpecularGlossiness'] \
-            .get('diffuseFactor', [1, 1, 1, 1])
-        base_color_texture = \
-            mh.pymat.extensions['KHR_materials_pbrSpecularGlossiness'] \
-            .get('diffuseTexture', None)
+        ext = mh.get_ext('KHR_materials_pbrSpecularGlossiness')
+        base_color_factor = ext.get('diffuseFactor', [1, 1, 1, 1])
+        base_color_texture = ext.get('diffuseTexture')
         if base_color_texture is not None:
             base_color_texture = TextureInfo.from_dict(base_color_texture)
 
-    if base_color_factor is None:
-        base_color_factor = [1, 1, 1, 1]
+    color_factor = base_color_factor[:3]
+    alpha_factor = base_color_factor[3]
 
+    alpha_mode = mh.pymat.alpha_mode or 'OPAQUE'
+    alpha_cutoff = mh.pymat.alpha_cutoff
+    alpha_cutoff = 0.5 if alpha_cutoff is None else alpha_cutoff
+
+    # Only factor
     if base_color_texture is None and not mh.vertex_color:
-        color_socket.default_value = base_color_factor[:3] + [1]
-        if alpha_socket is not None:
-            alpha_socket.default_value = base_color_factor[3]
+        color_socket.default_value = [*color_factor, 1]
+
+        if alpha_socket:
+            if alpha_mode == 'OPAQUE':
+                alpha_factor = 1
+            elif alpha_mode == 'MASK':
+                alpha_factor = 1 if alpha_factor >= alpha_cutoff else 0
+
+            alpha_socket.default_value = alpha_factor
+
         return
 
+    # Opaque materials don't use the alpha socket
+    if alpha_socket and alpha_mode == 'OPAQUE':
+        alpha_socket.default_value = 1
+        alpha_socket = None
+
+    # Perform alpha clipping
+    # alpha = if alpha >= cutoff then 1 else 0
+    if alpha_socket and alpha_mode == 'MASK':
+        if alpha_cutoff == 0:
+            alpha_socket.default_value = 1
+            alpha_socket = None
+        elif alpha_cutoff > 1:
+            alpha_socket.default_value = 0
+            alpha_socket = None
+        else:
+            # Do 1 - (alpha < cutoff), since there's no >= node
+
+            frame = mh.node_tree.nodes.new('NodeFrame')
+            frame.label = 'Alpha Clip'
+
+            node = mh.node_tree.nodes.new('ShaderNodeMath')
+            node.location = x - 140, y - 230
+            node.parent = frame
+            # Outputs
+            mh.node_tree.links.new(alpha_socket, node.outputs[0])
+            # Inputs
+            node.operation = 'SUBTRACT'
+            node.inputs[0].default_value = 1
+            alpha_socket = node.inputs[1]
+
+            x -= 200
+
+            node = mh.node_tree.nodes.new('ShaderNodeMath')
+            node.location = x - 140, y - 230
+            node.parent = frame
+            # Outputs
+            mh.node_tree.links.new(alpha_socket, node.outputs[0])
+            # Inputs
+            node.operation = 'LESS_THAN'
+            alpha_socket = node.inputs[0]
+            node.inputs[1].default_value = alpha_cutoff
+
+            x -= 200
+
     # Mix in base color factor
-    needs_color_factor = base_color_factor[:3] != [1, 1, 1]
-    needs_alpha_factor = base_color_factor[3] != 1.0 and alpha_socket is not None
+    needs_color_factor = color_factor != [1, 1, 1]
+    needs_alpha_factor = alpha_factor != 1 and alpha_socket
 
     # We need to check if base color factor is animated via KHR_animation_pointer
     # Because if not, we can use direct socket or mix node, depending if there is a texture or not
@@ -589,7 +643,7 @@ def base_color(
             # Inputs
             node.inputs['Factor'].default_value = 1.0
             color_socket = node.inputs[6]
-            node.inputs[7].default_value = base_color_factor[:3] + [1]
+            node.inputs[7].default_value = [*color_factor, 1]
 
         if needs_alpha_factor:
             node = mh.node_tree.nodes.new('ShaderNodeMath')
@@ -600,7 +654,7 @@ def base_color(
             # Inputs
             node.operation = 'MULTIPLY'
             alpha_socket = node.inputs[0]
-            node.inputs[1].default_value = base_color_factor[3]
+            node.inputs[1].default_value = alpha_factor
 
         x -= 200
 
