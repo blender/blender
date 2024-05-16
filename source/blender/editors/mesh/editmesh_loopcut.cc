@@ -519,6 +519,7 @@ static int loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperator *op)
   /* finish */
   ED_region_tag_redraw(lcd->region);
   ED_workspace_status_text(C, nullptr);
+  ED_area_status_text(CTX_wm_area(C), nullptr);
 
   if (lcd->eed) {
     /* set for redo */
@@ -580,6 +581,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_region_tag_redraw(lcd->region);
         ringsel_exit(C, op);
         ED_workspace_status_text(C, nullptr);
+        ED_area_status_text(CTX_wm_area(C), nullptr);
 
         return OPERATOR_CANCELLED;
       case EVT_ESCKEY:
@@ -587,6 +589,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
           /* cancel */
           ED_region_tag_redraw(lcd->region);
           ED_workspace_status_text(C, nullptr);
+          ED_area_status_text(CTX_wm_area(C), nullptr);
 
           ringcut_cancel(C, op);
           return OPERATOR_CANCELLED;
