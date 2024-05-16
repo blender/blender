@@ -368,7 +368,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayoutSetEnabled(layout, !ID_IS_LINKED(&object));
+  uiLayoutSetEnabled(layout, ID_IS_EDITABLE(&object));
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);

@@ -656,8 +656,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         master_collection = context.scene.collection
         collection = bpy.data.collections.get(collection_name)
 
-        if collection and collection.library:
-            # We need a local collection instead.
+        if collection and not collection.is_editable:
+            # We need an editable collection instead.
             collection = None
 
         if not collection:

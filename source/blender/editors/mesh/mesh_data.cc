@@ -449,8 +449,8 @@ static bool layers_poll(bContext *C)
 {
   Object *ob = blender::ed::object::context_object(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
-  return (ob && !ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
-          !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
+  return (ob && ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
+          ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
 /*********************** UV texture operators ************************/
@@ -584,7 +584,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
       return false;
     }
 
-    if (!ID_IS_LINKED(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
+    if (ID_IS_EDITABLE(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
       CustomData *data = mesh_customdata_get_type(mesh, BM_VERT, nullptr);
       if (CustomData_has_layer_named(data, CD_PROP_FLOAT, ".sculpt_mask")) {
         return true;
@@ -637,7 +637,7 @@ static int mesh_customdata_skin_state(bContext *C)
 
   if (ob && ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
-    if (!ID_IS_LINKED(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
+    if (ID_IS_EDITABLE(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
       CustomData *data = mesh_customdata_get_type(mesh, BM_VERT, nullptr);
       return CustomData_has_layer(data, CD_MVERT_SKIN);
     }

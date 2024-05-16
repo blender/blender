@@ -43,9 +43,9 @@
 
 static bool operator_rigidbody_constraints_editable_poll(Scene *scene)
 {
-  if (scene == nullptr || ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene) ||
+  if (scene == nullptr || !ID_IS_EDITABLE(scene) || ID_IS_OVERRIDE_LIBRARY(scene) ||
       (scene->rigidbody_world != nullptr && scene->rigidbody_world->constraints != nullptr &&
-       (ID_IS_LINKED(scene->rigidbody_world->constraints) ||
+       (!ID_IS_EDITABLE(scene->rigidbody_world->constraints) ||
         ID_IS_OVERRIDE_LIBRARY(scene->rigidbody_world->constraints))))
   {
     return false;

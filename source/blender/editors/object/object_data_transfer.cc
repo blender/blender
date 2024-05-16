@@ -371,7 +371,7 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
     }
 
     mesh = static_cast<Mesh *>(ob->data);
-    if (ID_IS_LINKED(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
+    if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
       /* Do not transfer to linked/override data, not supported. */
       BKE_reportf(op->reports,
                   RPT_WARNING,
@@ -406,7 +406,7 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
     mesh->id.tag &= ~LIB_TAG_DOIT;
     return true;
   }
-  if (!ID_IS_LINKED(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
+  if (ID_IS_EDITABLE(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
     /* Do not apply transfer operation more than once. */
     /* XXX This is not nice regarding vgroups, which are half-Object data... :/ */
     BKE_reportf(
@@ -469,7 +469,8 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  if (reverse_transfer && (ID_IS_LINKED(ob_src->data) || ID_IS_OVERRIDE_LIBRARY(ob_src->data))) {
+  if (reverse_transfer && (!ID_IS_EDITABLE(ob_src->data) || ID_IS_OVERRIDE_LIBRARY(ob_src->data)))
+  {
     /* Do not transfer to linked or override data, not supported. */
     return OPERATOR_CANCELLED;
   }
@@ -835,7 +836,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
     const bool use_delete = false; /* Never when used from modifier, for now. */
 
-    if (!ob_src || ID_IS_LINKED(ob_dst) || ID_IS_OVERRIDE_LIBRARY(ob_dst)) {
+    if (!ob_src || !ID_IS_EDITABLE(ob_dst) || ID_IS_OVERRIDE_LIBRARY(ob_dst)) {
       return OPERATOR_CANCELLED;
     }
 

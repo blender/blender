@@ -79,7 +79,7 @@ static bool object_remesh_poll(bContext *C)
     return false;
   }
 
-  if (ID_IS_LINKED(ob) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+  if (!ID_IS_EDITABLE(ob) || !ID_IS_EDITABLE(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     CTX_wm_operator_poll_msg_set(C, "The remesher cannot work on linked or override data");
     return false;
   }

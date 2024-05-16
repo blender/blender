@@ -4340,7 +4340,8 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
         }
 
         /* Don't allow painting on linked images. */
-        if (slot->ima != nullptr && (ID_IS_LINKED(slot->ima) || ID_IS_OVERRIDE_LIBRARY(slot->ima)))
+        if (slot->ima != nullptr &&
+            (!ID_IS_EDITABLE(slot->ima) || ID_IS_OVERRIDE_LIBRARY(slot->ima)))
         {
           skip_tri = true;
           tpage = nullptr;
@@ -6402,7 +6403,7 @@ bool ED_paint_proj_mesh_data_check(Scene *scene,
       for (int i = 1; i < ob->totcol + 1; i++) {
         Material *ma = BKE_object_material_get(ob, i);
 
-        if (ma && !ID_IS_LINKED(ma) && !ID_IS_OVERRIDE_LIBRARY(ma)) {
+        if (ma && ID_IS_EDITABLE(ma) && !ID_IS_OVERRIDE_LIBRARY(ma)) {
           has_mat = true;
           if (ma->texpaintslot == nullptr) {
             /* refresh here just in case */
@@ -6410,7 +6411,7 @@ bool ED_paint_proj_mesh_data_check(Scene *scene,
           }
           if (ma->texpaintslot != nullptr &&
               ma->texpaintslot[ma->paint_active_slot].ima != nullptr &&
-              !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima) &&
+              ID_IS_EDITABLE(ma->texpaintslot[ma->paint_active_slot].ima) &&
               !ID_IS_OVERRIDE_LIBRARY(ma->texpaintslot[ma->paint_active_slot].ima))
           {
             has_tex = true;
@@ -6421,7 +6422,7 @@ bool ED_paint_proj_mesh_data_check(Scene *scene,
     }
   }
   else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
-    if (imapaint->canvas == nullptr || ID_IS_LINKED(imapaint->canvas)) {
+    if (imapaint->canvas == nullptr || !ID_IS_EDITABLE(imapaint->canvas)) {
       has_tex = false;
     }
   }

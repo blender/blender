@@ -181,7 +181,7 @@ bool sequencer_strip_poll(bContext *C)
 bool sequencer_strip_editable_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  if (ID_IS_LINKED(&scene->id)) {
+  if (!ID_IS_EDITABLE(&scene->id)) {
     return false;
   }
   Editing *ed = SEQ_editing_get(scene);

@@ -685,7 +685,7 @@ void ED_add_fcurve_channel(ChannelDrawList *channel_list,
   const bool locked = (fcu->flag & FCURVE_PROTECTED) ||
                       ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
                       ((adt && adt->action) &&
-                       (ID_IS_LINKED(adt->action) || ID_IS_OVERRIDE_LIBRARY(adt->action)));
+                       (!ID_IS_EDITABLE(adt->action) || ID_IS_OVERRIDE_LIBRARY(adt->action)));
 
   ChannelListElement *draw_elem = channel_list_add_element(
       channel_list, ChannelType::FCURVE, ypos, yscale_fac, eSAction_Flag(saction_flag));
@@ -703,7 +703,7 @@ void ED_add_action_group_channel(ChannelDrawList *channel_list,
 {
   bool locked = (agrp->flag & AGRP_PROTECTED) ||
                 ((adt && adt->action) &&
-                 (ID_IS_LINKED(adt->action) || ID_IS_OVERRIDE_LIBRARY(adt->action)));
+                 (!ID_IS_EDITABLE(adt->action) || ID_IS_OVERRIDE_LIBRARY(adt->action)));
 
   ChannelListElement *draw_elem = channel_list_add_element(
       channel_list, ChannelType::ACTION_GROUP, ypos, yscale_fac, eSAction_Flag(saction_flag));
@@ -722,7 +722,7 @@ void ED_add_action_layered_channel(ChannelDrawList *channel_list,
   BLI_assert(action);
   BLI_assert(action->wrap().is_action_layered());
 
-  const bool locked = (ID_IS_LINKED(action) || ID_IS_OVERRIDE_LIBRARY(action));
+  const bool locked = (!ID_IS_EDITABLE(action) || ID_IS_OVERRIDE_LIBRARY(action));
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
   ChannelListElement *draw_elem = channel_list_add_element(
@@ -743,7 +743,7 @@ void ED_add_action_channel(ChannelDrawList *channel_list,
   BLI_assert(!act || act->wrap().is_action_legacy());
 #endif
 
-  const bool locked = (act && (ID_IS_LINKED(act) || ID_IS_OVERRIDE_LIBRARY(act)));
+  const bool locked = (act && (!ID_IS_EDITABLE(act) || ID_IS_OVERRIDE_LIBRARY(act)));
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
   ChannelListElement *draw_elem = channel_list_add_element(

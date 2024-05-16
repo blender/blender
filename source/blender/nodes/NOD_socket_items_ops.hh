@@ -31,7 +31,7 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C, const int node_type
   if (!snode->edittree) {
     return PointerRNA_NULL;
   }
-  if (ID_IS_LINKED(snode->edittree)) {
+  if (!ID_IS_EDITABLE(snode->edittree)) {
     return PointerRNA_NULL;
   }
   const bke::bNodeTreeZones *zones = snode->edittree->zones();

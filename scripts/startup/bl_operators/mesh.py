@@ -145,7 +145,7 @@ class MeshMirrorUV(Operator):
 
         meshes = [
             ob.data for ob in context.view_layer.objects.selected
-            if ob.type == 'MESH' and ob.data.library is None
+            if ob.type == 'MESH' and ob.data.is_editable
         ]
 
         for mesh in meshes:

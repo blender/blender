@@ -342,7 +342,7 @@ static void do_item_rename(ARegion *region,
   else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
     BKE_report(reports, RPT_INFO, "Sequence names are not editable from the Outliner");
   }
-  else if (TSE_IS_REAL_ID(tselem) && ID_IS_LINKED(tselem->id)) {
+  else if (TSE_IS_REAL_ID(tselem) && !ID_IS_EDITABLE(tselem->id)) {
     BKE_report(reports, RPT_INFO, "External library data is not editable");
   }
   else if (TSE_IS_REAL_ID(tselem) && ID_IS_OVERRIDE_LIBRARY(tselem->id)) {
@@ -633,7 +633,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (ID_IS_LINKED(old_id)) {
+  if (!ID_IS_EDITABLE(old_id)) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "Old ID '%s' is linked from a library, indirect usages of this data-block will "

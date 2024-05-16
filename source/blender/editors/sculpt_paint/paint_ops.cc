@@ -362,7 +362,7 @@ static bool palette_poll(bContext *C)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
 
-  if (paint && paint->palette != nullptr && !ID_IS_LINKED(paint->palette) &&
+  if (paint && paint->palette != nullptr && ID_IS_EDITABLE(paint->palette) &&
       !ID_IS_OVERRIDE_LIBRARY(paint->palette))
   {
     return true;

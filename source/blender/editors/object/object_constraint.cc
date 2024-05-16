@@ -666,7 +666,7 @@ static bool edit_constraint_poll_generic(bContext *C,
     return false;
   }
 
-  if (ptr.owner_id != nullptr && ID_IS_LINKED(ptr.owner_id)) {
+  if (ptr.owner_id != nullptr && !ID_IS_EDITABLE(ptr.owner_id)) {
     CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
     return false;
   }

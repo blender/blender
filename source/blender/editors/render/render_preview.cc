@@ -1608,7 +1608,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
      * freeze the UI (e.g. on Eevee shader compilation). And since the result will never be stored
      * in a file, it's done every time the file is reloaded, so this becomes a frequent annoyance.
      */
-    if (!use_solid_render_mode && ip->id && ID_IS_LINKED(ip->id)) {
+    if (!use_solid_render_mode && ip->id && !ID_IS_EDITABLE(ip->id)) {
       continue;
     }
 

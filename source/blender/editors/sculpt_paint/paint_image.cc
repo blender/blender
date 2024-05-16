@@ -298,7 +298,7 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
 
     if (sima) {
       if (sima->image != nullptr &&
-          (ID_IS_LINKED(sima->image) || ID_IS_OVERRIDE_LIBRARY(sima->image)))
+          (!ID_IS_EDITABLE(sima->image) || ID_IS_OVERRIDE_LIBRARY(sima->image)))
       {
         return false;
       }
@@ -964,7 +964,7 @@ static bool texture_paint_toggle_poll(bContext *C)
   if (ob == nullptr || ob->type != OB_MESH) {
     return false;
   }
-  if (ob->data == nullptr || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+  if (ob->data == nullptr || !ID_IS_EDITABLE(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     return false;
   }
 

@@ -383,7 +383,7 @@ static void unlink_collection_fn(bContext *C,
     return;
   }
 
-  if (tsep && (ID_IS_LINKED(tsep->id) || ID_IS_OVERRIDE_LIBRARY(tsep->id))) {
+  if (tsep && (!ID_IS_EDITABLE(tsep->id) || ID_IS_OVERRIDE_LIBRARY(tsep->id))) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Cannot unlink collection '%s' parented to another linked collection '%s'",
@@ -434,7 +434,7 @@ static void unlink_object_fn(bContext *C,
       /* Parented objects need to find which collection to unlink from. */
       TreeElement *te_parent = te->parent;
       while (tsep && GS(tsep->id->name) == ID_OB) {
-        if (ID_IS_LINKED(tsep->id)) {
+        if (!ID_IS_EDITABLE(tsep->id)) {
           BKE_reportf(reports,
                       RPT_WARNING,
                       "Cannot unlink object '%s' parented to another linked object '%s'",
@@ -448,7 +448,7 @@ static void unlink_object_fn(bContext *C,
     }
 
     if (tsep && tsep->id) {
-      if (ID_IS_LINKED(tsep->id) || ID_IS_OVERRIDE_LIBRARY(tsep->id)) {
+      if (!ID_IS_EDITABLE(tsep->id) || ID_IS_OVERRIDE_LIBRARY(tsep->id)) {
         BKE_reportf(reports,
                     RPT_WARNING,
                     "Cannot unlink object '%s' from linked collection or scene '%s'",

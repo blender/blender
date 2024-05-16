@@ -3706,7 +3706,7 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
 
   /* Only preview non-library datablocks, lib ones do not pertain to this .blend file!
    * Same goes for ID with no user. */
-  if (!ID_IS_LINKED(id) && (id->us != 0)) {
+  if (ID_IS_EDITABLE(id) && (id->us != 0)) {
     UI_icon_render_id(C, scene, id, ICON_SIZE_ICON, false);
     UI_icon_render_id(C, scene, id, ICON_SIZE_PREVIEW, false);
   }

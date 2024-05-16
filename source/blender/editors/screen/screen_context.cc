@@ -1068,7 +1068,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
         CTX_data_id_pointer_set(result, (ID *)saction->action);
       }
       else {
-        if (saction->action && !(editable && ID_IS_LINKED(saction->action))) {
+        if (saction->action && !(editable && !ID_IS_EDITABLE(saction->action))) {
           CTX_data_id_list_add(result, &saction->action->id);
         }
 
@@ -1119,7 +1119,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
       CTX_data_id_pointer_set(result, (ID *)action);
       break;
     }
-    if (editable && ID_IS_LINKED(action)) {
+    if (editable && !ID_IS_EDITABLE(action)) {
       continue;
     }
 

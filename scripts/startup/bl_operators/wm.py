@@ -2708,7 +2708,7 @@ class WM_OT_batch_rename(Operator):
         return [
             id for id in context.selected_ids
             if isinstance(id, ty)
-            if id.library is None
+            if id.is_editable
         ]
 
     @staticmethod
@@ -2719,7 +2719,7 @@ class WM_OT_batch_rename(Operator):
         return tuple(set([
             id for id_base in context.selected_ids
             if isinstance(id := id_base.data if isinstance(id_base, Object) else id_base, ty)
-            if id.library is None
+            if id.is_editabe
         ]))
 
     @staticmethod
@@ -2738,7 +2738,7 @@ class WM_OT_batch_rename(Operator):
         return tuple(set(
             action for id in context.selected_ids
             if (action := action_from_any_id(id)) is not None
-            if action.library is None
+            if action.is_editable
         ))
 
     @classmethod
@@ -2842,7 +2842,7 @@ class WM_OT_batch_rename(Operator):
                         context.selected_editable_objects
                     )
                     if only_selected else
-                    [id for id in bpy.data.objects if id.library is None],
+                    [id for id in bpy.data.objects if id.is_editable],
                     "name",
                     iface_("Object(s)"),
                 )
@@ -2854,10 +2854,10 @@ class WM_OT_batch_rename(Operator):
                         for ob in context.selected_objects
                         if ((ob.instance_type == 'COLLECTION') and
                             (collection := ob.instance_collection) is not None and
-                            (collection.library is None))
+                            (collection.is_editable))
                     ))
                     if only_selected else
-                    [id for id in bpy.data.collections if id.library is None],
+                    [id for id in bpy.data.collections if id.is_editable],
                     "name",
                     iface_("Collection(s)"),
                 )
@@ -2872,11 +2872,11 @@ class WM_OT_batch_rename(Operator):
                             id
                             for ob in context.selected_objects
                             for slot in ob.material_slots
-                            if (id := slot.material) is not None and id.library is None
+                            if (id := slot.material) is not None and id.is_editable
                         ))
                     )
                     if only_selected else
-                    [id for id in bpy.data.materials if id.library is None],
+                    [id for id in bpy.data.materials if id.is_editable],
                     "name",
                     iface_("Material(s)"),
                 )
@@ -2891,11 +2891,11 @@ class WM_OT_batch_rename(Operator):
                             action for ob in context.selected_objects
                             if (((animation_data := ob.animation_data) is not None) and
                                 ((action := animation_data.action) is not None) and
-                                (action.library is None))
+                                (action.is_editable))
                         ))
                     )
                     if only_selected else
-                    [id for id in bpy.data.actions if id.library is None],
+                    [id for id in bpy.data.actions if id.is_editable],
                     "name",
                     iface_("Action(s)"),
                 )
@@ -2904,7 +2904,7 @@ class WM_OT_batch_rename(Operator):
                     (
                         # Outliner.
                         cls._selected_ids_from_outliner_by_type(context, bpy.types.Scene)
-                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.scenes if id.library is None]
+                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.scenes if id.is_editable]
                     ),
                     "name",
                     iface_("Scene(s)"),
@@ -2914,7 +2914,7 @@ class WM_OT_batch_rename(Operator):
                     (
                         # Outliner.
                         cls._selected_ids_from_outliner_by_type(context, bpy.types.Brush)
-                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.brushes if id.library is None]
+                        if ((space_type == 'OUTLINER') and only_selected) else [id for id in bpy.data.brushes if id.is_editable]
                     ),
                     "name",
                     iface_("Brush(es)"),
@@ -2931,11 +2931,11 @@ class WM_OT_batch_rename(Operator):
                             id
                             for ob in context.selected_objects
                             if ob.type == data_type
-                            if (id := ob.data) is not None and id.library is None
+                            if (id := ob.data) is not None and id.is_editable
                         ))
                     )
                     if only_selected else
-                    [id for id in getattr(bpy.data, attr) if id.library is None],
+                    [id for id in getattr(bpy.data, attr) if id.is_editable],
                     "name",
                     descr,
                 )

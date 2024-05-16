@@ -4318,7 +4318,7 @@ class VIEW3D_MT_bone_collections(Menu):
         ob = context.object
         if not (ob and ob.type == 'ARMATURE'):
             return False
-        if ob.data.library:
+        if not ob.data.is_editable:
             return False
         return True
 

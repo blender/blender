@@ -168,7 +168,7 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob)
 
   /* Material linked to obdata. */
   const ID *data = static_cast<ID *>(ob->data);
-  return (data && !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
+  return (data && ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
 static bool object_materials_supported_poll(bContext *C)

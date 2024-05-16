@@ -276,7 +276,7 @@ class TEXTURE_UL_texpaintslots(UIList):
 
         # Hint that painting on linked images is prohibited
         ima = _data.texture_paint_images.get(item.name)
-        if ima is not None and ima.library is not None:
+        if ima is not None and ima.is_editable:
             layout.enabled = False
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:

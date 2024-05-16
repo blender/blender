@@ -113,7 +113,7 @@ static bool rna_collection_objects_edit_check(Collection *collection,
                 collection->id.name + 2);
     return false;
   }
-  if (ID_IS_LINKED(&collection->id)) {
+  if (!ID_IS_EDITABLE(&collection->id)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Could not (un)link the object '%s' because the collection '%s' is linked",
@@ -241,7 +241,7 @@ static bool rna_collection_children_edit_check(Collection *collection,
                 collection->id.name + 2);
     return false;
   }
-  if (ID_IS_LINKED(&collection->id)) {
+  if (!ID_IS_EDITABLE(&collection->id)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Could not (un)link the collection '%s' because the collection '%s' is linked",
