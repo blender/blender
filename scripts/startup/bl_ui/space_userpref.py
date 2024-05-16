@@ -2162,7 +2162,7 @@ class USERPREF_PT_extensions_repos(Panel):
 
 
 # -----------------------------------------------------------------------------
-# Add-On Panels
+# Add-on Panels
 
 # Only a popover.
 class USERPREF_PT_addons_filter(Panel):
