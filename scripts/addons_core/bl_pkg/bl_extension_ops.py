@@ -2275,8 +2275,10 @@ class BlPkgOnlineAccess(Operator):
                 self.report({'WARNING'}, "Repository \"{:s}\" not found!".format(remote_url))
 
             # Run the first check for updates automatically.
-            if bpy.ops.bl_pkg.repo_sync_all.poll():
-                bpy.ops.bl_pkg.repo_sync_all()
+            # Invoke the modal operator so users can cancel by pressing "Escape".
+            assert bpy.ops.bl_pkg.repo_sync_all.poll()
+            bpy.ops.bl_pkg.repo_sync_all('INVOKE_DEFAULT')
+
         prefs.extensions.use_online_access_handled = True
 
         return {'FINISHED'}
