@@ -6685,7 +6685,11 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "remote_url", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "remote_url");
-  RNA_def_property_ui_text(prop, "URL", "Remote URL or path for extension repository");
+  RNA_def_property_ui_text(
+      prop,
+      "URL",
+      "Remote URL to the extension repository, "
+      "the file-system may be referenced using the file URI scheme: \"file://\"");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 

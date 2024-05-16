@@ -47,10 +47,6 @@ REQUEST_EXIT = False
 # When set, ignore broken pipe exceptions (these occur when the calling processes is closed).
 FORCE_EXIT_OK = False
 
-# Expect the remote URL to contain JSON (don't append the JSON name to the path).
-# File-system still append the expected JSON filename.
-REMOTE_REPO_HAS_JSON_IMPLIED = True
-
 
 def signal_handler_sigint(_sig: int, _frame: Any) -> None:
     # pylint: disable-next=global-statement
@@ -79,6 +75,8 @@ PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 
 # This directory is in the local repository.
 REPO_LOCAL_PRIVATE_DIR = ".blender_ext"
+
+URL_KNOWN_PREFIX = ("http://", "https://", "file://")
 
 MESSAGE_TYPES = {'STATUS', 'PROGRESS', 'WARN', 'ERROR', 'PATH', 'DONE'}
 
@@ -257,6 +255,19 @@ class PkgManifest_Archive(NamedTuple):
 
 # -----------------------------------------------------------------------------
 # Generic Functions
+
+
+def path_to_url(path: str) -> str:
+    from urllib.parse import urljoin
+    from urllib.request import pathname2url
+    return urljoin("file:", pathname2url(path))
+
+
+def path_from_url(path: str) -> str:
+    from urllib.parse import urlparse, unquote
+    p = urlparse(path)
+    return os.path.join(p.netloc, unquote(p.path))
+
 
 def random_acii_lines(*, seed: Union[int, str], width: int) -> Generator[str, None, None]:
     """
@@ -565,10 +576,20 @@ def pkg_manifest_from_archive_and_validate(
         return pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir, strict=strict)
 
 
+def remote_url_has_filename_suffix(url: str) -> bool:
+    # When the URL ends with `.json` it's assumed to be a URL that is inside a directory.
+    # In these cases the file is stripped before constricting relative paths.
+    return url.endswith("/" + PKG_REPO_LIST_FILENAME)
+
+
 def remote_url_get(url: str) -> str:
-    if REMOTE_REPO_HAS_JSON_IMPLIED:
-        return url
-    return urllib.parse.urljoin(url, PKG_REPO_LIST_FILENAME)
+    if url_is_filesystem(url):
+        if remote_url_has_filename_suffix(url):
+            return url
+        # Add the default name to `file://` URL's if this isn't already a reference to a JSON.
+        return "{:s}/{:s}".format(url.rstrip("/"), PKG_REPO_LIST_FILENAME)
+
+    return url
 
 
 # -----------------------------------------------------------------------------
@@ -709,14 +730,13 @@ def filepath_retrieve_to_filepath_iter(
 
 
 def url_retrieve_to_data_iter_or_filesystem(
-        path: str,
-        is_filesystem: bool,
+        url: str,
         headers: Dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[bytes, None, None]:
-    if is_filesystem:
-        with open(path, "rb") as fh_source:
+    if url_is_filesystem(url):
+        with open(path_from_url(url), "rb") as fh_source:
             while (block := fh_source.read(chunk_size)):
                 yield block
     else:
@@ -725,7 +745,7 @@ def url_retrieve_to_data_iter_or_filesystem(
                 _size,
                 _response_headers,
         ) in url_retrieve_to_data_iter(
-            path,
+            url,
             headers=headers,
             chunk_size=chunk_size,
             timeout_in_seconds=timeout_in_seconds,
@@ -734,23 +754,22 @@ def url_retrieve_to_data_iter_or_filesystem(
 
 
 def url_retrieve_to_filepath_iter_or_filesystem(
-        path: str,
+        url: str,
         filepath: str,
-        is_filesystem: bool,
         headers: Dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[Tuple[int, int], None, None]:
-    if is_filesystem:
+    if url_is_filesystem(url):
         yield from filepath_retrieve_to_filepath_iter(
-            path,
+            path_from_url(url),
             filepath,
             chunk_size=chunk_size,
             timeout_in_seconds=timeout_in_seconds,
         )
     else:
         for (read, size, _response_headers) in url_retrieve_to_filepath_iter(
-            path,
+            url,
             filepath,
             headers=headers,
             chunk_size=chunk_size,
@@ -1240,11 +1259,7 @@ def repo_sync_from_remote(
     if request_exit:
         return False
 
-    is_repo_filesystem = repo_is_filesystem(remote_url=remote_url)
-    if is_repo_filesystem:
-        remote_json_path = os.path.join(remote_url, PKG_REPO_LIST_FILENAME)
-    else:
-        remote_json_path = remote_url_get(remote_url)
+    remote_json_url = remote_url_get(remote_url)
 
     local_private_dir = repo_local_private_dir_ensure(local_dir=local_dir)
     local_json_path = os.path.join(local_private_dir, PKG_REPO_LIST_FILENAME)
@@ -1263,14 +1278,11 @@ def repo_sync_from_remote(
         if request_exit:
             return False
 
-        # No progress for file copying, assume local file system is fast enough.
-        # `shutil.copyfile(remote_json_path, local_json_path_temp)`.
         try:
             read_total = 0
             for (read, size) in url_retrieve_to_filepath_iter_or_filesystem(
-                    remote_json_path,
+                    remote_json_url,
                     local_json_path_temp,
-                    is_filesystem=is_repo_filesystem,
                     headers=url_request_headers_create(accept_json=True, user_agent=online_user_agent),
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
@@ -1351,10 +1363,19 @@ def repo_pkginfo_from_local_with_idname_as_key(*, local_dir: str) -> Optional[Pk
     return pkg_repo_dat_from_json(result)
 
 
-def repo_is_filesystem(*, remote_url: str) -> bool:
-    if remote_url.startswith(("https://", "http://")):
+def url_has_known_prefix(path: str) -> bool:
+    return path.startswith(URL_KNOWN_PREFIX)
+
+
+def url_is_filesystem(url: str) -> bool:
+    if url.startswith(("file://")):
+        return True
+    if url.startswith(URL_KNOWN_PREFIX):
         return False
-    return True
+
+    # Argument parsing must ensure this never happens.
+    raise ValueError("prefix not known")
+    return False
 
 
 # -----------------------------------------------------------------------------
@@ -1373,6 +1394,16 @@ def arg_handle_str_as_package_names(value: str) -> Sequence[str]:
         if (error_msg := pkg_idname_is_valid_or_error(pkg_idname)) is not None:
             raise argparse.ArgumentTypeError("Invalid name \"{:s}\". {:s}".format(pkg_idname, error_msg))
     return result
+
+
+def arg_handle_str_as_url(value: str) -> Sequence[str]:
+    # Handle so unexpected URL's don't cause difficult to understand errors in inner logic.
+    # The URL's themselves may be invalid still, this just fails early in the case of obvious oversights.
+    if not url_has_known_prefix(value):
+        raise argparse.ArgumentTypeError(
+            "Invalid URL \"{:s}\", expected a prefix in {!r}".format(value, URL_KNOWN_PREFIX)
+        )
+    return value
 
 
 # -----------------------------------------------------------------------------
@@ -1416,7 +1447,7 @@ def generic_arg_remote_url(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--remote-url",
         dest="remote_url",
-        type=str,
+        type=arg_handle_str_as_url,
         help=(
             "The remote repository URL."
         ),
@@ -1588,9 +1619,8 @@ class subcmd_server:
             repo_dir: str,
     ) -> bool:
 
-        is_repo_filesystem = repo_is_filesystem(remote_url=repo_dir)
-        if not is_repo_filesystem:
-            message_error(msg_fn, "Directory: {!r} must be local!".format(repo_dir))
+        if url_has_known_prefix(repo_dir):
+            message_error(msg_fn, "Directory: {!r} must be a local path, not a URL!".format(repo_dir))
             return False
 
         if not os.path.isdir(repo_dir):
@@ -1647,7 +1677,7 @@ class subcmd_server:
                 continue
 
             # A relative URL.
-            manifest_dict["archive_url"] = "./" + filename
+            manifest_dict["archive_url"] = "./" + urllib.request.pathname2url(filename)
 
             # Add archive variables, see: `PkgManifest_Archive`.
             (
@@ -1678,26 +1708,13 @@ class subcmd_client:
             online_user_agent: str,
             timeout_in_seconds: float,
     ) -> bool:
-        is_repo_filesystem = repo_is_filesystem(remote_url=remote_url)
-        if is_repo_filesystem:
-            if not os.path.isdir(remote_url):
-                message_error(msg_fn, "Directory: {!r} not found!".format(remote_url))
-                return False
-
-        if is_repo_filesystem:
-            filepath_repo_json = os.path.join(remote_url, PKG_REPO_LIST_FILENAME)
-            if not os.path.exists(filepath_repo_json):
-                message_error(msg_fn, "File: {!r} not found!".format(filepath_repo_json))
-                return False
-        else:
-            filepath_repo_json = remote_url_get(remote_url)
+        remote_json_url = remote_url_get(remote_url)
 
         # TODO: validate JSON content.
         try:
             result = io.BytesIO()
             for block in url_retrieve_to_data_iter_or_filesystem(
-                    filepath_repo_json,
-                    is_filesystem=is_repo_filesystem,
+                    remote_json_url,
                     headers=url_request_headers_create(accept_json=True, user_agent=online_user_agent),
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
@@ -1905,7 +1922,6 @@ class subcmd_client:
             timeout_in_seconds: float,
     ) -> bool:
         # Extract...
-        is_repo_filesystem = repo_is_filesystem(remote_url=remote_url)
         pkg_repo_data = repo_pkginfo_from_local_with_idname_as_key(local_dir=local_dir)
         if pkg_repo_data is None:
             # TODO: raise warning.
@@ -1966,23 +1982,12 @@ class subcmd_client:
 
                 # Remote path.
                 if pkg_archive_url.startswith("./"):
-                    if is_repo_filesystem:
-                        filepath_remote_archive = os.path.join(remote_url, pkg_archive_url[2:])
+                    if remote_url_has_filename_suffix(remote_url):
+                        filepath_remote_archive = remote_url.rpartition("/")[0] + pkg_archive_url[1:]
                     else:
-                        if REMOTE_REPO_HAS_JSON_IMPLIED:
-                            # TODO: use `urllib.parse.urlsplit(..)`.
-                            # NOTE: strip the path until the directory.
-                            # Convert: `https://foo.bar/bl_ext_repo.json` -> https://foo.bar/ARCHIVE_NAME
-                            filepath_remote_archive = urllib.parse.urljoin(
-                                remote_url.rpartition("/")[0],
-                                pkg_archive_url[2:],
-                            )
-                        else:
-                            filepath_remote_archive = urllib.parse.urljoin(remote_url, pkg_archive_url[2:])
-                    is_pkg_filesystem = is_repo_filesystem
+                        filepath_remote_archive = remote_url.rstrip("/") + pkg_archive_url[1:]
                 else:
                     filepath_remote_archive = pkg_archive_url
-                    is_pkg_filesystem = repo_is_filesystem(remote_url=pkg_archive_url)
 
                 # Check if the cache should be used.
                 found = False
@@ -2008,7 +2013,6 @@ class subcmd_client:
                         with open(filepath_local_cache_archive, "wb") as fh_cache:
                             for block in url_retrieve_to_data_iter_or_filesystem(
                                     filepath_remote_archive,
-                                    is_filesystem=is_pkg_filesystem,
                                     headers=url_request_headers_create(accept_json=False, user_agent=online_user_agent),
                                     chunk_size=CHUNK_SIZE_DEFAULT,
                                     timeout_in_seconds=timeout_in_seconds,
@@ -2382,7 +2386,7 @@ class subcmd_dummy:
             )
             return False
 
-        if not repo_is_filesystem(remote_url=repo_dir):
+        if url_has_known_prefix(repo_dir):
             message_error(msg_fn, "Generating a repository on a remote path is not supported")
             return False
 

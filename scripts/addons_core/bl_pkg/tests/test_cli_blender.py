@@ -48,11 +48,6 @@ sys.path.append(os.path.join(BASE_DIR, "modules"))
 import python_wheel_generate  # noqa: E402
 
 
-CMD = (
-    sys.executable,
-    os.path.normpath(os.path.join(BASE_DIR, "..", "cli", "blender_ext.py")),
-)
-
 # Write the command to a script, use so it's possible to manually run commands outside of the test environment.
 TEMP_COMMAND_OUTPUT = ""  # os.path.join(tempfile.gettempdir(), "blender_test.sh")
 
@@ -62,6 +57,12 @@ USE_PAUSE_BEFORE_EXIT = False
 
 # -----------------------------------------------------------------------------
 # Utility Functions
+
+def path_to_url(path: str) -> str:
+    from urllib.parse import urljoin
+    from urllib.request import pathname2url
+    return urljoin('file:', pathname2url(path))
+
 
 def pause_until_keyboard_interrupt() -> None:
     print("Waiting for keyboard interrupt...")
@@ -258,6 +259,7 @@ def run_blender_extensions_no_errors(
 # Initialized from `main()`.
 TEMP_DIR_BLENDER_USER = ""
 TEMP_DIR_REMOTE = ""
+TEMP_DIR_REMOTE_AS_URL = ""
 TEMP_DIR_LOCAL = ""
 # Don't leave temporary files in TMP: `/tmp` (since it's only cleared on restart).
 # Instead, have a test-local temporary directly which is removed when the test finishes.
@@ -327,7 +329,7 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             "repo-add",
             "--name", "MyTestRepo",
             "--directory", TEMP_DIR_LOCAL,
-            "--url", TEMP_DIR_REMOTE,
+            "--url", TEMP_DIR_REMOTE_AS_URL,
             # A bit odd, this argument avoids running so many commands to setup a test.
             "--clear-all",
             repo_id,
@@ -354,7 +356,10 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         stdout = run_blender_extensions_no_errors((
             "sync",
         ))
-        self.assertEqual(stdout.rstrip("\n").split("\n")[-1], "STATUS Sync complete: {:s}".format(TEMP_DIR_REMOTE))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Sync complete: {:s}".format(TEMP_DIR_REMOTE_AS_URL),
+        )
 
         # Install the package into Blender.
 
@@ -366,7 +371,7 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
                 '''    name: "MyTestRepo"\n'''
                 '''    directory: "{:s}"\n'''
                 '''    url: "{:s}"\n'''
-            ).format(TEMP_DIR_LOCAL, TEMP_DIR_REMOTE))
+            ).format(TEMP_DIR_LOCAL, TEMP_DIR_REMOTE_AS_URL))
 
         stdout = run_blender_extensions_no_errors(("list",))
         self.assertEqual(
@@ -435,7 +440,10 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         stdout = run_blender_extensions_no_errors((
             "sync",
         ))
-        self.assertEqual(stdout.rstrip("\n").split("\n")[-1], "STATUS Sync complete: {:s}".format(TEMP_DIR_REMOTE))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Sync complete: {:s}".format(TEMP_DIR_REMOTE_AS_URL),
+        )
 
         # Install.
 
@@ -485,6 +493,7 @@ def main() -> None:
     global TEMP_DIR_REMOTE
     global TEMP_DIR_LOCAL
     global TEMP_DIR_TMPDIR
+    global TEMP_DIR_REMOTE_AS_URL
 
     with tempfile.TemporaryDirectory() as temp_prefix:
         TEMP_DIR_BLENDER_USER = os.path.join(temp_prefix, "bl_ext_blender")
@@ -502,6 +511,8 @@ def main() -> None:
 
         for dirname in user_dirs:
             os.makedirs(os.path.join(TEMP_DIR_BLENDER_USER, dirname), exist_ok=True)
+
+        TEMP_DIR_REMOTE_AS_URL = path_to_url(TEMP_DIR_REMOTE)
 
         unittest.main()
 

@@ -80,6 +80,11 @@ STATUS_NON_ERROR = {'STATUS', 'PROGRESS'}
 # Generic Utilities
 #
 
+def path_to_url(path: str) -> str:
+    from urllib.parse import urljoin
+    from urllib.request import pathname2url
+    return urljoin('file:', pathname2url(path))
+
 
 def rmdir_contents(directory: str) -> None:
     """
@@ -292,7 +297,8 @@ class TestCLI_WithRepo(unittest.TestCase):
             else:
                 cls.dirpath_url = "http://localhost:{:d}".format(HTTP_PORT)
         else:
-            cls.dirpath_url = cls.dirpath
+            # Even local paths must URL syntax: `file://`.
+            cls.dirpath_url = path_to_url(cls.dirpath)
 
     @classmethod
     def tearDownClass(cls) -> None:

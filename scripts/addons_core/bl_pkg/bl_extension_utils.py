@@ -486,20 +486,15 @@ def pkg_manifest_dict_from_file_or_error(
 
 
 def pkg_manifest_archive_url_abs_from_remote_url(remote_url: str, archive_url: str) -> str:
+    from .cli.blender_ext import remote_url_has_filename_suffix
     if archive_url.startswith("./"):
-        if (
-                len(remote_url) > len(PKG_REPO_LIST_FILENAME) and
-                remote_url.endswith(PKG_REPO_LIST_FILENAME) and
-                (remote_url[-(len(PKG_REPO_LIST_FILENAME) + 1)] in {"\\", "/"})
-        ):
+        if remote_url_has_filename_suffix(remote_url):
             # The URL contains the JSON name, strip this off before adding the package name.
             archive_url = remote_url[:-len(PKG_REPO_LIST_FILENAME)] + archive_url[2:]
-        elif remote_url.startswith(("http://", "https://", "file://")):
+        else:
+            assert remote_url.startswith(("http://", "https://", "file://"))
             # Simply add to the URL.
             archive_url = remote_url.rstrip("/") + archive_url[1:]
-        else:
-            # Handle as a regular path.
-            archive_url = os.path.join(remote_url, archive_url[2:])
     return archive_url
 
 
