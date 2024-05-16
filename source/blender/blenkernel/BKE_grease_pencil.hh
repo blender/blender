@@ -330,8 +330,16 @@ struct LayerTransformData {
   FrameTransformationStatus status{TRANS_CLEAR};
 };
 
-/* The key of a GreasePencilFrame in the frames map is the starting scene frame number (int) of
- * that frame. */
+/*
+ * The key type for a `GreasePencilFrame` in the frames map.
+ *
+ * This is either the start or end frame (scene time) of a `GreasePencilFrame`.
+ *
+ * If the key refers to a end frame, the value in the map for this key is
+ * `GreasePencilFrame::end()`.
+ * Note that end frame is exclusive with regards to the frame duration. E.g. if a frame starts at
+ * 10 and the end frame is at 15, then the duration is 4.
+ */
 using FramesMapKey = int;
 
 class LayerRuntime {
@@ -341,7 +349,7 @@ class LayerRuntime {
    * (drawing_index) to the drawing in the GreasePencil->drawings array. The frame number indicates
    * the first frame the drawing is shown. The end time is implicitly defined by the next greater
    * frame number (key) in the map. If the value mapped to (index) is -1, no drawing is shown at
-   * this frame.
+   * this frame. Frames with such a value are `GreasePencilFrame::end()` in the code.
    *
    *    \example:
    *
@@ -416,11 +424,11 @@ class Layer : public ::GreasePencilLayer {
 
   /**
    * Adds a new frame into the layer frames map.
-   * Fails if there already exists a frame at \a key that is not a null-frame.
-   * Null-frame at \a key and subsequent null-frames are removed.
+   * Fails if there already exists a frame at \a key that is not an end-frame.
+   * End-frame at \a key and subsequent end-frames are removed.
    *
    * If \a duration is 0, the frame is marked as an implicit hold (see `GP_FRAME_IMPLICIT_HOLD`).
-   * Otherwise adds an additional null-frame at \a key + \a duration, if necessary, to
+   * Otherwise adds an additional end-frame at \a key + \a duration, if necessary, to
    * indicate the end of the added frame.
    *
    * \returns a pointer to the added frame on success, otherwise nullptr.
@@ -431,9 +439,9 @@ class Layer : public ::GreasePencilLayer {
    *
    * Fails if the map does not contain a frame with \a key or in the specific case where
    * the previous frame has a fixed duration (is not marked as an implicit hold) and the frame to
-   * remove is a null frame.
+   * remove is an end frame.
    *
-   * Will remove null frames after the frame to remove.
+   * Will remove end frame(s) after the frame to remove.
    * \return true on success.
    */
   bool remove_frame(FramesMapKey key);
@@ -522,12 +530,13 @@ class Layer : public ::GreasePencilLayer {
   GreasePencilFrame *add_frame_internal(int frame_number);
 
   /**
-   * Removes null frames starting from \a begin until \a end (excluded) or until a non-null frame
-   * is reached. \param begin, end: Iterators into the `sorted_keys` span. \returns an iterator to
-   * the element after the last null-frame that was removed.
+   * Removes end frames starting from \a begin until \a end (excluded) or until a start frame
+   * is reached.
+   * \param begin, end: Iterators into the `sorted_keys` span.
+   * \returns an iterator to the element after the last end-frame that was removed.
    */
-  SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin,
-                                                         SortedKeysIterator end);
+  SortedKeysIterator remove_leading_end_frames_in_range(SortedKeysIterator begin,
+                                                        SortedKeysIterator end);
 
   float4x4 parent_inverse() const;
 
@@ -863,12 +872,12 @@ inline const blender::bke::greasepencil::DrawingReference &GreasePencilDrawingRe
   return *reinterpret_cast<const blender::bke::greasepencil::DrawingReference *>(this);
 }
 
-inline GreasePencilFrame GreasePencilFrame::null()
+inline GreasePencilFrame GreasePencilFrame::end()
 {
   return GreasePencilFrame{-1, 0, 0};
 }
 
-inline bool GreasePencilFrame::is_null() const
+inline bool GreasePencilFrame::is_end() const
 {
   return this->drawing_index == -1;
 }

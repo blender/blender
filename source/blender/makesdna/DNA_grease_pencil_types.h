@@ -157,8 +157,8 @@ typedef struct GreasePencilFrame {
   int8_t type;
   char _pad[3];
 #ifdef __cplusplus
-  static GreasePencilFrame null();
-  bool is_null() const;
+  static GreasePencilFrame end();
+  bool is_end() const;
   bool is_implicit_hold() const;
   bool is_selected() const;
 #endif
