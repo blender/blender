@@ -827,7 +827,7 @@ static void generate_strokes(ModifierData &md,
       lmd.flags,
       lmd.calculation_flags);
 
-  if (!(lmd.flags & MOD_LINEART_USE_CACHE)) {
+  if ((!(lmd.flags & MOD_LINEART_USE_CACHE)) && (&first_lineart != &lmd)) {
     /* Clear local cache. */
     if (local_lc != first_lineart.shared_cache) {
       MOD_lineart_clear_cache(&local_lc);
