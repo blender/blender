@@ -1228,7 +1228,8 @@ def repo_local_private_dir_ensure(*, local_dir: str) -> str:
     """
     local_private_dir = repo_local_private_dir(local_dir=local_dir)
     if not os.path.isdir(local_private_dir):
-        os.mkdir(local_private_dir)
+        # Unlikely but possible `local_dir` is missing.
+        os.makedirs(local_private_dir)
     return local_private_dir
 
 
@@ -1238,7 +1239,8 @@ def repo_local_private_dir_ensure_with_subdir(*, local_dir: str, subdir: str) ->
     """
     local_private_subdir = os.path.join(repo_local_private_dir_ensure(local_dir=local_dir), subdir)
     if not os.path.isdir(local_private_subdir):
-        os.mkdir(local_private_subdir)
+        # Unlikely but possible `local_dir` is missing.
+        os.makedirs(local_private_subdir)
     return local_private_subdir
 
 
