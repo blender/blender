@@ -957,15 +957,6 @@ static void new_id_to_item_mapping_add(BlendfileLinkAppendContext *lapp_context,
                                        BlendfileLinkAppendContextItem *item)
 {
   BLI_ghash_insert(lapp_context->new_id_to_item, id, item);
-
-  /* This ensures that if a liboverride reference is also linked/used by some other appended
-   * data, it gets a local copy instead of being made directly local, so that the liboverride
-   * references remain valid (i.e. linked data). */
-  /* FIXME: This is a hack, and it should not be needed anymore, as liboverrides are supposed to be
-   * properly handled as part of the 'append' code (see #BKE_blendfile_append and related). */
-  if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    id->override_library->reference->tag |= LIB_TAG_PRE_EXISTING;
-  }
 }
 
 /* Generate a mapping between newly linked IDs and their items, and tag linked IDs used as
