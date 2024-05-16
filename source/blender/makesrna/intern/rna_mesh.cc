@@ -941,12 +941,9 @@ static void rna_MeshUVLoopLayer_data_begin(CollectionPropertyIterator *iter, Poi
 {
   Mesh *mesh = rna_mesh(ptr);
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(iter,
-                           layer->data,
-                           sizeof(float[2]),
-                           (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num,
-                           0,
-                           nullptr);
+  const int length = (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num;
+  CustomData_ensure_data_is_mutable(layer, length);
+  rna_iterator_array_begin(iter, layer->data, sizeof(float[2]), length, 0, nullptr);
 }
 
 static int rna_MeshUVLoopLayer_data_length(PointerRNA *ptr)

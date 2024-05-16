@@ -315,7 +315,7 @@ GPUMaterial *DRW_shader_from_material(
     bool deferred,
     GPUCodegenCallbackFn callback,
     void *thunk,
-    GPUMaterialCanUseDefaultCallbackFn can_use_default_cb = nullptr);
+    GPUMaterialPassReplacementCallbackFn pass_replacement_cb = nullptr);
 void DRW_shader_queue_optimize_material(GPUMaterial *mat);
 void DRW_shader_free(GPUShader *shader);
 #define DRW_SHADER_FREE_SAFE(shader) \

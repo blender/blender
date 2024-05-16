@@ -12,6 +12,7 @@
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_base_safe.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
@@ -122,8 +123,8 @@ static float normal_calc(SculptSession *ss,
 {
   float3 normal_v;
 
-  if (automask_data.have_orig_data) {
-    normal_v = automask_data.orig_data.no;
+  if (automask_data.orig_data) {
+    normal_v = automask_data.orig_data->no;
   }
   else {
     SCULPT_vertex_normal_get(ss, vertex, normal_v);
@@ -588,9 +589,26 @@ float factor_get(const Cache *automasking,
   return automasking_factor_end(ss, automasking, vert, mask);
 }
 
-void cache_free(Cache *automasking)
+NodeData node_begin(Object &object, const Cache *automasking, const PBVHNode &node)
 {
-  MEM_delete(automasking);
+  if (!automasking) {
+    return {};
+  }
+
+  NodeData automask_data;
+  if (automasking->settings.flags &
+      (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
+  {
+    SCULPT_orig_vert_data_init(*automask_data.orig_data, object, node, undo::Type::Position);
+  }
+  return automask_data;
+}
+
+void node_update(auto_mask::NodeData &automask_data, PBVHVertexIter &vd)
+{
+  if (automask_data.orig_data) {
+    SCULPT_orig_vert_data_update(*automask_data.orig_data, vd);
+  }
 }
 
 struct AutomaskFloodFillData {
@@ -769,7 +787,6 @@ static void normal_occlusion_automasking_fill(Cache &automasking,
 
   /* No need to build original data since this is only called at the beginning of strokes. */
   NodeData nodedata;
-  nodedata.have_orig_data = false;
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);

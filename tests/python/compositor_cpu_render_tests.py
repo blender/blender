@@ -15,6 +15,9 @@ try:
 except ImportError:
     inside_blender = False
 
+SET_COMPOSITOR_DEVICE_SCRIPT = "import bpy; " \
+    "bpy.data.scenes[0].render.compositor_device = 'CPU'"
+
 
 def get_arguments(filepath, output_filepath):
     return [
@@ -24,8 +27,8 @@ def get_arguments(filepath, output_filepath):
         "--debug-memory",
         "--debug-exit-on-error",
         filepath,
-        "-P",
-        os.path.realpath(__file__),
+        "-P", os.path.realpath(__file__),
+        "--python-expr", SET_COMPOSITOR_DEVICE_SCRIPT,
         "-o", output_filepath,
         "-F", "PNG",
         "-f", "1"]

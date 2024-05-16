@@ -731,7 +731,7 @@ int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
   Editing *ed = SEQ_editing_get(scene);
   const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
 
-  int hand;
+  eSeqHandle hand;
   Sequence *seq_key_owner = nullptr;
   SeqRetimingKey *key = retiming_mousover_key_get(C, mval, &seq_key_owner);
 

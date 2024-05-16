@@ -11,9 +11,9 @@ else()
   # be started with --env-system-scripts pointing to the release folder, which will
   # lack the cycles addon, and we don't want to write into it.
   if(NOT WINDOWS_PYTHON_DEBUG)
-    set(CYCLES_INSTALL_PATH "scripts/addons/cycles")
+    set(CYCLES_INSTALL_PATH "scripts/addons_core/cycles")
   else()
-    set(CYCLES_INSTALL_PATH "$ENV{appdata}/blender foundation/blender/${BLENDER_VERSION}/scripts/addons/cycles")
+    set(CYCLES_INSTALL_PATH "$ENV{appdata}/blender foundation/blender/${BLENDER_VERSION}/scripts/addons_core/cycles")
   endif()
 endif()
 

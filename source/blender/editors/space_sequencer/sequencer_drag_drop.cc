@@ -168,7 +168,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   SeqDropCoords *coords = &g_drop_coords;
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
-  int hand;
+  eSeqHandle hand;
   View2D *v2d = &region->v2d;
 
   /* Update the position were we would place the strip if we complete the drag and drop action.

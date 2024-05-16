@@ -2720,6 +2720,8 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::String
   const int numLayers = layers().size();
   CustomData_realloc(&layers_data, numLayers, numLayers + 1);
   bke::greasepencil::Layer *new_layer = MEM_new<bke::greasepencil::Layer>(__func__, unique_name);
+  /* Hide masks by default. */
+  new_layer->base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
   return root_group().add_node(new_layer->as_node()).as_layer();
 }
 
@@ -2728,6 +2730,8 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(
 {
   using namespace blender;
   blender::bke::greasepencil::Layer &new_layer = this->add_layer(name);
+  /* Hide masks by default. */
+  new_layer.base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
   move_node_into(new_layer.as_node(), parent_group);
   return new_layer;
 }
@@ -2764,6 +2768,8 @@ blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
   std::string unique_name = unique_layer_group_name(*this, name);
   bke::greasepencil::LayerGroup *new_group = MEM_new<bke::greasepencil::LayerGroup>(__func__,
                                                                                     unique_name);
+  /* Hide masks by default. */
+  new_group->base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
   return parent_group.add_node(new_group->as_node()).as_group();
 }
 

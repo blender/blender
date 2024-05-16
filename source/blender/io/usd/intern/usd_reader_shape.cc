@@ -13,7 +13,7 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "usd_hash_types.hh"
+#include "usd_attribute_utils.hh"
 #include "usd_mesh_utils.hh"
 #include "usd_reader_shape.hh"
 
@@ -215,7 +215,7 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampl
 
     const pxr::SdfValueTypeName sdf_type = pv.GetTypeName();
 
-    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(sdf_type, reports());
+    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(sdf_type);
     if (type == CD_PROP_COLOR) {
       /* Set the active color name to 'displayColor', if a color primvar
        * with this name exists.  Otherwise, use the name of the first

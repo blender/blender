@@ -9,6 +9,7 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
 #include "BLI_color.hh"
@@ -154,7 +155,7 @@ struct PaintOperationExecutor {
   BrushGpencilSettings *settings_;
   std::optional<ColorGeometry4f> vertex_color_;
   std::optional<ColorGeometry4f> fill_color_;
-  float hardness_;
+  float softness_;
 
   bke::greasepencil::Drawing *drawing_;
 
@@ -181,8 +182,7 @@ struct PaintOperationExecutor {
                         std::make_optional(color_base) :
                         std::nullopt;
     }
-    /* TODO: UI setting. */
-    hardness_ = 1.0f;
+    softness_ = 0.0f;
 
     BLI_assert(grease_pencil->has_active_layer());
     drawing_ = grease_pencil->get_editable_drawing_at(*grease_pencil->get_active_layer(),
@@ -300,13 +300,13 @@ struct PaintOperationExecutor {
           return {"curve_type",
                   "material_index",
                   "cyclic",
-                  "hardness",
+                  "softness",
                   "start_cap",
                   "end_cap",
                   "fill_color"};
         }
         else {
-          return {"curve_type", "material_index", "cyclic", "hardness", "start_cap", "end_cap"};
+          return {"curve_type", "material_index", "cyclic", "softness", "start_cap", "end_cap"};
         }
       default:
         return {};
@@ -362,13 +362,11 @@ struct PaintOperationExecutor {
         "material_index", bke::AttrDomain::Curve);
     bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
         "cyclic", bke::AttrDomain::Curve);
-    bke::SpanAttributeWriter<float> hardnesses = attributes.lookup_or_add_for_write_span<float>(
-        "hardness",
-        bke::AttrDomain::Curve,
-        bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num())));
+    bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
+        "softness", bke::AttrDomain::Curve);
     cyclic.span[active_curve] = false;
     materials.span[active_curve] = material_index;
-    hardnesses.span[active_curve] = hardness_;
+    softness.span[active_curve] = softness_;
 
     /* Only set the attribute if the type is not the default or if it already exists. */
     if (settings_->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("start_cap")) {
@@ -387,7 +385,7 @@ struct PaintOperationExecutor {
 
     cyclic.finish();
     materials.finish();
-    hardnesses.finish();
+    softness.finish();
 
     curves.curve_types_for_write()[active_curve] = CURVE_TYPE_POLY;
     curves.update_curve_types();

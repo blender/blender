@@ -2495,6 +2495,73 @@ IndexRange clipboard_paste_strokes(Main &bmain,
 }
 
 /* -------------------------------------------------------------------- */
+/** \name Merge Stroke Operator
+ * \{ */
+static int grease_pencil_stroke_merge_by_distance_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+  const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
+
+  std::atomic<bool> changed = false;
+
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::greasepencil::Drawing &drawing = info.drawing;
+    IndexMaskMemory memory;
+    const IndexMask points =
+        use_unselected ?
+            ed::greasepencil::retrieve_editable_points(*object, drawing, memory) :
+            ed::greasepencil::retrieve_editable_and_selected_points(*object, drawing, memory);
+    if (points.is_empty()) {
+      return;
+    }
+    drawing.strokes_for_write() = curves_merge_by_distance(
+        drawing.strokes(), threshold, points, {});
+    drawing.tag_topology_changed();
+    changed.store(true, std::memory_order_relaxed);
+  });
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_stroke_merge_by_distance(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* Identifiers. */
+  ot->name = "Merge by Distance";
+  ot->idname = "GREASE_PENCIL_OT_stroke_merge_by_distance";
+  ot->description = "Merge points by distance";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_stroke_merge_by_distance_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Merge parameters. */
+  prop = RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, 100.0f, "Threshold", "", 0.0f, 100.0f);
+  /* Avoid re-using last var. */
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna,
+                         "use_unselected",
+                         false,
+                         "Unselected",
+                         "Use whole stroke, not only selected points");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Extrude Operator
  * \{ */
 
@@ -2938,6 +3005,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_move_to_layer);
   WM_operatortype_append(GREASE_PENCIL_OT_copy);
   WM_operatortype_append(GREASE_PENCIL_OT_paste);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_merge_by_distance);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_cutter);
   WM_operatortype_append(GREASE_PENCIL_OT_extrude);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_to_grid);

@@ -8,42 +8,52 @@
 
 #pragma once
 
-#include "BKE_paint.hh"
-
+#include "BLI_array.hh"
 #include "BLI_compiler_compat.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
+#include "BLI_vector.hh"
 
-#include "ED_select_utils.hh"
+#include "DNA_object_enums.h"
+#include "DNA_scene_enums.h"
+#include "DNA_vec_types.h"
 
-#include "DNA_scene_types.h"
+enum class PaintMode : int8_t;
 
 struct ARegion;
+struct bContext;
 struct Brush;
 struct ColorManagedDisplay;
 struct ColorSpace;
+struct Depsgraph;
+struct Image;
 struct ImagePool;
+struct ImageUser;
+struct ImBuf;
+struct Main;
 struct MTex;
 struct Object;
 struct Paint;
+struct PBVHNode;
 struct PointerRNA;
 struct RegionView3D;
-struct Scene;
-struct SpaceImage;
-struct VPaint;
-struct ViewContext;
-struct bContext;
 struct ReportList;
+struct Scene;
+struct SculptSession;
+struct SpaceImage;
+struct ToolSettings;
+struct VertProjHandle;
+struct ViewContext;
+struct VPaint;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
-struct VertProjHandle;
 namespace blender::ed::sculpt_paint {
 struct PaintStroke;
-}
+struct StrokeCache;
+}  // namespace blender::ed::sculpt_paint
 
 struct CoNo {
   float co[3];
@@ -356,7 +366,9 @@ void paint_calc_redraw_planes(float planes[4][4],
                               Object *ob,
                               const rcti *screen_rect);
 
-float paint_calc_object_space_radius(ViewContext *vc, const float center[3], float pixel_radius);
+float paint_calc_object_space_radius(const ViewContext *vc,
+                                     const blender::float3 &center,
+                                     float pixel_radius);
 
 /**
  * Returns true when a color was sampled and false when a value was sampled.
@@ -429,37 +441,9 @@ BLI_INLINE void flip_v3_v3(float out[3], const float in[3], const ePaintSymmetry
   }
 }
 
-BLI_INLINE void flip_qt_qt(float out[4], const float in[4], const ePaintSymmetryFlags symm)
-{
-  float axis[3], angle;
-
-  quat_to_axis_angle(axis, &angle, in);
-  normalize_v3(axis);
-
-  if (symm & PAINT_SYMM_X) {
-    axis[0] *= -1.0f;
-    angle *= -1.0f;
-  }
-  if (symm & PAINT_SYMM_Y) {
-    axis[1] *= -1.0f;
-    angle *= -1.0f;
-  }
-  if (symm & PAINT_SYMM_Z) {
-    axis[2] *= -1.0f;
-    angle *= -1.0f;
-  }
-
-  axis_angle_normalized_to_quat(out, axis, angle);
-}
-
 BLI_INLINE void flip_v3(float v[3], const ePaintSymmetryFlags symm)
 {
   flip_v3_v3(v, v, symm);
-}
-
-BLI_INLINE void flip_qt(float quat[4], const ePaintSymmetryFlags symm)
-{
-  flip_qt_qt(quat, quat, symm);
 }
 
 /* stroke operator */
@@ -517,7 +501,6 @@ struct BlurKernel {
   int pixel_len;    /* pixels around center that kernel is wide */
 };
 
-enum eBlurKernelType;
 /**
  * Paint blur kernels. Projective painting enforces use of a 2x2 kernel due to lagging.
  * Can be extended to other blur kernels later,
@@ -570,7 +553,7 @@ void init_session(
 Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush);
 
 void mode_enter_generic(
-    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, const eObjectMode mode_flag);
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode mode_flag);
 void mode_exit_generic(Object *ob, const eObjectMode mode_flag);
 bool mode_toggle_poll_test(bContext *C);
 

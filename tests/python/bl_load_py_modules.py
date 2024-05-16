@@ -14,17 +14,16 @@ import addon_utils
 import sys
 import os
 
-BLACKLIST = {
+# Modules to exclude relative to their location in `sys.path`.
+# The trailing components of the path are used instead of the module name.
+# Both script files & directories are supported which prevents searching inside the directory.
+EXCLUDE_MODULE_PATHS = {
     "bl_i18n_utils",
     "bl_previews_utils",
     "cycles",
-    "io_export_dxf",  # TODO, check on why this fails
-    'io_import_dxf',  # Because of cydxfentity.so dependency
 
-    # Utility scripts not meant to be used as modules
-    os.path.join("power_sequencer", "scripts"),
-    # The unpacked wheel is only loaded when actually used, not directly on import:
-    os.path.join("io_blend_utils", "blender_bam-unpacked.whl"),
+    # These tests which run stand-alone and aren't imported as modules.
+    os.path.join("bl_pkg", "tests"),
 }
 
 # Some modules need to add to the `sys.path`.
@@ -34,12 +33,12 @@ MODULE_SYS_PATHS = {
 }
 
 if not bpy.app.build_options.freestyle:
-    BLACKLIST.add("render_freestyle_svg")
+    EXCLUDE_MODULE_PATHS.add("render_freestyle_svg")
 
 if not bpy.app.build_options.xr_openxr:
-    BLACKLIST.add("viewport_vr_preview")
+    EXCLUDE_MODULE_PATHS.add("viewport_vr_preview")
 
-BLACKLIST_DIRS = (
+EXCLUDE_MODULE_DIRS = (
     os.path.join(bpy.utils.user_resource('SCRIPTS')),
 ) + tuple(addon_utils.paths()[1:])
 
@@ -102,7 +101,7 @@ def load_modules():
     for script_path in paths:
         for mod_dir in sys.path:
             if mod_dir.startswith(script_path):
-                if not mod_dir.startswith(BLACKLIST_DIRS):
+                if not mod_dir.startswith(EXCLUDE_MODULE_DIRS):
                     if mod_dir not in module_paths:
                         if os.path.exists(mod_dir):
                             module_paths.append(mod_dir)
@@ -113,7 +112,7 @@ def load_modules():
     for mod_dir in module_paths:
         # print("mod_dir", mod_dir)
         for mod, mod_full in bpy.path.module_names(mod_dir):
-            if mod in BLACKLIST:
+            if mod in EXCLUDE_MODULE_PATHS:
                 continue
             if mod in module_names:
                 mod_dir_prev, mod_full_prev = module_names[mod]
@@ -132,8 +131,8 @@ def load_modules():
         os.sep + "templates_osl" + os.sep,
         os.sep + "templates_py" + os.sep,
         os.sep + "bl_app_templates_system" + os.sep,
-    ] + ([(os.sep + f + os.sep) for f in BLACKLIST] +
-         [(os.sep + f + ".py") for f in BLACKLIST])
+    ] + ([(os.sep + f + os.sep) for f in EXCLUDE_MODULE_PATHS] +
+         [(os.sep + f + ".py") for f in EXCLUDE_MODULE_PATHS])
 
     #
     # now submodules

@@ -20,14 +20,6 @@ struct ReportList;
 
 namespace blender::io::usd {
 
-std::optional<eCustomDataType> convert_usd_type_to_blender(const pxr::SdfValueTypeName usd_type,
-                                                           ReportList *reports);
-
-template<typename T>
-pxr::VtArray<T> get_prim_attribute_array(const pxr::UsdGeomPrimvar &primvar,
-                                         const double motionSampleTime,
-                                         ReportList *reports);
-
 void read_color_data_primvar(Mesh *mesh,
                              const pxr::UsdGeomPrimvar &color_primvar,
                              double motion_sample_time,

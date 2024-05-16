@@ -505,10 +505,9 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
 
 namespace blender::bke {
 
-/* Hide edges when either of their vertices are hidden. */
-static void edge_hide_from_vert(const Span<int2> edges,
-                                const Span<bool> hide_vert,
-                                MutableSpan<bool> hide_edge)
+void mesh_edge_hide_from_vert(const Span<int2> edges,
+                              const Span<bool> hide_vert,
+                              MutableSpan<bool> hide_edge)
 {
   using namespace blender;
   threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
@@ -552,7 +551,7 @@ void mesh_hide_vert_flush(Mesh &mesh)
   SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_poly", AttrDomain::Face);
 
-  edge_hide_from_vert(mesh.edges(), hide_vert_span, hide_edge.span);
+  mesh_edge_hide_from_vert(mesh.edges(), hide_vert_span, hide_edge.span);
   face_hide_from_vert(mesh.faces(), mesh.corner_verts(), hide_vert_span, hide_poly.span);
 
   hide_edge.finish();

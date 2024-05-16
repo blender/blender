@@ -5068,8 +5068,11 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
     }
   }
 
-  LineartCache *lc = MOD_lineart_init_cache();
-  *cached_result = lc;
+  LineartCache *lc = *cached_result;
+  if (!lc) {
+    lc = MOD_lineart_init_cache();
+    *cached_result = lc;
+  }
 
   ld = lineart_create_render_buffer_v3(scene,
                                        &lmd,

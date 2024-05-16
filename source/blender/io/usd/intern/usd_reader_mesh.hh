@@ -101,12 +101,6 @@ class USDMeshReader : public USDGeomReader {
                                  const pxr::UsdGeomPrimvar &primvar,
                                  const double motionSampleTime);
 
-  template<typename USDT, typename BlenderT>
-  void copy_prim_array_to_blender_attribute(const Mesh *mesh,
-                                            const pxr::UsdGeomPrimvar &primvar,
-                                            const double motionSampleTime,
-                                            MutableSpan<BlenderT> attribute);
-
   /**
    * Override transform computation to account for the binding
    * transformation for skinned meshes.

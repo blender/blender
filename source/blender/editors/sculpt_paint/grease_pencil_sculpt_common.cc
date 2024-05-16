@@ -8,6 +8,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_paint.hh"
 
 #include "BLI_index_mask.hh"
 #include "BLI_math_vector.hh"

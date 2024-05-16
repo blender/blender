@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_rotation.h"
+
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"

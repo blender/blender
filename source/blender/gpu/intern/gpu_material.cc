@@ -835,7 +835,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
                                         bool is_lookdev,
                                         GPUCodegenCallbackFn callback,
                                         void *thunk,
-                                        GPUMaterialCanUseDefaultCallbackFn can_use_default_cb)
+                                        GPUMaterialPassReplacementCallbackFn pass_replacement_cb)
 {
   /* Search if this material is not already compiled. */
   LISTBASE_FOREACH (LinkData *, link, gpumaterials) {
@@ -866,61 +866,63 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   bNodeTree *localtree = blender::bke::ntreeLocalize(ntree, nullptr);
   ntreeGPUMaterialNodes(localtree, mat);
 
-  if (can_use_default_cb && can_use_default_cb(mat)) {
-    mat->status = GPU_MAT_USE_DEFAULT;
+  gpu_material_ramp_texture_build(mat);
+  gpu_material_sky_texture_build(mat);
+
+  /* Use default material pass when possible. */
+  if (GPUPass *default_pass = pass_replacement_cb ? pass_replacement_cb(thunk, mat) : nullptr) {
+    mat->pass = default_pass;
+    GPU_pass_acquire(mat->pass);
   }
   else {
-    gpu_material_ramp_texture_build(mat);
-    gpu_material_sky_texture_build(mat);
-
     /* Create source code and search pass cache for an already compiled version. */
     mat->pass = GPU_generate_pass(mat, &mat->graph, engine, callback, thunk, false);
+  }
 
-    if (mat->pass == nullptr) {
-      /* We had a cache hit and the shader has already failed to compile. */
-      mat->status = GPU_MAT_FAILED;
-      gpu_node_graph_free(&mat->graph);
+  if (mat->pass == nullptr) {
+    /* We had a cache hit and the shader has already failed to compile. */
+    mat->status = GPU_MAT_FAILED;
+    gpu_node_graph_free(&mat->graph);
+  }
+  else {
+    /* Determine whether we should generate an optimized variant of the graph.
+     * Heuristic is based on complexity of default material pass and shader node graph. */
+    if (GPU_pass_should_optimize(mat->pass)) {
+      GPU_material_optimization_status_set(mat, GPU_MAT_OPTIMIZATION_READY);
     }
-    else {
-      /* Determine whether we should generate an optimized variant of the graph.
-       * Heuristic is based on complexity of default material pass and shader node graph. */
-      if (GPU_pass_should_optimize(mat->pass)) {
-        GPU_material_optimization_status_set(mat, GPU_MAT_OPTIMIZATION_READY);
+
+    GPUShader *sh = GPU_pass_shader_get(mat->pass);
+    if (sh != nullptr) {
+      /* We had a cache hit and the shader is already compiled. */
+      mat->status = GPU_MAT_SUCCESS;
+
+      if (mat->optimization_status == GPU_MAT_OPTIMIZATION_SKIP) {
+        gpu_node_graph_free_nodes(&mat->graph);
       }
+    }
 
-      GPUShader *sh = GPU_pass_shader_get(mat->pass);
-      if (sh != nullptr) {
-        /* We had a cache hit and the shader is already compiled. */
-        mat->status = GPU_MAT_SUCCESS;
-
-        if (mat->optimization_status == GPU_MAT_OPTIMIZATION_SKIP) {
-          gpu_node_graph_free_nodes(&mat->graph);
-        }
-      }
-
-      /* Generate optimized pass. */
-      if (mat->optimization_status == GPU_MAT_OPTIMIZATION_READY) {
+    /* Generate optimized pass. */
+    if (mat->optimization_status == GPU_MAT_OPTIMIZATION_READY) {
 #if ASYNC_OPTIMIZED_PASS_CREATION == 1
-        mat->optimized_pass = nullptr;
-        mat->optimize_pass_info.callback = callback;
-        mat->optimize_pass_info.thunk = thunk;
+      mat->optimized_pass = nullptr;
+      mat->optimize_pass_info.callback = callback;
+      mat->optimize_pass_info.thunk = thunk;
 #else
-        mat->optimized_pass = GPU_generate_pass(mat, &mat->graph, engine, callback, thunk, true);
-        if (mat->optimized_pass == nullptr) {
-          /* Failed to create optimized pass. */
-          gpu_node_graph_free_nodes(&mat->graph);
-          GPU_material_optimization_status_set(mat, GPU_MAT_OPTIMIZATION_SKIP);
-        }
-        else {
-          GPUShader *optimized_sh = GPU_pass_shader_get(mat->optimized_pass);
-          if (optimized_sh != nullptr) {
-            /* Optimized shader already available. */
-            gpu_node_graph_free_nodes(&mat->graph);
-            GPU_material_optimization_status_set(mat, GPU_MAT_OPTIMIZATION_SUCCESS);
-          }
-        }
-#endif
+      mat->optimized_pass = GPU_generate_pass(mat, &mat->graph, engine, callback, thunk, true);
+      if (mat->optimized_pass == nullptr) {
+        /* Failed to create optimized pass. */
+        gpu_node_graph_free_nodes(&mat->graph);
+        GPU_material_optimization_status_set(mat, GPU_MAT_OPTIMIZATION_SKIP);
       }
+      else {
+        GPUShader *optimized_sh = GPU_pass_shader_get(mat->optimized_pass);
+        if (optimized_sh != nullptr) {
+          /* Optimized shader already available. */
+          gpu_node_graph_free_nodes(&mat->graph);
+          GPU_material_optimization_status_set(mat, GPU_MAT_OPTIMIZATION_SUCCESS);
+        }
+      }
+#endif
     }
   }
 

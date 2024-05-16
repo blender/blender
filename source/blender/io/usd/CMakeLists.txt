@@ -89,6 +89,7 @@ set(INC_SYS
 set(SRC
   intern/usd_armature_utils.cc
   intern/usd_asset_utils.cc
+  intern/usd_attribute_utils.cc
   intern/usd_blend_shape_utils.cc
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
@@ -131,6 +132,7 @@ set(SRC
 
   intern/usd_armature_utils.hh
   intern/usd_asset_utils.hh
+  intern/usd_attribute_utils.hh
   intern/usd_blend_shape_utils.hh
   intern/usd_exporter_context.hh
   intern/usd_hash_types.hh

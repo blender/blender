@@ -14,6 +14,7 @@
 #include "MEM_guardedalloc.h"
 #include <fmt/format.h>
 
+#include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_math_rotation.h"
@@ -923,6 +924,26 @@ void WM_OT_polyline_gesture(wmOperatorType *ot)
  * It stores 4 values: `xstart, ystart, xend, yend`.
  * \{ */
 
+struct SnapAngle {
+  float increment;
+  float precise_increment;
+};
+
+static SnapAngle get_snap_angle(const ScrArea &area, const ToolSettings &tool_settings)
+{
+  SnapAngle snap_angle;
+  if (area.spacetype == SPACE_VIEW3D) {
+    snap_angle.increment = tool_settings.snap_angle_increment_3d;
+    snap_angle.precise_increment = tool_settings.snap_angle_increment_3d_precision;
+  }
+  else {
+    snap_angle.increment = tool_settings.snap_angle_increment_2d;
+    snap_angle.precise_increment = tool_settings.snap_angle_increment_2d_precision;
+  }
+
+  return snap_angle;
+}
+
 static bool gesture_straightline_apply(bContext *C, wmOperator *op)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
@@ -979,8 +1000,7 @@ int WM_gesture_straightline_active_side_invoke(bContext *C, wmOperator *op, cons
   return OPERATOR_RUNNING_MODAL;
 }
 
-#define STRAIGHTLINE_SNAP_DEG 15.0f
-static void wm_gesture_straightline_do_angle_snap(rcti *rect)
+static void wm_gesture_straightline_do_angle_snap(rcti *rect, float snap_angle)
 {
   const float line_start[2] = {float(rect->xmin), float(rect->ymin)};
   const float line_end[2] = {float(rect->xmax), float(rect->ymax)};
@@ -990,11 +1010,9 @@ static void wm_gesture_straightline_do_angle_snap(rcti *rect)
   sub_v2_v2v2(line_direction, line_end, line_start);
   const float line_length = normalize_v2(line_direction);
 
-  const float angle = angle_signed_v2v2(x_axis, line_direction);
-  const float angle_deg = RAD2DEG(angle) + (STRAIGHTLINE_SNAP_DEG / 2.0f);
-  const float angle_snapped_deg = -floorf(angle_deg / STRAIGHTLINE_SNAP_DEG) *
-                                  STRAIGHTLINE_SNAP_DEG;
-  const float angle_snapped = DEG2RAD(angle_snapped_deg);
+  const float current_angle = angle_signed_v2v2(x_axis, line_direction);
+  const float adjusted_angle = current_angle + (snap_angle / 2.0f);
+  const float angle_snapped = -floorf(adjusted_angle / snap_angle) * snap_angle;
 
   float line_snapped_end[2];
   rotate_v2_v2fl(line_snapped_end, x_axis, angle_snapped);
@@ -1007,6 +1025,10 @@ static void wm_gesture_straightline_do_angle_snap(rcti *rect)
 
 int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  const Scene *scene = CTX_data_scene(C);
+  const ScrArea *area = CTX_wm_area(C);
+  const SnapAngle snap_angle = get_snap_angle(*area, *scene->toolsettings);
+
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
   wmWindow *win = CTX_wm_window(C);
   rcti *rect = static_cast<rcti *>(gesture->customdata);
@@ -1070,7 +1092,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
         }
 
         if (gesture->use_snap) {
-          wm_gesture_straightline_do_angle_snap(rect);
+          wm_gesture_straightline_do_angle_snap(rect, snap_angle.increment);
           gesture_straightline_apply(C, op);
         }
 
@@ -1087,6 +1109,10 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
 int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  const Scene *scene = CTX_data_scene(C);
+  const ScrArea *area = CTX_wm_area(C);
+  const SnapAngle snap_angle = get_snap_angle(*area, *scene->toolsettings);
+
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
   wmWindow *win = CTX_wm_window(C);
   rcti *rect = static_cast<rcti *>(gesture->customdata);
@@ -1153,7 +1179,7 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
         }
 
         if (gesture->use_snap) {
-          wm_gesture_straightline_do_angle_snap(rect);
+          wm_gesture_straightline_do_angle_snap(rect, snap_angle.increment);
         }
 
         wm_gesture_tag_redraw(win);

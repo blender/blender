@@ -23,6 +23,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_task.h"
@@ -1204,58 +1205,57 @@ enum StrokeFlags {
   CLIP_Z = 4,
 };
 
-void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
-                                      Object *ob,
-                                      blender::ed::sculpt_paint::undo::Node *unode)
+void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
+                                      const Object &ob,
+                                      const blender::ed::sculpt_paint::undo::Node &unode)
 {
-  SculptSession *ss = ob->sculpt;
-  BMesh *bm = ss->bm;
+  const SculptSession *ss = ob.sculpt;
 
-  memset(data, 0, sizeof(*data));
-  data->unode = unode;
+  memset(&data, 0, sizeof(data));
+  data.unode = &unode;
 
-  if (bm) {
-    data->bm_log = ss->bm_log;
+  if (ss->bm) {
+    data.bm_log = ss->bm_log;
   }
   else {
-    data->coords = reinterpret_cast<float(*)[3]>(data->unode->position.data());
-    data->normals = reinterpret_cast<float(*)[3]>(data->unode->normal.data());
-    data->vmasks = data->unode->mask.data();
-    data->colors = reinterpret_cast<float(*)[4]>(data->unode->col.data());
+    data.coords = data.unode->position.data();
+    data.normals = data.unode->normal.data();
+    data.vmasks = data.unode->mask.data();
+    data.colors = data.unode->col.data();
   }
 }
 
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
-                                Object *ob,
-                                PBVHNode *node,
-                                blender::ed::sculpt_paint::undo::Type type)
+void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
+                                Object &ob,
+                                const PBVHNode &node,
+                                const blender::ed::sculpt_paint::undo::Type type)
 {
   using namespace blender::ed::sculpt_paint;
-  undo::Node *unode = undo::push_node(*ob, node, type);
-  SCULPT_orig_vert_data_unode_init(data, ob, unode);
+  undo::Node *unode = undo::push_node(ob, &node, type);
+  SCULPT_orig_vert_data_unode_init(data, ob, *unode);
 }
 
-void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter)
+void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter)
 {
   using namespace blender::ed::sculpt_paint;
-  if (orig_data->unode->type == undo::Type::Position) {
-    if (orig_data->bm_log) {
-      BM_log_original_vert_data(orig_data->bm_log, iter->bm_vert, &orig_data->co, &orig_data->no);
+  if (orig_data.unode->type == undo::Type::Position) {
+    if (orig_data.bm_log) {
+      BM_log_original_vert_data(orig_data.bm_log, iter.bm_vert, &orig_data.co, &orig_data.no);
     }
     else {
-      orig_data->co = orig_data->coords[iter->i];
-      orig_data->no = orig_data->normals[iter->i];
+      orig_data.co = orig_data.coords[iter.i];
+      orig_data.no = orig_data.normals[iter.i];
     }
   }
-  else if (orig_data->unode->type == undo::Type::Color) {
-    orig_data->col = orig_data->colors[iter->i];
+  else if (orig_data.unode->type == undo::Type::Color) {
+    orig_data.col = orig_data.colors[iter.i];
   }
-  else if (orig_data->unode->type == undo::Type::Mask) {
-    if (orig_data->bm_log) {
-      orig_data->mask = BM_log_original_mask(orig_data->bm_log, iter->bm_vert);
+  else if (orig_data.unode->type == undo::Type::Mask) {
+    if (orig_data.bm_log) {
+      orig_data.mask = BM_log_original_mask(orig_data.bm_log, iter.bm_vert);
     }
     else {
-      orig_data->mask = orig_data->vmasks[iter->i];
+      orig_data.mask = orig_data.vmasks[iter.i];
     }
   }
 }
@@ -1368,10 +1368,10 @@ static void restore_color(Object &object, const Span<PBVHNode *> nodes)
   SculptSession *ss = object.sculpt;
   const auto restore_generic = [&](PBVHNode *node, undo::Node *unode) {
     SculptOrigVertData orig_vert_data;
-    SCULPT_orig_vert_data_unode_init(&orig_vert_data, &object, unode);
+    SCULPT_orig_vert_data_unode_init(orig_vert_data, object, *unode);
     PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
+      SCULPT_orig_vert_data_update(orig_vert_data, vd);
       SCULPT_vertex_color_set(ss, vd.vertex, orig_vert_data.col);
     }
     BKE_pbvh_vertex_iter_end;
@@ -2973,6 +2973,34 @@ ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3])
     symm_area |= PAINT_SYMM_AREA_Z;
   }
   return symm_area;
+}
+
+static void flip_qt_qt(float out[4], const float in[4], const ePaintSymmetryFlags symm)
+{
+  float axis[3], angle;
+
+  quat_to_axis_angle(axis, &angle, in);
+  normalize_v3(axis);
+
+  if (symm & PAINT_SYMM_X) {
+    axis[0] *= -1.0f;
+    angle *= -1.0f;
+  }
+  if (symm & PAINT_SYMM_Y) {
+    axis[1] *= -1.0f;
+    angle *= -1.0f;
+  }
+  if (symm & PAINT_SYMM_Z) {
+    axis[2] *= -1.0f;
+    angle *= -1.0f;
+  }
+
+  axis_angle_normalized_to_quat(out, axis, angle);
+}
+
+static void flip_qt(float quat[4], const ePaintSymmetryFlags symm)
+{
+  flip_qt_qt(quat, quat, symm);
 }
 
 void SCULPT_flip_v3_by_symm_area(float v[3],
@@ -6086,36 +6114,6 @@ void SCULPT_fake_neighbors_free(Object *ob)
   SculptSession *ss = ob->sculpt;
   sculpt_pose_fake_neighbors_free(ss);
 }
-
-namespace blender::ed::sculpt_paint::auto_mask {
-
-NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node)
-{
-  if (!automasking) {
-    return {};
-  }
-
-  NodeData automask_data;
-  automask_data.have_orig_data = automasking->settings.flags &
-                                 (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
-
-  if (automask_data.have_orig_data) {
-    SCULPT_orig_vert_data_init(&automask_data.orig_data, &object, &node, undo::Type::Position);
-  }
-  else {
-    memset(&automask_data.orig_data, 0, sizeof(automask_data.orig_data));
-  }
-  return automask_data;
-}
-
-void node_update(auto_mask::NodeData &automask_data, PBVHVertexIter &vd)
-{
-  if (automask_data.have_orig_data) {
-    SCULPT_orig_vert_data_update(&automask_data.orig_data, &vd);
-  }
-}
-
-}  // namespace blender::ed::sculpt_paint::auto_mask
 
 bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool original)
 {

@@ -53,6 +53,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_customdata.hh"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
@@ -2031,6 +2032,29 @@ static void versioning_nodes_dynamic_sockets_2(bNodeTree &ntree)
   }
 }
 
+static void convert_grease_pencil_stroke_hardness_to_softness(GreasePencil *grease_pencil)
+{
+  using namespace blender;
+  for (GreasePencilDrawingBase *base : grease_pencil->drawings()) {
+    if (base->type != GP_DRAWING) {
+      continue;
+    }
+    bke::greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
+    const int layer_index = CustomData_get_named_layer_index(
+        &drawing.geometry.curve_data, CD_PROP_FLOAT, "hardness");
+    if (layer_index == -1) {
+      continue;
+    }
+    float *data = static_cast<float *>(CustomData_get_layer_named_for_write(
+        &drawing.geometry.curve_data, CD_PROP_FLOAT, "hardness", drawing.geometry.curve_num));
+    for (const int i : IndexRange(drawing.geometry.curve_num)) {
+      data[i] = 1.0f - data[i];
+    }
+    /* Rename the layer. */
+    STRNCPY(drawing.geometry.curve_data.layers[layer_index].name, "softness");
+  }
+}
+
 static void versioning_grease_pencil_stroke_radii_scaling(GreasePencil *grease_pencil)
 {
   using namespace blender;
@@ -2134,13 +2158,32 @@ static void image_settings_avi_to_ffmpeg(Scene *scene)
   }
 }
 
+/* The Hue Correct curve now wraps around by specifying CUMA_USE_WRAPPING, which means it no longer
+ * makes sense to have curve maps outside of the [0, 1] range, so enable clipping and reset the
+ * clip and view ranges. */
+static void hue_correct_set_wrapping(CurveMapping *curve_mapping)
+{
+  curve_mapping->flag |= CUMA_DO_CLIP;
+  curve_mapping->flag |= CUMA_USE_WRAPPING;
+
+  curve_mapping->clipr.xmin = 0.0f;
+  curve_mapping->clipr.xmax = 1.0f;
+  curve_mapping->clipr.ymin = 0.0f;
+  curve_mapping->clipr.ymax = 1.0f;
+
+  curve_mapping->curr.xmin = 0.0f;
+  curve_mapping->curr.xmax = 1.0f;
+  curve_mapping->curr.ymin = 0.0f;
+  curve_mapping->curr.ymax = 1.0f;
+}
+
 static bool seq_hue_correct_set_wrapping(Sequence *seq, void * /*user_data*/)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
     if (smd->type == seqModifierType_HueCorrect) {
       HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
       CurveMapping *cumap = (CurveMapping *)&hcmd->curve_mapping;
-      cumap->flag |= CUMA_USE_WRAPPING;
+      hue_correct_set_wrapping(cumap);
     }
   }
   return true;
@@ -2190,7 +2233,7 @@ static void versioning_node_hue_correct_set_wrappng(bNodeTree *ntree)
 
       if (node->type == CMP_NODE_HUECORRECT) {
         CurveMapping *cumap = (CurveMapping *)node->storage;
-        cumap->flag |= CUMA_USE_WRAPPING;
+        hue_correct_set_wrapping(cumap);
       }
     }
   }
@@ -3595,6 +3638,31 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 38)) {
+    LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
+      convert_grease_pencil_stroke_hardness_to_softness(grease_pencil);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 39)) {
+    /* Unify cast shadow property with Cycles. */
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    /* Be conservative, if there is no scene, still try to do the conversion as that can happen for
+     * append and linking. We prefer breaking EEVEE rather than breaking Cycles here. */
+    bool is_eevee = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+    if (!is_eevee) {
+      const Light *default_light = DNA_struct_default_get(Light);
+      LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+        IDProperty *clight = version_cycles_properties_from_ID(&light->id);
+        if (clight) {
+          bool value = version_cycles_property_boolean(
+              clight, "use_shadow", default_light->mode & LA_SHADOW);
+          SET_FLAG_FROM_TEST(light->mode, value, LA_SHADOW);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 40)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
 

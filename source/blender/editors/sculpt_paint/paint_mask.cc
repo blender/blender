@@ -39,6 +39,7 @@
 #include "WM_types.hh"
 
 #include "ED_sculpt.hh"
+#include "ED_select_utils.hh"
 
 #include "bmesh.hh"
 

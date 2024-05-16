@@ -873,5 +873,5 @@ files_ignore = {
 
 directories_ignore = {
     "scripts/addons",
-    "scripts/addons_contrib",
+    "scripts/addons_core",
 }

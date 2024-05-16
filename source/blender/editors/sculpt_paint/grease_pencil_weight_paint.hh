@@ -13,11 +13,13 @@
 #include "BKE_grease_pencil_vertex_groups.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_deform.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
 #include "BLI_kdtree.h"
+#include "BLI_rect.h"
 
 #include "DNA_meshdata_types.h"
 

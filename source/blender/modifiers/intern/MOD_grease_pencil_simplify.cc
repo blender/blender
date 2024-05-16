@@ -7,7 +7,6 @@
  */
 
 #include "BLI_index_mask.hh"
-#include "BLI_kdtree.h"
 
 #include "BLT_translation.hh"
 
@@ -17,11 +16,12 @@
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_curves_utils.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_modifier.hh"
+
+#include "ED_grease_pencil.hh"
 
 #include "GEO_resample_curves.hh"
 #include "GEO_simplify_curves.hh"
@@ -96,175 +96,6 @@ static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
       });
 }
 
-static int curve_merge_by_distance(const IndexRange points,
-                                   const Span<float> distances,
-                                   const IndexMask &selection,
-                                   const float merge_distance,
-                                   MutableSpan<int> r_merge_indices)
-{
-  /* We use a KDTree_1d here, because we can only merge neighboring points in the curves. */
-  KDTree_1d *tree = BLI_kdtree_1d_new(selection.size());
-  /* The selection is an IndexMask of the points just in this curve. */
-  selection.foreach_index_optimized<int64_t>([&](const int64_t i, const int64_t pos) {
-    BLI_kdtree_1d_insert(tree, pos, &distances[i - points.first()]);
-  });
-  BLI_kdtree_1d_balance(tree);
-
-  Array<int> selection_merge_indices(selection.size(), -1);
-  const int duplicate_count = BLI_kdtree_1d_calc_duplicates_fast(
-      tree, merge_distance, false, selection_merge_indices.data());
-  BLI_kdtree_1d_free(tree);
-
-  array_utils::fill_index_range<int>(r_merge_indices);
-
-  selection.foreach_index([&](const int src_index, const int pos) {
-    const int merge_index = selection_merge_indices[pos];
-    if (merge_index != -1) {
-      const int src_merge_index = selection[merge_index] - points.first();
-      r_merge_indices[src_index - points.first()] = src_merge_index;
-    }
-  });
-
-  return duplicate_count;
-}
-
-/* NOTE: The code here is an adapted version of #blender::geometry::point_merge_by_distance. */
-static bke::CurvesGeometry curves_merge_by_distance(
-    const bke::CurvesGeometry &src_curves,
-    const float merge_distance,
-    const IndexMask &selection,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
-{
-  const int src_point_size = src_curves.points_num();
-  if (src_point_size == 0) {
-    return {};
-  }
-  const OffsetIndices<int> points_by_curve = src_curves.points_by_curve();
-  const VArray<bool> cyclic = src_curves.cyclic();
-  src_curves.ensure_evaluated_lengths();
-
-  bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
-  MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
-
-  std::atomic<int> total_duplicate_count = 0;
-  Array<Array<int>> merge_indices_per_curve(src_curves.curves_num());
-  threading::parallel_for(src_curves.curves_range(), 512, [&](const IndexRange range) {
-    for (const int curve_i : range) {
-      const IndexRange points = points_by_curve[curve_i];
-      merge_indices_per_curve[curve_i].reinitialize(points.size());
-
-      Array<float> distances_along_curve(points.size());
-      distances_along_curve.first() = 0.0f;
-      const Span<float> lengths = src_curves.evaluated_lengths_for_curve(curve_i, cyclic[curve_i]);
-      distances_along_curve.as_mutable_span().drop_front(1).copy_from(lengths);
-
-      MutableSpan<int> merge_indices = merge_indices_per_curve[curve_i].as_mutable_span();
-      array_utils::fill_index_range<int>(merge_indices);
-
-      const int duplicate_count = curve_merge_by_distance(points,
-                                                          distances_along_curve,
-                                                          selection.slice_content(points),
-                                                          merge_distance,
-                                                          merge_indices);
-      /* Write the curve size. The counts will be accumulated to offsets below. */
-      dst_offsets[curve_i] = points.size() - duplicate_count;
-      total_duplicate_count += duplicate_count;
-    }
-  });
-
-  const int dst_point_size = src_point_size - total_duplicate_count;
-  dst_curves.resize(dst_point_size, src_curves.curves_num());
-  offset_indices::accumulate_counts_to_offsets(dst_offsets);
-
-  int merged_points = 0;
-  Array<int> src_to_dst_indices(src_point_size);
-  for (const int curve_i : src_curves.curves_range()) {
-    const IndexRange points = points_by_curve[curve_i];
-    const Span<int> merge_indices = merge_indices_per_curve[curve_i].as_span();
-    for (const int i : points.index_range()) {
-      const int point_i = points.start() + i;
-      src_to_dst_indices[point_i] = point_i - merged_points;
-      if (merge_indices[i] != i) {
-        merged_points++;
-      }
-    }
-  }
-
-  Array<int> point_merge_counts(dst_point_size, 0);
-  for (const int curve_i : src_curves.curves_range()) {
-    const IndexRange points = points_by_curve[curve_i];
-    const Span<int> merge_indices = merge_indices_per_curve[curve_i].as_span();
-    for (const int i : points.index_range()) {
-      const int merge_index = merge_indices[i];
-      const int point_src = points.start() + merge_index;
-      const int dst_index = src_to_dst_indices[point_src];
-      point_merge_counts[dst_index]++;
-    }
-  }
-
-  Array<int> map_offsets_data(dst_point_size + 1);
-  map_offsets_data.as_mutable_span().drop_back(1).copy_from(point_merge_counts);
-  OffsetIndices<int> map_offsets = offset_indices::accumulate_counts_to_offsets(map_offsets_data);
-
-  point_merge_counts.fill(0);
-
-  Array<int> merge_map_indices(src_point_size);
-  for (const int curve_i : src_curves.curves_range()) {
-    const IndexRange points = points_by_curve[curve_i];
-    const Span<int> merge_indices = merge_indices_per_curve[curve_i].as_span();
-    for (const int i : points.index_range()) {
-      const int point_i = points.start() + i;
-      const int merge_index = merge_indices[i];
-      const int dst_index = src_to_dst_indices[points.start() + merge_index];
-      merge_map_indices[map_offsets[dst_index].first() + point_merge_counts[dst_index]] = point_i;
-      point_merge_counts[dst_index]++;
-    }
-  }
-
-  bke::AttributeAccessor src_attributes = src_curves.attributes();
-  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  src_attributes.for_all([&](const bke::AttributeIDRef &id,
-                             const bke::AttributeMetaData &meta_data) {
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
-      return true;
-    }
-    if (meta_data.domain != bke::AttrDomain::Point) {
-      return true;
-    }
-
-    bke::GAttributeReader src_attribute = src_attributes.lookup(id);
-    bke::attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-        bke::SpanAttributeWriter<T> dst_attribute =
-            dst_attributes.lookup_or_add_for_write_only_span<T>(id, bke::AttrDomain::Point);
-        VArraySpan<T> src = src_attribute.varray.typed<T>();
-
-        threading::parallel_for(dst_curves.points_range(), 1024, [&](IndexRange range) {
-          for (const int dst_point_i : range) {
-            /* Create a separate mixer for every point to avoid allocating temporary buffers
-             * in the mixer the size of the result curves and to improve memory locality. */
-            bke::attribute_math::DefaultMixer<T> mixer{dst_attribute.span.slice(dst_point_i, 1)};
-
-            Span<int> src_merge_indices = merge_map_indices.as_span().slice(
-                map_offsets[dst_point_i]);
-            for (const int src_point_i : src_merge_indices) {
-              mixer.mix_in(0, src[src_point_i]);
-            }
-
-            mixer.finalize();
-          }
-        });
-
-        dst_attribute.finish();
-      }
-    });
-    return true;
-  });
-
-  return dst_curves;
-}
-
 static void simplify_drawing(const GreasePencilSimplifyModifierData &mmd,
                              const Object &ob,
                              bke::greasepencil::Drawing &drawing)
@@ -319,7 +150,8 @@ static void simplify_drawing(const GreasePencilSimplifyModifierData &mmd,
             }
             return false;
           });
-      drawing.strokes_for_write() = curves_merge_by_distance(curves, mmd.distance, points, {});
+      drawing.strokes_for_write() = ed::greasepencil::curves_merge_by_distance(
+          curves, mmd.distance, points, {});
       break;
     }
     default:

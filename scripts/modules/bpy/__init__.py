@@ -41,11 +41,18 @@ def main():
     import sys
 
     # Possibly temp. addons path
-    from os.path import join, dirname
-    sys.path.extend([
-        join(dirname(dirname(dirname(__file__))), "addons", "modules"),
-        join(utils.user_resource('SCRIPTS'), "addons", "modules"),
-    ])
+    from os.path import join, dirname, exists
+
+    # It's unlikely this directory exists.
+    # Keep it so users can bundle their own add-ons with app-templates which share modules.
+    # Also keep this for consistency with the other `addons` directories.
+    # Check this exists because the bundled scritps should not be manipulated at run-time.
+    dirpath = join(dirname(dirname(dirname(__file__))), "addons_core", "modules")
+    if exists(dirpath):
+        sys.path.append(dirpath)
+
+    # Don't check if this exists as it may be created as part of installing add-ons.
+    sys.path.append(join(utils.user_resource('SCRIPTS'), "addons", "modules"))
 
     # fake module to allow:
     #   from bpy.types import Panel

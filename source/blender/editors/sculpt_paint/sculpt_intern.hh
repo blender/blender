@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <optional>
 #include <queue>
 
 #include "BKE_attribute.hh"
@@ -101,11 +102,11 @@ struct SculptVertexNeighborIter {
 struct SculptOrigVertData {
   BMLog *bm_log;
 
-  blender::ed::sculpt_paint::undo::Node *unode;
-  float (*coords)[3];
-  float (*normals)[3];
+  const blender::ed::sculpt_paint::undo::Node *unode;
+  const blender::float3 *coords;
+  const blender::float3 *normals;
   const float *vmasks;
-  float (*colors)[4];
+  const blender::float4 *colors;
 
   /* Original coordinate, normal, and mask. */
   const float *co;
@@ -988,21 +989,21 @@ Array<int> duplicate_face_sets(const Mesh &mesh);
  * Initialize a #SculptOrigVertData for accessing original vertex data;
  * handles #BMesh, #Mesh, and multi-resolution.
  */
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
-                                Object *ob,
-                                PBVHNode *node,
+void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
+                                Object &ob,
+                                const PBVHNode &node,
                                 blender::ed::sculpt_paint::undo::Type type);
 /**
  * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
  */
-void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter);
+void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter);
 /**
  * Initialize a #SculptOrigVertData for accessing original vertex data;
  * handles #BMesh, #Mesh, and multi-resolution.
  */
-void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
-                                      Object *ob,
-                                      blender::ed::sculpt_paint::undo::Node *unode);
+void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
+                                      const Object &ob,
+                                      const blender::ed::sculpt_paint::undo::Node &unode);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1300,15 +1301,13 @@ struct Cache {
 };
 
 struct NodeData {
-  SculptOrigVertData orig_data;
-  bool have_orig_data;
+  std::optional<SculptOrigVertData> orig_data;
 };
 
 /**
  * Call before PBVH vertex iteration.
- * \param automask_data: pointer to an uninitialized #auto_mask::NodeData struct.
  */
-NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node);
+NodeData node_begin(Object &object, const Cache *automasking, const PBVHNode &node);
 
 /* Call before factor_get and SCULPT_brush_strength_factor. */
 void node_update(NodeData &automask_data, PBVHVertexIter &vd);
@@ -1330,7 +1329,6 @@ Cache *active_cache_get(SculptSession *ss);
  */
 std::unique_ptr<Cache> cache_init(const Sculpt *sd, Object *ob);
 std::unique_ptr<Cache> cache_init(const Sculpt *sd, const Brush *brush, Object *ob);
-void cache_free(Cache *automasking);
 
 bool mode_enabled(const Sculpt *sd, const Brush *br, eAutomasking_flag mode);
 bool is_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br);

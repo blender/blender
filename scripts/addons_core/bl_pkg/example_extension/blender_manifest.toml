@@ -1,0 +1,17 @@
+# Example
+schema_version = "1.0.0"
+
+id = "my_example_package"
+name = "Test Package"
+tagline = "Single line description"
+type = "add-on"
+tags = ["UV", "Modeling"]
+version = "0.2.0"
+blender_version_min = "2.80.0"
+maintainer = "Maintainer Name"
+license = [
+    "SPDX:CC-0"
+]
+copyright = [
+    "Developer Name"
+]

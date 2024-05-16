@@ -334,7 +334,7 @@ static void mesh_filter_task(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
+  SCULPT_orig_vert_data_init(orig_data, *ob, *node, undo::Type::Position);
 
   /* When using the relax face sets meshes filter,
    * each 3 iterations, do a whole mesh relax to smooth the contents of the Face Set. */
@@ -346,7 +346,7 @@ static void mesh_filter_task(Object *ob,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(orig_data, vd);
     auto_mask::node_update(automask_data, vd);
 
     float orig_co[3], val[3], avg[3], disp[3], disp2[3], transform[3][3], final_pos[3];
@@ -824,10 +824,10 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     PBVHVertexIter vd;
 
     SculptOrigVertData orig_data;
-    SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
+    SCULPT_orig_vert_data_init(orig_data, *ob, *node, undo::Type::Position);
 
     BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_orig_vert_data_update(&orig_data, &vd);
+      SCULPT_orig_vert_data_update(orig_data, vd);
 
       copy_v3_v3(vd.co, orig_data.co);
     }

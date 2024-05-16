@@ -20,6 +20,7 @@
 #include "BLI_color_mix.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_rotation.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_task.h"

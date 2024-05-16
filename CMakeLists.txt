@@ -1310,17 +1310,6 @@ if(WITH_PYTHON)
       "At least Python 3.11 is required to build, but found Python ${PYTHON_VERSION}"
     )
   endif()
-
-  file(GLOB RESULT "${CMAKE_SOURCE_DIR}/scripts/addons")
-  list(LENGTH RESULT DIR_LEN)
-  if(DIR_LEN EQUAL 0)
-    message(
-      WARNING
-      "Addons path '${CMAKE_SOURCE_DIR}/scripts/addons' is missing. "
-      "This is an external repository which needs to be checked out. Use `make update` to do so. "
-      "* CONTINUING WITHOUT ADDONS *"
-    )
-  endif()
 endif()
 
 

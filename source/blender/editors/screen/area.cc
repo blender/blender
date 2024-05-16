@@ -928,12 +928,12 @@ void WorkspaceStatus::range(std::string text, const int icon1, const int icon2)
 }
 
 void WorkspaceStatus::item_bool(std::string text,
-                                const bool interted,
+                                const bool inverted,
                                 const int icon1,
                                 const int icon2)
 {
-  ed_workspace_status_mouse_item(workspace_, icon1, interted);
-  ed_workspace_status_mouse_item(workspace_, icon2, interted);
+  ed_workspace_status_mouse_item(workspace_, icon1, inverted);
+  ed_workspace_status_mouse_item(workspace_, icon2, inverted);
   ed_workspace_status_text_item(workspace_, std::move(text));
 }
 

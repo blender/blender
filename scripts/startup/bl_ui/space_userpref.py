@@ -2095,15 +2095,15 @@ class USERPREF_PT_extensions_repos(Panel):
         layout.use_property_split = False
         layout.use_property_decorate = False
 
-        paths = context.preferences.filepaths
-        active_repo_index = paths.active_extension_repo
+        extensions = context.preferences.extensions
+        active_repo_index = extensions.active_repo
 
         row = layout.row()
 
         row.template_list(
             "USERPREF_UL_extension_repos", "user_extension_repos",
-            paths, "extension_repos",
-            paths, "active_extension_repo"
+            extensions, "repos",
+            extensions, "active_repo"
         )
 
         col = row.column(align=True)
@@ -2116,7 +2116,7 @@ class USERPREF_PT_extensions_repos(Panel):
         col.operator("preferences.extension_repo_upgrade", text="", icon='IMPORT')
 
         try:
-            active_repo = None if active_repo_index < 0 else paths.extension_repos[active_repo_index]
+            active_repo = None if active_repo_index < 0 else extensions.repos[active_repo_index]
         except IndexError:
             active_repo = None
 
@@ -2179,7 +2179,7 @@ class USERPREF_PT_addons_filter(Panel):
 class AddOnPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
-    bl_context = "addons"
+    bl_context = "extensions"
 
 
 class USERPREF_PT_addons(AddOnPanel, Panel):
@@ -2275,11 +2275,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
         prefs = context.preferences
 
-        if (
-                prefs.view.show_developer_ui and
-                prefs.experimental.use_extension_repos and
-                self.is_extended()
-        ):
+        if self.is_extended():
             # Rely on the draw function being appended to by the extensions add-on.
             return
 
@@ -2720,7 +2716,6 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_grease_pencil_version3"}, ("blender/blender/projects/6", "Grease Pencil 3.0")),
                 ({"property": "use_grease_pencil_version3_convert_on_load"}, ("blender/blender/projects/6", "Grease Pencil 3.0")),
                 ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
-                ({"property": "use_extension_repos"}, ("/blender/blender/issues/117286", "#117286")),
                 ({"property": "use_extension_utils"}, ("/blender/blender/issues/117286", "#117286")),
                 ({"property": "use_animation_baklava"}, ("/blender/blender/issues/120406", "#120406")),
             ),

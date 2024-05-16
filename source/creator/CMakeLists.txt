@@ -443,15 +443,6 @@ endif()
 if(WITH_PYTHON)
   # install(CODE "message(\"copying blender scripts...\")")
 
-  # exclude addons_contrib if release branch
-  if("${BLENDER_VERSION_CYCLE}" STREQUAL "release" OR
-     "${BLENDER_VERSION_CYCLE}" STREQUAL "rc" OR
-     "${BLENDER_VERSION_CYCLE}" STREQUAL "beta")
-    set(ADDON_EXCLUDE_CONDITIONAL "addons_contrib/*")
-  else()
-    set(ADDON_EXCLUDE_CONDITIONAL "_addons_contrib/*")  # Dummy, won't do anything.
-  endif()
-
   # do not install freestyle dir if disabled
   if(NOT WITH_FREESTYLE)
     set(FREESTYLE_EXCLUDE_CONDITIONAL "freestyle/*")
@@ -469,7 +460,9 @@ if(WITH_PYTHON)
     PATTERN ".arcconfig" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
     PATTERN "site" EXCLUDE
-    PATTERN "${ADDON_EXCLUDE_CONDITIONAL}" EXCLUDE
+    # Legacy sub-module which is no longer used.
+    PATTERN "addons/*" EXCLUDE
+    PATTERN "addons_contrib/*" EXCLUDE
     PATTERN "${FREESTYLE_EXCLUDE_CONDITIONAL}" EXCLUDE
   )
 
@@ -486,7 +479,6 @@ if(WITH_PYTHON)
       )
     endif()
   endif()
-  unset(ADDON_EXCLUDE_CONDITIONAL)
   unset(FREESTYLE_EXCLUDE_CONDITIONAL)
 endif()
 

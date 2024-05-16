@@ -95,6 +95,11 @@ static void rna_CurveMapping_clip_set(PointerRNA *ptr, bool value)
 {
   CurveMapping *cumap = (CurveMapping *)ptr->data;
 
+  /* Clipping is always done for wrapped curves, so don't allow user to change it. */
+  if (cumap->flag & CUMA_USE_WRAPPING) {
+    return;
+  }
+
   if (value) {
     cumap->flag |= CUMA_DO_CLIP;
   }

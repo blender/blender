@@ -233,6 +233,7 @@ class device_memory {
   size_t data_depth;
   MemoryType type;
   const char *name;
+  std::string name_storage;
 
   /* Pointers. */
   Device *device;

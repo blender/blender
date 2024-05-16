@@ -922,11 +922,15 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   uiBlock *block = ui_popup_block_refresh(C, handle, butregion, but);
   handle = block->handle;
 
+  if (can_refresh) {
+    CTX_wm_region_popup_set(C, region_popup_prev);
+  }
+
   if (block->flag & UI_BLOCK_KEEP_OPEN) {
     handle->can_refresh = true;
   }
 
-  CTX_wm_region_popup_set(C, region_popup_prev);
+
 
   /* keep centered on window resizing */
   if (block->bounds_type == UI_BLOCK_BOUNDS_POPUP_CENTER) {

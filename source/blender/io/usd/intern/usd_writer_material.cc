@@ -87,7 +87,7 @@ static const pxr::TfToken rotation("rotation", pxr::TfToken::Immortal);
 
 /* Cycles specific tokens. */
 namespace cyclestokens {
-static const pxr::TfToken UVMap("UVMap", pxr::TfToken::Immortal);
+static const std::string UVMap("UVMap");
 }  // namespace cyclestokens
 
 namespace blender::io::usd {
@@ -117,7 +117,7 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
                             bNodeSocket *input_socket,
                             pxr::UsdShadeMaterial &usd_material,
                             pxr::UsdShadeInput &usd_input,
-                            const pxr::TfToken &default_uv,
+                            const std::string &default_uv,
                             ReportList *reports);
 static void export_texture(const USDExporterContext &usd_export_context, bNode *node);
 static bNode *find_bsdf_node(Material *material);
@@ -154,8 +154,7 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
   }
 
   /* Default map when creating UV primvar reader shaders. */
-  pxr::TfToken default_uv_sampler = default_uv.empty() ? cyclestokens::UVMap :
-                                                         pxr::TfToken(default_uv);
+  std::string default_uv_sampler = default_uv.empty() ? cyclestokens::UVMap : default_uv;
 
   /* We only handle the first instance of either principled or
    * diffuse bsdf nodes in the material's node tree, because
@@ -421,7 +420,7 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
                                 bNodeLink *uvmap_link,
                                 pxr::UsdShadeMaterial &usd_material,
                                 pxr::UsdShadeInput &usd_input,
-                                const pxr::TfToken &default_uv,
+                                const std::string &default_uv,
                                 ReportList *reports)
 
 {
@@ -439,14 +438,14 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
     return;
   }
 
-  pxr::TfToken uv_name = default_uv;
+  std::string uv_name = default_uv;
   if (uv_node && uv_node->storage) {
     NodeShaderUVMap *shader_uv_map = static_cast<NodeShaderUVMap *>(uv_node->storage);
     /* We need to make valid here because actual uv primvar has been. */
-    uv_name = pxr::TfToken(pxr::TfMakeValidIdentifier(shader_uv_map->uv_map));
+    uv_name = pxr::TfMakeValidIdentifier(shader_uv_map->uv_map);
   }
 
-  uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token).Set(uv_name);
+  uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->String).Set(uv_name);
   usd_input.ConnectToSource(uv_shader.ConnectableAPI(), usdtokens::result);
 }
 
@@ -454,7 +453,7 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
                                       bNodeLink *mapping_link,
                                       pxr::UsdShadeMaterial &usd_material,
                                       pxr::UsdShadeInput &usd_input,
-                                      const pxr::TfToken &default_uv,
+                                      const std::string &default_uv,
                                       ReportList *reports)
 
 {
@@ -542,7 +541,7 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
                             bNodeSocket *input_socket,
                             pxr::UsdShadeMaterial &usd_material,
                             pxr::UsdShadeInput &usd_input,
-                            const pxr::TfToken &default_uv,
+                            const std::string &default_uv,
                             ReportList *reports)
 {
   if (!(usd_material && usd_input)) {

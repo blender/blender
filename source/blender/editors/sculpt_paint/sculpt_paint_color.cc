@@ -92,7 +92,7 @@ static void do_paint_brush_task(Object *ob,
   PBVHColorBufferNode *color_buffer;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Color);
+  SCULPT_orig_vert_data_init(orig_data, *ob, *node, undo::Type::Color);
 
   color_buffer = BKE_pbvh_node_color_buffer_get(node);
 
@@ -131,7 +131,7 @@ static void do_paint_brush_task(Object *ob,
   }
 
   BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(orig_data, vd);
 
     bool affect_vertex = false;
     float distance_to_stroke_location = 0.0f;

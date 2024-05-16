@@ -51,8 +51,7 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
       op->ptr, "new_layer_name", nullptr, 0, &new_layer_name_length);
   BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(new_layer_name); });
   Layer &new_layer = grease_pencil.add_layer(new_layer_name);
-  /* Hide masks by default. */
-  new_layer.base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
+
   if (grease_pencil.has_active_layer()) {
     grease_pencil.move_node_after(new_layer.as_node(),
                                   grease_pencil.get_active_layer()->as_node());
@@ -260,8 +259,7 @@ static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
   }();
 
   LayerGroup &new_group = grease_pencil.add_layer_group(parent_group, new_layer_group_name);
-  /* Hide masks by default. */
-  new_group.base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
+
   if (grease_pencil.has_active_layer()) {
     grease_pencil.move_node_after(new_group.as_node(),
                                   grease_pencil.get_active_layer()->as_node());

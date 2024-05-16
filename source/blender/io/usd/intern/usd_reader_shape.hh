@@ -5,6 +5,7 @@
 #pragma once
 
 #include "usd.hh"
+#include "usd_hash_types.hh"
 #include "usd_reader_geom.hh"
 
 struct Mesh;

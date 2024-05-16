@@ -55,6 +55,7 @@
 
 #include "ED_image.hh"
 #include "ED_screen.hh"
+#include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
 #include "BLI_sys_types.h"
@@ -126,7 +127,9 @@ void paint_calc_redraw_planes(float planes[4][4],
   ED_view3d_clipping_calc(&bb, planes, region, ob, &rect);
 }
 
-float paint_calc_object_space_radius(ViewContext *vc, const float center[3], float pixel_radius)
+float paint_calc_object_space_radius(const ViewContext *vc,
+                                     const blender::float3 &center,
+                                     const float pixel_radius)
 {
   Object *ob = vc->obact;
   float delta[3], scale, loc[3];

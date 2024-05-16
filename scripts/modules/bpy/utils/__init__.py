@@ -1077,35 +1077,58 @@ def manual_map():
 
 # Languages which are supported by the user manual (commented when there is no translation).
 _manual_language_codes = {
+    # "ab": "ab",  #Abkhaz
+    # "am_ET": "am",  # Amharic
     "ar_EG": "ar",  # Arabic
+    # "be": "be",  # Belarusian
     # "bg_BG": "bg",  # Bulgarian
-    # "ca_AD": "ca",  # Catalan
+    "ca_AD": "ca",  # Catalan
     # "cs_CZ": "cz",  # Czech
+    # "da": "da",  # Danish
     "de_DE": "de",  # German
-    # "el_GR": "el",  # Greek
+    "el_GR": "el",  # Greek
+    # "eo": "eo",  # Esperanto
     "es": "es",  # Spanish
+    # "et_EE": "et",  # Estonian
+    # "eu_EU": "eu",  # Basque
+    # "fa_IR": "fa",  # Persian
     "fi_FI": "fi",  # Finnish
     "fr_FR": "fr",  # French
+    # "ha": "ha",  # Hausa
+    # "he_IL": "he",  # Hebrew
+    # "hi_IN": "hi",  # Hindi
+    # "hr_HR": "hr",  # Croatian
+    # "hu_HU": "hu",  # Hungarian
     "id_ID": "id",  # Indonesian
     "it_IT": "it",  # Italian
     "ja_JP": "ja",  # Japanese
+    # "ka": "ka",  # Georgian
+    # "kk_KZ": "kk",  # kazakh
+    # "km": "km",  # Khmer
     "ko_KR": "ko",  # Korean
+    # "ky_KG": "ky",  # Kyrgyz
     # "nb": "nb",  # Norwegian
-    # "nl_NL": "nl",  # Dutch
+    # "ne_NP": "ne",  # Nepali
+    "nl_NL": "nl",  # Dutch
     # "pl_PL": "pl",  # Polish
     "pt_PT": "pt",  # Portuguese
     # Portuguese - Brazil, for until we have a pt_BR version.
     "pt_BR": "pt",
+    # "ro_RO": "ro",  # Romanian
     "ru_RU": "ru",  # Russian
     "sk_SK": "sk",  # Slovak
     # "sl": "sl",  # Slovenian
     "sr_RS": "sr",  # Serbian
     # "sv_SE": "sv",  # Swedish
-    # "tr_TR": "th",  # Thai
+    # "sw": "sw",  # Swahili
+    # "ta": "ta",  # Tamil
+    "th_TH": "th",  # Thai
+    # "tr_TR": "tr",  # Turkish
     "uk_UA": "uk",  # Ukrainian
+    # "uz_UZ": "uz",  # Uzbek
     "vi_VN": "vi",  # Vietnamese
-    "zh_CN": "zh-hans",  # Simplified Chinese
-    "zh_TW": "zh-hant",  # Traditional Chinese
+    "zh_HANS": "zh-hans",  # Simplified Chinese
+    "zh_HANT": "zh-hant",  # Traditional Chinese
 }
 
 

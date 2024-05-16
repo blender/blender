@@ -229,7 +229,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
     matpass.sub_pass = nullptr;
   }
   else {
-    ShaderKey shader_key(matpass.gpumat, probe_capture);
+    ShaderKey shader_key(matpass.gpumat, blender_mat, probe_capture);
 
     PassMain::Sub *shader_sub = shader_map_.lookup_or_add_cb(shader_key, [&]() {
       /* First time encountering this shader. Create a sub that will contain materials using it. */

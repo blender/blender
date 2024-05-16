@@ -220,6 +220,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 {
   GreasePencilLineartModifierData *lmd = (GreasePencilLineartModifierData *)md;
 
+  walk(user_data, ob, (ID **)&lmd->target_material, IDWALK_CB_USER);
   walk(user_data, ob, (ID **)&lmd->source_collection, IDWALK_CB_NOP);
 
   walk(user_data, ob, (ID **)&lmd->source_object, IDWALK_CB_NOP);
@@ -826,7 +827,7 @@ static void generate_strokes(ModifierData &md,
       lmd.flags,
       lmd.calculation_flags);
 
-  if (!(lmd.flags & MOD_LINEART_USE_CACHE)) {
+  if ((!(lmd.flags & MOD_LINEART_USE_CACHE)) && (&first_lineart != &lmd)) {
     /* Clear local cache. */
     if (local_lc != first_lineart.shared_cache) {
       MOD_lineart_clear_cache(&local_lc);
