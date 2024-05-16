@@ -476,7 +476,7 @@ def pkg_manifest_dict_from_file_or_error(
         filepath: str,
 ) -> Union[Dict[str, Any], str]:
     from .cli.blender_ext import pkg_manifest_from_archive_and_validate
-    result = pkg_manifest_from_archive_and_validate(filepath)
+    result = pkg_manifest_from_archive_and_validate(filepath, strict=False)
     if isinstance(result, str):
         return result
     # Else convert the named-tuple into a dictionary.
