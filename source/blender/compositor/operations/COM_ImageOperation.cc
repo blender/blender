@@ -15,7 +15,7 @@ BaseImageOperation::BaseImageOperation()
 {
   image_ = nullptr;
   buffer_ = nullptr;
-  image_user_ = nullptr;
+  image_user_ = {};
   imagewidth_ = 0;
   imageheight_ = 0;
   framenumber_ = 0;
@@ -34,19 +34,16 @@ ImageAlphaOperation::ImageAlphaOperation() : BaseImageOperation()
 
 ImBuf *BaseImageOperation::get_im_buf()
 {
-  ImBuf *ibuf;
-  ImageUser iuser = *image_user_;
-
   if (image_ == nullptr) {
     return nullptr;
   }
 
   /* local changes to the original ImageUser */
   if (BKE_image_is_multilayer(image_) == false) {
-    iuser.multi_index = BKE_scene_multiview_view_id_get(rd_, view_name_);
+    image_user_.multi_index = BKE_scene_multiview_view_id_get(rd_, view_name_);
   }
 
-  ibuf = BKE_image_acquire_ibuf(image_, &iuser, nullptr);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image_, &image_user_, nullptr);
   if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
   {
     BKE_image_release_ibuf(image_, ibuf, nullptr);

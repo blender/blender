@@ -186,9 +186,9 @@ void CryptomatteNode::input_operations_from_image_source(
         if (combined_name != prefix && blender::StringRef(combined_name).startswith(prefix)) {
           MultilayerColorOperation *op = new MultilayerColorOperation(
               render_layer, render_pass, view);
-          op->set_image(image);
-          op->set_image_user(iuser);
           iuser->layer = layer_index;
+          op->set_image(image);
+          op->set_image_user(*iuser);
           op->set_framenumber(context.get_framenumber());
           r_input_operations.append(op);
         }

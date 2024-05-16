@@ -44,7 +44,7 @@ NodeOperation *ImageNode::do_multilayer_check(NodeConverter &converter,
       break;
   }
   operation->set_image(image);
-  operation->set_image_user(user);
+  operation->set_image_user(*user);
   operation->set_framenumber(framenumber);
 
   converter.add_operation(operation);
@@ -195,7 +195,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
     if (number_of_outputs > 0) {
       ImageOperation *operation = new ImageOperation();
       operation->set_image(image);
-      operation->set_image_user(imageuser);
+      operation->set_image_user(*imageuser);
       operation->set_framenumber(framenumber);
       operation->set_render_data(context.get_render_data());
       operation->set_view_name(context.get_view_name());
@@ -220,7 +220,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
       NodeOutput *alpha_image = this->get_output_socket(1);
       ImageAlphaOperation *alpha_operation = new ImageAlphaOperation();
       alpha_operation->set_image(image);
-      alpha_operation->set_image_user(imageuser);
+      alpha_operation->set_image_user(*imageuser);
       alpha_operation->set_framenumber(framenumber);
       alpha_operation->set_render_data(context.get_render_data());
       alpha_operation->set_view_name(context.get_view_name());

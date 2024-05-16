@@ -22,19 +22,13 @@ MultilayerBaseOperation::MultilayerBaseOperation(RenderLayer *render_layer,
 
 ImBuf *MultilayerBaseOperation::get_im_buf()
 {
-  /* temporarily changes the view to get the right ImBuf */
-  int view = image_user_->view;
+  image_user_.view = view_;
+  image_user_.pass = pass_id_;
 
-  image_user_->view = view_;
-  image_user_->pass = pass_id_;
-
-  if (BKE_image_multilayer_index(image_->rr, image_user_)) {
-    ImBuf *ibuf = BaseImageOperation::get_im_buf();
-    image_user_->view = view;
-    return ibuf;
+  if (BKE_image_multilayer_index(image_->rr, &image_user_)) {
+    return BaseImageOperation::get_im_buf();
   }
 
-  image_user_->view = view;
   return nullptr;
 }
 

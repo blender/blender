@@ -23,7 +23,7 @@ class BaseImageOperation : public MultiThreadedOperation {
  protected:
   ImBuf *buffer_;
   Image *image_;
-  ImageUser *image_user_;
+  ImageUser image_user_;
 
   int imageheight_;
   int imagewidth_;
@@ -47,7 +47,7 @@ class BaseImageOperation : public MultiThreadedOperation {
   {
     image_ = image;
   }
-  void set_image_user(ImageUser *imageuser)
+  void set_image_user(const ImageUser &imageuser)
   {
     image_user_ = imageuser;
   }
