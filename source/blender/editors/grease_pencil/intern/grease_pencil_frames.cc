@@ -348,7 +348,7 @@ bool ensure_active_keyframe(const Scene &scene,
 
   /* If auto-key is on and the drawing at the current frame starts before the current frame a new
    * keyframe needs to be inserted. */
-  const bool is_first = active_layer.sorted_keys().is_empty() ||
+  const bool is_first = active_layer.is_empty() ||
                         (active_layer.sorted_keys().first() > current_frame);
   const bool needs_new_drawing = is_first ||
                                  (*active_layer.frame_key_at(current_frame) < current_frame);

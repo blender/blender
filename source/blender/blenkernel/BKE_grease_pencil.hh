@@ -420,6 +420,9 @@ class Layer : public ::GreasePencilLayer {
   const Map<FramesMapKey, GreasePencilFrame> &frames() const;
   Map<FramesMapKey, GreasePencilFrame> &frames_for_write();
 
+  /**
+   * \returns true, if the layer contains no keyframes.
+   */
   bool is_empty() const;
 
   /**
