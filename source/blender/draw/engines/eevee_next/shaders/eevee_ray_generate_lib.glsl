@@ -20,9 +20,6 @@ struct BsdfSample {
   float pdf;
 };
 
-/* Could maybe become parameters. */
-#define RAY_BIAS 0.05
-
 bool is_singular_ray(float roughness)
 {
   return roughness < BSDF_ROUGHNESS_THRESHOLD;
@@ -33,7 +30,8 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
 {
   vec3 random_point_on_cylinder = sample_cylinder(noise);
   /* Bias the rays so we never get really high energy rays almost parallel to the surface. */
-  random_point_on_cylinder.x = random_point_on_cylinder.x * (1.0 - RAY_BIAS) + RAY_BIAS;
+  const float rng_bias = 0.08;
+  random_point_on_cylinder.x = random_point_on_cylinder.x * (1.0 - rng_bias);
 
   mat3 world_to_tangent = from_up_axis(cl.N);
 
