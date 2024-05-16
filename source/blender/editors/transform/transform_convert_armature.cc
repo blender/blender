@@ -1267,41 +1267,41 @@ static void restoreMirrorPoseBones(TransDataContainer *tc)
 
 /* Given the transform mode `tmode` return a Vector of RNA paths that were possibly modified during
  * that transformation. */
-static blender::Vector<std::string> get_affected_rna_paths_from_transform_mode(
+static blender::Vector<RNAPath> get_affected_rna_paths_from_transform_mode(
     const eTfmMode tmode,
     ToolSettings *toolsettings,
     const blender::StringRef rotation_path,
     const bool targetless_ik)
 {
-  blender::Vector<std::string> rna_paths;
+  blender::Vector<RNAPath> rna_paths;
   switch (tmode) {
     case TFM_TRANSLATION:
       if (targetless_ik) {
-        rna_paths.append(rotation_path);
+        rna_paths.append({rotation_path});
       }
       else {
-        rna_paths.append("location");
+        rna_paths.append({"location"});
       }
       break;
 
     case TFM_ROTATION:
     case TFM_TRACKBALL:
       if (ELEM(toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE)) {
-        rna_paths.append("location");
+        rna_paths.append({"location"});
       }
 
       if ((toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
-        rna_paths.append(rotation_path);
+        rna_paths.append({rotation_path});
       }
       break;
 
     case TFM_RESIZE:
       if (ELEM(toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE)) {
-        rna_paths.append("location");
+        rna_paths.append({"location"});
       }
 
       if ((toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
-        rna_paths.append("scale");
+        rna_paths.append({"scale"});
       }
       break;
 
@@ -1323,7 +1323,7 @@ static void autokeyframe_pose(
       continue;
     }
 
-    blender::Vector<std::string> rna_paths;
+    blender::Vector<RNAPath> rna_paths;
     const blender::StringRef rotation_path = blender::animrig::get_rotation_mode_path(
         eRotationModes(pchan->rotmode));
 
@@ -1332,7 +1332,7 @@ static void autokeyframe_pose(
           tmode, scene->toolsettings, rotation_path, targetless_ik);
     }
     else {
-      rna_paths = {"location", rotation_path, "scale"};
+      rna_paths = {{"location"}, {rotation_path}, {"scale"}};
     }
 
     blender::animrig::autokeyframe_pose_channel(

@@ -960,7 +960,7 @@ CombinedKeyingResult insert_key_action(Main *bmain,
 }
 
 CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
-                                    const blender::Span<std::string> rna_paths,
+                                    const blender::Span<RNAPath> rna_paths,
                                     const float scene_frame,
                                     const eInsertKeyFlags insert_key_flags,
                                     const eBezTriple_KeyframeType key_type,
@@ -990,11 +990,11 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
   const float nla_frame = BKE_nla_tweakedit_remap(adt, scene_frame, NLATIME_CONVERT_UNMAP);
   const bool visual_keyframing = insert_key_flags & INSERTKEY_MATRIX;
 
-  for (const std::string &rna_path : rna_paths) {
+  for (const RNAPath &rna_path : rna_paths) {
     PointerRNA ptr;
     PropertyRNA *prop = nullptr;
     const bool path_resolved = RNA_path_resolve_property(
-        rna_pointer, rna_path.c_str(), &ptr, &prop);
+        rna_pointer, rna_path.path.c_str(), &ptr, &prop);
     if (!path_resolved) {
       continue;
     }
@@ -1007,7 +1007,7 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
                                           rna_pointer,
                                           prop,
                                           rna_values.as_mutable_span(),
-                                          -1,
+                                          rna_path.index.value_or(-1),
                                           &anim_eval_context,
                                           nullptr,
                                           successful_remaps);

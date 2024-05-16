@@ -103,7 +103,7 @@ bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
   return true;
 }
 
-void autokeyframe_object(bContext *C, Scene *scene, Object *ob, Span<std::string> rna_paths)
+void autokeyframe_object(bContext *C, Scene *scene, Object *ob, Span<RNAPath> rna_paths)
 {
   BLI_assert(ob != nullptr);
   BLI_assert(scene != nullptr);
@@ -198,7 +198,7 @@ void autokeyframe_pose_channel(bContext *C,
                                Scene *scene,
                                Object *ob,
                                bPoseChannel *pose_channel,
-                               Span<std::string> rna_paths,
+                               Span<RNAPath> rna_paths,
                                short targetless_ik)
 {
   BLI_assert(C != nullptr);

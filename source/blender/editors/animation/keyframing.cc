@@ -256,11 +256,11 @@ static bool is_idproperty_keyable(IDProperty *id_prop, PointerRNA *ptr, Property
   return false;
 }
 
-static blender::Vector<std::string> construct_rna_paths(PointerRNA *ptr)
+static blender::Vector<RNAPath> construct_rna_paths(PointerRNA *ptr)
 {
   eRotationModes rotation_mode;
   IDProperty *properties;
-  blender::Vector<std::string> paths;
+  blender::Vector<RNAPath> paths;
 
   if (ptr->type == &RNA_PoseBone) {
     bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
@@ -279,15 +279,15 @@ static blender::Vector<std::string> construct_rna_paths(PointerRNA *ptr)
 
   eKeyInsertChannels insert_channel_flags = eKeyInsertChannels(U.key_insert_channels);
   if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_LOCATION) {
-    paths.append("location");
+    paths.append({"location"});
   }
   if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_ROTATION) {
     switch (rotation_mode) {
       case ROT_MODE_QUAT:
-        paths.append("rotation_quaternion");
+        paths.append({"rotation_quaternion"});
         break;
       case ROT_MODE_AXISANGLE:
-        paths.append("rotation_axis_angle");
+        paths.append({"rotation_axis_angle"});
         break;
       case ROT_MODE_XYZ:
       case ROT_MODE_XZY:
@@ -295,16 +295,16 @@ static blender::Vector<std::string> construct_rna_paths(PointerRNA *ptr)
       case ROT_MODE_YZX:
       case ROT_MODE_ZXY:
       case ROT_MODE_ZYX:
-        paths.append("rotation_euler");
+        paths.append({"rotation_euler"});
       default:
         break;
     }
   }
   if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_SCALE) {
-    paths.append("scale");
+    paths.append({"scale"});
   }
   if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_ROTATION_MODE) {
-    paths.append("rotation_mode");
+    paths.append({"rotation_mode"});
   }
   if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES) {
     if (properties) {
@@ -329,7 +329,7 @@ static blender::Vector<std::string> construct_rna_paths(PointerRNA *ptr)
           continue;
         }
         if (is_idproperty_keyable(id_prop, &resolved_ptr, resolved_prop)) {
-          paths.append(path);
+          paths.append({path});
         }
       }
     }
@@ -400,7 +400,7 @@ static int insert_key(bContext *C, wmOperator *op)
       BKE_reportf(op->reports, RPT_ERROR, "'%s' is not editable", selected_id->name + 2);
       continue;
     }
-    Vector<std::string> rna_paths = construct_rna_paths(&id_ptr);
+    Vector<RNAPath> rna_paths = construct_rna_paths(&id_ptr);
 
     combined_result.merge(animrig::insert_key_rna(&id_ptr,
                                                   rna_paths.as_span(),
