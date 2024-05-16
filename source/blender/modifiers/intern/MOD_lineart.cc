@@ -220,6 +220,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 {
   GreasePencilLineartModifierData *lmd = (GreasePencilLineartModifierData *)md;
 
+  walk(user_data, ob, (ID **)&lmd->target_material, IDWALK_CB_USER);
   walk(user_data, ob, (ID **)&lmd->source_collection, IDWALK_CB_NOP);
 
   walk(user_data, ob, (ID **)&lmd->source_object, IDWALK_CB_NOP);
