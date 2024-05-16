@@ -797,6 +797,9 @@ class CommandHandle:
         handle.wm = context.window_manager
 
         handle.wm.modal_handler_add(op)
+        for window in handle.wm.windows:
+            window.cursor_modal_set('WAIT')
+
         op._runtime_handle = handle
         return {'RUNNING_MODAL'}
 
@@ -840,6 +843,10 @@ class CommandHandle:
             del op._runtime_handle
             context.workspace.status_text_set(None)
             repo_status_text.running = False
+
+            for window in self.wm.windows:
+                window.cursor_modal_restore()
+
             return {'FINISHED'}
 
         return {'RUNNING_MODAL'}
