@@ -76,10 +76,10 @@ struct FModifierTypeInfo {
   /* evaluation */
   /** Evaluate time that the modifier requires the F-Curve to be evaluated at */
   float (*evaluate_modifier_time)(
-      FCurve *fcu, FModifier *fcm, float cvalue, float evaltime, void *storage);
+      const FCurve *fcu, const FModifier *fcm, float cvalue, float evaltime, void *storage);
   /** Evaluate the modifier for the given time and 'accumulated' value */
   void (*evaluate_modifier)(
-      FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime, void *storage);
+      const FCurve *fcu, const FModifier *fcm, float *cvalue, float evaltime, void *storage);
 };
 
 /* Values which describe the behavior of a FModifier Type */
@@ -165,7 +165,7 @@ struct FModifiersStackStorage {
   void *buffer;
 };
 
-uint evaluate_fmodifiers_storage_size_per_modifier(ListBase *modifiers);
+uint evaluate_fmodifiers_storage_size_per_modifier(const ListBase *modifiers);
 /**
  * Evaluate time modifications imposed by some F-Curve Modifiers.
  *
@@ -180,8 +180,8 @@ uint evaluate_fmodifiers_storage_size_per_modifier(ListBase *modifiers);
  * \param fcu: Can be NULL.
  */
 float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
-                               ListBase *modifiers,
-                               FCurve *fcu,
+                               const ListBase *modifiers,
+                               const FCurve *fcu,
                                float cvalue,
                                float evaltime);
 /**
@@ -189,8 +189,8 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
  * Should only be called after evaluate_time_fmodifiers() has been called.
  */
 void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
-                               ListBase *modifiers,
-                               FCurve *fcu,
+                               const ListBase *modifiers,
+                               const FCurve *fcu,
                                float *cvalue,
                                float evaltime);
 
@@ -598,7 +598,7 @@ void BKE_fcurve_correct_bezpart(const float v1[2], float v2[2], float v3[2], con
 /* -------- Evaluation -------- */
 
 /* evaluate fcurve */
-float evaluate_fcurve(FCurve *fcu, float evaltime);
+float evaluate_fcurve(const FCurve *fcu, float evaltime);
 float evaluate_fcurve_only_curve(FCurve *fcu, float evaltime);
 float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
                              FCurve *fcu,

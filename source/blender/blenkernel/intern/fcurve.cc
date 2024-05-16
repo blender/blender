@@ -2032,8 +2032,11 @@ void BKE_fcurve_deduplicate_keys(FCurve *fcu)
 /** \name F-Curve Evaluation
  * \{ */
 
-static float fcurve_eval_keyframes_extrapolate(
-    FCurve *fcu, BezTriple *bezts, float evaltime, int endpoint_offset, int direction_to_neighbor)
+static float fcurve_eval_keyframes_extrapolate(const FCurve *fcu,
+                                               const BezTriple *bezts,
+                                               float evaltime,
+                                               int endpoint_offset,
+                                               int direction_to_neighbor)
 {
   /* The first/last keyframe. */
   const BezTriple *endpoint_bezt = bezts + endpoint_offset;
@@ -2345,7 +2348,7 @@ static float fcurve_eval_keyframes_interpolate(const FCurve *fcu,
 }
 
 /* Calculate F-Curve value for 'evaltime' using #BezTriple keyframes. */
-static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime)
+static float fcurve_eval_keyframes(const FCurve *fcu, const BezTriple *bezts, float evaltime)
 {
   if (evaltime <= bezts->vec[1][0]) {
     return fcurve_eval_keyframes_extrapolate(fcu, bezts, evaltime, 0, +1);
@@ -2404,7 +2407,7 @@ static float fcurve_eval_samples(const FCurve *fcu, const FPoint *fpts, float ev
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime")
  * NOTE: this is also used for drivers.
  */
-static float evaluate_fcurve_ex(FCurve *fcu, float evaltime, float cvalue)
+static float evaluate_fcurve_ex(const FCurve *fcu, float evaltime, float cvalue)
 {
   /* Evaluate modifiers which modify time to evaluate the base curve at. */
   FModifiersStackStorage storage;
@@ -2439,7 +2442,7 @@ static float evaluate_fcurve_ex(FCurve *fcu, float evaltime, float cvalue)
   return cvalue;
 }
 
-float evaluate_fcurve(FCurve *fcu, float evaltime)
+float evaluate_fcurve(const FCurve *fcu, float evaltime)
 {
   BLI_assert(fcu->driver == nullptr);
 

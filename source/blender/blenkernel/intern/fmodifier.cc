@@ -155,8 +155,11 @@ static void fcm_generator_verify(FModifier *fcm)
   }
 }
 
-static void fcm_generator_evaluate(
-    FCurve * /*fcu*/, FModifier *fcm, float *cvalue, float evaltime, void * /*storage*/)
+static void fcm_generator_evaluate(const FCurve * /*fcu*/,
+                                   const FModifier *fcm,
+                                   float *cvalue,
+                                   float evaltime,
+                                   void * /*storage*/)
 {
   FMod_Generator *data = (FMod_Generator *)fcm->data;
 
@@ -280,8 +283,11 @@ static double sinc(double x)
   return sin(M_PI * x) / (M_PI * x);
 }
 
-static void fcm_fn_generator_evaluate(
-    FCurve * /*fcu*/, FModifier *fcm, float *cvalue, float evaltime, void * /*storage*/)
+static void fcm_fn_generator_evaluate(const FCurve * /*fcu*/,
+                                      const FModifier *fcm,
+                                      float *cvalue,
+                                      float evaltime,
+                                      void * /*storage*/)
 {
   FMod_FunctionGenerator *data = (FMod_FunctionGenerator *)fcm->data;
   double arg = data->phase_multiplier * evaltime + data->phase_offset;
@@ -418,8 +424,11 @@ static void fcm_envelope_verify(FModifier *fcm)
   }
 }
 
-static void fcm_envelope_evaluate(
-    FCurve * /*fcu*/, FModifier *fcm, float *cvalue, float evaltime, void * /*storage*/)
+static void fcm_envelope_evaluate(const FCurve * /*fcu*/,
+                                  const FModifier *fcm,
+                                  float *cvalue,
+                                  float evaltime,
+                                  void * /*storage*/)
 {
   FMod_Envelope *env = (FMod_Envelope *)fcm->data;
   FCM_EnvelopeData *fed, *prevfed, *lastfed;
@@ -611,7 +620,7 @@ static void fcm_cycles_new_data(void *mdata)
 }
 
 static float fcm_cycles_time(
-    FCurve *fcu, FModifier *fcm, float /*cvalue*/, float evaltime, void *storage_)
+    const FCurve *fcu, const FModifier *fcm, float /*cvalue*/, float evaltime, void *storage_)
 {
   const FMod_Cycles *data = (FMod_Cycles *)fcm->data;
   tFCMED_Cycles *storage = static_cast<tFCMED_Cycles *>(storage_);
@@ -623,12 +632,9 @@ static float fcm_cycles_time(
   /* Initialize storage. */
   storage->cycyofs = 0;
 
-  /* check if modifier is first in stack, otherwise disable ourself... */
-  /* FIXME... */
-  if (fcm->prev) {
-    fcm->flag |= FMODIFIER_FLAG_DISABLED;
-    return evaltime;
-  }
+  /* It shouldn't be possible for this modifier type to be anywhere other than
+   * the top of the stack. If it is, something's wrong. */
+  BLI_assert(fcm->prev == nullptr);
 
   if (fcu == nullptr || (fcu->bezt == nullptr && fcu->fpt == nullptr)) {
     return evaltime;
@@ -762,8 +768,11 @@ static float fcm_cycles_time(
   return evaltime;
 }
 
-static void fcm_cycles_evaluate(
-    FCurve * /*fcu*/, FModifier * /*fcm*/, float *cvalue, float /*evaltime*/, void *storage_)
+static void fcm_cycles_evaluate(const FCurve * /*fcu*/,
+                                const FModifier * /*fcm*/,
+                                float *cvalue,
+                                float /*evaltime*/,
+                                void *storage_)
 {
   tFCMED_Cycles *storage = static_cast<tFCMED_Cycles *>(storage_);
   *cvalue += storage->cycyofs;
@@ -800,8 +809,11 @@ static void fcm_noise_new_data(void *mdata)
   data->modification = FCM_NOISE_MODIF_REPLACE;
 }
 
-static void fcm_noise_evaluate(
-    FCurve * /*fcu*/, FModifier *fcm, float *cvalue, float evaltime, void * /*storage*/)
+static void fcm_noise_evaluate(const FCurve * /*fcu*/,
+                               const FModifier *fcm,
+                               float *cvalue,
+                               float evaltime,
+                               void * /*storage*/)
 {
   FMod_Noise *data = (FMod_Noise *)fcm->data;
   float noise;
@@ -874,8 +886,8 @@ static void fcm_python_copy(FModifier *fcm, const FModifier *src)
   pymod->prop = IDP_CopyProperty(opymod->prop);
 }
 
-static void fcm_python_evaluate(FCurve * /*fcu*/,
-                                FModifier * /*fcm*/,
+static void fcm_python_evaluate(const FCurve * /*fcu*/,
+                                const FModifier * /*fcm*/,
                                 float * /*cvalue*/,
                                 float /*evaltime*/,
                                 void * /*storage*/)
@@ -907,8 +919,11 @@ static FModifierTypeInfo FMI_PYTHON = {
 
 /* Limits F-Curve Modifier --------------------------- */
 
-static float fcm_limits_time(
-    FCurve * /*fcu*/, FModifier *fcm, float /*cvalue*/, float evaltime, void * /*storage*/)
+static float fcm_limits_time(const FCurve * /*fcu*/,
+                             const FModifier *fcm,
+                             float /*cvalue*/,
+                             float evaltime,
+                             void * /*storage*/)
 {
   FMod_Limits *data = (FMod_Limits *)fcm->data;
 
@@ -924,8 +939,11 @@ static float fcm_limits_time(
   return evaltime;
 }
 
-static void fcm_limits_evaluate(
-    FCurve * /*fcu*/, FModifier *fcm, float *cvalue, float /*evaltime*/, void * /*storage*/)
+static void fcm_limits_evaluate(const FCurve * /*fcu*/,
+                                const FModifier *fcm,
+                                float *cvalue,
+                                float /*evaltime*/,
+                                void * /*storage*/)
 {
   FMod_Limits *data = (FMod_Limits *)fcm->data;
 
@@ -965,8 +983,11 @@ static void fcm_stepped_new_data(void *mdata)
   data->step_size = 2.0f;
 }
 
-static float fcm_stepped_time(
-    FCurve * /*fcu*/, FModifier *fcm, float /*cvalue*/, float evaltime, void * /*storage*/)
+static float fcm_stepped_time(const FCurve * /*fcu*/,
+                              const FModifier *fcm,
+                              float /*cvalue*/,
+                              float evaltime,
+                              void * /*storage*/)
 {
   FMod_Stepped *data = (FMod_Stepped *)fcm->data;
   int snapblock;
@@ -1312,7 +1333,7 @@ bool list_has_suitable_fmodifier(const ListBase *modifiers, int mtype, short act
 
 /* Evaluation API --------------------------- */
 
-uint evaluate_fmodifiers_storage_size_per_modifier(ListBase *modifiers)
+uint evaluate_fmodifiers_storage_size_per_modifier(const ListBase *modifiers)
 {
   /* Sanity checks. */
   if (ELEM(nullptr, modifiers, modifiers->first)) {
@@ -1385,8 +1406,8 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
 }
 
 float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
-                               ListBase *modifiers,
-                               FCurve *fcu,
+                               const ListBase *modifiers,
+                               const FCurve *fcu,
                                float cvalue,
                                float evaltime)
 {
@@ -1445,8 +1466,8 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
 }
 
 void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
-                               ListBase *modifiers,
-                               FCurve *fcu,
+                               const ListBase *modifiers,
+                               const FCurve *fcu,
                                float *cvalue,
                                float evaltime)
 {
