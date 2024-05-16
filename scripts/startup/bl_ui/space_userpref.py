@@ -2293,12 +2293,11 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         )
 
         # collect the categories that can be filtered on
-        addons = [
-            (mod, addon_utils.module_bl_info(mod))
-            for mod in addon_utils.modules(refresh=False)
-        ]
+        addon_modules = [mod for mod in addon_utils.modules(refresh=False)]
 
         self._draw_addon_header(layout, prefs, wm)
+
+        layout_topmost = layout.column()
 
         col = layout.column()
 
@@ -2331,7 +2330,8 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         # initialized on demand
         user_addon_paths = []
 
-        for mod, bl_info in addons:
+        for mod in addon_modules:
+            bl_info = addon_utils.module_bl_info(mod)
             addon_module_name = mod.__name__
 
             is_enabled = addon_module_name in used_addon_module_name_map
@@ -2460,34 +2460,35 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                     if (addon_preferences := used_addon_module_name_map[addon_module_name].preferences) is not None:
                         self.draw_addon_preferences(col_box, context, addon_preferences)
 
-        # Append missing scripts
-        # First collect scripts that are used but have no script file.
-        module_names = {mod.__name__ for mod, bl_info in addons}
-        missing_modules = {
-            addon_module_name for addon_module_name in used_addon_module_name_map
-            if addon_module_name not in module_names
-        }
+        if filter in {"All", "Enabled"}:
+            # Append missing scripts
+            # First collect scripts that are used but have no script file.
+            module_names = {mod.__name__ for mod in addon_modules}
+            missing_modules = {
+                addon_module_name for addon_module_name in used_addon_module_name_map
+                if addon_module_name not in module_names
+            }
 
-        if missing_modules and filter in {"All", "Enabled"}:
-            col.column().separator()
-            col.column().label(text="Missing script files")
+            if missing_modules:
+                layout_topmost.column().separator()
+                layout_topmost.column().label(text="Missing script files")
 
-            module_names = {mod.__name__ for mod, bl_info in addons}
-            for addon_module_name in sorted(missing_modules):
-                is_enabled = addon_module_name in used_addon_module_name_map
-                # Addon UI Code
-                box = col.column().box()
-                colsub = box.column()
-                row = colsub.row(align=True)
+                module_names = {mod.__name__ for mod in addon_modules}
+                for addon_module_name in sorted(missing_modules):
+                    is_enabled = addon_module_name in used_addon_module_name_map
+                    # Addon UI Code
+                    box = layout_topmost.column().box()
+                    colsub = box.column()
+                    row = colsub.row(align=True)
 
-                row.label(text="", icon='ERROR')
+                    row.label(text="", icon='ERROR')
 
-                if is_enabled:
-                    row.operator(
-                        "preferences.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,
-                    ).module = addon_module_name
+                    if is_enabled:
+                        row.operator(
+                            "preferences.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,
+                        ).module = addon_module_name
 
-                row.label(text=addon_module_name, translate=False)
+                    row.label(text=addon_module_name, translate=False)
 
 
 # -----------------------------------------------------------------------------
