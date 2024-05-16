@@ -34,7 +34,6 @@ VERBOSE_CMD = False
 
 BLENDER_BIN = os.environ.get("BLENDER_BIN")
 if BLENDER_BIN is None:
-    sys.exit(0)
     raise Exception("BLENDER_BIN: environment variable not defined")
 
 
