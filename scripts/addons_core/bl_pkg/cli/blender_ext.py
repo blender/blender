@@ -1473,17 +1473,16 @@ def generic_arg_local_dir(subparse: argparse.ArgumentParser) -> None:
 def generic_arg_package_source_path_positional(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         dest="source_path",
-        type=str,
         nargs="?",
         default=".",
+        type=str,
         metavar="SOURCE_PATH",
         help=(
-            "The package source path "
-            "(either directory containing package files or the package archive).\n"
+            "The package source path (either directory containing package files or the package archive).\n"
             "This path must containing a ``{:s}`` manifest.\n"
             "\n"
-            "The current directory ``.`` is default.".format(PKG_MANIFEST_FILENAME_TOML)
-        ),
+            "Defaults to the current directory."
+        ).format(PKG_MANIFEST_FILENAME_TOML),
     )
 
 
@@ -1491,11 +1490,13 @@ def generic_arg_package_source_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--source-dir",
         dest="source_dir",
+        default=".",
         type=str,
         help=(
-            "The package source directory containing a ``{:s}`` manifest.".format(PKG_MANIFEST_FILENAME_TOML)
-        ),
-        default=".",
+            "The package source directory containing a ``{:s}`` manifest.\n"
+            "\n"
+            "Default's to the current directory."
+        ).format(PKG_MANIFEST_FILENAME_TOML),
     )
 
 
@@ -1503,11 +1504,13 @@ def generic_arg_package_output_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--output-dir",
         dest="output_dir",
+        default=".",
         type=str,
         help=(
-            "The package output directory."
+            "The package output directory.\n"
+            "\n"
+            "Default's to the current directory."
         ),
-        default=".",
     )
 
 
@@ -1515,11 +1518,13 @@ def generic_arg_package_output_filepath(subparse: argparse.ArgumentParser) -> No
     subparse.add_argument(
         "--output-filepath",
         dest="output_filepath",
+        default="",
         type=str,
         help=(
-            "The package output filepath (should include a ``{:s}`` extension).".format(PKG_EXT)
-        ),
-        default=".",
+            "The package output filepath (should include a ``{:s}`` extension).\n"
+            "\n"
+            "Defaults to a name created using the ``id`` from the manifest."
+        ).format(PKG_EXT),
     )
 
 
@@ -1533,7 +1538,7 @@ def generic_arg_output_type(subparse: argparse.ArgumentParser) -> None:
         help=(
             "The output type:\n"
             "\n"
-            "- TEXT: Plain text.\n"
+            "- TEXT: Plain text (default).\n"
             "- JSON: Separated by new-lines.\n"
             "- JSON_0: Separated null bytes.\n"
         ),
@@ -2173,7 +2178,7 @@ class subcmd_author:
             message_error(msg_fn, "Missing local \"{:s}\"".format(pkg_source_dir))
             return False
 
-        if pkg_output_dir != "." and pkg_output_filepath != ".":
+        if pkg_output_dir != "." and pkg_output_filepath != "":
             message_error(msg_fn, "Both output directory & output filepath set, set one or the other")
             return False
 
@@ -2191,7 +2196,7 @@ class subcmd_author:
 
         pkg_filename = manifest.id + PKG_EXT
 
-        if pkg_output_filepath != ".":
+        if pkg_output_filepath != "":
             outfile = pkg_output_filepath
         else:
             outfile = os.path.join(pkg_output_dir, pkg_filename)
@@ -2446,7 +2451,7 @@ def unregister():
                     msg_fn_no_done,
                     pkg_source_dir=pkg_src_dir,
                     pkg_output_dir=repo_dir,
-                    pkg_output_filepath=".",
+                    pkg_output_filepath="",
                 ):
                     # Error running command.
                     return False
