@@ -166,6 +166,8 @@ float shadow_directional_level_fractional(LightData light, vec3 lP)
 
 int shadow_directional_level(LightData light, vec3 lP)
 {
+  /* The level can be negative and is increasing with the distance.
+   * So we have to ceil instead of flooring. */
   return int(ceil(shadow_directional_level_fractional(light, lP)));
 }
 
@@ -211,11 +213,7 @@ float shadow_punctual_level_fractional(LightData light,
 {
   float ratio = shadow_punctual_pixel_ratio(
       light, lP, is_perspective, distance_to_camera, film_pixel_radius);
-  /* NOTE: Bias by one to counteract the ceil in the `int` variant. This is done because this
-   * function should return an upper bound. */
-  float lod = -log2(ratio) - 1.0;
-  lod = min(lod, float(SHADOW_TILEMAP_LOD));
-  return lod;
+  return clamp(-log2(ratio), 0.0, float(SHADOW_TILEMAP_LOD));
 }
 
 int shadow_punctual_level(LightData light,
@@ -224,8 +222,9 @@ int shadow_punctual_level(LightData light,
                           float distance_to_camera,
                           float film_pixel_radius)
 {
-  return int(ceil(shadow_punctual_level_fractional(
-      light, lP, is_perspective, distance_to_camera, film_pixel_radius)));
+  /* Conversion to positive int is the same as floor. */
+  return int(shadow_punctual_level_fractional(
+      light, lP, is_perspective, distance_to_camera, film_pixel_radius));
 }
 
 struct ShadowCoordinates {
