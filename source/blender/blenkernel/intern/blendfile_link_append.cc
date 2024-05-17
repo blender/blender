@@ -1143,7 +1143,7 @@ static int foreach_libblock_append_finalize_action_callback(LibraryIDLinkCallbac
   return IDWALK_RET_NOP;
 }
 
-void blendfile_append_define_actions(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
+static void blendfile_append_define_actions(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   Main *bmain = lapp_context->params->bmain;
 
