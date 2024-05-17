@@ -760,6 +760,10 @@ def url_retrieve_to_filepath_iter_or_filesystem(
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[Tuple[int, int], None, None]:
+    """
+    Callers should catch: ``(Exception, KeyboardInterrupt)`` and convert them to message using:
+    ``url_retrieve_exception_as_message``.
+    """
     if url_is_filesystem(url):
         yield from filepath_retrieve_to_filepath_iter(
             path_from_url(url),
@@ -776,6 +780,21 @@ def url_retrieve_to_filepath_iter_or_filesystem(
             timeout_in_seconds=timeout_in_seconds,
         ):
             yield (read, size)
+
+
+def url_retrieve_exception_as_message(ex: Exception, *, prefix: str, url: str) -> str:
+    """
+    Provides more user friendly messages when reading from a URL fails.
+    """
+    # These exceptions may occur when reading from the file-system or a URL.
+    if isinstance(ex, FileNotFoundError):
+        return "{:s}: file-not-found ({:s}) reading {!r}!".format(prefix, str(ex), url)
+    if isinstance(ex, TimeoutError):
+        return "{:s}: timeout ({:s}) reading {!r}!".format(prefix, str(ex), url)
+    if isinstance(ex, urllib.error.URLError):
+        return "{:s}: URL error ({:s}) reading {!r}!".format(prefix, str(ex), url)
+
+    return "{:s}: unexpected error ({:s}) reading {!r}!".format(prefix, str(ex), url)
 
 
 def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
@@ -1294,18 +1313,8 @@ def repo_sync_from_remote(
                     break
                 read_total += read
             del read_total
-
-        except FileNotFoundError as ex:
-            message_error(msg_fn, "sync: file-not-found ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except TimeoutError as ex:
-            message_error(msg_fn, "sync: timeout ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except urllib.error.URLError as ex:
-            message_error(msg_fn, "sync: URL error ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except BaseException as ex:
-            message_error(msg_fn, "sync: unexpected error ({:s}) reading {!r}!".format(str(ex), remote_url))
+        except (Exception, KeyboardInterrupt) as ex:
+            message_error(msg_fn, url_retrieve_exception_as_message(ex, prefix="sync", url=remote_url))
             return False
 
         if request_exit:
@@ -1728,17 +1737,8 @@ class subcmd_client:
             ):
                 result.write(block)
 
-        except FileNotFoundError as ex:
-            message_error(msg_fn, "list: file-not-found ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except TimeoutError as ex:
-            message_error(msg_fn, "list: timeout ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except urllib.error.URLError as ex:
-            message_error(msg_fn, "list: URL error ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except BaseException as ex:
-            message_error(msg_fn, "list: unexpected error ({:s}) reading {!r}!".format(str(ex), remote_url))
+        except (Exception, KeyboardInterrupt) as ex:
+            message_error(msg_fn, url_retrieve_exception_as_message(ex, prefix="list", url=remote_url))
             return False
 
         result_str = result.getvalue().decode("utf-8")
@@ -2037,29 +2037,8 @@ class subcmd_client:
                                 sha256.update(block)
                                 filename_archive_size_test += len(block)
 
-                    except FileNotFoundError as ex:
-                        message_error(
-                            msg_fn,
-                            "install: file-not-found ({:s}) reading {!r}!".format(str(ex), filepath_remote_archive),
-                        )
-                        return False
-                    except TimeoutError as ex:
-                        message_error(
-                            msg_fn,
-                            "install: timeout ({:s}) reading {!r}!".format(str(ex), filepath_remote_archive),
-                        )
-                        return False
-                    except urllib.error.URLError as ex:
-                        message_error(
-                            msg_fn,
-                            "install: URL error ({:s}) reading {!r}!".format(str(ex), filepath_remote_archive),
-                        )
-                        return False
-                    except BaseException as ex:
-                        message_error(
-                            msg_fn,
-                            "install: unexpected error ({:s}) reading {!r}!".format(str(ex), filepath_remote_archive),
-                        )
+                    except (Exception, KeyboardInterrupt) as ex:
+                        message_error(msg_fn, url_retrieve_exception_as_message(ex, prefix="install", url=remote_url))
                         return False
 
                     if request_exit:
