@@ -782,7 +782,12 @@ def url_retrieve_to_filepath_iter_or_filesystem(
             yield (read, size)
 
 
-def url_retrieve_exception_as_message(ex: Exception, *, prefix: str, url: str) -> str:
+def url_retrieve_exception_as_message(
+        ex: Union[Exception, KeyboardInterrupt],
+        *,
+        prefix: str,
+        url: str,
+) -> str:
     """
     Provides more user friendly messages when reading from a URL fails.
     """
