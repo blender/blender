@@ -11,18 +11,39 @@
 namespace blender::compositor {
 
 MultilayerBaseOperation::MultilayerBaseOperation(RenderLayer *render_layer,
-                                                 RenderPass *render_pass,
-                                                 int view)
+                                                 RenderPass *render_pass)
 {
   pass_id_ = BLI_findindex(&render_layer->passes, render_pass);
-  view_ = view;
   render_layer_ = render_layer;
   render_pass_ = render_pass;
 }
 
+int MultilayerBaseOperation::get_view_index() const
+{
+  if (BLI_listbase_count_at_most(&image_->rr->views, 2) <= 1) {
+    return 0;
+  }
+
+  const int view_image = image_user_.view;
+  const bool is_allview = (view_image == 0); /* if view selected == All (0) */
+
+  if (is_allview) {
+    /* Heuristic to match image name with scene names check if the view name exists in the image.
+     */
+    const int view = BLI_findstringindex(
+        &image_->rr->views, view_name_, offsetof(RenderView, name));
+    if (view == -1) {
+      return 0;
+    }
+    return view;
+  }
+
+  return view_image - 1;
+}
+
 ImBuf *MultilayerBaseOperation::get_im_buf()
 {
-  image_user_.view = view_;
+  image_user_.view = get_view_index();
   image_user_.pass = pass_id_;
 
   if (BKE_image_multilayer_index(image_->rr, &image_user_)) {

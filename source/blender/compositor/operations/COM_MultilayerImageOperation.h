@@ -11,18 +11,21 @@ namespace blender::compositor {
 class MultilayerBaseOperation : public BaseImageOperation {
  private:
   int pass_id_;
-  int view_;
 
  protected:
   RenderLayer *render_layer_;
   RenderPass *render_pass_;
+
+  /* Returns the image view to use for the current active view. */
+  int get_view_index() const;
+
   ImBuf *get_im_buf() override;
 
  public:
   /**
    * Constructor
    */
-  MultilayerBaseOperation(RenderLayer *render_layer, RenderPass *render_pass, int view);
+  MultilayerBaseOperation(RenderLayer *render_layer, RenderPass *render_pass);
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -31,8 +34,8 @@ class MultilayerBaseOperation : public BaseImageOperation {
 
 class MultilayerColorOperation : public MultilayerBaseOperation {
  public:
-  MultilayerColorOperation(RenderLayer *render_layer, RenderPass *render_pass, int view)
-      : MultilayerBaseOperation(render_layer, render_pass, view)
+  MultilayerColorOperation(RenderLayer *render_layer, RenderPass *render_pass)
+      : MultilayerBaseOperation(render_layer, render_pass)
   {
     this->add_output_socket(DataType::Color);
   }
@@ -41,8 +44,8 @@ class MultilayerColorOperation : public MultilayerBaseOperation {
 
 class MultilayerValueOperation : public MultilayerBaseOperation {
  public:
-  MultilayerValueOperation(RenderLayer *render_layer, RenderPass *render_pass, int view)
-      : MultilayerBaseOperation(render_layer, render_pass, view)
+  MultilayerValueOperation(RenderLayer *render_layer, RenderPass *render_pass)
+      : MultilayerBaseOperation(render_layer, render_pass)
   {
     this->add_output_socket(DataType::Value);
   }
@@ -50,8 +53,8 @@ class MultilayerValueOperation : public MultilayerBaseOperation {
 
 class MultilayerVectorOperation : public MultilayerBaseOperation {
  public:
-  MultilayerVectorOperation(RenderLayer *render_layer, RenderPass *render_pass, int view)
-      : MultilayerBaseOperation(render_layer, render_pass, view)
+  MultilayerVectorOperation(RenderLayer *render_layer, RenderPass *render_pass)
+      : MultilayerBaseOperation(render_layer, render_pass)
   {
     this->add_output_socket(DataType::Vector);
   }
