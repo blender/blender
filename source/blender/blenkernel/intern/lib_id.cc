@@ -1624,6 +1624,28 @@ ID *BKE_libblock_find_name_and_library(Main *bmain,
   return nullptr;
 }
 
+ID *BKE_libblock_find_name_and_library_filepath(Main *bmain,
+                                                short type,
+                                                const char *name,
+                                                const char *lib_filepath_abs)
+{
+  ListBase *lb = which_libbase(bmain, type);
+  BLI_assert(lb != nullptr);
+  LISTBASE_FOREACH (ID *, id, lb) {
+    if (!STREQ(id->name + 2, name)) {
+      continue;
+    }
+    if (id->lib == nullptr && lib_filepath_abs == nullptr) {
+      return id;
+    }
+    else if (id->lib && lib_filepath_abs && STREQ(id->lib->runtime.filepath_abs, lib_filepath_abs))
+    {
+      return id;
+    }
+  }
+  return nullptr;
+}
+
 void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 {
 #define ID_SORT_STEP_SIZE 512

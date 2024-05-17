@@ -259,6 +259,11 @@ ID *BKE_libblock_find_name_and_library(Main *bmain,
                                        short type,
                                        const char *name,
                                        const char *lib_name);
+ID *BKE_libblock_find_name_and_library_filepath(Main *bmain,
+                                                short type,
+                                                const char *name,
+                                                const char *lib_filepath_abs);
+
 /**
  * Duplicate (a.k.a. deep copy) common processing options.
  * See also eDupli_ID_Flags for options controlling what kind of IDs to duplicate.
