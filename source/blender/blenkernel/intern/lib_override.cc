@@ -911,6 +911,21 @@ static bool lib_override_hierarchy_dependencies_skip_check(ID *owner_id,
       return true;
     }
   }
+  /* Skip relationships to IDs that should not be involved in liboverrides currently.
+   * NOTE: The Scene case is a bit specific:
+   *         - While not officially supported, API allow to create liboverrides of whole Scene.
+   *         - However, when creating liboverrides from other type of data (e.g. collections or
+   *           objects), scenes should really not be considered as part of a hierarchy. If there
+   *           are dependencies from other overridden IDs to a scene, this is considered as not
+   *           supported (see also #121410). */
+#define HIERARCHY_BREAKING_ID_TYPES ID_SCE, ID_LI, ID_SCR, ID_WM, ID_WS
+  if (ELEM(GS(other_id->name), HIERARCHY_BREAKING_ID_TYPES) &&
+      !ELEM(GS(owner_id->name), HIERARCHY_BREAKING_ID_TYPES))
+  {
+    return true;
+  }
+#undef HIERARCHY_BREAKING_ID_TYPES
+
   return false;
 }
 
