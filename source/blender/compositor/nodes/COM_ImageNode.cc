@@ -20,8 +20,7 @@ ImageNode::ImageNode(bNode *editor_node) : Node(editor_node)
 }
 NodeOperation *ImageNode::do_multilayer_check(NodeConverter &converter,
                                               const CompositorContext &context,
-                                              RenderLayer *render_layer,
-                                              RenderPass *render_pass,
+                                              const char *pass_name,
                                               Image *image,
                                               ImageUser *user,
                                               int framenumber,
@@ -32,13 +31,13 @@ NodeOperation *ImageNode::do_multilayer_check(NodeConverter &converter,
   MultilayerBaseOperation *operation = nullptr;
   switch (datatype) {
     case DataType::Value:
-      operation = new MultilayerValueOperation(render_layer, render_pass);
+      operation = new MultilayerValueOperation();
       break;
     case DataType::Vector:
-      operation = new MultilayerVectorOperation(render_layer, render_pass);
+      operation = new MultilayerVectorOperation();
       break;
     case DataType::Color:
-      operation = new MultilayerColorOperation(render_layer, render_pass);
+      operation = new MultilayerColorOperation();
       break;
     default:
       break;
@@ -47,6 +46,7 @@ NodeOperation *ImageNode::do_multilayer_check(NodeConverter &converter,
   operation->set_image_user(*user);
   operation->set_framenumber(framenumber);
   operation->set_view_name(context.get_view_name());
+  operation->set_pass_name(pass_name);
 
   converter.add_operation(operation);
   converter.map_output_socket(output_socket, operation->get_output_socket());
@@ -94,8 +94,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
               case 1:
                 operation = do_multilayer_check(converter,
                                                 context,
-                                                rl,
-                                                rpass,
+                                                rpass->name,
                                                 image,
                                                 imageuser,
                                                 framenumber,
@@ -107,8 +106,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
               case 3:
                 operation = do_multilayer_check(converter,
                                                 context,
-                                                rl,
-                                                rpass,
+                                                rpass->name,
                                                 image,
                                                 imageuser,
                                                 framenumber,
@@ -118,8 +116,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
               case 4:
                 operation = do_multilayer_check(converter,
                                                 context,
-                                                rl,
-                                                rpass,
+                                                rpass->name,
                                                 image,
                                                 imageuser,
                                                 framenumber,

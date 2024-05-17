@@ -168,12 +168,13 @@ void CryptomatteNode::input_operations_from_image_source(
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
         const std::string combined_name = combined_layer_pass_name(render_layer, render_pass);
         if (combined_name != prefix && blender::StringRef(combined_name).startswith(prefix)) {
-          MultilayerColorOperation *op = new MultilayerColorOperation(render_layer, render_pass);
+          MultilayerColorOperation *op = new MultilayerColorOperation();
           iuser->layer = layer_index;
           op->set_image(image);
           op->set_image_user(*iuser);
           op->set_framenumber(context.get_framenumber());
           op->set_view_name(context.get_view_name());
+          op->set_pass_name(render_pass->name);
           r_input_operations.append(op);
         }
       }

@@ -10,14 +10,6 @@
 
 namespace blender::compositor {
 
-MultilayerBaseOperation::MultilayerBaseOperation(RenderLayer *render_layer,
-                                                 RenderPass *render_pass)
-{
-  pass_id_ = BLI_findindex(&render_layer->passes, render_pass);
-  render_layer_ = render_layer;
-  render_pass_ = render_pass;
-}
-
 int MultilayerBaseOperation::get_view_index() const
 {
   if (BLI_listbase_count_at_most(&image_->rr->views, 2) <= 1) {
@@ -43,8 +35,16 @@ int MultilayerBaseOperation::get_view_index() const
 
 ImBuf *MultilayerBaseOperation::get_im_buf()
 {
+  if (image_ == nullptr) {
+    return nullptr;
+  }
+
+  const RenderLayer *render_layer = static_cast<const RenderLayer *>(
+      BLI_findlink(&image_->rr->layers, image_user_.layer));
+
   image_user_.view = get_view_index();
-  image_user_.pass = pass_id_;
+  image_user_.pass = BLI_findstringindex(
+      &render_layer->passes, pass_name_.c_str(), offsetof(RenderPass, name));
 
   if (BKE_image_multilayer_index(image_->rr, &image_user_)) {
     return BaseImageOperation::get_im_buf();
@@ -69,15 +69,12 @@ std::unique_ptr<MetaData> MultilayerColorOperation::get_meta_data()
 {
   BLI_assert(buffer_);
   MetaDataExtractCallbackData callback_data = {nullptr};
+  /* TODO: Make access to the render result thread-safe. */
   RenderResult *render_result = image_->rr;
   if (render_result && render_result->stamp_data) {
-    RenderLayer *render_layer = render_layer_;
-    RenderPass *render_pass = render_pass_;
-    std::string full_layer_name =
-        std::string(render_layer->name,
-                    BLI_strnlen(render_layer->name, sizeof(render_layer->name))) +
-        "." +
-        std::string(render_pass->name, BLI_strnlen(render_pass->name, sizeof(render_pass->name)));
+    const RenderLayer *render_layer = static_cast<const RenderLayer *>(
+        BLI_findlink(&image_->rr->layers, image_user_.layer));
+    std::string full_layer_name = std::string(render_layer->name) + "." + pass_name_;
     blender::StringRef cryptomatte_layer_name =
         blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(full_layer_name);
     callback_data.set_cryptomatte_keys(cryptomatte_layer_name);

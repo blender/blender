@@ -4,17 +4,15 @@
 
 #pragma once
 
+#include <string>
+
 #include "COM_ImageOperation.h"
 
 namespace blender::compositor {
 
 class MultilayerBaseOperation : public BaseImageOperation {
- private:
-  int pass_id_;
-
  protected:
-  RenderLayer *render_layer_;
-  RenderPass *render_pass_;
+  std::string pass_name_;
 
   /* Returns the image view to use for the current active view. */
   int get_view_index() const;
@@ -22,10 +20,12 @@ class MultilayerBaseOperation : public BaseImageOperation {
   ImBuf *get_im_buf() override;
 
  public:
-  /**
-   * Constructor
-   */
-  MultilayerBaseOperation(RenderLayer *render_layer, RenderPass *render_pass);
+  MultilayerBaseOperation() = default;
+
+  void set_pass_name(std::string pass_name)
+  {
+    pass_name_ = std::move(pass_name);
+  }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -34,8 +34,7 @@ class MultilayerBaseOperation : public BaseImageOperation {
 
 class MultilayerColorOperation : public MultilayerBaseOperation {
  public:
-  MultilayerColorOperation(RenderLayer *render_layer, RenderPass *render_pass)
-      : MultilayerBaseOperation(render_layer, render_pass)
+  MultilayerColorOperation()
   {
     this->add_output_socket(DataType::Color);
   }
@@ -44,8 +43,7 @@ class MultilayerColorOperation : public MultilayerBaseOperation {
 
 class MultilayerValueOperation : public MultilayerBaseOperation {
  public:
-  MultilayerValueOperation(RenderLayer *render_layer, RenderPass *render_pass)
-      : MultilayerBaseOperation(render_layer, render_pass)
+  MultilayerValueOperation()
   {
     this->add_output_socket(DataType::Value);
   }
@@ -53,8 +51,7 @@ class MultilayerValueOperation : public MultilayerBaseOperation {
 
 class MultilayerVectorOperation : public MultilayerBaseOperation {
  public:
-  MultilayerVectorOperation(RenderLayer *render_layer, RenderPass *render_pass)
-      : MultilayerBaseOperation(render_layer, render_pass)
+  MultilayerVectorOperation()
   {
     this->add_output_socket(DataType::Vector);
   }

@@ -22,8 +22,7 @@ class ImageNode : public Node {
  private:
   NodeOperation *do_multilayer_check(NodeConverter &converter,
                                      const CompositorContext &context,
-                                     RenderLayer *render_layer,
-                                     RenderPass *render_pass,
+                                     const char *pass_name,
                                      Image *image,
                                      ImageUser *user,
                                      int framenumber,
