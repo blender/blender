@@ -822,6 +822,21 @@ ID *BKE_id_copy_for_use_in_bmain(Main *bmain, const ID *id)
   return newid;
 }
 
+void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
+{
+  BLI_assert(id.lib == nullptr);
+  if (owner_id.lib == nullptr) {
+    return;
+  }
+
+  id.lib = owner_id.lib;
+  id.tag |= LIB_TAG_INDIRECT;
+
+  BKE_main_namemap_remove_name(&bmain, &id, id.name + 2);
+  ListBase *lb = which_libbase(&bmain, GS(id.name));
+  BKE_id_new_name_validate(&bmain, lb, &id, id.name + 2, true);
+}
+
 static void id_embedded_swap(ID **embedded_id_a,
                              ID **embedded_id_b,
                              const bool do_full_id,

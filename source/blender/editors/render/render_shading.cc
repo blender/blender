@@ -789,6 +789,10 @@ static int new_material_exec(bContext *C, wmOperator * /*op*/)
      * pointer use also increases user, so this compensates it */
     id_us_min(&ma->id);
 
+    if (ptr.owner_id) {
+      BKE_id_move_to_same_lib(*bmain, ma->id, *ptr.owner_id);
+    }
+
     PointerRNA idptr = RNA_id_pointer_create(&ma->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
@@ -842,6 +846,10 @@ static int new_texture_exec(bContext *C, wmOperator * /*op*/)
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */
     id_us_min(&tex->id);
+
+    if (ptr.owner_id) {
+      BKE_id_move_to_same_lib(*bmain, tex->id, *ptr.owner_id);
+    }
 
     PointerRNA idptr = RNA_id_pointer_create(&tex->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
@@ -899,6 +907,10 @@ static int new_world_exec(bContext *C, wmOperator * /*op*/)
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */
     id_us_min(&wo->id);
+
+    if (ptr.owner_id) {
+      BKE_id_move_to_same_lib(*bmain, wo->id, *ptr.owner_id);
+    }
 
     PointerRNA idptr = RNA_id_pointer_create(&wo->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);

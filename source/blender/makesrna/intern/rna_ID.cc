@@ -2554,6 +2554,14 @@ static void rna_def_library(BlenderRNA *brna)
                            "current blendfile, and that had to be recursively resynced on load "
                            "(it is recommended to open and re-save that library blendfile then)");
 
+  prop = RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "runtime.tag", LIBRARY_ASSET_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Editable",
+                           "Datablocks in this library are editable despite being linked. Used by "
+                           "brush assets and their dependencies");
+
   func = RNA_def_function(srna, "reload", "rna_Library_reload");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Reload this library and all its linked data-blocks");
