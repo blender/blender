@@ -1956,7 +1956,7 @@ static bool grease_pencil_separate_selected(bContext &C,
   }
 
   if (changed) {
-    grease_pencil_dst.set_active_layer(0);
+    grease_pencil_dst.set_active_layer(nullptr);
 
     /* Add object materials to target object. */
     BKE_object_material_array_assign(&bmain,
