@@ -638,6 +638,16 @@ int BLF_str_offset_to_cursor(
   return 0;
 }
 
+blender::Vector<blender::Bounds<int>> BLF_str_selection_boxes(
+    int fontid, const char *str, size_t str_len, size_t sel_start, size_t sel_length)
+{
+  FontBLF *font = blf_get(fontid);
+  if (font) {
+    return blf_str_selection_boxes(font, str, str_len, sel_start, sel_length);
+  }
+  return {};
+}
+
 size_t BLF_width_to_strlen(
     int fontid, const char *str, const size_t str_len, float width, float *r_width)
 {

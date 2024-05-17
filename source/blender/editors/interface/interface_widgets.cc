@@ -1937,51 +1937,37 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 #endif
 
     /* text button selection */
-    if ((but->selend - but->selsta) > 0) {
-      int selsta_draw, selwidth_draw;
-
-      if (drawstr[0] != 0) {
-        /* We are drawing on top of widget bases. Flush cache. */
-        GPU_blend(GPU_BLEND_ALPHA);
-        UI_widgetbase_draw_cache_flush();
-
-        if (but->selsta >= but->ofs) {
-          selsta_draw = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->selsta - but->ofs);
-        }
-        else {
-          selsta_draw = 0;
-        }
-
-        selwidth_draw = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->selend - but->ofs);
-
-        uint pos = GPU_vertformat_attr_add(
-            immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-        rcti selection_shape;
-        selection_shape.xmin = rect->xmin + selsta_draw;
-        selection_shape.xmax = min_ii(rect->xmin + selwidth_draw, rect->xmax - 2);
-        selection_shape.ymin = rect->ymin + U.pixelsize;
-        selection_shape.ymax = rect->ymax - U.pixelsize;
-        immUniformColor4ubv(wcol->item);
+    if ((but->selend - but->selsta) != 0 && drawstr[0] != 0) {
+      /* We are drawing on top of widget bases. Flush cache. */
+      GPU_blend(GPU_BLEND_ALPHA);
+      UI_widgetbase_draw_cache_flush();
+      uint pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      immUniformColor4ubv(wcol->item);
+      const auto boxes = BLF_str_selection_boxes(fstyle->uifont_id,
+                                                 drawstr,
+                                                 strlen(drawstr),
+                                                 but->ofs + but->selsta,
+                                                 but->selend - but->selsta);
+      for (auto bounds : boxes) {
         immRecti(pos,
-                 selection_shape.xmin,
-                 selection_shape.ymin,
-                 selection_shape.xmax,
-                 selection_shape.ymax);
-
-        immUnbindProgram();
-        GPU_blend(GPU_BLEND_NONE);
+                 rect->xmin + bounds.min,
+                 rect->ymin + U.pixelsize,
+                 std::min(rect->xmin + bounds.max, rect->xmax - 2),
+                 rect->ymax - U.pixelsize);
+      }
+      immUnbindProgram();
+      GPU_blend(GPU_BLEND_NONE);
 
 #ifdef WITH_INPUT_IME
-        /* IME candidate window uses selection position. */
-        if (!ime_reposition_window) {
-          ime_reposition_window = true;
-          ime_win_x = selection_shape.xmin;
-          ime_win_y = selection_shape.ymin;
-        }
-#endif
+      /* IME candidate window uses selection position. */
+      if (!ime_reposition_window && boxes.size() > 0) {
+        ime_reposition_window = true;
+        ime_win_x = rect->xmin + boxes[0].min;
+        ime_win_y = rect->ymin + U.pixelsize;
       }
+#endif
     }
 
     /* Text cursor position. */

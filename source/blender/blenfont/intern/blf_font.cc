@@ -1119,6 +1119,16 @@ int blf_str_offset_to_cursor(
   return int(blf_font_width(font, str, str_len, nullptr));
 }
 
+blender::Vector<blender::Bounds<int>> blf_str_selection_boxes(
+    FontBLF *font, const char *str, size_t str_len, size_t sel_start, size_t sel_length)
+{
+  blender::Vector<blender::Bounds<int>> boxes;
+  const int start = blf_str_offset_to_cursor(font, str, str_len, sel_start, 0.0f);
+  const int end = blf_str_offset_to_cursor(font, str, str_len, sel_start + sel_length, 0.0f);
+  boxes.append(blender::Bounds(start, end));
+  return boxes;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
