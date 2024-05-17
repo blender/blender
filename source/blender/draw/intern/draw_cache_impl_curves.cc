@@ -681,26 +681,111 @@ static bool ensure_attributes(const Curves &curves,
   CurvesEvalFinalCache &final_cache = cache.eval_cache.final;
 
   if (gpu_material) {
+    /* The following code should be kept in sync with `mesh_cd_calc_used_gpu_layers`. */
     DRW_Attributes attrs_needed;
     drw_attributes_clear(&attrs_needed);
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (const GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       const char *name = gpu_attr->name;
+      eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
+      int layer = -1;
+      std::optional<bke::AttrDomain> domain;
 
-      int layer_index;
-      eCustomDataType type;
-      bke::AttrDomain domain;
-      if (drw_custom_data_match_attribute(cd_curve, name, &layer_index, &type)) {
-        domain = bke::AttrDomain::Curve;
-      }
-      else if (drw_custom_data_match_attribute(cd_point, name, &layer_index, &type)) {
-        domain = bke::AttrDomain::Point;
+      if (gpu_attr->type == CD_AUTO_FROM_NAME) {
+        /* We need to deduce what exact layer is used.
+         *
+         * We do it based on the specified name.
+         */
+        if (name[0] != '\0') {
+          layer = CustomData_get_named_layer(cd_curve, CD_PROP_FLOAT2, name);
+          type = CD_MTFACE;
+          domain = bke::AttrDomain::Curve;
+
+          if (layer == -1) {
+            /* Try to match a generic attribute, we use the first attribute domain with a
+             * matching name. */
+            if (drw_custom_data_match_attribute(cd_point, name, &layer, &type)) {
+              domain = bke::AttrDomain::Point;
+            }
+            else if (drw_custom_data_match_attribute(cd_curve, name, &layer, &type)) {
+              domain = bke::AttrDomain::Curve;
+            }
+            else {
+              domain.reset();
+              layer = -1;
+            }
+          }
+
+          if (layer == -1) {
+            continue;
+          }
+        }
+        else {
+          /* Fall back to the UV layer, which matches old behavior. */
+          type = CD_MTFACE;
+        }
       }
       else {
-        continue;
+        if (drw_custom_data_match_attribute(cd_curve, name, &layer, &type)) {
+          domain = bke::AttrDomain::Curve;
+        }
+        else if (drw_custom_data_match_attribute(cd_point, name, &layer, &type)) {
+          domain = bke::AttrDomain::Point;
+        }
       }
 
-      drw_attributes_add_request(&attrs_needed, name, type, layer_index, domain);
+      switch (type) {
+        case CD_MTFACE: {
+          if (layer == -1) {
+            layer = (name[0] != '\0') ?
+                        CustomData_get_named_layer(cd_curve, CD_PROP_FLOAT2, name) :
+                        CustomData_get_render_layer(cd_curve, CD_PROP_FLOAT2);
+            if (layer != -1) {
+              domain = bke::AttrDomain::Curve;
+            }
+          }
+          if (layer == -1) {
+            layer = (name[0] != '\0') ?
+                        CustomData_get_named_layer(cd_point, CD_PROP_FLOAT2, name) :
+                        CustomData_get_render_layer(cd_point, CD_PROP_FLOAT2);
+            if (layer != -1) {
+              domain = bke::AttrDomain::Point;
+            }
+          }
+
+          if (layer != -1 && name[0] == '\0' && domain.has_value()) {
+            name = CustomData_get_layer_name(
+                domain == bke::AttrDomain::Curve ? cd_curve : cd_point, CD_PROP_FLOAT2, layer);
+          }
+
+          if (layer != -1 && domain.has_value()) {
+            drw_attributes_add_request(&attrs_needed, name, CD_PROP_FLOAT2, layer, *domain);
+          }
+          break;
+        }
+
+        case CD_TANGENT:
+        case CD_ORCO:
+          break;
+
+        case CD_PROP_BYTE_COLOR:
+        case CD_PROP_COLOR:
+        case CD_PROP_QUATERNION:
+        case CD_PROP_FLOAT3:
+        case CD_PROP_BOOL:
+        case CD_PROP_INT8:
+        case CD_PROP_INT32:
+        case CD_PROP_INT32_2D:
+        case CD_PROP_FLOAT:
+        case CD_PROP_FLOAT2: {
+          if (layer != -1 && domain.has_value()) {
+            drw_attributes_add_request(&attrs_needed, name, type, layer, *domain);
+          }
+          break;
+        }
+        default:
+          break;
+      }
     }
 
     if (!drw_attributes_overlap(&final_cache.attr_used, &attrs_needed)) {
