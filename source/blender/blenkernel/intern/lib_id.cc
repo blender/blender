@@ -2268,6 +2268,20 @@ bool BKE_id_is_editable(const Main *bmain, const ID *id)
   return ID_IS_EDITABLE(id) && !BKE_lib_override_library_is_system_defined(bmain, id);
 }
 
+bool BKE_id_can_use_id(const ID &id_from, const ID &id_to)
+{
+  /* Can't point from linked to local. */
+  if (id_from.lib && !id_to.lib) {
+    return false;
+  }
+  /* Can't point from ID in main database to one outside of it. */
+  if (!(id_from.tag & LIB_TAG_NO_MAIN) && (id_to.tag & LIB_TAG_NO_MAIN)) {
+    return false;
+  }
+
+  return true;
+}
+
 /************************* Datablock order in UI **************************/
 
 static int *id_order_get(ID *id)

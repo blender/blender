@@ -1269,14 +1269,28 @@ static char *rna_def_property_set_func(
       else {
         rna_print_data_get(f, dp);
 
+        PointerPropertyRNA *pprop = (PointerPropertyRNA *)dp->prop;
+        StructRNA *type = (pprop->type) ? rna_find_struct((const char *)pprop->type) : nullptr;
+
         if (prop->flag & PROP_ID_SELF_CHECK) {
+          /* No pointers to self allowed. */
           rna_print_id_get(f, dp);
           fprintf(f, "    if (id == value.data) {\n");
           fprintf(f, "      return;\n");
           fprintf(f, "    }\n");
         }
 
+        if (type && (type->flag & STRUCT_ID)) {
+          /* Check if pointers between datablocks are allowed. */
+          fprintf(f,
+                  "    if (value.data && ptr->owner_id && value.owner_id && "
+                  "!BKE_id_can_use_id(*ptr->owner_id, *value.owner_id)) {\n");
+          fprintf(f, "      return;\n");
+          fprintf(f, "    }\n");
+        }
+
         if (prop->flag & PROP_ID_REFCOUNT) {
+          /* Perform reference counting. */
           fprintf(f, "\n    if (data->%s) {\n", dp->dnaname);
           fprintf(f, "        id_us_min((ID *)data->%s);\n", dp->dnaname);
           fprintf(f, "    }\n");
@@ -1284,14 +1298,11 @@ static char *rna_def_property_set_func(
           fprintf(f, "        id_us_plus((ID *)value.data);\n");
           fprintf(f, "    }\n");
         }
-        else {
-          PointerPropertyRNA *pprop = (PointerPropertyRNA *)dp->prop;
-          StructRNA *type = (pprop->type) ? rna_find_struct((const char *)pprop->type) : nullptr;
-          if (type && (type->flag & STRUCT_ID)) {
-            fprintf(f, "    if (value.data) {\n");
-            fprintf(f, "        id_lib_extern((ID *)value.data);\n");
-            fprintf(f, "    }\n");
-          }
+        else if (type && (type->flag & STRUCT_ID)) {
+          /* Still mark linked data as used if not reference counting. */
+          fprintf(f, "    if (value.data) {\n");
+          fprintf(f, "        id_lib_extern((ID *)value.data);\n");
+          fprintf(f, "    }\n");
         }
 
         fprintf(f, "    *(void **)&data->%s = value.data;\n", dp->dnaname);

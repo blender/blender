@@ -745,6 +745,13 @@ ID *BKE_id_owner_get(ID *id, const bool debug_relationship_assert = true);
 bool BKE_id_is_editable(const Main *bmain, const ID *id);
 
 /**
+ * Check that a pointer from one ID to another is possible.
+ *
+ * Taking into account lib linking and main database membership.
+ */
+bool BKE_id_can_use_id(const ID &id_from, const ID &id_to);
+
+/**
  * Returns ordered list of data-blocks for display in the UI.
  */
 blender::Vector<ID *> BKE_id_ordered_list(const ListBase *lb);
