@@ -2449,7 +2449,7 @@ float evaluate_fcurve(const FCurve *fcu, float evaltime)
   return evaluate_fcurve_ex(fcu, evaltime, 0.0);
 }
 
-float evaluate_fcurve_only_curve(FCurve *fcu, float evaltime)
+float evaluate_fcurve_only_curve(const FCurve *fcu, float evaltime)
 {
   /* Can be used to evaluate the (key-framed) f-curve only.
    * Also works for driver-f-curves when the driver itself is not relevant.

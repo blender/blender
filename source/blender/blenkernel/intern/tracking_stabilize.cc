@@ -137,7 +137,7 @@ static FCurve *retrieve_track_weight_animation(MovieClip *clip, MovieTrackingTra
   return id_data_find_fcurve(&clip->id, track, &RNA_MovieTrackingTrack, "weight_stab", 0, nullptr);
 }
 
-static float fetch_from_fcurve(FCurve *animationCurve,
+static float fetch_from_fcurve(const FCurve *animationCurve,
                                int framenr,
                                StabContext *ctx,
                                float default_value)

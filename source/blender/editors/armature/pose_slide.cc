@@ -331,7 +331,7 @@ static bool pose_frame_range_from_object_get(tPoseSlideOp *pso,
 /**
  * Helper for apply() - perform sliding for some value.
  */
-static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, float *val)
+static void pose_slide_apply_val(tPoseSlideOp *pso, const FCurve *fcu, Object *ob, float *val)
 {
   float prev_frame, next_frame;
   float prev_weight, next_weight;

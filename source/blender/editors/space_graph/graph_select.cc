@@ -689,8 +689,11 @@ static short ok_bezier_always_ok(KeyframeEditData * /*ked*/, BezTriple * /*bezt*
 #define ABOVE 1
 #define INSIDE 0
 #define BELOW -1
-static int rectf_curve_zone_y(
-    FCurve *fcu, const rctf *rectf, const float offset, const float unit_scale, const float eval_x)
+static int rectf_curve_zone_y(const FCurve *fcu,
+                              const rctf *rectf,
+                              const float offset,
+                              const float unit_scale,
+                              const float eval_x)
 {
   const float fcurve_y = (evaluate_fcurve(fcu, eval_x) + offset) * unit_scale;
   return fcurve_y < rectf->ymin ? BELOW : fcurve_y <= rectf->ymax ? INSIDE : ABOVE;
