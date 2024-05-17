@@ -68,10 +68,16 @@ static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
+  const int glare_type = RNA_enum_get(ptr, "glare_type");
+#ifndef WITH_FFTW3
+  if (glare_type == CMP_NODE_GLARE_FOG_GLOW) {
+    uiItemL(layout, RPT_("Disabled, built without FFTW"), ICON_ERROR);
+  }
+#endif
+
   uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
-  const int glare_type = RNA_enum_get(ptr, "glare_type");
   if (ELEM(glare_type, CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS)) {
     uiItemR(layout, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
