@@ -216,7 +216,9 @@ def sync_status_generator(repos_notify):
                         repos_notify_files[i].append(msg)
                         continue
 
-                    if not is_debug:
+                    # Always show warnings & errors in the output, otherwise there is no way
+                    # to troubleshoot when checking for updates fails.
+                    if not (is_debug or ty in {'WARN', 'ERROR'}):
                         continue
 
                     # TODO: output this information to a place for users, if they want to debug.
