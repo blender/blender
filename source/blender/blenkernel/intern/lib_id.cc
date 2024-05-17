@@ -2173,7 +2173,7 @@ void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
   }
   BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   ListBase *lb = which_libbase(bmain, GS(id->name));
-  if (BKE_id_new_name_validate(bmain, lb, id, name, false)) {
+  if (BKE_id_new_name_validate(bmain, lb, id, name, true)) {
     bmain->is_memfile_undo_written = false;
   }
 }
