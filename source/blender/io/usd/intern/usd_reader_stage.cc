@@ -11,6 +11,7 @@
 #include "usd_reader_mesh.hh"
 #include "usd_reader_nurbs.hh"
 #include "usd_reader_pointinstancer.hh"
+#include "usd_reader_points.hh"
 #include "usd_reader_prim.hh"
 #include "usd_reader_shape.hh"
 #include "usd_reader_skeleton.hh"
@@ -26,6 +27,7 @@
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
 #include <pxr/usd/usdGeom/pointInstancer.h>
+#include <pxr/usd/usdGeom/points.h>
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/sphere.h>
 #include <pxr/usd/usdGeom/xform.h>
@@ -194,6 +196,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   if (params_.import_skeletons && prim.IsA<pxr::UsdSkelSkeleton>()) {
     return new USDSkeletonReader(prim, params_, settings_);
   }
+  if (params_.import_points && prim.IsA<pxr::UsdGeomPoints>()) {
+    return new USDPointsReader(prim, params_, settings_);
+  }
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     return new USDXformReader(prim, params_, settings_);
   }
@@ -233,6 +238,9 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
   }
   if (prim.IsA<pxr::UsdSkelSkeleton>()) {
     return new USDSkeletonReader(prim, params_, settings_);
+  }
+  if (prim.IsA<pxr::UsdGeomPoints>()) {
+    return new USDPointsReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     return new USDXformReader(prim, params_, settings_);
