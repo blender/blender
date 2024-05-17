@@ -14,9 +14,6 @@ class MultilayerBaseOperation : public BaseImageOperation {
  protected:
   std::string pass_name_;
 
-  /* Returns the image view to use for the current active view. */
-  int get_view_index() const;
-
   ImBuf *get_im_buf() override;
 
  public:

@@ -45,6 +45,7 @@ NodeOperation *ImageNode::do_multilayer_check(NodeConverter &converter,
   operation->set_image(image);
   operation->set_image_user(*user);
   operation->set_framenumber(framenumber);
+  operation->set_render_data(context.get_render_data());
   operation->set_view_name(context.get_view_name());
   operation->set_pass_name(pass_name);
 

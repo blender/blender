@@ -34,16 +34,11 @@ ImageAlphaOperation::ImageAlphaOperation() : BaseImageOperation()
 
 ImBuf *BaseImageOperation::get_im_buf()
 {
-  if (image_ == nullptr) {
+  if (rd_ == nullptr || image_ == nullptr) {
     return nullptr;
   }
 
-  /* local changes to the original ImageUser */
-  if (BKE_image_is_multilayer(image_) == false) {
-    image_user_.multi_index = BKE_scene_multiview_view_id_get(rd_, view_name_);
-  }
-
-  ImBuf *ibuf = BKE_image_acquire_ibuf(image_, &image_user_, nullptr);
+  ImBuf *ibuf = BKE_image_acquire_multilayer_view_ibuf(*rd_, *image_, image_user_, "", view_name_);
   if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
   {
     BKE_image_release_ibuf(image_, ibuf, nullptr);

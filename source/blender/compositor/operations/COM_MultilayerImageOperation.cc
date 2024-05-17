@@ -10,47 +10,20 @@
 
 namespace blender::compositor {
 
-int MultilayerBaseOperation::get_view_index() const
-{
-  if (BLI_listbase_count_at_most(&image_->rr->views, 2) <= 1) {
-    return 0;
-  }
-
-  const int view_image = image_user_.view;
-  const bool is_allview = (view_image == 0); /* if view selected == All (0) */
-
-  if (is_allview) {
-    /* Heuristic to match image name with scene names check if the view name exists in the image.
-     */
-    const int view = BLI_findstringindex(
-        &image_->rr->views, view_name_, offsetof(RenderView, name));
-    if (view == -1) {
-      return 0;
-    }
-    return view;
-  }
-
-  return view_image - 1;
-}
-
 ImBuf *MultilayerBaseOperation::get_im_buf()
 {
-  if (image_ == nullptr) {
+  if (rd_ == nullptr || image_ == nullptr) {
     return nullptr;
   }
 
-  const RenderLayer *render_layer = static_cast<const RenderLayer *>(
-      BLI_findlink(&image_->rr->layers, image_user_.layer));
-
-  image_user_.view = get_view_index();
-  image_user_.pass = BLI_findstringindex(
-      &render_layer->passes, pass_name_.c_str(), offsetof(RenderPass, name));
-
-  if (BKE_image_multilayer_index(image_->rr, &image_user_)) {
-    return BaseImageOperation::get_im_buf();
+  ImBuf *ibuf = BKE_image_acquire_multilayer_view_ibuf(
+      *rd_, *image_, image_user_, pass_name_.c_str(), view_name_);
+  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  {
+    BKE_image_release_ibuf(image_, ibuf, nullptr);
+    return nullptr;
   }
-
-  return nullptr;
+  return ibuf;
 }
 
 void MultilayerBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
