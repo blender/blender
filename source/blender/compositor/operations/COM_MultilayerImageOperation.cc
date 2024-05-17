@@ -41,22 +41,19 @@ void MultilayerBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
 std::unique_ptr<MetaData> MultilayerColorOperation::get_meta_data()
 {
   BLI_assert(buffer_);
-  MetaDataExtractCallbackData callback_data = {nullptr};
-  /* TODO: Make access to the render result thread-safe. */
-  RenderResult *render_result = image_->rr;
-  if (render_result && render_result->stamp_data) {
-    const RenderLayer *render_layer = static_cast<const RenderLayer *>(
-        BLI_findlink(&image_->rr->layers, image_user_.layer));
-    std::string full_layer_name = std::string(render_layer->name) + "." + pass_name_;
-    blender::StringRef cryptomatte_layer_name =
-        blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(full_layer_name);
-    callback_data.set_cryptomatte_keys(cryptomatte_layer_name);
 
-    BKE_stamp_info_callback(&callback_data,
-                            render_result->stamp_data,
-                            MetaDataExtractCallbackData::extract_cryptomatte_meta_data,
-                            false);
+  if (!image_) {
+    return nullptr;
   }
+
+  MetaDataExtractCallbackData callback_data = {nullptr};
+  std::string full_layer_name = layer_name_ + "." + pass_name_;
+  blender::StringRef cryptomatte_layer_name =
+      blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(full_layer_name);
+  callback_data.set_cryptomatte_keys(cryptomatte_layer_name);
+
+  BKE_image_multilayer_stamp_info_callback(
+      &callback_data, *image_, MetaDataExtractCallbackData::extract_cryptomatte_meta_data, false);
 
   return std::move(callback_data.meta_data);
 }

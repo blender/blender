@@ -175,6 +175,7 @@ void CryptomatteNode::input_operations_from_image_source(
           op->set_framenumber(context.get_framenumber());
           op->set_render_data(context.get_render_data());
           op->set_view_name(context.get_view_name());
+          op->set_layer_name(render_layer->name);
           op->set_pass_name(render_pass->name);
           r_input_operations.append(op);
         }

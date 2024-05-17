@@ -75,6 +75,10 @@ void BKE_stamp_info_callback(void *data,
                              struct StampData *stamp_data,
                              StampCallback callback,
                              bool noskip);
+void BKE_image_multilayer_stamp_info_callback(void *data,
+                                              const Image &image,
+                                              StampCallback callback,
+                                              bool noskip);
 void BKE_render_result_stamp_data(struct RenderResult *rr, const char *key, const char *value);
 struct StampData *BKE_stamp_data_copy(const struct StampData *stamp_data);
 void BKE_stamp_data_free(struct StampData *stamp_data);

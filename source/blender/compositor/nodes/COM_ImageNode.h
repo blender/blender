@@ -22,6 +22,7 @@ class ImageNode : public Node {
  private:
   NodeOperation *do_multilayer_check(NodeConverter &converter,
                                      const CompositorContext &context,
+                                     const char *layer_name,
                                      const char *pass_name,
                                      Image *image,
                                      ImageUser *user,

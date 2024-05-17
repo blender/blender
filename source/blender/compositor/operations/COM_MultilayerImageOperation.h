@@ -12,6 +12,9 @@ namespace blender::compositor {
 
 class MultilayerBaseOperation : public BaseImageOperation {
  protected:
+  /* NOTE: The layer name is only used for meta-data. The image user's layer index defines which
+   * layer will be actually accessed for the image buffer. */
+  std::string layer_name_;
   std::string pass_name_;
 
   ImBuf *get_im_buf() override;
@@ -19,6 +22,10 @@ class MultilayerBaseOperation : public BaseImageOperation {
  public:
   MultilayerBaseOperation() = default;
 
+  void set_layer_name(std::string layer_name)
+  {
+    layer_name_ = std::move(layer_name);
+  }
   void set_pass_name(std::string pass_name)
   {
     pass_name_ = std::move(pass_name);

@@ -2480,6 +2480,23 @@ void BKE_stamp_info_callback(void *data,
 #undef CALL
 }
 
+void BKE_image_multilayer_stamp_info_callback(void *data,
+                                              const Image &image,
+                                              StampCallback callback,
+                                              bool noskip)
+{
+  BLI_mutex_lock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+
+  if (!image.rr || !image.rr->stamp_data) {
+    BLI_mutex_unlock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+    return;
+  }
+
+  BKE_stamp_info_callback(data, image.rr->stamp_data, callback, noskip);
+
+  BLI_mutex_unlock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+}
+
 void BKE_render_result_stamp_data(RenderResult *rr, const char *key, const char *value)
 {
   StampData *stamp_data;

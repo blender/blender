@@ -20,6 +20,7 @@ ImageNode::ImageNode(bNode *editor_node) : Node(editor_node)
 }
 NodeOperation *ImageNode::do_multilayer_check(NodeConverter &converter,
                                               const CompositorContext &context,
+                                              const char *layer_name,
                                               const char *pass_name,
                                               Image *image,
                                               ImageUser *user,
@@ -47,6 +48,7 @@ NodeOperation *ImageNode::do_multilayer_check(NodeConverter &converter,
   operation->set_framenumber(framenumber);
   operation->set_render_data(context.get_render_data());
   operation->set_view_name(context.get_view_name());
+  operation->set_layer_name(layer_name);
   operation->set_pass_name(pass_name);
 
   converter.add_operation(operation);
@@ -95,6 +97,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
               case 1:
                 operation = do_multilayer_check(converter,
                                                 context,
+                                                rl->name,
                                                 rpass->name,
                                                 image,
                                                 imageuser,
@@ -107,6 +110,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
               case 3:
                 operation = do_multilayer_check(converter,
                                                 context,
+                                                rl->name,
                                                 rpass->name,
                                                 image,
                                                 imageuser,
@@ -117,6 +121,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
               case 4:
                 operation = do_multilayer_check(converter,
                                                 context,
+                                                rl->name,
                                                 rpass->name,
                                                 image,
                                                 imageuser,
