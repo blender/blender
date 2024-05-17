@@ -1547,7 +1547,7 @@ bool MTLContext::ensure_buffer_bindings(
         /* Bind Compute SSBO. */
         if (bool(ssbo.stage_mask & ShaderStage::COMPUTE)) {
           BLI_assert(buffer_bind_index >= 0 && buffer_bind_index < MTL_MAX_BUFFER_BINDINGS);
-          cs.bind_compute_buffer(ssbo_buffer, 0, buffer_bind_index, true);
+          cs.bind_compute_buffer(ssbo_buffer, 0, buffer_bind_index);
         }
       }
       else {

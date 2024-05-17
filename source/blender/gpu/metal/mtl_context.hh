@@ -180,10 +180,7 @@ class MTLComputeState {
                             bool use_argument_buffer_for_samplers,
                             uint slot);
   /* Buffer binding (ComputeCommandEncoder). */
-  void bind_compute_buffer(id<MTLBuffer> buffer,
-                           uint64_t buffer_offset,
-                           uint index,
-                           bool writeable = false);
+  void bind_compute_buffer(id<MTLBuffer> buffer, uint64_t buffer_offset, uint index);
   void bind_compute_bytes(const void *bytes, uint64_t length, uint index);
 };
 

@@ -300,7 +300,7 @@ void MTLStorageBuf::clear(uint32_t clear_value)
       MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
       cs.bind_pso(pso);
       cs.bind_compute_bytes(&clear_value, sizeof(uint32_t), 0);
-      cs.bind_compute_buffer(metal_buffer_->get_metal_buffer(), 0, 1, true);
+      cs.bind_compute_buffer(metal_buffer_->get_metal_buffer(), 0, 1);
       [compute_encoder dispatchThreads:MTLSizeMake(size_in_bytes_ / sizeof(uint32_t), 1, 1)
                  threadsPerThreadgroup:MTLSizeMake(128, 1, 1)];
     }
