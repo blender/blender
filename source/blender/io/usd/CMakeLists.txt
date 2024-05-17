@@ -95,6 +95,7 @@ set(SRC
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
+  intern/usd_instancing_utils.cc
   intern/usd_light_convert.cc
   intern/usd_lux_api_wrapper.cc
   intern/usd_modifier_disabler.cc
@@ -144,6 +145,7 @@ set(SRC
   intern/usd_exporter_context.hh
   intern/usd_hash_types.hh
   intern/usd_hierarchy_iterator.hh
+  intern/usd_instancing_utils.hh
   intern/usd_light_convert.h
   intern/usd_lux_api_wrapper.h
   intern/usd_modifier_disabler.h

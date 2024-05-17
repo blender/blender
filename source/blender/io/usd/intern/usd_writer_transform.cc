@@ -160,6 +160,10 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     }
   }
 
+  if (usd_export_context_.export_params.use_instancing && context.is_instance()) {
+    mark_as_instance(context, xform.GetPrim());
+  }
+
   if (!hierarchy_iterator_->get_object_computed_name(context.object).empty()) {
     xform.GetPrim().SetDisplayName(context.object->id.name + 2);
   }
@@ -167,14 +171,6 @@ void USDTransformWriter::do_write(HierarchyContext &context)
   if (usd_export_context_.export_params.export_custom_properties && context.object) {
     auto prim = xform.GetPrim();
     write_id_properties(prim, context.object->id, get_export_time_code());
-  }
-
-  if (usd_export_context_.export_params.use_instancing) {
-    if (context.is_instance()) {
-      mark_as_instance(context, xform.GetPrim());
-      /* Explicitly set visibility, since the prototype might be invisible. */
-      xform.GetVisibilityAttr().Set(pxr::UsdGeomTokens->inherited);
-    }
   }
 }
 

@@ -10,6 +10,7 @@
 #include "usd_asset_utils.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
+#include "usd_instancing_utils.hh"
 #include "usd_light_convert.h"
 #include "usd_umm.h"
 #include "usd_writer_material.hh"
@@ -659,6 +660,10 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
       usd_stage->SetDefaultPrim(prim);
       break;
     }
+  }
+
+  if (params.use_instancing) {
+    process_scene_graph_instances(usd_stage);
   }
 
   call_export_hooks(usd_stage, depsgraph, params.worker_status->reports);
