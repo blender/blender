@@ -65,7 +65,7 @@ void MTLUniformBuf::update(const void *data)
   }
 
   /* Allocate MTL buffer */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
   BLI_assert(ctx->device);
   UNUSED_VARS_NDEBUG(ctx);

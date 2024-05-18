@@ -271,7 +271,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
 
 MTLContext::~MTLContext()
 {
-  BLI_assert(this == reinterpret_cast<MTLContext *>(GPU_context_active_get()));
+  BLI_assert(this == MTLContext::get());
   /* Ensure rendering is complete command encoders/command buffers are freed. */
   if (MTLBackend::get()->is_inside_render_boundary()) {
     this->finish();
@@ -2588,7 +2588,7 @@ id<MTLComputePipelineState> MTLContextComputeUtils::get_buffer_clear_pso()
   }
 
   /* Fetch active context. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   @autoreleasepool {
@@ -2659,7 +2659,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
              id<CAMetalDrawable> drawable)
 {
 
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   /* Flush any outstanding work. */

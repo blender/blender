@@ -754,7 +754,7 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
 #endif
 
   /* Setup RenderPipelineState for batch. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   id<MTLRenderCommandEncoder> rec = this->bind(v_count);
   if (rec == nil) {
     /* End of draw. */
@@ -896,7 +896,7 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
 void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
 {
   /* Setup RenderPipelineState for batch. */
-  MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
+  MTLContext *ctx = MTLContext::get();
   id<MTLRenderCommandEncoder> rec = this->bind(0);
   if (rec == nil) {
     printf("Failed to open Render Command encoder for DRAW INDIRECT\n");

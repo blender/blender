@@ -100,7 +100,7 @@ gpu::MTLTexture::~MTLTexture()
 {
   /* Unbind if bound. */
   if (is_bound_) {
-    MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+    MTLContext *ctx = MTLContext::get();
     if (ctx != nullptr) {
       ctx->state_manager->texture_unbind(this);
     }
@@ -375,7 +375,7 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
 
   GPUShader *shader = fullscreen_blit_sh_get();
   BLI_assert(shader != nullptr);
-  BLI_assert(GPU_context_active_get());
+  BLI_assert(MTLContext::get());
 
   /* Fetch restore framebuffer and blit target framebuffer from destination texture. */
   GPUFrameBuffer *restore_fb = GPU_framebuffer_active_get();
@@ -491,7 +491,7 @@ void gpu::MTLTexture::update_sub(
     int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data)
 {
   /* Fetch active context. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   /* Do not update texture view. */
@@ -1248,7 +1248,7 @@ void gpu::MTLTexture::generate_mipmap()
   }
 
   /* Fetch Active Context. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   if (!ctx->device) {
@@ -1304,7 +1304,7 @@ void gpu::MTLTexture::copy_to(Texture *dst)
   UNUSED_VARS_NDEBUG(mt_src);
 
   /* Fetch active context. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   /* Ensure texture is baked. */
@@ -1376,7 +1376,7 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
     }
     if (fast_buf_clear_to_zero) {
       /* Fetch active context. */
-      MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+      MTLContext *ctx = MTLContext::get();
       BLI_assert(ctx);
 
       /* Begin compute encoder. */
@@ -1416,7 +1416,7 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
     uint clear_data_size = to_bytesize(format_, data_format);
 
     /* Fetch active context. */
-    MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+    MTLContext *ctx = MTLContext::get();
     BLI_assert(ctx);
 
     /* Determine writeable texture handle. */
@@ -1608,7 +1608,7 @@ void gpu::MTLTexture::read_internal(int mip,
     return;
   }
   /* Fetch active context. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   /* Calculate Desired output size. */
@@ -2256,7 +2256,7 @@ void gpu::MTLTexture::ensure_baked()
   }
 
   if (!is_baked_) {
-    MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+    MTLContext *ctx = MTLContext::get();
     BLI_assert(ctx);
 
     /* Ensure texture mode is valid. */
