@@ -228,7 +228,6 @@ void light_eval_single(uint l_idx,
                          thickness,
                          P,
                          Ng,
-                         lv.L,
                          ray_count,
                          ray_step_count);
   }

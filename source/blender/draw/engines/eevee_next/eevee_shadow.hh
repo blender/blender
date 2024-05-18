@@ -28,24 +28,14 @@ class ShadowModule;
 class ShadowPipeline;
 struct Light;
 
-enum eCubeFace {
-  /* Ordering by culling order. If cone aperture is shallow, we cull the later view. */
-  Z_NEG = 0,
-  X_POS,
-  X_NEG,
-  Y_POS,
-  Y_NEG,
-  Z_POS,
-};
-
 /* To be applied after view matrix. Follow same order as eCubeFace. */
-constexpr static const float shadow_face_mat[6][4][4] = {
-    {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}},   /* Z_NEG */
-    {{0, 0, -1, 0}, {-1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 1}}, /* X_POS */
-    {{0, 0, 1, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 1}},   /* X_NEG */
-    {{1, 0, 0, 0}, {0, 0, -1, 0}, {0, 1, 0, 0}, {0, 0, 0, 1}},  /* Y_POS */
-    {{-1, 0, 0, 0}, {0, 0, 1, 0}, {0, 1, 0, 0}, {0, 0, 0, 1}},  /* Y_NEG */
-    {{1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, -1, 0}, {0, 0, 0, 1}}, /* Z_POS */
+constexpr static const float shadow_face_mat[6][3][3] = {
+    {{+1, +0, +0}, {+0, +1, +0}, {+0, +0, +1}}, /* Z_NEG */
+    {{+0, +0, -1}, {-1, +0, +0}, {+0, +1, +0}}, /* X_POS */
+    {{+0, +0, +1}, {+1, +0, +0}, {+0, +1, +0}}, /* X_NEG */
+    {{+1, +0, +0}, {+0, +0, -1}, {+0, +1, +0}}, /* Y_POS */
+    {{-1, +0, +0}, {+0, +0, +1}, {+0, +1, +0}}, /* Y_NEG */
+    {{+1, +0, +0}, {+0, -1, +0}, {+0, +0, -1}}, /* Z_POS */
 };
 
 /* Converts to [-SHADOW_TILEMAP_RES / 2..SHADOW_TILEMAP_RES / 2] for XY and [0..1] for Z. */
@@ -102,24 +92,19 @@ struct ShadowTileMap : public ShadowTileMapData {
                          int clipmap_level,
                          eShadowProjectionType projection_type_);
 
-  void sync_cubeface(eLightType light_type_,
-                     const float4x4 &object_mat,
-                     float near,
-                     float far,
-                     float side,
-                     float shift,
-                     eCubeFace face);
+  void sync_cubeface(
+      eLightType light_type_, const float4x4 &object_mat, float near, float far, eCubeFace face);
 
   void debug_draw() const;
 
   void set_dirty()
   {
-    grid_shift = int2(SHADOW_TILEMAP_RES);
+    is_dirty = true;
   }
 
   void set_updated()
   {
-    grid_shift = int2(0);
+    is_dirty = false;
   }
 };
 
@@ -214,8 +199,6 @@ class ShadowModule {
 
   /* Used to call caster_update_ps_ only once per sync (Initialized on begin_sync). */
   bool update_casters_ = false;
-
-  bool jittered_transparency_ = false;
 
   /* -------------------------------------------------------------------- */
   /** \name Tile-map Management
@@ -397,14 +380,6 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   ShadowModule &shadows_;
   /** Tile-map for each cube-face needed (in eCubeFace order). */
   Vector<ShadowTileMap *> tilemaps_;
-  /** Shape type. */
-  eLightType light_type_;
-  /** Light position. */
-  float3 position_;
-  /** Used to compute near and far clip distances. */
-  float max_distance_;
-  /** Number of tile-maps needed to cover the light angular extents. */
-  int tilemaps_needed_;
 
  public:
   ShadowPunctual(ShadowModule &module) : shadows_(module){};
@@ -417,31 +392,14 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   }
 
   /**
-   * Sync shadow parameters but do not allocate any shadow tile-maps.
-   */
-  void sync(eLightType light_type,
-            const float4x4 &object_mat,
-            float cone_aperture,
-            float max_distance);
-
-  /**
    * Release the tile-maps that will not be used in the current frame.
    */
-  void release_excess_tilemaps();
+  void release_excess_tilemaps(const Light &light);
 
   /**
    * Allocate shadow tile-maps and setup views for rendering.
    */
   void end_sync(Light &light);
-
- private:
-  /**
-   * Compute the projection matrix inputs.
-   * Make sure that the projection encompass all possible rays that can start in the projection
-   * quadrant.
-   */
-  void compute_projection_boundaries(
-      float max_lit_distance, float &near, float &far, float &side, float &back_shift);
 };
 
 class ShadowDirectional : public NonCopyable, NonMovable {
@@ -449,12 +407,8 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   ShadowModule &shadows_;
   /** Tile-map for each clip-map level. */
   Vector<ShadowTileMap *> tilemaps_;
-  /** Copy of object matrix. Normalized. */
-  float4x4 object_mat_;
   /** Current range of clip-map / cascades levels covered by this shadow. */
-  IndexRange levels_range;
-  /** Angle of the shadowed light shape. Might be scaled compared to the shading disk. */
-  float disk_shape_angle_;
+  IndexRange levels_range = IndexRange(0);
 
  public:
   ShadowDirectional(ShadowModule &module) : shadows_(module){};
@@ -467,14 +421,9 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   }
 
   /**
-   * Sync shadow parameters but do not allocate any shadow tile-maps.
-   */
-  void sync(const float4x4 &object_mat, float shadow_disk_angle);
-
-  /**
    * Release the tile-maps that will not be used in the current frame.
    */
-  void release_excess_tilemaps(const Camera &camera);
+  void release_excess_tilemaps(const Light &light, const Camera &camera);
 
   /**
    * Allocate shadow tile-maps and setup views for rendering.
@@ -497,12 +446,13 @@ class ShadowDirectional : public NonCopyable, NonMovable {
 
  private:
   IndexRange clipmap_level_range(const Camera &camera);
-  IndexRange cascade_level_range(const Camera &camera);
+  IndexRange cascade_level_range(const Light &light, const Camera &camera);
 
   void cascade_tilemaps_distribution(Light &light, const Camera &camera);
   void clipmap_tilemaps_distribution(Light &light, const Camera &camera);
 
   void cascade_tilemaps_distribution_near_far_points(const Camera &camera,
+                                                     const Light &light,
                                                      float3 &near_point,
                                                      float3 &far_point);
 

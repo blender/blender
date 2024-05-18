@@ -184,7 +184,7 @@ vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
 {
   float power = 1.0;
   if (!is_directional) {
-    float volume_radius_squared = light_local_data_get(light).radius_squared;
+    float light_radius = light_local_data_get(light).shape_radius;
     /**
      * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
      * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
@@ -192,7 +192,7 @@ vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
      */
     float d = lv.dist;
     float d_sqr = square(d);
-    float r_sqr = volume_radius_squared;
+    float r_sqr = square(light_radius);
 
     /* Using reformulation that has better numerical precision. */
     power = 2.0 / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));

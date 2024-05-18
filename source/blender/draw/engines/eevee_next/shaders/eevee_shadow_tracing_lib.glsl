@@ -131,11 +131,11 @@ void shadow_map_trace_hit_check(inout ShadowMapTracingState state, ShadowTracing
 /* If the ray direction `L`  is below the horizon defined by N (normalized) at the shading point,
  * push it just above the horizon so that this ray will never be below it and produce
  * over-shadowing (since light evaluation already clips the light shape). */
-vec3 shadow_ray_above_horizon_ensure(vec3 L, vec3 N)
+vec3 shadow_ray_above_horizon_ensure(vec3 L, vec3 N, float max_clip_distance)
 {
-  float distance_to_plan = dot(L, -N);
-  if (distance_to_plan > 0.0) {
-    L += N * (0.01 + distance_to_plan);
+  float distance_to_plane = dot(L, -N);
+  if (distance_to_plane > 0.0 && distance_to_plane < 0.01 + max_clip_distance) {
+    L += N * (0.01 + distance_to_plane);
   }
   return L;
 }
@@ -163,13 +163,14 @@ ShadowRayDirectional shadow_ray_generate_directional(
   float dist_to_near_plane = -lP.z - clip_near;
   /* Trace in a radius that is covered by low resolution page inflation. */
   float max_tracing_distance = texel_radius * float(SHADOW_PAGE_RES << SHADOW_TILEMAP_LOD);
+  /* TODO(fclem): Remove atan here. We only need the cosine of the angle. */
   float max_tracing_angle = atan_fast(max_tracing_distance / dist_to_near_plane);
   float shadow_angle = min(light_sun_data_get(light).shadow_angle, max_tracing_angle);
 
   /* Light shape is 1 unit away from the shading point. */
   vec3 direction = sample_uniform_cone(sample_cylinder(random_2d), shadow_angle);
 
-  direction = shadow_ray_above_horizon_ensure(direction, lNg);
+  direction = shadow_ray_above_horizon_ensure(direction, lNg, max_tracing_distance);
 
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
   direction *= dist_to_near_plane / direction.z;
@@ -237,33 +238,30 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
 
   float clip_far = intBitsToFloat(light.clip_far);
   float clip_near = intBitsToFloat(light.clip_near);
-  float clip_side = light_local_data_get(light).clip_side;
+  float shape_radius = light_spot_data_get(light).shadow_radius;
 
-  /* TODO(fclem): 3D shift for jittered soft shadows. */
-  vec3 projection_origin = vec3(0.0, 0.0, -light_local_data_get(light).shadow_projection_shift);
   vec3 direction;
   if (is_area_light(light.type)) {
     random_2d *= light_area_data_get(light).size;
 
-    vec3 point_on_light_shape = vec3(random_2d, 0.0);
+    vec3 point_on_light_shape = vec3(random_2d * shape_radius, 0.0);
 
     direction = point_on_light_shape - lP;
-    direction = shadow_ray_above_horizon_ensure(direction, lNg);
+    direction = shadow_ray_above_horizon_ensure(direction, lNg, shape_radius);
 
     /* Clip the ray to not cross the near plane.
      * Scale it so that it encompass the whole cube (with a safety margin). */
     float clip_distance = clip_near + 0.001;
-    float ray_length = max(abs(direction.x), max(abs(direction.y), abs(direction.z)));
+    float ray_length = reduce_max(abs(direction));
     direction *= saturate((ray_length - clip_distance) / ray_length);
   }
   else {
     float dist;
-    vec3 L = normalize_and_get_length(lP, dist);
+    vec3 lL = normalize_and_get_length(lP, dist);
     /* Disk rotated towards light vector. */
     vec3 right, up;
-    make_orthonormal_basis(L, right, up);
+    make_orthonormal_basis(lL, right, up);
 
-    float shape_radius = light_spot_data_get(light).radius;
     if (is_sphere_light(light.type)) {
       /* FIXME(weizhen): this is not well-defined when `dist < light.spot.radius`. */
       shape_radius = light_sphere_disk_radius(shape_radius, dist);
@@ -273,17 +271,19 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
     vec3 point_on_light_shape = right * random_2d.x + up * random_2d.y;
 
     direction = point_on_light_shape - lP;
-    direction = shadow_ray_above_horizon_ensure(direction, lNg);
+    direction = shadow_ray_above_horizon_ensure(direction, lNg, shape_radius);
 
     /* Clip the ray to not cross the light shape. */
-    float clip_distance = light_spot_data_get(light).radius;
+    float clip_distance = clip_near + 0.001;
     direction *= saturate((dist - clip_distance) / dist);
   }
 
+  vec3 shadow_position = light_local_data_get(light).shadow_position;
   /* Compute the ray again. */
   ShadowRayPunctual ray;
-  ray.origin = lP;
-  ray.direction = direction;
+  /* Transform to shadow local space. */
+  ray.origin = lP - shadow_position;
+  ray.direction = direction + shadow_position;
   ray.light_tilemap_index = light.tilemap_index;
   ray.local_ray_up = safe_normalize(cross(cross(ray.origin, ray.direction), ray.direction));
   ray.light = light;
@@ -365,6 +365,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
     }
   }
   else {
+    lP -= light_local_data_get(light).shadow_position;
     /* Simplification of `exp2(shadow_punctual_level_fractional)`. */
     scale = shadow_punctual_pixel_ratio(light,
                                         lP,
@@ -412,7 +413,6 @@ float shadow_eval(LightData light,
                   float thickness, /* Only used if is_transmission is true. */
                   vec3 P,
                   vec3 Ng,
-                  vec3 L,
                   int ray_count,
                   int ray_step_count)
 {
@@ -430,6 +430,12 @@ float shadow_eval(LightData light,
   vec3 random_shadow_3d = vec3(0.5);
   vec2 random_pcf_2d = vec2(0.0);
 #endif
+
+  /* Direction towards the shadow center (punctual) or direction (direction).
+   * Not the same as the light vector if the shadow is jittered. */
+  vec3 L = is_directional ? light_z_axis(light) :
+                            normalize(light_position_get(light) +
+                                      light_local_data_get(light).shadow_position - P);
 
   bool is_facing_light = (dot(Ng, L) > 0.0);
   /* Still bias the transmission surfaces towards the light if they are facing away. */
@@ -451,9 +457,9 @@ float shadow_eval(LightData light,
   /* Add normal bias to avoid aliasing artifacts. */
   P += N_bias * (texel_radius * shadow_normal_offset(Ng, L));
 
-  vec3 lP = is_directional ? light_world_to_local(light, P) :
-                             light_world_to_local(light, P - light_position_get(light));
-  vec3 lNg = light_world_to_local(light, Ng);
+  vec3 lP = is_directional ? light_world_to_local_direction(light, P) :
+                             light_world_to_local_point(light, P);
+  vec3 lNg = light_world_to_local_direction(light, Ng);
   /* Invert horizon clipping. */
   lNg = (is_transmission) ? -lNg : lNg;
   /* Don't do a any horizon clipping in this case as the closure is lit from both sides. */

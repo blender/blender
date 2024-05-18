@@ -68,9 +68,10 @@ void main()
   barrier();
 
   ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 tile_shifted = tile_co + clamp(tilemap.grid_shift,
-                                       ivec2(-SHADOW_TILEMAP_RES),
-                                       ivec2(SHADOW_TILEMAP_RES));
+  ivec2 tile_shifted = tile_co +
+                       clamp(tilemap.is_dirty ? ivec2(SHADOW_TILEMAP_RES) : tilemap.grid_shift,
+                             ivec2(-SHADOW_TILEMAP_RES),
+                             ivec2(SHADOW_TILEMAP_RES));
   ivec2 tile_wrapped = ivec2((ivec2(SHADOW_TILEMAP_RES) + tile_shifted) % SHADOW_TILEMAP_RES);
 
   /* If this tile was shifted in and contains old information, update it.

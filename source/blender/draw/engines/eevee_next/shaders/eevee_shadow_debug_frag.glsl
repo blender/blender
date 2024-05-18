@@ -77,7 +77,7 @@ vec3 debug_tile_state_color(eLightType type, ShadowSamplingTile tile)
 ShadowCoordinates debug_coord_get(vec3 P, LightData light)
 {
   if (is_sun_light(light.type)) {
-    vec3 lP = light_world_to_local(light, P);
+    vec3 lP = light_world_to_local_direction(light, P);
     return shadow_directional_coordinates(light, lP);
   }
   else {

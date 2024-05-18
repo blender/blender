@@ -353,10 +353,8 @@ int shadow_punctual_face_index_get(vec3 lL)
  */
 ShadowCoordinates shadow_punctual_coordinates(LightData light, vec3 lP, int face_id)
 {
-  float clip_near = intBitsToFloat(light.clip_near);
-  float clip_side = light_local_data_get(light).clip_side;
   /* UVs in [-1..+1] range. */
-  vec2 tilemap_uv = (lP.xy * clip_near) / abs(lP.z * clip_side);
+  vec2 tilemap_uv = lP.xy / abs(lP.z);
   /* UVs in [0..1] range. */
   tilemap_uv = saturate(tilemap_uv * 0.5 + 0.5);
 

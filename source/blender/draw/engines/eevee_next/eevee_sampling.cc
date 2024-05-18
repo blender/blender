@@ -167,6 +167,16 @@ void Sampling::step()
     data_.dimensions[SAMPLING_RAYTRACE_W] = r[2];
   }
   {
+    double3 r, offset = {0, 0, 0};
+    uint3 primes = {2, 3, 5};
+    BLI_halton_3d(primes, offset, sample_ + 1, r);
+    /* WORKAROUND: We offset the distribution to make the first sample (0,0,0). */
+    /* TODO de-correlate. */
+    data_.dimensions[SAMPLING_SHADOW_I] = fractf(r[0] + (1.0 / 2.0));
+    data_.dimensions[SAMPLING_SHADOW_J] = fractf(r[1] + (2.0 / 3.0));
+    data_.dimensions[SAMPLING_SHADOW_K] = fractf(r[2] + (4.0 / 5.0));
+  }
+  {
     uint64_t sample_volume = sample_;
     if (interactive_mode()) {
       sample_volume = sample_volume % interactive_sample_volume_;

@@ -34,7 +34,7 @@ void shadow_tag_usage_tilemap_directional_at_level(uint l_idx, vec3 P, int level
     return;
   }
 
-  vec3 lP = light_world_to_local(light, P);
+  vec3 lP = light_world_to_local_direction(light, P);
 
   level = clamp(
       level, light_sun_data_get(light).clipmap_lod_min, light_sun_data_get(light).clipmap_lod_max);
@@ -51,7 +51,7 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
     return;
   }
 
-  vec3 lP = light_world_to_local(light, P);
+  vec3 lP = light_world_to_local_direction(light, P);
 
   /* TODO(Miguel Pozo): Implement lod_bias support. */
   if (radius == 0.0) {
@@ -60,8 +60,8 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
     shadow_tag_usage_tile(light, coord.tilemap_tile, 0, coord.tilemap_index);
   }
   else {
-    vec3 start_lP = light_world_to_local(light, P - V * radius);
-    vec3 end_lP = light_world_to_local(light, P + V * radius);
+    vec3 start_lP = light_world_to_local_direction(light, P - V * radius);
+    vec3 end_lP = light_world_to_local_direction(light, P + V * radius);
     int min_level = shadow_directional_level(light, start_lP - light_position_get(light));
     int max_level = shadow_directional_level(light, end_lP - light_position_get(light));
 
@@ -107,8 +107,8 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, vec3 P, float radius, int lod
     }
   }
 
-  /* TODO(fclem): 3D shift for jittered soft shadows. */
-  lP += vec3(0.0, 0.0, -light_local_data_get(light).shadow_projection_shift);
+  /* Transform to shadow local space. */
+  lP -= light_local_data_get(light).shadow_position;
 
   int lod = shadow_punctual_level(light,
                                   lP,
