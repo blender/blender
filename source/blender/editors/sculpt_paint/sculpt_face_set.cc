@@ -181,6 +181,16 @@ int ensure_face_sets_bmesh(Object &object)
   return CustomData_get_offset_named(&bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
 }
 
+Array<int> duplicate_face_sets(const Mesh &mesh)
+{
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArray<int> attribute = *attributes.lookup_or_default(
+      ".sculpt_face_set", bke::AttrDomain::Face, 0);
+  Array<int> face_sets(attribute.size());
+  array_utils::copy(attribute, face_sets.as_mutable_span());
+  return face_sets;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -571,7 +581,7 @@ static void clear_face_sets(Object &object, const Span<PBVHNode *> nodes)
   attributes.remove(".sculpt_face_set");
 }
 
-static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
+static int create_op_exec(bContext *C, wmOperator *op)
 {
   Object &object = *CTX_data_active_object(C);
   SculptSession &ss = *object.sculpt;
@@ -687,7 +697,7 @@ void SCULPT_OT_face_sets_create(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_sets_create";
   ot->description = "Create a new Face Set";
 
-  ot->exec = sculpt_face_set_create_exec;
+  ot->exec = create_op_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -731,7 +741,7 @@ enum class InitMode {
 
 using FaceSetsFloodFillFn = FunctionRef<bool(int from_face, int edge, int to_face)>;
 
-static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFillFn &test_fn)
+static void init_flood_fill(Object *ob, const FaceSetsFloodFillFn &test_fn)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -790,17 +800,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
   face_sets.finish();
 }
 
-Array<int> duplicate_face_sets(const Mesh &mesh)
-{
-  const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArray<int> attribute = *attributes.lookup_or_default(
-      ".sculpt_face_set", bke::AttrDomain::Face, 0);
-  Array<int> face_sets(attribute.size());
-  array_utils::copy(attribute, face_sets.as_mutable_span());
-  return face_sets;
-}
-
-static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
+static int init_op_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -842,10 +842,9 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     case InitMode::LooseParts: {
       const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
           ".hide_poly", bke::AttrDomain::Face, false);
-      sculpt_face_sets_init_flood_fill(
-          ob, [&](const int from_face, const int /*edge*/, const int to_face) {
-            return hide_poly[from_face] == hide_poly[to_face];
-          });
+      init_flood_fill(ob, [&](const int from_face, const int /*edge*/, const int to_face) {
+        return hide_poly[from_face] == hide_poly[to_face];
+      });
       break;
     }
     case InitMode::Materials: {
@@ -860,54 +859,52 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     }
     case InitMode::Normals: {
       const Span<float3> face_normals = mesh->face_normals();
-      sculpt_face_sets_init_flood_fill(
-          ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
-            return std::abs(math::dot(face_normals[from_face], face_normals[to_face])) > threshold;
-          });
+      init_flood_fill(ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
+        return std::abs(math::dot(face_normals[from_face], face_normals[to_face])) > threshold;
+      });
       break;
     }
     case InitMode::UVSeams: {
       const VArraySpan<bool> uv_seams = *mesh->attributes().lookup_or_default<bool>(
           ".uv_seam", bke::AttrDomain::Edge, false);
-      sculpt_face_sets_init_flood_fill(
-          ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return !uv_seams[edge];
-          });
+      init_flood_fill(ob,
+                      [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
+                        return !uv_seams[edge];
+                      });
       break;
     }
     case InitMode::Creases: {
       const VArraySpan<float> creases = *attributes.lookup_or_default<float>(
           "crease_edge", bke::AttrDomain::Edge, 0.0f);
-      sculpt_face_sets_init_flood_fill(
-          ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return creases[edge] < threshold;
-          });
+      init_flood_fill(ob,
+                      [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
+                        return creases[edge] < threshold;
+                      });
       break;
     }
     case InitMode::SharpEdges: {
       const VArraySpan<bool> sharp_edges = *mesh->attributes().lookup_or_default<bool>(
           "sharp_edge", bke::AttrDomain::Edge, false);
-      sculpt_face_sets_init_flood_fill(
-          ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return !sharp_edges[edge];
-          });
+      init_flood_fill(ob,
+                      [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
+                        return !sharp_edges[edge];
+                      });
       break;
     }
     case InitMode::BevelWeight: {
       const VArraySpan<float> bevel_weights = *attributes.lookup_or_default<float>(
           "bevel_weight_edge", bke::AttrDomain::Edge, 0.0f);
-      sculpt_face_sets_init_flood_fill(
-          ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return bevel_weights[edge] < threshold;
-          });
+      init_flood_fill(ob,
+                      [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
+                        return bevel_weights[edge] < threshold;
+                      });
       break;
     }
     case InitMode::FaceSetBoundaries: {
       Array<int> face_sets_copy = duplicate_face_sets(*mesh);
-      sculpt_face_sets_init_flood_fill(
-          ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
-            return face_sets_copy[from_face] == face_sets_copy[to_face];
-          });
+      init_flood_fill(ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
+        return face_sets_copy[from_face] == face_sets_copy[to_face];
+      });
       break;
     }
   }
@@ -929,7 +926,7 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_sets_init";
   ot->description = "Initializes all Face Sets in the mesh";
 
-  ot->exec = sculpt_face_set_init_exec;
+  ot->exec = init_op_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1058,7 +1055,7 @@ static void show_all(Depsgraph &depsgraph, Object &object, const Span<PBVHNode *
   }
 }
 
-static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
+static int change_visibility_exec(bContext *C, wmOperator *op)
 {
   Object &object = *CTX_data_active_object(C);
   SculptSession *ss = object.sculpt;
@@ -1154,9 +1151,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int sculpt_face_set_change_visibility_invoke(bContext *C,
-                                                    wmOperator *op,
-                                                    const wmEvent *event)
+static int change_visibility_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1174,7 +1169,7 @@ static int sculpt_face_set_change_visibility_invoke(bContext *C,
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
-  return sculpt_face_set_change_visibility_exec(C, op);
+  return change_visibility_exec(C, op);
 }
 
 void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
@@ -1183,8 +1178,8 @@ void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_set_change_visibility";
   ot->description = "Change the visibility of the Face Sets of the sculpt";
 
-  ot->exec = sculpt_face_set_change_visibility_exec;
-  ot->invoke = sculpt_face_set_change_visibility_invoke;
+  ot->exec = change_visibility_exec;
+  ot->invoke = change_visibility_invoke;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
@@ -1210,7 +1205,7 @@ void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "mode", modes, int(VisibilityMode::Toggle), "Mode", "");
 }
 
-static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op*/)
+static int randomize_colors_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1257,7 +1252,7 @@ void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_sets_randomize_colors";
   ot->description = "Generates a new set of random colors to render the Face Sets in the viewport";
 
-  ot->exec = sculpt_face_sets_randomize_colors_exec;
+  ot->exec = randomize_colors_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1271,11 +1266,11 @@ enum class EditMode {
   FairTangency = 4,
 };
 
-static void sculpt_face_set_grow_shrink(Object &object,
-                                        const EditMode mode,
-                                        const int active_face_set_id,
-                                        const bool modify_hidden,
-                                        wmOperator *op)
+static void edit_grow_shrink(Object &object,
+                             const EditMode mode,
+                             const int active_face_set_id,
+                             const bool modify_hidden,
+                             wmOperator *op)
 {
   SculptSession &ss = *object.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1367,9 +1362,7 @@ static bool check_single_face_set(const Object &object, const bool check_visible
   return true;
 }
 
-static void sculpt_face_set_delete_geometry(Object *ob,
-                                            const int active_face_set_id,
-                                            const bool modify_hidden)
+static void delete_geometry(Object *ob, const int active_face_set_id, const bool modify_hidden)
 {
   Mesh &mesh = *static_cast<Mesh *>(ob->data);
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -1409,10 +1402,10 @@ static void sculpt_face_set_delete_geometry(Object *ob,
   BM_mesh_free(bm);
 }
 
-static void sculpt_face_set_edit_fair_face_set(Object *ob,
-                                               const int active_face_set_id,
-                                               const eMeshFairingDepth fair_order,
-                                               const float strength)
+static void edit_fairing(Object *ob,
+                         const int active_face_set_id,
+                         const eMeshFairingDepth fair_order,
+                         const float strength)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -1445,9 +1438,9 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
   }
 }
 
-static bool sculpt_face_set_edit_is_operation_valid(const Object &object,
-                                                    const EditMode mode,
-                                                    const bool modify_hidden)
+static bool edit_is_operation_valid(const Object &object,
+                                    const EditMode mode,
+                                    const bool modify_hidden)
 {
   if (BKE_pbvh_type(*object.sculpt->pbvh) == PBVH_BMESH) {
     /* Dyntopo is not supported. */
@@ -1481,18 +1474,18 @@ static bool sculpt_face_set_edit_is_operation_valid(const Object &object,
   return true;
 }
 
-static void sculpt_face_set_edit_modify_geometry(bContext *C,
-                                                 Object *ob,
-                                                 const int active_face_set,
-                                                 const EditMode mode,
-                                                 const bool modify_hidden,
-                                                 wmOperator *op)
+static void edit_modify_geometry(bContext *C,
+                                 Object *ob,
+                                 const int active_face_set,
+                                 const EditMode mode,
+                                 const bool modify_hidden,
+                                 wmOperator *op)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   undo::geometry_begin(ob, op);
   switch (mode) {
     case EditMode::DeleteGeometry:
-      sculpt_face_set_delete_geometry(ob, active_face_set, modify_hidden);
+      delete_geometry(ob, active_face_set, modify_hidden);
       break;
     default:
       BLI_assert_unreachable();
@@ -1503,7 +1496,7 @@ static void sculpt_face_set_edit_modify_geometry(bContext *C,
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
 
-static void sculpt_face_set_edit_modify_coordinates(
+static void edit_modify_coordinates(
     bContext *C, Object *ob, const int active_face_set, const EditMode mode, wmOperator *op)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -1521,12 +1514,10 @@ static void sculpt_face_set_edit_modify_coordinates(
   }
   switch (mode) {
     case EditMode::FairPositions:
-      sculpt_face_set_edit_fair_face_set(
-          ob, active_face_set, MESH_FAIRING_DEPTH_POSITION, strength);
+      edit_fairing(ob, active_face_set, MESH_FAIRING_DEPTH_POSITION, strength);
       break;
     case EditMode::FairTangency:
-      sculpt_face_set_edit_fair_face_set(
-          ob, active_face_set, MESH_FAIRING_DEPTH_TANGENCY, strength);
+      edit_fairing(ob, active_face_set, MESH_FAIRING_DEPTH_TANGENCY, strength);
       break;
     default:
       BLI_assert_unreachable();
@@ -1540,14 +1531,14 @@ static void sculpt_face_set_edit_modify_coordinates(
   undo::push_end(ob);
 }
 
-static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
+static bool edit_op_init(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const EditMode mode = EditMode(RNA_enum_get(op->ptr, "mode"));
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
-  if (!sculpt_face_set_edit_is_operation_valid(*ob, mode, modify_hidden)) {
+  if (!edit_is_operation_valid(*ob, mode, modify_hidden)) {
     return false;
   }
 
@@ -1556,9 +1547,9 @@ static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
   return true;
 }
 
-static int sculpt_face_set_edit_exec(bContext *C, wmOperator *op)
+static int edit_op_exec(bContext *C, wmOperator *op)
 {
-  if (!sculpt_face_set_edit_init(C, op)) {
+  if (!edit_op_init(C, op)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1570,15 +1561,15 @@ static int sculpt_face_set_edit_exec(bContext *C, wmOperator *op)
 
   switch (mode) {
     case EditMode::DeleteGeometry:
-      sculpt_face_set_edit_modify_geometry(C, ob, active_face_set, mode, modify_hidden, op);
+      edit_modify_geometry(C, ob, active_face_set, mode, modify_hidden, op);
       break;
     case EditMode::Grow:
     case EditMode::Shrink:
-      sculpt_face_set_grow_shrink(*ob, mode, active_face_set, modify_hidden, op);
+      edit_grow_shrink(*ob, mode, active_face_set, modify_hidden, op);
       break;
     case EditMode::FairPositions:
     case EditMode::FairTangency:
-      sculpt_face_set_edit_modify_coordinates(C, ob, active_face_set, mode, op);
+      edit_modify_coordinates(C, ob, active_face_set, mode, op);
       break;
   }
 
@@ -1587,7 +1578,7 @@ static int sculpt_face_set_edit_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int edit_op_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
@@ -1611,7 +1602,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
   }
   RNA_int_set(op->ptr, "active_face_set", active_face_set_get(ss));
 
-  return sculpt_face_set_edit_exec(C, op);
+  return edit_op_exec(C, op);
 }
 
 void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
@@ -1620,8 +1611,8 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_set_edit";
   ot->description = "Edits the current active Face Set";
 
-  ot->invoke = sculpt_face_set_edit_invoke;
-  ot->exec = sculpt_face_set_edit_exec;
+  ot->invoke = edit_op_invoke;
+  ot->exec = edit_op_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
@@ -1677,23 +1668,21 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
  * Operators that modify face sets based on a selected area.
  * \{ */
 
-struct SculptGestureFaceSetOperation {
+struct FaceSetOperation {
   gesture::Operation op;
 
   int new_face_set_id;
 };
 
-static void sculpt_gesture_face_set_begin(bContext &C, gesture::GestureData &gesture_data)
+static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
 }
 
-static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
-                                        const Span<PBVHNode *> nodes)
+static void gesture_apply_mesh(gesture::GestureData &gesture_data, const Span<PBVHNode *> nodes)
 {
-  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data.operation;
+  FaceSetOperation *face_set_operation = (FaceSetOperation *)gesture_data.operation;
   const int new_face_set = face_set_operation->new_face_set_id;
   Object &object = *gesture_data.vc.obact;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1745,11 +1734,9 @@ static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
   face_sets.finish();
 }
 
-static void face_set_gesture_apply_bmesh(gesture::GestureData &gesture_data,
-                                         const Span<PBVHNode *> nodes)
+static void gesture_apply_bmesh(gesture::GestureData &gesture_data, const Span<PBVHNode *> nodes)
 {
-  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data.operation;
+  FaceSetOperation *face_set_operation = (FaceSetOperation *)gesture_data.operation;
   const int new_face_set = face_set_operation->new_face_set_id;
   SculptSession &ss = *gesture_data.ss;
   BMesh *bm = ss.bm;
@@ -1780,41 +1767,36 @@ static void face_set_gesture_apply_bmesh(gesture::GestureData &gesture_data,
   });
 }
 
-static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext & /*C*/,
-                                                            gesture::GestureData &gesture_data)
+static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
   switch (BKE_pbvh_type(*gesture_data.ss->pbvh)) {
     case PBVH_GRIDS:
     case PBVH_FACES:
-      face_set_gesture_apply_mesh(gesture_data, gesture_data.nodes);
+      gesture_apply_mesh(gesture_data, gesture_data.nodes);
       break;
     case PBVH_BMESH:
-      face_set_gesture_apply_bmesh(gesture_data, gesture_data.nodes);
+      gesture_apply_bmesh(gesture_data, gesture_data.nodes);
   }
 }
 
-static void sculpt_gesture_face_set_end(bContext & /*C*/, gesture::GestureData & /*gesture_data*/)
-{
-}
+static void gesture_end(bContext & /*C*/, gesture::GestureData & /*gesture_data*/) {}
 
-static void sculpt_gesture_init_face_set_properties(gesture::GestureData &gesture_data,
-                                                    wmOperator & /*op*/)
+static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op*/)
 {
   Object &object = *gesture_data.vc.obact;
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<SculptGestureFaceSetOperation>(__func__));
+      MEM_cnew<FaceSetOperation>(__func__));
 
-  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data.operation;
+  FaceSetOperation *face_set_operation = (FaceSetOperation *)gesture_data.operation;
 
-  face_set_operation->op.begin = sculpt_gesture_face_set_begin;
-  face_set_operation->op.apply_for_symmetry_pass = sculpt_gesture_face_set_apply_for_symmetry_pass;
-  face_set_operation->op.end = sculpt_gesture_face_set_end;
+  face_set_operation->op.begin = gesture_begin;
+  face_set_operation->op.apply_for_symmetry_pass = gesture_apply_for_symmetry_pass;
+  face_set_operation->op.end = gesture_end;
 
   face_set_operation->new_face_set_id = face_set::find_next_available_id(object);
 }
 
-static int face_set_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -1825,18 +1807,18 @@ static int face_set_gesture_box_invoke(bContext *C, wmOperator *op, const wmEven
   return WM_gesture_box_invoke(C, op, event);
 }
 
-static int face_set_gesture_box_exec(bContext *C, wmOperator *op)
+static int gesture_box_exec(bContext *C, wmOperator *op)
 {
   std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_box(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_face_set_properties(*gesture_data, *op);
+  init_operation(*gesture_data, *op);
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
-static int face_set_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -1847,13 +1829,13 @@ static int face_set_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEv
   return WM_gesture_lasso_invoke(C, op, event);
 }
 
-static int face_set_gesture_lasso_exec(bContext *C, wmOperator *op)
+static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
   std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_lasso(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_face_set_properties(*gesture_data, *op);
+  init_operation(*gesture_data, *op);
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
@@ -1864,9 +1846,9 @@ void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_set_lasso_gesture";
   ot->description = "Add a face set in a shape defined by the cursor";
 
-  ot->invoke = face_set_gesture_lasso_invoke;
+  ot->invoke = gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
-  ot->exec = face_set_gesture_lasso_exec;
+  ot->exec = gesture_lasso_exec;
 
   ot->poll = SCULPT_mode_poll_view3d;
 
@@ -1882,9 +1864,9 @@ void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_set_box_gesture";
   ot->description = "Add a face set in a rectangle defined by the cursor";
 
-  ot->invoke = face_set_gesture_box_invoke;
+  ot->invoke = gesture_box_invoke;
   ot->modal = WM_gesture_box_modal;
-  ot->exec = face_set_gesture_box_exec;
+  ot->exec = gesture_box_exec;
 
   ot->poll = SCULPT_mode_poll_view3d;
 
