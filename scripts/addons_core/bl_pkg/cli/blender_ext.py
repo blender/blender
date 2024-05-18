@@ -949,6 +949,33 @@ def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[st
     return None
 
 
+def pkg_manifest_validate_field_permissions(
+        value: List[Any],
+        strict: bool,
+) -> Optional[str]:
+    _ = strict
+    # Always strict for now as it doesn't seem as there are repositories using invalid values.
+    strict = True
+    if strict:
+        values_valid = {
+            "files",
+            "network",
+            "clipboard",
+            "camera",
+            "microphone",
+        }
+        for i, item in enumerate(value):
+            if not isinstance(item, str):
+                return "at index {:d} must be a string not a {:s}".format(i, str(type(value)))
+            if item not in values_valid:
+                return "at index {:d} must be a value in {!r}".format(i, tuple(values_valid))
+    else:
+        if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)) is not None:
+            return error
+
+    return None
+
+
 def pkg_manifest_validate_field_wheels(
         value: List[Any],
         strict: bool,
@@ -1025,7 +1052,7 @@ pkg_manifest_known_keys_and_types: Tuple[
     ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
     ("website", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
     ("copyright", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
-    ("permissions", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
+    ("permissions", list, pkg_manifest_validate_field_permissions),
     ("tags", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("wheels", list, pkg_manifest_validate_field_wheels),
 )
