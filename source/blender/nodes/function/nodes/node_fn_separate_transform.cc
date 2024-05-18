@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Matrix>("Transform");
-  b.add_output<decl::Vector>("Location").subtype(PROP_TRANSLATION);
+  b.add_output<decl::Vector>("Translation").subtype(PROP_TRANSLATION);
   b.add_output<decl::Rotation>("Rotation");
   b.add_output<decl::Vector>("Scale").subtype(PROP_XYZ);
 };
@@ -26,7 +26,7 @@ class SeparateTransformFunction : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Separate Transform", signature};
       builder.single_input<float4x4>("Transform");
-      builder.single_output<float3>("Location", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float3>("Translation", mf::ParamFlag::SupportsUnusedOutput);
       builder.single_output<math::Quaternion>("Rotation", mf::ParamFlag::SupportsUnusedOutput);
       builder.single_output<float3>("Scale", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
@@ -37,14 +37,15 @@ class SeparateTransformFunction : public mf::MultiFunction {
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan transforms = params.readonly_single_input<float4x4>(0, "Transform");
-    MutableSpan location = params.uninitialized_single_output_if_required<float3>(1, "Location");
+    MutableSpan translation = params.uninitialized_single_output_if_required<float3>(
+        1, "Translation");
     MutableSpan rotation = params.uninitialized_single_output_if_required<math::Quaternion>(
         2, "Rotation");
     MutableSpan scale = params.uninitialized_single_output_if_required<float3>(3, "Scale");
 
-    if (!location.is_empty()) {
+    if (!translation.is_empty()) {
       mask.foreach_index_optimized<int64_t>(
-          [&](const int64_t i) { location[i] = transforms[i].location(); });
+          [&](const int64_t i) { translation[i] = transforms[i].location(); });
     }
 
     if (rotation.is_empty() && !scale.is_empty()) {
