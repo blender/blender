@@ -248,12 +248,6 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
 
     direction = point_on_light_shape - lP;
     direction = shadow_ray_above_horizon_ensure(direction, lNg, shape_radius);
-
-    /* Clip the ray to not cross the near plane.
-     * Scale it so that it encompass the whole cube (with a safety margin). */
-    float clip_distance = clip_near + 0.001;
-    float ray_length = reduce_max(abs(direction));
-    direction *= saturate((ray_length - clip_distance) / ray_length);
   }
   else {
     float dist;
@@ -272,11 +266,11 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
 
     direction = point_on_light_shape - lP;
     direction = shadow_ray_above_horizon_ensure(direction, lNg, shape_radius);
-
-    /* Clip the ray to not cross the light shape. */
-    float clip_distance = clip_near + 0.001;
-    direction *= saturate((dist - clip_distance) / dist);
   }
+  /* Clip the ray to not cross the near plane.
+   * Avoid traces that starts on tiles that have not been queried, creating noise. */
+  float clip_distance = clip_near + shape_radius * 0.5;
+  direction *= saturate(1.0 - clip_distance * inversesqrt(length_squared(direction)));
 
   vec3 shadow_position = light_local_data_get(light).shadow_position;
   /* Compute the ray again. */
