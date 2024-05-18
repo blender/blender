@@ -575,7 +575,7 @@ void ShadowModule::init()
   bool update_lights = false;
   bool enable_shadow = (scene.eevee.flag & SCE_EEVEE_SHADOW_ENABLED) != 0;
   bool use_jitter = enable_shadow &&
-                    (!inst_.is_viewport() ||
+                    (inst_.is_image_render() ||
                      (!inst_.is_navigating() && !inst_.is_transforming() && !inst_.is_playback() &&
                       (scene.eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT)));
   update_lights |= assign_if_different(enabled_, enable_shadow);
