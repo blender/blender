@@ -763,9 +763,11 @@ static void lineart_chain_connect(LineartData * /*ld*/,
 {
   LineartEdgeChainItem *eci;
   if (onto->type == MOD_LINEART_EDGE_FLAG_INTERSECTION) {
+    if (sub->type != MOD_LINEART_EDGE_FLAG_INTERSECTION) {
+      onto->type = MOD_LINEART_EDGE_FLAG_CONTOUR;
+    }
     if (sub->object_ref) {
       onto->object_ref = sub->object_ref;
-      onto->type = MOD_LINEART_EDGE_FLAG_CONTOUR;
     }
   }
   else if (sub->type == MOD_LINEART_EDGE_FLAG_INTERSECTION) {
