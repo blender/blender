@@ -112,6 +112,8 @@ static void eevee_draw_scene(void *vedata)
   STRNCPY(ved->info, ved->instance->info.c_str());
   /* Reset view for other following engines. */
   DRW_view_set_active(nullptr);
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  GPU_framebuffer_viewport_reset(dfbl->default_fb);
 }
 
 static void eevee_cache_init(void *vedata)
