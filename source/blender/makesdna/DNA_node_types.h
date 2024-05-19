@@ -617,7 +617,9 @@ typedef struct bNodeLink {
 
 /** #bNodeLink::flag */
 enum {
-  NODE_LINKFLAG_HILITE = 1 << 0, /** Link has been successfully validated. */
+  /** Node should be inserted on this link on drop. */
+  NODE_LINK_INSERT_TARGET = 1 << 0,
+  /** Link has been successfully validated. */
   NODE_LINK_VALID = 1 << 1,
   /** Free test flag, undefined. */
   NODE_LINK_TEST = 1 << 2,

@@ -2115,14 +2115,14 @@ void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region)
   }
 
   if (selink) {
-    selink->flag |= NODE_LINKFLAG_HILITE;
+    selink->flag |= NODE_LINK_INSERT_TARGET;
   }
 }
 
 void node_insert_on_link_flags_clear(bNodeTree &node_tree)
 {
   LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
-    link->flag &= ~NODE_LINKFLAG_HILITE;
+    link->flag &= ~NODE_LINK_INSERT_TARGET;
   }
 }
 
@@ -2139,7 +2139,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode)
   bNodeTree &ntree = *snode.edittree;
   bNodeLink *old_link = nullptr;
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (link->flag & NODE_LINKFLAG_HILITE) {
+    if (link->flag & NODE_LINK_INSERT_TARGET) {
       old_link = link;
       break;
     }
@@ -2148,7 +2148,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode)
     return;
   }
 
-  old_link->flag &= ~NODE_LINKFLAG_HILITE;
+  old_link->flag &= ~NODE_LINK_INSERT_TARGET;
 
   bNodeSocket *best_input = get_main_socket(ntree, *node_to_insert, SOCK_IN);
   bNodeSocket *best_output = get_main_socket(ntree, *node_to_insert, SOCK_OUT);
