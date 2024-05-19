@@ -3104,7 +3104,14 @@ static void node_draw_extra_info_row(const bNode &node,
                              nullptr,
                              0,
                              0,
-                             "");
+                             extra_info_row.tooltip);
+
+  if (extra_info_row.tooltip_fn != nullptr) {
+    UI_but_func_tooltip_set(but_text,
+                            extra_info_row.tooltip_fn,
+                            extra_info_row.tooltip_fn_arg,
+                            extra_info_row.tooltip_fn_free_arg);
+  }
 
   if (node.flag & NODE_MUTED) {
     UI_but_flag_enable(but_text, UI_BUT_INACTIVE);
