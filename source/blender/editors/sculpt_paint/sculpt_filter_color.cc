@@ -185,8 +185,7 @@ static void color_filter_task(Object &ob,
         break;
       case COLOR_FILTER_SMOOTH: {
         fade = clamp_f(fade, -1.0f, 1.0f);
-        float smooth_color[4];
-        smooth::neighbor_color_average(ss, smooth_color, vd.vertex);
+        float4 smooth_color = smooth::neighbor_color_average(ss, vd.vertex);
 
         float col[4];
         SCULPT_vertex_color_get(ss, vd.vertex, col);

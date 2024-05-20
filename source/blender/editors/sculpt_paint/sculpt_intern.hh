@@ -1543,18 +1543,16 @@ namespace blender::ed::sculpt_paint::smooth {
  * For bmesh: Average surrounding verts based on an orthogonality measure.
  * Naturally converges to a quad-like structure.
  */
-void bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v);
+void bmesh_four_neighbor_average(float avg[3], const float3 &direction, BMVert *v);
 
-void neighbor_coords_average(SculptSession &ss, float result[3], PBVHVertRef vertex);
+float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex);
 float neighbor_mask_average(SculptSession &ss, SculptMaskWriteInfo write_info, PBVHVertRef vertex);
-void neighbor_color_average(SculptSession &ss, float result[4], PBVHVertRef vertex);
+float4 neighbor_color_average(SculptSession &ss, PBVHVertRef vertex);
 
 /**
  * Mask the mesh boundaries smoothing only the mesh surface without using auto-masking.
  */
-void neighbor_coords_average_interior(const SculptSession &ss,
-                                      float result[3],
-                                      PBVHVertRef vertex);
+float3 neighbor_coords_average_interior(const SculptSession &ss, PBVHVertRef vertex);
 
 void do_smooth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes, float bstrength);
 void do_smooth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);

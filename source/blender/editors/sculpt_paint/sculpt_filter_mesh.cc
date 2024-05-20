@@ -349,7 +349,7 @@ static void mesh_filter_task(Object &ob,
     SCULPT_orig_vert_data_update(orig_data, vd);
     auto_mask::node_update(automask_data, vd);
 
-    float orig_co[3], val[3], avg[3], disp[3], disp2[3], transform[3][3], final_pos[3];
+    float orig_co[3], val[3], disp[3], disp2[3], transform[3][3], final_pos[3];
     float fade = vd.mask;
     fade = 1.0f - fade;
     fade *= filter_strength;
@@ -380,13 +380,14 @@ static void mesh_filter_task(Object &ob,
     }
 
     switch (filter_type) {
-      case MESH_FILTER_SMOOTH:
+      case MESH_FILTER_SMOOTH: {
         fade = clamp_f(fade, -1.0f, 1.0f);
-        smooth::neighbor_coords_average_interior(ss, avg, vd.vertex);
+        const float3 avg = smooth::neighbor_coords_average_interior(ss, vd.vertex);
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
         sub_v3_v3v3(disp, val, orig_co);
         break;
+      }
       case MESH_FILTER_INFLATE:
         mul_v3_v3fl(disp, orig_data.no, fade);
         break;
@@ -471,8 +472,7 @@ static void mesh_filter_task(Object &ob,
         mul_v3_fl(disp_sharpen, 1.0f - ss.filter_cache->sharpen_factor[vd.index]);
 
         float disp_avg[3];
-        float avg_co[3];
-        smooth::neighbor_coords_average(ss, avg_co, vd.vertex);
+        const float3 avg_co = smooth::neighbor_coords_average(ss, vd.vertex);
         sub_v3_v3v3(disp_avg, avg_co, vd.co);
         mul_v3_v3fl(
             disp_avg, disp_avg, smooth_ratio * pow2f(ss.filter_cache->sharpen_factor[vd.index]));
@@ -532,9 +532,7 @@ static void mesh_filter_enhance_details_init_directions(SculptSession &ss)
       MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    float avg[3];
-    smooth::neighbor_coords_average(ss, avg, vertex);
+    const float3 avg = smooth::neighbor_coords_average(ss, vertex);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
   }
 }
@@ -584,9 +582,7 @@ static void mesh_filter_sharpen_init(SculptSession &ss,
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    float avg[3];
-    smooth::neighbor_coords_average(ss, avg, vertex);
+    const float3 avg = smooth::neighbor_coords_average(ss, vertex);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
     filter_cache->sharpen_factor[i] = len_v3(filter_cache->detail_directions[i]);
   }

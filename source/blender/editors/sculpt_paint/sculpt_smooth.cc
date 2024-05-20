@@ -25,9 +25,9 @@
 
 namespace blender::ed::sculpt_paint::smooth {
 
-void neighbor_coords_average_interior(const SculptSession &ss, float result[3], PBVHVertRef vertex)
+float3 neighbor_coords_average_interior(const SculptSession &ss, PBVHVertRef vertex)
 {
-  float avg[3] = {0.0f, 0.0f, 0.0f};
+  float3 avg(0);
   int total = 0;
   int neighbor_count = 0;
   const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex);
@@ -38,13 +38,13 @@ void neighbor_coords_average_interior(const SculptSession &ss, float result[3], 
     if (is_boundary) {
       /* Boundary vertices use only other boundary vertices. */
       if (SCULPT_vertex_is_boundary(ss, ni.vertex)) {
-        add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.vertex));
+        avg += SCULPT_vertex_co_get(ss, ni.vertex);
         total++;
       }
     }
     else {
       /* Interior vertices use all neighbors. */
-      add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.vertex));
+      avg += SCULPT_vertex_co_get(ss, ni.vertex);
       total++;
     }
   }
@@ -52,22 +52,19 @@ void neighbor_coords_average_interior(const SculptSession &ss, float result[3], 
 
   /* Do not modify corner vertices. */
   if (neighbor_count <= 2 && is_boundary) {
-    copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
-    return;
+    return SCULPT_vertex_co_get(ss, vertex);
   }
 
   /* Avoid division by 0 when there are no neighbors. */
   if (total == 0) {
-    copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
-    return;
+    return SCULPT_vertex_co_get(ss, vertex);
   }
 
-  mul_v3_v3fl(result, avg, 1.0f / total);
+  return avg / total;
 }
 
-void bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
+void bmesh_four_neighbor_average(float avg[3], const float3 &direction, BMVert *v)
 {
-
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
   float tot_co = 0.0f;
 
@@ -113,24 +110,22 @@ void bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
 /* Generic functions for laplacian smoothing. These functions do not take boundary vertices into
  * account. */
 
-void neighbor_coords_average(SculptSession &ss, float result[3], PBVHVertRef vertex)
+float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex)
 {
-  float avg[3] = {0.0f, 0.0f, 0.0f};
+  float3 avg(0);
   int total = 0;
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.vertex));
+    avg += SCULPT_vertex_co_get(ss, ni.vertex);
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (total > 0) {
-    mul_v3_v3fl(result, avg, 1.0f / total);
+    return avg / total;
   }
-  else {
-    copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
-  }
+  return SCULPT_vertex_co_get(ss, vertex);
 }
 
 float neighbor_mask_average(SculptSession &ss,
@@ -169,9 +164,9 @@ float neighbor_mask_average(SculptSession &ss,
   return avg / total;
 }
 
-void neighbor_color_average(SculptSession &ss, float result[4], PBVHVertRef vertex)
+float4 neighbor_color_average(SculptSession &ss, PBVHVertRef vertex)
 {
-  float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float4 avg(0);
   int total = 0;
 
   SculptVertexNeighborIter ni;
@@ -180,17 +175,17 @@ void neighbor_color_average(SculptSession &ss, float result[4], PBVHVertRef vert
 
     SCULPT_vertex_color_get(ss, ni.vertex, tmp);
 
-    add_v4_v4(avg, tmp);
+    avg += tmp;
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (total > 0) {
-    mul_v4_v4fl(result, avg, 1.0f / total);
+    return avg / total;
   }
-  else {
-    SCULPT_vertex_color_get(ss, vertex, result);
-  }
+  float4 tmp;
+  SCULPT_vertex_color_get(ss, vertex, tmp);
+  return tmp;
 }
 
 static void do_enhance_details_brush_task(Object &ob,
@@ -253,9 +248,7 @@ static void enhance_details_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *>
 
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-      float avg[3];
-      neighbor_coords_average(ss, avg, vertex);
+      const float3 avg = neighbor_coords_average(ss, vertex);
       sub_v3_v3v3(ss.cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
     }
   }
@@ -377,8 +370,8 @@ static void smooth_position_node(
                                                                 thread_id,
                                                                 &automask_data);
 
-    float avg[3], val[3];
-    neighbor_coords_average_interior(ss, avg, vd.vertex);
+    float val[3];
+    const float3 avg = neighbor_coords_average_interior(ss, vd.vertex);
     sub_v3_v3v3(val, avg, vd.co);
     madd_v3_v3v3fl(val, vd.co, val, fade);
     SCULPT_clip(sd, ss, vd.co, val);
@@ -441,11 +434,10 @@ void surface_smooth_laplacian_step(SculptSession &ss,
                                    const float origco[3],
                                    const float alpha)
 {
-  float laplacian_smooth_co[3];
   float weigthed_o[3], weigthed_q[3], d[3];
   int v_index = BKE_pbvh_vertex_to_index(*ss.pbvh, vertex);
 
-  neighbor_coords_average(ss, laplacian_smooth_co, vertex);
+  const float3 laplacian_smooth_co = neighbor_coords_average(ss, vertex);
 
   mul_v3_v3fl(weigthed_o, origco, alpha);
   mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
