@@ -17,8 +17,6 @@
 
 namespace blender::nodes::node_geo_tool_active_element_cc {
 
-NODE_STORAGE_FUNCS(NodeGeometryToolActiveElement)
-
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Int>("Index").description(
@@ -29,20 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryToolActiveElement *data = MEM_cnew<NodeGeometryToolActiveElement>(__func__);
-  data->domain = int16_t(AttrDomain::Point);
-  node->storage = data;
-}
-
-static void node_rna(StructRNA *srna)
-{
-  RNA_def_node_enum(srna,
-                    "domain",
-                    "Domain",
-                    "",
-                    rna_enum_attribute_domain_only_mesh_no_corner_items,
-                    NOD_storage_enum_accessors(domain),
-                    int(AttrDomain::Point));
+  node->custom1 = int16_t(AttrDomain::Point);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -65,7 +50,7 @@ static void node_exec(GeoNodeExecParams params)
 
   const GeoNodesOperatorData *operator_data = params.user_data()->call_data->operator_data;
 
-  switch (static_cast<AttrDomain>(node_storage(params.node()).domain)) {
+  switch (static_cast<AttrDomain>(params.node().custom1)) {
     case AttrDomain::Point:
       params.set_output("Exists", operator_data->active_point_index >= 0);
       params.set_output("Index", std::max(0, operator_data->active_point_index));
@@ -85,14 +70,21 @@ static void node_exec(GeoNodeExecParams params)
   }
 }
 
+static void node_rna(StructRNA *srna)
+{
+  RNA_def_node_enum(srna,
+                    "domain",
+                    "Domain",
+                    "",
+                    rna_enum_attribute_domain_only_mesh_no_corner_items,
+                    NOD_inline_enum_accessors(custom1),
+                    int(AttrDomain::Point));
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_TOOL_ACTIVE_ELEMENT, "Active Element", NODE_CLASS_INPUT);
-  node_type_storage(&ntype,
-                    "NodeGeometryToolActiveElement",
-                    node_free_standard_storage,
-                    node_copy_standard_storage);
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_exec;
   ntype.declare = node_declare;
