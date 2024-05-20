@@ -89,7 +89,6 @@ set(SRC
   intern/cachefile.cc
   intern/callbacks.cc
   intern/camera.cc
-  intern/cdderivedmesh.cc
   intern/cloth.cc
   intern/collection.cc
   intern/collision.cc
@@ -360,7 +359,6 @@ set(SRC
   BKE_callbacks.hh
   BKE_camera.h
   BKE_ccg.h
-  BKE_cdderivedmesh.h
   BKE_cloth.hh
   BKE_collection.hh
   BKE_collision.h

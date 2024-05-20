@@ -27,7 +27,6 @@
 
 #include "BKE_DerivedMesh.hh"
 #include "BKE_attribute.hh"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.hh"
 #include "BKE_shrinkwrap.hh"
 

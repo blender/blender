@@ -175,6 +175,12 @@ void DM_release(DerivedMesh *dm);
  */
 void DM_set_only_copy(DerivedMesh *dm, const CustomData_MeshMasks *mask);
 
+/* creates a CDDerivedMesh from the given Mesh, this will reference the
+ * original data in Mesh, but it is safe to apply vertex coordinates or
+ * calculate normals as those functions will automatically create new
+ * data to not overwrite the original. */
+DerivedMesh *CDDM_from_mesh(Mesh *mesh);
+
 /* -------------------------------------------------------------------- */
 /** \name Custom Data Layer Access Functions
  *

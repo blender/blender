@@ -21,8 +21,8 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_DerivedMesh.hh"
 #include "BKE_ccg.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
