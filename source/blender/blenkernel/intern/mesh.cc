@@ -842,10 +842,10 @@ Mesh *BKE_mesh_new_nomain_from_template(const Mesh *me_src,
       me_src, verts_num, edges_num, 0, faces_num, corners_num, CD_MASK_EVERYTHING);
 }
 
-Mesh *BKE_mesh_copy_for_eval(const Mesh *source)
+Mesh *BKE_mesh_copy_for_eval(const Mesh &source)
 {
   return reinterpret_cast<Mesh *>(
-      BKE_id_copy_ex(nullptr, &source->id, nullptr, LIB_ID_COPY_LOCALIZE));
+      BKE_id_copy_ex(nullptr, &source.id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
 BMesh *BKE_mesh_to_bmesh_ex(const Mesh *mesh,

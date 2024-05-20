@@ -372,7 +372,7 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
       if (deformmats.is_empty()) {
         /* NOTE: Evaluated object is re-set to its original un-deformed state. */
         Mesh *mesh = static_cast<Mesh *>(object_eval.data);
-        mesh_eval = BKE_mesh_copy_for_eval(mesh);
+        mesh_eval = BKE_mesh_copy_for_eval(*mesh);
         deformcos = mesh->vert_positions();
         deformmats.reinitialize(mesh->verts_num);
         deformmats.fill(blender::float3x3::identity());
@@ -456,7 +456,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
         }
 
         if (mesh_eval == nullptr) {
-          mesh_eval = BKE_mesh_copy_for_eval(mesh);
+          mesh_eval = BKE_mesh_copy_for_eval(*mesh);
         }
 
         mti->deform_verts(md, &mectx, mesh_eval, deformedVerts);

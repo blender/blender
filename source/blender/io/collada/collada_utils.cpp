@@ -282,7 +282,7 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
     tmpmesh = (Mesh *)ob->data;
   }
 
-  Mesh *mesh = BKE_mesh_copy_for_eval(tmpmesh);
+  Mesh *mesh = BKE_mesh_copy_for_eval(*tmpmesh);
 
   if (triangulate) {
     bc_triangulate_mesh(mesh);

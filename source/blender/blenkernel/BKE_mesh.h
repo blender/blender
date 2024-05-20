@@ -125,10 +125,9 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
                                            CustomData_MeshMasks mask);
 
 /**
- * Performs copy for use during evaluation,
- * optional referencing original arrays to reduce memory.
+ * Performs copy for use during evaluation.
  */
-Mesh *BKE_mesh_copy_for_eval(const Mesh *source);
+Mesh *BKE_mesh_copy_for_eval(const Mesh &source);
 
 /**
  * These functions construct a new Mesh,

@@ -158,7 +158,7 @@ static Mesh *create_orco_mesh(const Object &ob,
     BKE_mesh_ensure_default_orig_index_customdata(orco_mesh);
   }
   else {
-    orco_mesh = BKE_mesh_copy_for_eval(&mesh);
+    orco_mesh = BKE_mesh_copy_for_eval(mesh);
   }
 
   Array<float3> storage;
@@ -372,7 +372,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
 
   if (ob.modifier_flag & OB_MODIFIER_FLAG_ADD_REST_POSITION) {
     if (mesh_final == nullptr) {
-      mesh_final = BKE_mesh_copy_for_eval(&mesh_input);
+      mesh_final = BKE_mesh_copy_for_eval(mesh_input);
       ASSERT_IS_VALID_MESH(mesh_final);
     }
     set_rest_position(*mesh_final);
@@ -390,7 +390,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
       if (mti->type == ModifierTypeType::OnlyDeform && !sculpt_dyntopo) {
         ScopedModifierTimer modifier_timer{*md};
         if (!mesh_final) {
-          mesh_final = BKE_mesh_copy_for_eval(&mesh_input);
+          mesh_final = BKE_mesh_copy_for_eval(mesh_input);
           ASSERT_IS_VALID_MESH(mesh_final);
         }
 
@@ -413,7 +413,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
      * places that wish to use the original mesh but with deformed
      * coordinates (like vertex paint). */
     if (r_deform) {
-      mesh_deform = BKE_mesh_copy_for_eval(mesh_final ? mesh_final : &mesh_input);
+      mesh_deform = BKE_mesh_copy_for_eval(mesh_final ? *mesh_final : mesh_input);
     }
   }
 
@@ -485,7 +485,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
 
     if (mti->type == ModifierTypeType::OnlyDeform) {
       if (!mesh_final) {
-        mesh_final = BKE_mesh_copy_for_eval(&mesh_input);
+        mesh_final = BKE_mesh_copy_for_eval(mesh_input);
         ASSERT_IS_VALID_MESH(mesh_final);
       }
       BKE_modifier_deform_verts(md, &mectx, mesh_final, mesh_final->vert_positions_for_write());
@@ -500,7 +500,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
         }
       }
       else {
-        mesh_final = BKE_mesh_copy_for_eval(&mesh_input);
+        mesh_final = BKE_mesh_copy_for_eval(mesh_input);
         ASSERT_IS_VALID_MESH(mesh_final);
         check_for_needs_mapping = true;
       }
@@ -665,7 +665,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
       mesh_final = &mesh_input;
     }
     else {
-      mesh_final = BKE_mesh_copy_for_eval(&mesh_input);
+      mesh_final = BKE_mesh_copy_for_eval(mesh_input);
     }
   }
 
@@ -709,7 +709,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
         /* Not yet finalized by any instance, do it now
          * Isolate since computing normals is multithreaded and we are holding a lock. */
         threading::isolate_task([&] {
-          mesh_final = BKE_mesh_copy_for_eval(&mesh_input);
+          mesh_final = BKE_mesh_copy_for_eval(mesh_input);
           mesh_calc_finalize(mesh_input, *mesh_final);
           runtime->mesh_eval = mesh_final;
         });
@@ -860,7 +860,7 @@ static void editbmesh_calc_modifiers(Depsgraph &depsgraph,
       /* If the cage mesh has already been assigned, we have passed the cage index in the modifier
        * list. If the cage and final meshes are still the same, duplicate the final mesh so the
        * cage mesh isn't modified anymore. */
-      mesh_final = BKE_mesh_copy_for_eval(mesh_final);
+      mesh_final = BKE_mesh_copy_for_eval(*mesh_final);
       if (mesh_cage->runtime->edit_mesh) {
         mesh_final->runtime->edit_mesh = mesh_cage->runtime->edit_mesh;
         mesh_final->runtime->is_original_bmesh = true;

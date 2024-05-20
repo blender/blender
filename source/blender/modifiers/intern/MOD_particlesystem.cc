@@ -141,7 +141,7 @@ static void deform_verts(ModifierData *md,
   }
 
   /* make new mesh */
-  psmd->mesh_final = BKE_mesh_copy_for_eval(mesh);
+  psmd->mesh_final = BKE_mesh_copy_for_eval(*mesh);
   psmd->mesh_final->vert_positions_for_write().copy_from(positions);
   psmd->mesh_final->tag_positions_changed();
 
@@ -173,7 +173,7 @@ static void deform_verts(ModifierData *md,
       /* Make a persistent copy of the mesh. We don't actually need
        * all this data, just some topology for remapping. Could be
        * optimized once. */
-      psmd->mesh_original = BKE_mesh_copy_for_eval(mesh_original);
+      psmd->mesh_original = BKE_mesh_copy_for_eval(*mesh_original);
     }
 
     BKE_mesh_tessface_ensure(psmd->mesh_original);

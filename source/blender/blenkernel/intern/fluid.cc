@@ -1015,7 +1015,7 @@ static void obstacles_from_mesh(Object *coll_ob,
     float *vert_vel = nullptr;
     bool has_velocity = false;
 
-    Mesh *mesh = BKE_mesh_copy_for_eval(fes->mesh);
+    Mesh *mesh = BKE_mesh_copy_for_eval(*fes->mesh);
     blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
 
     int min[3], max[3], res[3];
@@ -2080,7 +2080,7 @@ static void emit_from_mesh(
 
     /* Copy mesh for thread safety as we modify it.
      * Main issue is its VertArray being modified, then replaced and freed. */
-    Mesh *mesh = BKE_mesh_copy_for_eval(ffs->mesh);
+    Mesh *mesh = BKE_mesh_copy_for_eval(*ffs->mesh);
     blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
 
     const blender::Span<int> corner_verts = mesh->corner_verts();
@@ -3396,7 +3396,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
   /* Just copy existing mesh if there is no content or if the adaptive domain is not being used. */
   if (fds->total_cells <= 1 || (fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) == 0) {
-    return BKE_mesh_copy_for_eval(orgmesh);
+    return BKE_mesh_copy_for_eval(*orgmesh);
   }
 
   result = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 4);
@@ -3622,7 +3622,7 @@ static void fluid_modifier_processFlow(FluidModifierData *fmd,
     if (fmd->flow->mesh) {
       BKE_id_free(nullptr, fmd->flow->mesh);
     }
-    fmd->flow->mesh = BKE_mesh_copy_for_eval(mesh);
+    fmd->flow->mesh = BKE_mesh_copy_for_eval(*mesh);
   }
 
   if (scene_framenr > fmd->time) {
@@ -3649,7 +3649,7 @@ static void fluid_modifier_processEffector(FluidModifierData *fmd,
     if (fmd->effector->mesh) {
       BKE_id_free(nullptr, fmd->effector->mesh);
     }
-    fmd->effector->mesh = BKE_mesh_copy_for_eval(mesh);
+    fmd->effector->mesh = BKE_mesh_copy_for_eval(*mesh);
   }
 
   if (scene_framenr > fmd->time) {
@@ -4161,7 +4161,7 @@ Mesh *BKE_fluid_modifier_do(
   }
 
   if (!result) {
-    result = BKE_mesh_copy_for_eval(mesh);
+    result = BKE_mesh_copy_for_eval(*mesh);
   }
   else {
     BKE_mesh_copy_parameters_for_eval(result, mesh);

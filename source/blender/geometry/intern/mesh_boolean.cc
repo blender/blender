@@ -1075,7 +1075,7 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
   if (meshes.size() == 1) {
     /* The float solver doesn't do self union. Just return nullptr, which will
      * cause geometry nodes to leave the input as is. */
-    return BKE_mesh_copy_for_eval(meshes[0]);
+    return BKE_mesh_copy_for_eval(*meshes[0]);
   }
 
   Array<std::array<BMLoop *, 3>> looptris;

@@ -579,7 +579,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   blender::Array<BVHTreeFromMesh> treeData(tot_highpoly);
 
   if (!is_cage) {
-    me_eval_low = BKE_mesh_copy_for_eval(me_low);
+    me_eval_low = BKE_mesh_copy_for_eval(*me_low);
     tris_low = mesh_calc_tri_tessface(me_low, true, me_eval_low);
   }
   else if (is_custom_cage) {
@@ -862,7 +862,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
 
   TriTessFace *triangles;
 
-  Mesh *mesh_eval = BKE_mesh_copy_for_eval(mesh);
+  Mesh *mesh_eval = BKE_mesh_copy_for_eval(*mesh);
 
   triangles = mesh_calc_tri_tessface(mesh, true, mesh_eval);
 
