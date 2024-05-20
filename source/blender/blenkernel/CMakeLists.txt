@@ -207,6 +207,7 @@ set(SRC
   intern/mesh_flip_faces.cc
   intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
+  intern/mesh_legacy_derived_mesh.cc
   intern/mesh_mapping.cc
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.cc
