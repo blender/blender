@@ -8,7 +8,7 @@
  */
 
 /* struct DerivedMesh is used directly */
-#include "BKE_DerivedMesh.hh"
+#include "BKE_mesh_legacy_derived_mesh.hh"
 
 /* Thread sync primitives used directly. */
 #include "BLI_ordered_edge.hh"

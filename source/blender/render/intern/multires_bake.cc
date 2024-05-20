@@ -18,7 +18,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_threads.h"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_attribute.hh"
 #include "BKE_ccg.h"
 #include "BKE_customdata.hh"
@@ -26,6 +25,7 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_legacy_derived_mesh.hh"
 #include "BKE_mesh_tangent.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"

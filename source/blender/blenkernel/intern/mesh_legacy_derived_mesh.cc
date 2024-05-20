@@ -7,8 +7,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_customdata.hh"
+#include "BKE_mesh_legacy_derived_mesh.hh"
 
 struct MeshElemMap;
 struct PBVH;
