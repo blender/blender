@@ -739,6 +739,28 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
         col.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
 
 
+class USERPREF_PT_system_network(SystemPanel, CenterAlignMixIn, Panel):
+    bl_label = "Network"
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        system = prefs.system
+
+        row = layout.row()
+        row.prop(system, "use_online_access", text="Allow Online Access")
+
+        # Show when the preference has been overridden and doesn't match the current preference.
+        runtime_online_access = bpy.app.online_access
+        if system.use_online_access != runtime_online_access:
+            row = layout.split(factor=0.4)
+            row.label(text="")
+            row.label(
+                text="{:s} on startup, overriding the preference.".format(
+                    "Enabled" if runtime_online_access else "Disabled"
+                ),
+            )
+
+
 class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Video Sequencer"
 
@@ -2829,6 +2851,7 @@ classes = (
     USERPREF_PT_system_os_settings,
     USERPREF_PT_system_memory,
     USERPREF_PT_system_video_sequencer,
+    USERPREF_PT_system_network,
     USERPREF_PT_system_sound,
 
     USERPREF_MT_interface_theme_presets,

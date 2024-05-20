@@ -454,6 +454,33 @@ static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
   USERDEF_TAG_DIRTY;
 }
 
+int rna_userdef_use_online_access_editable(const PointerRNA * /*ptr*/, const char **r_info)
+{
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    /* Return 0 when blender was invoked with `--offline-mode` "forced". */
+    if (G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) {
+      *r_info = "Launched with \"--offline-mode\", cannot be changed";
+      return 0;
+    }
+  }
+  return PROP_EDITABLE;
+}
+
+static void rna_userdef_use_online_access_update(Main * /*bmain*/,
+                                                 Scene * /*scene*/,
+                                                 PointerRNA *ptr)
+{
+  UserDef *userdef = (UserDef *)ptr->data;
+  if (userdef->flag & USER_INTERNET_ALLOW) {
+    G.f |= G_FLAG_INTERNET_ALLOW;
+  }
+  else {
+    G.f &= ~G_FLAG_INTERNET_ALLOW;
+  }
+
+  USERDEF_TAG_DIRTY;
+}
+
 static void rna_userdef_script_directory_name_set(PointerRNA *ptr, const char *value)
 {
   bUserScriptDirectory *script_dir = static_cast<bUserScriptDirectory *>(ptr->data);
@@ -6143,6 +6170,18 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       prop,
       "GPU Backend",
       "GPU backend to use (requires restarting Blender for changes to take effect)");
+
+  /* Network. */
+
+  prop = RNA_def_property(srna, "use_online_access", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_INTERNET_ALLOW);
+  RNA_def_property_ui_text(
+      prop,
+      "Allow Online Access",
+      "Allow internet access. Blender may access configured online extension repositories. "
+      "Installed third party add-ons may access the internet for their own functionality");
+  RNA_def_property_editable_func(prop, "rna_userdef_use_online_access_editable");
+  RNA_def_property_update(prop, 0, "rna_userdef_use_online_access_update");
 
   /* Audio */
 
