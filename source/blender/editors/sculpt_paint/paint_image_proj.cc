@@ -85,6 +85,7 @@
 #include "ED_object.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
+#include "ED_sculpt.hh"
 #include "ED_uvedit.hh"
 #include "ED_view3d.hh"
 #include "ED_view3d_offscreen.hh"
@@ -6569,7 +6570,7 @@ static const char *proj_paint_color_attribute_create(wmOperator *op, Object &ob)
     BKE_id_attributes_default_color_set(&mesh->id, layer->name);
   }
 
-  BKE_object_attributes_active_color_fill(ob, color, false);
+  ed::sculpt_paint::object_active_color_fill(ob, color, false);
 
   return layer->name;
 }

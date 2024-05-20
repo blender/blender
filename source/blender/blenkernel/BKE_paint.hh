@@ -748,19 +748,6 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
  */
 bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d);
 
-/* paint_vertex.cc */
-
-/**
- * Fills the object's active color attribute layer with the fill color.
- *
- * \param only_selected: Limit the fill to selected faces or vertices.
- *
- * \return #true if successful.
- */
-bool BKE_object_attributes_active_color_fill(Object &ob,
-                                             const float fill_color[4],
-                                             bool only_selected);
-
 /** C accessor for #Object::sculpt::pbvh. */
 PBVH *BKE_object_sculpt_pbvh_get(Object *object);
 bool BKE_object_sculpt_use_dyntopo(const Object *object);

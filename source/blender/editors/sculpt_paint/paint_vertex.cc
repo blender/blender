@@ -65,6 +65,7 @@
 #include "ED_object_vgroup.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
+#include "ED_sculpt.hh"
 #include "ED_view3d.hh"
 
 /* For IMB_BlendMode only. */
@@ -2085,6 +2086,8 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 /** \name Set Vertex Colors Operator
  * \{ */
 
+namespace blender::ed::sculpt_paint {
+
 template<typename T>
 static void fill_bm_face_or_corner_attribute(BMesh &bm,
                                              const T &value,
@@ -2196,13 +2199,10 @@ static void fill_mesh_color(Mesh &mesh,
   }
 }
 
-/**
- * See doc-string for #BKE_object_attributes_active_color_fill.
- */
-static bool paint_object_attributes_active_color_fill_ex(Object &ob,
-                                                         ColorPaint4f fill_color,
-                                                         bool only_selected = true,
-                                                         bool affect_alpha = true)
+static bool fill_active_color(Object &ob,
+                              ColorPaint4f fill_color,
+                              bool only_selected = true,
+                              bool affect_alpha = true)
 {
   Mesh *mesh = BKE_mesh_from_object(&ob);
   if (!mesh) {
@@ -2222,12 +2222,12 @@ static bool paint_object_attributes_active_color_fill_ex(Object &ob,
   return true;
 }
 
-bool BKE_object_attributes_active_color_fill(Object &ob,
-                                             const float fill_color[4],
-                                             bool only_selected)
+bool object_active_color_fill(Object &ob, const float fill_color[4], bool only_selected)
 {
-  return paint_object_attributes_active_color_fill_ex(ob, ColorPaint4f(fill_color), only_selected);
+  return fill_active_color(ob, ColorPaint4f(fill_color), only_selected);
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 static int vertex_color_set_exec(bContext *C, wmOperator *op)
 {
@@ -2251,7 +2251,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
     undo::push_node(obact, node, undo::Type::Color);
   }
 
-  paint_object_attributes_active_color_fill_ex(obact, paintcol, true, affect_alpha);
+  fill_active_color(obact, paintcol, true, affect_alpha);
 
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_update_color(node);

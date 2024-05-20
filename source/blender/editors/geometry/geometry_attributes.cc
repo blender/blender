@@ -44,6 +44,7 @@
 #include "ED_geometry.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
+#include "ED_sculpt.hh"
 
 #include "geometry_intern.hh"
 
@@ -383,7 +384,7 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
     BKE_id_attributes_default_color_set(id, layer->name);
   }
 
-  BKE_object_attributes_active_color_fill(*ob, color, false);
+  sculpt_paint::object_active_color_fill(*ob, color, false);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
