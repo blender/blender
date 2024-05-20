@@ -59,9 +59,18 @@ struct NodeClipboardItem {
   std::string library_name;
 };
 
+struct ClipboardLink {
+  const bNode *from_node = nullptr;
+  const bNode *to_node = nullptr;
+  std::string from_socket;
+  std::string to_socket;
+  int flag = 0;
+  int multi_input_sort_id = 0;
+};
+
 struct NodeClipboard {
   Vector<NodeClipboardItem> nodes;
-  Vector<bNodeLink> links;
+  Vector<ClipboardLink> links;
 
   /* A mapping of all ID references from nodes in the clipboard, to information allowing to find
    * their valid matching counterpart in current Main data when pasting the nodes back. Entries are
@@ -301,14 +310,14 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
     BLI_assert(link->tonode);
     BLI_assert(link->fromnode);
     if (link->tonode->flag & NODE_SELECT && link->fromnode->flag & NODE_SELECT) {
-      bNodeLink new_link{};
+      clipboard.links.append({});
+      ClipboardLink &new_link = clipboard.links.last();
       new_link.flag = link->flag;
-      new_link.tonode = node_map.lookup(link->tonode);
-      new_link.tosock = socket_map.lookup(link->tosock);
-      new_link.fromnode = node_map.lookup(link->fromnode);
-      new_link.fromsock = socket_map.lookup(link->fromsock);
+      new_link.to_node = node_map.lookup(link->tonode);
+      new_link.from_node = node_map.lookup(link->fromnode);
+      new_link.to_socket = link->tosock->identifier;
+      new_link.from_socket = link->fromsock->identifier;
       new_link.multi_input_sort_id = link->multi_input_sort_id;
-      clipboard.links.append(new_link);
     }
   }
 
@@ -434,25 +443,27 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* Add links between existing nodes. */
-  for (const bNodeLink &link : clipboard.links) {
-    const bNode *fromnode = link.fromnode;
-    const bNode *tonode = link.tonode;
-    if (node_map.lookup_key_ptr(fromnode) && node_map.lookup_key_ptr(tonode)) {
-      bNodeLink *new_link = bke::nodeAddLink(&tree,
-                                             node_map.lookup(fromnode),
-                                             socket_map.lookup(link.fromsock),
-                                             node_map.lookup(tonode),
-                                             socket_map.lookup(link.tosock));
-      new_link->multi_input_sort_id = link.multi_input_sort_id;
-    }
-  }
+  remap_node_pairing(tree, node_map);
 
   for (bNode *new_node : node_map.values()) {
     bke::nodeDeclarationEnsure(&tree, new_node);
   }
 
-  remap_node_pairing(tree, node_map);
+  /* Add links between existing nodes. */
+  for (const ClipboardLink &link : clipboard.links) {
+    bNode *from_node = node_map.lookup_default(link.from_node, nullptr);
+    bNode *to_node = node_map.lookup_default(link.to_node, nullptr);
+    if (!from_node || !to_node) {
+      continue;
+    }
+    bNodeSocket *from = bke::nodeFindSocket(from_node, SOCK_OUT, link.from_socket.c_str());
+    bNodeSocket *to = bke::nodeFindSocket(to_node, SOCK_IN, link.to_socket.c_str());
+    if (!from || !to) {
+      continue;
+    }
+    bNodeLink *new_link = bke::nodeAddLink(&tree, from_node, from, to_node, to);
+    new_link->multi_input_sort_id = link.multi_input_sort_id;
+  }
 
   tree.ensure_topology_cache();
   for (bNode *new_node : node_map.values()) {
