@@ -1636,8 +1636,6 @@ void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize);
 
 void node_preview_remove_unused(bNodeTree *ntree);
 
-void node_preview_clear(bNodePreview *preview);
-
 void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool remove_old);
 
 /* -------------------------------------------------------------------- */
