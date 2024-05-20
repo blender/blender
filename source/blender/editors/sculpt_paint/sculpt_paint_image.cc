@@ -128,28 +128,26 @@ class ImageBufferByte4 {
 };
 
 template<typename ImageBuffer> class PaintingKernel {
-  ImageBuffer image_accessor;
+  ImageBuffer image_accessor_;
 
-  SculptSession *ss;
-  const Brush *brush;
-  const int thread_id;
+  SculptSession *ss_;
+  const Brush *brush_;
+  const int thread_id_;
   const float3 *vert_positions_;
 
-  float4 brush_color;
-  float brush_strength;
+  float4 brush_color_;
+  float brush_strength_;
 
-  SculptBrushTestFn brush_test_fn;
-  SculptBrushTest test;
-  /* Pointer to the last used image buffer to detect when buffers are switched. */
-  void *last_used_image_buffer_ptr = nullptr;
-  const char *last_used_color_space = nullptr;
+  SculptBrushTestFn brush_test_fn_;
+  SculptBrushTest test_;
+  const char *last_used_color_space_ = nullptr;
 
  public:
   explicit PaintingKernel(SculptSession &ss,
                           const Brush *brush,
                           const int thread_id,
                           const Span<float3> positions)
-      : ss(&ss), brush(brush), thread_id(thread_id), vert_positions_(positions.data())
+      : ss_(&ss), brush_(brush), thread_id_(thread_id), vert_positions_(positions.data())
   {
     init_brush_strength();
     init_brush_test();
@@ -161,7 +159,7 @@ template<typename ImageBuffer> class PaintingKernel {
              ImBuf *image_buffer,
              auto_mask::NodeData *automask_data)
   {
-    image_accessor.set_image_position(image_buffer, pixel_row.start_image_coordinate);
+    image_accessor_.set_image_position(image_buffer, pixel_row.start_image_coordinate);
     const UVPrimitivePaintInput paint_input = uv_primitives.get_paint_input(
         pixel_row.uv_primitive_index);
     float3 pixel_pos = get_start_pixel_pos(geom_primitives, paint_input, pixel_row);
@@ -169,29 +167,29 @@ template<typename ImageBuffer> class PaintingKernel {
         geom_primitives, paint_input, pixel_row, pixel_pos);
     bool pixels_painted = false;
     for (int x = 0; x < pixel_row.num_pixels; x++) {
-      if (!brush_test_fn(test, pixel_pos)) {
+      if (!brush_test_fn_(test_, pixel_pos)) {
         pixel_pos += delta_pixel_pos;
-        image_accessor.next_pixel();
+        image_accessor_.next_pixel();
         continue;
       }
 
-      float4 color = image_accessor.read_pixel(image_buffer);
+      float4 color = image_accessor_.read_pixel(image_buffer);
       const float3 normal(0.0f, 0.0f, 0.0f);
       const float3 face_normal(0.0f, 0.0f, 0.0f);
       const float mask = 0.0f;
 
       const float falloff_strength = SCULPT_brush_strength_factor(
-          *ss,
-          *brush,
+          *ss_,
+          *brush_,
           pixel_pos,
-          sqrtf(test.dist),
+          sqrtf(test_.dist),
           normal,
           face_normal,
           mask,
           BKE_pbvh_make_vref(PBVH_REF_NONE),
-          thread_id,
+          thread_id_,
           automask_data);
-      float4 paint_color = brush_color * falloff_strength * brush_strength;
+      float4 paint_color = brush_color_ * falloff_strength * brush_strength_;
       float4 buffer_color;
 
 #ifdef DEBUG_PIXEL_NODES
@@ -203,12 +201,12 @@ template<typename ImageBuffer> class PaintingKernel {
 #endif
 
       blend_color_mix_float(buffer_color, color, paint_color);
-      buffer_color *= brush->alpha;
-      IMB_blend_color_float(color, color, buffer_color, static_cast<IMB_BlendMode>(brush->blend));
-      image_accessor.write_pixel(image_buffer, color);
+      buffer_color *= brush_->alpha;
+      IMB_blend_color_float(color, color, buffer_color, static_cast<IMB_BlendMode>(brush_->blend));
+      image_accessor_.write_pixel(image_buffer, color);
       pixels_painted = true;
 
-      image_accessor.next_pixel();
+      image_accessor_.next_pixel();
       pixel_pos += delta_pixel_pos;
     }
     return pixels_painted;
@@ -216,8 +214,8 @@ template<typename ImageBuffer> class PaintingKernel {
 
   void init_brush_color(ImBuf *image_buffer, float in_brush_color[3])
   {
-    const char *to_colorspace = image_accessor.get_colorspace_name(image_buffer);
-    if (last_used_color_space == to_colorspace) {
+    const char *to_colorspace = image_accessor_.get_colorspace_name(image_buffer);
+    if (last_used_color_space_ == to_colorspace) {
       return;
     }
 
@@ -225,26 +223,26 @@ template<typename ImageBuffer> class PaintingKernel {
      * use brush colors. From there on we use IMB_colormanagement to convert the brush color to the
      * colorspace of the texture. This isn't ideal, but would need more refactoring to make sure
      * that brush colors are stored in scene linear by default. */
-    srgb_to_linearrgb_v3_v3(brush_color, in_brush_color);
-    brush_color[3] = 1.0f;
+    srgb_to_linearrgb_v3_v3(brush_color_, in_brush_color);
+    brush_color_[3] = 1.0f;
 
     const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(
         COLOR_ROLE_SCENE_LINEAR);
     ColormanageProcessor *cm_processor = IMB_colormanagement_colorspace_processor_new(
         from_colorspace, to_colorspace);
-    IMB_colormanagement_processor_apply_v4(cm_processor, brush_color);
+    IMB_colormanagement_processor_apply_v4(cm_processor, brush_color_);
     IMB_colormanagement_processor_free(cm_processor);
-    last_used_color_space = to_colorspace;
+    last_used_color_space_ = to_colorspace;
   }
 
  private:
   void init_brush_strength()
   {
-    brush_strength = ss->cache->bstrength;
+    brush_strength_ = ss_->cache->bstrength;
   }
   void init_brush_test()
   {
-    brush_test_fn = SCULPT_brush_test_init_with_falloff_shape(*ss, test, brush->falloff_shape);
+    brush_test_fn_ = SCULPT_brush_test_init_with_falloff_shape(*ss_, test_, brush_->falloff_shape);
   }
 
   /**
