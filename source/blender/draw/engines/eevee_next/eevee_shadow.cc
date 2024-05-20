@@ -120,8 +120,8 @@ void ShadowTileMap::debug_draw() const
       {0.1f, 0.1f, 0.1f, 1.0f},
       {1.0f, 1.0f, 1.0f, 1.0f},
   };
-  float4 color =
-      debug_color[((projection_type == SHADOW_PROJECTION_CUBEFACE ? cubeface : level) + 9999) % 6];
+  float4 color = debug_color
+      [((projection_type == SHADOW_PROJECTION_CUBEFACE ? int(cubeface) : level) + 9999) % 6];
 
   float4x4 persinv = winmat * viewmat;
   drw_debug_matrix_as_bbox(math::invert(persinv), color);
