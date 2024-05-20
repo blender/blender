@@ -694,7 +694,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
   const bool use_thread = (mr->corners_num + mr->loose_indices_num) > MIN_RANGE_LEN;
 
   if (DRW_ibo_requested(buffers.ibo.tris)) {
-    struct LooseEdgedata {
+    struct TaskData {
       MeshRenderData &mr;
       MeshBufferCache &mbc;
       MeshBatchCache &cache;
@@ -702,17 +702,17 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
     TaskNode *task_node = BLI_task_graph_node_create(
         task_graph,
         [](void *__restrict task_data) {
-          const LooseEdgedata &data = *static_cast<LooseEdgedata *>(task_data);
+          const TaskData &data = *static_cast<TaskData *>(task_data);
           const SortedFaceData &face_sorted = mesh_render_data_faces_sorted_ensure(data.mr,
                                                                                    data.mbc);
           extract_tris(data.mr, face_sorted, data.cache, *data.mbc.buff.ibo.tris);
         },
-        new LooseEdgedata{*mr, mbc, cache},
-        [](void *task_data) { delete static_cast<LooseEdgedata *>(task_data); });
+        new TaskData{*mr, mbc, cache},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
   if (DRW_ibo_requested(buffers.ibo.lines) || DRW_ibo_requested(buffers.ibo.lines_loose)) {
-    struct LooseEdgedata {
+    struct TaskData {
       MeshRenderData &mr;
       MeshBufferList &buffers;
       MeshBatchCache &cache;
@@ -720,14 +720,14 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
     TaskNode *task_node = BLI_task_graph_node_create(
         task_graph,
         [](void *__restrict task_data) {
-          const LooseEdgedata &data = *static_cast<LooseEdgedata *>(task_data);
+          const TaskData &data = *static_cast<TaskData *>(task_data);
           extract_lines(data.mr,
                         data.buffers.ibo.lines,
                         data.buffers.ibo.lines_loose,
                         data.cache.no_loose_wire);
         },
-        new LooseEdgedata{*mr, buffers, cache},
-        [](void *task_data) { delete static_cast<LooseEdgedata *>(task_data); });
+        new TaskData{*mr, buffers, cache},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
 
