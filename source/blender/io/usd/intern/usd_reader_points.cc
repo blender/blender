@@ -19,9 +19,6 @@
 #include <pxr/usd/usdGeom/primvar.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 
-#include "CLG_log.h"
-static CLG_LogRef LOG = {"io.usd"};
-
 namespace blender::io::usd {
 
 USDPointsReader::USDPointsReader(const pxr::UsdPrim &prim,
