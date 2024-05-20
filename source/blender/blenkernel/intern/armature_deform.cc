@@ -489,7 +489,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
                                         const char *defgrp_name,
                                         blender::Span<MDeformVert> dverts,
                                         const Mesh *me_target,
-                                        BMEditMesh *em_target,
+                                        const BMEditMesh *em_target,
                                         bGPDstroke *gps_target)
 {
   const bArmature *arm = static_cast<const bArmature *>(ob_arm->data);
@@ -710,7 +710,7 @@ void BKE_armature_deform_coords_with_editmesh(const Object *ob_arm,
                                               int deformflag,
                                               float (*vert_coords_prev)[3],
                                               const char *defgrp_name,
-                                              BMEditMesh *em_target)
+                                              const BMEditMesh *em_target)
 {
   armature_deform_coords_impl(ob_arm,
                               ob_target,

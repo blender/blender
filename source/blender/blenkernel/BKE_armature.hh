@@ -688,7 +688,7 @@ void BKE_armature_deform_coords_with_editmesh(const Object *ob_arm,
                                               int deformflag,
                                               float (*vert_coords_prev)[3],
                                               const char *defgrp_name,
-                                              BMEditMesh *em_target);
+                                              const BMEditMesh *em_target);
 
 /** \} */
 

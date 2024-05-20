@@ -223,14 +223,14 @@ struct ModifierTypeInfo {
    */
   void (*deform_verts_EM)(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          BMEditMesh *em,
+                          const BMEditMesh *em,
                           Mesh *mesh,
                           blender::MutableSpan<blender::float3> positions);
 
   /* Set deform matrix per vertex for crazy-space correction */
   void (*deform_matrices_EM)(ModifierData *md,
                              const ModifierEvalContext *ctx,
-                             BMEditMesh *em,
+                             const BMEditMesh *em,
                              Mesh *mesh,
                              blender::MutableSpan<blender::float3> positions,
                              blender::MutableSpan<blender::float3x3> matrices);
@@ -578,7 +578,7 @@ void BKE_modifier_deform_verts(ModifierData *md,
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
-                                 BMEditMesh *em,
+                                 const BMEditMesh *em,
                                  Mesh *mesh,
                                  blender::MutableSpan<blender::float3> positions);
 

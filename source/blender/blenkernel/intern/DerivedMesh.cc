@@ -238,7 +238,7 @@ void DM_release(DerivedMesh *dm)
   MEM_SAFE_FREE(dm->face_offsets);
 }
 
-void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *mesh, KeyBlock *kb)
+void BKE_mesh_runtime_eval_to_meshkey(const Mesh *me_deformed, Mesh *mesh, KeyBlock *kb)
 {
   /* Just a shallow wrapper around #BKE_keyblock_convert_from_mesh,
    * that ensures both evaluated mesh and original one has same number of vertices. */
