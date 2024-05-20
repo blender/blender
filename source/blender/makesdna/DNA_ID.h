@@ -642,15 +642,6 @@ typedef struct PreviewImage {
   short changed_timestamp[2];
   unsigned int *rect[2];
 
-  /* Runtime-only data. */
-  struct GPUTexture *gputexture[2];
-  /** Used by previews outside of ID context. */
-  int icon_id;
-
-  /** Runtime data. */
-  short tag;
-  char _pad[2];
-
   PreviewImageRuntimeHandle *runtime;
 } PreviewImage;
 

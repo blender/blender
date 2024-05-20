@@ -33,6 +33,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 
 #include "DNA_view3d_types.h"
@@ -1270,7 +1271,7 @@ static const EnumPropertyItem *material_enum_itemf(bContext *C,
       item_tmp.identifier = ma->id.name + 2;
       item_tmp.name = ma->id.name + 2;
       item_tmp.value = i + 1;
-      item_tmp.icon = ma->preview ? ma->preview->icon_id : ICON_NONE;
+      item_tmp.icon = ma->preview ? ma->preview->runtime->icon_id : ICON_NONE;
 
       RNA_enum_item_add(&item, &totitem, &item_tmp);
     }

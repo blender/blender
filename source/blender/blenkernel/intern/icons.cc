@@ -109,7 +109,7 @@ static void icon_free_data(int icon_id, Icon *icon)
       break;
     }
     case ICON_DATA_PREVIEW:
-      ((PreviewImage *)(icon->obj))->icon_id = 0;
+      ((PreviewImage *)(icon->obj))->runtime->icon_id = 0;
       break;
     case ICON_DATA_GPLAYER:
       ((bGPDlayer *)(icon->obj))->runtime.icon_id = 0;
@@ -288,8 +288,8 @@ int BKE_icon_id_ensure(ID *id)
   /* Ensure we synchronize ID icon_id with its previewimage if it has one. */
   PreviewImage **p_prv = BKE_previewimg_id_get_p(id);
   if (p_prv && *p_prv) {
-    BLI_assert(ELEM((*p_prv)->icon_id, 0, id->icon_id));
-    (*p_prv)->icon_id = id->icon_id;
+    BLI_assert(ELEM((*p_prv)->runtime->icon_id, 0, id->icon_id));
+    (*p_prv)->runtime->icon_id = id->icon_id;
   }
 
   return icon_id_ensure_create_icon(id);
@@ -343,19 +343,19 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
     BLI_assert(BKE_previewimg_id_ensure(id) == preview);
   }
 
-  if (preview->icon_id) {
-    BLI_assert(!id || !id->icon_id || id->icon_id == preview->icon_id);
-    return preview->icon_id;
+  if (preview->runtime->icon_id) {
+    BLI_assert(!id || !id->icon_id || id->icon_id == preview->runtime->icon_id);
+    return preview->runtime->icon_id;
   }
 
   if (id && id->icon_id) {
-    preview->icon_id = id->icon_id;
-    return preview->icon_id;
+    preview->runtime->icon_id = id->icon_id;
+    return preview->runtime->icon_id;
   }
 
-  preview->icon_id = get_next_free_id();
+  preview->runtime->icon_id = get_next_free_id();
 
-  if (!preview->icon_id) {
+  if (!preview->runtime->icon_id) {
     CLOG_ERROR(&LOG, "not enough IDs");
     return 0;
   }
@@ -363,14 +363,14 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
   /* Ensure we synchronize ID icon_id with its previewimage if available,
    * and generate suitable 'ID' icon. */
   if (id) {
-    id->icon_id = preview->icon_id;
+    id->icon_id = preview->runtime->icon_id;
     return icon_id_ensure_create_icon(id);
   }
 
-  Icon *icon = icon_create(preview->icon_id, ICON_DATA_PREVIEW, preview);
+  Icon *icon = icon_create(preview->runtime->icon_id, ICON_DATA_PREVIEW, preview);
   icon->flag = ICON_FLAG_MANAGED;
 
-  return preview->icon_id;
+  return preview->runtime->icon_id;
 }
 
 int BKE_icon_imbuf_create(ImBuf *ibuf)

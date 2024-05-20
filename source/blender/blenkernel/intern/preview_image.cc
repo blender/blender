@@ -93,8 +93,8 @@ void BKE_previewimg_free(PreviewImage **prv)
       if ((*prv)->rect[i]) {
         MEM_freeN((*prv)->rect[i]);
       }
-      if ((*prv)->gputexture[i]) {
-        GPU_texture_free((*prv)->gputexture[i]);
+      if ((*prv)->runtime->gputexture[i]) {
+        GPU_texture_free((*prv)->runtime->gputexture[i]);
       }
     }
 
@@ -128,20 +128,11 @@ void BKE_previewimg_freefunc(void *link)
   BKE_previewimg_free(&prv);
 }
 
-void BKE_previewimg_runtime_data_clear(PreviewImage *prv)
-{
-  prv->tag = 0;
-  prv->icon_id = 0;
-  for (int i = 0; i < NUM_ICON_SIZES; i++) {
-    prv->gputexture[i] = nullptr;
-  }
-}
-
 void BKE_previewimg_clear_single(PreviewImage *prv, enum eIconSizes size)
 {
   MEM_SAFE_FREE(prv->rect[size]);
-  if (prv->gputexture[size]) {
-    GPU_texture_free(prv->gputexture[size]);
+  if (prv->runtime->gputexture[size]) {
+    GPU_texture_free(prv->runtime->gputexture[size]);
   }
   prv->h[size] = prv->w[size] = 0;
   prv->flag[size] |= PRV_CHANGED;
@@ -169,7 +160,7 @@ PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
     if (prv->rect[i]) {
       prv_img->rect[i] = (uint *)MEM_dupallocN(prv->rect[i]);
     }
-    prv_img->gputexture[i] = nullptr;
+    prv_img->runtime->gputexture[i] = nullptr;
   }
 
   return prv_img;
@@ -188,7 +179,7 @@ void BKE_previewimg_id_copy(ID *new_id, const ID *old_id)
     //          return;  /* Failure. */
     //      }
     *new_prv_p = BKE_previewimg_copy(*old_prv_p);
-    new_id->icon_id = (*new_prv_p)->icon_id = 0;
+    new_id->icon_id = (*new_prv_p)->runtime->icon_id = 0;
   }
 }
 
@@ -279,13 +270,13 @@ void BKE_previewimg_deferred_release(PreviewImage *prv)
     return;
   }
 
-  if (prv->tag & PRV_TAG_DEFFERED_RENDERING) {
+  if (prv->runtime->tag & PRV_TAG_DEFFERED_RENDERING) {
     /* We cannot delete the preview while it is being loaded in another thread... */
-    prv->tag |= PRV_TAG_DEFFERED_DELETE;
+    prv->runtime->tag |= PRV_TAG_DEFFERED_DELETE;
     return;
   }
-  if (prv->icon_id) {
-    BKE_icon_delete(prv->icon_id);
+  if (prv->runtime->icon_id) {
+    BKE_icon_delete(prv->runtime->icon_id);
   }
   BKE_previewimg_free(&prv);
 }
@@ -510,5 +501,4 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
       prv->flag[i] &= ~PRV_RENDERING;
     }
   }
-  BKE_previewimg_runtime_data_clear(prv);
 }
