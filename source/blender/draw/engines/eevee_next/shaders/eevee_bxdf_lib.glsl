@@ -94,11 +94,11 @@ float bsdf_ggx_refract(vec3 N, vec3 L, vec3 V, float roughness, float eta, out f
   float G_V = bxdf_ggx_smith_G1(NV, a2);
   float G_L = bxdf_ggx_smith_G1(NL, a2);
   float D = bxdf_ggx_D(NH, a2);
-  float common = D * VH * LH * square(eta * inv_len_H);
+  float com = D * VH * LH * square(eta * inv_len_H);
 
-  pdf = common / ((1.0 + G_V) * NV);
+  pdf = com / ((1.0 + G_V) * NV);
   /* `btdf * NL = abs(VH * LH) * ior^2 * D * G(V) * G(L) / (Ht2 * NV * NL) * NL`. */
-  return (G_V * G_L * common) / NV;
+  return (G_V * G_L * com) / NV;
 }
 
 /** \} */
