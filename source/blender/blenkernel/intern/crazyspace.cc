@@ -97,7 +97,7 @@ blender::Array<blender::float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *d
   if (modifiers_disable_subsurf_temporary(obedit_eval, cageIndex)) {
     /* Need to make new cage.
      * TODO: Avoid losing original evaluated geometry. */
-    blender::bke::makeDerivedMesh(depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
+    blender::bke::mesh_data_update(depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
   }
 
   /* Now get the cage. */

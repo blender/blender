@@ -156,7 +156,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
         /* Always compute orcos for render. */
         cddata_masks.vmask |= CD_MASK_ORCO;
       }
-      blender::bke::makeDerivedMesh(depsgraph, scene, ob, &cddata_masks);
+      blender::bke::mesh_data_update(depsgraph, scene, ob, &cddata_masks);
       break;
     }
     case OB_ARMATURE:

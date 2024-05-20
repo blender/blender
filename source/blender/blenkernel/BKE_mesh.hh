@@ -361,9 +361,9 @@ void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
                                                 AttrDomain domain,
                                                 eCustomDataType data_type);
 
-void makeDerivedMesh(Depsgraph *depsgraph,
-                     const Scene *scene,
-                     Object *ob,
-                     const CustomData_MeshMasks *dataMask);
+void mesh_data_update(Depsgraph *depsgraph,
+                      const Scene *scene,
+                      Object *ob,
+                      const CustomData_MeshMasks *dataMask);
 
 }  // namespace blender::bke

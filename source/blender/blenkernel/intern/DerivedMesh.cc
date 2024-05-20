@@ -1151,10 +1151,10 @@ static void object_get_datamask(const Depsgraph *depsgraph,
   }
 }
 
-void makeDerivedMesh(Depsgraph *depsgraph,
-                     const Scene *scene,
-                     Object *ob,
-                     const CustomData_MeshMasks *dataMask)
+void mesh_data_update(Depsgraph *depsgraph,
+                      const Scene *scene,
+                      Object *ob,
+                      const CustomData_MeshMasks *dataMask)
 {
   BLI_assert(ob->type == OB_MESH);
 
