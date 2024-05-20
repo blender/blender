@@ -50,7 +50,7 @@ float pdf_eval(ClosureUndetermined cl, vec3 L, vec3 V, float thickness)
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
       float ior = to_closure_refraction(cl).ior;
       float roughness = max(BSDF_ROUGHNESS_THRESHOLD, to_closure_refraction(cl).roughness);
-      return sample_pdf_ggx_refract(Vt, Lt, square(roughness), ior, thickness != 0.0);
+      return sample_pdf_ggx_refract(Vt, Lt, square(roughness), ior);
     }
   }
   /* TODO(fclem): Assert. */
