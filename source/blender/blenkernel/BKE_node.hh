@@ -604,7 +604,7 @@ const char *nodeStaticSocketLabel(int type, int subtype);
   } \
   ((void)0)
 
-bNodeSocket *nodeFindSocket(const bNode *node, eNodeSocketInOut in_out, const char *identifier);
+bNodeSocket *nodeFindSocket(const bNode *node, eNodeSocketInOut in_out, StringRef identifier);
 bNodeSocket *nodeAddSocket(bNodeTree *ntree,
                            bNode *node,
                            eNodeSocketInOut in_out,
