@@ -94,13 +94,6 @@ struct CCGDerivedMesh {
     CCGFace *face;
   } *faceMap;
 
-  int *reverseFaceMap;
-
-  PBVH *pbvh;
-
-  MeshElemMap *pmap;
-  int *pmap_mem;
-
   CCGElem **gridData;
   int *gridOffset;
   CCGFace **gridFaces;

@@ -640,83 +640,6 @@ static int ccgDM_getFaceMapIndex(CCGSubSurf *ss, CCGFace *f)
   return ((int *)ccgSubSurf_getFaceUserData(ss, f))[1];
 }
 
-static void minmax_v3_v3v3(const float vec[3], float min[3], float max[3])
-{
-  if (min[0] > vec[0]) {
-    min[0] = vec[0];
-  }
-  if (min[1] > vec[1]) {
-    min[1] = vec[1];
-  }
-  if (min[2] > vec[2]) {
-    min[2] = vec[2];
-  }
-  if (max[0] < vec[0]) {
-    max[0] = vec[0];
-  }
-  if (max[1] < vec[1]) {
-    max[1] = vec[1];
-  }
-  if (max[2] < vec[2]) {
-    max[2] = vec[2];
-  }
-}
-
-static void UNUSED_FUNCTION(ccgDM_getMinMax)(DerivedMesh *dm, float r_min[3], float r_max[3])
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  CCGSubSurf *ss = ccgdm->ss;
-  CCGVertIterator vi;
-  CCGEdgeIterator ei;
-  CCGFaceIterator fi;
-  CCGKey key;
-  int i, edgeSize = ccgSubSurf_getEdgeSize(ss);
-  int gridSize = ccgSubSurf_getGridSize(ss);
-
-  CCG_key_top_level(&key, ss);
-
-  if (!ccgSubSurf_getNumVerts(ss)) {
-    r_min[0] = r_min[1] = r_min[2] = r_max[0] = r_max[1] = r_max[2] = 0.0;
-  }
-
-  for (ccgSubSurf_initVertIterator(ss, &vi); !ccgVertIterator_isStopped(&vi);
-       ccgVertIterator_next(&vi))
-  {
-    CCGVert *v = ccgVertIterator_getCurrent(&vi);
-    float *co = static_cast<float *>(ccgSubSurf_getVertData(ss, v));
-
-    minmax_v3_v3v3(co, r_min, r_max);
-  }
-
-  for (ccgSubSurf_initEdgeIterator(ss, &ei); !ccgEdgeIterator_isStopped(&ei);
-       ccgEdgeIterator_next(&ei))
-  {
-    CCGEdge *e = ccgEdgeIterator_getCurrent(&ei);
-    CCGElem *edgeData = static_cast<CCGElem *>(ccgSubSurf_getEdgeDataArray(ss, e));
-
-    for (i = 0; i < edgeSize; i++) {
-      minmax_v3_v3v3(CCG_elem_offset_co(&key, edgeData, i), r_min, r_max);
-    }
-  }
-
-  for (ccgSubSurf_initFaceIterator(ss, &fi); !ccgFaceIterator_isStopped(&fi);
-       ccgFaceIterator_next(&fi))
-  {
-    CCGFace *f = ccgFaceIterator_getCurrent(&fi);
-    int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
-
-    for (S = 0; S < numVerts; S++) {
-      CCGElem *faceGridData = static_cast<CCGElem *>(ccgSubSurf_getFaceGridDataArray(ss, f, S));
-
-      for (y = 0; y < gridSize; y++) {
-        for (x = 0; x < gridSize; x++) {
-          minmax_v3_v3v3(CCG_grid_elem_co(&key, faceGridData, x, y), r_min, r_max);
-        }
-      }
-    }
-  }
-}
-
 static int ccgDM_getNumVerts(DerivedMesh *dm)
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
@@ -1033,9 +956,6 @@ static void ccgDM_release(DerivedMesh *dm)
 
   delete ccgdm->ehash;
 
-  if (ccgdm->reverseFaceMap) {
-    MEM_freeN(ccgdm->reverseFaceMap);
-  }
   if (ccgdm->gridFaces) {
     MEM_freeN(ccgdm->gridFaces);
   }
@@ -1057,12 +977,6 @@ static void ccgDM_release(DerivedMesh *dm)
   }
   if (ccgdm->freeSS) {
     ccgSubSurf_free(ccgdm->ss);
-  }
-  if (ccgdm->pmap) {
-    MEM_freeN(ccgdm->pmap);
-  }
-  if (ccgdm->pmap_mem) {
-    MEM_freeN(ccgdm->pmap_mem);
   }
   MEM_freeN(ccgdm->vertMap);
   MEM_freeN(ccgdm->edgeMap);
@@ -1530,8 +1444,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
             polyOrigIndex++;
           }
 
-          ccgdm->reverseFaceMap[faceNum] = index;
-
           /* This is a simple one to one mapping, here... */
           if (polyidx) {
             polyidx[faceNum] = faceNum;
@@ -1654,9 +1566,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
   CustomData_free_layer_named(
       &ccgdm->dm.loopData, ".corner_edge", ccgSubSurf_getNumFinalFaces(ss) * 4);
   MEM_SAFE_FREE(ccgdm->dm.face_offsets);
-
-  ccgdm->reverseFaceMap = static_cast<int *>(
-      MEM_callocN(sizeof(int) * ccgSubSurf_getNumFinalFaces(ss), "reverseFaceMap"));
 
   create_ccgdm_maps(ccgdm, ss);
 

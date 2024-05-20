@@ -221,14 +221,6 @@ struct CDDerivedMesh {
   MFace *mface;
   int *corner_verts;
   int *corner_edges;
-
-  /* Cached */
-  PBVH *pbvh;
-  bool pbvh_draw;
-
-  /* Mesh connectivity */
-  MeshElemMap *pmap;
-  int *pmap_mem;
 };
 
 /**************** DerivedMesh interface functions ****************/
@@ -281,22 +273,11 @@ static void cdDM_copyPolyArray(DerivedMesh *dm, int *r_face_offsets)
   memcpy(r_face_offsets, dm->face_offsets, sizeof(int) * (dm->numPolyData + 1));
 }
 
-static void cdDM_free_internal(CDDerivedMesh *cddm)
-{
-  if (cddm->pmap) {
-    MEM_freeN(cddm->pmap);
-  }
-  if (cddm->pmap_mem) {
-    MEM_freeN(cddm->pmap_mem);
-  }
-}
-
 static void cdDM_release(DerivedMesh *dm)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
   DM_release(dm);
-  cdDM_free_internal(cddm);
   MEM_freeN(cddm);
 }
 
