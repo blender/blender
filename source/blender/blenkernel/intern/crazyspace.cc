@@ -17,7 +17,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_editmesh.hh"
@@ -25,6 +24,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
@@ -97,17 +97,17 @@ blender::Array<blender::float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *d
   if (modifiers_disable_subsurf_temporary(obedit_eval, cageIndex)) {
     /* Need to make new cage.
      * TODO: Avoid losing original evaluated geometry. */
-    makeDerivedMesh(depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
+    blender::bke::makeDerivedMesh(depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
   }
 
   /* Now get the cage. */
   BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
-  Mesh *mesh_eval_cage = editbmesh_get_eval_cage(
+  Mesh *mesh_eval_cage = blender::bke::editbmesh_get_eval_cage(
       depsgraph, scene_eval, obedit_eval, em_eval, &CD_MASK_BAREMESH);
 
   const int nverts = em_eval->bm->totvert;
   blender::Array<blender::float3> vertexcos(nverts);
-  mesh_get_mapped_verts_coords(mesh_eval_cage, vertexcos);
+  blender::bke::mesh_get_mapped_verts_coords(mesh_eval_cage, vertexcos);
 
   /* Set back the flag, and ensure new cage needs to be built. */
   if (modifiers_disable_subsurf_temporary(obedit_eval, cageIndex)) {
@@ -260,7 +260,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
   for (i = 0; md && i <= cageIndex; i++, md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
 
-    if (!editbmesh_modifier_is_enabled(scene, ob, md, mesh != nullptr)) {
+    if (!blender::bke::editbmesh_modifier_is_enabled(scene, ob, md, mesh != nullptr)) {
       continue;
     }
 
@@ -288,7 +288,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
   }
 
   for (; md && i <= cageIndex; md = md->next, i++) {
-    if (editbmesh_modifier_is_enabled(scene, ob, md, mesh != nullptr) &&
+    if (blender::bke::editbmesh_modifier_is_enabled(scene, ob, md, mesh != nullptr) &&
         BKE_modifier_is_correctable_deformed(md))
     {
       modifiers_left_num++;

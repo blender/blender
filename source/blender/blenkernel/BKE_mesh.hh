@@ -14,6 +14,8 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_types.hh"
 
+struct ModifierData;
+
 namespace blender::bke {
 
 enum class AttrDomain : int8_t;
@@ -358,5 +360,10 @@ void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
                                                 const AttributeIDRef &id,
                                                 AttrDomain domain,
                                                 eCustomDataType data_type);
+
+void makeDerivedMesh(Depsgraph *depsgraph,
+                     const Scene *scene,
+                     Object *ob,
+                     const CustomData_MeshMasks *dataMask);
 
 }  // namespace blender::bke

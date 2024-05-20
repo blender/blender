@@ -17,7 +17,6 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
@@ -26,6 +25,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -344,7 +344,7 @@ void mesh_foreachScreenVert(
 {
   foreachScreenVert_userData data;
 
-  Mesh *mesh = editbmesh_get_eval_cage_from_orig(
+  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
   mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
 
@@ -409,7 +409,7 @@ void mesh_foreachScreenEdge(const ViewContext *vc,
 {
   foreachScreenEdge_userData data;
 
-  Mesh *mesh = editbmesh_get_eval_cage_from_orig(
+  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
   mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
 
@@ -499,7 +499,7 @@ void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
 {
   foreachScreenEdge_userData data;
 
-  Mesh *mesh = editbmesh_get_eval_cage_from_orig(
+  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
   mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
 
@@ -574,7 +574,7 @@ void mesh_foreachScreenFace(
   BLI_assert((clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) == 0);
   foreachScreenFace_userData data;
 
-  Mesh *mesh = editbmesh_get_eval_cage_from_orig(
+  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
   mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
   ED_view3d_check_mats_rv3d(vc->rv3d);

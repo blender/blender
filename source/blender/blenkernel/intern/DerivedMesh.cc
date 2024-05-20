@@ -32,7 +32,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
@@ -69,15 +68,7 @@
 #  include "DNA_userdef_types.h"
 #endif
 
-using blender::Array;
-using blender::float3;
-using blender::IndexRange;
-using blender::MutableSpan;
-using blender::Span;
-using blender::VArray;
-using blender::bke::GeometryOwnershipType;
-using blender::bke::GeometrySet;
-using blender::bke::MeshComponent;
+namespace blender::bke {
 
 /* very slow! enable for testing only! */
 // #define USE_MODIFIER_VALIDATE
@@ -91,7 +82,7 @@ using blender::bke::MeshComponent;
 
 static void mesh_init_origspace(Mesh *mesh);
 
-void BKE_mesh_runtime_eval_to_meshkey(const Mesh *me_deformed, Mesh *mesh, KeyBlock *kb)
+void mesh_eval_to_meshkey(const Mesh *me_deformed, Mesh *mesh, KeyBlock *kb)
 {
   /* Just a shallow wrapper around #BKE_keyblock_convert_from_mesh,
    * that ensures both evaluated mesh and original one has same number of vertices. */
@@ -297,8 +288,6 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
 
 static void set_rest_position(Mesh &mesh)
 {
-  using namespace blender;
-  using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const AttributeReader positions = attributes.lookup<float3>("position");
   attributes.remove("rest_position");
@@ -329,7 +318,6 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
                                 Mesh **r_final,
                                 GeometrySet **r_geometry_set)
 {
-  using namespace blender::bke;
   /* Input mesh shouldn't be modified. */
   Mesh *mesh_input = (Mesh *)ob->data;
   /* The final mesh is the result of calculating all enabled modifiers. */
@@ -484,7 +472,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
       continue;
     }
 
-    blender::bke::ScopedModifierTimer modifier_timer{*md};
+    ScopedModifierTimer modifier_timer{*md};
 
     /* Add orco mesh as layer if needed by this modifier. */
     if (mesh_final && mesh_orco && mti->required_data_mask) {
@@ -714,13 +702,13 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
     mesh_calc_finalize(mesh_input, mesh_final);
   }
   else {
-    blender::bke::MeshRuntime *runtime = mesh_input->runtime;
+    MeshRuntime *runtime = mesh_input->runtime;
     if (runtime->mesh_eval == nullptr) {
       std::lock_guard lock{mesh_input->runtime->eval_mutex};
       if (runtime->mesh_eval == nullptr) {
         /* Not yet finalized by any instance, do it now
          * Isolate since computing normals is multithreaded and we are holding a lock. */
-        blender::threading::isolate_task([&] {
+        threading::isolate_task([&] {
           mesh_final = BKE_mesh_copy_for_eval(mesh_input);
           mesh_calc_finalize(mesh_input, mesh_final);
           runtime->mesh_eval = mesh_final;
@@ -857,7 +845,7 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
       continue;
     }
 
-    blender::bke::ScopedModifierTimer modifier_timer{*md};
+    ScopedModifierTimer modifier_timer{*md};
 
     /* Add an orco mesh as layer if needed by this modifier. */
     if (mesh_orco && mti->required_data_mask) {
@@ -877,7 +865,7 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
         mesh_final->runtime->edit_mesh = mesh_cage->runtime->edit_mesh;
         mesh_final->runtime->is_original_bmesh = true;
         if (mesh_cage->runtime->edit_data) {
-          mesh_final->runtime->edit_data = std::make_unique<blender::bke::EditMeshData>(
+          mesh_final->runtime->edit_data = std::make_unique<EditMeshData>(
               *mesh_cage->runtime->edit_data);
         }
       }
@@ -996,7 +984,7 @@ static void mesh_build_extra_data(const Depsgraph *depsgraph,
   uint32_t eval_flags = DEG_get_eval_flags_for_id(depsgraph, &ob->id);
 
   if (eval_flags & DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY) {
-    blender::bke::shrinkwrap::boundary_cache_ensure(*mesh_eval);
+    shrinkwrap::boundary_cache_ensure(*mesh_eval);
   }
 }
 
@@ -1197,8 +1185,6 @@ void makeDerivedMesh(Depsgraph *depsgraph,
   }
 }
 
-/***/
-
 Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
                            const Scene *scene,
                            Object *ob,
@@ -1273,8 +1259,6 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
   return result;
 }
 
-/***/
-
 Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
                               const Scene *scene,
                               Object *obedit,
@@ -1309,8 +1293,6 @@ Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
   return editbmesh_get_eval_cage(depsgraph, scene_eval, obedit_eval, em_eval, dataMask);
 }
 
-/***/
-
 /* same as above but for vert coords */
 struct MappedUserData {
   float (*vertexcos)[3];
@@ -1333,7 +1315,7 @@ static void make_vertexcos__mapFunc(void *user_data,
   }
 }
 
-void mesh_get_mapped_verts_coords(Mesh *mesh_eval, blender::MutableSpan<blender::float3> r_cos)
+void mesh_get_mapped_verts_coords(Mesh *mesh_eval, MutableSpan<float3> r_cos)
 {
   if (mesh_eval->runtime->deformed_only == false) {
     MappedUserData user_data;
@@ -1355,15 +1337,15 @@ static void mesh_init_origspace(Mesh *mesh)
   OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer_for_write(
       &mesh->corner_data, CD_ORIGSPACE_MLOOP, mesh->corners_num);
   const Span<float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   int j, k;
 
-  blender::Vector<blender::float2, 64> vcos_2d;
+  Vector<float2, 64> vcos_2d;
 
   for (const int i : faces.index_range()) {
-    const blender::IndexRange face = faces[i];
+    const IndexRange face = faces[i];
     OrigSpaceLoop *lof = lof_array + face.start();
 
     if (ELEM(face.size(), 3, 4)) {
@@ -1378,8 +1360,7 @@ static void mesh_init_origspace(Mesh *mesh)
       float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
       float translate[2], scale[2];
 
-      const float3 p_nor = blender::bke::mesh::face_normal_calc(positions,
-                                                                corner_verts.slice(face));
+      const float3 p_nor = mesh::face_normal_calc(positions, corner_verts.slice(face));
 
       axis_dominant_v3_to_m3(mat, p_nor);
 
@@ -1422,3 +1403,5 @@ static void mesh_init_origspace(Mesh *mesh)
 
   BKE_mesh_tessface_clear(mesh);
 }
+
+}  // namespace blender::bke

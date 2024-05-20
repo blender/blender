@@ -792,7 +792,8 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
         Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
         Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
 
-        me_deformed = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+        me_deformed = blender::bke::mesh_get_eval_deform(
+            depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
 
         if (!me_deformed) {
           continue;
@@ -800,7 +801,7 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
 
         kb = BKE_keyblock_add(key, ob_iter->id.name + 2);
 
-        BKE_mesh_runtime_eval_to_meshkey(me_deformed, mesh, kb);
+        blender::bke::mesh_eval_to_meshkey(me_deformed, mesh, kb);
       }
     }
   }

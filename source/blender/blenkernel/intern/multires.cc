@@ -225,7 +225,7 @@ Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresMod
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Mesh *deformed_mesh = mesh_get_eval_deform(
+  Mesh *deformed_mesh = blender::bke::mesh_get_eval_deform(
       depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
   ModifierEvalContext modifier_ctx{};
   modifier_ctx.depsgraph = depsgraph;

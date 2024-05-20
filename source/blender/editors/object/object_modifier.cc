@@ -38,7 +38,6 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
@@ -121,7 +120,8 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   BKE_object_eval_reset(ob_eval);
   if (ob->type == OB_MESH) {
-    Mesh *mesh_eval = mesh_create_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_DERIVEDMESH);
+    Mesh *mesh_eval = blender::bke::mesh_create_eval_final(
+        depsgraph, scene_eval, ob_eval, &CD_MASK_DERIVEDMESH);
     BKE_id_free(nullptr, mesh_eval);
   }
   else if (ob->type == OB_LATTICE) {
@@ -3142,7 +3142,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, skin_ob);
 
-  const Mesh *me_eval_deform = mesh_get_eval_deform(
+  const Mesh *me_eval_deform = blender::bke::mesh_get_eval_deform(
       depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
   const Span<float3> positions_eval = me_eval_deform->vert_positions();
 

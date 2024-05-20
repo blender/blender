@@ -1051,11 +1051,11 @@ static const Mesh *bvh_get_mesh(const char *funcname,
       }
 
       *r_free_mesh = true;
-      return mesh_create_eval_final(depsgraph, scene, ob, &data_masks);
+      return blender::bke::mesh_create_eval_final(depsgraph, scene, ob, &data_masks);
     }
     if (ob_eval != nullptr) {
       if (use_cage) {
-        return mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);
+        return blender::bke::mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);
       }
 
       return BKE_object_get_evaluated_mesh(ob_eval);
@@ -1078,7 +1078,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
     }
 
     *r_free_mesh = true;
-    return mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
+    return blender::bke::mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
   }
 
   if (use_cage) {
@@ -1090,7 +1090,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
   }
 
   *r_free_mesh = true;
-  return mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
+  return blender::bke::mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
 }
 
 PyDoc_STRVAR(

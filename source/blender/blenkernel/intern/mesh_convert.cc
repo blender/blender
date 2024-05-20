@@ -26,7 +26,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
 #include "BKE_displist.h"
@@ -816,7 +815,7 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
     mask.lmask |= CD_MASK_ORIGINDEX;
     mask.pmask |= CD_MASK_ORIGINDEX;
   }
-  Mesh *result = mesh_create_eval_final(depsgraph, scene, &object_for_eval, &mask);
+  Mesh *result = blender::bke::mesh_create_eval_final(depsgraph, scene, &object_for_eval, &mask);
   return BKE_mesh_wrapper_ensure_subdivision(result);
 }
 

@@ -34,7 +34,6 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_ccg.h"
