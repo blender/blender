@@ -99,6 +99,7 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
       return CD_PROP_INT32;
     case SOCK_VECTOR:
     case SOCK_RGBA:
+    case SOCK_ROTATION:
       return CD_PROP_FLOAT3;
     default:
       return {};
