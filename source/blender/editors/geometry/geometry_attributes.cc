@@ -383,7 +383,7 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
     BKE_id_attributes_default_color_set(id, layer->name);
   }
 
-  BKE_object_attributes_active_color_fill(ob, color, false);
+  BKE_object_attributes_active_color_fill(*ob, color, false);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);

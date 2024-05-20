@@ -241,7 +241,7 @@ static void store_result_geometry(
       const bool has_shape_keys = mesh.key != nullptr;
 
       if (object.mode == OB_MODE_SCULPT) {
-        sculpt_paint::undo::geometry_begin(&object, &op);
+        sculpt_paint::undo::geometry_begin(object, &op);
       }
 
       Mesh *new_mesh = geometry.get_component_for_write<bke::MeshComponent>().release();
@@ -268,7 +268,7 @@ static void store_result_geometry(
       }
 
       if (object.mode == OB_MODE_SCULPT) {
-        sculpt_paint::undo::geometry_end(&object);
+        sculpt_paint::undo::geometry_end(object);
       }
       break;
     }

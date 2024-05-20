@@ -42,17 +42,17 @@
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 
-void SCULPT_pbvh_clear(Object *ob)
+void SCULPT_pbvh_clear(Object &ob)
 {
   using namespace blender;
-  SculptSession *ss = ob->sculpt;
+  SculptSession &ss = *ob.sculpt;
   /* Clear out any existing DM and PBVH. */
-  bke::pbvh::free(ss->pbvh);
+  bke::pbvh::free(ss.pbvh);
 
-  BKE_object_free_derived_caches(ob);
+  BKE_object_free_derived_caches(&ob);
 
   /* Tag to rebuild PBVH in depsgraph. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
 }
 
 namespace blender::ed::sculpt_paint::dyntopo {
@@ -71,10 +71,10 @@ void triangulate(BMesh *bm)
   }
 }
 
-void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
+void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
 {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  SculptSession *ss = ob.sculpt;
+  Mesh *mesh = static_cast<Mesh *>(ob.data);
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
   SCULPT_pbvh_clear(ob);
@@ -91,7 +91,7 @@ void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
   convert_params.calc_face_normal = true;
   convert_params.calc_vert_normal = true;
   convert_params.use_shapekey = true;
-  convert_params.active_shapekey = ob->shapenr;
+  convert_params.active_shapekey = ob.shapenr;
   BM_mesh_bm_from_me(ss->bm, mesh, &convert_params);
   triangulate(ss->bm);
 
@@ -110,26 +110,25 @@ void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  BKE_scene_graph_update_tagged(depsgraph, bmain);
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+  BKE_scene_graph_update_tagged(&depsgraph, &bmain);
 }
 
 /* Free the sculpt BMesh and BMLog
  *
  * If 'unode' is given, the BMesh's data is copied out to the unode
  * before the BMesh is deleted so that it can be restored from. */
-static void SCULPT_dynamic_topology_disable_ex(
-    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, undo::Node *unode)
+static void disable(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, undo::Node *unode)
 {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  SculptSession &ss = *ob.sculpt;
+  Mesh *mesh = static_cast<Mesh *>(ob.data);
 
-  if (ss->attrs.dyntopo_node_id_vertex) {
-    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
+  if (ss.attrs.dyntopo_node_id_vertex) {
+    BKE_sculpt_attribute_destroy(&ob, ss.attrs.dyntopo_node_id_vertex);
   }
 
-  if (ss->attrs.dyntopo_node_id_face) {
-    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
+  if (ss.attrs.dyntopo_node_id_face) {
+    BKE_sculpt_attribute_destroy(&ob, ss.attrs.dyntopo_node_id_face);
   }
 
   SCULPT_pbvh_clear(ob);
@@ -157,7 +156,7 @@ static void SCULPT_dynamic_topology_disable_ex(
                                           &mesh->runtime->face_offsets_sharing_info);
   }
   else {
-    BKE_sculptsession_bm_to_me(ob, true);
+    BKE_sculptsession_bm_to_me(&ob, true);
 
     /* Sync the visibility to vertices manually as `vert_to_face_map` is still not initialized. */
     bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
@@ -171,22 +170,22 @@ static void SCULPT_dynamic_topology_disable_ex(
   mesh->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Typically valid but with global-undo they can be nullptr, see: #36234. */
-  if (ss->bm) {
-    BM_mesh_free(ss->bm);
-    ss->bm = nullptr;
+  if (ss.bm) {
+    BM_mesh_free(ss.bm);
+    ss.bm = nullptr;
   }
-  if (ss->bm_log) {
-    BM_log_free(ss->bm_log);
-    ss->bm_log = nullptr;
+  if (ss.bm_log) {
+    BM_log_free(ss.bm_log);
+    ss.bm_log = nullptr;
   }
 
-  BKE_particlesystem_reset_all(ob);
-  BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED);
+  BKE_particlesystem_reset_all(&ob);
+  BKE_ptcache_object_reset(&scene, &ob, PTCACHE_RESET_OUTDATED);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  BKE_scene_graph_update_tagged(depsgraph, bmain);
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+  BKE_scene_graph_update_tagged(&depsgraph, &bmain);
 }
 
 void disable(bContext *C, undo::Node *unode)
@@ -195,30 +194,30 @@ void disable(bContext *C, undo::Node *unode)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, unode);
+  disable(*bmain, *depsgraph, *scene, *ob, unode);
 }
 
-void disable_with_undo(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+void disable_with_undo(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob)
 {
-  SculptSession *ss = ob->sculpt;
-  if (ss->bm != nullptr) {
+  SculptSession &ss = *ob.sculpt;
+  if (ss.bm != nullptr) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
     if (use_undo) {
       undo::push_begin_ex(ob, "Dynamic topology disable");
-      undo::push_node(*ob, nullptr, undo::Type::DyntopoEnd);
+      undo::push_node(ob, nullptr, undo::Type::DyntopoEnd);
     }
-    SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, nullptr);
+    disable(bmain, depsgraph, scene, ob, nullptr);
     if (use_undo) {
       undo::push_end(ob);
     }
   }
 }
 
-static void sculpt_dynamic_topology_enable_with_undo(Main *bmain, Depsgraph *depsgraph, Object *ob)
+static void enable_with_undo(Main &bmain, Depsgraph &depsgraph, Object &ob)
 {
-  SculptSession *ss = ob->sculpt;
-  if (ss->bm == nullptr) {
+  SculptSession &ss = *ob.sculpt;
+  if (ss.bm == nullptr) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
     if (use_undo) {
@@ -226,7 +225,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain, Depsgraph *dep
     }
     enable_ex(bmain, depsgraph, ob);
     if (use_undo) {
-      undo::push_node(*ob, nullptr, undo::Type::DyntopoBegin);
+      undo::push_node(ob, nullptr, undo::Type::DyntopoBegin);
       undo::push_end(ob);
     }
   }
@@ -234,19 +233,19 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain, Depsgraph *dep
 
 static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
-  Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Scene *scene = CTX_data_scene(C);
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
+  Main &bmain = *CTX_data_main(C);
+  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
+  Scene &scene = *CTX_data_scene(C);
+  Object &ob = *CTX_data_active_object(C);
+  SculptSession &ss = *ob.sculpt;
 
   WM_cursor_wait(true);
 
-  if (ss->bm) {
+  if (ss.bm) {
     disable_with_undo(bmain, depsgraph, scene, ob);
   }
   else {
-    sculpt_dynamic_topology_enable_with_undo(bmain, depsgraph, ob);
+    enable_with_undo(bmain, depsgraph, ob);
   }
 
   WM_cursor_wait(false);
@@ -304,14 +303,14 @@ static bool dyntopo_supports_customdata_layers(const Span<CustomDataLayer> layer
   });
 }
 
-enum WarnFlag check_attribute_warning(Scene *scene, Object *ob)
+WarnFlag check_attribute_warning(Scene &scene, Object &ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  SculptSession &ss = *ob.sculpt;
 
   WarnFlag flag = WarnFlag(0);
 
-  BLI_assert(ss->bm == nullptr);
+  BLI_assert(ss.bm == nullptr);
   UNUSED_VARS_NDEBUG(ss);
 
   if (!dyntopo_supports_customdata_layers({mesh->vert_data.layers, mesh->vert_data.totlayer})) {
@@ -330,12 +329,12 @@ enum WarnFlag check_attribute_warning(Scene *scene, Object *ob)
 
   {
     VirtualModifierData virtual_modifier_data;
-    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(&ob, &virtual_modifier_data);
 
     /* Exception for shape keys because we can edit those. */
     for (; md; md = md->next) {
       const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-      if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
+      if (!BKE_modifier_is_enabled(&scene, md, eModifierMode_Realtime)) {
         continue;
       }
 
@@ -353,11 +352,11 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C,
                                                  wmOperator *op,
                                                  const wmEvent * /*event*/)
 {
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
+  Object &ob = *CTX_data_active_object(C);
+  SculptSession &ss = *ob.sculpt;
 
-  if (!ss->bm) {
-    Scene *scene = CTX_data_scene(C);
+  if (!ss.bm) {
+    Scene &scene = *CTX_data_scene(C);
     const WarnFlag flag = check_attribute_warning(scene, ob);
 
     if (flag) {

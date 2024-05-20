@@ -41,18 +41,18 @@ struct ImageData {
 
   ~ImageData() = default;
 
-  static bool init_active_image(Object *ob,
+  static bool init_active_image(Object &ob,
                                 ImageData *r_image_data,
-                                PaintModeSettings *paint_mode_settings)
+                                PaintModeSettings &paint_mode_settings)
   {
     return BKE_paint_canvas_image_get(
-        paint_mode_settings, ob, &r_image_data->image, &r_image_data->image_user);
+        &paint_mode_settings, &ob, &r_image_data->image, &r_image_data->image_user);
   }
 };
 
 struct TexturePaintingUserData {
   Object *ob;
-  Brush *brush;
+  const Brush *brush;
   Span<PBVHNode *> nodes;
   ImageData image_data;
 };
@@ -145,11 +145,11 @@ template<typename ImageBuffer> class PaintingKernel {
   const char *last_used_color_space = nullptr;
 
  public:
-  explicit PaintingKernel(SculptSession *ss,
+  explicit PaintingKernel(SculptSession &ss,
                           const Brush *brush,
                           const int thread_id,
                           const Span<float3> positions)
-      : ss(ss), brush(brush), thread_id(thread_id), vert_positions_(positions.data())
+      : ss(&ss), brush(brush), thread_id(thread_id), vert_positions_(positions.data())
   {
     init_brush_strength();
     init_brush_test();
@@ -169,7 +169,7 @@ template<typename ImageBuffer> class PaintingKernel {
         geom_primitives, paint_input, pixel_row, pixel_pos);
     bool pixels_painted = false;
     for (int x = 0; x < pixel_row.num_pixels; x++) {
-      if (!brush_test_fn(&test, pixel_pos)) {
+      if (!brush_test_fn(test, pixel_pos)) {
         pixel_pos += delta_pixel_pos;
         image_accessor.next_pixel();
         continue;
@@ -181,8 +181,8 @@ template<typename ImageBuffer> class PaintingKernel {
       const float mask = 0.0f;
 
       const float falloff_strength = SCULPT_brush_strength_factor(
-          ss,
-          brush,
+          *ss,
+          *brush,
           pixel_pos,
           sqrtf(test.dist),
           normal,
@@ -244,7 +244,7 @@ template<typename ImageBuffer> class PaintingKernel {
   }
   void init_brush_test()
   {
-    brush_test_fn = SCULPT_brush_test_init_with_falloff_shape(ss, &test, brush->falloff_shape);
+    brush_test_fn = SCULPT_brush_test_init_with_falloff_shape(*ss, test, brush->falloff_shape);
   }
 
   /**
@@ -292,14 +292,14 @@ template<typename ImageBuffer> class PaintingKernel {
   }
 };
 
-static std::vector<bool> init_uv_primitives_brush_test(SculptSession *ss,
+static std::vector<bool> init_uv_primitives_brush_test(SculptSession &ss,
                                                        PaintGeometryPrimitives &geom_primitives,
                                                        PaintUVPrimitives &uv_primitives,
                                                        const Span<float3> positions)
 {
   std::vector<bool> brush_test(uv_primitives.size());
   SculptBrushTest test;
-  SCULPT_brush_test_init(ss, &test);
+  SCULPT_brush_test_init(ss, test);
   float3 brush_min_bounds(test.location[0] - test.radius,
                           test.location[1] - test.radius,
                           test.location[2] - test.radius);
@@ -331,9 +331,9 @@ static std::vector<bool> init_uv_primitives_brush_test(SculptSession *ss,
 static void do_paint_pixels(TexturePaintingUserData *data, const int n)
 {
   Object *ob = data->ob;
-  SculptSession *ss = ob->sculpt;
+  SculptSession &ss = *ob->sculpt;
   const Brush *brush = data->brush;
-  PBVH &pbvh = *ss->pbvh;
+  PBVH &pbvh = *ss.pbvh;
   PBVHNode *node = data->nodes[n];
   PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   NodeData &node_data = bke::pbvh::pixels::node_data_get(*node);
@@ -356,14 +356,14 @@ static void do_paint_pixels(TexturePaintingUserData *data, const int n)
   brush_color[2] = float((hash >> 16) & 255) / 255.0f;
 #else
   copy_v3_v3(brush_color,
-             ss->cache->invert ? BKE_brush_secondary_color_get(ss->scene, brush) :
-                                 BKE_brush_color_get(ss->scene, brush));
+             ss.cache->invert ? BKE_brush_secondary_color_get(ss.scene, brush) :
+                                BKE_brush_color_get(ss.scene, brush));
 #endif
 
   brush_color[3] = 1.0f;
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      *ob, ss->cache->automasking.get(), *node);
+      *ob, ss.cache->automasking.get(), *node);
 
   ImageUser image_user = *data->image_data.image_user;
   bool pixels_updated = false;
@@ -532,8 +532,8 @@ static void fix_non_manifold_seam_bleeding(Object &ob, TexturePaintingUserData &
 
 using namespace blender::ed::sculpt_paint::paint::image;
 
-bool SCULPT_paint_image_canvas_get(PaintModeSettings *paint_mode_settings,
-                                   Object *ob,
+bool SCULPT_paint_image_canvas_get(PaintModeSettings &paint_mode_settings,
+                                   Object &ob,
                                    Image **r_image,
                                    ImageUser **r_image_user)
 {
@@ -550,29 +550,29 @@ bool SCULPT_paint_image_canvas_get(PaintModeSettings *paint_mode_settings,
   return true;
 }
 
-bool SCULPT_use_image_paint_brush(PaintModeSettings *settings, Object *ob)
+bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob)
 {
   if (!U.experimental.use_sculpt_texture_paint) {
     return false;
   }
-  if (ob->type != OB_MESH) {
+  if (ob.type != OB_MESH) {
     return false;
   }
   Image *image;
   ImageUser *image_user;
-  return BKE_paint_canvas_image_get(settings, ob, &image, &image_user);
+  return BKE_paint_canvas_image_get(&settings, &ob, &image, &image_user);
 }
 
-void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
-                                 Sculpt *sd,
-                                 Object *ob,
-                                 blender::Span<PBVHNode *> texnodes)
+void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
+                                 const Sculpt &sd,
+                                 Object &ob,
+                                 const blender::Span<PBVHNode *> texnodes)
 {
   using namespace blender;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   TexturePaintingUserData data = {nullptr};
-  data.ob = ob;
+  data.ob = &ob;
   data.brush = brush;
   data.nodes = texnodes;
 
@@ -590,7 +590,7 @@ void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
       do_paint_pixels(&data, i);
     }
   });
-  fix_non_manifold_seam_bleeding(*ob, data);
+  fix_non_manifold_seam_bleeding(ob, data);
 
   for (PBVHNode *node : texnodes) {
     bke::pbvh::pixels::mark_image_dirty(

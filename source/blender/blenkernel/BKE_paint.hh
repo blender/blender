@@ -244,12 +244,14 @@ void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[
 
 /* Stroke related. */
 
-bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
-                                   Brush *brush,
+bool paint_calculate_rake_rotation(UnifiedPaintSettings &ups,
+                                   const Brush &brush,
                                    const float mouse_pos[2],
                                    PaintMode paint_mode,
                                    bool stroke_has_started);
-void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation);
+void paint_update_brush_rake_rotation(UnifiedPaintSettings &ups,
+                                      const Brush &brush,
+                                      float rotation);
 
 void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float stroke[3]);
 
@@ -755,7 +757,7 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
  *
  * \return #true if successful.
  */
-bool BKE_object_attributes_active_color_fill(Object *ob,
+bool BKE_object_attributes_active_color_fill(Object &ob,
                                              const float fill_color[4],
                                              bool only_selected);
 

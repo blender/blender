@@ -59,14 +59,14 @@ static void init_common(bContext *C, wmOperator *op, GestureData &gesture_data)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   gesture_data.vc = ED_view3d_viewcontext_init(C, depsgraph);
-  Object *ob = gesture_data.vc.obact;
+  Object &ob = *gesture_data.vc.obact;
 
   /* Operator properties. */
   gesture_data.front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
   gesture_data.selection_type = SelectionType::Inside;
 
   /* SculptSession */
-  gesture_data.ss = ob->sculpt;
+  gesture_data.ss = ob.sculpt;
 
   /* Symmetry. */
   gesture_data.symm = ePaintSymmetryFlags(SCULPT_mesh_symmetry_xyz_get(ob));
@@ -77,7 +77,7 @@ static void init_common(bContext *C, wmOperator *op, GestureData &gesture_data)
   copy_m3_m4(mat, gesture_data.vc.rv3d->viewinv);
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(gesture_data.world_space_view_normal, view_dir);
-  copy_m3_m4(mat, ob->world_to_object().ptr());
+  copy_m3_m4(mat, ob.world_to_object().ptr());
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(gesture_data.true_view_normal, view_dir);
 
@@ -444,7 +444,7 @@ bool is_affected(GestureData &gesture_data, const float3 &co, const float3 &vert
 void apply(bContext &C, GestureData &gesture_data, wmOperator &op)
 {
   Operation *operation = gesture_data.operation;
-  undo::push_begin(CTX_data_active_object(&C), &op);
+  undo::push_begin(*CTX_data_active_object(&C), &op);
 
   operation->begin(C, gesture_data);
 
@@ -459,8 +459,7 @@ void apply(bContext &C, GestureData &gesture_data, wmOperator &op)
 
   operation->end(C, gesture_data);
 
-  Object *ob = CTX_data_active_object(&C);
-  undo::push_end(ob);
+  undo::push_end(*CTX_data_active_object(&C));
 
   SCULPT_tag_update_overlays(&C);
 }

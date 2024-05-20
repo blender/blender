@@ -89,16 +89,16 @@ void paint_stroke_free(bContext *C, wmOperator *op, PaintStroke *stroke);
 /**
  * Returns zero if the stroke dots should not be spaced, non-zero otherwise.
  */
-bool paint_space_stroke_enabled(Brush *br, PaintMode mode);
+bool paint_space_stroke_enabled(const Brush &br, PaintMode mode);
 /**
  * Return true if the brush size can change during paint (normally used for pressure).
  */
-bool paint_supports_dynamic_size(Brush *br, PaintMode mode);
+bool paint_supports_dynamic_size(const Brush &br, PaintMode mode);
 /**
  * Return true if the brush size can change during paint (normally used for pressure).
  */
-bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode);
-bool paint_supports_smooth_stroke(Brush *br, PaintMode mode);
+bool paint_supports_dynamic_tex_coords(const Brush &br, PaintMode mode);
+bool paint_supports_smooth_stroke(const Brush &br, PaintMode mode);
 bool paint_supports_texture(PaintMode mode);
 
 /**
@@ -207,9 +207,9 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot);
 
 /* `paint_vertex_proj.cc` */
 
-VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph *depsgraph,
-                                             Scene *scene,
-                                             Object *ob,
+VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph &depsgraph,
+                                             Scene &scene,
+                                             Object &ob,
                                              CoNo **r_vcosnos);
 void ED_vpaint_proj_handle_update(Depsgraph *depsgraph,
                                   VertProjHandle *vp_handle,
@@ -344,9 +344,9 @@ void SCULPT_OT_uv_sculpt_pinch(wmOperatorType *ot);
 bool paint_convert_bb_to_rect(rcti *rect,
                               const float bb_min[3],
                               const float bb_max[3],
-                              const ARegion *region,
-                              RegionView3D *rv3d,
-                              Object *ob);
+                              const ARegion &region,
+                              const RegionView3D &rv3d,
+                              const Object &ob);
 
 /**
  * Get four planes in object-space that describe the projection of
@@ -354,11 +354,11 @@ bool paint_convert_bb_to_rect(rcti *rect,
  * 2D screens-space bounding box into four 3D planes).
  */
 void paint_calc_redraw_planes(float planes[4][4],
-                              const ARegion *region,
-                              Object *ob,
-                              const rcti *screen_rect);
+                              const ARegion &region,
+                              const Object &ob,
+                              const rcti &screen_rect);
 
-float paint_calc_object_space_radius(const ViewContext *vc,
+float paint_calc_object_space_radius(const ViewContext &vc,
                                      const blender::float3 &center,
                                      float pixel_radius);
 
@@ -525,35 +525,35 @@ bool test_brush_angle_falloff(const Brush &brush,
                               const NormalAnglePrecalc &normal_angle_precalc,
                               const float angle_cos,
                               float *brush_strength);
-bool use_normal(const VPaint *vp);
+bool use_normal(const VPaint &vp);
 
-bool brush_use_accumulate_ex(const Brush *brush, const int ob_mode);
-bool brush_use_accumulate(const VPaint *vp);
+bool brush_use_accumulate_ex(const Brush &brush, eObjectMode ob_mode);
+bool brush_use_accumulate(const VPaint &vp);
 
-void get_brush_alpha_data(const Scene *scene,
-                          const SculptSession *ss,
-                          const Brush *brush,
+void get_brush_alpha_data(const Scene &scene,
+                          const SculptSession &ss,
+                          const Brush &brush,
                           float *r_brush_size_pressure,
                           float *r_brush_alpha_value,
                           float *r_brush_alpha_pressure);
 
-void init_stroke(Depsgraph *depsgraph, Object *ob);
-void init_session_data(const ToolSettings *ts, Object *ob);
+void init_stroke(Depsgraph &depsgraph, Object &ob);
+void init_session_data(const ToolSettings &ts, Object &ob);
 void init_session(
-    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode);
+    Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode object_mode);
 
-Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush);
+Vector<PBVHNode *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush &brush);
 
 void mode_enter_generic(
-    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode mode_flag);
-void mode_exit_generic(Object *ob, const eObjectMode mode_flag);
+    Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode mode_flag);
+void mode_exit_generic(Object &ob, eObjectMode mode_flag);
 bool mode_toggle_poll_test(bContext *C);
 
 void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache);
 void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache);
 
-void update_cache_variants(bContext *C, VPaint *vp, Object *ob, PointerRNA *ptr);
+void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr);
 void update_cache_invariants(
-    bContext *C, VPaint *vp, SculptSession *ss, wmOperator *op, const float mval[2]);
-void last_stroke_update(Scene *scene, const float location[3]);
+    bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2]);
+void last_stroke_update(Scene &scene, const float location[3]);
 }  // namespace blender::ed::sculpt_paint::vwpaint

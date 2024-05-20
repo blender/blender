@@ -69,9 +69,9 @@
 bool paint_convert_bb_to_rect(rcti *rect,
                               const float bb_min[3],
                               const float bb_max[3],
-                              const ARegion *region,
-                              RegionView3D *rv3d,
-                              Object *ob)
+                              const ARegion &region,
+                              const RegionView3D &rv3d,
+                              const Object &ob)
 {
   int i, j, k;
 
@@ -82,7 +82,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
     return false;
   }
 
-  const blender::float4x4 projection = ED_view3d_ob_project_mat_get(rv3d, ob);
+  const blender::float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &ob);
 
   for (i = 0; i < 2; i++) {
     for (j = 0; j < 2; j++) {
@@ -93,7 +93,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
         vec[1] = j ? bb_min[1] : bb_max[1];
         vec[2] = k ? bb_min[2] : bb_max[2];
         /* convert corner to screen space */
-        const blender::float2 proj = ED_view3d_project_float_v2_m4(region, vec, projection);
+        const blender::float2 proj = ED_view3d_project_float_v2_m4(&region, vec, projection);
         /* expand 2D rectangle */
 
         /* we could project directly to int? */
@@ -110,35 +110,35 @@ bool paint_convert_bb_to_rect(rcti *rect,
 }
 
 void paint_calc_redraw_planes(float planes[4][4],
-                              const ARegion *region,
-                              Object *ob,
-                              const rcti *screen_rect)
+                              const ARegion &region,
+                              const Object &ob,
+                              const rcti &screen_rect)
 {
   BoundBox bb;
   rcti rect;
 
   /* use some extra space just in case */
-  rect = *screen_rect;
+  rect = screen_rect;
   rect.xmin -= 2;
   rect.xmax += 2;
   rect.ymin -= 2;
   rect.ymax += 2;
 
-  ED_view3d_clipping_calc(&bb, planes, region, ob, &rect);
+  ED_view3d_clipping_calc(&bb, planes, &region, &ob, &rect);
 }
 
-float paint_calc_object_space_radius(const ViewContext *vc,
+float paint_calc_object_space_radius(const ViewContext &vc,
                                      const blender::float3 &center,
                                      const float pixel_radius)
 {
-  Object *ob = vc->obact;
+  Object *ob = vc.obact;
   float delta[3], scale, loc[3];
   const float xy_delta[2] = {pixel_radius, 0.0f};
 
   mul_v3_m4v3(loc, ob->object_to_world().ptr(), center);
 
-  const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
-  ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
+  const float zfac = ED_view3d_calc_zfac(vc.rv3d, loc);
+  ED_view3d_win_to_delta(vc.region, xy_delta, zfac, delta);
 
   scale = fabsf(mat4_to_scale(ob->object_to_world().ptr()));
   scale = (scale == 0.0f) ? 1.0f : scale;

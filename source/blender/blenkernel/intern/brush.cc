@@ -2531,7 +2531,10 @@ void BKE_brush_scale_size(int *r_brush_size,
   (*r_brush_size) = int(float(*r_brush_size) * scale);
 }
 
-void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])
+void BKE_brush_jitter_pos(const Scene &scene,
+                          const Brush &brush,
+                          const float pos[2],
+                          float jitterpos[2])
 {
   float rand_pos[2];
   float spread;
@@ -2542,13 +2545,13 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
     rand_pos[1] = BLI_rng_get_float(brush_rng) - 0.5f;
   } while (len_squared_v2(rand_pos) > square_f(0.5f));
 
-  if (brush->flag & BRUSH_ABSOLUTE_JITTER) {
-    diameter = 2 * brush->jitter_absolute;
+  if (brush.flag & BRUSH_ABSOLUTE_JITTER) {
+    diameter = 2 * brush.jitter_absolute;
     spread = 1.0;
   }
   else {
-    diameter = 2 * BKE_brush_size_get(scene, brush);
-    spread = brush->jitter;
+    diameter = 2 * BKE_brush_size_get(&scene, &brush);
+    spread = brush.jitter;
   }
   /* find random position within a circle of diameter 1 */
   jitterpos[0] = pos[0] + 2 * rand_pos[0] * diameter * spread;

@@ -84,7 +84,7 @@ struct WeightPaintGroupData {
   /**
    * Index of active group or its mirror:
    *
-   * - 'active' is always `ob->actdef`.
+   * - 'active' is always `ob.actdef`.
    * - 'mirror' is -1 when 'ME_EDIT_MIRROR_X' flag id disabled,
    *   otherwise this will be set to the mirror or the active group (if the group isn't mirrored).
    */
@@ -178,15 +178,15 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev,
 /**
  * VPaint has 'vpaint_blend'
  */
-static float wpaint_blend(const VPaint *wp,
+static float wpaint_blend(const VPaint &wp,
                           float weight,
                           const float alpha,
                           float paintval,
                           const float /*brush_alpha_value*/,
                           const bool do_flip)
 {
-  const Brush *brush = BKE_paint_brush_for_read(&wp->paint);
-  IMB_BlendMode blend = (IMB_BlendMode)brush->blend;
+  const Brush &brush = *BKE_paint_brush_for_read(&wp.paint);
+  IMB_BlendMode blend = (IMB_BlendMode)brush.blend;
 
   if (do_flip) {
     switch (blend) {
@@ -506,18 +506,15 @@ static void multipaint_apply_change(MDeformVert *dvert,
   }
 }
 
-static void do_weight_paint_vertex_single(
-    /* vars which remain the same for every vert */
-    const VPaint *wp,
-    Object *ob,
-    const WeightPaintInfo *wpi,
-    /* vars which change on each stroke */
-    const uint index,
-    float alpha,
-    float paintweight)
+static void do_weight_paint_vertex_single(const VPaint &wp,
+                                          Object &ob,
+                                          const WeightPaintInfo &wpi,
+                                          const uint index,
+                                          float alpha,
+                                          float paintweight)
 {
-  Mesh *mesh = (Mesh *)ob->data;
-  MDeformVert *dv = &wpi->dvert[index];
+  Mesh *mesh = (Mesh *)ob.data;
+  MDeformVert *dv = &wpi.dvert[index];
   bool topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   MDeformWeight *dw;
@@ -533,12 +530,12 @@ static void do_weight_paint_vertex_single(
 
   /* Check if we should mirror vertex groups (X-axis). */
   if (ME_USING_MIRROR_X_VERTEX_GROUPS(mesh)) {
-    index_mirr = mesh_get_x_mirror_vert(ob, nullptr, index, topology);
-    vgroup_mirr = wpi->mirror.index;
+    index_mirr = mesh_get_x_mirror_vert(&ob, nullptr, index, topology);
+    vgroup_mirr = wpi.mirror.index;
 
     /* another possible error - mirror group _and_ active group are the same (which is fine),
      * but we also are painting onto a center vertex - this would paint the same weight twice */
-    if (index_mirr == index && vgroup_mirr == wpi->active.index) {
+    if (index_mirr == index && vgroup_mirr == wpi.active.index) {
       index_mirr = vgroup_mirr = -1;
     }
   }
@@ -547,17 +544,17 @@ static void do_weight_paint_vertex_single(
   }
 
   /* Check if painting should create new deform weight entries. */
-  bool restrict_to_existing = (wp->flag & VP_FLAG_VGROUP_RESTRICT) != 0;
+  bool restrict_to_existing = (wp.flag & VP_FLAG_VGROUP_RESTRICT) != 0;
 
-  if (wpi->do_lock_relative || wpi->do_auto_normalize) {
+  if (wpi.do_lock_relative || wpi.do_auto_normalize) {
     /* Without do_lock_relative only dw_rel_locked is reliable, while dw_rel_free may be fake 0. */
-    dw_rel_free = BKE_defvert_total_selected_weight(dv, wpi->defbase_tot, wpi->vgroup_unlocked);
-    dw_rel_locked = BKE_defvert_total_selected_weight(dv, wpi->defbase_tot, wpi->vgroup_locked);
+    dw_rel_free = BKE_defvert_total_selected_weight(dv, wpi.defbase_tot, wpi.vgroup_unlocked);
+    dw_rel_locked = BKE_defvert_total_selected_weight(dv, wpi.defbase_tot, wpi.vgroup_locked);
     CLAMP(dw_rel_locked, 0.0f, 1.0f);
 
     /* Do not create entries if there is not enough free weight to paint.
      * This logic is the same as in wpaint_undo_lock_relative and auto-normalize. */
-    if (wpi->do_auto_normalize || dw_rel_free <= 0.0f) {
+    if (wpi.do_auto_normalize || dw_rel_free <= 0.0f) {
       if (dw_rel_locked >= 1.0f - VERTEX_WEIGHT_LOCK_EPSILON) {
         restrict_to_existing = true;
       }
@@ -565,10 +562,10 @@ static void do_weight_paint_vertex_single(
   }
 
   if (restrict_to_existing) {
-    dw = BKE_defvert_find_index(dv, wpi->active.index);
+    dw = BKE_defvert_find_index(dv, wpi.active.index);
   }
   else {
-    dw = BKE_defvert_ensure_index(dv, wpi->active.index);
+    dw = BKE_defvert_ensure_index(dv, wpi.active.index);
   }
 
   if (dw == nullptr) {
@@ -577,8 +574,8 @@ static void do_weight_paint_vertex_single(
 
   /* get the mirror def vars */
   if (index_mirr != -1) {
-    dv_mirr = &wpi->dvert[index_mirr];
-    if (wp->flag & VP_FLAG_VGROUP_RESTRICT) {
+    dv_mirr = &wpi.dvert[index_mirr];
+    if (wp.flag & VP_FLAG_VGROUP_RESTRICT) {
       dw_mirr = BKE_defvert_find_index(dv_mirr, vgroup_mirr);
 
       if (dw_mirr == nullptr) {
@@ -611,22 +608,22 @@ static void do_weight_paint_vertex_single(
   weight_cur = dw->weight;
 
   /* Handle weight caught up in locked defgroups for Lock Relative. */
-  if (wpi->do_lock_relative) {
+  if (wpi.do_lock_relative) {
     weight_cur = BKE_defvert_calc_lock_relative_weight(weight_cur, dw_rel_locked, dw_rel_free);
   }
 
   if (!vwpaint::brush_use_accumulate(wp)) {
-    MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
-    MDeformVert *dv_prev = defweight_prev_init(dvert_prev, wpi->dvert.data(), index);
+    MDeformVert *dvert_prev = ob.sculpt->mode.wpaint.dvert_prev;
+    MDeformVert *dv_prev = defweight_prev_init(dvert_prev, wpi.dvert.data(), index);
     if (index_mirr != -1) {
-      defweight_prev_init(dvert_prev, wpi->dvert.data(), index_mirr);
+      defweight_prev_init(dvert_prev, wpi.dvert.data(), index_mirr);
     }
 
-    weight_prev = BKE_defvert_find_weight(dv_prev, wpi->active.index);
+    weight_prev = BKE_defvert_find_weight(dv_prev, wpi.active.index);
 
-    if (wpi->do_lock_relative) {
+    if (wpi.do_lock_relative) {
       weight_prev = BKE_defvert_lock_relative_weight(
-          weight_prev, dv_prev, wpi->defbase_tot, wpi->vgroup_locked, wpi->vgroup_unlocked);
+          weight_prev, dv_prev, wpi.defbase_tot, wpi.vgroup_locked, wpi.vgroup_unlocked);
     }
   }
   else {
@@ -638,12 +635,12 @@ static void do_weight_paint_vertex_single(
 
   {
     float new_weight = wpaint_blend(
-        wp, weight_prev, alpha, paintweight, wpi->brush_alpha_value, wpi->do_flip);
+        wp, weight_prev, alpha, paintweight, wpi.brush_alpha_value, wpi.do_flip);
 
     float weight = wpaint_clamp_monotonic(weight_prev, weight_cur, new_weight);
 
     /* Undo the lock relative weight correction. */
-    if (wpi->do_lock_relative) {
+    if (wpi.do_lock_relative) {
       if (index_mirr == index) {
         /* When painting a center vertex with X Mirror and L/R pair,
          * handle both groups together. This avoids weird fighting
@@ -651,11 +648,11 @@ static void do_weight_paint_vertex_single(
         float orig_weight = dw->weight + dw_mirr->weight;
         weight = 0.5f *
                  wpaint_undo_lock_relative(
-                     weight * 2, orig_weight, dw_rel_locked, dw_rel_free, wpi->do_auto_normalize);
+                     weight * 2, orig_weight, dw_rel_locked, dw_rel_free, wpi.do_auto_normalize);
       }
       else {
         weight = wpaint_undo_lock_relative(
-            weight, dw->weight, dw_rel_locked, dw_rel_free, wpi->do_auto_normalize);
+            weight, dw->weight, dw_rel_locked, dw_rel_free, wpi.do_auto_normalize);
       }
 
       CLAMP(weight, 0.0f, 1.0f);
@@ -673,7 +670,7 @@ static void do_weight_paint_vertex_single(
     }
 
     /* apply normalize */
-    if (wpi->do_auto_normalize) {
+    if (wpi.do_auto_normalize) {
       /* note on normalize - this used to be applied after painting and normalize all weights,
        * in some ways this is good because there is feedback where the more weights involved would
        * 'resist' so you couldn't instantly zero out other weights by painting 1.0 on the active.
@@ -687,14 +684,14 @@ static void do_weight_paint_vertex_single(
        * - campbell
        */
       do_weight_paint_normalize_all_locked_try_active(
-          dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags, wpi->active.lock);
+          dv, wpi.defbase_tot, wpi.vgroup_validmap, wpi.lock_flags, wpi.active.lock);
 
       if (index_mirr != -1) {
         /* only normalize if this is not a center vertex,
          * else we get a conflict, normalizing twice */
         if (index != index_mirr) {
           do_weight_paint_normalize_all_locked_try_active(
-              dv_mirr, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags, wpi->mirror.lock);
+              dv_mirr, wpi.defbase_tot, wpi.vgroup_validmap, wpi.lock_flags, wpi.mirror.lock);
         }
         else {
           /* This case accounts for:
@@ -719,18 +716,15 @@ static void do_weight_paint_vertex_single(
   }
 }
 
-static void do_weight_paint_vertex_multi(
-    /* vars which remain the same for every vert */
-    const VPaint *wp,
-    Object *ob,
-    const WeightPaintInfo *wpi,
-    /* vars which change on each stroke */
-    const uint index,
-    float alpha,
-    float paintweight)
+static void do_weight_paint_vertex_multi(const VPaint &wp,
+                                         Object &ob,
+                                         const WeightPaintInfo &wpi,
+                                         const uint index,
+                                         float alpha,
+                                         float paintweight)
 {
-  Mesh *mesh = (Mesh *)ob->data;
-  MDeformVert *dv = &wpi->dvert[index];
+  Mesh *mesh = (Mesh *)ob.data;
+  MDeformVert *dv = &wpi.dvert[index];
   bool topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   /* mirror vars */
@@ -743,10 +737,10 @@ static void do_weight_paint_vertex_multi(
 
   /* Check if we should mirror vertex groups (X-axis). */
   if (ME_USING_MIRROR_X_VERTEX_GROUPS(mesh)) {
-    index_mirr = mesh_get_x_mirror_vert(ob, nullptr, index, topology);
+    index_mirr = mesh_get_x_mirror_vert(&ob, nullptr, index, topology);
 
     if (!ELEM(index_mirr, -1, index)) {
-      dv_mirr = &wpi->dvert[index_mirr];
+      dv_mirr = &wpi.dvert[index_mirr];
     }
     else {
       index_mirr = -1;
@@ -755,7 +749,7 @@ static void do_weight_paint_vertex_multi(
 
   /* compute weight change by applying the brush to average or sum of group weights */
   curw = curw_real = BKE_defvert_multipaint_collective_weight(
-      dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
+      dv, wpi.defbase_tot, wpi.defbase_sel, wpi.defbase_tot_sel, wpi.is_normalized);
 
   if (curw == 0.0f) {
     /* NOTE: no weight to assign to this vertex, could add all groups? */
@@ -763,49 +757,49 @@ static void do_weight_paint_vertex_multi(
   }
 
   /* Handle weight caught up in locked defgroups for Lock Relative. */
-  if (wpi->do_lock_relative) {
-    dw_rel_free = BKE_defvert_total_selected_weight(dv, wpi->defbase_tot, wpi->vgroup_unlocked);
-    dw_rel_locked = BKE_defvert_total_selected_weight(dv, wpi->defbase_tot, wpi->vgroup_locked);
+  if (wpi.do_lock_relative) {
+    dw_rel_free = BKE_defvert_total_selected_weight(dv, wpi.defbase_tot, wpi.vgroup_unlocked);
+    dw_rel_locked = BKE_defvert_total_selected_weight(dv, wpi.defbase_tot, wpi.vgroup_locked);
     CLAMP(dw_rel_locked, 0.0f, 1.0f);
 
     curw = BKE_defvert_calc_lock_relative_weight(curw, dw_rel_locked, dw_rel_free);
   }
 
   if (!vwpaint::brush_use_accumulate(wp)) {
-    MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
-    MDeformVert *dv_prev = defweight_prev_init(dvert_prev, wpi->dvert.data(), index);
+    MDeformVert *dvert_prev = ob.sculpt->mode.wpaint.dvert_prev;
+    MDeformVert *dv_prev = defweight_prev_init(dvert_prev, wpi.dvert.data(), index);
     if (index_mirr != -1) {
-      defweight_prev_init(dvert_prev, wpi->dvert.data(), index_mirr);
+      defweight_prev_init(dvert_prev, wpi.dvert.data(), index_mirr);
     }
 
     oldw = BKE_defvert_multipaint_collective_weight(
-        dv_prev, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
+        dv_prev, wpi.defbase_tot, wpi.defbase_sel, wpi.defbase_tot_sel, wpi.is_normalized);
 
-    if (wpi->do_lock_relative) {
+    if (wpi.do_lock_relative) {
       oldw = BKE_defvert_lock_relative_weight(
-          oldw, dv_prev, wpi->defbase_tot, wpi->vgroup_locked, wpi->vgroup_unlocked);
+          oldw, dv_prev, wpi.defbase_tot, wpi.vgroup_locked, wpi.vgroup_unlocked);
     }
   }
   else {
     oldw = curw;
   }
 
-  neww = wpaint_blend(wp, oldw, alpha, paintweight, wpi->brush_alpha_value, wpi->do_flip);
+  neww = wpaint_blend(wp, oldw, alpha, paintweight, wpi.brush_alpha_value, wpi.do_flip);
   neww = wpaint_clamp_monotonic(oldw, curw, neww);
 
-  if (wpi->do_lock_relative) {
+  if (wpi.do_lock_relative) {
     neww = wpaint_undo_lock_relative(
-        neww, curw_real, dw_rel_locked, dw_rel_free, wpi->do_auto_normalize);
+        neww, curw_real, dw_rel_locked, dw_rel_free, wpi.do_auto_normalize);
   }
 
   change = neww / curw_real;
 
   /* verify for all groups that 0 < result <= 1 */
-  multipaint_clamp_change(dv, wpi->defbase_tot, wpi->defbase_sel, &change);
+  multipaint_clamp_change(dv, wpi.defbase_tot, wpi.defbase_sel, &change);
 
   if (dv_mirr != nullptr) {
     curw_mirr = BKE_defvert_multipaint_collective_weight(
-        dv_mirr, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
+        dv_mirr, wpi.defbase_tot, wpi.defbase_sel, wpi.defbase_tot_sel, wpi.is_normalized);
 
     if (curw_mirr == 0.0f) {
       /* can't mirror into a zero weight vertex */
@@ -815,9 +809,9 @@ static void do_weight_paint_vertex_multi(
       /* mirror is changed to achieve the same collective weight value */
       float orig = change_mirr = curw_real * change / curw_mirr;
 
-      multipaint_clamp_change(dv_mirr, wpi->defbase_tot, wpi->defbase_sel, &change_mirr);
+      multipaint_clamp_change(dv_mirr, wpi.defbase_tot, wpi.defbase_sel, &change_mirr);
 
-      if (!multipaint_verify_change(dv_mirr, wpi->defbase_tot, change_mirr, wpi->defbase_sel)) {
+      if (!multipaint_verify_change(dv_mirr, wpi.defbase_tot, change_mirr, wpi.defbase_sel)) {
         return;
       }
 
@@ -825,40 +819,37 @@ static void do_weight_paint_vertex_multi(
     }
   }
 
-  if (!multipaint_verify_change(dv, wpi->defbase_tot, change, wpi->defbase_sel)) {
+  if (!multipaint_verify_change(dv, wpi.defbase_tot, change, wpi.defbase_sel)) {
     return;
   }
 
   /* apply validated change to vertex and mirror */
-  multipaint_apply_change(dv, wpi->defbase_tot, change, wpi->defbase_sel);
+  multipaint_apply_change(dv, wpi.defbase_tot, change, wpi.defbase_sel);
 
   if (dv_mirr != nullptr) {
-    multipaint_apply_change(dv_mirr, wpi->defbase_tot, change_mirr, wpi->defbase_sel);
+    multipaint_apply_change(dv_mirr, wpi.defbase_tot, change_mirr, wpi.defbase_sel);
   }
 
   /* normalize */
-  if (wpi->do_auto_normalize) {
+  if (wpi.do_auto_normalize) {
     do_weight_paint_normalize_all_locked_try_active(
-        dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags, wpi->active.lock);
+        dv, wpi.defbase_tot, wpi.vgroup_validmap, wpi.lock_flags, wpi.active.lock);
 
     if (dv_mirr != nullptr) {
       do_weight_paint_normalize_all_locked_try_active(
-          dv_mirr, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags, wpi->active.lock);
+          dv_mirr, wpi.defbase_tot, wpi.vgroup_validmap, wpi.lock_flags, wpi.active.lock);
     }
   }
 }
 
-static void do_weight_paint_vertex(
-    /* vars which remain the same for every vert */
-    const VPaint *wp,
-    Object *ob,
-    const WeightPaintInfo *wpi,
-    /* vars which change on each stroke */
-    const uint index,
-    float alpha,
-    float paintweight)
+static void do_weight_paint_vertex(const VPaint &wp,
+                                   Object &ob,
+                                   const WeightPaintInfo &wpi,
+                                   const uint index,
+                                   float alpha,
+                                   float paintweight)
 {
-  if (wpi->do_multipaint) {
+  if (wpi.do_multipaint) {
     do_weight_paint_vertex_multi(wp, ob, wpi, index, alpha, paintweight);
   }
   else {
@@ -868,18 +859,17 @@ static void do_weight_paint_vertex(
 
 static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
 {
-  Scene *scene = CTX_data_scene(C);
-  PaintStroke *stroke = (PaintStroke *)op->customdata;
-  ToolSettings *ts = scene->toolsettings;
-  Object *ob = CTX_data_active_object(C);
-  Mesh *mesh = BKE_mesh_from_object(ob);
-  WPaintData *wpd;
+  Scene &scene = *CTX_data_scene(C);
+  PaintStroke &stroke = *(PaintStroke *)op->customdata;
+  ToolSettings &ts = *scene.toolsettings;
+  Object &ob = *CTX_data_active_object(C);
+  Mesh &mesh = *BKE_mesh_from_object(&ob);
   WPaintVGroupIndex vgroup_index;
   int defbase_tot, defbase_tot_sel;
   bool *defbase_sel;
-  SculptSession *ss = ob->sculpt;
-  VPaint *vp = CTX_data_tool_settings(C)->wpaint;
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  SculptSession &ss = *ob.sculpt;
+  VPaint &vp = *CTX_data_tool_settings(C)->wpaint;
+  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
   if (ED_wpaint_ensure_data(C, op->reports, WPAINT_ENSURE_MIRROR, &vgroup_index) == false) {
     return false;
@@ -889,13 +879,13 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     /* check if we are attempting to paint onto a locked vertex group,
      * and other options disallow it from doing anything useful */
     bDeformGroup *dg;
-    dg = (bDeformGroup *)BLI_findlink(&mesh->vertex_group_names, vgroup_index.active);
+    dg = (bDeformGroup *)BLI_findlink(&mesh.vertex_group_names, vgroup_index.active);
     if (dg->flag & DG_LOCK_WEIGHT) {
       BKE_report(op->reports, RPT_WARNING, "Active group is locked, aborting");
       return false;
     }
     if (vgroup_index.mirror != -1) {
-      dg = (bDeformGroup *)BLI_findlink(&mesh->vertex_group_names, vgroup_index.mirror);
+      dg = (bDeformGroup *)BLI_findlink(&mesh.vertex_group_names, vgroup_index.mirror);
       if (dg->flag & DG_LOCK_WEIGHT) {
         BKE_report(op->reports, RPT_WARNING, "Mirror group is locked, aborting");
         return false;
@@ -904,21 +894,21 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   }
 
   /* check that multipaint groups are unlocked */
-  defbase_tot = BLI_listbase_count(&mesh->vertex_group_names);
-  defbase_sel = BKE_object_defgroup_selected_get(ob, defbase_tot, &defbase_tot_sel);
+  defbase_tot = BLI_listbase_count(&mesh.vertex_group_names);
+  defbase_sel = BKE_object_defgroup_selected_get(&ob, defbase_tot, &defbase_tot_sel);
 
-  if (ts->multipaint && defbase_tot_sel > 1) {
+  if (ts.multipaint && defbase_tot_sel > 1) {
     int i;
     bDeformGroup *dg;
 
-    if (ME_USING_MIRROR_X_VERTEX_GROUPS(mesh)) {
+    if (ME_USING_MIRROR_X_VERTEX_GROUPS(&mesh)) {
       BKE_object_defgroup_mirror_selection(
-          ob, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
+          &ob, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
     }
 
     for (i = 0; i < defbase_tot; i++) {
       if (defbase_sel[i]) {
-        dg = (bDeformGroup *)BLI_findlink(&mesh->vertex_group_names, i);
+        dg = (bDeformGroup *)BLI_findlink(&mesh.vertex_group_names, i);
         if (dg->flag & DG_LOCK_WEIGHT) {
           BKE_report(op->reports, RPT_WARNING, "Multipaint group is locked, aborting");
           MEM_freeN(defbase_sel);
@@ -928,13 +918,11 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     }
   }
 
-  /* ALLOCATIONS! no return after this line */
-  /* make mode data storage */
-  wpd = (WPaintData *)MEM_callocN(sizeof(WPaintData), "WPaintData");
-  paint_stroke_set_mode_data(stroke, wpd);
-  wpd->vc = ED_view3d_viewcontext_init(C, depsgraph);
+  WPaintData *wpd = (WPaintData *)MEM_callocN(sizeof(WPaintData), "WPaintData");
+  paint_stroke_set_mode_data(&stroke, wpd);
+  wpd->vc = ED_view3d_viewcontext_init(C, &depsgraph);
 
-  const Brush *brush = BKE_paint_brush(&vp->paint);
+  const Brush *brush = BKE_paint_brush_for_read(&vp.paint);
   vwpaint::view_angle_limits_init(&wpd->normal_angle_precalc,
                                   brush->falloff_angle,
                                   (brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
@@ -946,19 +934,18 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   wpd->defbase_tot = defbase_tot;
   wpd->defbase_sel = defbase_sel;
   wpd->defbase_tot_sel = defbase_tot_sel > 1 ? defbase_tot_sel : 1;
-  wpd->do_multipaint = (ts->multipaint && defbase_tot_sel > 1);
+  wpd->do_multipaint = (ts.multipaint && defbase_tot_sel > 1);
 
   /* set up auto-normalize, and generate map for detecting which
    * vgroups affect deform bones */
-  wpd->lock_flags = BKE_object_defgroup_lock_flags_get(ob, wpd->defbase_tot);
-  if (ts->auto_normalize || ts->multipaint || wpd->lock_flags != nullptr ||
-      ts->wpaint_lock_relative)
+  wpd->lock_flags = BKE_object_defgroup_lock_flags_get(&ob, wpd->defbase_tot);
+  if (ts.auto_normalize || ts.multipaint || wpd->lock_flags != nullptr || ts.wpaint_lock_relative)
   {
-    wpd->vgroup_validmap = BKE_object_defgroup_validmap_get(ob, wpd->defbase_tot);
+    wpd->vgroup_validmap = BKE_object_defgroup_validmap_get(&ob, wpd->defbase_tot);
   }
 
   /* Compute the set of all locked deform groups when Lock Relative is active. */
-  if (ts->wpaint_lock_relative &&
+  if (ts.wpaint_lock_relative &&
       BKE_object_defgroup_check_lock_relative(
           wpd->lock_flags, wpd->vgroup_validmap, wpd->active.index) &&
       (!wpd->do_multipaint || BKE_object_defgroup_check_lock_relative_multi(
@@ -967,7 +954,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     wpd->do_lock_relative = true;
   }
 
-  if (wpd->do_lock_relative || (ts->auto_normalize && wpd->lock_flags && !wpd->do_multipaint)) {
+  if (wpd->do_lock_relative || (ts.auto_normalize && wpd->lock_flags && !wpd->do_multipaint)) {
     bool *unlocked = (bool *)MEM_dupallocN(wpd->vgroup_validmap);
 
     if (wpd->lock_flags) {
@@ -980,7 +967,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     wpd->vgroup_unlocked = unlocked;
   }
 
-  if (wpd->do_multipaint && ts->auto_normalize) {
+  if (wpd->do_multipaint && ts.auto_normalize) {
     bool *tmpflags;
     tmpflags = (bool *)MEM_mallocN(sizeof(bool) * defbase_tot, __func__);
     if (wpd->lock_flags) {
@@ -991,7 +978,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     }
     wpd->active.lock = tmpflags;
   }
-  else if (ts->auto_normalize) {
+  else if (ts.auto_normalize) {
     bool *tmpflags;
 
     tmpflags = wpd->lock_flags ? (bool *)MEM_dupallocN(wpd->lock_flags) :
@@ -1011,14 +998,14 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   vwpaint::init_session_data(ts, ob);
 
   /* Brush may have changed after initialization. */
-  brush = BKE_paint_brush(&vp->paint);
+  brush = BKE_paint_brush(&vp.paint);
   if (ELEM(brush->weightpaint_tool, WPAINT_TOOL_SMEAR, WPAINT_TOOL_BLUR)) {
-    wpd->precomputed_weight = (float *)MEM_mallocN(sizeof(float) * mesh->verts_num, __func__);
+    wpd->precomputed_weight = (float *)MEM_mallocN(sizeof(float) * mesh.verts_num, __func__);
   }
 
-  if (ob->sculpt->mode.wpaint.dvert_prev != nullptr) {
-    MDeformVert *dv = ob->sculpt->mode.wpaint.dvert_prev;
-    for (int i = 0; i < mesh->verts_num; i++, dv++) {
+  if (ob.sculpt->mode.wpaint.dvert_prev != nullptr) {
+    MDeformVert *dv = ob.sculpt->mode.wpaint.dvert_prev;
+    for (int i = 0; i < mesh.verts_num; i++, dv++) {
       /* Use to show this isn't initialized, never apply to the mesh data. */
       dv->flag = 1;
     }
@@ -1027,21 +1014,21 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   return true;
 }
 
-static float wpaint_get_active_weight(const MDeformVert *dv, const WeightPaintInfo *wpi)
+static float wpaint_get_active_weight(const MDeformVert &dv, const WeightPaintInfo &wpi)
 {
   float weight;
 
-  if (wpi->do_multipaint) {
+  if (wpi.do_multipaint) {
     weight = BKE_defvert_multipaint_collective_weight(
-        dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
+        &dv, wpi.defbase_tot, wpi.defbase_sel, wpi.defbase_tot_sel, wpi.is_normalized);
   }
   else {
-    weight = BKE_defvert_find_weight(dv, wpi->active.index);
+    weight = BKE_defvert_find_weight(&dv, wpi.active.index);
   }
 
-  if (wpi->do_lock_relative) {
+  if (wpi.do_lock_relative) {
     weight = BKE_defvert_lock_relative_weight(
-        weight, dv, wpi->defbase_tot, wpi->vgroup_locked, wpi->vgroup_unlocked);
+        weight, &dv, wpi.defbase_tot, wpi.vgroup_locked, wpi.vgroup_unlocked);
   }
 
   CLAMP(weight, 0.0f, 1.0f);
@@ -1049,72 +1036,73 @@ static float wpaint_get_active_weight(const MDeformVert *dv, const WeightPaintIn
 }
 
 static void precompute_weight_values(
-    Object *ob, Brush *brush, WPaintData *wpd, WeightPaintInfo *wpi, Mesh *mesh)
+    Object &ob, const Brush &brush, WPaintData &wpd, WeightPaintInfo &wpi, Mesh &mesh)
 {
   using namespace blender;
-  if (wpd->precomputed_weight_ready && !vwpaint::brush_use_accumulate_ex(brush, ob->mode)) {
+  if (wpd.precomputed_weight_ready &&
+      !vwpaint::brush_use_accumulate_ex(brush, eObjectMode(ob.mode)))
+  {
     return;
   }
 
-  threading::parallel_for(IndexRange(mesh->verts_num), 512, [&](const IndexRange range) {
+  threading::parallel_for(IndexRange(mesh.verts_num), 512, [&](const IndexRange range) {
     for (const int i : range) {
-      const MDeformVert *dv = &wpi->dvert[i];
-      wpd->precomputed_weight[i] = wpaint_get_active_weight(dv, wpi);
+      const MDeformVert &dv = wpi.dvert[i];
+      wpd.precomputed_weight[i] = wpaint_get_active_weight(dv, wpi);
     }
   });
 
-  wpd->precomputed_weight_ready = true;
+  wpd.precomputed_weight_ready = true;
 }
 
 /* -------------------------------------------------------------------- */
 /** \name Weight paint brushes.
  * \{ */
 
-static void do_wpaint_brush_blur_task(const Scene *scene,
-                                      Object *ob,
-                                      const Brush *brush,
-                                      VPaint *vp,
-                                      WPaintData *wpd,
-                                      const WeightPaintInfo *wpi,
-                                      Mesh *mesh,
+static void do_wpaint_brush_blur_task(const Scene &scene,
+                                      Object &ob,
+                                      const Brush &brush,
+                                      VPaint &vp,
+                                      WPaintData &wpd,
+                                      const WeightPaintInfo &wpi,
+                                      Mesh &mesh,
                                       PBVHNode *node)
 {
   using namespace blender;
-  SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
+  SculptSession &ss = *ob.sculpt;
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
-  const SculptVertexPaintGeomMap *gmap = &ss->mode.wpaint.gmap;
+  const SculptVertexPaintGeomMap *gmap = &ss.mode.wpaint.gmap;
 
-  const StrokeCache *cache = ss->cache;
+  const StrokeCache *cache = ss.cache;
 
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
   const bool use_normal = vwpaint::use_normal(vp);
-  const bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  const bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+  const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_vert_sel = (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, brush->falloff_shape);
+      ss, test, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
-      ss, brush->falloff_shape);
+      ss, brush.falloff_shape);
 
-  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::bke::AttributeAccessor attributes = mesh.attributes();
   const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", bke::AttrDomain::Point, false);
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
-    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
     /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
      * Otherwise, take the current vert. */
-    const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                    vd.vert_indices[vd.i];
+    const int v_index = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
     const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
     /* If the vertex is selected */
     if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
@@ -1124,11 +1112,11 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
     int total_hit_loops = 0;
     float weight_final = 0.0f;
     for (const int p_index : gmap->vert_to_face[v_index]) {
-      const blender::IndexRange face = ss->faces[p_index];
+      const blender::IndexRange face = ss.faces[p_index];
 
       total_hit_loops += face.size();
-      for (const int vert : ss->corner_verts.slice(face)) {
-        weight_final += wpd->precomputed_weight[vert];
+      for (const int vert : ss.corner_verts.slice(face)) {
+        weight_final += wpd.precomputed_weight[vert];
       }
     }
 
@@ -1141,17 +1129,17 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
     const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
                                                     1.0f;
     if (!vwpaint::test_brush_angle_falloff(
-            *brush, wpd->normal_angle_precalc, angle_cos, &brush_strength))
+            brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
     {
       continue;
     }
 
-    const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
+    const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
     const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
 
-    if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
-      if (ss->mode.wpaint.alpha_weight[v_index] < final_alpha) {
-        ss->mode.wpaint.alpha_weight[v_index] = final_alpha;
+    if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
+      if (ss.mode.wpaint.alpha_weight[v_index] < final_alpha) {
+        ss.mode.wpaint.alpha_weight[v_index] = final_alpha;
       }
       else {
         continue;
@@ -1165,22 +1153,22 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_wpaint_brush_smear_task(const Scene *scene,
-                                       Object *ob,
-                                       const Brush *brush,
-                                       VPaint *vp,
-                                       WPaintData *wpd,
-                                       const WeightPaintInfo *wpi,
-                                       Mesh *mesh,
+static void do_wpaint_brush_smear_task(const Scene &scene,
+                                       Object &ob,
+                                       const Brush &brush,
+                                       VPaint &vp,
+                                       WPaintData &wpd,
+                                       const WeightPaintInfo &wpi,
+                                       Mesh &mesh,
                                        PBVHNode *node)
 {
   using namespace blender;
-  SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
+  SculptSession &ss = *ob.sculpt;
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
-  const SculptVertexPaintGeomMap *gmap = &ss->mode.wpaint.gmap;
+  const SculptVertexPaintGeomMap *gmap = &ss.mode.wpaint.gmap;
 
-  const StrokeCache *cache = ss->cache;
+  const StrokeCache *cache = ss.cache;
   if (!cache->is_last_valid) {
     return;
   }
@@ -1189,8 +1177,8 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
   const bool use_normal = vwpaint::use_normal(vp);
-  const bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  const bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+  const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_vert_sel = (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   float brush_dir[3];
 
   sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
@@ -1199,30 +1187,29 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
     return;
   }
 
-  const bke::AttributeAccessor attributes = mesh->attributes();
+  const bke::AttributeAccessor attributes = mesh.attributes();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", bke::AttrDomain::Point, false);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, brush->falloff_shape);
+      ss, test, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
-      ss, brush->falloff_shape);
+      ss, brush.falloff_shape);
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
-    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
 
     /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
      * Otherwise, take the current vert. */
-    const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                    vd.vert_indices[vd.i];
+    const int v_index = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
     const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
-    const float3 &mv_curr = ss->vert_positions[v_index];
+    const float3 &mv_curr = ss.vert_positions[v_index];
 
     /* If the vertex is selected */
     if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
@@ -1233,7 +1220,7 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
     const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
                                                     1.0f;
     if (!vwpaint::test_brush_angle_falloff(
-            *brush, wpd->normal_angle_precalc, angle_cos, &brush_strength))
+            brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
     {
       continue;
     }
@@ -1247,14 +1234,14 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
      * (this callback is specifically for smear.) */
     float weight_final = 0.0;
     for (const int p_index : gmap->vert_to_face[v_index]) {
-      for (const int v_other_index : ss->corner_verts.slice(ss->faces[p_index])) {
+      for (const int v_other_index : ss.corner_verts.slice(ss.faces[p_index])) {
         if (v_other_index == v_index) {
           continue;
         }
 
         /* Get the direction from the selected vert to the neighbor. */
         float other_dir[3];
-        sub_v3_v3v3(other_dir, mv_curr, ss->vert_positions[v_other_index]);
+        sub_v3_v3v3(other_dir, mv_curr, ss.vert_positions[v_other_index]);
         project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
 
         normalize_v3(other_dir);
@@ -1263,7 +1250,7 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
 
         if (stroke_dot > stroke_dot_max) {
           stroke_dot_max = stroke_dot;
-          weight_final = wpd->precomputed_weight[v_other_index];
+          weight_final = wpd.precomputed_weight[v_other_index];
           do_color = true;
         }
       }
@@ -1271,7 +1258,7 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
       if (!do_color) {
         continue;
       }
-      const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
+      const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
       const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
 
       if (final_alpha <= 0.0f) {
@@ -1284,22 +1271,22 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_wpaint_brush_draw_task(const Scene *scene,
-                                      Object *ob,
-                                      const Brush *brush,
-                                      VPaint *vp,
-                                      WPaintData *wpd,
-                                      const WeightPaintInfo *wpi,
-                                      Mesh *mesh,
+static void do_wpaint_brush_draw_task(const Scene &scene,
+                                      Object &ob,
+                                      const Brush &brush,
+                                      VPaint &vp,
+                                      WPaintData &wpd,
+                                      const WeightPaintInfo &wpi,
+                                      Mesh &mesh,
                                       const float strength,
                                       PBVHNode *node)
 {
   using namespace blender;
-  SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
+  SculptSession &ss = *ob.sculpt;
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
-  const StrokeCache *cache = ss->cache;
+  const StrokeCache *cache = ss.cache;
   /* NOTE: normally `BKE_brush_weight_get(scene, brush)` is used,
    * however in this case we calculate a new weight each time. */
   const float paintweight = strength;
@@ -1307,31 +1294,30 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
   const bool use_normal = vwpaint::use_normal(vp);
-  const bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  const bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+  const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_vert_sel = (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, brush->falloff_shape);
+      ss, test, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
-      ss, brush->falloff_shape);
+      ss, brush.falloff_shape);
 
-  const bke::AttributeAccessor attributes = mesh->attributes();
+  const bke::AttributeAccessor attributes = mesh.attributes();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", bke::AttrDomain::Point, false);
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
-    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
     /* NOTE: grids are 1:1 with corners (aka loops).
      * For multires, take the vert whose loop corresponds to the current grid.
      * Otherwise, take the current vert. */
-    const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                    vd.vert_indices[vd.i];
+    const int v_index = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
     const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
     /* If the vertex is selected */
@@ -1342,16 +1328,16 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
     const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
                                                     1.0f;
     if (!vwpaint::test_brush_angle_falloff(
-            *brush, wpd->normal_angle_precalc, angle_cos, &brush_strength))
+            brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
     {
       continue;
     }
-    const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
+    const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
     const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
 
-    if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
-      if (ss->mode.wpaint.alpha_weight[v_index] < final_alpha) {
-        ss->mode.wpaint.alpha_weight[v_index] = final_alpha;
+    if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
+      if (ss.mode.wpaint.alpha_weight[v_index] < final_alpha) {
+        ss.mode.wpaint.alpha_weight[v_index] = final_alpha;
       }
       else {
         continue;
@@ -1363,22 +1349,22 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
   BKE_pbvh_vertex_iter_end;
 }
 
-static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
-                                                              const Mesh *mesh,
-                                                              const Brush *brush,
-                                                              const VPaint *vp,
-                                                              WeightPaintInfo *wpi,
+static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
+                                                              const Mesh &mesh,
+                                                              const Brush &brush,
+                                                              const VPaint &vp,
+                                                              WeightPaintInfo &wpi,
                                                               PBVHNode *node)
 {
   using namespace blender;
-  SculptSession *ss = ob->sculpt;
-  StrokeCache *cache = ss->cache;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
+  SculptSession &ss = *ob.sculpt;
+  StrokeCache *cache = ss.cache;
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const bool use_normal = vwpaint::use_normal(vp);
-  const bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  const bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+  const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+  const bool use_vert_sel = (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   WPaintAverageAccum accum{};
   accum.len = 0;
@@ -1386,38 +1372,37 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, brush->falloff_shape);
+      ss, test, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
-      ss, brush->falloff_shape);
+      ss, brush.falloff_shape);
 
-  const bke::AttributeAccessor attributes = mesh->attributes();
+  const bke::AttributeAccessor attributes = mesh.attributes();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", bke::AttrDomain::Point, false);
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
-    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
 
     const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
                                                     1.0f;
     if (angle_cos <= 0.0f ||
-        BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius) <= 0.0f)
+        BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius) <= 0.0f)
     {
       continue;
     }
 
-    const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                    vd.vert_indices[vd.i];
+    const int v_index = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
     /* If the vertex is selected. */
     if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
       continue;
     }
 
-    const MDeformVert *dv = &wpi->dvert[v_index];
+    const MDeformVert &dv = wpi.dvert[v_index];
     accum.len += 1;
     accum.value += wpaint_get_active_weight(dv, wpi);
   }
@@ -1426,11 +1411,11 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
   return accum;
 }
 
-static float calculate_average_weight(Object *ob,
-                                      const Mesh *mesh,
-                                      const Brush *brush,
-                                      VPaint *vp,
-                                      WeightPaintInfo *wpi,
+static float calculate_average_weight(Object &ob,
+                                      const Mesh &mesh,
+                                      const Brush &brush,
+                                      VPaint &vp,
+                                      WeightPaintInfo &wpi,
                                       Span<PBVHNode *> nodes)
 {
   WPaintAverageAccum *accum = (WPaintAverageAccum *)MEM_mallocN(sizeof(*accum) * nodes.size(),
@@ -1461,25 +1446,25 @@ static float calculate_average_weight(Object *ob,
 }
 
 static void wpaint_paint_leaves(bContext *C,
-                                Object *ob,
-                                VPaint *vp,
-                                WPaintData *wpd,
-                                WeightPaintInfo *wpi,
-                                Mesh *mesh,
+                                Object &ob,
+                                VPaint &vp,
+                                WPaintData &wpd,
+                                WeightPaintInfo &wpi,
+                                Mesh &mesh,
                                 Span<PBVHNode *> nodes)
 {
-  Scene *scene = CTX_data_scene(C);
-  const Brush *brush = ob->sculpt->cache->brush;
+  Scene &scene = *CTX_data_scene(C);
+  const Brush &brush = *ob.sculpt->cache->brush;
 
   /* Use this so average can modify its weight without touching the brush. */
-  float strength = BKE_brush_weight_get(scene, brush);
-  if (brush->weightpaint_tool == WPAINT_TOOL_AVERAGE) {
+  float strength = BKE_brush_weight_get(&scene, &brush);
+  if (brush.weightpaint_tool == WPAINT_TOOL_AVERAGE) {
     strength = calculate_average_weight(ob, mesh, brush, vp, wpi, nodes);
   }
 
-  if (ME_USING_MIRROR_X_VERTEX_GROUPS(mesh)) {
+  if (ME_USING_MIRROR_X_VERTEX_GROUPS(&mesh)) {
     /* NOTE: current mirroring code cannot be run in parallel */
-    switch ((eBrushWeightPaintTool)brush->weightpaint_tool) {
+    switch ((eBrushWeightPaintTool)brush.weightpaint_tool) {
       case WPAINT_TOOL_AVERAGE: {
         for (const int i : nodes.index_range()) {
           do_wpaint_brush_draw_task(scene, ob, brush, vp, wpd, wpi, mesh, strength, nodes[i]);
@@ -1504,7 +1489,7 @@ static void wpaint_paint_leaves(bContext *C,
     }
   }
   else {
-    switch ((eBrushWeightPaintTool)brush->weightpaint_tool) {
+    switch ((eBrushWeightPaintTool)brush.weightpaint_tool) {
       case WPAINT_TOOL_AVERAGE: {
         threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
           for (const int i : range) {
@@ -1543,15 +1528,15 @@ static void wpaint_paint_leaves(bContext *C,
 /** \name Enter Weight Paint Mode
  * \{ */
 
-void ED_object_wpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+void ED_object_wpaintmode_enter_ex(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob)
 {
   vwpaint::mode_enter_generic(bmain, depsgraph, scene, ob, OB_MODE_WEIGHT_PAINT);
 }
-void ED_object_wpaintmode_enter(bContext *C, Depsgraph *depsgraph)
+void ED_object_wpaintmode_enter(bContext *C, Depsgraph &depsgraph)
 {
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  Object *ob = CTX_data_active_object(C);
+  Main &bmain = *CTX_data_main(C);
+  Scene &scene = *CTX_data_scene(C);
+  Object &ob = *CTX_data_active_object(C);
   ED_object_wpaintmode_enter_ex(bmain, depsgraph, scene, ob);
 }
 /** \} */
@@ -1560,14 +1545,14 @@ void ED_object_wpaintmode_enter(bContext *C, Depsgraph *depsgraph)
 /** \name Exit Weight Paint Mode
  * \{ */
 
-void ED_object_wpaintmode_exit_ex(Object *ob)
+void ED_object_wpaintmode_exit_ex(Object &ob)
 {
   vwpaint::mode_exit_generic(ob, OB_MODE_WEIGHT_PAINT);
 }
 void ED_object_wpaintmode_exit(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  ED_object_wpaintmode_exit_ex(ob);
+  ED_object_wpaintmode_exit_ex(*ob);
 }
 /** \} */
 
@@ -1621,21 +1606,21 @@ bool weight_paint_poll_ignore_tool(bContext *C)
  */
 static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
+  Main &bmain = *CTX_data_main(C);
   wmMsgBus *mbus = CTX_wm_message_bus(C);
-  Object *ob = CTX_data_active_object(C);
+  Object &ob = *CTX_data_active_object(C);
   const int mode_flag = OB_MODE_WEIGHT_PAINT;
-  const bool is_mode_set = (ob->mode & mode_flag) != 0;
-  Scene *scene = CTX_data_scene(C);
-  ToolSettings *ts = scene->toolsettings;
+  const bool is_mode_set = (ob.mode & mode_flag) != 0;
+  Scene &scene = *CTX_data_scene(C);
+  ToolSettings &ts = *scene.toolsettings;
 
   if (!is_mode_set) {
-    if (!blender::ed::object::mode_compat_set(C, ob, (eObjectMode)mode_flag, op->reports)) {
+    if (!blender::ed::object::mode_compat_set(C, &ob, (eObjectMode)mode_flag, op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
 
-  Mesh *mesh = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(&ob);
 
   if (is_mode_set) {
     ED_object_wpaintmode_exit_ex(ob);
@@ -1645,12 +1630,12 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
     if (depsgraph) {
       depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     }
-    ED_object_wpaintmode_enter_ex(bmain, depsgraph, scene, ob);
-    BKE_paint_brush_validate(bmain, &ts->wpaint->paint);
+    ED_object_wpaintmode_enter_ex(bmain, *depsgraph, scene, ob);
+    BKE_paint_brush_validate(&bmain, &ts.wpaint->paint);
   }
 
   /* Prepare armature posemode. */
-  blender::ed::object::posemode_set_for_weight_paint(C, bmain, ob, is_mode_set);
+  blender::ed::object::posemode_set_for_weight_paint(C, &bmain, &ob, is_mode_set);
 
   /* Weight-paint works by overriding colors in mesh,
    * so need to make sure we recalculate on enter and
@@ -1659,9 +1644,9 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
    */
   DEG_id_tag_update(&mesh->id, 0);
 
-  WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_MODE, &scene);
 
-  WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
+  WM_msg_publish_rna_prop(mbus, &ob.id, &ob, Object, mode);
 
   WM_toolsystem_update_from_context_view3d(C);
 
@@ -1690,20 +1675,20 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
  * \{ */
 
 static void wpaint_do_paint(bContext *C,
-                            Object *ob,
-                            VPaint *wp,
-                            WPaintData *wpd,
-                            WeightPaintInfo *wpi,
-                            Mesh *mesh,
-                            Brush *brush,
+                            Object &ob,
+                            VPaint &wp,
+                            WPaintData &wpd,
+                            WeightPaintInfo &wpi,
+                            Mesh &mesh,
+                            Brush &brush,
                             const ePaintSymmetryFlags symm,
                             const int axis,
                             const int i,
                             const float angle)
 {
-  SculptSession *ss = ob->sculpt;
-  ss->cache->radial_symmetry_pass = i;
-  SCULPT_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
+  SculptSession &ss = *ob.sculpt;
+  ss.cache->radial_symmetry_pass = i;
+  SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
 
   Vector<PBVHNode *> nodes = vwpaint::pbvh_gather_generic(ob, wp, brush);
 
@@ -1711,17 +1696,17 @@ static void wpaint_do_paint(bContext *C,
 }
 
 static void wpaint_do_radial_symmetry(bContext *C,
-                                      Object *ob,
-                                      VPaint *wp,
-                                      WPaintData *wpd,
-                                      WeightPaintInfo *wpi,
-                                      Mesh *mesh,
-                                      Brush *brush,
+                                      Object &ob,
+                                      VPaint &wp,
+                                      WPaintData &wpd,
+                                      WeightPaintInfo &wpi,
+                                      Mesh &mesh,
+                                      Brush &brush,
                                       const ePaintSymmetryFlags symm,
                                       const int axis)
 {
-  for (int i = 1; i < wp->radial_symm[axis - 'X']; i++) {
-    const float angle = (2.0 * M_PI) * i / wp->radial_symm[axis - 'X'];
+  for (int i = 1; i < wp.radial_symm[axis - 'X']; i++) {
+    const float angle = (2.0 * M_PI) * i / wp.radial_symm[axis - 'X'];
     wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, axis, i, angle);
   }
 }
@@ -1729,28 +1714,28 @@ static void wpaint_do_radial_symmetry(bContext *C,
 /* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
 static void wpaint_do_symmetrical_brush_actions(
-    bContext *C, Object *ob, VPaint *wp, WPaintData *wpd, WeightPaintInfo *wpi)
+    bContext *C, Object &ob, VPaint &wp, WPaintData &wpd, WeightPaintInfo &wpi)
 {
-  Brush *brush = BKE_paint_brush(&wp->paint);
-  Mesh *mesh = (Mesh *)ob->data;
-  SculptSession *ss = ob->sculpt;
-  StrokeCache *cache = ss->cache;
+  Brush &brush = *BKE_paint_brush(&wp.paint);
+  Mesh &mesh = *(Mesh *)ob.data;
+  SculptSession &ss = *ob.sculpt;
+  StrokeCache &cache = *ss.cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   int i = 0;
 
   /* initial stroke */
-  cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
+  cache.mirror_symmetry_pass = ePaintSymmetryFlags(0);
   wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
   wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X');
   wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Y');
   wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Z');
 
-  cache->symmetry = symm;
+  cache.symmetry = symm;
 
-  if (mesh->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) {
+  if (mesh.editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) {
     /* We don't do any symmetry strokes when mirroring vertex groups. */
-    copy_v3_v3(cache->true_last_location, cache->true_location);
-    cache->is_last_valid = true;
+    copy_v3_v3(cache.true_last_location, cache.true_location);
+    cache.is_last_valid = true;
     return;
   }
 
@@ -1759,8 +1744,8 @@ static void wpaint_do_symmetrical_brush_actions(
   for (i = 1; i <= symm; i++) {
     if (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5))) {
       const ePaintSymmetryFlags symm = ePaintSymmetryFlags(i);
-      cache->mirror_symmetry_pass = symm;
-      cache->radial_symmetry_pass = 0;
+      cache.mirror_symmetry_pass = symm;
+      cache.radial_symmetry_pass = 0;
       SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
 
       if (i & (1 << 0)) {
@@ -1777,8 +1762,8 @@ static void wpaint_do_symmetrical_brush_actions(
       }
     }
   }
-  copy_v3_v3(cache->true_last_location, cache->true_location);
-  cache->is_last_valid = true;
+  copy_v3_v3(cache.true_last_location, cache.true_location);
+  cache.is_last_valid = true;
 }
 
 static void wpaint_stroke_update_step(bContext *C,
@@ -1786,21 +1771,21 @@ static void wpaint_stroke_update_step(bContext *C,
                                       PaintStroke *stroke,
                                       PointerRNA *itemptr)
 {
-  Scene *scene = CTX_data_scene(C);
-  ToolSettings *ts = CTX_data_tool_settings(C);
-  VPaint *wp = ts->wpaint;
-  Brush *brush = BKE_paint_brush(&wp->paint);
+  Scene &scene = *CTX_data_scene(C);
+  ToolSettings &ts = *CTX_data_tool_settings(C);
+  VPaint &wp = *ts.wpaint;
+  const Brush &brush = *BKE_paint_brush(&wp.paint);
   WPaintData *wpd = (WPaintData *)paint_stroke_mode_data(stroke);
   ViewContext *vc;
   Object *ob = CTX_data_active_object(C);
 
-  SculptSession *ss = ob->sculpt;
+  SculptSession &ss = *ob->sculpt;
 
-  vwpaint::update_cache_variants(C, wp, ob, itemptr);
+  vwpaint::update_cache_variants(C, wp, *ob, itemptr);
 
   float mat[4][4];
 
-  const float brush_alpha_value = BKE_brush_alpha_get(scene, brush);
+  const float brush_alpha_value = BKE_brush_alpha_get(&scene, &brush);
 
   /* intentionally don't initialize as nullptr, make sure we initialize all members below */
   WeightPaintInfo wpi;
@@ -1822,10 +1807,10 @@ static void wpaint_stroke_update_step(bContext *C,
   /* load projection matrix */
   mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
 
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh &mesh = *static_cast<Mesh *>(ob->data);
 
   /* *** setup WeightPaintInfo - pass onto do_weight_paint_vertex *** */
-  wpi.dvert = mesh->deform_verts_for_write();
+  wpi.dvert = mesh.deform_verts_for_write();
 
   wpi.defbase_tot = wpd->defbase_tot;
   wpi.defbase_sel = wpd->defbase_sel;
@@ -1838,9 +1823,9 @@ static void wpaint_stroke_update_step(bContext *C,
   wpi.vgroup_validmap = wpd->vgroup_validmap;
   wpi.vgroup_locked = wpd->vgroup_locked;
   wpi.vgroup_unlocked = wpd->vgroup_unlocked;
-  wpi.do_flip = RNA_boolean_get(itemptr, "pen_flip") || ss->cache->invert;
+  wpi.do_flip = RNA_boolean_get(itemptr, "pen_flip") || ss.cache->invert;
   wpi.do_multipaint = wpd->do_multipaint;
-  wpi.do_auto_normalize = ((ts->auto_normalize != 0) && (wpi.vgroup_validmap != nullptr) &&
+  wpi.do_auto_normalize = ((ts.auto_normalize != 0) && (wpi.vgroup_validmap != nullptr) &&
                            (wpi.do_multipaint || wpi.vgroup_validmap[wpi.active.index]));
   wpi.do_lock_relative = wpd->do_lock_relative;
   wpi.is_normalized = wpi.do_auto_normalize || wpi.do_lock_relative;
@@ -1848,36 +1833,36 @@ static void wpaint_stroke_update_step(bContext *C,
   /* *** done setting up WeightPaintInfo *** */
 
   if (wpd->precomputed_weight) {
-    precompute_weight_values(ob, brush, wpd, &wpi, mesh);
+    precompute_weight_values(*ob, brush, *wpd, wpi, mesh);
   }
 
-  wpaint_do_symmetrical_brush_actions(C, ob, wp, wpd, &wpi);
+  wpaint_do_symmetrical_brush_actions(C, *ob, wp, *wpd, wpi);
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
-  mul_v3_m4v3(loc_world, ob->object_to_world().ptr(), ss->cache->true_location);
+  mul_v3_m4v3(loc_world, ob->object_to_world().ptr(), ss.cache->true_location);
   vwpaint::last_stroke_update(scene, loc_world);
 
-  BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
+  BKE_mesh_batch_cache_dirty_tag(&mesh, BKE_MESH_BATCH_DIRTY_ALL);
 
-  DEG_id_tag_update(&mesh->id, 0);
+  DEG_id_tag_update(&mesh.id, 0);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
   swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
   rcti r;
-  if (SCULPT_get_redraw_rect(vc->region, CTX_wm_region_view3d(C), ob, &r)) {
-    if (ss->cache) {
-      ss->cache->current_r = r;
+  if (SCULPT_get_redraw_rect(*vc->region, *CTX_wm_region_view3d(C), *ob, r)) {
+    if (ss.cache) {
+      ss.cache->current_r = r;
     }
 
     /* previous is not set in the current cache else
      * the partial rect will always grow */
-    if (ss->cache) {
-      if (!BLI_rcti_is_empty(&ss->cache->previous_r)) {
-        BLI_rcti_union(&r, &ss->cache->previous_r);
+    if (ss.cache) {
+      if (!BLI_rcti_is_empty(&ss.cache->previous_r)) {
+        BLI_rcti_union(&r, &ss.cache->previous_r);
       }
     }
 
@@ -1891,7 +1876,7 @@ static void wpaint_stroke_update_step(bContext *C,
 
 static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object &ob = *CTX_data_active_object(C);
   WPaintData *wpd = (WPaintData *)paint_stroke_mode_data(stroke);
 
   if (wpd) {
@@ -1906,19 +1891,19 @@ static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
     MEM_freeN(wpd);
   }
 
-  SculptSession *ss = ob->sculpt;
+  SculptSession &ss = *ob.sculpt;
 
-  if (ss->cache->alt_smooth) {
-    ToolSettings *ts = CTX_data_tool_settings(C);
-    VPaint *vp = ts->wpaint;
-    vwpaint::smooth_brush_toggle_off(C, &vp->paint, ss->cache);
+  if (ss.cache->alt_smooth) {
+    ToolSettings &ts = *CTX_data_tool_settings(C);
+    VPaint &vp = *ts.wpaint;
+    vwpaint::smooth_brush_toggle_off(C, &vp.paint, ss.cache);
   }
 
   /* and particles too */
-  if (ob->particlesystem.first) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+  if (ob.particlesystem.first) {
+    LISTBASE_FOREACH (ParticleSystem *, psys, &ob.particlesystem) {
       for (int i = 0; i < PSYS_TOT_VG; i++) {
-        if (psys->vgroup[i] == BKE_object_defgroup_active_index_get(ob)) {
+        if (psys->vgroup[i] == BKE_object_defgroup_active_index_get(&ob)) {
           psys->recalc |= ID_RECALC_PSYS_RESET;
           break;
         }
@@ -1926,12 +1911,12 @@ static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
     }
   }
 
-  DEG_id_tag_update((ID *)ob->data, 0);
+  DEG_id_tag_update((ID *)ob.data, 0);
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
 
-  SCULPT_cache_free(ob->sculpt->cache);
-  ob->sculpt->cache = nullptr;
+  SCULPT_cache_free(ob.sculpt->cache);
+  ob.sculpt->cache = nullptr;
 }
 
 static int wpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1979,10 +1964,10 @@ static int wpaint_exec(bContext *C, wmOperator *op)
 
 static void wpaint_cancel(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
-  if (ob->sculpt->cache) {
-    SCULPT_cache_free(ob->sculpt->cache);
-    ob->sculpt->cache = nullptr;
+  Object &ob = *CTX_data_active_object(C);
+  if (ob.sculpt->cache) {
+    SCULPT_cache_free(ob.sculpt->cache);
+    ob.sculpt->cache = nullptr;
   }
 
   paint_stroke_cancel(C, op, (PaintStroke *)op->customdata);

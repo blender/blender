@@ -94,8 +94,8 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
+  Object &ob = *CTX_data_active_object(C);
+  SculptSession &ss = *ob.sculpt;
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -103,7 +103,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -113,23 +113,23 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_topology_update(node);
   }
   /* Get the bounding box, its center and size. */
-  const Bounds<float3> bounds = bke::pbvh::bounds_get(*ob->sculpt->pbvh);
+  const Bounds<float3> bounds = bke::pbvh::bounds_get(*ob.sculpt->pbvh);
   const float3 center = math::midpoint(bounds.min, bounds.max);
   const float3 dim = bounds.max - bounds.min;
   const float size = math::reduce_max(dim);
 
   /* Update topology size. */
   float object_space_constant_detail = 1.0f / (sd->constant_detail *
-                                               mat4_to_scale(ob->object_to_world().ptr()));
-  BKE_pbvh_bmesh_detail_size_set(*ss->pbvh, object_space_constant_detail);
+                                               mat4_to_scale(ob.object_to_world().ptr()));
+  BKE_pbvh_bmesh_detail_size_set(*ss.pbvh, object_space_constant_detail);
 
   undo::push_begin(ob, op);
-  undo::push_node(*ob, nullptr, undo::Type::Position);
+  undo::push_node(ob, nullptr, undo::Type::Position);
 
   const double start_time = BLI_time_now_seconds();
 
   while (bke::pbvh::bmesh_update_topology(
-      *ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
+      *ss.pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
   {
     for (PBVHNode *node : nodes) {
       BKE_pbvh_node_mark_topology_update(node);
@@ -143,7 +143,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   /* Force rebuild of PBVH for better BB placement. */
   SCULPT_pbvh_clear(ob);
   /* Redraw. */
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
 
   return OPERATOR_FINISHED;
 }
@@ -182,17 +182,17 @@ static EnumPropertyItem prop_sculpt_sample_detail_mode_types[] = {
 static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Object *ob = vc->obact;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Object &ob = *vc->obact;
+  Mesh *mesh = static_cast<Mesh *>(ob.data);
 
-  SculptSession *ss = ob->sculpt;
+  SculptSession &ss = *ob.sculpt;
   SculptCursorGeometryInfo sgi;
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Update the active vertex. */
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
   PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
@@ -224,9 +224,9 @@ static void sculpt_raycast_detail_cb(PBVHNode &node, SculptDetailRaycastData &sr
 
 static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2])
 {
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  Object *ob = vc->obact;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
+  Object &ob = *vc->obact;
+  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
 
@@ -242,7 +242,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
   bke::pbvh::raycast(
-      *ob->sculpt->pbvh,
+      *ob.sculpt->pbvh,
       [&](PBVHNode &node, float *tmin) { sculpt_raycast_detail_cb(node, srd, tmin); },
       ray_start,
       ray_normal,
@@ -250,7 +250,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */
-    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->object_to_world().ptr()));
+    sd.constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob.object_to_world().ptr()));
   }
 }
 
@@ -278,8 +278,8 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
     return OPERATOR_CANCELLED;
   }
 
-  SculptSession *ss = ob->sculpt;
-  if (!ss->pbvh) {
+  SculptSession &ss = *ob->sculpt;
+  if (!ss.pbvh) {
     return OPERATOR_CANCELLED;
   }
 
@@ -297,7 +297,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
   /* Pick sample detail. */
   switch (mode) {
     case SAMPLE_DETAIL_DYNTOPO:
-      if (BKE_pbvh_type(*ss->pbvh) != PBVH_BMESH) {
+      if (BKE_pbvh_type(*ss.pbvh) != PBVH_BMESH) {
         CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
@@ -305,7 +305,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
       sample_detail_dyntopo(C, &vc, mval);
       break;
     case SAMPLE_DETAIL_VOXEL:
-      if (BKE_pbvh_type(*ss->pbvh) != PBVH_FACES) {
+      if (BKE_pbvh_type(*ss.pbvh) != PBVH_FACES) {
         CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
@@ -455,7 +455,7 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
   float object_space_constant_detail;
   if (cd->mode == DETAILING_MODE_RESOLUTION) {
     object_space_constant_detail = detail_size::constant_to_detail_size(cd->current_value,
-                                                                        cd->active_object);
+                                                                        *cd->active_object);
   }
   else if (cd->mode == DETAILING_MODE_BRUSH_PERCENT) {
     object_space_constant_detail = detail_size::brush_to_detail_size(cd->current_value,
@@ -552,12 +552,12 @@ static void dyntopo_detail_size_edit_draw(const bContext * /*C*/, ARegion * /*re
 static void dyntopo_detail_size_edit_cancel(bContext *C, wmOperator *op)
 {
   Object *active_object = CTX_data_active_object(C);
-  SculptSession *ss = active_object->sculpt;
+  SculptSession &ss = *active_object->sculpt;
   ARegion *region = CTX_wm_region(C);
   DyntopoDetailSizeEditCustomData *cd = static_cast<DyntopoDetailSizeEditCustomData *>(
       op->customdata);
   ED_region_draw_cb_exit(region->type, cd->draw_handle);
-  ss->draw_faded_cursor = false;
+  ss.draw_faded_cursor = false;
   MEM_freeN(op->customdata);
   ED_workspace_status_text(C, nullptr);
 
@@ -582,10 +582,10 @@ static void dyntopo_detail_size_bounds(DyntopoDetailSizeEditCustomData *cd)
   }
 }
 
-static void dyntopo_detail_size_sample_from_surface(Object *ob,
+static void dyntopo_detail_size_sample_from_surface(Object &ob,
                                                     DyntopoDetailSizeEditCustomData *cd)
 {
-  SculptSession *ss = ob->sculpt;
+  SculptSession &ss = *ob.sculpt;
   const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
 
   float len_accum = 0;
@@ -609,11 +609,11 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
     }
     else if (cd->mode == DETAILING_MODE_BRUSH_PERCENT) {
       sampled_value = detail_size::constant_to_brush_detail(
-          detail_size, cd->brush_radius, cd->active_object);
+          detail_size, cd->brush_radius, *cd->active_object);
     }
     else {
       sampled_value = detail_size::constant_to_relative_detail(
-          detail_size, cd->brush_radius, cd->pixel_radius, U.pixelsize, cd->active_object);
+          detail_size, cd->brush_radius, cd->pixel_radius, U.pixelsize, *cd->active_object);
     }
     cd->current_value = clamp_f(sampled_value, cd->min_value, cd->max_value);
   }
@@ -681,8 +681,8 @@ static void dyntopo_detail_size_update_header(bContext *C,
 
 static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Object *active_object = CTX_data_active_object(C);
-  SculptSession *ss = active_object->sculpt;
+  Object &active_object = *CTX_data_active_object(C);
+  SculptSession &ss = *active_object.sculpt;
   ARegion *region = CTX_wm_region(C);
   DyntopoDetailSizeEditCustomData *cd = static_cast<DyntopoDetailSizeEditCustomData *>(
       op->customdata);
@@ -713,7 +713,7 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
       sd->detail_size = cd->current_value;
     }
 
-    ss->draw_faded_cursor = false;
+    ss.draw_faded_cursor = false;
     MEM_freeN(op->customdata);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
@@ -765,7 +765,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   Sculpt *sd = tool_settings->sculpt;
 
   ARegion *region = CTX_wm_region(C);
-  Object *active_object = CTX_data_active_object(C);
+  Object &active_object = *CTX_data_active_object(C);
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   DyntopoDetailSizeEditCustomData *cd = MEM_cnew<DyntopoDetailSizeEditCustomData>(__func__);
@@ -773,7 +773,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   /* Initial operator Custom Data setup. */
   cd->draw_handle = ED_region_draw_cb_activate(
       region->type, dyntopo_detail_size_edit_draw, cd, REGION_DRAW_POST_VIEW);
-  cd->active_object = active_object;
+  cd->active_object = &active_object;
   cd->init_mval[0] = event->mval[0];
   cd->init_mval[1] = event->mval[1];
   if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
@@ -792,16 +792,15 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   copy_v4_v4(cd->outline_col, brush->add_col);
   op->customdata = cd;
 
-  SculptSession *ss = active_object->sculpt;
+  SculptSession &ss = *active_object.sculpt;
   dyntopo_detail_size_bounds(cd);
-  cd->radius = ss->cursor_radius;
+  cd->radius = ss.cursor_radius;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   const Scene *scene = CTX_data_scene(C);
-  cd->brush_radius = blender::ed::sculpt_paint::sculpt_calc_radius(
-      &vc, brush, scene, ss->cursor_location);
+  cd->brush_radius = sculpt_calc_radius(vc, *brush, *scene, ss.cursor_location);
   cd->pixel_radius = BKE_brush_size_get(scene, brush);
 
   /* Generates the matrix to position the gizmo in the surface of the mesh using the same
@@ -809,16 +808,15 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   float cursor_trans[4][4], cursor_rot[4][4];
   const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];
-  copy_m4_m4(cursor_trans, active_object->object_to_world().ptr());
-  translate_m4(
-      cursor_trans, ss->cursor_location[0], ss->cursor_location[1], ss->cursor_location[2]);
+  copy_m4_m4(cursor_trans, active_object.object_to_world().ptr());
+  translate_m4(cursor_trans, ss.cursor_location[0], ss.cursor_location[1], ss.cursor_location[2]);
 
   float cursor_normal[3];
-  if (!is_zero_v3(ss->cursor_sampled_normal)) {
-    copy_v3_v3(cursor_normal, ss->cursor_sampled_normal);
+  if (!is_zero_v3(ss.cursor_sampled_normal)) {
+    copy_v3_v3(cursor_normal, ss.cursor_sampled_normal);
   }
   else {
-    copy_v3_v3(cursor_normal, ss->cursor_normal);
+    copy_v3_v3(cursor_normal, ss.cursor_normal);
   }
 
   rotation_between_vecs_to_quat(quat, z_axis, cursor_normal);
@@ -838,7 +836,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   WM_event_add_modal_handler(C, op);
   ED_region_tag_redraw(region);
 
-  ss->draw_faded_cursor = true;
+  ss.draw_faded_cursor = true;
 
   const char *status_str = IFACE_(
       "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel, "
@@ -869,9 +867,10 @@ void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
 }  // namespace blender::ed::sculpt_paint::dyntopo
 
 namespace blender::ed::sculpt_paint::dyntopo::detail_size {
-float constant_to_detail_size(const float constant_detail, const Object *ob)
+
+float constant_to_detail_size(const float constant_detail, const Object &ob)
 {
-  return 1.0f / (constant_detail * mat4_to_scale(ob->object_to_world().ptr()));
+  return 1.0f / (constant_detail * mat4_to_scale(ob.object_to_world().ptr()));
 }
 
 float brush_to_detail_size(const float brush_percent, const float brush_radius)
@@ -889,9 +888,9 @@ float relative_to_detail_size(const float relative_detail,
 
 float constant_to_brush_detail(const float constant_detail,
                                const float brush_radius,
-                               const Object *ob)
+                               const Object &ob)
 {
-  const float object_scale = mat4_to_scale(ob->object_to_world().ptr());
+  const float object_scale = mat4_to_scale(ob.object_to_world().ptr());
 
   return 100.0f / (constant_detail * brush_radius * object_scale);
 }
@@ -900,13 +899,14 @@ float constant_to_relative_detail(const float constant_detail,
                                   const float brush_radius,
                                   const float pixel_radius,
                                   const float pixel_size,
-                                  const Object *ob)
+                                  const Object &ob)
 {
-  const float object_scale = mat4_to_scale(ob->object_to_world().ptr());
+  const float object_scale = mat4_to_scale(ob.object_to_world().ptr());
 
   return (pixel_radius / brush_radius) * (RELATIVE_SCALE_FACTOR / pixel_size) *
          (1.0f / (constant_detail * object_scale));
 }
+
 }  // namespace blender::ed::sculpt_paint::dyntopo::detail_size
 
 /** \} */

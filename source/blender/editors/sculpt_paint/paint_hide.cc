@@ -60,7 +60,7 @@ void sync_all_from_faces(Object &object)
   SculptSession &ss = *object.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  SCULPT_topology_islands_invalidate(&ss);
+  SCULPT_topology_islands_invalidate(ss);
 
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES: {
@@ -386,7 +386,7 @@ static void partialvis_update_bmesh_faces(const Set<BMFace *, 0> &faces)
   }
 }
 
-static void partialvis_update_bmesh_nodes(Object *ob,
+static void partialvis_update_bmesh_nodes(Object &ob,
                                           const Span<PBVHNode *> nodes,
                                           const VisAction action,
                                           const FunctionRef<bool(const BMVert *v)> vert_test_fn)
@@ -395,7 +395,7 @@ static void partialvis_update_bmesh_nodes(Object *ob,
     bool any_changed = false;
     bool any_visible = false;
 
-    undo::push_node(*ob, node, undo::Type::HideVert);
+    undo::push_node(ob, node, undo::Type::HideVert);
 
     partialvis_update_bmesh_verts(
         BKE_pbvh_bmesh_node_unique_verts(node), action, vert_test_fn, &any_changed, &any_visible);
@@ -461,7 +461,7 @@ static void partialvis_all_update_grids(Depsgraph &depsgraph,
   }
 }
 
-static void partialvis_all_update_bmesh(Object *ob,
+static void partialvis_all_update_bmesh(Object &ob,
                                         const VisAction action,
                                         const Span<PBVHNode *> nodes)
 {
@@ -470,13 +470,13 @@ static void partialvis_all_update_bmesh(Object *ob,
 
 static int hide_show_all_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
 
-  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
-  BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
+  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, &ob);
+  BLI_assert(BKE_object_sculpt_pbvh_get(&ob) == pbvh);
 
   /* Start undo. */
   switch (action) {
@@ -492,10 +492,10 @@ static int hide_show_all_exec(bContext *C, wmOperator *op)
 
   switch (BKE_pbvh_type(*pbvh)) {
     case PBVH_FACES:
-      partialvis_all_update_mesh(*ob, action, nodes);
+      partialvis_all_update_mesh(ob, action, nodes);
       break;
     case PBVH_GRIDS:
-      partialvis_all_update_grids(*depsgraph, *ob, action, nodes);
+      partialvis_all_update_grids(*depsgraph, ob, action, nodes);
       break;
     case PBVH_BMESH:
       partialvis_all_update_bmesh(ob, action, nodes);
@@ -505,7 +505,7 @@ static int hide_show_all_exec(bContext *C, wmOperator *op)
   /* End undo. */
   undo::push_end(ob);
 
-  SCULPT_topology_islands_invalidate(ob->sculpt);
+  SCULPT_topology_islands_invalidate(*ob.sculpt);
   tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
@@ -571,7 +571,7 @@ static void partialvis_masked_update_grids(Depsgraph &depsgraph,
   }
 }
 
-static void partialvis_masked_update_bmesh(Object *ob,
+static void partialvis_masked_update_bmesh(Object &ob,
                                            PBVH *pbvh,
                                            const VisAction action,
                                            const Span<PBVHNode *> nodes)
@@ -588,13 +588,13 @@ static void partialvis_masked_update_bmesh(Object *ob,
 
 static int hide_show_masked_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
 
-  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
-  BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
+  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, &ob);
+  BLI_assert(BKE_object_sculpt_pbvh_get(&ob) == pbvh);
 
   /* Start undo. */
   switch (action) {
@@ -610,10 +610,10 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
 
   switch (BKE_pbvh_type(*pbvh)) {
     case PBVH_FACES:
-      partialvis_masked_update_mesh(*ob, action, nodes);
+      partialvis_masked_update_mesh(ob, action, nodes);
       break;
     case PBVH_GRIDS:
-      partialvis_masked_update_grids(*depsgraph, *ob, action, nodes);
+      partialvis_masked_update_grids(*depsgraph, ob, action, nodes);
       break;
     case PBVH_BMESH:
       partialvis_masked_update_bmesh(ob, pbvh, action, nodes);
@@ -623,7 +623,7 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
   /* End undo. */
   undo::push_end(ob);
 
-  SCULPT_topology_islands_invalidate(ob->sculpt);
+  SCULPT_topology_islands_invalidate(*ob.sculpt);
   tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
@@ -754,7 +754,7 @@ static int visibility_invert_exec(bContext *C, wmOperator *op)
   BLI_assert(BKE_object_sculpt_pbvh_get(&object) == pbvh);
 
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*pbvh, {});
-  undo::push_begin(&object, op);
+  undo::push_begin(object, op);
   switch (BKE_pbvh_type(*pbvh)) {
     case PBVH_FACES:
       invert_visibility_mesh(object, nodes);
@@ -767,9 +767,9 @@ static int visibility_invert_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  undo::push_end(&object);
+  undo::push_end(object);
 
-  SCULPT_topology_islands_invalidate(object.sculpt);
+  SCULPT_topology_islands_invalidate(*object.sculpt);
   tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
@@ -865,7 +865,7 @@ static void partialvis_gesture_update_bmesh(gesture::GestureData &gesture_data)
   HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data.operation);
 
   partialvis_update_bmesh_nodes(
-      gesture_data.vc.obact, gesture_data.nodes, operation->action, selection_test_fn);
+      *gesture_data.vc.obact, gesture_data.nodes, operation->action, selection_test_fn);
 }
 
 static void hide_show_begin(bContext &C, gesture::GestureData & /*gesture_data*/)
@@ -894,7 +894,7 @@ static void hide_show_apply_for_symmetry_pass(bContext &C, gesture::GestureData 
 }
 static void hide_show_end(bContext &C, gesture::GestureData &gesture_data)
 {
-  SCULPT_topology_islands_invalidate(gesture_data.vc.obact->sculpt);
+  SCULPT_topology_islands_invalidate(*gesture_data.vc.obact->sculpt);
   tag_update_visibility(C);
 }
 

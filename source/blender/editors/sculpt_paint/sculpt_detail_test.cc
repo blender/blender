@@ -26,10 +26,10 @@ TEST(Conversion, ConstantToBrushDetail)
   Object ob;
   ob.runtime = &runtime;
 
-  const float brush_percent = constant_to_brush_detail(CONSTANT_DETAIL, BRUSH_RADIUS, &ob);
+  const float brush_percent = constant_to_brush_detail(CONSTANT_DETAIL, BRUSH_RADIUS, ob);
   const float converted = brush_to_detail_size(brush_percent, BRUSH_RADIUS);
 
-  const float expected = constant_to_detail_size(CONSTANT_DETAIL, &ob);
+  const float expected = constant_to_detail_size(CONSTANT_DETAIL, ob);
   EXPECT_FLOAT_EQ(expected, converted);
 }
 TEST(Conversion, ConstantToRelativeDetail)
@@ -41,11 +41,11 @@ TEST(Conversion, ConstantToRelativeDetail)
   ob.runtime = &runtime;
 
   const float relative_detail = constant_to_relative_detail(
-      CONSTANT_DETAIL, BRUSH_RADIUS, PIXEL_RADIUS, PIXEL_SIZE, &ob);
+      CONSTANT_DETAIL, BRUSH_RADIUS, PIXEL_RADIUS, PIXEL_SIZE, ob);
   const float converted = relative_to_detail_size(
       relative_detail, BRUSH_RADIUS, PIXEL_RADIUS, PIXEL_SIZE);
 
-  const float expected = constant_to_detail_size(CONSTANT_DETAIL, &ob);
+  const float expected = constant_to_detail_size(CONSTANT_DETAIL, ob);
   EXPECT_FLOAT_EQ(expected, converted);
 }
 }  // namespace blender::ed::sculpt_paint::dyntopo::detail_size::test

@@ -188,7 +188,7 @@ static char *undo_type_to_str(int type)
 
 static int nodeidgen = 1;
 
-static void print_sculpt_node(Object *ob, Node *node)
+static void print_sculpt_node(Object &ob, Node *node)
 {
   printf("    %s:%s {applied=%d}\n", undo_type_to_str(node->type), node->idname, node->applied);
 
@@ -197,7 +197,7 @@ static void print_sculpt_node(Object *ob, Node *node)
   }
 }
 
-static void print_step(Object *ob, UndoStep *us, UndoStep *active, int i)
+static void print_step(Object &ob, UndoStep *us, UndoStep *active, int i)
 {
   Node *node;
 
@@ -235,7 +235,7 @@ static void print_step(Object *ob, UndoStep *us, UndoStep *active, int i)
     }
   }
 }
-static void print_nodes(Object *ob, void *active)
+static void print_nodes(Object &ob, void *active)
 {
 
   printf("=================== Sculpt undo steps ==============\n");
@@ -272,7 +272,7 @@ static void print_nodes(Object *ob, void *active)
   }
 }
 #else
-static void print_nodes(Object * /*ob*/, void * /*active*/) {}
+static void print_nodes(Object & /*ob*/, void * /*active*/) {}
 #endif
 
 struct PartialUpdateData {
@@ -470,7 +470,7 @@ static bool restore_coords(bContext *C,
       }
 
       /* Propagate new coords to keyblock. */
-      SCULPT_vertcos_to_key(&object, ss->shapekey_active, key_positions);
+      SCULPT_vertcos_to_key(object, ss->shapekey_active, key_positions);
 
       /* PBVH uses its own vertex array, so coords should be */
       /* propagated to PBVH here. */
@@ -697,7 +697,7 @@ static void bmesh_restore_generic(Node &unode, Object &object, SculptSession *ss
     }
   }
   else {
-    SCULPT_pbvh_clear(&object);
+    SCULPT_pbvh_clear(object);
   }
 }
 
@@ -707,7 +707,7 @@ static void bmesh_enable(Object &object, Node &unode)
   SculptSession *ss = object.sculpt;
   Mesh *mesh = static_cast<Mesh *>(object.data);
 
-  SCULPT_pbvh_clear(&object);
+  SCULPT_pbvh_clear(object);
 
   /* Create empty BMesh and enable logging. */
   BMeshCreateParams bmesh_create_params{};
@@ -816,7 +816,7 @@ static void geometry_free_data(NodeGeometry *geometry)
 static void restore_geometry(Node &unode, Object &object)
 {
   if (unode.geometry_clear_pbvh) {
-    SCULPT_pbvh_clear(&object);
+    SCULPT_pbvh_clear(object);
   }
 
   if (unode.applied) {
@@ -1654,21 +1654,19 @@ static void sculpt_save_active_attribute(Object &object, SculptAttrRef *attr)
   attr->type = meta_data->data_type;
 }
 
-void push_begin(Object *ob, const wmOperator *op)
+void push_begin(Object &ob, const wmOperator *op)
 {
   push_begin_ex(ob, op->type->name);
 }
 
-void push_begin_ex(Object *ob, const char *name)
+void push_begin_ex(Object &ob, const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
 
-  if (ob != nullptr) {
-    /* If possible, we need to tag the object and its geometry data as 'changed in the future' in
-     * the previous undo step if it's a memfile one. */
-    ED_undosys_stack_memfile_id_changed_tag(ustack, &ob->id);
-    ED_undosys_stack_memfile_id_changed_tag(ustack, static_cast<ID *>(ob->data));
-  }
+  /* If possible, we need to tag the object and its geometry data as 'changed in the future' in
+   * the previous undo step if it's a memfile one. */
+  ED_undosys_stack_memfile_id_changed_tag(ustack, &ob.id);
+  ED_undosys_stack_memfile_id_changed_tag(ustack, static_cast<ID *>(ob.data));
 
   /* Special case, we never read from this. */
   bContext *C = nullptr;
@@ -1677,24 +1675,24 @@ void push_begin_ex(Object *ob, const char *name)
       ustack, C, name, BKE_UNDOSYS_TYPE_SCULPT);
 
   if (!us->active_color_start.was_set) {
-    sculpt_save_active_attribute(*ob, &us->active_color_start);
+    sculpt_save_active_attribute(ob, &us->active_color_start);
   }
 
   /* Set end attribute in case push_end is not called,
    * so we don't end up with corrupted state.
    */
   if (!us->active_color_end.was_set) {
-    sculpt_save_active_attribute(*ob, &us->active_color_end);
+    sculpt_save_active_attribute(ob, &us->active_color_end);
     us->active_color_end.was_set = false;
   }
 }
 
-void push_end(Object *ob)
+void push_end(Object &ob)
 {
   push_end_ex(ob, false);
 }
 
-void push_end_ex(Object *ob, const bool use_nested_undo)
+void push_end_ex(Object &ob, const bool use_nested_undo)
 {
   UndoSculpt *usculpt = get_nodes();
 
@@ -1719,7 +1717,7 @@ void push_end_ex(Object *ob, const bool use_nested_undo)
   SculptUndoStep *us = (SculptUndoStep *)BKE_undosys_stack_init_or_active_with_type(
       ustack, BKE_UNDOSYS_TYPE_SCULPT);
 
-  sculpt_save_active_attribute(*ob, &us->active_color_end);
+  sculpt_save_active_attribute(ob, &us->active_color_end);
   print_nodes(ob, nullptr);
 }
 
@@ -1813,7 +1811,7 @@ static void sculpt_undosys_step_decode_undo_impl(bContext *C,
   restore_list(C, depsgraph, us->data);
   us->step.is_applied = false;
 
-  print_nodes(CTX_data_active_object(C), nullptr);
+  print_nodes(*CTX_data_active_object(C), nullptr);
 }
 
 static void sculpt_undosys_step_decode_redo_impl(bContext *C,
@@ -1825,7 +1823,7 @@ static void sculpt_undosys_step_decode_redo_impl(bContext *C,
   restore_list(C, depsgraph, us->data);
   us->step.is_applied = true;
 
-  print_nodes(CTX_data_active_object(C), nullptr);
+  print_nodes(*CTX_data_active_object(C), nullptr);
 }
 
 static void sculpt_undosys_step_decode_undo(bContext *C,
@@ -1911,7 +1909,7 @@ static void sculpt_undosys_step_decode(
         /* Don't add sculpt topology undo steps when reading back undo state.
          * The undo steps must enter/exit for us. */
         mesh->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
-        ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, nullptr);
+        ED_object_sculptmode_enter_ex(*bmain, *depsgraph, *scene, *ob, true, nullptr);
       }
 
       if (ob->sculpt) {
@@ -1940,21 +1938,21 @@ static void sculpt_undosys_step_free(UndoStep *us_p)
   free_list(us->data);
 }
 
-void geometry_begin(Object *ob, const wmOperator *op)
+void geometry_begin(Object &ob, const wmOperator *op)
 {
   push_begin(ob, op);
-  push_node(*ob, nullptr, Type::Geometry);
+  push_node(ob, nullptr, Type::Geometry);
 }
 
-void geometry_begin_ex(Object *ob, const char *name)
+void geometry_begin_ex(Object &ob, const char *name)
 {
   push_begin_ex(ob, name);
-  push_node(*ob, nullptr, Type::Geometry);
+  push_node(ob, nullptr, Type::Geometry);
 }
 
-void geometry_end(Object *ob)
+void geometry_end(Object &ob)
 {
-  push_node(*ob, nullptr, Type::Geometry);
+  push_node(ob, nullptr, Type::Geometry);
   push_end(ob);
 }
 
@@ -2058,7 +2056,7 @@ void push_multires_mesh_begin(bContext *C, const char *str)
 
   Object *object = CTX_data_active_object(C);
 
-  push_begin_ex(object, str);
+  push_begin_ex(*object, str);
 
   Node *geometry_unode = push_node(*object, nullptr, Type::Geometry);
   geometry_unode->geometry_clear_pbvh = false;
@@ -2078,7 +2076,7 @@ void push_multires_mesh_end(bContext *C, const char *str)
   Node *geometry_unode = push_node(*object, nullptr, Type::Geometry);
   geometry_unode->geometry_clear_pbvh = false;
 
-  push_end(object);
+  push_end(*object);
 }
 
 /** \} */

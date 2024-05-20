@@ -6083,14 +6083,14 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Image *image = static_cast<Image *>(
       BLI_findlink(&bmain->images, RNA_enum_get(op->ptr, "image")));
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Scene &scene = *CTX_data_scene(C);
+  ViewLayer &view_layer = *CTX_data_view_layer(C);
   ProjPaintState ps = {nullptr};
   int orig_brush_size;
   IDProperty *idgroup;
   IDProperty *view_data = nullptr;
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
+  BKE_view_layer_synced_ensure(&scene, &view_layer);
+  Object *ob = BKE_view_layer_active_object_get(&view_layer);
   bool uvs, mat, tex;
 
   if (ob == nullptr || ob->type != OB_MESH) {
@@ -6098,7 +6098,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!ED_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, nullptr)) {
+  if (!ED_paint_proj_mesh_data_check(scene, *ob, &uvs, &mat, &tex, nullptr)) {
     ED_paint_data_warning(op->reports, uvs, mat, tex, true);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
     return OPERATOR_CANCELLED;
@@ -6142,7 +6142,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   else {
     ps.source = PROJ_SRC_IMAGE_CAM;
 
-    if (scene->camera == nullptr) {
+    if (scene.camera == nullptr) {
       BKE_report(op->reports, RPT_ERROR, "No active camera set");
       return OPERATOR_CANCELLED;
     }
@@ -6152,20 +6152,20 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   ps.is_texbrush = false;
   ps.is_maskbrush = false;
   ps.do_masking = false;
-  orig_brush_size = BKE_brush_size_get(scene, ps.brush);
+  orig_brush_size = BKE_brush_size_get(&scene, ps.brush);
   /* cover the whole image */
-  BKE_brush_size_set(scene, ps.brush, 32 * U.pixelsize);
+  BKE_brush_size_set(&scene, ps.brush, 32 * U.pixelsize);
 
   /* so pixels are initialized with minimal info */
   ps.tool = PAINT_TOOL_DRAW;
 
-  scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
+  scene.toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
   /* allocate and initialize spatial data structures */
   project_paint_begin(C, &ps, false, 0);
 
   if (ps.mesh_eval == nullptr) {
-    BKE_brush_size_set(scene, ps.brush, orig_brush_size);
+    BKE_brush_size_set(&scene, ps.brush, orig_brush_size);
     BKE_report(op->reports, RPT_ERROR, "Could not get valid evaluated mesh");
     return OPERATOR_CANCELLED;
   }
@@ -6189,8 +6189,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 
   ED_image_undo_push_end();
 
-  scene->toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
-  BKE_brush_size_set(scene, ps.brush, orig_brush_size);
+  scene.toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
+  BKE_brush_size_set(&scene, ps.brush, orig_brush_size);
 
   return OPERATOR_FINISHED;
 }
@@ -6369,29 +6369,27 @@ void ED_paint_data_warning(
               !has_stencil ? RPT_(" Stencil,") : "");
 }
 
-bool ED_paint_proj_mesh_data_check(Scene *scene,
-                                   Object *ob,
+bool ED_paint_proj_mesh_data_check(Scene &scene,
+                                   Object &ob,
                                    bool *r_has_uvs,
                                    bool *r_has_mat,
                                    bool *r_has_tex,
                                    bool *r_has_stencil)
 {
-  Mesh *mesh;
-  int layernum;
-  ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
-  Brush *br = BKE_paint_brush(&imapaint->paint);
+  ImagePaintSettings &imapaint = scene.toolsettings->imapaint;
+  const Brush *br = BKE_paint_brush(&imapaint.paint);
   bool has_mat = true;
   bool has_tex = true;
   bool has_stencil = true;
   bool has_uvs = true;
 
-  imapaint->missing_data = 0;
+  imapaint.missing_data = 0;
 
-  BLI_assert(ob->type == OB_MESH);
+  BLI_assert(ob.type == OB_MESH);
 
-  if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {
+  if (imapaint.mode == IMAGEPAINT_MODE_MATERIAL) {
     /* no material, add one */
-    if (ob->totcol == 0) {
+    if (ob.totcol == 0) {
       has_mat = false;
       has_tex = false;
     }
@@ -6400,14 +6398,14 @@ bool ED_paint_proj_mesh_data_check(Scene *scene,
       has_mat = false;
       has_tex = false;
 
-      for (int i = 1; i < ob->totcol + 1; i++) {
-        Material *ma = BKE_object_material_get(ob, i);
+      for (int i = 1; i < ob.totcol + 1; i++) {
+        Material *ma = BKE_object_material_get(&ob, i);
 
         if (ma && ID_IS_EDITABLE(ma) && !ID_IS_OVERRIDE_LIBRARY(ma)) {
           has_mat = true;
           if (ma->texpaintslot == nullptr) {
             /* refresh here just in case */
-            BKE_texpaint_slot_refresh_cache(scene, ma, ob);
+            BKE_texpaint_slot_refresh_cache(&scene, ma, &ob);
           }
           if (ma->texpaintslot != nullptr &&
               ma->texpaintslot[ma->paint_active_slot].ima != nullptr &&
@@ -6421,14 +6419,14 @@ bool ED_paint_proj_mesh_data_check(Scene *scene,
       }
     }
   }
-  else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
-    if (imapaint->canvas == nullptr || !ID_IS_EDITABLE(imapaint->canvas)) {
+  else if (imapaint.mode == IMAGEPAINT_MODE_IMAGE) {
+    if (imapaint.canvas == nullptr || !ID_IS_EDITABLE(imapaint.canvas)) {
       has_tex = false;
     }
   }
 
-  mesh = BKE_mesh_from_object(ob);
-  layernum = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
+  Mesh *mesh = BKE_mesh_from_object(&ob);
+  int layernum = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
 
   if (layernum == 0) {
     has_uvs = false;
@@ -6436,24 +6434,24 @@ bool ED_paint_proj_mesh_data_check(Scene *scene,
 
   /* Make sure we have a stencil to paint on! */
   if (br && br->imagepaint_tool == PAINT_TOOL_MASK) {
-    imapaint->flag |= IMAGEPAINT_PROJECT_LAYER_STENCIL;
+    imapaint.flag |= IMAGEPAINT_PROJECT_LAYER_STENCIL;
 
-    if (imapaint->stencil == nullptr) {
+    if (imapaint.stencil == nullptr) {
       has_stencil = false;
     }
   }
 
   if (!has_uvs) {
-    imapaint->missing_data |= IMAGEPAINT_MISSING_UVS;
+    imapaint.missing_data |= IMAGEPAINT_MISSING_UVS;
   }
   if (!has_mat) {
-    imapaint->missing_data |= IMAGEPAINT_MISSING_MATERIAL;
+    imapaint.missing_data |= IMAGEPAINT_MISSING_MATERIAL;
   }
   if (!has_tex) {
-    imapaint->missing_data |= IMAGEPAINT_MISSING_TEX;
+    imapaint.missing_data |= IMAGEPAINT_MISSING_TEX;
   }
   if (!has_stencil) {
-    imapaint->missing_data |= IMAGEPAINT_MISSING_STENCIL;
+    imapaint.missing_data |= IMAGEPAINT_MISSING_STENCIL;
   }
 
   if (r_has_uvs) {
@@ -6545,7 +6543,7 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
 /**
  * \return The name of the new attribute.
  */
-static const char *proj_paint_color_attribute_create(wmOperator *op, Object *ob)
+static const char *proj_paint_color_attribute_create(wmOperator *op, Object &ob)
 {
   using namespace blender;
   char name[MAX_NAME] = "";
@@ -6560,7 +6558,7 @@ static const char *proj_paint_color_attribute_create(wmOperator *op, Object *ob)
     type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
   }
 
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = static_cast<Mesh *>(ob.data);
   const CustomDataLayer *layer = BKE_id_attribute_new(&mesh->id, name, type, domain, op->reports);
   if (!layer) {
     return nullptr;
@@ -6691,7 +6689,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
       case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE: {
         new_node = blender::bke::nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
-        if (const char *name = proj_paint_color_attribute_create(op, ob)) {
+        if (const char *name = proj_paint_color_attribute_create(op, *ob)) {
           STRNCPY_UTF8(((NodeShaderAttribute *)new_node->storage)->name, name);
         }
         break;
@@ -6782,7 +6780,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
     ED_area_tag_redraw(CTX_wm_area(C));
 
-    ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
+    ED_paint_proj_mesh_data_check(*scene, *ob, nullptr, nullptr, nullptr, nullptr);
 
     return true;
   }
@@ -6973,7 +6971,7 @@ static int add_simple_uvs_exec(bContext *C, wmOperator * /*op*/)
 
   ED_uvedit_add_simple_uvs(bmain, scene, ob);
 
-  ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
+  ED_paint_proj_mesh_data_check(*scene, *ob, nullptr, nullptr, nullptr, nullptr);
 
   DEG_id_tag_update(static_cast<ID *>(ob->data), 0);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
