@@ -107,8 +107,8 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
 
     copy_v3_v3((float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_co),
                SCULPT_vertex_co_get(*ss, vertex));
-    SCULPT_vertex_normal_get(
-        *ss, vertex, (float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_no));
+    *(float3 *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_no) = SCULPT_vertex_normal_get(
+        *ss, vertex);
     (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_disp)) = 0.0f;
   }
 
@@ -643,7 +643,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   Brush &brush = *BKE_paint_brush(&sd.paint);
   SculptSession &ss = *ob.sculpt;
   PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
-  float active_vertex_color[4];
+  blender::float4 active_vertex_color;
 
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -662,7 +662,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
     copy_v4_fl(active_vertex_color, 1.0f);
   }
   else {
-    SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
+    active_vertex_color = SCULPT_vertex_color_get(ss, active_vertex);
   }
 
   float color_srgb[3];
@@ -789,9 +789,7 @@ static bool sculpt_mask_by_color_contiguous_floodfill(SculptSession &ss,
   int from_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, to_v);
 
-  float current_color[4];
-
-  SCULPT_vertex_color_get(ss, to_v, current_color);
+  float4 current_color = SCULPT_vertex_color_get(ss, to_v);
 
   float new_vertex_mask = sculpt_mask_by_color_delta_get(
       current_color, data->initial_color, data->threshold, data->invert);
@@ -833,8 +831,7 @@ static void sculpt_mask_by_color_contiguous(Object &object,
   ffd.invert = invert;
   ffd.new_mask = new_mask;
 
-  float color[4];
-  SCULPT_vertex_color_get(ss, vertex, color);
+  float4 color = SCULPT_vertex_color_get(ss, vertex);
 
   copy_v3_v3(ffd.initial_color, color);
 
@@ -869,14 +866,11 @@ static void do_mask_by_color_task(Object &ob,
   undo::push_node(ob, node, undo::Type::Mask);
   bool update_node = false;
 
-  float active_color[4];
-
-  SCULPT_vertex_color_get(ss, mask_by_color_vertex, active_color);
+  float4 active_color = SCULPT_vertex_color_get(ss, mask_by_color_vertex);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    float col[4];
-    SCULPT_vertex_color_get(ss, vd.vertex, col);
+    float4 col = SCULPT_vertex_color_get(ss, vd.vertex);
 
     const float current_mask = vd.mask;
     const float new_mask = sculpt_mask_by_color_delta_get(active_color, col, threshold, invert);

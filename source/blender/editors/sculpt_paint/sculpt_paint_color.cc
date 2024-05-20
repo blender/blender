@@ -69,9 +69,7 @@ static void do_color_smooth_task(Object &ob, const Brush &brush, PBVHNode *node)
                                                                 &automask_data);
 
     const float4 smooth_color = smooth::neighbor_color_average(ss, vd.vertex);
-    float col[4];
-
-    SCULPT_vertex_color_get(ss, vd.vertex, col);
+    float4 col = SCULPT_vertex_color_get(ss, vd.vertex);
     blend_color_interpolate_float(col, col, smooth_color, fade);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
   }
@@ -192,8 +190,7 @@ static void do_paint_brush_task(Object &ob,
     const float alpha = BKE_brush_alpha_get(ss.scene, &brush);
     mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], alpha * automasking);
 
-    float4 col;
-    SCULPT_vertex_color_get(ss, vd.vertex, col);
+    float4 col = SCULPT_vertex_color_get(ss, vd.vertex);
     IMB_blend_color_float(col, orig_data.col, buffer_color, IMB_BlendMode(brush.blend));
     col = math::clamp(col, 0.0f, 1.0f);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
@@ -225,8 +222,7 @@ static void do_sample_wet_paint_task(SculptSession &ss,
       continue;
     }
 
-    float col[4];
-    SCULPT_vertex_color_get(ss, vd.vertex, col);
+    float4 col = SCULPT_vertex_color_get(ss, vd.vertex);
 
     add_v4_v4(swptd->color, col);
     swptd->tot_samples++;
@@ -374,8 +370,7 @@ static void do_smear_brush_task(Object &ob, const Brush &brush, PBVHNode *node)
     float current_disp[3];
     float current_disp_norm[3];
 
-    float no[3];
-    SCULPT_vertex_normal_get(ss, vd.vertex, no);
+    float3 no = SCULPT_vertex_normal_get(ss, vd.vertex);
 
     switch (brush.smear_deform_type) {
       case BRUSH_SMEAR_DEFORM_DRAG:
@@ -465,21 +460,18 @@ static void do_smear_brush_task(Object &ob, const Brush &brush, PBVHNode *node)
       mul_v4_fl(accum, 1.0f / totw);
     }
 
-    float col[4];
-    SCULPT_vertex_color_get(ss, vd.vertex, col);
+    float4 col = SCULPT_vertex_color_get(ss, vd.vertex);
     blend_color_interpolate_float(col, ss.cache->prev_colors[vd.index], accum, fade);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_smear_store_prev_colors_task(SculptSession &ss,
-                                            PBVHNode *node,
-                                            float (*prev_colors)[4])
+static void do_smear_store_prev_colors_task(SculptSession &ss, PBVHNode *node, float4 *prev_colors)
 {
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_vertex_color_get(ss, vd.vertex, prev_colors[vd.index]);
+    prev_colors[vd.index] = SCULPT_vertex_color_get(ss, vd.vertex);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -495,12 +487,12 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  if (!ss.cache->prev_colors) {
-    ss.cache->prev_colors = MEM_cnew_array<float[4]>(totvert, __func__);
+  if (ss.cache->prev_colors.is_empty()) {
+    ss.cache->prev_colors = Array<float4>(totvert);
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
-      SCULPT_vertex_color_get(ss, vertex, ss.cache->prev_colors[i]);
+      ss.cache->prev_colors[i] = SCULPT_vertex_color_get(ss, vertex);
     }
   }
 
@@ -518,7 +510,7 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
     /* Smear mode. */
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_smear_store_prev_colors_task(ss, nodes[i], ss.cache->prev_colors);
+        do_smear_store_prev_colors_task(ss, nodes[i], ss.cache->prev_colors.data());
       }
     });
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {

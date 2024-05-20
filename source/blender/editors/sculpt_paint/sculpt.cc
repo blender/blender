@@ -220,38 +220,37 @@ bool SCULPT_has_colors(const SculptSession &ss)
   return ss.vcol || ss.mcol;
 }
 
-void SCULPT_vertex_color_get(const SculptSession &ss, PBVHVertRef vertex, float r_color[4])
+blender::float4 SCULPT_vertex_color_get(const SculptSession &ss, PBVHVertRef vertex)
 {
-  BKE_pbvh_vertex_color_get(*ss.pbvh, ss.vert_to_face_map, vertex, r_color);
+  return BKE_pbvh_vertex_color_get(*ss.pbvh, ss.vert_to_face_map, vertex);
 }
 
-void SCULPT_vertex_color_set(SculptSession &ss, PBVHVertRef vertex, const float color[4])
+void SCULPT_vertex_color_set(SculptSession &ss, PBVHVertRef vertex, const blender::float4 &color)
 {
   BKE_pbvh_vertex_color_set(*ss.pbvh, ss.vert_to_face_map, vertex, color);
 }
 
-void SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex, float no[3])
+const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES: {
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
-      copy_v3_v3(no, vert_normals[vertex.i]);
-      break;
+      return vert_normals[vertex.i];
     }
     case PBVH_BMESH: {
       BMVert *v = (BMVert *)vertex.i;
-      copy_v3_v3(no, v->no);
-      break;
+      return v->no;
     }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(*ss.pbvh);
       const int grid_index = vertex.i / key->grid_area;
       const int index_in_grid = vertex.i - grid_index * key->grid_area;
       CCGElem *elem = ss.subdiv_ccg->grids[grid_index];
-      copy_v3_v3(no, CCG_elem_no(key, CCG_elem_offset(key, elem, index_in_grid)));
-      break;
+      return CCG_elem_no(key, CCG_elem_offset(key, elem, index_in_grid));
     }
   }
+  BLI_assert_unreachable();
+  return {};
 }
 
 const float *SCULPT_vertex_persistent_co_get(const SculptSession &ss, PBVHVertRef vertex)
@@ -280,13 +279,12 @@ const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHV
   return SCULPT_vertex_co_get(ss, vertex);
 }
 
-void SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vertex, float r_co[3])
+float3 SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES:
     case PBVH_BMESH:
-      copy_v3_v3(r_co, SCULPT_vertex_co_get(ss, vertex));
-      break;
+      return SCULPT_vertex_co_get(ss, vertex);
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(*ss.pbvh);
       const int grid_index = vertex.i / key->grid_area;
@@ -296,19 +294,21 @@ void SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vertex
       coord.grid_index = grid_index;
       coord.x = index_in_grid % key->grid_size;
       coord.y = index_in_grid / key->grid_size;
-      BKE_subdiv_ccg_eval_limit_point(*ss.subdiv_ccg, coord, r_co);
-      break;
+      float3 tmp;
+      BKE_subdiv_ccg_eval_limit_point(*ss.subdiv_ccg, coord, tmp);
+      return tmp;
     }
   }
+  BLI_assert_unreachable();
+  return {};
 }
 
-void SCULPT_vertex_persistent_normal_get(const SculptSession &ss, PBVHVertRef vertex, float no[3])
+float3 SCULPT_vertex_persistent_normal_get(const SculptSession &ss, PBVHVertRef vertex)
 {
   if (ss.attrs.persistent_no) {
-    copy_v3_v3(no, (const float *)SCULPT_vertex_attr_get(vertex, ss.attrs.persistent_no));
-    return;
+    return (const float *)SCULPT_vertex_attr_get(vertex, ss.attrs.persistent_no);
   }
-  SCULPT_vertex_normal_get(ss, vertex, no);
+  return SCULPT_vertex_normal_get(ss, vertex);
 }
 
 float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
@@ -4171,10 +4171,7 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache)
   MEM_SAFE_FREE(cache->dial);
   MEM_SAFE_FREE(cache->surface_smooth_laplacian_disp);
   MEM_SAFE_FREE(cache->layer_displacement_factor);
-  MEM_SAFE_FREE(cache->prev_colors);
   MEM_SAFE_FREE(cache->detail_directions);
-  MEM_SAFE_FREE(cache->prev_displacement);
-  MEM_SAFE_FREE(cache->limit_surface_co);
 
   for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
     if (cache->boundaries[i]) {

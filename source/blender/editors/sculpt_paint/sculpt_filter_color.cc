@@ -187,8 +187,7 @@ static void color_filter_task(Object &ob,
         fade = clamp_f(fade, -1.0f, 1.0f);
         float4 smooth_color = smooth::neighbor_color_average(ss, vd.vertex);
 
-        float col[4];
-        SCULPT_vertex_color_get(ss, vd.vertex, col);
+        float4 col = SCULPT_vertex_color_get(ss, vd.vertex);
 
         if (fade < 0.0f) {
           interp_v4_v4v4(smooth_color, smooth_color, col, 0.5f);
@@ -230,14 +229,13 @@ static void sculpt_color_presmooth_init(SculptSession &ss)
 {
   int totvert = SCULPT_vertex_count_get(ss);
 
-  if (!ss.filter_cache->pre_smoothed_color) {
-    ss.filter_cache->pre_smoothed_color = static_cast<float(*)[4]>(
-        MEM_malloc_arrayN(totvert, sizeof(float[4]), __func__));
+  if (ss.filter_cache->pre_smoothed_color.is_empty()) {
+    ss.filter_cache->pre_smoothed_color = Array<float4>(totvert);
   }
 
   for (int i = 0; i < totvert; i++) {
-    SCULPT_vertex_color_get(
-        ss, BKE_pbvh_index_to_vertex(*ss.pbvh, i), ss.filter_cache->pre_smoothed_color[i]);
+    ss.filter_cache->pre_smoothed_color[i] = SCULPT_vertex_color_get(
+        ss, BKE_pbvh_index_to_vertex(*ss.pbvh, i));
   }
 
   for (int iteration = 0; iteration < 2; iteration++) {
@@ -278,7 +276,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
   IMB_colormanagement_srgb_to_scene_linear_v3(fill_color, fill_color);
 
-  if (filter_strength < 0.0 && !ss.filter_cache->pre_smoothed_color) {
+  if (filter_strength < 0.0 && ss.filter_cache->pre_smoothed_color.is_empty()) {
     sculpt_color_presmooth_init(ss);
   }
 

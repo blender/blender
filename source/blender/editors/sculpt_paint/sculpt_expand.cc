@@ -462,7 +462,7 @@ static Array<float> sculpt_expand_geodesic_falloff_create(Object &ob, const PBVH
  * increasing the falloff value by 1 when visiting a new vertex.
  */
 struct ExpandFloodFillData {
-  float original_normal[3];
+  float3 original_normal;
   float edge_sensitivity;
   MutableSpan<float> dists;
   MutableSpan<float> edge_factor;
@@ -518,9 +518,8 @@ static bool mask_expand_normal_floodfill_cb(SculptSession &ss,
   int to_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, to_v);
 
   if (!is_duplicate) {
-    float current_normal[3], prev_normal[3];
-    SCULPT_vertex_normal_get(ss, to_v, current_normal);
-    SCULPT_vertex_normal_get(ss, from_v, prev_normal);
+    float3 current_normal = SCULPT_vertex_normal_get(ss, to_v);
+    float3 prev_normal = SCULPT_vertex_normal_get(ss, from_v);
     const float from_edge_factor = data->edge_factor[from_v_i];
     data->edge_factor[to_v_i] = dot_v3v3(current_normal, prev_normal) * from_edge_factor;
     data->dists[to_v_i] = dot_v3v3(data->original_normal, current_normal) *
@@ -553,7 +552,7 @@ static Array<float> sculpt_expand_normal_falloff_create(Object &ob,
   fdata.dists = dists;
   fdata.edge_factor = edge_factor;
   fdata.edge_sensitivity = edge_sensitivity;
-  SCULPT_vertex_normal_get(ss, v, fdata.original_normal);
+  fdata.original_normal = SCULPT_vertex_normal_get(ss, v);
 
   flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return mask_expand_normal_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
@@ -1122,7 +1121,6 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession &ss, Cache 
 static void sculpt_expand_cache_data_free(Cache *expand_cache)
 {
   MEM_SAFE_FREE(expand_cache->face_falloff);
-  MEM_SAFE_FREE(expand_cache->original_colors);
   MEM_delete<Cache>(expand_cache);
 }
 
@@ -1344,8 +1342,7 @@ static void sculpt_expand_colors_update_task(SculptSession &ss, PBVHNode *node)
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_ALL) {
-    float initial_color[4];
-    SCULPT_vertex_color_get(ss, vd.vertex, initial_color);
+    float4 initial_color = SCULPT_vertex_color_get(ss, vd.vertex);
 
     const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.vertex);
     float fade;
@@ -1398,12 +1395,10 @@ static void sculpt_expand_original_state_store(Object &ob, Cache *expand_cache)
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
-    expand_cache->original_colors = static_cast<float(*)[4]>(
-        MEM_malloc_arrayN(totvert, sizeof(float[4]), "initial colors"));
+    expand_cache->original_colors = Array<float4>(totvert);
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-      SCULPT_vertex_color_get(ss, vertex, expand_cache->original_colors[i]);
+      expand_cache->original_colors[i] = SCULPT_vertex_color_get(ss, vertex);
     }
   }
 }

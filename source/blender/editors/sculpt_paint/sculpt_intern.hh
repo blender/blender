@@ -317,7 +317,7 @@ struct Cache {
   float4x4 viewmat_inv;
 
   /* Displacement eraser. */
-  float (*limit_surface_co)[3];
+  Array<float3> limit_surface_co;
 
   /* unmasked nodes */
   Vector<PBVHNode *> nodes;
@@ -347,7 +347,7 @@ struct Cache {
   float3 view_normal;
 
   /* Pre-smoothed colors used by sharpening. Colors are HSL. */
-  float (*pre_smoothed_color)[4];
+  Array<float4> pre_smoothed_color;
 
   ViewContext vc;
   float start_filter_strength;
@@ -401,12 +401,12 @@ struct StrokeCache {
   /* Position of the mouse event in screen space, not modified by the stroke type. */
   float2 mouse_event;
 
-  float (*prev_colors)[4];
+  Array<float4> prev_colors;
   GArray<> prev_colors_vpaint;
 
   /* Multires Displacement Smear. */
-  float (*prev_displacement)[3];
-  float (*limit_surface_co)[3];
+  Array<float3> prev_displacement;
+  Array<float3> limit_surface_co;
 
   /* The rest is temporary storage that isn't saved as a property */
 
@@ -688,7 +688,7 @@ struct Cache {
   /* Original data of the sculpt as it was before running the Expand operator. */
   Array<float> original_mask;
   Array<int> original_face_sets;
-  float (*original_colors)[4];
+  Array<float4> original_colors;
 
   bool check_islands;
   int normal_falloff_blur_steps;
@@ -847,13 +847,13 @@ int SCULPT_vertex_count_get(const SculptSession &ss);
 const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex);
 
 /** Get the normal for a given sculpt vertex; do not modify the result */
-void SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex, float no[3]);
+const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex);
 
 float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
                                           const CCGKey &key,
                                           int vert_index);
-void SCULPT_vertex_color_get(const SculptSession &ss, PBVHVertRef vertex, float r_color[4]);
-void SCULPT_vertex_color_set(SculptSession &ss, PBVHVertRef vertex, const float color[4]);
+blender::float4 SCULPT_vertex_color_get(const SculptSession &ss, PBVHVertRef vertex);
+void SCULPT_vertex_color_set(SculptSession &ss, PBVHVertRef vertex, const blender::float4 &color);
 
 bool SCULPT_vertex_is_occluded(SculptSession &ss, PBVHVertRef vertex, bool original);
 
@@ -864,7 +864,7 @@ bool SCULPT_has_colors(const SculptSession &ss);
 bool SCULPT_has_loop_colors(const Object &ob);
 
 const float *SCULPT_vertex_persistent_co_get(const SculptSession &ss, PBVHVertRef vertex);
-void SCULPT_vertex_persistent_normal_get(const SculptSession &ss, PBVHVertRef vertex, float no[3]);
+blender::float3 SCULPT_vertex_persistent_normal_get(const SculptSession &ss, PBVHVertRef vertex);
 
 /**
  * Coordinates used for manipulating the base mesh when Grab Active Vertex is enabled.
@@ -875,7 +875,7 @@ const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHV
  * Returns the info of the limit surface when multi-res is available,
  * otherwise it returns the current coordinate of the vertex.
  */
-void SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vertex, float r_co[3]);
+blender::float3 SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vertex);
 
 /**
  * Returns the pointer to the coordinates that should be edited from a brush tool iterator
@@ -1461,7 +1461,7 @@ struct SimulationData {
   float (*acceleration)[3];
   float (*pos)[3];
   float (*init_pos)[3];
-  float (*init_no)[3];
+  float3 *init_no;
   float (*softbody_pos)[3];
   float (*prev_pos)[3];
   float (*last_iteration_pos)[3];

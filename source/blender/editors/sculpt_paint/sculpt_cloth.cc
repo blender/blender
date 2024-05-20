@@ -1031,7 +1031,7 @@ SimulationData *brush_simulation_create(Object &ob,
   cloth_sim->prev_pos = MEM_cnew_array<float[3]>(totverts, __func__);
   cloth_sim->last_iteration_pos = MEM_cnew_array<float[3]>(totverts, __func__);
   cloth_sim->init_pos = MEM_cnew_array<float[3]>(totverts, __func__);
-  cloth_sim->init_no = MEM_cnew_array<float[3]>(totverts, __func__);
+  cloth_sim->init_no = MEM_cnew_array<float3>(totverts, __func__);
   cloth_sim->length_constraint_tweak = MEM_cnew_array<float>(totverts, __func__);
 
   if (needs_deform_coords) {
@@ -1108,7 +1108,7 @@ void brush_simulation_init(const SculptSession &ss, SimulationData &cloth_sim)
 
     copy_v3_v3(cloth_sim.last_iteration_pos[i], SCULPT_vertex_co_get(ss, vertex));
     copy_v3_v3(cloth_sim.init_pos[i], SCULPT_vertex_co_get(ss, vertex));
-    SCULPT_vertex_normal_get(ss, vertex, cloth_sim.init_no[i]);
+    cloth_sim.init_no[i] = SCULPT_vertex_normal_get(ss, vertex);
     copy_v3_v3(cloth_sim.prev_pos[i], SCULPT_vertex_co_get(ss, vertex));
     if (has_deformation_pos) {
       copy_v3_v3(cloth_sim.deformation_pos[i], SCULPT_vertex_co_get(ss, vertex));
@@ -1429,8 +1429,7 @@ static void cloth_filter_apply_forces_task(Object &ob,
         filter::to_object_space(force, *ss.filter_cache);
         break;
       case CLOTH_FILTER_INFLATE: {
-        float normal[3];
-        SCULPT_vertex_normal_get(ss, vd.vertex, normal);
+        float3 normal = SCULPT_vertex_normal_get(ss, vd.vertex);
         mul_v3_v3fl(force, normal, fade * filter_strength);
         break;
       }

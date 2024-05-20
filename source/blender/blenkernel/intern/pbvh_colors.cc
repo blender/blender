@@ -148,21 +148,22 @@ static void pbvh_vertex_color_set(PBVH &pbvh,
 
 }  // namespace blender::bke
 
-void BKE_pbvh_vertex_color_get(const PBVH &pbvh,
-                               const blender::GroupedSpan<int> vert_to_face_map,
-                               PBVHVertRef vertex,
-                               float r_color[4])
+blender::float4 BKE_pbvh_vertex_color_get(const PBVH &pbvh,
+                                          const blender::GroupedSpan<int> vert_to_face_map,
+                                          PBVHVertRef vertex)
 {
+  blender::float4 color;
   blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
-    blender::bke::pbvh_vertex_color_get<T>(pbvh, vert_to_face_map, vertex, r_color);
+    blender::bke::pbvh_vertex_color_get<T>(pbvh, vert_to_face_map, vertex, color);
   });
+  return color;
 }
 
 void BKE_pbvh_vertex_color_set(PBVH &pbvh,
                                const blender::GroupedSpan<int> vert_to_face_map,
                                const PBVHVertRef vertex,
-                               const float color[4])
+                               const blender::float4 &color)
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);

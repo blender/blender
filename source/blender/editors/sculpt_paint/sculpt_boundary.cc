@@ -554,8 +554,7 @@ static void sculpt_boundary_bend_data_init(SculptSession &ss, SculptBoundary &bo
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
     float dir[3];
-    float normal[3];
-    SCULPT_vertex_normal_get(ss, vertex, normal);
+    float3 normal = SCULPT_vertex_normal_get(ss, vertex);
     sub_v3_v3v3(
         dir,
         SCULPT_vertex_co_get(

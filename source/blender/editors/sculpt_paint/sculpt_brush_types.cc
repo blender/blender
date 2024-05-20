@@ -1384,10 +1384,10 @@ static void do_layer_brush_task(Object &ob, const Sculpt &sd, const Brush &brush
     *disp_factor = clamp_f(*disp_factor, -clamp_mask, clamp_mask);
 
     float final_co[3];
-    float normal[3];
+    float3 normal;
 
     if (use_persistent_base) {
-      SCULPT_vertex_persistent_normal_get(ss, vd.vertex, normal);
+      normal = SCULPT_vertex_persistent_normal_get(ss, vd.vertex);
       mul_v3_fl(normal, brush.height);
       madd_v3_v3v3fl(
           final_co, SCULPT_vertex_persistent_co_get(ss, vd.vertex), normal, *disp_factor);
@@ -2164,13 +2164,13 @@ void relax_vertex(SculptSession &ss,
 
   float plane[4];
   float smooth_closest_plane[3];
-  float vno[3];
+  float3 vno;
 
   if (is_boundary && avg_count == 2) {
     normalize_v3_v3(vno, boundary_normal);
   }
   else {
-    SCULPT_vertex_normal_get(ss, vd->vertex, vno);
+    vno = SCULPT_vertex_normal_get(ss, vd->vertex);
   }
 
   if (is_zero_v3(vno)) {
@@ -2306,9 +2306,8 @@ static void do_displacement_eraser_brush_task(Object &ob, const Brush &brush, PB
                                                                 thread_id,
                                                                 &automask_data);
 
-    float limit_co[3];
+    float3 limit_co = SCULPT_vertex_limit_surface_get(ss, vd.vertex);
     float disp[3];
-    SCULPT_vertex_limit_surface_get(ss, vd.vertex, limit_co);
     sub_v3_v3v3(disp, limit_co, vd.co);
     mul_v3_v3fl(proxy[vd.i], disp, fade);
   }
@@ -2393,8 +2392,6 @@ static void do_displacement_smear_brush_task(Object &ob, const Brush &brush, PBV
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
       float vertex_disp[3];
       float vertex_disp_norm[3];
-      float neighbor_limit_co[3];
-      SCULPT_vertex_limit_surface_get(ss, ni.vertex, neighbor_limit_co);
       sub_v3_v3v3(
           vertex_disp, ss.cache->limit_surface_co[ni.index], ss.cache->limit_surface_co[vd.index]);
       const float *neighbor_limit_surface_disp = ss.cache->prev_displacement[ni.index];
@@ -2440,15 +2437,13 @@ void SCULPT_do_displacement_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHN
   BKE_curvemapping_init(brush.curve);
 
   const int totvert = SCULPT_vertex_count_get(ss);
-  if (!ss.cache->prev_displacement) {
-    ss.cache->prev_displacement = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
-    ss.cache->limit_surface_co = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
+  if (ss.cache->prev_displacement.is_empty()) {
+    ss.cache->prev_displacement = Array<float3>(totvert);
+    ss.cache->limit_surface_co = Array<float3>(totvert);
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
-      SCULPT_vertex_limit_surface_get(ss, vertex, ss.cache->limit_surface_co[i]);
+      ss.cache->limit_surface_co[i] = SCULPT_vertex_limit_surface_get(ss, vertex);
       sub_v3_v3v3(ss.cache->prev_displacement[i],
                   SCULPT_vertex_co_get(ss, vertex),
                   ss.cache->limit_surface_co[i]);

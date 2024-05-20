@@ -592,9 +592,8 @@ static void gesture_apply_task(gesture::GestureData &gesture_data,
   bool redraw = false;
 
   BKE_pbvh_vertex_iter_begin (*gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    float vertex_normal[3];
     const float *co = SCULPT_vertex_co_get(*gesture_data.ss, vd.vertex);
-    SCULPT_vertex_normal_get(*gesture_data.ss, vd.vertex, vertex_normal);
+    const float3 vertex_normal = SCULPT_vertex_normal_get(*gesture_data.ss, vd.vertex);
 
     if (gesture::is_affected(gesture_data, co, vertex_normal)) {
       float prevmask = vd.mask;

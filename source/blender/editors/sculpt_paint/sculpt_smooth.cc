@@ -171,9 +171,7 @@ float4 neighbor_color_average(SculptSession &ss, PBVHVertRef vertex)
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    float tmp[4] = {0};
-
-    SCULPT_vertex_color_get(ss, ni.vertex, tmp);
+    float4 tmp = SCULPT_vertex_color_get(ss, ni.vertex);
 
     avg += tmp;
     total++;
@@ -183,9 +181,7 @@ float4 neighbor_color_average(SculptSession &ss, PBVHVertRef vertex)
   if (total > 0) {
     return avg / total;
   }
-  float4 tmp;
-  SCULPT_vertex_color_get(ss, vertex, tmp);
-  return tmp;
+  return SCULPT_vertex_color_get(ss, vertex);
 }
 
 static void do_enhance_details_brush_task(Object &ob,

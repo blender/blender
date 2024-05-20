@@ -223,8 +223,6 @@ void cache_free(SculptSession &ss)
   MEM_SAFE_FREE(ss.filter_cache->surface_smooth_laplacian_disp);
   MEM_SAFE_FREE(ss.filter_cache->sharpen_factor);
   MEM_SAFE_FREE(ss.filter_cache->detail_directions);
-  MEM_SAFE_FREE(ss.filter_cache->limit_surface_co);
-  MEM_SAFE_FREE(ss.filter_cache->pre_smoothed_color);
   MEM_delete(ss.filter_cache);
   ss.filter_cache = nullptr;
 }
@@ -555,12 +553,11 @@ static void mesh_filter_init_limit_surface_co(SculptSession &ss)
   const int totvert = SCULPT_vertex_count_get(ss);
   filter::Cache *filter_cache = ss.filter_cache;
 
-  filter_cache->limit_surface_co = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
+  filter_cache->limit_surface_co = Array<float3>(totvert);
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
-    SCULPT_vertex_limit_surface_get(ss, vertex, filter_cache->limit_surface_co[i]);
+    filter_cache->limit_surface_co[i] = SCULPT_vertex_limit_surface_get(ss, vertex);
   }
 }
 
