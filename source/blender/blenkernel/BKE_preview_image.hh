@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <optional>
 
 #include "BLI_sys_types.h"
@@ -15,6 +16,22 @@ struct BlendDataReader;
 struct ID;
 struct ImBuf;
 struct PreviewImage;
+
+enum ThumbSource : int8_t;
+
+namespace blender::bke {
+
+struct PreviewDeferredLoadingData;
+
+struct PreviewImageRuntime {
+  /** Used to store data to defer the loading of the preview. If empty, loading is not deferred. */
+  std::unique_ptr<PreviewDeferredLoadingData> deferred_loading_data;
+  PreviewImageRuntime();
+  PreviewImageRuntime(const PreviewImageRuntime &other);
+  ~PreviewImageRuntime();
+};
+
+}  // namespace blender::bke
 
 void BKE_preview_images_init();
 void BKE_preview_images_free();
