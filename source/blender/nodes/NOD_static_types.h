@@ -336,6 +336,7 @@ DefNode(GeometryNode, GEO_NODE_DELETE_GEOMETRY, 0, "DELETE_GEOMETRY", DeleteGeom
 DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_IN_GRID, 0, "DISTRIBUTE_POINTS_IN_GRID", DistributePointsInGrid, "Distribute Points in Grid", "Generate points inside a volume grid")
 DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME, 0, "DISTRIBUTE_POINTS_IN_VOLUME", DistributePointsInVolume, "Distribute Points in Volume", "Generate points inside a volume")
 DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_ON_FACES, def_geo_distribute_points_on_faces, "DISTRIBUTE_POINTS_ON_FACES", DistributePointsOnFaces, "Distribute Points on Faces", "Generate points spread out on the surface of a mesh")
+DefNode(GeometryNode, GEO_NODE_NORMAL_POINT_DISTRIBUTION, 0, "NORMAL_POINT_DISTRIBUTION", NormalPointDistribution, "Distribute Points following a Normal Distribution", "Generate points spread out following a normal distribution")
 DefNode(GeometryNode, GEO_NODE_DUAL_MESH, 0, "DUAL_MESH", DualMesh, "Dual Mesh", "Convert Faces into vertices and vertices into faces")
 DefNode(GeometryNode, GEO_NODE_DUPLICATE_ELEMENTS, 0, "DUPLICATE_ELEMENTS", DuplicateElements, "Duplicate Elements", "Generate an arbitrary number copies of each selected input element")
 DefNode(GeometryNode, GEO_NODE_EDGE_PATHS_TO_CURVES, 0, "EDGE_PATHS_TO_CURVES", EdgePathsToCurves, "Edge Paths to Curves", "Output curves following paths across mesh edges")
