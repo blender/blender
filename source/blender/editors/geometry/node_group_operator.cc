@@ -170,7 +170,8 @@ static void find_socket_log_contexts(const Main &bmain,
  * we need to create evaluated copies of geometry before passing it to geometry nodes. Implicit
  * sharing lets us avoid copying attribute data though.
  */
-static bke::GeometrySet get_original_geometry_eval_copy(Object &object)
+static bke::GeometrySet get_original_geometry_eval_copy(Object &object,
+                                                        nodes::GeoNodesOperatorData &operator_data)
 {
   switch (object.type) {
     case OB_CURVES: {
@@ -185,6 +186,9 @@ static bke::GeometrySet get_original_geometry_eval_copy(Object &object)
     case OB_MESH: {
       const Mesh *mesh = static_cast<const Mesh *>(object.data);
       if (std::shared_ptr<BMEditMesh> &em = mesh->runtime->edit_mesh) {
+        operator_data.active_point_index = BM_mesh_active_vert_index_get(em->bm);
+        operator_data.active_edge_index = BM_mesh_active_edge_index_get(em->bm);
+        operator_data.active_face_index = BM_mesh_active_face_index_get(em->bm, false, true);
         Mesh *mesh_copy = BKE_mesh_wrapper_from_editmesh(em, nullptr, mesh);
         BKE_mesh_wrapper_ensure_mdata(mesh_copy);
         Mesh *final_copy = BKE_mesh_copy_for_eval(*mesh_copy);
@@ -556,7 +560,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
       call_data.socket_log_contexts = &socket_log_contexts;
     }
 
-    bke::GeometrySet geometry_orig = get_original_geometry_eval_copy(*object);
+    bke::GeometrySet geometry_orig = get_original_geometry_eval_copy(*object, operator_eval_data);
 
     bke::GeometrySet new_geometry = nodes::execute_geometry_nodes_on_geometry(
         *node_tree, properties, compute_context, call_data, std::move(geometry_orig));

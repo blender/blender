@@ -120,6 +120,10 @@ int BM_mesh_elem_hflag_count_disabled(BMesh *bm, char htype, char hflag, bool re
 /* Edit selection stuff. */
 
 void BM_mesh_active_face_set(BMesh *bm, BMFace *f);
+int BM_mesh_active_face_index_get(BMesh *bm, bool is_sloppy, bool is_selected);
+int BM_mesh_active_edge_index_get(BMesh *bm);
+int BM_mesh_active_vert_index_get(BMesh *bm);
+int BM_mesh_active_elem_index_get(BMesh *bm);
 BMFace *BM_mesh_active_face_get(BMesh *bm, bool is_sloppy, bool is_selected);
 BMEdge *BM_mesh_active_edge_get(BMesh *bm);
 BMVert *BM_mesh_active_vert_get(BMesh *bm);
