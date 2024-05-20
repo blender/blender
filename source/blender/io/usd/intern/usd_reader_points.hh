@@ -34,7 +34,7 @@ class USDPointsReader : public USDGeomReader {
   void read_object_data(Main *bmain, double motionSampleTime) override;
 
   /* Implement point cloud update. This may be called by the cache modifier
-   * to update animated geomtery. */
+   * to update animated geometry. */
   void read_geometry(bke::GeometrySet &geometry_set,
                      USDMeshReadParams params,
                      const char **err_str) override;

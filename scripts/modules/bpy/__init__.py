@@ -46,7 +46,7 @@ def main():
     # It's unlikely this directory exists.
     # Keep it so users can bundle their own add-ons with app-templates which share modules.
     # Also keep this for consistency with the other `addons` directories.
-    # Check this exists because the bundled scritps should not be manipulated at run-time.
+    # Check this exists because the bundled scripts should not be manipulated at run-time.
     dirpath = join(dirname(dirname(dirname(__file__))), "addons_core", "modules")
     if exists(dirpath):
         sys.path.append(dirpath)

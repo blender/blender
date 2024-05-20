@@ -312,10 +312,10 @@ static blender::Vector<std::string> construct_rna_paths(PointerRNA *ptr)
         PointerRNA resolved_ptr;
         PropertyRNA *resolved_prop;
         std::string path = id_prop->name;
-        /* Resolving the path twice, once as RNA property (without brackets, "propname"), and once
-         * as ID property (with brackets, '["propname"]'). This is required to support IDProperties
-         * that have been defined as part of an addon. Those need to be animated through an RNA
-         * path without the brackets. */
+        /* Resolving the path twice, once as RNA property (without brackets, `"propname"`),
+         * and once as ID property (with brackets, `["propname"]`).
+         * This is required to support IDProperties that have been defined as part of an add-on.
+         * Those need to be animated through an RNA path without the brackets. */
         bool is_resolved = RNA_path_resolve_property(
             ptr, path.c_str(), &resolved_ptr, &resolved_prop);
         if (!is_resolved) {

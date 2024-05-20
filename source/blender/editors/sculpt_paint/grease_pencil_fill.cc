@@ -485,7 +485,7 @@ static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer)
 
       section.push_back(iter.index);
     }
-    /* Discard unclosed boundaries. */
+    /* Discard un-closed boundaries. */
     if (iter.index != start_index) {
       boundary_starts.remove(start_index);
     }
@@ -748,7 +748,7 @@ static VArray<ColorGeometry4f> stroke_colors(const Object &object,
 
 static rctf get_region_bounds(const ARegion &region)
 {
-  /* Init maximum boundbox size. */
+  /* Initialize maximum bound-box size. */
   rctf region_bounds;
   BLI_rctf_init(&region_bounds, 0, region.winx, 0, region.winy);
   return region_bounds;

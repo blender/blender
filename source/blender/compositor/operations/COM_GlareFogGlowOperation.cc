@@ -24,7 +24,7 @@ namespace blender::compositor {
 
 /* Given the x and y location in the range from 0 to kernel_size - 1, where kernel_size is odd,
  * compute the fog glow kernel value. The equations are arbitrary and were chosen using visual
- * judgement. The kernel is not normalized and need normalization. */
+ * judgment. The kernel is not normalized and need normalization. */
 [[maybe_unused]] static float compute_fog_glow_kernel_value(int x, int y, int kernel_size)
 {
   const int half_kernel_size = kernel_size / 2;

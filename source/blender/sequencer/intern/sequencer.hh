@@ -15,7 +15,7 @@ struct Sequence;
 struct StripProxy;
 /**
  * Cache must be freed before calling this function
- * since it leaves the seqbase in an invalid state.
+ * since it leaves the #Editing::seqbase in an invalid state.
  */
 void seq_free_sequence_recurse(Scene *scene, Sequence *seq, bool do_id_user);
 StripProxy *seq_strip_proxy_alloc();

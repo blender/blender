@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Setup tilemap positionning for each shadow casting light.
+ * Setup tile-map positioning for each shadow casting light.
  * Dispatched one thread per light.
  */
 

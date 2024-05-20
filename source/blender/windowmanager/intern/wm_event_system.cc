@@ -137,7 +137,7 @@ static void wm_event_state_update_and_click_set_ex(wmEvent *event,
                                                    const bool check_double_click);
 
 /* -------------------------------------------------------------------- */
-/** \name Private Utiilities
+/** \name Private Utilities
  * \{ */
 
 /**

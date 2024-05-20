@@ -236,7 +236,7 @@ static void recalcData_sequencer_image(TransInfo *t)
      * will more often end up using faster interpolation (without bilinear),
      * and avoids "text edges are too dark" artifacts with light text strips
      * on light backgrounds. The latter happens because bilinear filtering
-     * does not do full alpha premultiplication. */
+     * does not do full alpha pre-multiplication. */
     transform->xofs = roundf(tdseq->orig_translation[0] - translation[0]);
     transform->yofs = roundf(tdseq->orig_translation[1] - translation[1]);
 

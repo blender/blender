@@ -53,7 +53,7 @@ static int find_next_even_humble_number(int n)
 
 /* FFTW is best at handling sizes of the form 2^a * 3^b * 5^c * 7^d * 11^e * 13^f, where e + f is
  * either 0 or 1, and the other exponents are arbitrary. And it is beneficial for the size to be
- * evene for real transforms. To simplify computation, we ignore the 11 and 13 factors and find the
+ * even for real transforms. To simplify computation, we ignore the 11 and 13 factors and find the
  * even humble number that is more then or equal the given size. See Section 4.3.3 Real-data DFTs
  * in the FFTW manual for more information. */
 int optimal_size_for_real_transform(int size)

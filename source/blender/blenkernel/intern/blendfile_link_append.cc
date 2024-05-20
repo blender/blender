@@ -1154,7 +1154,7 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext *lapp_con
   LinkNode *itemlink;
 
   /* In case of non-recursive appending, gather a set of all 'original' libraries (i.e. libraries
-   * containing data that was explicitely selected by the user). */
+   * containing data that was explicitly selected by the user). */
   blender::Set<Library *> direct_libraries;
   if (!do_recursive) {
     for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
@@ -1251,7 +1251,7 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext *lapp_con
    * either there were some changes in the library data, or the previously appended local
    * dependencies was modified in current file and therefore cannot be re-used anymore), then the
    * user ID should not be considered as usable either. */
-  /* TODO: This process is currently fairly raw and inneficient. This is likely not a
+  /* TODO: This process is currently fairly raw and inefficient. This is likely not a
    * (significant) issue currently anyway. But would be good to refactor this whole code to use
    * modern CPP containers (list of items could be an `std::deque` e.g., to be iterable in both
    * directions). Being able to loop backward here (i.e. typically process the dependencies
