@@ -42,6 +42,8 @@ struct PointerRNA {
   void *data;
 };
 
+constexpr PointerRNA PointerRNA_NULL{nullptr, nullptr, nullptr};
+
 struct PropertyPointerRNA {
   PointerRNA ptr;
   PropertyRNA *prop;
