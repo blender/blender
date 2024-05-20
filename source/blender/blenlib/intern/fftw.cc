@@ -6,6 +6,7 @@
 #  include <fftw3.h>
 #endif
 
+#include "BLI_fftw.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
