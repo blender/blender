@@ -21,14 +21,24 @@ static CLG_LogRef LOG = {"gpu.vulkan"};
 namespace blender::gpu {
 void VKContext::debug_group_begin(const char *name, int)
 {
-  const VKDevice &device = VKBackend::get().device_get();
-  debug::push_marker(device, name);
+  if (use_render_graph) {
+    render_graph.debug_group_begin(name);
+  }
+  else {
+    const VKDevice &device = VKBackend::get().device_get();
+    debug::push_marker(device, name);
+  }
 }
 
 void VKContext::debug_group_end()
 {
-  const VKDevice &device = VKBackend::get().device_get();
-  debug::pop_marker(device);
+  if (use_render_graph) {
+    render_graph.debug_group_end();
+  }
+  else {
+    const VKDevice &device = VKBackend::get().device_get();
+    debug::pop_marker(device);
+  }
 }
 
 bool VKContext::debug_capture_begin(const char *title)

@@ -121,6 +121,10 @@ class VKDevice : public NonCopyable {
     /* Extension: VK_KHR_dynamic_rendering */
     PFN_vkCmdBeginRendering vkCmdBeginRendering = nullptr;
     PFN_vkCmdEndRendering vkCmdEndRendering = nullptr;
+
+    /* Extension: VK_EXT_debug_utils */
+    PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabel = nullptr;
+    PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabel = nullptr;
   } functions;
 
   VkPhysicalDevice physical_device_get() const

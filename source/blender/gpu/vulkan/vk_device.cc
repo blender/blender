@@ -104,6 +104,9 @@ void VKDevice::init_functions()
   /* VK_KHR_dynamic_rendering */
   functions.vkCmdBeginRendering = LOAD_FUNCTION(vkCmdBeginRenderingKHR);
   functions.vkCmdEndRendering = LOAD_FUNCTION(vkCmdEndRenderingKHR);
+  /* VK_EXT_debug_utils */
+  functions.vkCmdBeginDebugUtilsLabel = LOAD_FUNCTION(vkCmdBeginDebugUtilsLabelEXT);
+  functions.vkCmdEndDebugUtilsLabel = LOAD_FUNCTION(vkCmdEndDebugUtilsLabelEXT);
 #undef LOAD_FUNCTION
 }
 

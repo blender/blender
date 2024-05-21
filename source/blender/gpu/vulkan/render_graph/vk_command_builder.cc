@@ -71,6 +71,55 @@ void VKCommandBuilder::build_node(VKRenderGraph &render_graph,
   node.build_commands(command_buffer, state_.active_pipelines);
 }
 
+void VKCommandBuilder::activate_debug_group(VKRenderGraph &render_graph,
+                                            VKCommandBufferInterface &command_buffer,
+                                            NodeHandle node_handle)
+{
+
+  int64_t debug_group = render_graph.debug_.node_group_map[node_handle];
+  if (debug_group == state_.active_debug_group_index) {
+    return;
+  }
+
+  Vector<const char *> &to_group = render_graph.debug_.used_groups[debug_group];
+
+  int num_ends = 0;
+  if (state_.active_debug_group_index != -1) {
+    Vector<const char *> &from_group =
+        render_graph.debug_.used_groups[state_.active_debug_group_index];
+
+    num_ends = from_group.size();
+    for (int index : IndexRange(min_ii(from_group.size(), to_group.size()))) {
+      num_ends = from_group.size() - index;
+      if (from_group[index] != to_group[index]) {
+        break;
+      }
+    }
+    for (int index = 0; index < num_ends; index++) {
+      command_buffer.end_debug_utils_label();
+    }
+    state_.debug_level -= num_ends;
+  }
+
+  int num_begin = to_group.size() - state_.debug_level;
+  VkDebugUtilsLabelEXT debug_utils_label = {};
+  debug_utils_label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+  for (int index : IndexRange(state_.debug_level, num_begin)) {
+    debug_utils_label.pLabelName = to_group[index];
+    command_buffer.begin_debug_utils_label(&debug_utils_label);
+    state_.debug_level += 1;
+  }
+  state_.active_debug_group_index = debug_group;
+}
+
+void VKCommandBuilder::finish_debug_groups(VKCommandBufferInterface &command_buffer)
+{
+  for (int i = 0; i < state_.debug_level; i++) {
+    command_buffer.end_debug_utils_label();
+  }
+  state_.debug_level = 0;
+}
+
 void VKCommandBuilder::build_pipeline_barriers(VKRenderGraph &render_graph,
                                                VKCommandBufferInterface &command_buffer,
                                                NodeHandle node_handle,

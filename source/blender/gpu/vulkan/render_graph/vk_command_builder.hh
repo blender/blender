@@ -47,6 +47,14 @@ class VKCommandBuilder {
      */
     VkPipelineStageFlags src_stage_mask = VK_PIPELINE_STAGE_NONE;
     VkPipelineStageFlags dst_stage_mask = VK_PIPELINE_STAGE_NONE;
+
+    /**
+     * Index of the active debug_group. Points to an element in
+     * `VKRenderGraph.debug_.used_groups`.
+     */
+    int64_t active_debug_group_index = -1;
+    /** Current level of debug groups. (number of nested debug groups). */
+    int debug_level = 0;
   } state_;
 
  public:
@@ -121,6 +129,23 @@ class VKCommandBuilder {
   void add_image_write_barriers(VKRenderGraph &render_graph,
                                 NodeHandle node_handle,
                                 VkPipelineStageFlags node_stages);
+
+  /**
+   * Ensure that the debug group associated with the given node_handle is activated.
+   *
+   * When activating it determines how to walk from the current debug group to the to be activated
+   * debug group by performing end/begin commands on the command buffer.
+   *
+   * This ensures that when nodes are reordered that they still appear in the right debug group.
+   */
+  void activate_debug_group(VKRenderGraph &render_graph,
+                            VKCommandBufferInterface &command_buffer,
+                            NodeHandle node_handle);
+
+  /**
+   * Make sure no debugging groups are active anymore.
+   */
+  void finish_debug_groups(VKCommandBufferInterface &command_buffer);
 };
 
 }  // namespace blender::gpu::render_graph

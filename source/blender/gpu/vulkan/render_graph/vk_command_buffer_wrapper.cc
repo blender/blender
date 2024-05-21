@@ -329,4 +329,21 @@ void VKCommandBufferWrapper::end_rendering()
   device.functions.vkCmdEndRendering(vk_command_buffer_);
 }
 
+void VKCommandBufferWrapper::begin_debug_utils_label(
+    const VkDebugUtilsLabelEXT *vk_debug_utils_label)
+{
+  const VKDevice &device = VKBackend::get().device_get();
+  if (device.functions.vkCmdBeginDebugUtilsLabel) {
+    device.functions.vkCmdBeginDebugUtilsLabel(vk_command_buffer_, vk_debug_utils_label);
+  }
+}
+
+void VKCommandBufferWrapper::end_debug_utils_label()
+{
+  const VKDevice &device = VKBackend::get().device_get();
+  if (device.functions.vkCmdEndDebugUtilsLabel) {
+    device.functions.vkCmdEndDebugUtilsLabel(vk_command_buffer_);
+  }
+}
+
 }  // namespace blender::gpu::render_graph
