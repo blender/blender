@@ -13,9 +13,11 @@
 
 #include "BLI_array.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"
 #include "BKE_key.hh"
 #include "BKE_mesh.hh"
@@ -955,7 +957,7 @@ static void subdiv_mesh_vertex_loose(const ForeachContext *foreach_context,
 /* Get neighbor edges of the given one.
  * - neighbors[0] is an edge adjacent to edge->v1.
  * - neighbors[1] is an edge adjacent to edge->v2. */
-static void find_edge_neighbors(const int2 *coarse_edges,
+static void find_edge_neighbors(const Span<int2> coarse_edges,
                                 const GroupedSpan<int> vert_to_edge_map,
                                 const int edge_index,
                                 const int2 *neighbors[2])
@@ -993,10 +995,10 @@ static void find_edge_neighbors(const int2 *coarse_edges,
   }
 }
 
-static void points_for_loose_edges_interpolation_get(const float (*coarse_positions)[3],
+static void points_for_loose_edges_interpolation_get(const Span<float3> coarse_positions,
                                                      const int2 &coarse_edge,
                                                      const int2 *neighbors[2],
-                                                     float points_r[4][3])
+                                                     float3 points_r[4])
 {
   /* Middle points corresponds to the edge. */
   copy_v3_v3(points_r[1], coarse_positions[coarse_edge[0]]);
@@ -1029,28 +1031,25 @@ static void points_for_loose_edges_interpolation_get(const float (*coarse_positi
   }
 }
 
-void mesh_interpolate_position_on_edge(const float (*coarse_positions)[3],
-                                       const int2 *coarse_edges,
-                                       const GroupedSpan<int> vert_to_edge_map,
-                                       const int coarse_edge_index,
-                                       const bool is_simple,
-                                       const float u,
-                                       float pos_r[3])
+float3 mesh_interpolate_position_on_edge(const Span<float3> coarse_positions,
+                                         const Span<int2> coarse_edges,
+                                         const GroupedSpan<int> vert_to_edge_map,
+                                         const int coarse_edge_index,
+                                         const bool is_simple,
+                                         const float u)
 {
-  const int2 &coarse_edge = coarse_edges[coarse_edge_index];
+  const int2 edge = coarse_edges[coarse_edge_index];
   if (is_simple) {
-    interp_v3_v3v3(pos_r, coarse_positions[coarse_edge[0]], coarse_positions[coarse_edge[1]], u);
+    return math::interpolate(coarse_positions[edge[0]], coarse_positions[edge[1]], u);
   }
-  else {
-    /* Find neighbors of the coarse edge. */
-    const int2 *neighbors[2];
-    find_edge_neighbors(coarse_edges, vert_to_edge_map, coarse_edge_index, neighbors);
-    float points[4][3];
-    points_for_loose_edges_interpolation_get(coarse_positions, coarse_edge, neighbors, points);
-    float weights[4];
-    key_curve_position_weights(u, weights, KEY_BSPLINE);
-    interp_v3_v3v3v3v3(pos_r, points[0], points[1], points[2], points[3], weights);
-  }
+  /* Find neighbors of the coarse edge. */
+  const int2 *neighbors[2];
+  find_edge_neighbors(coarse_edges, vert_to_edge_map, coarse_edge_index, neighbors);
+  float3 points[4];
+  points_for_loose_edges_interpolation_get(coarse_positions, edge, neighbors, points);
+  float4 weights;
+  key_curve_position_weights(u, weights, KEY_BSPLINE);
+  return bke::attribute_math::mix4(weights, points[0], points[1], points[2], points[3]);
 }
 
 static void subdiv_mesh_vertex_of_loose_edge_interpolate(SubdivMeshContext *ctx,
@@ -1093,14 +1092,13 @@ static void subdiv_mesh_vertex_of_loose_edge(const ForeachContext *foreach_conte
     subdiv_mesh_vertex_of_loose_edge_interpolate(ctx, coarse_edge, u, subdiv_vertex_index);
   }
   /* Interpolate coordinate. */
-  mesh_interpolate_position_on_edge(
-      reinterpret_cast<const float(*)[3]>(ctx->coarse_positions.data()),
-      ctx->coarse_edges.data(),
+  ctx->subdiv_positions[subdiv_vertex_index] = mesh_interpolate_position_on_edge(
+      ctx->coarse_positions,
+      ctx->coarse_edges,
       ctx->vert_to_edge_map,
       coarse_edge_index,
       is_simple,
-      u,
-      ctx->subdiv_positions[subdiv_vertex_index]);
+      u);
 }
 
 /** \} */

@@ -74,8 +74,8 @@ struct DRWSubdivLooseVertex {
    * of subdivision. */
   unsigned int coarse_vertex_index;
   /* Position and normal of the vertex. */
-  float co[3];
-  float nor[3];
+  float3 co;
+  float3 nor;
 };
 
 /** \} */
