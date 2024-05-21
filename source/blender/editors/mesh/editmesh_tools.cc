@@ -9200,12 +9200,13 @@ static bool average_normals_draw_check_prop(PointerRNA *ptr,
   const char *prop_id = RNA_property_identifier(prop);
   const int average_type = RNA_enum_get(ptr, "average_type");
 
-  /* Only show weight/threshold options in loop average type. */
+  /* Only show weight/threshold options when not in loop average type. */
+  const bool is_clor_average_loop = average_type == EDBM_CLNOR_AVERAGE_LOOP;
   if (STREQ(prop_id, "weight")) {
-    return (average_type == EDBM_CLNOR_AVERAGE_LOOP);
+    return !is_clor_average_loop;
   }
   if (STREQ(prop_id, "threshold")) {
-    return (average_type == EDBM_CLNOR_AVERAGE_LOOP);
+    return !is_clor_average_loop;
   }
 
   /* Else, show it! */
