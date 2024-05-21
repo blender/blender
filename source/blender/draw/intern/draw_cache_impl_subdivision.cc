@@ -832,8 +832,7 @@ static DRWSubdivCache &mesh_batch_cache_ensure_subdiv_cache(MeshBatchCache &mbc)
 {
   DRWSubdivCache *subdiv_cache = mbc.subdiv_cache;
   if (subdiv_cache == nullptr) {
-    subdiv_cache = static_cast<DRWSubdivCache *>(
-        MEM_callocN(sizeof(DRWSubdivCache), "DRWSubdivCache"));
+    subdiv_cache = MEM_new<DRWSubdivCache>(__func__);
   }
   mbc.subdiv_cache = subdiv_cache;
   return *subdiv_cache;

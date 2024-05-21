@@ -801,7 +801,7 @@ static void mesh_batch_cache_free_subdiv_cache(MeshBatchCache &cache)
 {
   if (cache.subdiv_cache) {
     draw_subdiv_cache_free(*cache.subdiv_cache);
-    MEM_freeN(cache.subdiv_cache);
+    MEM_delete(cache.subdiv_cache);
     cache.subdiv_cache = nullptr;
   }
 }
