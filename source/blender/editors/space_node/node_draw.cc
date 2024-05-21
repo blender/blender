@@ -3107,10 +3107,9 @@ static void node_draw_extra_info_row(const bNode &node,
                              extra_info_row.tooltip);
 
   if (extra_info_row.tooltip_fn != nullptr) {
-    UI_but_func_tooltip_set(but_text,
-                            extra_info_row.tooltip_fn,
-                            extra_info_row.tooltip_fn_arg,
-                            extra_info_row.tooltip_fn_free_arg);
+    /* Don't pass tooltip free function because it's already used on the uiBut above. */
+    UI_but_func_tooltip_set(
+        but_text, extra_info_row.tooltip_fn, extra_info_row.tooltip_fn_arg, nullptr);
   }
 
   if (node.flag & NODE_MUTED) {
