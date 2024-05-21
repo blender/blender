@@ -597,17 +597,17 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   SculptFakeNeighbors fake_neighbors = {};
 
   /* Transform operator */
-  blender::float3 pivot_pos;
-  float pivot_rot[4];
-  blender::float3 pivot_scale;
+  blender::float3 pivot_pos = {};
+  blender::float4 pivot_rot = {};
+  blender::float3 pivot_scale = {};
 
-  blender::float3 init_pivot_pos;
-  float init_pivot_rot[4];
-  blender::float3 init_pivot_scale;
+  blender::float3 init_pivot_pos = {};
+  blender::float4 init_pivot_rot = {};
+  blender::float3 init_pivot_scale = {};
 
-  blender::float3 prev_pivot_pos;
-  float prev_pivot_rot[4];
-  blender::float3 prev_pivot_scale;
+  blender::float3 prev_pivot_pos = {};
+  blender::float4 prev_pivot_rot = {};
+  blender::float3 prev_pivot_scale = {};
 
   struct {
     struct {
