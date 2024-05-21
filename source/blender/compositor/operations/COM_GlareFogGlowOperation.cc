@@ -85,6 +85,7 @@ void GlareFogGlowOperation::generate_glare(float *output,
 
   /* Compute the kernel while zero padding to match the padded image size. */
   threading::parallel_for(IndexRange(spatial_size.y), 1, [&](const IndexRange sub_y_range) {
+    double &sum = sum_by_thread.local();
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(spatial_size.x)) {
         /* We offset the computed kernel with wrap around such that it is centered at the zero
@@ -98,7 +99,7 @@ void GlareFogGlowOperation::generate_glare(float *output,
         if (is_inside_kernel) {
           const float kernel_value = compute_fog_glow_kernel_value(x, y, kernel_size);
           kernel_spatial_domain[output_x + output_y * spatial_size.x] = kernel_value;
-          sum_by_thread.local() += kernel_value;
+          sum += kernel_value;
         }
         else {
           kernel_spatial_domain[output_x + output_y * spatial_size.x] = 0.0f;
@@ -120,7 +121,7 @@ void GlareFogGlowOperation::generate_glare(float *output,
   /* We only process the color channels, the alpha channel is written to the output as is. */
   const int channels_count = 3;
   const int64_t spatial_pixels_per_channel = int64_t(spatial_size.x) * spatial_size.y;
-  const int64_t frequency_pixels_per_channel = int64_t(spatial_size.x) * spatial_size.y;
+  const int64_t frequency_pixels_per_channel = int64_t(frequency_size.x) * frequency_size.y;
   const int64_t spatial_pixels_count = spatial_pixels_per_channel * channels_count;
   const int64_t frequency_pixels_count = frequency_pixels_per_channel * channels_count;
 
