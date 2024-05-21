@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_vector.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -56,19 +58,27 @@ class SunBeamsOperation : public NodeOperation {
 
   void execute() override
   {
+    Result &input_image = get_input("Image");
+    Result &output_image = get_result("Image");
+
+    const int2 input_size = input_image.domain().size;
+    const int max_steps = int(node_storage(bnode()).ray_length * math::length(input_size));
+    if (max_steps == 0) {
+      input_image.pass_through(output_image);
+      return;
+    }
+
     GPUShader *shader = context().get_shader("compositor_sun_beams");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_2fv(shader, "source", node_storage(bnode()).source);
-    GPU_shader_uniform_1f(shader, "max_ray_length", node_storage(bnode()).ray_length);
+    GPU_shader_uniform_1i(shader, "max_steps", max_steps);
 
-    const Result &input_image = get_input("Image");
     GPU_texture_filter_mode(input_image.texture(), true);
     GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     input_image.bind_as_texture(shader, "input_tx");
 
     const Domain domain = compute_domain();
-    Result &output_image = get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
