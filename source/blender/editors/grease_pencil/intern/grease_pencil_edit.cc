@@ -694,14 +694,14 @@ static int grease_pencil_delete_frame_exec(bContext *C, wmOperator *op)
   bool changed = false;
   if (mode == DeleteFrameMode::ACTIVE_FRAME && grease_pencil.has_active_layer()) {
     bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
-    if (layer.is_editable() && layer.frame_key_at(current_frame)) {
-      changed |= grease_pencil.remove_frames(layer, {*layer.frame_key_at(current_frame)});
+    if (layer.is_editable() && layer.start_frame_at(current_frame)) {
+      changed |= grease_pencil.remove_frames(layer, {*layer.start_frame_at(current_frame)});
     }
   }
   else if (mode == DeleteFrameMode::ALL_FRAMES) {
     for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
-      if (layer->is_editable() && layer->frame_key_at(current_frame)) {
-        changed |= grease_pencil.remove_frames(*layer, {*layer->frame_key_at(current_frame)});
+      if (layer->is_editable() && layer->start_frame_at(current_frame)) {
+        changed |= grease_pencil.remove_frames(*layer, {*layer->start_frame_at(current_frame)});
       }
     }
   }

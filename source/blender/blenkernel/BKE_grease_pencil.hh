@@ -457,7 +457,8 @@ class Layer : public ::GreasePencilLayer {
 
   /**
    * \returns the index of the active drawing at frame \a frame_number or -1 if there is no
-   * drawing. */
+   * drawing.
+   * TODO: This should be a private API! */
   int drawing_index_at(const int frame_number) const;
 
   /**
@@ -466,9 +467,16 @@ class Layer : public ::GreasePencilLayer {
   bool has_drawing_at(const int frame_number) const;
 
   /**
-   * \returns the key of the active frame at \a frame_number or #std::nullopt if there is no frame.
+   * \returns the start frame number of the active frame at \a frame_number or #std::nullopt if no
+   * such frame exists.
    */
-  std::optional<FramesMapKeyT> frame_key_at(int frame_number) const;
+  std::optional<int> start_frame_at(int frame_number) const;
+
+  /**
+   * \returns the index of the key of the active frame in `sorted_keys` or -1 if no such frame
+   * exists.
+   */
+  int sorted_keys_index_at(int frame_number) const;
 
   /**
    * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
@@ -530,6 +538,17 @@ class Layer : public ::GreasePencilLayer {
   using SortedKeysIterator = const int *;
 
  private:
+  /**
+   * \returns an iterator into the `sorted_keys` span to the frame at \a frame_number or nullptr if
+   * no such frame exists.
+   */
+  SortedKeysIterator sorted_keys_iterator_at(int frame_number) const;
+  /**
+   * \returns the key of the active frame at \a frame_number or #std::nullopt if no such frame
+   * exists.
+   */
+  std::optional<FramesMapKeyT> frame_key_at(int frame_number) const;
+
   GreasePencilFrame *add_frame_internal(int frame_number);
 
   /**
