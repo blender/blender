@@ -6423,17 +6423,25 @@ static void ui_template_status_info_warnings_messages(Main *bmain,
                                                       Scene *scene,
                                                       ViewLayer *view_layer,
                                                       std::string &warning_message,
-                                                      std::string &regular_message,
-                                                      std::string &tooltip_message)
+                                                      std::string &regular_message)
 {
-  tooltip_message = "";
   char statusbar_info_flag = U.statusbar_flag;
 
   if (bmain->has_forward_compatibility_issues) {
     warning_message = ED_info_statusbar_string_ex(
         bmain, scene, view_layer, STATUSBAR_SHOW_VERSION);
     statusbar_info_flag &= ~STATUSBAR_SHOW_VERSION;
+  }
 
+  regular_message = ED_info_statusbar_string_ex(bmain, scene, view_layer, statusbar_info_flag);
+}
+
+static std::string ui_template_status_tooltip(bContext *C, void * /*argN*/, const char * /*tip*/)
+{
+  Main *bmain = CTX_data_main(C);
+  std::string tooltip_message = "";
+
+  if (bmain->has_forward_compatibility_issues) {
     char writer_ver_str[12];
     BKE_blender_version_blendfile_string_from_values(
         writer_ver_str, sizeof(writer_ver_str), bmain->versionfile, -1);
@@ -6450,7 +6458,7 @@ static void ui_template_status_info_warnings_messages(Main *bmain,
         "Take care to avoid data loss when editing assets.");
   }
 
-  regular_message = ED_info_statusbar_string_ex(bmain, scene, view_layer, statusbar_info_flag);
+  return tooltip_message;
 }
 
 void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
@@ -6470,9 +6478,8 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
 
   std::string warning_message;
   std::string regular_message;
-  std::string tooltip_message;
   ui_template_status_info_warnings_messages(
-      bmain, scene, view_layer, warning_message, regular_message, tooltip_message);
+      bmain, scene, view_layer, warning_message, regular_message);
 
   uiItemL(layout, regular_message.c_str(), ICON_NONE);
 
@@ -6526,12 +6533,6 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   UI_block_align_end(block);
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
-  /* Tool tips have to be static currently.
-   * FIXME This is a horrible requirement from uiBut, should probably just store an std::string for
-   * the tooltip as well? */
-  static char tooltip_static_storage[256];
-  BLI_strncpy(tooltip_static_storage, tooltip_message.c_str(), sizeof(tooltip_static_storage));
-
   /* The warning icon itself. */
   but = uiDefIconBut(block,
                      UI_BTYPE_BUT,
@@ -6544,7 +6545,8 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                      nullptr,
                      0.0f,
                      0.0f,
-                     tooltip_static_storage);
+                     nullptr);
+  UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
   UI_GetThemeColorType4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
 
@@ -6561,7 +6563,8 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                    nullptr,
                    0.0f,
                    0.0f,
-                   tooltip_static_storage);
+                   nullptr);
+    UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
   }
 
   UI_block_emboss_set(block, previous_emboss);
