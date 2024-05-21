@@ -966,8 +966,7 @@ short ANIM_get_normalization_flags(SpaceLink *space_link);
 /**
  * Get unit conversion factor for given ID + F-Curve.
  */
-float ANIM_unit_mapping_get_factor(
-    Scene *scene, const ID *id, FCurve *fcu, short flag, float *r_offset);
+float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag, float *r_offset);
 
 /** \} */
 
