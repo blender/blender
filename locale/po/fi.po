@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -234,6 +234,30 @@ msgid "Collection of action groups"
 msgstr "Toimintaryhmäkokoelma"
 
 
+msgid "Mix Mode"
+msgstr "Sekoitustila"
+
+
+msgid "Replace"
+msgstr "Korvaa"
+
+
+msgid "Offset"
+msgstr "Siirros"
+
+
+msgid "Add"
+msgstr "Lisää"
+
+
+msgid "Subtract"
+msgstr "Vähennä"
+
+
+msgid "Multiply"
+msgstr "Kerro"
+
+
 msgid "Add-on"
 msgstr "Lisäosa"
 
@@ -252,22 +276,6 @@ msgstr "Moduulin nimi"
 
 msgid "Add-on Preferences"
 msgstr "Lisäosien oletusasetukset"
-
-
-msgid "Password"
-msgstr "Salasana"
-
-
-msgid "E-mail address"
-msgstr "Sähköpostiosoite"
-
-
-msgid "Error Message"
-msgstr "Virheilmoitus"
-
-
-msgid "Message"
-msgstr "Ilmoitus"
 
 
 msgid "Full"
@@ -310,24 +318,12 @@ msgid "Active Action for this data-block"
 msgstr "Aktiiviset toiminnot tälle data-palikalle"
 
 
-msgid "Replace"
-msgstr "Korvaa"
+msgid "New"
+msgstr "Uusi"
 
 
 msgid "Combine"
 msgstr "Yhdistä"
-
-
-msgid "Add"
-msgstr "Lisää"
-
-
-msgid "Subtract"
-msgstr "Vähennä"
-
-
-msgid "Multiply"
-msgstr "Kerro"
 
 
 msgid "Nothing"
@@ -344,10 +340,6 @@ msgstr "Pidä eteenpäin"
 
 msgid "Only hold last frame"
 msgstr "Pidä ainoastaan viimeinen kehys"
-
-
-msgid "New"
-msgstr "Uusi"
 
 
 msgid "Drivers"
@@ -468,14 +460,6 @@ msgstr "Polkutyypit"
 
 msgid "Around Frame"
 msgstr "Kehyksen ympärillä"
-
-
-msgid "Mix Mode"
-msgstr "Sekoitustila"
-
-
-msgid "Offset"
-msgstr "Siirros"
 
 
 msgid "Any Type"
@@ -4394,10 +4378,6 @@ msgid "Z Direction"
 msgstr "Z-suunta"
 
 
-msgid "Animations"
-msgstr "Animaatiot"
-
-
 msgid "Show Armature data-blocks"
 msgstr "Näytä luurangon data-palikat"
 
@@ -4540,6 +4520,10 @@ msgstr "Näytä maailman data-palikat"
 
 msgid "Save"
 msgstr "Tallenna"
+
+
+msgid "Animations"
+msgstr "Animaatiot"
 
 
 msgid "Environment"
@@ -4722,6 +4706,10 @@ msgid "Corner"
 msgstr "Kulma"
 
 
+msgid "Attribute"
+msgstr "Ominaisuus"
+
+
 msgid "Sculpt"
 msgstr "Veistä"
 
@@ -4782,10 +4770,6 @@ msgstr "Matematiikka"
 
 msgid "Node"
 msgstr "Noodi"
-
-
-msgid "Attribute"
-msgstr "Ominaisuus"
 
 
 msgid "Read"
@@ -6685,14 +6669,6 @@ msgid "Output B"
 msgstr "B-tuloste"
 
 
-msgid "Global Space"
-msgstr "Globaali tila"
-
-
-msgid "Scene Unit"
-msgstr "Kohtauksen yksikkö"
-
-
 msgid "Null"
 msgstr "Mitätön"
 
@@ -7417,8 +7393,16 @@ msgid "Column"
 msgstr "Sarake"
 
 
+msgid "Scene Unit"
+msgstr "Kohtauksen yksikkö"
+
+
 msgid "Canvas"
 msgstr "Kangas"
+
+
+msgid "Password"
+msgstr "Salasana"
 
 
 msgid "XYZ"
@@ -7595,6 +7579,10 @@ msgid "Matrix Object"
 msgstr "Matriisiobjekti"
 
 
+msgid "Error Message"
+msgstr "Virheilmoitus"
+
+
 msgid "Variable"
 msgstr "Muuttuja"
 
@@ -7732,6 +7720,38 @@ msgid "Snap"
 msgstr "Napsauta"
 
 
+msgid "File:"
+msgstr "Tiedosto:"
+
+
+msgid "name"
+msgstr "nimi"
+
+
+msgid "Description:"
+msgstr "Kuvaus­:"
+
+
+msgid "Version:"
+msgstr "Versio:"
+
+
+msgid "Warning:"
+msgstr "Varoitus:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Path:"
+msgstr "Polku:"
+
+
+msgid "Size:"
+msgstr "Koko:"
+
+
 msgid "Viewports"
 msgstr "Näkymät"
 
@@ -7740,26 +7760,8 @@ msgid "Clear Image"
 msgstr "Siivoa kuva"
 
 
-msgid "Position:"
-msgstr "Sijainti:"
-
-
 msgid "Limit to"
 msgstr "Rajoita"
-
-
-msgctxt "Operator"
-msgid "Area"
-msgstr "Alue"
-
-
-msgctxt "Operator"
-msgid "Solid"
-msgstr "Kiinteä"
-
-
-msgid "Result"
-msgstr "Tulos"
 
 
 msgid "HP Reverb G2"
@@ -8005,10 +8007,6 @@ msgid "category"
 msgstr "kategoria"
 
 
-msgid "name"
-msgstr "nimi"
-
-
 msgid "B/W"
 msgstr "M/V"
 
@@ -8055,6 +8053,16 @@ msgstr "Siirry...."
 msgctxt "Operator"
 msgid "Snap"
 msgstr "Napsauta"
+
+
+msgctxt "Operator"
+msgid "More"
+msgstr "Enemmän"
+
+
+msgctxt "Operator"
+msgid "Less"
+msgstr "Vähemmän"
 
 
 msgid "Recursions"
@@ -8119,16 +8127,6 @@ msgstr "Tekstitiedostot"
 
 msgid "Simple Name"
 msgstr "Yksinkertainen nimi"
-
-
-msgctxt "Operator"
-msgid "Less"
-msgstr "Vähemmän"
-
-
-msgctxt "Operator"
-msgid "More"
-msgstr "Enemmän"
 
 
 msgctxt "Operator"
@@ -8401,28 +8399,8 @@ msgid "Error (see console)"
 msgstr "Virhe (katso konsoli)"
 
 
-msgid "Description:"
-msgstr "Kuvaus­:"
-
-
 msgid "Location:"
 msgstr "Sijainti:"
-
-
-msgid "File:"
-msgstr "Tiedosto:"
-
-
-msgid "Version:"
-msgstr "Versio:"
-
-
-msgid "Warning:"
-msgstr "Varoitus:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
 
 
 msgctxt "Operator"
@@ -9159,16 +9137,8 @@ msgid "New"
 msgstr "Uusi"
 
 
-msgid "Manual Transform"
-msgstr "Manuaalinen muutos"
-
-
 msgid "Close"
 msgstr "Sulje"
-
-
-msgid "Only"
-msgstr "Vain"
 
 
 msgid "Can't overwrite export file"
@@ -9238,6 +9208,10 @@ msgstr "Pallo"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Icopallo"
+
+
+msgid "Cancel"
+msgstr "Peruuta"
 
 
 msgid "No face selected"
@@ -9630,6 +9604,10 @@ msgid "Track is locked"
 msgstr "Raide on lukittu"
 
 
+msgid "Position:"
+msgstr "Sijainti:"
+
+
 msgid "X:"
 msgstr "X:"
 
@@ -9652,10 +9630,6 @@ msgstr "Korkeus:"
 
 msgid "File path"
 msgstr "Tiedostopolku"
-
-
-msgid "Cancel"
-msgstr "Peruuta"
 
 
 msgid "File name"
@@ -9960,10 +9934,6 @@ msgstr "4L"
 
 msgid "Radius (Parent)"
 msgstr "Säde (isäntä)"
-
-
-msgid "Size:"
-msgstr "Koko:"
 
 
 msgid "right"
@@ -10325,10 +10295,6 @@ msgid "Outer Mask"
 msgstr "Ulkomaski"
 
 
-msgid "Path:"
-msgstr "Polku:"
-
-
 msgid "Base Path:"
 msgstr "Peruspolku:"
 
@@ -10367,6 +10333,10 @@ msgstr "Piste"
 
 msgid "Degr"
 msgstr "Aste"
+
+
+msgid "Result"
+msgstr "Tulos"
 
 
 msgid "Rotate By"
@@ -11446,20 +11416,8 @@ msgid "File > Import-Export"
 msgstr "Tieodosto > Tuo-Vie"
 
 
-msgid "Export Camera Animation"
-msgstr "Vie kameraanimaatio"
-
-
 msgid "FBX format"
 msgstr "FBX-formaatti"
-
-
-msgid "Import Images as Planes"
-msgstr "Tuo kuva tasoina"
-
-
-msgid "Import-Export STL files"
-msgstr "Tuo-Vie STL-tiedostot"
 
 
 msgid "Import SVG as curves"
@@ -11478,28 +11436,8 @@ msgid "Import-Export as glTF 2.0"
 msgstr "Tuo-Vie glTF 2.0 -tiedostomuodossa"
 
 
-msgid "3D View > Sidebar"
-msgstr "3D-näkymä > sivupaneeli"
-
-
 msgid "Cycles Render Engine"
 msgstr "Cycles-renderöintimoottori"
-
-
-msgid "Freestyle SVG Exporter"
-msgstr "Vapaa SVG viejä"
-
-
-msgid "Add-on preferences"
-msgstr "Lisäosien mieltymykset"
-
-
-msgid "Demo Mode"
-msgstr "Demotila"
-
-
-msgid "File > Demo Menu"
-msgstr "Tiedosto > Demovalikko"
 
 
 msgid "Manage UI translations"
@@ -11518,20 +11456,8 @@ msgid "All Add-ons Installed by User"
 msgstr "Kaikki käyttäjän asentamat lisäosat"
 
 
-msgid "Add Curve"
-msgstr "Lisää käyrä"
-
-
-msgid "Add Mesh"
-msgstr "Lisää muoto"
-
-
 msgid "Import-Export"
 msgstr "Tuo-Vie"
-
-
-msgid "Video Tools"
-msgstr "Videotyökalut"
 
 
 msgid "English (English)"

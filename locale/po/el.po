@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -35,8 +35,12 @@ msgid "Select"
 msgstr "Επιλογή"
 
 
-msgid "Message"
-msgstr "Μήνυμα"
+msgid "Add"
+msgstr "Προσθήκη"
+
+
+msgid "Subtract"
+msgstr "Αφαίρεση"
 
 
 msgid "On"
@@ -47,20 +51,12 @@ msgid "Action"
 msgstr "Δράση"
 
 
-msgid "Add"
-msgstr "Προσθήκη"
-
-
-msgid "Subtract"
-msgstr "Αφαίρεση"
+msgid "New"
+msgstr "Νέο"
 
 
 msgid "Hold"
 msgstr "Κράτα"
-
-
-msgid "New"
-msgstr "Νέο"
 
 
 msgid "End Frame"
@@ -551,6 +547,10 @@ msgid "Sharp"
 msgstr "Απότομο"
 
 
+msgid "Themes"
+msgstr "Θέματα"
+
+
 msgid "Mist"
 msgstr "Ομίχλη"
 
@@ -895,10 +895,6 @@ msgid "Sync"
 msgstr "Συγχρον"
 
 
-msgid "Themes"
-msgstr "Θέματα"
-
-
 msgctxt "Operator"
 msgid "Save"
 msgstr "Αποθήκευση"
@@ -944,10 +940,6 @@ msgstr "Polar ZY"
 
 msgid "Pan"
 msgstr "Ολίσθηση προβολής"
-
-
-msgid "Pause"
-msgstr "Παύση"
 
 
 msgctxt "Operator"
@@ -1042,12 +1034,12 @@ msgid "Layer:"
 msgstr "Στρώμα"
 
 
-msgid "Fields"
-msgstr "Πεδία"
-
-
 msgid "Cancel"
 msgstr "Ακύρωση"
+
+
+msgid "Fields"
+msgstr "Πεδία"
 
 
 msgid "Life"

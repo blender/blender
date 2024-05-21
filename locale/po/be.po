@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: 2024-02-23 23:56+0000\n"
 "Last-Translator: Aleh <zucchini.enjoyer@protonmail.com>\n"
 "Language-Team: Belarusian <https://translate.blender.org/projects/blender-ui/ui/be/>\n"
@@ -287,22 +287,6 @@ msgid "Add-on Preferences"
 msgstr "Налады дадатка"
 
 
-msgid "Password"
-msgstr "Пароль"
-
-
-msgid "E-mail address"
-msgstr "Адрасы электроннай пошты"
-
-
-msgid "Error Message"
-msgstr "Паведамленне аб памылцы"
-
-
-msgid "Message"
-msgstr "Паведамленне"
-
-
 msgid "Compute Device Type"
 msgstr "Тып вылічальнай прылады"
 
@@ -413,4 +397,12 @@ msgstr "Рэпазіторый bf-translation"
 
 msgid "Import Paths"
 msgstr "Шляхі імпарту"
+
+
+msgid "Password"
+msgstr "Пароль"
+
+
+msgid "Error Message"
+msgstr "Паведамленне аб памылцы"
 

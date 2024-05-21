@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -167,14 +167,6 @@ msgid "Expanded"
 msgstr "Hedatua"
 
 
-msgid "Message"
-msgstr "Mezua"
-
-
-msgid "Action"
-msgstr "Akzioa"
-
-
 msgid "Replace"
 msgstr "Ordezkatu"
 
@@ -187,8 +179,8 @@ msgid "Multiply"
 msgstr "Biderkatu"
 
 
-msgid "Animation"
-msgstr "Animazioa"
+msgid "Action"
+msgstr "Akzioa"
 
 
 msgid "New"
@@ -501,6 +493,10 @@ msgid "Cube"
 msgstr "Kuboa"
 
 
+msgid "Filter"
+msgstr "Filtroa"
+
+
 msgid "Edit"
 msgstr "Editatu"
 
@@ -523,10 +519,6 @@ msgstr "Irudiaren ehundura"
 
 msgid "Filter Size"
 msgstr "Filtroaren tamaina"
-
-
-msgid "Filter"
-msgstr "Filtroa"
 
 
 msgid "Area"
@@ -555,6 +547,10 @@ msgstr "Y Ispilua"
 
 msgid "Mist"
 msgstr "Laino"
+
+
+msgid "Animation"
+msgstr "Animazioa"
 
 
 msgid "Owner"
@@ -947,15 +943,6 @@ msgstr "-Z ardatza"
 
 msgid "Use Metadata"
 msgstr "Metadata erabili"
-
-
-msgid "Hierarchy"
-msgstr "Hierarkia"
-
-
-msgctxt "Operator"
-msgid "Export MDD"
-msgstr "Esportatu MDD"
 
 
 msgid "Top of the list"
@@ -1508,6 +1495,10 @@ msgid "Child"
 msgstr "Umea"
 
 
+msgid "Hierarchy"
+msgstr "Hierarkia"
+
+
 msgid "Reset"
 msgstr "Berhasieratu"
 
@@ -1689,10 +1680,6 @@ msgid "Object Name"
 msgstr "Objectuaren Izena"
 
 
-msgid "Prev"
-msgstr "Aurrekoa"
-
-
 msgctxt "Operator"
 msgid "Load Factory Settings"
 msgstr "Lehenetsitako ezarpenak kargatu"
@@ -1867,6 +1854,11 @@ msgstr "Animazioa"
 
 
 msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Akats baten berri eman"
+
+
+msgctxt "Operator"
 msgid "New"
 msgstr "Berria"
 
@@ -1976,11 +1968,6 @@ msgstr "Kopia gorde..."
 msgctxt "Operator"
 msgid "Render Image"
 msgstr "Irudia Renderizatu"
-
-
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Akats baten berri eman"
 
 
 msgctxt "Operator"
@@ -2366,10 +2353,6 @@ msgstr "Euskarri gabeko formatua"
 
 msgid "Cannot read %s '%s': %s"
 msgstr "Ezin da irakurri %s '%s': %s"
-
-
-msgid "Add Curve"
-msgstr "Kurba Gehitu"
 
 
 msgid "Import-Export"

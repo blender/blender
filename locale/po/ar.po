@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: 2024-04-29 13:28+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -34,6 +34,10 @@ msgstr "ﻥﻮﻠﻟﺍ"
 
 msgid "Value"
 msgstr "ﺔﻤﻴﻗ"
+
+
+msgid "F-Curves"
+msgstr "ﺔﻴﻧﺎﻴﺑ-ﻁﻮﻄﺧ"
 
 
 msgid "Action Group"
@@ -180,16 +184,44 @@ msgid "Expanded"
 msgstr "ﻊﺳﻮﻣ"
 
 
+msgid "Influence"
+msgstr "ﺮﻴﺛﺄﺘﻟﺍ"
+
+
+msgid "Mix Mode"
+msgstr "ﻂﻠﺨﻟﺍ ﻊﺿﻭ"
+
+
+msgid "Replace"
+msgstr "ﻝﺪﺒﺘﺳﺍ"
+
+
+msgid "Offset"
+msgstr "ﺡﺯﺃ"
+
+
+msgid "Add"
+msgstr "ﻒﺿﺃ"
+
+
+msgid "Subtract"
+msgstr "ﺡﺮﻃﺃ"
+
+
+msgid "Multiply"
+msgstr "ﻒﻋﺎﻀﺗ"
+
+
+msgid "Keyframe"
+msgstr "ﺡﺎﺘﻔﻤﻟﺍ"
+
+
 msgid "Module"
 msgstr "ﺓﺪﺣﻭ"
 
 
 msgid "Module name"
 msgstr "ﺓﺪﺣﻮﻟﺍ ﻢﺳﺇ"
-
-
-msgid "Message"
-msgstr "ﺔﻟﺎﺳﺭ"
 
 
 msgid "Compute Device Type"
@@ -272,6 +304,10 @@ msgid "Action"
 msgstr "ﺙﺪﺤﻟﺍ"
 
 
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
 msgid "Action Blending"
 msgstr "ﺕﺎﻴﻠﻤﻌﻟﺍ ﻞﺧﺍﺪﺗ"
 
@@ -280,28 +316,12 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "ﺔﻴﻄﺧ ﺮﻴﻐﻟﺍ ﺕﺎﻛﺮﺤﻟﺍ ﻡﺰﺣ ﺔﺠﻴﺘﻧ ﻭ ﺔﻴﻟﺎﺤﻟﺍ ﺔﻴﻠﻤﻌﻟﺍ ﺔﺠﻴﺘﻧ ﻦﻴﺑ ﻊﻤﺠﻠﻟ ﺔﻠﻤﻌﺘﺴﻤﻟﺍ ﺔﻠﻴﺳﻮﻟﺍ"
 
 
-msgid "Replace"
-msgstr "ﻝﺪﺒﺘﺳﺍ"
-
-
-msgid "Add"
-msgstr "ﻒﺿﺃ"
-
-
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "ﺔﻤﻛﺍﺮﺘﻤﻟﺍ ﺞﺋﺎﺘﻨﻟﺍ ﻰﻟﺇ ﻑﺎﻀﺗ ﺔﺤﺟﺮﻤﻟﺍ ﻂﻳﺮﺸﻟﺍ ﺔﺠﻴﺘﻧ"
 
 
-msgid "Subtract"
-msgstr "ﺡﺮﻃﺃ"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "ﺔﻤﻛﺍﺮﺘﻤﻟﺍ ﺞﺋﺎﺘﻨﻟﺍ ﻦﻣ ﻑﺬﺤﺗ ﺔﺤﺟﺮﻤﻟﺍ ﻂﻳﺮﺸﻟﺍ ﺔﺠﻴﺘﻧ"
-
-
-msgid "Multiply"
-msgstr "ﻒﻋﺎﻀﺗ"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -346,14 +366,6 @@ msgstr "ﺔﻴﻠﻤﻌﻟﺍ ﺮﻴﺛﺄﺗ"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "ﺔﻛﺮﺤﻟﺍ ﺭﺮﺤﻣ ﺱﺪﻜﺗ ﻲﻓ ﺔﻴﻟﺎﺤﻟﺍ ﺔﻴﻠﻤﻌﻟﺍ ﻪﺑ ﻙﺭﺎﺸﺗ ﻱﺬﻟﺍ ﺭﺍﺪﻘﻤﻟﺍ"
-
-
-msgid "Animation"
-msgstr "ﺔﻛﺮﺣ"
-
-
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
 
 
 msgid "Drivers"
@@ -502,26 +514,6 @@ msgstr "ﻕﺎﻄﻨﻟﺍ ﻲﻓ"
 
 msgid "Display Paths of poses within specified range"
 msgstr "ﺩﺪﺤﻣ ﻕﺎﻄﻧ ﻦﻤﺿ ﺕﺎﻔﻗﻮﻟﺍ ﺕﺍﺭﺎﺴﻣ ﺽﺮﻋﺇ"
-
-
-msgid "F-Curves"
-msgstr "ﺔﻴﻧﺎﻴﺑ-ﻁﻮﻄﺧ"
-
-
-msgid "Influence"
-msgstr "ﺮﻴﺛﺄﺘﻟﺍ"
-
-
-msgid "Mix Mode"
-msgstr "ﻂﻠﺨﻟﺍ ﻊﺿﻭ"
-
-
-msgid "Offset"
-msgstr "ﺡﺯﺃ"
-
-
-msgid "Keyframe"
-msgstr "ﺡﺎﺘﻔﻤﻟﺍ"
 
 
 msgid "Any Type"
@@ -7299,10 +7291,6 @@ msgid "Both Z"
 msgstr "ﻱﺩﻮﻤﻋ ﻞﻜﻟﺍ"
 
 
-msgid "Animations"
-msgstr "ﺕﺎﻜﻳﺮﺤﺘﻟﺍ"
-
-
 msgid "Fonts"
 msgstr "ﻁﻮﻄﺨﻟﺍ"
 
@@ -7345,6 +7333,10 @@ msgstr "ﻒﻠﻤﻟﺍ ﺕﺎﺌﻴﻫ"
 
 msgid "Label"
 msgstr "ﻖﺼﻠﻣ"
+
+
+msgid "Animations"
+msgstr "ﺕﺎﻜﻳﺮﺤﺘﻟﺍ"
 
 
 msgid "Environment"
@@ -8977,6 +8969,10 @@ msgid "World"
 msgstr "ﻢﻟﺎﻌﻟﺍ"
 
 
+msgid "Editable"
+msgstr "ﻞﻳﺪﻌﺘﻟﺍ ﻞﺑﺎﻗ"
+
+
 msgid "Is Indirect"
 msgstr "ﺮﺷﺎﺒﻣ ﺮﻴﻏ ﻮﻫ"
 
@@ -9025,16 +9021,16 @@ msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KN
 msgstr "ﻞﻌﻔﺗ ﺎﻣ ﻑﺮﻌﺗ ﻻ﻿ ﺍﺫﺍ ﺎﻫﺮﻴﻐﺗ ﻻ﻿ - ﺙﺪﺤﻟﺍ ﺎﻬﻴﻠﻋ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻑﺮّﻌﻤﻟﺍ ﺔﻠﺘﻛ ﻉﻮﻧ"
 
 
+msgid "Layers"
+msgstr "ﺕﺎﻘﺒﻃ"
+
+
 msgid "Pose Markers"
 msgstr "ﺔﻔﻗﻮﻟﺍ ﺕﺎﻣﻼ﻿ﻋ"
 
 
 msgid "Markers specific to this action, for labeling poses"
 msgstr "ﺕﺎﻔﻗﻮﻟﺍ ﺔﻧﻮﻨﻌﻟ ,ﺙﺪﺤﻟﺍ ﺍﺬﻬﺑ ﺔﺻﺎﺨﻟﺍ ﺕﺎﻣﻼ﻿ﻌﻟﺍ"
-
-
-msgid "Layers"
-msgstr "ﺕﺎﻘﺒﻃ"
 
 
 msgid "Octahedral"
@@ -11825,6 +11821,30 @@ msgid "The node tree label"
 msgstr "ﺓﺪﻘﻌﻟﺍ ﺓﺮﺠﺷ ﻖﺼﻠﻣ"
 
 
+msgid "Attribute"
+msgstr "ﺔﻤﺳ"
+
+
+msgid "Converter"
+msgstr "ﻝﻮّﺤﻣ"
+
+
+msgid "Distort"
+msgstr "ﻩﻮﺷ"
+
+
+msgid "Filter"
+msgstr "ﻲﻔﺼﻣ"
+
+
+msgid "Matte"
+msgstr "ﻲﻔﻄﻣ"
+
+
+msgid "Shader"
+msgstr "ﻞﻠﻈﻤﻟﺍ"
+
+
 msgid "Grease Pencil Data"
 msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﻢﻠﻗ ﺕﺎﻧﺎﻴﺑ"
 
@@ -11839,10 +11859,6 @@ msgstr "ﺪﻘﻋ"
 
 msgid "Node Tree type (deprecated, bl_idname is the actual node tree type identifier)"
 msgstr "(ﺓﺪﻘﻌﻟﺍ ﺓﺮﺠﺷ ﻉﻮﻨﻟ ﻲﻘﻴﻘﺤﻟﺍ ﻑﺮّﻌﻤﻟﺍ ﻮﻫ bl_idname ,ﻲﻐﻠﻣ) ﺓﺪﻘﻌﻟﺍ ﺓﺮﺠﺷ ﻉﻮﻧ"
-
-
-msgid "Shader"
-msgstr "ﻞﻠﻈﻤﻟﺍ"
 
 
 msgid "Shader nodes"
@@ -11863,50 +11879,6 @@ msgstr "ﺐﻛﺮﻤﻟﺍ ﺓﺪﻘﻋ ﺓﺮﺠﺷ"
 
 msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "ﺐﻴﻛﺮﺘﻠﻟ ﺔﻣﺪﺨﺘﺴﻤﻟﺍ ﺔﻄﺒﺗﺮﻣ ﺪﻘﻋ ﻦﻣ ﺔﻧﻮﻜﻤﻟﺍ ﺓﺪﻘﻌﻟﺍ ﺓﺮﺠﺷ"
-
-
-msgid "Edit Quality"
-msgstr "ﺓﺩﻮﺠﻟﺍ ﺭﺮﺣ"
-
-
-msgid "Quality when editing"
-msgstr "ﺮﻳﺮﺤﺘﻟﺍ ﺪﻨﻋ ﺓﺩﻮﺟ"
-
-
-msgid "High"
-msgstr "ﻲﻟﺎﻋ"
-
-
-msgid "High quality"
-msgstr "ﺔﻴﻟﺎﻋ ﺓﺩﻮﺟ"
-
-
-msgid "Medium quality"
-msgstr "ﺔﻄﺳﻮﺘﻣ ﺓﺩﻮﺟ"
-
-
-msgid "Low"
-msgstr "ﻲﻧﺪﺘﻣ"
-
-
-msgid "Low quality"
-msgstr "ﺔﻴﻧﺪﺘﻣ ﺓﺩﻮﺟ"
-
-
-msgid "Render Quality"
-msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﺓﺩﻮﺟ"
-
-
-msgid "Quality when rendering"
-msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﻝﻼ﻿ﺧ ﺓﺩﻮﺠﻟﺍ"
-
-
-msgid "Two Pass"
-msgstr "ﻲﺋﺎﻨﺛ ﺮﻤﻣ"
-
-
-msgid "Use two pass execution during editing: first calculate fast nodes, second pass calculate all nodes"
-msgstr "ﺪﻘﻌﻟﺍ ﻞﻛ ﺐﺴﺤﻳ ﻲﻧﺎﺜﻟﺍ ,ﺔﻌﻳﺮﺴﻟﺍ ﺪﻘﻌﻟﺍ ﺐﺴﺤﻳ ﻝﻭﻻ﻿ﺍ :ﺮﻳﺮﺤﺘﻟﺍ ﻝﻼ﻿ﺧ ﻦﻴﺘﻠﺣﺮﻣ ﻰﻠﻋ ﺬﻴﻔﻨﺘﻟﺍ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgid "Use boundaries for viewer nodes and composite backdrop"
@@ -14175,10 +14147,6 @@ msgid "Multiply the filter size used by MIP Map and Interpolation"
 msgstr "ﺪﻴﻟﻮﺘﻟﺍ ﻭ ﺔﻄﻳﺮﺨﻟﺍ ﺢﻴﺤﺼﺘﻟ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻲﻔﺼﻤﻟﺍ ﻢﺠﺣ ﻒﻋﺎﺿ"
 
 
-msgid "Filter"
-msgstr "ﻲﻔﺼﻣ"
-
-
 msgid "Texture filter to use for sampling image"
 msgstr "ﺓﺭﻮﺼﻟﺍ ﺔﻨﻳﺎﻌﻤﻟ ﻡﺪﺨﺘﺴﻤﻟﺍ ﺞﻴﺴﻨﻟﺍ ﻲﻔﺼﻣ"
 
@@ -14691,6 +14659,10 @@ msgid "Maintained by community developers"
 msgstr "ﻊﻤﺘﺠﻤﻟﺍ ﻱﺭﻮّﻄﻣ ﻞﺒﻗ ﻦﻣ ﻪﻴﻟ ﻆﻓﺎﺤﻣ"
 
 
+msgid "Add-ons"
+msgstr "ﺲﺑﺎﻘﻤﻟﺍ"
+
+
 msgid "Key Configurations"
 msgstr "ﺡﺎﺘﻔﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
 
@@ -14801,6 +14773,10 @@ msgstr "ﺔﻌﺟﺍﺭ ﺔﻳﺬﻐﺗ"
 
 msgid "Maximum number of iterations for convergence in case of reiteration"
 msgstr "ﺭﺮّﻜﺘﻟﺍ ﺔﻟﺎﺣ ﻲﻓ ءﺎﻘﺘﻟﻺ﻿ﻟ ﺕﺍﺭﺍﺮﻜﺘﻟﺍ ﻦﻣ ﺩﺪﻋ ﺮﺒﻛﺍ"
+
+
+msgid "Animation"
+msgstr "ﺔﻛﺮﺣ"
 
 
 msgid "Stateless solver computing pose starting from current action and non-IK constraints"
@@ -16554,20 +16530,8 @@ msgid "Layout"
 msgstr "ﻖﻴﺴﻨﺗ"
 
 
-msgid "Converter"
-msgstr "ﻝﻮّﺤﻣ"
-
-
-msgid "Distort"
-msgstr "ﻩﻮﺷ"
-
-
 msgid "Node"
 msgstr "ﺓﺪﻘﻋ"
-
-
-msgid "Attribute"
-msgstr "ﺔﻤﺳ"
 
 
 msgid "Node Color Specials"
@@ -18506,10 +18470,6 @@ msgid "JPEG quality of proxy images"
 msgstr "JPEG ـﻠﻟ ﺏﻭﺪﻨﻤﻟﺍ ﺭﻮﺻ ﺓﺩﻮﺟ"
 
 
-msgid "Free Run No Gaps"
-msgstr "ﺕﺍﻮﺠﻓ ﻥﻭﺪﺑ ﺓﺮﺣ ﺔﻛﺮﺣ"
-
-
 msgid "Render Undistorted"
 msgstr "ﻪﻳﻮﺸﺗ ﻥﻭﺪﺑ ﺮﻴّﺻ"
 
@@ -19286,8 +19246,16 @@ msgid "RGB color space"
 msgstr "RGB ﻥﻮﻟ ﻝﺎﺠﻣ"
 
 
+msgid "High"
+msgstr "ﻲﻟﺎﻋ"
+
+
 msgid "Single"
 msgstr "ﻱﺩﺮﻓ"
+
+
+msgid "Low"
+msgstr "ﻲﻧﺪﺘﻣ"
 
 
 msgid "Channel used to determine matte"
@@ -22702,23 +22670,6 @@ msgstr "ﻊﺟﺍﺮﺗ ﺔﻟﺎﺳﺭ"
 
 
 msgctxt "Operator"
-msgid "Export Camera & Markers"
-msgstr "ﺕﺎﻣﻼ﻿ﻌﻟﺍ ﻭ ﺍﺮﻴﻤﻜﻟﺍ ﺭﺪَﺻ"
-
-
-msgid "End frame for export"
-msgstr "ﺮﻳﺪﺼﺘﻠﻟ ﺔﻳﺎﻬﻨﻟﺍ ﺭﺎﻃﺍ"
-
-
-msgid "Start frame for export"
-msgstr "ﺮﻳﺪﺼﺘﻠﻟ ﺔﻳﺍﺪﺒﻟﺍ ﺭﺎﻃﺍ"
-
-
-msgid "Only Selected"
-msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻂﻘﻓ"
-
-
-msgctxt "Operator"
 msgid "Export BVH"
 msgstr "BVH ﺭﺪّﺻ"
 
@@ -22739,22 +22690,6 @@ msgid "Euler (ZYX)"
 msgstr "(ZYX) ﺮﻟﻮﻳ"
 
 
-msgid "Z Forward"
-msgstr "Z ﻡﺎﻣﻸ﻿ﻟ"
-
-
-msgid "-X Forward"
-msgstr "-X ﻡﺎﻣﻸ﻿ﻟ"
-
-
-msgid "-Y Up"
-msgstr "-Y ﻕﻮﻔﻟ"
-
-
-msgid "Apply Modifiers"
-msgstr "ﺕﺍﺮﻴّﻐﻤﻟﺍ ﻖﺒّﻃ"
-
-
 msgctxt "Operator"
 msgid "Export FBX"
 msgstr "FBX ﺭﺪّﺻ"
@@ -22766,6 +22701,18 @@ msgstr "ﺓﺪﺣﻮﻟﺍ ﻖﺒﻃ"
 
 msgid "Null"
 msgstr "ﻼ﻿ﻣﺎﻛ"
+
+
+msgid "Z Forward"
+msgstr "Z ﻡﺎﻣﻸ﻿ﻟ"
+
+
+msgid "-X Forward"
+msgstr "-X ﻡﺎﻣﻸ﻿ﻟ"
+
+
+msgid "-Y Up"
+msgstr "-Y ﻕﻮﻔﻟ"
 
 
 msgid "Baked Animation"
@@ -22828,25 +22775,8 @@ msgid "Loose Edges"
 msgstr "ﺔﻘﻠﻄﻣ ﻑﺍﻮﺣ"
 
 
-msgid "Compress"
-msgstr "ﻂﻐﺿﺇ"
-
-
-msgid "Hierarchy"
-msgstr "ﺔﻴﻠﻜﻴﻬﻟﺍ"
-
-
-msgctxt "Operator"
-msgid "Export MDD"
-msgstr "MDD ﺭﺪّﺻ"
-
-
-msgid "Frames Per Second"
-msgstr "ﺔﻴﻧﺎﺜﻟﺍ ﻲﻓ ﺮﻃﺃ"
-
-
-msgid "Number of frames/second"
-msgstr "ﺔﻴﻧﺎﺛ/ﺮﻃﻻ﻿ﺍ ﺩﺪﻋ"
+msgid "Apply Modifiers"
+msgstr "ﺕﺍﺮﻴّﻐﻤﻟﺍ ﻖﺒّﻃ"
 
 
 msgctxt "Operator"
@@ -23236,6 +23166,10 @@ msgstr "ﺕﺎﺒﻄﺸﻟﺍ ﺭﺮّﻛ"
 
 msgid "Duplicate Strokes"
 msgstr "ﺓﺭﺮّﻜﻤﻟﺍ ﺕﺎﺒﻄﺸﻟﺍ"
+
+
+msgid "Only Selected"
+msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻂﻘﻓ"
 
 
 msgid "Limit"
@@ -23678,22 +23612,6 @@ msgstr "ﺮﻈﻨﻤﻠﻟ ﻢﻴﺠﺤﺘﻟﺍ ﻝﺪﻌﻣ ﻊﺿ"
 
 msgid "Scale FPS"
 msgstr "ﺔﻴﻧﺎﺛ ﻞﻜﻟ ﺮﻃﻷ﻿ﺍ ﻢﺠّﺣ"
-
-
-msgid "Relative Paths"
-msgstr "ﺔﻴﺒﺴﻧ ﺕﺍﺭﺎﺴﻣ"
-
-
-msgid "Shadeless"
-msgstr "ﻞﻠﻈﻣ ﺮﻴﻏ"
-
-
-msgid "Load STL triangle mesh data"
-msgstr "STL ـﻟ ﻲﺜﻠﺜﻣ ﻢﺴﺠﻣ ﺕﺎﻧﺎﻴﺑ ﻞﻤّﺣ"
-
-
-msgid "Facet Normals"
-msgstr "ﺢﻄﺴﻤﻟﺍ ﺕﺎﻤﻇﺎﻧ"
 
 
 msgctxt "Operator"
@@ -24612,15 +24530,6 @@ msgstr "ﺔﻠﻴﺌﻀﻟﺍ ءﺍﺰﺟﻻ﻿ﺍ"
 msgctxt "Operator"
 msgid "Add UV Sphere"
 msgstr "UV ﺓﺮﻛ ﻒﺿﺍ"
-
-
-msgid "Minimum distance between elements to merge"
-msgstr "ﺮﺻﺎﻨﻌﻟﺍ ﻦﻴﺑ ﺞﻣﺪﻠﻟ ﺔﻓﺎﺴﻣ ﻞﻗﺍ"
-
-
-msgctxt "Operator"
-msgid "Scale to Bounds"
-msgstr "ﺩﻭﺪﺤﻟﺍ ﻰﺘﺣ ﻢﺠّﺣ"
 
 
 msgctxt "Operator"
@@ -25999,6 +25908,10 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "[ﺝ ﺏ ﺍ] ﻭ ؟ ﻭ * ﺲﻜﻧﻮﻳ ﻉﻮﻧ ﻦﻣ ﺕﺎﻴﻔﺼﻣ ﻡﺍﺪﺨﺘﺳﺈﺑ ﻲﻔﺼﻤﻟﺍ ﻲﻤّﺳ"
 
 
+msgid "Auto Smooth"
+msgstr "ﺔﻴﺗﺍﺬﻟﺍ ﺔﻣﻮﻌﻨﻟﺍ"
+
+
 msgctxt "Operator"
 msgid "Add Shape Key"
 msgstr "ﻞﻜﺷ ﺡﺎﺘﻔﻣ ﻒﺿﺍ"
@@ -26367,6 +26280,10 @@ msgstr "ﻞﻜﻴﻬﻤﻠﻟ ﺪﻴﻗ ﺔﻴﻠﻤﻋ"
 msgctxt "Operator"
 msgid "Outliner Data Operation"
 msgstr "ﻞﻜﻴﻬﻤﻠﻟ ﺕﺎﻧﺎﻴﺒﻟﺍ ﺕﺎﻴﻠﻤﻋ"
+
+
+msgid "Hierarchy"
+msgstr "ﺔﻴﻠﻜﻴﻬﻟﺍ"
 
 
 msgctxt "Operator"
@@ -27432,10 +27349,6 @@ msgstr "ﺔﻴﻔﺨﻤﻟﺍ ﺕﺍﺭﺮﺤﻤﻠﻟ ﺔﻣﺪﺨﺘﺴﻣ ﺮ
 
 msgid "Editing"
 msgstr "ﺮﻳﺮﺤﺘﻟﺍ"
-
-
-msgid "Add-ons"
-msgstr "ﺲﺑﺎﻘﻤﻟﺍ"
 
 
 msgid "File Paths"
@@ -29073,60 +28986,6 @@ msgstr "ﺢﻴﺤﺼﺘﻟﺍ ﺔﻤﺋﺎﻗ"
 
 
 msgctxt "Operator"
-msgid "Demo"
-msgstr "ﻢﻳﺪﻘﺗ"
-
-
-msgctxt "Operator"
-msgid "Control"
-msgstr "ﻢﻜﺤﺘﻣ"
-
-
-msgid "Prev"
-msgstr "ﻖﺑﺎﺴﻟﺍ"
-
-
-msgid "Pause"
-msgstr "Pause"
-
-
-msgid "Number of times to play the animation"
-msgstr "ﻙﺮﺤﺘﻟﺍ ﺽﺮﻌﻟ ﺕﺍﺮﻤﻟﺍ ﺩﺪﻋ"
-
-
-msgid "Render Anim"
-msgstr "ﻙﺮﺤﺘﻟﺍ ﺮﻴّﺻ"
-
-
-msgid "Screen Switch"
-msgstr "ﺔﺷﺎﺸﻟﺍ ﺐﻠﻗﺍ"
-
-
-msgid "Time Max"
-msgstr "ﻦﻣﺯ ﺮﺒﻛﺍ"
-
-
-msgid "Time Min"
-msgstr "ﻦﻣﺯ ﻞﻗﺍ"
-
-
-msgid "Search Path"
-msgstr "ﺚﺤﺒﻟﺍ ﺭﺎﺴﻣ"
-
-
-msgid "Render Delay"
-msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﺮﻴﺧﺄﺗ"
-
-
-msgid "Random Order"
-msgstr "ﻲﺋﺍﻮﺸﻋ ﺐﻴﺗﺮﺗ"
-
-
-msgid "Select files randomly"
-msgstr "ﺎﻴﺋﺍﻮﺸﻋ ﺕﺎﻔﻠﻤﻟﺍ ﺮﺘﺧﺍ"
-
-
-msgctxt "Operator"
 msgid "View Documentation"
 msgstr "ﻖﻴﺛﻮﺘﻟﺍ ﺮﻬﻇﺍ"
 
@@ -29299,6 +29158,10 @@ msgid "Revert"
 msgstr "ﺲﻜﻋﺇ"
 
 
+msgid "Compress"
+msgstr "ﻂﻐﺿﺇ"
+
+
 msgid "Save a copy of the actual working state but does not make saved file active"
 msgstr "ﻝﺎﻌّﻓ ﻅﻮﻔﺤﻤﻟﺍ ﻒﻠﻤﻟﺍ ﻞﻌﺠﺗ ﻻ﻿ ﻦﻜﻟ ﻲﻘﻴﻘﺤﻟﺍ ﻞﻤﻌﻟﺍ ﺔﻟﺎﺣ ﻦﻣ ﺔﺨﺴﻧ ﻆﻔﺣﺍ"
 
@@ -29348,8 +29211,16 @@ msgid "Export STL"
 msgstr "STL ﺭﺪّﺻ"
 
 
+msgid "Facet Normals"
+msgstr "ﺢﻄﺴﻤﻟﺍ ﺕﺎﻤﻇﺎﻧ"
+
+
 msgid "UV Maps"
 msgstr "UV ﻂﺋﺍﺮﺧ"
+
+
+msgid "Relative Paths"
+msgstr "ﺔﻴﺒﺴﻧ ﺕﺍﺭﺎﺴﻣ"
 
 
 msgid "Shapes"
@@ -30044,10 +29915,6 @@ msgstr "ﺚﻋﺎﺒﻟﺍ ﻭ ﺕﺎﺌﻳﺰﺠﻟﺍ ﻦﻴﺑ ﺔﻠﺻﺎ�
 
 msgid "How many frames to fade"
 msgstr "ﻲﺷﻼ﻿ﺘﻠﻟ ﺍﺭﺎﻃﺇ ﻢﻛ"
-
-
-msgid "Editable"
-msgstr "ﻞﻳﺪﻌﺘﻟﺍ ﻞﺑﺎﻗ"
 
 
 msgid "A valid edit mode exists"
@@ -31770,14 +31637,6 @@ msgid "SMPTE timecode showing minutes, seconds, and frames only - hours are also
 msgstr "ﺽﺍﺮﺘﻓﻻ﻿ﺎﺑ ﺲﻴﻟ ﻦﻜﻟ ,ﺖﺒﺟﻭ ﺍﺫﺍ ﺎﻀﻳﺍ ﺮﻬﻈﺗ ﺕﺎﻋﺎﺴﻟﺍ - ﺮﻃﻻ﻿ﺍ ﻭ ,ﻲﻧﺍﻮﺜﻟﺍ ,ﻖﺋﺎﻗﺪﻟﺍ ﻂﻘﻓ ﺮﻬﻈﺗ SMPTE ﻦﻣﺯ ﺓﺮﻔﻴﺷ"
 
 
-msgid "Compact with Milliseconds"
-msgstr "ﻲﻧﺍﻮﺛ ﻲﻠﻴﻣ ﻊﻣ ﺐﻠﺻ"
-
-
-msgid "Similar to SMPTE (Compact), except that instead of frames, milliseconds are shown instead"
-msgstr "ﻲﻧﺍﻮﺛ ﻲﻠﻴﻤﻟﺍ ﺮﻬﻈﺗ ،ﺮﻃﻷ﻿ﺍ ﻝﺪﺑ ﻪﻧﺃ ﺍﺪﻋ ﺎﻣ ،SMPTE(ﺐﻠﺻ) ﺏ ﻪﻴﺒﺷ"
-
-
 msgid "Only Seconds"
 msgstr "ﻂﻘﻓ ﻲﻧﺍﻮﺛ"
 
@@ -31850,10 +31709,6 @@ msgid "Group of ID properties"
 msgstr "ﻑﺮﻌﻣ ﺹﺍﻮﺧ ﻦﻣ ﺔﻋﻮﻤﺠﻣ"
 
 
-msgid "Cast Shadow"
-msgstr "ﻞﻈﻟﺍ ﻲﻘﻟﺍ"
-
-
 msgid "Homogeneous Volume"
 msgstr "ﻞﺋﺎﻤﺘﻣ ﻢﺠﺣ"
 
@@ -31900,6 +31755,10 @@ msgstr "ﺔﻴﺋﺎﻀﻓ ﻞﺻﺍﻮﻓ ﻡﺪﺨﺘﺳﺍ"
 
 msgid "Use BVH spatial splits: longer builder time, faster render"
 msgstr "ﻉﺮﺳﺍ ﺮﻴﻴﺼﺗ ﻦﻜﻟ ,ءﺎﻨﺒﻟﺍ ﻲﻓ ﻝﻮﻃﺍ ﺖﻗﻭ :ﺔﻴﺋﺎﻀﻔﻟﺍ BVH ﺕﺎﻤﻴﺴﻘﺗ ﻡﺪﺨﺘﺳﺍ"
+
+
+msgid "High quality"
+msgstr "ﺔﻴﻟﺎﻋ ﺓﺩﻮﺟ"
 
 
 msgid "Device to use for rendering"
@@ -32084,18 +31943,6 @@ msgstr "ﺔﺒﻄﺸﻟﺍ ﺔﻳﺍﺪﺑ ﻞﻫ"
 
 msgid "Tablet pressure"
 msgstr "ﺲﻤﻠﻟﺍ ﺡﻮﻟ ﻂﻐﺿ"
-
-
-msgid "Export Directory"
-msgstr "ﺮﻳﺪﺼﺘﻟﺍ ﺪﻠﺠﻣ"
-
-
-msgid "Apply Scale"
-msgstr "ﻢﻴﺠﺤﺘﻟﺍ ﻖﺒّﻃ"
-
-
-msgid "Copy Textures"
-msgstr "ﺞﻴﺴﻨﻟﺍ ﺦﺴﻧﺍ"
 
 
 msgid "Selected UV Element"
@@ -33204,6 +33051,10 @@ msgstr "ﻞﺴﻠﺴﺘﻟﺍ ﻂﻳﺮﺸﻟ ﺺﻧ ءﺎﺸﻧﺍ"
 
 msgid "Location of the text"
 msgstr "ﺺﻨﻟﺍ ﻊﻗﻮﻣ"
+
+
+msgid "Outline Width"
+msgstr "ﻂﻴﺤﻤﻟﺍ ﻂﺨﻟﺍ ﺽﺮﻋ"
 
 
 msgid "Transform Sequence"
@@ -34668,10 +34519,6 @@ msgid "Object Selected"
 msgstr "ﺭﺎﺘﺨﻣ ﻦﺋﺎﻛ"
 
 
-msgid "Outline Width"
-msgstr "ﻂﻴﺤﻤﻟﺍ ﻂﺨﻟﺍ ﺽﺮﻋ"
-
-
 msgid "Skin Root"
 msgstr "ﺓﺮﺸﻘﻟﺍ ﺭﺬﺟ"
 
@@ -35627,8 +35474,54 @@ msgid "Transform Modal Map"
 msgstr "ﺔﻃﻭﺮﺸﻣ ﺔﻟﻮّﺤﺘﻣ ﺔﻄﻳﺮﺧ"
 
 
+msgid "File:"
+msgstr ":ﻒﻠﻣ"
+
+
+msgid "Missing script files"
+msgstr "ﺩﻮﻘﻔﻣ ﺖﺒﻳﺮﻜﺳ ﻒﻠﻣ"
+
+
+msgid "Description:"
+msgstr ":ﻒﺻﻭ"
+
+
+msgid "Author:"
+msgstr ":ﺭﺮﺤﻣ"
+
+
+msgid "Version:"
+msgstr ":ﺔﺨﺴﻧ"
+
+
+msgid "Warning:"
+msgstr ":ﺮﻳﺬﺤﺗ"
+
+
+msgid "Internet:"
+msgstr ":ﺖﻴﻧﺮﺘﻧﺃ"
+
+
+msgid "Size:"
+msgstr ":ﻢﺠﺣ"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "ﻖﻴﺛﻮﺘﻟﺍ"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "ﺄﻄﺧ ﻎﻴﻠﺒﺗ"
+
+
 msgid "No output node"
 msgstr "ﺝﺮﺧ ﺓﺪﻘﻋ ﺪﺟﻮﺗ ﻻ﻿"
+
+
+msgid "Cast Shadow"
+msgstr "ﻞﻈﻟﺍ ﻲﻘﻟﺍ"
 
 
 msgid "Homogeneous"
@@ -35647,54 +35540,6 @@ msgstr "ﻦﻴﻴﻌﺗ"
 msgctxt "Operator"
 msgid "Deselect"
 msgstr "ﺪﻳﺪﺤﺗ ءﺎﻐﻟﺇ"
-
-
-msgid "Position:"
-msgstr ":ﻊﻗﻮﻤﻟﺍ"
-
-
-msgctxt "Operator"
-msgid "Volume"
-msgstr "ﻢﺠﺤﻟﺍ"
-
-
-msgctxt "Operator"
-msgid "Area"
-msgstr "ﺔﻘﻄﻨﻣ"
-
-
-msgctxt "Operator"
-msgid "Solid"
-msgstr "ﺐﻠﺻ"
-
-
-msgctxt "Operator"
-msgid "Intersections"
-msgstr "ﻊﻃﺎﻘﺗ"
-
-
-msgctxt "Operator"
-msgid "Degenerate"
-msgstr "ﻞﻠﺣ"
-
-
-msgctxt "Operator"
-msgid "Distorted"
-msgstr "ﻩﻮّﺸﻣ"
-
-
-msgctxt "Operator"
-msgid "Edge Sharp"
-msgstr "ﺓﺩّﺎﺣ ﺔﻓﺎﺤﻟﺍ"
-
-
-msgctxt "Operator"
-msgid "Bounds"
-msgstr "ﺩﻭﺪﺤﻟﺍ"
-
-
-msgid "Demo Mode:"
-msgstr "ﻞﺒﻗ ﻂﻤﻨﻟﺍ"
 
 
 msgid "Labels:"
@@ -36055,6 +35900,10 @@ msgid "Strand Shape"
 msgstr "ءﻮﻀﻟﺍ ﺔﻌﻘﺑ ﻞﻜﺷ"
 
 
+msgid "Random Order"
+msgstr "ﻲﺋﺍﻮﺸﻋ ﺐﻴﺗﺮﺗ"
+
+
 msgid "Settings used for fluid"
 msgstr "ﻞﺋﺎﺴﻠﻟ ﺔﻠﻤﻌﺘﺴﻣ ﺕﺍﺩﺍﺪﻋﺇ"
 
@@ -36345,6 +36194,16 @@ msgstr "ﻥﺰﺧ"
 
 
 msgctxt "Operator"
+msgid "More"
+msgstr "ﺮﺜﻛﺃ"
+
+
+msgctxt "Operator"
+msgid "Less"
+msgstr "ﻞﻗﺃ"
+
+
+msgctxt "Operator"
 msgid "Columns on Selected Keys"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺢﻴﺗﺎﻔﻤﻟﺍ ﻰﻠﻋ ﻱﺩﻮﻣﺎﻋ"
 
@@ -36397,16 +36256,6 @@ msgstr "ﻒﻠﺧ"
 msgctxt "Operator"
 msgid "Easing Type"
 msgstr "ﻞﻴﻬﺴﺘﻟﺍ ﻉﻮﻧ"
-
-
-msgctxt "Operator"
-msgid "Less"
-msgstr "ﻞﻗﺃ"
-
-
-msgctxt "Operator"
-msgid "More"
-msgstr "ﺮﺜﻛﺃ"
 
 
 msgctxt "Operator"
@@ -36605,11 +36454,6 @@ msgstr ":ﺮﻴﺛﺄﺘﻟﺍ"
 
 
 msgctxt "Operator"
-msgid "Grouped"
-msgstr "ﺔﻌﻤﺠﻣ"
-
-
-msgctxt "Operator"
 msgid "Jump to Next Strip"
 msgstr "ﻲﻟﺎﺘﻟﺍ ﻂﻳﺮﺸﻟﺍ ﻰﻟﺍ ﺰﻔﻗﺍ"
 
@@ -36755,11 +36599,6 @@ msgstr "ﺓﺭﻮﺻ ﺮﻴّﺻ"
 
 
 msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "ﺄﻄﺧ ﻎﻴﻠﺒﺗ"
-
-
-msgctxt "Operator"
 msgid "Developer Community"
 msgstr "ﻦﻳﺭﻮﻄﻤﻟﺍ ﻊﻤﺘﺠﻣ"
 
@@ -36833,41 +36672,8 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "ﺐﻳﺮﻘﺘﻟﺍ ﺔﻠﺠﻋ ﻩﺎﺠﺗﺍ ﺐﻠﻗ"
 
 
-msgid "Missing script files"
-msgstr "ﺩﻮﻘﻔﻣ ﺖﺒﻳﺮﻜﺳ ﻒﻠﻣ"
-
-
-msgid "Description:"
-msgstr ":ﻒﺻﻭ"
-
-
 msgid "Location:"
 msgstr ":ﻊﻗﻮﻣ"
-
-
-msgid "File:"
-msgstr ":ﻒﻠﻣ"
-
-
-msgid "Author:"
-msgstr ":ﺭﺮﺤﻣ"
-
-
-msgid "Version:"
-msgstr ":ﺔﺨﺴﻧ"
-
-
-msgid "Warning:"
-msgstr ":ﺮﻳﺬﺤﺗ"
-
-
-msgid "Internet:"
-msgstr ":ﺖﻴﻧﺮﺘﻧﺃ"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "ﻖﻴﺛﻮﺘﻟﺍ"
 
 
 msgctxt "Operator"
@@ -36946,13 +36752,13 @@ msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺔﺤﻄﺴﻤﻟﺍ ﺔﺟﻮﻟﺍ"
 
 
 msgctxt "Operator"
-msgid "Side of Active"
-msgstr "ﻲﻟﺎﺣ ﺐﻧﺎﺟ"
+msgid "Sharp Edges"
+msgstr "ﺩﺎﺣ ﻑﺮﺣ"
 
 
 msgctxt "Operator"
-msgid "Similar"
-msgstr "ﻪﺑﺎﺸﻣ"
+msgid "Side of Active"
+msgstr "ﻲﻟﺎﺣ ﺐﻧﺎﺟ"
 
 
 msgctxt "Operator"
@@ -37161,11 +36967,6 @@ msgstr "ﺏﺎﺴﺣ"
 msgctxt "Operator"
 msgid "Sort Elements..."
 msgstr "...ﺮﺻﺎﻨﻌﻟﺍ ﺐﺗّﺭ"
-
-
-msgctxt "Operator"
-msgid "Sharp Edges"
-msgstr "ﺩﺎﺣ ﻑﺮﺣ"
 
 
 msgctxt "Operator"
@@ -37467,10 +37268,6 @@ msgstr "ﺕﺎﻘﺒﻄﻟﺍ ﺓﺩﺪﻌﺘﻤﻟﺍ ﺓﺭﻮﺼﻟﺍ ﻲﻓ
 
 msgid "MaskLayer"
 msgstr "ﻉﺎﻨﻗ ﺔﻘﺒﻃ"
-
-
-msgid "Auto Smooth"
-msgstr "ﺔﻴﺗﺍﺬﻟﺍ ﺔﻣﻮﻌﻨﻟﺍ"
 
 
 msgid "NlaTrack"
@@ -38152,6 +37949,14 @@ msgid "Icosphere"
 msgstr "(ﺕﺎﺜﻠﺜﻣ)ﺓﺮﻛ"
 
 
+msgid "Cancel"
+msgstr "ﻎﻟﺃ"
+
+
+msgid "Outer"
+msgstr "ﻲﺟﺭﺎﺧ"
+
+
 msgid "Not a valid selection for extrude"
 msgstr "ﻉﺎﻌﺸﻟﺍ ﺺﺤﻔﻟ ﺔﻣﺎﺘﻟﺍ ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﺔﻴﻤﻛ"
 
@@ -38514,6 +38319,10 @@ msgid "Track is locked"
 msgstr "ﻞﻔﻘﻣ ﺔﻛﺮﺤﻟﺍ ﺭﺎﺴﻣ"
 
 
+msgid "Position:"
+msgstr ":ﻊﻗﻮﻤﻟﺍ"
+
+
 msgid "Width:"
 msgstr "ﺽﺮﻌﻟﺍ"
 
@@ -38588,10 +38397,6 @@ msgstr "ﻁﻮﻄﺨﻟﺍ ﺪﻠﺠﻣ"
 
 msgid "Could not create new folder name"
 msgstr "ﺓﺪﻳﺪﺟ ﺪﻘﻋ ﺓﺮﺠﺷ ﺊﺸﻧﺍ"
-
-
-msgid "Cancel"
-msgstr "ﻎﻟﺃ"
 
 
 msgid "File name, overwrite existing"
@@ -38866,10 +38671,6 @@ msgid "Radius (Parent)"
 msgstr "(ﻞﺻﻼ﻿ﻟ) ﺮﻄﻘﻟﺍ"
 
 
-msgid "Size:"
-msgstr ":ﻢﺠﺣ"
-
-
 msgid "Vertex weight used by Bevel modifier"
 msgstr "ﺔﻔﻄﺸﻟﺍ ﺮﻴّﻐﻣ ﻲﻓ ﻡﺪﺨﺘﺴﻤﻟﺍ ﺔﻄﻘﻨﻟﺍ ﻥﺯﻭ"
 
@@ -39133,20 +38934,12 @@ msgid "Create Along Paths"
 msgstr "ﺕﺍﺭﺎﺴﻤﻟﺍ ﻝﻮﻃ ﻰﻠﻋ ﺊﺸﻧﺃ"
 
 
-msgid "Outer"
-msgstr "ﻲﺟﺭﺎﺧ"
-
-
 msgid "Global Influence:"
 msgstr ":ﻲﻤﻟﺎﻌﻟﺍ ﺮﻴﺛﺄﺘﻟﺍ"
 
 
 msgid "Crease Edges"
 msgstr "ﻑﺍﻮﺤﻟﺍ ﺪﻌّﺟ"
-
-
-msgid "Matte"
-msgstr "ﻲﻔﻄﻣ"
 
 
 msgid "Fac"
@@ -39475,14 +39268,6 @@ msgstr "ﺲﺑﺎﻘﻤﻟﺍ ﻞﻛ"
 
 msgid "All Add-ons Installed by User"
 msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﻞﺒﻗ ﻦﻣ ﺔﺒﺼﻨﻤﻟﺍ ﺲﺑﺎﻘﻤﻟﺍ ﻞﻛ"
-
-
-msgid "Add Curve"
-msgstr "ﻰﻨﺤﻨﻣ ﻒﺿﺍ"
-
-
-msgid "Add Mesh"
-msgstr "ﻢﺴﺠﻣ ﻒﺿﺃ"
 
 
 msgid "Import-Export"
