@@ -199,18 +199,14 @@ static void poselib_blend_set_factor(PoseBlendData *pbd, const float new_factor)
   pbd->needs_redraw = true;
 }
 
-static void poselib_set_flipped(PoseBlendData *pbd, const bool new_flipped)
+static void poselib_toggle_flipped(PoseBlendData *pbd)
 {
-  if (pbd->is_flipped == new_flipped) {
-    return;
-  }
-
   /* The pose will toggle between flipped and normal. This means the pose
    * backup has to change, as it only contains the bones for one side. */
   BKE_pose_backup_restore(pbd->pose_backup);
   BKE_pose_backup_free(pbd->pose_backup);
 
-  pbd->is_flipped = new_flipped;
+  pbd->is_flipped = !pbd->is_flipped;
   pbd->needs_redraw = true;
 
   poselib_backup_posecopy(pbd);
@@ -237,8 +233,13 @@ static int poselib_blend_handle_event(bContext * /*C*/, wmOperator *op, const wm
     return OPERATOR_RUNNING_MODAL;
   }
 
-  /* Ctrl manages the 'flipped' state. */
-  poselib_set_flipped(pbd, event->modifier & KM_CTRL);
+  /* Ctrl manages the 'flipped' state. It works as a toggle so if the operator started in flipped
+   * mode, pressing it will unflip the pose. */
+  if (ELEM(event->val, KM_PRESS, KM_RELEASE) &&
+      ELEM(event->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY))
+  {
+    poselib_toggle_flipped(pbd);
+  }
 
   /* only accept 'press' event, and ignore 'release', so that we don't get double actions */
   if (ELEM(event->val, KM_PRESS, KM_NOTHING) == 0) {
