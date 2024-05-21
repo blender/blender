@@ -486,9 +486,8 @@ class Layer : public ::GreasePencilLayer {
 
   /**
    * \returns the frame duration of the keyframe at \a frame_number.
-   * If there is no keyframe at \a frame_number it \returns -1.
+   * If there is no keyframe at \a frame_number \returns -1.
    * If the keyframe is an implicit hold, \returns 0.
-   * if the keyframe is the last one, \returns -1.
    */
   int get_frame_duration_at(const int frame_number) const;
 

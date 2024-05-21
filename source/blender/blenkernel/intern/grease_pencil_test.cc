@@ -231,13 +231,21 @@ struct GreasePencilLayerFramesExample {
     for (int i = 0; i < 5; i++) {
       layer.frames_for_write().add(this->sorted_keys[i], this->sorted_values[i]);
     }
+    /* Mark the first keyframe as an implicit hold. */
+    layer.frame_at(0)->flag |= GP_FRAME_IMPLICIT_HOLD;
   }
 };
 
-TEST(greasepencil, frame_is_null)
+TEST(greasepencil, frame_is_end)
 {
   GreasePencilLayerFramesExample ex;
   EXPECT_TRUE(ex.layer.frames().lookup(10).is_end());
+}
+
+TEST(greasepencil, frame_is_implicit_hold)
+{
+  GreasePencilLayerFramesExample ex;
+  EXPECT_TRUE(ex.layer.frames().lookup(0).is_implicit_hold());
 }
 
 TEST(greasepencil, drawing_index_at)
@@ -282,6 +290,28 @@ TEST(greasepencil, add_frame_duration_check_duration)
   Span<FramesMapKeyT> sorted_keys = ex.layer.sorted_keys();
   EXPECT_EQ(sorted_keys.size(), 7);
   EXPECT_EQ(sorted_keys[6] - sorted_keys[5], 10);
+}
+
+TEST(greasepencil, get_frame_duration_at)
+{
+  GreasePencilLayerFramesExample ex;
+  /* Before first frame. */
+  EXPECT_EQ(ex.layer.get_frame_duration_at(-1), -1);
+  /* Implicit hold. */
+  EXPECT_EQ(ex.layer.get_frame_duration_at(0), 0);
+  EXPECT_EQ(ex.layer.get_frame_duration_at(4), 0);
+
+  EXPECT_EQ(ex.layer.get_frame_duration_at(5), 5);
+  EXPECT_EQ(ex.layer.get_frame_duration_at(9), 5);
+
+  /* No keyframe at frame 10. */
+  EXPECT_EQ(ex.layer.get_frame_duration_at(10), -1);
+
+  EXPECT_EQ(ex.layer.get_frame_duration_at(13), 4);
+
+  /* After last frame. */
+  EXPECT_EQ(ex.layer.get_frame_duration_at(16), -1);
+  EXPECT_EQ(ex.layer.get_frame_duration_at(20), -1);
 }
 
 TEST(greasepencil, add_frame_duration_override_null_frames)
