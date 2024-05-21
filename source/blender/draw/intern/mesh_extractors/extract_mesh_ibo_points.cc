@@ -140,10 +140,7 @@ static void extract_points_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                        void *data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
-  GPU_indexbuf_init(elb,
-                    GPU_PRIM_POINTS,
-                    mr.verts_num,
-                    subdiv_cache.num_subdiv_loops + subdiv_cache.loose_geom.loop_len);
+  GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr.verts_num, subdiv_full_vbo_size(mr, subdiv_cache));
 }
 
 static void extract_points_iter_subdiv_common(GPUIndexBufBuilder *elb,
@@ -209,65 +206,55 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
                                              void * /*buffer*/,
                                              void *data)
 {
-  const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
-  const int loose_indices_num = loose_geom.loop_len;
-  if (loose_indices_num == 0) {
+  const Span<int> loose_verts = mr.loose_verts;
+  const Span<int> loose_edges = mr.loose_edges;
+  if (loose_verts.is_empty() && loose_edges.is_empty()) {
     return;
   }
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
 
-  uint offset = subdiv_cache.num_subdiv_loops;
+  const Span<int2> edges = mr.edges;
+  const int loose_start = subdiv_cache.num_subdiv_loops;
+  const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
+  const int loose_verts_start = loose_start + verts_per_edge * loose_edges.size();
 
   if (mr.extract_type != MR_EXTRACT_BMESH) {
-    Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
-
-    for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
-      const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
-      const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
-      if (v1.coarse_vertex_index != -1u) {
-        vert_set_mesh(elb, mr, v1.coarse_vertex_index, offset);
+    threading::parallel_for(loose_edges.index_range(), 2048, [&](const IndexRange range) {
+      for (const int i : range) {
+        const IndexRange edge_vbo_range(loose_start + i * verts_per_edge, verts_per_edge);
+        vert_set_mesh(elb, mr, edges[loose_edges[i]][0], edge_vbo_range.first());
+        vert_set_mesh(elb, mr, edges[loose_edges[i]][1], edge_vbo_range.last());
       }
-      if (v2.coarse_vertex_index != -1u) {
-        vert_set_mesh(elb, mr, v2.coarse_vertex_index, offset + 1);
+    });
+
+    const Span<int> loose_verts = mr.loose_verts;
+    threading::parallel_for(loose_verts.index_range(), 2048, [&](const IndexRange range) {
+      for (const int i : range) {
+        vert_set_mesh(elb, mr, loose_verts[i], loose_verts_start + i);
       }
-
-      offset += 2;
-    }
-    Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
-
-    for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
-      vert_set_mesh(elb, mr, loose_vert.coarse_vertex_index, offset);
-      offset += 1;
-    }
+    });
   }
   else {
-    Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
-
-    for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
-      const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
-      const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
-      if (v1.coarse_vertex_index != -1u) {
-        BMVert *eve = mr.v_origindex ? bm_original_vert_get(mr, v1.coarse_vertex_index) :
-                                       BM_vert_at_index(mr.bm, v1.coarse_vertex_index);
-        vert_set_bm(elb, eve, offset);
+    threading::parallel_for(loose_edges.index_range(), 2048, [&](const IndexRange range) {
+      for (const int i : range) {
+        const IndexRange edge_vbo_range(loose_start + i * verts_per_edge, verts_per_edge);
+        BMVert *vert_0 = mr.v_origindex ? bm_original_vert_get(mr, edges[loose_edges[i]][0]) :
+                                          BM_vert_at_index(mr.bm, edges[loose_edges[i]][0]);
+        BMVert *vert_1 = mr.v_origindex ? bm_original_vert_get(mr, edges[loose_edges[i]][1]) :
+                                          BM_vert_at_index(mr.bm, edges[loose_edges[i]][1]);
+        vert_set_bm(elb, vert_0, edge_vbo_range.first());
+        vert_set_bm(elb, vert_1, edge_vbo_range.last());
       }
-      if (v2.coarse_vertex_index != -1u) {
-        BMVert *eve = mr.v_origindex ? bm_original_vert_get(mr, v2.coarse_vertex_index) :
-                                       BM_vert_at_index(mr.bm, v2.coarse_vertex_index);
-        vert_set_bm(elb, eve, offset + 1);
+    });
+
+    threading::parallel_for(loose_verts.index_range(), 2048, [&](const IndexRange range) {
+      for (const int i : range) {
+        BMVert *vert = mr.v_origindex ? bm_original_vert_get(mr, loose_verts[i]) :
+                                        BM_vert_at_index(mr.bm, loose_verts[i]);
+        vert_set_bm(elb, vert, loose_verts_start + i);
       }
-
-      offset += 2;
-    }
-    Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
-
-    for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
-      BMVert *eve = mr.v_origindex ? bm_original_vert_get(mr, loose_vert.coarse_vertex_index) :
-                                     BM_vert_at_index(mr.bm, loose_vert.coarse_vertex_index);
-      vert_set_bm(elb, eve, offset);
-      offset += 1;
-    }
+    });
   }
 }
 

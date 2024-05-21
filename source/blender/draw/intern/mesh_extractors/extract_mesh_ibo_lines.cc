@@ -214,10 +214,12 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
                                             const int edge_loose_offset,
                                             gpu::IndexBuf *ibo)
 {
-  const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
-  if (loose_geom.edge_len == 0) {
+  const Span<int> loose_edges = mr.loose_edges;
+  if (loose_edges.is_empty()) {
     return;
   }
+  const int edges_per_edge = subdiv_edges_per_coarse_edge(subdiv_cache);
+  const int loose_edges_num = subdiv_loose_edges_num(mr, subdiv_cache);
 
   /* Update flags for loose edges, points are already handled. */
   static GPUVertFormat format;
@@ -228,10 +230,9 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
   gpu::VertBuf *flags = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format(flags, &format);
 
-  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
-  GPU_vertbuf_data_alloc(flags, loose_edges.size());
+  GPU_vertbuf_data_alloc(flags, loose_edges_num);
 
-  uint *flags_data = static_cast<uint *>(GPU_vertbuf_get_data(flags));
+  MutableSpan<uint> flags_data(static_cast<uint *>(GPU_vertbuf_get_data(flags)), loose_edges_num);
 
   switch (mr.extract_type) {
     case MR_EXTRACT_MESH: {
@@ -239,37 +240,35 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
       if (e_origindex == nullptr) {
         const Span<bool> hide_edge = mr.hide_edge;
         if (!hide_edge.is_empty()) {
-          for (DRWSubdivLooseEdge edge : loose_edges) {
-            *flags_data++ = hide_edge[edge.coarse_edge_index];
+          for (const int i : loose_edges.index_range()) {
+            const bool value = hide_edge[loose_edges[i]];
+            flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
           }
         }
         else {
-          MutableSpan<uint>(flags_data, loose_edges.size()).fill(0);
+          flags_data.fill(0);
         }
       }
       else {
         if (mr.bm) {
-          for (DRWSubdivLooseEdge edge : loose_edges) {
-            const BMEdge *bm_edge = bm_original_edge_get(mr, edge.coarse_edge_index);
-            *flags_data++ = (bm_edge) ? BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0 : 1;
+          for (const int i : loose_edges.index_range()) {
+            const BMEdge *bm_edge = bm_original_edge_get(mr, loose_edges[i]);
+            const int value = (bm_edge) ? BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) : true;
+            flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
           }
         }
         else {
           const Span<bool> hide_edge = mr.hide_edge;
           if (!hide_edge.is_empty()) {
-            for (DRWSubdivLooseEdge edge : loose_edges) {
-              int e = edge.coarse_edge_index;
-
-              if (e_origindex && e_origindex[e] != ORIGINDEX_NONE) {
-                *flags_data++ = hide_edge[edge.coarse_edge_index];
-              }
-              else {
-                *flags_data++ = false;
-              }
+            for (const int i : loose_edges.index_range()) {
+              const bool value = (e_origindex[loose_edges[i]] == ORIGINDEX_NONE) ?
+                                     false :
+                                     hide_edge[loose_edges[i]];
+              flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
             }
           }
           else {
-            MutableSpan<uint>(flags_data, loose_edges.size()).fill(0);
+            flags_data.fill(0);
           }
         }
       }
@@ -277,16 +276,17 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
     }
     case MR_EXTRACT_BMESH: {
       BMesh *bm = mr.bm;
-      for (DRWSubdivLooseEdge edge : loose_edges) {
-        const BMEdge *bm_edge = BM_edge_at_index(bm, edge.coarse_edge_index);
-        *flags_data++ = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0;
+      for (const int i : loose_edges.index_range()) {
+        const BMEdge *bm_edge = BM_edge_at_index(bm, loose_edges[i]);
+        const bool value = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN);
+        flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);
       }
       break;
     }
   }
 
   draw_subdiv_build_lines_loose_buffer(
-      subdiv_cache, ibo, flags, uint(edge_loose_offset), uint(loose_geom.edge_len));
+      subdiv_cache, ibo, flags, uint(edge_loose_offset), loose_edges_num);
 
   GPU_vertbuf_discard(flags);
 }
@@ -297,27 +297,26 @@ void extract_lines_subdiv(const DRWSubdivCache &subdiv_cache,
                           gpu::IndexBuf *lines_loose,
                           bool &no_loose_wire)
 {
-  const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
-  const int loose_num = loose_geom.edge_len * 2;
-  no_loose_wire = loose_num == 0;
+  const int loose_ibo_size = subdiv_loose_edges_num(mr, subdiv_cache) * 2;
+  no_loose_wire = loose_ibo_size == 0;
 
   if (DRW_ibo_requested(lines_loose) && !DRW_ibo_requested(lines)) {
-    GPU_indexbuf_init_build_on_device(lines_loose, loose_num);
+    GPU_indexbuf_init_build_on_device(lines_loose, loose_ibo_size);
     extract_lines_loose_geom_subdiv(subdiv_cache, mr, 0, lines_loose);
     return;
   }
 
-  const int non_loose_num = subdiv_cache.num_subdiv_loops * 2;
+  const int non_loose_ibo_size = subdiv_cache.num_subdiv_loops * 2;
 
-  GPU_indexbuf_init_build_on_device(lines, non_loose_num + loose_num);
-  if (non_loose_num > 0) {
+  GPU_indexbuf_init_build_on_device(lines, non_loose_ibo_size + loose_ibo_size);
+  if (non_loose_ibo_size > 0) {
     draw_subdiv_build_lines_buffer(subdiv_cache, lines);
   }
-  extract_lines_loose_geom_subdiv(subdiv_cache, mr, non_loose_num, lines);
+  extract_lines_loose_geom_subdiv(subdiv_cache, mr, non_loose_ibo_size, lines);
 
   if (DRW_ibo_requested(lines_loose)) {
     /* Multiply by 2 because these are edges indices. */
-    GPU_indexbuf_create_subrange_in_place(lines_loose, lines, non_loose_num, loose_num);
+    GPU_indexbuf_create_subrange_in_place(lines_loose, lines, non_loose_ibo_size, loose_ibo_size);
   }
 }
 

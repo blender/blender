@@ -134,11 +134,10 @@ static void extract_pos_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                     void * /*data*/)
 {
   gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
-  const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
 
   /* Initialize the vertex buffer, it was already allocated. */
   GPU_vertbuf_init_build_on_device(
-      vbo, draw_subdiv_get_pos_nor_format(), subdiv_cache.num_subdiv_loops + loose_geom.loop_len);
+      vbo, draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache));
 
   if (subdiv_cache.num_subdiv_loops == 0) {
     return;
@@ -221,17 +220,17 @@ static void extract_pos_init_subdiv(const DRWSubdivCache &subdiv_cache,
 }
 
 static void extract_pos_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
-                                          const MeshRenderData & /*mr*/,
+                                          const MeshRenderData &mr,
                                           void *buffer,
                                           void * /*data*/)
 {
-  const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
-  if (loose_geom.loop_len == 0) {
+  const Span<int> loose_verts = mr.loose_verts;
+  const int loose_edges_num = mr.loose_edges.size();
+  if (loose_verts.is_empty() && loose_edges_num == 0) {
     return;
   }
 
   gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
-  uint offset = subdiv_cache.num_subdiv_loops;
 
   /* TODO(@kevindietrich): replace this when compressed normals are supported. */
   struct SubdivPosNorLoop {
@@ -243,34 +242,39 @@ static void extract_pos_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
   /* Make sure buffer is active for sending loose data. */
   GPU_vertbuf_use(vbo);
 
-  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  const int resolution = subdiv_cache.resolution;
+  const Span<float3> cached_positions = subdiv_cache.loose_edge_positions;
+  const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
+  const int edges_per_edge = subdiv_edges_per_coarse_edge(subdiv_cache);
+
+  const int loose_geom_start = subdiv_cache.num_subdiv_loops;
 
   SubdivPosNorLoop edge_data[2];
   memset(edge_data, 0, sizeof(SubdivPosNorLoop) * 2);
-  for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
-    const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
-    const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
-
-    copy_v3_v3(edge_data[0].pos, v1.co);
-    copy_v3_v3(edge_data[1].pos, v2.co);
-
-    GPU_vertbuf_update_sub(
-        vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop) * 2, &edge_data);
-
-    offset += 2;
+  for (const int i : IndexRange(loose_edges_num)) {
+    const int edge_offset = loose_geom_start + i * verts_per_edge;
+    const Span<float3> positions = cached_positions.slice(i * resolution, resolution);
+    for (const int edge : IndexRange(edges_per_edge)) {
+      copy_v3_v3(edge_data[0].pos, positions[edge + 0]);
+      copy_v3_v3(edge_data[1].pos, positions[edge + 1]);
+      GPU_vertbuf_update_sub(vbo,
+                             (edge_offset + edge * 2) * sizeof(SubdivPosNorLoop),
+                             sizeof(SubdivPosNorLoop) * 2,
+                             &edge_data);
+    }
   }
+
+  const int loose_verts_start = loose_geom_start + loose_edges_num * verts_per_edge;
+  const Span<float3> positions = mr.vert_positions;
 
   SubdivPosNorLoop vert_data;
   memset(&vert_data, 0, sizeof(SubdivPosNorLoop));
-  Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(subdiv_cache);
-
-  for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
-    copy_v3_v3(vert_data.pos, loose_vert.co);
-
-    GPU_vertbuf_update_sub(
-        vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop), &vert_data);
-
-    offset += 1;
+  for (const int i : loose_verts.index_range()) {
+    copy_v3_v3(vert_data.pos, positions[loose_verts[i]]);
+    GPU_vertbuf_update_sub(vbo,
+                           (loose_verts_start + i) * sizeof(SubdivPosNorLoop),
+                           sizeof(SubdivPosNorLoop),
+                           &vert_data);
   }
 }
 
