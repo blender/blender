@@ -46,13 +46,13 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
   SculptSession &ss = *ob.sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  copy_v3_v3(ss.init_pivot_pos, ss.pivot_pos);
-  copy_v4_v4(ss.init_pivot_rot, ss.pivot_rot);
-  copy_v3_v3(ss.init_pivot_scale, ss.pivot_scale);
+  ss.init_pivot_pos = ss.pivot_pos;
+  ss.init_pivot_rot = ss.pivot_rot;
+  ss.init_pivot_scale = ss.pivot_scale;
 
-  copy_v3_v3(ss.prev_pivot_pos, ss.pivot_pos);
-  copy_v4_v4(ss.prev_pivot_rot, ss.pivot_rot);
-  copy_v3_v3(ss.prev_pivot_scale, ss.pivot_scale);
+  ss.prev_pivot_pos = ss.pivot_pos;
+  ss.prev_pivot_rot = ss.pivot_rot;
+  ss.prev_pivot_scale = ss.pivot_scale;
 
   undo::push_begin_ex(ob, undo_name);
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
@@ -71,11 +71,12 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
   }
 }
 
-static void transform_matrices_init(SculptSession &ss,
-                                    const ePaintSymmetryFlags symm,
-                                    const SculptTransformDisplacementMode t_mode,
-                                    float r_transform_mats[8][4][4])
+static std::array<float4x4, 8> transform_matrices_init(
+    const SculptSession &ss,
+    const ePaintSymmetryFlags symm,
+    const SculptTransformDisplacementMode t_mode)
 {
+  std::array<float4x4, 8> mats;
 
   float final_pivot_pos[3], d_t[3], d_r[4], d_s[3];
   float t_mat[4][4], r_mat[4][4], s_mat[4][4], pivot_mat[4][4], pivot_imat[4][4],
@@ -130,12 +131,16 @@ static void transform_matrices_init(SculptSession &ss,
     /* Final transform matrix. */
     mul_m4_m4m4(transform_mat, r_mat, t_mat);
     mul_m4_m4m4(transform_mat, transform_mat, s_mat);
-    mul_m4_m4m4(r_transform_mats[i], transform_mat, pivot_imat);
-    mul_m4_m4m4(r_transform_mats[i], pivot_mat, r_transform_mats[i]);
+    mul_m4_m4m4(mats[i].ptr(), transform_mat, pivot_imat);
+    mul_m4_m4m4(mats[i].ptr(), pivot_mat, mats[i].ptr());
   }
+
+  return mats;
 }
 
-static void transform_node(Object &ob, const float transform_mats[8][4][4], PBVHNode *node)
+static void transform_node(Object &ob,
+                           const std::array<float4x4, 8> &transform_mats,
+                           PBVHNode *node)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -163,7 +168,7 @@ static void transform_node(Object &ob, const float transform_mats[8][4][4], PBVH
     }
 
     copy_v3_v3(transformed_co, start_co);
-    mul_m4_v3(transform_mats[int(symm_area)], transformed_co);
+    mul_m4_v3(transform_mats[int(symm_area)].ptr(), transformed_co);
     sub_v3_v3v3(disp, transformed_co, start_co);
     mul_v3_fl(disp, 1.0f - fade);
     add_v3_v3v3(vd.co, start_co, disp);
@@ -178,8 +183,8 @@ static void sculpt_transform_all_vertices(Object &ob)
   SculptSession &ss = *ob.sculpt;
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  float transform_mats[8][4][4];
-  transform_matrices_init(ss, symm, ss.filter_cache->transform_displacement_mode, transform_mats);
+  std::array<float4x4, 8> transform_mats = transform_matrices_init(
+      ss, symm, ss.filter_cache->transform_displacement_mode);
 
   /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
    * (each vertex can only be transformed once by the transform matrix of its area). */
@@ -244,8 +249,8 @@ static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float t
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  float transform_mats[8][4][4];
-  transform_matrices_init(ss, symm, ss.filter_cache->transform_displacement_mode, transform_mats);
+  std::array<float4x4, 8> transform_mats = transform_matrices_init(
+      ss, symm, ss.filter_cache->transform_displacement_mode);
 
   /* Elastic transform needs to apply all transform matrices to all vertices and then combine the
    * displacement proxies as all vertices are modified by all symmetry passes. */
@@ -258,7 +263,7 @@ static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float t
 
       const int symm_area = SCULPT_get_vertex_symm_area(elastic_transform_pivot);
       float elastic_transform_mat[4][4];
-      copy_m4_m4(elastic_transform_mat, transform_mats[symm_area]);
+      copy_m4_m4(elastic_transform_mat, transform_mats[symm_area].ptr());
       threading::parallel_for(
           ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
             for (const int i : range) {
