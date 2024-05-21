@@ -222,7 +222,7 @@ struct GreasePencilLayerFramesExample {
    * Scene Frame:  |0|1|2|3|4|5|6|7|8|9|0|1|2|3|4|5|6|...
    * Drawing:      [#0       ][#1      ]   [#2     ]
    */
-  const FramesMapKey sorted_keys[5] = {0, 5, 10, 12, 16};
+  const FramesMapKeyT sorted_keys[5] = {0, 5, 10, 12, 16};
   GreasePencilFrame sorted_values[5] = {{0}, {1}, {-1}, {2}, {-1}};
   Layer layer;
 
@@ -279,7 +279,7 @@ TEST(greasepencil, add_frame_duration_check_duration)
 {
   GreasePencilLayerFramesExample ex;
   ex.layer.add_frame(17, 10)->drawing_index = 3;
-  Span<FramesMapKey> sorted_keys = ex.layer.sorted_keys();
+  Span<FramesMapKeyT> sorted_keys = ex.layer.sorted_keys();
   EXPECT_EQ(sorted_keys.size(), 7);
   EXPECT_EQ(sorted_keys[6] - sorted_keys[5], 10);
 }
@@ -296,7 +296,7 @@ TEST(greasepencil, add_frame_duration_override_null_frames)
   EXPECT_EQ(layer.drawing_index_at(0), 1);
   EXPECT_EQ(layer.drawing_index_at(1), 3);
   EXPECT_EQ(layer.drawing_index_at(11), -1);
-  Span<FramesMapKey> sorted_keys = layer.sorted_keys();
+  Span<FramesMapKeyT> sorted_keys = layer.sorted_keys();
   EXPECT_EQ(sorted_keys.size(), 3);
   EXPECT_EQ(sorted_keys[0], 0);
   EXPECT_EQ(sorted_keys[1], 1);

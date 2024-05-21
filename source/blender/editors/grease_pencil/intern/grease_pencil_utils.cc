@@ -326,7 +326,7 @@ static Array<std::pair<int, int>> get_visible_frames_for_layer(
   if (sorted_keys.is_empty()) {
     return {};
   }
-  const std::optional<bke::greasepencil::FramesMapKey> current_frame_key = layer.frame_key_at(
+  const std::optional<bke::greasepencil::FramesMapKeyT> current_frame_key = layer.frame_key_at(
       current_frame);
   const int current_frame_index = current_frame_key.has_value() ?
                                       sorted_keys.first_index(*current_frame_key) :

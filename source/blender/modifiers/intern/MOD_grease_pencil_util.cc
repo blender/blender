@@ -32,7 +32,7 @@
 namespace blender::modifier::greasepencil {
 
 using bke::greasepencil::Drawing;
-using bke::greasepencil::FramesMapKey;
+using bke::greasepencil::FramesMapKeyT;
 using bke::greasepencil::Layer;
 
 void init_influence_data(GreasePencilModifierInfluenceData *influence_data,
@@ -363,7 +363,7 @@ Vector<FrameDrawingInfo> get_drawing_infos_by_frame(GreasePencil &grease_pencil,
   Vector<FrameDrawingInfo> drawing_infos;
   layer_mask.foreach_index([&](const int64_t layer_i) {
     const Layer &layer = *grease_pencil.layer(layer_i);
-    const std::optional<FramesMapKey> start_frame = layer.frame_key_at(frame);
+    const std::optional<FramesMapKeyT> start_frame = layer.frame_key_at(frame);
     if (!start_frame) {
       return;
     }

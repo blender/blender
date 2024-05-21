@@ -460,8 +460,8 @@ bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard
     GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
     Layer *layer = reinterpret_cast<Layer *>(ale->data);
     Vector<KeyframeClipboard::DrawingBufferItem> buf;
-    FramesMapKey layer_first_frame = std::numeric_limits<int>::max();
-    FramesMapKey layer_last_frame = std::numeric_limits<int>::min();
+    FramesMapKeyT layer_first_frame = std::numeric_limits<int>::max();
+    FramesMapKeyT layer_last_frame = std::numeric_limits<int>::min();
     for (auto [frame_number, frame] : layer->frames().items()) {
       if (frame.is_selected()) {
         const Drawing *drawing = grease_pencil->get_drawing_at(*layer, frame_number);

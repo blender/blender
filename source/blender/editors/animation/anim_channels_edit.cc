@@ -140,7 +140,7 @@ static bool get_grease_pencil_layer_bounds(const GreasePencilLayer *gplayer,
   int start_frame = 0;
   int end_frame = 1;
 
-  for (const FramesMapKey key : layer.sorted_keys()) {
+  for (const FramesMapKeyT key : layer.sorted_keys()) {
     if (key < range[0]) {
       continue;
     }
