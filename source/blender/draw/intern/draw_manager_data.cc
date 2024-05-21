@@ -1471,7 +1471,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
   const Mesh *mesh = static_cast<const Mesh *>(ob->data);
 
   if (gpumats) {
-    DRW_mesh_get_attributes(ob, mesh, gpumats, num_shgroups, &draw_attrs, &cd_needed);
+    DRW_mesh_get_attributes(*ob, *mesh, gpumats, num_shgroups, &draw_attrs, &cd_needed);
   }
   else {
     memset(&draw_attrs, 0, sizeof(draw_attrs));

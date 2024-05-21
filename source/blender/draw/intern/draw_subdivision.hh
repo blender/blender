@@ -170,10 +170,6 @@ struct DRWSubdivCache {
   /* Contains the start loop index and the smooth flag for each coarse face. */
   gpu::VertBuf *extra_coarse_face_data;
 
-  /* Computed for `ibo.points`, one value per subdivided vertex,
-   * mapping coarse vertices -> subdivided loop. */
-  int *point_indices;
-
   /* Material offsets. */
   int *mat_start;
   int *mat_end;
@@ -197,10 +193,10 @@ void draw_subdiv_cache_free(DRWSubdivCache &cache);
 
 /** \} */
 
-void DRW_create_subdivision(Object *ob,
-                            Mesh *mesh,
+void DRW_create_subdivision(Object &ob,
+                            Mesh &mesh,
                             MeshBatchCache &batch_cache,
-                            MeshBufferCache *mbc,
+                            MeshBufferCache &mbc,
                             bool is_editmode,
                             bool is_paint_mode,
                             bool edit_mode_active,
@@ -211,7 +207,7 @@ void DRW_create_subdivision(Object *ob,
                             const ToolSettings *ts,
                             bool use_hide);
 
-void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cache);
+void DRW_subdivide_loose_geom(DRWSubdivCache &subdiv_cache, const MeshBufferCache &cache);
 
 void DRW_subdiv_cache_free(bke::subdiv::Subdiv *subdiv);
 

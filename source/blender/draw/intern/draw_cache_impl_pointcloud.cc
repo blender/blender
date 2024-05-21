@@ -349,7 +349,7 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
       int layer_index;
       eCustomDataType type;
       bke::AttrDomain domain = bke::AttrDomain::Point;
-      if (!drw_custom_data_match_attribute(&pointcloud->pdata, name, &layer_index, &type)) {
+      if (!drw_custom_data_match_attribute(pointcloud->pdata, name, &layer_index, &type)) {
         continue;
       }
 
@@ -402,7 +402,7 @@ gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const 
   int layer_index;
   eCustomDataType type;
   bke::AttrDomain domain = bke::AttrDomain::Point;
-  if (drw_custom_data_match_attribute(&pointcloud->pdata, name, &layer_index, &type)) {
+  if (drw_custom_data_match_attribute(pointcloud->pdata, name, &layer_index, &type)) {
     DRW_Attributes attributes{};
     drw_attributes_add_request(&attributes, name, type, layer_index, domain);
     drw_attributes_merge(&cache.eval_cache.attr_used, &attributes, cache.render_mutex);

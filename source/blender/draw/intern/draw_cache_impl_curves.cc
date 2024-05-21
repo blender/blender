@@ -676,8 +676,8 @@ static bool ensure_attributes(const Curves &curves,
                               CurvesBatchCache &cache,
                               const GPUMaterial *gpu_material)
 {
-  const CustomData *cd_curve = &curves.geometry.curve_data;
-  const CustomData *cd_point = &curves.geometry.point_data;
+  const CustomData &cd_curve = curves.geometry.curve_data;
+  const CustomData &cd_point = curves.geometry.point_data;
   CurvesEvalFinalCache &final_cache = cache.eval_cache.final;
 
   if (gpu_material) {
@@ -697,7 +697,7 @@ static bool ensure_attributes(const Curves &curves,
          * We do it based on the specified name.
          */
         if (name[0] != '\0') {
-          layer = CustomData_get_named_layer(cd_curve, CD_PROP_FLOAT2, name);
+          layer = CustomData_get_named_layer(&cd_curve, CD_PROP_FLOAT2, name);
           type = CD_MTFACE;
           domain = bke::AttrDomain::Curve;
 
@@ -738,16 +738,16 @@ static bool ensure_attributes(const Curves &curves,
         case CD_MTFACE: {
           if (layer == -1) {
             layer = (name[0] != '\0') ?
-                        CustomData_get_named_layer(cd_curve, CD_PROP_FLOAT2, name) :
-                        CustomData_get_render_layer(cd_curve, CD_PROP_FLOAT2);
+                        CustomData_get_named_layer(&cd_curve, CD_PROP_FLOAT2, name) :
+                        CustomData_get_render_layer(&cd_curve, CD_PROP_FLOAT2);
             if (layer != -1) {
               domain = bke::AttrDomain::Curve;
             }
           }
           if (layer == -1) {
             layer = (name[0] != '\0') ?
-                        CustomData_get_named_layer(cd_point, CD_PROP_FLOAT2, name) :
-                        CustomData_get_render_layer(cd_point, CD_PROP_FLOAT2);
+                        CustomData_get_named_layer(&cd_point, CD_PROP_FLOAT2, name) :
+                        CustomData_get_render_layer(&cd_point, CD_PROP_FLOAT2);
             if (layer != -1) {
               domain = bke::AttrDomain::Point;
             }
@@ -755,7 +755,7 @@ static bool ensure_attributes(const Curves &curves,
 
           if (layer != -1 && name[0] == '\0' && domain.has_value()) {
             name = CustomData_get_layer_name(
-                domain == bke::AttrDomain::Curve ? cd_curve : cd_point, CD_PROP_FLOAT2, layer);
+                domain == bke::AttrDomain::Curve ? &cd_curve : &cd_point, CD_PROP_FLOAT2, layer);
           }
 
           if (layer != -1 && domain.has_value()) {

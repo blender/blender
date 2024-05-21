@@ -124,11 +124,11 @@ struct MeshRenderData {
   const char *default_color_name;
 };
 
-const Mesh *editmesh_final_or_this(const Object *object, const Mesh *mesh);
-const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *mesh);
-const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *mesh);
-const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *mesh);
-const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *mesh);
+const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh);
+const CustomData &mesh_cd_vdata_get_from_mesh(const Mesh &mesh);
+const CustomData &mesh_cd_edata_get_from_mesh(const Mesh &mesh);
+const CustomData &mesh_cd_pdata_get_from_mesh(const Mesh &mesh);
+const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh);
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)
 {
@@ -279,8 +279,8 @@ struct MeshExtract {
  * \param edit_mode_active: When true, use the modifiers from the edit-data,
  * otherwise don't use modifiers as they are not from this object.
  */
-MeshRenderData *mesh_render_data_create(Object *object,
-                                        Mesh *mesh,
+MeshRenderData *mesh_render_data_create(Object &object,
+                                        Mesh &mesh,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool edit_mode_active,

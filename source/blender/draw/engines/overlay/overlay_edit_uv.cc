@@ -40,7 +40,7 @@
 using blender::Vector;
 
 /* Forward declarations. */
-static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob);
+static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object &ob);
 
 struct OVERLAY_StretchingAreaTotals {
   void *next, *prev;
@@ -422,16 +422,16 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
         draw_ctx->scene, draw_ctx->view_layer, nullptr, draw_ctx->object_mode);
     for (Object *object : objects) {
       Object *object_eval = DEG_get_evaluated_object(draw_ctx->depsgraph, object);
-      DRW_mesh_batch_cache_validate(object_eval, (Mesh *)object_eval->data);
-      overlay_edit_uv_cache_populate(vedata, object_eval);
+      DRW_mesh_batch_cache_validate(*object_eval, *(Mesh *)object_eval->data);
+      overlay_edit_uv_cache_populate(vedata, *object_eval);
     }
   }
 }
 
-static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
+static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object &ob)
 {
   using namespace blender::draw;
-  if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
+  if (!(DRW_object_visibility_in_active_context(&ob) & OB_VISIBLE_SELF)) {
     return;
   }
 
@@ -440,15 +440,15 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
   blender::gpu::Batch *geom;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const bool is_edit_object = DRW_object_is_in_edit_mode(ob);
-  Mesh *mesh = (Mesh *)ob->data;
-  const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh->corner_data,
+  const bool is_edit_object = DRW_object_is_in_edit_mode(&ob);
+  Mesh &mesh = *(Mesh *)ob.data;
+  const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh.corner_data,
                                                                    CD_PROP_FLOAT2) != -1;
   const bool has_active_edit_uvmap = is_edit_object && (CustomData_get_active_layer(
-                                                            &mesh->runtime->edit_mesh->bm->ldata,
+                                                            &mesh.runtime->edit_mesh->bm->ldata,
                                                             CD_PROP_FLOAT2) != -1);
   const bool draw_shadows = (draw_ctx->object_mode != OB_MODE_OBJECT) &&
-                            (ob->mode == draw_ctx->object_mode);
+                            (ob.mode == draw_ctx->object_mode);
 
   if (has_active_edit_uvmap) {
     if (pd->edit_uv.do_uv_overlay) {

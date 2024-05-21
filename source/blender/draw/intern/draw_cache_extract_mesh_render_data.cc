@@ -369,79 +369,79 @@ const SortedFaceData &mesh_render_data_faces_sorted_ensure(const MeshRenderData 
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
 
-const Mesh *editmesh_final_or_this(const Object *object, const Mesh *mesh)
+const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh)
 {
-  if (mesh->runtime->edit_mesh != nullptr) {
-    if (const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object)) {
-      return editmesh_eval_final;
+  if (mesh.runtime->edit_mesh != nullptr) {
+    if (const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(&object)) {
+      return *editmesh_eval_final;
     }
   }
 
   return mesh;
 }
 
-const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *mesh)
+const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh)
 {
-  switch (mesh->runtime->wrapper_type) {
+  switch (mesh.runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &mesh->corner_data;
+      return mesh.corner_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
-      return &mesh->runtime->edit_mesh->bm->ldata;
+      return mesh.runtime->edit_mesh->bm->ldata;
       break;
   }
 
   BLI_assert(0);
-  return &mesh->corner_data;
+  return mesh.corner_data;
 }
 
-const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *mesh)
+const CustomData &mesh_cd_pdata_get_from_mesh(const Mesh &mesh)
 {
-  switch (mesh->runtime->wrapper_type) {
+  switch (mesh.runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &mesh->face_data;
+      return mesh.face_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
-      return &mesh->runtime->edit_mesh->bm->pdata;
+      return mesh.runtime->edit_mesh->bm->pdata;
       break;
   }
 
   BLI_assert(0);
-  return &mesh->face_data;
+  return mesh.face_data;
 }
 
-const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *mesh)
+const CustomData &mesh_cd_edata_get_from_mesh(const Mesh &mesh)
 {
-  switch (mesh->runtime->wrapper_type) {
+  switch (mesh.runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &mesh->edge_data;
+      return mesh.edge_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
-      return &mesh->runtime->edit_mesh->bm->edata;
+      return mesh.runtime->edit_mesh->bm->edata;
       break;
   }
 
   BLI_assert(0);
-  return &mesh->edge_data;
+  return mesh.edge_data;
 }
 
-const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *mesh)
+const CustomData &mesh_cd_vdata_get_from_mesh(const Mesh &mesh)
 {
-  switch (mesh->runtime->wrapper_type) {
+  switch (mesh.runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &mesh->vert_data;
+      return mesh.vert_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
-      return &mesh->runtime->edit_mesh->bm->vdata;
+      return mesh.runtime->edit_mesh->bm->vdata;
       break;
   }
 
   BLI_assert(0);
-  return &mesh->vert_data;
+  return mesh.vert_data;
 }
 
 static bool bm_edge_is_sharp(const BMEdge *const &edge)
@@ -538,13 +538,13 @@ static void retrieve_active_attribute_names(MeshRenderData &mr,
                                             const Object &object,
                                             const Mesh &mesh)
 {
-  const Mesh *mesh_final = editmesh_final_or_this(&object, &mesh);
-  mr.active_color_name = mesh_final->active_color_attribute;
-  mr.default_color_name = mesh_final->default_color_attribute;
+  const Mesh &mesh_final = editmesh_final_or_this(object, mesh);
+  mr.active_color_name = mesh_final.active_color_attribute;
+  mr.default_color_name = mesh_final.default_color_attribute;
 }
 
-MeshRenderData *mesh_render_data_create(Object *object,
-                                        Mesh *mesh,
+MeshRenderData *mesh_render_data_create(Object &object,
+                                        Mesh &mesh,
                                         const bool is_editmode,
                                         const bool is_paint_mode,
                                         const bool edit_mode_active,
@@ -563,12 +563,12 @@ MeshRenderData *mesh_render_data_create(Object *object,
   mr->use_hide = use_hide;
 
   if (is_editmode) {
-    const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
-    const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(object);
+    const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(&object);
+    const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(&object);
 
     BLI_assert(editmesh_eval_cage && editmesh_eval_final);
-    mr->bm = mesh->runtime->edit_mesh->bm;
-    mr->edit_bmesh = mesh->runtime->edit_mesh.get();
+    mr->bm = mesh.runtime->edit_mesh->bm;
+    mr->edit_bmesh = mesh.runtime->edit_mesh.get();
     mr->mesh = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
     mr->edit_data = edit_mode_active ? mr->mesh->runtime->edit_data.get() : nullptr;
 
@@ -633,7 +633,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     }
   }
   else {
-    mr->mesh = mesh;
+    mr->mesh = &mesh;
     mr->edit_bmesh = nullptr;
     mr->extract_type = MR_EXTRACT_MESH;
     mr->hide_unmapped_edges = false;
@@ -707,7 +707,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->normals_domain = bmesh_normals_domain(bm);
   }
 
-  retrieve_active_attribute_names(*mr, *object, *mr->mesh);
+  retrieve_active_attribute_names(*mr, object, *mr->mesh);
 
   return mr;
 }

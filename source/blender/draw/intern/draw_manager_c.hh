@@ -743,8 +743,8 @@ void drw_engine_data_free(GPUViewport *viewport);
 
 namespace blender::draw {
 
-void DRW_mesh_get_attributes(const Object *object,
-                             const Mesh *mesh,
+void DRW_mesh_get_attributes(const Object &object,
+                             const Mesh &mesh,
                              const GPUMaterial *const *gpumat_array,
                              int gpumat_array_len,
                              DRW_Attributes *r_attrs,
