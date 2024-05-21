@@ -544,8 +544,7 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                 const VArray<ColorGeometry4f> &colors,
                                 const float4x4 &layer_to_world,
                                 int mode,
-                                bool use_xray,
-                                bool fill_strokes);
+                                bool use_xray);
 
 }  // namespace image_render
 

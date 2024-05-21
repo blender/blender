@@ -348,8 +348,7 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                 const VArray<ColorGeometry4f> &colors,
                                 const float4x4 &layer_to_world,
                                 const int mode,
-                                const bool use_xray,
-                                const bool fill_strokes)
+                                const bool use_xray)
 {
   GPU_program_point_size(true);
 
@@ -397,7 +396,7 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                   cyclic[stroke_i],
                                   eGPDstroke_Caps(stroke_start_caps[stroke_i]),
                                   eGPDstroke_Caps(stroke_end_caps[stroke_i]),
-                                  fill_strokes);
+                                  false);
         break;
       case GP_MATERIAL_MODE_DOT:
       case GP_MATERIAL_MODE_SQUARE:
