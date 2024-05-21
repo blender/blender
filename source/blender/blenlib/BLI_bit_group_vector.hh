@@ -54,6 +54,13 @@ class BitGroupVector {
     BLI_assert(size_in_groups >= 0);
   }
 
+  BitGroupVector(const BitGroupVector &other)
+      : group_size_(other.group_size_),
+        aligned_group_size_(other.aligned_group_size_),
+        data_(other.data_)
+  {
+  }
+
   /** Get all the bits at an index. */
   BoundedBitSpan operator[](const int64_t i) const
   {
