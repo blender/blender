@@ -194,7 +194,7 @@ static void sound_update_animation_flags(Scene *scene);
 
 static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
 {
-  FCurve *fcu;
+  const FCurve *fcu;
   Scene *scene = (Scene *)user_data;
   bool driven;
 
@@ -234,7 +234,7 @@ static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
 
 static void sound_update_animation_flags(Scene *scene)
 {
-  FCurve *fcu;
+  const FCurve *fcu;
   bool driven;
 
   if (scene->id.tag & LIB_TAG_DOIT) {

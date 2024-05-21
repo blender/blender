@@ -308,7 +308,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
 
   /* influence -------------------------- */
   if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
-    FCurve *fcu = BKE_fcurve_find(&strip->fcurves, "influence", 0);
+    const FCurve *fcu = BKE_fcurve_find(&strip->fcurves, "influence", 0);
 
     /* plot the curve (over the strip's main region) */
     if (fcu) {

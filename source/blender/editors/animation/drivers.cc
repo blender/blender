@@ -919,7 +919,7 @@ static bool add_driver_button_poll(bContext *C)
   }
 
   /* Don't do anything if there is an fcurve for animation without a driver. */
-  FCurve *fcu = BKE_fcurve_find_by_rna_context_ui(
+  const FCurve *fcu = BKE_fcurve_find_by_rna_context_ui(
       C, &ptr, prop, index, nullptr, nullptr, &driven, &special);
   return (fcu == nullptr || fcu->driver);
 }

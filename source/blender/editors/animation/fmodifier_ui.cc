@@ -86,7 +86,7 @@ static PointerRNA *fmodifier_get_pointers(const bContext *C, const Panel *panel,
   }
 
   if (C != nullptr && CTX_wm_space_graph(C)) {
-    FCurve *fcu = ANIM_graph_context_fcurve(C);
+    const FCurve *fcu = ANIM_graph_context_fcurve(C);
     uiLayoutSetActive(panel->layout, !(fcu->flag & FCURVE_MOD_OFF));
   }
 

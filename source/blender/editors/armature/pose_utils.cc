@@ -323,7 +323,7 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, con
 
   /* check each link to see if the linked F-Curve has a matching path */
   for (ld = first; ld; ld = ld->next) {
-    FCurve *fcu = (FCurve *)ld->data;
+    const FCurve *fcu = (const FCurve *)ld->data;
 
     /* check if paths match */
     if (STREQ(path, fcu->rna_path)) {

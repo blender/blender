@@ -703,8 +703,11 @@ static int rectf_curve_zone_y(const FCurve *fcu,
  * only keyframes, but also all the interpolated values). This is done by sampling the curve at
  * different points between the xmin and the xmax of the rectangle.
  */
-static bool rectf_curve_intersection(
-    const float offset, const float unit_scale, const rctf *rectf, AnimData *adt, FCurve *fcu)
+static bool rectf_curve_intersection(const float offset,
+                                     const float unit_scale,
+                                     const rctf *rectf,
+                                     AnimData *adt,
+                                     const FCurve *fcu)
 {
   /* 30 sampling points. This worked well in tests. */
   int num_steps = 30;

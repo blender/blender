@@ -1045,7 +1045,7 @@ static void ui_context_fcurve_modifiers_via_fcurve(bContext *C,
   }
   r_lb->clear();
   for (const PointerRNA &ptr : fcurve_links) {
-    FCurve *fcu = static_cast<FCurve *>(ptr.data);
+    const FCurve *fcu = static_cast<const FCurve *>(ptr.data);
     LISTBASE_FOREACH (FModifier *, mod, &fcu->modifiers) {
       if (STREQ(mod->name, source->name) && mod->type == source->type) {
         r_lb->append(RNA_pointer_create(ptr.owner_id, &RNA_FModifier, mod));
@@ -1616,7 +1616,7 @@ blender::Vector<FCurve *> get_property_drivers(
    * nullptr, return an empty vector for clarity. That way the caller gets
    * either a useful result or an empty one. */
   bool fetched_at_least_one = false;
-  for (FCurve *driver : drivers) {
+  for (const FCurve *driver : drivers) {
     fetched_at_least_one |= driver != nullptr;
   }
   if (!fetched_at_least_one) {

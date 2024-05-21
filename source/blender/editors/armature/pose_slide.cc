@@ -577,7 +577,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
  */
 static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 {
-  FCurve *fcu_w = nullptr, *fcu_x = nullptr, *fcu_y = nullptr, *fcu_z = nullptr;
+  const FCurve *fcu_w = nullptr, *fcu_x = nullptr, *fcu_y = nullptr, *fcu_z = nullptr;
   bPoseChannel *pchan = pfl->pchan;
   LinkData *ld = nullptr;
   char *path = nullptr;
@@ -1751,7 +1751,7 @@ static float find_last_key(ListBase *pflinks)
   float target_frame = FLT_MIN;
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = (FCurve *)ld->data;
+      const FCurve *fcu = (const FCurve *)ld->data;
       if (!fcu->bezt) {
         continue;
       }

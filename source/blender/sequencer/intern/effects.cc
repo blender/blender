@@ -2190,7 +2190,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
     return; /* Make COVERITY happy and check for (CID 598) input strip. */
   }
 
-  FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq);
+  const FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq);
   if (fcu == nullptr) {
     return;
   }
@@ -2249,7 +2249,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
       break;
     }
     case SEQ_SPEED_MULTIPLY: {
-      FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq_speed);
+      const FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq_speed);
       if (fcu != nullptr) {
         seq_effect_speed_frame_map_ensure(scene, seq_speed);
         target_frame = s->frameMap[frame_index];
