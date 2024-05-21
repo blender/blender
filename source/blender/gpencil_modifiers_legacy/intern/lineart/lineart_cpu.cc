@@ -5809,7 +5809,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   point_opacities.finish();
   stroke_materials.finish();
 
-  Curves *original_curves = blender::bke::curves_new_nomain(std::move(drawing.strokes()));
+  Curves *original_curves = blender::bke::curves_new_nomain(drawing.strokes());
   Curves *created_curves = blender::bke::curves_new_nomain(std::move(new_curves));
   std::array<blender::bke::GeometrySet, 2> geometry_sets{
       blender::bke::GeometrySet::from_curves(original_curves),
