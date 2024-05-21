@@ -954,6 +954,13 @@ void blo_do_versions_userdef(UserDef *userdef)
     BKE_preferences_extension_repo_add_default_user(userdef);
   }
 
+  if (!USER_VERSION_ATLEAST(402, 42)) {
+    /* 80 was the old default. */
+    if (userdef->node_margin == 80) {
+      userdef->node_margin = 40;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
