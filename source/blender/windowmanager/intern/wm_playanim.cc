@@ -287,8 +287,11 @@ static void print_ps(PlayState *ps)
 static void playanim_window_get_size(GHOST_WindowHandle ghost_window, int *r_width, int *r_height)
 {
   GHOST_RectangleHandle bounds = GHOST_GetClientBounds(ghost_window);
-  *r_width = GHOST_GetWidthRectangle(bounds);
-  *r_height = GHOST_GetHeightRectangle(bounds);
+  float native_pixel_size = GHOST_GetNativePixelSize(ghost_window);
+
+  *r_width = GHOST_GetWidthRectangle(bounds) * native_pixel_size;
+  *r_height = GHOST_GetHeightRectangle(bounds) * native_pixel_size;
+
   GHOST_DisposeRectangle(bounds);
 }
 
@@ -1846,6 +1849,8 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     }
 
     GHOST_AddEventConsumer(ps.ghost_data.system, ghost_event_consumer);
+
+    GHOST_UseNativePixels();
 
     ps.ghost_data.window = playanim_window_open(ps.ghost_data.system,
                                                 "Blender Animation Player",
