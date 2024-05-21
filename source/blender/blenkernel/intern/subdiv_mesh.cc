@@ -957,78 +957,47 @@ static void subdiv_mesh_vertex_loose(const ForeachContext *foreach_context,
 /* Get neighbor edges of the given one.
  * - neighbors[0] is an edge adjacent to edge->v1.
  * - neighbors[1] is an edge adjacent to edge->v2. */
-static void find_edge_neighbors(const Span<int2> coarse_edges,
-                                const GroupedSpan<int> vert_to_edge_map,
-                                const int edge_index,
-                                const int2 *neighbors[2])
+static std::array<std::optional<int2>, 2> find_edge_neighbors(
+    const Span<int2> coarse_edges, const GroupedSpan<int> vert_to_edge_map, const int edge_index)
 {
-  const int2 &edge = coarse_edges[edge_index];
-  neighbors[0] = nullptr;
-  neighbors[1] = nullptr;
-  int neighbor_counters[2] = {0, 0};
-  for (const int i : vert_to_edge_map[edge[0]]) {
-    if (i == edge_index) {
-      continue;
-    }
-    if (ELEM(edge[0], coarse_edges[i][0], coarse_edges[i][1])) {
-      neighbors[0] = &coarse_edges[i];
-      ++neighbor_counters[0];
-    }
-  }
-  for (const int i : vert_to_edge_map[edge[1]]) {
-    if (i == edge_index) {
-      continue;
-    }
-    if (ELEM(edge[1], coarse_edges[i][0], coarse_edges[i][1])) {
-      neighbors[1] = &coarse_edges[i];
-      ++neighbor_counters[1];
-    }
-  }
   /* Vertices which has more than one neighbor are considered infinitely
    * sharp. This is also how topology factory treats vertices of a surface
    * which are adjacent to a loose edge. */
-  if (neighbor_counters[0] > 1) {
-    neighbors[0] = nullptr;
-  }
-  if (neighbor_counters[1] > 1) {
-    neighbors[1] = nullptr;
-  }
+  const auto neighbor_edge_if_single = [&](const int vert) -> std::optional<int2> {
+    const Span<int> neighbors = vert_to_edge_map[vert];
+    if (neighbors.size() != 2) {
+      return std::nullopt;
+    }
+    return neighbors[0] == edge_index ? coarse_edges[neighbors[1]] : coarse_edges[neighbors[0]];
+  };
+  const int2 edge = coarse_edges[edge_index];
+  return {neighbor_edge_if_single(edge[0]), neighbor_edge_if_single(edge[1])};
 }
 
-static void points_for_loose_edges_interpolation_get(const Span<float3> coarse_positions,
-                                                     const int2 &coarse_edge,
-                                                     const int2 *neighbors[2],
-                                                     float3 points_r[4])
+static std::array<float3, 4> find_loose_edge_interpolation_positions(
+    const Span<float3> coarse_positions,
+    const int2 &coarse_edge,
+    const std::array<std::optional<int2>, 2> &neighbors)
 {
+  std::array<float3, 4> result;
   /* Middle points corresponds to the edge. */
-  copy_v3_v3(points_r[1], coarse_positions[coarse_edge[0]]);
-  copy_v3_v3(points_r[2], coarse_positions[coarse_edge[1]]);
+  result[1] = coarse_positions[coarse_edge[0]];
+  result[2] = coarse_positions[coarse_edge[1]];
   /* Start point, duplicate from edge start if no neighbor. */
-  if (neighbors[0] != nullptr) {
-    if ((*neighbors[0])[0] == coarse_edge[0]) {
-      copy_v3_v3(points_r[0], coarse_positions[(*neighbors[0])[1]]);
-    }
-    else {
-      copy_v3_v3(points_r[0], coarse_positions[(*neighbors[0])[0]]);
-    }
+  if (const std::optional<int2> &other = neighbors[0]) {
+    result[0] = coarse_positions[mesh::edge_other_vert(*other, coarse_edge[0])];
   }
   else {
-    sub_v3_v3v3(points_r[0], points_r[1], points_r[2]);
-    add_v3_v3(points_r[0], points_r[1]);
+    result[0] = result[1] * 2.0f - result[2];
   }
   /* End point, duplicate from edge end if no neighbor. */
-  if (neighbors[1] != nullptr) {
-    if ((*neighbors[1])[0] == coarse_edge[1]) {
-      copy_v3_v3(points_r[3], coarse_positions[(*neighbors[1])[1]]);
-    }
-    else {
-      copy_v3_v3(points_r[3], coarse_positions[(*neighbors[1])[0]]);
-    }
+  if (const std::optional<int2> &other = neighbors[1]) {
+    result[3] = coarse_positions[mesh::edge_other_vert(*other, coarse_edge[1])];
   }
   else {
-    sub_v3_v3v3(points_r[3], points_r[2], points_r[1]);
-    add_v3_v3(points_r[3], points_r[2]);
+    result[3] = result[2] * 2.0f - result[1];
   }
+  return result;
 }
 
 float3 mesh_interpolate_position_on_edge(const Span<float3> coarse_positions,
@@ -1043,10 +1012,10 @@ float3 mesh_interpolate_position_on_edge(const Span<float3> coarse_positions,
     return math::interpolate(coarse_positions[edge[0]], coarse_positions[edge[1]], u);
   }
   /* Find neighbors of the coarse edge. */
-  const int2 *neighbors[2];
-  find_edge_neighbors(coarse_edges, vert_to_edge_map, coarse_edge_index, neighbors);
-  float3 points[4];
-  points_for_loose_edges_interpolation_get(coarse_positions, edge, neighbors, points);
+  const std::array<std::optional<int2>, 2> neighbors = find_edge_neighbors(
+      coarse_edges, vert_to_edge_map, coarse_edge_index);
+  const std::array<float3, 4> points = find_loose_edge_interpolation_positions(
+      coarse_positions, edge, neighbors);
   float4 weights;
   key_curve_position_weights(u, weights, KEY_BSPLINE);
   return bke::attribute_math::mix4(weights, points[0], points[1], points[2], points[3]);
