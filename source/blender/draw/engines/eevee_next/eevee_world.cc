@@ -84,6 +84,11 @@ World::~World()
 
 float World::sun_threshold()
 {
+  /* No sun extraction during baking. */
+  if (inst_.is_baking()) {
+    return 0.0;
+  }
+
   float sun_threshold = scene_world_get()->sun_threshold;
   if (inst_.use_studio_light()) {
     /* Do not call `lookdev_world_.intensity_get()` as it might not be initialized yet. */
