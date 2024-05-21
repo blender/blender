@@ -270,8 +270,9 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
         if (preview_from_file == nullptr) {
           break;
         }
-
+        
         PreviewImage *result = static_cast<PreviewImage *>(MEM_dupallocN(preview_from_file));
+        result->runtime = MEM_new<blender::bke::PreviewImageRuntime>(__func__);
         bhead = blo_blendhandle_read_preview_rects(fd, bhead, result, preview_from_file);
         MEM_freeN(preview_from_file);
         return result;
