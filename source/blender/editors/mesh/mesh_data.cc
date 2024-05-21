@@ -483,7 +483,7 @@ static int mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
+    ED_paint_proj_mesh_data_check(*scene, *ob, nullptr, nullptr, nullptr, nullptr);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   }
 
@@ -518,7 +518,7 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
+    ED_paint_proj_mesh_data_check(*scene, *ob, nullptr, nullptr, nullptr, nullptr);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   }
 

@@ -575,7 +575,7 @@ void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
   eGPUStageBarrierBits before_stages = GPU_BARRIER_STAGE_ANY;
   eGPUStageBarrierBits after_stages = GPU_BARRIER_STAGE_ANY;
 
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   ctx->main_command_buffer.insert_memory_barrier(barrier_bits, before_stages, after_stages);
@@ -628,7 +628,7 @@ void MTLFence::wait()
 void MTLStateManager::texture_unpack_row_length_set(uint len)
 {
   /* Set source image row data stride when uploading image data to the GPU. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   ctx->pipeline_state.unpack_row_length = len;
 }
 
@@ -638,7 +638,7 @@ void MTLStateManager::texture_bind(Texture *tex_, GPUSamplerState sampler_type, 
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
   BLI_assert(mtl_tex);
 
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   if (unit >= 0) {
     ctx->texture_bind(mtl_tex, unit, false);
 
@@ -658,13 +658,13 @@ void MTLStateManager::texture_unbind(Texture *tex_)
   BLI_assert(tex_);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
   BLI_assert(mtl_tex);
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   ctx->texture_unbind(mtl_tex, false);
 }
 
 void MTLStateManager::texture_unbind_all()
 {
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
   ctx->texture_unbind_all(false);
 }
@@ -681,7 +681,7 @@ void MTLStateManager::image_bind(Texture *tex_, int unit)
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
   BLI_assert(mtl_tex);
 
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   if (unit >= 0) {
     ctx->texture_bind(mtl_tex, unit, true);
   }
@@ -692,13 +692,13 @@ void MTLStateManager::image_unbind(Texture *tex_)
   BLI_assert(tex_);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
   BLI_assert(mtl_tex);
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   ctx->texture_unbind(mtl_tex, true);
 }
 
 void MTLStateManager::image_unbind_all()
 {
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
   ctx->texture_unbind_all(true);
 }

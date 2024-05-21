@@ -57,8 +57,6 @@ bool RNA_path_resolved_create(PointerRNA *ptr,
 PointerRNA RNA_blender_rna_pointer_create();
 PointerRNA RNA_pointer_recast(PointerRNA *ptr);
 
-extern const PointerRNA PointerRNA_NULL;
-
 /* Structs */
 
 StructRNA *RNA_struct_find(const char *identifier);

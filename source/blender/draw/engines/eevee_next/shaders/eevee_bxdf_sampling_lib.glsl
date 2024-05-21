@@ -13,15 +13,31 @@
 /** \name Microfacet GGX distribution
  * \{ */
 
-#define GGX_USE_VISIBLE_NORMAL 1
-
-float sample_pdf_ggx_refract(
+float sample_pdf_ggx_refract_ex(
     float NH, float NV, float VH, float LH, float G1_V, float alpha, float eta)
 {
   float a2 = square(alpha);
   float D = bxdf_ggx_D(NH, a2);
   float Ht2 = square(eta * LH + VH);
   return (D * G1_V * abs(VH * LH) * square(eta)) / (NV * Ht2);
+}
+
+/* All inputs must be in tangent space. */
+float sample_pdf_ggx_refract(vec3 Vt, vec3 Lt, float alpha, float ior)
+{
+  vec3 Ht = normalize(ior * Lt + Vt);
+  Ht = (ior < 1.0) ? Ht : -Ht;
+  float NH = Ht.z;
+  float NV = Vt.z;
+  float VH = dot(Vt, Ht);
+  float LH = dot(Lt, Ht);
+
+  if (VH > 0.0) {
+    vec3 Vh = normalize(vec3(alpha * Vt.xy, Vt.z));
+    float G1_V = 2.0 * Vh.z / (1.0 + Vh.z);
+    return sample_pdf_ggx_refract_ex(NH, NV, VH, LH, G1_V, alpha, ior);
+  }
+  return 0.0;
 }
 
 /**
@@ -34,7 +50,6 @@ float sample_pdf_ggx_refract(
  */
 vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1_V)
 {
-#if GGX_USE_VISIBLE_NORMAL
   /* Sampling Visible GGX Normals with Spherical Caps.
    * Jonathan Dupuy and Anis Benyoub, HPG Vol. 42, No. 8, 2023.
    * https://diglib.eg.org/bitstream/handle/10.1111/cgf14867/v42i8_03_14867.pdf
@@ -56,21 +71,34 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1_V)
 
   /* Transforming the normal back to the ellipsoid configuration. */
   return normalize(vec3(alpha * Hh.xy, max(0.0, Hh.z)));
-#else
-  /* Theta is the cone angle. */
-  float z = sqrt((1.0 - rand.x) / (1.0 + square(alpha) * rand.x - rand.x)); /* cos theta */
-  float r = sqrt(max(0.0, 1.0 - z * z));                                    /* sin theta */
-  float x = r * rand.y;
-  float y = r * rand.z;
-  /* Microfacet Normal */
-  return vec3(x, y, z);
-#endif
 }
 
 vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
 {
   float G1_unused;
   return sample_ggx(rand, alpha, Vt, G1_unused);
+}
+
+/* All inputs must be in tangent space. */
+float sample_pdf_ggx_bounded(vec3 Vt, vec3 Lt, float alpha)
+{
+  /**
+   * Eto, Kenta, and Yusuke Tokuyoshi. "Bounded VNDF Sampling for Smith-GGX Reflections."
+   * SIGGRAPH Asia 2023 Technical Communications. 2023. 1-4.
+   * https://gpuopen.com/download/publications/Bounded_VNDF_Sampling_for_Smith-GGX_Reflections.pdf
+   * Listing 2.
+   */
+  vec3 Ht = normalize(Vt + Lt);
+  float a2 = square(alpha);
+  float s2 = square(1.0 + length(Vt.xy));
+  float D = bxdf_ggx_D(Ht.z, a2);
+  float len_ai_sqr = length_squared(alpha * Vt.xy);
+  float t = sqrt(len_ai_sqr + square(Vt.z));
+  if (Vt.z >= 0.0) {
+    float k = (1.0 - a2) * s2 / (s2 + a2 * square(Vt.z));
+    return D / (2.0 * (k * Vt.z + t));
+  }
+  return D * (t - Vt.z) / (2.0 * len_ai_sqr);
 }
 
 /* Similar as `sample_ggx()`, but reduces the number or rejected samples due to reflection in the
@@ -103,7 +131,7 @@ vec3 sample_ggx_bounded(vec3 rand, float alpha, vec3 Vt, out float pdf)
   /* Transforming the normal back to the ellipsoid configuration. */
   vec3 Ht = normalize(vec3(alpha * Hh.xy, max(0.0, Hh.z)));
 
-  pdf = 0.5 * bxdf_ggx_D(saturate(Ht.z), a2) / (k * Vt.z + norm);
+  pdf = bxdf_ggx_D(saturate(Ht.z), a2) / (2.0 * (k * Vt.z + norm));
 
   return Ht;
 }
@@ -160,7 +188,7 @@ vec3 sample_ggx_refract(
   if (VH > 0.0) {
     vec3 L = refract(-V, H, 1.0 / ior);
     float LH = dot(L, H);
-    pdf = sample_pdf_ggx_refract(NH, NV, VH, LH, G1_V, alpha, ior);
+    pdf = sample_pdf_ggx_refract_ex(NH, NV, VH, LH, G1_V, alpha, ior);
     return L;
   }
   pdf = 0.0;

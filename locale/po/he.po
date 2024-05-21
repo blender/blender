@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -59,38 +59,6 @@ msgid "Select"
 msgstr "רחוב"
 
 
-msgid "Module"
-msgstr "לודומ"
-
-
-msgid "Module name"
-msgstr "לודומה םש"
-
-
-msgid "Password"
-msgstr "המסיס"
-
-
-msgid "Error Message"
-msgstr "האיגש תעדוה"
-
-
-msgid "Message"
-msgstr "העדוה"
-
-
-msgid "Off"
-msgstr "יובכ"
-
-
-msgid "Full"
-msgstr "אלמ"
-
-
-msgid "Animation Data"
-msgstr "היצמינא ינותנ"
-
-
 msgid "Replace"
 msgstr "ףלחה"
 
@@ -107,12 +75,28 @@ msgid "Multiply"
 msgstr "ליפכהל"
 
 
+msgid "Module"
+msgstr "לודומ"
+
+
+msgid "Module name"
+msgstr "לודומה םש"
+
+
+msgid "Off"
+msgstr "יובכ"
+
+
+msgid "Full"
+msgstr "אלמ"
+
+
+msgid "Animation Data"
+msgstr "היצמינא ינותנ"
+
+
 msgid "Hold"
 msgstr "קיזחהל"
-
-
-msgid "Animation"
-msgstr "היצמינא"
 
 
 msgid "Heads"
@@ -605,6 +589,10 @@ msgid "Mist"
 msgstr "לפרע"
 
 
+msgid "Animation"
+msgstr "היצמינא"
+
+
 msgid "Black"
 msgstr "רוחש"
 
@@ -831,16 +819,16 @@ msgid "Language"
 msgstr "הפש"
 
 
+msgid "Password"
+msgstr "המסיס"
+
+
 msgid "Language Name"
 msgstr "הפשה םש"
 
 
 msgid "Languages"
 msgstr "תופש"
-
-
-msgid "Hide Names"
-msgstr "תומש רתסה"
 
 
 msgctxt "Sequence"
@@ -865,6 +853,10 @@ msgid "AOV"
 msgstr "AOV"
 
 
+msgid "Error Message"
+msgstr "האיגש תעדוה"
+
+
 msgctxt "WindowManager"
 msgid "Grease Pencil"
 msgstr "Grease Pencil"
@@ -878,6 +870,14 @@ msgstr "הנומת"
 msgctxt "WindowManager"
 msgid "Animation"
 msgstr "היצמינא"
+
+
+msgid "name"
+msgstr "םש"
+
+
+msgid "Path:"
+msgstr ":ביתנ"
 
 
 msgid "Credits"
@@ -895,10 +895,6 @@ msgstr "טוריפ"
 
 msgid "Dimension"
 msgstr "דמימ"
-
-
-msgid "name"
-msgstr "םש"
 
 
 msgid "Sort By"
@@ -989,6 +985,10 @@ msgid "Stop this job"
 msgstr "וז הדובע רוצע"
 
 
+msgid "Cancel"
+msgstr "לוטיב"
+
+
 msgid "vertex data"
 msgstr "דוקדוק ינותנ"
 
@@ -1011,10 +1011,6 @@ msgstr ":ץבוק ביתנ"
 
 msgid "File path"
 msgstr "ץבוק ביתנ"
-
-
-msgid "Cancel"
-msgstr "לוטיב"
 
 
 msgid "File name"
@@ -1107,10 +1103,6 @@ msgstr "1 הנומת"
 
 msgid "Image 2"
 msgstr "2 הנומת"
-
-
-msgid "Path:"
-msgstr ":ביתנ"
 
 
 msgid "Add Input"

@@ -33,6 +33,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 
 #include "DNA_view3d_types.h"
@@ -693,14 +694,14 @@ static int grease_pencil_delete_frame_exec(bContext *C, wmOperator *op)
   bool changed = false;
   if (mode == DeleteFrameMode::ACTIVE_FRAME && grease_pencil.has_active_layer()) {
     bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
-    if (layer.is_editable() && layer.frame_key_at(current_frame)) {
-      changed |= grease_pencil.remove_frames(layer, {*layer.frame_key_at(current_frame)});
+    if (layer.is_editable() && layer.start_frame_at(current_frame)) {
+      changed |= grease_pencil.remove_frames(layer, {*layer.start_frame_at(current_frame)});
     }
   }
   else if (mode == DeleteFrameMode::ALL_FRAMES) {
     for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
-      if (layer->is_editable() && layer->frame_key_at(current_frame)) {
-        changed |= grease_pencil.remove_frames(*layer, {*layer->frame_key_at(current_frame)});
+      if (layer->is_editable() && layer->start_frame_at(current_frame)) {
+        changed |= grease_pencil.remove_frames(*layer, {*layer->start_frame_at(current_frame)});
       }
     }
   }
@@ -1270,7 +1271,7 @@ static const EnumPropertyItem *material_enum_itemf(bContext *C,
       item_tmp.identifier = ma->id.name + 2;
       item_tmp.name = ma->id.name + 2;
       item_tmp.value = i + 1;
-      item_tmp.icon = ma->preview ? ma->preview->icon_id : ICON_NONE;
+      item_tmp.icon = ma->preview ? ma->preview->runtime->icon_id : ICON_NONE;
 
       RNA_enum_item_add(&item, &totitem, &item_tmp);
     }
@@ -1956,7 +1957,7 @@ static bool grease_pencil_separate_selected(bContext &C,
   }
 
   if (changed) {
-    grease_pencil_dst.set_active_layer(0);
+    grease_pencil_dst.set_active_layer(nullptr);
 
     /* Add object materials to target object. */
     BKE_object_material_array_assign(&bmain,

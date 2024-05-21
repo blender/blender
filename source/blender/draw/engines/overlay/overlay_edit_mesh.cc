@@ -235,8 +235,8 @@ static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob
   bool has_edit_mesh_cage = false;
   bool has_skin_roots = false;
   /* TODO: Should be its own function. */
-  Mesh *mesh = (Mesh *)ob->data;
-  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+  Mesh &mesh = *(Mesh *)ob->data;
+  if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
     const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
     const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
 
@@ -295,7 +295,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (show_retopology) {
-    Mesh *mesh = (Mesh *)ob->data;
+    Mesh &mesh = *(Mesh *)ob->data;
     geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
     DRW_shgroup_call_no_cull(pd->edit_mesh_depth_grp[do_in_front], geom, ob);
   }
@@ -306,7 +306,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   if (vnormals_do || lnormals_do || fnormals_do) {
     blender::gpu::Batch *normal_geom = DRW_cache_normal_arrow_get();
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh &mesh = *static_cast<Mesh *>(ob->data);
     if (vnormals_do) {
       geom = DRW_mesh_batch_cache_get_edit_vert_normals(mesh);
       DRW_shgroup_call_instances_with_attrs(pd->edit_mesh_normals_grp, ob, normal_geom, geom);

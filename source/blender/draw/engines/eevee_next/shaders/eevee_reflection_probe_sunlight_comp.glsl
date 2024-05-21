@@ -79,12 +79,6 @@ void main()
     sunlight_buf.power[LIGHT_TRANSMISSION] = shape_power;
     sunlight_buf.power[LIGHT_VOLUME] = point_power;
 
-#if USE_LIGHT_UNION
-    sunlight_buf.sun.radius = sun_radius;
-    sunlight_buf.sun.shadow_angle = sun_angle;
-#else
-    sunlight_buf.do_not_access_directly.radius_squared = sun_radius;
-    sunlight_buf.do_not_access_directly._pad1 = sun_angle;
-#endif
+    /* NOTE: Use the radius from UI instead of auto sun size for now. */
   }
 }

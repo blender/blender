@@ -1430,7 +1430,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
       if (prv) {
         const int size = big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON;
 
-        if (id || (prv->tag & PRV_TAG_DEFFERED) != 0) {
+        if (id || prv->runtime->deferred_loading_data) {
           ui_id_preview_image_render_size(C, nullptr, id, prv, size, use_jobs);
         }
       }

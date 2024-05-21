@@ -71,7 +71,7 @@ static libmv_Tracks *libmv_tracks_new(MovieClip *clip, ListBase *tracksbase, int
 
   track = static_cast<MovieTrackingTrack *>(tracksbase->first);
   while (track) {
-    FCurve *weight_fcurve = id_data_find_fcurve(
+    const FCurve *weight_fcurve = id_data_find_fcurve(
         &clip->id, track, &RNA_MovieTrackingTrack, "weight", 0, nullptr);
 
     for (int a = 0; a < track->markersnr; a++) {

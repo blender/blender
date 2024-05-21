@@ -47,13 +47,13 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu);
  * drawing components for some F-Curve (fcu)
  * - selected F-Curves should be more visible than partially visible ones
  */
-static float fcurve_display_alpha(FCurve *fcu)
+static float fcurve_display_alpha(const FCurve *fcu)
 {
   return (fcu->flag & FCURVE_SELECTED) ? 1.0f : U.fcu_inactive_alpha;
 }
 
 /** Get the first and last index to the bezt array that are just outside min and max. */
-static blender::IndexRange get_bounding_bezt_index_range(FCurve *fcu,
+static blender::IndexRange get_bounding_bezt_index_range(const FCurve *fcu,
                                                          const float min,
                                                          const float max)
 {
@@ -415,7 +415,7 @@ static void draw_fcurve_vertices(ARegion *region,
 
 /* Handles ---------------- */
 
-static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
+static bool draw_fcurve_handles_check(const SpaceGraph *sipo, const FCurve *fcu)
 {
   /* don't draw handle lines if handles are not to be shown */
   if (/* handles shouldn't be shown anywhere */
@@ -437,7 +437,7 @@ static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
 
 /* draw lines for F-Curve handles only (this is only done in EditMode)
  * NOTE: draw_fcurve_handles_check must be checked before running this. */
-static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
+static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, const FCurve *fcu)
 {
   using namespace blender;
 
@@ -538,7 +538,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
 /* Samples ---------------- */
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_samples(ARegion *region, FCurve *fcu, const float unit_scale)
+static void draw_fcurve_samples(ARegion *region, const FCurve *fcu, const float unit_scale)
 {
   FPoint *first, *last;
   float scale[2];
@@ -585,7 +585,7 @@ static void draw_fcurve_samples(ARegion *region, FCurve *fcu, const float unit_s
  * (for drawing curves with modifiers). */
 static void draw_fcurve_curve(bAnimContext *ac,
                               ID *id,
-                              FCurve *fcu_,
+                              const FCurve *fcu_,
                               View2D *v2d,
                               uint pos,
                               const bool use_nla_remap,
@@ -903,7 +903,7 @@ static void add_bezt_vertices(BezTriple *bezt,
   MEM_freeN(bezier_diff_points);
 }
 
-static void add_extrapolation_point_left(FCurve *fcu,
+static void add_extrapolation_point_left(const FCurve *fcu,
                                          const float v2d_xmin,
                                          blender::Vector<blender::float2> &curve_vertices)
 {
@@ -940,7 +940,7 @@ static void add_extrapolation_point_left(FCurve *fcu,
   curve_vertices.append(vertex_position);
 }
 
-static void add_extrapolation_point_right(FCurve *fcu,
+static void add_extrapolation_point_right(const FCurve *fcu,
                                           const float v2d_xmax,
                                           blender::Vector<blender::float2> &curve_vertices)
 {

@@ -30,7 +30,7 @@ VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree);
 void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region);
 
 /**
- * Assumes link with #NODE_LINKFLAG_HILITE set.
+ * Assumes link with #NODE_LINK_INSERT_TARGET set.
  */
 void node_insert_on_link_flags(Main &bmain, SpaceNode &snode);
 void node_insert_on_link_flags_clear(bNodeTree &node_tree);

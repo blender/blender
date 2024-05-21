@@ -42,7 +42,7 @@ GeometryComponentPtr MeshComponent::copy() const
 {
   MeshComponent *new_component = new MeshComponent();
   if (mesh_ != nullptr) {
-    new_component->mesh_ = BKE_mesh_copy_for_eval(mesh_);
+    new_component->mesh_ = BKE_mesh_copy_for_eval(*mesh_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
   return GeometryComponentPtr(new_component);
@@ -89,7 +89,7 @@ Mesh *MeshComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ == GeometryOwnershipType::ReadOnly) {
-    mesh_ = BKE_mesh_copy_for_eval(mesh_);
+    mesh_ = BKE_mesh_copy_for_eval(*mesh_);
     ownership_ = GeometryOwnershipType::Owned;
   }
   return mesh_;
@@ -110,7 +110,7 @@ void MeshComponent::ensure_owns_direct_data()
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
     if (mesh_) {
-      mesh_ = BKE_mesh_copy_for_eval(mesh_);
+      mesh_ = BKE_mesh_copy_for_eval(*mesh_);
     }
     ownership_ = GeometryOwnershipType::Owned;
   }

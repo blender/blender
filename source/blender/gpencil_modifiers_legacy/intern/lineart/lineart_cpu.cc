@@ -31,6 +31,7 @@
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
@@ -60,6 +61,8 @@
 #include "intern/render_types.h"
 
 #include "ED_grease_pencil.hh"
+
+#include "GEO_join_geometries.hh"
 
 #include "lineart_intern.h"
 
@@ -5806,7 +5809,14 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   point_opacities.finish();
   stroke_materials.finish();
 
-  drawing.strokes_for_write() = std::move(new_curves);
+  Curves *original_curves = blender::bke::curves_new_nomain(drawing.strokes());
+  Curves *created_curves = blender::bke::curves_new_nomain(std::move(new_curves));
+  std::array<blender::bke::GeometrySet, 2> geometry_sets{
+      blender::bke::GeometrySet::from_curves(original_curves),
+      blender::bke::GeometrySet::from_curves(created_curves)};
+  blender::bke::GeometrySet joined = blender::geometry::join_geometries(geometry_sets, {});
+
+  drawing.strokes_for_write() = std::move(joined.get_curves_for_write()->geometry.wrap());
   drawing.tag_topology_changed();
 
   if (G.debug_value == 4000) {

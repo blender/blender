@@ -159,7 +159,7 @@ static void store_original_bezt_arrays(tGraphSliderOp *gso)
 
   /* Loop through filtered data and copy the curves. */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+    const FCurve *fcu = (const FCurve *)ale->key_data;
 
     if (fcu->bezt == nullptr) {
       /* This curve is baked, skip it. */

@@ -568,7 +568,8 @@ class CommandBatch_ExecNonBlockingResult(NamedTuple):
 class CommandBatch_StatusFlag(NamedTuple):
     flag: int
     failure_count: int
-    count: int
+    # This error seems to be a bug in `mypy-v1.10.0`.
+    count: int  # type: ignore
 
 
 class CommandBatch:

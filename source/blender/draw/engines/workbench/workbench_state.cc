@@ -255,7 +255,7 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
     bContext *C = (bContext *)DRW_context_state_get()->evil_C;
     if (C != nullptr) {
       color_type = ED_paint_shading_color_override(
-          C, &scene_state.scene->toolsettings->paint_mode, ob, color_type);
+          C, &scene_state.scene->toolsettings->paint_mode, *ob, color_type);
     }
   }
   else if (ob->type == OB_MESH && !DRW_state_is_scene_render()) {

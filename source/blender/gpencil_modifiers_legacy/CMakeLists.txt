@@ -14,6 +14,7 @@ set(INC
   ../render/intern
   ../windowmanager
   ../../../intern/eigen
+  ../geometry
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna

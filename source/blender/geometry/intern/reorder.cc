@@ -242,7 +242,7 @@ Mesh *reorder_mesh(const Mesh &src_mesh,
                    bke::AttrDomain domain,
                    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  Mesh *dst_mesh = BKE_mesh_copy_for_eval(&src_mesh);
+  Mesh *dst_mesh = BKE_mesh_copy_for_eval(src_mesh);
   clean_unused_attributes(propagation_info, dst_mesh->attributes_for_write());
   reorder_mesh_exec(src_mesh, old_by_new_map, domain, *dst_mesh);
   return dst_mesh;

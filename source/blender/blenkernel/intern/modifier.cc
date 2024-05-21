@@ -46,7 +46,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_appdir.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
@@ -930,7 +929,7 @@ void BKE_modifier_deform_verts(ModifierData *md,
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
-                                 BMEditMesh *em,
+                                 const BMEditMesh *em,
                                  Mesh *mesh,
                                  blender::MutableSpan<blender::float3> positions)
 {

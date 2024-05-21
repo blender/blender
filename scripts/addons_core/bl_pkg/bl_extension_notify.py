@@ -14,6 +14,7 @@ __all__ = (
 
 import os
 import bpy
+import sys
 
 from . import bl_extension_ops
 from . import bl_extension_utils
@@ -98,25 +99,34 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
         for directory, repo_files in zip(repo_directories, repos_notify_files):
             repo_files = [os.path.join(directory, filepath_rel) for filepath_rel in repo_files]
 
+            # If locking failed, remove the temporary files that were written to.
             if (lock_result_for_repo := lock_result[directory]) is not None:
-                print("Warning \"{:s}\" locking \"{:s}\"".format(lock_result_for_repo, repr(directory)))
+                sys.stderr.write("Warning \"{:s}\" locking \"{:s}\"\n".format(lock_result_for_repo, directory))
                 any_lock_errors = True
                 for filepath in repo_files:
+                    # Don't check this exists as it always should, showing an error if it doesn't is fine.
                     try:
                         os.remove(filepath)
                     except Exception as ex:
-                        print("Failed to remove file:", ex)
+                        sys.stderr.write("Failed to remove file: {:s}\n".format(str(ex)))
                 continue
 
             # Locking worked, rename the files.
             for filepath in repo_files:
                 filepath_dst = filepath[:-len(unique_ext)]
+                if os.path.exists(filepath_dst):
+                    try:
+                        os.remove(filepath_dst)
+                    except Exception as ex:
+                        sys.stderr.write("Failed to remove file before renaming: {:s}\n".format(str(ex)))
+                        continue
+                # Not expected to fail, in the case it might (corrupt file-system for e.g.),
+                # the script should continue executing.
                 try:
-                    os.remove(filepath_dst)
+                    os.rename(filepath, filepath_dst)
                 except Exception as ex:
-                    print("Failed to remove file before renaming:", ex)
-                    continue
-                os.rename(filepath, filepath_dst)
+                    sys.stderr.write("Failed to rename file: {:s}\n".format(str(ex)))
+
     return any_lock_errors
 
 
@@ -216,7 +226,9 @@ def sync_status_generator(repos_notify):
                         repos_notify_files[i].append(msg)
                         continue
 
-                    if not is_debug:
+                    # Always show warnings & errors in the output, otherwise there is no way
+                    # to troubleshoot when checking for updates fails.
+                    if not (is_debug or ty in {'WARN', 'ERROR'}):
                         continue
 
                     # TODO: output this information to a place for users, if they want to debug.

@@ -2480,6 +2480,23 @@ void BKE_stamp_info_callback(void *data,
 #undef CALL
 }
 
+void BKE_image_multilayer_stamp_info_callback(void *data,
+                                              const Image &image,
+                                              StampCallback callback,
+                                              bool noskip)
+{
+  BLI_mutex_lock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+
+  if (!image.rr || !image.rr->stamp_data) {
+    BLI_mutex_unlock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+    return;
+  }
+
+  BKE_stamp_info_callback(data, image.rr->stamp_data, callback, noskip);
+
+  BLI_mutex_unlock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+}
+
 void BKE_render_result_stamp_data(RenderResult *rr, const char *key, const char *value)
 {
   StampData *stamp_data;
@@ -4751,6 +4768,77 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
   ibuf = image_acquire_ibuf(ima, iuser, r_lock);
 
   BLI_mutex_unlock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
+
+  return ibuf;
+}
+
+static int get_multilayer_view_index(const Image &image,
+                                     const ImageUser &image_user,
+                                     const char *view_name)
+{
+  if (BLI_listbase_count_at_most(&image.rr->views, 2) <= 1) {
+    return 0;
+  }
+
+  const int view_image = image_user.view;
+  const bool is_allview = (view_image == 0); /* if view selected == All (0) */
+
+  if (is_allview) {
+    /* Heuristic to match image name with scene names check if the view name exists in the image.
+     */
+    const int view = BLI_findstringindex(&image.rr->views, view_name, offsetof(RenderView, name));
+    if (view == -1) {
+      return 0;
+    }
+    return view;
+  }
+
+  return view_image - 1;
+}
+
+ImBuf *BKE_image_acquire_multilayer_view_ibuf(const RenderData &render_data,
+                                              Image &image,
+                                              const ImageUser &image_user,
+                                              const char *pass_name,
+                                              const char *view_name)
+{
+  BLI_mutex_lock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+
+  /* Local changes to the original ImageUser. */
+  ImageUser local_user = image_user;
+
+  /* Force load the image once, possibly with a different user from what it will need to be in the
+   * end. This ensures proper image type, and initializes multi-layer state when needed. */
+  ImBuf *tmp_ibuf = image_acquire_ibuf(&image, &local_user, nullptr);
+  IMB_freeImBuf(tmp_ibuf);
+
+  if (BKE_image_is_multilayer(&image)) {
+    BLI_assert(pass_name);
+
+    if (!image.rr) {
+      BLI_mutex_unlock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+      return nullptr;
+    }
+
+    const RenderLayer *render_layer = static_cast<const RenderLayer *>(
+        BLI_findlink(&image.rr->layers, local_user.layer));
+
+    local_user.view = get_multilayer_view_index(image, local_user, view_name);
+    local_user.pass = BLI_findstringindex(
+        &render_layer->passes, pass_name, offsetof(RenderPass, name));
+
+    if (!BKE_image_multilayer_index(image.rr, &local_user)) {
+      BLI_mutex_unlock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
+      return nullptr;
+    }
+  }
+  else {
+    local_user.multi_index = BKE_scene_multiview_view_id_get(&render_data, view_name);
+  }
+
+  ImBuf *ibuf = image_acquire_ibuf(&image, &local_user, nullptr);
+
+  BLI_mutex_unlock(static_cast<ThreadMutex *>(image.runtime.cache_mutex));
 
   return ibuf;
 }

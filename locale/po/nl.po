@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -231,28 +231,36 @@ msgid "Collection of action groups"
 msgstr "Collectie van actiegroepen"
 
 
+msgid "Influence"
+msgstr "Invloed"
+
+
+msgid "Mix Mode"
+msgstr "Mixmodus"
+
+
+msgid "Replace"
+msgstr "Vervangen"
+
+
+msgid "Add"
+msgstr "Toevoegen"
+
+
+msgid "Subtract"
+msgstr "Aftrekken"
+
+
+msgid "Multiply"
+msgstr "Vermenigvuldigen"
+
+
 msgid "Module"
 msgstr "Module"
 
 
 msgid "Module name"
 msgstr "Module naam"
-
-
-msgid "Password"
-msgstr "Wachtwoord"
-
-
-msgid "E-mail address"
-msgstr "E-mailadres"
-
-
-msgid "Error Message"
-msgstr "Foutmelding"
-
-
-msgid "Message"
-msgstr "Bericht"
 
 
 msgid "Full"
@@ -271,24 +279,12 @@ msgid "Action"
 msgstr "Actie"
 
 
-msgid "Replace"
-msgstr "Vervangen"
+msgid "New"
+msgstr "Nieuw"
 
 
 msgid "Combine"
 msgstr "Combineer"
-
-
-msgid "Add"
-msgstr "Toevoegen"
-
-
-msgid "Subtract"
-msgstr "Aftrekken"
-
-
-msgid "Multiply"
-msgstr "Vermenigvuldigen"
 
 
 msgid "Nothing"
@@ -297,14 +293,6 @@ msgstr "Niets"
 
 msgid "Action Influence"
 msgstr "Invloed Actie"
-
-
-msgid "Animation"
-msgstr "Animatie"
-
-
-msgid "New"
-msgstr "Nieuw"
 
 
 msgid "After Current"
@@ -337,14 +325,6 @@ msgstr "Rond Frame"
 
 msgid "In Range"
 msgstr "In Bereik"
-
-
-msgid "Influence"
-msgstr "Invloed"
-
-
-msgid "Mix Mode"
-msgstr "Mixmodus"
 
 
 msgid "Any Type"
@@ -1511,10 +1491,6 @@ msgid "2D"
 msgstr "2D"
 
 
-msgid "Animations"
-msgstr "Animaties"
-
-
 msgid "Fonts"
 msgstr "Lettertypen"
 
@@ -1525,6 +1501,10 @@ msgstr "Deeltjes Instellingen"
 
 msgid "Save"
 msgstr "Opslaan"
+
+
+msgid "Animations"
+msgstr "Animaties"
 
 
 msgid "Environment"
@@ -2301,10 +2281,6 @@ msgid "Rounds"
 msgstr "Rondes"
 
 
-msgid "Base Color"
-msgstr "Basiskleur"
-
-
 msgid "Use Nodes"
 msgstr "Gebruik Nodes"
 
@@ -2383,6 +2359,10 @@ msgstr "Ruwheid van het materiaal"
 
 msgid "Shadow Mode"
 msgstr "Schaduwmodus"
+
+
+msgid "Converter"
+msgstr "Converteerder"
 
 
 msgid "Interface"
@@ -2600,6 +2580,10 @@ msgstr "Spiegel Y"
 
 msgid "Sharp"
 msgstr "Scherp"
+
+
+msgid "Animation"
+msgstr "Animatie"
 
 
 msgid "Simulation"
@@ -2852,10 +2836,6 @@ msgstr "Toevoegen"
 
 msgid "Layout"
 msgstr "Indeling"
-
-
-msgid "Converter"
-msgstr "Converteerder"
 
 
 msgid "Add Modifier"
@@ -3928,17 +3908,8 @@ msgstr "Ongedaan Maak Geschiedenis"
 
 
 msgctxt "Operator"
-msgid "Export Camera & Markers"
-msgstr "Exporteer Camera & Markeringen"
-
-
-msgctxt "Operator"
 msgid "Export BVH"
 msgstr "Exporteer BVH"
-
-
-msgid "Apply Modifiers"
-msgstr "Pas Aanpassers Toe"
 
 
 msgctxt "Operator"
@@ -3962,6 +3933,10 @@ msgid "Custom Properties"
 msgstr "Aangepaste Eigenschappen"
 
 
+msgid "Apply Modifiers"
+msgstr "Pas Aanpassers Toe"
+
+
 msgid "Visible Objects"
 msgstr "Zichtbare Objecten"
 
@@ -3972,11 +3947,6 @@ msgstr "Algemeen"
 
 msgid "Animation settings"
 msgstr "Animatie-instellingen"
-
-
-msgctxt "Operator"
-msgid "Export MDD"
-msgstr "Exporteer MDD"
 
 
 msgctxt "Operator"
@@ -4471,11 +4441,6 @@ msgstr "Importeer SVG"
 
 
 msgctxt "Operator"
-msgid "Import Images as Planes"
-msgstr "Importeer Afbeeldingen als Vlakken"
-
-
-msgctxt "Operator"
 msgid "Import FBX"
 msgstr "Importeer FBX"
 
@@ -4486,11 +4451,6 @@ msgstr "Importeer Animatie"
 
 msgid "Import FBX animation"
 msgstr "Importeer FBX Animatie"
-
-
-msgctxt "Operator"
-msgid "Import MDD"
-msgstr "Importeer MDD"
 
 
 msgctxt "Operator"
@@ -5363,6 +5323,10 @@ msgid "(De)select all"
 msgstr "(De)selecteer alles"
 
 
+msgid "Base Color"
+msgstr "Basiskleur"
+
+
 msgctxt "Operator"
 msgid "Hide/Show"
 msgstr "Verberg/Toon"
@@ -6232,37 +6196,6 @@ msgid "Debug Menu"
 msgstr "Debug Menu"
 
 
-msgctxt "Operator"
-msgid "Demo"
-msgstr "Demonstratie"
-
-
-msgid "Pause"
-msgstr "Pause"
-
-
-msgctxt "Operator"
-msgid "Demo Mode (Start)"
-msgstr "Demo Mode (Start)"
-
-
-msgctxt "Operator"
-msgid "Demo Mode (Setup)"
-msgstr "Demo Mode (Instellingen)"
-
-
-msgid "Time Max"
-msgstr "Tijd Max"
-
-
-msgid "Time Min"
-msgstr "Tijd Min"
-
-
-msgid "Search Path"
-msgstr "Zoek Pad"
-
-
 msgid "Export grease pencil to PDF"
 msgstr "Exporteer vetkrijt naar PDF"
 
@@ -6802,6 +6735,10 @@ msgid "Seconds"
 msgstr "Seconden"
 
 
+msgid "Password"
+msgstr "Wachtwoord"
+
+
 msgid "Temperature"
 msgstr "Temperatuur"
 
@@ -6816,14 +6753,6 @@ msgstr "3D Krommes"
 
 msgid "Supported"
 msgstr "Ondersteund"
-
-
-msgid "Apply Scale"
-msgstr "Pas Schaal Toe"
-
-
-msgid "Copy Textures"
-msgstr "Kopieer Texturen"
 
 
 msgid "Engine"
@@ -7215,6 +7144,10 @@ msgid "Show Weights"
 msgstr "Toon Gewichten"
 
 
+msgid "Error Message"
+msgstr "Foutmelding"
+
+
 msgid "Search"
 msgstr "Zoeken"
 
@@ -7309,6 +7242,44 @@ msgid "Animation Channels"
 msgstr "Animatie Kanalen"
 
 
+msgid "File:"
+msgstr "Bestand:"
+
+
+msgid "Description:"
+msgstr "Beschrijving:"
+
+
+msgid "Author:"
+msgstr "Auteur:"
+
+
+msgid "Version:"
+msgstr "Versie:"
+
+
+msgid "Warning:"
+msgstr "Waarschuwing:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Path:"
+msgstr "Pad:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentatie"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Een Bug Melden"
+
+
 msgid "Noise Threshold"
 msgstr "Ruisdrempel"
 
@@ -7353,28 +7324,6 @@ msgstr "Deselecteer"
 
 msgid "Contributions"
 msgstr "Bijdragen"
-
-
-msgid "Import Options:"
-msgstr "Importeer Opties:"
-
-
-msgid "Position:"
-msgstr "Positie:"
-
-
-msgid "Orientation:"
-msgstr "Oriëntatie:"
-
-
-msgctxt "Operator"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "Operator"
-msgid "Area"
-msgstr "Gebied"
 
 
 msgctxt "Operator"
@@ -7787,6 +7736,16 @@ msgstr "Verplaats..."
 
 
 msgctxt "Operator"
+msgid "More"
+msgstr "Meer"
+
+
+msgctxt "Operator"
+msgid "Less"
+msgstr "Minder"
+
+
+msgctxt "Operator"
 msgid "Clean Channels"
 msgstr "Maak Kanalen Schoon"
 
@@ -7849,16 +7808,6 @@ msgstr "Geluidsbestanden"
 
 msgid "Text Files"
 msgstr "Tekstbestanden"
-
-
-msgctxt "Operator"
-msgid "Less"
-msgstr "Minder"
-
-
-msgctxt "Operator"
-msgid "More"
-msgstr "Meer"
 
 
 msgctxt "Operator"
@@ -8105,6 +8054,10 @@ msgid "Drag:"
 msgstr "Sleep:"
 
 
+msgid "Orientation:"
+msgstr "Oriëntatie:"
+
+
 msgid "Annotation:"
 msgstr "Annotatie:"
 
@@ -8189,11 +8142,6 @@ msgid "Render Image"
 msgstr "Render Afbeelding"
 
 
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Een Bug Melden"
-
-
 msgid "No active item"
 msgstr "Geen actief item"
 
@@ -8248,37 +8196,8 @@ msgid ":"
 msgstr ":"
 
 
-msgid "Description:"
-msgstr "Beschrijving:"
-
-
 msgid "Location:"
 msgstr "Locatie:"
-
-
-msgid "File:"
-msgstr "Bestand:"
-
-
-msgid "Author:"
-msgstr "Auteur:"
-
-
-msgid "Version:"
-msgstr "Versie:"
-
-
-msgid "Warning:"
-msgstr "Waarschuwing:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentatie"
 
 
 msgctxt "Operator"
@@ -8327,8 +8246,8 @@ msgstr "Vorige Actieve"
 
 
 msgctxt "Operator"
-msgid "Similar"
-msgstr "Vergelijkbaar"
+msgid "Sharp Edges"
+msgstr "Scherpe Randen"
 
 
 msgctxt "Operator"
@@ -8543,11 +8462,6 @@ msgstr "Sterk"
 msgctxt "Operator"
 msgid "Rotate..."
 msgstr "Roteer..."
-
-
-msgctxt "Operator"
-msgid "Sharp Edges"
-msgstr "Scherpe Randen"
 
 
 msgctxt "Operator"
@@ -9055,14 +8969,6 @@ msgid "Close"
 msgstr "Sluit"
 
 
-msgid "Only"
-msgstr "Alleen"
-
-
-msgid "Object Options"
-msgstr "Objectopties"
-
-
 msgid "Armature Options"
 msgstr "Skelet Opties"
 
@@ -9110,6 +9016,10 @@ msgstr "Bol"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Icosphere"
+
+
+msgid "Cancel"
+msgstr "Annuleren"
 
 
 msgid "No face selected"
@@ -9227,12 +9137,12 @@ msgid "Active Keyframe"
 msgstr "Actieve Sleutelframe"
 
 
+msgid "Position:"
+msgstr "Positie:"
+
+
 msgid "File does not exist"
 msgstr "Bestand bestaat niet"
-
-
-msgid "Cancel"
-msgstr "Annuleren"
 
 
 msgid "Downloads"
@@ -9406,10 +9316,6 @@ msgid "Center:"
 msgstr "Midden:"
 
 
-msgid "Path:"
-msgstr "Pad:"
-
-
 msgid "Old"
 msgstr "Oud"
 
@@ -9519,14 +9425,6 @@ msgstr "Geen operatie in context"
 
 msgid "Property cannot be both boolean and float"
 msgstr "Eigenschap kan niet boolean en float tegelijkertijd zijn"
-
-
-msgid "Add Curve"
-msgstr "Voeg Curve Toe"
-
-
-msgid "Add Mesh"
-msgstr "Voeg Mesh Toe"
 
 
 msgid "Import-Export"

@@ -22,7 +22,7 @@ enum ThumbSize {
   THB_FAIL,
 };
 
-enum ThumbSource {
+enum ThumbSource : int8_t {
   THB_SOURCE_IMAGE,
   THB_SOURCE_MOVIE,
   THB_SOURCE_BLEND,

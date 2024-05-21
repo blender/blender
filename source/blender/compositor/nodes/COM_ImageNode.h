@@ -21,13 +21,13 @@ namespace blender::compositor {
 class ImageNode : public Node {
  private:
   NodeOperation *do_multilayer_check(NodeConverter &converter,
-                                     RenderLayer *render_layer,
-                                     RenderPass *render_pass,
+                                     const CompositorContext &context,
+                                     const char *layer_name,
+                                     const char *pass_name,
                                      Image *image,
                                      ImageUser *user,
                                      int framenumber,
                                      int outputsocket_index,
-                                     int view,
                                      DataType datatype) const;
 
  public:

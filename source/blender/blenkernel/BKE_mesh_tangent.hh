@@ -9,6 +9,7 @@
 
 #include "DNA_customdata_types.h"
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
 
@@ -45,7 +46,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
 /**
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
  */
-void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
+void BKE_mesh_calc_loop_tangent_ex(blender::Span<blender::float3> vert_positions,
                                    blender::OffsetIndices<int> faces,
                                    const int *corner_verts,
                                    const blender::int3 *corner_tris,
@@ -57,10 +58,10 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    bool calc_active_tangent,
                                    const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                    int tangent_names_len,
-                                   const float (*vert_normals)[3],
-                                   const float (*face_normals)[3],
-                                   const float (*corner_normals)[3],
-                                   const float (*vert_orco)[3],
+                                   blender::Span<blender::float3> vert_normals,
+                                   blender::Span<blender::float3> face_normals,
+                                   blender::Span<blender::float3> corner_normals,
+                                   blender::Span<blender::float3> vert_orco,
                                    /* result */
                                    CustomData *loopdata_out,
                                    uint loopdata_out_len,

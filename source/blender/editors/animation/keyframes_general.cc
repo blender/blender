@@ -333,7 +333,7 @@ void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const
 
 /* ---------------- */
 
-float get_default_rna_value(FCurve *fcu, PropertyRNA *prop, PointerRNA *ptr)
+float get_default_rna_value(const FCurve *fcu, PropertyRNA *prop, PointerRNA *ptr)
 {
   const int len = RNA_property_array_length(ptr, prop);
 
@@ -1433,7 +1433,7 @@ static void flip_names(tAnimCopybufItem *aci, char **r_name)
 /* ------------------- */
 
 /* most strict method: exact matches only */
-static tAnimCopybufItem *pastebuf_match_path_full(FCurve *fcu,
+static tAnimCopybufItem *pastebuf_match_path_full(const FCurve *fcu,
                                                   const short from_single,
                                                   const short to_simple,
                                                   bool flip)
@@ -1466,7 +1466,7 @@ static tAnimCopybufItem *pastebuf_match_path_full(FCurve *fcu,
 
 /* medium match strictness: path match only (i.e. ignore ID) */
 static tAnimCopybufItem *pastebuf_match_path_property(Main *bmain,
-                                                      FCurve *fcu,
+                                                      const FCurve *fcu,
                                                       const short from_single,
                                                       const short /*to_simple*/)
 {
@@ -1517,7 +1517,7 @@ static tAnimCopybufItem *pastebuf_match_path_property(Main *bmain,
 }
 
 /* least strict matching heuristic: indices only */
-static tAnimCopybufItem *pastebuf_match_index_only(FCurve *fcu,
+static tAnimCopybufItem *pastebuf_match_index_only(const FCurve *fcu,
                                                    const short from_single,
                                                    const short /*to_simple*/)
 {

@@ -65,9 +65,7 @@ Fence *MTLBackend::fence_alloc()
 
 FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
 {
-  MTLContext *mtl_context = static_cast<MTLContext *>(
-      reinterpret_cast<Context *>(GPU_context_active_get()));
-  return new MTLFrameBuffer(mtl_context, name);
+  return new MTLFrameBuffer(MTLContext::get(), name);
 };
 
 IndexBuf *MTLBackend::indexbuf_alloc()
@@ -87,8 +85,7 @@ QueryPool *MTLBackend::querypool_alloc()
 
 Shader *MTLBackend::shader_alloc(const char *name)
 {
-  MTLContext *mtl_context = MTLContext::get();
-  return new MTLShader(mtl_context, name);
+  return new MTLShader(MTLContext::get(), name);
 };
 
 Texture *MTLBackend::texture_alloc(const char *name)

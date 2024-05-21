@@ -340,7 +340,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
                                        const char *defgrp_name,
                                        const float fac,
                                        const Mesh *me_target,
-                                       BMEditMesh *em_target)
+                                       const BMEditMesh *em_target)
 {
   LatticeDeformData *lattice_deform_data;
   const MDeformVert *dvert = nullptr;
@@ -460,7 +460,7 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
                                              const short flag,
                                              const char *defgrp_name,
                                              const float fac,
-                                             BMEditMesh *em_target)
+                                             const BMEditMesh *em_target)
 {
   lattice_deform_coords_impl(ob_lattice,
                              ob_target,

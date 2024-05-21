@@ -832,8 +832,7 @@ static DRWSubdivCache &mesh_batch_cache_ensure_subdiv_cache(MeshBatchCache &mbc)
 {
   DRWSubdivCache *subdiv_cache = mbc.subdiv_cache;
   if (subdiv_cache == nullptr) {
-    subdiv_cache = static_cast<DRWSubdivCache *>(
-        MEM_callocN(sizeof(DRWSubdivCache), "DRWSubdivCache"));
+    subdiv_cache = MEM_new<DRWSubdivCache>(__func__);
   }
   mbc.subdiv_cache = subdiv_cache;
   return *subdiv_cache;
@@ -2102,8 +2101,8 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
   MEM_freeN(per_face_mat_offset);
 }
 
-static bool draw_subdiv_create_requested_buffers(Object *ob,
-                                                 Mesh *mesh,
+static bool draw_subdiv_create_requested_buffers(Object &ob,
+                                                 Mesh &mesh,
                                                  MeshBatchCache &batch_cache,
                                                  MeshBufferCache &mbc,
                                                  const bool is_editmode,
@@ -2117,18 +2116,18 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
                                                  const bool use_hide,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
-  SubsurfRuntimeData *runtime_data = mesh->runtime->subsurf_runtime_data;
+  SubsurfRuntimeData *runtime_data = mesh.runtime->subsurf_runtime_data;
   BLI_assert(runtime_data && runtime_data->has_gpu_subdiv);
 
   if (runtime_data->settings.level == 0) {
     return false;
   }
 
-  const Mesh *mesh_eval = mesh;
+  const Mesh *mesh_eval = &mesh;
   BMesh *bm = nullptr;
-  if (mesh->runtime->edit_mesh) {
-    mesh_eval = BKE_object_get_editmesh_eval_final(ob);
-    bm = mesh->runtime->edit_mesh->bm;
+  if (mesh.runtime->edit_mesh) {
+    mesh_eval = BKE_object_get_editmesh_eval_final(&ob);
+    bm = mesh.runtime->edit_mesh->bm;
   }
 
   draw_subdiv_invalidate_evaluator_for_orco(runtime_data->subdiv_gpu, mesh_eval);
@@ -2208,24 +2207,24 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   return true;
 }
 
-void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cache)
+void DRW_subdivide_loose_geom(DRWSubdivCache &subdiv_cache, const MeshBufferCache &cache)
 {
-  const int coarse_loose_vert_len = cache->loose_geom.verts.size();
-  const int coarse_loose_edge_len = cache->loose_geom.edges.size();
+  const int coarse_loose_vert_len = cache.loose_geom.verts.size();
+  const int coarse_loose_edge_len = cache.loose_geom.edges.size();
 
   if (coarse_loose_vert_len == 0 && coarse_loose_edge_len == 0) {
     /* Nothing to do. */
     return;
   }
 
-  if (subdiv_cache->loose_geom.edges || subdiv_cache->loose_geom.verts) {
+  if (subdiv_cache.loose_geom.edges || subdiv_cache.loose_geom.verts) {
     /* Already processed. */
     return;
   }
 
-  const Mesh *coarse_mesh = subdiv_cache->mesh;
-  const bool is_simple = subdiv_cache->subdiv->settings.is_simple;
-  const int resolution = subdiv_cache->resolution;
+  const Mesh *coarse_mesh = subdiv_cache.mesh;
+  const bool is_simple = subdiv_cache.subdiv->settings.is_simple;
+  const int resolution = subdiv_cache.resolution;
   const int resolution_1 = resolution - 1;
   const float inv_resolution_1 = 1.0f / float(resolution_1);
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
@@ -2258,8 +2257,8 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       coarse_edges, coarse_mesh->verts_num, vert_to_edge_offsets, vert_to_edge_indices);
 
   for (int i = 0; i < coarse_loose_edge_len; i++) {
-    const int coarse_edge_index = cache->loose_geom.edges[i];
-    const int2 &coarse_edge = coarse_edges[cache->loose_geom.edges[i]];
+    const int coarse_edge_index = cache.loose_geom.edges[i];
+    const int2 &coarse_edge = coarse_edges[cache.loose_geom.edges[i]];
 
     /* Perform interpolation of each vertex. */
     for (int i = 0; i < resolution - 1; i++, subd_edge_offset++) {
@@ -2270,14 +2269,8 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       DRWSubdivLooseVertex &subd_v1 = loose_subd_verts[subd_vert_offset];
       subd_v1.coarse_vertex_index = (i == 0) ? coarse_edge[0] : -1u;
       const float u1 = i * inv_resolution_1;
-      bke::subdiv::mesh_interpolate_position_on_edge(
-          reinterpret_cast<const float(*)[3]>(coarse_positions.data()),
-          coarse_edges.data(),
-          vert_to_edge_map,
-          coarse_edge_index,
-          is_simple,
-          u1,
-          subd_v1.co);
+      subd_v1.co = bke::subdiv::mesh_interpolate_position_on_edge(
+          coarse_positions, coarse_edges, vert_to_edge_map, coarse_edge_index, is_simple, u1);
 
       subd_edge.loose_subdiv_v1_index = subd_vert_offset++;
 
@@ -2285,14 +2278,8 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       DRWSubdivLooseVertex &subd_v2 = loose_subd_verts[subd_vert_offset];
       subd_v2.coarse_vertex_index = ((i + 1) == resolution - 1) ? coarse_edge[1] : -1u;
       const float u2 = (i + 1) * inv_resolution_1;
-      bke::subdiv::mesh_interpolate_position_on_edge(
-          reinterpret_cast<const float(*)[3]>(coarse_positions.data()),
-          coarse_edges.data(),
-          vert_to_edge_map,
-          coarse_edge_index,
-          is_simple,
-          u2,
-          subd_v2.co);
+      subd_v2.co = bke::subdiv::mesh_interpolate_position_on_edge(
+          coarse_positions, coarse_edges, vert_to_edge_map, coarse_edge_index, is_simple, u2);
 
       subd_edge.loose_subdiv_v2_index = subd_vert_offset++;
     }
@@ -2300,18 +2287,18 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
 
   /* Copy the remaining loose_verts. */
   for (int i = 0; i < coarse_loose_vert_len; i++) {
-    const int coarse_vertex_index = cache->loose_geom.verts[i];
+    const int coarse_vertex_index = cache.loose_geom.verts[i];
 
     DRWSubdivLooseVertex &subd_v = loose_subd_verts[subd_vert_offset++];
-    subd_v.coarse_vertex_index = cache->loose_geom.verts[i];
+    subd_v.coarse_vertex_index = cache.loose_geom.verts[i];
     copy_v3_v3(subd_v.co, coarse_positions[coarse_vertex_index]);
   }
 
-  subdiv_cache->loose_geom.edges = loose_subd_edges;
-  subdiv_cache->loose_geom.verts = loose_subd_verts;
-  subdiv_cache->loose_geom.edge_len = num_subdivided_edge;
-  subdiv_cache->loose_geom.vert_len = coarse_loose_vert_len;
-  subdiv_cache->loose_geom.loop_len = num_subdivided_edge * 2 + coarse_loose_vert_len;
+  subdiv_cache.loose_geom.edges = loose_subd_edges;
+  subdiv_cache.loose_geom.verts = loose_subd_verts;
+  subdiv_cache.loose_geom.edge_len = num_subdivided_edge;
+  subdiv_cache.loose_geom.vert_len = coarse_loose_vert_len;
+  subdiv_cache.loose_geom.loop_len = num_subdivided_edge * 2 + coarse_loose_vert_len;
 }
 
 Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache &cache)
@@ -2327,10 +2314,10 @@ Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCach
 
 static OpenSubdiv_EvaluatorCache *g_evaluator_cache = nullptr;
 
-void DRW_create_subdivision(Object *ob,
-                            Mesh *mesh,
+void DRW_create_subdivision(Object &ob,
+                            Mesh &mesh,
                             MeshBatchCache &batch_cache,
-                            MeshBufferCache *mbc,
+                            MeshBufferCache &mbc,
                             const bool is_editmode,
                             const bool is_paint_mode,
                             const bool edit_mode_active,
@@ -2354,7 +2341,7 @@ void DRW_create_subdivision(Object *ob,
   if (!draw_subdiv_create_requested_buffers(ob,
                                             mesh,
                                             batch_cache,
-                                            *mbc,
+                                            mbc,
                                             is_editmode,
                                             is_paint_mode,
                                             edit_mode_active,

@@ -171,7 +171,7 @@ class CLIP_HT_header(Header):
                 r = active_object.reconstruction
 
                 if r.is_valid and sc.view == 'CLIP':
-                    layout.label(text=rpt_("Solve error: {.2f} px").format(r.average_error), translate=False)
+                    layout.label(text=rpt_("Solve error: {:.2f} px").format(r.average_error), translate=False)
 
                 row = layout.row()
                 row.prop(sc, "pivot_point", text="", icon_only=True)

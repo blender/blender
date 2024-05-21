@@ -284,7 +284,7 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
           bNodeSocket *new_socket = blender::bke::nodeFindSocket(
-              &new_node, SOCK_IN, new_identifier->c_str());
+              &new_node, SOCK_IN, *new_identifier);
           link->tonode = &new_node;
           link->tosock = new_socket;
           old_socket->link = nullptr;
@@ -296,7 +296,7 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
           bNodeSocket *new_socket = blender::bke::nodeFindSocket(
-              &new_node, SOCK_OUT, new_identifier->c_str());
+              &new_node, SOCK_OUT, *new_identifier);
           link->fromnode = &new_node;
           link->fromsock = new_socket;
           old_socket->link = nullptr;

@@ -574,6 +574,13 @@ def extensions_panel_draw_impl(
                 # The full description may be multiple lines (not yet supported by Blender's UI).
                 col_b.label(text=item_remote["tagline"])
 
+                if is_addon:
+                    col_a.label(text="Permissions:")
+                    if (value := item_remote.get("permissions")):
+                        col_b.label(text="({:s})".format(", ".join(value)))
+                    else:
+                        col_b.label(text="None")
+
                 if is_installed:
                     col_a.label(text="Path:")
                     col_b.label(text=os.path.join(repos_all[repo_index].directory, pkg_id), translate=False)

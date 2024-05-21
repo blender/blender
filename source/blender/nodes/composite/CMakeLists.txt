@@ -157,6 +157,17 @@ if(WITH_OPENIMAGEDENOISE)
   )
 endif()
 
+
+if(WITH_FFTW3)
+  list(APPEND INC_SYS
+    ${FFTW3_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${FFTW3_LIBRARIES}
+  )
+  add_definitions(-DWITH_FFTW3)
+endif()
+
 blender_add_lib(bf_nodes_composite "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 blender_set_target_unity_build(bf_nodes_composite 10)

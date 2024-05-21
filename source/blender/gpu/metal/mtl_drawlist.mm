@@ -68,7 +68,7 @@ MTLDrawList::~MTLDrawList()
 
 void MTLDrawList::init()
 {
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
   BLI_assert(MDI_ENABLED);
   BLI_assert(data_ == nullptr);
@@ -168,7 +168,7 @@ void MTLDrawList::submit()
   bool can_use_MDI = false;
 
   /* Verify context. */
-  MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   /* Execute indirect draw calls. */

@@ -8059,7 +8059,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
       prop, "Tracing Method", "Select the tracing method used to find scene-ray intersections");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "use_shadow_jittered_viewport", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_shadow_jitter_viewport", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_SHADOW_JITTERED_VIEWPORT);
   RNA_def_property_ui_text(prop,
                            "Jittered Shadows (Viewport)",
@@ -8876,6 +8876,7 @@ void RNA_def_scene(BlenderRNA *brna)
   /* Tool Settings */
   prop = RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_pointer_sdna(prop, nullptr, "toolsettings");
   RNA_def_property_struct_type(prop, "ToolSettings");
   RNA_def_property_ui_text(prop, "Tool Settings", "");

@@ -1780,17 +1780,23 @@ const char *nodeSocketSubTypeLabel(int subtype)
   return "";
 }
 
-bNodeSocket *nodeFindSocket(const bNode *node,
-                            const eNodeSocketInOut in_out,
-                            const char *identifier)
+bNodeSocket *nodeFindSocket(bNode *node, const eNodeSocketInOut in_out, const StringRef identifier)
 {
   const ListBase *sockets = (in_out == SOCK_IN) ? &node->inputs : &node->outputs;
   LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-    if (STREQ(sock->identifier, identifier)) {
+    if (sock->identifier == identifier) {
       return sock;
     }
   }
   return nullptr;
+}
+
+const bNodeSocket *nodeFindSocket(const bNode *node,
+                                  const eNodeSocketInOut in_out,
+                                  const StringRef identifier)
+{
+  /* Reuse the implementation of the mutable accessor. */
+  return nodeFindSocket(const_cast<bNode *>(node), in_out, identifier);
 }
 
 bNodeSocket *node_find_enabled_socket(bNode &node,

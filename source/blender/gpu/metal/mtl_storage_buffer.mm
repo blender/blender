@@ -118,7 +118,7 @@ void MTLStorageBuf::init()
   BLI_assert(size_in_bytes_ > 0);
 
   /* Allocate MTL buffer */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
   BLI_assert(ctx->device);
   UNUSED_VARS_NDEBUG(ctx);
@@ -166,7 +166,7 @@ void MTLStorageBuf::update(const void *data)
     if (device_only) {
 
       /* Fetch active context. */
-      MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+      MTLContext *ctx = MTLContext::get();
       BLI_assert(ctx);
 
       /* Prepare staging buffer. */
@@ -271,7 +271,7 @@ void MTLStorageBuf::unbind()
 void MTLStorageBuf::clear(uint32_t clear_value)
 {
   /* Fetch active context. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert_msg(ctx, "Clears should always be performed while a valid context exists.");
 
   if (metal_buffer_ == nullptr) {
@@ -300,7 +300,7 @@ void MTLStorageBuf::clear(uint32_t clear_value)
       MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
       cs.bind_pso(pso);
       cs.bind_compute_bytes(&clear_value, sizeof(uint32_t), 0);
-      cs.bind_compute_buffer(metal_buffer_->get_metal_buffer(), 0, 1, true);
+      cs.bind_compute_buffer(metal_buffer_->get_metal_buffer(), 0, 1);
       [compute_encoder dispatchThreads:MTLSizeMake(size_in_bytes_ / sizeof(uint32_t), 1, 1)
                  threadsPerThreadgroup:MTLSizeMake(128, 1, 1)];
     }
@@ -323,7 +323,7 @@ void MTLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, ui
   }
 
   /* Fetch active context. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
 
   /* Fetch Metal buffers. */
@@ -390,7 +390,7 @@ void MTLStorageBuf::read(void *data)
   if (device_only) {
     /** Read storage buffer contents via staging buffer. */
     /* Fetch active context. */
-    MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+    MTLContext *ctx = MTLContext::get();
     BLI_assert(ctx);
 
     /* Prepare staging buffer. */
@@ -440,7 +440,7 @@ void MTLStorageBuf::read(void *data)
     /* Managed buffers need to be explicitly flushed back to host. */
     if (metal_buffer_->get_resource_options() & MTLResourceStorageModeManaged) {
       /* Fetch active context. */
-      MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+      MTLContext *ctx = MTLContext::get();
       BLI_assert(ctx);
 
       /* Ensure GPU updates are flushed back to CPU. */

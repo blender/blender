@@ -326,6 +326,26 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
+  prop = RNA_def_property(srna, "use_shadow_jitter", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "mode", LA_SHADOW_JITTER);
+  RNA_def_property_ui_text(
+      prop,
+      "Shadow Jitter",
+      "Enable jittered soft shadows to increase shadow precision (disabled in viewport unless "
+      "enabled in the render settings). Has a high performance impact");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, 0, "rna_Light_update");
+
+  prop = RNA_def_property(srna, "shadow_jitter_overblur", PROP_FLOAT, PROP_PERCENTAGE);
+  RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 20.0f, 10.0f, 0);
+  RNA_def_property_ui_text(
+      prop,
+      "Shadow Jitter Overblur",
+      "Apply shadow tracing to each jittered sample to reduce under-sampling artifacts");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, 0, "rna_Light_update");
+
   if (sun) {
     prop = RNA_def_property(srna, "shadow_cascade_max_distance", PROP_FLOAT, PROP_DISTANCE);
     RNA_def_property_float_sdna(prop, nullptr, "cascade_max_dist");

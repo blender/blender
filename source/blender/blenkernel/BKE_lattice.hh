@@ -106,6 +106,6 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
                                              short flag,
                                              const char *defgrp_name,
                                              float fac,
-                                             BMEditMesh *em_target);
+                                             const BMEditMesh *em_target);
 
 /** \} */

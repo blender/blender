@@ -332,7 +332,7 @@ short ANIM_get_normalization_flags(SpaceLink *space_link)
 }
 
 static void fcurve_scene_coord_range_get(Scene *scene,
-                                         FCurve *fcu,
+                                         const FCurve *fcu,
                                          float *r_min_coord,
                                          float *r_max_coord)
 {

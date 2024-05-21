@@ -604,7 +604,10 @@ const char *nodeStaticSocketLabel(int type, int subtype);
   } \
   ((void)0)
 
-bNodeSocket *nodeFindSocket(const bNode *node, eNodeSocketInOut in_out, const char *identifier);
+bNodeSocket *nodeFindSocket(bNode *node, eNodeSocketInOut in_out, StringRef identifier);
+const bNodeSocket *nodeFindSocket(const bNode *node,
+                                  eNodeSocketInOut in_out,
+                                  StringRef identifier);
 bNodeSocket *nodeAddSocket(bNodeTree *ntree,
                            bNode *node,
                            eNodeSocketInOut in_out,
@@ -1327,6 +1330,7 @@ void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index
 #define GEO_NODE_TOOL_VIEWPORT_TRANSFORM 2132
 #define GEO_NODE_TOOL_MOUSE_POSITION 2133
 #define GEO_NODE_SAMPLE_GRID_INDEX 2134
+#define GEO_NODE_TOOL_ACTIVE_ELEMENT 2135
 
 /** \} */
 
@@ -1635,8 +1639,6 @@ void node_preview_free(bNodePreview *preview);
 void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize);
 
 void node_preview_remove_unused(bNodeTree *ntree);
-
-void node_preview_clear(bNodePreview *preview);
 
 void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool remove_old);
 

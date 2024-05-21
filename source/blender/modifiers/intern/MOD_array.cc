@@ -384,7 +384,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       Mesh *start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
       if (start_cap_mesh) {
         BKE_mesh_wrapper_ensure_mdata(start_cap_mesh);
-        return BKE_mesh_copy_for_eval(start_cap_mesh);
+        return BKE_mesh_copy_for_eval(*start_cap_mesh);
       }
     }
     return mesh;

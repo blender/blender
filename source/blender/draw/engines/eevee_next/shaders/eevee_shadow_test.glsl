@@ -30,10 +30,10 @@ void set_clipmap_data(inout LightData light,
 void set_clipmap_base_offset(inout LightData light, ivec2 clipmap_base_offset)
 {
   /* WATCH: Can get out of sync with light_sun_data_get(). */
-  light.do_not_access_directly._pad7 = intBitsToFloat(0);
-  light.do_not_access_directly.shadow_projection_shift = intBitsToFloat(0);
-  light.do_not_access_directly._pad0_reserved = intBitsToFloat(clipmap_base_offset.x);
-  light.do_not_access_directly._pad1_reserved = intBitsToFloat(clipmap_base_offset.y);
+  light.do_not_access_directly.tilemaps_count = clipmap_base_offset.x;
+  light.do_not_access_directly.shadow_radius = intBitsToFloat(clipmap_base_offset.y);
+  light.do_not_access_directly.shape_radius = intBitsToFloat(0);
+  light.do_not_access_directly.influence_radius_max = intBitsToFloat(0);
 }
 
 void main()

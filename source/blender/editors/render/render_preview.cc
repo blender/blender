@@ -1579,14 +1579,15 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
   LISTBASE_FOREACH (IconPreviewSize *, cur_size, &ip->sizes) {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
     /* Is this a render job or a deferred loading job? */
-    const ePreviewRenderMethod pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED :
-                                                                           PR_ICON_RENDER;
+    const ePreviewRenderMethod pr_method = (prv->runtime->deferred_loading_data) ?
+                                               PR_ICON_DEFERRED :
+                                               PR_ICON_RENDER;
 
     if (worker_status->stop) {
       break;
     }
 
-    if (prv->tag & PRV_TAG_DEFFERED_DELETE) {
+    if (prv->runtime->tag & PRV_TAG_DEFFERED_DELETE) {
       /* Non-thread-protected reading is not an issue here. */
       continue;
     }
@@ -1696,15 +1697,15 @@ static void icon_preview_endjob(void *customdata)
 
   if (ip->owner) {
     PreviewImage *prv_img = static_cast<PreviewImage *>(ip->owner);
-    prv_img->tag &= ~PRV_TAG_DEFFERED_RENDERING;
+    prv_img->runtime->tag &= ~PRV_TAG_DEFFERED_RENDERING;
 
     LISTBASE_FOREACH (IconPreviewSize *, icon_size, &ip->sizes) {
       int size_index = icon_previewimg_size_index_get(icon_size, prv_img);
       BKE_previewimg_finish(prv_img, size_index);
     }
 
-    if (prv_img->tag & PRV_TAG_DEFFERED_DELETE) {
-      BLI_assert(prv_img->tag & PRV_TAG_DEFFERED);
+    if (prv_img->runtime->tag & PRV_TAG_DEFFERED_DELETE) {
+      BLI_assert(prv_img->runtime->deferred_loading_data);
       BKE_previewimg_deferred_release(prv_img);
     }
   }
@@ -1790,14 +1791,14 @@ void PreviewLoadJob::load_jobless(PreviewImage *preview, const eIconSizes icon_s
 
 void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes icon_size)
 {
-  BLI_assert(preview->tag & PRV_TAG_DEFFERED);
+  BLI_assert(preview->runtime->deferred_loading_data);
   RequestedPreview requested_preview{};
   requested_preview.preview = preview;
   requested_preview.icon_size = icon_size;
 
   preview->flag[icon_size] |= PRV_RENDERING;
   /* Warn main thread code that this preview is being rendered and cannot be freed. */
-  preview->tag |= PRV_TAG_DEFFERED_RENDERING;
+  preview->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
 
   requested_previews_.push_back(requested_preview);
   BLI_thread_queue_push(todo_queue_, &requested_previews_.back());
@@ -1853,13 +1854,13 @@ void PreviewLoadJob::finish_request(RequestedPreview &request)
 {
   PreviewImage *preview = request.preview;
 
-  preview->tag &= ~PRV_TAG_DEFFERED_RENDERING;
+  preview->runtime->tag &= ~PRV_TAG_DEFFERED_RENDERING;
   BKE_previewimg_finish(preview, request.icon_size);
 
   BLI_assert_msg(BLI_thread_is_main(),
                  "Deferred releasing of preview images should only run on the main thread");
-  if (preview->tag & PRV_TAG_DEFFERED_DELETE) {
-    BLI_assert(preview->tag & PRV_TAG_DEFFERED);
+  if (preview->runtime->tag & PRV_TAG_DEFFERED_DELETE) {
+    BLI_assert(preview->runtime->deferred_loading_data);
     BKE_previewimg_deferred_release(preview);
   }
 }
@@ -1873,7 +1874,7 @@ void PreviewLoadJob::update_fn(void *customdata)
   {
     RequestedPreview &requested = *request_it;
     /* Skip items that are not done loading yet. */
-    if (requested.preview->tag & PRV_TAG_DEFFERED_RENDERING) {
+    if (requested.preview->runtime->tag & PRV_TAG_DEFFERED_RENDERING) {
       ++request_it;
       continue;
     }
@@ -1935,7 +1936,7 @@ void ED_preview_icon_render(
     const bContext *C, Scene *scene, PreviewImage *prv_img, ID *id, eIconSizes icon_size)
 {
   /* Deferred loading of previews from the file system. */
-  if (prv_img->tag & PRV_TAG_DEFFERED) {
+  if (prv_img->runtime->deferred_loading_data) {
     if (prv_img->flag[icon_size] & PRV_RENDERING) {
       /* Already in the queue, don't add it again. */
       return;
@@ -1979,7 +1980,7 @@ void ED_preview_icon_job(
     const bContext *C, PreviewImage *prv_img, ID *id, eIconSizes icon_size, const bool delay)
 {
   /* Deferred loading of previews from the file system. */
-  if (prv_img->tag & PRV_TAG_DEFFERED) {
+  if (prv_img->runtime->deferred_loading_data) {
     if (prv_img->flag[icon_size] & PRV_RENDERING) {
       /* Already in the queue, don't add it again. */
       return;

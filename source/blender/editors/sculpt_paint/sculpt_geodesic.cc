@@ -77,12 +77,12 @@ static bool sculpt_geodesic_mesh_test_dist_add(Span<float3> vert_positions,
   return false;
 }
 
-static Array<float> geodesic_mesh_create(Object *ob,
+static Array<float> geodesic_mesh_create(Object &ob,
                                          const Set<int> &initial_verts,
                                          const float limit_radius)
 {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  SculptSession &ss = *ob.sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(&ob);
 
   const int totvert = mesh->verts_num;
   const int totedge = mesh->edges_num;
@@ -100,13 +100,13 @@ static Array<float> geodesic_mesh_create(Object *ob,
   Array<float> dists(totvert);
   BitVector<> edge_tag(totedge);
 
-  if (ss->edge_to_face_map.is_empty()) {
-    ss->edge_to_face_map = bke::mesh::build_edge_to_face_map(
-        faces, corner_edges, edges.size(), ss->edge_to_face_offsets, ss->edge_to_face_indices);
+  if (ss.edge_to_face_map.is_empty()) {
+    ss.edge_to_face_map = bke::mesh::build_edge_to_face_map(
+        faces, corner_edges, edges.size(), ss.edge_to_face_offsets, ss.edge_to_face_indices);
   }
-  if (ss->vert_to_edge_map.is_empty()) {
-    ss->vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
-        edges, mesh->verts_num, ss->vert_to_edge_offsets, ss->vert_to_edge_indices);
+  if (ss.vert_to_edge_map.is_empty()) {
+    ss.vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
+        edges, mesh->verts_num, ss.vert_to_edge_offsets, ss.vert_to_edge_indices);
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -174,7 +174,7 @@ static Array<float> geodesic_mesh_create(Object *ob,
             vert_positions, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_verts);
       }
 
-      for (const int face : ss->edge_to_face_map[e]) {
+      for (const int face : ss.edge_to_face_map[e]) {
         if (!hide_poly.is_empty() && hide_poly[face]) {
           continue;
         }
@@ -185,7 +185,7 @@ static Array<float> geodesic_mesh_create(Object *ob,
           if (sculpt_geodesic_mesh_test_dist_add(
                   vert_positions, v_other, v1, v2, dists, initial_verts))
           {
-            for (const int e_other : ss->vert_to_edge_map[v_other]) {
+            for (const int e_other : ss.vert_to_edge_map[v_other]) {
               int ev_other;
               if (edges[e_other][0] == v_other) {
                 ev_other = edges[e_other][1];
@@ -195,7 +195,7 @@ static Array<float> geodesic_mesh_create(Object *ob,
               }
 
               if (e_other != e && !edge_tag[e_other] &&
-                  (ss->edge_to_face_map[e_other].is_empty() || dists[ev_other] != FLT_MAX))
+                  (ss.edge_to_face_map[e_other].is_empty() || dists[ev_other] != FLT_MAX))
               {
                 if (affected_vert[v_other] || affected_vert[ev_other]) {
                   edge_tag[e_other].set();
@@ -226,10 +226,10 @@ static Array<float> geodesic_mesh_create(Object *ob,
 /* For sculpt mesh data that does not support a geodesic distances algorithm, fallback to the
  * distance to each vertex. In this case, only one of the initial vertices will be used to
  * calculate the distance. */
-static Array<float> geodesic_fallback_create(Object *ob, const Set<int> &initial_verts)
+static Array<float> geodesic_fallback_create(Object &ob, const Set<int> &initial_verts)
 {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  SculptSession &ss = *ob.sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(&ob);
   const int totvert = mesh->verts_num;
   Array<float> dists(totvert, 0.0f);
   const int first_affected = *initial_verts.begin();
@@ -239,9 +239,9 @@ static Array<float> geodesic_fallback_create(Object *ob, const Set<int> &initial
   }
 
   const float *first_affected_co = SCULPT_vertex_co_get(
-      ss, BKE_pbvh_index_to_vertex(*ss->pbvh, first_affected));
+      ss, BKE_pbvh_index_to_vertex(*ss.pbvh, first_affected));
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
     dists[i] = len_v3v3(first_affected_co, SCULPT_vertex_co_get(ss, vertex));
   }
@@ -249,10 +249,10 @@ static Array<float> geodesic_fallback_create(Object *ob, const Set<int> &initial
   return dists;
 }
 
-Array<float> distances_create(Object *ob, const Set<int> &initial_verts, const float limit_radius)
+Array<float> distances_create(Object &ob, const Set<int> &initial_verts, const float limit_radius)
 {
-  SculptSession *ss = ob->sculpt;
-  switch (BKE_pbvh_type(*ss->pbvh)) {
+  SculptSession &ss = *ob.sculpt;
+  switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES:
       return geodesic_mesh_create(ob, initial_verts, limit_radius);
     case PBVH_BMESH:
@@ -263,11 +263,11 @@ Array<float> distances_create(Object *ob, const Set<int> &initial_verts, const f
   return {};
 }
 
-Array<float> distances_create_from_vert_and_symm(Object *ob,
+Array<float> distances_create_from_vert_and_symm(Object &ob,
                                                  const PBVHVertRef vertex,
                                                  const float limit_radius)
 {
-  SculptSession *ss = ob->sculpt;
+  SculptSession &ss = *ob.sculpt;
   Set<int> initial_verts;
 
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -284,7 +284,7 @@ Array<float> distances_create_from_vert_and_symm(Object *ob,
         v = SCULPT_nearest_vertex_get(ob, location, FLT_MAX, false);
       }
       if (v.i != PBVH_REF_NONE) {
-        initial_verts.add(BKE_pbvh_vertex_to_index(*ss->pbvh, v));
+        initial_verts.add(BKE_pbvh_vertex_to_index(*ss.pbvh, v));
       }
     }
   }

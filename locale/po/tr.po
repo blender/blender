@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -243,6 +243,26 @@ msgid "Collection of action groups"
 msgstr "Eylem grupları koleksiyonu"
 
 
+msgid "Replace"
+msgstr "Değiştir"
+
+
+msgid "Offset"
+msgstr "Ofset"
+
+
+msgid "Add"
+msgstr "Topla"
+
+
+msgid "Subtract"
+msgstr "Çıkar"
+
+
+msgid "Multiply"
+msgstr "Çarp"
+
+
 msgid "Action Pose Markers"
 msgstr "Eylem Pozu İmleyicileri"
 
@@ -267,6 +287,10 @@ msgid "Index of active pose marker"
 msgstr "Etkin poz imleyicisi indeksi"
 
 
+msgid "Keyframe"
+msgstr "Anahtar Kare"
+
+
 msgid "Add-on"
 msgstr "Eklenti"
 
@@ -285,22 +309,6 @@ msgstr "Modül adı"
 
 msgid "Add-on Preferences"
 msgstr "Eklenti Tercihleri"
-
-
-msgid "Password"
-msgstr "Parola"
-
-
-msgid "E-mail address"
-msgstr "E-posta adresi"
-
-
-msgid "Error Message"
-msgstr "Hata İletisi"
-
-
-msgid "Message"
-msgstr "İleti"
 
 
 msgid "Compute Device Type"
@@ -487,16 +495,16 @@ msgid "Active Action for this data-block"
 msgstr "Bu veri bloku için Etkin Eylem"
 
 
+msgid "New"
+msgstr "Yeni"
+
+
 msgid "Action Blending"
 msgstr "Eylem Harmanlama"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "Etkin Eylem'in sonucunu DOC yığınının sonucuyla birleştirmek için kullanılan yöntem"
-
-
-msgid "Replace"
-msgstr "Değiştir"
 
 
 msgid "The strip values replace the accumulated results by amount specified by influence"
@@ -511,24 +519,12 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Şerit değerleri, kanal türüne göre toplama, çarpma veya dördey matematiği kullanılarak uygun biçimde birikmiş sonuçlarla birleştirilir"
 
 
-msgid "Add"
-msgstr "Topla"
-
-
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Biriken sonuçlara şeridin ağırlıklı sonucu eklenir"
 
 
-msgid "Subtract"
-msgstr "Çıkar"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Biriken sonuçlardan şeridin ağırlıklı sonucu çıkarılır"
-
-
-msgid "Multiply"
-msgstr "Çarp"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -581,14 +577,6 @@ msgstr "İnce Ayar Kipi Eylemi Depolaması"
 
 msgid "Slot to temporarily hold the main action while in tweak mode"
 msgstr "İnce ayar kipindeyken ana eylemin geçici olarak tutulacağı yuva"
-
-
-msgid "Animation"
-msgstr "Canlandırma"
-
-
-msgid "New"
-msgstr "Yeni"
 
 
 msgid "Drivers"
@@ -801,14 +789,6 @@ msgstr "Erim İçinde"
 
 msgid "Display Paths of poses within specified range"
 msgstr "Pozların yollarını belirtilen erimde görüntüle"
-
-
-msgid "Offset"
-msgstr "Ofset"
-
-
-msgid "Keyframe"
-msgstr "Anahtar Kare"
 
 
 msgid "Any Type"
@@ -7352,6 +7332,18 @@ msgid "Viewport Size"
 msgstr "Görüş Alanı Boyutu"
 
 
+msgid "Distort"
+msgstr "Çarpıt"
+
+
+msgid "Filter"
+msgstr "Filtre"
+
+
+msgid "Shader"
+msgstr "Gölgeleme"
+
+
 msgid "Interface"
 msgstr "Arayüz"
 
@@ -7364,20 +7356,12 @@ msgid "Nodes"
 msgstr "Düğümler"
 
 
-msgid "Shader"
-msgstr "Gölgeleme"
-
-
 msgid "Compositing nodes"
 msgstr "Kompozisyon düğümleri"
 
 
 msgid "Geometry nodes"
 msgstr "Geometri düğümleri"
-
-
-msgid "Edit Quality"
-msgstr "Kaliteyi Düzenle"
 
 
 msgid "Edit"
@@ -7686,10 +7670,6 @@ msgid "Lines"
 msgstr "Çizgiler"
 
 
-msgid "Filter"
-msgstr "Filtre"
-
-
 msgid "Area"
 msgstr "Alan"
 
@@ -7704,6 +7684,10 @@ msgstr "Destek"
 
 msgid "Maintained by community developers"
 msgstr "Topluluk geliştiricileri tarafından bakımı yapılır"
+
+
+msgid "Themes"
+msgstr "Temalar"
 
 
 msgid "XR Session Settings"
@@ -7744,6 +7728,10 @@ msgstr "Çalışma alanı için en son kullanılan sahneyi anımsa ve bu çalı�
 
 msgid "Mist"
 msgstr "Sis"
+
+
+msgid "Animation"
+msgstr "Canlandırma"
 
 
 msgid "Translate Roots"
@@ -7929,10 +7917,6 @@ msgstr "Anahtarlama"
 
 msgid "Layout"
 msgstr "Yerleşim"
-
-
-msgid "Distort"
-msgstr "Çarpıt"
 
 
 msgid "Instances"
@@ -8773,14 +8757,6 @@ msgid "Undo"
 msgstr "Geri Al"
 
 
-msgid "Global Space"
-msgstr "Küresel Etki Alanı"
-
-
-msgid "Scene Unit"
-msgstr "Sahne Birimi"
-
-
 msgid "Scene Collections"
 msgstr "Sahne Koleksiyonları"
 
@@ -9128,15 +9104,6 @@ msgstr "Uzaklaş"
 
 msgid "Convert rotations to quaternions"
 msgstr "Döndürmeleri dördeylere dönüştür"
-
-
-msgid "Force Reload"
-msgstr "Yeniden Yüklemeyi Zorla"
-
-
-msgctxt "Material"
-msgid "None"
-msgstr "Yok"
 
 
 msgid "Animation Offset"
@@ -9627,10 +9594,6 @@ msgid "Open Preferences..."
 msgstr "Tercihleri Aç..."
 
 
-msgid "Themes"
-msgstr "Temalar"
-
-
 msgid "Editing"
 msgstr "Düzenleme"
 
@@ -10033,6 +9996,10 @@ msgstr "Bir dosya tarayıcısında bir yol aç"
 
 msgid "Export Vertex Colors"
 msgstr "Tepecik Renklerini Dışa Aktar"
+
+
+msgid "Scene Unit"
+msgstr "Sahne Birimi"
 
 
 msgctxt "Operator"
@@ -10780,6 +10747,10 @@ msgid "Skip Save"
 msgstr "Kaydetmeyi Atla"
 
 
+msgid "Password"
+msgstr "Parola"
+
+
 msgid "XYZ Length"
 msgstr "XYZ Uzunluğu"
 
@@ -11362,6 +11333,10 @@ msgid "Mask"
 msgstr "Maske"
 
 
+msgid "Error Message"
+msgstr "Hata İletisi"
+
+
 msgid "Active workspace and scene follow this window"
 msgstr "Etkin çalışma alanı ve sahne bu pencereyi izler"
 
@@ -11450,6 +11425,48 @@ msgid "Add"
 msgstr "Ekle"
 
 
+msgid "File:"
+msgstr "Dosya:"
+
+
+msgid "Description:"
+msgstr "Açıklama:"
+
+
+msgid "Author:"
+msgstr "Yazar:"
+
+
+msgid "Version:"
+msgstr "Sürüm:"
+
+
+msgid "Warning:"
+msgstr "Uyarı:"
+
+
+msgid "Internet:"
+msgstr "İnternet:"
+
+
+msgid "Path:"
+msgstr "Yol:"
+
+
+msgid "Size:"
+msgstr "Boyut:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Belgelendirme"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Bir Hata Bildir"
+
+
 msgctxt "Operator"
 msgid "Mirrored"
 msgstr "Yansıtılmış"
@@ -11463,28 +11480,12 @@ msgid "Module Debug"
 msgstr "Modül Hata Ayıklaması"
 
 
-msgid "Compositing Nodes:"
-msgstr "Bileşikleştirme Düğümleri:"
-
-
 msgid "Notes"
 msgstr "Notlar"
 
 
 msgid "Animation UI"
 msgstr "Canlandırma Arayüzü"
-
-
-msgid "Statistics"
-msgstr "İstatistikler"
-
-
-msgid "Animate Settings:"
-msgstr "Canlandırma Ayarları:"
-
-
-msgid "Render Settings:"
-msgstr "Sunum Ayarları:"
 
 
 msgid "Save to PO File"
@@ -12067,11 +12068,6 @@ msgstr "Sürüm Notları"
 
 
 msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Bir Hata Bildir"
-
-
-msgctxt "Operator"
 msgid "Developer Documentation"
 msgstr "Geliştirici Belgelendirmesi"
 
@@ -12189,41 +12185,12 @@ msgid "Error (see console)"
 msgstr "Hata (konsola bakın)"
 
 
-msgid "Description:"
-msgstr "Açıklama:"
-
-
 msgid "Location:"
 msgstr "Konum:"
 
 
-msgid "File:"
-msgstr "Dosya:"
-
-
-msgid "Author:"
-msgstr "Yazar:"
-
-
-msgid "Version:"
-msgstr "Sürüm:"
-
-
-msgid "Warning:"
-msgstr "Uyarı:"
-
-
-msgid "Internet:"
-msgstr "İnternet:"
-
-
 msgid "User:"
 msgstr "Kullanıcı:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Belgelendirme"
 
 
 msgctxt "Operator"
@@ -12234,11 +12201,6 @@ msgstr "Etkileşimli Ayna"
 msgctxt "Operator"
 msgid "Viewport Render Image"
 msgstr "Görüş Alanı Görseli Sun"
-
-
-msgctxt "Operator"
-msgid "Similar"
-msgstr "Benzer"
 
 
 msgctxt "Operator"
@@ -12302,6 +12264,10 @@ msgstr "Kemik Koleksiyonuna Taşı"
 msgctxt "GPencil"
 msgid "Join"
 msgstr "Birleştir"
+
+
+msgid "Statistics"
+msgstr "İstatistikler"
 
 
 msgctxt "Operator"
@@ -12811,6 +12777,10 @@ msgid "Cube"
 msgstr "Küp"
 
 
+msgid "Cancel"
+msgstr "İptal"
+
+
 msgctxt "Object"
 msgid "Boid"
 msgstr "Kuş Benzeri Nesne"
@@ -12865,10 +12835,6 @@ msgid "File path"
 msgstr "Dosya yolu"
 
 
-msgid "Cancel"
-msgstr "İptal"
-
-
 msgid "File name"
 msgstr "Dosya adı"
 
@@ -12911,10 +12877,6 @@ msgstr "{} (Boole)"
 
 msgid "Geometry:"
 msgstr "Geometri:"
-
-
-msgid "• Point Cloud: %s points"
-msgstr "• Nokta Bulutu: %s nokta"
 
 
 msgid " Named Attribute"
@@ -12979,10 +12941,6 @@ msgstr "Aktif Kemik Yok"
 
 msgid "Radius (Parent)"
 msgstr "Yarıçap (Veli)"
-
-
-msgid "Size:"
-msgstr "Boyut:"
 
 
 msgid "User Perspective"
@@ -13075,10 +13033,6 @@ msgstr "Şekil Anahtarı Olarak Kaydet"
 
 msgid "Motion"
 msgstr "Hareket"
-
-
-msgid "Path:"
-msgstr "Yol:"
 
 
 msgid "Format:"
@@ -13296,10 +13250,6 @@ msgstr "Çevrimler Sunum İşletkesi"
 
 msgid "All Add-ons Installed by User"
 msgstr "Kullanıcı Tarafından Kurulan Tüm Eklentiler"
-
-
-msgid "Baking"
-msgstr "Pişirme"
 
 
 msgid "English (English)"

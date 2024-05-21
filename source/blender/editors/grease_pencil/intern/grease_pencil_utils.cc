@@ -326,11 +326,7 @@ static Array<std::pair<int, int>> get_visible_frames_for_layer(
   if (sorted_keys.is_empty()) {
     return {};
   }
-  const std::optional<bke::greasepencil::FramesMapKey> current_frame_key = layer.frame_key_at(
-      current_frame);
-  const int current_frame_index = current_frame_key.has_value() ?
-                                      sorted_keys.first_index(*current_frame_key) :
-                                      0;
+  const int current_frame_index = std::max(layer.sorted_keys_index_at(current_frame), 0);
   const int last_frame = sorted_keys.last();
   const int last_frame_index = sorted_keys.index_range().last();
   const bool is_before_first = (current_frame < sorted_keys.first());

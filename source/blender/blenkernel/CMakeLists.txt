@@ -47,7 +47,6 @@ set(SRC
   intern/CCGSubSurf.cc
   intern/CCGSubSurf_legacy.cc
   intern/CCGSubSurf_util.cc
-  intern/DerivedMesh.cc
   intern/action.cc
   intern/action_bones.cc
   intern/action_mirror.cc
@@ -90,7 +89,6 @@ set(SRC
   intern/cachefile.cc
   intern/callbacks.cc
   intern/camera.cc
-  intern/cdderivedmesh.cc
   intern/cloth.cc
   intern/collection.cc
   intern/collision.cc
@@ -202,12 +200,14 @@ set(SRC
   intern/mesh_calc_edges.cc
   intern/mesh_compare.cc
   intern/mesh_convert.cc
+  intern/mesh_data_update.cc
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
   intern/mesh_flip_faces.cc
   intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
+  intern/mesh_legacy_derived_mesh.cc
   intern/mesh_mapping.cc
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.cc
@@ -321,7 +321,6 @@ set(SRC
   intern/world.cc
   intern/writemovie.cc
 
-  BKE_DerivedMesh.hh
   BKE_action.h
   BKE_action.hh
   BKE_addon.h
@@ -360,7 +359,6 @@ set(SRC
   BKE_callbacks.hh
   BKE_camera.h
   BKE_ccg.h
-  BKE_cdderivedmesh.h
   BKE_cloth.hh
   BKE_collection.hh
   BKE_collision.h
@@ -448,6 +446,7 @@ set(SRC
   BKE_mesh_fair.hh
   BKE_mesh_iterators.hh
   BKE_mesh_legacy_convert.hh
+  BKE_mesh_legacy_derived_mesh.hh
   BKE_mesh_mapping.hh
   BKE_mesh_mirror.hh
   BKE_mesh_remap.hh

@@ -44,6 +44,8 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_global.hh"
+
 #include "vk_common.hh"
 
 #include "vk_command_buffer_wrapper.hh"
@@ -88,6 +90,25 @@ class VKRenderGraph : public NonCopyable {
    */
   VKResourceStateTracker &resources_;
 
+  struct {
+    /** Current stack of debug group names. */
+    Vector<const char *> group_stack;
+    /** Has a node been added to the current stack? If not the group stack will be added to
+     * used_groups.*/
+    bool group_used = false;
+    /** All used debug groups. */
+    Vector<Vector<const char *>> used_groups;
+    /**
+     * Map of a node_handle to an index of debug group in used_groups.
+     *
+     * <source>
+     * int used_group_index = node_group_map[node_handle];
+     * const Vector<const char*> &used_group = used_groups[used_group_index];
+     * </source>
+     */
+    Vector<int64_t> node_group_map;
+  } debug_;
+
  public:
   /**
    * Construct a new render graph instance.
@@ -125,6 +146,17 @@ class VKRenderGraph : public NonCopyable {
     VKRenderGraphNodeLinks &node_links = links_[node_handle];
     node.set_node_data<NodeInfo>(create_info);
     node.build_links<NodeInfo>(resources_, node_links, create_info);
+
+    if (G.debug & G_DEBUG_GPU) {
+      if (!debug_.group_used) {
+        debug_.group_used = true;
+        debug_.used_groups.append(debug_.group_stack);
+      }
+      if (nodes_.size() > debug_.node_group_map.size()) {
+        debug_.node_group_map.resize(nodes_.size());
+      }
+      debug_.node_group_map[node_handle] = debug_.used_groups.size() - 1;
+    }
   }
 
  public:
@@ -204,6 +236,21 @@ class VKRenderGraph : public NonCopyable {
    * - `vk_swapchain_image` layout is transitioned to `VK_IMAGE_LAYOUT_SRC_PRESENT`.
    */
   void submit_for_present(VkImage vk_swapchain_image);
+
+  /**
+   * Push a new debugging group to the stack with the given name.
+   *
+   * New nodes added to the render graph will be associated with this debug group.
+   */
+  void debug_group_begin(const char *name);
+
+  /**
+   * Pop the top of the debugging group stack.
+   *
+   * New nodes added to the render graph will be associated with the parent of the current debug
+   * group.
+   */
+  void debug_group_end();
 
  private:
   void remove_nodes(Span<NodeHandle> node_handles);

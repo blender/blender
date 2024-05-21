@@ -475,6 +475,7 @@ DefNode(GeometryNode, GEO_NODE_TOOL_3D_CURSOR, 0, "TOOL_3D_CURSOR", Tool3DCursor
 DefNode(GeometryNode, GEO_NODE_TOOL_FACE_SET, 0, "TOOL_FACE_SET", ToolFaceSet, "Face Set", "Each face's sculpt face set value")
 DefNode(GeometryNode, GEO_NODE_TOOL_MOUSE_POSITION, 0, "TOOL_MOUSE_POSITION", ToolMousePosition, "Mouse Position", "Retrieve the position of the mouse cursor")
 DefNode(GeometryNode, GEO_NODE_TOOL_SELECTION, 0, "TOOL_SELECTION", ToolSelection, "Selection", "User selection of the edited geometry, for tool execution")
+DefNode(GeometryNode, GEO_NODE_TOOL_ACTIVE_ELEMENT, 0, "TOOL_ACTIVE_ELEMENT", ToolActiveElement, "Active Element", "Active element indices of the edited geometry, for tool execution")
 DefNode(GeometryNode, GEO_NODE_TOOL_SET_FACE_SET, 0, "TOOL_SET_FACE_SET", ToolSetFaceSet, "Set Face Set", "Set sculpt face set values for faces")
 DefNode(GeometryNode, GEO_NODE_TOOL_SET_SELECTION, 0, "TOOL_SELECTION_SET", ToolSetSelection, "Set Selection", "Set selection of the edited geometry, for tool execution")
 DefNode(GeometryNode, GEO_NODE_TOOL_VIEWPORT_TRANSFORM, 0, "VIEWPORT_TRANFORM", ViewportTransform, "Viewport Transform", "Retrieve the view direction and location of the 3D viewport")

@@ -63,7 +63,7 @@ void MTLQueryPool::init(GPUQueryType type)
 
 void MTLQueryPool::begin_query()
 {
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
 
   /* Ensure our allocated buffer pool has enough space for the current queries. */
   int query_id = query_issued_;
@@ -90,7 +90,7 @@ void MTLQueryPool::begin_query()
 
 void MTLQueryPool::end_query()
 {
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
 
   id<MTLRenderCommandEncoder> rec = ctx->main_command_buffer.get_active_render_command_encoder();
   [rec setVisibilityResultMode:MTLVisibilityResultModeDisabled offset:0];
@@ -98,7 +98,7 @@ void MTLQueryPool::end_query()
 
 void MTLQueryPool::get_occlusion_result(MutableSpan<uint32_t> r_values)
 {
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
 
   /* Create a blit encoder to synchronize the query buffer results between
    * GPU and CPU when not using shared-memory. */

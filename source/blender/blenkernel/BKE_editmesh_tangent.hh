@@ -8,6 +8,9 @@
  * \ingroup bke
  */
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
+
 #include "DNA_customdata_types.h"
 
 struct BMEditMesh;
@@ -23,9 +26,9 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
                                     bool calc_active_tangent,
                                     const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                     int tangent_names_len,
-                                    const float (*face_normals)[3],
-                                    const float (*corner_normals)[3],
-                                    const float (*vert_orco)[3],
+                                    blender::Span<blender::float3> face_normals,
+                                    blender::Span<blender::float3> corner_normals,
+                                    blender::Span<blender::float3> vert_orco,
                                     CustomData *dm_loopdata_out,
                                     uint dm_loopdata_out_len,
                                     short *tangent_mask_curr_p);

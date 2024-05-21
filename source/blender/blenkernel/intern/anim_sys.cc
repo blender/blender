@@ -327,7 +327,7 @@ void BKE_keyingsets_blend_read_data(BlendDataReader *reader, ListBase *list)
 /* ***************************************** */
 /* Evaluation Data-Setting Backend */
 
-static bool is_fcurve_evaluatable(FCurve *fcu)
+static bool is_fcurve_evaluatable(const FCurve *fcu)
 {
   if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) {
     return false;
@@ -2615,7 +2615,7 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
   const float modified_evaltime = evaluate_time_fmodifiers(
       &storage, modifiers, nullptr, 0.0f, evaltime);
 
-  LISTBASE_FOREACH (FCurve *, fcu, &action->curves) {
+  LISTBASE_FOREACH (const FCurve *, fcu, &action->curves) {
     if (!is_fcurve_evaluatable(fcu)) {
       continue;
     }
@@ -3087,7 +3087,7 @@ static void nla_eval_domain_action(PointerRNA *ptr,
     return;
   }
 
-  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+  LISTBASE_FOREACH (const FCurve *, fcu, &act->curves) {
     /* check if this curve should be skipped */
     if (!is_fcurve_evaluatable(fcu)) {
       continue;

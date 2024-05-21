@@ -507,7 +507,7 @@ void MTLShader::transform_feedback_disable()
 
 void MTLShader::bind()
 {
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   if (interface == nullptr || !this->is_valid()) {
     MTL_LOG_WARNING(
         "MTLShader::bind - Shader '%s' has no valid implementation in Metal, draw calls will be "
@@ -519,7 +519,7 @@ void MTLShader::bind()
 
 void MTLShader::unbind()
 {
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   ctx->pipeline_state.active_shader = nullptr;
 }
 
@@ -1779,7 +1779,7 @@ void MTLShader::ssbo_vertex_fetch_bind_attributes_end(
     }
 
     /* Bind NULL buffer to given VBO slot. */
-    MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+    MTLContext *ctx = MTLContext::get();
     id<MTLBuffer> null_buf = ctx->get_null_attribute_buffer();
     BLI_assert(null_buf);
 

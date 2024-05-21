@@ -33,7 +33,7 @@
 namespace blender {
 
 using bke::greasepencil::Drawing;
-using bke::greasepencil::FramesMapKey;
+using bke::greasepencil::FramesMapKeyT;
 using bke::greasepencil::Layer;
 
 static void init_data(ModifierData *md)

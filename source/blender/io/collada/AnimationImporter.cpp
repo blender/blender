@@ -1336,7 +1336,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
         COLLADABU::Math::Matrix4 matrix;
         int mi = 0, mj = 0;
 
-        for (FCurve *curve : curves) {
+        for (const FCurve *curve : curves) {
           matrix.setElement(mi, mj, evaluate_fcurve(curve, fra));
           mj++;
           if (mj == 4) {

@@ -838,6 +838,30 @@ void BM_mesh_active_face_set(BMesh *bm, BMFace *f)
   bm->act_face = f;
 }
 
+int BM_mesh_active_face_index_get(BMesh *bm, bool is_sloppy, bool is_selected)
+{
+  const BMFace *f = BM_mesh_active_face_get(bm, is_sloppy, is_selected);
+  return f ? BM_elem_index_get(f) : -1;
+}
+
+int BM_mesh_active_edge_index_get(BMesh *bm)
+{
+  const BMEdge *e = BM_mesh_active_edge_get(bm);
+  return e ? BM_elem_index_get(e) : -1;
+}
+
+int BM_mesh_active_vert_index_get(BMesh *bm)
+{
+  const BMVert *v = BM_mesh_active_vert_get(bm);
+  return v ? BM_elem_index_get(v) : -1;
+}
+
+int BM_mesh_active_elem_index_get(BMesh *bm)
+{
+  const BMElem *e = BM_mesh_active_elem_get(bm);
+  return e ? BM_elem_index_get(e) : -1;
+}
+
 BMFace *BM_mesh_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_selected)
 {
   if (bm->act_face && (!is_selected || BM_elem_flag_test(bm->act_face, BM_ELEM_SELECT))) {

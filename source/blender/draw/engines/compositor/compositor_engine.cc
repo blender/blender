@@ -92,13 +92,15 @@ class Context : public realtime_compositor::Context {
   }
 
   /* We limit the compositing region to the camera region if in camera view, while we use the
-   * entire viewport otherwise. */
+   * entire viewport otherwise. We also use the entire viewport when doing viewport rendering since
+   * the viewport is already the camera region in that case. */
   rcti get_compositing_region() const override
   {
     const int2 viewport_size = int2(float2(DRW_viewport_size_get()));
     const rcti render_region = rcti{0, viewport_size.x, 0, viewport_size.y};
 
-    if (DRW_context_state_get()->rv3d->persp != RV3D_CAMOB) {
+    if (DRW_context_state_get()->rv3d->persp != RV3D_CAMOB || DRW_state_is_viewport_image_render())
+    {
       return render_region;
     }
 

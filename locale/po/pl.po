@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: 2024-04-13 17:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -243,6 +243,30 @@ msgid "Collection of action groups"
 msgstr "Kolekcja grup akcji"
 
 
+msgid "Influence"
+msgstr "Wpływ"
+
+
+msgid "Replace"
+msgstr "Zastąp"
+
+
+msgid "Offset"
+msgstr "Odstęp"
+
+
+msgid "Add"
+msgstr "Dodaj"
+
+
+msgid "Subtract"
+msgstr "Odejmij"
+
+
+msgid "Multiply"
+msgstr "Pomnóż"
+
+
 msgid "Action Pose Markers"
 msgstr "Znaczniki akcji póz"
 
@@ -285,22 +309,6 @@ msgstr "Nazwa modułu"
 
 msgid "Add-on Preferences"
 msgstr "Ustawienia wtyczki"
-
-
-msgid "Password"
-msgstr "Hasło"
-
-
-msgid "E-mail address"
-msgstr "Adres e-mail"
-
-
-msgid "Error Message"
-msgstr "Komunikat błędu"
-
-
-msgid "Message"
-msgstr "Komunikat"
 
 
 msgid "Compute Device Type"
@@ -479,6 +487,10 @@ msgid "Active Action for this data-block"
 msgstr "Akcja aktywna dla bieżącego bloku danych"
 
 
+msgid "New"
+msgstr "Nowy"
+
+
 msgid "Action Blending"
 msgstr "Przenikanie akcji"
 
@@ -487,32 +499,16 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda używana do mieszania rezultatu aktywnej akcji z rezultatem ścieżek NLA"
 
 
-msgid "Replace"
-msgstr "Zastąp"
-
-
 msgid "Combine"
 msgstr "Połącz"
-
-
-msgid "Add"
-msgstr "Dodaj"
 
 
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Ważony rezultat paska jest dodawany do rezultatu całkowitego"
 
 
-msgid "Subtract"
-msgstr "Odejmij"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Ważony rezultat paska jest usuwany z połączonego rezultatu"
-
-
-msgid "Multiply"
-msgstr "Pomnóż"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -561,14 +557,6 @@ msgstr "Siła z jaką aktywna akcja wpływa na wynik otrzymywany z NLA"
 
 msgid "Slot to temporarily hold the main action while in tweak mode"
 msgstr "Slot służący do tymczasowego przechowywania głównej akcji podczas trybu modyfikowania"
-
-
-msgid "Animation"
-msgstr "Animacja"
-
-
-msgid "New"
-msgstr "Nowy"
 
 
 msgid "Drivers"
@@ -777,14 +765,6 @@ msgstr "Wypal dla aktywnej kamery"
 
 msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
 msgstr "Punkty ścieżki ruchu zostaną zapisane w przestrzeni aktywnej kamery. Oznacza to, że będą wyglądać dobrze tylko wtedy, gdy obraz będzie obserwowany przez kamerę. Przełączanie kamer za pomocą znaczników nie jest obsługiwane"
-
-
-msgid "Influence"
-msgstr "Wpływ"
-
-
-msgid "Offset"
-msgstr "Odstęp"
 
 
 msgid "Any Type"
@@ -8232,10 +8212,6 @@ msgid "Which asset types to show/hide, when browsing an asset library"
 msgstr "Które typy prefabrykatów mają być pokazywane/ukrywane podczas przeglądania biblioteki prefabrykatów"
 
 
-msgid "Animations"
-msgstr "Animacje"
-
-
 msgid "Show Armature data-blocks"
 msgstr "Wyświetla bloki danych dla szkieletów"
 
@@ -8382,6 +8358,10 @@ msgstr "Zapisz"
 
 msgid "Asset data, valid if the file represents an asset"
 msgstr "Dane prefabrykatu, poprawne, jeśli plik reprezentuje prefabrykat"
+
+
+msgid "Animations"
+msgstr "Animacje"
 
 
 msgid "Environment"
@@ -9602,26 +9582,6 @@ msgid "Max"
 msgstr "Maks"
 
 
-msgid "Base Color"
-msgstr "Kolor podstawowy"
-
-
-msgid "First Vertex"
-msgstr "Pierwszy wierzchołek"
-
-
-msgid "Use the color of a stroke's first vertex"
-msgstr "Używa koloru pierwszego wierzchołka kreski"
-
-
-msgid "Final Vertex"
-msgstr "Ostatni wierzchołek"
-
-
-msgid "Use the color of a stroke's final vertex"
-msgstr "Używa koloru ostatniego wierzchołka kreski"
-
-
 msgid "Texture Spacing"
 msgstr "Rozstaw tekstury"
 
@@ -9968,6 +9928,18 @@ msgid "Frame Rate"
 msgstr "Klatki na sekundę"
 
 
+msgid "Attribute"
+msgstr "Atrybut"
+
+
+msgid "Distort"
+msgstr "Zniekształć"
+
+
+msgid "Filter"
+msgstr "Filtr"
+
+
 msgid "Grease Pencil Data"
 msgstr "Dane narzędzia Grease Pencil"
 
@@ -9990,18 +9962,6 @@ msgstr "Węzły tekstury"
 
 msgid "Geometry nodes"
 msgstr "Węzły geometryczne"
-
-
-msgid "Execution Mode"
-msgstr "Tryb wykonania"
-
-
-msgid "CPU"
-msgstr "Procesor"
-
-
-msgid "GPU"
-msgstr "Procesor graficzny"
 
 
 msgid "Viewer Region"
@@ -10416,10 +10376,6 @@ msgid "Blend"
 msgstr "Mieszanie"
 
 
-msgid "Filter"
-msgstr "Filtr"
-
-
 msgid "Noise Intensity"
 msgstr "Intensywność szumu"
 
@@ -10442,6 +10398,14 @@ msgstr "Ścieżka pliku .blend z prefabrykatem"
 
 msgid "Full path to the Blender file containing the active asset"
 msgstr "Pełna ścieżka do pliku programu Blender, który zawiera aktywny prefabrykat"
+
+
+msgid "Add-ons"
+msgstr "Wtyczki"
+
+
+msgid "Themes"
+msgstr "Motywy"
 
 
 msgid "Active Add-on"
@@ -10470,6 +10434,10 @@ msgstr "ID materiałów"
 
 msgid "Operation"
 msgstr "Operacje"
+
+
+msgid "Animation"
+msgstr "Animacja"
 
 
 msgid "Simulation"
@@ -11312,16 +11280,8 @@ msgid "Layout"
 msgstr "Układ"
 
 
-msgid "Distort"
-msgstr "Zniekształć"
-
-
 msgid "Node"
 msgstr "Węzeł"
-
-
-msgid "Attribute"
-msgstr "Atrybut"
 
 
 msgid "Read"
@@ -12723,18 +12683,8 @@ msgid "Remove Asset Tag"
 msgstr "Usuń etykietę prefabrykatu"
 
 
-msgctxt "Operator"
-msgid "Login"
-msgstr "Zaloguj się"
-
-
 msgid "(undocumented operator)"
 msgstr "(operator bez dokumentacji)"
-
-
-msgctxt "Operator"
-msgid "Logout"
-msgstr "Wyloguj się"
 
 
 msgctxt "Operator"
@@ -13005,10 +12955,6 @@ msgid "Redo specific action in history"
 msgstr "Przywraca wybrany stan z historii"
 
 
-msgid "Only Selected"
-msgstr "Tylko wybrane"
-
-
 msgctxt "Operator"
 msgid "Export BVH"
 msgstr "Eksportuj BVH"
@@ -13040,10 +12986,6 @@ msgstr "Eulera (ZXY)"
 
 msgid "Euler (ZYX)"
 msgstr "Eulera (ZYX)"
-
-
-msgid "Ascii"
-msgstr "Ascii"
 
 
 msgctxt "Operator"
@@ -13122,24 +13064,6 @@ msgstr "Ogólne"
 
 msgid "General settings"
 msgstr "Ustawienia ogólne"
-
-
-msgctxt "Operator"
-msgid "Export X3D"
-msgstr "Eksportuj X3D"
-
-
-msgid "Compress"
-msgstr "Kompresuj"
-
-
-msgid "Compress the exported file"
-msgstr "Kompresuje wyeksportowany plik"
-
-
-msgctxt "Operator"
-msgid "Export MDD"
-msgstr "Eksportuj MDD"
 
 
 msgctxt "Operator"
@@ -13563,6 +13487,10 @@ msgid "Duplicate Strokes"
 msgstr "Duplikuj kreski"
 
 
+msgid "Only Selected"
+msgstr "Tylko wybrane"
+
+
 msgctxt "Operator"
 msgid "Extrude Stroke Points"
 msgstr "Wydłuż punkty kreski"
@@ -13861,16 +13789,6 @@ msgstr "Importuj BVH"
 msgctxt "Operator"
 msgid "Import SVG"
 msgstr "Importuj SVG"
-
-
-msgctxt "Material"
-msgid "Shadow Mode"
-msgstr "Tryb cienia"
-
-
-msgctxt "Material"
-msgid "None"
-msgstr "Brak"
 
 
 msgid "Armature-related settings"
@@ -14520,6 +14438,10 @@ msgid "Child"
 msgstr "Potomek"
 
 
+msgid "Auto Smooth"
+msgstr "Auto wygładzanie"
+
+
 msgctxt "Operator"
 msgid "Shade Smooth by Angle"
 msgstr "Gładkie cieniowanie według kąta"
@@ -14630,6 +14552,10 @@ msgstr "Lokalne bloki danych"
 msgctxt "Operator"
 msgid "Add Paint Slot"
 msgstr "Dodaj gniazdo rysowania"
+
+
+msgid "Base Color"
+msgstr "Kolor podstawowy"
 
 
 msgctxt "Operator"
@@ -14878,16 +14804,8 @@ msgid "Open Preferences..."
 msgstr "Otwórz preferencje..."
 
 
-msgid "Themes"
-msgstr "Motywy"
-
-
 msgid "Editing"
 msgstr "Edytowanie"
-
-
-msgid "Add-ons"
-msgstr "Wtyczki"
 
 
 msgid "Keymap"
@@ -15433,10 +15351,6 @@ msgid "Sort by Object name"
 msgstr "Sortuj według nazwy obiektu"
 
 
-msgid "Search Path"
-msgstr "Szukaj ścieżki"
-
-
 msgctxt "Operator"
 msgid "Export to PDF"
 msgstr "Eksportuj do PDF"
@@ -15580,6 +15494,10 @@ msgstr "Przywraca zapisany plik"
 
 msgid "Save the current file in the desired location"
 msgstr "Zapisuje bieżący plik w wybranej lokacji"
+
+
+msgid "Compress"
+msgstr "Kompresuj"
 
 
 msgid "Save Copy"
@@ -15836,6 +15754,10 @@ msgstr "Maksimum odbić"
 
 msgid "Performance"
 msgstr "Wydajność"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
 
 
 msgid "Path Guiding"
@@ -16215,10 +16137,6 @@ msgstr "Pomiar"
 
 msgid "Motion Tracking"
 msgstr "Śledzenie ruchu"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
 
 
 msgid "Shadow Settings"
@@ -16610,12 +16528,20 @@ msgid "Seconds"
 msgstr "Sekundy"
 
 
+msgid "Password"
+msgstr "Hasło"
+
+
 msgid "Temperature"
 msgstr "Temperatura"
 
 
 msgid "Euler Angles"
 msgstr "Kąty Eulera"
+
+
+msgid "CPU"
+msgstr "Procesor"
 
 
 msgctxt "Light"
@@ -16797,6 +16723,10 @@ msgstr "Silnik renderowania Hydra"
 
 msgid "Bake normals"
 msgstr "Wypal wektory normalne"
+
+
+msgid "GPU"
+msgstr "Procesor graficzny"
 
 
 msgid "Engine to use for rendering"
@@ -17417,6 +17347,10 @@ msgid "Wireframe Detail"
 msgstr "Detale modelu krawędziowego"
 
 
+msgid "Error Message"
+msgstr "Komunikat błędu"
+
+
 msgctxt "Screen"
 msgid "Screen"
 msgstr "Ekran"
@@ -17682,6 +17616,48 @@ msgid "Rotate Normals"
 msgstr "Obróć wektory normalne"
 
 
+msgid "File:"
+msgstr "Plik:"
+
+
+msgid "Description:"
+msgstr "Opis:"
+
+
+msgid "Author:"
+msgstr "Autor:"
+
+
+msgid "Version:"
+msgstr "Wersja:"
+
+
+msgid "Warning:"
+msgstr "Ostrzeżenie:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Path:"
+msgstr "Ścieżka:"
+
+
+msgid "Size:"
+msgstr "Rozmiar:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Dokumentacja"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Zgłoś błąd"
+
+
 msgid "Noise Threshold"
 msgstr "Próg szumu"
 
@@ -17736,37 +17712,12 @@ msgid "Contributions"
 msgstr "Wkład"
 
 
-msgid "Position:"
-msgstr "Położenie:"
-
-
-msgid "Plane dimensions:"
-msgstr "Wymiary płaszczyzny:"
-
-
-msgid "Orientation:"
-msgstr "Orientacja:"
-
-
 msgid "Sampling Animations"
 msgstr "Próbkowanie animacji"
 
 
 msgid "Shader Editor Add-ons"
 msgstr "Wtyczki edytora cieniowania"
-
-
-msgid "Modified: {:+} vertices, {:+} edges, {:+} faces"
-msgstr "Zmodyfikowano: %d wierzchołków, %d krawędzi, %d ścian"
-
-
-msgctxt "Operator"
-msgid "Volume"
-msgstr "Kubatura"
-
-
-msgid "Result"
-msgstr "Wynik"
 
 
 msgctxt "Operator"
@@ -17782,18 +17733,6 @@ msgstr "Zastosuj odwróconą pozę"
 msgctxt "Operator"
 msgid "Toggle Asset Shelf"
 msgstr "Przełącz półkę zasobów"
-
-
-msgid "Generate Settings:"
-msgstr "Ustawienia generowania:"
-
-
-msgid "Animate Settings:"
-msgstr "Ustawienia animacji:"
-
-
-msgid "Render Settings:"
-msgstr "Ustawienia renderowania:"
 
 
 msgctxt "Operator"
@@ -18288,10 +18227,6 @@ msgid "Bake Cubemap Only"
 msgstr "Wypal wyłącznie mapę sześcienną"
 
 
-msgid "Shadow Resolution"
-msgstr "Rozdzielczość cieni"
-
-
 msgid "General Override"
 msgstr "Nadpisanie ogólnych"
 
@@ -18699,6 +18634,10 @@ msgid "Depth:"
 msgstr "Głębia:"
 
 
+msgid "Orientation:"
+msgstr "Orientacja:"
+
+
 msgid "Annotation:"
 msgstr "Adnotacje:"
 
@@ -18839,11 +18778,6 @@ msgstr "Renderuj obraz"
 msgctxt "Operator"
 msgid "Release Notes"
 msgstr "Informacje o wydaniu"
-
-
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Zgłoś błąd"
 
 
 msgctxt "Operator"
@@ -19020,41 +18954,12 @@ msgid "Load Factory Blender Preferences"
 msgstr "Wczytaj preferencje fabryczne programu Blender"
 
 
-msgid "Description:"
-msgstr "Opis:"
-
-
 msgid "Location:"
 msgstr "Położenie:"
 
 
-msgid "File:"
-msgstr "Plik:"
-
-
-msgid "Author:"
-msgstr "Autor:"
-
-
-msgid "Version:"
-msgstr "Wersja:"
-
-
-msgid "Warning:"
-msgstr "Ostrzeżenie:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
 msgid "User:"
 msgstr "Użytkownik:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Dokumentacja"
 
 
 msgctxt "Operator"
@@ -19108,13 +19013,13 @@ msgstr "Rozszerz dziecko"
 
 
 msgctxt "Operator"
-msgid "Select All by Type"
-msgstr "Zaznacz wszystko typu"
+msgid "Select Active Camera"
+msgstr "Zaznacz aktywną kamerę"
 
 
 msgctxt "Operator"
-msgid "Select Active Camera"
-msgstr "Zaznacz aktywną kamerę"
+msgid "Select All by Type"
+msgstr "Zaznacz wszystko typu"
 
 
 msgctxt "Operator"
@@ -19697,10 +19602,6 @@ msgstr "kratownice"
 
 msgid "MaskLayer"
 msgstr "WarstwaMaski"
-
-
-msgid "Auto Smooth"
-msgstr "Auto wygładzanie"
 
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
@@ -20605,6 +20506,14 @@ msgid "Failed to set value"
 msgstr "Ustawienie wartości nie powiodło się"
 
 
+msgid "Could not resolve path '%s'"
+msgstr "Nie udało się rozwiązać ścieżki '%s'"
+
+
+msgid "Property from path '%s' is not a float"
+msgstr "Właściwość ze ścieżki '%s' nie jest typu float"
+
+
 msgctxt "WindowManager"
 msgid "Search"
 msgstr "Szukaj"
@@ -20802,14 +20711,6 @@ msgstr "Wartość"
 
 msgid "Redo"
 msgstr "Ponów"
-
-
-msgid "Press spacebar to search..."
-msgstr "Naciśnij spację, aby wyszukać..."
-
-
-msgid "Type to search..."
-msgstr "Zacznij pisać, aby wyszukać..."
 
 
 msgid "Menu \"%s\" not found"
@@ -21228,24 +21129,8 @@ msgid "New"
 msgstr "Nowa"
 
 
-msgid "Manual Transform"
-msgstr "Ręczna transformacja"
-
-
-msgid "Scene Options"
-msgstr "Opcje sceny"
-
-
 msgid "Close"
 msgstr "Zamknięty"
-
-
-msgid "Only"
-msgstr "Tylko"
-
-
-msgid "Object Options"
-msgstr "Opcje obiektu"
 
 
 msgid "No filepath given"
@@ -21286,6 +21171,10 @@ msgstr "Nie mogę nadpisać pliku do eksportu"
 
 msgid "No objects selected -- Created empty export file"
 msgstr "Nie wybrano żadnych obiektów — Utworzono pusty plik eksportu"
+
+
+msgid "Scene Options"
+msgstr "Opcje sceny"
 
 
 msgid "Export Options"
@@ -21357,6 +21246,10 @@ msgid "Icosphere"
 msgstr "Kula ico"
 
 
+msgid "Cancel"
+msgstr "Anuluj"
+
+
 msgid "Intersection Type"
 msgstr "Rodzaj przecięcia"
 
@@ -21381,24 +21274,12 @@ msgid "You have to select a string of connected vertices too"
 msgstr "Musisz również zaznaczyć sznur połączonych wierzchołków"
 
 
-msgid "Confirm: Enter/LMB, Cancel: (Esc/RMB), Thickness: %s, Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): (%s)"
-msgstr "Potwierdzenie: Enter/LPM, Rezygnacja: (Esc/PPM), Grubość: %s, Głębokość (Ctrl by dostosować): %s (%s), Początek (O): (%s), Granica (B): (%s), Indywidualny (I): (%s)"
-
-
 msgid "No intersections found"
 msgstr "Nie odnaleziono krzyżowania się"
 
 
 msgid "Selected faces required"
 msgstr "Wymagane zaznaczone ściany"
-
-
-msgid "Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, hold Alt for smooth"
-msgstr "Zaznacz pierścień do przecięcia, użyj kółka myszy lub page-up/down do określenia ilości cięć, przytrzymaj Alt dla wygładzenia"
-
-
-msgid "Number of Cuts: %s, Smooth: %s (Alt)"
-msgstr "Ilość cięć: %s, Wygładzenie: %s (Alt)"
 
 
 msgid "Loop cut does not work well on deformed edit mesh display"
@@ -22622,6 +22503,10 @@ msgid "Track is locked"
 msgstr "Trak jest zablokowany"
 
 
+msgid "Position:"
+msgstr "Położenie:"
+
+
 msgid "X:"
 msgstr "X:"
 
@@ -22832,10 +22717,6 @@ msgstr "Zaznaczono więcej niż jeden przedmiot"
 
 msgid "No items are selected"
 msgstr "Nie zaznaczono przedmiotów"
-
-
-msgid "Cancel"
-msgstr "Anuluj"
 
 
 msgid "File name, overwrite existing"
@@ -23486,10 +23367,6 @@ msgid "Radius (Parent)"
 msgstr "Promień (Rodzic)"
 
 
-msgid "Size:"
-msgstr "Rozmiar:"
-
-
 msgid "Displays global values"
 msgstr "Wyświetla globalne wartości"
 
@@ -23854,18 +23731,6 @@ msgid "Shrink/Fatten: %3f"
 msgstr "Kurcz/Rozszerz: %3f"
 
 
-msgid "(E)ven: %s, "
-msgstr "Równ(E): %s "
-
-
-msgid "(F)lipped: %s, "
-msgstr "(F) - odwrócone: %s "
-
-
-msgid "Alt or (C)lamp: %s"
-msgstr "Alt lub (C)lamp - ściśnij: %s"
-
-
 msgid "Feather Shrink/Fatten: %s"
 msgstr "Kurcz/Rozszerz zmiękczenie: %s"
 
@@ -23944,6 +23809,18 @@ msgstr "lewo"
 
 msgid "Use 'Time_Translate' transform mode instead of 'Translation' mode for translating keyframes in Dope Sheet Editor"
 msgstr "Użyj trybu transformacji 'Time_Translate' zamiast trybu 'Translation' dla translacji (przesunięcia) klatek kluczowych w Edytorze Kluczy"
+
+
+msgid "(E)ven: %s, "
+msgstr "Równ(E): %s "
+
+
+msgid "(F)lipped: %s, "
+msgstr "(F) - odwrócone: %s "
+
+
+msgid "Alt or (C)lamp: %s"
+msgstr "Alt lub (C)lamp - ściśnij: %s"
 
 
 msgid "Create Orientation's 'use' parameter only valid in a 3DView context"
@@ -24638,10 +24515,6 @@ msgid "Center:"
 msgstr "Centrum:"
 
 
-msgid "Path:"
-msgstr "Ścieżka:"
-
-
 msgid "File Subpath:"
 msgstr "Podścieżka pliku:"
 
@@ -24652,6 +24525,10 @@ msgstr "Punkt"
 
 msgid "Val"
 msgstr "Val"
+
+
+msgid "Result"
+msgstr "Wynik"
 
 
 msgctxt "NodeTree"
@@ -25244,14 +25121,6 @@ msgid "Operator redo '%s': wrong context"
 msgstr "Ponowienie operatora '%s': nieprawidłowy kontekst"
 
 
-msgid "Could not resolve path '%s'"
-msgstr "Nie udało się rozwiązać ścieżki '%s'"
-
-
-msgid "Property from path '%s' is not a float"
-msgstr "Właściwość ze ścieżki '%s' nie jest typu float"
-
-
 msgid "Property from path '%s' has length %d instead of %d"
 msgstr "Właściwość ze ścieżki '%s' ma długość %d zamiast %d"
 
@@ -25348,16 +25217,8 @@ msgid "3D View > Sidebar > VR"
 msgstr "Widok 3D > Pasek boczny > VR"
 
 
-msgid "3D View > Sidebar"
-msgstr "Widok 3D > Pasek boczny"
-
-
 msgid "Cycles Render Engine"
 msgstr "Silnik renderowania Cycles"
-
-
-msgid "Demo Mode"
-msgstr "Tryb demonstracyjny"
 
 
 msgid "All Add-ons"
@@ -25366,18 +25227,6 @@ msgstr "Wszystkie wtyczki"
 
 msgid "All Add-ons Installed by User"
 msgstr "Wszystkie wtyczki zainstalowane przez użytkownika"
-
-
-msgid "Add Curve"
-msgstr "Dodaj krzywą"
-
-
-msgid "Add Mesh"
-msgstr "Dodaj siatkę"
-
-
-msgid "Baking"
-msgstr "Wypalanie"
 
 
 msgid "Import-Export"

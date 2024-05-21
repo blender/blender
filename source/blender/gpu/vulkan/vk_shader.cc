@@ -568,6 +568,13 @@ VKShader::VKShader(const char *name) : Shader(name)
   context_ = VKContext::get();
 }
 
+void VKShader::init(const shader::ShaderCreateInfo &info)
+{
+  VKShaderInterface *vk_interface = new VKShaderInterface();
+  vk_interface->init(info);
+  interface = vk_interface;
+}
+
 VKShader::~VKShader()
 {
   VK_ALLOCATION_CALLBACKS
@@ -651,18 +658,16 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
     geometry_shader_from_glsl(sources);
   }
 
-  VKShaderInterface *vk_interface = new VKShaderInterface();
-  vk_interface->init(*info);
-
+  const VKShaderInterface &vk_interface = interface_get();
   VKDevice &device = VKBackend::get().device_get();
-  if (!finalize_descriptor_set_layouts(device, *vk_interface)) {
+  if (!finalize_descriptor_set_layouts(device, vk_interface)) {
     return false;
   }
-  if (!finalize_pipeline_layout(device.device_get(), *vk_interface)) {
+  if (!finalize_pipeline_layout(device.device_get(), vk_interface)) {
     return false;
   }
 
-  push_constants = VKPushConstants(&vk_interface->push_constants_layout_get());
+  push_constants = VKPushConstants(&vk_interface.push_constants_layout_get());
 
   bool result;
   if (use_render_graph) {
@@ -686,12 +691,6 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
     }
   }
 
-  if (result) {
-    interface = vk_interface;
-  }
-  else {
-    delete vk_interface;
-  }
   return result;
 }
 
@@ -798,8 +797,7 @@ void VKShader::uniform_int(int location, int comp_len, int array_size, const int
 
 std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) const
 {
-  VKShaderInterface interface;
-  interface.init(info);
+  const VKShaderInterface &vk_interface = interface_get();
   std::stringstream ss;
 
   ss << "\n/* Specialization Constants (pass-through). */\n";
@@ -830,16 +828,16 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
 
   ss << "\n/* Pass Resources. */\n";
   for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-    print_resource(ss, interface, res);
+    print_resource(ss, vk_interface, res);
   }
 
   ss << "\n/* Batch Resources. */\n";
   for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-    print_resource(ss, interface, res);
+    print_resource(ss, vk_interface, res);
   }
 
   /* Push constants. */
-  const VKPushConstants::Layout &push_constants_layout = interface.push_constants_layout_get();
+  const VKPushConstants::Layout &push_constants_layout = vk_interface.push_constants_layout_get();
   const VKPushConstants::StorageType push_constants_storage =
       push_constants_layout.storage_type_get();
   if (push_constants_storage != VKPushConstants::StorageType::NONE) {
@@ -1225,8 +1223,8 @@ VKPipeline &VKShader::pipeline_get()
 const VKShaderInterface &VKShader::interface_get() const
 {
   BLI_assert_msg(interface != nullptr,
-                 "Unable to access the shader interface when finalizing the shader, use the "
-                 "instance created in the finalize method.");
+                 "Interface can be accessed after the VKShader has been initialized "
+                 "`VKShader::init`");
   return *static_cast<const VKShaderInterface *>(interface);
 }
 

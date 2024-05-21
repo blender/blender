@@ -16,8 +16,6 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
 
-#include "BKE_DerivedMesh.hh"
-
 struct CCGElem;
 struct CCGKey;
 struct Mesh;

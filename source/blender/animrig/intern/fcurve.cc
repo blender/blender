@@ -288,7 +288,7 @@ void initialize_bezt(BezTriple *beztr,
  * that, since that's not how the "only insert needed" feature is supposed to
  * work.
  */
-static bool new_key_needed(FCurve &fcu, const float frame, const float value)
+static bool new_key_needed(const FCurve &fcu, const float frame, const float value)
 {
   if (fcu.totvert == 0) {
     return true;
@@ -376,7 +376,7 @@ SingleKeyingResult insert_vert_fcurve(FCurve *fcu,
   return SingleKeyingResult::SUCCESS;
 }
 
-void sample_fcurve_segment(FCurve *fcu,
+void sample_fcurve_segment(const FCurve *fcu,
                            const float start_frame,
                            const float sample_rate,
                            float *samples,

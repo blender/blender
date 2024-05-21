@@ -14,7 +14,6 @@ void main()
    * least a single step and at most the user specified maximum ray length, which is proportional
    * to the diagonal pixel count. */
   float unbounded_steps = max(1.0, distance(vec2(texel), source * input_size));
-  int max_steps = int(max_ray_length * length(input_size));
   int steps = min(max_steps, int(unbounded_steps));
 
   /* We integrate from the current pixel to the source pixel, so compute the start coordinates and

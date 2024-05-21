@@ -485,7 +485,7 @@ static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer)
 
       section.push_back(iter.index);
     }
-    /* Discard unclosed boundaries. */
+    /* Discard un-closed boundaries. */
     if (iter.index != start_index) {
       boundary_starts.remove(start_index);
     }
@@ -690,7 +690,8 @@ static IndexMask get_visible_boundary_strokes(const Object &object,
                                                        materials[curve_i] + 1);
     const MaterialGPencilStyle *gp_style = material ? material->gp_style : nullptr;
     const bool is_hidden_material = (gp_style->flag & GP_MATERIAL_HIDE);
-    if (gp_style == nullptr || is_hidden_material) {
+    const bool is_stroke_material = (gp_style->flag & GP_MATERIAL_STROKE_SHOW);
+    if (gp_style == nullptr || is_hidden_material || !is_stroke_material) {
       return false;
     }
 
@@ -748,7 +749,7 @@ static VArray<ColorGeometry4f> stroke_colors(const Object &object,
 
 static rctf get_region_bounds(const ARegion &region)
 {
-  /* Init maximum boundbox size. */
+  /* Initialize maximum bound-box size. */
   rctf region_bounds;
   BLI_rctf_init(&region_bounds, 0, region.winx, 0, region.winy);
   return region_bounds;
@@ -957,7 +958,6 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   const float alpha_threshold = 0.2f;
   const bool brush_fill_hide = false;
   const bool use_xray = false;
-  const bool fill_strokes = false;
 
   const float4x4 layer_to_world = layer.to_world_space(object);
   ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, layer);
@@ -1001,8 +1001,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                              colors,
                                              layer_to_world,
                                              fill_draw_mode,
-                                             use_xray,
-                                             fill_strokes);
+                                             use_xray);
   }
 
   image_render::clear_viewmat();

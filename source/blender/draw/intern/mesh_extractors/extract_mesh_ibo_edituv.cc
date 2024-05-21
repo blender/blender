@@ -19,6 +19,7 @@ namespace blender::draw {
 
 struct MeshExtract_EditUvElem_Data {
   GPUIndexBufBuilder elb;
+  Span<int> corner_tri_faces;
   bool sync_selection;
 };
 
@@ -29,6 +30,7 @@ static void extract_edituv_tris_init(const MeshRenderData &mr,
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
   GPU_indexbuf_init(&data->elb, GPU_PRIM_TRIS, mr.corner_tris_num, mr.corners_num);
+  data->corner_tri_faces = mr.mesh->corner_tri_faces();
   data->sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
 }
 
@@ -60,7 +62,7 @@ static void extract_edituv_tris_iter_corner_tri_mesh(const MeshRenderData &mr,
                                                      void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  const int face_i = mr.corner_tri_faces[elt_index];
+  const int face_i = data->corner_tri_faces[elt_index];
   const BMFace *efa = bm_original_face_get(mr, face_i);
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;

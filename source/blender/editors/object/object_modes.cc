@@ -257,7 +257,7 @@ static bool ed_object_mode_generic_exit_ex(
       if (only_test) {
         return true;
       }
-      ED_object_vpaintmode_exit_ex(ob);
+      ED_object_vpaintmode_exit_ex(*ob);
     }
   }
   else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -265,7 +265,7 @@ static bool ed_object_mode_generic_exit_ex(
       if (only_test) {
         return true;
       }
-      ED_object_wpaintmode_exit_ex(ob);
+      ED_object_wpaintmode_exit_ex(*ob);
     }
   }
   else if (ob->mode & OB_MODE_SCULPT) {
@@ -273,7 +273,7 @@ static bool ed_object_mode_generic_exit_ex(
       if (only_test) {
         return true;
       }
-      ED_object_sculptmode_exit_ex(bmain, depsgraph, scene, ob);
+      ED_object_sculptmode_exit_ex(*bmain, *depsgraph, *scene, *ob);
     }
   }
   else if (ob->mode & OB_MODE_POSE) {
@@ -288,7 +288,7 @@ static bool ed_object_mode_generic_exit_ex(
     if (only_test) {
       return true;
     }
-    ED_object_texture_paint_mode_exit_ex(bmain, scene, ob);
+    ED_object_texture_paint_mode_exit_ex(*bmain, *scene, *ob);
   }
   else if (ob->mode & OB_MODE_PARTICLE_EDIT) {
     if (only_test) {

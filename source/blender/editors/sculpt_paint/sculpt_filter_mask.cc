@@ -46,7 +46,7 @@ static EnumPropertyItem prop_mask_filter_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void mask_filter_task(SculptSession *ss,
+static void mask_filter_task(SculptSession &ss,
                              const FilterType mode,
                              const Span<float> prev_mask,
                              const SculptMaskWriteInfo mask_write,
@@ -66,7 +66,7 @@ static void mask_filter_task(SculptSession *ss,
     contrast = -0.1f;
   }
 
-  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float delta, gain, offset, max, min;
 
     float mask = vd.mask;
@@ -131,7 +131,7 @@ static void mask_filter_task(SculptSession *ss,
     }
     mask = clamp_f(mask, 0.0f, 1.0f);
     if (mask != vd.mask) {
-      SCULPT_mask_vert_set(BKE_pbvh_type(*ss->pbvh), mask_write, mask, vd);
+      SCULPT_mask_vert_set(BKE_pbvh_type(*ss.pbvh), mask_write, mask, vd);
       update = true;
     }
   }
@@ -144,7 +144,7 @@ static void mask_filter_task(SculptSession *ss,
 
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const Scene *scene = CTX_data_scene(C);
   const FilterType filter_type = FilterType(RNA_enum_get(op->ptr, "filter_type"));
@@ -155,13 +155,13 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
-  BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), ob, mmd);
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, &ob);
+  BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  SculptSession *ss = ob->sculpt;
-  PBVH &pbvh = *ob->sculpt->pbvh;
+  SculptSession &ss = *ob.sculpt;
+  PBVH &pbvh = *ob.sculpt->pbvh;
 
   SCULPT_vertex_random_access_ensure(ss);
 
@@ -171,7 +171,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   undo::push_begin(ob, op);
 
   for (PBVHNode *node : nodes) {
-    undo::push_node(*ob, node, undo::Type::Mask);
+    undo::push_node(ob, node, undo::Type::Mask);
   }
 
   Array<float> prev_mask;
@@ -185,11 +185,11 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     iterations = int(num_verts / 50000.0f) + 1;
   }
 
-  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
 
   for (int i = 0; i < iterations; i++) {
     if (ELEM(filter_type, FilterType::Grow, FilterType::Shrink)) {
-      prev_mask = duplicate_mask(*ob);
+      prev_mask = duplicate_mask(ob);
     }
 
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {

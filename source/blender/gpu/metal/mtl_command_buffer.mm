@@ -583,12 +583,16 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
    * synchronization using raster order groups, or, prefer compute to avoid subsequent passes
    * re-loading pass attachments which are not needed. */
   const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
-  if (is_tile_based_arch && (active_command_encoder_type_ != MTL_COMPUTE_COMMAND_ENCODER)) {
+  if (is_tile_based_arch) {
     if (active_command_encoder_type_ == MTL_RENDER_COMMAND_ENCODER) {
+      /* Break render pass to ensure final pass results are visible to subsequent calls. */
       end_active_command_encoder();
       return true;
     }
-    return false;
+    else {
+      /* Skip all barriers for compute and blit passes as Metal will resolve these dependencies. */
+      return false;
+    }
   }
 
   /* Resolve scope. */
@@ -771,8 +775,6 @@ void MTLComputeState::bind_compute_texture(id<MTLTexture> tex, uint slot)
     id<MTLComputeCommandEncoder> rec = this->cmd.get_active_compute_command_encoder();
     BLI_assert(rec != nil);
     [rec setTexture:tex atIndex:slot];
-    [rec useResource:tex
-               usage:MTLResourceUsageRead | MTLResourceUsageWrite | MTLResourceUsageSample];
 
     this->cached_compute_texture_bindings[slot].metal_texture = tex;
   }
@@ -964,10 +966,7 @@ void MTLRenderPassState::bind_fragment_buffer(id<MTLBuffer> buffer,
   }
 }
 
-void MTLComputeState::bind_compute_buffer(id<MTLBuffer> buffer,
-                                          uint64_t buffer_offset,
-                                          uint index,
-                                          bool writeable)
+void MTLComputeState::bind_compute_buffer(id<MTLBuffer> buffer, uint64_t buffer_offset, uint index)
 {
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
   BLI_assert(buffer_offset >= 0);
@@ -989,9 +988,6 @@ void MTLComputeState::bind_compute_buffer(id<MTLBuffer> buffer,
       /* Bind Compute Buffer */
       [rec setBuffer:buffer offset:buffer_offset atIndex:index];
     }
-    [rec useResource:buffer
-               usage:((writeable) ? (MTLResourceUsageRead | MTLResourceUsageWrite) :
-                                    MTLResourceUsageRead)];
 
     /* Update Bind-state cache */
     this->cached_compute_buffer_bindings[index].is_bytes = false;

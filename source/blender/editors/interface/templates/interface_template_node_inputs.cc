@@ -43,10 +43,20 @@ static void draw_node_input(bContext *C,
 {
   BLI_assert(socket.typeinfo != nullptr);
   /* Ignore disabled sockets and linked sockets and sockets without a `draw` callback. */
-  if (!socket.is_available() || (socket.flag & (SOCK_IS_LINKED | SOCK_HIDE_VALUE)) ||
-      socket.typeinfo->draw == nullptr ||
-      ELEM(socket.type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_SHADER))
-  {
+  if (!socket.is_available()) {
+    return;
+  }
+  if ((socket.flag & (SOCK_IS_LINKED | SOCK_HIDE_VALUE)) != 0) {
+    return;
+  }
+  if (socket.typeinfo->draw == nullptr) {
+    return;
+  }
+  if (ELEM(socket.type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_SHADER)) {
+    return;
+  }
+  const bNode &node = *static_cast<bNode *>(node_ptr->data);
+  if (node.is_reroute()) {
     return;
   }
 

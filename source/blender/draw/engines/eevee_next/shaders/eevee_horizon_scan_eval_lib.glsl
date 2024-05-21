@@ -214,8 +214,6 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
          * explained in the paper...). Likely to be wrong, but we need a soft falloff. */
         float facing_weight = saturate(-dot(sample_normal, vL_front) * 2.0);
 
-        float sample_weight = facing_weight * bsdf_lambert(vN, vL_front);
-
         /* Angular bias shrinks the visibility bitmask around the projected normal. */
         vec2 biased_theta = (theta - vN_angle) * angle_bias;
         uint sample_bitmask = horizon_scan_angles_to_bitmask(biased_theta);

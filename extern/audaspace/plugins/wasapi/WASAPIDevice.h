@@ -34,8 +34,11 @@
 #include <audioclient.h>
 #include <mmdeviceapi.h>
 #include <mmreg.h>
+#include <wrl/client.h>
 
 AUD_NAMESPACE_BEGIN
+
+using Microsoft::WRL::ComPtr;
 
 /**
  * This device plays back through WASAPI, the Windows audio API.
@@ -44,9 +47,9 @@ class AUD_PLUGIN_API WASAPIDevice : IMMNotificationClient, public ThreadedDevice
 {
 private:
 	int m_buffersize;
-	IMMDeviceEnumerator* m_imm_device_enumerator;
-	IMMDevice* m_imm_device;
-	IAudioClient* m_audio_client;
+	ComPtr<IMMDeviceEnumerator> m_imm_device_enumerator;
+	ComPtr<IMMDevice> m_imm_device;
+	ComPtr<IAudioClient> m_audio_client;
 	WAVEFORMATEXTENSIBLE m_wave_format_extensible;
 	bool m_default_device_changed;
 	LONG m_reference_count;

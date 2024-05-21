@@ -163,7 +163,7 @@ Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
 
   DRW_Attributes draw_attrs;
   DRW_MeshCDMask cd_needed;
-  DRW_mesh_get_attributes(ob, mesh, materials.data(), materials.size(), &draw_attrs, &cd_needed);
+  DRW_mesh_get_attributes(*ob, *mesh, materials.data(), materials.size(), &draw_attrs, &cd_needed);
 
   Vector<pbvh::AttributeRequest, 16> attrs;
 

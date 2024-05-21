@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 24),
+    "version": (4, 2, 28),
     'blender': (4, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1122,6 +1122,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             export_settings['gltf_anim_slide_to_zero'] = self.export_anim_slide_to_zero
             export_settings['gltf_export_extra_animations'] = self.export_extra_animations
         else:
+            export_settings['gltf_trs_w_animation_pointer'] = False
             export_settings['gltf_frame_range'] = False
             export_settings['gltf_force_sampling'] = False
             export_settings['gltf_bake_animation'] = False

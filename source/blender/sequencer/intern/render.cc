@@ -883,7 +883,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
   float fac;
   int i;
   SeqEffectHandle sh = SEQ_effect_handle_get(seq);
-  FCurve *fcu = nullptr;
+  const FCurve *fcu = nullptr;
   ImBuf *ibuf[3];
   Sequence *input[3];
   ImBuf *out = nullptr;

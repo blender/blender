@@ -2880,7 +2880,7 @@ void DRW_draw_depth_object(
     case OB_MESH: {
       blender::gpu::Batch *batch;
 
-      Mesh *mesh = static_cast<Mesh *>(object->data);
+      Mesh &mesh = *static_cast<Mesh *>(object->data);
 
       if (object->mode & OB_MODE_EDIT) {
         batch = DRW_mesh_batch_cache_get_edit_triangles(mesh);
@@ -2889,7 +2889,7 @@ void DRW_draw_depth_object(
         batch = DRW_mesh_batch_cache_get_surface(mesh);
       }
       TaskGraph *task_graph = BLI_task_graph_create();
-      DRW_mesh_batch_cache_create_requested(task_graph, object, mesh, scene, false, true);
+      DRW_mesh_batch_cache_create_requested(*task_graph, *object, mesh, *scene, false, true);
       BLI_task_graph_work_and_wait(task_graph);
       BLI_task_graph_free(task_graph);
 

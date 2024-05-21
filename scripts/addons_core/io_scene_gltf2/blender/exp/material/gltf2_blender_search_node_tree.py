@@ -442,12 +442,12 @@ def gather_alpha_info(alpha_nav):
         if info['alphaColorAttrib'] is None:
             attr = get_color_attrib(alpha_nav)
             if attr is not None:
-                info['alphaColorAttr'] = attr
+                info['alphaColorAttrib'] = attr
                 break
 
             attr = detect_multiply_by_color_attrib(alpha_nav)
             if attr is not None:
-                info['alphaColorAttr'] = attr
+                info['alphaColorAttrib'] = attr
                 continue
 
         break

@@ -22,15 +22,6 @@
 
 AUD_NAMESPACE_BEGIN
 
-template <class T> void SafeRelease(T **ppT)
-{
-	if(*ppT)
-	{
-		(*ppT)->Release();
-		*ppT = NULL;
-	}
-}
-
 HRESULT WASAPIDevice::setupRenderClient(IAudioRenderClient*& render_client, UINT32& buffer_size)
 {
 	const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
@@ -120,7 +111,6 @@ void WASAPIDevice::runMixingThread()
 			{
 				stop_thread:
 					m_audio_client->Stop();
-					SafeRelease(&render_client);
 
 					if(result == AUDCLNT_E_DEVICE_INVALIDATED)
 					{
@@ -149,15 +139,12 @@ void WASAPIDevice::runMixingThread()
 
 bool WASAPIDevice::setupDevice(DeviceSpecs &specs)
 {
-	SafeRelease(&m_audio_client);
-	SafeRelease(&m_imm_device);
-
 	const IID IID_IAudioClient = __uuidof(IAudioClient);
 
 	if(FAILED(m_imm_device_enumerator->GetDefaultAudioEndpoint(eRender, eMultimedia, &m_imm_device)))
 		return false;
 
-	if(FAILED(m_imm_device->Activate(IID_IAudioClient, CLSCTX_ALL, nullptr, reinterpret_cast<void**>(&m_audio_client))))
+	if(FAILED(m_imm_device->Activate(IID_IAudioClient, CLSCTX_ALL, nullptr, reinterpret_cast<void**>(m_audio_client.GetAddressOf()))))
 		return false;
 
 	WAVEFORMATEXTENSIBLE wave_format_extensible_closest_match;
@@ -389,7 +376,7 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 	if(specs.rate == RATE_INVALID)
 		specs.rate = RATE_48000;
 
-	if(FAILED(CoCreateInstance(CLSID_MMDeviceEnumerator, nullptr, CLSCTX_ALL, IID_IMMDeviceEnumerator, reinterpret_cast<void**>(&m_imm_device_enumerator))))
+	if(FAILED(CoCreateInstance(CLSID_MMDeviceEnumerator, nullptr, CLSCTX_ALL, IID_IMMDeviceEnumerator, reinterpret_cast<void**>(m_imm_device_enumerator.GetAddressOf()))))
 		goto error;
 
 	if(!setupDevice(specs))
@@ -404,9 +391,6 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 	return;
 
 	error:
-	SafeRelease(&m_imm_device);
-	SafeRelease(&m_imm_device_enumerator);
-	SafeRelease(&m_audio_client);
 	AUD_THROW(DeviceException, "The audio device couldn't be opened with WASAPI.");
 }
 
@@ -415,10 +399,6 @@ WASAPIDevice::~WASAPIDevice()
 	stopMixingThread();
 
 	m_imm_device_enumerator->UnregisterEndpointNotificationCallback(this);
-
-	SafeRelease(&m_audio_client);
-	SafeRelease(&m_imm_device);
-	SafeRelease(&m_imm_device_enumerator);
 
 	destroy();
 }

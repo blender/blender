@@ -38,10 +38,8 @@ static void apply_projection(gesture::GestureData &gesture_data, PBVHNode *node)
   undo::push_node(*gesture_data.vc.obact, node, undo::Type::Position);
 
   BKE_pbvh_vertex_iter_begin (*gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    float vertex_normal[3];
-    const float *co = SCULPT_vertex_co_get(gesture_data.ss, vd.vertex);
-    SCULPT_vertex_normal_get(gesture_data.ss, vd.vertex, vertex_normal);
-
+    const float *co = SCULPT_vertex_co_get(*gesture_data.ss, vd.vertex);
+    float3 vertex_normal = SCULPT_vertex_normal_get(*gesture_data.ss, vd.vertex);
     if (!gesture::is_affected(gesture_data, co, vertex_normal)) {
       continue;
     }
@@ -87,13 +85,13 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
 static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
 {
   SculptSession *ss = gesture_data.ss;
-  Sculpt *sd = CTX_data_tool_settings(&C)->sculpt;
+  const Sculpt &sd = *CTX_data_tool_settings(&C)->sculpt;
   if (ss->deform_modifiers_active || ss->shapekey_active) {
-    SCULPT_flush_stroke_deform(sd, gesture_data.vc.obact, true);
+    SCULPT_flush_stroke_deform(sd, *gesture_data.vc.obact, true);
   }
 
   SCULPT_flush_update_step(&C, SCULPT_UPDATE_COORDS);
-  SCULPT_flush_update_done(&C, gesture_data.vc.obact, SCULPT_UPDATE_COORDS);
+  SCULPT_flush_update_done(&C, *gesture_data.vc.obact, SCULPT_UPDATE_COORDS);
 }
 
 static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op*/)

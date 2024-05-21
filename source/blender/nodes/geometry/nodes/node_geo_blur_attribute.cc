@@ -85,8 +85,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
   if (fixed_data_type == CD_PROP_QUATERNION) {
-    /* Don't implement quaternion blurring for now. */
-    return;
+    fixed_data_type = CD_PROP_FLOAT3;
   }
   if (fixed_data_type == CD_PROP_FLOAT4X4) {
     /* Don't implement matrix blurring for now. */

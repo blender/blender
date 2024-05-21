@@ -303,7 +303,7 @@ static void scene_changed(Main *bmain, Scene *scene)
   {
     if (ob->mode & OB_MODE_TEXTURE_PAINT) {
       BKE_texpaint_slots_refresh_object(scene, ob);
-      ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
+      ED_paint_proj_mesh_data_check(*scene, *ob, nullptr, nullptr, nullptr, nullptr);
     }
   }
 }

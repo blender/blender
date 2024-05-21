@@ -212,6 +212,13 @@ vec3 sample_sphere(vec2 rand)
   return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
+/* Returns a point in a ball that is "uniformly" distributed after projection along any axis. */
+vec3 sample_ball(vec3 rand)
+{
+  /* Completely ad-hoc, but works well in practice and is fast. */
+  return sample_sphere(rand.xy) * sqrt(sqrt(rand.z));
+}
+
 /**
  * Uniform hemisphere distribution.
  * \a rand is 2 random float in the [0..1] range.

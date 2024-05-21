@@ -233,8 +233,7 @@ static void test_eevee_shadow_tag_update()
 
   {
     ShadowTileMap tilemap(0 * SHADOW_TILEDATA_PER_TILEMAP);
-    tilemap.sync_cubeface(
-        LIGHT_OMNI_SPHERE, float4x4::identity(), 0.01f, 1.0f, 0.01f, 0.0f, Z_NEG);
+    tilemap.sync_cubeface(LIGHT_OMNI_SPHERE, float4x4::identity(), 0.01f, 1.0f, Z_NEG);
     tilemaps_data.append(tilemap);
   }
   {
@@ -1542,8 +1541,7 @@ static void test_eevee_shadow_page_mask_ex(int max_view_per_tilemap)
 
   {
     ShadowTileMap tilemap(0);
-    tilemap.sync_cubeface(
-        LIGHT_OMNI_SPHERE, float4x4::identity(), 0.01f, 1.0f, 0.01f, 0.0f, Z_NEG);
+    tilemap.sync_cubeface(LIGHT_OMNI_SPHERE, float4x4::identity(), 0.01f, 1.0f, Z_NEG);
     tilemaps_data.append(tilemap);
   }
 

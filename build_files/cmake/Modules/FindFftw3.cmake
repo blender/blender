@@ -11,9 +11,11 @@
 #  FFTW3_ROOT_DIR, The base directory to search for Fftw3.
 #                    This can also be an environment variable.
 #  FFTW3_FOUND, If false, do not try to use Fftw3.
+#  WITH_FFTW3_THREADS_F_SUPPORT, if true, single precision Fftw3 supports threads.
 #
 # also defined, but not for general use are
 #  FFTW3_LIBRARY_F, where to find the Fftw3 library (single precision float).
+#  FFTW3_LIBRARY_THREADS_F, where to find the Fftw3 threads library (single precision float).
 #  FFTW3_LIBRARY_D, where to find the Fftw3 library (double precision float).
 
 # If `FFTW3_ROOT_DIR` was defined in the environment, use it.
@@ -49,6 +51,15 @@ find_library(FFTW3_LIBRARY_F
     lib64 lib
   )
 
+find_library(FFTW3_LIBRARY_THREADS_F
+  NAMES
+    fftw3f_threads
+  HINTS
+    ${_fftw3_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
+  )
+
 find_library(FFTW3_LIBRARY_D
   NAMES
     fftw3
@@ -60,6 +71,9 @@ find_library(FFTW3_LIBRARY_D
 
 list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_F}")
 list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_D}")
+if(FFTW3_LIBRARY_THREADS_F)
+  list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_THREADS_F}")
+endif()
 
 # handle the QUIETLY and REQUIRED arguments and set FFTW3_FOUND to TRUE if
 # all listed variables are TRUE
@@ -70,12 +84,18 @@ find_package_handle_standard_args(Fftw3 DEFAULT_MSG
 if(FFTW3_FOUND)
   set(FFTW3_LIBRARIES ${_FFTW3_LIBRARIES})
   set(FFTW3_INCLUDE_DIRS ${FFTW3_INCLUDE_DIR})
+  if(FFTW3_LIBRARY_THREADS_F)
+    set(WITH_FFTW3_THREADS_F_SUPPORT ON)
+  else()
+    set(WITH_FFTW3_THREADS_F_SUPPORT OFF)
+  endif()
 endif()
 
 
 mark_as_advanced(
   FFTW3_INCLUDE_DIR
   FFTW3_LIBRARY_F
+  FFTW3_LIBRARY_THREADS_F
   FFTW3_LIBRARY_D
 )
 

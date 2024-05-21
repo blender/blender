@@ -760,6 +760,10 @@ def url_retrieve_to_filepath_iter_or_filesystem(
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[Tuple[int, int], None, None]:
+    """
+    Callers should catch: ``(Exception, KeyboardInterrupt)`` and convert them to message using:
+    ``url_retrieve_exception_as_message``.
+    """
     if url_is_filesystem(url):
         yield from filepath_retrieve_to_filepath_iter(
             path_from_url(url),
@@ -776,6 +780,26 @@ def url_retrieve_to_filepath_iter_or_filesystem(
             timeout_in_seconds=timeout_in_seconds,
         ):
             yield (read, size)
+
+
+def url_retrieve_exception_as_message(
+        ex: Union[Exception, KeyboardInterrupt],
+        *,
+        prefix: str,
+        url: str,
+) -> str:
+    """
+    Provides more user friendly messages when reading from a URL fails.
+    """
+    # These exceptions may occur when reading from the file-system or a URL.
+    if isinstance(ex, FileNotFoundError):
+        return "{:s}: file-not-found ({:s}) reading {!r}!".format(prefix, str(ex), url)
+    if isinstance(ex, TimeoutError):
+        return "{:s}: timeout ({:s}) reading {!r}!".format(prefix, str(ex), url)
+    if isinstance(ex, urllib.error.URLError):
+        return "{:s}: URL error ({:s}) reading {!r}!".format(prefix, str(ex), url)
+
+    return "{:s}: unexpected error ({:s}) reading {!r}!".format(prefix, str(ex), url)
 
 
 def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
@@ -925,6 +949,33 @@ def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[st
     return None
 
 
+def pkg_manifest_validate_field_permissions(
+        value: List[Any],
+        strict: bool,
+) -> Optional[str]:
+    _ = strict
+    # Always strict for now as it doesn't seem as there are repositories using invalid values.
+    strict = True
+    if strict:
+        values_valid = {
+            "files",
+            "network",
+            "clipboard",
+            "camera",
+            "microphone",
+        }
+        for i, item in enumerate(value):
+            if not isinstance(item, str):
+                return "at index {:d} must be a string not a {:s}".format(i, str(type(value)))
+            if item not in values_valid:
+                return "at index {:d} must be a value in {!r}".format(i, tuple(values_valid))
+    else:
+        if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)) is not None:
+            return error
+
+    return None
+
+
 def pkg_manifest_validate_field_wheels(
         value: List[Any],
         strict: bool,
@@ -1001,7 +1052,7 @@ pkg_manifest_known_keys_and_types: Tuple[
     ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
     ("website", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
     ("copyright", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
-    ("permissions", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
+    ("permissions", list, pkg_manifest_validate_field_permissions),
     ("tags", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("wheels", list, pkg_manifest_validate_field_wheels),
 )
@@ -1294,18 +1345,8 @@ def repo_sync_from_remote(
                     break
                 read_total += read
             del read_total
-
-        except FileNotFoundError as ex:
-            message_error(msg_fn, "sync: file-not-found ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except TimeoutError as ex:
-            message_error(msg_fn, "sync: timeout ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except urllib.error.URLError as ex:
-            message_error(msg_fn, "sync: URL error ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except BaseException as ex:
-            message_error(msg_fn, "sync: unexpected error ({:s}) reading {!r}!".format(str(ex), remote_url))
+        except (Exception, KeyboardInterrupt) as ex:
+            message_error(msg_fn, url_retrieve_exception_as_message(ex, prefix="sync", url=remote_url))
             return False
 
         if request_exit:
@@ -1473,17 +1514,16 @@ def generic_arg_local_dir(subparse: argparse.ArgumentParser) -> None:
 def generic_arg_package_source_path_positional(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         dest="source_path",
-        type=str,
         nargs="?",
         default=".",
+        type=str,
         metavar="SOURCE_PATH",
         help=(
-            "The package source path "
-            "(either directory containing package files or the package archive).\n"
+            "The package source path (either directory containing package files or the package archive).\n"
             "This path must containing a ``{:s}`` manifest.\n"
             "\n"
-            "The current directory ``.`` is default.".format(PKG_MANIFEST_FILENAME_TOML)
-        ),
+            "Defaults to the current directory."
+        ).format(PKG_MANIFEST_FILENAME_TOML),
     )
 
 
@@ -1491,11 +1531,13 @@ def generic_arg_package_source_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--source-dir",
         dest="source_dir",
+        default=".",
         type=str,
         help=(
-            "The package source directory containing a ``{:s}`` manifest.".format(PKG_MANIFEST_FILENAME_TOML)
-        ),
-        default=".",
+            "The package source directory containing a ``{:s}`` manifest.\n"
+            "\n"
+            "Default's to the current directory."
+        ).format(PKG_MANIFEST_FILENAME_TOML),
     )
 
 
@@ -1503,11 +1545,13 @@ def generic_arg_package_output_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--output-dir",
         dest="output_dir",
+        default=".",
         type=str,
         help=(
-            "The package output directory."
+            "The package output directory.\n"
+            "\n"
+            "Default's to the current directory."
         ),
-        default=".",
     )
 
 
@@ -1515,11 +1559,13 @@ def generic_arg_package_output_filepath(subparse: argparse.ArgumentParser) -> No
     subparse.add_argument(
         "--output-filepath",
         dest="output_filepath",
+        default="",
         type=str,
         help=(
-            "The package output filepath (should include a ``{:s}`` extension).".format(PKG_EXT)
-        ),
-        default=".",
+            "The package output filepath (should include a ``{:s}`` extension).\n"
+            "\n"
+            "Defaults to a name created using the ``id`` from the manifest."
+        ).format(PKG_EXT),
     )
 
 
@@ -1533,7 +1579,7 @@ def generic_arg_output_type(subparse: argparse.ArgumentParser) -> None:
         help=(
             "The output type:\n"
             "\n"
-            "- TEXT: Plain text.\n"
+            "- TEXT: Plain text (default).\n"
             "- JSON: Separated by new-lines.\n"
             "- JSON_0: Separated null bytes.\n"
         ),
@@ -1723,17 +1769,8 @@ class subcmd_client:
             ):
                 result.write(block)
 
-        except FileNotFoundError as ex:
-            message_error(msg_fn, "list: file-not-found ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except TimeoutError as ex:
-            message_error(msg_fn, "list: timeout ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except urllib.error.URLError as ex:
-            message_error(msg_fn, "list: URL error ({:s}) reading {!r}!".format(str(ex), remote_url))
-            return False
-        except BaseException as ex:
-            message_error(msg_fn, "list: unexpected error ({:s}) reading {!r}!".format(str(ex), remote_url))
+        except (Exception, KeyboardInterrupt) as ex:
+            message_error(msg_fn, url_retrieve_exception_as_message(ex, prefix="list", url=remote_url))
             return False
 
         result_str = result.getvalue().decode("utf-8")
@@ -2032,29 +2069,8 @@ class subcmd_client:
                                 sha256.update(block)
                                 filename_archive_size_test += len(block)
 
-                    except FileNotFoundError as ex:
-                        message_error(
-                            msg_fn,
-                            "install: file-not-found ({:s}) reading {!r}!".format(str(ex), filepath_remote_archive),
-                        )
-                        return False
-                    except TimeoutError as ex:
-                        message_error(
-                            msg_fn,
-                            "install: timeout ({:s}) reading {!r}!".format(str(ex), filepath_remote_archive),
-                        )
-                        return False
-                    except urllib.error.URLError as ex:
-                        message_error(
-                            msg_fn,
-                            "install: URL error ({:s}) reading {!r}!".format(str(ex), filepath_remote_archive),
-                        )
-                        return False
-                    except BaseException as ex:
-                        message_error(
-                            msg_fn,
-                            "install: unexpected error ({:s}) reading {!r}!".format(str(ex), filepath_remote_archive),
-                        )
+                    except (Exception, KeyboardInterrupt) as ex:
+                        message_error(msg_fn, url_retrieve_exception_as_message(ex, prefix="install", url=remote_url))
                         return False
 
                     if request_exit:
@@ -2173,7 +2189,7 @@ class subcmd_author:
             message_error(msg_fn, "Missing local \"{:s}\"".format(pkg_source_dir))
             return False
 
-        if pkg_output_dir != "." and pkg_output_filepath != ".":
+        if pkg_output_dir != "." and pkg_output_filepath != "":
             message_error(msg_fn, "Both output directory & output filepath set, set one or the other")
             return False
 
@@ -2191,7 +2207,7 @@ class subcmd_author:
 
         pkg_filename = manifest.id + PKG_EXT
 
-        if pkg_output_filepath != ".":
+        if pkg_output_filepath != "":
             outfile = pkg_output_filepath
         else:
             outfile = os.path.join(pkg_output_dir, pkg_filename)
@@ -2446,7 +2462,7 @@ def unregister():
                     msg_fn_no_done,
                     pkg_source_dir=pkg_src_dir,
                     pkg_output_dir=repo_dir,
-                    pkg_output_filepath=".",
+                    pkg_output_filepath="",
                 ):
                     # Error running command.
                     return False

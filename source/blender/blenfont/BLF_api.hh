@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
@@ -178,6 +179,13 @@ bool BLF_str_offset_to_glyph_bounds(int fontid,
  */
 int BLF_str_offset_to_cursor(
     int fontid, const char *str, size_t str_len, size_t str_offset, float cursor_width);
+
+/**
+ * Return bounds of selection boxes. There is just one normally but there could
+ * be more for multi-line and when containing text of differing directions.
+ */
+blender::Vector<blender::Bounds<int>> BLF_str_selection_boxes(
+    int fontid, const char *str, size_t str_len, size_t sel_start, size_t sel_length);
 
 /**
  * Get the string byte offset that fits within a given width.

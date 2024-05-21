@@ -66,8 +66,6 @@
 #include "rna_access_internal.h"
 #include "rna_internal.hh"
 
-const PointerRNA PointerRNA_NULL = {nullptr};
-
 static CLG_LogRef LOG = {"rna.access"};
 
 /* Init/Exit */
@@ -1591,7 +1589,7 @@ bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *v
   PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
   /* Can't point from linked to local datablock. */
-  if (ptr->owner_id && value->owner_id && !BKE_id_can_link(*ptr->owner_id, *value->owner_id)) {
+  if (ptr->owner_id && value->owner_id && !BKE_id_can_use_id(*ptr->owner_id, *value->owner_id)) {
     return false;
   }
 

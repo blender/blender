@@ -196,8 +196,8 @@ static void calculate_depth(gesture::GestureData &gesture_data,
 {
   TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
 
-  SculptSession *ss = gesture_data.ss;
-  ViewContext *vc = &gesture_data.vc;
+  SculptSession &ss = *gesture_data.ss;
+  ViewContext &vc = gesture_data.vc;
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -211,14 +211,14 @@ static void calculate_depth(gesture::GestureData &gesture_data,
   float depth_back = -FLT_MAX;
 
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
     const float *vco = SCULPT_vertex_co_get(ss, vertex);
     /* Convert the coordinates to world space to calculate the depth. When generating the trimming
      * mesh, coordinates are first calculated in world space, then converted to object space to
      * store them. */
     float world_space_vco[3];
-    mul_v3_m4v3(world_space_vco, vc->obact->object_to_world().ptr(), vco);
+    mul_v3_m4v3(world_space_vco, vc.obact->object_to_world().ptr(), vco);
     const float dist = dist_signed_to_plane_v3(world_space_vco, shape_plane);
     depth_front = min_ff(dist, depth_front);
     depth_back = max_ff(dist, depth_back);
@@ -227,7 +227,7 @@ static void calculate_depth(gesture::GestureData &gesture_data,
   if (trim_operation->use_cursor_depth) {
     float world_space_gesture_initial_location[3];
     mul_v3_m4v3(world_space_gesture_initial_location,
-                vc->obact->object_to_world().ptr(),
+                vc.obact->object_to_world().ptr(),
                 trim_operation->initial_location);
 
     float mid_point_depth;
@@ -247,17 +247,17 @@ static void calculate_depth(gesture::GestureData &gesture_data,
     float depth_radius;
 
     if (trim_operation->initial_hit) {
-      depth_radius = ss->cursor_radius;
+      depth_radius = ss.cursor_radius;
     }
     else {
-      /* ss->cursor_radius is only valid if the stroke started
+      /* ss.cursor_radius is only valid if the stroke started
        * over the sculpt mesh.  If it's not we must
        * compute the radius ourselves.  See #81452.
        */
 
-      Sculpt *sd = CTX_data_tool_settings(vc->C)->sculpt;
+      Sculpt *sd = CTX_data_tool_settings(vc.C)->sculpt;
       Brush *brush = BKE_paint_brush(&sd->paint);
-      Scene *scene = CTX_data_scene(vc->C);
+      Scene *scene = CTX_data_scene(vc.C);
 
       if (!BKE_brush_use_locked_size(scene, brush)) {
         depth_radius = paint_calc_object_space_radius(
@@ -280,12 +280,12 @@ static void calculate_depth(gesture::GestureData &gesture_data,
  * encompasses the entire object to be acted on. */
 static float calc_expand_factor(const gesture::GestureData &gesture_data)
 {
-  Object *object = gesture_data.vc.obact;
+  Object &object = *gesture_data.vc.obact;
 
   rcti rect;
-  const Bounds<float3> bounds = *BKE_object_boundbox_get(object);
+  const Bounds<float3> bounds = *BKE_object_boundbox_get(&object);
   paint_convert_bb_to_rect(
-      &rect, bounds.min, bounds.max, gesture_data.vc.region, gesture_data.vc.rv3d, object);
+      &rect, bounds.min, bounds.max, *gesture_data.vc.region, *gesture_data.vc.rv3d, object);
 
   const float2 min_corner(rect.xmin, rect.ymin);
   const float2 max_corner(rect.xmax, rect.ymax);
@@ -329,8 +329,8 @@ static Array<float2> gesture_to_screen_points(gesture::GestureData &gesture_data
 static void generate_geometry(gesture::GestureData &gesture_data)
 {
   TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
-  ViewContext *vc = &gesture_data.vc;
-  ARegion *region = vc->region;
+  ViewContext &vc = gesture_data.vc;
+  ARegion *region = vc.region;
 
   const Array<float2> screen_points = gesture_to_screen_points(gesture_data);
   BLI_assert(screen_points.size() > 1);
@@ -348,7 +348,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   get_origin_and_normal(gesture_data, shape_origin, shape_normal);
   plane_from_point_normal_v3(shape_plane, shape_origin, shape_normal);
 
-  const float(*ob_imat)[4] = vc->obact->world_to_object().ptr();
+  const float(*ob_imat)[4] = vc.obact->world_to_object().ptr();
 
   /* Write vertices coordinates OperationType::Difference for the front face. */
   MutableSpan<float3> positions = trim_operation->mesh->vert_positions_for_write();
@@ -383,7 +383,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   for (const int i : screen_points.index_range()) {
     float new_point[3];
     if (trim_operation->orientation == OrientationType::View) {
-      ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+      ED_view3d_win_to_3d(vc.v3d, region, depth_point, screen_points[i], new_point);
 
       /* For fixed mode we add the shape normal here to avoid projection errors. */
       if (trim_operation->extrude_mode == ExtrudeMode::Fixed) {
@@ -405,7 +405,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
 
     if (trim_operation->extrude_mode == ExtrudeMode::Project) {
       if (trim_operation->orientation == OrientationType::View) {
-        ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+        ED_view3d_win_to_3d(vc.v3d, region, depth_point, screen_points[i], new_point);
       }
       else {
         ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
@@ -500,9 +500,9 @@ static void generate_geometry(gesture::GestureData &gesture_data)
 static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
 {
   Object *object = gesture_data.vc.obact;
-  SculptSession *ss = object->sculpt;
+  SculptSession &ss = *object->sculpt;
 
-  switch (BKE_pbvh_type(*ss->pbvh)) {
+  switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES:
       face_set::ensure_face_sets_mesh(*object).finish();
       break;
@@ -758,7 +758,7 @@ static void initialize_cursor_info(bContext &C,
   const Object &ob = *CTX_data_active_object(&C);
   SculptSession &ss = *ob.sculpt;
 
-  SCULPT_vertex_random_access_ensure(&ss);
+  SCULPT_vertex_random_access_ensure(ss);
 
   int mval[2];
   RNA_int_get_array(op.ptr, "location", mval);

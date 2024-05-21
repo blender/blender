@@ -16,7 +16,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"
@@ -157,7 +156,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
         /* Always compute orcos for render. */
         cddata_masks.vmask |= CD_MASK_ORCO;
       }
-      makeDerivedMesh(depsgraph, scene, ob, &cddata_masks);
+      blender::bke::mesh_data_update(*depsgraph, *scene, *ob, cddata_masks);
       break;
     }
     case OB_ARMATURE:

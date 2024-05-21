@@ -34,7 +34,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_asset_edit.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -1333,7 +1332,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
-  ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
   ImageUser *iuser = nullptr;
   Image *ima = nullptr;
   int frame_seq_len = 0;
@@ -1342,14 +1340,17 @@ static int image_open_exec(bContext *C, wmOperator *op)
   const bool use_multiview = RNA_boolean_get(op->ptr, "use_multiview");
   const bool use_udim = RNA_boolean_get(op->ptr, "use_udim_detecting");
 
-  /* For editable assets always create a new image datablock. We can't assign
-   * a local datablock to linked asset datablocks. */
-  const bool check_exists = !(iod->pprop.prop && iod->pprop.ptr.owner_id &&
-                              blender::bke::asset_edit_id_is_editable(*iod->pprop.ptr.owner_id));
-
   if (!op->customdata) {
     image_open_init(C, op);
   }
+
+  ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
+
+  /* For editable assets always create a new image datablock. We can't assign
+   * a local datablock to linked asset datablocks. */
+  const bool check_exists = !(iod->pprop.prop && iod->pprop.ptr.owner_id &&
+                              ID_IS_LINKED(iod->pprop.ptr.owner_id) &&
+                              ID_IS_EDITABLE(iod->pprop.ptr.owner_id));
 
   ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {

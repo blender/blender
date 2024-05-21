@@ -19,33 +19,37 @@ ImageNode::ImageNode(bNode *editor_node) : Node(editor_node)
   /* pass */
 }
 NodeOperation *ImageNode::do_multilayer_check(NodeConverter &converter,
-                                              RenderLayer *render_layer,
-                                              RenderPass *render_pass,
+                                              const CompositorContext &context,
+                                              const char *layer_name,
+                                              const char *pass_name,
                                               Image *image,
                                               ImageUser *user,
                                               int framenumber,
                                               int outputsocket_index,
-                                              int view,
                                               DataType datatype) const
 {
   NodeOutput *output_socket = this->get_output_socket(outputsocket_index);
   MultilayerBaseOperation *operation = nullptr;
   switch (datatype) {
     case DataType::Value:
-      operation = new MultilayerValueOperation(render_layer, render_pass, view);
+      operation = new MultilayerValueOperation();
       break;
     case DataType::Vector:
-      operation = new MultilayerVectorOperation(render_layer, render_pass, view);
+      operation = new MultilayerVectorOperation();
       break;
     case DataType::Color:
-      operation = new MultilayerColorOperation(render_layer, render_pass, view);
+      operation = new MultilayerColorOperation();
       break;
     default:
       break;
   }
   operation->set_image(image);
-  operation->set_image_user(user);
+  operation->set_image_user(*user);
   operation->set_framenumber(framenumber);
+  operation->set_render_data(context.get_render_data());
+  operation->set_view_name(context.get_view_name());
+  operation->set_layer_name(layer_name);
+  operation->set_pass_name(pass_name);
 
   converter.add_operation(operation);
   converter.map_output_socket(output_socket, operation->get_output_socket());
@@ -80,7 +84,6 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
           NodeImageLayer *storage = (NodeImageLayer *)bnode_socket->storage;
           RenderPass *rpass = (RenderPass *)BLI_findstring(
               &rl->passes, storage->pass_name, offsetof(RenderPass, name));
-          int view = 0;
 
           if (STREQ(storage->pass_name, RE_PASSNAME_COMBINED) &&
               STREQ(bnode_socket->name, "Alpha"))
@@ -89,60 +92,41 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
             continue;
           }
 
-          /* returns the image view to use for the current active view */
-          if (BLI_listbase_count_at_most(&image->rr->views, 2) > 1) {
-            const int view_image = imageuser->view;
-            const bool is_allview = (view_image == 0); /* if view selected == All (0) */
-
-            if (is_allview) {
-              /* heuristic to match image name with scene names
-               * check if the view name exists in the image */
-              view = BLI_findstringindex(
-                  &image->rr->views, context.get_view_name(), offsetof(RenderView, name));
-              if (view == -1) {
-                view = 0;
-              }
-            }
-            else {
-              view = view_image - 1;
-            }
-          }
-
           if (rpass) {
             switch (rpass->channels) {
               case 1:
                 operation = do_multilayer_check(converter,
-                                                rl,
-                                                rpass,
+                                                context,
+                                                rl->name,
+                                                rpass->name,
                                                 image,
                                                 imageuser,
                                                 framenumber,
                                                 index,
-                                                view,
                                                 DataType::Value);
                 break;
                 /* using image operations for both 3 and 4 channels (RGB and RGBA respectively) */
                 /* XXX any way to detect actual vector images? */
               case 3:
                 operation = do_multilayer_check(converter,
-                                                rl,
-                                                rpass,
+                                                context,
+                                                rl->name,
+                                                rpass->name,
                                                 image,
                                                 imageuser,
                                                 framenumber,
                                                 index,
-                                                view,
                                                 DataType::Vector);
                 break;
               case 4:
                 operation = do_multilayer_check(converter,
-                                                rl,
-                                                rpass,
+                                                context,
+                                                rl->name,
+                                                rpass->name,
                                                 image,
                                                 imageuser,
                                                 framenumber,
                                                 index,
-                                                view,
                                                 DataType::Color);
                 break;
               default:
@@ -195,7 +179,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
     if (number_of_outputs > 0) {
       ImageOperation *operation = new ImageOperation();
       operation->set_image(image);
-      operation->set_image_user(imageuser);
+      operation->set_image_user(*imageuser);
       operation->set_framenumber(framenumber);
       operation->set_render_data(context.get_render_data());
       operation->set_view_name(context.get_view_name());
@@ -220,7 +204,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
       NodeOutput *alpha_image = this->get_output_socket(1);
       ImageAlphaOperation *alpha_operation = new ImageAlphaOperation();
       alpha_operation->set_image(image);
-      alpha_operation->set_image_user(imageuser);
+      alpha_operation->set_image_user(*imageuser);
       alpha_operation->set_framenumber(framenumber);
       alpha_operation->set_render_data(context.get_render_data());
       alpha_operation->set_view_name(context.get_view_name());

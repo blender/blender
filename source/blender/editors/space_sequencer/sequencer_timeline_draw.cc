@@ -502,7 +502,7 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
   }
 
   /* F-Curve lookup is quite expensive, so do this after precondition. */
-  FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, nullptr);
+  const FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, nullptr);
 
   /* Draw zero line (when actual samples close to zero are drawn, they might not cover a pixel. */
   uchar color[4] = {255, 255, 255, 127};
@@ -1394,7 +1394,7 @@ static void draw_seq_fcurve_overlay(TimelineDrawContext *timeline_ctx,
   const int eval_step = max_ii(1, floor(timeline_ctx->pixelx));
   uchar color[4] = {0, 0, 0, 38};
 
-  FCurve *fcu;
+  const FCurve *fcu;
   if (strip_ctx->seq->type == SEQ_TYPE_SOUND_RAM) {
     fcu = id_data_find_fcurve(&scene->id, strip_ctx->seq, &RNA_Sequence, "volume", 0, nullptr);
   }

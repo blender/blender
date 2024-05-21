@@ -33,6 +33,10 @@ show_color = (
 
 if show_color:
     color_codes = {
+        # Not colors, useful all the same.
+        'bold': '\033[0;1m',
+        'faint': '\033[0;2m',
+
         'black': '\033[0;30m',
         'bright_gray': '\033[0;37m',
         'blue': '\033[0;34m',
@@ -216,10 +220,11 @@ class subcmd_query:
                 item = item_local
 
             print(
-                "  {:s}{:s}: {:s}".format(
-                    pkg_id,
+                "  {:s}{:s}: \"{:s}\", {:s}".format(
+                    colorize(pkg_id, "bold"),
                     status_info,
-                    colorize("\"{:s}\", {:s}".format(item["name"], item.get("tagline", "<no tagline>")), "dark_gray"),
+                    item["name"],
+                    colorize(item.get("tagline", "<no tagline>"), "faint"),
                 ))
 
         if sync:

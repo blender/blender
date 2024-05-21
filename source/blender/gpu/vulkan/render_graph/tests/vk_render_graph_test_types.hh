@@ -407,6 +407,9 @@ class CommandBufferLog : public VKCommandBufferInterface {
     ss << "end_rendering()";
     log_.append(ss.str());
   }
+
+  void begin_debug_utils_label(const VkDebugUtilsLabelEXT * /*vk_debug_utils_label*/) override {}
+  void end_debug_utils_label() override {}
 };
 
 /**

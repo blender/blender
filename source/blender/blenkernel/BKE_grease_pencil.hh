@@ -340,7 +340,7 @@ struct LayerTransformData {
  * Note that end frame is exclusive with regards to the frame duration. E.g. if a frame starts at
  * 10 and the end frame is at 15, then the duration is 4.
  */
-using FramesMapKey = int;
+using FramesMapKeyT = int;
 
 class LayerRuntime {
  public:
@@ -369,11 +369,11 @@ class LayerRuntime {
    * referenced drawings are discarded. If the frame is longer than the number of referenced
    * drawings, then the last referenced drawing is held for the rest of the duration.
    */
-  Map<FramesMapKey, GreasePencilFrame> frames_;
+  Map<FramesMapKeyT, GreasePencilFrame> frames_;
   /**
    * Caches a sorted vector of the keys of `frames_`.
    */
-  mutable SharedCache<Vector<FramesMapKey>> sorted_keys_cache_;
+  mutable SharedCache<Vector<FramesMapKeyT>> sorted_keys_cache_;
   /**
    * A vector of LayerMask. This layer will be masked by the layers referenced in the masks.
    * A layer can have zero or more layer masks.
@@ -417,9 +417,12 @@ class Layer : public ::GreasePencilLayer {
   /**
    * \returns the frames mapping.
    */
-  const Map<FramesMapKey, GreasePencilFrame> &frames() const;
-  Map<FramesMapKey, GreasePencilFrame> &frames_for_write();
+  const Map<FramesMapKeyT, GreasePencilFrame> &frames() const;
+  Map<FramesMapKeyT, GreasePencilFrame> &frames_for_write();
 
+  /**
+   * \returns true, if the layer contains no keyframes.
+   */
   bool is_empty() const;
 
   /**
@@ -433,7 +436,7 @@ class Layer : public ::GreasePencilLayer {
    *
    * \returns a pointer to the added frame on success, otherwise nullptr.
    */
-  GreasePencilFrame *add_frame(FramesMapKey key, int duration = 0);
+  GreasePencilFrame *add_frame(FramesMapKeyT key, int duration = 0);
   /**
    * Removes a frame with \a key from the frames map.
    *
@@ -444,17 +447,18 @@ class Layer : public ::GreasePencilLayer {
    * Will remove end frame(s) after the frame to remove.
    * \return true on success.
    */
-  bool remove_frame(FramesMapKey key);
+  bool remove_frame(FramesMapKeyT key);
 
   /**
    * Returns the sorted keys (start frame numbers) of the frames of this layer.
    * \note This will cache the keys lazily.
    */
-  Span<FramesMapKey> sorted_keys() const;
+  Span<FramesMapKeyT> sorted_keys() const;
 
   /**
    * \returns the index of the active drawing at frame \a frame_number or -1 if there is no
-   * drawing. */
+   * drawing.
+   * TODO: This should be a private API! */
   int drawing_index_at(const int frame_number) const;
 
   /**
@@ -463,9 +467,16 @@ class Layer : public ::GreasePencilLayer {
   bool has_drawing_at(const int frame_number) const;
 
   /**
-   * \returns the key of the active frame at \a frame_number or #std::nullopt if there is no frame.
+   * \returns the start frame number of the active frame at \a frame_number or #std::nullopt if no
+   * such frame exists.
    */
-  std::optional<FramesMapKey> frame_key_at(int frame_number) const;
+  std::optional<int> start_frame_at(int frame_number) const;
+
+  /**
+   * \returns the index of the key of the active frame in `sorted_keys` or -1 if no such frame
+   * exists.
+   */
+  int sorted_keys_index_at(int frame_number) const;
 
   /**
    * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
@@ -475,9 +486,8 @@ class Layer : public ::GreasePencilLayer {
 
   /**
    * \returns the frame duration of the keyframe at \a frame_number.
-   * If there is no keyframe at \a frame_number it \returns -1.
+   * If there is no keyframe at \a frame_number \returns -1.
    * If the keyframe is an implicit hold, \returns 0.
-   * if the keyframe is the last one, \returns -1.
    */
   int get_frame_duration_at(const int frame_number) const;
 
@@ -527,6 +537,17 @@ class Layer : public ::GreasePencilLayer {
   using SortedKeysIterator = const int *;
 
  private:
+  /**
+   * \returns an iterator into the `sorted_keys` span to the frame at \a frame_number or nullptr if
+   * no such frame exists.
+   */
+  SortedKeysIterator sorted_keys_iterator_at(int frame_number) const;
+  /**
+   * \returns the key of the active frame at \a frame_number or #std::nullopt if no such frame
+   * exists.
+   */
+  std::optional<FramesMapKeyT> frame_key_at(int frame_number) const;
+
   GreasePencilFrame *add_frame_internal(int frame_number);
 
   /**

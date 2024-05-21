@@ -757,7 +757,7 @@ bool BKE_id_is_editable(const Main *bmain, const ID *id);
  *
  * Taking into account lib linking and main database membership.
  */
-bool BKE_id_can_link(const ID &id_from, const ID &id_to);
+bool BKE_id_can_use_id(const ID &id_from, const ID &id_to);
 
 /**
  * Returns ordered list of data-blocks for display in the UI.

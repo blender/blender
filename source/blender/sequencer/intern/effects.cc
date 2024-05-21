@@ -2190,7 +2190,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
     return; /* Make COVERITY happy and check for (CID 598) input strip. */
   }
 
-  FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq);
+  const FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq);
   if (fcu == nullptr) {
     return;
   }
@@ -2249,7 +2249,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
       break;
     }
     case SEQ_SPEED_MULTIPLY: {
-      FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq_speed);
+      const FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq_speed);
       if (fcu != nullptr) {
         seq_effect_speed_frame_map_ensure(scene, seq_speed);
         target_frame = s->frameMap[frame_index];
@@ -2991,11 +2991,12 @@ static void draw_text_outline(const SeqRenderData *context,
   });
 
   /* Do jump flooding calculations. */
-  Array<JFACoord> initial_flooded_result(pixel_count, NoInitialization());
+  JFACoord invalid_coord{JFA_INVALID, JFA_INVALID};
+  Array<JFACoord> initial_flooded_result(pixel_count, invalid_coord);
   jump_flooding_pass(boundary, initial_flooded_result, size, rect_x_range, rect_y_range, 1);
 
   Array<JFACoord> *result_to_flood = &initial_flooded_result;
-  Array<JFACoord> intermediate_result(pixel_count, NoInitialization());
+  Array<JFACoord> intermediate_result(pixel_count, invalid_coord);
   Array<JFACoord> *result_after_flooding = &intermediate_result;
 
   int step_size = power_of_2_max_i(outline_width) / 2;

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
-"PO-Revision-Date: 2024-04-29 13:39+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"PO-Revision-Date: 2024-05-21 07:21+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
 "Language: da\n"
@@ -12,15 +12,31 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.1"
+"X-Generator: Weblate 5.5.2"
+
+
+msgid "Valid"
+msgstr "Gyldig"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "Problemer med navnet på AOV"
 
 
 msgid "Name"
 msgstr "Navn"
 
 
+msgid "Name of the AOV"
+msgstr "Navn på AOV"
+
+
 msgid "Type"
 msgstr "Type"
+
+
+msgid "Data type of the AOV"
+msgstr "Datatype for AOV"
 
 
 msgid "Color"
@@ -29,6 +45,58 @@ msgstr "Farve"
 
 msgid "Value"
 msgstr "Værdi"
+
+
+msgid "List of AOVs"
+msgstr "Liste over AOVs"
+
+
+msgid "Collection of AOVs"
+msgstr "Samling af AOVs"
+
+
+msgid "Binding Handle"
+msgstr "bindings håndtag"
+
+
+msgid "Number specific to this Binding, unique within the Animation data-blockThis is used, for example, on a KeyframeActionStrip to look up the ActionChannelBag for this Binding"
+msgstr "Nummer specifikt for denne binding, unikt i animationsdatablokken. Dette bruges for eksempel på en KeyframeActionStrip til at slå ActionChannelBag op for denne binding"
+
+
+msgid "Action Bindings"
+msgstr "Handlings bindinger"
+
+
+msgid "Collection of animation bindings"
+msgstr "Samling af animation bindinger"
+
+
+msgid "Animation Channel Bag"
+msgstr "Animation kanal pose"
+
+
+msgid "Collection of animation channels, typically associated with an animation binding"
+msgstr "Samling af animationskanaler, typisk forbundet med en animationsbinding"
+
+
+msgid "F-Curves"
+msgstr "F-kurver"
+
+
+msgid "The individual F-Curves that animate the binding"
+msgstr "De individuelle F-kurver, der animerer bindingen"
+
+
+msgid "Collection of F-Curves for a specific animation binding"
+msgstr "Samling af F-kurver til en specifik animationsbinding"
+
+
+msgid "Animation Channels for Bindings"
+msgstr "Animationskanaler til bindinger"
+
+
+msgid "For each animation binding, a list of animation channels that are meant for that binding"
+msgstr "For hver animationsbinding en liste over animationskanaler, der er beregnet til denne binding"
 
 
 msgid "Action F-Curves"
@@ -171,6 +239,14 @@ msgid "Action group is locked"
 msgstr "Handlingsgruppe er låst"
 
 
+msgid "Mute"
+msgstr "Stum"
+
+
+msgid "Action group is muted"
+msgstr "Handlingsgruppen er slået fra"
+
+
 msgid "Select"
 msgstr "Vælg"
 
@@ -183,12 +259,56 @@ msgid "Expanded"
 msgstr "Udviddet"
 
 
+msgid "Action group is expanded except in graph editor"
+msgstr "Handlingsgruppen er udvidet undtagen i grafeditor"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Udvidet i Graph Editor"
+
+
 msgid "Action Groups"
 msgstr "Handlingsgrupper"
 
 
 msgid "Collection of action groups"
 msgstr "Samling af handlingsgrupper"
+
+
+msgid "Action Layer"
+msgstr "Handlingslag"
+
+
+msgid "Influence"
+msgstr "Indflydelse"
+
+
+msgid "How much of this layer is used when blending into the lower layers"
+msgstr "Hvor meget af dette lag bruges, når det blandes ind i de nederste lag"
+
+
+msgid "Mix Mode"
+msgstr "Blandingstilstand"
+
+
+msgid "How animation of this layer is blended into the lower layers"
+msgstr "Hvordan animation af dette lag blandes ind i de nederste lag"
+
+
+msgid "Replace"
+msgstr "Udskift"
+
+
+msgid "Add"
+msgstr "Tilføj"
+
+
+msgid "Subtract"
+msgstr "Fratrække"
+
+
+msgid "Multiply"
+msgstr "Gange"
 
 
 msgid "Action Pose Markers"
@@ -215,6 +335,10 @@ msgid "Index of active pose marker"
 msgstr "Indeks for aktive poséringsmarkører"
 
 
+msgid "Keyframe"
+msgstr "Nøglebillede"
+
+
 msgid "Add-on"
 msgstr "Tilføjelse"
 
@@ -233,22 +357,6 @@ msgstr "modul navn"
 
 msgid "Add-on Preferences"
 msgstr "tilføjelses præference"
-
-
-msgid "Password"
-msgstr "Kodeord"
-
-
-msgid "E-mail address"
-msgstr "E-mail adresse"
-
-
-msgid "Error Message"
-msgstr "Fejl besked"
-
-
-msgid "Message"
-msgstr "Besked"
 
 
 msgid "Compute Device Type"
@@ -316,7 +424,7 @@ msgstr "Animations data"
 
 
 msgid "Animation data for data-block"
-msgstr "animations data til data-blok"
+msgstr "animations data for data-blok"
 
 
 msgid "Action"
@@ -331,28 +439,12 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metode brugt til at kombinere Active Actions resultat med resultat af NLA stak"
 
 
-msgid "Replace"
-msgstr "Udskift"
-
-
-msgid "Add"
-msgstr "Tilføj"
-
-
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Det vægtede resultat af strimlen føjes til de akkumulerede resultater"
 
 
-msgid "Subtract"
-msgstr "Fratrække"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Det vægtede resultat af strimlen fjernes fra de akkumulerede resultater"
-
-
-msgid "Multiply"
-msgstr "Gange"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -553,14 +645,6 @@ msgstr "I rækkevidde"
 
 msgid "Display Paths of poses within specified range"
 msgstr "Vis stier til stillinger inden for det specificerede område"
-
-
-msgid "Influence"
-msgstr "Indflydelse"
-
-
-msgid "Keyframe"
-msgstr "Nøglebillede"
 
 
 msgid "Any Type"
@@ -1259,12 +1343,56 @@ msgid "Center"
 msgstr "Centrum"
 
 
+msgid "Angular"
+msgstr "angular"
+
+
+msgid "Damping"
+msgstr "Dæmpning"
+
+
 msgid "Look"
 msgstr "udseende"
 
 
 msgid "Disable"
 msgstr "Deaktivere"
+
+
+msgid "Follow Track"
+msgstr "Følg Spor"
+
+
+msgid "Copy Location"
+msgstr "Kopier Placering"
+
+
+msgid "Copy Rotation"
+msgstr "Kopier Rotation"
+
+
+msgid "Copy Scale"
+msgstr "Kopier størelse"
+
+
+msgid "Limit Distance"
+msgstr "Begræns afstand"
+
+
+msgid "Limit Location"
+msgstr "Begræns Lokation"
+
+
+msgid "Limit Rotation"
+msgstr "Begræns Rotation"
+
+
+msgid "Limit Scale"
+msgstr "Begræns størelse"
+
+
+msgid "Locked Track"
+msgstr "Låst spor"
 
 
 msgid "Armature"
@@ -1285,6 +1413,10 @@ msgstr "Y"
 
 msgid "Z"
 msgstr "Z"
+
+
+msgid "Track Axis"
+msgstr "Bane akse"
 
 
 msgid "Up Axis"
@@ -1321,6 +1453,10 @@ msgstr "Scene"
 
 msgid "Invert"
 msgstr "Modvende"
+
+
+msgid "Acceleration"
+msgstr "Acceleration"
 
 
 msgid "Velocity"
@@ -1400,6 +1536,10 @@ msgid "Text"
 msgstr "Tekst"
 
 
+msgid "B-Bone"
+msgstr "B-Knogle"
+
+
 msgid "Local"
 msgstr "Lokal"
 
@@ -1414,6 +1554,10 @@ msgstr "Splejlkugle"
 
 msgid "Path"
 msgstr "Sti"
+
+
+msgid "Mean"
+msgstr "Middelværdi"
 
 
 msgid "Min"
@@ -1438,6 +1582,11 @@ msgstr "Masse"
 
 msgid "Reference Distance"
 msgstr "Reference afstand"
+
+
+msgctxt "Sound"
+msgid "Pitch"
+msgstr "Toneleje"
 
 
 msgid "Blend"
@@ -1724,6 +1873,10 @@ msgid "Legacy Compute Device Type"
 msgstr "Forældere beregningstyrper"
 
 
+msgid "Password"
+msgstr "Kodeord"
+
+
 msgid "Temperature"
 msgstr "Temperatur"
 
@@ -1766,6 +1919,10 @@ msgstr "Overflade punkt valgt"
 
 msgid "Face Dot Size"
 msgstr "Overfalde punkt størrelse"
+
+
+msgid "Error Message"
+msgstr "Fejl besked"
 
 
 msgid "3D View"
@@ -1918,14 +2075,6 @@ msgstr "Kan ikke læse %s '%s': %s"
 
 msgid "%s '%s' not found"
 msgstr "%s '%s' ikke fundet"
-
-
-msgid "Add Curve"
-msgstr "Tilføj kurve"
-
-
-msgid "Add Mesh"
-msgstr "Tilføj maske"
 
 
 msgid "Import-Export"

@@ -152,6 +152,16 @@ class DATA_PT_EEVEE_light_shadow(DataButtonsPanel, Panel):
         layout.use_property_split = True
         layout.active = context.scene.eevee.use_shadows and light.use_shadow
 
+        col = layout.column(align=False, heading="Jitter")
+        row = col.row(align=True)
+        sub = row.row(align=True)
+        sub.prop(light, "use_shadow_jitter", text="")
+        sub = sub.row(align=True)
+        sub.active = light.use_shadow_jitter
+        sub.prop(light, "shadow_jitter_overblur", text="Overblur")
+
+        col.separator()
+
         col = layout.column()
         col.prop(light, "shadow_filter_radius", text="Filter")
 

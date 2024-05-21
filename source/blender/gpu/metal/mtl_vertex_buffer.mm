@@ -261,7 +261,7 @@ void MTLVertBuf::bind()
 void MTLVertBuf::update_sub(uint start, uint len, const void *data)
 {
   /* Fetch and verify active context. */
-  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
   BLI_assert(ctx->device);
 

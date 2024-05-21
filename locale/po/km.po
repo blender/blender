@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9a3c7290a9c1')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-06 10:38+0000\n"
+"POT-Creation-Date: 2024-05-21 07:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -93,22 +93,6 @@ msgid "Add-on Preferences"
 msgstr "ចំណូលចិត្ត Add-on"
 
 
-msgid "Password"
-msgstr "ពាក្យសម្ងាត់"
-
-
-msgid "E-mail address"
-msgstr "អាស័យ​ដ្ឋាន​អ៊ី​ម៉េ​ល"
-
-
-msgid "Error Message"
-msgstr "សារ Error"
-
-
-msgid "Message"
-msgstr "សារ"
-
-
 msgid "Device to use for computation (rendering with Cycles)"
 msgstr "ឧបករណ៍ដែលត្រូវប្រើសម្រាប់ការ Render ជាមួយ  Cycles"
 
@@ -128,4 +112,12 @@ msgstr "ជំនួយ"
 msgctxt "Operator"
 msgid "Select Box"
 msgstr "ប្រអប់ជ្រើសរើស"
+
+
+msgid "Password"
+msgstr "ពាក្យសម្ងាត់"
+
+
+msgid "Error Message"
+msgstr "សារ Error"
 

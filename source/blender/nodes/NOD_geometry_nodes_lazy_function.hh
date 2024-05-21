@@ -193,6 +193,9 @@ struct GeoNodesOperatorData {
   int2 mouse_position;
   int2 region_size;
   const RegionView3D *rv3d = nullptr;
+  int active_point_index = -1;
+  int active_edge_index = -1;
+  int active_face_index = -1;
 };
 
 struct GeoNodesCallData {

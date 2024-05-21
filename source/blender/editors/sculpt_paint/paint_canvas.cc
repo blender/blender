@@ -16,9 +16,9 @@
 #include "ED_paint.hh"
 
 namespace blender::ed::sculpt_paint::canvas {
-static TexPaintSlot *get_active_slot(Object *ob)
+static TexPaintSlot *get_active_slot(Object &ob)
 {
-  Material *mat = BKE_object_material_get(ob, ob->actcol);
+  Material *mat = BKE_object_material_get(&ob, ob.actcol);
   if (mat == nullptr) {
     return nullptr;
   }
@@ -95,7 +95,7 @@ bool ED_paint_tool_use_canvas(bContext *C, bToolRef *tref)
 
 eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
                                                      const PaintModeSettings *settings,
-                                                     Object *ob,
+                                                     Object &ob,
                                                      eV3DShadingColorType orig_color_type)
 {
   if (!U.experimental.use_sculpt_texture_paint) {
@@ -106,8 +106,8 @@ eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
    * with the last stoke when using tools like masking.
    */
   if (!ED_paint_tool_use_canvas(C, nullptr) &&
-      !(paint_tool_shading_color_follows_last_used_tool(C, ob) &&
-        ob->sculpt->sticky_shading_color))
+      !(paint_tool_shading_color_follows_last_used_tool(C, &ob) &&
+        ob.sculpt->sticky_shading_color))
   {
     return orig_color_type;
   }

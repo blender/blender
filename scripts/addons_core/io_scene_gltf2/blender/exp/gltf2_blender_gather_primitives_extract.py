@@ -447,20 +447,39 @@ class PrimitiveCreator:
             for attr in self.uvmap_attribute_list:
                 if attr + str(0) not in self.dots.dtype.names:  # In case user exports custom attributes, we may have it already
                     # Vector in custom Attributes are Vector2 or Vector3 (but keeping only the first two data)
-                    if self.blender_mesh.attributes[attr].data_type == "FLOAT_VECTOR":
-                        data = np.empty(len(self.blender_mesh.loops) *
-                                        3, gltf2_blender_conversion.get_numpy_type('FLOAT2'))
-                        self.blender_mesh.attributes[attr].data.foreach_get('vector', data)
-                        data = data.reshape(-1, 3)
-                        data = data[:, :2]
-                    elif self.blender_mesh.attributes[attr].data_type == "FLOAT2":
-                        data = np.empty(len(self.blender_mesh.loops) *
-                                        2, gltf2_blender_conversion.get_numpy_type('FLOAT2'))
-                        self.blender_mesh.attributes[attr].data.foreach_get('vector', data)
-                        data = data.reshape(-1, 2)
+                    if self.blender_mesh.attributes[attr].domain == "CORNER":
+                        if self.blender_mesh.attributes[attr].data_type == "FLOAT_VECTOR":
+                            data = np.empty(len(self.blender_mesh.loops) *
+                                            3, gltf2_blender_conversion.get_numpy_type('FLOAT2'))
+                            self.blender_mesh.attributes[attr].data.foreach_get('vector', data)
+                            data = data.reshape(-1, 3)
+                            data = data[:, :2]
+                        elif self.blender_mesh.attributes[attr].data_type == "FLOAT2":
+                            data = np.empty(len(self.blender_mesh.loops) *
+                                            2, gltf2_blender_conversion.get_numpy_type('FLOAT2'))
+                            self.blender_mesh.attributes[attr].data.foreach_get('vector', data)
+                            data = data.reshape(-1, 2)
+                        else:
+                            self.export_settings['log'].warning(
+                                'We are not managing this case (UVMap as custom attribute for unknown type)')
+                            continue
+                    elif self.blender_mesh.attributes[attr].domain == "POINT":
+                        if self.blender_mesh.attributes[attr].data_type == "FLOAT_VECTOR":
+                            data = np.empty(len(self.blender_mesh.vertices) * 3,
+                                            gltf2_blender_conversion.get_numpy_type('FLOAT2'))
+                            self.blender_mesh.attributes[attr].data.foreach_get('vector', data)
+                            data = data.reshape(-1, 3)
+                            data = data[:, :2]
+                            data = data[self.dots['vertex_index']]
+                        elif self.blender_mesh.attributes[attr].data_type == "FLOAT2":
+                            data = np.empty(len(self.blender_mesh.vertices) * 2,
+                                            gltf2_blender_conversion.get_numpy_type('FLOAT2'))
+                            self.blender_mesh.attributes[attr].data.foreach_get('vector', data)
+                            data = data.reshape(-1, 2)
+                            data = data[self.dots['vertex_index']]
                     else:
                         self.export_settings['log'].warning(
-                            'We are not managing this case (UVMap as custom attribute for unknown type)')
+                            'We are not managing this case (UVMap as custom attribute for unknown domain)')
                         continue
                     # Blender UV space -> glTF UV space
                     # u,v -> u,1-v

@@ -41,7 +41,7 @@ void DRW_curve_batch_cache_validate(Curve *cu);
 void DRW_curve_batch_cache_free(Curve *cu);
 
 void DRW_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode);
-void DRW_mesh_batch_cache_validate(Object *object, Mesh *mesh);
+void DRW_mesh_batch_cache_validate(Object &object, Mesh &mesh);
 void DRW_mesh_batch_cache_free(void *batch_cache);
 
 void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode);
@@ -183,31 +183,31 @@ blender::gpu::Batch *DRW_volume_batch_cache_get_selection_surface(Volume *volume
 /**
  * Can be called for any surface type. Mesh *mesh is the final mesh.
  */
-void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
-                                           Object *ob,
-                                           Mesh *mesh,
-                                           const Scene *scene,
+void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
+                                           Object &ob,
+                                           Mesh &mesh,
+                                           const Scene &scene,
                                            bool is_paint_mode,
                                            bool use_hide);
 
-blender::gpu::Batch *DRW_mesh_batch_cache_get_all_verts(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_all_edges(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_loose_edges(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh *mesh, bool *r_is_manifold);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_surface(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_edges(Object *object, Mesh *mesh);
-blender::gpu::Batch **DRW_mesh_batch_cache_get_surface_shaded(Object *object,
-                                                              Mesh *mesh,
+blender::gpu::Batch *DRW_mesh_batch_cache_get_all_verts(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_all_edges(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_loose_edges(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh &mesh, bool *r_is_manifold);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_surface(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_edges(Object &object, Mesh &mesh);
+blender::gpu::Batch **DRW_mesh_batch_cache_get_surface_shaded(Object &object,
+                                                              Mesh &mesh,
                                                               GPUMaterial **gpumat_array,
                                                               uint gpumat_array_len);
 
-blender::gpu::Batch **DRW_mesh_batch_cache_get_surface_texpaint(Object *object, Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object *object, Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_vertpaint(Object *object, Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_sculpt(Object *object, Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_weights(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_sculpt_overlays(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh *mesh);
+blender::gpu::Batch **DRW_mesh_batch_cache_get_surface_texpaint(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_vertpaint(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_sculpt(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_weights(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_sculpt_overlays(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh &mesh);
 
 /** \} */
 
@@ -215,13 +215,13 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh *mes
 /** \name Edit-Mesh Drawing
  * \{ */
 
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_triangles(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_vertices(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_edges(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_vert_normals(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_loop_normals(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_facedots(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh *mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_triangles(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_vertices(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_edges(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_vert_normals(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_loop_normals(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_facedots(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh &mesh);
 
 /** \} */
 
@@ -229,10 +229,10 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_skin_roots(Mesh *mesh);
 /** \name Edit-mesh Selection
  * \{ */
 
-blender::gpu::Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_facedots_with_select_id(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edges_with_select_id(Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_triangles_with_select_id(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_facedots_with_select_id(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edges_with_select_id(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh &mesh);
 
 /** \} */
 
@@ -240,7 +240,7 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *mesh);
 /** \name Object Mode Wireframe Overlays
  * \{ */
 
-blender::gpu::Batch *DRW_mesh_batch_cache_get_wireframes_face(Mesh *mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_wireframes_face(Mesh &mesh);
 
 /** \} */
 
@@ -255,16 +255,16 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_wireframes_face(Mesh *mesh);
  * The `cache->tot_area` and cache->tot_uv_area` update are calculation are
  * only valid after calling `DRW_mesh_batch_cache_create_requested`.
  */
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Object *object,
-                                                                        Mesh *mesh,
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Object &object,
+                                                                        Mesh &mesh,
                                                                         float **tot_area,
                                                                         float **tot_uv_area);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(Object *object,
-                                                                         Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces(Object *object, Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_edges(Object *object, Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_verts(Object *object, Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object *object, Mesh *mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(Object &object,
+                                                                         Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_edges(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_verts(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object &object, Mesh &mesh);
 
 /** \} */
 
@@ -272,8 +272,8 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object *object, Me
 /** \name For Image UV Editor
  * \{ */
 
-blender::gpu::Batch *DRW_mesh_batch_cache_get_uv_edges(Object *object, Mesh *mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh *mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_uv_edges(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh);
 
 /** \} */
 
@@ -281,9 +281,9 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh *mesh);
 /** \name For Direct Data Access
  * \{ */
 
-gpu::VertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh *mesh);
+gpu::VertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh &mesh);
 
-int DRW_mesh_material_count_get(const Object *object, const Mesh *mesh);
+int DRW_mesh_material_count_get(const Object &object, const Mesh &mesh);
 
 /* Edit mesh bitflags (is this the right place?) */
 enum {

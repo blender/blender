@@ -127,6 +127,7 @@ struct USDImportParams {
   bool import_shapes;
   bool import_skeletons;
   bool import_blendshapes;
+  bool import_points;
   char *prim_path_mask;
   bool import_subdiv;
   bool support_scene_instancing;

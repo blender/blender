@@ -74,7 +74,7 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
   format_duration(min_time_, buf);
   buf.append(StringRef(", Last: "));
   format_duration(duration, buf);
-  buf.append(StringRef(")\n"));
+  fmt::format_to(fmt::appender(buf), ", Samples: {})\n", total_count_);
   std::cout << StringRef(buf.data(), buf.size());
 }
 

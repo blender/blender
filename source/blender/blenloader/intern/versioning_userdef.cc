@@ -954,7 +954,14 @@ void blo_do_versions_userdef(UserDef *userdef)
     BKE_preferences_extension_repo_add_default_user(userdef);
   }
 
-  {
+  if (!USER_VERSION_ATLEAST(402, 42)) {
+    /* 80 was the old default. */
+    if (userdef->node_margin == 80) {
+      userdef->node_margin = 40;
+    }
+  }
+
+  if (!USER_VERSION_ATLEAST(402, 43)) {
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
         userdef, "VIEW3D_AST_brush_sculpt", "Brushes/Mesh Sculpt/Cloth");
     BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(

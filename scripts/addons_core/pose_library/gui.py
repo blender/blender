@@ -52,7 +52,8 @@ class VIEW3D_AST_pose_library(bpy.types.AssetShelf):
         layout.operator("poselib.apply_pose_asset", text="Apply Pose Flipped").flipped = True
 
         with operator_context(layout, 'INVOKE_DEFAULT'):
-            layout.operator("poselib.blend_pose_asset", text="Blend Pose")
+            layout.operator("poselib.blend_pose_asset", text="Blend Pose").flipped = False
+            layout.operator("poselib.blend_pose_asset", text="Blend Pose Flipped").flipped = True
 
         layout.separator()
         props = layout.operator("poselib.pose_asset_select_bones", text="Select Pose Bones")
@@ -110,7 +111,8 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
     layout.operator("poselib.apply_pose_asset", text="Apply Pose Flipped").flipped = True
 
     with operator_context(layout, 'INVOKE_DEFAULT'):
-        layout.operator("poselib.blend_pose_asset", text="Blend Pose")
+        layout.operator("poselib.blend_pose_asset", text="Blend Pose").flipped = False
+        layout.operator("poselib.blend_pose_asset", text="Blend Pose Flipped").flipped = True
 
     layout.separator()
     props = layout.operator("poselib.pose_asset_select_bones", text="Select Pose Bones")

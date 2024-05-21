@@ -166,6 +166,8 @@ float shadow_directional_level_fractional(LightData light, vec3 lP)
 
 int shadow_directional_level(LightData light, vec3 lP)
 {
+  /* The level can be negative and is increasing with the distance.
+   * So we have to ceil instead of flooring. */
   return int(ceil(shadow_directional_level_fractional(light, lP)));
 }
 
@@ -211,11 +213,7 @@ float shadow_punctual_level_fractional(LightData light,
 {
   float ratio = shadow_punctual_pixel_ratio(
       light, lP, is_perspective, distance_to_camera, film_pixel_radius);
-  /* NOTE: Bias by one to counteract the ceil in the `int` variant. This is done because this
-   * function should return an upper bound. */
-  float lod = -log2(ratio) - 1.0;
-  lod = min(lod, float(SHADOW_TILEMAP_LOD));
-  return lod;
+  return clamp(-log2(ratio), 0.0, float(SHADOW_TILEMAP_LOD));
 }
 
 int shadow_punctual_level(LightData light,
@@ -224,8 +222,9 @@ int shadow_punctual_level(LightData light,
                           float distance_to_camera,
                           float film_pixel_radius)
 {
-  return int(ceil(shadow_punctual_level_fractional(
-      light, lP, is_perspective, distance_to_camera, film_pixel_radius)));
+  /* Conversion to positive int is the same as floor. */
+  return int(shadow_punctual_level_fractional(
+      light, lP, is_perspective, distance_to_camera, film_pixel_radius));
 }
 
 struct ShadowCoordinates {
@@ -354,10 +353,8 @@ int shadow_punctual_face_index_get(vec3 lL)
  */
 ShadowCoordinates shadow_punctual_coordinates(LightData light, vec3 lP, int face_id)
 {
-  float clip_near = intBitsToFloat(light.clip_near);
-  float clip_side = light_local_data_get(light).clip_side;
   /* UVs in [-1..+1] range. */
-  vec2 tilemap_uv = (lP.xy * clip_near) / abs(lP.z * clip_side);
+  vec2 tilemap_uv = lP.xy / abs(lP.z);
   /* UVs in [0..1] range. */
   tilemap_uv = saturate(tilemap_uv * 0.5 + 0.5);
 

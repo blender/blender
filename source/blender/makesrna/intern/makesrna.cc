@@ -1284,7 +1284,7 @@ static char *rna_def_property_set_func(
           /* Check if pointers between datablocks are allowed. */
           fprintf(f,
                   "    if (value.data && ptr->owner_id && value.owner_id && "
-                  "!BKE_id_can_link(*ptr->owner_id, *value.owner_id)) {\n");
+                  "!BKE_id_can_use_id(*ptr->owner_id, *value.owner_id)) {\n");
           fprintf(f, "      return;\n");
           fprintf(f, "    }\n");
         }

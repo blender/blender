@@ -75,6 +75,10 @@ void BKE_stamp_info_callback(void *data,
                              struct StampData *stamp_data,
                              StampCallback callback,
                              bool noskip);
+void BKE_image_multilayer_stamp_info_callback(void *data,
+                                              const Image &image,
+                                              StampCallback callback,
+                                              bool noskip);
 void BKE_render_result_stamp_data(struct RenderResult *rr, const char *key, const char *value);
 struct StampData *BKE_stamp_data_copy(const struct StampData *stamp_data);
 void BKE_stamp_data_free(struct StampData *stamp_data);
@@ -150,6 +154,25 @@ bool BKE_image_has_ibuf(struct Image *ima, struct ImageUser *iuser);
  * References the result, #BKE_image_release_ibuf should be used to de-reference.
  */
 struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **r_lock);
+
+/**
+ * Return image buffer for given image, user, pass, and view.
+ * Is thread-safe, so another thread can be changing image while this function is executed.
+ *
+ * If the image is single-layer then the pass name is completely ignored.
+ *
+ * If the image is multi-layer then this function does all needed internal configurations to read
+ * the pass. There is no need to acquire a temporary ImBuf prior to this call (which is what some
+ * legacy code had to do to ensure proper type and RenderResult).
+ *
+ * References the result, #BKE_image_release_ibuf should be used to de-reference.
+ */
+ImBuf *BKE_image_acquire_multilayer_view_ibuf(const RenderData &render_data,
+                                              Image &image,
+                                              const ImageUser &image_user,
+                                              const char *pass_name,
+                                              const char *view_name);
+
 void BKE_image_release_ibuf(struct Image *ima, struct ImBuf *ibuf, void *lock);
 
 struct ImagePool *BKE_image_pool_new(void);

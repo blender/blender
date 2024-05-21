@@ -876,6 +876,59 @@ static void lib_override_group_tag_data_object_to_collection_init(LibOverrideGro
   }
 }
 
+/* Checks that can decide to skip the ID based only on the matching #MainIDRelationsEntryItem data
+ * representing the relationship of that ID with its owner ID. */
+static bool lib_override_hierarchy_dependencies_relationship_skip_check(
+    MainIDRelationsEntryItem *relation_id_entry)
+{
+  /* Skip all relationships that should never be taken into account to define a liboverride
+   * hierarchy ('from', 'parents', 'owner' etc. pointers). */
+  if ((relation_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
+    return true;
+  }
+  return false;
+}
+
+/* Checks that can decide to skip the ID based on some of its data and the one from its owner. */
+static bool lib_override_hierarchy_dependencies_skip_check(ID *owner_id,
+                                                           ID *other_id,
+                                                           const bool check_override)
+{
+  /* Skip relationships to null pointer, or to itself. */
+  if (ELEM(other_id, nullptr, owner_id)) {
+    return true;
+  }
+  /* Skip any relationships to data from another library. */
+  if (other_id->lib != owner_id->lib) {
+    return true;
+  }
+  /* Skip relationships to non-override data if requested. */
+  if (check_override) {
+    BLI_assert_msg(
+        ID_IS_OVERRIDE_LIBRARY(owner_id),
+        "When processing liboverrides, the owner ID should always be a liboverride too here.");
+    if (!ID_IS_OVERRIDE_LIBRARY(other_id)) {
+      return true;
+    }
+  }
+  /* Skip relationships to IDs that should not be involved in liboverrides currently.
+   * NOTE: The Scene case is a bit specific:
+   *         - While not officially supported, API allow to create liboverrides of whole Scene.
+   *         - However, when creating liboverrides from other type of data (e.g. collections or
+   *           objects), scenes should really not be considered as part of a hierarchy. If there
+   *           are dependencies from other overridden IDs to a scene, this is considered as not
+   *           supported (see also #121410). */
+#define HIERARCHY_BREAKING_ID_TYPES ID_SCE, ID_LI, ID_SCR, ID_WM, ID_WS
+  if (ELEM(GS(other_id->name), HIERARCHY_BREAKING_ID_TYPES) &&
+      !ELEM(GS(owner_id->name), HIERARCHY_BREAKING_ID_TYPES))
+  {
+    return true;
+  }
+#undef HIERARCHY_BREAKING_ID_TYPES
+
+  return false;
+}
+
 static void lib_override_hierarchy_dependencies_recursive_tag_from(LibOverrideGroupTagData *data)
 {
   Main *bmain = data->bmain;
@@ -902,20 +955,14 @@ static void lib_override_hierarchy_dependencies_recursive_tag_from(LibOverrideGr
   for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
        from_id_entry = from_id_entry->next)
   {
-    if ((from_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships ('from', 'parents', 'owner' etc. pointers)
-       * as actual dependencies. */
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(from_id_entry)) {
       continue;
     }
-    /* We only consider IDs from the same library. */
     ID *from_id = from_id_entry->id_pointer.from;
-    if (from_id == nullptr || from_id->lib != id->lib ||
-        (is_override && !ID_IS_OVERRIDE_LIBRARY(from_id)))
-    {
-      /* IDs from different libraries, or non-override IDs in case we are processing overrides,
-       * are both barriers of dependency. */
+    if (lib_override_hierarchy_dependencies_skip_check(id, from_id, is_override)) {
       continue;
     }
+
     from_id->tag |= data->tag;
     data->root_set(from_id);
     lib_override_hierarchy_dependencies_recursive_tag_from(data);
@@ -951,20 +998,14 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTa
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
        to_id_entry = to_id_entry->next)
   {
-    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships ('from', 'parents', 'owner' etc. pointers) as
-       * actual dependencies. */
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
-    /* We only consider IDs from the same library. */
     ID *to_id = *to_id_entry->id_pointer.to;
-    if (to_id == nullptr || to_id->lib != id->lib ||
-        (is_override && !ID_IS_OVERRIDE_LIBRARY(to_id)))
-    {
-      /* IDs from different libraries, or non-override IDs in case we are processing overrides, are
-       * both barriers of dependency. */
+    if (lib_override_hierarchy_dependencies_skip_check(id, to_id, is_override)) {
       continue;
     }
+
     data->root_set(to_id);
     if (lib_override_hierarchy_dependencies_recursive_tag(data)) {
       id->tag |= data->tag;
@@ -1006,20 +1047,14 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
        to_id_entry = to_id_entry->next)
   {
-    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships as actual dependencies. */
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
-
     ID *to_id = *to_id_entry->id_pointer.to;
-    if (ELEM(to_id, nullptr, id_owner)) {
-      continue;
-    }
-    /* We only consider IDs from the same library. */
-    if (to_id->lib != id_owner->lib) {
-      continue;
-    }
     BLI_assert(ID_IS_LINKED(to_id));
+    if (lib_override_hierarchy_dependencies_skip_check(id_owner, to_id, false)) {
+      continue;
+    }
 
     /* Only tag ID if their usages is tagged as requiring liboverride by default, and the owner is
      * already tagged for liboverride.
@@ -1281,20 +1316,15 @@ static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
        to_id_entry = to_id_entry->next)
   {
-    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships as actual dependencies. */
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
+      continue;
+    }
+    ID *to_id = *to_id_entry->id_pointer.to;
+    if (lib_override_hierarchy_dependencies_skip_check(id_owner, to_id, true)) {
       continue;
     }
 
-    ID *to_id = *to_id_entry->id_pointer.to;
-    if (ELEM(to_id, nullptr, id_owner)) {
-      continue;
-    }
-    /* Different libraries or different hierarchy roots are break points in override hierarchies.
-     */
-    if (!ID_IS_OVERRIDE_LIBRARY(to_id) || (to_id->lib != id_owner->lib)) {
-      continue;
-    }
+    /* Different hierarchy roots are break points in override hierarchies. */
     if (ID_IS_OVERRIDE_LIBRARY_REAL(to_id) &&
         to_id->override_library->hierarchy_root != id_hierarchy_root)
     {
@@ -1708,16 +1738,11 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
   for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
        from_id_entry = from_id_entry->next)
   {
-    if ((from_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships as actual dependencies. */
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(from_id_entry)) {
       continue;
     }
-
     ID *from_id = from_id_entry->id_pointer.from;
-    if (ELEM(from_id, nullptr, id)) {
-      continue;
-    }
-    if (!ID_IS_OVERRIDE_LIBRARY(from_id) || (from_id->lib != id->lib)) {
+    if (lib_override_hierarchy_dependencies_skip_check(id, from_id, true)) {
       continue;
     }
 
@@ -1851,16 +1876,11 @@ static void lib_override_root_hierarchy_set(
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
        to_id_entry = to_id_entry->next)
   {
-    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships as actual dependencies. */
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
-
     ID *to_id = *to_id_entry->id_pointer.to;
-    if (ELEM(to_id, nullptr, id)) {
-      continue;
-    }
-    if (!ID_IS_OVERRIDE_LIBRARY(to_id) || (to_id->lib != id->lib)) {
+    if (lib_override_hierarchy_dependencies_skip_check(id, to_id, true)) {
       continue;
     }
 
@@ -2906,19 +2926,23 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
   for (MainIDRelationsEntryItem *entry_item = entry->to_ids; entry_item != nullptr;
        entry_item = entry_item->next)
   {
-    if (entry_item->usage_flag & (IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE | IDWALK_CB_LOOPBACK))
-    {
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(entry_item)) {
       continue;
     }
-
     ID *id_to = *(entry_item->id_pointer.to);
     /* Ensure the 'real' override is processed, in case `id_to` is e.g. an embedded ID, get its
      * owner instead. */
     BKE_lib_override_library_get(bmain, id_to, nullptr, &id_to);
 
-    if (id_to == id_root || !ID_IS_OVERRIDE_LIBRARY_REAL(id_to) || id_to->lib != id_root->lib ||
-        id_to->override_library->hierarchy_root != id_root->override_library->hierarchy_root)
-    {
+    if (lib_override_hierarchy_dependencies_skip_check(id_root, id_to, true)) {
+      continue;
+    }
+    BLI_assert_msg(ID_IS_OVERRIDE_LIBRARY_REAL(id_to),
+                   "Check above ensured `id_to` is a liboverride, so it should be a real one (not "
+                   "an embedded one)");
+
+    /* Non-matching hierarchy root IDs mean this is not the same liboverride hierarchy anymore. */
+    if (id_to->override_library->hierarchy_root != id_root->override_library->hierarchy_root) {
       continue;
     }
 
@@ -3030,9 +3054,7 @@ static bool lib_override_resync_tagging_finalize_recursive_check_from(
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
        to_id_entry = to_id_entry->next)
   {
-    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships ('from', 'parents', 'owner' etc. pointers)
-       * as actual dependencies. */
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
     ID *to_id = *(to_id_entry->id_pointer.to);
@@ -3298,7 +3320,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     for (MainIDRelationsEntryItem *entry_item = entry->to_ids; entry_item != nullptr;
          entry_item = entry_item->next)
     {
-      if (entry_item->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) {
+      if (lib_override_hierarchy_dependencies_relationship_skip_check(entry_item)) {
         continue;
       }
       ID *id_to = *entry_item->id_pointer.to;
@@ -4789,9 +4811,7 @@ static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain,
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
        to_id_entry = to_id_entry->next)
   {
-    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships ('from', 'parents', 'owner' etc. pointers) as
-       * actual dependencies. */
+    if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
     /* We only consider IDs from the same library. */

@@ -94,7 +94,7 @@ SingleKeyingResult insert_vert_fcurve(FCurve *fcu,
  * \param r_samples: Is expected to be an array large enough to hold `sample_count`.
  */
 void sample_fcurve_segment(
-    FCurve *fcu, float start_frame, float sample_rate, float *samples, int sample_count);
+    const FCurve *fcu, float start_frame, float sample_rate, float *samples, int sample_count);
 
 enum class BakeCurveRemove {
   NONE = 0,

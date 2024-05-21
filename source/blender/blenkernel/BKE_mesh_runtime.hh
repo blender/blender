@@ -9,9 +9,11 @@
  * This file contains access functions for the Mesh.runtime struct.
  */
 
+struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct KeyBlock;
+struct ModifierData;
 struct Mesh;
 struct Object;
 struct Scene;
@@ -41,10 +43,24 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh);
  */
 void BKE_mesh_runtime_clear_cache(Mesh *mesh);
 
-/* NOTE: the functions below are defined in DerivedMesh.cc, and are intended to be moved
- * to a more suitable location when that file is removed.
- * They should also be renamed to use conventions from BKE, not old DerivedMesh.cc.
- * For now keep the names similar to avoid confusion. */
+namespace blender::bke {
+
+void mesh_get_mapped_verts_coords(Mesh *mesh_eval, MutableSpan<float3> r_cos);
+
+Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
+                              const Scene *scene,
+                              Object *obedit,
+                              BMEditMesh *em,
+                              const CustomData_MeshMasks *dataMask);
+Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
+                                        const Scene *scene,
+                                        Object *obedit,
+                                        const CustomData_MeshMasks *dataMask);
+
+bool editbmesh_modifier_is_enabled(const Scene *scene,
+                                   const Object *ob,
+                                   ModifierData *md,
+                                   bool has_prev_mesh);
 
 Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
                            const Scene *scene,
@@ -65,7 +81,9 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
                                         Object *ob,
                                         const CustomData_MeshMasks *dataMask);
 
-void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *mesh, KeyBlock *kb);
+void mesh_eval_to_meshkey(const Mesh *me_deformed, Mesh *mesh, KeyBlock *kb);
+
+}  // namespace blender::bke
 
 #ifndef NDEBUG
 bool BKE_mesh_runtime_is_valid(Mesh *mesh_eval);

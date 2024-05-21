@@ -69,7 +69,7 @@ void ED_editors_init_for_undo(Main *bmain)
     Object *ob = BKE_view_layer_active_object_get(view_layer);
     if (ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) {
       BKE_texpaint_slots_refresh_object(scene, ob);
-      ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
+      ED_paint_proj_mesh_data_check(*scene, *ob, nullptr, nullptr, nullptr, nullptr);
     }
   }
 }
@@ -162,13 +162,13 @@ void ED_editors_init(bContext *C)
     else if (mode & OB_MODE_ALL_SCULPT) {
       if (obact == ob) {
         if (mode == OB_MODE_SCULPT) {
-          ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, reports);
+          ED_object_sculptmode_enter_ex(*bmain, *depsgraph, *scene, *ob, true, reports);
         }
         else if (mode == OB_MODE_VERTEX_PAINT) {
-          ED_object_vpaintmode_enter_ex(bmain, depsgraph, scene, ob);
+          ED_object_vpaintmode_enter_ex(*bmain, *depsgraph, *scene, *ob);
         }
         else if (mode == OB_MODE_WEIGHT_PAINT) {
-          ED_object_wpaintmode_enter_ex(bmain, depsgraph, scene, ob);
+          ED_object_wpaintmode_enter_ex(*bmain, *depsgraph, *scene, *ob);
         }
         else {
           BLI_assert_unreachable();

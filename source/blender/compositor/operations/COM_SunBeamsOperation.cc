@@ -32,6 +32,11 @@ void SunBeamsOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
   for (int y = area.ymin; y < area.ymax; y++) {
     for (int x = area.xmin; x < area.xmax; x++) {
+      if (max_steps == 0) {
+        copy_v4_v4(output->get_elem(x, y), input->get_elem(x, y));
+        continue;
+      }
+
       const float2 texel = float2(x, y);
 
       /* The number of steps is the distance in pixels from the source to the current texel. With

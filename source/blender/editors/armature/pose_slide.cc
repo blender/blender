@@ -331,7 +331,7 @@ static bool pose_frame_range_from_object_get(tPoseSlideOp *pso,
 /**
  * Helper for apply() - perform sliding for some value.
  */
-static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, float *val)
+static void pose_slide_apply_val(tPoseSlideOp *pso, const FCurve *fcu, Object *ob, float *val)
 {
   float prev_frame, next_frame;
   float prev_weight, next_weight;
@@ -577,7 +577,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
  */
 static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 {
-  FCurve *fcu_w = nullptr, *fcu_x = nullptr, *fcu_y = nullptr, *fcu_z = nullptr;
+  const FCurve *fcu_w = nullptr, *fcu_x = nullptr, *fcu_y = nullptr, *fcu_z = nullptr;
   bPoseChannel *pchan = pfl->pchan;
   LinkData *ld = nullptr;
   char *path = nullptr;
@@ -1751,7 +1751,7 @@ static float find_last_key(ListBase *pflinks)
   float target_frame = FLT_MIN;
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = (FCurve *)ld->data;
+      const FCurve *fcu = (const FCurve *)ld->data;
       if (!fcu->bezt) {
         continue;
       }

@@ -659,7 +659,7 @@ static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
       if (!target_layer.frames().contains(frame_number)) {
         if (use_duplicate_frame) {
           grease_pencil.insert_duplicate_frame(
-              target_layer, *target_layer.frame_key_at(frame_number), frame_number, false);
+              target_layer, *target_layer.start_frame_at(frame_number), frame_number, false);
         }
         else {
           grease_pencil.insert_frame(target_layer, frame_number);

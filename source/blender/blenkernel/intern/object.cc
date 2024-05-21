@@ -65,7 +65,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
 #include "BKE_anim_data.hh"
 #include "BKE_anim_path.h"
@@ -111,6 +110,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_legacy_derived_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"

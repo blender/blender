@@ -132,7 +132,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
-    sculpt_paint::undo::geometry_begin(ob, op);
+    sculpt_paint::undo::geometry_begin(*ob, op);
   }
 
   if (mesh->flag & ME_REMESH_FIX_POLES && mesh->remesh_voxel_adaptivity <= 0.0f) {
@@ -157,7 +157,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    sculpt_paint::undo::geometry_end(ob);
+    sculpt_paint::undo::geometry_end(*ob);
   }
 
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
@@ -759,7 +759,7 @@ static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
 
   Mesh *mesh_bisect, *mesh_bisect_temp;
-  mesh_bisect = BKE_mesh_copy_for_eval(mesh);
+  mesh_bisect = BKE_mesh_copy_for_eval(*mesh);
 
   int axis;
   float plane_co[3], plane_no[3];
@@ -841,7 +841,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
 
   /* Run Quadriflow bisect operations on a copy of the mesh to keep the code readable without
    * freeing the original ID */
-  bisect_mesh = BKE_mesh_copy_for_eval(mesh);
+  bisect_mesh = BKE_mesh_copy_for_eval(*mesh);
 
   /* Bisect the input mesh using the paint symmetry settings */
   bisect_mesh = remesh_symmetry_bisect(bisect_mesh, qj->symmetry_axes);
@@ -875,7 +875,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
   new_mesh = remesh_symmetry_mirror(qj->owner, new_mesh, qj->symmetry_axes);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    sculpt_paint::undo::geometry_begin(ob, qj->op);
+    sculpt_paint::undo::geometry_begin(*ob, qj->op);
   }
 
   if (qj->preserve_attributes) {
@@ -887,7 +887,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
   bke::mesh_smooth_set(*static_cast<Mesh *>(ob->data), qj->smooth_normals);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    sculpt_paint::undo::geometry_end(ob);
+    sculpt_paint::undo::geometry_end(*ob);
   }
 
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
