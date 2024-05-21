@@ -49,7 +49,7 @@ class VKShader : public Shader {
   VKShader(const char *name);
   virtual ~VKShader();
 
-  void init(const shader::ShaderCreateInfo & /*info*/) override {}
+  void init(const shader::ShaderCreateInfo &info) override;
 
   void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
   void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
