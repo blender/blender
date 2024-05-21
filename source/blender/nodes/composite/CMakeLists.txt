@@ -159,6 +159,12 @@ endif()
 
 
 if(WITH_FFTW3)
+  list(APPEND INC_SYS
+    ${FFTW3_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${FFTW3_LIBRARIES}
+  )
   add_definitions(-DWITH_FFTW3)
 endif()
 

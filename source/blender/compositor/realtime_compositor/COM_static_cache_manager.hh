@@ -11,6 +11,7 @@
 #include "COM_cached_texture.hh"
 #include "COM_deriche_gaussian_coefficients.hh"
 #include "COM_distortion_grid.hh"
+#include "COM_fog_glow_kernel.hh"
 #include "COM_keying_screen.hh"
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_ocio_color_space_conversion_shader.hh"
@@ -59,6 +60,7 @@ class StaticCacheManager {
   CachedImageContainer cached_images;
   DericheGaussianCoefficientsContainer deriche_gaussian_coefficients;
   VanVlietGaussianCoefficientsContainer van_vliet_gaussian_coefficients;
+  FogGlowKernelContainer fog_glow_kernels;
 
   /* Reset the cache manager by deleting the cached resources that are no longer needed because
    * they weren't used in the last evaluation and prepare the remaining cached resources to track
