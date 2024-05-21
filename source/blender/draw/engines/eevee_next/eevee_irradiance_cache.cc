@@ -958,6 +958,9 @@ void IrradianceBake::surfels_create(const Object &probe_object)
 
   /* WORKAROUND: Sync camera with correct bounds for light culling. */
   inst_.camera.sync();
+  /* WORKAROUND: Sync shadows tile-maps count again with new camera bounds. Fixes issues with sun
+   * lights. */
+  inst_.shadows.end_sync();
 
   DRW_stats_group_start("IrradianceBake.SurfelsCount");
 

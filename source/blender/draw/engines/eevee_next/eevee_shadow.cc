@@ -770,7 +770,8 @@ void ShadowModule::end_sync()
 {
   /* Delete unused shadows first to release tile-maps that could be reused for new lights. */
   for (Light &light : inst_.lights.light_map_.values()) {
-    if (!light.used || !enabled_) {
+    /* Do not discard lights in baking mode. See WORKAROUND in `surfels_create`. */
+    if ((!light.used || !enabled_) && !inst_.is_baking()) {
       light.shadow_discard_safe(*this);
     }
     else if (light.directional != nullptr) {
@@ -803,7 +804,8 @@ void ShadowModule::end_sync()
   auto it_end = objects_.items().end();
   for (auto it = objects_.items().begin(); it != it_end; ++it) {
     ShadowObject &shadow_ob = (*it).value;
-    if (!shadow_ob.used) {
+    /* Do not discard casters in baking mode. See WORKAROUND in `surfels_create`. */
+    if (!shadow_ob.used && !inst_.is_baking()) {
       /* May not be a caster, but it does not matter, be conservative. */
       past_casters_updated_.append(shadow_ob.resource_handle.raw);
       objects_.remove(it);
