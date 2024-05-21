@@ -1946,7 +1946,8 @@ void BKE_library_make_local(Main *bmain,
                             const Library *lib,
                             GHash *old_to_new_ids,
                             const bool untagged_only,
-                            const bool set_fake)
+                            const bool set_fake,
+                            const bool clear_asset_data)
 {
   /* NOTE: Old (2.77) version was simply making (tagging) data-blocks as local,
    * without actually making any check whether they were also indirectly used or not...
@@ -2061,6 +2062,8 @@ void BKE_library_make_local(Main *bmain,
   TIMEIT_VALUE_PRINT(make_local);
 #endif
 
+  const int make_local_flags = clear_asset_data ? LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR : 0;
+
   /* Step 3: Make IDs local, either directly (quick and simple), or using generic process,
    * which involves more complex checks and might instead
    * create a local copy of original linked ID. */
@@ -2073,7 +2076,7 @@ void BKE_library_make_local(Main *bmain,
        * currently there are some indirect usages. So instead of making a copy that we'll likely
        * get rid of later, directly make that data block local.
        * Saves a tremendous amount of time with complex scenes... */
-      BKE_lib_id_clear_library_data(bmain, id, 0);
+      BKE_lib_id_clear_library_data(bmain, id, make_local_flags);
       BKE_lib_id_expand_local(bmain, id, 0);
       id->tag &= ~LIB_TAG_DOIT;
 
@@ -2083,7 +2086,7 @@ void BKE_library_make_local(Main *bmain,
     }
     else {
       /* In this specific case, we do want to make ID local even if it has no local usage yet... */
-      BKE_lib_id_make_local(bmain, id, LIB_ID_MAKELOCAL_FULL_LIBRARY);
+      BKE_lib_id_make_local(bmain, id, make_local_flags | LIB_ID_MAKELOCAL_FULL_LIBRARY);
 
       if (id->newid) {
         if (GS(id->newid->name) == ID_OB) {

@@ -978,7 +978,7 @@ static void id_local_fn(bContext *C,
 {
   if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
     Main *bmain = CTX_data_main(C);
-    if (BKE_lib_id_make_local(bmain, tselem->id, 0)) {
+    if (BKE_lib_id_make_local(bmain, tselem->id, LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR)) {
       BKE_id_newptr_and_tag_clear(tselem->id);
     }
   }

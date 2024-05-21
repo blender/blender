@@ -166,7 +166,7 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
      * does not deal properly with it. */
     /* NOTE: assert below ensures that the comment above is valid, and that exception is
      * acceptable for the time being. */
-    BKE_lib_id_make_local(bmain, &brush->clone.image->id, 0);
+    BKE_lib_id_make_local(bmain, &brush->clone.image->id, LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR);
     BLI_assert(!ID_IS_LINKED(brush->clone.image) && brush->clone.image->id.newid == nullptr);
   }
 

@@ -712,9 +712,15 @@ char *BKE_id_to_unique_string_key(const ID *id);
  * #LIB_TAG_PRE_EXISTING.
  * \param set_fake: If true, set fake user on all localized data-blocks
  * (except group and objects ones).
+ * \param clear_asset_data: If true, clear the asset metadata on all localized data-blocks, making
+ * them normal non-asset data-blocks.
  */
-void BKE_library_make_local(
-    Main *bmain, const Library *lib, GHash *old_to_new_ids, bool untagged_only, bool set_fake);
+void BKE_library_make_local(Main *bmain,
+                            const Library *lib,
+                            GHash *old_to_new_ids,
+                            bool untagged_only,
+                            bool set_fake,
+                            bool clear_asset_data);
 
 void BKE_id_tag_set_atomic(ID *id, int tag);
 void BKE_id_tag_clear_atomic(ID *id, int tag);
