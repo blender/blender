@@ -223,6 +223,67 @@ class PkgRepoData(NamedTuple):
     data: List[Dict[str, Any]]
 
 
+class PkgManifest_Build(NamedTuple):
+    """Package Build Information (for the "build" sub-command)."""
+    paths: Optional[List[str]]
+    paths_exclude_pattern: Optional[List[str]]
+
+    @staticmethod
+    def _from_dict_impl(
+            manifest_build_dict: Dict[str, Any],
+            *,
+            extra_paths: List[str],
+            all_errors: bool,
+    ) -> Union["PkgManifest_Build", List[str]]:
+        # TODO: generalize the type checks, see: `pkg_manifest_is_valid_or_error_impl`.
+        error_list = []
+        if value := manifest_build_dict.get("paths"):
+            if not isinstance(value, list):
+                error_list.append("[build]: \"paths\" must be a list, not a {!r}".format(type(value)))
+            else:
+                value = value + extra_paths
+                if (error := pkg_manifest_validate_field_build_path_list(value, strict=True)) is not None:
+                    error_list.append(error)
+            if not all_errors:
+                return error_list
+            paths = value
+        else:
+            paths = None
+
+        if value := manifest_build_dict.get("paths_exclude_pattern"):
+            if not isinstance(value, list):
+                error_list.append("[build]: \"paths_exclude_pattern\" must be a list, not a {!r}".format(type(value)))
+            elif (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict=True)) is not None:
+                error_list.append(error)
+            if not all_errors:
+                return error_list
+            paths_exclude_pattern = value
+        else:
+            paths_exclude_pattern = None
+
+        if (paths is not None) and (paths_exclude_pattern is not None):
+            error_list.append("[build]: declaring both \"paths\" and \"paths_exclude_pattern\" is not supported")
+
+        if error_list:
+            return error_list
+
+        return PkgManifest_Build(
+            paths=paths,
+            paths_exclude_pattern=paths_exclude_pattern,
+        )
+
+    @staticmethod
+    def from_dict_all_errors(
+            manifest_build_dict: Dict[str, Any],
+            extra_paths: List[str],
+    ) -> Union["PkgManifest_Build", List[str]]:
+        return PkgManifest_Build._from_dict_impl(
+            manifest_build_dict,
+            extra_paths=extra_paths,
+            all_errors=True,
+        )
+
+
 class PkgManifest(NamedTuple):
     """Package Information."""
     schema_version: str
@@ -311,7 +372,7 @@ def scandir_recursive_impl(
         base_path: str,
         path: str,
         *,
-        filter_fn: Callable[[str], bool],
+        filter_fn: Callable[[str, bool], bool],
 ) -> Generator[Tuple[str, str], None, None]:
     """Recursively yield DirEntry objects for given directory."""
     for entry in os.scandir(path):
@@ -321,10 +382,11 @@ def scandir_recursive_impl(
         entry_path = entry.path
         entry_path_relateive = os.path.relpath(entry_path, base_path)
 
-        if not filter_fn(entry_path_relateive):
+        is_dir = entry.is_dir()
+        if not filter_fn(entry_path_relateive, is_dir):
             continue
 
-        if entry.is_dir():
+        if is_dir:
             yield from scandir_recursive_impl(
                 base_path,
                 entry_path,
@@ -336,9 +398,31 @@ def scandir_recursive_impl(
 
 def scandir_recursive(
         path: str,
-        filter_fn: Callable[[str], bool],
+        filter_fn: Callable[[str, bool], bool],
 ) -> Generator[Tuple[str, str], None, None]:
     yield from scandir_recursive_impl(path, path, filter_fn=filter_fn)
+
+
+def build_paths_expand_iter(
+        path: str,
+        path_list: List[str],
+) -> Generator[Tuple[str, str], None, None]:
+    """
+    Expand paths from a path list which always uses "/" slashes.
+    """
+    path_swap = os.sep != "/"
+    path_strip = path.rstrip(os.sep)
+    for filepath in path_list:
+        if path_swap:
+            filepath = filepath.replace("/", "\\")
+
+        # Avoid `os.path.join(path, filepath)` because `path` is ignored `filepath` is an absolute path.
+        # In the contest of declaring build paths we *never* want to reference an absolute directory
+        # such as `C:\path` or `/tmp/path`.
+        yield (
+            "{:s}{:s}{:s}".format(path_strip, os.sep, filepath.lstrip(os.sep)),
+            filepath,
+        )
 
 
 def filepath_skip_compress(filepath: str) -> bool:
@@ -618,6 +702,204 @@ def zipfile_make_root_directory(
 
         member.filename = filename
         filelist.append(member)
+
+
+# -----------------------------------------------------------------------------
+# Path Matching
+
+class PathPatternMatch:
+    """
+    A pattern matching class that takes a list of patterns and has a ``test_path`` method.
+
+    Patterns:
+    - Matching that follows ``gitignore`` logic.
+
+    Paths (passed to the ``test_path`` method):
+    - All paths must use forward slashes.
+    - All paths must be normalized and have no leading ``.`` or ``/`` characters.
+    - Directories end with a trailing ``/``.
+
+    Other notes:
+    - Pattern matching doesn't require the paths to exist on the file-system.
+    """
+    # Implementation Notes:
+    # - Path patterns use UNIX style glob.
+    # - Matching doesn't depend on the order patterns are declared.
+    # - Use of REGEX is an implementation detail, not exposed to the API.
+    # - Glob uses using `fnmatch.translate` however this does not allow `*`
+    #   to delimit on `/` which is necessary for `gitignore` style matching.
+    #   So `/` are replaced with newlines, then REGEX multi-line logic is used
+    #   to delimit the separators.
+    # - This is used for building packages, so it doesn't have to to especially fast,
+    #   although it shouldn't cause noticeable delays at build time.
+    # - The test is located in: `../cli/test_path_pattern_match.py`
+
+    __slots__ = (
+        "_regex_list",
+    )
+
+    def __init__(self, path_patterns: List[str]):
+        self._regex_list: List[Tuple[bool, re.Pattern[str]]] = PathPatternMatch._pattern_match_as_regex(path_patterns)
+
+    def test_path(self, path: str) -> bool:
+        assert not path.startswith("/")
+        path_test = path.rstrip("/").replace("/", "\n")
+        if path.endswith("/"):
+            path_test = path_test + "/"
+        # For debugging.
+        # print("`" + path_test + "`")
+        result = False
+        for negate, regex in self._regex_list:
+            if regex.match(path_test):
+                if negate:
+                    result = False
+                    break
+                # Match but don't break as this may be negated in the future.
+                result = True
+        return result
+
+    # Internal implementation.
+
+    @staticmethod
+    def _pattern_match_as_regex_single(pattern: str) -> str:
+        from fnmatch import translate
+
+        # Special case: `!` literal prefix, needed to avoid this being handled as negation.
+        if pattern.startswith("\\!"):
+            pattern = pattern[1:]
+
+        # Avoid confusing pattern matching logic, strip duplicate slashes.
+        while True:
+            pattern_next = pattern.replace("//", "/")
+            if len(pattern_next) != len(pattern):
+                pattern = pattern_next
+            else:
+                del pattern_next
+                break
+
+        # Remove redundant leading/trailing "**"
+        # Besides being redundant, they break `pattern_double_star_indices` checks below.
+        while True:  # Strip end.
+            if pattern.endswith("/**/"):
+                pattern = pattern[:-3]
+            elif pattern.endswith("/**"):
+                pattern = pattern[:-2]
+            else:
+                break
+        while True:  # Strip start.
+            if pattern.startswith("/**/"):
+                pattern = pattern[4:]
+            elif pattern.startswith("**/"):
+                pattern = pattern[3:]
+            else:
+                break
+        while True:  # Strip middle.
+            pattern_next = pattern.replace("/**/**/", "/**/")
+            if len(pattern_next) != len(pattern):
+                pattern = pattern_next
+            else:
+                del pattern_next
+                break
+
+        any_prefix = True
+        only_directory = False
+
+        if pattern.startswith("/"):
+            any_prefix = False
+            pattern = pattern.lstrip("/")
+
+        if pattern.endswith("/"):
+            only_directory = True
+            pattern = pattern.rstrip("/")
+
+        # Separate components:
+        pattern_split = pattern.split("/")
+
+        pattern_double_star_indices = []
+
+        for i, elem in enumerate(pattern_split):
+            if elem == "**":
+                # Note on `**` matching.
+                # Supporting this is complicated considerably by having to support
+                # `a/**/b` matching `a/b` (as well as `a/x/b` & `a/x/y/z/b`).
+                # Without the requirement to match `a/b` we could simply do this:
+                # `pattern_split[i] = "(?s:.*)"`
+                # However that assumes a path separator before & after the expression.
+                #
+                # Instead, build a list of double-star indices which are joined to the surrounding elements.
+                pattern_double_star_indices.append(i)
+                continue
+
+            # Some manipulation is needed for the REGEX result of `translate`.
+            #
+            # - Always adds an "end-of-string" match which isn't desired here.
+            #
+            elem_regex = translate(pattern_split[i]).removesuffix("\\Z")
+            # Don't match newlines.
+            if elem_regex.startswith("(?s:"):
+                elem_regex = "(?:" + elem_regex[4:]
+
+            pattern_split[i] = elem_regex
+
+        for i in reversed(pattern_double_star_indices):
+            assert pattern_split[i] == "**"
+            pattern_triple = pattern_split[i - 1: i + 2]
+            assert len(pattern_triple) == 3
+            assert pattern_triple[1] == "**"
+            del pattern_split[i - 1:i + 1]
+            pattern_split[i - 1] = (
+                pattern_triple[0] +
+                "(?:\n|\n(?s:.*)\n)?" +
+                pattern_triple[2]
+            )
+        del pattern_double_star_indices
+
+        # Convert path separators.
+        pattern = "\\n".join(pattern_split)
+
+        if any_prefix:
+            # Ensure the preceding text ends with a slash (or nothing).
+            pattern = "(?s:.*)^" + pattern
+        else:
+            # Match string start (not line start).
+            pattern = "\\A" + pattern
+
+        if only_directory:
+            # Ensure this only ever matches a directly.
+            pattern = pattern + "[\\n/]"
+        else:
+            # Ensure this isn't part of a longer string.
+            pattern = pattern + "/?\\Z"
+
+        return pattern
+
+    @staticmethod
+    def _pattern_match_as_regex(path_patterns: Sequence[str]) -> List[Tuple[bool, re.Pattern[str]]]:
+        # First group negative-positive expressions.
+        pattern_groups: List[Tuple[bool, List[str]]] = []
+        for pattern in path_patterns:
+            if pattern.startswith("!"):
+                pattern = pattern.lstrip("!")
+                negate = True
+            else:
+                negate = False
+            if not pattern:
+                continue
+
+            if not pattern_groups:
+                pattern_groups.append((negate, []))
+
+            pattern_regex = PathPatternMatch._pattern_match_as_regex_single(pattern)
+            if pattern_groups[-1][0] == negate:
+                pattern_groups[-1][1].append(pattern_regex)
+            else:
+                pattern_groups.append((negate, [pattern_regex]))
+
+        result: List[Tuple[bool, re.Pattern[str]]] = []
+        for negate, pattern_list in pattern_groups:
+            result.append((negate, re.compile("(?:{:s})".format("|".join(pattern_list)), re.MULTILINE)))
+        # print(result)
+        return result
 
 
 # -----------------------------------------------------------------------------
@@ -972,6 +1254,47 @@ def pkg_manifest_validate_field_permissions(
     else:
         if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)) is not None:
             return error
+
+    return None
+
+
+def pkg_manifest_validate_field_build_path_list(value: List[Any], strict: bool) -> Optional[str]:
+    _ = strict
+    value_duplicate_check: Set[str] = set()
+
+    for item in value:
+        if not isinstance(item, str):
+            return "Expected \"paths\" to be a list of strings, found {:s}".format(str(type(item)))
+        if not item:
+            return "Expected \"paths\" items to be a non-empty string"
+        if "\\" in item:
+            return "Expected \"paths\" items to use \"/\" slashes, found: {:s}".format(item)
+        if "\n" in item:
+            return "Expected \"paths\" items to contain single lines, found: {:s}".format(item)
+        # TODO: properly handle WIN32 absolute paths.
+        if item.startswith("/"):
+            return "Expected \"paths\" to be relative, found: {:s}".format(item)
+
+        # Disallow references to `../../path` as this wont map into a the archive properly.
+        # Further it may provide a security problem.
+        item_native = os.path.normpath(item if os.sep == "/" else item.replace("/", "\\"))
+        if item_native.startswith(".." + os.sep):
+            return "Expected \"paths\" items to reference paths within a directory, found: {:s}".format(item)
+
+        # Disallow duplicate names (when lower-case) to avoid collisions on case insensitive file-systems.
+        item_native_lower = item_native.lower()
+        len_prev = len(value_duplicate_check)
+        value_duplicate_check.add(item_native_lower)
+        if len_prev == len(value_duplicate_check):
+            return "Expected \"paths\" to contain unique paths, duplicate found: {:s}".format(item)
+
+        # Having to support this optionally ends up being reasonably complicated.
+        # Simply throw an error if it's included, so it can be added at build time.
+        if item_native == PKG_MANIFEST_FILENAME_TOML:
+            return "Expected \"paths\" not to contain the manifest, found: {:s}".format(item)
+
+        # NOTE: other checks could be added here, (exclude control characters for example).
+        # Such cases are quite unlikely so supporting them isn't so important.
 
     return None
 
@@ -2199,11 +2522,68 @@ class subcmd_author:
             message_error(msg_fn, "File \"{:s}\" not found!".format(pkg_manifest_filepath))
             return False
 
-        manifest = pkg_manifest_from_toml_and_validate_all_errors(pkg_manifest_filepath, strict=True)
+        # TODO: don't use this line, because the build information needs to be extracted too.
+        # This should be refactored so the manifest could *optionally* load `[build]` info.
+        # `manifest = pkg_manifest_from_toml_and_validate_all_errors(pkg_manifest_filepath, strict=True)`
+        try:
+            with open(pkg_manifest_filepath, "rb") as fh:
+                manifest_data = tomllib.load(fh)
+        except Exception as ex:
+            message_error(msg_fn, "Error parsing TOML \"{:s}\" {:s}".format(pkg_manifest_filepath, str(ex)))
+            return False
+
+        manifest = pkg_manifest_from_dict_and_validate_all_errros(manifest_data, from_repo=False, strict=True)
         if isinstance(manifest, list):
             for error_msg in manifest:
                 message_error(msg_fn, "Error parsing TOML \"{:s}\" {:s}".format(pkg_manifest_filepath, error_msg))
             return False
+
+        if (manifest_build_data := manifest_data.get("build")) is not None:
+            manifest_build_test = PkgManifest_Build.from_dict_all_errors(manifest_build_data, extra_paths=[
+                # Inclusion of the manifest is implicit.
+                # No need to require the manifest to include itself.
+                PKG_MANIFEST_FILENAME_TOML,
+                *(manifest.wheels or ()),
+            ])
+            if isinstance(manifest_build_test, list):
+                for error_msg in manifest_build_test:
+                    message_error(msg_fn, "Error parsing TOML \"{:s}\" {:s}".format(pkg_manifest_filepath, error_msg))
+                return False
+            manifest_build = manifest_build_test
+            del manifest_build_test
+        else:
+            # Make default build options if none are provided.
+            manifest_build = PkgManifest_Build(
+                paths=None,
+                paths_exclude_pattern=[
+                    "__pycache__/",
+                    ".*",
+                ],
+            )
+
+        del manifest_build_data, manifest_data
+
+        build_paths_exclude_pattern: Optional[PathPatternMatch] = None
+        if manifest_build.paths_exclude_pattern is not None:
+            build_paths_exclude_pattern = PathPatternMatch(manifest_build.paths_exclude_pattern)
+
+        build_paths: Optional[List[str]] = None
+        if manifest_build.paths is not None:
+            build_paths = manifest_build.paths
+
+        def scandir_filter_with_paths_exclude_pattern(filepath: str, is_dir: bool) -> bool:
+            assert build_paths_exclude_pattern is not None
+            if os.sep == "\\":
+                filepath = filepath.replace("\\", "/")
+            if is_dir:
+                assert not filepath.endswith("/")
+                filepath = filepath + "/"
+            assert not filepath.startswith(("/", "./", "../"))
+            return not build_paths_exclude_pattern.test_path(filepath)
+
+        def scandir_filter_fallback(filepath: str, is_dir: bool) -> bool:
+            _ = is_dir
+            return not os.path.basename(filepath).startswith(".")
 
         pkg_filename = manifest.id + PKG_EXT
 
@@ -2238,11 +2618,20 @@ class subcmd_author:
                 return False
 
             with contextlib.closing(zip_fh_context) as zip_fh:
-                for filepath_abs, filepath_rel in scandir_recursive(
+
+                if build_paths is not None:
+                    filepath_iterator = build_paths_expand_iter(pkg_source_dir, build_paths)
+                else:
+                    filepath_iterator = scandir_recursive(
                         pkg_source_dir,
-                        # Be more advanced in the future, for now ignore dot-files (`.git`) .. etc.
-                        filter_fn=lambda x: not x.startswith(".")
-                ):
+                        filter_fn=(
+                            scandir_filter_with_paths_exclude_pattern if build_paths_exclude_pattern else
+                            # In this case there isn't really a good option, just ignore all dot-files.
+                            scandir_filter_fallback
+                        ),
+                    )
+
+                for filepath_abs, filepath_rel in filepath_iterator:
                     if filepath_rel in filenames_root_exclude:
                         continue
 
