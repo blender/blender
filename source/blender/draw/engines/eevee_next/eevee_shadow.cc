@@ -39,10 +39,7 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
   light_type = eLightType::LIGHT_SUN;
   is_area_side = false;
 
-  if (grid_shift == int2(0)) {
-    /* Only replace shift if it is not already dirty. */
-    grid_shift = origin_offset - grid_offset;
-  }
+  grid_shift = origin_offset - grid_offset;
   grid_offset = origin_offset;
 
   if (!equals_m4m4(object_mat.ptr(), object_mat_.ptr())) {
