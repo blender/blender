@@ -285,6 +285,7 @@ int rna_ID_name_length(PointerRNA *ptr)
 void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
   ID *id = (ID *)ptr->data;
+  BLI_assert(BKE_id_is_in_global_main(id));
   BLI_assert(ID_IS_EDITABLE(id));
 
   BKE_libblock_rename(G_MAIN, id, value);
@@ -295,8 +296,6 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }
-
-  /* TODO: this does not update immediately in the asset shelf. */
 }
 
 static int rna_ID_name_editable(const PointerRNA *ptr, const char **r_info)
