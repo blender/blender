@@ -7,10 +7,8 @@ import bmesh
 
 
 class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
-    """
-    Convert the volume of a world to a mesh.
-
-    The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly"""
+    """Convert the volume of a world to a mesh. """ \
+        """The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly"""
     bl_label = "Convert Volume"
     bl_options = {'REGISTER', 'UNDO'}
     bl_idname = "world.convert_volume_to_mesh"
