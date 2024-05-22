@@ -105,7 +105,6 @@ struct MeshRenderData {
   VArraySpan<int> material_indices;
 
   bke::MeshNormalDomain normals_domain;
-  Span<float3> vert_normals;
   Span<float3> face_normals;
   Span<float3> corner_normals;
 
