@@ -1287,9 +1287,10 @@ class PreferenceThemeSpacePanel:
                     flow.prop(themedata, prop.identifier)
 
     def draw_header(self, _context):
-        if hasattr(self, "icon") and self.icon != 'NONE':
+        icon = getattr(self, "icon", 'NONE')
+        if icon != 'NONE':
             layout = self.layout
-            layout.label(icon=self.icon)
+            layout.label(icon=icon)
 
     def draw(self, context):
         layout = self.layout

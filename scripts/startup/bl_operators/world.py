@@ -91,8 +91,8 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
 
     @staticmethod
     def _world_get(context):
-        if hasattr(context, "world"):
-            return context.world
+        if world := getattr(context, "world", None):
+            return world
         return context.scene.world
 
     def _sync_node_input(
