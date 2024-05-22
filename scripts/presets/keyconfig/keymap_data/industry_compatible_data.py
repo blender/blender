@@ -4393,6 +4393,7 @@ def km_sequencer_editor_tool_select_preview(params):
         {"items": []}
     )
 
+
 def km_sequencer_editor_tool_select_timeline(params):
     return (
         "Sequencer Timeline Tool: Tweak",
