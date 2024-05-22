@@ -4386,9 +4386,16 @@ def km_3d_view_tool_edit_gpencil_select(params):
     )
 
 
-def km_sequencer_editor_tool_generic_select(params):
+def km_sequencer_editor_tool_select_preview(params):
     return (
-        "Sequencer Tool: Tweak",
+        "Sequencer Preview Tool: Tweak",
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": []}
+    )
+
+def km_sequencer_editor_tool_select_timeline(params):
+    return (
+        "Sequencer Timeline Tool: Tweak",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": []}
     )
@@ -4582,7 +4589,8 @@ def generate_keymaps_impl(params=None):
         km_3d_view_tool_select(params),
         km_image_editor_tool_uv_select(params),
         km_3d_view_tool_edit_gpencil_select(params),
-        km_sequencer_editor_tool_generic_select(params),
+        km_sequencer_editor_tool_select_preview(params),
+        km_sequencer_editor_tool_select_timeline(params),
         km_3d_view_tool_interactive_add(params),
     ]
 

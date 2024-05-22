@@ -2997,17 +2997,17 @@ class _defs_sequencer_generic:
 
 class _defs_sequencer_select:
     @ToolDef.from_fn
-    def select():
+    def select_timeline():
         return dict(
             idname="builtin.select",
             label="Tweak",
             icon="ops.generic.select",
             widget=None,
-            keymap="Sequencer Tool: Tweak",
+            keymap="Sequencer Timeline Tool: Tweak",
         )
 
     @ToolDef.from_fn
-    def box():
+    def box_timeline():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sequencer.select_box")
             row = layout.row()
@@ -3018,7 +3018,33 @@ class _defs_sequencer_select:
             label="Select Box",
             icon="ops.generic.select_box",
             widget=None,
-            keymap="Sequencer Tool: Select Box",
+            keymap="Sequencer Timeline Tool: Select Box",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def select_preview():
+        return dict(
+            idname="builtin.select",
+            label="Tweak",
+            icon="ops.generic.select",
+            widget=None,
+            keymap="Sequencer Preview Tool: Tweak",
+        )
+
+    @ToolDef.from_fn
+    def box_preview():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sequencer.select_box")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+        return dict(
+            idname="builtin.select_box",
+            label="Select Box",
+            icon="ops.generic.select_box",
+            widget=None,
+            keymap="Sequencer Preview Tool: Select Box",
             draw_settings=draw_settings,
         )
 
@@ -3628,13 +3654,6 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         yield from cls._tools.items()
 
     # Private tool lists for convenient reuse in `_tools`.
-
-    _tools_select = (
-        (
-            _defs_sequencer_select.select,
-            _defs_sequencer_select.box,
-        ),
-    )
     _tools_annotate = (
         (
             _defs_annotate.scribble,
@@ -3651,7 +3670,10 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         None: [
         ],
         'PREVIEW': [
-            *_tools_select,
+            (
+                _defs_sequencer_select.select_preview,
+                _defs_sequencer_select.box_preview,
+            ),
             _defs_sequencer_generic.cursor,
             None,
             _defs_sequencer_generic.translate,
@@ -3663,12 +3685,13 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_annotate,
         ],
         'SEQUENCER': [
-            *_tools_select,
+            (
+                _defs_sequencer_select.select_timeline,
+                _defs_sequencer_select.box_timeline,
+            ),
             _defs_sequencer_generic.blade,
         ],
         'SEQUENCER_PREVIEW': [
-            *_tools_select,
-            None,
             *_tools_annotate,
             None,
             _defs_sequencer_generic.blade,
