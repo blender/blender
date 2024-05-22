@@ -1432,8 +1432,10 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     }
   }
 
+  ntree->ensure_topology_cache();
   for (bNode *node : node_map.values()) {
     blender::bke::nodeDeclarationEnsure(ntree, node);
+    update_multi_input_indices_for_removed_links(*node);
   }
 
   /* Clear flags for recursive depth-first iteration. */
