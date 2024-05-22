@@ -616,7 +616,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
     } \
   } while (0)
 
-  EXTRACT_ADD_REQUESTED(vbo, pos);
   EXTRACT_ADD_REQUESTED(vbo, nor);
   EXTRACT_ADD_REQUESTED(vbo, uv);
   EXTRACT_ADD_REQUESTED(vbo, tan);
@@ -656,7 +655,7 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
       !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
-      !DRW_ibo_requested(buffers.ibo.points))
+      !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos))
   {
     return;
   }
@@ -692,6 +691,21 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   /* Simple heuristic. */
   const bool use_thread = (mr->corners_num + mr->loose_indices_num) > MIN_RANGE_LEN;
 
+  if (DRW_vbo_requested(buffers.vbo.pos)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferCache &mbc;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_positions(data.mr, *data.mbc.buff.vbo.pos);
+        },
+        new TaskData{*mr, mbc},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
   if (DRW_ibo_requested(buffers.ibo.tris)) {
     struct TaskData {
       MeshRenderData &mr;
@@ -833,11 +847,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     } \
   } while (0)
 
-  /* Orcos are extracted at the same time as positions. */
-  if (DRW_vbo_requested(buffers.vbo.pos) || DRW_vbo_requested(buffers.vbo.orco)) {
-    extractors.append(&extract_pos);
-  }
-
   EXTRACT_ADD_REQUESTED(vbo, nor);
   for (int i = 0; i < GPU_MAX_ATTR; i++) {
     EXTRACT_ADD_REQUESTED(vbo, attr[i]);
@@ -873,7 +882,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
       !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
-      !DRW_ibo_requested(buffers.ibo.points))
+      !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
+      !DRW_vbo_requested(buffers.vbo.orco))
   {
     return;
   }
@@ -883,6 +893,9 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
       mr, mbc, MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT, MR_DATA_LOOSE_GEOM);
   DRW_subdivide_loose_geom(subdiv_cache, mbc);
 
+  if (DRW_vbo_requested(buffers.vbo.pos) || DRW_vbo_requested(buffers.vbo.orco)) {
+    extract_positions_subdiv(subdiv_cache, mr, *buffers.vbo.pos, buffers.vbo.orco);
+  }
   if (DRW_ibo_requested(buffers.ibo.lines) || DRW_ibo_requested(buffers.ibo.lines_loose)) {
     extract_lines_subdiv(
         subdiv_cache, mr, buffers.ibo.lines, buffers.ibo.lines_loose, cache.no_loose_wire);

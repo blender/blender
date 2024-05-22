@@ -342,6 +342,12 @@ void extract_mesh_loose_edge_data(const Span<T> vert_data,
   });
 }
 
+void extract_positions(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
+                              const MeshRenderData &mr,
+                              gpu::VertBuf &vbo,
+                              gpu::VertBuf *orco_vbo);
+
 void extract_tris(const MeshRenderData &mr,
                   const SortedFaceData &face_sorted,
                   MeshBatchCache &cache,
@@ -372,7 +378,6 @@ extern const MeshExtract extract_edituv_tris;
 extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
 extern const MeshExtract extract_edituv_fdots;
-extern const MeshExtract extract_pos;
 extern const MeshExtract extract_nor_hq;
 extern const MeshExtract extract_nor;
 extern const MeshExtract extract_uv;
