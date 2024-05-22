@@ -2219,11 +2219,9 @@ class subcmd_author:
             # It's possible a temporary file exists from a previous run which was not cleaned up.
             # Although in general this should be cleaned up - power failure etc may mean it exists.
             pkg_filename + "@",
-            # This is added, converted from the TOML.
-            PKG_REPO_LIST_FILENAME,
 
-            # We could exclude the manifest: `PKG_MANIFEST_FILENAME_TOML`
-            # but it's now used so a generation step isn't needed.
+            # Keep the `PKG_MANIFEST_FILENAME_TOML` as this is used when installing packages
+            # to a users local repository, where there is no `PKG_REPO_LIST_FILENAME` to access the meta-data.
         }
 
         request_exit = False
