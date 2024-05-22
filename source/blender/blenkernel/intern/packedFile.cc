@@ -841,8 +841,8 @@ bool BKE_packedfile_id_check(const ID *id)
 
 void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF_FileStatus how)
 {
-  /* Dont unpack resources that are packed in linked IDs. */
-  if (ID_IS_LINKED(id)) {
+  /* Only unpack when datablock is editable. */
+  if (!ID_IS_EDITABLE(id)) {
     return;
   }
 
