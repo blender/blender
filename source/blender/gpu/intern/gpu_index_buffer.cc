@@ -27,8 +27,6 @@
 
 #define KEEP_SINGLE_COPY 1
 
-#define RESTART_INDEX 0xFFFFFFFF
-
 /* -------------------------------------------------------------------- */
 /** \name IndexBufBuilder
  * \{ */

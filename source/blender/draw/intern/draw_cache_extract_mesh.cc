@@ -644,7 +644,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
   EXTRACT_ADD_REQUESTED(vbo, vnor);
 
-  EXTRACT_ADD_REQUESTED(ibo, points);
   EXTRACT_ADD_REQUESTED(ibo, fdots);
   EXTRACT_ADD_REQUESTED(ibo, lines_paint_mask);
   EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
@@ -656,7 +655,8 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
 #undef EXTRACT_ADD_REQUESTED
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
-      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris))
+      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
+      !DRW_ibo_requested(buffers.ibo.points))
   {
     return;
   }
@@ -726,6 +726,22 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
                         data.cache.no_loose_wire);
         },
         new TaskData{*mr, buffers, cache},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+
+  if (DRW_ibo_requested(buffers.ibo.points)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_points(data.mr, *data.buffers.ibo.points);
+        },
+        new TaskData{*mr, buffers},
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
@@ -842,7 +858,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   EXTRACT_ADD_REQUESTED(vbo, edge_idx);
   EXTRACT_ADD_REQUESTED(vbo, face_idx);
   EXTRACT_ADD_REQUESTED(vbo, edge_fac);
-  EXTRACT_ADD_REQUESTED(ibo, points);
   EXTRACT_ADD_REQUESTED(vbo, edit_data);
   EXTRACT_ADD_REQUESTED(vbo, edituv_data);
   /* Make sure UVs are computed before edituv stuffs. */
@@ -858,7 +873,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
 #undef EXTRACT_ADD_REQUESTED
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
-      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris))
+      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
+      !DRW_ibo_requested(buffers.ibo.points))
   {
     return;
   }
@@ -874,6 +890,9 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   }
   if (DRW_ibo_requested(buffers.ibo.tris)) {
     extract_tris_subdiv(subdiv_cache, cache, *buffers.ibo.tris);
+  }
+  if (DRW_ibo_requested(buffers.ibo.points)) {
+    extract_points_subdiv(mr, subdiv_cache, *buffers.ibo.points);
   }
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);

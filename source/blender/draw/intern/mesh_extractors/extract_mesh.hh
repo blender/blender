@@ -360,7 +360,11 @@ void extract_lines_subdiv(const DRWSubdivCache &subdiv_cache,
                           gpu::IndexBuf *lines_loose,
                           bool &no_loose_wire);
 
-extern const MeshExtract extract_points;
+void extract_points(const MeshRenderData &mr, gpu::IndexBuf &points);
+void extract_points_subdiv(const MeshRenderData &mr,
+                           const DRWSubdivCache &subdiv_cache,
+                           gpu::IndexBuf &points);
+
 extern const MeshExtract extract_fdots;
 extern const MeshExtract extract_lines_paint_mask;
 extern const MeshExtract extract_lines_adjacency;
