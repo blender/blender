@@ -170,10 +170,57 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<GP
   });
 }
 
+template<typename GPUType>
+static void extract_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+{
+  const BMesh &bm = *mr.bm;
+  if (!mr.bm_loop_normals.is_empty()) {
+    convert_normals(mr.bm_loop_normals, normals);
+    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+      for (const int face_index : range) {
+        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+        if (BM_elem_flag_test(&face, BM_ELEM_HIDDEN)) {
+          const IndexRange face_range(BM_elem_index_get(BM_FACE_FIRST_LOOP(&face)), face.len);
+          for (GPUType &value : normals.slice(face_range)) {
+            value.w = -1;
+          }
+        }
+      }
+    });
+  }
+  else {
+    const bke::MeshNormalDomain domain = mr.normals_domain;
+    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+      for (const int face_index : range) {
+        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+        const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
+        const IndexRange face_range(BM_elem_index_get(loop), face.len);
+
+        if (domain == bke::MeshNormalDomain::Face || !BM_elem_flag_test(&face, BM_ELEM_SMOOTH)) {
+          normals.slice(face_range).fill(convert_normal<GPUType>(bm_face_no_get(mr, &face)));
+        }
+        else {
+          for ([[maybe_unused]] const int i : IndexRange(face.len)) {
+            const int index = BM_elem_index_get(loop);
+            normals[index] = convert_normal<GPUType>(bm_vert_no_get(mr, loop->v));
+            loop = loop->next;
+          }
+        }
+
+        if (BM_elem_flag_test(&face, BM_ELEM_HIDDEN)) {
+          for (GPUType &value : normals.slice(face_range)) {
+            value.w = -1;
+          }
+        }
+      }
+    });
+  }
+}
+
 static void extract_lnor_init(const MeshRenderData &mr,
                               MeshBatchCache & /*cache*/,
                               void *buf,
-                              void *tls_data)
+                              void * /*tls_data*/)
 {
   gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
@@ -183,44 +230,15 @@ static void extract_lnor_init(const MeshRenderData &mr,
   }
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
+  MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)),
-                         mr.corners_num);
     extract_normals_mesh(mr, vbo_data);
     extract_paint_overlay_flags(mr, vbo_data);
   }
   else {
-    *static_cast<GPUPackedNormal **>(tls_data) = static_cast<GPUPackedNormal *>(
-        GPU_vertbuf_get_data(vbo));
+    extract_normals_bm(mr, vbo_data);
   }
-}
-
-static void extract_lnor_iter_face_bm(const MeshRenderData &mr,
-                                      const BMFace *f,
-                                      const int /*f_index*/,
-                                      void *data_v)
-{
-  GPUPackedNormal *data = *(GPUPackedNormal **)data_v;
-  BMLoop *l_iter, *l_first;
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    const int l_index = BM_elem_index_get(l_iter);
-    if (!mr.corner_normals.is_empty()) {
-      data[l_index] = GPU_normal_convert_i10_v3(mr.corner_normals[l_index]);
-    }
-    else {
-      if (mr.normals_domain == bke::MeshNormalDomain::Face ||
-          !BM_elem_flag_test(f, BM_ELEM_SMOOTH))
-      {
-        data[l_index] = GPU_normal_convert_i10_v3(bm_face_no_get(mr, f));
-      }
-      else {
-        data[l_index] = GPU_normal_convert_i10_v3(bm_vert_no_get(mr, l_iter->v));
-      }
-    }
-    data[l_index].w = BM_elem_flag_test(f, BM_ELEM_HIDDEN) ? -1 : 0;
-  } while ((l_iter = l_iter->next) != l_first);
 }
 
 static GPUVertFormat *get_subdiv_lnor_format()
@@ -252,9 +270,7 @@ constexpr MeshExtract create_extractor_lnor()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lnor_init;
   extractor.init_subdiv = extract_lnor_init_subdiv;
-  extractor.iter_face_bm = extract_lnor_iter_face_bm;
   extractor.data_type = MR_DATA_LOOP_NOR;
-  extractor.data_size = sizeof(GPUPackedNormal *);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.nor);
   return extractor;
@@ -269,7 +285,7 @@ constexpr MeshExtract create_extractor_lnor()
 static void extract_lnor_hq_init(const MeshRenderData &mr,
                                  MeshBatchCache & /*cache*/,
                                  void *buf,
-                                 void *tls_data)
+                                 void * /*tls_data*/)
 {
   gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
@@ -279,38 +295,15 @@ static void extract_lnor_hq_init(const MeshRenderData &mr,
   }
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
+  MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
     extract_normals_mesh(mr, vbo_data);
     extract_paint_overlay_flags(mr, vbo_data);
   }
   else {
-    *(short4 **)tls_data = static_cast<short4 *>(GPU_vertbuf_get_data(vbo));
+    extract_normals_bm(mr, vbo_data);
   }
-}
-
-static void extract_lnor_hq_iter_face_bm(const MeshRenderData &mr,
-                                         const BMFace *f,
-                                         const int /*f_index*/,
-                                         void *data)
-{
-  BMLoop *l_iter, *l_first;
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    const int l_index = BM_elem_index_get(l_iter);
-    if (!mr.corner_normals.is_empty()) {
-      normal_float_to_short_v3(&(*(short4 **)data)[l_index].x, mr.corner_normals[l_index]);
-    }
-    else {
-      if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
-        normal_float_to_short_v3(&(*(short4 **)data)[l_index].x, bm_vert_no_get(mr, l_iter->v));
-      }
-      else {
-        normal_float_to_short_v3(&(*(short4 **)data)[l_index].x, bm_face_no_get(mr, f));
-      }
-    }
-  } while ((l_iter = l_iter->next) != l_first);
 }
 
 constexpr MeshExtract create_extractor_lnor_hq()
@@ -318,9 +311,7 @@ constexpr MeshExtract create_extractor_lnor_hq()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lnor_hq_init;
   extractor.init_subdiv = extract_lnor_init_subdiv;
-  extractor.iter_face_bm = extract_lnor_hq_iter_face_bm;
   extractor.data_type = MR_DATA_LOOP_NOR;
-  extractor.data_size = sizeof(short4 *);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.nor);
   return extractor;
