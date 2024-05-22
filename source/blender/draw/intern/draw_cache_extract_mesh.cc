@@ -729,7 +729,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
-
   if (DRW_ibo_requested(buffers.ibo.points)) {
     struct TaskData {
       MeshRenderData &mr;

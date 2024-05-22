@@ -18,6 +18,22 @@ namespace blender::draw {
 /** \name Extract Position and Vertex Normal
  * \{ */
 
+static void extract_positions_mesh(const MeshRenderData &mr, MutableSpan<float3> vbo_data)
+{
+  MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
+  MutableSpan loose_edge_data = vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2);
+  MutableSpan loose_vert_data = vbo_data.take_back(mr.loose_verts.size());
+
+  threading::memory_bandwidth_bound_task(
+      mr.vert_positions.size_in_bytes() + mr.corner_verts.size_in_bytes() +
+          vbo_data.size_in_bytes() + mr.loose_edges.size(),
+      [&]() {
+        array_utils::gather(mr.vert_positions, mr.corner_verts, corners_data);
+        extract_mesh_loose_edge_data(mr.vert_positions, mr.edges, mr.loose_edges, loose_edge_data);
+        array_utils::gather(mr.vert_positions, mr.loose_verts, loose_vert_data);
+      });
+}
+
 static void extract_pos_init(const MeshRenderData &mr,
                              MeshBatchCache & /*cache*/,
                              void *buf,
@@ -34,19 +50,7 @@ static void extract_pos_init(const MeshRenderData &mr,
   MutableSpan vbo_data(static_cast<float3 *>(GPU_vertbuf_get_data(vbo)),
                        GPU_vertbuf_get_vertex_len(vbo));
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    threading::memory_bandwidth_bound_task(
-        mr.vert_positions.size_in_bytes() + mr.corner_verts.size_in_bytes() +
-            vbo_data.size_in_bytes() + mr.loose_edges.size(),
-        [&]() {
-          array_utils::gather(
-              mr.vert_positions, mr.corner_verts, vbo_data.take_front(mr.corner_verts.size()));
-          extract_mesh_loose_edge_data(mr.vert_positions,
-                                       mr.edges,
-                                       mr.loose_edges,
-                                       vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2));
-          array_utils::gather(
-              mr.vert_positions, mr.loose_verts, vbo_data.take_back(mr.loose_verts.size()));
-        });
+    extract_positions_mesh(mr, vbo_data);
   }
   else {
     *static_cast<float3 **>(tls_data) = vbo_data.data();
@@ -124,6 +128,65 @@ static void extract_vertex_flags(const MeshRenderData &mr, char *flags)
     else {
       *flag = 0;
     }
+  }
+}
+
+static void extract_pos_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
+                                          const MeshRenderData &mr,
+                                          void *buffer,
+                                          void * /*data*/)
+{
+  const Span<int> loose_verts = mr.loose_verts;
+  const int loose_edges_num = mr.loose_edges.size();
+  if (loose_verts.is_empty() && loose_edges_num == 0) {
+    return;
+  }
+
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
+
+  /* TODO(@kevindietrich): replace this when compressed normals are supported. */
+  struct SubdivPosNorLoop {
+    float pos[3];
+    float nor[3];
+    float flag;
+  };
+
+  /* Make sure buffer is active for sending loose data. */
+  GPU_vertbuf_use(vbo);
+
+  const int resolution = subdiv_cache.resolution;
+  const Span<float3> cached_positions = subdiv_cache.loose_edge_positions;
+  const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
+  const int edges_per_edge = subdiv_edges_per_coarse_edge(subdiv_cache);
+
+  const int loose_geom_start = subdiv_cache.num_subdiv_loops;
+
+  SubdivPosNorLoop edge_data[2];
+  memset(edge_data, 0, sizeof(SubdivPosNorLoop) * 2);
+  for (const int i : IndexRange(loose_edges_num)) {
+    const int edge_offset = loose_geom_start + i * verts_per_edge;
+    const Span<float3> positions = cached_positions.slice(i * resolution, resolution);
+    for (const int edge : IndexRange(edges_per_edge)) {
+      copy_v3_v3(edge_data[0].pos, positions[edge + 0]);
+      copy_v3_v3(edge_data[1].pos, positions[edge + 1]);
+      GPU_vertbuf_update_sub(vbo,
+                             (edge_offset + edge * 2) * sizeof(SubdivPosNorLoop),
+                             sizeof(SubdivPosNorLoop) * 2,
+                             &edge_data);
+    }
+  }
+
+  const int loose_verts_start = loose_geom_start + loose_edges_num * verts_per_edge;
+  const Span<float3> positions = mr.vert_positions;
+
+  SubdivPosNorLoop vert_data;
+  memset(&vert_data, 0, sizeof(SubdivPosNorLoop));
+  for (const int i : loose_verts.index_range()) {
+    copy_v3_v3(vert_data.pos, positions[loose_verts[i]]);
+    GPU_vertbuf_update_sub(vbo,
+                           (loose_verts_start + i) * sizeof(SubdivPosNorLoop),
+                           sizeof(SubdivPosNorLoop),
+                           &vert_data);
   }
 }
 
@@ -217,65 +280,6 @@ static void extract_pos_init_subdiv(const DRWSubdivCache &subdiv_cache,
   }
 
   GPU_vertbuf_discard(flags_buffer);
-}
-
-static void extract_pos_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
-                                          const MeshRenderData &mr,
-                                          void *buffer,
-                                          void * /*data*/)
-{
-  const Span<int> loose_verts = mr.loose_verts;
-  const int loose_edges_num = mr.loose_edges.size();
-  if (loose_verts.is_empty() && loose_edges_num == 0) {
-    return;
-  }
-
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
-
-  /* TODO(@kevindietrich): replace this when compressed normals are supported. */
-  struct SubdivPosNorLoop {
-    float pos[3];
-    float nor[3];
-    float flag;
-  };
-
-  /* Make sure buffer is active for sending loose data. */
-  GPU_vertbuf_use(vbo);
-
-  const int resolution = subdiv_cache.resolution;
-  const Span<float3> cached_positions = subdiv_cache.loose_edge_positions;
-  const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
-  const int edges_per_edge = subdiv_edges_per_coarse_edge(subdiv_cache);
-
-  const int loose_geom_start = subdiv_cache.num_subdiv_loops;
-
-  SubdivPosNorLoop edge_data[2];
-  memset(edge_data, 0, sizeof(SubdivPosNorLoop) * 2);
-  for (const int i : IndexRange(loose_edges_num)) {
-    const int edge_offset = loose_geom_start + i * verts_per_edge;
-    const Span<float3> positions = cached_positions.slice(i * resolution, resolution);
-    for (const int edge : IndexRange(edges_per_edge)) {
-      copy_v3_v3(edge_data[0].pos, positions[edge + 0]);
-      copy_v3_v3(edge_data[1].pos, positions[edge + 1]);
-      GPU_vertbuf_update_sub(vbo,
-                             (edge_offset + edge * 2) * sizeof(SubdivPosNorLoop),
-                             sizeof(SubdivPosNorLoop) * 2,
-                             &edge_data);
-    }
-  }
-
-  const int loose_verts_start = loose_geom_start + loose_edges_num * verts_per_edge;
-  const Span<float3> positions = mr.vert_positions;
-
-  SubdivPosNorLoop vert_data;
-  memset(&vert_data, 0, sizeof(SubdivPosNorLoop));
-  for (const int i : loose_verts.index_range()) {
-    copy_v3_v3(vert_data.pos, positions[loose_verts[i]]);
-    GPU_vertbuf_update_sub(vbo,
-                           (loose_verts_start + i) * sizeof(SubdivPosNorLoop),
-                           sizeof(SubdivPosNorLoop),
-                           &vert_data);
-  }
 }
 
 constexpr MeshExtract create_extractor_pos()

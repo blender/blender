@@ -330,12 +330,12 @@ template<typename GPUType> void convert_normals(Span<float3> src, MutableSpan<GP
 template<typename T>
 void extract_mesh_loose_edge_data(const Span<T> vert_data,
                                   const Span<int2> edges,
-                                  const Span<int> loose_edge_indices,
+                                  const Span<int> loose_edges,
                                   MutableSpan<T> gpu_data)
 {
-  threading::parallel_for(loose_edge_indices.index_range(), 4096, [&](const IndexRange range) {
+  threading::parallel_for(loose_edges.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
-      const int2 edge = edges[loose_edge_indices[i]];
+      const int2 edge = edges[loose_edges[i]];
       gpu_data[i * 2 + 0] = vert_data[edge[0]];
       gpu_data[i * 2 + 1] = vert_data[edge[1]];
     }
