@@ -348,6 +348,11 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
                               gpu::VertBuf &vbo,
                               gpu::VertBuf *orco_vbo);
 
+void extract_normals(const MeshRenderData &mr, bool use_hq, gpu::VertBuf &vbo);
+void extract_normals_subdiv(const DRWSubdivCache &subdiv_cache,
+                            gpu::VertBuf &pos_nor,
+                            gpu::VertBuf &lnor);
+
 void extract_tris(const MeshRenderData &mr,
                   const SortedFaceData &face_sorted,
                   MeshBatchCache &cache,
@@ -378,8 +383,6 @@ extern const MeshExtract extract_edituv_tris;
 extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
 extern const MeshExtract extract_edituv_fdots;
-extern const MeshExtract extract_nor_hq;
-extern const MeshExtract extract_nor;
 extern const MeshExtract extract_uv;
 extern const MeshExtract extract_tan;
 extern const MeshExtract extract_tan_hq;

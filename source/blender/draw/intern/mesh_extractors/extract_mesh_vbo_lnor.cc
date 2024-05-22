@@ -14,10 +14,6 @@
 
 namespace blender::draw {
 
-/* ---------------------------------------------------------------------- */
-/** \name Extract Loop Normal
- * \{ */
-
 template<typename GPUType> inline GPUType convert_normal(const float3 &src);
 
 template<> inline GPUPackedNormal convert_normal(const float3 &src)
@@ -217,27 +213,44 @@ static void extract_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> no
   }
 }
 
-static void extract_lnor_init(const MeshRenderData &mr,
-                              MeshBatchCache & /*cache*/,
-                              void *buf,
-                              void * /*tls_data*/)
+void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &vbo)
 {
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    GPU_vertformat_alias_add(&format, "lnor");
-  }
-  GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
+  if (use_hq) {
+    static GPUVertFormat format = {0};
+    if (format.attr_len == 0) {
+      GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      GPU_vertformat_alias_add(&format, "lnor");
+    }
+    GPU_vertbuf_init_with_format(&vbo, &format);
+    GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
+    MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
 
-  if (mr.extract_type == MR_EXTRACT_MESH) {
-    extract_normals_mesh(mr, vbo_data);
-    extract_paint_overlay_flags(mr, vbo_data);
+    if (mr.extract_type == MR_EXTRACT_MESH) {
+      extract_normals_mesh(mr, vbo_data);
+      extract_paint_overlay_flags(mr, vbo_data);
+    }
+    else {
+      extract_normals_bm(mr, vbo_data);
+    }
   }
   else {
-    extract_normals_bm(mr, vbo_data);
+    static GPUVertFormat format = {0};
+    if (format.attr_len == 0) {
+      GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      GPU_vertformat_alias_add(&format, "lnor");
+    }
+    GPU_vertbuf_init_with_format(&vbo, &format);
+    GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
+    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(&vbo)),
+                         mr.corners_num);
+
+    if (mr.extract_type == MR_EXTRACT_MESH) {
+      extract_normals_mesh(mr, vbo_data);
+      extract_paint_overlay_flags(mr, vbo_data);
+    }
+    else {
+      extract_normals_bm(mr, vbo_data);
+    }
   }
 }
 
@@ -252,74 +265,12 @@ static GPUVertFormat *get_subdiv_lnor_format()
   return &format;
 }
 
-static void extract_lnor_init_subdiv(const DRWSubdivCache &subdiv_cache,
-                                     const MeshRenderData & /*mr*/,
-                                     MeshBatchCache &cache,
-                                     void *buffer,
-                                     void * /*data*/)
+void extract_normals_subdiv(const DRWSubdivCache &subdiv_cache,
+                            gpu::VertBuf &pos_nor,
+                            gpu::VertBuf &lnor)
 {
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
-  gpu::VertBuf *pos_nor = cache.final.buff.vbo.pos;
-  BLI_assert(pos_nor);
-  GPU_vertbuf_init_build_on_device(vbo, get_subdiv_lnor_format(), subdiv_cache.num_subdiv_loops);
-  draw_subdiv_build_lnor_buffer(subdiv_cache, pos_nor, vbo);
+  GPU_vertbuf_init_build_on_device(&lnor, get_subdiv_lnor_format(), subdiv_cache.num_subdiv_loops);
+  draw_subdiv_build_lnor_buffer(subdiv_cache, &pos_nor, &lnor);
 }
-
-constexpr MeshExtract create_extractor_lnor()
-{
-  MeshExtract extractor = {nullptr};
-  extractor.init = extract_lnor_init;
-  extractor.init_subdiv = extract_lnor_init_subdiv;
-  extractor.data_type = MR_DATA_LOOP_NOR;
-  extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.nor);
-  return extractor;
-}
-
-/** \} */
-
-/* ---------------------------------------------------------------------- */
-/** \name Extract HQ Loop Normal
- * \{ */
-
-static void extract_lnor_hq_init(const MeshRenderData &mr,
-                                 MeshBatchCache & /*cache*/,
-                                 void *buf,
-                                 void * /*tls_data*/)
-{
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    GPU_vertformat_alias_add(&format, "lnor");
-  }
-  GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
-
-  if (mr.extract_type == MR_EXTRACT_MESH) {
-    extract_normals_mesh(mr, vbo_data);
-    extract_paint_overlay_flags(mr, vbo_data);
-  }
-  else {
-    extract_normals_bm(mr, vbo_data);
-  }
-}
-
-constexpr MeshExtract create_extractor_lnor_hq()
-{
-  MeshExtract extractor = {nullptr};
-  extractor.init = extract_lnor_hq_init;
-  extractor.init_subdiv = extract_lnor_init_subdiv;
-  extractor.data_type = MR_DATA_LOOP_NOR;
-  extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.nor);
-  return extractor;
-}
-
-/** \} */
-
-const MeshExtract extract_nor = create_extractor_lnor();
-const MeshExtract extract_nor_hq = create_extractor_lnor_hq();
 
 }  // namespace blender::draw

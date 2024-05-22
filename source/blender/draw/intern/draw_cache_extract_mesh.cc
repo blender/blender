@@ -528,9 +528,11 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   const eMRIterType iter_type = update_task_data->iter_type;
   const eMRDataType data_flag = update_task_data->data_flag;
 
-  const bool request_face_normals = (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR |
+  const bool request_face_normals = DRW_vbo_requested(update_task_data->cache->buff.vbo.nor) ||
+                                    (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR |
                                                   MR_DATA_TAN_LOOP_NOR)) != 0;
-  const bool request_corner_normals = (data_flag & MR_DATA_LOOP_NOR) != 0;
+  const bool request_corner_normals = DRW_vbo_requested(update_task_data->cache->buff.vbo.nor) ||
+                                      (data_flag & MR_DATA_LOOP_NOR) != 0;
   const bool force_corner_normals = (data_flag & MR_DATA_TAN_LOOP_NOR) != 0;
 
   if (request_face_normals) {
@@ -627,7 +629,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
     } \
   } while (0)
 
-  EXTRACT_ADD_REQUESTED(vbo, nor);
   EXTRACT_ADD_REQUESTED(vbo, uv);
   EXTRACT_ADD_REQUESTED(vbo, tan);
   EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
@@ -666,7 +667,8 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
       !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
-      !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos))
+      !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
+      !DRW_vbo_requested(buffers.vbo.nor))
   {
     return;
   }
@@ -714,6 +716,22 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
           extract_positions(data.mr, *data.mbc.buff.vbo.pos);
         },
         new TaskData{*mr, mbc},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_vbo_requested(buffers.vbo.nor)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferCache &mbc;
+      bool do_hq_normals;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_normals(data.mr, data.do_hq_normals, *data.mbc.buff.vbo.nor);
+        },
+        new TaskData{*mr, mbc, do_hq_normals},
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
@@ -858,7 +876,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     } \
   } while (0)
 
-  EXTRACT_ADD_REQUESTED(vbo, nor);
   for (int i = 0; i < GPU_MAX_ATTR; i++) {
     EXTRACT_ADD_REQUESTED(vbo, attr[i]);
   }
@@ -894,7 +911,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
       !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
       !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
-      !DRW_vbo_requested(buffers.vbo.orco))
+      !DRW_vbo_requested(buffers.vbo.orco) && !DRW_vbo_requested(buffers.vbo.nor))
   {
     return;
   }
@@ -906,6 +923,10 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
 
   if (DRW_vbo_requested(buffers.vbo.pos) || DRW_vbo_requested(buffers.vbo.orco)) {
     extract_positions_subdiv(subdiv_cache, mr, *buffers.vbo.pos, buffers.vbo.orco);
+  }
+  if (DRW_vbo_requested(buffers.vbo.nor)) {
+    /* The corner normals calculation uses positions and normals stored in the `pos` VBO. */
+    extract_normals_subdiv(subdiv_cache, *buffers.vbo.pos, *buffers.vbo.nor);
   }
   if (DRW_ibo_requested(buffers.ibo.lines) || DRW_ibo_requested(buffers.ibo.lines_loose)) {
     extract_lines_subdiv(
