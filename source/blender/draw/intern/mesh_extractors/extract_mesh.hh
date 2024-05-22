@@ -101,7 +101,6 @@ struct MeshRenderData {
   BMEdge *eed_act;
   BMFace *efa_act;
   BMFace *efa_act_uv;
-  /* The triangulation of #Mesh faces, owned by the mesh. */
   VArraySpan<int> material_indices;
 
   bke::MeshNormalDomain normals_domain;
