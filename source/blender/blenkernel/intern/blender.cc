@@ -345,7 +345,7 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
     MEM_SAFE_FREE(repo_ref->access_token);
     MEM_freeN(repo_ref);
   }
-  BLI_listbase_clear(&userdef->asset_shelves_settings);
+  BLI_listbase_clear(&userdef->extension_repos);
 
   LISTBASE_FOREACH_MUTABLE (bUserAssetShelfSettings *, settings, &userdef->asset_shelves_settings)
   {
