@@ -84,6 +84,8 @@ struct ShadowTileMap : public ShadowTileMapData {
     tiles_index = tiles_index_;
     /* For now just the same index. */
     clip_data_index = tiles_index_ / SHADOW_TILEDATA_PER_TILEMAP;
+    /* Avoid uninitialized data. */
+    this->grid_offset = int2(0);
     this->set_dirty();
   }
 

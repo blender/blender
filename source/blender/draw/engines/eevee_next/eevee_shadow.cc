@@ -9,8 +9,7 @@
  */
 
 #include "BKE_global.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_rect.h"
+#include "BLI_math_matrix.hh"
 
 #include "eevee_instance.hh"
 
@@ -55,14 +54,14 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
 
   half_size = ShadowDirectional::coverage_get(level) / 2.0f;
   center_offset = float2(grid_offset) * tile_size;
-  orthographic_m4(winmat.ptr(),
-                  -half_size + center_offset.x,
-                  half_size + center_offset.x,
-                  -half_size + center_offset.y,
-                  half_size + center_offset.y,
-                  /* Near/far is computed on GPU using casters bounds. */
-                  -1.0,
-                  1.0);
+
+  winmat = math::projection::orthographic(-half_size + center_offset.x,
+                                          half_size + center_offset.x,
+                                          -half_size + center_offset.y,
+                                          half_size + center_offset.y,
+                                          /* Near/far is computed on GPU using casters bounds. */
+                                          -1.0f,
+                                          1.0f);
 }
 
 void ShadowTileMap::sync_cubeface(
@@ -361,6 +360,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
   /* Offset in tiles between the first and the last tile-maps. */
   int2 offset_vector = int2(round(farthest_tilemap_center / tile_size));
 
+  light.sun.clipmap_base_offset_neg = int2(0); /* Unused. */
   light.sun.clipmap_base_offset_pos = (offset_vector * (1 << 16)) /
                                       max_ii(levels_range.size() - 1, 1);
 
