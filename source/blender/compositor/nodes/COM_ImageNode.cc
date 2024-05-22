@@ -72,8 +72,9 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
   if (image && image->type == IMA_TYPE_MULTILAYER) {
     bool is_multilayer_ok = false;
     ImBuf *ibuf = BKE_image_acquire_ibuf(image, imageuser, nullptr);
-    if (image->rr) {
-      RenderLayer *rl = (RenderLayer *)BLI_findlink(&image->rr->layers, imageuser->layer);
+    RenderResult *rr = BKE_image_acquire_renderresult(nullptr, image);
+    if (rr) {
+      RenderLayer *rl = (RenderLayer *)BLI_findlink(&rr->layers, imageuser->layer);
       if (rl) {
         is_multilayer_ok = true;
 
@@ -165,6 +166,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
         }
       }
     }
+    BKE_image_release_renderresult(nullptr, image, rr);
     BKE_image_release_ibuf(image, ibuf, nullptr);
 
     /* without this, multilayer that fail to load will crash blender #32490. */

@@ -298,8 +298,24 @@ void BKE_image_multiview_index(const struct Image *ima, struct ImageUser *iuser)
 bool BKE_image_is_multilayer(const struct Image *ima);
 bool BKE_image_is_multiview(const struct Image *ima);
 bool BKE_image_is_stereo(const struct Image *ima);
-struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
-void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
+
+/**
+ * Acquire render result associated with the give image.
+ *
+ * If the result is non a null pointer  then the image is locking its render result part of
+ * operations, preventing other threads from modifying the result. It is then required to call
+ * #BKE_image_release_renderresult with the render result returned by this function.
+ *
+ * It is allowed to call #BKE_image_release_renderresult with render_result of nullptr.
+ *
+ * NOTE: It is not possible to use functions like #BKE_image_acquire_ibuf and
+ * #BKE_image_acquire_multilayer_view_ibuf as the same internal mutex as the image cache is used
+ * to protect the render result. When RenderResult is acquired, access image buffers directly from
+ * its passes, with user-increment when a more permanent reference is needed instead of the image
+ * buffer acquire/release functions.
+ */
+RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima);
+void BKE_image_release_renderresult(Scene *scene, Image *ima, RenderResult *render_result);
 
 /**
  * For multi-layer images as well as for single-layer.

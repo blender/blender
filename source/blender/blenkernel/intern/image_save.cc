@@ -414,7 +414,7 @@ static bool image_save_single(ReportList *reports,
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
         BKE_image_release_ibuf(ima, ibuf, lock);
-        BKE_image_release_renderresult(opts->scene, ima);
+        BKE_image_release_renderresult(opts->scene, ima, rr);
         return ok;
       }
 
@@ -428,7 +428,7 @@ static bool image_save_single(ReportList *reports,
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
         BKE_image_release_ibuf(ima, ibuf, lock);
-        BKE_image_release_renderresult(opts->scene, ima);
+        BKE_image_release_renderresult(opts->scene, ima, rr);
         return ok;
       }
     }
@@ -606,7 +606,7 @@ static bool image_save_single(ReportList *reports,
   }
 
   if (rr) {
-    BKE_image_release_renderresult(opts->scene, ima);
+    BKE_image_release_renderresult(opts->scene, ima, rr);
   }
 
   return ok;
