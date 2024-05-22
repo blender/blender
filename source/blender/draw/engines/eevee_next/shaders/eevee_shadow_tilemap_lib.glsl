@@ -150,16 +150,20 @@ float shadow_directional_level_fractional(LightData light, vec3 lP)
      * we need to multiply by 2 to get the lod level which covers the following range:
      * [-coverage_get(lod)/2..coverage_get(lod)/2] */
     lod = log2(length(lP) * narrowing * 2.0);
+    /* Apply light LOD bias. */
+    lod = max(lod + light.lod_bias, light.lod_min);
   }
   else {
     /* The narrowing need to be stronger since the tile-map position is not rounded but floored. */
     const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 2.5001);
     /* Since we want half of the size, bias the level by -1. */
-    float lod_min_half_size = exp2(float(light_sun_data_get(light).clipmap_lod_min - 1));
+    float clipmap_lod_min_minus_one = float(light_sun_data_get(light).clipmap_lod_min - 1);
+    float lod_min_half_size = exp2(clipmap_lod_min_minus_one);
     lod = length(lP.xy) * narrowing / lod_min_half_size;
+    /* Apply cascade lod bias. Light bias is not supported here. */
+    lod += clipmap_lod_min_minus_one;
   }
-  float clipmap_lod = max(lod + light.lod_bias, light.lod_min);
-  return clamp(clipmap_lod,
+  return clamp(lod,
                float(light_sun_data_get(light).clipmap_lod_min),
                float(light_sun_data_get(light).clipmap_lod_max));
 }

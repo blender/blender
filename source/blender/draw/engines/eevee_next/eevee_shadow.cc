@@ -319,6 +319,7 @@ IndexRange ShadowDirectional::cascade_level_range(const Light &light, const Came
   }
 
   /* Level of detail (or size) of every tile-maps of this light. */
+  /* TODO(fclem): Add support for lod bias from light. */
   int lod_level = ceil(log2(max_ff(min_depth_tilemap_size, min_diagonal_tilemap_size)) + 0.5);
 
   /* Tile-maps "rotate" around the first one so their effective range is only half their size. */
