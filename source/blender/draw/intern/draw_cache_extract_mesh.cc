@@ -528,7 +528,18 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   const eMRIterType iter_type = update_task_data->iter_type;
   const eMRDataType data_flag = update_task_data->data_flag;
 
-  mesh_render_data_update_normals(mr, data_flag);
+  const bool request_face_normals = (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR |
+                                                  MR_DATA_TAN_LOOP_NOR)) != 0;
+  const bool request_corner_normals = (data_flag & MR_DATA_LOOP_NOR) != 0;
+  const bool force_corner_normals = (data_flag & MR_DATA_TAN_LOOP_NOR) != 0;
+
+  if (request_face_normals) {
+    mesh_render_data_update_face_normals(mr);
+  }
+  if ((request_corner_normals && !mr.use_simplify_normals) || force_corner_normals) {
+    mesh_render_data_update_corner_normals(mr);
+  }
+
   mesh_render_data_update_loose_geom(mr, *update_task_data->cache, iter_type, data_flag);
 }
 
@@ -888,7 +899,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     return;
   }
 
-  mesh_render_data_update_normals(mr, MR_DATA_TAN_LOOP_NOR);
+  mesh_render_data_update_corner_normals(mr);
   mesh_render_data_update_loose_geom(
       mr, mbc, MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT, MR_DATA_LOOSE_GEOM);
   DRW_subdivide_loose_geom(subdiv_cache, mbc);

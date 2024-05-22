@@ -289,7 +289,8 @@ MeshRenderData *mesh_render_data_create(Object &object,
                                         bool use_hide,
                                         const ToolSettings *ts);
 void mesh_render_data_free(MeshRenderData *mr);
-void mesh_render_data_update_normals(MeshRenderData &mr, eMRDataType data_flag);
+void mesh_render_data_update_corner_normals(MeshRenderData &mr);
+void mesh_render_data_update_face_normals(MeshRenderData &mr);
 void mesh_render_data_update_loose_geom(MeshRenderData &mr,
                                         MeshBufferCache &cache,
                                         eMRIterType iter_type,
