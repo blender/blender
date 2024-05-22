@@ -617,7 +617,7 @@ constexpr MeshExtract create_extractor_mesh_analysis()
   extractor.finish = extract_analysis_iter_finish_mesh;
   /* This is not needed for all visualization types.
    * Maybe split into different extract. */
-  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_CORNER_TRI;
+  extractor.data_type = MR_DATA_POLY_NOR;
   extractor.data_size = 0;
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.mesh_analysis);

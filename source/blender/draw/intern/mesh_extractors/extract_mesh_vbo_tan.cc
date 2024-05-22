@@ -342,7 +342,7 @@ constexpr MeshExtract create_extractor_tan()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_tan_init;
   extractor.init_subdiv = extract_tan_init_subdiv;
-  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_CORNER_TRI;
+  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR;
   extractor.data_size = 0;
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.tan);
@@ -368,7 +368,7 @@ constexpr MeshExtract create_extractor_tan_hq()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_tan_hq_init;
-  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_CORNER_TRI;
+  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR;
   extractor.data_size = 0;
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.tan);

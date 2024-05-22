@@ -62,7 +62,6 @@ enum eMRDataType {
   MR_DATA_NONE = 0,
   MR_DATA_POLY_NOR = 1 << 1,
   MR_DATA_LOOP_NOR = 1 << 2,
-  MR_DATA_CORNER_TRI = 1 << 3,
   MR_DATA_LOOSE_GEOM = 1 << 4,
   /** Force loop normals calculation. */
   MR_DATA_TAN_LOOP_NOR = 1 << 5,
