@@ -40,7 +40,12 @@ class BitGroupVector {
   }
 
  public:
-  BitGroupVector() = default;
+  BitGroupVector(Allocator allocator = {}) noexcept : data_(allocator) {}
+
+  BitGroupVector(NoExceptConstructor, Allocator allocator = {}) noexcept
+      : BitGroupVector(allocator)
+  {
+  }
 
   BitGroupVector(const int64_t size_in_groups,
                  const int64_t group_size,
@@ -59,6 +64,23 @@ class BitGroupVector {
         aligned_group_size_(other.aligned_group_size_),
         data_(other.data_)
   {
+  }
+
+  BitGroupVector(BitGroupVector &&other)
+      : group_size_(other.group_size_),
+        aligned_group_size_(other.aligned_group_size_),
+        data_(std::move(other.data_))
+  {
+  }
+
+  BitGroupVector &operator=(const BitGroupVector &other)
+  {
+    return copy_assign_container(*this, other);
+  }
+
+  BitGroupVector &operator=(BitGroupVector &&other)
+  {
+    return move_assign_container(*this, std::move(other));
   }
 
   /** Get all the bits at an index. */
