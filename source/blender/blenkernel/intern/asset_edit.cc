@@ -370,13 +370,11 @@ bool asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports)
 
 bool asset_edit_id_delete(Main &global_main, ID &id, ReportList &reports)
 {
-  if (!asset_edit_id_is_editable(id)) {
-    return false;
-  }
-
-  if (BLI_delete(id.lib->runtime.filepath_abs, false, false) != 0) {
-    BKE_report(&reports, RPT_ERROR, "Failed to delete asset library file");
-    return false;
+  if (asset_edit_id_is_editable(id)) {
+    if (BLI_delete(id.lib->runtime.filepath_abs, false, false) != 0) {
+      BKE_report(&reports, RPT_ERROR, "Failed to delete asset library file");
+      return false;
+    }
   }
 
   BKE_id_delete(&global_main, &id);
@@ -400,6 +398,11 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
     return nullptr;
   }
 
+  /* If this is the same file as we have open, use local datablock. */
+  if (asset_lib_path && STREQ(asset_lib_path, global_main.filepath)) {
+    asset_lib_path = nullptr;
+  }
+
   BLI_assert(asset_name != nullptr);
 
   /* Test if asset has been loaded already. */
@@ -409,7 +412,11 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
     return local_asset;
   }
 
-  /* If weak reference resolves to a null library path, assume we are in local asset case. */
+  /* Try linking in the required file. */
+  if (asset_lib_path == nullptr) {
+    return nullptr;
+  }
+
   return asset_link_id(global_main, id_type, asset_lib_path, asset_name);
 }
 
