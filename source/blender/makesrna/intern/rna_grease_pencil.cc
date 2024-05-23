@@ -470,17 +470,6 @@ static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED | NA_SELECTED, grease_pencil);
 }
 
-static void rna_GreasePencil_active_layer_index_range(
-    PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
-{
-  GreasePencil *grease_pencil = rna_grease_pencil(ptr);
-  *min = 0;
-  *max = std::max(0, int(grease_pencil->layers().size() - 1));
-
-  *softmin = *min;
-  *softmax = *max;
-}
-
 static PointerRNA rna_GreasePencil_active_group_get(PointerRNA *ptr)
 {
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);

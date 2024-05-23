@@ -6597,16 +6597,6 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
       "Triangulate only polygons with vertex count greater than or equal to this number");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-  prop = RNA_def_property(srna, "keep_custom_normals", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS);
-  RNA_def_property_ui_text(
-      prop,
-      "Keep Normals",
-      "Try to preserve custom normals.\n"
-      "Warning: Depending on chosen triangulation method, "
-      "shading may not be fully preserved, \"Fixed\" method usually gives the best result here");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
   RNA_define_lib_overridable(false);
 }
 

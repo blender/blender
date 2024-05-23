@@ -242,9 +242,9 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
 
   vec3 direction;
   if (is_area_light(light.type)) {
-    random_2d *= light_area_data_get(light).size;
+    random_2d *= light_area_data_get(light).size * light_area_data_get(light).shadow_scale;
 
-    vec3 point_on_light_shape = vec3(random_2d * shape_radius, 0.0);
+    vec3 point_on_light_shape = vec3(random_2d, 0.0);
 
     direction = point_on_light_shape - lP;
     direction = shadow_ray_above_horizon_ensure(direction, lNg, shape_radius);
@@ -257,7 +257,6 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
     make_orthonormal_basis(lL, right, up);
 
     if (is_sphere_light(light.type)) {
-      /* FIXME(weizhen): this is not well-defined when `dist < light.spot.radius`. */
       shape_radius = light_sphere_disk_radius(shape_radius, dist);
     }
     random_2d *= shape_radius;

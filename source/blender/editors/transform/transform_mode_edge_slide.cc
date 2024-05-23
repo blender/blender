@@ -922,6 +922,9 @@ static void initEdgeSlide(TransInfo *t, wmOperator *op)
   bool use_clamp = true;
   if (op) {
     PropertyRNA *prop;
+    /* The following properties could be unset when transitioning from this
+     * operator to another and back. For example pressing "G" to move, and
+     * then "G" again to go back to edge slide. */
     prop = RNA_struct_find_property(op->ptr, "single_side");
     use_double_side = (prop) ? !RNA_property_boolean_get(op->ptr, prop) : true;
     prop = RNA_struct_find_property(op->ptr, "use_even");
