@@ -219,7 +219,7 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
     uiItemL(layout, IFACE_("Loading Asset Libraries"), ICON_INFO);
   }
 
-  static Set<std::string> all_builtin_menus = [&]() {
+  Set<std::string> all_builtin_menus = [&]() {
     Set<std::string> menus;
     if (ELEM(object->type, OB_MESH, OB_CURVES_LEGACY, OB_FONT, OB_SURF, OB_LATTICE)) {
       menus.add_new("Edit");
@@ -229,6 +229,9 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
     }
     if (ELEM(object->type, OB_MESH, OB_CURVES_LEGACY, OB_FONT, OB_SURF, OB_LATTICE, OB_VOLUME)) {
       menus.add_new("Deform");
+    }
+    if (ELEM(object->type, OB_MESH)) {
+      menus.add_new("Normals");
     }
     if (ELEM(object->type, OB_MESH, OB_CURVES_LEGACY, OB_FONT, OB_SURF, OB_LATTICE)) {
       menus.add_new("Physics");

@@ -82,6 +82,8 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
             layout.menu("OBJECT_MT_modifier_add_generate")
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE', 'VOLUME', 'GREASEPENCIL'}:
             layout.menu("OBJECT_MT_modifier_add_deform")
+        if ob_type in {'MESH'}:
+            layout.menu("OBJECT_MT_modifier_add_normals")
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE'}:
             layout.menu("OBJECT_MT_modifier_add_physics")
         if ob_type in {'GREASEPENCIL'}:
@@ -105,8 +107,6 @@ class OBJECT_MT_modifier_add_edit(ModifierAddMenu, Menu):
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE'}:
             self.operator_modifier_add(layout, 'MESH_SEQUENCE_CACHE')
         if ob_type == 'MESH':
-            self.operator_modifier_add(layout, 'NORMAL_EDIT')
-            self.operator_modifier_add(layout, 'WEIGHTED_NORMAL')
             self.operator_modifier_add(layout, 'UV_PROJECT')
             self.operator_modifier_add(layout, 'UV_WARP')
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_EDIT')
@@ -219,6 +219,19 @@ class OBJECT_MT_modifier_add_deform(ModifierAddMenu, Menu):
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
 
 
+class OBJECT_MT_modifier_add_normals(ModifierAddMenu, Menu):
+    bl_label = "Normals"
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
+
+    def draw(self, context):
+        layout = self.layout
+        ob_type = context.object.type
+        if ob_type == 'MESH':
+            self.operator_modifier_add(layout, 'NORMAL_EDIT')
+            self.operator_modifier_add(layout, 'WEIGHTED_NORMAL')
+        layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
+
+
 class OBJECT_MT_modifier_add_physics(ModifierAddMenu, Menu):
     bl_label = "Physics"
     bl_options = {'SEARCH_ON_KEY_PRESS'}
@@ -291,6 +304,7 @@ classes = (
     OBJECT_MT_modifier_add_edit,
     OBJECT_MT_modifier_add_generate,
     OBJECT_MT_modifier_add_deform,
+    OBJECT_MT_modifier_add_normals,
     OBJECT_MT_modifier_add_physics,
     OBJECT_MT_modifier_add_color,
     DATA_PT_gpencil_modifiers,
