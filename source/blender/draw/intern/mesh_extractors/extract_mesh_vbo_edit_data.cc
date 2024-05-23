@@ -244,7 +244,7 @@ static void extract_edit_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                           void *buf,
                                           void *data)
 {
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
+  orig_index_face gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPU_vertbuf_init_with_format(vbo, get_edit_data_format());
   GPU_vertbuf_data_alloc(vbo, subdiv_full_vbo_size(mr, subdiv_cache));
   EditLoopData *vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
@@ -271,8 +271,8 @@ static void extract_edit_data_iter_subdiv_bm(const DRWSubdivCache &subdiv_cache,
     memset(edit_loop_data, 0, sizeof(EditLoopData));
 
     if (vert_origindex != -1) {
-      const BMVert *eve = mr.v_origindex ? bm_original_vert_get(mr, vert_origindex) :
-                                           BM_vert_at_index(mr.bm, vert_origindex);
+      const BMVert *eve = mr.orig_index_vert ? bm_original_vert_get(mr, vert_origindex) :
+                                               BM_vert_at_index(mr.bm, vert_origindex);
       if (eve) {
         mesh_render_data_vert_flag(mr, eve, edit_loop_data);
       }
@@ -323,8 +323,8 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cac
   threading::parallel_for(loose_edges.index_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
       MutableSpan<EditLoopData> data = edge_data.slice(i * verts_per_edge, verts_per_edge);
-      if (BMEdge *edge = mr.e_origindex ? bm_original_edge_get(mr, loose_edges[i]) :
-                                          BM_edge_at_index(mr.bm, loose_edges[i]))
+      if (BMEdge *edge = mr.orig_index_edge ? bm_original_edge_get(mr, loose_edges[i]) :
+                                              BM_edge_at_index(mr.bm, loose_edges[i]))
       {
         EditLoopData value{};
         mesh_render_data_edge_flag(mr, edge, &value);
@@ -343,8 +343,8 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cac
   threading::parallel_for(loose_verts.index_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
       EditLoopData value{};
-      if (BMVert *vert = mr.v_origindex ? bm_original_vert_get(mr, loose_verts[i]) :
-                                          BM_vert_at_index(mr.bm, loose_verts[i]))
+      if (BMVert *vert = mr.orig_index_vert ? bm_original_vert_get(mr, loose_verts[i]) :
+                                              BM_vert_at_index(mr.bm, loose_verts[i]))
       {
         mesh_render_data_vert_flag(mr, vert, &value);
       }
@@ -379,3 +379,4 @@ constexpr MeshExtract create_extractor_edit_data()
 const MeshExtract extract_edit_data = create_extractor_edit_data();
 
 }  // namespace blender::draw
+orig_index_face

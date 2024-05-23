@@ -603,17 +603,17 @@ MeshRenderData *mesh_render_data_create(Object &object,
 
       /* Use mapping from final to original mesh when the object is in edit mode. */
       if (edit_mode_active && do_final) {
-        mr->v_origindex = static_cast<const int *>(
+        mr->orig_index_vert = static_cast<const int *>(
             CustomData_get_layer(&mr->mesh->vert_data, CD_ORIGINDEX));
-        mr->e_origindex = static_cast<const int *>(
+        mr->orig_index_edge = static_cast<const int *>(
             CustomData_get_layer(&mr->mesh->edge_data, CD_ORIGINDEX));
-        mr->p_origindex = static_cast<const int *>(
+        mr->orig_index_face = static_cast<const int *>(
             CustomData_get_layer(&mr->mesh->face_data, CD_ORIGINDEX));
       }
       else {
-        mr->v_origindex = nullptr;
-        mr->e_origindex = nullptr;
-        mr->p_origindex = nullptr;
+        mr->orig_index_vert = nullptr;
+        mr->orig_index_edge = nullptr;
+        mr->orig_index_face = nullptr;
       }
     }
   }
@@ -624,17 +624,17 @@ MeshRenderData *mesh_render_data_create(Object &object,
     mr->hide_unmapped_edges = false;
 
     if (is_paint_mode && mr->mesh) {
-      mr->v_origindex = static_cast<const int *>(
+      mr->orig_index_vert = static_cast<const int *>(
           CustomData_get_layer(&mr->mesh->vert_data, CD_ORIGINDEX));
-      mr->e_origindex = static_cast<const int *>(
+      mr->orig_index_edge = static_cast<const int *>(
           CustomData_get_layer(&mr->mesh->edge_data, CD_ORIGINDEX));
-      mr->p_origindex = static_cast<const int *>(
+      mr->orig_index_face = static_cast<const int *>(
           CustomData_get_layer(&mr->mesh->face_data, CD_ORIGINDEX));
     }
     else {
-      mr->v_origindex = nullptr;
-      mr->e_origindex = nullptr;
-      mr->p_origindex = nullptr;
+      mr->orig_index_vert = nullptr;
+      mr->orig_index_edge = nullptr;
+      mr->orig_index_face = nullptr;
     }
   }
 
@@ -652,11 +652,11 @@ MeshRenderData *mesh_render_data_create(Object &object,
     mr->corner_verts = mr->mesh->corner_verts();
     mr->corner_edges = mr->mesh->corner_edges();
 
-    mr->v_origindex = static_cast<const int *>(
+    mr->orig_index_vert = static_cast<const int *>(
         CustomData_get_layer(&mr->mesh->vert_data, CD_ORIGINDEX));
-    mr->e_origindex = static_cast<const int *>(
+    mr->orig_index_edge = static_cast<const int *>(
         CustomData_get_layer(&mr->mesh->edge_data, CD_ORIGINDEX));
-    mr->p_origindex = static_cast<const int *>(
+    mr->orig_index_face = static_cast<const int *>(
         CustomData_get_layer(&mr->mesh->face_data, CD_ORIGINDEX));
 
     mr->normals_domain = mr->mesh->normals_domain();

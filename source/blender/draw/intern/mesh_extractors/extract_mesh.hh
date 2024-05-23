@@ -83,7 +83,9 @@ struct MeshRenderData {
   Span<float3> bm_face_normals;
   Array<float3> bm_loop_normals;
 
-  const int *v_origindex, *e_origindex, *p_origindex;
+  const int *orig_index_vert;
+  const int *orig_index_edge;
+  const int *orig_index_face;
   int edge_crease_ofs;
   int vert_crease_ofs;
   int bweight_ofs;
@@ -130,22 +132,25 @@ const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh);
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.p_origindex != nullptr) && (mr.p_origindex[idx] != ORIGINDEX_NONE) && mr.bm) ?
-             BM_face_at_index(mr.bm, mr.p_origindex[idx]) :
+  return ((mr.orig_index_face != nullptr) && (mr.orig_index_face[idx] != ORIGINDEX_NONE) &&
+          mr.bm) ?
+             BM_face_at_index(mr.bm, mr.orig_index_face[idx]) :
              nullptr;
 }
 
 BLI_INLINE BMEdge *bm_original_edge_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.e_origindex != nullptr) && (mr.e_origindex[idx] != ORIGINDEX_NONE) && mr.bm) ?
-             BM_edge_at_index(mr.bm, mr.e_origindex[idx]) :
+  return ((mr.orig_index_edge != nullptr) && (mr.orig_index_edge[idx] != ORIGINDEX_NONE) &&
+          mr.bm) ?
+             BM_edge_at_index(mr.bm, mr.orig_index_edge[idx]) :
              nullptr;
 }
 
 BLI_INLINE BMVert *bm_original_vert_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.v_origindex != nullptr) && (mr.v_origindex[idx] != ORIGINDEX_NONE) && mr.bm) ?
-             BM_vert_at_index(mr.bm, mr.v_origindex[idx]) :
+  return ((mr.orig_index_vert != nullptr) && (mr.orig_index_vert[idx] != ORIGINDEX_NONE) &&
+          mr.bm) ?
+             BM_vert_at_index(mr.bm, mr.orig_index_vert[idx]) :
              nullptr;
 }
 

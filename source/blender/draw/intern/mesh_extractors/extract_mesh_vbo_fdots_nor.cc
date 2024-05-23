@@ -49,7 +49,7 @@ static void extract_fdots_nor_finish(const MeshRenderData &mr,
     for (int f = 0; f < mr.faces_num; f++) {
       efa = BM_face_at_index(mr.bm, f);
       const bool is_face_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden || (mr.p_origindex && mr.p_origindex[f] == ORIGINDEX_NONE)) {
+      if (is_face_hidden || (mr.orig_index_face && mr.orig_index_face[f] == ORIGINDEX_NONE)) {
         nor[f] = GPU_normal_convert_i10_v3(invalid_normal);
         nor[f].w = NOR_AND_FLAG_HIDDEN;
       }
@@ -66,7 +66,7 @@ static void extract_fdots_nor_finish(const MeshRenderData &mr,
     for (int f = 0; f < mr.faces_num; f++) {
       efa = bm_original_face_get(mr, f);
       const bool is_face_hidden = efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden || (mr.p_origindex && mr.p_origindex[f] == ORIGINDEX_NONE)) {
+      if (is_face_hidden || (mr.orig_index_face && mr.orig_index_face[f] == ORIGINDEX_NONE)) {
         nor[f] = GPU_normal_convert_i10_v3(invalid_normal);
         nor[f].w = NOR_AND_FLAG_HIDDEN;
       }
@@ -129,7 +129,7 @@ static void extract_fdots_nor_hq_finish(const MeshRenderData &mr,
     for (int f = 0; f < mr.faces_num; f++) {
       efa = BM_face_at_index(mr.bm, f);
       const bool is_face_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden || (mr.p_origindex && mr.p_origindex[f] == ORIGINDEX_NONE)) {
+      if (is_face_hidden || (mr.orig_index_face && mr.orig_index_face[f] == ORIGINDEX_NONE)) {
         normal_float_to_short_v3(&nor[f * 4], invalid_normal);
         nor[f * 4 + 3] = NOR_AND_FLAG_HIDDEN;
       }
@@ -146,7 +146,7 @@ static void extract_fdots_nor_hq_finish(const MeshRenderData &mr,
     for (int f = 0; f < mr.faces_num; f++) {
       efa = bm_original_face_get(mr, f);
       const bool is_face_hidden = efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden || (mr.p_origindex && mr.p_origindex[f] == ORIGINDEX_NONE)) {
+      if (is_face_hidden || (mr.orig_index_face && mr.orig_index_face[f] == ORIGINDEX_NONE)) {
         normal_float_to_short_v3(&nor[f * 4], invalid_normal);
         nor[f * 4 + 3] = NOR_AND_FLAG_HIDDEN;
       }

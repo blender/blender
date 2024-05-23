@@ -112,7 +112,7 @@ static void extract_vertex_flags(const MeshRenderData &mr, char *flags)
     char *flag = &flags[i];
     const bool vert_hidden = !mr.hide_vert.is_empty() && mr.hide_vert[i];
     /* Flag for paint mode overlay. */
-    if (vert_hidden || ((mr.v_origindex) && (mr.v_origindex[i] == ORIGINDEX_NONE))) {
+    if (vert_hidden || ((mr.orig_index_vert) && (mr.orig_index_vert[i] == ORIGINDEX_NONE))) {
       *flag = -1;
     }
     else if (!mr.select_vert.is_empty() && mr.select_vert[i]) {

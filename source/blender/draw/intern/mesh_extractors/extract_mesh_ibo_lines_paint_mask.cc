@@ -48,7 +48,7 @@ static void extract_lines_paint_mask_iter_face_mesh(const MeshRenderData &mr,
     const int e_index = mr.corner_edges[corner];
 
     if (!((mr.use_hide && !mr.hide_edge.is_empty() && mr.hide_edge[e_index]) ||
-          ((mr.e_origindex) && (mr.e_origindex[e_index] == ORIGINDEX_NONE))))
+          ((mr.orig_index_edge) && (mr.orig_index_edge[e_index] == ORIGINDEX_NONE))))
     {
 
       const int corner_next = bke::mesh::face_corner_next(face, corner);
@@ -121,7 +121,7 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache &subd
     }
     else {
       if (!((mr.use_hide && !mr.hide_edge.is_empty() && mr.hide_edge[coarse_edge_index]) ||
-            ((mr.e_origindex) && (mr.e_origindex[coarse_edge_index] == ORIGINDEX_NONE))))
+            ((mr.orig_index_edge) && (mr.orig_index_edge[coarse_edge_index] == ORIGINDEX_NONE))))
       {
         const int corner_next = bke::mesh::face_corner_next(subdiv_face, corner);
         if (!mr.select_poly.is_empty() && mr.select_poly[coarse_quad_index]) {

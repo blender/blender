@@ -42,8 +42,8 @@ static void extract_select_idx_init(const MeshRenderData &mr,
 
 /* TODO: Use #glVertexID to get loop index and use the data structure on the CPU to retrieve the
  * select element associated with this loop ID. This would remove the need for this separate
- * index VBO's. We could upload the p/e/v_origindex as a buffer texture and sample it inside the
- * shader to output original index. */
+ * index VBO's. We could upload the p/e/orig_index_vert as a buffer texture and sample it inside
+ * the shader to output original index. */
 
 static void extract_face_idx_iter_face_bm(const MeshRenderData & /*mr*/,
                                           const BMFace *f,
@@ -117,7 +117,8 @@ static void extract_face_idx_iter_face_mesh(const MeshRenderData &mr,
                                             void *data)
 {
   for (const int corner : mr.faces[face_index]) {
-    (*(int32_t **)data)[corner] = (mr.p_origindex) ? mr.p_origindex[face_index] : face_index;
+    (*(int32_t **)data)[corner] = (mr.orig_index_face) ? mr.orig_index_face[face_index] :
+                                                         face_index;
   }
 }
 
@@ -127,7 +128,7 @@ static void extract_edge_idx_iter_face_mesh(const MeshRenderData &mr,
 {
   for (const int corner : mr.faces[face_index]) {
     const int edge = mr.corner_edges[corner];
-    (*(int32_t **)data)[corner] = (mr.e_origindex) ? mr.e_origindex[edge] : edge;
+    (*(int32_t **)data)[corner] = (mr.orig_index_edge) ? mr.orig_index_edge[edge] : edge;
   }
 }
 
@@ -137,7 +138,7 @@ static void extract_vert_idx_iter_face_mesh(const MeshRenderData &mr,
 {
   for (const int corner : mr.faces[face_index]) {
     const int vert = mr.corner_verts[corner];
-    (*(int32_t **)data)[corner] = (mr.v_origindex) ? mr.v_origindex[vert] : vert;
+    (*(int32_t **)data)[corner] = (mr.orig_index_vert) ? mr.orig_index_vert[vert] : vert;
   }
 }
 
@@ -147,7 +148,7 @@ static void extract_edge_idx_iter_loose_edge_mesh(const MeshRenderData &mr,
                                                   void *data)
 {
   const int e_index = mr.loose_edges[loose_edge_i];
-  const int e_orig = (mr.e_origindex) ? mr.e_origindex[e_index] : e_index;
+  const int e_orig = (mr.orig_index_edge) ? mr.orig_index_edge[e_index] : e_index;
   (*(int32_t **)data)[mr.corners_num + loose_edge_i * 2 + 0] = e_orig;
   (*(int32_t **)data)[mr.corners_num + loose_edge_i * 2 + 1] = e_orig;
 }
@@ -157,8 +158,8 @@ static void extract_vert_idx_iter_loose_edge_mesh(const MeshRenderData &mr,
                                                   const int loose_edge_i,
                                                   void *data)
 {
-  int v1_orig = (mr.v_origindex) ? mr.v_origindex[edge[0]] : edge[0];
-  int v2_orig = (mr.v_origindex) ? mr.v_origindex[edge[1]] : edge[1];
+  int v1_orig = (mr.orig_index_vert) ? mr.orig_index_vert[edge[0]] : edge[0];
+  int v2_orig = (mr.orig_index_vert) ? mr.orig_index_vert[edge[1]] : edge[1];
   (*(int32_t **)data)[mr.corners_num + loose_edge_i * 2 + 0] = v1_orig;
   (*(int32_t **)data)[mr.corners_num + loose_edge_i * 2 + 1] = v2_orig;
 }
@@ -170,7 +171,7 @@ static void extract_vert_idx_iter_loose_vert_mesh(const MeshRenderData &mr,
   const int offset = mr.corners_num + (mr.loose_edges_num * 2);
 
   const int v_index = mr.loose_verts[loose_vert_i];
-  const int v_orig = (mr.v_origindex) ? mr.v_origindex[v_index] : v_index;
+  const int v_orig = (mr.orig_index_vert) ? mr.orig_index_vert[v_index] : v_index;
   (*(int32_t **)data)[offset + loose_vert_i] = v_orig;
 }
 
@@ -186,7 +187,7 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                     (int32_t *)GPU_vertbuf_get_data(subdiv_cache.verts_orig_index),
                                     subdiv_cache.num_subdiv_loops,
                                     subdiv_full_vbo_size(mr, subdiv_cache));
-  if (!mr.v_origindex) {
+  if (!mr.orig_index_vert) {
     return;
   }
 
@@ -198,7 +199,7 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache &subdiv_cache,
     if (vbo_data[i] == -1) {
       continue;
     }
-    vbo_data[i] = mr.v_origindex[vbo_data[i]];
+    vbo_data[i] = mr.orig_index_vert[vbo_data[i]];
   }
 }
 
@@ -224,13 +225,13 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
   for (const int i : loose_edges.index_range()) {
     const int2 edge = coarse_edges[loose_edges[i]];
     MutableSpan data = edge_data.slice(i * verts_per_edge, verts_per_edge);
-    data.first() = mr.v_origindex ? mr.v_origindex[edge[0]] : edge[0];
-    data.last() = mr.v_origindex ? mr.v_origindex[edge[1]] : edge[1];
+    data.first() = mr.orig_index_vert ? mr.orig_index_vert[edge[0]] : edge[0];
+    data.last() = mr.orig_index_vert ? mr.orig_index_vert[edge[1]] : edge[1];
   }
 
   MutableSpan<int32_t> loose_vert_data = vbo_data.take_back(loose_verts.size());
-  if (mr.v_origindex) {
-    array_utils::gather(Span(mr.v_origindex, mr.verts_num), loose_verts, loose_vert_data);
+  if (mr.orig_index_vert) {
+    array_utils::gather(Span(mr.orig_index_vert, mr.verts_num), loose_verts, loose_vert_data);
   }
   else {
     array_utils::copy(loose_verts, loose_vert_data);
@@ -270,7 +271,7 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
                                     loose_edges.size() * verts_per_edge);
   for (const int i : loose_edges.index_range()) {
     const int edge = loose_edges[i];
-    const int index = mr.e_origindex ? mr.e_origindex[edge] : edge;
+    const int index = mr.orig_index_edge ? mr.orig_index_edge[edge] : edge;
     data.slice(i * verts_per_edge, verts_per_edge).fill(index);
   }
 }
@@ -285,7 +286,7 @@ static void extract_face_idx_init_subdiv(const DRWSubdivCache &subdiv_cache,
   draw_subdiv_init_origindex_buffer(
       vbo, subdiv_cache.subdiv_loop_face_index, subdiv_cache.num_subdiv_loops, 0);
 
-  if (!mr.p_origindex) {
+  if (!mr.orig_index_face) {
     return;
   }
 
@@ -294,7 +295,7 @@ static void extract_face_idx_init_subdiv(const DRWSubdivCache &subdiv_cache,
    * the memory can both be accessed for lookup and immediately overwritten. */
   int32_t *vbo_data = static_cast<int32_t *>(GPU_vertbuf_get_data(vbo));
   for (int i = 0; i < subdiv_cache.num_subdiv_loops; i++) {
-    vbo_data[i] = mr.p_origindex[vbo_data[i]];
+    vbo_data[i] = mr.orig_index_face[vbo_data[i]];
   }
 }
 
@@ -368,8 +369,8 @@ static void extract_fdot_idx_iter_face_mesh(const MeshRenderData &mr,
                                             const int face_index,
                                             void *data)
 {
-  if (mr.p_origindex != nullptr) {
-    (*(int32_t **)data)[face_index] = mr.p_origindex[face_index];
+  if (mr.orig_index_face != nullptr) {
+    (*(int32_t **)data)[face_index] = mr.orig_index_face[face_index];
   }
   else {
     (*(int32_t **)data)[face_index] = face_index;

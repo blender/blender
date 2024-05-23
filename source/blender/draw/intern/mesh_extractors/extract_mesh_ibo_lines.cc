@@ -29,8 +29,8 @@ static IndexMask calc_mesh_edge_visibility(const MeshRenderData &mr,
   if (!mr.hide_edge.is_empty()) {
     visible = IndexMask::from_bools_inverse(visible, mr.hide_edge, memory);
   }
-  if (mr.hide_unmapped_edges && mr.e_origindex != nullptr) {
-    const int *orig_index = mr.e_origindex;
+  if (mr.hide_unmapped_edges && mr.orig_index_edge != nullptr) {
+    const int *orig_index = mr.orig_index_edge;
     visible = IndexMask::from_predicate(visible, GrainSize(4096), memory, [&](const int64_t i) {
       return orig_index[i] != ORIGINDEX_NONE;
     });
@@ -236,8 +236,8 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
 
   switch (mr.extract_type) {
     case MR_EXTRACT_MESH: {
-      const int *e_origindex = (mr.hide_unmapped_edges) ? mr.e_origindex : nullptr;
-      if (e_origindex == nullptr) {
+      const int *orig_index_edge = (mr.hide_unmapped_edges) ? mr.orig_index_edge : nullptr;
+      if (orig_index_edge == nullptr) {
         const Span<bool> hide_edge = mr.hide_edge;
         if (!hide_edge.is_empty()) {
           for (const int i : loose_edges.index_range()) {
@@ -261,7 +261,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
           const Span<bool> hide_edge = mr.hide_edge;
           if (!hide_edge.is_empty()) {
             for (const int i : loose_edges.index_range()) {
-              const bool value = (e_origindex[loose_edges[i]] == ORIGINDEX_NONE) ?
+              const bool value = (orig_index_edge[loose_edges[i]] == ORIGINDEX_NONE) ?
                                      false :
                                      hide_edge[loose_edges[i]];
               flags_data.slice(i * edges_per_edge, edges_per_edge).fill(value);

@@ -23,8 +23,8 @@ static IndexMask calc_vert_visibility_mesh(const MeshRenderData &mr,
   if (!mr.hide_vert.is_empty()) {
     visible = IndexMask::from_bools_inverse(visible, mr.hide_vert, memory);
   }
-  if (mr.v_origindex != nullptr) {
-    const int *orig_index = mr.v_origindex;
+  if (mr.orig_index_vert != nullptr) {
+    const int *orig_index = mr.orig_index_vert;
     visible = IndexMask::from_predicate(visible, GrainSize(4096), memory, [&](const int64_t i) {
       return orig_index[i] != ORIGINDEX_NONE;
     });
@@ -205,8 +205,8 @@ static IndexMask calc_vert_visibility_mapped_mesh(const MeshRenderData &mr,
     visible = IndexMask::from_predicate(
         visible, GrainSize(4096), memory, [&](const int i) { return !hide_vert[map[i]]; });
   }
-  if (mr.v_origindex != nullptr) {
-    const int *orig_index = mr.v_origindex;
+  if (mr.orig_index_vert != nullptr) {
+    const int *orig_index = mr.orig_index_vert;
     visible = IndexMask::from_predicate(visible, GrainSize(4096), memory, [&](const int i) {
       return orig_index[map[i]] != ORIGINDEX_NONE;
     });
@@ -254,7 +254,7 @@ static void extract_points_subdiv_mesh(const MeshRenderData &mr,
     if (!hide_vert.is_empty() && hide_vert[vert]) {
       return false;
     }
-    if (mr.v_origindex && mr.v_origindex[vert] == ORIGINDEX_NONE) {
+    if (mr.orig_index_vert && mr.orig_index_vert[vert] == ORIGINDEX_NONE) {
       return false;
     }
     return true;
@@ -291,8 +291,8 @@ static void extract_points_subdiv_bm(const MeshRenderData &mr,
       subdiv_cache.num_subdiv_loops};
 
   const auto show_vert_bm = [&](const int vert_index) {
-    const BMVert *vert = mr.v_origindex ? bm_original_vert_get(mr, vert_index) :
-                                          BM_vert_at_index(mr.bm, vert_index);
+    const BMVert *vert = mr.orig_index_vert ? bm_original_vert_get(mr, vert_index) :
+                                              BM_vert_at_index(mr.bm, vert_index);
     return !BM_elem_flag_test_bool(vert, BM_ELEM_HIDDEN);
   };
 

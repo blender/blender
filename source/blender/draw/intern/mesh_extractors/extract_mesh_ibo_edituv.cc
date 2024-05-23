@@ -227,7 +227,8 @@ static void extract_edituv_lines_iter_face_mesh(const MeshRenderData &mr,
     const int edge = mr.corner_edges[corner];
     const int corner_next = bke::mesh::face_corner_next(face, corner);
 
-    const bool real_edge = (mr.e_origindex == nullptr || mr.e_origindex[edge] != ORIGINDEX_NONE);
+    const bool real_edge = (mr.orig_index_edge == nullptr ||
+                            mr.orig_index_edge[edge] != ORIGINDEX_NONE);
     edituv_edge_add(data, mp_hidden || !real_edge, mp_select, corner, corner_next);
   }
 }
@@ -271,8 +272,8 @@ static void extract_edituv_lines_iter_subdiv_bm(const DRWSubdivCache &subdiv_cac
   for (uint loop_idx = start_loop_idx; loop_idx < end_loop_idx; loop_idx++) {
     const int edge_origindex = subdiv_loop_edge_index[loop_idx];
     const bool real_edge = (edge_origindex != -1 &&
-                            (mr.e_origindex == nullptr ||
-                             mr.e_origindex[edge_origindex] != ORIGINDEX_NONE));
+                            (mr.orig_index_edge == nullptr ||
+                             mr.orig_index_edge[edge_origindex] != ORIGINDEX_NONE));
     edituv_edge_add(data,
                     mp_hidden || !real_edge,
                     mp_select,
@@ -305,8 +306,8 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache &subdiv_c
   for (uint loop_idx = start_loop_idx; loop_idx < end_loop_idx; loop_idx++) {
     const int edge_origindex = subdiv_loop_edge_index[loop_idx];
     const bool real_edge = (edge_origindex != -1 &&
-                            (mr.e_origindex == nullptr ||
-                             mr.e_origindex[edge_origindex] != ORIGINDEX_NONE));
+                            (mr.orig_index_edge == nullptr ||
+                             mr.orig_index_edge[edge_origindex] != ORIGINDEX_NONE));
     edituv_edge_add(data,
                     mp_hidden || !real_edge,
                     mp_select,
@@ -399,7 +400,7 @@ static void extract_edituv_points_iter_face_mesh(const MeshRenderData &mr,
   for (const int corner : mr.faces[face_index]) {
     const int vert = mr.corner_verts[corner];
 
-    const bool real_vert = !mr.v_origindex || mr.v_origindex[vert] != ORIGINDEX_NONE;
+    const bool real_vert = !mr.orig_index_vert || mr.orig_index_vert[vert] != ORIGINDEX_NONE;
     edituv_point_add(data, mp_hidden || !real_vert, mp_select, corner);
   }
 }
@@ -463,8 +464,9 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache &subdiv_
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
-    const bool real_vert = !mr.v_origindex || (vert_origindex != -1 &&
-                                               mr.v_origindex[vert_origindex] != ORIGINDEX_NONE);
+    const bool real_vert = !mr.orig_index_vert ||
+                           (vert_origindex != -1 &&
+                            mr.orig_index_vert[vert_origindex] != ORIGINDEX_NONE);
     edituv_point_add(data, mp_hidden || !real_vert, mp_select, i);
   }
 }
@@ -555,13 +557,15 @@ static void extract_edituv_fdots_iter_face_mesh(const MeshRenderData &mr,
     for (const int corner : mr.faces[face_index]) {
       const int vert = mr.corner_verts[corner];
 
-      const bool real_fdot = !mr.p_origindex || (mr.p_origindex[face_index] != ORIGINDEX_NONE);
+      const bool real_fdot = !mr.orig_index_face ||
+                             (mr.orig_index_face[face_index] != ORIGINDEX_NONE);
       const bool subd_fdot = facedot_tags[vert];
       edituv_facedot_add(data, mp_hidden || !real_fdot || !subd_fdot, mp_select, face_index);
     }
   }
   else {
-    const bool real_fdot = !mr.p_origindex || (mr.p_origindex[face_index] != ORIGINDEX_NONE);
+    const bool real_fdot = !mr.orig_index_face ||
+                           (mr.orig_index_face[face_index] != ORIGINDEX_NONE);
     edituv_facedot_add(data, mp_hidden || !real_fdot, mp_select, face_index);
   }
 }
