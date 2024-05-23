@@ -1309,12 +1309,11 @@ struct ShadowTileMapData {
   int clip_data_index;
   /** Light type this tilemap is from. */
   eLightType light_type;
-  /** True if the tilemap is part of area light shadow and is one of the side projections. */
-  bool32_t is_area_side;
   /** Entire tilemap (all tiles) needs to be tagged as dirty. */
   bool32_t is_dirty;
 
   float _pad1;
+  float _pad2;
   /** Near and far clip distances for punctual. */
   float clip_near;
   float clip_far;
@@ -1332,9 +1331,7 @@ struct ShadowRenderView {
   /**
    * Is either:
    * - positive radial distance for point lights.
-   * - negative distance to light plane (divided by sqrt3) for area lights side projections.
    * - zero if disabled.
-   * Use sign to determine with case we are in.
    */
   float clip_distance_inv;
   /** Viewport to submit the geometry of this tile-map view to. */
