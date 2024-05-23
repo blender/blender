@@ -739,8 +739,7 @@ static void paint_brush_set_default_reference(Paint *paint,
       break;
     case OB_MODE_PAINT_GPENCIL_LEGACY:
       name = "Pencil";
-      // TODO: should be soft, but missing from essentials still.
-      eraser_name = "Eraser Hard";
+      eraser_name = "Eraser Soft";
       break;
     case OB_MODE_VERTEX_GPENCIL_LEGACY:
       name = "Paint Point Color";
