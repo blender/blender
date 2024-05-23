@@ -503,6 +503,10 @@ struct GreasePencilFillOpData {
   float fill_extend_fac;
 
   int material_index;
+  /* Toggle inverse filling. */
+  bool invert = false;
+  /* Toggle precision mode. */
+  bool precision = false;
 
   /* Mouse position where fill was initialized */
   float2 fill_mouse_pos;
@@ -510,10 +514,6 @@ struct GreasePencilFillOpData {
   bool is_extension_mode = false;
   /* Mouse position where the extension mode was enabled. */
   float2 extension_mouse_pos;
-  /* Toggle inverse filling. */
-  bool invert = false;
-  /* Toggle precision mode. */
-  bool precision = false;
 
   ~GreasePencilFillOpData()
   {
@@ -525,7 +525,9 @@ struct GreasePencilFillOpData {
 
   static GreasePencilFillOpData from_context(bContext &C,
                                              blender::bke::greasepencil::Layer &layer,
-                                             const int material_index)
+                                             const int material_index,
+                                             const bool invert,
+                                             const bool precision)
   {
     using blender::bke::greasepencil::Layer;
 
@@ -547,7 +549,9 @@ struct GreasePencilFillOpData {
             brush.gpencil_settings->flag,
             eGP_FillExtendModes(brush.gpencil_settings->fill_extend_mode),
             brush.gpencil_settings->fill_extend_fac,
-            material_index};
+            material_index,
+            invert,
+            precision};
   }
 };
 
@@ -803,8 +807,12 @@ static bool grease_pencil_fill_init(bContext &C, wmOperator &op)
       &bmain, &ob, &brush);
   const int material_index = BKE_object_material_index_get(&ob, material);
 
+  const bool invert = RNA_boolean_get(op.ptr, "invert");
+  const bool precision = RNA_boolean_get(op.ptr, "precision");
+
   op.customdata = MEM_new<GreasePencilFillOpData>(
-      __func__, GreasePencilFillOpData::from_context(C, *layer, material_index));
+      __func__,
+      GreasePencilFillOpData::from_context(C, *layer, material_index, invert, precision));
   return true;
 }
 
@@ -1043,6 +1051,14 @@ static void GREASE_PENCIL_OT_fill(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 
   prop = RNA_def_boolean(ot->srna, "on_back", false, "Draw on Back", "Send new stroke to back");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(
+      ot->srna, "invert", false, "Invert", "Find boundary of unfilled instead of filled regions");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(
+      ot->srna, "precision", false, "Precision", "Use precision movement for extension lines");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
