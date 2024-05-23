@@ -73,7 +73,7 @@ class Instance {
   static void *debug_scope_irradiance_sample;
 
   uint64_t depsgraph_last_update_ = 0;
-  bool overlays_enabled_;
+  bool overlays_enabled_ = false;
 
  public:
   ShaderModule &shaders;
