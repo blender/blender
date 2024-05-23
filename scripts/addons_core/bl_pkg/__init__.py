@@ -445,14 +445,12 @@ def register():
     )
     WindowManager.extension_type = EnumProperty(
         items=(
-            ('ALL', "All", "Show all extensions"),
-            None,
             ('ADDON', "Add-ons", "Only show add-ons"),
             ('THEME', "Themes", "Only show themes"),
         ),
         name="Filter by Type",
         description="Show extensions by type",
-        default='ALL',
+        default='ADDON',
     )
     WindowManager.extension_enabled_only = BoolProperty(
         name="Show Enabled Extensions",
