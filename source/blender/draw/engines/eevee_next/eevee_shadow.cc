@@ -447,7 +447,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera
      * offsets to a separate int. */
     int2 lvl_offset_next = tilemaps_[lod + 1]->grid_offset;
     int2 lvl_offset = tilemaps_[lod]->grid_offset;
-    int2 lvl_delta = lvl_offset - (lvl_offset_next << 1);
+    int2 lvl_delta = lvl_offset - (lvl_offset_next * 2);
     BLI_assert(math::abs(lvl_delta.x) <= 1 && math::abs(lvl_delta.y) <= 1);
     pos_offset |= math::max(lvl_delta, int2(0)) << lod;
     neg_offset |= math::max(-lvl_delta, int2(0)) << lod;
