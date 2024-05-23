@@ -1,0 +1,61 @@
+name: build
+
+on: [push]
+
+env:
+  PYTHON_VERSION: 3.12
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Download sources with Git LFS
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Install Basic Building Environment
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential git git-lfs subversion cmake libx11-dev libxxf86vm-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev libegl-dev
+          sudo apt install -y libwayland-dev wayland-protocols libxkbcommon-dev libdbus-1-dev linux-libc-dev
+      
+      - name: Download Libraries
+        run: |
+          ./build_files/utils/make_update.py --use-linux-libraries
+
+      - name: Update and Build
+        run: |
+          make update
+          make
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - name: Download Sources
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Update and Build
+        run: |
+          make update
+          make
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Download Sources
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Update and Build
+        run: |
+          make update
+          make
