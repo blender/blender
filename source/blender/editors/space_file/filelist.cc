@@ -573,15 +573,16 @@ static int compare_asset_catalog(void *user_data, const void *a1, const void *a2
   const FileListInternEntry *entry2 = static_cast<const FileListInternEntry *>(a2);
   const FileSortData *sort_data = static_cast<const FileSortData *>(user_data);
 
+  /* Order non-assets. */
   if (entry1->asset && !entry2->asset) {
     return 1;
   }
-  if (!entry1->asset && entry2->asset) {
+  else if (!entry1->asset && entry2->asset) {
     return -1;
   }
-  if (!entry1->asset && !entry2->asset) {
-    if (int ret = compare_direntry_generic(entry1, entry2); ret) {
-      return ret;
+  else if (!entry1->asset && !entry2->asset) {
+    if (int order = compare_direntry_generic(entry1, entry2); order) {
+      return compare_apply_inverted(order, sort_data);
     }
 
     return compare_apply_inverted(compare_tiebreaker(entry1, entry2), sort_data);
@@ -595,25 +596,26 @@ static int compare_asset_catalog(void *user_data, const void *a1, const void *a2
   const asset_system::AssetCatalog *catalog2 = asset_library2.catalog_service().find_catalog(
       entry2->asset->get_metadata().catalog_id);
 
-  /* Always keep assets without catalog last. */
+  /* Order by catalog. Always keep assets without catalog last. */
+  int order = 0;
+
   if (catalog1 && !catalog2) {
-    return 1;
+    order = 1;
   }
-  if (!catalog1 && catalog2) {
-    return -1;
+  else if (!catalog1 && catalog2) {
+    order = -1;
   }
-
-  if (catalog1 && catalog2) {
-    const int order = BLI_strcasecmp_natural(catalog1->path.name().c_str(),
-                                             catalog2->path.name().c_str());
-    if (order) {
-      return compare_apply_inverted(order, sort_data);
-    }
+  else if (catalog1 && catalog2) {
+    order = BLI_strcasecmp_natural(catalog1->path.name().c_str(), catalog2->path.name().c_str());
   }
 
-  int order = compare_tiebreaker(entry1, entry2);
   if (!order) {
-    order = BLI_strcasecmp_natural(asset_library1.name().c_str(), asset_library2.name().c_str());
+    /* Order by name. */
+    order = compare_tiebreaker(entry1, entry2);
+    if (!order) {
+      /* Order by library name. */
+      order = BLI_strcasecmp_natural(asset_library1.name().c_str(), asset_library2.name().c_str());
+    }
   }
 
   return compare_apply_inverted(order, sort_data);
