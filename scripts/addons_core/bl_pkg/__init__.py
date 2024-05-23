@@ -143,6 +143,7 @@ def repos_to_notify():
         # Since it's not all that common to disable the status bar just run notifications
         # if any repositories are marked to run notifications.
 
+        online_access = bpy.app.online_access
         prefs = bpy.context.preferences
         extension_repos = prefs.extensions.repos
         for repo_item in extension_repos:
@@ -152,9 +153,19 @@ def repos_to_notify():
                 continue
             if not repo_item.use_remote_url:
                 continue
+            remote_url = repo_item.remote_url
             # Invalid, if there is no remote path this can't update.
-            if not repo_item.remote_url:
+            if not remote_url:
                 continue
+
+            if online_access:
+                # All URL's may be accessed.
+                pass
+            else:
+                # Allow remote file-system repositories even when online access is disabled.
+                if not remote_url.startswith("file://"):
+                    continue
+
             repos_notify.append(repo_item)
     return repos_notify
 
@@ -434,14 +445,12 @@ def register():
     )
     WindowManager.extension_type = EnumProperty(
         items=(
-            ('ALL', "All", "Show all extensions"),
-            None,
             ('ADDON', "Add-ons", "Only show add-ons"),
             ('THEME', "Themes", "Only show themes"),
         ),
         name="Filter by Type",
         description="Show extensions by type",
-        default='ALL',
+        default='ADDON',
     )
     WindowManager.extension_enabled_only = BoolProperty(
         name="Show Enabled Extensions",

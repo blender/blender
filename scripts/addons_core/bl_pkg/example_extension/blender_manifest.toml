@@ -15,3 +15,11 @@ license = [
 copyright = [
     "Developer Name"
 ]
+
+[build]
+paths_exclude_pattern = [
+    # Exclude all Python cache.
+    "__pycache__/",
+    # Exclude `.git` and similar.
+    ".*",
+]

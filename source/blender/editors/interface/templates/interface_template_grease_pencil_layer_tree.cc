@@ -170,7 +170,7 @@ class LayerViewItemDragController : public AbstractViewItemDragController {
 
   void on_drag_start() override
   {
-    grease_pencil_.active_node = &dragged_node_;
+    grease_pencil_.set_active_node(&dragged_node_);
   }
 };
 

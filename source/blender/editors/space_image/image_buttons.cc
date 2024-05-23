@@ -211,7 +211,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
            0.0,
            "");
 
-  BKE_image_release_renderresult(scene, image);
+  BKE_image_release_renderresult(scene, image, rr);
 }
 
 static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
@@ -285,7 +285,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
 
   BLI_freelistN(&added_passes);
 
-  BKE_image_release_renderresult(scene, image);
+  BKE_image_release_renderresult(scene, image, rr);
 }
 
 /**************************** view menus *****************************/
@@ -342,7 +342,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
               "");
   }
 
-  BKE_image_release_renderresult(scene, image);
+  BKE_image_release_renderresult(scene, image, rr);
 }
 
 static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
@@ -435,7 +435,7 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
     BLI_assert(0);
   }
 
-  BKE_image_release_renderresult(scene, image);
+  BKE_image_release_renderresult(scene, image, rr);
 
   if (changed) {
     BKE_image_multilayer_index(rr, iuser);
@@ -459,7 +459,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 
   rr = BKE_image_acquire_renderresult(scene, image);
   if (UNLIKELY(rr == nullptr)) {
-    BKE_image_release_renderresult(scene, image);
+    BKE_image_release_renderresult(scene, image, rr);
     return false;
   }
 
@@ -469,13 +469,13 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 
   rl = static_cast<RenderLayer *>(BLI_findlink(&rr->layers, layer));
   if (rl == nullptr) {
-    BKE_image_release_renderresult(scene, image);
+    BKE_image_release_renderresult(scene, image, rr);
     return false;
   }
 
   rpass = static_cast<RenderPass *>(BLI_findlink(&rl->passes, iuser->pass));
   if (rpass == nullptr) {
-    BKE_image_release_renderresult(scene, image);
+    BKE_image_release_renderresult(scene, image, rr);
     return false;
   }
 
@@ -497,7 +497,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
     int rp_index = 0;
 
     if (iuser->pass == 0) {
-      BKE_image_release_renderresult(scene, image);
+      BKE_image_release_renderresult(scene, image, rr);
       return false;
     }
 
@@ -513,7 +513,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
     BLI_assert(0);
   }
 
-  BKE_image_release_renderresult(scene, image);
+  BKE_image_release_renderresult(scene, image, rr);
 
   if (changed) {
     BKE_image_multilayer_index(rr, iuser);
@@ -780,7 +780,7 @@ void uiTemplateImage(uiLayout *layout,
       /* Use #BKE_image_acquire_renderresult so we get the correct slot in the menu. */
       rr = BKE_image_acquire_renderresult(scene, ima);
       uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
-      BKE_image_release_renderresult(scene, ima);
+      BKE_image_release_renderresult(scene, ima, rr);
     }
 
     return;
@@ -1153,7 +1153,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
     rr = BKE_image_acquire_renderresult(scene, ima);
     uiblock_layer_pass_buttons(
         layout, ima, rr, iuser, menus_width, is_render_result ? &ima->render_slot : nullptr);
-    BKE_image_release_renderresult(scene, ima);
+    BKE_image_release_renderresult(scene, ima, rr);
   }
 }
 

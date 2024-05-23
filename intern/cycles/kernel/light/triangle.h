@@ -177,27 +177,27 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
     const float cos_a = dot(B, C);
     const float cos_b = dot(A, C);
     const float cos_c = dot(A, B);
-    const float sin_b_sin_c_2 = (1.0f - sqr(cos_b)) * (1.0f - sqr(cos_c));
 
     const float mixed_product = fabsf(dot(A, cross(B, C)));
 
     /* The area of the spherical triangle is equal to the subtended solid angle. */
     const float solid_angle = 2.0f * fast_atan2f(mixed_product, (1.0f + cos_a + cos_b + cos_c));
 
+    /* Compute the angle at A. */
+    const float cos_alpha = dot(safe_normalize(cross(A, B)), safe_normalize(cross(A, C)));
+    const float sin_alpha = sin_from_cos(cos_alpha);
+    const float alpha = safe_acosf(cos_alpha);
+
     /* Select a random sub-area of the spherical triangle and calculate the third vertex C_ of that
      * new triangle. */
     const float A_hat = rand.x * solid_angle;
-    float sin_A_hat, cos_A_hat;
-    fast_sincosf(A_hat, &sin_A_hat, &cos_A_hat);
-
-    /* These values lack a `sin_b * sin_c` factor, will divide when computing `temp`. */
-    const float cos_alpha = cos_a - cos_b * cos_c;
-    const float sin_alpha = mixed_product;
-    const float t = cos_A_hat * cos_alpha + sin_A_hat * sin_alpha;
-
-    const float temp = (cos_c - 1.0f) * t * cos_alpha / sin_b_sin_c_2;
-
-    const float q = (cos_A_hat - cos_c + temp) / (1.0f - cos_A_hat * cos_c + temp);
+    float sin_phi, cos_phi;
+    fast_sincosf(A_hat - alpha, &sin_phi, &cos_phi);
+    const float u = cos_phi - cos_alpha;
+    const float v = sin_phi + sin_alpha * cos_c;
+    const float num = (v * cos_phi - u * sin_phi) * cos_alpha - v;
+    const float den = (v * sin_phi + u * cos_phi) * sin_alpha;
+    const float q = (den == 0.0f) ? 1.0f : num / den;
 
     const float3 U = safe_normalize(C - cos_b * A);
     const float3 C_ = safe_normalize(q * A + sin_from_cos(q) * U);

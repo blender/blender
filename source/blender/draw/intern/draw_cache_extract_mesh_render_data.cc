@@ -144,21 +144,15 @@ static void mesh_render_data_loose_geom_ensure(const MeshRenderData &mr, MeshBuf
   mesh_render_data_loose_geom_build(mr, cache);
 }
 
-void mesh_render_data_update_loose_geom(MeshRenderData &mr,
-                                        MeshBufferCache &cache,
-                                        const eMRIterType iter_type,
-                                        const eMRDataType data_flag)
+void mesh_render_data_update_loose_geom(MeshRenderData &mr, MeshBufferCache &cache)
 {
-  if ((iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) || (data_flag & MR_DATA_LOOSE_GEOM))
-  {
-    mesh_render_data_loose_geom_ensure(mr, cache);
-    mr.loose_edges = cache.loose_geom.edges;
-    mr.loose_verts = cache.loose_geom.verts;
-    mr.loose_verts_num = cache.loose_geom.verts.size();
-    mr.loose_edges_num = cache.loose_geom.edges.size();
+  mesh_render_data_loose_geom_ensure(mr, cache);
+  mr.loose_edges = cache.loose_geom.edges;
+  mr.loose_verts = cache.loose_geom.verts;
+  mr.loose_verts_num = cache.loose_geom.verts.size();
+  mr.loose_edges_num = cache.loose_geom.edges.size();
 
-    mr.loose_indices_num = mr.loose_verts_num + (mr.loose_edges_num * 2);
-  }
+  mr.loose_indices_num = mr.loose_verts_num + (mr.loose_edges_num * 2);
 }
 
 /** \} */
@@ -493,44 +487,35 @@ static bke::MeshNormalDomain bmesh_normals_domain(BMesh *bm)
   return bke::MeshNormalDomain::Corner;
 }
 
-void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_flag)
+void mesh_render_data_update_corner_normals(MeshRenderData &mr)
 {
   if (mr.extract_type != MR_EXTRACT_BMESH) {
-    /* Mesh */
-    mr.vert_normals = mr.mesh->vert_normals();
-    if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
-      mr.face_normals = mr.mesh->face_normals();
-    }
-    if (((data_flag & MR_DATA_LOOP_NOR) && !mr.use_simplify_normals &&
-         mr.normals_domain == bke::MeshNormalDomain::Corner) ||
-        (data_flag & MR_DATA_TAN_LOOP_NOR))
-    {
-      mr.corner_normals = mr.mesh->corner_normals();
-    }
+    mr.corner_normals = mr.mesh->corner_normals();
   }
   else {
-    /* #BMesh */
-    if (data_flag & MR_DATA_POLY_NOR) {
-      /* Use #BMFace.no instead. */
-    }
-    if (((data_flag & MR_DATA_LOOP_NOR) && !mr.use_simplify_normals &&
-         mr.normals_domain == bke::MeshNormalDomain::Corner) ||
-        (data_flag & MR_DATA_TAN_LOOP_NOR))
-    {
-      mr.bm_loop_normals.reinitialize(mr.corners_num);
-      const int clnors_offset = CustomData_get_offset(&mr.bm->ldata, CD_CUSTOMLOOPNORMAL);
-      BM_loops_calc_normal_vcos(mr.bm,
-                                mr.bm_vert_coords,
-                                mr.bm_vert_normals,
-                                mr.bm_face_normals,
-                                true,
-                                mr.bm_loop_normals,
-                                nullptr,
-                                nullptr,
-                                clnors_offset,
-                                false);
-      mr.corner_normals = mr.bm_loop_normals;
-    }
+    mr.bm_loop_normals.reinitialize(mr.corners_num);
+    const int clnors_offset = CustomData_get_offset(&mr.bm->ldata, CD_CUSTOMLOOPNORMAL);
+    BM_loops_calc_normal_vcos(mr.bm,
+                              mr.bm_vert_coords,
+                              mr.bm_vert_normals,
+                              mr.bm_face_normals,
+                              true,
+                              mr.bm_loop_normals,
+                              nullptr,
+                              nullptr,
+                              clnors_offset,
+                              false);
+  }
+}
+
+void mesh_render_data_update_face_normals(MeshRenderData &mr)
+{
+  if (mr.extract_type != MR_EXTRACT_BMESH) {
+    /* Eager calculation of face normals can reduce waiting on the lazy cache's lock. */
+    mr.face_normals = mr.mesh->face_normals();
+  }
+  else {
+    /* Use #BMFace.no instead. */
   }
 }
 

@@ -172,7 +172,7 @@ void clipmap_sync(inout LightData light)
      * offsets to a separate int. */
     int2 lvl_offset_next = tilemaps_buf[light.tilemap_index + lod + 1].grid_offset;
     int2 lvl_offset = tilemaps_buf[light.tilemap_index + lod].grid_offset;
-    int2 lvl_delta = lvl_offset - (lvl_offset_next << 1);
+    int2 lvl_delta = lvl_offset - (lvl_offset_next * 2);
     pos_offset |= max(lvl_delta, int2(0)) << lod;
     neg_offset |= max(-lvl_delta, int2(0)) << lod;
   }

@@ -40,6 +40,8 @@
 #include <mutex>
 #include <optional>
 
+#include "BKE_global.hh"
+
 #include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
@@ -160,58 +162,25 @@ class VKRenderGraph : public NonCopyable {
   }
 
  public:
-  void add_node(const VKBeginRenderingNode::CreateInfo &begin_rendering)
-  {
-    add_node<VKBeginRenderingNode>(begin_rendering);
+#define ADD_NODE(NODE_CLASS) \
+  void add_node(const NODE_CLASS::CreateInfo &create_info) \
+  { \
+    add_node<NODE_CLASS>(create_info); \
   }
-  void add_node(const VKEndRenderingNode::CreateInfo &end_rendering)
-  {
-    add_node<VKEndRenderingNode>(end_rendering);
-  }
-  void add_node(const VKClearAttachmentsNode::CreateInfo &clear_attachments)
-  {
-    add_node<VKClearAttachmentsNode>(clear_attachments);
-  }
-  void add_node(const VKClearColorImageNode::CreateInfo &clear_color_image)
-  {
-    add_node<VKClearColorImageNode>(clear_color_image);
-  }
-  void add_node(const VKClearDepthStencilImageNode::CreateInfo &clear_depth_stencil_image)
-  {
-    add_node<VKClearDepthStencilImageNode>(clear_depth_stencil_image);
-  }
-  void add_node(const VKFillBufferNode::CreateInfo &fill_buffer)
-  {
-    add_node<VKFillBufferNode>(fill_buffer);
-  }
-  void add_node(const VKCopyBufferNode::CreateInfo &copy_buffer)
-  {
-    add_node<VKCopyBufferNode>(copy_buffer);
-  }
-  void add_node(const VKCopyBufferToImageNode::CreateInfo &copy_buffer_to_image)
-  {
-    add_node<VKCopyBufferToImageNode>(copy_buffer_to_image);
-  }
-  void add_node(const VKCopyImageNode::CreateInfo &copy_image_to_buffer)
-  {
-    add_node<VKCopyImageNode>(copy_image_to_buffer);
-  }
-  void add_node(const VKCopyImageToBufferNode::CreateInfo &copy_image_to_buffer)
-  {
-    add_node<VKCopyImageToBufferNode>(copy_image_to_buffer);
-  }
-  void add_node(const VKBlitImageNode::CreateInfo &blit_image)
-  {
-    add_node<VKBlitImageNode>(blit_image);
-  }
-  void add_node(const VKDispatchNode::CreateInfo &dispatch)
-  {
-    add_node<VKDispatchNode>(dispatch);
-  }
-  void add_node(const VKDispatchIndirectNode::CreateInfo &dispatch)
-  {
-    add_node<VKDispatchIndirectNode>(dispatch);
-  }
+  ADD_NODE(VKBeginRenderingNode)
+  ADD_NODE(VKEndRenderingNode)
+  ADD_NODE(VKClearAttachmentsNode)
+  ADD_NODE(VKClearColorImageNode)
+  ADD_NODE(VKClearDepthStencilImageNode)
+  ADD_NODE(VKFillBufferNode)
+  ADD_NODE(VKCopyBufferNode)
+  ADD_NODE(VKCopyBufferToImageNode)
+  ADD_NODE(VKCopyImageNode)
+  ADD_NODE(VKCopyImageToBufferNode)
+  ADD_NODE(VKBlitImageNode)
+  ADD_NODE(VKDispatchNode)
+  ADD_NODE(VKDispatchIndirectNode)
+#undef ADD_NODE
 
   /**
    * Submit partial graph to be able to read the expected result of the rendering commands
@@ -254,6 +223,6 @@ class VKRenderGraph : public NonCopyable {
 
  private:
   void remove_nodes(Span<NodeHandle> node_handles);
-};
+};  // namespace blender::gpu::render_graph
 
 }  // namespace blender::gpu::render_graph

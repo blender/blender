@@ -280,8 +280,8 @@ class StepObject {
     BLI_assert(layers_num_ == grease_pencil.layers().size());
 
     if (!active_layer_name_.empty()) {
-      const bke::greasepencil::TreeNode *active_node =
-          grease_pencil.root_group().find_node_by_name(active_layer_name_);
+      bke::greasepencil::TreeNode *active_node = grease_pencil.root_group().find_node_by_name(
+          active_layer_name_);
       if (active_node && active_node->is_layer()) {
         grease_pencil.set_active_layer(&active_node->as_layer());
       }

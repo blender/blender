@@ -9,8 +9,7 @@
  */
 
 #include "BKE_global.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_rect.h"
+#include "BLI_math_matrix.hh"
 
 #include "eevee_instance.hh"
 
@@ -37,12 +36,8 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
   projection_type = projection_type_;
   level = clipmap_level;
   light_type = eLightType::LIGHT_SUN;
-  is_area_side = false;
 
-  if (grid_shift == int2(0)) {
-    /* Only replace shift if it is not already dirty. */
-    grid_shift = origin_offset - grid_offset;
-  }
+  grid_shift = origin_offset - grid_offset;
   grid_offset = origin_offset;
 
   if (!equals_m4m4(object_mat.ptr(), object_mat_.ptr())) {
@@ -58,14 +53,14 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
 
   half_size = ShadowDirectional::coverage_get(level) / 2.0f;
   center_offset = float2(grid_offset) * tile_size;
-  orthographic_m4(winmat.ptr(),
-                  -half_size + center_offset.x,
-                  half_size + center_offset.x,
-                  -half_size + center_offset.y,
-                  half_size + center_offset.y,
-                  /* Near/far is computed on GPU using casters bounds. */
-                  -1.0,
-                  1.0);
+
+  winmat = math::projection::orthographic(-half_size + center_offset.x,
+                                          half_size + center_offset.x,
+                                          -half_size + center_offset.y,
+                                          half_size + center_offset.y,
+                                          /* Near/far is computed on GPU using casters bounds. */
+                                          -1.0f,
+                                          1.0f);
 }
 
 void ShadowTileMap::sync_cubeface(
@@ -78,7 +73,6 @@ void ShadowTileMap::sync_cubeface(
   cubeface = face;
   grid_offset = int2(0);
   light_type = light_type_;
-  is_area_side = is_area_light(light_type) && (face != eCubeFace::Z_NEG);
 
   if ((clip_near != near_) || (clip_far != far_)) {
     set_dirty();
@@ -323,6 +317,7 @@ IndexRange ShadowDirectional::cascade_level_range(const Light &light, const Came
   }
 
   /* Level of detail (or size) of every tile-maps of this light. */
+  /* TODO(fclem): Add support for lod bias from light. */
   int lod_level = ceil(log2(max_ff(min_depth_tilemap_size, min_diagonal_tilemap_size)) + 0.5);
 
   /* Tile-maps "rotate" around the first one so their effective range is only half their size. */
@@ -364,6 +359,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
   /* Offset in tiles between the first and the last tile-maps. */
   int2 offset_vector = int2(round(farthest_tilemap_center / tile_size));
 
+  light.sun.clipmap_base_offset_neg = int2(0); /* Unused. */
   light.sun.clipmap_base_offset_pos = (offset_vector * (1 << 16)) /
                                       max_ii(levels_range.size() - 1, 1);
 
@@ -382,7 +378,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
     tilemap->set_updated();
   }
 
-  light.sun.clipmap_origin = float2(origin_offset * tile_size);
+  light.sun.clipmap_origin = float2(origin_offset) * tile_size;
 
   light.type = LIGHT_SUN_ORTHO;
 
@@ -449,7 +445,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera
      * offsets to a separate int. */
     int2 lvl_offset_next = tilemaps_[lod + 1]->grid_offset;
     int2 lvl_offset = tilemaps_[lod]->grid_offset;
-    int2 lvl_delta = lvl_offset - (lvl_offset_next << 1);
+    int2 lvl_delta = lvl_offset - (lvl_offset_next * 2);
     BLI_assert(math::abs(lvl_delta.x) <= 1 && math::abs(lvl_delta.y) <= 1);
     pos_offset |= math::max(lvl_delta, int2(0)) << lod;
     neg_offset |= math::max(-lvl_delta, int2(0)) << lod;
@@ -773,7 +769,8 @@ void ShadowModule::end_sync()
 {
   /* Delete unused shadows first to release tile-maps that could be reused for new lights. */
   for (Light &light : inst_.lights.light_map_.values()) {
-    if (!light.used || !enabled_) {
+    /* Do not discard lights in baking mode. See WORKAROUND in `surfels_create`. */
+    if ((!light.used || !enabled_) && !inst_.is_baking()) {
       light.shadow_discard_safe(*this);
     }
     else if (light.directional != nullptr) {
@@ -806,7 +803,8 @@ void ShadowModule::end_sync()
   auto it_end = objects_.items().end();
   for (auto it = objects_.items().begin(); it != it_end; ++it) {
     ShadowObject &shadow_ob = (*it).value;
-    if (!shadow_ob.used) {
+    /* Do not discard casters in baking mode. See WORKAROUND in `surfels_create`. */
+    if (!shadow_ob.used && !inst_.is_baking()) {
       /* May not be a caster, but it does not matter, be conservative. */
       past_casters_updated_.append(shadow_ob.resource_handle.raw);
       objects_.remove(it);

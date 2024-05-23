@@ -138,11 +138,7 @@ void main()
           render_view_buf[view_index].is_directional = !is_cubemap;
           render_view_buf[view_index].clip_near = clip_near;
           /* Clipping setup. */
-          if (tilemap_data.is_area_side) {
-            /* Negative for tagging this case. See shadow_clip_vector_get for explanation. */
-            render_view_buf[view_index].clip_distance_inv = -1.0;
-          }
-          else if (is_point_light(tilemap_data.light_type)) {
+          if (is_point_light(tilemap_data.light_type)) {
             /* Clip as a sphere around the clip_near cube. */
             render_view_buf[view_index].clip_distance_inv = M_SQRT1_3 / tilemap_data.clip_near;
           }

@@ -61,6 +61,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
 
   const Span<int3> corner_tris = mr.mesh->corner_tris();
   const Span<int> corner_tri_faces = mr.mesh->corner_tri_faces();
+  const Span<float3> vert_normals = mr.mesh->vert_normals();
 
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (tan_layers & (1 << i)) {
@@ -115,8 +116,8 @@ static void extract_tan_init_common(const MeshRenderData &mr,
                                      calc_active_tangent,
                                      r_tangent_names,
                                      tan_len,
-                                     mr.face_normals,
-                                     mr.corner_normals,
+                                     mr.bm_face_normals,
+                                     mr.bm_loop_normals,
                                      orco,
                                      r_loop_data,
                                      mr.corners_num,
@@ -134,7 +135,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
                                     calc_active_tangent,
                                     r_tangent_names,
                                     tan_len,
-                                    mr.vert_normals,
+                                    vert_normals,
                                     mr.face_normals,
                                     mr.corner_normals,
                                     orco,
@@ -341,7 +342,7 @@ constexpr MeshExtract create_extractor_tan()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_tan_init;
   extractor.init_subdiv = extract_tan_init_subdiv;
-  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_CORNER_TRI;
+  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR;
   extractor.data_size = 0;
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.tan);
@@ -367,7 +368,7 @@ constexpr MeshExtract create_extractor_tan_hq()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_tan_hq_init;
-  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_CORNER_TRI;
+  extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR;
   extractor.data_size = 0;
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.tan);

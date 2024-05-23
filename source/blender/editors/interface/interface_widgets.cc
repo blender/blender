@@ -1945,11 +1945,12 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor4ubv(wcol->item);
-      const auto boxes = BLF_str_selection_boxes(fstyle->uifont_id,
-                                                 drawstr,
-                                                 strlen(drawstr),
-                                                 but->ofs + but->selsta,
-                                                 but->selend - but->selsta);
+      const auto boxes = BLF_str_selection_boxes(
+          fstyle->uifont_id,
+          drawstr + but->ofs,
+          strlen(drawstr + but->ofs),
+          (but->selsta >= but->ofs) ? but->selsta - but->ofs : 0,
+          but->selend - std::max(but->ofs, but->selsta));
       for (auto bounds : boxes) {
         immRecti(pos,
                  rect->xmin + bounds.min,

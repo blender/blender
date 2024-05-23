@@ -2,12 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_noise.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
+#include "BLI_string_utf8_symbols.h"
 #include "BLI_vector_set.hh"
 
 #include "DNA_anim_types.h"
@@ -29,6 +32,8 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 #include "NOD_texture.h"
+
+#include "BLT_translation.hh"
 
 using namespace blender::nodes;
 
@@ -483,6 +488,8 @@ class NodeTreeMainUpdater {
   TreeUpdateResult update_tree(bNodeTree &ntree)
   {
     TreeUpdateResult result;
+
+    ntree.runtime->link_errors_by_target_node.clear();
 
     this->update_socket_link_and_use(ntree);
     this->update_individual_nodes(ntree);
@@ -1123,12 +1130,29 @@ class NodeTreeMainUpdater {
       }
       if (is_invalid_enum_ref(*link->fromsock) || is_invalid_enum_ref(*link->tosock)) {
         link->flag &= ~NODE_LINK_VALID;
+        ntree.runtime->link_errors_by_target_node.add(
+            link->tonode->identifier,
+            NodeLinkError{TIP_("Use node groups to reuse the same menu multiple times")});
         continue;
+      }
+      if (ntree.type == NTREE_GEOMETRY) {
+        if (link->fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND &&
+            link->tosock->display_shape != SOCK_DISPLAY_SHAPE_DIAMOND)
+        {
+          link->flag &= ~NODE_LINK_VALID;
+          ntree.runtime->link_errors_by_target_node.add(
+              link->tonode->identifier,
+              NodeLinkError{TIP_("The node input does not support fields")});
+          continue;
+        }
       }
       const bNode &from_node = *link->fromnode;
       const bNode &to_node = *link->tonode;
       if (toposort_indices[from_node.index()] > toposort_indices[to_node.index()]) {
         link->flag &= ~NODE_LINK_VALID;
+        ntree.runtime->link_errors_by_target_node.add(
+            link->tonode->identifier,
+            NodeLinkError{TIP_("The links form a cycle which is not supported")});
         continue;
       }
       if (ntree.typeinfo->validate_link) {
@@ -1136,6 +1160,13 @@ class NodeTreeMainUpdater {
         const eNodeSocketDatatype to_type = eNodeSocketDatatype(link->tosock->type);
         if (!ntree.typeinfo->validate_link(from_type, to_type)) {
           link->flag &= ~NODE_LINK_VALID;
+          ntree.runtime->link_errors_by_target_node.add(
+              link->tonode->identifier,
+              NodeLinkError{
+                  fmt::format(TIP_("Conversion is not supported: "
+                                   "{} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE " {}"),
+                              TIP_(link->fromsock->typeinfo->label),
+                              TIP_(link->tosock->typeinfo->label))});
           continue;
         }
       }

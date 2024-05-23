@@ -155,7 +155,7 @@ class SyncModule {
 
   Map<ObjectKey, ObjectHandle> ob_handles = {};
 
-  bool world_updated_;
+  bool world_updated_ = false;
 
  public:
   SyncModule(Instance &inst) : inst_(inst){};

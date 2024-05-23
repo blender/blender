@@ -242,11 +242,9 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache &subdi
    * data should already be evaluated if we are here. This can happen if the subsurf modifier is
    * only enabled in edit-mode. See #96338. */
   if (!pos_nor) {
-    const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
     pos_nor = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_build_on_device(pos_nor,
-                                     draw_subdiv_get_pos_nor_format(),
-                                     subdiv_cache.num_subdiv_loops + loose_geom.loop_len);
+    GPU_vertbuf_init_build_on_device(
+        pos_nor, draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache));
 
     draw_subdiv_extract_pos_nor(subdiv_cache, nullptr, pos_nor, nullptr);
   }

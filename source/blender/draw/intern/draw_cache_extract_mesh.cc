@@ -528,8 +528,31 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   const eMRIterType iter_type = update_task_data->iter_type;
   const eMRDataType data_flag = update_task_data->data_flag;
 
-  mesh_render_data_update_normals(mr, data_flag);
-  mesh_render_data_update_loose_geom(mr, *update_task_data->cache, iter_type, data_flag);
+  MeshBufferList &buffers = update_task_data->cache->buff;
+
+  const bool request_face_normals = DRW_vbo_requested(buffers.vbo.nor) ||
+                                    (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR |
+                                                  MR_DATA_TAN_LOOP_NOR)) != 0;
+  const bool request_corner_normals = DRW_vbo_requested(buffers.vbo.nor) ||
+                                      (data_flag & MR_DATA_LOOP_NOR) != 0;
+  const bool force_corner_normals = (data_flag & MR_DATA_TAN_LOOP_NOR) != 0;
+
+  if (request_face_normals) {
+    mesh_render_data_update_face_normals(mr);
+  }
+  if ((request_corner_normals && !mr.use_simplify_normals) || force_corner_normals) {
+    mesh_render_data_update_corner_normals(mr);
+  }
+
+  const bool calc_loose_geom = DRW_ibo_requested(buffers.ibo.lines) ||
+                               DRW_ibo_requested(buffers.ibo.lines_loose) ||
+                               DRW_ibo_requested(buffers.ibo.points) ||
+                               (iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) ||
+                               (data_flag & MR_DATA_LOOSE_GEOM);
+
+  if (calc_loose_geom) {
+    mesh_render_data_update_loose_geom(mr, *update_task_data->cache);
+  }
 }
 
 static TaskNode *mesh_extract_render_data_node_create(TaskGraph *task_graph,
@@ -616,8 +639,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
     } \
   } while (0)
 
-  EXTRACT_ADD_REQUESTED(vbo, pos);
-  EXTRACT_ADD_REQUESTED(vbo, nor);
   EXTRACT_ADD_REQUESTED(vbo, uv);
   EXTRACT_ADD_REQUESTED(vbo, tan);
   EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
@@ -644,7 +665,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
   EXTRACT_ADD_REQUESTED(vbo, vnor);
 
-  EXTRACT_ADD_REQUESTED(ibo, points);
   EXTRACT_ADD_REQUESTED(ibo, fdots);
   EXTRACT_ADD_REQUESTED(ibo, lines_paint_mask);
   EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
@@ -656,7 +676,9 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
 #undef EXTRACT_ADD_REQUESTED
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
-      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris))
+      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
+      !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
+      !DRW_vbo_requested(buffers.vbo.nor))
   {
     return;
   }
@@ -692,6 +714,37 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   /* Simple heuristic. */
   const bool use_thread = (mr->corners_num + mr->loose_indices_num) > MIN_RANGE_LEN;
 
+  if (DRW_vbo_requested(buffers.vbo.pos)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferCache &mbc;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_positions(data.mr, *data.mbc.buff.vbo.pos);
+        },
+        new TaskData{*mr, mbc},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_vbo_requested(buffers.vbo.nor)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferCache &mbc;
+      bool do_hq_normals;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_normals(data.mr, data.do_hq_normals, *data.mbc.buff.vbo.nor);
+        },
+        new TaskData{*mr, mbc, do_hq_normals},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
   if (DRW_ibo_requested(buffers.ibo.tris)) {
     struct TaskData {
       MeshRenderData &mr;
@@ -726,6 +779,21 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
                         data.cache.no_loose_wire);
         },
         new TaskData{*mr, buffers, cache},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_ibo_requested(buffers.ibo.points)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_points(data.mr, *data.buffers.ibo.points);
+        },
+        new TaskData{*mr, buffers},
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
@@ -818,12 +886,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
     } \
   } while (0)
 
-  /* Orcos are extracted at the same time as positions. */
-  if (DRW_vbo_requested(buffers.vbo.pos) || DRW_vbo_requested(buffers.vbo.orco)) {
-    extractors.append(&extract_pos);
-  }
-
-  EXTRACT_ADD_REQUESTED(vbo, nor);
   for (int i = 0; i < GPU_MAX_ATTR; i++) {
     EXTRACT_ADD_REQUESTED(vbo, attr[i]);
   }
@@ -842,7 +904,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   EXTRACT_ADD_REQUESTED(vbo, edge_idx);
   EXTRACT_ADD_REQUESTED(vbo, face_idx);
   EXTRACT_ADD_REQUESTED(vbo, edge_fac);
-  EXTRACT_ADD_REQUESTED(ibo, points);
   EXTRACT_ADD_REQUESTED(vbo, edit_data);
   EXTRACT_ADD_REQUESTED(vbo, edituv_data);
   /* Make sure UVs are computed before edituv stuffs. */
@@ -858,22 +919,33 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
 #undef EXTRACT_ADD_REQUESTED
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
-      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris))
+      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
+      !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
+      !DRW_vbo_requested(buffers.vbo.orco) && !DRW_vbo_requested(buffers.vbo.nor))
   {
     return;
   }
 
-  mesh_render_data_update_normals(mr, MR_DATA_TAN_LOOP_NOR);
-  mesh_render_data_update_loose_geom(
-      mr, mbc, MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT, MR_DATA_LOOSE_GEOM);
+  mesh_render_data_update_corner_normals(mr);
+  mesh_render_data_update_loose_geom(mr, mbc);
   DRW_subdivide_loose_geom(subdiv_cache, mbc);
 
+  if (DRW_vbo_requested(buffers.vbo.pos) || DRW_vbo_requested(buffers.vbo.orco)) {
+    extract_positions_subdiv(subdiv_cache, mr, *buffers.vbo.pos, buffers.vbo.orco);
+  }
+  if (DRW_vbo_requested(buffers.vbo.nor)) {
+    /* The corner normals calculation uses positions and normals stored in the `pos` VBO. */
+    extract_normals_subdiv(subdiv_cache, *buffers.vbo.pos, *buffers.vbo.nor);
+  }
   if (DRW_ibo_requested(buffers.ibo.lines) || DRW_ibo_requested(buffers.ibo.lines_loose)) {
     extract_lines_subdiv(
         subdiv_cache, mr, buffers.ibo.lines, buffers.ibo.lines_loose, cache.no_loose_wire);
   }
   if (DRW_ibo_requested(buffers.ibo.tris)) {
     extract_tris_subdiv(subdiv_cache, cache, *buffers.ibo.tris);
+  }
+  if (DRW_ibo_requested(buffers.ibo.points)) {
+    extract_points_subdiv(mr, subdiv_cache, *buffers.ibo.points);
   }
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);

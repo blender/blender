@@ -714,9 +714,15 @@ char *BKE_id_to_unique_string_key(const ID *id);
  * #LIB_TAG_PRE_EXISTING.
  * \param set_fake: If true, set fake user on all localized data-blocks
  * (except group and objects ones).
+ * \param clear_asset_data: If true, clear the asset metadata on all localized data-blocks, making
+ * them normal non-asset data-blocks.
  */
-void BKE_library_make_local(
-    Main *bmain, const Library *lib, GHash *old_to_new_ids, bool untagged_only, bool set_fake);
+void BKE_library_make_local(Main *bmain,
+                            const Library *lib,
+                            GHash *old_to_new_ids,
+                            bool untagged_only,
+                            bool set_fake,
+                            bool clear_asset_data);
 
 void BKE_id_tag_set_atomic(ID *id, int tag);
 void BKE_id_tag_clear_atomic(ID *id, int tag);
@@ -743,12 +749,8 @@ ID *BKE_id_owner_get(ID *id, const bool debug_relationship_assert = true);
 /**
  * Check if that ID can be considered as editable from a high-level (editor) perspective.
  *
- * NOTE: This used to be done with a check on whether ID was linked or not, but now with system
- * overrides this is not enough anymore.
- *
- * NOTE: Execution of this function can be somewhat expensive currently. If this becomes an issue,
- * we should either cache that status info also in virtual override IDs, or address the
- * long-standing TODO of getting an efficient 'owner_id' access for all embedded ID types.
+ * \note Unlike the #ID_IS_EDITABLE macro, this also take into account higher-level aspects, e.g.
+ * it checks if the given ID is a system overrides (which should not be editable from the UI).
  */
 bool BKE_id_is_editable(const Main *bmain, const ID *id);
 

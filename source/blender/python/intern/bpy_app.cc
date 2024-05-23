@@ -255,6 +255,11 @@ static int bpy_app_debug_set(PyObject * /*self*/, PyObject *value, void *closure
 
 PyDoc_STRVAR(
     /* Wrap. */
+    bpy_app_internet_offline_doc,
+    "Boolean, true when internet access is allowed by Blender & 3rd party scripts (read-only)");
+
+PyDoc_STRVAR(
+    /* Wrap. */
     bpy_app_global_flag_doc,
     "Boolean, for application behavior "
     "(started with ``--enable-*`` matching this attribute name)");
@@ -486,6 +491,12 @@ static PyGetSetDef bpy_app_getsets[] = {
      nullptr,
      bpy_app_preview_render_size_doc,
      (void *)ICON_SIZE_PREVIEW},
+
+    {"online_access",
+     bpy_app_global_flag_get,
+     nullptr,
+     bpy_app_internet_offline_doc,
+     (void *)G_FLAG_INTERNET_ALLOW},
 
     /* security */
     {"autoexec_fail",

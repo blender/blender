@@ -1,12 +1,14 @@
+# SPDX-FileCopyrightText: 2024 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 import bmesh
 
 
 class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
-    """
-    Convert the volume of a world to a mesh.
-
-    The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly"""
+    """Convert the volume of a world to a mesh. """ \
+        """The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly"""
     bl_label = "Convert Volume"
     bl_options = {'REGISTER', 'UNDO'}
     bl_idname = "world.convert_volume_to_mesh"
@@ -19,7 +21,7 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
 
         ntree = world.node_tree
         node = ntree.get_output_node('EEVEE')
-        return bool(node.inputs['Volume'].links)
+        return bool(node.inputs["Volume"].links)
 
     def execute(self, context):
         cls = self.__class__
@@ -28,7 +30,7 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
 
         world_tree = world.node_tree
         world_output = world_tree.get_output_node('EEVEE')
-        name = f"{world.name}_volume"
+        name = "{:s}_volume".format(world.name)
 
         collection = bpy.data.collections.new(name)
         view_layer.layer_collection.collection.children.link(collection)
@@ -59,15 +61,15 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
         volume_output = volume_tree.get_output_node('EEVEE')
 
         links_to_add = []
-        self.__sync_rna_properties(volume_output, world_output)
-        self.__sync_node_input(
+        self._sync_rna_properties(volume_output, world_output)
+        self._sync_node_input(
             volume_tree,
             volume_output,
-            volume_output.inputs['Volume'],
+            volume_output.inputs["Volume"],
             world_output,
-            world_output.inputs['Volume'],
+            world_output.inputs["Volume"],
             links_to_add)
-        self.__sync_links(volume_tree, links_to_add)
+        self._sync_links(volume_tree, links_to_add)
 
         # Add transparent volume for other render engines
         if volume_output.target == 'EEVEE':
@@ -76,7 +78,7 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
             volume_tree.links.new(transparent.outputs[0], all_output.inputs[0])
 
         # Remove all volume links from the world node tree.
-        for link in world_output.inputs['Volume'].links:
+        for link in world_output.inputs["Volume"].links:
             world_tree.links.remove(link)
 
         collection.objects.link(object)
@@ -89,22 +91,23 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
 
     @staticmethod
     def _world_get(context):
-        if hasattr(context, 'world'):
-            return context.world
+        if world := getattr(context, "world", None):
+            return world
         return context.scene.world
 
-    def __sync_node_input(
-            self,
-            dst_tree: bpy.types.NodeTree,
-            dst_node: bpy.types.Node,
-            dst_socket: bpy.types.NodeSocket,
-            src_node: bpy.types.Node,
-            src_socket: bpy.types.NodeSocket,
-            links_to_add) -> None:
-        self.__sync_rna_properties(dst_socket, src_socket)
+    def _sync_node_input(
+        self,
+        dst_tree,  # bpy.types.NodeTree
+        dst_node,  # bpy.types.Node
+        dst_socket,  # bpy.types.NodeSocket
+        src_node,  # bpy.types.Node
+        src_socket,  # bpy.types.NodeSocket
+        links_to_add,
+    ):  # -> None
+        self._sync_rna_properties(dst_socket, src_socket)
         for src_link in src_socket.links:
             src_linked_node = src_link.from_node
-            dst_linked_node = self.__sync_node(dst_tree, src_linked_node, links_to_add)
+            dst_linked_node = self._sync_node(dst_tree, src_linked_node, links_to_add)
 
             from_socket_index = src_node.outputs.find(src_link.from_socket.name)
             dst_tree.links.new(
@@ -112,7 +115,12 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
                 dst_socket
             )
 
-    def __sync_node(self, dst_tree: bpy.types.NodeTree, src_node: bpy.types.Node, links_to_add) -> bpy.types.Node:
+    def _sync_node(
+        self,
+        dst_tree,  # bpy.types.NodeTree
+        src_node,  # bpy.types.Node
+        links_to_add,
+    ):  # -> bpy.types.Node
         """
         Find the counter part of the src_node in dst_tree. When found return the counter part. When not found
         create the counter part, sync it and return the created node.
@@ -122,32 +130,37 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
 
         dst_node = dst_tree.nodes.new(src_node.bl_idname)
 
-        self.__sync_rna_properties(dst_node, src_node)
-        self.__sync_node_inputs(dst_tree, dst_node, src_node, links_to_add)
+        self._sync_rna_properties(dst_node, src_node)
+        self._sync_node_inputs(dst_tree, dst_node, src_node, links_to_add)
         return dst_node
 
-    def __sync_rna_properties(self, dst, src) -> None:
+    def _sync_rna_properties(self, dst, src):  # -> None
         for rna_prop in src.bl_rna.properties:
             if rna_prop.is_readonly:
                 continue
 
             attr_name = rna_prop.identifier
-            if attr_name in ['bl_idname', 'bl_static_type']:
+            if attr_name in {"bl_idname", "bl_static_type"}:
                 continue
             setattr(dst, attr_name, getattr(src, attr_name))
 
-    def __sync_node_inputs(
-            self,
-            dst_tree: bpy.types.NodeTree,
-            dst_node: bpy.types.Node,
-            src_node: bpy.types.Node,
-            links_to_add) -> None:
+    def _sync_node_inputs(
+        self,
+        dst_tree,  # bpy.types.NodeTree
+        dst_node,  # bpy.types.Node
+        src_node,  # bpy.types.Node
+        links_to_add,
+    ):  # -> None
         for index in range(len(src_node.inputs)):
             src_socket = src_node.inputs[index]
             dst_socket = dst_node.inputs[index]
-            self.__sync_node_input(dst_tree, dst_node, dst_socket, src_node, src_socket, links_to_add)
+            self._sync_node_input(dst_tree, dst_node, dst_socket, src_node, src_socket, links_to_add)
 
-    def __sync_links(self, dst_tree: bpy.types.NodeTree, links_to_add) -> None:
+    def _sync_links(
+        self,
+        dst_tree,  # bpy.types.NodeTree
+        links_to_add,
+    ):  # -> None
         pass
 
 

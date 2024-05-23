@@ -173,7 +173,7 @@ ShadowRayDirectional shadow_ray_generate_directional(
   direction = shadow_ray_above_horizon_ensure(direction, lNg, max_tracing_distance);
 
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
-  direction *= dist_to_near_plane / direction.z;
+  direction *= saturate(dist_to_near_plane / direction.z) + 0.0001;
 
   ShadowRayDirectional ray;
   ray.origin = lP;
@@ -355,7 +355,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
       /* Uniform distribution everywhere. No distance scaling.
        * shadow_directional_level_fractional returns the cascade level, but all levels have the
        * same density as the level 0. So the effective density only depends on the `lod_bias`. */
-      scale = max(exp2(light.lod_bias), exp2(light.lod_min));
+      scale = exp2(float(light_sun_data_get(light).clipmap_lod_min));
     }
   }
   else {

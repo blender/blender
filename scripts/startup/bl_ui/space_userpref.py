@@ -739,6 +739,28 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
         col.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
 
 
+class USERPREF_PT_system_network(SystemPanel, CenterAlignMixIn, Panel):
+    bl_label = "Network"
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        system = prefs.system
+
+        row = layout.row()
+        row.prop(system, "use_online_access", text="Allow Online Access")
+
+        # Show when the preference has been overridden and doesn't match the current preference.
+        runtime_online_access = bpy.app.online_access
+        if system.use_online_access != runtime_online_access:
+            row = layout.split(factor=0.4)
+            row.label(text="")
+            row.label(
+                text="{:s} on startup, overriding the preference.".format(
+                    "Enabled" if runtime_online_access else "Disabled"
+                ),
+            )
+
+
 class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Video Sequencer"
 
@@ -1287,9 +1309,10 @@ class PreferenceThemeSpacePanel:
                     flow.prop(themedata, prop.identifier)
 
     def draw_header(self, _context):
-        if hasattr(self, "icon") and self.icon != 'NONE':
+        icon = getattr(self, "icon", 'NONE')
+        if icon != 'NONE':
             layout = self.layout
-            layout.label(icon=self.icon)
+            layout.label(icon=icon)
 
     def draw(self, context):
         layout = self.layout
@@ -2136,24 +2159,41 @@ class USERPREF_PT_extensions_repos(Panel):
             split.prop(active_repo, "remote_url", text="", icon='URL', placeholder="Repository URL")
             split = row.split()
 
+            if active_repo.use_access_token:
+                access_token_icon = 'LOCKED' if active_repo.access_token else 'UNLOCKED'
+                row = layout.row()
+                split = row.split(factor=0.936)
+                split.prop(active_repo, "access_token", icon=access_token_icon)
+                split = row.split()
+
             layout.prop(active_repo, "use_sync_on_startup")
 
         layout_header, layout_panel = layout.panel("advanced", default_closed=True)
         layout_header.label(text="Advanced")
-        if layout_panel:
-            layout_panel.prop(active_repo, "use_custom_directory")
 
-            row = layout_panel.row()
+        if layout_panel:
+            layout_panel.use_property_split = True
+
+            col = layout_panel.column(align=False, heading="Custom Directory")
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.prop(active_repo, "use_custom_directory", text="")
+            sub = sub.row(align=True)
+            sub.active = active_repo.use_custom_directory
             if active_repo.use_custom_directory:
                 if active_repo.custom_directory == "":
-                    row.alert = True
-                row.prop(active_repo, "custom_directory", text="")
+                    sub.alert = True
+                sub.prop(active_repo, "custom_directory", text="")
             else:
                 # Show the read-only directory property.
                 # Apart from being consistent with the custom directory UI,
                 # prefer a read-only property over a label because this is not necessarily
                 # valid UTF-8 which will raise a Python exception when passed in as text.
-                row.prop(active_repo, "directory", text="")
+                sub.prop(active_repo, "directory", text="")
+
+            if active_repo.use_remote_url:
+                row = layout_panel.row(align=True, heading="Authentication")
+                row.prop(active_repo, "use_access_token")
 
             layout_panel.prop(active_repo, "use_cache")
             layout_panel.separator()
@@ -2811,6 +2851,7 @@ classes = (
     USERPREF_PT_system_os_settings,
     USERPREF_PT_system_memory,
     USERPREF_PT_system_video_sequencer,
+    USERPREF_PT_system_network,
     USERPREF_PT_system_sound,
 
     USERPREF_MT_interface_theme_presets,

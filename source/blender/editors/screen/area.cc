@@ -876,8 +876,7 @@ WorkspaceStatus::WorkspaceStatus(bContext *C)
 
 static constexpr float STATUS_AFTER_TEXT = 0.7f;
 static constexpr float STATUS_BEFORE_TEXT = 0.3f;
-static constexpr float STATUS_MOUSE_ICON_BEFORE = -0.5f;
-static constexpr float STATUS_MOUSE_ICON_AFTER = -0.7f;
+static constexpr float STATUS_MOUSE_ICON_PAD = -0.5f;
 
 static void ed_workspace_status_text_item(WorkSpace *workspace, std::string text)
 {
@@ -895,12 +894,12 @@ static void ed_workspace_status_mouse_item(WorkSpace *workspace,
   if (icon) {
     if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB_DRAG) {
       /* Negative space before all narrow mice icons. */
-      ed_workspace_status_space(workspace, STATUS_MOUSE_ICON_BEFORE);
+      ed_workspace_status_space(workspace, STATUS_MOUSE_ICON_PAD);
     }
     ed_workspace_status_item(workspace, {}, icon, 0.0f, inverted);
     if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB) {
       /* Negative space after non-drag mice icons. */
-      ed_workspace_status_space(workspace, STATUS_MOUSE_ICON_AFTER);
+      ed_workspace_status_space(workspace, STATUS_MOUSE_ICON_PAD);
     }
   }
 }

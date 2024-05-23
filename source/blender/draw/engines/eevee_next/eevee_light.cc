@@ -402,8 +402,8 @@ void LightModule::end_sync()
   auto it_end = light_map_.items().end();
   for (auto it = light_map_.items().begin(); it != it_end; ++it) {
     Light &light = (*it).value;
-
-    if (!light.used) {
+    /* Do not discard casters in baking mode. See WORKAROUND in `surfels_create`. */
+    if (!light.used && !inst_.is_baking()) {
       light_map_.remove(it);
       continue;
     }

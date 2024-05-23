@@ -15,6 +15,8 @@ extern "C" {
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+struct BlendWriter;
+struct BlendReader;
 struct UserDef;
 struct bUserExtensionRepo;
 struct bUserAssetLibrary;
@@ -120,6 +122,11 @@ void BKE_preferences_extension_remote_to_name(const char *remote_url, char name[
 
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
                                              const bUserExtensionRepo *repo);
+
+void BKE_preferences_extension_repo_read_data(struct BlendDataReader *reader,
+                                              bUserExtensionRepo *repo);
+void BKE_preferences_extension_repo_write_data(struct BlendWriter *writer,
+                                               const bUserExtensionRepo *repo);
 
 /** \} */
 

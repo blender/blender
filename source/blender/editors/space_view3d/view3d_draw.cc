@@ -1541,6 +1541,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
      * without setting explicit size, will draw with widgetlabel size. That is probably ideal,
      * but size should be set at the calling site not just carried over from here. */
     BLF_default_size(UI_DEFAULT_TEXT_POINTS);
+    BLF_disable(font_id, BLF_SHADOW);
   }
 
   BLF_batch_draw_end();

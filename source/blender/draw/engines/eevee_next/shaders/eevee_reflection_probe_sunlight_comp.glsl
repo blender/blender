@@ -54,7 +54,8 @@ void main()
     /* Normalize the sum to get the mean direction. The length of the vector gives us the size of
      * the sun light. */
     float len;
-    vec3 direction = normalize_and_get_length(local_direction[0].xyz / local_direction[0].w, len);
+    vec3 direction = safe_normalize_and_get_length(local_direction[0].xyz / local_direction[0].w,
+                                                   len);
 
     mat3x3 tx = transpose(from_up_axis(direction));
     /* Convert to transform. */

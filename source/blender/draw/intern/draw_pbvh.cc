@@ -1136,6 +1136,119 @@ struct PBVHBatches {
     lines_index = GPU_indexbuf_build(&elb_lines);
   }
 
+  void create_tris_from_grids(const PBVH_GPU_Args &args,
+                              int display_gridsize,
+                              GPUIndexBufBuilder &elb,
+                              GPUIndexBufBuilder &elb_lines,
+                              const BitGroupVector<> &grid_hidden,
+                              const int gridsize,
+                              const int skip,
+                              const int totgrid)
+  {
+    uint offset = 0;
+    const uint grid_vert_len = gridsize * gridsize;
+    for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
+      uint v0, v1, v2, v3;
+      bool grid_visible = false;
+
+      const BoundedBitSpan gh = grid_hidden.is_empty() ? BoundedBitSpan() :
+                                                         grid_hidden[args.grid_indices[i]];
+
+      for (int j = 0; j < gridsize - skip; j += skip) {
+        for (int k = 0; k < gridsize - skip; k += skip) {
+          /* Skip hidden grid face */
+          if (!gh.is_empty() && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
+            continue;
+          }
+          /* Indices in a Clockwise QUAD disposition. */
+          v0 = offset + j * gridsize + k;
+          v1 = offset + j * gridsize + k + skip;
+          v2 = offset + (j + skip) * gridsize + k + skip;
+          v3 = offset + (j + skip) * gridsize + k;
+
+          GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
+          GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
+
+          GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
+          GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
+
+          if (j / skip + 2 == display_gridsize) {
+            GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
+          }
+          grid_visible = true;
+        }
+
+        if (grid_visible) {
+          GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+        }
+      }
+    }
+  }
+
+  void create_quads_from_grids(const PBVH_GPU_Args &args,
+                               int display_gridsize,
+                               GPUIndexBufBuilder &elb,
+                               GPUIndexBufBuilder &elb_lines,
+                               const BitGroupVector<> &grid_hidden,
+                               const int gridsize,
+                               const int skip,
+                               const int totgrid)
+  {
+    uint offset = 0;
+    const uint grid_vert_len = square_uint(gridsize - 1) * 4;
+
+    for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
+      bool grid_visible = false;
+      const BoundedBitSpan gh = grid_hidden.is_empty() ? BoundedBitSpan() :
+                                                         grid_hidden[args.grid_indices[i]];
+
+      uint v0, v1, v2, v3;
+      for (int j = 0; j < gridsize - skip; j += skip) {
+        for (int k = 0; k < gridsize - skip; k += skip) {
+          /* Skip hidden grid face */
+          if (!gh.is_empty() && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
+            continue;
+          }
+
+          v0 = (j * (gridsize - 1) + k) * 4;
+
+          if (skip > 1) {
+            v1 = (j * (gridsize - 1) + k + skip - 1) * 4;
+            v2 = ((j + skip - 1) * (gridsize - 1) + k + skip - 1) * 4;
+            v3 = ((j + skip - 1) * (gridsize - 1) + k) * 4;
+          }
+          else {
+            v1 = v2 = v3 = v0;
+          }
+
+          /* VBO data are in a Clockwise QUAD disposition.  Note
+           * that vertices might be in different quads if we're
+           * building a coarse index buffer.
+           */
+          v0 += offset;
+          v1 += offset + 1;
+          v2 += offset + 2;
+          v3 += offset + 3;
+
+          GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
+          GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
+
+          GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
+          GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
+
+          if ((j / skip) + 2 == display_gridsize) {
+            GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
+          }
+          grid_visible = true;
+        }
+
+        if (grid_visible) {
+          GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
+        }
+      }
+    }
+  }
+
   void create_index_grids(const PBVH_GPU_Args &args, bool do_coarse)
   {
     const bke::AttributeAccessor attributes = args.mesh->attributes();
@@ -1200,99 +1313,12 @@ struct PBVHBatches {
                       INT_MAX);
 
     if (needs_tri_index) {
-      uint offset = 0;
-      const uint grid_vert_len = gridsize * gridsize;
-      for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
-        uint v0, v1, v2, v3;
-        bool grid_visible = false;
-
-        const BoundedBitSpan gh = grid_hidden.is_empty() ? BoundedBitSpan() :
-                                                           grid_hidden[args.grid_indices[i]];
-
-        for (int j = 0; j < gridsize - skip; j += skip) {
-          for (int k = 0; k < gridsize - skip; k += skip) {
-            /* Skip hidden grid face */
-            if (!gh.is_empty() && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
-              continue;
-            }
-            /* Indices in a Clockwise QUAD disposition. */
-            v0 = offset + j * gridsize + k;
-            v1 = offset + j * gridsize + k + skip;
-            v2 = offset + (j + skip) * gridsize + k + skip;
-            v3 = offset + (j + skip) * gridsize + k;
-
-            GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
-            GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
-
-            GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
-            GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
-
-            if (j / skip + 2 == display_gridsize) {
-              GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
-            }
-            grid_visible = true;
-          }
-
-          if (grid_visible) {
-            GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
-          }
-        }
-      }
+      create_tris_from_grids(
+          args, display_gridsize, elb, elb_lines, grid_hidden, gridsize, skip, totgrid);
     }
     else {
-      uint offset = 0;
-      const uint grid_vert_len = square_uint(gridsize - 1) * 4;
-
-      for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
-        bool grid_visible = false;
-        const BoundedBitSpan gh = grid_hidden.is_empty() ? BoundedBitSpan() :
-                                                           grid_hidden[args.grid_indices[i]];
-
-        uint v0, v1, v2, v3;
-        for (int j = 0; j < gridsize - skip; j += skip) {
-          for (int k = 0; k < gridsize - skip; k += skip) {
-            /* Skip hidden grid face */
-            if (!gh.is_empty() && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
-              continue;
-            }
-
-            v0 = (j * (gridsize - 1) + k) * 4;
-
-            if (skip > 1) {
-              v1 = (j * (gridsize - 1) + k + skip - 1) * 4;
-              v2 = ((j + skip - 1) * (gridsize - 1) + k + skip - 1) * 4;
-              v3 = ((j + skip - 1) * (gridsize - 1) + k) * 4;
-            }
-            else {
-              v1 = v2 = v3 = v0;
-            }
-
-            /* VBO data are in a Clockwise QUAD disposition.  Note
-             * that vertices might be in different quads if we're
-             * building a coarse index buffer.
-             */
-            v0 += offset;
-            v1 += offset + 1;
-            v2 += offset + 2;
-            v3 += offset + 3;
-
-            GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
-            GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
-
-            GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
-            GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
-
-            if ((j / skip) + 2 == display_gridsize) {
-              GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
-            }
-            grid_visible = true;
-          }
-
-          if (grid_visible) {
-            GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
-          }
-        }
-      }
+      create_quads_from_grids(
+          args, display_gridsize, elb, elb_lines, grid_hidden, gridsize, skip, totgrid);
     }
 
     if (do_coarse) {

@@ -86,7 +86,7 @@ class ParamType {
     return ParamType(InterfaceType::Mutable, DataType::ForVector(base_type));
   }
 
-  DataType data_type() const
+  const DataType &data_type() const
   {
     return data_type_;
   }

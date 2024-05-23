@@ -299,7 +299,7 @@ def extensions_panel_draw_online_extensions_request_impl(
                 "Welcome! Access community-made add-ons and themes from the",
                 "extensions.blender.org repository.",
                 "",
-                "This requires internet access.",
+                "This also requires internet access which must be enabled in \"System\" preferences.",
         ):
             layout_panel.label(text=line)
 

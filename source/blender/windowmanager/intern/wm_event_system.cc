@@ -850,6 +850,7 @@ static eHandlerActionFlag wm_handler_ui_call(bContext *C,
     CTX_wm_region_set(C, handler->context.region);
   }
   if (handler->context.region_popup) {
+    BLI_assert(screen_temp_region_exists(handler->context.region_popup));
     CTX_wm_region_popup_set(C, handler->context.region_popup);
   }
 
@@ -859,6 +860,7 @@ static eHandlerActionFlag wm_handler_ui_call(bContext *C,
   if ((retval != WM_UI_HANDLER_BREAK) || always_pass) {
     CTX_wm_area_set(C, area);
     CTX_wm_region_set(C, region);
+    BLI_assert((region_popup == nullptr) || screen_temp_region_exists(region_popup));
     CTX_wm_region_popup_set(C, region_popup);
   }
   else {
@@ -2228,6 +2230,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
           CTX_wm_region_set(C, handler->context.region);
         }
         if (handler->context.region_popup) {
+          BLI_assert(screen_temp_region_exists(handler->context.region_popup));
           CTX_wm_region_popup_set(C, handler->context.region_popup);
         }
 
@@ -4545,6 +4548,20 @@ void WM_event_modal_handler_region_replace(wmWindow *win,
       if ((handler->context.region == old_region) && (handler->is_fileselect == false)) {
         handler->context.region = new_region;
         handler->context.region_type = new_region ? new_region->regiontype : int(RGN_TYPE_WINDOW);
+      }
+    }
+  }
+}
+
+void WM_event_ui_handler_region_popup_replace(wmWindow *win,
+                                              const ARegion *old_region,
+                                              ARegion *new_region)
+{
+  LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
+    if (handler_base->type == WM_HANDLER_TYPE_UI) {
+      wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
+      if (handler->context.region_popup == old_region) {
+        handler->context.region_popup = new_region;
       }
     }
   }

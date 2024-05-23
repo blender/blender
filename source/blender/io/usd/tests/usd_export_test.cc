@@ -263,9 +263,9 @@ TEST_F(UsdExportTest, usd_export_material)
   }
 
   /* File sanity checks. */
-  EXPECT_EQ(BLI_listbase_count(&bfile->main->objects), 1);
-  /* There are two materials because of the Dots Stroke. */
-  EXPECT_EQ(BLI_listbase_count(&bfile->main->materials), 2);
+  EXPECT_EQ(BLI_listbase_count(&bfile->main->objects), 3);
+  /* There are 4 materials because of the Dots Stroke. */
+  EXPECT_EQ(BLI_listbase_count(&bfile->main->materials), 4);
 
   Material *material = reinterpret_cast<Material *>(
       BKE_libblock_find_name(bfile->main, ID_MA, "Material"));

@@ -27,9 +27,8 @@ class SpaceAssetInfo:
 
     @classmethod
     def get_active_asset(cls, context: Context):
-        if hasattr(context, "active_file"):
-            active_file = context.active_file
-            return active_file.asset_data if active_file else None
+        if active_file := getattr(context, "active_file", None):
+            return active_file.asset_data
 
 
 class AssetBrowserPanel:

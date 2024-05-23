@@ -25,8 +25,10 @@ static void extract_vert_normals_mesh(const MeshRenderData &mr,
   MutableSpan loose_edge_data = vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2);
   MutableSpan loose_vert_data = vbo_data.take_back(mr.loose_verts.size());
 
-  Array<GPUPackedNormal> converted(mr.vert_normals.size());
-  convert_normals(mr.vert_normals, converted.as_mutable_span());
+  const Span<float3> vert_normals = mr.mesh->vert_normals();
+
+  Array<GPUPackedNormal> converted(vert_normals.size());
+  convert_normals(vert_normals, converted.as_mutable_span());
   array_utils::gather(converted.as_span(), mr.corner_verts, corners_data);
   extract_mesh_loose_edge_data(converted.as_span(), mr.edges, mr.loose_edges, loose_edge_data);
   array_utils::gather(converted.as_span(), mr.loose_verts, loose_vert_data);

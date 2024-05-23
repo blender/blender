@@ -88,6 +88,9 @@ watch_test_cli_blender: FORCE
 		tput clear; \
 	done
 
+test_path_pattern_match: FORCE
+	@env --chdir="$(BASE_DIR)" \
+	    $(PYTHON_BIN) ./tests/test_path_pattern_match.py
 
 # https://www.cyberciti.biz/faq/howto-create-linux-ram-disk-filesystem/
 # mkfs -q /dev/ram1 8192
@@ -100,6 +103,14 @@ watch_test: FORCE
 	@cd "$(BASE_DIR)" && \
 	while true; do \
 		$(MAKE) test; \
+		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
+		tput clear; \
+	done
+
+watch_test_path_pattern_match: FORCE
+	@cd "$(BASE_DIR)" && \
+	while true; do \
+		$(MAKE) test_path_pattern_match; \
 		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
 		tput clear; \
 	done
