@@ -338,17 +338,17 @@ vec3 shadow_pcf_offset(vec3 L, vec3 Ng, vec2 random)
  */
 float shadow_texel_radius_at_position(LightData light, const bool is_directional, vec3 P)
 {
-  vec3 lP = light_world_to_local_point(light, P);
-
   float scale = 1.0;
   if (is_directional) {
+    vec3 lP = light_world_to_local_point(light, P);
+    lP -= light_position_get(light);
     LightSunData sun = light_sun_data_get(light);
     if (light.type == LIGHT_SUN) {
       /* Simplification of `coverage_get(shadow_directional_level_fractional)`. */
       const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001);
       scale = length(lP) * narrowing;
       scale = max(scale * exp2(light.lod_bias), exp2(light.lod_min));
-      scale = min(scale, float(1 << sun.clipmap_lod_max));
+      scale = min(scale, exp2(float(sun.clipmap_lod_max)));
     }
     else {
       /* Uniform distribution everywhere. No distance scaling.
@@ -358,6 +358,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
     }
   }
   else {
+    vec3 lP = light_world_to_local_point(light, P);
     lP -= light_local_data_get(light).shadow_position;
     /* Simplification of `exp2(shadow_punctual_level_fractional)`. */
     scale = shadow_punctual_pixel_ratio(light,
