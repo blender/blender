@@ -56,6 +56,7 @@ jobs:
           lfs: true
 
       - name: Update and Build
+        shell: cmd
         run: |
           make update
           make
