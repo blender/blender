@@ -1822,6 +1822,45 @@ static void node_join_attach_recursive(bNodeTree &ntree,
   }
 }
 
+static Vector<const bNode *> get_sorted_node_parents(const bNode &node)
+{
+  Vector<const bNode *> parents;
+  for (const bNode *parent = node.parent; parent; parent = parent->parent) {
+    parents.append(parent);
+  }
+  /* Reverse so that the root frame is the first element (if there is any). */
+  std::reverse(parents.begin(), parents.end());
+  return parents;
+}
+
+static const bNode *find_common_parent_node(const Span<const bNode *> nodes)
+{
+  if (nodes.is_empty()) {
+    return nullptr;
+  }
+  /* The common parent node also has to be a parent of the first node. */
+  Vector<const bNode *> candidates = get_sorted_node_parents(*nodes[0]);
+  for (const bNode *node : nodes.drop_front(1)) {
+    const Vector<const bNode *> parents = get_sorted_node_parents(*node);
+    /* Possibly shrink set of candidates so that it only contains the parents common with the
+     * current node. */
+    candidates.resize(std::min(candidates.size(), parents.size()));
+    for (const int i : candidates.index_range()) {
+      if (candidates[i] != parents[i]) {
+        candidates.resize(i);
+        break;
+      }
+    }
+    if (candidates.is_empty()) {
+      break;
+    }
+  }
+  if (candidates.is_empty()) {
+    return nullptr;
+  }
+  return candidates.last();
+}
+
 static int node_join_exec(bContext *C, wmOperator * /*op*/)
 {
   Main &bmain = *CTX_data_main(C);
@@ -1832,6 +1871,7 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
 
   bNode *frame_node = bke::nodeAddStaticNode(C, &ntree, NODE_FRAME);
   bke::nodeSetActive(&ntree, frame_node);
+  frame_node->parent = const_cast<bNode *>(find_common_parent_node(selected_nodes.as_span()));
 
   ntree.ensure_topology_cache();
 
