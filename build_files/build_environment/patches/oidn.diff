@@ -73,3 +73,13 @@ index ae14ced..a49e131 100644
      else
        return HIPArch::Unknown;
    }
+--- a/devices/cpu/cpu_engine.h
++++ b/devices/cpu/cpu_engine.h
+@@ -7,5 +7,7 @@
+ #include "cpu_device.h"
+ #include <queue>
+ #include <condition_variable>
++// BLENDER: needed for building on Linux.
++#include <thread>
+
+ OIDN_NAMESPACE_BEGIN
