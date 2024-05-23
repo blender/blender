@@ -1508,10 +1508,6 @@ uiBut *uiDefIconMenuBut(uiBlock *block,
                         short height,
                         const char *tip);
 
-/**
- * Note that \a fun can set the #UI_BLOCK_KEEP_OPEN flag to the block it creates, to allow
- * refreshing the popup. That is, redrawing the layout, potentially affecting the popup size.
- */
 uiBut *uiDefBlockBut(uiBlock *block,
                      uiBlockCreateFunc func,
                      void *arg,

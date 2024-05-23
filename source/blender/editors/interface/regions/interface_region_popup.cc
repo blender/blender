@@ -926,10 +926,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
     CTX_wm_region_popup_set(C, region_popup_prev);
   }
 
-  if (block->flag & UI_BLOCK_KEEP_OPEN) {
-    handle->can_refresh = true;
-  }
-
   /* keep centered on window resizing */
   if (block->bounds_type == UI_BLOCK_BOUNDS_POPUP_CENTER) {
     type.listener = ui_block_region_popup_window_listener;
