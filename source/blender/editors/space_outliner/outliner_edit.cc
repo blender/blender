@@ -44,6 +44,7 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
+#include "BKE_screen.hh"
 #include "BKE_workspace.hh"
 
 #include "DEG_depsgraph.hh"
@@ -1239,6 +1240,54 @@ void OUTLINER_OT_select_all(wmOperatorType *ot)
 
   /* rna */
   WM_operator_properties_select_all(ot);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Start / Clear Search Filter Operators
+ * \{ */
+
+static int outliner_start_filter_exec(bContext *C, wmOperator * /*op*/)
+{
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+  UI_textbutton_activate_rna(C, region, space_outliner, "filter_text");
+
+  return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_start_filter(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Filter";
+  ot->description = "Start entering filter text";
+  ot->idname = "OUTLINER_OT_start_filter";
+
+  /* Callbacks. */
+  ot->exec = outliner_start_filter_exec;
+  ot->poll = ED_operator_outliner_active;
+}
+
+static int outliner_clear_filter_exec(bContext *C, wmOperator * /*op*/)
+{
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  space_outliner->search_string[0] = '\0';
+  ED_area_tag_redraw(CTX_wm_area(C));
+  return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_clear_filter(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Clear Filter";
+  ot->description = "Clear the search filter";
+  ot->idname = "OUTLINER_OT_clear_filter";
+
+  /* Callbacks. */
+  ot->exec = outliner_clear_filter_exec;
+  ot->poll = ED_operator_outliner_active;
 }
 
 /** \} */
