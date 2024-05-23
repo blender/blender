@@ -139,7 +139,7 @@ void ShadingView::render()
 
   inst_.gbuffer.release();
 
-  inst_.volume.draw_compute(main_view_);
+  inst_.volume.draw_compute(main_view_, extent_);
 
   // inst_.lookdev.render_overlay(view_fb_);
 
