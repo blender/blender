@@ -397,6 +397,11 @@ static int reuse_editable_asset_bmain_data_dependencies_process_cb(
     return IDWALK_RET_NOP;
   }
 
+  if (GS(id->name) == ID_LI) {
+    /* Libraries are handled separately. */
+    return IDWALK_RET_STOP_RECURSION;
+  }
+
   ReuseOldBMainData *reuse_data = static_cast<ReuseOldBMainData *>(cb_data->user_data);
 
   /* First check if it has already been remapped. */
