@@ -44,6 +44,9 @@ VKContext::~VKContext()
     GPU_texture_free(surface_texture_);
     surface_texture_ = nullptr;
   }
+  if (use_render_graph) {
+    render_graph.free_data();
+  }
   VKBackend::get().device_.context_unregister(*this);
 
   delete imm;
@@ -119,8 +122,10 @@ void VKContext::begin_frame() {}
 
 void VKContext::end_frame()
 {
-  VKDevice &device = VKBackend::get().device_get();
-  device.destroy_discarded_resources();
+  if (!use_render_graph) {
+    VKDevice &device = VKBackend::get().device_get();
+    device.destroy_discarded_resources();
+  }
 }
 
 void VKContext::flush()
@@ -312,45 +317,68 @@ void VKContext::swap_buffers_post_callback()
 
 void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
-  /*
-   * Ensure no graphics/compute commands are scheduled. They could use the back buffer, which
-   * layout is altered here.
-   */
-  command_buffers_get().submit();
-
   VKFrameBuffer &framebuffer = *unwrap(back_left);
-
-  VKTexture wrapper("display_texture");
-  wrapper.init(swap_chain_data.image,
-               VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-               to_gpu_format(swap_chain_data.format));
-  wrapper.layout_ensure(*this, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  framebuffer.color_attachment_layout_ensure(*this, 0, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
 
-  VkImageBlit image_blit = {};
-  image_blit.srcOffsets[0] = {0, color_attachment->height_get() - 1, 0};
-  image_blit.srcOffsets[1] = {color_attachment->width_get(), 0, 1};
-  image_blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  image_blit.srcSubresource.mipLevel = 0;
-  image_blit.srcSubresource.baseArrayLayer = 0;
-  image_blit.srcSubresource.layerCount = 1;
+  render_graph::VKBlitImageNode::CreateInfo blit_image = {};
+  blit_image.src_image = color_attachment->vk_image_handle();
+  blit_image.dst_image = swap_chain_data.image;
+  blit_image.filter = VK_FILTER_NEAREST;
 
-  image_blit.dstOffsets[0] = {0, 0, 0};
-  image_blit.dstOffsets[1] = {
+  VkImageBlit &region = blit_image.region;
+  region.srcOffsets[0] = {0, color_attachment->height_get() - 1, 0};
+  region.srcOffsets[1] = {color_attachment->width_get(), 0, 1};
+  region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  region.srcSubresource.mipLevel = 0;
+  region.srcSubresource.baseArrayLayer = 0;
+  region.srcSubresource.layerCount = 1;
+
+  region.dstOffsets[0] = {0, 0, 0};
+  region.dstOffsets[1] = {
       int32_t(swap_chain_data.extent.width), int32_t(swap_chain_data.extent.height), 1};
-  image_blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  image_blit.dstSubresource.mipLevel = 0;
-  image_blit.dstSubresource.baseArrayLayer = 0;
-  image_blit.dstSubresource.layerCount = 1;
+  region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  region.dstSubresource.mipLevel = 0;
+  region.dstSubresource.baseArrayLayer = 0;
+  region.dstSubresource.layerCount = 1;
 
-  command_buffers_get().blit(wrapper,
-                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                             *color_attachment,
-                             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                             Span<VkImageBlit>(&image_blit, 1));
-  wrapper.layout_ensure(*this, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-  command_buffers_get().submit();
+  if (use_render_graph) {
+    /* Swap chain commands are CPU synchronized at this moment, allowing to temporary add the swap
+     * chain image as device resources. When we move towards GPU swap chain synchronization we need
+     * to keep track of the swap chain image between frames. */
+    VKDevice &device = VKBackend::get().device_get();
+    device.resources.add_image(swap_chain_data.image,
+                               VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                               render_graph::ResourceOwner::SWAP_CHAIN);
+
+    framebuffer.rendering_end(*this);
+    render_graph.add_node(blit_image);
+    render_graph.submit_for_present(swap_chain_data.image);
+
+    device.resources.remove_image(swap_chain_data.image);
+    device.destroy_discarded_resources();
+  }
+  else {
+    /*
+     * Ensure no graphics/compute commands are scheduled. They could use the back buffer, which
+     * layout is altered here.
+     */
+    command_buffers_get().submit();
+
+    VKTexture wrapper("display_texture");
+    wrapper.init(swap_chain_data.image,
+                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                 to_gpu_format(swap_chain_data.format));
+    wrapper.layout_ensure(*this, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    framebuffer.color_attachment_layout_ensure(*this, 0, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+    command_buffers_get().blit(wrapper,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               *color_attachment,
+                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                               Span<VkImageBlit>(&region, 1));
+    wrapper.layout_ensure(*this, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    command_buffers_get().submit();
+  }
 }
 
 void VKContext::swap_buffers_post_handler()
