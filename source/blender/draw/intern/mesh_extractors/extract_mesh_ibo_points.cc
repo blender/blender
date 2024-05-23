@@ -131,8 +131,7 @@ static void process_ibo_verts_bm(const MeshRenderData &mr, const Fn &process_ver
   const Span<int> loose_verts = mr.loose_verts;
   threading::parallel_for(loose_verts.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
-      process_vert_fn(loose_verts_start + i,
-                      BM_elem_index_get(BM_vert_at_index(&bm, loose_verts[i])));
+      process_vert_fn(loose_verts_start + i, loose_verts[i]);
     }
   });
 }
