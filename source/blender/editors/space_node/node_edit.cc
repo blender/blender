@@ -1283,6 +1283,9 @@ float node_link_dim_factor(const View2D &v2d, const bNodeLink &link)
   if (link.fromsock == nullptr || link.tosock == nullptr) {
     return 1.0f;
   }
+  if (link.flag & NODE_LINK_INSERT_TARGET_INVALID) {
+    return 0.2f;
+  }
 
   const float2 from = link.fromsock->runtime->location;
   const float2 to = link.tosock->runtime->location;

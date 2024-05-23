@@ -627,6 +627,11 @@ enum {
   NODE_LINK_TEMP_HIGHLIGHT = 1 << 3,
   /** Link is muted. */
   NODE_LINK_MUTED = 1 << 4,
+  /**
+   * The dragged node would be inserted here, but this link is ignored because it's not compatible
+   * with the node.
+   */
+  NODE_LINK_INSERT_TARGET_INVALID = 1 << 5,
 };
 
 typedef struct bNestedNodePath {

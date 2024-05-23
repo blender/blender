@@ -27,7 +27,7 @@ namespace blender::ed::space_node {
 
 VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree);
 
-void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region);
+void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region, bool attach_enabled);
 
 /**
  * Assumes link with #NODE_LINK_INSERT_TARGET set.
