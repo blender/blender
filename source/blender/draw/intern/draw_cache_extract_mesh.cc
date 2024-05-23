@@ -528,10 +528,12 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   const eMRIterType iter_type = update_task_data->iter_type;
   const eMRDataType data_flag = update_task_data->data_flag;
 
-  const bool request_face_normals = DRW_vbo_requested(update_task_data->cache->buff.vbo.nor) ||
+  MeshBufferList &buffers = update_task_data->cache->buff;
+
+  const bool request_face_normals = DRW_vbo_requested(buffers.vbo.nor) ||
                                     (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR |
                                                   MR_DATA_TAN_LOOP_NOR)) != 0;
-  const bool request_corner_normals = DRW_vbo_requested(update_task_data->cache->buff.vbo.nor) ||
+  const bool request_corner_normals = DRW_vbo_requested(buffers.vbo.nor) ||
                                       (data_flag & MR_DATA_LOOP_NOR) != 0;
   const bool force_corner_normals = (data_flag & MR_DATA_TAN_LOOP_NOR) != 0;
 
@@ -542,7 +544,15 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
     mesh_render_data_update_corner_normals(mr);
   }
 
-  mesh_render_data_update_loose_geom(mr, *update_task_data->cache, iter_type, data_flag);
+  const bool calc_loose_geom = DRW_ibo_requested(buffers.ibo.lines) ||
+                               DRW_ibo_requested(buffers.ibo.lines_loose) ||
+                               DRW_ibo_requested(buffers.ibo.points) ||
+                               (iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) ||
+                               (data_flag & MR_DATA_LOOSE_GEOM);
+
+  if (calc_loose_geom) {
+    mesh_render_data_update_loose_geom(mr, *update_task_data->cache);
+  }
 }
 
 static TaskNode *mesh_extract_render_data_node_create(TaskGraph *task_graph,
@@ -917,8 +927,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   }
 
   mesh_render_data_update_corner_normals(mr);
-  mesh_render_data_update_loose_geom(
-      mr, mbc, MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT, MR_DATA_LOOSE_GEOM);
+  mesh_render_data_update_loose_geom(mr, mbc);
   DRW_subdivide_loose_geom(subdiv_cache, mbc);
 
   if (DRW_vbo_requested(buffers.vbo.pos) || DRW_vbo_requested(buffers.vbo.orco)) {

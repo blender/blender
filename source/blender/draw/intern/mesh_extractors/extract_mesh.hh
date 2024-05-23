@@ -290,10 +290,7 @@ MeshRenderData *mesh_render_data_create(Object &object,
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_corner_normals(MeshRenderData &mr);
 void mesh_render_data_update_face_normals(MeshRenderData &mr);
-void mesh_render_data_update_loose_geom(MeshRenderData &mr,
-                                        MeshBufferCache &cache,
-                                        eMRIterType iter_type,
-                                        eMRDataType data_flag);
+void mesh_render_data_update_loose_geom(MeshRenderData &mr, MeshBufferCache &cache);
 const SortedFaceData &mesh_render_data_faces_sorted_ensure(const MeshRenderData &mr,
                                                            MeshBufferCache &cache);
 

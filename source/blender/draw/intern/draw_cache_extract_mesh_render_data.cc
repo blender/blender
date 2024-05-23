@@ -144,21 +144,15 @@ static void mesh_render_data_loose_geom_ensure(const MeshRenderData &mr, MeshBuf
   mesh_render_data_loose_geom_build(mr, cache);
 }
 
-void mesh_render_data_update_loose_geom(MeshRenderData &mr,
-                                        MeshBufferCache &cache,
-                                        const eMRIterType iter_type,
-                                        const eMRDataType data_flag)
+void mesh_render_data_update_loose_geom(MeshRenderData &mr, MeshBufferCache &cache)
 {
-  if ((iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) || (data_flag & MR_DATA_LOOSE_GEOM))
-  {
-    mesh_render_data_loose_geom_ensure(mr, cache);
-    mr.loose_edges = cache.loose_geom.edges;
-    mr.loose_verts = cache.loose_geom.verts;
-    mr.loose_verts_num = cache.loose_geom.verts.size();
-    mr.loose_edges_num = cache.loose_geom.edges.size();
+  mesh_render_data_loose_geom_ensure(mr, cache);
+  mr.loose_edges = cache.loose_geom.edges;
+  mr.loose_verts = cache.loose_geom.verts;
+  mr.loose_verts_num = cache.loose_geom.verts.size();
+  mr.loose_edges_num = cache.loose_geom.edges.size();
 
-    mr.loose_indices_num = mr.loose_verts_num + (mr.loose_edges_num * 2);
-  }
+  mr.loose_indices_num = mr.loose_verts_num + (mr.loose_edges_num * 2);
 }
 
 /** \} */
