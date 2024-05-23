@@ -7,7 +7,7 @@ env:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - name: Install Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
@@ -48,7 +48,7 @@ jobs:
           make
 
   build-windows:
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Download Sources
         uses: actions/checkout@v3
