@@ -33,7 +33,12 @@ void VKIndexBuffer::ensure_updated()
   VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
   staging_buffer.host_buffer_get().update(data_);
   staging_buffer.copy_to_device(context);
-  MEM_SAFE_FREE(data_);
+  if (reference_data_) {
+    data_ = nullptr;
+  }
+  else {
+    MEM_SAFE_FREE(data_);
+  }
 }
 
 void VKIndexBuffer::upload_data()

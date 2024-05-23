@@ -23,7 +23,14 @@ static void extract_tris_mesh(const MeshRenderData &mr,
   const Span<int3> corner_tris = mr.mesh->corner_tris();
   if (!face_sorted.face_tri_offsets) {
     /* There are no hidden faces and no reordering is necessary to group triangles with the same
-     * material. The corner indices from #Mesh::corner_tris() can be copied directly to the GPU. */
+     * material. The corner indices from #Mesh::corner_tris() can be copied directly to the GPU
+     * without the usual CPU-side copy owned by the index buffer. Crucially, this assumes that the
+     * data is uploaded to the GPU *before* the dependency graph's evaluated state is cleared (and
+     * with it, the evaluated mesh's triangulation data).
+     *
+     * Eventually these local copies should be completely removed, and code should write directly
+     * to GPU memory, but even then it could be helpful to know that the data already exists
+     * contiguously, owned elsewhere by Blender. */
     BLI_assert(face_sorted.visible_tris_num == corner_tris.size());
     GPU_indexbuf_build_in_place_from_memory(&ibo,
                                             GPU_PRIM_TRIS,

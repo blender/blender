@@ -315,13 +315,15 @@ void IndexBuf::init(uint indices_len,
                     uint min_index,
                     uint max_index,
                     GPUPrimType prim_type,
-                    bool uses_restart_indices)
+                    bool uses_restart_indices,
+                    bool reference_data)
 {
   is_init_ = true;
   data_ = indices;
   index_start_ = 0;
   index_len_ = indices_len;
   is_empty_ = min_index > max_index;
+  reference_data_ = reference_data;
 
   /* Patch index buffer to remove restart indices from
    * non-restart-compatible primitive types. Restart indices
@@ -492,7 +494,8 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, IndexBuf *elem)
              builder->index_min,
              builder->index_max,
              builder->prim_type,
-             builder->uses_restart_indices);
+             builder->uses_restart_indices,
+             false);
   builder->data = nullptr;
 }
 
@@ -510,7 +513,8 @@ void GPU_indexbuf_build_in_place_ex(GPUIndexBufBuilder *builder,
              index_min,
              index_max,
              builder->prim_type,
-             uses_restart_indices);
+             uses_restart_indices,
+             false);
   builder->data = nullptr;
 }
 
@@ -522,15 +526,16 @@ void GPU_indexbuf_build_in_place_from_memory(IndexBuf *ibo,
                                              const int32_t index_max,
                                              const bool uses_restart_indices)
 {
+  /* If restart indices are used, they need to be stripped on Metal which would require a copy. */
+  BLI_assert(!uses_restart_indices);
   const uint32_t indices_num = data_len * indices_per_primitive(prim_type);
-  /* TODO: The need for this copy is meant to be temporary. The data should be uploaded directly to
-   * the GPU here rather than copied to an array owned by the IBO first. */
-  uint32_t *copy = static_cast<uint32_t *>(
-      MEM_malloc_arrayN(indices_num, sizeof(uint32_t), __func__));
-  threading::memory_bandwidth_bound_task(sizeof(uint32_t) * indices_num * 2, [&]() {
-    array_utils::copy(Span(data, indices_num), MutableSpan(copy, indices_num));
-  });
-  ibo->init(indices_num, copy, index_min, index_max, prim_type, uses_restart_indices);
+  ibo->init(indices_num,
+            const_cast<uint32_t *>(data),
+            index_min,
+            index_max,
+            prim_type,
+            uses_restart_indices,
+            true);
 }
 
 void GPU_indexbuf_create_subrange_in_place(IndexBuf *elem,
