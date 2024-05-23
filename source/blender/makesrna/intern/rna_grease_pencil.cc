@@ -18,6 +18,12 @@
 
 #include "WM_api.hh"
 
+const EnumPropertyItem rna_enum_tree_node_move_type_items[] = {
+    {-1, "DOWN", 0, "Down", ""},
+    {1, "UP", 0, "Up", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
@@ -25,6 +31,7 @@
 #  include "BKE_attribute.hh"
 #  include "BKE_grease_pencil.hh"
 
+#  include "BLI_math_matrix.hh"
 #  include "BLI_span.hh"
 
 #  include "DEG_depsgraph.hh"
@@ -218,6 +225,232 @@ static void rna_GreasePencilLayer_pass_index_set(PointerRNA *ptr, int value)
   layer_passes.finish();
 }
 
+static void rna_GreasePencilLayer_matrix_local_get(PointerRNA *ptr, float *values)
+{
+  const blender::bke::greasepencil::Layer &layer =
+      static_cast<const GreasePencilLayer *>(ptr->data)->wrap();
+  std::copy_n(layer.local_transform().base_ptr(), 16, values);
+}
+
+static void rna_GreasePencilLayer_matrix_parent_inverse_get(PointerRNA *ptr, float *values)
+{
+  const blender::bke::greasepencil::Layer &layer =
+      static_cast<const GreasePencilLayer *>(ptr->data)->wrap();
+  std::copy_n(layer.parent_inverse().base_ptr(), 16, values);
+}
+
+static PointerRNA rna_GreasePencilLayer_parent_layer_group_get(PointerRNA *ptr)
+{
+  blender::bke::greasepencil::Layer &layer = static_cast<GreasePencilLayer *>(ptr->data)->wrap();
+  blender::bke::greasepencil::LayerGroup *layer_group = &layer.parent_group();
+  /* Return None when layer is in the root group. */
+  if (!layer_group->as_node().parent_group()) {
+    return PointerRNA_NULL;
+  }
+  return rna_pointer_inherit_refine(
+      ptr, &RNA_GreasePencilLayerGroup, static_cast<void *>(layer_group));
+}
+
+static PointerRNA rna_GreasePencil_layer_group_new(GreasePencil *grease_pencil,
+                                                   const char *name,
+                                                   PointerRNA *parent_group_ptr)
+{
+  using namespace blender::bke::greasepencil;
+  LayerGroup *parent_group;
+  if (parent_group_ptr && parent_group_ptr->data) {
+    parent_group = static_cast<LayerGroup *>(parent_group_ptr->data);
+  }
+  else {
+    parent_group = &grease_pencil->root_group();
+  }
+  LayerGroup *new_layer_group = &grease_pencil->add_layer_group(*parent_group, name);
+
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+
+  PointerRNA ptr = RNA_pointer_create(
+      &grease_pencil->id, &RNA_GreasePencilLayerGroup, new_layer_group);
+  return ptr;
+}
+
+static void rna_GreasePencil_layer_group_remove(GreasePencil *grease_pencil,
+                                                PointerRNA *layer_group_ptr,
+                                                bool keep_children)
+{
+  using namespace blender::bke::greasepencil;
+  LayerGroup &layer_group = *static_cast<LayerGroup *>(layer_group_ptr->data);
+  grease_pencil->remove_group(layer_group, keep_children);
+
+  RNA_POINTER_INVALIDATE(layer_group_ptr);
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_SELECTED, grease_pencil);
+}
+
+static void rna_GreasePencil_layer_group_move(GreasePencil *grease_pencil,
+                                              PointerRNA *layer_group_ptr,
+                                              int direction)
+{
+  if (direction == 0) {
+    return;
+  }
+
+  blender::bke::greasepencil::TreeNode &layer_group_node =
+      static_cast<blender::bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
+  switch (direction) {
+    case -1:
+      grease_pencil->move_node_down(layer_group_node, 1);
+      break;
+    case 1:
+      grease_pencil->move_node_up(layer_group_node, 1);
+      break;
+  }
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+}
+
+static void rna_GreasePencil_layer_group_move_top(GreasePencil *grease_pencil,
+                                                  PointerRNA *layer_group_ptr)
+{
+  blender::bke::greasepencil::TreeNode &layer_group_node =
+      static_cast<blender::bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
+  grease_pencil->move_node_top(layer_group_node);
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+}
+
+static void rna_GreasePencil_layer_group_move_bottom(GreasePencil *grease_pencil,
+                                                     PointerRNA *layer_group_ptr)
+{
+  blender::bke::greasepencil::TreeNode &layer_group_node =
+      static_cast<blender::bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
+  grease_pencil->move_node_bottom(layer_group_node);
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+}
+
+static void rna_GreasePencil_layer_group_move_to_layer_group(GreasePencil *grease_pencil,
+                                                             PointerRNA *layer_group_ptr,
+                                                             PointerRNA *parent_group_ptr)
+{
+  using namespace blender::bke::greasepencil;
+  TreeNode &layer_group_node = static_cast<LayerGroup *>(layer_group_ptr->data)->as_node();
+  LayerGroup *parent_group;
+  if (parent_group_ptr && parent_group_ptr->data) {
+    parent_group = static_cast<LayerGroup *>(parent_group_ptr->data);
+  }
+  else {
+    parent_group = &grease_pencil->root_group();
+  }
+  grease_pencil->move_node_into(layer_group_node, *parent_group);
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+}
+
+static GreasePencilLayer *rna_GreasePencil_layer_new(GreasePencil *grease_pencil,
+                                                     const char *name,
+                                                     const bool set_active,
+                                                     PointerRNA *layer_group_ptr)
+{
+  using namespace blender::bke::greasepencil;
+  LayerGroup *layer_group = nullptr;
+  if (layer_group_ptr && layer_group_ptr->data) {
+    layer_group = static_cast<LayerGroup *>(layer_group_ptr->data);
+  }
+  Layer *layer;
+  if (layer_group) {
+    layer = &grease_pencil->add_layer(*layer_group, name);
+  }
+  else {
+    layer = &grease_pencil->add_layer(name);
+  }
+  if (set_active) {
+    grease_pencil->set_active_layer(layer);
+  }
+
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+
+  return layer;
+}
+
+static void rna_GreasePencil_layer_remove(GreasePencil *grease_pencil, PointerRNA *layer_ptr)
+{
+  blender::bke::greasepencil::Layer &layer = *static_cast<blender::bke::greasepencil::Layer *>(
+      layer_ptr->data);
+  grease_pencil->remove_layer(layer);
+
+  RNA_POINTER_INVALIDATE(layer_ptr);
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_SELECTED, grease_pencil);
+}
+
+static void rna_GreasePencil_layer_move(GreasePencil *grease_pencil,
+                                        PointerRNA *layer_ptr,
+                                        const int direction)
+{
+  if (direction == 0) {
+    return;
+  }
+
+  blender::bke::greasepencil::TreeNode &layer_node =
+      static_cast<blender::bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
+  switch (direction) {
+    case -1:
+      grease_pencil->move_node_down(layer_node, 1);
+      break;
+    case 1:
+      grease_pencil->move_node_up(layer_node, 1);
+      break;
+  }
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+}
+
+static void rna_GreasePencil_layer_move_top(GreasePencil *grease_pencil, PointerRNA *layer_ptr)
+{
+  blender::bke::greasepencil::TreeNode &layer_node =
+      static_cast<blender::bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
+  grease_pencil->move_node_top(layer_node);
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+}
+
+static void rna_GreasePencil_layer_move_bottom(GreasePencil *grease_pencil, PointerRNA *layer_ptr)
+{
+  blender::bke::greasepencil::TreeNode &layer_node =
+      static_cast<blender::bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
+  grease_pencil->move_node_bottom(layer_node);
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+}
+
+static void rna_GreasePencil_layer_move_to_layer_group(GreasePencil *grease_pencil,
+                                                       PointerRNA *layer_ptr,
+                                                       PointerRNA *layer_group_ptr)
+{
+  using namespace blender::bke::greasepencil;
+  TreeNode &layer_node = static_cast<Layer *>(layer_ptr->data)->as_node();
+  LayerGroup *layer_group;
+  if (layer_group_ptr && layer_group_ptr->data) {
+    layer_group = static_cast<LayerGroup *>(layer_group_ptr->data);
+  }
+  else {
+    layer_group = &grease_pencil->root_group();
+  }
+  if (layer_group == nullptr) {
+    return;
+  }
+  grease_pencil->move_node_into(layer_node, *layer_group);
+
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
+}
+
 static PointerRNA rna_GreasePencil_active_layer_get(PointerRNA *ptr)
 {
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
@@ -234,7 +467,18 @@ static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
 {
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
   grease_pencil->set_active_layer(static_cast<blender::bke::greasepencil::Layer *>(value.data));
-  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED | NA_SELECTED, grease_pencil);
+}
+
+static void rna_GreasePencil_active_layer_index_range(
+    PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+{
+  GreasePencil *grease_pencil = rna_grease_pencil(ptr);
+  *min = 0;
+  *max = std::max(0, int(grease_pencil->layers().size() - 1));
+
+  *softmin = *min;
+  *softmax = *max;
 }
 
 static PointerRNA rna_GreasePencil_active_group_get(PointerRNA *ptr)
@@ -256,7 +500,7 @@ static void rna_GreasePencil_active_group_set(PointerRNA *ptr,
   TreeNode *node = static_cast<TreeNode *>(value.data);
   if (node->is_group()) {
     grease_pencil->set_active_node(node);
-    WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
+    WM_main_add_notifier(NC_GPENCIL | NA_EDITED | NA_SELECTED, grease_pencil);
   }
 }
 
@@ -415,6 +659,22 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       prop, "Locked", "Protect layer from further editing and/or frame changes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
+  /* Select. */
+  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_SELECT);
+  RNA_def_property_ui_text(prop, "Select", "Layer is selected for editing in the Dope Sheet");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  /* Lock Frame. */
+  prop = RNA_def_property(srna, "lock_frame", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_MUTE);
+  RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Frame Locked", "Lock current frame displayed by layer");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
   /* Opacity */
   prop = RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, "GreasePencilLayer", "opacity");
@@ -511,6 +771,31 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_layer_blend_modes_items);
   RNA_def_property_ui_text(prop, "Blend Mode", "Blend mode");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  /* Local transformation matrix. */
+  prop = RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
+  RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Local Matrix", "Local transformation matrix of the layer");
+  RNA_def_property_float_funcs(prop, "rna_GreasePencilLayer_matrix_local_get", nullptr, nullptr);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  /* Inverse transform of layer's parent. */
+  prop = RNA_def_property(srna, "matrix_parent_inverse", PROP_FLOAT, PROP_MATRIX);
+  RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "Inverse Parent Matrix", "Inverse of layer's parent transformation matrix");
+  RNA_def_property_float_funcs(
+      prop, "rna_GreasePencilLayer_matrix_parent_inverse_get", nullptr, nullptr);
+
+  /* Parent layer group. */
+  prop = RNA_def_property(srna, "parent_group", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "GreasePencilLayerGroup");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_GreasePencilLayer_parent_layer_group_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(
+      prop, "Parent Layer Group", "The parent layer group this layer is part of");
 }
 
 static void rna_def_grease_pencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
@@ -518,10 +803,74 @@ static void rna_def_grease_pencil_layers_api(BlenderRNA *brna, PropertyRNA *cpro
   StructRNA *srna;
   PropertyRNA *prop;
 
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
   RNA_def_property_srna(cprop, "GreasePencilv3Layers");
   srna = RNA_def_struct(brna, "GreasePencilv3Layers", nullptr);
   RNA_def_struct_sdna(srna, "GreasePencil");
   RNA_def_struct_ui_text(srna, "Grease Pencil Layers", "Collection of Grease Pencil layers");
+
+  func = RNA_def_function(srna, "new", "rna_GreasePencil_layer_new");
+  RNA_def_function_ui_description(func, "Add a new Grease Pencil layer");
+  parm = RNA_def_string(func, "name", "GreasePencilLayer", MAX_NAME, "Name", "Name of the layer");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_boolean(
+      func, "set_active", true, "Set Active", "Set the newly created layer as the active layer");
+  parm = RNA_def_pointer(
+      func,
+      "layer_group",
+      "GreasePencilLayerGroup",
+      "",
+      "The layer group the new layer will be created in (use None for the main stack)");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
+  parm = RNA_def_pointer(func, "layer", "GreasePencilLayer", "", "The newly created layer");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_GreasePencil_layer_remove");
+  RNA_def_function_ui_description(func, "Remove a Grease Pencil layer");
+  parm = RNA_def_pointer(func, "layer", "GreasePencilLayer", "", "The layer to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "move", "rna_GreasePencil_layer_move");
+  RNA_def_function_ui_description(func,
+                                  "Move a Grease Pencil layer in the layer group or main stack");
+  parm = RNA_def_pointer(func, "layer", "GreasePencilLayer", "", "The layer to move");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+  parm = RNA_def_enum(
+      func, "type", rna_enum_tree_node_move_type_items, 1, "", "Direction of movement");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "move_top", "rna_GreasePencil_layer_move_top");
+  RNA_def_function_ui_description(
+      func, "Move a Grease Pencil layer to the top of the layer group or main stack");
+  parm = RNA_def_pointer(func, "layer", "GreasePencilLayer", "", "The layer to move");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "move_bottom", "rna_GreasePencil_layer_move_bottom");
+  RNA_def_function_ui_description(
+      func, "Move a Grease Pencil layer to the bottom of the layer group or main stack");
+  parm = RNA_def_pointer(func, "layer", "GreasePencilLayer", "", "The layer to move");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(
+      srna, "move_to_layer_group", "rna_GreasePencil_layer_move_to_layer_group");
+  RNA_def_function_ui_description(func, "Move a Grease Pencil layer into a layer group");
+  parm = RNA_def_pointer(func, "layer", "GreasePencilLayer", "", "The layer to move");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+  parm = RNA_def_pointer(
+      func,
+      "layer_group",
+      "GreasePencilLayerGroup",
+      "",
+      "The layer group the layer will be moved into (use None for the main stack)");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 
   prop = RNA_def_property(srna, "active_layer", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayer");
@@ -596,10 +945,85 @@ static void rna_def_grease_pencil_layer_group_api(BlenderRNA *brna, PropertyRNA 
   StructRNA *srna;
   PropertyRNA *prop;
 
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
   RNA_def_property_srna(cprop, "GreasePencilv3LayerGroup");
   srna = RNA_def_struct(brna, "GreasePencilv3LayerGroup", nullptr);
   RNA_def_struct_sdna(srna, "GreasePencil");
   RNA_def_struct_ui_text(srna, "Grease Pencil Group", "Collection of Grease Pencil layers");
+
+  func = RNA_def_function(srna, "new", "rna_GreasePencil_layer_group_new");
+  RNA_def_function_ui_description(func, "Add a new Grease Pencil layer group");
+  parm = RNA_def_string(
+      func, "name", "GreasePencilLayerGroup", MAX_NAME, "Name", "Name of the layer group");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_pointer(
+      func,
+      "parent_group",
+      "GreasePencilLayerGroup",
+      "",
+      "The parent layer group the new group will be created in (use None for the main stack)");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
+  parm = RNA_def_pointer(
+      func, "layer_group", "GreasePencilLayerGroup", "", "The newly created layer group");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_GreasePencil_layer_group_remove");
+  RNA_def_function_ui_description(func, "Remove a new Grease Pencil layer group");
+  parm = RNA_def_pointer(
+      func, "layer_group", "GreasePencilLayerGroup", "", "The layer group to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+  parm = RNA_def_boolean(func,
+                         "keep_children",
+                         false,
+                         "",
+                         "Keep the children nodes of the group and only delete the group itself");
+
+  func = RNA_def_function(srna, "move", "rna_GreasePencil_layer_group_move");
+  RNA_def_function_ui_description(func,
+                                  "Move a layer group in the parent layer group or main stack");
+  parm = RNA_def_pointer(
+      func, "layer_group", "GreasePencilLayerGroup", "", "The layer group to move");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+  parm = RNA_def_enum(
+      func, "type", rna_enum_tree_node_move_type_items, 1, "", "Direction of movement");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "move_top", "rna_GreasePencil_layer_group_move_top");
+  RNA_def_function_ui_description(
+      func, "Move a layer group to the top of the parent layer group or main stack");
+  parm = RNA_def_pointer(
+      func, "layer_group", "GreasePencilLayerGroup", "", "The layer group to move");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "move_bottom", "rna_GreasePencil_layer_group_move_bottom");
+  RNA_def_function_ui_description(
+      func, "Move a layer group to the bottom of the parent layer group or main stack");
+  parm = RNA_def_pointer(
+      func, "layer_group", "GreasePencilLayerGroup", "", "The layer group to move");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(
+      srna, "move_to_layer_group", "rna_GreasePencil_layer_group_move_to_layer_group");
+  RNA_def_function_ui_description(func, "Move a layer group into a parent layer group");
+  parm = RNA_def_pointer(
+      func, "layer_group", "GreasePencilLayerGroup", "", "The layer group to move");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+  parm = RNA_def_pointer(
+      func,
+      "parent_group",
+      "GreasePencilLayerGroup",
+      "",
+      "The parent layer group the layer group will be moved into (use None for the main stack)");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 
   prop = RNA_def_property(srna, "active_group", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayerGroup");
@@ -609,7 +1033,7 @@ static void rna_def_grease_pencil_layer_group_api(BlenderRNA *brna, PropertyRNA 
                                  nullptr,
                                  nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Active Layer Group", "Active Grease Pencil layer");
+  RNA_def_property_ui_text(prop, "Active Layer Group", "Active Grease Pencil layer group");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
 }
 
