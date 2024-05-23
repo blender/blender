@@ -1948,7 +1948,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       const auto boxes = BLF_str_selection_boxes(
           fstyle->uifont_id,
           drawstr + but->ofs,
-          strlen(drawstr),
+          strlen(drawstr + but->ofs),
           (but->selsta >= but->ofs) ? but->selsta - but->ofs : 0,
           but->selend - std::max(but->ofs, but->selsta));
       for (auto bounds : boxes) {
