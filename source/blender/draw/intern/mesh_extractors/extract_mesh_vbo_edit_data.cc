@@ -244,7 +244,7 @@ static void extract_edit_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                           void *buf,
                                           void *data)
 {
-  orig_index_face gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPU_vertbuf_init_with_format(vbo, get_edit_data_format());
   GPU_vertbuf_data_alloc(vbo, subdiv_full_vbo_size(mr, subdiv_cache));
   EditLoopData *vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
@@ -379,4 +379,3 @@ constexpr MeshExtract create_extractor_edit_data()
 const MeshExtract extract_edit_data = create_extractor_edit_data();
 
 }  // namespace blender::draw
-orig_index_face
