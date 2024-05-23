@@ -1309,14 +1309,14 @@ static PointerRNA rna_View3DShading_selected_studio_light_get(PointerRNA *ptr)
   View3DShading *shading = (View3DShading *)ptr->data;
   StudioLight *sl;
   if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
-    sl = BKE_studiolight_find(shading->matcap, STUDIOLIGHT_FLAG_ALL);
+    sl = BKE_studiolight_find(shading->matcap, STUDIOLIGHT_TYPE_MATCAP);
   }
   else if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_STUDIO) {
-    sl = BKE_studiolight_find(shading->studio_light, STUDIOLIGHT_FLAG_ALL);
+    sl = BKE_studiolight_find(shading->studio_light, STUDIOLIGHT_TYPE_STUDIO);
   }
   else {
     /* OB_MATERIAL and OB_RENDER */
-    sl = BKE_studiolight_find(shading->lookdev_light, STUDIOLIGHT_FLAG_ALL);
+    sl = BKE_studiolight_find(shading->lookdev_light, STUDIOLIGHT_TYPE_WORLD);
   }
   return rna_pointer_inherit_refine(ptr, &RNA_StudioLight, sl);
 }
