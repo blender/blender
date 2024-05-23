@@ -672,9 +672,15 @@ static int create_op_exec(bContext *C, wmOperator *op)
     case CreateMode::Selection: {
       const VArraySpan<bool> select_poly = *attributes.lookup_or_default<bool>(
           ".select_poly", bke::AttrDomain::Face, false);
+      const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
+                                                                  bke::AttrDomain::Face);
+
       face_sets_update(object, nodes, [&](const Span<int> indices, MutableSpan<int> face_sets) {
         for (const int i : indices.index_range()) {
           if (select_poly[indices[i]]) {
+            if (!hide_poly.is_empty() && hide_poly[i]) {
+              continue;
+            }
             face_sets[i] = next_face_set;
           }
         }
@@ -759,14 +765,24 @@ static void init_flood_fill(Object &ob, const FaceSetsFloodFillFn &test_fn)
         faces, corner_edges, edges.size(), ss.edge_to_face_offsets, ss.edge_to_face_indices);
   }
 
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  const Set<int> hidden_face_sets = gather_hidden_face_sets(hide_poly, face_sets.span);
+
   int next_face_set = 1;
 
   for (const int i : faces.index_range()) {
+    if (!hide_poly.is_empty() && hide_poly[i]) {
+      continue;
+    }
     if (visited_faces[i]) {
       continue;
     }
     std::queue<int> queue;
 
+    while (hidden_face_sets.contains(next_face_set)) {
+      next_face_set += 1;
+    }
     face_sets.span[i] = next_face_set;
     visited_faces[i].set(true);
     queue.push(i);
@@ -781,6 +797,9 @@ static void init_flood_fill(Object &ob, const FaceSetsFloodFillFn &test_fn)
             continue;
           }
           if (visited_faces[neighbor_i]) {
+            continue;
+          }
+          if (!hide_poly.is_empty() && hide_poly[neighbor_i]) {
             continue;
           }
           if (!test_fn(face_i, edge_i, neighbor_i)) {
@@ -798,6 +817,22 @@ static void init_flood_fill(Object &ob, const FaceSetsFloodFillFn &test_fn)
   }
 
   face_sets.finish();
+}
+
+Set<int> gather_hidden_face_sets(const Span<bool> hide_poly, const Span<int> face_sets)
+{
+  if (hide_poly.is_empty()) {
+    return {};
+  }
+
+  Set<int> hidden_face_sets;
+  for (const int i : hide_poly.index_range()) {
+    if (hide_poly[i]) {
+      hidden_face_sets.add(face_sets[i]);
+    }
+  }
+
+  return hidden_face_sets;
 }
 
 static int init_op_exec(bContext *C, wmOperator *op)
@@ -851,8 +886,25 @@ static int init_op_exec(bContext *C, wmOperator *op)
       bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(ob);
       const VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
           "material_index", bke::AttrDomain::Face, 0);
+      const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
+                                                                  bke::AttrDomain::Face);
+      const Set<int> hidden_face_sets = gather_hidden_face_sets(hide_poly, face_sets.span);
+
+      int prev_material = material_indices[0];
+      int material_face_set = 1;
       for (const int i : IndexRange(mesh->faces_num)) {
-        face_sets.span[i] = material_indices[i] + 1;
+        if (!hide_poly.is_empty() && hide_poly[i]) {
+          continue;
+        }
+        if (prev_material != material_indices[i]) {
+          material_face_set += 1;
+        }
+        while (hidden_face_sets.contains(material_face_set)) {
+          material_face_set += 1;
+        }
+
+        face_sets.span[i] = material_face_set;
+        prev_material = material_indices[i];
       }
       face_sets.finish();
       break;
@@ -1656,7 +1708,7 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
 
   ot->prop = RNA_def_boolean(ot->srna,
                              "modify_hidden",
-                             true,
+                             false,
                              "Modify Hidden",
                              "Apply the edit operation to hidden geometry");
 }
