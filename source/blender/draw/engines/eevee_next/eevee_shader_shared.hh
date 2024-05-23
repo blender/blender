@@ -918,7 +918,8 @@ struct LightAreaData {
 
   /** Shape size. */
   float2 size;
-  float _pad5;
+  /** Scale to apply on top of `size` to get shadow tracing shape size. */
+  float shadow_scale;
   float _pad6;
 };
 BLI_STATIC_ASSERT(sizeof(LightAreaData) == sizeof(LightLocalData), "Data size must match")
@@ -1174,6 +1175,7 @@ static inline LightAreaData light_area_data_get(LightData light)
   SAFE_ASSIGN_FLOAT(shadow_radius, shadow_radius)
   SAFE_ASSIGN_INT(tilemaps_count, tilemaps_count)
   SAFE_ASSIGN_FLOAT2(size, _pad3)
+  SAFE_ASSIGN_FLOAT(shadow_scale, _pad4)
   return SAFE_READ_END();
 }
 

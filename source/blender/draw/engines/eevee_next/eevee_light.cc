@@ -189,8 +189,8 @@ void Light::shape_parameters_set(const ::Light *la,
     this->area.size = float2(la->area_size, is_irregular ? la->area_sizey : la->area_size);
     /* Scale and clamp to minimum value before float imprecision artifacts appear. */
     this->area.size *= scale.xy() / 2.0f;
-    /* In this case, this is just the scaling factor. */
-    this->local.shadow_radius = trace_scaling_fac;
+    this->area.shadow_scale = trace_scaling_fac;
+    this->local.shadow_radius = length(this->area.size) * trace_scaling_fac;
     /* Set to default position. */
     this->local.shadow_position = float3(0.0f);
     /* Do not render lights that have no area. */
