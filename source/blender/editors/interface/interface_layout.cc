@@ -6039,7 +6039,7 @@ void uiLayoutSetTooltipFunc(uiLayout *layout,
     }
   }
 
-  if (!arg_used) {
+  if (free_arg != nullptr && !arg_used) {
     /* Free the original copy of arg in case the layout is empty. */
     free_arg(arg);
   }
