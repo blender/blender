@@ -633,12 +633,9 @@ static bool brush_asset_delete_poll(bContext *C)
   if (paint == nullptr || brush == nullptr) {
     return false;
   }
-  if (!paint->brush_asset_reference) {
-    return false;
-  }
 
-  /* Asset brush, check if belongs to an editable blend file. */
-  if (ID_IS_ASSET(brush)) {
+  /* Linked brush, check if belongs to an editable blend file. */
+  if (ID_IS_LINKED(brush)) {
     if (!bke::asset_edit_id_is_writable(brush->id)) {
       CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
       return false;
@@ -653,18 +650,19 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   Main *bmain = CTX_data_main(C);
-
-  bUserAssetLibrary *library = BKE_preferences_asset_library_find_by_name(
-      &U, paint->brush_asset_reference->asset_library_identifier);
-  if (!library) {
-    return OPERATOR_CANCELLED;
-  }
+  bUserAssetLibrary *library = (paint->brush_asset_reference) ?
+                                   BKE_preferences_asset_library_find_by_name(
+                                       &U,
+                                       paint->brush_asset_reference->asset_library_identifier) :
+                                   nullptr;
 
   bke::asset_edit_id_delete(*bmain, brush->id, *op->reports);
 
-  refresh_asset_library(C, *library);
-
   BKE_paint_brush_set_default(bmain, paint);
+
+  if (library) {
+    refresh_asset_library(C, *library);
+  }
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_REMOVED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
@@ -674,11 +672,16 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
 
 static int brush_asset_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  Brush *brush = BKE_paint_brush(paint);
+
   return WM_operator_confirm_ex(
       C,
       op,
       IFACE_("Delete Brush Asset"),
-      IFACE_("Permanently delete brush asset blend file. This can't be undone."),
+      ID_IS_LINKED(brush) ?
+          IFACE_("Permanently delete brush asset blend file. This can't be undone.") :
+          IFACE_("Premanently delete brush. This can't be undo."),
       IFACE_("Delete"),
       ALERT_ICON_WARNING,
       false);
@@ -687,7 +690,7 @@ static int brush_asset_delete_invoke(bContext *C, wmOperator *op, const wmEvent 
 void BRUSH_OT_asset_delete(wmOperatorType *ot)
 {
   ot->name = "Delete Brush Asset";
-  ot->description = "Delete the active brush asset both from the local session and asset library";
+  ot->description = "Delete the active brush asset";
   ot->idname = "BRUSH_OT_asset_delete";
 
   ot->exec = brush_asset_delete_exec;
