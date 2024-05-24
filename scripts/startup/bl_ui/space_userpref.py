@@ -2156,7 +2156,7 @@ class USERPREF_PT_extensions_repos(Panel):
             split = row.split(factor=0.936)
             if active_repo.remote_url == "":
                 split.alert = True
-            split.prop(active_repo, "remote_url", text="", icon='URL', placeholder="Repository URL")
+            split.prop(active_repo, "remote_url", text="", icon='INTERNET', placeholder="Repository URL")
             split = row.split()
 
             if active_repo.use_access_token:
