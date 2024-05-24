@@ -142,7 +142,7 @@ bool debug_tilemaps(vec3 P, LightData light, bool do_debug_sample_tile)
       /* Debug actual values in the tile-map buffer. */
       ShadowTileMapData tilemap = tilemaps_buf[tilemap_index];
       int tile_index = shadow_tile_offset(
-          (px + SHADOW_TILEMAP_RES) % SHADOW_TILEMAP_RES, tilemap.tiles_index, 0);
+          uvec2(px + SHADOW_TILEMAP_RES) % SHADOW_TILEMAP_RES, tilemap.tiles_index, 0);
       ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
       /* Leave 1 px border between tile-maps. */
       if (!any(
@@ -165,7 +165,7 @@ void debug_tile_state(vec3 P, LightData light)
   ShadowCoordinates coord = debug_coord_get(P, light);
   ShadowTileMapData tilemap = tilemaps_buf[coord.tilemap_index];
   int tile_index = shadow_tile_offset(
-      ivec2(coord.tilemap_tile >> tile_samp.lod), tilemap.tiles_index, int(tile_samp.lod));
+      uvec2(coord.tilemap_tile >> tile_samp.lod), tilemap.tiles_index, int(tile_samp.lod));
   ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
   out_color_add = vec4(debug_tile_state_color(tile), 0) * 0.5;
   out_color_mul = vec4(0.5);

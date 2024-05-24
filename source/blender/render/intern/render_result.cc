@@ -65,6 +65,15 @@ void render_result_free(RenderResult *rr)
     return;
   }
 
+  /* Only actually free when RenderResult when the render result has zero users which is its
+   * default state.
+   * There is no need to lock as the user-counted render results are protected by mutex at the
+   * higher call stack level. */
+  if (rr->user_counter > 0) {
+    --rr->user_counter;
+    return;
+  }
+
   while (rr->layers.first) {
     RenderLayer *rl = static_cast<RenderLayer *>(rr->layers.first);
 

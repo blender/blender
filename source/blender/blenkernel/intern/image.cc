@@ -3842,15 +3842,23 @@ RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima)
     image_init_multilayer_multiview(ima, rr);
   }
 
-  if (!rr) {
-    BLI_mutex_unlock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
+  if (rr) {
+    RE_ReferenceRenderResult(rr);
   }
 
+  BLI_mutex_unlock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
   return rr;
 }
 
 void BKE_image_release_renderresult(Scene *scene, Image *ima, RenderResult *render_result)
 {
+  if (render_result) {
+    /* Decrement user counter, and free if nobody else holds a reference to the result. */
+    BLI_mutex_lock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
+    RE_FreeRenderResult(render_result);
+    BLI_mutex_unlock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
+  }
+
   if (ima->rr) {
     /* pass */
   }
@@ -3858,10 +3866,6 @@ void BKE_image_release_renderresult(Scene *scene, Image *ima, RenderResult *rend
     if (ima->render_slot == ima->last_render_slot) {
       RE_ReleaseResult(RE_GetSceneRender(scene));
     }
-  }
-
-  if (render_result) {
-    BLI_mutex_unlock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
   }
 }
 
