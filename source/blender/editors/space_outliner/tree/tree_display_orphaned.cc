@@ -65,7 +65,7 @@ ListBase TreeDisplayIDOrphans::build_tree(const TreeSourceData &source_data)
     /* Add the orphaned data-blocks - these will not be added with any subtrees attached. */
     for (ID *id : List<ID>(lbarray[a])) {
       if (ID_REFCOUNTING_USERS(id) <= 0) {
-        add_element((te) ? &te->subtree : &tree, id, nullptr, te, TSE_SOME_ID, 0);
+        add_element((te) ? &te->subtree : &tree, id, nullptr, te, TSE_SOME_ID, 0, false);
       }
     }
   }
