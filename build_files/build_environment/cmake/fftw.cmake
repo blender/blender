@@ -18,12 +18,16 @@ macro(fftw_build FFTW_POSTFIX)
 
       CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${LIBDIR}/fftw3
+        -DENABLE_THREADS=ON
+        -DWITH_COMBINED_THREADS=OFF
+        -DBUILD_SHARED_LIBS=OFF
+        -DBUILD_TESTS=OFF
         ${FFTW_EXTRA_ARGS}
 
       INSTALL_DIR ${LIBDIR}/fftw3
     )
   else()
-    set(FFTW_EXTRA_ARGS --enable-static)
+    set(FFTW_EXTRA_ARGS --enable-static --enable-threads)
     set(FFTW_INSTALL install)
     ExternalProject_Add(external_fftw3_${FFTW_POSTFIX}
       URL file://${PACKAGE_DIR}/${FFTW_FILE}
@@ -58,11 +62,11 @@ if(MSVC)
         ${LIBDIR}/fftw3/lib/fftw3.lib
         ${HARVEST_TARGET}/fftw3/lib/fftw3.lib
       COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/fftw3/bin/fftw3.dll
-        ${HARVEST_TARGET}/fftw3/lib/fftw3.dll
-      COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/fftw3/include/fftw3.h
         ${HARVEST_TARGET}/fftw3/include/fftw3.h
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/fftw3/lib/fftw3_threads.lib
+        ${HARVEST_TARGET}/fftw3/lib/fftw3_threads.lib
       DEPENDEES install
     )
     ExternalProject_Add_Step(external_fftw3_float after_install
@@ -70,8 +74,8 @@ if(MSVC)
         ${LIBDIR}/fftw3/lib/fftw3f.lib
         ${HARVEST_TARGET}/fftw3/lib/fftw3f.lib
       COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/fftw3/bin/fftw3f.dll
-        ${HARVEST_TARGET}/fftw3/lib/fftw3f.dll
+        ${LIBDIR}/fftw3/lib/fftw3f_threads.lib
+        ${HARVEST_TARGET}/fftw3/lib/fftw3f_threads.lib
       DEPENDEES install
     )
   endif()
