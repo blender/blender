@@ -276,6 +276,8 @@ static std::optional<std::string> rna_ImageUser_path(const PointerRNA *ptr)
         return rna_Node_ImageUser_path(ptr);
       case ID_CA:
         return rna_CameraBackgroundImage_image_or_movieclip_user_path(ptr);
+      case ID_SCR:
+        return " ... image_user";
       default:
         break;
     }
