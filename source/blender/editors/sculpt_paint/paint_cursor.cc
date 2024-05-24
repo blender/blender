@@ -1541,7 +1541,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
     }
 
     if (BKE_brush_use_locked_size(pcontext->scene, brush)) {
-      const bke::greasepencil::Layer &layer = *grease_pencil->get_active_layer();
+      const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
       const ed::greasepencil::DrawingPlacement placement(
           *pcontext->scene, *pcontext->region, *pcontext->vc.v3d, *object, layer);
       const float radius = BKE_brush_unprojected_radius_get(pcontext->scene, brush);

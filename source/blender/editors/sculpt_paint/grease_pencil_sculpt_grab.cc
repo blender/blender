@@ -91,7 +91,7 @@ void GrabOperation::foreach_grabbed_drawing(
       return;
     }
 
-    ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, layer);
+    ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, &layer);
     if (placement.use_project_to_surface()) {
       placement.cache_viewport_depths(&depsgraph, &region, &view3d);
     }
@@ -148,7 +148,7 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
     const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
     BLI_assert(grease_pencil.get_drawing_at(layer, info.frame_number) == &info.drawing);
 
-    ed::greasepencil::DrawingPlacement placement(scene, region, view3d, ob_eval, layer);
+    ed::greasepencil::DrawingPlacement placement(scene, region, view3d, ob_eval, &layer);
     GreasePencilStrokeParams params = {*scene.toolsettings,
                                        region,
                                        ob_orig,

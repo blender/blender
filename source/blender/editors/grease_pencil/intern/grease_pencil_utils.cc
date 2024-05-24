@@ -37,10 +37,11 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
                                    const ARegion &region,
                                    const View3D &view3d,
                                    const Object &eval_object,
-                                   const bke::greasepencil::Layer &layer)
+                                   const bke::greasepencil::Layer *layer)
     : region_(&region), view3d_(&view3d)
 {
-  layer_space_to_world_space_ = layer.to_world_space(eval_object);
+  layer_space_to_world_space_ = (layer != nullptr) ? layer->to_world_space(eval_object) :
+                                                     eval_object.object_to_world();
   world_space_to_layer_space_ = math::invert(layer_space_to_world_space_);
   /* Initialize DrawingPlacementPlane from toolsettings. */
   switch (scene.toolsettings->gp_sculpt.lock_axis) {
