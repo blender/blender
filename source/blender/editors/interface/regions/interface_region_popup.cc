@@ -578,7 +578,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
   }
 }
 
-void UI_layout_panel_popup_scroll_apply(Panel *panel, const float dy)
+void ui_layout_panel_popup_scroll_apply(Panel *panel, const float dy)
 {
   if (!panel || dy == 0.0f) {
     return;
@@ -816,7 +816,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     }
   }
   /* Apply popup scroll offset to layout panels. */
-  UI_layout_panel_popup_scroll_apply(block->panel, handle->scrolloffset);
+  ui_layout_panel_popup_scroll_apply(block->panel, handle->scrolloffset);
 
   if (block_old) {
     block->oldblock = block_old;
