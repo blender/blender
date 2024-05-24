@@ -79,9 +79,9 @@ void transmission_thickness_amend_closure(inout ClosureUndetermined cl,
 /* Tag pixel radiance as invalid. */
 void invalid_pixel_write(ivec2 texel)
 {
-  imageStore(out_radiance_img, texel, vec4(FLT_11_11_10_MAX, 0.0));
-  imageStore(out_variance_img, texel, vec4(0.0));
-  imageStore(out_hit_depth_img, texel, vec4(0.0));
+  imageStoreFast(out_radiance_img, texel, vec4(FLT_11_11_10_MAX, 0.0));
+  imageStoreFast(out_variance_img, texel, vec4(0.0));
+  imageStoreFast(out_hit_depth_img, texel, vec4(0.0));
 }
 
 void main()
@@ -123,7 +123,7 @@ void main()
 
       ivec3 sample_tile = ivec3(tile_coord_neighbor, closure_index);
 
-      uint tile_mask = imageLoad(tile_mask_img, sample_tile).r;
+      uint tile_mask = imageLoadFast(tile_mask_img, sample_tile).r;
       bool tile_is_unused = !flag_test(tile_mask, 1u << 0u);
       if (tile_is_unused) {
         ivec2 texel_fullres_neighbor = texel_fullres + ivec2(x, y) * int(tile_size);
@@ -220,7 +220,7 @@ void main()
   float scene_z = drw_depth_screen_to_view(texelFetch(depth_tx, texel_fullres, 0).r);
   float hit_depth = drw_depth_view_to_screen(scene_z - closest_hit_time);
 
-  imageStore(out_radiance_img, texel_fullres, vec4(radiance_accum, 0.0));
-  imageStore(out_variance_img, texel_fullres, vec4(hit_variance));
-  imageStore(out_hit_depth_img, texel_fullres, vec4(hit_depth));
+  imageStoreFast(out_radiance_img, texel_fullres, vec4(radiance_accum, 0.0));
+  imageStoreFast(out_variance_img, texel_fullres, vec4(hit_variance));
+  imageStoreFast(out_hit_depth_img, texel_fullres, vec4(hit_depth));
 }
