@@ -362,7 +362,10 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
                   ANIMTYPE_ANIMDATA,
                   ANIMTYPE_NLAACTION,
                   ANIMTYPE_NLATRACK,
-                  ANIMTYPE_NLACURVE))
+                  ANIMTYPE_NLACURVE,
+                  ANIMTYPE_GREASE_PENCIL_LAYER,
+                  ANIMTYPE_GREASE_PENCIL_LAYER_GROUP,
+                  ANIMTYPE_GREASE_PENCIL_DATABLOCK))
     {
       if (ale->update & ANIM_UPDATE_DEPS) {
         ale->update &= ~ANIM_UPDATE_DEPS;
