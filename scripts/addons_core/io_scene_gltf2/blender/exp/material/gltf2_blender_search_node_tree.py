@@ -916,6 +916,7 @@ def get_vertex_color_info(color_socket, alpha_socket, export_settings):
     attribute_alpha = None
     attribute_color_type = None
     attribute_alpha_type = None
+    alpha_mode = "OPAQUE"
 
     # Retrieve Attribute used as vertex color for Color
     if color_socket is not None and color_socket.socket is not None:
@@ -948,12 +949,14 @@ def get_vertex_color_info(color_socket, alpha_socket, export_settings):
         elif alpha_info['alphaColorAttrib'] is not None:
             attribute_alpha = alpha_info['alphaColorAttrib']
             attribute_alpha_type = 'name'
+        alpha_mode = alpha_info['alphaMode']
 
     return {
         "color": attribute_color,
         "alpha": attribute_alpha,
         "color_type": attribute_color_type,
-        "alpha_type": attribute_alpha_type}
+        "alpha_type": attribute_alpha_type,
+        'alpha_mode': alpha_mode}
 
 
 def get_attribute_name(socket, export_settings):

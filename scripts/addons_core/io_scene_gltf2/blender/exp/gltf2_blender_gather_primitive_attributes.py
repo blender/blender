@@ -207,6 +207,31 @@ def __gather_attribute(blender_primitive, attribute, export_settings):
                 type=data['data_type'],
             )}
 
+    elif attribute.startswith("COLOR_") and blender_primitive["attributes"][attribute]['component_type'] == gltf2_io_constants.ComponentType.UnsignedByte:
+        # We are in special case where we fake a COLOR_0 attribute with UNSIGNED_BYTE
+        # We need to normalize it
+
+        export_user_extensions('gather_attribute_change', export_settings, attribute, data, True)
+
+        return {
+            attribute: gltf2_io.Accessor(
+                buffer_view=gltf2_io_binary_data.BinaryData(
+                    data['data'].tobytes(),
+                    gltf2_io_constants.BufferViewTarget.ARRAY_BUFFER),
+                byte_offset=None,
+                component_type=data['component_type'],
+                count=len(
+                    data['data']),
+                extensions=None,
+                extras=None,
+                max=None,
+                min=None,
+                name=None,
+                normalized=True,
+                sparse=None,
+                type=data['data_type'],
+            )}
+
     elif attribute.startswith("JOINTS_") or attribute.startswith("WEIGHTS_"):
         return __gather_skins(blender_primitive, export_settings)
 
