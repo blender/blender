@@ -67,15 +67,15 @@ void main()
 
     for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
       if (tile_contains_ray_tracing[i] > 0) {
-        imageStore(tile_raytrace_denoise_img, ivec3(denoise_tile_co, i), uvec4(1));
-        imageStore(tile_raytrace_tracing_img, ivec3(tracing_tile_co, i), uvec4(1));
+        imageStoreFast(tile_raytrace_denoise_img, ivec3(denoise_tile_co, i), uvec4(1));
+        imageStoreFast(tile_raytrace_tracing_img, ivec3(tracing_tile_co, i), uvec4(1));
       }
     }
 
     if (tile_contains_horizon_scan > 0) {
       ivec2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.horizon_resolution_scale;
-      imageStore(tile_horizon_denoise_img, ivec3(denoise_tile_co, 0), uvec4(1));
-      imageStore(tile_horizon_tracing_img, ivec3(tracing_tile_co, 0), uvec4(1));
+      imageStoreFast(tile_horizon_denoise_img, ivec3(denoise_tile_co, 0), uvec4(1));
+      imageStoreFast(tile_horizon_tracing_img, ivec3(tracing_tile_co, 0), uvec4(1));
     }
   }
 }

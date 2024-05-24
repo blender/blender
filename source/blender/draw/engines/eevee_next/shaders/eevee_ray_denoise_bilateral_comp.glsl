@@ -53,8 +53,8 @@ void main()
   }
 
   float roughness = closure_apparent_roughness_get(center_closure);
-  float variance = imageLoad(in_variance_img, texel_fullres).r;
-  vec3 in_radiance = imageLoad(in_radiance_img, texel_fullres).rgb;
+  float variance = imageLoadFast(in_variance_img, texel_fullres).r;
+  vec3 in_radiance = imageLoadFast(in_radiance_img, texel_fullres).rgb;
 
   bool is_background = (center_depth == 0.0);
   bool is_smooth = (roughness < 0.05);
@@ -68,7 +68,7 @@ void main()
 
   if (is_smooth || is_background || is_low_variance) {
     /* Early out cases. */
-    imageStore(out_radiance_img, texel_fullres, vec4(in_radiance, 0.0));
+    imageStoreFast(out_radiance_img, texel_fullres, vec4(in_radiance, 0.0));
     return;
   }
 
@@ -100,7 +100,7 @@ void main()
       continue;
     }
 
-    vec3 radiance = imageLoad(in_radiance_img, sample_texel).rgb;
+    vec3 radiance = imageLoadFast(in_radiance_img, sample_texel).rgb;
 
     /* Do not gather unprocessed pixels. */
     if (all(equal(radiance, FLT_11_11_10_MAX))) {
@@ -129,5 +129,5 @@ void main()
   vec3 out_radiance = accum_radiance * safe_rcp(accum_weight);
   out_radiance = from_accumulation_space(out_radiance);
 
-  imageStore(out_radiance_img, texel_fullres, vec4(out_radiance, 0.0));
+  imageStoreFast(out_radiance_img, texel_fullres, vec4(out_radiance, 0.0));
 }
