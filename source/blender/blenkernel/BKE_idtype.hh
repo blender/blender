@@ -48,6 +48,20 @@ enum {
    * data-blocks.
    */
   IDTYPE_FLAGS_NO_MEMFILE_UNDO = 1 << 5,
+  /**
+   * Indicates that the given IDType is considered as unused.
+   *
+   * This is used for some 'root' ID types which typically do not have any actual user (WM.
+   * Scene...). It prevents e.g. their deletion through the 'Purge' operation.
+   *
+   * \note This applies to local IDs. Linked data should essentially ignore this flag. In practice,
+   * currently, only the Scene ID can be linked among the `never unused` types.
+   *
+   * \note The implementation of the expected behaviors related to this characteristic is somewhat
+   * fragile and inconsistent currently. In most case though, code is expected to ensure that such
+   * IDs have at least an 'extra user' (#LIB_TAG_EXTRAUSER).
+   */
+  IDTYPE_FLAGS_NEVER_UNUSED = 1 << 6,
 };
 
 struct IDCacheKey {
