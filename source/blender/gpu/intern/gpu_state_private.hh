@@ -93,11 +93,11 @@ union GPUStateMutable {
     uint8_t stencil_write_mask;
     uint8_t stencil_compare_mask;
     uint8_t stencil_reference;
-    uint8_t _pad0;
+    uint8_t _pad0[5];
     /* IMPORTANT: ensure x64 struct alignment. */
   };
   /* Here to allow fast bit-wise ops. */
-  uint64_t data[9];
+  uint64_t data[3];
 };
 
 BLI_STATIC_ASSERT(sizeof(GPUStateMutable) == sizeof(GPUStateMutable::data),
