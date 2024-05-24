@@ -479,10 +479,6 @@ class RealtimeCompositor {
  public:
   RealtimeCompositor(Render &render, const ContextInputData &input_data) : render_(render)
   {
-    /* Ensure that in foreground mode we are using different contexts for main and render threads,
-     * to avoid them blocking each other. */
-    BLI_assert(!BLI_thread_is_main() || G.background);
-
     /* Create resources with GPU context enabled. */
     DRW_render_context_enable(&render_);
     texture_pool_ = std::make_unique<TexturePool>();
@@ -515,19 +511,16 @@ class RealtimeCompositor {
   /* Evaluate the compositor and output to the scene render result. */
   void execute(const ContextInputData &input_data)
   {
-    /* Ensure that in foreground mode we are using different contexts for main and render threads,
-     * to avoid them blocking each other. */
-    BLI_assert(!BLI_thread_is_main() || G.background);
-
-    if (G.background) {
-      /* In the background mode the system context of the render engine might be nullptr, which
-       * forces some code paths which more tightly couple it with the draw manager.
-       * For the compositor we want to have the least amount of coupling with the draw manager, so
-       * ensure that the render engine has its own system GPU context. */
+    void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+    if (!re_system_gpu_context) {
+      /* In some cases like background mode and blocking rendering the system context of the render
+       * engine might be nullptr, which forces some code paths which more tightly couple it with
+       * the draw manager. For the compositor we want to have the least amount of coupling with the
+       * draw manager, so ensure that the render engine has its own system GPU context. */
       RE_system_gpu_context_ensure(&render_);
+      re_system_gpu_context = RE_system_gpu_context_get(&render_);
     }
 
-    void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
     void *re_blender_gpu_context = RE_blender_gpu_context_ensure(&render_);
 
     GPU_render_begin();
