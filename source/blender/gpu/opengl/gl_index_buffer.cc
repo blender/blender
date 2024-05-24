@@ -36,12 +36,7 @@ void GLIndexBuf::bind()
     /* Sends data to GPU. */
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data_, GL_STATIC_DRAW);
     /* No need to keep copy of data in system memory. */
-    if (reference_data_) {
-      data_ = nullptr;
-    }
-    else {
-      MEM_SAFE_FREE(data_);
-    }
+    MEM_SAFE_FREE(data_);
   }
 }
 

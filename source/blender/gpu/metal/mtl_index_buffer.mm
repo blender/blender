@@ -139,10 +139,7 @@ void MTLIndexBuf::upload_data()
     }
 
     /* No need to keep copy of data_ in system memory. */
-    if (reference_data_) {
-      data_ = nullptr;
-    }
-    else {
+    if (data_) {
       MEM_SAFE_FREE(data_);
     }
   }
