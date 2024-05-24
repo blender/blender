@@ -3288,9 +3288,6 @@ class WM_MT_splash_quick_setup(Menu):
         if hasattr(kc_prefs, "spacebar_action"):
             col.row().prop(kc_prefs, "spacebar_action", text="Spacebar Action")
 
-        # Network.
-        col.row().prop(prefs.system, "use_online_access")
-
         # Save Preferences.
         sub = col.column()
         sub.separator(factor=2)
