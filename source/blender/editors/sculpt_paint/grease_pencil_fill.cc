@@ -960,7 +960,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   const bool use_xray = false;
 
   const float4x4 layer_to_world = layer.to_world_space(object);
-  ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, layer);
+  ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, &layer);
   const float3 fill_point_world = math::transform_point(layer_to_world,
                                                         placement.project(fill_point_view));
 
