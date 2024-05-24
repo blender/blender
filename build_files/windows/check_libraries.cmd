@@ -13,7 +13,11 @@ if NOT EXIST "%BUILD_VS_LIBDIR%\.git" (
 		echo.
 		echo The required external libraries in %BUILD_VS_LIBDIR% are missing
 		echo.
-		set /p GetLibs= "Would you like to download them? (y/n)"
+		if "%GITHUB_ACTIONS%" == "true" (
+			set GetLibs=Y
+		) else (
+			set /p GetLibs= "Would you like to download them? (y/n)"
+		)
 		if /I "!GetLibs!"=="Y" (
 			echo.
 			echo Downloading %BUILD_VS_LIBDIR% libraries, please wait.
@@ -35,20 +39,25 @@ if NOT EXIST "%BUILD_VS_LIBDIR%\.git" (
 			set GIT_LFS_SKIP_SMUDGE=
 			"%GIT%" -C "./%BUILD_VS_LIBDIR%" lfs pull
 			if errorlevel 1 (
-				set /p LibRetry= "Error during download, retry? y/n"
-				if /I "!LibRetry!"=="Y" (
+				if "%GITHUB_ACTIONS%" == "true" (
+					echo Error during download, retrying...
 					goto RETRY
+				) else (
+					set /p LibRetry= "Error during download, retry? y/n"
+					if /I "!LibRetry!"=="Y" (
+						goto RETRY
+					)
+					echo.
+					echo Error: Download of external libraries failed. 
+					echo Until this is resolved you CANNOT make a successful blender build.
+					echo.
+					exit /b 1
 				)
-				echo.
-				echo Error: Download of external libraries failed. 
-				echo Until this is resolved you CANNOT make a successful blender build.
-				echo.
-				exit /b 1
 			)
 		) else (
-           echo Not downloading libraries, until this is resolved you CANNOT make a successful blender build.
-           exit /b 1
-        )
+			echo Not downloading libraries, until this is resolved you CANNOT make a successful blender build.
+			exit /b 1
+		)
 	)
 ) else (
 	if NOT EXIST %PYTHON% (
