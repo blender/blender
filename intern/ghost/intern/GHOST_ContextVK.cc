@@ -1112,6 +1112,11 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     return GHOST_kFailure;
   }
 
+  vulkan_device->users++;
+  /* Register optional device extensions */
+  if (vulkan_device->has_extensions({VK_KHR_MAINTENANCE_4_EXTENSION_NAME})) {
+    extensions_device.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
+  }
 #ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
   /* According to the Vulkan specs, when `VK_KHR_portability_subset` is available it should be
    * enabled. See
@@ -1120,7 +1125,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     extensions_device.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
 #endif
-  vulkan_device->users++;
   vulkan_device->ensure_device(layers_enabled, extensions_device);
 
   vkGetDeviceQueue(
