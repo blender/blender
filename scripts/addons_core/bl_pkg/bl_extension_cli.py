@@ -94,7 +94,7 @@ class subcmd_utils:
             bpy.ops.bl_pkg.repo_sync_all()
             if show_done:
                 sys.stdout.write("Done...\n\n")
-        except BaseException:
+        except Exception:
             print("Error synchronizing")
             import traceback
             traceback.print_exc()
@@ -372,7 +372,7 @@ class subcmd_pkg:
             )
         except RuntimeError:
             return False  # The error will have been printed.
-        except BaseException as ex:
+        except Exception as ex:
             sys.stderr.write(str(ex))
             sys.stderr.write("\n")
 
