@@ -196,6 +196,11 @@ void DrawingPlacement::project(const Span<float2> src, MutableSpan<float3> dst) 
   });
 }
 
+float4x4 DrawingPlacement::to_world_space() const
+{
+  return layer_space_to_world_space_;
+}
+
 static float get_multi_frame_falloff(const int frame_number,
                                      const int center_frame,
                                      const int min_frame,
@@ -1091,45 +1096,49 @@ Array<PointTransferData> compute_topology_change(
   return dst_transfer_data;
 }
 
-static float paint_calc_object_space_radius(ViewContext *vc,
-                                            const float3 center,
-                                            float pixel_radius)
+static float pixel_radius_to_world_space_radius(const RegionView3D *rv3d,
+                                                const ARegion *region,
+                                                const float3 center,
+                                                const float4x4 to_world,
+                                                const float pixel_radius)
 {
-  Object *ob = vc->obact;
   const float2 xy_delta = float2(pixel_radius, 0.0f);
-  const float4x4 mat = ob->object_to_world();
+  const float3 loc = math::transform_point(to_world, center);
 
-  const float3 loc = math::transform_point(mat, center);
-
-  const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
+  const float zfac = ED_view3d_calc_zfac(rv3d, loc);
   float3 delta;
-  ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
+  ED_view3d_win_to_delta(region, xy_delta, zfac, delta);
 
   const float scale = math::length(
-      math::transform_direction(mat, float3(math::numbers::inv_sqrt3)));
+      math::transform_direction(to_world, float3(math::numbers::inv_sqrt3)));
 
   return math::safe_divide(math::length(delta), scale);
 }
 
-static float calc_brush_radius(ViewContext *vc,
-                               const Brush *brush,
-                               const Scene *scene,
-                               const float3 location)
+static float brush_radius_at_location(const RegionView3D *rv3d,
+                                      const ARegion *region,
+                                      const Scene *scene,
+                                      const Brush *brush,
+                                      const float3 location,
+                                      const float4x4 to_world)
 {
   if (!BKE_brush_use_locked_size(scene, brush)) {
-    return paint_calc_object_space_radius(vc, location, BKE_brush_size_get(scene, brush));
+    return pixel_radius_to_world_space_radius(
+        rv3d, region, location, to_world, BKE_brush_size_get(scene, brush));
   }
   return BKE_brush_unprojected_radius_get(scene, brush);
 }
 
-float radius_from_input_sample(const float pressure,
-                               const float3 location,
-                               ViewContext vc,
-                               const Brush *brush,
+float radius_from_input_sample(const RegionView3D *rv3d,
+                               const ARegion *region,
                                const Scene *scene,
+                               const Brush *brush,
+                               const float pressure,
+                               const float3 location,
+                               const float4x4 to_world,
                                const BrushGpencilSettings *settings)
 {
-  float radius = calc_brush_radius(&vc, brush, scene, location);
+  float radius = brush_radius_at_location(rv3d, region, scene, brush, location, to_world);
   if (BKE_brush_use_size_pressure(brush)) {
     radius *= BKE_curvemapping_evaluateF(settings->curve_sensitivity, 0, pressure);
   }

@@ -320,14 +320,18 @@ struct PaintOperationExecutor {
                             const int material_index)
   {
     const float2 start_coords = start_sample.mouse_position;
-    ViewContext vc = ED_view3d_viewcontext_init(const_cast<bContext *>(&C),
-                                                CTX_data_depsgraph_pointer(&C));
+    const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
+    const ARegion *region = CTX_wm_region(&C);
+
+    const float3 start_location = self.placement_.project(start_coords);
     const float start_radius = ed::greasepencil::radius_from_input_sample(
-        start_sample.pressure,
-        self.placement_.project(start_sample.mouse_position),
-        vc,
-        brush_,
+        rv3d,
+        region,
         scene_,
+        brush_,
+        start_sample.pressure,
+        start_location,
+        self.placement_.to_world_space(),
         settings_);
     const float start_opacity = ed::greasepencil::opacity_from_input_sample(
         start_sample.pressure, brush_, scene_, settings_);
@@ -347,7 +351,7 @@ struct PaintOperationExecutor {
     const IndexRange curve_points = curves.points_by_curve()[active_curve];
     const int last_active_point = curve_points.last();
 
-    curves.positions_for_write()[last_active_point] = self.placement_.project(start_coords);
+    curves.positions_for_write()[last_active_point] = start_location;
     drawing_->radii_for_write()[last_active_point] = start_radius;
     drawing_->opacities_for_write()[last_active_point] = start_opacity;
     if (vertex_color_) {
@@ -491,14 +495,18 @@ struct PaintOperationExecutor {
                                 const InputSample &extension_sample)
   {
     const float2 coords = extension_sample.mouse_position;
-    ViewContext vc = ED_view3d_viewcontext_init(const_cast<bContext *>(&C),
-                                                CTX_data_depsgraph_pointer(&C));
+    const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
+    const ARegion *region = CTX_wm_region(&C);
+
+    const float3 position = self.placement_.project(coords);
     const float radius = ed::greasepencil::radius_from_input_sample(
-        extension_sample.pressure,
-        self.placement_.project(extension_sample.mouse_position),
-        vc,
-        brush_,
+        rv3d,
+        region,
         scene_,
+        brush_,
+        extension_sample.pressure,
+        position,
+        self.placement_.to_world_space(),
         settings_);
     const float opacity = ed::greasepencil::opacity_from_input_sample(
         extension_sample.pressure, brush_, scene_, settings_);
@@ -524,7 +532,7 @@ struct PaintOperationExecutor {
     if (math::distance(coords, prev_coords) < POINT_OVERRIDE_THRESHOLD_PX) {
       /* Don't move the first point of the stroke. */
       if (!is_first_sample) {
-        curves.positions_for_write()[last_active_point] = self.placement_.project(coords);
+        curves.positions_for_write()[last_active_point] = position;
       }
       drawing_->radii_for_write()[last_active_point] = math::max(radius, prev_radius);
       drawing_->opacities_for_write()[last_active_point] = math::max(opacity, prev_opacity);
