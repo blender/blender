@@ -71,8 +71,10 @@ typedef struct World {
   float sun_threshold;
   /** Angle for sun extraction. */
   float sun_angle;
-  /** Maximum resolution for extracted sun shadow. */
+  /** Shadow properties for sun extraction. */
   float sun_shadow_maximum_resolution;
+  float sun_shadow_jitter_overblur;
+  float sun_shadow_filter_radius;
   char _pad4[4];
 
   /** Old animation system, deprecated for 2.5. */
@@ -131,6 +133,7 @@ enum {
    * Use shadowing from the extracted sun light.
    */
   WO_USE_SUN_SHADOW = 1 << 4,
+  WO_USE_SUN_SHADOW_JITTER = 1 << 5,
 };
 
 /** #World::probe_resolution. */

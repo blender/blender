@@ -173,7 +173,7 @@ ShadowRayDirectional shadow_ray_generate_directional(
   direction = shadow_ray_above_horizon_ensure(direction, lNg, max_tracing_distance);
 
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
-  direction *= saturate(dist_to_near_plane / direction.z) + 0.0001;
+  direction *= max(texel_radius, dist_to_near_plane / direction.z);
 
   ShadowRayDirectional ray;
   ray.origin = lP;
