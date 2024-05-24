@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           if grep -q 'Rocky' /etc/os-release; then
-            source /etc/profile
+            source scl_source enable gcc-toolset-11
           fi
           make update
           make
