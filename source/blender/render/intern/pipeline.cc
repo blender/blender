@@ -229,6 +229,13 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   BLI_mutex_unlock(&mutex);
 }
 
+void RE_ReferenceRenderResult(RenderResult *rr)
+{
+  /* There is no need to lock as the user-counted render results are protected by mutex at the
+   * higher call stack level. */
+  ++rr->user_counter;
+}
+
 void RE_FreeRenderResult(RenderResult *rr)
 {
   render_result_free(rr);

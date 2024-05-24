@@ -101,6 +101,17 @@ typedef struct RenderLayer {
 typedef struct RenderResult {
   struct RenderResult *next, *prev;
 
+  /* The number of users of this render result. Default value is 0. The result is freed when
+   * #RE_FreeRenderResult is called with the render result with 0 users. In a way this is
+   * off-by-one, but it is the easiest for the currently used zero-initialized state. The way to
+   * think of it is the number of extra users.
+   *
+   * TODO: Make it an actual number of users, so the #RE_FreeRenderResult frees the result when
+   * the number of users goes to 0.
+   *
+   * TODO: Make it atomic. Currently it is not to allow shallow copying. */
+  int user_counter;
+
   /* target image size */
   int rectx, recty;
 
@@ -218,6 +229,7 @@ void RE_FreeRenderResult(struct RenderResult *rr);
  */
 struct RenderResult *RE_AcquireResultRead(struct Render *re);
 struct RenderResult *RE_AcquireResultWrite(struct Render *re);
+void RE_ReferenceRenderResult(struct RenderResult *rr);
 void RE_ReleaseResult(struct Render *re);
 /**
  * Same as #RE_AcquireResultImage but creating the necessary views to store the result
