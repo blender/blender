@@ -34,7 +34,7 @@ set(SRC
   intern/asset_shelf.cc
   intern/asset_shelf_asset_view.cc
   intern/asset_shelf_catalog_selector.cc
-  intern/asset_shelf_popup.cc
+  intern/asset_shelf_popover.cc
   intern/asset_shelf_regiondata.cc
   intern/asset_shelf_settings.cc
   intern/asset_temp_id_consumer.cc

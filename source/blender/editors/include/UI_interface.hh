@@ -73,6 +73,9 @@ void attribute_search_add_items(StringRefNull str,
                                 uiSearchItems *items,
                                 bool is_first);
 
+bool asset_shelf_popover_invoke(bContext &C,
+                                blender::StringRef asset_shelf_idname,
+                                ReportList &reports);
 /**
  * Some drop targets simply allow dropping onto/into them, others support dragging in-between them.
  * Classes implementing the drop-target interface can use this type to control the behavior by

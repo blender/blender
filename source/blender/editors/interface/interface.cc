@@ -5769,6 +5769,14 @@ const PointerRNA *UI_but_context_ptr_get(const uiBut *but, const char *name, con
   return CTX_store_ptr_lookup(but->context, name, type);
 }
 
+std::optional<blender::StringRefNull> UI_but_context_string_get(const uiBut *but, const char *name)
+{
+  if (!but->context) {
+    return {};
+  }
+  return CTX_store_string_lookup(but->context, name);
+}
+
 const bContextStore *UI_but_context_get(const uiBut *but)
 {
   return but->context;

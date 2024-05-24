@@ -2212,6 +2212,39 @@ static void WM_OT_call_panel(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+static int asset_shelf_popover_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  char *asset_shelf_id = RNA_string_get_alloc(op->ptr, "name", nullptr, 0, nullptr);
+  BLI_SCOPED_DEFER([&]() { MEM_freeN(asset_shelf_id); });
+
+  if (!blender::ui::asset_shelf_popover_invoke(*C, asset_shelf_id, *op->reports)) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  return OPERATOR_INTERFACE;
+}
+
+/* Needs to be defined at WM level to be globally accessible. */
+static void WM_OT_call_asset_shelf_popover(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Call Asset Shelf Popover";
+  ot->idname = "WM_OT_call_asset_shelf_popover";
+  ot->description = "Open a predefined asset shelf in a popup";
+
+  /* api callbacks */
+  ot->invoke = asset_shelf_popover_invoke;
+
+  ot->flag = OPTYPE_INTERNAL;
+
+  RNA_def_string(ot->srna,
+                 "name",
+                 nullptr,
+                 0,
+                 "Asset Shelf Name",
+                 "Identifier of the asset shelf to display");
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -4065,6 +4098,7 @@ void wm_operatortypes_register()
   WM_operatortype_append(WM_OT_call_menu);
   WM_operatortype_append(WM_OT_call_menu_pie);
   WM_operatortype_append(WM_OT_call_panel);
+  WM_operatortype_append(WM_OT_call_asset_shelf_popover);
   WM_operatortype_append(WM_OT_radial_control);
   WM_operatortype_append(WM_OT_stereo3d_set);
 #if defined(WIN32)

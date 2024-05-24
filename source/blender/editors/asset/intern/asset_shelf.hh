@@ -38,6 +38,7 @@ void build_asset_view(uiLayout &layout,
                       const ARegion &region);
 
 void catalog_selector_panel_register(ARegionType *region_type);
+void popover_panel_register(ARegionType *region_type);
 
 AssetShelf *active_shelf_from_context(const bContext *C);
 

@@ -25,6 +25,7 @@
 #include "BLI_memory_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -3187,6 +3188,10 @@ void uiItemPopoverPanel_ptr(
     icon = ICON_BLANK1;
   }
 
+  const bContextStore *previous_ctx = CTX_store_get(C);
+  /* Set context for polling (and panel header drawing). */
+  CTX_store_set(const_cast<bContext *>(C), layout->context);
+
   const bool ok = (pt->poll == nullptr) || pt->poll(C, pt);
   if (ok && (pt->draw_header != nullptr)) {
     layout = uiLayoutRow(layout, true);
@@ -3198,6 +3203,9 @@ void uiItemPopoverPanel_ptr(
     panel.flag = PNL_POPOVER;
     pt->draw_header(C, &panel);
   }
+
+  CTX_store_set(const_cast<bContext *>(C), previous_ctx);
+
   uiBut *but = ui_item_menu(
       layout, name, icon, ui_item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
   but->type = UI_BTYPE_POPOVER;
@@ -5999,6 +6007,12 @@ void uiLayoutSetContextPointer(uiLayout *layout, const char *name, PointerRNA *p
   layout->context = CTX_store_add(block->contexts, name, ptr);
 }
 
+void uiLayoutSetContextString(uiLayout *layout, const char *name, blender::StringRef value)
+{
+  uiBlock *block = layout->root->block;
+  layout->context = CTX_store_add(block->contexts, name, value);
+}
+
 bContextStore *uiLayoutGetContextStore(uiLayout *layout)
 {
   return layout->context;
@@ -6090,6 +6104,11 @@ PanelType *UI_but_paneltype_get(const uiBut *but)
     return (PanelType *)but->poin;
   }
   return nullptr;
+}
+
+std::optional<blender::StringRefNull> UI_but_asset_shelf_type_idname_get(const uiBut *but)
+{
+  return UI_asset_shelf_idname_from_button_context(but);
 }
 
 void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout)

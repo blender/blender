@@ -2239,7 +2239,7 @@ void ED_spacetype_view3d()
   art->listener = asset::shelf::header_region_listen;
   art->context = asset::shelf::context;
   BLI_addhead(&st->regiontypes, art);
-  asset::shelf::header_regiontype_register(art, SPACE_VIEW3D);
+  asset::shelf::types_register(art, SPACE_VIEW3D);
 
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);

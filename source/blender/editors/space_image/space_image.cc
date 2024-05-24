@@ -1222,7 +1222,7 @@ void ED_spacetype_image()
   art->listener = asset::shelf::header_region_listen;
   art->context = asset::shelf::context;
   BLI_addhead(&st->regiontypes, art);
-  asset::shelf::header_regiontype_register(art, SPACE_IMAGE);
+  asset::shelf::types_register(art, SPACE_IMAGE);
 
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);

@@ -997,10 +997,12 @@ uiPopupBlockHandle *ui_popup_menu_create(
 
 /* `interface_region_popover.cc` */
 
+using uiPopoverCreateFunc = std::function<void(bContext *, uiLayout *, PanelType *)>;
+
 uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
                                             ARegion *butregion,
                                             uiBut *but,
-                                            uiMenuCreateFunc menu_func,
+                                            uiPopoverCreateFunc popover_func,
                                             const PanelType *panel_type);
 
 /* `interface_region_menu_pie.cc` */
@@ -1522,6 +1524,9 @@ void UI_OT_eyedropper_driver(wmOperatorType *ot);
 /* interface_eyedropper_gpencil_color.c */
 
 void UI_OT_eyedropper_gpencil_color(wmOperatorType *ot);
+
+/* interface_template_asset_shelf_popover.cc */
+std::optional<blender::StringRefNull> UI_asset_shelf_idname_from_button_context(const uiBut *but);
 
 /* interface_template_asset_view.cc */
 

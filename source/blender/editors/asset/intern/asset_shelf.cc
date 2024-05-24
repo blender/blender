@@ -832,7 +832,7 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
   uiItemR(sub, &shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
 }
 
-void header_regiontype_register(ARegionType *region_type, const int space_type)
+static void header_regiontype_register(ARegionType *region_type, const int space_type)
 {
   HeaderType *ht = MEM_cnew<HeaderType>(__func__);
   STRNCPY(ht->idname, "ASSETSHELF_HT_settings");
@@ -844,8 +844,13 @@ void header_regiontype_register(ARegionType *region_type, const int space_type)
   };
 
   BLI_addtail(&region_type->headertypes, ht);
+}
 
+void types_register(ARegionType *region_type, const int space_type)
+{
+  header_regiontype_register(region_type, space_type);
   catalog_selector_panel_register(region_type);
+  popover_panel_register(region_type);
 }
 
 /** \} */
