@@ -3040,16 +3040,16 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
   return wm_open_mainfile__open(C, op);
 }
 
-static std::string wm_open_mainfile_description(bContext * /*C*/,
-                                                wmOperatorType * /*ot*/,
-                                                PointerRNA *params)
+static std::string wm_open_mainfile_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
 {
-  if (!RNA_struct_property_is_set(params, "filepath")) {
+  if (!RNA_struct_property_is_set(ptr, "filepath")) {
     return "";
   }
 
   char filepath[FILE_MAX];
-  RNA_string_get(params, "filepath", filepath);
+  RNA_string_get(ptr, "filepath", filepath);
 
   BLI_stat_t stats;
   if (BLI_stat(filepath, &stats) == -1) {
@@ -3151,7 +3151,7 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
   ot->name = "Open";
   ot->idname = "WM_OT_open_mainfile";
   ot->description = "Open a Blender file";
-  ot->get_description = wm_open_mainfile_description;
+  ot->get_description = wm_open_mainfile_get_description;
 
   ot->invoke = wm_open_mainfile_invoke;
   ot->exec = wm_open_mainfile_exec;

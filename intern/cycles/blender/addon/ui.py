@@ -2437,7 +2437,7 @@ class CYCLES_VIEW3D_PT_shading_lighting(Panel):
             sub.template_icon_view(shading, "studio_light", scale_popup=3)
 
             col = split.column()
-            col.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+            col.operator("screen.userpref_show", emboss=False, text="", icon='PREFERENCES').section = 'LIGHTS'
 
             split = layout.split(factor=0.9)
             col = split.column()

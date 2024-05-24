@@ -1148,22 +1148,6 @@ class PREFERENCES_OT_studiolight_copy_settings(Operator):
         return {'CANCELLED'}
 
 
-class PREFERENCES_OT_studiolight_show(Operator):
-    """Show light preferences"""
-    bl_idname = "preferences.studiolight_show"
-    bl_label = ""
-    bl_options = {'INTERNAL'}
-
-    @classmethod
-    def poll(cls, _context):
-        return bpy.ops.screen.userpref_show.poll()
-
-    def execute(self, context):
-        context.preferences.active_section = 'LIGHTS'
-        bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
-        return {'FINISHED'}
-
-
 class PREFERENCES_OT_script_directory_new(Operator):
     bl_idname = "preferences.script_directory_add"
     bl_label = "Add Python Script Directory"
@@ -1243,7 +1227,6 @@ classes = (
     PREFERENCES_OT_studiolight_new,
     PREFERENCES_OT_studiolight_uninstall,
     PREFERENCES_OT_studiolight_copy_settings,
-    PREFERENCES_OT_studiolight_show,
     PREFERENCES_OT_script_directory_new,
     PREFERENCES_OT_script_directory_remove,
 )

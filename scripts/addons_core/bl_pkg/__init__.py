@@ -134,6 +134,12 @@ use_repos_to_notify = False
 
 
 def repos_to_notify():
+    import os
+    from .bl_extension_utils import (
+        scandir_with_demoted_errors,
+        PKG_MANIFEST_FILENAME_TOML,
+    )
+
     repos_notify = []
     if not bpy.app.background:
         # To use notifications on startup requires:
@@ -165,6 +171,29 @@ def repos_to_notify():
                 # Allow remote file-system repositories even when online access is disabled.
                 if not remote_url.startswith("file://"):
                     continue
+
+            # WARNING: this could be a more expensive check, use a "reasonable" guess.
+            # This is technically incorrect because knowing if a repository has any installed
+            # packages requires reading it's meta-data and comparing it with the directory contents.
+            # Chances are - if the directory contains *any* directories containing a package manifest
+            # this means it has packages installed.
+            #
+            # Simply check the repositories directory isn't empty (ignoring dot-files).
+            # Importantly, this may be false positives but *not* false negatives.
+            repo_is_empty = True
+            repo_directory = repo_item.directory
+            if os.path.isdir(repo_directory):
+                for entry in scandir_with_demoted_errors(repo_directory):
+                    if not entry.is_dir():
+                        continue
+                    if entry.name.startswith("."):
+                        continue
+                    if not os.path.exists(os.path.join(entry.path, PKG_MANIFEST_FILENAME_TOML)):
+                        continue
+                    repo_is_empty = False
+                    break
+            if repo_is_empty:
+                continue
 
             repos_notify.append(repo_item)
     return repos_notify
@@ -223,7 +252,10 @@ def extenion_repos_files_clear(directory, _):
     # has the potential to wipe user data #119481.
     import shutil
     import os
-    from .bl_extension_utils import scandir_with_demoted_errors
+    from .bl_extension_utils import (
+        scandir_with_demoted_errors,
+        PKG_MANIFEST_FILENAME_TOML,
+    )
     # Unlikely but possible a new repository is immediately removed before initializing,
     # avoid errors in this case.
     if not os.path.isdir(directory):
@@ -239,7 +271,7 @@ def extenion_repos_files_clear(directory, _):
         if not entry.is_dir():
             continue
         path = entry.path
-        if not os.path.exists(os.path.join(path, "blender_manifest.toml")):
+        if not os.path.exists(os.path.join(path, PKG_MANIFEST_FILENAME_TOML)):
             continue
         try:
             shutil.rmtree(path)

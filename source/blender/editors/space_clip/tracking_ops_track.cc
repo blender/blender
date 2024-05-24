@@ -380,7 +380,9 @@ static int track_markers_modal(bContext *C, wmOperator * /*op*/, const wmEvent *
   return OPERATOR_PASS_THROUGH;
 }
 
-static std::string track_markers_desc(bContext * /*C*/, wmOperatorType * /*ot*/, PointerRNA *ptr)
+static std::string track_markers_get_description(bContext * /*C*/,
+                                                 wmOperatorType * /*ot*/,
+                                                 PointerRNA *ptr)
 {
   const bool backwards = RNA_boolean_get(ptr, "backwards");
   const bool sequence = RNA_boolean_get(ptr, "sequence");
@@ -414,7 +416,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
   ot->invoke = track_markers_invoke;
   ot->modal = track_markers_modal;
   ot->poll = ED_space_clip_tracking_poll;
-  ot->get_description = track_markers_desc;
+  ot->get_description = track_markers_get_description;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;

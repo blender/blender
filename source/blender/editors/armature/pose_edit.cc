@@ -424,9 +424,9 @@ static int pose_clear_paths_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static std::string pose_clear_paths_description(bContext * /*C*/,
-                                                wmOperatorType * /*ot*/,
-                                                PointerRNA *ptr)
+static std::string pose_clear_paths_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
 {
   const bool only_selected = RNA_boolean_get(ptr, "only_selected");
   if (only_selected) {
@@ -444,7 +444,7 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = pose_clear_paths_exec;
   ot->poll = ED_operator_posemode_exclusive;
-  ot->get_description = pose_clear_paths_description;
+  ot->get_description = pose_clear_paths_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -473,10 +473,10 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
 
 static std::string node_add_group_asset_get_description(bContext *C,
                                                         wmOperatorType * /*ot*/,
-                                                        PointerRNA *values)
+                                                        PointerRNA *ptr)
 {
   const asset_system::AssetRepresentation *asset =
-      asset::operator_asset_reference_props_get_asset_from_all_library(*C, *values, nullptr);
+      asset::operator_asset_reference_props_get_asset_from_all_library(*C, *ptr, nullptr);
   if (!asset) {
     return "";
   }

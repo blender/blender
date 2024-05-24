@@ -1960,7 +1960,7 @@ uint RNA_enum_items_count(const EnumPropertyItem *item)
 }
 
 bool RNA_property_enum_identifier(
-    bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
+    bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **r_identifier)
 {
   const EnumPropertyItem *item = nullptr;
   bool free;
@@ -1968,7 +1968,7 @@ bool RNA_property_enum_identifier(
   RNA_property_enum_items(C, ptr, prop, &item, nullptr, &free);
   if (item) {
     bool result;
-    result = RNA_enum_identifier(item, value, identifier);
+    result = RNA_enum_identifier(item, value, r_identifier);
     if (free) {
       MEM_freeN((void *)item);
     }
@@ -1978,7 +1978,7 @@ bool RNA_property_enum_identifier(
 }
 
 bool RNA_property_enum_name(
-    bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **name)
+    bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **r_name)
 {
   const EnumPropertyItem *item = nullptr;
   bool free;
@@ -1986,7 +1986,7 @@ bool RNA_property_enum_name(
   RNA_property_enum_items(C, ptr, prop, &item, nullptr, &free);
   if (item) {
     bool result;
-    result = RNA_enum_name(item, value, name);
+    result = RNA_enum_name(item, value, r_name);
     if (free) {
       MEM_freeN((void *)item);
     }
@@ -1997,15 +1997,15 @@ bool RNA_property_enum_name(
 }
 
 bool RNA_property_enum_name_gettexted(
-    bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **name)
+    bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **r_name)
 {
   bool result;
 
-  result = RNA_property_enum_name(C, ptr, prop, value, name);
+  result = RNA_property_enum_name(C, ptr, prop, value, r_name);
 
   if (result) {
     if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
-      *name = BLT_translate_do_iface(prop->translation_context, *name);
+      *r_name = BLT_translate_do_iface(prop->translation_context, *r_name);
     }
   }
 
@@ -2054,7 +2054,7 @@ bool RNA_property_enum_item_from_value_gettexted(
 }
 
 int RNA_property_enum_bitflag_identifiers(
-    bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
+    bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **r_identifier)
 {
   const EnumPropertyItem *item = nullptr;
   bool free;
@@ -2062,7 +2062,7 @@ int RNA_property_enum_bitflag_identifiers(
   RNA_property_enum_items(C, ptr, prop, &item, nullptr, &free);
   if (item) {
     int result;
-    result = RNA_enum_bitflag_identifiers(item, value, identifier);
+    result = RNA_enum_bitflag_identifiers(item, value, r_identifier);
     if (free) {
       MEM_freeN((void *)item);
     }

@@ -1848,9 +1848,9 @@ static int file_external_operation_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static std::string file_external_operation_description(bContext * /*C*/,
-                                                       wmOperatorType * /*ot*/,
-                                                       PointerRNA *ptr)
+static std::string file_external_operation_get_description(bContext * /*C*/,
+                                                           wmOperatorType * /*ot*/,
+                                                           PointerRNA *ptr)
 {
   const char *description = "";
   RNA_enum_description(file_external_operation, RNA_enum_get(ptr, "operation"), &description);
@@ -1868,7 +1868,7 @@ void FILE_OT_external_operation(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_external_operation_exec;
-  ot->get_description = file_external_operation_description;
+  ot->get_description = file_external_operation_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER; /* No undo! */
