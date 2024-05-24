@@ -651,7 +651,7 @@ def pkg_manifest_from_archive_and_validate(
 ) -> Union[PkgManifest, str]:
     try:
         zip_fh_context = zipfile.ZipFile(filepath, mode="r")
-    except BaseException as ex:
+    except Exception as ex:
         return "Error extracting archive \"{:s}\"".format(str(ex))
 
     with contextlib.closing(zip_fh_context) as zip_fh:
@@ -1517,7 +1517,7 @@ def repo_json_is_valid_or_error(filepath: str) -> Optional[str]:
     try:
         with open(filepath, "r", encoding="utf-8") as fh:
             result = json.load(fh)
-    except BaseException as ex:
+    except Exception as ex:
         return str(ex)
 
     if not isinstance(result, dict):
@@ -1567,7 +1567,7 @@ def pkg_manifest_toml_is_valid_or_error(filepath: str, strict: bool) -> Tuple[Op
     try:
         with open(filepath, "rb") as fh:
             result = tomllib.load(fh)
-    except BaseException as ex:
+    except Exception as ex:
         return str(ex), {}
 
     error = pkg_manifest_is_valid_or_error(result, from_repo=False, strict=strict)
@@ -2155,7 +2155,7 @@ class subcmd_client:
         with CleanupPathsContext(files=(), directories=directories_to_clean):
             try:
                 zip_fh_context = zipfile.ZipFile(filepath_archive, mode="r")
-            except BaseException as ex:
+            except Exception as ex:
                 message_warn(
                     msg_fn,
                     "Error extracting archive: {:s}".format(str(ex)),
@@ -2223,7 +2223,7 @@ class subcmd_client:
                 try:
                     for member in zip_fh.infolist():
                         zip_fh.extract(member, filepath_local_pkg_temp)
-                except BaseException as ex:
+                except Exception as ex:
                     message_warn(
                         msg_fn,
                         "Failed to extract files for \"{:s}\": {:s}".format(manifest.id, str(ex)),
@@ -2485,7 +2485,7 @@ class subcmd_client:
                 filepath_local_pkg = os.path.join(local_dir, pkg_idname)
                 try:
                     shutil.rmtree(filepath_local_pkg)
-                except BaseException as ex:
+                except Exception as ex:
                     message_error(msg_fn, "Failure to remove \"{:s}\" with error ({:s})".format(pkg_idname, str(ex)))
                     continue
 
@@ -2613,7 +2613,7 @@ class subcmd_author:
         with CleanupPathsContext(files=(outfile_temp,), directories=()):
             try:
                 zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_LZMA)
-            except BaseException as ex:
+            except Exception as ex:
                 message_status(msg_fn, "Error creating archive \"{:s}\"".format(str(ex)))
                 return False
 
@@ -2640,7 +2640,7 @@ class subcmd_author:
                     compress_type = zipfile.ZIP_STORED if filepath_skip_compress(filepath_abs) else None
                     try:
                         zip_fh.write(filepath_abs, filepath_rel, compress_type=compress_type)
-                    except BaseException as ex:
+                    except Exception as ex:
                         message_status(msg_fn, "Error adding to archive \"{:s}\"".format(str(ex)))
                         return False
 
@@ -2713,7 +2713,7 @@ class subcmd_author:
 
         try:
             zip_fh_context = zipfile.ZipFile(pkg_source_archive, mode="r")
-        except BaseException as ex:
+        except Exception as ex:
             message_status(msg_fn, "Error extracting archive \"{:s}\"".format(str(ex)))
             return False
 
@@ -2799,7 +2799,7 @@ class subcmd_dummy:
         if not os.path.exists(repo_dir):
             try:
                 os.makedirs(repo_dir)
-            except BaseException as ex:
+            except Exception as ex:
                 message_error(msg_fn, "Failed to create \"{:s}\" with error: {!r}".format(repo_dir, ex))
                 return False
 

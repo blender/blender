@@ -456,7 +456,7 @@ def _preferences_ensure_sync():
                 win.cursor_set('WAIT')
         try:
             bpy.ops.bl_pkg.repo_sync_all()
-        except BaseException as ex:
+        except Exception as ex:
             print("Sync failed:", ex)
 
         for wm in bpy.data.window_managers:
@@ -982,7 +982,7 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
         if not os.path.exists(directory):
             try:
                 os.makedirs(directory)
-            except BaseException as ex:
+            except Exception as ex:
                 self.report({'ERROR'}, str(ex))
                 return {'CANCELLED'}
 
@@ -1050,7 +1050,7 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
             if not os.path.exists(repo_item.directory):
                 try:
                     os.makedirs(repo_item.directory)
-                except BaseException as ex:
+                except Exception as ex:
                     self.report({'WARNING'}, str(ex))
                     return None
 

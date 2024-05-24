@@ -264,7 +264,7 @@ def extenion_repos_files_clear(directory, _):
     if os.path.isdir(path := os.path.join(directory, ".blender_ext")):
         try:
             shutil.rmtree(path)
-        except BaseException as ex:
+        except Exception as ex:
             print("Failed to remove files", ex)
 
     for entry in scandir_with_demoted_errors(directory):
@@ -275,7 +275,7 @@ def extenion_repos_files_clear(directory, _):
             continue
         try:
             shutil.rmtree(path)
-        except BaseException as ex:
+        except Exception as ex:
             print("Failed to remove files", ex)
 
 
@@ -330,11 +330,11 @@ def monkeypatch_extensions_repos_update_pre(*_):
     print_debug("PRE:")
     try:
         monkeypatch_extenions_repos_update_pre_impl()
-    except BaseException as ex:
+    except Exception as ex:
         print_debug("ERROR", str(ex))
     try:
         monkeypatch_extensions_repos_update_pre._fn_orig()
-    except BaseException as ex:
+    except Exception as ex:
         print_debug("ERROR", str(ex))
 
 
@@ -343,11 +343,11 @@ def monkeypatch_extenions_repos_update_post(*_):
     print_debug("POST:")
     try:
         monkeypatch_extenions_repos_update_post._fn_orig()
-    except BaseException as ex:
+    except Exception as ex:
         print_debug("ERROR", str(ex))
     try:
         monkeypatch_extenions_repos_update_post_impl()
-    except BaseException as ex:
+    except Exception as ex:
         print_debug("ERROR", str(ex))
 
 
