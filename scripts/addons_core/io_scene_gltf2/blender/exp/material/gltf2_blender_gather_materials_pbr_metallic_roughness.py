@@ -15,7 +15,8 @@ from .gltf2_blender_search_node_tree import \
     get_const_from_default_value_socket, \
     get_socket, \
     get_factor_from_socket, \
-    gather_alpha_info
+    gather_alpha_info, \
+    gather_color_info
 
 
 @cached
@@ -66,12 +67,16 @@ def __gather_base_color_factor(blender_material, export_settings):
                                                             "alpha": None, "color_type": None, "alpha_type": None}
 
     rgb, alpha = None, None
+    vc_info = {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}
 
     path_alpha = None
     path = None
     alpha_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Alpha")
     if alpha_socket.socket is not None and isinstance(alpha_socket.socket, bpy.types.NodeSocket):
         alpha_info = gather_alpha_info(alpha_socket.to_node_nav())
+        vc_info['alpha'] = alpha_info['alphaColorAttrib']
+        vc_info['alpha_type'] = alpha_info['alphaColorAttribType']
+        vc_info['alpha_mode'] = alpha_info['alphaMode']
         alpha = alpha_info['alphaFactor']
         path_alpha = alpha_info['alphaPath']
 
@@ -85,7 +90,11 @@ def __gather_base_color_factor(blender_material, export_settings):
             blender_material.node_tree, blender_material.use_nodes, "BaseColorFactor")
     if base_color_socket.socket is not None and isinstance(base_color_socket.socket, bpy.types.NodeSocket):
         if export_settings['gltf_image_format'] != "NONE":
-            rgb, path = get_factor_from_socket(base_color_socket, kind='RGB')
+            rgb_vc_info = gather_color_info(base_color_socket.to_node_nav())
+            vc_info['color'] = rgb_vc_info['colorAttrib']
+            vc_info['color_type'] = rgb_vc_info['colorAttribType']
+            rgb = rgb_vc_info['colorFactor']
+            path = rgb_vc_info['colorPath']
         else:
             rgb, path = get_const_from_default_value_socket(base_color_socket, kind='RGB')
 
@@ -114,8 +123,6 @@ def __gather_base_color_factor(blender_material, export_settings):
     rgb = [max(min(c, 1.0), 0.0) for c in rgb]
 
     rgba = [*rgb, alpha]
-
-    vc_info = get_vertex_color_info(base_color_socket, alpha_socket, export_settings)
 
     if rgba == [1, 1, 1, 1]:
         return None, vc_info
