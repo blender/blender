@@ -52,6 +52,8 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 
 #  include "DEG_depsgraph_build.hh"
 
+#  include "NOD_socket_declarations.hh"
+
 #  include "ED_node.hh"
 
 extern FunctionRNA rna_NodeSocket_draw_func;
@@ -398,6 +400,60 @@ void rna_NodeSocketStandard_vector_range(
   *max = FLT_MAX;
   *softmin = dval->min;
   *softmax = dval->max;
+}
+
+float rna_NodeSocketStandard_float_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  if (!sock->runtime->declaration) {
+    return 0.0f;
+  }
+  auto *decl = static_cast<const blender::nodes::decl::Float *>(sock->runtime->declaration);
+  return decl->default_value;
+}
+
+int rna_NodeSocketStandard_int_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  if (!sock->runtime->declaration) {
+    return 0;
+  }
+  auto *decl = static_cast<const blender::nodes::decl::Int *>(sock->runtime->declaration);
+  return decl->default_value;
+}
+
+bool rna_NodeSocketStandard_boolean_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  if (!sock->runtime->declaration) {
+    return false;
+  }
+  auto *decl = static_cast<const blender::nodes::decl::Bool *>(sock->runtime->declaration);
+  return decl->default_value;
+}
+
+void rna_NodeSocketStandard_vector_default(PointerRNA *ptr,
+                                           PropertyRNA * /*prop*/,
+                                           float *r_values)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  if (!sock->runtime->declaration) {
+    std::fill_n(r_values, 3, 0.0f);
+    return;
+  }
+  auto *decl = static_cast<const blender::nodes::decl::Vector *>(sock->runtime->declaration);
+  std::copy_n(&decl->default_value.x, 3, r_values);
+}
+
+void rna_NodeSocketStandard_color_default(PointerRNA *ptr, PropertyRNA * /*prop*/, float *r_values)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  if (!sock->runtime->declaration) {
+    std::fill_n(r_values, 4, 0.0f);
+    return;
+  }
+  auto *decl = static_cast<const blender::nodes::decl::Color *>(sock->runtime->declaration);
+  std::copy_n(&decl->default_value.r, 4, r_values);
 }
 
 /* using a context update function here, to avoid searching the node if possible */
@@ -778,6 +834,7 @@ static void rna_def_node_socket_float(BlenderRNA *brna,
   prop = RNA_def_property(srna, "default_value", PROP_FLOAT, subtype);
   RNA_def_property_float_sdna(prop, nullptr, "value");
   RNA_def_property_float_funcs(prop, nullptr, nullptr, "rna_NodeSocketStandard_float_range");
+  RNA_def_property_float_default_func(prop, "rna_NodeSocketStandard_float_default");
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
@@ -879,6 +936,7 @@ static void rna_def_node_socket_int(BlenderRNA *brna,
   RNA_def_property_int_sdna(prop, nullptr, "value");
   RNA_def_property_int_default(prop, value_default);
   RNA_def_property_int_funcs(prop, nullptr, nullptr, "rna_NodeSocketStandard_int_range");
+  RNA_def_property_int_default_func(prop, "rna_NodeSocketStandard_int_default");
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
@@ -947,6 +1005,7 @@ static void rna_def_node_socket_bool(BlenderRNA *brna, const char *identifier)
   prop = RNA_def_property(srna, "default_value", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "value", 1);
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+  RNA_def_property_boolean_default_func(prop, "rna_NodeSocketStandard_boolean_default");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 
@@ -1049,21 +1108,6 @@ static void rna_def_node_socket_vector(BlenderRNA *brna,
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  const float *value_default;
-
-  /* choose sensible common default based on subtype */
-  switch (subtype) {
-    case PROP_DIRECTION: {
-      static const float default_direction[3] = {0.0f, 0.0f, 1.0f};
-      value_default = default_direction;
-      break;
-    }
-    default: {
-      static const float default_vector[3] = {0.0f, 0.0f, 0.0f};
-      value_default = default_vector;
-      break;
-    }
-  }
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Vector Node Socket", "3D vector socket of a node");
@@ -1073,7 +1117,7 @@ static void rna_def_node_socket_vector(BlenderRNA *brna,
 
   prop = RNA_def_property(srna, "default_value", PROP_FLOAT, subtype);
   RNA_def_property_float_sdna(prop, nullptr, "value");
-  RNA_def_property_float_array_default(prop, value_default);
+  RNA_def_property_float_default_func(prop, "rna_NodeSocketStandard_vector_default");
   RNA_def_property_float_funcs(prop, nullptr, nullptr, "rna_NodeSocketStandard_vector_range");
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
@@ -1143,6 +1187,7 @@ static void rna_def_node_socket_color(BlenderRNA *brna, const char *identifier)
   prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_float_sdna(prop, nullptr, "value");
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+  RNA_def_property_float_default_func(prop, "rna_NodeSocketStandard_color_default");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 
