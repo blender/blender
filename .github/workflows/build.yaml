@@ -16,7 +16,11 @@ jobs:
           ./build_files/utils/make_update.py --use-linux-libraries
 
       - name: Update and Build
+        shell: bash
         run: |
+          if grep -q 'Rocky' /etc/os-release; then
+            source /etc/profile
+          fi
           make update
           make
 
