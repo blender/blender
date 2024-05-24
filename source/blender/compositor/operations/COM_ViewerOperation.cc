@@ -161,6 +161,25 @@ void ViewerOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
   update_image(&area);
 }
 
+void ViewerOperation::update_memory_buffer_finished(MemoryBuffer * /*output*/,
+                                                    const rcti & /*area*/,
+                                                    Span<MemoryBuffer *> /*inputs*/)
+{
+  const std::unique_ptr<MetaData> meta_data =
+      this->get_input_socket(0)->get_reader()->get_meta_data();
+
+  if (meta_data && meta_data->is_data) {
+    image_->flag &= ~IMA_VIEW_AS_RENDER;
+    IMB_colormanagement_assign_float_colorspace(
+        ibuf_, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+  }
+  else {
+    image_->flag |= IMA_VIEW_AS_RENDER;
+    IMB_colormanagement_assign_float_colorspace(
+        ibuf_, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+  }
+}
+
 void ViewerOperation::clear_display_buffer()
 {
   BLI_assert(is_active_viewer_output());

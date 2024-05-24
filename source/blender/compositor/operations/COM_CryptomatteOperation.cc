@@ -60,4 +60,29 @@ void CryptomatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
+CryptomattePickOperation::CryptomattePickOperation()
+{
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
+}
+
+void CryptomattePickOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                            const rcti &area,
+                                                            Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *color = it.in(0);
+    copy_v3_v3(it.out, color);
+    it.out[3] = 1.0f;
+  }
+}
+
+std::unique_ptr<MetaData> CryptomattePickOperation::get_meta_data()
+{
+  std::unique_ptr<MetaData> meta_data = std::make_unique<MetaData>();
+  meta_data->is_data = true;
+  return meta_data;
+}
+
 }  // namespace blender::compositor

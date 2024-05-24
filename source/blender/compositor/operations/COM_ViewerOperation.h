@@ -82,6 +82,10 @@ class ViewerOperation : public MultiThreadedOperation {
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
 
+  void update_memory_buffer_finished(MemoryBuffer *output,
+                                     const rcti &area,
+                                     Span<MemoryBuffer *> inputs) override;
+
   void clear_display_buffer();
 
  private:

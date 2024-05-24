@@ -515,7 +515,7 @@ void ED_node_set_tree_type(SpaceNode *snode, blender::bke::bNodeTreeType *typein
   }
 }
 
-bool ED_node_is_compositor(SpaceNode *snode)
+bool ED_node_is_compositor(const SpaceNode *snode)
 {
   return STREQ(snode->tree_idname, ntreeType_Composite->idname);
 }
