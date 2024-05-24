@@ -3587,6 +3587,99 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop,
   }
 }
 
+void RNA_def_property_float_default_func(PropertyRNA *prop, const char *get_default)
+{
+  StructRNA *srna = DefRNA.laststruct;
+
+  if (!DefRNA.preprocess) {
+    CLOG_ERROR(&LOG, "only during preprocessing");
+    return;
+  }
+  switch (prop->type) {
+    case PROP_FLOAT: {
+      FloatPropertyRNA *fprop = reinterpret_cast<FloatPropertyRNA *>(prop);
+      if (prop->arraydimension) {
+        if (get_default) {
+          fprop->get_default_array = (PropFloatArrayGetFuncEx)get_default;
+        }
+      }
+      else {
+        if (get_default) {
+          fprop->get_default = (PropFloatGetFuncEx)get_default;
+        }
+      }
+      break;
+    }
+    default: {
+      CLOG_ERROR(&LOG, "\"%s.%s\", type is not float.", srna->identifier, prop->identifier);
+      DefRNA.error = true;
+      break;
+    }
+  }
+}
+
+void RNA_def_property_int_default_func(PropertyRNA *prop, const char *get_default)
+{
+  StructRNA *srna = DefRNA.laststruct;
+
+  if (!DefRNA.preprocess) {
+    CLOG_ERROR(&LOG, "only during preprocessing");
+    return;
+  }
+  switch (prop->type) {
+    case PROP_INT: {
+      IntPropertyRNA *iprop = reinterpret_cast<IntPropertyRNA *>(prop);
+      if (prop->arraydimension) {
+        if (get_default) {
+          iprop->get_default_array = (PropIntArrayGetFuncEx)get_default;
+        }
+      }
+      else {
+        if (get_default) {
+          iprop->get_default = (PropIntGetFuncEx)get_default;
+        }
+      }
+      break;
+    }
+    default: {
+      CLOG_ERROR(&LOG, "\"%s.%s\", type is not int.", srna->identifier, prop->identifier);
+      DefRNA.error = true;
+      break;
+    }
+  }
+}
+
+void RNA_def_property_boolean_default_func(PropertyRNA *prop, const char *get_default)
+{
+  StructRNA *srna = DefRNA.laststruct;
+
+  if (!DefRNA.preprocess) {
+    CLOG_ERROR(&LOG, "only during preprocessing");
+    return;
+  }
+  switch (prop->type) {
+    case PROP_BOOLEAN: {
+      BoolPropertyRNA *bprop = reinterpret_cast<BoolPropertyRNA *>(prop);
+      if (prop->arraydimension) {
+        if (get_default) {
+          bprop->get_default_array = (PropBooleanArrayGetFuncEx)get_default;
+        }
+      }
+      else {
+        if (get_default) {
+          bprop->get_default = (PropBooleanGetFuncEx)get_default;
+        }
+      }
+      break;
+    }
+    default: {
+      CLOG_ERROR(&LOG, "\"%s.%s\", type is not boolean.", srna->identifier, prop->identifier);
+      DefRNA.error = true;
+      break;
+    }
+  }
+}
+
 void RNA_def_property_srna(PropertyRNA *prop, const char *type)
 {
   const char *error = nullptr;
