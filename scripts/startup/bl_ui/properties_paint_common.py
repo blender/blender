@@ -28,7 +28,7 @@ class BrushAssetShelf:
         # Only show active highlight when using the brush tool.
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.tool_active_from_context(bpy.context)
-        if tool.idname != "builtin.brush":
+        if not tool or tool.idname != "builtin.brush":
             return None
 
         paint_settings = UnifiedPaintPanel.paint_settings(bpy.context)
