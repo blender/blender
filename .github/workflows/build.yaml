@@ -29,7 +29,7 @@ jobs:
           make
 
   build-mac:
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS, ARM64]
     steps:
       - name: Download Sources
         uses: actions/checkout@v3
