@@ -170,13 +170,13 @@ void ViewerOperation::update_memory_buffer_finished(MemoryBuffer * /*output*/,
 
   if (meta_data && meta_data->is_data) {
     image_->flag &= ~IMA_VIEW_AS_RENDER;
-    IMB_colormanagement_assign_float_colorspace(
-        ibuf_, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+    /* TODO: Assign image buffer's color space to either non-color or linear, to be fully correct
+     * about the content of the pixels. This needs to happen consistently with the GPU compositor,
+     * and also consistently with the ibuf_ acquired as a state of this operation (which is not
+     * always guaranteed to happen here. */
   }
   else {
     image_->flag |= IMA_VIEW_AS_RENDER;
-    IMB_colormanagement_assign_float_colorspace(
-        ibuf_, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
   }
 }
 
