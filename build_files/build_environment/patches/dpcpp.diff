@@ -34,246 +34,234 @@ diff -Naur llvm-sycl-nightly-20220208.orig/libdevice/cmake/modules/SYCLLibdevice
    libsycldevice-obj
    libsycldevice-spv)
  
-diff --git a/sycl/source/detail/program_manager/program_manager.cpp b/sycl/source/detail/program_manager/program_manager.cpp
-index 17eeaafae194..09e6d2217aaa 100644
---- a/sycl/source/detail/program_manager/program_manager.cpp
-+++ b/sycl/source/detail/program_manager/program_manager.cpp
-@@ -1647,46 +1647,120 @@ ProgramManager::getSYCLDeviceImagesWithCompatibleState(
-   }
-   assert(BinImages.size() > 0 && "Expected to find at least one device image");
+diff --git a/sycl/CMakeLists.txt b/sycl/CMakeLists.txt
+index 00ce045f43c3..e044262e628e 100644
+--- a/sycl/CMakeLists.txt
++++ b/sycl/CMakeLists.txt
+@@ -188,7 +188,6 @@ install(FILES
+   COMPONENT sycl-headers)
  
-+  // Ignore images with incompatible state. Image is considered compatible
-+  // with a target state if an image is already in the target state or can
-+  // be brought to target state by compiling/linking/building.
-+  //
-+  // Example: an image in "executable" state is not compatible with
-+  // "input" target state - there is no operation to convert the image it
-+  // to "input" state. An image in "input" state is compatible with
-+  // "executable" target state because it can be built to get into
-+  // "executable" state.
-+  for (auto It = BinImages.begin(); It != BinImages.end();) {
-+    if (getBinImageState(*It) > TargetState)
-+      It = BinImages.erase(It);
-+    else
-+      ++It;
-+  }
-+
-   std::vector<device_image_plain> SYCLDeviceImages;
--  for (RTDeviceBinaryImage *BinImage : BinImages) {
--    const bundle_state ImgState = getBinImageState(BinImage);
+ include(AddBoostMp11Headers)
+-include(FetchBoostUnorderedHeaders)
+ 
+ # This is workaround to detect changes (add or modify) in subtree which
+ # are not detected by copy_directory command.
+diff --git a/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake b/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake
+deleted file mode 100644
+index a0f446055026..000000000000
+--- a/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake
++++ /dev/null
+@@ -1,129 +0,0 @@
+-# Fetches the unordered boost module and its dependencies
+-function(add_boost_module_headers)
+-  cmake_parse_arguments(
+-    BOOST_MODULE               # prefix
+-    ""                         # options
+-    "NAME;SRC_DIR;GIT_TAG;"    # one value keywords
+-    ""                         # multi-value keywords
+-    ${ARGN})                   # arguments
 -
--    // Ignore images with incompatible state. Image is considered compatible
--    // with a target state if an image is already in the target state or can
--    // be brought to target state by compiling/linking/building.
--    //
--    // Example: an image in "executable" state is not compatible with
--    // "input" target state - there is no operation to convert the image it
--    // to "input" state. An image in "input" state is compatible with
--    // "executable" target state because it can be built to get into
--    // "executable" state.
--    if (ImgState > TargetState)
--      continue;
- 
--    for (const sycl::device &Dev : Devs) {
-+  // If a non-input state is requested, we can filter out some compatible
-+  // images and return only those with the highest compatible state for each
-+  // device-kernel pair. This map tracks how many kernel-device pairs need each
-+  // image, so that any unneeded ones are skipped.
-+  // TODO this has no effect if the requested state is input, consider having
-+  // a separate branch for that case to avoid unnecessary tracking work.
-+  struct DeviceBinaryImageInfo {
-+    std::shared_ptr<std::vector<sycl::kernel_id>> KernelIDs;
-+    bundle_state State = bundle_state::input;
-+    int RequirementCounter = 0;
-+  };
-+  std::unordered_map<RTDeviceBinaryImage *, DeviceBinaryImageInfo> ImageInfoMap;
-+
-+  for (const sycl::device &Dev : Devs) {
-+    // Track the highest image state for each requested kernel.
-+    using StateImagesPairT =
-+        std::pair<bundle_state, std::vector<RTDeviceBinaryImage *>>;
-+    using KernelImageMapT =
-+        std::map<kernel_id, StateImagesPairT, LessByNameComp>;
-+    KernelImageMapT KernelImageMap;
-+    if (!KernelIDs.empty())
-+      for (const kernel_id &KernelID : KernelIDs)
-+        KernelImageMap.insert({KernelID, {}});
-+
-+    for (RTDeviceBinaryImage *BinImage : BinImages) {
-       if (!compatibleWithDevice(BinImage, Dev) ||
-           !doesDevSupportImgAspects(Dev, *BinImage))
-         continue;
- 
--      std::shared_ptr<std::vector<sycl::kernel_id>> KernelIDs;
--      // Collect kernel names for the image
--      {
--        std::lock_guard<std::mutex> KernelIDsGuard(m_KernelIDsMutex);
--        KernelIDs = m_BinImg2KernelIDs[BinImage];
--        // If the image does not contain any non-service kernels we can skip it.
--        if (!KernelIDs || KernelIDs->empty())
--          continue;
-+      auto InsertRes = ImageInfoMap.insert({BinImage, {}});
-+      DeviceBinaryImageInfo &ImgInfo = InsertRes.first->second;
-+      if (InsertRes.second) {
-+        ImgInfo.State = getBinImageState(BinImage);
-+        // Collect kernel names for the image
-+        {
-+          std::lock_guard<std::mutex> KernelIDsGuard(m_KernelIDsMutex);
-+          ImgInfo.KernelIDs = m_BinImg2KernelIDs[BinImage];
-+        }
-       }
-+      const bundle_state ImgState = ImgInfo.State;
-+      const std::shared_ptr<std::vector<sycl::kernel_id>> &ImageKernelIDs =
-+          ImgInfo.KernelIDs;
-+      int &ImgRequirementCounter = ImgInfo.RequirementCounter;
- 
--      DeviceImageImplPtr Impl = std::make_shared<detail::device_image_impl>(
--          BinImage, Ctx, Devs, ImgState, KernelIDs, /*PIProgram=*/nullptr);
-+      // If the image does not contain any non-service kernels we can skip it.
-+      if (!ImageKernelIDs || ImageKernelIDs->empty())
-+        continue;
- 
--      SYCLDeviceImages.push_back(
--          createSyclObjFromImpl<device_image_plain>(Impl));
--      break;
-+      // Update tracked information.
-+      for (kernel_id &KernelID : *ImageKernelIDs) {
-+        StateImagesPairT *StateImagesPair;
-+        // If only specific kernels are requested, ignore the rest.
-+        if (!KernelIDs.empty()) {
-+          auto It = KernelImageMap.find(KernelID);
-+          if (It == KernelImageMap.end())
-+            continue;
-+          StateImagesPair = &It->second;
-+        } else
-+          StateImagesPair = &KernelImageMap[KernelID];
-+
-+        auto &[KernelImagesState, KernelImages] = *StateImagesPair;
-+
-+        if (KernelImages.empty()) {
-+          KernelImagesState = ImgState;
-+          KernelImages.push_back(BinImage);
-+          ++ImgRequirementCounter;
-+        } else if (KernelImagesState < ImgState) {
-+          for (RTDeviceBinaryImage *Img : KernelImages) {
-+            auto It = ImageInfoMap.find(Img);
-+            assert(It != ImageInfoMap.end());
-+            assert(It->second.RequirementCounter > 0);
-+            --(It->second.RequirementCounter);
-+          }
-+          KernelImages.clear();
-+          KernelImages.push_back(BinImage);
-+          KernelImagesState = ImgState;
-+          ++ImgRequirementCounter;
-+        } else if (KernelImagesState == ImgState) {
-+          KernelImages.push_back(BinImage);
-+          ++ImgRequirementCounter;
-+        }
-+      }
-     }
-   }
- 
-+  for (const auto &ImgInfoPair : ImageInfoMap) {
-+    if (ImgInfoPair.second.RequirementCounter == 0)
-+      continue;
-+
-+    DeviceImageImplPtr Impl = std::make_shared<detail::device_image_impl>(
-+        ImgInfoPair.first, Ctx, Devs, ImgInfoPair.second.State,
-+        ImgInfoPair.second.KernelIDs, /*PIProgram=*/nullptr);
-+
-+    SYCLDeviceImages.push_back(createSyclObjFromImpl<device_image_plain>(Impl));
-+  }
-+
-   return SYCLDeviceImages;
- }
- 
-diff --git a/sycl/source/detail/pi.cpp b/sycl/source/detail/pi.cpp
-index fb228cd85979..94e8438ee964 100644
---- a/sycl/source/detail/pi.cpp
-+++ b/sycl/source/detail/pi.cpp
-@@ -635,45 +635,47 @@ static uint16_t getELFHeaderType(const unsigned char *ImgData, size_t ImgSize) {
- RT::PiDeviceBinaryType getBinaryImageFormat(const unsigned char *ImgData,
-                                             size_t ImgSize) {
-   // Top-level magic numbers for the recognized binary image formats.
--  struct {
--    RT::PiDeviceBinaryType Fmt;
--    const uint32_t Magic;
--  } Fmts[] = {{PI_DEVICE_BINARY_TYPE_SPIRV, 0x07230203},
--              {PI_DEVICE_BINARY_TYPE_LLVMIR_BITCODE, 0xDEC04342},
--              // 'I', 'N', 'T', 'C' ; Intel native
--              {PI_DEVICE_BINARY_TYPE_NATIVE, 0x43544E49}};
+-  if (NOT DEFINED BOOST_MODULE_SRC_DIR)
+-    set(BOOST_MODULE_GIT_REPO "https://github.com/boostorg/${BOOST_MODULE_NAME}.git")
+-    message(STATUS "Source dir not set for boost module ${BOOST_MODULE_NAME}, downloading headers from ${BOOST_MODULE_GIT_REPO}")
 -
--  if (ImgSize >= sizeof(Fmts[0].Magic)) {
--    detail::remove_const_t<decltype(Fmts[0].Magic)> Hdr = 0;
--    std::copy(ImgData, ImgData + sizeof(Hdr), reinterpret_cast<char *>(&Hdr));
+-    set(BOOST_MODULE_FULL_NAME "boost_${BOOST_MODULE_NAME}")
+-    FetchContent_Declare(${BOOST_MODULE_FULL_NAME}
+-      GIT_REPOSITORY ${BOOST_MODULE_GIT_REPO}
+-      GIT_TAG ${BOOST_MODULE_GIT_TAG}
+-    )
+-    FetchContent_GetProperties(${BOOST_MODULE_FULL_NAME})
+-    FetchContent_MakeAvailable(${BOOST_MODULE_FULL_NAME})
 -
--    // Check headers for direct formats.
--    for (const auto &Fmt : Fmts) {
--      if (Hdr == Fmt.Magic)
--        return Fmt.Fmt;
--    }
+-    set(BOOST_MODULE_SRC_DIR ${${BOOST_MODULE_FULL_NAME}_SOURCE_DIR})
+-  else (NOT DEFINED BOOST_MODULE_SRC_DIR)
+-    message(STATUS "Using boost/${BOOST_MODULE_NAME} headers from ${BOOST_MODULE_SRC_DIR}")
+-  endif(NOT DEFINED BOOST_MODULE_SRC_DIR)
 -
--    // ELF e_type for recognized binary image formats.
--    struct {
--      RT::PiDeviceBinaryType Fmt;
--      const uint16_t Magic;
--    } ELFFmts[] = {{PI_DEVICE_BINARY_TYPE_NATIVE, 0xFF04},  // OpenCL executable
--                   {PI_DEVICE_BINARY_TYPE_NATIVE, 0xFF12}}; // ZEBIN executable
+-  set(BOOST_UNORDERED_INCLUDE_DIRS ${BOOST_UNORDERED_INCLUDE_DIRS} "${BOOST_MODULE_SRC_DIR}/include" PARENT_SCOPE)
+-endfunction(add_boost_module_headers)
 -
--    // ELF files need to be parsed separately. The header type ends after 18
--    // bytes.
--    if (Hdr == 0x464c457F && ImgSize >= 18) {
--      uint16_t HdrType = getELFHeaderType(ImgData, ImgSize);
--      for (const auto &ELFFmt : ELFFmts) {
--        if (HdrType == ELFFmt.Magic)
--          return ELFFmt.Fmt;
--      }
--      // Newer ZEBIN format does not have a special header type, but can instead
--      // be identified by having a required .ze_info section.
--      if (checkELFSectionPresent(".ze_info", ImgData, ImgSize))
--        return PI_DEVICE_BINARY_TYPE_NATIVE;
--    }
-+  auto MatchMagicNumber = [&](auto Number) {
-+    return ImgSize >= sizeof(Number) &&
-+           std::memcmp(ImgData, &Number, sizeof(Number)) == 0;
-+  };
-+
-+  if (MatchMagicNumber(uint32_t{0x07230203}))
-+    return PI_DEVICE_BINARY_TYPE_SPIRV;
-+
-+  if (MatchMagicNumber(uint32_t{0xDEC04342}))
-+    return PI_DEVICE_BINARY_TYPE_LLVMIR_BITCODE;
-+
-+  if (MatchMagicNumber(uint32_t{0x43544E49}))
-+    // 'I', 'N', 'T', 'C' ; Intel native
-+    return PI_DEVICE_BINARY_TYPE_LLVMIR_BITCODE;
-+
-+  // Check for ELF format, size requirements include data we'll read in case of
-+  // succesful match.
-+  if (ImgSize >= 18 && MatchMagicNumber(uint32_t{0x464c457F})) {
-+    uint16_t ELFHdrType = getELFHeaderType(ImgData, ImgSize);
-+    if (ELFHdrType == 0xFF04)
-+      // OpenCL executable.
-+      return PI_DEVICE_BINARY_TYPE_NATIVE;
-+
-+    if (ELFHdrType == 0xFF12)
-+      // ZEBIN executable.
-+      return PI_DEVICE_BINARY_TYPE_NATIVE;
-+
-+    // Newer ZEBIN format does not have a special header type, but can instead
-+    // be identified by having a required .ze_info section.
-+    if (checkELFSectionPresent(".ze_info", ImgData, ImgSize))
-+      return PI_DEVICE_BINARY_TYPE_NATIVE;
-   }
-+
-+  // "ar" format is used to pack binaries for multiple devices, e.g. via
-+  //
-+  //   -Xsycl-target-backend=spir64_gen "-device acm-g10,acm-g11"
-+  //
-+  // option.
-+  if (MatchMagicNumber(std::array{'!', '<', 'a', 'r', 'c', 'h', '>', '\n'}))
-+    return PI_DEVICE_BINARY_TYPE_NATIVE;
-+
-   return PI_DEVICE_BINARY_TYPE_NONE;
- }
+-set(BOOST_UNORDERED_GIT_TAG bd24dfd284dbc70e7521915af0d8d049f74a1e85)
+-# Author: joaquintides <joaquin@tid.es>
+-# Date:   Tue Jul 18 18:19:13 2023 +0200
+-#
+-#     updated concurrent map benchmark plots
+-add_boost_module_headers(NAME "unordered" SRC_DIR ${BOOST_UNORDERED_SOURCE_DIR} GIT_TAG ${BOOST_UNORDERED_GIT_TAG})
+-
+-set(BOOST_ASSERT_GIT_TAG 02256c84fd0cd58a139d9dc1b25b5019ca976ada)
+-# Author: Peter Dimov <pdimov@gmail.com>
+-# Date:   Thu Jun 22 18:11:58 2023 +0300
+-#
+-#     Do not use std::source_location::current under nvcc. Fixes #32.
+-add_boost_module_headers(NAME "assert" SRC_DIR ${BOOST_ASSERT_SOURCE_DIR} GIT_TAG ${BOOST_ASSERT_GIT_TAG})
+-
+-set(BOOST_CONFIG_GIT_TAG a1cf5d531405e62927b0257b5cbecc66a545b508)
+-# Merge: f5726a26 a1edcd56
+-# Author: jzmaddock <john@johnmaddock.co.uk>
+-# Date:   Sat Apr 15 13:20:12 2023 +0100
+-#
+-#     Merge pull request #475 from boostorg/ci_2023_04
+-add_boost_module_headers(NAME "config" SRC_DIR ${BOOST_CONFIG_SOURCE_DIR} GIT_TAG ${BOOST_CONFIG_GIT_TAG})
+-
+-set(BOOST_CONTAINER_HASH_GIT_TAG 226eb066e949adbf37b220e993d64ecefeeaae99)
+-# Author: Peter Dimov <pdimov@gmail.com>
+-# Date:   Thu Jun 29 14:38:53 2023 +0300
+-#
+-#     Update .drone.jsonnet
+-add_boost_module_headers(NAME "container_hash" SRC_DIR ${BOOST_CONTAINER_HASH_SOURCE_DIR} GIT_TAG ${BOOST_CONTAINER_HASH_GIT_TAG})
+-
+-set(BOOST_CORE_GIT_TAG 216999e552e7f73e63c7bcc88b8ce9c179bbdbe2)
+-# Author: Peter Dimov <pdimov@gmail.com>
+-# Date:   Sun Jun 25 13:46:53 2023 +0300
+-#
+-#     Avoid -Wsign-conversion warning in checked_delete.hpp
+-add_boost_module_headers(NAME "core" SRC_DIR ${BOOST_CORE_SOURCE_DIR} GIT_TAG ${BOOST_CORE_GIT_TAG})
+-
+-# Describe is a dependency of container_hash
+-set(BOOST_DESCRIBE_GIT_TAG a0eafb08100eb15a57b6dae6d270c0012a56aa21)
+-# Merge: 1692c3e b54fda5
+-# Author: Peter Dimov <pdimov@gmail.com>
+-# Date:   Sun May 21 04:51:35 2023 +0300
+-#
+-#     Merge branch 'fix-deprecated-inline-static-variables' of https://github.com/Romain-Geissler-1A/describe into feature/pr-40
+-add_boost_module_headers(NAME "describe" SRC_DIR ${BOOST_DESCRIBE_SOURCE_DIR} GIT_TAG ${BOOST_DESCRIBE_GIT_TAG})
+-
+-set(BOOST_MOVE_GIT_TAG f1fbb45134065deebe95249c616a967d4b66c809)
+-# Author: Ion Gaztañaga <igaztanaga@gmail.com>
+-# Date:   Mon Mar 13 13:32:29 2023 +0100
+-#
+-#     Use [[msvc::intrinsic] attribute if available in move/forward in order to improve debug experience
+-add_boost_module_headers(NAME "move" SRC_DIR ${BOOST_MOVE_SOURCE_DIR} GIT_TAG ${BOOST_MOVE_GIT_TAG})
+-
+-# Reuse mp11 fetched earlier for DPC++ headers
+-set(BOOST_UNORDERED_INCLUDE_DIRS ${BOOST_UNORDERED_INCLUDE_DIRS} "${BOOST_MP11_SOURCE_DIR}/include/")
+-
+-set(BOOST_PREDEF_GIT_TAG 392e4e767469e3469c9390f0d9cca16724dc3fc8)
+-# Merge: a12c7fd 499d28e
+-# Author: Rene Rivera <grafikrobot@gmail.com>
+-# Date:   Sun Feb 27 14:44:35 2022 -0600
+-#
+-#     Release 1.14.
+-add_boost_module_headers(NAME "predef" SRC_DIR ${BOOST_PREDEF_SOURCE_DIR} GIT_TAG ${BOOST_PREDEF_GIT_TAG})
+-
+-set(BOOST_PREPROCESSOR_GIT_TAG 667e87b3392db338a919cbe0213979713aca52e3)
+-# Author: Peter Dimov <pdimov@gmail.com>
+-# Date:   Tue Aug 16 20:59:52 2022 +0300
+-#
+-#     Change C test names to not conflict with the C++ ones
+-add_boost_module_headers(NAME "preprocessor" SRC_DIR ${BOOST_PREPROCESSOR_SOURCE_DIR} GIT_TAG ${BOOST_PREPROCESSOR_GIT_TAG})
+-
+-set(BOOST_STATIC_ASSERT_GIT_TAG 45eec41c293bc5cd36ec3ed83671f70bc1aadc9f)
+-# Merge: ba72d33 a1abfec
+-# Author: jzmaddock <john@johnmaddock.co.uk>
+-# Date:   Tue Mar 8 09:35:50 2022 +0000
+-#
+-#     Merge pull request #15 from sdarwin/githubactions
+-add_boost_module_headers(NAME "static_assert" SRC_DIR ${BOOST_STATIC_ASSERT_SOURCE_DIR} GIT_TAG ${BOOST_STATIC_ASSERT_GIT_TAG})
+-
+-set(BOOST_THROW_EXCEPTION_GIT_TAG 23dd41e920ecd91237500ac6428f7d392a7a875c)
+-# Author: Peter Dimov <pdimov@gmail.com>
+-# Date:   Sun Jun 25 16:12:57 2023 +0300
+-#
+-#     Update ci.yml
+-add_boost_module_headers(NAME "throw_exception" SRC_DIR ${BOOST_THROW_EXCEPTION_SOURCE_DIR} GIT_TAG ${BOOST_THROW_EXCEPTION_GIT_TAG})
+-
+-set(BOOST_TUPLE_GIT_TAG 500e4fa0a2845b96c0dd919e7485e0f216438a01)
+-# Merge: aa16ae3 ded3c1d
+-# Author: Joel de Guzman <djowel@gmail.com>
+-# Date:   Thu Dec 30 23:20:18 2021 +0800
+-#
+-#     Merge pull request #21 from igaztanaga/patch-1
+-add_boost_module_headers(NAME "tuple" SRC_DIR ${BOOST_TUPLE_SOURCE_DIR} GIT_TAG ${BOOST_TUPLE_GIT_TAG})
+-
+-set(BOOST_TYPE_TRAITS_GIT_TAG 89f5011b4a79d91e42735670e39f72cb25c86c72)
+-# Merge: 55feb75 1ebd31e
+-# Author: John Maddock <john@johnmaddock.co.uk>
+-# Date:   Fri Feb 24 18:02:30 2023 +0000
+-#
+-#     Merge branch 'develop'
+-add_boost_module_headers(NAME "type_traits" SRC_DIR ${BOOST_TYPE_TRAITS_SOURCE_DIR} GIT_TAG ${BOOST_TYPE_TRAITS_GIT_TAG})
+diff --git a/sycl/source/CMakeLists.txt b/sycl/source/CMakeLists.txt
+index ead8f2c83ab7..6fb8305a1a88 100644
+--- a/sycl/source/CMakeLists.txt
++++ b/sycl/source/CMakeLists.txt
+@@ -69,8 +69,6 @@ function(add_sycl_rt_library LIB_NAME LIB_OBJ_NAME)
+     target_link_libraries(${LIB_NAME} PRIVATE ${ARG_XPTI_LIB})
+   endif()
  
+-  target_include_directories(${LIB_OBJ_NAME} PRIVATE ${BOOST_UNORDERED_INCLUDE_DIRS})
+-
+   # pi_win_proxy_loader
+   if (WIN32)
+     include_directories(${LLVM_EXTERNAL_SYCL_SOURCE_DIR}/pi_win_proxy_loader)
+diff --git a/sycl/source/detail/kernel_program_cache.hpp b/sycl/source/detail/kernel_program_cache.hpp
+index 87a41d9fe105..c0a572b4d144 100644
+--- a/sycl/source/detail/kernel_program_cache.hpp
++++ b/sycl/source/detail/kernel_program_cache.hpp
+@@ -18,12 +18,10 @@
+ 
+ #include <atomic>
+ #include <condition_variable>
++#include <map>
+ #include <mutex>
+ #include <type_traits>
+ 
+-#include <boost/unordered/unordered_flat_map.hpp>
+-#include <boost/unordered_map.hpp>
+-
+ // For testing purposes
+ class MockKernelProgramCache;
+ 
+@@ -113,8 +111,8 @@ public:
+       std::pair<std::uintptr_t, sycl::detail::pi::PiDevice>;
+ 
+   struct ProgramCache {
+-    ::boost::unordered_map<ProgramCacheKeyT, ProgramBuildResultPtr> Cache;
+-    ::boost::unordered_multimap<CommonProgramKeyT, ProgramCacheKeyT> KeyMap;
++    std::map<ProgramCacheKeyT, ProgramBuildResultPtr> Cache;
++    std::multimap<CommonProgramKeyT, ProgramCacheKeyT> KeyMap;
+ 
+     size_t size() const noexcept { return Cache.size(); }
+   };
+@@ -138,10 +136,8 @@ public:
+   };
+   using KernelBuildResultPtr = std::shared_ptr<KernelBuildResult>;
+ 
+-  using KernelByNameT =
+-      ::boost::unordered_map<std::string, KernelBuildResultPtr>;
+-  using KernelCacheT =
+-      ::boost::unordered_map<sycl::detail::pi::PiProgram, KernelByNameT>;
++  using KernelByNameT = std::map<std::string, KernelBuildResultPtr>;
++  using KernelCacheT = std::map<sycl::detail::pi::PiProgram, KernelByNameT>;
+ 
+   using KernelFastCacheKeyT =
+       std::tuple<SerializedObj, sycl::detail::pi::PiDevice, std::string,
+@@ -149,13 +145,7 @@ public:
+   using KernelFastCacheValT =
+       std::tuple<sycl::detail::pi::PiKernel, std::mutex *,
+                  const KernelArgMask *, sycl::detail::pi::PiProgram>;
+-  // This container is used as a fast path for retrieving cached kernels.
+-  // unordered_flat_map is used here to reduce lookup overhead.
+-  // The slow path is used only once for each newly created kernel, so the
+-  // higher overhead of insertion that comes with unordered_flat_map is more
+-  // of an issue there. For that reason, those use regular unordered maps.
+-  using KernelFastCacheT =
+-      ::boost::unordered_flat_map<KernelFastCacheKeyT, KernelFastCacheValT>;
++  using KernelFastCacheT = std::map<KernelFastCacheKeyT, KernelFastCacheValT>;
+ 
+   ~KernelProgramCache() = default;
+ 
+diff --git a/sycl/unittests/CMakeLists.txt b/sycl/unittests/CMakeLists.txt
+index 71d2413c2974..0c55c870c4b8 100644
+--- a/sycl/unittests/CMakeLists.txt
++++ b/sycl/unittests/CMakeLists.txt
+@@ -1,6 +1,5 @@
+ add_custom_target(SYCLUnitTests)
+ set_target_properties(SYCLUnitTests PROPERTIES FOLDER "SYCL tests")
+-include_directories(${BOOST_UNORDERED_INCLUDE_DIRS})
+ 
+ foreach(flag_var
+     CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+-- 
+2.30.1.windows.1
+
