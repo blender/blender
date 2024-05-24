@@ -222,7 +222,7 @@ draco::DataType getDataType(size_t componentType)
 }
 
 API(uint32_t)
-encoderSetAttribute(Encoder *encoder, char *attributeName, size_t componentType, char *dataType, void *data)
+encoderSetAttribute(Encoder *encoder, char *attributeName, size_t componentType, char *dataType, void *data, bool normalized)
 {
     auto buffer = std::make_unique<draco::DataBuffer>();
     uint32_t count = encoder->mesh.num_points();
@@ -232,7 +232,7 @@ encoderSetAttribute(Encoder *encoder, char *attributeName, size_t componentType,
 
     draco::GeometryAttribute::Type semantics = getAttributeSemantics(attributeName);
     draco::GeometryAttribute attribute;
-    attribute.Init(semantics, &*buffer, componentCount, getDataType(componentType), false, stride, 0);
+    attribute.Init(semantics, &*buffer, componentCount, getDataType(componentType), normalized, stride, 0);
 
     auto id = static_cast<uint32_t>(encoder->mesh.AddAttribute(attribute, true, count));
     auto dataBytes = reinterpret_cast<uint8_t *>(data);
