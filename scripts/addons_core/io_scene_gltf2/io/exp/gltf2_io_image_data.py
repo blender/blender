@@ -22,9 +22,9 @@ class ImageData:
         return hash(self._data)
 
     def adjusted_name(self):
-        regex_dot = re.compile("\\.")
+        regex_dot = re.compile(r"\.")
         adjusted_name = re.sub(regex_dot, "_", self.name)
-        new_name = "".join([char for char in adjusted_name if char not in "!#$&'()*+,/:;<>?@[\\]^`{|}~"])
+        new_name = "".join([char for char in adjusted_name if char not in r"!#$&'()*+,/:;<>?@[\]^`{|}~"])
         return new_name
 
     @property
