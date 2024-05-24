@@ -107,7 +107,7 @@ static void test_framebuffer_clear_multiple_color_multiple_attachments()
   MEM_freeN(read_data1);
 
   float4 *read_data2 = static_cast<float4 *>(GPU_texture_read(texture2, GPU_DATA_FLOAT, 0));
-  for (float4 pixel_color : Span<float4>(read_data1, size.x * size.y)) {
+  for (float4 pixel_color : Span<float4>(read_data2, size.x * size.y)) {
     EXPECT_EQ(clear_color[1], pixel_color);
   }
   MEM_freeN(read_data2);

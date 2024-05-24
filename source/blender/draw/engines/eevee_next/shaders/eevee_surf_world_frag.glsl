@@ -80,6 +80,6 @@ void main()
   output_renderpass_color(uniform_buf.render_pass.emission_id, clear_color);
   output_renderpass_value(uniform_buf.render_pass.shadow_id, 1.0);
   /** NOTE: AO is done on its own pass. */
-  imageStore(rp_cryptomatte_img, texel, vec4(0.0));
+  imageStoreFast(rp_cryptomatte_img, texel, vec4(0.0));
 #endif
 }
