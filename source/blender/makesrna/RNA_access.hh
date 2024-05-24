@@ -270,11 +270,11 @@ void RNA_property_enum_items_gettexted_all(bContext *C,
 bool RNA_property_enum_value(
     bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *r_value);
 bool RNA_property_enum_identifier(
-    bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **identifier);
+    bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **r_identifier);
 bool RNA_property_enum_name(
-    bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **name);
+    bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **r_name);
 bool RNA_property_enum_name_gettexted(
-    bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **name);
+    bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **r_name);
 
 bool RNA_property_enum_item_from_value(
     bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, EnumPropertyItem *r_item);
