@@ -203,7 +203,10 @@ class ExportImage:
 
         # Unhappy path = we need to create the image self.fills describes or self.stores describes
         if self.numpy_calc is None:
-            return self.__encode_unhappy(export_settings), None
+            if self.__unhappy_is_udim():
+                return self.__encode_unhappy_udim(export_settings), None
+            else:
+                return self.__encode_unhappy(export_settings), None
         else:
             pixels, width, height, factor = self.numpy_calc(self.stored, export_settings)
             return self.__encode_from_numpy_array(pixels, (width, height), export_settings), factor
@@ -214,6 +217,71 @@ class ExportImage:
     def __encode_happy_tile(self, export_settings) -> bytes:
         return self.__encode_from_image_tile(
             self.fills[list(self.fills.keys())[0]].image, export_settings['current_udim_info']['tile'], export_settings)
+
+    def __unhappy_is_udim(self):
+        return any(isinstance(fill, FillImageTile) for fill in self.fills.values())
+
+    def __encode_unhappy_udim(self, export_settings) -> bytes:
+        # We need to assemble the image out of channels.
+        # Do it with numpy and image.pixels of the right UDIM tile.
+
+        images = []
+        for fill in self.fills.values():
+            if isinstance(fill, FillImageTile):
+                if fill.image not in images:
+                    images.append((fill.image, fill.tile))
+                    export_settings['exported_images'][fill.image.name] = 2  # 2 = partially used
+
+        if not images:
+            # No ImageFills; use a 1x1 white pixel
+            pixels = np.array([1.0, 1.0, 1.0, 1.0], np.float32)
+            return self.__encode_from_numpy_array(pixels, (1, 1), export_settings)
+
+        # We need to open the original UDIM image tile to get size & pixel data
+        original_image_sizes = []
+        for image, tile in images:
+            src_path = bpy.path.abspath(image.filepath_raw).replace("<UDIM>", tile)
+            with TmpImageGuard() as guard:
+                guard.image = bpy.data.images.load(
+                    src_path,
+                )
+                original_image_sizes.append((guard.image.size[0], guard.image.size[1]))
+
+        width = max(image_size[0] for image_size in original_image_sizes)
+        height = max(image_size[1] for image_size in original_image_sizes)
+
+        out_buf = np.ones(width * height * 4, np.float32)
+        tmp_buf = np.empty(width * height * 4, np.float32)
+
+        for idx, (image, tile) in enumerate(images):
+            if original_image_sizes[idx][0] == width and original_image_sizes[idx][1] == height:
+                src_path = bpy.path.abspath(image.filepath_raw).replace("<UDIM>", tile)
+                with TmpImageGuard() as guard:
+                    guard.image = bpy.data.images.load(
+                        src_path,
+                    )
+                    guard.image.pixels.foreach_get(tmp_buf)
+            else:
+                # Image is the wrong size; make a temp copy and scale it.
+                src_path = bpy.path.abspath(image.filepath_raw).replace("<UDIM>", tile)
+                with TmpImageGuard() as guard:
+                    guard.image = bpy.data.images.load(
+                        src_path,
+                    )
+                    tmp_image = guard.image
+                    tmp_image.scale(width, height)
+                    tmp_image.pixels.foreach_get(tmp_buf)
+
+            # Copy any channels for this image to the output
+            for dst_chan, fill in self.fills.items():
+                if isinstance(fill, FillImageTile) and fill.image == image:
+                    out_buf[int(dst_chan)::4] = tmp_buf[int(fill.src_chan)::4]
+                elif isinstance(fill, FillWith):
+                    out_buf[int(dst_chan)::4] = fill.value
+
+        tmp_buf = None  # GC this
+
+        return self.__encode_from_numpy_array(out_buf, (width, height), export_settings)
 
     def __encode_unhappy(self, export_settings) -> bytes:
         # We need to assemble the image out of channels.
