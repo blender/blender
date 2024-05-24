@@ -46,6 +46,9 @@ enum {
    *
    * E.g. usages of linked collections or objects by ViewLayerCollections or Bases in scenes.
    *
+   * Also used for most Editors ID usages (active node tree in the Node editor, shown image in the
+   * Image editor, and so on).
+   *
    * See also #LIB_INDIRECT_WEAK_LINK in DNA_ID.h
    */
   IDWALK_CB_DIRECT_WEAK_LINK = (1 << 3),

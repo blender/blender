@@ -472,6 +472,8 @@ static void outliner_foreach_id(SpaceLink *space_link, LibraryForeachIDData *dat
   while (TreeStoreElem *tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter))) {
     /* Do not try to restore non-ID pointers (drivers/sequence/etc.). */
     if (TSE_IS_REAL_ID(tselem)) {
+      /* NOTE: Outliner ID pointers are never `IDWALK_CB_DIRECT_WEAK_LINK`, they should never
+       * enforce keeping a reference to some linked data. */
       const int cb_flag = (tselem->id != nullptr && allow_pointer_access &&
                            (tselem->id->flag & LIB_EMBEDDED_DATA) != 0) ?
                               IDWALK_CB_EMBEDDED_NOT_OWNING :

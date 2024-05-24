@@ -920,7 +920,7 @@ static void sequencer_id_remap(ScrArea * /*area*/,
 static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 {
   SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(space_link);
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sseq->gpd, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sseq->gpd, IDWALK_CB_USER | IDWALK_CB_DIRECT_WEAK_LINK);
 }
 
 /* ************************************* */
