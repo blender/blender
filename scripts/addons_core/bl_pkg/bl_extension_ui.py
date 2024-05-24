@@ -296,16 +296,21 @@ def extensions_panel_draw_online_extensions_request_impl(
     if layout_panel is not None:
         # Text wrapping isn't supported, manually wrap.
         for line in (
-                "Welcome! Access community-made add-ons and themes from the",
+                "Welcome! Access community-made add-ons and themes from the ",
                 "extensions.blender.org repository.",
                 "",
-                "This also requires internet access which must be enabled in \"System\" preferences.",
+                "This requires online access which must be enabled in \"System\" preferences.",
         ):
             layout_panel.label(text=line)
 
         row = layout.row()
-        row.operator("bl_pkg.extension_online_access", text="Dismiss", icon='X').enable = False
-        row.operator("bl_pkg.extension_online_access", text="Enable Repository", icon='CHECKMARK').enable = True
+        props = row.operator("wm.context_set_boolean", text="Dismiss", icon='X')
+        props.data_path = "preferences.extensions.use_online_access_handled"
+        props.value = True
+
+        # The only reason to prefer this over `screen.userpref_show`
+        # is it will be disabled when `--offline-mode` is forced with a useful error for why.
+        row.operator("bl_pkg.extensions_show_online_prefs", text="Go to System")
 
 
 def extensions_panel_draw_impl(
@@ -833,7 +838,16 @@ def extensions_panel_draw(panel, context):
         if repo_status_text.running:
             return
 
-    if not prefs.extensions.use_online_access_handled:
+    # Check if the extensions "Welcome" panel should be displayed.
+    # Even though it can be dismissed it's quite "in-your-face" so only show when it's needed.
+    if (
+            # The user didn't dismiss.
+            (not prefs.extensions.use_online_access_handled) and
+            # Running offline.
+            (not bpy.app.online_access) and
+            # There is one or more repositories that require remote access.
+            any(repo for repo in prefs.extensions.repos if repo.enabled and repo.use_remote_url)
+    ):
         extensions_panel_draw_online_extensions_request_impl(panel, context)
 
     extensions_panel_draw_impl(
