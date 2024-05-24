@@ -2,18 +2,10 @@ name: build
 
 on: [push]
 
-env:
-  PYTHON_VERSION: '3.10'
-
 jobs:
   build-linux:
     runs-on: [self-hosted, Linux, X64]
     steps:
-      - name: Install Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      
       - name: Download sources with Git LFS
         uses: actions/checkout@v3
         with:
