@@ -170,7 +170,7 @@ def scandir_with_demoted_errors(path: str) -> Generator[os.DirEntry[str], None, 
     try:
         for entry in os.scandir(path):
             yield entry
-    except BaseException as ex:
+    except Exception as ex:
         print("Error: scandir", ex)
 
 
