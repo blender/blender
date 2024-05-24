@@ -95,7 +95,8 @@ def get_component_type(attribute_component_type):
         "FLOAT_VECTOR_4": gltf2_io_constants.ComponentType.Float,
         "INT": gltf2_io_constants.ComponentType.Float,  # No signed Int in glTF accessor
         "FLOAT": gltf2_io_constants.ComponentType.Float,
-        "BOOLEAN": gltf2_io_constants.ComponentType.Float
+        "BOOLEAN": gltf2_io_constants.ComponentType.Float,
+        "UNSIGNED_BYTE": gltf2_io_constants.ComponentType.UnsignedByte
     }.get(attribute_component_type)
 
 
@@ -145,7 +146,8 @@ def get_numpy_type(attribute_component_type):
         "FLOAT_VECTOR_4": np.float32,
         "INT": np.float32,  # signed integer are not supported by glTF
         "FLOAT": np.float32,
-        "BOOLEAN": np.float32
+        "BOOLEAN": np.float32,
+        "UNSIGNED_BYTE": np.uint8,
     }.get(attribute_component_type)
 
 

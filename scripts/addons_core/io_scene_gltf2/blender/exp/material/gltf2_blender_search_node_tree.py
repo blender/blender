@@ -390,6 +390,54 @@ class NodeNav:
         return None, None
 
 
+# Gather information about factor and vertex color from the Color socket
+# The general form for color is
+#   color = factor * color attribute * texture
+def gather_color_info(color_nav):
+    info = {
+        'colorFactor': None,
+        'colorAttrib': None,
+        'colorAttribType': None,
+        'colorPath': None,
+    }
+
+    # Reads the factor and color attribute by checking for variations on
+    # -> [Multiply by Factor] -> [Multiply by Color Attrib] ->
+
+    for _ in range(2):  # Twice, to handle both factor and attrib
+        # No factor found yet?
+        if info['colorFactor'] is None:
+            a, color_path = color_nav.get_constant()
+            if a is not None:
+                info['colorFactor'] = a[:3]
+                info['colorPath'] = color_path
+                break
+
+            a, color_path = detect_multiply_by_constant(color_nav)
+            if a is not None:
+                info['colorFactor'] = a[:3]
+                info['colorPath'] = color_path
+                continue
+
+        # No color attrib found yet?
+        if info['colorAttrib'] is None:
+            attr = get_color_attrib(color_nav)
+            if attr is not None:
+                info['colorAttrib'] = attr
+                info['colorAttribType'] = 'active' if attr == "" else 'name'
+                break
+
+            attr = detect_multiply_by_color_attrib(color_nav)
+            if attr is not None:
+                info['colorAttrib'] = attr
+                info['colorAttribType'] = 'active' if attr == "" else 'name'
+                continue
+
+        break
+
+    return info
+
+
 # Gather information about alpha from the Alpha socket. Alpha has the
 # general form
 #
@@ -403,6 +451,7 @@ def gather_alpha_info(alpha_nav):
         'alphaCutoff': None,
         'alphaFactor': None,
         'alphaColorAttrib': None,
+        'alphaColorAttribType': None,
         'alphaPath': None,
     }
     if not alpha_nav:
@@ -443,11 +492,13 @@ def gather_alpha_info(alpha_nav):
             attr = get_color_attrib(alpha_nav)
             if attr is not None:
                 info['alphaColorAttrib'] = attr
+                info['alphaColorAttribType'] = 'active' if attr == "" else 'name'
                 break
 
             attr = detect_multiply_by_color_attrib(alpha_nav)
             if attr is not None:
                 info['alphaColorAttrib'] = attr
+                info['alphaColorAttribType'] = 'active' if attr == "" else 'name'
                 continue
 
         break
@@ -519,7 +570,7 @@ def get_multiply_factors(nav):
                 prev.node.type == 'MIX' and
                 prev.node.data_type == 'RGBA' and
                 prev.node.blend_type == 'MULTIPLY' and
-                prev.get_constant('Fac') == 1
+                prev.get_constant('Factor')[0] == 1
             )
             if is_mul:
                 fac1 = prev
@@ -865,6 +916,7 @@ def get_vertex_color_info(color_socket, alpha_socket, export_settings):
     attribute_alpha = None
     attribute_color_type = None
     attribute_alpha_type = None
+    alpha_mode = "OPAQUE"
 
     # Retrieve Attribute used as vertex color for Color
     if color_socket is not None and color_socket.socket is not None:
@@ -897,12 +949,14 @@ def get_vertex_color_info(color_socket, alpha_socket, export_settings):
         elif alpha_info['alphaColorAttrib'] is not None:
             attribute_alpha = alpha_info['alphaColorAttrib']
             attribute_alpha_type = 'name'
+        alpha_mode = alpha_info['alphaMode']
 
     return {
         "color": attribute_color,
         "alpha": attribute_alpha,
         "color_type": attribute_color_type,
-        "alpha_type": attribute_alpha_type}
+        "alpha_type": attribute_alpha_type,
+        'alpha_mode': alpha_mode}
 
 
 def get_attribute_name(socket, export_settings):

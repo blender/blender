@@ -12,7 +12,7 @@ from ....io.exp import gltf2_io_binary_data, gltf2_io_image_data
 from ....io.com import gltf2_io_debug
 from ....io.exp.gltf2_io_user_extensions import export_user_extensions
 from ..gltf2_blender_gather_cache import cached
-from .extensions.gltf2_blender_image import Channel, ExportImage, FillImage
+from .extensions.gltf2_blender_image import Channel, ExportImage, FillImage, FillImageTile
 from .gltf2_blender_search_node_tree import get_texture_node_from_socket, detect_anisotropy_nodes
 
 
@@ -36,7 +36,10 @@ def gather_image(
         return None, None, None, None
 
     mime_type = __gather_mime_type(blender_shader_sockets, image_data, export_settings)
-    name = __gather_name(image_data, export_settings)
+    name = __gather_name(image_data, use_tile, export_settings)
+
+    if use_tile is not None:
+        name = name.replace("<UDIM>", str(export_settings['current_udim_info']['tile']))
 
     factor = None
 
@@ -153,12 +156,18 @@ def __gather_mime_type(sockets, export_image, export_settings):
         return "image/jpeg"
 
 
-def __gather_name(export_image, export_settings):
+def __gather_name(export_image, use_tile, export_settings):
     if export_image.original is None:
         # Find all Blender images used in the ExportImage
+
+        if use_tile is not None:
+            FillCheck = FillImageTile
+        else:
+            FillCheck = FillImage
+
         imgs = []
         for fill in export_image.fills.values():
-            if isinstance(fill, FillImage):
+            if isinstance(fill, FillCheck):
                 img = fill.image
                 if img not in imgs:
                     imgs.append(img)
@@ -404,7 +413,7 @@ def __is_blender_image_a_webp(image: bpy.types.Image) -> bool:
 def get_gltf_image_from_blender_image(blender_image_name, export_settings):
     image_data = ExportImage.from_blender_image(bpy.data.images[blender_image_name])
 
-    name = __gather_name(image_data, export_settings)
+    name = __gather_name(image_data, None, export_settings)
     mime_type = __get_mime_type_of_image(blender_image_name, export_settings)
 
     uri, _ = __gather_uri(image_data, mime_type, name, export_settings)
