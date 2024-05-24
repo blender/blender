@@ -32,7 +32,10 @@
     .probe_resolution = LIGHT_PROBE_RESOLUTION_1024, \
     .sun_threshold = 10.0f, \
     .sun_angle = DEG2RADF(0.526f), \
+  \
+    .sun_shadow_filter_radius = 1.0f, \
     .sun_shadow_maximum_resolution = 0.001f, \
+    .sun_shadow_jitter_overblur = 10.0f, \
   }
 
 /** \} */
