@@ -31,6 +31,8 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             color EmissionColor = 1.0,
                             float EmissionStrength = 0.0,
                             float Alpha = 1.0,
+                            float ThinFilmThickness = 0.0,
+                            float ThinFilmIOR = 1.33,
                             normal Normal = N,
                             normal CoatNormal = N,
                             normal Tangent = normalize(dPdu),
@@ -92,21 +94,33 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
       BSDF = mix(BSDF, clamped_base_color * SubsurfBSDF, subsurface_weight);
     }
 
-    if (eta != 1.0) {
+    if (eta != 1.0 || ThinFilmThickness > 0.1) {
       /* Apply specular tint */
       color F0 = f0 * specular_tint;
       color F90 = color(1.0);
 
-      BSDF = layer(
-          generalized_schlick_bsdf(
-              Normal, T, color(1.0), color(0.0), alpha_x, alpha_y, F0, F90, -eta, distribution),
-          BSDF);
+      BSDF = layer(generalized_schlick_bsdf(Normal,
+                                            T,
+                                            color(1.0),
+                                            color(0.0),
+                                            alpha_x,
+                                            alpha_y,
+                                            F0,
+                                            F90,
+                                            -eta,
+                                            distribution,
+                                            "thinfilm_thickness",
+                                            ThinFilmThickness,
+                                            "thinfilm_ior",
+                                            ThinFilmIOR),
+                   BSDF);
     }
   }
 
   closure color TransmissionBSDF = 0;
   if (metallic < 1.0 && TransmissionWeight > CLOSURE_WEIGHT_CUTOFF) {
     float eta = max(IOR, 1e-5);
+    float thinfilm_ior = backfacing() ? ThinFilmIOR / eta : ThinFilmIOR;
     eta = backfacing() ? 1.0 / eta : eta;
 
     color F0 = F0_from_ior(eta) * specular_tint;
@@ -121,7 +135,11 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                                                 F0,
                                                 F90,
                                                 -eta,
-                                                distribution),
+                                                distribution,
+                                                "thinfilm_thickness",
+                                                ThinFilmThickness,
+                                                "thinfilm_ior",
+                                                thinfilm_ior),
     BSDF = mix(BSDF, TransmissionBSDF, transmission);
   }
 

@@ -54,6 +54,8 @@ OSL_CLOSURE_STRUCT_BEGIN(DielectricBSDF, dielectric_bsdf)
   OSL_CLOSURE_STRUCT_MEMBER(DielectricBSDF, FLOAT, float, alpha_y, NULL)
   OSL_CLOSURE_STRUCT_MEMBER(DielectricBSDF, FLOAT, float, ior, NULL)
   OSL_CLOSURE_STRUCT_MEMBER(DielectricBSDF, STRING, DeviceString, distribution, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(DielectricBSDF, FLOAT, float, thinfilm_thickness, "thinfilm_thickness")
+  OSL_CLOSURE_STRUCT_MEMBER(DielectricBSDF, FLOAT, float, thinfilm_ior, "thinfilm_ior")
 OSL_CLOSURE_STRUCT_END(DielectricBSDF, dielectric_bsdf)
 
 OSL_CLOSURE_STRUCT_BEGIN(ConductorBSDF, conductor_bsdf)
@@ -77,6 +79,9 @@ OSL_CLOSURE_STRUCT_BEGIN(GeneralizedSchlickBSDF, generalized_schlick_bsdf)
   OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, VECTOR, packed_float3, f90, NULL)
   OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, FLOAT, float, exponent, NULL)
   OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, STRING, DeviceString, distribution, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(
+      GeneralizedSchlickBSDF, FLOAT, float, thinfilm_thickness, "thinfilm_thickness")
+  OSL_CLOSURE_STRUCT_MEMBER(GeneralizedSchlickBSDF, FLOAT, float, thinfilm_ior, "thinfilm_ior")
 OSL_CLOSURE_STRUCT_END(GeneralizedSchlickBSDF, generalized_schlick_bsdf)
 
 OSL_CLOSURE_STRUCT_BEGIN(Microfacet, microfacet)
