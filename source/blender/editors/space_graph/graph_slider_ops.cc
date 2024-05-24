@@ -565,7 +565,9 @@ static bool decimate_poll_property(const bContext * /*C*/, wmOperator *op, const
   return true;
 }
 
-static std::string decimate_desc(bContext * /*C*/, wmOperatorType * /*ot*/, PointerRNA *ptr)
+static std::string decimate_get_description(bContext * /*C*/,
+                                            wmOperatorType * /*ot*/,
+                                            PointerRNA *ptr)
 {
 
   if (RNA_enum_get(ptr, "mode") == DECIM_ERROR) {
@@ -602,7 +604,7 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
 
   /* API callbacks */
   ot->poll_property = decimate_poll_property;
-  ot->get_description = decimate_desc;
+  ot->get_description = decimate_get_description;
   ot->invoke = decimate_invoke;
   ot->modal = graph_slider_modal;
   ot->exec = decimate_exec;

@@ -2984,12 +2984,12 @@ static int vertex_group_lock_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static std::string vertex_group_lock_description(bContext * /*C*/,
-                                                 wmOperatorType * /*ot*/,
-                                                 PointerRNA *params)
+static std::string vertex_group_lock_get_description(bContext * /*C*/,
+                                                     wmOperatorType * /*ot*/,
+                                                     PointerRNA *ptr)
 {
-  int action = RNA_enum_get(params, "action");
-  int mask = RNA_enum_get(params, "mask");
+  int action = RNA_enum_get(ptr, "action");
+  int mask = RNA_enum_get(ptr, "mask");
 
   /* NOTE: constructing the following string literals can be done in a less verbose way,
    * however the resulting strings can't be usefully translated, (via `TIP_`). */
@@ -3058,7 +3058,7 @@ void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = vertex_group_poll;
   ot->exec = vertex_group_lock_exec;
-  ot->get_description = vertex_group_lock_description;
+  ot->get_description = vertex_group_lock_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

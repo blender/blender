@@ -1405,18 +1405,16 @@ static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 static std::string edbm_select_mode_get_description(bContext * /*C*/,
                                                     wmOperatorType * /*ot*/,
-                                                    PointerRNA *values)
+                                                    PointerRNA *ptr)
 {
-  const int type = RNA_enum_get(values, "type");
+  const int type = RNA_enum_get(ptr, "type");
 
   /* Because the special behavior for shift and ctrl click depend on user input, they may be
    * incorrect if the operator is used from a script or from a special button. So only return the
    * specialized descriptions if only the "type" is set, which conveys that the operator is meant
    * to be used with the logic in the `invoke` method. */
-  if (RNA_struct_property_is_set(values, "type") &&
-      !RNA_struct_property_is_set(values, "use_extend") &&
-      !RNA_struct_property_is_set(values, "use_expand") &&
-      !RNA_struct_property_is_set(values, "action"))
+  if (RNA_struct_property_is_set(ptr, "type") && !RNA_struct_property_is_set(ptr, "use_extend") &&
+      !RNA_struct_property_is_set(ptr, "use_expand") && !RNA_struct_property_is_set(ptr, "action"))
   {
     switch (type) {
       case SCE_SELECT_VERTEX:

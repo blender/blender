@@ -709,9 +709,9 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static std::string actkeys_paste_description(bContext * /*C*/,
-                                             wmOperatorType * /*ot*/,
-                                             PointerRNA *ptr)
+static std::string actkeys_paste_get_description(bContext * /*C*/,
+                                                 wmOperatorType * /*ot*/,
+                                                 PointerRNA *ptr)
 {
   /* Custom description if the 'flipped' option is used. */
   if (RNA_boolean_get(ptr, "flipped")) {
@@ -735,7 +735,7 @@ void ACTION_OT_paste(wmOperatorType *ot)
 
   /* api callbacks */
   //  ot->invoke = WM_operator_props_popup; /* Better wait for action redo panel. */
-  ot->get_description = actkeys_paste_description;
+  ot->get_description = actkeys_paste_get_description;
   ot->exec = actkeys_paste_exec;
   ot->poll = ED_operator_action_active;
 
