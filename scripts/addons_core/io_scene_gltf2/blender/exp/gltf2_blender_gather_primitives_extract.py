@@ -420,7 +420,8 @@ class PrimitiveCreator:
         new_prim_indices = {}
         self.additional_materials = []  # In case of UDIM
 
-        self.uvmap_attribute_list = []  # Initialize here, in case we don't have any triangle primitive
+        self.uvmap_attribute_lists = []
+        self.uvmap_attribute_list = []  # For each material # Initialize here, in case we don't have any triangle primitive
 
         materials_use_vc = None
         warning_already_displayed = False
@@ -430,6 +431,10 @@ class PrimitiveCreator:
             # UVMaps
             self.uvmap_attribute_list = list(
                 set([i['value'] for i in material_info["uv_info"].values() if 'type' in i.keys() and i['type'] == "Attribute"]))
+
+            # Check that attributes are not regular UVMaps
+            self.uvmap_attribute_list = [
+                i for i in self.uvmap_attribute_list if i not in self.blender_mesh.uv_layers.keys()]
 
             additional_fields = []
             for attr in self.uvmap_attribute_list:
@@ -455,6 +460,8 @@ class PrimitiveCreator:
                             data = data.reshape(-1, 3)
                             data = data[:, :2]
                         elif self.blender_mesh.attributes[attr].data_type == "FLOAT2":
+                            # This case should not happen, because we are in CORNER domain / 2D Vector,
+                            # So this attribute is an UVMap
                             data = np.empty(len(self.blender_mesh.loops) *
                                             2, gltf2_blender_conversion.get_numpy_type('FLOAT2'))
                             self.blender_mesh.attributes[attr].data.foreach_get('vector', data)
@@ -550,6 +557,7 @@ class PrimitiveCreator:
 
             if len(material_info['udim_info'].keys()) == 0:
                 new_prim_indices[material_idx] = self.prim_indices[material_idx]
+                self.uvmap_attribute_lists.append(self.uvmap_attribute_list)
                 self.additional_materials.append(None)
                 continue
 
@@ -571,12 +579,19 @@ class PrimitiveCreator:
                         index_uvmap = get_active_uvmap_index(self.blender_mesh)
                     uvmap_name = "TEXCOORD_" + str(index_uvmap)
                 else:  # Attribute
-                    uvmap_name = material_info['uv_info'][tex]['value']
+                    # This can be a regular UVMap, or a custom attribute
+                    index_uvmap = self.blender_mesh.uv_layers.find(material_info['uv_info'][tex]['value'])
+                    if index_uvmap < 0:
+                        # This is a custom attribute
+                        uvmap_name = material_info['uv_info'][tex]['value']
+                    else:
+                        uvmap_name = "TEXCOORD_" + str(index_uvmap)
                 all_uvmaps[tex] = uvmap_name
 
             if len(set(all_uvmaps.values())) > 1:
                 self.export_settings['log'].warning('We are not managing this case (multiple UVMap for UDIM)')
                 new_prim_indices[material_idx] = self.prim_indices[material_idx]
+                self.uvmap_attribute_lists.append(self.uvmap_attribute_list)
                 self.additional_materials.append(None)
                 continue
 
@@ -632,6 +647,7 @@ class PrimitiveCreator:
                             new_triangle_indices.append(self.prim_indices[material_idx][idx + 1])
                             new_triangle_indices.append(self.prim_indices[material_idx][idx + 2])
                     new_prim_indices[new_material_index] = np.array(new_triangle_indices, dtype=np.uint32)
+                    self.uvmap_attribute_lists.append(self.uvmap_attribute_list)
                     new_material_index += 1
 
                     # Now we have to create a new material for this tile
@@ -763,7 +779,8 @@ class PrimitiveCreator:
     def primitive_creation_not_shared(self):
         primitives = []
 
-        for material_idx, dot_indices in self.prim_indices.items():
+        for (material_idx, dot_indices), uvmap_attribute_list in zip(
+                self.prim_indices.items(), self.uvmap_attribute_lists):
             # Extract just dots used by this primitive, deduplicate them, and
             # calculate indices into this deduplicated list.
             self.prim_dots = self.dots[dot_indices]
@@ -786,7 +803,7 @@ class PrimitiveCreator:
 
             next_texcoor_idx = self.tex_coord_max
             uvmap_attributes_index = {}
-            for attr in self.uvmap_attribute_list:
+            for attr in uvmap_attribute_list:
                 res = np.empty((len(self.prim_dots), 2), dtype=gltf2_blender_conversion.get_numpy_type('FLOAT2'))
                 for i in range(2):
                     res[:, i] = self.prim_dots[attr + str(i)]

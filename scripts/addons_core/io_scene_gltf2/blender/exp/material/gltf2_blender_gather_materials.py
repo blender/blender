@@ -561,7 +561,12 @@ def get_final_material(mesh, blender_material, attr_indices, base_material, uvma
         elif v['type'] == 'Active':
             indices[m] = get_active_uvmap_index(mesh)
         elif v['type'] == "Attribute":
-            indices[m] = attr_indices[v['value']]
+            # This can be a regular UVMap or a custom attribute
+            i = mesh.uv_layers.find(v['value'])
+            if i >= 0:
+                indices[m] = i
+            else:
+                indices[m] = attr_indices[v['value']]
 
     # Now we have all needed indices, let's create a set that can be used for
     # caching, so containing all possible textures
