@@ -201,7 +201,7 @@ class StepObject {
 
   int layers_num_ = 0;
   bke::greasepencil::LayerGroup root_group_;
-  std::string active_layer_name_;
+  std::string active_node_name_;
   CustomData layers_data_ = {};
 
  private:
@@ -263,8 +263,8 @@ class StepObject {
     CustomData_copy(
         &grease_pencil.layers_data, &layers_data_, eCustomDataMask(CD_MASK_ALL), layers_num_);
 
-    if (grease_pencil.has_active_layer()) {
-      active_layer_name_ = grease_pencil.get_active_layer()->name();
+    if (grease_pencil.active_node != nullptr) {
+      active_node_name_ = grease_pencil.get_active_node()->name();
     }
 
     root_group_ = grease_pencil.root_group();
@@ -279,11 +279,11 @@ class StepObject {
     grease_pencil.root_group_ptr = MEM_new<bke::greasepencil::LayerGroup>(__func__, root_group_);
     BLI_assert(layers_num_ == grease_pencil.layers().size());
 
-    if (!active_layer_name_.empty()) {
-      bke::greasepencil::TreeNode *active_node = grease_pencil.root_group().find_node_by_name(
-          active_layer_name_);
-      if (active_node && active_node->is_layer()) {
-        grease_pencil.set_active_layer(&active_node->as_layer());
+    if (!active_node_name_.empty()) {
+      if (bke::greasepencil::TreeNode *active_node = grease_pencil.root_group().find_node_by_name(
+              active_node_name_))
+      {
+        grease_pencil.set_active_node(active_node);
       }
     }
 
