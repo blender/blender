@@ -658,8 +658,7 @@ def get_color_attrib(nav):
         if nav.node.attribute_type == 'GEOMETRY':
             # Does NOT use color attribute when blank
             name = nav.node.attribute_name
-            if name:
-                return name
+            return name  # Fixed name or "" for active color
 
     return None
 
