@@ -204,8 +204,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add_default(UserDef *userdef)
   STRNCPY(repo->remote_url, "https://extensions.blender.org/api/v1/extensions");
   /* Disable `blender.org` by default, the initial "Online Preferences" section gives
    * the option to enable this. */
-  repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL | USER_EXTENSION_REPO_FLAG_DISABLED |
-                USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP;
+  repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL | USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP;
   return repo;
 }
 

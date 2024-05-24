@@ -2245,42 +2245,27 @@ class BlPkgShowUpgrade(Operator):
         return {'FINISHED'}
 
 
-class BlPkgOnlineAccess(Operator):
-    """Handle online access"""
-    bl_idname = "bl_pkg.extension_online_access"
+# NOTE: this is a wrapper for `SCREEN_OT_userpref_show`.
+# It exists *only* to add a poll function which sets a message when offline mode is forced.
+class BlPkgShowOnlinePreference(Operator):
+    """Show system preferences "Network" panel to allow online access"""
+    bl_idname = "bl_pkg.extensions_show_online_prefs"
     bl_label = ""
     bl_options = {'INTERNAL'}
 
-    enable: BoolProperty(
-        name="Enable",
-        default=False,
-    )
+    @classmethod
+    def poll(cls, context):
+        if bpy.app.online_access_override:
+            if not bpy.app.online_access:
+                cls.poll_message_set("Blender was launched in offline-mode which cannot be changed at runtime")
+                return False
+        return True
 
     def execute(self, context):
+        wm = context.window_manager
         prefs = context.preferences
 
-        remote_url = "https://extensions.blender.org/api/v1/extensions"
-
-        if self.enable:
-            extension_repos = prefs.extensions.repos
-            repo_found = None
-            for repo in extension_repos:
-                if repo.remote_url == remote_url:
-                    repo_found = repo
-                    break
-            if repo_found:
-                repo_found.enabled = True
-            else:
-                # While not expected, we want to know if this ever occurs, don't fail silently.
-                self.report({'WARNING'}, "Repository \"{:s}\" not found!".format(remote_url))
-
-            if bpy.app.online_access:
-                # Run the first check for updates automatically.
-                # Invoke the modal operator so users can cancel by pressing "Escape".
-                assert bpy.ops.bl_pkg.repo_sync_all.poll()
-                bpy.ops.bl_pkg.repo_sync_all('INVOKE_DEFAULT')
-
-        prefs.extensions.use_online_access_handled = True
+        bpy.ops.screen.userpref_show('INVOKE_DEFAULT', section='SYSTEM')
 
         return {'FINISHED'}
 
@@ -2334,7 +2319,7 @@ classes = (
     BlPkgRepoUnlock,
 
     BlPkgShowUpgrade,
-    BlPkgOnlineAccess,
+    BlPkgShowOnlinePreference,
 
     # Dummy, just shows a message.
     BlPkgEnableNotInstalled,
