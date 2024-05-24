@@ -36,6 +36,9 @@ class MetaData {
                              const blender::StringRef value);
 
  public:
+  /* The pixels in the result represents data, which is not to be color-managed. */
+  bool is_data = false;
+
   void add(const blender::StringRef key, const blender::StringRef value);
   /**
    * Replace the hash neutral cryptomatte keys with hashed versions.
@@ -45,8 +48,10 @@ class MetaData {
    */
   void replace_hash_neutral_cryptomatte_keys(const blender::StringRef layer_name);
   void add_to_render_result(RenderResult *render_result) const;
+
   /* Invokes the given callback on each entry of the meta data. */
   void for_each_entry(FunctionRef<void(const std::string &, const std::string &)> callback) const;
+
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MetaData")
 #endif

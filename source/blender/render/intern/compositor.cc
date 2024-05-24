@@ -239,7 +239,8 @@ class Context : public realtime_compositor::Context {
     return output_texture_;
   }
 
-  GPUTexture *get_viewer_output_texture(realtime_compositor::Domain domain) override
+  GPUTexture *get_viewer_output_texture(realtime_compositor::Domain domain,
+                                        const bool is_data) override
   {
     /* Re-create texture if the viewer size changes. */
     const int2 size = domain.size;
@@ -271,6 +272,13 @@ class Context : public realtime_compositor::Context {
     const float2 translation = domain.transformation.location();
     image->runtime.backdrop_offset[0] = translation.x;
     image->runtime.backdrop_offset[1] = translation.y;
+
+    if (is_data) {
+      image->flag &= ~IMA_VIEW_AS_RENDER;
+    }
+    else {
+      image->flag |= IMA_VIEW_AS_RENDER;
+    }
 
     return viewer_output_texture_;
   }

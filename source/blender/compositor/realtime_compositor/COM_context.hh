@@ -80,7 +80,7 @@ class Context {
   /* Get the texture where the result of the compositor viewer should be written, given the domain
    * of the result to be viewed. This should be called by viewer output nodes to get their target
    * texture. */
-  virtual GPUTexture *get_viewer_output_texture(Domain domain) = 0;
+  virtual GPUTexture *get_viewer_output_texture(Domain domain, bool is_data) = 0;
 
   /* Get the texture where the given render pass is stored. This should be called by the Render
    * Layer node to populate its outputs. */
