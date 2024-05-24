@@ -31,10 +31,10 @@ def gather_sk_sampled_keyframes(obj_uuid,
         # Using this option, we miss the drivers :(
         # No solution exists for now. In the future, we should be able to copy a driver
         if action_name in bpy.data.actions:
-            channel_group, _ = get_channel_groups(
+            channel_group, _, _ = get_channel_groups(
                 obj_uuid, bpy.data.actions[action_name], export_settings, no_sample_option=True)
         elif blender_obj.data.shape_keys.animation_data and blender_obj.data.shape_keys.animation_data.action:
-            channel_group, _ = get_channel_groups(
+            channel_group, _, _ = get_channel_groups(
                 obj_uuid, blender_obj.data.shape_keys.animation_data.action, export_settings, no_sample_option=True)
         else:
             channel_group = {}
@@ -47,7 +47,7 @@ def gather_sk_sampled_keyframes(obj_uuid,
             channels = chan['properties']['value']
             break
 
-        non_keyed_values = gather_non_keyed_values(obj_uuid, channels, None, export_settings)
+        non_keyed_values = gather_non_keyed_values(obj_uuid, channels, None, False, export_settings)
 
         while frame <= end_frame:
             key = Keyframe(channels, frame, None)
