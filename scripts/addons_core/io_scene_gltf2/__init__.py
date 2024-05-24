@@ -509,7 +509,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
 
     export_active_vertex_color_when_no_material: BoolProperty(
         name='Export active vertex color when no material',
-        description='When there is no material on object, export active vertex color.',
+        description='When there is no material on object, export active vertex color',
         default=True
     )
 
