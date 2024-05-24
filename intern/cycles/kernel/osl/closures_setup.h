@@ -274,8 +274,8 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
 
   fresnel->reflection_tint = rgb_to_spectrum(closure->reflection_tint);
   fresnel->transmission_tint = rgb_to_spectrum(closure->transmission_tint);
-  fresnel->thin_film.thickness = 0.0f;
-  fresnel->thin_film.ior = 0.0f;
+  fresnel->thin_film.thickness = closure->thinfilm_thickness;
+  fresnel->thin_film.ior = closure->thinfilm_ior;
   bsdf_microfacet_setup_fresnel_dielectric_tint(kg, bsdf, sd, fresnel, preserve_energy);
 
   if (layer_albedo != NULL) {
@@ -425,8 +425,8 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   fresnel->f0 = rgb_to_spectrum(closure->f0);
   fresnel->f90 = rgb_to_spectrum(closure->f90);
   fresnel->exponent = closure->exponent;
-  fresnel->thin_film.thickness = 0.0f;
-  fresnel->thin_film.ior = 0.0f;
+  fresnel->thin_film.thickness = closure->thinfilm_thickness;
+  fresnel->thin_film.ior = closure->thinfilm_ior;
   bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd, fresnel, preserve_energy);
 
   if (layer_albedo != NULL) {
