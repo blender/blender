@@ -49,8 +49,10 @@ jobs:
         with:
           lfs: true
 
-      - name: Update and Build
+      - name: Update
         shell: cmd
-        run: |
-          make update
-          make
+        run: make update
+        
+      - name: Build
+        shell: cmd
+        run: make
