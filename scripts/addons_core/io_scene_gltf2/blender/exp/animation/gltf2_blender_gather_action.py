@@ -554,7 +554,9 @@ def __get_blender_actions(obj_uuid: str,
                 # Multi-strip tracks do not export correctly yet (they need to be baked),
                 # so skip them for now and only write single-strip tracks.
                 non_muted_strips = [strip for strip in track.strips if strip.action is not None and strip.mute is False]
-                if track.strips is None or len(non_muted_strips) != 1:
+                if track.strips is None or len(non_muted_strips) > 1:
+                    # Warning if multiple strips are found, then ignore this track
+                    # Ignore without warning if no strip
                     export_settings['log'].warning(
                         "NLA track '{}' has {} strips, but only single-strip tracks are supported in 'actions' mode.".format(
                             track.name, len(

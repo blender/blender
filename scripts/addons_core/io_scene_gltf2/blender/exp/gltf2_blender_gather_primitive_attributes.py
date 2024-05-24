@@ -78,11 +78,13 @@ def __gather_skins(blender_primitive, export_settings):
     # Warning for the case where we are in the same group, will be done later
     # (for example, 3 weights needed, but 2 wanted by user)
     if max_bone_set_index > wanted_max_bone_set_index:
-        export_settings['log'].warning(
-            "There are more than {} joint vertex influences."
-            "The {} with highest weight will be used (and normalized).".format(
-                export_settings['gltf_vertex_influences_nb'],
-                export_settings['gltf_vertex_influences_nb']))
+        if export_settings['warning_joint_weight_exceed_already_displayed'] is False:
+            export_settings['log'].warning(
+                "There are more than {} joint vertex influences."
+                "The {} with highest weight will be used (and normalized).".format(
+                    export_settings['gltf_vertex_influences_nb'],
+                    export_settings['gltf_vertex_influences_nb']))
+            export_settings['warning_joint_weight_exceed_already_displayed'] = True
 
         # Take into account only the first set of 4 weights
         max_bone_set_index = wanted_max_bone_set_index
@@ -107,11 +109,13 @@ def __gather_skins(blender_primitive, export_settings):
                     idx = 4 - 1 - i
                     if not all(weight[:, idx]):
                         if warning_done is False:
-                            export_settings['log'].warning(
-                                "There are more than {} joint vertex influences."
-                                "The {} with highest weight will be used (and normalized).".format(
-                                    export_settings['gltf_vertex_influences_nb'],
-                                    export_settings['gltf_vertex_influences_nb']))
+                            if export_settings['warning_joint_weight_exceed_already_displayed'] is False:
+                                export_settings['log'].warning(
+                                    "There are more than {} joint vertex influences."
+                                    "The {} with highest weight will be used (and normalized).".format(
+                                        export_settings['gltf_vertex_influences_nb'],
+                                        export_settings['gltf_vertex_influences_nb']))
+                                export_settings['warning_joint_weight_exceed_already_displayed'] = True
                             warning_done = True
                     weight[:, idx] = 0.0
 
