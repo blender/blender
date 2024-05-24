@@ -254,7 +254,7 @@ IDTypeInfo IDType_ID_WM = {
     /*name_plural*/ N_("window_managers"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_WINDOWMANAGER,
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA |
-        IDTYPE_FLAGS_NO_MEMFILE_UNDO,
+        IDTYPE_FLAGS_NO_MEMFILE_UNDO | IDTYPE_FLAGS_NEVER_UNUSED,
     /*asset_type_info*/ nullptr,
 
     /*init_data*/ nullptr,

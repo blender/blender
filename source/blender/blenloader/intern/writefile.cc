@@ -1311,10 +1311,11 @@ static bool write_file_handle(Main *mainvar,
 
         /* We only write unused IDs in undo case. */
         if (!wd->use_memfile) {
-          /* NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
-           * their user-count should never be zero currently. */
+          /* NOTE: All 'never unused' local IDs (Scenes, WindowManagers, ...) should always be
+           * written to disk, so their user-count should never be zero currently. Note that
+           * libraries have already been skipped above, as they need a specific handling. */
           if (id->us == 0) {
-            BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
+            BLI_assert((id_type->flags & IDTYPE_FLAGS_NEVER_UNUSED) == 0);
             continue;
           }
 
