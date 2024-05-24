@@ -18,9 +18,14 @@ jobs:
       - name: Update and Build
         shell: bash
         run: |
+          gcc --version
+          cat /etc/os-release
+          
           if grep -q 'Rocky' /etc/os-release; then
             source scl_source enable gcc-toolset-11
           fi
+          source scl_source enable gcc-toolset-11
+          gcc --version
           make update
           make
 
