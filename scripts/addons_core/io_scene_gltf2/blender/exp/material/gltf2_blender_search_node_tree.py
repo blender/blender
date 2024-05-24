@@ -519,7 +519,7 @@ def get_multiply_factors(nav):
                 prev.node.type == 'MIX' and
                 prev.node.data_type == 'RGBA' and
                 prev.node.blend_type == 'MULTIPLY' and
-                prev.get_constant('Fac') == 1
+                prev.get_constant('Factor')[0] == 1
             )
             if is_mul:
                 fac1 = prev
