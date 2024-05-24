@@ -653,9 +653,35 @@ typedef struct PreviewImage {
   PreviewImageRuntimeHandle *runtime;
 } PreviewImage;
 
+/**
+ * Amount of 'fake user' usages of this ID.
+ * Always 0 or 1.
+ */
 #define ID_FAKE_USERS(id) ((((const ID *)id)->flag & LIB_FAKEUSER) ? 1 : 0)
-#define ID_REAL_USERS(id) (((const ID *)id)->us - ID_FAKE_USERS(id))
+/**
+ * Amount of defined 'extra' shallow, runtime-only usages of this ID (typically from UI).
+ * Always 0 or 1.
+ *
+ * \warning May not actually be part of the total #ID.us count, see #ID_EXTRA_REAL_USERS.
+ */
 #define ID_EXTRA_USERS(id) (((const ID *)id)->tag & LIB_TAG_EXTRAUSER ? 1 : 0)
+/**
+ * Amount of real 'extra' shallow, runtime-only usages of this ID (typically from UI).
+ * Always 0 or 1.
+ *
+ * \note Actual number of usages added to #ID.us by these extra usages. May be 0 even if there are
+ * some 'extra' usages of this ID, when there are also other 'normal' refcounting usages of it. */
+#define ID_EXTRA_REAL_USERS(id) (((const ID *)id)->tag & LIB_TAG_EXTRAUSER_SET ? 1 : 0)
+/**
+ * Amount of real usages of this ID (i.e. excluding the 'fake user' one, but including a potential
+ * 'extra' shallow/runtime usage).
+ */
+#define ID_REAL_USERS(id) (((const ID *)id)->us - ID_FAKE_USERS(id))
+/**
+ * Amount of 'normal' refcounting usages of this ID (i.e. excluding the 'fake user' one, and a
+ * potential 'extra' shallow/runtime usage).
+ */
+#define ID_REFCOUNTING_USERS(id) (ID_REAL_USERS(id) - ID_EXTRA_REAL_USERS(id))
 
 #define ID_CHECK_UNDO(id) \
   ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS))
