@@ -263,6 +263,54 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "fc_quat", "VtArray<GfQuatf>", "faceVarying", 4)
         self.check_primvar_missing(prim, "fc_mat4x4")
 
+        prim = stage.GetPrimAtPath("/root/Curve_base/Curves/Curves")
+
+        self.check_primvar(prim, "p_bool", "VtArray<bool>", "vertex", 24)
+        self.check_primvar(prim, "p_int8", "VtArray<int>", "vertex", 24)
+        self.check_primvar(prim, "p_int32", "VtArray<int>", "vertex", 24)
+        self.check_primvar(prim, "p_float", "VtArray<float>", "vertex", 24)
+        self.check_primvar_missing(prim, "p_color")
+        self.check_primvar_missing(prim, "p_byte_color")
+        self.check_primvar(prim, "p_vec2", "VtArray<GfVec2f>", "vertex", 24)
+        self.check_primvar(prim, "p_vec3", "VtArray<GfVec3f>", "vertex", 24)
+        self.check_primvar(prim, "p_quat", "VtArray<GfQuatf>", "vertex", 24)
+        self.check_primvar_missing(prim, "p_mat4x4")
+
+        self.check_primvar(prim, "sp_bool", "VtArray<bool>", "uniform", 2)
+        self.check_primvar(prim, "sp_int8", "VtArray<int>", "uniform", 2)
+        self.check_primvar(prim, "sp_int32", "VtArray<int>", "uniform", 2)
+        self.check_primvar(prim, "sp_float", "VtArray<float>", "uniform", 2)
+        self.check_primvar_missing(prim, "sp_color")
+        self.check_primvar_missing(prim, "sp_byte_color")
+        self.check_primvar(prim, "sp_vec2", "VtArray<GfVec2f>", "uniform", 2)
+        self.check_primvar(prim, "sp_vec3", "VtArray<GfVec3f>", "uniform", 2)
+        self.check_primvar(prim, "sp_quat", "VtArray<GfQuatf>", "uniform", 2)
+        self.check_primvar_missing(prim, "sp_mat4x4")
+
+        prim = stage.GetPrimAtPath("/root/Curve_bezier_base/Curves_bezier/Curves")
+
+        self.check_primvar(prim, "p_bool", "VtArray<bool>", "varying", 10)
+        self.check_primvar(prim, "p_int8", "VtArray<int>", "varying", 10)
+        self.check_primvar(prim, "p_int32", "VtArray<int>", "varying", 10)
+        self.check_primvar(prim, "p_float", "VtArray<float>", "varying", 10)
+        self.check_primvar_missing(prim, "p_color")
+        self.check_primvar_missing(prim, "p_byte_color")
+        self.check_primvar(prim, "p_vec2", "VtArray<GfVec2f>", "varying", 10)
+        self.check_primvar(prim, "p_vec3", "VtArray<GfVec3f>", "varying", 10)
+        self.check_primvar(prim, "p_quat", "VtArray<GfQuatf>", "varying", 10)
+        self.check_primvar_missing(prim, "p_mat4x4")
+
+        self.check_primvar(prim, "sp_bool", "VtArray<bool>", "uniform", 3)
+        self.check_primvar(prim, "sp_int8", "VtArray<int>", "uniform", 3)
+        self.check_primvar(prim, "sp_int32", "VtArray<int>", "uniform", 3)
+        self.check_primvar(prim, "sp_float", "VtArray<float>", "uniform", 3)
+        self.check_primvar_missing(prim, "sp_color")
+        self.check_primvar_missing(prim, "sp_byte_color")
+        self.check_primvar(prim, "sp_vec2", "VtArray<GfVec2f>", "uniform", 3)
+        self.check_primvar(prim, "sp_vec3", "VtArray<GfVec3f>", "uniform", 3)
+        self.check_primvar(prim, "sp_quat", "VtArray<GfQuatf>", "uniform", 3)
+        self.check_primvar_missing(prim, "sp_mat4x4")
+
 
 def main():
     global args
