@@ -123,6 +123,7 @@ void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
                                        float (*quats)[4],
                                        const bool use_select)
 {
+  using namespace blender;
   BMFace *f;
   BMIter iter;
   int index;
@@ -151,21 +152,20 @@ void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
 
       if (!BM_elem_flag_test(l_iter->v, BM_ELEM_TAG)) {
         const float *co_prev, *co_curr, *co_next; /* orig */
-        const float *vd_prev, *vd_curr, *vd_next; /* deform */
 
-        const int i_prev = BM_elem_index_get(l_iter->prev->v);
-        const int i_curr = BM_elem_index_get(l_iter->v);
-        const int i_next = BM_elem_index_get(l_iter->next->v);
+        const int vert_prev = BM_elem_index_get(l_iter->prev->v);
+        const int vert = BM_elem_index_get(l_iter->v);
+        const int vert_next = BM_elem_index_get(l_iter->next->v);
 
         /* Retrieve mapped coordinates. */
-        vd_prev = mappedcos[i_prev];
-        vd_curr = mappedcos[i_curr];
-        vd_next = mappedcos[i_next];
+        const float3 &vd_prev = mappedcos[vert_prev];
+        const float3 &vd_curr = mappedcos[vert];
+        const float3 &vd_next = mappedcos[vert_next];
 
         if (has_origcos) {
-          co_prev = origcos[i_prev];
-          co_curr = origcos[i_curr];
-          co_next = origcos[i_next];
+          co_prev = origcos[vert_prev];
+          co_curr = origcos[vert];
+          co_next = origcos[vert_next];
         }
         else {
           co_prev = l_iter->prev->v->co;
@@ -173,7 +173,7 @@ void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
           co_next = l_iter->next->v->co;
         }
 
-        set_crazy_vertex_quat(quats[i_curr], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
+        set_crazy_vertex_quat(quats[vert], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
 
         BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
       }
@@ -191,44 +191,32 @@ void BKE_crazyspace_set_quats_mesh(Mesh *mesh,
   BitVector<> vert_tag(mesh->verts_num);
 
   /* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
-  const Span<float3> positions = mesh->vert_positions();
+  const Span<float3> positions = origcos.is_empty() ? mesh->vert_positions() : origcos;
   const OffsetIndices<int> faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
-  const bool has_origcos = !origcos.is_empty();
 
   for (const int i : faces.index_range()) {
     const IndexRange face = faces[i];
 
     for (const int corner : face) {
-      const int i_curr = corner_verts[corner];
-      if (vert_tag[i_curr]) {
+      const int vert = corner_verts[corner];
+      if (vert_tag[vert]) {
         continue;
       }
-      const int i_prev = corner_verts[mesh::face_corner_prev(face, corner)];
-      const int i_next = corner_verts[mesh::face_corner_next(face, corner)];
+      const int vert_prev = corner_verts[mesh::face_corner_prev(face, corner)];
+      const int vert_next = corner_verts[mesh::face_corner_next(face, corner)];
 
-      const float *co_prev, *co_curr, *co_next; /* orig */
-      const float *vd_prev, *vd_curr, *vd_next; /* deform */
+      const float3 &vd_prev = mappedcos[vert_prev];
+      const float3 &vd_curr = mappedcos[vert];
+      const float3 &vd_next = mappedcos[vert_next];
 
-      /* Retrieve mapped coordinates. */
-      vd_prev = mappedcos[i_prev];
-      vd_curr = mappedcos[i_curr];
-      vd_next = mappedcos[i_next];
+      const float3 &co_prev = positions[vert_prev];
+      const float3 &co_curr = positions[vert];
+      const float3 &co_next = positions[vert_next];
 
-      if (has_origcos) {
-        co_prev = origcos[i_prev];
-        co_curr = origcos[i_curr];
-        co_next = origcos[i_next];
-      }
-      else {
-        co_prev = positions[i_prev];
-        co_curr = positions[i_curr];
-        co_next = positions[i_next];
-      }
+      set_crazy_vertex_quat(quats[vert], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
 
-      set_crazy_vertex_quat(quats[i_curr], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
-
-      vert_tag[i_curr].set();
+      vert_tag[vert].set();
     }
   }
 }
