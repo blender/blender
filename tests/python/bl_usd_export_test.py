@@ -148,53 +148,23 @@ class USDExportTest(AbstractUSDTest):
         opacity_input = shader.GetInput('opacity')
         self.assertEqual(opacity_input.HasConnectedSource(), False,
                          "Opacity input should not be connected for opaque material")
-        self.assertAlmostEqual(opacity_input.Get(), 1.0, "Opacity input should be set to 1")
+        self.assertAlmostEqual(opacity_input.Get(), 1.0, 2, "Opacity input should be set to 1")
 
-        # The material already has a texture input to the Base Color.
-        # Now also link this texture to the Alpha input.
-        # Set an opacity threshold appropriate for alpha clipping.
-        mat = bpy.data.materials['Material']
-        bsdf = mat.node_tree.nodes['Principled BSDF']
-        tex_output = bsdf.inputs['Base Color'].links[0].from_node.outputs['Color']
-        alpha_input = bsdf.inputs['Alpha']
-        mat.node_tree.links.new(tex_output, alpha_input)
-        bpy.data.materials['Material'].blend_method = 'CLIP'
-        bpy.data.materials['Material'].alpha_threshold = 0.01
-        export_path = self.tempdir / "alphaclip_material.usda"
-        res = bpy.ops.wm.usd_export(
-            filepath=str(export_path),
-            export_materials=True,
-            evaluation_mode="RENDER",
-        )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
-
-        # Inspect and validate the exported USD for the alpha clip case.
-        stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
+        # Inspect and validate the exported USD for the alpha clip w/Round node case.
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Clip_With_Round/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
-        opacity_thres_input = shader.GetInput('opacityThreshold')
+        opacity_thresh_input = shader.GetInput('opacityThreshold')
         self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
-        self.assertGreater(opacity_thres_input.Get(), 0.0, "Opacity threshold input should be > 0")
+        self.assertAlmostEqual(opacity_thresh_input.Get(), 0.5, 2, "Opacity threshold input should be 0.5")
 
-        # Modify material again, this time with alpha blend.
-        bpy.data.materials['Material'].blend_method = 'BLEND'
-        export_path = self.tempdir / "alphablend_material.usda"
-        res = bpy.ops.wm.usd_export(
-            filepath=str(export_path),
-            export_materials=True,
-            evaluation_mode="RENDER",
-        )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
-
-        # Inspect and validate the exported USD for the alpha blend case.
-        stage = Usd.Stage.Open(str(export_path))
-        shader_prim = stage.GetPrimAtPath("/root/_materials/Material/Principled_BSDF")
+        # Inspect and validate the exported USD for the alpha clip w/LessThan+Invert node case.
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Clip_With_LessThanInvert/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
-        opacity_thres_input = shader.GetInput('opacityThreshold')
+        opacity_thresh_input = shader.GetInput('opacityThreshold')
         self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
-        self.assertEqual(opacity_thres_input.Get(), None, "Opacity threshold should not be specified for alpha blend")
+        self.assertAlmostEqual(opacity_thresh_input.Get(), 0.2, 2, "Opacity threshold input should be 0.2")
 
     def check_primvar(self, prim, pv_name, pv_typeName, pv_interp, elements_len):
         pv = UsdGeom.PrimvarsAPI(prim).GetPrimvar(pv_name)

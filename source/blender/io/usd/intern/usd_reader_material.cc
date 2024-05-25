@@ -546,17 +546,9 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
   BKE_ntree_update_main_tree(bmain_, ntree, nullptr);
 
   /* Optionally, set the material blend mode. */
-
   if (params_.set_material_blend) {
     if (needs_blend(usd_shader)) {
-      float opacity_threshold = get_opacity_threshold(usd_shader, 0.0f);
-      if (opacity_threshold > 0.0f) {
-        mtl->blend_method = MA_BM_CLIP;
-        mtl->alpha_threshold = opacity_threshold;
-      }
-      else {
-        mtl->blend_method = MA_BM_BLEND;
-      }
+      mtl->surface_render_method = MA_SURFACE_METHOD_FORWARD;
     }
   }
 }
@@ -576,13 +568,17 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   /* Recursively set the principled shader inputs. */
 
   if (pxr::UsdShadeInput diffuse_input = usd_shader.GetInput(usdtokens::diffuseColor)) {
-    set_node_input(diffuse_input, principled, "Base Color", ntree, column, &context, true);
+    ExtraLinkInfo extra;
+    extra.is_color_corrected = true;
+    set_node_input(diffuse_input, principled, "Base Color", ntree, column, &context, extra);
   }
 
   float emission_strength = 0.0f;
   if (pxr::UsdShadeInput emissive_input = usd_shader.GetInput(usdtokens::emissiveColor)) {
+    ExtraLinkInfo extra;
+    extra.is_color_corrected = true;
     if (set_node_input(
-            emissive_input, principled, "Emission Color", ntree, column, &context, true))
+            emissive_input, principled, "Emission Color", ntree, column, &context, extra))
     {
       emission_strength = 1.0f;
     }
@@ -593,37 +589,38 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value = emission_strength;
 
   if (pxr::UsdShadeInput specular_input = usd_shader.GetInput(usdtokens::specularColor)) {
-    set_node_input(specular_input, principled, "Specular Tint", ntree, column, &context, false);
+    set_node_input(specular_input, principled, "Specular Tint", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput metallic_input = usd_shader.GetInput(usdtokens::metallic)) {
-    set_node_input(metallic_input, principled, "Metallic", ntree, column, &context, false);
+    set_node_input(metallic_input, principled, "Metallic", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput roughness_input = usd_shader.GetInput(usdtokens::roughness)) {
-    set_node_input(roughness_input, principled, "Roughness", ntree, column, &context, false);
+    set_node_input(roughness_input, principled, "Roughness", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput coat_input = usd_shader.GetInput(usdtokens::clearcoat)) {
-    set_node_input(coat_input, principled, "Coat Weight", ntree, column, &context, false);
+    set_node_input(coat_input, principled, "Coat Weight", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput coat_roughness_input = usd_shader.GetInput(usdtokens::clearcoatRoughness))
   {
-    set_node_input(
-        coat_roughness_input, principled, "Coat Roughness", ntree, column, &context, false);
+    set_node_input(coat_roughness_input, principled, "Coat Roughness", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput opacity_input = usd_shader.GetInput(usdtokens::opacity)) {
-    set_node_input(opacity_input, principled, "Alpha", ntree, column, &context, false);
+    ExtraLinkInfo extra;
+    extra.opacity_threshold = get_opacity_threshold(usd_shader, 0.0f);
+    set_node_input(opacity_input, principled, "Alpha", ntree, column, &context, extra);
   }
 
   if (pxr::UsdShadeInput ior_input = usd_shader.GetInput(usdtokens::ior)) {
-    set_node_input(ior_input, principled, "IOR", ntree, column, &context, false);
+    set_node_input(ior_input, principled, "IOR", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput normal_input = usd_shader.GetInput(usdtokens::normal)) {
-    set_node_input(normal_input, principled, "Normal", ntree, column, &context, false);
+    set_node_input(normal_input, principled, "Normal", ntree, column, &context);
   }
 }
 
@@ -633,7 +630,7 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
                                        bNodeTree *ntree,
                                        const int column,
                                        NodePlacementContext *r_ctx,
-                                       bool is_color_corrected) const
+                                       const ExtraLinkInfo &extra) const
 {
   if (!(usd_input && dest_node && r_ctx)) {
     return false;
@@ -642,8 +639,7 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
   if (usd_input.HasConnectedSource()) {
     /* The USD shader input has a connected source shader. Follow the connection
      * and attempt to convert the connected USD shader to a Blender node. */
-    return follow_connection(
-        usd_input, dest_node, dest_socket_name, ntree, column, r_ctx, is_color_corrected);
+    return follow_connection(usd_input, dest_node, dest_socket_name, ntree, column, r_ctx, extra);
   }
   else {
     /* Set the destination node socket value from the USD shader input value. */
@@ -853,13 +849,53 @@ static IntermediateNode add_separate_color(const pxr::UsdShadeShader &usd_shader
   return separate_color;
 }
 
+static IntermediateNode add_lessthan(bNodeTree *ntree,
+                                     float threshold,
+                                     int column,
+                                     NodePlacementContext *r_ctx)
+{
+  float locx = 0.0f;
+  float locy = 0.0f;
+  compute_node_loc(column, &locx, &locy, r_ctx);
+
+  IntermediateNode lessthan{};
+  lessthan.node = add_node(nullptr, ntree, SH_NODE_MATH, locx, locy);
+  lessthan.node->custom1 = NODE_MATH_LESS_THAN;
+  lessthan.sock_input_name = "Value";
+  lessthan.sock_output_name = "Value";
+
+  bNodeSocket *thresh_sock = blender::bke::nodeFindSocket(lessthan.node, SOCK_IN, "Value_001");
+  ((bNodeSocketValueFloat *)thresh_sock->default_value)->value = threshold;
+
+  return lessthan;
+}
+
+static IntermediateNode add_oneminus(bNodeTree *ntree, int column, NodePlacementContext *r_ctx)
+{
+  float locx = 0.0f;
+  float locy = 0.0f;
+  compute_node_loc(column, &locx, &locy, r_ctx);
+
+  /* An "invert" node : 1.0f - Value_001 */
+  IntermediateNode oneminus{};
+  oneminus.node = add_node(nullptr, ntree, SH_NODE_MATH, locx, locy);
+  oneminus.node->custom1 = NODE_MATH_SUBTRACT;
+  oneminus.sock_input_name = "Value_001";
+  oneminus.sock_output_name = "Value";
+
+  bNodeSocket *val_sock = blender::bke::nodeFindSocket(oneminus.node, SOCK_IN, "Value");
+  ((bNodeSocketValueFloat *)val_sock->default_value)->value = 1.0f;
+
+  return oneminus;
+}
+
 bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
                                           bNode *dest_node,
                                           const char *dest_socket_name,
                                           bNodeTree *ntree,
                                           int column,
                                           NodePlacementContext *r_ctx,
-                                          bool is_color_corrected) const
+                                          const ExtraLinkInfo &extra) const
 {
   if (!(usd_input && dest_node && dest_socket_name && ntree && r_ctx)) {
     return false;
@@ -974,6 +1010,19 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
       target_sock_name = separate_color.sock_input_name;
     }
 
+    /* Handle opacity threshold if necessary. */
+    if (source_name == usdtokens::a && extra.opacity_threshold > 0.0f) {
+      /* USD defines the threshold as >= but Blender does not have that operation. Use < instead
+       * and then invert it. */
+      IntermediateNode lessthan = add_lessthan(ntree, extra.opacity_threshold, column + 1, r_ctx);
+      IntermediateNode invert = add_oneminus(ntree, column + 1, r_ctx);
+      link_nodes(
+          ntree, lessthan.node, lessthan.sock_output_name, invert.node, invert.sock_input_name);
+      link_nodes(ntree, invert.node, invert.sock_output_name, dest_node, dest_socket_name);
+      target_node = lessthan.node;
+      target_sock_name = lessthan.sock_input_name;
+    }
+
     convert_usd_uv_texture(source_shader,
                            source_name,
                            target_node,
@@ -981,7 +1030,7 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
                            ntree,
                            column + shift,
                            r_ctx,
-                           is_color_corrected);
+                           extra);
   }
   else if (shader_id == usdtokens::UsdPrimvarReader_float2) {
     convert_usd_primvar_reader_float2(
@@ -1001,7 +1050,7 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
                                                bNodeTree *ntree,
                                                const int column,
                                                NodePlacementContext *r_ctx,
-                                               bool is_color_corrected) const
+                                               const ExtraLinkInfo &extra) const
 {
   if (!usd_shader || !dest_node || !ntree || !dest_socket_name || !bmain_ || !r_ctx) {
     return;
@@ -1026,7 +1075,7 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
     cache_node(r_ctx->node_cache, usd_shader, tex_image);
 
     /* Load the texture image. */
-    load_tex_image(usd_shader, tex_image, is_color_corrected);
+    load_tex_image(usd_shader, tex_image, extra);
   }
 
   /* Connect to destination node input. */
@@ -1038,7 +1087,7 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
 
   /* Connect the texture image node "Vector" input. */
   if (pxr::UsdShadeInput st_input = usd_shader.GetInput(usdtokens::st)) {
-    set_node_input(st_input, tex_image, "Vector", ntree, column, r_ctx, false);
+    set_node_input(st_input, tex_image, "Vector", ntree, column, r_ctx);
   }
 }
 
@@ -1116,13 +1165,13 @@ void USDMaterialReader::convert_usd_transform_2d(const pxr::UsdShadeShader &usd_
 
   /* Connect the mapping node "Vector" input. */
   if (pxr::UsdShadeInput in_input = usd_shader.GetInput(usdtokens::in)) {
-    set_node_input(in_input, mapping, "Vector", ntree, column, r_ctx, false);
+    set_node_input(in_input, mapping, "Vector", ntree, column, r_ctx);
   }
 }
 
 void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
                                        bNode *tex_image,
-                                       bool is_color_corrected) const
+                                       const ExtraLinkInfo &extra) const
 {
   if (!(usd_shader && tex_image && tex_image->type == SH_NODE_TEX_IMAGE)) {
     return;
@@ -1227,7 +1276,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   if (color_space == usdtokens::auto_) {
     /* If it's auto, determine whether to apply color correction based
      * on incoming connection (passed in from outer functions). */
-    STRNCPY(image->colorspace_settings.name, is_color_corrected ? "sRGB" : "Non-Color");
+    STRNCPY(image->colorspace_settings.name, extra.is_color_corrected ? "sRGB" : "Non-Color");
   }
 
   else if (color_space == usdtokens::sRGB) {

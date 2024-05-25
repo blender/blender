@@ -298,12 +298,42 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       }
 
       /* Set opacityThreshold if an alpha cutout is used. */
-      if ((input_spec.input_name == usdtokens::opacity) &&
-          (material->blend_method == MA_BM_CLIP) && (material->alpha_threshold > 0.0))
-      {
-        pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(
-            usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
-        opacity_threshold_input.GetAttr().Set(pxr::VtValue(material->alpha_threshold));
+      if (input_spec.input_name == usdtokens::opacity) {
+        float threshold = 0.0f;
+
+        /* The immediate upstream node should either be a Math Round or a Math 1-minus. */
+        bNodeLink *math_link = traverse_channel(sock, SH_NODE_MATH);
+        if (math_link && math_link->fromnode) {
+          bNode *math_node = math_link->fromnode;
+
+          if (math_node->custom1 == NODE_MATH_ROUND) {
+            threshold = 0.5f;
+          }
+          else if (math_node->custom1 == NODE_MATH_SUBTRACT) {
+            /* If this is the 1-minus node, we need to search upstream to find the less-than. */
+            bNodeSocket *sock = blender::bke::nodeFindSocket(math_node, SOCK_IN, "Value");
+            if (((bNodeSocketValueFloat *)sock->default_value)->value == 1.0f) {
+              sock = blender::bke::nodeFindSocket(math_node, SOCK_IN, "Value_001");
+              math_link = traverse_channel(sock, SH_NODE_MATH);
+              if (math_link && math_link->fromnode) {
+                math_node = math_link->fromnode;
+
+                if (math_node->custom1 == NODE_MATH_LESS_THAN) {
+                  /* We found the upstream less-than with the threshold value. */
+                  bNodeSocket *threshold_sock = blender::bke::nodeFindSocket(
+                      math_node, SOCK_IN, "Value_001");
+                  threshold = ((bNodeSocketValueFloat *)threshold_sock->default_value)->value;
+                }
+              }
+            }
+          }
+        }
+
+        if (threshold > 0.0f) {
+          pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(
+              usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
+          opacity_threshold_input.GetAttr().Set(pxr::VtValue(threshold));
+        }
       }
     }
     else if (input_spec.set_default_value) {
