@@ -29,6 +29,7 @@
 
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
+#  include "RNA_enum_types.hh"
 
 #  include "UI_interface.hh"
 #  include "UI_resources.hh"
@@ -232,6 +233,10 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties");
   const bool author_blender_name = RNA_boolean_get(op->ptr, "author_blender_name");
 
+  const bool triangulate_meshes = RNA_boolean_get(op->ptr, "triangulate_meshes");
+  const int quad_method = RNA_enum_get(op->ptr, "quad_method");
+  const int ngon_method = RNA_enum_get(op->ptr, "ngon_method");
+
   const bool convert_orientation = RNA_boolean_get(op->ptr, "convert_orientation");
 
   const int global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
@@ -264,6 +269,9 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       relative_paths,
       export_custom_properties,
       author_blender_name,
+      triangulate_meshes,
+      quad_method,
+      ngon_method,
       convert_orientation,
       eIOAxis(global_forward),
       eIOAxis(global_up),
@@ -311,6 +319,14 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   row = uiLayoutRow(col, true);
   uiItemR(row, ptr, "author_blender_name", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiLayoutSetActive(row, RNA_boolean_get(op->ptr, "export_custom_properties"));
+
+  col = uiLayoutColumn(box, true);
+  uiItemR(col, ptr, "triangulate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  uiLayout *sub = uiLayoutColumn(col, false);
+  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate_meshes"));
+  uiItemR(sub, ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
+  uiItemR(sub, ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
 
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Rigging"));
   uiItemR(col, ptr, "export_armatures", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -601,6 +617,26 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "export_curves", true, "Curves", "Export all curves");
 
   RNA_def_boolean(ot->srna, "export_volumes", true, "Volumes", "Export all volumes");
+
+  RNA_def_boolean(ot->srna,
+                  "triangulate_meshes",
+                  false,
+                  "Triangulate Meshes",
+                  "Triangulate meshes during export");
+
+  RNA_def_enum(ot->srna,
+               "quad_method",
+               rna_enum_modifier_triangulate_quad_method_items,
+               MOD_TRIANGULATE_QUAD_SHORTEDGE,
+               "Quad Method",
+               "Method for splitting the quads into triangles");
+
+  RNA_def_enum(ot->srna,
+               "ngon_method",
+               rna_enum_modifier_triangulate_ngon_method_items,
+               MOD_TRIANGULATE_NGON_BEAUTY,
+               "N-gon Method",
+               "Method for splitting the n-gons into triangles");
 }
 
 /* ====== USD Import ====== */
