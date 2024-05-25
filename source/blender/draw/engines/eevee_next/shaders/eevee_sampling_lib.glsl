@@ -205,6 +205,12 @@ vec3 sample_cylinder(vec2 rand)
   return vec3(rand.x, sample_circle(rand.y));
 }
 
+/**
+ * Uniform sphere distribution.
+ * \a rand is 2 random float in the [0..1] range.
+ * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
+ * PDF = 1 / (4 * pi)
+ */
 vec3 sample_sphere(vec2 rand)
 {
   float cos_theta = rand.x * 2.0 - 1.0;
@@ -212,7 +218,10 @@ vec3 sample_sphere(vec2 rand)
   return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
-/* Returns a point in a ball that is "uniformly" distributed after projection along any axis. */
+/**
+ * Returns a point in a ball that is "uniformly" distributed after projection along any axis.
+ * PDF = unknown
+ */
 vec3 sample_ball(vec3 rand)
 {
   /* Completely ad-hoc, but works well in practice and is fast. */
@@ -223,6 +232,7 @@ vec3 sample_ball(vec3 rand)
  * Uniform hemisphere distribution.
  * \a rand is 2 random float in the [0..1] range.
  * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
+ * PDF = 1 / (2 * pi)
  */
 vec3 sample_hemisphere(vec2 rand)
 {
@@ -236,6 +246,7 @@ vec3 sample_hemisphere(vec2 rand)
  * \a rand is 2 random float in the [0..1] range.
  * \a cos_angle is the cosine of the half angle.
  * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
+ * PDF = 1 / (2 * pi * (1 - cos_angle))
  */
 vec3 sample_uniform_cone(vec2 rand, float cos_angle)
 {

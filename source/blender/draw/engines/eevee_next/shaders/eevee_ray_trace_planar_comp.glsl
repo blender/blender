@@ -77,7 +77,7 @@ void main()
 
   /* TODO(fclem): Take IOR into account in the roughness LOD bias. */
   /* TODO(fclem): pdf to roughness mapping is a crude approximation. Find something better. */
-  float roughness = saturate(sample_pdf_uniform_hemisphere() / ray_pdf_inv);
+  float roughness = saturate(ray_pdf_inv);
 
   /* Transform the ray into planar view-space. */
   Ray ray_view;

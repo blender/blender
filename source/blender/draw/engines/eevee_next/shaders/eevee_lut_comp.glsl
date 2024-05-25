@@ -38,7 +38,8 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
     vec3 Xi = sample_cylinder(rand);
 
     /* Microfacet normal. */
-    vec3 H = sample_ggx(Xi, roughness, V);
+    vec3 R = bxdf_ggx_sample_reflection(Xi, V, roughness).direction;
+    vec3 H = normalize(V + R);
     vec3 L = -reflect(V, H);
     float NL = L.z;
 
@@ -100,12 +101,12 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
     vec3 Xi = sample_cylinder(rand);
 
     /* Microfacet normal. */
-    vec3 H = sample_ggx(Xi, roughness, V);
+    vec3 R = bxdf_ggx_sample_reflection(Xi, V, roughness).direction;
+    vec3 H = normalize(V + R);
     float HL = 1.0 - (1.0 - square(dot(V, H))) / square(ior);
     float s = saturate(pow5f(1.0 - saturate(HL)));
 
     /* Reflection. */
-    vec3 R = -reflect(V, H);
     float NR = R.z;
     if (NR > 0.0) {
       /* Assuming sample visible normals, `weight = brdf * NV / (pdf * fresnel).` */
@@ -160,7 +161,8 @@ vec4 ggx_btdf_gt_one(vec3 lut_coord)
     vec3 Xi = sample_cylinder(rand);
 
     /* Microfacet normal. */
-    vec3 H = sample_ggx(Xi, roughness, V);
+    vec3 R = bxdf_ggx_sample_reflection(Xi, V, roughness).direction;
+    vec3 H = normalize(V + R);
 
     /* Refraction. */
     vec3 L = refract(-V, H, inv_ior);

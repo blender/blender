@@ -196,6 +196,16 @@ bool is_equal(float a, float b, const float epsilon)
   return abs(a - b) <= epsilon;
 }
 
+float sin_from_cos(float c)
+{
+  return safe_sqrt(1.0 - square(c));
+}
+
+float cos_from_sin(float s)
+{
+  return safe_sqrt(1.0 - square(s));
+}
+
 /** \} */
 
 #endif /* GPU_SHADER_MATH_BASE_LIB_GLSL */

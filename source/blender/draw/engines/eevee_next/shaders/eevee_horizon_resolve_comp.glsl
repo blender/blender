@@ -139,33 +139,9 @@ void main()
       continue;
     }
 
-    vec3 N = cl.N;
+    LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, gbuf.thickness);
 
-    vec3 L;
-    switch (cl.type) {
-      case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-        L = reflection_dominant_dir(cl.N, V, roughness);
-        break;
-      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
-        float ior = to_closure_refraction(cl).ior;
-        if (gbuf.thickness != 0.0) {
-          vec3 L = refraction_dominant_dir(cl.N, V, ior, roughness);
-          cl.N = -thickness_shape_intersect(gbuf.thickness, cl.N, L).hit_N;
-          ior = 1.0 / ior;
-          V = -L;
-        }
-        L = refraction_dominant_dir(cl.N, V, ior, roughness);
-        break;
-      }
-      case CLOSURE_BSDF_TRANSLUCENT_ID:
-        /* Translucent BSDF with thickness is modeled as uniform sphere distribution which drops
-         * all the directional terms. */
-        L = (gbuf.thickness != 0.0) ? vec3(0.0) : -N;
-        break;
-      default:
-        L = N;
-        break;
-    }
+    vec3 L = ray.dominant_direction;
     vec3 vL = drw_normal_world_to_view(L);
 
     /* Evaluate lighting from horizon scan. */

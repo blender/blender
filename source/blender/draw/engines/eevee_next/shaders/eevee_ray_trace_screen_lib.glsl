@@ -225,26 +225,13 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
 
 /* Modify the ray origin before tracing it. We must do this because ray origin is implicitly
  * reconstructed from from gbuffer depth which we cannot modify. */
-Ray raytrace_thickness_ray_ammend(
-    Ray ray, ClosureUndetermined cl, vec3 V, vec3 surface_N, float thickness)
+Ray raytrace_thickness_ray_ammend(Ray ray, ClosureUndetermined cl, vec3 V, float thickness)
 {
   switch (cl.type) {
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
-      ClosureRefraction cl_refr = to_closure_refraction(cl);
-      float apparent_roughness = refraction_roughness_remapping(cl_refr.roughness, cl_refr.ior);
-      vec3 L = refraction_dominant_dir(cl_refr.N, V, cl_refr.ior, apparent_roughness);
-      /* The ray direction was generated using the same 2 transmission events assumption.
-       * Only change its origin. Skip the volume inside the object. */
-      ray.origin += thickness_shape_intersect(thickness, surface_N, L).hit_P;
-      break;
-    }
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+      return bxdf_ggx_ray_amend_transmission(cl, V, ray, thickness);
     case CLOSURE_BSDF_TRANSLUCENT_ID:
-      /* Ray direction is distributed on the whole sphere.
-       * Move the ray origin to the sphere surface (with bias to avoid self-intersection). */
-      ray.origin += (ray.direction - surface_N) * thickness * 0.505;
-      break;
-    default:
-      break;
+      return bxdf_translucent_ray_amend(cl, V, ray, thickness);
   }
   return ray;
 }

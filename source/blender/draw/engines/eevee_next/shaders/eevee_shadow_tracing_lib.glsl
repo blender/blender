@@ -168,7 +168,7 @@ ShadowRayDirectional shadow_ray_generate_directional(
   float shadow_angle = min(light_sun_data_get(light).shadow_angle, max_tracing_angle);
 
   /* Light shape is 1 unit away from the shading point. */
-  vec3 direction = sample_uniform_cone(sample_cylinder(random_2d), shadow_angle);
+  vec3 direction = sample_uniform_cone(random_2d, cos(shadow_angle));
 
   direction = shadow_ray_above_horizon_ensure(direction, lNg, max_tracing_distance);
 
