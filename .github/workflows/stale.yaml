@@ -1,0 +1,31 @@
+name: "Close stale PR's"
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  close-stale-PRs:
+    name: "Close stale PR's"
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-issue-stale: -1
+          days-before-pr-stale: 0
+          days-before-pr-close: 0
+          stale-pr-message: |
+              This Pull Request has been automatically closed, because this repository is only used as a mirror. Blender development happens on [projects.blender.org](https://projects.blender.org).
+
+              To get started contributing code, please read:
+              https://developer.blender.org/docs/handbook/contributing/
+          delete-branch: true
