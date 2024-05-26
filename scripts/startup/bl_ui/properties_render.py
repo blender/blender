@@ -574,8 +574,6 @@ class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
 
         col.prop(options, "resolution_scale")
         col.prop(options, "trace_max_roughness", text="Max Roughness")
-        # TODO Move it to raytracing options
-        col.prop(props, "horizon_bias", text="Bias")
 
 
 class RENDER_PT_eevee_next_screen_trace(RenderButtonsPanel, Panel):
@@ -605,8 +603,8 @@ class RENDER_PT_eevee_next_screen_trace(RenderButtonsPanel, Panel):
         col.prop(props, "screen_trace_thickness", text="Thickness")
 
 
-class RENDER_PT_eevee_next_horizon_scan(RenderButtonsPanel, Panel):
-    bl_label = "Horizon Scan"
+class RENDER_PT_eevee_next_gi_approximation(RenderButtonsPanel, Panel):
+    bl_label = "Fast GI Approximation"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "RENDER_PT_eevee_next_raytracing"
     COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
@@ -628,6 +626,7 @@ class RENDER_PT_eevee_next_horizon_scan(RenderButtonsPanel, Panel):
         col.prop(props, "horizon_quality", text="Precision")
         col.prop(props, "horizon_thickness", text="Thickness")
         col.prop(props, "horizon_resolution", text="Resolution")
+        col.prop(props, "horizon_bias", text="Bias")
 
 
 class RENDER_PT_eevee_next_denoise(RenderButtonsPanel, Panel):
@@ -1350,7 +1349,7 @@ classes = (
     RENDER_PT_eevee_next_raytracing_presets,
     RENDER_PT_eevee_next_raytracing,
     RENDER_PT_eevee_next_screen_trace,
-    RENDER_PT_eevee_next_horizon_scan,
+    RENDER_PT_eevee_next_gi_approximation,
     RENDER_PT_eevee_next_denoise,
     RENDER_PT_simplify,
     RENDER_PT_simplify_viewport,
