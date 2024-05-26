@@ -372,6 +372,7 @@ float ambient_occlusion_eval(vec3 normal,
                     max_distance,
                     uniform_buf.ao.thickness,
                     uniform_buf.ao.angle_bias,
+                    2,
                     10,
                     inverted != 0.0);
 

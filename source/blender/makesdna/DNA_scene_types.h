@@ -1863,6 +1863,9 @@ typedef struct SceneEEVEE {
   float gtao_focus;
   int gtao_resolution;
 
+  int fast_gi_step_count;
+  int fast_gi_ray_count;
+
   float bokeh_overblur;
   float bokeh_max_size;
   float bokeh_threshold;

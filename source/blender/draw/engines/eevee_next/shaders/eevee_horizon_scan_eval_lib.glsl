@@ -100,13 +100,17 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
                                     float search_distance,
                                     float global_thickness,
                                     float angle_bias,
+                                    const int slice_count,
                                     const int sample_count,
                                     const bool reversed)
 {
   vec3 vV = drw_view_incident_vector(vP);
 
-  const int slice_len = 2;
-  vec2 v_dir = sample_circle(noise.x * (0.5 / float(slice_len)));
+  vec2 v_dir;
+  if (slice_count <= 2) {
+    /* We cover half the circle because we trace in both directions. */
+    v_dir = sample_circle(noise.x / float(2 * slice_count));
+  }
 
   float weight_accum = 0.0;
   float occlusion_accum = 0.0;
@@ -116,10 +120,11 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
 /* NOTE: Full loop unroll hint increases performance on Apple Silicon. */
 #  pragma clang loop unroll(full)
 #endif
-  for (int slice = 0; slice < slice_len; slice++) {
-#if 0 /* For debug purpose. For when slice_len is greater than 2. */
-    vec2 v_dir = sample_circle(((float(slice) + noise.x) / float(slice_len)));
-#endif
+  for (int slice = 0; slice < slice_count; slice++) {
+    if (slice_count > 2) {
+      /* We cover half the circle because we trace in both directions. */
+      v_dir = sample_circle(((float(slice) + noise.x) / float(2 * slice_count)));
+    }
 
     /* Setup integration domain around V. */
     vec3 vB = normalize(cross(vV, vec3(v_dir, 0.0)));

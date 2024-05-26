@@ -213,6 +213,9 @@
     .gtao_focus = 0.05f, \
     .gtao_resolution = 2, \
  \
+    .fast_gi_step_count = 8, \
+    .fast_gi_ray_count = 2, \
+ \
     .bokeh_overblur = 5.0f, \
     .bokeh_max_size = 100.0f, \
     .bokeh_threshold = 1.0f, \

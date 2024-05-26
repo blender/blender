@@ -198,6 +198,8 @@ GPU_SHADER_CREATE_INFO(eevee_horizon_scan)
                      "eevee_utility_texture",
                      "eevee_hiz_data",
                      "draw_view")
+    .specialization_constant(Type::INT, "fast_gi_slice_count", 2)
+    .specialization_constant(Type::INT, "fast_gi_step_count", 8)
     .sampler(0, ImageType::FLOAT_2D, "screen_radiance_tx")
     .sampler(1, ImageType::FLOAT_2D, "screen_normal_tx")
     .image(2, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "horizon_radiance_0_img")

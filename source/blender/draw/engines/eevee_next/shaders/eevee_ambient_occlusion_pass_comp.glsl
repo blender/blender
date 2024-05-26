@@ -38,6 +38,7 @@ void main()
                                              uniform_buf.ao.distance,
                                              uniform_buf.ao.thickness,
                                              uniform_buf.ao.angle_bias,
+                                             2,
                                              10,
                                              false);
 

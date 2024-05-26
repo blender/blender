@@ -3642,6 +3642,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 44)) {
+    const Scene *default_scene = DNA_struct_default_get(Scene);
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->eevee.fast_gi_step_count = default_scene->eevee.fast_gi_step_count;
+      scene->eevee.fast_gi_ray_count = default_scene->eevee.fast_gi_ray_count;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

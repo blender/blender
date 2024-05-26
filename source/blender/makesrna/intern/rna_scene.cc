@@ -7794,11 +7794,11 @@ static void rna_def_raytrace_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "trace_max_roughness", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(
-      prop,
-      "Raytrace Max Roughness",
-      "Maximum roughness to use the tracing pipeline for. Higher "
-      "roughness surfaces will use horizon scan. A value of 1 will disable horizon scan");
+  RNA_def_property_ui_text(prop,
+                           "Raytrace Max Roughness",
+                           "Maximum roughness to use the tracing pipeline for. Higher "
+                           "roughness surfaces will use fast GI approximation. A value of 1 will "
+                           "disable fast GI approximation");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
@@ -8259,6 +8259,18 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "gtao_quality");
   RNA_def_property_ui_text(prop, "Trace Precision", "Precision of the horizon scan");
   RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "fast_gi_step_count", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_range(prop, 1, 64);
+  RNA_def_property_ui_text(prop, "Step Count", "Amount of screen sample per GI ray");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "fast_gi_ray_count", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_range(prop, 1, 16);
+  RNA_def_property_ui_text(prop, "Ray Count", "Amount of GI ray to trace for each pixel");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
