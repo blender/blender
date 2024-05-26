@@ -1537,7 +1537,7 @@ static void template_ID(const bContext *C,
     RNA_string_set(but->opptr, "id_name", id->name + 2);
     RNA_int_set(but->opptr, "id_type", GS(id->name));
 
-    if (ID_IS_LINKED(id)) {
+    if (!ID_IS_EDITABLE(id)) {
       UI_but_flag_enable(but, UI_BUT_DISABLED);
     }
   }
