@@ -985,7 +985,7 @@ struct LightData {
   /** Index of the first tile-map. Set to LIGHT_NO_SHADOW if light is not casting shadow. */
   int tilemap_index;
   /* Radius in pixels for shadow filtering. */
-  float pcf_radius;
+  float filter_radius;
 
   /* Shadow Map resolution bias. */
   float lod_bias;

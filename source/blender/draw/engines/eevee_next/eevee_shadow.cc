@@ -569,6 +569,8 @@ void ShadowModule::init()
 
   ::Scene &scene = *inst_.scene;
 
+  global_lod_bias_ = (1.0f - scene.eevee.shadow_resolution_scale) * SHADOW_TILEMAP_LOD;
+
   bool update_lights = false;
   bool enable_shadow = (scene.eevee.flag & SCE_EEVEE_SHADOW_ENABLED) != 0;
   bool use_jitter = enable_shadow &&

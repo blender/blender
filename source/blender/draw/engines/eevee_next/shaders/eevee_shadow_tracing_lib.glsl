@@ -451,7 +451,7 @@ float shadow_eval(LightData light,
   /* Avoid self intersection with respect to numerical precision. */
   P = offset_ray(P, N_bias);
   /* Stochastic Percentage Closer Filtering. */
-  P += (light.pcf_radius * texel_radius) * shadow_pcf_offset(L, Ng, random_pcf_2d);
+  P += (light.filter_radius * texel_radius) * shadow_pcf_offset(L, Ng, random_pcf_2d);
   /* Add normal bias to avoid aliasing artifacts. */
   P += N_bias * (texel_radius * shadow_normal_offset(Ng, L));
 
