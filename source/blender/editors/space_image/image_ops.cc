@@ -236,9 +236,15 @@ static bool image_from_context_has_data_poll(bContext *C)
 /**
  * Use this when the image buffer is accessing the active tile without the image user.
  */
-static bool image_from_context_has_data_poll_active_tile(bContext *C)
+static bool image_from_context_editable_has_data_poll_active_tile(bContext *C)
 {
   Image *ima = image_from_context(C);
+
+  if (!ID_IS_EDITABLE(&ima->id)) {
+    CTX_wm_operator_poll_msg_set(C, "Image is not editable");
+    return false;
+  }
+
   ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
 
   return BKE_image_has_ibuf(ima, &iuser);
@@ -2841,7 +2847,7 @@ void IMAGE_OT_flip(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_flip_exec;
-  ot->poll = image_from_context_has_data_poll_active_tile;
+  ot->poll = image_from_context_editable_has_data_poll_active_tile;
 
   /* properties */
   PropertyRNA *prop;
@@ -2922,7 +2928,7 @@ void IMAGE_OT_rotate_orthogonal(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_rotate_orthogonal_exec;
-  ot->poll = image_from_context_has_data_poll_active_tile;
+  ot->poll = image_from_context_editable_has_data_poll_active_tile;
 
   /* properties */
   PropertyRNA *prop;
@@ -3168,7 +3174,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_invert_exec;
-  ot->poll = image_from_context_has_data_poll_active_tile;
+  ot->poll = image_from_context_editable_has_data_poll_active_tile;
 
   /* properties */
   prop = RNA_def_boolean(ot->srna, "invert_r", false, "Red", "Invert red channel");
@@ -3260,7 +3266,7 @@ void IMAGE_OT_resize(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = image_scale_invoke;
   ot->exec = image_scale_exec;
-  ot->poll = image_from_context_has_data_poll_active_tile;
+  ot->poll = image_from_context_editable_has_data_poll_active_tile;
 
   /* properties */
   RNA_def_int_vector(ot->srna, "size", 2, nullptr, 1, INT_MAX, "Size", "", 1, SHRT_MAX);
