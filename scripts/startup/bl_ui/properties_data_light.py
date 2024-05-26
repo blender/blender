@@ -160,8 +160,6 @@ class DATA_PT_EEVEE_light_shadow(DataButtonsPanel, Panel):
         sub.active = light.use_shadow_jitter
         sub.prop(light, "shadow_jitter_overblur", text="Overblur")
 
-        col.separator()
-
         col = layout.column()
         col.prop(light, "shadow_filter_radius", text="Filter")
 
@@ -170,7 +168,6 @@ class DATA_PT_EEVEE_light_shadow(DataButtonsPanel, Panel):
         row.prop(light, "shadow_maximum_resolution", text="Resolution Limit")
         if light.type != 'SUN':
             row.prop(light, "use_absolute_resolution", text="", icon='DRIVER_DISTANCE')
-        sub.prop(light, "shadow_resolution_scale", text="Scale")
 
 
 class DATA_PT_EEVEE_light_influence(DataButtonsPanel, Panel):
