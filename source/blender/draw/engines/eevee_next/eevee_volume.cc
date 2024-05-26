@@ -391,7 +391,6 @@ void VolumeModule::draw_compute(View &main_view, int2 extent)
     inst_.volume_probes.set_view(main_view);
     inst_.sphere_probes.set_view(main_view);
     inst_.shadows.set_view(main_view, extent);
-    printf("here\n");
   }
 
   scatter_tx_.swap();
