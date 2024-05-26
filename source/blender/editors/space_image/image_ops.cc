@@ -3352,6 +3352,11 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!ID_IS_EDITABLE(&ima->id)) {
+    BKE_report(op->reports, RPT_ERROR, "Image is not editable");
+    return OPERATOR_CANCELLED;
+  }
+
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
     BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
     return OPERATOR_CANCELLED;
@@ -3382,6 +3387,11 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
   }
 
   if (!ima || !BKE_image_has_packedfile(ima)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!ID_IS_EDITABLE(&ima->id)) {
+    BKE_report(op->reports, RPT_ERROR, "Image is not editable");
     return OPERATOR_CANCELLED;
   }
 

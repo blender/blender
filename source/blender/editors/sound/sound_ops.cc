@@ -810,6 +810,11 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!ID_IS_EDITABLE(&sound->id)) {
+    BKE_report(op->reports, RPT_ERROR, "Sound is not editable");
+    return OPERATOR_CANCELLED;
+  }
+
   if (G.fileflags & G_FILE_AUTOPACK) {
     BKE_report(op->reports,
                RPT_WARNING,
@@ -837,6 +842,11 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
   sound = ed->act_seq->sound;
 
   if (!sound || !sound->packedfile) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!ID_IS_EDITABLE(&sound->id)) {
+    BKE_report(op->reports, RPT_ERROR, "Sound is not editable");
     return OPERATOR_CANCELLED;
   }
 
