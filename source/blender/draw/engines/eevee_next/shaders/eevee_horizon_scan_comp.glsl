@@ -55,7 +55,8 @@ void main()
                                              uniform_buf.ao.angle_bias,
                                              fast_gi_slice_count,
                                              fast_gi_step_count,
-                                             false);
+                                             false,
+                                             fast_gi_ao_only);
 
   scan.result = spherical_harmonics_compress(scan.result);
 

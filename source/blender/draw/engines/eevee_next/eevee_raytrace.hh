@@ -224,6 +224,7 @@ class RayTraceModule {
   RaytraceEEVEE ray_tracing_options_;
   int fast_gi_ray_count_ = 0;
   int fast_gi_step_count_ = 0;
+  bool fast_gi_ao_only_ = 0;
 
   RaytraceEEVEE_Method tracing_method_ = RAYTRACE_EEVEE_METHOD_PROBE;
 

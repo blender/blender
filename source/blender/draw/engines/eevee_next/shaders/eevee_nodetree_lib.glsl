@@ -374,7 +374,8 @@ float ambient_occlusion_eval(vec3 normal,
                     uniform_buf.ao.angle_bias,
                     2,
                     10,
-                    inverted != 0.0);
+                    inverted != 0.0,
+                    true);
 
   return saturate(ctx.occlusion_result.r);
 #  else

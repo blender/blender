@@ -215,6 +215,7 @@
  \
     .fast_gi_step_count = 8, \
     .fast_gi_ray_count = 2, \
+    .fast_gi_method = FAST_GI_FULL, \
  \
     .bokeh_overblur = 5.0f, \
     .bokeh_max_size = 100.0f, \

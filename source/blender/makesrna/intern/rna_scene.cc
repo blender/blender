@@ -7898,6 +7898,20 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem fast_gi_method_items[] = {
+      {FAST_GI_AO_ONLY,
+       "AMBIENT_OCCLUSION_ONLY",
+       0,
+       "Ambient Occlusion",
+       "Use ambient occlusion instead of full global illumination"},
+      {FAST_GI_FULL,
+       "GLOBAL_ILLUMINATION",
+       0,
+       "Global Illumination",
+       "Compute global illumination taking into account light bouncing off surrounding objects"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "SceneEEVEE", nullptr);
   RNA_def_struct_path_func(srna, "rna_SceneEEVEE_path");
   RNA_def_struct_ui_text(srna, "Scene Display", "Scene display settings for 3D viewport");
@@ -8310,6 +8324,11 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_range(prop, 1, 16);
   RNA_def_property_ui_text(prop, "Ray Count", "Amount of GI ray to trace for each pixel");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "fast_gi_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, fast_gi_method_items);
+  RNA_def_property_ui_text(prop, "Method", "Fast GI approximation method");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "horizon_bias", PROP_FLOAT, PROP_FACTOR);
