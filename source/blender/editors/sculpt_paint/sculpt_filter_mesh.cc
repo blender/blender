@@ -1126,12 +1126,13 @@ void SCULPT_OT_mesh_filter(wmOperatorType *ot)
   /* RNA. */
   register_operator_props(ot);
 
-  RNA_def_enum(ot->srna,
-               "type",
-               prop_mesh_filter_types,
-               MESH_FILTER_INFLATE,
-               "Filter Type",
-               "Operation that is going to be applied to the mesh");
+  ot->prop = RNA_def_enum(ot->srna,
+                          "type",
+                          prop_mesh_filter_types,
+                          MESH_FILTER_INFLATE,
+                          "Filter Type",
+                          "Operation that is going to be applied to the mesh");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_enum_flag(ot->srna,
                     "deform_axis",
                     prop_mesh_filter_deform_axis_items,

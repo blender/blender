@@ -1401,11 +1401,12 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     const math::Quaternion &rotation = *static_cast<math::Quaternion *>(socket_value);
     const math::EulerXYZ euler = math::to_euler(rotation);
     fmt::format_to(fmt::appender(buf),
-                   TIP_("({}" BLI_STR_UTF8_DEGREE_SIGN ", {}" BLI_STR_UTF8_DEGREE_SIGN
-                        ", {}" BLI_STR_UTF8_DEGREE_SIGN ") (Rotation)"),
+                   ("({}" BLI_STR_UTF8_DEGREE_SIGN ", {}" BLI_STR_UTF8_DEGREE_SIGN
+                    ", {}" BLI_STR_UTF8_DEGREE_SIGN ")"),
                    euler.x().degree(),
                    euler.y().degree(),
                    euler.z().degree());
+    fmt::format_to(fmt::appender(buf), TIP_("(Rotation)"));
   }
   else if (socket_type.is<bool>()) {
     fmt::format_to(fmt::appender(buf),

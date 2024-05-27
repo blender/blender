@@ -14,6 +14,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
@@ -1616,12 +1618,13 @@ void SCULPT_OT_cloth_filter(wmOperatorType *ot)
 
   filter::register_operator_props(ot);
 
-  RNA_def_enum(ot->srna,
-               "type",
-               prop_cloth_filter_type,
-               CLOTH_FILTER_GRAVITY,
-               "Filter Type",
-               "Operation that is going to be applied to the mesh");
+  ot->prop = RNA_def_enum(ot->srna,
+                          "type",
+                          prop_cloth_filter_type,
+                          CLOTH_FILTER_GRAVITY,
+                          "Filter Type",
+                          "Operation that is going to be applied to the mesh");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_enum_flag(ot->srna,
                     "force_axis",
                     prop_cloth_filter_force_axis_items,

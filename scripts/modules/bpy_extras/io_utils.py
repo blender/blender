@@ -24,6 +24,7 @@ from bpy.props import (
     StringProperty,
 )
 from bpy.app.translations import (
+    contexts as i18n_contexts,
     pgettext_iface as iface_,
     pgettext_data as data_,
 )
@@ -112,10 +113,12 @@ class ImportHelper:
             if len(self.files) > 1:
                 title = iface_("Import {} files").format(len(self.files))
 
-            if not confirm_text:
-                confirm_text = self.bl_label
+            if confirm_text:
+                confirm_text = iface_(confirm_text)
+            else:
+                # Use the operator's bl_label, extracted with an "Operator" translation context.
+                confirm_text = iface_(self.bl_label, i18n_contexts.operator_default)
 
-            confirm_text = iface_(confirm_text)
             return context.window_manager.invoke_props_dialog(
                 self, confirm_text=confirm_text, title=title, translate=False)
 
