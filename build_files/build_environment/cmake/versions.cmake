@@ -511,9 +511,9 @@ set(SQLITE_FILE sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
 set(SQLITE_CPE "cpe:2.3:a:sqlite:sqlite:${SQLITE_VERSION}:*:*:*:*:*:*:*")
 set(SQLITE_HOMEPAGE https://www.sqlite.org)
 
-set(EMBREE_VERSION 4.1.0)
+set(EMBREE_VERSION 4.3.2-blender)
 set(EMBREE_URI https://github.com/embree/embree/archive/v${EMBREE_VERSION}.zip)
-set(EMBREE_HASH 4b525955b08e1249a700dea5b5ffc8b2)
+set(EMBREE_HASH 91bd65e59c6cf4d9ff0e4d628aa28d6a)
 set(EMBREE_HASH_TYPE MD5)
 set(EMBREE_FILE embree-v${EMBREE_VERSION}.zip)
 
