@@ -202,6 +202,10 @@ def main() -> None:
         sys.stderr.write("Unsupported platform: %s, abort!\n" % (sys.platform))
         sys.exit(1)
 
+    # Manually specify, otherwise it uses the version of the executable used to run
+    # this script which may not match the Blender python version.
+    python_tag = "py%d%d" % (python_version_number[0], python_version_number[1])
+
     os.chdir(install_dir)
 
     # Include all files recursively.
@@ -227,7 +231,7 @@ def main() -> None:
         packages=["bpy"],
         package_data={"": package_files("bpy")},
         distclass=BinaryDistribution,
-        options={"bdist_wheel": {"plat_name": platform_tag}},
+        options={"bdist_wheel": {"plat_name": platform_tag, "python_tag": python_tag}},
 
         description="Blender as a Python module",
         long_description=long_description,
