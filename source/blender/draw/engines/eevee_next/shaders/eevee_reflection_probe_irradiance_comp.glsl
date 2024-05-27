@@ -45,13 +45,15 @@ void main()
 
   /* Parallel sum. */
   const uint group_size = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
-  for (uint stride = group_size / 2; stride > 0; stride /= 2) {
+  uint stride = group_size / 2;
+  for (int i = 0; i < 10; i++) {
     barrier();
     if (local_index < stride) {
       for (int i = 0; i < 4; i++) {
         local_sh_coefs[local_index][i] += local_sh_coefs[local_index + stride][i];
       }
     }
+    stride /= 2;
   }
 
   barrier();

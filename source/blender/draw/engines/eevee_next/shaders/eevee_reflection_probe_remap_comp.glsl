@@ -8,6 +8,31 @@
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
 
+/* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for loops.
+ * Macros are needed as driver can decide to not unroll in shaders with more complexity. */
+#define PARALLEL_SUM_INNER() \
+  barrier(); \
+  if (local_index < stride) { \
+    local_radiance[local_index] += local_radiance[local_index + stride]; \
+  } \
+  stride /= 2;
+
+#define PARALLEL_SUM \
+  { \
+    uint stride = group_size / 2; \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    PARALLEL_SUM_INNER(); \
+    barrier(); \
+  }
+
 shared vec4 local_radiance[gl_WorkGroupSize.x * gl_WorkGroupSize.y];
 
 float triangle_solid_angle(vec3 A, vec3 B, vec3 C)
@@ -129,13 +154,7 @@ void main()
   if (extract_sun) {
     /* Parallel sum. Result is stored inside local_radiance[0]. */
     local_radiance[local_index] = radiance_sun.xyzz * sample_weight;
-    for (uint stride = group_size / 2; stride > 0; stride /= 2) {
-      barrier();
-      if (local_index < stride) {
-        local_radiance[local_index] += local_radiance[local_index + stride];
-      }
-    }
-    barrier();
+    PARALLEL_SUM
 
     if (gl_LocalInvocationIndex == 0u) {
       out_sun[work_group_index].radiance = local_radiance[0].xyz;
@@ -145,13 +164,7 @@ void main()
     /* Reusing local_radiance for directions. */
     local_radiance[local_index] = vec4(normalize(direction), 1.0) * sample_weight *
                                   length(radiance_sun.xyz);
-    for (uint stride = group_size / 2; stride > 0; stride /= 2) {
-      barrier();
-      if (local_index < stride) {
-        local_radiance[local_index] += local_radiance[local_index + stride];
-      }
-    }
-    barrier();
+    PARALLEL_SUM
 
     if (gl_LocalInvocationIndex == 0u) {
       out_sun[work_group_index].direction = local_radiance[0];
@@ -162,16 +175,8 @@ void main()
   if (extract_sh) {
     /* Parallel sum. Result is stored inside local_radiance[0]. */
     local_radiance[local_index] = radiance.xyzz * sample_weight;
-    uint stride = group_size / 2;
-    for (int i = 0; i < 10; i++) {
-      barrier();
-      if (local_index < stride) {
-        local_radiance[local_index] += local_radiance[local_index + stride];
-      }
-      stride /= 2;
-    }
+    PARALLEL_SUM
 
-    barrier();
     if (gl_LocalInvocationIndex == 0u) {
       /* Find the middle point of the whole thread-group. Use it as light vector.
        * Note that this is an approximation since the footprint of a thread-group is not
