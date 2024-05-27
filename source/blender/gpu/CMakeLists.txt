@@ -388,11 +388,6 @@ endif()
 
 
 if(WITH_VULKAN_BACKEND)
-  if(CMAKE_COMPILER_IS_GNUCC)
-    # Suppress CPP20 compiler warnings in GCC14+
-    set_source_files_properties(${VULKAN_SRC} PROPERTIES COMPILE_FLAGS "-Wno-template-id-cdtor")
-  endif()
-
   if(APPLE)
     list(APPEND INC_SYS
       ${MOLTENVK_INCLUDE_DIRS}

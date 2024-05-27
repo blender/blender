@@ -17,6 +17,11 @@ namespace blender::gpu {
 class VKContext;
 class VKCommandBuffers;
 
+#pragma GCC diagnostic push
+/* CPP20 compiler warnings in GCC14+.
+ * Must be resolved before upgrading to a newer C++, avoid noisy warnings for now. */
+#pragma GCC diagnostic ignored "-Wtemplate-id-cdtor"
+
 /**
  * In vulkan multiple commands can be in flight simultaneously.
  *
@@ -182,5 +187,7 @@ template<typename Resource> class VKResourceTracker : NonCopyable {
     tracked_resources_.clear();
   }
 };
+
+#pragma GCC diagnostic pop
 
 }  // namespace blender::gpu
