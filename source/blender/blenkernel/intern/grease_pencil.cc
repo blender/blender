@@ -1735,6 +1735,67 @@ GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_
   return grease_pencil;
 }
 
+void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
+                                               GreasePencil *grease_pencil_dst)
+{
+  using namespace blender;
+  using bke::greasepencil::Drawing;
+  using bke::greasepencil::DrawingReference;
+
+  /* Drawings. */
+  const int drawing_array_num = grease_pencil_src->drawing_array_num;
+  grease_pencil_dst->resize_drawings(drawing_array_num);
+  for (const int i : IndexRange(drawing_array_num)) {
+    if (grease_pencil_dst->drawing_array[i]) {
+      switch (grease_pencil_dst->drawing_array[i]->type) {
+        case GP_DRAWING:
+          MEM_delete(&reinterpret_cast<GreasePencilDrawing *>(grease_pencil_dst->drawing_array[i])
+                          ->wrap());
+          break;
+        case GP_DRAWING_REFERENCE:
+          MEM_delete(&reinterpret_cast<GreasePencilDrawingReference *>(
+                          grease_pencil_dst->drawing_array[i])
+                          ->wrap());
+          break;
+      }
+    }
+    switch (grease_pencil_src->drawing_array[i]->type) {
+      case GP_DRAWING: {
+        const Drawing &src_drawing =
+            reinterpret_cast<GreasePencilDrawing *>(grease_pencil_src->drawing_array[i])->wrap();
+        grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
+            MEM_new<Drawing>(__func__, src_drawing));
+        break;
+      }
+      case GP_DRAWING_REFERENCE:
+        const DrawingReference &src_drawing_ref = reinterpret_cast<GreasePencilDrawingReference *>(
+                                                      grease_pencil_src->drawing_array[i])
+                                                      ->wrap();
+        grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
+            MEM_new<DrawingReference>(__func__, src_drawing_ref));
+        break;
+    }
+  }
+
+  /* Layers. */
+  if (grease_pencil_dst->root_group_ptr) {
+    MEM_delete(&grease_pencil_dst->root_group());
+  }
+
+  grease_pencil_dst->root_group_ptr = MEM_new<bke::greasepencil::LayerGroup>(
+      __func__, grease_pencil_src->root_group_ptr->wrap());
+  BLI_assert(grease_pencil_src->layers().size() == grease_pencil_dst->layers().size());
+
+  CustomData_copy(&grease_pencil_src->layers_data,
+                  &grease_pencil_dst->layers_data,
+                  eCustomDataMask(CD_MASK_ALL),
+                  grease_pencil_src->layers().size());
+
+  DEG_id_tag_update(&grease_pencil_dst->id, ID_RECALC_GEOMETRY);
+
+  BKE_id_free(nullptr, grease_pencil_src);
+}
+
 static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
                                              Scene *scene,
                                              Object *object,
