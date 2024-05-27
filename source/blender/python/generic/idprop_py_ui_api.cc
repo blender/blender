@@ -597,14 +597,16 @@ static bool idprop_ui_data_update_id(IDProperty *idprop, PyObject *args, PyObjec
     return false;
   }
 
-  int id_type_tmp;
-  if (pyrna_enum_value_from_id(
-          rna_enum_id_type_items, id_type, &id_type_tmp, "IDPropertyUIManager.update") == -1)
-  {
-    return false;
-  }
+  if (id_type != nullptr) {
+    int id_type_tmp;
+    if (pyrna_enum_value_from_id(
+            rna_enum_id_type_items, id_type, &id_type_tmp, "IDPropertyUIManager.update") == -1)
+    {
+      return false;
+    }
 
-  ui_data.id_type = short(id_type_tmp);
+    ui_data.id_type = short(id_type_tmp);
+  }
 
   /* Write back to the property's UI data. */
   IDP_ui_data_free_unique_contents(&ui_data_orig->base, IDP_ui_data_type(idprop), &ui_data.base);
