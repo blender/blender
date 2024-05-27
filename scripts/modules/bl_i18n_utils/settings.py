@@ -224,7 +224,10 @@ _inbetween_str_re = (
         # A C comment
         r"/\*.*(?!\*/).\*/|"
         # Or a C++ one!
-        r"//[^\n]*\n"
+        r"//[^\n]*\n|"
+        # Or some #defined value (like `BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE`)
+        # NOTE: This should be avoided at all cost, as it will simply make translation lookup fail.
+        r"[ a-zA-Z0-9_]*"
     # And we are done!
     r")?)*"
 )
