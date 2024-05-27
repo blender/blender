@@ -579,7 +579,11 @@ static asset_system::AssetCatalogService *get_catalog_service(bContext *C)
   }
 
   asset_system::AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
-  return &asset_lib->catalog_service();
+  if (asset_lib) {
+    return &asset_lib->catalog_service();
+  }
+
+  return nullptr;
 }
 
 static int asset_catalog_undo_exec(bContext *C, wmOperator * /*op*/)
