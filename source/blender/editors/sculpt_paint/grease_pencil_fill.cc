@@ -929,13 +929,6 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
   const Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
 
-  // TODO based on the fill_factor (aka "Precision") setting.
-  constexpr const int min_window_size = 128;
-  const float pixel_scale = 1.0f;
-  const int2 win_size = math::max(int2(region.winx, region.winy) * pixel_scale,
-                                  int2(min_window_size));
-  const float2 win_center = 0.5f * float2(win_size);
-
   /* Zoom and offset based on bounds, to fit all strokes within the render. */
   const bool uniform_zoom = true;
   const float max_zoom_factor = 5.0f;
@@ -948,19 +941,35 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                                   uniform_zoom,
                                                   max_zoom_factor,
                                                   margin);
-  /* Fill point needs to be inverse transformed to stay relative to the view. */
-  const float2 fill_point_view = math::safe_divide(
-                                     fill_point - win_center - offset * float2(win_size), zoom) +
-                                 win_center;
   /* Scale stroke radius by half to hide gaps between filled areas and boundaries. */
   const float radius_scale = 0.5f;
 
-  image_render::RegionViewData region_view_data = image_render::region_init(region, win_size);
+  constexpr const int min_image_size = 128;
+  /* Pixel scale (aka. "fill_factor, aka. "Precision") to reduce image size. */
+  const float pixel_scale = brush.gpencil_settings->fill_factor;
+  const int2 region_size = int2(region.winx, region.winy);
+  const int2 image_size = math::max(region_size * pixel_scale, int2(min_image_size));
 
-  GPUOffScreen *offscreen_buffer = image_render::image_render_begin(win_size);
+  /* Mouse coordinates are in region space, make relative to lower-left view plane corner. */
+  const float2 fill_point_image = (math::safe_divide((fill_point - float2(region_size) * 0.5f) -
+                                                         offset * float2(region_size),
+                                                     zoom) +
+                                   float2(region_size) * 0.5f) *
+                                  pixel_scale;
+
+  /* Region size is used for DrawingPlacement projection. */
+  image_render::RegionViewData region_view_data = image_render::region_init(region, image_size);
+  /* Make sure the region is reset on exit. */
+  BLI_SCOPED_DEFER([&]() { image_render::region_reset(region, region_view_data); });
+
+  GPUOffScreen *offscreen_buffer = image_render::image_render_begin(image_size);
+  if (offscreen_buffer == nullptr) {
+    return {};
+  }
+
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_depth_mask(true);
-  image_render::set_viewmat(view_context, scene, win_size, zoom, offset);
+  image_render::set_viewmat(view_context, scene, image_size, zoom, offset);
 
   const eGP_FillDrawModes fill_draw_mode = GP_FILL_DMODE_BOTH;
   const float alpha_threshold = 0.2f;
@@ -970,7 +979,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   const float4x4 layer_to_world = layer.to_world_space(object);
   ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, &layer);
   const float3 fill_point_world = math::transform_point(layer_to_world,
-                                                        placement.project(fill_point_view));
+                                                        placement.project(fill_point_image));
 
   /* Draw blue point where click with mouse. */
   const float mouse_dot_size = 4.0f;
@@ -1002,7 +1011,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                                          brush_fill_hide);
 
     image_render::draw_grease_pencil_strokes(rv3d,
-                                             win_size,
+                                             image_size,
                                              object,
                                              info.drawing,
                                              curve_mask,
@@ -1033,11 +1042,6 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                                   stroke_hardness,
                                                   invert,
                                                   keep_images);
-
-  /* Note: Region view reset has to happen after final curve construction, otherwise the curve
-   * placement, used to re-project from the 2D pixel coordinates, will have the wrong view
-   * transform. */
-  image_render::region_reset(region, region_view_data);
 
   if (!keep_images) {
     BKE_id_free(view_context.bmain, ima);
