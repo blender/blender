@@ -38,7 +38,6 @@
 namespace blender::ed::sculpt_paint::greasepencil {
 
 static constexpr float POINT_OVERRIDE_THRESHOLD_PX = 3.0f;
-static constexpr float POINT_RESAMPLE_MIN_DISTANCE_PX = 10.0f;
 
 template<typename T>
 static inline void linear_interpolation(const T &a,
@@ -542,8 +541,8 @@ struct PaintOperationExecutor {
     /* If the next sample is far away, we subdivide the segment to add more points. */
     int new_points_num = 1;
     const float distance_px = math::distance(coords, prev_coords);
-    if (distance_px > POINT_RESAMPLE_MIN_DISTANCE_PX) {
-      const int subdivisions = int(math::floor(distance_px / POINT_RESAMPLE_MIN_DISTANCE_PX)) - 1;
+    if (distance_px > float(settings_->input_samples)) {
+      const int subdivisions = int(math::floor(distance_px / float(settings_->input_samples))) - 1;
       new_points_num += subdivisions;
     }
 
