@@ -240,7 +240,7 @@ static bool image_from_context_editable_has_data_poll_active_tile(bContext *C)
 {
   Image *ima = image_from_context(C);
 
-  if (!ID_IS_EDITABLE(&ima->id)) {
+  if (ima && !ID_IS_EDITABLE(&ima->id)) {
     CTX_wm_operator_poll_msg_set(C, "Image is not editable");
     return false;
   }
