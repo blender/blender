@@ -50,7 +50,7 @@ void main()
                                              vN,
                                              noise,
                                              uniform_buf.ao.pixel_size,
-                                             1.0e16,
+                                             uniform_buf.ao.gi_distance,
                                              uniform_buf.ao.thickness,
                                              uniform_buf.ao.angle_bias,
                                              fast_gi_slice_count,
