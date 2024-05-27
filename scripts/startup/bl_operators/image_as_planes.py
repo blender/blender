@@ -36,6 +36,11 @@ from bpy_extras.image_utils import load_image
 from bpy_extras.io_utils import ImportHelper
 
 # -----------------------------------------------------------------------------
+# Constants
+
+COMPATIBLE_ENGINES = {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+
+# -----------------------------------------------------------------------------
 # Image loading
 
 ImageSpec = namedtuple(
@@ -777,10 +782,11 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     # Core functionality
     def invoke(self, context, _event):
         engine = context.scene.render.engine
-        if engine not in {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}:
-            if engine != 'BLENDER_WORKBENCH':
-                self.report({'ERROR'}, tip_("Cannot generate materials for unknown {:s} render engine").format(engine))
-                return {'CANCELLED'}
+        if engine not in COMPATIBLE_ENGINES:
+            self.report({'ERROR'}, tip_("Cannot generate materials for unknown {:s} render engine").format(engine))
+            return {'CANCELLED'}
+
+        if engine == 'BLENDER_WORKBENCH':
             self.report(
                 {'WARNING'},
                 tip_("Generating Cycles/EEVEE compatible material, but won't be visible with {:s} engine").format(
@@ -842,22 +848,23 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
             plane.select_set(True)
 
         # All done!
-        self.report({'INFO'}, tip_("Added {} Image Plane(s)").format(len(planes)))
+        self.report({'INFO'}, tip_("Added {:d} Image Plane(s)").format(len(planes)))
         return {'FINISHED'}
 
     # Operate on a single image.
     def single_image_spec_to_plane(self, context, img_spec):
 
+        name = bpy.path.display_name_from_filepath(img_spec.image.filepath)
+
         # Configure image.
         self.apply_image_options(img_spec.image)
 
         # Configure material.
-        engine = context.scene.render.engine
-        if engine in {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}:
-            material = self.create_cycles_material(img_spec)
+        # TODO: check `context.scene.render.engine` and support other engines.
+        material = self.create_cycles_material(img_spec, name)
 
         # Create and position plane object.
-        plane = self.create_image_plane(context, material.name, img_spec)
+        plane = self.create_image_plane(context, name, img_spec)
 
         # Assign Material.
         plane.data.materials.append(material)
@@ -919,14 +926,12 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
         self.apply_texture_options(tex_image, img_spec)
         return tex_image
 
-    def create_cycles_material(self, img_spec):
-        image = img_spec.image
-        name_compat = bpy.path.display_name_from_filepath(image.filepath)
+    def create_cycles_material(self, img_spec, name):
         material = None
         if self.overwrite_material:
-            material = bpy.data.materials.get(name_compat)
-        if not material:
-            material = bpy.data.materials.new(name=name_compat)
+            material = bpy.data.materials.get(name)
+        if material is None:
+            material = bpy.data.materials.new(name=name)
 
         material.use_nodes = True
 
