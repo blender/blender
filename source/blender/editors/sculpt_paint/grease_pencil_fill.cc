@@ -952,6 +952,8 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   const float2 fill_point_view = math::safe_divide(
                                      fill_point - win_center - offset * float2(win_size), zoom) +
                                  win_center;
+  /* Scale stroke radius by half to hide gaps between filled areas and boundaries. */
+  const float radius_scale = 0.5f;
 
   image_render::RegionViewData region_view_data = image_render::region_init(region, win_size);
 
@@ -1007,7 +1009,8 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                              colors,
                                              layer_to_world,
                                              fill_draw_mode,
-                                             use_xray);
+                                             use_xray,
+                                             radius_scale);
   }
 
   image_render::clear_viewmat();

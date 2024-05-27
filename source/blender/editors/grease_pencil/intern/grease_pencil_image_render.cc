@@ -270,7 +270,8 @@ void draw_grease_pencil_stroke(const RegionView3D &rv3d,
                                const bool cyclic,
                                const eGPDstroke_Caps cap_start,
                                const eGPDstroke_Caps cap_end,
-                               const bool fill_stroke)
+                               const bool fill_stroke,
+                               const float radius_scale)
 {
   if (indices.is_empty()) {
     return;
@@ -295,7 +296,7 @@ void draw_grease_pencil_stroke(const RegionView3D &rv3d,
   auto draw_point = [&](const int point_i) {
     constexpr const float radius_to_pixel_factor =
         1.0f / bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-    const float thickness = radii[point_i] * radius_to_pixel_factor;
+    const float thickness = radii[point_i] * radius_scale * radius_to_pixel_factor;
     constexpr const float min_thickness = 0.05f;
 
     immAttr4fv(attr_color, colors[point_i]);
@@ -348,7 +349,8 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                 const VArray<ColorGeometry4f> &colors,
                                 const float4x4 &layer_to_world,
                                 const int mode,
-                                const bool use_xray)
+                                const bool use_xray,
+                                const float radius_scale)
 {
   GPU_program_point_size(true);
 
@@ -370,11 +372,6 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
   /* Note: Serial loop without GrainSize, since immediate mode drawing can't happen in worker
    * threads, has to be from the main thread. */
   strokes_mask.foreach_index([&](const int stroke_i) {
-    const float stroke_radius = radii[stroke_i];
-    if (stroke_radius <= 0) {
-      return;
-    }
-
     if (!use_xray) {
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
@@ -396,7 +393,8 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                   cyclic[stroke_i],
                                   eGPDstroke_Caps(stroke_start_caps[stroke_i]),
                                   eGPDstroke_Caps(stroke_end_caps[stroke_i]),
-                                  false);
+                                  false,
+                                  radius_scale);
         break;
       case GP_MATERIAL_MODE_DOT:
       case GP_MATERIAL_MODE_SQUARE:
