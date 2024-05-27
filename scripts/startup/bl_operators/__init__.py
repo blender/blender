@@ -20,6 +20,7 @@ _modules = [
     "file",
     "geometry_nodes",
     "image",
+    "image_as_planes",
     "mesh",
     "node",
     "object",
