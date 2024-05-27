@@ -3655,7 +3655,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_VIEW3D) {
-            View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+            View3D *v3d = reinterpret_cast<View3D *>(sl);
             v3d->flag2 |= V3D_SHOW_CAMERA_GUIDES;
           }
         }
