@@ -261,9 +261,10 @@ float noise_scale4(float result)
 
 float snoise(float p)
 {
+  float precision_correction = 0.5 * float(abs(p) >= 1000000.0);
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
    * representation issues. */
-  p = compatible_fmod(p, 100000.0);
+  p = compatible_fmod(p, 100000.0) + precision_correction;
 
   return noise_scale1(noise_perlin(p));
 }
@@ -275,10 +276,12 @@ float noise(float p)
 
 float snoise(vec2 p)
 {
+  vec2 precision_correction = 0.5 *
+                              vec2(float(abs(p.x) >= 1000000.0), float(abs(p.y) >= 1000000.0));
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0, however at such scales this
    * usually shouldn't be noticeable. */
-  p = compatible_fmod(p, 100000.0);
+  p = compatible_fmod(p, 100000.0) + precision_correction;
 
   return noise_scale2(noise_perlin(p));
 }
@@ -290,10 +293,13 @@ float noise(vec2 p)
 
 float snoise(vec3 p)
 {
+  vec3 precision_correction = 0.5 * vec3(float(abs(p.x) >= 1000000.0),
+                                         float(abs(p.y) >= 1000000.0),
+                                         float(abs(p.z) >= 1000000.0));
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0, however at such scales this
    * usually shouldn't be noticeable. */
-  p = compatible_fmod(p, 100000.0);
+  p = compatible_fmod(p, 100000.0) + precision_correction;
 
   return noise_scale3(noise_perlin(p));
 }
@@ -305,10 +311,14 @@ float noise(vec3 p)
 
 float snoise(vec4 p)
 {
+  vec4 precision_correction = 0.5 * vec4(float(abs(p.x) >= 1000000.0),
+                                         float(abs(p.y) >= 1000000.0),
+                                         float(abs(p.z) >= 1000000.0),
+                                         float(abs(p.w) >= 1000000.0));
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0, however at such scales this
    * usually shouldn't be noticeable. */
-  p = compatible_fmod(p, 100000.0);
+  p = compatible_fmod(p, 100000.0) + precision_correction;
 
   return noise_scale4(noise_perlin(p));
 }

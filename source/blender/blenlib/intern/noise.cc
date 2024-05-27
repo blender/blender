@@ -490,39 +490,49 @@ BLI_INLINE float perlin_noise(float4 position)
 
 float perlin_signed(float position)
 {
+  float precision_correction = 0.5f * float(math::abs(position) >= 1000000.0f);
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
    * representation issues. */
-  position = math::mod(position, 100000.0f);
+  position = math::mod(position, 100000.0f) + precision_correction;
 
   return perlin_noise(position) * 0.2500f;
 }
 
 float perlin_signed(float2 position)
 {
+  float2 precision_correction = 0.5f * float2(float(math::abs(position.x) >= 1000000.0f),
+                                              float(math::abs(position.y) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0f, however at such scales
    * this usually shouldn't be noticeable. */
-  position = math::mod(position, 100000.0f);
+  position = math::mod(position, 100000.0f) + precision_correction;
 
   return perlin_noise(position) * 0.6616f;
 }
 
 float perlin_signed(float3 position)
 {
+  float3 precision_correction = 0.5f * float3(float(math::abs(position.x) >= 1000000.0f),
+                                              float(math::abs(position.y) >= 1000000.0f),
+                                              float(math::abs(position.z) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0f, however at such scales
    * this usually shouldn't be noticeable. */
-  position = math::mod(position, 100000.0f);
+  position = math::mod(position, 100000.0f) + precision_correction;
 
   return perlin_noise(position) * 0.9820f;
 }
 
 float perlin_signed(float4 position)
 {
+  float4 precision_correction = 0.5f * float4(float(math::abs(position.x) >= 1000000.0f),
+                                              float(math::abs(position.y) >= 1000000.0f),
+                                              float(math::abs(position.z) >= 1000000.0f),
+                                              float(math::abs(position.w) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0f, however at such scales
    * this usually shouldn't be noticeable. */
-  position = math::mod(position, 100000.0f);
+  position = math::mod(position, 100000.0f) + precision_correction;
 
   return perlin_noise(position) * 0.8344f;
 }
