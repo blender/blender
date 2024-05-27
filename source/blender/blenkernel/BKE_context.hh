@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <variant>
+
 /* XXX temporary, until AssetHandle is designed properly and queries can return a pointer to it. */
 #include "DNA_asset_types.h"
 
@@ -102,7 +104,7 @@ using bContextDataCallback = int /*eContextResult*/ (*)(const bContext *C,
 
 struct bContextStoreEntry {
   std::string name;
-  PointerRNA ptr;
+  std::variant<PointerRNA, std::string> value;
 };
 
 struct bContextStore {
@@ -158,6 +160,9 @@ bContext *CTX_copy(const bContext *C);
 bContextStore *CTX_store_add(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
                              blender::StringRefNull name,
                              const PointerRNA *ptr);
+bContextStore *CTX_store_add(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
+                             blender::StringRefNull name,
+                             blender::StringRef str);
 bContextStore *CTX_store_add_all(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
                                  const bContextStore *context);
 const bContextStore *CTX_store_get(const bContext *C);
@@ -165,6 +170,8 @@ void CTX_store_set(bContext *C, const bContextStore *store);
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
                                        blender::StringRefNull name,
                                        const StructRNA *type = nullptr);
+std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStore *store,
+                                                              blender::StringRefNull name);
 
 /* need to store if python is initialized or not */
 bool CTX_py_init_get(bContext *C);
@@ -262,6 +269,7 @@ enum {
   CTX_DATA_TYPE_POINTER = 0,
   CTX_DATA_TYPE_COLLECTION,
   CTX_DATA_TYPE_PROPERTY,
+  CTX_DATA_TYPE_STRING,
 };
 
 PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);
@@ -282,6 +290,8 @@ blender::Vector<PointerRNA> CTX_data_collection_get(const bContext *C, const cha
 void CTX_data_collection_remap_property(blender::MutableSpan<PointerRNA> collection_pointers,
                                         const char *propname);
 
+std::optional<blender::StringRefNull> CTX_data_string_get(const bContext *C, const char *member);
+
 /**
  * \param C: Context.
  * \param use_store: Use 'C->wm.store'.
@@ -296,6 +306,7 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
                                     blender::Vector<PointerRNA> *r_lb,
                                     PropertyRNA **r_prop,
                                     int *r_index,
+                                    blender::StringRef *r_str,
                                     short *r_type);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, ID *id);

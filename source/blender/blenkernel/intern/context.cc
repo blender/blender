@@ -131,9 +131,10 @@ void CTX_free(bContext *C)
 
 /* store */
 
-bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
-                             const blender::StringRefNull name,
-                             const PointerRNA *ptr)
+/**
+ * Append a new context store to \a contexts, copying entries from the previous one if any.
+ */
+static bContextStore *ctx_store_extend(Vector<std::unique_ptr<bContextStore>> &contexts)
 {
   /* ensure we have a context to put the entry in, if it was already used
    * we have to copy the context to ensure */
@@ -145,25 +146,31 @@ bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
     contexts.append(std::move(new_ctx));
   }
 
-  bContextStore *ctx = contexts.last().get();
+  return contexts.last().get();
+}
+
+bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
+                             const blender::StringRefNull name,
+                             const PointerRNA *ptr)
+{
+  bContextStore *ctx = ctx_store_extend(contexts);
   ctx->entries.append(bContextStoreEntry{name, *ptr});
+  return ctx;
+}
+
+bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
+                             const blender::StringRefNull name,
+                             const blender::StringRef str)
+{
+  bContextStore *ctx = ctx_store_extend(contexts);
+  ctx->entries.append(bContextStoreEntry{name, std::string{str}});
   return ctx;
 }
 
 bContextStore *CTX_store_add_all(Vector<std::unique_ptr<bContextStore>> &contexts,
                                  const bContextStore *context)
 {
-  /* ensure we have a context to put the entry in, if it was already used
-   * we have to copy the context to ensure */
-  if (contexts.is_empty()) {
-    contexts.append(std::make_unique<bContextStore>());
-  }
-  else if (contexts.last()->used) {
-    auto new_ctx = std::make_unique<bContextStore>(bContextStore{contexts.last()->entries, false});
-    contexts.append(std::move(new_ctx));
-  }
-
-  bContextStore *ctx = contexts.last().get();
+  bContextStore *ctx = ctx_store_extend(contexts);
   for (const bContextStoreEntry &src_entry : context->entries) {
     ctx->entries.append(src_entry);
   }
@@ -185,13 +192,25 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
                                        const StructRNA *type)
 {
   for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
-    if (entry->name == name) {
-      if (!type || RNA_struct_is_a(entry->ptr.type, type)) {
-        return &entry->ptr;
+    if (entry->name == name && std::holds_alternative<PointerRNA>(entry->value)) {
+      const PointerRNA &ptr = std::get<PointerRNA>(entry->value);
+      if (!type || RNA_struct_is_a(ptr.type, type)) {
+        return &ptr;
       }
     }
   }
   return nullptr;
+}
+
+std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStore *store,
+                                                              const blender::StringRefNull name)
+{
+  for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
+    if (entry->name == name && std::holds_alternative<std::string>(entry->value)) {
+      return std::get<std::string>(entry->value);
+    }
+  }
+  return {};
 }
 
 /* is python initialized? */
@@ -235,6 +254,7 @@ struct bContextDataResult {
   Vector<PointerRNA> list;
   PropertyRNA *prop;
   int index;
+  blender::StringRefNull str;
   const char **dir;
   short type; /* 0: normal, 1: seq */
 };
@@ -312,6 +332,15 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
     if (ptr) {
       result->ptr = *ptr;
       done = 1;
+    }
+    else {
+      std::optional<blender::StringRefNull> str = CTX_store_string_lookup(C->wm.store, member);
+
+      if (str) {
+        result->str = *str;
+        result->type = CTX_DATA_TYPE_STRING;
+        done = 1;
+      }
     }
   }
   if (done != 1 && recursion < 2 && (region = CTX_wm_region(C))) {
@@ -487,12 +516,24 @@ void CTX_data_collection_remap_property(blender::MutableSpan<PointerRNA> collect
   }
 }
 
+std::optional<blender::StringRefNull> CTX_data_string_get(const bContext *C, const char *member)
+{
+  bContextDataResult result;
+  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
+    BLI_assert(result.type == CTX_DATA_TYPE_STRING);
+    return result.str;
+  }
+
+  return {};
+}
+
 int /*eContextResult*/ CTX_data_get(const bContext *C,
                                     const char *member,
                                     PointerRNA *r_ptr,
                                     Vector<PointerRNA> *r_lb,
                                     PropertyRNA **r_prop,
                                     int *r_index,
+                                    blender::StringRef *r_str,
                                     short *r_type)
 {
   bContextDataResult result;
@@ -503,11 +544,13 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
     *r_lb = result.list;
     *r_prop = result.prop;
     *r_index = result.index;
+    *r_str = result.str;
     *r_type = result.type;
   }
   else {
     memset(r_ptr, 0, sizeof(*r_ptr));
     r_lb->clear();
+    *r_str = "";
     *r_type = 0;
   }
 

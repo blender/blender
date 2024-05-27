@@ -1587,6 +1587,12 @@ void RNA_api_ui_layout(StructRNA *srna)
   parm = RNA_def_pointer(func, "data", "AnyType", "", "Pointer to put in context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
 
+  func = RNA_def_function(srna, "context_string_set", "uiLayoutSetContextString");
+  parm = RNA_def_string(func, "name", nullptr, 0, "Name", "Name of entry in the context");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(func, "value", nullptr, 0, "Value", "String to put in context");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
+
   /* templates */
   func = RNA_def_function(srna, "template_header", "uiTemplateHeader");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
