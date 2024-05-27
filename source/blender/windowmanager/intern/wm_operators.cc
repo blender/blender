@@ -1149,7 +1149,9 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/
 {
   static EnumSearchMenu search_menu;
   search_menu.op = op;
-  UI_popup_block_invoke(C, wm_enum_search_menu, &search_menu, nullptr);
+  /* Refreshing not supported, because operator might get freed. */
+  const bool can_refresh = false;
+  UI_popup_block_invoke_ex(C, wm_enum_search_menu, &search_menu, nullptr, can_refresh);
   return OPERATOR_INTERFACE;
 }
 
