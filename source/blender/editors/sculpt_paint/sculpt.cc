@@ -3361,7 +3361,7 @@ static void sculpt_topology_update(const Sculpt &sd,
   mul_m4_v3(ob.object_to_world().ptr(), location);
 }
 
-static void do_brush_action_task(Object &ob, const Brush &brush, PBVHNode *node)
+static void push_undo_nodes(Object &ob, const Brush &brush, PBVHNode *node)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -3503,7 +3503,7 @@ static void do_brush_action(const Sculpt &sd,
   if (!use_pixels) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_brush_action_task(ob, brush, nodes[i]);
+        push_undo_nodes(ob, brush, nodes[i]);
       }
     });
   }
