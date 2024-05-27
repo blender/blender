@@ -590,7 +590,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         "msgid": ((("msgctxt",), _ctxt_to_ctxt),
                   ),
         "message": (),
-        "heading": (),
+        "heading": ((("heading_ctxt",), _ctxt_to_ctxt),),
         "placeholder": ((("text_ctxt",), _ctxt_to_ctxt),),
     }
 
