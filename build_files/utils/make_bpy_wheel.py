@@ -186,7 +186,7 @@ def main() -> None:
         # Minor version is expected to be always zero starting with macOS 11.
         # https://github.com/pypa/packaging/issues/435
         target_major = int(target[0])
-        target_minor = 0 # int(target[1])
+        target_minor = 0  # int(target[1])
         machine = cmake_cache_var_or_exit(filepath_cmake_cache, "CMAKE_OSX_ARCHITECTURES")
         platform_tag = "macosx_%d_%d_%s" % (target_major, target_minor, machine)
     elif sys.platform == "win32":
