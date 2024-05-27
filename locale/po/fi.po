@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5158,10 +5158,6 @@ msgid "Surface Modifier"
 msgstr "Pintamuunnin"
 
 
-msgid "Keep Normals"
-msgstr "Pidä normaalit"
-
-
 msgid "Beauty"
 msgstr "Kauneus"
 
@@ -7817,6 +7813,10 @@ msgid "3D View"
 msgstr "3D-näkymä"
 
 
+msgid "Position:"
+msgstr "Sijainti:"
+
+
 msgid "No camera found"
 msgstr "Kameraa ei löydetty"
 
@@ -9602,10 +9602,6 @@ msgstr "Tiedostopolku:"
 
 msgid "Track is locked"
 msgstr "Raide on lukittu"
-
-
-msgid "Position:"
-msgstr "Sijainti:"
 
 
 msgid "X:"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -5167,6 +5167,10 @@ msgid "Grid Scale"
 msgstr "Размера мреже"
 
 
+msgid "Local Matrix"
+msgstr "Локална матрица"
+
+
 msgid "Translation"
 msgstr "Прелаз"
 
@@ -6929,10 +6933,6 @@ msgstr "Слотови материјала у објекту"
 
 msgid "Input Matrix"
 msgstr "Улазна матрица"
-
-
-msgid "Local Matrix"
-msgstr "Локална матрица"
 
 
 msgid "Matrix World"
@@ -14753,6 +14753,10 @@ msgid "Image Edit Externally"
 msgstr "Уреди слику екстерно"
 
 
+msgid "Relative Paths"
+msgstr "Релативне путање"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Обрнути канали"
@@ -19826,11 +19830,6 @@ msgid "Name of the menu"
 msgstr "Назив менија"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Извези у COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "Сачувај као Collada датотеку"
 
@@ -19881,11 +19880,6 @@ msgstr "Извези само изабране елементе"
 
 msgid "Sort by Object name"
 msgstr "Поређак по имену објекта"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Увоз"
 
 
 msgid "Context Attributes"
@@ -20147,10 +20141,6 @@ msgstr "Увоз у STL"
 
 msgid "UV Maps"
 msgstr "UV Мапе"
-
-
-msgid "Relative Paths"
-msgstr "Релативне путање"
 
 
 msgid "Shapes"
@@ -24270,6 +24260,10 @@ msgid "3D View"
 msgstr "3D поглед"
 
 
+msgid "Position:"
+msgstr "Позиција:"
+
+
 msgid "Active object is not a mesh"
 msgstr "Активни објекат није меш"
 
@@ -26392,10 +26386,6 @@ msgstr "Путања датотеке:"
 
 msgid "Track is locked"
 msgstr "Праћење је закључано"
-
-
-msgid "Position:"
-msgstr "Позиција:"
 
 
 msgid "X:"

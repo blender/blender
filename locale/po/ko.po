@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -14030,6 +14030,10 @@ msgid "Grid scale"
 msgstr "격자 축적"
 
 
+msgid "Local Matrix"
+msgstr "로컬 매트릭스"
+
+
 msgid "Translation"
 msgstr "옮기기"
 
@@ -19055,10 +19059,6 @@ msgstr "입력 매트릭스"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "제약 조건 및 부모 지정이 적용되기 전에 위치, 회전 및 축적 (델타 포함)에 대한 매트릭스 액세스"
-
-
-msgid "Local Matrix"
-msgstr "로컬 매트릭스"
 
 
 msgid "Parent Inverse Matrix"
@@ -29346,10 +29346,6 @@ msgstr "삼각분할 모디파이어"
 
 msgid "Triangulate Mesh"
 msgstr "메쉬를 삼각분할"
-
-
-msgid "Keep Normals"
-msgstr "노멀을 유지"
 
 
 msgid "Minimum Vertices"
@@ -41830,6 +41826,14 @@ msgid "Edit image in an external application"
 msgstr "외부 어플리케이션에서 이미지를 편집합니다"
 
 
+msgid "Filepath used for importing the file"
+msgstr "파일을 가져오기에 사용된 파일 경로"
+
+
+msgid "Relative Paths"
+msgstr "상대적인 경로"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "채널을 반전"
@@ -42193,10 +42197,6 @@ msgstr "BVH를 가져오기"
 
 msgid "Load a BVH motion capture file"
 msgstr "BVH 모션 캡처 파일을 불러오기"
-
-
-msgid "Filepath used for importing the file"
-msgstr "파일을 가져오기에 사용된 파일 경로"
 
 
 msgid "Starting frame for the animation"
@@ -50499,10 +50499,6 @@ msgid "Save custom studio light from the studio light editor settings"
 msgstr "스튜디오 라이트 에디터 설정에서 커스텀 스튜디오 라이트를 저장"
 
 
-msgid "Show light preferences"
-msgstr "라이트 환경 설정을 표시"
-
-
 msgctxt "Operator"
 msgid "Uninstall Studio Light"
 msgstr "스튜디오 라이트를 제거"
@@ -55798,11 +55794,6 @@ msgid "Keep Open"
 msgstr "열기를 유지"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Collada를 내보내기"
-
-
 msgid "Save a Collada file"
 msgstr "Collada 파일을 저장"
 
@@ -56073,11 +56064,6 @@ msgstr "동일한 데이터에서 여러 오브젝트 인스턴스화"
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr ".dae 파일을 내보내는 동일한 폴더로 텍스처를 복사"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Collada를 가져오기"
 
 
 msgid "Load a Collada file"
@@ -57119,10 +57105,6 @@ msgstr "사이트"
 
 msgid "UV Maps"
 msgstr "UV 맵"
-
-
-msgid "Relative Paths"
-msgstr "상대적인 경로"
 
 
 msgid "Instancing"
@@ -70595,6 +70577,14 @@ msgid "Unified Paint Settings"
 msgstr "통일된 페인트 설정"
 
 
+msgid "Only Endpoints"
+msgstr "종료 포인트 만"
+
+
+msgid "Only use the first and last parts of the stroke for snapping"
+msgstr "스냅하는 첫 번째 및 마지막 부분 만 사용"
+
+
 msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
 msgstr "웨이트 페인팅 중에 모든 본 변형 버텍스 그룹이 최대 1.0에 추가되는지 확인"
 
@@ -70621,14 +70611,6 @@ msgstr "선택된 스트로크 포인트 만을 스컬프트"
 
 msgid "Only sculpt selected stroke points between other strokes"
 msgstr "다른 스트로크 사이에서 선택한 스트로크 포인트 만 스컬프트"
-
-
-msgid "Only Endpoints"
-msgstr "종료 포인트 만"
-
-
-msgid "Only use the first and last parts of the stroke for snapping"
-msgstr "스냅하는 첫 번째 및 마지막 부분 만 사용"
 
 
 msgid "Compact List"
@@ -72903,6 +72885,14 @@ msgstr "API 정의"
 
 msgid "3D View"
 msgstr "3D 뷰"
+
+
+msgid "Position:"
+msgstr "위치:"
+
+
+msgid "Orientation:"
+msgstr "오리엔테이션:"
 
 
 msgid "Active object is not a mesh"
@@ -75709,10 +75699,6 @@ msgstr "드래그:"
 
 msgid "Unable to find toolbar group"
 msgstr "툴바 그룹을 찾을 수 없습니다"
-
-
-msgid "Orientation:"
-msgstr "오리엔테이션:"
 
 
 msgid "Gizmos:"
@@ -80955,10 +80941,6 @@ msgstr "파일 경로:"
 
 msgid "Track is locked"
 msgstr "트랙이 잠김"
-
-
-msgid "Position:"
-msgstr "위치:"
 
 
 msgid "X:"

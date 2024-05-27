@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -3779,6 +3779,10 @@ msgid "Select Mode"
 msgstr "दृश्य रूप का चयन करें"
 
 
+msgid "Relative Paths"
+msgstr "सापेक्ष पथ"
+
+
 msgid "Create a new image"
 msgstr "एक नई छवि बनाएँ"
 
@@ -4585,10 +4589,6 @@ msgid "Search Menu"
 msgstr "खोज विकल्प-सूची"
 
 
-msgid "Relative Paths"
-msgstr "सापेक्ष पथ"
-
-
 msgid "Shapes"
 msgstr "आकृतियाँ"
 
@@ -5375,6 +5375,10 @@ msgstr "नई"
 
 msgid "3D View"
 msgstr "त्रि-आयाम दृश्य"
+
+
+msgid "Position:"
+msgstr "स्थिति:"
 
 
 msgctxt "Operator"
@@ -6603,10 +6607,6 @@ msgstr "ठीक है"
 
 msgid "File Path:"
 msgstr "संचिका पथ:"
-
-
-msgid "Position:"
-msgstr "स्थिति:"
 
 
 msgid "X:"

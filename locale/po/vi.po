@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -19165,6 +19165,10 @@ msgid "Grid scale"
 msgstr "Tỷ lệ khung lưới đồ thị"
 
 
+msgid "Local Matrix"
+msgstr "Ma Trận Cục Bộ"
+
+
 msgid "Translation"
 msgstr "Dịch Chuyển/Phiên Dịch"
 
@@ -26642,10 +26646,6 @@ msgstr "Ma Trận Cung Cấp"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "Ma trận liên quan đến vị trí, độ xoay, và tỷ lệ (bao gồm cả các delta), trước khi các ràng buộc và sự phụ huynh hóa được áp dụng"
-
-
-msgid "Local Matrix"
-msgstr "Ma Trận Cục Bộ"
 
 
 msgid ""
@@ -39609,18 +39609,6 @@ msgstr "Bộ Điều Chỉnh Tam Giác Hóa"
 
 msgid "Triangulate Mesh"
 msgstr "Tam Giác Hóa Khung Lưới"
-
-
-msgid "Keep Normals"
-msgstr "Duy Trì Pháp Tuyến"
-
-
-msgid ""
-"Try to preserve custom normals.\n"
-"Warning: Depending on chosen triangulation method, shading may not be fully preserved, \"Fixed\" method usually gives the best result here"
-msgstr ""
-"Cố gắng bảo tồn các pháp tuyến tùy chỉnh.\n"
-"(Cảnh báo: Tùy vào phương pháp tam giác hóa đã chọn, chuyển sắc của tô bóng có thể sẽ không được hoàn toàn bảo tồn. Phương pháp 'Cố định' (Fixed) cho kết quả tốt nhất ở chỗ này)"
 
 
 msgid "Minimum Vertices"
@@ -55644,10 +55632,6 @@ msgid "Export cameras"
 msgstr "Xuất Khẩu Máy Quay Phim"
 
 
-msgid "Keep for compatibility only"
-msgstr "Chỉ giữ lại cho tính tương thích mà thôi"
-
-
 msgid "Legal rights and conditions for the model"
 msgstr "Bản quyền hợp pháp và các điều kiện dành cho mô hình"
 
@@ -61016,6 +61000,14 @@ msgid "Flip the image vertically"
 msgstr "Đảo lật hình ảnh theo chiều dọc"
 
 
+msgid "Filepath used for importing the file"
+msgstr "Đường dẫn tập tin sử dụng để nhập nội"
+
+
+msgid "Relative Paths"
+msgstr "Đường Dẫn Tương Đối"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Đảo Nghịch các Kênh"
@@ -61440,10 +61432,6 @@ msgstr "Nhập Khẩu BVH"
 
 msgid "Load a BVH motion capture file"
 msgstr "Nạp một tập tin nắm bắt chuyển động BVH (Bounding Volume Hierarchy : Cây Phân Cấp Giới Hạn Thể Tích)"
-
-
-msgid "Filepath used for importing the file"
-msgstr "Đường dẫn tập tin sử dụng để nhập nội"
 
 
 msgid "Starting frame for the animation"
@@ -72654,10 +72642,6 @@ msgid "Save custom studio light from the studio light editor settings"
 msgstr "Lưu bố trí ánh sáng studio tùy chỉnh từ các sắp đặt của trình biên soạn ánh sáng studio"
 
 
-msgid "Show light preferences"
-msgstr "Hiển thị cài đặt sở thích về ánh sáng"
-
-
 msgctxt "Operator"
 msgid "Uninstall Studio Light"
 msgstr "Tháo Lắp Đặt Ánh Sáng Studio"
@@ -80674,11 +80658,6 @@ msgid "Clear Recent Files List"
 msgstr "Xóa Danh Sách các Tập Tin Gần Đây"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Xuất Khẩu COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "Lưu tập tin Collada"
 
@@ -80989,11 +80968,6 @@ msgstr "Thực thể hóa nhiều Đối Tượng từ cùng một Dữ Liệu"
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "Sao chép các chất liệu vào cùng một thư mục, nơi tập tin .dae được xuất khẩu ra"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Nhập Khẩu COLLADA"
 
 
 msgid "Load a Collada file"
@@ -82848,10 +82822,6 @@ msgstr "Viết Đè Chất Liệu"
 
 msgid "Overwrite existing files when exporting textures"
 msgstr "Viết đè lên các tập tin hiện có khi xuất khẩu chất liệu"
-
-
-msgid "Relative Paths"
-msgstr "Đường Dẫn Tương Đối"
 
 
 msgid "Use relative paths to reference external files (i.e. textures, volumes) in USD, otherwise use absolute paths"
@@ -84764,10 +84734,6 @@ msgstr "Áng Sáng Gián Tiếp"
 
 msgid "Denoising"
 msgstr "Lọc Nhiễu"
-
-
-msgid "Horizon Scan"
-msgstr "Rà Quét Đường Chân Trời"
 
 
 msgid "Raytracing"
@@ -91581,10 +91547,6 @@ msgstr "Chiều Dày của Dò Tia Màn Hình"
 
 msgid "Surface thickness used to detect intersection when using screen-tracing"
 msgstr "Độ dày bề mặt được sử dụng để phát hiện sự giao cắt khi sử dụng tính năng dò tia màn hình"
-
-
-msgid "Maximum roughness to use the tracing pipeline for. Higher roughness surfaces will use horizon scan. A value of 1 will disable horizon scan"
-msgstr "Độ nhám tối đa để sử dụng cho đường ống dò tia. Các bề mặt có độ nhám cao hơn sẽ sử dụng phương pháp rà quét đường chân trời. Giá trị 1 sẽ tắt tính năng rà quét đường chân trời đi"
 
 
 msgid "Enable noise reduction techniques for raytraced effects"
@@ -101935,6 +101897,14 @@ msgid "Unified Paint Settings"
 msgstr "Sắp Đặt Sơn Hợp Nhất"
 
 
+msgid "Only Endpoints"
+msgstr "Duy Điểm Đầu/Đuôi"
+
+
+msgid "Only use the first and last parts of the stroke for snapping"
+msgstr "Chỉ dùng phần đầu và cuối của nét vẽ để bám dính thôi"
+
+
 msgid "Weight Paint Auto-Normalize"
 msgstr "Sơn Trọng Lượng Tự Động Bình Thường Hóa"
 
@@ -101973,14 +101943,6 @@ msgstr "Chỉ điêu khắc các điểm được chọn của nét vẽ mà th�
 
 msgid "Only sculpt selected stroke points between other strokes"
 msgstr "Chỉ điêu khắc các điểm được chọn của nét vẽ giữa các nét khác mà thôi"
-
-
-msgid "Only Endpoints"
-msgstr "Duy Điểm Đầu/Đuôi"
-
-
-msgid "Only use the first and last parts of the stroke for snapping"
-msgstr "Chỉ dùng phần đầu và cuối của nét vẽ để bám dính thôi"
 
 
 msgid "Compact List"
@@ -107103,26 +107065,6 @@ msgstr "Trình Phối Hình"
 
 
 msgctxt "WindowManager"
-msgid "Sequencer Tool: Tweak"
-msgstr "Công Cụ Phối Hình: Hiệu Chỉnh"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Tweak (fallback)"
-msgstr "Công Cụ Phối Hình: Hiệu Chỉnh (dự bị)"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Select Box"
-msgstr "Công Cụ Phối Hình: Lựa Chọn Hình Hộp"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Select Box (fallback)"
-msgstr "Công Cụ Phối Hình: Lựa Chọn Hình Hộp (dự bị)"
-
-
-msgctxt "WindowManager"
 msgid "Sequencer Tool: Blade"
 msgstr "Công Cụ Phối Hình: Lưỡi Dao Cắt"
 
@@ -108342,13 +108284,13 @@ msgstr "Áp Dụng Tư Thế Đảo Ngược"
 
 
 msgctxt "Operator"
-msgid "Blend Pose"
-msgstr "Pha Trộn Tư Thế"
+msgid "Toggle Asset Shelf"
+msgstr "Bật/Tắt Kệ Tài Sản"
 
 
 msgctxt "Operator"
-msgid "Toggle Asset Shelf"
-msgstr "Bật/Tắt Kệ Tài Sản"
+msgid "Blend Pose"
+msgstr "Pha Trộn Tư Thế"
 
 
 msgid "Action %s marked Fake User to prevent loss"
@@ -108801,6 +108743,14 @@ msgstr "Không thể khởi động trình biên soạn hình ảnh được. H�
 
 msgid "Context incorrect, image not found"
 msgstr "Không đúng ngữ cảnh. Không tìm thấy hình ảnh"
+
+
+msgid "Position:"
+msgstr "Vị Trí:"
+
+
+msgid "Orientation:"
+msgstr "Định Hướng:"
 
 
 msgid "No camera found"
@@ -111092,16 +111042,16 @@ msgid "Refraction"
 msgstr "Khúc Xạ"
 
 
+msgid "Rays"
+msgstr "Tia Xạ"
+
+
 msgid "Cascade Size"
 msgstr "Kích Thước Tầng Chồng"
 
 
 msgid "Tracing"
 msgstr "Dò Tia"
-
-
-msgid "Rays"
-msgstr "Tia Xạ"
 
 
 msgid "Volume Shadows"
@@ -113298,10 +113248,6 @@ msgid "Depth:"
 msgstr "Chiều/Độ Sâu:"
 
 
-msgid "Orientation:"
-msgstr "Định Hướng:"
-
-
 msgid "Style Start"
 msgstr "Phong cách Đầu"
 
@@ -113464,11 +113410,6 @@ msgstr "Chung Chung"
 msgctxt "Operator"
 msgid "Load Factory Blender Settings"
 msgstr "Nạp Cài Đặt của Xưởng Sản Xuất Blender"
-
-
-msgctxt "Operator"
-msgid "Collada (.dae)"
-msgstr "Collada (.dae)"
 
 
 msgctxt "Operator"
@@ -122535,10 +122476,6 @@ msgstr "Đường Dẫn Tập Tin:"
 
 msgid "Track is locked"
 msgstr "Rãnh bị khóa"
-
-
-msgid "Position:"
-msgstr "Vị Trí:"
 
 
 msgid "X:"

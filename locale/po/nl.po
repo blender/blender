@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -7341,6 +7341,14 @@ msgid "New"
 msgstr "Nieuw"
 
 
+msgid "Position:"
+msgstr "Positie:"
+
+
+msgid "Orientation:"
+msgstr "Oriëntatie:"
+
+
 msgid "No camera found"
 msgstr "Geen camera gevonden"
 
@@ -8052,10 +8060,6 @@ msgstr "Dupliceer Markering"
 
 msgid "Drag:"
 msgstr "Sleep:"
-
-
-msgid "Orientation:"
-msgstr "Oriëntatie:"
 
 
 msgid "Annotation:"
@@ -9135,10 +9139,6 @@ msgstr "OK"
 
 msgid "Active Keyframe"
 msgstr "Actieve Sleutelframe"
-
-
-msgid "Position:"
-msgstr "Positie:"
 
 
 msgid "File does not exist"

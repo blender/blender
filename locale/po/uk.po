@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -16048,6 +16048,10 @@ msgid "Grid scale"
 msgstr "Масштаб сітки"
 
 
+msgid "Local Matrix"
+msgstr "Локальна Матриця"
+
+
 msgid "Translation"
 msgstr "Переміщення"
 
@@ -21929,10 +21933,6 @@ msgstr "Ввідна матриця"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "Матриця доступу до місця, оберту і масштабу (включно з дельта), перед застосуванням примусів та приріднення"
-
-
-msgid "Local Matrix"
-msgstr "Локальна Матриця"
 
 
 msgid "Parent Inverse Matrix"
@@ -33260,10 +33260,6 @@ msgstr "Модифікатор триангуляції"
 
 msgid "Triangulate Mesh"
 msgstr "Тріангулювати сіть"
-
-
-msgid "Keep Normals"
-msgstr "Утримати Нормалі"
 
 
 msgid "Minimum Vertices"
@@ -47926,6 +47922,14 @@ msgid "Flip the image vertically"
 msgstr "Перевернути зображення вертикально"
 
 
+msgid "Filepath used for importing the file"
+msgstr "Шлях, що використовується для імпортування файлу"
+
+
+msgid "Relative Paths"
+msgstr "Відносні шляхи"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Інвертувати канали"
@@ -48323,10 +48327,6 @@ msgstr "Імпорт BVH"
 
 msgid "Load a BVH motion capture file"
 msgstr "Завантаження файлу захоплення руху BVH"
-
-
-msgid "Filepath used for importing the file"
-msgstr "Шлях, що використовується для імпортування файлу"
 
 
 msgid "Starting frame for the animation"
@@ -57828,10 +57828,6 @@ msgid "Save custom studio light from the studio light editor settings"
 msgstr "Зберегти власний студійний освітлювач на основі устав редактора студійного освітлювача"
 
 
-msgid "Show light preferences"
-msgstr "Показувати уподобання освітлення"
-
-
 msgctxt "Operator"
 msgid "Uninstall Studio Light"
 msgstr "Деінсталювати Студійний Освітлювач"
@@ -64364,11 +64360,6 @@ msgid "Keep Open"
 msgstr "Утримати Відкрито"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Експорт COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "Зберегти файл Collada"
 
@@ -64671,11 +64662,6 @@ msgstr "Створити декілька об'єктів на тих самих
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "Копіювати текстури до тієї ж теки, куди експортовано .DAE-файл"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Імпорт COLLADA"
 
 
 msgid "Load a Collada file"
@@ -65883,10 +65869,6 @@ msgstr "Вжити Устави для"
 
 msgid "UV Maps"
 msgstr "UV-карти"
-
-
-msgid "Relative Paths"
-msgstr "Відносні шляхи"
 
 
 msgid "Instancing"
@@ -81001,6 +80983,14 @@ msgid "Unified Paint Settings"
 msgstr "Єдині параметри малювання"
 
 
+msgid "Only Endpoints"
+msgstr "Лише кінцеві точки"
+
+
+msgid "Only use the first and last parts of the stroke for snapping"
+msgstr "Використати для підхоплення лише першу та останню частини штриха"
+
+
 msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
 msgstr "Забезпечити при малюванні вагомості верхню межу 1,0 для всіх груп вершин  деформації кістки"
 
@@ -81035,14 +81025,6 @@ msgstr "Ліпити лише вибрані точки штрихів"
 
 msgid "Only sculpt selected stroke points between other strokes"
 msgstr "Ліпити точки вибраних штрихів лише між іншими штрихами"
-
-
-msgid "Only Endpoints"
-msgstr "Лише кінцеві точки"
-
-
-msgid "Only use the first and last parts of the stroke for snapping"
-msgstr "Використати для підхоплення лише першу та останню частини штриха"
 
 
 msgid "Compact List"
@@ -84069,6 +84051,14 @@ msgstr "Редактор зображень не може бути запуще�
 
 msgid "Context incorrect, image not found"
 msgstr "Контекст неправильний, зображення не знайдено"
+
+
+msgid "Position:"
+msgstr "Позиція:"
+
+
+msgid "Orientation:"
+msgstr "Орієнтація:"
 
 
 msgid "No camera found"
@@ -87611,10 +87601,6 @@ msgstr "Конусність Старт"
 
 msgid "Depth:"
 msgstr "Глибина:"
-
-
-msgid "Orientation:"
-msgstr "Орієнтація:"
 
 
 msgid "Style Start"
@@ -93925,10 +93911,6 @@ msgstr "Шлях до файлу:"
 
 msgid "Track is locked"
 msgstr "Стежку заблоковано"
-
-
-msgid "Position:"
-msgstr "Позиція:"
 
 
 msgid "X:"

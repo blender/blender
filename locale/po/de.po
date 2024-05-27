@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -12313,6 +12313,10 @@ msgid "Grid scale"
 msgstr "Rasterskalierung"
 
 
+msgid "Local Matrix"
+msgstr "Lokale Matrix"
+
+
 msgid "Translation"
 msgstr "Übersetzung"
 
@@ -15671,10 +15675,6 @@ msgstr "Materialsteckplätze in dem Objekt"
 
 msgid "Input Matrix"
 msgstr "Eingabematrix"
-
-
-msgid "Local Matrix"
-msgstr "Lokale Matrix"
 
 
 msgid "Parent Inverse Matrix"
@@ -22308,10 +22308,6 @@ msgstr "Multi-Modifikator"
 
 msgid "Triangulate Mesh"
 msgstr "Einzelner Knochen"
-
-
-msgid "Keep Normals"
-msgstr "Normale beibehalten"
 
 
 msgid "Minimum Vertices"
@@ -31686,6 +31682,10 @@ msgid "Flip the image vertically"
 msgstr "Drehen Sie das Bild vertikal"
 
 
+msgid "Relative Paths"
+msgstr "Relative Pfade"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Kanäle invertieren"
@@ -37008,10 +37008,6 @@ msgid "Save Custom Studio Light"
 msgstr "Benutzerdefiniertes Studiolicht speichern"
 
 
-msgid "Show light preferences"
-msgstr "Lichteinstellungen anzeigen"
-
-
 msgctxt "Operator"
 msgid "Uninstall Studio Light"
 msgstr "Studiolicht deinstallieren"
@@ -40314,11 +40310,6 @@ msgid "Keep Open"
 msgstr "Offenes beibehalten"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "COLLADA exportieren"
-
-
 msgid "Save a Collada file"
 msgstr "Speichern einer Collada-Datei"
 
@@ -40401,11 +40392,6 @@ msgstr "Nach Objektnamen sortieren"
 
 msgid "Use Object Instances"
 msgstr "Objektinstanz verwenden"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "COLLADA importieren"
 
 
 msgid "Auto Connect"
@@ -41114,10 +41100,6 @@ msgstr "Texturen exportieren"
 
 msgid "UV Maps"
 msgstr "UV-Maps"
-
-
-msgid "Relative Paths"
-msgstr "Relative Pfade"
 
 
 msgid "Visible Only"
@@ -50258,16 +50240,16 @@ msgid "Unified Paint Settings"
 msgstr "Partikelsystem-Einstellungen"
 
 
+msgid "Only Endpoints"
+msgstr "Nur Endpunkte"
+
+
 msgid "Changing edge seams recalculates UV unwrap"
 msgstr "Wechselnde Kantennähte berechnen UV-Abwicklung neu"
 
 
 msgid "Selection Mask"
 msgstr "Maskenselektion"
-
-
-msgid "Only Endpoints"
-msgstr "Nur Endpunkte"
 
 
 msgid "Compact List"
@@ -51616,21 +51598,6 @@ msgstr "Sequenzer"
 
 
 msgctxt "WindowManager"
-msgid "Sequencer Tool: Tweak (fallback)"
-msgstr "Sequencer Werkzeug: Optimieren (Plan B)"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Select Box"
-msgstr "Sequenzer Werkzeug: Auswahlbox"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Select Box (fallback)"
-msgstr "Sequencer Werkzeug: Auswahlbox (Plan B)"
-
-
-msgctxt "WindowManager"
 msgid "Sequencer Tool: Blade"
 msgstr "Sequenzer Werkzeug: Messer"
 
@@ -52389,6 +52356,14 @@ msgstr "Bildeditor konnte nicht gestartet werden, stelle sicher das der Pfad unt
 
 msgid "Context incorrect, image not found"
 msgstr "Kontext falsch, Bild nicht gefunden"
+
+
+msgid "Position:"
+msgstr "Position:"
+
+
+msgid "Orientation:"
+msgstr "Ausrichtung:"
 
 
 msgid "No camera found"
@@ -55434,10 +55409,6 @@ msgid "Depth:"
 msgstr "Tiefe:"
 
 
-msgid "Orientation:"
-msgstr "Ausrichtung:"
-
-
 msgid "Intersections"
 msgstr "Schnittpunkt"
 
@@ -55539,11 +55510,6 @@ msgstr "Kopie speichern..."
 msgctxt "Operator"
 msgid "General"
 msgstr "Allgemein"
-
-
-msgctxt "Operator"
-msgid "Collada (.dae)"
-msgstr "Collada (.dae)"
 
 
 msgctxt "Operator"
@@ -59732,10 +59698,6 @@ msgstr "Dateipfad:"
 
 msgid "Track is locked"
 msgstr "Spur ist gesperrt"
-
-
-msgid "Position:"
-msgstr "Position:"
 
 
 msgid "X:"

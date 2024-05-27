@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -12834,6 +12834,10 @@ msgid "Grid Scale"
 msgstr "格線縮放"
 
 
+msgid "Local Matrix"
+msgstr "區域矩陣矩陣"
+
+
 msgid "Translation"
 msgstr "平移"
 
@@ -16513,10 +16517,6 @@ msgstr "旋轉矩陣"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "存取位置、旋轉、縮放 (包括增減) 的矩陣，在套用約束與親子關係處理之前"
-
-
-msgid "Local Matrix"
-msgstr "區域矩陣矩陣"
 
 
 msgid "Inverse of object's parent matrix at time of parenting"
@@ -33926,6 +33926,14 @@ msgid "Edit image in an external application"
 msgstr "以外部應用程式編輯影像"
 
 
+msgid "Filepath used for importing the file"
+msgstr "用來匯入檔案的檔案路徑"
+
+
+msgid "Relative Paths"
+msgstr "相對路徑"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "反轉通道"
@@ -34184,10 +34192,6 @@ msgstr "匯入 BVH"
 
 msgid "Load a BVH motion capture file"
 msgstr "載入一個 BVH 運動捕捉檔案"
-
-
-msgid "Filepath used for importing the file"
-msgstr "用來匯入檔案的檔案路徑"
 
 
 msgid "Starting frame for the animation"
@@ -40166,10 +40170,6 @@ msgid "Save custom studio light from the studio light editor settings"
 msgstr "儲存攝影棚光照編輯器設定值為自訂攝影棚光照"
 
 
-msgid "Show light preferences"
-msgstr "顯示光照偏好設定"
-
-
 msgctxt "Operator"
 msgid "Uninstall Studio Light"
 msgstr "取消安裝攝影棚光照"
@@ -44314,11 +44314,6 @@ msgid "Name of the pie menu"
 msgstr "圓派選單的名稱"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "匯出 COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "儲存一件 Collada 檔案"
 
@@ -44393,11 +44388,6 @@ msgstr "從相同資料實體化為多個物體"
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "複製紋理至匯出 .dae 檔案的相同資料夾"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "匯入 COLLADA"
 
 
 msgid "Load a Collada file"
@@ -45082,10 +45072,6 @@ msgstr "要開啟的 URL"
 
 msgid "UV Maps"
 msgstr "UV 映射"
-
-
-msgid "Relative Paths"
-msgstr "相對路徑"
 
 
 msgid "Shapes"
@@ -54331,20 +54317,20 @@ msgid "Unified Paint Settings"
 msgstr "統一繪畫設定"
 
 
-msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
-msgstr "確保所有骨骼變形頂點群組當權重繪製時添加高至 1.0"
-
-
-msgid "Automerge"
-msgstr "自動合併"
-
-
 msgid "Only Endpoints"
 msgstr "僅端點"
 
 
 msgid "Only use the first and last parts of the stroke for snapping"
 msgstr "快抓貼附時僅使用筆劃的最前與最後部份"
+
+
+msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
+msgstr "確保所有骨骼變形頂點群組當權重繪製時添加高至 1.0"
+
+
+msgid "Automerge"
+msgstr "自動合併"
 
 
 msgid "Auto Keying"
@@ -56053,6 +56039,10 @@ msgstr "沒有可以烘焙"
 
 msgid "Image is packed, unpack before editing"
 msgstr "圖像為打包狀態，需要外部編輯時請先解包"
+
+
+msgid "Position:"
+msgstr "位置："
 
 
 msgid "Active object is not a mesh"
@@ -60437,10 +60427,6 @@ msgstr "檔案路徑："
 
 msgid "Track is locked"
 msgstr "軌道已鎖定"
-
-
-msgid "Position:"
-msgstr "位置："
 
 
 msgid "X:"

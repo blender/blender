@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -12138,6 +12138,10 @@ msgid "Grid Scale"
 msgstr "Escala da grade"
 
 
+msgid "Local Matrix"
+msgstr "Matriz local"
+
+
 msgid "Translation"
 msgstr "Movimento"
 
@@ -16015,10 +16019,6 @@ msgstr "Matriz de entrada"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "Acesso da matriz para localização, rotação e escala (incluindo os deltas), antes que as restrições e parentescos sejam aplicados."
-
-
-msgid "Local Matrix"
-msgstr "Matriz local"
 
 
 msgid "Inverse of object's parent matrix at time of parenting"
@@ -37297,6 +37297,14 @@ msgid "Edit image in an external application"
 msgstr "Permite a edição de imagem em um aplicativo externo."
 
 
+msgid "Filepath used for importing the file"
+msgstr "Caminho de arquivo usado para importação do arquivo."
+
+
+msgid "Relative Paths"
+msgstr "Caminhos relativos"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Inverter canais"
@@ -37590,10 +37598,6 @@ msgstr "Importar BVH"
 
 msgid "Load a BVH motion capture file"
 msgstr "Carrega um arquivo de captura de movimento com base em hierarquia de volume circundante."
-
-
-msgid "Filepath used for importing the file"
-msgstr "Caminho de arquivo usado para importação do arquivo."
 
 
 msgid "Starting frame for the animation"
@@ -50000,11 +50004,6 @@ msgid "Call Panel"
 msgstr "Chamar Painel"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Exportar COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "Salva um arquivo COLLADA"
 
@@ -50111,11 +50110,6 @@ msgstr "Cria múltiplos objetos instanciados a partir dos mesmos dados."
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "Copia as texturas para a mesma pasta onde o arquivo .dae é exportado."
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Importar COLLADA"
 
 
 msgid "Load a Collada file"
@@ -51107,10 +51101,6 @@ msgstr "Mapas UV"
 
 msgid "Overwrite Textures"
 msgstr "Sobrescrever Texturas"
-
-
-msgid "Relative Paths"
-msgstr "Caminhos relativos"
 
 
 msgctxt "Operator"
@@ -62339,6 +62329,14 @@ msgid "Unified Paint Settings"
 msgstr "Configurações unificadas de pintura"
 
 
+msgid "Only Endpoints"
+msgstr "Somente as terminações"
+
+
+msgid "Only use the first and last parts of the stroke for snapping"
+msgstr "Somente usa as primeiras e últimas terminações dos traços para atração."
+
+
 msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
 msgstr "Assegura que todos os grupos de vértices de deformação por ossos adicionam até 1.0 durante a pintura de pesos."
 
@@ -62361,14 +62359,6 @@ msgstr "Máscara de seleção"
 
 msgid "Only sculpt selected stroke points"
 msgstr "Esculpe somente os pontos dos traços selecionados."
-
-
-msgid "Only Endpoints"
-msgstr "Somente as terminações"
-
-
-msgid "Only use the first and last parts of the stroke for snapping"
-msgstr "Somente usa as primeiras e últimas terminações dos traços para atração."
 
 
 msgid "Auto Keying"
@@ -63873,6 +63863,14 @@ msgstr "Janela de visualização 3D"
 
 msgid "Torus"
 msgstr "Toróide"
+
+
+msgid "Position:"
+msgstr "Posição:"
+
+
+msgid "Orientation:"
+msgstr "Orientação:"
 
 
 msgid "Active object is not a mesh"
@@ -65732,10 +65730,6 @@ msgstr "    Operador"
 
 msgid "Unable to find toolbar group"
 msgstr "Não é possível encontrar o grupo da barra de ferramentas"
-
-
-msgid "Orientation:"
-msgstr "Orientação:"
 
 
 msgid "Intersections"
@@ -70253,10 +70247,6 @@ msgstr "Caminho dos arquivos:"
 
 msgid "Track is locked"
 msgstr "Trilha está bloqueada"
-
-
-msgid "Position:"
-msgstr "Posição:"
 
 
 msgid "X:"

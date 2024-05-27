@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
-"PO-Revision-Date: 2024-05-18 11:56+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"PO-Revision-Date: 2024-05-24 15:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -13854,6 +13854,10 @@ msgid "Set layer visibility"
 msgstr "Imposta la visibilità del livello"
 
 
+msgid "Local Matrix"
+msgstr "Matrice Locale"
+
+
 msgid "Scale of the layer"
 msgstr "Scala del livello"
 
@@ -17304,10 +17308,6 @@ msgid "Shadows Resolution Limit"
 msgstr "Limite Risoluzione Ombre"
 
 
-msgid "Shadow Resolution Scale"
-msgstr "Scala Risoluzione Ombre"
-
-
 msgid "Shadow Soft Size"
 msgstr "Dimens. Sfumatura Ombra"
 
@@ -18478,10 +18478,6 @@ msgid "Input Matrix"
 msgstr "Ingresso Matrice"
 
 
-msgid "Local Matrix"
-msgstr "Matrice Locale"
-
-
 msgid "Parent Inverse Matrix"
 msgstr "Matrice Inversa Genitore"
 
@@ -18680,6 +18676,10 @@ msgstr "Mostra Limiti"
 
 msgid "Display the object's bounds"
 msgstr "Mostra i limiti dell'oggetto"
+
+
+msgid "Make the object display in front of others"
+msgstr "Visualizza l'oggetto davanti ad altri"
 
 
 msgid "Display Name"
@@ -18935,6 +18935,14 @@ msgstr "Entità dello smorzamento"
 
 msgid "Display Color"
 msgstr "Mostra Colore"
+
+
+msgid "Display additional particle data as a color"
+msgstr "Visualizza dati aggiuntivi delle particelle come colore"
+
+
+msgid "How particles are displayed in viewport"
+msgstr "Come le particelle sono visualizzate nel viewport"
 
 
 msgid "Rendered"
@@ -19513,6 +19521,10 @@ msgid "Adaptive Render"
 msgstr "Render Adattativo"
 
 
+msgid "Display steps of the particle path"
+msgstr "Visualizza i passi del percorso delle particelle"
+
+
 msgid "Use object's rotation for duplication (global x-axis is aligned particle rotation axis)"
 msgstr "Utilizza la rotazione dell'oggetto per la duplicazione (l'asse globale X è allineato all'asse di rotazione delle particelle)"
 
@@ -20009,6 +20021,10 @@ msgstr "Linea finale della selezione"
 
 msgid "Register"
 msgstr "Registra"
+
+
+msgid "Texture data-block used by materials, lights, worlds and brushes"
+msgstr "Blocco-dati Texture utilizzato da materiali, luci, mondi, e pennelli"
 
 
 msgid "Factor Blue"
@@ -34349,6 +34365,10 @@ msgid "Hide unselected rather than selected colors"
 msgstr "Nasconde i colori deselezionati anzichè i selezionati"
 
 
+msgid "Lock any material not used in any selected stroke"
+msgstr "Blocca ogni materiale non utilizzato in nessun tratto selezionato"
+
+
 msgctxt "Operator"
 msgid "Move Strokes to Layer"
 msgstr "Sposta Tratti al Livello"
@@ -35041,6 +35061,14 @@ msgid "Edit image in an external application"
 msgstr "Modifica l'immagine in un'applicazione esterna"
 
 
+msgid "Filepath used for importing the file"
+msgstr "Percorso utilizzato per importare il file"
+
+
+msgid "Relative Paths"
+msgstr "Percorsi Relativi"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Inverte Canali"
@@ -35337,10 +35365,6 @@ msgstr "Importa BVH"
 
 msgid "Load a BVH motion capture file"
 msgstr "Carica un file motion capture Bounding Volume Hierarchy"
-
-
-msgid "Filepath used for importing the file"
-msgstr "Percorso utilizzato per importare il file"
 
 
 msgid "Starting frame for the animation"
@@ -39864,6 +39888,10 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "Rimuove le assegnazioni a gruppo vertici che non sono necessarie"
 
 
+msgid "Define which subset of groups shall be used"
+msgstr "Definisce quale sottoinsieme di gruppi sarà utilizzato"
+
+
 msgid "Keep Single"
 msgstr "Tieni Singolo"
 
@@ -41719,10 +41747,6 @@ msgid "MatCap"
 msgstr "CatMat"
 
 
-msgid "Show light preferences"
-msgstr "Mostra le preferenze della luce"
-
-
 msgctxt "Operator"
 msgid "Install Theme..."
 msgstr "Installa Tema..."
@@ -41808,6 +41832,10 @@ msgstr "Utilizza la vista 3D corrente per il rendering, altrimenti usa il settag
 
 msgid "Write Image"
 msgstr "Scrivi Immagine"
+
+
+msgid "Save the rendered image to the output path (used only when animation is disabled)"
+msgstr "Salva l'immagine renderizzata nel percorso di output (utilizzato solo quando l'animazione è disabilitata)"
 
 
 msgctxt "Operator"
@@ -45662,11 +45690,6 @@ msgid "Name of the pie menu"
 msgstr "Nome del menù radiale"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Esporta COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "Salva un file Collada"
 
@@ -45729,11 +45752,6 @@ msgstr "Utilizza Profilo Blender"
 
 msgid "Use Object Instances"
 msgstr "Utilizza Istanze Oggetto"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Importa COLLADA"
 
 
 msgid "Load a Collada file"
@@ -46398,10 +46416,6 @@ msgstr "Schema di Suddivisione"
 
 msgid "UV Maps"
 msgstr "Mappe UV"
-
-
-msgid "Relative Paths"
-msgstr "Percorsi Relativi"
 
 
 msgid "All Custom"
@@ -47833,6 +47847,10 @@ msgid "How many keys to make new particles with"
 msgstr "Con quanti punti chiave creare le nuove particelle"
 
 
+msgid "How many steps to display the path with"
+msgstr "Con quanti passaggi visualizzare il percorso"
+
+
 msgid "Emitter Distance"
 msgstr "Distanza Emettitore"
 
@@ -47879,6 +47897,10 @@ msgstr "Oggetto Forma"
 
 msgid "Outer shape to use for tools"
 msgstr "Forma esterna da usare per gli strumenti"
+
+
+msgid "Display actual particles"
+msgstr "Visualizza le particelle reali"
 
 
 msgid "Auto Velocity"
@@ -49441,6 +49463,10 @@ msgid "Region Overlap"
 msgstr "Permetti sovrapposizione comandi"
 
 
+msgid "Display tool/property regions over the main region"
+msgstr "Visualizza le regioni degli strumenti/proprietà sopra la regione principale"
+
+
 msgid "VBO Collection Rate"
 msgstr "Frequenza Raccolta VBO"
 
@@ -50839,6 +50865,10 @@ msgstr "Numero di pixel in verticale dell'immagine renderizzata"
 
 msgid "Sequencer Preview Shading"
 msgstr "Ombreggiatura Anteprima Sequencer"
+
+
+msgid "Display method used in the sequencer view"
+msgstr "Metodo di visualizzazione utilizzato per la vista del sequenziatore"
 
 
 msgid "Display the object as wire edges"
@@ -52259,6 +52289,18 @@ msgid "Show Offsets"
 msgstr "Mostra Offset"
 
 
+msgid "How Waveforms are displayed"
+msgstr "Come sono visualizzate le forme d'onda"
+
+
+msgid "Display waveforms for all sound strips"
+msgstr "Visualizza forme d'onda per tutti gli spezzoni audio"
+
+
+msgid "Don't display waveforms for any sound strips"
+msgstr "Non visualizzare le forme d'onda per nessuno spezzone audio"
+
+
 msgid "Bounding Box Center"
 msgstr "Centro Casella Delimitazione"
 
@@ -52325,6 +52367,10 @@ msgstr "Fotogramma per chiavi assolute"
 
 msgid "Interpolation type for absolute shape keys"
 msgstr "Tipo di interpolazioner per shape keys assolute"
+
+
+msgid "Toggle this shape key"
+msgstr "Attiva/disattiva questa shape key"
 
 
 msgid "Name of Shape Key"
@@ -52605,6 +52651,22 @@ msgstr "Blocca al Cursore"
 
 msgid "Mask displayed and edited in this space"
 msgstr "L'immagine è mostrata e modificata in questo spazio"
+
+
+msgid "Display white edges with black outline"
+msgstr "Visualizza gli spigoli bianchi con un contorno nero"
+
+
+msgid "Display dashed black-white edges"
+msgstr "Visualizza gli spigoli con tratteggio bianco-nero"
+
+
+msgid "Display black edges"
+msgstr "Visualizza gli spigoli neri"
+
+
+msgid "Display white edges"
+msgstr "Visualizza gli spigoli bianchi"
 
 
 msgid "Overlay Mode"
@@ -53034,6 +53096,10 @@ msgid "Image and UV editor space data"
 msgstr "Spazio dati dell'editor immagini e UV"
 
 
+msgid "Channels of the image to display"
+msgstr "Canali dell'immagine da visualizzare"
+
+
 msgid "Z-Buffer"
 msgstr "Z-Buffer"
 
@@ -53084,6 +53150,10 @@ msgstr "Mostra gli strumenti per la distorsione"
 
 msgid "Show Render"
 msgstr "Mostra la finestra di Render"
+
+
+msgid "Display the image repeated outside of the main view"
+msgstr "Visualizza l'immagine ripetuta all'esterno della vista principale"
 
 
 msgid "Show Stereo"
@@ -53407,6 +53477,10 @@ msgid "Show current frame only"
 msgstr "Mostra solo fotogramma corrente"
 
 
+msgid "Channels of the preview to display"
+msgstr "Canali dell'anteprima da visualizzare"
+
+
 msgid "No display"
 msgstr "Nessuna visualizzazione"
 
@@ -53417,6 +53491,10 @@ msgstr "Utilizza Sfondo"
 
 msgid "Display result under strips"
 msgstr "Mostra il risultato sotto gli spezzoni"
+
+
+msgid "Display frames rather than seconds"
+msgstr "Visualizza fotogrammi anziché secondi"
 
 
 msgid "Show Overexposed"
@@ -53663,6 +53741,10 @@ msgid "Stereo Eye"
 msgstr "Occhio Stereo"
 
 
+msgid "Current stereo eye being displayed"
+msgstr "Occhio stereo corrente visualizzato"
+
+
 msgid "Left Eye"
 msgstr "Occhio Sinistro"
 
@@ -53699,6 +53781,10 @@ msgid "Space UV Editor"
 msgstr "Spazio Editor UV"
 
 
+msgid "Type of stretch to display"
+msgstr "Tipo di distorsione da visualizzare"
+
+
 msgid "Angular distortion between UV and 3D angles"
 msgstr "Distorsione angolare tra angoli UV e 3D"
 
@@ -53713,6 +53799,22 @@ msgstr "Vincola ai Margini Immagine"
 
 msgid "Constraint to stay within the image bounds while editing"
 msgstr "Vincola a restare entro i margini dell'immagine mentre si modifica"
+
+
+msgid "Display faces over the image"
+msgstr "Visualizza le facce sopra l'immagine"
+
+
+msgid "Display metadata properties of the image"
+msgstr "Visualizza le proprietà metadati dell'immagine"
+
+
+msgid "Display Modified Edges"
+msgstr "Visualizza Spigoli Modificati"
+
+
+msgid "Display edges after modifiers are applied"
+msgstr "Visualizza gli spigoli dopo l'applicazione dei modificatori"
 
 
 msgid "Pixel Coordinates"
@@ -55155,12 +55257,20 @@ msgid "Normal Vector"
 msgstr "Vettore Normale"
 
 
+msgid "Normal vector used to copy, add or multiply"
+msgstr "Vettore normale utilizzato per copiare, aggiungere o moltiplicare"
+
+
 msgid "Display size for proportional editing circle"
 msgstr "Dimensione visualizzata per il circolo di modifica proporzionale"
 
 
 msgid "UV Local View"
 msgstr "Vista Locale UV"
+
+
+msgid "Display only faces with the currently displayed image assigned"
+msgstr "Visualizza solo le facce a cui è assegnata l'immagine attualmente visualizzata"
 
 
 msgid "Type of element to snap to"
@@ -55227,6 +55337,14 @@ msgid "Unified Paint Settings"
 msgstr "Impostazioni Unificate Pittura"
 
 
+msgid "Only Endpoints"
+msgstr "Solo Punti Finali"
+
+
+msgid "Only use the first and last parts of the stroke for snapping"
+msgstr "Utilizza solo la parte iniziale e finale del tratto per lo snap"
+
+
 msgid "Use Additive Drawing"
 msgstr "Utilizza Disegno Aggiuntivo"
 
@@ -55245,14 +55363,6 @@ msgstr "Maschera Selezione"
 
 msgid "Only sculpt selected stroke points"
 msgstr "Scolpisce solo i punti selezionati del tratto"
-
-
-msgid "Only Endpoints"
-msgstr "Solo Punti Finali"
-
-
-msgid "Only use the first and last parts of the stroke for snapping"
-msgstr "Utilizza solo la parte iniziale e finale del tratto per lo snap"
 
 
 msgid "Auto Keying"
@@ -55527,6 +55637,10 @@ msgid "Solid Light"
 msgstr "Luce Solido"
 
 
+msgid "Light used for Studio lighting in solid shading mode"
+msgstr "Luce utilizzata per l'Illuminazione Studio in modalità shading solido"
+
+
 msgid "Color of the light's specular highlight"
 msgstr "Colore della luce speculare brillante"
 
@@ -55609,6 +55723,10 @@ msgstr "Disegna Normali"
 
 msgid "Display 3D curve normals in editmode"
 msgstr "Mostra le normali delle curve 3D in modalità Modifica"
+
+
+msgid "Display Bevel Weights"
+msgstr "Visualizza Pesi Smussatura"
 
 
 msgid "Display weights created for the Bevel modifier"
@@ -55699,6 +55817,10 @@ msgid "Show dashed lines indicating parent or constraint relationships"
 msgstr "Disegna delle linee tratteggiate che indicano le relazioni di parentela o i vincoli"
 
 
+msgid "Display Split Normals"
+msgstr "Visualizza Normali Divise"
+
+
 msgid "Display vertex-per-face normals as lines"
 msgstr "Mostra le normali vertex-per-face come linee"
 
@@ -55709,6 +55831,10 @@ msgstr "Analisi Mesh"
 
 msgid "Display statistical information about the mesh"
 msgstr "Mostra informazioni statistiche sulla mesh"
+
+
+msgid "Display Vertex Normals"
+msgstr "Visualizza Normali Vertici"
 
 
 msgid "Display vertex normals as lines"
@@ -56246,6 +56372,10 @@ msgid "File:"
 msgstr "File:"
 
 
+msgid "Type:"
+msgstr "Tipo:"
+
+
 msgid "Missing script files"
 msgstr "File di script mancanti"
 
@@ -56268,6 +56398,14 @@ msgstr "Avviso:"
 
 msgid "Internet:"
 msgstr "Internet:"
+
+
+msgid "License:"
+msgstr "Licenza:"
+
+
+msgid "Missing   "
+msgstr "Mancanti   "
 
 
 msgid "Path:"
@@ -56509,6 +56647,14 @@ msgstr "Definito dall'API"
 
 msgid "3D View"
 msgstr "Vista 3D"
+
+
+msgid "Position:"
+msgstr "Posizione:"
+
+
+msgid "Orientation:"
+msgstr "Orientamento:"
 
 
 msgid "Modifiers cannot be added to object: "
@@ -58329,10 +58475,6 @@ msgstr "Trascina:"
 
 msgid "Depth:"
 msgstr "Profondità:"
-
-
-msgid "Orientation:"
-msgstr "Orientamento:"
 
 
 msgid "Annotation:"
@@ -62177,10 +62319,6 @@ msgstr "Percorso File:"
 
 msgid "Track is locked"
 msgstr "La traccia è bloccata"
-
-
-msgid "Position:"
-msgstr "Posizione:"
 
 
 msgid "X:"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
-"PO-Revision-Date: 2024-05-16 19:56+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"PO-Revision-Date: 2024-05-22 21:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
@@ -407,6 +407,18 @@ msgstr "Nama modul"
 
 msgid "Add-on Preferences"
 msgstr "Pengaturan Tambahan"
+
+
+msgid "Show Development Reports"
+msgstr "Menampilkan Laporan Pengembangan"
+
+
+msgid "Show the result of running commands in the main interface this has the advantage that multiple processes that run at once have their errors properly grouped which is not the case for reports which are mixed together"
+msgstr "Menampilkan hasil perintah yang berjalan di antarmuka utama ini mempunyai keuntungan bahwa beberapa proses yang berjalan sekaligus memiliki kesalahan yang dikelompokkan dengan benar yang tidak terjadi pada laporan yang dicampur bersama"
+
+
+msgid "Time Out"
+msgstr "Waktu Habis"
 
 
 msgid "Compute Device Type"
@@ -1253,6 +1265,10 @@ msgid "Catalog UUID"
 msgstr "UUID Katalog"
 
 
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
+msgstr "Pengenal untuk katalog aset, digunakan Blender untuk melihat jalur katalog aset. Harus berupa UUID menurut RFC4122"
+
+
 msgid "Catalog Simple Name"
 msgstr "Nama Sederhana Katalog"
 
@@ -1293,9 +1309,29 @@ msgid "Asset Representation"
 msgstr "Representasi Aset"
 
 
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Informasi entitas yang memungkinkan sistem aset untuk menangani entitas sebagai aset"
+
+
+msgid "Full Library Path"
+msgstr "Jalur Perpustakaan Lengkap"
+
+
+msgid "Absolute path to the .blend file containing this asset"
+msgstr "Jalur absolut ke dokumen .blend yang mengandung aset ini"
+
+
+msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
+msgstr "Jalur absolut dokumen .blend yang mengandung aset ini diperpanjang dengan jalur aset di dalam dokumen"
+
+
 msgctxt "ID"
 msgid "Data-block Type"
 msgstr "Jenis Data-Blok"
+
+
+msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
+msgstr "Tipe data-blok, jika aset merepresentasikan satu ('TIDAK ADA' jika tidak)"
 
 
 msgctxt "ID"
@@ -1364,6 +1400,11 @@ msgstr "Kunci"
 
 
 msgctxt "ID"
+msgid "Lattice"
+msgstr "Kisi"
+
+
+msgctxt "ID"
 msgid "Library"
 msgstr "Perpustakaan"
 
@@ -1371,6 +1412,11 @@ msgstr "Perpustakaan"
 msgctxt "ID"
 msgid "Light"
 msgstr "Cahaya"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Probe cahaya"
 
 
 msgctxt "ID"
@@ -1483,8 +1529,44 @@ msgid "World"
 msgstr "Dunia"
 
 
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "Data-blok lokal aset ini merepresentasikan; hanya valid jika itu data-blok di dalam dokumen ini"
+
+
+msgid "Asset Metadata"
+msgstr "Metadata Aset"
+
+
+msgid "Additional information about the asset"
+msgstr "Informasi tambahan tentang aset"
+
+
+msgid "Asset Shelf"
+msgstr "Rak Aset"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Daerah untuk cepat mengakses aset"
+
+
+msgid "Asset Library"
+msgstr "Perpustakaan Aset"
+
+
+msgid "Choose the asset library to display assets from"
+msgstr "Pilih perpustakaan aset untuk menampilkan aset dari"
+
+
 msgid "All"
 msgstr "Semua"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Menampilkan aset dari semua perpustakaan aset yang terdaftaar"
+
+
+msgid "Current File"
+msgstr "Dokumen Sekarang"
 
 
 msgid "Show the assets currently available in this Blender session"
@@ -1507,6 +1589,22 @@ msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "Menampilkan aset dari perpustakaan aset yang telah diatur di dalam Preferensi"
 
 
+msgid "Activate Operator"
+msgstr "Mengaktifkan Operator"
+
+
+msgid "Operator to call when activating an item with asset reference properties"
+msgstr "Operator untuk dipanggil saat mengaktifkan item dengan properti referensi aset"
+
+
+msgid "Default Preview Size"
+msgstr "Ukuran Pratinjau Default"
+
+
+msgid "Default size of the asset preview thumbnails in pixels"
+msgstr "Ukuran default gambar kecil pratinjau aset dalam pixel"
+
+
 msgid "ID Name"
 msgstr "Nama ID"
 
@@ -1525,6 +1623,22 @@ msgstr "Tidak Ada Penyeretan Aset"
 
 msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
 msgstr "Menonaktifkan penyeretan aset default saat acara seret. Berguna untuk mengimplementasikan penyeretan kustom lewat item kunci-peta kustom"
+
+
+msgid "Visible by Default"
+msgstr "Terlihat secara Default"
+
+
+msgid "Unhide the asset shelf when it's available for the first time, otherwise it will be hidden"
+msgstr "Menampilkan rak aset ketika tersedia untuk pertama kalinya, jika tidak, rak tersebut akan disembunyikan"
+
+
+msgid "Store Enabled Catalogs in Preferences"
+msgstr "Menyimpan Katalog yang Diaktifkan di Preferensi"
+
+
+msgid "Store the shelf's enabled catalogs in the preferences rather than the local asset shelf settings"
+msgstr "Menyimpan katalog yang diaktifkan di rak dalam preferensi, bukan pengaturan rak aset lokal"
 
 
 msgid "Space Type"
@@ -1651,6 +1765,10 @@ msgid "2D vector with floating-point values"
 msgstr "Vektor 2D dengan nilai floating-point"
 
 
+msgid "8-Bit Integer"
+msgstr "Integer 8-Bit"
+
+
 msgid "Smaller integer with a range from -128 to 127"
 msgstr "Integer lebih kecil dengan jarak dari -128 ke 127"
 
@@ -1659,8 +1777,16 @@ msgid "2D Integer Vector"
 msgstr "Vektor Integer 2D"
 
 
+msgid "32-bit signed integer vector"
+msgstr "Vektor Integer Signed 32-Bit"
+
+
 msgid "Quaternion"
 msgstr "Kuaternion"
+
+
+msgid "Floating point quaternion rotation"
+msgstr "Rotasi Kuaternion Titik Floating"
 
 
 msgid "Floating point matrix"
@@ -1707,6 +1833,10 @@ msgid "Is Required"
 msgstr "Diperlukan"
 
 
+msgid "Whether the attribute can be removed or renamed"
+msgstr "Apakah atribut dapat dihapus atau diganti namanya"
+
+
 msgid "Name of the Attribute"
 msgstr "Nama Atribut"
 
@@ -1715,12 +1845,28 @@ msgid "Bool Attribute"
 msgstr "Atribut Bool"
 
 
+msgid "Geometry attribute that stores booleans"
+msgstr "Atribut geometri yang menyimpan boolean"
+
+
 msgid "Byte Color Attribute"
 msgstr "Atribut Warna Byte"
 
 
+msgid "Geometry attribute that stores RGBA colors as positive integer values using 8-bits per channel"
+msgstr "Atribut geometri yang menyimpan warna RGBA sebagai nilai integer positif menggunakan 8-bit setiap saluran"
+
+
+msgid "Geometry attribute that stores 8-bit integers"
+msgstr "Atribut geometri yang menyimpan integer 8-bit"
+
+
 msgid "Float2 Attribute"
 msgstr "Atribut Float2"
+
+
+msgid "4x4 Matrix Attribute"
+msgstr "Atribut Matriks 4x4"
 
 
 msgid "Float Attribute"
@@ -1731,12 +1877,20 @@ msgid "Float Color Attribute"
 msgstr "Atribut Warna Float"
 
 
+msgid "Geometry attribute that stores RGBA colors as floating-point values using 32-bits per channel"
+msgstr "Atribut geometri yang menyimpan warna RGBA sebagai nilai floating-titik menggunakan 32-bit per saluran"
+
+
 msgid "Float Vector Attribute"
 msgstr "Atribut Vektor Float"
 
 
 msgid "String Attribute"
 msgstr "Atribut String"
+
+
+msgid "Geometry attribute that stores strings"
+msgstr "Atribut geometri yang menyimpan string"
 
 
 msgid "Attribute Group"
@@ -1753,6 +1907,26 @@ msgstr "Atribut Aktif"
 
 msgid "Active attribute"
 msgstr "Atribut aktif"
+
+
+msgid "Active color attribute for display and editing"
+msgstr "Atribut warna aktif untuk penampilan dan pengeditan"
+
+
+msgid "The name of the active color attribute for display and editing"
+msgstr "Nama atribut warna aktif untuk penampilan dan pengeditan"
+
+
+msgid "The name of the default color attribute used as a fallback for rendering"
+msgstr "Nama atribut warna default yang digunakan sebagai pemunduran untuk rendering"
+
+
+msgid "Active Render Color Index"
+msgstr "Indeks Warna Render Aktif"
+
+
+msgid "The index of the color attribute used as a fallback for rendering"
+msgstr "Indeks atribut warna yang digunakan sebagai pemunduran untuk rendering"
 
 
 msgid "Cage Extrusion"
@@ -1781,6 +1955,30 @@ msgstr "Penyunting Gambar"
 
 msgid "Margin"
 msgstr "Batas Tepi"
+
+
+msgid "Margin Type"
+msgstr "Tipe Margin"
+
+
+msgid "Algorithm to extend the baked result"
+msgstr "Algoritme untuk memperpanjang hasil panggang"
+
+
+msgid "Adjacent Faces"
+msgstr "Wajah yang Berdekatan"
+
+
+msgid "Use pixels from adjacent faces across UV seams"
+msgstr "Menggunakan pixel untuk wajah yang berdekatan di seluruh saluran UV"
+
+
+msgid "Extend"
+msgstr "Perpanjang"
+
+
+msgid "Extend border pixels outwards"
+msgstr "Perpanjang garis luar pixel keluar"
 
 
 msgid "Max Ray Distance"
@@ -1939,8 +2137,20 @@ msgid "Split external images per material (external only)"
 msgstr "Pisahkan gambar eksternal per bahan (eksternal saja)"
 
 
+msgid "Source of reflection ray directions"
+msgstr "Sumber arah sinar refleksi"
+
+
 msgid "Above Surface"
 msgstr "Di Atas Permukaan"
+
+
+msgid "Cast rays from above the surface"
+msgstr "Memancarkan sinar dari atas permukaan"
+
+
+msgid "Use the active camera's position to cast rays"
+msgstr "Gunakan posisi kamera aktif untuk memancar cahaya"
 
 
 msgid "Control Point"
@@ -3175,6 +3385,10 @@ msgid "Selects how the start handle of the B-Bone is computed"
 msgstr "Pilih bagaimana awal pegangan B-Tulang dihitung"
 
 
+msgid "End Handle Ease"
+msgstr "Mengakhiri Pegangan secara Mudah"
+
+
 msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it"
 msgstr "Mengalikan saluran Keluar secara Mudah Tulang-B dengan nilai skala Y lokal pegangan akhir. Hal ini selesai setelah opsi Skala secara Mudah dan tidak terpengaruh oleh-nya"
 
@@ -3269,6 +3483,10 @@ msgstr "Anak"
 
 msgid "Bones which are children of this bone"
 msgstr "Tulang yang merupakan anak dari tulang ini"
+
+
+msgid "Bone Collections that contain this bone"
+msgstr "Koleksi Tulang yang mengandung tulang ini"
 
 
 msgid "Head"
@@ -3401,6 +3619,10 @@ msgstr "Terkoneksi"
 
 msgid "When bone has a parent, bone's head is stuck to the parent's tail"
 msgstr "Saat tulang ada induk, kepala tulang terjebak ke ekor induk"
+
+
+msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
+msgstr "Saat tulang tidak mempunyai induk, tulang tersebut menerima efek offset siklik (Ditinggalkan)"
 
 
 msgid "Deform"
@@ -4466,6 +4688,10 @@ msgid "Cloth Collision Settings"
 msgstr "Pengaturan Tabrakan Kain"
 
 
+msgid "Cloth simulation settings for self collision and collision with other objects"
+msgstr "Pengaturan simulasi kain untuk tabrakan sendiri dan tabakran dengan objek lain"
+
+
 msgid "Collision Collection"
 msgstr "Koleksi Tabrakan"
 
@@ -4480,6 +4706,10 @@ msgstr "Restitusi"
 
 msgid "Friction"
 msgstr "Friksi"
+
+
+msgid "Minimum distance between cloth faces before collision response takes effect"
+msgstr "Jarak minimum di antara wajah kain sebelum tanggapan tabrakan memberi efek"
 
 
 msgid "Self Friction"
@@ -4534,8 +4764,16 @@ msgid "Angular"
 msgstr "Sudut"
 
 
+msgid "Cloth model with angular bending springs"
+msgstr "Model kain dengan pegas menekuk yang bersudut"
+
+
 msgid "Linear"
 msgstr "Linier"
+
+
+msgid "Cloth model with linear bending springs (legacy)"
+msgstr "Model kain dengan pegas menekuk yang linear (warisan)"
 
 
 msgid "Collider Friction"
@@ -4614,6 +4852,10 @@ msgid "Internal Friction"
 msgstr "Friksi Internal"
 
 
+msgid "The mass of each vertex on the cloth material"
+msgstr "Berat setiap verteks di bahan kain"
+
+
 msgid "Pressure Scale"
 msgstr "Skala Tekanan"
 
@@ -4622,20 +4864,44 @@ msgid "Quality"
 msgstr "Kualitas"
 
 
+msgid "Max amount to shrink cloth by"
+msgstr "Jumlah maksimum untuk menyusutkan kain sebesar"
+
+
 msgid "Shrink Factor"
 msgstr "Faktor Memperkecil"
+
+
+msgid "Factor by which to shrink cloth"
+msgstr "Faktor yang digunakan untuk menyusutkan kain"
 
 
 msgid "Target Volume"
 msgstr "Volume Target"
 
 
+msgid "Cloth speed is multiplied by this value"
+msgstr "Kecepatan kain dikalikan dengan nilai ini"
+
+
 msgid "Pressure"
 msgstr "Tekanan"
 
 
+msgid "Simulate pressure inside a closed cloth mesh"
+msgstr "Menyimulasi tekanan dalam jala kain yang tertutup"
+
+
 msgid "Use Custom Volume"
 msgstr "Gunakan Volume Kustom"
+
+
+msgid "Sew Cloth"
+msgstr "Jahit Kain"
+
+
+msgid "Vertex group for fine control over the internal spring stiffness"
+msgstr "Kelompok verteks untuk kontrol kekakuan pegas internal yang handal"
 
 
 msgid "Vertex Group for pinning of vertices"
@@ -4646,8 +4912,16 @@ msgid "Vertex Group for where to apply pressure. Zero weight means no pressure w
 msgstr "Kelompok Vertex untuk dimana menerapkan tekanan. Nol beban artinya tidak ada tekanan sedangkan beban satu artinya tekanan penuh. Muka dengan vertex yang punya nol beban akan dikecualikan dari kalkulasi volume"
 
 
+msgid "Vertex group for fine control over shear stiffness"
+msgstr "Kelompok verteks untuk kontrol kekakuan geser yang handal"
+
+
 msgid "Shrink Vertex Group"
 msgstr "Perkecil Kelompok Vertex"
+
+
+msgid "Vertex Group for shrinking cloth"
+msgstr "Kelompok Verteks untuk kain yang menyusut"
 
 
 msgid "Solver Result"
@@ -8033,6 +8307,10 @@ msgid "Wind Factor"
 msgstr "Faktor Angin"
 
 
+msgid "How much the force is reduced when acting parallel to a surface, e.g. cloth"
+msgstr "Berapa besar gaya berkurang ketika bekerja sejajar dengan permukaan, contohnya kain"
+
+
 msgid "Z Direction"
 msgstr "Arah Z"
 
@@ -10048,6 +10326,10 @@ msgstr "Gambar"
 
 msgid "Clone Offset"
 msgstr "Kamera"
+
+
+msgid "How much the cloth preserves the original shape, acting as a soft body"
+msgstr "Berapa besar kain mempertahankan bentuk aslinya, bekerja sebagai tubuh lembut"
 
 
 msgid "Push"
@@ -13504,10 +13786,6 @@ msgid "Triangulate Modifier"
 msgstr "Modus Pahat"
 
 
-msgid "Keep Normals"
-msgstr "Menetapi Normal"
-
-
 msgid "Minimum Vertices"
 msgstr "Minimum Sudut"
 
@@ -15401,6 +15679,14 @@ msgid "Refraction BSDF"
 msgstr "Rotasi"
 
 
+msgid ""
+"Reflection for materials such as cloth.\n"
+"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
+msgstr ""
+"Refleksi untuk bahan seperti kain\n"
+"Biasanya dicampur dengan shader lainnya (seperti Shader Diffuse) dan tidak terlalu berguna dengan sendirinya"
+
+
 msgid "Camera Data"
 msgstr "Kamera"
 
@@ -16335,6 +16621,15 @@ msgstr "Perbesar"
 msgctxt "Operator"
 msgid "Zoom Out"
 msgstr "Perkecil"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "Menambah Preset Kain"
+
+
+msgid "Add or remove a Cloth Preset"
+msgstr "Menambah atau mengurangi Preset Kain"
 
 
 msgctxt "Operator"
@@ -19130,10 +19425,6 @@ msgid "Remove Key Map Item"
 msgstr "Induk"
 
 
-msgid "Show light preferences"
-msgstr "Tampilkan pengaturan cahaya"
-
-
 msgctxt "Operator"
 msgid "Add New Cache"
 msgstr "Tambah Baru"
@@ -19306,8 +19597,16 @@ msgid "Filter Cloth"
 msgstr "Saring Kain"
 
 
+msgid "Applies a cloth simulation deformation to the entire mesh"
+msgstr "Mengaplikasikan deformasi simulasi kain ke seluruh jala"
+
+
 msgid "Force Axis"
 msgstr "Paksakan Sumbu"
+
+
+msgid "Inflates the cloth"
+msgstr "Mengembangkan kain"
 
 
 msgid "Use Collisions"
@@ -23602,6 +23901,14 @@ msgid "Context incorrect, image not found"
 msgstr "Konteks salah, gambar tidak ditemukan"
 
 
+msgid "Position:"
+msgstr "Posisi:"
+
+
+msgid "Orientation:"
+msgstr "Orientasi:"
+
+
 msgid "No camera found"
 msgstr "Tidak ada kamera yang ditemukan"
 
@@ -25445,10 +25752,6 @@ msgid "    Operator"
 msgstr "    Operator"
 
 
-msgid "Orientation:"
-msgstr "Orientasi:"
-
-
 msgid "Intersections"
 msgstr "Persilangan"
 
@@ -26996,10 +27299,6 @@ msgstr "Properti tidak dapat diubah"
 
 msgid "Property is not editable: %s"
 msgstr "Properti tidak dapat diubah: %s"
-
-
-msgid "Position:"
-msgstr "Posisi:"
 
 
 msgid "Width:"

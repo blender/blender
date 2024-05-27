@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2024-04-13 17:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -17788,6 +17788,14 @@ msgid "3D View"
 msgstr "Widok 3D"
 
 
+msgid "Position:"
+msgstr "Położenie:"
+
+
+msgid "Orientation:"
+msgstr "Orientacja:"
+
+
 msgid "Modifiers cannot be added to object: "
 msgstr "Nie można dodać modyfikatora do obiektu: "
 
@@ -18634,10 +18642,6 @@ msgid "Depth:"
 msgstr "Głębia:"
 
 
-msgid "Orientation:"
-msgstr "Orientacja:"
-
-
 msgid "Annotation:"
 msgstr "Adnotacje:"
 
@@ -18753,11 +18757,6 @@ msgstr "Ogólne"
 msgctxt "Operator"
 msgid "Load Factory Blender Settings"
 msgstr "Załaduj ustawienia fabryczne Blendera"
-
-
-msgctxt "Operator"
-msgid "Collada (.dae)"
-msgstr "Collada (.dae)"
 
 
 msgctxt "Operator"
@@ -22501,10 +22500,6 @@ msgstr "Ścieżka pliku:"
 
 msgid "Track is locked"
 msgstr "Trak jest zablokowany"
-
-
-msgid "Position:"
-msgstr "Położenie:"
 
 
 msgid "X:"

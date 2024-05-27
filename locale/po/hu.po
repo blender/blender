@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -10739,6 +10739,10 @@ msgid "Edit image in an external application"
 msgstr "A kép szerkesztése egy külső alkalmazás segítségével"
 
 
+msgid "Relative Paths"
+msgstr "Relatív fájlútvonalak"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Csatornák invertálása"
@@ -12979,11 +12983,6 @@ msgid "Call Menu"
 msgstr "Menü előhívása"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "COLLADA exportálása"
-
-
 msgid "Save a Collada file"
 msgstr "Collada fájl mentése"
 
@@ -13050,11 +13049,6 @@ msgstr "Sokszorosított objektumok helyettesítése azonos adatból"
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "Textúrák másolása ugyanabba a mappába, ahova a .dae fájl"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "COLLADA importálása"
 
 
 msgid "Load a Collada file"
@@ -13235,10 +13229,6 @@ msgstr "STL exportálása"
 msgctxt "Operator"
 msgid "Import STL"
 msgstr "STL importálása"
-
-
-msgid "Relative Paths"
-msgstr "Relatív fájlútvonalak"
 
 
 msgid "Textures Directory"
@@ -15907,6 +15897,14 @@ msgid "3D View"
 msgstr "3D Nézet"
 
 
+msgid "Position:"
+msgstr "Pozíció:"
+
+
+msgid "Orientation:"
+msgstr "Orientáció:"
+
+
 msgid "Fur Material"
 msgstr "Szőr anyag"
 
@@ -16470,10 +16468,6 @@ msgstr "Húz:"
 
 msgid "Depth:"
 msgstr "Mélység:"
-
-
-msgid "Orientation:"
-msgstr "Orientáció:"
 
 
 msgctxt "Operator"
@@ -17471,10 +17465,6 @@ msgstr "Mezők"
 
 msgid "File Path:"
 msgstr "Fájl útvonala:"
-
-
-msgid "Position:"
-msgstr "Pozíció:"
 
 
 msgid "X:"

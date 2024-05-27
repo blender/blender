@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-05-27 12:52+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -8460,6 +8460,10 @@ msgid "Grid Scale"
 msgstr "Původní velikost"
 
 
+msgid "Local Matrix"
+msgstr "Místní matice"
+
+
 msgid "Translation"
 msgstr "Překlad"
 
@@ -10952,10 +10956,6 @@ msgstr "Přivlastnit"
 
 msgid "Input Matrix"
 msgstr "Vstupní matice"
-
-
-msgid "Local Matrix"
-msgstr "Místní matice"
 
 
 msgid "Matrix World"
@@ -22895,6 +22895,14 @@ msgid "Flip Image"
 msgstr "Otočit Obrázek"
 
 
+msgid "Filepath used for importing the file"
+msgstr "Typ filtru"
+
+
+msgid "Relative Paths"
+msgstr "Relativní cesty"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Kanál spouštěče"
@@ -23085,10 +23093,6 @@ msgstr "Zobrazí pohled na nejbližší předměty obsažených v ohraničení"
 msgctxt "Operator"
 msgid "Import BVH"
 msgstr "Importovat"
-
-
-msgid "Filepath used for importing the file"
-msgstr "Typ filtru"
 
 
 msgid "Starting frame for the animation"
@@ -28068,10 +28072,6 @@ msgid "Save custom studio light from the studio light editor settings"
 msgstr "Uložit vlastní studiové světlo z nastavení editoru studiového světla"
 
 
-msgid "Show light preferences"
-msgstr "Zobrazit vlastnosti světla"
-
-
 msgctxt "Operator"
 msgid "Uninstall Studio Light"
 msgstr "Odinstalovat Studiové Světlo"
@@ -31081,11 +31081,6 @@ msgid "Name of the menu"
 msgstr "Název nabídky"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Exportovat COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "Uložit soubor Collada"
 
@@ -31160,11 +31155,6 @@ msgstr "Použít Blender Profil"
 
 msgid "Use Object Instances"
 msgstr "Použít Instance Objektu"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Importovat COLLADA"
 
 
 msgid "Load a Collada file"
@@ -31670,10 +31660,6 @@ msgstr "Použít nastavení pro"
 
 msgid "UV Maps"
 msgstr "UV Mapy"
-
-
-msgid "Relative Paths"
-msgstr "Relativní cesty"
 
 
 msgid "Instancing"
@@ -39610,6 +39596,10 @@ msgid "3D View"
 msgstr "3D pohled"
 
 
+msgid "Position:"
+msgstr "Pozice:"
+
+
 msgid "Active object is not a mesh"
 msgstr "Nastavit aktivní objekt jako kameru"
 
@@ -44696,10 +44686,6 @@ msgstr "Cesta k souboru:"
 
 msgid "Track is locked"
 msgstr "Akce"
-
-
-msgid "Position:"
-msgstr "Pozice:"
 
 
 msgid "Width:"
