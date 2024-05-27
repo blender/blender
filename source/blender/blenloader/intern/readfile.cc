@@ -352,6 +352,9 @@ void blo_join_main(ListBase *mainlist)
     mainl->id_map = nullptr;
   }
 
+  /* Will no longer be valid after joining. */
+  BKE_main_namemap_clear(mainl);
+
   while ((tojoin = mainl->next)) {
     add_main_to_main(mainl, tojoin);
     BLI_remlink(mainlist, tojoin);
@@ -396,6 +399,9 @@ void blo_split_main(ListBase *mainlist, Main *main)
     BKE_main_idmap_destroy(main->id_map);
     main->id_map = nullptr;
   }
+
+  /* Will no longer be valid after splitting. */
+  BKE_main_namemap_clear(main);
 
   /* (Library.temp_index -> Main), lookup table */
   const uint lib_main_array_len = BLI_listbase_count(&main->libraries);

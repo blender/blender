@@ -1718,8 +1718,6 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
   if ((lapp_context->params->flag & FILE_LINK) != 0) {
     blendfile_link_finalize(lapp_context, reports);
   }
-
-  BKE_main_namemap_clear(lapp_context->params->bmain);
 }
 
 void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
