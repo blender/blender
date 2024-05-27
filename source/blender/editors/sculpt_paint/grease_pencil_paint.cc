@@ -855,15 +855,21 @@ void PaintOperation::on_stroke_done(const bContext &C)
   Object *object = CTX_data_active_object(&C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
+  Paint *paint = &scene->toolsettings->gp_paint->paint;
+  Brush *brush = BKE_paint_brush(paint);
+  BrushGpencilSettings *settings = brush->gpencil_settings;
+  const bool do_post_processing = (settings->flag & GP_BRUSH_GROUP_SETTINGS) != 0;
+
   /* Grease Pencil should have an active layer. */
   BLI_assert(grease_pencil.has_active_layer());
   bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
   /* Drawing should exist. */
   bke::greasepencil::Drawing &drawing = *grease_pencil.get_editable_drawing_at(active_layer,
                                                                                scene->r.cfra);
-
-  const float simplifiy_threshold_px = 0.5f;
-  this->simplify_stroke(C, drawing, simplifiy_threshold_px);
+  if (do_post_processing) {
+    const float simplifiy_threshold_px = 0.5f;
+    this->simplify_stroke(C, drawing, simplifiy_threshold_px);
+  }
   this->process_stroke_end(C, drawing);
   drawing.tag_topology_changed();
 
