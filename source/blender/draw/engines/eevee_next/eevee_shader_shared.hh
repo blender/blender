@@ -1932,7 +1932,7 @@ BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 struct AOData {
   float2 pixel_size;
   float distance;
-  float quality;
+  float lod_factor;
 
   float thickness;
   float angle_bias;

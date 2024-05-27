@@ -42,7 +42,7 @@ void AmbientOcclusion::init()
 
   data_.distance = sce_eevee.gtao_distance;
   data_.gi_distance = (sce_eevee.fast_gi_distance > 0.0f) ? sce_eevee.fast_gi_distance : 1e16f;
-  data_.quality = sce_eevee.gtao_quality;
+  data_.lod_factor = 1.0f / (1.0f + sce_eevee.gtao_quality * 4.0f);
   data_.thickness = sce_eevee.gtao_thickness;
   data_.angle_bias = 1.0 / max_ff(1e-8f, 1.0 - sce_eevee.gtao_focus);
   /* Size is multiplied by 2 because it is applied in NDC [-1..1] range. */

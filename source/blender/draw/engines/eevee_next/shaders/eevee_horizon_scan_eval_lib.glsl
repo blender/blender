@@ -169,7 +169,7 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
           time += 1.0;
         }
 
-        float lod = 1.0 + (float(j >> 2) / (1.0 + uniform_buf.ao.quality));
+        float lod = 1.0 + float(j >> 2) * uniform_buf.ao.lod_factor;
 
         vec2 sample_uv = ssray.origin.xy + ssray.direction.xy * time;
         float sample_depth = textureLod(hiz_tx, sample_uv * uniform_buf.hiz.uv_scale, lod).r;
