@@ -614,7 +614,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
   }
 
   /* When overlays are disabled, only show camera outline & passepartout. */
-  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+  if (v3d->flag2 & V3D_HIDE_OVERLAYS || !(v3d->flag2 & V3D_SHOW_CAMERA_GUIDES)) {
     return;
   }
 
