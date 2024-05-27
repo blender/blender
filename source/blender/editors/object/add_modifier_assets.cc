@@ -78,18 +78,16 @@ static asset::AssetItemTree *get_static_item_tree()
 
 static void catalog_assets_draw(const bContext *C, Menu *menu)
 {
-  bScreen &screen = *CTX_wm_screen(C);
   asset::AssetItemTree &tree = *get_static_item_tree();
 
-  const PointerRNA menu_path_ptr = CTX_data_pointer_get(C, "asset_catalog_path");
-  if (RNA_pointer_is_null(&menu_path_ptr)) {
+  const std::optional<StringRefNull> menu_path = CTX_data_string_get(C, "asset_catalog_path");
+  if (!menu_path) {
     return;
   }
-  const asset_system::AssetCatalogPath &menu_path =
-      *static_cast<const asset_system::AssetCatalogPath *>(menu_path_ptr.data);
-
-  const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(menu_path);
-  const asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
+  const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(
+      menu_path->data());
+  const asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(
+      menu_path->data());
   BLI_assert(catalog_item != nullptr);
 
   if (assets.is_empty() && !catalog_item->has_children()) {
@@ -113,15 +111,8 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
     asset::operator_asset_reference_props_set(*asset, props_ptr);
   }
 
-  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
-      asset_system::all_library_reference());
-  if (!all_library) {
-    return;
-  }
-
   catalog_item->foreach_child([&](const asset_system::AssetCatalogTreeItem &item) {
-    asset::draw_menu_for_catalog(
-        screen, *all_library, item, "OBJECT_MT_add_modifier_catalog_assets", *layout);
+    asset::draw_menu_for_catalog(item, "OBJECT_MT_add_modifier_catalog_assets", *layout);
   });
 }
 
@@ -202,7 +193,6 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
   if (!object) {
     return;
   }
-  bScreen &screen = *CTX_wm_screen(C);
   uiLayout *layout = menu->layout;
 
   const bool loading_finished = all_loading_finished();
@@ -239,16 +229,9 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
     return menus;
   }();
 
-  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
-      asset_system::all_library_reference());
-  if (!all_library) {
-    return;
-  }
-
   tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
     if (!all_builtin_menus.contains(item.get_name())) {
-      asset::draw_menu_for_catalog(
-          screen, *all_library, item, "OBJECT_MT_add_modifier_catalog_assets", *layout);
+      asset::draw_menu_for_catalog(item, "OBJECT_MT_add_modifier_catalog_assets", *layout);
     }
   });
 
@@ -420,11 +403,8 @@ void object_modifier_add_asset_register()
   WM_operatortype_append(OBJECT_OT_modifier_add_node_group);
 }
 
-void ui_template_modifier_asset_menu_items(uiLayout &layout,
-                                           const bContext &C,
-                                           const StringRef catalog_path)
+void ui_template_modifier_asset_menu_items(uiLayout &layout, const StringRef catalog_path)
 {
-  bScreen &screen = *CTX_wm_screen(&C);
   asset::AssetItemTree &tree = *get_static_item_tree();
   const asset_system::AssetCatalogTreeItem *item = tree.catalogs.find_root_item(catalog_path);
   if (!item) {
@@ -435,13 +415,9 @@ void ui_template_modifier_asset_menu_items(uiLayout &layout,
   if (!all_library) {
     return;
   }
-  PointerRNA path_ptr = asset::persistent_catalog_path_rna_pointer(screen, *all_library, *item);
-  if (path_ptr.data == nullptr) {
-    return;
-  }
   uiItemS(&layout);
   uiLayout *col = uiLayoutColumn(&layout, false);
-  uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
+  uiLayoutSetContextString(col, "asset_catalog_path", item->catalog_path().str());
   uiItemMContents(col, "OBJECT_MT_add_modifier_catalog_assets");
 }
 

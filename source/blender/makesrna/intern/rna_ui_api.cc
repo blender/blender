@@ -850,11 +850,10 @@ static void rna_uiLayout_template_node_operator_asset_menu_items(uiLayout *layou
 }
 
 static void rna_uiLayout_template_modifier_asset_menu_items(uiLayout *layout,
-                                                            bContext *C,
                                                             const char *catalog_path)
 {
   using namespace blender;
-  ed::object::ui_template_modifier_asset_menu_items(*layout, *C, StringRef(catalog_path));
+  ed::object::ui_template_modifier_asset_menu_items(*layout, StringRef(catalog_path));
 }
 
 static void rna_uiLayout_template_node_operator_root_items(uiLayout *layout, bContext *C)
@@ -2085,7 +2084,6 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna,
                           "template_modifier_asset_menu_items",
                           "rna_uiLayout_template_modifier_asset_menu_items");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_string(func, "catalog_path", nullptr, 0, "", "");
 
   func = RNA_def_function(srna,

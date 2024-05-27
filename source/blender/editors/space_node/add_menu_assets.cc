@@ -145,7 +145,6 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
 
 static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
 {
-  bScreen &screen = *CTX_wm_screen(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   const bNodeTree *edit_tree = snode.edittree;
   if (!edit_tree) {
@@ -158,15 +157,15 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   }
   asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
 
-  const PointerRNA menu_path_ptr = CTX_data_pointer_get(C, "asset_catalog_path");
-  if (RNA_pointer_is_null(&menu_path_ptr)) {
+  const std::optional<blender::StringRefNull> menu_path = CTX_data_string_get(
+      C, "asset_catalog_path");
+  if (!menu_path) {
     return;
   }
-  const asset_system::AssetCatalogPath &menu_path =
-      *static_cast<const asset_system::AssetCatalogPath *>(menu_path_ptr.data);
-
-  const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(menu_path);
-  const asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
+  const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(
+      menu_path->c_str());
+  const asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(
+      menu_path->c_str());
   BLI_assert(catalog_item != nullptr);
 
   if (assets.is_empty() && !catalog_item->has_children()) {
@@ -193,12 +192,6 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     asset::operator_asset_reference_props_set(*asset, op_ptr);
   }
 
-  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
-      asset_system::all_library_reference());
-  if (!all_library) {
-    return;
-  }
-
   const Set<StringRef> all_builtin_menus = get_builtin_menus(edit_tree->type);
 
   catalog_item->foreach_child([&](const asset_system::AssetCatalogTreeItem &item) {
@@ -209,8 +202,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
       uiItemS(layout);
       add_separator = false;
     }
-    asset::draw_menu_for_catalog(
-        screen, *all_library, item, "NODE_MT_node_add_catalog_assets", *layout);
+    asset::draw_menu_for_catalog(item, "NODE_MT_node_add_catalog_assets", *layout);
   });
 }
 
@@ -243,7 +235,6 @@ static void node_add_unassigned_assets_draw(const bContext *C, Menu *menu)
 
 static void add_root_catalogs_draw(const bContext *C, Menu *menu)
 {
-  bScreen &screen = *CTX_wm_screen(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   uiLayout *layout = menu->layout;
   const bNodeTree *edit_tree = snode.edittree;
@@ -269,16 +260,9 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
 
   const Set<StringRef> all_builtin_menus = get_builtin_menus(edit_tree->type);
 
-  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
-      asset_system::all_library_reference());
-  if (!all_library) {
-    return;
-  }
-
   tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
     if (!all_builtin_menus.contains_as(item.catalog_path().str())) {
-      asset::draw_menu_for_catalog(
-          screen, *all_library, item, "NODE_MT_node_add_catalog_assets", *layout);
+      asset::draw_menu_for_catalog(item, "NODE_MT_node_add_catalog_assets", *layout);
     }
   });
 
@@ -327,7 +311,6 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
                                        const bContext &C,
                                        const StringRef catalog_path)
 {
-  bScreen &screen = *CTX_wm_screen(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   if (snode.runtime->assets_for_menu == nullptr) {
     return;
@@ -337,17 +320,8 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
   if (!item) {
     return;
   }
-  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
-      asset_system::all_library_reference());
-  if (!all_library) {
-    return;
-  }
-  PointerRNA path_ptr = asset::persistent_catalog_path_rna_pointer(screen, *all_library, *item);
-  if (path_ptr.data == nullptr) {
-    return;
-  }
   uiLayout *col = uiLayoutColumn(&layout, false);
-  uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
+  uiLayoutSetContextString(col, "asset_catalog_path", item->catalog_path().str());
   uiItemMContents(col, "NODE_MT_node_add_catalog_assets");
 }
 

@@ -137,35 +137,12 @@ const asset_system::AssetRepresentation *operator_asset_reference_props_get_asse
   return find_asset_from_weak_ref(C, weak_ref, reports);
 }
 
-PointerRNA persistent_catalog_path_rna_pointer(const bScreen &owner_screen,
-                                               const asset_system::AssetLibrary &library,
-                                               const asset_system::AssetCatalogTreeItem &item)
-{
-  const asset_system::AssetCatalog *catalog = library.catalog_service().find_catalog_by_path(
-      item.catalog_path());
-  if (!catalog) {
-    return PointerRNA_NULL;
-  }
-
-  const asset_system::AssetCatalogPath &path = catalog->path;
-  return {&const_cast<ID &>(owner_screen.id),
-          &RNA_AssetCatalogPath,
-          const_cast<asset_system::AssetCatalogPath *>(&path)};
-}
-
-void draw_menu_for_catalog(const bScreen &owner_screen,
-                           const asset_system::AssetLibrary &library,
-                           const asset_system::AssetCatalogTreeItem &item,
+void draw_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
                            const StringRefNull menu_name,
                            uiLayout &layout)
 {
-  PointerRNA path_ptr = asset::persistent_catalog_path_rna_pointer(owner_screen, library, item);
-  if (path_ptr.data == nullptr) {
-    return;
-  }
-
   uiLayout *col = uiLayoutColumn(&layout, false);
-  uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
+  uiLayoutSetContextString(col, "asset_catalog_path", item.catalog_path().c_str());
   uiItemM(col, menu_name.c_str(), IFACE_(item.get_name().c_str()), ICON_NONE);
 }
 
