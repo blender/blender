@@ -2512,7 +2512,7 @@ static void rna_property_boolean_get_default_array_values(PointerRNA *ptr,
                                                           BoolPropertyRNA *bprop,
                                                           bool *r_values)
 {
-  if (bprop->get_default_array) {
+  if (ptr->data && bprop->get_default_array) {
     bprop->get_default_array(ptr, &bprop->property, r_values);
     return;
   }
@@ -2862,7 +2862,7 @@ static void rna_property_int_get_default_array_values(PointerRNA *ptr,
                                                       IntPropertyRNA *iprop,
                                                       int *r_values)
 {
-  if (iprop->get_default_array) {
+  if (ptr->data && iprop->get_default_array) {
     iprop->get_default_array(ptr, &iprop->property, r_values);
     return;
   }
@@ -3223,7 +3223,7 @@ static void rna_property_float_get_default_array_values(PointerRNA *ptr,
                                                         FloatPropertyRNA *fprop,
                                                         float *r_values)
 {
-  if (fprop->get_default_array) {
+  if (ptr->data && fprop->get_default_array) {
     fprop->get_default_array(ptr, &fprop->property, r_values);
     return;
   }
