@@ -33,6 +33,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "wm_event_system.hh"
+
 static const EnumPropertyItem event_mouse_type_items[] = {
     {LEFTMOUSE, "LEFTMOUSE", 0, "Left", ""},
     {MIDDLEMOUSE, "MIDDLEMOUSE", 0, "Middle", ""},
@@ -911,6 +913,25 @@ static void rna_Window_view_layer_set(PointerRNA *ptr, PointerRNA value, ReportL
   ViewLayer *view_layer = static_cast<ViewLayer *>(value.data);
 
   WM_window_set_active_view_layer(win, view_layer);
+}
+
+static bool rna_Window_modal_handler_skip(CollectionPropertyIterator * /*iter*/, void *data)
+{
+  const wmEventHandler_Op *handler = (wmEventHandler_Op *)data;
+  return handler->head.type != WM_HANDLER_TYPE_OP;
+}
+
+static void rna_Window_modal_operators_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  wmWindow *window = static_cast<wmWindow *>(ptr->data);
+  rna_iterator_listbase_begin(iter, &window->modalhandlers, rna_Window_modal_handler_skip);
+}
+
+static PointerRNA rna_Window_modal_operators_get(CollectionPropertyIterator *iter)
+{
+  const wmEventHandler_Op *handler = static_cast<wmEventHandler_Op *>(
+      rna_iterator_listbase_get(iter));
+  return RNA_pointer_create(iter->parent.owner_id, &RNA_Operator, handler->op);
 }
 
 static void rna_KeyMap_modal_event_values_items_begin(CollectionPropertyIterator *iter,
@@ -2514,6 +2535,20 @@ static void rna_def_window(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "Stereo3dDisplay");
   RNA_def_property_ui_text(prop, "Stereo 3D Display", "Settings for stereo 3D display");
+
+  prop = RNA_def_property(srna, "modal_operators", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Operator");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Window_modal_operators_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_Window_modal_operators_get",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_ui_text(prop, "Modal Operators", "A list of currently running modal operators");
 
   RNA_api_window(srna);
 }
