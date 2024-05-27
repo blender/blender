@@ -35,7 +35,7 @@ struct ClosureLight {
 /* Represent an approximation of a bunch of rays from a BSDF. */
 struct LightProbeRay {
   /* Average direction of sampled rays or its approximation.
-   * Magnitude will reduce directionnality of spherical harmonic evaluation. */
+   * Magnitude will reduce directionality of spherical harmonic evaluation. */
   vec3 dominant_direction;
   /* Perceptual roughness in [0..1] range.
    * Modulate blur level of spherical probe and blend between sphere probe and spherical harmonic

@@ -54,10 +54,11 @@ struct IDProperty;
  */
 struct RNAPath {
   std::string path;
-
-  /* Key/index for array and collection properties. Any combination of index and
-   * key can be specfied (including neither). In the case that both are
-   * specified, they should be redundant ways to access the same element. */
+  /**
+   * Key/index for array and collection properties. Any combination of index and
+   * key can be specified (including neither). In the case that both are
+   * specified, they should be redundant ways to access the same element.
+   */
   std::optional<std::string> key = std::nullopt;
   std::optional<int> index = std::nullopt;
 };

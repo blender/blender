@@ -1680,7 +1680,7 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
 
     if (key->type == KEY_RELATIVE) {
       /* TODO: This currently doesn't take into account the animatable "Range Min/Max" keys on the
-       * keyblocks. */
+       * key-blocks. */
 
       /* loop through the channels adding ShapeKeys as appropriate */
       LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
