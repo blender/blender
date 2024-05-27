@@ -493,6 +493,12 @@ const EnumPropertyItem rna_enum_operator_type_flag_items[] = {
      "before beginning the operation"},
     {OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},
     {OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
+    {OPTYPE_MODAL_PRIORITY,
+     "MODAL_PRIORITY",
+     0,
+     "Modal Priority",
+     "Handle events before other modal operators without this option. Use with caution, do not "
+     "modify data that other modal operators assume is unchanged during their operation"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

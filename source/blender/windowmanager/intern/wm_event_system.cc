@@ -2466,6 +2466,36 @@ static void wm_event_modalkeymap_end(wmEvent *event, const wmEvent_ModalMapStore
 }
 
 /**
+ * Insert modal operator into list of modal handlers, respecting priority.
+ */
+static void wm_handler_operator_insert(wmWindow *win, wmEventHandler_Op *handler)
+{
+  if (handler->op->type->flag & OPTYPE_MODAL_PRIORITY) {
+    BLI_addhead(&win->modalhandlers, handler);
+    return;
+  }
+
+  LISTBASE_FOREACH (wmEventHandler *, handler_iter, &win->modalhandlers) {
+    if (handler_iter->type == WM_HANDLER_TYPE_UI) {
+      /* UI always has priority. */
+      continue;
+    }
+    if (handler_iter->type == WM_HANDLER_TYPE_OP) {
+      wmEventHandler_Op *handler_iter_op = (wmEventHandler_Op *)handler_iter;
+      if (handler_iter_op->op->type->flag & OPTYPE_MODAL_PRIORITY) {
+        /* Keep priority operators in front. */
+        continue;
+      }
+
+      BLI_insertlinkbefore(&win->modalhandlers, handler_iter, handler);
+      return;
+    }
+  }
+
+  BLI_addtail(&win->modalhandlers, handler);
+}
+
+/**
  * \warning this function removes a modal handler, when finished.
  */
 static eHandlerActionFlag wm_handler_operator_call(bContext *C,
@@ -4373,7 +4403,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   handler->context.area = root_area;
   handler->context.region = root_region;
 
-  BLI_addhead(&root_win->modalhandlers, handler);
+  wm_handler_operator_insert(root_win, handler);
 
   /* Check props once before invoking if check is available
    * ensures initial properties are valid. */
@@ -4476,7 +4506,7 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
   handler->context.region_type = handler->context.region ? handler->context.region->regiontype :
                                                            -1;
 
-  BLI_addhead(&win->modalhandlers, handler);
+  wm_handler_operator_insert(win, handler);
 
   if (op->type->modalkeymap) {
     WM_window_status_area_tag_redraw(win);
