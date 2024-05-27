@@ -81,11 +81,20 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   }
 
   /* return pdf */
-  if (S != 0.0f) {
-    return 1.0f / S;
+  if (S < 1e-5f || reduce_min(sqr(nz)) > 0.99999f) {
+    /* The solid angle is too small to be computed accurately in single precision.
+     * As a fallback, approximate it using the planar sampling PDF,
+     * for such tiny lights the difference is irrelevant.
+     *
+     * A threshold of 1e-5 was found to be the smallest option that avoids structured
+     * artifacts at all tested parameter combinations. The additional check of nz is
+     * needed for the case where the light is viewed from grazing angles, see e.g. #98930.
+     */
+    const float t = len(dir);
+    return -t * t * t / (z0 * len_u * len_v);
   }
   else {
-    return 0.0f;
+    return 1.0f / S;
   }
 }
 
