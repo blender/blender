@@ -393,7 +393,7 @@ void USDCurvesWriter::write_generic_data(const bke::CurvesGeometry &curves,
                 RPT_WARNING,
                 "Attribute '%s' (Blender domain %d, type %d) cannot be converted to USD",
                 std::string(attribute_id.name()).c_str(),
-                meta_data.domain,
+                int(meta_data.domain),
                 meta_data.data_type);
     return;
   }
