@@ -190,6 +190,8 @@ enum eV3DDepthOverrideMode {
   V3D_DEPTH_GPENCIL_ONLY,
   /** Redraw viewport with active object only. */
   V3D_DEPTH_OBJECT_ONLY,
+  /** Redraw viewport with objects from the supplied collection only. */
+  V3D_DEPTH_SELECTED_ONLY,
 
 };
 /**

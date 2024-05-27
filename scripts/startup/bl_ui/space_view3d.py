@@ -7955,6 +7955,8 @@ class VIEW3D_PT_gpencil_origin(Panel):
             row = layout.row()
             if context.preferences.experimental.use_grease_pencil_version3:
                 row.prop(tool_settings, "gpencil_surface_offset", text="")
+                row = layout.row()
+                row.prop(tool_settings, "use_gpencil_project_only_selected")
             else:
                 row.prop(gpd, "zdepth_offset", text="")
 

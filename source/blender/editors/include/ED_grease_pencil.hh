@@ -87,6 +87,7 @@ class DrawingPlacement {
   DrawingPlacementDepth depth_;
   DrawingPlacementPlane plane_;
   ViewDepths *depth_cache_ = nullptr;
+  bool use_project_only_selected_ = false;
   float surface_offset_;
 
   float3 placement_loc_;

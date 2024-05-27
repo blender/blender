@@ -651,15 +651,19 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       if (annotation_project_check(p)) {
         View3D *v3d = static_cast<View3D *>(p->area->spacedata.first);
 
+        eV3DDepthOverrideMode mode = V3D_DEPTH_GPENCIL_ONLY;
+
+        if (ts->annotate_v3d_align & GP_PROJECT_DEPTH_VIEW) {
+          if (ts->annotate_v3d_align & GP_PROJECT_DEPTH_ONLY_SELECTED) {
+            mode = V3D_DEPTH_SELECTED_ONLY;
+          }
+          else {
+            mode = V3D_DEPTH_NO_OVERLAYS;
+          }
+        }
+
         view3d_region_operator_needs_opengl(p->win, p->region);
-        ED_view3d_depth_override(p->depsgraph,
-                                 p->region,
-                                 v3d,
-                                 nullptr,
-                                 (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
-                                     V3D_DEPTH_GPENCIL_ONLY :
-                                     V3D_DEPTH_NO_GPENCIL,
-                                 nullptr);
+        ED_view3d_depth_override(p->depsgraph, p->region, v3d, nullptr, mode, nullptr);
       }
 
       /* convert screen-coordinates to appropriate coordinates (and store them) */
@@ -1679,16 +1683,20 @@ static void annotation_paint_strokeend(tGPsdata *p)
   if (annotation_project_check(p)) {
     View3D *v3d = static_cast<View3D *>(p->area->spacedata.first);
 
+    eV3DDepthOverrideMode mode = V3D_DEPTH_GPENCIL_ONLY;
+
+    if (ts->annotate_v3d_align & GP_PROJECT_DEPTH_VIEW) {
+      if (ts->annotate_v3d_align & GP_PROJECT_DEPTH_ONLY_SELECTED) {
+        mode = V3D_DEPTH_SELECTED_ONLY;
+      }
+      else {
+        mode = V3D_DEPTH_NO_OVERLAYS;
+      }
+    }
     /* need to restore the original projection settings before packing up */
     view3d_region_operator_needs_opengl(p->win, p->region);
-    ED_view3d_depth_override(p->depsgraph,
-                             p->region,
-                             v3d,
-                             nullptr,
-                             (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
-                                 V3D_DEPTH_GPENCIL_ONLY :
-                                 V3D_DEPTH_NO_GPENCIL,
-                             is_eraser ? nullptr : &p->depths);
+    ED_view3d_depth_override(
+        p->depsgraph, p->region, v3d, nullptr, mode, is_eraser ? nullptr : &p->depths);
   }
 
   /* check if doing eraser or not */

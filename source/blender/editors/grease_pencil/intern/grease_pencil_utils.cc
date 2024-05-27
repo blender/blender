@@ -78,6 +78,9 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
     }
     else if (align_flag & GP_PROJECT_DEPTH_VIEW) {
       depth_ = DrawingPlacementDepth::Surface;
+      if (align_flag & GP_PROJECT_DEPTH_ONLY_SELECTED) {
+        use_project_only_selected_ = true;
+      }
       surface_offset_ = scene.toolsettings->gpencil_surface_offset;
       /* Default to view placement with the object origin if we don't hit a surface. */
       placement_loc_ = layer_space_to_world_space_.location();
@@ -130,9 +133,16 @@ bool DrawingPlacement::use_project_to_nearest_stroke() const
 
 void DrawingPlacement::cache_viewport_depths(Depsgraph *depsgraph, ARegion *region, View3D *view3d)
 {
-  const eV3DDepthOverrideMode mode = (depth_ == DrawingPlacementDepth::Surface) ?
-                                         V3D_DEPTH_NO_OVERLAYS :
-                                         V3D_DEPTH_GPENCIL_ONLY;
+  eV3DDepthOverrideMode mode = V3D_DEPTH_GPENCIL_ONLY;
+
+  if (use_project_to_surface()) {
+    if (use_project_only_selected_) {
+      mode = V3D_DEPTH_SELECTED_ONLY;
+    }
+    else {
+      mode = V3D_DEPTH_NO_OVERLAYS;
+    }
+  }
   ED_view3d_depth_override(depsgraph, region, view3d, nullptr, mode, &this->depth_cache_);
 }
 
