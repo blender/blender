@@ -1166,18 +1166,38 @@ int Layer::sorted_keys_index_at(const int frame_number) const
 
 const GreasePencilFrame *Layer::frame_at(const int frame_number) const
 {
-  const std::optional<FramesMapKeyT> frame_key = this->frame_key_at(frame_number);
-  return frame_key ? this->frames().lookup_ptr(*frame_key) : nullptr;
+  const GreasePencilFrame *frame_ptr = [&]() -> const GreasePencilFrame * {
+    if (const GreasePencilFrame *frame = this->frames().lookup_ptr(frame_number)) {
+      return frame;
+    }
+    /* Look for a keyframe that starts before `frame_number` and ends after `frame_number`. */
+    const std::optional<FramesMapKeyT> frame_key = this->frame_key_at(frame_number);
+    if (!frame_key) {
+      return nullptr;
+    }
+    return this->frames().lookup_ptr(*frame_key);
+  }();
+  if (frame_ptr == nullptr || frame_ptr->is_end()) {
+    /* Not a valid frame. */
+    return nullptr;
+  }
+  return frame_ptr;
 }
 
 GreasePencilFrame *Layer::frame_at(const int frame_number)
 {
-  const std::optional<FramesMapKeyT> frame_key = this->frame_key_at(frame_number);
-  if (!frame_key) {
-    return nullptr;
-  }
-  GreasePencilFrame *frame_ptr = this->frames_for_write().lookup_ptr(*frame_key);
-  if (frame_ptr->is_end()) {
+  GreasePencilFrame *frame_ptr = [&]() -> GreasePencilFrame * {
+    if (GreasePencilFrame *frame = this->frames_for_write().lookup_ptr(frame_number)) {
+      return frame;
+    }
+    /* Look for a keyframe that starts before `frame_number`. */
+    const std::optional<FramesMapKeyT> frame_key = this->frame_key_at(frame_number);
+    if (!frame_key) {
+      return nullptr;
+    }
+    return this->frames_for_write().lookup_ptr(*frame_key);
+  }();
+  if (frame_ptr == nullptr || frame_ptr->is_end()) {
     /* Not a valid frame. */
     return nullptr;
   }
