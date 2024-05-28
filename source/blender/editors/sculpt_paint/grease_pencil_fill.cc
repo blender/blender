@@ -971,7 +971,6 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   GPU_depth_mask(true);
   image_render::set_viewmat(view_context, scene, image_size, zoom, offset);
 
-  const eGP_FillDrawModes fill_draw_mode = GP_FILL_DMODE_BOTH;
   const float alpha_threshold = 0.2f;
   const bool brush_fill_hide = false;
   const bool use_xray = false;
@@ -1017,7 +1016,6 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                              curve_mask,
                                              colors,
                                              layer_to_world,
-                                             fill_draw_mode,
                                              use_xray,
                                              radius_scale);
   }

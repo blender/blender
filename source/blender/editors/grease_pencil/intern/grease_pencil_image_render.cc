@@ -10,6 +10,7 @@
 #include "BKE_camera.h"
 #include "BKE_curves.hh"
 #include "BKE_image.h"
+#include "BKE_material.h"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
@@ -259,6 +260,8 @@ static GPUUniformBuf *create_shader_ubo(const RegionView3D &rv3d,
   return GPU_uniformbuf_create_ex(sizeof(GPencilStrokeData), &data, __func__);
 }
 
+constexpr const float min_stroke_thickness = 0.05f;
+
 void draw_grease_pencil_stroke(const RegionView3D &rv3d,
                                const int2 &win_size,
                                const Object &object,
@@ -297,10 +300,9 @@ void draw_grease_pencil_stroke(const RegionView3D &rv3d,
     constexpr const float radius_to_pixel_factor =
         1.0f / bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
     const float thickness = radii[point_i] * radius_scale * radius_to_pixel_factor;
-    constexpr const float min_thickness = 0.05f;
 
     immAttr4fv(attr_color, colors[point_i]);
-    immAttr1f(attr_thickness, std::max(thickness, min_thickness));
+    immAttr1f(attr_thickness, std::max(thickness, min_stroke_thickness));
     immVertex3fv(attr_pos, math::transform_point(layer_to_world, positions[point_i]));
   };
 
@@ -335,10 +337,38 @@ void draw_dots(const IndexRange indices,
                Span<float3> positions,
                const VArray<float> &radii,
                const VArray<ColorGeometry4f> &colors,
-               const float4x4 &layer_to_world)
+               const float4x4 &layer_to_world,
+               const float radius_scale)
 {
-  /* TODO */
-  UNUSED_VARS(indices, positions, radii, colors, layer_to_world);
+  if (indices.is_empty()) {
+    return;
+  }
+
+  GPUVertFormat *format = immVertexFormat();
+  const uint attr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  const uint attr_size = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  const uint attr_color = GPU_vertformat_attr_add(
+      format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+  GPU_program_point_size(true);
+
+  immBegin(GPU_PRIM_POINTS, indices.size());
+
+  for (const int point_i : indices) {
+    constexpr const float radius_to_pixel_factor =
+        1.0f / bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+    const float thickness = radii[point_i] * radius_scale * radius_to_pixel_factor;
+
+    immAttr4fv(attr_color, colors[point_i]);
+    /* Note: extra factor 0.5 for point size to match rendering. */
+    immAttr1f(attr_size, std::max(thickness, min_stroke_thickness) * 0.5f);
+    immVertex3fv(attr_pos, math::transform_point(layer_to_world, positions[point_i]));
+  }
+
+  immEnd();
+  immUnbindProgram();
+  GPU_program_point_size(false);
 }
 
 void draw_grease_pencil_strokes(const RegionView3D &rv3d,
@@ -348,7 +378,6 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                 const IndexMask &strokes_mask,
                                 const VArray<ColorGeometry4f> &colors,
                                 const float4x4 &layer_to_world,
-                                const int mode,
                                 const bool use_xray,
                                 const float radius_scale)
 {
@@ -368,10 +397,24 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
       "start_cap", bke::AttrDomain::Curve, GP_STROKE_CAP_ROUND);
   const VArray<int8_t> stroke_end_caps = *attributes.lookup_or_default<int8_t>(
       "end_cap", bke::AttrDomain::Curve, GP_STROKE_CAP_ROUND);
+  const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
 
   /* Note: Serial loop without GrainSize, since immediate mode drawing can't happen in worker
    * threads, has to be from the main thread. */
   strokes_mask.foreach_index([&](const int stroke_i) {
+    /* Check if the color is visible. */
+    const int material_index = materials[stroke_i];
+    const Material *mat = BKE_object_material_get(const_cast<Object *>(&object),
+                                                  material_index + 1);
+    const eMaterialGPencilStyle_Mode stroke_mode = mat && mat->gp_style ?
+                                                       eMaterialGPencilStyle_Mode(
+                                                           mat->gp_style->mode) :
+                                                       GP_MATERIAL_MODE_LINE;
+
+    if (mat == 0 || (mat->gp_style->flag & GP_MATERIAL_HIDE)) {
+      return;
+    }
+
     if (!use_xray) {
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
@@ -380,7 +423,7 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
       GPU_polygon_offset(1.0f, 1.0f);
     }
 
-    switch (eMaterialGPencilStyle_Mode(mode)) {
+    switch (eMaterialGPencilStyle_Mode(stroke_mode)) {
       case GP_MATERIAL_MODE_LINE:
         draw_grease_pencil_stroke(rv3d,
                                   win_size,
@@ -398,7 +441,9 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
         break;
       case GP_MATERIAL_MODE_DOT:
       case GP_MATERIAL_MODE_SQUARE:
-        draw_dots(points_by_curve[stroke_i], positions, radii, colors, layer_to_world);
+        /* Note: Squares don't have their own shader, render as dots too. */
+        draw_dots(
+            points_by_curve[stroke_i], positions, radii, colors, layer_to_world, radius_scale);
         break;
     }
 
