@@ -23,6 +23,7 @@
 
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
@@ -580,16 +581,77 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 /** \name Generic Extension Repository Utilities
  * \{ */
 
-static bool preferences_extension_repo_remote_active_enabled_poll(bContext *C)
+static bool preferences_extension_check_for_updates_enabled_poll(bContext *C)
 {
   const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
       &U, U.active_extension_repo);
-  if (repo == nullptr || (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) ||
-      !(repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL))
-  {
-    CTX_wm_operator_poll_msg_set(C, "An enabled remote repository must be selected");
+
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
+      CTX_wm_operator_poll_msg_set(
+          C, "Online access required to check for updates. Launch Blender without --offline-mode");
+    }
+    else {
+      CTX_wm_operator_poll_msg_set(C,
+                                   "Online access required to check for updates. Enable online "
+                                   "access in System preferences");
+    }
     return false;
   }
+
+  if (repo == nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "No repositories available");
+    return false;
+  }
+
+  if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
+    CTX_wm_operator_poll_msg_set(C, "Local repositories do not require refreshing");
+    return false;
+  }
+
+  if ((repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) != 0) {
+    CTX_wm_operator_poll_msg_set(C, "Active repository is disabled");
+    return false;
+  }
+
+  return true;
+}
+
+static bool preferences_extension_install_updates_enabled_poll(bContext *C)
+{
+  const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
+      &U, U.active_extension_repo);
+
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
+      CTX_wm_operator_poll_msg_set(
+          C, "Online access required to install updates. Launch Blender without --offline-mode");
+    }
+    else {
+      CTX_wm_operator_poll_msg_set(C,
+                                   "Online access required to install updates. Enable online "
+                                   "access in System preferences");
+    }
+    return false;
+  }
+
+  if (repo == nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "No repositories available");
+    return false;
+  }
+
+  if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
+    CTX_wm_operator_poll_msg_set(C,
+                                 "Local repositories do not require manual update. Reload scripts "
+                                 "or restart Blender to see any updates");
+    return false;
+  }
+
+  if ((repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) != 0) {
+    CTX_wm_operator_poll_msg_set(C, "Active repository is disabled");
+    return false;
+  }
+
   return true;
 }
 
@@ -755,10 +817,10 @@ static void PREFERENCES_OT_extension_repo_sync(wmOperatorType *ot)
 {
   ot->name = "Check for Updates";
   ot->idname = "PREFERENCES_OT_extension_repo_sync";
-  ot->description = "Synchronize the active extension repository with its remote URL";
+  ot->description = "Refresh the list of extensions for the active repository";
 
   ot->exec = preferences_extension_repo_sync_exec;
-  ot->poll = preferences_extension_repo_remote_active_enabled_poll;
+  ot->poll = preferences_extension_check_for_updates_enabled_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -781,10 +843,9 @@ static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 {
   ot->name = "Install Available Updates for Repository";
   ot->idname = "PREFERENCES_OT_extension_repo_upgrade";
-  ot->description = "Update any outdated extensions for the active extension repository";
-
+  ot->description = "Upgrade all the extensions to their latest version for the active repository";
   ot->exec = preferences_extension_repo_upgrade_exec;
-  ot->poll = preferences_extension_repo_remote_active_enabled_poll;
+  ot->poll = preferences_extension_install_updates_enabled_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }

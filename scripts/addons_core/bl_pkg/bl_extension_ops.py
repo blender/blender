@@ -1029,8 +1029,9 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
 
 
 class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
+    """Refresh the list of extensions for all the remote repositories"""
     bl_idname = "bl_pkg.repo_sync_all"
-    bl_label = "Ext Repo Sync All"
+    bl_label = "Check for Updates"
     __slots__ = _BlPkgCmdMixIn.cls_slots
 
     use_active_only: BoolProperty(
@@ -1038,13 +1039,27 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
         description="Only sync the active repository",
     )
 
+    @classmethod
+    def poll(cls, context):
+        if not bpy.app.online_access:
+            if bpy.app.online_access_override:
+                cls.poll_message_set(
+                    "Online access required to check for updates. Launch Blender without --offline-mode")
+            else:
+                cls.poll_message_set(
+                    "Online access required to check for updates. Enable online access in System preferences")
+            return False
+
+        repos_all = extension_repos_read(use_active_only=False)
+        if not len(repos_all):
+            cls.poll_message_set("No repositories available")
+            return False
+
+        return True
+
     def exec_command_iter(self, is_modal):
         use_active_only = self.use_active_only
         repos_all = extension_repos_read(use_active_only=use_active_only)
-
-        if not repos_all:
-            self.report({'INFO'}, "No repositories to sync")
-            return None
 
         for repo_item in repos_all:
             if not os.path.exists(repo_item.directory):
@@ -1098,6 +1113,7 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
 
 
 class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
+    """Upgrade all the extensions to their latest version for all the remote repositories"""
     bl_idname = "bl_pkg.pkg_upgrade_all"
     bl_label = "Ext Package Upgrade All"
     __slots__ = _BlPkgCmdMixIn.cls_slots + (
@@ -1109,6 +1125,23 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
         description="Only sync the active repository",
     )
 
+    @classmethod
+    def poll(cls, context):
+        if not bpy.app.online_access:
+            if bpy.app.online_access_override:
+                cls.poll_message_set("Online access required to install updates. Launch Blender without --offline-mode")
+            else:
+                cls.poll_message_set(
+                    "Online access required to install updates. Enable online access in System preferences")
+            return False
+
+        repos_all = extension_repos_read(use_active_only=False)
+        if not len(repos_all):
+            cls.poll_message_set("No repositories available")
+            return False
+
+        return True
+
     def exec_command_iter(self, is_modal):
         from . import repo_cache_store
         self._repo_directories = set()
@@ -1118,10 +1151,6 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
         use_active_only = self.use_active_only
         repos_all = extension_repos_read(use_active_only=use_active_only)
         repo_directory_supset = [repo_entry.directory for repo_entry in repos_all] if use_active_only else None
-
-        if not repos_all:
-            self.report({'INFO'}, "No repositories to upgrade")
-            return None
 
         # NOTE: Unless we have a "clear-cache" operator - there isn't a great place to apply cache-clearing.
         # So when cache is disabled simply clear all cache before performing an update.
