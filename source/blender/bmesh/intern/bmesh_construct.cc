@@ -320,20 +320,20 @@ void BM_elem_attrs_copy(BMesh *bm, const BMCustomDataCopyMap &map, const BMVert 
 {
   BLI_assert(src != dst);
   CustomData_bmesh_copy_block(bm->vdata, map, src->head.data, &dst->head.data);
-  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  dst->head.hflag = (dst->head.hflag & BM_ELEM_SELECT) | (src->head.hflag & ~BM_ELEM_SELECT);
   copy_v3_v3(dst->no, src->no);
 }
 void BM_elem_attrs_copy(BMesh *bm, const BMCustomDataCopyMap &map, const BMEdge *src, BMEdge *dst)
 {
   BLI_assert(src != dst);
   CustomData_bmesh_copy_block(bm->edata, map, src->head.data, &dst->head.data);
-  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  dst->head.hflag = (dst->head.hflag & BM_ELEM_SELECT) | (src->head.hflag & ~BM_ELEM_SELECT);
 }
 void BM_elem_attrs_copy(BMesh *bm, const BMCustomDataCopyMap &map, const BMFace *src, BMFace *dst)
 {
   BLI_assert(src != dst);
   CustomData_bmesh_copy_block(bm->pdata, map, src->head.data, &dst->head.data);
-  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  dst->head.hflag = (dst->head.hflag & BM_ELEM_SELECT) | (src->head.hflag & ~BM_ELEM_SELECT);
   copy_v3_v3(dst->no, src->no);
   dst->mat_nr = src->mat_nr;
 }
@@ -341,7 +341,7 @@ void BM_elem_attrs_copy(BMesh *bm, const BMCustomDataCopyMap &map, const BMLoop 
 {
   BLI_assert(src != dst);
   CustomData_bmesh_copy_block(bm->ldata, map, src->head.data, &dst->head.data);
-  dst->head.hflag = src->head.hflag & ~BM_ELEM_SELECT;
+  dst->head.hflag = (dst->head.hflag & BM_ELEM_SELECT) | (src->head.hflag & ~BM_ELEM_SELECT);
 }
 
 void BM_elem_attrs_copy(BMesh *bm, const BMVert *src, BMVert *dst)
