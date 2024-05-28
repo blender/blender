@@ -264,6 +264,7 @@ class RepoItem(NamedTuple):
     remote_url: str
     module: str
     use_cache: bool
+    access_token: str
 
 
 def repo_cache_store_refresh_from_prefs(include_disabled=False):
@@ -483,6 +484,7 @@ def extension_repos_read_index(index, *, include_disabled=False):
                 remote_url=remote_url,
                 module=repo_item.module,
                 use_cache=repo_item.use_cache,
+                access_token=repo_item.access_token if repo_item.use_access_token else "",
             )
         index_test += 1
     return None
@@ -519,6 +521,7 @@ def extension_repos_read(*, include_disabled=False, use_active_only=False):
             remote_url=remote_url,
             module=repo_item.module,
             use_cache=repo_item.use_cache,
+            access_token=repo_item.access_token if repo_item.use_access_token else "",
         ))
     return result
 
@@ -1002,6 +1005,7 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
                     directory=directory,
                     remote_url=repo_item.remote_url,
                     online_user_agent=online_user_agent_from_blender(),
+                    access_token=repo_item.access_token,
                     use_idle=is_modal,
                 )
             )
@@ -1078,6 +1082,7 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
                     directory=repo_item.directory,
                     remote_url=repo_item.remote_url,
                     online_user_agent=online_user_agent_from_blender(),
+                    access_token=repo_item.access_token,
                     use_idle=is_modal,
                 ))
 
@@ -1206,6 +1211,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
                 remote_url=repo_item.remote_url,
                 pkg_id_sequence=pkg_id_sequence,
                 online_user_agent=online_user_agent_from_blender(),
+                access_token=repo_item.access_token,
                 use_cache=repo_item.use_cache,
                 use_idle=is_modal,
             ))
@@ -1305,6 +1311,7 @@ class BlPkgPkgInstallMarked(Operator, _BlPkgCmdMixIn):
                 remote_url=repo_item.remote_url,
                 pkg_id_sequence=pkg_id_sequence,
                 online_user_agent=online_user_agent_from_blender(),
+                access_token=repo_item.access_token,
                 use_cache=repo_item.use_cache,
                 use_idle=is_modal,
             ))
@@ -1822,6 +1829,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
                     remote_url=repo_item.remote_url,
                     pkg_id_sequence=(pkg_id,),
                     online_user_agent=online_user_agent_from_blender(),
+                    access_token=repo_item.access_token,
                     use_cache=repo_item.use_cache,
                     use_idle=is_modal,
                 )

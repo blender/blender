@@ -170,6 +170,7 @@ def sync_status_generator(repos_notify):
             directory=repo_item.directory,
             remote_url=repo_item.remote_url,
             online_user_agent=bl_extension_ops.online_user_agent_from_blender(),
+            access_token=repo_item.access_token if repo_item.use_access_token else "",
             # Never sleep while there is no input, as this blocks Blender.
             use_idle=False,
             # Needed so the user can exit blender without warnings about a broken pipe.
