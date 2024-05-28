@@ -834,6 +834,9 @@ void RE_InitState(Render *re,
     STRNCPY(re->single_view_layer, single_layer->name);
     re->r.scemode |= R_SINGLE_LAYER;
   }
+  else {
+    re->r.scemode &= ~R_SINGLE_LAYER;
+  }
 
   /* if preview render, we try to keep old result */
   BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
