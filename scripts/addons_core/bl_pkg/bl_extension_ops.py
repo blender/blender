@@ -1754,7 +1754,7 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
 
 
 class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
-    """Download, install and enable the extension"""
+    """Download and install the extension"""
     bl_idname = "bl_pkg.pkg_install"
     bl_label = "Install Extension"
     __slots__ = _BlPkgCmdMixIn.cls_slots
