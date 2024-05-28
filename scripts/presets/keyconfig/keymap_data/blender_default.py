@@ -6296,6 +6296,7 @@ def km_edit_curves(params):
         ("curves.cyclic_toggle", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         ("curves.handle_type_set", {"type": 'V', "value": 'PRESS'}, None),
         op_menu("VIEW3D_MT_edit_curves_add", {"type": 'A', "value": 'PRESS', "shift": True}),
+        *_template_items_context_menu("VIEW3D_MT_edit_curves_context_menu", params.context_menu_event),
     ])
 
     return keymap
