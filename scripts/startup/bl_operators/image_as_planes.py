@@ -499,11 +499,10 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
         if self.size_mode == 'CAMERA':
             self.prev_align_axis = self.align_axis
             self.align_axis = 'CAM'
-        else:
+        elif self.prev_align_axis != 'NONE':
             # If a different alignment was set revert to that when size mode is changed.
-            if self.prev_align_axis != 'NONE':
-                self.align_axis = self.prev_align_axis
-                self._prev_align_axis = 'NONE'
+            self.align_axis = self.prev_align_axis
+            self.prev_align_axis = 'NONE'
 
     size_mode: EnumProperty(
         name="Size Mode",
