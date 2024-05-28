@@ -377,6 +377,11 @@ void extract_points_subdiv(const MeshRenderData &mr,
                            const DRWSubdivCache &subdiv_cache,
                            gpu::IndexBuf &points);
 
+void extract_edit_data(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_edit_data_subdiv(const MeshRenderData &mr,
+                              const DRWSubdivCache &subdiv_cache,
+                              gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_fdots;
 extern const MeshExtract extract_lines_paint_mask;
 extern const MeshExtract extract_lines_adjacency;
@@ -392,7 +397,6 @@ extern const MeshExtract extract_vcol;
 extern const MeshExtract extract_orco;
 extern const MeshExtract extract_edge_fac;
 extern const MeshExtract extract_weights;
-extern const MeshExtract extract_edit_data;
 extern const MeshExtract extract_edituv_data;
 extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;
