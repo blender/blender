@@ -6159,6 +6159,7 @@ class VIEW3D_MT_edit_curves_control_points(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("curves.extrude_move")
         layout.operator_menu_enum("curves.handle_type_set", "type")
 
 
