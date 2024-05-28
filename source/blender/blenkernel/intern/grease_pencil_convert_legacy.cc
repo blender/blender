@@ -2546,36 +2546,36 @@ static void legacy_object_modifier_build(ConversionData &conversion_data,
   switch (legacy_md_build.time_alignment) {
     default:
     case GP_BUILD_TIMEALIGN_START:
-      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEALIGN_START;
+      md_build.time_alignment = MOD_GREASE_PENCIL_BUILD_TIMEALIGN_START;
       break;
     case GP_BUILD_TIMEALIGN_END:
-      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEALIGN_END;
+      md_build.time_alignment = MOD_GREASE_PENCIL_BUILD_TIMEALIGN_END;
       break;
   }
 
   switch (legacy_md_build.time_mode) {
     default:
     case GP_BUILD_TIMEMODE_FRAMES:
-      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_FRAMES;
+      md_build.time_mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_FRAMES;
       break;
     case GP_BUILD_TIMEMODE_PERCENTAGE:
-      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_PERCENTAGE;
+      md_build.time_mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_PERCENTAGE;
       break;
     case GP_BUILD_TIMEMODE_DRAWSPEED:
-      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED;
+      md_build.time_mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED;
       break;
   }
 
   switch (legacy_md_build.transition) {
     default:
     case GP_BUILD_TRANSITION_GROW:
-      md_build.mode = MOD_GREASE_PENCIL_BUILD_TRANSITION_GROW;
+      md_build.transition = MOD_GREASE_PENCIL_BUILD_TRANSITION_GROW;
       break;
     case GP_BUILD_TRANSITION_SHRINK:
-      md_build.mode = MOD_GREASE_PENCIL_BUILD_TRANSITION_SHRINK;
+      md_build.transition = MOD_GREASE_PENCIL_BUILD_TRANSITION_SHRINK;
       break;
     case GP_BUILD_TRANSITION_VANISH:
-      md_build.mode = MOD_GREASE_PENCIL_BUILD_TRANSITION_VANISH;
+      md_build.transition = MOD_GREASE_PENCIL_BUILD_TRANSITION_VANISH;
       break;
   }
 
