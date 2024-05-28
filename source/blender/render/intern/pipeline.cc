@@ -6,6 +6,8 @@
  * \ingroup render
  */
 
+#include <fmt/format.h>
+
 #include <cerrno>
 #include <climits>
 #include <cmath>
@@ -135,12 +137,12 @@ static struct {
 /** \name Callbacks
  * \{ */
 
-static void render_callback_exec_null(Render *re, Main *bmain, eCbEvent evt)
+static void render_callback_exec_string(Render *re, Main *bmain, eCbEvent evt, const char *str)
 {
   if (re->r.scemode & R_BUTS_PREVIEW) {
     return;
   }
-  BKE_callback_exec_null(bmain, evt);
+  BKE_callback_exec_string(bmain, evt, str);
 }
 
 static void render_callback_exec_id(Render *re, Main *bmain, ID *id, eCbEvent evt)
@@ -205,25 +207,24 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
   BLI_mutex_lock(&mutex);
 
-  fprintf(stdout,
-          RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) "),
-          rs->cfra,
-          megs_used_memory,
-          megs_peak_memory);
-
-  fprintf(stdout, RPT_("| Time:%s | "), info_time_str);
-
-  fprintf(stdout, "%s", rs->infostr);
+  char *message = BLI_sprintfN(RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) | Time:%s | %s"),
+                               rs->cfra,
+                               megs_used_memory,
+                               megs_peak_memory,
+                               info_time_str,
+                               rs->infostr);
+  fprintf(stdout, "%s\n", message);
 
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
-  BKE_callback_exec_null(G_MAIN, BKE_CB_EVT_RENDER_STATS);
+  BKE_callback_exec_string(G_MAIN, BKE_CB_EVT_RENDER_STATS, message);
 
-  fputc('\n', stdout);
   fflush(stdout);
+
+  MEM_freeN(message);
 
   BLI_mutex_unlock(&mutex);
 }
@@ -2213,20 +2214,20 @@ static bool do_write_image_or_movie(Render *re,
   re->i.lastframetime = BLI_time_now_seconds() - re->i.starttime;
 
   BLI_timecode_string_from_time_simple(filepath, sizeof(filepath), re->i.lastframetime);
-  printf("Time: %s", filepath);
+  std::string message = fmt::format("Time: {}", filepath);
 
+  if (do_write_file) {
+    BLI_timecode_string_from_time_simple(
+        filepath, sizeof(filepath), re->i.lastframetime - render_time);
+    message = fmt::format("{} (Saving: {})", message, filepath);
+  }
+  printf("%s\n", message.c_str());
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
-  render_callback_exec_null(re, G_MAIN, BKE_CB_EVT_RENDER_STATS);
-
-  if (do_write_file) {
-    BLI_timecode_string_from_time_simple(
-        filepath, sizeof(filepath), re->i.lastframetime - render_time);
-    printf(" (Saving: %s)\n", filepath);
-  }
+  render_callback_exec_string(re, G_MAIN, BKE_CB_EVT_RENDER_STATS, message.c_str());
 
   fputc('\n', stdout);
   fflush(stdout);
