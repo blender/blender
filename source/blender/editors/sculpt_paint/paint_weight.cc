@@ -1058,7 +1058,7 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
-  const SculptVertexPaintGeomMap *gmap = &ss.mode.wpaint.gmap;
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
 
   const StrokeCache *cache = ss.cache;
 
@@ -1098,7 +1098,7 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
     /* Get the average face weight */
     int total_hit_loops = 0;
     float weight_final = 0.0f;
-    for (const int face : gmap->vert_to_face[vert]) {
+    for (const int face : vert_to_face[vert]) {
       total_hit_loops += ss.faces[face].size();
       for (const int vert : ss.corner_verts.slice(ss.faces[face])) {
         weight_final += wpd.precomputed_weight[vert];
@@ -1146,8 +1146,7 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
-  const SculptVertexPaintGeomMap *gmap = &ss.mode.wpaint.gmap;
-
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache *cache = ss.cache;
   if (!cache->is_last_valid) {
     return;
@@ -1210,7 +1209,7 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
     /* Get the color of the loop in the opposite direction of the brush movement
      * (this callback is specifically for smear.) */
     float weight_final = 0.0;
-    for (const int face : gmap->vert_to_face[vert]) {
+    for (const int face : vert_to_face[vert]) {
       for (const int vert_other : ss.corner_verts.slice(ss.faces[face])) {
         if (vert_other == vert) {
           continue;

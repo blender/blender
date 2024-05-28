@@ -233,13 +233,10 @@ void init_session(
 void init_session_data(const ToolSettings &ts, Object &ob)
 {
   /* Create maps */
-  SculptVertexPaintGeomMap *gmap = nullptr;
   if (ob.mode == OB_MODE_VERTEX_PAINT) {
-    gmap = &ob.sculpt->mode.vpaint.gmap;
     BLI_assert(ob.sculpt->mode_type == OB_MODE_VERTEX_PAINT);
   }
   else if (ob.mode == OB_MODE_WEIGHT_PAINT) {
-    gmap = &ob.sculpt->mode.wpaint.gmap;
     BLI_assert(ob.sculpt->mode_type == OB_MODE_WEIGHT_PAINT);
   }
   else {
@@ -249,8 +246,6 @@ void init_session_data(const ToolSettings &ts, Object &ob)
   }
 
   Mesh *mesh = (Mesh *)ob.data;
-
-  gmap->vert_to_face = mesh->vert_to_face_map();
 
   /* Create average brush arrays */
   if (ob.mode == OB_MODE_WEIGHT_PAINT) {
@@ -1024,7 +1019,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
   const Brush &brush = *ob.sculpt->cache->brush;
   const Scene &scene = *CTX_data_scene(C);
 
-  const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache *cache = ss.cache;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
@@ -1095,7 +1090,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
           int total_hit_loops = 0;
           Blend blend[4] = {0};
 
-          for (const int face : gmap->vert_to_face[vert]) {
+          for (const int face : vert_to_face[vert]) {
             if (!select_poly.is_empty() && !select_poly[face]) {
               return;
             }
@@ -1125,7 +1120,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
           /* For each face owning this vert,
            * paint each loop belonging to this vert. */
-          for (const int face : gmap->vert_to_face[vert]) {
+          for (const int face : vert_to_face[vert]) {
             const int corner = bke::mesh::face_find_corner_from_vert(
                 ss.faces[face], ss.corner_verts, vert);
             if (!select_poly.is_empty() && !select_poly[face]) {
@@ -1166,7 +1161,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
   const Brush &brush = *ss.cache->brush;
   const Scene &scene = *CTX_data_scene(C);
 
-  const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache *cache = ss.cache;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
@@ -1236,7 +1231,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
           int total_hit_loops = 0;
           Blend blend[4] = {0};
 
-          for (const int face : gmap->vert_to_face[vert]) {
+          for (const int face : vert_to_face[vert]) {
             if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
@@ -1296,7 +1291,7 @@ static void do_vpaint_brush_smear(bContext *C,
 {
   SculptSession &ss = *ob.sculpt;
 
-  const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache *cache = ss.cache;
   if (!cache->is_last_valid) {
     return;
@@ -1390,7 +1385,7 @@ static void do_vpaint_brush_smear(bContext *C,
 
           Color color_final(0, 0, 0, 0);
 
-          for (const int face : gmap->vert_to_face[vert]) {
+          for (const int face : vert_to_face[vert]) {
             if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
@@ -1435,7 +1430,7 @@ static void do_vpaint_brush_smear(bContext *C,
 
           /* For each face owning this vert,
            * paint each loop belonging to this vert. */
-          for (const int face : gmap->vert_to_face[vert]) {
+          for (const int face : vert_to_face[vert]) {
 
             int elem_index;
             if (vpd.domain == AttrDomain::Point) {
@@ -1484,7 +1479,7 @@ static void calculate_average_color(VPaintData &vpd,
                                     Span<PBVHNode *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
-  const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
 
   StrokeCache *cache = ss.cache;
   const bool use_vert_sel = (mesh.editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
@@ -1532,9 +1527,9 @@ static void calculate_average_color(VPaintData &vpd,
             continue;
           }
 
-          accum2.len += gmap->vert_to_face[vert].size();
+          accum2.len += vert_to_face[vert].size();
           /* if a vertex is within the brush region, then add its color to the blend. */
-          for (const int face : gmap->vert_to_face[vert]) {
+          for (const int face : vert_to_face[vert]) {
             int elem_index;
             if (vpd.domain == AttrDomain::Corner) {
               elem_index = bke::mesh::face_find_corner_from_vert(
@@ -1604,7 +1599,7 @@ static void vpaint_do_draw(bContext *C,
   const Brush &brush = *ob.sculpt->cache->brush;
   const Scene &scene = *CTX_data_scene(C);
 
-  const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
 
   const StrokeCache *cache = ss.cache;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
@@ -1712,7 +1707,7 @@ static void vpaint_do_draw(bContext *C,
           }
           else {
             /* For each face owning this vert, paint each loop belonging to this vert. */
-            for (const int face : gmap->vert_to_face[vert]) {
+            for (const int face : vert_to_face[vert]) {
               const int corner = bke::mesh::face_find_corner_from_vert(
                   ss.faces[face], ss.corner_verts, vert);
               if (!select_poly.is_empty() && !select_poly[face]) {

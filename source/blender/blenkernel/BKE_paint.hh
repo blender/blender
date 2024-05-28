@@ -275,11 +275,6 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 
 #define SCULPT_FACE_SET_NONE 0
 
-/** Used for both vertex color and weight paint. */
-struct SculptVertexPaintGeomMap {
-  blender::GroupedSpan<int> vert_to_face;
-};
-
 /** Pose Brush IK Chain. */
 struct SculptPoseIKChainSegment {
   blender::float3 orig;
@@ -610,11 +605,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
 
   struct {
     struct {
-      SculptVertexPaintGeomMap gmap;
-    } vpaint;
-
-    struct {
-      SculptVertexPaintGeomMap gmap;
       /* Keep track of how much each vertex has been painted (non-airbrush only). */
       float *alpha_weight;
 
