@@ -2178,6 +2178,14 @@ def km_node_editor(params):
          {"type": 'LEFTMOUSE' if params.legacy else 'RIGHTMOUSE', "value": 'CLICK_DRAG', "ctrl": True}, None),
         ("node.links_mute", {"type": 'RIGHTMOUSE', "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ("node.select_link_viewer", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        # Shortcut is added three times, one for geometry nodes editor, and two for shader editor.
+        # It's duplicated in shader editor so that it can act as stand-in for viewer node until it's added.
+        ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
+         {"properties": [("run_in_geometry_nodes", True)]}),
+        ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
+         {"properties": [("run_in_geometry_nodes", False)]}),
+        ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
+         {"properties": [("run_in_geometry_nodes", False)]}),
         ("node.backimage_move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
         ("node.backimage_zoom", {"type": 'V', "value": 'PRESS', "repeat": True},
          {"properties": [("factor", 1.0 / 1.2)]}),

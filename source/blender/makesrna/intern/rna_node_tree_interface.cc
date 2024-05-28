@@ -1015,6 +1015,14 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
       prop, "Single Value", "Only allow single value inputs rather than fields");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
+  prop = RNA_def_property(srna, "is_inspect_output", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_INTERFACE_SOCKET_INSPECT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop,
+                           "Is Inspect Output",
+                           "Take link out of node group to connect to root tree output node");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
   prop = RNA_def_property(srna, "layer_selection_field", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_INTERFACE_SOCKET_LAYER_SELECTION);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

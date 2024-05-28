@@ -15,6 +15,7 @@ _modules = [
     "anim",
     "assets",
     "clip",
+    "connect_to_output",
     "console",
     "constraint",
     "file",
