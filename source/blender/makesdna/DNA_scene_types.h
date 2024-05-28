@@ -1867,6 +1867,8 @@ typedef struct SceneEEVEE {
   int fast_gi_step_count;
   int fast_gi_ray_count;
   float fast_gi_distance;
+  float fast_gi_thickness_near;
+  float fast_gi_thickness_far;
   char fast_gi_method;
   char _pad0[3];
 
