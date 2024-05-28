@@ -128,17 +128,20 @@ class ContextInputData {
   const bNodeTree *node_tree;
   std::string view_name;
   realtime_compositor::RenderContext *render_context;
+  realtime_compositor::Profiler *profiler;
 
   ContextInputData(const Scene &scene,
                    const RenderData &render_data,
                    const bNodeTree &node_tree,
                    const char *view_name,
-                   realtime_compositor::RenderContext *render_context)
+                   realtime_compositor::RenderContext *render_context,
+                   realtime_compositor::Profiler *profiler)
       : scene(&scene),
         render_data(&render_data),
         node_tree(&node_tree),
         view_name(view_name),
-        render_context(render_context)
+        render_context(render_context),
+        profiler(profiler)
   {
   }
 };
@@ -458,6 +461,11 @@ class Context : public realtime_compositor::Context {
     return input_data_.render_context;
   }
 
+  realtime_compositor::Profiler *profiler() const override
+  {
+    return input_data_.profiler;
+  }
+
   void evaluate_operation_post() const override
   {
     /* If no render context exist, that means this is an interactive compositor evaluation due to
@@ -561,12 +569,13 @@ void Render::compositor_execute(const Scene &scene,
                                 const RenderData &render_data,
                                 const bNodeTree &node_tree,
                                 const char *view_name,
-                                blender::realtime_compositor::RenderContext *render_context)
+                                blender::realtime_compositor::RenderContext *render_context,
+                                blender::realtime_compositor::Profiler *profiler)
 {
   std::unique_lock lock(gpu_compositor_mutex);
 
   blender::render::ContextInputData input_data(
-      scene, render_data, node_tree, view_name, render_context);
+      scene, render_data, node_tree, view_name, render_context, profiler);
 
   if (gpu_compositor == nullptr) {
     gpu_compositor = new blender::render::RealtimeCompositor(*this, input_data);
@@ -590,9 +599,10 @@ void RE_compositor_execute(Render &render,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
                            const char *view_name,
-                           blender::realtime_compositor::RenderContext *render_context)
+                           blender::realtime_compositor::RenderContext *render_context,
+                           blender::realtime_compositor::Profiler *profiler)
 {
-  render.compositor_execute(scene, render_data, node_tree, view_name, render_context);
+  render.compositor_execute(scene, render_data, node_tree, view_name, render_context, profiler);
 }
 
 void RE_compositor_free(Render &render)

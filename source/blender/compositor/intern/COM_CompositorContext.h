@@ -16,7 +16,8 @@ struct bNodeInstanceHash;
 
 namespace blender::realtime_compositor {
 class RenderContext;
-}
+class Profiler;
+}  // namespace blender::realtime_compositor
 
 namespace blender::compositor {
 
@@ -64,6 +65,12 @@ class CompositorContext {
    * compositor is not executing as part of the render pipeline.
    */
   realtime_compositor::RenderContext *render_context_;
+
+  /**
+   * \brief Profiler that stores timing information about compositor execution. Can be null if the
+   * compositor context does not support profiling.
+   */
+  realtime_compositor::Profiler *profiler_;
 
  public:
   /**
@@ -169,6 +176,22 @@ class CompositorContext {
   void set_render_context(realtime_compositor::RenderContext *render_context)
   {
     render_context_ = render_context;
+  }
+
+  /**
+   * \brief get the profiler
+   */
+  realtime_compositor::Profiler *get_profiler() const
+  {
+    return profiler_;
+  }
+
+  /**
+   * \brief set the profiler
+   */
+  void set_profiler(realtime_compositor::Profiler *profiler)
+  {
+    profiler_ = profiler;
   }
 
   /**

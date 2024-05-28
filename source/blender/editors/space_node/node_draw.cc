@@ -94,8 +94,6 @@
 
 #include "GEO_fillet_curves.hh"
 
-#include "COM_profile.hh"
-
 #include "node_intern.hh" /* own include */
 
 #include <fmt/format.h>

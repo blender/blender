@@ -12,10 +12,8 @@
 
 namespace blender::realtime_compositor {
 class RenderContext;
-}
-namespace blender::compositor {
-class ProfilerData;
-}
+class Profiler;
+}  // namespace blender::realtime_compositor
 namespace blender::bke {
 struct bNodeTreeType;
 }  // namespace blender::bke
@@ -45,7 +43,7 @@ void ntreeCompositExecTree(Render *render,
                            RenderData *rd,
                            const char *view_name,
                            blender::realtime_compositor::RenderContext *render_context,
-                           blender::compositor::ProfilerData &profiler_data);
+                           blender::realtime_compositor::Profiler *profiler);
 
 /**
  * Called from render pipeline, to tag render input and output.

@@ -34,7 +34,6 @@ if(WITH_COMPOSITOR_CPU)
   set(SRC
     COM_compositor.hh
     COM_defines.h
-    COM_profile.hh
 
     intern/COM_BufferArea.h
     intern/COM_BufferRange.h
@@ -83,7 +82,6 @@ if(WITH_COMPOSITOR_CPU)
     intern/COM_WorkScheduler.cc
     intern/COM_WorkScheduler.h
     intern/COM_compositor.cc
-    intern/COM_profile.cc
 
     # Internal nodes
     nodes/COM_SocketProxyNode.cc

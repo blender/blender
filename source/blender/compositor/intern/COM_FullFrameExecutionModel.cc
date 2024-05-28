@@ -12,6 +12,8 @@
 #include "COM_ViewerOperation.h"
 #include "COM_WorkScheduler.h"
 
+#include "COM_profiler.hh"
+
 #include "BLI_timeit.hh"
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -42,8 +44,6 @@ void FullFrameExecutionModel::execute(ExecutionSystem &exec_system)
 
   determine_areas_to_render_and_reads();
   render_operations();
-
-  profiler_.finalize(*node_tree);
 }
 
 void FullFrameExecutionModel::determine_areas_to_render_and_reads()
@@ -103,7 +103,7 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
   constexpr int output_x = 0;
   constexpr int output_y = 0;
 
-  const timeit::TimePoint time_start = timeit::Clock::now();
+  const timeit::TimePoint before_time = timeit::Clock::now();
 
   const bool has_outputs = op->get_number_of_output_sockets() > 0;
   MemoryBuffer *op_buf = has_outputs ? create_operation_buffer(op, output_x, output_y) : nullptr;
@@ -125,7 +125,13 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
 
   operation_finished(op);
 
-  profiler_.add_operation_execution_time(*op, time_start, timeit::Clock::now());
+  /* The operation may not come from any node. For example, it may have been added to convert data
+   * type. Do not accumulate time from its execution. */
+  const timeit::TimePoint after_time = timeit::Clock::now();
+  const bNodeInstanceKey node_instance_key = op->get_node_instance_key();
+  if (context_.get_profiler() && node_instance_key != bke::NODE_INSTANCE_KEY_NONE) {
+    context_.get_profiler()->set_node_evaluation_time(node_instance_key, after_time - before_time);
+  }
 }
 
 void FullFrameExecutionModel::render_operations()

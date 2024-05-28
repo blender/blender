@@ -15,6 +15,7 @@
 #include "GPU_texture.hh"
 
 #include "COM_domain.hh"
+#include "COM_profiler.hh"
 #include "COM_render_context.hh"
 #include "COM_result.hh"
 #include "COM_static_cache_manager.hh"
@@ -112,6 +113,10 @@ class Context {
    * render pipeline. */
   virtual RenderContext *render_context() const;
 
+  /* Get a pointer to the profiler of this context. It might be null if the compositor context does
+   * not support profiling. */
+  virtual Profiler *profiler() const;
+
   /* Gets called after the evaluation of each compositor operation. See overrides for possible
    * uses. */
   virtual void evaluate_operation_post() const;
@@ -119,6 +124,10 @@ class Context {
   /* Returns true if the compositor evaluation is canceled and that the evaluator should stop
    * executing as soon as possible. */
   virtual bool is_canceled() const;
+
+  /* Resets the context's internal structures like texture pool and cache manager. This should be
+   * called before every evaluation. */
+  void reset();
 
   /* Get the size of the compositing region. See get_compositing_region(). The output size is
    * sanitized such that it is at least 1 in both dimensions. However, the developer is expected to

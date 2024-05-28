@@ -11,6 +11,8 @@
 #include "COM_WorkPackage.h"
 #include "COM_WorkScheduler.h"
 
+#include "COM_profiler.hh"
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
@@ -23,11 +25,11 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  bool rendering,
                                  const char *view_name,
                                  realtime_compositor::RenderContext *render_context,
-                                 ProfilerData &profiler_data)
-    : profiler_data_(profiler_data)
+                                 realtime_compositor::Profiler *profiler)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
   context_.set_render_context(render_context);
+  context_.set_profiler(profiler);
   context_.set_view_name(view_name);
   context_.set_scene(scene);
   context_.set_bnodetree(editingtree);
@@ -72,8 +74,9 @@ void ExecutionSystem::execute()
     op->init_data();
   }
   execution_model_->execute(*this);
-
-  profiler_data_ = execution_model_->get_profiler_data();
+  if (context_.get_profiler()) {
+    context_.get_profiler()->finalize(*context_.get_bnodetree());
+  }
 }
 
 void ExecutionSystem::execute_work(const rcti &work_rect,

@@ -69,7 +69,7 @@
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
-#include "COM_profile.hh"
+#include "COM_profiler.hh"
 
 namespace blender::ed::space_node {
 
@@ -102,7 +102,7 @@ struct CompoJob {
   float *progress;
   bool cancelled;
 
-  blender::compositor::ProfilerData profiler_data;
+  realtime_compositor::Profiler profiler;
 };
 
 float node_socket_calculate_height(const bNodeSocket &socket)
@@ -296,7 +296,7 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
-    ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, "", nullptr, cj->profiler_data);
+    ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, "", nullptr, &cj->profiler);
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
@@ -304,7 +304,7 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
         continue;
       }
       ntreeCompositExecTree(
-          cj->re, cj->scene, ntree, &cj->scene->r, srv->name, nullptr, cj->profiler_data);
+          cj->re, cj->scene, ntree, &cj->scene->r, srv->name, nullptr, &cj->profiler);
     }
   }
 
@@ -321,7 +321,7 @@ static void compo_canceljob(void *cjv)
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
   cj->cancelled = true;
 
-  scene->runtime->compositor.per_node_execution_time = cj->profiler_data.per_node_execution_time;
+  scene->runtime->compositor.per_node_execution_time = cj->profiler.get_nodes_evaluation_times();
 }
 
 static void compo_completejob(void *cjv)
@@ -331,7 +331,7 @@ static void compo_completejob(void *cjv)
   Scene *scene = cj->scene;
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_POST);
 
-  scene->runtime->compositor.per_node_execution_time = cj->profiler_data.per_node_execution_time;
+  scene->runtime->compositor.per_node_execution_time = cj->profiler.get_nodes_evaluation_times();
 }
 
 /** \} */
