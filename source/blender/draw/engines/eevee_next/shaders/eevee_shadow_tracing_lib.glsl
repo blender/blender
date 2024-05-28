@@ -429,11 +429,17 @@ float shadow_eval(LightData light,
   vec2 random_pcf_2d = vec2(0.0);
 #endif
 
+  float distance_to_shadow;
   /* Direction towards the shadow center (punctual) or direction (direction).
    * Not the same as the light vector if the shadow is jittered. */
-  vec3 L = is_directional ? light_z_axis(light) :
-                            normalize(light_position_get(light) +
-                                      light_local_data_get(light).shadow_position - P);
+  vec3 L;
+  if (is_directional) {
+    L = light_z_axis(light);
+  }
+  else {
+    L = light_position_get(light) + light_local_data_get(light).shadow_position - P;
+    L = normalize_and_get_length(L, distance_to_shadow);
+  }
 
   bool is_facing_light = (dot(Ng, L) > 0.0);
   /* Still bias the transmission surfaces towards the light if they are facing away. */
@@ -446,7 +452,7 @@ float shadow_eval(LightData light,
     /* Ideally, we should bias using the chosen ray direction. In practice, this conflict with our
      * shadow tile usage tagging system as the sampling position becomes heavily shifted from the
      * tagging position. This is the same thing happening with missing tiles with large radii. */
-    P += abs(thickness) * L;
+    P += abs(is_directional ? thickness : min(thickness, distance_to_shadow - 0.01)) * L;
   }
   /* Avoid self intersection with respect to numerical precision. */
   P = offset_ray(P, N_bias);
