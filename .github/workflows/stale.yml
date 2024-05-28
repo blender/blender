@@ -1,0 +1,32 @@
+# GitHub Actions workflow for automatically closing pull requests
+# This workflow is specific to Blender's GitHub mirror and directs contributors to the official development platform on blender.org
+
+name: Close GitHub Pull Requests
+
+# Trigger this Action when a pull request is opened.
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  close_prs:
+    name: Close Pull Requests
+    runs-on: ubuntu-latest
+    # Only run this job in the read-only mirror repository.
+    if: github.repository == 'blender/blender' && contains(github.server_url, 'github.com')
+    # Permissions granted to the GitHub Actions bot.
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v9
+        with:
+          # Number of days before a pull request is marked as stale.
+          days-before-pr-stale: 0
+          # Number of days before a pull request is closed.
+          days-before-pr-close: 0
+          # Message posted when closing a pull request.
+          stale-pr-message: |
+            This pull request has been automatically closed because this repository is a read-only mirror. Blender development happens on [projects.blender.org](https://projects.blender.org).
+
+            To contribute code, please read:
+            https://developer.blender.org/docs/handbook/contributing/
