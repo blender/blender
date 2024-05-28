@@ -1358,7 +1358,6 @@ static void do_vpaint_brush_smear(bContext *C,
         if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
           continue;
         }
-        const float3 &mv_curr = ss.vert_positions[vert];
 
         /* Calculate the dot prod. between ray norm on surf and current vert
          * (ie splash prevention factor), and only paint front facing verts. */
@@ -1410,7 +1409,7 @@ static void do_vpaint_brush_smear(bContext *C,
               /* Get the direction from the
                * selected vert to the neighbor. */
               float other_dir[3];
-              sub_v3_v3v3(other_dir, mv_curr, ss.vert_positions[v_other_index]);
+              sub_v3_v3v3(other_dir, vert_positions[vert], vert_positions[v_other_index]);
               project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
 
               normalize_v3(other_dir);

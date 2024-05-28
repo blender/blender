@@ -1193,8 +1193,6 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
       continue;
     }
 
-    const float3 &mv_curr = ss.vert_positions[vert];
-
     float brush_strength = cache->bstrength;
     const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                          1.0f;
@@ -1220,7 +1218,7 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
 
         /* Get the direction from the selected vert to the neighbor. */
         float other_dir[3];
-        sub_v3_v3v3(other_dir, mv_curr, ss.vert_positions[vert_other]);
+        sub_v3_v3v3(other_dir, vert_positions[vert], vert_positions[vert_other]);
         project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
 
         normalize_v3(other_dir);
