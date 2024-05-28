@@ -1645,6 +1645,7 @@ def repo_local_private_dir_ensure_with_subdir(*, local_dir: str, subdir: str) ->
 def repo_sync_from_remote(
         *,
         msg_fn: MessageFn,
+        remote_name: str,
         remote_url: str,
         local_dir: str,
         online_user_agent: str,
@@ -1656,7 +1657,7 @@ def repo_sync_from_remote(
     Load package information into the local path.
     """
     request_exit = False
-    request_exit |= message_status(msg_fn, "Sync repo: {:s}".format(remote_url))
+    request_exit |= message_status(msg_fn, "Checking repository \"{:s}\" for updates...".format(remote_name))
     if request_exit:
         return False
 
@@ -1675,7 +1676,7 @@ def repo_sync_from_remote(
 
     with CleanupPathsContext(files=(local_json_path_temp,), directories=()):
         # TODO: time-out.
-        request_exit |= message_status(msg_fn, "Sync downloading remote data")
+        request_exit |= message_status(msg_fn, "Refreshing extensions list for \"{:s}\"...".format(remote_name))
         if request_exit:
             return False
 
@@ -1706,11 +1707,15 @@ def repo_sync_from_remote(
 
         error_msg = repo_json_is_valid_or_error(local_json_path_temp)
         if error_msg is not None:
-            message_error(msg_fn, "sync: invalid manifest ({:s}) reading {!r}!".format(error_msg, remote_url))
+            message_error(
+                msg_fn,
+                "Repository error: invalid manifest ({:s}) for repository \"{:s}\"!".format(
+                    error_msg,
+                    remote_name))
             return False
         del error_msg
 
-        request_exit |= message_status(msg_fn, "Sync complete: {:s}".format(remote_url))
+        request_exit |= message_status(msg_fn, "Extensions list for \"{:s}\" updated".format(remote_name))
         if request_exit:
             return False
 
@@ -1835,6 +1840,19 @@ def generic_arg_repo_dir(subparse: argparse.ArgumentParser) -> None:
             "The remote repository directory."
         ),
         required=True,
+    )
+
+
+def generic_arg_remote_name(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--remote-name",
+        dest="remote_name",
+        type=str,
+        help=(
+            "The remote repository name."
+        ),
+        default="",
+        required=False,
     )
 
 
@@ -2167,6 +2185,7 @@ class subcmd_client:
             msg_fn: MessageFn,
             *,
             remote_url: str,
+            remote_name: str,
             local_dir: str,
             online_user_agent: str,
             access_token: str,
@@ -2179,6 +2198,7 @@ class subcmd_client:
 
         success = repo_sync_from_remote(
             msg_fn=msg_fn,
+            remote_name=remote_name,
             remote_url=remote_url,
             local_dir=local_dir,
             online_user_agent=online_user_agent,
@@ -3022,6 +3042,7 @@ def argparse_create_client_sync(subparsers: "argparse._SubParsersAction[argparse
     )
 
     generic_arg_remote_url(subparse)
+    generic_arg_remote_name(subparse)
     generic_arg_local_dir(subparse)
     generic_arg_online_user_agent(subparse)
     generic_arg_access_token(subparse)
@@ -3035,6 +3056,7 @@ def argparse_create_client_sync(subparsers: "argparse._SubParsersAction[argparse
         func=lambda args: subcmd_client.sync(
             msg_fn_from_args(args),
             remote_url=args.remote_url,
+            remote_name=args.remote_name if args.remote_name else remote_url_params_strip(args.remote_url),
             local_dir=args.local_dir,
             online_user_agent=args.online_user_agent,
             access_token=args.access_token,

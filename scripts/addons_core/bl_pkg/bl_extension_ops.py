@@ -1007,6 +1007,7 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
                 partial(
                     bl_extension_utils.repo_sync,
                     directory=directory,
+                    remote_name=repo_item.name,
                     remote_url=url_params_append_defaults(repo_item.remote_url),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
@@ -1084,6 +1085,7 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
                 cmd_batch.append(partial(
                     bl_extension_utils.repo_sync,
                     directory=repo_item.directory,
+                    remote_name=repo_item.name,
                     remote_url=url_params_append_defaults(repo_item.remote_url),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,

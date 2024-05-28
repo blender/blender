@@ -350,6 +350,7 @@ def url_params_append_for_blender(url: str, blender_version: Tuple[int, int, int
 def repo_sync(
         *,
         directory: str,
+        remote_name: str,
         remote_url: str,
         online_user_agent: str,
         access_token: str,
@@ -364,6 +365,7 @@ def repo_sync(
     yield from command_output_from_json_0([
         "sync",
         "--local-dir", directory,
+        "--remote-name", remote_name,
         "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
