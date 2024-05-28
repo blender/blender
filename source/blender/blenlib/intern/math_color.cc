@@ -201,9 +201,9 @@ void hex_to_rgb(const char *hexcol, float *r_r, float *r_g, float *r_b)
     return;
   }
 
-  *r_r = (float)ri * (1.0f / 255.0f);
-  *r_g = (float)gi * (1.0f / 255.0f);
-  *r_b = (float)bi * (1.0f / 255.0f);
+  *r_r = float(ri) * (1.0f / 255.0f);
+  *r_g = float(gi) * (1.0f / 255.0f);
+  *r_b = float(bi) * (1.0f / 255.0f);
   CLAMP(*r_r, 0.0f, 1.0f);
   CLAMP(*r_g, 0.0f, 1.0f);
   CLAMP(*r_b, 0.0f, 1.0f);
@@ -341,9 +341,9 @@ uint hsv_to_cpack(float h, float s, float v)
 
   hsv_to_rgb(h, s, v, &rf, &gf, &bf);
 
-  r = (uint)(rf * 255.0f);
-  g = (uint)(gf * 255.0f);
-  b = (uint)(bf * 255.0f);
+  r = uint(rf * 255.0f);
+  g = uint(gf * 255.0f);
+  b = uint(bf * 255.0f);
 
   col = (r + (g * 256) + (b * 256 * 256));
   return col;
@@ -353,9 +353,9 @@ uint rgb_to_cpack(float r, float g, float b)
 {
   uint ir, ig, ib;
 
-  ir = (uint)floorf(255.0f * max_ff(r, 0.0f));
-  ig = (uint)floorf(255.0f * max_ff(g, 0.0f));
-  ib = (uint)floorf(255.0f * max_ff(b, 0.0f));
+  ir = uint(floorf(255.0f * max_ff(r, 0.0f)));
+  ig = uint(floorf(255.0f * max_ff(g, 0.0f)));
+  ib = uint(floorf(255.0f * max_ff(b, 0.0f)));
 
   if (ir > 255) {
     ir = 255;
@@ -372,24 +372,24 @@ uint rgb_to_cpack(float r, float g, float b)
 
 void cpack_to_rgb(uint col, float *r_r, float *r_g, float *r_b)
 {
-  *r_r = (float)(col & 0xFF) * (1.0f / 255.0f);
-  *r_g = (float)((col >> 8) & 0xFF) * (1.0f / 255.0f);
-  *r_b = (float)((col >> 16) & 0xFF) * (1.0f / 255.0f);
+  *r_r = float(col & 0xFF) * (1.0f / 255.0f);
+  *r_g = float((col >> 8) & 0xFF) * (1.0f / 255.0f);
+  *r_b = float((col >> 16) & 0xFF) * (1.0f / 255.0f);
 }
 
 void rgb_uchar_to_float(float r_col[3], const uchar col_ub[3])
 {
-  r_col[0] = ((float)col_ub[0]) * (1.0f / 255.0f);
-  r_col[1] = ((float)col_ub[1]) * (1.0f / 255.0f);
-  r_col[2] = ((float)col_ub[2]) * (1.0f / 255.0f);
+  r_col[0] = float(col_ub[0]) * (1.0f / 255.0f);
+  r_col[1] = float(col_ub[1]) * (1.0f / 255.0f);
+  r_col[2] = float(col_ub[2]) * (1.0f / 255.0f);
 }
 
 void rgba_uchar_to_float(float r_col[4], const uchar col_ub[4])
 {
-  r_col[0] = ((float)col_ub[0]) * (1.0f / 255.0f);
-  r_col[1] = ((float)col_ub[1]) * (1.0f / 255.0f);
-  r_col[2] = ((float)col_ub[2]) * (1.0f / 255.0f);
-  r_col[3] = ((float)col_ub[3]) * (1.0f / 255.0f);
+  r_col[0] = float(col_ub[0]) * (1.0f / 255.0f);
+  r_col[1] = float(col_ub[1]) * (1.0f / 255.0f);
+  r_col[2] = float(col_ub[2]) * (1.0f / 255.0f);
+  r_col[3] = float(col_ub[3]) * (1.0f / 255.0f);
 }
 
 void rgb_float_to_uchar(uchar r_col[3], const float col_f[3])
@@ -806,7 +806,7 @@ static float index_to_float(const ushort i)
   return tmp.f;
 }
 
-void BLI_init_srgb_conversion(void)
+void BLI_init_srgb_conversion()
 {
   static bool initialized = false;
   uint i, b;
@@ -818,12 +818,12 @@ void BLI_init_srgb_conversion(void)
 
   /* Fill in the lookup table to convert floats to bytes: */
   for (i = 0; i < 0x10000; i++) {
-    float f = linearrgb_to_srgb(index_to_float((ushort)i)) * 255.0f;
+    float f = linearrgb_to_srgb(index_to_float(ushort(i))) * 255.0f;
     if (f <= 0) {
       BLI_color_to_srgb_table[i] = 0;
     }
     else if (f < 255) {
-      BLI_color_to_srgb_table[i] = (ushort)(f * 0x100 + 0.5f);
+      BLI_color_to_srgb_table[i] = ushort(f * 0x100 + 0.5f);
     }
     else {
       BLI_color_to_srgb_table[i] = 0xff00;
@@ -832,10 +832,10 @@ void BLI_init_srgb_conversion(void)
 
   /* Fill in the lookup table to convert bytes to float: */
   for (b = 0; b <= 255; b++) {
-    float f = srgb_to_linearrgb(((float)b) * (1.0f / 255.0f));
+    float f = srgb_to_linearrgb(float(b) * (1.0f / 255.0f));
     BLI_color_from_srgb_table[b] = f;
     i = hipart(f);
     /* replace entries so byte->float->byte does not change the data: */
-    BLI_color_to_srgb_table[i] = (ushort)(b * 0x100);
+    BLI_color_to_srgb_table[i] = ushort(b * 0x100);
   }
 }

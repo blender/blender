@@ -1832,7 +1832,7 @@ static void ghost_wl_display_report_error_from_code(wl_display *display, const i
   }
 
   if (ecode == EPROTO) {
-    const struct wl_interface *interface = nullptr;
+    const wl_interface *interface = nullptr;
     const int ecode_proto = wl_display_get_protocol_error(display, &interface, nullptr);
     fprintf(stderr,
             "The Wayland connection experienced a protocol error %d in interface: %s\n",

@@ -209,17 +209,17 @@ void copy_m4d_m4(double m1[4][4], const float m2[4][4])
 void copy_m3_m3d(float m1[3][3], const double m2[3][3])
 {
   /* Keep it stupid simple for better data flow in CPU. */
-  m1[0][0] = (float)m2[0][0];
-  m1[0][1] = (float)m2[0][1];
-  m1[0][2] = (float)m2[0][2];
+  m1[0][0] = float(m2[0][0]);
+  m1[0][1] = float(m2[0][1]);
+  m1[0][2] = float(m2[0][2]);
 
-  m1[1][0] = (float)m2[1][0];
-  m1[1][1] = (float)m2[1][1];
-  m1[1][2] = (float)m2[1][2];
+  m1[1][0] = float(m2[1][0]);
+  m1[1][1] = float(m2[1][1]);
+  m1[1][2] = float(m2[1][2]);
 
-  m1[2][0] = (float)m2[2][0];
-  m1[2][1] = (float)m2[2][1];
-  m1[2][2] = (float)m2[2][2];
+  m1[2][0] = float(m2[2][0]);
+  m1[2][1] = float(m2[2][1]);
+  m1[2][2] = float(m2[2][2]);
 }
 
 void swap_m3m3(float m1[3][3], float m2[3][3])
@@ -860,14 +860,14 @@ void mul_v4d_m4v4d(double r[4], const float mat[4][4], const double v[4])
   const double y = v[1];
   const double z = v[2];
 
-  r[0] = x * (double)mat[0][0] + y * (double)mat[1][0] + z * (double)mat[2][0] +
-         (double)mat[3][0] * v[3];
-  r[1] = x * (double)mat[0][1] + y * (double)mat[1][1] + z * (double)mat[2][1] +
-         (double)mat[3][1] * v[3];
-  r[2] = x * (double)mat[0][2] + y * (double)mat[1][2] + z * (double)mat[2][2] +
-         (double)mat[3][2] * v[3];
-  r[3] = x * (double)mat[0][3] + y * (double)mat[1][3] + z * (double)mat[2][3] +
-         (double)mat[3][3] * v[3];
+  r[0] = x * double(mat[0][0]) + y * double(mat[1][0]) + z * double(mat[2][0]) +
+         double(mat[3][0]) * v[3];
+  r[1] = x * double(mat[0][1]) + y * double(mat[1][1]) + z * double(mat[2][1]) +
+         double(mat[3][1]) * v[3];
+  r[2] = x * double(mat[0][2]) + y * double(mat[1][2]) + z * double(mat[2][2]) +
+         double(mat[3][2]) * v[3];
+  r[3] = x * double(mat[0][3]) + y * double(mat[1][3]) + z * double(mat[2][3]) +
+         double(mat[3][3]) * v[3];
 }
 
 void mul_m4_v4d(const float mat[4][4], double r[4])
@@ -1014,9 +1014,9 @@ void mul_m3_v3_double(const float M[3][3], double r[3])
   const double x = r[0];
   const double y = r[1];
 
-  r[0] = x * (double)M[0][0] + y * (double)M[1][0] + (double)M[2][0] * r[2];
-  r[1] = x * (double)M[0][1] + y * (double)M[1][1] + (double)M[2][1] * r[2];
-  r[2] = x * (double)M[0][2] + y * (double)M[1][2] + (double)M[2][2] * r[2];
+  r[0] = x * double(M[0][0]) + y * double(M[1][0]) + double(M[2][0]) * r[2];
+  r[1] = x * double(M[0][1]) + y * double(M[1][1]) + double(M[2][1]) * r[2];
+  r[2] = x * double(M[0][2]) + y * double(M[1][2]) + double(M[2][2]) * r[2];
 }
 
 void add_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3])
@@ -1256,17 +1256,17 @@ bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4])
     if (UNLIKELY(tempmat[i][i] == 0.0f)) {
       return false; /* No non-zero pivot */
     }
-    temp = (double)tempmat[i][i];
+    temp = double(tempmat[i][i]);
     for (k = 0; k < 4; k++) {
-      tempmat[i][k] = (float)((double)tempmat[i][k] / temp);
-      inverse[i][k] = (float)((double)inverse[i][k] / temp);
+      tempmat[i][k] = float(double(tempmat[i][k]) / temp);
+      inverse[i][k] = float(double(inverse[i][k]) / temp);
     }
     for (j = 0; j < 4; j++) {
       if (j != i) {
         temp = tempmat[j][i];
         for (k = 0; k < 4; k++) {
-          tempmat[j][k] -= (float)((double)tempmat[i][k] * temp);
-          inverse[j][k] -= (float)((double)inverse[i][k] * temp);
+          tempmat[j][k] -= float(double(tempmat[i][k]) * temp);
+          inverse[j][k] -= float(double(inverse[i][k]) * temp);
         }
       }
     }
@@ -1622,7 +1622,7 @@ static void orthogonalize_stable(float v1[3], float v2[3], float v3[3], bool nor
     /* Adjust v2 by half of the necessary angle correction.
      * Thus the angle change is the same for both axis directions. */
     float angle = acosf(cos_angle);
-    float target_angle = angle + ((float)M_PI_2 - angle) / 2;
+    float target_angle = angle + (float(M_PI_2) - angle) / 2;
 
     madd_v3_v3fl(norm_v2, norm_v3, -cos_angle);
     mul_v3_fl(norm_v2, sinf(target_angle) / len_v3(norm_v2));
@@ -2179,7 +2179,7 @@ float mat3_to_scale(const float mat[3][3])
 {
   /* unit length vector */
   float unit_vec[3];
-  copy_v3_fl(unit_vec, (float)M_SQRT1_3);
+  copy_v3_fl(unit_vec, float(M_SQRT1_3));
   mul_m3_v3(mat, unit_vec);
   return len_v3(unit_vec);
 }
@@ -2188,7 +2188,7 @@ float mat4_to_scale(const float mat[4][4])
 {
   /* unit length vector */
   float unit_vec[3];
-  copy_v3_fl(unit_vec, (float)M_SQRT1_3);
+  copy_v3_fl(unit_vec, float(M_SQRT1_3));
   mul_mat3_m4_v3(mat, unit_vec);
   return len_v3(unit_vec);
 }
@@ -2196,7 +2196,7 @@ float mat4_to_scale(const float mat[4][4])
 float mat4_to_xy_scale(const float mat[4][4])
 {
   /* unit length vector in xy plane */
-  float unit_vec[3] = {(float)M_SQRT1_2, (float)M_SQRT1_2, 0.0f};
+  float unit_vec[3] = {float(M_SQRT1_2), float(M_SQRT1_2), 0.0f};
   mul_mat3_m4_v3(mat, unit_vec);
   return len_v3(unit_vec);
 }

@@ -8439,7 +8439,7 @@ static void def_cmp_translate(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeTranslateData", "storage");
 
   prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "interpolation");
+  RNA_def_property_enum_sdna(prop, nullptr, "interpolation");
   RNA_def_property_enum_items(prop, interpolation_items);
   RNA_def_property_ui_text(prop, "", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");

@@ -27,7 +27,7 @@ void set_array_prop(IDProperty *idgroup,
   }
 
   IDPropertyTemplate val = {0};
-  val.array.len = static_cast<int>(vec.dimension);
+  val.array.len = int(vec.dimension);
 
   if (val.array.len <= 0) {
     CLOG_WARN(&LOG, "Invalid array length for prop %s", prop_name);
