@@ -17,6 +17,7 @@
 #include "BLI_color.hh"
 #include "BLI_color_mix.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_base.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
@@ -1047,14 +1048,27 @@ static void precompute_weight_values(
 /** \name Weight paint brushes.
  * \{ */
 
-static void do_wpaint_brush_blur_task(const Scene &scene,
-                                      Object &ob,
-                                      const Brush &brush,
-                                      VPaint &vp,
-                                      WPaintData &wpd,
-                                      const WeightPaintInfo &wpi,
-                                      Mesh &mesh,
-                                      PBVHNode *node)
+static void parallel_nodes_loop_with_mirror_check(const Mesh &mesh,
+                                                  const Span<PBVHNode *> nodes,
+                                                  FunctionRef<void(IndexRange)> fn)
+{
+  /* NOTE: current mirroring code cannot be run in parallel */
+  if (ME_USING_MIRROR_X_VERTEX_GROUPS(&mesh)) {
+    fn(nodes.index_range());
+  }
+  else {
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) { fn(range); });
+  }
+}
+
+static void do_wpaint_brush_blur(const Scene &scene,
+                                 Object &ob,
+                                 const Brush &brush,
+                                 VPaint &vp,
+                                 WPaintData &wpd,
+                                 const WeightPaintInfo &wpi,
+                                 Mesh &mesh,
+                                 const Span<PBVHNode *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -1069,9 +1083,9 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
-  SculptBrushTest test;
+  SculptBrushTest test_init;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
+      ss, test_init, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
@@ -1084,65 +1098,71 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
-    if (!hide_vert.is_empty() && hide_vert[vert]) {
-      continue;
-    }
-    if (!select_vert.is_empty() && !select_vert[vert]) {
-      continue;
-    }
-    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
-      continue;
-    }
+  parallel_nodes_loop_with_mirror_check(mesh, nodes, [&](const IndexRange range) {
+    SculptBrushTest test = test_init;
+    for (const int i : range) {
+      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
+        if (!select_vert.is_empty() && !select_vert[vert]) {
+          continue;
+        }
+        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
+          continue;
+        }
 
-    /* Get the average face weight */
-    int total_hit_loops = 0;
-    float weight_final = 0.0f;
-    for (const int face : vert_to_face[vert]) {
-      total_hit_loops += ss.faces[face].size();
-      for (const int vert : ss.corner_verts.slice(ss.faces[face])) {
-        weight_final += wpd.precomputed_weight[vert];
+        /* Get the average face weight */
+        int total_hit_loops = 0;
+        float weight_final = 0.0f;
+        for (const int face : vert_to_face[vert]) {
+          total_hit_loops += ss.faces[face].size();
+          for (const int vert : ss.corner_verts.slice(ss.faces[face])) {
+            weight_final += wpd.precomputed_weight[vert];
+          }
+        }
+
+        if (total_hit_loops == 0) {
+          continue;
+        }
+
+        float brush_strength = cache->bstrength;
+        const float angle_cos = use_normal ?
+                                    dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                    1.0f;
+        if (!vwpaint::test_brush_angle_falloff(
+                brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
+        {
+          continue;
+        }
+
+        const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
+        const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
+
+        if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
+          if (ss.mode.wpaint.alpha_weight[vert] < final_alpha) {
+            ss.mode.wpaint.alpha_weight[vert] = final_alpha;
+          }
+          else {
+            continue;
+          }
+        }
+
+        weight_final /= total_hit_loops;
+        do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, weight_final);
       }
     }
-
-    if (total_hit_loops == 0) {
-      continue;
-    }
-
-    float brush_strength = cache->bstrength;
-    const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
-                                         1.0f;
-    if (!vwpaint::test_brush_angle_falloff(
-            brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
-    {
-      continue;
-    }
-
-    const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
-    const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
-
-    if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
-      if (ss.mode.wpaint.alpha_weight[vert] < final_alpha) {
-        ss.mode.wpaint.alpha_weight[vert] = final_alpha;
-      }
-      else {
-        continue;
-      }
-    }
-
-    weight_final /= total_hit_loops;
-    do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, weight_final);
-  }
+  });
 }
 
-static void do_wpaint_brush_smear_task(const Scene &scene,
-                                       Object &ob,
-                                       const Brush &brush,
-                                       VPaint &vp,
-                                       WPaintData &wpd,
-                                       const WeightPaintInfo &wpi,
-                                       Mesh &mesh,
-                                       PBVHNode *node)
+static void do_wpaint_brush_smear(const Scene &scene,
+                                  Object &ob,
+                                  const Brush &brush,
+                                  VPaint &vp,
+                                  WPaintData &wpd,
+                                  const WeightPaintInfo &wpi,
+                                  Mesh &mesh,
+                                  const Span<PBVHNode *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -1175,85 +1195,92 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  SculptBrushTest test;
+  SculptBrushTest test_init;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
+      ss, test_init, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
-    if (!hide_vert.is_empty() && hide_vert[vert]) {
-      continue;
-    }
-    if (!select_vert.is_empty() && !select_vert[vert]) {
-      continue;
-    }
-    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
-      continue;
-    }
-
-    float brush_strength = cache->bstrength;
-    const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
-                                         1.0f;
-    if (!vwpaint::test_brush_angle_falloff(
-            brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
-    {
-      continue;
-    }
-
-    bool do_color = false;
-    /* Minimum dot product between brush direction and current
-     * to neighbor direction is 0.0, meaning orthogonal. */
-    float stroke_dot_max = 0.0f;
-
-    /* Get the color of the loop in the opposite direction of the brush movement
-     * (this callback is specifically for smear.) */
-    float weight_final = 0.0;
-    for (const int face : vert_to_face[vert]) {
-      for (const int vert_other : ss.corner_verts.slice(ss.faces[face])) {
-        if (vert_other == vert) {
+  parallel_nodes_loop_with_mirror_check(mesh, nodes, [&](const IndexRange range) {
+    SculptBrushTest test = test_init;
+    for (const int i : range) {
+      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
+        if (!select_vert.is_empty() && !select_vert[vert]) {
+          continue;
+        }
+        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
           continue;
         }
 
-        /* Get the direction from the selected vert to the neighbor. */
-        float other_dir[3];
-        sub_v3_v3v3(other_dir, vert_positions[vert], vert_positions[vert_other]);
-        project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
+        float brush_strength = cache->bstrength;
+        const float angle_cos = use_normal ?
+                                    dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                    1.0f;
+        if (!vwpaint::test_brush_angle_falloff(
+                brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
+        {
+          continue;
+        }
 
-        normalize_v3(other_dir);
+        bool do_color = false;
+        /* Minimum dot product between brush direction and current
+         * to neighbor direction is 0.0, meaning orthogonal. */
+        float stroke_dot_max = 0.0f;
 
-        const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+        /* Get the color of the loop in the opposite direction of the brush movement
+         * (this callback is specifically for smear.) */
+        float weight_final = 0.0;
+        for (const int face : vert_to_face[vert]) {
+          for (const int vert_other : ss.corner_verts.slice(ss.faces[face])) {
+            if (vert_other == vert) {
+              continue;
+            }
 
-        if (stroke_dot > stroke_dot_max) {
-          stroke_dot_max = stroke_dot;
-          weight_final = wpd.precomputed_weight[vert_other];
-          do_color = true;
+            /* Get the direction from the selected vert to the neighbor. */
+            float other_dir[3];
+            sub_v3_v3v3(other_dir, vert_positions[vert], vert_positions[vert_other]);
+            project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
+
+            normalize_v3(other_dir);
+
+            const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+
+            if (stroke_dot > stroke_dot_max) {
+              stroke_dot_max = stroke_dot;
+              weight_final = wpd.precomputed_weight[vert_other];
+              do_color = true;
+            }
+          }
+          if (!do_color) {
+            continue;
+          }
+          const float brush_fade = BKE_brush_curve_strength(
+              &brush, sqrtf(test.dist), cache->radius);
+          const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
+
+          if (final_alpha <= 0.0f) {
+            continue;
+          }
+
+          do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, float(weight_final));
         }
       }
-      if (!do_color) {
-        continue;
-      }
-      const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
-      const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
-
-      if (final_alpha <= 0.0f) {
-        continue;
-      }
-
-      do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, float(weight_final));
     }
-  }
+  });
 }
 
-static void do_wpaint_brush_draw_task(const Scene &scene,
-                                      Object &ob,
-                                      const Brush &brush,
-                                      VPaint &vp,
-                                      WPaintData &wpd,
-                                      const WeightPaintInfo &wpi,
-                                      Mesh &mesh,
-                                      const float strength,
-                                      PBVHNode *node)
+static void do_wpaint_brush_draw(const Scene &scene,
+                                 Object &ob,
+                                 const Brush &brush,
+                                 VPaint &vp,
+                                 WPaintData &wpd,
+                                 const WeightPaintInfo &wpi,
+                                 Mesh &mesh,
+                                 const float strength,
+                                 const Span<PBVHNode *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -1269,9 +1296,9 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
-  SculptBrushTest test;
+  SculptBrushTest test_init;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
+      ss, test_init, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
@@ -1284,46 +1311,52 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
-    if (!hide_vert.is_empty() && hide_vert[vert]) {
-      continue;
-    }
-    if (!select_vert.is_empty() && !select_vert[vert]) {
-      continue;
-    }
-    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
-      continue;
-    }
-    float brush_strength = cache->bstrength;
-    const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
-                                         1.0f;
-    if (!vwpaint::test_brush_angle_falloff(
-            brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
-    {
-      continue;
-    }
-    const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
-    const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
+  parallel_nodes_loop_with_mirror_check(mesh, nodes, [&](const IndexRange range) {
+    SculptBrushTest test = test_init;
+    for (const int i : range) {
+      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
+        if (!select_vert.is_empty() && !select_vert[vert]) {
+          continue;
+        }
+        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
+          continue;
+        }
+        float brush_strength = cache->bstrength;
+        const float angle_cos = use_normal ?
+                                    dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                    1.0f;
+        if (!vwpaint::test_brush_angle_falloff(
+                brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
+        {
+          continue;
+        }
+        const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
+        const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
 
-    if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
-      if (ss.mode.wpaint.alpha_weight[vert] < final_alpha) {
-        ss.mode.wpaint.alpha_weight[vert] = final_alpha;
-      }
-      else {
-        continue;
+        if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
+          if (ss.mode.wpaint.alpha_weight[vert] < final_alpha) {
+            ss.mode.wpaint.alpha_weight[vert] = final_alpha;
+          }
+          else {
+            continue;
+          }
+        }
+
+        do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, paintweight);
       }
     }
-
-    do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, paintweight);
-  }
+  });
 }
 
-static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
-                                                              const Mesh &mesh,
-                                                              const Brush &brush,
-                                                              const VPaint &vp,
-                                                              WeightPaintInfo &wpi,
-                                                              PBVHNode *node)
+static float calculate_average_weight(Object &ob,
+                                      const Mesh &mesh,
+                                      const Brush &brush,
+                                      const VPaint &vp,
+                                      WeightPaintInfo &wpi,
+                                      const Span<PBVHNode *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -1333,10 +1366,6 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
-  WPaintAverageAccum accum{};
-  accum.len = 0;
-  accum.value = 0.0;
-
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, test, brush.falloff_shape);
@@ -1352,65 +1381,43 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
-    if (!hide_vert.is_empty() && hide_vert[vert]) {
-      continue;
-    }
-    if (!select_vert.is_empty() && !select_vert[vert]) {
-      continue;
-    }
-    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
-      continue;
-    }
+  const WPaintAverageAccum value = threading::parallel_reduce(
+      nodes.index_range(),
+      1,
+      WPaintAverageAccum{},
+      [&](const IndexRange range, WPaintAverageAccum accum) {
+        for (const int i : range) {
+          for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+            if (!hide_vert.is_empty() && hide_vert[vert]) {
+              continue;
+            }
+            if (!select_vert.is_empty() && !select_vert[vert]) {
+              continue;
+            }
+            if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
+              continue;
+            }
 
-    const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
-                                         1.0f;
-    if (angle_cos <= 0.0f ||
-        BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius) <= 0.0f)
-    {
-      continue;
-    }
+            const float angle_cos = use_normal ?
+                                        dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                        1.0f;
+            if (angle_cos <= 0.0f ||
+                BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius) <= 0.0f)
+            {
+              continue;
+            }
 
-    const MDeformVert &dv = wpi.dvert[vert];
-    accum.len += 1;
-    accum.value += wpaint_get_active_weight(dv, wpi);
-  }
-
-  return accum;
-}
-
-static float calculate_average_weight(Object &ob,
-                                      const Mesh &mesh,
-                                      const Brush &brush,
-                                      VPaint &vp,
-                                      WeightPaintInfo &wpi,
-                                      Span<PBVHNode *> nodes)
-{
-  WPaintAverageAccum *accum = (WPaintAverageAccum *)MEM_mallocN(sizeof(*accum) * nodes.size(),
-                                                                __func__);
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      accum[i] = do_wpaint_brush_calc_average_weight(ob, mesh, brush, vp, wpi, nodes[i]);
-    }
-  });
-
-  float strength = 0.0f;
-
-  uint accum_len = 0;
-  double accum_weight = 0.0;
-  for (int i = 0; i < nodes.size(); i++) {
-    accum_len += accum[i].len;
-    accum_weight += accum[i].value;
-  }
-  if (accum_len != 0) {
-    accum_weight /= accum_len;
-    strength = float(accum_weight);
-  }
-
-  MEM_SAFE_FREE(accum);
-
-  return strength;
+            const MDeformVert &dv = wpi.dvert[vert];
+            accum.len++;
+            accum.value += wpaint_get_active_weight(dv, wpi);
+          }
+        }
+        return accum;
+      },
+      [](const WPaintAverageAccum &a, const WPaintAverageAccum &b) {
+        return WPaintAverageAccum{a.len + b.len, a.value + b.value};
+      });
+  return math::safe_divide(value.value, double(value.len));
 }
 
 static void wpaint_paint_leaves(bContext *C,
@@ -1419,75 +1426,34 @@ static void wpaint_paint_leaves(bContext *C,
                                 WPaintData &wpd,
                                 WeightPaintInfo &wpi,
                                 Mesh &mesh,
-                                Span<PBVHNode *> nodes)
+                                const Span<PBVHNode *> nodes)
 {
-  Scene &scene = *CTX_data_scene(C);
+  const Scene &scene = *CTX_data_scene(C);
   const Brush &brush = *ob.sculpt->cache->brush;
 
-  /* Use this so average can modify its weight without touching the brush. */
-  float strength = BKE_brush_weight_get(&scene, &brush);
-  if (brush.weightpaint_tool == WPAINT_TOOL_AVERAGE) {
-    strength = calculate_average_weight(ob, mesh, brush, vp, wpi, nodes);
-  }
-
-  if (ME_USING_MIRROR_X_VERTEX_GROUPS(&mesh)) {
-    /* NOTE: current mirroring code cannot be run in parallel */
-    switch ((eBrushWeightPaintTool)brush.weightpaint_tool) {
-      case WPAINT_TOOL_AVERAGE: {
-        for (const int i : nodes.index_range()) {
-          do_wpaint_brush_draw_task(scene, ob, brush, vp, wpd, wpi, mesh, strength, nodes[i]);
-        }
-        break;
-      }
-      case WPAINT_TOOL_SMEAR:
-        for (const int i : nodes.index_range()) {
-          do_wpaint_brush_smear_task(scene, ob, brush, vp, wpd, wpi, mesh, nodes[i]);
-        }
-        break;
-      case WPAINT_TOOL_BLUR:
-        for (const int i : nodes.index_range()) {
-          do_wpaint_brush_blur_task(scene, ob, brush, vp, wpd, wpi, mesh, nodes[i]);
-        }
-        break;
-      case WPAINT_TOOL_DRAW:
-        for (const int i : nodes.index_range()) {
-          do_wpaint_brush_draw_task(scene, ob, brush, vp, wpd, wpi, mesh, strength, nodes[i]);
-        }
-        break;
+  switch ((eBrushWeightPaintTool)brush.weightpaint_tool) {
+    case WPAINT_TOOL_AVERAGE: {
+      do_wpaint_brush_draw(scene,
+                           ob,
+                           brush,
+                           vp,
+                           wpd,
+                           wpi,
+                           mesh,
+                           calculate_average_weight(ob, mesh, brush, vp, wpi, nodes),
+                           nodes);
+      break;
     }
-  }
-  else {
-    switch ((eBrushWeightPaintTool)brush.weightpaint_tool) {
-      case WPAINT_TOOL_AVERAGE: {
-        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-          for (const int i : range) {
-            do_wpaint_brush_draw_task(scene, ob, brush, vp, wpd, wpi, mesh, strength, nodes[i]);
-          }
-        });
-        break;
-      }
-      case WPAINT_TOOL_SMEAR:
-        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-          for (const int i : range) {
-            do_wpaint_brush_smear_task(scene, ob, brush, vp, wpd, wpi, mesh, nodes[i]);
-          }
-        });
-        break;
-      case WPAINT_TOOL_BLUR:
-        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-          for (const int i : range) {
-            do_wpaint_brush_blur_task(scene, ob, brush, vp, wpd, wpi, mesh, nodes[i]);
-          }
-        });
-        break;
-      case WPAINT_TOOL_DRAW:
-        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-          for (const int i : range) {
-            do_wpaint_brush_draw_task(scene, ob, brush, vp, wpd, wpi, mesh, strength, nodes[i]);
-          }
-        });
-        break;
-    }
+    case WPAINT_TOOL_SMEAR:
+      do_wpaint_brush_smear(scene, ob, brush, vp, wpd, wpi, mesh, nodes);
+      break;
+    case WPAINT_TOOL_BLUR:
+      do_wpaint_brush_blur(scene, ob, brush, vp, wpd, wpi, mesh, nodes);
+      break;
+    case WPAINT_TOOL_DRAW:
+      do_wpaint_brush_draw(
+          scene, ob, brush, vp, wpd, wpi, mesh, BKE_brush_weight_get(&scene, &brush), nodes);
+      break;
   }
 }
 /** \} */
