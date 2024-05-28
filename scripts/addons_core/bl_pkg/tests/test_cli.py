@@ -96,6 +96,7 @@ def remote_url_params_strip(url: str) -> str:
 
     return new_url
 
+
 def path_to_url(path: str) -> str:
     from urllib.parse import urljoin
     from urllib.request import pathname2url
