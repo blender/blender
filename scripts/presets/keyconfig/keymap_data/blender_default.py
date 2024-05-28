@@ -8178,6 +8178,19 @@ def km_3d_view_tool_sculpt_lasso_mask(params):
     )
 
 
+def km_3d_view_tool_sculpt_polyline_mask(params):
+    return (
+        "3D View Tool: Sculpt, Polyline Mask",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"},
+             {"properties": [("value", 1.0)]}),
+            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS", "ctrl": True},
+             {"properties": [("value", 0.0)]}),
+        ]},
+    )
+
+
 def km_3d_view_tool_sculpt_box_face_set(params):
     return (
         "3D View Tool: Sculpt, Box Face Set",
@@ -8204,6 +8217,16 @@ def km_3d_view_tool_sculpt_line_face_set(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("sculpt.face_set_line_gesture", params.tool_maybe_tweak_event, None),
+        ]},
+    )
+
+
+def km_3d_view_tool_sculpt_polyline_face_set(params):
+    return (
+        "3D View Tool: Sculpt, Polyline Face Set",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.face_set_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"}, None)
         ]},
     )
 
@@ -8235,6 +8258,16 @@ def km_3d_view_tool_sculpt_line_trim(params):
         {"items": [
             ("sculpt.trim_line_gesture", params.tool_maybe_tweak_event, None),
         ]},
+    )
+
+
+def km_3d_view_tool_sculpt_polyline_trim(params):
+    return (
+        "3D View Tool: Sculpt, Polyline Trim",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.trim_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"}, None)
+        ]}
     )
 
 
@@ -9205,12 +9238,15 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_polyline_hide(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),
+        km_3d_view_tool_sculpt_polyline_mask(params),
         km_3d_view_tool_sculpt_box_face_set(params),
         km_3d_view_tool_sculpt_lasso_face_set(params),
         km_3d_view_tool_sculpt_line_face_set(params),
+        km_3d_view_tool_sculpt_polyline_face_set(params),
         km_3d_view_tool_sculpt_box_trim(params),
         km_3d_view_tool_sculpt_lasso_trim(params),
         km_3d_view_tool_sculpt_line_trim(params),
+        km_3d_view_tool_sculpt_polyline_trim(params),
         km_3d_view_tool_sculpt_line_mask(params),
         km_3d_view_tool_sculpt_line_project(params),
         km_3d_view_tool_sculpt_mesh_filter(params),

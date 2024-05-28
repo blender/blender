@@ -3836,10 +3836,16 @@ class VIEW3D_MT_sculpt(Menu):
         props = layout.operator("sculpt.trim_line_gesture", text="Line Trim")
         props.trim_mode = 'DIFFERENCE'
 
+        props = layout.operator("sculpt.trim_polyline_gesture", text="Polyline Trim")
+        props.trim_mode = 'DIFFERENCE'
+
         props = layout.operator("sculpt.trim_box_gesture", text="Box Add")
         props.trim_mode = 'JOIN'
 
         props = layout.operator("sculpt.trim_lasso_gesture", text="Lasso Add")
+        props.trim_mode = 'JOIN'
+
+        props = layout.operator("sculpt.trim_polyline_gesture", text="Polyline Add")
         props.trim_mode = 'JOIN'
 
         layout.operator("sculpt.project_line_gesture", text="Line Project")
@@ -3931,6 +3937,7 @@ class VIEW3D_MT_mask(Menu):
         props.value = 0
 
         props = layout.operator("paint.mask_lasso_gesture", text="Lasso Mask")
+        props = layout.operator("paint.mask_polyline_gesture", text="Polyline Mask")
 
         layout.separator()
 

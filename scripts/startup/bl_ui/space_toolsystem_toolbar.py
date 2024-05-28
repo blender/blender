@@ -1517,6 +1517,21 @@ class _defs_sculpt:
         )
 
     @ToolDef.from_fn
+    def mask_polyline():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.mask_polyline_gesture")
+            layout.prop(props, "use_front_faces_only", expand=False)
+
+        return dict(
+            idname="builtin.polyline_mask",
+            label="Polyline Mask",
+            icon="ops.sculpt.polyline_mask",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def face_set_box():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.face_set_box_gesture")
@@ -1557,6 +1572,21 @@ class _defs_sculpt:
             idname="builtin.line_face_set",
             label="Line Face Set",
             icon="ops.sculpt.line_face_set",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def face_set_polyline():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.face_set_polyline_gesture")
+            layout.prop(props, "use_front_faces_only", expand=False)
+
+        return dict(
+            idname="builtin.polyline_face_set",
+            label="Polyline Face Set",
+            icon="ops.sculpt.polyline_face_set",
             widget=None,
             keymap=(),
             draw_settings=draw_settings,
@@ -1610,6 +1640,25 @@ class _defs_sculpt:
             idname="builtin.line_trim",
             label="Line Trim",
             icon="ops.sculpt.line_trim",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def trim_polyline():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.trim_polyline_gesture")
+            layout.prop(props, "trim_solver", expand=False)
+            layout.prop(props, "trim_mode", expand=False)
+            layout.prop(props, "trim_orientation", expand=False)
+            layout.prop(props, "trim_extrude_mode", expand=False)
+            layout.prop(props, "use_cursor_depth", expand=False)
+
+        return dict(
+            idname="builtin.polyline_trim",
+            label="Polyline Trim",
+            icon="ops.sculpt.polyline_trim",
             widget=None,
             keymap=(),
             draw_settings=draw_settings,
@@ -3467,6 +3516,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_sculpt.mask_border,
                 _defs_sculpt.mask_lasso,
                 _defs_sculpt.mask_line,
+                _defs_sculpt.mask_polyline,
             ),
             (
                 _defs_sculpt.hide_border,
@@ -3478,11 +3528,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_sculpt.face_set_box,
                 _defs_sculpt.face_set_lasso,
                 _defs_sculpt.face_set_line,
+                _defs_sculpt.face_set_polyline,
             ),
             (
                 _defs_sculpt.trim_box,
                 _defs_sculpt.trim_lasso,
                 _defs_sculpt.trim_line,
+                _defs_sculpt.trim_polyline,
             ),
             _defs_sculpt.project_line,
             None,

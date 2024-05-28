@@ -708,6 +708,17 @@ static int gesture_line_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int gesture_polyline_exec(bContext *C, wmOperator *op)
+{
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_polyline(C, op);
+  if (!gesture_data) {
+    return OPERATOR_CANCELLED;
+  }
+  init_operation(*C, *gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
+  return OPERATOR_FINISHED;
+}
+
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Mask Lasso Gesture";
@@ -764,6 +775,26 @@ void PAINT_OT_mask_line_gesture(wmOperatorType *ot)
 
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
   gesture::operator_properties(ot, gesture::ShapeType::Line);
+
+  gesture_operator_properties(ot);
+}
+
+void PAINT_OT_mask_polyline_gesture(wmOperatorType *ot)
+{
+  ot->name = "Mask Polyline Gesture";
+  ot->idname = "PAINT_OT_mask_polyline_gesture";
+  ot->description = "Mask within a shape defined by the cursor";
+
+  ot->invoke = WM_gesture_polyline_invoke;
+  ot->modal = WM_gesture_polyline_modal;
+  ot->exec = gesture_polyline_exec;
+
+  ot->poll = SCULPT_mode_poll_view3d;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
+
+  WM_operator_properties_gesture_polyline(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Lasso);
 
   gesture_operator_properties(ot);
 }
