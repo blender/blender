@@ -1102,20 +1102,18 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
     }
     /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
      * Otherwise, take the current vert. */
-    const int v_index = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
+    const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
     const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
     /* If the vertex is selected */
-    if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
+    if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
       continue;
     }
     /* Get the average face weight */
     int total_hit_loops = 0;
     float weight_final = 0.0f;
-    for (const int p_index : gmap->vert_to_face[v_index]) {
-      const blender::IndexRange face = ss.faces[p_index];
-
-      total_hit_loops += face.size();
-      for (const int vert : ss.corner_verts.slice(face)) {
+    for (const int face : gmap->vert_to_face[vert]) {
+      total_hit_loops += ss.faces[face].size();
+      for (const int vert : ss.corner_verts.slice(ss.faces[face])) {
         weight_final += wpd.precomputed_weight[vert];
       }
     }
@@ -1138,8 +1136,8 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
     const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
 
     if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
-      if (ss.mode.wpaint.alpha_weight[v_index] < final_alpha) {
-        ss.mode.wpaint.alpha_weight[v_index] = final_alpha;
+      if (ss.mode.wpaint.alpha_weight[vert] < final_alpha) {
+        ss.mode.wpaint.alpha_weight[vert] = final_alpha;
       }
       else {
         continue;
@@ -1148,7 +1146,7 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
 
     weight_final /= total_hit_loops;
     /* Only paint visible verts */
-    do_weight_paint_vertex(vp, ob, wpi, v_index, final_alpha, weight_final);
+    do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, weight_final);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1207,12 +1205,12 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
 
     /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
      * Otherwise, take the current vert. */
-    const int v_index = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
+    const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
     const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
-    const float3 &mv_curr = ss.vert_positions[v_index];
+    const float3 &mv_curr = ss.vert_positions[vert];
 
     /* If the vertex is selected */
-    if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
+    if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
       continue;
     }
 
@@ -1233,15 +1231,15 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
     /* Get the color of the loop in the opposite direction of the brush movement
      * (this callback is specifically for smear.) */
     float weight_final = 0.0;
-    for (const int p_index : gmap->vert_to_face[v_index]) {
-      for (const int v_other_index : ss.corner_verts.slice(ss.faces[p_index])) {
-        if (v_other_index == v_index) {
+    for (const int face : gmap->vert_to_face[vert]) {
+      for (const int vert_other : ss.corner_verts.slice(ss.faces[face])) {
+        if (vert_other == vert) {
           continue;
         }
 
         /* Get the direction from the selected vert to the neighbor. */
         float other_dir[3];
-        sub_v3_v3v3(other_dir, mv_curr, ss.vert_positions[v_other_index]);
+        sub_v3_v3v3(other_dir, mv_curr, ss.vert_positions[vert_other]);
         project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
 
         normalize_v3(other_dir);
@@ -1250,7 +1248,7 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
 
         if (stroke_dot > stroke_dot_max) {
           stroke_dot_max = stroke_dot;
-          weight_final = wpd.precomputed_weight[v_other_index];
+          weight_final = wpd.precomputed_weight[vert_other];
           do_color = true;
         }
       }
@@ -1265,7 +1263,7 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
         continue;
       }
 
-      do_weight_paint_vertex(vp, ob, wpi, v_index, final_alpha, float(weight_final));
+      do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, float(weight_final));
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1317,11 +1315,11 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
     /* NOTE: grids are 1:1 with corners (aka loops).
      * For multires, take the vert whose loop corresponds to the current grid.
      * Otherwise, take the current vert. */
-    const int v_index = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
+    const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
     const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
     /* If the vertex is selected */
-    if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
+    if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
       continue;
     }
     float brush_strength = cache->bstrength;
@@ -1336,15 +1334,15 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
     const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
 
     if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
-      if (ss.mode.wpaint.alpha_weight[v_index] < final_alpha) {
-        ss.mode.wpaint.alpha_weight[v_index] = final_alpha;
+      if (ss.mode.wpaint.alpha_weight[vert] < final_alpha) {
+        ss.mode.wpaint.alpha_weight[vert] = final_alpha;
       }
       else {
         continue;
       }
     }
 
-    do_weight_paint_vertex(vp, ob, wpi, v_index, final_alpha, paintweight);
+    do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, paintweight);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1396,13 +1394,13 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
       continue;
     }
 
-    const int v_index = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
+    const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
     /* If the vertex is selected. */
-    if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
+    if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
       continue;
     }
 
-    const MDeformVert &dv = wpi.dvert[v_index];
+    const MDeformVert &dv = wpi.dvert[vert];
     accum.len += 1;
     accum.value += wpaint_get_active_weight(dv, wpi);
   }
