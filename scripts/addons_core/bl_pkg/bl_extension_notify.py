@@ -373,11 +373,12 @@ def splash_draw_status_fn(self, context):
     if _notify.splash_region is None:
         _notify.splash_region = context.region_popup
 
-    if _notify.sync_info is None:
+    if not bpy.app.online_access:
+        if bpy.app.online_access_override:
+            # Since there is nothing to do in this case, we show no operator.
+            self.layout.label(text="Running in Offline Mode", icon='INTERNET')
+    elif _notify.sync_info is None:
         self.layout.label(text="Updates starting...")
-    elif _notify.sync_info[0] is STATE_DATA_ALL_OFFLINE:
-        # The special case is ugly but showing this operator doesn't fit well with other kinds of status updates.
-        self.layout.operator("bl_pkg.extensions_show_online_prefs", text="Offline mode", icon='ORPHAN_DATA')
     else:
         status_data, update_count, extra_warnings = _notify.sync_info
         text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(status_data, update_count)
