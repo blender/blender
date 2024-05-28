@@ -1029,9 +1029,6 @@ static void do_vpaint_brush_blur_loops(bContext *C,
   const Brush &brush = *ob.sculpt->cache->brush;
   const Scene &scene = *CTX_data_scene(C);
 
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
-
   const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
   const StrokeCache *cache = ss.cache;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
@@ -1065,11 +1062,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
         if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
-        /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-         * Otherwise, take the current vert. */
-        const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] :
-                                     vd.vert_indices[vd.i];
-        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+        const int vert = vd.vert_indices[vd.i];
 
         /* If the vertex is selected for painting. */
         if (use_vert_sel && !select_vert[vert]) {
@@ -1148,7 +1141,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
               color_orig = previous_color[corner];
             }
             const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                      brush_alpha_pressure * grid_alpha;
+                                      brush_alpha_pressure;
             /* Mix the new color with the original
              * based on the brush strength and the curve. */
             colors[corner] = vpaint_blend<Color, Traits>(
@@ -1173,9 +1166,6 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
   const Brush &brush = *ss.cache->brush;
   const Scene &scene = *CTX_data_scene(C);
-
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
   const StrokeCache *cache = ss.cache;
@@ -1210,11 +1200,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
         if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
-        /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-         * Otherwise, take the current vert. */
-        const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] :
-                                     vd.vert_indices[vd.i];
-        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+        const int vert = vd.vert_indices[vd.i];
 
         /* If the vertex is selected for painting. */
         if (use_vert_sel && !select_vert[vert]) {
@@ -1280,7 +1266,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
             color_orig = previous_color[vert];
           }
           const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                    brush_alpha_pressure * grid_alpha;
+                                    brush_alpha_pressure;
           /* Mix the new color with the original
            * based on the brush strength and the curve. */
           colors[vert] = vpaint_blend<Color, Traits>(vp,
@@ -1311,8 +1297,6 @@ static void do_vpaint_brush_smear(bContext *C,
   if (!cache->is_last_valid) {
     return;
   }
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const Brush &brush = *ob.sculpt->cache->brush;
   const Scene &scene = *CTX_data_scene(C);
@@ -1357,11 +1341,7 @@ static void do_vpaint_brush_smear(bContext *C,
         if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
-        /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-         * Otherwise, take the current vert. */
-        const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] :
-                                     vd.vert_indices[vd.i];
-        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+        const int vert = vd.vert_indices[vd.i];
         const float3 &mv_curr = ss.vert_positions[vert];
 
         /* if the vertex is selected for painting. */
@@ -1446,7 +1426,7 @@ static void do_vpaint_brush_smear(bContext *C,
           }
 
           const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                    brush_alpha_pressure * grid_alpha;
+                                    brush_alpha_pressure;
 
           /* For each face owning this vert,
            * paint each loop belonging to this vert. */
@@ -1502,8 +1482,6 @@ static void calculate_average_color(VPaintData &vpd,
                                     Span<PBVHNode *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
 
   StrokeCache *cache = ss.cache;
@@ -1543,8 +1521,7 @@ static void calculate_average_color(VPaintData &vpd,
           if (BKE_brush_curve_strength(&brush, 0.0, cache->radius) <= 0.0f) {
             continue;
           }
-          const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] :
-                                       vd.vert_indices[vd.i];
+          const int vert = vd.vert_indices[vd.i];
           /* If the vertex is selected for painting. */
           if (use_vert_sel && !select_vert[vert]) {
             continue;
@@ -1619,12 +1596,10 @@ static void vpaint_do_draw(bContext *C,
                            GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
 
   const Brush &brush = *ob.sculpt->cache->brush;
   const Scene &scene = *CTX_data_scene(C);
 
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss.mode.vpaint.gmap;
 
   const StrokeCache *cache = ss.cache;
@@ -1659,17 +1634,11 @@ static void vpaint_do_draw(bContext *C,
         if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
-        /* NOTE: Grids are 1:1 with corners (aka loops).
-         * For grid based pbvh, take the vert whose loop corresponds to the current grid.
-         * Otherwise, take the current vert. */
-        const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] :
-                                     vd.vert_indices[vd.i];
+        const int vert = vd.vert_indices[vd.i];
         /* If the vertex is selected for painting. */
         if (use_vert_sel && !select_vert[vert]) {
           continue;
         }
-
-        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
         /* Calc the dot prod. between ray norm on surf and current vert
          * (ie splash prevention factor), and only paint front facing verts. */
@@ -1724,7 +1693,7 @@ static void vpaint_do_draw(bContext *C,
               color_orig = previous_color[vert];
             }
             const float final_alpha = Traits::frange * brush_fade * brush_strength * tex_alpha *
-                                      brush_alpha_pressure * grid_alpha;
+                                      brush_alpha_pressure;
 
             colors[vert] = vpaint_blend<Color, Traits>(vp,
                                                        colors[vert],
@@ -1752,7 +1721,7 @@ static void vpaint_do_draw(bContext *C,
                 color_orig = previous_color[corner];
               }
               const float final_alpha = Traits::frange * brush_fade * brush_strength * tex_alpha *
-                                        brush_alpha_pressure * grid_alpha;
+                                        brush_alpha_pressure;
 
               /* Mix the new color with the original based on final_alpha. */
               colors[corner] = vpaint_blend<Color, Traits>(vp,

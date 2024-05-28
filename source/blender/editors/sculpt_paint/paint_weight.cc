@@ -1070,8 +1070,6 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss.mode.wpaint.gmap;
 
   const StrokeCache *cache = ss.cache;
@@ -1100,10 +1098,7 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
     if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
-    /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-     * Otherwise, take the current vert. */
-    const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
-    const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+    const int vert = vd.vert_indices[vd.i];
     /* If the vertex is selected */
     if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
       continue;
@@ -1133,7 +1128,7 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
     }
 
     const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
-    const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
+    const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
 
     if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
       if (ss.mode.wpaint.alpha_weight[vert] < final_alpha) {
@@ -1162,8 +1157,6 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss.mode.wpaint.gmap;
 
   const StrokeCache *cache = ss.cache;
@@ -1203,10 +1196,7 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
       continue;
     }
 
-    /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-     * Otherwise, take the current vert. */
-    const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
-    const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+    const int vert = vd.vert_indices[vd.i];
     const float3 &mv_curr = ss.vert_positions[vert];
 
     /* If the vertex is selected */
@@ -1257,7 +1247,7 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
         continue;
       }
       const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
-      const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
+      const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
 
       if (final_alpha <= 0.0f) {
         continue;
@@ -1281,8 +1271,6 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const StrokeCache *cache = ss.cache;
   /* NOTE: normally `BKE_brush_weight_get(scene, brush)` is used,
@@ -1312,11 +1300,7 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
     if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
-    /* NOTE: grids are 1:1 with corners (aka loops).
-     * For multires, take the vert whose loop corresponds to the current grid.
-     * Otherwise, take the current vert. */
-    const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
-    const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+    const int vert = vd.vert_indices[vd.i];
 
     /* If the vertex is selected */
     if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
@@ -1331,7 +1315,7 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
       continue;
     }
     const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
-    const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
+    const float final_alpha = brush_fade * brush_strength * brush_alpha_pressure;
 
     if ((brush.flag & BRUSH_ACCUMULATE) == 0) {
       if (ss.mode.wpaint.alpha_weight[vert] < final_alpha) {
@@ -1357,8 +1341,6 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
   StrokeCache *cache = ss.cache;
-  const PBVHType pbvh_type = BKE_pbvh_type(*ss.pbvh);
-  const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const bool use_normal = vwpaint::use_normal(vp);
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
@@ -1394,7 +1376,7 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
       continue;
     }
 
-    const int vert = has_grids ? ss.corner_verts[vd.grid_indices[vd.g]] : vd.vert_indices[vd.i];
+    const int vert = vd.vert_indices[vd.i];
     /* If the vertex is selected. */
     if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
       continue;
