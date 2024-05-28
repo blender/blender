@@ -1312,6 +1312,7 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(cloth::SCULPT_OT_cloth_filter);
   WM_operatortype_append(face_set::SCULPT_OT_face_set_lasso_gesture);
   WM_operatortype_append(face_set::SCULPT_OT_face_set_box_gesture);
+  WM_operatortype_append(face_set::SCULPT_OT_face_set_line_gesture);
   WM_operatortype_append(trim::SCULPT_OT_trim_box_gesture);
   WM_operatortype_append(trim::SCULPT_OT_trim_lasso_gesture);
   WM_operatortype_append(trim::SCULPT_OT_trim_line_gesture);

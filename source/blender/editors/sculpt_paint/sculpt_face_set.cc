@@ -1892,6 +1892,28 @@ static int gesture_lasso_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int gesture_line_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return WM_gesture_straightline_active_side_invoke(C, op, event);
+}
+
+static int gesture_line_exec(bContext *C, wmOperator *op)
+{
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_line(C, op);
+  if (!gesture_data) {
+    return OPERATOR_CANCELLED;
+  }
+  init_operation(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
+  return OPERATOR_FINISHED;
+}
+
 void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Face Set Lasso Gesture";
@@ -1926,6 +1948,24 @@ void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
 
   WM_operator_properties_border(ot);
   gesture::operator_properties(ot, gesture::ShapeType::Box);
+}
+
+void SCULPT_OT_face_set_line_gesture(wmOperatorType *ot)
+{
+  ot->name = "Face Set Line Gesture";
+  ot->idname = "SCULPT_OT_face_set_line_gesture";
+  ot->description = "Add a face set to one side of a line defined by the cursor";
+
+  ot->invoke = gesture_line_invoke;
+  ot->modal = WM_gesture_straightline_oneshot_modal;
+  ot->exec = gesture_line_exec;
+
+  ot->poll = SCULPT_mode_poll_view3d;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
+  gesture::operator_properties(ot, gesture::ShapeType::Line);
 }
 /** \} */
 

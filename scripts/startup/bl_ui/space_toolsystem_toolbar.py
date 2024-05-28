@@ -1547,6 +1547,22 @@ class _defs_sculpt:
         )
 
     @ToolDef.from_fn
+    def face_set_line():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.face_set_line_gesture")
+            layout.prop(props, "use_front_faces_only", expand=False)
+            layout.prop(props, "use_limit_to_segment", expand=False)
+
+        return dict(
+            idname="builtin.line_face_set",
+            label="Line Face Set",
+            icon="ops.sculpt.line_face_set",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def trim_box():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.trim_box_gesture")
@@ -3461,6 +3477,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             (
                 _defs_sculpt.face_set_box,
                 _defs_sculpt.face_set_lasso,
+                _defs_sculpt.face_set_line,
             ),
             (
                 _defs_sculpt.trim_box,

@@ -8198,6 +8198,16 @@ def km_3d_view_tool_sculpt_lasso_face_set(params):
     )
 
 
+def km_3d_view_tool_sculpt_line_face_set(params):
+    return (
+        "3D View Tool: Sculpt, Line Face Set",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.face_set_line_gesture", params.tool_maybe_tweak_event, None),
+        ]},
+    )
+
+
 def km_3d_view_tool_sculpt_box_trim(params):
     return (
         "3D View Tool: Sculpt, Box Trim",
@@ -9197,6 +9207,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_lasso_mask(params),
         km_3d_view_tool_sculpt_box_face_set(params),
         km_3d_view_tool_sculpt_lasso_face_set(params),
+        km_3d_view_tool_sculpt_line_face_set(params),
         km_3d_view_tool_sculpt_box_trim(params),
         km_3d_view_tool_sculpt_lasso_trim(params),
         km_3d_view_tool_sculpt_line_trim(params),

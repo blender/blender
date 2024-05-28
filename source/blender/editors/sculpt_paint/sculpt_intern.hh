@@ -1810,6 +1810,7 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
 
 void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot);
 void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot);
+void SCULPT_OT_face_set_line_gesture(wmOperatorType *ot);
 
 }
 
