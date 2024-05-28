@@ -44,6 +44,9 @@ extern "C" {
 #  endif
 
 CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_run_test_kernel(SyclQueue *queue_);
+CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_zero_memory_on_device(SyclQueue *queue_,
+                                                              void *device_pointer,
+                                                              size_t num_bytes);
 CYCLES_KERNEL_ONEAPI_EXPORT void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr);
 CYCLES_KERNEL_ONEAPI_EXPORT size_t oneapi_suggested_gpu_kernel_size(const DeviceKernel kernel);
 CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_enqueue_kernel(KernelContext *context,
