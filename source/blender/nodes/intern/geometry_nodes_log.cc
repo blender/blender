@@ -9,6 +9,8 @@
 #include "BKE_curves.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
+#include "BKE_volume.hh"
+#include "BKE_volume_openvdb.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
@@ -125,17 +127,46 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         break;
       }
       case bke::GeometryComponent::Type::Volume: {
-        break;
-      }
-      case bke::GeometryComponent::Type::GreasePencil: {
-        const auto &grease_pencil_component = *static_cast<const bke::GreasePencilComponent *>(
-            component);
-        GreasePencilInfo &info = this->grease_pencil_info.emplace();
-        info.layers_num = grease_pencil_component.attribute_domain_size(bke::AttrDomain::Layer);
+        const auto &volume_component = *static_cast<const bke::VolumeComponent *>(component);
+        if (const Volume *volume = volume_component.get()) {
+          VolumeInfo &info = this->volume_info.emplace();
+          info.grids_num = BKE_volume_num_grids(volume);
+        }
         break;
       }
     }
   }
+}
+
+struct GridIsEmptyOp {
+  const openvdb::GridBase &base_grid;
+  bool result = false;
+
+  template<typename GridType> bool operator()()
+  {
+    result = static_cast<const GridType &>(base_grid).empty();
+    return true;
+  }
+};
+
+GeometryInfoLog::GeometryInfoLog(const bke::GVolumeGrid &grid)
+{
+  GridInfo &info = this->grid_info.emplace();
+#ifdef WITH_OPENVDB
+  bke::VolumeTreeAccessToken token;
+  const openvdb::GridBase &vdb_grid = grid->grid(token);
+  const VolumeGridType grid_type = bke::volume_grid::get_type(vdb_grid);
+
+  GridIsEmptyOp is_empty_op{vdb_grid};
+  if (BKE_volume_grid_type_operation(grid_type, is_empty_op)) {
+    info.is_empty = is_empty_op.result;
+  }
+  else {
+    info.is_empty = true;
+  }
+#else
+  info.is_empty = true;
+#endif
 }
 
 /* Avoid generating these in every translation unit. */
@@ -187,6 +218,12 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
       const GField field = value_variant.extract<GField>();
       store_logged_value(this->allocator->construct<FieldInfoLog>(field));
     }
+#ifdef WITH_OPENVDB
+    else if (value_variant.is_volume_grid()) {
+      const bke::GVolumeGrid grid = value_variant.extract<bke::GVolumeGrid>();
+      store_logged_value(this->allocator->construct<GeometryInfoLog>(grid));
+    }
+#endif
     else {
       value_variant.convert_to_single();
       const GPointer value = value_variant.get_single_ptr();

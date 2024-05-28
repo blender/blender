@@ -1473,17 +1473,24 @@ static void create_inspection_string_for_field_info(const bNodeSocket &socket,
 static void create_inspection_string_for_geometry_info(const geo_log::GeometryInfoLog &value_log,
                                                        fmt::memory_buffer &buf)
 {
-  Span<bke::GeometryComponent::Type> component_types = value_log.component_types;
-  if (component_types.is_empty()) {
-    fmt::format_to(fmt::appender(buf), TIP_("Empty Geometry"));
-    return;
-  }
-
   auto to_string = [](int value) {
     char str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
     BLI_str_format_int_grouped(str, value);
     return std::string(str);
   };
+
+  if (value_log.grid_info) {
+    const geo_log::GeometryInfoLog::GridInfo &grid_info = *value_log.grid_info;
+    fmt::format_to(fmt::appender(buf),
+                   grid_info.is_empty ? TIP_("Empty Grid") : TIP_("\u2022 Grid"));
+    return;
+  }
+
+  Span<bke::GeometryComponent::Type> component_types = value_log.component_types;
+  if (component_types.is_empty()) {
+    fmt::format_to(fmt::appender(buf), TIP_("Empty Geometry"));
+    return;
+  }
 
   fmt::format_to(fmt::appender(buf), TIP_("Geometry:"));
   fmt::format_to(fmt::appender(buf), "\n");
@@ -1522,7 +1529,8 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         break;
       }
       case bke::GeometryComponent::Type::Volume: {
-        fmt::format_to(fmt::appender(buf), TIP_("\u2022 Volume"));
+        const geo_log::GeometryInfoLog::VolumeInfo &volume_info = *value_log.volume_info;
+        fmt::format_to(fmt::appender(buf), TIP_("\u2022 Volume: {} grids"), volume_info.grids_num);
         break;
       }
       case bke::GeometryComponent::Type::Edit: {
