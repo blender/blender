@@ -1685,6 +1685,9 @@ static bConstraint *rna_Object_constraints_new(Object *object, Main *bmain, int 
   ED_object_constraint_tag_update(bmain, object, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);
 
+  /* The Depsgraph needs to be updated to reflect the new relationship that was added. */
+  DEG_relations_tag_update(bmain);
+
   return new_con;
 }
 
