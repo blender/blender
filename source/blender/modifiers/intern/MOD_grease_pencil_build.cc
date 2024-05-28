@@ -477,7 +477,7 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
   float previous_init_time = init_times[0];
   for (const int curve : curves.curves_range()) {
     if (curve > 0) {
-      current_time += math::max(init_times[curve] - previous_init_time, max_gap);
+      current_time += math::min(init_times[curve] - previous_init_time, max_gap);
       previous_init_time = init_times[curve];
     }
     for (const int point : points_by_curve[curve]) {
