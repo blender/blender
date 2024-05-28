@@ -65,7 +65,7 @@ static eDRWColorManagementType drw_color_management_type_for_v3d(const Scene &sc
 
 static eDRWColorManagementType drw_color_management_type_for_space_image(const SpaceImage &sima)
 {
-  Image *image = sima.image;
+  const Image *image = sima.image;
 
   /* Use inverse logic as there isn't a setting for `Color & Alpha`. */
   const eSpaceImage_Flag display_channels_mode = static_cast<eSpaceImage_Flag>(sima.flag);
@@ -83,7 +83,7 @@ static eDRWColorManagementType drw_color_management_type_for_space_node(Main &bm
                                                                         const SpaceNode &snode)
 {
   if ((snode.flag & SNODE_BACKDRAW) && ED_node_is_compositor(&snode)) {
-    Image *image = BKE_image_ensure_viewer(&bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+    const Image *image = BKE_image_ensure_viewer(&bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
     if ((image->flag & IMA_VIEW_AS_RENDER) == 0) {
       return eDRWColorManagementType::ViewTransform;
     }
