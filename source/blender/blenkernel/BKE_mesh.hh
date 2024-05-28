@@ -343,6 +343,12 @@ void mesh_sharp_edges_set_from_angle(Mesh &mesh, float angle, bool keep_sharp_ed
  * vertices are hidden. */
 void mesh_edge_hide_from_vert(Span<int2> edges, Span<bool> hide_vert, MutableSpan<bool> hide_edge);
 
+/* Hide faces when any of their vertices are hidden. */
+void mesh_face_hide_from_vert(OffsetIndices<int> faces,
+                              Span<int> corner_verts,
+                              Span<bool> hide_vert,
+                              MutableSpan<bool> hide_poly);
+
 /** Make edge and face visibility consistent with vertices. */
 void mesh_hide_vert_flush(Mesh &mesh);
 /** Make vertex and edge visibility consistent with faces. */

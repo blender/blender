@@ -517,11 +517,10 @@ void mesh_edge_hide_from_vert(const Span<int2> edges,
   });
 }
 
-/* Hide faces when any of their vertices are hidden. */
-static void face_hide_from_vert(const OffsetIndices<int> faces,
-                                const Span<int> corner_verts,
-                                const Span<bool> hide_vert,
-                                MutableSpan<bool> hide_poly)
+void mesh_face_hide_from_vert(const OffsetIndices<int> faces,
+                              const Span<int> corner_verts,
+                              const Span<bool> hide_vert,
+                              MutableSpan<bool> hide_poly)
 {
   using namespace blender;
   threading::parallel_for(faces.index_range(), 4096, [&](const IndexRange range) {
@@ -552,7 +551,7 @@ void mesh_hide_vert_flush(Mesh &mesh)
       ".hide_poly", AttrDomain::Face);
 
   mesh_edge_hide_from_vert(mesh.edges(), hide_vert_span, hide_edge.span);
-  face_hide_from_vert(mesh.faces(), mesh.corner_verts(), hide_vert_span, hide_poly.span);
+  mesh_face_hide_from_vert(mesh.faces(), mesh.corner_verts(), hide_vert_span, hide_poly.span);
 
   hide_edge.finish();
   hide_poly.finish();
