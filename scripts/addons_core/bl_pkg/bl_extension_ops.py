@@ -1072,6 +1072,13 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
         use_active_only = self.use_active_only
         repos_all = extension_repos_read(use_active_only=use_active_only)
 
+        if not repos_all:
+            if use_active_only:
+                self.report({'INFO'}, "The active repository has invalid settings")
+            else:
+                assert False, "unreachable"  # Poll prevents this.
+            return None
+
         for repo_item in repos_all:
             if not os.path.exists(repo_item.directory):
                 try:
@@ -1164,6 +1171,13 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
         use_active_only = self.use_active_only
         repos_all = extension_repos_read(use_active_only=use_active_only)
         repo_directory_supset = [repo_entry.directory for repo_entry in repos_all] if use_active_only else None
+
+        if not repos_all:
+            if use_active_only:
+                self.report({'INFO'}, "The active repository has invalid settings")
+            else:
+                assert False, "unreachable"  # Poll prevents this.
+            return None
 
         # NOTE: Unless we have a "clear-cache" operator - there isn't a great place to apply cache-clearing.
         # So when cache is disabled simply clear all cache before performing an update.
