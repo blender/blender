@@ -250,7 +250,7 @@ void init_session_data(const ToolSettings &ts, Object &ob)
 
   Mesh *mesh = (Mesh *)ob.data;
 
-  gmap->vert_to_loop = mesh->vert_to_corner_map();
+  gmap->vert_to_corner = mesh->vert_to_corner_map();
   gmap->vert_to_face = mesh->vert_to_face_map();
 
   /* Create average brush arrays */
@@ -1128,7 +1128,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
            * paint each loop belonging to this vert. */
           for (const int j : gmap->vert_to_face[vert].index_range()) {
             const int face = gmap->vert_to_face[vert][j];
-            const int corner = gmap->vert_to_loop[vert][j];
+            const int corner = gmap->vert_to_corner[vert][j];
             BLI_assert(ss.corner_verts[corner] == vert);
             if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
@@ -1394,7 +1394,7 @@ static void do_vpaint_brush_smear(bContext *C,
 
           for (const int j : gmap->vert_to_face[vert].index_range()) {
             const int face = gmap->vert_to_face[vert][j];
-            const int corner = gmap->vert_to_loop[vert][j];
+            const int corner = gmap->vert_to_corner[vert][j];
             BLI_assert(ss.corner_verts[corner] == vert);
             UNUSED_VARS_NDEBUG(corner);
             if (!select_poly.is_empty() && !select_poly[face]) {
@@ -1449,7 +1449,7 @@ static void do_vpaint_brush_smear(bContext *C,
               elem_index = vert;
             }
             else {
-              const int corner = gmap->vert_to_loop[vert][j];
+              const int corner = gmap->vert_to_corner[vert][j];
               elem_index = corner;
               BLI_assert(ss.corner_verts[corner] == vert);
             }
@@ -1546,7 +1546,7 @@ static void calculate_average_color(VPaintData &vpd,
             int elem_index;
 
             if (vpd.domain == AttrDomain::Corner) {
-              elem_index = gmap->vert_to_loop[vert][j];
+              elem_index = gmap->vert_to_corner[vert][j];
             }
             else {
               elem_index = vert;
@@ -1722,7 +1722,7 @@ static void vpaint_do_draw(bContext *C,
             /* For each face owning this vert, paint each loop belonging to this vert. */
             for (const int j : gmap->vert_to_face[vert].index_range()) {
               const int face = gmap->vert_to_face[vert][j];
-              const int corner = gmap->vert_to_loop[vert][j];
+              const int corner = gmap->vert_to_corner[vert][j];
               BLI_assert(ss.corner_verts[corner] == vert);
               if (!select_poly.is_empty() && !select_poly[face]) {
                 continue;

@@ -277,7 +277,7 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 
 /** Used for both vertex color and weight paint. */
 struct SculptVertexPaintGeomMap {
-  blender::GroupedSpan<int> vert_to_loop;
+  blender::GroupedSpan<int> vert_to_corner;
   blender::GroupedSpan<int> vert_to_face;
 };
 

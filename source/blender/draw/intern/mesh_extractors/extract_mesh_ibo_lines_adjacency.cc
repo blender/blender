@@ -31,7 +31,7 @@ struct MeshExtract_LineAdjacency_Data {
   Map<OrderedEdge, int> *eh;
   bool is_manifold;
   /* Array to convert vert index to any loop index of this vert. */
-  uint *vert_to_loop;
+  uint *vert_to_corner;
 };
 
 static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
@@ -39,7 +39,7 @@ static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
                                      uint loop_len,
                                      uint tess_edge_len)
 {
-  data->vert_to_loop = static_cast<uint *>(MEM_callocN(sizeof(uint) * vert_len, __func__));
+  data->vert_to_corner = static_cast<uint *>(MEM_callocN(sizeof(uint) * vert_len, __func__));
 
   GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES_ADJ, tess_edge_len, loop_len);
   data->eh = new Map<OrderedEdge, int>();
@@ -78,8 +78,8 @@ BLI_INLINE void lines_adjacency_triangle(
           int new_value = int(l1) + 1; /* 0 cannot be signed so add one. */
           *value = inv_indices ? -new_value : new_value;
           /* Store loop indices for remaining non-manifold edges. */
-          data->vert_to_loop[v2] = l2;
-          data->vert_to_loop[v3] = l3;
+          data->vert_to_corner[v2] = l2;
+          data->vert_to_corner[v3] = l3;
         },
         [&](int *value) {
           int v_data = *value;
@@ -87,8 +87,8 @@ BLI_INLINE void lines_adjacency_triangle(
             int new_value = int(l1) + 1; /* 0 cannot be signed so add one. */
             *value = inv_indices ? -new_value : new_value;
             /* Store loop indices for remaining non-manifold edges. */
-            data->vert_to_loop[v2] = l2;
-            data->vert_to_loop[v3] = l3;
+            data->vert_to_corner[v2] = l2;
+            data->vert_to_corner[v3] = l3;
           }
           else {
             /* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
@@ -168,8 +168,8 @@ static void extract_lines_adjacency_finish(const MeshRenderData & /*mr*/,
     if (v_data < 0) { /* `inv_opposite`. */
       std::swap(v2, v3);
     }
-    int l2 = data->vert_to_loop[v2];
-    int l3 = data->vert_to_loop[v3];
+    int l2 = data->vert_to_corner[v2];
+    int l3 = data->vert_to_corner[v3];
     GPU_indexbuf_add_line_adj_verts(&data->elb, l1, l2, l3, l1);
     data->is_manifold = false;
   }
@@ -178,7 +178,7 @@ static void extract_lines_adjacency_finish(const MeshRenderData & /*mr*/,
   cache.is_manifold = data->is_manifold;
 
   GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data->vert_to_loop);
+  MEM_freeN(data->vert_to_corner);
 }
 
 static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache &subdiv_cache,
