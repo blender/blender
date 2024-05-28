@@ -308,7 +308,7 @@ def get_shadeless_node(dest_node_tree):
     # WARNING: using a hard coded name isn't fool proof!
     # Users could have this name already in a node-tree (albeit unlikely).
     node_group_name = "IAP_SHADELESS"
-    if (node_tree := bpy.data.node_groups.get(node_group_name)) is None:
+    if (node_tree := bpy.data.node_groups.get((node_group_name, None))) is None:
         # Need to build node shadeless node group.
         node_tree = bpy.data.node_groups.new(node_group_name, 'ShaderNodeTree')
         output_node = node_tree.nodes.new('NodeGroupOutput')
@@ -929,7 +929,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     def create_cycles_material(self, img_spec, name):
         material = None
         if self.overwrite_material:
-            material = bpy.data.materials.get(name)
+            material = bpy.data.materials.get((name, None))
         if material is None:
             material = bpy.data.materials.new(name=name)
 
