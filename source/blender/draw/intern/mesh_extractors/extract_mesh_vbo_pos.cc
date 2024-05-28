@@ -189,6 +189,7 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
       &vbo, draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache));
 
   if (subdiv_cache.num_subdiv_loops == 0) {
+    extract_loose_positions_subdiv(subdiv_cache, mr, vbo);
     return;
   }
 
