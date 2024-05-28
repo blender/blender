@@ -715,12 +715,12 @@ static Color vpaint_blend(const VPaint &vp,
   return color_blend;
 }
 
-static void paint_and_tex_color_alpha_intern(VPaint &vp,
+static void paint_and_tex_color_alpha_intern(const VPaint &vp,
                                              const ViewContext *vc,
                                              const float co[3],
                                              float r_rgba[4])
 {
-  const Brush *brush = BKE_paint_brush(&vp.paint);
+  const Brush *brush = BKE_paint_brush_for_read(&vp.paint);
   const MTex *mtex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
   BLI_assert(mtex->tex != nullptr);
   if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
@@ -1006,12 +1006,12 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   return true;
 }
 
-static void do_vpaint_brush_blur_loops(bContext *C,
-                                       VPaint &vp,
+static void do_vpaint_brush_blur_loops(const bContext *C,
+                                       const VPaint &vp,
                                        VPaintData &vpd,
                                        Object &ob,
                                        Mesh &mesh,
-                                       Span<PBVHNode *> nodes,
+                                       const Span<PBVHNode *> nodes,
                                        GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1148,12 +1148,12 @@ static void do_vpaint_brush_blur_loops(bContext *C,
   });
 }
 
-static void do_vpaint_brush_blur_verts(bContext *C,
-                                       VPaint &vp,
+static void do_vpaint_brush_blur_verts(const bContext *C,
+                                       const VPaint &vp,
                                        VPaintData &vpd,
                                        Object &ob,
                                        Mesh &mesh,
-                                       Span<PBVHNode *> nodes,
+                                       const Span<PBVHNode *> nodes,
                                        GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1281,12 +1281,12 @@ static void do_vpaint_brush_blur_verts(bContext *C,
   });
 }
 
-static void do_vpaint_brush_smear(bContext *C,
-                                  VPaint &vp,
+static void do_vpaint_brush_smear(const bContext *C,
+                                  const VPaint &vp,
                                   VPaintData &vpd,
                                   Object &ob,
                                   Mesh &mesh,
-                                  Span<PBVHNode *> nodes,
+                                  const Span<PBVHNode *> nodes,
                                   GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1476,7 +1476,7 @@ static void calculate_average_color(VPaintData &vpd,
                                     Mesh &mesh,
                                     const Brush &brush,
                                     const GSpan attribute,
-                                    Span<PBVHNode *> nodes)
+                                    const Span<PBVHNode *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
@@ -1571,7 +1571,7 @@ static void calculate_average_color(VPaintData &vpd,
 }
 
 template<typename Color>
-static float paint_and_tex_color_alpha(VPaint &vp,
+static float paint_and_tex_color_alpha(const VPaint &vp,
                                        VPaintData &vpd,
                                        const float v_co[3],
                                        Color *r_color)
@@ -1586,12 +1586,12 @@ static float paint_and_tex_color_alpha(VPaint &vp,
   return rgba[3];
 }
 
-static void vpaint_do_draw(bContext *C,
-                           VPaint &vp,
+static void vpaint_do_draw(const bContext *C,
+                           const VPaint &vp,
                            VPaintData &vpd,
                            Object &ob,
                            Mesh &mesh,
-                           Span<PBVHNode *> nodes,
+                           const Span<PBVHNode *> nodes,
                            GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1738,12 +1738,12 @@ static void vpaint_do_draw(bContext *C,
   });
 }
 
-static void vpaint_do_blur(bContext *C,
-                           VPaint &vp,
+static void vpaint_do_blur(const bContext *C,
+                           const VPaint &vp,
                            VPaintData &vpd,
                            Object &ob,
                            Mesh &mesh,
-                           Span<PBVHNode *> nodes,
+                           const Span<PBVHNode *> nodes,
                            GMutableSpan attribute)
 {
   if (vpd.domain == AttrDomain::Point) {
@@ -1755,12 +1755,12 @@ static void vpaint_do_blur(bContext *C,
 }
 
 static void vpaint_paint_leaves(bContext *C,
-                                VPaint &vp,
+                                const VPaint &vp,
                                 VPaintData &vpd,
                                 Object &ob,
                                 Mesh &mesh,
                                 GMutableSpan attribute,
-                                Span<PBVHNode *> nodes)
+                                const Span<PBVHNode *> nodes)
 {
   for (PBVHNode *node : nodes) {
     undo::push_node(ob, node, undo::Type::Color);
@@ -1788,7 +1788,7 @@ static void vpaint_paint_leaves(bContext *C,
 }
 
 static void vpaint_do_paint(bContext *C,
-                            VPaint &vp,
+                            const VPaint &vp,
                             VPaintData &vpd,
                             Object &ob,
                             Mesh &mesh,
@@ -1815,7 +1815,7 @@ static void vpaint_do_paint(bContext *C,
 }
 
 static void vpaint_do_radial_symmetry(bContext *C,
-                                      VPaint &vp,
+                                      const VPaint &vp,
                                       VPaintData &vpd,
                                       Object &ob,
                                       Mesh &mesh,
@@ -1832,11 +1832,11 @@ static void vpaint_do_radial_symmetry(bContext *C,
 /* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'wpaint_do_symmetrical_brush_actions'. */
 static void vpaint_do_symmetrical_brush_actions(bContext *C,
-                                                VPaint &vp,
+                                                const VPaint &vp,
                                                 VPaintData &vpd,
                                                 Object &ob)
 {
-  Brush &brush = *BKE_paint_brush(&vp.paint);
+  const Brush &brush = *BKE_paint_brush_for_read(&vp.paint);
   Mesh &mesh = *(Mesh *)ob.data;
   SculptSession &ss = *ob.sculpt;
   StrokeCache &cache = *ss.cache;
