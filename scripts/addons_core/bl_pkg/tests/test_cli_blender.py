@@ -39,6 +39,7 @@ if BLENDER_BIN is None:
 
 # Arguments to ensure extensions are enabled (currently it's an experimental feature).
 BLENDER_ENABLE_EXTENSION_ARGS = [
+    "--online-mode",
     "--python-exit-code", "1",
 ]
 

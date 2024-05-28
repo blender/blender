@@ -123,7 +123,9 @@ watch_test_cli: FORCE
 test_blender: FORCE
 	@env --chdir="$(BASE_DIR)" \
 	    ASAN_OPTIONS=check_initialization_order=0:leak_check_at_exit=0 \
-	    $(BLENDER_BIN) --background --factory-startup -noaudio --python ./tests/test_blender.py -- --verbose
+	    $(BLENDER_BIN) \
+	        --background --factory-startup --online-mode -noaudio \
+	        --python ./tests/test_blender.py -- --verbose
 watch_test_blender: FORCE
 	@cd "$(BASE_DIR)" && \
 	while true; do \
