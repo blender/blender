@@ -824,6 +824,9 @@ enum LightingType : uint32_t {
   LIGHT_SPECULAR = 1u,
   LIGHT_TRANSMISSION = 2u,
   LIGHT_VOLUME = 3u,
+  /* WORKAROUND: Special value used to tag translucent BSDF with thickness.
+   * Fallback to LIGHT_DIFFUSE. */
+  LIGHT_TRANSLUCENT_WITH_THICKNESS = 4u,
 };
 
 static inline bool is_area_light(eLightType type)
