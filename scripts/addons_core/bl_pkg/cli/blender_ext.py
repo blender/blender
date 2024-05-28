@@ -676,6 +676,23 @@ def remote_url_get(url: str) -> str:
     return url
 
 
+def remote_url_params_strip(url: str) -> str:
+    # Parse the URL to get its scheme, domain, and query parameters.
+    parsed_url = urllib.parse.urlparse(url)
+
+    # Combine the scheme, netloc, path without any other parameters, stripping the URL.
+    new_url = urllib.parse.urlunparse((
+        parsed_url.scheme,
+        parsed_url.netloc,
+        parsed_url.path,
+        None,  # `parsed_url.params,`
+        None,  # `parsed_url.query,`
+        None,  # `parsed_url.fragment,`
+    ))
+
+    return new_url
+
+
 # -----------------------------------------------------------------------------
 # ZipFile Helpers
 
@@ -1072,18 +1089,19 @@ def url_retrieve_exception_as_message(
     Provides more user friendly messages when reading from a URL fails.
     """
     # These exceptions may occur when reading from the file-system or a URL.
+    url_strip = remote_url_params_strip(url)
     if isinstance(ex, FileNotFoundError):
-        return "{:s}: file-not-found ({:s}) reading {!r}!".format(prefix, str(ex), url)
+        return "{:s}: file-not-found ({:s}) reading {!r}!".format(prefix, str(ex), url_strip)
     if isinstance(ex, TimeoutError):
-        return "{:s}: timeout ({:s}) reading {!r}!".format(prefix, str(ex), url)
+        return "{:s}: timeout ({:s}) reading {!r}!".format(prefix, str(ex), url_strip)
     if isinstance(ex, urllib.error.URLError):
         if isinstance(ex, urllib.error.HTTPError):
             if ex.code == 403:
-                return "{:s}: HTTP error (403) access token may be incorrect, reading {!r}!".format(prefix, url)
-            return "{:s}: HTTP error ({:s}) reading {!r}!".format(prefix, str(ex), url)
-        return "{:s}: URL error ({:s}) reading {!r}!".format(prefix, str(ex), url)
+                return "{:s}: HTTP error (403) access token may be incorrect, reading {!r}!".format(prefix, url_strip)
+            return "{:s}: HTTP error ({:s}) reading {!r}!".format(prefix, str(ex), url_strip)
+        return "{:s}: URL error ({:s}) reading {!r}!".format(prefix, str(ex), url_strip)
 
-    return "{:s}: unexpected error ({:s}) reading {!r}!".format(prefix, str(ex), url)
+    return "{:s}: unexpected error ({:s}) reading {!r}!".format(prefix, str(ex), url_strip)
 
 
 def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
@@ -2328,6 +2346,9 @@ class subcmd_client:
         # Ensure a private directory so a local cache can be created.
         local_cache_dir = repo_local_private_dir_ensure_with_subdir(local_dir=local_dir, subdir="cache")
 
+        # Needed so relative paths can be properly calculated.
+        remote_url_strip = remote_url_params_strip(remote_url)
+
         # TODO: this could be optimized to only lookup known ID's.
         json_data_pkg_info_map: Dict[str, Dict[str, Any]] = {
             pkg_info["id"]: pkg_info for pkg_info in pkg_repo_data.data
@@ -2376,10 +2397,10 @@ class subcmd_client:
 
                 # Remote path.
                 if pkg_archive_url.startswith("./"):
-                    if remote_url_has_filename_suffix(remote_url):
-                        filepath_remote_archive = remote_url.rpartition("/")[0] + pkg_archive_url[1:]
+                    if remote_url_has_filename_suffix(remote_url_strip):
+                        filepath_remote_archive = remote_url_strip.rpartition("/")[0] + pkg_archive_url[1:]
                     else:
-                        filepath_remote_archive = remote_url.rstrip("/") + pkg_archive_url[1:]
+                        filepath_remote_archive = remote_url_strip.rstrip("/") + pkg_archive_url[1:]
                 else:
                     filepath_remote_archive = pkg_archive_url
 

@@ -67,6 +67,10 @@ rna_prop_enable_on_install_type_map = {
 }
 
 
+def url_params_append_defaults(url):
+    return bl_extension_utils.url_params_append_for_blender(url, blender_version=bpy.app.version)
+
+
 def rna_prop_repo_enum_local_only_itemf(_self, context):
     if context is None:
         result = []
@@ -1003,7 +1007,7 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
                 partial(
                     bl_extension_utils.repo_sync,
                     directory=directory,
-                    remote_url=repo_item.remote_url,
+                    remote_url=url_params_append_defaults(repo_item.remote_url),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
                     use_idle=is_modal,
@@ -1080,7 +1084,7 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
                 cmd_batch.append(partial(
                     bl_extension_utils.repo_sync,
                     directory=repo_item.directory,
-                    remote_url=repo_item.remote_url,
+                    remote_url=url_params_append_defaults(repo_item.remote_url),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
                     use_idle=is_modal,
@@ -1208,7 +1212,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
             cmd_batch.append(partial(
                 bl_extension_utils.pkg_install,
                 directory=repo_item.directory,
-                remote_url=repo_item.remote_url,
+                remote_url=url_params_append_defaults(repo_item.remote_url),
                 pkg_id_sequence=pkg_id_sequence,
                 online_user_agent=online_user_agent_from_blender(),
                 access_token=repo_item.access_token,
@@ -1308,7 +1312,7 @@ class BlPkgPkgInstallMarked(Operator, _BlPkgCmdMixIn):
             cmd_batch.append(partial(
                 bl_extension_utils.pkg_install,
                 directory=repo_item.directory,
-                remote_url=repo_item.remote_url,
+                remote_url=url_params_append_defaults(repo_item.remote_url),
                 pkg_id_sequence=pkg_id_sequence,
                 online_user_agent=online_user_agent_from_blender(),
                 access_token=repo_item.access_token,
@@ -1826,7 +1830,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
                 partial(
                     bl_extension_utils.pkg_install,
                     directory=directory,
-                    remote_url=repo_item.remote_url,
+                    remote_url=url_params_append_defaults(repo_item.remote_url),
                     pkg_id_sequence=(pkg_id,),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
