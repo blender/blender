@@ -1049,14 +1049,16 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
     )
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         if not bpy.app.online_access:
             if bpy.app.online_access_override:
                 cls.poll_message_set(
-                    "Online access required to check for updates. Launch Blender without --offline-mode")
+                    "Online access required to check for updates. Launch Blender without --offline-mode"
+                )
             else:
                 cls.poll_message_set(
-                    "Online access required to check for updates. Enable online access in System preferences")
+                    "Online access required to check for updates. Enable online access in System preferences"
+                )
             return False
 
         repos_all = extension_repos_read(use_active_only=False)
@@ -1137,7 +1139,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
     )
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         if not bpy.app.online_access:
             if bpy.app.online_access_override:
                 cls.poll_message_set("Online access required to install updates. Launch Blender without --offline-mode")

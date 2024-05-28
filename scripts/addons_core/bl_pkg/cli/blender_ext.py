@@ -1709,9 +1709,8 @@ def repo_sync_from_remote(
         if error_msg is not None:
             message_error(
                 msg_fn,
-                "Repository error: invalid manifest ({:s}) for repository \"{:s}\"!".format(
-                    error_msg,
-                    remote_name))
+                "Repository error: invalid manifest ({:s}) for repository \"{:s}\"!".format(error_msg, remote_name),
+            )
             return False
         del error_msg
 
