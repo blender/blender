@@ -467,10 +467,10 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
 {
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   const bke::AttributeAccessor attributes = curves.attributes();
-  const VArray<float> init_times =
-      attributes.lookup_or_default<float>("init_time", bke::AttrDomain::Curve, 0.0f).varray;
-  const VArray<float> delta_times =
-      attributes.lookup_or_default<float>("delta_time", bke::AttrDomain::Point, 0.0f).varray;
+  const VArray<float> init_times = *attributes.lookup_or_default<float>(
+      "init_time", bke::AttrDomain::Curve, 0.0f);
+  const VArray<float> delta_times = *attributes.lookup_or_default<float>(
+      "delta_time", bke::AttrDomain::Point, 0.0f);
 
   Array<float> times(curves.points_num());
   float current_time = 0;
