@@ -349,7 +349,7 @@ ccl_device int bsdf_hair_chiang_sample(KernelGlobals kg,
   kernel_assert(fabsf(dot(X, Y)) < 1e-3f);
   const float3 Z = safe_normalize(cross(X, Y));
 
-  /* wo in pbrt. */
+  /* `wo` in PBRT. */
   const float3 local_O = make_float3(dot(sd->wi, X), dot(sd->wi, Y), dot(sd->wi, Z));
 
   const float sin_theta_o = local_O.x;

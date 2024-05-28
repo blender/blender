@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Global settings used by all scripts in this dir.
-# XXX Before any use of the tools in this dir, please make a copy of this file
+# Global settings used by all scripts in this directory.
+# XXX Before any use of the tools in this directory, please make a copy of this file
 #     named "setting.py"
 # XXX This is a template, most values should be OK, but some you’ll have to
 #     edit (most probably, BLENDER_EXEC and SOURCE_DIR).
@@ -633,7 +633,7 @@ ASSET_CATALOG_FILE = "blender_assets.cats.txt"
 REL_FILE_NAME_POT = os.path.join(REL_WORK_DIR, DOMAIN + ".pot")
 
 
-# Mo path generator for a given language (relative to any "locale" dir).
+# Mo path generator for a given language (relative to any "locale" directory).
 MO_PATH_ROOT_RELATIVE = os.path.join("locale")
 MO_PATH_TEMPLATE_RELATIVE = os.path.join(MO_PATH_ROOT_RELATIVE, "{}", "LC_MESSAGES")
 
@@ -659,10 +659,10 @@ SPELL_CACHE = os.path.join("/tmp", ".spell_cache")
 # Threshold defining whether a new msgid is similar enough with an old one to reuse its translation...
 SIMILAR_MSGID_THRESHOLD = 0.75
 
-# Additional import paths to add to sys.path (';' separated)...
+# Additional import paths to add to `sys.path` (';' separated)...
 INTERN_PY_SYS_PATHS = ""
 
-# Custom override settings must be one dir above i18n tools itself!
+# Custom override settings must be one directory above i18n tools itself!
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
     from bl_i18n_settings_override import *

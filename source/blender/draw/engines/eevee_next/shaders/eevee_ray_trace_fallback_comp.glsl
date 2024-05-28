@@ -24,7 +24,8 @@ void main()
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
 
-  /* Check if texel is out of bounds, so we can utilize fast texture funcs and early-out if not. */
+  /* Check if texel is out of bounds,
+   * so we can utilize fast texture functions and early-out if not. */
   if (any(greaterThanEqual(texel, imageSize(ray_time_img).xy))) {
     return;
   }

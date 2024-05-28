@@ -23,7 +23,7 @@ void main()
   ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
   /* Check whether texel is out of bounds for all cases, so we can utilize fast
-   * texture funcs and early exit if not. */
+   * texture functions and early exit if not. */
   if (any(greaterThanEqual(texel, imageSize(ray_data_img).xy)) || any(lessThan(texel, ivec2(0)))) {
     return;
   }

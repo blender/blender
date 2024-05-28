@@ -63,8 +63,8 @@ def find_image_sequences(files):
     >>> list(find_image_sequences([
     ...     "test2-001.jp2", "test2-002.jp2",
     ...     "test3-003.jp2", "test3-004.jp2", "test3-005.jp2", "test3-006.jp2",
-    ...     "blaah"]))
-    [("blaah", 1, 1), ("test2-001.jp2", 1, 2), ("test3-003.jp2", 3, 4)]
+    ...     "blah"]))
+    [("blah", 1, 1), ("test2-001.jp2", 1, 2), ("test3-003.jp2", 3, 4)]
 
     """
     from itertools import count
@@ -125,7 +125,7 @@ def find_image_sequences(files):
 
 
 def load_images(filenames, directory, force_reload=False, frame_start=1, find_sequences=False):
-    """Wrapper for bpy's load_image
+    """Wrapper for `bpy_extras.image_utils.load_image`.
 
     Loads a set of images, movies, or even image sequences
     Returns a generator of ImageSpec wrapper objects later used for texture setup
@@ -303,7 +303,7 @@ def clean_node_tree(node_tree):
 
 
 def get_shadeless_node(dest_node_tree):
-    """Return a "shadless" cycles/eevee node, creating a node group if nonexistent"""
+    """Return a "shadeless" cycles/EEVEE node, creating a node group if nonexistent"""
     try:
         node_tree = bpy.data.node_groups['IAP_SHADELESS']
 
@@ -915,7 +915,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
         material.emit = self.emit_strength if shader == 'EMISSION' else 0.0
 
     # -------------------------------------------------------------------------
-    # Cycles/Eevee
+    # Cycles/EEVEE
     def create_cycles_texnode(self, node_tree, img_spec):
         tex_image = node_tree.nodes.new('ShaderNodeTexImage')
         tex_image.image = img_spec.image
