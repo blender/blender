@@ -1043,7 +1043,10 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
@@ -1056,19 +1059,21 @@ static void do_vpaint_brush_blur_loops(bContext *C,
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
     for (const int i : range) {
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        const int vert = vd.vert_indices[vd.i];
+      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
         if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
           continue;
         }
 
         float brush_strength = cache->bstrength;
-        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                        1.0f;
+        const float angle_cos = use_normal ?
+                                    dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                    1.0f;
         if (!vwpaint::test_brush_angle_falloff(
                 brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
         {
@@ -1146,7 +1151,6 @@ static void do_vpaint_brush_blur_loops(bContext *C,
           }
         });
       }
-      BKE_pbvh_vertex_iter_end;
     };
   });
 }
@@ -1182,7 +1186,10 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
@@ -1195,19 +1202,21 @@ static void do_vpaint_brush_blur_verts(bContext *C,
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
     for (const int i : range) {
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        const int vert = vd.vert_indices[vd.i];
+      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
         if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
           continue;
         }
 
         float brush_strength = cache->bstrength;
-        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                        1.0f;
+        const float angle_cos = use_normal ?
+                                    dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                    1.0f;
         if (!vwpaint::test_brush_angle_falloff(
                 brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
         {
@@ -1275,7 +1284,6 @@ static void do_vpaint_brush_blur_verts(bContext *C,
                                                      Traits::range * brush_strength);
         });
       }
-      BKE_pbvh_vertex_iter_end;
     };
   });
 }
@@ -1324,7 +1332,10 @@ static void do_vpaint_brush_smear(bContext *C,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
@@ -1337,13 +1348,14 @@ static void do_vpaint_brush_smear(bContext *C,
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
     for (const int i : range) {
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        const int vert = vd.vert_indices[vd.i];
+      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
         if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
           continue;
         }
         const float3 &mv_curr = ss.vert_positions[vert];
@@ -1351,8 +1363,9 @@ static void do_vpaint_brush_smear(bContext *C,
         /* Calculate the dot prod. between ray norm on surf and current vert
          * (ie splash prevention factor), and only paint front facing verts. */
         float brush_strength = cache->bstrength;
-        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                        1.0f;
+        const float angle_cos = use_normal ?
+                                    dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                    1.0f;
         if (!vwpaint::test_brush_angle_falloff(
                 brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
         {
@@ -1468,7 +1481,6 @@ static void do_vpaint_brush_smear(bContext *C,
           }
         });
       }
-      BKE_pbvh_vertex_iter_end;
     }
   });
 }
@@ -1491,7 +1503,9 @@ static void calculate_average_color(VPaintData &vpd,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, test_init, brush.falloff_shape);
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
@@ -1513,13 +1527,14 @@ static void calculate_average_color(VPaintData &vpd,
         accum2.len = 0;
         memset(accum2.value, 0, sizeof(accum2.value));
 
-        PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-          const int vert = vd.vert_indices[vd.i];
+        for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+          if (!hide_vert.is_empty() && hide_vert[vert]) {
+            continue;
+          }
           if (!select_vert.is_empty() && !select_vert[vert]) {
             continue;
           }
-          if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+          if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
             continue;
           }
           if (BKE_brush_curve_strength(&brush, 0.0, cache->radius) <= 0.0f) {
@@ -1545,7 +1560,6 @@ static void calculate_average_color(VPaintData &vpd,
             accum2.value[2] += col.b * col.b;
           }
         }
-        BKE_pbvh_vertex_iter_end;
       }
     });
 
@@ -1618,7 +1632,10 @@ static void vpaint_do_draw(bContext *C,
 
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
@@ -1631,21 +1648,23 @@ static void vpaint_do_draw(bContext *C,
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     for (const int i : range) {
       SculptBrushTest test = test_init;
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        const int vert = vd.vert_indices[vd.i];
+      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
         if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
           continue;
         }
 
         /* Calculate the dot product between ray normal on surface and current vertex
          * (ie splash prevention factor), and only paint front facing verts. */
         float brush_strength = cache->bstrength;
-        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                        1.0f;
+        const float angle_cos = use_normal ?
+                                    dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                    1.0f;
         if (!vwpaint::test_brush_angle_falloff(
                 brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
         {
@@ -1684,8 +1703,6 @@ static void vpaint_do_draw(bContext *C,
           Color color_orig(0, 0, 0, 0);
 
           if (vpd.domain == AttrDomain::Point) {
-            int vert = vd.index;
-
             if (!previous_color.is_empty()) {
               if (isZero(previous_color[vert])) {
                 previous_color[vert] = colors[vert];
@@ -1732,7 +1749,6 @@ static void vpaint_do_draw(bContext *C,
           }
         });
       }
-      BKE_pbvh_vertex_iter_end;
     }
   });
 }

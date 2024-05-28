@@ -1075,19 +1075,23 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel || use_face_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    const int vert = vd.vert_indices[vd.i];
+  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
+    if (!hide_vert.is_empty() && hide_vert[vert]) {
+      continue;
+    }
     if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
       continue;
     }
 
@@ -1106,8 +1110,8 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
     }
 
     float brush_strength = cache->bstrength;
-    const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                    1.0f;
+    const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                         1.0f;
     if (!vwpaint::test_brush_angle_falloff(
             brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
     {
@@ -1129,7 +1133,6 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
     weight_final /= total_hit_loops;
     do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, weight_final);
   }
-  BKE_pbvh_vertex_iter_end;
 }
 
 static void do_wpaint_brush_smear_task(const Scene &scene,
@@ -1164,7 +1167,10 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
     return;
   }
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel || use_face_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
@@ -1176,21 +1182,22 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    const int vert = vd.vert_indices[vd.i];
+  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
+    if (!hide_vert.is_empty() && hide_vert[vert]) {
+      continue;
+    }
     if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
       continue;
     }
 
     const float3 &mv_curr = ss.vert_positions[vert];
 
     float brush_strength = cache->bstrength;
-    const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                    1.0f;
+    const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                         1.0f;
     if (!vwpaint::test_brush_angle_falloff(
             brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
     {
@@ -1239,7 +1246,6 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
       do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, float(weight_final));
     }
   }
-  BKE_pbvh_vertex_iter_end;
 }
 
 static void do_wpaint_brush_draw_task(const Scene &scene,
@@ -1272,24 +1278,28 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel || use_face_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    const int vert = vd.vert_indices[vd.i];
+  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
+    if (!hide_vert.is_empty() && hide_vert[vert]) {
+      continue;
+    }
     if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
       continue;
     }
     float brush_strength = cache->bstrength;
-    const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                    1.0f;
+    const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                         1.0f;
     if (!vwpaint::test_brush_angle_falloff(
             brush, wpd.normal_angle_precalc, angle_cos, &brush_strength))
     {
@@ -1309,7 +1319,6 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
 
     do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, paintweight);
   }
-  BKE_pbvh_vertex_iter_end;
 }
 
 static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
@@ -1337,24 +1346,28 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
   if (use_vert_sel || use_face_sel) {
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    const int vert = vd.vert_indices[vd.i];
+  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
+    if (!hide_vert.is_empty() && hide_vert[vert]) {
+      continue;
+    }
     if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
       continue;
     }
 
-    const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                    1.0f;
+    const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                         1.0f;
     if (angle_cos <= 0.0f ||
         BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius) <= 0.0f)
     {
@@ -1365,7 +1378,6 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
     accum.len += 1;
     accum.value += wpaint_get_active_weight(dv, wpi);
   }
-  BKE_pbvh_vertex_iter_end;
 
   return accum;
 }
