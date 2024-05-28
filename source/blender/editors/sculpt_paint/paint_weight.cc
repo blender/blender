@@ -1083,11 +1083,11 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
-      continue;
-    }
     const int vert = vd.vert_indices[vd.i];
     if (!select_vert.is_empty() && !select_vert[vert]) {
+      continue;
+    }
+    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
 
@@ -1178,16 +1178,15 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    const int vert = vd.vert_indices[vd.i];
+    if (!select_vert.is_empty() && !select_vert[vert]) {
+      continue;
+    }
     if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
 
-    const int vert = vd.vert_indices[vd.i];
     const float3 &mv_curr = ss.vert_positions[vert];
-
-    if (!select_vert.is_empty() && !select_vert[vert]) {
-      continue;
-    }
 
     float brush_strength = cache->bstrength;
     const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
@@ -1281,12 +1280,11 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+    const int vert = vd.vert_indices[vd.i];
+    if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
-    const int vert = vd.vert_indices[vd.i];
-
-    if (!select_vert.is_empty() && !select_vert[vert]) {
+    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
     float brush_strength = cache->bstrength;
@@ -1347,6 +1345,10 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    const int vert = vd.vert_indices[vd.i];
+    if (!select_vert.is_empty() && !select_vert[vert]) {
+      continue;
+    }
     if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
@@ -1356,11 +1358,6 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
     if (angle_cos <= 0.0f ||
         BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius) <= 0.0f)
     {
-      continue;
-    }
-
-    const int vert = vd.vert_indices[vd.i];
-    if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
 

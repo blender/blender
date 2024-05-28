@@ -1058,12 +1058,11 @@ static void do_vpaint_brush_blur_loops(bContext *C,
     for (const int i : range) {
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+        const int vert = vd.vert_indices[vd.i];
+        if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
-        const int vert = vd.vert_indices[vd.i];
-
-        if (!select_vert.is_empty() && !select_vert[vert]) {
+        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
 
@@ -1198,12 +1197,11 @@ static void do_vpaint_brush_blur_verts(bContext *C,
     for (const int i : range) {
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+        const int vert = vd.vert_indices[vd.i];
+        if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
-        const int vert = vd.vert_indices[vd.i];
-
-        if (!select_vert.is_empty() && !select_vert[vert]) {
+        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
 
@@ -1341,15 +1339,14 @@ static void do_vpaint_brush_smear(bContext *C,
     for (const int i : range) {
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
-          continue;
-        }
         const int vert = vd.vert_indices[vd.i];
-        const float3 &mv_curr = ss.vert_positions[vert];
-
         if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
+        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
+          continue;
+        }
+        const float3 &mv_curr = ss.vert_positions[vert];
 
         /* Calculate the dot prod. between ray norm on surf and current vert
          * (ie splash prevention factor), and only paint front facing verts. */
@@ -1518,14 +1515,14 @@ static void calculate_average_color(VPaintData &vpd,
 
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+          const int vert = vd.vert_indices[vd.i];
+          if (!select_vert.is_empty() && !select_vert[vert]) {
+            continue;
+          }
           if (!sculpt_brush_test_sq_fn(test, vd.co)) {
             continue;
           }
           if (BKE_brush_curve_strength(&brush, 0.0, cache->radius) <= 0.0f) {
-            continue;
-          }
-          const int vert = vd.vert_indices[vd.i];
-          if (!select_vert.is_empty() && !select_vert[vert]) {
             continue;
           }
 
@@ -1636,11 +1633,11 @@ static void vpaint_do_draw(bContext *C,
       SculptBrushTest test = test_init;
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
-          continue;
-        }
         const int vert = vd.vert_indices[vd.i];
         if (!select_vert.is_empty() && !select_vert[vert]) {
+          continue;
+        }
+        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
 
