@@ -489,10 +489,10 @@ static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer)
   /* Find the next filled pixel in clockwise direction from the current. */
   auto find_next_neighbor = [&](NeighborIterator &iter) -> bool {
     const int2 iter_coord = buffer.coord_from_index(iter.index);
-    for (const int i : IndexRange(num_directions).drop_front(1)) {
+    for (const int i : IndexRange(num_directions)) {
       /* Invert direction (add 4) and start at next direction (add 1..n).
        * This can not be greater than 3*num_directions-1, wrap accordingly. */
-      const int neighbor_dir = wrap_dir_3n(iter.direction + 4 + i);
+      const int neighbor_dir = wrap_dir_3n(iter.direction + 5 + i);
       const int2 neighbor_coord = iter_coord + offset_by_direction[neighbor_dir];
       if (!buffer.is_valid_coord(neighbor_coord)) {
         continue;
