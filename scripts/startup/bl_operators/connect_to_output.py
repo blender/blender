@@ -22,7 +22,6 @@ from .node_editor.node_functions import (
 )
 
 
-
 class NODE_OT_connect_to_output(Operator, NodeEditorBase):
     bl_idname = "node.connect_to_output"
     bl_label = "Connect to Output"
