@@ -2279,7 +2279,7 @@ class BlPkgRepoUnlock(Operator):
 # NOTE: this is a modified version of `PREFERENCES_OT_addon_show`.
 # It would make most sense to extend this operator to support showing extensions to upgrade (eventually).
 class BlPkgShowUpgrade(Operator):
-    """Show add-on preferences"""
+    """Open extensions preferences"""
     bl_idname = "bl_pkg.extensions_show_for_update"
     bl_label = ""
     bl_options = {'INTERNAL'}
