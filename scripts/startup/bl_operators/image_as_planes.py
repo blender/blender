@@ -304,12 +304,13 @@ def clean_node_tree(node_tree):
 
 def get_shadeless_node(dest_node_tree):
     """Return a "shadeless" cycles/EEVEE node, creating a node group if nonexistent"""
-    try:
-        node_tree = bpy.data.node_groups['IAP_SHADELESS']
 
-    except KeyError:
+    # WARNING: using a hard coded name isn't fool proof!
+    # Users could have this name already in a node-tree (albeit unlikely).
+    node_group_name = "IAP_SHADELESS"
+    if (node_tree := bpy.data.node_groups.get(node_group_name)) is None:
         # Need to build node shadeless node group.
-        node_tree = bpy.data.node_groups.new('IAP_SHADELESS', 'ShaderNodeTree')
+        node_tree = bpy.data.node_groups.new(node_group_name, 'ShaderNodeTree')
         output_node = node_tree.nodes.new('NodeGroupOutput')
         input_node = node_tree.nodes.new('NodeGroupInput')
 
