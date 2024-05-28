@@ -138,6 +138,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
   }
 }
 
+#ifdef WITH_OPENVDB
 struct GridIsEmptyOp {
   const openvdb::GridBase &base_grid;
   bool result = false;
@@ -148,6 +149,7 @@ struct GridIsEmptyOp {
     return true;
   }
 };
+#endif /* WITH_OPENVDB */
 
 GeometryInfoLog::GeometryInfoLog(const bke::GVolumeGrid &grid)
 {
@@ -165,6 +167,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GVolumeGrid &grid)
     info.is_empty = true;
   }
 #else
+  UNUSED_VARS(grid);
   info.is_empty = true;
 #endif
 }
