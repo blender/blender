@@ -393,7 +393,6 @@ extern const MeshExtract extract_uv;
 extern const MeshExtract extract_tan;
 extern const MeshExtract extract_tan_hq;
 extern const MeshExtract extract_sculpt_data;
-extern const MeshExtract extract_vcol;
 extern const MeshExtract extract_orco;
 extern const MeshExtract extract_edge_fac;
 extern const MeshExtract extract_weights;
