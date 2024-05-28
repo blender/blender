@@ -1090,6 +1090,8 @@ static void do_wpaint_brush_blur(const Scene &scene,
       ss, brush.falloff_shape);
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1116,8 +1118,8 @@ static void do_wpaint_brush_blur(const Scene &scene,
         int total_hit_loops = 0;
         float weight_final = 0.0f;
         for (const int face : vert_to_face[vert]) {
-          total_hit_loops += ss.faces[face].size();
-          for (const int vert : ss.corner_verts.slice(ss.faces[face])) {
+          total_hit_loops += faces[face].size();
+          for (const int vert : corner_verts.slice(faces[face])) {
             weight_final += wpd.precomputed_weight[vert];
           }
         }
@@ -1187,6 +1189,8 @@ static void do_wpaint_brush_smear(const Scene &scene,
   }
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1234,7 +1238,7 @@ static void do_wpaint_brush_smear(const Scene &scene,
          * (this callback is specifically for smear.) */
         float weight_final = 0.0;
         for (const int face : vert_to_face[vert]) {
-          for (const int vert_other : ss.corner_verts.slice(ss.faces[face])) {
+          for (const int vert_other : corner_verts.slice(faces[face])) {
             if (vert_other == vert) {
               continue;
             }

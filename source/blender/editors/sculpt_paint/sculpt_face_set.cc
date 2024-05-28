@@ -207,6 +207,8 @@ static void do_draw_face_sets_brush_faces(Object &ob,
   const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
 
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -231,12 +233,10 @@ static void do_draw_face_sets_brush_faces(Object &ob,
         auto_mask::node_update(automask_data, vd);
 
         for (const int face_i : ss.vert_to_face_map[vd.index]) {
-          const IndexRange face = ss.faces[face_i];
+          const IndexRange face = faces[face_i];
+          const float3 center = bke::mesh::face_center_calc(positions, corner_verts.slice(face));
 
-          const float3 poly_center = bke::mesh::face_center_calc(positions,
-                                                                 ss.corner_verts.slice(face));
-
-          if (!sculpt_brush_test_sq_fn(test, poly_center)) {
+          if (!sculpt_brush_test_sq_fn(test, center)) {
             continue;
           }
           if (!hide_poly.is_empty() && hide_poly[face_i]) {

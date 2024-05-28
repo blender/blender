@@ -143,6 +143,8 @@ static bool sculpt_expand_is_vert_in_active_component(const SculptSession &ss,
  * Returns true if the face is in a connected component with correctly initialized falloff values.
  */
 static bool sculpt_expand_is_face_in_active_component(const SculptSession &ss,
+                                                      const OffsetIndices<int> faces,
+                                                      const Span<int> corner_verts,
                                                       const Cache *expand_cache,
                                                       const int f)
 {
@@ -150,11 +152,11 @@ static bool sculpt_expand_is_face_in_active_component(const SculptSession &ss,
 
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES:
-      vertex.i = ss.corner_verts[ss.faces[f].start()];
+      vertex.i = corner_verts[faces[f].start()];
       break;
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(*ss.pbvh);
-      vertex.i = ss.faces[f].start() * key->grid_area;
+      vertex.i = faces[f].start() * key->grid_area;
       break;
     }
     case PBVH_BMESH: {
@@ -267,6 +269,8 @@ static bool sculpt_expand_state_get(SculptSession &ss, Cache *expand_cache, cons
  * Returns true when the target data should be modified by expand.
  */
 static bool sculpt_expand_face_state_get(SculptSession &ss,
+                                         const OffsetIndices<int> faces,
+                                         const Span<int> corner_verts,
                                          const Span<bool> hide_poly,
                                          const Span<int> face_sets,
                                          Cache *expand_cache,
@@ -276,7 +280,7 @@ static bool sculpt_expand_face_state_get(SculptSession &ss,
     return false;
   }
 
-  if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, f)) {
+  if (!sculpt_expand_is_face_in_active_component(ss, faces, corner_verts, expand_cache, f)) {
     return false;
   }
 
@@ -683,6 +687,9 @@ static Array<float> sculpt_expand_boundary_topology_falloff_create(Object &ob, c
 static Array<float> sculpt_expand_diagonals_falloff_create(Object &ob, const PBVHVertRef v)
 {
   SculptSession &ss = *ob.sculpt;
+  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const int totvert = SCULPT_vertex_count_get(ss);
   Array<float> dists(totvert, 0.0f);
 
@@ -722,7 +729,7 @@ static Array<float> sculpt_expand_diagonals_falloff_create(Object &ob, const PBV
     int v_next_i = BKE_pbvh_vertex_to_index(*ss.pbvh, v_next);
 
     for (const int face : ss.vert_to_face_map[v_next_i]) {
-      for (const int vert : ss.corner_verts.slice(ss.faces[face])) {
+      for (const int vert : corner_verts.slice(faces[face])) {
         const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
         if (visited_verts[neighbor_v.i]) {
           continue;
@@ -768,8 +775,12 @@ static void sculpt_expand_update_max_vert_falloff_value(SculptSession &ss, Cache
  * Updates the max_falloff value for faces in a Cache based on the current values of the
  * falloff, skipping any invalid values initialized to FLT_MAX and not initialized components.
  */
-static void sculpt_expand_update_max_face_falloff_factor(SculptSession &ss, Cache *expand_cache)
+static void sculpt_expand_update_max_face_falloff_factor(SculptSession &ss,
+                                                         Mesh &mesh,
+                                                         Cache *expand_cache)
 {
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const int totface = ss.totfaces;
   expand_cache->max_face_falloff = -FLT_MAX;
   for (int i = 0; i < totface; i++) {
@@ -777,7 +788,7 @@ static void sculpt_expand_update_max_face_falloff_factor(SculptSession &ss, Cach
       continue;
     }
 
-    if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, i)) {
+    if (!sculpt_expand_is_face_in_active_component(ss, faces, corner_verts, expand_cache, i)) {
       continue;
     }
 
@@ -942,9 +953,9 @@ static void sculpt_expand_resursion_step_add(Object &ob,
 
   sculpt_expand_update_max_vert_falloff_value(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    sculpt_expand_mesh_face_falloff_from_vertex_falloff(
-        ss, static_cast<Mesh *>(ob.data), expand_cache);
-    sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
+    Mesh &mesh = *static_cast<Mesh *>(ob.data);
+    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ss, &mesh, expand_cache);
+    sculpt_expand_update_max_face_falloff_factor(ss, mesh, expand_cache);
   }
 }
 
@@ -1068,9 +1079,9 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
   /* Update max falloff values and propagate to base mesh faces if needed. */
   sculpt_expand_update_max_vert_falloff_value(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    sculpt_expand_mesh_face_falloff_from_vertex_falloff(
-        ss, static_cast<Mesh *>(ob.data), expand_cache);
-    sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
+    Mesh &mesh = *static_cast<Mesh *>(ob.data);
+    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ss, &mesh, expand_cache);
+    sculpt_expand_update_max_face_falloff_factor(ss, mesh, expand_cache);
   }
 }
 
@@ -1079,12 +1090,16 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
  * current #Cache state. This improves the usability of snapping, as already enabled
  * elements won't switch their state when toggling snapping with the modal key-map.
  */
-static void sculpt_expand_snap_initialize_from_enabled(SculptSession &ss, Cache *expand_cache)
+static void sculpt_expand_snap_initialize_from_enabled(const Object &object,
+                                                       SculptSession &ss,
+                                                       Cache *expand_cache)
 {
   if (BKE_pbvh_type(*ss.pbvh) != PBVH_FACES) {
     return;
   }
-
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   /* Make sure this code runs with snapping and invert disabled. This simplifies the code and
    * prevents using this function with snapping already enabled. */
   const bool prev_snap_state = expand_cache->snap;
@@ -1100,8 +1115,8 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession &ss, Cache 
     expand_cache->snap_enabled_face_sets->add(face_set);
   }
 
-  for (const int i : ss.faces.index_range()) {
-    const Span<int> face_verts = ss.corner_verts.slice(ss.faces[i]);
+  for (const int i : faces.index_range()) {
+    const Span<int> face_verts = corner_verts.slice(faces[i]);
     const bool any_disabled = std::any_of(face_verts.begin(),
                                           face_verts.end(),
                                           [&](const int vert) { return !enabled_verts[vert]; });
@@ -1308,11 +1323,13 @@ static void sculpt_expand_face_sets_update(Object &object, Cache *expand_cache)
 {
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
   Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   for (const int f : face_sets.span.index_range()) {
     const bool enabled = sculpt_expand_face_state_get(
-        *object.sculpt, hide_poly, face_sets.span, expand_cache, f);
+        *object.sculpt, faces, corner_verts, hide_poly, face_sets.span, expand_cache, f);
     if (!enabled) {
       continue;
     }
@@ -1409,6 +1426,9 @@ static void sculpt_expand_original_state_store(Object &ob, Cache *expand_cache)
 static void sculpt_expand_face_sets_restore(Object &object, Cache *expand_cache)
 {
   SculptSession &ss = *object.sculpt;
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
   const int totfaces = ss.totfaces;
   for (int i = 0; i < totfaces; i++) {
@@ -1416,7 +1436,7 @@ static void sculpt_expand_face_sets_restore(Object &object, Cache *expand_cache)
       /* Do not modify hidden Face Sets, even when restoring the IDs state. */
       continue;
     }
-    if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, i)) {
+    if (!sculpt_expand_is_face_in_active_component(ss, faces, corner_verts, expand_cache, i)) {
       continue;
     }
     face_sets.span[i] = expand_cache->initial_face_sets[i];
@@ -1765,7 +1785,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         else {
           expand_cache->snap = true;
           expand_cache->snap_enabled_face_sets = std::make_unique<Set<int>>();
-          sculpt_expand_snap_initialize_from_enabled(ss, expand_cache);
+          sculpt_expand_snap_initialize_from_enabled(ob, ss, expand_cache);
         }
         break;
       }
@@ -1918,7 +1938,7 @@ static void sculpt_expand_delete_face_set_id(
    * before attempting to delete it. */
   bool all_same_id = true;
   for (int i = 0; i < totface; i++) {
-    if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, i)) {
+    if (!sculpt_expand_is_face_in_active_component(ss, faces, corner_verts, expand_cache, i)) {
       continue;
     }
     if (r_face_sets[i] != delete_id) {

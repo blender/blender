@@ -1038,6 +1038,8 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1094,8 +1096,8 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
             if (!select_poly.is_empty() && !select_poly[face]) {
               return;
             }
-            total_hit_loops += ss.faces[face].size();
-            for (const int corner : ss.faces[face]) {
+            total_hit_loops += faces[face].size();
+            for (const int corner : faces[face]) {
               const Color &col = colors[corner];
 
               /* Color is squared to compensate the `sqrt` color encoding. */
@@ -1122,7 +1124,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
            * paint each loop belonging to this vert. */
           for (const int face : vert_to_face[vert]) {
             const int corner = bke::mesh::face_find_corner_from_vert(
-                ss.faces[face], ss.corner_verts, vert);
+                faces[face], corner_verts, vert);
             if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
@@ -1180,6 +1182,8 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1235,8 +1239,8 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
             if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
-            total_hit_loops += ss.faces[face].size();
-            for (const int vert : ss.corner_verts.slice(ss.faces[face])) {
+            total_hit_loops += faces[face].size();
+            for (const int vert : corner_verts.slice(faces[face])) {
               const Color &col = colors[vert];
 
               /* Color is squared to compensate the `sqrt` color encoding. */
@@ -1326,6 +1330,8 @@ static void do_vpaint_brush_smear(const bContext *C,
       ss, brush.falloff_shape);
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1389,8 +1395,8 @@ static void do_vpaint_brush_smear(const bContext *C,
             if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
-            for (const int corner : ss.faces[face]) {
-              const int v_other_index = ss.corner_verts[corner];
+            for (const int corner : faces[face]) {
+              const int v_other_index = corner_verts[corner];
               if (v_other_index == vert) {
                 continue;
               }
@@ -1437,8 +1443,7 @@ static void do_vpaint_brush_smear(const bContext *C,
               elem_index = vert;
             }
             else {
-              elem_index = bke::mesh::face_find_corner_from_vert(
-                  ss.faces[face], ss.corner_verts, vert);
+              elem_index = bke::mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
             }
             if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
@@ -1490,6 +1495,8 @@ static void calculate_average_color(VPaintData &vpd,
       ss, test_init, brush.falloff_shape);
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
@@ -1532,8 +1539,7 @@ static void calculate_average_color(VPaintData &vpd,
           for (const int face : vert_to_face[vert]) {
             int elem_index;
             if (vpd.domain == AttrDomain::Corner) {
-              elem_index = bke::mesh::face_find_corner_from_vert(
-                  ss.faces[face], ss.corner_verts, vert);
+              elem_index = bke::mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
             }
             else {
               elem_index = vert;
@@ -1619,6 +1625,8 @@ static void vpaint_do_draw(const bContext *C,
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1709,7 +1717,7 @@ static void vpaint_do_draw(const bContext *C,
             /* For each face owning this vert, paint each loop belonging to this vert. */
             for (const int face : vert_to_face[vert]) {
               const int corner = bke::mesh::face_find_corner_from_vert(
-                  ss.faces[face], ss.corner_verts, vert);
+                  faces[face], corner_verts, vert);
               if (!select_poly.is_empty() && !select_poly[face]) {
                 continue;
               }
