@@ -1043,10 +1043,15 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
-  const blender::VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
-      ".select_vert", AttrDomain::Point, false);
-  const blender::VArray<bool> select_poly = *mesh.attributes().lookup_or_default<bool>(
-      ".select_poly", AttrDomain::Face, false);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
+  VArraySpan<bool> select_poly;
+  if (use_face_sel) {
+    select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
+  }
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
@@ -1058,7 +1063,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
         }
         const int vert = vd.vert_indices[vd.i];
 
-        if (use_vert_sel && !select_vert[vert]) {
+        if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
 
@@ -1088,7 +1093,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
           Blend blend[4] = {0};
 
           for (const int face : gmap->vert_to_face[vert]) {
-            if (use_face_sel && !select_poly[face]) {
+            if (!select_poly.is_empty() && !select_poly[face]) {
               return;
             }
             total_hit_loops += ss.faces[face].size();
@@ -1121,7 +1126,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
             const int face = gmap->vert_to_face[vert][j];
             const int corner = gmap->vert_to_loop[vert][j];
             BLI_assert(ss.corner_verts[corner] == vert);
-            if (use_face_sel && !select_poly[face]) {
+            if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
             Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
@@ -1178,10 +1183,15 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
-  const blender::VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
-      ".select_vert", AttrDomain::Point, false);
-  const blender::VArray<bool> select_poly = *mesh.attributes().lookup_or_default<bool>(
-      ".select_poly", AttrDomain::Face, false);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
+  VArraySpan<bool> select_poly;
+  if (use_face_sel) {
+    select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
+  }
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
@@ -1193,7 +1203,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
         }
         const int vert = vd.vert_indices[vd.i];
 
-        if (use_vert_sel && !select_vert[vert]) {
+        if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
 
@@ -1222,7 +1232,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
           Blend blend[4] = {0};
 
           for (const int face : gmap->vert_to_face[vert]) {
-            if (use_face_sel && !select_poly[face]) {
+            if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
             total_hit_loops += ss.faces[face].size();
@@ -1316,10 +1326,15 @@ static void do_vpaint_brush_smear(bContext *C,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  const blender::VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
-      ".select_vert", AttrDomain::Point, false);
-  const blender::VArray<bool> select_poly = *mesh.attributes().lookup_or_default<bool>(
-      ".select_poly", AttrDomain::Face, false);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
+  VArraySpan<bool> select_poly;
+  if (use_face_sel) {
+    select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
+  }
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
@@ -1332,7 +1347,7 @@ static void do_vpaint_brush_smear(bContext *C,
         const int vert = vd.vert_indices[vd.i];
         const float3 &mv_curr = ss.vert_positions[vert];
 
-        if (use_vert_sel && !select_vert[vert]) {
+        if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
 
@@ -1373,7 +1388,7 @@ static void do_vpaint_brush_smear(bContext *C,
             const int corner = gmap->vert_to_loop[vert][j];
             BLI_assert(ss.corner_verts[corner] == vert);
             UNUSED_VARS_NDEBUG(corner);
-            if (use_face_sel && !select_poly[face]) {
+            if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
             for (const int corner : ss.faces[face]) {
@@ -1429,7 +1444,7 @@ static void do_vpaint_brush_smear(bContext *C,
               elem_index = corner;
               BLI_assert(ss.corner_verts[corner] == vert);
             }
-            if (use_face_sel && !select_poly[face]) {
+            if (!select_poly.is_empty() && !select_poly[face]) {
               continue;
             }
 
@@ -1479,8 +1494,11 @@ static void calculate_average_color(VPaintData &vpd,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, test_init, brush.falloff_shape);
 
-  const blender::VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
-      ".select_vert", AttrDomain::Point, false);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
 
   to_static_color_type(vpd.type, [&](auto dummy) {
     using T = decltype(dummy);
@@ -1507,7 +1525,7 @@ static void calculate_average_color(VPaintData &vpd,
             continue;
           }
           const int vert = vd.vert_indices[vd.i];
-          if (use_vert_sel && !select_vert[vert]) {
+          if (!select_vert.is_empty() && !select_vert[vert]) {
             continue;
           }
 
@@ -1603,10 +1621,15 @@ static void vpaint_do_draw(bContext *C,
 
   GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
 
-  const blender::VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
-      ".select_vert", AttrDomain::Point, false);
-  const blender::VArray<bool> select_poly = *mesh.attributes().lookup_or_default<bool>(
-      ".select_poly", AttrDomain::Face, false);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
+  VArraySpan<bool> select_poly;
+  if (use_face_sel) {
+    select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
+  }
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     for (const int i : range) {
@@ -1617,7 +1640,7 @@ static void vpaint_do_draw(bContext *C,
           continue;
         }
         const int vert = vd.vert_indices[vd.i];
-        if (use_vert_sel && !select_vert[vert]) {
+        if (!select_vert.is_empty() && !select_vert[vert]) {
           continue;
         }
 
@@ -1688,7 +1711,7 @@ static void vpaint_do_draw(bContext *C,
               const int face = gmap->vert_to_face[vert][j];
               const int corner = gmap->vert_to_loop[vert][j];
               BLI_assert(ss.corner_verts[corner] == vert);
-              if (use_face_sel && !select_poly[face]) {
+              if (!select_poly.is_empty() && !select_poly[face]) {
                 continue;
               }
               Color color_orig = Color(0, 0, 0, 0); /* unused when array is nullptr */
@@ -2056,21 +2079,26 @@ static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
                                                const bool use_face_sel,
                                                const bool affect_alpha)
 {
-  const VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
-      ".select_vert", AttrDomain::Point, false);
-  const VArray<bool> select_poly = *mesh.attributes().lookup_or_default<bool>(
-      ".select_poly", AttrDomain::Face, false);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
+  VArraySpan<bool> select_poly;
+  if (use_face_sel) {
+    select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
+  }
 
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
 
   for (const int i : faces.index_range()) {
-    if (use_face_sel && !select_poly[i]) {
+    if (!select_poly.is_empty() && !select_poly[i]) {
       continue;
     }
     for (const int corner : faces[i]) {
       const int vert = corner_verts[corner];
-      if (use_vert_sel && !select_vert[vert]) {
+      if (!select_vert.is_empty() && !select_vert[vert]) {
         continue;
       }
       const int data_index = domain == AttrDomain::Corner ? corner : vert;

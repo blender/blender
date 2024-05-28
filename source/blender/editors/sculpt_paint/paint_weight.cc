@@ -1075,9 +1075,11 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  const blender::bke::AttributeAccessor attributes = mesh.attributes();
-  const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", bke::AttrDomain::Point, false);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel || use_face_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -1085,7 +1087,7 @@ static void do_wpaint_brush_blur_task(const Scene &scene,
       continue;
     }
     const int vert = vd.vert_indices[vd.i];
-    if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
+    if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
 
@@ -1163,8 +1165,10 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
   }
 
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", bke::AttrDomain::Point, false);
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel || use_face_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1181,7 +1185,7 @@ static void do_wpaint_brush_smear_task(const Scene &scene,
     const int vert = vd.vert_indices[vd.i];
     const float3 &mv_curr = ss.vert_positions[vert];
 
-    if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
+    if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
 
@@ -1270,8 +1274,10 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
       ss, brush.falloff_shape);
 
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", bke::AttrDomain::Point, false);
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel || use_face_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -1280,7 +1286,7 @@ static void do_wpaint_brush_draw_task(const Scene &scene,
     }
     const int vert = vd.vert_indices[vd.i];
 
-    if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
+    if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
     float brush_strength = cache->bstrength;
@@ -1334,8 +1340,10 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
       ss, brush.falloff_shape);
 
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-      ".select_vert", bke::AttrDomain::Point, false);
+  VArraySpan<bool> select_vert;
+  if (use_vert_sel || use_face_sel) {
+    select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+  }
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -1352,7 +1360,7 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object &ob,
     }
 
     const int vert = vd.vert_indices[vd.i];
-    if ((use_face_sel || use_vert_sel) && !select_vert[vert]) {
+    if (!select_vert.is_empty() && !select_vert[vert]) {
       continue;
     }
 
