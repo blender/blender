@@ -1743,6 +1743,7 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
 
 
 class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
+    """Download, install and enable the extension"""
     bl_idname = "bl_pkg.pkg_install"
     bl_label = "Install Extension"
     __slots__ = _BlPkgCmdMixIn.cls_slots
@@ -1758,6 +1759,19 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
 
     # Only used for code-path for dropping an extension.
     url: rna_prop_url
+
+    @classmethod
+    def poll(cls, context):
+        if not bpy.app.online_access:
+            if bpy.app.online_access_override:
+                cls.poll_message_set(
+                    "Online access required to install or update. Launch Blender without --offline-mode")
+            else:
+                cls.poll_message_set(
+                    "Online access required to install or update. Enable online access in System preferences")
+            return False
+
+        return True
 
     def exec_command_iter(self, is_modal):
         self._addon_restore = []
