@@ -134,6 +134,9 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         }
         break;
       }
+      case bke::GeometryComponent::Type::GreasePencil: {
+        break;
+      }
     }
   }
 }
