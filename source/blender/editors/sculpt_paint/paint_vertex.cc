@@ -832,7 +832,6 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 
   Mesh *mesh = BKE_mesh_from_object(&ob);
 
-  /* toggle: end vpaint */
   if (is_mode_set) {
     ED_object_vpaintmode_exit_ex(ob);
   }
@@ -860,16 +859,13 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Vertex Paint Mode";
   ot->idname = "PAINT_OT_vertex_paint_toggle";
   ot->description = "Toggle the vertex paint mode in 3D view";
 
-  /* api callbacks */
   ot->exec = vpaint_mode_toggle_exec;
   ot->poll = vwpaint::mode_toggle_poll_test;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
@@ -1055,16 +1051,13 @@ static void do_vpaint_brush_blur_loops(bContext *C,
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
     for (const int i : range) {
-      /* For each vertex */
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
         const int vert = vd.vert_indices[vd.i];
 
-        /* If the vertex is selected for painting. */
         if (use_vert_sel && !select_vert[vert]) {
           continue;
         }
@@ -1193,16 +1186,13 @@ static void do_vpaint_brush_blur_verts(bContext *C,
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
     for (const int i : range) {
-      /* For each vertex */
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
         const int vert = vd.vert_indices[vd.i];
 
-        /* If the vertex is selected for painting. */
         if (use_vert_sel && !select_vert[vert]) {
           continue;
         }
@@ -1334,17 +1324,14 @@ static void do_vpaint_brush_smear(bContext *C,
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     SculptBrushTest test = test_init;
     for (const int i : range) {
-      /* For each vertex */
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
         const int vert = vd.vert_indices[vd.i];
         const float3 &mv_curr = ss.vert_positions[vert];
 
-        /* if the vertex is selected for painting. */
         if (use_vert_sel && !select_vert[vert]) {
           continue;
         }
@@ -1511,10 +1498,8 @@ static void calculate_average_color(VPaintData &vpd,
         accum2.len = 0;
         memset(accum2.value, 0, sizeof(accum2.value));
 
-        /* For each vertex */
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-          /* Test to see if the vertex coordinates are within the spherical brush region. */
           if (!sculpt_brush_test_sq_fn(test, vd.co)) {
             continue;
           }
@@ -1522,7 +1507,6 @@ static void calculate_average_color(VPaintData &vpd,
             continue;
           }
           const int vert = vd.vert_indices[vd.i];
-          /* If the vertex is selected for painting. */
           if (use_vert_sel && !select_vert[vert]) {
             continue;
           }
@@ -1627,20 +1611,17 @@ static void vpaint_do_draw(bContext *C,
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
     for (const int i : range) {
       SculptBrushTest test = test_init;
-      /* For each vertex */
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (!sculpt_brush_test_sq_fn(test, vd.co)) {
           continue;
         }
         const int vert = vd.vert_indices[vd.i];
-        /* If the vertex is selected for painting. */
         if (use_vert_sel && !select_vert[vert]) {
           continue;
         }
 
-        /* Calc the dot prod. between ray norm on surf and current vert
+        /* Calculate the dot product between ray normal on surface and current vertex
          * (ie splash prevention factor), and only paint front facing verts. */
         float brush_strength = cache->bstrength;
         const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
@@ -1686,7 +1667,6 @@ static void vpaint_do_draw(bContext *C,
             int vert = vd.index;
 
             if (!previous_color.is_empty()) {
-              /* Get the previous loop color */
               if (isZero(previous_color[vert])) {
                 previous_color[vert] = colors[vert];
               }
@@ -1714,7 +1694,6 @@ static void vpaint_do_draw(bContext *C,
               Color color_orig = Color(0, 0, 0, 0); /* unused when array is nullptr */
 
               if (!previous_color.is_empty()) {
-                /* Get the previous loop color */
                 if (isZero(previous_color[corner])) {
                   previous_color[corner] = colors[corner];
                 }
@@ -1723,7 +1702,6 @@ static void vpaint_do_draw(bContext *C,
               const float final_alpha = Traits::frange * brush_fade * brush_strength * tex_alpha *
                                         brush_alpha_pressure;
 
-              /* Mix the new color with the original based on final_alpha. */
               colors[corner] = vpaint_blend<Color, Traits>(vp,
                                                            colors[corner],
                                                            color_orig,
@@ -1901,7 +1879,6 @@ static void vpaint_stroke_update_step(bContext *C,
 
   ED_view3d_init_mats_rv3d(&ob, vc.rv3d);
 
-  /* load projection matrix */
   mul_m4_m4m4(mat, vc.rv3d->persmat, ob.object_to_world().ptr());
 
   swap_m4m4(vc.rv3d->persmat, mat);
@@ -1981,7 +1958,6 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_FINISHED;
   }
 
-  /* add modal handler */
   WM_event_add_modal_handler(C, op);
 
   OPERATOR_RETVAL_CHECK(retval);
@@ -2001,7 +1977,6 @@ static int vpaint_exec(bContext *C, wmOperator *op)
                                     vpaint_stroke_done,
                                     0);
 
-  /* frees op->customdata */
   paint_stroke_exec(C, op, (PaintStroke *)op->customdata);
 
   return OPERATOR_FINISHED;
@@ -2025,19 +2000,16 @@ static int vpaint_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 void PAINT_OT_vertex_paint(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Vertex Paint";
   ot->idname = "PAINT_OT_vertex_paint";
   ot->description = "Paint a stroke in the active color attribute layer";
 
-  /* api callbacks */
   ot->invoke = vpaint_invoke;
   ot->modal = vpaint_modal;
   ot->exec = vpaint_exec;
   ot->poll = vertex_paint_poll;
   ot->cancel = vpaint_cancel;
 
-  /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
   paint_stroke_operator_properties(ot);
@@ -2227,16 +2199,13 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Set Vertex Colors";
   ot->idname = "PAINT_OT_vertex_color_set";
   ot->description = "Fill the active vertex color layer with the current paint color";
 
-  /* api callbacks */
   ot->exec = vertex_color_set_exec;
   ot->poll = vertex_paint_mode_poll;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(ot->srna,
