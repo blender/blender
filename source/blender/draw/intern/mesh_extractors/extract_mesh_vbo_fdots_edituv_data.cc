@@ -48,7 +48,7 @@ static void extract_fdots_edituv_data_iter_face_bm(const MeshRenderData &mr,
   MeshExtract_EditUVFdotData_Data *data = static_cast<MeshExtract_EditUVFdotData_Data *>(_data);
   EditLoopData *eldata = &data->vbo_data[BM_elem_index_get(f)];
   memset(eldata, 0x0, sizeof(*eldata));
-  mesh_render_data_face_flag(mr, f, data->offsets, eldata);
+  mesh_render_data_face_flag(mr, f, data->offsets,* eldata);
 }
 
 static void extract_fdots_edituv_data_iter_face_mesh(const MeshRenderData &mr,
@@ -60,7 +60,7 @@ static void extract_fdots_edituv_data_iter_face_mesh(const MeshRenderData &mr,
   memset(eldata, 0x0, sizeof(*eldata));
   BMFace *efa = bm_original_face_get(mr, face_index);
   if (efa) {
-    mesh_render_data_face_flag(mr, efa, data->offsets, eldata);
+    mesh_render_data_face_flag(mr, efa, data->offsets, *eldata);
   }
 }
 

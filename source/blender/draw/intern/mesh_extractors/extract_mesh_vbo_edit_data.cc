@@ -22,29 +22,29 @@ namespace blender::draw {
 
 static void mesh_render_data_edge_flag(const MeshRenderData &mr,
                                        const BMEdge *eed,
-                                       EditLoopData *eattr)
+                                       EditLoopData &eattr)
 {
   const ToolSettings *ts = mr.toolsettings;
   const bool is_vertex_select_mode = (ts != nullptr) && (ts->selectmode & SCE_SELECT_VERTEX) != 0;
   const bool is_face_only_select_mode = (ts != nullptr) && (ts->selectmode == SCE_SELECT_FACE);
 
   if (eed == mr.eed_act) {
-    eattr->e_flag |= VFLAG_EDGE_ACTIVE;
+    eattr.e_flag |= VFLAG_EDGE_ACTIVE;
   }
   if (!is_vertex_select_mode && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-    eattr->e_flag |= VFLAG_EDGE_SELECTED;
+    eattr.e_flag |= VFLAG_EDGE_SELECTED;
   }
   if (is_vertex_select_mode && BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) &&
       BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))
   {
-    eattr->e_flag |= VFLAG_EDGE_SELECTED;
-    eattr->e_flag |= VFLAG_VERT_SELECTED;
+    eattr.e_flag |= VFLAG_EDGE_SELECTED;
+    eattr.e_flag |= VFLAG_VERT_SELECTED;
   }
   if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
-    eattr->e_flag |= VFLAG_EDGE_SEAM;
+    eattr.e_flag |= VFLAG_EDGE_SEAM;
   }
   if (!BM_elem_flag_test(eed, BM_ELEM_SMOOTH)) {
-    eattr->e_flag |= VFLAG_EDGE_SHARP;
+    eattr.e_flag |= VFLAG_EDGE_SHARP;
   }
 
   /* Use active edge color for active face edges because
@@ -55,7 +55,7 @@ static void mesh_render_data_edge_flag(const MeshRenderData &mr,
   if (is_face_only_select_mode) {
     if (mr.efa_act != nullptr) {
       if (BM_edge_in_face(eed, mr.efa_act)) {
-        eattr->e_flag |= VFLAG_EDGE_ACTIVE;
+        eattr.e_flag |= VFLAG_EDGE_ACTIVE;
       }
     }
   }
@@ -64,14 +64,14 @@ static void mesh_render_data_edge_flag(const MeshRenderData &mr,
   if (mr.edge_crease_ofs != -1) {
     float crease = BM_ELEM_CD_GET_FLOAT(eed, mr.edge_crease_ofs);
     if (crease > 0) {
-      eattr->crease = uchar(ceil(crease * 15.0f));
+      eattr.crease = uchar(ceil(crease * 15.0f));
     }
   }
   /* Use a byte for value range */
   if (mr.bweight_ofs != -1) {
     float bweight = BM_ELEM_CD_GET_FLOAT(eed, mr.bweight_ofs);
     if (bweight > 0) {
-      eattr->bweight = uchar(bweight * 255.0f);
+      eattr.bweight = uchar(bweight * 255.0f);
     }
   }
 #ifdef WITH_FREESTYLE
@@ -79,7 +79,7 @@ static void mesh_render_data_edge_flag(const MeshRenderData &mr,
     const FreestyleEdge *fed = (const FreestyleEdge *)BM_ELEM_CD_GET_VOID_P(eed,
                                                                             mr.freestyle_edge_ofs);
     if (fed->flag & FREESTYLE_EDGE_MARK) {
-      eattr->e_flag |= VFLAG_EDGE_FREESTYLE;
+      eattr.e_flag |= VFLAG_EDGE_FREESTYLE;
     }
   }
 #endif
@@ -87,19 +87,19 @@ static void mesh_render_data_edge_flag(const MeshRenderData &mr,
 
 static void mesh_render_data_vert_flag(const MeshRenderData &mr,
                                        const BMVert *eve,
-                                       EditLoopData *eattr)
+                                       EditLoopData &eattr)
 {
   if (eve == mr.eve_act) {
-    eattr->e_flag |= VFLAG_VERT_ACTIVE;
+    eattr.e_flag |= VFLAG_VERT_ACTIVE;
   }
   if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-    eattr->e_flag |= VFLAG_VERT_SELECTED;
+    eattr.e_flag |= VFLAG_VERT_SELECTED;
   }
   /* Use half a byte for value range */
   if (mr.vert_crease_ofs != -1) {
     float crease = BM_ELEM_CD_GET_FLOAT(eve, mr.vert_crease_ofs);
     if (crease > 0) {
-      eattr->crease |= uchar(ceil(crease * 15.0f)) << 4;
+      eattr.crease |= uchar(ceil(crease * 15.0f)) << 4;
     }
   }
 }
@@ -142,9 +142,9 @@ static void extract_edit_data_iter_face_bm(const MeshRenderData &mr,
 
     EditLoopData *data = vbo_data + l_index;
     memset(data, 0x0, sizeof(*data));
-    mesh_render_data_face_flag(mr, f, {-1, -1, -1, -1}, data);
-    mesh_render_data_edge_flag(mr, l_iter->e, data);
-    mesh_render_data_vert_flag(mr, l_iter->v, data);
+    mesh_render_data_face_flag(mr, f, {-1, -1, -1, -1}, *data);
+    mesh_render_data_edge_flag(mr, l_iter->e, *data);
+    mesh_render_data_vert_flag(mr, l_iter->v, *data);
   } while ((l_iter = l_iter->next) != l_first);
 }
 
@@ -161,13 +161,13 @@ static void extract_edit_data_iter_face_mesh(const MeshRenderData &mr,
     BMVert *eve = bm_original_vert_get(mr, mr.corner_verts[corner]);
     BMEdge *eed = bm_original_edge_get(mr, mr.corner_edges[corner]);
     if (efa) {
-      mesh_render_data_face_flag(mr, efa, {-1, -1, -1, -1}, data);
+      mesh_render_data_face_flag(mr, efa, {-1, -1, -1, -1}, *data);
     }
     if (eed) {
-      mesh_render_data_edge_flag(mr, eed, data);
+      mesh_render_data_edge_flag(mr, eed, *data);
     }
     if (eve) {
-      mesh_render_data_vert_flag(mr, eve, data);
+      mesh_render_data_vert_flag(mr, eve, *data);
     }
   }
 }
@@ -180,10 +180,10 @@ static void extract_edit_data_iter_loose_edge_bm(const MeshRenderData &mr,
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   EditLoopData *data = vbo_data + mr.corners_num + (loose_edge_i * 2);
   memset(data, 0x0, sizeof(*data) * 2);
-  mesh_render_data_edge_flag(mr, eed, &data[0]);
+  mesh_render_data_edge_flag(mr, eed, data[0]);
   data[1] = data[0];
-  mesh_render_data_vert_flag(mr, eed->v1, &data[0]);
-  mesh_render_data_vert_flag(mr, eed->v2, &data[1]);
+  mesh_render_data_vert_flag(mr, eed->v1, data[0]);
+  mesh_render_data_vert_flag(mr, eed->v2, data[1]);
 }
 
 static void extract_edit_data_iter_loose_edge_mesh(const MeshRenderData &mr,
@@ -199,14 +199,14 @@ static void extract_edit_data_iter_loose_edge_mesh(const MeshRenderData &mr,
   BMVert *eve1 = bm_original_vert_get(mr, edge[0]);
   BMVert *eve2 = bm_original_vert_get(mr, edge[1]);
   if (eed) {
-    mesh_render_data_edge_flag(mr, eed, &data[0]);
+    mesh_render_data_edge_flag(mr, eed, data[0]);
     data[1] = data[0];
   }
   if (eve1) {
-    mesh_render_data_vert_flag(mr, eve1, &data[0]);
+    mesh_render_data_vert_flag(mr, eve1, data[0]);
   }
   if (eve2) {
-    mesh_render_data_vert_flag(mr, eve2, &data[1]);
+    mesh_render_data_vert_flag(mr, eve2, data[1]);
   }
 }
 
@@ -219,7 +219,7 @@ static void extract_edit_data_iter_loose_vert_bm(const MeshRenderData &mr,
   const int offset = mr.corners_num + (mr.loose_edges_num * 2);
   EditLoopData *data = vbo_data + offset + loose_vert_i;
   memset(data, 0x0, sizeof(*data));
-  mesh_render_data_vert_flag(mr, eve, data);
+  mesh_render_data_vert_flag(mr, eve, *data);
 }
 
 static void extract_edit_data_iter_loose_vert_mesh(const MeshRenderData &mr,
@@ -234,7 +234,7 @@ static void extract_edit_data_iter_loose_vert_mesh(const MeshRenderData &mr,
   const int v_index = mr.loose_verts[loose_vert_i];
   BMVert *eve = bm_original_vert_get(mr, v_index);
   if (eve) {
-    mesh_render_data_vert_flag(mr, eve, data);
+    mesh_render_data_vert_flag(mr, eve, *data);
   }
 }
 
@@ -274,20 +274,20 @@ static void extract_edit_data_iter_subdiv_bm(const DRWSubdivCache &subdiv_cache,
       const BMVert *eve = mr.orig_index_vert ? bm_original_vert_get(mr, vert_origindex) :
                                                BM_vert_at_index(mr.bm, vert_origindex);
       if (eve) {
-        mesh_render_data_vert_flag(mr, eve, edit_loop_data);
+        mesh_render_data_vert_flag(mr, eve, *edit_loop_data);
       }
     }
 
     if (edge_origindex != -1) {
       /* NOTE: #subdiv_loop_edge_index already has the origindex layer baked in. */
       const BMEdge *eed = BM_edge_at_index(mr.bm, edge_origindex);
-      mesh_render_data_edge_flag(mr, eed, edit_loop_data);
+      mesh_render_data_edge_flag(mr, eed, *edit_loop_data);
     }
 
     /* coarse_quad can be null when called by the mesh iteration below. */
     if (coarse_quad) {
       /* The -1 parameter is for edit_uvs, which we don't do here. */
-      mesh_render_data_face_flag(mr, coarse_quad, {-1, -1, -1, -1}, edit_loop_data);
+      mesh_render_data_face_flag(mr, coarse_quad, {-1, -1, -1, -1}, *edit_loop_data);
     }
   }
 }
@@ -327,11 +327,11 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cac
                                               BM_edge_at_index(mr.bm, loose_edges[i]))
       {
         EditLoopData value{};
-        mesh_render_data_edge_flag(mr, edge, &value);
+        mesh_render_data_edge_flag(mr, edge, value);
         data.fill(value);
 
-        mesh_render_data_vert_flag(mr, edge->v1, &data.first());
-        mesh_render_data_vert_flag(mr, edge->v2, &data.last());
+        mesh_render_data_vert_flag(mr, edge->v1, data.first());
+        mesh_render_data_vert_flag(mr, edge->v2, data.last());
       }
       else {
         data.fill({});
@@ -346,7 +346,7 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cac
       if (BMVert *vert = mr.orig_index_vert ? bm_original_vert_get(mr, loose_verts[i]) :
                                               BM_vert_at_index(mr.bm, loose_verts[i]))
       {
-        mesh_render_data_vert_flag(mr, vert, &value);
+        mesh_render_data_vert_flag(mr, vert, value);
       }
       vert_data[i] = value;
     }

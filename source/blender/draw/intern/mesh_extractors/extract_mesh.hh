@@ -316,15 +316,15 @@ const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor, bool 
 void mesh_render_data_face_flag(const MeshRenderData &mr,
                                 const BMFace *efa,
                                 BMUVOffsets offsets,
-                                EditLoopData *eattr);
+                                EditLoopData &eattr);
 void mesh_render_data_loop_flag(const MeshRenderData &mr,
-                                BMLoop *l,
+                                const BMLoop *l,
                                 BMUVOffsets offsets,
-                                EditLoopData *eattr);
+                                EditLoopData &eattr);
 void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
-                                     BMLoop *l,
+                                     const BMLoop *l,
                                      BMUVOffsets offsets,
-                                     EditLoopData *eattr);
+                                     EditLoopData &eattr);
 
 template<typename GPUType> void convert_normals(Span<float3> src, MutableSpan<GPUType> dst);
 

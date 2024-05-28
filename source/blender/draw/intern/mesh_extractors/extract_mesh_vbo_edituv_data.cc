@@ -66,9 +66,9 @@ static void extract_edituv_data_iter_face_bm(const MeshRenderData &mr,
     MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(_data);
     EditLoopData *eldata = &data->vbo_data[l_index];
     memset(eldata, 0x0, sizeof(*eldata));
-    mesh_render_data_loop_flag(mr, l_iter, data->offsets, eldata);
-    mesh_render_data_face_flag(mr, f, data->offsets, eldata);
-    mesh_render_data_loop_edge_flag(mr, l_iter, data->offsets, eldata);
+    mesh_render_data_loop_flag(mr, l_iter, data->offsets, *eldata);
+    mesh_render_data_face_flag(mr, f, data->offsets, *eldata);
+    mesh_render_data_loop_edge_flag(mr, l_iter, data->offsets, *eldata);
   } while ((l_iter = l_iter->next) != l_first);
 }
 
@@ -88,8 +88,8 @@ static void extract_edituv_data_iter_face_mesh(const MeshRenderData &mr,
       if (eed && eve) {
         /* Loop on an edge endpoint. */
         BMLoop *l = BM_face_edge_share_loop(efa, eed);
-        mesh_render_data_loop_flag(mr, l, data->offsets, eldata);
-        mesh_render_data_loop_edge_flag(mr, l, data->offsets, eldata);
+        mesh_render_data_loop_flag(mr, l, data->offsets, *eldata);
+        mesh_render_data_loop_edge_flag(mr, l, data->offsets, *eldata);
       }
       else {
         if (eed == nullptr) {
@@ -101,7 +101,7 @@ static void extract_edituv_data_iter_face_mesh(const MeshRenderData &mr,
         if (eed) {
           /* Mapped points on an edge between two edit verts. */
           BMLoop *l = BM_face_edge_share_loop(efa, eed);
-          mesh_render_data_loop_edge_flag(mr, l, data->offsets, eldata);
+          mesh_render_data_loop_edge_flag(mr, l, data->offsets, *eldata);
         }
       }
     }
@@ -142,8 +142,8 @@ static void extract_edituv_data_iter_subdiv_bm(const DRWSubdivCache &subdiv_cach
       BMEdge *eed = BM_edge_at_index(mr.bm, edge_origindex);
       /* Loop on an edge endpoint. */
       BMLoop *l = BM_face_edge_share_loop(const_cast<BMFace *>(coarse_quad), eed);
-      mesh_render_data_loop_flag(mr, l, data->offsets, edit_loop_data);
-      mesh_render_data_loop_edge_flag(mr, l, data->offsets, edit_loop_data);
+      mesh_render_data_loop_flag(mr, l, data->offsets, *edit_loop_data);
+      mesh_render_data_loop_edge_flag(mr, l, data->offsets, *edit_loop_data);
     }
     else {
       if (edge_origindex == -1) {
@@ -156,11 +156,11 @@ static void extract_edituv_data_iter_subdiv_bm(const DRWSubdivCache &subdiv_cach
         /* Mapped points on an edge between two edit verts. */
         BMEdge *eed = BM_edge_at_index(mr.bm, edge_origindex);
         BMLoop *l = BM_face_edge_share_loop(const_cast<BMFace *>(coarse_quad), eed);
-        mesh_render_data_loop_edge_flag(mr, l, data->offsets, edit_loop_data);
+        mesh_render_data_loop_edge_flag(mr, l, data->offsets, *edit_loop_data);
       }
     }
 
-    mesh_render_data_face_flag(mr, coarse_quad, data->offsets, edit_loop_data);
+    mesh_render_data_face_flag(mr, coarse_quad, data->offsets, *edit_loop_data);
   }
 }
 
