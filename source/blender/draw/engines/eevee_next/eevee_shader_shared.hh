@@ -1938,6 +1938,11 @@ struct AOData {
   float thickness_far;
   float angle_bias;
   float gi_distance;
+
+  float lod_factor_ao;
+  float _pad0;
+  float _pad1;
+  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(AOData, 16)
 
