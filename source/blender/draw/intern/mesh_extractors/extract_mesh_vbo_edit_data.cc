@@ -238,6 +238,57 @@ static void extract_edit_data_iter_loose_vert_mesh(const MeshRenderData &mr,
   }
 }
 
+static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
+                                                const MeshRenderData &mr,
+                                                void *buffer,
+                                                void * /*data*/)
+{
+  const Span<int> loose_verts = mr.loose_verts;
+  const Span<int> loose_edges = mr.loose_edges;
+  if (loose_verts.is_empty() && loose_edges.is_empty()) {
+    return;
+  }
+
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
+  MutableSpan<EditLoopData> vbo_data(static_cast<EditLoopData *>(GPU_vertbuf_get_data(vbo)),
+                                     subdiv_full_vbo_size(mr, subdiv_cache));
+  const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
+
+  MutableSpan<EditLoopData> edge_data = vbo_data.slice(subdiv_cache.num_subdiv_loops,
+                                                       loose_edges.size() * verts_per_edge);
+  threading::parallel_for(loose_edges.index_range(), 2048, [&](const IndexRange range) {
+    for (const int i : range) {
+      MutableSpan<EditLoopData> data = edge_data.slice(i * verts_per_edge, verts_per_edge);
+      if (BMEdge *edge = mr.orig_index_edge ? bm_original_edge_get(mr, loose_edges[i]) :
+                                              BM_edge_at_index(mr.bm, loose_edges[i]))
+      {
+        EditLoopData value{};
+        mesh_render_data_edge_flag(mr, edge, value);
+        data.fill(value);
+
+        mesh_render_data_vert_flag(mr, edge->v1, data.first());
+        mesh_render_data_vert_flag(mr, edge->v2, data.last());
+      }
+      else {
+        data.fill({});
+      }
+    }
+  });
+
+  MutableSpan<EditLoopData> vert_data = vbo_data.take_back(loose_verts.size());
+  threading::parallel_for(loose_verts.index_range(), 2048, [&](const IndexRange range) {
+    for (const int i : range) {
+      EditLoopData value{};
+      if (BMVert *vert = mr.orig_index_vert ? bm_original_vert_get(mr, loose_verts[i]) :
+                                              BM_vert_at_index(mr.bm, loose_verts[i]))
+      {
+        mesh_render_data_vert_flag(mr, vert, value);
+      }
+      vert_data[i] = value;
+    }
+  });
+}
+
 static void extract_edit_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                           const MeshRenderData &mr,
                                           MeshBatchCache & /*cache*/,
@@ -300,57 +351,6 @@ static void extract_edit_data_iter_subdiv_mesh(const DRWSubdivCache &subdiv_cach
 {
   BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
   extract_edit_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
-}
-
-static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
-                                                const MeshRenderData &mr,
-                                                void *buffer,
-                                                void * /*data*/)
-{
-  const Span<int> loose_verts = mr.loose_verts;
-  const Span<int> loose_edges = mr.loose_edges;
-  if (loose_verts.is_empty() && loose_edges.is_empty()) {
-    return;
-  }
-
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
-  MutableSpan<EditLoopData> vbo_data(static_cast<EditLoopData *>(GPU_vertbuf_get_data(vbo)),
-                                     subdiv_full_vbo_size(mr, subdiv_cache));
-  const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
-
-  MutableSpan<EditLoopData> edge_data = vbo_data.slice(subdiv_cache.num_subdiv_loops,
-                                                       loose_edges.size() * verts_per_edge);
-  threading::parallel_for(loose_edges.index_range(), 2048, [&](const IndexRange range) {
-    for (const int i : range) {
-      MutableSpan<EditLoopData> data = edge_data.slice(i * verts_per_edge, verts_per_edge);
-      if (BMEdge *edge = mr.orig_index_edge ? bm_original_edge_get(mr, loose_edges[i]) :
-                                              BM_edge_at_index(mr.bm, loose_edges[i]))
-      {
-        EditLoopData value{};
-        mesh_render_data_edge_flag(mr, edge, value);
-        data.fill(value);
-
-        mesh_render_data_vert_flag(mr, edge->v1, data.first());
-        mesh_render_data_vert_flag(mr, edge->v2, data.last());
-      }
-      else {
-        data.fill({});
-      }
-    }
-  });
-
-  MutableSpan<EditLoopData> vert_data = vbo_data.take_back(loose_verts.size());
-  threading::parallel_for(loose_verts.index_range(), 2048, [&](const IndexRange range) {
-    for (const int i : range) {
-      EditLoopData value{};
-      if (BMVert *vert = mr.orig_index_vert ? bm_original_vert_get(mr, loose_verts[i]) :
-                                              BM_vert_at_index(mr.bm, loose_verts[i]))
-      {
-        mesh_render_data_vert_flag(mr, vert, value);
-      }
-      vert_data[i] = value;
-    }
-  });
 }
 
 constexpr MeshExtract create_extractor_edit_data()
