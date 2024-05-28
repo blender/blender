@@ -163,6 +163,29 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
   BKE_report(reports, RPT_ERROR, error_message.c_str());
 }
 
+const char *default_channel_group_for_path(const PointerRNA *animated_struct,
+                                           const StringRef prop_rna_path)
+{
+  if (animated_struct->type == &RNA_PoseBone) {
+    bPoseChannel *pose_channel = static_cast<bPoseChannel *>(animated_struct->data);
+    return pose_channel->name;
+  }
+
+  if (animated_struct->type == &RNA_Object) {
+    if (prop_rna_path.find("location") != StringRef::not_found ||
+        prop_rna_path.find("rotation") != StringRef::not_found ||
+        prop_rna_path.find("scale") != StringRef::not_found)
+    {
+      /* NOTE: Keep this label in sync with the "ID" case in
+       * keyingsets_utils.py :: get_transform_generators_base_info()
+       */
+      return "Object Transforms";
+    }
+  }
+
+  return nullptr;
+}
+
 void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
 {
   /* Set additional flags for the F-Curve (i.e. only integer values). */
@@ -925,14 +948,7 @@ CombinedKeyingResult insert_key_action(Main *bmain,
   BLI_assert(bmain != nullptr);
   BLI_assert(action != nullptr);
 
-  std::string group;
-  if (ptr->type == &RNA_PoseBone) {
-    bPoseChannel *pose_channel = static_cast<bPoseChannel *>(ptr->data);
-    group = pose_channel->name;
-  }
-  else {
-    group = "Object Transforms";
-  }
+  const char *group = default_channel_group_for_path(ptr, rna_path);
 
   int property_array_index = 0;
   CombinedKeyingResult combined_result;
@@ -946,7 +962,7 @@ CombinedKeyingResult insert_key_action(Main *bmain,
                                                                           ptr,
                                                                           prop,
                                                                           action,
-                                                                          group.c_str(),
+                                                                          group,
                                                                           rna_path.c_str(),
                                                                           property_array_index,
                                                                           frame,

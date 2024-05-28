@@ -15,6 +15,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_span.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 #include "DNA_anim_types.h"
 #include "RNA_path.hh"
@@ -72,6 +73,16 @@ class CombinedKeyingResult {
 
   void generate_reports(ReportList *reports);
 };
+
+/**
+ * Return the default channel group name for the given RNA pointer and property
+ * path, or nullptr if it has no default.
+ *
+ * For example, for object location/rotation/scale this returns the standard
+ * "Object Transforms" channel group name.
+ */
+const char *default_channel_group_for_path(const PointerRNA *animated_struct,
+                                           const StringRef prop_rna_path);
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Framing Management
