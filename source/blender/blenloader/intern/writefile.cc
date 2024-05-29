@@ -1194,6 +1194,14 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
     return IDWALK_RET_NOP;
   }
 
+  if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
+    /* Usages of unlinkable IDs (aka ShapeKeys and some UI IDs) should never cause them to be
+     * considered as directly linked. This can often happen e.g. from UI data (the Outliner will
+     * have links to most IDs).
+     */
+    return IDWALK_RET_NOP;
+  }
+
   if (cb_flag & IDWALK_CB_DIRECT_WEAK_LINK) {
     id_lib_indirect_weak_link(id);
   }
