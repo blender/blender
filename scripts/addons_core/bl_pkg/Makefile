@@ -58,8 +58,8 @@ watch_check_mypy:
 	done
 
 check_ruff: FORCE
-	@env --chdir="$(BASE_DIR)" ruff check $(PY_FILES_MYPY)
-	@env --chdir="$(BASE_DIR)" ruff check $(PY_FILES_MYPY_STANDALONE)
+	@cd "$(BASE_DIR)" && ruff check $(PY_FILES_MYPY)
+	@cd "$(BASE_DIR)" && ruff check $(PY_FILES_MYPY_STANDALONE)
 watch_check_ruff:
 	@cd "$(BASE_DIR)" && \
 	while true; do \
@@ -71,7 +71,7 @@ watch_check_ruff:
 	done
 
 check_pylint:
-	@env --chdir="$(BASE_DIR)" \
+	@cd "$(BASE_DIR)" && \
 	    pylint $(PY_FILES) \
 	    --disable=C0111,C0301,C0302,C0103,C0415,R1705,R0902,R0903,R0913,E0611,E0401,I1101,R0801,C0209,W0511,W0718,W0719,C0413,R0911,R0912,R0914,R0915
 watch_check_pylint:
@@ -87,9 +87,9 @@ watch_check_pylint:
 # Tests (All)
 
 test: FORCE
-	@env --chdir="$(BASE_DIR)" $(MAKE) test_cli;
-	@env --chdir="$(BASE_DIR)" $(MAKE) test_blender;
-	@env --chdir="$(BASE_DIR)" $(MAKE) test_cli_blender;
+	@$(MAKE) -C "$(BASE_DIR)" test_cli;
+	@$(MAKE) -C "$(BASE_DIR)" test_blender;
+	@$(MAKE) -C "$(BASE_DIR)" test_cli_blender;
 watch_test: FORCE
 	@cd "$(BASE_DIR)" && \
 	while true; do \
@@ -104,10 +104,10 @@ watch_test: FORCE
 
 # python3 ./tests/test_cli.py
 test_cli: FORCE
-	@env --chdir="$(BASE_DIR)" \
+	@cd "$(BASE_DIR)" && \
 	    USE_HTTP=0 \
 	    $(PYTHON_BIN) ./tests/test_cli.py
-	@env --chdir="$(BASE_DIR)" \
+	@cd "$(BASE_DIR)" && \
 	    USE_HTTP=1 \
 	    $(PYTHON_BIN) ./tests/test_cli.py
 watch_test_cli: FORCE
@@ -121,7 +121,7 @@ watch_test_cli: FORCE
 
 # NOTE: these rely on the blender binary.
 test_blender: FORCE
-	@env --chdir="$(BASE_DIR)" \
+	@cd "$(BASE_DIR)" && \
 	    ASAN_OPTIONS=check_initialization_order=0:leak_check_at_exit=0 \
 	    $(BLENDER_BIN) \
 	        --background --factory-startup --online-mode -noaudio \
@@ -135,10 +135,12 @@ watch_test_blender: FORCE
 	done
 
 test_cli_blender: FORCE
-	@env BLENDER_BIN=$(BLENDER_BIN) \
+	@cd "$(BASE_DIR)" && \
+	    env BLENDER_BIN=$(BLENDER_BIN) \
 	    $(PYTHON_BIN) ./tests/test_cli_blender.py
 watch_test_cli_blender: FORCE
-	@while true; do \
+	@cd "$(BASE_DIR)" && \
+	while true; do \
 		env BLENDER_BIN=$(BLENDER_BIN) \
 		    $(MAKE) test_cli_blender; \
 		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
@@ -146,7 +148,7 @@ watch_test_cli_blender: FORCE
 	done
 
 test_path_pattern_match: FORCE
-	@env --chdir="$(BASE_DIR)" \
+	@cd "$(BASE_DIR)" && \
 	    $(PYTHON_BIN) ./tests/test_path_pattern_match.py
 watch_test_path_pattern_match: FORCE
 	@cd "$(BASE_DIR)" && \
