@@ -413,11 +413,11 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     force_reload: BoolProperty(
         name="Force Reload",
         default=False,
-        description="Force reloading of the image if already opened elsewhere in Blender",
+        description="Force reload the image if it is already opened elsewhere in Blender"
     )
 
     image_sequence: BoolProperty(
-        name="Animate Image Sequences",
+        name="Detect Image Sequences",
         default=False,
         description=(
             "Import sequentially numbered images as an animated "
@@ -428,52 +428,55 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     # -------------------------------------
     # Properties - Position and Orientation
     axis_id_to_vector = {
-        'X+': Vector((1.0, 0.0, 0.0)),
-        'Y+': Vector((0.0, 1.0, 0.0)),
-        'Z+': Vector((0.0, 0.0, 1.0)),
-        'X-': Vector((-1.0, 0.0, 0.0)),
-        'Y-': Vector((0.0, -1.0, 0.0)),
-        'Z-': Vector((0.0, 0.0, -1.0)),
+        '+X': Vector((1.0, 0.0, 0.0)),
+        '+Y': Vector((0.0, 1.0, 0.0)),
+        '+Z': Vector((0.0, 0.0, 1.0)),
+        '-X': Vector((-1.0, 0.0, 0.0)),
+        '-Y': Vector((0.0, -1.0, 0.0)),
+        '-Z': Vector((0.0, 0.0, -1.0)),
     }
 
     offset: BoolProperty(
         name="Offset Planes",
         default=True,
-        description="Offset Planes From Each Other",
+        description=(
+            "Offset planes from each other. "
+            "If disabled, multiple planes will be created at the same location"
+        )
     )
 
     offset_axis: EnumProperty(
-        name="Orientation",
-        default='X+',
+        name="Offset Direction",
+        default='+X',
         items=(
-            ('X+', "X+", "Side by Side to the Left"),
-            ('Y+', "Y+", "Side by Side, Downward"),
-            ('Z+', "Z+", "Stacked Above"),
-            ('X-', "X-", "Side by Side to the Right"),
-            ('Y-', "Y-", "Side by Side, Upward"),
-            ('Z-', "Z-", "Stacked Below"),
+            ('+X', "+X", "Side by Side to the Left"),
+            ('+Y', "+Y", "Side by Side, Downward"),
+            ('+Z', "+Z", "Stacked Above"),
+            ('-X', "-X", "Side by Side to the Right"),
+            ('-Y', "-Y", "Side by Side, Upward"),
+            ('-Z', "-Z", "Stacked Below"),
         ),
         description="How planes are oriented relative to each others' local axis",
     )
 
     offset_amount: FloatProperty(
-        name="Offset",
+        name="Offset Distance",
         soft_min=0,
         default=0.1,
-        description="Space between planes",
+        description="Set distance between each plane",
         subtype='DISTANCE',
         unit='LENGTH',
     )
 
     AXIS_MODES = (
-        ('X+', "X+", "Facing Positive X"),
-        ('Y+', "Y+", "Facing Positive Y"),
-        ('Z+', "Z+ (Up)", "Facing Positive Z"),
-        ('X-', "X-", "Facing Negative X"),
-        ('Y-', "Y-", "Facing Negative Y"),
-        ('Z-', "Z- (Down)", "Facing Negative Z"),
-        ('CAM', "Face Camera", "Facing Camera"),
-        ('CAM_AX', "Main Axis", "Facing the Camera's dominant axis"),
+        ('+X', "+X", "Facing positive X"),
+        ('+Y', "+Y", "Facing positive Y"),
+        ('+Z', "+Z", "Facing positive Z"),
+        ('-X', "-X", "Facing negative X"),
+        ('-Y', "-Y", "Facing negative Y"),
+        ('-Z', "-Z", "Facing negative Z"),
+        ('CAM', "Face Camera", "Facing camera"),
+        ('CAM_AX', "Camera's Main Axis", "Facing the camera's dominant axis"),
     )
     align_axis: EnumProperty(
         name="Align",
@@ -490,7 +493,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     align_track: BoolProperty(
         name="Track Camera",
         default=False,
-        description="Always face the camera",
+        description="Add a constraint to make the planes track the camera",
     )
 
     # -----------------
@@ -510,12 +513,12 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
         default='ABSOLUTE',
         items=(
             ('ABSOLUTE', "Absolute", "Use absolute size"),
-            ('CAMERA', "Camera Relative", "Scale to the camera frame"),
-            ('DPI', "Dpi", "Use definition of the image as dots per inch"),
-            ('DPBU', "Dots/BU", "Use definition of the image as dots per Blender Unit"),
+            ('CAMERA', "Scale to Camera Frame", "Scale to fit or fill the camera frame"),
+            ('DPI', "Pixels per Inch", "Scale based on pixels per inch"),
+            ('DPBU', "Pixels per Blender Unit", "Scale based on pixels per Blender Unit"),
         ),
         update=update_size_mode,
-        description="How the size of the plane is computed",
+        description="Method for computing the plane size",
     )
 
     fill_mode: EnumProperty(
@@ -525,7 +528,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
             ('FILL', "Fill", "Fill camera frame, spilling outside the frame"),
             ('FIT', "Fit", "Fit entire image within the camera frame"),
         ),
-        description="How large in the camera frame is the plane",
+        description="Method to scale the plane with the camera frame",
     )
 
     height: FloatProperty(
@@ -559,12 +562,12 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     )
 
     emit_strength: FloatProperty(
-        name="Strength",
+        name="Emission Strength",
         min=0.0,
         default=1.0,
         soft_max=10.0,
         step=100,
-        description="Brightness of Emission Texture",
+        description="Strength of emission",
     )
 
     use_transparency: BoolProperty(
@@ -602,7 +605,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     use_backface_culling: BoolProperty(
         name="Backface Culling",
         default=False,
-        description="Use back face culling to hide the back side of faces",
+        description="Use backface culling to hide the back side of faces",
     )
 
     show_transparent_back: BoolProperty(
@@ -614,7 +617,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     overwrite_material: BoolProperty(
         name="Overwrite Material",
         default=True,
-        description="Overwrite existing Material (based on material name)",
+        description="Overwrite existing material with the same name",
     )
 
     # ------------------
@@ -669,113 +672,94 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
     def draw_import_config(self, _context):
         # --- Import Options --- #
         layout = self.layout
-        box = layout.box()
 
-        box.label(text="Import Options:", icon='IMPORT')
-        row = box.row()
-        row.active = bpy.data.is_saved
-        row.prop(self, "relative")
-
-        box.prop(self, "force_reload")
-        box.prop(self, "image_sequence")
+        header, body = layout.panel("import_image_plane_options", default_closed=False)
+        header.label(text="Options")
+        if body:
+            row = body.row()
+            row.active = bpy.data.is_saved
+            row.prop(self, "relative")
+            body.prop(self, "force_reload")
+            body.prop(self, "image_sequence")
 
     def draw_material_config(self, context):
         # --- Material / Rendering Properties --- #
-        '''
         layout = self.layout
 
-        box = layout.box()
+        header, body = layout.panel("import_image_plane_material", default_closed=False)
+        header.label(text="Material")
+        if body:
+            body.prop(self, 'shader')
+            if self.shader == 'EMISSION':
+                body.prop(self, "emit_strength")
 
-        box.label(text="Compositing Nodes:", icon='RENDERLAYERS')
-        box.prop(self, "compositing_nodes")
-        '''
+            body.prop(self, 'blend_method')
+
+            body.prop(self, 'shadow_method')
+            if self.blend_method == 'BLEND':
+                body.prop(self, "show_transparent_back")
+
+            body.prop(self, "use_backface_culling")
+
+            engine = context.scene.render.engine
+            if engine not in ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'):
+                body.label(text=tip_("{:s} is not supported").format(engine), icon='ERROR')
+
+            body.prop(self, "overwrite_material")
+
+    def draw_texture_config(self, context):
+        # --- Texture Properties --- #
         layout = self.layout
-        box = layout.box()
-        box.label(text="Material Settings:", icon='MATERIAL')
 
-        box.label(text="Material Type")
-        row = box.row()
-        row.prop(self, "shader", expand=True)
-        if self.shader == 'EMISSION':
-            box.prop(self, "emit_strength")
+        header, body = layout.panel("import_image_plane_texture", default_closed=False)
+        header.label(text="Texture")
+        if body:
+            body.prop(self, 'interpolation')
+            body.prop(self, 'extension')
 
-        box.label(text="Blend Mode")
-        row = box.row()
-        row.prop(self, "blend_method", expand=True)
-        if self.use_transparency and self.alpha_mode != "NONE" and self.blend_method == "OPAQUE":
-            box.label(text="'Opaque' does not support alpha", icon="ERROR")
-        if self.blend_method == 'BLEND':
-            row = box.row()
-            row.prop(self, "show_transparent_back")
-
-        box.label(text="Shadow Mode")
-        row = box.row()
-        row.prop(self, "shadow_method", expand=True)
-
-        row = box.row()
-        row.prop(self, "use_backface_culling")
-
-        engine = context.scene.render.engine
-        if engine not in ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'):
-            box.label(text=tip_("{:s} is not supported").format(engine), icon='ERROR')
-
-        box.prop(self, "overwrite_material")
-        layout = self.layout
-        box = layout.box()
-        box.label(text="Texture Settings:", icon='TEXTURE')
-        box.label(text="Interpolation")
-        row = box.row()
-        row.prop(self, "interpolation", expand=True)
-        box.label(text="Extension")
-        row = box.row()
-        row.prop(self, "extension", expand=True)
-        row = box.row()
-        row.prop(self, "use_transparency")
-        if self.use_transparency:
-            sub = row.row()
+            row = body.row(align=False, heading="Alpha")
+            row.prop(self, "use_transparency", text="")
+            sub = row.row(align=True)
+            sub.active = self.use_transparency
             sub.prop(self, "alpha_mode", text="")
-        row = box.row()
-        row.prop(self, "use_auto_refresh")
+
+            body.prop(self, "use_auto_refresh")
 
     def draw_spatial_config(self, _context):
         # --- Spatial Properties: Position, Size and Orientation --- #
         layout = self.layout
-        box = layout.box()
 
-        box.label(text="Position:", icon='SNAP_GRID')
-        box.prop(self, "offset")
-        col = box.column()
-        row = col.row()
-        row.prop(self, "offset_axis", expand=True)
-        row = col.row()
-        row.prop(self, "offset_amount")
-        col.enabled = self.offset
+        header, body = layout.panel("import_image_plane_transform", default_closed=False)
+        header.label(text="Transform")
+        if body:
+            body.prop(self, "size_mode")
+            if self.size_mode == 'ABSOLUTE':
+                body.prop(self, "height")
+            elif self.size_mode == 'CAMERA':
+                body.prop(self, "fill_mode")
+            else:
+                body.prop(self, "factor")
 
-        box.label(text="Plane dimensions:", icon='ARROW_LEFTRIGHT')
-        row = box.row()
-        row.prop(self, "size_mode", expand=True)
-        if self.size_mode == 'ABSOLUTE':
-            box.prop(self, "height")
-        elif self.size_mode == 'CAMERA':
-            row = box.row()
-            row.prop(self, "fill_mode", expand=True)
-        else:
-            box.prop(self, "factor")
+            row = body.row()
+            row.enabled = 'CAM' not in self.size_mode
+            row.prop(self, "align_axis")
+            if 'CAM' in self.align_axis:
+                body.prop(self, "align_track")
 
-        box.label(text="Orientation:")
-        row = box.row()
-        row.enabled = 'CAM' not in self.size_mode
-        row.prop(self, "align_axis")
-        row = box.row()
-        row.enabled = 'CAM' in self.align_axis
-        row.alignment = 'RIGHT'
-        row.prop(self, "align_track")
+            body.prop(self, "offset")
+            col = body.column()
+            col.enabled = self.offset
+            col.prop(self, "offset_axis")
+            col.prop(self, "offset_amount", text="Distance")
 
     def draw(self, context):
-
         # Draw configuration sections.
+        layout = self.layout
+        layout.use_property_split = True
+
         self.draw_import_config(context)
         self.draw_material_config(context)
+        self.draw_texture_config(context)
         self.draw_spatial_config(context)
 
     # -------------------------------------------------------------------------
@@ -1054,7 +1038,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
             else:
                 # No camera? Just face Z axis.
                 axis = Vector((0.0, 0.0, 1.0))
-                self.align_axis = 'Z+'
+                self.align_axis = '+Z'
         else:
             # Axis-aligned.
             axis = self.axis_id_to_vector[self.align_axis]
