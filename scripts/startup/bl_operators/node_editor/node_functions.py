@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 
 viewer_socket_name = "tmp_viewer"
