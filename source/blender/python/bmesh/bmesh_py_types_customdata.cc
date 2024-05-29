@@ -427,7 +427,7 @@ PyDoc_STRVAR(
     "   Return a copy of the layer\n"
     "\n"
     "   :arg other: Another layer to copy from.\n"
-    "   :arg other: :class:`BMLayerItem`\n");
+    "   :type other: :class:`BMLayerItem`\n");
 static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerItem *value)
 {
   CustomData *data;

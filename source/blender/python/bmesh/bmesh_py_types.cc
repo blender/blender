@@ -1251,6 +1251,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg object: The object data to load.\n"
     "   :type object: :class:`Object`\n"
+    "   :type depsgraph: :class:`Depsgraph`\n"
     "   :arg cage: Get the mesh as a deformed cage.\n"
     "   :type cage: boolean\n"
     "   :arg face_normals: Calculate face normals.\n"
@@ -1356,6 +1357,8 @@ PyDoc_STRVAR(
     "\n"
     "   :arg mesh: The mesh data to load.\n"
     "   :type mesh: :class:`Mesh`\n"
+    "   :type face_normals: boolean\n"
+    "   :type vertex_normals: boolean\n"
     "   :arg use_shape_key: Use the locations from a shape key.\n"
     "   :type use_shape_key: boolean\n"
     "   :arg shape_key_index: The shape key index to use.\n"
@@ -1736,7 +1739,8 @@ PyDoc_STRVAR(
     "   Interpolate the customdata from a vert between 2 other verts.\n"
     "\n"
     "   :arg vert_pair: The vert to interpolate data from.\n"
-    "   :type vert_pair: :class:`BMVert`\n");
+    "   :type vert_pair: :class:`BMVert`\n"
+    "   :type fac: float\n");
 static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *args)
 {
   PyObject *vert_seq;
@@ -2656,7 +2660,9 @@ PyDoc_STRVAR(
     bpy_bmvertseq_remove_doc,
     ".. method:: remove(vert)\n"
     "\n"
-    "   Remove a vert.\n");
+    "   Remove a vert.\n"
+    "\n"
+    "   :type vert: :class:`BMVert`\n");
 static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -2680,7 +2686,9 @@ PyDoc_STRVAR(
     bpy_bmedgeseq_remove_doc,
     ".. method:: remove(edge)\n"
     "\n"
-    "   Remove an edge.\n");
+    "   Remove an edge.\n"
+    "\n"
+    "   :type edge: :class:`BMEdge`\n");
 static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -2704,7 +2712,9 @@ PyDoc_STRVAR(
     bpy_bmfaceseq_remove_doc,
     ".. method:: remove(face)\n"
     "\n"
-    "   Remove a face.\n");
+    "   Remove a face.\n"
+    "\n"
+    "   :type face: :class:`BMFace`\n");
 static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -2731,7 +2741,7 @@ PyDoc_STRVAR(
     "   Return an edge which uses the **verts** passed.\n"
     "\n"
     "   :arg verts: Sequence of verts.\n"
-    "   :type verts: :class:`BMVert`\n"
+    "   :type verts: sequence of :class:`BMVert`\n"
     "   :arg fallback: Return this value if nothing is found.\n"
     "   :return: The edge found or None\n"
     "   :rtype: :class:`BMEdge`\n");
@@ -2779,7 +2789,7 @@ PyDoc_STRVAR(
     "   Return a face which uses the **verts** passed.\n"
     "\n"
     "   :arg verts: Sequence of verts.\n"
-    "   :type verts: :class:`BMVert`\n"
+    "   :type verts: sequence of :class:`BMVert`\n"
     "   :arg fallback: Return this value if nothing is found.\n"
     "   :return: The face found or None\n"
     "   :rtype: :class:`BMFace`\n");
