@@ -80,13 +80,8 @@ struct SculptCursorGeometryInfo {
 
 struct SculptVertexNeighborIter {
   /* Storage */
-  PBVHVertRef *neighbors;
-  int *neighbor_indices;
-  int size;
-  int capacity;
-
-  PBVHVertRef neighbors_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
-  int neighbor_indices_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
+  blender::Vector<PBVHVertRef, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY> neighbors;
+  blender::Vector<int, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY> neighbor_indices;
 
   /* Internal iterator. */
   int num_duplicates;
@@ -893,7 +888,7 @@ void SCULPT_vertex_neighbors_get(const SculptSession &ss,
 /** Iterator over neighboring vertices. */
 #define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
-  for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
+  for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.neighbors.size(); \
        neighbor_iterator.i++) \
   { \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
@@ -905,18 +900,16 @@ void SCULPT_vertex_neighbors_get(const SculptSession &ss,
  */
 #define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
-  for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
+  for (neighbor_iterator.i = neighbor_iterator.neighbors.size() - 1; neighbor_iterator.i >= 0; \
        neighbor_iterator.i--) \
   { \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
     neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i]; \
     neighbor_iterator.is_duplicate = (neighbor_iterator.i >= \
-                                      neighbor_iterator.size - neighbor_iterator.num_duplicates);
+                                      neighbor_iterator.neighbors.size() - \
+                                          neighbor_iterator.num_duplicates);
 
 #define SCULPT_VERTEX_NEIGHBORS_ITER_END(neighbor_iterator) \
-  } \
-  if (neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
-    MEM_freeN(neighbor_iterator.neighbors); \
   } \
   ((void)0)
 

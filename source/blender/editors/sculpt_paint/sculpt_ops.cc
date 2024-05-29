@@ -612,7 +612,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession &ss, float 
 
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
-      if (totpoints + (ni.size * 2) < max_preview_verts) {
+      if (totpoints + (ni.neighbors.size() * 2) < max_preview_verts) {
         PBVHVertRef to_v = ni.vertex;
         int to_v_i = ni.index;
         ss.preview_vert_list[totpoints] = from_v;

@@ -573,8 +573,8 @@ static Array<float> sculpt_expand_normal_falloff_create(Object &ob,
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-      if (ni.size > 0.0f) {
-        dists[i] = avg / ni.size;
+      if (ni.neighbors.size() > 0.0f) {
+        dists[i] = avg / ni.neighbors.size();
       }
     }
   }
