@@ -2629,7 +2629,7 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   if (state.fps_average + 0.5f < state.fps_target) {
     /* Always show fractional when under performing. */
     show_fractional = true;
-    UI_FontThemeColor(font_id, TH_REDALERT);
+    BLF_color4ub(font_id, 225, 36, 36, 255);
   }
 
   if (show_fractional) {
