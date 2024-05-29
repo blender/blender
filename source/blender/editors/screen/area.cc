@@ -945,7 +945,11 @@ void WorkspaceStatus::opmodal(std::string text,
   if (keymap) {
     const wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(keymap, propvalue);
     if (kmi) {
+#ifdef WITH_HEADLESS
+      int icon = 0;
+#else
       int icon = UI_icon_from_event_type(kmi->type, kmi->val);
+#endif
       if (!ELEM(kmi->shift, KM_NOTHING, KM_ANY)) {
         ed_workspace_status_item(workspace_, {}, ICON_EVENT_SHIFT, 0.0f, inverted);
       }
