@@ -101,7 +101,7 @@ void main()
     vec3 Ng = ray.direction;
     /* Fallback to nearest light-probe. */
     LightProbeSample samp = lightprobe_load(P, Ng, V);
-    radiance = lightprobe_eval_direction(samp, P, ray.direction, safe_rcp(ray_pdf_inv));
+    radiance = lightprobe_eval_direction(samp, P, ray.direction, ray_pdf_inv);
     /* Set point really far for correct reprojection of background. */
     hit.time = 10000.0;
   }

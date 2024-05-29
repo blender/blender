@@ -79,15 +79,16 @@ vec3 lightprobe_spherical_sample_normalized_with_parallax(LightProbeSample samp,
   return normalization_factor * lightprobe_spheres_sample(L, lod, probe.atlas_coord).rgb;
 }
 
-float pdf_to_lod(float pdf)
+float pdf_to_lod(float inv_pdf)
 {
-  return 0.0; /* TODO */
+  float blur_pdf = saturate((2.0 * M_PI) * inv_pdf);
+  return blur_pdf * 0.0;
 }
 
-vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float pdf)
+vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float inv_pdf)
 {
   vec3 radiance_sh = lightprobe_spherical_sample_normalized_with_parallax(
-      samp, P, L, pdf_to_lod(pdf));
+      samp, P, L, pdf_to_lod(inv_pdf));
   return radiance_sh;
 }
 
