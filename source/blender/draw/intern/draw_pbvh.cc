@@ -1277,23 +1277,7 @@ struct PBVHBatches {
     }
 
     for (const int grid_index : args.grid_indices) {
-      bool smooth = !(!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid_index]]);
-      if (!grid_hidden.is_empty()) {
-        const BoundedBitSpan gh = grid_hidden[grid_index];
-        for (int y = 0; y < gridsize - 1; y += skip) {
-          for (int x = 0; x < gridsize - 1; x += skip) {
-            if (paint_is_grid_face_hidden(gh, gridsize, x, y)) {
-              /* Skip hidden faces by just setting smooth to true. */
-              smooth = true;
-              goto outer_loop_break;
-            }
-          }
-        }
-      }
-
-    outer_loop_break:
-
-      if (!smooth) {
+      if (!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid_index]]) {
         needs_tri_index = false;
         break;
       }
