@@ -534,6 +534,8 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
     return nullptr;
   }
 
+  bNodeSocket *already_viewed_socket = nullptr;
+
   /* Pick the next socket to be linked to the viewer. */
   const int tot_outputs = node_to_view.output_sockets().size();
   for (const int offset : IndexRange(1, tot_outputs)) {
@@ -544,6 +546,7 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
     }
     if (has_linked_geometry_socket && output_socket.type == SOCK_GEOMETRY) {
       /* Skip geometry sockets when cycling if one is already viewed. */
+      already_viewed_socket = &output_socket;
       continue;
     }
 
@@ -564,11 +567,12 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
       break;
     }
     if (is_currently_viewed) {
+      already_viewed_socket = &output_socket;
       continue;
     }
     return &output_socket;
   }
-  return nullptr;
+  return already_viewed_socket;
 }
 
 static void finalize_viewer_link(const bContext &C,
@@ -587,12 +591,154 @@ static void finalize_viewer_link(const bContext &C,
   ED_node_tree_propagate_change(&C, bmain, snode.edittree);
 }
 
+static const bNode *find_overlapping_node(const bNodeTree &tree,
+                                          const rctf &rect,
+                                          const Span<const bNode *> ignored_nodes)
+{
+  for (const bNode *node : tree.all_nodes()) {
+    if (node->is_frame()) {
+      continue;
+    }
+    if (ignored_nodes.contains(node)) {
+      continue;
+    }
+    if (BLI_rctf_isect(&rect, &node->runtime->totr, nullptr)) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+
+/**
+ * Builds a list of possible locations for the viewer node that follows some search pattern where
+ * positions closer to the initial position come first.
+ */
+static Vector<float2> get_viewer_node_position_candidates(const float2 initial,
+                                                          const float step_distance,
+                                                          const float max_distance)
+{
+  /* Prefer moving viewer a bit further horizontally than vertically. */
+  const float y_scale = 0.5f;
+
+  Vector<float2> candidates;
+  candidates.append(initial);
+  for (float distance = step_distance; distance <= max_distance; distance += step_distance) {
+    const float arc_length = distance * M_PI;
+    const int checks = std::max<int>(2, ceilf(arc_length / step_distance));
+    for (const int i : IndexRange(checks)) {
+      const float angle = i / float(checks - 1) * M_PI;
+      const float candidate_x = initial.x + distance * std::sin(angle);
+      const float candidate_y = initial.y + distance * std::cos(angle) * y_scale;
+      candidates.append({candidate_x, candidate_y});
+    }
+  }
+  return candidates;
+}
+
+/**
+ * Positions the viewer node so that it is slightly to the right and top of the node to view. The
+ * algorithm tries to avoid moving the viewer to a place where it would overlap with other nodes.
+ * For that it iterates over many possible locations with increasing distance to the node to view.
+ */
+static void position_viewer_node(bNodeTree &tree,
+                                 bNode &viewer_node,
+                                 const bNode &node_to_view,
+                                 const ARegion &region)
+{
+  tree.ensure_topology_cache();
+
+  const View2D &v2d = region.v2d;
+  rctf region_rect;
+  region_rect.xmin = 0;
+  region_rect.xmax = region.winx;
+  region_rect.ymin = 0;
+  region_rect.ymax = region.winy;
+  rctf region_bounds;
+  UI_view2d_region_to_view_rctf(&v2d, &region_rect, &region_bounds);
+
+  viewer_node.ui_order = tree.all_nodes().size();
+  tree_draw_order_update(tree);
+
+  const float default_padding_x = U.node_margin;
+  const float default_padding_y = 10;
+  const float viewer_width = BLI_rctf_size_x(&viewer_node.runtime->totr);
+  float viewer_height = BLI_rctf_size_y(&viewer_node.runtime->totr);
+  if (viewer_height == 0) {
+    /* Can't use if the viewer node has only just been added and the actual height is not yet
+     * known. */
+    viewer_height = 100;
+  }
+
+  const float2 main_candidate{node_to_view.runtime->totr.xmax + default_padding_x,
+                              node_to_view.runtime->totr.ymax + viewer_height + default_padding_y};
+
+  std::optional<float2> new_viewer_position;
+
+  const Vector<float2> position_candidates = get_viewer_node_position_candidates(
+      main_candidate, 50 * UI_SCALE_FAC, 800 * UI_SCALE_FAC);
+  for (const float2 &candidate_pos : position_candidates) {
+    rctf candidate;
+    candidate.xmin = candidate_pos.x;
+    candidate.xmax = candidate_pos.x + viewer_width;
+    candidate.ymin = candidate_pos.y - viewer_height;
+    candidate.ymax = candidate_pos.y;
+
+    if (!BLI_rctf_inside_rctf(&region_bounds, &candidate)) {
+      /* Avoid moving viewer outside of visible region. */
+      continue;
+    }
+
+    rctf padded_candidate = candidate;
+    BLI_rctf_pad(&padded_candidate, default_padding_x - 1, default_padding_y - 1);
+
+    const bNode *overlapping_node = find_overlapping_node(
+        tree, padded_candidate, {&viewer_node, &node_to_view});
+    if (!overlapping_node) {
+      new_viewer_position = candidate_pos;
+      break;
+    }
+  }
+
+  if (!new_viewer_position) {
+    new_viewer_position = main_candidate;
+  }
+
+  const float2 old_position = float2(viewer_node.locx, viewer_node.locy) * UI_SCALE_FAC;
+  if (old_position.x > node_to_view.runtime->totr.xmax) {
+    if (BLI_rctf_inside_rctf(&region_bounds, &viewer_node.runtime->totr)) {
+      /* Measure distance from right edge of the node to view and the left edge of the
+       * viewer node. */
+      const float2 node_to_view_top_right{node_to_view.runtime->totr.xmax,
+                                          node_to_view.runtime->totr.ymax};
+      const float2 node_to_view_bottom_right{node_to_view.runtime->totr.xmax,
+                                             node_to_view.runtime->totr.ymin};
+      const float old_distance = dist_seg_seg_v2(old_position,
+                                                 old_position + float2(0, viewer_height),
+                                                 node_to_view_top_right,
+                                                 node_to_view_bottom_right);
+      const float new_distance = dist_seg_seg_v2(*new_viewer_position,
+                                                 *new_viewer_position + float2(0, viewer_height),
+                                                 node_to_view_top_right,
+                                                 node_to_view_bottom_right);
+      if (old_distance <= new_distance) {
+        new_viewer_position = old_position;
+      }
+    }
+  }
+
+  viewer_node.locx = new_viewer_position->x / UI_SCALE_FAC;
+  viewer_node.locy = new_viewer_position->y / UI_SCALE_FAC;
+  viewer_node.parent = nullptr;
+}
+
 static int view_socket(const bContext &C,
                        SpaceNode &snode,
                        bNodeTree &btree,
                        bNode &bnode_to_view,
                        bNodeSocket &bsocket_to_view)
 {
+  ARegion &region = *CTX_wm_region(&C);
+
   bNode *viewer_node = nullptr;
   /* Try to find a viewer that is already active. */
   for (bNode *node : btree.all_nodes()) {
@@ -610,6 +756,7 @@ static int view_socket(const bContext &C,
     bNode &target_node = *link->tonode;
     if (is_viewer_socket(target_socket) && ELEM(viewer_node, nullptr, &target_node)) {
       finalize_viewer_link(C, snode, target_node, *link);
+      position_viewer_node(btree, *viewer_node, bnode_to_view, region);
       return OPERATOR_FINISHED;
     }
   }
@@ -651,6 +798,7 @@ static int view_socket(const bContext &C,
     BKE_ntree_update_tag_link_changed(&btree);
   }
   finalize_viewer_link(C, snode, *viewer_node, *viewer_link);
+  position_viewer_node(btree, *viewer_node, bnode_to_view, region);
   return OPERATOR_CANCELLED;
 }
 
