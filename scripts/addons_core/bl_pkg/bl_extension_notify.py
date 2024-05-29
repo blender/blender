@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""
-Startup notifications.
-"""
+# Notifications used by:
+# - The splash screen on startup.
+# - The preferences when checking first displaying the extensions view.
 
 __all__ = (
     "update_non_blocking",
@@ -138,6 +138,7 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
 
 
 def sync_status_generator(repos_notify, do_online_sync):
+    import atexit
 
     # Generator results...
     # -> None: do nothing.
@@ -187,13 +188,6 @@ def sync_status_generator(repos_notify, do_online_sync):
         ))
 
     yield None
-
-    # repos_lock = [repo_item.directory for repo_item in self.repos_notify]
-
-    # Lock repositories.
-    # self.repo_lock = bl_extension_utils.RepoLock(repo_directories=repos_lock, cookie=cookie_from_session())
-
-    import atexit
 
     cmd_batch = None
 
@@ -267,10 +261,15 @@ def sync_status_generator(repos_notify, do_online_sync):
         if command_result.status_data_changed:
             extra_warnings = []
             if command_result.all_complete:
+
+                # ################### #
+                # Finalize The Update #
+                # ################### #
                 any_lock_errors = sync_apply_locked(repos_notify, repos_notify_files, unique_ext)
                 update_total = sync_status_count_outdated_extensions(repos_notify)
                 if any_lock_errors:
                     extra_warnings.append(" Failed to acquire lock!")
+
             if any_offline:
                 extra_warnings.append(" Skipping online repositories!")
             yield (cmd_batch.calc_status_data(), update_total, extra_warnings)
@@ -282,15 +281,7 @@ def sync_status_generator(repos_notify, do_online_sync):
 
     atexit.unregister(cmd_force_quit)
 
-    # ################### #
-    # Finalize The Update #
-    # ################### #
-
     yield None
-
-    # Unlock repositories.
-    # lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
-    # self.repo_lock = None
 
 
 # -----------------------------------------------------------------------------
