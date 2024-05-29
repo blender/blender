@@ -36,7 +36,7 @@ timeit::Nanoseconds Profiler::accumulate_node_group_times(const bNodeTree &node_
         instance_key, &node_tree, node);
     if (!node->is_group()) {
       /* Non-group node, no need to recurse into. Simply accumulate the node's evaluation time to
-       * the current tree's evaluation time. Note that not everey node might have an evaluation
+       * the current tree's evaluation time. Note that not every node might have an evaluation
        * time stored, so default to zero. See the documentation on nodes_evaluation_times_ for more
        * information. */
       tree_evaluation_time += nodes_evaluation_times_.lookup_default(node_instance_key,

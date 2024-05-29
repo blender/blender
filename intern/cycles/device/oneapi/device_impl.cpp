@@ -307,8 +307,8 @@ bool OneapiDevice::alloc_device(void *&device_pointer, size_t size)
   device_pointer = usm_alloc_device(device_queue_, size);
   if (device_pointer != nullptr) {
     allocation_success = true;
-    /* Due to lazy memory initialisation in GPU runtime we will force memory to
-     * appear in device memory via execution of a kernel using this memory.. */
+    /* Due to lazy memory initialization in GPU runtime we will force memory to
+     * appear in device memory via execution of a kernel using this memory. */
     if (!oneapi_zero_memory_on_device(device_queue_, device_pointer, size)) {
       set_error("oneAPI memory operation error: got runtime exception \"" + oneapi_error_string_ +
                 "\"");
@@ -702,8 +702,8 @@ void *OneapiDevice::usm_alloc_device(SyclQueue *queue_, size_t memory_size)
    * provides automatic migration mechanism in order to allow to use the same pointer on host and
    * on device, without need to worry about explicit memory transfer operations, although usage of
    * USM shared imply some documented limitations on the memory usage in regards of parallel access
-   * from differen threads. But for Blender/Cycles this type of memory is not very suitable in
-   * current application architecture, because Cycles is multithread application and already uses
+   * from different threads. But for Blender/Cycles this type of memory is not very suitable in
+   * current application architecture, because Cycles is multi-thread application and already uses
    * two different pointer for host activity and device activity, and also has to perform all
    * needed memory transfer operations. So, USM device memory type has been used for oneAPI device
    * in order to better fit in Cycles architecture. */

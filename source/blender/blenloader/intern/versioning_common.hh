@@ -66,7 +66,7 @@ void version_node_output_socket_name(bNodeTree *ntree,
                                      const char *new_name);
 
 /**
- * Adds a new node for versioning purposes. This is intended to be used to create raw dna that
+ * Adds a new node for versioning purposes. This is intended to be used to create raw DNA that
  * might have been read from a file. The created node does not have storage or sockets. Both have
  * to be added manually afterwards.
  *
