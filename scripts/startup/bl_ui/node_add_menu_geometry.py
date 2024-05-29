@@ -43,7 +43,7 @@ class NODE_MT_geometry_node_GEO_COLOR(Menu):
         ops.name = "data_type"
         ops.value = "'RGBA'"
         node_add_menu.add_node_type(layout, "FunctionNodeSeparateColor")
-        node_add_menu.draw_assets_for_catalog(layout, "Utilties/Color")
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Color")
 
 
 class NODE_MT_geometry_node_GEO_CURVE(Menu):
@@ -587,7 +587,7 @@ class NODE_MT_category_GEO_UTILITIES_FIELD(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeAccumulateField")
         node_add_menu.add_node_type(layout, "GeometryNodeFieldAtIndex")
         node_add_menu.add_node_type(layout, "GeometryNodeFieldOnDomain")
-        node_add_menu.draw_assets_for_catalog(layout, "Utilties/Field")
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Field")
 
 
 class NODE_MT_category_GEO_UTILITIES_ROTATION(Menu):
