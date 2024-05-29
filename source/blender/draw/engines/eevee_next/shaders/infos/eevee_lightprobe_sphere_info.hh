@@ -78,34 +78,34 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_sphere_convolve)
     .compute_source("eevee_lightprobe_sphere_convolve_comp.glsl")
     .do_static_compilation(true);
 
-GPU_SHADER_INTERFACE_INFO(eevee_display_probe_reflection_iface, "")
+GPU_SHADER_INTERFACE_INFO(eevee_display_lightprobe_sphere_iface, "")
     .smooth(Type::VEC3, "P")
     .smooth(Type::VEC2, "lP")
     .flat(Type::INT, "probe_index");
 
-GPU_SHADER_CREATE_INFO(eevee_display_probe_reflection)
+GPU_SHADER_CREATE_INFO(eevee_display_lightprobe_sphere)
     .additional_info("eevee_shared", "draw_view", "eevee_lightprobe_sphere_data")
     .storage_buf(0, Qualifier::READ, "SphereProbeDisplayData", "display_data_buf[]")
-    .vertex_source("eevee_display_probe_reflection_vert.glsl")
-    .vertex_out(eevee_display_probe_reflection_iface)
-    .fragment_source("eevee_display_probe_reflection_frag.glsl")
+    .vertex_source("eevee_display_lightprobe_sphere_vert.glsl")
+    .vertex_out(eevee_display_lightprobe_sphere_iface)
+    .fragment_source("eevee_display_lightprobe_sphere_frag.glsl")
     .fragment_out(0, Type::VEC4, "out_color")
     .do_static_compilation(true);
 
-GPU_SHADER_INTERFACE_INFO(eevee_display_probe_planar_iface, "")
+GPU_SHADER_INTERFACE_INFO(eevee_display_lightprobe_planar_iface, "")
     .flat(Type::VEC3, "probe_normal")
     .flat(Type::INT, "probe_index");
 
-GPU_SHADER_CREATE_INFO(eevee_display_probe_planar)
+GPU_SHADER_CREATE_INFO(eevee_display_lightprobe_planar)
     .push_constant(Type::IVEC4, "world_coord_packed")
     .additional_info("eevee_shared",
                      "draw_view",
                      "eevee_lightprobe_planar_data",
                      "eevee_lightprobe_sphere_data")
     .storage_buf(0, Qualifier::READ, "PlanarProbeDisplayData", "display_data_buf[]")
-    .vertex_source("eevee_display_probe_planar_vert.glsl")
-    .vertex_out(eevee_display_probe_planar_iface)
-    .fragment_source("eevee_display_probe_planar_frag.glsl")
+    .vertex_source("eevee_display_lightprobe_planar_vert.glsl")
+    .vertex_out(eevee_display_lightprobe_planar_iface)
+    .fragment_source("eevee_display_lightprobe_planar_frag.glsl")
     .fragment_out(0, Type::VEC4, "out_color")
     .do_static_compilation(true);
 

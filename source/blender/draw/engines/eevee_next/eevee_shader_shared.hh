@@ -2052,7 +2052,7 @@ BLI_STATIC_ASSERT_ALIGN(PlanarProbeDisplayData, 16)
 
 struct PipelineInfoData {
   float alpha_hash_scale;
-  bool32_t is_probe_reflection;
+  bool32_t is_sphere_probe;
   float _pad1;
   float _pad2;
 };

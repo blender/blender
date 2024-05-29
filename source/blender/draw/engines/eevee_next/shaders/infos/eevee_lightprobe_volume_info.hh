@@ -39,15 +39,15 @@ GPU_SHADER_CREATE_INFO(eevee_debug_irradiance_grid)
     .fragment_source("eevee_debug_irradiance_grid_frag.glsl")
     .do_static_compilation(true);
 
-GPU_SHADER_INTERFACE_INFO(eevee_display_probe_grid_iface, "")
+GPU_SHADER_INTERFACE_INFO(eevee_display_lightprobe_volume_iface, "")
     .smooth(Type::VEC2, "lP")
     .flat(Type::IVEC3, "cell");
 
-GPU_SHADER_CREATE_INFO(eevee_display_probe_grid)
+GPU_SHADER_CREATE_INFO(eevee_display_lightprobe_volume)
     .additional_info("eevee_shared", "draw_view")
-    .vertex_source("eevee_display_probe_grid_vert.glsl")
-    .vertex_out(eevee_display_probe_grid_iface)
-    .fragment_source("eevee_display_probe_grid_frag.glsl")
+    .vertex_source("eevee_display_lightprobe_volume_vert.glsl")
+    .vertex_out(eevee_display_lightprobe_volume_iface)
+    .fragment_source("eevee_display_lightprobe_volume_frag.glsl")
     .fragment_out(0, Type::VEC4, "out_color")
     .push_constant(Type::FLOAT, "sphere_radius")
     .push_constant(Type::IVEC3, "grid_resolution")

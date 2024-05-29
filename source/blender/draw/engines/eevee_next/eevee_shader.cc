@@ -139,12 +139,12 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_debug_irradiance_grid";
     case DEBUG_GBUFFER:
       return "eevee_debug_gbuffer";
-    case DISPLAY_PROBE_GRID:
-      return "eevee_display_probe_grid";
-    case DISPLAY_PROBE_REFLECTION:
-      return "eevee_display_probe_reflection";
+    case DISPLAY_PROBE_VOLUME:
+      return "eevee_display_lightprobe_volume";
+    case DISPLAY_PROBE_SPHERE:
+      return "eevee_display_lightprobe_sphere";
     case DISPLAY_PROBE_PLANAR:
-      return "eevee_display_probe_planar";
+      return "eevee_display_lightprobe_planar";
     case DOF_BOKEH_LUT:
       return "eevee_depth_of_field_bokeh_lut";
     case DOF_DOWNSAMPLE:

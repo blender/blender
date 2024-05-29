@@ -111,7 +111,7 @@ void init_globals()
 #elif defined(MAT_CAPTURE)
   g_data.ray_type = RAY_TYPE_DIFFUSE;
 #else
-  if (uniform_buf.pipeline.is_probe_reflection) {
+  if (uniform_buf.pipeline.is_sphere_probe) {
     g_data.ray_type = RAY_TYPE_GLOSSY;
   }
   else {

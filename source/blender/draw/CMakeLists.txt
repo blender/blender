@@ -488,12 +488,12 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_depth_of_field_stabilize_comp.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_tiles_dilate_comp.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_tiles_flatten_comp.glsl
-  engines/eevee_next/shaders/eevee_display_probe_grid_frag.glsl
-  engines/eevee_next/shaders/eevee_display_probe_grid_vert.glsl
-  engines/eevee_next/shaders/eevee_display_probe_planar_frag.glsl
-  engines/eevee_next/shaders/eevee_display_probe_planar_vert.glsl
-  engines/eevee_next/shaders/eevee_display_probe_reflection_frag.glsl
-  engines/eevee_next/shaders/eevee_display_probe_reflection_vert.glsl
+  engines/eevee_next/shaders/eevee_display_lightprobe_volume_frag.glsl
+  engines/eevee_next/shaders/eevee_display_lightprobe_volume_vert.glsl
+  engines/eevee_next/shaders/eevee_display_lightprobe_planar_frag.glsl
+  engines/eevee_next/shaders/eevee_display_lightprobe_planar_vert.glsl
+  engines/eevee_next/shaders/eevee_display_lightprobe_sphere_frag.glsl
+  engines/eevee_next/shaders/eevee_display_lightprobe_sphere_vert.glsl
   engines/eevee_next/shaders/eevee_film_comp.glsl
   engines/eevee_next/shaders/eevee_film_cryptomatte_post_comp.glsl
   engines/eevee_next/shaders/eevee_film_frag.glsl
