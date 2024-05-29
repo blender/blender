@@ -286,6 +286,47 @@ class display_errors:
             box_contents.label(text=err)
 
 
+class notify_info:
+    """
+    This singleton class holds notification status.
+    """
+    # None: not yet started.
+    # False: updates running.
+    # True: updates complete.
+    _update_state = None
+
+    @staticmethod
+    def update_ensure(context, repos):
+        """
+        Ensure updates are triggered if the preferences display extensions
+        and an online sync has not yet run.
+
+        Return true if updates are in progress.
+        """
+        in_progress = False
+        match notify_info._update_state:
+            case True:
+                pass
+            case None:
+                from .bl_extension_notify import update_non_blocking
+                prefs = context.preferences
+                update_non_blocking(
+                    repos=[prefs.extensions.repos[repo.name] for repo in repos if repo.remote_url],
+                    do_online_sync=True,
+                )
+                notify_info._update_state = False
+                # Starting.
+                in_progress = True
+            case False:
+                from .bl_extension_notify import update_in_progress
+                if update_in_progress():
+                    # Not yet finished.
+                    in_progress = True
+                else:
+                    notify_info._update_state = True
+        return in_progress
+
+
 def extensions_panel_draw_online_extensions_request_impl(
         self,
         context,
@@ -356,6 +397,15 @@ def extensions_panel_draw_impl(
     layout_topmost = layout.column()
 
     repos_all = extension_repos_read()
+
+    if bpy.app.online_access:
+        if notify_info.update_ensure(context, repos_all):
+            # TODO: should be part of the status bar.
+            from .bl_extension_notify import update_ui_text
+            text, icon = update_ui_text()
+            if text:
+                layout_topmost.box().label(text=text, icon=icon)
+            del text, icon
 
     # To access enabled add-ons.
     show_addons = filter_by_type in {"", "add-on"}

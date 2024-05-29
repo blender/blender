@@ -7,6 +7,10 @@ Startup notifications.
 """
 
 __all__ = (
+    "update_non_blocking",
+    "update_in_progress",
+    "update_ui_text",
+
     "register",
     "unregister",
 )
@@ -301,25 +305,61 @@ TIME_WAIT_STEP = 0.1
 class NotifyHandle:
     __slots__ = (
         "splash_region",
-        "state",
 
-        "sync_generator",
         "sync_info",
         "do_online_sync",
+
+        "_repos",
+        "is_complete",
+        "_sync_generator",
     )
 
     def __init__(self, repos_notify, do_online_sync):
         self.splash_region = None
-        self.state = 0
-        # We could start the generator separately, this seems OK here for now.
-        self.sync_generator = iter(sync_status_generator(repos_notify, do_online_sync))
+        self._repos = repos_notify
+        self._sync_generator = None
+        self.is_complete = False
         # status_data, update_count, extra_warnings.
         self.sync_info = None
         self.do_online_sync = do_online_sync
 
+    def run(self):
+        assert self._sync_generator is None
+        self._sync_generator = iter(sync_status_generator(self._repos, self.do_online_sync))
 
-# When non-null, the timer is running.
-_notify = None
+    def run_ensure(self):
+        if self.is_running():
+            return
+        self.run()
+
+    def run_step(self):
+        assert self._sync_generator is not None
+        sync_info = next(self._sync_generator, ...)
+        if sync_info is ...:
+            self.is_complete = True
+        if isinstance(sync_info, tuple):
+            self.sync_info = sync_info
+        return sync_info
+
+    def is_running(self):
+        return self._sync_generator is not None
+
+    def ui_text(self):
+        if self.sync_info is None:
+            return "Checking for Extension Updates", 'NONE', 0
+        status_data, update_count, extra_warnings = self.sync_info
+        do_online_sync = self.do_online_sync
+        text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(
+            status_data, update_count, do_online_sync,
+        )
+        # Not more than 1-2 of these (failed to lock, some repositories offline .. etc).
+        for warning in extra_warnings:
+            text = text + warning
+        return text, icon, update_count
+
+
+# A list of `NotifyHandle`, only the first item is allowed to be running.
+_notify_queue = []
 
 
 def _region_exists(region):
@@ -335,58 +375,74 @@ def _region_exists(region):
     return exists
 
 
+def _ui_refresh_apply(*, notify):
+    if notify.splash_region is not None:
+        # Check if the splash_region is valid.
+        if not _region_exists(notify.splash_region):
+            notify.splash_region = None
+            return None
+        notify.splash_region.tag_redraw()
+        notify.splash_region.tag_refresh_ui()
+
+    # Ensure the preferences are redrawn when the update is complete.
+    if bpy.context.preferences.active_section == 'EXTENSIONS':
+        for wm in bpy.data.window_managers:
+            for win in wm.windows:
+                for area in win.screen.areas:
+                    if area.type != 'PREFERENCES':
+                        continue
+                    for region in area.regions:
+                        if region.type != 'WINDOW':
+                            continue
+                        region.tag_redraw()
+
+
 def _ui_refresh_timer():
-    if _notify is None:
+    if not _notify_queue:
         return None
+
+    notify = _notify_queue[0]
+    notify.run_ensure()
 
     default_wait = TIME_WAIT_STEP
 
-    sync_info = next(_notify.sync_generator, ...)
-    # If the generator exited, early exit here.
+    if notify.is_complete:
+        sync_info = ...
+    else:
+        sync_info = notify.run_step()
+        if sync_info is None:
+            # Nothing changed, no action is needed (waiting for a response).
+            return default_wait
+
+    # If the generator exited, either step to the next action or early exit here.
     if sync_info is ...:
-        return None
-    if sync_info is None:
-        # Nothing changed, no action is needed (waiting for a response).
+        _ui_refresh_apply(notify=notify)
+        if len(_notify_queue) <= 1:
+            # Keep the item because the text should remain displayed for the splash.
+            return None
+        # Move onto the next item.
+        del _notify_queue[0]
         return default_wait
 
-    # Re-display.
-    assert isinstance(sync_info, tuple)
-    assert len(sync_info) == 3
-
-    _notify.sync_info = sync_info
-
-    # Check if the splash_region is valid.
-    if _notify.splash_region is not None:
-        if not _region_exists(_notify.splash_region):
-            _notify.splash_region = None
-            return None
-        _notify.splash_region.tag_redraw()
-        _notify.splash_region.tag_refresh_ui()
-
     # TODO: redraw the status bar.
+    _ui_refresh_apply(notify=notify)
 
     return default_wait
 
 
 def splash_draw_status_fn(self, context):
-    if _notify.splash_region is None:
-        _notify.splash_region = context.region_popup
+    assert bool(_notify_queue), "Never empty"
+    notify = _notify_queue[0]
+
+    if notify.splash_region is None:
+        notify.splash_region = context.region_popup
 
     if not bpy.app.online_access:
         if bpy.app.online_access_override:
             # Since there is nothing to do in this case, we show no operator.
             self.layout.label(text="Running in Offline Mode", icon='INTERNET')
-    elif _notify.sync_info is None:
-        self.layout.label(text="Checking for Extension Updates")
     else:
-        status_data, update_count, extra_warnings = _notify.sync_info
-        do_online_sync = _notify.do_online_sync
-        text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(
-            status_data, update_count, do_online_sync,
-        )
-        # Not more than 1-2 of these (failed to lock, some repositories offline .. etc).
-        for warning in extra_warnings:
-            text = text + warning
+        text, icon, update_count = notify.ui_text()
         row = self.layout.row(align=True)
         if update_count > 0:
             row.operator("bl_pkg.extensions_show_for_update", text=text, icon=icon)
@@ -401,18 +457,37 @@ def splash_draw_status_fn(self, context):
 # Public API
 
 
-def register(repos_notify, do_online_sync):
-    global _notify
-    _notify = NotifyHandle(repos_notify, do_online_sync)
+def update_non_blocking(*, repos, do_online_sync):
+    """
+    Perform a non-blocking update on ``repos``.
+    Updates are queued in case some are already running.
+    """
+    # TODO: it's possible this preferences requests updates just after check-for-updates on startup.
+    # The checks should be de-duplicated. For now just ensure the checks don't interfere with each other.
+    _notify_queue.append(NotifyHandle(repos, do_online_sync))
+    if not bpy.app.timers.is_registered(_ui_refresh_timer):
+        bpy.app.timers.register(_ui_refresh_timer, first_interval=TIME_WAIT_INIT)
+
+
+def update_in_progress():
+    if _notify_queue:
+        if not _notify_queue[0].is_complete:
+            return True
+    return None
+
+
+def update_ui_text():
+    if _notify_queue:
+        text, icon, _update_count = _notify_queue[0].ui_text()
+    else:
+        text = ""
+        icon = 'NONE'
+    return text, icon
+
+
+def register():
     bpy.types.WM_MT_splash.append(splash_draw_status_fn)
-    bpy.app.timers.register(_ui_refresh_timer, first_interval=TIME_WAIT_INIT)
 
 
 def unregister():
-    global _notify
-    assert _notify is not None
-    _notify = None
-
     bpy.types.WM_MT_splash.remove(splash_draw_status_fn)
-    # This timer is responsible for un-registering itself.
-    # `bpy.app.timers.unregister(_ui_refresh_timer)`

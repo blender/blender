@@ -524,7 +524,8 @@ def register():
     if repos_notify:
         use_repos_to_notify = True
         from . import bl_extension_notify
-        bl_extension_notify.register(repos_notify, do_online_sync)
+        bl_extension_notify.register()
+        bl_extension_notify.update_non_blocking(repos=repos_notify, do_online_sync=do_online_sync)
     del repos_notify
 
     monkeypatch_install()
