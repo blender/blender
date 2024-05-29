@@ -1677,7 +1677,7 @@ static bool arg_handle_extension_registration(const bool do_register, const bool
 {
   /* Logic runs in #main_args_handle_registration. */
   char *error_msg = nullptr;
-  bool result = WM_platform_assosiate_set(do_register, all_users, &error_msg);
+  bool result = WM_platform_associate_set(do_register, all_users, &error_msg);
   if (error_msg) {
     fprintf(stderr, "Error: %s\n", error_msg);
     MEM_freeN(error_msg);

@@ -920,9 +920,9 @@ static bool associate_blend_poll(bContext *C)
 }
 
 #if !defined(__APPLE__)
-static bool assosiate_blend(bool do_register, bool all_users, char **error_msg)
+static bool associate_blend(bool do_register, bool all_users, char **error_msg)
 {
-  const bool result = WM_platform_assosiate_set(do_register, all_users, error_msg);
+  const bool result = WM_platform_associate_set(do_register, all_users, error_msg);
 #  ifdef WIN32
   if ((result == false) &&
       /* For some reason the message box isn't shown in this case. */
@@ -957,7 +957,7 @@ static int associate_blend_exec(bContext * /*C*/, wmOperator *op)
   char *error_msg = nullptr;
 
   WM_cursor_wait(true);
-  const bool success = assosiate_blend(true, all_users, &error_msg);
+  const bool success = associate_blend(true, all_users, &error_msg);
   WM_cursor_wait(false);
 
   if (!success) {
@@ -1005,7 +1005,7 @@ static int unassociate_blend_exec(bContext * /*C*/, wmOperator *op)
   char *error_msg = nullptr;
 
   WM_cursor_wait(true);
-  bool success = assosiate_blend(false, all_users, &error_msg);
+  bool success = associate_blend(false, all_users, &error_msg);
   WM_cursor_wait(false);
 
   if (!success) {
