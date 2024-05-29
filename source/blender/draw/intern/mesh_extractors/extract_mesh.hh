@@ -383,6 +383,15 @@ void extract_edit_data_subdiv(const MeshRenderData &mr,
                               const DRWSubdivCache &subdiv_cache,
                               gpu::VertBuf &vbo);
 
+void extract_tangents(const MeshRenderData &mr,
+                      const MeshBatchCache &cache,
+                      const bool use_hq,
+                      gpu::VertBuf &vbo);
+void extract_tangents_subdiv(const MeshRenderData &mr,
+                             const DRWSubdivCache &subdiv_cache,
+                             const MeshBatchCache &cache,
+                             gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_fdots;
 extern const MeshExtract extract_lines_paint_mask;
 extern const MeshExtract extract_lines_adjacency;
@@ -391,8 +400,6 @@ extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
 extern const MeshExtract extract_edituv_fdots;
 extern const MeshExtract extract_uv;
-extern const MeshExtract extract_tan;
-extern const MeshExtract extract_tan_hq;
 extern const MeshExtract extract_sculpt_data;
 extern const MeshExtract extract_orco;
 extern const MeshExtract extract_edge_fac;

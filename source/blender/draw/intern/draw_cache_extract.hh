@@ -63,8 +63,6 @@ enum eMRDataType {
   MR_DATA_POLY_NOR = 1 << 1,
   MR_DATA_LOOP_NOR = 1 << 2,
   MR_DATA_LOOSE_GEOM = 1 << 4,
-  /** Force loop normals calculation. */
-  MR_DATA_TAN_LOOP_NOR = 1 << 5,
   MR_DATA_POLYS_SORTED = 1 << 6,
 };
 ENUM_OPERATORS(eMRDataType, MR_DATA_POLYS_SORTED)
