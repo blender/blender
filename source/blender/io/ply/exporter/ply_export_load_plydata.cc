@@ -432,6 +432,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       for (int vertex_index : ply_to_vertex) {
         float3 normal = vert_normals[vertex_index];
         mul_m3_v3(world_and_axes_normal_transform, normal);
+        normalize_v3(normal);
         plyData.vertex_normals.append(normal);
       }
     }
