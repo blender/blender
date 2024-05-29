@@ -693,6 +693,12 @@ def remote_url_params_strip(url: str) -> str:
     return new_url
 
 
+def remote_url_validate_or_error(url: str) -> Optional[str]:
+    if url_has_known_prefix(url):
+        return None
+    return "remote URL doesn't begin with a known prefix: {:s}".format(" ".join(URL_KNOWN_PREFIX))
+
+
 # -----------------------------------------------------------------------------
 # ZipFile Helpers
 
@@ -1656,6 +1662,12 @@ def repo_sync_from_remote(
     """
     Load package information into the local path.
     """
+
+    # Validate arguments.
+    if (error := remote_url_validate_or_error(remote_url)) is not None:
+        message_error(msg_fn, error)
+        return False
+
     request_exit = False
     request_exit |= message_status(msg_fn, "Checking repository \"{:s}\" for updates...".format(remote_name))
     if request_exit:
@@ -1795,16 +1807,6 @@ def arg_handle_str_as_package_names(value: str) -> Sequence[str]:
     return result
 
 
-def arg_handle_str_as_url(value: str) -> Sequence[str]:
-    # Handle so unexpected URL's don't cause difficult to understand errors in inner logic.
-    # The URL's themselves may be invalid still, this just fails early in the case of obvious oversights.
-    if not url_has_known_prefix(value):
-        raise argparse.ArgumentTypeError(
-            "Invalid URL \"{:s}\", expected a prefix in {!r}".format(value, URL_KNOWN_PREFIX)
-        )
-    return value
-
-
 # -----------------------------------------------------------------------------
 # Generate Repository
 
@@ -1859,7 +1861,7 @@ def generic_arg_remote_url(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--remote-url",
         dest="remote_url",
-        type=arg_handle_str_as_url,
+        type=str,
         help=(
             "The remote repository URL."
         ),
@@ -2139,6 +2141,12 @@ class subcmd_client:
             access_token: str,
             timeout_in_seconds: float,
     ) -> bool:
+
+        # Validate arguments.
+        if (error := remote_url_validate_or_error(remote_url)) is not None:
+            message_error(msg_fn, error)
+            return False
+
         remote_json_url = remote_url_get(remote_url)
 
         # TODO: validate JSON content.
@@ -2352,6 +2360,12 @@ class subcmd_client:
             access_token: str,
             timeout_in_seconds: float,
     ) -> bool:
+
+        # Validate arguments.
+        if (error := remote_url_validate_or_error(remote_url)) is not None:
+            message_error(msg_fn, error)
+            return False
+
         # Extract...
         pkg_repo_data = repo_pkginfo_from_local_with_idname_as_key(local_dir=local_dir)
         if pkg_repo_data is None:
