@@ -542,8 +542,11 @@ struct PaintOperationExecutor {
     /* If the next sample is far away, we subdivide the segment to add more points. */
     int new_points_num = 1;
     const float distance_px = math::distance(coords, prev_coords);
-    if (distance_px > float(settings_->input_samples)) {
-      const int subdivisions = int(math::floor(distance_px / float(settings_->input_samples))) - 1;
+    /* TODO: Do we need to calculate the screen space brush size here? */
+    const float max_spacing_px = (float(brush_->spacing) / 100.0f) *
+                                 BKE_brush_size_get(scene, brush_);
+    if (distance_px > max_spacing_px) {
+      const int subdivisions = int(math::floor(distance_px / max_spacing_px)) - 1;
       new_points_num += subdivisions;
     }
 
