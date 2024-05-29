@@ -279,6 +279,19 @@ def pkg_theme_file_list(directory: str, pkg_idname: str) -> Tuple[str, List[str]
     return theme_dir, theme_files
 
 
+def repo_index_outdated(directory: str) -> bool:
+    filepath_json = os.path.join(directory, REPO_LOCAL_JSON)
+    mtime = file_mtime_or_none(filepath_json)
+    if mtime is None:
+        return True
+
+    # Refresh once every 24 hours.
+    age_in_seconds = time.time() - mtime
+    max_age_in_seconds = 3600.0 * 24.0
+    # Use abs in case clock moved backwards.
+    return abs(age_in_seconds) > max_age_in_seconds
+
+
 def platform_from_this_system() -> str:
     import platform
     system_replace = {
@@ -356,12 +369,17 @@ def repo_sync(
         access_token: str,
         use_idle: bool,
         force_exit_ok: bool = False,
+        dry_run: bool = False,
         extension_override: str = "",
 ) -> Generator[InfoItemSeq, None, None]:
     """
     Implementation:
     ``bpy.ops.ext.repo_sync(directory)``.
     """
+    if dry_run:
+        yield [COMPLETE_ITEM]
+        return
+
     yield from command_output_from_json_0([
         "sync",
         "--local-dir", directory,
@@ -814,7 +832,11 @@ class CommandBatch:
         )
 
     @staticmethod
-    def calc_status_text_icon_from_data(status_data: CommandBatch_StatusFlag, update_count: int) -> Tuple[str, str]:
+    def calc_status_text_icon_from_data(
+            status_data: CommandBatch_StatusFlag,
+            update_count: int,
+            do_online_sync: bool,
+    ) -> Tuple[str, str]:
         # Generate a nice UI string for a status-bar & splash screen (must be short).
         #
         # NOTE: this is (arguably) UI logic, it's just nice to have it here
@@ -828,16 +850,19 @@ class CommandBatch:
         else:
             fail_text = ", some actions failed"
 
-        if status_data.flag == 1 << CommandBatchItem.STATUS_NOT_YET_STARTED:
-            return "Starting Extension Updates{:s}".format(fail_text), 'SORTTIME'
+        if status_data.flag == 1 << CommandBatchItem.STATUS_NOT_YET_STARTED or \
+           status_data.flag & 1 << CommandBatchItem.STATUS_RUNNING:
+            if do_online_sync:
+                return "Checking for Extension Updates Online{:s}".format(fail_text), 'SORTTIME'
+            else:
+                return "Checking for Extension Updates{:s}".format(fail_text), 'SORTTIME'
+
         if status_data.flag == 1 << CommandBatchItem.STATUS_COMPLETE:
             if update_count > 0:
                 # NOTE: the UI design in #120612 has the number of extensions available in icon.
                 # Include in the text as this is not yet supported.
                 return "Extensions Updates Available ({:d}){:s}".format(update_count, fail_text), 'INTERNET'
             return "All Extensions Up-to-date{:s}".format(fail_text), 'CHECKMARK'
-        if status_data.flag & 1 << CommandBatchItem.STATUS_RUNNING:
-            return "Checking for Extension Updates{:s}".format(fail_text), 'SORTTIME'
 
         # Should never reach this line!
         return "Internal error, unknown state!{:s}".format(fail_text), 'ERROR'
