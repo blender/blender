@@ -3336,7 +3336,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       scene->eevee.clamp_surface_indirect = 10.0f;
       /* Make contribution of indirect lighting very small (but non-null) to avoid world lighting
        * and volume lightprobe changing the appearance of volume objects. */
-      scene->eevee.clamp_surface_indirect = 1e-8f;
+      scene->eevee.clamp_volume_indirect = 1e-8f;
     }
   }
 
