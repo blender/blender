@@ -353,6 +353,7 @@ void extract_normals(const MeshRenderData &mr, bool use_hq, gpu::VertBuf &vbo);
 void extract_normals_subdiv(const DRWSubdivCache &subdiv_cache,
                             gpu::VertBuf &pos_nor,
                             gpu::VertBuf &lnor);
+void extract_vert_normals(const MeshRenderData &mr, gpu::VertBuf &vbo);
 
 void extract_tris(const MeshRenderData &mr,
                   const SortedFaceData &face_sorted,
@@ -412,6 +413,5 @@ extern const MeshExtract extract_vert_idx;
 extern const MeshExtract extract_fdot_idx;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
 extern const MeshExtract extract_attr_viewer;
-extern const MeshExtract extract_vnor;
 
 }  // namespace blender::draw

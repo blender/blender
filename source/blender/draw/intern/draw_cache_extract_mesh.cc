@@ -548,6 +548,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
                                DRW_ibo_requested(buffers.ibo.lines_loose) ||
                                DRW_ibo_requested(buffers.ibo.points) ||
                                DRW_vbo_requested(buffers.vbo.edit_data) ||
+                               DRW_vbo_requested(buffers.vbo.vnor) ||
                                (iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) ||
                                (data_flag & MR_DATA_LOOSE_GEOM);
 
@@ -663,7 +664,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
     EXTRACT_ADD_REQUESTED(vbo, attr[i]);
   }
   EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
-  EXTRACT_ADD_REQUESTED(vbo, vnor);
 
   EXTRACT_ADD_REQUESTED(ibo, fdots);
   EXTRACT_ADD_REQUESTED(ibo, lines_paint_mask);
@@ -678,7 +678,8 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
       !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
       !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
-      !DRW_vbo_requested(buffers.vbo.nor) && !DRW_vbo_requested(buffers.vbo.edit_data))
+      !DRW_vbo_requested(buffers.vbo.nor) && !DRW_vbo_requested(buffers.vbo.vnor) &&
+      !DRW_vbo_requested(buffers.vbo.edit_data))
   {
     return;
   }
@@ -742,6 +743,21 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
           extract_normals(data.mr, data.do_hq_normals, *data.mbc.buff.vbo.nor);
         },
         new TaskData{*mr, mbc, do_hq_normals},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_vbo_requested(buffers.vbo.vnor)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_vert_normals(data.mr, *data.buffers.vbo.vnor);
+        },
+        new TaskData{*mr, buffers},
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
