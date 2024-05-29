@@ -117,9 +117,10 @@ def blender_test_run(temp_dir_local: str) -> None:
 
     ensure_script_directory(addon_dir)
 
-    addon_utils.enable("bl_pkg")
+    if VERBOSE:
+        print("--- Begin ---")
 
-    print("BEG*********************", dir(bpy.ops.bl_pkg))
+    addon_utils.enable("bl_pkg")
 
     # NOTE: it's assumed the URL will expand to JSON, example:
     # http://extensions.local:8111/add-ons/?format=json
@@ -151,7 +152,8 @@ def blender_test_run(temp_dir_local: str) -> None:
 
     preferences.extensions.repos.remove(repo)
 
-    print("END*********************")
+    if VERBOSE:
+        print("--- End ---")
 
 
 def main() -> None:
@@ -183,8 +185,9 @@ def main() -> None:
             with tempfile.TemporaryDirectory() as temp_dir_local:
                 blender_test_run(temp_dir_local)
 
-        with open(os.path.join(temp_dir_remote, PKG_REPO_LIST_FILENAME), 'r', encoding="utf-8") as fh:
-            print(fh.read())
+        if VERBOSE:
+            with open(os.path.join(temp_dir_remote, PKG_REPO_LIST_FILENAME), 'r', encoding="utf-8") as fh:
+                print(fh.read())
 
         # If we want to copy out these.
         # print(temp_dir_remote)
