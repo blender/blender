@@ -1516,7 +1516,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
       case bke::GeometryComponent::Type::Curve: {
         const geo_log::GeometryInfoLog::CurveInfo &curve_info = *value_log.curve_info;
         fmt::format_to(fmt::appender(buf),
-                       TIP_("\u2022 Curve:{} points,{} splines"),
+                       TIP_("\u2022 Curve: {} points,{} splines"),
                        to_string(curve_info.points_num),
                        to_string(curve_info.splines_num));
         break;
