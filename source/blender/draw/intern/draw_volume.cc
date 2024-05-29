@@ -296,29 +296,21 @@ PassType *volume_object_grids_init(PassType &ps,
                                    Object *ob,
                                    ListBaseWrapper<GPUMaterialAttribute> &attrs)
 {
-  VolumeUniformBufPool *pool = (VolumeUniformBufPool *)DST.vmempool->volume_grids_ubos;
-  VolumeInfosBuf &volume_infos = *pool->alloc();
-
   Volume *volume = (Volume *)ob->data;
   BKE_volume_load(volume, G.main);
+
+  /* Render nothing if there is no attribute. */
+  if (BKE_volume_num_grids(volume) == 0) {
+    return nullptr;
+  }
+
+  VolumeUniformBufPool *pool = (VolumeUniformBufPool *)DST.vmempool->volume_grids_ubos;
+  VolumeInfosBuf &volume_infos = *pool->alloc();
 
   volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world().ptr());
   volume_infos.color_mul = float4(1.0f);
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;
-
-  bool has_grids = false;
-  for (const GPUMaterialAttribute *attr : attrs) {
-    if (BKE_volume_grid_find(volume, attr->name) != nullptr) {
-      has_grids = true;
-      break;
-    }
-  }
-  /* Render nothing if there is no attribute for the shader to render.
-   * This also avoids an assert caused by the bounding box being zero in size. */
-  if (!has_grids) {
-    return nullptr;
-  }
 
   PassType *sub = &ps.sub("Volume Object SubPass");
 
