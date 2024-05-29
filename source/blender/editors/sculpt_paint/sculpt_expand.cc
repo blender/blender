@@ -640,16 +640,16 @@ static Array<float> sculpt_expand_boundary_topology_falloff_create(Object &ob, c
     const PBVHVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
         ob, symm_it, v);
 
-    SculptBoundary *boundary = boundary::data_init(ob, nullptr, symm_vertex, FLT_MAX);
+    std::unique_ptr<SculptBoundary> boundary = boundary::data_init(
+        ob, nullptr, symm_vertex, FLT_MAX);
     if (!boundary) {
       continue;
     }
 
-    for (int i = 0; i < boundary->verts_num; i++) {
+    for (int i = 0; i < boundary->verts.size(); i++) {
       queue.push(boundary->verts[i]);
       visited_verts[BKE_pbvh_vertex_to_index(*ss.pbvh, boundary->verts[i])].set();
     }
-    boundary::data_free(boundary);
   }
 
   /* If there are no boundaries, return a falloff with all values set to 0. */

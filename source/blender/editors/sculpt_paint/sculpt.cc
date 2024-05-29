@@ -4154,12 +4154,6 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache)
   MEM_SAFE_FREE(cache->layer_displacement_factor);
   MEM_SAFE_FREE(cache->detail_directions);
 
-  for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
-    if (cache->boundaries[i]) {
-      boundary::data_free(cache->boundaries[i]);
-    }
-  }
-
   if (cache->cloth_sim) {
     cloth::simulation_free(cache->cloth_sim);
   }

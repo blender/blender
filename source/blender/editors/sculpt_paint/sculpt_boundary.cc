@@ -117,38 +117,13 @@ static void sculpt_boundary_index_add(SculptBoundary &boundary,
                                       const float distance,
                                       GSet *included_verts)
 {
+  boundary.verts.append(new_vertex);
 
-  boundary.verts[boundary.verts_num] = new_vertex;
-
-  if (boundary.distance) {
+  if (!boundary.distance.is_empty()) {
     boundary.distance[new_index] = distance;
   }
   if (included_verts) {
     BLI_gset_add(included_verts, POINTER_FROM_INT(new_index));
-  }
-  boundary.verts_num++;
-  if (boundary.verts_num >= boundary.verts_capacity) {
-    boundary.verts_capacity += BOUNDARY_INDICES_BLOCK_SIZE;
-    boundary.verts = static_cast<PBVHVertRef *>(MEM_reallocN_id(
-        boundary.verts, boundary.verts_capacity * sizeof(PBVHVertRef), "boundary indices"));
-  }
-};
-
-static void sculpt_boundary_preview_edge_add(SculptBoundary &boundary,
-                                             const PBVHVertRef v1,
-                                             const PBVHVertRef v2)
-{
-
-  boundary.edges[boundary.edges_num].v1 = v1;
-  boundary.edges[boundary.edges_num].v2 = v2;
-  boundary.edges_num++;
-
-  if (boundary.edges_num >= boundary.edges_capacity) {
-    boundary.edges_capacity += BOUNDARY_INDICES_BLOCK_SIZE;
-    boundary.edges = static_cast<SculptBoundaryPreviewEdge *>(
-        MEM_reallocN_id(boundary.edges,
-                        boundary.edges_capacity * sizeof(SculptBoundaryPreviewEdge),
-                        "boundary edges"));
   }
 };
 
@@ -217,13 +192,13 @@ static bool boundary_floodfill_cb(SculptSession &ss,
   }
   const float edge_len = len_v3v3(SCULPT_vertex_co_get(ss, from_v),
                                   SCULPT_vertex_co_get(ss, to_v));
-  const float distance_boundary_to_dst = boundary.distance ?
+  const float distance_boundary_to_dst = !boundary.distance.is_empty() ?
                                              boundary.distance[from_v_i] + edge_len :
                                              0.0f;
   sculpt_boundary_index_add(
       boundary, to_v, to_v_i, distance_boundary_to_dst, data->included_verts);
   if (!is_duplicate) {
-    sculpt_boundary_preview_edge_add(boundary, from_v, to_v);
+    boundary.edges.append({from_v, to_v});
   }
   return sculpt_boundary_is_vertex_in_editable_boundary(ss, to_v);
 }
@@ -235,14 +210,10 @@ static void sculpt_boundary_indices_init(SculptSession &ss,
 {
 
   const int totvert = SCULPT_vertex_count_get(ss);
-  boundary.verts = static_cast<PBVHVertRef *>(
-      MEM_malloc_arrayN(BOUNDARY_INDICES_BLOCK_SIZE, sizeof(PBVHVertRef), __func__));
 
   if (init_boundary_distances) {
-    boundary.distance = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
+    boundary.distance = Array<float>(totvert, 0.0f);
   }
-  boundary.edges = static_cast<SculptBoundaryPreviewEdge *>(
-      MEM_malloc_arrayN(BOUNDARY_INDICES_BLOCK_SIZE, sizeof(SculptBoundaryPreviewEdge), __func__));
 
   GSet *included_verts = BLI_gset_int_new_ex("included verts", BOUNDARY_INDICES_BLOCK_SIZE);
   flood_fill::FillData flood = flood_fill::init_fill(ss);
@@ -275,7 +246,7 @@ static void sculpt_boundary_indices_init(SculptSession &ss,
       if (BLI_gset_haskey(included_verts, POINTER_FROM_INT(ni.index)) &&
           sculpt_boundary_is_vertex_in_editable_boundary(ss, ni.vertex))
       {
-        sculpt_boundary_preview_edge_add(boundary, fdata.last_visited_vertex, ni.vertex);
+        boundary.edges.append({fdata.last_visited_vertex, ni.vertex});
         boundary.forms_loop = true;
       }
     }
@@ -300,8 +271,7 @@ static void sculpt_boundary_edit_data_init(SculptSession &ss,
 
   const bool has_duplicates = BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS;
 
-  boundary.edit_info = static_cast<SculptBoundaryEditInfo *>(
-      MEM_malloc_arrayN(totvert, sizeof(SculptBoundaryEditInfo), __func__));
+  boundary.edit_info = Array<SculptBoundaryEditInfo>(totvert);
 
   for (int i = 0; i < totvert; i++) {
     boundary.edit_info[i].original_vertex_i = BOUNDARY_VERTEX_NONE;
@@ -311,7 +281,7 @@ static void sculpt_boundary_edit_data_init(SculptSession &ss,
   std::queue<PBVHVertRef> current_iteration;
   std::queue<PBVHVertRef> next_iteration;
 
-  for (int i = 0; i < boundary.verts_num; i++) {
+  for (int i = 0; i < boundary.verts.size(); i++) {
     int index = BKE_pbvh_vertex_to_index(*ss.pbvh, boundary.verts[i]);
 
     boundary.edit_info[index].original_vertex_i = BKE_pbvh_vertex_to_index(*ss.pbvh,
@@ -441,7 +411,7 @@ static void sculpt_boundary_falloff_factor_init(SculptSession &ss,
       continue;
     }
 
-    if (!boundary.distance) {
+    if (boundary.distance.is_empty()) {
       /* There are falloff modes that do not require to modify the previously calculated falloff
        * based on boundary distances. */
       continue;
@@ -481,10 +451,10 @@ static void sculpt_boundary_falloff_factor_init(SculptSession &ss,
   }
 }
 
-SculptBoundary *data_init(Object &object,
-                          const Brush *brush,
-                          const PBVHVertRef initial_vertex,
-                          const float radius)
+std::unique_ptr<SculptBoundary> data_init(Object &object,
+                                          const Brush *brush,
+                                          const PBVHVertRef initial_vertex,
+                                          const float radius)
 {
   SculptSession &ss = *object.sculpt;
 
@@ -508,7 +478,8 @@ SculptBoundary *data_init(Object &object,
     return nullptr;
   }
 
-  SculptBoundary *boundary = MEM_cnew<SculptBoundary>(__func__);
+  std::unique_ptr<SculptBoundary> boundary = std::make_unique<SculptBoundary>();
+  *boundary = {};
 
   const bool init_boundary_distances = brush ? brush->boundary_falloff_type !=
                                                    BRUSH_BOUNDARY_FALLOFF_CONSTANT :
@@ -522,18 +493,6 @@ SculptBoundary *data_init(Object &object,
   return boundary;
 }
 
-void data_free(SculptBoundary *boundary)
-{
-  MEM_SAFE_FREE(boundary->verts);
-  MEM_SAFE_FREE(boundary->edges);
-  MEM_SAFE_FREE(boundary->distance);
-  MEM_SAFE_FREE(boundary->edit_info);
-  MEM_SAFE_FREE(boundary->bend.pivot_positions);
-  MEM_SAFE_FREE(boundary->bend.pivot_rotation_axis);
-  MEM_SAFE_FREE(boundary->slide.directions);
-  MEM_SAFE_FREE(boundary);
-}
-
 /* These functions initialize the required vectors for the desired deformation using the
  * SculptBoundaryEditInfo. They calculate the data using the vertices that have the
  * max_propagation_steps value and them this data is copied to the rest of the vertices using the
@@ -541,10 +500,8 @@ void data_free(SculptBoundary *boundary)
 static void sculpt_boundary_bend_data_init(SculptSession &ss, SculptBoundary &boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
-  boundary.bend.pivot_rotation_axis = static_cast<float(*)[3]>(
-      MEM_calloc_arrayN(totvert, sizeof(float[3]), __func__));
-  boundary.bend.pivot_positions = static_cast<float(*)[3]>(
-      MEM_calloc_arrayN(totvert, sizeof(float[3]), __func__));
+  boundary.bend.pivot_rotation_axis = Array<float3>(totvert, float3(0));
+  boundary.bend.pivot_positions = Array<float3>(totvert, float3(0));
 
   for (int i = 0; i < totvert; i++) {
     if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
@@ -581,8 +538,7 @@ static void sculpt_boundary_bend_data_init(SculptSession &ss, SculptBoundary &bo
 static void sculpt_boundary_slide_data_init(SculptSession &ss, SculptBoundary &boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
-  boundary.slide.directions = static_cast<float(*)[3]>(
-      MEM_calloc_arrayN(totvert, sizeof(float[3]), "slide directions"));
+  boundary.slide.directions = Array<float3>(totvert, float3(0));
 
   for (int i = 0; i < totvert; i++) {
     if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
@@ -608,15 +564,16 @@ static void sculpt_boundary_slide_data_init(SculptSession &ss, SculptBoundary &b
 static void sculpt_boundary_twist_data_init(SculptSession &ss, SculptBoundary &boundary)
 {
   zero_v3(boundary.twist.pivot_position);
-  float(*face_verts)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(boundary.verts_num, sizeof(float[3]), "face verts"));
-  for (int i = 0; i < boundary.verts_num; i++) {
+  Array<float3> face_verts(boundary.verts.size());
+  for (int i = 0; i < boundary.verts.size(); i++) {
     add_v3_v3(boundary.twist.pivot_position, SCULPT_vertex_co_get(ss, boundary.verts[i]));
     copy_v3_v3(face_verts[i], SCULPT_vertex_co_get(ss, boundary.verts[i]));
   }
-  mul_v3_fl(boundary.twist.pivot_position, 1.0f / boundary.verts_num);
+  mul_v3_fl(boundary.twist.pivot_position, 1.0f / boundary.verts.size());
   if (boundary.forms_loop) {
-    normal_poly_v3(boundary.twist.rotation_axis, face_verts, boundary.verts_num);
+    normal_poly_v3(boundary.twist.rotation_axis,
+                   reinterpret_cast<const float(*)[3]>(face_verts.data()),
+                   boundary.verts.size());
   }
   else {
     sub_v3_v3v3(boundary.twist.rotation_axis,
@@ -624,7 +581,6 @@ static void sculpt_boundary_twist_data_init(SculptSession &ss, SculptBoundary &b
                 SCULPT_vertex_co_get(ss, boundary.initial_vertex));
     normalize_v3(boundary.twist.rotation_axis);
   }
-  MEM_freeN(face_verts);
 }
 
 static float sculpt_boundary_displacement_from_grab_delta_get(SculptSession &ss,
@@ -1019,8 +975,8 @@ void edges_preview_draw(const uint gpuattr,
   }
   immUniformColor3fvAlpha(outline_col, outline_alpha);
   GPU_line_width(2.0f);
-  immBegin(GPU_PRIM_LINES, ss.boundary_preview->edges_num * 2);
-  for (int i = 0; i < ss.boundary_preview->edges_num; i++) {
+  immBegin(GPU_PRIM_LINES, ss.boundary_preview->edges.size() * 2);
+  for (int i = 0; i < ss.boundary_preview->edges.size(); i++) {
     immVertex3fv(gpuattr, SCULPT_vertex_co_get(ss, ss.boundary_preview->edges[i].v1));
     immVertex3fv(gpuattr, SCULPT_vertex_co_get(ss, ss.boundary_preview->edges[i].v2));
   }

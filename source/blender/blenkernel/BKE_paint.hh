@@ -323,19 +323,15 @@ struct SculptBoundaryPreviewEdge {
 
 struct SculptBoundary {
   /* Vertex indices of the active boundary. */
-  PBVHVertRef *verts;
-  int verts_capacity;
-  int verts_num;
+  blender::Vector<PBVHVertRef> verts;
 
   /* Distance from a vertex in the boundary to initial vertex indexed by vertex index, taking into
    * account the length of all edges between them. Any vertex that is not in the boundary will have
    * a distance of 0. */
-  float *distance;
+  blender::Array<float> distance;
 
   /* Data for drawing the preview. */
-  SculptBoundaryPreviewEdge *edges;
-  int edges_capacity;
-  int edges_num;
+  blender::Vector<SculptBoundaryPreviewEdge> edges;
 
   /* True if the boundary loops into itself. */
   bool forms_loop;
@@ -360,17 +356,17 @@ struct SculptBoundary {
 
   /* Indexed by vertex index, contains the topology information needed for boundary deformations.
    */
-  SculptBoundaryEditInfo *edit_info;
+  blender::Array<SculptBoundaryEditInfo> edit_info;
 
   /* Bend Deform type. */
   struct {
-    float (*pivot_rotation_axis)[3];
-    float (*pivot_positions)[3];
+    blender::Array<blender::float3> pivot_rotation_axis;
+    blender::Array<blender::float3> pivot_positions;
   } bend;
 
   /* Slide Deform type. */
   struct {
-    float (*directions)[3];
+    blender::Array<blender::float3> directions;
   } slide;
 
   /* Twist Deform type. */
@@ -585,7 +581,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   std::unique_ptr<SculptPoseIKChain> pose_ik_chain_preview;
 
   /* Boundary Brush Preview */
-  SculptBoundary *boundary_preview = nullptr;
+  std::unique_ptr<SculptBoundary> boundary_preview;
 
   SculptVertexInfo vertex_info = {};
   SculptFakeNeighbors fake_neighbors = {};

@@ -1510,14 +1510,6 @@ SculptSession::~SculptSession()
     BKE_image_pool_free(this->tex_pool);
   }
 
-  if (this->boundary_preview) {
-    MEM_SAFE_FREE(this->boundary_preview->verts);
-    MEM_SAFE_FREE(this->boundary_preview->edges);
-    MEM_SAFE_FREE(this->boundary_preview->distance);
-    MEM_SAFE_FREE(this->boundary_preview->edit_info);
-    MEM_SAFE_FREE(this->boundary_preview);
-  }
-
   BKE_sculptsession_free_vwpaint_data(this);
 
   MEM_SAFE_FREE(this->last_paint_canvas_key);
