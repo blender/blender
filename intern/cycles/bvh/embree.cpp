@@ -202,7 +202,7 @@ string BVHEmbree::get_last_error_message()
   }
 }
 
-#  if WITH_EMBREE_GPU && RTC_VERSION >= 40302
+#  if defined(WITH_EMBREE_GPU) && RTC_VERSION >= 40302
 bool BVHEmbree::offload_scenes_to_gpu(const vector<RTCScene> &scenes)
 {
   /* Having BVH on GPU is more performance-critical than texture data.
