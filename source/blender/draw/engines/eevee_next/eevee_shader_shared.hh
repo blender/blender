@@ -250,20 +250,21 @@ enum eSamplingDimension : uint32_t {
   SAMPLING_RAYTRACE_X = 18u,
   SAMPLING_AO_U = 19u,
   SAMPLING_AO_V = 20u,
-  SAMPLING_CURVES_U = 21u,
-  SAMPLING_VOLUME_U = 22u,
-  SAMPLING_VOLUME_V = 23u,
-  SAMPLING_VOLUME_W = 24u,
-  SAMPLING_SHADOW_I = 25u,
-  SAMPLING_SHADOW_J = 26u,
-  SAMPLING_SHADOW_K = 27u,
+  SAMPLING_AO_W = 21u,
+  SAMPLING_CURVES_U = 22u,
+  SAMPLING_VOLUME_U = 23u,
+  SAMPLING_VOLUME_V = 24u,
+  SAMPLING_VOLUME_W = 25u,
+  SAMPLING_SHADOW_I = 26u,
+  SAMPLING_SHADOW_J = 27u,
+  SAMPLING_SHADOW_K = 28u,
 };
 
 /**
  * IMPORTANT: Make sure the array can contain all sampling dimensions.
  * Also note that it needs to be multiple of 4.
  */
-#define SAMPLING_DIMENSION_COUNT 28
+#define SAMPLING_DIMENSION_COUNT 32
 
 /* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct SamplingData {

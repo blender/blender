@@ -65,7 +65,7 @@ struct HorizonScanResult {
  */
 HorizonScanResult horizon_scan_eval(vec3 vP,
                                     vec3 vN,
-                                    vec2 noise,
+                                    vec3 noise,
                                     vec2 pixel_size,
                                     float search_distance,
                                     float thickness_near,
@@ -111,6 +111,8 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
     float vN_length;
 
     horizon_scan_projected_normal_to_plane_angle_and_length(vN, vV, vT, vB, vN_length, vN_angle);
+
+    vN_angle += (noise.z - 0.5) * (M_PI / 32.0) * angle_bias;
 
     SphericalHarmonicL1 sh_slice = spherical_harmonics_L1_new();
     float weight_slice;

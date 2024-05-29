@@ -134,9 +134,9 @@ void Sampling::step()
     data_.dimensions[SAMPLING_RAYTRACE_X] = r[0];
   }
   {
-    double2 r, offset = {0, 0};
-    uint2 primes = {5, 7};
-    BLI_halton_2d(primes, offset, sample_ + 1, r);
+    double3 r, offset = {0, 0, 0};
+    uint3 primes = {5, 7, 3};
+    BLI_halton_3d(primes, offset, sample_ + 1, r);
     data_.dimensions[SAMPLING_LENS_U] = r[0];
     data_.dimensions[SAMPLING_LENS_V] = r[1];
     /* TODO de-correlate. */
@@ -145,6 +145,7 @@ void Sampling::step()
     /* TODO de-correlate. */
     data_.dimensions[SAMPLING_AO_U] = r[0];
     data_.dimensions[SAMPLING_AO_V] = r[1];
+    data_.dimensions[SAMPLING_AO_W] = r[2];
     /* TODO de-correlate. */
     data_.dimensions[SAMPLING_CURVES_U] = r[0];
   }
