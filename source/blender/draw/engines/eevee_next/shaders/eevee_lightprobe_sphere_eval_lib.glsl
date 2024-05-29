@@ -6,13 +6,13 @@
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
 
 #ifdef SPHERE_PROBE
-int reflection_probes_select(vec3 P, float random_probe)
+int lightprobe_spheres_select(vec3 P, float random_probe)
 {
   for (int index = 0; index < SPHERE_PROBE_MAX; index++) {
-    SphereProbeData probe_data = reflection_probe_buf[index];
+    SphereProbeData probe_data = lightprobe_sphere_buf[index];
     /* SphereProbeData doesn't contain any gap, exit at first item that is invalid. */
     if (probe_data.atlas_coord.layer == -1) {
       /* We hit the end of the array. Return last valid index. */

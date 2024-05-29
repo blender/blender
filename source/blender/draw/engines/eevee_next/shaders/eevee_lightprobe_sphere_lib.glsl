@@ -5,10 +5,10 @@
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_octahedron_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_mapping_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_mapping_lib.glsl)
 
 #ifdef SPHERE_PROBE
-vec4 reflection_probes_sample(vec3 L, float lod, SphereProbeUvArea uv_area)
+vec4 lightprobe_spheres_sample(vec3 L, float lod, SphereProbeUvArea uv_area)
 {
   float lod_min = floor(lod);
   float lod_max = ceil(lod);
@@ -17,13 +17,13 @@ vec4 reflection_probes_sample(vec3 L, float lod, SphereProbeUvArea uv_area)
   vec2 altas_uv_min, altas_uv_max;
   sphere_probe_direction_to_uv(L, lod_min, lod_max, uv_area, altas_uv_min, altas_uv_max);
 
-  vec4 color_min = textureLod(reflection_probes_tx, vec3(altas_uv_min, uv_area.layer), lod_min);
-  vec4 color_max = textureLod(reflection_probes_tx, vec3(altas_uv_max, uv_area.layer), lod_max);
+  vec4 color_min = textureLod(lightprobe_spheres_tx, vec3(altas_uv_min, uv_area.layer), lod_min);
+  vec4 color_max = textureLod(lightprobe_spheres_tx, vec3(altas_uv_max, uv_area.layer), lod_max);
   return mix(color_min, color_max, mix_fac);
 }
 #endif
 
-ReflectionProbeLowFreqLight reflection_probes_extract_low_freq(SphericalHarmonicL1 sh)
+ReflectionProbeLowFreqLight lightprobe_spheres_extract_low_freq(SphericalHarmonicL1 sh)
 {
   /* To avoid color shift and negative values, we reduce saturation and directionality. */
   ReflectionProbeLowFreqLight result;
@@ -42,9 +42,9 @@ ReflectionProbeLowFreqLight reflection_probes_extract_low_freq(SphericalHarmonic
   return result;
 }
 
-float reflection_probes_normalization_eval(vec3 L,
-                                           ReflectionProbeLowFreqLight numerator,
-                                           ReflectionProbeLowFreqLight denominator)
+float lightprobe_spheres_normalization_eval(vec3 L,
+                                            ReflectionProbeLowFreqLight numerator,
+                                            ReflectionProbeLowFreqLight denominator)
 {
   /* TODO(fclem): Adjusting directionality is tricky.
    * Needs to be revisited later on. For now only use the ambient term. */

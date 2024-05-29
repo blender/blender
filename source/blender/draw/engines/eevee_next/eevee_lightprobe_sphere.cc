@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "eevee_reflection_probes.hh"
+#include "eevee_lightprobe_sphere.hh"
 #include "eevee_instance.hh"
 
 namespace blender::eevee {
@@ -91,8 +91,8 @@ void SphereProbeModule::begin_sync()
     PassSimple &pass = select_ps_;
     pass.init();
     pass.shader_set(instance_.shaders.static_shader_get(SPHERE_PROBE_SELECT));
-    pass.push_constant("reflection_probe_count", &reflection_probe_count_);
-    pass.bind_ssbo("reflection_probe_buf", &data_buf_);
+    pass.push_constant("lightprobe_sphere_count", &lightprobe_sphere_count_);
+    pass.bind_ssbo("lightprobe_sphere_buf", &data_buf_);
     instance_.volume_probes.bind_resources(pass);
     instance_.sampling.bind_resources(pass);
     pass.bind_resources(instance_.uniform_data);
@@ -155,11 +155,11 @@ void SphereProbeModule::end_sync()
    * This fixes issues when using a single non-projected sample. Without resetting the
    * previous rendered viewport will be drawn and reflection probes will not be updated.
    * #Instance::render_sample */
-  if (instance_.do_reflection_probe_sync()) {
+  if (instance_.do_lightprobe_sphere_sync()) {
     instance_.sampling.reset();
   }
   /* If we cannot render probes this redraw make sure we request another redraw. */
-  if (update_probes_next_sample_ && (instance_.do_reflection_probe_sync() == false)) {
+  if (update_probes_next_sample_ && (instance_.do_lightprobe_sphere_sync() == false)) {
     DRW_viewport_request_redraw();
   }
 }
@@ -198,7 +198,7 @@ std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::world_update_inf
 
 std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::probe_update_info_pop()
 {
-  if (!instance_.do_reflection_probe_sync()) {
+  if (!instance_.do_lightprobe_sphere_sync()) {
     /* Do not update probes during this sample as we did not sync the draw::Passes. */
     return std::nullopt;
   }
@@ -254,7 +254,7 @@ void SphereProbeModule::set_view(View & /*view*/)
   Vector<SphereProbe *> probe_active;
   for (auto &probe : instance_.light_probes.sphere_map_.values()) {
     /* Last slot is reserved for the world probe. */
-    if (reflection_probe_count_ >= SPHERE_PROBE_MAX - 1) {
+    if (lightprobe_sphere_count_ >= SPHERE_PROBE_MAX - 1) {
       break;
     }
     if (!probe.use_for_render) {
@@ -302,8 +302,8 @@ void SphereProbeModule::set_view(View & /*view*/)
   }
   data_buf_.push_update();
 
-  reflection_probe_count_ = probe_id;
-  dispatch_probe_select_.x = divide_ceil_u(reflection_probe_count_,
+  lightprobe_sphere_count_ = probe_id;
+  dispatch_probe_select_.x = divide_ceil_u(lightprobe_sphere_count_,
                                            SPHERE_PROBE_SELECT_GROUP_SIZE);
   instance_.manager->submit(select_ps_);
 

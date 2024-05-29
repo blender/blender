@@ -329,8 +329,8 @@ struct Material {
   MaterialPass prepass;
   MaterialPass overlap_masking;
   MaterialPass capture;
-  MaterialPass reflection_probe_prepass;
-  MaterialPass reflection_probe_shading;
+  MaterialPass lightprobe_sphere_prepass;
+  MaterialPass lightprobe_sphere_shading;
   MaterialPass planar_probe_prepass;
   MaterialPass planar_probe_shading;
   MaterialPass volume_occupancy;

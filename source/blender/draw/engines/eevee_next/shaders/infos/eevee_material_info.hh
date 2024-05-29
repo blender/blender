@@ -220,7 +220,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_world)
     .fragment_out(0, Type::VEC4, "out_background")
     .fragment_source("eevee_surf_world_frag.glsl")
     .additional_info("eevee_global_ubo",
-                     "eevee_reflection_probe_data",
+                     "eevee_lightprobe_sphere_data",
                      "eevee_volume_probe_data",
                      "eevee_sampling_data",
                      /* Optionally added depending on the material. */

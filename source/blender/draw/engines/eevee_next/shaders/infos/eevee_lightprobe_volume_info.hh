@@ -114,14 +114,14 @@ GPU_SHADER_CREATE_INFO(eevee_surfel_ray)
     .local_group_size(SURFEL_GROUP_SIZE)
     .additional_info("eevee_shared",
                      "eevee_surfel_common",
-                     "eevee_reflection_probe_data",
+                     "eevee_lightprobe_sphere_data",
                      "draw_view")
     .push_constant(Type::INT, "radiance_src")
     .push_constant(Type::INT, "radiance_dst")
     .compute_source("eevee_surfel_ray_comp.glsl")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_bounds)
+GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_bounds)
     .do_static_compilation(true)
     .local_group_size(IRRADIANCE_BOUNDS_GROUP_SIZE)
     .storage_buf(0, Qualifier::READ_WRITE, "CaptureInfoData", "capture_info_buf")
@@ -129,15 +129,15 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_bounds)
     .push_constant(Type::INT, "resource_len")
     .typedef_source("draw_shader_shared.hh")
     .additional_info("eevee_shared")
-    .compute_source("eevee_lightprobe_irradiance_bounds_comp.glsl");
+    .compute_source("eevee_lightprobe_volume_bounds_comp.glsl");
 
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_ray)
+GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_ray)
     .local_group_size(IRRADIANCE_GRID_GROUP_SIZE,
                       IRRADIANCE_GRID_GROUP_SIZE,
                       IRRADIANCE_GRID_GROUP_SIZE)
     .additional_info("eevee_shared",
                      "eevee_surfel_common",
-                     "eevee_reflection_probe_data",
+                     "eevee_lightprobe_sphere_data",
                      "draw_view")
     .push_constant(Type::INT, "radiance_src")
     .storage_buf(0, Qualifier::READ, "int", "list_start_buf[]")
@@ -148,10 +148,10 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_ray)
     .image(3, GPU_RGBA32F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_L1_c_img")
     .image(4, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_3D, "virtual_offset_img")
     .image(5, GPU_R32F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "validity_img")
-    .compute_source("eevee_lightprobe_irradiance_ray_comp.glsl")
+    .compute_source("eevee_lightprobe_volume_ray_comp.glsl")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_offset)
+GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_offset)
     .local_group_size(IRRADIANCE_GRID_GROUP_SIZE,
                       IRRADIANCE_GRID_GROUP_SIZE,
                       IRRADIANCE_GRID_GROUP_SIZE)
@@ -160,7 +160,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_offset)
     .storage_buf(6, Qualifier::READ, "SurfelListInfoData", "list_info_buf")
     .image(0, GPU_R32I, Qualifier::READ, ImageType::INT_3D_ATOMIC, "cluster_list_img")
     .image(1, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "virtual_offset_img")
-    .compute_source("eevee_lightprobe_irradiance_offset_comp.glsl")
+    .compute_source("eevee_lightprobe_volume_offset_comp.glsl")
     .do_static_compilation(true);
 
 /** \} */
@@ -169,7 +169,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_offset)
 /** \name Runtime
  * \{ */
 
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_world)
+GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_world)
     .local_group_size(IRRADIANCE_GRID_BRICK_SIZE,
                       IRRADIANCE_GRID_BRICK_SIZE,
                       IRRADIANCE_GRID_BRICK_SIZE)
@@ -181,10 +181,10 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_world)
     .uniform_buf(0, "VolumeProbeData", "grids_infos_buf[IRRADIANCE_GRID_MAX]")
     .image(
         0, VOLUME_PROBE_FORMAT, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_atlas_img")
-    .compute_source("eevee_lightprobe_irradiance_world_comp.glsl")
+    .compute_source("eevee_lightprobe_volume_world_comp.glsl")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_load)
+GPU_SHADER_CREATE_INFO(eevee_lightprobe_volume_load)
     .local_group_size(IRRADIANCE_GRID_BRICK_SIZE,
                       IRRADIANCE_GRID_BRICK_SIZE,
                       IRRADIANCE_GRID_BRICK_SIZE)
@@ -211,7 +211,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_load)
     .sampler(9, ImageType::FLOAT_3D, "validity_tx")
     .image(
         0, VOLUME_PROBE_FORMAT, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_atlas_img")
-    .compute_source("eevee_lightprobe_irradiance_load_comp.glsl")
+    .compute_source("eevee_lightprobe_volume_load_comp.glsl")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(eevee_volume_probe_data)
@@ -225,7 +225,7 @@ GPU_SHADER_CREATE_INFO(eevee_volume_probe_data)
     .define("IRRADIANCE_GRID_SAMPLING");
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
-    .additional_info("eevee_reflection_probe_data", "eevee_volume_probe_data");
+    .additional_info("eevee_lightprobe_sphere_data", "eevee_volume_probe_data");
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_planar_data)
     .define("SPHERE_PROBE")

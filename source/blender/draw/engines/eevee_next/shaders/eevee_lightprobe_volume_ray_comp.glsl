@@ -15,7 +15,7 @@
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surfel_list_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
 
 void irradiance_capture(vec3 L, vec3 irradiance, float visibility, inout SphericalHarmonicL1 sh)
 {
@@ -68,7 +68,7 @@ void irradiance_capture_world(vec3 L, inout SphericalHarmonicL1 sh)
 
   if (capture_info_buf.capture_world_direct) {
     SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
-    radiance = reflection_probes_sample(L, 0.0, atlas_coord).rgb;
+    radiance = lightprobe_spheres_sample(L, 0.0, atlas_coord).rgb;
 
     /* Clamped brightness. */
     float luma = max(1e-8, reduce_max(radiance));
@@ -90,10 +90,9 @@ void main()
     return;
   }
 
-  vec3 P = lightprobe_irradiance_grid_sample_position(
-      capture_info_buf.irradiance_grid_local_to_world,
-      capture_info_buf.irradiance_grid_size,
-      grid_coord);
+  vec3 P = lightprobe_volume_grid_sample_position(capture_info_buf.irradiance_grid_local_to_world,
+                                                  capture_info_buf.irradiance_grid_size,
+                                                  grid_coord);
 
   /* Add virtual offset to avoid baking inside of geometry as much as possible. */
   P += imageLoad(virtual_offset_img, grid_coord).xyz;

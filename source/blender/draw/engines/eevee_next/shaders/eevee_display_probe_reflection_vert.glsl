@@ -23,7 +23,7 @@ void main()
   probe_index = display_data_buf[display_index].probe_index;
   float sphere_radius = display_data_buf[display_index].display_size;
 
-  vec3 ws_probe_pos = reflection_probe_buf[probe_index].location;
+  vec3 ws_probe_pos = lightprobe_sphere_buf[probe_index].location;
 
   vec3 vs_offset = vec3(lP, 0.0) * sphere_radius;
   vec3 vP = drw_point_world_to_view(ws_probe_pos) + vs_offset;

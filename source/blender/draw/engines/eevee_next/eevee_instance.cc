@@ -352,7 +352,7 @@ void Instance::render_sync()
   DRW_curves_update();
 }
 
-bool Instance::do_reflection_probe_sync() const
+bool Instance::do_lightprobe_sphere_sync() const
 {
   if (!sphere_probes.update_probes_this_sample_) {
     return false;

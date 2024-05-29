@@ -26,7 +26,7 @@ void main()
                (cell_index / grid_res.z) % grid_res.y,
                cell_index % grid_res.z);
 
-  vec3 ws_cell_pos = lightprobe_irradiance_grid_sample_position(grid_to_world, grid_res, cell);
+  vec3 ws_cell_pos = lightprobe_volume_grid_sample_position(grid_to_world, grid_res, cell);
 
   float sphere_radius_final = sphere_radius;
   if (display_validity) {

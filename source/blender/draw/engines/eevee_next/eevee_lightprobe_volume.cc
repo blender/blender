@@ -13,7 +13,7 @@
 
 #include "eevee_instance.hh"
 
-#include "eevee_irradiance_cache.hh"
+#include "eevee_lightprobe_volume.hh"
 
 namespace blender::eevee {
 

@@ -43,8 +43,8 @@ SphericalHarmonicL1 irradiance_load(ivec3 input_coord)
 
 void main()
 {
-  int brick_index = lightprobe_irradiance_grid_brick_index_get(grids_infos_buf[grid_index],
-                                                               ivec3(gl_WorkGroupID));
+  int brick_index = lightprobe_volume_grid_brick_index_get(grids_infos_buf[grid_index],
+                                                           ivec3(gl_WorkGroupID));
 
   ivec3 grid_size = textureSize(irradiance_a_tx, 0);
   /* Brick coordinate in the source grid. */
@@ -113,9 +113,9 @@ void main()
   sh_visibility.L1.M0 = sh_local.L1.M0.aaaa;
   sh_visibility.L1.Mp1 = sh_local.L1.Mp1.aaaa;
 
-  vec3 P = lightprobe_irradiance_grid_sample_position(grid_local_to_world, grid_size, input_coord);
+  vec3 P = lightprobe_volume_grid_sample_position(grid_local_to_world, grid_size, input_coord);
 
-  SphericalHarmonicL1 sh_distant = lightprobe_irradiance_sample(P);
+  SphericalHarmonicL1 sh_distant = lightprobe_volume_sample(P);
 
   if (is_padding_voxel) {
     /* Padding voxels just contain the distant lighting. */
@@ -143,7 +143,7 @@ void main()
     /* Encode validity of each samples in the grid cell. */
     for (int cell = 0; cell < 4; cell++) {
       for (int i = 0; i < 8; i++) {
-        ivec3 offset = lightprobe_irradiance_grid_cell_corner(i);
+        ivec3 offset = lightprobe_volume_grid_cell_corner(i);
         ivec3 coord_output = texel_coord + offset + ivec3(0, 0, cell);
         ivec3 coord_input = clamp(texel_coord, ivec3(0), grid_size - 1);
         float validity = texelFetch(validity_tx, coord_input, 0).r;

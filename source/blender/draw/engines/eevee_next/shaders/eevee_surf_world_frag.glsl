@@ -14,7 +14,7 @@
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_volume_eval_lib.glsl)
 
 vec4 closure_to_rgba(Closure cl)
@@ -48,10 +48,10 @@ void main()
     float lod = max(1.0, base_lod);
     float mix_factor = min(1.0, base_lod);
     SphereProbeUvArea world_atlas_coord = reinterpret_as_atlas_coord(world_coord_packed);
-    vec4 probe_color = reflection_probes_sample(-g_data.N, lod, world_atlas_coord);
+    vec4 probe_color = lightprobe_spheres_sample(-g_data.N, lod, world_atlas_coord);
     out_background.rgb = mix(out_background.rgb, probe_color.rgb, mix_factor);
 
-    SphericalHarmonicL1 volume_irradiance = lightprobe_irradiance_sample(
+    SphericalHarmonicL1 volume_irradiance = lightprobe_volume_sample(
         g_data.P, vec3(0.0), g_data.Ng);
     vec3 radiance_sh = spherical_harmonics_evaluate_lambert(-g_data.N, volume_irradiance);
     float radiance_mix_factor = sphere_probe_roughness_to_mix_fac(world_background_blur);

@@ -80,7 +80,7 @@ class SphereProbeModule {
   /** World coordinates in the atlas. */
   SphereProbeUvArea world_sampling_coord_;
   /** Number of the probe to process in the select phase. */
-  int reflection_probe_count_ = 0;
+  int lightprobe_sphere_count_ = 0;
 
   /** Intermediate buffer to store spherical harmonics. */
   StorageArrayBuffer<SphereProbeHarmonic, SPHERE_PROBE_MAX_HARMONIC, true>

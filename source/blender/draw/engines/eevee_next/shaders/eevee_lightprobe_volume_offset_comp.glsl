@@ -166,10 +166,9 @@ void main()
     return;
   }
 
-  vec3 P = lightprobe_irradiance_grid_sample_position(
-      capture_info_buf.irradiance_grid_local_to_world,
-      capture_info_buf.irradiance_grid_size,
-      grid_coord);
+  vec3 P = lightprobe_volume_grid_sample_position(capture_info_buf.irradiance_grid_local_to_world,
+                                                  capture_info_buf.irradiance_grid_size,
+                                                  grid_coord);
 
   int closest_surfel_id = find_closest_surfel(grid_coord, P);
   if (closest_surfel_id == -1) {

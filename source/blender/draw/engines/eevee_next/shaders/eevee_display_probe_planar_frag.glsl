@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(draw_view_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
 
 void main()
 {
@@ -16,7 +16,7 @@ void main()
     vec3 R = -reflect(V, probe_normal);
 
     SphereProbeUvArea world_atlas_coord = reinterpret_as_atlas_coord(world_coord_packed);
-    out_color = reflection_probes_sample(R, 0.0, world_atlas_coord);
+    out_color = lightprobe_spheres_sample(R, 0.0, world_atlas_coord);
   }
   else {
     out_color = texture(planar_radiance_tx, vec3(uv, probe_index));
