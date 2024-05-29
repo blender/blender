@@ -207,9 +207,13 @@ void OneapiDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
 size_t OneapiDevice::get_free_mem() const
 {
-  /* Accurate: Use device info. */
+  /* Accurate: Use device info, which is practically useful only on dGPU.
+   * This is because for non-discrete GPUs, all GPU memory allocations would
+   * be in the RAM, thus having the same performance for device and host pointers,
+   * so there is no need to be very accurate about what would end where. */
   const sycl::device &device = reinterpret_cast<sycl::queue *>(device_queue_)->get_device();
-  if (device.has(sycl::aspect::ext_intel_free_memory)) {
+  const bool is_integrated_gpu = device.get_info<sycl::info::device::host_unified_memory>();
+  if (device.has(sycl::aspect::ext_intel_free_memory) && is_integrated_gpu == false) {
     return device.get_info<sycl::ext::intel::info::device::free_memory>();
   }
   /* Estimate: Capacity - in use. */
