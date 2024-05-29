@@ -365,7 +365,7 @@ static void grid_hide_update(Depsgraph &depsgraph,
 
 static void partialvis_update_bmesh_verts(const Set<BMVert *, 0> &verts,
                                           const VisAction action,
-                                          const FunctionRef<bool(const BMVert *v)> should_update,
+                                          const FunctionRef<bool(BMVert *v)> should_update,
                                           bool *any_changed,
                                           bool *any_visible)
 {
@@ -401,7 +401,7 @@ static void partialvis_update_bmesh_faces(const Set<BMFace *, 0> &faces)
 static void partialvis_update_bmesh_nodes(Object &ob,
                                           const Span<PBVHNode *> nodes,
                                           const VisAction action,
-                                          const FunctionRef<bool(const BMVert *v)> vert_test_fn)
+                                          const FunctionRef<bool(BMVert *v)> vert_test_fn)
 {
   for (PBVHNode *node : nodes) {
     bool any_changed = false;
@@ -1024,8 +1024,7 @@ static void grow_shrink_visibility_grid(Depsgraph &depsgraph,
               SubdivCCGNeighbors neighbors;
               BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, true, neighbors);
 
-              for (const int j : neighbors.coords.index_range()) {
-                const SubdivCCGCoord neighbor = neighbors.coords[j];
+              for (const SubdivCCGCoord neighbor : neighbors.coords) {
                 const int neighbor_grid_elem_idx = elem_xy_to_index(
                     neighbor.x, neighbor.y, key.grid_size);
 
@@ -1078,32 +1077,21 @@ static Array<bool> duplicate_visibility_bmesh(const Object &object)
 }
 
 static void grow_shrink_visibility_bmesh(Object &object,
-                                         PBVH &pbvh,
                                          const Span<PBVHNode *> nodes,
                                          const VisAction action,
                                          const int iterations)
 {
-
-  SculptSession &ss = *object.sculpt;
-
   for (const int i : IndexRange(iterations)) {
     UNUSED_VARS(i);
     const Array<bool> prev_visibility = duplicate_visibility_bmesh(object);
-    partialvis_update_bmesh_nodes(object, nodes, action, [&](const BMVert *vert) {
-      int vi = BM_elem_index_get(vert);
-      PBVHVertRef vref = BKE_pbvh_index_to_vertex(pbvh, vi);
-      SculptVertexNeighborIter ni;
-
-      bool should_change = false;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vref, ni) {
-        if (prev_visibility[ni.index] == action_to_hide(action)) {
-          /* Not returning instantly to avoid leaking memory. */
-          should_change = true;
-          break;
+    partialvis_update_bmesh_nodes(object, nodes, action, [&](BMVert *vert) {
+      Vector<BMVert *, 64> neighbors;
+      for (BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
+        if (prev_visibility[BM_elem_index_get(neighbor)] == action_to_hide(action)) {
+          return true;
         }
       }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-      return should_change;
+      return false;
     });
   }
 }
@@ -1140,7 +1128,7 @@ static int visibility_filter_exec(bContext *C, wmOperator *op)
       grow_shrink_visibility_grid(depsgraph, object, pbvh, nodes, mode, iterations);
       break;
     case PBVH_BMESH:
-      grow_shrink_visibility_bmesh(object, pbvh, nodes, mode, iterations);
+      grow_shrink_visibility_bmesh(object, nodes, mode, iterations);
       break;
   }
   undo::push_end(object);

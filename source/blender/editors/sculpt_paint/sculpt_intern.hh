@@ -913,6 +913,12 @@ void SCULPT_vertex_neighbors_get(const SculptSession &ss,
   } \
   ((void)0)
 
+namespace blender::ed::sculpt_paint {
+
+Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &neighbors);
+
+}
+
 PBVHVertRef SCULPT_active_vertex_get(const SculptSession &ss);
 const float *SCULPT_active_vertex_co_get(const SculptSession &ss);
 
