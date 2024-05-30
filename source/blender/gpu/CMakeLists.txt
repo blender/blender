@@ -519,6 +519,7 @@ set(GLSL_SRC
   shaders/common/gpu_shader_math_matrix_lib.glsl
   shaders/common/gpu_shader_math_rotation_lib.glsl
   shaders/common/gpu_shader_math_vector_lib.glsl
+  shaders/common/gpu_shader_shared_exponent_lib.glsl
   shaders/common/gpu_shader_smaa_lib.glsl
   shaders/common/gpu_shader_test_lib.glsl
   shaders/common/gpu_shader_utildefines_lib.glsl
