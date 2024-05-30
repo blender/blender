@@ -8,7 +8,7 @@ import sys
 import bpy
 
 """
-blender -b --factory-startup --python tests/python/bl_animation_id.py
+blender -b --factory-startup --python tests/python/bl_animation_action.py
 """
 
 
