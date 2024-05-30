@@ -184,6 +184,10 @@ typedef struct wmWindowManager {
   struct GSet *notifier_queue_set;
   void *_pad1;
 
+  /** Available/pending extensions updates. */
+  int extensions_updates;
+  int _pad3;
+
   /** Threaded jobs manager. */
   ListBase jobs;
 

@@ -2639,6 +2639,10 @@ static void rna_def_windowmanager(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "XR Session State", "Runtime state information about the VR session");
 
+  prop = RNA_def_property(srna, "extensions_updates", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Extensions Updates", "Number of extensions with available update");
+
   RNA_api_wm(srna);
 }
 
