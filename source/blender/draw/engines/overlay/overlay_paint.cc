@@ -30,7 +30,11 @@ static bool paint_object_is_rendered_transparent(View3D *v3d, Object *ob)
     if (ob && v3d->shading.color_type == V3D_SHADING_OBJECT_COLOR) {
       return ob->color[3] < 1.0f;
     }
-    if (ob && ob->type == OB_MESH && ob->data &&
+
+    /* NOTE: The active object might be hidden and hence have inconsistent evaluated state of its
+     * mesh data. So only perform checks dependent on mesh after checking the object is actually
+     * visible. */
+    if (ob && ob->type == OB_MESH && BKE_object_is_visible_in_viewport(v3d, ob) && ob->data &&
         v3d->shading.color_type == V3D_SHADING_MATERIAL_COLOR)
     {
       Mesh *mesh = static_cast<Mesh *>(ob->data);

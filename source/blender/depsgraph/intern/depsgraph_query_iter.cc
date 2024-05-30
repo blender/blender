@@ -239,7 +239,15 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
 
     Object *object = (Object *)id_node->id_cow;
     Object *object_orig = DEG_get_original_object(object);
-    BLI_assert(deg::deg_validate_eval_copy_datablock(&object->id));
+
+    /* NOTE: The object might be invisible after the latest depsgraph evaluation, in which case
+     * going into its evaluated state might not be safe. For example, its evaluated mesh state
+     * might point to a freed data-block if the mesh is animated.
+     * So it is required to perform the visibility checks prior to looking into any deeper into the
+     * object. */
+
+    BLI_assert(deg::deg_eval_copy_is_expanded(&object->id));
+
     object->runtime->select_id = object_orig->runtime->select_id;
 
     const bool use_preview = object_orig == data->object_orig_with_preview;
@@ -264,12 +272,14 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
       if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
           ((object->transflag & OB_DUPLI) || object->runtime->geometry_set_eval != nullptr))
       {
+        BLI_assert(deg::deg_validate_eval_copy_datablock(&object->id));
         ListBase *duplis = object_duplilist(data->graph, data->scene, object);
         deg_iterator_duplis_init(data, object, duplis);
       }
     }
 
     if (ob_visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES)) {
+      BLI_assert(deg::deg_validate_eval_copy_datablock(&object->id));
       data->next_object = object;
     }
     data->id_node_index++;
