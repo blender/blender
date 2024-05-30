@@ -130,6 +130,9 @@ class PaintOperation : public GreasePencilStrokeOperation {
   /* Helper class to project screen space coordinates to 3d. */
   ed::greasepencil::DrawingPlacement placement_;
 
+  /* Angle factor smoothed over time. */
+  float smoothed_angle_factor_ = 1.0f;
+
   friend struct PaintOperationExecutor;
 
  public:
@@ -499,15 +502,14 @@ struct PaintOperationExecutor {
     const ARegion *region = CTX_wm_region(&C);
 
     const float3 position = self.placement_.project(coords);
-    const float radius = ed::greasepencil::radius_from_input_sample(
-        rv3d,
-        region,
-        scene_,
-        brush_,
-        extension_sample.pressure,
-        position,
-        self.placement_.to_world_space(),
-        settings_);
+    float radius = ed::greasepencil::radius_from_input_sample(rv3d,
+                                                              region,
+                                                              scene_,
+                                                              brush_,
+                                                              extension_sample.pressure,
+                                                              position,
+                                                              self.placement_.to_world_space(),
+                                                              settings_);
     const float opacity = ed::greasepencil::opacity_from_input_sample(
         extension_sample.pressure, brush_, scene_, settings_);
     Scene *scene = CTX_data_scene(&C);
@@ -525,6 +527,24 @@ struct PaintOperationExecutor {
     const float prev_radius = drawing_->radii()[last_active_point];
     const float prev_opacity = drawing_->opacities()[last_active_point];
     const ColorGeometry4f prev_vertex_color = drawing_->vertex_colors()[last_active_point];
+
+    /* Approximate brush with non-circular shape by changing the radius based on the angle. */
+    if (settings_->draw_angle_factor > 0.0f) {
+      const float angle = settings_->draw_angle;
+      const float2 angle_vec = float2(math::cos(angle), math::sin(angle));
+      const float2 vec = coords - self.screen_space_coords_orig_.last();
+
+      /* `angle_factor` is the angle to the horizontal line in screen space. */
+      const float angle_factor = 1.0f - math::abs(math::dot(angle_vec, math::normalize(vec)));
+      /* Smooth the angle factor over time. */
+      self.smoothed_angle_factor_ = math::interpolate(
+          self.smoothed_angle_factor_, angle_factor, 0.1f);
+
+      /* Influence is controlled by `draw_angle_factor`. */
+      const float radius_factor = math::interpolate(
+          1.0f, self.smoothed_angle_factor_, settings_->draw_angle_factor);
+      radius *= radius_factor;
+    }
 
     /* Overwrite last point if it's very close. */
     const IndexRange points_range = curves.points_by_curve()[curves.curves_range().last()];
