@@ -795,7 +795,11 @@ static void rotate_directions_around_axes(MutableSpan<float3> directions,
                                           const Span<float> angles)
 {
   for (const int i : directions.index_range()) {
-    directions[i] = math::rotate_direction_around_axis(directions[i], axes[i], angles[i]);
+    const float3 axis = axes[i];
+    if (UNLIKELY(math::is_zero(axis))) {
+      continue;
+    }
+    directions[i] = math::rotate_direction_around_axis(directions[i], axis, angles[i]);
   }
 }
 

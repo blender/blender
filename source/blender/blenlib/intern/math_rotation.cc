@@ -113,6 +113,7 @@ float3 rotate_direction_around_axis(const float3 &direction, const float3 &axis,
 {
   BLI_ASSERT_UNIT_V3(direction);
   BLI_ASSERT_UNIT_V3(axis);
+  BLI_assert(!math::is_zero(axis));
 
   const float3 axis_scaled = axis * math::dot(direction, axis);
   const float3 diff = direction - axis_scaled;
