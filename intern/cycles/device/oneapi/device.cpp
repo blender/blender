@@ -50,8 +50,9 @@ bool device_oneapi_init()
       _putenv_s("ONEAPI_DEVICE_SELECTOR", "!opencl:*");
     }
   }
-  if (getenv("SYCL_ENABLE_PCI") == nullptr) {
-    _putenv_s("SYCL_ENABLE_PCI", "1");
+  /* SYSMAN is needed for free_memory queries. */
+  if (getenv("ZES_ENABLE_SYSMAN") == nullptr) {
+    _putenv_s("ZES_ENABLE_SYSMAN", "1");
   }
   if (getenv("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE") == nullptr) {
     _putenv_s("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE", "0");
@@ -65,7 +66,9 @@ bool device_oneapi_init()
   else {
     setenv("ONEAPI_DEVICE_SELECTOR", "!opencl:*", false);
   }
-  setenv("SYCL_ENABLE_PCI", "1", false);
+  /* SYSMAN is needed for free_memory queries. However, it leads to runtime driver issues on Linux
+   * when using it with JEMALLOC, so we set it to 0 by default until it's fixed. */
+  setenv("ZES_ENABLE_SYSMAN", "0", false);
   setenv("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE", "0", false);
 #  endif
 
