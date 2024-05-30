@@ -16,9 +16,10 @@
 
 #include "DNA_node_types.h"
 
+#include "RNA_types.hh"
+
 struct bContext;
 struct bNode;
-struct PointerRNA;
 struct uiLayout;
 
 namespace blender::nodes {
@@ -158,6 +159,11 @@ class ItemDeclaration {
 
 using ItemDeclarationPtr = std::unique_ptr<ItemDeclaration>;
 
+struct SocketNameRNA {
+  PointerRNA owner = PointerRNA_NULL;
+  std::string property_name;
+};
+
 /**
  * Describes a single input or output socket. This is subclassed for different socket types.
  */
@@ -206,6 +212,11 @@ class SocketDeclaration : public ItemDeclaration {
   /** Some input sockets can have non-trivial values in the case when they are unlinked. This
    * callback computes the default input of a values in geometry nodes when nothing is linked. */
   std::unique_ptr<ImplicitInputValueFn> implicit_input_fn;
+  /**
+   * Property that stores the name of the socket so that it can be modified directly from the
+   * node without going to the side-bar.
+   */
+  std::unique_ptr<SocketNameRNA> socket_name_rna;
 
   friend NodeDeclarationBuilder;
   friend class BaseSocketDeclarationBuilder;
@@ -362,6 +373,16 @@ class BaseSocketDeclarationBuilder {
    * an input and the other is an output.
    */
   BaseSocketDeclarationBuilder &align_with_previous(bool value = true);
+
+  /**
+   * Set a function that retrieves an RNA pointer to the name of the socket. This can be used to be
+   * able to rename the socket within the node.
+   */
+  BaseSocketDeclarationBuilder &socket_name_ptr(PointerRNA ptr, StringRef property_name);
+  BaseSocketDeclarationBuilder &socket_name_ptr(const ID *id,
+                                                const StructRNA *srna,
+                                                const void *data,
+                                                StringRef property_name);
 
   /** Index in the list of inputs or outputs. */
   int index() const;

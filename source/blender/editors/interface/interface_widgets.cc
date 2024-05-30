@@ -4829,6 +4829,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
      * #UI_EMBOSS_NONE_OR_STATUS will blend state colors if they apply. */
     switch (but->type) {
       case UI_BTYPE_LABEL:
+      case UI_BTYPE_TEXT:
         wt = widget_type(UI_WTYPE_ICON_LABEL);
         if (!(but->flag & UI_HAS_ICON)) {
           but->drawflag |= UI_BUT_NO_TEXT_PADDING;
