@@ -818,16 +818,16 @@ void WM_gizmomap_add_handlers(ARegion *region, wmGizmoMap *gzmap)
 void wm_gizmomaps_handled_modal_update(bContext *C, wmEvent *event, wmEventHandler_Op *handler)
 {
   const bool modal_running = (handler->op != nullptr);
+  ARegion *region = CTX_wm_region(C);
 
   /* Happens on render or when joining areas. */
-  if (!handler->context.region || !handler->context.region->gizmo_map) {
+  if (!region || !handler->context.region || !handler->context.region->gizmo_map) {
     return;
   }
 
   wmGizmoMap *gzmap = handler->context.region->gizmo_map;
   wmGizmo *gz = wm_gizmomap_modal_get(gzmap);
   ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
 
   wm_gizmomap_handler_context_op(C, handler);
 
