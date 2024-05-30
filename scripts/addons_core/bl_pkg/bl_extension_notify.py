@@ -218,6 +218,10 @@ def sync_status_generator(repos_notify, do_online_sync):
             force_exit_ok=not USE_GRACEFUL_EXIT,
             dry_run=not do_online_sync,
             extension_override=unique_ext,
+            # Demote connection errors to status which means they won't be shown in the console.
+            # Do this as errors are expected when the computer is not connected to the internet.
+            # Either run with debugging, or manually click update button in preferences.
+            demote_connection_errors_to_status=not bpy.app.debug,
         ))
 
     yield None

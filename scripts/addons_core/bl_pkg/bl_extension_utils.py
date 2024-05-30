@@ -370,6 +370,7 @@ def repo_sync(
         use_idle: bool,
         force_exit_ok: bool = False,
         dry_run: bool = False,
+        demote_connection_errors_to_status: bool = False,
         extension_override: str = "",
 ) -> Generator[InfoItemSeq, None, None]:
     """
@@ -388,6 +389,7 @@ def repo_sync(
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
         *(("--force-exit-ok",) if force_exit_ok else ()),
+        *(("--demote-connection-errors-to-status",) if demote_connection_errors_to_status else ()),
         *(("--extension-override", extension_override) if extension_override else ()),
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
