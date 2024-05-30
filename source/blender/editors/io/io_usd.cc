@@ -242,6 +242,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const int global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
   const int global_up = RNA_enum_get(op->ptr, "export_global_up_selection");
 
+  const bool convert_world_material = RNA_boolean_get(op->ptr, "convert_world_material");
+
   const eUSDXformOpMode xform_op_mode = eUSDXformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
 
   char root_prim_path[FILE_MAX];
@@ -275,6 +277,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       convert_orientation,
       eIOAxis(global_forward),
       eIOAxis(global_up),
+      convert_world_material,
       xform_op_mode,
       export_meshes,
       export_lights,
@@ -319,6 +322,8 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   row = uiLayoutRow(col, true);
   uiItemR(row, ptr, "author_blender_name", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiLayoutSetActive(row, RNA_boolean_get(op->ptr, "export_custom_properties"));
+
+  uiItemR(col, ptr, "convert_world_material", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(box, true);
   uiItemR(col, ptr, "triangulate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -608,6 +613,15 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "Author USD custom attributes containing the original Blender object and "
                   "object data names");
 
+  RNA_def_boolean(
+      ot->srna,
+      "convert_world_material",
+      true,
+      "Convert World Material",
+      "Convert the world material to a USD dome light. "
+      "Currently works for simple materials, consisting of an environment texture "
+      "connected to a background shader, with an optional vector multiply of the texture color");
+
   RNA_def_boolean(ot->srna, "export_meshes", true, "Meshes", "Export all meshes");
 
   RNA_def_boolean(ot->srna, "export_lights", true, "Lights", "Export all lights");
@@ -725,6 +739,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
 
+  const bool create_world_material = RNA_boolean_get(op->ptr, "create_world_material");
+
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
   int offset = 0;
@@ -783,6 +799,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   params.tex_name_collision_mode = tex_name_collision_mode;
   params.import_all_materials = import_all_materials;
   params.attr_import_mode = attr_import_mode;
+  params.create_world_material = create_world_material;
 
   STRNCPY(params.import_textures_dir, import_textures_dir);
 
@@ -837,7 +854,8 @@ static void wm_usd_import_draw(bContext * /*C*/, wmOperator *op)
   uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "create_collection", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(box, ptr, "light_intensity_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "light_intensity_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "create_world_material", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "attr_import_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
@@ -1044,6 +1062,12 @@ void WM_OT_usd_import(wmOperatorType *ot)
       "Validate Meshes",
       "Ensure the data is valid "
       "(when disabled, data may be imported which causes crashes displaying or editing)");
+
+  RNA_def_boolean(ot->srna,
+                  "create_world_material",
+                  true,
+                  "Create World Material",
+                  "Convert the first discovered USD dome light to a world background shader");
 
   RNA_def_boolean(ot->srna,
                   "import_defined_only",

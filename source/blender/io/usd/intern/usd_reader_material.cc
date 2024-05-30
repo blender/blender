@@ -89,23 +89,6 @@ static const pxr::TfToken UsdUVTexture("UsdUVTexture", pxr::TfToken::Immortal);
 static const pxr::TfToken UsdTransform2d("UsdTransform2d", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-/* Temporary folder for saving imported textures prior to packing.
- * CAUTION: this directory is recursively deleted after material
- * import. */
-static const char *temp_textures_dir()
-{
-  static bool inited = false;
-
-  static char temp_dir[FILE_MAXDIR] = {'\0'};
-
-  if (!inited) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), BKE_tempdir_session(), "usd_textures_tmp", SEP_STR);
-    inited = true;
-  }
-
-  return temp_dir;
-}
-
 using blender::io::usd::ShaderToNodeMap;
 
 /**

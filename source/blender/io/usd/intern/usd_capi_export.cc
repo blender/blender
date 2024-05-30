@@ -8,6 +8,7 @@
 #include "usd.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
+#include "usd_light_convert.hh"
 #include "usd_private.hh"
 
 #include <pxr/base/tf/token.h>
@@ -340,6 +341,13 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   if (params.export_shapekeys || params.export_armatures) {
     iter.process_usd_skel();
+  }
+
+  /* Creating dome lights should be called after writers have
+   * completed, to avoid a name collision when creating the light
+   * prim. */
+  if (!params.selected_objects_only && params.convert_world_material) {
+    world_material_to_dome_light(params, scene, usd_stage);
   }
 
   /* Set the default prim if it doesn't exist */

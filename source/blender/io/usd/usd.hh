@@ -112,6 +112,7 @@ struct USDExportParams {
   bool convert_orientation = false;
   enum eIOAxis forward_axis = eIOAxis::IO_AXIS_NEGATIVE_Z;
   enum eIOAxis up_axis = eIOAxis::IO_AXIS_Y;
+  bool convert_world_material = true;
   eUSDXformOpMode xform_op_mode = eUSDXformOpMode::USD_XFORM_OP_TRS;
   bool export_meshes = true;
   bool export_lights = true;
@@ -164,6 +165,7 @@ struct USDImportParams {
   eUSDTexNameCollisionMode tex_name_collision_mode;
   bool import_all_materials;
   eUSDAttrImportMode attr_import_mode;
+  bool create_world_material;
 
   /**
    * Communication structure between the wmJob management code and the worker code. Currently used

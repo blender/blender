@@ -858,16 +858,19 @@ static std::string get_tex_image_asset_filepath(Image *ima)
   return std::string(filepath);
 }
 
-/* Gets an asset path for the given texture image node. The resulting path
- * may be absolute, relative to the USD file, or in a 'textures' directory
- * in the same directory as the USD file, depending on the export parameters.
- * The filename is typically the image filepath but might also be automatically
- * generated based on the image name for in-memory textures when exporting textures.
- * This function may return an empty string if the image does not have a filepath
- * assigned and no asset path could be determined. */
 static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_export_context,
                                                 bNode *node)
 {
+  return get_tex_image_asset_filepath(
+      node, usd_export_context.stage, usd_export_context.export_params);
+}
+
+std::string get_tex_image_asset_filepath(bNode *node,
+                                         const pxr::UsdStageRefPtr stage,
+                                         const USDExportParams &export_params)
+{
+  std::string stage_path = stage->GetRootLayer()->GetRealPath();
+
   Image *ima = reinterpret_cast<Image *>(node->id);
   if (!ima) {
     return "";
@@ -879,7 +882,7 @@ static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_ex
     /* Get absolute path. */
     path = get_tex_image_asset_filepath(ima);
   }
-  else if (usd_export_context.export_params.export_textures) {
+  else if (export_params.export_textures) {
     /* Image has no filepath, but since we are exporting textures,
      * check if this is an in-memory texture for which we can
      * generate a file name. */
@@ -890,7 +893,7 @@ static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_ex
     return path;
   }
 
-  if (usd_export_context.export_params.export_textures) {
+  if (export_params.export_textures) {
     /* The texture is exported to a 'textures' directory next to the
      * USD root layer. */
 
@@ -898,35 +901,25 @@ static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_ex
     char file_path[FILE_MAX];
     BLI_path_split_file_part(path.c_str(), file_path, FILE_MAX);
 
-    if (usd_export_context.export_params.relative_paths) {
+    if (export_params.relative_paths) {
       BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path);
     }
     else {
       /* Create absolute path in the textures directory. */
-      std::string export_path = usd_export_context.export_file_path;
-      if (export_path.empty()) {
-        return path;
-      }
-
       char dir_path[FILE_MAX];
-      BLI_path_split_dir_part(export_path.c_str(), dir_path, FILE_MAX);
+      BLI_path_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
       BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path);
     }
     BLI_string_replace_char(exp_path, '\\', '/');
     return exp_path;
   }
 
-  if (usd_export_context.export_params.relative_paths) {
+  if (export_params.relative_paths) {
     /* Get the path relative to the USD. */
-    std::string export_path = usd_export_context.export_file_path;
-    if (export_path.empty()) {
-      return path;
-    }
-
     char rel_path[FILE_MAX];
     STRNCPY(rel_path, path.c_str());
 
-    BLI_path_rel(rel_path, export_path.c_str());
+    BLI_path_rel(rel_path, stage_path.c_str());
     if (!BLI_path_is_rel(rel_path)) {
       return path;
     }
@@ -1028,9 +1021,18 @@ static void copy_single_file(Image *ima,
   }
 }
 
-/* Export the given texture node's image to a 'textures' directory in the export path.
- * Based on ImagesExporter::export_UV_Image() */
 static void export_texture(const USDExporterContext &usd_export_context, bNode *node)
+{
+  export_texture(node,
+                 usd_export_context.stage,
+                 usd_export_context.export_params.overwrite_textures,
+                 usd_export_context.export_params.worker_status->reports);
+}
+
+void export_texture(bNode *node,
+                    const pxr::UsdStageRefPtr stage,
+                    const bool allow_overwrite,
+                    ReportList *reports)
 {
   if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
     return;
@@ -1041,7 +1043,7 @@ static void export_texture(const USDExporterContext &usd_export_context, bNode *
     return;
   }
 
-  std::string export_path = usd_export_context.export_file_path;
+  std::string export_path = stage->GetRootLayer()->GetRealPath();
   if (export_path.empty()) {
     return;
   }
@@ -1057,21 +1059,17 @@ static void export_texture(const USDExporterContext &usd_export_context, bNode *
   const bool is_dirty = BKE_image_is_dirty(ima);
   const bool is_generated = ima->source == IMA_SRC_GENERATED;
   const bool is_packed = BKE_image_has_packedfile(ima);
-  const bool allow_overwrite = usd_export_context.export_params.overwrite_textures;
 
   std::string dest_dir(tex_dir_path);
 
   if (is_generated || is_dirty || is_packed) {
-    export_in_memory_texture(
-        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
+    export_in_memory_texture(ima, dest_dir, allow_overwrite, reports);
   }
   else if (ima->source == IMA_SRC_TILED) {
-    copy_tiled_textures(
-        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
+    copy_tiled_textures(ima, dest_dir, allow_overwrite, reports);
   }
   else {
-    copy_single_file(
-        ima, dest_dir, allow_overwrite, usd_export_context.export_params.worker_status->reports);
+    copy_single_file(ima, dest_dir, allow_overwrite, reports);
   }
 }
 

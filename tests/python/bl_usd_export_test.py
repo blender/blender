@@ -92,6 +92,7 @@ class USDExportTest(AbstractUSDTest):
             filepath=str(export_path),
             export_materials=True,
             evaluation_mode="RENDER",
+            convert_world_material=False,
         )
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
