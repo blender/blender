@@ -859,18 +859,28 @@ static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 static int preferences_extension_url_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   char *url = RNA_string_get_alloc(op->ptr, "url", nullptr, 0, nullptr);
-  const bool url_is_remote = STRPREFIX(url, "http://") || STRPREFIX(url, "https://") ||
-                             STRPREFIX(url, "file://");
+  const bool url_is_file = STRPREFIX(url, "file://");
+  const bool url_is_online = STRPREFIX(url, "http://") || STRPREFIX(url, "https://");
+  const bool url_is_remote = url_is_file | url_is_online;
 
   /* NOTE: searching for hard-coded add-on name isn't great.
    * Needed since #WM_dropbox_add expects the operator to exist on startup. */
   const char *idname_external = url_is_remote ? "bl_pkg.pkg_install" : "bl_pkg.pkg_install_files";
+  bool use_url = true;
+
+  if (url_is_online && (G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    idname_external = "bl_pkg.extensions_show_online_prefs_popup";
+    use_url = false;
+  }
+
   wmOperatorType *ot = WM_operatortype_find(idname_external, true);
   int retval;
   if (ot) {
     PointerRNA props_ptr;
     WM_operator_properties_create_ptr(&props_ptr, ot);
-    RNA_string_set(&props_ptr, "url", url);
+    if (use_url) {
+      RNA_string_set(&props_ptr, "url", url);
+    }
     WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, event);
     WM_operator_properties_free(&props_ptr);
     retval = OPERATOR_FINISHED;

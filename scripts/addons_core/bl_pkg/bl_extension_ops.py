@@ -2349,12 +2349,42 @@ class BlPkgShowOnlinePreference(Operator):
         return True
 
     def execute(self, context):
-        wm = context.window_manager
-        prefs = context.preferences
-
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT', section='SYSTEM')
-
         return {'FINISHED'}
+
+
+# NOTE: this is a wrapper for `bl_pkg.extensions_show_online_prefs`.
+# It exists *only* show a dialog.
+class BlPkgShowOnlinePreferencePopup(Operator):
+    """Show system preferences "Network" panel to allow online access"""
+    bl_idname = "bl_pkg.extensions_show_online_prefs_popup"
+    bl_label = ""
+    bl_options = {'INTERNAL'}
+
+    def execute(self, context):
+        bpy.ops.screen.userpref_show('INVOKE_DEFAULT', section='SYSTEM')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.invoke_props_dialog(
+            self,
+            width=400,
+            confirm_text="Go to Settings",
+            title="Install Extension",
+        )
+        return {'RUNNING_MODAL'}
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        lines = (
+            "Please turn Online Access on the System settings.",
+            "",
+            "Internet access is required to install extensions from the internet."
+        )
+        for line in lines:
+            col.label(text=line)
 
 
 class BlPkgEnableNotInstalled(Operator):
@@ -2407,6 +2437,7 @@ classes = (
 
     BlPkgShowUpgrade,
     BlPkgShowOnlinePreference,
+    BlPkgShowOnlinePreferencePopup,
 
     # Dummy, just shows a message.
     BlPkgEnableNotInstalled,
