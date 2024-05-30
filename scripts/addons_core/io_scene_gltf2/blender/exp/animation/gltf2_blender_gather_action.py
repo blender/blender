@@ -18,7 +18,7 @@ from .sampled.object.gltf2_blender_gather_object_action_sampled import gather_ac
 from .sampled.shapekeys.gltf2_blender_gather_sk_action_sampled import gather_action_sk_sampled
 from .sampled.object.gltf2_blender_gather_object_channels import gather_object_sampled_channels, gather_sampled_object_channel
 from .sampled.shapekeys.gltf2_blender_gather_sk_channels import gather_sampled_sk_channel
-from .gltf2_blender_gather_drivers import get_sk_drivers
+from .gltf2_blender_gather_drivers import get_sk_drivers, get_driver_on_shapekey
 from .gltf2_blender_gather_animation_utils import reset_bone_matrix, reset_sk_data, link_samplers, add_slide_data, merge_tracks_perform, bake_animation
 
 
@@ -269,24 +269,37 @@ def gather_action_animations(obj_uuid: int,
         current_use_nla = blender_object.animation_data.use_nla
         blender_object.animation_data.use_nla = False
 
-    # Try to disable all except armature in viewport, for performance
-    if export_settings['gltf_optimize_armature_disable_viewport'] \
+    # Disable all except armature in viewport, for performance
+    if export_settings['gltf_optimize_disable_viewport'] \
             and export_settings['vtree'].nodes[obj_uuid].blender_object.type == "ARMATURE":
 
-        # If the skinned mesh has driver(s), we can't disable it to bake armature.
-        need_to_enable_again = False
-        sk_drivers = get_sk_drivers(obj_uuid, export_settings)
-        if len(sk_drivers) == 0:
-            need_to_enable_again = True
-            # Before baking, disabling from viewport all meshes
-            for obj in [n.blender_object for n in export_settings['vtree'].nodes.values() if n.blender_type in
-                        [VExportNode.OBJECT, VExportNode.ARMATURE, VExportNode.COLLECTION]]:
-                obj.hide_viewport = True
-            export_settings['vtree'].nodes[obj_uuid].blender_object.hide_viewport = False
-        else:
-            export_settings['log'].warning("Can't disable viewport because of drivers")
-            # We changed the option here, so we don't need to re-check it later, during
-            export_settings['gltf_optimize_armature_disable_viewport'] = False
+        # Before baking, disabling from viewport all meshes
+        for obj in [n.blender_object for n in export_settings['vtree'].nodes.values() if n.blender_type in
+                    [VExportNode.OBJECT, VExportNode.ARMATURE, VExportNode.COLLECTION]]:
+            obj.hide_viewport = True
+        export_settings['vtree'].nodes[obj_uuid].blender_object.hide_viewport = False
+
+        # We need to create custom properties on armature to store shape keys drivers on disabled meshes
+        # This way, we can evaluate drivers on shape keys, and bake them
+        drivers = get_sk_drivers(obj_uuid, export_settings)
+        if drivers:
+            # So ... Let's create some costum properties and the armature
+            # First, retrieve the armature object
+            for mesh_uuid in drivers:
+                _, channels = get_driver_on_shapekey(mesh_uuid, export_settings)
+                blender_object["gltf_" + mesh_uuid] = [0.0] * len(channels)
+                for idx, channel in enumerate(channels):
+                    if channel is None:
+                        continue
+                    if blender_object.animation_data is None or blender_object.animation_data.drivers is None:
+                        # There is no animation on the armature, so no need to crate driver
+                        # But, we need to copy the current value of the shape key to the custom property
+                        blender_object["gltf_" + mesh_uuid][idx] = blender_object.data.shape_keys.key_blocks[channel.data_path.split('"')[
+                            1]].value
+                    else:
+                        dr = blender_object.animation_data.drivers.from_existing(src_driver=channel)
+                        dr.data_path = "[\"gltf_" + mesh_uuid + "\"]"
+                        dr.array_index = idx
 
     export_user_extensions('animation_switch_loop_hook', export_settings, blender_object, False)
 
@@ -506,14 +519,21 @@ def gather_action_animations(obj_uuid: int,
     if blender_object and current_world_matrix is not None:
         blender_object.matrix_world = current_world_matrix
 
-    if export_settings['gltf_optimize_armature_disable_viewport'] \
+    if export_settings['gltf_optimize_disable_viewport'] \
             and export_settings['vtree'].nodes[obj_uuid].blender_object.type == "ARMATURE":
-        if need_to_enable_again is True:
-            # And now, restoring meshes in viewport
-            for node, obj in [(n, n.blender_object) for n in export_settings['vtree'].nodes.values()
-                              if n.blender_type in [VExportNode.OBJECT, VExportNode.ARMATURE, VExportNode.COLLECTION]]:
-                obj.hide_viewport = node.default_hide_viewport
-            export_settings['vtree'].nodes[obj_uuid].blender_object.hide_viewport = export_settings['vtree'].nodes[obj_uuid].default_hide_viewport
+        # And now, restoring meshes in viewport
+        for node, obj in [(n, n.blender_object) for n in export_settings['vtree'].nodes.values() if n.blender_type in
+                          [VExportNode.OBJECT, VExportNode.ARMATURE, VExportNode.COLLECTION]]:
+            obj.hide_viewport = node.default_hide_viewport
+        export_settings['vtree'].nodes[obj_uuid].blender_object.hide_viewport = export_settings['vtree'].nodes[obj_uuid].default_hide_viewport
+        # Let's remove the custom properties, and first, remove drivers
+        drivers = get_sk_drivers(obj_uuid, export_settings)
+        if drivers:
+            for mesh_uuid in drivers:
+                for armature_driver in blender_object.animation_data.drivers:
+                    if "gltf_" + mesh_uuid in armature_driver.data_path:
+                        blender_object.animation_data.drivers.remove(armature_driver)
+                del blender_object["gltf_" + mesh_uuid]
 
     export_user_extensions('animation_switch_loop_hook', export_settings, blender_object, True)
 

@@ -7,9 +7,11 @@ import typing
 import numpy as np
 from ......blender.com.gltf2_blender_data_path import get_sk_exported
 from ....gltf2_blender_gather_cache import cached
+from ....gltf2_blender_gather_tree import VExportNode
 from ...gltf2_blender_gather_keyframes import Keyframe
 from ...fcurves.gltf2_blender_gather_fcurves_channels import get_channel_groups
 from ...fcurves.gltf2_blender_gather_fcurves_keyframes import gather_non_keyed_values
+from ...gltf2_blender_gather_drivers import get_driver_on_shapekey
 from ..gltf2_blender_gather_animation_sampling_cache import get_cache_data
 
 
@@ -27,37 +29,60 @@ def gather_sk_sampled_keyframes(obj_uuid,
     step = export_settings['gltf_frame_step']
     blender_obj = export_settings['vtree'].nodes[obj_uuid].blender_object
 
-    if export_settings['gltf_optimize_armature_disable_viewport'] is True:
-        # Using this option, we miss the drivers :(
-        # No solution exists for now. In the future, we should be able to copy a driver
-        if action_name in bpy.data.actions:
-            channel_group, _, _ = get_channel_groups(
-                obj_uuid, bpy.data.actions[action_name], export_settings, no_sample_option=True)
-        elif blender_obj.data.shape_keys.animation_data and blender_obj.data.shape_keys.animation_data.action:
-            channel_group, _, _ = get_channel_groups(
-                obj_uuid, blender_obj.data.shape_keys.animation_data.action, export_settings, no_sample_option=True)
+    if export_settings['gltf_optimize_disable_viewport'] is True:
+
+        # First, check if there are drivers on shapekeys
+        drs, channels = get_driver_on_shapekey(obj_uuid, export_settings)
+
+        if channels is None:
+
+            # If we are here because of a shapekey animation, we need to get the fcurves
+            if action_name in bpy.data.actions:
+                channel_group, _, _ = get_channel_groups(
+                    obj_uuid, bpy.data.actions[action_name], export_settings, no_sample_option=True)
+            elif blender_obj.data.shape_keys.animation_data and blender_obj.data.shape_keys.animation_data.action:
+                channel_group, _, _ = get_channel_groups(
+                    obj_uuid, blender_obj.data.shape_keys.animation_data.action, export_settings, no_sample_option=True)
+            else:
+                channel_group = {}
+                channels = [None] * len(get_sk_exported(blender_obj.data.shape_keys.key_blocks))
+
+            for chan in channel_group.values():
+                channels = chan['properties']['value']
+                break
+
+            non_keyed_values = gather_non_keyed_values(obj_uuid, channels, None, False, export_settings)
+
+            while frame <= end_frame:
+                key = Keyframe(channels, frame, None)
+                key.value = [c.evaluate(frame) for c in channels if c is not None]
+                # Complete key with non keyed values, if needed
+                if len([c for c in channels if c is not None]) != key.get_target_len():
+                    complete_key(key, non_keyed_values)
+
+                keyframes.append(key)
+                frame += step
+
         else:
-            channel_group = {}
-            channels = [None] * len(get_sk_exported(blender_obj.data.shape_keys.key_blocks))
+            # So, drivers will be evaluated, on the custom property
 
-            # One day, if we will be able to bake drivers or evaluate it the right
-            # way, we can add here the driver fcurves
+            non_keyed_values = gather_non_keyed_values(obj_uuid, channels, None, False, export_settings)
 
-        for chan in channel_group.values():
-            channels = chan['properties']['value']
-            break
+            # The bake tool will store the value of the custom property
+            while frame <= end_frame:
+                key = Keyframe([None] * (len(get_sk_exported(blender_obj.data.shape_keys.key_blocks))), frame, 'value')
+                key.value_total = get_cache_data(
+                    'sk',
+                    obj_uuid,
+                    None,
+                    action_name,
+                    frame,
+                    step,
+                    export_settings
+                )
 
-        non_keyed_values = gather_non_keyed_values(obj_uuid, channels, None, False, export_settings)
-
-        while frame <= end_frame:
-            key = Keyframe(channels, frame, None)
-            key.value = [c.evaluate(frame) for c in channels if c is not None]
-            # Complete key with non keyed values, if needed
-            if len([c for c in channels if c is not None]) != key.get_target_len():
-                complete_key(key, non_keyed_values)
-
-            keyframes.append(key)
-            frame += step
+                keyframes.append(key)
+                frame += step
 
     else:
         # Full bake, we will go frame by frame. This can take time (more than using evaluate)
