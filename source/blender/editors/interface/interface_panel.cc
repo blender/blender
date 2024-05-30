@@ -565,6 +565,18 @@ static bool panel_custom_pin_to_last_get(const Panel *panel)
   return false;
 }
 
+static void panel_custom_pin_to_last_set(const bContext *C, const Panel *panel, const bool value)
+{
+  if (panel->type->pin_to_last_property[0] != '\0') {
+    PointerRNA *ptr = UI_panel_custom_data_get(panel);
+    if (ptr != nullptr && !RNA_pointer_is_null(ptr)) {
+      PropertyRNA *prop = RNA_struct_find_property(ptr, panel->type->pin_to_last_property);
+      RNA_boolean_set(ptr, panel->type->pin_to_last_property, value);
+      RNA_property_update(const_cast<bContext *>(C), ptr, prop);
+    }
+  }
+}
+
 static bool panel_custom_data_active_get(const Panel *panel)
 {
   /* The caller should make sure the panel is active and has a type. */
@@ -1149,24 +1161,37 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   }
 
   /* Draw drag widget. */
-  if (!is_subpanel && show_background && !panel_custom_pin_to_last_get(panel)) {
+  if (!is_subpanel && show_background) {
     const int drag_widget_size = header_height * 0.7f;
-    GPU_matrix_push();
-    /* The magic numbers here center the widget vertically and offset it to the left.
-     * Currently this depends on the height of the header, although it could be independent. */
-    GPU_matrix_translate_2f(widget_rect.xmax - scaled_unit * 1.15,
-                            widget_rect.ymin + (header_height - drag_widget_size) * 0.5f);
-
     const int col_tint = 84;
     float color_high[4], color_dark[4];
     UI_GetThemeColorShade4fv(TH_PANEL_HEADER, col_tint, color_high);
     UI_GetThemeColorShade4fv(TH_PANEL_BACK, -col_tint, color_dark);
-
-    blender::gpu::Batch *batch = GPU_batch_preset_panel_drag_widget(
-        U.pixelsize, color_high, color_dark, drag_widget_size);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
-    GPU_batch_draw(batch);
-    GPU_matrix_pop();
+    if (panel_custom_pin_to_last_get(panel)) {
+      GPU_blend(GPU_BLEND_ALPHA);
+      UI_icon_draw_ex(widget_rect.xmax - scaled_unit * 1.15,
+                      widget_rect.ymin + (header_height - drag_widget_size) * 0.5f,
+                      ICON_PINNED,
+                      aspect * UI_INV_SCALE_FAC,
+                      1.0f,
+                      0.0f,
+                      title_color,
+                      false,
+                      UI_NO_ICON_OVERLAY_TEXT);
+      GPU_blend(GPU_BLEND_NONE);
+    }
+    else {
+      GPU_matrix_push();
+      /* The magic numbers here center the widget vertically and offset it to the left.
+       * Currently this depends on the height of the header, although it could be independent. */
+      GPU_matrix_translate_2f(widget_rect.xmax - scaled_unit * 1.15,
+                              widget_rect.ymin + (header_height - drag_widget_size) * 0.5f);
+      blender::gpu::Batch *batch = GPU_batch_preset_panel_drag_widget(
+          U.pixelsize, color_high, color_dark, drag_widget_size);
+      GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
+      GPU_batch_draw(batch);
+      GPU_matrix_pop();
+    }
   }
 }
 
@@ -2246,14 +2271,17 @@ static void ui_handle_panel_header(const bContext *C,
 
   /* Handle panel dragging. For now don't allow dragging in floating regions. */
   if (show_drag && !(region->alignment == RGN_ALIGN_FLOAT)) {
-    if (panel_custom_pin_to_last_get(panel)) {
-      return;
-    }
     const float drag_area_xmin = block->rect.xmax - (PNL_ICON * 1.5f);
     const float drag_area_xmax = block->rect.xmax;
     if (IN_RANGE(mx, drag_area_xmin, drag_area_xmax)) {
-      panel_activate_state(C, panel, PANEL_STATE_DRAG);
-      return;
+      if (panel_custom_pin_to_last_get(panel)) {
+        panel_custom_pin_to_last_set(C, panel, false);
+        return;
+      }
+      else {
+        panel_activate_state(C, panel, PANEL_STATE_DRAG);
+        return;
+      }
     }
   }
 
