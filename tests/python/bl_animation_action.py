@@ -119,6 +119,51 @@ class LimitationsTest(unittest.TestCase):
         self.assertFalse(hasattr(strip, 'frame_offset'))
 
 
+class TestLegacyLayered(unittest.TestCase):
+    """Test boundaries between legacy & layered Actions.
+
+    Layered functionality should not be available on legacy actions, and vice versa.
+    """
+
+    def test_legacy_action(self) -> None:
+        """Test layered operations on a legacy Action"""
+
+        act = bpy.data.actions.new('LegacyAction')
+        act.fcurves.new("location", index=0)  # Add an FCurve to make this a non-empty legacy Action.
+        self.assertTrue(act.is_action_legacy)
+        self.assertFalse(act.is_action_layered)
+        self.assertFalse(act.is_empty)
+
+        # Adding a layer should be prevented.
+        with self.assertRaises(RuntimeError):
+            act.layers.new("laagje")
+        self.assertSequenceEqual([], act.layers)
+
+        # Adding a binding should be prevented.
+        with self.assertRaises(RuntimeError):
+            act.bindings.new()
+        self.assertSequenceEqual([], act.bindings)
+
+    def test_layered_action(self) -> None:
+        """Test legacy operations on a layered Action"""
+
+        act = bpy.data.actions.new('LayeredAction')
+        act.layers.new("laagje")  # Add a layer to make this a non-empty legacy Action.
+        self.assertFalse(act.is_action_legacy)
+        self.assertTrue(act.is_action_layered)
+        self.assertFalse(act.is_empty)
+
+        # Adding an FCurve should be prevented.
+        with self.assertRaises(RuntimeError):
+            act.fcurves.new("location", index=0)
+        self.assertSequenceEqual([], act.fcurves)
+
+        # Adding an ActionGroup should be prevented.
+        with self.assertRaises(RuntimeError):
+            act.groups.new("groepie")
+        self.assertSequenceEqual([], act.groups)
+
+
 class DataPathTest(unittest.TestCase):
     def setUp(self):
         anims = bpy.data.actions

@@ -145,10 +145,22 @@ static void rna_iterator_array_begin(CollectionPropertyIterator *iter, MutableSp
   rna_iterator_array_begin(iter, (void *)items.data(), sizeof(T *), items.size(), 0, nullptr);
 }
 
-static ActionBinding *rna_Action_bindings_new(bAction *anim_id, bContext *C, ID *id_for_binding)
+static ActionBinding *rna_Action_bindings_new(bAction *anim_id,
+                                              bContext *C,
+                                              ReportList *reports,
+                                              ID *id_for_binding)
 {
   animrig::Action &anim = anim_id->wrap();
   animrig::Binding *binding;
+
+  if (!anim.is_action_layered()) {
+    BKE_reportf(
+        reports,
+        RPT_ERROR,
+        "Cannot add bindings to a legacy Action '%s'. Convert it to a layered Action first.",
+        anim.id.name + 2);
+    return nullptr;
+  }
 
   if (id_for_binding) {
     binding = &anim.binding_add_for_id(*id_for_binding);
@@ -179,6 +191,14 @@ static ActionLayer *rna_Action_layers_new(bAction *dna_action,
                                           const char *name)
 {
   animrig::Action &anim = dna_action->wrap();
+
+  if (!anim.is_action_layered()) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Cannot add layers to a legacy Action '%s'. Convert it to a layered Action first.",
+                anim.id.name + 2);
+    return nullptr;
+  }
 
   if (anim.layers().size() >= 1) {
     /* Not allowed to have more than one layer, for now. This limitation is in
@@ -469,8 +489,17 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
   iter->valid = (internal->link != nullptr);
 }
 
-static bActionGroup *rna_Action_groups_new(bAction *act, const char name[])
+static bActionGroup *rna_Action_groups_new(bAction *act, ReportList *reports, const char name[])
 {
+  if (!act->wrap().is_action_legacy()) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Cannot add legacy Action Groups to a layered Action '%s'. Convert it to a legacy "
+                "Action first.",
+                act->id.name + 2);
+    return nullptr;
+  }
+
   return action_groups_add_new(act, name);
 }
 
@@ -514,6 +543,15 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
                                      int index,
                                      const char *group)
 {
+  if (!act->wrap().is_action_legacy()) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Cannot add legacy F-Curves to a layered Action '%s'. Convert it to a legacy "
+                "Action first.",
+                act->id.name + 2);
+    return nullptr;
+  }
+
   if (group && group[0] == '\0') {
     group = nullptr;
   }
@@ -1133,7 +1171,7 @@ static void rna_def_action_bindings(BlenderRNA *brna, PropertyRNA *cprop)
   /* Animation.bindings.new(...) */
   func = RNA_def_function(srna, "new", "rna_Action_bindings_new");
   RNA_def_function_ui_description(func, "Add a binding to the animation");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(
       func,
       "for_id",
@@ -1584,6 +1622,7 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "Action Groups", "Collection of action groups");
 
   func = RNA_def_function(srna, "new", "rna_Action_groups_new");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Create a new action group and add it to the action");
   parm = RNA_def_string(func, "name", "Group", 0, "", "New name for the action group");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
