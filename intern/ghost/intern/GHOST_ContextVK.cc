@@ -94,21 +94,6 @@ static const char *vulkan_error_as_string(VkResult result)
   }
 }
 
-enum class VkLayer : uint8_t { KHRONOS_validation };
-
-static bool vklayer_config_exist(const char *vk_extension_config)
-{
-  const char *ev_val = getenv("VK_LAYER_PATH");
-  if (ev_val == nullptr) {
-    return true;
-  }
-  std::stringstream filename;
-  filename << ev_val;
-  filename << "/" << vk_extension_config;
-  struct stat buffer;
-  return (stat(filename.str().c_str(), &buffer) == 0);
-}
-
 #define __STR(A) "" #A
 #define VK_CHECK(__expression) \
   do { \
@@ -204,7 +189,7 @@ class GHOST_DeviceVK {
     return true;
   }
 
-  void ensure_device(vector<const char *> &layers_enabled, vector<const char *> &extensions_device)
+  void ensure_device(vector<const char *> &extensions_device)
   {
     if (device != VK_NULL_HANDLE) {
       return;
@@ -239,8 +224,6 @@ class GHOST_DeviceVK {
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_create_info.queueCreateInfoCount = uint32_t(queue_create_infos.size());
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
-    device_create_info.enabledLayerCount = uint32_t(layers_enabled.size());
-    device_create_info.ppEnabledLayerNames = layers_enabled.data();
     device_create_info.enabledExtensionCount = uint32_t(extensions_device.size());
     device_create_info.ppEnabledExtensionNames = extensions_device.data();
     device_create_info.pEnabledFeatures = &device_features;
@@ -654,65 +637,6 @@ static void requireExtension(const vector<VkExtensionProperties> &extensions_ava
   }
 }
 
-static vector<VkLayerProperties> getLayersAvailable()
-{
-  uint32_t layer_count = 0;
-  vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-
-  vector<VkLayerProperties> layers(layer_count);
-  vkEnumerateInstanceLayerProperties(&layer_count, layers.data());
-
-  return layers;
-}
-
-static bool checkLayerSupport(const vector<VkLayerProperties> &layers_available,
-                              const char *layer_name)
-{
-  for (const auto &layer : layers_available) {
-    if (strcmp(layer_name, layer.layerName) == 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
-static void enableLayer(const vector<VkLayerProperties> &layers_available,
-                        vector<const char *> &layers_enabled,
-                        const VkLayer layer,
-                        const bool display_warning)
-{
-#define PUSH_VKLAYER(name, name2) \
-  if (vklayer_config_exist("VkLayer_" #name ".json") && \
-      checkLayerSupport(layers_available, "VK_LAYER_" #name2)) \
-  { \
-    layers_enabled.push_back("VK_LAYER_" #name2); \
-    enabled = true; \
-  } \
-  else { \
-    warnings << "VK_LAYER_" #name2; \
-  }
-
-  bool enabled = false;
-  std::stringstream warnings;
-
-  switch (layer) {
-    case VkLayer::KHRONOS_validation:
-      PUSH_VKLAYER(khronos_validation, KHRONOS_validation);
-  };
-
-  if (enabled) {
-    return;
-  }
-
-  if (display_warning) {
-    fprintf(stderr,
-            "Warning: Layer requested, but not supported by the platform. [%s] \n",
-            warnings.str().c_str());
-  }
-
-#undef PUSH_VKLAYER
-}
-
 static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
                                         VkSurfaceKHR surface,
                                         VkPresentModeKHR *r_presentMode)
@@ -994,15 +918,11 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   }
 #endif
 
-  auto layers_available = getLayersAvailable();
-  auto extensions_available = getExtensionsAvailable();
-
-  vector<const char *> layers_enabled;
+  std::vector<VkExtensionProperties> extensions_available = getExtensionsAvailable();
   vector<const char *> extensions_device;
   vector<const char *> extensions_enabled;
 
   if (m_debug) {
-    enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
     requireExtension(extensions_available, extensions_enabled, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
@@ -1040,8 +960,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     VkInstanceCreateInfo create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     create_info.pApplicationInfo = &app_info;
-    create_info.enabledLayerCount = uint32_t(layers_enabled.size());
-    create_info.ppEnabledLayerNames = layers_enabled.data();
     create_info.enabledExtensionCount = uint32_t(extensions_enabled.size());
     create_info.ppEnabledExtensionNames = extensions_enabled.data();
 
@@ -1125,7 +1043,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     extensions_device.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
 #endif
-  vulkan_device->ensure_device(layers_enabled, extensions_device);
+  vulkan_device->ensure_device(extensions_device);
 
   vkGetDeviceQueue(
       vulkan_device->device, vulkan_device->generic_queue_family, 0, &m_graphic_queue);
