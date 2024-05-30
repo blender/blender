@@ -25,7 +25,7 @@
 #include "DNA_customdata_types.h"
 
 /* For embedding CCGKey in iterator. */
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_pbvh.hh"
 
 #include "bmesh.hh"

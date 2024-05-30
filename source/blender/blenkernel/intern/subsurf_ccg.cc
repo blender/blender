@@ -31,7 +31,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh_legacy_derived_mesh.hh"
 #include "BKE_mesh_mapping.hh"

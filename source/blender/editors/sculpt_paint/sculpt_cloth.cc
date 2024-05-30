@@ -23,7 +23,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_collision.h"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"

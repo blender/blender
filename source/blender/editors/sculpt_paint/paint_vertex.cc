@@ -71,7 +71,7 @@
 /* For IMB_BlendMode only. */
 #include "IMB_imbuf.hh"
 
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "bmesh.hh"
 
 #include "paint_intern.hh" /* own include */

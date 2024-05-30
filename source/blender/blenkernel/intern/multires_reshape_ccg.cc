@@ -12,7 +12,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_subdiv_ccg.hh"
 
 bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext *reshape_context,

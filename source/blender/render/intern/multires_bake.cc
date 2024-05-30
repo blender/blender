@@ -19,7 +19,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
 #include "BKE_image.h"

@@ -8,16 +8,7 @@
  * \ingroup bke
  */
 
-/* defines BLI_INLINE */
-#include "BLI_compiler_compat.h"
-
-/* Declares `fprintf()` & `abort()`, needed for `BLI_assert`. */
-#include <stdio.h>
-#include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_assert.h"
 
 struct CCGSubSurf;
 
@@ -61,97 +52,88 @@ void CCG_key(CCGKey *key, const struct CCGSubSurf *ss, int level);
 void CCG_key_top_level(CCGKey *key, const struct CCGSubSurf *ss);
 
 /* get a pointer to the coordinate, normal, or mask components */
-BLI_INLINE float *CCG_elem_co(const CCGKey *key, CCGElem *elem);
-BLI_INLINE float *CCG_elem_no(const CCGKey *key, CCGElem *elem);
-BLI_INLINE float *CCG_elem_mask(const CCGKey *key, CCGElem *elem);
+inline float *CCG_elem_co(const CCGKey *key, CCGElem *elem);
+inline float *CCG_elem_no(const CCGKey *key, CCGElem *elem);
+inline float *CCG_elem_mask(const CCGKey *key, CCGElem *elem);
 
 /* get the element at 'offset' in an array */
-BLI_INLINE CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset);
+inline CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset);
 
 /* get the element at coordinate (x,y) in a face-grid array */
-BLI_INLINE CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y);
+inline CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y);
 
 /* combinations of above functions */
-BLI_INLINE float *CCG_grid_elem_co(const CCGKey *key, CCGElem *elem, int x, int y);
-BLI_INLINE float *CCG_grid_elem_no(const CCGKey *key, CCGElem *elem, int x, int y);
-BLI_INLINE float *CCG_grid_elem_mask(const CCGKey *key, CCGElem *elem, int x, int y);
-BLI_INLINE float *CCG_elem_offset_co(const CCGKey *key, CCGElem *elem, int offset);
-BLI_INLINE float *CCG_elem_offset_no(const CCGKey *key, CCGElem *elem, int offset);
-BLI_INLINE float *CCG_elem_offset_mask(const CCGKey *key, CCGElem *elem, int offset);
+inline float *CCG_grid_elem_co(const CCGKey *key, CCGElem *elem, int x, int y);
+inline float *CCG_grid_elem_no(const CCGKey *key, CCGElem *elem, int x, int y);
+inline float *CCG_grid_elem_mask(const CCGKey *key, CCGElem *elem, int x, int y);
+inline float *CCG_elem_offset_co(const CCGKey *key, CCGElem *elem, int offset);
+inline float *CCG_elem_offset_no(const CCGKey *key, CCGElem *elem, int offset);
+inline float *CCG_elem_offset_mask(const CCGKey *key, CCGElem *elem, int offset);
 
 /* for iteration, get a pointer to the next element in an array */
-BLI_INLINE CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem);
+inline CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem);
 
 /* inline definitions follow */
 
-BLI_INLINE float *CCG_elem_co(const CCGKey *
-#ifndef __cplusplus
-                                  UNUSED(key)
-#endif
-                                      ,
-                              CCGElem *elem)
+inline float *CCG_elem_co(const CCGKey * /*key*/, CCGElem *elem)
 {
   return (float *)elem;
 }
 
-BLI_INLINE float *CCG_elem_no(const CCGKey *key, CCGElem *elem)
+inline float *CCG_elem_no(const CCGKey *key, CCGElem *elem)
 {
   BLI_assert(key->has_normals);
   return (float *)((char *)elem + key->normal_offset);
 }
 
-BLI_INLINE float *CCG_elem_mask(const CCGKey *key, CCGElem *elem)
+inline float *CCG_elem_mask(const CCGKey *key, CCGElem *elem)
 {
   BLI_assert(key->has_mask);
   return (float *)((char *)elem + (key->mask_offset));
 }
 
-BLI_INLINE CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset)
+inline CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset)
 {
   return (CCGElem *)(((char *)elem) + key->elem_size * offset);
 }
 
-BLI_INLINE CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y)
+inline CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y)
 {
   //  BLI_assert(x < key->grid_size && y < key->grid_size);
   return CCG_elem_offset(key, elem, (y * key->grid_size + x));
 }
 
-BLI_INLINE float *CCG_grid_elem_co(const CCGKey *key, CCGElem *elem, int x, int y)
+inline float *CCG_grid_elem_co(const CCGKey *key, CCGElem *elem, int x, int y)
 {
   return CCG_elem_co(key, CCG_grid_elem(key, elem, x, y));
 }
 
-BLI_INLINE float *CCG_grid_elem_no(const CCGKey *key, CCGElem *elem, int x, int y)
+inline float *CCG_grid_elem_no(const CCGKey *key, CCGElem *elem, int x, int y)
 {
   return CCG_elem_no(key, CCG_grid_elem(key, elem, x, y));
 }
 
-BLI_INLINE float *CCG_grid_elem_mask(const CCGKey *key, CCGElem *elem, int x, int y)
+inline float *CCG_grid_elem_mask(const CCGKey *key, CCGElem *elem, int x, int y)
 {
   return CCG_elem_mask(key, CCG_grid_elem(key, elem, x, y));
 }
 
-BLI_INLINE float *CCG_elem_offset_co(const CCGKey *key, CCGElem *elem, int offset)
+inline float *CCG_elem_offset_co(const CCGKey *key, CCGElem *elem, int offset)
 {
   return CCG_elem_co(key, CCG_elem_offset(key, elem, offset));
 }
 
-BLI_INLINE float *CCG_elem_offset_no(const CCGKey *key, CCGElem *elem, int offset)
+inline float *CCG_elem_offset_no(const CCGKey *key, CCGElem *elem, int offset)
 {
   return CCG_elem_no(key, CCG_elem_offset(key, elem, offset));
 }
 
-BLI_INLINE float *CCG_elem_offset_mask(const CCGKey *key, CCGElem *elem, int offset)
+inline float *CCG_elem_offset_mask(const CCGKey *key, CCGElem *elem, int offset)
 {
   return CCG_elem_mask(key, CCG_elem_offset(key, elem, offset));
 }
 
-BLI_INLINE CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem)
+inline CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem)
 {
   return CCG_elem_offset(key, elem, 1);
 }
-
-#ifdef __cplusplus
-}
-#endif

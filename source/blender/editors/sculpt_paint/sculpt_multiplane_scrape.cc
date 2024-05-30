@@ -16,7 +16,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 

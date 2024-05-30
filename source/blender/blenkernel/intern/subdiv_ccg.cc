@@ -19,7 +19,7 @@
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_mesh.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
