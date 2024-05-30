@@ -232,6 +232,12 @@ typedef struct wmWindowManager {
 
 #define WM_KEYCONFIG_ARRAY_P(wm) &(wm)->defaultconf, &(wm)->addonconf, &(wm)->userconf
 
+/** #wmWindowManager.extensions_updates */
+enum {
+  WM_EXTENSIONS_UPDATE_UNSET = -2,
+  WM_EXTENSIONS_UPDATE_CHECKING = -1,
+};
+
 /** #wmWindowManager.init_flag */
 enum {
   WM_INIT_FLAG_WINDOW = (1 << 0),
