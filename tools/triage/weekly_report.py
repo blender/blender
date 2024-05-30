@@ -82,6 +82,14 @@ def argparse_create() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--hash-length",
+        dest="hash_length",
+        type=int,
+        default=10,
+        help="Number of characters to abbreviate the hash to (0 to disable).",
+    )
+
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -91,7 +99,13 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
-def report_personal_weekly_get(username: str, start: datetime.datetime, verbose: bool = True) -> None:
+def report_personal_weekly_get(
+        username: str,
+        start: datetime.datetime,
+        *,
+        hash_length: int,
+        verbose: bool = True,
+) -> None:
 
     data_cache: Dict[str, Dict[str, Any]] = {}
 
@@ -174,7 +188,9 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
                         # Substitute occurrences of "#\d+" with "repo#\d+"
                         title = re.sub(r"#(\d+)", rf"{repo_fullname}#\1", title)
 
-                        hash_value = commits["Sha1"][:10]
+                        hash_value = commits["Sha1"]
+                        if hash_length > 0:
+                            hash_value[:hash_length]
                         commits_main.append(f"{title} ({repo_fullname}@{hash_value})")
 
     date_end = date_curr
@@ -341,7 +357,12 @@ def main() -> None:
     end_date_str = str(sunday.day) if start_date.month == sunday.month else sunday.strftime('%B ') + str(sunday.day)
 
     print(f"## {start_date_str} - {end_date_str}\n")
-    report_personal_weekly_get(username, start_date, verbose=args.verbose)
+    report_personal_weekly_get(
+        username,
+        start_date,
+        hash_length=args.hash_length,
+        verbose=args.verbose,
+    )
 
 
 if __name__ == "__main__":
