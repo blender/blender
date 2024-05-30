@@ -658,6 +658,14 @@ static bool rna_Action_is_empty_get(PointerRNA *ptr)
   animrig::Action &action = rna_action(ptr);
   return action.is_empty();
 }
+static bool rna_Action_is_action_legacy_get(PointerRNA *ptr)
+{
+  return rna_action(ptr).is_action_legacy();
+}
+static bool rna_Action_is_action_layered_get(PointerRNA *ptr)
+{
+  return rna_action(ptr).is_action_layered();
+}
 #  endif  // WITH_ANIM_BAKLAVA
 
 static void rna_Action_frame_range_get(PointerRNA *ptr, float *r_values)
@@ -1742,6 +1750,23 @@ static void rna_def_action(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Is Empty", "False when there is any Layer, Binding, or legacy F-Curve");
   RNA_def_property_boolean_funcs(prop, "rna_Action_is_empty_get", nullptr);
+
+  prop = RNA_def_property(srna, "is_action_legacy", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Is Legacy Action",
+      "Return whether this is a legacy Action. Legacy Actions have no layers or bindings. An "
+      "empty Action considered as both a 'legacy' and a 'layered' Action");
+  RNA_def_property_boolean_funcs(prop, "rna_Action_is_action_legacy_get", nullptr);
+
+  prop = RNA_def_property(srna, "is_action_layered", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Is Layered Action",
+                           "Return whether this is a layered Action. An empty Action considered "
+                           "as both a 'layered' and a 'layered' Action");
+  RNA_def_property_boolean_funcs(prop, "rna_Action_is_action_layered_get", nullptr);
 #  endif  // WITH_ANIM_BAKLAVA
 
   /* Collection properties. */
