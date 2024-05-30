@@ -2367,22 +2367,36 @@ class BlPkgShowOnlinePreferencePopup(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.invoke_props_dialog(
-            self,
-            width=400,
-            confirm_text="Go to Settings",
-            title="Install Extension",
-        )
+        if bpy.app.online_access_override:
+            # No Cancel/Confirm buttons.
+            wm.invoke_popup(
+                self,
+                width=400,
+            )
+        else:
+            wm.invoke_props_dialog(
+                self,
+                width=400,
+                confirm_text="Go to Settings",
+                title="Install Extension",
+            )
         return {'RUNNING_MODAL'}
 
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        lines = (
-            "Please turn Online Access on the System settings.",
-            "",
-            "Internet access is required to install extensions from the internet."
-        )
+        if bpy.app.online_access_override:
+            lines = (
+                "Online access required to install or update.",
+                "",
+                "Launch Blender without --offline-mode"
+            )
+        else:
+            lines = (
+                "Please turn Online Access on the System settings.",
+                "",
+                "Internet access is required to install extensions from the internet."
+            )
         for line in lines:
             col.label(text=line)
 
