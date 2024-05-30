@@ -288,8 +288,18 @@ class MemoryBuffer {
 
   void read_elem_bicubic_bspline(float x, float y, float *out) const
   {
-    math::interpolate_cubic_bspline_fl(
-        buffer_, out, this->get_width(), this->get_height(), num_channels_, x, y);
+    if (is_a_single_elem_) {
+      memcpy(out, buffer_, get_elem_bytes_len());
+      return;
+    }
+
+    math::interpolate_cubic_bspline_fl(buffer_,
+                                       out,
+                                       this->get_width(),
+                                       this->get_height(),
+                                       num_channels_,
+                                       get_relative_x(x),
+                                       get_relative_y(y));
   }
 
   void read_elem_sampled(float x, float y, PixelSampler sampler, float *out) const

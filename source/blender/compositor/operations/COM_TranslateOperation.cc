@@ -80,7 +80,9 @@ void TranslateOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *input = inputs[0];
-  if (input->is_a_single_elem()) {
+  /* Linking X and Y input sockets to non-constant input may result in a non-constant output, see
+   * Stabilize2dNode for example. */
+  if (input->is_a_single_elem() && output->is_a_single_elem()) {
     copy_v4_v4(output->get_elem(0, 0), input->get_elem(0, 0));
     return;
   }
