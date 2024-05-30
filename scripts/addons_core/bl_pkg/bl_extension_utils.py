@@ -27,6 +27,7 @@ __all__ = (
     "pkg_theme_file_list",
     "platform_from_this_system",
     "url_params_append_for_blender",
+    "url_params_extract_repo_url",
     "file_mtime_or_none",
 
     # Public API.
@@ -354,6 +355,35 @@ def url_params_append_for_blender(url: str, blender_version: Tuple[int, int, int
         "blender_version": "{:d}.{:d}.{:d}".format(*blender_version),
     }
     return _url_params_append(url, params)
+
+
+def url_params_extract_repo_url(url: str) -> Optional[str]:
+    # Extract `?repository=...` value from the URL and return it.
+    # Concatenating it where appropriate.
+    import urllib
+    import urllib.parse
+
+    # Parse the URL to get its scheme, domain, and query parameters.
+    parsed_url = urllib.parse.urlparse(url)
+
+    # Combine existing query parameters with new parameters
+    params = urllib.parse.parse_qsl(parsed_url.query)
+
+    if repo_path := next((value for key, value in params if key == "repository"), None):
+        if repo_path.startswith("/"):
+            repo_url = urllib.parse.urlunparse((
+                parsed_url.scheme,
+                parsed_url.netloc,
+                repo_path[1:],
+                None,  # `parsed_url.params,`
+                None,  # `parsed_url.query,`
+                None,  # `parsed_url.fragment,`
+            ))
+        else:
+            repo_url = repo_path
+        return repo_url
+
+    return None
 
 
 # -----------------------------------------------------------------------------

@@ -140,6 +140,16 @@ class CheckSIGINT_Context:
 # Internal Utilities
 #
 
+def _preferences_repo_find_by_remote_url(context, remote_url):
+    remote_url = remote_url.rstrip("/")
+    prefs = context.preferences
+    extension_repos = prefs.extensions.repos
+    for repo in extension_repos:
+        if repo.use_remote_url and repo.remote_url.rstrip("/") == remote_url:
+            return repo
+    return None
+
+
 def extension_url_find_repo_index_and_pkg_id(url):
     from .bl_extension_utils import (
         pkg_manifest_archive_url_abs_from_remote_url,
@@ -1922,8 +1932,18 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
         return self.execute(context)
 
     def _invoke_for_drop(self, context, event):
+        from .bl_extension_utils import url_params_extract_repo_url
+
         url = self.url
         print("DROP URL:", url)
+
+        # First check if this is part of a disabled repository.
+        remote_url = url_params_extract_repo_url(url)
+        repo_from_url = None if remote_url is None else _preferences_repo_find_by_remote_url(context, remote_url)
+
+        if repo_from_url and not repo_from_url.enabled:
+            self.report({'ERROR'}, "Extension: repository \"{:s}\" exists but is disabled".format(repo_from_url.name))
+            return {'CANCELLED'}
 
         _preferences_ensure_sync()
 
