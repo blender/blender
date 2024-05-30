@@ -392,6 +392,10 @@ class DOPESHEET_MT_view(Menu):
 
         layout.operator("action.view_selected")
         layout.operator("action.view_all")
+        if context.scene.use_preview_range:
+            layout.operator("anim.scene_range_frame", text="Frame Preview Range")
+        else:
+            layout.operator("anim.scene_range_frame", text="Frame Scene Range")
         layout.operator("action.view_frame")
         layout.separator()
 
@@ -432,13 +436,17 @@ class DOPESHEET_MT_view(Menu):
 class DOPESHEET_MT_view_pie(Menu):
     bl_label = "View"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
         pie = layout.menu_pie()
         pie.operator("action.view_all")
         pie.operator("action.view_selected", icon='ZOOM_SELECTED')
         pie.operator("action.view_frame")
+        if context.scene.use_preview_range:
+            pie.operator("anim.scene_range_frame", text="Frame Preview Range")
+        else:
+            pie.operator("anim.scene_range_frame", text="Frame Scene Range")
 
 
 class DOPESHEET_MT_select(Menu):

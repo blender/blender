@@ -465,6 +465,8 @@ class SEQUENCER_MT_view(Menu):
         if is_sequencer_view:
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("sequencer.view_all")
+            layout.operator("anim.scene_range_frame",
+                            text="Frame Preview Range" if context.scene.use_preview_range else "Frame Scene Range")
             layout.operator("sequencer.view_frame")
             layout.prop(st, "use_clamp_view")
 
@@ -1269,12 +1271,17 @@ class SEQUENCER_MT_pivot_pie(Menu):
 class SEQUENCER_MT_view_pie(Menu):
     bl_label = "View"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
         pie = layout.menu_pie()
         pie.operator("sequencer.view_all")
         pie.operator("sequencer.view_selected", text="Frame Selected", icon='ZOOM_SELECTED')
+        pie.separator()
+        if context.scene.use_preview_range:
+            pie.operator("anim.scene_range_frame", text="Frame Preview Range")
+        else:
+            pie.operator("anim.scene_range_frame", text="Frame Scene Range")
 
 
 class SEQUENCER_MT_preview_view_pie(Menu):

@@ -650,6 +650,48 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Frame Scene/Preview Range Operator
+ * \{ */
+
+static int scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
+{
+  ARegion *region = CTX_wm_region(C);
+  const Scene *scene = CTX_data_scene(C);
+  BLI_assert(region);
+  BLI_assert(scene);
+
+  View2D &v2d = region->v2d;
+  v2d.cur.xmin = PSFRA;
+  v2d.cur.xmax = PEFRA;
+
+  /* Add a horizontal margin just like ACTION_OT_view_all. */
+  const float margin = 0.125f * BLI_rctf_size_x(&v2d.cur);
+  v2d.cur.xmin -= margin;
+  v2d.cur.xmax += margin;
+
+  UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), &v2d, V2D_LOCK_COPY);
+  ED_area_tag_redraw(CTX_wm_area(C));
+
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
+{
+  ot->name = "Frame Scene/Preview Range";
+  ot->idname = "ANIM_OT_scene_range_frame";
+  ot->description =
+      "Reset the horizontal view to the current scene frame range, taking the preview range into "
+      "account if it is active";
+
+  ot->exec = scene_range_frame_exec;
+  ot->poll = ED_operator_animview_active;
+
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Bindings
  * \{ */
 
@@ -720,6 +762,8 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_previewrange_set);
   WM_operatortype_append(ANIM_OT_previewrange_clear);
+
+  WM_operatortype_append(ANIM_OT_scene_range_frame);
 
   /* Entire UI --------------------------------------- */
   WM_operatortype_append(ANIM_OT_keyframe_insert);
