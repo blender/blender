@@ -473,16 +473,15 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
       "delta_time", bke::AttrDomain::Point, 0.0f);
 
   Array<float> times(curves.points_num());
-  float current_time = 0;
-  float previous_init_time = init_times[0];
-  for (const int curve : curves.curves_range()) {
-    if (curve > 0) {
-      current_time += math::min(init_times[curve] - previous_init_time, max_gap);
-      previous_init_time = init_times[curve];
-    }
+  /* For the first stroke, the start time is 0. */
+  for (const int point : points_by_curve[0]) {
+    times[point] = delta_times[point];
+  }
+  for (const int curve : curves.curves_range().drop_front(1)) {
+    const float previous_init_time = init_times[curve - 1];
+    const float start_time = math::min(init_times[curve] - previous_init_time, max_gap);
     for (const int point : points_by_curve[curve]) {
-      current_time += delta_times[point];
-      times[point] = current_time;
+      times[point] = start_time + delta_times[point];
     }
   }
   for (const int point : curves.points_range()) {
