@@ -304,7 +304,8 @@ static void do_cloth_brush_build_constraints_task_cb_ex(void *__restrict userdat
 
   PBVHVertexIter vd;
 
-  const bool pin_simulation_boundary = ss->cache != nullptr && brush != nullptr &&
+  const bool is_brush_has_stroke_cache = ss->cache != nullptr && brush != nullptr;
+  const bool pin_simulation_boundary = is_brush_has_stroke_cache &&
                                        brush->flag2 & BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY &&
                                        brush->cloth_simulation_area_type !=
                                            BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC;
@@ -313,9 +314,8 @@ static void do_cloth_brush_build_constraints_task_cb_ex(void *__restrict userdat
 
   /* Brush can be nullptr in tools that use the solver without relying of constraints with
    * deformation positions. */
-  const bool cloth_is_deform_brush = ss->cache != nullptr && brush != nullptr &&
+  const bool cloth_is_deform_brush = is_brush_has_stroke_cache &&
                                      SCULPT_is_cloth_deform_brush(brush);
-
   const bool use_falloff_plane = brush->cloth_force_falloff_type ==
                                  BRUSH_CLOTH_FORCE_FALLOFF_PLANE;
   float radius_squared = 0.0f;
@@ -369,7 +369,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(void *__restrict userdat
       }
     }
 
-    if (brush && brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
+    if (is_brush_has_stroke_cache && brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
       /* The cloth brush works by applying forces in most of its modes, but some of them require
        * deformation coordinates to make the simulation stable. */
       if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
