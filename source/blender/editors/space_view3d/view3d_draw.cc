@@ -651,7 +651,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
   }
 
   /* safety border */
-  if (ca) {
+  if (ca && (v3d->flag2 & V3D_SHOW_CAMERA_GUIDES)) {
     GPU_blend(GPU_BLEND_ALPHA);
     immUniformThemeColorAlpha(TH_VIEW_OVERLAY, 0.75f);
 
