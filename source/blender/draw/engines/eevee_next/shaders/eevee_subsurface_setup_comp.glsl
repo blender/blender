@@ -7,6 +7,7 @@
  * processing.
  */
 
+#pragma BLENDER_REQUIRE(gpu_shader_shared_exponent_lib.glsl)
 #pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
@@ -26,8 +27,8 @@ void main(void)
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
   if (gbuffer_closure_get(gbuf, 0).type == CLOSURE_BSSRDF_BURLEY_ID) {
-    vec3 radiance = imageLoad(direct_light_img, texel).rgb +
-                    imageLoad(indirect_light_img, texel).rgb;
+    vec3 radiance = rgb9e5_decode(imageLoad(direct_light_img, texel).r);
+    radiance += imageLoad(indirect_light_img, texel).rgb;
 
     ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
     float max_radius = reduce_max(closure.sss_radius);

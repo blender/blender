@@ -74,5 +74,5 @@ vec3 rgb9e5_decode(uint data)
   int exp_shared = int(data >> (RGB9E5_MANTISSA_BITS * 3));
   uvec3 mantissa = (uvec3(data) >> (RGB9E5_MANTISSA_BITS * uvec3(0, 1, 2))) &
                    uint(MAX_RGB9E5_MANTISSA);
-  return mantissa * rgb9e5_exponent_factor(exp_shared);
+  return vec3(mantissa) * rgb9e5_exponent_factor(exp_shared);
 }

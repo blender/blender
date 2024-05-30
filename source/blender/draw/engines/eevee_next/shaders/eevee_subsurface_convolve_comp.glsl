@@ -14,6 +14,7 @@
  */
 
 #pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_shared_exponent_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_rotation_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
@@ -146,7 +147,7 @@ void main(void)
   accum_radiance *= safe_rcp(accum_weight);
 
   /* Put result in direct diffuse. */
-  imageStore(out_direct_light_img, texel, vec4(accum_radiance, 0.0));
+  imageStore(out_direct_img, texel, uvec4(rgb9e5_encode(accum_radiance)));
   /* Clear the indirect pass since its content has been merged and convolved with direct light. */
-  imageStore(out_indirect_light_img, texel, vec4(0.0, 0.0, 0.0, 0.0));
+  imageStore(out_indirect_img, texel, vec4(0.0, 0.0, 0.0, 0.0));
 }

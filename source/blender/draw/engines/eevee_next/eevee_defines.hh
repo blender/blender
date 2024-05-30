@@ -125,7 +125,7 @@
 #define SHADOW_ROG_ID 0
 
 /* Deferred Lighting. */
-#define DEFERRED_RADIANCE_FORMAT GPU_R11F_G11F_B10F
+#define DEFERRED_RADIANCE_FORMAT GPU_R32UI
 #define DEFERRED_GBUFFER_ROG_ID 0
 
 /* Ray-tracing. */

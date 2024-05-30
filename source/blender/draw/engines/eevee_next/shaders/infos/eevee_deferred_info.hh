@@ -7,6 +7,8 @@
 
 #define image_out(slot, format, name) \
   image(slot, format, Qualifier::WRITE, ImageType::FLOAT_2D, name, Frequency::PASS)
+#define uimage_out(slot, format, name) \
+  image(slot, format, Qualifier::WRITE, ImageType::UINT_2D, name, Frequency::PASS)
 #define image_in(slot, format, name) \
   image(slot, format, Qualifier::READ, ImageType::FLOAT_2D, name, Frequency::PASS)
 #define image_array_out(slot, qualifier, format, name) \
@@ -54,13 +56,13 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light)
     .early_fragment_test(true)
     .fragment_out(0, Type::VEC4, "out_combined")
     /* Chaining to next pass. */
-    .image_out(2, DEFERRED_RADIANCE_FORMAT, "direct_radiance_1_img")
-    .image_out(3, DEFERRED_RADIANCE_FORMAT, "direct_radiance_2_img")
-    .image_out(4, DEFERRED_RADIANCE_FORMAT, "direct_radiance_3_img")
+    .uimage_out(2, DEFERRED_RADIANCE_FORMAT, "direct_radiance_1_img")
+    .uimage_out(3, DEFERRED_RADIANCE_FORMAT, "direct_radiance_2_img")
+    .uimage_out(4, DEFERRED_RADIANCE_FORMAT, "direct_radiance_3_img")
     /* Optimized out if use_split_indirect is false. */
-    .image_out(5, DEFERRED_RADIANCE_FORMAT, "indirect_radiance_1_img")
-    .image_out(6, DEFERRED_RADIANCE_FORMAT, "indirect_radiance_2_img")
-    .image_out(7, DEFERRED_RADIANCE_FORMAT, "indirect_radiance_3_img")
+    .image_out(5, RAYTRACE_RADIANCE_FORMAT, "indirect_radiance_1_img")
+    .image_out(6, RAYTRACE_RADIANCE_FORMAT, "indirect_radiance_2_img")
+    .image_out(7, RAYTRACE_RADIANCE_FORMAT, "indirect_radiance_3_img")
     .specialization_constant(Type::BOOL, "use_split_indirect", false)
     .specialization_constant(Type::BOOL, "use_lightprobe_eval", false)
     .specialization_constant(Type::BOOL, "use_transmission", false)
@@ -99,9 +101,9 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_combine)
     /* Early fragment test is needed to avoid processing fragments background fragments. */
     .early_fragment_test(true)
     /* Inputs. */
-    .sampler(2, ImageType::FLOAT_2D, "direct_radiance_1_tx")
-    .sampler(3, ImageType::FLOAT_2D, "direct_radiance_2_tx")
-    .sampler(4, ImageType::FLOAT_2D, "direct_radiance_3_tx")
+    .sampler(2, ImageType::UINT_2D, "direct_radiance_1_tx")
+    .sampler(3, ImageType::UINT_2D, "direct_radiance_2_tx")
+    .sampler(4, ImageType::UINT_2D, "direct_radiance_3_tx")
     .sampler(5, ImageType::FLOAT_2D, "indirect_radiance_1_tx")
     .sampler(6, ImageType::FLOAT_2D, "indirect_radiance_2_tx")
     .sampler(7, ImageType::FLOAT_2D, "indirect_radiance_3_tx")
