@@ -421,6 +421,12 @@ void extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
                                const MeshRenderData &mr,
                                gpu::VertBuf &vbo);
 
+void extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache, gpu::VertBuf &vbo);
+void extract_weights_subdiv(const MeshRenderData &mr,
+                            const DRWSubdivCache &subdiv_cache,
+                            const MeshBatchCache &cache,
+                            gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_fdots;
 extern const MeshExtract extract_lines_paint_mask;
 extern const MeshExtract extract_lines_adjacency;
@@ -432,7 +438,6 @@ extern const MeshExtract extract_uv;
 extern const MeshExtract extract_sculpt_data;
 extern const MeshExtract extract_orco;
 extern const MeshExtract extract_edge_fac;
-extern const MeshExtract extract_weights;
 extern const MeshExtract extract_edituv_data;
 extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;
