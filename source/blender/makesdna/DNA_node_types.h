@@ -539,8 +539,6 @@ enum {
 enum {
   /** Associated id data block has changed. */
   NODE_UPDATE_ID = 1,
-  /** Node update triggered from update operator */
-  NODE_UPDATE_OPERATOR = 2,
 };
 
 /**
