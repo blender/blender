@@ -41,7 +41,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
 
         BLI_assert(grid_element.displacement != nullptr);
         memcpy(grid_element.displacement,
-               CCG_grid_elem_co(&reshape_level_key, ccg_grid, x, y),
+               CCG_grid_elem_co(reshape_level_key, ccg_grid, x, y),
                sizeof(float[3]));
 
         /* NOTE: The sculpt mode might have SubdivCCG's data out of sync from what is stored in
@@ -67,7 +67,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
          * after a Memfile one to never be undone (see #83806). This might be the root cause of
          * this inconsistency. */
         if (reshape_level_key.has_mask && grid_element.mask != nullptr) {
-          *grid_element.mask = *CCG_grid_elem_mask(&reshape_level_key, ccg_grid, x, y);
+          *grid_element.mask = CCG_grid_elem_mask(reshape_level_key, ccg_grid, x, y);
         }
       }
     }

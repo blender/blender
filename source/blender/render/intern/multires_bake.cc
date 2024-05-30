@@ -654,17 +654,17 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 /* mode = 0: interpolate normals,
  * mode = 1: interpolate coord */
 static void interp_bilinear_grid(
-    CCGKey *key, CCGElem *grid, float crn_x, float crn_y, int mode, float res[3])
+    const CCGKey &key, CCGElem *grid, float crn_x, float crn_y, int mode, float res[3])
 {
   int x0, x1, y0, y1;
   float u, v;
   float data[4][3];
 
   x0 = int(crn_x);
-  x1 = x0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (x0 + 1);
+  x1 = x0 >= (key.grid_size - 1) ? (key.grid_size - 1) : (x0 + 1);
 
   y0 = int(crn_y);
-  y1 = y0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (y0 + 1);
+  y1 = y0 >= (key.grid_size - 1) ? (key.grid_size - 1) : (y0 + 1);
 
   u = crn_x - x0;
   v = crn_y - y0;
@@ -745,11 +745,11 @@ static void get_ccgdm_data(const blender::OffsetIndices<int> lores_polys,
   CLAMP(crn_y, 0.0f, grid_size);
 
   if (n != nullptr) {
-    interp_bilinear_grid(&key, grid_data[g_index + S], crn_x, crn_y, 0, n);
+    interp_bilinear_grid(key, grid_data[g_index + S], crn_x, crn_y, 0, n);
   }
 
   if (co != nullptr) {
-    interp_bilinear_grid(&key, grid_data[g_index + S], crn_x, crn_y, 1, co);
+    interp_bilinear_grid(key, grid_data[g_index + S], crn_x, crn_y, 1, co);
   }
 }
 

@@ -1207,7 +1207,7 @@ static void write_mask_data(SculptSession &ss, const Span<float> mask)
       for (const int grid : grids.index_range()) {
         CCGElem *elem = grids[grid];
         for (const int i : IndexRange(key.grid_area)) {
-          *CCG_elem_offset_mask(&key, elem, i) = mask[index];
+          CCG_elem_offset_mask(key, elem, i) = mask[index];
           index++;
         }
       }
@@ -2084,7 +2084,7 @@ static bool any_nonzero_mask(const Object &object)
       }
       return std::any_of(subdiv_ccg.grids.begin(), subdiv_ccg.grids.end(), [&](CCGElem *elem) {
         for (const int i : IndexRange(key.grid_area)) {
-          if (*CCG_elem_offset_mask(&key, elem, i) > 0.0f) {
+          if (CCG_elem_offset_mask(key, elem, i) > 0.0f) {
             return true;
           }
         }

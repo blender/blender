@@ -9,6 +9,7 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_math_vector_types.hh"
 
 struct CCGSubSurf;
 
@@ -51,65 +52,65 @@ struct CCGKey {
 void CCG_key(CCGKey *key, const CCGSubSurf *ss, int level);
 void CCG_key_top_level(CCGKey *key, const CCGSubSurf *ss);
 
-inline float *CCG_elem_co(const CCGKey * /*key*/, CCGElem *elem)
+inline blender::float3 &CCG_elem_co(const CCGKey & /*key*/, CCGElem *elem)
 {
-  return reinterpret_cast<float *>(elem);
+  return *reinterpret_cast<blender::float3 *>(elem);
 }
 
-inline float *CCG_elem_no(const CCGKey *key, CCGElem *elem)
+inline blender::float3 &CCG_elem_no(const CCGKey &key, CCGElem *elem)
 {
-  BLI_assert(key->has_normals);
-  return reinterpret_cast<float *>(reinterpret_cast<char *>(elem) + key->normal_offset);
+  BLI_assert(key.has_normals);
+  return *reinterpret_cast<blender::float3 *>(reinterpret_cast<char *>(elem) + key.normal_offset);
 }
 
-inline float *CCG_elem_mask(const CCGKey *key, CCGElem *elem)
+inline float &CCG_elem_mask(const CCGKey &key, CCGElem *elem)
 {
-  BLI_assert(key->has_mask);
-  return reinterpret_cast<float *>(reinterpret_cast<char *>(elem) + (key->mask_offset));
+  BLI_assert(key.has_mask);
+  return *reinterpret_cast<float *>(reinterpret_cast<char *>(elem) + (key.mask_offset));
 }
 
-inline CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset)
+inline CCGElem *CCG_elem_offset(const CCGKey &key, CCGElem *elem, int offset)
 {
-  return reinterpret_cast<CCGElem *>((reinterpret_cast<char *>(elem)) + key->elem_size * offset);
+  return reinterpret_cast<CCGElem *>((reinterpret_cast<char *>(elem)) + key.elem_size * offset);
 }
 
-inline CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y)
+inline CCGElem *CCG_grid_elem(const CCGKey &key, CCGElem *elem, int x, int y)
 {
-  //  BLI_assert(x < key->grid_size && y < key->grid_size);
-  return CCG_elem_offset(key, elem, (y * key->grid_size + x));
+  //  BLI_assert(x < key.grid_size && y < key.grid_size);
+  return CCG_elem_offset(key, elem, (y * key.grid_size + x));
 }
 
-inline float *CCG_grid_elem_co(const CCGKey *key, CCGElem *elem, int x, int y)
+inline blender::float3 &CCG_grid_elem_co(const CCGKey &key, CCGElem *elem, int x, int y)
 {
   return CCG_elem_co(key, CCG_grid_elem(key, elem, x, y));
 }
 
-inline float *CCG_grid_elem_no(const CCGKey *key, CCGElem *elem, int x, int y)
+inline blender::float3 &CCG_grid_elem_no(const CCGKey &key, CCGElem *elem, int x, int y)
 {
   return CCG_elem_no(key, CCG_grid_elem(key, elem, x, y));
 }
 
-inline float *CCG_grid_elem_mask(const CCGKey *key, CCGElem *elem, int x, int y)
+inline float &CCG_grid_elem_mask(const CCGKey &key, CCGElem *elem, int x, int y)
 {
   return CCG_elem_mask(key, CCG_grid_elem(key, elem, x, y));
 }
 
-inline float *CCG_elem_offset_co(const CCGKey *key, CCGElem *elem, int offset)
+inline blender::float3 &CCG_elem_offset_co(const CCGKey &key, CCGElem *elem, int offset)
 {
   return CCG_elem_co(key, CCG_elem_offset(key, elem, offset));
 }
 
-inline float *CCG_elem_offset_no(const CCGKey *key, CCGElem *elem, int offset)
+inline blender::float3 &CCG_elem_offset_no(const CCGKey &key, CCGElem *elem, int offset)
 {
   return CCG_elem_no(key, CCG_elem_offset(key, elem, offset));
 }
 
-inline float *CCG_elem_offset_mask(const CCGKey *key, CCGElem *elem, int offset)
+inline float &CCG_elem_offset_mask(const CCGKey &key, CCGElem *elem, int offset)
 {
   return CCG_elem_mask(key, CCG_elem_offset(key, elem, offset));
 }
 
-inline CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem)
+inline CCGElem *CCG_elem_next(const CCGKey &key, CCGElem *elem)
 {
   return CCG_elem_offset(key, elem, 1);
 }

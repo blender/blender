@@ -308,7 +308,7 @@ static CCGElem *subdiv_ccg_coord_to_elem(const CCGKey &key,
                                          const SubdivCCG &subdiv_ccg,
                                          const SubdivCCGCoord &coord)
 {
-  return CCG_grid_elem(&key, subdiv_ccg.grids[coord.grid_index], coord.x, coord.y);
+  return CCG_grid_elem(key, subdiv_ccg.grids[coord.grid_index], coord.x, coord.y);
 }
 
 /* Returns storage where boundary elements are to be stored. */
@@ -584,20 +584,18 @@ static void subdiv_ccg_recalc_inner_face_normals(const SubdivCCG &subdiv_ccg,
   for (int y = 0; y < grid_size - 1; y++) {
     for (int x = 0; x < grid_size - 1; x++) {
       CCGElem *grid_elements[4] = {
-          CCG_grid_elem(&key, grid, x, y + 1),
-          CCG_grid_elem(&key, grid, x + 1, y + 1),
-          CCG_grid_elem(&key, grid, x + 1, y),
-          CCG_grid_elem(&key, grid, x, y),
-      };
-      float *co[4] = {
-          CCG_elem_co(&key, grid_elements[0]),
-          CCG_elem_co(&key, grid_elements[1]),
-          CCG_elem_co(&key, grid_elements[2]),
-          CCG_elem_co(&key, grid_elements[3]),
+          CCG_grid_elem(key, grid, x, y + 1),
+          CCG_grid_elem(key, grid, x + 1, y + 1),
+          CCG_grid_elem(key, grid, x + 1, y),
+          CCG_grid_elem(key, grid, x, y),
       };
       const int face_index = y * grid_size_1 + x;
       float *face_normal = face_normals[face_index];
-      normal_quad_v3(face_normal, co[0], co[1], co[2], co[3]);
+      normal_quad_v3(face_normal,
+                     CCG_elem_co(key, grid_elements[0]),
+                     CCG_elem_co(key, grid_elements[1]),
+                     CCG_elem_co(key, grid_elements[2]),
+                     CCG_elem_co(key, grid_elements[3]));
     }
   }
 }
@@ -635,7 +633,7 @@ static void subdiv_ccg_average_inner_face_normals(const SubdivCCG &subdiv_ccg,
         counter++;
       }
       /* Normalize and store. */
-      mul_v3_v3fl(CCG_grid_elem_no(&key, grid, x, y), normal_acc, 1.0f / counter);
+      mul_v3_v3fl(CCG_grid_elem_no(key, grid, x, y), normal_acc, 1.0f / counter);
     }
   }
 }
@@ -720,24 +718,23 @@ static void average_grid_element(const SubdivCCG &subdiv_ccg,
                                  CCGElem *grid_element_a,
                                  CCGElem *grid_element_b)
 {
-  average_grid_element_value_v3(CCG_elem_co(&key, grid_element_a),
-                                CCG_elem_co(&key, grid_element_b));
+  average_grid_element_value_v3(CCG_elem_co(key, grid_element_a),
+                                CCG_elem_co(key, grid_element_b));
   if (subdiv_ccg.has_normal) {
-    average_grid_element_value_v3(CCG_elem_no(&key, grid_element_a),
-                                  CCG_elem_no(&key, grid_element_b));
+    average_grid_element_value_v3(CCG_elem_no(key, grid_element_a),
+                                  CCG_elem_no(key, grid_element_b));
   }
   if (subdiv_ccg.has_mask) {
-    float mask = (*CCG_elem_mask(&key, grid_element_a) + *CCG_elem_mask(&key, grid_element_b)) *
-                 0.5f;
-    *CCG_elem_mask(&key, grid_element_a) = mask;
-    *CCG_elem_mask(&key, grid_element_b) = mask;
+    float mask = (CCG_elem_mask(key, grid_element_a) + CCG_elem_mask(key, grid_element_b)) * 0.5f;
+    CCG_elem_mask(key, grid_element_a) = mask;
+    CCG_elem_mask(key, grid_element_b) = mask;
   }
 }
 
 /* Accumulator to hold data during averaging. */
 struct GridElementAccumulator {
-  float co[3];
-  float no[3];
+  float3 co;
+  float3 no;
   float mask;
 };
 
@@ -753,12 +750,12 @@ static void element_accumulator_add(GridElementAccumulator &accumulator,
                                     const CCGKey &key,
                                     /*const*/ CCGElem &grid_element)
 {
-  add_v3_v3(accumulator.co, CCG_elem_co(&key, &grid_element));
+  accumulator.co += CCG_elem_co(key, &grid_element);
   if (subdiv_ccg.has_normal) {
-    add_v3_v3(accumulator.no, CCG_elem_no(&key, &grid_element));
+    accumulator.no += CCG_elem_no(key, &grid_element);
   }
   if (subdiv_ccg.has_mask) {
-    accumulator.mask += *CCG_elem_mask(&key, &grid_element);
+    accumulator.mask += CCG_elem_mask(key, &grid_element);
   }
 }
 
@@ -774,12 +771,12 @@ static void element_accumulator_copy(const SubdivCCG &subdiv_ccg,
                                      CCGElem &destination,
                                      const GridElementAccumulator &accumulator)
 {
-  copy_v3_v3(CCG_elem_co(&key, &destination), accumulator.co);
+  CCG_elem_co(key, &destination) = accumulator.co;
   if (subdiv_ccg.has_normal) {
-    copy_v3_v3(CCG_elem_no(&key, &destination), accumulator.no);
+    CCG_elem_no(key, &destination) = accumulator.no;
   }
   if (subdiv_ccg.has_mask) {
-    *CCG_elem_mask(&key, &destination) = accumulator.mask;
+    CCG_elem_mask(key, &destination) = accumulator.mask;
   }
 }
 
@@ -795,8 +792,8 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG &subdiv_ccg,
   for (int corner = 0; corner < num_face_grids; corner++) {
     CCGElem *grid = grids[face.start() + corner];
     for (int i = 1; i < grid_size; i++) {
-      CCGElem *prev_grid_element = CCG_grid_elem(&key, prev_grid, i, 0);
-      CCGElem *grid_element = CCG_grid_elem(&key, grid, 0, i);
+      CCGElem *prev_grid_element = CCG_grid_elem(key, prev_grid, i, 0);
+      CCGElem *grid_element = CCG_grid_elem(key, grid, 0, i);
       average_grid_element(subdiv_ccg, key, prev_grid_element, grid_element);
     }
     prev_grid = grid;
@@ -807,13 +804,13 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG &subdiv_ccg,
   element_accumulator_init(center_accumulator);
   for (int corner = 0; corner < num_face_grids; corner++) {
     CCGElem *grid = grids[face.start() + corner];
-    CCGElem *grid_center_element = CCG_grid_elem(&key, grid, 0, 0);
+    CCGElem *grid_center_element = CCG_grid_elem(key, grid, 0, 0);
     element_accumulator_add(center_accumulator, subdiv_ccg, key, *grid_center_element);
   }
   element_accumulator_mul_fl(center_accumulator, 1.0f / num_face_grids);
   for (int corner = 0; corner < num_face_grids; corner++) {
     CCGElem *grid = grids[face.start() + corner];
-    CCGElem *grid_center_element = CCG_grid_elem(&key, grid, 0, 0);
+    CCGElem *grid_center_element = CCG_grid_elem(key, grid, 0, 0);
     element_accumulator_copy(subdiv_ccg, key, *grid_center_element, center_accumulator);
   }
 }

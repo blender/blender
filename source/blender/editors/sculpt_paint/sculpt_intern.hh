@@ -830,7 +830,7 @@ inline void SCULPT_mask_vert_set(const PBVHType type,
       BM_ELEM_CD_SET_FLOAT(vd.bm_vert, mask_write.bm_offset, value);
       break;
     case PBVH_GRIDS:
-      *CCG_elem_mask(&vd.key, vd.grid) = value;
+      CCG_elem_mask(vd.key, vd.grid) = value;
       break;
   }
 }

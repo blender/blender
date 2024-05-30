@@ -191,7 +191,7 @@ const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex)
       const int grid_index = vertex.i / key->grid_area;
       const int index_in_grid = vertex.i - grid_index * key->grid_area;
       CCGElem *elem = ss.subdiv_ccg->grids[grid_index];
-      return CCG_elem_co(key, CCG_elem_offset(key, elem, index_in_grid));
+      return CCG_elem_co(*key, CCG_elem_offset(*key, elem, index_in_grid));
     }
   }
   return nullptr;
@@ -246,7 +246,7 @@ const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVert
       const int grid_index = vertex.i / key->grid_area;
       const int index_in_grid = vertex.i - grid_index * key->grid_area;
       CCGElem *elem = ss.subdiv_ccg->grids[grid_index];
-      return CCG_elem_no(key, CCG_elem_offset(key, elem, index_in_grid));
+      return CCG_elem_no(*key, CCG_elem_offset(*key, elem, index_in_grid));
     }
   }
   BLI_assert_unreachable();
@@ -321,7 +321,7 @@ float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
   const int grid_index = vert_index / key.grid_area;
   const int index_in_grid = vert_index - grid_index * key.grid_area;
   CCGElem *elem = subdiv_ccg.grids[grid_index];
-  return *CCG_elem_offset_mask(&key, elem, index_in_grid);
+  return CCG_elem_offset_mask(key, elem, index_in_grid);
 }
 
 PBVHVertRef SCULPT_active_vertex_get(const SculptSession &ss)
@@ -1326,7 +1326,7 @@ static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
               CCGElem *elem = grids[grid];
               for (const int i : IndexRange(key.grid_area)) {
                 if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
-                  *CCG_elem_offset_mask(&key, elem, i) = unode->mask[index];
+                  CCG_elem_offset_mask(key, elem, i) = unode->mask[index];
                 }
                 index++;
               }
@@ -1452,7 +1452,7 @@ static void restore_position(Object &object, const Span<PBVHNode *> nodes)
               CCGElem *elem = grids[grid];
               for (const int i : IndexRange(key.grid_area)) {
                 if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
-                  copy_v3_v3(CCG_elem_offset_co(&key, elem, i), unode->position[index]);
+                  CCG_elem_offset_co(key, elem, i) = unode->position[index];
                 }
                 index++;
               }

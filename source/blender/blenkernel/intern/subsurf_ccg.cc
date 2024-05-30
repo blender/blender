@@ -672,7 +672,7 @@ static int ccgDM_getNumLoops(DerivedMesh *dm)
 /* utility function */
 BLI_INLINE void ccgDM_to_MVert(float mv[3], const CCGKey *key, CCGElem *elem)
 {
-  copy_v3_v3(mv, CCG_elem_co(key, elem));
+  copy_v3_v3(mv, CCG_elem_co(*key, elem));
 }
 
 static void ccgDM_copyFinalVertArray(DerivedMesh *dm, float (*r_positions)[3])

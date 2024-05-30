@@ -594,8 +594,8 @@ static void multires_copy_dm_grid(CCGElem *gridA, CCGElem *gridB, CCGKey *keyA, 
 
     for (j = 0, y = 0; y < keyB->grid_size; y++) {
       for (x = 0; x < keyB->grid_size; x++, j++) {
-        memcpy(CCG_elem_offset_co(keyA, gridA, y * skip * keyA->grid_size + x * skip),
-               CCG_elem_offset_co(keyB, gridB, j),
+        memcpy(CCG_elem_offset_co(*keyA, gridA, y * skip * keyA->grid_size + x * skip),
+               CCG_elem_offset_co(*keyB, gridB, j),
                keyA->elem_size);
       }
     }
@@ -605,8 +605,8 @@ static void multires_copy_dm_grid(CCGElem *gridA, CCGElem *gridB, CCGKey *keyA, 
 
     for (j = 0, y = 0; y < keyA->grid_size; y++) {
       for (x = 0; x < keyA->grid_size; x++, j++) {
-        memcpy(CCG_elem_offset_co(keyA, gridA, j),
-               CCG_elem_offset_co(keyB, gridB, y * skip * keyB->grid_size + x * skip),
+        memcpy(CCG_elem_offset_co(*keyA, gridA, j),
+               CCG_elem_offset_co(*keyB, gridB, y * skip * keyB->grid_size + x * skip),
                keyA->elem_size);
       }
     }
@@ -785,11 +785,11 @@ static DerivedMesh *subsurf_dm_create_local(Scene *scene,
   return subsurf_make_derived_from_derived(dm, &smd, scene, nullptr, flags);
 }
 
-static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *grid, float t[3])
+static void grid_tangent(const CCGKey &key, int x, int y, int axis, CCGElem *grid, float t[3])
 {
   if (axis == 0) {
-    if (x == key->grid_size - 1) {
-      if (y == key->grid_size - 1) {
+    if (x == key.grid_size - 1) {
+      if (y == key.grid_size - 1) {
         sub_v3_v3v3(
             t, CCG_grid_elem_co(key, grid, x, y - 1), CCG_grid_elem_co(key, grid, x - 1, y - 1));
       }
@@ -802,8 +802,8 @@ static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *gri
     }
   }
   else if (axis == 1) {
-    if (y == key->grid_size - 1) {
-      if (x == key->grid_size - 1) {
+    if (y == key.grid_size - 1) {
+      if (x == key.grid_size - 1) {
         sub_v3_v3v3(
             t, CCG_grid_elem_co(key, grid, x - 1, y), CCG_grid_elem_co(key, grid, x - 1, (y - 1)));
       }
@@ -818,7 +818,7 @@ static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *gri
 }
 
 /* Construct 3x3 tangent-space matrix in 'mat' */
-static void grid_tangent_matrix(float mat[3][3], const CCGKey *key, int x, int y, CCGElem *grid)
+static void grid_tangent_matrix(float mat[3][3], const CCGKey &key, int x, int y, CCGElem *grid)
 {
   grid_tangent(key, x, y, 0, grid, mat[0]);
   normalize_v3(mat[0]);
@@ -851,7 +851,7 @@ static void multires_disp_run_cb(void *__restrict userdata,
   DispOp op = tdata->op;
   CCGElem **gridData = tdata->gridData;
   CCGElem **subGridData = tdata->subGridData;
-  CCGKey *key = tdata->key;
+  CCGKey key = *tdata->key;
   blender::OffsetIndices<int> faces = tdata->faces;
   MDisps *mdisps = tdata->mdisps;
   GridPaintMask *grid_paint_mask = tdata->grid_paint_mask;
@@ -873,13 +873,13 @@ static void multires_disp_run_cb(void *__restrict userdata,
     dispgrid = mdisp->disps;
 
     /* if needed, reallocate multires paint mask */
-    if (gpm && gpm->level < key->level) {
-      gpm->level = key->level;
+    if (gpm && gpm->level < key.level) {
+      gpm->level = key.level;
       if (gpm->data) {
         MEM_freeN(gpm->data);
       }
       gpm->data = static_cast<float *>(
-          MEM_calloc_arrayN(key->grid_area, sizeof(float), "gpm.data"));
+          MEM_calloc_arrayN(key.grid_area, sizeof(float), "gpm.data"));
     }
 
     for (y = 0; y < gridSize; y++) {
@@ -919,16 +919,16 @@ static void multires_disp_run_cb(void *__restrict userdata,
           switch (op) {
             case APPLY_DISPLACEMENTS:
               /* Copy mask from gpm to DM */
-              *CCG_grid_elem_mask(key, grid, x, y) = paint_grid_paint_mask(gpm, key->level, x, y);
+              CCG_grid_elem_mask(key, grid, x, y) = paint_grid_paint_mask(gpm, key.level, x, y);
               break;
             case CALC_DISPLACEMENTS:
               /* Copy mask from DM to gpm */
-              mask = *CCG_grid_elem_mask(key, grid, x, y);
+              mask = CCG_grid_elem_mask(key, grid, x, y);
               gpm->data[y * gridSize + x] = std::clamp(mask, 0.0f, 1.0f);
               break;
             case ADD_DISPLACEMENTS:
               /* Add mask displacement to gpm */
-              gpm->data[y * gridSize + x] += *CCG_grid_elem_mask(key, grid, x, y);
+              gpm->data[y * gridSize + x] += CCG_grid_elem_mask(key, grid, x, y);
               break;
           }
         }
@@ -1102,9 +1102,9 @@ void multires_modifier_update_mdisps(DerivedMesh *dm, Scene *scene)
 
         /* write difference of subsurf and displaced low level into high subsurf */
         for (j = 0; j < lowGridSize * lowGridSize; j++) {
-          sub_v4_v4v4(CCG_elem_offset_co(&lowGridKey, diffGrid, j),
-                      CCG_elem_offset_co(&lowGridKey, gridData[i], j),
-                      CCG_elem_offset_co(&lowGridKey, lowGridData[i], j));
+          sub_v4_v4v4(CCG_elem_offset_co(lowGridKey, diffGrid, j),
+                      CCG_elem_offset_co(lowGridKey, gridData[i], j),
+                      CCG_elem_offset_co(lowGridKey, lowGridData[i], j));
         }
 
         multires_copy_dm_grid(highGridData[i], diffGrid, &highGridKey, &lowGridKey);

@@ -103,7 +103,7 @@ void update_node_bounds_grids(const CCGKey &key, const Span<CCGElem *> grids, PB
   Bounds<float3> bounds = negative_bounds();
   for (const int grid : node.prim_indices) {
     for (const int i : IndexRange(key.grid_area)) {
-      math::min_max(float3(CCG_elem_offset_co(&key, grids[grid], i)), bounds.min, bounds.max);
+      math::min_max(float3(CCG_elem_offset_co(key, grids[grid], i)), bounds.min, bounds.max);
     }
   }
   node.vb = bounds;
@@ -824,7 +824,7 @@ std::unique_ptr<PBVH> build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subd
           CCGElem *grid = grids[i];
           prim_bounds[i] = negative_bounds();
           for (const int j : IndexRange(key->grid_area)) {
-            const float3 position = float3(CCG_elem_offset_co(key, grid, j));
+            const float3 &position = CCG_elem_offset_co(*key, grid, j);
             math::min_max(position, prim_bounds[i].min, prim_bounds[i].max);
           }
           const float3 center = math::midpoint(prim_bounds[i].min, prim_bounds[i].max);
@@ -1415,7 +1415,7 @@ void node_update_mask_grids(const CCGKey &key, const Span<CCGElem *> grids, PBVH
   for (const int grid : node.prim_indices) {
     CCGElem *elem = grids[grid];
     for (const int i : IndexRange(key.grid_area)) {
-      const float mask = *CCG_elem_offset_mask(&key, elem, i);
+      const float mask = CCG_elem_offset_mask(key, elem, i);
       fully_masked &= mask == 1.0f;
       fully_unmasked &= mask <= 0.0f;
     }
@@ -2113,7 +2113,7 @@ static bool pbvh_grids_node_raycast(PBVH &pbvh,
   const int gridsize = pbvh.gridkey.grid_size;
   bool hit = false;
   float nearest_vertex_co[3] = {0.0};
-  const CCGKey *gridkey = &pbvh.gridkey;
+  const CCGKey &gridkey = pbvh.gridkey;
   const BitGroupVector<> &grid_hidden = pbvh.subdiv_ccg->grid_hidden;
   const Span<CCGElem *> grids = pbvh.subdiv_ccg->grids;
 
@@ -2172,8 +2172,8 @@ static bool pbvh_grids_node_raycast(PBVH &pbvh,
               {
                 copy_v3_v3(nearest_vertex_co, co[j]);
 
-                r_active_vertex->i = gridkey->grid_area * grid_index +
-                                     (y + y_it[j]) * gridkey->grid_size + (x + x_it[j]);
+                r_active_vertex->i = gridkey.grid_area * grid_index +
+                                     (y + y_it[j]) * gridkey.grid_size + (x + x_it[j]);
               }
             }
           }
@@ -2477,10 +2477,10 @@ static bool pbvh_grids_node_nearest_to_ray(PBVH &pbvh,
         else {
           hit |= ray_face_nearest_quad(ray_start,
                                        ray_normal,
-                                       CCG_grid_elem_co(&pbvh.gridkey, grid, x, y),
-                                       CCG_grid_elem_co(&pbvh.gridkey, grid, x + 1, y),
-                                       CCG_grid_elem_co(&pbvh.gridkey, grid, x + 1, y + 1),
-                                       CCG_grid_elem_co(&pbvh.gridkey, grid, x, y + 1),
+                                       CCG_grid_elem_co(pbvh.gridkey, grid, x, y),
+                                       CCG_grid_elem_co(pbvh.gridkey, grid, x + 1, y),
+                                       CCG_grid_elem_co(pbvh.gridkey, grid, x + 1, y + 1),
+                                       CCG_grid_elem_co(pbvh.gridkey, grid, x, y + 1),
                                        depth,
                                        dist_sq);
         }

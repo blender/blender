@@ -75,7 +75,7 @@ Array<float> duplicate_mask(const Object &object)
       for (const int grid : grids.index_range()) {
         CCGElem *elem = grids[grid];
         for (const int i : IndexRange(key.grid_area)) {
-          result[index] = *CCG_elem_offset_mask(&key, elem, i);
+          result[index] = CCG_elem_offset_mask(key, elem, i);
           index++;
         }
       }
@@ -284,7 +284,7 @@ static void fill_mask_grids(Main &bmain,
       if (std::all_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
             CCGElem *elem = grids[grid];
             for (const int i : IndexRange(key.grid_area)) {
-              if (*CCG_elem_offset_mask(&key, elem, i) != value) {
+              if (CCG_elem_offset_mask(key, elem, i) != value) {
                 return false;
               }
             }
@@ -299,16 +299,15 @@ static void fill_mask_grids(Main &bmain,
         for (const int grid : grid_indices) {
           CCGElem *elem = grids[grid];
           for (const int i : IndexRange(key.grid_area)) {
-            *CCG_elem_offset_mask(&key, elem, i) = value;
+            CCG_elem_offset_mask(key, elem, i) = value;
           }
         }
       }
       else {
         for (const int grid : grid_indices) {
           CCGElem *elem = grids[grid];
-          bits::foreach_0_index(grid_hidden[grid], [&](const int i) {
-            *CCG_elem_offset_mask(&key, elem, i) = value;
-          });
+          bits::foreach_0_index(grid_hidden[grid],
+                                [&](const int i) { CCG_elem_offset_mask(key, elem, i) = value; });
         }
       }
       BKE_pbvh_node_mark_redraw(node);
@@ -424,7 +423,7 @@ static void invert_mask_grids(Main &bmain,
         for (const int grid : grid_indices) {
           CCGElem *elem = grids[grid];
           for (const int i : IndexRange(key.grid_area)) {
-            *CCG_elem_offset_mask(&key, elem, i) = 1.0f - *CCG_elem_offset_mask(&key, elem, i);
+            CCG_elem_offset_mask(key, elem, i) = 1.0f - CCG_elem_offset_mask(key, elem, i);
           }
         }
       }
@@ -432,7 +431,7 @@ static void invert_mask_grids(Main &bmain,
         for (const int grid : grid_indices) {
           CCGElem *elem = grids[grid];
           bits::foreach_0_index(grid_hidden[grid], [&](const int i) {
-            *CCG_elem_offset_mask(&key, elem, i) = 1.0f - *CCG_elem_offset_mask(&key, elem, i);
+            CCG_elem_offset_mask(key, elem, i) = 1.0f - CCG_elem_offset_mask(key, elem, i);
           });
         }
       }
