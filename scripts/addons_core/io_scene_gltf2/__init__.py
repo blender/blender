@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 40),
+    "version": (4, 2, 41),
     'blender': (4, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -60,8 +60,8 @@ from bpy_extras.io_utils import ImportHelper, ExportHelper, poll_file_object_dro
 #  Functions / Classes.
 #
 
-exporter_extension_panel_unregister_functors = []
-importer_extension_panel_unregister_functors = []
+exporter_extension_layout_draw = {}
+importer_extension_layout_draw = {}
 
 
 def ensure_filepath_matches_export_format(filepath, export_format):
@@ -991,11 +991,11 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
                         'glTF2ExportUserExtension') or hasattr(
                         sys.modules[addon_name],
                         'glTF2ExportUserExtensions'):
-                    exporter_extension_panel_unregister_functors.append(sys.modules[addon_name].register_panel())
+                    exporter_extension_layout_draw[addon_name] = sys.modules[addon_name].draw
             except Exception:
                 pass
 
-        self.has_active_exporter_extensions = len(exporter_extension_panel_unregister_functors) > 0
+        self.has_active_exporter_extensions = len(exporter_extension_layout_draw.keys()) > 0
         return ExportHelper.invoke(self, context, event)
 
     def save_settings(self, context):
@@ -1297,6 +1297,8 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         gltfpack_path = context.preferences.addons['io_scene_gltf2'].preferences.gltfpack_path_ui.strip()
         if gltfpack_path != '':
             export_panel_gltfpack(layout, operator)
+
+        export_panel_user_extension(context, layout)
 
 
 def export_main(layout, operator, is_file_browser):
@@ -1681,6 +1683,11 @@ def export_panel_gltfpack(layout, operator):
         col.prop(operator, 'export_gltfpack_noq')
 
 
+def export_panel_user_extension(context, layout):
+    for draw in exporter_extension_layout_draw.values():
+        draw(context, layout)
+
+
 class ExportGLTF2(bpy.types.Operator, ExportGLTF2_Base, ExportHelper):
     """Export scene as glTF 2.0 file"""
     bl_idname = 'export_scene.gltf'
@@ -1791,6 +1798,8 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         layout.prop(self, 'export_import_convert_lighting_mode')
         layout.prop(self, 'import_webp_texture')
 
+        import_panel_user_extension(context, layout)
+
     def invoke(self, context, event):
         import sys
         preferences = bpy.context.preferences
@@ -1801,11 +1810,11 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
                         'glTF2ImportUserExtension') or hasattr(
                         sys.modules[addon_name],
                         'glTF2ImportUserExtensions'):
-                    importer_extension_panel_unregister_functors.append(sys.modules[addon_name].register_panel())
+                    importer_extension_layout_draw[addon_name] = sys.modules[addon_name].draw
             except Exception:
                 pass
 
-        self.has_active_importer_extensions = len(importer_extension_panel_unregister_functors) > 0
+        self.has_active_importer_extensions = len(importer_extension_layout_draw.keys()) > 0
         return ImportHelper.invoke_popup(self, context)
 
     def execute(self, context):
@@ -1885,6 +1894,11 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
             self.loglevel = logging.CRITICAL
         elif bpy.app.debug_value == 4:
             self.loglevel = logging.DEBUG
+
+
+def import_panel_user_extension(context, layout):
+    for draw in importer_extension_layout_draw.values():
+        draw(context, layout)
 
 
 class GLTF2_filter_action(bpy.types.PropertyGroup):
@@ -2010,13 +2024,6 @@ def unregister():
 
     for c in classes:
         bpy.utils.unregister_class(c)
-    for f in exporter_extension_panel_unregister_functors:
-        f()
-    exporter_extension_panel_unregister_functors.clear()
-
-    for f in importer_extension_panel_unregister_functors:
-        f()
-    importer_extension_panel_unregister_functors.clear()
 
     # bpy.utils.unregister_module(__name__)
 
