@@ -450,7 +450,7 @@ struct FillBoundary {
  * This is a Blender customized version of the general algorithm described
  * in https://en.wikipedia.org/wiki/Moore_neighborhood
  */
-static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer)
+static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer, bool include_holes)
 {
   using BoundarySection = std::list<int>;
   using BoundaryStartMap = Map<int, BoundarySection>;
@@ -475,6 +475,11 @@ static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer)
         if (!filled_left && filled_right && !border_right) {
           /* Empty index list indicates uninitialized section. */
           starts.add(index_right, {});
+          /* First filled pixel on the line is in the outer boundary.
+           * Pixels further to the right are part of holes and can be disregarded. */
+          if (!include_holes) {
+            break;
+          }
         }
       }
     }
@@ -725,7 +730,10 @@ static bke::CurvesGeometry process_image(Image &ima,
     erode(buffer, -dilate_pixels);
   }
 
-  const FillBoundary boundary = build_fill_boundary(buffer);
+  /* In regular mode create only the outline of the filled area.
+   * In inverted mode create a boundary for every filled area. */
+  const bool fill_holes = invert;
+  const FillBoundary boundary = build_fill_boundary(buffer, fill_holes);
 
   return boundary_to_curves(scene,
                             view_context,
