@@ -455,6 +455,7 @@ def update_non_blocking(*, repos, do_online_sync):
     """
     # TODO: it's possible this preferences requests updates just after check-for-updates on startup.
     # The checks should be de-duplicated. For now just ensure the checks don't interfere with each other.
+    assert bool(repos), "Unexpected empty repository list passed in"
     _notify_queue.append(NotifyHandle(repos, do_online_sync))
     if not bpy.app.timers.is_registered(_ui_refresh_timer):
         bpy.app.timers.register(_ui_refresh_timer, first_interval=TIME_WAIT_INIT)
