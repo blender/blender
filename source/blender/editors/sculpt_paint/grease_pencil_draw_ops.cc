@@ -699,7 +699,7 @@ static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
   return drawings;
 }
 
-void smooth_fill_strokes(bke::CurvesGeometry &curves, const IndexMask &stroke_mask)
+static void smooth_fill_strokes(bke::CurvesGeometry &curves, const IndexMask &stroke_mask)
 {
   const int iterations = 20;
   if (curves.points_num() == 0) {
