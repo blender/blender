@@ -10,9 +10,6 @@ __all__ = (
     "update_non_blocking",
     "update_in_progress",
     "update_ui_text",
-
-    "register",
-    "unregister",
 )
 
 
@@ -31,45 +28,20 @@ USE_GRACEFUL_EXIT = False
 # Special value to signal no packages can be updated because all repositories are blocked by being offline.
 STATE_DATA_ALL_OFFLINE = object()
 
+WM_EXTENSIONS_CHECKING = -1
+
 
 # -----------------------------------------------------------------------------
 # Internal Utilities
 
 def sync_status_count_outdated_extensions(repos_notify):
-    from . import repo_cache_store
-
-    repos_notify_directories = [repo_item.directory for repo_item in repos_notify]
+    from . import repo_stats_calc_outdated_for_repo_directory
 
     package_count = 0
 
-    for (
-            pkg_manifest_remote,
-            pkg_manifest_local,
-    ) in zip(
-        repo_cache_store.pkg_manifest_from_remote_ensure(
-            error_fn=print,
-            directory_subset=repos_notify_directories,
-        ),
-        repo_cache_store.pkg_manifest_from_local_ensure(
-            error_fn=print,
-            directory_subset=repos_notify_directories,
-            # Needed as these have been updated.
-            check_files=True,
-        ),
-    ):
-        if pkg_manifest_remote is None:
-            continue
-        if pkg_manifest_local is None:
-            continue
+    for repo_item in repos_notify:
+        package_count += repo_stats_calc_outdated_for_repo_directory(repo_item.directory)
 
-        for pkg_id, item_remote in pkg_manifest_remote.items():
-            item_local = pkg_manifest_local.get(pkg_id)
-            if item_local is None:
-                # Not installed.
-                continue
-
-            if item_remote["version"] != item_local["version"]:
-                package_count += 1
     return package_count
 
 
@@ -359,8 +331,9 @@ class NotifyHandle:
 
     def run_ensure(self):
         if self.is_running():
-            return
+            return False
         self.run()
+        return True
 
     def run_step(self):
         assert self._sync_generator is not None
@@ -374,9 +347,15 @@ class NotifyHandle:
     def is_running(self):
         return self._sync_generator is not None
 
+    def updates_count(self):
+        if self.sync_info is None:
+            return WM_EXTENSIONS_CHECKING
+        _status_data, update_count, _extra_warnings = self.sync_info
+        return update_count
+
     def ui_text(self):
         if self.sync_info is None:
-            return "Checking for Extension Updates", 'NONE', 0
+            return "Checking for Extension Updates", 'NONE', WM_EXTENSIONS_CHECKING
         status_data, update_count, extra_warnings = self.sync_info
         do_online_sync = self.do_online_sync
         text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(
@@ -431,8 +410,10 @@ def _ui_refresh_timer():
     if not _notify_queue:
         return None
 
+    wm = bpy.context.window_manager
     notify = _notify_queue[0]
-    notify.run_ensure()
+    if notify.run_ensure():
+        wm.extensions_updates = WM_EXTENSIONS_CHECKING
 
     default_wait = TIME_WAIT_STEP
 
@@ -457,31 +438,11 @@ def _ui_refresh_timer():
     # TODO: redraw the status bar.
     _ui_refresh_apply(notify=notify)
 
+    update_count = notify.updates_count()
+    if update_count != wm.extensions_updates:
+        wm.extensions_updates = update_count
+
     return default_wait
-
-
-def splash_draw_status_fn(self, context):
-    assert bool(_notify_queue), "Never empty"
-    notify = _notify_queue[0]
-
-    if notify.splash_region is None:
-        notify.splash_region = context.region_popup
-
-    if not bpy.app.online_access:
-        if bpy.app.online_access_override:
-            # Since there is nothing to do in this case, we show no operator.
-            # The splash screen shows text here.
-            pass
-    else:
-        text, icon, update_count = notify.ui_text()
-        row = self.layout.row(align=True)
-        if update_count > 0:
-            row.operator("extensions.userpref_show_for_update", text=text, icon=icon)
-        else:
-            row.label(text=text, icon=icon)
-
-    self.layout.separator()
-    self.layout.separator()
 
 
 # -----------------------------------------------------------------------------
@@ -515,11 +476,3 @@ def update_ui_text():
         text = ""
         icon = 'NONE'
     return text, icon
-
-
-def register():
-    bpy.types.WM_MT_splash.append(splash_draw_status_fn)
-
-
-def unregister():
-    bpy.types.WM_MT_splash.remove(splash_draw_status_fn)

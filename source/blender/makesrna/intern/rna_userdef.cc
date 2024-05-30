@@ -5412,6 +5412,12 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "statusbar_flag", STATUSBAR_SHOW_SCENE_DURATION);
   RNA_def_property_ui_text(prop, "Show Scene Duration", "Show scene duration");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_INFO, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "show_extensions_updates", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "statusbar_flag", STATUSBAR_SHOW_EXTENSIONS_UPDATES);
+  RNA_def_property_ui_text(prop, "Extensions Updates", "Show Extensions Update Count");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_INFO, "rna_userdef_update");
 }
 
 static void rna_def_userdef_edit(BlenderRNA *brna)

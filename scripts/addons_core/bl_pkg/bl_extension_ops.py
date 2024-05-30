@@ -41,8 +41,9 @@ from . import (
 )  # noqa: E402
 
 from . import (
-    repo_status_text,
     cookie_from_session,
+    repo_status_text,
+    repo_stats_calc,
 )
 
 from .bl_extension_utils import (
@@ -1058,6 +1059,8 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
         del self.repo_lock
 
+        repo_stats_calc()
+
         _preferences_ui_redraw()
 
 
@@ -1152,6 +1155,8 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
         # Unlock repositories.
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
         del self.repo_lock
+
+        repo_stats_calc()
 
         _preferences_ui_redraw()
 
@@ -1303,6 +1308,8 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 error_fn=self.error_fn_from_exception,
             )
 
+        repo_stats_calc()
+
         # TODO: it would be nice to include this message in the banner.
         def handle_error(ex):
             self.report({'ERROR'}, str(ex))
@@ -1403,6 +1410,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
             )
 
         _extensions_repo_sync_wheels(repo_cache_store)
+        repo_stats_calc()
 
         # TODO: it would be nice to include this message in the banner.
         def handle_error(ex):
@@ -1518,6 +1526,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
             )
 
         _extensions_repo_sync_wheels(repo_cache_store)
+        repo_stats_calc()
 
         _preferences_theme_state_restore(self._theme_restore)
 
@@ -1687,6 +1696,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         )
 
         _extensions_repo_sync_wheels(repo_cache_store)
+        repo_stats_calc()
 
         # TODO: it would be nice to include this message in the banner.
 
@@ -1900,6 +1910,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         )
 
         _extensions_repo_sync_wheels(repo_cache_store)
+        repo_stats_calc()
 
         # TODO: it would be nice to include this message in the banner.
         def handle_error(ex):
@@ -2072,6 +2083,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
         )
 
         _extensions_repo_sync_wheels(repo_cache_store)
+        repo_stats_calc()
 
         _preferences_theme_state_restore(self._theme_restore)
 
@@ -2281,6 +2293,9 @@ class EXTENSIONS_OT_package_obselete_marked(Operator):
                     directory=directory,
                     error_fn=print,
                 )
+
+            repo_stats_calc()
+
             _preferences_ui_redraw()
 
         return {'FINISHED'}
