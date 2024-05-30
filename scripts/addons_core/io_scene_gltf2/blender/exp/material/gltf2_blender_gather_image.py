@@ -12,7 +12,7 @@ from ....io.exp import gltf2_io_binary_data, gltf2_io_image_data
 from ....io.com import gltf2_io_debug
 from ....io.exp.gltf2_io_user_extensions import export_user_extensions
 from ..gltf2_blender_gather_cache import cached
-from .extensions.gltf2_blender_image import Channel, ExportImage, FillImage, FillImageTile
+from .extensions.gltf2_blender_image import Channel, ExportImage, FillImage, FillImageTile, FillImageRGB2BW
 from .gltf2_blender_search_node_tree import get_texture_node_from_socket, detect_anisotropy_nodes
 
 
@@ -167,7 +167,7 @@ def __gather_name(export_image, use_tile, export_settings):
 
         imgs = []
         for fill in export_image.fills.values():
-            if isinstance(fill, FillCheck):
+            if isinstance(fill, FillCheck) or isinstance(fill, FillImageRGB2BW):
                 img = fill.image
                 if img not in imgs:
                     imgs.append(img)
@@ -291,7 +291,12 @@ def __get_image_data_mapping(sockets, results, use_tile, export_settings) -> Exp
                 elif socket.socket.name == 'Occlusion':
                     src_chan = Channel.R
                 elif socket.socket.name == 'Alpha':
-                    src_chan = Channel.A
+                    # For alpha, we need to check if we have a texture plugged in a Color socket
+                    # In that case, we will convert RGB to BW
+                    if elem.from_socket.type == "RGBA":
+                        src_chan = Channel.RGB2BW
+                    else:
+                        src_chan = Channel.A
                 elif socket.socket.name == 'Coat Weight':
                     src_chan = Channel.R
                 elif socket.socket.name == 'Coat Roughness':
@@ -333,13 +338,20 @@ def __get_image_data_mapping(sockets, results, use_tile, export_settings) -> Exp
 
             if dst_chan is not None:
                 if use_tile is None:
-                    composed_image.fill_image(result.shader_node.image, dst_chan, src_chan)
+                    if src_chan == Channel.RGB2BW:
+                        composed_image.fill_image_bw(result.shader_node.image, dst_chan)
+                    else:
+                        composed_image.fill_image(result.shader_node.image, dst_chan, src_chan)
                 else:
-                    composed_image.fill_image_tile(
-                        result.shader_node.image,
-                        export_settings['current_udim_info']['tile'],
-                        dst_chan,
-                        src_chan)
+                    if src_chan == Channel.RGB2BW:
+                        composed_image.fill_image_bw_tile(
+                            result.shader_node.image, export_settings['current_udim_info']['tile'], dst_chan)
+                    else:
+                        composed_image.fill_image_tile(
+                            result.shader_node.image,
+                            export_settings['current_udim_info']['tile'],
+                            dst_chan,
+                            src_chan)
 
                 # Since metal/roughness are always used together, make sure
                 # the other channel is filled.
@@ -356,7 +368,12 @@ def __get_image_data_mapping(sockets, results, use_tile, export_settings) -> Exp
 
     # Check that we don't have some empty channels (based on weird images without any size for example)
     keys = list(composed_image.fills.keys())  # do not loop on dict, we may have to delete an element
-    for k in [k for k in keys if isinstance(composed_image.fills[k], FillImage)]:
+    for k in [
+        k for k in keys if isinstance(
+            composed_image.fills[k],
+            FillImage) or isinstance(
+            composed_image.fills[k],
+            FillImageRGB2BW)]:
         if composed_image.fills[k].image.size[0] == 0 or composed_image.fills[k].image.size[1] == 0:
             export_settings['log'].warning("Image '{}' has no size and cannot be exported.".format(
                 composed_image.fills[k].image))

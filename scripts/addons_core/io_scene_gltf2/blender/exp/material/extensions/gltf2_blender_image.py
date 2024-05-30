@@ -15,6 +15,7 @@ class Channel(enum.IntEnum):
     G = 1
     B = 2
     A = 3
+    RGB2BW = 4
 
 # These describe how an ExportImage's channels should be filled.
 
@@ -34,6 +35,21 @@ class FillImageTile:
         self.image = image
         self.tile = tile
         self.src_chan = src_chan
+
+
+class FillImageRGB2BWTile:
+    """Fills a channel from a Blender UDIM image, RGB 2 BW"""
+
+    def __init__(self, image: bpy.types.Image, tile):
+        self.image = image
+        self.tile = tile
+
+
+class FillImageRGB2BW:
+    """Fills a channel from a Blender image, RGB 2 BW"""
+
+    def __init__(self, image: bpy.types.Image):
+        self.image = image
 
 
 class FillWhite:
@@ -129,6 +145,12 @@ class ExportImage:
     def fill_image_tile(self, image: bpy.types.Image, tile, dst_chan: Channel, src_chan: Channel):
         self.fills[dst_chan] = FillImageTile(image, tile, src_chan)
 
+    def fill_image_bw(self, image: bpy.types.Image, dst_chan: Channel):
+        self.fills[dst_chan] = FillImageRGB2BW(image)
+
+    def fill_image_bw_tile(self, image: bpy.types.Image, tile, dst_chan: Channel):
+        self.fills[dst_chan] = FillImageRGB2BWTile(image, tile)
+
     def store_data(self, identifier, data, type='Image'):
         if type == "Image":  # This is an image
             self.stored[identifier] = StoreImage(data)
@@ -219,7 +241,8 @@ class ExportImage:
             self.fills[list(self.fills.keys())[0]].image, export_settings['current_udim_info']['tile'], export_settings)
 
     def __unhappy_is_udim(self):
-        return any(isinstance(fill, FillImageTile) for fill in self.fills.values())
+        return any(isinstance(fill, FillImageTile) or isinstance(fill, FillImageRGB2BWTile)
+                   for fill in self.fills.values())
 
     def __encode_unhappy_udim(self, export_settings) -> bytes:
         # We need to assemble the image out of channels.
@@ -227,7 +250,7 @@ class ExportImage:
 
         images = []
         for fill in self.fills.values():
-            if isinstance(fill, FillImageTile):
+            if isinstance(fill, FillImageTile) or isinstance(fill, FillImageRGB2BWTile):
                 if fill.image not in images:
                     images.append((fill.image, fill.tile))
                     export_settings['exported_images'][fill.image.name] = 2  # 2 = partially used
@@ -278,6 +301,8 @@ class ExportImage:
                     out_buf[int(dst_chan)::4] = tmp_buf[int(fill.src_chan)::4]
                 elif isinstance(fill, FillWith):
                     out_buf[int(dst_chan)::4] = fill.value
+                elif isinstance(fill, FillImageRGB2BWTile) and fill.image == image:
+                    out_buf[int(dst_chan)::4] = tmp_buf[0::4] * 0.2989 + tmp_buf[1::4] * 0.5870 + tmp_buf[2::4] * 0.1140
 
         tmp_buf = None  # GC this
 
@@ -290,7 +315,7 @@ class ExportImage:
         # Find all Blender images used
         images = []
         for fill in self.fills.values():
-            if isinstance(fill, FillImage):
+            if isinstance(fill, FillImage) or isinstance(fill, FillImageRGB2BW):
                 if fill.image not in images:
                     images.append(fill.image)
                     export_settings['exported_images'][fill.image.name] = 2  # 2 = partially used
@@ -323,6 +348,8 @@ class ExportImage:
                     out_buf[int(dst_chan)::4] = tmp_buf[int(fill.src_chan)::4]
                 elif isinstance(fill, FillWith):
                     out_buf[int(dst_chan)::4] = fill.value
+                elif isinstance(fill, FillImageRGB2BW) and fill.image == image:
+                    out_buf[int(dst_chan)::4] = tmp_buf[0::4] * 0.2989 + tmp_buf[1::4] * 0.5870 + tmp_buf[2::4] * 0.1140
 
         tmp_buf = None  # GC this
 
