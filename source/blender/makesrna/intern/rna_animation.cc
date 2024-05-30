@@ -104,14 +104,29 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 };
 
 #ifdef WITH_ANIM_BAKLAVA
+#  ifdef RNA_RUNTIME
 constexpr int binding_items_value_create_new = -1;
+const EnumPropertyItem rna_enum_action_binding_item_new = {
+    binding_items_value_create_new,
+    "NEW",
+    ICON_ADD,
+    "New",
+    "Create a new animation binding for this data-block"};
+const EnumPropertyItem rna_enum_action_binding_item_legacy = {
+    int(blender::animrig::Binding::unassigned),
+    "UNASSIGNED",
+    0,
+    "Legacy Action",
+    "This is a legacy Action, which does not support bindings."};
+#  endif
+const EnumPropertyItem rna_enum_action_binding_item_none = {
+    int(blender::animrig::Binding::unassigned),
+    "UNASSIGNED",
+    0,
+    "None",
+    "Not assigned any binding, and thus not animated."};
 const EnumPropertyItem rna_enum_action_binding_items[] = {
-    {binding_items_value_create_new,
-     "NEW",
-     ICON_ADD,
-     "New",
-     "Create a new animation binding for this data-block"},
-    {int(blender::animrig::Binding::unassigned), "UNASSIGNED", 0, "(none/legacy)", ""},
+    rna_enum_action_binding_item_none,
     {0, nullptr, 0, nullptr, nullptr},
 };
 #endif  // WITH_ANIM_BAKLAVA
@@ -364,7 +379,6 @@ static const EnumPropertyItem *rna_AnimData_action_binding_itemf(bContext * /*C*
 
   AnimData &adt = rna_animdata(ptr);
   if (!adt.action) {
-    // TODO: handle properly.
     *r_free = false;
     return rna_enum_action_binding_items;
   }
@@ -392,15 +406,17 @@ static const EnumPropertyItem *rna_AnimData_action_binding_itemf(bContext * /*C*
   }
 
   /* Only add the 'New' option when this is a Layered Action. */
-  if (anim.is_action_layered()) {
-    BLI_assert(rna_enum_action_binding_items[0].value == binding_items_value_create_new);
-    RNA_enum_item_add(&items, &num_items, &rna_enum_action_binding_items[0]);
+  const bool is_layered = anim.is_action_layered();
+  if (is_layered) {
+    RNA_enum_item_add(&items, &num_items, &rna_enum_action_binding_item_new);
   }
 
   if (!found_assigned_binding) {
     /* The assigned binding was not found, so show an option that reflects that. */
-    BLI_assert(rna_enum_action_binding_items[1].value == Binding::unassigned);
-    RNA_enum_item_add(&items, &num_items, &rna_enum_action_binding_items[1]);
+    RNA_enum_item_add(&items,
+                      &num_items,
+                      is_layered ? &rna_enum_action_binding_item_none :
+                                   &rna_enum_action_binding_item_legacy);
   }
 
   RNA_enum_item_end(&items, &num_items);
