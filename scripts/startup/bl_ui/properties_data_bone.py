@@ -413,6 +413,7 @@ class BONE_PT_display_custom_shape(BoneButtonsPanel, Panel):
 
             sub.separator()
             sub.prop(bone, "show_wire", text="Wireframe")
+            sub.prop(pchan, "custom_shape_wire_width")
 
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):

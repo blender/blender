@@ -499,6 +499,7 @@ void gpu_shader_create_info_init()
     /* Overlay Armature Shape outline. */
     overlay_armature_shape_outline = overlay_armature_shape_outline_no_geom;
     overlay_armature_shape_outline_clipped = overlay_armature_shape_outline_clipped_no_geom;
+    overlay_armature_shape_wire = overlay_armature_shape_wire_no_geom;
 
     /* Overlay Motion Path Line. */
     overlay_motion_path_line = overlay_motion_path_line_no_geom;
