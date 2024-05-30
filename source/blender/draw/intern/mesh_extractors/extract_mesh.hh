@@ -406,6 +406,21 @@ void extract_tangents_subdiv(const MeshRenderData &mr,
                              const MeshBatchCache &cache,
                              gpu::VertBuf &vbo);
 
+void extract_vert_index(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_edge_index(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_face_index(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_face_dot_index(const MeshRenderData &mr, gpu::VertBuf &vbo);
+
+void extract_vert_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                               const MeshRenderData &mr,
+                               gpu::VertBuf &vbo);
+void extract_edge_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                               const MeshRenderData &mr,
+                               gpu::VertBuf &vbo);
+void extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                               const MeshRenderData &mr,
+                               gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_fdots;
 extern const MeshExtract extract_lines_paint_mask;
 extern const MeshExtract extract_lines_adjacency;
@@ -426,10 +441,6 @@ extern const MeshExtract extract_fdots_pos;
 extern const MeshExtract extract_fdots_uv;
 extern const MeshExtract extract_fdots_edituv_data;
 extern const MeshExtract extract_skin_roots;
-extern const MeshExtract extract_face_idx;
-extern const MeshExtract extract_edge_idx;
-extern const MeshExtract extract_vert_idx;
-extern const MeshExtract extract_fdot_idx;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
 extern const MeshExtract extract_attr_viewer;
 
