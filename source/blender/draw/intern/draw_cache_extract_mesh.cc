@@ -531,7 +531,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   MeshBufferList &buffers = update_task_data->cache->buff;
 
   const bool request_face_normals = DRW_vbo_requested(buffers.vbo.nor) ||
-                                    DRW_vbo_requested(buffers.vbo.tan) ||
+                                    DRW_vbo_requested(buffers.vbo.fdots_nor) ||
                                     (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR)) != 0;
   const bool request_corner_normals = DRW_vbo_requested(buffers.vbo.nor) ||
                                       (data_flag & MR_DATA_LOOP_NOR) != 0;
@@ -636,8 +636,7 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
 #define EXTRACT_ADD_REQUESTED(type, name) \
   do { \
     if (DRW_##type##_requested(buffers.type.name)) { \
-      const MeshExtract *extractor = mesh_extract_override_get(&extract_##name, do_hq_normals); \
-      extractors.append(extractor); \
+      extractors.append(&extract_##name); \
     } \
   } while (0)
 
@@ -651,7 +650,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
   EXTRACT_ADD_REQUESTED(vbo, mesh_analysis);
   EXTRACT_ADD_REQUESTED(vbo, fdots_pos);
-  EXTRACT_ADD_REQUESTED(vbo, fdots_nor);
   EXTRACT_ADD_REQUESTED(vbo, fdots_uv);
   EXTRACT_ADD_REQUESTED(vbo, fdots_edituv_data);
   EXTRACT_ADD_REQUESTED(vbo, face_idx);
@@ -678,7 +676,8 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
       !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
       !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
       !DRW_vbo_requested(buffers.vbo.nor) && !DRW_vbo_requested(buffers.vbo.vnor) &&
-      !DRW_vbo_requested(buffers.vbo.tan) && !DRW_vbo_requested(buffers.vbo.edit_data))
+      !DRW_vbo_requested(buffers.vbo.fdots_nor) && !DRW_vbo_requested(buffers.vbo.tan) &&
+      !DRW_vbo_requested(buffers.vbo.edit_data))
   {
     return;
   }
@@ -757,6 +756,22 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
           extract_vert_normals(data.mr, *data.buffers.vbo.vnor);
         },
         new TaskData{*mr, buffers},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_vbo_requested(buffers.vbo.fdots_nor)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferCache &mbc;
+      bool do_hq_normals;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_face_dot_normals(data.mr, data.do_hq_normals, *data.mbc.buff.vbo.fdots_nor);
+        },
+        new TaskData{*mr, mbc, do_hq_normals},
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }

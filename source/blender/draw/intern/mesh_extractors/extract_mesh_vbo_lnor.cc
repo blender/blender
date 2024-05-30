@@ -14,20 +14,6 @@
 
 namespace blender::draw {
 
-template<typename GPUType> inline GPUType convert_normal(const float3 &src);
-
-template<> inline GPUPackedNormal convert_normal(const float3 &src)
-{
-  return GPU_normal_convert_i10_v3(src);
-}
-
-template<> inline short4 convert_normal(const float3 &src)
-{
-  short4 dst;
-  normal_float_to_short_v3(dst, src);
-  return dst;
-}
-
 template<typename GPUType>
 static void convert_normals_impl(const Span<float3> src, MutableSpan<GPUType> dst)
 {

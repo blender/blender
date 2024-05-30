@@ -44,30 +44,6 @@ eMRIterType mesh_extract_iter_type(const MeshExtract *ext)
   return type;
 }
 
-/* ---------------------------------------------------------------------- */
-/** \name Override extractors
- * Extractors can be overridden. When overridden a specialized version is used. The next functions
- * would check for any needed overrides and usage of the specialized version.
- * \{ */
-
-static const MeshExtract *mesh_extract_override_hq_normals(const MeshExtract *extractor)
-{
-  if (extractor == &extract_fdots_nor) {
-    return &extract_fdots_nor_hq;
-  }
-  return extractor;
-}
-
-const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
-                                             const bool do_hq_normals)
-{
-  if (do_hq_normals) {
-    extractor = mesh_extract_override_hq_normals(extractor);
-  }
-
-  return extractor;
-}
-
 /** \} */
 
 /* ---------------------------------------------------------------------- */

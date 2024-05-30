@@ -312,7 +312,6 @@ struct EditLoopData {
 
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist);
 eMRIterType mesh_extract_iter_type(const MeshExtract *ext);
-const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor, bool do_hq_normals);
 void mesh_render_data_face_flag(const MeshRenderData &mr,
                                 const BMFace *efa,
                                 BMUVOffsets offsets,
@@ -325,6 +324,20 @@ void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
                                      const BMLoop *l,
                                      BMUVOffsets offsets,
                                      EditLoopData &eattr);
+
+template<typename GPUType> inline GPUType convert_normal(const float3 &src);
+
+template<> inline GPUPackedNormal convert_normal(const float3 &src)
+{
+  return GPU_normal_convert_i10_v3(src);
+}
+
+template<> inline short4 convert_normal(const float3 &src)
+{
+  short4 dst;
+  normal_float_to_short_v3(dst, src);
+  return dst;
+}
 
 template<typename GPUType> void convert_normals(Span<float3> src, MutableSpan<GPUType> dst);
 
@@ -354,6 +367,7 @@ void extract_normals_subdiv(const DRWSubdivCache &subdiv_cache,
                             gpu::VertBuf &pos_nor,
                             gpu::VertBuf &lnor);
 void extract_vert_normals(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_face_dot_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &vbo);
 
 void extract_tris(const MeshRenderData &mr,
                   const SortedFaceData &face_sorted,
@@ -409,8 +423,6 @@ extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;
 extern const MeshExtract extract_mesh_analysis;
 extern const MeshExtract extract_fdots_pos;
-extern const MeshExtract extract_fdots_nor;
-extern const MeshExtract extract_fdots_nor_hq;
 extern const MeshExtract extract_fdots_uv;
 extern const MeshExtract extract_fdots_edituv_data;
 extern const MeshExtract extract_skin_roots;

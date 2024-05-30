@@ -10,172 +10,85 @@
 
 namespace blender::draw {
 
-/* ---------------------------------------------------------------------- */
-/** \name Extract Face-dots Normal and edit flag
- * \{ */
-
 #define NOR_AND_FLAG_DEFAULT 0
 #define NOR_AND_FLAG_SELECT 1
 #define NOR_AND_FLAG_ACTIVE -1
 #define NOR_AND_FLAG_HIDDEN -2
 
-static void extract_fdots_nor_init(const MeshRenderData &mr,
-                                   MeshBatchCache & /*cache*/,
-                                   void *buf,
-                                   void * /*tls_data*/)
+template<typename GPUType>
+static void extract_face_dot_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  }
-
-  GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
+  convert_normals(mr.face_normals, normals);
+  const GPUType invalid_normal = convert_normal<GPUType>(float3(0));
+  threading::parallel_for(IndexRange(mr.faces_num), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const BMFace *face = bm_original_face_get(mr, i);
+      if (!face || BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
+        normals[i] = invalid_normal;
+        normals[i].w = NOR_AND_FLAG_HIDDEN;
+      }
+      else if (BM_elem_flag_test(face, BM_ELEM_SELECT)) {
+        normals[i].w = (face == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT;
+      }
+    }
+  });
 }
 
-static void extract_fdots_nor_finish(const MeshRenderData &mr,
-                                     MeshBatchCache & /*cache*/,
-                                     void *buf,
-                                     void * /*data*/)
+template<typename GPUType>
+void extract_face_dot_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
-  static float invalid_normal[3] = {0.0f, 0.0f, 0.0f};
-  GPUPackedNormal *nor = (GPUPackedNormal *)GPU_vertbuf_get_data(vbo);
-  BMFace *efa;
-
-  /* Quicker than doing it for each loop. */
-  if (mr.extract_type == MR_EXTRACT_BMESH) {
-    for (int f = 0; f < mr.faces_num; f++) {
-      efa = BM_face_at_index(mr.bm, f);
-      const bool is_face_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden || (mr.orig_index_face && mr.orig_index_face[f] == ORIGINDEX_NONE)) {
-        nor[f] = GPU_normal_convert_i10_v3(invalid_normal);
-        nor[f].w = NOR_AND_FLAG_HIDDEN;
+  const GPUType invalid_normal = convert_normal<GPUType>(float3(0));
+  threading::parallel_for(IndexRange(mr.faces_num), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      BMFace *face = BM_face_at_index(mr.bm, i);
+      if (BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
+        normals[i] = invalid_normal;
+        normals[i].w = NOR_AND_FLAG_HIDDEN;
       }
       else {
-        nor[f] = GPU_normal_convert_i10_v3(bm_face_no_get(mr, efa));
-        /* Select / Active Flag. */
-        nor[f].w = (BM_elem_flag_test(efa, BM_ELEM_SELECT) ?
-                        ((efa == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
-                        NOR_AND_FLAG_DEFAULT);
+        normals[i] = convert_normal<GPUType>(bm_face_no_get(mr, face));
+        normals[i].w = (BM_elem_flag_test(face, BM_ELEM_SELECT) ?
+                            ((face == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
+                            NOR_AND_FLAG_DEFAULT);
       }
+    }
+  });
+}
+
+void extract_face_dot_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &vbo)
+{
+  if (use_hq) {
+    static GPUVertFormat format = {0};
+    if (format.attr_len == 0) {
+      GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    }
+    GPU_vertbuf_init_with_format(&vbo, &format);
+    GPU_vertbuf_data_alloc(&vbo, mr.faces_num);
+    MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(&vbo)), mr.faces_num);
+
+    if (mr.extract_type == MR_EXTRACT_MESH) {
+      extract_face_dot_normals_mesh(mr, vbo_data);
+    }
+    else {
+      extract_face_dot_normals_bm(mr, vbo_data);
     }
   }
   else {
-    for (int f = 0; f < mr.faces_num; f++) {
-      efa = bm_original_face_get(mr, f);
-      const bool is_face_hidden = efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden || (mr.orig_index_face && mr.orig_index_face[f] == ORIGINDEX_NONE)) {
-        nor[f] = GPU_normal_convert_i10_v3(invalid_normal);
-        nor[f].w = NOR_AND_FLAG_HIDDEN;
-      }
-      else {
-        nor[f] = GPU_normal_convert_i10_v3(mr.face_normals[f]);
-        /* Select / Active Flag. */
-        nor[f].w = (BM_elem_flag_test(efa, BM_ELEM_SELECT) ?
-                        ((efa == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
-                        NOR_AND_FLAG_DEFAULT);
-      }
+    static GPUVertFormat format = {0};
+    if (format.attr_len == 0) {
+      GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    }
+    GPU_vertbuf_init_with_format(&vbo, &format);
+    GPU_vertbuf_data_alloc(&vbo, mr.faces_num);
+    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(&vbo)), mr.faces_num);
+
+    if (mr.extract_type == MR_EXTRACT_MESH) {
+      extract_face_dot_normals_mesh(mr, vbo_data);
+    }
+    else {
+      extract_face_dot_normals_bm(mr, vbo_data);
     }
   }
 }
-
-constexpr MeshExtract create_extractor_fdots_nor()
-{
-  MeshExtract extractor = {nullptr};
-  extractor.init = extract_fdots_nor_init;
-  extractor.finish = extract_fdots_nor_finish;
-  extractor.data_type = MR_DATA_LOOP_NOR;
-  extractor.data_size = 0;
-  extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdots_nor);
-  return extractor;
-}
-
-/** \} */
-
-/* ---------------------------------------------------------------------- */
-/** \name Extract Face-dots High Quality Normal and edit flag
- * \{ */
-
-static void extract_fdots_nor_hq_init(const MeshRenderData &mr,
-                                      MeshBatchCache & /*cache*/,
-                                      void *buf,
-                                      void * /*tls_data*/)
-{
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  }
-
-  GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
-}
-
-static void extract_fdots_nor_hq_finish(const MeshRenderData &mr,
-                                        MeshBatchCache & /*cache*/,
-                                        void *buf,
-                                        void * /*data*/)
-{
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
-  static float invalid_normal[3] = {0.0f, 0.0f, 0.0f};
-  short *nor = (short *)GPU_vertbuf_get_data(vbo);
-  BMFace *efa;
-
-  /* Quicker than doing it for each loop. */
-  if (mr.extract_type == MR_EXTRACT_BMESH) {
-    for (int f = 0; f < mr.faces_num; f++) {
-      efa = BM_face_at_index(mr.bm, f);
-      const bool is_face_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden || (mr.orig_index_face && mr.orig_index_face[f] == ORIGINDEX_NONE)) {
-        normal_float_to_short_v3(&nor[f * 4], invalid_normal);
-        nor[f * 4 + 3] = NOR_AND_FLAG_HIDDEN;
-      }
-      else {
-        normal_float_to_short_v3(&nor[f * 4], bm_face_no_get(mr, efa));
-        /* Select / Active Flag. */
-        nor[f * 4 + 3] = (BM_elem_flag_test(efa, BM_ELEM_SELECT) ?
-                              ((efa == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
-                              NOR_AND_FLAG_DEFAULT);
-      }
-    }
-  }
-  else {
-    for (int f = 0; f < mr.faces_num; f++) {
-      efa = bm_original_face_get(mr, f);
-      const bool is_face_hidden = efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden || (mr.orig_index_face && mr.orig_index_face[f] == ORIGINDEX_NONE)) {
-        normal_float_to_short_v3(&nor[f * 4], invalid_normal);
-        nor[f * 4 + 3] = NOR_AND_FLAG_HIDDEN;
-      }
-      else {
-        normal_float_to_short_v3(&nor[f * 4], bm_face_no_get(mr, efa));
-        /* Select / Active Flag. */
-        nor[f * 4 + 3] = (BM_elem_flag_test(efa, BM_ELEM_SELECT) ?
-                              ((efa == mr.efa_act) ? NOR_AND_FLAG_ACTIVE : NOR_AND_FLAG_SELECT) :
-                              NOR_AND_FLAG_DEFAULT);
-      }
-    }
-  }
-}
-
-constexpr MeshExtract create_extractor_fdots_nor_hq()
-{
-  MeshExtract extractor = {nullptr};
-  extractor.init = extract_fdots_nor_hq_init;
-  extractor.finish = extract_fdots_nor_hq_finish;
-  extractor.data_type = MR_DATA_LOOP_NOR;
-  extractor.data_size = 0;
-  extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdots_nor);
-  return extractor;
-}
-
-/** \} */
-
-const MeshExtract extract_fdots_nor = create_extractor_fdots_nor();
-const MeshExtract extract_fdots_nor_hq = create_extractor_fdots_nor_hq();
 
 }  // namespace blender::draw
