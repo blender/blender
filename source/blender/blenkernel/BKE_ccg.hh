@@ -19,9 +19,9 @@ struct CCGSubSurf;
  * elements should always be accompanied by a CCGKey, which provides
  * the necessary offsets to access components of a CCGElem.
  */
-typedef struct CCGElem CCGElem;
+struct CCGElem;
 
-typedef struct CCGKey {
+struct CCGKey {
   int level;
 
   /* number of bytes in each element (one float per layer, plus
@@ -45,56 +45,32 @@ typedef struct CCGKey {
 
   int has_normals;
   int has_mask;
-} CCGKey;
+};
 
 /* initialize 'key' at the specified level */
-void CCG_key(CCGKey *key, const struct CCGSubSurf *ss, int level);
-void CCG_key_top_level(CCGKey *key, const struct CCGSubSurf *ss);
-
-/* get a pointer to the coordinate, normal, or mask components */
-inline float *CCG_elem_co(const CCGKey *key, CCGElem *elem);
-inline float *CCG_elem_no(const CCGKey *key, CCGElem *elem);
-inline float *CCG_elem_mask(const CCGKey *key, CCGElem *elem);
-
-/* get the element at 'offset' in an array */
-inline CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset);
-
-/* get the element at coordinate (x,y) in a face-grid array */
-inline CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y);
-
-/* combinations of above functions */
-inline float *CCG_grid_elem_co(const CCGKey *key, CCGElem *elem, int x, int y);
-inline float *CCG_grid_elem_no(const CCGKey *key, CCGElem *elem, int x, int y);
-inline float *CCG_grid_elem_mask(const CCGKey *key, CCGElem *elem, int x, int y);
-inline float *CCG_elem_offset_co(const CCGKey *key, CCGElem *elem, int offset);
-inline float *CCG_elem_offset_no(const CCGKey *key, CCGElem *elem, int offset);
-inline float *CCG_elem_offset_mask(const CCGKey *key, CCGElem *elem, int offset);
-
-/* for iteration, get a pointer to the next element in an array */
-inline CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem);
-
-/* inline definitions follow */
+void CCG_key(CCGKey *key, const CCGSubSurf *ss, int level);
+void CCG_key_top_level(CCGKey *key, const CCGSubSurf *ss);
 
 inline float *CCG_elem_co(const CCGKey * /*key*/, CCGElem *elem)
 {
-  return (float *)elem;
+  return reinterpret_cast<float *>(elem);
 }
 
 inline float *CCG_elem_no(const CCGKey *key, CCGElem *elem)
 {
   BLI_assert(key->has_normals);
-  return (float *)((char *)elem + key->normal_offset);
+  return reinterpret_cast<float *>(reinterpret_cast<char *>(elem) + key->normal_offset);
 }
 
 inline float *CCG_elem_mask(const CCGKey *key, CCGElem *elem)
 {
   BLI_assert(key->has_mask);
-  return (float *)((char *)elem + (key->mask_offset));
+  return reinterpret_cast<float *>(reinterpret_cast<char *>(elem) + (key->mask_offset));
 }
 
 inline CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset)
 {
-  return (CCGElem *)(((char *)elem) + key->elem_size * offset);
+  return reinterpret_cast<CCGElem *>((reinterpret_cast<char *>(elem)) + key->elem_size * offset);
 }
 
 inline CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y)
