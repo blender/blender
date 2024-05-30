@@ -253,7 +253,9 @@ static void compo_initjob(void *cjv)
   }
 
   cj->re = RE_NewSceneRender(scene);
-  RE_system_gpu_context_ensure(cj->re);
+  if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
+    RE_system_gpu_context_ensure(cj->re);
+  }
 }
 
 /* Called before redraw notifiers, it moves finished previews over. */
