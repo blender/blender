@@ -262,6 +262,20 @@ def repo_iter_valid_local_only(context):
         yield repo_item
 
 
+# A named-tuple copy of `context.preferences.extensions.repos` (`bpy.types.UserExtensionRepo`).
+# This is done for the following reasons.
+#
+# - Booleans `use_remote_url` & `use_access_token` have been "applied", so every time `remote_url`
+#   is accessed there is no need to check `use_remote_url` first (same for access tokens).
+#
+# - When checking for updates in the background, it's possible the repository is freed between
+#   starting a check for updates and when the check runs. Using a copy means there is no risk
+#   accessing freed memory & crashing, although these cases still need to be handled logically
+#   even if the crashes are avoided.
+#
+# - In practically all cases this data is read-only when used via package management.
+#   A named tuple makes that explicit.
+#
 class RepoItem(NamedTuple):
     name: str
     directory: str

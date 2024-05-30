@@ -78,6 +78,26 @@ def sync_status_count_outdated_extensions(repos_notify):
 #
 # This is a black-box which handled running the updates, yielding status text.
 
+def sync_calc_stale_repo_directories(repos_notify):
+    # Check for the unlikely event that the state of repositories has changed since checking for updated began.
+    # Do this by checking for directories since renaming or even disabling a repository need not prevent the
+    # listing from being updated. Only detect changes to the (directory + URL) which define the source/destination.
+    repo_state_from_prefs = set(
+        (repo.directory, repo.remote_url)
+        for repo in bpy.context.preferences.extensions.repos
+    )
+    repo_state_from_notify = set(
+        (repo.directory, repo.remote_url)
+        for repo in repos_notify
+    )
+
+    repo_directories_skip = set()
+    for directory, _remote_url in (repo_state_from_notify - repo_state_from_prefs):
+        repo_directories_skip.add(directory)
+
+    return repo_directories_skip
+
+
 def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
     """
     Move files with a unique extension to their final location
@@ -97,7 +117,11 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
     # Blender and even then the user would need to be *lucky*.
     from . import cookie_from_session
 
+    repo_directories_stale = sync_calc_stale_repo_directories(repos_notify)
+
     any_lock_errors = False
+    any_stale_errors = False
+
     repo_directories = [repo_item.directory for repo_item in repos_notify]
     with bl_extension_utils.RepoLockContext(
             repo_directories=repo_directories,
@@ -107,9 +131,18 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
             repo_files = [os.path.join(directory, filepath_rel) for filepath_rel in repo_files]
 
             # If locking failed, remove the temporary files that were written to.
-            if (lock_result_for_repo := lock_result[directory]) is not None:
+            has_error = False
+            if directory in repo_directories_stale:
+                # Unlikely but possible repositories change or are removed after check starts.
+                sys.stderr.write("Warning \"{:s}\" has changed or been removed (skipping)\n".format(directory))
+                any_stale_errors = True
+                has_error = True
+            elif (lock_result_for_repo := lock_result[directory]) is not None:
                 sys.stderr.write("Warning \"{:s}\" locking \"{:s}\"\n".format(lock_result_for_repo, directory))
                 any_lock_errors = True
+                has_error = True
+
+            if has_error:
                 for filepath in repo_files:
                     # Don't check this exists as it always should, showing an error if it doesn't is fine.
                     try:
@@ -134,7 +167,7 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
                 except Exception as ex:
                     sys.stderr.write("Failed to rename file: {:s}\n".format(str(ex)))
 
-    return any_lock_errors
+    return any_lock_errors, any_stale_errors
 
 
 def sync_status_generator(repos_notify, do_online_sync):
@@ -176,7 +209,7 @@ def sync_status_generator(repos_notify, do_online_sync):
             remote_name=repo_item.name,
             remote_url=bl_extension_ops.url_params_append_defaults(repo_item.remote_url),
             online_user_agent=bl_extension_ops.online_user_agent_from_blender(),
-            access_token=repo_item.access_token if repo_item.use_access_token else "",
+            access_token=repo_item.access_token,
             # Never sleep while there is no input, as this blocks Blender.
             use_idle=False,
             # Needed so the user can exit blender without warnings about a broken pipe.
@@ -265,10 +298,12 @@ def sync_status_generator(repos_notify, do_online_sync):
                 # ################### #
                 # Finalize The Update #
                 # ################### #
-                any_lock_errors = sync_apply_locked(repos_notify, repos_notify_files, unique_ext)
+                any_lock_errors, any_stale_errors = sync_apply_locked(repos_notify, repos_notify_files, unique_ext)
                 update_total = sync_status_count_outdated_extensions(repos_notify)
                 if any_lock_errors:
                     extra_warnings.append(" Failed to acquire lock!")
+                if any_stale_errors:
+                    extra_warnings.append(" Unexpected change in repository!")
 
             if any_offline:
                 extra_warnings.append(" Skipping online repositories!")

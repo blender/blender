@@ -192,7 +192,16 @@ def repos_to_notify():
             continue
 
         # NOTE: offline checks are handled by the notification (not here).
-        repos_notify.append(repo_item)
+        repos_notify.append(
+            bl_extension_ops.RepoItem(
+                name=repo_item.name,
+                directory=repo_directory,
+                remote_url=remote_url,
+                module=repo_item.module,
+                use_cache=repo_item.use_cache,
+                access_token=repo_item.access_token if repo_item.use_access_token else "",
+            ),
+        )
 
         # Update all repos together or none, to avoid bothering users
         # multiple times in a day.

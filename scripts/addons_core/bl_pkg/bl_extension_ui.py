@@ -309,8 +309,7 @@ class notify_info:
                 pass
             case None:
                 from .bl_extension_notify import update_non_blocking
-                prefs = context.preferences
-                if repos_notify := [prefs.extensions.repos[repo.name] for repo in repos if repo.remote_url]:
+                if repos_notify := [repo for repo in repos if repo.remote_url]:
                     update_non_blocking(repos=repos_notify, do_online_sync=True)
                     notify_info._update_state = False
                     # Starting.
