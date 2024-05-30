@@ -18,6 +18,7 @@
 #include "BKE_screen.hh"
 
 #include "BLI_assert.h"
+#include "BLI_index_mask.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -31,6 +32,8 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "GEO_join_geometries.hh"
+#include "GEO_simplify_curves.hh"
+#include "GEO_smooth_curves.hh"
 
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
@@ -696,6 +699,55 @@ static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
   return drawings;
 }
 
+void smooth_fill_strokes(bke::CurvesGeometry &curves, const IndexMask &stroke_mask)
+{
+  const int iterations = 20;
+  if (curves.points_num() == 0) {
+    return;
+  }
+  if (stroke_mask.is_empty()) {
+    return;
+  }
+
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
+  const VArray<bool> point_selection = VArray<bool>::ForSingle(true, curves.points_num());
+
+  bke::GSpanAttributeWriter positions = attributes.lookup_for_write_span("position");
+  geometry::smooth_curve_attribute(stroke_mask,
+                                   points_by_curve,
+                                   point_selection,
+                                   cyclic,
+                                   iterations,
+                                   1.0f,
+                                   false,
+                                   true,
+                                   positions.span);
+  positions.finish();
+  curves.tag_positions_changed();
+}
+
+static bke::CurvesGeometry simplify_fixed(bke::CurvesGeometry &curves, const int step)
+{
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const Array<int> point_to_curve_map = curves.point_to_curve_map();
+
+  IndexMaskMemory memory;
+  IndexMask points_to_keep = IndexMask::from_predicate(
+      curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
+        const int curve_i = point_to_curve_map[i];
+        const IndexRange points = points_by_curve[curve_i];
+        if (points.size() <= 2) {
+          return true;
+        }
+        const int local_i = i - points.start();
+        return (local_i % int(math::pow(2.0f, float(step))) == 0) || points.last() == i;
+      });
+
+  return bke::curves_copy_point_selection(curves, points_to_keep, {});
+}
+
 static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent &event)
 {
   using bke::greasepencil::Layer;
@@ -723,6 +775,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   const ToolSettings &ts = *CTX_data_tool_settings(&C);
   const Brush &brush = *BKE_paint_brush(&ts.gp_paint->paint);
   const float2 mouse_position = float2(event.mval);
+  const int simplify_levels = brush.gpencil_settings->fill_simplylvl;
 
   if (!grease_pencil.has_active_layer()) {
     return false;
@@ -748,6 +801,12 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
                                                    fit_method,
                                                    op_data.material_index,
                                                    keep_images);
+
+    smooth_fill_strokes(fill_curves, fill_curves.curves_range());
+
+    if (simplify_levels > 0) {
+      fill_curves = simplify_fixed(fill_curves, brush.gpencil_settings->fill_simplylvl);
+    }
 
     Curves *dst_curves_id = curves_new_nomain(std::move(info.target.drawing.strokes_for_write()));
     Curves *fill_curves_id = curves_new_nomain(fill_curves);
