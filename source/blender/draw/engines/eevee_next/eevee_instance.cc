@@ -683,11 +683,6 @@ void Instance::light_bake_irradiance(
         volume_probes.bake.irradiance_capture();
       }
 
-      if (sampling.finished()) {
-        /* TODO(fclem): Dilation, filter etc... */
-        // irradiance_cache.bake.irradiance_finalize();
-      }
-
       LightProbeGridCacheFrame *cache_frame;
       if (sampling.finished()) {
         cache_frame = volume_probes.bake.read_result_packed();

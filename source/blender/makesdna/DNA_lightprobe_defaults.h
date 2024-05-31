@@ -35,7 +35,7 @@
     .distpar = 2.5f, \
     .falloff = 0.2f, \
     .clipsta = 0.8f, \
-    .clipend = 40.0f, \
+    .clipend = 20.0f, \
     .vis_bias = 1.0f, \
     .vis_blur = 0.2f, \
     .intensity = 1.0f, \
