@@ -965,7 +965,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  if (!USER_VERSION_ATLEAST(402, 100)) {
+  if (!USER_VERSION_ATLEAST(402, 50)) {
     userdef->statusbar_flag |= STATUSBAR_SHOW_EXTENSIONS_UPDATES;
   }
 
