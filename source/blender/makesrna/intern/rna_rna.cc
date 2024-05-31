@@ -1304,6 +1304,17 @@ struct RNACompareOverrideDiffPropPtrContext {
   /** RNA collection ID items: also check and store item's ID pointers. */
   bool use_id_pointer = false;
 
+  /**
+   * Whether the processed property definition has liboverride apply callback.
+   *
+   * Such a callback is mandatory for REPLACE operations unless the pointer is an ID one, and
+   * INSERT operations in all cases (for RNA collections).
+   *
+   * \note IDproperty-based 'RNA property' are handled by default apply call, so they are
+   *       considered as always having an apply callback.
+   */
+  bool has_liboverride_apply_cb = false;
+
   /** Information specific to RNA collections. */
   /* NOTE: names (and ID pointers, in case items are ID pointers) are typically set by a call
    * to #rna_property_override_diff_propptr_validate_diffing. Indices are typically set directly
@@ -1463,10 +1474,6 @@ static void rna_property_override_diff_propptr(Main *bmain,
 
   BLI_assert(ELEM(property_type, PROP_POINTER, PROP_COLLECTION));
 
-  const bool do_create = liboverride != nullptr &&
-                         (liboverride_flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
-                         rna_path != nullptr;
-
   rna_property_override_diff_propptr_validate_diffing(ptrdiff_ctx);
 
   /* If false, it means that the whole data itself is different,
@@ -1475,6 +1482,14 @@ static void rna_property_override_diff_propptr(Main *bmain,
   const bool is_id = ptrdiff_ctx.is_id;
   const bool is_null = ptrdiff_ctx.is_null;
   const bool is_type_diff = ptrdiff_ctx.is_type_diff;
+
+  const bool has_liboverride_apply_cb = ptrdiff_ctx.has_liboverride_apply_cb;
+  const bool do_create = (liboverride != nullptr &&
+                          /* Replacing a Pointer can only happen if it's an ID one, or there is a
+                           * dedicated apply callback defined for the property. */
+                          (is_id || has_liboverride_apply_cb) &&
+                          (liboverride_flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
+                          rna_path != nullptr);
 
   if (is_id) {
     /* Owned IDs (the ones we want to actually compare in depth, instead of just comparing pointer
@@ -1747,12 +1762,6 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
                          rna_path != nullptr;
 
   const bool no_ownership = (prop_a->rnaprop->flag & PROP_PTR_NO_OWNERSHIP) != 0;
-
-  /* NOTE: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
-   * and that we never remove anything. */
-  const bool use_collection_insertion = (prop_a->rnaprop->flag_override &
-                                         PROPOVERRIDE_LIBRARY_INSERTION) &&
-                                        do_create;
 
   const PropertyType rna_prop_type = RNA_property_type(prop_a->rnaprop);
   bool created = false;
@@ -2072,6 +2081,15 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         ptrdiff_ctx.no_prop_name = true;
         ptrdiff_ctx.no_ownership = no_ownership;
         ptrdiff_ctx.property_type = PROP_POINTER;
+        /* IDProperties (real or backend storage for dynamic RNA) have a default handling for
+         * 'pointer' data creation. */
+        if (prop_a->is_idprop || prop_a->is_rna_storage_idprop || prop_a->rnaprop->override_apply)
+        {
+          BLI_assert(prop_a->is_idprop == prop_b->is_idprop);
+          BLI_assert(prop_a->rnaprop->override_apply == prop_b->rnaprop->override_apply);
+          BLI_assert(prop_a->rnaprop->override_apply == prop_b->rnaprop->override_apply);
+          ptrdiff_ctx.has_liboverride_apply_cb = true;
+        }
         rna_property_override_diff_propptr(bmain, ptrdiff_ctx);
       }
       break;
@@ -2079,6 +2097,28 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
 
     case PROP_COLLECTION: {
       const bool no_prop_name = (prop_a->rnaprop->flag_override & PROPOVERRIDE_NO_PROP_NAME) != 0;
+
+      /* IDProperties (real or backend storage for dynamic RNA) have a default handling for
+       * 'pointer' data creation and 'collection' items insertion. */
+      BLI_assert(prop_a->is_idprop == prop_b->is_idprop);
+      BLI_assert(prop_a->is_rna_storage_idprop == prop_b->is_rna_storage_idprop);
+      BLI_assert(prop_a->rnaprop->override_apply == prop_b->rnaprop->override_apply);
+      const bool has_liboverride_apply_cb = (prop_a->is_idprop || prop_a->is_rna_storage_idprop ||
+                                             prop_a->rnaprop->override_apply);
+      if (!has_liboverride_apply_cb &&
+          (prop_a->rnaprop->flag_override & PROPOVERRIDE_LIBRARY_INSERTION) != 0)
+      {
+        CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                   "RNA collection '%s' defined as supporting liboverride insertion of items, but "
+                   "no liboverride apply callback defined for it. No insertion will hapen.",
+                   rna_path);
+      }
+
+      /* NOTE: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
+       * and that we never remove anything. */
+      const bool use_collection_insertion = has_liboverride_apply_cb && do_create &&
+                                            (prop_a->rnaprop->flag_override &
+                                             PROPOVERRIDE_LIBRARY_INSERTION) != 0;
 
       bool equals = true;
       bool abort = false;
@@ -2121,6 +2161,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
           ptrdiff_ctx.use_id_pointer = !no_prop_name;
           ptrdiff_ctx.no_ownership = no_ownership;
           ptrdiff_ctx.property_type = PROP_COLLECTION;
+          ptrdiff_ctx.has_liboverride_apply_cb = has_liboverride_apply_cb;
 
           if (iter_b.valid || use_collection_insertion) {
             rna_property_override_diff_propptr_validate_diffing(ptrdiff_ctx);
@@ -2847,7 +2888,10 @@ bool rna_property_override_apply_default(Main *bmain,
       const bool is_dst_idprop = (prop_dst->magic != RNA_MAGIC) ||
                                  (prop_dst->flag & PROP_IDPROPERTY) != 0;
       if (!(is_src_idprop && is_dst_idprop)) {
-        BLI_assert_msg(0, "You need to define a specific override apply callback for collections");
+        CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                   "'%s': Override operations on RNA collections require a specific override "
+                   "apply callback to be defined.",
+                   rnaapply_ctx.liboverride_property->rna_path);
         return false;
       }
 
