@@ -371,7 +371,7 @@ static int actkeys_viewall(bContext *C, const bool only_sel)
 {
   bAnimContext ac;
   View2D *v2d;
-  float extra, min, max;
+  float min, max;
   bool found;
 
   /* get editor data */
@@ -399,9 +399,7 @@ static int actkeys_viewall(bContext *C, const bool only_sel)
     v2d->cur.xmin = min;
     v2d->cur.xmax = max;
 
-    extra = 0.125f * BLI_rctf_size_x(&v2d->cur);
-    v2d->cur.xmin -= extra;
-    v2d->cur.xmax += extra;
+    v2d->cur = ANIM_frame_range_view2d_add_xmargin(*v2d, v2d->cur);
   }
 
   /* set vertical range */

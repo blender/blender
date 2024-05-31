@@ -664,10 +664,7 @@ static int scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
   v2d.cur.xmin = PSFRA;
   v2d.cur.xmax = PEFRA;
 
-  /* Add a horizontal margin just like ACTION_OT_view_all. */
-  const float margin = 0.125f * BLI_rctf_size_x(&v2d.cur);
-  v2d.cur.xmin -= margin;
-  v2d.cur.xmax += margin;
+  v2d.cur = ANIM_frame_range_view2d_add_xmargin(v2d, v2d.cur);
 
   UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), &v2d, V2D_LOCK_COPY);
   ED_area_tag_redraw(CTX_wm_area(C));

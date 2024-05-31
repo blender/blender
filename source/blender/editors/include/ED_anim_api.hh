@@ -1040,6 +1040,15 @@ void ANIM_sync_animchannels_to_data(const bContext *C);
 
 void ANIM_center_frame(bContext *C, int smooth_viewtx);
 
+/**
+ * Add horizontal margin to the rectangle.
+ *
+ * This function assumes that the xmin/xmax are set to a frame range to show.
+ *
+ * \return The new rectangle with horizontal margin added, for visual comfort.
+ */
+rctf ANIM_frame_range_view2d_add_xmargin(const View2D &view_2d, rctf view_rect);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
