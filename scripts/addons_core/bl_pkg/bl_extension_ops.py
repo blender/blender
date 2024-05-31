@@ -1544,8 +1544,9 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         "pkg_id_sequence"
     )
     _drop_variables = None
+    _legacy_drop = None
 
-    filter_glob: StringProperty(default="*.zip", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.zip;*.py", options={'HIDDEN'})
 
     directory: StringProperty(
         name="Directory",
@@ -1570,12 +1571,26 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
     enable_on_install: rna_prop_enable_on_install
 
+    # Properties matching the legacy operator, not used by extension packages.
+    target: EnumProperty(
+        name="Legacy Target Path",
+        items=bpy.types.PREFERENCES_OT_addon_install._target_path_items,
+        description="Path to install legacy add-on packages to",
+    )
+
+    overwrite: BoolProperty(
+        name="Legacy Overwrite",
+        description="Remove existing add-ons with the same ID",
+        default=True,
+    )
+
     # Only used for code-path for dropping an extension.
     url: rna_prop_url
 
     def exec_command_iter(self, is_modal):
         from .bl_extension_utils import (
             pkg_manifest_dict_from_file_or_error,
+            pkg_is_legacy_addon,
         )
 
         self._addon_restore = []
@@ -1623,7 +1638,14 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         # Extract meta-data from package files.
         # Note that errors are ignored here, let the underlying install operation do this.
         pkg_id_sequence = []
+        pkg_files = []
+        pkg_legacy_files = []
         for source_filepath in source_files:
+            if pkg_is_legacy_addon(source_filepath):
+                pkg_legacy_files.append(source_filepath)
+                continue
+            pkg_files.append(source_filepath)
+
             result = pkg_manifest_dict_from_file_or_error(source_filepath)
             if isinstance(result, str):
                 continue
@@ -1634,6 +1656,13 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
         directory = repo_item.directory
         assert directory != ""
+
+        # Install legacy add-ons
+        for source_filepath in pkg_legacy_files:
+            self.exec_legacy(source_filepath)
+
+        if not pkg_files:
+            return None
 
         # Collect package ID's.
         self.repo_directory = directory
@@ -1668,7 +1697,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                 partial(
                     bl_extension_utils.pkg_install_files,
                     directory=directory,
-                    files=source_files,
+                    files=pkg_files,
                     use_idle=is_modal,
                 )
             ],
@@ -1726,6 +1755,12 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
 
+    def exec_legacy(self, filepath):
+        backup_filepath = self.filepath
+        self.filepath = filepath
+        bpy.types.PREFERENCES_OT_addon_install.execute(self, bpy.context)
+        self.filepath = backup_filepath
+
     @classmethod
     def poll(cls, context):
         if next(repo_iter_valid_local_only(context), None) is None:
@@ -1746,18 +1781,34 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
     def draw(self, context):
         if self._drop_variables is not None:
             return self._draw_for_drop(context)
+        elif self._legacy_drop is not None:
+            return self._draw_for_legacy_drop(context)
 
         # Override draw because the repository names may be over-long and not fit well in the UI.
         # Show the text & repository names in two separate rows.
         layout = self.layout
-        col = layout.column()
-        col.label(text="Local Repository:")
-        col.prop(self, "repo", text="")
-
+        layout.use_property_split = True
+        layout.use_property_decorate = False
         layout.prop(self, "enable_on_install")
 
+        header, body = layout.panel("extensions")
+        header.label(text="Extensions")
+        if body:
+            body.prop(self, "repo", text="Repository")
+
+        header, body = layout.panel("legacy", default_closed=True)
+        header.label(text="Legacy Add-ons")
+
+        row = header.row()
+        row.alignment = 'RIGHT'
+        row.emboss = 'NONE'
+        row.operator("wm.doc_view_manual", icon='URL', text="").doc_id = "preferences.addon_install"
+
+        if body:
+            body.prop(self, "target", text="Target Path")
+            body.prop(self, "overwrite", text="Overwrite")
+
     def _invoke_for_drop(self, context, event):
-        self._drop_variables = True
         # Drop logic.
         print("DROP FILE:", self.url)
 
@@ -1769,23 +1820,33 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         # These are not supported for dropping. Since at the time of dropping it's not known that the
         # path is referenced from a "local" repository or a "remote" that uses a `file://` URL.
         filepath = self.url
+        print(filepath)
 
-        from .bl_extension_ops import repo_iter_valid_local_only
-        from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
+        from .bl_extension_utils import pkg_is_legacy_addon
 
-        if not list(repo_iter_valid_local_only(bpy.context)):
-            self.report({'ERROR'}, "No Local Repositories")
-            return {'CANCELLED'}
+        if not pkg_is_legacy_addon(filepath):
+            self._drop_variables = True
+            self._legacy_drop = None
 
-        if isinstance(result := pkg_manifest_dict_from_file_or_error(filepath), str):
-            self.report({'ERROR'}, "Error in manifest {:s}".format(result))
-            return {'CANCELLED'}
+            from .bl_extension_ops import repo_iter_valid_local_only
+            from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
 
-        pkg_id = result["id"]
-        pkg_type = result["type"]
-        del result
+            if not list(repo_iter_valid_local_only(bpy.context)):
+                self.report({'ERROR'}, "No Local Repositories")
+                return {'CANCELLED'}
 
-        self._drop_variables = pkg_id, pkg_type
+            if isinstance(result := pkg_manifest_dict_from_file_or_error(filepath), str):
+                self.report({'ERROR'}, "Error in manifest {:s}".format(result))
+                return {'CANCELLED'}
+
+            pkg_id = result["id"]
+            pkg_type = result["type"]
+            del result
+
+            self._drop_variables = pkg_id, pkg_type
+        else:
+            self._drop_variables = None
+            self._legacy_drop = True
 
         # Set to it's self to the property is considered "set".
         self.repo = self.repo
@@ -1807,6 +1868,16 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         layout.prop(self, "repo", text="")
 
         layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[pkg_type])
+
+    def _draw_for_legacy_drop(self, context):
+
+        layout = self.layout
+        layout.operator_context = 'EXEC_DEFAULT'
+
+        layout.label(text="Legacy Add-on")
+        layout.prop(self, "target", text="Target")
+        layout.prop(self, "overwrite", text="Overwrite")
+        layout.prop(self, "enable_on_install")
 
 
 class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):

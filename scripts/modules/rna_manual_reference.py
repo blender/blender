@@ -3214,6 +3214,7 @@ url_manual_mapping = (
     ("bpy.ops.object.shade_flat*", "scene_layout/object/editing/shading.html#bpy-ops-object-shade-flat"),
     ("bpy.ops.paintcurve.select*", "sculpt_paint/brush/stroke.html#bpy-ops-paintcurve-select"),
     ("bpy.ops.pose.paths_update*", "animation/motion_paths.html#bpy-ops-pose-paths-update"),
+    ("bpy.ops.preferences.addon_install*", "advanced/extensions/addons.html#bpy-ops-preferences-addon-install"),
     ("bpy.ops.preferences.addon*", "editors/preferences/addons.html#bpy-ops-preferences-addon"),
     ("bpy.ops.scene.light_cache*", "render/eevee/render_settings/indirect_lighting.html#bpy-ops-scene-light-cache"),
     ("bpy.ops.screen.actionzone*", "interface/window_system/areas.html#bpy-ops-screen-actionzone"),

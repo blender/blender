@@ -660,6 +660,38 @@ def pkg_manifest_from_archive_and_validate(
         return pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir, strict=strict)
 
 
+def pkg_is_legacy_addon(filepath: str) -> bool:
+    # Python file is legacy.
+    if os.path.splitext(filepath)[1].lower() == ".py":
+        return True
+
+    try:
+        zip_fh_context = zipfile.ZipFile(filepath, mode="r")
+    except BaseException as ex:
+        return False
+
+    with contextlib.closing(zip_fh_context) as zip_fh:
+        # If manifest not legacy.
+        if pkg_zipfile_detect_subdir_or_none(zip_fh) is not None:
+            return False
+
+        # If any python file contains bl_info it's legacy.
+        base_dir = None
+        for filename in zip_fh_context.NameToInfo.keys():
+            if filename.startswith("."):
+                continue
+            if not filename.lower().endswith(".py"):
+                continue
+            try:
+                file_content = zip_fh.read(filename)
+            except:
+                file_content = None
+            if file_content and file_content.find(b"bl_info"):
+                return True
+
+    return False
+
+
 def remote_url_has_filename_suffix(url: str) -> bool:
     # When the URL ends with `.json` it's assumed to be a URL that is inside a directory.
     # In these cases the file is stripped before constricting relative paths.

@@ -633,6 +633,11 @@ def pkg_manifest_archive_url_abs_from_remote_url(remote_url: str, archive_url: s
     return archive_url
 
 
+def pkg_is_legacy_addon(filepath: str) -> bool:
+    from .cli.blender_ext import pkg_is_legacy_addon
+    return pkg_is_legacy_addon(filepath)
+
+
 def pkg_repo_cache_clear(local_dir: str) -> None:
     local_cache_dir = os.path.join(local_dir, ".blender_ext", "cache")
     if not os.path.isdir(local_cache_dir):
