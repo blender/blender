@@ -2694,7 +2694,7 @@ blender::Span<blender::bke::greasepencil::TreeNode *> GreasePencil::nodes_for_wr
 std::optional<int> GreasePencil::get_layer_index(
     const blender::bke::greasepencil::Layer &layer) const
 {
-  const int index = this->layers().first_index_try(&layer);
+  const int index = int(this->layers().first_index_try(&layer));
   if (index == -1) {
     return {};
   }
@@ -3142,7 +3142,7 @@ static void update_active_node(GreasePencil &grease_pencil,
       grease_pencil.set_active_layer(layers[1]);
     }
     else {
-      int64_t active_index = layers.first_index(&active_node.as_layer());
+      const int active_index = *grease_pencil.get_layer_index(active_node.as_layer());
       grease_pencil.set_active_layer(layers[active_index - 1]);
     }
   }
@@ -3155,7 +3155,7 @@ void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
   update_active_node(*this, layer.as_node());
 
   /* Remove all the layer attributes and shrink the `CustomData`. */
-  const int64_t layer_index = this->layers().first_index(&layer);
+  const int layer_index = *this->get_layer_index(layer);
   shrink_customdata(this->layers_data, layer_index, this->layers().size());
 
   /* Unlink the layer from the parent group. */

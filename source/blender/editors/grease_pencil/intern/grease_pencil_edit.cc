@@ -1986,7 +1986,8 @@ static bool grease_pencil_separate_layer(bContext &C,
   GreasePencil &grease_pencil_src = *static_cast<GreasePencil *>(object_src.data);
 
   /* Create a new object for each layer. */
-  for (const Layer *layer_src : grease_pencil_src.layers()) {
+  for (const int layer_i : grease_pencil_src.layers().index_range()) {
+    Layer *layer_src = grease_pencil_src.layer(layer_i);
     if (layer_src->is_selected() || layer_src->is_locked()) {
       continue;
     }
@@ -1995,7 +1996,7 @@ static bool grease_pencil_separate_layer(bContext &C,
         &bmain, &scene, &view_layer, &base_prev, grease_pencil_src);
     GreasePencil &grease_pencil_dst = *static_cast<GreasePencil *>(object_dst->data);
     Layer &layer_dst = find_or_create_layer_in_dst_by_name(
-        grease_pencil_src.layers().first_index(layer_src), grease_pencil_src, grease_pencil_dst);
+        layer_i, grease_pencil_src, grease_pencil_dst);
 
     /* Iterate through all the drawings at current frame. */
     const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings_from_layer(
