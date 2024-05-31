@@ -123,6 +123,10 @@ void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
       copy_primvar_to_blender_buffer<bool>(
           primvar, timecode, face_indices, attribute.span.typed<bool>());
       break;
+    case CD_PROP_QUATERNION:
+      copy_primvar_to_blender_buffer<pxr::GfQuatf>(
+          primvar, timecode, face_indices, attribute.span.typed<math::Quaternion>());
+      break;
 
     default:
       BLI_assert_unreachable();

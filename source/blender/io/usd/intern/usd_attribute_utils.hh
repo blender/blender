@@ -64,7 +64,7 @@ template<> inline pxr::GfVec3f convert_value(const ColorGeometry4f value)
 }
 template<> inline pxr::GfQuatf convert_value(const math::Quaternion value)
 {
-  return pxr::GfQuatf(value.x, value.y, value.z, value.w);
+  return pxr::GfQuatf(value.w, value.x, value.y, value.z);
 }
 
 template<> inline float2 convert_value(const pxr::GfVec2f value)
@@ -78,6 +78,11 @@ template<> inline float3 convert_value(const pxr::GfVec3f value)
 template<> inline ColorGeometry4f convert_value(const pxr::GfVec3f value)
 {
   return ColorGeometry4f(value[0], value[1], value[2], 1.0f);
+}
+template<> inline math::Quaternion convert_value(const pxr::GfQuatf value)
+{
+  const pxr::GfVec3f &img = value.GetImaginary();
+  return math::Quaternion(value.GetReal(), img[0], img[1], img[2]);
 }
 
 }  // namespace detail
