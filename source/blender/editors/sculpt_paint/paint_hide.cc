@@ -192,7 +192,7 @@ enum class VisAction {
   Show = 1,
 };
 
-constexpr static bool action_to_hide(const VisAction action)
+static bool action_to_hide(const VisAction action)
 {
   return action == VisAction::Hide;
 }
