@@ -92,7 +92,10 @@ void CallInstruction::set_param_variable(int param_index, Variable *variable)
     params_[param_index]->users_.remove_first_occurrence_and_reorder(this);
   }
   if (variable != nullptr) {
-    BLI_assert(fn_->param_type(param_index).data_type() == variable->data_type());
+#ifndef NDEBUG
+    const ParamType param_type = fn_->param_type(param_index);
+    BLI_assert(param_type.data_type() == variable->data_type());
+#endif
     variable->users_.append(this);
   }
   params_[param_index] = variable;
