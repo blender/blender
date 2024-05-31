@@ -741,7 +741,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 
   BLI_duplicatelist(&snoden->treepath, &snode->treepath);
 
-  snoden->runtime = nullptr;
+  snoden->runtime = MEM_new<SpaceNode_Runtime>(__func__);
 
   /* NOTE: no need to set node tree user counts,
    * the editor only keeps at least 1 (id_us_ensure_real),
