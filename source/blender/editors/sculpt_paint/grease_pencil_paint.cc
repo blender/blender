@@ -185,6 +185,9 @@ struct PaintOperationExecutor {
                         std::make_optional(color_base) :
                         std::nullopt;
     }
+    else {
+      vertex_color_ = std::make_optional(ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+    }
     softness_ = 1.0f - settings_->hardness;
 
     BLI_assert(grease_pencil->has_active_layer());
