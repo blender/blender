@@ -422,6 +422,7 @@ static bool socket_can_be_viewed(const bNode &node, const bNodeSocket &socket)
               SOCK_INT,
               SOCK_BOOLEAN,
               SOCK_ROTATION,
+              SOCK_MATRIX,
               SOCK_RGBA,
               SOCK_MENU);
 }
