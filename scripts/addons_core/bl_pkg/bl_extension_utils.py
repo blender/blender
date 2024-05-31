@@ -535,7 +535,7 @@ def dummy_progress(
 ) -> Generator[InfoItemSeq, bool, None]:
     """
     Implementation:
-    ``bpy.ops.ext.dummy_progress()``.
+    ``bpy.ops.extensions.dummy_progress()``.
     """
     yield from command_output_from_json_0(["dummy-progress", "--time-duration=1.0"], use_idle=use_idle)
     yield [COMPLETE_ITEM]

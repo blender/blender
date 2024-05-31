@@ -134,18 +134,18 @@ def blender_test_run(temp_dir_local: str) -> None:
         remote_url=remote_url,
     )
 
-    bpy.ops.bl_pkg.dummy_progress()
+    bpy.ops.extensions.dummy_progress()
 
-    bpy.ops.bl_pkg.repo_sync(
+    bpy.ops.extensions.repo_sync(
         repo_directory=temp_dir_local,
     )
 
-    bpy.ops.bl_pkg.pkg_install(
+    bpy.ops.extensions.package_install(
         repo_directory=temp_dir_local,
         pkg_id="blue",
     )
 
-    bpy.ops.bl_pkg.pkg_uninstall(
+    bpy.ops.extensions.package_uninstall(
         repo_directory=temp_dir_local,
         pkg_id="blue",
     )

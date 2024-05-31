@@ -91,7 +91,7 @@ class subcmd_utils:
     ) -> bool:
         import bpy
         try:
-            bpy.ops.bl_pkg.repo_sync_all()
+            bpy.ops.extensions.repo_sync_all()
             if show_done:
                 sys.stdout.write("Done...\n\n")
         except Exception:
@@ -282,7 +282,7 @@ class subcmd_pkg:
 
         import bpy
         try:
-            bpy.ops.bl_pkg.pkg_upgrade_all()
+            bpy.ops.extensions.package_upgrade_all()
         except RuntimeError:
             return False  # The error will have been printed.
         return True
@@ -308,13 +308,13 @@ class subcmd_pkg:
 
         import bpy
         for repo_index, pkg_id in repos_and_packages:
-            bpy.ops.bl_pkg.pkg_mark_set(
+            bpy.ops.extensions.package_mark_set(
                 repo_index=repo_index,
                 pkg_id=pkg_id,
             )
 
         try:
-            bpy.ops.bl_pkg.pkg_install_marked(enable_on_install=enable_on_install)
+            bpy.ops.extensions.package_install_marked(enable_on_install=enable_on_install)
         except RuntimeError:
             return False  # The error will have been printed.
 
@@ -339,10 +339,10 @@ class subcmd_pkg:
 
         import bpy
         for repo_index, pkg_id in repos_and_packages:
-            bpy.ops.bl_pkg.pkg_mark_set(repo_index=repo_index, pkg_id=pkg_id)
+            bpy.ops.extensions.package_mark_set(repo_index=repo_index, pkg_id=pkg_id)
 
         try:
-            bpy.ops.bl_pkg.pkg_uninstall_marked()
+            bpy.ops.extensions.package_uninstall_marked()
         except RuntimeError:
             return False  # The error will have been printed.
 
@@ -365,7 +365,7 @@ class subcmd_pkg:
         filepath = os.path.abspath(filepath)
 
         try:
-            bpy.ops.bl_pkg.pkg_install_files(
+            bpy.ops.extensions.package_install_files(
                 filepath=filepath,
                 repo=repo_id,
                 enable_on_install=enable_on_install,

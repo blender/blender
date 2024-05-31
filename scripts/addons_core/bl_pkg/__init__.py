@@ -10,7 +10,7 @@ bl_info = {
     "location": "Edit -> Preferences -> Extensions",
     "description": "Extension repository support for remote repositories",
     "warning": "",
-    # "doc_url": "{BLENDER_MANUAL_URL}/addons/bl_pkg/bl_pkg.html",
+    # "doc_url": "",
     "support": 'OFFICIAL',
     "category": "System",
 }
@@ -229,7 +229,7 @@ def extenion_repos_sync(*_):
     stdout = io.StringIO()
 
     with redirect_stdout(stdout):
-        bpy.ops.bl_pkg.repo_sync_all('INVOKE_DEFAULT', use_active_only=True)
+        bpy.ops.extensions.repo_sync_all('INVOKE_DEFAULT', use_active_only=True)
 
     if text := stdout.getvalue():
         repo_status_text.from_message("Sync \"{:s}\"".format(active_repo.name), text)
@@ -249,7 +249,7 @@ def extenion_repos_upgrade(*_):
     stdout = io.StringIO()
 
     with redirect_stdout(stdout):
-        bpy.ops.bl_pkg.pkg_upgrade_all('INVOKE_DEFAULT', use_active_only=True)
+        bpy.ops.extensions.package_upgrade_all('INVOKE_DEFAULT', use_active_only=True)
 
     if text := stdout.getvalue():
         repo_status_text.from_message("Upgrade \"{:s}\"".format(active_repo.name), text)

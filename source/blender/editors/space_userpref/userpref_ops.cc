@@ -865,11 +865,12 @@ static int preferences_extension_url_drop_invoke(bContext *C, wmOperator *op, co
 
   /* NOTE: searching for hard-coded add-on name isn't great.
    * Needed since #WM_dropbox_add expects the operator to exist on startup. */
-  const char *idname_external = url_is_remote ? "bl_pkg.pkg_install" : "bl_pkg.pkg_install_files";
+  const char *idname_external = url_is_remote ? "extensions.package_install" :
+                                                "extensions.package_install_files";
   bool use_url = true;
 
   if (url_is_online && (G.f & G_FLAG_INTERNET_ALLOW) == 0) {
-    idname_external = "bl_pkg.extensions_show_online_prefs_popup";
+    idname_external = "extensions.userpref_show_online_popup";
     use_url = false;
   }
 

@@ -475,7 +475,7 @@ def splash_draw_status_fn(self, context):
         text, icon, update_count = notify.ui_text()
         row = self.layout.row(align=True)
         if update_count > 0:
-            row.operator("bl_pkg.extensions_show_for_update", text=text, icon=icon)
+            row.operator("extensions.userpref_show_for_update", text=text, icon=icon)
         else:
             row.label(text=text, icon=icon)
 
