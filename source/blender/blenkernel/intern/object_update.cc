@@ -228,6 +228,11 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       }
     }
   }
+
+  if (DEG_is_active(depsgraph)) {
+    Object *object_orig = DEG_get_original_object(ob);
+    object_orig->runtime->bounds_eval = BKE_object_evaluated_geometry_bounds(ob);
+  }
 }
 
 void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
@@ -257,8 +262,6 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
       md_orig->error = BLI_strdup(md->error);
     }
   }
-
-  object_orig->runtime->bounds_eval = BKE_object_evaluated_geometry_bounds(object);
 }
 
 void BKE_object_eval_uber_transform(Depsgraph * /*depsgraph*/, Object * /*object*/) {}
