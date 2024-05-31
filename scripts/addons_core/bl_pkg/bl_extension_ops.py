@@ -2377,7 +2377,7 @@ class EXTENSIONS_OT_userpref_show_online(Operator):
         return {'FINISHED'}
 
 
-# NOTE: this is a wrapper for `extensions.show_online_prefs`.
+# NOTE: this is a wrapper for `extensions.userpref_show_online`.
 # It exists *only* show a dialog.
 class EXTENSIONS_OT_userpref_show_online_popup(Operator):
     """Show system preferences "Network" panel to allow online access"""

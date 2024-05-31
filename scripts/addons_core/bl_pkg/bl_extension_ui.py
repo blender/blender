@@ -351,7 +351,7 @@ def extensions_panel_draw_online_extensions_request_impl(
 
         # The only reason to prefer this over `screen.userpref_show`
         # is it will be disabled when `--offline-mode` is forced with a useful error for why.
-        row.operator("extensions.show_online_prefs", text="Go to System")
+        row.operator("extensions.userpref_show_online", text="Go to System")
 
 
 def extensions_panel_draw_impl(
