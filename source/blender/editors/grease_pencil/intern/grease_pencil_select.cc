@@ -40,7 +40,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selectable_elements = retrieve_editable_elements(
-        *object, info.drawing, selection_domain, memory);
+        *object, info, selection_domain, memory);
     if (selectable_elements.is_empty()) {
       return;
     }
@@ -80,7 +80,7 @@ static int select_more_exec(bContext *C, wmOperator * /*op*/)
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
-        *object, info.drawing, memory);
+        *object, info.drawing, info.layer_index, memory);
     if (selectable_strokes.is_empty()) {
       return;
     }
@@ -118,7 +118,7 @@ static int select_less_exec(bContext *C, wmOperator * /*op*/)
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
-        *object, info.drawing, memory);
+        *object, info.drawing, info.layer_index, memory);
     if (selectable_strokes.is_empty()) {
       return;
     }
@@ -156,7 +156,7 @@ static int select_linked_exec(bContext *C, wmOperator * /*op*/)
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
-        *object, info.drawing, memory);
+        *object, info.drawing, info.layer_index, memory);
     if (selectable_strokes.is_empty()) {
       return;
     }
@@ -199,7 +199,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
     IndexMaskMemory memory;
     const IndexMask selectable_elements = retrieve_editable_elements(
-        *object, info.drawing, selection_domain, memory);
+        *object, info, selection_domain, memory);
     if (selectable_elements.is_empty()) {
       return;
     }
@@ -298,7 +298,7 @@ static int select_ends_exec(bContext *C, wmOperator *op)
 
     IndexMaskMemory memory;
     const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
-        *object, info.drawing, memory);
+        *object, info.drawing, info.layer_index, memory);
     if (selectable_strokes.is_empty()) {
       return;
     }
@@ -306,7 +306,7 @@ static int select_ends_exec(bContext *C, wmOperator *op)
         curves, selectable_strokes, amount_start, amount_end, true, memory);
 
     const IndexMask selectable_points = ed::greasepencil::retrieve_editable_points(
-        *object, info.drawing, memory);
+        *object, info.drawing, info.layer_index, memory);
     const bool was_anything_selected = ed::curves::has_anything_selected(curves,
                                                                          selectable_points);
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(

@@ -686,6 +686,7 @@ static VectorSet<int> get_hidden_material_indices(Object &object)
 
 IndexMask retrieve_editable_strokes(Object &object,
                                     const bke::greasepencil::Drawing &drawing,
+                                    int layer_index,
                                     IndexMaskMemory &memory)
 {
   using namespace blender;
@@ -703,6 +704,8 @@ IndexMask retrieve_editable_strokes(Object &object,
   }
 
   const bke::AttributeAccessor attributes = curves.attributes();
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
 
   const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
   if (!materials) {
@@ -716,7 +719,9 @@ IndexMask retrieve_editable_strokes(Object &object,
   return IndexMask::from_predicate(
       curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
         const int material_index = materials[curve_i];
-        return editable_material_indices.contains(material_index);
+        /* The stroke is editable if the material is editable. If the material is not editable,
+         * then the stroke is only editable if the layer disables the locked material option. */
+        return editable_material_indices.contains(material_index) || layer.use_locked_material();
       });
 }
 
@@ -758,6 +763,7 @@ IndexMask retrieve_editable_strokes_by_material(Object &object,
 
 IndexMask retrieve_editable_points(Object &object,
                                    const bke::greasepencil::Drawing &drawing,
+                                   int layer_index,
                                    IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = drawing.strokes();
@@ -774,6 +780,8 @@ IndexMask retrieve_editable_points(Object &object,
   }
 
   const bke::AttributeAccessor attributes = curves.attributes();
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
 
   /* Propagate the material index to the points. */
   const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Point);
@@ -788,20 +796,24 @@ IndexMask retrieve_editable_points(Object &object,
   return IndexMask::from_predicate(
       points_range, GrainSize(4096), memory, [&](const int64_t point_i) {
         const int material_index = materials[point_i];
-        return editable_material_indices.contains(material_index);
+        /* The stroke is editable if the material is editable. If the material is not editable,
+         * then the stroke is only editable if the layer disables the locked material option. */
+        return editable_material_indices.contains(material_index) || layer.use_locked_material();
       });
 }
 
 IndexMask retrieve_editable_elements(Object &object,
-                                     const bke::greasepencil::Drawing &drawing,
+                                     const MutableDrawingInfo &info,
                                      const bke::AttrDomain selection_domain,
                                      IndexMaskMemory &memory)
 {
+
+  const bke::greasepencil::Drawing &drawing = info.drawing;
   if (selection_domain == bke::AttrDomain::Curve) {
-    return ed::greasepencil::retrieve_editable_strokes(object, drawing, memory);
+    return ed::greasepencil::retrieve_editable_strokes(object, drawing, info.layer_index, memory);
   }
   else if (selection_domain == bke::AttrDomain::Point) {
-    return ed::greasepencil::retrieve_editable_points(object, drawing, memory);
+    return ed::greasepencil::retrieve_editable_points(object, drawing, info.layer_index, memory);
   }
   return {};
 }
@@ -868,13 +880,14 @@ IndexMask retrieve_visible_points(Object &object,
 
 IndexMask retrieve_editable_and_selected_strokes(Object &object,
                                                  const bke::greasepencil::Drawing &drawing,
+                                                 int layer_index,
                                                  IndexMaskMemory &memory)
 {
   using namespace blender;
-
   const bke::CurvesGeometry &curves = drawing.strokes();
 
-  const IndexMask editable_strokes = retrieve_editable_strokes(object, drawing, memory);
+  const IndexMask editable_strokes = retrieve_editable_strokes(
+      object, drawing, layer_index, memory);
   const IndexMask selected_strokes = ed::curves::retrieve_selected_curves(curves, memory);
 
   return IndexMask::from_intersection(editable_strokes, selected_strokes, memory);
@@ -882,11 +895,12 @@ IndexMask retrieve_editable_and_selected_strokes(Object &object,
 
 IndexMask retrieve_editable_and_selected_points(Object &object,
                                                 const bke::greasepencil::Drawing &drawing,
+                                                int layer_index,
                                                 IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = drawing.strokes();
 
-  const IndexMask editable_points = retrieve_editable_points(object, drawing, memory);
+  const IndexMask editable_points = retrieve_editable_points(object, drawing, layer_index, memory);
   const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, memory);
 
   return IndexMask::from_intersection(editable_points, selected_points, memory);
@@ -894,14 +908,17 @@ IndexMask retrieve_editable_and_selected_points(Object &object,
 
 IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   const bke::greasepencil::Drawing &drawing,
+                                                  int layer_index,
                                                   const bke::AttrDomain selection_domain,
                                                   IndexMaskMemory &memory)
 {
   if (selection_domain == bke::AttrDomain::Curve) {
-    return ed::greasepencil::retrieve_editable_and_selected_strokes(object, drawing, memory);
+    return ed::greasepencil::retrieve_editable_and_selected_strokes(
+        object, drawing, layer_index, memory);
   }
   else if (selection_domain == bke::AttrDomain::Point) {
-    return ed::greasepencil::retrieve_editable_and_selected_points(object, drawing, memory);
+    return ed::greasepencil::retrieve_editable_and_selected_points(
+        object, drawing, layer_index, memory);
   }
   return {};
 }

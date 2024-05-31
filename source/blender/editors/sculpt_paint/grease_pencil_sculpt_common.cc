@@ -184,7 +184,7 @@ IndexMask point_selection_mask(const GreasePencilStrokeParams &params, IndexMask
   const bool is_masking = GPENCIL_ANY_SCULPT_MASK(
       eGP_Sculpt_SelectMaskFlag(params.toolsettings.gpencil_selectmode_sculpt));
   return (is_masking ? ed::greasepencil::retrieve_editable_and_selected_points(
-                           params.ob_eval, params.drawing, memory) :
+                           params.ob_eval, params.drawing, params.layer_index, memory) :
                        params.drawing.strokes().points_range());
 }
 

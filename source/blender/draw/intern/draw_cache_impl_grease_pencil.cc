@@ -461,7 +461,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     const VArray<bool> cyclic = curves.cyclic();
     IndexMaskMemory memory;
     const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
-        object, info.drawing, memory);
+        object, info.drawing, info.layer_index, memory);
 
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
@@ -531,7 +531,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     const VArray<bool> cyclic = curves.cyclic();
     IndexMaskMemory memory;
     const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
-        object, info.drawing, memory);
+        object, info.drawing, info.layer_index, memory);
 
     /* Fill line indices. */
     editable_strokes.foreach_index([&](const int curve_i) {
