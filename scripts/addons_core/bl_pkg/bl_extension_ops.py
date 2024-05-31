@@ -1936,13 +1936,14 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         return self.execute(context)
 
     def _invoke_for_drop(self, context, event):
-        from .bl_extension_utils import url_params_extract_repo_url
+        from .bl_extension_utils import url_parse_for_blender
 
         url = self.url
         print("DROP URL:", url)
 
         # First check if this is part of a disabled repository.
-        remote_url = url_params_extract_repo_url(url)
+        url, url_params = url_parse_for_blender(url)
+        remote_url = url_params.get("repository")
         repo_from_url = None if remote_url is None else _preferences_repo_find_by_remote_url(context, remote_url)
 
         if repo_from_url and not repo_from_url.enabled:

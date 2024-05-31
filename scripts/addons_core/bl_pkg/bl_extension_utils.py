@@ -27,7 +27,7 @@ __all__ = (
     "pkg_theme_file_list",
     "platform_from_this_system",
     "url_params_append_for_blender",
-    "url_params_extract_repo_url",
+    "url_parse_for_blender",
     "file_mtime_or_none",
 
     # Public API.
@@ -357,19 +357,30 @@ def url_params_append_for_blender(url: str, blender_version: Tuple[int, int, int
     return _url_params_append(url, params)
 
 
-def url_params_extract_repo_url(url: str) -> Optional[str]:
-    # Extract `?repository=...` value from the URL and return it.
-    # Concatenating it where appropriate.
+def url_parse_for_blender(url: str) -> Tuple[str, Dict[str, str]]:
+    # Split the URL into components:
+    # - The stripped: `scheme + netloc + path`
+    # - Known query values used by Blender.
+    #   Extract `?repository=...` value from the URL and return it.
+    #   Concatenating it where appropriate.
+    #
     import urllib
     import urllib.parse
 
-    # Parse the URL to get its scheme, domain, and query parameters.
     parsed_url = urllib.parse.urlparse(url)
+    query = urllib.parse.parse_qsl(parsed_url.query)
 
-    # Combine existing query parameters with new parameters
-    params = urllib.parse.parse_qsl(parsed_url.query)
+    url_strip = urllib.parse.urlunparse((
+        parsed_url.scheme,
+        parsed_url.netloc,
+        parsed_url.path,
+        None,  # `parsed_url.params,`
+        None,  # `parsed_url.query,`
+        None,  # `parsed_url.fragment,`
+    ))
 
-    if repo_path := next((value for key, value in params if key == "repository"), None):
+    query_known = {}
+    if repo_path := next((value for key, value in query if key == "repository"), None):
         if repo_path.startswith("/"):
             repo_url = urllib.parse.urlunparse((
                 parsed_url.scheme,
@@ -381,9 +392,9 @@ def url_params_extract_repo_url(url: str) -> Optional[str]:
             ))
         else:
             repo_url = repo_path
-        return repo_url
+        query_known["repository"] = repo_url
 
-    return None
+    return url_strip, query_known
 
 
 # -----------------------------------------------------------------------------
