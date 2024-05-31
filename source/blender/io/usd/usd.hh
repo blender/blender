@@ -85,6 +85,16 @@ typedef enum eUSDXformOpMode {
   USD_XFORM_OP_MAT = 2,
 } eUSDXformOpMode;
 
+typedef enum eUSDZTextureDownscaleSize {
+  USD_TEXTURE_SIZE_CUSTOM = -1,
+  USD_TEXTURE_SIZE_KEEP = 0,
+  USD_TEXTURE_SIZE_256 = 256,
+  USD_TEXTURE_SIZE_512 = 512,
+  USD_TEXTURE_SIZE_1024 = 1024,
+  USD_TEXTURE_SIZE_2048 = 2048,
+  USD_TEXTURE_SIZE_4096 = 4096
+} eUSDZTextureDownscaleSize;
+
 struct USDExportParams {
   bool export_animation = false;
   bool export_hair = true;
@@ -120,6 +130,8 @@ struct USDExportParams {
   bool export_curves = true;
   bool export_volumes = true;
 
+  eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize::USD_TEXTURE_SIZE_KEEP;
+  int usdz_downscale_custom_size = 128;
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
 

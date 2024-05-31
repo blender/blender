@@ -145,6 +145,17 @@ const EnumPropertyItem rna_enum_usd_xform_op_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem prop_usdz_downscale_size[] = {
+    {USD_TEXTURE_SIZE_KEEP, "KEEP", 0, "Keep", "Keep all current texture sizes"},
+    {USD_TEXTURE_SIZE_256, "256", 0, "256", "Resize to a maximum of 256 pixels"},
+    {USD_TEXTURE_SIZE_512, "512", 0, "512", "Resize to a maximum of 512 pixels"},
+    {USD_TEXTURE_SIZE_1024, "1024", 0, "1024", "Resize to a maximum of 1024 pixels"},
+    {USD_TEXTURE_SIZE_2048, "2048", 0, "2048", "Resize to a maximum of 2048 pixels"},
+    {USD_TEXTURE_SIZE_4096, "4096", 0, "4096", "Resize to a maximum of 4096 pixels"},
+    {USD_TEXTURE_SIZE_CUSTOM, "CUSTOM", 0, "Custom", "Specify a custom size"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 enum { AS_BACKGROUND_JOB = 1 };
@@ -246,6 +257,11 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const eUSDXformOpMode xform_op_mode = eUSDXformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
 
+  const eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize(
+      RNA_enum_get(op->ptr, "usdz_downscale_size"));
+
+  const int usdz_downscale_custom_size = RNA_int_get(op->ptr, "usdz_downscale_custom_size");
+
   char root_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
@@ -284,6 +300,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       export_cameras,
       export_curves,
       export_volumes,
+      usdz_downscale_size,
+      usdz_downscale_custom_size,
   };
 
   STRNCPY(params.root_prim_path, root_prim_path);
@@ -363,6 +381,14 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   uiItemR(row, ptr, "export_textures", UI_ITEM_NONE, nullptr, ICON_NONE);
   const bool preview = RNA_boolean_get(ptr, "generate_preview_surface");
   uiLayoutSetActive(row, export_mtl && preview);
+
+  uiLayout *col2 = uiLayoutColumn(col, true);
+  uiLayoutSetPropSep(col2, true);
+  uiLayoutSetEnabled(col2, RNA_boolean_get(ptr, "export_textures"));
+  uiItemR(col2, ptr, "usdz_downscale_size", UI_ITEM_NONE, nullptr, ICON_NONE);
+  if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
+    uiItemR(col2, ptr, "usdz_downscale_custom_size", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
 
   row = uiLayoutRow(col, true);
   uiItemR(row, ptr, "overwrite_textures", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -651,6 +677,23 @@ void WM_OT_usd_export(wmOperatorType *ot)
                MOD_TRIANGULATE_NGON_BEAUTY,
                "N-gon Method",
                "Method for splitting the n-gons into triangles");
+
+  RNA_def_enum(ot->srna,
+               "usdz_downscale_size",
+               prop_usdz_downscale_size,
+               DAG_EVAL_VIEWPORT,
+               "USDZ Texture Downsampling",
+               "Choose a maximum size for all exported textures");
+
+  RNA_def_int(ot->srna,
+              "usdz_downscale_custom_size",
+              128,
+              64,
+              16384,
+              "USDZ Custom Downscale Size",
+              "Custom size for downscaling exported textures",
+              128,
+              8192);
 }
 
 /* ====== USD Import ====== */
