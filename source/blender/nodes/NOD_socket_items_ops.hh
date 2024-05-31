@@ -147,7 +147,9 @@ inline void add_item(wmOperatorType *ot,
     if constexpr (Accessor::has_type && Accessor::has_name) {
       socket_items::add_item_with_socket_type_and_name<Accessor>(
           node,
-          active_item ? eNodeSocketDatatype(active_item->socket_type) : SOCK_GEOMETRY,
+          active_item ?
+              Accessor::get_socket_type(*active_item) :
+              (Accessor::supports_socket_type(SOCK_GEOMETRY) ? SOCK_GEOMETRY : SOCK_FLOAT),
           /* Empty name so it is based on the type. */
           active_item ? active_item->name : "");
     }

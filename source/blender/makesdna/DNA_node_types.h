@@ -1791,11 +1791,28 @@ typedef struct NodeGeometryMeshToPoints {
   uint8_t mode;
 } NodeGeometryMeshToPoints;
 
-typedef struct NodeGeometryAttributeCapture {
+typedef struct NodeGeometryAttributeCaptureItem {
   /** #eCustomDataType. */
   int8_t data_type;
+  char _pad[3];
+  /**
+   * If the identifier is zero, the item supports forward-compatibility with older versions of
+   * Blender when it was only possible to capture a single attribute at a time.
+   */
+  int identifier;
+  char *name;
+} NodeGeometryAttributeCaptureItem;
+
+typedef struct NodeGeometryAttributeCapture {
+  /** #eCustomDataType. */
+  int8_t data_type_legacy;
   /** #AttrDomain. */
   int8_t domain;
+  char _pad[2];
+  int next_identifier;
+  NodeGeometryAttributeCaptureItem *capture_items;
+  int capture_items_num;
+  int active_index;
 } NodeGeometryAttributeCapture;
 
 typedef struct NodeGeometryStoreNamedAttribute {

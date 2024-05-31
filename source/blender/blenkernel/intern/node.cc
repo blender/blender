@@ -84,6 +84,7 @@
 #include "NOD_common.h"
 #include "NOD_composite.hh"
 #include "NOD_geo_bake.hh"
+#include "NOD_geo_capture_attribute.hh"
 #include "NOD_geo_index_switch.hh"
 #include "NOD_geo_menu_switch.hh"
 #include "NOD_geo_repeat.hh"
@@ -843,6 +844,23 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         }
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, storage);
       }
+      else if (node->type == GEO_NODE_CAPTURE_ATTRIBUTE) {
+        auto &storage = *static_cast<NodeGeometryAttributeCapture *>(node->storage);
+        /* Improve forward compatibility. */
+        storage.data_type_legacy = CD_PROP_FLOAT;
+        for (const NodeGeometryAttributeCaptureItem &item :
+             Span{storage.capture_items, storage.capture_items_num})
+        {
+          if (item.identifier == 0) {
+            /* The sockets of this item have the same identifiers that have been used by older
+             * Blender versions before the node supported capturing multiple attributes. */
+            storage.data_type_legacy = item.data_type;
+            break;
+          }
+        }
+        BLO_write_struct(writer, NodeGeometryAttributeCapture, node->storage);
+        nodes::CaptureAttributeItemsAccessor::blend_write(writer, *node);
+      }
       else if (node->typeinfo != &NodeTypeUndefined) {
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
@@ -1156,6 +1174,10 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         }
         case GEO_NODE_MENU_SWITCH: {
           nodes::MenuSwitchItemsAccessor::blend_read_data(reader, *node);
+          break;
+        }
+        case GEO_NODE_CAPTURE_ATTRIBUTE: {
+          nodes::CaptureAttributeItemsAccessor::blend_read_data(reader, *node);
           break;
         }
 

@@ -21,6 +21,7 @@ struct IndexSwitchItemsAccessor {
   static constexpr const char *node_idname = "GeometryNodeIndexSwitch";
   static constexpr bool has_type = false;
   static constexpr bool has_name = false;
+  static constexpr bool has_single_identifier_str = true;
 
   static socket_items::SocketItemsRef<IndexSwitchItem> get_items_from_node(bNode &node)
   {

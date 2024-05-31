@@ -310,7 +310,7 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_STATISTIC, 0, "ATTRIBUTE_STATISTIC",Att
 DefNode(GeometryNode, GEO_NODE_BAKE, rna_def_geo_bake, "BAKE", Bake, "Bake", "Cache the incoming data so that it can be used without recomputation")
 DefNode(GeometryNode, GEO_NODE_BLUR_ATTRIBUTE, 0, "BLUR_ATTRIBUTE", BlurAttribute, "Blur Attribute", "Mix attribute values of neighboring elements")
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "Calculate the limits of a geometry's positions and generate a box mesh with those dimensions")
-DefNode(GeometryNode, GEO_NODE_CAPTURE_ATTRIBUTE, 0, "CAPTURE_ATTRIBUTE", CaptureAttribute, "Capture Attribute", "Store the result of a field on a geometry and output the data as a node socket. Allows remembering or interpolating data as the geometry changes, such as positions before deformation")
+DefNode(GeometryNode, GEO_NODE_CAPTURE_ATTRIBUTE, rna_def_geo_capture_attribute, "CAPTURE_ATTRIBUTE", CaptureAttribute, "Capture Attribute", "Store the result of a field on a geometry and output the data as a node socket. Allows remembering or interpolating data as the geometry changes, such as positions before deformation")
 DefNode(GeometryNode, GEO_NODE_COLLECTION_INFO, 0, "COLLECTION_INFO", CollectionInfo, "Collection Info", "Retrieve geometry instances from a collection")
 DefNode(GeometryNode, GEO_NODE_CONVEX_HULL, 0, "CONVEX_HULL", ConvexHull, "Convex Hull", "Create a mesh that encloses all points in the input geometry with the smallest number of points")
 DefNode(GeometryNode, GEO_NODE_CURVE_ENDPOINT_SELECTION, 0, "CURVE_ENDPOINT_SELECTION", CurveEndpointSelection, "Endpoint Selection", "Provide a selection for an arbitrary number of endpoints in each spline")

@@ -194,6 +194,23 @@ template<typename Accessor> inline typename Accessor::ItemT *add_item(bNode &nod
   return &new_item;
 }
 
+template<typename Accessor>
+inline std::string get_socket_identifier(const typename Accessor::ItemT &item,
+                                         const eNodeSocketInOut in_out)
+{
+  if constexpr (Accessor::has_single_identifier_str) {
+    return Accessor::socket_identifier_for_item(item);
+  }
+  else {
+    if (in_out == SOCK_IN) {
+      return Accessor::input_socket_identifier_for_item(item);
+    }
+    else {
+      return Accessor::output_socket_identifier_for_item(item);
+    }
+  }
+}
+
 /**
  * Check if the link connects to the `extend_socket`. If yes, create a new item for the linked
  * socket, update the node and then change the link to point to the new socket.
@@ -238,13 +255,14 @@ template<typename Accessor>
   }
 
   update_node_declaration_and_sockets(ntree, extend_node);
-  const std::string item_identifier = Accessor::socket_identifier_for_item(*item);
   if (extend_socket.is_input()) {
-    bNodeSocket *new_socket = bke::nodeFindSocket(&extend_node, SOCK_IN, item_identifier);
+    const std::string item_identifier = get_socket_identifier<Accessor>(*item, SOCK_IN);
+    bNodeSocket *new_socket = bke::nodeFindSocket(&extend_node, SOCK_IN, item_identifier.c_str());
     link.tosock = new_socket;
   }
   else {
-    bNodeSocket *new_socket = bke::nodeFindSocket(&extend_node, SOCK_OUT, item_identifier);
+    const std::string item_identifier = get_socket_identifier<Accessor>(*item, SOCK_OUT);
+    bNodeSocket *new_socket = bke::nodeFindSocket(&extend_node, SOCK_OUT, item_identifier.c_str());
     link.fromsock = new_socket;
   }
   return true;
