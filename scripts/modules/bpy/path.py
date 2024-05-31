@@ -373,24 +373,24 @@ def module_names(path, *, recursive=False, package=""):
 
     modules = []
 
-    pacakge_prefix = (package + ".") if package else ""
+    package_prefix = (package + ".") if package else ""
 
     for filename in sorted(_os.listdir(path)):
-        if (filename == "modules") and (not pacakge_prefix):
+        if (filename == "modules") and (not package_prefix):
             pass  # XXX, hard coded exception.
         elif filename.endswith(".py") and filename != "__init__.py":
             fullpath = join(path, filename)
-            modules.append((pacakge_prefix + filename[0:-3], fullpath))
+            modules.append((package_prefix + filename[0:-3], fullpath))
         elif not filename.startswith("."):
             # Skip hidden files since they are used by for version control.
             directory = join(path, filename)
             fullpath = join(directory, "__init__.py")
             if isfile(fullpath):
-                modules.append((pacakge_prefix + filename, fullpath))
+                modules.append((package_prefix + filename, fullpath))
                 if recursive:
                     for mod_name, mod_path in module_names(directory, recursive=True):
                         modules.append((
-                            "{:s}.{:s}".format(pacakge_prefix + filename, mod_name),
+                            "{:s}.{:s}".format(package_prefix + filename, mod_name),
                             mod_path,
                         ))
 
