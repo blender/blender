@@ -2133,22 +2133,7 @@ static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, Poin
 static bool allow_identifier_lookup(const bNode &node)
 {
   switch (node.type) {
-    case GEO_NODE_SWITCH:
-    case GEO_NODE_ACCUMULATE_FIELD:
-    case GEO_NODE_CAPTURE_ATTRIBUTE:
-    case GEO_NODE_ATTRIBUTE_STATISTIC:
-    case GEO_NODE_BLUR_ATTRIBUTE:
-    case GEO_NODE_SAMPLE_CURVE:
-    case GEO_NODE_EVALUATE_AT_INDEX:
-    case GEO_NODE_EVALUATE_ON_DOMAIN:
-    case GEO_NODE_INPUT_NAMED_ATTRIBUTE:
-    case GEO_NODE_RAYCAST:
-    case GEO_NODE_SAMPLE_INDEX:
-    case GEO_NODE_SAMPLE_NEAREST_SURFACE:
     case FN_NODE_RANDOM_VALUE:
-    case GEO_NODE_SAMPLE_UV_SURFACE:
-    case GEO_NODE_STORE_NAMED_ATTRIBUTE:
-    case GEO_NODE_VIEWER:
     case SH_NODE_MIX:
     case FN_NODE_COMPARE:
     case SH_NODE_MAP_RANGE:
