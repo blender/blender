@@ -319,6 +319,7 @@ class NODE_MT_geometry_node_GEO_INSTANCE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeTranslateInstances")
         node_add_menu.add_node_type(layout, "GeometryNodeSetInstanceTransform")
         layout.separator()
+        node_add_menu.add_node_type(layout, "GeometryNodeInstanceTransform")
         node_add_menu.add_node_type(layout, "GeometryNodeInputInstanceRotation")
         node_add_menu.add_node_type(layout, "GeometryNodeInputInstanceScale")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)

@@ -1332,6 +1332,7 @@ void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index
 #define GEO_NODE_SAMPLE_GRID_INDEX 2134
 #define GEO_NODE_TOOL_ACTIVE_ELEMENT 2135
 #define GEO_NODE_SET_INSTANCE_TRANSFORM 2136
+#define GEO_NODE_INPUT_INSTANCE_TRANSFORM 2137
 
 /** \} */
 
