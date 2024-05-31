@@ -470,7 +470,8 @@ def splash_draw_status_fn(self, context):
     if not bpy.app.online_access:
         if bpy.app.online_access_override:
             # Since there is nothing to do in this case, we show no operator.
-            self.layout.label(text="Running in Offline Mode", icon='INTERNET')
+            # The splash screen shows text here.
+            pass
     else:
         text, icon, update_count = notify.ui_text()
         row = self.layout.row(align=True)

@@ -3350,6 +3350,10 @@ class WM_MT_splash(Menu):
         col2.operator("wm.url_open_preset", text="What's New", icon='URL').type = 'RELEASE_NOTES'
 
         layout.separator()
+
+        if (not bpy.app.online_access) and bpy.app.online_access_override:
+            self.layout.label(text="Running in Offline Mode", icon='INTERNET')
+
         layout.separator()
 
 
