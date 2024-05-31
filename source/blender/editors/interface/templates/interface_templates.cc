@@ -6441,7 +6441,9 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       bmain, scene, view_layer, (U.statusbar_flag & ~STATUSBAR_SHOW_VERSION));
   uiItemL(row, status_info_txt, ICON_NONE);
 
-  if ((U.statusbar_flag & STATUSBAR_SHOW_EXTENSIONS_UPDATES) && (G.f & G_FLAG_INTERNET_ALLOW) &&
+  bool showed_extensions_updated = false;
+
+  if ((U.statusbar_flag & STATUSBAR_SHOW_EXTENSIONS_UPDATES) &&
       (!ELEM(wm->extensions_updates, 0, WM_EXTENSIONS_UPDATE_UNSET)))
   {
     int icon = ICON_INTERNET;
@@ -6449,6 +6451,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       icon = ICON_UV_SYNC_SELECT;
     }
 
+    showed_extensions_updated = true;
     if (status_info_txt[0]) {
       uiItemS_ex(row, -0.5f);
       uiItemL(row, "|", ICON_NONE);
@@ -6469,11 +6472,36 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
 
     uiItemS_ex(row, 1.0f);
   }
+  else if ((U.statusbar_flag & STATUSBAR_SHOW_EXTENSIONS_UPDATES) &&
+           ((G.f & G_FLAG_INTERNET_ALLOW) == 0))
+  {
+    showed_extensions_updated = true;
+    if (status_info_txt[0]) {
+      uiItemS_ex(row, -0.5f);
+      uiItemL(row, "|", ICON_NONE);
+      uiItemS_ex(row, -0.5f);
+    }
+
+    if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
+      uiItemL(row, "", ICON_INTERNET_OFFLINE);
+    }
+    else {
+      uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+      uiItemO(row, "", ICON_INTERNET_OFFLINE, "EXTENSIONS_OT_userpref_show_online");
+      uiBut *but = static_cast<uiBut *>(uiLayoutGetBlock(layout)->buttons.last);
+      uchar color[4];
+      UI_GetThemeColor4ubv(TH_TEXT, color);
+      copy_v4_v4_uchar(but->col, color);
+    }
+
+    uiItemS_ex(row, 1.0f);
+  }
 
   if (!bmain->has_forward_compatibility_issues) {
     if (U.statusbar_flag & STATUSBAR_SHOW_VERSION) {
-      if (U.statusbar_flag & (STATUSBAR_SHOW_MEMORY | STATUSBAR_SHOW_VRAM | STATUSBAR_SHOW_STATS |
-                              STATUSBAR_SHOW_SCENE_DURATION | STATUSBAR_SHOW_EXTENSIONS_UPDATES))
+      if ((U.statusbar_flag & (STATUSBAR_SHOW_MEMORY | STATUSBAR_SHOW_VRAM | STATUSBAR_SHOW_STATS |
+                               STATUSBAR_SHOW_SCENE_DURATION)) ||
+          showed_extensions_updated)
       {
         uiItemS_ex(row, -0.5f);
         uiItemL(row, "|", ICON_NONE);
