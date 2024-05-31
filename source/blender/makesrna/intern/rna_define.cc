@@ -1498,14 +1498,6 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 #endif
   }
 
-  /* Override handling. */
-  if (DefRNA.preprocess) {
-    prop->override_diff = (RNAPropOverrideDiff)(void *)"rna_property_override_diff_default";
-    prop->override_store = (RNAPropOverrideStore)(void *)"rna_property_override_store_default";
-    prop->override_apply = (RNAPropOverrideApply)(void *)"rna_property_override_apply_default";
-  }
-  /* TODO: do we want that for runtime-defined stuff too? I’d say no, but... maybe yes :/ */
-
 #ifndef RNA_RUNTIME
   /* Both are typically cleared. */
   RNA_def_property_update(
