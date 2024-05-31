@@ -315,6 +315,10 @@ def update_render_engine(self, context):
     scene.update_render_engine()
 
 
+def update_pause(self, context):
+    context.area.tag_redraw()
+
+
 class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     device: EnumProperty(
@@ -339,6 +343,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Pause Preview",
         description="Pause all viewport preview renders",
         default=False,
+        update=update_pause,
     )
 
     use_denoising: BoolProperty(
