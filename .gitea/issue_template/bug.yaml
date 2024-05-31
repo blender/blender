@@ -17,6 +17,7 @@ body:
                 * For feature requests, feedback, questions or build issues, see [communication channels](https://developer.blender.org/docs/handbook/communication/user_feedback/).
                 * Security vulnerabilities should be [reported privately](https://developer.blender.org/docs/handbook/bug_reports/vulnerability_reports/).
                 * If there are multiple bugs, make multiple bug reports.
+                * Any content you upload will be shared publicly. Ensure you have permission to share any files you upload, and avoid uploading age restricted content.
 
   - type: textarea
     id: body
