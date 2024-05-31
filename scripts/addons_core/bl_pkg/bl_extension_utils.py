@@ -878,7 +878,6 @@ class CommandBatch:
     def calc_status_text_icon_from_data(
             status_data: CommandBatch_StatusFlag,
             update_count: int,
-            do_online_sync: bool,
     ) -> Tuple[str, str]:
         # Generate a nice UI string for a status-bar & splash screen (must be short).
         #
@@ -893,12 +892,11 @@ class CommandBatch:
         else:
             fail_text = ", some actions failed"
 
-        if status_data.flag == 1 << CommandBatchItem.STATUS_NOT_YET_STARTED or \
-           status_data.flag & 1 << CommandBatchItem.STATUS_RUNNING:
-            if do_online_sync:
-                return "Checking for Extension Updates Online{:s}".format(fail_text), 'SORTTIME'
-            else:
-                return "Checking for Extension Updates{:s}".format(fail_text), 'SORTTIME'
+        if (
+                status_data.flag == (1 << CommandBatchItem.STATUS_NOT_YET_STARTED) or
+                status_data.flag & (1 << CommandBatchItem.STATUS_RUNNING)
+        ):
+            return "Checking for Extension Updates{:s}".format(fail_text), 'SORTTIME'
 
         if status_data.flag == 1 << CommandBatchItem.STATUS_COMPLETE:
             if update_count > 0:

@@ -28,7 +28,9 @@ USE_GRACEFUL_EXIT = False
 # Special value to signal no packages can be updated because all repositories are blocked by being offline.
 STATE_DATA_ALL_OFFLINE = object()
 
-WM_EXTENSIONS_CHECKING = -1
+# `wmWindowManager.extensions_updates` from C++
+WM_EXTENSIONS_UPDATE_UNSET = -2
+WM_EXTENSIONS_UPDATE_CHECKING = -1
 
 
 # -----------------------------------------------------------------------------
@@ -142,7 +144,7 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
     return any_lock_errors, any_stale_errors
 
 
-def sync_status_generator(repos_notify, do_online_sync):
+def sync_status_generator(repos_fn):
     import atexit
 
     # Generator results...
@@ -153,18 +155,22 @@ def sync_status_generator(repos_notify, do_online_sync):
     # Setup The Update #
     # ################ #
 
-    repos_notify_orig = repos_notify
-    if not bpy.app.online_access:
-        repos_notify = [repo for repo in repos_notify if repo.remote_url.startswith("file://")]
-        if not repos_notify:
-            # Special case, early exit.
-            yield (STATE_DATA_ALL_OFFLINE, 0, ())
-            return
-
     yield None
 
-    any_offline = len(repos_notify) != len(repos_notify_orig)
-    del repos_notify_orig
+    # Calculate the repositories.
+    # This may be an expensive so yield once before running.
+    repos_and_do_online = list(repos_fn())
+    assert isinstance(repos_and_do_online, list)
+
+    if not bpy.app.online_access:
+        # Allow file-system only sync.
+        repos_and_do_online = [
+            (repo, do_online_sync) for repo, do_online_sync in repos_and_do_online
+            if repo.remote_url.startswith("file://")
+        ]
+
+    if not repos_and_do_online:
+        return
 
     # An extension unique to this session.
     unique_ext = "@{:x}".format(os.getpid())
@@ -172,7 +178,7 @@ def sync_status_generator(repos_notify, do_online_sync):
     from functools import partial
 
     cmd_batch_partial = []
-    for repo_item in repos_notify:
+    for repo_item, do_online_sync in repos_and_do_online:
         # Local only repositories should still refresh, but not run the sync.
         assert repo_item.remote_url
         cmd_batch_partial.append(partial(
@@ -231,7 +237,7 @@ def sync_status_generator(repos_notify, do_online_sync):
     update_total = -1
     any_lock_errors = False
 
-    repos_notify_files = [[] for _ in repos_notify]
+    repos_notify_files = [[] for _ in repos_and_do_online]
 
     is_debug = bpy.app.debug
     while True:
@@ -274,15 +280,13 @@ def sync_status_generator(repos_notify, do_online_sync):
                 # ################### #
                 # Finalize The Update #
                 # ################### #
+                repos_notify = [repo for repo, _do_online_sync in repos_and_do_online]
                 any_lock_errors, any_stale_errors = sync_apply_locked(repos_notify, repos_notify_files, unique_ext)
                 update_total = sync_status_count_outdated_extensions(repos_notify)
                 if any_lock_errors:
                     extra_warnings.append(" Failed to acquire lock!")
                 if any_stale_errors:
                     extra_warnings.append(" Unexpected change in repository!")
-
-            if any_offline:
-                extra_warnings.append(" Skipping online repositories!")
             yield (cmd_batch.calc_status_data(), update_total, extra_warnings)
         else:
             yield None
@@ -309,31 +313,28 @@ class NotifyHandle:
         "splash_region",
 
         "sync_info",
-        "do_online_sync",
 
-        "_repos",
+        "_repos_fn",
         "is_complete",
         "_sync_generator",
     )
 
-    def __init__(self, repos_notify, do_online_sync):
+    def __init__(self, repos_fn):
         self.splash_region = None
-        self._repos = repos_notify
+        self._repos_fn = repos_fn
         self._sync_generator = None
         self.is_complete = False
         # status_data, update_count, extra_warnings.
         self.sync_info = None
-        self.do_online_sync = do_online_sync
 
     def run(self):
         assert self._sync_generator is None
-        self._sync_generator = iter(sync_status_generator(self._repos, self.do_online_sync))
+        self._sync_generator = iter(sync_status_generator(self._repos_fn))
 
     def run_ensure(self):
         if self.is_running():
-            return False
+            return
         self.run()
-        return True
 
     def run_step(self):
         assert self._sync_generator is not None
@@ -349,17 +350,16 @@ class NotifyHandle:
 
     def updates_count(self):
         if self.sync_info is None:
-            return WM_EXTENSIONS_CHECKING
+            return WM_EXTENSIONS_UPDATE_CHECKING
         _status_data, update_count, _extra_warnings = self.sync_info
         return update_count
 
     def ui_text(self):
         if self.sync_info is None:
-            return "Checking for Extension Updates", 'NONE', WM_EXTENSIONS_CHECKING
+            return "Checking for Extension Updates", 'NONE', WM_EXTENSIONS_UPDATE_CHECKING
         status_data, update_count, extra_warnings = self.sync_info
-        do_online_sync = self.do_online_sync
         text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(
-            status_data, update_count, do_online_sync,
+            status_data, update_count,
         )
         # Not more than 1-2 of these (failed to lock, some repositories offline .. etc).
         for warning in extra_warnings:
@@ -408,12 +408,13 @@ def _ui_refresh_apply(*, notify):
 
 def _ui_refresh_timer():
     if not _notify_queue:
+        if wm.extensions_updates == WM_EXTENSIONS_UPDATE_CHECKING:
+            wm.extensions_updates = WM_EXTENSIONS_UPDATE_UNSET
         return None
 
     wm = bpy.context.window_manager
     notify = _notify_queue[0]
-    if notify.run_ensure():
-        wm.extensions_updates = WM_EXTENSIONS_CHECKING
+    notify.run_ensure()
 
     default_wait = TIME_WAIT_STEP
 
@@ -425,11 +426,19 @@ def _ui_refresh_timer():
             # Nothing changed, no action is needed (waiting for a response).
             return default_wait
 
+        # Some content was found, set checking.
+        # Avoid doing this early because the icon flickers in cases when
+        # it's not needed and it gets turned off quickly.
+        if wm.extensions_updates == WM_EXTENSIONS_UPDATE_UNSET:
+            wm.extensions_updates = WM_EXTENSIONS_UPDATE_CHECKING
+
     # If the generator exited, either step to the next action or early exit here.
     if sync_info is ...:
         _ui_refresh_apply(notify=notify)
         if len(_notify_queue) <= 1:
-            # Keep the item because the text should remain displayed for the splash.
+            # Keep `_notify_queuy[0]` because the text should remain displayed for the splash.
+            if wm.extensions_updates == WM_EXTENSIONS_UPDATE_CHECKING:
+                wm.extensions_updates = WM_EXTENSIONS_UPDATE_UNSET
             return None
         # Move onto the next item.
         del _notify_queue[0]
@@ -449,17 +458,16 @@ def _ui_refresh_timer():
 # Public API
 
 
-def update_non_blocking(*, repos, do_online_sync):
-    """
-    Perform a non-blocking update on ``repos``.
-    Updates are queued in case some are already running.
-    """
-    # TODO: it's possible this preferences requests updates just after check-for-updates on startup.
-    # The checks should be de-duplicated. For now just ensure the checks don't interfere with each other.
-    assert bool(repos), "Unexpected empty repository list passed in"
-    _notify_queue.append(NotifyHandle(repos, do_online_sync))
+def update_non_blocking(*, repos_fn):
+    # Perform a non-blocking update on ``repos``.
+    # Updates are queued in case some are already running.
+    # `repos_fn` A generator or function that returns a list of ``(RepoItem, do_online_sync)`` pairs.
+    # Some repositories don't check for update on startup for e.g.
+
+    _notify_queue.append(NotifyHandle(repos_fn))
     if not bpy.app.timers.is_registered(_ui_refresh_timer):
         bpy.app.timers.register(_ui_refresh_timer, first_interval=TIME_WAIT_INIT, persistent=True)
+    return True
 
 
 def update_in_progress():

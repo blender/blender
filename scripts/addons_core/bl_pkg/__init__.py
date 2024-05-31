@@ -212,10 +212,10 @@ def repos_to_notify():
 
     prefs = bpy.context.preferences
     extension_repos = prefs.extensions.repos
+
+    repos_remote = []
     for repo_item in extension_repos:
         if not repo_item.enabled:
-            continue
-        if not repo_item.use_sync_on_startup:
             continue
         if not repo_item.use_remote_url:
             continue
@@ -247,8 +247,20 @@ def repos_to_notify():
         if repo_is_empty:
             continue
 
-        # NOTE: offline checks are handled by the notification (not here).
-        repos_notify.append(
+        repos_remote.append(repo_item)
+
+    # Update all repos together or none, to avoid bothering users
+    # multiple times in a day.
+    do_online_sync = False
+    for repo_item in repos_remote:
+        if not repo_item.use_sync_on_startup:
+            continue
+        if repo_index_outdated(repo_item.directory):
+            do_online_sync = True
+            break
+
+    for repo_item in repos_remote:
+        repos_notify.append((
             bl_extension_ops.RepoItem(
                 name=repo_item.name,
                 directory=repo_directory,
@@ -257,14 +269,10 @@ def repos_to_notify():
                 use_cache=repo_item.use_cache,
                 access_token=repo_item.access_token if repo_item.use_access_token else "",
             ),
-        )
+            repo_item.use_sync_on_startup and do_online_sync,
+        ))
 
-        # Update all repos together or none, to avoid bothering users
-        # multiple times in a day.
-        if repo_index_outdated(repo_item.directory):
-            do_online_sync = True
-
-    return repos_notify, do_online_sync
+    return repos_notify
 
 
 # -----------------------------------------------------------------------------
@@ -593,11 +601,8 @@ def register():
 
     if not bpy.app.background:
         if prefs.view.show_extensions_updates:
-            repos_notify, do_online_sync = repos_to_notify()
-            if repos_notify:
-                from . import bl_extension_notify
-                bl_extension_notify.update_non_blocking(repos=repos_notify, do_online_sync=do_online_sync)
-            del repos_notify
+            from . import bl_extension_notify
+            bl_extension_notify.update_non_blocking(repos_fn=repos_to_notify)
 
 
 def unregister():

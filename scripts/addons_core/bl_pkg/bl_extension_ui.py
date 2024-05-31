@@ -309,14 +309,13 @@ class notify_info:
                 pass
             case None:
                 from .bl_extension_notify import update_non_blocking
-                if repos_notify := [repo for repo in repos if repo.remote_url]:
-                    update_non_blocking(repos=repos_notify, do_online_sync=True)
-                    notify_info._update_state = False
-                    # Starting.
-                    in_progress = True
-                else:
-                    # Nothing to do, finished.
-                    notify_info._update_state = True
+                # Assume nothing to do, finished.
+                notify_info._update_state = True
+                if repos_notify := [(repo, True) for repo in repos if repo.remote_url]:
+                    if update_non_blocking(repos_fn=lambda: repos_notify):
+                        # Correct assumption, starting.
+                        notify_info._update_state = False
+                        in_progress = True
             case False:
                 from .bl_extension_notify import update_in_progress
                 if update_in_progress():
