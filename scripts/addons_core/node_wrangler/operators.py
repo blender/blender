@@ -33,6 +33,7 @@ from .utils.nodes import (node_mid_pt, autolink, node_at_pos, get_nodes_links,
                           nw_check_node_type, nw_check_visible_outputs, nw_check_viewer_node, NWBase,
                           get_first_enabled_output, is_visible_socket)
 
+
 class NWLazyMix(Operator, NWBase):
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
     bl_idname = "node.nw_lazy_mix"
