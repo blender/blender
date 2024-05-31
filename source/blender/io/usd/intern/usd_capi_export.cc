@@ -219,14 +219,14 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
     if (!BLI_is_dir(entries[index].path)) {
       Image *im = BKE_image_load(data->bmain, entries[index].path);
       if (!im) {
-        CLOG_WARN(&LOG, "-- Unable to open file for downscaling: %s", entries[index].path);
+        CLOG_WARN(&LOG, "Unable to open file for downscaling: %s", entries[index].path);
         continue;
       }
 
       int width, height;
       BKE_image_get_size(im, NULL, &width, &height);
       const int longest = width >= height ? width : height;
-      const float scale = 1.0 / ((float)longest / (float)image_size);
+      const float scale = 1.0 / (float(longest) / float(image_size));
 
       if (longest > image_size) {
         const int width_adjusted = float(width) * scale;
@@ -239,7 +239,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
           bool result = BKE_image_save(NULL, data->bmain, im, NULL, &opts);
           if (!result) {
             CLOG_ERROR(&LOG,
-                       "-- Unable to resave %s (new size: %dx%d)",
+                       "Unable to resave '%s' (new size: %dx%d)",
                        data->usdz_filepath,
                        width_adjusted,
                        height_adjusted);
@@ -247,7 +247,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
           else {
             CLOG_INFO(&LOG,
                       2,
-                      "Downscaled %s to %dx%d",
+                      "Downscaled '%s' to %dx%d",
                       entries[index].path,
                       width_adjusted,
                       height_adjusted);
