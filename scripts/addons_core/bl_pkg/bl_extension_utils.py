@@ -26,7 +26,7 @@ __all__ = (
     # Public Stand-Alone Utilities.
     "pkg_theme_file_list",
     "platform_from_this_system",
-    "url_params_append_for_blender",
+    "url_append_query_for_blender",
     "url_parse_for_blender",
     "file_mtime_or_none",
 
@@ -310,51 +310,51 @@ def platform_from_this_system() -> str:
     )
 
 
-def _url_params_append(url: str, params: Dict[str, str]) -> str:
+def _url_append_query(url: str, query: Dict[str, str]) -> str:
     import urllib
     import urllib.parse
 
     # Remove empty parameters.
-    params = {key: value for key, value in params.items() if value is not None and value != ""}
-    if not params:
+    query = {key: value for key, value in query.items() if value is not None and value != ""}
+    if not query:
         return url
 
-    # Parse the URL to get its scheme, domain, and query parameters.
+    # Decompose the URL into components.
     parsed_url = urllib.parse.urlparse(url)
 
     # Combine existing query parameters with new parameters
-    existing_params = urllib.parse.parse_qsl(parsed_url.query)
-    all_params = dict(existing_params)
-    all_params.update(params)
+    query_existing = urllib.parse.parse_qsl(parsed_url.query)
+    query_all = dict(query_existing)
+    query_all.update(query)
 
-    # Encode all parameters into a new query string
-    new_query = urllib.parse.urlencode(all_params)
+    # Encode all parameters into a new query string.
+    query_all_encoded = urllib.parse.urlencode(query_all)
 
-    # Combine the scheme, netloc, path, and new query string to form the new URL
+    # Construct the URL with additional queries.
     new_url = urllib.parse.urlunparse((
         parsed_url.scheme,
         parsed_url.netloc,
         parsed_url.path,
         parsed_url.params,
-        new_query,
+        query_all_encoded,
         parsed_url.fragment,
     ))
 
     return new_url
 
 
-def url_params_append_for_blender(url: str, blender_version: Tuple[int, int, int]) -> str:
+def url_append_query_for_blender(url: str, blender_version: Tuple[int, int, int]) -> str:
     # `blender_version` is typically `bpy.app.version`.
 
     # While this won't cause errors, it's redundant to add this information to file URL's.
     if url.startswith("file://"):
         return url
 
-    params = {
+    query = {
         "platform": platform_from_this_system(),
         "blender_version": "{:d}.{:d}.{:d}".format(*blender_version),
     }
-    return _url_params_append(url, params)
+    return _url_append_query(url, query)
 
 
 def url_parse_for_blender(url: str) -> Tuple[str, Dict[str, str]]:

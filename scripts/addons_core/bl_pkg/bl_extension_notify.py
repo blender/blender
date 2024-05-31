@@ -207,7 +207,7 @@ def sync_status_generator(repos_notify, do_online_sync):
             bl_extension_utils.repo_sync,
             directory=repo_item.directory,
             remote_name=repo_item.name,
-            remote_url=bl_extension_ops.url_params_append_defaults(repo_item.remote_url),
+            remote_url=bl_extension_ops.url_append_defaults(repo_item.remote_url),
             online_user_agent=bl_extension_ops.online_user_agent_from_blender(),
             access_token=repo_item.access_token,
             # Never sleep while there is no input, as this blocks Blender.

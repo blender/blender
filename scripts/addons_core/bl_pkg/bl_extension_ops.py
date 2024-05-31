@@ -67,8 +67,8 @@ rna_prop_enable_on_install_type_map = {
 }
 
 
-def url_params_append_defaults(url):
-    return bl_extension_utils.url_params_append_for_blender(url, blender_version=bpy.app.version)
+def url_append_defaults(url):
+    return bl_extension_utils.url_append_query_for_blender(url, blender_version=bpy.app.version)
 
 
 def rna_prop_repo_enum_local_only_itemf(_self, context):
@@ -1032,7 +1032,7 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
                     bl_extension_utils.repo_sync,
                     directory=directory,
                     remote_name=repo_item.name,
-                    remote_url=url_params_append_defaults(repo_item.remote_url),
+                    remote_url=url_append_defaults(repo_item.remote_url),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
                     use_idle=is_modal,
@@ -1119,7 +1119,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
                     bl_extension_utils.repo_sync,
                     directory=repo_item.directory,
                     remote_name=repo_item.name,
-                    remote_url=url_params_append_defaults(repo_item.remote_url),
+                    remote_url=url_append_defaults(repo_item.remote_url),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
                     use_idle=is_modal,
@@ -1255,7 +1255,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
             cmd_batch.append(partial(
                 bl_extension_utils.pkg_install,
                 directory=repo_item.directory,
-                remote_url=url_params_append_defaults(repo_item.remote_url),
+                remote_url=url_append_defaults(repo_item.remote_url),
                 pkg_id_sequence=pkg_id_sequence,
                 online_user_agent=online_user_agent_from_blender(),
                 access_token=repo_item.access_token,
@@ -1356,7 +1356,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
             cmd_batch.append(partial(
                 bl_extension_utils.pkg_install,
                 directory=repo_item.directory,
-                remote_url=url_params_append_defaults(repo_item.remote_url),
+                remote_url=url_append_defaults(repo_item.remote_url),
                 pkg_id_sequence=pkg_id_sequence,
                 online_user_agent=online_user_agent_from_blender(),
                 access_token=repo_item.access_token,
@@ -1876,7 +1876,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                 partial(
                     bl_extension_utils.pkg_install,
                     directory=directory,
-                    remote_url=url_params_append_defaults(repo_item.remote_url),
+                    remote_url=url_append_defaults(repo_item.remote_url),
                     pkg_id_sequence=(pkg_id,),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
