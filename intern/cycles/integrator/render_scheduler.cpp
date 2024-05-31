@@ -864,24 +864,24 @@ int RenderScheduler::get_num_samples_to_path_trace() const
       num_samples_to_occupy = lround(state_.occupancy_num_samples * 0.7f / state_.occupancy);
     }
 
-    /* When time limit is used clamp the calculated number of samples to keep occupancy.
-     * This is because time limit causes the last render iteration to happen with less number of
-     * samples, which conflicts with the occupancy (lower number of samples causes lower
-     * occupancy, also the calculation is based on number of previously rendered samples).
+    /* The desired time within which the next render update is expected to happen.
      *
-     * When time limit is not used the number of samples per render iteration is either increasing
-     * or stays the same, so there is no need to clamp number of samples calculated for occupancy.
-     */
+     * Normally limit it to the same interval as used to calculate the number of samples without
+     * taking occupancy into account. This avoids situations when occupancy is low, but the GPU is
+     * already taking a lot of time to path trace.
+     *
+     * When the time limit is enabled, do not render more samples than it is needed to reach the
+     * time limit. */
+    double desired_path_tracing_time = guess_display_update_interval_in_seconds();
     if (time_limit_ != 0.0 && state_.start_render_time != 0.0) {
       const double remaining_render_time = max(
           0.0, time_limit_ - (time_dt() - state_.start_render_time));
-      const double time_per_sample_average = path_trace_time_.get_average();
-      const double predicted_render_time = num_samples_to_occupy * time_per_sample_average;
-
-      if (predicted_render_time > remaining_render_time) {
-        num_samples_to_occupy = lround(num_samples_to_occupy *
-                                       (remaining_render_time / predicted_render_time));
-      }
+      desired_path_tracing_time = min(desired_path_tracing_time, remaining_render_time);
+    }
+    const double predicted_render_time = num_samples_to_occupy * path_trace_time_.get_average();
+    if (predicted_render_time > desired_path_tracing_time) {
+      num_samples_to_occupy = lround(num_samples_to_occupy *
+                                     (desired_path_tracing_time / predicted_render_time));
     }
 
     num_samples_to_render = max(num_samples_to_render,
