@@ -768,13 +768,38 @@ def write_indented_lines(ident, fn, text, strip=True):
             fn(ident + l + "\n")
 
 
+def pyfunc_is_inherited_method(py_func, identifier):
+    assert type(py_func) == MethodType
+    # Exclude Mix-in classes (after the first), because these don't get their own documentation.
+    cls = py_func.__self__
+    if (py_func_base := getattr(cls.__base__, identifier, None)) is not None:
+        if type(py_func_base) == MethodType:
+            if py_func.__func__ == py_func_base.__func__:
+                return True
+        elif type(py_func_base) == bpy.types.bpy_func:
+            return True
+    return False
+
+
 def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_class=True):
     """
     function or class method to sphinx
     """
 
     if type(py_func) == MethodType:
-        return
+        # Including methods means every operators "poll" function for e.g.
+        # would be listed in documentation which isn't useful.
+        #
+        # However excluding all of them is also incorrect as it means class methods defined
+        # in `bpy_types.py` for e.g. are excluded, making some utility functions entirely hidden.
+        if (bl_rna := getattr(py_func.__self__, "bl_rna", None)) is not None:
+            if bl_rna.functions.get(identifier) is not None:
+                return
+        del bl_rna
+
+        # Only inline the method if it's not inherited from another class.
+        if pyfunc_is_inherited_method(py_func, identifier):
+            return
 
     arg_str = str(inspect.signature(py_func))
 
@@ -789,7 +814,10 @@ def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_cla
         arg_str = "()" if (arg_str == "(cls)") else ("(" + arg_str[6:])
         func_type = "classmethod"
     else:
-        func_type = "staticmethod"
+        if type(py_func) == MethodType:
+            func_type = "classmethod"
+        else:
+            func_type = "staticmethod"
 
     doc = py_func.__doc__
     if (not doc) or (not doc.startswith(".. {:s}:: ".format(func_type))):
