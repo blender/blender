@@ -2445,7 +2445,8 @@ class EXTENSIONS_OT_userpref_show_for_update(Operator):
 # NOTE: this is a wrapper for `SCREEN_OT_userpref_show`.
 # It exists *only* to add a poll function which sets a message when offline mode is forced.
 class EXTENSIONS_OT_userpref_show_online(Operator):
-    """Show system preferences "Network" panel to allow online access"""
+    """Allow internet access. Blender may access configured online extension repositories. """ \
+        """Installed third party add-ons may access the internet for their own functionality"""
     bl_idname = "extensions.userpref_show_online"
     bl_label = ""
     bl_options = {'INTERNAL'}
@@ -2459,14 +2460,15 @@ class EXTENSIONS_OT_userpref_show_online(Operator):
         return True
 
     def execute(self, context):
-        bpy.ops.screen.userpref_show('INVOKE_DEFAULT', section='SYSTEM')
+        context.preferences.system.use_online_access = True
         return {'FINISHED'}
 
 
 # NOTE: this is a wrapper for `extensions.userpref_show_online`.
 # It exists *only* show a dialog.
 class EXTENSIONS_OT_userpref_show_online_popup(Operator):
-    """Show system preferences "Network" panel to allow online access"""
+    """Allow internet access. Blender may access configured online extension repositories. """ \
+        """Installed third party add-ons may access the internet for their own functionality"""
     bl_idname = "extensions.userpref_show_online_popup"
     bl_label = ""
     bl_options = {'INTERNAL'}
@@ -2487,7 +2489,7 @@ class EXTENSIONS_OT_userpref_show_online_popup(Operator):
             wm.invoke_props_dialog(
                 self,
                 width=400,
-                confirm_text="Go to Settings",
+                confirm_text="Allow Online Access",
                 title="Install Extension",
             )
         return {'RUNNING_MODAL'}
