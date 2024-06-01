@@ -370,6 +370,15 @@ static EnumPropertyItem prop_sculpt_pivot_position_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static bool set_pivot_depends_on_cursor(bContext & /*C*/, wmOperatorType & /*ot*/, PointerRNA *ptr)
+{
+  if (!ptr) {
+    return true;
+  }
+  const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(ptr, "mode"));
+  return mode == PivotPositionMode::CursorSurface;
+}
+
 static int set_pivot_position_exec(bContext *C, wmOperator *op)
 {
   Object &ob = *CTX_data_active_object(C);
@@ -474,6 +483,17 @@ static int set_pivot_position_invoke(bContext *C, wmOperator *op, const wmEvent 
   return set_pivot_position_exec(C, op);
 }
 
+static bool set_pivot_position_poll_property(const bContext * /*C*/,
+                                             wmOperator *op,
+                                             const PropertyRNA *prop)
+{
+  if (STRPREFIX(RNA_property_identifier(prop), "mouse_")) {
+    const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(op->ptr, "mode"));
+    return mode == PivotPositionMode::CursorSurface;
+  }
+  return true;
+}
+
 void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
 {
   ot->name = "Set Pivot Position";
@@ -483,8 +503,10 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
   ot->invoke = set_pivot_position_invoke;
   ot->exec = set_pivot_position_exec;
   ot->poll = SCULPT_mode_poll;
+  ot->depends_on_cursor = set_pivot_depends_on_cursor;
+  ot->poll_property = set_pivot_position_poll_property;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
   RNA_def_enum(ot->srna,
                "mode",
                prop_sculpt_pivot_position_types,
