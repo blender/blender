@@ -861,20 +861,20 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     else if (totlattdata) {
       TransformMedian_Lattice *ve_median = &tfp->ve_median.lattice;
       if (totlattdata == 1) {
-        uiDefButR(block,
-                  UI_BTYPE_NUM,
-                  0,
-                  IFACE_("Weight:"),
-                  0,
-                  yi -= buth + but_margin,
-                  butw,
-                  buth,
-                  &data_ptr,
-                  "weight_softbody",
-                  0,
-                  0.0,
-                  1.0,
-                  nullptr);
+        but = uiDefButR(block,
+                        UI_BTYPE_NUM,
+                        0,
+                        IFACE_("Weight:"),
+                        0,
+                        yi -= buth + but_margin,
+                        butw,
+                        buth,
+                        &data_ptr,
+                        "weight_softbody",
+                        0,
+                        0.0,
+                        1.0,
+                        nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);
       }
