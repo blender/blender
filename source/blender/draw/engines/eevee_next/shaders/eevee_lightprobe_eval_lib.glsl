@@ -82,7 +82,7 @@ vec3 lightprobe_spherical_sample_normalized_with_parallax(LightProbeSample samp,
 float pdf_to_lod(float inv_pdf)
 {
   float blur_pdf = saturate((2.0 * M_PI) * inv_pdf);
-  return blur_pdf * 0.0;
+  return blur_pdf * 2.0;
 }
 
 vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float inv_pdf)
