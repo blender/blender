@@ -30,7 +30,9 @@ static void extract_edituv_tris_init(const MeshRenderData &mr,
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
   GPU_indexbuf_init(&data->elb, GPU_PRIM_TRIS, mr.corner_tris_num, mr.corners_num);
-  data->corner_tri_faces = mr.mesh->corner_tri_faces();
+  if (mr.extract_type == MR_EXTRACT_MESH) {
+    data->corner_tri_faces = mr.mesh->corner_tri_faces();
+  }
   data->sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
 }
 
