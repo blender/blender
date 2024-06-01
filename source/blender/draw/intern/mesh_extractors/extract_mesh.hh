@@ -435,6 +435,8 @@ void extract_weights_subdiv(const MeshRenderData &mr,
 
 void extract_face_dots(const MeshRenderData &mr, gpu::IndexBuf &face_dots);
 
+void extract_face_dots_uv(const MeshRenderData &mr, gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_lines_paint_mask;
 extern const MeshExtract extract_lines_adjacency;
 extern const MeshExtract extract_edituv_tris;
@@ -449,7 +451,6 @@ extern const MeshExtract extract_edituv_data;
 extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;
 extern const MeshExtract extract_mesh_analysis;
-extern const MeshExtract extract_fdots_uv;
 extern const MeshExtract extract_fdots_edituv_data;
 extern const MeshExtract extract_skin_roots;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
