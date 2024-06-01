@@ -14,10 +14,6 @@
 
 namespace blender::draw {
 
-/* ---------------------------------------------------------------------- */
-/** \name Extract Face-dots positions
- * \{ */
-
 static GPUVertFormat *get_fdots_pos_format()
 {
   static GPUVertFormat format = {0};
@@ -36,103 +32,84 @@ static GPUVertFormat *get_fdots_nor_format_subdiv()
   return &format;
 }
 
-static void extract_fdots_pos_init(const MeshRenderData &mr,
-                                   MeshBatchCache & /*cache*/,
-                                   void *buf,
-                                   void *tls_data)
+static void extract_face_dot_positions_mesh(const MeshRenderData &mr, MutableSpan<float3> vbo_data)
 {
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
-  GPUVertFormat *format = get_fdots_pos_format();
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
-  void *vbo_data = GPU_vertbuf_get_data(vbo);
-  *(float(**)[3])tls_data = static_cast<float(*)[3]>(vbo_data);
+  const Span<float3> positions = mr.vert_positions;
+  const OffsetIndices faces = mr.faces;
+  const Span<int> corner_verts = mr.corner_verts;
+  if (mr.use_subsurf_fdots) {
+    const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
+    threading::parallel_for(faces.index_range(), 4096, [&](const IndexRange range) {
+      for (const int face : range) {
+        const Span<int> face_verts = corner_verts.slice(faces[face]);
+        const int *vert = std::find_if(face_verts.begin(), face_verts.end(), [&](const int vert) {
+          return facedot_tags[vert].test();
+        });
+        if (vert == face_verts.end()) {
+          vbo_data[face] = float3(0);
+        }
+        else {
+          vbo_data[face] = positions[*vert];
+        }
+      }
+    });
+  }
+  else {
+    threading::parallel_for(faces.index_range(), 4096, [&](const IndexRange range) {
+      for (const int face : range) {
+        vbo_data[face] = bke::mesh::face_center_calc(positions, corner_verts.slice(faces[face]));
+      }
+    });
+  }
 }
 
-static void extract_fdots_pos_iter_face_bm(const MeshRenderData &mr,
-                                           const BMFace *f,
-                                           const int f_index,
-                                           void *data)
+static void extract_face_dot_positions_bm(const MeshRenderData &mr, MutableSpan<float3> vbo_data)
 {
-  float(*center)[3] = *static_cast<float(**)[3]>(data);
-
-  float *co = center[f_index];
-  zero_v3(co);
-
-  BMLoop *l_iter, *l_first;
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    add_v3_v3(co, bm_vert_co_get(mr, l_iter->v));
-  } while ((l_iter = l_iter->next) != l_first);
-  mul_v3_fl(co, 1.0f / float(f->len));
-}
-
-static void extract_fdots_pos_iter_face_mesh(const MeshRenderData &mr,
-                                             const int face_index,
-                                             void *data)
-{
-  float(*center)[3] = *static_cast<float(**)[3]>(data);
-  float *co = center[face_index];
-  zero_v3(co);
-
-  const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
-
-  for (const int corner : mr.faces[face_index]) {
-    const int vert = mr.corner_verts[corner];
-    if (mr.use_subsurf_fdots) {
-      if (facedot_tags[vert]) {
-        copy_v3_v3(center[face_index], mr.vert_positions[vert]);
-        break;
+  const BMesh &bm = *mr.bm;
+  threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+    for (const int face_index : range) {
+      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+      if (mr.bm_vert_coords.is_empty()) {
+        BM_face_calc_center_median(&face, vbo_data[face_index]);
+      }
+      else {
+        BM_face_calc_center_median_vcos(&bm, &face, vbo_data[face_index], mr.bm_vert_coords);
       }
     }
-    else {
-      add_v3_v3(center[face_index], mr.vert_positions[vert]);
-    }
-  }
+  });
+}
 
-  if (!mr.use_subsurf_fdots) {
-    mul_v3_fl(co, 1.0f / float(mr.faces[face_index].size()));
+void extract_face_dots_position(const MeshRenderData &mr, gpu::VertBuf &vbo)
+{
+  GPUVertFormat *format = get_fdots_pos_format();
+  GPU_vertbuf_init_with_format(&vbo, format);
+  GPU_vertbuf_data_alloc(&vbo, mr.corners_num + mr.loose_indices_num);
+
+  MutableSpan vbo_data(static_cast<float3 *>(GPU_vertbuf_get_data(&vbo)),
+                       GPU_vertbuf_get_vertex_len(&vbo));
+  if (mr.extract_type == MR_EXTRACT_MESH) {
+    extract_face_dot_positions_mesh(mr, vbo_data);
+  }
+  else {
+    extract_face_dot_positions_bm(mr, vbo_data);
   }
 }
 
-static void extract_fdots_init_subdiv(const DRWSubdivCache &subdiv_cache,
-                                      const MeshRenderData & /*mr*/,
-                                      MeshBatchCache &cache,
-                                      void *buffer,
-                                      void * /*data*/)
+void extract_face_dots_subdiv(const DRWSubdivCache &subdiv_cache,
+                              gpu::VertBuf &fdots_pos,
+                              gpu::VertBuf *fdots_nor,
+                              gpu::IndexBuf &fdots)
 {
   /* We "extract" positions, normals, and indices at once. */
-  gpu::VertBuf *fdots_pos_vbo = static_cast<gpu::VertBuf *>(buffer);
-  gpu::VertBuf *fdots_nor_vbo = cache.final.buff.vbo.fdots_nor;
-  gpu::IndexBuf *fdots_pos_ibo = cache.final.buff.ibo.fdots;
-
   /* The normals may not be requested. */
-  if (fdots_nor_vbo) {
+  if (fdots_nor) {
     GPU_vertbuf_init_build_on_device(
-        fdots_nor_vbo, get_fdots_nor_format_subdiv(), subdiv_cache.num_coarse_faces);
+        fdots_nor, get_fdots_nor_format_subdiv(), subdiv_cache.num_coarse_faces);
   }
   GPU_vertbuf_init_build_on_device(
-      fdots_pos_vbo, get_fdots_pos_format(), subdiv_cache.num_coarse_faces);
-  GPU_indexbuf_init_build_on_device(fdots_pos_ibo, subdiv_cache.num_coarse_faces);
-  draw_subdiv_build_fdots_buffers(subdiv_cache, fdots_pos_vbo, fdots_nor_vbo, fdots_pos_ibo);
+      &fdots_pos, get_fdots_pos_format(), subdiv_cache.num_coarse_faces);
+  GPU_indexbuf_init_build_on_device(&fdots, subdiv_cache.num_coarse_faces);
+  draw_subdiv_build_fdots_buffers(subdiv_cache, &fdots_pos, fdots_nor, &fdots);
 }
-
-constexpr MeshExtract create_extractor_fdots_pos()
-{
-  MeshExtract extractor = {nullptr};
-  extractor.init = extract_fdots_pos_init;
-  extractor.init_subdiv = extract_fdots_init_subdiv;
-  extractor.iter_face_bm = extract_fdots_pos_iter_face_bm;
-  extractor.iter_face_mesh = extract_fdots_pos_iter_face_mesh;
-  extractor.data_type = MR_DATA_NONE;
-  extractor.data_size = sizeof(float(*)[3]);
-  extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdots_pos);
-  return extractor;
-}
-
-/** \} */
-
-const MeshExtract extract_fdots_pos = create_extractor_fdots_pos();
 
 }  // namespace blender::draw
