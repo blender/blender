@@ -659,7 +659,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   }
   EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
 
-  EXTRACT_ADD_REQUESTED(ibo, fdots);
   EXTRACT_ADD_REQUESTED(ibo, lines_paint_mask);
   EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
   EXTRACT_ADD_REQUESTED(ibo, edituv_tris);
@@ -671,12 +670,13 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
 
   if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
       !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
-      !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
-      !DRW_vbo_requested(buffers.vbo.nor) && !DRW_vbo_requested(buffers.vbo.vnor) &&
-      !DRW_vbo_requested(buffers.vbo.fdots_nor) && !DRW_vbo_requested(buffers.vbo.tan) &&
-      !DRW_vbo_requested(buffers.vbo.edit_data) && !DRW_vbo_requested(buffers.vbo.face_idx) &&
-      !DRW_vbo_requested(buffers.vbo.edge_idx) && !DRW_vbo_requested(buffers.vbo.vert_idx) &&
-      !DRW_vbo_requested(buffers.vbo.fdot_idx) && !DRW_vbo_requested(buffers.vbo.weights))
+      !DRW_ibo_requested(buffers.ibo.points) && !DRW_ibo_requested(buffers.ibo.fdots) &&
+      !DRW_vbo_requested(buffers.vbo.pos) && !DRW_vbo_requested(buffers.vbo.nor) &&
+      !DRW_vbo_requested(buffers.vbo.vnor) && !DRW_vbo_requested(buffers.vbo.fdots_nor) &&
+      !DRW_vbo_requested(buffers.vbo.tan) && !DRW_vbo_requested(buffers.vbo.edit_data) &&
+      !DRW_vbo_requested(buffers.vbo.face_idx) && !DRW_vbo_requested(buffers.vbo.edge_idx) &&
+      !DRW_vbo_requested(buffers.vbo.vert_idx) && !DRW_vbo_requested(buffers.vbo.fdot_idx) &&
+      !DRW_vbo_requested(buffers.vbo.weights))
   {
     return;
   }
@@ -821,6 +821,21 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
         [](void *__restrict task_data) {
           const TaskData &data = *static_cast<TaskData *>(task_data);
           extract_points(data.mr, *data.buffers.ibo.points);
+        },
+        new TaskData{*mr, buffers},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_ibo_requested(buffers.ibo.fdots)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_face_dots(data.mr, *data.buffers.ibo.fdots);
         },
         new TaskData{*mr, buffers},
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });

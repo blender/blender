@@ -427,7 +427,8 @@ void extract_weights_subdiv(const MeshRenderData &mr,
                             const MeshBatchCache &cache,
                             gpu::VertBuf &vbo);
 
-extern const MeshExtract extract_fdots;
+void extract_face_dots(const MeshRenderData &mr, gpu::IndexBuf &face_dots);
+
 extern const MeshExtract extract_lines_paint_mask;
 extern const MeshExtract extract_lines_adjacency;
 extern const MeshExtract extract_edituv_tris;
