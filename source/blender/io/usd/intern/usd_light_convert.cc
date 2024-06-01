@@ -204,7 +204,10 @@ static bNode *append_node(bNode *dst_node,
 /* Callback function for iterating over a shader node chain to retrieve data
  * necessary for converting a world material to a USD dome light. It also
  * handles copying textures, if required. */
-static bool node_search(bNode *fromnode, bNode * /* tonode */, void *userdata, const bool reversed)
+static bool node_search(bNode *fromnode,
+                        bNode * /* tonode */,
+                        void *userdata,
+                        const bool /*reversed*/)
 {
   if (!(userdata && fromnode)) {
     return true;
@@ -348,7 +351,7 @@ void world_material_to_dome_light(const USDExportParams &params,
 /* Import the dome light as a world material. */
 
 void dome_light_to_world_material(const USDImportParams &params,
-                                  const ImportSettings &settings,
+                                  const ImportSettings & /*settings*/,
                                   Scene *scene,
                                   Main *bmain,
                                   const pxr::UsdLuxDomeLight &dome_light,

@@ -206,7 +206,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
                          enum_value));
 
   char texture_path[FILE_MAX];
-  BLI_strncpy_rlen(texture_path, path, FILE_MAX);
+  BLI_strncpy(texture_path, path, FILE_MAX);
   BLI_path_append(texture_path, FILE_MAX, "textures");
   BLI_path_slash_ensure(texture_path, sizeof(texture_path));
 
