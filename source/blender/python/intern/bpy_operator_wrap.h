@@ -14,7 +14,11 @@ struct wmOperatorType;
 extern "C" {
 #endif
 
-/** These are used for operator methods, used by `bpy_operator.cc`. */
+/**
+ * These are used for operator methods, used by `bpy_operator.cc`.
+ *
+ * Accessed via sub-classes of `bpy.types.Macro` using the `define` method.
+ */
 PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args);
 
 /* Exposed to RNA/WM API. */

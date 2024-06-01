@@ -966,9 +966,17 @@ class Macro(StructRNA):
     __slots__ = ()
 
     @classmethod
-    def define(cls, opname):
+    def define(cls, operator):
+        """
+        Append an operator to a registered macro class.
+
+        :arg operator: Identifier of the operator. This does not have to be defined when this function is called.
+        :type operator: string
+        :return: The operator macro for property access.
+        :rtype: :class:`OperatorMacro`
+        """
         from _bpy import ops
-        return ops.macro_define(cls, opname)
+        return ops.macro_define(cls, operator)
 
 
 class PropertyGroup(StructRNA, metaclass=RNAMetaPropGroup):
