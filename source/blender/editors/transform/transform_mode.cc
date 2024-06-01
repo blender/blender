@@ -430,7 +430,7 @@ static void constraintRotLim(const TransInfo * /*t*/, TransData *td)
   }
 }
 
-void constraintSizeLim(const TransInfo *t, TransData *td)
+void constraintSizeLim(const TransInfo *t, const TransDataContainer *tc, TransData *td)
 {
   if (td->con && td->ext) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_SIZELIMIT);
@@ -485,6 +485,11 @@ void constraintSizeLim(const TransInfo *t, TransData *td)
           /* just multiply by td->mtx (this should be ok) */
           mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
         }
+        else if (con->ownspace = CONSTRAINT_SPACE_POSE) {
+          /* Bone space without considering object transformations. */
+          mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
+          mul_m4_m3m4(cob.matrix, tc->imat3, cob.matrix);
+        }
         else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
           /* skip... incompatible spacetype */
           continue;
@@ -496,6 +501,10 @@ void constraintSizeLim(const TransInfo *t, TransData *td)
         /* convert spaces again */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
           /* just multiply by td->smtx (this should be ok) */
+          mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
+        }
+        else if (con->ownspace = CONSTRAINT_SPACE_POSE) {
+          mul_m4_m3m4(cob.matrix, tc->mat3, cob.matrix);
           mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
         }
       }
@@ -996,7 +1005,7 @@ void ElementResize(const TransInfo *t,
       }
     }
 
-    constraintSizeLim(t, td);
+    constraintSizeLim(t, tc, td);
   }
 
   /* For individual element center, Editmode need to use iloc */
