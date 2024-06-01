@@ -611,10 +611,13 @@ class PREFERENCES_OT_addon_install(Operator):
             )
 
         paths = context.preferences.filepaths
+        script_directories_items = [
+            (item.name, item.name, "") for index, item in enumerate(paths.script_directories)
+            if item.directory
+        ]
         return (
-            default_item,
-            None,
-            *[(item.name, item.name, "") for index, item in enumerate(paths.script_directories) if item.directory],
+            (default_item, None, *script_directories_items) if script_directories_items else
+            (default_item,)
         )
 
     target: EnumProperty(
