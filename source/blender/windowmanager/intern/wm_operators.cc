@@ -165,6 +165,30 @@ size_t WM_operator_bl_idname(char *dst, const char *src)
   return BLI_strncpy_rlen(dst, src, OP_MAX_TYPENAME);
 }
 
+bool WM_operator_bl_idname_is_valid(const char *idname)
+{
+  const char *sep = strstr(idname, OP_BL_SEP_STRING);
+  /* Separator missing or at string beginning/end. */
+  if ((sep == nullptr) || (sep == idname) || (sep[OP_BL_SEP_LEN] == '\0')) {
+    return false;
+  }
+
+  for (const char *ch = idname; ch < sep; ch++) {
+    if ((*ch >= 'A' && *ch <= 'Z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
+      continue;
+    }
+    return false;
+  }
+
+  for (const char *ch = sep + OP_BL_SEP_LEN; *ch; ch++) {
+    if ((*ch >= 'a' && *ch <= 'z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
 bool WM_operator_py_idname_ok_or_report(ReportList *reports,
                                         const char *classname,
                                         const char *idname)

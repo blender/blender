@@ -128,6 +128,7 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
 
+  BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot->idname, ot);
 }
 
@@ -503,6 +504,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   RNA_def_struct_translation_context(ot->srna, i18n_context);
   ot->translation_context = i18n_context;
 
+  BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot->idname, ot);
 
   return ot;
@@ -535,6 +537,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
 
+  BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot->idname, ot);
 }
 
