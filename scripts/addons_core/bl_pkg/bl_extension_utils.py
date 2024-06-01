@@ -634,8 +634,10 @@ def pkg_manifest_archive_url_abs_from_remote_url(remote_url: str, archive_url: s
 
 
 def pkg_is_legacy_addon(filepath: str) -> bool:
-    from .cli.blender_ext import pkg_is_legacy_addon
-    return pkg_is_legacy_addon(filepath)
+    from .cli.blender_ext import pkg_is_legacy_addon as pkg_is_legacy_addon_extern
+    result = pkg_is_legacy_addon_extern(filepath)
+    assert isinstance(result, bool)
+    return result
 
 
 def pkg_repo_cache_clear(local_dir: str) -> None:

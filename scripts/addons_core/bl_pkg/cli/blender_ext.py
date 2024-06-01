@@ -667,7 +667,7 @@ def pkg_is_legacy_addon(filepath: str) -> bool:
 
     try:
         zip_fh_context = zipfile.ZipFile(filepath, mode="r")
-    except BaseException as ex:
+    except Exception:
         return False
 
     with contextlib.closing(zip_fh_context) as zip_fh:
@@ -675,8 +675,7 @@ def pkg_is_legacy_addon(filepath: str) -> bool:
         if pkg_zipfile_detect_subdir_or_none(zip_fh) is not None:
             return False
 
-        # If any python file contains bl_info it's legacy.
-        base_dir = None
+        # If any Python file contains bl_info it's legacy.
         for filename in zip_fh_context.NameToInfo.keys():
             if filename.startswith("."):
                 continue
@@ -684,7 +683,7 @@ def pkg_is_legacy_addon(filepath: str) -> bool:
                 continue
             try:
                 file_content = zip_fh.read(filename)
-            except:
+            except Exception:
                 file_content = None
             if file_content and file_content.find(b"bl_info"):
                 return True
