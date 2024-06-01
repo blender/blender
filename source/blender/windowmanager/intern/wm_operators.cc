@@ -201,6 +201,15 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
       /* Pass. */
     }
     else if (*ch == '.') {
+      if (ch == idname || (*(ch + 1) == '\0')) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
+                    classname,
+                    idname,
+                    i);
+        return false;
+      }
       dot++;
     }
     else {
