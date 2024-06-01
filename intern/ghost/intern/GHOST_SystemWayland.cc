@@ -6573,6 +6573,10 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
     wl_data_device_release(seat->wl.data_device);
   }
 
+  if (seat->wp.tablet_seat) {
+    zwp_tablet_seat_v2_destroy(seat->wp.tablet_seat);
+  }
+
   if (seat->cursor.custom_data) {
     munmap(seat->cursor.custom_data, seat->cursor.custom_data_size);
   }
