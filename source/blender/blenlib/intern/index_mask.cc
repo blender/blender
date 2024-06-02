@@ -392,11 +392,10 @@ struct ParallelSegmentsCollector {
   }
 };
 
-IndexMask IndexMask::complement(const IndexRange universe, IndexMaskMemory &memory) const
+IndexMask IndexMask::complement(const IndexMask &universe, IndexMaskMemory &memory) const
 {
   ExprBuilder builder;
-  const IndexMask universe_mask{universe};
-  const Expr &expr = builder.subtract(&universe_mask, {this});
+  const Expr &expr = builder.subtract(&universe, {this});
   return evaluate_expression(expr, memory);
 }
 

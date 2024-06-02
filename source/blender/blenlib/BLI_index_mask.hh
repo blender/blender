@@ -347,7 +347,7 @@ class IndexMask : private IndexMaskData {
    * \return A new index mask that contains all the indices from the universe that are not in the
    * current mask.
    */
-  IndexMask complement(IndexRange universe, IndexMaskMemory &memory) const;
+  IndexMask complement(const IndexMask &universe, IndexMaskMemory &memory) const;
 
   /**
    * \return Number of segments in the mask.
