@@ -10,15 +10,12 @@
 #  include "DNA_modifier_types.h"
 #  include "DNA_space_types.h"
 
-#  include <cstring>
-
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
 #  include "BKE_report.hh"
 
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
-#  include "BLI_utildefines.h"
 
 #  include "BLT_translation.hh"
 
@@ -44,7 +41,8 @@
 #  include "io_utils.hh"
 #  include "usd.hh"
 
-#  include <cstdio>
+#  include <string>
+#  include <utility>
 
 using namespace blender::io::usd;
 
@@ -158,7 +156,6 @@ const EnumPropertyItem prop_usdz_downscale_size[] = {
 
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
-enum { AS_BACKGROUND_JOB = 1 };
 struct eUSDOperatorOptions {
   bool as_background_job;
 };

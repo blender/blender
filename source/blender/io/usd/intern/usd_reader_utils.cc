@@ -4,6 +4,8 @@
 
 #include "usd_reader_utils.hh"
 
+#include "BKE_idprop.hh"
+
 #include <pxr/usd/usd/attribute.h>
 
 #include "CLG_log.h"
