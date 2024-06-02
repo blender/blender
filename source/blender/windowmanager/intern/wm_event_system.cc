@@ -1023,8 +1023,8 @@ static intptr_t wm_operator_register_active_id(const wmWindowManager *wm)
 bool WM_operator_poll(bContext *C, wmOperatorType *ot)
 {
 
-  LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
-    wmOperatorType *ot_macro = WM_operatortype_find(macro->idname, false);
+  LISTBASE_FOREACH (wmOperatorTypeMacro *, otmacro, &ot->macro) {
+    wmOperatorType *ot_macro = WM_operatortype_find(otmacro->idname, false);
 
     if (!WM_operator_poll(C, ot_macro)) {
       return false;
@@ -1053,8 +1053,8 @@ bool WM_operator_ui_poll(wmOperatorType *ot, PointerRNA *ptr)
 {
   if (ot->macro.first != nullptr) {
     /* For macros, check all have exec() we can call. */
-    LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
-      wmOperatorType *otm = WM_operatortype_find(macro->idname, false);
+    LISTBASE_FOREACH (wmOperatorTypeMacro *, otmacro, &ot->macro) {
+      wmOperatorType *otm = WM_operatortype_find(otmacro->idname, false);
       if (otm && WM_operator_ui_poll(otm, ptr)) {
         return true;
       }
@@ -1363,8 +1363,8 @@ bool WM_operator_repeat_check(const bContext * /*C*/, wmOperator *op)
   }
   if (op->opm) {
     /* For macros, check all have exec() we can call. */
-    LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &op->opm->type->macro) {
-      wmOperatorType *otm = WM_operatortype_find(macro->idname, false);
+    LISTBASE_FOREACH (wmOperatorTypeMacro *, otmacro, &op->opm->type->macro) {
+      wmOperatorType *otm = WM_operatortype_find(otmacro->idname, false);
       if (otm && otm->exec == nullptr) {
         return false;
       }
@@ -1458,9 +1458,9 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
       RNA_STRUCT_END;
     }
     else {
-      LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
-        wmOperatorType *otm = WM_operatortype_find(macro->idname, false);
-        wmOperator *opm = wm_operator_create(wm, otm, macro->ptr, nullptr);
+      LISTBASE_FOREACH (wmOperatorTypeMacro *, otmacro, &ot->macro) {
+        wmOperatorType *otm = WM_operatortype_find(otmacro->idname, false);
+        wmOperator *opm = wm_operator_create(wm, otm, otmacro->ptr, nullptr);
 
         BLI_addtail(&motherop->macro, opm);
         opm->opm = motherop; /* Pointer to mom, for modal(). */
@@ -2001,8 +2001,8 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
 {
   bool depends_on_cursor = WM_operator_depends_on_cursor(*C, *ot, properties);
 
-  LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
-    if (wmOperatorType *otm = WM_operatortype_find(macro->idname, false)) {
+  LISTBASE_FOREACH (wmOperatorTypeMacro *, otmacro, &ot->macro) {
+    if (wmOperatorType *otm = WM_operatortype_find(otmacro->idname, false)) {
       if (WM_operator_depends_on_cursor(*C, *otm, properties)) {
         depends_on_cursor = true;
       }
