@@ -112,6 +112,7 @@ def extensions_panel_draw_legacy_addons(
         context,
         *,
         search_lower,
+        extension_tags,
         enabled_only,
         installed_only,
         used_addon_module_name_map,
@@ -149,6 +150,15 @@ def extensions_panel_draw_legacy_addons(
         is_enabled = module_name in used_addon_module_name_map
         if enabled_only and (not is_enabled):
             continue
+
+        if extension_tags:
+            if t := bl_info.get("category"):
+                if extension_tags.get(t, True) is False:
+                    continue
+            else:
+                # When extensions is not empty, skip items with empty tags.
+                continue
+            del t
 
         col_box = layout.column()
         box = col_box.box()
@@ -372,6 +382,7 @@ def extensions_panel_draw_impl(
         context,
         search_lower,
         filter_by_type,
+        extension_tags,
         enabled_only,
         updates_only,
         installed_only,
@@ -399,6 +410,7 @@ def extensions_panel_draw_impl(
 
     layout = self.layout
 
+    wm = context.window_manager
     prefs = context.preferences
 
     if updates_only:
@@ -502,6 +514,14 @@ def extensions_panel_draw_impl(
 
             if installed_only and (is_installed == 0):
                 continue
+
+            if extension_tags:
+                if tags := item_remote.get("tags"):
+                    if not any(True for t in tags if extension_tags.get(t, True)):
+                        continue
+                else:
+                    # When extensions is not empty, skip items with empty tags.
+                    continue
 
             is_addon = False
             is_theme = False
@@ -706,6 +726,7 @@ def extensions_panel_draw_impl(
             layout,
             context,
             search_lower=search_lower,
+            extension_tags=extension_tags,
             enabled_only=enabled_only,
             installed_only=installed_only,
             used_addon_module_name_map=used_addon_module_name_map,
@@ -782,6 +803,18 @@ class USERPREF_PT_extensions_filter(Panel):
         sub.prop(wm, "extension_show_legacy_addons", text="Legacy Add-ons")
 
 
+class USERPREF_PT_extensions_tags(Panel):
+    bl_label = "Extensions Tags"
+
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 13
+
+    def draw(self, context):
+        # Extended by the `bl_pkg` add-on.
+        layout = self.layout
+
+
 class USERPREF_MT_extensions_settings(Menu):
     bl_label = "Extension Settings"
 
@@ -843,6 +876,7 @@ def extensions_panel_draw(panel, context):
     row_b = row.row(align=True)
     row_b.prop(wm, "extension_type", text="")
     row_b.popover("USERPREF_PT_extensions_filter", text="", icon='FILTER')
+    row_b.popover("USERPREF_PT_extensions_tags", text="", icon='COLOR')
 
     row_b.separator()
     row_b.popover("USERPREF_PT_extensions_repos", text="Repositories")
@@ -912,11 +946,16 @@ def extensions_panel_draw(panel, context):
     ):
         extensions_panel_draw_online_extensions_request_impl(panel, context)
 
+    if extension_tags := wm.get("extension_tags", {}):
+        # Filter out true items, so an empty dict can always be skipped.
+        extension_tags = {k: v for (k, v) in extension_tags.items() if v is False}
+
     extensions_panel_draw_impl(
         panel,
         context,
         wm.extension_search.lower(),
         blender_filter_by_type_map[wm.extension_type],
+        extension_tags,
         wm.extension_enabled_only,
         wm.extension_updates_only,
         wm.extension_installed_only,
@@ -925,15 +964,92 @@ def extensions_panel_draw(panel, context):
     )
 
 
+def tags_current(wm):
+    from .bl_extension_ops import blender_filter_by_type_map
+    from . import repo_cache_store
+
+    # This isn't elegant, but the preferences aren't available on registration.
+    if not repo_cache_store.is_init():
+        repo_cache_store_refresh_from_prefs()
+
+    filter_by_type = blender_filter_by_type_map[wm.extension_type]
+
+    tags = set()
+    for pkg_manifest_remote in repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print):
+        for item_remote in pkg_manifest_remote.values():
+            if filter_by_type != item_remote["type"]:
+                continue
+            if pkg_tags := item_remote.get("tags"):
+                tags.update(pkg_tags)
+
+    if filter_by_type == "add-on":
+        # Legacy add-on categories as tags.
+        import addon_utils
+        addon_modules = [mod for mod in addon_utils.modules(refresh=False)]
+        for mod in addon_modules:
+            module_name = mod.__name__
+            is_extension = addon_utils.check_extension(module_name)
+            if is_extension:
+                continue
+            bl_info = addon_utils.module_bl_info(mod)
+            if t := bl_info.get("category"):
+                tags.add(t)
+
+    return tags
+
+
+def tags_refresh(wm):
+    import idprop
+    tags_idprop = wm.get("extension_tags")
+    if isinstance(tags_idprop, idprop.types.IDPropertyGroup):
+        pass
+    else:
+        wm["extension_tags"] = {}
+        tags_idprop = wm["extension_tags"]
+
+    tags_curr = set(tags_idprop.keys())
+
+    # Calculate tags.
+    tags_next = tags_current(wm)
+
+    tags_to_add = tags_next - tags_curr
+    tags_to_rem = tags_curr - tags_next
+
+    for tag in tags_to_rem:
+        del tags_idprop[tag]
+    for tag in tags_to_add:
+        tags_idprop[tag] = True
+
+    return tags_idprop, list(sorted(tags_next))
+
+
+def tags_panel_draw(panel, context):
+    from bpy.utils import escape_identifier
+    layout = panel.layout
+    wm = context.window_manager
+    tags_idprop, tags_sorted = tags_refresh(wm)
+    layout.label(text="Show Tags")
+    # Add one so the first row is longer in the case of an odd number.
+    tags_len_half = (len(tags_sorted) + 1) // 2
+    split = layout.split(factor=0.5)
+    col = split.column()
+    for i, t in enumerate(sorted(tags_sorted)):
+        if i == tags_len_half:
+            col = split.column()
+        col.prop(wm.extension_tags, "[\"{:s}\"]".format(escape_identifier(t)))
+
+
 classes = (
     # Pop-overs.
     USERPREF_PT_extensions_filter,
+    USERPREF_PT_extensions_tags,
     USERPREF_MT_extensions_settings,
 )
 
 
 def register():
     USERPREF_PT_addons.append(extensions_panel_draw)
+    USERPREF_PT_extensions_tags.append(tags_panel_draw)
 
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -941,6 +1057,7 @@ def register():
 
 def unregister():
     USERPREF_PT_addons.remove(extensions_panel_draw)
+    USERPREF_PT_extensions_tags.remove(tags_panel_draw)
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
