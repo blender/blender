@@ -246,12 +246,6 @@ GPU_INLINE uint GPU_vertbuf_raw_used(GPUVertBufRaw *a)
 void GPU_vertbuf_attr_get_raw_data(blender::gpu::VertBuf *, uint a_idx, GPUVertBufRaw *access);
 
 /**
- * Returns the data buffer and set it to null internally to avoid freeing.
- * \note Be careful when using this. The data needs to match the expected format.
- */
-void *GPU_vertbuf_steal_data(blender::gpu::VertBuf *verts);
-
-/**
  * \note Be careful when using this. The data needs to match the expected format.
  */
 void *GPU_vertbuf_get_data(const blender::gpu::VertBuf *verts);

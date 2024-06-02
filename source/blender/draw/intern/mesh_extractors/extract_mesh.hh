@@ -374,6 +374,11 @@ void extract_normals_subdiv(const DRWSubdivCache &subdiv_cache,
                             gpu::VertBuf &lnor);
 void extract_vert_normals(const MeshRenderData &mr, gpu::VertBuf &vbo);
 void extract_face_dot_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &vbo);
+void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
+                                const MeshRenderData &mr,
+                                gpu::VertBuf &pos_nor,
+                                gpu::VertBuf &vbo);
 
 void extract_tris(const MeshRenderData &mr,
                   const SortedFaceData &face_sorted,
@@ -446,7 +451,6 @@ extern const MeshExtract extract_edituv_fdots;
 extern const MeshExtract extract_uv;
 extern const MeshExtract extract_sculpt_data;
 extern const MeshExtract extract_orco;
-extern const MeshExtract extract_edge_fac;
 extern const MeshExtract extract_edituv_data;
 extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;

@@ -532,6 +532,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
 
   const bool request_face_normals = DRW_vbo_requested(buffers.vbo.nor) ||
                                     DRW_vbo_requested(buffers.vbo.fdots_nor) ||
+                                    DRW_vbo_requested(buffers.vbo.edge_fac) ||
                                     (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR)) != 0;
   const bool request_corner_normals = DRW_vbo_requested(buffers.vbo.nor) ||
                                       (data_flag & MR_DATA_LOOP_NOR) != 0;
@@ -645,7 +646,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   EXTRACT_ADD_REQUESTED(vbo, uv);
   EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
   EXTRACT_ADD_REQUESTED(vbo, orco);
-  EXTRACT_ADD_REQUESTED(vbo, edge_fac);
   EXTRACT_ADD_REQUESTED(vbo, edituv_data);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_area);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
@@ -671,11 +671,11 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
       !DRW_ibo_requested(buffers.ibo.points) && !DRW_ibo_requested(buffers.ibo.fdots) &&
       !DRW_vbo_requested(buffers.vbo.pos) && !DRW_vbo_requested(buffers.vbo.fdots_pos) &&
       !DRW_vbo_requested(buffers.vbo.nor) && !DRW_vbo_requested(buffers.vbo.vnor) &&
-      !DRW_vbo_requested(buffers.vbo.fdots_nor) && !DRW_vbo_requested(buffers.vbo.tan) &&
-      !DRW_vbo_requested(buffers.vbo.edit_data) && !DRW_vbo_requested(buffers.vbo.face_idx) &&
-      !DRW_vbo_requested(buffers.vbo.edge_idx) && !DRW_vbo_requested(buffers.vbo.vert_idx) &&
-      !DRW_vbo_requested(buffers.vbo.fdot_idx) && !DRW_vbo_requested(buffers.vbo.weights) &&
-      !DRW_vbo_requested(buffers.vbo.fdots_uv))
+      !DRW_vbo_requested(buffers.vbo.fdots_nor) && !DRW_vbo_requested(buffers.vbo.edge_fac) &&
+      !DRW_vbo_requested(buffers.vbo.tan) && !DRW_vbo_requested(buffers.vbo.edit_data) &&
+      !DRW_vbo_requested(buffers.vbo.face_idx) && !DRW_vbo_requested(buffers.vbo.edge_idx) &&
+      !DRW_vbo_requested(buffers.vbo.vert_idx) && !DRW_vbo_requested(buffers.vbo.fdot_idx) &&
+      !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_uv))
   {
     return;
   }
@@ -785,6 +785,21 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
           extract_face_dot_normals(data.mr, data.do_hq_normals, *data.mbc.buff.vbo.fdots_nor);
         },
         new TaskData{*mr, mbc, do_hq_normals},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_vbo_requested(buffers.vbo.edge_fac)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferCache &mbc;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_edge_factor(data.mr, *data.mbc.buff.vbo.edge_fac);
+        },
+        new TaskData{*mr, mbc},
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
@@ -1042,7 +1057,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   EXTRACT_ADD_REQUESTED(ibo, edituv_points);
   EXTRACT_ADD_REQUESTED(ibo, edituv_tris);
   EXTRACT_ADD_REQUESTED(ibo, edituv_lines);
-  EXTRACT_ADD_REQUESTED(vbo, edge_fac);
   EXTRACT_ADD_REQUESTED(vbo, edituv_data);
   /* Make sure UVs are computed before edituv stuffs. */
   EXTRACT_ADD_REQUESTED(vbo, uv);
@@ -1058,11 +1072,11 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
       !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
       !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
       !DRW_vbo_requested(buffers.vbo.orco) && !DRW_vbo_requested(buffers.vbo.nor) &&
-      !DRW_vbo_requested(buffers.vbo.tan) && !DRW_vbo_requested(buffers.vbo.edit_data) &&
-      !DRW_vbo_requested(buffers.vbo.face_idx) && !DRW_vbo_requested(buffers.vbo.edge_idx) &&
-      !DRW_vbo_requested(buffers.vbo.vert_idx) && !DRW_vbo_requested(buffers.vbo.weights) &&
-      !DRW_vbo_requested(buffers.vbo.fdots_nor) && !DRW_vbo_requested(buffers.vbo.fdots_pos) &&
-      !DRW_ibo_requested(buffers.ibo.fdots))
+      !DRW_vbo_requested(buffers.vbo.edge_fac) && !DRW_vbo_requested(buffers.vbo.tan) &&
+      !DRW_vbo_requested(buffers.vbo.edit_data) && !DRW_vbo_requested(buffers.vbo.face_idx) &&
+      !DRW_vbo_requested(buffers.vbo.edge_idx) && !DRW_vbo_requested(buffers.vbo.vert_idx) &&
+      !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_nor) &&
+      !DRW_vbo_requested(buffers.vbo.fdots_pos) && !DRW_ibo_requested(buffers.ibo.fdots))
   {
     return;
   }
@@ -1077,6 +1091,9 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   if (DRW_vbo_requested(buffers.vbo.nor)) {
     /* The corner normals calculation uses positions and normals stored in the `pos` VBO. */
     extract_normals_subdiv(subdiv_cache, *buffers.vbo.pos, *buffers.vbo.nor);
+  }
+  if (DRW_vbo_requested(buffers.vbo.edge_fac)) {
+    extract_edge_factor_subdiv(subdiv_cache, mr, *buffers.vbo.pos, *buffers.vbo.edge_fac);
   }
   if (DRW_ibo_requested(buffers.ibo.lines) || DRW_ibo_requested(buffers.ibo.lines_loose)) {
     extract_lines_subdiv(
