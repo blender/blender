@@ -131,12 +131,12 @@ def extensions_panel_draw_legacy_addons(
     user_addon_paths = []
 
     for mod in addon_modules:
-        bl_info = addon_utils.module_bl_info(mod)
         module_name = mod.__name__
         is_extension = addon_utils.check_extension(module_name)
         if is_extension:
             continue
 
+        bl_info = addon_utils.module_bl_info(mod)
         if search_lower and (
                 not pkg_info_check_exclude_filter_ex(
                     bl_info["name"],
