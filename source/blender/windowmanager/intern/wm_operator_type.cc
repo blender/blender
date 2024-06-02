@@ -318,7 +318,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
   wm_macro_start(op);
 
   LISTBASE_FOREACH (wmOperator *, opm, &op->macro) {
-    if (opm->type->exec) {
+    if (opm->type->exec == nullptr) {
       CLOG_WARN(WM_LOG_OPERATORS, "'%s' can't exec macro", opm->type->idname);
       continue;
     }
