@@ -8,6 +8,7 @@
 #include "BLI_generic_span.hh"
 #include "BLI_map.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_sys_types.h"
 
 #include "BKE_attribute.hh"
 
@@ -26,6 +27,7 @@ std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
     case CD_PROP_FLOAT:
       return pxr::SdfValueTypeNames->FloatArray;
     case CD_PROP_INT8:
+      return pxr::SdfValueTypeNames->UCharArray;
     case CD_PROP_INT32:
       return pxr::SdfValueTypeNames->IntArray;
     case CD_PROP_FLOAT2:
@@ -49,6 +51,7 @@ std::optional<eCustomDataType> convert_usd_type_to_blender(const pxr::SdfValueTy
     Map<pxr::SdfValueTypeName, eCustomDataType> map;
     map.add_new(pxr::SdfValueTypeNames->FloatArray, CD_PROP_FLOAT);
     map.add_new(pxr::SdfValueTypeNames->Double, CD_PROP_FLOAT);
+    map.add_new(pxr::SdfValueTypeNames->UCharArray, CD_PROP_INT8);
     map.add_new(pxr::SdfValueTypeNames->IntArray, CD_PROP_INT32);
     map.add_new(pxr::SdfValueTypeNames->Float2Array, CD_PROP_FLOAT2);
     map.add_new(pxr::SdfValueTypeNames->TexCoord2dArray, CD_PROP_FLOAT2);
@@ -103,6 +106,10 @@ void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
       copy_primvar_to_blender_buffer<float>(
           primvar, timecode, face_indices, attribute.span.typed<float>());
       break;
+    case CD_PROP_INT8:
+      copy_primvar_to_blender_buffer<uchar>(
+          primvar, timecode, face_indices, attribute.span.typed<int8_t>());
+      break;
     case CD_PROP_INT32:
       copy_primvar_to_blender_buffer<int32_t>(
           primvar, timecode, face_indices, attribute.span.typed<int>());
@@ -147,7 +154,7 @@ void copy_blender_attribute_to_primvar(const GVArray &attribute,
           attribute.typed<float>(), timecode, primvar, value_writer);
       break;
     case CD_PROP_INT8:
-      copy_blender_buffer_to_primvar<int8_t, int32_t>(
+      copy_blender_buffer_to_primvar<int8_t, uchar>(
           attribute.typed<int8_t>(), timecode, primvar, value_writer);
       break;
     case CD_PROP_INT32:

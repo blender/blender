@@ -191,7 +191,7 @@ class USDExportTest(AbstractUSDTest):
         prim = stage.GetPrimAtPath("/root/Mesh/Mesh")
 
         self.check_primvar(prim, "p_bool", "VtArray<bool>", "vertex", 4)
-        self.check_primvar(prim, "p_int8", "VtArray<int>", "vertex", 4)
+        self.check_primvar(prim, "p_int8", "VtArray<unsigned char>", "vertex", 4)
         self.check_primvar(prim, "p_int32", "VtArray<int>", "vertex", 4)
         self.check_primvar(prim, "p_float", "VtArray<float>", "vertex", 4)
         self.check_primvar(prim, "p_color", "VtArray<GfVec3f>", "vertex", 4)
@@ -213,7 +213,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar_missing(prim, "e_mat4x4")
 
         self.check_primvar(prim, "f_bool", "VtArray<bool>", "uniform", 1)
-        self.check_primvar(prim, "f_int8", "VtArray<int>", "uniform", 1)
+        self.check_primvar(prim, "f_int8", "VtArray<unsigned char>", "uniform", 1)
         self.check_primvar(prim, "f_int32", "VtArray<int>", "uniform", 1)
         self.check_primvar(prim, "f_float", "VtArray<float>", "uniform", 1)
         self.check_primvar_missing(prim, "f_color")
@@ -224,7 +224,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar_missing(prim, "f_mat4x4")
 
         self.check_primvar(prim, "fc_bool", "VtArray<bool>", "faceVarying", 4)
-        self.check_primvar(prim, "fc_int8", "VtArray<int>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_int8", "VtArray<unsigned char>", "faceVarying", 4)
         self.check_primvar(prim, "fc_int32", "VtArray<int>", "faceVarying", 4)
         self.check_primvar(prim, "fc_float", "VtArray<float>", "faceVarying", 4)
         self.check_primvar(prim, "fc_color", "VtArray<GfVec3f>", "faceVarying", 4)
@@ -237,7 +237,7 @@ class USDExportTest(AbstractUSDTest):
         prim = stage.GetPrimAtPath("/root/Curve_base/Curves/Curves")
 
         self.check_primvar(prim, "p_bool", "VtArray<bool>", "vertex", 24)
-        self.check_primvar(prim, "p_int8", "VtArray<int>", "vertex", 24)
+        self.check_primvar(prim, "p_int8", "VtArray<unsigned char>", "vertex", 24)
         self.check_primvar(prim, "p_int32", "VtArray<int>", "vertex", 24)
         self.check_primvar(prim, "p_float", "VtArray<float>", "vertex", 24)
         self.check_primvar_missing(prim, "p_color")
@@ -248,7 +248,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar_missing(prim, "p_mat4x4")
 
         self.check_primvar(prim, "sp_bool", "VtArray<bool>", "uniform", 2)
-        self.check_primvar(prim, "sp_int8", "VtArray<int>", "uniform", 2)
+        self.check_primvar(prim, "sp_int8", "VtArray<unsigned char>", "uniform", 2)
         self.check_primvar(prim, "sp_int32", "VtArray<int>", "uniform", 2)
         self.check_primvar(prim, "sp_float", "VtArray<float>", "uniform", 2)
         self.check_primvar_missing(prim, "sp_color")
@@ -261,7 +261,7 @@ class USDExportTest(AbstractUSDTest):
         prim = stage.GetPrimAtPath("/root/Curve_bezier_base/Curves_bezier/Curves")
 
         self.check_primvar(prim, "p_bool", "VtArray<bool>", "varying", 10)
-        self.check_primvar(prim, "p_int8", "VtArray<int>", "varying", 10)
+        self.check_primvar(prim, "p_int8", "VtArray<unsigned char>", "varying", 10)
         self.check_primvar(prim, "p_int32", "VtArray<int>", "varying", 10)
         self.check_primvar(prim, "p_float", "VtArray<float>", "varying", 10)
         self.check_primvar_missing(prim, "p_color")
@@ -272,7 +272,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar_missing(prim, "p_mat4x4")
 
         self.check_primvar(prim, "sp_bool", "VtArray<bool>", "uniform", 3)
-        self.check_primvar(prim, "sp_int8", "VtArray<int>", "uniform", 3)
+        self.check_primvar(prim, "sp_int8", "VtArray<unsigned char>", "uniform", 3)
         self.check_primvar(prim, "sp_int32", "VtArray<int>", "uniform", 3)
         self.check_primvar(prim, "sp_float", "VtArray<float>", "uniform", 3)
         self.check_primvar_missing(prim, "sp_color")
