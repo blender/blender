@@ -442,6 +442,11 @@ static bool depthdropper_poll(bContext *C)
     if (but->icon == ICON_EYEDROPPER) {
       return true;
     }
+    /* Context menu button. */
+    if (but->optype && STREQ(but->optype->idname, "UI_OT_eyedropper_depth")) {
+      return true;
+    }
+
     if ((but->type == UI_BTYPE_NUM) && (prop != nullptr) &&
         (RNA_property_type(prop) == PROP_FLOAT) &&
         (RNA_property_subtype(prop) & PROP_UNIT_LENGTH) &&
