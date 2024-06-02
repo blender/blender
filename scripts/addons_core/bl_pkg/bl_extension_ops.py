@@ -879,6 +879,8 @@ class CommandHandle:
             for window in self.wm.windows:
                 window.cursor_modal_restore()
 
+            if self.request_exit:
+                return {'CANCELLED'}
             return {'FINISHED'}
 
         return {'RUNNING_MODAL'}
@@ -944,7 +946,7 @@ class _ExtCmdMixIn:
     def exec_command_iter(self, is_modal):
         raise Exception("Subclass must define!")
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
         raise Exception("Subclass must define!")
 
     def error_fn_from_exception(self, ex):
@@ -965,13 +967,17 @@ class _ExtCmdMixIn:
 
         result = CommandHandle.op_exec_from_iter(self, context, cmd_batch, is_modal)
         if 'FINISHED' in result:
-            self.exec_command_finish()
+            self.exec_command_finish(False)
+        elif 'CANCELLED' in result:
+            self.exec_command_finish(True)
         return result
 
     def modal(self, context, event):
         result = self._runtime_handle.op_modal_impl(self, context, event)
         if 'FINISHED' in result:
-            self.exec_command_finish()
+            self.exec_command_finish(False)
+        elif 'CANCELLED' in result:
+            self.exec_command_finish(True)
         return result
 
 
@@ -991,7 +997,7 @@ class EXTENSIONS_OT_dummy_progress(Operator, _ExtCmdMixIn):
             ],
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
         _preferences_ui_redraw()
 
 
@@ -1045,7 +1051,7 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
             batch=cmd_batch,
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
         from . import repo_cache_store
 
         repo_cache_store_refresh_from_prefs()
@@ -1140,7 +1146,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
             batch=cmd_batch,
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
         from . import repo_cache_store
 
         repo_cache_store_refresh_from_prefs()
@@ -1294,7 +1300,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
             batch=cmd_batch,
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
 
         # Unlock repositories.
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
@@ -1395,7 +1401,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
             batch=cmd_batch,
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
 
         # Unlock repositories.
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
@@ -1511,7 +1517,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
             batch=cmd_batch,
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
 
         # Unlock repositories.
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
@@ -1703,7 +1709,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             ],
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
 
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
@@ -1967,7 +1973,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             ],
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
 
         # Unlock repositories.
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
@@ -2127,7 +2133,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
             ],
         )
 
-    def exec_command_finish(self):
+    def exec_command_finish(self, canceled):
 
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
