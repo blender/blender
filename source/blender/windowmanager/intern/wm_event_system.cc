@@ -1394,8 +1394,9 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
                                       PointerRNA *properties,
                                       ReportList *reports)
 {
-  /* Operator-type names are static still. pass to allocation name for debugging. */
-  wmOperator *op = MEM_cnew<wmOperator>(ot->idname);
+  /* Operator-type names are static still (for C++ defined operators).
+   * Pass to allocation name for debugging. */
+  wmOperator *op = MEM_cnew<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
 
   /* Adding new operator could be function, only happens here now. */
   op->type = ot;
