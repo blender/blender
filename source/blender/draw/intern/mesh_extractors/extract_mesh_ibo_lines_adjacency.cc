@@ -39,10 +39,10 @@ static void extract_lines_adjacency_finish(const MeshRenderData & /*mr*/,
                                            void *buf,
                                            void *_data)
 {
-  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+  gpu::IndexBuf &ibo = *static_cast<gpu::IndexBuf *>(buf);
+  MeshExtract_LineAdjacency_Data &data = *static_cast<MeshExtract_LineAdjacency_Data *>(_data);
   /* Create edges for remaining non manifold edges. */
-  for (const auto item : data->eh->items()) {
+  for (const auto item : data.eh->items()) {
     int v_data = item.value;
     if (v_data == NO_EDGE) {
       continue;
@@ -55,50 +55,50 @@ static void extract_lines_adjacency_finish(const MeshRenderData & /*mr*/,
     if (v_data < 0) { /* `inv_opposite`. */
       std::swap(v2, v3);
     }
-    int l2 = data->vert_to_corner[v2];
-    int l3 = data->vert_to_corner[v3];
-    GPU_indexbuf_add_line_adj_verts(&data->elb, l1, l2, l3, l1);
-    data->is_manifold = false;
+    int l2 = data.vert_to_corner[v2];
+    int l3 = data.vert_to_corner[v3];
+    GPU_indexbuf_add_line_adj_verts(&data.elb, l1, l2, l3, l1);
+    data.is_manifold = false;
   }
-  delete data->eh;
+  delete data.eh;
 
-  cache.is_manifold = data->is_manifold;
+  cache.is_manifold = data.is_manifold;
 
-  GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data->vert_to_corner);
+  GPU_indexbuf_build_in_place(&data.elb, &ibo);
+  MEM_freeN(data.vert_to_corner);
 }
 
-static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
+static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data &data,
                                      uint vert_len,
                                      uint loop_len,
                                      uint tess_edge_len)
 {
-  data->vert_to_corner = static_cast<uint *>(MEM_callocN(sizeof(uint) * vert_len, __func__));
+  data.vert_to_corner = static_cast<uint *>(MEM_callocN(sizeof(uint) * vert_len, __func__));
 
-  GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES_ADJ, tess_edge_len, loop_len);
-  data->eh = new Map<OrderedEdge, int>();
-  data->eh->reserve(tess_edge_len);
-  data->is_manifold = true;
+  GPU_indexbuf_init(&data.elb, GPU_PRIM_LINES_ADJ, tess_edge_len, loop_len);
+  data.eh = new Map<OrderedEdge, int>();
+  data.eh->reserve(tess_edge_len);
+  data.is_manifold = true;
 }
 
 BLI_INLINE void lines_adjacency_triangle(
-    uint v1, uint v2, uint v3, uint l1, uint l2, uint l3, MeshExtract_LineAdjacency_Data *data)
+    uint v1, uint v2, uint v3, uint l1, uint l2, uint l3, MeshExtract_LineAdjacency_Data &data)
 {
-  GPUIndexBufBuilder *elb = &data->elb;
+  GPUIndexBufBuilder &elb = data.elb;
   /* Iterate around the triangle's edges. */
   for (int e = 0; e < 3; e++) {
     SHIFT3(uint, v3, v2, v1);
     SHIFT3(uint, l3, l2, l1);
 
     bool inv_indices = (v2 > v3);
-    data->eh->add_or_modify(
+    data.eh->add_or_modify(
         {v2, v3},
         [&](int *value) {
           int new_value = int(l1) + 1; /* 0 cannot be signed so add one. */
           *value = inv_indices ? -new_value : new_value;
           /* Store loop indices for remaining non-manifold edges. */
-          data->vert_to_corner[v2] = l2;
-          data->vert_to_corner[v3] = l3;
+          data.vert_to_corner[v2] = l2;
+          data.vert_to_corner[v3] = l3;
         },
         [&](int *value) {
           int v_data = *value;
@@ -106,8 +106,8 @@ BLI_INLINE void lines_adjacency_triangle(
             int new_value = int(l1) + 1; /* 0 cannot be signed so add one. */
             *value = inv_indices ? -new_value : new_value;
             /* Store loop indices for remaining non-manifold edges. */
-            data->vert_to_corner[v2] = l2;
-            data->vert_to_corner[v3] = l3;
+            data.vert_to_corner[v2] = l2;
+            data.vert_to_corner[v3] = l3;
           }
           else {
             /* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
@@ -117,12 +117,12 @@ BLI_INLINE void lines_adjacency_triangle(
             /* TODO: Make this part thread-safe. */
             if (inv_opposite == inv_indices) {
               /* Don't share edge if triangles have non matching winding. */
-              GPU_indexbuf_add_line_adj_verts(elb, l1, l2, l3, l1);
-              GPU_indexbuf_add_line_adj_verts(elb, l_opposite, l2, l3, l_opposite);
-              data->is_manifold = false;
+              GPU_indexbuf_add_line_adj_verts(&elb, l1, l2, l3, l1);
+              GPU_indexbuf_add_line_adj_verts(&elb, l_opposite, l2, l3, l_opposite);
+              data.is_manifold = false;
             }
             else {
-              GPU_indexbuf_add_line_adj_verts(elb, l1, l2, l3, l_opposite);
+              GPU_indexbuf_add_line_adj_verts(&elb, l1, l2, l3, l_opposite);
             }
           }
         });
@@ -130,18 +130,18 @@ BLI_INLINE void lines_adjacency_triangle(
 }
 
 static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData & /*mr*/,
-                                                    BMLoop **elt,
+                                                    BMLoop **tri,
                                                     const int /*elt_index*/,
                                                     void *_data)
 {
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
-  if (!BM_elem_flag_test(elt[0]->f, BM_ELEM_HIDDEN)) {
-    lines_adjacency_triangle(BM_elem_index_get(elt[0]->v),
-                             BM_elem_index_get(elt[1]->v),
-                             BM_elem_index_get(elt[2]->v),
-                             BM_elem_index_get(elt[0]),
-                             BM_elem_index_get(elt[1]),
-                             BM_elem_index_get(elt[2]),
+  MeshExtract_LineAdjacency_Data &data = *static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+  if (!BM_elem_flag_test(tri[0]->f, BM_ELEM_HIDDEN)) {
+    lines_adjacency_triangle(BM_elem_index_get(tri[0]->v),
+                             BM_elem_index_get(tri[1]->v),
+                             BM_elem_index_get(tri[2]->v),
+                             BM_elem_index_get(tri[0]),
+                             BM_elem_index_get(tri[1]),
+                             BM_elem_index_get(tri[2]),
                              data);
   }
 }
@@ -151,8 +151,8 @@ static void extract_lines_adjacency_iter_corner_tri_mesh(const MeshRenderData &m
                                                          const int elt_index,
                                                          void *_data)
 {
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
-  const int face_i = data->corner_tri_faces[elt_index];
+  MeshExtract_LineAdjacency_Data &data = *static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+  const int face_i = data.corner_tri_faces[elt_index];
   const bool hidden = mr.use_hide && !mr.hide_poly.is_empty() && mr.hide_poly[face_i];
   if (hidden) {
     return;
@@ -176,8 +176,8 @@ static void extract_lines_adjacency_init(const MeshRenderData &mr,
    * Accumulate for all faces and you get : */
   uint tess_edge_len = mr.corners_num + mr.corner_tris_num - mr.faces_num;
 
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
-  data->corner_tri_faces = mr.mesh->corner_tri_faces();
+  MeshExtract_LineAdjacency_Data &data = *static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
+  data.corner_tri_faces = mr.mesh->corner_tri_faces();
   line_adjacency_data_init(data, mr.verts_num, mr.corners_num, tess_edge_len);
 }
 
@@ -187,7 +187,7 @@ static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache &subdiv_cac
                                                 void * /*buf*/,
                                                 void *_data)
 {
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+  MeshExtract_LineAdjacency_Data &data = *static_cast<MeshExtract_LineAdjacency_Data *>(_data);
 
   /* For each face there is (loop + triangle - 1) edges. Since we only have quads, and a quad
    * is split into 2 triangles, we have (loop + 2 - 1) = (loop + 1) edges for each quad, or in
@@ -202,7 +202,7 @@ static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache &subdiv_cac
                                                 void *_data,
                                                 uint subdiv_quad_index)
 {
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+  MeshExtract_LineAdjacency_Data &data = *static_cast<MeshExtract_LineAdjacency_Data *>(_data);
 
   const uint loop_index = subdiv_quad_index * 4;
   const uint l0 = loop_index + 0;
