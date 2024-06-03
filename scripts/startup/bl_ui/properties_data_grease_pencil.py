@@ -194,7 +194,9 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
 
         layout.separator()
         layout.prop(grease_pencil, "use_autolock_layers", text="Autolock Inactive Layers")
-        layout.prop(layer, "use_locked_material")
+
+        if layer:
+            layout.prop(layer, "use_locked_material")
 
 
 class GREASE_PENCIL_MT_group_context_menu(Menu):
