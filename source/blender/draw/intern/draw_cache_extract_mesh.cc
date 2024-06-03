@@ -650,7 +650,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
   EXTRACT_ADD_REQUESTED(vbo, mesh_analysis);
   EXTRACT_ADD_REQUESTED(vbo, fdots_edituv_data);
-  EXTRACT_ADD_REQUESTED(vbo, skin_roots);
   for (int i = 0; i < GPU_MAX_ATTR; i++) {
     EXTRACT_ADD_REQUESTED(vbo, attr[i]);
   }
@@ -674,7 +673,8 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
       !DRW_vbo_requested(buffers.vbo.vert_idx) && !DRW_vbo_requested(buffers.vbo.fdot_idx) &&
       !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_uv) &&
       !DRW_vbo_requested(buffers.vbo.uv) && !DRW_ibo_requested(buffers.ibo.lines_paint_mask) &&
-      !DRW_ibo_requested(buffers.ibo.lines_adjacency))
+      !DRW_ibo_requested(buffers.ibo.lines_adjacency) &&
+      !DRW_vbo_requested(buffers.vbo.skin_roots))
   {
     return;
   }
@@ -1005,6 +1005,21 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
               data.mr, *data.buffers.ibo.lines_adjacency, data.cache.is_manifold);
         },
         new TaskData{*mr, buffers, cache},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_vbo_requested(buffers.vbo.skin_roots)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_skin_roots(data.mr, *data.buffers.vbo.skin_roots);
+        },
+        new TaskData{*mr, buffers},
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
