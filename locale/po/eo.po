@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-04-29 13:46+0000\n"
 "Last-Translator: william sélifet <williamselifet@live.be>\n"
 "Language-Team: Esperanto <https://translate.blender.org/projects/blender-ui/ui/eo/>\n"
@@ -29,10 +29,6 @@ msgstr "Elektu"
 
 msgid "Add"
 msgstr "Aldonia"
-
-
-msgid "New"
-msgstr "Nova"
 
 
 msgid "Cache Files"
@@ -89,6 +85,10 @@ msgstr "Dosiero"
 
 msgid "Help"
 msgstr "Helpo"
+
+
+msgid "New"
+msgstr "Nova"
 
 
 msgctxt "Operator"

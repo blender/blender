@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -495,8 +495,8 @@ msgid "Active Action for this data-block"
 msgstr "Aktivní akce pro tento datový blok"
 
 
-msgid "New"
-msgstr "Nový"
+msgid "None"
+msgstr "Žádný"
 
 
 msgid "Action Blending"
@@ -1529,10 +1529,6 @@ msgstr "Tečna"
 
 msgid "Bake the normals in tangent space"
 msgstr "Bake normály v tečnovém prostoru"
-
-
-msgid "None"
-msgstr "Žádný"
 
 
 msgid "Emit"
@@ -15041,6 +15037,10 @@ msgid "Face Strength"
 msgstr "Síla Ploch"
 
 
+msgid "New"
+msgstr "Nový"
+
+
 msgid "Affected"
 msgstr "Ovlivněný"
 
@@ -19826,14 +19826,6 @@ msgid "Filter text files"
 msgstr "Filtr textových souborů"
 
 
-msgid "(undocumented operator)"
-msgstr "(nezdokumentovaný operátor)"
-
-
-msgid "URL"
-msgstr "URL"
-
-
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Přidat opičku"
@@ -20440,6 +20432,10 @@ msgstr "Vytvořit sledování"
 
 msgid "Select markers using lasso selection"
 msgstr "Vybere předměty použitím volného výběru"
+
+
+msgid "(undocumented operator)"
+msgstr "(nezdokumentovaný operátor)"
 
 
 msgctxt "Operator"
@@ -21764,6 +21760,10 @@ msgid "Remember Export Settings"
 msgstr "Zapamatovat si Nastavení Exportu"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Přidat háček"
@@ -22522,6 +22522,21 @@ msgstr "Přepočítat vnitřek geometrie"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Vše"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Otočit"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Změnit velikost"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Zobrazit všechny vrstvy"
 
@@ -22893,6 +22908,10 @@ msgstr "UV/obrázkový editor"
 msgctxt "Operator"
 msgid "Flip Image"
 msgstr "Otočit Obrázek"
+
+
+msgid "Emission Strength"
+msgstr "Síla záření"
 
 
 msgid "Filepath used for importing the file"
@@ -25455,11 +25474,6 @@ msgstr "Vybrané vertexy náleží do aktuální skupiny vertexů"
 
 
 msgctxt "Operator"
-msgid "Update Views"
-msgstr "Aktualizovat Pohledy"
-
-
-msgctxt "Operator"
 msgid "Move and Attach"
 msgstr "Přemístit a Připojit"
 
@@ -25714,6 +25728,7 @@ msgid "Add Grease Pencil"
 msgstr "Přidat Skicovací Tužku"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Opice"
 
@@ -27874,11 +27889,6 @@ msgstr "Další klíč"
 
 
 msgctxt "Operator"
-msgid "Flip Quats"
-msgstr "Prohodit Normály"
-
-
-msgctxt "Operator"
 msgid "Reveal Selected"
 msgstr "Vše označené"
 
@@ -28665,6 +28675,21 @@ msgid "Filter Cloth"
 msgstr "Filtrovat Tkaninu"
 
 
+msgctxt "Operator"
+msgid "Inflate"
+msgstr "Nafouknout"
+
+
+msgctxt "Operator"
+msgid "Expand"
+msgstr "Rozšířit"
+
+
+msgctxt "Operator"
+msgid "Pinch"
+msgstr "Štípnutí"
+
+
 msgid "Use Collisions"
 msgstr "Použít Kolize"
 
@@ -28702,11 +28727,6 @@ msgstr "Dynamická topologie upravuje topologii sítě během tesání"
 msgctxt "Operator"
 msgid "Edit Dyntopo Detail Size"
 msgstr "Upravit Velikost Detailu Dyntopo"
-
-
-msgctxt "Operator"
-msgid "Expand"
-msgstr "Rozšířit"
 
 
 msgid "Falloff Type"
@@ -28750,12 +28770,9 @@ msgid "Filter Mesh"
 msgstr "Filtrovat Síť"
 
 
+msgctxt "Operator"
 msgid "Relax"
-msgstr "Obnovit"
-
-
-msgid "Sharpen"
-msgstr "Ostré"
+msgstr "Relax"
 
 
 msgctxt "Operator"
@@ -29875,11 +29892,6 @@ msgstr "Změnit velikost vybraných objektů"
 
 msgid "Edit Texture Space"
 msgstr "Prostor textury"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Otočit"
 
 
 msgid "Rotate selected items"
@@ -32264,11 +32276,6 @@ msgid "Set the cursor location, drag to transform"
 msgstr "Nastavit umístění kurzoru, změnit přetažením"
 
 
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Změnit velikost"
-
-
 msgid "Supports any combination of grab, rotate, and scale at once"
 msgstr "Podporuje libovolnou kombinaci uchopení, otáčení a škálování najednou"
 
@@ -32281,16 +32288,6 @@ msgstr "Roztrhnout oblast"
 msgctxt "Operator"
 msgid "Grab"
 msgstr "Chytit"
-
-
-msgctxt "Operator"
-msgid "Relax"
-msgstr "Relax"
-
-
-msgctxt "Operator"
-msgid "Pinch"
-msgstr "Štípnutí"
 
 
 msgctxt "Operator"
@@ -32907,11 +32904,6 @@ msgstr "Hliněný palec"
 msgctxt "Operator"
 msgid "Layer"
 msgstr "Vrstva"
-
-
-msgctxt "Operator"
-msgid "Inflate"
-msgstr "Nafouknout"
 
 
 msgctxt "Operator"
@@ -35652,6 +35644,10 @@ msgid "Sprite Threshold"
 msgstr "Sprite Práh"
 
 
+msgid "Trace Precision"
+msgstr "Přesnost Trasování"
+
+
 msgid "Auto Bake"
 msgstr "Auto Bake"
 
@@ -35694,10 +35690,6 @@ msgstr "Vzdálenost objektu, která přispívá k efektu ambient occlusion"
 
 msgid "Factor for ambient occlusion blending"
 msgstr "Faktor pro prolnutí efektu ambient occlusion"
-
-
-msgid "Trace Precision"
-msgstr "Přesnost Trasování"
 
 
 msgid "Precision of the horizon search"
@@ -39596,10 +39588,6 @@ msgid "3D View"
 msgstr "3D pohled"
 
 
-msgid "Position:"
-msgstr "Pozice:"
-
-
 msgid "Active object is not a mesh"
 msgstr "Nastavit aktivní objekt jako kameru"
 
@@ -40060,11 +40048,6 @@ msgstr "Odstranit značku"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Skrýt nevybrané"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Vše"
 
 
 msgctxt "Operator"
@@ -42006,11 +41989,6 @@ msgstr "Mřížka"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Opice"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs křivka"
 
@@ -42717,6 +42695,10 @@ msgid "Reference Point"
 msgstr "Referenční Bod"
 
 
+msgid "Sharpen"
+msgstr "Ostré"
+
+
 msgctxt "Operator"
 msgid "Delete Vertices"
 msgstr "Odstranit vertexy"
@@ -42926,14 +42908,6 @@ msgstr "Povrch"
 msgctxt "Action"
 msgid "var"
 msgstr "var"
-
-
-msgid "Generator"
-msgstr "Generátor"
-
-
-msgid "Stepped"
-msgstr "Krok"
 
 
 msgid "ParticleSettings"
@@ -43753,12 +43727,22 @@ msgid "Modified"
 msgstr "Modifikátory"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Nový"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Nový"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Nový"
+
+
+msgctxt "Camera"
 msgid "New"
 msgstr "Nový"
 
@@ -43768,17 +43752,12 @@ msgid "New"
 msgstr "Nový"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Nový"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Nový"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Nový"
 
@@ -43793,37 +43772,22 @@ msgid "New"
 msgstr "Nový"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Nový"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Nový"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Nový"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "Nový"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Nový"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Nový"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Nový"
 
@@ -43833,7 +43797,7 @@ msgid "New"
 msgstr "Nový"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Nový"
 
@@ -43843,12 +43807,32 @@ msgid "New"
 msgstr "Nový"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
 msgid "New"
 msgstr "Nový"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Screen"
+msgid "New"
+msgstr "Nový"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Nový"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Nový"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Nový"
+
+
+msgctxt "Volume"
 msgid "New"
 msgstr "Nový"
 
@@ -43858,17 +43842,7 @@ msgid "New"
 msgstr "Nový"
 
 
-msgctxt "LightProbe"
-msgid "New"
-msgstr "Nový"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Nový"
-
-
-msgctxt "Volume"
+msgctxt "World"
 msgid "New"
 msgstr "Nový"
 
@@ -44686,6 +44660,10 @@ msgstr "Cesta k souboru:"
 
 msgid "Track is locked"
 msgstr "Akce"
+
+
+msgid "Position:"
+msgstr "Pozice:"
 
 
 msgid "Width:"
@@ -45552,10 +45530,6 @@ msgstr "Subsurface Radius"
 
 msgid "Emission Color"
 msgstr "Barva záření"
-
-
-msgid "Emission Strength"
-msgstr "Síla záření"
 
 
 msgid "View Vector"

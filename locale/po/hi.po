@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -239,8 +239,8 @@ msgid "Action"
 msgstr "कार्य"
 
 
-msgid "New"
-msgstr "नई"
+msgid "None"
+msgstr "कोई नहीं"
 
 
 msgid "Nothing"
@@ -409,10 +409,6 @@ msgstr "-Z"
 
 msgid "Object"
 msgstr "वस्तु"
-
-
-msgid "None"
-msgstr "कोई नहीं"
 
 
 msgid "Emit"
@@ -2965,6 +2961,10 @@ msgid "Soft Body"
 msgstr "लचीला-पदार्थ"
 
 
+msgid "New"
+msgstr "नई"
+
+
 msgid "Number of segments for round edges/verts"
 msgstr "गोल किनारों/शिरोबिन्दु के लिए क्षेत्रों की संख्या"
 
@@ -3477,10 +3477,6 @@ msgid "File Browser Mode"
 msgstr "संचिका विचरक रूप"
 
 
-msgid "URL"
-msgstr "यूआरएल"
-
-
 msgctxt "Operator"
 msgid "Preset"
 msgstr "पूर्ववत"
@@ -3695,6 +3691,10 @@ msgid "Match"
 msgstr "मिलान"
 
 
+msgid "URL"
+msgstr "यूआरएल"
+
+
 msgctxt "Operator"
 msgid "Create New Directory"
 msgstr "नया निर्देशिका बनाएँ"
@@ -3747,6 +3747,21 @@ msgstr "केवल चयनित"
 
 msgid "Limit"
 msgstr "सीमा"
+
+
+msgctxt "Operator"
+msgid "All"
+msgstr "सभी"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "घूर्णन"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "प्रमाण"
 
 
 msgctxt "Operator"
@@ -4033,6 +4048,7 @@ msgid "Add an empty image type to scene with data"
 msgstr "डेटा के साथ दृश्य के लिए एक रिक्त छवि प्रकार जोड़ें"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "बंदर"
 
@@ -4198,10 +4214,6 @@ msgid "Sculpt"
 msgstr "गढन"
 
 
-msgid "Relax"
-msgstr "शिथिल करो"
-
-
 msgctxt "Operator"
 msgid "Sculpt Mode"
 msgstr "शिल्प रूप"
@@ -4329,11 +4341,6 @@ msgstr "खोजें"
 msgctxt "Operator"
 msgid "Push/Pull"
 msgstr "दबाव/खिंचाव"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "घूर्णन"
 
 
 msgctxt "Operator"
@@ -4639,11 +4646,6 @@ msgstr "धागे"
 
 msgid "Fluid Presets"
 msgstr "पूर्वनिश्चित द्रव"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "प्रमाण"
 
 
 msgctxt "Operator"
@@ -5377,10 +5379,6 @@ msgid "3D View"
 msgstr "त्रि-आयाम दृश्य"
 
 
-msgid "Position:"
-msgstr "स्थिति:"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "व्यक्त..."
@@ -5498,11 +5496,6 @@ msgstr "कारण"
 msgctxt "Operator"
 msgid "Clear"
 msgstr "स्पष्ट"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "सभी"
 
 
 msgid "Date"
@@ -5860,11 +5853,6 @@ msgstr "जालक"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "बंदर"
-
-
-msgctxt "Operator"
 msgid "Path"
 msgstr "पथ"
 
@@ -6015,14 +6003,6 @@ msgstr "छवि बचाने के असफल: मुक्त स्म
 msgctxt "Brush"
 msgid "Surface"
 msgstr "सतह"
-
-
-msgid "Generator"
-msgstr "जेनरेटर"
-
-
-msgid "Built-In Function"
-msgstr "अंतर्निहित फ़ंक्शन"
 
 
 msgid "Key %d"
@@ -6283,62 +6263,7 @@ msgid "Modified"
 msgstr "संशोधित"
 
 
-msgctxt "Object"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Mesh"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Curve"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Metaball"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Material"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Texture"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Lattice"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Camera"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "World"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Screen"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Sound"
+msgctxt "Action"
 msgid "New"
 msgstr "नई"
 
@@ -6348,22 +6273,22 @@ msgid "New"
 msgstr "नई"
 
 
-msgctxt "Action"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "NodeTree"
-msgid "New"
-msgstr "नई"
-
-
 msgctxt "Brush"
 msgid "New"
 msgstr "नई"
 
 
-msgctxt "ParticleSettings"
+msgctxt "Camera"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "नई"
 
@@ -6373,7 +6298,62 @@ msgid "New"
 msgstr "नई"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Lattice"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "World"
 msgid "New"
 msgstr "नई"
 
@@ -6607,6 +6587,10 @@ msgstr "ठीक है"
 
 msgid "File Path:"
 msgstr "संचिका पथ:"
+
+
+msgid "Position:"
+msgstr "स्थिति:"
 
 
 msgid "X:"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
-"PO-Revision-Date: 2024-05-22 21:56+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"PO-Revision-Date: 2024-06-01 17:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
@@ -63,6 +63,14 @@ msgstr "Koleksi AOVs"
 
 msgid "Binding Handle"
 msgstr "Pegangan Pengikat"
+
+
+msgid "Number specific to this Binding, unique within the Animation data-blockThis is used, for example, on a KeyframeActionStrip to look up the ActionChannelBag for this Binding"
+msgstr "Nomor khusus untuk Pengikat ini, unik dalam data-blok Animasi. Contoh penggunaan tersebut adalah pada StripAksiBingkaiKunci untuk mencari TasSaluranAksi untuk Pengikat ini"
+
+
+msgid "Action Bindings"
+msgstr "Pengikat Aksi"
 
 
 msgid "Collection of animation bindings"
@@ -281,6 +289,10 @@ msgid "Collection of action groups"
 msgstr "Koleksi kelompok aksi"
 
 
+msgid "Action Layer"
+msgstr "Lapisan Aktif"
+
+
 msgid "Influence"
 msgstr "Pengaruh"
 
@@ -345,6 +357,10 @@ msgid "The list of strips that are on this animation layer"
 msgstr "Daftar strip yang berada di lapisan animasi ini"
 
 
+msgid "Action Layers"
+msgstr "Lapisan-lapisan Animasi"
+
+
 msgid "Collection of animation layers"
 msgstr "Koleksi lapisan animasi"
 
@@ -373,6 +389,10 @@ msgid "Index of active pose marker"
 msgstr "Indeks penanda pose aktif"
 
 
+msgid "Action Strip"
+msgstr "Strip Aksi"
+
+
 msgid "Keyframe"
 msgstr "Frame Kunci"
 
@@ -383,6 +403,10 @@ msgstr "Strip dengan kelompok Kurva-F untuk setiap pengikat animasi"
 
 msgid "Keyframe Animation Strip"
 msgstr "Strip Animasi Bingkai Kunci"
+
+
+msgid "Action Strips"
+msgstr "Strip-strip Aksi"
 
 
 msgid "Collection of animation strips"
@@ -617,16 +641,32 @@ msgid "Active Action for this data-block"
 msgstr "Aksi aktif untuk data-blok ini"
 
 
-msgid "New"
-msgstr "Baru"
+msgid "Action Binding"
+msgstr "Pengikat Aksi"
 
 
-msgid "Create a new animation binding for this data-block"
-msgstr "Membuat pengikatan animasi baru untuk data-blok ini"
+msgid "The binding identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right binding when assigning an Action"
+msgstr "Pengikat mengidentifikasi sub-set Animasi yang dianggap untuk data-blok ini, dan namanya digunakan untuk menemukan pengikat yang tepat saat menetapkan Aksi"
 
 
-msgid "(none/legacy)"
-msgstr "(tidak ada/warisan)"
+msgid "None"
+msgstr "Kosong"
+
+
+msgid "Action Binding Handle"
+msgstr "Pegangan Pengikat Aksi"
+
+
+msgid "A number that identifies which sub-set of the Action is considered to be for this data-block"
+msgstr "Angka yang mengidentifikasikan sub-set Aksi yang dianggap untuk data-blok ini"
+
+
+msgid "Action Binding Name"
+msgstr "Nama Pengikat Aksi"
+
+
+msgid "The name of the action binding. The binding identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right binding when assigning an Action"
+msgstr "Nama pengikat aksi. Pengikat mengindetifikasikan sub-set Aksi yang dianggap untuk data-blok ini, dan nama ini digunakan untuk mencari pengikat yang benar saat menetapkan Aksi"
 
 
 msgid "Action Blending"
@@ -821,6 +861,10 @@ msgid "Start Frame"
 msgstr "Awal Bingkai"
 
 
+msgid "Starting frame of range of paths to display/calculate (not for 'Around Frame' Onion-skinning method)"
+msgstr "Bingkai awal dari rentang jalur untuk ditampilkan/dihitung (bukan untuk metode Onion-skinning 'Sekitar Frame Saat Ini')"
+
+
 msgid "Frame Step"
 msgstr "Langkah Frame"
 
@@ -995,6 +1039,10 @@ msgstr "Tipe editor saat ini untuk area ini"
 
 msgid "Empty"
 msgstr "Kosong"
+
+
+msgid "3D Viewport"
+msgstr "Tampilan 3D"
 
 
 msgid "Manipulate objects in a 3D environment"
@@ -1293,6 +1341,10 @@ msgid "A description of the asset to be displayed for the user"
 msgstr "Deskripsi aset untuk ditampilkan untuk pengguna"
 
 
+msgid "License"
+msgstr "Lisensi"
+
+
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
 msgstr "Jenis lisensi yang digunakan untuk mendistribusikan aset ini. Nama lisensi yang kosong tidak selalu menunjukkan bahwa aset ini bebas dari ketentuan lisensi. Hubungi pembuat jika ada klarifikasi yang diperlukan"
 
@@ -1319,6 +1371,10 @@ msgstr "Jalur Perpustakaan Lengkap"
 
 msgid "Absolute path to the .blend file containing this asset"
 msgstr "Jalur absolut ke dokumen .blend yang mengandung aset ini"
+
+
+msgid "Full Path"
+msgstr "Jalur Penuh"
 
 
 msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
@@ -1609,6 +1665,10 @@ msgid "ID Name"
 msgstr "Nama ID"
 
 
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Jika ini disetel, aset akan mendapatkan ID kustom, jika tidak maka akan mengambil nama kelas yang digunakan untuk mendefinisikan aset (misalnya, jika nama kelasnya adalah \"OBJECT_AST_hello\", dan bl_idname tidak disetel oleh skrip, maka bl_idname = \"OBJECT_AST_hello\")"
+
+
 msgid "Options"
 msgstr "Opsi"
 
@@ -1737,8 +1797,16 @@ msgid "3D vector with floating-point values"
 msgstr "Vector 3D dengan nilai floating-point"
 
 
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "Warna RGBA dengan nilai 32-bit floating-point"
+
+
 msgid "Byte Color"
 msgstr "Warna Byte"
+
+
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "Warna RGBA dengan nilai integer positif 8-bit"
 
 
 msgid "String"
@@ -1789,6 +1857,10 @@ msgid "Floating point quaternion rotation"
 msgstr "Rotasi Kuaternion Titik Floating"
 
 
+msgid "4x4 Matrix"
+msgstr "Matriks 4x4"
+
+
 msgid "Floating point matrix"
 msgstr "Matriks titik floating"
 
@@ -1813,16 +1885,48 @@ msgid "Edge"
 msgstr "Tepi"
 
 
+msgid "Attribute on mesh edge"
+msgstr "Atribut di ujung jala"
+
+
 msgid "Face"
 msgstr "Wajah"
+
+
+msgid "Attribute on mesh faces"
+msgstr "Atribut di wajah jala"
 
 
 msgid "Face Corner"
 msgstr "Ujung Wajah"
 
 
+msgid "Attribute on mesh face corner"
+msgstr "Atribut di pojok wajah jala"
+
+
+msgid "Spline"
+msgstr "Spline"
+
+
+msgid "Attribute on spline"
+msgstr "Atribut di spline"
+
+
+msgid "Instance"
+msgstr "Pencontohan"
+
+
+msgid "Attribute on instance"
+msgstr "Atribut di pencontohan"
+
+
 msgid "Layer"
 msgstr "Lapis"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "Atribut di lapisan Pensil Grease"
 
 
 msgid "The attribute is meant for internal use by Blender"
@@ -2027,10 +2131,6 @@ msgstr "Bakar normal di spasi garis singgung"
 
 msgid "Pass Filter"
 msgstr "Filter Pass"
-
-
-msgid "None"
-msgstr "Kosong"
 
 
 msgid "Emit"
@@ -3421,12 +3521,24 @@ msgid "B-Bone Vertex Mapping Mode"
 msgstr "Mode Pemetaan Vertex Tulang-B"
 
 
+msgid "Selects how the vertices are mapped to B-Bone segments based on their position"
+msgstr "Memilih bagaimana simpul dipetakan ke segmen Tulang-B berdasarkan posisinya"
+
+
 msgid "Straight"
 msgstr "Kanan"
 
 
+msgid "Fast mapping that is good for most situations, but ignores the rest pose curvature of the B-Bone"
+msgstr "Pemetaan cepat yang bagus untuk sebagian besar situasi, tetapi mengabaikan kelengkungan pose lainnya dari Tulang-B"
+
+
 msgid "Curved"
 msgstr "Lengkung"
+
+
+msgid "Slower mapping that gives better deformation for B-Bones that are sharply curved in rest pose"
+msgstr "Pemetaan lambat yang memberikan deformasi lebih bagus untuk Tulang-B yang melengkung secara tajam di pose istirahat"
 
 
 msgid "Roll In"
@@ -3621,6 +3733,10 @@ msgid "When bone has a parent, bone's head is stuck to the parent's tail"
 msgstr "Saat tulang ada induk, kepala tulang terjebak ke ekor induk"
 
 
+msgid "Cyclic Offset"
+msgstr "Offset Siklik"
+
+
 msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
 msgstr "Saat tulang tidak mempunyai induk, tulang tersebut menerima efek offset siklik (Ditinggalkan)"
 
@@ -3641,8 +3757,20 @@ msgid "Add Roll Out of the Start Handle bone to the Roll In value"
 msgstr "Tambah Roll Keluar tulang Pegangan Awal ke Roll di nilai"
 
 
+msgid "Multiply Vertex Group with Envelope"
+msgstr "Mengalikan Kelompok Vertex dengan Amplop"
+
+
+msgid "When deforming bone, multiply effects of Vertex Group weights with Envelope influence"
+msgstr "Saat deformasi tulang, mengalikan efek berat Kelompok Vertex dengan pengaruh Amplop"
+
+
 msgid "Inherit Rotation"
 msgstr "Warisi Rotasi"
+
+
+msgid "Bone inherits rotation or scale from parent bone"
+msgstr "Tulang mewarisi rotasi atau skala dari tulang induk"
 
 
 msgid "Local Location"
@@ -3661,20 +3789,68 @@ msgid "Object children will use relative transform, like deform"
 msgstr "Anak objek akan meggunakan transformasi relatif, seperti merusak bentuk"
 
 
+msgid "Scale Easing"
+msgstr "Skala secara lebih Mudah"
+
+
+msgid "Multiply the final easing values by the Scale In/Out Y factors"
+msgstr "Mengalikan nilai secara lebih mudah yang final dengan faktor Skala Masuk/Keluar Y"
+
+
 msgid "Bones"
 msgstr "Tulang"
+
+
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
+msgstr "Tulang yang ditugaskan ke koleksi tulang ini. Dalam mode edit kerangka, ini akan selalu mengembalikan daftar tulang yang kosong, karena keanggotaan koleksi tulang hanya disinkronkan saat keluar dari mode edit"
+
+
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "Indeks koleksi ini ke dalam daftar anak dari induknya. Harap diperhatikan bahwa untuk menemukan indeks ini memerlukan pemindaian semua koleksi tulang, jadi tolong mengakses ini dengan hati-hati"
 
 
 msgid "Index"
 msgstr "Index"
 
 
+msgid "Index of this bone collection in the armature.collections_all array. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "Indeks koleksi tulang ini di array armature.collections_all. Harap diperhatikan bahwa menemukan indeks ini memerlukan pemindaian semua koleksi tulang, jadi tolong mengakses ini dengan hati-hati"
+
+
+msgid "Is Editable"
+msgstr "Dapat Mengedit"
+
+
+msgid "This collection is owned by a local Armature, or was added via a library override in the current blend file"
+msgstr "Koleksi ini dimiliki oleh Kerangka lokal, atau ditambahkan melalui penggantian perpustakaan dalam dokumen blend saat ini"
+
+
+msgid "This bone collection is expanded in the bone collections tree view"
+msgstr "Koleksi tulang ini diperluas dalam tampilan pohon koleksi tulang"
+
+
+msgid "Is Local Override"
+msgstr "Merupakan Penggantian Lokal"
+
+
+msgid "This collection was added via a library override in the current blend file"
+msgstr "Koleksi ini ditambahkan lewat penggantian perpustakaan di dokumen blend sekarang"
+
+
 msgid "Solo"
 msgstr "Sendiri"
 
 
+msgid "Show only this bone collection, and others also marked as 'solo'"
+msgstr "Hanya menampilkan koleksi tulang ini, dan yang lain juga terindikasi sebagai 'sendiri'"
+
+
 msgid "Visible"
 msgstr "Terlihat"
+
+
+msgid "Bones in this collection will be visible in pose/object mode"
+msgstr "Tulang di koleksi ini hanya terlihat di mode pose/objek"
 
 
 msgid "Active Collection"
@@ -3813,8 +3989,48 @@ msgid "Count"
 msgstr "Hitung"
 
 
+msgid "Number of curves added by the Add brush"
+msgstr "Jumlah kurva ditambahkan dengan kuas Menambah"
+
+
+msgid "Length of newly added curves when it is not interpolated from other curves"
+msgstr "Jarak kurva baru yang ditambahkan saat tidak interpolasi dari kurva yang lain"
+
+
+msgid "Curve Parameter Falloff"
+msgstr "Penurunan Parameter Kurva"
+
+
+msgid "Falloff that is applied from the tip to the root of each curve"
+msgstr "Penurunan yang diaplikasikan dari ujung ke akar setiap kurva"
+
+
 msgid "Curve Radius"
 msgstr "Radius Kurva"
+
+
+msgid "Radius of newly added curves when it is not interpolated from other curves"
+msgstr "Radius kurva baru yang ditambahkan saat tidak interpolasi dari kurva yang lain"
+
+
+msgid "Density Add Attempts"
+msgstr "Percobaan Penambahan Kepadatan"
+
+
+msgid "How many times the Density brush tries to add a new curve"
+msgstr "Berapa kali kuas Kepadatan mencoba menambahkan kurva baru"
+
+
+msgid "Determines whether the brush adds or removes curves"
+msgstr "Menentukan apakah kuas menambah atau menghapus kurva"
+
+
+msgid "Either add or remove curves depending on the minimum distance of the curves under the cursor"
+msgstr "Menambah atau menghapus kurva, tergantung pada jarak minimum kurva di bawah kursor"
+
+
+msgid "Add new curves between existing curves, taking the minimum distance into account"
+msgstr "Menambah kurva baru di antara kurva yang ada, memperhitungkan jarak minimum"
 
 
 msgid "Remove"
@@ -7101,6 +7317,10 @@ msgid "Object Instances"
 msgstr "Contoh Objek"
 
 
+msgid "All object instances to display or render (Warning: Only use this as an iterator, never as a sequence, and do not keep any references to its items)"
+msgstr "Semua pencontohan objek untuk ditampilkan atau dirender (Peringatan: Hanya gunakan ini sebagai pengulang, jangan pernah sebagai urutan, dan jangan menyimpan referensi apa pun ke item-itemnya)"
+
+
 msgid "Evaluated objects in the dependency graph"
 msgstr "Objek yang dievaluasi di grafik ketergantungan"
 
@@ -7153,8 +7373,16 @@ msgid "Generated Coordinates"
 msgstr "Koordinat yang Dihasilkan"
 
 
+msgid "If the object is an instance, the parent object that generated it"
+msgstr "Jika objek adalah pencontohan, objek induk yang menghasilkannya"
+
+
 msgid "Particle System"
 msgstr "Sistem Partikel"
+
+
+msgid "Evaluated particle system that this object was instanced from"
+msgstr "Sistem partikel yang dievaluasi dimana objek ini dicontohkan dari"
 
 
 msgid "Persistent ID"
@@ -13448,6 +13676,10 @@ msgid "Merge End Vertices"
 msgstr "Gabung Sudut Akhir"
 
 
+msgid "New"
+msgstr "Baru"
+
+
 msgid "Material Mode"
 msgstr "Mode Bahan"
 
@@ -17120,6 +17352,21 @@ msgstr "Salin Bahan ke Objek yang Terpilih"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Semua"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotasi"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Adegan"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Nama"
 
@@ -19683,10 +19930,6 @@ msgid "Scale mesh"
 msgstr "Skalakan mesh"
 
 
-msgid "Sharpen"
-msgstr "Pertajam"
-
-
 msgid "Detail Mode"
 msgstr "Mode Detail"
 
@@ -20323,11 +20566,6 @@ msgstr "Dorong/Tarik"
 
 msgid "Edit Texture Space"
 msgstr "Edit Spasi Tekstur"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotasi"
 
 
 msgctxt "Operator"
@@ -21785,11 +22023,6 @@ msgstr "Seleksi Laso"
 msgctxt "Operator"
 msgid "Cursor"
 msgstr "Kursor"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Adegan"
 
 
 msgctxt "Operator"
@@ -23901,14 +24134,6 @@ msgid "Context incorrect, image not found"
 msgstr "Konteks salah, gambar tidak ditemukan"
 
 
-msgid "Position:"
-msgstr "Posisi:"
-
-
-msgid "Orientation:"
-msgstr "Orientasi:"
-
-
 msgid "No camera found"
 msgstr "Tidak ada kamera yang ditemukan"
 
@@ -24487,11 +24712,6 @@ msgstr "Induk"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Modus Sunting"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Semua"
 
 
 msgctxt "Operator"
@@ -25752,6 +25972,10 @@ msgid "    Operator"
 msgstr "    Operator"
 
 
+msgid "Orientation:"
+msgstr "Orientasi:"
+
+
 msgid "Intersections"
 msgstr "Persilangan"
 
@@ -26239,6 +26463,10 @@ msgid "No Materials"
 msgstr "Tidak ada Bahan"
 
 
+msgid "Sharpen"
+msgstr "Pertajam"
+
+
 msgctxt "Operator"
 msgid "Remove from All"
 msgstr "Warna Standar"
@@ -26659,12 +26887,22 @@ msgid "Browse Camera Data to be linked"
 msgstr "Telusuri Data Kamera untuk dihubungkan"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Baru"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Baru"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Baru"
+
+
+msgctxt "Camera"
 msgid "New"
 msgstr "Baru"
 
@@ -26674,17 +26912,12 @@ msgid "New"
 msgstr "Baru"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Baru"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Baru"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Baru"
 
@@ -26699,37 +26932,22 @@ msgid "New"
 msgstr "Baru"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Baru"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Baru"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Baru"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "Baru"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Baru"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Baru"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Baru"
 
@@ -26739,7 +26957,7 @@ msgid "New"
 msgstr "Baru"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Baru"
 
@@ -26749,12 +26967,32 @@ msgid "New"
 msgstr "Baru"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
 msgid "New"
 msgstr "Baru"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Screen"
+msgid "New"
+msgstr "Baru"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Baru"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Baru"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Baru"
+
+
+msgctxt "Volume"
 msgid "New"
 msgstr "Baru"
 
@@ -26764,17 +27002,7 @@ msgid "New"
 msgstr "Baru"
 
 
-msgctxt "LightProbe"
-msgid "New"
-msgstr "Baru"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Baru"
-
-
-msgctxt "Volume"
+msgctxt "World"
 msgid "New"
 msgstr "Baru"
 
@@ -27299,6 +27527,10 @@ msgstr "Properti tidak dapat diubah"
 
 msgid "Property is not editable: %s"
 msgstr "Properti tidak dapat diubah: %s"
+
+
+msgid "Position:"
+msgstr "Posisi:"
 
 
 msgid "Width:"
@@ -28018,10 +28250,6 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "iSkala"
-
-
-msgid "| Time:%s | "
-msgstr "| Waktu:%s | "
 
 
 msgid "Image too small"

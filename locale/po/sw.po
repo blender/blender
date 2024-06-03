@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-05-27 11:42+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -519,8 +519,8 @@ msgid "Active Action for this data-block"
 msgstr "Kitendo Amilifu kwa kizuizi hiki cha data"
 
 
-msgid "New"
-msgstr "Mpya"
+msgid "None"
+msgstr "Hapana"
 
 
 msgid "Action Blending"
@@ -1989,10 +1989,6 @@ msgstr "Kichujio cha Pasi"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Pasi za kujumuisha katika pasi inayotumika ya kuoka"
-
-
-msgid "None"
-msgstr "Hapana"
 
 
 msgid "Emit"
@@ -33910,6 +33906,10 @@ msgid "Do not set face strength"
 msgstr "Usiweke nguvu za uso"
 
 
+msgid "New"
+msgstr "Mpya"
+
+
 msgid "Set face strength on new faces only"
 msgstr "Weka nguvu ya uso kwenye nyuso mpya pekee"
 
@@ -48560,14 +48560,6 @@ msgid "Remove an existing keyword tag from the active asset"
 msgstr "Ondoa lebo ya nenomsingi iliyopo kwenye kipengee kinachotumika"
 
 
-msgid "(undocumented operator)"
-msgstr "(mendeshaji asiye na hati)"
-
-
-msgid "Show add-on preferences"
-msgstr "Onyesha mapendeleo ya nyongeza"
-
-
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Ongeza Sheria ya Boid"
@@ -49600,6 +49592,10 @@ msgstr "Chagua alama kwa kutumia uteuzi wa lasso"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Weka Klipu Inayotumika"
+
+
+msgid "(undocumented operator)"
+msgstr "(mendeshaji asiye na hati)"
 
 
 msgctxt "Operator"
@@ -52922,6 +52918,10 @@ msgid "Store glTF export settings in the Blender project"
 msgstr "Hifadhi mipangilio ya usafirishaji ya glTF katika mradi wa Blender"
 
 
+msgid "Remove existing add-ons with the same ID"
+msgstr "Ondoa viongezi vilivyopo na kitambulisho sawa"
+
+
 msgctxt "Operator"
 msgid "Automatically Pack Resources"
 msgstr "Pakiti Rasilimali Kiotomatiki"
@@ -55414,6 +55414,16 @@ msgstr "Weka upya mabadiliko yoyote ya UV na urudi kwa maadili chaguo-msingi"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Wote"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Zungusha"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Onyesha Tabaka Zote"
 
@@ -57668,8 +57678,16 @@ msgid "Flip the image vertically"
 msgstr "Geuza picha wima"
 
 
+msgid "Emission Strength"
+msgstr "Nguvu ya Utoaji hewa"
+
+
 msgid "Filepath used for importing the file"
 msgstr "Njia ya faili inayotumika kuleta faili"
+
+
+msgid "Offset Distance"
+msgstr "Umbali wa Kukabiliana"
 
 
 msgid "Relative Paths"
@@ -63020,15 +63038,6 @@ msgstr "Sasisha nodi ya hati ya shader na soketi mpya na chaguzi kutoka kwa hati
 
 
 msgctxt "Operator"
-msgid "Update Views"
-msgstr "Maoni ya Sasisho"
-
-
-msgid "Update views of selected node"
-msgstr "Sasisha maoni ya nodi iliyochaguliwa"
-
-
-msgctxt "Operator"
 msgid "Move and Attach"
 msgstr "Sogeza na Uambatanishe"
 
@@ -63744,24 +63753,22 @@ msgid "Create an empty grease pencil object"
 msgstr "Tengeneza kitu tupu cha penseli ya grisi"
 
 
+msgctxt "Operator"
+msgid "Stroke"
+msgstr "Kiharusi"
+
+
 msgid "Create a simple stroke with basic colors"
 msgstr "Unda kiharusi rahisi na rangi msingi"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Tumbili"
 
 
 msgid "Construct a Suzanne grease pencil object"
 msgstr "Tengeneza kitu cha penseli ya grisi ya Suzanne"
-
-
-msgid "Scene Line Art"
-msgstr "Sanaa ya Mstari wa Maonyesho"
-
-
-msgid "Collection Line Art"
-msgstr "Sanaa ya Mstari wa Kukusanya"
 
 
 msgid "Show In Front"
@@ -64164,10 +64171,6 @@ msgstr "Bake Mwanga Cache"
 
 msgid "Bake irradiance volume light cache"
 msgstr "Oka kashe ya mwanga wa kiasi cha irradiance"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "Kuchelewa kwa milisekunde kabla ya kuoka kuanza"
 
 
 msgid "Subset"
@@ -67659,6 +67662,14 @@ msgid "Toggle the vertex paint mode in 3D view"
 msgstr "Geuza modi ya rangi ya kipeo katika mwonekano wa 3D"
 
 
+msgid "Auto Iteration Count"
+msgstr "Hesabu ya Urudiaji Kiotomatiki"
+
+
+msgid "Number of times that the filter is going to be applied"
+msgstr "Idadi ya mara ambazo kichujio kitatumika"
+
+
 msgctxt "Operator"
 msgid "Invert Visibility"
 msgstr "Geuza Mwonekano"
@@ -68711,10 +68722,6 @@ msgid "Install an add-on"
 msgstr "Sakinisha nyongeza"
 
 
-msgid "Remove existing add-ons with the same ID"
-msgstr "Ondoa viongezi vilivyopo na kitambulisho sawa"
-
-
 msgid "Target Path"
 msgstr "Njia Lengwa"
 
@@ -68739,6 +68746,10 @@ msgstr "Futa nyongeza kutoka kwa mfumo wa faili"
 
 msgid "Module name of the add-on to remove"
 msgstr "Jina la moduli la programu jalizi ya kuondoa"
+
+
+msgid "Show add-on preferences"
+msgstr "Onyesha mapendeleo ya nyongeza"
 
 
 msgctxt "Operator"
@@ -69779,6 +69790,10 @@ msgid "Bake the active view layer lighting"
 msgstr "Bake taa ya safu inayotumika ya mwonekano"
 
 
+msgid "Delay in millisecond before baking starts"
+msgstr "Kuchelewa kwa milisekunde kabla ya kuoka kuanza"
+
+
 msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "Oka gridi za miale na ramani za kuakisi"
 
@@ -70571,6 +70586,11 @@ msgid "Inflates the cloth"
 msgstr "Hupenyeza kitambaa"
 
 
+msgctxt "Operator"
+msgid "Expand"
+msgstr "Panua"
+
+
 msgid "Expands the cloth's dimensions"
 msgstr "Hupanua vipimo vya nguo"
 
@@ -70678,11 +70698,6 @@ msgstr "Hariri Ukubwa wa Maelezo wa Dyntopo"
 
 msgid "Modify the detail size of dyntopo interactively"
 msgstr "Rekebisha ukubwa wa maelezo ya dyntopo kwa maingiliano"
-
-
-msgctxt "Operator"
-msgid "Expand"
-msgstr "Panua"
 
 
 msgid "Generic sculpt expand operator"
@@ -71034,10 +71049,6 @@ msgid "Applies a filter to modify the current mask"
 msgstr "Hutumia kichujio kurekebisha kinyago cha sasa"
 
 
-msgid "Auto Iteration Count"
-msgstr "Hesabu ya Urudiaji Kiotomatiki"
-
-
 msgid "Use a automatic number of iterations based on the number of vertices of the sculpt"
 msgstr "Tumia nambari otomatiki ya marudio kulingana na idadi ya vipeo vya sanamu"
 
@@ -71068,10 +71079,6 @@ msgstr "Ongeza Utofautishaji"
 
 msgid "Decrease Contrast"
 msgstr "Punguza Utofautishaji"
-
-
-msgid "Number of times that the filter is going to be applied"
-msgstr "Idadi ya mara ambazo kichujio kitatumika"
 
 
 msgctxt "Operator"
@@ -71200,48 +71207,24 @@ msgid "Randomize vertex positions"
 msgstr "Badilisha nafasi za kipeo"
 
 
-msgid "Relax"
-msgstr "Tulia"
-
-
 msgid "Relax mesh"
 msgstr "Pumzika matundu"
-
-
-msgid "Relax Face Sets"
-msgstr "Seti za Uso za Relax"
 
 
 msgid "Smooth the edges of all the Face Sets"
 msgstr "Lainisha kingo za Seti zote za Uso"
 
 
-msgid "Surface Smooth"
-msgstr "Uso Laini"
-
-
 msgid "Smooth the surface of the mesh, preserving the volume"
 msgstr "Lainisha uso wa matundu, ukihifadhi kiasi"
-
-
-msgid "Sharpen"
-msgstr "Noa"
 
 
 msgid "Sharpen the cavities of the mesh"
 msgstr "Inoa matundu ya matundu"
 
 
-msgid "Enhance Details"
-msgstr "Boresha Maelezo"
-
-
 msgid "Enhance the high frequency surface detail"
 msgstr "Boresha maelezo ya uso wa masafa ya juu"
-
-
-msgid "Erase Displacement"
-msgstr "Futa Uhamishaji"
 
 
 msgid "Deletes the displacement of the Multires Modifier"
@@ -73532,11 +73515,6 @@ msgstr "Fremu Muhimu Zilizorudiwa"
 
 msgid "Transform duplicated keyframes"
 msgstr "Badilisha fremu muhimu zilizorudiwa"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Zungusha"
 
 
 msgid "Rotate selected items"
@@ -87935,6 +87913,10 @@ msgid "Brightness threshold for using sprite base depth of field"
 msgstr "Kizingiti cha mwangaza kwa kutumia kina cha msingi wa sprite"
 
 
+msgid "Trace Precision"
+msgstr "Fuatilia Usahihi"
+
+
 msgid "Auto Bake"
 msgstr "Oka Kiotomatiki"
 
@@ -88035,24 +88017,8 @@ msgid "Factor for ambient occlusion blending"
 msgstr "Kipengele cha mchanganyiko wa kuziba mazingira"
 
 
-msgid "Trace Precision"
-msgstr "Fuatilia Usahihi"
-
-
 msgid "Precision of the horizon search"
 msgstr "Usahihi wa utafutaji wa upeo wa macho"
-
-
-msgid "Bias the horizon angles to reduce self intersection artifacts"
-msgstr "Kupendelea pembe za upeo wa macho ili kupunguza mabaki ya makutano ya kibinafsi"
-
-
-msgid "Precision of the horizon scan"
-msgstr "Usahihi wa utambazaji wa upeo wa macho"
-
-
-msgid "Constant thickness of the surfaces considered when doing horizon scan and by extension ambient occlusion"
-msgstr "Unene wa mara kwa mara wa nyuso zinazozingatiwa wakati wa kuchanganua upeo wa macho na kwa upanuzi wa kuziba mazingira"
 
 
 msgid "Light Threshold"
@@ -102053,10 +102019,6 @@ msgid "Context incorrect, image not found"
 msgstr "Muktadha si sahihi, picha haijapatikana"
 
 
-msgid "Orientation:"
-msgstr "Mwelekeo:"
-
-
 msgid "No camera found"
 msgstr "Hakuna kamera iliyopatikana"
 
@@ -103379,11 +103341,6 @@ msgstr "Unyoya wa Mizani"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Ficha Isiyochaguliwa"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Wote"
 
 
 msgctxt "Operator"
@@ -106167,11 +106124,6 @@ msgstr "Rejesha Mistari Isiyochaguliwa"
 
 
 msgctxt "Operator"
-msgid "Position"
-msgstr "Cheo"
-
-
-msgctxt "Operator"
 msgid "All Transforms"
 msgstr "Mabadiliko Yote"
 
@@ -106267,6 +106219,10 @@ msgstr "Tafuta"
 
 msgid "    Operator"
 msgstr "    Operetta"
+
+
+msgid "Orientation:"
+msgstr "Mwelekeo:"
 
 
 msgctxt "WindowManager"
@@ -107096,11 +107052,6 @@ msgstr "Gridi"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Tumbili"
-
-
-msgctxt "Operator"
 msgid "Path"
 msgstr "Njia"
 
@@ -107820,11 +107771,6 @@ msgstr "Tupu"
 
 
 msgctxt "Operator"
-msgid "Stroke"
-msgstr "Kiharusi"
-
-
-msgctxt "Operator"
 msgid "Point Cloud"
 msgstr "Wingu la uhakika"
 
@@ -108359,8 +108305,24 @@ msgid "Gradient (Linear)"
 msgstr "Gradient (Mstari)"
 
 
+msgid "Surface Smooth"
+msgstr "Uso Laini"
+
+
 msgid "Relax Topology"
 msgstr "Topolojia ya kupumzika"
+
+
+msgid "Relax Face Sets"
+msgstr "Seti za Uso za Relax"
+
+
+msgid "Sharpen"
+msgstr "Noa"
+
+
+msgid "Enhance Details"
+msgstr "Boresha Maelezo"
 
 
 msgid "Erase Multires Displacement"
@@ -109116,18 +109078,6 @@ msgstr "Uhifadhi wa picha umeshindwa: hakuna kumbukumbu ya kutosha ya bure"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Uso"
-
-
-msgid "Generator"
-msgstr "Jenereta"
-
-
-msgid "Built-In Function"
-msgstr "Kazi Iliyojengwa Ndani"
-
-
-msgid "Stepped"
-msgstr "Hatua"
 
 
 msgid "Spline Length node"
@@ -112342,12 +112292,27 @@ msgid "The data-block %s could not be overridden"
 msgstr "Kizuizi cha data %s hakikuweza kubatilishwa"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Mpya"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Mpya"
+
+
+msgctxt "Camera"
+msgid "New"
+msgstr "Mpya"
+
+
+msgctxt "Curves"
 msgid "New"
 msgstr "Mpya"
 
@@ -112357,17 +112322,12 @@ msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Mpya"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Mpya"
 
@@ -112382,37 +112342,22 @@ msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "Mpya"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Mpya"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Mpya"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Mpya"
 
@@ -112422,7 +112367,7 @@ msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Mpya"
 
@@ -112432,12 +112377,32 @@ msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
 msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Screen"
+msgid "New"
+msgstr "Mpya"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Mpya"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Mpya"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Mpya"
+
+
+msgctxt "Volume"
 msgid "New"
 msgstr "Mpya"
 
@@ -112447,22 +112412,7 @@ msgid "New"
 msgstr "Mpya"
 
 
-msgctxt "LightProbe"
-msgid "New"
-msgstr "Mpya"
-
-
-msgctxt "Curves"
-msgid "New"
-msgstr "Mpya"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Mpya"
-
-
-msgctxt "Volume"
+msgctxt "World"
 msgid "New"
 msgstr "Mpya"
 
@@ -116209,10 +116159,6 @@ msgid "Geometry:"
 msgstr "Jiometri:"
 
 
-msgid "• Volume"
-msgstr "• Kiasi"
-
-
 msgid "positions"
 msgstr "nafasi"
 
@@ -117745,10 +117691,6 @@ msgid "Rotation is not supported in the Dope Sheet Editor"
 msgstr "Mzunguko hautumiki katika Kihariri cha Karatasi ya Kuweka"
 
 
-msgid "Shear: %.3f %s (Press X or Y to set shear axis)"
-msgstr "Shear: %.3f %s (Bonyeza X au Y ili kuweka mhimili wa kunyoa)"
-
-
 msgid "Shrink/Fatten: "
 msgstr "Nyinya/Nenepesha: "
 
@@ -118639,10 +118581,6 @@ msgstr "ID '%s' imeunganishwa, haiwezi kuhariri ubatilishaji wake"
 
 msgid "Data-block '%s' is not a library override, or not part of a library override hierarchy"
 msgstr "Kizuizi cha data '%s' si ubatilishaji wa maktaba, au si sehemu ya maktaba inabatilisha daraja."
-
-
-msgid "%s is not compatible with %s 'refresh' options"
-msgstr "%s haioani na chaguo za %s 'onyesha upya'"
 
 
 msgid "This property is for internal use only and can't be edited"
@@ -122578,10 +122516,6 @@ msgid "Emission Color"
 msgstr "Rangi ya Utoaji hewa"
 
 
-msgid "Emission Strength"
-msgstr "Nguvu ya Utoaji hewa"
-
-
 msgctxt "NodeTree"
 msgid "Specular Tint"
 msgstr "Tint Maalum"
@@ -122894,10 +122828,6 @@ msgstr "Haiwezi kuanzisha GPU"
 
 msgid "Failed allocate render result, out of memory"
 msgstr "Imeshindwa kutoa matokeo, bila kumbukumbu"
-
-
-msgid "Fra:%d Mem:%.2fM (Peak %.2fM) "
-msgstr "Fra:%d Mem:%.2fM (Kilele %.2fM) "
 
 
 msgid "Image too small"
@@ -124990,10 +124920,6 @@ msgstr "Jiometri ya uso inatumika kwa shrinkwrap"
 
 msgid "Surface object used for shrinkwrap"
 msgstr "Kitu cha uso kinachotumika kwa kusinyaa"
-
-
-msgid "Offset Distance"
-msgstr "Umbali wa Kukabiliana"
 
 
 msgid "Distance from the surface used for shrinkwrap"

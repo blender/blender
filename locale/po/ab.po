@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2024-04-29 13:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -25,10 +25,6 @@ msgstr "Ацҵара"
 
 msgid "Subtract"
 msgstr "Ацхра"
-
-
-msgid "New"
-msgstr "Аҿыц"
 
 
 msgid "Empty"
@@ -310,9 +306,18 @@ msgid "Ball"
 msgstr "Ампыл"
 
 
+msgid "New"
+msgstr "Аҿыц"
+
+
 msgctxt "Operator"
 msgid "Add Circle"
 msgstr "Ацҵара Аицыгьежь"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Ашәага"
 
 
 msgctxt "Operator"
@@ -350,6 +355,7 @@ msgid "Add Camera"
 msgstr "Ацҵара Акамера"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Амаамын"
 
@@ -386,11 +392,6 @@ msgstr "Аҳәоу"
 
 msgid "Overlays"
 msgstr "Ақәҵакәа"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Ашәага"
 
 
 msgid "Playback"
@@ -493,11 +494,6 @@ msgstr "Аконус"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Амаамын"
-
-
-msgctxt "Operator"
 msgid "Camera"
 msgstr "Акамера"
 
@@ -517,12 +513,22 @@ msgid "Lattice"
 msgstr "Аҭыџьеихац"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Camera"
 msgid "New"
 msgstr "Аҿыц"
 
@@ -532,17 +538,12 @@ msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Аҿыц"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Аҿыц"
 
@@ -557,37 +558,22 @@ msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "Аҿыц"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Аҿыц"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Аҿыц"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Аҿыц"
 
@@ -597,7 +583,7 @@ msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Аҿыц"
 
@@ -607,12 +593,22 @@ msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "GPencil"
+msgctxt "Screen"
 msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Sound"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Texture"
 msgid "New"
 msgstr "Аҿыц"
 
@@ -622,7 +618,7 @@ msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "LightProbe"
+msgctxt "World"
 msgid "New"
 msgstr "Аҿыц"
 

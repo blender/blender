@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -495,8 +495,8 @@ msgid "Active Action for this data-block"
 msgstr "Bu veri bloku için Etkin Eylem"
 
 
-msgid "New"
-msgstr "Yeni"
+msgid "None"
+msgstr "Hiçbiri"
 
 
 msgid "Action Blending"
@@ -1979,10 +1979,6 @@ msgstr "Geçiş Süzgeci"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Etkin pişirme geçişinde içerilecek geçişler"
-
-
-msgid "None"
-msgstr "Hiçbiri"
 
 
 msgid "Emit"
@@ -8044,6 +8040,10 @@ msgid "Deform using the shape of a lattice object"
 msgstr "Bir dış kafes nesnesinin şeklini kullanarak deforme et"
 
 
+msgid "New"
+msgstr "Yeni"
+
+
 msgid "Material Mode"
 msgstr "Malzeme Kipi"
 
@@ -8950,6 +8950,11 @@ msgid "Add New Mask Layer"
 msgstr "Yeni Maske Katmanı Ekle"
 
 
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Çevir"
+
+
 msgid "Both"
 msgstr "İkisi de"
 
@@ -9225,8 +9230,9 @@ msgid "Move to Nodes"
 msgstr "Düğümlere Taşı"
 
 
-msgid "Scene Line Art"
-msgstr "Sahne Çizgi Sanatı"
+msgctxt "Operator"
+msgid "Stroke"
+msgstr "Vuruş"
 
 
 msgid "Object Data"
@@ -9620,8 +9626,9 @@ msgid "Reload scripts"
 msgstr "Betikleri yeniden yükle"
 
 
-msgid "Sharpen"
-msgstr "Keskinlik"
+msgctxt "Operator"
+msgid "Sphere"
+msgstr "Küre"
 
 
 msgctxt "Sequence"
@@ -9748,11 +9755,6 @@ msgstr "Sarma Çubuğu"
 msgctxt "Operator"
 msgid "Find"
 msgstr "Bul"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Çevir"
 
 
 msgctxt "Operator"
@@ -12238,11 +12240,6 @@ msgstr "Yeni Grup Ekle"
 
 
 msgctxt "Operator"
-msgid "Sphere"
-msgstr "Küre"
-
-
-msgctxt "Operator"
 msgid "Fair Positions"
 msgstr "Eşit Konumlar"
 
@@ -12281,11 +12278,6 @@ msgstr "Boş"
 
 
 msgctxt "Operator"
-msgid "Stroke"
-msgstr "Vuruş"
-
-
-msgctxt "Operator"
 msgid "Point Cloud"
 msgstr "Nokta Bulutu"
 
@@ -12302,6 +12294,10 @@ msgstr "Nesneleri Sahneye Bağlantıla..."
 
 msgid "Developer"
 msgstr "Geliştirici"
+
+
+msgid "Sharpen"
+msgstr "Keskinlik"
 
 
 msgid "Draw Grease Pencil"
@@ -12638,12 +12634,27 @@ msgid "Browse ID data to be linked"
 msgstr "Bağlantılanacak kimlik verisine göz at"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Yeni"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Yeni"
+
+
+msgctxt "Camera"
+msgid "New"
+msgstr "Yeni"
+
+
+msgctxt "Curves"
 msgid "New"
 msgstr "Yeni"
 
@@ -12653,17 +12664,12 @@ msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Yeni"
 
@@ -12678,37 +12684,22 @@ msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Yeni"
 
@@ -12718,7 +12709,7 @@ msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Yeni"
 
@@ -12728,12 +12719,32 @@ msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
 msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Screen"
+msgid "New"
+msgstr "Yeni"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Yeni"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Yeni"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Yeni"
+
+
+msgctxt "Volume"
 msgid "New"
 msgstr "Yeni"
 
@@ -12743,22 +12754,7 @@ msgid "New"
 msgstr "Yeni"
 
 
-msgctxt "LightProbe"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "Curves"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "Volume"
+msgctxt "World"
 msgid "New"
 msgstr "Yeni"
 

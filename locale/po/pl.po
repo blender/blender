@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-04-13 17:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -487,8 +487,8 @@ msgid "Active Action for this data-block"
 msgstr "Akcja aktywna dla bieżącego bloku danych"
 
 
-msgid "New"
-msgstr "Nowy"
+msgid "None"
+msgstr "Brak"
 
 
 msgid "Action Blending"
@@ -1741,10 +1741,6 @@ msgstr "Styczna"
 
 msgid "Bake the normals in tangent space"
 msgstr "Wypala wektory normalne w przestrzeni stycznej"
-
-
-msgid "None"
-msgstr "Brak"
 
 
 msgid "Emit"
@@ -11498,6 +11494,10 @@ msgid "Affect"
 msgstr "Zastosowanie"
 
 
+msgid "New"
+msgstr "Nowy"
+
+
 msgid "Randomize"
 msgstr "Losowo"
 
@@ -12683,10 +12683,6 @@ msgid "Remove Asset Tag"
 msgstr "Usuń etykietę prefabrykatu"
 
 
-msgid "(undocumented operator)"
-msgstr "(operator bez dokumentacji)"
-
-
 msgctxt "Operator"
 msgid "Preset"
 msgstr "Ustawienie wstępne"
@@ -12747,6 +12743,10 @@ msgstr "Na zewnątrz obszaru adnotacji"
 msgctxt "Operator"
 msgid "Select"
 msgstr "Zaznacz"
+
+
+msgid "(undocumented operator)"
+msgstr "(operator bez dokumentacji)"
 
 
 msgctxt "Operator"
@@ -13064,6 +13064,11 @@ msgstr "Ogólne"
 
 msgid "General settings"
 msgstr "Ustawienia ogólne"
+
+
+msgctxt "Operator"
+msgid "Check for Updates"
+msgstr "Sprawdź aktualizacje"
 
 
 msgctxt "Operator"
@@ -13522,6 +13527,21 @@ msgstr "Wklej na tył"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Wszystko"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Obróć"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Skaluj"
+
+
+msgctxt "Operator"
 msgid "Add Segment"
 msgstr "Dodaj segment"
 
@@ -13755,6 +13775,10 @@ msgstr "Przypisz materiał"
 msgctxt "Operator"
 msgid "Paste Image"
 msgstr "Wklej obraz"
+
+
+msgid "Emission Strength"
+msgstr "Siła emisji"
 
 
 msgctxt "Operator"
@@ -14222,6 +14246,12 @@ msgid "Toggle Force Field"
 msgstr "Przełącz pole siłowe"
 
 
+msgctxt "Operator"
+msgid "Stroke"
+msgstr "Kreska"
+
+
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Małpka"
 
@@ -14662,11 +14692,6 @@ msgstr "Kopiuj poprzednie ustawienia"
 
 
 msgctxt "Operator"
-msgid "Check for Updates"
-msgstr "Sprawdź aktualizacje"
-
-
-msgctxt "Operator"
 msgid "Bake Physics"
 msgstr "Wypal fizykę"
 
@@ -14825,21 +14850,22 @@ msgid "Sculpt"
 msgstr "Rzeźbij"
 
 
-msgid "Change hue"
-msgstr "Zmień barwę"
-
-
 msgctxt "Operator"
 msgid "Expand"
 msgstr "Rozszerz"
 
 
+msgctxt "Operator"
+msgid "Pinch"
+msgstr "Uszczypnij"
+
+
+msgid "Change hue"
+msgstr "Zmień barwę"
+
+
 msgid "Geodesic"
 msgstr "Geodezyjne"
-
-
-msgid "Sharpen"
-msgstr "Wyostrzenie"
 
 
 msgid "Dyntopo"
@@ -14962,11 +14988,6 @@ msgstr "Zmień rozmiar"
 
 msgid "Scale (resize) selected items"
 msgstr "Skaluje (zmienia rozmiar) zaznaczonych obiektów"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Obróć"
 
 
 msgid "Rotate selected items"
@@ -15855,18 +15876,8 @@ msgid "Set the cursor location, drag to transform"
 msgstr "Ustawia pozycję kursora. Przeciągnij aby zmienić pozycję kursora"
 
 
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Skaluj"
-
-
 msgid "Supports any combination of grab, rotate, and scale at once"
 msgstr "Pozwala na jednoczesne użycie przesunięcia, obrotu oraz skalowania"
-
-
-msgctxt "Operator"
-msgid "Pinch"
-msgstr "Uszczypnij"
 
 
 msgctxt "Operator"
@@ -16865,12 +16876,12 @@ msgid "Max size of the bokeh shape for the depth of field (lower is faster)"
 msgstr "Maksymalny rozmiar kształtu bokeh dla głębi ostrości (im mniejszy, tym szybciej)"
 
 
-msgid "Auto Bake"
-msgstr "Automatyczne wypalanie"
-
-
 msgid "Trace Precision"
 msgstr "Precyzja śledzenia"
+
+
+msgid "Auto Bake"
+msgstr "Automatyczne wypalanie"
 
 
 msgid "Precision of the horizon search"
@@ -17788,14 +17799,6 @@ msgid "3D View"
 msgstr "Widok 3D"
 
 
-msgid "Position:"
-msgstr "Położenie:"
-
-
-msgid "Orientation:"
-msgstr "Orientacja:"
-
-
 msgid "Modifiers cannot be added to object: "
 msgstr "Nie można dodać modyfikatora do obiektu: "
 
@@ -18144,11 +18147,6 @@ msgstr "Animacja:"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Ukryj niezaznaczone"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Wszystko"
 
 
 msgctxt "Operator"
@@ -18518,11 +18516,6 @@ msgstr "Tekst"
 
 
 msgctxt "Operator"
-msgid "Position"
-msgstr "Położenie"
-
-
-msgctxt "Operator"
 msgid "All Transforms"
 msgstr "Wszystkie przekształcenia"
 
@@ -18640,6 +18633,10 @@ msgstr "Opór:"
 
 msgid "Depth:"
 msgstr "Głębia:"
+
+
+msgid "Orientation:"
+msgstr "Orientacja:"
 
 
 msgid "Annotation:"
@@ -19097,11 +19094,6 @@ msgstr "Kratka"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Małpka"
-
-
-msgctxt "Operator"
 msgid "Bézier"
 msgstr "Bézier"
 
@@ -19306,11 +19298,6 @@ msgstr "Pusty"
 
 
 msgctxt "Operator"
-msgid "Stroke"
-msgstr "Kreska"
-
-
-msgctxt "Operator"
 msgid "Suzanne"
 msgstr "Zuzanna"
 
@@ -19363,6 +19350,10 @@ msgstr "Wygładź krawędzie"
 msgctxt "Operator"
 msgid "Copyright ©"
 msgstr "Prawa autorskie ©"
+
+
+msgid "Sharpen"
+msgstr "Wyostrzenie"
 
 
 msgctxt "Operator"
@@ -19565,18 +19556,6 @@ msgstr "Powierzchnia"
 msgctxt "Action"
 msgid "var"
 msgstr "var"
-
-
-msgid "Generator"
-msgstr "Generator"
-
-
-msgid "Built-In Function"
-msgstr "Funkcja wbudowana"
-
-
-msgid "Stepped"
-msgstr "Krokowy"
 
 
 msgid "GP_Layer"
@@ -20998,12 +20977,27 @@ msgid "Modified"
 msgstr "Zmodyfikowane"
 
 
-msgctxt "Object"
+msgctxt "Action"
+msgid "New"
+msgstr "Nowa"
+
+
+msgctxt "Armature"
 msgid "New"
 msgstr "Nowy"
 
 
-msgctxt "Mesh"
+msgctxt "Brush"
+msgid "New"
+msgstr "Nowy"
+
+
+msgctxt "Camera"
+msgid "New"
+msgstr "Nowa"
+
+
+msgctxt "Curves"
 msgid "New"
 msgstr "Nowa"
 
@@ -21013,19 +21007,14 @@ msgid "New"
 msgstr "Nowa"
 
 
-msgctxt "Metaball"
-msgid "New"
-msgstr "Nowa"
-
-
-msgctxt "Material"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Nowy"
 
 
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
-msgstr "Nowa"
+msgstr "Nowy"
 
 
 msgctxt "Lattice"
@@ -21038,37 +21027,22 @@ msgid "New"
 msgstr "Nowe"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
+msgid "New"
+msgstr "Nowy"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Nowy"
+
+
+msgctxt "Mesh"
 msgid "New"
 msgstr "Nowa"
 
 
-msgctxt "World"
-msgid "New"
-msgstr "Nowy"
-
-
-msgctxt "Screen"
-msgid "New"
-msgstr "Nowy"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "Nowy"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Nowy"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Nowy"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Nowa"
 
@@ -21078,7 +21052,7 @@ msgid "New"
 msgstr "Nowe"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Nowy"
 
@@ -21088,12 +21062,32 @@ msgid "New"
 msgstr "Nowe"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
+msgid "New"
+msgstr "Nowa"
+
+
+msgctxt "Screen"
 msgid "New"
 msgstr "Nowy"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Sound"
+msgid "New"
+msgstr "Nowy"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Nowy"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Nowa"
+
+
+msgctxt "Volume"
 msgid "New"
 msgstr "Nowy"
 
@@ -21103,22 +21097,7 @@ msgid "New"
 msgstr "Nowy"
 
 
-msgctxt "LightProbe"
-msgid "New"
-msgstr "Nowy"
-
-
-msgctxt "Curves"
-msgid "New"
-msgstr "Nowa"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Nowa"
-
-
-msgctxt "Volume"
+msgctxt "World"
 msgid "New"
 msgstr "Nowy"
 
@@ -22502,6 +22481,10 @@ msgid "Track is locked"
 msgstr "Trak jest zablokowany"
 
 
+msgid "Position:"
+msgstr "Położenie:"
+
+
 msgid "X:"
 msgstr "X:"
 
@@ -23758,10 +23741,6 @@ msgid "Shear: %s %s"
 msgstr "Ścinanie: %s %s"
 
 
-msgid "Shear: %.3f %s (Press X or Y to set shear axis)"
-msgstr "Ścinanie: %.3f %s (Wciśnij X lub Y dla ustalenia osi ścinania)"
-
-
 msgid "Shrink/Fatten: "
 msgstr "Kurcz/Rozszerz: "
 
@@ -24690,10 +24669,6 @@ msgstr "Szorstkość połysku"
 
 msgid "Emission Color"
 msgstr "Kolor emisji"
-
-
-msgid "Emission Strength"
-msgstr "Siła emisji"
 
 
 msgctxt "NodeTree"

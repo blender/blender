@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-05-24 15:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -635,16 +635,8 @@ msgid "The binding identifies which sub-set of the Action is considered to be fo
 msgstr "La legatura identifica quale sottoinsieme dell'azione è considerato per questo blocco-dati, e il suo nome viene utilizzato per trovare la legatura corretta quando si assegna un'Azione"
 
 
-msgid "New"
-msgstr "Nuovo"
-
-
-msgid "Create a new animation binding for this data-block"
-msgstr "Crea una nuova legatura di animazione per questo blocco-dati"
-
-
-msgid "(none/legacy)"
-msgstr "(nessuno/precedente)"
+msgid "None"
+msgstr "Nessuno"
 
 
 msgid "Action Binding Handle"
@@ -2165,10 +2157,6 @@ msgstr "Filtro Pass"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Passate da includere nel passaggio di precalcolo attivo"
-
-
-msgid "None"
-msgstr "Nessuno"
 
 
 msgid "Emit"
@@ -24378,6 +24366,10 @@ msgid "Angle above which to bevel edges"
 msgstr "Angolo al di sotto del quale smussare gli spigoli"
 
 
+msgid "New"
+msgstr "Nuovo"
+
+
 msgid "Limit Method"
 msgstr "Metodo Limite"
 
@@ -31227,18 +31219,6 @@ msgid "File sorting mode"
 msgstr "Modo ordinamento file"
 
 
-msgid "(undocumented operator)"
-msgstr "(operatore non documentato)"
-
-
-msgid "Show add-on preferences"
-msgstr "Mostra le preferenze dell'Add-on"
-
-
-msgid "URL"
-msgstr "URL"
-
-
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Aggiungi Regola Stormo"
@@ -31916,6 +31896,10 @@ msgstr "Seleziona gli elementi usando la selezione a lazo"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Imposta Filmato Attivo"
+
+
+msgid "(undocumented operator)"
+msgstr "(operatore non documentato)"
 
 
 msgctxt "Operator"
@@ -33489,6 +33473,14 @@ msgid "Export selected objects only"
 msgstr "Esporta solo gli oggetti selezionati"
 
 
+msgid "URL"
+msgstr "URL"
+
+
+msgid "Remove existing add-ons with the same ID"
+msgstr "Rimuove add-on esistenti che hanno lo stesso ID"
+
+
 msgid "Automatically pack all external files into the .blend file"
 msgstr "Incorpora automaticamente tutti i file esterni nel file .blend"
 
@@ -34386,6 +34378,21 @@ msgstr "Incolla Tratti"
 msgctxt "Operator"
 msgid "Reproject Strokes"
 msgstr "Riproietta Tratti"
+
+
+msgctxt "Operator"
+msgid "All"
+msgstr "Tutti"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Ruota"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Scala"
 
 
 msgctxt "Operator"
@@ -38420,11 +38427,6 @@ msgstr "Attiva e mostra un nodo dello stesso tipo, passo per passo"
 
 
 msgctxt "Operator"
-msgid "Update Views"
-msgstr "Aggiorna Viste"
-
-
-msgctxt "Operator"
 msgid "Move and Attach"
 msgstr "Crea e Sostituisci Collegamenti"
 
@@ -38787,6 +38789,7 @@ msgid "Toggle object's force field"
 msgstr "Commuta il campo di forza dell'oggetto"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Scimmia"
 
@@ -41473,11 +41476,6 @@ msgid "Propagate pose to all keyframes occurring on frames with Scene Markers af
 msgstr "Estende la posa su tutti i keyframes dopo il fotogramma corrente, che si trovano su fotogrammi con marcatori di scena"
 
 
-msgctxt "Operator"
-msgid "Flip Quats"
-msgstr "Capovolgi Quats"
-
-
 msgid "Flip quaternion values to achieve desired rotations, while maintaining the same orientations"
 msgstr "Capovolge i valori dei quaternioni per raggiungere la rotazione desiderata, mantenendo lo stesso orientamento"
 
@@ -41597,10 +41595,6 @@ msgid "Install an add-on"
 msgstr "Installa un add-on"
 
 
-msgid "Remove existing add-ons with the same ID"
-msgstr "Rimuove add-on esistenti che hanno lo stesso ID"
-
-
 msgid "Target Path"
 msgstr "Percorso del target"
 
@@ -41625,6 +41619,10 @@ msgstr "Cancella l'add-on dal file system"
 
 msgid "Module name of the add-on to remove"
 msgstr "Nome del modulo dell'add-on da rimuovere"
+
+
+msgid "Show add-on preferences"
+msgstr "Mostra le preferenze dell'Add-on"
 
 
 msgctxt "Operator"
@@ -42645,18 +42643,6 @@ msgstr "La topologia dinamica altera la topologia della mesh mentre si scolpisce
 
 msgid "Falloff Type"
 msgstr "Tipo Decadimento"
-
-
-msgid "Relax"
-msgstr "Rilascia"
-
-
-msgid "Surface Smooth"
-msgstr "Superficie Levigata"
-
-
-msgid "Sharpen"
-msgstr "Affilatura"
 
 
 msgid "Dyntopo"
@@ -44075,11 +44061,6 @@ msgstr "Rimuove gli elementi quando si annulla"
 
 msgid "Edit Texture Space"
 msgstr "Modifica Spazio Texture"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Ruota"
 
 
 msgid "Rotate selected items"
@@ -47046,11 +47027,6 @@ msgstr "Seleziona Lazo"
 msgctxt "Operator"
 msgid "Cursor"
 msgstr "Cursore"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Scala"
 
 
 msgctxt "Operator"
@@ -56649,14 +56625,6 @@ msgid "3D View"
 msgstr "Vista 3D"
 
 
-msgid "Position:"
-msgstr "Posizione:"
-
-
-msgid "Orientation:"
-msgstr "Orientamento:"
-
-
 msgid "Modifiers cannot be added to object: "
 msgstr "Non possono essere aggiunti modificatori all'oggetto: "
 
@@ -57065,11 +57033,6 @@ msgstr "Scala Sfumatura"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Nascondi Deselezionati"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Tutti"
 
 
 msgctxt "Operator"
@@ -58314,11 +58277,6 @@ msgid "Reload Strips and Adjust Length"
 msgstr "Ricarica Spezzoni e Aggiusta Lunghezza"
 
 
-msgctxt "Operator"
-msgid "Position"
-msgstr "Posizione"
-
-
 msgid "Tracker"
 msgstr "Tracciatore"
 
@@ -58475,6 +58433,10 @@ msgstr "Trascina:"
 
 msgid "Depth:"
 msgstr "Profondità:"
+
+
+msgid "Orientation:"
+msgstr "Orientamento:"
 
 
 msgid "Annotation:"
@@ -58979,11 +58941,6 @@ msgstr "Toroide"
 msgctxt "Operator"
 msgid "Grid"
 msgstr "Griglia"
-
-
-msgctxt "Operator"
-msgid "Monkey"
-msgstr "Scimmia"
 
 
 msgctxt "Operator"
@@ -59699,6 +59656,14 @@ msgid "Set Active Camera"
 msgstr "Imposta Camera Attiva"
 
 
+msgid "Surface Smooth"
+msgstr "Superficie Levigata"
+
+
+msgid "Sharpen"
+msgstr "Affilatura"
+
+
 msgctxt "Operator"
 msgid "Randomize Vertices"
 msgstr "Casualizza Vertici"
@@ -59979,18 +59944,6 @@ msgstr "Salvataggio immagine fallito: memoria libera insufficiente"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Superficie"
-
-
-msgid "Generator"
-msgstr "Generatore"
-
-
-msgid "Built-In Function"
-msgstr "Funzione Incorporata"
-
-
-msgid "Stepped"
-msgstr "Passo"
 
 
 msgid "GP_Layer"
@@ -61109,12 +61062,22 @@ msgid "Modified"
 msgstr "Modificato"
 
 
-msgctxt "Object"
+msgctxt "Action"
+msgid "New"
+msgstr "Nuova"
+
+
+msgctxt "Armature"
+msgid "New"
+msgstr "Nuova"
+
+
+msgctxt "Brush"
 msgid "New"
 msgstr "Nuovo"
 
 
-msgctxt "Mesh"
+msgctxt "Camera"
 msgid "New"
 msgstr "Nuova"
 
@@ -61124,17 +61087,12 @@ msgid "New"
 msgstr "Nuova"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Nuovo"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Nuovo"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Nuova"
 
@@ -61149,39 +61107,24 @@ msgid "New"
 msgstr "Nuova"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Nuova"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Nuovo"
 
 
-msgctxt "Screen"
-msgid "New"
-msgstr "Nuovo"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "Nuovo"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Nuovo"
-
-
-msgctxt "Armature"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Nuova"
 
 
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
-msgstr "Nuova"
+msgstr "Nuovo"
 
 
 msgctxt "NodeTree"
@@ -61189,7 +61132,7 @@ msgid "New"
 msgstr "Nuovo"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Nuovo"
 
@@ -61199,22 +61142,32 @@ msgid "New"
 msgstr "Nuovo"
 
 
-msgctxt "GPencil"
-msgid "New"
-msgstr "Nuova"
-
-
-msgctxt "FreestyleLineStyle"
+msgctxt "Screen"
 msgid "New"
 msgstr "Nuovo"
 
 
-msgctxt "LightProbe"
+msgctxt "Sound"
+msgid "New"
+msgstr "Nuovo"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Nuovo"
+
+
+msgctxt "Texture"
 msgid "New"
 msgstr "Nuova"
 
 
 msgctxt "Volume"
+msgid "New"
+msgstr "Nuovo"
+
+
+msgctxt "World"
 msgid "New"
 msgstr "Nuovo"
 
@@ -62321,6 +62274,10 @@ msgid "Track is locked"
 msgstr "La traccia è bloccata"
 
 
+msgid "Position:"
+msgstr "Posizione:"
+
+
 msgid "X:"
 msgstr "X:"
 
@@ -62708,10 +62665,6 @@ msgstr "Geometria Vuota"
 
 msgid "Geometry:"
 msgstr "Geometria:"
-
-
-msgid "• Volume"
-msgstr "• Volume"
 
 
 msgid "matrices"
@@ -63416,10 +63369,6 @@ msgstr "Spingi/Tira: %.4f%s %s"
 
 msgid "Shear: %s %s"
 msgstr "Inclina: %s %s"
-
-
-msgid "Shear: %.3f %s (Press X or Y to set shear axis)"
-msgstr "Inclina: %.3f %s (Premi X o Y per impostare l'asse di inclinazione)"
 
 
 msgid "Shrink/Fatten: "
@@ -64456,10 +64405,6 @@ msgstr "iScale"
 
 msgid "Could not resolve path (%s)"
 msgstr "Impossibile risolvere il percorso (%s)"
-
-
-msgid "| Time:%s | "
-msgstr "| Tempo:%s | "
 
 
 msgid "Image too small"

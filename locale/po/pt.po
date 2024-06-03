@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
-"PO-Revision-Date: 2024-05-27 11:42+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"PO-Revision-Date: 2024-05-31 17:46+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -554,16 +554,8 @@ msgid "Active Action for this data-block"
 msgstr "Ação ativa para este bloco de dados"
 
 
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgid "Create a new animation binding for this data-block"
-msgstr "Criar nova restrição de animação para este bloco-de-dados"
-
-
-msgid "(none/legacy)"
-msgstr "(nenhum/legado)"
+msgid "None"
+msgstr "Nenhum"
 
 
 msgid "Action Blending"
@@ -2104,10 +2096,6 @@ msgstr "Filtro de passos"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Passos para incluir nos passos ativos de geração e gravação."
-
-
-msgid "None"
-msgstr "Nenhum"
 
 
 msgid "Emit"
@@ -36953,6 +36941,10 @@ msgid "Do not set face strength"
 msgstr "Não definir força das faces"
 
 
+msgid "New"
+msgstr "Novo(a)"
+
+
 msgid "Set face strength on new faces only"
 msgstr "Definir força apenas nas faces novas"
 
@@ -44703,6 +44695,10 @@ msgid "Convert premultiplied to straight"
 msgstr "Converter pré-multiplicado em directo"
 
 
+msgid "A color picker"
+msgstr "Selector de Cores"
+
+
 msgid "RGB to BW"
 msgstr "Cores para preto e branco"
 
@@ -47727,12 +47723,56 @@ msgid "Light Path"
 msgstr "Caminhos de luz"
 
 
+msgid ""
+"Retrieve the type of incoming ray for which the shader is being executed.\n"
+"Typically used for non-physically-based tricks"
+msgstr ""
+"Obter o tipo de raio incidente para o qual o sombreador está a ser executado.\n"
+"Tipicamente usado para truques não baseados em física"
+
+
+msgid "Remap a value from a range to a target range"
+msgstr "Remapear um valor de um intervalo para outro intervalo alvo"
+
+
+msgid "Clamp the result to the target range [To Min, To Max]"
+msgstr "Limitar o valor ao intervalo alvo [Para Min, Para Max]"
+
+
+msgid "Interpolation Type"
+msgstr "Topo de Interpolação"
+
+
+msgid "Linear interpolation between From Min and From Max values"
+msgstr "Interpolação linear entre valores De Min e De Max"
+
+
+msgid "Stepped Linear"
+msgstr "Linear Escalonada"
+
+
+msgid "Stepped linear interpolation between From Min and From Max values"
+msgstr "Interpolação linear por escalões entre valore De Min e De Max"
+
+
+msgid "Smooth Step"
+msgstr "Passo Suave"
+
+
+msgid "Smooth Hermite edge interpolation between From Min and From Max values"
+msgstr "Interpolação Hermite suave entre valore De Min e De Max"
+
+
 msgid "Smoother Step"
 msgstr "Passo mais Suave"
 
 
 msgid "Smoother Hermite edge interpolation between From Min and From Max values"
 msgstr "Interpolação de aresta Hermite mais suave de valores Min a Max"
+
+
+msgid "Transform the input vector by applying translation, rotation, and scale"
+msgstr "Trasnformar o vector de entrada aplicando translação, rotação e escala"
 
 
 msgid "Type of vector that the mapping transforms"
@@ -47755,12 +47795,64 @@ msgid "Transform a unit normal vector. Location is ignored"
 msgstr "Transformar um vector unitário de normal. Posição é ignorada"
 
 
+msgid "Mix values by a factor"
+msgstr "Misturar valores por um factor"
+
+
+msgid "Clamp Factor"
+msgstr "Limitar Factor"
+
+
+msgid "Clamp the factor to [0,1] range"
+msgstr "Limitar o factor ao intervalo [0,1]"
+
+
+msgid "Clamp Result"
+msgstr "Limitar Resultado"
+
+
+msgid "Clamp the result to [0,1] range"
+msgstr "Limitar o resultado ao intervalo [0,1]"
+
+
+msgid "Factor Mode"
+msgstr "Modo de Factor"
+
+
+msgid "Use a single factor for all components"
+msgstr "Usar um factor único para todos os componentes"
+
+
+msgid "Non-Uniform"
+msgstr "Não Uniforme"
+
+
+msgid "Per component factor"
+msgstr "Factor por componente"
+
+
 msgid "MixRGB"
 msgstr "Misturar cores"
 
 
+msgid "Mix two input colors"
+msgstr "Misturar duas cores introduzidas"
+
+
 msgid "Mix Shader"
 msgstr "Mistura de sombreador"
+
+
+msgid "Mix two shaders together. Typically used for material layering"
+msgstr "Misturar dois sombreadores. Tipicamente usado para fazer camadas de materiais"
+
+
+msgid "Retrieve geometric information about the current shading point"
+msgstr "Obter informação geométrica sobre o actuam ponto de sombreamento"
+
+
+msgid "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces"
+msgstr "Gerar normais com perturbações a partir de uma imagem com mapa de normais em RGB"
 
 
 msgid "Space of the input normal"
@@ -47803,12 +47895,52 @@ msgid "UV Map for tangent space maps"
 msgstr "Mapa UV para mapas de espaço de tangente."
 
 
+msgid "Retrieve information about the object instance"
+msgstr "Obter informação sobre a instância de objecto"
+
+
+msgid "AOV Output"
+msgstr "Saída VAS"
+
+
+msgid ""
+"Arbitrary Output Variables.\n"
+"Provide custom render passes for arbitrary shader node outputs"
+msgstr ""
+"Variáveis Arbitrárias de Saída.\n"
+"Gera passagens de render personalizadas para resultados arbitrários de sombreadores"
+
+
+msgid "Name of the AOV that this output writes to"
+msgstr "Nome da VAS para a qual esta saída esrceve"
+
+
+msgid "Light Output"
+msgstr "Saída de Luz"
+
+
+msgid "Output light information to a light object"
+msgstr "Fornece informação de luz para um objecto de luz"
+
+
 msgid "True if this node is used as the active output"
 msgstr "Verdadeiro caso este nó seja usado como a saída ativa."
 
 
+msgid "Which renderer and viewport shading types to use the shaders for"
+msgstr "Em que tipo de motor de renderização e modo de sombreamento da janela de visualização usar os sombreadores"
+
+
+msgid "Use shaders for all renderers and viewports, unless there exists a more specific output"
+msgstr "Usar o sombreador para todos os motores de renderização e janelas de visualização, a não ser que haja uma saída mais específica"
+
+
 msgid "Cycles"
 msgstr "Cíclico"
+
+
+msgid "Use shaders for Cycles renderer"
+msgstr "Usar sombreadores para o motor Cycles"
 
 
 msgid "Line Style Output"
@@ -47819,12 +47951,48 @@ msgid "Material Output"
 msgstr "Saída de material"
 
 
+msgid "Output surface material information for use in rendering"
+msgstr "Fornecer informação de material de superfície para utilização em renderização"
+
+
 msgid "World Output"
 msgstr "Saída de Ambiente"
 
 
+msgid "Output light color information to the scene's World"
+msgstr "Fornecer informação de cor da luz para o ambiente da cena"
+
+
 msgid "Particle Info"
 msgstr "Informações de partículas"
+
+
+msgid "Retrieve the data of the particle that spawned the object instance, for example to give variation to multiple instances of an object"
+msgstr "Obter informação sobre partículas que originaram a instância do objecto, por exemplo para dar variação a várias instâncias de um objecto"
+
+
+msgid "Point Info"
+msgstr "Informação de Ponto"
+
+
+msgid "Retrieve information about points in a point cloud"
+msgstr "Obter informação sobre pontos numa nuvem de pontos"
+
+
+msgid "Apply color corrections for each color channel"
+msgstr "Aplicar correcção de cor a cada canal de cor"
+
+
+msgid "Convert a color's luminance to a grayscale value"
+msgstr "Converter luminância da cor num valor de escala de cinzentos"
+
+
+msgid ""
+"Generate an OSL shader from a file or text data-block.\n"
+"Note: OSL shaders are not supported on all GPU backends"
+msgstr ""
+"Gerar um sombreador OSL a partir de um ficheiro o bloco de dados de texto.\n"
+"Nota: Sombreadores OSL não são suportados em todos os modelos de computação no GPU"
 
 
 msgid "Bytecode"
@@ -47871,12 +48039,32 @@ msgid "Automatically update the shader when the .osl file changes (external scri
 msgstr "Atualiza automaticamente o sombreador quando o ficheiro .osl for alterado (somente scripts externos)."
 
 
+msgid "Split a color into its individual components using multiple models"
+msgstr "Separar uma cor nos seus componentes individuais usando múltiplos modelos"
+
+
 msgid "Separate HSV"
 msgstr "Separar HSV"
 
 
+msgid "Split a color into its hue, saturation, and value channels"
+msgstr "Separar uma cor nos canais de matiz, saturação e valor"
+
+
 msgid "Separate RGB"
 msgstr "Separar RGB"
+
+
+msgid "Split a color into its red, green, and blue channels (Deprecated)"
+msgstr "Separar uma cor nos canais vermelho, verde e azul (Descontinuado)"
+
+
+msgid "Split a vector into its X, Y, and Z components"
+msgstr "Separar um vector nos seus componentes X, Y e Z"
+
+
+msgid "Shader to RGB"
+msgstr "Sombreador em RGB"
 
 
 msgid "Squeeze Value"
@@ -47885,6 +48073,18 @@ msgstr "Valor de compressão"
 
 msgid "Subsurface Scattering"
 msgstr "Espalhamento de sub-superfície"
+
+
+msgid ""
+"Subsurface multiple scattering shader to simulate light entering the surface and bouncing internally.\n"
+"Typically used for materials such as skin, wax, marble or milk"
+msgstr ""
+"Sombreador dispersão múltipla para simular luz que entra na superfície e ressalta internamente.\n"
+"Tipicamente usado para materiais como pele, cera, mármore ou leite"
+
+
+msgid "Generate a tangent direction for the Anisotropic BSDF"
+msgstr "Gerar uma direcção tangente para o BSDF Anisotrópico"
 
 
 msgid "Axis for radial tangents"
@@ -47923,6 +48123,10 @@ msgid "Brick Texture"
 msgstr "Textura de tijolos"
 
 
+msgid "Generate a procedural texture producing bricks"
+msgstr "Gerar uma textura procedimental que produz tijolos"
+
+
 msgid "Offset Amount"
 msgstr "Montante de deslocamento"
 
@@ -47947,8 +48151,28 @@ msgid "Checker Texture"
 msgstr "Textura quadriculada"
 
 
+msgid "Generate a checkerboard texture"
+msgstr "Gerar uma textura em xadrez"
+
+
 msgid "Texture Coordinate"
 msgstr "Coordenadas de textura"
+
+
+msgid ""
+"Retrieve multiple types of texture coordinates.\n"
+"Typically used as inputs for texture nodes"
+msgstr ""
+"Obter vários tipos de coordenadas de textura.\n"
+"Tipicamente usado como entrada para nós de textura"
+
+
+msgid "From Instancer"
+msgstr "Do Instanciador"
+
+
+msgid "Use the parent of the instance object if possible"
+msgstr "Usar o ascendente do objecto instância se possível"
 
 
 msgid "Use coordinates from this object (for object texture coordinates output)"
@@ -47959,8 +48183,16 @@ msgid "Environment Texture"
 msgstr "Textura de ambiente"
 
 
+msgid "Sample an image file as an environment texture. Typically used to light the scene with the background node"
+msgstr "Amostrar um ficheiro de imagem como textura ambiente. Tipicamente usado para iluminar a cena com o nó de Fundo"
+
+
 msgid "Texture interpolation"
 msgstr "Interpolação de textura"
+
+
+msgid "Smart"
+msgstr "Inteligente"
 
 
 msgid "Bicubic when magnifying, else bilinear (OSL only)"
@@ -47987,16 +48219,68 @@ msgid "Gradient Texture"
 msgstr "Textura tipo gradiente"
 
 
+msgid "Generate interpolated color and intensity values based on the input vector"
+msgstr "Gerar valores interpolados de cor e intensidade com base no vector de entrada"
+
+
+msgid "IES Texture"
+msgstr "Textura IESTextura de céu"
+
+
+msgid "IES light path"
+msgstr "Caminho da luz IES"
+
+
+msgid "IES Text"
+msgstr "Texto IES"
+
+
+msgid "Internal IES file"
+msgstr "Ficheiro IES Interno"
+
+
+msgid "Whether the IES file is loaded from disk or from a text data-block"
+msgstr "Se o ficheiro foi carregado do disco ou de um bloco de dados de texto"
+
+
+msgid "Use external .ies file"
+msgstr "Usar um ficheiro .ies externo"
+
+
+msgid "Sample an image file as a texture"
+msgstr "Amostrar um ficheiro de imagem como textura"
+
+
+msgctxt "Image"
+msgid "Projection"
+msgstr "Projecção"
+
+
 msgid "Method to project 2D image on object with a 3D texture vector"
 msgstr "Método para projetar uma imagem 2D no objecto com um vetor de textura 3D."
+
+
+msgctxt "Image"
+msgid "Flat"
+msgstr "Plano"
 
 
 msgid "Image is projected flat using the X and Y coordinates of the texture vector"
 msgstr "A imagem é projetada achatada usando as coordenadas X e Y do vetor de textura."
 
 
+msgctxt "Image"
+msgid "Box"
+msgstr "Paralelepípedo"
+
+
 msgid "Image is projected using different components for each side of the object space bounding box"
 msgstr "A imagem é projectada usando diferentes componentes para cada lado da caixa delimitadora no espaço de objecto."
+
+
+msgctxt "Image"
+msgid "Sphere"
+msgstr "Esfera"
 
 
 msgid "Image is projected spherically using the Z axis as central"
@@ -48015,8 +48299,24 @@ msgid "For box projection, amount of blend to use between sides"
 msgstr "Para projeção em caixa, a quantidade de mescla para usar entre os lados."
 
 
+msgid "Generate a psychedelic color texture"
+msgstr "Gerar uma textura de cor psicadélica"
+
+
 msgid "Level of detail in the added turbulent noise"
 msgstr "Nível dos detalhes dentro do ruído turbulento adicionado."
+
+
+msgid "Number of dimensions to output noise for"
+msgstr "Número de dimensões para as quais produzir ruído"
+
+
+msgid "Use the scalar value W as input"
+msgstr "Usar valor escalar W como entrada"
+
+
+msgid "Use the 2D vector (X, Y) as input. The Z component is ignored"
+msgstr "Usar vector 2D (X,Y) como entrada. O componente Z é ignorado"
 
 
 msgid "Object to take point data from"
@@ -50109,14 +50409,6 @@ msgid "Store undo snapshot for asset catalog edits"
 msgstr "Armazenar ponto de retrocesso para edições de catálogo de recursos"
 
 
-msgid "(undocumented operator)"
-msgstr "(operador não documentado)"
-
-
-msgid "URL"
-msgstr "Localizador padrão de recursos - URL"
-
-
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Adicionar regra para revoada"
@@ -50958,6 +51250,10 @@ msgstr "Seleciona os marcadores usando a selecção por laço."
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Definir o clipe ativo"
+
+
+msgid "(undocumented operator)"
+msgstr "(operador não documentado)"
 
 
 msgctxt "Operator"
@@ -52723,6 +53019,14 @@ msgid "Export selected objects only"
 msgstr "Exporta somente os objectos seleccionados."
 
 
+msgid "URL"
+msgstr "Localizador padrão de recursos - URL"
+
+
+msgid "Remove existing add-ons with the same ID"
+msgstr "Remove as extensões existentes com o mesmo identificador."
+
+
 msgid "Automatically pack all external files into the .blend file"
 msgstr "Empacota automaticamente todos os ficheiros externos dentro do ficheiro Blender."
 
@@ -53745,6 +54049,21 @@ msgstr "Reprojeta os traços seleccionados a partir da janela de visualização 
 
 msgid "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"
 msgstr "Reprojeta os traços dentro da geometria da cena, como se fossem desenhados usando o posicionamento na superfície."
+
+
+msgctxt "Operator"
+msgid "All"
+msgstr "Todos"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotacionar"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Escalonamento"
 
 
 msgctxt "Operator"
@@ -58178,15 +58497,6 @@ msgstr "Atualiza o nó de script de sombreador com novos conectores e opções a
 
 
 msgctxt "Operator"
-msgid "Update Views"
-msgstr "Atualizar visualizações"
-
-
-msgid "Update views of selected node"
-msgstr "Atualiza as visualizações do nó selecionado."
-
-
-msgctxt "Operator"
 msgid "Move and Attach"
 msgstr "Mover e conectar"
 
@@ -58548,6 +58858,7 @@ msgid "Toggle object's force field"
 msgstr "Alterna o campo de força do objecto."
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Macaco"
 
@@ -61329,11 +61640,6 @@ msgid "Propagate pose to all keyframes occurring on frames with Scene Markers af
 msgstr "Propaga a pose para todos os fotogramas chave que ocorrem em fotogramas com marcadores de cena após o fotograma atual."
 
 
-msgctxt "Operator"
-msgid "Flip Quats"
-msgstr "Virar quaterniões"
-
-
 msgid "Flip quaternion values to achieve desired rotations, while maintaining the same orientations"
 msgstr "Vira os valores de quaterniões para conseguir as rotações desejadas, enquanto mantém as mesmas orientações."
 
@@ -61446,10 +61752,6 @@ msgstr "Nome do módulo de extensão para expandir."
 
 msgid "Install an add-on"
 msgstr "Permite a instalação de um complemento."
-
-
-msgid "Remove existing add-ons with the same ID"
-msgstr "Remove as extensões existentes com o mesmo identificador."
 
 
 msgid "Target Path"
@@ -62639,14 +62941,6 @@ msgstr "Topologia dinâmica altera a topologia da malha durante a escultura."
 
 msgid "Falloff Type"
 msgstr "Tipo de decaimento"
-
-
-msgid "Relax"
-msgstr "Relaxar"
-
-
-msgid "Sharpen"
-msgstr "Aguçar"
 
 
 msgid "Recalculate the sculpt BVH to improve performance"
@@ -64141,11 +64435,6 @@ msgstr "Remove elementos ao cancelar."
 
 msgid "Edit Texture Space"
 msgstr "Edição de espaço de textura"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotacionar"
 
 
 msgid "Rotate selected items"
@@ -67570,11 +67859,6 @@ msgstr "Escopos"
 
 msgid "Sample Line"
 msgstr "Linha de exemplo"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Escalonamento"
 
 
 msgctxt "Operator"
@@ -78570,10 +78854,6 @@ msgid "3D View"
 msgstr "Janela de visualização 3D"
 
 
-msgid "Position:"
-msgstr "Posição:"
-
-
 msgid "Active object is not a mesh"
 msgstr "Objecto activo não é uma malha."
 
@@ -78880,11 +79160,6 @@ msgstr "Escalonar pluma"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Ocultar não selecionados"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Todos"
 
 
 msgctxt "Operator"
@@ -80104,11 +80379,6 @@ msgstr "Grelha"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Macaco"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Curva Nurbs"
 
@@ -80502,6 +80772,10 @@ msgid "Set Roll"
 msgstr "Definir rolagem"
 
 
+msgid "Sharpen"
+msgstr "Aguçar"
+
+
 msgctxt "Operator"
 msgid "Clear Freestyle Edge"
 msgstr "Limpar marcações de arestas Freestyle"
@@ -80801,18 +81075,6 @@ msgstr "Superfície"
 msgctxt "Action"
 msgid "var"
 msgstr "variável"
-
-
-msgid "Generator"
-msgstr "Gerador"
-
-
-msgid "Built-In Function"
-msgstr "Função embutida"
-
-
-msgid "Stepped"
-msgstr "Em passos"
 
 
 msgid "GP_Layer"
@@ -82045,62 +82307,7 @@ msgid "Modified"
 msgstr "Modificado"
 
 
-msgctxt "Object"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Mesh"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Curve"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Metaball"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Material"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Texture"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Lattice"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Camera"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "World"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Screen"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Sound"
+msgctxt "Action"
 msgid "New"
 msgstr "Novo(a)"
 
@@ -82110,22 +82317,22 @@ msgid "New"
 msgstr "Novo(a)"
 
 
-msgctxt "Action"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "NodeTree"
-msgid "New"
-msgstr "Novo(a)"
-
-
 msgctxt "Brush"
 msgid "New"
 msgstr "Novo(a)"
 
 
-msgctxt "ParticleSettings"
+msgctxt "Camera"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Novo(a)"
 
@@ -82135,7 +82342,62 @@ msgid "New"
 msgstr "Novo(a)"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Lattice"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "World"
 msgid "New"
 msgstr "Novo(a)"
 
@@ -83455,6 +83717,10 @@ msgid "Track is locked"
 msgstr "Trilha está bloqueada"
 
 
+msgid "Position:"
+msgstr "Posição:"
+
+
 msgid "X:"
 msgstr "X:"
 
@@ -84612,10 +84878,6 @@ msgid "Shear: %s %s"
 msgstr "Aparando: %s %s"
 
 
-msgid "Shear: %.3f %s (Press X or Y to set shear axis)"
-msgstr "Aparando: %.3f %s (Pressione X ou Y para definir o eixo para aparar)"
-
-
 msgid "ScaleX: %s"
 msgstr "Escala X: %s"
 
@@ -85601,10 +85863,6 @@ msgstr "Não é possível resolver o caminho (%s)"
 
 msgid "Failed allocate render result, out of memory"
 msgstr "Falha na alocação dos resultados da renderização. Não há memória suficiente."
-
-
-msgid "| Time:%s | "
-msgstr " | Tempo: %s |"
 
 
 msgid "Image too small"

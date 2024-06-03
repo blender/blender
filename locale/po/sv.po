@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -297,10 +297,6 @@ msgstr "Animationsdata"
 
 msgid "Animation data for data-block"
 msgstr "Animationsdata för datablock"
-
-
-msgid "New"
-msgstr "Ny"
 
 
 msgid "Combine"
@@ -5705,6 +5701,10 @@ msgid "Explode"
 msgstr "Spräng"
 
 
+msgid "New"
+msgstr "Ny"
+
+
 msgid "Face Count"
 msgstr "Sidantal"
 
@@ -8042,10 +8042,6 @@ msgid "Open the blend file that contains the active asset"
 msgstr "Öppna blend-filen som innehåller den aktiva tillgången"
 
 
-msgid "Show add-on preferences"
-msgstr "Visa tilläggsinställningar"
-
-
 msgctxt "Operator"
 msgid "Preset"
 msgstr "Förinställning"
@@ -8425,6 +8421,10 @@ msgid "GPU Instances"
 msgstr "GPU-instanser"
 
 
+msgid "Remove existing add-ons with the same ID"
+msgstr "Ta bort befintligt tillägg med samma ID"
+
+
 msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Lägg till bokmärke"
@@ -8657,6 +8657,16 @@ msgstr "Kör en nodgrupp på geometri"
 
 msgid "Limit"
 msgstr "Gränsvärde"
+
+
+msgctxt "Operator"
+msgid "All"
+msgstr "Alla"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotera"
 
 
 msgid "Invert existing selection"
@@ -10402,6 +10412,7 @@ msgid "Move to Nodes"
 msgstr "Flytta till noder"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Apa"
 
@@ -11053,10 +11064,6 @@ msgid "Install an add-on"
 msgstr "Installera ett tillägg"
 
 
-msgid "Remove existing add-ons with the same ID"
-msgstr "Ta bort befintligt tillägg med samma ID"
-
-
 msgctxt "Operator"
 msgid "Refresh"
 msgstr "Ladda om"
@@ -11077,6 +11084,10 @@ msgstr "Ta bort ett tillägg från filsystemet"
 
 msgid "Module name of the add-on to remove"
 msgstr "Modulnamn för tillägg att ta bort"
+
+
+msgid "Show add-on preferences"
+msgstr "Visa tilläggsinställningar"
 
 
 msgctxt "Operator"
@@ -11217,6 +11228,11 @@ msgstr "Kör Python-fil"
 
 msgid "Run Python file"
 msgstr "Kör Python-fil"
+
+
+msgctxt "Operator"
+msgid "Sphere"
+msgstr "Sfär"
 
 
 msgctxt "Operator"
@@ -11514,11 +11530,6 @@ msgstr "Skapa ett objekt per rad i texten"
 msgctxt "Operator"
 msgid "Resize"
 msgstr "Skala om"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotera"
 
 
 msgctxt "Operator"
@@ -13872,14 +13883,6 @@ msgid "No active camera in the scene"
 msgstr "Ingen aktiv kamera i scenen"
 
 
-msgid "Position:"
-msgstr "Position:"
-
-
-msgid "Orientation:"
-msgstr "Orientering:"
-
-
 msgid "No camera found"
 msgstr "Ingen kamera hittad"
 
@@ -14253,11 +14256,6 @@ msgstr "Nollställ"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Dölj omarkerade"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Alla"
 
 
 msgctxt "Operator"
@@ -15419,6 +15417,10 @@ msgid "Active Editor"
 msgstr "Aktiv redigerare"
 
 
+msgid "Orientation:"
+msgstr "Orientering:"
+
+
 msgctxt "WindowManager"
 msgid "New"
 msgstr "Ny"
@@ -15708,11 +15710,6 @@ msgstr "Rutnät"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Apa"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs-kurva"
 
@@ -15845,11 +15842,6 @@ msgstr "Normalisera alla"
 msgctxt "Operator"
 msgid "Normalize"
 msgstr "Normalisera"
-
-
-msgctxt "Operator"
-msgid "Sphere"
-msgstr "Sfär"
 
 
 msgctxt "Operator"
@@ -16502,6 +16494,10 @@ msgstr "Fält"
 
 msgid "File Path:"
 msgstr "Sökväg:"
+
+
+msgid "Position:"
+msgstr "Position:"
 
 
 msgid "X:"

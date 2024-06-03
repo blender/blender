@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -275,8 +275,8 @@ msgid "Action"
 msgstr "Akcija"
 
 
-msgid "New"
-msgstr "Novo"
+msgid "None"
+msgstr "Ništa"
 
 
 msgid "Nothing"
@@ -625,10 +625,6 @@ msgstr "Objekat"
 
 msgid "Tangent"
 msgstr "Magenta"
-
-
-msgid "None"
-msgstr "Ništa"
 
 
 msgid "Emit"
@@ -9648,6 +9644,10 @@ msgid "Angle above which to bevel edges"
 msgstr "Ugao iznad kog se iskosi ivice"
 
 
+msgid "New"
+msgstr "Novo"
+
+
 msgid "Limit Method"
 msgstr "Metoda ograničenja"
 
@@ -12673,14 +12673,6 @@ msgid "Filter text files"
 msgstr "Filtriraj tekstualne datoteke"
 
 
-msgid "(undocumented operator)"
-msgstr "(nepoznat operator)"
-
-
-msgid "URL"
-msgstr "Adresa"
-
-
 msgctxt "Operator"
 msgid "Remove Boid State"
 msgstr "Izaberite sliku za pozadinu"
@@ -13033,6 +13025,10 @@ msgstr "Izaberi sve staze sa istom bojom kao aktivna staza"
 
 msgid "Select markers using lasso selection"
 msgstr "Bira markere lasom"
+
+
+msgid "(undocumented operator)"
+msgstr "(nepoznat operator)"
 
 
 msgctxt "Operator"
@@ -13991,6 +13987,10 @@ msgid "Convert all faces to triangles"
 msgstr "Pretvroi sve stranice u trouglove"
 
 
+msgid "URL"
+msgstr "Adresa"
+
+
 msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Dodaj obeleživač"
@@ -14520,6 +14520,21 @@ msgstr "Uklanja aktivni sloj skice"
 msgctxt "Operator"
 msgid "Paste Strokes"
 msgstr "Ubaci poteze"
+
+
+msgctxt "Operator"
+msgid "All"
+msgstr "Sve"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotiraj"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Povećaj/smanji"
 
 
 msgctxt "Operator"
@@ -16632,6 +16647,7 @@ msgid "Toggle Force Field"
 msgstr "Fh sila "
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Majmun"
 
@@ -17781,11 +17797,6 @@ msgstr "Ispred poslednjeg ključnog kadra"
 
 
 msgctxt "Operator"
-msgid "Flip Quats"
-msgstr "Izvr. norm."
-
-
-msgctxt "Operator"
 msgid "Clear Pose Rotation"
 msgstr "Izbriši okretanje poze"
 
@@ -18275,14 +18286,6 @@ msgstr "Ignoriši klik na pozadinu"
 
 msgid "Falloff Type"
 msgstr "Vrsta opadanja"
-
-
-msgid "Relax"
-msgstr "Opusti"
-
-
-msgid "Sharpen"
-msgstr "Izoštreno"
 
 
 msgctxt "Operator"
@@ -19115,11 +19118,6 @@ msgstr "Postavlja zapamćenu pozu"
 
 msgid "Edit Texture Space"
 msgstr "Uredi prostor tekture"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotiraj"
 
 
 msgid "Rotate selected items"
@@ -20402,11 +20400,6 @@ msgstr "Obeleživači"
 
 msgid "Fluid Presets"
 msgstr "Svojstva tečnosti:"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Povećaj/smanji"
 
 
 msgctxt "Operator"
@@ -24260,10 +24253,6 @@ msgid "3D View"
 msgstr "3D pogled"
 
 
-msgid "Position:"
-msgstr "Pozicija:"
-
-
 msgid "Active object is not a mesh"
 msgstr "Aktivni objekat nije meš"
 
@@ -24439,11 +24428,6 @@ msgstr "Roditelj"
 msgctxt "Operator"
 msgid "Clear"
 msgstr "Očisti"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Sve"
 
 
 msgctxt "Operator"
@@ -25150,11 +25134,6 @@ msgstr "Mreža"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Majmun"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs kriva"
 
@@ -25427,6 +25406,10 @@ msgid "Set Roll"
 msgstr "Izoštri"
 
 
+msgid "Sharpen"
+msgstr "Izoštreno"
+
+
 msgctxt "Operator"
 msgid "Clear Freestyle Edge"
 msgstr "Očisti slobodoručne ivice"
@@ -25517,14 +25500,6 @@ msgstr "Nema dovoljno slobodne memorije"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Površ"
-
-
-msgid "Generator"
-msgstr "Generator"
-
-
-msgid "Stepped"
-msgstr "Koračanje"
 
 
 msgid "Slot %d"
@@ -25926,62 +25901,7 @@ msgid "Modified"
 msgstr "Izmenjen"
 
 
-msgctxt "Object"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Mesh"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Curve"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Metaball"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Material"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Texture"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Lattice"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Camera"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "World"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Screen"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Sound"
+msgctxt "Action"
 msgid "New"
 msgstr "Novo"
 
@@ -25991,22 +25911,22 @@ msgid "New"
 msgstr "Novo"
 
 
-msgctxt "Action"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "NodeTree"
-msgid "New"
-msgstr "Novo"
-
-
 msgctxt "Brush"
 msgid "New"
 msgstr "Novo"
 
 
-msgctxt "ParticleSettings"
+msgctxt "Camera"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Novo"
 
@@ -26016,7 +25936,62 @@ msgid "New"
 msgstr "Novo"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Lattice"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "World"
 msgid "New"
 msgstr "Novo"
 
@@ -26386,6 +26361,10 @@ msgstr "Putanja datoteke:"
 
 msgid "Track is locked"
 msgstr "Praćenje je zaključano"
+
+
+msgid "Position:"
+msgstr "Pozicija:"
 
 
 msgid "X:"

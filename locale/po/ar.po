@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-04-29 13:28+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -304,8 +304,8 @@ msgid "Action"
 msgstr "ﺙﺪﺤﻟﺍ"
 
 
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
+msgid "None"
+msgstr "ءﻲﺷ ﻻ﻿"
 
 
 msgid "Action Blending"
@@ -862,10 +862,6 @@ msgstr "ﺱﺎﻤﻣ"
 
 msgid "Bake the normals in tangent space"
 msgstr "ﺱﺎﻤﻤﻟﺍ ءﺎﻀﻓ ﻲﻓ ﺕﺎﻤﻇﺎﻨﻟﺍ ﻦﻳﺰﺨﺗ"
-
-
-msgid "None"
-msgstr "ءﻲﺷ ﻻ﻿"
 
 
 msgid "Emit"
@@ -17110,6 +17106,10 @@ msgid "Bevel Modifier"
 msgstr "ﺔﻔﻄﺸﻟﺍ ﺮﻴﻐﻣ"
 
 
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
 msgid "Limit Method"
 msgstr "ﺪﺤﻟﺍ ﺔﻘﻳﺮﻃ"
 
@@ -21409,10 +21409,6 @@ msgid "Filter movie files"
 msgstr "ﻡﻼ﻿ﻓﻷ﻿ﺍ ﺕﺎﻔﻠﻣ ﻒّﺻ"
 
 
-msgid "(undocumented operator)"
-msgstr "(ﻖﺛﻮﻣ ﺮﻴﻏ ﻞﻣﺎﻌﻣ)"
-
-
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "ﺪﻳﻮﺑ ﺓﺪﻋﺎﻗ ﻒﺿﺍ"
@@ -21934,6 +21930,10 @@ msgstr "  ﻞﺒﺤﻟﺎﺑ ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻝﺎﻤﻌﺘﺳﺎﺑ �
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "ﺔﻟﺎﻌّﻔﻟﺍ ﺔﺻﺎﺼﻘﻟﺍ ﺩﺪﺣ"
+
+
+msgid "(undocumented operator)"
+msgstr "(ﻖﺛﻮﻣ ﺮﻴﻏ ﻞﻣﺎﻌﻣ)"
 
 
 msgctxt "Operator"
@@ -23217,6 +23217,21 @@ msgstr "ﺕﺎﻘﺒﻄﻟﺍ ﻞﻛ ﻞﻔﻗﺍ"
 msgctxt "Operator"
 msgid "Paste Strokes"
 msgstr "ﺕﺎﺒﻄﺸﻟﺍ ﻖﺼﻟﺍ"
+
+
+msgctxt "Operator"
+msgid "All"
+msgstr "ﻞﻜﻟﺍ"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "ﺭﻭﺩ"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "ﻢﺠّﺣ"
 
 
 msgctxt "Operator"
@@ -25473,6 +25488,7 @@ msgid "Toggle Force Field"
 msgstr "ﺓﻮﻘﻟﺍ ﻞﻘﺣ ﺐﻠﻗﺍ"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "ﺩﺮﻗ"
 
@@ -26859,11 +26875,6 @@ msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺢﻴﺗﺎﻔﻤﻟﺍ ﻞﻛ ﻰﻟﺍ ﺔ�
 
 
 msgctxt "Operator"
-msgid "Flip Quats"
-msgstr "ﺕﺎﻴﻋﺎﺑﺮﻟﺍ ﺐﻠﻗﺍ"
-
-
-msgctxt "Operator"
 msgid "Reveal Selected"
 msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺮﻬﻇﺍ"
 
@@ -27397,10 +27408,6 @@ msgstr "ﻥﺎﻀﻴﻔﺑ ﻞﻴﺻﺎﻔﺘﻟﺍ ﺊﺒّﻋ"
 
 msgid "Falloff Type"
 msgstr "ﻲﺷﻼ﻿ﺘﻟﺍ ﻉﻮﻧ"
-
-
-msgid "Sharpen"
-msgstr "ﺩﺎﺣ"
 
 
 msgctxt "Operator"
@@ -28093,11 +28100,6 @@ msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺮﺻﺎﻨﻌﻟﺍ ﻢﺠّﺣ"
 
 msgid "Edit Texture Space"
 msgstr "ﺞﻴﺴﻨﻟﺍ ﻝﺎﺠﻣ ﺭﺮﺣ"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "ﺭﻭﺩ"
 
 
 msgctxt "Operator"
@@ -29535,11 +29537,6 @@ msgstr "ﺔﺼﺼﺨﻣ ﻂﺑﺍﻭﺭ"
 
 msgid "Fluid Presets"
 msgstr "ﻞﺋﺍﻮﺴﻠﻟ ﺔﻘﺒﺴﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﻹ﻿ﺍ"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "ﻢﺠّﺣ"
 
 
 msgctxt "Operator"
@@ -35593,10 +35590,6 @@ msgid "3D View"
 msgstr "ﺩﺎﻌﺑﻷ﻿ﺍ ﻲﺛﻼ﻿ﺛ ﺽﺮﻋ"
 
 
-msgid "Position:"
-msgstr ":ﻊﻗﻮﻤﻟﺍ"
-
-
 msgid "Active object is not a mesh"
 msgstr "ﺍﺮﻴﻤﻜﻛ ﻝﺎﻌﻔﻟﺍ ﻦﺋﺎﻜﻟﺍ ﻊﺿ"
 
@@ -35850,11 +35843,6 @@ msgstr "ﺶﻣﺎﻬﻟﺍ ﻢﺠّﺣ"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺮﻴﻐﻟﺍ ﻒﺧﺃ"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "ﻞﻜﻟﺍ"
 
 
 msgctxt "Operator"
@@ -36806,11 +36794,6 @@ msgstr "ﺭﺎﻃﺍ"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "ﺩﺮﻗ"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs ﻰﻨﺤﻨﻣ"
 
@@ -37126,6 +37109,10 @@ msgid "Set Roll"
 msgstr "ﺔﻔﻠﻟﺍ ﺩﺪﺣ"
 
 
+msgid "Sharpen"
+msgstr "ﺩﺎﺣ"
+
+
 msgctxt "Operator"
 msgid "Camera Lens Scale"
 msgstr "ﺍﺮﻤﻜﻟﺍ ﺔﺳﺪﻋ ﻢﻴﺠﺤﺗ"
@@ -37244,18 +37231,6 @@ msgstr "ءﺎﻀﻔﻟﺍ ﺍﺬﻫ ﻲﻓ ﺔﻟﺪﻌﻤﻟﺍ ﻭ ﺓﺮﻫ�
 msgctxt "Brush"
 msgid "Surface"
 msgstr "ﺢﻄﺳ"
-
-
-msgid "Generator"
-msgstr "ﺪﻟﻮﻣ"
-
-
-msgid "Built-In Function"
-msgstr "ﺔﺠﻣﺪﻣ ﺔﻴﺻﺎﺧ"
-
-
-msgid "Stepped"
-msgstr "ﻡﺪﻘﺘﻣ"
 
 
 msgid "GP_Layer"
@@ -37823,62 +37798,7 @@ msgid "Modified"
 msgstr "ﻝﺪّﻌﻣ"
 
 
-msgctxt "Object"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Mesh"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Curve"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Metaball"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Material"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Texture"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Lattice"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Camera"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "World"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Screen"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "Sound"
+msgctxt "Action"
 msgid "New"
 msgstr "ﺪﻳﺪﺟ"
 
@@ -37888,22 +37808,22 @@ msgid "New"
 msgstr "ﺪﻳﺪﺟ"
 
 
-msgctxt "Action"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
-msgctxt "NodeTree"
-msgid "New"
-msgstr "ﺪﻳﺪﺟ"
-
-
 msgctxt "Brush"
 msgid "New"
 msgstr "ﺪﻳﺪﺟ"
 
 
-msgctxt "ParticleSettings"
+msgctxt "Camera"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "ﺪﻳﺪﺟ"
 
@@ -37913,7 +37833,62 @@ msgid "New"
 msgstr "ﺪﻳﺪﺟ"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Lattice"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "ﺪﻳﺪﺟ"
+
+
+msgctxt "World"
 msgid "New"
 msgstr "ﺪﻳﺪﺟ"
 
@@ -38321,6 +38296,10 @@ msgstr ":ﻒﻠﻤﻟﺍ ﺭﺎﺴﻣ"
 
 msgid "Track is locked"
 msgstr "ﻞﻔﻘﻣ ﺔﻛﺮﺤﻟﺍ ﺭﺎﺴﻣ"
+
+
+msgid "Position:"
+msgstr ":ﻊﻗﻮﻤﻟﺍ"
 
 
 msgid "Width:"
@@ -39152,10 +39131,6 @@ msgstr "W3"
 
 msgid "W4"
 msgstr "W4"
-
-
-msgid "| Time:%s | "
-msgstr "| %s‬‪:ﺖﻗﻮﻟﺍ |"
 
 
 msgid "Image too small"

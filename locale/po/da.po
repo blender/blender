@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-05-23 14:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -631,16 +631,8 @@ msgid "The binding identifies which sub-set of the Action is considered to be fo
 msgstr "Bindingen identificerer, hvilken delmængde af handlingen der anses for at være en del af denne datablok, og dens navn bruges til at finde den rigtige binding, når der tildeles en handling"
 
 
-msgid "New"
-msgstr "ny"
-
-
-msgid "Create a new animation binding for this data-block"
-msgstr "Opret en ny animationsbinding til denne datablok"
-
-
-msgid "(none/legacy)"
-msgstr "(ingen/legacy)"
+msgid "None"
+msgstr "Ingen"
 
 
 msgid "Action Binding Handle"
@@ -2006,10 +1998,6 @@ msgid "Passes to include in the active baking pass"
 msgstr "Passer til at inkludere i det aktive bagepas"
 
 
-msgid "None"
-msgstr "Ingen"
-
-
 msgid "Emit"
 msgstr "Udsende"
 
@@ -2724,6 +2712,10 @@ msgid "File"
 msgstr "Fil"
 
 
+msgid "New"
+msgstr "ny"
+
+
 msgid "Play Mode"
 msgstr "Afspilningstilstand"
 
@@ -2876,10 +2868,6 @@ msgid "Reset"
 msgstr "Nulstil"
 
 
-msgid "Sharpen"
-msgstr "Skarpere"
-
-
 msgid "Property"
 msgstr "Egenskab"
 
@@ -3006,6 +2994,10 @@ msgstr "Detaljer"
 
 msgid "Priority"
 msgstr "Prioritet"
+
+
+msgid "Sharpen"
+msgstr "Skarpere"
 
 
 msgid "Keyframe not in F-Curve"

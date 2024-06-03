@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-05-03 12:13+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -506,8 +506,8 @@ msgid "Active Action for this data-block"
 msgstr "ﻩﺩﺍﺩ ﮎﻮﻠﺑ ﻦﯾﺍ ﯼﺍﺮﺑ ﻝﺎﻌﻓ ﻡﺍﺪﻗﺍ"
 
 
-msgid "New"
-msgstr "ﺪﯾﺪﺟ"
+msgid "None"
+msgstr "ﻡﺍﺪﮐ ﭻﯿﻫ"
 
 
 msgid "Action Blending"
@@ -1033,10 +1033,6 @@ msgstr "ﺵﺮﺘﺴﮔ"
 
 msgid "Object"
 msgstr "ءﯽﺷ"
-
-
-msgid "None"
-msgstr "ﻡﺍﺪﮐ ﭻﯿﻫ"
 
 
 msgid "Indirect"
@@ -3140,6 +3136,10 @@ msgid "Dynamic Paint"
 msgstr "ﺎﯾﻮﭘ ﯽﺷﺎﻘﻧ"
 
 
+msgid "New"
+msgstr "ﺪﯾﺪﺟ"
+
+
 msgid "Mark Seams"
 msgstr "ﺯﺭﺩ ﻥﺍﻮﻨﻋ ﻪﺑ ﯼﺭﺍﺬﮔ ﺖﻣﻼ﻿ﻋ"
 
@@ -3698,14 +3698,6 @@ msgid "Select Similar"
 msgstr "ﻪﺑﺎﺸﻣ ﺏﺎﺨﺘﻧﺍ"
 
 
-msgid "(undocumented operator)"
-msgstr "(ﻩﺪﺸﻧ ﺪﻨﺘﺴﻣ ﺭﻮﺗﺍﺮﭘﺍ)"
-
-
-msgid "URL"
-msgstr "ﯽﺘﻧﺮﺘﻨﯾﺍ ﺱﺭﺩﺁ"
-
-
 msgctxt "Operator"
 msgid "3D Markers to Mesh"
 msgstr "ﺶﻣ ﻪﺑ 3D ﯼﺎﻫ ﺮﮕﻧﺎﺸﻧ"
@@ -3810,6 +3802,10 @@ msgid "Failed Tracks"
 msgstr "ﻖﻓﻮﻣﺎﻧ ﯼﺎﻫ ﮎﺮﺗِ"
 
 
+msgid "(undocumented operator)"
+msgstr "(ﻩﺪﺸﻧ ﺪﻨﺘﺴﻣ ﺭﻮﺗﺍﺮﭘﺍ)"
+
+
 msgctxt "Operator"
 msgid "Set Axis"
 msgstr "ﺭﻮﺤﻣ ﻢﯿﻈﻨﺗ"
@@ -3908,6 +3904,10 @@ msgid "Custom Properties"
 msgstr "ﯽﺷﺭﺎﻔﺳ ﺕﺎﯿﺻﻮﺼﺧ"
 
 
+msgid "URL"
+msgstr "ﯽﺘﻧﺮﺘﻨﯾﺍ ﺱﺭﺩﺁ"
+
+
 msgid "Open"
 msgstr "ﻥﺩﺮﮐ‌ﺯﺎﺑ"
 
@@ -3923,6 +3923,11 @@ msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 msgctxt "GPencil"
 msgid "Linear"
 msgstr "ﯽﻄﺧ"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "ﺶﺧﺮﭼ"
 
 
 msgid "Mouse location"
@@ -4174,10 +4179,6 @@ msgid "Experimental"
 msgstr "ﯽﺸﯾﺎﻣﺯﺁ"
 
 
-msgid "Relax"
-msgstr "ﻥﺩﺮﮐ‌ﻞﺷ"
-
-
 msgctxt "Operator"
 msgid "Sculpt Mode"
 msgstr "ﯼﺭﺎﺠﺣ ﺖﻟﺎﺣ"
@@ -4209,11 +4210,6 @@ msgstr "ﺖﭙﯾﺮﮑﺳﺍ ﯼﺍﺮﺟﺍ"
 msgctxt "Operator"
 msgid "Save"
 msgstr "ﻩﺮﯿﺧﺫ"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "ﺶﺧﺮﭼ"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'a367cf664e0d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-27 12:52+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-04-29 13:31+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -62,10 +62,6 @@ msgstr "Върху"
 
 msgid "Action"
 msgstr "Действие"
-
-
-msgid "New"
-msgstr "Нов"
 
 
 msgid "Nothing"
@@ -796,6 +792,10 @@ msgid "Warp"
 msgstr "Изкр"
 
 
+msgid "New"
+msgstr "Нов"
+
+
 msgid "Randomize"
 msgstr "Произволно"
 
@@ -1091,6 +1091,11 @@ msgid "Unlink"
 msgstr "Развържи"
 
 
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Завърти"
+
+
 msgid "Both"
 msgstr "Двете"
 
@@ -1227,10 +1232,6 @@ msgstr "Изпечи"
 msgctxt "Operator"
 msgid "Add Constraint"
 msgstr "Добавяне на ограничител"
-
-
-msgid "Monkey"
-msgstr "Маймуна"
 
 
 msgctxt "Operator"
@@ -1491,11 +1492,6 @@ msgstr "Запази Като"
 msgctxt "Operator"
 msgid "Push/Pull"
 msgstr "Натиск/Дърпане"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Завърти"
 
 
 msgctxt "Operator"
