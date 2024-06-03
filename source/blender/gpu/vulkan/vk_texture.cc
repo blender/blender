@@ -353,7 +353,7 @@ void VKTexture::update_sub(
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKContext &context = *VKContext::get();
   int layers = vk_layer_count(1);
-  size_t sample_len = size_t(extent.x) * extent.y * extent.z * layers;
+  size_t sample_len = size_t(extent.x) * extent.y * extent.z;
   size_t device_memory_size = sample_len * to_bytesize(device_format_);
 
   if (is_compressed) {
