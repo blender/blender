@@ -643,7 +643,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
     } \
   } while (0)
 
-  EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
   EXTRACT_ADD_REQUESTED(vbo, orco);
   EXTRACT_ADD_REQUESTED(vbo, edituv_data);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_area);
@@ -674,7 +673,7 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
       !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_uv) &&
       !DRW_vbo_requested(buffers.vbo.uv) && !DRW_ibo_requested(buffers.ibo.lines_paint_mask) &&
       !DRW_ibo_requested(buffers.ibo.lines_adjacency) &&
-      !DRW_vbo_requested(buffers.vbo.skin_roots))
+      !DRW_vbo_requested(buffers.vbo.skin_roots) && !DRW_vbo_requested(buffers.vbo.sculpt_data))
   {
     return;
   }
@@ -1023,6 +1022,21 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
+  if (DRW_vbo_requested(buffers.vbo.sculpt_data)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_sculpt_data(data.mr, *data.buffers.vbo.sculpt_data);
+        },
+        new TaskData{*mr, buffers},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
 
   if (use_thread) {
     /* First run the requested extractors that do not support asynchronous ranges. */
@@ -1122,7 +1136,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   EXTRACT_ADD_REQUESTED(vbo, edituv_data);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_area);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
-  EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
 
 #undef EXTRACT_ADD_REQUESTED
 
@@ -1136,7 +1149,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
       !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_nor) &&
       !DRW_vbo_requested(buffers.vbo.fdots_pos) && !DRW_ibo_requested(buffers.ibo.fdots) &&
       !DRW_vbo_requested(buffers.vbo.uv) && !DRW_ibo_requested(buffers.ibo.lines_paint_mask) &&
-      !DRW_ibo_requested(buffers.ibo.lines_adjacency))
+      !DRW_ibo_requested(buffers.ibo.lines_adjacency) &&
+      !DRW_vbo_requested(buffers.vbo.sculpt_data))
   {
     return;
   }
@@ -1195,6 +1209,9 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   }
   if (DRW_ibo_requested(buffers.ibo.lines_adjacency)) {
     extract_lines_adjacency_subdiv(subdiv_cache, *buffers.ibo.lines_adjacency, cache.is_manifold);
+  }
+  if (DRW_vbo_requested(buffers.vbo.sculpt_data)) {
+    extract_sculpt_data_subdiv(mr, subdiv_cache, *buffers.vbo.sculpt_data);
   }
   if (DRW_vbo_requested(buffers.vbo.uv)) {
     /* Make sure UVs are computed before edituv stuffs. */
