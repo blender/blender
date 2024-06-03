@@ -2264,6 +2264,9 @@ static bool node_can_be_inserted_on_link(bNodeTree &tree, bNode &node, const bNo
   if (ELEM(nullptr, main_input, main_output)) {
     return false;
   }
+  if (node.is_reroute()) {
+    return true;
+  }
   if (!tree.typeinfo->validate_link) {
     return true;
   }
