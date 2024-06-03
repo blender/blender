@@ -260,7 +260,7 @@ bool OptiXDenoiser::denoise_create_if_needed(DenoiseContext &context)
       &optix_denoiser_);
 
   if (result != OPTIX_SUCCESS) {
-    denoiser_device_->set_error("Failed to create OptiX denoiser");
+    set_error("Failed to create OptiX denoiser");
     return false;
   }
 
@@ -305,7 +305,7 @@ bool OptiXDenoiser::denoise_configure_if_needed(DenoiseContext &context)
       state_.device_pointer + sizes_.stateSizeInBytes,
       sizes_.withOverlapScratchSizeInBytes);
   if (result != OPTIX_SUCCESS) {
-    denoiser_device_->set_error("Failed to set up OptiX denoiser");
+    set_error("Failed to set up OptiX denoiser");
     return false;
   }
 

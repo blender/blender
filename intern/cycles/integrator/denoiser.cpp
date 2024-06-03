@@ -99,7 +99,7 @@ bool Denoiser::load_kernels(Progress *progress)
   const Device *denoiser_device = ensure_denoiser_device(progress);
 
   if (!denoiser_device) {
-    path_trace_device_->set_error("No device available to denoise on");
+    set_error("No device available to denoise on");
     return false;
   }
 

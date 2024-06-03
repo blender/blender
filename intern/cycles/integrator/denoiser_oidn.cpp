@@ -183,7 +183,7 @@ class OIDNDenoiseContext {
     const char *error_message;
     const oidn::Error error = oidn_device.getError(error_message);
     if (error != oidn::Error::None && error != oidn::Error::Cancelled) {
-      denoiser_->set_error("OpenImageDenoise error: " + string(error_message));
+      set_error("OpenImageDenoise error: " + string(error_message));
     }
 
     postprocess_output(oidn_color_pass, oidn_output_pass);
@@ -653,12 +653,11 @@ Device *OIDNDenoiser::ensure_denoiser_device(Progress *progress)
 {
 #ifndef WITH_OPENIMAGEDENOISE
   (void)progress;
-  path_trace_device_->set_error("Failed to denoise, build has no OpenImageDenoise support");
+  set_error("Failed to denoise, build has no OpenImageDenoise support");
   return nullptr;
 #else
   if (!openimagedenoise_supported()) {
-    path_trace_device_->set_error(
-        "OpenImageDenoiser is not supported on this CPU: missing SSE 4.1 support");
+    set_error("OpenImageDenoiser is not supported on this CPU: missing SSE 4.1 support");
     return nullptr;
   }
 
