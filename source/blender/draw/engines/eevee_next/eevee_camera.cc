@@ -132,20 +132,26 @@ void Camera::sync()
       DRW_view_winmat_get(inst_.drw_view, data.winmat.ptr(), false);
     }
     else {
-      rctf viewplane;
-      float clip_start;
-      float clip_end;
-      bool is_ortho = ED_view3d_viewplane_get(inst_.depsgraph,
-                                              inst_.v3d,
-                                              inst_.rv3d,
-                                              UNPACK2(inst_.film.display_extent_get()),
-                                              &viewplane,
-                                              &clip_start,
-                                              &clip_end,
-                                              nullptr);
+      CameraParams params;
+      BKE_camera_params_init(&params);
 
-      RE_GetWindowMatrixWithOverscan(
-          is_ortho, clip_start, clip_end, viewplane, overscan_, data.winmat.ptr());
+      if (inst_.rv3d->persp == RV3D_CAMOB && DRW_state_is_viewport_image_render()) {
+        /* We are rendering camera view, no need for pan/zoom params from viewport.*/
+        BKE_camera_params_from_object(&params, camera_eval);
+      }
+      else {
+        BKE_camera_params_from_view3d(&params, inst_.depsgraph, inst_.v3d, inst_.rv3d);
+      }
+
+      BKE_camera_params_compute_viewplane(
+          &params, UNPACK2(inst_.film.display_extent_get()), 1.0f, 1.0f);
+
+      RE_GetWindowMatrixWithOverscan(params.is_ortho,
+                                     params.clip_start,
+                                     params.clip_end,
+                                     params.viewplane,
+                                     overscan_,
+                                     data.winmat.ptr());
     }
   }
   else if (inst_.render) {
