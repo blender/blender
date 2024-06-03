@@ -77,35 +77,88 @@ static bool stroke_get_location(bContext * /*C*/,
   return true;
 }
 
-static void stroke_start(bContext &C,
-                         wmOperator &op,
-                         const float2 &mouse,
-                         GreasePencilStrokeOperation &operation)
+static GreasePencilStrokeOperation *get_stroke_operation(bContext &C, wmOperator *op)
 {
-  PaintStroke *paint_stroke = static_cast<PaintStroke *>(op.customdata);
+  const Paint *paint = BKE_paint_get_active_from_context(&C);
+  const Brush &brush = *BKE_paint_brush_for_read(paint);
+  const PaintMode mode = BKE_paintmode_get_active_from_context(&C);
+  const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
 
-  InputSample start_sample;
-  start_sample.mouse_position = float2(mouse);
-  start_sample.pressure = 0.0f;
-
-  paint_stroke_set_mode_data(paint_stroke, &operation);
-  operation.on_stroke_begin(C, start_sample);
+  if (mode == PaintMode::GPencil) {
+    /* FIXME: Somehow store the unique_ptr in the PaintStroke. */
+    switch (eBrushGPaintTool(brush.gpencil_tool)) {
+      case GPAINT_TOOL_DRAW:
+        return greasepencil::new_paint_operation().release();
+      case GPAINT_TOOL_ERASE:
+        return greasepencil::new_erase_operation().release();
+      case GPAINT_TOOL_FILL:
+        /* Fill tool keymap uses the paint operator as alternative mode. */
+        return greasepencil::new_paint_operation().release();
+      case GPAINT_TOOL_TINT:
+        return greasepencil::new_tint_operation().release();
+    }
+  }
+  else if (mode == PaintMode::SculptGreasePencil) {
+    switch (eBrushGPSculptTool(brush.gpencil_sculpt_tool)) {
+      case GPSCULPT_TOOL_SMOOTH:
+        return greasepencil::new_smooth_operation(stroke_mode).release();
+      case GPSCULPT_TOOL_THICKNESS:
+        return greasepencil::new_thickness_operation(stroke_mode).release();
+      case GPSCULPT_TOOL_STRENGTH:
+        return greasepencil::new_strength_operation(stroke_mode).release();
+      case GPSCULPT_TOOL_GRAB:
+        return greasepencil::new_grab_operation(stroke_mode).release();
+      case GPSCULPT_TOOL_PUSH:
+        return greasepencil::new_push_operation(stroke_mode).release();
+      case GPSCULPT_TOOL_TWIST:
+        return greasepencil::new_twist_operation(stroke_mode).release();
+      case GPSCULPT_TOOL_PINCH:
+        return greasepencil::new_pinch_operation(stroke_mode).release();
+      case GPSCULPT_TOOL_RANDOMIZE:
+        return greasepencil::new_randomize_operation(stroke_mode).release();
+      case GPSCULPT_TOOL_CLONE:
+        return greasepencil::new_clone_operation(stroke_mode).release();
+    }
+  }
+  else if (mode == PaintMode::WeightGPencil) {
+    switch (eBrushGPWeightTool(brush.gpencil_weight_tool)) {
+      case GPWEIGHT_TOOL_DRAW:
+        return greasepencil::new_weight_paint_draw_operation(stroke_mode).release();
+        break;
+      case GPWEIGHT_TOOL_BLUR:
+        return greasepencil::new_weight_paint_blur_operation().release();
+        break;
+      case GPWEIGHT_TOOL_AVERAGE:
+        return greasepencil::new_weight_paint_average_operation().release();
+        break;
+      case GPWEIGHT_TOOL_SMEAR:
+        return greasepencil::new_weight_paint_smear_operation().release();
+        break;
+    }
+  }
+  return nullptr;
 }
 
 static void stroke_update_step(bContext *C,
-                               wmOperator * /*op*/,
+                               wmOperator *op,
                                PaintStroke *stroke,
                                PointerRNA *stroke_element)
 {
   GreasePencilStrokeOperation *operation = static_cast<GreasePencilStrokeOperation *>(
       paint_stroke_mode_data(stroke));
 
-  InputSample extension_sample;
-  RNA_float_get_array(stroke_element, "mouse", extension_sample.mouse_position);
-  extension_sample.pressure = RNA_float_get(stroke_element, "pressure");
+  InputSample sample;
+  RNA_float_get_array(stroke_element, "mouse", sample.mouse_position);
+  sample.pressure = RNA_float_get(stroke_element, "pressure");
 
-  if (operation) {
-    operation->on_stroke_extended(*C, extension_sample);
+  if (!operation) {
+    GreasePencilStrokeOperation *new_operation = get_stroke_operation(*C, op);
+    BLI_assert(new_operation != nullptr);
+    paint_stroke_set_mode_data(stroke, new_operation);
+    new_operation->on_stroke_begin(*C, sample);
+  }
+  else {
+    operation->on_stroke_extended(*C, sample);
   }
 }
 
@@ -118,8 +171,10 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
 {
   GreasePencilStrokeOperation *operation = static_cast<GreasePencilStrokeOperation *>(
       paint_stroke_mode_data(stroke));
-  operation->on_stroke_done(*C);
-  operation->~GreasePencilStrokeOperation();
+  if (operation != nullptr) {
+    operation->on_stroke_done(*C);
+    operation->~GreasePencilStrokeOperation();
+  }
 }
 
 /** \} */
@@ -139,36 +194,10 @@ static bool grease_pencil_brush_stroke_poll(bContext *C)
   return true;
 }
 
-static GreasePencilStrokeOperation *grease_pencil_brush_stroke_operation(bContext &C)
+static bool stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
 {
-  const Scene &scene = *CTX_data_scene(&C);
-  const GpPaint &gp_paint = *scene.toolsettings->gp_paint;
-  const Brush &brush = *BKE_paint_brush_for_read(&gp_paint.paint);
-  switch (eBrushGPaintTool(brush.gpencil_tool)) {
-    case GPAINT_TOOL_DRAW:
-      /* FIXME: Somehow store the unique_ptr in the PaintStroke. */
-      return greasepencil::new_paint_operation().release();
-    case GPAINT_TOOL_ERASE:
-      return greasepencil::new_erase_operation().release();
-    case GPAINT_TOOL_FILL:
-      /* Fill tool keymap uses the paint operator as alternative mode. */
-      return greasepencil::new_paint_operation().release();
-    case GPAINT_TOOL_TINT:
-      return greasepencil::new_tint_operation().release();
-  }
-  return nullptr;
-}
-
-static bool grease_pencil_brush_stroke_test_start(bContext *C,
-                                                  wmOperator *op,
-                                                  const float mouse[2])
-{
-  GreasePencilStrokeOperation *operation = grease_pencil_brush_stroke_operation(*C);
-  if (operation) {
-    stroke_start(*C, *op, float2(mouse), *operation);
-    return true;
-  }
-  return false;
+  UNUSED_VARS(C, op, mouse);
+  return true;
 }
 
 static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -181,7 +210,7 @@ static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const 
   op->customdata = paint_stroke_new(C,
                                     op,
                                     stroke_get_location,
-                                    grease_pencil_brush_stroke_test_start,
+                                    stroke_test_start,
                                     stroke_update_step,
                                     stroke_redraw,
                                     stroke_done,
@@ -239,48 +268,6 @@ static bool grease_pencil_sculpt_paint_poll(bContext *C)
   return true;
 }
 
-static GreasePencilStrokeOperation *grease_pencil_sculpt_paint_operation(
-    bContext &C, const BrushStrokeMode stroke_mode)
-{
-  const Scene &scene = *CTX_data_scene(&C);
-  const GpSculptPaint &gp_sculptpaint = *scene.toolsettings->gp_sculptpaint;
-  const Brush &brush = *BKE_paint_brush_for_read(&gp_sculptpaint.paint);
-  switch (eBrushGPSculptTool(brush.gpencil_sculpt_tool)) {
-    case GPSCULPT_TOOL_SMOOTH:
-      return greasepencil::new_smooth_operation(stroke_mode).release();
-    case GPSCULPT_TOOL_THICKNESS:
-      return greasepencil::new_thickness_operation(stroke_mode).release();
-    case GPSCULPT_TOOL_STRENGTH:
-      return greasepencil::new_strength_operation(stroke_mode).release();
-    case GPSCULPT_TOOL_GRAB:
-      return greasepencil::new_grab_operation(stroke_mode).release();
-    case GPSCULPT_TOOL_PUSH:
-      return greasepencil::new_push_operation(stroke_mode).release();
-    case GPSCULPT_TOOL_TWIST:
-      return greasepencil::new_twist_operation(stroke_mode).release();
-    case GPSCULPT_TOOL_PINCH:
-      return greasepencil::new_pinch_operation(stroke_mode).release();
-    case GPSCULPT_TOOL_RANDOMIZE:
-      return greasepencil::new_randomize_operation(stroke_mode).release();
-    case GPSCULPT_TOOL_CLONE:
-      return greasepencil::new_clone_operation(stroke_mode).release();
-  }
-  return nullptr;
-}
-
-static bool grease_pencil_sculpt_paint_test_start(bContext *C,
-                                                  wmOperator *op,
-                                                  const float mouse[2])
-{
-  const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
-  GreasePencilStrokeOperation *operation = grease_pencil_sculpt_paint_operation(*C, stroke_mode);
-  if (operation) {
-    stroke_start(*C, *op, float2(mouse), *operation);
-    return true;
-  }
-  return false;
-}
-
 static int grease_pencil_sculpt_paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const Scene *scene = CTX_data_scene(C);
@@ -321,7 +308,7 @@ static int grease_pencil_sculpt_paint_invoke(bContext *C, wmOperator *op, const 
   op->customdata = paint_stroke_new(C,
                                     op,
                                     stroke_get_location,
-                                    grease_pencil_sculpt_paint_test_start,
+                                    stroke_test_start,
                                     stroke_update_step,
                                     stroke_redraw,
                                     stroke_done,
@@ -368,39 +355,14 @@ static void GREASE_PENCIL_OT_sculpt_paint(wmOperatorType *ot)
 /** \name Weight Brush Stroke Operator
  * \{ */
 
-static bool weight_stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
+static bool grease_pencil_weight_brush_stroke_poll(bContext *C)
 {
-  InputSample start_sample;
-  start_sample.mouse_position = float2(mouse);
-  start_sample.pressure = 0.0f;
-
-  GreasePencilStrokeOperation *operation = nullptr;
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  Brush *brush = BKE_paint_brush(paint);
-  const BrushStrokeMode brush_mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
-
-  switch (eBrushGPWeightTool(brush->gpencil_weight_tool)) {
-    case GPWEIGHT_TOOL_DRAW:
-      operation = greasepencil::new_weight_paint_draw_operation(brush_mode).release();
-      break;
-    case GPWEIGHT_TOOL_BLUR:
-      operation = greasepencil::new_weight_paint_blur_operation().release();
-      break;
-    case GPWEIGHT_TOOL_AVERAGE:
-      operation = greasepencil::new_weight_paint_average_operation().release();
-      break;
-    case GPWEIGHT_TOOL_SMEAR:
-      operation = greasepencil::new_weight_paint_smear_operation().release();
-      break;
-  }
-
-  if (operation == nullptr) {
+  if (!ed::greasepencil::grease_pencil_weight_painting_poll(C)) {
     return false;
   }
-
-  PaintStroke *paint_stroke = static_cast<PaintStroke *>(op->customdata);
-  paint_stroke_set_mode_data(paint_stroke, operation);
-  operation->on_stroke_begin(*C, start_sample);
+  if (!WM_toolsystem_active_tool_is_brush(C)) {
+    return false;
+  }
   return true;
 }
 
@@ -437,7 +399,7 @@ static int grease_pencil_weight_brush_stroke_invoke(bContext *C,
   op->customdata = paint_stroke_new(C,
                                     op,
                                     stroke_get_location,
-                                    weight_stroke_test_start,
+                                    stroke_test_start,
                                     stroke_update_step,
                                     stroke_redraw,
                                     stroke_done,
@@ -462,17 +424,6 @@ static int grease_pencil_weight_brush_stroke_modal(bContext *C,
 static void grease_pencil_weight_brush_stroke_cancel(bContext *C, wmOperator *op)
 {
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
-}
-
-static bool grease_pencil_weight_brush_stroke_poll(bContext *C)
-{
-  if (!ed::greasepencil::grease_pencil_weight_painting_poll(C)) {
-    return false;
-  }
-  if (!WM_toolsystem_active_tool_is_brush(C)) {
-    return false;
-  }
-  return true;
 }
 
 static void GREASE_PENCIL_OT_weight_brush_stroke(wmOperatorType *ot)

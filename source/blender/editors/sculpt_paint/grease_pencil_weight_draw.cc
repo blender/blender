@@ -8,9 +8,9 @@ namespace blender::ed::sculpt_paint::greasepencil {
 
 class DrawWeightPaintOperation : public WeightPaintOperation {
  public:
-  DrawWeightPaintOperation(const BrushStrokeMode &brush_mode)
+  DrawWeightPaintOperation(const BrushStrokeMode &stroke_mode)
   {
-    this->brush_mode = brush_mode;
+    this->stroke_mode = stroke_mode;
   }
 
   void on_stroke_begin(const bContext &C, const InputSample &start_sample) override
@@ -23,7 +23,7 @@ class DrawWeightPaintOperation : public WeightPaintOperation {
 
     /* Get the add/subtract mode of the draw tool. */
     this->invert_brush_weight = (this->brush->flag & BRUSH_DIR_IN) != 0;
-    if (this->brush_mode == BRUSH_STROKE_INVERT) {
+    if (this->stroke_mode == BRUSH_STROKE_INVERT) {
       this->invert_brush_weight = !this->invert_brush_weight;
     }
 
@@ -98,9 +98,9 @@ class DrawWeightPaintOperation : public WeightPaintOperation {
 };
 
 std::unique_ptr<GreasePencilStrokeOperation> new_weight_paint_draw_operation(
-    const BrushStrokeMode &brush_mode)
+    const BrushStrokeMode &stroke_mode)
 {
-  return std::make_unique<DrawWeightPaintOperation>(brush_mode);
+  return std::make_unique<DrawWeightPaintOperation>(stroke_mode);
 }
 
 }  // namespace blender::ed::sculpt_paint::greasepencil

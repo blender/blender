@@ -82,7 +82,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   /* Flag for Auto-normalize weights of bone deformed vertex groups. */
   bool auto_normalize;
   /* Brush mode: normal, invert or smooth. */
-  BrushStrokeMode brush_mode;
+  BrushStrokeMode stroke_mode;
   /* Add or subtract weight? */
   bool invert_brush_weight;
   /* Active vertex group in GP object. */
