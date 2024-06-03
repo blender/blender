@@ -3037,7 +3037,7 @@ def km_sequencer(params):
         ("transform.seq_slide", {"type": 'G', "value": 'PRESS'},
          {"properties": [("view2d_edge_pan", True)]}),
         ("transform.seq_slide", {"type": params.select_mouse, "value": 'CLICK_DRAG'},
-         {"properties": [("view2d_edge_pan", True)]}),
+         {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
@@ -8841,10 +8841,11 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
 
 def km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback):
     return [
+        ("sequencer.select_handle", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         *_template_items_change_frame(params),
         # Frame change can be canceled if click happens on strip handle. In such case move the handle.
         ("transform.seq_slide", {"type": 'LEFTMOUSE', "value": 'PRESS'},
-         {"properties": [("view2d_edge_pan", True)]}),
+         {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
     ]
 
 

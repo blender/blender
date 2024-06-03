@@ -1071,7 +1071,7 @@ typedef struct UserDef {
   /** Pie menu distance from center before a direction is set. */
   short pie_menu_threshold;
 
-  short _pad6[2];
+  int sequencer_editor_flag; /* eUserpref_SeqEditorFlags */
 
   char factor_display_type;
 
@@ -1566,6 +1566,10 @@ typedef enum eUserpref_SeqProxySetup {
   USER_SEQ_PROXY_SETUP_MANUAL = 0,
   USER_SEQ_PROXY_SETUP_AUTOMATIC = 1,
 } eUserpref_SeqProxySetup;
+
+typedef enum eUserpref_SeqEditorFlags {
+  USER_SEQ_ED_SIMPLE_TWEAKING = (1 << 0),
+} eUserpref_SeqEditorFlags;
 
 /* Locale Ids. Auto will try to get local from OS. Our default is English though. */
 /** #UserDef.language */

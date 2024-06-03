@@ -80,6 +80,7 @@ void sequencer_operatortypes()
   /* `sequencer_select.cc` */
   WM_operatortype_append(SEQUENCER_OT_select_all);
   WM_operatortype_append(SEQUENCER_OT_select);
+  WM_operatortype_append(SEQUENCER_OT_select_handle);
   WM_operatortype_append(SEQUENCER_OT_select_more);
   WM_operatortype_append(SEQUENCER_OT_select_less);
   WM_operatortype_append(SEQUENCER_OT_select_linked_pick);

@@ -140,6 +140,7 @@ extern TransModeInfo TransMode_rotatenormal;
 /* `transform_mode_edge_seq_slide.cc` */
 
 extern TransModeInfo TransMode_seqslide;
+bool transform_mode_edge_seq_slide_use_restore_handle_selection(const TransInfo *t);
 
 /* `transform_mode_edge_slide.cc` */
 

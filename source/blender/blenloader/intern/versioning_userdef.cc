@@ -969,6 +969,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->statusbar_flag |= STATUSBAR_SHOW_EXTENSIONS_UPDATES;
   }
 
+  if (!USER_VERSION_ATLEAST(402, 51)) {
+    userdef->sequencer_editor_flag |= USER_SEQ_ED_SIMPLE_TWEAKING;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

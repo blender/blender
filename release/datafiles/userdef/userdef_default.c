@@ -237,6 +237,8 @@ const UserDef U_default = {
     .statusbar_flag = STATUSBAR_SHOW_VERSION,
     .file_preview_type = USER_FILE_PREVIEW_AUTO,
 
+    .sequencer_editor_flag = USER_SEQ_ED_SIMPLE_TWEAKING,
+
     .runtime =
         {
             .is_dirty = 0,

@@ -535,6 +535,17 @@ class USERPREF_PT_edit_node_editor(EditingPanel, CenterAlignMixIn, Panel):
         layout.prop(edit, "node_preview_resolution", text="Preview Resolution")
 
 
+class USERPREF_PT_edit_sequence_editor(EditingPanel, CenterAlignMixIn, Panel):
+    bl_label = "Video Sequencer"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        edit = prefs.edit
+
+        layout.prop(edit, "use_sequencer_simplified_tweaking")
+
+
 class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "Miscellaneous"
     bl_options = {'DEFAULT_CLOSED'}
@@ -2841,6 +2852,7 @@ classes = (
     USERPREF_PT_edit_gpencil,
     USERPREF_PT_edit_text_editor,
     USERPREF_PT_edit_node_editor,
+    USERPREF_PT_edit_sequence_editor,
     USERPREF_PT_edit_misc,
 
     USERPREF_PT_animation_timeline,

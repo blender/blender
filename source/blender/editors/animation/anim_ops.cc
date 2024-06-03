@@ -225,6 +225,23 @@ static bool use_sequencer_snapping(bContext *C)
          (snap_flag & SEQ_SNAP_CURRENT_FRAME_TO_STRIPS);
 }
 
+static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *event)
+{
+  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
+    return false;
+  }
+
+  const Scene *scene = CTX_data_scene(C);
+  const View2D *v2d = UI_view2d_fromcontext(C);
+
+  float mouse_co[2];
+  UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouse_co[0], &mouse_co[1]);
+
+  StripSelection selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
+
+  return selection.handle != SEQ_HANDLE_NONE;
+}
+
 /* Modal Operator init */
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -232,6 +249,9 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
   bScreen *screen = CTX_wm_screen(C);
   if (CTX_wm_space_seq(C) != nullptr && region->regiontype == RGN_TYPE_PREVIEW) {
     return OPERATOR_CANCELLED;
+  }
+  if (sequencer_skip_for_handle_tweak(C, event)) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   /* Change to frame that mouse is over before adding modal handler,

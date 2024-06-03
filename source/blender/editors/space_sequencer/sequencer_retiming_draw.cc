@@ -100,7 +100,7 @@ static rctf strip_box_get(const Scene *scene, const View2D *v2d, const Sequence 
 /** Size in pixels. */
 #define RETIME_KEY_MOUSEOVER_THRESHOLD (16.0f * UI_SCALE_FAC)
 
-static rctf retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Sequence *seq)
+rctf seq_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Sequence *seq)
 {
   rctf rect = strip_box_get(scene, v2d, seq);
   rect.ymax = KEY_CENTER + KEY_SIZE / 2;
@@ -129,7 +129,7 @@ static bool retiming_fake_key_is_clicked(const bContext *C,
 {
   const View2D *v2d = UI_view2d_fromcontext(C);
 
-  rctf box = retiming_keys_box_get(CTX_data_scene(C), v2d, seq);
+  rctf box = seq_retiming_keys_box_get(CTX_data_scene(C), v2d, seq);
   if (!BLI_rctf_isect_pt(&box, mval[0], mval[1])) {
     return false;
   }
@@ -206,7 +206,7 @@ SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], 
   const Scene *scene = CTX_data_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
   for (Sequence *seq : sequencer_visible_strips_get(C)) {
-    rctf box = retiming_keys_box_get(scene, v2d, seq);
+    rctf box = seq_retiming_keys_box_get(scene, v2d, seq);
     if (!BLI_rctf_isect_pt(&box, mval[0], mval[1])) {
       continue;
     }

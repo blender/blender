@@ -14,11 +14,19 @@ struct Scene;
 struct Sequence;
 struct SpaceSeq;
 struct bContext;
+struct View2D;
 
 enum eSeqHandle {
   SEQ_HANDLE_NONE,
   SEQ_HANDLE_LEFT,
   SEQ_HANDLE_RIGHT,
+  SEQ_HANDLE_BOTH,
+};
+
+struct StripSelection {
+  Sequence *seq1 = nullptr;
+  Sequence *seq2 = nullptr;
+  eSeqHandle handle = SEQ_HANDLE_NONE;
 };
 
 void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool deselect_all);
@@ -54,7 +62,6 @@ Sequence *ED_sequencer_special_preview_get();
 void ED_sequencer_special_preview_set(bContext *C, const int mval[2]);
 void ED_sequencer_special_preview_clear();
 bool sequencer_retiming_mode_is_active(const bContext *C);
-
 /**
  * Returns collection with selected strips presented to user. If operation is done in preview,
  * collection is limited to selected presented strips, that can produce image output at current
@@ -64,5 +71,8 @@ bool sequencer_retiming_mode_is_active(const bContext *C);
  * \return collection of strips (`Sequence`)
  */
 blender::VectorSet<Sequence *> ED_sequencer_selected_strips_from_context(bContext *C);
-bool ED_sequencer_can_select_handle(const Sequence *seq);
+StripSelection ED_sequencer_pick_strip_and_handle(const struct Scene *scene,
+                                                  const View2D *v2d,
+                                                  float mouse_co[2]);
+bool ED_sequencer_can_select_handle(const Scene *scene, const Sequence *seq, const View2D *v2d);
 bool ED_sequencer_handle_is_selected(const Sequence *seq, eSeqHandle handle);
