@@ -499,7 +499,7 @@ void constraintSizeLim(const TransInfo *t, const TransDataContainer *tc, TransDa
           /* Just multiply by `td->smtx` (this should be ok). */
           mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
         }
-        else if (con->ownspace = CONSTRAINT_SPACE_POSE) {
+        else if (con->ownspace == CONSTRAINT_SPACE_POSE) {
           mul_m4_m3m4(cob.matrix, tc->mat3, cob.matrix);
           mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
         }
