@@ -452,11 +452,15 @@ void extract_lines_adjacency_subdiv(const DRWSubdivCache &subdiv_cache,
                                     gpu::IndexBuf &ibo,
                                     bool &r_is_manifold);
 
+void extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &cache, gpu::VertBuf &vbo);
+void extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
+                            const MeshBatchCache &cache,
+                            gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_edituv_tris;
 extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
 extern const MeshExtract extract_edituv_fdots;
-extern const MeshExtract extract_uv;
 extern const MeshExtract extract_sculpt_data;
 extern const MeshExtract extract_orco;
 extern const MeshExtract extract_edituv_data;
