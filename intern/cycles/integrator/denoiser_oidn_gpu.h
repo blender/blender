@@ -75,6 +75,8 @@ class OIDNDenoiserGPU : public DenoiserGPU {
   bool is_configured_ = false;
   int2 configured_size_ = make_int2(0, 0);
 
+  vector<uint8_t> custom_weights;
+
   bool use_pass_albedo_ = false;
   bool use_pass_normal_ = false;
   DenoiserQuality quality_ = DENOISER_QUALITY_HIGH;
