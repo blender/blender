@@ -441,6 +441,7 @@ void extract_weights_subdiv(const MeshRenderData &mr,
 void extract_face_dots(const MeshRenderData &mr, gpu::IndexBuf &face_dots);
 
 void extract_face_dots_uv(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_face_dots_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo);
 
 void extract_lines_paint_mask(const MeshRenderData &mr, gpu::IndexBuf &lines);
 void extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
@@ -490,7 +491,6 @@ extern const MeshExtract extract_edituv_tris;
 extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
 extern const MeshExtract extract_edituv_fdots;
-extern const MeshExtract extract_fdots_edituv_data;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
 extern const MeshExtract extract_attr_viewer;
 
