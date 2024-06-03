@@ -34,6 +34,40 @@ struct MeshExtract_LineAdjacency_Data {
   uint *vert_to_corner;
 };
 
+static void extract_lines_adjacency_finish(const MeshRenderData & /*mr*/,
+                                           MeshBatchCache &cache,
+                                           void *buf,
+                                           void *_data)
+{
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
+  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+  /* Create edges for remaining non manifold edges. */
+  for (const auto item : data->eh->items()) {
+    int v_data = item.value;
+    if (v_data == NO_EDGE) {
+      continue;
+    }
+
+    int v2 = item.key.v_low;
+    int v3 = item.key.v_high;
+
+    int l1 = uint(abs(v_data)) - 1;
+    if (v_data < 0) { /* `inv_opposite`. */
+      std::swap(v2, v3);
+    }
+    int l2 = data->vert_to_corner[v2];
+    int l3 = data->vert_to_corner[v3];
+    GPU_indexbuf_add_line_adj_verts(&data->elb, l1, l2, l3, l1);
+    data->is_manifold = false;
+  }
+  delete data->eh;
+
+  cache.is_manifold = data->is_manifold;
+
+  GPU_indexbuf_build_in_place(&data->elb, ibo);
+  MEM_freeN(data->vert_to_corner);
+}
+
 static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
                                      uint vert_len,
                                      uint loop_len,
@@ -45,21 +79,6 @@ static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
   data->eh = new Map<OrderedEdge, int>();
   data->eh->reserve(tess_edge_len);
   data->is_manifold = true;
-}
-
-static void extract_lines_adjacency_init(const MeshRenderData &mr,
-                                         MeshBatchCache & /*cache*/,
-                                         void * /*buf*/,
-                                         void *tls_data)
-{
-  /* Similar to poly_to_tri_count().
-   * There is always (loop + triangle - 1) edges inside a face.
-   * Accumulate for all faces and you get : */
-  uint tess_edge_len = mr.corners_num + mr.corner_tris_num - mr.faces_num;
-
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
-  data->corner_tri_faces = mr.mesh->corner_tri_faces();
-  line_adjacency_data_init(data, mr.verts_num, mr.corners_num, tess_edge_len);
 }
 
 BLI_INLINE void lines_adjacency_triangle(
@@ -147,38 +166,19 @@ static void extract_lines_adjacency_iter_corner_tri_mesh(const MeshRenderData &m
                            data);
 }
 
-static void extract_lines_adjacency_finish(const MeshRenderData & /*mr*/,
-                                           MeshBatchCache &cache,
-                                           void *buf,
-                                           void *_data)
+static void extract_lines_adjacency_init(const MeshRenderData &mr,
+                                         MeshBatchCache & /*cache*/,
+                                         void * /*buf*/,
+                                         void *tls_data)
 {
-  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
-  /* Create edges for remaining non manifold edges. */
-  for (const auto item : data->eh->items()) {
-    int v_data = item.value;
-    if (v_data == NO_EDGE) {
-      continue;
-    }
+  /* Similar to poly_to_tri_count().
+   * There is always (loop + triangle - 1) edges inside a face.
+   * Accumulate for all faces and you get : */
+  uint tess_edge_len = mr.corners_num + mr.corner_tris_num - mr.faces_num;
 
-    int v2 = item.key.v_low;
-    int v3 = item.key.v_high;
-
-    int l1 = uint(abs(v_data)) - 1;
-    if (v_data < 0) { /* `inv_opposite`. */
-      std::swap(v2, v3);
-    }
-    int l2 = data->vert_to_corner[v2];
-    int l3 = data->vert_to_corner[v3];
-    GPU_indexbuf_add_line_adj_verts(&data->elb, l1, l2, l3, l1);
-    data->is_manifold = false;
-  }
-  delete data->eh;
-
-  cache.is_manifold = data->is_manifold;
-
-  GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data->vert_to_corner);
+  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
+  data->corner_tri_faces = mr.mesh->corner_tri_faces();
+  line_adjacency_data_init(data, mr.verts_num, mr.corners_num, tess_edge_len);
 }
 
 static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache &subdiv_cache,
