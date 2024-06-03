@@ -224,7 +224,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
       }
 
       int width, height;
-      BKE_image_get_size(im, NULL, &width, &height);
+      BKE_image_get_size(im, nullptr, &width, &height);
       const int longest = width >= height ? width : height;
       const float scale = 1.0 / (float(longest) / float(image_size));
 
@@ -235,8 +235,10 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
 
         ImageSaveOptions opts;
 
-        if (BKE_image_save_options_init(&opts, data->bmain, data->scene, im, NULL, false, false)) {
-          bool result = BKE_image_save(NULL, data->bmain, im, NULL, &opts);
+        if (BKE_image_save_options_init(
+                &opts, data->bmain, data->scene, im, nullptr, false, false))
+        {
+          bool result = BKE_image_save(nullptr, data->bmain, im, nullptr, &opts);
           if (!result) {
             CLOG_ERROR(&LOG,
                        "Unable to resave '%s' (new size: %dx%d)",

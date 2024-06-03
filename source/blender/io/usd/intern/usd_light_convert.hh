@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include <pxr/usd/usd/stage.h>
+#include <pxr/usd/usd/common.h>
 #include <pxr/usd/usdLux/domeLight.h>
 
-struct Light;
 struct Main;
 struct Scene;
 
@@ -26,6 +25,6 @@ void dome_light_to_world_material(const USDImportParams &params,
                                   Scene *scene,
                                   Main *bmain,
                                   const pxr::UsdLuxDomeLight &dome_light,
-                                  const double time = 0.0);
+                                  const double motionSampleTime = 0.0);
 
 }  // namespace blender::io::usd
