@@ -22,7 +22,7 @@ class OIDNDenoiserGPU : public DenoiserGPU {
    * OpenImageDenoise device and filter handles. */
   class State;
 
-  OIDNDenoiserGPU(Device *path_trace_device, const DenoiseParams &params);
+  OIDNDenoiserGPU(Device *denoiser_device, const DenoiseParams &params);
   ~OIDNDenoiserGPU();
 
   virtual bool denoise_buffer(const BufferParams &buffer_params,

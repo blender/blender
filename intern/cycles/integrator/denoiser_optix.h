@@ -15,7 +15,7 @@ CCL_NAMESPACE_BEGIN
 /* Implementation of denoising API which uses the OptiX denoiser. */
 class OptiXDenoiser : public DenoiserGPU {
  public:
-  OptiXDenoiser(Device *path_trace_device, const DenoiseParams &params);
+  OptiXDenoiser(Device *denoiser_device, const DenoiseParams &params);
   ~OptiXDenoiser();
 
  protected:

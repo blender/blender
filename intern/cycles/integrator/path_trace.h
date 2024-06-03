@@ -45,6 +45,7 @@ class PathTrace {
   /* Render scheduler is used to report timing information and access things like start/finish
    * sample. */
   PathTrace(Device *device,
+            Device *denoiser_device,
             Film *film,
             DeviceScene *device_scene,
             RenderScheduler &render_scheduler,
@@ -250,6 +251,10 @@ class PathTrace {
   /* Pointer to a device which is configured to be used for path tracing. If multiple devices
    * are configured this is a `MultiDevice`. */
   Device *device_ = nullptr;
+
+  /* Pointer to a device which is configured to be used for denoising. Can be identical
+   * to the device */
+  Device *denoise_device_ = nullptr;
 
   /* CPU device for creating temporary render buffers on the CPU side. */
   unique_ptr<Device> cpu_device_;

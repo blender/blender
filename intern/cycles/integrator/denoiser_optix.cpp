@@ -199,8 +199,8 @@ static OptixResult optixUtilDenoiserInvokeTiled(OptixDenoiser denoiser,
 }
 #  endif
 
-OptiXDenoiser::OptiXDenoiser(Device *path_trace_device, const DenoiseParams &params)
-    : DenoiserGPU(path_trace_device, params), state_(path_trace_device, "__denoiser_state", true)
+OptiXDenoiser::OptiXDenoiser(Device *denoiser_device, const DenoiseParams &params)
+    : DenoiserGPU(denoiser_device, params), state_(denoiser_device, "__denoiser_state", true)
 {
 }
 

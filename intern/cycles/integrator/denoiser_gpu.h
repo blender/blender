@@ -13,7 +13,7 @@ CCL_NAMESPACE_BEGIN
  * and invokes denoising kernels via the device queue API. */
 class DenoiserGPU : public Denoiser {
  public:
-  DenoiserGPU(Device *path_trace_device, const DenoiseParams &params);
+  DenoiserGPU(Device *denoiser_device, const DenoiseParams &params);
   ~DenoiserGPU();
 
   virtual bool denoise_buffer(const BufferParams &buffer_params,
@@ -79,8 +79,6 @@ class DenoiserGPU : public Denoiser {
   /* Returns true if task is fully handled. */
   virtual bool denoise_buffer(const DenoiseTask &task);
   virtual bool denoise_run(const DenoiseContext &context, const DenoisePass &pass) = 0;
-
-  virtual Device *ensure_denoiser_device(Progress *progress) override;
 
   unique_ptr<DeviceQueue> denoiser_queue_;
 

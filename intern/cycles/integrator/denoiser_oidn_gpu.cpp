@@ -159,8 +159,8 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 #  endif
 }
 
-OIDNDenoiserGPU::OIDNDenoiserGPU(Device *path_trace_device, const DenoiseParams &params)
-    : DenoiserGPU(path_trace_device, params)
+OIDNDenoiserGPU::OIDNDenoiserGPU(Device *denoiser_device, const DenoiseParams &params)
+    : DenoiserGPU(denoiser_device, params)
 {
   DCHECK_EQ(params.type, DENOISER_OPENIMAGEDENOISE);
 }

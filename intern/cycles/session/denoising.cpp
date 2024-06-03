@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "session/denoising.h"
+#include "device/cpu/device.h"
 
 #include "util/map.h"
 #include "util/system.h"
@@ -599,16 +600,20 @@ bool DenoiseImage::save_output(const string &out_filepath, string &error)
 
 /* File pattern handling and outer loop over frames */
 
-DenoiserPipeline::DenoiserPipeline(DeviceInfo &device_info, const DenoiseParams &params)
+DenoiserPipeline::DenoiserPipeline(DeviceInfo &denoiser_device_info, const DenoiseParams &params)
 {
   /* Initialize task scheduler. */
   TaskScheduler::init();
 
   /* Initialize device. */
-  device = Device::create(device_info, stats, profiler);
+  device = Device::create(denoiser_device_info, stats, profiler);
   device->load_kernels(KERNEL_FEATURE_DENOISING);
 
-  denoiser = Denoiser::create(device, params);
+  vector<DeviceInfo> cpu_devices;
+  device_cpu_info(cpu_devices);
+  cpu_device = device_cpu_create(cpu_devices[0], device->stats, device->profiler);
+
+  denoiser = Denoiser::create(device, cpu_device, params);
   denoiser->load_kernels(nullptr);
 }
 

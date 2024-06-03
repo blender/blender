@@ -223,7 +223,7 @@ def enum_openimagedenoise_denoiser(self, context):
 
 def enum_optix_denoiser(self, context):
     if not context or bool(context.preferences.addons[__package__].preferences.get_devices_for_type('OPTIX')):
-        return [('OPTIX', "OptiX", "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs", 2)]
+        return [('OPTIX', "OptiX", "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs when configured in the system tab in the user preferences", 2)]
     return []
 
 
@@ -380,7 +380,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
     denoising_use_gpu: BoolProperty(
         name="Denoise on GPU",
-        description="Perform denoising on GPU devices, if available. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
+        description="Perform denoising on GPU devices configured in the system tab in the user preferences. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
         default=False,
     )
 
@@ -421,7 +421,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
     preview_denoising_use_gpu: BoolProperty(
         name="Denoise Preview on GPU",
-        description="Perform denoising on GPU devices, if available. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
+        description="Perform denoising on GPU devices configured in the system tab in the user preferences. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
         default=True,
     )
 
@@ -1640,6 +1640,22 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 has_device_oidn_support = device[5]
                 if has_device_oidn_support and self.find_existing_device_entry(device).use:
                     return True
+
+        return False
+
+    def has_optixdenoiser_gpu_devices(self):
+        import _cycles
+        compute_device_type = self.get_compute_device_type()
+
+        # We need any OptiX devices, used for rendering
+        for device in _cycles.available_devices(compute_device_type):
+            device_type = device[1]
+            if device_type == 'CPU':
+                continue
+
+            has_device_optixdenoiser_support = device[6]
+            if has_device_optixdenoiser_support and self.find_existing_device_entry(device).use:
+                return True
 
         return False
 
