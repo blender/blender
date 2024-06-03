@@ -936,6 +936,12 @@ bool ED_sequencer_can_select_handle(const Scene *scene, const Sequence *seq, con
     return false;
   }
 
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
+  if (SEQ_transform_is_locked(channels, seq)) {
+    return false;
+  }
+
   int min_len = 25 * U.pixelsize;
   if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
     min_len = 15 * U.pixelsize;
