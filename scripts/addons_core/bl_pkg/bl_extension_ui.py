@@ -976,6 +976,8 @@ def tags_current(wm):
 
     tags = set()
     for pkg_manifest_remote in repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print):
+        if pkg_manifest_remote is None:
+            continue
         for item_remote in pkg_manifest_remote.values():
             if filter_by_type != item_remote["type"]:
                 continue
