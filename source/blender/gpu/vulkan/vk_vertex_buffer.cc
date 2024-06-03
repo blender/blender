@@ -208,15 +208,13 @@ const GPUVertFormat &VKVertexBuffer::device_format_get() const
 
 void VKVertexBuffer::allocate()
 {
-  const bool is_host_visible = ELEM(usage_, GPU_USAGE_DYNAMIC, GPU_USAGE_STREAM);
   VkBufferUsageFlags vk_buffer_usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
                                        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                                        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                                       VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
-  if (!is_host_visible) {
-    vk_buffer_usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-  }
-  buffer_.create(size_alloc_get(), usage_, vk_buffer_usage, is_host_visible);
+                                       VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
+                                       VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+  buffer_.create(size_alloc_get(), GPU_USAGE_STATIC, vk_buffer_usage, false);
   debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }
 
