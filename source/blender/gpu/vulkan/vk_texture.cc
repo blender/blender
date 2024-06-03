@@ -183,15 +183,18 @@ void VKTexture::copy_to(Texture *tex)
 
 void VKTexture::clear(eGPUDataFormat format, const void *data)
 {
-  BLI_assert(!is_texture_view());
-
   render_graph::VKClearColorImageNode::CreateInfo clear_color_image = {};
   clear_color_image.vk_clear_color_value = to_vk_clear_color_value(format, data);
   clear_color_image.vk_image = vk_image_handle();
   clear_color_image.vk_image_subresource_range.aspectMask = to_vk_image_aspect_flag_bits(
       device_format_);
-  clear_color_image.vk_image_subresource_range.layerCount = VK_REMAINING_ARRAY_LAYERS;
-  clear_color_image.vk_image_subresource_range.levelCount = VK_REMAINING_MIP_LEVELS;
+
+  IndexRange layers = layer_range();
+  clear_color_image.vk_image_subresource_range.baseArrayLayer = layers.start();
+  clear_color_image.vk_image_subresource_range.layerCount = layers.size();
+  IndexRange levels = mip_map_range();
+  clear_color_image.vk_image_subresource_range.baseMipLevel = levels.start();
+  clear_color_image.vk_image_subresource_range.levelCount = levels.size();
 
   VKContext &context = *VKContext::get();
 
@@ -216,13 +219,16 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
   BLI_assert(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
 
   render_graph::VKClearDepthStencilImageNode::CreateInfo clear_depth_stencil_image = {};
-  clear_depth_stencil_image.vk_image = vk_image_handle();
-  clear_depth_stencil_image.vk_clear_depth_stencil_value.depth = clear_depth;
-  clear_depth_stencil_image.vk_clear_depth_stencil_value.stencil = clear_stencil;
-  clear_depth_stencil_image.vk_image_subresource_range.aspectMask = to_vk_image_aspect_flag_bits(
-      buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
-  clear_depth_stencil_image.vk_image_subresource_range.layerCount = VK_REMAINING_ARRAY_LAYERS;
-  clear_depth_stencil_image.vk_image_subresource_range.levelCount = VK_REMAINING_MIP_LEVELS;
+  clear_depth_stencil_image.node_data.vk_image = vk_image_handle();
+  clear_depth_stencil_image.vk_image_aspects = to_vk_image_aspect_flag_bits(device_format_get());
+  clear_depth_stencil_image.node_data.vk_clear_depth_stencil_value.depth = clear_depth;
+  clear_depth_stencil_image.node_data.vk_clear_depth_stencil_value.stencil = clear_stencil;
+  clear_depth_stencil_image.node_data.vk_image_subresource_range.aspectMask =
+      to_vk_image_aspect_flag_bits(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
+  clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount =
+      VK_REMAINING_ARRAY_LAYERS;
+  clear_depth_stencil_image.node_data.vk_image_subresource_range.levelCount =
+      VK_REMAINING_MIP_LEVELS;
 
   VKContext &context = *VKContext::get();
   if (use_render_graph) {
@@ -231,11 +237,11 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
   else {
     VKCommandBuffers &command_buffers = context.command_buffers_get();
     layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
-    command_buffers.clear(
-        clear_depth_stencil_image.vk_image,
-        current_layout_get(),
-        clear_depth_stencil_image.vk_clear_depth_stencil_value,
-        Span<VkImageSubresourceRange>(&clear_depth_stencil_image.vk_image_subresource_range, 1));
+    command_buffers.clear(clear_depth_stencil_image.node_data.vk_image,
+                          current_layout_get(),
+                          clear_depth_stencil_image.node_data.vk_clear_depth_stencil_value,
+                          Span<VkImageSubresourceRange>(
+                              &clear_depth_stencil_image.node_data.vk_image_subresource_range, 1));
   }
 }
 
@@ -761,7 +767,11 @@ VkExtent3D VKTexture::vk_extent_3d(int mip_level) const
 
 const VKImageView &VKTexture::image_view_get(const VKImageViewInfo &info)
 {
-  BLI_assert_msg(!is_texture_view(), "Image views must be requested at the source texture.");
+  if (is_texture_view()) {
+    // TODO: API should be improved as we don't support image view specialization.
+    // In the current API this is still possible to setup when using attachments.
+    return image_view_get();
+  }
   for (const VKImageView &image_view : image_views_) {
     if (image_view.info == info) {
       return image_view;
