@@ -94,11 +94,13 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   worker_status->progress = 0.0f;
   worker_status->do_update = true;
 
+  BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
+
   SubdivModifierDisabler subdiv_disabler(data->depsgraph);
   if (!data->params.apply_subdiv) {
     subdiv_disabler.disable_modifiers();
+    BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
   }
-  BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
 
   /* For restoring the current frame after exporting animation is done. */
   Scene *scene = DEG_get_input_scene(data->depsgraph);
