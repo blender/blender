@@ -442,7 +442,11 @@ void extract_face_dots(const MeshRenderData &mr, gpu::IndexBuf &face_dots);
 
 void extract_face_dots_uv(const MeshRenderData &mr, gpu::VertBuf &vbo);
 
-extern const MeshExtract extract_lines_paint_mask;
+void extract_lines_paint_mask(const MeshRenderData &mr, gpu::IndexBuf &lines);
+void extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
+                                     const DRWSubdivCache &subdiv_cache,
+                                     gpu::IndexBuf &lines);
+
 extern const MeshExtract extract_lines_adjacency;
 extern const MeshExtract extract_edituv_tris;
 extern const MeshExtract extract_edituv_lines;
