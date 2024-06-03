@@ -19,11 +19,6 @@
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)
 
-bool test_occlusion()
-{
-  return gl_FragCoord.z > texelFetch(depthTex, ivec2(gl_FragCoord.xy), 0).r;
-}
-
 float edge_step(float dist)
 {
   if (do_smooth_wire) {
@@ -48,7 +43,6 @@ void main()
 
   fragColor = mix(vec4(geometry_out.finalColor.rgb, alpha), vec4(0), mix_w);
   fragColor.a *= 1.0 - mix_w;
-  fragColor.a *= test_occlusion() ? alpha : 1.0;
   select_id_output(select_id);
   lineOutput = vec4(0);
 }
