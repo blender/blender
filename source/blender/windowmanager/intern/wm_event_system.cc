@@ -2471,29 +2471,25 @@ static void wm_event_modalkeymap_end(wmEvent *event, const wmEvent_ModalMapStore
  */
 static void wm_handler_operator_insert(wmWindow *win, wmEventHandler_Op *handler)
 {
-  if (handler->op->type->flag & OPTYPE_MODAL_PRIORITY) {
-    BLI_addhead(&win->modalhandlers, handler);
-    return;
-  }
-
-  LISTBASE_FOREACH (wmEventHandler *, handler_iter, &win->modalhandlers) {
-    if (handler_iter->type == WM_HANDLER_TYPE_UI) {
-      /* UI always has priority. */
-      continue;
-    }
-    if (handler_iter->type == WM_HANDLER_TYPE_OP) {
-      wmEventHandler_Op *handler_iter_op = (wmEventHandler_Op *)handler_iter;
-      if (handler_iter_op->op->type->flag & OPTYPE_MODAL_PRIORITY) {
-        /* Keep priority operators in front. */
-        continue;
+  if (!(handler->op->type->flag & OPTYPE_MODAL_PRIORITY)) {
+    /* Keep priority operators in front. */
+    wmEventHandler *last_priority_handler = nullptr;
+    LISTBASE_FOREACH (wmEventHandler *, handler_iter, &win->modalhandlers) {
+      if (handler_iter->type == WM_HANDLER_TYPE_OP) {
+        wmEventHandler_Op *handler_iter_op = (wmEventHandler_Op *)handler_iter;
+        if (handler_iter_op->op->type->flag & OPTYPE_MODAL_PRIORITY) {
+          last_priority_handler = handler_iter;
+        }
       }
+    }
 
-      BLI_insertlinkbefore(&win->modalhandlers, handler_iter, handler);
+    if (last_priority_handler) {
+      BLI_insertlinkafter(&win->modalhandlers, last_priority_handler, handler);
       return;
     }
   }
 
-  BLI_addtail(&win->modalhandlers, handler);
+  BLI_addhead(&win->modalhandlers, handler);
 }
 
 /**
