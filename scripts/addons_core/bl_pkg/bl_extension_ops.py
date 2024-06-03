@@ -2451,9 +2451,28 @@ class EXTENSIONS_OT_userpref_show_for_update(Operator):
 # NOTE: this is a wrapper for `SCREEN_OT_userpref_show`.
 # It exists *only* to add a poll function which sets a message when offline mode is forced.
 class EXTENSIONS_OT_userpref_show_online(Operator):
+    """Show system preferences "Network" panel to allow online access"""
+    bl_idname = "extensions.userpref_show_online"
+    bl_label = ""
+    bl_options = {'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        if bpy.app.online_access_override:
+            if not bpy.app.online_access:
+                cls.poll_message_set("Blender was launched in offline-mode which cannot be changed at runtime")
+                return False
+        return True
+
+    def execute(self, context):
+        bpy.ops.screen.userpref_show('INVOKE_DEFAULT', section='SYSTEM')
+        return {'FINISHED'}
+
+
+class EXTENSIONS_OT_userpref_allow_online(Operator):
     """Allow internet access. Blender may access configured online extension repositories. """ \
         """Installed third party add-ons may access the internet for their own functionality"""
-    bl_idname = "extensions.userpref_show_online"
+    bl_idname = "extensions.userpref_allow_online"
     bl_label = ""
     bl_options = {'INTERNAL'}
 
@@ -2470,12 +2489,12 @@ class EXTENSIONS_OT_userpref_show_online(Operator):
         return {'FINISHED'}
 
 
-# NOTE: this is a wrapper for `extensions.userpref_show_online`.
+# NOTE: this is a wrapper for `extensions.userpref_allow_online`.
 # It exists *only* show a dialog.
-class EXTENSIONS_OT_userpref_show_online_popup(Operator):
+class EXTENSIONS_OT_userpref_allow_online_popup(Operator):
     """Allow internet access. Blender may access configured online extension repositories. """ \
         """Installed third party add-ons may access the internet for their own functionality"""
-    bl_idname = "extensions.userpref_show_online_popup"
+    bl_idname = "extensions.userpref_allow_online_popup"
     bl_label = ""
     bl_options = {'INTERNAL'}
 
@@ -2569,7 +2588,8 @@ classes = (
 
     EXTENSIONS_OT_userpref_show_for_update,
     EXTENSIONS_OT_userpref_show_online,
-    EXTENSIONS_OT_userpref_show_online_popup,
+    EXTENSIONS_OT_userpref_allow_online,
+    EXTENSIONS_OT_userpref_allow_online_popup,
 
     # Dummy, just shows a message.
     EXTENSIONS_OT_package_enable_not_installed,

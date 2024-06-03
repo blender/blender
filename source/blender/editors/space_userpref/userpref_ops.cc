@@ -870,7 +870,7 @@ static int preferences_extension_url_drop_invoke(bContext *C, wmOperator *op, co
   bool use_url = true;
 
   if (url_is_online && (G.f & G_FLAG_INTERNET_ALLOW) == 0) {
-    idname_external = "extensions.userpref_show_online_popup";
+    idname_external = "extensions.userpref_allow_online_popup";
     use_url = false;
   }
 

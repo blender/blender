@@ -374,7 +374,7 @@ def extensions_panel_draw_online_extensions_request_impl(
 
         # The only reason to prefer this over `screen.userpref_show`
         # is it will be disabled when `--offline-mode` is forced with a useful error for why.
-        row.operator("extensions.userpref_show_online", text="Allow Online Access", icon='CHECKMARK')
+        row.operator("extensions.userpref_allow_online", text="Allow Online Access", icon='CHECKMARK')
 
 
 def extensions_panel_draw_impl(
