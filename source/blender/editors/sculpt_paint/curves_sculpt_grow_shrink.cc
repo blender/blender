@@ -154,7 +154,8 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
         /* Use some point within the curve rather than the end point to smooth out some random
          * variation. */
         const float3 direction_reference_point =
-            positions_cu[curve_points[curve_points.size() / 2]];
+            positions_cu[curve_points.size() > 2 ? curve_points[curve_points.size() / 2] :
+                                                   curve_points.first()];
         const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
         const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
