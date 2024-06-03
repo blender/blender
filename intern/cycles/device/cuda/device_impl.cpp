@@ -347,12 +347,10 @@ string CUDADevice::compile_kernel(const string &common_cflags,
         nvcc_cuda_version % 10);
     return string();
   }
-  else if (!(nvcc_cuda_version == 101 || nvcc_cuda_version == 102 || nvcc_cuda_version == 111 ||
-             nvcc_cuda_version == 112 || nvcc_cuda_version == 113 || nvcc_cuda_version == 114))
-  {
+  else if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
     printf(
         "CUDA version %d.%d detected, build may succeed but only "
-        "CUDA 10.1 to 11.4 are officially supported.\n",
+        "CUDA 10.1 to 12 are officially supported.\n",
         nvcc_cuda_version / 10,
         nvcc_cuda_version % 10);
   }
