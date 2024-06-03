@@ -344,6 +344,304 @@ static void versioning_eevee_shadow_settings(Object *object)
   SET_FLAG_FROM_TEST(object->visibility_flag, hide_shadows, OB_HIDE_SHADOW);
 }
 
+/**
+ * Represents a source of transparency inside the closure part of a material node-tree.
+ * Sources can be combined together down the tree to figure out where the source of the alpha is.
+ * If there is multiple alpha source, we consider the tree as having complex alpha and don't do the
+ * versioning.
+ */
+struct AlphaSource {
+  enum AlphaState {
+    /* Alpha input is 0. */
+    ALPHA_OPAQUE = 0,
+    /* Alpha input is 1. */
+    ALPHA_FULLY_TRANSPARENT,
+    /* Alpha is between 0 and 1, from a graph input or the result of one blending operation. */
+    ALPHA_SEMI_TRANSPARENT,
+    /* Alpha is unknown and the result of more than one blending operation. */
+    ALPHA_COMPLEX_MIX
+  };
+
+  /* Socket that is the source of the potential semi-transparency. */
+  bNodeSocket *socket = nullptr;
+  /* State of the source. */
+  AlphaState state;
+  /* True if socket is transparency instead of alpha (e.g: `1-alpha`). */
+  bool is_transparency = false;
+
+  static AlphaSource alpha_source(bNodeSocket *fac, bool inverted = false)
+  {
+    return {fac, ALPHA_SEMI_TRANSPARENT, inverted};
+  }
+  static AlphaSource opaque()
+  {
+    return {nullptr, ALPHA_OPAQUE, false};
+  }
+  static AlphaSource fully_transparent(bNodeSocket *socket = nullptr, bool inverted = false)
+  {
+    return {socket, ALPHA_FULLY_TRANSPARENT, inverted};
+  }
+  static AlphaSource complex_alpha()
+  {
+    return {nullptr, ALPHA_COMPLEX_MIX, false};
+  }
+
+  bool is_opaque() const
+  {
+    return state == ALPHA_OPAQUE;
+  }
+  bool is_fully_transparent() const
+  {
+    return state == ALPHA_FULLY_TRANSPARENT;
+  }
+  bool is_transparent() const
+  {
+    return state != ALPHA_OPAQUE;
+  }
+  bool is_semi_transparent() const
+  {
+    return state == ALPHA_SEMI_TRANSPARENT;
+  }
+  bool is_complex() const
+  {
+    return state == ALPHA_COMPLEX_MIX;
+  }
+
+  /* Combine two source together with a blending parameter. */
+  static AlphaSource mix(const AlphaSource &a, const AlphaSource &b, bNodeSocket *fac)
+  {
+    if (a.is_complex() || b.is_complex()) {
+      return complex_alpha();
+    }
+    if (a.is_semi_transparent() || b.is_semi_transparent()) {
+      return complex_alpha();
+    }
+    if (a.is_fully_transparent() && b.is_fully_transparent()) {
+      return fully_transparent();
+    }
+    if (a.is_opaque() && b.is_opaque()) {
+      return opaque();
+    }
+    /* Only one of them is fully transparent. */
+    return alpha_source(fac, !a.is_transparent());
+  }
+
+  /* Combine two source together with an additive blending parameter. */
+  static AlphaSource add(const AlphaSource &a, const AlphaSource &b)
+  {
+    if (a.is_complex() || b.is_complex()) {
+      return complex_alpha();
+    }
+    if (a.is_semi_transparent() && b.is_transparent()) {
+      return complex_alpha();
+    }
+    if (a.is_transparent() && b.is_semi_transparent()) {
+      return complex_alpha();
+    }
+    /* Either one of them is opaque or they are both opaque. */
+    return a.is_transparent() ? a : b;
+  }
+};
+
+/**
+ * WARNING: recursive.
+ */
+static AlphaSource versioning_eevee_alpha_source_get(bNodeSocket *socket, int depth = 0)
+{
+  if (depth > 100) {
+    /* Protection against infinite / very long recursion.
+     * Also a node-tree with that much depth is likely to not be compatible. */
+    return AlphaSource::complex_alpha();
+  }
+
+  if (socket->link == nullptr) {
+    /* Unconnected closure socket is always opaque black. */
+    return AlphaSource::opaque();
+  }
+
+  bNode *node = socket->link->fromnode;
+
+  switch (node->type) {
+    case NODE_REROUTE: {
+      return versioning_eevee_alpha_source_get(
+          static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0)), depth + 1);
+    }
+
+    case NODE_GROUP: {
+      return AlphaSource::complex_alpha();
+    }
+
+    case SH_NODE_BSDF_TRANSPARENT: {
+      bNodeSocket *socket = blender::bke::nodeFindSocket(node, SOCK_IN, "Color");
+      if (socket->link == nullptr) {
+        float *socket_color_value = version_cycles_node_socket_rgba_value(socket);
+        if ((socket_color_value[0] == 0.0f) && (socket_color_value[1] == 0.0f) &&
+            (socket_color_value[2] == 0.0f))
+        {
+          return AlphaSource::opaque();
+        }
+        if ((socket_color_value[0] == 1.0f) && (socket_color_value[1] == 1.0f) &&
+            (socket_color_value[2] == 1.0f))
+        {
+          return AlphaSource::fully_transparent(socket, true);
+        }
+      }
+      return AlphaSource::alpha_source(socket, true);
+    }
+
+    case SH_NODE_MIX_SHADER: {
+      bNodeSocket *socket = blender::bke::nodeFindSocket(node, SOCK_IN, "Fac");
+      AlphaSource src0 = versioning_eevee_alpha_source_get(
+          static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1)), depth + 1);
+      AlphaSource src1 = versioning_eevee_alpha_source_get(
+          static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2)), depth + 1);
+
+      if (socket->link == nullptr) {
+        float socket_float_value = *version_cycles_node_socket_float_value(socket);
+        if (socket_float_value == 0.0f) {
+          return src0;
+        }
+        if (socket_float_value == 1.0f) {
+          return src1;
+        }
+      }
+      return AlphaSource::mix(src0, src1, socket);
+    }
+
+    case SH_NODE_ADD_SHADER: {
+      AlphaSource src0 = versioning_eevee_alpha_source_get(
+          static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0)), depth + 1);
+      AlphaSource src1 = versioning_eevee_alpha_source_get(
+          static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1)), depth + 1);
+      return AlphaSource::add(src0, src1);
+    }
+
+    case SH_NODE_BSDF_PRINCIPLED: {
+      bNodeSocket *socket = blender::bke::nodeFindSocket(node, SOCK_IN, "Alpha");
+      if (socket->link == nullptr) {
+        float socket_value = *version_cycles_node_socket_float_value(socket);
+        if (socket_value == 0.0f) {
+          return AlphaSource::fully_transparent(socket);
+        }
+        if (socket_value == 1.0f) {
+          return AlphaSource::opaque();
+        }
+      }
+      return AlphaSource::alpha_source(socket);
+    }
+
+    case SH_NODE_EEVEE_SPECULAR: {
+      bNodeSocket *socket = blender::bke::nodeFindSocket(node, SOCK_IN, "Transparency");
+      if (socket->link == nullptr) {
+        float socket_value = *version_cycles_node_socket_float_value(socket);
+        if (socket_value == 0.0f) {
+          return AlphaSource::fully_transparent(socket, true);
+        }
+        if (socket_value == 1.0f) {
+          return AlphaSource::opaque();
+        }
+      }
+      return AlphaSource::alpha_source(socket, true);
+    }
+
+    default:
+      return AlphaSource::opaque();
+  }
+}
+
+/**
+ * This function detect the alpha input of a material node-tree and then convert the input alpha to
+ * a step function, either statically or using a math node when there is some value plugged in.
+ * If the closure mixture mix some alpha more than once, we cannot convert automatically and keep
+ * the same behavior. So we bail out in this case.
+ *
+ * Only handles the closure tree from the output node.
+ */
+static bool versioning_eevee_material_blend_mode_settings(bNodeTree *ntree, float threshold)
+{
+  bNode *output_node = version_eevee_output_node_get(ntree, SH_NODE_OUTPUT_MATERIAL);
+  if (output_node == nullptr) {
+    return true;
+  }
+  bNodeSocket *surface_socket = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Surface");
+
+  AlphaSource alpha = versioning_eevee_alpha_source_get(surface_socket);
+
+  if (alpha.is_complex()) {
+    return false;
+  }
+  if (alpha.socket == nullptr) {
+    return true;
+  }
+
+  bool is_opaque = (threshold == 2.0f);
+  if (is_opaque) {
+    if (alpha.socket->link != nullptr) {
+      blender::bke::nodeRemLink(ntree, alpha.socket->link);
+    }
+
+    float value = (alpha.is_transparency) ? 0.0f : 1.0f;
+    float values[4] = {value, value, value, 1.0f};
+
+    /* Set default value to opaque. */
+    if (alpha.socket->type == SOCK_RGBA) {
+      copy_v4_v4(version_cycles_node_socket_rgba_value(alpha.socket), values);
+    }
+    else {
+      *version_cycles_node_socket_float_value(alpha.socket) = value;
+    }
+  }
+  else {
+    if (alpha.socket->link != nullptr) {
+      /* Insert math node. */
+      bNode *to_node = alpha.socket->link->tonode;
+      bNode *from_node = alpha.socket->link->fromnode;
+      bNodeSocket *to_socket = alpha.socket->link->tosock;
+      bNodeSocket *from_socket = alpha.socket->link->fromsock;
+      blender::bke::nodeRemLink(ntree, alpha.socket->link);
+
+      bNode *math_node = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeMath");
+      math_node->custom1 = NODE_MATH_GREATER_THAN;
+      math_node->flag |= NODE_HIDDEN;
+      math_node->parent = to_node->parent;
+      math_node->locx = to_node->locx - math_node->width - 30;
+      math_node->locy = min_ff(to_node->locy, from_node->locy);
+
+      bNodeSocket *input_1 = static_cast<bNodeSocket *>(BLI_findlink(&math_node->inputs, 0));
+      bNodeSocket *input_2 = static_cast<bNodeSocket *>(BLI_findlink(&math_node->inputs, 1));
+      bNodeSocket *output = static_cast<bNodeSocket *>(math_node->outputs.first);
+      bNodeSocket *alpha_sock = input_1;
+      bNodeSocket *threshold_sock = input_2;
+
+      blender::bke::nodeAddLink(ntree, from_node, from_socket, math_node, alpha_sock);
+      blender::bke::nodeAddLink(ntree, math_node, output, to_node, to_socket);
+
+      *version_cycles_node_socket_float_value(threshold_sock) = alpha.is_transparency ?
+                                                                    1.0f - threshold :
+                                                                    threshold;
+    }
+    else {
+      /* Modify alpha value directly. */
+      if (alpha.socket->type == SOCK_RGBA) {
+        float *default_value = version_cycles_node_socket_rgba_value(alpha.socket);
+        float sum = default_value[0] + default_value[1] + default_value[2];
+        /* Don't do the division if possible to avoid float imprecision. */
+        float avg = (sum >= 3.0f) ? 1.0f : (sum / 3.0f);
+        float value = float((alpha.is_transparency) ? (avg > 1.0f - threshold) :
+                                                      (avg > threshold));
+        float values[4] = {value, value, value, 1.0f};
+        copy_v4_v4(default_value, values);
+      }
+      else {
+        float *default_value = version_cycles_node_socket_float_value(alpha.socket);
+        *default_value = float((alpha.is_transparency) ? (*default_value > 1.0f - threshold) :
+                                                         (*default_value > threshold));
+      }
+    }
+  }
+  return true;
+}
+
 static void versioning_replace_splitviewer(bNodeTree *ntree)
 {
   /* Split viewer was replaced with a regular split node, so add a viewer node,
@@ -3491,36 +3789,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Mark old EEVEE world volumes for showing conversion operator. */
     LISTBASE_FOREACH (World *, world, &bmain->worlds) {
       if (world->nodetree) {
-        /* NOTE: duplicated from `ntreeShaderOutputNode` with small adjustments so it can be called
-         * during versioning. */
-        bNode *output_node = nullptr;
-
-        LISTBASE_FOREACH (bNode *, node, &world->nodetree->nodes) {
-          if (node->type != SH_NODE_OUTPUT_WORLD) {
-            continue;
-          }
-
-          if (node->custom1 == SHD_OUTPUT_ALL) {
-            if (output_node == nullptr) {
-              output_node = node;
-            }
-            else if (output_node->custom1 == SHD_OUTPUT_ALL) {
-              if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
-                output_node = node;
-              }
-            }
-          }
-          else if (node->custom1 == SHD_OUTPUT_EEVEE) {
-            if (output_node == nullptr) {
-              output_node = node;
-            }
-            else if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
-              output_node = node;
-            }
-          }
-        }
-        /* End duplication. */
-
+        bNode *output_node = version_eevee_output_node_get(world->nodetree, SH_NODE_OUTPUT_WORLD);
         if (output_node) {
           bNodeSocket *volume_input_socket = static_cast<bNodeSocket *>(
               BLI_findlink(&output_node->inputs, 1));
@@ -3719,6 +3988,55 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         item.data_type = storage->data_type_legacy;
         item.identifier = storage->next_identifier++;
         item.name = BLI_strdup("Value");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 51)) {
+    /* Convert blend method to math nodes. */
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    bool scene_uses_eevee_legacy = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+
+    if (scene_uses_eevee_legacy) {
+      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+        if (!material->use_nodes || material->nodetree == nullptr) {
+          continue;
+        }
+
+        if (ELEM(material->blend_method, MA_BM_HASHED, MA_BM_BLEND)) {
+          /* Compatible modes. Nothing to change. */
+          continue;
+        }
+
+        if (material->blend_shadow == MA_BS_NONE) {
+          /* No need to match the surface since shadows are disabled. */
+        }
+        else if (material->blend_shadow == MA_BS_SOLID) {
+          /* This is already versionned an transfered to `transparent_shadows`. */
+        }
+        else if ((material->blend_shadow == MA_BS_CLIP && material->blend_method != MA_BM_CLIP) ||
+                 (material->blend_shadow == MA_BS_HASHED))
+        {
+          BLO_reportf_wrap(fd->reports,
+                           RPT_WARNING,
+                           RPT_("Couldn't convert material %s because of different Blend Mode "
+                                "and Shadow Mode\n"),
+                           material->id.name + 2);
+          continue;
+        }
+
+        /* TODO(fclem): Check if theshold is driven or has animation. Bail out if needed? */
+
+        float threshold = (material->blend_method == MA_BM_CLIP) ? material->alpha_threshold :
+                                                                   2.0f;
+
+        if (!versioning_eevee_material_blend_mode_settings(material->nodetree, threshold)) {
+          BLO_reportf_wrap(
+              fd->reports,
+              RPT_WARNING,
+              RPT_("Couldn't convert material %s because of non-trivial alpha blending\n"),
+              material->id.name + 2);
+        }
       }
     }
   }

@@ -166,3 +166,5 @@ void version_update_node_input(
     const char *socket_identifier,
     FunctionRef<void(bNode *, bNodeSocket *)> update_input,
     FunctionRef<void(bNode *, bNodeSocket *, bNode *, bNodeSocket *)> update_input_link);
+
+bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type);

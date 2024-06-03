@@ -551,6 +551,38 @@ void version_update_node_input(
   }
 }
 
+bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type)
+{
+  bNode *output_node = nullptr;
+  /* NOTE: duplicated from `ntreeShaderOutputNode` with small adjustments so it can be called
+   * during versioning. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != node_type) {
+      continue;
+    }
+    if (node->custom1 == SHD_OUTPUT_ALL) {
+      if (output_node == nullptr) {
+        output_node = node;
+      }
+      else if (output_node->custom1 == SHD_OUTPUT_ALL) {
+        if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+          output_node = node;
+        }
+      }
+    }
+    else if (node->custom1 == SHD_OUTPUT_EEVEE) {
+      if (output_node == nullptr) {
+        output_node = node;
+      }
+      else if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+        output_node = node;
+      }
+    }
+  }
+
+  return output_node;
+}
+
 static bool blendfile_or_libraries_versions_atleast(Main *bmain,
                                                     const short versionfile,
                                                     const short subversionfile)
