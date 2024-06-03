@@ -420,6 +420,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
 
   /* Early out if the emitter is guaranteed to be invisible. */
   bool is_visible;
+  float energy = kemitter->energy;
   if (is_triangle(kemitter)) {
     is_visible = triangle_light_tree_parameters<in_volume_segment>(
         kg, kemitter, centroid, P_c, N_or_D, bcone, cos_theta_u, distance, point_to_centroid);
@@ -431,7 +432,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
       /* Function templates only modifies cos_theta_u when in_volume_segment = true. */
       case LIGHT_SPOT:
         is_visible = spot_light_tree_parameters<in_volume_segment>(
-            klight, centroid, P_c, cos_theta_u, distance, point_to_centroid);
+            klight, centroid, P_c, bcone, cos_theta_u, distance, point_to_centroid, energy);
         break;
       case LIGHT_POINT:
         is_visible = point_light_tree_parameters<in_volume_segment>(
@@ -475,7 +476,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
                                            bcone,
                                            distance.x,
                                            distance.y,
-                                           kemitter->energy,
+                                           energy,
                                            max_importance,
                                            min_importance);
 }
