@@ -466,6 +466,8 @@ void extract_sculpt_data_subdiv(const MeshRenderData &mr,
 
 void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo);
 
+void extract_mesh_analysis(const MeshRenderData &mr, gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_edituv_tris;
 extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
@@ -473,7 +475,6 @@ extern const MeshExtract extract_edituv_fdots;
 extern const MeshExtract extract_edituv_data;
 extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;
-extern const MeshExtract extract_mesh_analysis;
 extern const MeshExtract extract_fdots_edituv_data;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
 extern const MeshExtract extract_attr_viewer;
