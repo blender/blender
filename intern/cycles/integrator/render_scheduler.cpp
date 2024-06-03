@@ -911,7 +911,7 @@ int RenderScheduler::get_num_samples_during_navigation(int resolution_divider) c
   if (is_denoise_active_during_update()) {
     /* When denoising is used during navigation prefer using a higher resolution with less samples
      * (scheduling less samples here will make it so the resolution_divider calculation will use a
-     * lower value for the divider). This is because both OpenImageDenoiser and OptiX denoiser
+     * lower value for the divider). This is because both OpenImageDenoise and OptiX denoiser
      * give visually better results on a higher resolution image with less samples. */
     return 1;
   }
@@ -1127,7 +1127,7 @@ double RenderScheduler::guess_viewport_navigation_update_interval_in_seconds() c
     /* Use lower value than the non-denoised case to allow having more pixels to reconstruct the
      * image from. With the faster updates and extra compute required the resolution becomes too
      * low to give usable feedback. */
-    /* NOTE: Based on performance of OpenImageDenoiser on CPU. For OptiX denoiser or other denoiser
+    /* NOTE: Based on performance of OpenImageDenoise on CPU. For OptiX denoiser or other denoiser
      * on GPU the value might need to become lower for faster navigation. */
     return 1.0 / 12.0;
   }
