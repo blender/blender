@@ -657,7 +657,6 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   }
   EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
 
-  EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
   EXTRACT_ADD_REQUESTED(ibo, edituv_tris);
   EXTRACT_ADD_REQUESTED(ibo, edituv_lines);
   EXTRACT_ADD_REQUESTED(ibo, edituv_points);
@@ -675,7 +674,8 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
       !DRW_vbo_requested(buffers.vbo.face_idx) && !DRW_vbo_requested(buffers.vbo.edge_idx) &&
       !DRW_vbo_requested(buffers.vbo.vert_idx) && !DRW_vbo_requested(buffers.vbo.fdot_idx) &&
       !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_uv) &&
-      !DRW_ibo_requested(buffers.ibo.lines_paint_mask))
+      !DRW_ibo_requested(buffers.ibo.lines_paint_mask) &&
+      !DRW_ibo_requested(buffers.ibo.lines_adjacency))
   {
     return;
   }
@@ -976,6 +976,23 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
+  if (DRW_ibo_requested(buffers.ibo.lines_adjacency)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+      MeshBatchCache &cache;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_lines_adjacency(
+              data.mr, *data.buffers.ibo.lines_adjacency, data.cache.is_manifold);
+        },
+        new TaskData{*mr, buffers, cache},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
 
   if (use_thread) {
     /* First run the requested extractors that do not support asynchronous ranges. */
@@ -1077,7 +1094,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   EXTRACT_ADD_REQUESTED(vbo, uv);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_area);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
-  EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
   EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
 
 #undef EXTRACT_ADD_REQUESTED
@@ -1091,7 +1107,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
       !DRW_vbo_requested(buffers.vbo.edge_idx) && !DRW_vbo_requested(buffers.vbo.vert_idx) &&
       !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_nor) &&
       !DRW_vbo_requested(buffers.vbo.fdots_pos) && !DRW_ibo_requested(buffers.ibo.fdots) &&
-      !DRW_ibo_requested(buffers.ibo.lines_paint_mask))
+      !DRW_ibo_requested(buffers.ibo.lines_paint_mask) &&
+      !DRW_ibo_requested(buffers.ibo.lines_adjacency))
   {
     return;
   }
@@ -1147,6 +1164,9 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   }
   if (DRW_ibo_requested(buffers.ibo.lines_paint_mask)) {
     extract_lines_paint_mask_subdiv(mr, subdiv_cache, *buffers.ibo.lines_paint_mask);
+  }
+  if (DRW_ibo_requested(buffers.ibo.lines_adjacency)) {
+    extract_lines_adjacency_subdiv(subdiv_cache, *buffers.ibo.lines_adjacency, cache.is_manifold);
   }
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);

@@ -447,7 +447,11 @@ void extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
                                      const DRWSubdivCache &subdiv_cache,
                                      gpu::IndexBuf &lines);
 
-extern const MeshExtract extract_lines_adjacency;
+void extract_lines_adjacency(const MeshRenderData &mr, gpu::IndexBuf &ibo, bool &r_is_manifold);
+void extract_lines_adjacency_subdiv(const DRWSubdivCache &subdiv_cache,
+                                    gpu::IndexBuf &ibo,
+                                    bool &r_is_manifold);
+
 extern const MeshExtract extract_edituv_tris;
 extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
