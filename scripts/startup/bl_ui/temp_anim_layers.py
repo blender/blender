@@ -35,10 +35,11 @@ class VIEW3D_PT_animation_layers(Panel):
         # FIXME: this should be done in response to a message-bus callback, notifier, whatnot.
         adt = context.object.animation_data
         with _wm_selected_action_lock:
-            if adt:
-                context.window_manager.selected_action = adt.action
-            else:
-                context.window_manager.selected_action = None
+            selected_action = getattr(adt, 'action', None)
+            # Only set if it has to change, to avoid unnecessary notifies (that cause
+            # a redraw, that cause this code to be called, etc.)
+            if context.window_manager.selected_action != selected_action:
+                context.window_manager.selected_action = selected_action
 
         col = layout.column()
         # This has to go via an auxiliary property, as assigning an Animation
