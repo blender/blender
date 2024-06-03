@@ -464,11 +464,12 @@ void extract_sculpt_data_subdiv(const MeshRenderData &mr,
                                 const DRWSubdivCache &subdiv_cache,
                                 gpu::VertBuf &vbo);
 
+void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_edituv_tris;
 extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
 extern const MeshExtract extract_edituv_fdots;
-extern const MeshExtract extract_orco;
 extern const MeshExtract extract_edituv_data;
 extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;
