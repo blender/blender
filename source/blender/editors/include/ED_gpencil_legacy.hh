@@ -610,6 +610,7 @@ void ED_gpencil_stroke_close_by_distance(bGPDstroke *gps, float threshold);
  * Calculate the brush cursor size in world space.
  */
 float ED_gpencil_cursor_radius(bContext *C, int x, int y);
+bool ED_gpencil_brush_cursor_poll(bContext *C);
 float ED_gpencil_radial_control_scale(bContext *C,
                                       Brush *brush,
                                       float initial_value,
