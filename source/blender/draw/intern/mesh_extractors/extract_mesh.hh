@@ -456,6 +456,15 @@ void extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &cache, gpu:
 void extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
                             const MeshBatchCache &cache,
                             gpu::VertBuf &vbo);
+void extract_edituv_stretch_area(const MeshRenderData &mr,
+                                 gpu::VertBuf &vbo,
+                                 float &tot_area,
+                                 float &tot_uv_area);
+void extract_edituv_stretch_area_subdiv(const MeshRenderData &mr,
+                                        const DRWSubdivCache &subdiv_cache,
+                                        gpu::VertBuf &vbo,
+                                        float &tot_area,
+                                        float &tot_uv_area);
 
 void extract_skin_roots(const MeshRenderData &mr, gpu::VertBuf &vbo);
 
@@ -473,7 +482,6 @@ extern const MeshExtract extract_edituv_lines;
 extern const MeshExtract extract_edituv_points;
 extern const MeshExtract extract_edituv_fdots;
 extern const MeshExtract extract_edituv_data;
-extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;
 extern const MeshExtract extract_fdots_edituv_data;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
