@@ -174,6 +174,11 @@ struct Render *RE_GetSceneRender(const struct Scene *scene);
 struct RenderEngineType;
 struct ViewRender *RE_NewViewRender(struct RenderEngineType *engine_type);
 
+/* Creates a new render for interactive compositing of the given scene. If an existing render
+ * exists for the given scene, it is returned instead. See interactive_compositor_renders in
+ * RenderGlobal for more information. */
+struct Render *RE_NewInteractiveCompositorRender(const struct Scene *scene);
+
 /* Assign default dummy callbacks. */
 
 /**
