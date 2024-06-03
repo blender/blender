@@ -6584,6 +6584,10 @@ class VIEW3D_PT_view3d_properties(Panel):
         sub.enabled = view.use_local_camera
         sub.prop(view, "camera", text="")
 
+        sub = col.row()
+        sub.active = view.region_3d.view_perspective == 'CAMERA'
+        sub.prop(view.overlay, "show_camera_passepartout", text="Passepartout")
+
         layout.separator()
 
         col = layout.column(align=True)
@@ -7260,8 +7264,6 @@ class VIEW3D_PT_overlay_guides(Panel):
         sub = split.column()
         sub.prop(overlay, "show_cursor", text="3D Cursor")
         sub.prop(overlay, "show_annotation", text="Annotations")
-        if view.region_3d.view_perspective == 'CAMERA':
-            sub.prop(overlay, "show_camera_passepartout", text="Passepartout")
 
         if shading.type == 'MATERIAL':
             row = col.row()

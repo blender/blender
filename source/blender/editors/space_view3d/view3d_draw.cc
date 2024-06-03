@@ -615,6 +615,11 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
     immUnbindProgram();
   }
 
+  /* When overlays are disabled, only show camera outline & passepartout. */
+  if (v3d->flag2 & V3D_HIDE_OVERLAYS || !(v3d->flag2 & V3D_SHOW_CAMERA_GUIDES)) {
+    return;
+  }
+
   /* And now, the dashed lines! */
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -1134,7 +1139,7 @@ static void view3d_draw_border(const bContext *C, ARegion *region)
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   View3D *v3d = CTX_wm_view3d(C);
 
-  if (rv3d->persp == RV3D_CAMOB && !(v3d->flag2 & V3D_HIDE_OVERLAYS)) {
+  if (rv3d->persp == RV3D_CAMOB) {
     drawviewborder(scene, depsgraph, region, v3d);
   }
   else if (v3d->flag2 & V3D_RENDER_BORDER) {
