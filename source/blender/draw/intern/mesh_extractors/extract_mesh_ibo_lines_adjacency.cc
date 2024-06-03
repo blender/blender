@@ -81,48 +81,60 @@ static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data &data,
   data.is_manifold = true;
 }
 
-BLI_INLINE void lines_adjacency_triangle(
-    uint v1, uint v2, uint v3, uint l1, uint l2, uint l3, MeshExtract_LineAdjacency_Data &data)
+inline void rotate_vector(uint3 &value)
+{
+  const uint tmp = value[0];
+  value[0] = value[2];
+  value[2] = value[1];
+  value[1] = tmp;
+}
+
+inline void lines_adjacency_triangle(uint3 vert_tri,
+                                     uint3 corner_tri,
+                                     MeshExtract_LineAdjacency_Data &data)
 {
   GPUIndexBufBuilder &elb = data.elb;
   /* Iterate around the triangle's edges. */
   for (int e = 0; e < 3; e++) {
-    SHIFT3(uint, v3, v2, v1);
-    SHIFT3(uint, l3, l2, l1);
+    rotate_vector(vert_tri);
+    rotate_vector(corner_tri);
 
-    bool inv_indices = (v2 > v3);
+    bool inv_indices = (vert_tri[1] > vert_tri[2]);
     data.eh->add_or_modify(
-        {v2, v3},
+        {vert_tri[1], vert_tri[2]},
         [&](int *value) {
-          int new_value = int(l1) + 1; /* 0 cannot be signed so add one. */
+          int new_value = int(corner_tri[0]) + 1; /* 0 cannot be signed so add one. */
           *value = inv_indices ? -new_value : new_value;
           /* Store loop indices for remaining non-manifold edges. */
-          data.vert_to_corner[v2] = l2;
-          data.vert_to_corner[v3] = l3;
+          data.vert_to_corner[vert_tri[1]] = corner_tri[1];
+          data.vert_to_corner[vert_tri[2]] = corner_tri[2];
         },
         [&](int *value) {
           int v_data = *value;
           if (v_data == NO_EDGE) {
-            int new_value = int(l1) + 1; /* 0 cannot be signed so add one. */
+            int new_value = int(corner_tri[0]) + 1; /* 0 cannot be signed so add one. */
             *value = inv_indices ? -new_value : new_value;
             /* Store loop indices for remaining non-manifold edges. */
-            data.vert_to_corner[v2] = l2;
-            data.vert_to_corner[v3] = l3;
+            data.vert_to_corner[vert_tri[1]] = corner_tri[1];
+            data.vert_to_corner[vert_tri[2]] = corner_tri[2];
           }
           else {
             /* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
             *value = NO_EDGE;
             bool inv_opposite = (v_data < 0);
-            uint l_opposite = uint(abs(v_data)) - 1;
+            const int corner_opposite = abs(v_data) - 1;
             /* TODO: Make this part thread-safe. */
             if (inv_opposite == inv_indices) {
               /* Don't share edge if triangles have non matching winding. */
-              GPU_indexbuf_add_line_adj_verts(&elb, l1, l2, l3, l1);
-              GPU_indexbuf_add_line_adj_verts(&elb, l_opposite, l2, l3, l_opposite);
+              GPU_indexbuf_add_line_adj_verts(
+                  &elb, corner_tri[0], corner_tri[1], corner_tri[2], corner_tri[0]);
+              GPU_indexbuf_add_line_adj_verts(
+                  &elb, corner_opposite, corner_tri[1], corner_tri[2], corner_opposite);
               data.is_manifold = false;
             }
             else {
-              GPU_indexbuf_add_line_adj_verts(&elb, l1, l2, l3, l_opposite);
+              GPU_indexbuf_add_line_adj_verts(
+                  &elb, corner_tri[0], corner_tri[1], corner_tri[2], corner_opposite);
             }
           }
         });
@@ -136,13 +148,12 @@ static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData & /*mr*
 {
   MeshExtract_LineAdjacency_Data &data = *static_cast<MeshExtract_LineAdjacency_Data *>(_data);
   if (!BM_elem_flag_test(tri[0]->f, BM_ELEM_HIDDEN)) {
-    lines_adjacency_triangle(BM_elem_index_get(tri[0]->v),
-                             BM_elem_index_get(tri[1]->v),
-                             BM_elem_index_get(tri[2]->v),
-                             BM_elem_index_get(tri[0]),
-                             BM_elem_index_get(tri[1]),
-                             BM_elem_index_get(tri[2]),
-                             data);
+    lines_adjacency_triangle(
+        uint3(BM_elem_index_get(tri[0]->v),
+              BM_elem_index_get(tri[1]->v),
+              BM_elem_index_get(tri[2]->v)),
+        uint3(BM_elem_index_get(tri[0]), BM_elem_index_get(tri[1]), BM_elem_index_get(tri[2])),
+        data);
   }
 }
 
@@ -157,13 +168,10 @@ static void extract_lines_adjacency_iter_corner_tri_mesh(const MeshRenderData &m
   if (hidden) {
     return;
   }
-  lines_adjacency_triangle(mr.corner_verts[tri[0]],
-                           mr.corner_verts[tri[1]],
-                           mr.corner_verts[tri[2]],
-                           tri[0],
-                           tri[1],
-                           tri[2],
-                           data);
+  lines_adjacency_triangle(
+      uint3(mr.corner_verts[tri[0]], mr.corner_verts[tri[1]], mr.corner_verts[tri[2]]),
+      uint3(tri),
+      data);
 }
 
 static void extract_lines_adjacency_init(const MeshRenderData &mr,
@@ -205,18 +213,18 @@ static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache &subdiv_cac
   MeshExtract_LineAdjacency_Data &data = *static_cast<MeshExtract_LineAdjacency_Data *>(_data);
 
   const uint loop_index = subdiv_quad_index * 4;
-  const uint l0 = loop_index + 0;
-  const uint l1 = loop_index + 1;
-  const uint l2 = loop_index + 2;
-  const uint l3 = loop_index + 3;
+  const uint corner_0 = loop_index + 0;
+  const uint corner_1 = loop_index + 1;
+  const uint corner_2 = loop_index + 2;
+  const uint corner_3 = loop_index + 3;
 
-  const uint v0 = subdiv_cache.subdiv_loop_subdiv_vert_index[l0];
-  const uint v1 = subdiv_cache.subdiv_loop_subdiv_vert_index[l1];
-  const uint v2 = subdiv_cache.subdiv_loop_subdiv_vert_index[l2];
-  const uint v3 = subdiv_cache.subdiv_loop_subdiv_vert_index[l3];
+  const uint vert_0 = subdiv_cache.subdiv_loop_subdiv_vert_index[corner_0];
+  const uint vert_1 = subdiv_cache.subdiv_loop_subdiv_vert_index[corner_1];
+  const uint vert_2 = subdiv_cache.subdiv_loop_subdiv_vert_index[corner_2];
+  const uint vert_3 = subdiv_cache.subdiv_loop_subdiv_vert_index[corner_3];
 
-  lines_adjacency_triangle(v0, v1, v2, l0, l1, l2, data);
-  lines_adjacency_triangle(v0, v2, v3, l0, l2, l3, data);
+  lines_adjacency_triangle({vert_0, vert_1, vert_2}, {corner_0, corner_1, corner_2}, data);
+  lines_adjacency_triangle({vert_0, vert_2, vert_3}, {corner_0, corner_2, corner_3}, data);
 }
 
 static void extract_lines_adjacency_iter_subdiv_bm(const DRWSubdivCache &subdiv_cache,
