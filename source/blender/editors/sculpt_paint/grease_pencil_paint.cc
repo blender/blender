@@ -727,6 +727,59 @@ void PaintOperation::on_stroke_extended(const bContext &C, const InputSample &ex
   WM_event_add_notifier(&C, NC_GEOM | ND_DATA, grease_pencil);
 }
 
+static void smooth_stroke(bke::greasepencil::Drawing &drawing,
+                          const float influence,
+                          const int iterations,
+                          const int active_curve)
+{
+  bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  const IndexRange stroke = IndexRange::from_single(active_curve);
+  const offset_indices::OffsetIndices<int> points_by_curve = drawing.strokes().points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
+  const VArray<bool> point_selection = VArray<bool>::ForSingle(true, curves.points_num());
+
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  bke::GSpanAttributeWriter positions = attributes.lookup_for_write_span("position");
+  geometry::smooth_curve_attribute(stroke,
+                                   points_by_curve,
+                                   point_selection,
+                                   cyclic,
+                                   iterations,
+                                   influence,
+                                   false,
+                                   true,
+                                   positions.span);
+  positions.finish();
+  drawing.tag_positions_changed();
+
+  if (drawing.opacities().is_span()) {
+    bke::GSpanAttributeWriter opacities = attributes.lookup_for_write_span("opacity");
+    geometry::smooth_curve_attribute(stroke,
+                                     points_by_curve,
+                                     point_selection,
+                                     cyclic,
+                                     iterations,
+                                     influence,
+                                     true,
+                                     false,
+                                     opacities.span);
+    opacities.finish();
+  }
+  if (drawing.radii().is_span()) {
+    bke::GSpanAttributeWriter radii = attributes.lookup_for_write_span("radius");
+    geometry::smooth_curve_attribute(stroke,
+                                     points_by_curve,
+                                     point_selection,
+                                     cyclic,
+                                     iterations,
+                                     influence,
+                                     true,
+                                     false,
+                                     radii.span);
+    radii.finish();
+  }
+}
+
 static void simplify_stroke(bke::greasepencil::Drawing &drawing,
                             const float epsilon,
                             const int active_curve)
@@ -876,6 +929,9 @@ void PaintOperation::on_stroke_done(const bContext &C)
   /* Set the selection of the newly drawn stroke to false. */
   deselect_stroke(C, drawing, active_curve);
   if (do_post_processing) {
+    if (settings->draw_smoothfac > 0.0f) {
+      smooth_stroke(drawing, settings->draw_smoothfac, settings->draw_smoothlvl, active_curve);
+    }
     if (settings->simplify_f > 0.0f) {
       simplify_stroke(drawing, settings->simplify_f, active_curve);
     }
