@@ -47,37 +47,15 @@ int mesh_render_mat_len_get(const Object &object, const Mesh &mesh)
 }
 
 struct MeshRenderDataUpdateTaskData {
-  MeshRenderData *mr = nullptr;
-  MeshBufferCache *cache = nullptr;
-
-  MeshRenderDataUpdateTaskData(MeshRenderData &mr, MeshBufferCache &cache) : mr(&mr), cache(&cache)
-  {
-  }
-
-  ~MeshRenderDataUpdateTaskData()
-  {
-    mesh_render_data_free(mr);
-  }
-
-#ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("DRW:MeshRenderDataUpdateTaskData")
-#endif
+  std::unique_ptr<MeshRenderData> mr;
+  MeshBufferCache &cache;
 };
-
-static void mesh_render_data_update_task_data_free(void *data)
-{
-  MeshRenderDataUpdateTaskData *taskdata = static_cast<MeshRenderDataUpdateTaskData *>(data);
-  BLI_assert(taskdata);
-  delete taskdata;
-}
 
 static void mesh_extract_render_data_node_exec(void *__restrict task_data)
 {
-  MeshRenderDataUpdateTaskData *update_task_data = static_cast<MeshRenderDataUpdateTaskData *>(
-      task_data);
+  auto *update_task_data = static_cast<MeshRenderDataUpdateTaskData *>(task_data);
   MeshRenderData &mr = *update_task_data->mr;
-
-  MeshBufferList &buffers = update_task_data->cache->buff;
+  MeshBufferList &buffers = update_task_data->cache.buff;
 
   const bool request_face_normals = DRW_vbo_requested(buffers.vbo.nor) ||
                                     DRW_vbo_requested(buffers.vbo.fdots_nor) ||
@@ -102,22 +80,8 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
                                DRW_vbo_requested(buffers.vbo.edge_idx);
 
   if (calc_loose_geom) {
-    mesh_render_data_update_loose_geom(mr, *update_task_data->cache);
+    mesh_render_data_update_loose_geom(mr, update_task_data->cache);
   }
-}
-
-static TaskNode *mesh_extract_render_data_node_create(TaskGraph *task_graph,
-                                                      MeshRenderData &mr,
-                                                      MeshBufferCache &cache)
-{
-  MeshRenderDataUpdateTaskData *task_data = new MeshRenderDataUpdateTaskData(mr, cache);
-
-  TaskNode *task_node = BLI_task_graph_node_create(
-      task_graph,
-      mesh_extract_render_data_node_exec,
-      task_data,
-      (TaskGraphNodeFreeFunction)mesh_render_data_update_task_data_free);
-  return task_node;
 }
 
 /** \} */
@@ -216,16 +180,17 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   double rdata_start = BLI_time_now_seconds();
 #endif
 
-  MeshRenderData *mr = mesh_render_data_create(object,
-                                               mesh,
-                                               is_editmode,
-                                               is_paint_mode,
-                                               edit_mode_active,
-                                               object_to_world,
-                                               do_final,
-                                               do_uvedit,
-                                               use_hide,
-                                               ts);
+  std::unique_ptr<MeshRenderData> mr_ptr = mesh_render_data_create(object,
+                                                                   mesh,
+                                                                   is_editmode,
+                                                                   is_paint_mode,
+                                                                   edit_mode_active,
+                                                                   object_to_world,
+                                                                   do_final,
+                                                                   do_uvedit,
+                                                                   use_hide,
+                                                                   ts);
+  MeshRenderData *mr = mr_ptr.get();
   mr->use_subsurf_fdots = mr->mesh && !mr->mesh->runtime->subsurf_face_dot_tags.is_empty();
   mr->use_final_mesh = do_final;
   mr->use_simplify_normals = (scene.r.mode & R_SIMPLIFY) && (scene.r.mode & R_SIMPLIFY_NORMALS);
@@ -234,8 +199,11 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
   double rdata_end = BLI_time_now_seconds();
 #endif
 
-  TaskNode *task_node_mesh_render_data = mesh_extract_render_data_node_create(
-      &task_graph, *mr, mbc);
+  TaskNode *task_node_mesh_render_data = BLI_task_graph_node_create(
+      &task_graph,
+      mesh_extract_render_data_node_exec,
+      new MeshRenderDataUpdateTaskData{std::move(mr_ptr), mbc},
+      [](void *task_data) { delete static_cast<MeshRenderDataUpdateTaskData *>(task_data); });
 
   if (DRW_vbo_requested(buffers.vbo.pos)) {
     struct TaskData {

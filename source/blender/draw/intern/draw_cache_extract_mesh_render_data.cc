@@ -528,18 +528,18 @@ static void retrieve_active_attribute_names(MeshRenderData &mr,
   mr.default_color_name = mesh_final.default_color_attribute;
 }
 
-MeshRenderData *mesh_render_data_create(Object &object,
-                                        Mesh &mesh,
-                                        const bool is_editmode,
-                                        const bool is_paint_mode,
-                                        const bool edit_mode_active,
-                                        const float4x4 &object_to_world,
-                                        const bool do_final,
-                                        const bool do_uvedit,
-                                        const bool use_hide,
-                                        const ToolSettings *ts)
+std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
+                                                        Mesh &mesh,
+                                                        const bool is_editmode,
+                                                        const bool is_paint_mode,
+                                                        const bool edit_mode_active,
+                                                        const float4x4 &object_to_world,
+                                                        const bool do_final,
+                                                        const bool do_uvedit,
+                                                        const bool use_hide,
+                                                        const ToolSettings *ts)
 {
-  MeshRenderData *mr = MEM_new<MeshRenderData>(__func__);
+  std::unique_ptr<MeshRenderData> mr = std::make_unique<MeshRenderData>();
   mr->toolsettings = ts;
   mr->materials_num = mesh_render_mat_len_get(object, mesh);
 
@@ -695,11 +695,6 @@ MeshRenderData *mesh_render_data_create(Object &object,
   retrieve_active_attribute_names(*mr, object, *mr->mesh);
 
   return mr;
-}
-
-void mesh_render_data_free(MeshRenderData *mr)
-{
-  MEM_delete(mr);
 }
 
 /** \} */

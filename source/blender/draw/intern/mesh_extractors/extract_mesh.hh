@@ -186,17 +186,16 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData &mr, const BMFace *e
  * \param edit_mode_active: When true, use the modifiers from the edit-data,
  * otherwise don't use modifiers as they are not from this object.
  */
-MeshRenderData *mesh_render_data_create(Object &object,
-                                        Mesh &mesh,
-                                        bool is_editmode,
-                                        bool is_paint_mode,
-                                        bool edit_mode_active,
-                                        const float4x4 &object_to_world,
-                                        bool do_final,
-                                        bool do_uvedit,
-                                        bool use_hide,
-                                        const ToolSettings *ts);
-void mesh_render_data_free(MeshRenderData *mr);
+std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
+                                                        Mesh &mesh,
+                                                        bool is_editmode,
+                                                        bool is_paint_mode,
+                                                        bool edit_mode_active,
+                                                        const float4x4 &object_to_world,
+                                                        bool do_final,
+                                                        bool do_uvedit,
+                                                        bool use_hide,
+                                                        const ToolSettings *ts);
 void mesh_render_data_update_corner_normals(MeshRenderData &mr);
 void mesh_render_data_update_face_normals(MeshRenderData &mr);
 void mesh_render_data_update_loose_geom(MeshRenderData &mr, MeshBufferCache &cache);
