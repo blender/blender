@@ -1043,6 +1043,7 @@ void ShadowModule::end_sync()
         PassSimple::Sub &sub = pass.sub("Amend");
         sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_AMEND));
         sub.bind_image("tilemaps_img", tilemap_pool.tilemap_tx);
+        sub.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
         sub.bind_resources(inst_.lights);
         sub.dispatch(int3(1));
         sub.barrier(GPU_BARRIER_TEXTURE_FETCH);
