@@ -5,7 +5,7 @@ if "%GIT%" == "" (
 cd "%BLENDER_DIR%"
 for /f "delims=" %%i in ('"%GIT%" rev-parse --abbrev-ref HEAD') do echo Branch_name=%%i
 for /f "delims=" %%i in ('"%GIT%" rev-parse HEAD') do echo Branch_hash=%%i
-cd "%BLENDER_DIR%/scripts/addons"
+cd "%BLENDER_DIR%/scripts/addons_core"
 for /f "delims=" %%i in ('"%GIT%" rev-parse --abbrev-ref HEAD') do echo Addons_Branch_name=%%i
 for /f "delims=" %%i in ('"%GIT%" rev-parse HEAD') do echo Addons_Branch_hash=%%i
 
