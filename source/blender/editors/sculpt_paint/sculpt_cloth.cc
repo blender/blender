@@ -1479,7 +1479,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     filter::cache_free(ss);
     undo::push_end(ob);
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
+    flush_update_done(C, ob, UpdateType::Position);
     return OPERATOR_FINISHED;
   }
 
@@ -1518,7 +1518,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   if (ss.deform_modifiers_active || ss.shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);
   }
-  SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
+  flush_update_step(C, UpdateType::Position);
   return OPERATOR_RUNNING_MODAL;
 }
 

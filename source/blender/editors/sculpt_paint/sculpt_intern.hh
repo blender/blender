@@ -61,14 +61,18 @@ struct wmOperatorType;
 /** \name Sculpt Types
  * \{ */
 
-enum SculptUpdateType {
-  SCULPT_UPDATE_COORDS = 1 << 0,
-  SCULPT_UPDATE_MASK = 1 << 1,
-  SCULPT_UPDATE_VISIBILITY = 1 << 2,
-  SCULPT_UPDATE_COLOR = 1 << 3,
-  SCULPT_UPDATE_IMAGE = 1 << 4,
-  SCULPT_UPDATE_FACE_SET = 1 << 5,
+namespace blender::ed::sculpt_paint {
+
+enum class UpdateType {
+  Position,
+  Mask,
+  Visibility,
+  Color,
+  Image,
+  FaceSet,
 };
+
+}
 
 struct SculptCursorGeometryInfo {
   blender::float3 location;
@@ -726,8 +730,18 @@ bool SCULPT_handles_colors_report(SculptSession &ss, ReportList *reports);
 /** \name Sculpt Update Functions
  * \{ */
 
-void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags);
-void SCULPT_flush_update_done(const bContext *C, Object &ob, SculptUpdateType update_flags);
+namespace blender::ed::sculpt_paint {
+
+/**
+ * Triggers redraws, updates, and dependency graph tags as necessary after each brush calculation.
+ */
+void flush_update_step(bContext *C, UpdateType update_type);
+/**
+ * Triggers redraws, updates, and dependency graph tags as necessary when a brush stroke finishes.
+ */
+void flush_update_done(const bContext *C, Object &ob, UpdateType update_type);
+
+}
 
 void SCULPT_pbvh_clear(Object &ob);
 

@@ -1228,20 +1228,20 @@ static void sculpt_expand_restore_original_state(bContext *C, Object &ob, Cache 
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
       write_mask_data(ss, expand_cache->original_mask);
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      flush_update_step(C, UpdateType::Mask);
+      flush_update_done(C, ob, UpdateType::Mask);
       SCULPT_tag_update_overlays(C);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       sculpt_expand_restore_face_set_data(ob, expand_cache);
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_FACE_SET);
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_FACE_SET);
+      flush_update_step(C, UpdateType::FaceSet);
+      flush_update_done(C, ob, UpdateType::FaceSet);
       SCULPT_tag_update_overlays(C);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       sculpt_expand_restore_color_data(ss, expand_cache);
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
+      flush_update_step(C, UpdateType::Color);
+      flush_update_done(C, ob, UpdateType::Color);
       break;
   }
 }
@@ -1478,12 +1478,12 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object &ob, const PBVHV
           sculpt_expand_mask_update_task(ss, mask_write, expand_cache->nodes[i]);
         }
       });
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+      flush_update_step(C, UpdateType::Mask);
       break;
     }
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       sculpt_expand_face_sets_update(ob, expand_cache);
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_FACE_SET);
+      flush_update_step(C, UpdateType::FaceSet);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       threading::parallel_for(expand_cache->nodes.index_range(), 1, [&](const IndexRange range) {
@@ -1491,7 +1491,7 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object &ob, const PBVHV
           sculpt_expand_colors_update_task(ss, expand_cache->nodes[i]);
         }
       });
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
+      flush_update_step(C, UpdateType::Color);
       break;
   }
 }
@@ -1586,13 +1586,13 @@ static void sculpt_expand_finish(bContext *C)
 
   switch (ss.expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      flush_update_done(C, ob, UpdateType::Mask);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_FACE_SET);
+      flush_update_done(C, ob, UpdateType::FaceSet);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
+      flush_update_done(C, ob, UpdateType::Color);
       break;
   }
 

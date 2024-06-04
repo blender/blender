@@ -1578,8 +1578,8 @@ static void edit_modify_coordinates(
   if (ss.deform_modifiers_active || ss.shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);
   }
-  SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
-  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
+  flush_update_step(C, UpdateType::Position);
+  flush_update_done(C, ob, UpdateType::Position);
   undo::push_end(ob);
 }
 

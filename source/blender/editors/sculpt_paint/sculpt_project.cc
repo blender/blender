@@ -90,8 +90,8 @@ static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
     SCULPT_flush_stroke_deform(sd, *gesture_data.vc.obact, true);
   }
 
-  SCULPT_flush_update_step(&C, SCULPT_UPDATE_COORDS);
-  SCULPT_flush_update_done(&C, *gesture_data.vc.obact, SCULPT_UPDATE_COORDS);
+  flush_update_step(&C, UpdateType::Position);
+  flush_update_done(&C, *gesture_data.vc.obact, UpdateType::Position);
 }
 
 static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op*/)

@@ -5281,9 +5281,10 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
   }
 }
 
-void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
+namespace blender::ed::sculpt_paint {
+
+void flush_update_step(bContext *C, UpdateType update_type)
 {
-  using namespace blender;
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -5303,9 +5304,9 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
     multires_mark_as_modified(&depsgraph, &ob, MULTIRES_COORDS_MODIFIED);
   }
 
-  if ((update_flags & SCULPT_UPDATE_IMAGE) != 0) {
+  if ((update_type == UpdateType::Image) != 0) {
     ED_region_tag_redraw(&region);
-    if (update_flags == SCULPT_UPDATE_IMAGE) {
+    if (update_type == UpdateType::Image) {
       /* Early exit when only need to update the images. We don't want to tag any geometry updates
        * that would rebuilt the PBVH. */
       return;
@@ -5327,7 +5328,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
      * only the part of the 3D viewport where changes happened. */
     rcti r;
 
-    if (update_flags & SCULPT_UPDATE_COORDS) {
+    if (update_type == UpdateType::Position) {
       bke::pbvh::update_bounds(*ss.pbvh, PBVH_UpdateBB);
     }
 
@@ -5349,7 +5350,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
     }
   }
 
-  if (update_flags & SCULPT_UPDATE_COORDS && !ss.shapekey_active) {
+  if (update_type == UpdateType::Position && !ss.shapekey_active) {
     if (BKE_pbvh_type(*ss.pbvh) == PBVH_FACES) {
       /* Updating mesh positions without marking caches dirty is generally not good, but since
        * sculpt mode has special requirements and is expected to have sole ownership of the mesh it
@@ -5378,9 +5379,8 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
   }
 }
 
-void SCULPT_flush_update_done(const bContext *C, Object &ob, SculptUpdateType update_flags)
+void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
 {
-  using namespace blender;
   /* After we are done drawing the stroke, check if we need to do a more
    * expensive depsgraph tag to update geometry. */
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -5418,7 +5418,7 @@ void SCULPT_flush_update_done(const bContext *C, Object &ob, SculptUpdateType up
       }
     }
 
-    if (update_flags & SCULPT_UPDATE_IMAGE) {
+    if (update_type == UpdateType::Image) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
         if (sl->spacetype != SPACE_IMAGE) {
@@ -5429,20 +5429,20 @@ void SCULPT_flush_update_done(const bContext *C, Object &ob, SculptUpdateType up
     }
   }
 
-  if (update_flags & SCULPT_UPDATE_COORDS) {
+  if (update_type == UpdateType::Position) {
     bke::pbvh::update_bounds(*ss.pbvh, PBVH_UpdateOriginalBB);
 
     /* Coordinates were modified, so fake neighbors are not longer valid. */
     SCULPT_fake_neighbors_free(ob);
   }
 
-  if (update_flags & SCULPT_UPDATE_MASK) {
+  if (update_type == UpdateType::Mask) {
     bke::pbvh::update_mask(*ss.pbvh);
   }
 
   BKE_sculpt_attributes_destroy_temporary_stroke(&ob);
 
-  if (update_flags & SCULPT_UPDATE_COORDS) {
+  if (update_type == UpdateType::Position) {
     if (BKE_pbvh_type(*ss.pbvh) == PBVH_BMESH) {
       BKE_pbvh_bmesh_after_stroke(*ss.pbvh);
     }
@@ -5459,6 +5459,8 @@ void SCULPT_flush_update_done(const bContext *C, Object &ob, SculptUpdateType up
     DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
   }
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 /* Returns whether the mouse/stylus is over the mesh (1)
  * or over the background (0). */
@@ -5633,18 +5635,18 @@ static void sculpt_stroke_update_step(bContext *C,
 
   /* Cleanup. */
   if (brush.sculpt_tool == SCULPT_TOOL_MASK) {
-    SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+    flush_update_step(C, UpdateType::Mask);
   }
   else if (SCULPT_tool_is_paint(brush.sculpt_tool)) {
     if (SCULPT_use_image_paint_brush(tool_settings.paint_mode, ob)) {
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_IMAGE);
+      flush_update_step(C, UpdateType::Image);
     }
     else {
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
+      flush_update_step(C, UpdateType::Color);
     }
   }
   else {
-    SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
+    flush_update_step(C, UpdateType::Position);
   }
 }
 
@@ -5691,19 +5693,19 @@ static void sculpt_stroke_done(const bContext *C, PaintStroke * /*stroke*/)
   sculpt_stroke_undo_end(C, brush);
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+    flush_update_done(C, ob, UpdateType::Mask);
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_PAINT) {
     if (SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob)) {
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_IMAGE);
+      flush_update_done(C, ob, UpdateType::Image);
     }
     else {
       BKE_sculpt_attributes_destroy_temporary_stroke(&ob);
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
+      flush_update_done(C, ob, UpdateType::Color);
     }
   }
   else {
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
+    flush_update_done(C, ob, UpdateType::Position);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);

@@ -321,7 +321,7 @@ void update_modal_transform(bContext *C, Object &ob)
     SCULPT_flush_stroke_deform(sd, ob, true);
   }
 
-  SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
+  flush_update_step(C, UpdateType::Position);
 }
 
 void end_transform(bContext *C, Object &ob)
@@ -330,7 +330,7 @@ void end_transform(bContext *C, Object &ob)
   if (ss.filter_cache) {
     filter::cache_free(ss);
   }
-  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
+  flush_update_done(C, ob, UpdateType::Position);
 }
 
 enum class PivotPositionMode {
