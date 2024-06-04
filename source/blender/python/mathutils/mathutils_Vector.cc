@@ -354,8 +354,8 @@ PyDoc_STRVAR(
     "\n"
     "   Create a vector by repeating the values in vector until the required size is reached.\n"
     "\n"
-    "   :arg tuple: The vector to draw values from.\n"
-    "   :type tuple: :class:`mathutils.Vector`\n"
+    "   :arg vector: The vector to draw values from.\n"
+    "   :type vector: :class:`mathutils.Vector`\n"
     "   :arg size: The size of the vector to be created.\n"
     "   :type size: int\n");
 static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
