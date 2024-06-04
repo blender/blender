@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_euler.hh"
 #include "BLI_math_matrix.hh"
 
 #include "BKE_geometry_set_instances.hh"
@@ -65,11 +66,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   float3 location, scale;
   math::Quaternion rotation;
   if (transform_space_relative) {
-    math::to_loc_rot_scale<true>(transform, location, rotation, scale);
+    math::to_loc_rot_scale_safe<true>(transform, location, rotation, scale);
     params.set_output("Transform", transform);
   }
   else {
-    math::to_loc_rot_scale<true>(object_matrix, location, rotation, scale);
+    math::to_loc_rot_scale_safe<true>(object_matrix, location, rotation, scale);
     params.set_output("Transform", object_matrix);
   }
   params.set_output("Location", location);
