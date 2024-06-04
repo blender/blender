@@ -39,9 +39,8 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   float x0 = xc - 0.5f * len_u, x1 = xc + 0.5f * len_u;
   float y0 = yc - 0.5f * len_v, y1 = yc + 0.5f * len_v;
   /* Compute predefined constants. */
-  float4 diff = make_float4(x0, y1, x1, y0) - make_float4(x1, y0, x0, y1);
-  float4 nz = make_float4(y0, x1, y1, x0) * diff;
-  nz = nz / sqrt(z0 * z0 * diff * diff + nz * nz);
+  float4 nz = make_float4(-y0, x1, y1, -x0);
+  nz /= sqrt(nz * nz + z0 * z0);
   /* The original paper uses `acos()` to compute the internal angles here, and then computes the
    * solid angle as their sum minus 2*pi. However, for very small rectangles, this results in
    * excessive cancellation error since the sum will be almost 2*pi as well.
