@@ -378,6 +378,33 @@ def extensions_panel_draw_online_extensions_request_impl(
     row.operator("extensions.userpref_allow_online", text="Allow Online Access", icon='CHECKMARK')
 
 
+def extensions_panel_draw_missing_impl(
+        *,
+        layout,
+        missing_modules,
+):
+    layout_header, layout_panel = layout.panel("missing_script_files", default_closed=True)
+    layout_header.label(text="Missing Add-ons", icon='ERROR')
+
+    if layout_panel is None:
+        return
+
+    box = layout_panel.box()
+    for addon_module_name in sorted(missing_modules):
+
+        boxsub = box.column().box()
+        colsub = boxsub.column()
+        row = colsub.row(align=True)
+
+        row_left = row.row()
+        row_left.alignment = 'LEFT'
+        row_left.label(text=addon_module_name, translate=False)
+
+        row_right = row.row()
+        row_right.alignment = 'RIGHT'
+        row_right.operator("preferences.addon_disable", text="", icon="X", emboss=False).module = addon_module_name
+
+
 def extensions_panel_draw_impl(
         self,
         context,
@@ -749,32 +776,10 @@ def extensions_panel_draw_impl(
         }
 
         if missing_modules:
-            layout_topmost.column().label(text="Missing script files")
-
-            module_names = {mod.__name__ for mod in addon_modules}
-            for addon_module_name in sorted(missing_modules):
-                is_enabled = addon_module_name in used_addon_module_name_map
-                # Addon UI Code
-                box = layout_topmost.column().box()
-                colsub = box.column()
-                row = colsub.row(align=True)
-
-                row.label(text="", icon='ERROR')
-
-                if is_enabled:
-                    row.operator(
-                        "preferences.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,
-                    ).module = addon_module_name
-
-                row.label(text=addon_module_name, translate=False)
-
-                row_right = row.row()
-                row_right.alignment = 'RIGHT'
-
-                row_right.label(text="Missing   ")
-                row_right.active = False
-
-            layout_topmost.label(text="")
+            extensions_panel_draw_missing_impl(
+                layout=layout_topmost,
+                missing_modules=missing_modules,
+                )
 
 
 class USERPREF_PT_extensions_filter(Panel):
