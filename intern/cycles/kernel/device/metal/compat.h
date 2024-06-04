@@ -66,6 +66,8 @@ using namespace metal::raytracing;
 
 #define kernel_assert(cond)
 
+#define offsetof(t, d) __builtin_offsetof(t, d)
+
 #define ccl_gpu_global_id_x() metal_global_id
 #define ccl_gpu_warp_size simdgroup_size
 #define ccl_gpu_thread_idx_x simd_group_index
