@@ -70,6 +70,7 @@ if(WITH_GTESTS)
     intern/action_test.cc
     intern/bone_collections_test.cc
     intern/evaluation_test.cc
+    intern/keyframing_test.cc
   )
   set(TEST_LIB
     PRIVATE bf::animrig
