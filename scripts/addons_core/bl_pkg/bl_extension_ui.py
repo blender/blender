@@ -701,7 +701,11 @@ def extensions_panel_draw_impl(
                 if value := item_remote.get("website"):
                     # Use half size button, for legacy add-ons there are two, here there is one
                     # however one large button looks silly, so use a half size still.
-                    col_a.split(factor=0.5).operator("wm.url_open", text=domain_extract_from_url(value), icon='URL').url = value
+                    col_a.split(
+                        factor=0.5).operator(
+                        "wm.url_open",
+                        text=domain_extract_from_url(value),
+                        icon='URL').url = value
                 del value
 
                 # Note that we could allow removing extensions from non-remote extension repos
@@ -721,7 +725,7 @@ def extensions_panel_draw_impl(
                 split = boxsub.split(factor=0.125)
                 col_a = split.column()
                 col_b = split.column()
-                col_a.alignment="RIGHT"
+                col_a.alignment = "RIGHT"
 
                 if is_addon:
                     col_a.label(text="Permissions")
@@ -791,7 +795,7 @@ def extensions_panel_draw_impl(
             extensions_panel_draw_missing_impl(
                 layout=layout_topmost,
                 missing_modules=missing_modules,
-                )
+            )
 
 
 class USERPREF_PT_extensions_filter(Panel):
