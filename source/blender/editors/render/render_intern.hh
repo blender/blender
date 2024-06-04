@@ -39,9 +39,6 @@ void SCENE_OT_view_layer_remove_lightgroup(wmOperatorType *ot);
 void SCENE_OT_view_layer_add_used_lightgroups(wmOperatorType *ot);
 void SCENE_OT_view_layer_remove_unused_lightgroups(wmOperatorType *ot);
 
-void SCENE_OT_light_cache_bake(wmOperatorType *ot);
-void SCENE_OT_light_cache_free(wmOperatorType *ot);
-
 void OBJECT_OT_lightprobe_cache_bake(wmOperatorType *ot);
 void OBJECT_OT_lightprobe_cache_free(wmOperatorType *ot);
 

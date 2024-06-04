@@ -753,16 +753,6 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
 
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_bloom_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_common_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_dof_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_effects_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_lightprobe_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_material_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_motion_blur_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_shadow_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_volume_info.hh
-
   ../draw/engines/image/shaders/infos/engine_image_info.hh
   ../draw/intern/shaders/draw_debug_info.hh
   ../draw/intern/shaders/draw_fullscreen_info.hh

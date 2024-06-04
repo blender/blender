@@ -100,8 +100,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "engines/eevee/eevee_lightcache.h"
-
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
@@ -441,11 +439,6 @@ static void scene_free_data(ID *id)
     BKE_libblock_free_data_py(&scene->master_collection->id);
     MEM_freeN(scene->master_collection);
     scene->master_collection = nullptr;
-  }
-
-  if (scene->eevee.light_cache_data) {
-    EEVEE_lightcache_free(scene->eevee.light_cache_data);
-    scene->eevee.light_cache_data = nullptr;
   }
 
   if (scene->display.shading.prop) {
@@ -945,22 +938,6 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static void scene_foreach_cache(ID *id,
-                                IDTypeForeachCacheFunctionCallback function_callback,
-                                void *user_data)
-{
-  Scene *scene = (Scene *)id;
-  IDCacheKey key{};
-  key.id_session_uid = id->session_uid;
-  key.identifier = offsetof(Scene, eevee.light_cache_data);
-
-  function_callback(id,
-                    &key,
-                    (void **)&scene->eevee.light_cache_data,
-                    IDTYPE_CACHE_CB_FLAGS_PERSISTENT,
-                    user_data);
-}
-
 static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
 {
   if (SEQ_HAS_PATH(seq)) {
@@ -1174,12 +1151,6 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     BKE_collection_blend_write_nolib(
         writer,
         reinterpret_cast<Collection *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
-  }
-
-  /* Eevee Light-cache */
-  if (sce->eevee.light_cache_data && !BLO_write_is_undo(writer)) {
-    BLO_write_struct(writer, LightCache, sce->eevee.light_cache_data);
-    EEVEE_lightcache_blend_write(writer, sce->eevee.light_cache_data);
   }
 
   BKE_screen_view3d_shading_blend_write(writer, &sce->display.shading);
@@ -1496,19 +1467,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     BKE_view_layer_blend_read_data(reader, view_layer);
   }
 
-  if (BLO_read_data_is_undo(reader)) {
-    /* If it's undo do nothing here, caches are handled by higher-level generic calling code. */
-  }
-  else {
-    /* else try to read the cache from file. */
-    BLO_read_struct(reader, LightCache, &sce->eevee.light_cache_data);
-    if (sce->eevee.light_cache_data) {
-      EEVEE_lightcache_blend_read_data(reader, sce->eevee.light_cache_data);
-    }
-  }
-
-  EEVEE_lightcache_info_update(&sce->eevee);
-
   BKE_screen_view3d_shading_blend_read_data(reader, &sce->display.shading);
 
   BLO_read_struct(reader, IDProperty, &sce->layer_properties);
@@ -1604,7 +1562,7 @@ constexpr IDTypeInfo get_type_info()
    * support all possible corner cases. */
   info.make_local = nullptr;
   info.foreach_id = scene_foreach_id;
-  info.foreach_cache = scene_foreach_cache;
+  info.foreach_cache = nullptr;
   info.foreach_path = scene_foreach_path;
   info.owner_pointer_get = nullptr;
 
@@ -1786,9 +1744,6 @@ void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
 {
   /* Copy eevee data between scenes. */
   sce_dst->eevee = sce_src->eevee;
-  sce_dst->eevee.light_cache_data = nullptr;
-  sce_dst->eevee.light_cache_info[0] = '\0';
-  /* TODO: Copy the cache. */
 }
 
 Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)

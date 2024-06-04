@@ -720,17 +720,6 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
         list(APPEND _gpu_render_tests_arguments --fail-silently)
       endif()
 
-      # Eevee
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          eevee_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
-          -testdir "${TEST_SRC_DIR}/render/${render_test}"
-          -outdir "${TEST_OUT_DIR}/eevee"
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
-
       # Eevee Next
       foreach(render_test ${gpu_render_tests})
         add_render_test(

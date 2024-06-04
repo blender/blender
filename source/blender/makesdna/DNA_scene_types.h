@@ -1909,11 +1909,6 @@ typedef struct SceneEEVEE {
 
   struct RaytraceEEVEE ray_tracing_options;
 
-  struct LightCache *light_cache DNA_DEPRECATED;
-  struct LightCache *light_cache_data;
-  /* Need a 128 byte string for some translations of some messages. */
-  char light_cache_info[128];
-
   float overscan;
   float light_threshold;
 } SceneEEVEE;
