@@ -14,6 +14,7 @@
 #include "BLT_translation.hh"
 
 #include "NOD_node_declaration.hh"
+#include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
 namespace blender::nodes {
@@ -91,6 +92,7 @@ bNode &LinkSearchOpParams::add_node(const bke::bNodeType &node_type)
 void LinkSearchOpParams::update_and_connect_available_socket(bNode &new_node,
                                                              StringRef socket_name)
 {
+  update_node_declaration_and_sockets(this->node_tree, new_node);
   if (new_node.typeinfo->updatefunc) {
     new_node.typeinfo->updatefunc(&node_tree, &new_node);
   }
