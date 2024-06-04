@@ -148,10 +148,10 @@ template<typename T> class BuffersIteratorBuilder {
     BLI_assert(BLI_rcti_inside_rcti(&buffer_area, &area_));
     typename Iterator::In in;
     in.elem_stride = elem_stride;
-    const int buffer_width = BLI_rcti_size_x(&buffer_area);
+    const size_t buffer_width = BLI_rcti_size_x(&buffer_area);
     in.rows_gap = buffer_width * elem_stride - BLI_rcti_size_x(&area_) * elem_stride;
-    const int in_start_x = area_.xmin - buffer_area.xmin;
-    const int in_start_y = area_.ymin - buffer_area.ymin;
+    const size_t in_start_x = area_.xmin - buffer_area.xmin;
+    const size_t in_start_y = area_.ymin - buffer_area.ymin;
     in.in = input + in_start_y * buffer_width * elem_stride + in_start_x * elem_stride;
     iterator_.ins_.append(std::move(in));
   }

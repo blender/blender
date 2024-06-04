@@ -214,6 +214,12 @@ class MemoryBuffer {
    * initialized with the template float4(0, 0, 0, 1). */
   float4 texture_bilinear_extend(float2 coordinates) const
   {
+    if (is_a_single_elem_) {
+      float4 result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+      memcpy(result, buffer_, get_elem_bytes_len());
+      return result;
+    }
+
     const int2 size = int2(get_width(), get_height());
     const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
 
@@ -229,6 +235,12 @@ class MemoryBuffer {
    * initialized with the template float4(0, 0, 0, 1). */
   float4 texture_nearest_extend(float2 coordinates) const
   {
+    if (is_a_single_elem_) {
+      float4 result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+      memcpy(result, buffer_, get_elem_bytes_len());
+      return result;
+    }
+
     const int2 size = int2(get_width(), get_height());
     const float2 texel_coordinates = coordinates * float2(size);
 
