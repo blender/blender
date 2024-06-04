@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Notifications used by:
-# - The splash screen on startup.
 # - The preferences when checking first displaying the extensions view.
 
 __all__ = (
@@ -310,8 +309,6 @@ TIME_WAIT_STEP = 0.1
 
 class NotifyHandle:
     __slots__ = (
-        "splash_region",
-
         "sync_info",
 
         "_repos_fn",
@@ -320,7 +317,6 @@ class NotifyHandle:
     )
 
     def __init__(self, repos_fn):
-        self.splash_region = None
         self._repos_fn = repos_fn
         self._sync_generator = None
         self.is_complete = False
@@ -371,28 +367,7 @@ class NotifyHandle:
 _notify_queue = []
 
 
-def _region_exists(region):
-    # TODO: this is a workaround for there being no good way to inspect temporary regions.
-    # A better solution could be to store the `PyObject` in the `ARegion` so that it gets invalidated when freed.
-    # This is a bigger change though - so use the context override as a way to check if a region is valid.
-    exists = False
-    try:
-        with bpy.context.temp_override(region=region):
-            exists = True
-    except TypeError:
-        pass
-    return exists
-
-
 def _ui_refresh_apply(*, notify):
-    if notify.splash_region is not None:
-        # Check if the splash_region is valid.
-        if not _region_exists(notify.splash_region):
-            notify.splash_region = None
-            return None
-        notify.splash_region.tag_redraw()
-        notify.splash_region.tag_refresh_ui()
-
     # Ensure the preferences are redrawn when the update is complete.
     if bpy.context.preferences.active_section == 'EXTENSIONS':
         for wm in bpy.data.window_managers:
@@ -436,7 +411,7 @@ def _ui_refresh_timer():
     if sync_info is ...:
         _ui_refresh_apply(notify=notify)
         if len(_notify_queue) <= 1:
-            # Keep `_notify_queuy[0]` because the text should remain displayed for the splash.
+            # Keep `_notify_queuy[0]` because we may want to keep accessing the text even when updates are complete.
             if wm.extensions_updates == WM_EXTENSIONS_UPDATE_CHECKING:
                 wm.extensions_updates = WM_EXTENSIONS_UPDATE_UNSET
             return None
