@@ -1738,8 +1738,8 @@ PyDoc_STRVAR(
     "\n"
     "   Interpolate the customdata from a vert between 2 other verts.\n"
     "\n"
-    "   :arg vert_pair: The vert to interpolate data from.\n"
-    "   :type vert_pair: :class:`BMVert`\n"
+    "   :arg vert_pair: The verts between which to interpolate data from.\n"
+    "   :type vert_pair: pair of :class:`BMVert`\n"
     "   :type fac: float\n");
 static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *args)
 {
