@@ -143,6 +143,7 @@ def show_device_active(context):
         return True
     return backend_has_active_gpu(context)
 
+
 def show_preview_denoise_active(context):
     cscene = context.scene.cycles
     if not cscene.use_preview_denoising:
@@ -153,6 +154,7 @@ def show_preview_denoise_active(context):
 
     # OIDN is always available, thanks to CPU support
     return True
+
 
 def show_denoise_active(context):
     cscene = context.scene.cycles
@@ -184,6 +186,7 @@ def get_effective_preview_denoiser(context, has_oidn_gpu):
 
 def has_oidn_gpu_devices(context):
     return context.preferences.addons[__package__].preferences.has_oidn_gpu_devices()
+
 
 def has_optixdenoiser_gpu_devices(context):
     return context.preferences.addons[__package__].preferences.has_optixdenoiser_gpu_devices()
