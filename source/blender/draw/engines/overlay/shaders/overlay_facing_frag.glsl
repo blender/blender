@@ -5,4 +5,6 @@
 void main()
 {
   fragColor = gl_FrontFacing ? colorFaceFront : colorFaceBack;
+  /* Pre-multiply the output as we do not do any blending in the framebuffer. */
+  fragColor.rgb *= fragColor.a;
 }
