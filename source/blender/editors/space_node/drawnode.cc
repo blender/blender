@@ -1564,7 +1564,7 @@ static void std_node_socket_interface_draw(ID *id,
 
   const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
   if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
-    if (ELEM(type, SOCK_INT, SOCK_VECTOR)) {
+    if (ELEM(type, SOCK_INT, SOCK_VECTOR, SOCK_MATRIX)) {
       uiItemR(col, &ptr, "default_input", DEFAULT_FLAGS, nullptr, ICON_NONE);
     }
   }
