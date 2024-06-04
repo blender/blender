@@ -352,7 +352,7 @@ class NotifyHandle:
 
     def ui_text(self):
         if self.sync_info is None:
-            return "Checking for Extension Updates", 'NONE', WM_EXTENSIONS_UPDATE_CHECKING
+            return "Checking for Extension Updates", 'SORTTIME', WM_EXTENSIONS_UPDATE_CHECKING
         status_data, update_count, extra_warnings = self.sync_info
         text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(
             status_data, update_count,
