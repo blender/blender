@@ -475,6 +475,19 @@ void extract_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo);
 void extract_edituv_data_subdiv(const MeshRenderData &mr,
                                 const DRWSubdivCache &subdiv_cache,
                                 gpu::VertBuf &vbo);
+void extract_edituv_tris(const MeshRenderData &mr, gpu::IndexBuf &ibo);
+void extract_edituv_tris_subdiv(const MeshRenderData &mr,
+                                const DRWSubdivCache &subdiv_cache,
+                                gpu::IndexBuf &ibo);
+void extract_edituv_lines(const MeshRenderData &mr, gpu::IndexBuf &ibo);
+void extract_edituv_lines_subdiv(const MeshRenderData &mr,
+                                 const DRWSubdivCache &subdiv_cache,
+                                 gpu::IndexBuf &ibo);
+void extract_edituv_points(const MeshRenderData &mr, gpu::IndexBuf &ibo);
+void extract_edituv_points_subdiv(const MeshRenderData &mr,
+                                  const DRWSubdivCache &subdiv_cache,
+                                  gpu::IndexBuf &ibo);
+void extract_edituv_face_dots(const MeshRenderData &mr, gpu::IndexBuf &ibo);
 
 void extract_skin_roots(const MeshRenderData &mr, gpu::VertBuf &vbo);
 
@@ -487,10 +500,6 @@ void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo);
 
 void extract_mesh_analysis(const MeshRenderData &mr, gpu::VertBuf &vbo);
 
-extern const MeshExtract extract_edituv_tris;
-extern const MeshExtract extract_edituv_lines;
-extern const MeshExtract extract_edituv_points;
-extern const MeshExtract extract_edituv_fdots;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
 extern const MeshExtract extract_attr_viewer;
 
