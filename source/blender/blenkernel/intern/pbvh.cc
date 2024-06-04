@@ -89,60 +89,6 @@ static Bounds<float3> negative_bounds()
 
 namespace blender::bke::pbvh {
 
-void update_node_bounds_mesh(const Span<float3> positions, PBVHNode &node)
-{
-  Bounds<float3> bounds = negative_bounds();
-  for (const int vert : node.vert_indices) {
-    math::min_max(positions[vert], bounds.min, bounds.max);
-  }
-  node.bounds = bounds;
-}
-
-void update_node_bounds_grids(const CCGKey &key, const Span<CCGElem *> grids, PBVHNode &node)
-{
-  Bounds<float3> bounds = negative_bounds();
-  for (const int grid : node.prim_indices) {
-    for (const int i : IndexRange(key.grid_area)) {
-      math::min_max(CCG_elem_offset_co(key, grids[grid], i), bounds.min, bounds.max);
-    }
-  }
-  node.bounds = bounds;
-}
-
-void update_node_bounds_bmesh(PBVHNode &node)
-{
-  Bounds<float3> bounds = negative_bounds();
-  for (const BMVert *vert : node.bm_unique_verts) {
-    math::min_max(float3(vert->co), bounds.min, bounds.max);
-  }
-  for (const BMVert *vert : node.bm_other_verts) {
-    math::min_max(float3(vert->co), bounds.min, bounds.max);
-  }
-  node.bounds = bounds;
-}
-
-/* Not recursive */
-static void calc_node_bounds(PBVH &pbvh, PBVHNode *node)
-{
-  if (node->flag & PBVH_Leaf) {
-    switch (pbvh.header.type) {
-      case PBVH_FACES:
-        update_node_bounds_mesh(pbvh.vert_positions, *node);
-        break;
-      case PBVH_GRIDS:
-        update_node_bounds_grids(pbvh.gridkey, pbvh.subdiv_ccg->grids, *node);
-        break;
-      case PBVH_BMESH:
-        update_node_bounds_bmesh(*node);
-        break;
-    }
-  }
-  else {
-    node->bounds = bounds::merge(pbvh.nodes[node->children_offset].bounds,
-                                 pbvh.nodes[node->children_offset + 1].bounds);
-  }
-}
-
 static bool face_materials_match(const Span<int> material_indices,
                                  const Span<bool> sharp_faces,
                                  const int a,
@@ -1296,6 +1242,60 @@ void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg)
     for (PBVHNode *node : nodes) {
       node->flag &= ~PBVH_UpdateNormals;
     }
+  }
+}
+
+void update_node_bounds_mesh(const Span<float3> positions, PBVHNode &node)
+{
+  Bounds<float3> bounds = negative_bounds();
+  for (const int vert : node.vert_indices) {
+    math::min_max(positions[vert], bounds.min, bounds.max);
+  }
+  node.bounds = bounds;
+}
+
+void update_node_bounds_grids(const CCGKey &key, const Span<CCGElem *> grids, PBVHNode &node)
+{
+  Bounds<float3> bounds = negative_bounds();
+  for (const int grid : node.prim_indices) {
+    for (const int i : IndexRange(key.grid_area)) {
+      math::min_max(CCG_elem_offset_co(key, grids[grid], i), bounds.min, bounds.max);
+    }
+  }
+  node.bounds = bounds;
+}
+
+void update_node_bounds_bmesh(PBVHNode &node)
+{
+  Bounds<float3> bounds = negative_bounds();
+  for (const BMVert *vert : node.bm_unique_verts) {
+    math::min_max(float3(vert->co), bounds.min, bounds.max);
+  }
+  for (const BMVert *vert : node.bm_other_verts) {
+    math::min_max(float3(vert->co), bounds.min, bounds.max);
+  }
+  node.bounds = bounds;
+}
+
+/* Not recursive */
+static void calc_node_bounds(PBVH &pbvh, PBVHNode *node)
+{
+  if (node->flag & PBVH_Leaf) {
+    switch (pbvh.header.type) {
+      case PBVH_FACES:
+        update_node_bounds_mesh(pbvh.vert_positions, *node);
+        break;
+      case PBVH_GRIDS:
+        update_node_bounds_grids(pbvh.gridkey, pbvh.subdiv_ccg->grids, *node);
+        break;
+      case PBVH_BMESH:
+        update_node_bounds_bmesh(*node);
+        break;
+    }
+  }
+  else {
+    node->bounds = bounds::merge(pbvh.nodes[node->children_offset].bounds,
+                                 pbvh.nodes[node->children_offset + 1].bounds);
   }
 }
 
