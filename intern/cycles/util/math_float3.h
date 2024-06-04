@@ -158,7 +158,8 @@ ccl_device_inline float3 operator/=(float3 &a, float f)
   return a = a * invf;
 }
 
-#  if !(defined(__KERNEL_METAL__) || defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__))
+#  if !(defined(__KERNEL_METAL__) || defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__) || \
+        defined(__KERNEL_ONEAPI__))
 ccl_device_inline packed_float3 operator*=(packed_float3 &a, const float3 b)
 {
   a = float3(a) * b;
