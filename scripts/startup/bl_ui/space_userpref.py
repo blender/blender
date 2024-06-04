@@ -2268,7 +2268,8 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
         addon_preferences_class = type(addon_preferences)
         box_prefs = layout.box()
-        box_prefs.label(text="Preferences:")
+        box_prefs.label(text="Preferences")
+        box_prefs.separator(type='LINE')
         addon_preferences_class.layout = box_prefs
         try:
             draw(context)
