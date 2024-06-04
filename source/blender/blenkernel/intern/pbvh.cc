@@ -95,7 +95,7 @@ void update_node_bounds_mesh(const Span<float3> positions, PBVHNode &node)
   for (const int vert : node.vert_indices) {
     math::min_max(positions[vert], bounds.min, bounds.max);
   }
-  node.vb = bounds;
+  node.bounds = bounds;
 }
 
 void update_node_bounds_grids(const CCGKey &key, const Span<CCGElem *> grids, PBVHNode &node)
@@ -103,10 +103,10 @@ void update_node_bounds_grids(const CCGKey &key, const Span<CCGElem *> grids, PB
   Bounds<float3> bounds = negative_bounds();
   for (const int grid : node.prim_indices) {
     for (const int i : IndexRange(key.grid_area)) {
-      math::min_max(float3(CCG_elem_offset_co(key, grids[grid], i)), bounds.min, bounds.max);
+      math::min_max(CCG_elem_offset_co(key, grids[grid], i), bounds.min, bounds.max);
     }
   }
-  node.vb = bounds;
+  node.bounds = bounds;
 }
 
 void update_node_bounds_bmesh(PBVHNode &node)
@@ -118,11 +118,11 @@ void update_node_bounds_bmesh(PBVHNode &node)
   for (const BMVert *vert : node.bm_other_verts) {
     math::min_max(float3(vert->co), bounds.min, bounds.max);
   }
-  node.vb = bounds;
+  node.bounds = bounds;
 }
 
 /* Not recursive */
-static void update_node_vb(PBVH &pbvh, PBVHNode *node)
+static void calc_node_bounds(PBVH &pbvh, PBVHNode *node)
 {
   if (node->flag & PBVH_Leaf) {
     switch (pbvh.header.type) {
@@ -138,8 +138,8 @@ static void update_node_vb(PBVH &pbvh, PBVHNode *node)
     }
   }
   else {
-    node->vb = bounds::merge(pbvh.nodes[node->children_offset].vb,
-                             pbvh.nodes[node->children_offset + 1].vb);
+    node->bounds = bounds::merge(pbvh.nodes[node->children_offset].bounds,
+                                 pbvh.nodes[node->children_offset + 1].bounds);
   }
 }
 
@@ -307,11 +307,11 @@ static void update_vb(const Span<int> prim_indices,
                       int offset,
                       int count)
 {
-  node->vb = prim_bounds[prim_indices[offset]];
+  node->bounds = prim_bounds[prim_indices[offset]];
   for (const int i : IndexRange(offset, count).drop_front(1)) {
-    node->vb = bounds::merge(node->vb, prim_bounds[prim_indices[i]]);
+    node->bounds = bounds::merge(node->bounds, prim_bounds[prim_indices[i]]);
   }
-  node->orig_vb = node->vb;
+  node->bounds_orig = node->bounds;
 }
 
 int count_grid_quads(const BitGroupVector<> &grid_hidden,
@@ -1299,16 +1299,16 @@ void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg)
   }
 }
 
-static void node_update_bounds(PBVH &pbvh, PBVHNode &node, const PBVHNodeFlags flag)
+static void node_update_and_flush_bounds(PBVH &pbvh, PBVHNode &node, const PBVHNodeFlags flag)
 {
   if ((flag & PBVH_UpdateBB) && (node.flag & PBVH_UpdateBB)) {
     /* don't clear flag yet, leave it for flushing later */
     /* Note that bvh usage is read-only here, so no need to thread-protect it. */
-    update_node_vb(pbvh, &node);
+    calc_node_bounds(pbvh, &node);
   }
 
   if ((flag & PBVH_UpdateOriginalBB) && (node.flag & PBVH_UpdateOriginalBB)) {
-    node.orig_vb = node.vb;
+    node.bounds_orig = node.bounds;
   }
 
   if ((flag & PBVH_UpdateRedraw) && (node.flag & PBVH_UpdateRedraw)) {
@@ -1316,16 +1316,16 @@ static void node_update_bounds(PBVH &pbvh, PBVHNode &node, const PBVHNodeFlags f
   }
 }
 
-static void pbvh_update_BB_redraw(PBVH &pbvh, Span<PBVHNode *> nodes, int flag)
+static void update_bounds_redraw(PBVH &pbvh, Span<PBVHNode *> nodes, int flag)
 {
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      node_update_bounds(pbvh, *node, PBVHNodeFlags(flag));
+      node_update_and_flush_bounds(pbvh, *node, PBVHNodeFlags(flag));
     }
   });
 }
 
-static int pbvh_flush_bb(PBVH &pbvh, PBVHNode *node, int flag)
+static int flush_bounds(PBVH &pbvh, PBVHNode *node, int flag)
 {
   int update = 0;
 
@@ -1344,14 +1344,14 @@ static int pbvh_flush_bb(PBVH &pbvh, PBVHNode *node, int flag)
     return update;
   }
 
-  update |= pbvh_flush_bb(pbvh, &pbvh.nodes[node->children_offset], flag);
-  update |= pbvh_flush_bb(pbvh, &pbvh.nodes[node->children_offset + 1], flag);
+  update |= flush_bounds(pbvh, &pbvh.nodes[node->children_offset], flag);
+  update |= flush_bounds(pbvh, &pbvh.nodes[node->children_offset + 1], flag);
 
   if (update & PBVH_UpdateBB) {
-    update_node_vb(pbvh, node);
+    calc_node_bounds(pbvh, node);
   }
   if (update & PBVH_UpdateOriginalBB) {
-    node->orig_vb = node->vb;
+    node->bounds_orig = node->bounds;
   }
 
   return update;
@@ -1366,11 +1366,11 @@ void update_bounds(PBVH &pbvh, int flag)
   }
 
   if (flag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw)) {
-    pbvh_update_BB_redraw(pbvh, nodes, flag);
+    update_bounds_redraw(pbvh, nodes, flag);
   }
 
   if (flag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB)) {
-    pbvh_flush_bb(pbvh, &pbvh.nodes.first(), flag);
+    flush_bounds(pbvh, &pbvh.nodes.first(), flag);
   }
 }
 
@@ -1614,7 +1614,7 @@ Bounds<float3> BKE_pbvh_redraw_BB(PBVH &pbvh)
   PBVHNode *node;
   while ((node = pbvh_iter_next(&iter, PBVH_Leaf))) {
     if (node->flag & PBVH_UpdateRedraw) {
-      bounds = bounds::merge(bounds, node->vb);
+      bounds = bounds::merge(bounds, node->bounds);
     }
   }
   pbvh_iter_end(&iter);
@@ -1662,7 +1662,7 @@ Bounds<float3> bounds_get(const PBVH &pbvh)
   if (pbvh.nodes.is_empty()) {
     return float3(0);
   }
-  return pbvh.nodes.first().vb;
+  return pbvh.nodes.first().bounds;
 }
 
 }  // namespace blender::bke::pbvh
@@ -1849,14 +1849,14 @@ namespace blender::bke::pbvh {
 
 Bounds<float3> node_bounds(const PBVHNode &node)
 {
-  return node.vb;
+  return node.bounds;
 }
 
 }  // namespace blender::bke::pbvh
 
 Bounds<float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node)
 {
-  return node->orig_vb;
+  return node->bounds_orig;
 }
 
 blender::MutableSpan<PBVHProxyNode> BKE_pbvh_node_get_proxies(PBVHNode *node)
@@ -1891,9 +1891,9 @@ struct RaycastData {
 static bool ray_aabb_intersect(PBVHNode &node, const RaycastData &rcd)
 {
   if (rcd.original) {
-    return isect_ray_aabb_v3(&rcd.ray, node.orig_vb.min, node.orig_vb.max, &node.tmin);
+    return isect_ray_aabb_v3(&rcd.ray, node.bounds_orig.min, node.bounds_orig.max, &node.tmin);
   }
-  return isect_ray_aabb_v3(&rcd.ray, node.vb.min, node.vb.max, &node.tmin);
+  return isect_ray_aabb_v3(&rcd.ray, node.bounds.min, node.bounds.max, &node.tmin);
 }
 
 void raycast(PBVH &pbvh,
@@ -2354,12 +2354,12 @@ static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node,
 
   if (original) {
     /* BKE_pbvh_node_get_original_BB */
-    bb_min = node->orig_vb.min;
-    bb_max = node->orig_vb.max;
+    bb_min = node->bounds_orig.min;
+    bb_max = node->bounds_orig.max;
   }
   else {
-    bb_min = node->vb.min;
-    bb_max = node->vb.max;
+    bb_min = node->bounds.min;
+    bb_max = node->bounds.max;
   }
 
   float co_dummy[3], depth;
@@ -2584,13 +2584,14 @@ static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
 
 bool BKE_pbvh_node_frustum_contain_AABB(const PBVHNode *node, const PBVHFrustumPlanes *data)
 {
-  return blender::bke::pbvh::test_frustum_aabb(node->vb, data) !=
+  return blender::bke::pbvh::test_frustum_aabb(node->bounds, data) !=
          blender::bke::pbvh::ISECT_OUTSIDE;
 }
 
 bool BKE_pbvh_node_frustum_exclude_AABB(const PBVHNode *node, const PBVHFrustumPlanes *data)
 {
-  return blender::bke::pbvh::test_frustum_aabb(node->vb, data) != blender::bke::pbvh::ISECT_INSIDE;
+  return blender::bke::pbvh::test_frustum_aabb(node->bounds, data) !=
+         blender::bke::pbvh::ISECT_INSIDE;
 }
 
 static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
@@ -2800,7 +2801,7 @@ void BKE_pbvh_draw_debug_cb(PBVH &pbvh,
       continue;
     }
 
-    draw_fn(&node, user_data, node.vb.min, node.vb.max, node.flag);
+    draw_fn(&node, user_data, node.bounds.min, node.bounds.max, node.flag);
   }
 }
 

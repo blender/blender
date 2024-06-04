@@ -29,9 +29,10 @@ struct PBVHNode {
   /* Opaque handle for drawing code */
   blender::draw::pbvh::PBVHBatches *draw_batches = nullptr;
 
-  /* Voxel bounds */
-  blender::Bounds<blender::float3> vb = {};
-  blender::Bounds<blender::float3> orig_vb = {};
+  /** Axis aligned min and max of all vertex positions in the node. */
+  blender::Bounds<blender::float3> bounds = {};
+  /** Bounds from the start of current brush stroke. */
+  blender::Bounds<blender::float3> bounds_orig = {};
 
   /* For internal nodes, the offset of the children in the PBVH
    * 'nodes' array. */
