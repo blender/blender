@@ -481,7 +481,7 @@ void constraintSizeLim(const TransInfo *t, const TransDataContainer *tc, TransDa
           /* Just multiply by `td->mtx` (this should be ok). */
           mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
         }
-        else if (con->ownspace = CONSTRAINT_SPACE_POSE) {
+        else if (con->ownspace == CONSTRAINT_SPACE_POSE) {
           /* Bone space without considering object transformations. */
           mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
           mul_m4_m3m4(cob.matrix, tc->imat3, cob.matrix);
