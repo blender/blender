@@ -41,6 +41,13 @@ void TranslateOperation::set_wrapping(int wrapping_type)
   }
 }
 
+void TranslateOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                      const rcti & /*area*/,
+                                                      Span<MemoryBuffer *> /*inputs*/)
+{
+  ensure_delta();
+}
+
 void TranslateOperation::get_area_of_interest(const int input_idx,
                                               const rcti &output_area,
                                               rcti &r_input_area)
