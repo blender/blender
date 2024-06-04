@@ -6448,7 +6448,7 @@ static std::string ui_template_status_tooltip(bContext *C, void * /*argN*/, cons
     tooltip_message += RPT_(
         "This file is managed by the Blender asset system\n"
         "and is expected to contain a single asset data-block.\n"
-        "Take care to avoid data loss when editing assets.");
+        "Take care to avoid data loss when editing assets");
   }
 
   return tooltip_message;
@@ -6585,23 +6585,25 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   /* UI_BTYPE_ROUNDBOX's bg color is set in but->col. */
   UI_GetThemeColorType4ubv(TH_INFO_WARNING, SPACE_INFO, but->col);
 
-  /* Background for the rest of the message. */
-  but = uiDefBut(block,
-                 UI_BTYPE_ROUNDBOX,
-                 0,
-                 "",
-                 UI_UNIT_X + (6 * UI_SCALE_FAC),
-                 0,
-                 UI_UNIT_X + width,
-                 UI_UNIT_Y,
-                 nullptr,
-                 0.0f,
-                 0.0f,
-                 "");
+  if (!warning_message.is_empty()) {
+    /* Background for the rest of the message. */
+    but = uiDefBut(block,
+                   UI_BTYPE_ROUNDBOX,
+                   0,
+                   "",
+                   UI_UNIT_X + (6 * UI_SCALE_FAC),
+                   0,
+                   UI_UNIT_X + width,
+                   UI_UNIT_Y,
+                   nullptr,
+                   0.0f,
+                   0.0f,
+                   "");
 
-  /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
-  UI_GetThemeColorType4ubv(TH_INFO_WARNING, SPACE_INFO, but->col);
-  but->col[3] = 64;
+    /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
+    UI_GetThemeColorType4ubv(TH_INFO_WARNING, SPACE_INFO, but->col);
+    but->col[3] = 64;
+  }
 
   UI_block_align_end(block);
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
