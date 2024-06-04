@@ -155,6 +155,8 @@ void main()
       for (int i = 1; i < max_view_per_tilemap; i++) {
         max_lod = findMSB(levels_rendered & ~(~0u << max_lod));
       }
+      /* Note: Concurent writting of the same value to the same data. */
+      tilemaps_buf[tilemap_index].effective_lod_min = max_lod;
       /* Collapse all bits to highest level. */
       for (int lod = 0; lod < max_lod; lod++) {
         if (thread_mask(tile_co, lod)) {
@@ -174,6 +176,13 @@ void main()
         }
       }
     }
+    else {
+      /* Note: Concurent writting of the same value to the same data. */
+      tilemaps_buf[tilemap_index].effective_lod_min = 0;
+    }
+#else
+    /* Note: Concurent writting of the same value to the same data. */
+    tilemaps_buf[tilemap_index].effective_lod_min = 0;
 #endif
 
     barrier();

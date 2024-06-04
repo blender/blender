@@ -128,7 +128,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_mask)
     .do_static_compilation(true)
     .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
     .push_constant(Type::INT, "max_view_per_tilemap")
-    .storage_buf(0, Qualifier::READ, "ShadowTileMapData", "tilemaps_buf[]")
+    .storage_buf(0, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
     .additional_info("eevee_shared")
     .compute_source("eevee_shadow_page_mask_comp.glsl");
@@ -196,7 +196,11 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_amend)
     .do_static_compilation(true)
     .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
     .image(0, GPU_R32UI, Qualifier::READ_WRITE, ImageType::UINT_2D, "tilemaps_img")
-    .additional_info("eevee_shared", "eevee_light_data", "draw_view")
+    .storage_buf(LIGHT_CULL_BUF_SLOT, Qualifier::READ, "LightCullingData", "light_cull_buf")
+    .storage_buf(LIGHT_BUF_SLOT, Qualifier::READ_WRITE, "LightData", "light_buf[]")
+    /* The call bind_resources(lights) also uses LIGHT_ZBIN_BUF_SLOT and LIGHT_TILE_BUF_SLOT. */
+    .storage_buf(4, Qualifier::READ, "ShadowTileMapData", "tilemaps_buf[]")
+    .additional_info("eevee_shared", "draw_view")
     .compute_source("eevee_shadow_tilemap_amend_comp.glsl");
 
 /* AtomicMin clear implementation. */

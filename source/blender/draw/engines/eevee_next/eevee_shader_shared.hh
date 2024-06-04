@@ -1317,8 +1317,8 @@ struct ShadowTileMapData {
   eLightType light_type;
   /** Entire tilemap (all tiles) needs to be tagged as dirty. */
   bool32_t is_dirty;
-
-  float _pad1;
+  /** Effective minimum resolution after update throttle. */
+  int effective_lod_min;
   float _pad2;
   /** Near and far clip distances for punctual. */
   float clip_near;
