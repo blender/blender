@@ -53,9 +53,9 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             col.prop(probe, "intensity")
 
             sub = col.column(align=True)
-            sub.prop(probe, "grid_resolution_x", text="Resolution X")
-            sub.prop(probe, "grid_resolution_y", text="Y")
-            sub.prop(probe, "grid_resolution_z", text="Z")
+            sub.prop(probe, "resolution_x", text="Resolution X")
+            sub.prop(probe, "resolution_y", text="Y")
+            sub.prop(probe, "resolution_z", text="Z")
 
         elif probe.type == 'PLANE':
             col = layout.column()
@@ -101,16 +101,16 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             col.separator()
 
             sub = col.column(align=True)
-            sub.prop(probe, "grid_normal_bias")
-            sub.prop(probe, "grid_view_bias")
-            sub.prop(probe, "grid_facing_bias")
+            sub.prop(probe, "normal_bias")
+            sub.prop(probe, "view_bias")
+            sub.prop(probe, "facing_bias")
 
             col.separator()
 
-            col.prop(probe, "grid_validity_threshold")
+            col.prop(probe, "validity_threshold")
             sub = col.column(align=True)
-            sub.prop(probe, "grid_dilation_threshold")
-            sub.prop(probe, "grid_dilation_radius", text="Radius")
+            sub.prop(probe, "dilation_threshold")
+            sub.prop(probe, "dilation_radius", text="Radius")
 
             col.separator()
 
@@ -220,12 +220,12 @@ class DATA_PT_lightprobe_bake_resolution(DataButtonsPanel, Panel):
         col = layout.column()
 
         sub = col.column(align=True)
-        sub.prop(probe, "grid_resolution_x", text="Resolution X")
-        sub.prop(probe, "grid_resolution_y", text="Y")
-        sub.prop(probe, "grid_resolution_z", text="Z")
+        sub.prop(probe, "resolution_x", text="Resolution X")
+        sub.prop(probe, "resolution_y", text="Y")
+        sub.prop(probe, "resolution_z", text="Z")
 
-        col.prop(probe, "grid_bake_samples")
-        col.prop(probe, "grid_surfel_density")
+        col.prop(probe, "bake_samples")
+        col.prop(probe, "surfel_density")
 
 
 class DATA_PT_lightprobe_bake_capture(DataButtonsPanel, Panel):
@@ -242,12 +242,12 @@ class DATA_PT_lightprobe_bake_capture(DataButtonsPanel, Panel):
 
         col = layout.column()
 
-        col.prop(probe, "grid_capture_distance", text="Distance")
+        col.prop(probe, "capture_distance", text="Distance")
 
         col = layout.column(heading="Contributions", align=True)
-        col.prop(probe, "grid_capture_world", text="World")
-        col.prop(probe, "grid_capture_indirect", text="Indirect Light")
-        col.prop(probe, "grid_capture_emission", text="Emission")
+        col.prop(probe, "capture_world", text="World")
+        col.prop(probe, "capture_indirect", text="Indirect Light")
+        col.prop(probe, "capture_emission", text="Emission")
 
 
 class DATA_PT_lightprobe_bake_offset(DataButtonsPanel, Panel):
@@ -264,8 +264,8 @@ class DATA_PT_lightprobe_bake_offset(DataButtonsPanel, Panel):
         probe = context.lightprobe
 
         col = layout.column(align=True)
-        col.prop(probe, "grid_surface_bias")
-        col.prop(probe, "grid_escape_bias")
+        col.prop(probe, "surface_bias")
+        col.prop(probe, "escape_bias")
 
 
 class DATA_PT_lightprobe_bake_clamping(DataButtonsPanel, Panel):
@@ -282,8 +282,8 @@ class DATA_PT_lightprobe_bake_clamping(DataButtonsPanel, Panel):
         probe = context.lightprobe
 
         col = layout.column(align=True)
-        col.prop(probe, "grid_clamp_direct", text="Direct Light")
-        col.prop(probe, "grid_clamp_indirect", text="Indirect Light")
+        col.prop(probe, "clamp_direct", text="Direct Light")
+        col.prop(probe, "clamp_indirect", text="Indirect Light")
 
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
