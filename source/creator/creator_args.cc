@@ -1676,17 +1676,26 @@ static int arg_handle_start_with_console(int /*argc*/, const char ** /*argv*/, v
 static bool arg_handle_extension_registration(const bool do_register, const bool all_users)
 {
   /* Logic runs in #main_args_handle_registration. */
+#  ifdef WIN32
+  /* This process has been launched with the permissions needed
+   * to register or unregister, so just do it now and then exit. */
+  if (do_register) {
+    BLI_windows_register_blend_extension(all_users);
+  }
+  else {
+    BLI_windows_unregister_blend_extension(all_users);
+  }
+  TerminateProcess(GetCurrentProcess(), 0);
+  return true;
+#  else
   char *error_msg = nullptr;
-  bool result = WM_platform_assosiate_set(do_register, all_users, &error_msg);
+  bool result = WM_platform_associate_set(do_register, all_users, &error_msg);
   if (error_msg) {
     fprintf(stderr, "Error: %s\n", error_msg);
     MEM_freeN(error_msg);
   }
-
-#  ifdef WIN32
-  TerminateProcess(GetCurrentProcess(), 0);
-#  endif
   return result;
+#  endif
 }
 
 static const char arg_handle_register_extension_doc[] =

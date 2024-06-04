@@ -1541,7 +1541,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
     }
 
     if (BKE_brush_use_locked_size(pcontext->scene, brush)) {
-      const bke::greasepencil::Layer &layer = *grease_pencil->get_active_layer();
+      const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
       const ed::greasepencil::DrawingPlacement placement(
           *pcontext->scene, *pcontext->region, *pcontext->vc.v3d, *object, layer);
       const float radius = BKE_brush_unprojected_radius_get(pcontext->scene, brush);
@@ -1742,10 +1742,6 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
   /* Needed for updating the necessary SculptSession data in order to initialize the
    * boundary data for the preview. */
   BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
-
-  if (ss.boundary_preview) {
-    boundary::data_free(ss.boundary_preview);
-  }
 
   ss.boundary_preview = boundary::data_init(
       *pcontext->vc.obact, pcontext->brush, ss.active_vertex, pcontext->radius);

@@ -882,11 +882,17 @@ void ObjectManager::device_update_flags(
   bool has_volume_objects = false;
   foreach (Object *object, scene->objects) {
     if (object->geometry->has_volume) {
+      /* If the bounds are not valid it is not always possible to calculate the volume step, and
+       * the step size is not needed for the displacement. So, delay calculation of the volume
+       * step size until the final bounds are known. */
       if (bounds_valid) {
         volume_objects.push_back(object);
+        object_volume_step[object->index] = object->compute_volume_step_size();
+      }
+      else {
+        object_volume_step[object->index] = FLT_MAX;
       }
       has_volume_objects = true;
-      object_volume_step[object->index] = object->compute_volume_step_size();
     }
     else {
       object_volume_step[object->index] = FLT_MAX;

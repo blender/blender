@@ -225,6 +225,23 @@ static bool use_sequencer_snapping(bContext *C)
          (snap_flag & SEQ_SNAP_CURRENT_FRAME_TO_STRIPS);
 }
 
+static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *event)
+{
+  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
+    return false;
+  }
+
+  const Scene *scene = CTX_data_scene(C);
+  const View2D *v2d = UI_view2d_fromcontext(C);
+
+  float mouse_co[2];
+  UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouse_co[0], &mouse_co[1]);
+
+  StripSelection selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
+
+  return selection.handle != SEQ_HANDLE_NONE;
+}
+
 /* Modal Operator init */
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -232,6 +249,9 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
   bScreen *screen = CTX_wm_screen(C);
   if (CTX_wm_space_seq(C) != nullptr && region->regiontype == RGN_TYPE_PREVIEW) {
     return OPERATOR_CANCELLED;
+  }
+  if (sequencer_skip_for_handle_tweak(C, event)) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   /* Change to frame that mouse is over before adding modal handler,
@@ -650,6 +670,45 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Frame Scene/Preview Range Operator
+ * \{ */
+
+static int scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
+{
+  ARegion *region = CTX_wm_region(C);
+  const Scene *scene = CTX_data_scene(C);
+  BLI_assert(region);
+  BLI_assert(scene);
+
+  View2D &v2d = region->v2d;
+  v2d.cur.xmin = PSFRA;
+  v2d.cur.xmax = PEFRA;
+
+  v2d.cur = ANIM_frame_range_view2d_add_xmargin(v2d, v2d.cur);
+
+  UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), &v2d, V2D_LOCK_COPY);
+  ED_area_tag_redraw(CTX_wm_area(C));
+
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
+{
+  ot->name = "Frame Scene/Preview Range";
+  ot->idname = "ANIM_OT_scene_range_frame";
+  ot->description =
+      "Reset the horizontal view to the current scene frame range, taking the preview range into "
+      "account if it is active";
+
+  ot->exec = scene_range_frame_exec;
+  ot->poll = ED_operator_animview_active;
+
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Bindings
  * \{ */
 
@@ -720,6 +779,8 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_previewrange_set);
   WM_operatortype_append(ANIM_OT_previewrange_clear);
+
+  WM_operatortype_append(ANIM_OT_scene_range_frame);
 
   /* Entire UI --------------------------------------- */
   WM_operatortype_append(ANIM_OT_keyframe_insert);

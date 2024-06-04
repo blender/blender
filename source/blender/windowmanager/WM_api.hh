@@ -1122,6 +1122,11 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
                                         const char *classname,
                                         const char *idname);
 /**
+ * Return true when an operators name follows the `SOME_OT_op` naming convention.
+ */
+bool WM_operator_bl_idname_is_valid(const char *idname);
+
+/**
  * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
  */
 std::optional<std::string> WM_context_path_resolve_property_full(const bContext *C,
@@ -1897,7 +1902,7 @@ bool WM_region_use_viewport(ScrArea *area, ARegion *region);
 /**
  * \return Success.
  */
-bool WM_platform_assosiate_set(bool do_register, bool all_users, char **r_error_msg);
+bool WM_platform_associate_set(bool do_register, bool all_users, char **r_error_msg);
 
 #ifdef WITH_XR_OPENXR
 /* `wm_xr_session.cc` */

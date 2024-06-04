@@ -36,7 +36,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
@@ -506,9 +506,8 @@ struct PBVHBatches {
       switch (*request_type) {
         case CustomRequest::Position: {
           foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
-            float *co = CCG_elem_co(&args.ccg_key, elems[i]);
-
-            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = co;
+            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = CCG_elem_co(args.ccg_key,
+                                                                                elems[i]);
           });
           break;
         }
@@ -525,14 +524,14 @@ struct PBVHBatches {
                                   sharp_faces[grid_to_face_map[grid_index]]);
 
             if (smooth) {
-              no = CCG_elem_no(&args.ccg_key, elems[0]);
+              no = CCG_elem_no(args.ccg_key, elems[0]);
             }
             else {
               normal_quad_v3(no,
-                             CCG_elem_co(&args.ccg_key, elems[3]),
-                             CCG_elem_co(&args.ccg_key, elems[2]),
-                             CCG_elem_co(&args.ccg_key, elems[1]),
-                             CCG_elem_co(&args.ccg_key, elems[0]));
+                             CCG_elem_co(args.ccg_key, elems[3]),
+                             CCG_elem_co(args.ccg_key, elems[2]),
+                             CCG_elem_co(args.ccg_key, elems[1]),
+                             CCG_elem_co(args.ccg_key, elems[0]));
             }
 
             short sno[3];
@@ -546,9 +545,8 @@ struct PBVHBatches {
         case CustomRequest::Mask: {
           if (args.ccg_key.has_mask) {
             foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
-              float *mask = CCG_elem_mask(&args.ccg_key, elems[i]);
-
-              *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = *mask;
+              *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = CCG_elem_mask(args.ccg_key,
+                                                                                   elems[i]);
             });
           }
           else {
@@ -623,10 +621,10 @@ struct PBVHBatches {
             for (int y = 0; y < gridsize - 1; y++) {
               for (int x = 0; x < gridsize - 1; x++) {
                 CCGElem *elems[4] = {
-                    CCG_grid_elem(&args.ccg_key, grid, x, y),
-                    CCG_grid_elem(&args.ccg_key, grid, x + 1, y),
-                    CCG_grid_elem(&args.ccg_key, grid, x + 1, y + 1),
-                    CCG_grid_elem(&args.ccg_key, grid, x, y + 1),
+                    CCG_grid_elem(args.ccg_key, grid, x, y),
+                    CCG_grid_elem(args.ccg_key, grid, x + 1, y),
+                    CCG_grid_elem(args.ccg_key, grid, x + 1, y + 1),
+                    CCG_grid_elem(args.ccg_key, grid, x, y + 1),
                 };
 
                 func(x, y, grid_index, elems, 0);
@@ -648,13 +646,13 @@ struct PBVHBatches {
             for (int y = 0; y < gridsize; y++) {
               for (int x = 0; x < gridsize; x++) {
                 CCGElem *elems[4] = {
-                    CCG_grid_elem(&args.ccg_key, grid, x, y),
-                    CCG_grid_elem(&args.ccg_key, grid, min_ii(x + 1, gridsize - 1), y),
-                    CCG_grid_elem(&args.ccg_key,
+                    CCG_grid_elem(args.ccg_key, grid, x, y),
+                    CCG_grid_elem(args.ccg_key, grid, min_ii(x + 1, gridsize - 1), y),
+                    CCG_grid_elem(args.ccg_key,
                                   grid,
                                   min_ii(x + 1, gridsize - 1),
                                   min_ii(y + 1, gridsize - 1)),
-                    CCG_grid_elem(&args.ccg_key, grid, x, min_ii(y + 1, gridsize - 1)),
+                    CCG_grid_elem(args.ccg_key, grid, x, min_ii(y + 1, gridsize - 1)),
                 };
 
                 func(x, y, grid_index, elems, 0);
@@ -1277,23 +1275,7 @@ struct PBVHBatches {
     }
 
     for (const int grid_index : args.grid_indices) {
-      bool smooth = !(!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid_index]]);
-      if (!grid_hidden.is_empty()) {
-        const BoundedBitSpan gh = grid_hidden[grid_index];
-        for (int y = 0; y < gridsize - 1; y += skip) {
-          for (int x = 0; x < gridsize - 1; x += skip) {
-            if (paint_is_grid_face_hidden(gh, gridsize, x, y)) {
-              /* Skip hidden faces by just setting smooth to true. */
-              smooth = true;
-              goto outer_loop_break;
-            }
-          }
-        }
-      }
-
-    outer_loop_break:
-
-      if (!smooth) {
+      if (!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid_index]]) {
         needs_tri_index = false;
         break;
       }

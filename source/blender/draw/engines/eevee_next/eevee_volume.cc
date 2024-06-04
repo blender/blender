@@ -377,11 +377,22 @@ void VolumeModule::draw_prepass(View &main_view)
   DRW_stats_group_end();
 }
 
-void VolumeModule::draw_compute(View &main_view)
+void VolumeModule::draw_compute(View &main_view, int2 extent)
 {
   if (!enabled_) {
     return;
   }
+
+  if (inst_.pipelines.deferred.is_empty()) {
+    /* This assume the volume are computed after deferred passes. This is needed to avoid broken
+     * lighting and shadowing as the lights are not setup otherwise (see #121971). */
+    inst_.hiz_buffer.swap_layer();
+    inst_.hiz_buffer.update();
+    inst_.volume_probes.set_view(main_view);
+    inst_.sphere_probes.set_view(main_view);
+    inst_.shadows.set_view(main_view, extent);
+  }
+
   scatter_tx_.swap();
   extinction_tx_.swap();
 

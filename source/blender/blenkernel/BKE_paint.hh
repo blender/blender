@@ -283,12 +283,6 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 
 #define SCULPT_FACE_SET_NONE 0
 
-/** Used for both vertex color and weight paint. */
-struct SculptVertexPaintGeomMap {
-  blender::GroupedSpan<int> vert_to_loop;
-  blender::GroupedSpan<int> vert_to_face;
-};
-
 /** Pose Brush IK Chain. */
 struct SculptPoseIKChainSegment {
   blender::float3 orig;
@@ -337,19 +331,15 @@ struct SculptBoundaryPreviewEdge {
 
 struct SculptBoundary {
   /* Vertex indices of the active boundary. */
-  PBVHVertRef *verts;
-  int verts_capacity;
-  int verts_num;
+  blender::Vector<PBVHVertRef> verts;
 
   /* Distance from a vertex in the boundary to initial vertex indexed by vertex index, taking into
    * account the length of all edges between them. Any vertex that is not in the boundary will have
    * a distance of 0. */
-  float *distance;
+  blender::Array<float> distance;
 
   /* Data for drawing the preview. */
-  SculptBoundaryPreviewEdge *edges;
-  int edges_capacity;
-  int edges_num;
+  blender::Vector<SculptBoundaryPreviewEdge> edges;
 
   /* True if the boundary loops into itself. */
   bool forms_loop;
@@ -374,17 +364,17 @@ struct SculptBoundary {
 
   /* Indexed by vertex index, contains the topology information needed for boundary deformations.
    */
-  SculptBoundaryEditInfo *edit_info;
+  blender::Array<SculptBoundaryEditInfo> edit_info;
 
   /* Bend Deform type. */
   struct {
-    float (*pivot_rotation_axis)[3];
-    float (*pivot_positions)[3];
+    blender::Array<blender::float3> pivot_rotation_axis;
+    blender::Array<blender::float3> pivot_positions;
   } bend;
 
   /* Slide Deform type. */
   struct {
-    float (*directions)[3];
+    blender::Array<blender::float3> directions;
   } slide;
 
   /* Twist Deform type. */
@@ -599,7 +589,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   std::unique_ptr<SculptPoseIKChain> pose_ik_chain_preview;
 
   /* Boundary Brush Preview */
-  SculptBoundary *boundary_preview = nullptr;
+  std::unique_ptr<SculptBoundary> boundary_preview;
 
   SculptVertexInfo vertex_info = {};
   SculptFakeNeighbors fake_neighbors = {};
@@ -619,11 +609,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
 
   struct {
     struct {
-      SculptVertexPaintGeomMap gmap;
-    } vpaint;
-
-    struct {
-      SculptVertexPaintGeomMap gmap;
       /* Keep track of how much each vertex has been painted (non-airbrush only). */
       float *alpha_weight;
 

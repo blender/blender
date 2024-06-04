@@ -1637,6 +1637,9 @@ ID *BKE_libblock_find_name_and_library(Main *bmain,
       }
       return nullptr;
     }
+    if (id->lib == nullptr) {
+      return nullptr;
+    }
     if (!STREQ(id->lib->id.name + 2, lib_name)) {
       continue;
     }

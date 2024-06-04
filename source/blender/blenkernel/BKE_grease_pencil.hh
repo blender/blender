@@ -185,6 +185,7 @@ class Layer;
   void set_selected(bool selected); \
   bool use_onion_skinning() const; \
   bool use_masks() const; \
+  bool use_locked_material() const; \
   bool is_child_of(const LayerGroup &group) const;
 
 /* Implements the forwarding of the methods defined by #TREENODE_COMMON_METHODS. */
@@ -232,6 +233,10 @@ class Layer;
   inline bool class_name::use_masks() const \
   { \
     return this->as_node().use_masks(); \
+  } \
+  inline bool class_name::use_locked_material() const \
+  { \
+    return this->as_node().use_locked_material(); \
   } \
   inline bool class_name::is_child_of(const LayerGroup &group) const \
   { \
@@ -771,6 +776,10 @@ inline bool TreeNode::use_masks() const
   return ((this->flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0) &&
          (!this->parent_group() || this->parent_group()->as_node().use_masks());
 }
+inline bool TreeNode::use_locked_material() const
+{
+  return (this->flag & GP_LAYER_TREE_NODE_USE_LOCKED_MATERIAL) != 0;
+}
 inline bool TreeNode::is_child_of(const LayerGroup &group) const
 {
   if (const LayerGroup *parent = this->parent_group()) {
@@ -984,6 +993,12 @@ inline bool GreasePencil::has_active_group() const
 void *BKE_grease_pencil_add(Main *bmain, const char *name);
 GreasePencil *BKE_grease_pencil_new_nomain();
 GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
+/**
+ * Move data from a grease pencil outside of the main data-base into a grease pencil in the
+ * data-base. Takes ownership of the source mesh. */
+void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
+                                               GreasePencil *grease_pencil_dst);
+
 void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
 void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);

@@ -15,6 +15,7 @@ class Channel(enum.IntEnum):
     G = 1
     B = 2
     A = 3
+    RGB2BW = 4
 
 # These describe how an ExportImage's channels should be filled.
 
@@ -34,6 +35,21 @@ class FillImageTile:
         self.image = image
         self.tile = tile
         self.src_chan = src_chan
+
+
+class FillImageRGB2BWTile:
+    """Fills a channel from a Blender UDIM image, RGB 2 BW"""
+
+    def __init__(self, image: bpy.types.Image, tile):
+        self.image = image
+        self.tile = tile
+
+
+class FillImageRGB2BW:
+    """Fills a channel from a Blender image, RGB 2 BW"""
+
+    def __init__(self, image: bpy.types.Image):
+        self.image = image
 
 
 class FillWhite:
@@ -129,6 +145,12 @@ class ExportImage:
     def fill_image_tile(self, image: bpy.types.Image, tile, dst_chan: Channel, src_chan: Channel):
         self.fills[dst_chan] = FillImageTile(image, tile, src_chan)
 
+    def fill_image_bw(self, image: bpy.types.Image, dst_chan: Channel):
+        self.fills[dst_chan] = FillImageRGB2BW(image)
+
+    def fill_image_bw_tile(self, image: bpy.types.Image, tile, dst_chan: Channel):
+        self.fills[dst_chan] = FillImageRGB2BWTile(image, tile)
+
     def store_data(self, identifier, data, type='Image'):
         if type == "Image":  # This is an image
             self.stored[identifier] = StoreImage(data)
@@ -203,7 +225,10 @@ class ExportImage:
 
         # Unhappy path = we need to create the image self.fills describes or self.stores describes
         if self.numpy_calc is None:
-            return self.__encode_unhappy(export_settings), None
+            if self.__unhappy_is_udim():
+                return self.__encode_unhappy_udim(export_settings), None
+            else:
+                return self.__encode_unhappy(export_settings), None
         else:
             pixels, width, height, factor = self.numpy_calc(self.stored, export_settings)
             return self.__encode_from_numpy_array(pixels, (width, height), export_settings), factor
@@ -215,6 +240,74 @@ class ExportImage:
         return self.__encode_from_image_tile(
             self.fills[list(self.fills.keys())[0]].image, export_settings['current_udim_info']['tile'], export_settings)
 
+    def __unhappy_is_udim(self):
+        return any(isinstance(fill, FillImageTile) or isinstance(fill, FillImageRGB2BWTile)
+                   for fill in self.fills.values())
+
+    def __encode_unhappy_udim(self, export_settings) -> bytes:
+        # We need to assemble the image out of channels.
+        # Do it with numpy and image.pixels of the right UDIM tile.
+
+        images = []
+        for fill in self.fills.values():
+            if isinstance(fill, FillImageTile) or isinstance(fill, FillImageRGB2BWTile):
+                if fill.image not in images:
+                    images.append((fill.image, fill.tile))
+                    export_settings['exported_images'][fill.image.name] = 2  # 2 = partially used
+
+        if not images:
+            # No ImageFills; use a 1x1 white pixel
+            pixels = np.array([1.0, 1.0, 1.0, 1.0], np.float32)
+            return self.__encode_from_numpy_array(pixels, (1, 1), export_settings)
+
+        # We need to open the original UDIM image tile to get size & pixel data
+        original_image_sizes = []
+        for image, tile in images:
+            src_path = bpy.path.abspath(image.filepath_raw).replace("<UDIM>", tile)
+            with TmpImageGuard() as guard:
+                guard.image = bpy.data.images.load(
+                    src_path,
+                )
+                original_image_sizes.append((guard.image.size[0], guard.image.size[1]))
+
+        width = max(image_size[0] for image_size in original_image_sizes)
+        height = max(image_size[1] for image_size in original_image_sizes)
+
+        out_buf = np.ones(width * height * 4, np.float32)
+        tmp_buf = np.empty(width * height * 4, np.float32)
+
+        for idx, (image, tile) in enumerate(images):
+            if original_image_sizes[idx][0] == width and original_image_sizes[idx][1] == height:
+                src_path = bpy.path.abspath(image.filepath_raw).replace("<UDIM>", tile)
+                with TmpImageGuard() as guard:
+                    guard.image = bpy.data.images.load(
+                        src_path,
+                    )
+                    guard.image.pixels.foreach_get(tmp_buf)
+            else:
+                # Image is the wrong size; make a temp copy and scale it.
+                src_path = bpy.path.abspath(image.filepath_raw).replace("<UDIM>", tile)
+                with TmpImageGuard() as guard:
+                    guard.image = bpy.data.images.load(
+                        src_path,
+                    )
+                    tmp_image = guard.image
+                    tmp_image.scale(width, height)
+                    tmp_image.pixels.foreach_get(tmp_buf)
+
+            # Copy any channels for this image to the output
+            for dst_chan, fill in self.fills.items():
+                if isinstance(fill, FillImageTile) and fill.image == image:
+                    out_buf[int(dst_chan)::4] = tmp_buf[int(fill.src_chan)::4]
+                elif isinstance(fill, FillWith):
+                    out_buf[int(dst_chan)::4] = fill.value
+                elif isinstance(fill, FillImageRGB2BWTile) and fill.image == image:
+                    out_buf[int(dst_chan)::4] = tmp_buf[0::4] * 0.2989 + tmp_buf[1::4] * 0.5870 + tmp_buf[2::4] * 0.1140
+
+        tmp_buf = None  # GC this
+
+        return self.__encode_from_numpy_array(out_buf, (width, height), export_settings)
+
     def __encode_unhappy(self, export_settings) -> bytes:
         # We need to assemble the image out of channels.
         # Do it with numpy and image.pixels.
@@ -222,7 +315,7 @@ class ExportImage:
         # Find all Blender images used
         images = []
         for fill in self.fills.values():
-            if isinstance(fill, FillImage):
+            if isinstance(fill, FillImage) or isinstance(fill, FillImageRGB2BW):
                 if fill.image not in images:
                     images.append(fill.image)
                     export_settings['exported_images'][fill.image.name] = 2  # 2 = partially used
@@ -255,6 +348,8 @@ class ExportImage:
                     out_buf[int(dst_chan)::4] = tmp_buf[int(fill.src_chan)::4]
                 elif isinstance(fill, FillWith):
                     out_buf[int(dst_chan)::4] = fill.value
+                elif isinstance(fill, FillImageRGB2BW) and fill.image == image:
+                    out_buf[int(dst_chan)::4] = tmp_buf[0::4] * 0.2989 + tmp_buf[1::4] * 0.5870 + tmp_buf[2::4] * 0.1140
 
         tmp_buf = None  # GC this
 

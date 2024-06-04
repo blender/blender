@@ -355,7 +355,7 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
 static Library *reuse_bmain_data_dependencies_new_library_get(ReuseOldBMainData *reuse_data,
                                                               Library *old_lib)
 {
-  id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
+  const id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
   Library *new_lib = old_lib;
   IDRemapperApplyResult result = remapper.apply(reinterpret_cast<ID **>(&new_lib),
                                                 ID_REMAP_APPLY_DEFAULT);

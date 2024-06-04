@@ -695,6 +695,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   {
     LISTBASE_FOREACH (Light *, light, &bmain->lights) {
       light->shadow_maximum_resolution = 0.001f;
+      light->transmission_fac = 1.0f;
       SET_FLAG_FROM_TEST(light->mode, false, LA_SHAD_RES_ABSOLUTE);
     }
   }

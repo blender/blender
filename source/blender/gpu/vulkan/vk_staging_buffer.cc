@@ -25,6 +25,7 @@ VKStagingBuffer::VKStagingBuffer(const VKBuffer &device_buffer, Direction direct
   }
 
   host_buffer_.create(device_buffer.size_in_bytes(), GPU_USAGE_STREAM, usage, true);
+  debug::object_label(host_buffer_.vk_handle(), "StagingBuffer");
 }
 
 void VKStagingBuffer::copy_to_device(VKContext &context)

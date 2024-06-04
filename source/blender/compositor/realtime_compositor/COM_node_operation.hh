@@ -38,6 +38,10 @@ class NodeOperation : public Operation {
    * on the node inputs. */
   NodeOperation(Context &context, DNode node);
 
+  /* Calls the evaluate method of the operation, but also measures the execution time and stores it
+   * in the context's profile data. */
+  void evaluate() override;
+
   /* Compute and set the initial reference counts of all the results of the operation. The
    * reference counts of the results are the number of operations that use those results, which is
    * computed as the number of inputs whose node is part of the schedule and is linked to the

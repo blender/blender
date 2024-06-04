@@ -2084,7 +2084,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
     const bTheme *btheme = UI_GetTheme();
     const float aspect = block->panel->runtime->block->aspect;
     const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f / aspect;
-    UI_draw_layout_panels_backdrop(region, block->panel, radius, subpanel_backcolor);
+    ui_draw_layout_panels_backdrop(region, block->panel, radius, subpanel_backcolor);
   }
 
   BLF_batch_draw_begin();

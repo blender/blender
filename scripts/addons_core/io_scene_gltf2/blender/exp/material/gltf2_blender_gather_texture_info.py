@@ -259,6 +259,9 @@ def __gather_texture_transform_and_tex_coord(primary_socket, export_settings):
     elif node and node.node and node.node.type == 'ATTRIBUTE' \
             and node.node.attribute_type == "GEOMETRY" \
             and node.node.attribute_name:
+        # If this attribute is Face Corner / 2D Vector, this is a UV map
+        # So we can use it as a UV map Fixed
+        # But this will be checked later, when we know the mesh
         uvmap_info['type'] = 'Attribute'
         uvmap_info['value'] = node.node.attribute_name
 

@@ -250,20 +250,21 @@ enum eSamplingDimension : uint32_t {
   SAMPLING_RAYTRACE_X = 18u,
   SAMPLING_AO_U = 19u,
   SAMPLING_AO_V = 20u,
-  SAMPLING_CURVES_U = 21u,
-  SAMPLING_VOLUME_U = 22u,
-  SAMPLING_VOLUME_V = 23u,
-  SAMPLING_VOLUME_W = 24u,
-  SAMPLING_SHADOW_I = 25u,
-  SAMPLING_SHADOW_J = 26u,
-  SAMPLING_SHADOW_K = 27u,
+  SAMPLING_AO_W = 21u,
+  SAMPLING_CURVES_U = 22u,
+  SAMPLING_VOLUME_U = 23u,
+  SAMPLING_VOLUME_V = 24u,
+  SAMPLING_VOLUME_W = 25u,
+  SAMPLING_SHADOW_I = 26u,
+  SAMPLING_SHADOW_J = 27u,
+  SAMPLING_SHADOW_K = 28u,
 };
 
 /**
  * IMPORTANT: Make sure the array can contain all sampling dimensions.
  * Also note that it needs to be multiple of 4.
  */
-#define SAMPLING_DIMENSION_COUNT 28
+#define SAMPLING_DIMENSION_COUNT 32
 
 /* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct SamplingData {
@@ -824,6 +825,9 @@ enum LightingType : uint32_t {
   LIGHT_SPECULAR = 1u,
   LIGHT_TRANSMISSION = 2u,
   LIGHT_VOLUME = 3u,
+  /* WORKAROUND: Special value used to tag translucent BSDF with thickness.
+   * Fallback to LIGHT_DIFFUSE. */
+  LIGHT_TRANSLUCENT_WITH_THICKNESS = 4u,
 };
 
 static inline bool is_area_light(eLightType type)
@@ -985,7 +989,7 @@ struct LightData {
   /** Index of the first tile-map. Set to LIGHT_NO_SHADOW if light is not casting shadow. */
   int tilemap_index;
   /* Radius in pixels for shadow filtering. */
-  float pcf_radius;
+  float filter_radius;
 
   /* Shadow Map resolution bias. */
   float lod_bias;
@@ -1485,7 +1489,7 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
 struct ShadowSamplingTile {
   /** Page inside the virtual shadow map atlas. */
   uint3 page;
-  /** LOD pointed to LOD 0 tile page. */
+  /** LOD pointed by LOD 0 tile page. */
   uint lod;
   /** Offset to the texel position to align with the LOD page start. (directional only). */
   uint2 lod_offset;
@@ -1932,10 +1936,15 @@ BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 struct AOData {
   float2 pixel_size;
   float distance;
-  float quality;
+  float lod_factor;
 
-  float thickness;
+  float thickness_near;
+  float thickness_far;
   float angle_bias;
+  float gi_distance;
+
+  float lod_factor_ao;
+  float _pad0;
   float _pad1;
   float _pad2;
 };
@@ -2043,7 +2052,7 @@ BLI_STATIC_ASSERT_ALIGN(PlanarProbeDisplayData, 16)
 
 struct PipelineInfoData {
   float alpha_hash_scale;
-  bool32_t is_probe_reflection;
+  bool32_t is_sphere_probe;
   float _pad1;
   float _pad2;
 };

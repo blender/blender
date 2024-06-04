@@ -15,6 +15,7 @@
 #  include "session/buffers.h"
 #  include "util/array.h"
 #  include "util/log.h"
+#  include "util/path.h"
 
 #  include "kernel/device/cpu/compat.h"
 #  include "kernel/device/cpu/kernel.h"
@@ -159,8 +160,8 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 #  endif
 }
 
-OIDNDenoiserGPU::OIDNDenoiserGPU(Device *path_trace_device, const DenoiseParams &params)
-    : DenoiserGPU(path_trace_device, params)
+OIDNDenoiserGPU::OIDNDenoiserGPU(Device *denoiser_device, const DenoiseParams &params)
+    : DenoiserGPU(denoiser_device, params)
 {
   DCHECK_EQ(params.type, DENOISER_OPENIMAGEDENOISE);
 }
@@ -206,7 +207,7 @@ OIDNFilter OIDNDenoiserGPU::create_filter()
     OIDNError err = oidnGetDeviceError(oidn_device_, (const char **)&error_message);
     if (OIDN_ERROR_NONE != err) {
       LOG(ERROR) << "OIDN error: " << error_message;
-      denoiser_device_->set_error(error_message);
+      set_error(error_message);
     }
   }
 
@@ -257,7 +258,7 @@ bool OIDNDenoiserGPU::commit_and_execute_filter(OIDNFilter filter, ExecMode mode
       error_message = "Unspecified OIDN error";
     }
     LOG(ERROR) << "OIDN error: " << error_message;
-    denoiser_device_->set_error(error_message);
+    set_error(error_message);
     return false;
   }
   return true;
@@ -312,7 +313,7 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
   }
 
   if (!oidn_device_) {
-    denoiser_device_->set_error("Failed to create OIDN device");
+    set_error("Failed to create OIDN device");
     return false;
   }
 
@@ -331,6 +332,17 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
 
   oidnSetFilterBool(oidn_filter_, "hdr", true);
   oidnSetFilterBool(oidn_filter_, "srgb", false);
+
+  const char *custom_weight_path = getenv("CYCLES_OIDN_CUSTOM_WEIGHTS");
+  if (custom_weight_path) {
+    if (path_read_binary(custom_weight_path, custom_weights)) {
+      oidnSetSharedFilterData(
+          oidn_filter_, "weights", custom_weights.data(), custom_weights.size());
+    }
+    else {
+      fprintf(stderr, "Cycles: Failed to load custom OIDN weights!");
+    }
+  }
 
   if (context.use_pass_albedo) {
     albedo_filter_ = create_filter();

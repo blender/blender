@@ -1848,13 +1848,13 @@ static int file_external_operation_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static std::string file_external_operation_description(bContext * /*C*/,
-                                                       wmOperatorType * /*ot*/,
-                                                       PointerRNA *ptr)
+static std::string file_external_operation_get_description(bContext * /*C*/,
+                                                           wmOperatorType * /*ot*/,
+                                                           PointerRNA *ptr)
 {
   const char *description = "";
   RNA_enum_description(file_external_operation, RNA_enum_get(ptr, "operation"), &description);
-  return description;
+  return TIP_(description);
 }
 
 void FILE_OT_external_operation(wmOperatorType *ot)
@@ -1868,7 +1868,7 @@ void FILE_OT_external_operation(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_external_operation_exec;
-  ot->get_description = file_external_operation_description;
+  ot->get_description = file_external_operation_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER; /* No undo! */
@@ -1904,8 +1904,14 @@ static void file_os_operations_menu_item(uiLayout *layout,
   RNA_enum_name(file_external_operation, operation, &title);
 
   PointerRNA props_ptr;
-  uiItemFullO_ptr(
-      layout, ot, title, ICON_NONE, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &props_ptr);
+  uiItemFullO_ptr(layout,
+                  ot,
+                  IFACE_(title),
+                  ICON_NONE,
+                  nullptr,
+                  WM_OP_INVOKE_DEFAULT,
+                  UI_ITEM_NONE,
+                  &props_ptr);
   RNA_string_set(&props_ptr, "filepath", path);
   if (operation) {
     RNA_enum_set(&props_ptr, "operation", operation);

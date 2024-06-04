@@ -61,4 +61,10 @@ std::string import_asset(const char *src,
  */
 bool is_udim_path(const std::string &path);
 
+/**
+ * Returns path to temporary folder for saving imported textures prior to packing.
+ * CAUTION: this directory is recursively deleted after material import.
+ */
+const char *temp_textures_dir();
+
 }  // namespace blender::io::usd

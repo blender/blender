@@ -372,6 +372,66 @@ static const int2 offset_by_direction[num_directions] = {
     {-1, 0},
 };
 
+static void dilate(ImageBufferAccessor &buffer, int iterations = 1)
+{
+  const MutableSpan<ColorGeometry4b> pixels = buffer.pixels();
+
+  blender::Stack<int> active_pixels;
+  for ([[maybe_unused]] const int iter : IndexRange(iterations)) {
+    for (const int i : pixels.index_range()) {
+      /* Ignore already filled pixels */
+      if (get_flag(pixels[i], ColorFlag::Fill)) {
+        continue;
+      }
+      const int2 coord = buffer.coord_from_index(i);
+
+      /* Add to stack if any neighbor is filled. */
+      for (const int2 offset : offset_by_direction) {
+        if (buffer.is_valid_coord(coord + offset) &&
+            get_flag(buffer.pixel_from_coord(coord + offset), ColorFlag::Fill))
+        {
+          active_pixels.push(i);
+        }
+      }
+    }
+
+    while (!active_pixels.is_empty()) {
+      const int index = active_pixels.pop();
+      set_flag(buffer.pixels()[index], ColorFlag::Fill, true);
+    }
+  }
+}
+
+static void erode(ImageBufferAccessor &buffer, int iterations = 1)
+{
+  const MutableSpan<ColorGeometry4b> pixels = buffer.pixels();
+
+  blender::Stack<int> active_pixels;
+  for ([[maybe_unused]] const int iter : IndexRange(iterations)) {
+    for (const int i : pixels.index_range()) {
+      /* Ignore empty pixels */
+      if (!get_flag(pixels[i], ColorFlag::Fill)) {
+        continue;
+      }
+      const int2 coord = buffer.coord_from_index(i);
+
+      /* Add to stack if any neighbor is empty. */
+      for (const int2 offset : offset_by_direction) {
+        if (buffer.is_valid_coord(coord + offset) &&
+            !get_flag(buffer.pixel_from_coord(coord + offset), ColorFlag::Fill))
+        {
+          active_pixels.push(i);
+        }
+      }
+    }
+
+    while (!active_pixels.is_empty()) {
+      const int index = active_pixels.pop();
+      set_flag(buffer.pixels()[index], ColorFlag::Fill, false);
+    }
+  }
+}
+
 /* Wrap to valid direction, must be less than 3 * num_directions. */
 static int wrap_dir_3n(const int dir)
 {
@@ -390,7 +450,7 @@ struct FillBoundary {
  * This is a Blender customized version of the general algorithm described
  * in https://en.wikipedia.org/wiki/Moore_neighborhood
  */
-static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer)
+static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer, bool include_holes)
 {
   using BoundarySection = std::list<int>;
   using BoundaryStartMap = Map<int, BoundarySection>;
@@ -415,6 +475,11 @@ static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer)
         if (!filled_left && filled_right && !border_right) {
           /* Empty index list indicates uninitialized section. */
           starts.add(index_right, {});
+          /* First filled pixel on the line is in the outer boundary.
+           * Pixels further to the right are part of holes and can be disregarded. */
+          if (!include_holes) {
+            break;
+          }
         }
       }
     }
@@ -429,10 +494,10 @@ static FillBoundary build_fill_boundary(const ImageBufferAccessor &buffer)
   /* Find the next filled pixel in clockwise direction from the current. */
   auto find_next_neighbor = [&](NeighborIterator &iter) -> bool {
     const int2 iter_coord = buffer.coord_from_index(iter.index);
-    for (const int i : IndexRange(num_directions).drop_front(1)) {
+    for (const int i : IndexRange(num_directions)) {
       /* Invert direction (add 4) and start at next direction (add 1..n).
        * This can not be greater than 3*num_directions-1, wrap accordingly. */
-      const int neighbor_dir = wrap_dir_3n(iter.direction + 4 + i);
+      const int neighbor_dir = wrap_dir_3n(iter.direction + 5 + i);
       const int2 neighbor_coord = iter_coord + offset_by_direction[neighbor_dir];
       if (!buffer.is_valid_coord(neighbor_coord)) {
         continue;
@@ -565,8 +630,14 @@ static bke::CurvesGeometry boundary_to_curves(const Scene &scene,
     /* Calculate radius and opacity for the outline as if it was a user stroke with full pressure.
      */
     constexpr const float pressure = 1.0f;
-    radii.span[point_i] = ed::greasepencil::radius_from_input_sample(
-        pressure, position, view_context, &brush, &scene, brush.gpencil_settings);
+    radii.span[point_i] = ed::greasepencil::radius_from_input_sample(view_context.rv3d,
+                                                                     view_context.region,
+                                                                     &scene,
+                                                                     &brush,
+                                                                     pressure,
+                                                                     position,
+                                                                     placement.to_world_space(),
+                                                                     brush.gpencil_settings);
     opacities.span[point_i] = ed::greasepencil::opacity_from_input_sample(
         pressure, &brush, &scene, brush.gpencil_settings);
   }
@@ -651,7 +722,18 @@ static bke::CurvesGeometry process_image(Image &ima,
     }
   }
 
-  const FillBoundary boundary = build_fill_boundary(buffer);
+  const int dilate_pixels = brush.gpencil_settings->dilate_pixels;
+  if (dilate_pixels > 0) {
+    dilate(buffer, dilate_pixels);
+  }
+  else if (dilate_pixels < 0) {
+    erode(buffer, -dilate_pixels);
+  }
+
+  /* In regular mode create only the outline of the filled area.
+   * In inverted mode create a boundary for every filled area. */
+  const bool fill_holes = invert;
+  const FillBoundary boundary = build_fill_boundary(buffer, fill_holes);
 
   return boundary_to_curves(scene,
                             view_context,
@@ -923,13 +1005,6 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
   const Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
 
-  // TODO based on the fill_factor (aka "Precision") setting.
-  constexpr const int min_window_size = 128;
-  const float pixel_scale = 1.0f;
-  const int2 win_size = math::max(int2(region.winx, region.winy) * pixel_scale,
-                                  int2(min_window_size));
-  const float2 win_center = 0.5f * float2(win_size);
-
   /* Zoom and offset based on bounds, to fit all strokes within the render. */
   const bool uniform_zoom = true;
   const float max_zoom_factor = 5.0f;
@@ -942,27 +1017,44 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                                   uniform_zoom,
                                                   max_zoom_factor,
                                                   margin);
-  /* Fill point needs to be inverse transformed to stay relative to the view. */
-  const float2 fill_point_view = math::safe_divide(
-                                     fill_point - win_center - offset * float2(win_size), zoom) +
-                                 win_center;
+  /* Scale stroke radius by half to hide gaps between filled areas and boundaries. */
+  const float radius_scale = 0.5f;
 
-  image_render::RegionViewData region_view_data = image_render::region_init(region, win_size);
+  constexpr const int min_image_size = 128;
+  /* Pixel scale (aka. "fill_factor, aka. "Precision") to reduce image size. */
+  const float pixel_scale = brush.gpencil_settings->fill_factor;
+  const int2 region_size = int2(region.winx, region.winy);
+  const int2 image_size = math::max(region_size * pixel_scale, int2(min_image_size));
 
-  GPUOffScreen *offscreen_buffer = image_render::image_render_begin(win_size);
+  /* Mouse coordinates are in region space, make relative to lower-left view plane corner. */
+  const float2 fill_point_image = (math::safe_divide((fill_point - float2(region_size) * 0.5f) -
+                                                         offset * float2(region_size),
+                                                     zoom) +
+                                   float2(region_size) * 0.5f) *
+                                  pixel_scale;
+
+  /* Region size is used for DrawingPlacement projection. */
+  image_render::RegionViewData region_view_data = image_render::region_init(region, image_size);
+  /* Make sure the region is reset on exit. */
+  BLI_SCOPED_DEFER([&]() { image_render::region_reset(region, region_view_data); });
+
+  GPUOffScreen *offscreen_buffer = image_render::image_render_begin(image_size);
+  if (offscreen_buffer == nullptr) {
+    return {};
+  }
+
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_depth_mask(true);
-  image_render::set_viewmat(view_context, scene, win_size, zoom, offset);
+  image_render::set_viewmat(view_context, scene, image_size, zoom, offset);
 
-  const eGP_FillDrawModes fill_draw_mode = GP_FILL_DMODE_BOTH;
   const float alpha_threshold = 0.2f;
   const bool brush_fill_hide = false;
   const bool use_xray = false;
 
   const float4x4 layer_to_world = layer.to_world_space(object);
-  ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, layer);
+  ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, &layer);
   const float3 fill_point_world = math::transform_point(layer_to_world,
-                                                        placement.project(fill_point_view));
+                                                        placement.project(fill_point_image));
 
   /* Draw blue point where click with mouse. */
   const float mouse_dot_size = 4.0f;
@@ -994,14 +1086,14 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                                          brush_fill_hide);
 
     image_render::draw_grease_pencil_strokes(rv3d,
-                                             win_size,
+                                             image_size,
                                              object,
                                              info.drawing,
                                              curve_mask,
                                              colors,
                                              layer_to_world,
-                                             fill_draw_mode,
-                                             use_xray);
+                                             use_xray,
+                                             radius_scale);
   }
 
   image_render::clear_viewmat();
@@ -1024,11 +1116,6 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                                   stroke_hardness,
                                                   invert,
                                                   keep_images);
-
-  /* Note: Region view reset has to happen after final curve construction, otherwise the curve
-   * placement, used to re-project from the 2D pixel coordinates, will have the wrong view
-   * transform. */
-  image_render::region_reset(region, region_view_data);
 
   if (!keep_images) {
     BKE_id_free(view_context.bmain, ima);

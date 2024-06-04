@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
-"PO-Revision-Date: 2024-05-21 07:21+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"PO-Revision-Date: 2024-05-23 14:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
 "Language: da\n"
@@ -80,7 +80,7 @@ msgstr "Samling af animationskanaler, typisk forbundet med en animationsbinding"
 
 
 msgid "F-Curves"
-msgstr "F-kurver"
+msgstr "F-curves"
 
 
 msgid "The individual F-Curves that animate the binding"
@@ -267,6 +267,14 @@ msgid "Expanded in Graph Editor"
 msgstr "Udvidet i Graph Editor"
 
 
+msgid "Action group is expanded in graph editor"
+msgstr "Handlingsgruppen udvides i grafeditor"
+
+
+msgid "Pin in Graph Editor"
+msgstr "Fastgør i Graph Editor"
+
+
 msgid "Action Groups"
 msgstr "Handlingsgrupper"
 
@@ -299,16 +307,52 @@ msgid "Replace"
 msgstr "Udskift"
 
 
+msgid "Channels in this layer override the same channels from underlying layers"
+msgstr "Kanaler i dette lag tilsidesætter de samme kanaler fra underliggende lag"
+
+
+msgid "Channels in this layer are added to underlying layers as sequential operations"
+msgstr "Kanaler i dette lag føjes til underliggende lag som sekventielle operationer"
+
+
 msgid "Add"
 msgstr "Tilføj"
+
+
+msgid "Channels in this layer are added to underlying layers on a per-channel basis"
+msgstr "Kanaler i dette lag føjes til underliggende lag pr. kanal"
 
 
 msgid "Subtract"
 msgstr "Fratrække"
 
 
+msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
+msgstr "Kanaler i dette lag trækkes fra underliggende lag pr. kanal"
+
+
 msgid "Multiply"
 msgstr "Gange"
+
+
+msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
+msgstr "Kanaler i dette lag multipliceres med underliggende lag pr. kanal"
+
+
+msgid "Strips"
+msgstr "stimmel"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "Listen over strimler, der er på dette animationslag"
+
+
+msgid "Action Layers"
+msgstr "Handlingslag"
+
+
+msgid "Collection of animation layers"
+msgstr "Samling af animationslag"
 
 
 msgid "Action Pose Markers"
@@ -335,8 +379,24 @@ msgid "Index of active pose marker"
 msgstr "Indeks for aktive poséringsmarkører"
 
 
+msgid "Action Strip"
+msgstr "Handlings strimel"
+
+
 msgid "Keyframe"
 msgstr "Nøglebillede"
+
+
+msgid "Strip with a set of F-Curves for each animation binding"
+msgstr "Strip med et sæt F-kurver for hver animationsbinding"
+
+
+msgid "Keyframe Animation Strip"
+msgstr "Keyframe Animation Strimel"
+
+
+msgid "Collection of animation strips"
+msgstr "Samling af animationsstrimler"
 
 
 msgid "Add-on"
@@ -359,6 +419,18 @@ msgid "Add-on Preferences"
 msgstr "tilføjelses præference"
 
 
+msgid "Show Development Reports"
+msgstr "Vis udviklingsrapporter"
+
+
+msgid "Show the result of running commands in the main interface this has the advantage that multiple processes that run at once have their errors properly grouped which is not the case for reports which are mixed together"
+msgstr "Vis resultatet af at køre kommandoer i hovedgrænsefladen, dette har den fordel, at flere processer, der kører på én gang, har deres fejl korrekt grupperet, hvilket ikke er tilfældet for rapporter, der er blandet sammen"
+
+
+msgid "Time Out"
+msgstr "Tiden er gået"
+
+
 msgid "Compute Device Type"
 msgstr "computer type"
 
@@ -367,8 +439,120 @@ msgid "Device to use for computation (rendering with Cycles)"
 msgstr "Enhed, der skal bruges til beregning (gengivelse med cycles)"
 
 
+msgid "Kernel Optimization"
+msgstr "Kernel optimering"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Kerner kan optimeres baseret på sceneindhold. Der anmodes om optimerede kerner ved starten af en gengivelse. Hvis optimerede kerner ikke er tilgængelige, fortsætter gengivelsen med generiske kerner, indtil det optimerede sæt er tilgængeligt i cachen. Dette kan resultere i yderligere CPU-brug i en kort periode (tivis af sekunder)"
+
+
+msgid "Off"
+msgstr "slukket"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Deaktiver kerneoptimering. Langsomste gengivelse, ingen ekstra baggrunds-CPU-brug"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Optimer kun skæringskerner. Hurtigere gengivelse, ubetydelig ekstra baggrunds-CPU-brug"
+
+
+msgid "Full"
+msgstr "fuld"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Optimer alle kerner. Hurtigste gengivelse, kan resultere i ekstra baggrunds-CPU-brug"
+
+
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT til ray tracing bruger mindre hukommelse til scener, der bruger kurver i udstrakt grad, og kan give bedre ydeevne i specifikke tilfælde"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Deaktiver MetalRT (bruger BVH2-layout til krydsforespørgsler)"
+
+
+msgid "On"
+msgstr "til"
+
+
+msgid "Enable MetalRT for intersection queries"
+msgstr "aktiver MetalRT for intersection-forespørgsler"
+
+
+msgid "Auto"
+msgstr "automatisk"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Vælg automatisk den hurtigste intersection metode"
+
+
+msgid "Distribute memory across devices"
+msgstr "Fordel hukommelse på tværs af enheder"
+
+
+msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
+msgstr "Giv mere plads til, at store scener kan passe ved at distribuere hukommelse på tværs af sammenkoblede enheder (f.eks. via NVLink) i stedet for at duplikere det"
+
+
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (eksperimentel)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT muliggør AMD hardware ray tracing på RDNA2 og derover, med shader fallback på ældre kort. Denne funktion er eksperimentel, og nogle scener kan gengives forkert"
+
+
+msgid "Embree on GPU"
+msgstr "Embree på GPU"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree on GPU muliggør brugen af hardware ray tracing på Intel GPU'er, hvilket giver bedre generel ydeevne"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_matriale_varianter_us"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Viser glTF UI til at administrere materialevarianter"
+
+
+msgid "Allow glTF Embedded format"
+msgstr "Tillad glTF Embedded-format"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "Vis glTF UI for at administrere animationer"
+
+
+msgid "glTFpack file path"
+msgstr "glTFpack filsti"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Sti til gltfpack binær"
+
+
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "Viser glTF Material Output node i Shader Editor (Menu Tilføj > Output)"
+
+
 msgid "Fribidi Library"
 msgstr "Fribidi bibliotek"
+
+
+msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
+msgstr "FriBidi C kompilerede bibliotek (.så under Linux, .dll under Windows...), du bliver sandsynligvis nødt til at redigere det, hvis du er under Windows, f.eks. ved at bruge den, der er inkluderet i Blender library repository"
 
 
 msgid "The bf-translation repository"
@@ -381,6 +565,10 @@ msgstr "import stie"
 
 msgid "Additional paths to add to sys.path (';' separated)"
 msgstr "Yderligere stier at tilføje til sys.path (';' adskilt)"
+
+
+msgid "Source Root"
+msgstr "Kilde rod"
 
 
 msgid "The Blender source root path"
@@ -435,8 +623,52 @@ msgid "Active Action for this data-block"
 msgstr "Aktiv handling for denne datablok"
 
 
+msgid "Action Binding"
+msgstr "Handlingsbinding"
+
+
+msgid "The binding identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right binding when assigning an Action"
+msgstr "Bindingen identificerer, hvilken delmængde af handlingen der anses for at være en del af denne datablok, og dens navn bruges til at finde den rigtige binding, når der tildeles en handling"
+
+
+msgid "None"
+msgstr "Ingen"
+
+
+msgid "Action Binding Handle"
+msgstr "Action Binding Håndtag"
+
+
+msgid "A number that identifies which sub-set of the Action is considered to be for this data-block"
+msgstr "Et tal, der identificerer, hvilket undersæt af handlingen, der anses for at være en del af denne datablok"
+
+
+msgid "Action Binding Name"
+msgstr "Handling Bindende navn"
+
+
+msgid "The name of the action binding. The binding identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right binding when assigning an Action"
+msgstr "Navnet på handlingen bindende. Bindingen identificerer, hvilken delmængde af handlingen der anses for at være en del af denne datablok, og dens navn bruges til at finde den rigtige binding, når der tildeles en handling"
+
+
+msgid "Action Blending"
+msgstr "Action blanding"
+
+
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "Metode brugt til at kombinere Active Actions resultat med resultat af NLA stak"
+
+
+msgid "The strip values replace the accumulated results by amount specified by influence"
+msgstr "Stripværdierne erstatter de akkumulerede resultater med mængde specificeret ved indflydelse"
+
+
+msgid "Combine"
+msgstr "kombinere"
+
+
+msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
+msgstr "Stripværdierne kombineres med akkumulerede resultater ved passende at bruge addition, multiplikation eller quaternion matematik baseret på kanaltype"
 
 
 msgid "Weighted result of strip is added to the accumulated results"
@@ -489,6 +721,10 @@ msgstr "Handlings påvirkning"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "mængde, som den aktive handling bidrager til resultatet af NLA-stakken"
+
+
+msgid "Slot to temporarily hold the main action while in tweak mode"
+msgstr "Slot for midlertidigt at holde hovedhandlingen, mens du er i tweak-tilstand"
 
 
 msgid "Drivers"
@@ -551,8 +787,16 @@ msgid "Motion Path settings for animation visualization"
 msgstr "Motion Path-indstillinger til animationsvisualisering"
 
 
+msgid "Bake Location"
+msgstr "Bage placering"
+
+
 msgid "When calculating Bone Paths, use Head or Tips"
 msgstr "Når du beregner knogle baner, skal du bruge hoved eller ederne"
+
+
+msgid "Heads"
+msgstr "hoveder"
 
 
 msgid "Calculate bone paths from heads"
@@ -571,16 +815,32 @@ msgid "After Current"
 msgstr "Efter nuværende"
 
 
+msgid "Number of frames to show after the current frame (only for 'Around Frame' Onion-skinning method)"
+msgstr "Antal billeder, der skal vises efter det aktuelle billede (kun for 'Around Frame' løg-skinningsmetode)"
+
+
 msgid "Before Current"
 msgstr "Før Aktuel"
+
+
+msgid "Number of frames to show before the current frame (only for 'Around Frame' Onion-skinning method)"
+msgstr "Antal billeder, der skal vises før det aktuelle billede (kun for 'Around Frame' løg-skinningsmetode)"
 
 
 msgid "End Frame"
 msgstr "Slut billede"
 
 
+msgid "End frame of range of paths to display/calculate (not for 'Around Frame' Onion-skinning method)"
+msgstr "Slutbillede for række af stier, der skal vises/beregnes (ikke for 'Around Current Frame' Løgskinningsmetode)"
+
+
 msgid "Start Frame"
 msgstr "Start billede"
+
+
+msgid "Starting frame of range of paths to display/calculate (not for 'Around Frame' Onion-skinning method)"
+msgstr "Start ramme for række af stier, der skal vises/beregnes (ikke for 'Around Current Frame' Løg-afskalningsmetode)"
 
 
 msgid "Frame Step"
@@ -589,6 +849,50 @@ msgstr "Billede trin"
 
 msgid "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)"
 msgstr "Antal billeder mellem viste stier (ikke for 'On Keyframes' Løg-skindmetode)"
+
+
+msgid "Has Motion Paths"
+msgstr "Har bevægelsesstier"
+
+
+msgid "Are there any bone paths that will need updating (read-only)"
+msgstr "Er der nogen knoglestier, der skal opdateres (skrivebeskyttet)"
+
+
+msgid "Paths Range"
+msgstr "stier range"
+
+
+msgid "All Keys"
+msgstr "alle nøgler"
+
+
+msgid "From the first keyframe to the last"
+msgstr "Fra den første keyframe til den sidste"
+
+
+msgid "Selected Keys"
+msgstr "valgte nøgler"
+
+
+msgid "From the first selected keyframe to the last"
+msgstr "Fra den første valgte keyframe til den sidste"
+
+
+msgid "Scene Frame Range"
+msgstr "scene billede afstand"
+
+
+msgid "The entire Scene / Preview range"
+msgstr "Hele Scene/Preview-området"
+
+
+msgid "Manual Range"
+msgstr "Manuel rækkevidde"
+
+
+msgid "Manually determined frame range"
+msgstr "Manuelt bestemt rammeområde"
 
 
 msgid "Show Frame Numbers"
@@ -647,6 +951,14 @@ msgid "Display Paths of poses within specified range"
 msgstr "Vis stier til stillinger inden for det specificerede område"
 
 
+msgid "Bake to active Camera"
+msgstr "Bag til aktivt kamera"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
+msgstr "Bevægelsesstipunkter vil blive indbygget i kamerarummet på det aktive kamera. Det betyder, at de kun ser rigtigt ud, når de ser gennem det kamera. Skift kamera ved hjælp af markører er ikke understøttet"
+
+
 msgid "Any Type"
 msgstr "Enhver type"
 
@@ -703,12 +1015,20 @@ msgid "Empty"
 msgstr "Tom"
 
 
+msgid "Manipulate objects in a 3D environment"
+msgstr "Manipuler objekter i et 3D-miljø"
+
+
 msgid "UV/Image Editor"
 msgstr "UV/"
 
 
 msgid "View and edit images and UV Maps"
 msgstr "Se og rediger billeder og UV-kort"
+
+
+msgid "Node Editor"
+msgstr "node editor"
 
 
 msgid "Editor for node-based shading and compositing tools"
@@ -727,6 +1047,10 @@ msgid "Motion tracking tools"
 msgstr "Værktøjer til bevægelsessporing"
 
 
+msgid "Dope Sheet"
+msgstr "Dopeark"
+
+
 msgid "Adjust timing of keyframes"
 msgstr "Juster timing af keyframes"
 
@@ -737,6 +1061,10 @@ msgstr "Graph Editor"
 
 msgid "Edit drivers and keyframe interpolation"
 msgstr "Redigér drivere og nøglebillede interpolation"
+
+
+msgid "Nonlinear Animation"
+msgstr "Ikke-lineær animation"
 
 
 msgid "Combine and layer Actions"
@@ -763,6 +1091,30 @@ msgid "Info"
 msgstr "Infomation"
 
 
+msgid "Log of operations, warnings and error messages"
+msgstr "Log over operationer, advarsler og fejlmeddelelser"
+
+
+msgid "Top Bar"
+msgstr "Top Bar"
+
+
+msgid "Global bar at the top of the screen for global per-window settings"
+msgstr "Global bjælke øverst på skærmen for globale indstillinger pr. vindue"
+
+
+msgid "Status Bar"
+msgstr "Statuslinje"
+
+
+msgid "Global bar at the bottom of the screen for general status information"
+msgstr "Global bjælke nederst på skærmen for generelle statusoplysninger"
+
+
+msgid "Outliner"
+msgstr "Outliner"
+
+
 msgid "Overview of scene graph and all available data-blocks"
 msgstr "Oversigt over scene graf og alle tilgængelige datablokke"
 
@@ -781,6 +1133,14 @@ msgstr "Gennemse filer"
 
 msgid "Browse for files and assets"
 msgstr "Gennemse for filer og aktiver"
+
+
+msgid "Spreadsheet"
+msgstr "Regneark"
+
+
+msgid "Explore geometry data in a table"
+msgstr "Udforsk geometridata i en tabel"
 
 
 msgid "Edit persistent configuration settings"
@@ -839,6 +1199,10 @@ msgid "Armature's active bone"
 msgstr "Armaturets aktive knogle"
 
 
+msgid "Collection of target bones and weights"
+msgstr "Indsamling af målknogler og vægte"
+
+
 msgid "Collection of armature edit bones"
 msgstr "Samling af armaturer edit knogler"
 
@@ -851,8 +1215,659 @@ msgid "Armatures active edit bone"
 msgstr "Armaturer aktive redigere knogle"
 
 
+msgid "Catalog Path"
+msgstr "Katalogsti"
+
+
+msgid "User Asset Libraries"
+msgstr "Bruger Asset Libraries"
+
+
+msgid "Collection of user asset libraries"
+msgstr "Samling af biblioteker med brugeraktiver"
+
+
+msgid "Asset Library Reference"
+msgstr "aktiv bibliotek refence"
+
+
+msgid "Identifier to refer to the asset library"
+msgstr "Identifikator for at henvise til aktivbiblioteket"
+
+
+msgid "Asset Data"
+msgstr "Aktivdata"
+
+
+msgid "Additional data stored for an asset data-block"
+msgstr "Yderligere data gemt til en aktivdatablok"
+
+
+msgid "Active Tag"
+msgstr "Aktiv tag"
+
+
+msgid "Index of the tag set for editing"
+msgstr "Indeks for tagset til redigering"
+
+
+msgid "Author"
+msgstr "Forfatter"
+
+
+msgid "Name of the creator of the asset"
+msgstr "Navnet på skaberen af aktivet"
+
+
+msgid "Catalog UUID"
+msgstr "Katalog UUID"
+
+
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
+msgstr "Identifikator for aktivets katalog, brugt af Blender til at slå aktivets katalogsti op. Skal være et UUID i henhold til RFC4122"
+
+
+msgid "Catalog Simple Name"
+msgstr "Katalog enkelt navn"
+
+
+msgid "Simple name of the asset's catalog, for debugging and data recovery purposes"
+msgstr "Simpelt navn på aktivets katalog til fejlfinding og datagendannelsesformål"
+
+
+msgid "Copyright"
+msgstr "ophavsret"
+
+
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
+msgstr "Ophavsretsmeddelelse for dette aktiv. En tom ophavsretsmeddelelse betyder ikke nødvendigvis, at dette er ophavsretsfrit. Kontakt forfatteren, hvis der er behov for nogen afklaring"
+
+
+msgid "Description"
+msgstr "Beskrivelse"
+
+
+msgid "A description of the asset to be displayed for the user"
+msgstr "En beskrivelse af det aktiv, der skal vises for brugeren"
+
+
+msgid "License"
+msgstr "Licens"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
+msgstr "Den type licens, som dette aktiv er distribueret under. Et tomt licensnavn betyder ikke nødvendigvis, at dette er fri for licensvilkår. Kontakt forfatteren, hvis der er behov for en afklaring"
+
+
+msgid "Tags"
+msgstr "tags"
+
+
+msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
+msgstr "Brugerdefinerede tags (navnetokens) for aktivet, brugt til filtrering og generel aktivstyring"
+
+
+msgid "Asset Representation"
+msgstr "Aktiv Repræsentation"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Oplysninger om en enhed, der gør det muligt for aktivsystemet at håndtere enheden som aktiv"
+
+
+msgid "Full Library Path"
+msgstr "Fuld bibliotekssti"
+
+
+msgid "Absolute path to the .blend file containing this asset"
+msgstr "Absolut sti til .blend-filen, der indeholder dette aktiv"
+
+
+msgid "Full Path"
+msgstr "ful sti"
+
+
+msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
+msgstr "Absolut sti til .blend-filen, der indeholder dette aktiv, udvidet med stien til aktivet inde i filen"
+
+
+msgctxt "ID"
+msgid "Data-block Type"
+msgstr "Data-blok type"
+
+
+msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
+msgstr "Typen af datablok, hvis aktivet repræsenterer en ('INGEN' ellers)"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "pensel"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Cache fil"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "samling"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "kurve"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "kurver"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Fedt blyant"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Fedt blyant v3"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "bibliotek"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "lys"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "lys probe"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "linje stil"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "maske"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "metabold"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "node træ"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "male kurve"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "palette"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "partikle"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "point sky"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "højtaler"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "windue håndtering"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "arbejds område"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "verden"
+
+
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "Den lokale datablok, som dette aktiv repræsenterer; kun gyldig, hvis det er en datablok i denne fil"
+
+
+msgid "Asset Metadata"
+msgstr "Aktiv metadata"
+
+
+msgid "Additional information about the asset"
+msgstr "Yderligere oplysninger om aktivet"
+
+
+msgid "Asset Shelf"
+msgstr "Aktivhylde"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Regioner for hurtig adgang til aktiver"
+
+
+msgid "Asset Library"
+msgstr "aktiv bibliotek"
+
+
+msgid "Choose the asset library to display assets from"
+msgstr "Vælg det aktivbibliotek, du vil vise aktiver fra"
+
+
+msgid "All"
+msgstr "alle"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Vis aktiver fra alle de listede aktivbiblioteker"
+
+
+msgid "Current File"
+msgstr "Nuværende fil"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Vis de aktiver, der i øjeblikket er tilgængelige i denne Blender-session"
+
+
+msgid "Essentials"
+msgstr "Væsentlige"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Vis de grundlæggende byggeklodser og hjælpeprogrammer, der følger med Blender"
+
+
+msgid "Custom"
+msgstr "Brugerdefinerede"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Vis aktiver fra de aktivbiblioteker, der er konfigureret i Indstillinger"
+
+
+msgid "Activate Operator"
+msgstr "Aktiver operatør"
+
+
+msgid "Operator to call when activating an item with asset reference properties"
+msgstr "operation at kalde når man aktivere en ting med arktiv reference egenskaber"
+
+
+msgid "Default Preview Size"
+msgstr "Standard forhåndsvisningsstørrelse"
+
+
+msgid "Default size of the asset preview thumbnails in pixels"
+msgstr "Standardstørrelsen på miniaturebilleder af aktivets forhåndsvisning i pixels"
+
+
+msgid "ID Name"
+msgstr "ID navn"
+
+
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Hvis dette er angivet, får aktivet et brugerdefineret ID, ellers tager det navnet på den klasse, der blev brugt til at definere aktivet (hvis f.eks. klassenavnet er \"OBJECT_AST_hello\", og bl_idname ikke er angivet af scriptet, så er bl_idname = \"OBJECT_AST_hej\")"
+
+
+msgid "Options"
+msgstr "muligheder"
+
+
+msgid "Options for this asset shelf type"
+msgstr "Valgmuligheder for denne type aktivhylde"
+
+
+msgid "No Asset Dragging"
+msgstr "Ingen aktiv træk"
+
+
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
+msgstr "Deaktiver standardaktivets træk ved trækhændelser. Nyttigt til at implementere tilpasset træk via brugerdefinerede nøglekortelementer"
+
+
+msgid "Visible by Default"
+msgstr "Synlig som standard"
+
+
+msgid "Unhide the asset shelf when it's available for the first time, otherwise it will be hidden"
+msgstr "Vis aktivhylden, når den er tilgængelig for første gang, ellers bliver den skjult"
+
+
+msgid "Store Enabled Catalogs in Preferences"
+msgstr "Gem aktiverede kataloger i Præferencer"
+
+
+msgid "Store the shelf's enabled catalogs in the preferences rather than the local asset shelf settings"
+msgstr "Gem hyldens aktiverede kataloger i præferencerne i stedet for de lokale aktivhyldeindstillinger"
+
+
+msgid "Space Type"
+msgstr "område type"
+
+
+msgid "The space where the asset shelf is going to be used in"
+msgstr "Det rum, hvor aktivhylden skal bruges i"
+
+
+msgid "Preview Size"
+msgstr "Forhåndsvisningsstørrelse"
+
+
+msgid "Size of the asset preview thumbnails in pixels"
+msgstr "Størrelse på miniaturebilleder af aktivets forhåndsvisning i pixels"
+
+
+msgid "Display Filter"
+msgstr "skærm filter"
+
+
+msgid "Filter assets by name"
+msgstr "Filtrer aktiver efter navn"
+
+
+msgid "Show Names"
+msgstr "Vis Navne"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible"
+msgstr "Vis aktivnavnet sammen med forhåndsvisningen. Ellers vil kun forhåndsvisningen være synlig"
+
+
+msgid "Asset Tag"
+msgstr "arktiv tag"
+
+
+msgid "User defined tag (name token)"
+msgstr "Brugerdefineret tag (navnetoken)"
+
+
+msgid "The identifier that makes up this tag"
+msgstr "Den identifikator, der udgør dette tag"
+
+
+msgid "Asset Tags"
+msgstr "arktiv tags"
+
+
+msgid "Collection of custom asset tags"
+msgstr "Indsamling af tilpassede aktiv-tags"
+
+
+msgid "Asset Weak Reference"
+msgstr "Aktiv svag reference"
+
+
+msgid "Weak reference to some asset"
+msgstr "Svag reference til et eller andet aktiv"
+
+
+msgid "Geometry attribute"
+msgstr "geomatri atribut"
+
+
+msgid "Data Type"
+msgstr "Data Type"
+
+
+msgid "Type of data stored in attribute"
+msgstr "type af data gemt i atribut"
+
+
+msgid "3D vector with floating-point values"
+msgstr "3D vector med floating-point værdi"
+
+
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "RGBA farver med 32-bit floating-point værdier"
+
+
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "RRGB farver med 8-bit positive intenger værdier"
+
+
+msgid "Text string"
+msgstr "tekst string"
+
+
+msgid "2D vector with floating-point values"
+msgstr "2D vector med floating-point værdier"
+
+
+msgid "8-Bit Integer"
+msgstr "8-Bit integer"
+
+
+msgid "Smaller integer with a range from -128 to 127"
+msgstr "mindre integer med i vide fra -128 til 127"
+
+
+msgid "2D Integer Vector"
+msgstr "2D integer vector"
+
+
+msgid "32-bit signed integer vector"
+msgstr "32-Bit signed integer vector"
+
+
+msgid "4x4 Matrix"
+msgstr "4x4 Matrix"
+
+
+msgid "Floating point matrix"
+msgstr "Floating point matrix"
+
+
+msgid "Attribute on point"
+msgstr "atribut på punkt"
+
+
+msgid "Edge"
+msgstr "kant"
+
+
+msgid "Attribute on instance"
+msgstr "atribut på forkomst"
+
+
 msgid "Layer"
 msgstr "Lag"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "atribit på fedt pensel lag"
+
+
+msgid "The attribute is meant for internal use by Blender"
+msgstr "atribut er ment til internal brug af blender"
+
+
+msgid "Is Required"
+msgstr "er krævet"
+
+
+msgid "Whether the attribute can be removed or renamed"
+msgstr "Om attributten kan fjernes eller omdøbes"
+
+
+msgid "Name of the Attribute"
+msgstr "Navn på attributten"
+
+
+msgid "Geometry attribute that stores booleans"
+msgstr "geomatri atribute der gemmer booleans"
+
+
+msgid "Byte Color Attribute"
+msgstr "Byte farve atribut"
+
+
+msgid "Geometry attribute that stores RGBA colors as positive integer values using 8-bits per channel"
+msgstr "Geometriattribut, der gemmer RGBA-farver som positive integer ved brug af 8-bit pr. kanal"
+
+
+msgid "8-bit Integer Attribute"
+msgstr "8-bit integer atribut"
+
+
+msgid "Geometry attribute that stores 8-bit integers"
+msgstr "geomatri atribute der gemmer 8-bit integers"
+
+
+msgid "Float2 Attribute"
+msgstr "Float2 atribut"
+
+
+msgid "Geometry attribute that stores floating-point 2D vectors"
+msgstr "geomatri atributer der gemmer floating-point 2D vectiors"
+
+
+msgid "4x4 Matrix Attribute"
+msgstr "4x4 Matrix Atribute"
+
+
+msgid "Geometry attribute that stores a 4 by 4 float matrix"
+msgstr "Geometri atribut der gemmer a 4 by 4 float matrix"
+
+
+msgid "Float Attribute"
+msgstr "Float Atribute"
+
+
+msgid "Geometry attribute that stores floating-point values"
+msgstr "geomatri atribut der gemmer floating-point værdier"
+
+
+msgid "Float Color Attribute"
+msgstr "Float farve atribut"
+
+
+msgid "Geometry attribute that stores RGBA colors as floating-point values using 32-bits per channel"
+msgstr "Geometriattribut, der gemmer RGBA-farver som floating-point værdier ved hjælp af 32-bit pr. kanal"
+
+
+msgid "Float Vector Attribute"
+msgstr "Float vector atribut"
+
+
+msgid "Geometry attribute that stores floating-point 3D vectors"
+msgstr "Geometriattribut, der gemmer 3D-vektorer floating point"
+
+
+msgid "2D Integer Vector Attribute"
+msgstr "2D integer Vector atribut"
+
+
+msgid "Geometry attribute that stores 2D integer vectors"
+msgstr "Geometri-attribut, der gemmer 2D integers vectors"
+
+
+msgid "Integer Attribute"
+msgstr "integer Atribut"
+
+
+msgid "Geometry attribute that stores integer values"
+msgstr "Geometriattribut, der gemmer integers værdier"
+
+
+msgid "Quaternion Attribute"
+msgstr "Quaternion atribut"
+
+
+msgid "Geometry attribute that stores rotation"
+msgstr "Geometriattribut, der gemmer rotation"
+
+
+msgid "Geometry attribute that stores strings"
+msgstr "Geometriattribut, der gemmer strings"
+
+
+msgid "Attribute Group"
+msgstr "Atribut Gruppe"
+
+
+msgid "Group of geometry attributes"
+msgstr "Gruppe af geomatri atributes"
+
+
+msgid "Active Attribute"
+msgstr "Arktive Atributer"
+
+
+msgid "Active attribute"
+msgstr "Arktive atributer"
+
+
+msgid "Active Color"
+msgstr "Aktiv farve"
+
+
+msgid "Active color attribute for display and editing"
+msgstr "Aktiv farveattribut til visning og redigering"
+
+
+msgid "Active Color Index"
+msgstr "Aktivt farveindeks"
+
+
+msgid "Active color attribute index"
+msgstr "Aktivt farveattributindeks"
+
+
+msgid "Active Color Attribute"
+msgstr "Aktiv farveegenskab"
+
+
+msgid "The name of the active color attribute for display and editing"
+msgstr "Navnet på den aktive farveattribut til visning og redigering"
+
+
+msgid "Active Attribute Index"
+msgstr "Aktivt attributindeks"
+
+
+msgid "Active attribute index"
+msgstr "Aktivt attributindeks"
+
+
+msgid "Default Color Attribute"
+msgstr "Standardfarveattribut"
+
+
+msgid "The name of the default color attribute used as a fallback for rendering"
+msgstr "Navnet på standardfarveattributten, der bruges som en reserve til gengivelse"
+
+
+msgid "Active Render Color Index"
+msgstr "Aktivt gengivelsesfarveindeks"
+
+
+msgid "The index of the color attribute used as a fallback for rendering"
+msgstr "Indekset for farveattributten, der bruges som en reserve til gengivelse"
 
 
 msgid "Bake data for a Scene data-block"
@@ -861,6 +1876,10 @@ msgstr "Bag data til en Scene-datablok"
 
 msgid "Cage Extrusion"
 msgstr "Bur ekstrudering"
+
+
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"
+msgstr "Pust den aktive genstand op med den angivne afstand til bagning. Dette hjælper med at matche til punkter tættere på ydersiden af de valgte objektmasker"
 
 
 msgid "Cage Object"
@@ -889,6 +1908,26 @@ msgstr "Billedformat"
 
 msgid "Extends the baked result as a post process filter"
 msgstr "Forlænger det bagte resultat som et efterbehandlings filter"
+
+
+msgid "Algorithm to extend the baked result"
+msgstr "Algoritme til at forlænge det bagte resultat"
+
+
+msgid "Use pixels from adjacent faces across UV seams"
+msgstr "Brug pixels fra tilstødende faces på tværs af UV-sømme"
+
+
+msgid "Extend"
+msgstr "Forlæng"
+
+
+msgid "Extend border pixels outwards"
+msgstr "Forlæng kantpixel udad"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
+msgstr "Den maksimale stråleafstand for at matche punkter mellem de aktive og valgte objekter. Hvis nul, er der ingen grænse"
 
 
 msgid "Normal Space"
@@ -959,10 +1998,6 @@ msgid "Passes to include in the active baking pass"
 msgstr "Passer til at inkludere i det aktive bagepas"
 
 
-msgid "None"
-msgstr "Ingen"
-
-
 msgid "Emit"
 msgstr "Udsende"
 
@@ -987,6 +2022,10 @@ msgid "Save Mode"
 msgstr "Sikker tilstand"
 
 
+msgid "Where to save baked image textures"
+msgstr "Hvor man gemmer bagte billedteksturer"
+
+
 msgid "Internal"
 msgstr "Intern"
 
@@ -1005,6 +2044,10 @@ msgstr "Gem bage kortet i en ekstern fil"
 
 msgid "Target"
 msgstr "Mål"
+
+
+msgid "Where to output the baked map"
+msgstr "Hvor skal det bagte kort udlæses"
 
 
 msgid "Automatic Name"
@@ -1136,7 +2179,7 @@ msgstr "Har mellemrum"
 
 
 msgid "Mode"
-msgstr "Tilstand"
+msgstr "tilstand"
 
 
 msgid "Active"
@@ -1389,6 +2432,10 @@ msgstr "Begræns Rotation"
 
 msgid "Limit Scale"
 msgstr "Begræns størelse"
+
+
+msgid "Clamp To"
+msgstr "Klem til"
 
 
 msgid "Locked Track"
@@ -1665,6 +2712,10 @@ msgid "File"
 msgstr "Fil"
 
 
+msgid "New"
+msgstr "ny"
+
+
 msgid "Play Mode"
 msgstr "Afspilningstilstand"
 
@@ -1817,10 +2868,6 @@ msgid "Reset"
 msgstr "Nulstil"
 
 
-msgid "Sharpen"
-msgstr "Skarpere"
-
-
 msgid "Property"
 msgstr "Egenskab"
 
@@ -1947,6 +2994,10 @@ msgstr "Detaljer"
 
 msgid "Priority"
 msgstr "Prioritet"
+
+
+msgid "Sharpen"
+msgstr "Skarpere"
 
 
 msgid "Keyframe not in F-Curve"

@@ -106,7 +106,8 @@ static void populate_cache_for_instance(Object &object,
 
 static bool attribute_type_supports_viewer_overlay(const eCustomDataType data_type)
 {
-  return CD_TYPE_AS_MASK(data_type) & (CD_MASK_PROP_ALL & ~CD_MASK_PROP_QUATERNION);
+  return CD_TYPE_AS_MASK(data_type) &
+         (CD_MASK_PROP_ALL & ~(CD_MASK_PROP_QUATERNION | CD_MASK_PROP_FLOAT4X4));
 }
 
 static void populate_cache_for_geometry(Object &object,

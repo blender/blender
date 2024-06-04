@@ -14,6 +14,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
@@ -21,7 +23,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_collision.h"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
@@ -312,7 +314,8 @@ static void do_cloth_brush_build_constraints_task(Object &ob,
 
   PBVHVertexIter vd;
 
-  const bool pin_simulation_boundary = ss.cache != nullptr && brush != nullptr &&
+  const bool is_brush_has_stroke_cache = ss.cache != nullptr && brush != nullptr;
+  const bool pin_simulation_boundary = is_brush_has_stroke_cache &&
                                        brush->flag2 & BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY &&
                                        brush->cloth_simulation_area_type !=
                                            BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC;
@@ -321,8 +324,7 @@ static void do_cloth_brush_build_constraints_task(Object &ob,
 
   /* Brush can be nullptr in tools that use the solver without relying of constraints with
    * deformation positions. */
-  const bool cloth_is_deform_brush = ss.cache != nullptr && brush != nullptr &&
-                                     is_cloth_deform_brush(*brush);
+  const bool cloth_is_deform_brush = is_brush_has_stroke_cache && is_cloth_deform_brush(*brush);
 
   const bool use_falloff_plane = brush->cloth_force_falloff_type ==
                                  BRUSH_CLOTH_FORCE_FALLOFF_PLANE;
@@ -373,7 +375,7 @@ static void do_cloth_brush_build_constraints_task(Object &ob,
       }
     }
 
-    if (brush && brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
+    if (is_brush_has_stroke_cache && brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
       /* The cloth brush works by applying forces in most of its modes, but some of them require
        * deformation coordinates to make the simulation stable. */
       if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
@@ -1616,12 +1618,13 @@ void SCULPT_OT_cloth_filter(wmOperatorType *ot)
 
   filter::register_operator_props(ot);
 
-  RNA_def_enum(ot->srna,
-               "type",
-               prop_cloth_filter_type,
-               CLOTH_FILTER_GRAVITY,
-               "Filter Type",
-               "Operation that is going to be applied to the mesh");
+  ot->prop = RNA_def_enum(ot->srna,
+                          "type",
+                          prop_cloth_filter_type,
+                          CLOTH_FILTER_GRAVITY,
+                          "Filter Type",
+                          "Operation that is going to be applied to the mesh");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_enum_flag(ot->srna,
                     "force_axis",
                     prop_cloth_filter_force_axis_items,

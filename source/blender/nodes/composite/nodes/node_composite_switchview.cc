@@ -52,20 +52,6 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
   id_us_plus(node->id);
 }
 
-static void node_composit_buts_switch_view_ex(uiLayout *layout,
-                                              bContext * /*C*/,
-                                              PointerRNA * /*ptr*/)
-{
-  uiItemFullO(layout,
-              "NODE_OT_switch_view_update",
-              "Update Views",
-              ICON_FILE_REFRESH,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              nullptr);
-}
-
 using namespace blender::realtime_compositor;
 
 class SwitchViewOperation : public NodeOperation {
@@ -103,7 +89,6 @@ void register_node_type_cmp_switch_view()
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::node_declare;
-  ntype.draw_buttons_ex = file_ns::node_composit_buts_switch_view_ex;
   ntype.initfunc_api = file_ns::init_switch_view;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

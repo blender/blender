@@ -1074,9 +1074,9 @@ static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag
       StructRNA *srna = ID_code_to_RNA_type(GS(id->name));
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s is not compatible with %s 'refresh' options",
-                  RNA_struct_identifier(srna),
-                  allow_flag ? "the specified" : "any");
+                  allow_flag ? N_("%s is not compatible with the specified 'refresh' options") :
+                               N_("%s is not compatible with any 'refresh' options"),
+                  RNA_struct_identifier(srna));
       return;
     }
   }

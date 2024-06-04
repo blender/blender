@@ -15,7 +15,7 @@
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_sphere_lib.glsl)
 
 float avg_albedo(vec3 albedo)
 {
@@ -89,7 +89,7 @@ void radiance_transfer_world(inout Surfel receiver, vec3 L)
 
   if (capture_info_buf.capture_world_indirect) {
     SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
-    radiance = reflection_probes_sample(L, 0.0, atlas_coord).rgb;
+    radiance = lightprobe_spheres_sample(L, 0.0, atlas_coord).rgb;
   }
 
   if (capture_info_buf.capture_visibility_indirect) {

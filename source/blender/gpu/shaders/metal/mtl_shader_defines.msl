@@ -1041,6 +1041,14 @@ inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_1d<S
 }
 
 template<typename S, typename T, access A>
+inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_1d<S, A> tex,
+                                         T _coord,
+                                         S value)
+{
+  tex.texture->write(value, uint(_coord));
+}
+
+template<typename S, typename T, access A>
 inline void _texture_write_internal(thread _mtl_combined_image_sampler_2d<S, A> tex,
                                     T _coord,
                                     vec<S, 4> value)
@@ -1056,6 +1064,14 @@ template<typename S, typename T, access A>
 inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_2d<S, A> tex,
                                          T _coord,
                                          vec<S, 4> value)
+{
+  tex.texture->write(value, uint2(_coord.xy));
+}
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_2d<S, A> tex,
+                                         T _coord,
+                                         S value)
 {
   tex.texture->write(value, uint2(_coord.xy));
 }
@@ -1084,6 +1100,14 @@ inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_2d_a
 }
 
 template<typename S, typename T, access A>
+inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_2d_array<S, A> tex,
+                                         T _coord,
+                                         S value)
+{
+  tex.texture->write(value, uint2(_coord.xy), _coord.z);
+}
+
+template<typename S, typename T, access A>
 inline void _texture_write_internal(thread _mtl_combined_image_sampler_3d<S, A> tex,
                                     T _coord,
                                     vec<S, 4> value)
@@ -1102,6 +1126,14 @@ template<typename S, typename T, access A>
 inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_3d<S, A> tex,
                                          T _coord,
                                          vec<S, 4> value)
+{
+  tex.texture->write(value, uint3(_coord.xyz));
+}
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_3d<S, A> tex,
+                                         T _coord,
+                                         S value)
 {
   tex.texture->write(value, uint3(_coord.xyz));
 }

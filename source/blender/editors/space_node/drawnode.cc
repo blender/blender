@@ -1305,6 +1305,23 @@ static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
   return node_decl->inputs[socket_index]->is_attribute_name;
 }
 
+static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, const char *text)
+{
+  if (sock->runtime->declaration) {
+    if (sock->runtime->declaration->socket_name_rna) {
+      uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
+      uiItemR(layout,
+              const_cast<PointerRNA *>(&sock->runtime->declaration->socket_name_rna->owner),
+              sock->runtime->declaration->socket_name_rna->property_name.c_str(),
+              UI_ITEM_NONE,
+              "",
+              ICON_NONE);
+      return;
+    }
+  }
+  uiItemL(layout, text, ICON_NONE);
+}
+
 static void std_node_socket_draw(
     bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text)
 {
@@ -1322,7 +1339,7 @@ static void std_node_socket_draw(
   if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_HIDE_VALUE) ||
       ((sock->flag & SOCK_IS_LINKED) && !all_links_muted(*sock)))
   {
-    node_socket_button_label(C, layout, ptr, node_ptr, text);
+    draw_node_socket_without_value(layout, sock, text);
     return;
   }
 
@@ -1474,7 +1491,7 @@ static void std_node_socket_draw(
       break;
     }
     default:
-      node_socket_button_label(C, layout, ptr, node_ptr, text);
+      draw_node_socket_without_value(layout, sock, text);
       break;
   }
 }
@@ -1727,8 +1744,10 @@ static float2 socket_link_connection_location(const bNode &node,
 {
   const float2 socket_location = socket.runtime->location;
   if (socket.is_multi_input() && socket.is_input() && !(node.flag & NODE_HIDDEN)) {
+    /* For internal link case, handle number of links as at least 1. */
+    const int clamped_total_inputs = math::max<int>(1, socket.runtime->total_inputs);
     return node_link_calculate_multi_input_position(
-        socket_location, link.multi_input_sort_id, socket.runtime->total_inputs);
+        socket_location, link.multi_input_sort_id, clamped_total_inputs);
   }
   return socket_location;
 }
@@ -2323,7 +2342,7 @@ void node_draw_link(const bContext &C,
 
   if (link.flag & NODE_LINK_VALID) {
     /* special indicated link, on drop-node */
-    if (link.flag & NODE_LINK_INSERT_TARGET) {
+    if (link.flag & NODE_LINK_INSERT_TARGET && !(link.flag & NODE_LINK_INSERT_TARGET_INVALID)) {
       th_col1 = th_col2 = TH_ACTIVE;
     }
     else if (link.flag & NODE_LINK_MUTED) {

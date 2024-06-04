@@ -74,13 +74,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
       set_active_fn(params, node);
     });
   }
-  if (type && ELEM(type,
+  if (type && ELEM(*type,
                    CD_PROP_FLOAT,
                    CD_PROP_BOOL,
                    CD_PROP_INT32,
                    CD_PROP_FLOAT3,
                    CD_PROP_COLOR,
-                   CD_PROP_QUATERNION))
+                   CD_PROP_QUATERNION,
+                   CD_PROP_FLOAT4X4))
   {
     params.add_item(IFACE_("Value"), [type, set_active_fn](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeViewer");
@@ -106,7 +107,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void node_extra_info(NodeExtraInfoParams &params)
 {
   const auto data_type = eCustomDataType(node_storage(params.node).data_type);
-  if (data_type == CD_PROP_QUATERNION) {
+  if (ELEM(data_type, CD_PROP_QUATERNION, CD_PROP_FLOAT4X4)) {
     NodeExtraInfoRow row;
     row.icon = ICON_INFO;
     row.text = TIP_("No color overlay");

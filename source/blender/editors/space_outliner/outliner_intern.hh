@@ -496,6 +496,8 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot);
 
 void OUTLINER_OT_select_all(wmOperatorType *ot);
 void OUTLINER_OT_expanded_toggle(wmOperatorType *ot);
+void OUTLINER_OT_start_filter(wmOperatorType *ot);
+void OUTLINER_OT_clear_filter(wmOperatorType *ot);
 
 void OUTLINER_OT_scroll_page(wmOperatorType *ot);
 

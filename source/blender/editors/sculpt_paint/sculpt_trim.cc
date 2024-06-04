@@ -867,6 +867,37 @@ static int gesture_line_invoke(bContext *C, wmOperator *op, const wmEvent *event
   return WM_gesture_straightline_active_side_invoke(C, op, event);
 }
 
+static int gesture_polyline_exec(bContext *C, wmOperator *op)
+{
+  if (!can_exec(*C)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_polyline(C, op);
+  if (!gesture_data) {
+    return OPERATOR_CANCELLED;
+  }
+
+  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+      MEM_cnew<TrimOperation>(__func__));
+  initialize_cursor_info(*C, *op, *gesture_data);
+  init_operation(*gesture_data, *op);
+
+  gesture::apply(*C, *gesture_data, *op);
+  return OPERATOR_FINISHED;
+}
+
+static int gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!can_invoke(*C)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  RNA_int_set_array(op->ptr, "location", event->mval);
+
+  return WM_gesture_polyline_invoke(C, op, event);
+}
+
 void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Trim Lasso Gesture";
@@ -927,6 +958,28 @@ void SCULPT_OT_trim_line_gesture(wmOperatorType *ot)
   /* Properties. */
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
   gesture::operator_properties(ot, gesture::ShapeType::Line);
+
+  operator_properties(ot);
+}
+
+void SCULPT_OT_trim_polyline_gesture(wmOperatorType *ot)
+{
+  ot->name = "Trim Polyline Gesture";
+  ot->idname = "SCULPT_OT_trim_polyline_gesture";
+  ot->description =
+      "Execute a boolean operation on the mesh and a polygonal shape defined by the cursor";
+
+  ot->invoke = gesture_polyline_invoke;
+  ot->modal = WM_gesture_polyline_modal;
+  ot->exec = gesture_polyline_exec;
+
+  ot->poll = SCULPT_mode_poll_view3d;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_gesture_polyline(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Lasso);
 
   operator_properties(ot);
 }

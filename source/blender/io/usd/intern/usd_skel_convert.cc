@@ -19,6 +19,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_action.h"
@@ -26,7 +27,6 @@
 #include "BKE_deform.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_key.hh"
-#include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.hh"
@@ -39,7 +39,6 @@
 #include "BLI_vector.hh"
 
 #include "ED_armature.hh"
-#include "ED_mesh.hh"
 #include "ED_object_vgroup.hh"
 
 #include "ANIM_animdata.hh"

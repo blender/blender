@@ -1194,7 +1194,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           nullptr,
           0,
           0,
-          "Add to a user defined context menu (stored in the user preferences)");
+          TIP_("Add to a user defined context menu (stored in the user preferences)"));
       UI_but_func_set(but2, [but](bContext &C) {
         bUserMenu *um = ED_screen_user_menu_ensure(&C);
         U.runtime.is_dirty = true;

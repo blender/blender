@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -249,8 +249,8 @@ msgid "Action"
 msgstr "Akció"
 
 
-msgid "New"
-msgstr "Új"
+msgid "None"
+msgstr "Semmi"
 
 
 msgid "Combine"
@@ -802,10 +802,6 @@ msgstr "Tangens"
 
 msgid "Bake the normals in tangent space"
 msgstr "Nörmálisok kisütése tangens-térben"
-
-
-msgid "None"
-msgstr "Semmi"
 
 
 msgid "Emit"
@@ -7564,6 +7560,10 @@ msgid "Angle above which to bevel edges"
 msgstr "Szög, ami alatt az élek lekerekítődnek"
 
 
+msgid "New"
+msgstr "Új"
+
+
 msgid "Limit Method"
 msgstr "Korlátozás metódusa"
 
@@ -9836,10 +9836,6 @@ msgid "Display files as a detailed list"
 msgstr "Fájlok megjelenítése részletes listaként"
 
 
-msgid "(undocumented operator)"
-msgstr "(nem dokumentált operátor)"
-
-
 msgctxt "Operator"
 msgid "Add Brush"
 msgstr "Ecset hozzáadás"
@@ -9946,6 +9942,10 @@ msgstr "Klip megnyitása"
 
 msgid "Backwards"
 msgstr "Visszafelé"
+
+
+msgid "(undocumented operator)"
+msgstr "(nem dokumentált operátor)"
 
 
 msgctxt "Operator"
@@ -10643,6 +10643,21 @@ msgstr "Anyag beállítása"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Mind"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Forgatás"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Átméretezés"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Minden réteg látható"
 
@@ -10737,6 +10752,10 @@ msgstr "Kijelölés módja"
 
 msgid "Edit image in an external application"
 msgstr "A kép szerkesztése egy külső alkalmazás segítségével"
+
+
+msgid "Relative Paths"
+msgstr "Relatív fájlútvonalak"
 
 
 msgctxt "Operator"
@@ -11154,6 +11173,7 @@ msgid "Refresh data in the Explode modifier"
 msgstr "Adtok frissítése a Felrobbantás módosítóban"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Majom"
 
@@ -12675,11 +12695,6 @@ msgid "Scale (resize) selected items"
 msgstr "Kiválasztott elemek átméretezése (skálázása)"
 
 
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Forgatás"
-
-
 msgid "Rotate selected items"
 msgstr "Kiválasztott elemek forgatása"
 
@@ -12979,11 +12994,6 @@ msgid "Call Menu"
 msgstr "Menü előhívása"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "COLLADA exportálása"
-
-
 msgid "Save a Collada file"
 msgstr "Collada fájl mentése"
 
@@ -13050,11 +13060,6 @@ msgstr "Sokszorosított objektumok helyettesítése azonos adatból"
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "Textúrák másolása ugyanabba a mappába, ahova a .dae fájl"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "COLLADA importálása"
 
 
 msgid "Load a Collada file"
@@ -13237,10 +13242,6 @@ msgid "Import STL"
 msgstr "STL importálása"
 
 
-msgid "Relative Paths"
-msgstr "Relatív fájlútvonalak"
-
-
 msgid "Textures Directory"
 msgstr "Textúra könyvtár"
 
@@ -13327,11 +13328,6 @@ msgstr "Textúratér"
 
 msgid "Bookmarks"
 msgstr "Könyvjelzők"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Átméretezés"
 
 
 msgctxt "Operator"
@@ -16107,11 +16103,6 @@ msgstr "Animáció:"
 
 
 msgctxt "Operator"
-msgid "All"
-msgstr "Mind"
-
-
-msgctxt "Operator"
 msgid "Invert"
 msgstr "Invertálás"
 
@@ -16683,11 +16674,6 @@ msgstr "Rács"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Majom"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs Görbe"
 
@@ -17196,62 +17182,7 @@ msgid "Browse ID data to be linked"
 msgstr "ID adatok böngészése és csatolása"
 
 
-msgctxt "Object"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Mesh"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Curve"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Metaball"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Material"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Texture"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Lattice"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Camera"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "World"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Screen"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "Sound"
+msgctxt "Action"
 msgid "New"
 msgstr "Új"
 
@@ -17261,22 +17192,22 @@ msgid "New"
 msgstr "Új"
 
 
-msgctxt "Action"
-msgid "New"
-msgstr "Új"
-
-
-msgctxt "NodeTree"
-msgid "New"
-msgstr "Új"
-
-
 msgctxt "Brush"
 msgid "New"
 msgstr "Új"
 
 
-msgctxt "ParticleSettings"
+msgctxt "Camera"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Új"
 
@@ -17286,7 +17217,62 @@ msgid "New"
 msgstr "Új"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Lattice"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "World"
 msgid "New"
 msgstr "Új"
 

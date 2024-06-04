@@ -105,7 +105,8 @@ static constexpr DRWBatchFlag batches_that_use_buffer(const int buffer_index)
              MBC_WIRE_EDGES | MBC_WIRE_LOOPS | MBC_SCULPT_OVERLAYS | MBC_VIEWER_ATTRIBUTE_OVERLAY |
              MBC_SURFACE_PER_MAT;
     case BUFFER_INDEX(vbo.nor):
-      return MBC_SURFACE | MBC_EDIT_LNOR | MBC_WIRE_LOOPS | MBC_SURFACE_PER_MAT | MBC_ALL_VERTS;
+      return MBC_SURFACE | MBC_EDIT_LNOR | MBC_WIRE_EDGES | MBC_WIRE_LOOPS | MBC_SURFACE_PER_MAT |
+             MBC_ALL_VERTS;
     case BUFFER_INDEX(vbo.edge_fac):
       return MBC_WIRE_EDGES;
     case BUFFER_INDEX(vbo.weights):
@@ -1598,9 +1599,13 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     DRW_vbo_request(cache.batch.wire_loops, &mbuflist->vbo.pos);
   }
   assert_deps_valid(MBC_WIRE_EDGES,
-                    {BUFFER_INDEX(ibo.lines), BUFFER_INDEX(vbo.pos), BUFFER_INDEX(vbo.edge_fac)});
+                    {BUFFER_INDEX(ibo.lines),
+                     BUFFER_INDEX(vbo.nor),
+                     BUFFER_INDEX(vbo.pos),
+                     BUFFER_INDEX(vbo.edge_fac)});
   if (DRW_batch_requested(cache.batch.wire_edges, GPU_PRIM_LINES)) {
     DRW_ibo_request(cache.batch.wire_edges, &mbuflist->ibo.lines);
+    DRW_vbo_request(cache.batch.wire_edges, &mbuflist->vbo.nor);
     DRW_vbo_request(cache.batch.wire_edges, &mbuflist->vbo.pos);
     DRW_vbo_request(cache.batch.wire_edges, &mbuflist->vbo.edge_fac);
   }

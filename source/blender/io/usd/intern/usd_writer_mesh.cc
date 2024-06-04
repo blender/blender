@@ -28,6 +28,9 @@
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
+
 #include "DEG_depsgraph.hh"
 
 #include "DNA_key_types.h"
@@ -93,6 +96,29 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
 
   if (mesh == nullptr) {
     return;
+  }
+
+  if (usd_export_context_.export_params.triangulate_meshes) {
+    const bool tag_only = false;
+    const int quad_method = usd_export_context_.export_params.quad_method;
+    const int ngon_method = usd_export_context_.export_params.ngon_method;
+
+    BMeshCreateParams bmesh_create_params{};
+    BMeshFromMeshParams bmesh_from_mesh_params{};
+    bmesh_from_mesh_params.calc_face_normal = true;
+    bmesh_from_mesh_params.calc_vert_normal = true;
+    BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+
+    BM_mesh_triangulate(bm, quad_method, ngon_method, 4, tag_only, nullptr, nullptr, nullptr);
+
+    Mesh *triangulated_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
+    BM_mesh_free(bm);
+
+    if (needsfree) {
+      free_export_mesh(mesh);
+    }
+    mesh = triangulated_mesh;
+    needsfree = true;
   }
 
   try {

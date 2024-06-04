@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -427,8 +427,8 @@ msgid "Active Action for this data-block"
 msgstr "Активна дія для цього блока даних"
 
 
-msgid "New"
-msgstr "Новий"
+msgid "None"
+msgstr "Немає"
 
 
 msgid "Action Blending"
@@ -1497,10 +1497,6 @@ msgstr "Фільтр проходів"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Проходи, які слід включити в активний прохід запікання"
-
-
-msgid "None"
-msgstr "Немає"
 
 
 msgid "Emit"
@@ -16048,6 +16044,10 @@ msgid "Grid scale"
 msgstr "Масштаб сітки"
 
 
+msgid "Local Matrix"
+msgstr "Локальна Матриця"
+
+
 msgid "Translation"
 msgstr "Переміщення"
 
@@ -21929,10 +21929,6 @@ msgstr "Ввідна матриця"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "Матриця доступу до місця, оберту і масштабу (включно з дельта), перед застосуванням примусів та приріднення"
-
-
-msgid "Local Matrix"
-msgstr "Локальна Матриця"
 
 
 msgid "Parent Inverse Matrix"
@@ -30499,6 +30495,10 @@ msgid "Do not set face strength"
 msgstr "Не задавати силу грані"
 
 
+msgid "New"
+msgstr "Новий"
+
+
 msgid "Set face strength on new faces only"
 msgstr "Задати силу грані лише на нових гранях"
 
@@ -33260,10 +33260,6 @@ msgstr "Модифікатор триангуляції"
 
 msgid "Triangulate Mesh"
 msgstr "Тріангулювати сіть"
-
-
-msgid "Keep Normals"
-msgstr "Утримати Нормалі"
 
 
 msgid "Minimum Vertices"
@@ -41269,18 +41265,6 @@ msgid "Remove an existing keyword tag from the active asset"
 msgstr "Вилучити наявний значник з ключовим словом для активного активу"
 
 
-msgid "(undocumented operator)"
-msgstr "(недокументований оператор)"
-
-
-msgid "Show add-on preferences"
-msgstr "Показувати уподобання додатків"
-
-
-msgid "URL"
-msgstr "URL"
-
-
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Додати правило рою"
@@ -42257,6 +42241,10 @@ msgstr "Вибрати мітки за допомогою петлі"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Задати активний відеокліп"
+
+
+msgid "(undocumented operator)"
+msgstr "(недокументований оператор)"
 
 
 msgctxt "Operator"
@@ -44688,6 +44676,14 @@ msgid "Store glTF export settings in the Blender project"
 msgstr "Зберігати устави експорту glTF у прокті Blender'а"
 
 
+msgid "URL"
+msgstr "URL"
+
+
+msgid "Remove existing add-ons with the same ID"
+msgstr "Вилучити існуючі додатки з однаковим ID"
+
+
 msgid "Automatically pack all external files into the .blend file"
 msgstr "Автоматично упаковувати всі зовнішні дані до .blend-файлу"
 
@@ -46678,6 +46674,21 @@ msgstr "Скинути будь-яку трансформацію UV та пов
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Усе"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Оберт"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Масштаб"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Показати всі шари"
 
@@ -47926,6 +47937,18 @@ msgid "Flip the image vertically"
 msgstr "Перевернути зображення вертикально"
 
 
+msgid "Emission Strength"
+msgstr "Сила Емісії"
+
+
+msgid "Filepath used for importing the file"
+msgstr "Шлях, що використовується для імпортування файлу"
+
+
+msgid "Relative Paths"
+msgstr "Відносні шляхи"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Інвертувати канали"
@@ -48323,10 +48346,6 @@ msgstr "Імпорт BVH"
 
 msgid "Load a BVH motion capture file"
 msgstr "Завантаження файлу захоплення руху BVH"
-
-
-msgid "Filepath used for importing the file"
-msgstr "Шлях, що використовується для імпортування файлу"
 
 
 msgid "Starting frame for the animation"
@@ -52715,15 +52734,6 @@ msgstr "Доповнити вузол скрипту тонувача новим
 
 
 msgctxt "Operator"
-msgid "Update Views"
-msgstr "Оновити вигляди"
-
-
-msgid "Update views of selected node"
-msgstr "Оновити вигляди вибраного вузла"
-
-
-msgctxt "Operator"
 msgid "Move and Attach"
 msgstr "Перемістіть та приєднати"
 
@@ -53279,6 +53289,7 @@ msgid "Create a simple stroke with basic colors"
 msgstr "Створити простий штрих з базовими кольорами"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Мавпочка"
 
@@ -53576,10 +53587,6 @@ msgstr "Додати об'єкт проби освітлення"
 msgctxt "Operator"
 msgid "Bake Light Cache"
 msgstr "Запекти Кеш Освітлення"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "Затримка у мілісекундах, перш ніж запікання почнеться"
 
 
 msgid "Subset"
@@ -56643,6 +56650,14 @@ msgid "Toggle the vertex paint mode in 3D view"
 msgstr "Перемкнути режим малювання вершин у 3D огляді"
 
 
+msgid "Auto Iteration Count"
+msgstr "Рахунок Авто Повторення"
+
+
+msgid "Number of times that the filter is going to be applied"
+msgstr "Кількість разів, яку цей фільтр буде застосовано"
+
+
 msgctxt "Operator"
 msgid "Weight from Bones"
 msgstr "Вагомість з кісток"
@@ -57438,11 +57453,6 @@ msgid "Exaggerate the current pose in regards to the breakdown pose"
 msgstr "Перебільшити поточну позу відносно пози розбивки"
 
 
-msgctxt "Operator"
-msgid "Flip Quats"
-msgstr "Розвернути кватерніони"
-
-
 msgid "Flip quaternion values to achieve desired rotations, while maintaining the same orientations"
 msgstr "Розвернути значення кватерніона для досягнення бажаного обертання, при збереженні тієї ж орієнтації"
 
@@ -57583,10 +57593,6 @@ msgid "Install an add-on"
 msgstr "Інсталювати додаток"
 
 
-msgid "Remove existing add-ons with the same ID"
-msgstr "Вилучити існуючі додатки з однаковим ID"
-
-
 msgid "Target Path"
 msgstr "Цільовий шлях"
 
@@ -57611,6 +57617,10 @@ msgstr "Вилучити додаток з файлової системи"
 
 msgid "Module name of the add-on to remove"
 msgstr "Назва модуля додатку для вилучення"
+
+
+msgid "Show add-on preferences"
+msgstr "Показувати уподобання додатків"
 
 
 msgctxt "Operator"
@@ -57826,10 +57836,6 @@ msgstr "Зберегти власний студійний освітлювач"
 
 msgid "Save custom studio light from the studio light editor settings"
 msgstr "Зберегти власний студійний освітлювач на основі устав редактора студійного освітлювача"
-
-
-msgid "Show light preferences"
-msgstr "Показувати уподобання освітлення"
 
 
 msgctxt "Operator"
@@ -58545,6 +58551,10 @@ msgid "Bake the active view layer lighting"
 msgstr "Запекти освітлювання активного шару огляду"
 
 
+msgid "Delay in millisecond before baking starts"
+msgstr "Затримка у мілісекундах, перш ніж запікання почнеться"
+
+
 msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "Запекти і сітки опроміненості, і куброзкладки відбиття"
 
@@ -59164,12 +59174,22 @@ msgid "Applies gravity to the simulation"
 msgstr "Застосовує гравітацію до симуляції"
 
 
+msgctxt "Operator"
+msgid "Inflate"
+msgstr "Надуття"
+
+
 msgid "Inflates the cloth"
 msgstr "Роздуває тканину"
 
 
 msgid "Expands the cloth's dimensions"
 msgstr "Розширяє розмірності тканини"
+
+
+msgctxt "Operator"
+msgid "Pinch"
+msgstr "Прищемлення"
 
 
 msgid "Pulls the cloth to the cursor's start position"
@@ -59509,10 +59529,6 @@ msgid "Applies a filter to modify the current mask"
 msgstr "Застосовує фільтр до модифікування поточної маски"
 
 
-msgid "Auto Iteration Count"
-msgstr "Рахунок Авто Повторення"
-
-
 msgid "Use a automatic number of iterations based on the number of vertices of the sculpt"
 msgstr "Вжити автоматичну кількість повторень на сонові кількості вершин ліплення"
 
@@ -59543,10 +59559,6 @@ msgstr "Збільшити Контраст"
 
 msgid "Decrease Contrast"
 msgstr "Зменшити Контраст"
-
-
-msgid "Number of times that the filter is going to be applied"
-msgstr "Кількість разів, яку цей фільтр буде застосовано"
 
 
 msgctxt "Operator"
@@ -59634,6 +59646,7 @@ msgid "Randomize vertex positions"
 msgstr "Рандомізувати позиції вершин"
 
 
+msgctxt "Operator"
 msgid "Relax"
 msgstr "Розслаблення"
 
@@ -59642,40 +59655,20 @@ msgid "Relax mesh"
 msgstr "Розслабити сіть"
 
 
-msgid "Relax Face Sets"
-msgstr "Розслабити Набори Граней"
-
-
 msgid "Smooth the edges of all the Face Sets"
 msgstr "Згладити краї всіх Наборів Граней"
-
-
-msgid "Surface Smooth"
-msgstr "Згладження поверхні"
 
 
 msgid "Smooth the surface of the mesh, preserving the volume"
 msgstr "Згладити поверхню сіті, зберігши об'єм"
 
 
-msgid "Sharpen"
-msgstr "Різкіше"
-
-
 msgid "Sharpen the cavities of the mesh"
 msgstr "Гострішати порожнинності сіті"
 
 
-msgid "Enhance Details"
-msgstr "Покращити Деталі"
-
-
 msgid "Enhance the high frequency surface detail"
 msgstr "Покращити високо частотну детальність поверхні"
-
-
-msgid "Erase Displacement"
-msgstr "Стерти Зміщення"
 
 
 msgid "Deletes the displacement of the Multires Modifier"
@@ -61750,11 +61743,6 @@ msgstr "Простір редагування текстури"
 
 msgid "Edit object data texture space"
 msgstr "Редагувати дані об'єкта простору текстур"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Оберт"
 
 
 msgid "Rotate selected items"
@@ -64364,11 +64352,6 @@ msgid "Keep Open"
 msgstr "Утримати Відкрито"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Експорт COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "Зберегти файл Collada"
 
@@ -64671,11 +64654,6 @@ msgstr "Створити декілька об'єктів на тих самих
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "Копіювати текстури до тієї ж теки, куди експортовано .DAE-файл"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Імпорт COLLADA"
 
 
 msgid "Load a Collada file"
@@ -65885,10 +65863,6 @@ msgid "UV Maps"
 msgstr "UV-карти"
 
 
-msgid "Relative Paths"
-msgstr "Відносні шляхи"
-
-
 msgid "Instancing"
 msgstr "Примірникування"
 
@@ -66867,11 +66841,6 @@ msgid "Set the cursor location, drag to transform"
 msgstr "Задати локацію курсора, тягнути для трансформування"
 
 
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Масштаб"
-
-
 msgid "Supports any combination of grab, rotate, and scale at once"
 msgstr "Підтримує будь-яку комбінацію захоплення, обертання та масштабування одночасно"
 
@@ -66884,16 +66853,6 @@ msgstr "Розірвати Регіон"
 msgctxt "Operator"
 msgid "Grab"
 msgstr "Захоп"
-
-
-msgctxt "Operator"
-msgid "Relax"
-msgstr "Розслаблення"
-
-
-msgctxt "Operator"
-msgid "Pinch"
-msgstr "Прищемлення"
 
 
 msgctxt "Operator"
@@ -67734,11 +67693,6 @@ msgstr "Глиняний Палюх"
 msgctxt "Operator"
 msgid "Layer"
 msgstr "Шар"
-
-
-msgctxt "Operator"
-msgid "Inflate"
-msgstr "Надуття"
 
 
 msgctxt "Operator"
@@ -74149,6 +74103,10 @@ msgid "Brightness threshold for using sprite base depth of field"
 msgstr "Поріг яскравості для використання спрайта, базованого на глибині різкості"
 
 
+msgid "Trace Precision"
+msgstr "Точність простеження"
+
+
 msgid "Auto Bake"
 msgstr "Автозапікання"
 
@@ -74271,10 +74229,6 @@ msgstr "Відстань об'єкта, що бере участь в ефект
 
 msgid "Factor for ambient occlusion blending"
 msgstr "Коефіцієнт змішування впливу оточення (АО)"
-
-
-msgid "Trace Precision"
-msgstr "Точність простеження"
 
 
 msgid "Precision of the horizon search"
@@ -81001,6 +80955,14 @@ msgid "Unified Paint Settings"
 msgstr "Єдині параметри малювання"
 
 
+msgid "Only Endpoints"
+msgstr "Лише кінцеві точки"
+
+
+msgid "Only use the first and last parts of the stroke for snapping"
+msgstr "Використати для підхоплення лише першу та останню частини штриха"
+
+
 msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
 msgstr "Забезпечити при малюванні вагомості верхню межу 1,0 для всіх груп вершин  деформації кістки"
 
@@ -81035,14 +80997,6 @@ msgstr "Ліпити лише вибрані точки штрихів"
 
 msgid "Only sculpt selected stroke points between other strokes"
 msgstr "Ліпити точки вибраних штрихів лише між іншими штрихами"
-
-
-msgid "Only Endpoints"
-msgstr "Лише кінцеві точки"
-
-
-msgid "Only use the first and last parts of the stroke for snapping"
-msgstr "Використати для підхоплення лише першу та останню частини штриха"
 
 
 msgid "Compact List"
@@ -85004,11 +84958,6 @@ msgstr "Сховати Невибране"
 
 
 msgctxt "Operator"
-msgid "All"
-msgstr "Усе"
-
-
-msgctxt "Operator"
 msgid "None"
 msgstr "Нема"
 
@@ -88294,11 +88243,6 @@ msgstr "Сітка"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Мавпочка"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Крива Норбс"
 
@@ -89446,6 +89390,22 @@ msgid "Assign from Bone Envelopes"
 msgstr "Призначити з Оболонок Кісток"
 
 
+msgid "Surface Smooth"
+msgstr "Згладження поверхні"
+
+
+msgid "Relax Face Sets"
+msgstr "Розслабити Набори Граней"
+
+
+msgid "Sharpen"
+msgstr "Різкіше"
+
+
+msgid "Enhance Details"
+msgstr "Покращити Деталі"
+
+
 msgctxt "Operator"
 msgid "Randomize Vertices"
 msgstr "Рандомізувати Вершини"
@@ -89968,18 +89928,6 @@ msgstr "Поверхня"
 msgctxt "Action"
 msgid "var"
 msgstr "змінна"
-
-
-msgid "Generator"
-msgstr "Генератор"
-
-
-msgid "Built-In Function"
-msgstr "Вбудована функція"
-
-
-msgid "Stepped"
-msgstr "Покроково"
 
 
 msgid "GP_Layer"
@@ -91930,12 +91878,22 @@ msgid "Modified"
 msgstr "Змінено"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Новий"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Новий"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Новий"
+
+
+msgctxt "Camera"
 msgid "New"
 msgstr "Новий"
 
@@ -91945,17 +91903,12 @@ msgid "New"
 msgstr "Новий"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Новий"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Новий"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Новий"
 
@@ -91970,37 +91923,22 @@ msgid "New"
 msgstr "Нове"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
+msgid "New"
+msgstr "Нове"
+
+
+msgctxt "Material"
 msgid "New"
 msgstr "Новий"
 
 
-msgctxt "World"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Новий"
 
 
-msgctxt "Screen"
-msgid "New"
-msgstr "Новий"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "Новий"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Новий"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Новий"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Новий"
 
@@ -92010,7 +91948,7 @@ msgid "New"
 msgstr "Новий"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Новий"
 
@@ -92020,14 +91958,34 @@ msgid "New"
 msgstr "Новий"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
+msgid "New"
+msgstr "Нове"
+
+
+msgctxt "Screen"
 msgid "New"
 msgstr "Новий"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Sound"
 msgid "New"
 msgstr "Новий"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Новий"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Новий"
+
+
+msgctxt "Volume"
+msgid "New"
+msgstr "Нове"
 
 
 msgctxt "WorkSpace"
@@ -92035,19 +91993,9 @@ msgid "New"
 msgstr "Нове"
 
 
-msgctxt "LightProbe"
+msgctxt "World"
 msgid "New"
-msgstr "Нове"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Нове"
-
-
-msgctxt "Volume"
-msgid "New"
-msgstr "Нове"
+msgstr "Новий"
 
 
 msgid "Samples Transform"
@@ -95725,10 +95673,6 @@ msgid "Shear: %s %s"
 msgstr "Косування: %s %s"
 
 
-msgid "Shear: %.3f %s (Press X or Y to set shear axis)"
-msgstr "Косування: %.3f %s (Натисніть X або Y, щоб задати вісь косування)"
-
-
 msgid "Shrink/Fatten: "
 msgstr "Стиснення/Розтиснення"
 
@@ -95953,10 +95897,6 @@ msgstr "Немає матеріалу для вилучення"
 
 msgid "Registering id property class: '%s' is too long, maximum length is %d"
 msgstr "Реєстрація класу ID властивості: назва '%s' задовга, найбільша довжина - %d"
-
-
-msgid "%s is not compatible with %s 'refresh' options"
-msgstr "%s є не сумісне з  %s опцій 'освіження'"
 
 
 msgid "This property is for internal use only and can't be edited"
@@ -97042,10 +96982,6 @@ msgid "Emission Color"
 msgstr "Колір випромінювання"
 
 
-msgid "Emission Strength"
-msgstr "Сила Емісії"
-
-
 msgid "View Vector"
 msgstr "Вектор зору"
 
@@ -97272,14 +97208,6 @@ msgstr "Неможливо переобчислити шлях (%s)"
 
 msgid "Failed allocate render result, out of memory"
 msgstr "Не вдалось розмістити результат рендера, не вистачає пам'яті"
-
-
-msgid "Fra:%d Mem:%.2fM (Peak %.2fM) "
-msgstr "Кадр:%d Пам:%.2fM (Пік %.2fM) "
-
-
-msgid "| Time:%s | "
-msgstr "| Час:%s | "
 
 
 msgid "Image too small"

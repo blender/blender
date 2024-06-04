@@ -33,11 +33,8 @@
 static Mesh *triangulate_mesh(Mesh *mesh,
                               const int quad_method,
                               const int ngon_method,
-                              const int min_vertices,
-                              const int flag)
+                              const int min_vertices)
 {
-  Mesh *result;
-  BMesh *bm;
   CustomData_MeshMasks cd_mask_extra{};
   cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
   cd_mask_extra.emask = CD_MASK_ORIGINDEX;
@@ -49,12 +46,12 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   bmesh_from_mesh_params.calc_vert_normal = false;
   bmesh_from_mesh_params.cd_mask_extra = cd_mask_extra;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
   BM_mesh_triangulate(
       bm, quad_method, ngon_method, min_vertices, false, nullptr, nullptr, nullptr);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, mesh);
+  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, mesh);
   BM_mesh_free(bm);
 
   return result;
@@ -76,9 +73,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
   Mesh *result;
-  if (!(result = triangulate_mesh(
-            mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag)))
-  {
+  if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices))) {
     return mesh;
   }
 

@@ -140,7 +140,9 @@ static void node_declare(NodeDeclarationBuilder &b)
         const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
         const StringRef name = item.name ? item.name : "";
         const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
-        auto &input_decl = b.add_input(socket_type, name, identifier);
+        auto &input_decl = b.add_input(socket_type, name, identifier)
+                               .socket_name_ptr(
+                                   &tree->id, RepeatItemsAccessor::item_srna, &item, "name");
         auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
         if (socket_type_supports_fields(socket_type)) {
           input_decl.supports_field();
@@ -206,6 +208,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
+  const bNodeTree *tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
   if (node) {
     const NodeGeometryRepeatOutput &storage = node_storage(*node);
@@ -214,7 +217,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const StringRef name = item.name ? item.name : "";
       const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
-      auto &input_decl = b.add_input(socket_type, name, identifier);
+      auto &input_decl = b.add_input(socket_type, name, identifier)
+                             .socket_name_ptr(
+                                 &tree->id, RepeatItemsAccessor::item_srna, &item, "name");
       auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
       if (socket_type_supports_fields(socket_type)) {
         input_decl.supports_field();

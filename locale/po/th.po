@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -222,8 +222,8 @@ msgid "Action"
 msgstr "กระทำ"
 
 
-msgid "New"
-msgstr "ใหม่"
+msgid "None"
+msgstr "ไม่มี"
 
 
 msgid "End Frame"
@@ -531,10 +531,6 @@ msgstr "-Z"
 
 msgid "Object"
 msgstr "วัตถุ"
-
-
-msgid "None"
-msgstr "ไม่มี"
 
 
 msgid "Internal"
@@ -2198,6 +2194,10 @@ msgid "Merge Vertices"
 msgstr "ผสานจุดยอด"
 
 
+msgid "New"
+msgstr "ใหม่"
+
+
 msgid "Patch"
 msgstr "แพตช์"
 
@@ -2450,10 +2450,6 @@ msgid "Path to file"
 msgstr "ตำแหน่งไปยังไฟล์"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgctxt "Operator"
 msgid "Add Brush"
 msgstr "เพิ่มแปรง"
@@ -2612,6 +2608,10 @@ msgid "+Y Up"
 msgstr "+Y ขึ้น"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "เพิ่มบุ๊คมาร์ค"
@@ -2658,6 +2658,21 @@ msgstr "วางเนื้อหาจากไฟล์"
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "เพิ่มชั้นใหม่"
+
+
+msgctxt "Operator"
+msgid "All"
+msgstr "ทั้งหมด"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "หมุน"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "ปรับย่อขนาด"
 
 
 msgid "Join"
@@ -2904,6 +2919,7 @@ msgid "Add an empty object to the scene"
 msgstr "เพิ่มวัตถุว่างเปล่าไปยังฉาก"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "ลิง"
 
@@ -3083,10 +3099,6 @@ msgid "Mask Filter"
 msgstr "กรองหน้ากาก"
 
 
-msgid "Relax"
-msgstr "ผ่อนคลาย"
-
-
 msgid "Grab UVs"
 msgstr "จับ UV"
 
@@ -3173,11 +3185,6 @@ msgstr "ยึดตามปริมาตร"
 msgctxt "Operator"
 msgid "Resize"
 msgstr "ขนาด"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "หมุน"
 
 
 msgctxt "Operator"
@@ -3326,11 +3333,6 @@ msgstr "ตัวกรอง"
 
 msgid "Overlays"
 msgstr "วางซ้อน"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "ปรับย่อขนาด"
 
 
 msgctxt "Operator"
@@ -4080,11 +4082,6 @@ msgstr "แอนิเมชัน:"
 
 
 msgctxt "Operator"
-msgid "All"
-msgstr "ทั้งหมด"
-
-
-msgctxt "Operator"
 msgid "None"
 msgstr "ไม่มี"
 
@@ -4647,11 +4644,6 @@ msgstr "ตาราง"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "ลิง"
-
-
-msgctxt "Operator"
 msgid "Path"
 msgstr "เส้นทาง"
 
@@ -4953,12 +4945,22 @@ msgid "Yesterday"
 msgstr "เมื่อวาน"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "ใหม่"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "ใหม่"
+
+
+msgctxt "Camera"
 msgid "New"
 msgstr "ใหม่"
 
@@ -4968,17 +4970,12 @@ msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "ใหม่"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "ใหม่"
 
@@ -4993,37 +4990,22 @@ msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "ใหม่"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "ใหม่"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "ใหม่"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "ใหม่"
 
@@ -5033,7 +5015,7 @@ msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "ใหม่"
 
@@ -5043,12 +5025,22 @@ msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "GPencil"
+msgctxt "Screen"
 msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Sound"
+msgid "New"
+msgstr "ใหม่"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "ใหม่"
+
+
+msgctxt "Texture"
 msgid "New"
 msgstr "ใหม่"
 
@@ -5058,7 +5050,7 @@ msgid "New"
 msgstr "ใหม่"
 
 
-msgctxt "LightProbe"
+msgctxt "World"
 msgid "New"
 msgstr "ใหม่"
 
@@ -5360,10 +5352,6 @@ msgstr "ระยะมุมมอง"
 
 msgid "Texture Node Editor"
 msgstr "ตัวแก้ไขโนดพื้นผิว"
-
-
-msgid "| Time:%s | "
-msgstr "| เวลา:%s | "
 
 
 msgid "%s: incorrect dimensions for partial copy '%s'"

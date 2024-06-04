@@ -139,7 +139,7 @@ class VolumeModule {
   /* Render material properties. */
   void draw_prepass(View &main_view);
   /* Compute scattering and integration. */
-  void draw_compute(View &main_view);
+  void draw_compute(View &main_view, int2 extent);
   /* Final image compositing. */
   void draw_resolve(View &view);
 

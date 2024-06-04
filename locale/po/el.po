@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -51,8 +51,8 @@ msgid "Action"
 msgstr "Δράση"
 
 
-msgid "New"
-msgstr "Νέο"
+msgid "None"
+msgstr "Κανένα"
 
 
 msgid "Hold"
@@ -101,10 +101,6 @@ msgstr "Επέκταση"
 
 msgid "Object"
 msgstr "Αντικείμενο"
-
-
-msgid "None"
-msgstr "Κανένα"
 
 
 msgid "Emit"
@@ -647,6 +643,10 @@ msgid "Wave"
 msgstr "Κύμα"
 
 
+msgid "New"
+msgstr "Νέο"
+
+
 msgid "Lines"
 msgstr "Γραμμές"
 
@@ -756,6 +756,11 @@ msgid "Open"
 msgstr "Άνοιγμα"
 
 
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotate"
+
+
 msgid "Both"
 msgstr "Both"
 
@@ -835,10 +840,6 @@ msgid "Bake"
 msgstr "Φτιάξε"
 
 
-msgid "Monkey"
-msgstr "Μαϊμού"
-
-
 msgctxt "Operator"
 msgid "Join"
 msgstr "Ένωσε"
@@ -903,11 +904,6 @@ msgstr "Αποθήκευση"
 msgctxt "Operator"
 msgid "Save As"
 msgstr "Αποθήκευση ως"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotate"
 
 
 msgctxt "Operator"

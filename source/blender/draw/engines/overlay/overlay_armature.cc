@@ -432,11 +432,16 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
       else {
         cb->transp.point_outline = cb->solid.point_outline;
       }
+      DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+      GPUTexture **depth_tex = &dtxl->depth;
+      const bool do_smooth_wire = U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE;
 
       sh = OVERLAY_shader_armature_shape(true);
       cb->solid.custom_outline = grp = DRW_shgroup_create(sh, armature_ps);
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_float_copy(grp, "alpha", 1.0f);
+      DRW_shgroup_uniform_bool_copy(grp, "do_smooth_wire", do_smooth_wire);
+      DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tex);
       cb->solid.box_outline = BUF_INSTANCE(grp, format, DRW_cache_bone_box_wire_get());
       cb->solid.octa_outline = BUF_INSTANCE(grp, format, DRW_cache_bone_octahedral_wire_get());
 
@@ -458,10 +463,12 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
       cb->solid.custom_wire = grp = DRW_shgroup_create(sh, armature_ps);
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_float_copy(grp, "alpha", 1.0f);
+      DRW_shgroup_uniform_bool_copy(grp, "do_smooth_wire", do_smooth_wire);
+      DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tex);
+      DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
 
       if (use_wire_alpha) {
         cb->transp.custom_wire = grp = DRW_shgroup_create(sh, armature_ps);
-        DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
         DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
         DRW_shgroup_uniform_float_copy(grp, "alpha", wire_alpha);
       }
@@ -847,6 +854,7 @@ static void drw_shgroup_bone_custom_solid_mesh(const ArmatureDrawContext *ctx,
                                                const float bone_color[4],
                                                const float hint_color[4],
                                                const float outline_color[4],
+                                               const float wire_width,
                                                Object &custom)
 {
   using namespace blender::draw;
@@ -880,7 +888,8 @@ static void drw_shgroup_bone_custom_solid_mesh(const ArmatureDrawContext *ctx,
   if (loose_edges) {
     buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
-    OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
+    inst_data.color_a = encode_2f_to_float(outline_color[0], outline_color[1]);
+    inst_data.color_b = encode_2f_to_float(outline_color[2], wire_width / WIRE_WIDTH_COMPRESSION);
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
   }
 
@@ -892,6 +901,7 @@ static void drw_shgroup_bone_custom_mesh_wire(const ArmatureDrawContext *ctx,
                                               Mesh &mesh,
                                               const float (*bone_mat)[4],
                                               const float color[4],
+                                              const float wire_width,
                                               Object &custom)
 {
   using namespace blender::draw;
@@ -905,7 +915,8 @@ static void drw_shgroup_bone_custom_mesh_wire(const ArmatureDrawContext *ctx,
     BoneInstanceData inst_data;
     mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world().ptr(), bone_mat);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, color);
-    OVERLAY_bone_instance_data_set_color(&inst_data, color);
+    inst_data.color_a = encode_2f_to_float(color[0], color[1]);
+    inst_data.color_b = encode_2f_to_float(color[2], wire_width / WIRE_WIDTH_COMPRESSION);
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
   }
 
@@ -953,6 +964,7 @@ static void drw_shgroup_bone_custom_solid(const ArmatureDrawContext *ctx,
                                           const float bone_color[4],
                                           const float hint_color[4],
                                           const float outline_color[4],
+                                          const float wire_width,
                                           Object *custom)
 {
   /* The custom object is not an evaluated object, so its object->data field hasn't been replaced
@@ -962,7 +974,7 @@ static void drw_shgroup_bone_custom_solid(const ArmatureDrawContext *ctx,
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
   if (mesh != nullptr) {
     drw_shgroup_bone_custom_solid_mesh(
-        ctx, *mesh, bone_mat, bone_color, hint_color, outline_color, *custom);
+        ctx, *mesh, bone_mat, bone_color, hint_color, outline_color, wire_width, *custom);
     return;
   }
 
@@ -975,12 +987,13 @@ static void drw_shgroup_bone_custom_solid(const ArmatureDrawContext *ctx,
 static void drw_shgroup_bone_custom_wire(const ArmatureDrawContext *ctx,
                                          const float (*bone_mat)[4],
                                          const float color[4],
+                                         const float wire_width,
                                          Object *custom)
 {
   /* See comments in #drw_shgroup_bone_custom_solid. */
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
   if (mesh != nullptr) {
-    drw_shgroup_bone_custom_mesh_wire(ctx, *mesh, bone_mat, color, *custom);
+    drw_shgroup_bone_custom_mesh_wire(ctx, *mesh, bone_mat, color, wire_width, *custom);
     return;
   }
 
@@ -2122,10 +2135,17 @@ class ArmatureBoneDrawStrategyCustomShape : public ArmatureBoneDrawStrategy {
       }
     }
     if ((boneflag & BONE_DRAWWIRE) == 0 && (boneflag & BONE_DRAW_LOCKED_WEIGHT) == 0) {
-      drw_shgroup_bone_custom_solid(ctx, disp_mat, col_solid, col_hint, col_wire, pchan->custom);
+      drw_shgroup_bone_custom_solid(ctx,
+                                    disp_mat,
+                                    col_solid,
+                                    col_hint,
+                                    col_wire,
+                                    pchan->custom_shape_wire_width,
+                                    pchan->custom);
     }
     else {
-      drw_shgroup_bone_custom_wire(ctx, disp_mat, col_wire, pchan->custom);
+      drw_shgroup_bone_custom_wire(
+          ctx, disp_mat, col_wire, pchan->custom_shape_wire_width, pchan->custom);
     }
 
     if (select_id != -1) {

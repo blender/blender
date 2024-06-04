@@ -286,9 +286,11 @@ template<bool in_volume_segment>
 ccl_device_forceinline bool spot_light_tree_parameters(const ccl_global KernelLight *klight,
                                                        const float3 centroid,
                                                        const float3 P,
+                                                       const ccl_private BoundingCone &bcone,
                                                        ccl_private float &cos_theta_u,
                                                        ccl_private float2 &distance,
-                                                       ccl_private float3 &point_to_centroid)
+                                                       ccl_private float3 &point_to_centroid,
+                                                       ccl_private float &energy)
 {
   float min_distance;
   point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
@@ -315,6 +317,18 @@ ccl_device_forceinline bool spot_light_tree_parameters(const ccl_global KernelLi
     }
 
     distance.x = hypotenus;
+  }
+
+  /* Apply a similar scaling as in `spot_light_attenuation()` to account for spot blend. */
+  {
+    /* Minimum angle formed by the emitter axis and the direction to the shading point,
+     * cos(theta') in the paper. */
+    const float cos_min_outgoing_angle = cosf(
+        fmaxf(0.0f, fast_acosf(dot(bcone.axis, -point_to_centroid)) - fast_acosf(cos_theta_u)));
+    /* Use `cos(bcone.theta_e)` instead of `klight->spot.cos_half_spot_angle` to account for
+     * non-uniform scaling. */
+    energy *= smoothstepf((cos_min_outgoing_angle - cosf(bcone.theta_e)) *
+                          klight->spot.spot_smooth);
   }
 
   return true;

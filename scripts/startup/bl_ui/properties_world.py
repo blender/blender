@@ -207,11 +207,23 @@ class EEVEE_WORLD_PT_sun_shadow(WorldButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         world = context.world
 
-        layout.use_property_split = True
-        layout.prop(world, "sun_shadow_maximum_resolution", text="Resolution Limit")
+        col = layout.column(align=False, heading="Jitter")
+        row = col.row(align=True)
+        sub = row.row(align=True)
+        sub.prop(world, "use_sun_shadow_jitter", text="")
+        sub = sub.row(align=True)
+        sub.active = world.use_sun_shadow_jitter
+        sub.prop(world, "sun_shadow_jitter_overblur", text="Overblur")
+
+        col.separator()
+
+        col = layout.column()
+        col.prop(world, "sun_shadow_filter_radius", text="Filter")
+        col.prop(world, "sun_shadow_maximum_resolution", text="Resolution Limit")
 
 
 class WORLD_PT_viewport_display(WorldButtonsPanel, Panel):

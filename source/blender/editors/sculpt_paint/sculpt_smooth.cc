@@ -136,32 +136,35 @@ float neighbor_mask_average(SculptSession &ss,
   int total = 0;
   SculptVertexNeighborIter ni;
   switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES:
+    case PBVH_FACES: {
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         avg += write_info.layer[ni.vertex.i];
         total++;
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-      break;
-    case PBVH_GRIDS:
+      return avg / total;
+    }
+    case PBVH_GRIDS: {
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         avg += SCULPT_mask_get_at_grids_vert_index(
             *ss.subdiv_ccg, *BKE_pbvh_get_grid_key(*ss.pbvh), ni.vertex.i);
         total++;
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-      break;
-    case PBVH_BMESH:
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        BMVert *vert = reinterpret_cast<BMVert *>(ni.vertex.i);
-        avg += BM_ELEM_CD_GET_FLOAT(vert, write_info.bm_offset);
-        total++;
+      return avg / total;
+    }
+    case PBVH_BMESH: {
+      Vector<BMVert *, 64> neighbors;
+      for (BMVert *neighbor :
+           vert_neighbors_get_bmesh(*reinterpret_cast<BMVert *>(vertex.i), neighbors))
+      {
+        avg += BM_ELEM_CD_GET_FLOAT(neighbor, write_info.bm_offset);
       }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-      break;
+      return avg / neighbors.size();
+    }
   }
-  BLI_assert(total > 0);
-  return avg / total;
+  BLI_assert_unreachable();
+  return 0.0f;
 }
 
 float4 neighbor_color_average(SculptSession &ss, PBVHVertRef vertex)

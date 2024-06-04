@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_vector.hh"
+#include <string>
 
 struct wmWindowManager;
 struct wmWindow;
@@ -38,6 +39,7 @@ wmJob *EEVEE_NEXT_lightbake_job_create(wmWindowManager *wm,
                                        ViewLayer *view_layer,
                                        Scene *scene,
                                        blender::Vector<Object *> original_probes,
+                                       std::string &report,
                                        int delay_ms,
                                        int frame);
 
@@ -53,6 +55,7 @@ void *EEVEE_NEXT_lightbake_job_data_alloc(Main *bmain,
                                           ViewLayer *view_layer,
                                           Scene *scene,
                                           blender::Vector<Object *> original_probes,
+                                          std::string &report,
                                           int frame);
 
 /**

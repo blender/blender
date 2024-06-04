@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -4489,6 +4490,12 @@ static void ed_screens_statusbar_menu_create(uiLayout *layout, void * /*arg*/)
   if (GPU_mem_stats_supported()) {
     uiItemR(layout, &ptr, "show_statusbar_vram", UI_ITEM_NONE, IFACE_("Video Memory"), ICON_NONE);
   }
+  uiItemR(layout,
+          &ptr,
+          "show_extensions_updates",
+          UI_ITEM_NONE,
+          IFACE_("Extensions Updates"),
+          ICON_NONE);
   uiItemR(
       layout, &ptr, "show_statusbar_version", UI_ITEM_NONE, IFACE_("Blender Version"), ICON_NONE);
 }
@@ -5254,6 +5261,22 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
+static std::string userpref_show_get_description(bContext *C,
+                                                 wmOperatorType * /*ot*/,
+                                                 PointerRNA *ptr)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "section");
+  if (RNA_property_is_set(ptr, prop)) {
+    int section = RNA_property_enum_get(ptr, prop);
+    const char *section_name;
+    if (RNA_property_enum_name_gettexted(C, ptr, prop, section, &section_name)) {
+      return fmt::format(TIP_("Show {} preferences"), section_name);
+    }
+  }
+  /* Fallback to default. */
+  return "";
+}
+
 static void SCREEN_OT_userpref_show(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -5266,6 +5289,7 @@ static void SCREEN_OT_userpref_show(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = userpref_show_exec;
   ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
+  ot->get_description = userpref_show_get_description;
 
   prop = RNA_def_enum(ot->srna,
                       "section",

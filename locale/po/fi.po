@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -316,10 +316,6 @@ msgstr "Toiminta"
 
 msgid "Active Action for this data-block"
 msgstr "Aktiiviset toiminnot tälle data-palikalle"
-
-
-msgid "New"
-msgstr "Uusi"
 
 
 msgid "Combine"
@@ -4997,6 +4993,10 @@ msgid "Merge End Vertices"
 msgstr "Yhdistä päätykärjet"
 
 
+msgid "New"
+msgstr "Uusi"
+
+
 msgid "Material Mode"
 msgstr "Materiaalitila"
 
@@ -5156,10 +5156,6 @@ msgstr "Materiaalisiirros"
 
 msgid "Surface Modifier"
 msgstr "Pintamuunnin"
-
-
-msgid "Keep Normals"
-msgstr "Pidä normaalit"
 
 
 msgid "Beauty"
@@ -7136,6 +7132,11 @@ msgid "Type of shape"
 msgstr "Muodon tyyppi"
 
 
+msgctxt "Operator"
+msgid "All"
+msgstr "Kaikki"
+
+
 msgid "Show all Grease Pencil layers"
 msgstr "Näytä kaikki öljykynän tasot"
 
@@ -7387,6 +7388,11 @@ msgstr "Tallenna sekvenssi"
 
 msgid "UV Layer"
 msgstr "UV-taso"
+
+
+msgctxt "Operator"
+msgid "Monkey"
+msgstr "Apina"
 
 
 msgid "Column"
@@ -7946,11 +7952,6 @@ msgid "Holes"
 msgstr "Reiät"
 
 
-msgctxt "Operator"
-msgid "All"
-msgstr "Kaikki"
-
-
 msgid "Mask Value"
 msgstr "Maskin arvo"
 
@@ -8444,11 +8445,6 @@ msgstr "Ruudukko"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Apina"
-
-
-msgctxt "Operator"
 msgid "Path"
 msgstr "Polku"
 
@@ -8657,10 +8653,6 @@ msgstr "Väri"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Pinta"
-
-
-msgid "Built-In Function"
-msgstr "Sisäänrakennettu funktio"
 
 
 msgid "Warning"
@@ -9012,12 +9004,27 @@ msgid "Yesterday"
 msgstr "Eilen"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Uusi"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Uusi"
+
+
+msgctxt "Camera"
+msgid "New"
+msgstr "Uusi"
+
+
+msgctxt "Curves"
 msgid "New"
 msgstr "Uusi"
 
@@ -9027,17 +9034,12 @@ msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Uusi"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Uusi"
 
@@ -9052,37 +9054,22 @@ msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "Uusi"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Uusi"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Uusi"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Uusi"
 
@@ -9092,7 +9079,7 @@ msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Uusi"
 
@@ -9102,12 +9089,32 @@ msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
 msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Screen"
+msgid "New"
+msgstr "Uusi"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Uusi"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Uusi"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Uusi"
+
+
+msgctxt "Volume"
 msgid "New"
 msgstr "Uusi"
 
@@ -9117,22 +9124,7 @@ msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "LightProbe"
-msgid "New"
-msgstr "Uusi"
-
-
-msgctxt "Curves"
-msgid "New"
-msgstr "Uusi"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Uusi"
-
-
-msgctxt "Volume"
+msgctxt "World"
 msgid "New"
 msgstr "Uusi"
 
@@ -9754,10 +9746,6 @@ msgstr "Tyhjä geometria"
 
 msgid "Geometry:"
 msgstr "Geometria:"
-
-
-msgid "• Volume"
-msgstr "• Volyymi"
 
 
 msgid "positions"

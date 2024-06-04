@@ -136,20 +136,52 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_solid_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_armature_shape_solid", "drw_clipped");
 
+GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_wire_iface, "geometry_in")
+    .flat(Type::VEC4, "finalColor")
+    .flat(Type::FLOAT, "wire_width");
+
+GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_wire_geom_iface, "geometry_out")
+    .flat(Type::VEC4, "finalColor")
+    .flat(Type::FLOAT, "wire_width");
+
+GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_wire_geom_noperspective_iface,
+                          "geometry_noperspective_out")
+    .no_perspective(Type::FLOAT, "edgeCoord");
+
 GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire)
     .do_static_compilation(true)
+    .push_constant(Type::BOOL, "do_smooth_wire")
     .vertex_in(0, Type::VEC3, "pos")
-    .vertex_in(1, Type::VEC3, "nor")
     /* Per instance. */
     .vertex_in(2, Type::MAT4, "inst_obmat")
-    .vertex_out(overlay_armature_wire_iface)
+    .vertex_out(overlay_armature_shape_wire_iface)
     .vertex_source("overlay_armature_shape_wire_vert.glsl")
-    .fragment_source("overlay_armature_wire_frag.glsl")
+    .geometry_out(overlay_armature_shape_wire_geom_iface)
+    .geometry_out(overlay_armature_shape_wire_geom_noperspective_iface)
+    .geometry_layout(PrimitiveIn::LINES, PrimitiveOut::TRIANGLE_STRIP, 4)
+    .geometry_source("overlay_armature_shape_wire_geom.glsl")
+    .fragment_source("overlay_armature_shape_wire_frag.glsl")
+    .typedef_source("overlay_shader_shared.h")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_armature_shape_wire", "drw_clipped");
+
+#ifdef WITH_METAL_BACKEND
+GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire_no_geom)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
+    .push_constant(Type::BOOL, "do_smooth_wire")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(2, Type::MAT4, "inst_obmat")
+    .vertex_out(overlay_armature_shape_wire_geom_iface)
+    .vertex_out(overlay_armature_shape_wire_geom_noperspective_iface)
+    .vertex_source("overlay_armature_shape_wire_vert_no_geom.glsl")
+    .fragment_source("overlay_armature_shape_wire_frag.glsl")
+    .typedef_source("overlay_shader_shared.h")
+    .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
+#endif
 
 /** \} */
 

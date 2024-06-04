@@ -46,7 +46,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
@@ -512,7 +512,7 @@ static bool restore_coords(bContext *C,
     for (const int i : grid_indices.index_range()) {
       CCGElem *grid = grids[grid_indices[i]];
       for (const int j : IndexRange(key.grid_area)) {
-        swap_v3_v3(CCG_elem_offset_co(&key, grid, j), position[index]);
+        swap_v3_v3(CCG_elem_offset_co(key, grid, j), position[index]);
         index++;
       }
     }
@@ -649,7 +649,7 @@ static bool restore_mask(Object &object, Node &unode, MutableSpan<bool> modified
     for (const int grid : unode.grids) {
       CCGElem *elem = grids[grid];
       for (const int j : IndexRange(key.grid_area)) {
-        std::swap(*CCG_elem_offset_mask(&key, elem, j), mask[index]);
+        std::swap(CCG_elem_offset_mask(key, elem, j), mask[index]);
         index++;
       }
     }
@@ -1312,7 +1312,7 @@ static void store_coords(const Object &object, Node *unode)
       for (const int grid : unode->grids) {
         CCGElem *elem = grids[grid];
         for (const int i : IndexRange(key.grid_area)) {
-          unode->position[index] = float3(CCG_elem_offset_co(&key, elem, i));
+          unode->position[index] = CCG_elem_offset_co(key, elem, i);
           index++;
         }
       }
@@ -1322,7 +1322,7 @@ static void store_coords(const Object &object, Node *unode)
       for (const int grid : unode->grids) {
         CCGElem *elem = grids[grid];
         for (const int i : IndexRange(key.grid_area)) {
-          unode->normal[index] = float3(CCG_elem_offset_no(&key, elem, i));
+          unode->normal[index] = CCG_elem_offset_no(key, elem, i);
           index++;
         }
       }
@@ -1392,7 +1392,7 @@ static void store_mask(const Object &object, Node *unode)
       for (const int grid : unode->grids) {
         CCGElem *elem = grids[grid];
         for (const int i : IndexRange(key.grid_area)) {
-          unode->mask[index] = *CCG_elem_offset_mask(&key, elem, i);
+          unode->mask[index] = CCG_elem_offset_mask(key, elem, i);
           index++;
         }
       }

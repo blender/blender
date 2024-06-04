@@ -278,7 +278,7 @@ static int grease_pencil_material_lock_unselected_exec(bContext *C, wmOperator *
   for (const MutableDrawingInfo &info : drawings) {
     IndexMaskMemory memory;
     const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
-        *object, info.drawing, memory);
+        *object, info.drawing, info.layer_index, memory);
     if (strokes.is_empty()) {
       return OPERATOR_CANCELLED;
     }

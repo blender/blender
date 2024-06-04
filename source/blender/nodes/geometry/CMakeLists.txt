@@ -96,6 +96,7 @@ set(SRC
   nodes/node_geo_input_index.cc
   nodes/node_geo_input_instance_rotation.cc
   nodes/node_geo_input_instance_scale.cc
+  nodes/node_geo_input_instance_transform.cc
   nodes/node_geo_input_material.cc
   nodes/node_geo_input_material_index.cc
   nodes/node_geo_input_mesh_edge_angle.cc
@@ -180,6 +181,7 @@ set(SRC
   nodes/node_geo_set_curve_radius.cc
   nodes/node_geo_set_curve_tilt.cc
   nodes/node_geo_set_id.cc
+  nodes/node_geo_set_instance_transform.cc
   nodes/node_geo_set_material.cc
   nodes/node_geo_set_material_index.cc
   nodes/node_geo_set_point_radius.cc

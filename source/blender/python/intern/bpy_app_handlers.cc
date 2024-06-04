@@ -37,7 +37,9 @@ static PyTypeObject BlenderAppCbType;
 #define FILEPATH_LOAD_ARG \
   "Accepts one argument: " \
   "the file being loaded, an empty string for the startup-file."
-
+#define RENDER_STATS_ARG \
+  "Accepts one argument: " \
+  "the render stats (render/saving time plus in background mode frame/used [peak] memory)."
 /**
  * See `BKE_callbacks.hh` #eCbEvent declaration for the policy on naming.
  */
@@ -55,7 +57,7 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"render_pre", "on render (before)"},
     {"render_post", "on render (after)"},
     {"render_write", "on writing a render frame (directly after the frame is written)"},
-    {"render_stats", "on printing render statistics"},
+    {"render_stats", "on printing render statistics. " RENDER_STATS_ARG},
     {"render_init", "on initialization of a render job"},
     {"render_complete", "on completion of render job"},
     {"render_cancel", "on canceling a render job"},

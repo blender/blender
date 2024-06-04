@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
 
 class DenoiserPipeline {
  public:
-  DenoiserPipeline(DeviceInfo &device_info, const DenoiseParams &params);
+  DenoiserPipeline(DeviceInfo &denoiser_device_info, const DenoiseParams &params);
   ~DenoiserPipeline();
 
   bool run();
@@ -46,6 +46,7 @@ class DenoiserPipeline {
   Stats stats;
   Profiler profiler;
   Device *device;
+  Device *cpu_device;
   std::unique_ptr<Denoiser> denoiser;
 };
 

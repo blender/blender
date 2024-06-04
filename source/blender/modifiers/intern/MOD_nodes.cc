@@ -1093,14 +1093,16 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     const SubFrame sim_start_frame{int(sim_frame_range.first())};
     const SubFrame sim_end_frame{int(sim_frame_range.last())};
 
-    /* Try load baked data. */
-    if (!node_cache.bake.failed_finding_bake) {
-      if (node_cache.cache_status != bake::CacheStatus::Baked) {
-        if (try_find_baked_data(node_cache.bake, *bmain_, *ctx_.object, nmd_, zone_id)) {
-          node_cache.cache_status = bake::CacheStatus::Baked;
-        }
-        else {
-          node_cache.bake.failed_finding_bake = true;
+    if (!modifier_cache_->requested_bakes.contains(zone_id)) {
+      /* Try load baked data. */
+      if (!node_cache.bake.failed_finding_bake) {
+        if (node_cache.cache_status != bake::CacheStatus::Baked) {
+          if (try_find_baked_data(node_cache.bake, *bmain_, *ctx_.object, nmd_, zone_id)) {
+            node_cache.cache_status = bake::CacheStatus::Baked;
+          }
+          else {
+            node_cache.bake.failed_finding_bake = true;
+          }
         }
       }
     }

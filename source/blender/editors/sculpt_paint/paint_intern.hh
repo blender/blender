@@ -469,6 +469,7 @@ void PAINT_OT_hide_show_line_gesture(wmOperatorType *ot);
 void PAINT_OT_hide_show_polyline_gesture(wmOperatorType *ot);
 
 void PAINT_OT_visibility_invert(wmOperatorType *ot);
+void PAINT_OT_visibility_filter(wmOperatorType *ot);
 }  // namespace blender::ed::sculpt_paint::hide
 
 /* `paint_mask.cc` */
@@ -481,6 +482,7 @@ void PAINT_OT_mask_flood_fill(wmOperatorType *ot);
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_box_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_line_gesture(wmOperatorType *ot);
+void PAINT_OT_mask_polyline_gesture(wmOperatorType *ot);
 }  // namespace blender::ed::sculpt_paint::mask
 
 /* `paint_curve.cc` */

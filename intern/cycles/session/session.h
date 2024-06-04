@@ -35,7 +35,11 @@ class SceneParams;
 
 class SessionParams {
  public:
+  /* Device, which is choosen based on Blender Cycles preferences, as well as Scene settings and
+   * command line arguments. */
   DeviceInfo device;
+  /* Device from Cycles preferences for denoising. */
+  DeviceInfo denoise_device;
 
   bool headless;
   bool background;
@@ -104,6 +108,8 @@ class SessionParams {
 class Session {
  public:
   Device *device;
+  /* Denoiser device. Could be the same as the path trace device. */
+  Device *denoise_device;
   Scene *scene;
   Progress progress;
   SessionParams params;

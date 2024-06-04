@@ -39,6 +39,11 @@ ccl_device int shadow_linking_pick_mesh_intersection(KernelGlobals kg,
 
   const uint visibility = path_state_ray_visibility(state);
 
+  int transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
+  int volume_bounce = INTEGRATOR_STATE(state, path, volume_bounce);
+
+  /* TODO: Replace the look with sequential calls to the kernel, similar to the transparent shadow
+   * intersection kernel. */
   for (int i = 0; i < SHADOW_LINK_MAX_INTERSECTION_COUNT; i++) {
     Intersection current_isect ccl_optional_struct_init;
     current_isect.object = OBJECT_NONE;
@@ -68,12 +73,33 @@ ccl_device int shadow_linking_pick_mesh_intersection(KernelGlobals kg,
       }
     }
 
-    const uint blocker_set = kernel_data_fetch(objects, current_isect.object).blocker_shadow_set;
-    if (blocker_set == 0) {
-      /* Contribution from the lights past the default blocker is accumulated using the main path.
-       */
-      ray->tmax = current_isect.t;
-      break;
+    /* Contribution from the lights past the default opaque blocker is accumulated
+     * using the main path. */
+    if (!(shader_flags & (SD_HAS_ONLY_VOLUME | SD_HAS_TRANSPARENT_SHADOW))) {
+      const uint blocker_set = kernel_data_fetch(objects, current_isect.object).blocker_shadow_set;
+      if (blocker_set == 0) {
+        ray->tmax = current_isect.t;
+        break;
+      }
+    }
+    else {
+      /* Lights past the maximum allowed transparency bounce do not contribute any light, so
+       * consider them as fully blocked and only consider lights prior to this intersection.  */
+      if (shader_flags & SD_HAS_TRANSPARENT_SHADOW) {
+        ++transparent_bounce;
+        if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
+          ray->tmax = current_isect.t;
+          break;
+        }
+      }
+      else {
+        kernel_assert(shader_flags & SD_HAS_ONLY_VOLUME);
+        ++volume_bounce;
+        if (volume_bounce >= kernel_data.integrator.max_volume_bounce) {
+          ray->tmax = current_isect.t;
+          break;
+        }
+      }
     }
 
     /* Move the ray forward. */

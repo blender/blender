@@ -3288,9 +3288,6 @@ class WM_MT_splash_quick_setup(Menu):
         if hasattr(kc_prefs, "spacebar_action"):
             col.row().prop(kc_prefs, "spacebar_action", text="Spacebar Action")
 
-        # Network.
-        col.row().prop(prefs.system, "use_online_access")
-
         # Save Preferences.
         sub = col.column()
         sub.separator(factor=2)
@@ -3353,6 +3350,10 @@ class WM_MT_splash(Menu):
         col2.operator("wm.url_open_preset", text="What's New", icon='URL').type = 'RELEASE_NOTES'
 
         layout.separator()
+
+        if (not bpy.app.online_access) and bpy.app.online_access_override:
+            self.layout.label(text="Running in Offline Mode", icon='INTERNET_OFFLINE')
+
         layout.separator()
 
 

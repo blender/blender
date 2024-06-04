@@ -310,19 +310,8 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   RNA_def_property_ui_range(prop, 0.0001f, 0.020f, 0.05f, 4);
   RNA_def_property_ui_text(prop,
                            "Shadows Resolution Limit",
-                           "Maximum size of a shadow map pixel. Higher values use less memory at "
+                           "Minimum size of a shadow map pixel. Higher values use less memory at "
                            "the cost of shadow quality");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "shadow_resolution_scale", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.25f, 2);
-  RNA_def_property_ui_text(
-      prop,
-      "Shadow Resolution Scale",
-      "Scale the Shadow Map target resolution, where 1.0 tries to match shadow map and screen "
-      "pixel density. (The scale is applied on top of the scene Simplify Shadow Resolution)");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Light_update");
 

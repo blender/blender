@@ -1379,12 +1379,12 @@ static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
   }
 }
 
-static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
+static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
 {
   static char search[256] = "";
   uiBlock *block;
   uiBut *but;
-  wmOperator *op = (wmOperator *)arg_op;
+  wmOperatorType *optype = (wmOperatorType *)arg_optype;
 
   block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
@@ -1401,7 +1401,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
                        UI_UNIT_Y,
                        "");
   UI_but_func_search_set(
-      but, nullptr, node_find_update_fn, op->type, false, nullptr, node_find_exec_fn, nullptr);
+      but, nullptr, node_find_update_fn, optype, false, nullptr, node_find_exec_fn, nullptr);
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
   /* Fake button holds space for search items. */
@@ -1427,7 +1427,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
 
 static int node_find_node_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  UI_popup_block_invoke(C, node_find_menu, op, nullptr);
+  UI_popup_block_invoke(C, node_find_menu, op->type, nullptr);
   return OPERATOR_CANCELLED;
 }
 

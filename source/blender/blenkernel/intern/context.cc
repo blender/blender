@@ -533,6 +533,7 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
                                     Vector<PointerRNA> *r_lb,
                                     PropertyRNA **r_prop,
                                     int *r_index,
+                                    blender::StringRef *r_str,
                                     short *r_type)
 {
   bContextDataResult result;
@@ -543,11 +544,13 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
     *r_lb = result.list;
     *r_prop = result.prop;
     *r_index = result.index;
+    *r_str = result.str;
     *r_type = result.type;
   }
   else {
     memset(r_ptr, 0, sizeof(*r_ptr));
     r_lb->clear();
+    *r_str = "";
     *r_type = 0;
   }
 

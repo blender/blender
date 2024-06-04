@@ -308,7 +308,7 @@ class DeferredLayer : DeferredLayerBase {
 
   bool is_empty() const
   {
-    return closure_count_ != 0;
+    return closure_count_ == 0;
   }
 
   /* Returns the radiance buffer to feed the next layer. */
@@ -368,6 +368,11 @@ class DeferredPipeline {
   }
 
   void debug_draw(draw::View &view, GPUFrameBuffer *combined_fb);
+
+  bool is_empty() const
+  {
+    return opaque_layer_.is_empty() && refraction_layer_.is_empty();
+  }
 
  private:
   void debug_pass_sync();
@@ -699,7 +704,7 @@ class PipelineModule {
 
   void begin_sync()
   {
-    data.is_probe_reflection = false;
+    data.is_sphere_probe = false;
     probe.begin_sync();
     planar.begin_sync();
     deferred.begin_sync();

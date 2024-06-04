@@ -335,6 +335,7 @@ typedef struct bPoseChannel {
   float custom_scale_xyz[3];
   float custom_translation[3];
   float custom_rotation_euler[3];
+  float custom_shape_wire_width;
 
   /** Transforms - written in by actions or transform. */
   float loc[3];
@@ -352,7 +353,7 @@ typedef struct bPoseChannel {
   float rotAxis[3], rotAngle;
   /** #eRotationModes - rotation representation to use. */
   short rotmode;
-  char _pad[2];
+  char _pad[6];
 
   /**
    * Matrix result of location/rotation/scale components, and evaluation of

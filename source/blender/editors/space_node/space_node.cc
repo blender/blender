@@ -741,7 +741,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 
   BLI_duplicatelist(&snoden->treepath, &snode->treepath);
 
-  snoden->runtime = nullptr;
+  snoden->runtime = MEM_new<SpaceNode_Runtime>(__func__);
 
   /* NOTE: no need to set node tree user counts,
    * the editor only keeps at least 1 (id_us_ensure_real),
@@ -1241,8 +1241,8 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   bool is_embedded_nodetree = snode->id != nullptr && allow_pointer_access &&
                               bke::ntreeFromID(snode->id) == snode->nodetree;
 
-  BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_DIRECT_WEAK_LINK);
+  BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_DIRECT_WEAK_LINK);
 
   bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.first);
   BLI_assert(path == nullptr || path->nodetree == snode->nodetree);
@@ -1264,13 +1264,16 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
     }
   }
   else {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->nodetree, IDWALK_CB_USER_ONE);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, snode->nodetree, IDWALK_CB_USER_ONE | IDWALK_CB_DIRECT_WEAK_LINK);
     if (path != nullptr) {
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+          data, path->nodetree, IDWALK_CB_USER_ONE | IDWALK_CB_DIRECT_WEAK_LINK);
     }
   }
 
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->geometry_nodes_tool_tree, IDWALK_CB_USER_ONE);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+      data, snode->geometry_nodes_tool_tree, IDWALK_CB_USER_ONE | IDWALK_CB_DIRECT_WEAK_LINK);
 
   /* Both `snode->id` and `snode->nodetree` have been remapped now, so their data can be
    * accessed. */
@@ -1296,7 +1299,8 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
         BLI_assert((path->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0);
       }
 
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+          data, path->nodetree, IDWALK_CB_USER_ONE | IDWALK_CB_DIRECT_WEAK_LINK);
 
       if (path->nodetree == nullptr) {
         BLI_assert(!is_readonly);
@@ -1330,7 +1334,7 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_EMBEDDED_NOT_OWNING);
     }
     else {
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_DIRECT_WEAK_LINK);
     }
   }
 }

@@ -345,18 +345,6 @@ static bool gpencil_paintmode_toggle_poll(bContext *C)
   return false;
 }
 
-static bool gpencil_paint_poll_view3d(bContext *C)
-{
-  const Object *ob = CTX_data_active_object(C);
-  if (ob == nullptr || (ob->mode & OB_MODE_PAINT_GPENCIL_LEGACY) == 0) {
-    return false;
-  }
-  if (CTX_wm_region_view3d(C) == nullptr) {
-    return false;
-  }
-  return true;
-}
-
 static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
 {
   const bool back = RNA_boolean_get(op->ptr, "back");
@@ -391,7 +379,7 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
       Scene *scene = CTX_data_scene(C);
       BKE_paint_init(bmain, scene, PaintMode::GPencil, PAINT_CURSOR_PAINT_GREASE_PENCIL);
       Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::GPencil);
-      ED_paint_cursor_start(paint, gpencil_paint_poll_view3d);
+      ED_paint_cursor_start(paint, ED_gpencil_brush_cursor_poll);
       mode = OB_MODE_PAINT_GPENCIL_LEGACY;
     }
     else {

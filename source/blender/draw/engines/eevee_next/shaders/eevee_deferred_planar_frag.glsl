@@ -66,7 +66,7 @@ void main()
   vec3 radiance_back = stack.cl[0].light_shadowed;
 
   /* Indirect light. */
-  SphericalHarmonicL1 sh = lightprobe_irradiance_sample(P, V, Ng);
+  SphericalHarmonicL1 sh = lightprobe_volume_sample(P, V, Ng);
 
   radiance_front += spherical_harmonics_evaluate_lambert(Ng, sh);
   radiance_back += spherical_harmonics_evaluate_lambert(-Ng, sh);

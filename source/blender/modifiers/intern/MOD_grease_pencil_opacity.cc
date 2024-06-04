@@ -162,10 +162,9 @@ static void modify_softness(const GreasePencilOpacityModifierData &omd,
   bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
       "softness", bke::AttrDomain::Curve);
 
-  const float factor = 1.0f - omd.hardness_factor;
-
   curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
-    softness.span[curve_i] = std::clamp(softness.span[curve_i] * factor, 0.0f, 1.0f);
+    softness.span[curve_i] =
+        1.0f - std::clamp((1.0f - softness.span[curve_i]) * omd.hardness_factor, 0.0f, 1.0f);
   });
 
   softness.finish();

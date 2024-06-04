@@ -1720,7 +1720,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
   GPU_line_smooth(false);
 }
 
-static bool gpencil_brush_cursor_poll(bContext *C)
+bool ED_gpencil_brush_cursor_poll(bContext *C)
 {
   if (WM_toolsystem_active_tool_is_brush(C)) {
     return true;
@@ -2011,7 +2011,7 @@ void ED_gpencil_toggle_brush_cursor(bContext *C, bool enable, void *customdata)
     /* enable cursor */
     gset->paintcursor = WM_paint_cursor_activate(SPACE_TYPE_ANY,
                                                  RGN_TYPE_ANY,
-                                                 gpencil_brush_cursor_poll,
+                                                 ED_gpencil_brush_cursor_poll,
                                                  gpencil_brush_cursor_draw,
                                                  (lastpost) ? customdata : nullptr);
   }

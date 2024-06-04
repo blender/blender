@@ -80,13 +80,8 @@ struct SculptCursorGeometryInfo {
 
 struct SculptVertexNeighborIter {
   /* Storage */
-  PBVHVertRef *neighbors;
-  int *neighbor_indices;
-  int size;
-  int capacity;
-
-  PBVHVertRef neighbors_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
-  int neighbor_indices_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
+  blender::Vector<PBVHVertRef, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY> neighbors;
+  blender::Vector<int, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY> neighbor_indices;
 
   /* Internal iterator. */
   int num_duplicates;
@@ -497,7 +492,7 @@ struct StrokeCache {
   float3 true_initial_normal;
 
   /* Boundary brush */
-  SculptBoundary *boundaries[PAINT_SYMM_AREAS];
+  std::array<std::unique_ptr<SculptBoundary>, PAINT_SYMM_AREAS> boundaries;
 
   /* Surface Smooth Brush */
   /* Stores the displacement produced by the laplacian step of HC smooth. */
@@ -835,7 +830,7 @@ inline void SCULPT_mask_vert_set(const PBVHType type,
       BM_ELEM_CD_SET_FLOAT(vd.bm_vert, mask_write.bm_offset, value);
       break;
     case PBVH_GRIDS:
-      *CCG_elem_mask(&vd.key, vd.grid) = value;
+      CCG_elem_mask(vd.key, vd.grid) = value;
       break;
   }
 }
@@ -893,7 +888,7 @@ void SCULPT_vertex_neighbors_get(const SculptSession &ss,
 /** Iterator over neighboring vertices. */
 #define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
-  for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
+  for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.neighbors.size(); \
        neighbor_iterator.i++) \
   { \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
@@ -905,20 +900,24 @@ void SCULPT_vertex_neighbors_get(const SculptSession &ss,
  */
 #define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
-  for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
+  for (neighbor_iterator.i = neighbor_iterator.neighbors.size() - 1; neighbor_iterator.i >= 0; \
        neighbor_iterator.i--) \
   { \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
     neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i]; \
     neighbor_iterator.is_duplicate = (neighbor_iterator.i >= \
-                                      neighbor_iterator.size - neighbor_iterator.num_duplicates);
+                                      neighbor_iterator.neighbors.size() - \
+                                          neighbor_iterator.num_duplicates);
 
 #define SCULPT_VERTEX_NEIGHBORS_ITER_END(neighbor_iterator) \
   } \
-  if (neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
-    MEM_freeN(neighbor_iterator.neighbors); \
-  } \
   ((void)0)
+
+namespace blender::ed::sculpt_paint {
+
+Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &neighbors);
+
+}
 
 PBVHVertRef SCULPT_active_vertex_get(const SculptSession &ss);
 const float *SCULPT_active_vertex_co_get(const SculptSession &ss);
@@ -974,6 +973,7 @@ bool vert_has_unique_face_set(const SculptSession &ss, PBVHVertRef vertex);
 bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object);
 int ensure_face_sets_bmesh(Object &object);
 Array<int> duplicate_face_sets(const Mesh &mesh);
+Set<int> gather_hidden_face_sets(Span<bool> hide_poly, Span<int> face_sets);
 
 }
 
@@ -1791,6 +1791,7 @@ namespace blender::ed::sculpt_paint::trim {
 void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot);
 void SCULPT_OT_trim_box_gesture(wmOperatorType *ot);
 void SCULPT_OT_trim_line_gesture(wmOperatorType *ot);
+void SCULPT_OT_trim_polyline_gesture(wmOperatorType *ot);
 }
 
 /** \} */
@@ -1809,6 +1810,8 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
 
 void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot);
 void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot);
+void SCULPT_OT_face_set_line_gesture(wmOperatorType *ot);
+void SCULPT_OT_face_set_polyline_gesture(wmOperatorType *ot);
 
 }
 
@@ -1918,11 +1921,10 @@ namespace blender::ed::sculpt_paint::boundary {
  * Main function to get #SculptBoundary data both for brush deformation and viewport preview.
  * Can return NULL if there is no boundary from the given vertex using the given radius.
  */
-SculptBoundary *data_init(Object &object,
-                          const Brush *brush,
-                          PBVHVertRef initial_vertex,
-                          float radius);
-void data_free(SculptBoundary *boundary);
+std::unique_ptr<SculptBoundary> data_init(Object &object,
+                                          const Brush *brush,
+                                          PBVHVertRef initial_vertex,
+                                          float radius);
 /* Main Brush Function. */
 void do_boundary_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 

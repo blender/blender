@@ -1031,11 +1031,13 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       ui_block_cm_to_display_space_v3(but->block, color);
     }
 
+    uchar rgb_hex_uchar[4];
+    rgba_float_to_uchar(rgb_hex_uchar, color);
     const std::string hex_st = fmt::format("Hex: {:X}{:X}{:X}{:X}",
-                                           int(color[0] * 255.0f),
-                                           int(color[1] * 255.0f),
-                                           int(color[2] * 255.0f),
-                                           int(color[3] * 255.0f));
+                                           int(rgb_hex_uchar[0]),
+                                           int(rgb_hex_uchar[1]),
+                                           int(rgb_hex_uchar[2]),
+                                           int(rgb_hex_uchar[3]));
 
     const std::string rgba_st = fmt::format("{}:  {:.3f}  {:.3f}  {:.3f}  {:.3f}",
                                             TIP_("RGBA"),

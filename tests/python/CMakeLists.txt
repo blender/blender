@@ -398,8 +398,8 @@ add_blender_test(
 if(WITH_EXPERIMENTAL_FEATURES)
   # Only run with Project Baklava enabled.
   add_blender_test(
-    bl_animation_id
-    --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_id.py
+    bl_animation_action
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_action.py
   )
 endif()
 

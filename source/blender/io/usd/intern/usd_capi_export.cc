@@ -8,6 +8,7 @@
 #include "usd.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
+#include "usd_light_convert.hh"
 #include "usd_private.hh"
 
 #include <pxr/base/tf/token.h>
@@ -33,6 +34,8 @@
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_image.h"
+#include "BKE_image_save.h"
 #include "BKE_lib_id.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -48,12 +51,16 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
+
 namespace blender::io::usd {
 
 struct ExportJobData {
   Main *bmain;
   Depsgraph *depsgraph;
   wmWindowManager *wm;
+  Scene *scene;
 
   /** Unarchived_filepath is used for USDA/USDC/USD export. */
   char unarchived_filepath[FILE_MAX];
@@ -187,6 +194,80 @@ static void report_job_duration(const ExportJobData *data)
   std::cout << '\n';
 }
 
+static void process_usdz_textures(const ExportJobData *data, const char *path)
+{
+  const eUSDZTextureDownscaleSize enum_value = data->params.usdz_downscale_size;
+  if (enum_value == USD_TEXTURE_SIZE_KEEP) {
+    return;
+  }
+
+  int image_size = ((enum_value == USD_TEXTURE_SIZE_CUSTOM ?
+                         data->params.usdz_downscale_custom_size :
+                         enum_value));
+
+  char texture_path[FILE_MAX];
+  BLI_strncpy(texture_path, path, FILE_MAX);
+  BLI_path_append(texture_path, FILE_MAX, "textures");
+  BLI_path_slash_ensure(texture_path, sizeof(texture_path));
+
+  struct direntry *entries;
+  unsigned int num_files = BLI_filelist_dir_contents(texture_path, &entries);
+
+  for (int index = 0; index < num_files; index++) {
+    /* We can skip checking extensions as this folder is only created
+     * when we're doing a USDZ export. */
+    if (!BLI_is_dir(entries[index].path)) {
+      Image *im = BKE_image_load(data->bmain, entries[index].path);
+      if (!im) {
+        CLOG_WARN(&LOG, "Unable to open file for downscaling: %s", entries[index].path);
+        continue;
+      }
+
+      int width, height;
+      BKE_image_get_size(im, nullptr, &width, &height);
+      const int longest = width >= height ? width : height;
+      const float scale = 1.0 / (float(longest) / float(image_size));
+
+      if (longest > image_size) {
+        const int width_adjusted = float(width) * scale;
+        const int height_adjusted = float(height) * scale;
+        BKE_image_scale(im, width_adjusted, height_adjusted, nullptr);
+
+        ImageSaveOptions opts;
+
+        if (BKE_image_save_options_init(
+                &opts, data->bmain, data->scene, im, nullptr, false, false))
+        {
+          bool result = BKE_image_save(nullptr, data->bmain, im, nullptr, &opts);
+          if (!result) {
+            CLOG_ERROR(&LOG,
+                       "Unable to resave '%s' (new size: %dx%d)",
+                       data->usdz_filepath,
+                       width_adjusted,
+                       height_adjusted);
+          }
+          else {
+            CLOG_INFO(&LOG,
+                      2,
+                      "Downscaled '%s' to %dx%d",
+                      entries[index].path,
+                      width_adjusted,
+                      height_adjusted);
+          }
+        }
+
+        BKE_image_save_options_free(&opts);
+      }
+
+      /* Make sure to free the image so it doesn't stick
+       * around in the library of the open file. */
+      BKE_id_free(data->bmain, (void *)im);
+    }
+  }
+
+  BLI_filelist_free(entries, num_files);
+}
+
 /**
  * For usdz export, we must first create a usd/a/c file and then covert it to usdz. In Blender's
  * case, we first create a usdc file in Blender's temporary working directory, and store the path
@@ -215,6 +296,8 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   BLI_assert(original_working_dir == original_working_dir_buff);
 
   BLI_change_working_dir(usdc_temp_dir);
+
+  process_usdz_textures(data, usdc_temp_dir);
 
   pxr::UsdUtilsCreateNewUsdzPackage(pxr::SdfAssetPath(usdc_file), usdz_file);
   BLI_change_working_dir(original_working_dir);
@@ -340,6 +423,13 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   if (params.export_shapekeys || params.export_armatures) {
     iter.process_usd_skel();
+  }
+
+  /* Creating dome lights should be called after writers have
+   * completed, to avoid a name collision when creating the light
+   * prim. */
+  if (!params.selected_objects_only && params.convert_world_material) {
+    world_material_to_dome_light(params, scene, usd_stage);
   }
 
   /* Set the default prim if it doesn't exist */
@@ -517,6 +607,7 @@ bool USD_export(bContext *C,
 
   job->bmain = CTX_data_main(C);
   job->wm = CTX_wm_manager(C);
+  job->scene = scene;
   job->export_ok = false;
   set_job_filepath(job, filepath);
 

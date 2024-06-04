@@ -187,9 +187,15 @@ class InfoStructRNA:
         import types
         functions = []
         for identifier, attr in self._get_py_visible_attrs():
-            # methods may be python wrappers to C functions
-            attr_func = getattr(attr, "__func__", attr)
-            if type(attr_func) in {types.FunctionType, types.MethodType}:
+            # Methods may be python wrappers to C functions.
+            ok = False
+            if (attr_func := getattr(attr, "__func__", None)) is not None:
+                if type(attr_func) == types.FunctionType:
+                    ok = True
+            else:
+                if type(attr) in {types.FunctionType, types.MethodType}:
+                    ok = True
+            if ok:
                 functions.append((identifier, attr))
         return functions
 
@@ -197,13 +203,19 @@ class InfoStructRNA:
         import types
         functions = []
         for identifier, attr in self._get_py_visible_attrs():
-            # methods may be python wrappers to C functions
-            attr_func = getattr(attr, "__func__", attr)
-            if (
-                    (type(attr_func) in {types.BuiltinMethodType, types.BuiltinFunctionType}) or
+            # Methods may be python wrappers to C functions.
+            ok = False
+            if (attr_func := getattr(attr, "__func__", None)) is not None:
+                if type(attr_func) == types.BuiltinFunctionType:
+                    ok = True
+            else:
+                if type(attr) == types.BuiltinMethodType:
+                    ok = True
+                elif type(attr) == types.MethodDescriptorType:
                     # Without the `objclass` check, many inherited methods are included.
-                    (type(attr_func) == types.MethodDescriptorType and attr_func.__objclass__ == self.py_class)
-            ):
+                    if attr.__objclass__ == self.py_class:
+                        ok = True
+            if ok:
                 functions.append((identifier, attr))
         return functions
 

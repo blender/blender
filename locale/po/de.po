@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -427,8 +427,8 @@ msgid "Active Action for this data-block"
 msgstr "Aktive Aktion für diesen Datenblock"
 
 
-msgid "New"
-msgstr "Neu"
+msgid "None"
+msgstr "Keine"
 
 
 msgid "Action Blending"
@@ -1570,10 +1570,6 @@ msgstr "Filter durchführen"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Durchführungen zum inkludieren in die aktive Backdurchführung"
-
-
-msgid "None"
-msgstr "Keine"
 
 
 msgid "Emit"
@@ -12313,6 +12309,10 @@ msgid "Grid scale"
 msgstr "Rasterskalierung"
 
 
+msgid "Local Matrix"
+msgstr "Lokale Matrix"
+
+
 msgid "Translation"
 msgstr "Übersetzung"
 
@@ -15671,10 +15671,6 @@ msgstr "Materialsteckplätze in dem Objekt"
 
 msgid "Input Matrix"
 msgstr "Eingabematrix"
-
-
-msgid "Local Matrix"
-msgstr "Lokale Matrix"
 
 
 msgid "Parent Inverse Matrix"
@@ -21139,6 +21135,10 @@ msgid "Affect only edges"
 msgstr "Nur Kanten beeinflussen"
 
 
+msgid "New"
+msgstr "Neu"
+
+
 msgid "Affected"
 msgstr "Betroffen"
 
@@ -22308,10 +22308,6 @@ msgstr "Multi-Modifikator"
 
 msgid "Triangulate Mesh"
 msgstr "Einzelner Knochen"
-
-
-msgid "Keep Normals"
-msgstr "Normale beibehalten"
 
 
 msgid "Minimum Vertices"
@@ -27610,18 +27606,6 @@ msgid "Open Blend File"
 msgstr "Blender-Datei öffnen"
 
 
-msgid "(undocumented operator)"
-msgstr "(undokumentierter Operator)"
-
-
-msgid "Show add-on preferences"
-msgstr "Add-On-Einstellungen anzeigen"
-
-
-msgid "URL"
-msgstr "URL"
-
-
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Hinzufügen & Ersetzen"
@@ -28265,6 +28249,10 @@ msgstr "Marker mit einer Lassoauswahl auswählen"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Aktiver Clip"
+
+
+msgid "(undocumented operator)"
+msgstr "(undokumentierter Operator)"
 
 
 msgctxt "Operator"
@@ -29808,6 +29796,14 @@ msgid "Remember Export Settings"
 msgstr "Exporteinstellungen merken"
 
 
+msgid "URL"
+msgstr "URL"
+
+
+msgid "Remove existing add-ons with the same ID"
+msgstr "Entfernen vorhandener Add-Ons mit derselben ID"
+
+
 msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Lesezeichen hinzufügen"
@@ -30996,6 +30992,21 @@ msgstr "Striche neu projektieren"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Alle"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotieren"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Skalieren"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Alle Ebenen zeigen"
 
@@ -31684,6 +31695,14 @@ msgstr "Drehen Sie das Bild horizontal"
 
 msgid "Flip the image vertically"
 msgstr "Drehen Sie das Bild vertikal"
+
+
+msgid "Emission Strength"
+msgstr "Emissionsstärke"
+
+
+msgid "Relative Paths"
+msgstr "Relative Pfade"
 
 
 msgctxt "Operator"
@@ -34610,6 +34629,7 @@ msgid "Add a Grease Pencil object to the scene"
 msgstr "Hinzufügen eines Wachsstift-Objektes zur Szene"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Affe"
 
@@ -36835,10 +36855,6 @@ msgid "Install an add-on"
 msgstr "Ein Add-On installieren"
 
 
-msgid "Remove existing add-ons with the same ID"
-msgstr "Entfernen vorhandener Add-Ons mit derselben ID"
-
-
 msgid "Target Path"
 msgstr "Zielpfad"
 
@@ -36863,6 +36879,10 @@ msgstr "Löschen des Add-Ons aus dem Dateisystem"
 
 msgid "Module name of the add-on to remove"
 msgstr "Modulname des zu entfernenden Add-Ons"
+
+
+msgid "Show add-on preferences"
+msgstr "Add-On-Einstellungen anzeigen"
 
 
 msgctxt "Operator"
@@ -37006,10 +37026,6 @@ msgstr "Studio"
 msgctxt "Operator"
 msgid "Save Custom Studio Light"
 msgstr "Benutzerdefiniertes Studiolicht speichern"
-
-
-msgid "Show light preferences"
-msgstr "Lichteinstellungen anzeigen"
 
 
 msgctxt "Operator"
@@ -37772,12 +37788,27 @@ msgid "Filter strength"
 msgstr "Filterstärke"
 
 
+msgctxt "Operator"
+msgid "Inflate"
+msgstr "Aufblasen"
+
+
 msgid "Inflates the cloth"
 msgstr "Gewebe aufblasen"
 
 
+msgctxt "Operator"
+msgid "Expand"
+msgstr "Erweitern"
+
+
 msgid "Expands the cloth's dimensions"
 msgstr "Expandiert die Gewebedimension"
+
+
+msgctxt "Operator"
+msgid "Pinch"
+msgstr "Ausdünnen"
 
 
 msgid "Pulls the cloth to the cursor's start position"
@@ -37832,11 +37863,6 @@ msgstr "Blauen Kanal ändern"
 msgctxt "Operator"
 msgid "Dynamic Topology Toggle"
 msgstr "Topologie Messerwerkzeug"
-
-
-msgctxt "Operator"
-msgid "Expand"
-msgstr "Erweitern"
 
 
 msgid "Falloff Type"
@@ -37923,24 +37949,13 @@ msgid "Scale mesh"
 msgstr "Masche skalieren"
 
 
+msgctxt "Operator"
 msgid "Relax"
 msgstr "Entspannen"
 
 
 msgid "Relax mesh"
 msgstr "Masche entspannen"
-
-
-msgid "Surface Smooth"
-msgstr "Oberfläche glätten"
-
-
-msgid "Sharpen"
-msgstr "Schärfen"
-
-
-msgid "Erase Displacement"
-msgstr "Löschen der Verdrängung"
 
 
 msgctxt "Operator"
@@ -39118,11 +39133,6 @@ msgstr "Texturraum bearbeiten"
 
 msgid "Edit object data texture space"
 msgstr "Bearbeiten des Objektdaten-Texturraums"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotieren"
 
 
 msgid "Rotate selected items"
@@ -40314,11 +40324,6 @@ msgid "Keep Open"
 msgstr "Offenes beibehalten"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "COLLADA exportieren"
-
-
 msgid "Save a Collada file"
 msgstr "Speichern einer Collada-Datei"
 
@@ -40401,11 +40406,6 @@ msgstr "Nach Objektnamen sortieren"
 
 msgid "Use Object Instances"
 msgstr "Objektinstanz verwenden"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "COLLADA importieren"
 
 
 msgid "Auto Connect"
@@ -41116,10 +41116,6 @@ msgid "UV Maps"
 msgstr "UV-Maps"
 
 
-msgid "Relative Paths"
-msgstr "Relative Pfade"
-
-
 msgid "Visible Only"
 msgstr "Nur sichtbares"
 
@@ -41817,23 +41813,8 @@ msgstr "Stellt die Cursorposition ein, ziehen zum Transformieren"
 
 
 msgctxt "Operator"
-msgid "Scale"
-msgstr "Skalieren"
-
-
-msgctxt "Operator"
 msgid "Grab"
 msgstr "Verschieben"
-
-
-msgctxt "Operator"
-msgid "Relax"
-msgstr "Entspannen"
-
-
-msgctxt "Operator"
-msgid "Pinch"
-msgstr "Ausdünnen"
 
 
 msgctxt "Operator"
@@ -42444,11 +42425,6 @@ msgstr "Lehmstreifen"
 msgctxt "Operator"
 msgid "Layer"
 msgstr "Ebene"
-
-
-msgctxt "Operator"
-msgid "Inflate"
-msgstr "Aufblasen"
 
 
 msgctxt "Operator"
@@ -50258,16 +50234,16 @@ msgid "Unified Paint Settings"
 msgstr "Partikelsystem-Einstellungen"
 
 
+msgid "Only Endpoints"
+msgstr "Nur Endpunkte"
+
+
 msgid "Changing edge seams recalculates UV unwrap"
 msgstr "Wechselnde Kantennähte berechnen UV-Abwicklung neu"
 
 
 msgid "Selection Mask"
 msgstr "Maskenselektion"
-
-
-msgid "Only Endpoints"
-msgstr "Nur Endpunkte"
 
 
 msgid "Compact List"
@@ -51613,21 +51589,6 @@ msgstr "Sequenzer normal"
 msgctxt "WindowManager"
 msgid "Sequencer"
 msgstr "Sequenzer"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Tweak (fallback)"
-msgstr "Sequencer Werkzeug: Optimieren (Plan B)"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Select Box"
-msgstr "Sequenzer Werkzeug: Auswahlbox"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Select Box (fallback)"
-msgstr "Sequencer Werkzeug: Auswahlbox (Plan B)"
 
 
 msgctxt "WindowManager"
@@ -53220,11 +53181,6 @@ msgstr "Feder skalieren"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Nicht ausgewählte verbergen"
-
-
-msgctxt "Operator"
-msgid "All"
-msgstr "Alle"
 
 
 msgctxt "Operator"
@@ -55199,11 +55155,6 @@ msgstr "Gaußscher Weichzeichner"
 
 
 msgctxt "Operator"
-msgid "Position"
-msgstr "Position"
-
-
-msgctxt "Operator"
 msgid "All Transforms"
 msgstr "Alle Transformationen"
 
@@ -55539,11 +55490,6 @@ msgstr "Kopie speichern..."
 msgctxt "Operator"
 msgid "General"
 msgstr "Allgemein"
-
-
-msgctxt "Operator"
-msgid "Collada (.dae)"
-msgstr "Collada (.dae)"
 
 
 msgctxt "Operator"
@@ -56051,11 +55997,6 @@ msgstr "Torus"
 msgctxt "Operator"
 msgid "Grid"
 msgstr "Raster"
-
-
-msgctxt "Operator"
-msgid "Monkey"
-msgstr "Affe"
 
 
 msgctxt "Operator"
@@ -57065,6 +57006,14 @@ msgid "Set Active Camera"
 msgstr "Aktive Kamera einstellen"
 
 
+msgid "Surface Smooth"
+msgstr "Oberfläche glätten"
+
+
+msgid "Sharpen"
+msgstr "Schärfen"
+
+
 msgctxt "Operator"
 msgid "Delete Vertices"
 msgstr "Knoten löschen"
@@ -57414,18 +57363,6 @@ msgstr "Oberfläche"
 msgctxt "Action"
 msgid "var"
 msgstr "var"
-
-
-msgid "Generator"
-msgstr "Generator"
-
-
-msgid "Built-In Function"
-msgstr "Eingebaute Funktion"
-
-
-msgid "Stepped"
-msgstr "Schrittweise"
 
 
 msgid "ID / Index"
@@ -58551,12 +58488,27 @@ msgid "Modified"
 msgstr "Modifizieren"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Neu"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Neu"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Neu"
+
+
+msgctxt "Camera"
+msgid "New"
+msgstr "Neu"
+
+
+msgctxt "Curves"
 msgid "New"
 msgstr "Neu"
 
@@ -58566,17 +58518,12 @@ msgid "New"
 msgstr "Neu"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Neu"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Neu"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Neu"
 
@@ -58591,37 +58538,22 @@ msgid "New"
 msgstr "Neu"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Neu"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Neu"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Neu"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "Neu"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Neu"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Neu"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Neu"
 
@@ -58631,7 +58563,7 @@ msgid "New"
 msgstr "Neu"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Neu"
 
@@ -58641,12 +58573,32 @@ msgid "New"
 msgstr "Neu"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
 msgid "New"
 msgstr "Neu"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Screen"
+msgid "New"
+msgstr "Neu"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Neu"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Neu"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Neu"
+
+
+msgctxt "Volume"
 msgid "New"
 msgstr "Neu"
 
@@ -58656,22 +58608,7 @@ msgid "New"
 msgstr "Neu"
 
 
-msgctxt "LightProbe"
-msgid "New"
-msgstr "Neu"
-
-
-msgctxt "Curves"
-msgid "New"
-msgstr "Neu"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Neu"
-
-
-msgctxt "Volume"
+msgctxt "World"
 msgid "New"
 msgstr "Neu"
 
@@ -60182,10 +60119,6 @@ msgid "Geometry:"
 msgstr "Geometrie:"
 
 
-msgid "• Volume"
-msgstr "• Volumen"
-
-
 msgid "positions"
 msgstr "Positionen"
 
@@ -60800,10 +60733,6 @@ msgstr "Drücken/Ziehen: %.4f%s %s"
 
 msgid "Shear: %s %s"
 msgstr "Schere: %s %s"
-
-
-msgid "Shear: %.3f %s (Press X or Y to set shear axis)"
-msgstr "Schere: %.3f %s (Drücke X oder Y um die Schneidachse zu setzten)"
 
 
 msgid "ScaleX: %s"
@@ -61702,10 +61631,6 @@ msgid "Emission Color"
 msgstr "Emissionsfarbe"
 
 
-msgid "Emission Strength"
-msgstr "Emissionsstärke"
-
-
 msgid "View Vector"
 msgstr "Ansicht Vektor"
 
@@ -61948,10 +61873,6 @@ msgstr "%s: %.*s"
 
 msgid "Could not resolve path (%s)"
 msgstr "Pfad kann nicht aufgelöst werden (%s)"
-
-
-msgid "| Time:%s | "
-msgstr "| Zeit:%s | "
 
 
 msgid "Image too small"

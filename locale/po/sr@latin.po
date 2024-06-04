@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -275,8 +275,8 @@ msgid "Action"
 msgstr "Akcija"
 
 
-msgid "New"
-msgstr "Novo"
+msgid "None"
+msgstr "Ništa"
 
 
 msgid "Nothing"
@@ -625,10 +625,6 @@ msgstr "Objekat"
 
 msgid "Tangent"
 msgstr "Magenta"
-
-
-msgid "None"
-msgstr "Ništa"
 
 
 msgid "Emit"
@@ -5167,6 +5163,10 @@ msgid "Grid Scale"
 msgstr "Razmera mreže"
 
 
+msgid "Local Matrix"
+msgstr "Lokalna matrica"
+
+
 msgid "Translation"
 msgstr "Prelaz"
 
@@ -6929,10 +6929,6 @@ msgstr "Slotovi materijala u objektu"
 
 msgid "Input Matrix"
 msgstr "Ulazna matrica"
-
-
-msgid "Local Matrix"
-msgstr "Lokalna matrica"
 
 
 msgid "Matrix World"
@@ -9646,6 +9642,10 @@ msgstr "Modifikator iskošavanja"
 
 msgid "Angle above which to bevel edges"
 msgstr "Ugao iznad kog se iskosi ivice"
+
+
+msgid "New"
+msgstr "Novo"
 
 
 msgid "Limit Method"
@@ -12673,14 +12673,6 @@ msgid "Filter text files"
 msgstr "Filtriraj tekstualne datoteke"
 
 
-msgid "(undocumented operator)"
-msgstr "(nepoznat operator)"
-
-
-msgid "URL"
-msgstr "Adresa"
-
-
 msgctxt "Operator"
 msgid "Remove Boid State"
 msgstr "Izaberite sliku za pozadinu"
@@ -13033,6 +13025,10 @@ msgstr "Izaberi sve staze sa istom bojom kao aktivna staza"
 
 msgid "Select markers using lasso selection"
 msgstr "Bira markere lasom"
+
+
+msgid "(undocumented operator)"
+msgstr "(nepoznat operator)"
 
 
 msgctxt "Operator"
@@ -13991,6 +13987,10 @@ msgid "Convert all faces to triangles"
 msgstr "Pretvroi sve stranice u trouglove"
 
 
+msgid "URL"
+msgstr "Adresa"
+
+
 msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Dodaj obeleživač"
@@ -14523,6 +14523,21 @@ msgstr "Ubaci poteze"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Sve"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotiraj"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Povećaj/smanji"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Prikaži sve slojeve"
 
@@ -14751,6 +14766,10 @@ msgstr "Bela tačka"
 msgctxt "Operator"
 msgid "Image Edit Externally"
 msgstr "Uredi sliku eksterno"
+
+
+msgid "Relative Paths"
+msgstr "Relativne putanje"
 
 
 msgctxt "Operator"
@@ -16628,6 +16647,7 @@ msgid "Toggle Force Field"
 msgstr "Fh sila "
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Majmun"
 
@@ -17777,11 +17797,6 @@ msgstr "Ispred poslednjeg ključnog kadra"
 
 
 msgctxt "Operator"
-msgid "Flip Quats"
-msgstr "Izvr. norm."
-
-
-msgctxt "Operator"
 msgid "Clear Pose Rotation"
 msgstr "Izbriši okretanje poze"
 
@@ -18271,14 +18286,6 @@ msgstr "Ignoriši klik na pozadinu"
 
 msgid "Falloff Type"
 msgstr "Vrsta opadanja"
-
-
-msgid "Relax"
-msgstr "Opusti"
-
-
-msgid "Sharpen"
-msgstr "Izoštreno"
 
 
 msgctxt "Operator"
@@ -19113,11 +19120,6 @@ msgid "Edit Texture Space"
 msgstr "Uredi prostor tekture"
 
 
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotiraj"
-
-
 msgid "Rotate selected items"
 msgstr "Rotiraj izabrane stavke"
 
@@ -19826,11 +19828,6 @@ msgid "Name of the menu"
 msgstr "Naziv menija"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "Izvezi u COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "Sačuvaj kao Collada datoteku"
 
@@ -19881,11 +19878,6 @@ msgstr "Izvezi samo izabrane elemente"
 
 msgid "Sort by Object name"
 msgstr "Poređak po imenu objekta"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "Uvoz"
 
 
 msgid "Context Attributes"
@@ -20149,10 +20141,6 @@ msgid "UV Maps"
 msgstr "UV Mape"
 
 
-msgid "Relative Paths"
-msgstr "Relativne putanje"
-
-
 msgid "Shapes"
 msgstr "Oblici"
 
@@ -20412,11 +20400,6 @@ msgstr "Obeleživači"
 
 msgid "Fluid Presets"
 msgstr "Svojstva tečnosti:"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Povećaj/smanji"
 
 
 msgctxt "Operator"
@@ -24448,11 +24431,6 @@ msgstr "Očisti"
 
 
 msgctxt "Operator"
-msgid "All"
-msgstr "Sve"
-
-
-msgctxt "Operator"
 msgid "Invert"
 msgstr "Obrnuto"
 
@@ -25156,11 +25134,6 @@ msgstr "Mreža"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Majmun"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs kriva"
 
@@ -25433,6 +25406,10 @@ msgid "Set Roll"
 msgstr "Izoštri"
 
 
+msgid "Sharpen"
+msgstr "Izoštreno"
+
+
 msgctxt "Operator"
 msgid "Clear Freestyle Edge"
 msgstr "Očisti slobodoručne ivice"
@@ -25523,14 +25500,6 @@ msgstr "Nema dovoljno slobodne memorije"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Površ"
-
-
-msgid "Generator"
-msgstr "Generator"
-
-
-msgid "Stepped"
-msgstr "Koračanje"
 
 
 msgid "Slot %d"
@@ -25932,62 +25901,7 @@ msgid "Modified"
 msgstr "Izmenjen"
 
 
-msgctxt "Object"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Mesh"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Curve"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Metaball"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Material"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Texture"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Lattice"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Camera"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "World"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Screen"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Speaker"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "Sound"
+msgctxt "Action"
 msgid "New"
 msgstr "Novo"
 
@@ -25997,22 +25911,22 @@ msgid "New"
 msgstr "Novo"
 
 
-msgctxt "Action"
-msgid "New"
-msgstr "Novo"
-
-
-msgctxt "NodeTree"
-msgid "New"
-msgstr "Novo"
-
-
 msgctxt "Brush"
 msgid "New"
 msgstr "Novo"
 
 
-msgctxt "ParticleSettings"
+msgctxt "Camera"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Novo"
 
@@ -26022,7 +25936,62 @@ msgid "New"
 msgstr "Novo"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Lattice"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Novo"
+
+
+msgctxt "World"
 msgid "New"
 msgstr "Novo"
 

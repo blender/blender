@@ -17,6 +17,7 @@
 #include "BLI_map.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 
 #include "BKE_animsys.h"
 #include "BKE_grease_pencil_legacy_convert.hh"
@@ -27,7 +28,13 @@
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_mesh_legacy_convert.hh"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_update.hh"
+
+#include "NOD_socket.hh"
+
+#include "BLT_translation.hh"
 
 #include "SEQ_sequencer.hh"
 
@@ -179,6 +186,86 @@ void version_node_output_socket_name(bNodeTree *ntree,
       change_node_socket_name(&node->outputs, old_name, new_name);
     }
   }
+}
+
+bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
+{
+  blender::bke::bNodeType *ntype = blender::bke::nodeTypeFind(idname);
+
+  bNode *node = MEM_cnew<bNode>(__func__);
+  node->runtime = MEM_new<blender::bke::bNodeRuntime>(__func__);
+  BLI_addtail(&ntree.nodes, node);
+  blender::bke::nodeUniqueID(&ntree, node);
+
+  STRNCPY(node->idname, idname);
+  STRNCPY_UTF8(node->name, DATA_(ntype->ui_name));
+  blender::bke::nodeUniqueName(&ntree, node);
+
+  node->flag = NODE_SELECT | NODE_OPTIONS | NODE_INIT;
+  node->width = ntype->width;
+  node->height = ntype->height;
+  node->color[0] = node->color[1] = node->color[2] = 0.608;
+
+  node->type = ntype->type;
+
+  BKE_ntree_update_tag_node_new(&ntree, node);
+  return *node;
+}
+
+bNodeSocket &version_node_add_socket(bNodeTree &ntree,
+                                     bNode &node,
+                                     const eNodeSocketInOut in_out,
+                                     const char *idname,
+                                     const char *identifier)
+{
+  blender::bke::bNodeSocketType *stype = blender::bke::nodeSocketTypeFind(idname);
+
+  bNodeSocket *socket = MEM_cnew<bNodeSocket>(__func__);
+  socket->runtime = MEM_new<blender::bke::bNodeSocketRuntime>(__func__);
+  socket->in_out = in_out;
+  socket->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
+  socket->type = stype->type;
+
+  STRNCPY(socket->idname, idname);
+  STRNCPY(socket->identifier, identifier);
+  STRNCPY(socket->name, identifier);
+
+  if (in_out == SOCK_IN) {
+    BLI_addtail(&node.inputs, socket);
+  }
+  else {
+    BLI_addtail(&node.outputs, socket);
+  }
+
+  node_socket_init_default_value_data(
+      eNodeSocketDatatype(stype->type), stype->subtype, &socket->default_value);
+
+  BKE_ntree_update_tag_socket_new(&ntree, socket);
+  return *socket;
+}
+
+bNodeLink &version_node_add_link(
+    bNodeTree &ntree, bNode &node_a, bNodeSocket &socket_a, bNode &node_b, bNodeSocket &socket_b)
+{
+  BLI_assert(socket_a.in_out != socket_b.in_out);
+  if (socket_a.in_out == SOCK_IN) {
+    return version_node_add_link(ntree, node_b, socket_b, node_a, socket_a);
+  }
+  bNode &node_from = node_a;
+  bNodeSocket &socket_from = socket_a;
+  bNode &node_to = node_b;
+  bNodeSocket &socket_to = socket_b;
+
+  bNodeLink *link = MEM_cnew<bNodeLink>(__func__);
+  link->fromnode = &node_from;
+  link->fromsock = &socket_from;
+  link->tonode = &node_to;
+  link->tosock = &socket_to;
+
+  BLI_addtail(&ntree.links, link);
+
+  BKE_ntree_update_tag_link_added(&ntree, link);
+  return *link;
 }
 
 bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
@@ -462,6 +549,38 @@ void version_update_node_input(
   if (need_update) {
     version_socket_update_is_used(ntree);
   }
+}
+
+bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type)
+{
+  bNode *output_node = nullptr;
+  /* NOTE: duplicated from `ntreeShaderOutputNode` with small adjustments so it can be called
+   * during versioning. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != node_type) {
+      continue;
+    }
+    if (node->custom1 == SHD_OUTPUT_ALL) {
+      if (output_node == nullptr) {
+        output_node = node;
+      }
+      else if (output_node->custom1 == SHD_OUTPUT_ALL) {
+        if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+          output_node = node;
+        }
+      }
+    }
+    else if (node->custom1 == SHD_OUTPUT_EEVEE) {
+      if (output_node == nullptr) {
+        output_node = node;
+      }
+      else if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
+        output_node = node;
+      }
+    }
+  }
+
+  return output_node;
 }
 
 static bool blendfile_or_libraries_versions_atleast(Main *bmain,

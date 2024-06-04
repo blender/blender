@@ -23,6 +23,7 @@
 
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
@@ -489,7 +490,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 
   { /* Name. */
     const char *prop_id = "name";
-    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
     PropertyRNA *prop = RNA_def_string(ot->srna,
                                        prop_id,
                                        nullptr,
@@ -501,7 +502,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 
   { /* Remote Path. */
     const char *prop_id = "remote_url";
-    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
     PropertyRNA *prop = RNA_def_string(ot->srna,
                                        prop_id,
                                        nullptr,
@@ -513,7 +514,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 
   { /* Use Access Token. */
     const char *prop_id = "use_access_token";
-    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
     PropertyRNA *prop = RNA_def_boolean(ot->srna,
                                         prop_id,
                                         false,
@@ -524,7 +525,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 
   { /* Access Token (dynamic length). */
     const char *prop_id = "access_token";
-    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
     PropertyRNA *prop = RNA_def_string(ot->srna,
                                        prop_id,
                                        nullptr,
@@ -537,7 +538,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 
   { /* Check for Updated on Startup. */
     const char *prop_id = "use_sync_on_startup";
-    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
     PropertyRNA *prop = RNA_def_boolean(ot->srna,
                                         prop_id,
                                         false,
@@ -548,7 +549,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 
   { /* Use Custom Directory. */
     const char *prop_id = "use_custom_directory";
-    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
     PropertyRNA *prop = RNA_def_boolean(ot->srna,
                                         prop_id,
                                         false,
@@ -559,7 +560,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 
   { /* Custom Directory. */
     const char *prop_id = "custom_directory";
-    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    const PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
     PropertyRNA *prop = RNA_def_string_dir_path(ot->srna,
                                                 prop_id,
                                                 nullptr,
@@ -580,16 +581,77 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 /** \name Generic Extension Repository Utilities
  * \{ */
 
-static bool preferences_extension_repo_remote_active_enabled_poll(bContext *C)
+static bool preferences_extension_check_for_updates_enabled_poll(bContext *C)
 {
   const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
       &U, U.active_extension_repo);
-  if (repo == nullptr || (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) ||
-      !(repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL))
-  {
-    CTX_wm_operator_poll_msg_set(C, "An enabled remote repository must be selected");
+
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
+      CTX_wm_operator_poll_msg_set(
+          C, "Online access required to check for updates. Launch Blender without --offline-mode");
+    }
+    else {
+      CTX_wm_operator_poll_msg_set(C,
+                                   "Online access required to check for updates. Enable online "
+                                   "access in System preferences");
+    }
     return false;
   }
+
+  if (repo == nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "No repositories available");
+    return false;
+  }
+
+  if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
+    CTX_wm_operator_poll_msg_set(C, "Local repositories do not require refreshing");
+    return false;
+  }
+
+  if ((repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) != 0) {
+    CTX_wm_operator_poll_msg_set(C, "Active repository is disabled");
+    return false;
+  }
+
+  return true;
+}
+
+static bool preferences_extension_install_updates_enabled_poll(bContext *C)
+{
+  const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
+      &U, U.active_extension_repo);
+
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
+      CTX_wm_operator_poll_msg_set(
+          C, "Online access required to install updates. Launch Blender without --offline-mode");
+    }
+    else {
+      CTX_wm_operator_poll_msg_set(C,
+                                   "Online access required to install updates. Enable online "
+                                   "access in System preferences");
+    }
+    return false;
+  }
+
+  if (repo == nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "No repositories available");
+    return false;
+  }
+
+  if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
+    CTX_wm_operator_poll_msg_set(C,
+                                 "Local repositories do not require manual update. Reload scripts "
+                                 "or restart Blender to see any updates");
+    return false;
+  }
+
+  if ((repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) != 0) {
+    CTX_wm_operator_poll_msg_set(C, "Active repository is disabled");
+    return false;
+  }
+
   return true;
 }
 
@@ -620,7 +682,7 @@ static int preferences_extension_repo_remove_invoke(bContext *C,
   const int index = RNA_int_get(op->ptr, "index");
   bUserExtensionRepoRemoveType repo_type = bUserExtensionRepoRemoveType(
       RNA_enum_get(op->ptr, "type"));
-  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(
+  const bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(
       BLI_findlink(&U.extension_repos, index));
 
   if (!repo) {
@@ -755,10 +817,10 @@ static void PREFERENCES_OT_extension_repo_sync(wmOperatorType *ot)
 {
   ot->name = "Check for Updates";
   ot->idname = "PREFERENCES_OT_extension_repo_sync";
-  ot->description = "Synchronize the active extension repository with its remote URL";
+  ot->description = "Refresh the list of extensions for the active repository";
 
   ot->exec = preferences_extension_repo_sync_exec;
-  ot->poll = preferences_extension_repo_remote_active_enabled_poll;
+  ot->poll = preferences_extension_check_for_updates_enabled_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -781,10 +843,9 @@ static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 {
   ot->name = "Install Available Updates for Repository";
   ot->idname = "PREFERENCES_OT_extension_repo_upgrade";
-  ot->description = "Update any outdated extensions for the active extension repository";
-
+  ot->description = "Upgrade all the extensions to their latest version for the active repository";
   ot->exec = preferences_extension_repo_upgrade_exec;
-  ot->poll = preferences_extension_repo_remote_active_enabled_poll;
+  ot->poll = preferences_extension_install_updates_enabled_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -798,18 +859,29 @@ static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 static int preferences_extension_url_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   char *url = RNA_string_get_alloc(op->ptr, "url", nullptr, 0, nullptr);
-  const bool url_is_remote = STRPREFIX(url, "http://") || STRPREFIX(url, "https://") ||
-                             STRPREFIX(url, "file://");
+  const bool url_is_file = STRPREFIX(url, "file://");
+  const bool url_is_online = STRPREFIX(url, "http://") || STRPREFIX(url, "https://");
+  const bool url_is_remote = url_is_file | url_is_online;
 
   /* NOTE: searching for hard-coded add-on name isn't great.
    * Needed since #WM_dropbox_add expects the operator to exist on startup. */
-  const char *idname_external = url_is_remote ? "bl_pkg.pkg_install" : "bl_pkg.pkg_install_files";
+  const char *idname_external = url_is_remote ? "extensions.package_install" :
+                                                "extensions.package_install_files";
+  bool use_url = true;
+
+  if (url_is_online && (G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    idname_external = "extensions.userpref_allow_online_popup";
+    use_url = false;
+  }
+
   wmOperatorType *ot = WM_operatortype_find(idname_external, true);
   int retval;
   if (ot) {
     PointerRNA props_ptr;
     WM_operator_properties_create_ptr(&props_ptr, ot);
-    RNA_string_set(&props_ptr, "url", url);
+    if (use_url) {
+      RNA_string_set(&props_ptr, "url", url);
+    }
     WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, event);
     WM_operator_properties_free(&props_ptr);
     retval = OPERATOR_FINISHED;
@@ -859,9 +931,9 @@ static bool associate_blend_poll(bContext *C)
 }
 
 #if !defined(__APPLE__)
-static bool assosiate_blend(bool do_register, bool all_users, char **error_msg)
+static bool associate_blend(bool do_register, bool all_users, char **error_msg)
 {
-  const bool result = WM_platform_assosiate_set(do_register, all_users, error_msg);
+  const bool result = WM_platform_associate_set(do_register, all_users, error_msg);
 #  ifdef WIN32
   if ((result == false) &&
       /* For some reason the message box isn't shown in this case. */
@@ -896,7 +968,7 @@ static int associate_blend_exec(bContext * /*C*/, wmOperator *op)
   char *error_msg = nullptr;
 
   WM_cursor_wait(true);
-  const bool success = assosiate_blend(true, all_users, &error_msg);
+  const bool success = associate_blend(true, all_users, &error_msg);
   WM_cursor_wait(false);
 
   if (!success) {
@@ -944,7 +1016,7 @@ static int unassociate_blend_exec(bContext * /*C*/, wmOperator *op)
   char *error_msg = nullptr;
 
   WM_cursor_wait(true);
-  bool success = assosiate_blend(false, all_users, &error_msg);
+  bool success = associate_blend(false, all_users, &error_msg);
   WM_cursor_wait(false);
 
   if (!success) {
@@ -1003,10 +1075,28 @@ static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEven
     return false;
   }
 
-  const char *cstr_ext = BLI_path_extension(cstr);
+  bool has_known_extension = false;
+  {
+    /* Strip parameters from the URL (if they exist) before the file extension is checked.
+     * This allows for `https://example.org/api/v1/file.zip?repository=/api/v1/`.
+     * This allows draggable links to specify their repository, see: #120665. */
+    std::string str_strip;
+    const char *cstr_maybe_copy = cstr;
+    size_t param_char = str.find('?');
+    if (param_char != std::string::npos) {
+      str_strip = str.substr(0, param_char);
+      cstr_maybe_copy = str_strip.c_str();
+    }
+
+    const char *cstr_ext = BLI_path_extension(cstr_maybe_copy);
+    if (cstr_ext && STRCASEEQ(cstr_ext, ".zip")) {
+      has_known_extension = true;
+    }
+  }
+
   /* Check the URL has a `.zip` suffix OR has a known repository as a prefix.
    * This is needed to support redirects which don't contain an extension. */
-  if (!(cstr_ext && STRCASEEQ(cstr_ext, ".zip")) &&
+  if (!has_known_extension &&
       !BKE_preferences_extension_repo_find_by_remote_url_prefix(&U, cstr, true))
   {
     return false;

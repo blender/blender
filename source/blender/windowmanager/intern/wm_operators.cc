@@ -165,6 +165,30 @@ size_t WM_operator_bl_idname(char *dst, const char *src)
   return BLI_strncpy_rlen(dst, src, OP_MAX_TYPENAME);
 }
 
+bool WM_operator_bl_idname_is_valid(const char *idname)
+{
+  const char *sep = strstr(idname, OP_BL_SEP_STRING);
+  /* Separator missing or at string beginning/end. */
+  if ((sep == nullptr) || (sep == idname) || (sep[OP_BL_SEP_LEN] == '\0')) {
+    return false;
+  }
+
+  for (const char *ch = idname; ch < sep; ch++) {
+    if ((*ch >= 'A' && *ch <= 'Z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
+      continue;
+    }
+    return false;
+  }
+
+  for (const char *ch = sep + OP_BL_SEP_LEN; *ch; ch++) {
+    if ((*ch >= 'a' && *ch <= 'z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
 bool WM_operator_py_idname_ok_or_report(ReportList *reports,
                                         const char *classname,
                                         const char *idname)
@@ -177,6 +201,15 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
       /* Pass. */
     }
     else if (*ch == '.') {
+      if (ch == idname || (*(ch + 1) == '\0')) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
+                    classname,
+                    idname,
+                    i);
+        return false;
+      }
       dot++;
     }
     else {
@@ -1149,7 +1182,9 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/
 {
   static EnumSearchMenu search_menu;
   search_menu.op = op;
-  UI_popup_block_invoke(C, wm_enum_search_menu, &search_menu, nullptr);
+  /* Refreshing not supported, because operator might get freed. */
+  const bool can_refresh = false;
+  UI_popup_block_invoke_ex(C, wm_enum_search_menu, &search_menu, nullptr, can_refresh);
   return OPERATOR_INTERFACE;
 }
 
@@ -1831,7 +1866,9 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  UI_popup_block_invoke(C, wm_block_create_redo, op, nullptr);
+  /* Refreshing not supported, because operator might get freed. */
+  const bool can_refresh = false;
+  UI_popup_block_invoke_ex(C, wm_block_create_redo, op, nullptr, can_refresh);
 
   return OPERATOR_CANCELLED;
 }
@@ -4182,6 +4219,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "PAINT_OT_weight_gradient");
   WM_modalkeymap_assign(keymap, "MESH_OT_bisect");
   WM_modalkeymap_assign(keymap, "PAINT_OT_mask_line_gesture");
+  WM_modalkeymap_assign(keymap, "SCULPT_OT_face_set_line_gesture");
   WM_modalkeymap_assign(keymap, "SCULPT_OT_trim_line_gesture");
   WM_modalkeymap_assign(keymap, "SCULPT_OT_project_line_gesture");
   WM_modalkeymap_assign(keymap, "PAINT_OT_hide_show_line_gesture");
@@ -4299,6 +4337,9 @@ static void gesture_polyline_modal_keymap(wmKeyConfig *keyconf)
 
   /* assign map to operators */
   WM_modalkeymap_assign(keymap, "PAINT_OT_hide_show_polyline_gesture");
+  WM_modalkeymap_assign(keymap, "PAINT_OT_mask_polyline_gesture");
+  WM_modalkeymap_assign(keymap, "SCULPT_OT_face_set_polyline_gesture");
+  WM_modalkeymap_assign(keymap, "SCULPT_OT_trim_polyline_gesture");
 }
 
 /* Zoom to border modal operators. */

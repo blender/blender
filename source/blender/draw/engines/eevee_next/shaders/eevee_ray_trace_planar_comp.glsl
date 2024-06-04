@@ -23,13 +23,19 @@ void main()
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  vec4 ray_data = imageLoad(ray_data_img, texel);
-  float ray_pdf_inv = ray_data.w;
+  /* Check if texel is out of bounds,
+   * so we can utilize fast texture functions and early-out if not. */
+  if (any(greaterThanEqual(texel, imageSize(ray_time_img).xy))) {
+    return;
+  }
+
+  vec4 ray_data_im = imageLoadFast(ray_data_img, texel);
+  float ray_pdf_inv = ray_data_im.w;
 
   if (ray_pdf_inv == 0.0) {
     /* Invalid ray or pixels without ray. Do not trace. */
-    imageStore(ray_time_img, texel, vec4(0.0));
-    imageStore(ray_radiance_img, texel, vec4(0.0));
+    imageStoreFast(ray_time_img, texel, vec4(0.0));
+    imageStoreFast(ray_radiance_img, texel, vec4(0.0));
     return;
   }
 
@@ -52,7 +58,7 @@ void main()
   vec3 P = drw_point_screen_to_world(vec3(uv, depth));
   vec3 V = drw_world_incident_vector(P);
 
-  int planar_id = lightprobe_planar_select(P, V, ray_data.xyz);
+  int planar_id = lightprobe_planar_select(P, V, ray_data_im.xyz);
   if (planar_id == -1) {
     return;
   }
@@ -60,11 +66,11 @@ void main()
   PlanarProbeData planar = probe_planar_buf[planar_id];
 
   /* Tag the ray data so that screen trace will not try to evaluate it and override the result. */
-  imageStore(ray_data_img, texel, vec4(ray_data.xyz, -ray_data.w));
+  imageStoreFast(ray_data_img, texel, vec4(ray_data_im.xyz, -ray_data_im.w));
 
   Ray ray;
   ray.origin = P;
-  ray.direction = ray_data.xyz;
+  ray.direction = ray_data_im.xyz;
 
   vec3 radiance = vec3(0.0);
   float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
@@ -72,7 +78,7 @@ void main()
 
   /* TODO(fclem): Take IOR into account in the roughness LOD bias. */
   /* TODO(fclem): pdf to roughness mapping is a crude approximation. Find something better. */
-  float roughness = saturate(sample_pdf_uniform_hemisphere() / ray_pdf_inv);
+  float roughness = saturate(ray_pdf_inv);
 
   /* Transform the ray into planar view-space. */
   Ray ray_view;
@@ -95,13 +101,13 @@ void main()
     vec3 Ng = ray.direction;
     /* Fallback to nearest light-probe. */
     LightProbeSample samp = lightprobe_load(P, Ng, V);
-    radiance = lightprobe_eval_direction(samp, P, ray.direction, safe_rcp(ray_pdf_inv));
+    radiance = lightprobe_eval_direction(samp, P, ray.direction, ray_pdf_inv);
     /* Set point really far for correct reprojection of background. */
     hit.time = 10000.0;
   }
 
   radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
 
-  imageStore(ray_time_img, texel, vec4(hit.time));
-  imageStore(ray_radiance_img, texel, vec4(radiance, 0.0));
+  imageStoreFast(ray_time_img, texel, vec4(hit.time));
+  imageStoreFast(ray_radiance_img, texel, vec4(radiance, 0.0));
 }

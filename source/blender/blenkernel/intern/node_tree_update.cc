@@ -1162,11 +1162,11 @@ class NodeTreeMainUpdater {
           link->flag &= ~NODE_LINK_VALID;
           ntree.runtime->link_errors_by_target_node.add(
               link->tonode->identifier,
-              NodeLinkError{
-                  fmt::format(TIP_("Conversion is not supported: "
-                                   "{} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE " {}"),
-                              TIP_(link->fromsock->typeinfo->label),
-                              TIP_(link->tosock->typeinfo->label))});
+              NodeLinkError{fmt::format("{}: {} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                                        " {}",
+                                        TIP_("Conversion is not supported"),
+                                        TIP_(link->fromsock->typeinfo->label),
+                                        TIP_(link->tosock->typeinfo->label))});
           continue;
         }
       }

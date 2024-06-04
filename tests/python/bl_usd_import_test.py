@@ -705,7 +705,7 @@ class USDImportTest(AbstractUSDTest):
         mesh = bpy.data.objects["Mesh"].data
 
         self.check_attribute(mesh, "p_bool", 'POINT', 'BOOLEAN', 4)
-        self.check_attribute(mesh, "p_int8", 'POINT', 'INT', 4)
+        self.check_attribute(mesh, "p_int8", 'POINT', 'INT8', 4)
         self.check_attribute(mesh, "p_int32", 'POINT', 'INT', 4)
         self.check_attribute(mesh, "p_float", 'POINT', 'FLOAT', 4)
         self.check_attribute(mesh, "p_byte_color", 'POINT', 'FLOAT_COLOR', 4)
@@ -716,7 +716,7 @@ class USDImportTest(AbstractUSDTest):
         self.check_attribute_missing(mesh, "p_mat4x4")
 
         self.check_attribute(mesh, "f_bool", 'FACE', 'BOOLEAN', 1)
-        self.check_attribute(mesh, "f_int8", 'FACE', 'INT', 1)
+        self.check_attribute(mesh, "f_int8", 'FACE', 'INT8', 1)
         self.check_attribute(mesh, "f_int32", 'FACE', 'INT', 1)
         self.check_attribute(mesh, "f_float", 'FACE', 'FLOAT', 1)
         self.check_attribute_missing(mesh, "f_byte_color")  # Not supported?
@@ -727,7 +727,7 @@ class USDImportTest(AbstractUSDTest):
         self.check_attribute_missing(mesh, "f_mat4x4")
 
         self.check_attribute(mesh, "fc_bool", 'CORNER', 'BOOLEAN', 4)
-        self.check_attribute(mesh, "fc_int8", 'CORNER', 'INT', 4)
+        self.check_attribute(mesh, "fc_int8", 'CORNER', 'INT8', 4)
         self.check_attribute(mesh, "fc_int32", 'CORNER', 'INT', 4)
         self.check_attribute(mesh, "fc_float", 'CORNER', 'FLOAT', 4)
         self.check_attribute(mesh, "fc_byte_color", 'CORNER', 'FLOAT_COLOR', 4)
@@ -736,6 +736,59 @@ class USDImportTest(AbstractUSDTest):
         self.check_attribute(mesh, "fc_vec3", 'CORNER', 'FLOAT_VECTOR', 4)
         self.check_attribute_missing(mesh, "fc_quat")
         self.check_attribute_missing(mesh, "fc_mat4x4")
+
+        # Find the non "bezier" Curves object -- Has 2 curves (12 vertices each)
+        all_curves = [o for o in bpy.data.objects if o.type == 'CURVES']
+        curves = [o for o in all_curves if not o.parent.name.startswith("Curve_bezier")]
+        curves = curves[0].data
+
+        self.check_attribute(curves, "p_bool", 'POINT', 'BOOLEAN', 24)
+        self.check_attribute(curves, "p_int8", 'POINT', 'INT8', 24)
+        self.check_attribute(curves, "p_int32", 'POINT', 'INT', 24)
+        self.check_attribute(curves, "p_float", 'POINT', 'FLOAT', 24)
+        self.check_attribute_missing(curves, "p_byte_color")
+        self.check_attribute_missing(curves, "p_color")
+        self.check_attribute(curves, "p_vec2", 'POINT', 'FLOAT2', 24)
+        self.check_attribute(curves, "p_vec3", 'POINT', 'FLOAT_VECTOR', 24)
+        self.check_attribute(curves, "p_quat", 'POINT', 'QUATERNION', 24)
+        self.check_attribute_missing(curves, "p_mat4x4")
+
+        self.check_attribute(curves, "sp_bool", 'CURVE', 'BOOLEAN', 2)
+        self.check_attribute(curves, "sp_int8", 'CURVE', 'INT8', 2)
+        self.check_attribute(curves, "sp_int32", 'CURVE', 'INT', 2)
+        self.check_attribute(curves, "sp_float", 'CURVE', 'FLOAT', 2)
+        self.check_attribute_missing(curves, "sp_byte_color")
+        self.check_attribute_missing(curves, "sp_color")
+        self.check_attribute(curves, "sp_vec2", 'CURVE', 'FLOAT2', 2)
+        self.check_attribute(curves, "sp_vec3", 'CURVE', 'FLOAT_VECTOR', 2)
+        self.check_attribute(curves, "sp_quat", 'CURVE', 'QUATERNION', 2)
+        self.check_attribute_missing(curves, "sp_mat4x4")
+
+        # Find the "bezier" Curves object -- Has 3 curves (2, 3, and 5 control points)
+        curves = [o for o in all_curves if o.parent.name.startswith("Curve_bezier")]
+        curves = curves[0].data
+
+        self.check_attribute(curves, "p_bool", 'POINT', 'BOOLEAN', 10)
+        self.check_attribute(curves, "p_int8", 'POINT', 'INT8', 10)
+        self.check_attribute(curves, "p_int32", 'POINT', 'INT', 10)
+        self.check_attribute(curves, "p_float", 'POINT', 'FLOAT', 10)
+        self.check_attribute_missing(curves, "p_byte_color")
+        self.check_attribute_missing(curves, "p_color")
+        self.check_attribute(curves, "p_vec2", 'POINT', 'FLOAT2', 10)
+        self.check_attribute(curves, "p_vec3", 'POINT', 'FLOAT_VECTOR', 10)
+        self.check_attribute(curves, "p_quat", 'POINT', 'QUATERNION', 10)
+        self.check_attribute_missing(curves, "p_mat4x4")
+
+        self.check_attribute(curves, "sp_bool", 'CURVE', 'BOOLEAN', 3)
+        self.check_attribute(curves, "sp_int8", 'CURVE', 'INT8', 3)
+        self.check_attribute(curves, "sp_int32", 'CURVE', 'INT', 3)
+        self.check_attribute(curves, "sp_float", 'CURVE', 'FLOAT', 3)
+        self.check_attribute_missing(curves, "sp_byte_color")
+        self.check_attribute_missing(curves, "sp_color")
+        self.check_attribute(curves, "sp_vec2", 'CURVE', 'FLOAT2', 3)
+        self.check_attribute(curves, "sp_vec3", 'CURVE', 'FLOAT_VECTOR', 3)
+        self.check_attribute(curves, "sp_quat", 'CURVE', 'QUATERNION', 3)
+        self.check_attribute_missing(curves, "sp_mat4x4")
 
 
 def main():

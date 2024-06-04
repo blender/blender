@@ -10,6 +10,7 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "DNA_modifier_types.h"
 #include "RNA_types.hh"
 
 struct bContext;
@@ -84,6 +85,16 @@ typedef enum eUSDXformOpMode {
   USD_XFORM_OP_MAT = 2,
 } eUSDXformOpMode;
 
+typedef enum eUSDZTextureDownscaleSize {
+  USD_TEXTURE_SIZE_CUSTOM = -1,
+  USD_TEXTURE_SIZE_KEEP = 0,
+  USD_TEXTURE_SIZE_256 = 256,
+  USD_TEXTURE_SIZE_512 = 512,
+  USD_TEXTURE_SIZE_1024 = 1024,
+  USD_TEXTURE_SIZE_2048 = 2048,
+  USD_TEXTURE_SIZE_4096 = 4096
+} eUSDZTextureDownscaleSize;
+
 struct USDExportParams {
   bool export_animation = false;
   bool export_hair = true;
@@ -105,10 +116,22 @@ struct USDExportParams {
   bool relative_paths = true;
   bool export_custom_properties = true;
   bool author_blender_name = true;
+  bool triangulate_meshes = false;
+  int quad_method = MOD_TRIANGULATE_QUAD_SHORTEDGE;
+  int ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
   bool convert_orientation = false;
   enum eIOAxis forward_axis = eIOAxis::IO_AXIS_NEGATIVE_Z;
   enum eIOAxis up_axis = eIOAxis::IO_AXIS_Y;
+  bool convert_world_material = true;
   eUSDXformOpMode xform_op_mode = eUSDXformOpMode::USD_XFORM_OP_TRS;
+  bool export_meshes = true;
+  bool export_lights = true;
+  bool export_cameras = true;
+  bool export_curves = true;
+  bool export_volumes = true;
+
+  eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize::USD_TEXTURE_SIZE_KEEP;
+  int usdz_downscale_custom_size = 128;
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
 
@@ -149,10 +172,12 @@ struct USDImportParams {
   float light_intensity_scale;
   eUSDMtlNameCollisionMode mtl_name_collision_mode;
   eUSDTexImportMode import_textures_mode;
+  bool import_defined_only;
   char import_textures_dir[768]; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
   bool import_all_materials;
   eUSDAttrImportMode attr_import_mode;
+  bool create_world_material;
 
   /**
    * Communication structure between the wmJob management code and the worker code. Currently used

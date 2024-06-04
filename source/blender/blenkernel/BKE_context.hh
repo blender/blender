@@ -306,6 +306,7 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
                                     blender::Vector<PointerRNA> *r_lb,
                                     PropertyRNA **r_prop,
                                     int *r_index,
+                                    blender::StringRef *r_str,
                                     short *r_type);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, ID *id);

@@ -456,8 +456,14 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
       pressure = BKE_curvemapping_evaluateF(gset->cur_primitive, 0, t);
     }
 
-    const float radius = ed::greasepencil::radius_from_input_sample(
-        pressure, positions_3d[point], ptd.vc, ptd.brush, ptd.vc.scene, ptd.settings);
+    const float radius = ed::greasepencil::radius_from_input_sample(ptd.vc.rv3d,
+                                                                    ptd.region,
+                                                                    ptd.vc.scene,
+                                                                    ptd.brush,
+                                                                    pressure,
+                                                                    positions_3d[point],
+                                                                    ptd.placement.to_world_space(),
+                                                                    ptd.settings);
     const float opacity = ed::greasepencil::opacity_from_input_sample(
         pressure, ptd.brush, ptd.vc.scene, ptd.settings);
 
@@ -644,7 +650,7 @@ static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmE
 
   /* Initialize helper class for projecting screen space coordinates. */
   DrawingPlacement placement = DrawingPlacement(
-      *vc.scene, *vc.region, *view3d, *vc.obact, *grease_pencil->get_active_layer());
+      *vc.scene, *vc.region, *view3d, *vc.obact, grease_pencil->get_active_layer());
   if (placement.use_project_to_surface()) {
     placement.cache_viewport_depths(CTX_data_depsgraph_pointer(C), vc.region, view3d);
   }

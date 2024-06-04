@@ -13,10 +13,6 @@
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 
-#define LTC_LAMBERT_MAT vec4(1.0, 0.0, 0.0, 1.0)
-#define LTC_GGX_MAT(cos_theta, roughness) \
-  utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_LTC_MAT_LAYER)
-
 /* Diffuse *clipped* sphere integral. */
 float ltc_diffuse_sphere_integral(sampler2DArray utility_tx, float avg_dir_z, float form_factor)
 {

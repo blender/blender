@@ -588,15 +588,17 @@ typedef struct Library {
 
 /** #Library.runtime.tag */
 enum eLibrary_Tag {
-  /* Automatic recursive resync was needed when linking/loading data from that library. */
+  /** Automatic recursive re-synchronize was needed when linking/loading data from that library. */
   LIBRARY_TAG_RESYNC_REQUIRED = 1 << 0,
-  /* Datablocks from this library are editable in the UI despite being linked.
-   * Used for asset that can be temporarily or permantently edited.
-   * Currently all datablocks from this library will be edited. In the future this
-   * may need to become per datablock to handle cases where a library is both used
-   * for editable assets and linked into the blend file for other reasons. */
+  /**
+   * Data-blocks from this library are editable in the UI despite being linked.
+   * Used for asset that can be temporarily or permanently edited.
+   * Currently all data-blocks from this library will be edited. In the future this
+   * may need to become per data-block to handle cases where a library is both used
+   * for editable assets and linked into the blend file for other reasons.
+   */
   LIBRARY_ASSET_EDITABLE = 1 << 1,
-  /* The blend file of this library is writable for asset editing. */
+  /** The blend file of this library is writable for asset editing. */
   LIBRARY_ASSET_FILE_WRITABLE = 1 << 2,
 };
 
@@ -653,9 +655,37 @@ typedef struct PreviewImage {
   PreviewImageRuntimeHandle *runtime;
 } PreviewImage;
 
+/**
+ * Amount of 'fake user' usages of this ID.
+ * Always 0 or 1.
+ */
 #define ID_FAKE_USERS(id) ((((const ID *)id)->flag & LIB_FAKEUSER) ? 1 : 0)
-#define ID_REAL_USERS(id) (((const ID *)id)->us - ID_FAKE_USERS(id))
+/**
+ * Amount of defined 'extra' shallow, runtime-only usages of this ID (typically from UI).
+ * Always 0 or 1.
+ *
+ * \warning May not actually be part of the total #ID.us count, see #ID_EXTRA_REAL_USERS.
+ */
 #define ID_EXTRA_USERS(id) (((const ID *)id)->tag & LIB_TAG_EXTRAUSER ? 1 : 0)
+/**
+ * Amount of real 'extra' shallow, runtime-only usages of this ID (typically from UI).
+ * Always 0 or 1.
+ *
+ * \note Actual number of usages added to #ID.us by these extra usages.
+ * May be 0 even if there are some 'extra' usages of this ID,
+ * when there are also other 'normal' reference-counting usages of it.
+ */
+#define ID_EXTRA_REAL_USERS(id) (((const ID *)id)->tag & LIB_TAG_EXTRAUSER_SET ? 1 : 0)
+/**
+ * Amount of real usages of this ID (i.e. excluding the 'fake user' one, but including a potential
+ * 'extra' shallow/runtime usage).
+ */
+#define ID_REAL_USERS(id) (((const ID *)id)->us - ID_FAKE_USERS(id))
+/**
+ * Amount of 'normal' reference-counting usages of this ID
+ * (i.e. excluding the 'fake user' one, and a potential 'extra' shallow/runtime usage).
+ */
+#define ID_REFCOUNTING_USERS(id) (ID_REAL_USERS(id) - ID_EXTRA_REAL_USERS(id))
 
 #define ID_CHECK_UNDO(id) \
   ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS))

@@ -30,6 +30,7 @@ set(SRC
   intern/input_single_value_operation.cc
   intern/node_operation.cc
   intern/operation.cc
+  intern/profiler.cc
   intern/realize_on_domain_operation.cc
   intern/reduce_to_single_value_operation.cc
   intern/render_context.cc
@@ -51,6 +52,7 @@ set(SRC
   COM_input_single_value_operation.hh
   COM_node_operation.hh
   COM_operation.hh
+  COM_profiler.hh
   COM_realize_on_domain_operation.hh
   COM_reduce_to_single_value_operation.hh
   COM_render_context.hh

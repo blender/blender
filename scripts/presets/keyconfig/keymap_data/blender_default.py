@@ -1320,6 +1320,8 @@ def km_outliner(params):
         ("outliner.collection_exclude_clear", {"type": 'E', "value": 'PRESS', "alt": True}, None),
         ("outliner.hide", {"type": 'H', "value": 'PRESS'}, None),
         ("outliner.unhide_all", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        ("outliner.start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("outliner.clear_filter", {"type": 'F', "value": 'PRESS', "alt": True}, None),
         # Copy/paste.
         ("outliner.id_copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("outliner.id_paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
@@ -2180,6 +2182,14 @@ def km_node_editor(params):
          {"type": 'LEFTMOUSE' if params.legacy else 'RIGHTMOUSE', "value": 'CLICK_DRAG', "ctrl": True}, None),
         ("node.links_mute", {"type": 'RIGHTMOUSE', "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ("node.select_link_viewer", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        # Shortcut is added three times, one for geometry nodes editor, and two for shader editor.
+        # It's duplicated in shader editor so that it can act as stand-in for viewer node until it's added.
+        ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
+         {"properties": [("run_in_geometry_nodes", True)]}),
+        ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
+         {"properties": [("run_in_geometry_nodes", False)]}),
+        ("node.connect_to_output", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
+         {"properties": [("run_in_geometry_nodes", False)]}),
         ("node.backimage_move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
         ("node.backimage_zoom", {"type": 'V', "value": 'PRESS', "repeat": True},
          {"properties": [("factor", 1.0 / 1.2)]}),
@@ -3031,7 +3041,7 @@ def km_sequencer(params):
         ("transform.seq_slide", {"type": 'G', "value": 'PRESS'},
          {"properties": [("view2d_edge_pan", True)]}),
         ("transform.seq_slide", {"type": params.select_mouse, "value": 'CLICK_DRAG'},
-         {"properties": [("view2d_edge_pan", True)]}),
+         {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
@@ -5663,6 +5673,10 @@ def km_sculpt(params):
          {"properties": [("mode", 'HIDE_ACTIVE')]}),
         ("paint.hide_show_all", {"type": 'H', "value": 'PRESS', "alt": True},
          {"properties": [("action", "SHOW")]}),
+        ("paint.visibility_filter", {"type": 'PAGE_UP', "value": 'PRESS', "repeat": True},
+         {"properties": [("action", 'GROW')]}),
+        ("paint.visibility_filter", {"type": 'PAGE_DOWN', "value": 'PRESS', "repeat": True},
+         {"properties": [("action", 'SHRINK')]}),
         ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'GROW')]}),
         ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True, "alt": True},
@@ -6362,6 +6376,7 @@ def km_edit_curves(params):
         ("curves.cyclic_toggle", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         ("curves.handle_type_set", {"type": 'V', "value": 'PRESS'}, None),
         op_menu("VIEW3D_MT_edit_curves_add", {"type": 'A', "value": 'PRESS', "shift": True}),
+        *_template_items_context_menu("VIEW3D_MT_edit_curves_context_menu", params.context_menu_event),
     ])
 
     return keymap
@@ -8231,6 +8246,19 @@ def km_3d_view_tool_sculpt_lasso_mask(params):
     )
 
 
+def km_3d_view_tool_sculpt_polyline_mask(params):
+    return (
+        "3D View Tool: Sculpt, Polyline Mask",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"},
+             {"properties": [("value", 1.0)]}),
+            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS", "ctrl": True},
+             {"properties": [("value", 0.0)]}),
+        ]},
+    )
+
+
 def km_3d_view_tool_sculpt_box_face_set(params):
     return (
         "3D View Tool: Sculpt, Box Face Set",
@@ -8247,6 +8275,26 @@ def km_3d_view_tool_sculpt_lasso_face_set(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("sculpt.face_set_lasso_gesture", params.tool_maybe_tweak_event, None),
+        ]},
+    )
+
+
+def km_3d_view_tool_sculpt_line_face_set(params):
+    return (
+        "3D View Tool: Sculpt, Line Face Set",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.face_set_line_gesture", params.tool_maybe_tweak_event, None),
+        ]},
+    )
+
+
+def km_3d_view_tool_sculpt_polyline_face_set(params):
+    return (
+        "3D View Tool: Sculpt, Polyline Face Set",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.face_set_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"}, None)
         ]},
     )
 
@@ -8278,6 +8326,16 @@ def km_3d_view_tool_sculpt_line_trim(params):
         {"items": [
             ("sculpt.trim_line_gesture", params.tool_maybe_tweak_event, None),
         ]},
+    )
+
+
+def km_3d_view_tool_sculpt_polyline_trim(params):
+    return (
+        "3D View Tool: Sculpt, Polyline Trim",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.trim_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"}, None)
+        ]}
     )
 
 
@@ -8851,10 +8909,11 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
 
 def km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback):
     return [
+        ("sequencer.select_handle", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         *_template_items_change_frame(params),
-        # Frame change can be cancelled if click happens on strip handle. In such case move the handle.
+        # Frame change can be canceled if click happens on strip handle. In such case move the handle.
         ("transform.seq_slide", {"type": 'LEFTMOUSE', "value": 'PRESS'},
-         {"properties": [("view2d_edge_pan", True)]}),
+         {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
     ]
 
 
@@ -9248,11 +9307,15 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_polyline_hide(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),
+        km_3d_view_tool_sculpt_polyline_mask(params),
         km_3d_view_tool_sculpt_box_face_set(params),
         km_3d_view_tool_sculpt_lasso_face_set(params),
+        km_3d_view_tool_sculpt_line_face_set(params),
+        km_3d_view_tool_sculpt_polyline_face_set(params),
         km_3d_view_tool_sculpt_box_trim(params),
         km_3d_view_tool_sculpt_lasso_trim(params),
         km_3d_view_tool_sculpt_line_trim(params),
+        km_3d_view_tool_sculpt_polyline_trim(params),
         km_3d_view_tool_sculpt_line_mask(params),
         km_3d_view_tool_sculpt_line_project(params),
         km_3d_view_tool_sculpt_mesh_filter(params),

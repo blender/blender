@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -499,8 +499,8 @@ msgid "Active Action for this data-block"
 msgstr "此數據組塊的作用中動作"
 
 
-msgid "New"
-msgstr "新增"
+msgid "None"
+msgstr "無"
 
 
 msgid "Action Blending"
@@ -1805,10 +1805,6 @@ msgstr "通遞過濾器"
 
 msgid "Passes to include in the active baking pass"
 msgstr "通遞以含入作用中烘焙通遞內"
-
-
-msgid "None"
-msgstr "無"
 
 
 msgid "Emit"
@@ -12834,6 +12830,10 @@ msgid "Grid Scale"
 msgstr "格線縮放"
 
 
+msgid "Local Matrix"
+msgstr "區域矩陣矩陣"
+
+
 msgid "Translation"
 msgstr "平移"
 
@@ -16513,10 +16513,6 @@ msgstr "旋轉矩陣"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "存取位置、旋轉、縮放 (包括增減) 的矩陣，在套用約束與親子關係處理之前"
-
-
-msgid "Local Matrix"
-msgstr "區域矩陣矩陣"
 
 
 msgid "Inverse of object's parent matrix at time of parenting"
@@ -22645,6 +22641,10 @@ msgstr "讓邊線與頂點更圓的倒角修改器"
 
 msgid "Angle above which to bevel edges"
 msgstr "要讓邊線產生倒角是要於多少角度之上"
+
+
+msgid "New"
+msgstr "新增"
 
 
 msgid "Limit Method"
@@ -30190,18 +30190,6 @@ msgid "Filter text files"
 msgstr "過濾文字檔案"
 
 
-msgid "(undocumented operator)"
-msgstr "(未紀錄的操作器)"
-
-
-msgid "Show add-on preferences"
-msgstr "顯示附加元件偏好設定"
-
-
-msgid "URL"
-msgstr "URL"
-
-
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "添加群集個體規則"
@@ -31012,6 +31000,10 @@ msgstr "使用套索選取標記"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "設定作用中剪輯"
+
+
+msgid "(undocumented operator)"
+msgstr "(未紀錄的操作器)"
 
 
 msgctxt "Operator"
@@ -32610,6 +32602,14 @@ msgid "Export selected objects only"
 msgstr "僅匯出選取的物體"
 
 
+msgid "URL"
+msgstr "URL"
+
+
+msgid "Remove existing add-ons with the same ID"
+msgstr "移除具有相同 ID 的既有附加元件"
+
+
 msgid "Automatically pack all external files into the .blend file"
 msgstr "自動將所有的外部檔案包進 .blend 檔中"
 
@@ -33501,6 +33501,21 @@ msgstr "重新計算內部幾何結構"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "全部"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "旋轉"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "縮放"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "顯示所有層"
 
@@ -33926,6 +33941,18 @@ msgid "Edit image in an external application"
 msgstr "以外部應用程式編輯影像"
 
 
+msgid "Emission Strength"
+msgstr "發光強度"
+
+
+msgid "Filepath used for importing the file"
+msgstr "用來匯入檔案的檔案路徑"
+
+
+msgid "Relative Paths"
+msgstr "相對路徑"
+
+
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "反轉通道"
@@ -34184,10 +34211,6 @@ msgstr "匯入 BVH"
 
 msgid "Load a BVH motion capture file"
 msgstr "載入一個 BVH 運動捕捉檔案"
-
-
-msgid "Filepath used for importing the file"
-msgstr "用來匯入檔案的檔案路徑"
 
 
 msgid "Starting frame for the animation"
@@ -37159,15 +37182,6 @@ msgstr "以命令稿中的新接口與選項更新著色器命令稿節點"
 
 
 msgctxt "Operator"
-msgid "Update Views"
-msgstr "更新視圖"
-
-
-msgid "Update views of selected node"
-msgstr "更新選取節點的視圖"
-
-
-msgctxt "Operator"
 msgid "Move and Attach"
 msgstr "移動並連接"
 
@@ -37446,6 +37460,7 @@ msgid "Toggle object's force field"
 msgstr "切換物體的力場"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "猴頭"
 
@@ -39879,11 +39894,6 @@ msgid "Propagate pose to all keyframes occurring on frames with Scene Markers af
 msgstr "姿勢增生至目前框幀之後所有出現在含場景標記的框幀上之鍵幀"
 
 
-msgctxt "Operator"
-msgid "Flip Quats"
-msgstr "翻轉四元數"
-
-
 msgid "Flip quaternion values to achieve desired rotations, while maintaining the same orientations"
 msgstr "翻轉四元數值以達到期望的旋轉結果，同時維持相同方向"
 
@@ -40007,10 +40017,6 @@ msgid "Install an add-on"
 msgstr "安裝一項附加元件"
 
 
-msgid "Remove existing add-ons with the same ID"
-msgstr "移除具有相同 ID 的既有附加元件"
-
-
 msgid "Target Path"
 msgstr "目標路徑"
 
@@ -40035,6 +40041,10 @@ msgstr "從檔案系統刪除附加元件"
 
 msgid "Module name of the add-on to remove"
 msgstr "要刪除的附加元件模組名稱"
+
+
+msgid "Show add-on preferences"
+msgstr "顯示附加元件偏好設定"
 
 
 msgctxt "Operator"
@@ -40164,10 +40174,6 @@ msgstr "儲存自訂攝影棚光照"
 
 msgid "Save custom studio light from the studio light editor settings"
 msgstr "儲存攝影棚光照編輯器設定值為自訂攝影棚光照"
-
-
-msgid "Show light preferences"
-msgstr "顯示光照偏好設定"
 
 
 msgctxt "Operator"
@@ -41350,20 +41356,8 @@ msgid "Cavity (Inverted)"
 msgstr "坑腔 ( 反轉 )"
 
 
-msgid "Relax"
-msgstr "放鬆"
-
-
-msgid "Relax Face Sets"
-msgstr "放鬆面集"
-
-
 msgid "Smooth the edges of all the Face Sets"
 msgstr "對所有的面集邊緣進行平滑"
-
-
-msgid "Sharpen"
-msgstr "銳利化"
 
 
 msgctxt "Operator"
@@ -42769,11 +42763,6 @@ msgstr "取消時移除元素"
 
 msgid "Edit Texture Space"
 msgstr "編輯紋理空間"
-
-
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "旋轉"
 
 
 msgid "Rotate selected items"
@@ -44314,11 +44303,6 @@ msgid "Name of the pie menu"
 msgstr "圓派選單的名稱"
 
 
-msgctxt "Operator"
-msgid "Export COLLADA"
-msgstr "匯出 COLLADA"
-
-
 msgid "Save a Collada file"
 msgstr "儲存一件 Collada 檔案"
 
@@ -44393,11 +44377,6 @@ msgstr "從相同資料實體化為多個物體"
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "複製紋理至匯出 .dae 檔案的相同資料夾"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA"
-msgstr "匯入 COLLADA"
 
 
 msgid "Load a Collada file"
@@ -45084,10 +45063,6 @@ msgid "UV Maps"
 msgstr "UV 映射"
 
 
-msgid "Relative Paths"
-msgstr "相對路徑"
-
-
 msgid "Shapes"
 msgstr "外形"
 
@@ -45639,11 +45614,6 @@ msgstr "圈選"
 msgctxt "Operator"
 msgid "Select Lasso"
 msgstr "套索選取"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "縮放"
 
 
 msgctxt "Operator"
@@ -54331,20 +54301,20 @@ msgid "Unified Paint Settings"
 msgstr "統一繪畫設定"
 
 
-msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
-msgstr "確保所有骨骼變形頂點群組當權重繪製時添加高至 1.0"
-
-
-msgid "Automerge"
-msgstr "自動合併"
-
-
 msgid "Only Endpoints"
 msgstr "僅端點"
 
 
 msgid "Only use the first and last parts of the stroke for snapping"
 msgstr "快抓貼附時僅使用筆劃的最前與最後部份"
+
+
+msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
+msgstr "確保所有骨骼變形頂點群組當權重繪製時添加高至 1.0"
+
+
+msgid "Automerge"
+msgstr "自動合併"
 
 
 msgid "Auto Keying"
@@ -56383,11 +56353,6 @@ msgstr "隱藏未選取項"
 
 
 msgctxt "Operator"
-msgid "All"
-msgstr "全部"
-
-
-msgctxt "Operator"
 msgid "Invert"
 msgstr "反轉"
 
@@ -57555,11 +57520,6 @@ msgstr "格線"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "猴頭"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs 曲線"
 
@@ -58158,6 +58118,14 @@ msgid "Exclude Non-Selectable"
 msgstr "排除關閉選擇的物體"
 
 
+msgid "Relax Face Sets"
+msgstr "放鬆面集"
+
+
+msgid "Sharpen"
+msgstr "銳利化"
+
+
 msgctxt "Operator"
 msgid "Clear Freestyle Edge"
 msgstr "清除 Freestyle 邊線"
@@ -58408,18 +58376,6 @@ msgstr "影像儲存失敗：可用記憶體不足"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "表面"
-
-
-msgid "Generator"
-msgstr "生成器"
-
-
-msgid "Built-In Function"
-msgstr "內建函式"
-
-
-msgid "Stepped"
-msgstr "步進"
 
 
 msgid "Slot %d"
@@ -59463,12 +59419,22 @@ msgid "Modified"
 msgstr "已修改"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "新增"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "新增"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "新增"
+
+
+msgctxt "Camera"
 msgid "New"
 msgstr "新增"
 
@@ -59478,17 +59444,12 @@ msgid "New"
 msgstr "新增"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "新增"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "新增"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "新增"
 
@@ -59503,37 +59464,22 @@ msgid "New"
 msgstr "新增"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "新增"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "新增"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "新增"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "新增"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "新增"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "新增"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "新增"
 
@@ -59543,7 +59489,7 @@ msgid "New"
 msgstr "新增"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "新增"
 
@@ -59553,17 +59499,27 @@ msgid "New"
 msgstr "新增"
 
 
-msgctxt "GPencil"
+msgctxt "Screen"
 msgid "New"
 msgstr "新增"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Sound"
 msgid "New"
 msgstr "新增"
 
 
-msgctxt "LightProbe"
+msgctxt "Speaker"
+msgid "New"
+msgstr "新增"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "新增"
+
+
+msgctxt "World"
 msgid "New"
 msgstr "新增"
 
@@ -61556,10 +61512,6 @@ msgid "Shear: %s %s"
 msgstr "切變：%s %s"
 
 
-msgid "Shear: %.3f %s (Press X or Y to set shear axis)"
-msgstr "切變：%.3f %s (按下 X 或 Y 以設定切變軸向)"
-
-
 msgid "ScaleX: %s"
 msgstr "縮放 X：%s"
 
@@ -62484,10 +62436,6 @@ msgid "Emission Color"
 msgstr "發光色"
 
 
-msgid "Emission Strength"
-msgstr "發光強度"
-
-
 msgid "View Vector"
 msgstr "檢視向量"
 
@@ -62702,10 +62650,6 @@ msgstr "無法解析路徑 (%s)"
 
 msgid "Failed allocate render result, out of memory"
 msgstr "無法分配算繪結果，記憶體不足"
-
-
-msgid "| Time:%s | "
-msgstr "| 時間：%s | "
 
 
 msgid "Image too small"

@@ -457,6 +457,7 @@ void GPENCIL_OT_transform_fill(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "mode", uv_mode, GP_UV_ROTATE, "Mode", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 
   prop = RNA_def_float_vector(
       ot->srna, "location", 2, nullptr, -FLT_MAX, FLT_MAX, "Location", "", -FLT_MAX, FLT_MAX);
@@ -543,4 +544,5 @@ void GPENCIL_OT_reset_transform_fill(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "mode", uv_clear_mode, GP_UV_ALL, "Mode", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 }

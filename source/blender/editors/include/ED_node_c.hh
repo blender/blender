@@ -85,7 +85,7 @@ float ED_node_grid_size();
 /* `node_edit.cc` */
 
 void ED_node_set_tree_type(SpaceNode *snode, blender::bke::bNodeTreeType *typeinfo);
-bool ED_node_is_compositor(SpaceNode *snode);
+bool ED_node_is_compositor(const SpaceNode *snode);
 bool ED_node_is_shader(SpaceNode *snode);
 bool ED_node_is_texture(SpaceNode *snode);
 bool ED_node_is_geometry(SpaceNode *snode);

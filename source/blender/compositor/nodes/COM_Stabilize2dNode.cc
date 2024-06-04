@@ -61,6 +61,7 @@ void Stabilize2dNode::convert_to_operations(NodeConverter &converter,
   rotate_operation->set_do_degree2_rad_conversion(false);
   rotate_operation->set_sampler(sampler);
   TranslateOperation *translate_operation = new TranslateCanvasOperation();
+  translate_operation->set_sampler(sampler);
 
   converter.add_operation(scale_operation);
   converter.add_operation(translate_operation);

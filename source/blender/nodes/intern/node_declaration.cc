@@ -14,6 +14,8 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
 
+#include "RNA_access.hh"
+
 namespace blender::nodes {
 
 static void reset_declaration(NodeDeclaration &declaration)
@@ -732,6 +734,26 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::align_with_previous(
 {
   decl_base_->align_with_previous_socket = value;
   return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder ::socket_name_ptr(
+    const PointerRNA ptr, const StringRef property_name)
+{
+  decl_base_->socket_name_rna = std::make_unique<SocketNameRNA>();
+  decl_base_->socket_name_rna->owner = ptr;
+  decl_base_->socket_name_rna->property_name = property_name;
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::socket_name_ptr(
+    const ID *id, const StructRNA *srna, const void *data, StringRef property_name)
+{
+  /* Doing const-casts here because this data is generally only available as const when creating
+   * the declaration, but it's still valid to modify later. */
+  return this->socket_name_ptr(RNA_pointer_create(const_cast<ID *>(id),
+                                                  const_cast<StructRNA *>(srna),
+                                                  const_cast<void *>(data)),
+                               property_name);
 }
 
 OutputFieldDependency OutputFieldDependency::ForFieldSource()

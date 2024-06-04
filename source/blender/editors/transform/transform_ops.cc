@@ -1349,6 +1349,13 @@ static void TRANSFORM_OT_seq_slide(wmOperatorType *ot)
       ot->srna, "value", 2, nullptr, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 0);
 
+  prop = RNA_def_boolean(ot->srna,
+                         "use_restore_handle_selection",
+                         false,
+                         "Restore Handle Selection",
+                         "Restore handle selection after tweaking");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
   WM_operatortype_props_advanced_begin(ot);
 
   Transform_Properties(ot, P_SNAP | P_VIEW2D_EDGE_PAN);

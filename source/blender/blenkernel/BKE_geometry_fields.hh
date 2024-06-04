@@ -463,23 +463,51 @@ class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
       const GeometryComponent & /*component*/) const override;
 };
 
-bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
-                                   const fn::FieldContext &field_context,
-                                   const AttributeIDRef &attribute_id,
-                                   AttrDomain domain,
-                                   const fn::Field<bool> &selection,
-                                   const fn::GField &field);
+bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
+                                    const fn::FieldContext &field_context,
+                                    Span<AttributeIDRef> attribute_ids,
+                                    AttrDomain domain,
+                                    const fn::Field<bool> &selection,
+                                    Span<fn::GField> fields);
 
-bool try_capture_field_on_geometry(GeometryComponent &component,
-                                   const AttributeIDRef &attribute_id,
-                                   AttrDomain domain,
-                                   const fn::GField &field);
+inline bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
+                                          const fn::FieldContext &field_context,
+                                          const AttributeIDRef &attribute_id,
+                                          AttrDomain domain,
+                                          const fn::Field<bool> &selection,
+                                          const fn::GField &field)
+{
+  return try_capture_fields_on_geometry(
+      attributes, field_context, {attribute_id}, domain, selection, {field});
+}
 
-bool try_capture_field_on_geometry(GeometryComponent &component,
-                                   const AttributeIDRef &attribute_id,
-                                   AttrDomain domain,
-                                   const fn::Field<bool> &selection,
-                                   const fn::GField &field);
+bool try_capture_fields_on_geometry(GeometryComponent &component,
+                                    Span<AttributeIDRef> attribute_ids,
+                                    AttrDomain domain,
+                                    Span<fn::GField> fields);
+
+inline bool try_capture_field_on_geometry(GeometryComponent &component,
+                                          const AttributeIDRef &attribute_id,
+                                          AttrDomain domain,
+                                          const fn::GField &field)
+{
+  return try_capture_fields_on_geometry(component, {attribute_id}, domain, {field});
+}
+
+bool try_capture_fields_on_geometry(GeometryComponent &component,
+                                    Span<AttributeIDRef> attribute_ids,
+                                    AttrDomain domain,
+                                    const fn::Field<bool> &selection,
+                                    Span<fn::GField> fields);
+
+inline bool try_capture_field_on_geometry(GeometryComponent &component,
+                                          const AttributeIDRef &attribute_id,
+                                          AttrDomain domain,
+                                          const fn::Field<bool> &selection,
+                                          const fn::GField &field)
+{
+  return try_capture_fields_on_geometry(component, {attribute_id}, domain, selection, {field});
+}
 
 /**
  * Try to find the geometry domain that the field should be evaluated on. If it is not obvious

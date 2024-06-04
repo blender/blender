@@ -27,11 +27,16 @@ static void rna_VectorFont_unpack(VFont *vfont, Main *bmain, ReportList *reports
 {
   if (!vfont->packedfile) {
     BKE_report(reports, RPT_ERROR, "Font not packed");
+    return;
   }
-  else {
-    /* reports its own error on failure */
-    BKE_packedfile_unpack_vfont(bmain, reports, vfont, ePF_FileStatus(method));
+
+  if (!ID_IS_EDITABLE(&vfont->id)) {
+    BKE_report(reports, RPT_ERROR, "Font is not editable");
+    return;
   }
+
+  /* reports its own error on failure */
+  BKE_packedfile_unpack_vfont(bmain, reports, vfont, ePF_FileStatus(method));
 }
 
 #else

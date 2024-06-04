@@ -5,6 +5,7 @@
 #include "IO_types.hh"
 #include "usd.hh"
 #include "usd_hook.hh"
+#include "usd_light_convert.hh"
 #include "usd_reader_geom.hh"
 #include "usd_reader_prim.hh"
 #include "usd_reader_stage.hh"
@@ -296,6 +297,13 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   data->archive = archive;
 
   archive->collect_readers();
+
+  if (data->params.import_lights && data->params.create_world_material &&
+      !archive->dome_lights().is_empty())
+  {
+    dome_light_to_world_material(
+        data->params, data->settings, data->scene, data->bmain, archive->dome_lights().first());
+  }
 
   if (data->params.import_materials && data->params.import_all_materials) {
     archive->import_all_materials(data->bmain);

@@ -39,6 +39,7 @@ if BLENDER_BIN is None:
 
 # Arguments to ensure extensions are enabled (currently it's an experimental feature).
 BLENDER_ENABLE_EXTENSION_ARGS = [
+    "--online-mode",
     "--python-exit-code", "1",
 ]
 
@@ -357,7 +358,7 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         ))
         self.assertEqual(
             stdout.rstrip("\n").split("\n")[-1],
-            "STATUS Sync complete: {:s}".format(TEMP_DIR_REMOTE_AS_URL),
+            "STATUS Extensions list for \"MyTestRepo\" updated",
         )
 
         # Install the package into Blender.
@@ -441,7 +442,7 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         ))
         self.assertEqual(
             stdout.rstrip("\n").split("\n")[-1],
-            "STATUS Sync complete: {:s}".format(TEMP_DIR_REMOTE_AS_URL),
+            "STATUS Extensions list for \"MyTestRepo\" updated",
         )
 
         # Install.

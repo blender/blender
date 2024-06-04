@@ -50,6 +50,12 @@ class LightBake {
   int frame_;
   /** Milliseconds. Delay the start of the baking to not slowdown interactions (TODO: remove). */
   int delay_ms_;
+  /**
+   * Reference to the operator report string to print messages to the UI.
+   * Should be threadsafe to write to as it gets read by the operator code only if the job is
+   * finished.
+   */
+  std::string &report_;
 
   /**
    * If running in parallel (in a separate thread), use this context.
@@ -76,11 +82,13 @@ class LightBake {
             Scene *scene,
             Span<Object *> probes,
             bool run_as_job,
+            std::string &report,
             int frame,
             int delay_ms = 0)
       : depsgraph_(DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER)),
         frame_(frame),
         delay_ms_(delay_ms),
+        report_(report),
         original_probes_(probes)
   {
     BLI_assert(BLI_thread_is_main());
@@ -179,8 +187,8 @@ class LightBake {
           });
 
       if (instance_->info != "") {
-        /** TODO: Print to the Status Bar UI. */
-        printf("%s\n", instance_->info.c_str());
+        /* Pipe report to operator. */
+        report_ = instance_->info;
       }
 
       if ((G.is_break == true) || (stop != nullptr && *stop == true)) {
@@ -292,6 +300,7 @@ wmJob *EEVEE_NEXT_lightbake_job_create(wmWindowManager *wm,
                                        ViewLayer *view_layer,
                                        Scene *scene,
                                        blender::Vector<Object *> original_probes,
+                                       std::string &report,
                                        int delay_ms,
                                        int frame)
 {
@@ -311,7 +320,7 @@ wmJob *EEVEE_NEXT_lightbake_job_create(wmWindowManager *wm,
                               WM_JOB_TYPE_LIGHT_BAKE);
 
   LightBake *bake = new LightBake(
-      bmain, view_layer, scene, std::move(original_probes), true, frame, delay_ms);
+      bmain, view_layer, scene, std::move(original_probes), true, report, frame, delay_ms);
 
   WM_jobs_customdata_set(wm_job, bake, EEVEE_NEXT_lightbake_job_data_free);
   WM_jobs_timer(wm_job, 0.4, NC_SCENE | NA_EDITED, 0);
@@ -330,10 +339,11 @@ void *EEVEE_NEXT_lightbake_job_data_alloc(Main *bmain,
                                           ViewLayer *view_layer,
                                           Scene *scene,
                                           blender::Vector<Object *> original_probes,
+                                          std::string &report,
                                           int frame)
 {
   LightBake *bake = new LightBake(
-      bmain, view_layer, scene, std::move(original_probes), false, frame);
+      bmain, view_layer, scene, std::move(original_probes), false, report, frame);
   /* TODO(fclem): Can remove this cast once we remove the previous EEVEE light cache. */
   return reinterpret_cast<void *>(bake);
 }

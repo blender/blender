@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -297,10 +297,6 @@ msgstr "Animationsdata"
 
 msgid "Animation data for data-block"
 msgstr "Animationsdata för datablock"
-
-
-msgid "New"
-msgstr "Ny"
 
 
 msgid "Combine"
@@ -5705,6 +5701,10 @@ msgid "Explode"
 msgstr "Spräng"
 
 
+msgid "New"
+msgstr "Ny"
+
+
 msgid "Face Count"
 msgstr "Sidantal"
 
@@ -8042,10 +8042,6 @@ msgid "Open the blend file that contains the active asset"
 msgstr "Öppna blend-filen som innehåller den aktiva tillgången"
 
 
-msgid "Show add-on preferences"
-msgstr "Visa tilläggsinställningar"
-
-
 msgctxt "Operator"
 msgid "Preset"
 msgstr "Förinställning"
@@ -8425,6 +8421,10 @@ msgid "GPU Instances"
 msgstr "GPU-instanser"
 
 
+msgid "Remove existing add-ons with the same ID"
+msgstr "Ta bort befintligt tillägg med samma ID"
+
+
 msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Lägg till bokmärke"
@@ -8657,6 +8657,16 @@ msgstr "Kör en nodgrupp på geometri"
 
 msgid "Limit"
 msgstr "Gränsvärde"
+
+
+msgctxt "Operator"
+msgid "All"
+msgstr "Alla"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotera"
 
 
 msgid "Invert existing selection"
@@ -8950,6 +8960,10 @@ msgstr "Vänd bilden horisontellt"
 
 msgid "Flip the image vertically"
 msgstr "Vänd bilden vertikalt"
+
+
+msgid "Relative Paths"
+msgstr "Relativa sökvägar"
 
 
 msgctxt "Operator"
@@ -10398,6 +10412,7 @@ msgid "Move to Nodes"
 msgstr "Flytta till noder"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Apa"
 
@@ -11049,10 +11064,6 @@ msgid "Install an add-on"
 msgstr "Installera ett tillägg"
 
 
-msgid "Remove existing add-ons with the same ID"
-msgstr "Ta bort befintligt tillägg med samma ID"
-
-
 msgctxt "Operator"
 msgid "Refresh"
 msgstr "Ladda om"
@@ -11073,6 +11084,10 @@ msgstr "Ta bort ett tillägg från filsystemet"
 
 msgid "Module name of the add-on to remove"
 msgstr "Modulnamn för tillägg att ta bort"
+
+
+msgid "Show add-on preferences"
+msgstr "Visa tilläggsinställningar"
 
 
 msgctxt "Operator"
@@ -11213,6 +11228,11 @@ msgstr "Kör Python-fil"
 
 msgid "Run Python file"
 msgstr "Kör Python-fil"
+
+
+msgctxt "Operator"
+msgid "Sphere"
+msgstr "Sfär"
 
 
 msgctxt "Operator"
@@ -11513,11 +11533,6 @@ msgstr "Skala om"
 
 
 msgctxt "Operator"
-msgid "Rotate"
-msgstr "Rotera"
-
-
-msgctxt "Operator"
 msgid "Shear"
 msgstr "Vrida"
 
@@ -11780,10 +11795,6 @@ msgstr "Verktygsrad"
 
 msgid "URL to open"
 msgstr "Webbaddress som skall öppnas"
-
-
-msgid "Relative Paths"
-msgstr "Relativa sökvägar"
 
 
 msgid "Shapes"
@@ -14248,11 +14259,6 @@ msgstr "Dölj omarkerade"
 
 
 msgctxt "Operator"
-msgid "All"
-msgstr "Alla"
-
-
-msgctxt "Operator"
 msgid "None"
 msgstr "Inget"
 
@@ -14525,12 +14531,12 @@ msgid "Max Depth"
 msgstr "Maxdjup"
 
 
-msgid "Cascade Size"
-msgstr "Kaskadstorlek"
-
-
 msgid "Rays"
 msgstr "Strålar"
+
+
+msgid "Cascade Size"
+msgstr "Kaskadstorlek"
 
 
 msgid "Dimension"
@@ -15704,11 +15710,6 @@ msgstr "Rutnät"
 
 
 msgctxt "Operator"
-msgid "Monkey"
-msgstr "Apa"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs-kurva"
 
@@ -15841,11 +15842,6 @@ msgstr "Normalisera alla"
 msgctxt "Operator"
 msgid "Normalize"
 msgstr "Normalisera"
-
-
-msgctxt "Operator"
-msgid "Sphere"
-msgstr "Sfär"
 
 
 msgctxt "Operator"

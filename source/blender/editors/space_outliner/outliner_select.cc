@@ -492,17 +492,16 @@ static void tree_element_gplayer_activate(bContext *C, TreeElement *te, TreeStor
   }
 }
 
-static void tree_element_grease_pencil_layer_activate(bContext *C,
-                                                      TreeElement *te,
-                                                      TreeStoreElem *tselem)
+static void tree_element_grease_pencil_node_activate(bContext *C,
+                                                     TreeElement *te,
+                                                     TreeStoreElem *tselem)
 {
   GreasePencil &grease_pencil = *(GreasePencil *)tselem->id;
   bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
-  if (node.is_layer()) {
-    grease_pencil.set_active_layer(&node.as_layer());
-    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
-  }
+
+  grease_pencil.set_active_node(&node);
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
 }
 
 static void tree_element_bonecollection_activate(bContext *C,
@@ -872,7 +871,7 @@ void tree_element_type_active_set(bContext *C,
       tree_element_gplayer_activate(C, te, tselem);
       break;
     case TSE_GREASE_PENCIL_NODE:
-      tree_element_grease_pencil_layer_activate(C, te, tselem);
+      tree_element_grease_pencil_node_activate(C, te, tselem);
       break;
     case TSE_VIEW_COLLECTION_BASE:
       tree_element_master_collection_activate(C);

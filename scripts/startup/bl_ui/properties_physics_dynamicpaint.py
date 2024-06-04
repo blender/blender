@@ -261,7 +261,7 @@ class PHYSICS_PT_dp_surface_canvas(PhysicButtonsPanel, Panel):
         if surface_type not in {'DISPLACE', 'WAVE'}:
             col = flow.column()  # flow the layout otherwise.
 
-        col.prop(surface, "brush_influence_scale", text="Scale Influence")
+        col.prop(surface, "brush_influence_scale", text="Scale Influence", text_ctxt=i18n_contexts.id_simulation)
         col.prop(surface, "brush_radius_scale", text="Radius")
 
 

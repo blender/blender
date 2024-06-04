@@ -590,7 +590,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         "msgid": ((("msgctxt",), _ctxt_to_ctxt),
                   ),
         "message": (),
-        "heading": (),
+        "heading": ((("heading_ctxt",), _ctxt_to_ctxt),),
         "placeholder": ((("text_ctxt",), _ctxt_to_ctxt),),
     }
 
@@ -1113,10 +1113,20 @@ def dump_addon_messages(addon_module_name, do_checks, settings):
     addon = utils.enable_addons(addons={addon_module_name})[0]
 
     addon_info = addon_utils.module_bl_info(addon)
-    ver = addon_info["name"] + " " + ".".join(str(v) for v in addon_info["version"])
+    ver = addon_info["name"] + " "
+    if type(addon_info["version"]) is str:
+        ver += addon_info["version"]
+    else:
+        ver += ".".join(str(v) for v in addon_info["version"])
     rev = 0
     curr_time = time.gmtime()
-    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, curr_time, settings=settings)
+    pot = utils.I18nMessages.gen_empty_messages(
+        settings.PARSER_TEMPLATE_ID,
+        ver,
+        rev,
+        curr_time,
+        default_copyright=False,
+        settings=settings)
     msgs = pot.msgs
 
     minus_pot = utils.I18nMessages.gen_empty_messages(

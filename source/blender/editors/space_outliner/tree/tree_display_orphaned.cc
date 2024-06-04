@@ -13,6 +13,7 @@
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
 
+#include "BKE_idtype.hh"
 #include "BKE_main.hh"
 
 #include "../outliner_intern.hh"
@@ -64,8 +65,8 @@ ListBase TreeDisplayIDOrphans::build_tree(const TreeSourceData &source_data)
 
     /* Add the orphaned data-blocks - these will not be added with any subtrees attached. */
     for (ID *id : List<ID>(lbarray[a])) {
-      if (ID_REAL_USERS(id) <= 0) {
-        add_element((te) ? &te->subtree : &tree, id, nullptr, te, TSE_SOME_ID, 0);
+      if (ID_REFCOUNTING_USERS(id) <= 0) {
+        add_element((te) ? &te->subtree : &tree, id, nullptr, te, TSE_SOME_ID, 0, false);
       }
     }
   }
@@ -75,8 +76,17 @@ ListBase TreeDisplayIDOrphans::build_tree(const TreeSourceData &source_data)
 
 bool TreeDisplayIDOrphans::datablock_has_orphans(ListBase &lb) const
 {
+  if (BLI_listbase_is_empty(&lb)) {
+    return false;
+  }
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(static_cast<ID *>(lb.first));
+  if (id_type->flags & IDTYPE_FLAGS_NEVER_UNUSED) {
+    /* These ID types are never unused. */
+    return false;
+  }
+
   for (ID *id : List<ID>(lb)) {
-    if (ID_REAL_USERS(id) <= 0) {
+    if (ID_REFCOUNTING_USERS(id) <= 0) {
       return true;
     }
   }

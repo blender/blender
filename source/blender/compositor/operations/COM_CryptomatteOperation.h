@@ -26,4 +26,15 @@ class CryptomatteOperation : public MultiThreadedOperation {
                                     Span<MemoryBuffer *> inputs) override;
 };
 
+class CryptomattePickOperation : public MultiThreadedOperation {
+ public:
+  CryptomattePickOperation();
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+
+  std::unique_ptr<MetaData> get_meta_data() override;
+};
+
 }  // namespace blender::compositor

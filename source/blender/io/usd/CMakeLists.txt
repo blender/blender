@@ -95,7 +95,9 @@ set(SRC
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
   intern/usd_hook.cc
+  intern/usd_light_convert.cc
   intern/usd_mesh_utils.cc
+
   intern/usd_writer_abstract.cc
   intern/usd_writer_armature.cc
   intern/usd_writer_camera.cc
@@ -139,7 +141,9 @@ set(SRC
   intern/usd_hash_types.hh
   intern/usd_hierarchy_iterator.hh
   intern/usd_hook.hh
+  intern/usd_light_convert.hh
   intern/usd_mesh_utils.hh
+
   intern/usd_writer_abstract.hh
   intern/usd_writer_armature.hh
   intern/usd_writer_camera.hh

@@ -257,6 +257,10 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_internet_offline_doc,
     "Boolean, true when internet access is allowed by Blender & 3rd party scripts (read-only)");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_app_internet_offline_override_doc,
+    "Boolean, true when internet access preference is overridden by the command line (read-only)");
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -497,6 +501,11 @@ static PyGetSetDef bpy_app_getsets[] = {
      nullptr,
      bpy_app_internet_offline_doc,
      (void *)G_FLAG_INTERNET_ALLOW},
+    {"online_access_override",
+     bpy_app_global_flag_get,
+     nullptr,
+     bpy_app_internet_offline_override_doc,
+     (void *)G_FLAG_INTERNET_OVERRIDE_PREF_ANY},
 
     /* security */
     {"autoexec_fail",

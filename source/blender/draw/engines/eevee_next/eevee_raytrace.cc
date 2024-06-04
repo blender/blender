@@ -30,6 +30,9 @@ void RayTraceModule::init()
 
   ray_tracing_options_ = sce_eevee.ray_tracing_options;
   tracing_method_ = RaytraceEEVEE_Method(sce_eevee.ray_tracing_method);
+  fast_gi_ray_count_ = sce_eevee.fast_gi_ray_count;
+  fast_gi_step_count_ = sce_eevee.fast_gi_step_count;
+  fast_gi_ao_only_ = (sce_eevee.fast_gi_method == FAST_GI_AO_ONLY);
 
   float4 data(0.0f);
   radiance_dummy_black_tx_.ensure_2d(
@@ -259,6 +262,9 @@ void RayTraceModule::sync()
     PassSimple &pass = horizon_scan_ps_;
     pass.init();
     GPUShader *sh = inst_.shaders.static_shader_get(HORIZON_SCAN);
+    pass.specialize_constant(sh, "fast_gi_slice_count", fast_gi_ray_count_);
+    pass.specialize_constant(sh, "fast_gi_step_count", fast_gi_step_count_);
+    pass.specialize_constant(sh, "fast_gi_ao_only", fast_gi_ao_only_);
     pass.shader_set(sh);
     pass.bind_texture("screen_radiance_tx", &downsampled_in_radiance_tx_);
     pass.bind_texture("screen_normal_tx", &downsampled_in_normal_tx_);

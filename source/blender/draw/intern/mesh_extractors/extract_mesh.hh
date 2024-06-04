@@ -83,7 +83,9 @@ struct MeshRenderData {
   Span<float3> bm_face_normals;
   Array<float3> bm_loop_normals;
 
-  const int *v_origindex, *e_origindex, *p_origindex;
+  const int *orig_index_vert;
+  const int *orig_index_edge;
+  const int *orig_index_face;
   int edge_crease_ofs;
   int vert_crease_ofs;
   int bweight_ofs;
@@ -130,22 +132,25 @@ const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh);
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.p_origindex != nullptr) && (mr.p_origindex[idx] != ORIGINDEX_NONE) && mr.bm) ?
-             BM_face_at_index(mr.bm, mr.p_origindex[idx]) :
+  return ((mr.orig_index_face != nullptr) && (mr.orig_index_face[idx] != ORIGINDEX_NONE) &&
+          mr.bm) ?
+             BM_face_at_index(mr.bm, mr.orig_index_face[idx]) :
              nullptr;
 }
 
 BLI_INLINE BMEdge *bm_original_edge_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.e_origindex != nullptr) && (mr.e_origindex[idx] != ORIGINDEX_NONE) && mr.bm) ?
-             BM_edge_at_index(mr.bm, mr.e_origindex[idx]) :
+  return ((mr.orig_index_edge != nullptr) && (mr.orig_index_edge[idx] != ORIGINDEX_NONE) &&
+          mr.bm) ?
+             BM_edge_at_index(mr.bm, mr.orig_index_edge[idx]) :
              nullptr;
 }
 
 BLI_INLINE BMVert *bm_original_vert_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.v_origindex != nullptr) && (mr.v_origindex[idx] != ORIGINDEX_NONE) && mr.bm) ?
-             BM_vert_at_index(mr.bm, mr.v_origindex[idx]) :
+  return ((mr.orig_index_vert != nullptr) && (mr.orig_index_vert[idx] != ORIGINDEX_NONE) &&
+          mr.bm) ?
+             BM_vert_at_index(mr.bm, mr.orig_index_vert[idx]) :
              nullptr;
 }
 
@@ -311,15 +316,15 @@ const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor, bool 
 void mesh_render_data_face_flag(const MeshRenderData &mr,
                                 const BMFace *efa,
                                 BMUVOffsets offsets,
-                                EditLoopData *eattr);
+                                EditLoopData &eattr);
 void mesh_render_data_loop_flag(const MeshRenderData &mr,
-                                BMLoop *l,
+                                const BMLoop *l,
                                 BMUVOffsets offsets,
-                                EditLoopData *eattr);
+                                EditLoopData &eattr);
 void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
-                                     BMLoop *l,
+                                     const BMLoop *l,
                                      BMUVOffsets offsets,
-                                     EditLoopData *eattr);
+                                     EditLoopData &eattr);
 
 template<typename GPUType> void convert_normals(Span<float3> src, MutableSpan<GPUType> dst);
 
@@ -372,6 +377,11 @@ void extract_points_subdiv(const MeshRenderData &mr,
                            const DRWSubdivCache &subdiv_cache,
                            gpu::IndexBuf &points);
 
+void extract_edit_data(const MeshRenderData &mr, gpu::VertBuf &vbo);
+void extract_edit_data_subdiv(const MeshRenderData &mr,
+                              const DRWSubdivCache &subdiv_cache,
+                              gpu::VertBuf &vbo);
+
 extern const MeshExtract extract_fdots;
 extern const MeshExtract extract_lines_paint_mask;
 extern const MeshExtract extract_lines_adjacency;
@@ -383,11 +393,9 @@ extern const MeshExtract extract_uv;
 extern const MeshExtract extract_tan;
 extern const MeshExtract extract_tan_hq;
 extern const MeshExtract extract_sculpt_data;
-extern const MeshExtract extract_vcol;
 extern const MeshExtract extract_orco;
 extern const MeshExtract extract_edge_fac;
 extern const MeshExtract extract_weights;
-extern const MeshExtract extract_edit_data;
 extern const MeshExtract extract_edituv_data;
 extern const MeshExtract extract_edituv_stretch_area;
 extern const MeshExtract extract_edituv_stretch_angle;

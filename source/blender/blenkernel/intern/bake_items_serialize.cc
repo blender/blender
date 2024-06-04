@@ -1045,7 +1045,7 @@ static std::shared_ptr<io::serialize::Value> serialize_primitive_value(
     }
     case CD_PROP_QUATERNION: {
       const math::Quaternion value = *static_cast<const math::Quaternion *>(value_ptr);
-      return serialize_float_array({&value.x, 4});
+      return serialize_float_array({&value.w, 4});
     }
     case CD_PROP_FLOAT4X4: {
       const float4x4 value = *static_cast<const float4x4 *>(value_ptr);

@@ -2536,7 +2536,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):
             row.prop(size_owner, "use_locked_size", expand=True)
             col.separator()
 
-            col.prop(gp_settings, "input_samples")
+            col.prop(brush, "spacing", slider=True)
             col.separator()
 
             col.prop(gp_settings, "active_smooth_factor")

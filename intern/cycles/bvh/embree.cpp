@@ -178,6 +178,51 @@ void BVHEmbree::build(Progress &progress,
   rtcCommitScene(scene);
 }
 
+string BVHEmbree::get_last_error_message()
+{
+  const RTCError error_code = rtcGetDeviceError(rtc_device);
+  switch (error_code) {
+    case RTC_ERROR_NONE:
+      return "no error";
+    case RTC_ERROR_UNKNOWN:
+      return "unknown error";
+    case RTC_ERROR_INVALID_ARGUMENT:
+      return "invalid argument error";
+    case RTC_ERROR_INVALID_OPERATION:
+      return "invalid operation error";
+    case RTC_ERROR_OUT_OF_MEMORY:
+      return "out of memory error";
+    case RTC_ERROR_UNSUPPORTED_CPU:
+      return "unsupported cpu error";
+    case RTC_ERROR_CANCELLED:
+      return "cancelled";
+    default:
+      /* We should never end here unless enum for RTC errors would change. */
+      return "unknown error";
+  }
+}
+
+#  if defined(WITH_EMBREE_GPU) && RTC_VERSION >= 40302
+bool BVHEmbree::offload_scenes_to_gpu(const vector<RTCScene> &scenes)
+{
+  /* Having BVH on GPU is more performance-critical than texture data.
+   * In order to ensure good performance even when running out of GPU
+   * memory, we force BVH to migrate to GPU before allocating other textures
+   * that may not fit. */
+  for (const RTCScene &embree_scene : scenes) {
+    RTCSceneFlags scene_flags = rtcGetSceneFlags(embree_scene);
+    scene_flags = scene_flags | RTC_SCENE_FLAG_PREFETCH_USM_SHARED_ON_GPU;
+    rtcSetSceneFlags(embree_scene, scene_flags);
+    rtcCommitScene(embree_scene);
+    /* In case of any errors from Embree, we should stop
+     * the execution and propagate the error. */
+    if (rtcGetDeviceError(rtc_device) != RTC_ERROR_NONE)
+      return false;
+  }
+  return true;
+}
+#  endif
+
 void BVHEmbree::add_object(Object *ob, int i)
 {
   Geometry *geom = ob->get_geometry();

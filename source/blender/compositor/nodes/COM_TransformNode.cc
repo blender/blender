@@ -37,6 +37,7 @@ void TransformNode::convert_to_operations(NodeConverter &converter,
   PixelSampler sampler = (PixelSampler)this->get_bnode()->custom1;
   scale_operation->set_sampler(sampler);
   rotate_operation->set_sampler(sampler);
+  translate_operation->set_sampler(sampler);
 
   converter.map_input_socket(image_input, scale_operation->get_input_socket(0));
   converter.map_input_socket(scale_input, scale_operation->get_input_socket(1));

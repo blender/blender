@@ -818,6 +818,7 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
   copy_v3_fl(chan->custom_scale_xyz, 1.0f);
   zero_v3(chan->custom_translation);
   zero_v3(chan->custom_rotation_euler);
+  chan->custom_shape_wire_width = 1.0f;
 
   /* init vars to prevent math errors */
   unit_qt(chan->quat);

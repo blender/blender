@@ -34,7 +34,7 @@ def encode_scene_primitives(scenes, export_settings):
     dll.encoderSetIndices.argtypes = [c_void_p, c_size_t, c_uint32, c_void_p]
 
     dll.encoderSetAttribute.restype = c_uint32
-    dll.encoderSetAttribute.argtypes = [c_void_p, c_char_p, c_size_t, c_char_p, c_void_p]
+    dll.encoderSetAttribute.argtypes = [c_void_p, c_char_p, c_size_t, c_char_p, c_void_p, c_bool]
 
     dll.encoderEncode.restype = c_bool
     dll.encoderEncode.argtypes = [c_void_p, c_uint8]
@@ -130,7 +130,8 @@ def __encode_primitive(primitive, dll, export_settings, encoded_primitives_cache
             attr_name.encode(),
             attr.component_type,
             attr.type.encode(),
-            attr.buffer_view.data)
+            attr.buffer_view.data,
+            attr.normalized)
         draco_ids[attr_name] = draco_id
 
     dll.encoderSetIndices(encoder, indices.component_type, indices.count, indices.buffer_view.data)

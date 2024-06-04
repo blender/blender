@@ -105,7 +105,7 @@ float ambient_ambient_occlusion_search_horizon(vec3 vI,
     /* Gives us good precision at center and ensure we cross at least one pixel per iteration. */
     time = 1.0 + iter + square((iter + noise) / sample_count) * ssray.max_time;
     float stride = time - prev_time;
-    float lod = (log2(stride) - noise) / (1.0 + uniform_buf.ao.quality);
+    float lod = (log2(stride) - noise) * uniform_buf.ao.lod_factor_ao;
 
     vec2 uv = ssray.origin.xy + ssray.direction.xy * time;
     float depth = textureLod(depth_tx, uv * uniform_buf.hiz.uv_scale, floor(lod)).r;

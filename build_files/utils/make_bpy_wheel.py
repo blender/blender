@@ -183,8 +183,12 @@ def main() -> None:
     # Set platform tag following conventions.
     if sys.platform == "darwin":
         target = cmake_cache_var_or_exit(filepath_cmake_cache, "CMAKE_OSX_DEPLOYMENT_TARGET").split(".")
+        # Minor version is expected to be always zero starting with macOS 11.
+        # https://github.com/pypa/packaging/issues/435
+        target_major = int(target[0])
+        target_minor = 0  # int(target[1])
         machine = cmake_cache_var_or_exit(filepath_cmake_cache, "CMAKE_OSX_ARCHITECTURES")
-        platform_tag = "macosx_%d_%d_%s" % (int(target[0]), int(target[1]), machine)
+        platform_tag = "macosx_%d_%d_%s" % (target_major, target_minor, machine)
     elif sys.platform == "win32":
         platform_tag = "win_%s" % (platform.machine().lower())
     elif sys.platform == "linux":
@@ -197,6 +201,10 @@ def main() -> None:
     else:
         sys.stderr.write("Unsupported platform: %s, abort!\n" % (sys.platform))
         sys.exit(1)
+
+    # Manually specify, otherwise it uses the version of the executable used to run
+    # this script which may not match the Blender python version.
+    python_tag = "py%d%d" % (python_version_number[0], python_version_number[1])
 
     os.chdir(install_dir)
 
@@ -223,7 +231,7 @@ def main() -> None:
         packages=["bpy"],
         package_data={"": package_files("bpy")},
         distclass=BinaryDistribution,
-        options={"bdist_wheel": {"plat_name": platform_tag}},
+        options={"bdist_wheel": {"plat_name": platform_tag, "python_tag": python_tag}},
 
         description="Blender as a Python module",
         long_description=long_description,

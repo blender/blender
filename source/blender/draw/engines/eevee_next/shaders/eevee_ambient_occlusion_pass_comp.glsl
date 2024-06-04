@@ -26,20 +26,23 @@ void main()
   vec3 N = imageLoad(in_normal_img, ivec3(texel, in_normal_img_layer_index)).xyz;
   vec3 vN = drw_normal_world_to_view(N);
 
-  vec2 noise;
+  vec3 noise;
   noise.x = interlieved_gradient_noise(vec2(texel), 3.0, 0.0);
-  noise.y = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).r;
-  noise = fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
+  noise.yz = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).rg;
+  noise = fract(noise + sampling_rng_3D_get(SAMPLING_AO_U));
 
   HorizonScanResult scan = horizon_scan_eval(vP,
                                              vN,
                                              noise,
                                              uniform_buf.ao.pixel_size,
                                              uniform_buf.ao.distance,
-                                             uniform_buf.ao.thickness,
+                                             uniform_buf.ao.thickness_near,
+                                             uniform_buf.ao.thickness_far,
                                              uniform_buf.ao.angle_bias,
+                                             2,
                                              10,
-                                             false);
+                                             false,
+                                             true);
 
   imageStore(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(saturate(scan.result)));
 }

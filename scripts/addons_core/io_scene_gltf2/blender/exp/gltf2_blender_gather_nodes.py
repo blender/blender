@@ -198,7 +198,7 @@ def __gather_extensions(vnode, export_settings):
         return None
 
     if export_settings["gltf_lights"] and vnode.blender_type == VExportNode.INSTANCE and vnode.data is not None:
-        if vnode.data.type in LIGHTS:
+        if vnode.data.id_type in LIGHTS:
             blender_lamp = vnode.data
     elif export_settings["gltf_lights"] and blender_object is not None and (blender_object.type == "LAMP" or blender_object.type == "LIGHT"):
         blender_lamp = blender_object.data

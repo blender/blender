@@ -94,8 +94,6 @@
 
 #include "GEO_fillet_curves.hh"
 
-#include "COM_profile.hh"
-
 #include "node_intern.hh" /* own include */
 
 #include <fmt/format.h>
@@ -1401,11 +1399,12 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     const math::Quaternion &rotation = *static_cast<math::Quaternion *>(socket_value);
     const math::EulerXYZ euler = math::to_euler(rotation);
     fmt::format_to(fmt::appender(buf),
-                   TIP_("({}" BLI_STR_UTF8_DEGREE_SIGN ", {}" BLI_STR_UTF8_DEGREE_SIGN
-                        ", {}" BLI_STR_UTF8_DEGREE_SIGN ") (Rotation)"),
+                   ("({}" BLI_STR_UTF8_DEGREE_SIGN ", {}" BLI_STR_UTF8_DEGREE_SIGN
+                    ", {}" BLI_STR_UTF8_DEGREE_SIGN ")"),
                    euler.x().degree(),
                    euler.y().degree(),
                    euler.z().degree());
+    fmt::format_to(fmt::appender(buf), TIP_("(Rotation)"));
   }
   else if (socket_type.is<bool>()) {
     fmt::format_to(fmt::appender(buf),
@@ -1474,17 +1473,24 @@ static void create_inspection_string_for_field_info(const bNodeSocket &socket,
 static void create_inspection_string_for_geometry_info(const geo_log::GeometryInfoLog &value_log,
                                                        fmt::memory_buffer &buf)
 {
-  Span<bke::GeometryComponent::Type> component_types = value_log.component_types;
-  if (component_types.is_empty()) {
-    fmt::format_to(fmt::appender(buf), TIP_("Empty Geometry"));
-    return;
-  }
-
   auto to_string = [](int value) {
     char str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
     BLI_str_format_int_grouped(str, value);
     return std::string(str);
   };
+
+  if (value_log.grid_info) {
+    const geo_log::GeometryInfoLog::GridInfo &grid_info = *value_log.grid_info;
+    fmt::format_to(fmt::appender(buf),
+                   grid_info.is_empty ? TIP_("Empty Grid") : TIP_("\u2022 Grid"));
+    return;
+  }
+
+  Span<bke::GeometryComponent::Type> component_types = value_log.component_types;
+  if (component_types.is_empty()) {
+    fmt::format_to(fmt::appender(buf), TIP_("Empty Geometry"));
+    return;
+  }
 
   fmt::format_to(fmt::appender(buf), TIP_("Geometry:"));
   fmt::format_to(fmt::appender(buf), "\n");
@@ -1510,7 +1516,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
       case bke::GeometryComponent::Type::Curve: {
         const geo_log::GeometryInfoLog::CurveInfo &curve_info = *value_log.curve_info;
         fmt::format_to(fmt::appender(buf),
-                       TIP_("\u2022 Curve:{} points,{} splines"),
+                       TIP_("\u2022 Curve: {} points,{} splines"),
                        to_string(curve_info.points_num),
                        to_string(curve_info.splines_num));
         break;
@@ -1523,7 +1529,8 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         break;
       }
       case bke::GeometryComponent::Type::Volume: {
-        fmt::format_to(fmt::appender(buf), TIP_("\u2022 Volume"));
+        const geo_log::GeometryInfoLog::VolumeInfo &volume_info = *value_log.volume_info;
+        fmt::format_to(fmt::appender(buf), TIP_("\u2022 Volume: {} grids"), volume_info.grids_num);
         break;
       }
       case bke::GeometryComponent::Type::Edit: {
@@ -1906,17 +1913,21 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
   }
 
   if (inspection_strings.is_empty()) {
+    const bool is_extend = StringRef(socket.idname) == "NodeSocketVirtual";
     const bNode &node = socket.owner_node();
     if (node.is_reroute()) {
       char reroute_name[MAX_NAME];
       bke::nodeLabel(&ntree, &node, reroute_name, sizeof(reroute_name));
       output << reroute_name;
     }
+    else if (is_extend) {
+      output << TIP_("Connect a link to create a new socket");
+    }
     else {
       output << bke::nodeSocketLabel(&socket);
     }
 
-    if (ntree.type == NTREE_GEOMETRY) {
+    if (ntree.type == NTREE_GEOMETRY && !is_extend) {
       output << ".\n\n";
       output << TIP_(
           "Unknown socket value. Either the socket was not used or its value was not logged "

@@ -8,7 +8,7 @@
 
 #pragma once
 
-/* Needed for BKE_ccg.h. */
+/* Needed for BKE_ccg.hh. */
 #include "BLI_assert.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
@@ -19,7 +19,7 @@
 
 #include "DNA_customdata_types.h"
 
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 
 namespace blender::gpu {
 class Batch;

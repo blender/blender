@@ -877,53 +877,52 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
     if (uv_map_output_socket != nullptr) {
       continue;
     }
-    uv_map_output_socket = blender::bke::nodeAddStaticSocket(
-        &ntree, node, SOCK_OUT, SOCK_VECTOR, PROP_NONE, "UV Map", "UV Map");
+    uv_map_output_socket = &version_node_add_socket(
+        ntree, *node, SOCK_OUT, "NodeSocketVector", "UV Map");
 
-    bNode *store_attribute_node = blender::bke::nodeAddStaticNode(
-        nullptr, &ntree, GEO_NODE_STORE_NAMED_ATTRIBUTE);
+    bNode *store_attribute_node = &version_node_add_empty(ntree,
+                                                          "GeometryNodeStoreNamedAttribute");
     new_nodes.append(store_attribute_node);
     store_attribute_node->parent = node->parent;
     store_attribute_node->locx = node->locx + 25;
     store_attribute_node->locy = node->locy;
     store_attribute_node->offsetx = node->offsetx;
     store_attribute_node->offsety = node->offsety;
-    NodeGeometryStoreNamedAttribute &storage = *static_cast<NodeGeometryStoreNamedAttribute *>(
-        store_attribute_node->storage);
+    auto &storage = *MEM_cnew<NodeGeometryStoreNamedAttribute>(__func__);
+    store_attribute_node->storage = &storage;
     storage.domain = int8_t(blender::bke::AttrDomain::Corner);
     /* Intentionally use 3D instead of 2D vectors, because 2D vectors did not exist in older
      * releases and would make the file crash when trying to open it. */
     storage.data_type = CD_PROP_FLOAT3;
 
-    blender::nodes::update_node_declaration_and_sockets(ntree, *store_attribute_node);
-
-    bNodeSocket *store_attribute_geometry_input = static_cast<bNodeSocket *>(
-        store_attribute_node->inputs.first);
-    bNodeSocket *store_attribute_name_input = store_attribute_geometry_input->next->next;
-    bNodeSocket *store_attribute_value_input = store_attribute_geometry_input->next->next->next;
-    BLI_assert(store_attribute_value_input->type == SOCK_VECTOR);
-    bNodeSocket *store_attribute_geometry_output = static_cast<bNodeSocket *>(
-        store_attribute_node->outputs.first);
+    bNodeSocket &store_attribute_geometry_input = version_node_add_socket(
+        ntree, *store_attribute_node, SOCK_IN, "NodeSocketGeometry", "Geometry");
+    bNodeSocket &store_attribute_name_input = version_node_add_socket(
+        ntree, *store_attribute_node, SOCK_IN, "NodeSocketString", "Name");
+    bNodeSocket &store_attribute_value_input = version_node_add_socket(
+        ntree, *store_attribute_node, SOCK_IN, "NodeSocketVector", "Value");
+    bNodeSocket &store_attribute_geometry_output = version_node_add_socket(
+        ntree, *store_attribute_node, SOCK_OUT, "NodeSocketGeometry", "Geometry");
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       if (link->fromsock == primitive_output_socket) {
         link->fromnode = store_attribute_node;
-        link->fromsock = store_attribute_geometry_output;
+        link->fromsock = &store_attribute_geometry_output;
       }
     }
 
     bNodeSocketValueString *name_value = static_cast<bNodeSocketValueString *>(
-        store_attribute_name_input->default_value);
+        store_attribute_name_input.default_value);
     const char *uv_map_name = node->type == GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE ? "UVMap" :
                                                                                  "uv_map";
     STRNCPY(name_value->value, uv_map_name);
 
-    blender::bke::nodeAddLink(&ntree,
-                              node,
-                              primitive_output_socket,
-                              store_attribute_node,
-                              store_attribute_geometry_input);
-    blender::bke::nodeAddLink(
-        &ntree, node, uv_map_output_socket, store_attribute_node, store_attribute_value_input);
+    version_node_add_link(ntree,
+                          *node,
+                          *primitive_output_socket,
+                          *store_attribute_node,
+                          store_attribute_geometry_input);
+    version_node_add_link(
+        ntree, *node, *uv_map_output_socket, *store_attribute_node, store_attribute_value_input);
   }
 
   /* Move nodes to the front so that they are drawn behind existing nodes. */
@@ -977,7 +976,7 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
       bNode *capture_node = geometry_in_link->fromnode;
       const NodeGeometryAttributeCapture &capture_storage =
           *static_cast<const NodeGeometryAttributeCapture *>(capture_node->storage);
-      if (capture_storage.data_type != CD_PROP_BOOL ||
+      if (capture_storage.data_type_legacy != CD_PROP_BOOL ||
           bke::AttrDomain(capture_storage.domain) != bke::AttrDomain::Face)
       {
         return false;
@@ -1014,59 +1013,62 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
       continue;
     }
 
-    bNode *capture_node = blender::bke::nodeAddNode(
-        nullptr, &ntree, "GeometryNodeCaptureAttribute");
-    capture_node->parent = node->parent;
-    capture_node->locx = node->locx - 25;
-    capture_node->locy = node->locy;
-    new_nodes.append(capture_node);
-    static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->data_type = CD_PROP_BOOL;
-    static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->domain = int8_t(
-        bke::AttrDomain::Face);
+    bNode &capture_node = version_node_add_empty(ntree, "GeometryNodeCaptureAttribute");
+    capture_node.parent = node->parent;
+    capture_node.locx = node->locx - 25;
+    capture_node.locy = node->locy;
+    new_nodes.append(&capture_node);
+    auto *capture_node_storage = MEM_cnew<NodeGeometryAttributeCapture>(__func__);
+    capture_node.storage = capture_node_storage;
+    capture_node_storage->data_type_legacy = CD_PROP_BOOL;
+    capture_node_storage->domain = int8_t(bke::AttrDomain::Face);
+    bNodeSocket &capture_node_geo_in = version_node_add_socket(
+        ntree, capture_node, SOCK_IN, "NodeSocketGeometry", "Geometry");
+    bNodeSocket &capture_node_geo_out = version_node_add_socket(
+        ntree, capture_node, SOCK_OUT, "NodeSocketGeometry", "Geometry");
+    bNodeSocket &capture_node_value_in = version_node_add_socket(
+        ntree, capture_node, SOCK_IN, "NodeSocketBool", "Value_003");
+    bNodeSocket &capture_node_attribute_out = version_node_add_socket(
+        ntree, capture_node, SOCK_OUT, "NodeSocketBool", "Attribute_003");
 
-    bNode *is_smooth_node = blender::bke::nodeAddNode(
-        nullptr, &ntree, "GeometryNodeInputShadeSmooth");
-    is_smooth_node->parent = node->parent;
-    is_smooth_node->locx = capture_node->locx - 25;
-    is_smooth_node->locy = capture_node->locy;
-    new_nodes.append(is_smooth_node);
-    blender::bke::nodeAddLink(&ntree,
-                              is_smooth_node,
-                              blender::bke::nodeFindSocket(is_smooth_node, SOCK_OUT, "Smooth"),
-                              capture_node,
-                              blender::bke::nodeFindSocket(capture_node, SOCK_IN, "Value"));
-    blender::bke::nodeAddLink(&ntree,
-                              capture_node,
-                              blender::bke::nodeFindSocket(capture_node, SOCK_OUT, "Geometry"),
-                              node,
-                              geometry_in_socket);
-    geometry_in_link->tonode = capture_node;
-    geometry_in_link->tosock = blender::bke::nodeFindSocket(capture_node, SOCK_IN, "Geometry");
+    bNode &is_smooth_node = version_node_add_empty(ntree, "GeometryNodeInputShadeSmooth");
+    is_smooth_node.parent = node->parent;
+    is_smooth_node.locx = capture_node.locx - 25;
+    is_smooth_node.locy = capture_node.locy;
+    bNodeSocket &is_smooth_out = version_node_add_socket(
+        ntree, is_smooth_node, SOCK_OUT, "NodeSocketBool", "Smooth");
+    new_nodes.append(&is_smooth_node);
+    version_node_add_link(
+        ntree, is_smooth_node, is_smooth_out, capture_node, capture_node_value_in);
+    version_node_add_link(ntree, capture_node, capture_node_geo_out, *node, *geometry_in_socket);
+    geometry_in_link->tonode = &capture_node;
+    geometry_in_link->tosock = &capture_node_geo_in;
 
-    bNode *set_smooth_node = blender::bke::nodeAddNode(
-        nullptr, &ntree, "GeometryNodeSetShadeSmooth");
-    set_smooth_node->parent = node->parent;
-    set_smooth_node->locx = node->locx + 25;
-    set_smooth_node->locy = node->locy;
-    new_nodes.append(set_smooth_node);
-    blender::bke::nodeAddLink(&ntree,
-                              node,
-                              geometry_out_socket,
-                              set_smooth_node,
-                              blender::bke::nodeFindSocket(set_smooth_node, SOCK_IN, "Geometry"));
+    bNode &set_smooth_node = version_node_add_empty(ntree, "GeometryNodeSetShadeSmooth");
+    set_smooth_node.custom1 = int16_t(blender::bke::AttrDomain::Face);
+    set_smooth_node.parent = node->parent;
+    set_smooth_node.locx = node->locx + 25;
+    set_smooth_node.locy = node->locy;
+    new_nodes.append(&set_smooth_node);
+    bNodeSocket &set_smooth_node_geo_in = version_node_add_socket(
+        ntree, set_smooth_node, SOCK_IN, "NodeSocketGeometry", "Geometry");
+    bNodeSocket &set_smooth_node_geo_out = version_node_add_socket(
+        ntree, set_smooth_node, SOCK_OUT, "NodeSocketGeometry", "Geometry");
+    bNodeSocket &set_smooth_node_smooth_in = version_node_add_socket(
+        ntree, set_smooth_node, SOCK_IN, "NodeSocketBool", "Shade Smooth");
 
-    bNodeSocket *smooth_geometry_out = blender::bke::nodeFindSocket(
-        set_smooth_node, SOCK_OUT, "Geometry");
+    version_node_add_link(
+        ntree, *node, *geometry_out_socket, set_smooth_node, set_smooth_node_geo_in);
+
     for (bNodeLink *link : geometry_out_links) {
-      link->fromnode = set_smooth_node;
-      link->fromsock = smooth_geometry_out;
+      link->fromnode = &set_smooth_node;
+      link->fromsock = &set_smooth_node_geo_out;
     }
-    blender::bke::nodeAddLink(
-        &ntree,
-        capture_node,
-        blender::bke::nodeFindSocket(capture_node, SOCK_OUT, "Attribute"),
-        set_smooth_node,
-        blender::bke::nodeFindSocket(set_smooth_node, SOCK_IN, "Shade Smooth"));
+    version_node_add_link(ntree,
+                          capture_node,
+                          capture_node_attribute_out,
+                          set_smooth_node,
+                          set_smooth_node_smooth_in);
   }
 
   /* Move nodes to the front so that they are drawn behind existing nodes. */

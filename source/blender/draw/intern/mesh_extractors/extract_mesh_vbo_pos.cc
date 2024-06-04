@@ -112,7 +112,7 @@ static void extract_vertex_flags(const MeshRenderData &mr, char *flags)
     char *flag = &flags[i];
     const bool vert_hidden = !mr.hide_vert.is_empty() && mr.hide_vert[i];
     /* Flag for paint mode overlay. */
-    if (vert_hidden || ((mr.v_origindex) && (mr.v_origindex[i] == ORIGINDEX_NONE))) {
+    if (vert_hidden || ((mr.orig_index_vert) && (mr.orig_index_vert[i] == ORIGINDEX_NONE))) {
       *flag = -1;
     }
     else if (!mr.select_vert.is_empty() && mr.select_vert[i]) {
@@ -189,6 +189,7 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
       &vbo, draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache));
 
   if (subdiv_cache.num_subdiv_loops == 0) {
+    extract_loose_positions_subdiv(subdiv_cache, mr, vbo);
     return;
   }
 

@@ -13,6 +13,7 @@
 #include "util/array.h"
 #include "util/log.h"
 #include "util/openimagedenoise.h"
+#include "util/path.h"
 
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/kernel.h"
@@ -21,10 +22,20 @@ CCL_NAMESPACE_BEGIN
 
 thread_mutex OIDNDenoiser::mutex_;
 
-OIDNDenoiser::OIDNDenoiser(Device *path_trace_device, const DenoiseParams &params)
-    : Denoiser(path_trace_device, params)
+OIDNDenoiser::OIDNDenoiser(Device *denoiser_device, const DenoiseParams &params)
+    : Denoiser(denoiser_device, params)
 {
   DCHECK_EQ(params.type, DENOISER_OPENIMAGEDENOISE);
+
+#ifndef WITH_OPENIMAGEDENOISE
+  (void)progress;
+  set_error("Failed to denoise, build has no OpenImageDenoise support");
+  return nullptr;
+#else
+  if (!openimagedenoise_supported()) {
+    set_error("OpenImageDenoiser is not supported on this CPU: missing SSE 4.1 support");
+  }
+#endif
 }
 
 #ifdef WITH_OPENIMAGEDENOISE
@@ -111,6 +122,13 @@ class OIDNDenoiseContext {
     if (denoise_params_.use_pass_normal) {
       oidn_normal_pass_ = OIDNPass(buffer_params_, "normal", PASS_DENOISING_NORMAL);
     }
+
+    const char *custom_weight_path = getenv("CYCLES_OIDN_CUSTOM_WEIGHTS");
+    if (custom_weight_path) {
+      if (!path_read_binary(custom_weight_path, custom_weights)) {
+        fprintf(stderr, "Cycles: Failed to load custom OIDN weights!");
+      }
+    }
   }
 
   bool need_denoising() const
@@ -164,6 +182,9 @@ class OIDNDenoiseContext {
     oidn_filter.setProgressMonitorFunction(oidn_progress_monitor_function, denoiser_);
     oidn_filter.set("hdr", true);
     oidn_filter.set("srgb", false);
+    if (custom_weights.size()) {
+      oidn_filter.setData("weights", custom_weights.data(), custom_weights.size());
+    }
     set_quality(oidn_filter);
 
     if (denoise_params_.prefilter == DENOISER_PREFILTER_NONE ||
@@ -546,6 +567,8 @@ class OIDNDenoiseContext {
   bool allow_inplace_modification_ = false;
   int pass_sample_count_ = PASS_UNUSED;
 
+  vector<uint8_t> custom_weights;
+
   /* Optional albedo and normal passes, reused by denoising of different pass types. */
   OIDNPass oidn_albedo_pass_;
   OIDNPass oidn_normal_pass_;
@@ -597,7 +620,7 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
                                   bool allow_inplace_modification)
 {
   DCHECK(openimagedenoise_supported())
-      << "OpenImageDenoiser is not supported on this platform or build.";
+      << "OpenImageDenoise is not supported on this platform or build.";
 
 #ifdef WITH_OPENIMAGEDENOISE
   thread_scoped_lock lock(mutex_);
@@ -647,23 +670,6 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
 uint OIDNDenoiser::get_device_type_mask() const
 {
   return DEVICE_MASK_CPU;
-}
-
-Device *OIDNDenoiser::ensure_denoiser_device(Progress *progress)
-{
-#ifndef WITH_OPENIMAGEDENOISE
-  (void)progress;
-  path_trace_device_->set_error("Failed to denoise, build has no OpenImageDenoise support");
-  return nullptr;
-#else
-  if (!openimagedenoise_supported()) {
-    path_trace_device_->set_error(
-        "OpenImageDenoiser is not supported on this CPU: missing SSE 4.1 support");
-    return nullptr;
-  }
-
-  return Denoiser::ensure_denoiser_device(progress);
-#endif
 }
 
 CCL_NAMESPACE_END

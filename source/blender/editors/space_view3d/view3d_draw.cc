@@ -571,7 +571,9 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* passepartout, specified in camera edit buttons */
-    if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001f) {
+    if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001f &&
+        v3d->flag2 & V3D_SHOW_CAMERA_PASSEPARTOUT)
+    {
       const float winx = (region->winx + 1);
       const float winy = (region->winy + 1);
 
@@ -614,7 +616,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
   }
 
   /* When overlays are disabled, only show camera outline & passepartout. */
-  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+  if (v3d->flag2 & V3D_HIDE_OVERLAYS || !(v3d->flag2 & V3D_SHOW_CAMERA_GUIDES)) {
     return;
   }
 
@@ -654,7 +656,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
   }
 
   /* safety border */
-  if (ca) {
+  if (ca && (v3d->flag2 & V3D_SHOW_CAMERA_GUIDES)) {
     GPU_blend(GPU_BLEND_ALPHA);
     immUniformThemeColorAlpha(TH_VIEW_OVERLAY, 0.75f);
 
@@ -2409,18 +2411,27 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   if (viewport != nullptr) {
     switch (mode) {
       case V3D_DEPTH_NO_OVERLAYS:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, false, false);
         break;
       case V3D_DEPTH_NO_GPENCIL:
-        DRW_draw_depth_loop(
-            depsgraph, region, v3d, viewport, false, true, (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0);
+        DRW_draw_depth_loop(depsgraph,
+                            region,
+                            v3d,
+                            viewport,
+                            false,
+                            true,
+                            (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0,
+                            false);
         break;
       case V3D_DEPTH_GPENCIL_ONLY:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false, false, false);
         break;
       case V3D_DEPTH_OBJECT_ONLY:
         DRW_draw_depth_object(
             scene, region, v3d, viewport, DEG_get_evaluated_object(depsgraph, obact));
+        break;
+      case V3D_DEPTH_SELECTED_ONLY:
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, false, true);
         break;
     }
 
@@ -2620,7 +2631,7 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   if (state.fps_average + 0.5f < state.fps_target) {
     /* Always show fractional when under performing. */
     show_fractional = true;
-    UI_FontThemeColor(font_id, TH_REDALERT);
+    BLF_color4ub(font_id, 225, 36, 36, 255);
   }
 
   if (show_fractional) {

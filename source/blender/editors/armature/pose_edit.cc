@@ -424,9 +424,9 @@ static int pose_clear_paths_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static std::string pose_clear_paths_description(bContext * /*C*/,
-                                                wmOperatorType * /*ot*/,
-                                                PointerRNA *ptr)
+static std::string pose_clear_paths_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
 {
   const bool only_selected = RNA_boolean_get(ptr, "only_selected");
   if (only_selected) {
@@ -444,7 +444,7 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = pose_clear_paths_exec;
   ot->poll = ED_operator_posemode_exclusive;
-  ot->get_description = pose_clear_paths_description;
+  ot->get_description = pose_clear_paths_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -788,13 +788,13 @@ void POSE_OT_reveal(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
-/* ********************************************** */
-/* Flip Quats */
+/* -------------------------------------------------------------------- */
+/** \name Flip Quaternions
+ * \{ */
 
 static int pose_flip_quats_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
-  KeyingSet *ks = ANIM_builtin_keyingset_get_named(ANIM_KS_LOC_ROT_SCALE_ID);
 
   bool changed_multi = false;
 
@@ -810,7 +810,8 @@ static int pose_flip_quats_exec(bContext *C, wmOperator * /*op*/)
         /* quaternions have 720 degree range */
         negate_v4(pchan->quat);
 
-        blender::animrig::autokeyframe_pchan(C, scene, ob_iter, pchan, ks);
+        blender::animrig::autokeyframe_pose_channel(
+            C, scene, ob_iter, pchan, {{"rotation_quaternion"}}, false);
       }
     }
     FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
@@ -830,7 +831,7 @@ static int pose_flip_quats_exec(bContext *C, wmOperator * /*op*/)
 void POSE_OT_quaternions_flip(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Flip Quats";
+  ot->name = "Flip Quaternions";
   ot->idname = "POSE_OT_quaternions_flip";
   ot->description =
       "Flip quaternion values to achieve desired rotations, while maintaining the same "
@@ -843,3 +844,5 @@ void POSE_OT_quaternions_flip(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */

@@ -416,7 +416,7 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
   for (size_t i = 0; i < devices.size(); i++) {
     DeviceInfo &device = devices[i];
     string type_name = Device::string_from_type(device.type);
-    PyObject *device_tuple = PyTuple_New(6);
+    PyObject *device_tuple = PyTuple_New(7);
     PyTuple_SET_ITEM(device_tuple, 0, pyunicode_from_string(device.description.c_str()));
     PyTuple_SET_ITEM(device_tuple, 1, pyunicode_from_string(type_name.c_str()));
     PyTuple_SET_ITEM(device_tuple, 2, pyunicode_from_string(device.id.c_str()));
@@ -424,6 +424,7 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
     PyTuple_SET_ITEM(device_tuple, 4, PyBool_FromLong(device.use_hardware_raytracing));
     PyTuple_SET_ITEM(
         device_tuple, 5, PyBool_FromLong(device.denoisers & DENOISER_OPENIMAGEDENOISE));
+    PyTuple_SET_ITEM(device_tuple, 6, PyBool_FromLong(device.denoisers & DENOISER_OPTIX));
     PyTuple_SET_ITEM(ret, i, device_tuple);
   }
 
@@ -751,14 +752,17 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   PointerRNA sceneptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene));
   BL::Scene b_scene(sceneptr);
 
-  DeviceInfo device = blender_device_info(b_preferences, b_scene, true, true);
+  DeviceInfo preferences_device;
+  DeviceInfo pathtrace_device = blender_device_info(
+      b_preferences, b_scene, true, true, preferences_device);
 
   /* Get denoising parameters from view layer. */
   PointerRNA viewlayerptr = RNA_pointer_create(
       (ID *)PyLong_AsVoidPtr(pyscene), &RNA_ViewLayer, PyLong_AsVoidPtr(pyviewlayer));
   BL::ViewLayer b_view_layer(viewlayerptr);
 
-  DenoiseParams params = BlenderSync::get_denoise_params(b_scene, b_view_layer, true, device);
+  DenoiseParams params = BlenderSync::get_denoise_params(
+      b_scene, b_view_layer, true, preferences_device);
   params.use = true;
 
   /* Parse file paths list. */
@@ -787,7 +791,10 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   }
 
   /* Create denoiser. */
-  DenoiserPipeline denoiser(device, params);
+  /* We are using preference device here, because path trace device will be identical to it unless
+   * scene is setting CPU render or command line override render device. But both of this options
+   * are for render, not for denoising. */
+  DenoiserPipeline denoiser(preferences_device, params);
   denoiser.input = input;
   denoiser.output = output;
 

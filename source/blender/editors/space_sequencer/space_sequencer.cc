@@ -30,6 +30,7 @@
 
 #include "ED_markers.hh"
 #include "ED_screen.hh"
+#include "ED_sequencer.hh"
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
 #include "ED_transform.hh"
@@ -39,6 +40,7 @@
 #include "WM_api.hh"
 #include "WM_message.hh"
 
+#include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
@@ -645,6 +647,92 @@ static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscri
   }
 }
 
+static bool is_mouse_over_retiming_key(const Scene *scene,
+                                       const Sequence *seq,
+                                       const View2D *v2d,
+                                       const ScrArea *area,
+                                       float mouse_co_region[2])
+{
+  const SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+
+  if (!SEQ_retiming_data_is_editable(seq) || !retiming_keys_are_visible(sseq)) {
+    return false;
+  }
+
+  rctf retiming_keys_box = seq_retiming_keys_box_get(scene, v2d, seq);
+  return BLI_rctf_isect_pt_v(&retiming_keys_box, mouse_co_region);
+}
+
+static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
+{
+  int wmcursor = WM_CURSOR_DEFAULT;
+
+  const bToolRef *tref = area->runtime.tool;
+  if (!STREQ(tref->idname, "builtin.select")) {
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
+
+  rcti scrub_rect = region->winrct;
+  scrub_rect.ymin = scrub_rect.ymax - UI_TIME_SCRUB_MARGIN_Y;
+  if (BLI_rcti_isect_pt_v(&scrub_rect, win->eventstate->xy)) {
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
+
+  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
+
+  float mouse_co_region[2] = {float(win->eventstate->xy[0] - region->winrct.xmin),
+                              float(win->eventstate->xy[1] - region->winrct.ymin)};
+  float mouse_co_view[2];
+  UI_view2d_region_to_view(
+      &region->v2d, mouse_co_region[0], mouse_co_region[1], &mouse_co_view[0], &mouse_co_view[1]);
+
+  const Scene *scene = win->scene;
+  const Editing *ed = SEQ_editing_get(scene);
+
+  if (ed == NULL) {
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
+
+  StripSelection selection = ED_sequencer_pick_strip_and_handle(
+      scene, &region->v2d, mouse_co_view);
+
+  if (selection.seq1 == nullptr) {
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
+
+  if (is_mouse_over_retiming_key(scene, selection.seq1, &region->v2d, area, mouse_co_region)) {
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
+
+  const View2D *v2d = &region->v2d;
+  const float scale_y = UI_view2d_scale_get_y(v2d);
+
+  if (!ED_sequencer_can_select_handle(scene, selection.seq1, v2d) || scale_y < 16 * U.pixelsize) {
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
+
+  if (selection.seq1 != nullptr && selection.seq2 != nullptr) {
+    wmcursor = WM_CURSOR_BOTH_HANDLES;
+  }
+  else if (selection.handle == SEQ_HANDLE_LEFT) {
+    wmcursor = WM_CURSOR_LEFT_HANDLE;
+  }
+  else if (selection.handle == SEQ_HANDLE_RIGHT) {
+    wmcursor = WM_CURSOR_RIGHT_HANDLE;
+  }
+
+  WM_cursor_set(win, wmcursor);
+}
+
 /* *********************** header region ************************ */
 /* Add handlers, stuff you only do once or on area/region changes. */
 static void sequencer_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
@@ -920,7 +1008,7 @@ static void sequencer_id_remap(ScrArea * /*area*/,
 static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 {
   SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(space_link);
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sseq->gpd, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sseq->gpd, IDWALK_CB_USER | IDWALK_CB_DIRECT_WEAK_LINK);
 }
 
 /* ************************************* */
@@ -1014,6 +1102,9 @@ void ED_spacetype_sequencer()
   art->message_subscribe = sequencer_main_region_message_subscribe;
   art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |
                     ED_KEYMAP_ANIMATION;
+  art->cursor = sequencer_main_cursor;
+  art->event_cursor = true;
+  art->clip_gizmo_events_by_ui = true;
   BLI_addhead(&st->regiontypes, art);
 
   /* Preview. */

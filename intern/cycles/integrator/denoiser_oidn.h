@@ -17,7 +17,7 @@ class OIDNDenoiser : public Denoiser {
    * OpenImageDenoise device and filter handles. */
   class State;
 
-  OIDNDenoiser(Device *path_trace_device, const DenoiseParams &params);
+  OIDNDenoiser(Device *denoiser_device, const DenoiseParams &params);
 
   virtual bool denoise_buffer(const BufferParams &buffer_params,
                               RenderBuffers *render_buffers,
@@ -26,7 +26,6 @@ class OIDNDenoiser : public Denoiser {
 
  protected:
   virtual uint get_device_type_mask() const override;
-  virtual Device *ensure_denoiser_device(Progress *progress) override;
 
   /* We only perform one denoising at a time, since OpenImageDenoise itself is multithreaded.
    * Use this mutex whenever images are passed to the OIDN and needs to be denoised. */

@@ -33,7 +33,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
@@ -207,6 +207,8 @@ static void do_draw_face_sets_brush_faces(Object &ob,
   const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
 
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -231,12 +233,10 @@ static void do_draw_face_sets_brush_faces(Object &ob,
         auto_mask::node_update(automask_data, vd);
 
         for (const int face_i : ss.vert_to_face_map[vd.index]) {
-          const IndexRange face = ss.faces[face_i];
+          const IndexRange face = faces[face_i];
+          const float3 center = bke::mesh::face_center_calc(positions, corner_verts.slice(face));
 
-          const float3 poly_center = bke::mesh::face_center_calc(positions,
-                                                                 ss.corner_verts.slice(face));
-
-          if (!sculpt_brush_test_sq_fn(test, poly_center)) {
+          if (!sculpt_brush_test_sq_fn(test, center)) {
             continue;
           }
           if (!hide_poly.is_empty() && hide_poly[face_i]) {
@@ -672,9 +672,15 @@ static int create_op_exec(bContext *C, wmOperator *op)
     case CreateMode::Selection: {
       const VArraySpan<bool> select_poly = *attributes.lookup_or_default<bool>(
           ".select_poly", bke::AttrDomain::Face, false);
+      const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
+                                                                  bke::AttrDomain::Face);
+
       face_sets_update(object, nodes, [&](const Span<int> indices, MutableSpan<int> face_sets) {
         for (const int i : indices.index_range()) {
           if (select_poly[indices[i]]) {
+            if (!hide_poly.is_empty() && hide_poly[i]) {
+              continue;
+            }
             face_sets[i] = next_face_set;
           }
         }
@@ -759,14 +765,24 @@ static void init_flood_fill(Object &ob, const FaceSetsFloodFillFn &test_fn)
         faces, corner_edges, edges.size(), ss.edge_to_face_offsets, ss.edge_to_face_indices);
   }
 
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  const Set<int> hidden_face_sets = gather_hidden_face_sets(hide_poly, face_sets.span);
+
   int next_face_set = 1;
 
   for (const int i : faces.index_range()) {
+    if (!hide_poly.is_empty() && hide_poly[i]) {
+      continue;
+    }
     if (visited_faces[i]) {
       continue;
     }
     std::queue<int> queue;
 
+    while (hidden_face_sets.contains(next_face_set)) {
+      next_face_set += 1;
+    }
     face_sets.span[i] = next_face_set;
     visited_faces[i].set(true);
     queue.push(i);
@@ -781,6 +797,9 @@ static void init_flood_fill(Object &ob, const FaceSetsFloodFillFn &test_fn)
             continue;
           }
           if (visited_faces[neighbor_i]) {
+            continue;
+          }
+          if (!hide_poly.is_empty() && hide_poly[neighbor_i]) {
             continue;
           }
           if (!test_fn(face_i, edge_i, neighbor_i)) {
@@ -798,6 +817,22 @@ static void init_flood_fill(Object &ob, const FaceSetsFloodFillFn &test_fn)
   }
 
   face_sets.finish();
+}
+
+Set<int> gather_hidden_face_sets(const Span<bool> hide_poly, const Span<int> face_sets)
+{
+  if (hide_poly.is_empty()) {
+    return {};
+  }
+
+  Set<int> hidden_face_sets;
+  for (const int i : hide_poly.index_range()) {
+    if (hide_poly[i]) {
+      hidden_face_sets.add(face_sets[i]);
+    }
+  }
+
+  return hidden_face_sets;
 }
 
 static int init_op_exec(bContext *C, wmOperator *op)
@@ -851,8 +886,25 @@ static int init_op_exec(bContext *C, wmOperator *op)
       bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(ob);
       const VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
           "material_index", bke::AttrDomain::Face, 0);
+      const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
+                                                                  bke::AttrDomain::Face);
+      const Set<int> hidden_face_sets = gather_hidden_face_sets(hide_poly, face_sets.span);
+
+      int prev_material = material_indices[0];
+      int material_face_set = 1;
       for (const int i : IndexRange(mesh->faces_num)) {
-        face_sets.span[i] = material_indices[i] + 1;
+        if (!hide_poly.is_empty() && hide_poly[i]) {
+          continue;
+        }
+        if (prev_material != material_indices[i]) {
+          material_face_set += 1;
+        }
+        while (hidden_face_sets.contains(material_face_set)) {
+          material_face_set += 1;
+        }
+
+        face_sets.span[i] = material_face_set;
+        prev_material = material_indices[i];
       }
       face_sets.finish();
       break;
@@ -1656,7 +1708,7 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
 
   ot->prop = RNA_def_boolean(ot->srna,
                              "modify_hidden",
-                             true,
+                             false,
                              "Modify Hidden",
                              "Apply the edit operation to hidden geometry");
 }
@@ -1840,21 +1892,65 @@ static int gesture_lasso_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
+static int gesture_line_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return WM_gesture_straightline_active_side_invoke(C, op, event);
+}
+
+static int gesture_line_exec(bContext *C, wmOperator *op)
+{
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_line(C, op);
+  if (!gesture_data) {
+    return OPERATOR_CANCELLED;
+  }
+  init_operation(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
+  return OPERATOR_FINISHED;
+}
+
+static int gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return WM_gesture_polyline_invoke(C, op, event);
+}
+
+static int gesture_polyline_exec(bContext *C, wmOperator *op)
+{
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_polyline(C, op);
+  if (!gesture_data) {
+    return OPERATOR_CANCELLED;
+  }
+  init_operation(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
+  return OPERATOR_FINISHED;
+}
+
+void SCULPT_OT_face_set_polyline_gesture(wmOperatorType *ot)
 {
   ot->name = "Face Set Lasso Gesture";
-  ot->idname = "SCULPT_OT_face_set_lasso_gesture";
+  ot->idname = "SCULPT_OT_face_set_polyline_gesture";
   ot->description = "Add a face set in a shape defined by the cursor";
 
-  ot->invoke = gesture_lasso_invoke;
-  ot->modal = WM_gesture_lasso_modal;
-  ot->exec = gesture_lasso_exec;
+  ot->invoke = gesture_polyline_invoke;
+  ot->modal = WM_gesture_polyline_modal;
+  ot->exec = gesture_polyline_exec;
 
   ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
 
-  WM_operator_properties_gesture_lasso(ot);
+  WM_operator_properties_gesture_polyline(ot);
   gesture::operator_properties(ot, gesture::ShapeType::Lasso);
 }
 
@@ -1874,6 +1970,42 @@ void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
 
   WM_operator_properties_border(ot);
   gesture::operator_properties(ot, gesture::ShapeType::Box);
+}
+
+void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
+{
+  ot->name = "Face Set Lasso Gesture";
+  ot->idname = "SCULPT_OT_face_set_lasso_gesture";
+  ot->description = "Add a face set in a shape defined by the cursor";
+
+  ot->invoke = gesture_lasso_invoke;
+  ot->modal = WM_gesture_lasso_modal;
+  ot->exec = gesture_lasso_exec;
+
+  ot->poll = SCULPT_mode_poll_view3d;
+
+  ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
+
+  WM_operator_properties_gesture_lasso(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Lasso);
+}
+
+void SCULPT_OT_face_set_line_gesture(wmOperatorType *ot)
+{
+  ot->name = "Face Set Line Gesture";
+  ot->idname = "SCULPT_OT_face_set_line_gesture";
+  ot->description = "Add a face set to one side of a line defined by the cursor";
+
+  ot->invoke = gesture_line_invoke;
+  ot->modal = WM_gesture_straightline_oneshot_modal;
+  ot->exec = gesture_line_exec;
+
+  ot->poll = SCULPT_mode_poll_view3d;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
+  gesture::operator_properties(ot, gesture::ShapeType::Line);
 }
 /** \} */
 

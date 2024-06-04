@@ -6,6 +6,8 @@
  * \ingroup render
  */
 
+#include <fmt/format.h>
+
 #include <cerrno>
 #include <climits>
 #include <cmath>
@@ -30,6 +32,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -63,7 +66,6 @@
 
 #include "NOD_composite.hh"
 
-#include "COM_profile.hh"
 #include "COM_render_context.hh"
 
 #include "DEG_depsgraph.hh"
@@ -128,6 +130,12 @@
 /* here we store all renders */
 static struct {
   std::forward_list<Render *> render_list;
+  /* Special renders that can be used for interactive compositing, each scene has its own render,
+   * keyed with the scene name returned from scene_render_name_get and matches the same name in
+   * render_list. Those renders are separate from standard renders because the GPU context can't be
+   * bound for compositing and rendering at the same time, so those renders are essentially used to
+   * get a persistent dedicated GPU context to interactive compositor execution. */
+  blender::Map<std::string, Render *> interactive_compositor_renders;
 } RenderGlobal;
 
 /** \} */
@@ -136,12 +144,12 @@ static struct {
 /** \name Callbacks
  * \{ */
 
-static void render_callback_exec_null(Render *re, Main *bmain, eCbEvent evt)
+static void render_callback_exec_string(Render *re, Main *bmain, eCbEvent evt, const char *str)
 {
   if (re->r.scemode & R_BUTS_PREVIEW) {
     return;
   }
-  BKE_callback_exec_null(bmain, evt);
+  BKE_callback_exec_string(bmain, evt, str);
 }
 
 static void render_callback_exec_id(Render *re, Main *bmain, ID *id, eCbEvent evt)
@@ -206,27 +214,33 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
   BLI_mutex_lock(&mutex);
 
-  fprintf(stdout,
-          RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) "),
-          rs->cfra,
-          megs_used_memory,
-          megs_peak_memory);
-
-  fprintf(stdout, RPT_("| Time:%s | "), info_time_str);
-
-  fprintf(stdout, "%s", rs->infostr);
+  char *message = BLI_sprintfN(RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) | Time:%s | %s"),
+                               rs->cfra,
+                               megs_used_memory,
+                               megs_peak_memory,
+                               info_time_str,
+                               rs->infostr);
+  fprintf(stdout, "%s\n", message);
 
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
-  BKE_callback_exec_null(G_MAIN, BKE_CB_EVT_RENDER_STATS);
+  BKE_callback_exec_string(G_MAIN, BKE_CB_EVT_RENDER_STATS, message);
 
-  fputc('\n', stdout);
   fflush(stdout);
 
+  MEM_freeN(message);
+
   BLI_mutex_unlock(&mutex);
+}
+
+void RE_ReferenceRenderResult(RenderResult *rr)
+{
+  /* There is no need to lock as the user-counted render results are protected by mutex at the
+   * higher call stack level. */
+  ++rr->user_counter;
 }
 
 void RE_FreeRenderResult(RenderResult *rr)
@@ -546,6 +560,19 @@ Render *RE_NewSceneRender(const Scene *scene)
   return RE_NewRender(render_name);
 }
 
+Render *RE_NewInteractiveCompositorRender(const Scene *scene)
+{
+  char render_name[MAX_SCENE_RENDER_NAME];
+  scene_render_name_get(scene, sizeof(render_name), render_name);
+
+  return RenderGlobal.interactive_compositor_renders.lookup_or_add_cb(render_name, [&]() {
+    Render *render = MEM_new<Render>("New Interactive Compositor Render");
+    STRNCPY(render->name, render_name);
+    RE_InitRenderCB(render);
+    return render;
+  });
+}
+
 void RE_InitRenderCB(Render *re)
 {
   /* set default empty callbacks */
@@ -584,6 +611,11 @@ void RE_FreeAllRender()
   while (!RenderGlobal.render_list.empty()) {
     RE_FreeRender(static_cast<Render *>(RenderGlobal.render_list.front()));
   }
+
+  for (Render *render : RenderGlobal.interactive_compositor_renders.values()) {
+    RE_FreeRender(render);
+  }
+  RenderGlobal.interactive_compositor_renders.clear();
 
 #ifdef WITH_FREESTYLE
   /* finalize Freestyle */
@@ -695,6 +727,16 @@ void RE_FreeUnusedGPUResources()
       re_gpu_texture_caches_free(re);
       RE_blender_gpu_context_free(re);
       RE_system_gpu_context_free(re);
+
+      /* We also free the resources from the interactive compositor render of the scene if one
+       * exists. */
+      Render *interactive_compositor_render =
+          RenderGlobal.interactive_compositor_renders.lookup_default(re->name, nullptr);
+      if (interactive_compositor_render) {
+        re_gpu_texture_caches_free(interactive_compositor_render);
+        RE_blender_gpu_context_free(interactive_compositor_render);
+        RE_system_gpu_context_free(interactive_compositor_render);
+      }
     }
   }
 }
@@ -826,6 +868,9 @@ void RE_InitState(Render *re,
   if (single_layer) {
     STRNCPY(re->single_view_layer, single_layer->name);
     re->r.scemode |= R_SINGLE_LAYER;
+  }
+  else {
+    re->r.scemode &= ~R_SINGLE_LAYER;
   }
 
   /* if preview render, we try to keep old result */
@@ -1299,7 +1344,6 @@ static void do_render_compositor(Render *re)
         }
 
         blender::realtime_compositor::RenderContext compositor_render_context;
-        blender::compositor::ProfilerData profiler_data;
         LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
           ntreeCompositExecTree(re,
                                 re->pipeline_scene_eval,
@@ -1307,7 +1351,7 @@ static void do_render_compositor(Render *re)
                                 &re->r,
                                 rv->name,
                                 &compositor_render_context,
-                                profiler_data);
+                                nullptr);
         }
         compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
 
@@ -2208,20 +2252,20 @@ static bool do_write_image_or_movie(Render *re,
   re->i.lastframetime = BLI_time_now_seconds() - re->i.starttime;
 
   BLI_timecode_string_from_time_simple(filepath, sizeof(filepath), re->i.lastframetime);
-  printf("Time: %s", filepath);
+  std::string message = fmt::format("Time: {}", filepath);
 
+  if (do_write_file) {
+    BLI_timecode_string_from_time_simple(
+        filepath, sizeof(filepath), re->i.lastframetime - render_time);
+    message = fmt::format("{} (Saving: {})", message, filepath);
+  }
+  printf("%s\n", message.c_str());
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
-  render_callback_exec_null(re, G_MAIN, BKE_CB_EVT_RENDER_STATS);
-
-  if (do_write_file) {
-    BLI_timecode_string_from_time_simple(
-        filepath, sizeof(filepath), re->i.lastframetime - render_time);
-    printf(" (Saving: %s)\n", filepath);
-  }
+  render_callback_exec_string(re, G_MAIN, BKE_CB_EVT_RENDER_STATS, message.c_str());
 
   fputc('\n', stdout);
   fflush(stdout);

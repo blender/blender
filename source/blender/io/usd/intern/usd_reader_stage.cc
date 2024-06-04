@@ -181,6 +181,10 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   if (params_.import_meshes && prim.IsA<pxr::UsdGeomMesh>()) {
     return new USDMeshReader(prim, params_, settings_);
   }
+  if (params_.import_lights && prim.IsA<pxr::UsdLuxDomeLight>()) {
+    /* Dome lights are handled elsewhere. */
+    return nullptr;
+  }
 #if PXR_VERSION >= 2111
   if (params_.import_lights &&
       (prim.IsA<pxr::UsdLuxBoundableLightBase>() || prim.IsA<pxr::UsdLuxNonboundableLightBase>()))
@@ -225,6 +229,10 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
   }
   if (prim.IsA<pxr::UsdGeomMesh>()) {
     return new USDMeshReader(prim, params_, settings_);
+  }
+  if (prim.IsA<pxr::UsdLuxDomeLight>()) {
+    /* We don't handle dome lights. */
+    return nullptr;
   }
 #if PXR_VERSION >= 2111
   if (prim.IsA<pxr::UsdLuxBoundableLightBase>() || prim.IsA<pxr::UsdLuxNonboundableLightBase>()) {
@@ -364,14 +372,18 @@ USDPrimReader *USDStageReader::collect_readers(const pxr::UsdPrim &prim,
     }
   }
 
+  if (prim.IsA<pxr::UsdLuxDomeLight>()) {
+    dome_lights_.append(pxr::UsdLuxDomeLight(prim));
+  }
+
   pxr::Usd_PrimFlagsConjunction filter_flags = pxr::UsdPrimIsActive && pxr::UsdPrimIsLoaded &&
                                                !pxr::UsdPrimIsAbstract;
+
   if (defined_prims_only) {
     filter_flags &= pxr::UsdPrimIsDefined;
   }
 
   pxr::Usd_PrimFlagsPredicate filter_predicate(filter_flags);
-
   if (!params_.support_scene_instancing) {
     filter_predicate = pxr::UsdTraverseInstanceProxies(filter_predicate);
   }
@@ -446,6 +458,7 @@ void USDStageReader::collect_readers()
   }
 
   clear_readers();
+  dome_lights_.clear();
 
   /* Identify paths to point instancer prototypes, as these will be converted
    * in a separate pass over the stage. */
@@ -457,7 +470,7 @@ void USDStageReader::collect_readers()
   stage_->SetInterpolationType(pxr::UsdInterpolationType::UsdInterpolationTypeHeld);
 
   /* Create readers, skipping over prototype prims in this pass. */
-  collect_readers(root, instancer_proto_paths, true, readers_);
+  collect_readers(root, instancer_proto_paths, params_.import_defined_only, readers_);
 
   if (params_.support_scene_instancing) {
     /* Collect the scene-graph instance prototypes. */

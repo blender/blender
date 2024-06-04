@@ -101,6 +101,17 @@ typedef struct RenderLayer {
 typedef struct RenderResult {
   struct RenderResult *next, *prev;
 
+  /* The number of users of this render result. Default value is 0. The result is freed when
+   * #RE_FreeRenderResult is called with the render result with 0 users. In a way this is
+   * off-by-one, but it is the easiest for the currently used zero-initialized state. The way to
+   * think of it is the number of extra users.
+   *
+   * TODO: Make it an actual number of users, so the #RE_FreeRenderResult frees the result when
+   * the number of users goes to 0.
+   *
+   * TODO: Make it atomic. Currently it is not to allow shallow copying. */
+  int user_counter;
+
   /* target image size */
   int rectx, recty;
 
@@ -163,6 +174,11 @@ struct Render *RE_GetSceneRender(const struct Scene *scene);
 struct RenderEngineType;
 struct ViewRender *RE_NewViewRender(struct RenderEngineType *engine_type);
 
+/* Creates a new render for interactive compositing of the given scene. If an existing render
+ * exists for the given scene, it is returned instead. See interactive_compositor_renders in
+ * RenderGlobal for more information. */
+struct Render *RE_NewInteractiveCompositorRender(const struct Scene *scene);
+
 /* Assign default dummy callbacks. */
 
 /**
@@ -218,6 +234,7 @@ void RE_FreeRenderResult(struct RenderResult *rr);
  */
 struct RenderResult *RE_AcquireResultRead(struct Render *re);
 struct RenderResult *RE_AcquireResultWrite(struct Render *re);
+void RE_ReferenceRenderResult(struct RenderResult *rr);
 void RE_ReleaseResult(struct Render *re);
 /**
  * Same as #RE_AcquireResultImage but creating the necessary views to store the result

@@ -148,7 +148,7 @@ static void script_main_region_listener(const wmRegionListenerParams * /*params*
 static void script_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 {
   SpaceScript *scpt = reinterpret_cast<SpaceScript *>(space_link);
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scpt->script, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scpt->script, IDWALK_CB_DIRECT_WEAK_LINK);
 }
 
 static void script_space_blend_read_after_liblink(BlendLibReader * /*reader*/,

@@ -586,6 +586,7 @@ class I18nMessages:
             if (not sm.msgstr or replace or (sm.is_fuzzy and (not m.is_fuzzy or replace))):
                 sm.msgstr = m.msgstr
                 sm.is_fuzzy = m.is_fuzzy
+                sm.comment_lines = m.comment_lines
 
     def update(self, ref, use_similar=None, keep_old_commented=True):
         """
@@ -626,7 +627,7 @@ class I18nMessages:
                     if skey not in similar_pool[msgid]:
                         skey = tuple(similar_pool[msgid])[0]
                     # We keep org translation and comments, and mark message as fuzzy.
-                    msg, refmsg = self.msgs[skey].copy(), ref.msgs[key]
+                    msg, refmsg = self.msgs[skey].copy(), ref.msgs[key].copy()
                     msg.msgctxt = refmsg.msgctxt
                     msg.msgid = refmsg.msgid
                     msg.sources = refmsg.sources
@@ -634,10 +635,10 @@ class I18nMessages:
                     msg.is_commented = refmsg.is_commented
                     msgs[key] = msg
                 else:
-                    msgs[key] = ref.msgs[key]
+                    msgs[key] = ref.msgs[key].copy()
         else:
             for key in new_keys:
-                msgs[key] = ref.msgs[key]
+                msgs[key] = ref.msgs[key].copy()
 
         # Add back all "old" and already commented messages as commented ones, if required
         # (and translation was not void!).
@@ -1486,7 +1487,7 @@ class I18n:
             translations = self.trans.keys() - {self.settings.PARSER_TEMPLATE_ID, self.settings.PARSER_PY_ID}
             if langs:
                 translations &= langs
-            translations = [('"' + lng + '"', " " * (len(lng) + 6), self.trans[lng]) for lng in sorted(translations)]
+            translations = [('"' + lng + '"', self.trans[lng]) for lng in sorted(translations)]
             print("Translated keys saved to .py file:")
             print(*(k for k in keys.keys()))
             for key in keys.keys():
@@ -1523,7 +1524,7 @@ class I18n:
                     else:
                         ret.append(tab + "  (" + ('"' + gen_comments[0] + '",' if gen_comments else "") + ")),")
                 # All languages
-                for lngstr, lngsp, trans in translations:
+                for lngstr, trans in translations:
                     if trans.msgs[key].is_commented:
                         continue
                     # Language code and translation.
@@ -1533,15 +1534,15 @@ class I18n:
                     for comment in trans.msgs[key].comment_lines:
                         if comment.startswith(self.settings.PO_COMMENT_PREFIX):
                             comments.append(comment[_lencomm:])
-                    ret.append(tab + lngsp + "(" + ("True" if trans.msgs[key].is_fuzzy else "False") + ",")
+                    ret.append(tab + "  (" + ("True" if trans.msgs[key].is_fuzzy else "False") + ",")
                     if len(comments) > 1:
-                        ret.append(tab + lngsp + ' ("' + comments[0] + '",')
-                        ret += [tab + lngsp + '  "' + s + '",' for s in comments[1:-1]]
-                        ret.append(tab + lngsp + '  "' + comments[-1] + '"))),')
+                        ret.append(tab + '   ("' + comments[0] + '",')
+                        ret += [tab * 2 + '"' + s + '",' for s in comments[1:-1]]
+                        ret.append(tab * 2 + '"' + comments[-1] + '"))),')
                     else:
                         ret[-1] = ret[-1] + " (" + (('"' + comments[0] + '",') if comments else "") + "))),"
 
-                ret.append(tab + "),")
+                ret.append("     " + "),")
             ret += [
                 ")",
                 "",

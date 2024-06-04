@@ -374,7 +374,8 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
                 row.active = enable_edit_value
                 row.prop(key, "eval_time")
 
-        layout.prop(ob, "add_rest_position_attribute")
+        if ob.type == 'MESH':
+            layout.prop(ob, "add_rest_position_attribute")
 
 
 class DATA_PT_uv_texture(MeshButtonsPanel, Panel):

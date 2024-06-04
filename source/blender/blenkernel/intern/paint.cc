@@ -45,7 +45,7 @@
 #include "BKE_asset_edit.hh"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
@@ -1724,14 +1724,6 @@ SculptSession::~SculptSession()
 
   if (this->tex_pool) {
     BKE_image_pool_free(this->tex_pool);
-  }
-
-  if (this->boundary_preview) {
-    MEM_SAFE_FREE(this->boundary_preview->verts);
-    MEM_SAFE_FREE(this->boundary_preview->edges);
-    MEM_SAFE_FREE(this->boundary_preview->distance);
-    MEM_SAFE_FREE(this->boundary_preview->edit_info);
-    MEM_SAFE_FREE(this->boundary_preview);
   }
 
   BKE_sculptsession_free_vwpaint_data(this);

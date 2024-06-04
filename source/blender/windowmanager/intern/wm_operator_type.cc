@@ -128,6 +128,7 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
 
+  BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot->idname, ot);
 }
 
@@ -317,24 +318,23 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
   wm_macro_start(op);
 
   LISTBASE_FOREACH (wmOperator *, opm, &op->macro) {
-    if (opm->type->exec) {
+    if (opm->type->exec == nullptr) {
+      CLOG_WARN(WM_LOG_OPERATORS, "'%s' can't exec macro", opm->type->idname);
+      continue;
+    }
 
-      opm->flag |= op_inherited_flag;
-      retval = opm->type->exec(C, opm);
-      opm->flag &= ~op_inherited_flag;
+    opm->flag |= op_inherited_flag;
+    retval = opm->type->exec(C, opm);
+    opm->flag &= ~op_inherited_flag;
 
-      OPERATOR_RETVAL_CHECK(retval);
+    OPERATOR_RETVAL_CHECK(retval);
 
-      if (retval & OPERATOR_FINISHED) {
-        MacroData *md = static_cast<MacroData *>(op->customdata);
-        md->retval = OPERATOR_FINISHED; /* Keep in mind that at least one operator finished. */
-      }
-      else {
-        break; /* Operator didn't finish, end macro. */
-      }
+    if (retval & OPERATOR_FINISHED) {
+      MacroData *md = static_cast<MacroData *>(op->customdata);
+      md->retval = OPERATOR_FINISHED; /* Keep in mind that at least one operator finished. */
     }
     else {
-      CLOG_WARN(WM_LOG_OPERATORS, "'%s' can't exec macro", opm->type->idname);
+      break; /* Operator didn't finish, end macro. */
     }
   }
 
@@ -503,6 +503,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   RNA_def_struct_translation_context(ot->srna, i18n_context);
   ot->translation_context = i18n_context;
 
+  BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot->idname, ot);
 
   return ot;
@@ -535,6 +536,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
 
+  BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot->idname, ot);
 }
 
@@ -551,13 +553,9 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 
   BLI_addtail(&ot->macro, otmacro);
 
-  {
-    /* Operator should always be found but in the event its not. don't segfault. */
-    wmOperatorType *otsub = WM_operatortype_find(idname, false);
-    if (otsub) {
-      RNA_def_pointer_runtime(
-          ot->srna, otsub->idname, otsub->srna, otsub->name, otsub->description);
-    }
+  /* Operator should always be found but in the event its not. don't segfault. */
+  if (wmOperatorType *otsub = WM_operatortype_find(idname, false)) {
+    RNA_def_pointer_runtime(ot->srna, otsub->idname, otsub->srna, otsub->name, otsub->description);
   }
 
   return otmacro;

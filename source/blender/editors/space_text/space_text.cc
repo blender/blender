@@ -400,7 +400,8 @@ static void text_id_remap(ScrArea * /*area*/,
 static void text_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 {
   SpaceText *st = reinterpret_cast<SpaceText *>(space_link);
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, st->text, IDWALK_CB_USER_ONE);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+      data, st->text, IDWALK_CB_USER_ONE | IDWALK_CB_DIRECT_WEAK_LINK);
 }
 
 static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)

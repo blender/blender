@@ -8,6 +8,7 @@
 
 #pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_shared_exponent_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
@@ -18,14 +19,15 @@
 void write_radiance_direct(int layer_index, ivec2 texel, vec3 radiance)
 {
   /* TODO(fclem): Layered texture. */
+  uint data = rgb9e5_encode(radiance);
   if (layer_index == 0) {
-    imageStore(direct_radiance_1_img, texel, vec4(radiance, 1.0));
+    imageStore(direct_radiance_1_img, texel, uvec4(data));
   }
   else if (layer_index == 1) {
-    imageStore(direct_radiance_2_img, texel, vec4(radiance, 1.0));
+    imageStore(direct_radiance_2_img, texel, uvec4(data));
   }
   else if (layer_index == 2) {
-    imageStore(direct_radiance_3_img, texel, vec4(radiance, 1.0));
+    imageStore(direct_radiance_3_img, texel, uvec4(data));
   }
 }
 

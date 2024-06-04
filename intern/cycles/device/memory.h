@@ -257,6 +257,7 @@ class device_memory {
   friend class OptiXDevice;
   friend class HIPDevice;
   friend class MetalDevice;
+  friend class OneapiDevice;
 
   /* Only create through subclasses. */
   device_memory(Device *device, const char *name, MemoryType type);

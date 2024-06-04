@@ -461,7 +461,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     const VArray<bool> cyclic = curves.cyclic();
     IndexMaskMemory memory;
     const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
-        object, info.drawing, memory);
+        object, info.drawing, info.layer_index, memory);
 
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
@@ -531,7 +531,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     const VArray<bool> cyclic = curves.cyclic();
     IndexMaskMemory memory;
     const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
-        object, info.drawing, memory);
+        object, info.drawing, info.layer_index, memory);
 
     /* Fill line indices. */
     editable_strokes.foreach_index([&](const int curve_i) {
@@ -749,7 +749,10 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                               GreasePencilColorVert &c_vert) {
       const float3 pos = math::transform_point(layer_space_to_object_space, positions[point_i]);
       copy_v3_v3(s_vert.pos, pos);
-      s_vert.radius = radii[point_i] * ((end_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
+      /* GP data itself does not constrain radii to be positive, but drawing code expects it, and
+       * use negative values as a special 'flag' to get rounded caps. */
+      s_vert.radius = math::max(radii[point_i], 0.0f) *
+                      ((end_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
       /* Convert to legacy "pixel" space. We divide here, because the shader expects the values to
        * be in the `px` space rather than world space. Otherwise the values will get clamped. */
       s_vert.radius /= bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;

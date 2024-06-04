@@ -11,6 +11,7 @@
 #include <cstring>
 #include <optional>
 
+#include "BKE_curves.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -96,6 +97,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
+
+#include "GEO_join_geometries.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -1583,6 +1586,7 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
   add_generic_props(ot, false);
 
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_gpencil_type_items, 0, "Type", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_boolean(ot->srna,
                   "use_in_front",
                   true,
@@ -1764,6 +1768,7 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_gpencil_type_items, 0, "Type", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_boolean(ot->srna,
                   "use_in_front",
                   true,
@@ -3012,6 +3017,38 @@ static const EnumPropertyItem convert_target_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem *convert_target_itemf(bContext *C,
+                                                    PointerRNA * /*ptr*/,
+                                                    PropertyRNA * /*prop*/,
+                                                    bool *r_free)
+{
+  if (!C) { /* needed for docs */
+    return convert_target_items;
+  }
+
+  EnumPropertyItem *item = nullptr;
+  int totitem = 0;
+
+  RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_MESH);
+  RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_CURVES_LEGACY);
+  RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_CURVES);
+  if (U.experimental.use_new_point_cloud_type) {
+    RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_POINTCLOUD);
+  }
+  if (U.experimental.use_grease_pencil_version3) {
+    RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_GREASE_PENCIL);
+  }
+  else {
+    RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_GPENCIL_LEGACY);
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+
+  *r_free = true;
+
+  return item;
+}
+
 static void object_data_convert_curve_to_mesh(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
@@ -3346,6 +3383,49 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         BKE_object_free_derived_caches(newob);
         BKE_object_free_modifiers(newob, 0);
       }
+      else if (geometry.has_grease_pencil()) {
+        if (keep_original) {
+          basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, nullptr);
+          newob = basen->object;
+
+          /* Decrement original curve's usage count. */
+          Curve *legacy_curve = static_cast<Curve *>(newob->data);
+          id_us_min(&legacy_curve->id);
+
+          /* Make a copy of the curve. */
+          newob->data = BKE_id_copy(bmain, &legacy_curve->id);
+        }
+        else {
+          newob = ob;
+        }
+
+        Curves *new_curves = static_cast<Curves *>(BKE_id_new(bmain, ID_CV, newob->id.name + 2));
+        newob->data = new_curves;
+        newob->type = OB_CURVES;
+
+        if (const Curves *curves_eval = geometry.get_curves()) {
+          new_curves->geometry.wrap() = curves_eval->geometry.wrap();
+          BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
+        }
+        else if (const GreasePencil *grease_pencil = geometry.get_grease_pencil()) {
+          const Vector<ed::greasepencil::DrawingInfo> drawings =
+              ed::greasepencil::retrieve_visible_drawings(*scene, *grease_pencil, false);
+          Array<bke::GeometrySet> geometries(drawings.size());
+          for (const int i : drawings.index_range()) {
+            Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+            curves_id->geometry.wrap() = drawings[i].drawing.strokes();
+            geometries[i] = bke::GeometrySet::from_curves(curves_id);
+          }
+          bke::GeometrySet joined_curves = geometry::join_geometries(geometries, {});
+
+          new_curves->geometry.wrap() = joined_curves.get_curves()->geometry.wrap();
+          new_curves->geometry.wrap().tag_topology_changed();
+          BKE_object_material_from_eval_data(bmain, newob, &joined_curves.get_curves()->id);
+        }
+
+        BKE_object_free_derived_caches(newob);
+        BKE_object_free_modifiers(newob, 0);
+      }
       else {
         BKE_reportf(
             op->reports, RPT_WARNING, "Object '%s' has no evaluated curves data", ob->id.name + 2);
@@ -3658,6 +3738,62 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       BKE_object_free_derived_caches(newob);
       BKE_object_free_modifiers(newob, 0);
     }
+    else if (ob->type == OB_CURVES && target == OB_GREASE_PENCIL) {
+      ob->flag |= OB_DONE;
+
+      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      bke::GeometrySet geometry;
+      if (ob_eval->runtime->geometry_set_eval != nullptr) {
+        geometry = *ob_eval->runtime->geometry_set_eval;
+      }
+
+      if (keep_original) {
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, nullptr);
+        newob = basen->object;
+
+        Curves *curves = static_cast<Curves *>(newob->data);
+        id_us_min(&curves->id);
+
+        newob->data = BKE_id_copy(bmain, &curves->id);
+      }
+      else {
+        newob = ob;
+      }
+
+      GreasePencil *new_grease_pencil = static_cast<GreasePencil *>(
+          BKE_id_new(bmain, ID_GP, newob->id.name + 2));
+      newob->data = new_grease_pencil;
+      newob->type = OB_GREASE_PENCIL;
+
+      if (const GreasePencil *grease_pencil_eval = geometry.get_grease_pencil()) {
+        BKE_grease_pencil_nomain_to_grease_pencil(
+            BKE_grease_pencil_copy_for_eval(grease_pencil_eval), new_grease_pencil);
+        BKE_object_material_from_eval_data(bmain, newob, &grease_pencil_eval->id);
+        new_grease_pencil->attributes_for_write().remove_anonymous();
+      }
+      else if (const Curves *curves_eval = geometry.get_curves()) {
+        GreasePencil *grease_pencil = BKE_grease_pencil_new_nomain();
+        /* Insert a default layer and place the drawing on frame 1. */
+        const std::string layer_name = "Layer";
+        const int frame_number = 1;
+        bke::greasepencil::Layer &layer = grease_pencil->add_layer(layer_name);
+        bke::greasepencil::Drawing *drawing = grease_pencil->insert_frame(layer, frame_number);
+        BLI_assert(drawing != nullptr);
+        drawing->strokes_for_write() = curves_eval->geometry.wrap();
+
+        BKE_grease_pencil_nomain_to_grease_pencil(grease_pencil, new_grease_pencil);
+        BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
+      }
+      else {
+        BKE_reportf(op->reports,
+                    RPT_WARNING,
+                    "Object '%s' has no evaluated grease pencil or curves data",
+                    ob->id.name + 2);
+      }
+
+      BKE_object_free_derived_caches(newob);
+      BKE_object_free_modifiers(newob, 0);
+    }
     else {
       continue;
     }
@@ -3807,8 +3943,10 @@ void OBJECT_OT_convert(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_enum(
+  ot->prop = prop = RNA_def_enum(
       ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
+  RNA_def_enum_funcs(prop, convert_target_itemf);
+
   prop = RNA_def_boolean(ot->srna,
                          "keep_original",
                          false,

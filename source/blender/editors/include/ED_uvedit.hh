@@ -82,8 +82,8 @@ bool ED_uvedit_test(Object *obedit);
 bool uvedit_face_visible_test_ex(const ToolSettings *ts, BMFace *efa);
 bool uvedit_face_select_test_ex(const ToolSettings *ts, BMFace *efa, BMUVOffsets offsets);
 
-bool uvedit_edge_select_test_ex(const ToolSettings *ts, BMLoop *l, BMUVOffsets offsets);
-bool uvedit_uv_select_test_ex(const ToolSettings *ts, BMLoop *l, BMUVOffsets offsets);
+bool uvedit_edge_select_test_ex(const ToolSettings *ts, const BMLoop *l, BMUVOffsets offsets);
+bool uvedit_uv_select_test_ex(const ToolSettings *ts, const BMLoop *l, BMUVOffsets offsets);
 
 bool uvedit_face_visible_test(const Scene *scene, BMFace *efa);
 bool uvedit_face_select_test(const Scene *scene, BMFace *efa, BMUVOffsets offsets);

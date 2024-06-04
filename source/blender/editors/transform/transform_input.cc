@@ -10,6 +10,8 @@
 #include <cstdlib>
 
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_context.hh"
 
@@ -21,6 +23,11 @@
 
 #include "transform.hh"
 #include "transform_mode.hh"
+
+#include "ED_sequencer.hh"
+
+#include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -288,6 +295,60 @@ static void calcSpringFactor(MouseInput *mi)
   }
 }
 
+static int transform_seq_slide_strip_cursor_get(const Sequence *seq)
+{
+  if ((seq->flag & SEQ_LEFTSEL) != 0) {
+    return WM_CURSOR_LEFT_HANDLE;
+  }
+  if ((seq->flag & SEQ_RIGHTSEL) != 0) {
+    return WM_CURSOR_RIGHT_HANDLE;
+  }
+  return WM_CURSOR_NSEW_SCROLL;
+}
+
+static int transform_seq_slide_cursor_get(TransInfo *t)
+{
+  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
+    return WM_CURSOR_NSEW_SCROLL;
+  }
+
+  const Scene *scene = t->scene;
+  blender::VectorSet<Sequence *> strips = ED_sequencer_selected_strips_from_context(t->context);
+
+  if (strips.size() == 1) {
+    return transform_seq_slide_strip_cursor_get(strips[0]);
+  }
+  if (strips.size() == 2) {
+    Sequence *seq1 = strips[0];
+    Sequence *seq2 = strips[1];
+
+    if (SEQ_time_left_handle_frame_get(scene, seq1) > SEQ_time_left_handle_frame_get(scene, seq2))
+    {
+      SWAP(Sequence *, seq1, seq2);
+    }
+
+    if (seq1->machine != seq2->machine) {
+      return WM_CURSOR_NSEW_SCROLL;
+    }
+
+    const Scene *scene = t->scene;
+    if (SEQ_time_right_handle_frame_get(scene, seq1) !=
+        SEQ_time_left_handle_frame_get(scene, seq2))
+    {
+      return WM_CURSOR_NSEW_SCROLL;
+    }
+
+    const int cursor1 = transform_seq_slide_strip_cursor_get(seq1);
+    const int cursor2 = transform_seq_slide_strip_cursor_get(seq2);
+
+    if (cursor1 == WM_CURSOR_RIGHT_HANDLE && cursor2 == WM_CURSOR_LEFT_HANDLE) {
+      return WM_CURSOR_BOTH_HANDLES;
+    }
+  }
+
+  return WM_CURSOR_NSEW_SCROLL;
+}
+
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 {
   /* In case we allocate a new value. */
@@ -383,6 +444,19 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
         t->flag |= T_MODAL_CURSOR_SET;
         WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
       }
+      /* Only use special cursor, when tweaking strips with mouse. */
+      if (t->mode == TFM_SEQ_SLIDE) {
+        if (transform_mode_edge_seq_slide_use_restore_handle_selection(t)) {
+          WM_cursor_modal_set(win, transform_seq_slide_cursor_get(t));
+        }
+        else {
+          SpaceSeq *sseq = CTX_wm_space_seq(t->context);
+          if (sseq != nullptr) {
+            sseq->flag &= ~SPACE_SEQ_DESELECT_STRIP_HANDLE;
+          }
+        }
+      }
+
       break;
     case HLP_SPRING:
     case HLP_ANGLE:

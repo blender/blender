@@ -112,10 +112,12 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
 void WorldPipeline::render(View &view)
 {
   /* TODO(Miguel Pozo): All world probes are rendered as RAY_TYPE_GLOSSY. */
-  inst_.pipelines.data.is_probe_reflection = true;
+  inst_.pipelines.data.is_sphere_probe = true;
   inst_.uniform_data.push_update();
+
   inst_.manager->submit(cubemap_face_ps_, view);
-  inst_.pipelines.data.is_probe_reflection = false;
+
+  inst_.pipelines.data.is_sphere_probe = false;
   inst_.uniform_data.push_update();
 }
 
@@ -1383,7 +1385,7 @@ void PlanarProbePipeline::render(View &view,
 {
   GPU_debug_group_begin("Planar.Capture");
 
-  inst_.pipelines.data.is_probe_reflection = true;
+  inst_.pipelines.data.is_sphere_probe = true;
   inst_.uniform_data.push_update();
 
   GPU_framebuffer_bind(gbuffer_fb);
@@ -1406,7 +1408,7 @@ void PlanarProbePipeline::render(View &view,
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(eval_light_ps_, view);
 
-  inst_.pipelines.data.is_probe_reflection = false;
+  inst_.pipelines.data.is_sphere_probe = false;
   inst_.uniform_data.push_update();
 
   GPU_debug_group_end();

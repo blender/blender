@@ -331,18 +331,6 @@ template<typename T> class Span {
   }
 
   /**
-   * Returns the element at the given index. If the index is out of range, return the fallback
-   * value.
-   */
-  constexpr T get(int64_t index, const T &fallback) const
-  {
-    if (index < size_ && index >= 0) {
-      return data_[index];
-    }
-    return fallback;
-  }
-
-  /**
    * Check if the array contains duplicates. Does a linear search for every element. So the total
    * running time is O(n^2). Only use this for small arrays.
    */

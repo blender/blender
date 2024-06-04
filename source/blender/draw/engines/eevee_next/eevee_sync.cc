@@ -152,8 +152,8 @@ void SyncModule::sync_mesh(Object *ob,
 
     geometry_call(material.planar_probe_prepass.sub_pass, geom, res_handle);
     geometry_call(material.planar_probe_shading.sub_pass, geom, res_handle);
-    geometry_call(material.reflection_probe_prepass.sub_pass, geom, res_handle);
-    geometry_call(material.reflection_probe_shading.sub_pass, geom, res_handle);
+    geometry_call(material.lightprobe_sphere_prepass.sub_pass, geom, res_handle);
+    geometry_call(material.lightprobe_sphere_shading.sub_pass, geom, res_handle);
 
     is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;
     has_transparent_shadows = has_transparent_shadows || material.has_transparent_shadows;
@@ -232,8 +232,8 @@ bool SyncModule::sync_sculpt(Object *ob,
 
     geometry_call(material.planar_probe_prepass.sub_pass, geom, res_handle);
     geometry_call(material.planar_probe_shading.sub_pass, geom, res_handle);
-    geometry_call(material.reflection_probe_prepass.sub_pass, geom, res_handle);
-    geometry_call(material.reflection_probe_shading.sub_pass, geom, res_handle);
+    geometry_call(material.lightprobe_sphere_prepass.sub_pass, geom, res_handle);
+    geometry_call(material.lightprobe_sphere_shading.sub_pass, geom, res_handle);
 
     is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;
     has_transparent_shadows = has_transparent_shadows || material.has_transparent_shadows;
@@ -310,8 +310,8 @@ void SyncModule::sync_point_cloud(Object *ob,
 
   drawcall_add(material.planar_probe_prepass);
   drawcall_add(material.planar_probe_shading);
-  drawcall_add(material.reflection_probe_prepass);
-  drawcall_add(material.reflection_probe_shading);
+  drawcall_add(material.lightprobe_sphere_prepass);
+  drawcall_add(material.lightprobe_sphere_shading);
 
   inst_.cryptomatte.sync_object(ob, res_handle);
   GPUMaterial *gpu_material = material.shading.gpumat;
@@ -574,8 +574,8 @@ void SyncModule::sync_curves(Object *ob,
 
   drawcall_add(material.planar_probe_prepass);
   drawcall_add(material.planar_probe_shading);
-  drawcall_add(material.reflection_probe_prepass);
-  drawcall_add(material.reflection_probe_shading);
+  drawcall_add(material.lightprobe_sphere_prepass);
+  drawcall_add(material.lightprobe_sphere_shading);
 
   inst_.cryptomatte.sync_object(ob, res_handle);
   GPUMaterial *gpu_material = material.shading.gpumat;

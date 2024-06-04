@@ -116,7 +116,7 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<GP
   else if (mr.mesh->editflag & ME_EDIT_PAINT_VERT_SEL) {
     selection = mr.select_vert;
   }
-  if (selection.is_empty() && mr.hide_poly.is_empty() && (!mr.edit_bmesh || !mr.v_origindex)) {
+  if (selection.is_empty() && mr.hide_poly.is_empty() && (!mr.edit_bmesh || !mr.orig_index_vert)) {
     return;
   }
   const OffsetIndices faces = mr.faces;
@@ -152,9 +152,9 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<GP
         }
       }
     }
-    if (mr.edit_bmesh && mr.v_origindex) {
+    if (mr.edit_bmesh && mr.orig_index_vert) {
       const Span<int> corner_verts = mr.corner_verts;
-      const Span<int> orig_indices(mr.v_origindex, mr.verts_num);
+      const Span<int> orig_indices(mr.orig_index_vert, mr.verts_num);
       for (const int face : range) {
         for (const int corner : faces[face]) {
           if (orig_indices[corner_verts[corner]] == ORIGINDEX_NONE) {

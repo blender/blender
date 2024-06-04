@@ -24,16 +24,22 @@ void main()
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
 
+  /* Check if texel is out of bounds,
+   * so we can utilize fast texture functions and early-out if not. */
+  if (any(greaterThanEqual(texel, imageSize(ray_time_img).xy))) {
+    return;
+  }
+
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
 
-  vec4 ray_data = imageLoad(ray_data_img, texel);
-  float ray_pdf_inv = ray_data.w;
+  vec4 ray_data_im = imageLoadFast(ray_data_img, texel);
+  float ray_pdf_inv = ray_data_im.w;
 
   if (ray_pdf_inv == 0.0) {
     /* Invalid ray or pixels without ray. Do not trace. */
-    imageStore(ray_time_img, texel, vec4(0.0));
-    imageStore(ray_radiance_img, texel, vec4(0.0));
+    imageStoreFast(ray_time_img, texel, vec4(0.0));
+    imageStoreFast(ray_radiance_img, texel, vec4(0.0));
     return;
   }
 
@@ -42,17 +48,16 @@ void main()
 
   Ray ray;
   ray.origin = P;
-  ray.direction = ray_data.xyz;
+  ray.direction = ray_data_im.xyz;
 
   /* Only closure 0 can be a transmission closure. */
   if (closure_index == 0) {
     uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
     float thickness = gbuffer_read_thickness(gbuf_header, gbuf_normal_tx, texel_fullres);
     if (thickness != 0.0) {
-      vec3 surface_N = gbuffer_read_normal(gbuf_normal_tx, texel_fullres);
       ClosureUndetermined cl = gbuffer_read_bin(
           gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
-      ray = raytrace_thickness_ray_ammend(ray, cl, V, surface_N, thickness);
+      ray = raytrace_thickness_ray_ammend(ray, cl, V, thickness);
     }
   }
 
@@ -65,13 +70,12 @@ void main()
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);
 
-  vec3 radiance = lightprobe_eval_direction(
-      samp, ray.origin, ray.direction, safe_rcp(ray_pdf_inv));
+  vec3 radiance = lightprobe_eval_direction(samp, ray.origin, ray.direction, ray_pdf_inv);
   /* Set point really far for correct reprojection of background. */
   float hit_time = 1000.0;
 
   radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
 
-  imageStore(ray_time_img, texel, vec4(hit_time));
-  imageStore(ray_radiance_img, texel, vec4(radiance, 0.0));
+  imageStoreFast(ray_time_img, texel, vec4(hit_time));
+  imageStoreFast(ray_radiance_img, texel, vec4(radiance, 0.0));
 }

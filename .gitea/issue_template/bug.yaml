@@ -1,5 +1,5 @@
 name: Bug Report
-about: File a bug report
+about: Use Help > Report a Bug from the top of Blender to automatically fill out part of this form.
 labels:
   - "Type/Report"
   - "Status/Needs Triage"
@@ -11,12 +11,13 @@ body:
                 ### Instructions
                 First time reporting? See [tips](https://developer.blender.org/docs/handbook/bug_reports/making_good_bug_reports/).
 
-                * Use **Help > Report a Bug** in Blender to fill system information and exact Blender version.
+                * Use **Help > Report a Bug** from the top of Blender to fill system information and exact Blender version.
                 * Test [daily builds](https://builder.blender.org/) to verify if the issue is already fixed.
                 * Test [previous versions](https://download.blender.org/release/) to find an older working version.
                 * For feature requests, feedback, questions or build issues, see [communication channels](https://developer.blender.org/docs/handbook/communication/user_feedback/).
                 * Security vulnerabilities should be [reported privately](https://developer.blender.org/docs/handbook/bug_reports/vulnerability_reports/).
                 * If there are multiple bugs, make multiple bug reports.
+                * Any content you upload will be shared publicly. Ensure you have permission to share any files you upload, and avoid uploading age restricted content.
 
   - type: textarea
     id: body
@@ -29,7 +30,7 @@ body:
                Graphics card:
 
                **Blender Version**
-               Broken: (example: 2.80, edbf15d3c044, master, 2018-11-28, as found on the splash screen)
+               Broken: (example: 3.0.0, main, `f1cca3055776`, 2020-12-30)
                Worked: (newest version of Blender that worked as expected)
 
                **Short description of error**

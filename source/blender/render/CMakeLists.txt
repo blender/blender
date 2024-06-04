@@ -8,7 +8,6 @@ set(INC
   intern
   ../blenkernel
   ../blentranslation
-  ../compositor
   ../compositor/realtime_compositor
   ../compositor/realtime_compositor/cached_resources
   ../draw
@@ -64,6 +63,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
   PRIVATE bf::intern::atomic

@@ -19,7 +19,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_ccg.h"
+#include "BKE_ccg.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "DRW_pbvh.hh"

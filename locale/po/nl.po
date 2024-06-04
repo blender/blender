@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'9fd37cf31b2d')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 07:23+0000\n"
+"POT-Creation-Date: 2024-06-03 07:20+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -279,8 +279,8 @@ msgid "Action"
 msgstr "Actie"
 
 
-msgid "New"
-msgstr "Nieuw"
+msgid "None"
+msgstr "Geen"
 
 
 msgid "Combine"
@@ -548,10 +548,6 @@ msgstr "-Y"
 
 msgid "Object"
 msgstr "Object"
-
-
-msgid "None"
-msgstr "Geen"
 
 
 msgid "Direct"
@@ -2979,6 +2975,10 @@ msgid "Soft Body"
 msgstr "Zacht Lichaam"
 
 
+msgid "New"
+msgstr "Nieuw"
+
+
 msgid "Hair Grid Resolution"
 msgstr "Haar Rooster Resolutie"
 
@@ -4293,6 +4293,21 @@ msgstr "Plak Strepen"
 
 
 msgctxt "Operator"
+msgid "All"
+msgstr "Alles"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Roteer"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Schalen"
+
+
+msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Toon Alle Lagen"
 
@@ -4899,6 +4914,7 @@ msgid "Add a Grease Pencil object to the scene"
 msgstr "Voeg een vetkrijt object toe in de scene"
 
 
+msgctxt "Operator"
 msgid "Monkey"
 msgstr "Aap"
 
@@ -6020,11 +6036,6 @@ msgid "Scale (resize) selected items"
 msgstr "Schaal geselecteerde items"
 
 
-msgctxt "Operator"
-msgid "Rotate"
-msgstr "Roteer"
-
-
 msgid "Rotate selected items"
 msgstr "Roteer geselecteerde items"
 
@@ -6463,11 +6474,6 @@ msgstr "Annotatie"
 msgctxt "Operator"
 msgid "Cursor"
 msgstr "Cursor"
-
-
-msgctxt "Operator"
-msgid "Scale"
-msgstr "Schalen"
 
 
 msgctxt "Operator"
@@ -7548,11 +7554,6 @@ msgstr "Verberg niet Geselecteerd"
 
 
 msgctxt "Operator"
-msgid "All"
-msgstr "Alles"
-
-
-msgctxt "Operator"
 msgid "None"
 msgstr "Niets"
 
@@ -7998,11 +7999,6 @@ msgstr "Gloed"
 
 
 msgctxt "Operator"
-msgid "Position"
-msgstr "Positie"
-
-
-msgctxt "Operator"
 msgid "All Transforms"
 msgstr "Alle Transformaties"
 
@@ -8288,11 +8284,6 @@ msgstr "Donut"
 msgctxt "Operator"
 msgid "Grid"
 msgstr "Rooster"
-
-
-msgctxt "Operator"
-msgid "Monkey"
-msgstr "Aap"
 
 
 msgctxt "Operator"
@@ -8845,12 +8836,22 @@ msgid "Yesterday"
 msgstr "Gisteren"
 
 
-msgctxt "Object"
+msgctxt "Action"
 msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "Mesh"
+msgctxt "Armature"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Camera"
 msgid "New"
 msgstr "Nieuw"
 
@@ -8860,17 +8861,12 @@ msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "Metaball"
+msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Nieuw"
-
-
-msgctxt "Texture"
+msgctxt "GPencil"
 msgid "New"
 msgstr "Nieuw"
 
@@ -8885,37 +8881,22 @@ msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "Camera"
+msgctxt "LightProbe"
 msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "World"
+msgctxt "Material"
 msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "Screen"
+msgctxt "Mesh"
 msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "Speaker"
-msgid "New"
-msgstr "Nieuw"
-
-
-msgctxt "Sound"
-msgid "New"
-msgstr "Nieuw"
-
-
-msgctxt "Armature"
-msgid "New"
-msgstr "Nieuw"
-
-
-msgctxt "Action"
+msgctxt "Metaball"
 msgid "New"
 msgstr "Nieuw"
 
@@ -8925,7 +8906,7 @@ msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "Brush"
+msgctxt "Object"
 msgid "New"
 msgstr "Nieuw"
 
@@ -8935,12 +8916,32 @@ msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "GPencil"
+msgctxt "PointCloud"
 msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "FreestyleLineStyle"
+msgctxt "Screen"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Volume"
 msgid "New"
 msgstr "Nieuw"
 
@@ -8950,17 +8951,7 @@ msgid "New"
 msgstr "Nieuw"
 
 
-msgctxt "LightProbe"
-msgid "New"
-msgstr "Nieuw"
-
-
-msgctxt "PointCloud"
-msgid "New"
-msgstr "Nieuw"
-
-
-msgctxt "Volume"
+msgctxt "World"
 msgid "New"
 msgstr "Nieuw"
 
@@ -9350,10 +9341,6 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "iScaal"
-
-
-msgid "| Time:%s | "
-msgstr "| Tijd:%s | "
 
 
 msgid "Image too small"

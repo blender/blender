@@ -358,7 +358,7 @@ set(SRC
   BKE_cachefile.hh
   BKE_callbacks.hh
   BKE_camera.h
-  BKE_ccg.h
+  BKE_ccg.hh
   BKE_cloth.hh
   BKE_collection.hh
   BKE_collision.h

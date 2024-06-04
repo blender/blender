@@ -87,6 +87,7 @@ class DrawingPlacement {
   DrawingPlacementDepth depth_;
   DrawingPlacementPlane plane_;
   ViewDepths *depth_cache_ = nullptr;
+  bool use_project_only_selected_ = false;
   float surface_offset_;
 
   float3 placement_loc_;
@@ -102,7 +103,7 @@ class DrawingPlacement {
                    const ARegion &region,
                    const View3D &view3d,
                    const Object &eval_object,
-                   const bke::greasepencil::Layer &layer);
+                   const bke::greasepencil::Layer *layer);
   ~DrawingPlacement();
 
  public:
@@ -117,6 +118,8 @@ class DrawingPlacement {
    */
   float3 project(float2 co) const;
   void project(Span<float2> src, MutableSpan<float3> dst) const;
+
+  float4x4 to_world_space() const;
 };
 
 void set_selected_frames_type(bke::greasepencil::Layer &layer,
@@ -232,11 +235,13 @@ float opacity_from_input_sample(const float pressure,
                                 const Brush *brush,
                                 const Scene *scene,
                                 const BrushGpencilSettings *settings);
-float radius_from_input_sample(const float pressure,
-                               const float3 location,
-                               ViewContext vc,
-                               const Brush *brush,
+float radius_from_input_sample(const RegionView3D *rv3d,
+                               const ARegion *region,
                                const Scene *scene,
+                               const Brush *brush,
+                               float pressure,
+                               float3 location,
+                               float4x4 to_world,
                                const BrushGpencilSettings *settings);
 int grease_pencil_draw_operator_invoke(bContext *C, wmOperator *op);
 
@@ -272,6 +277,7 @@ Vector<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
 
 IndexMask retrieve_editable_strokes(Object &grease_pencil_object,
                                     const bke::greasepencil::Drawing &drawing,
+                                    int layer_index,
                                     IndexMaskMemory &memory);
 IndexMask retrieve_editable_strokes_by_material(Object &object,
                                                 const bke::greasepencil::Drawing &drawing,
@@ -279,9 +285,10 @@ IndexMask retrieve_editable_strokes_by_material(Object &object,
                                                 IndexMaskMemory &memory);
 IndexMask retrieve_editable_points(Object &object,
                                    const bke::greasepencil::Drawing &drawing,
+                                   int layer_index,
                                    IndexMaskMemory &memory);
 IndexMask retrieve_editable_elements(Object &object,
-                                     const bke::greasepencil::Drawing &drawing,
+                                     const MutableDrawingInfo &info,
                                      bke::AttrDomain selection_domain,
                                      IndexMaskMemory &memory);
 
@@ -294,12 +301,15 @@ IndexMask retrieve_visible_points(Object &object,
 
 IndexMask retrieve_editable_and_selected_strokes(Object &grease_pencil_object,
                                                  const bke::greasepencil::Drawing &drawing,
+                                                 int layer_index,
                                                  IndexMaskMemory &memory);
 IndexMask retrieve_editable_and_selected_points(Object &object,
                                                 const bke::greasepencil::Drawing &drawing,
+                                                int layer_index,
                                                 IndexMaskMemory &memory);
 IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   const bke::greasepencil::Drawing &drawing,
+                                                  int layer_index,
                                                   bke::AttrDomain selection_domain,
                                                   IndexMaskMemory &memory);
 
@@ -522,7 +532,8 @@ void draw_grease_pencil_stroke(const RegionView3D &rv3d,
                                bool cyclic,
                                eGPDstroke_Caps cap_start,
                                eGPDstroke_Caps cap_end,
-                               bool fill_stroke);
+                               bool fill_stroke,
+                               float radius_scale = 1.0f);
 /**
  * Draw points as quads or circles.
  */
@@ -530,7 +541,8 @@ void draw_dots(IndexRange indices,
                Span<float3> positions,
                const VArray<float> &radii,
                const VArray<ColorGeometry4f> &colors,
-               const float4x4 &layer_to_world);
+               const float4x4 &layer_to_world,
+               const float radius_scale);
 
 /**
  * Draw curves geometry.
@@ -543,8 +555,8 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                 const IndexMask &strokes_mask,
                                 const VArray<ColorGeometry4f> &colors,
                                 const float4x4 &layer_to_world,
-                                int mode,
-                                bool use_xray);
+                                bool use_xray,
+                                float radius_scale = 1.0f);
 
 }  // namespace image_render
 

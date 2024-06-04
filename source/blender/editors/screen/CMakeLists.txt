@@ -15,6 +15,7 @@ set(INC
   ../../makesrna
   ../../sequencer
   ../../windowmanager
+  ../../../../extern/fmtlib/include
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -50,8 +51,12 @@ set(LIB
   bf_editor_datafiles
   bf_editor_space_sequencer
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::extern::fmtlib
 )
 
+if(WITH_HEADLESS)
+  add_definitions(-DWITH_HEADLESS)
+endif()
 
 blender_add_lib(bf_editor_screen "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

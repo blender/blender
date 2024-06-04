@@ -3861,13 +3861,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Stroke Snap", "");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
-  prop = RNA_def_property(srna, "use_gpencil_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, nullptr, "gpencil_v3d_align", GP_PROJECT_DEPTH_STROKE_ENDPOINTS);
-  RNA_def_property_ui_text(
-      prop, "Only Endpoints", "Only use the first and last parts of the stroke for snapping");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
-
   prop = RNA_def_property(srna, "gpencil_surface_offset", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "gpencil_surface_offset");
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
@@ -3876,6 +3869,14 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1f, 3);
   RNA_def_property_float_default(prop, 0.150f);
+
+  prop = RNA_def_property(srna, "use_gpencil_project_only_selected", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "gpencil_v3d_align", GP_PROJECT_DEPTH_ONLY_SELECTED);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_ui_text(
+      prop, "Project Onto Selected", "Project the strokes only onto selected objects");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
   /* Grease Pencil - Select mode Edit */
   prop = RNA_def_property(srna, "gpencil_selectmode_edit", PROP_ENUM, PROP_NONE);
@@ -3983,6 +3984,22 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Annotation Stroke Placement (3D View)",
                            "How annotation strokes are orientated in 3D space");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
+
+  prop = RNA_def_property(srna, "use_annotation_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "annotate_v3d_align", GP_PROJECT_DEPTH_STROKE_ENDPOINTS);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_ui_text(
+      prop, "Only Endpoints", "Only use the first and last parts of the stroke for snapping");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
+
+  prop = RNA_def_property(srna, "use_annotation_project_only_selected", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "annotate_v3d_align", GP_PROJECT_DEPTH_ONLY_SELECTED);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_ui_text(
+      prop, "Project Onto Selected", "Project the strokes only onto selected objects");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
   /* Annotations - Stroke Thickness */
@@ -4365,42 +4382,57 @@ static void rna_def_curve_paint_settings(BlenderRNA *brna)
   };
 
   prop = RNA_def_property(srna, "curve_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_sdna(prop, nullptr, "curve_type");
   RNA_def_property_enum_items(prop, curve_type_items);
   RNA_def_property_ui_text(prop, "Type", "Type of curve to use for new strokes");
 
   prop = RNA_def_property(srna, "use_corners_detect", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", CURVE_PAINT_FLAG_CORNERS_DETECT);
   RNA_def_property_ui_text(prop, "Detect Corners", "Detect corners and use non-aligned handles");
 
   prop = RNA_def_property(srna, "use_pressure_radius", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", CURVE_PAINT_FLAG_PRESSURE_RADIUS);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
   RNA_def_property_ui_text(prop, "Use Pressure", "Map tablet pressure to curve radius");
 
   prop = RNA_def_property(srna, "use_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", CURVE_PAINT_FLAG_DEPTH_STROKE_ENDPOINTS);
   RNA_def_property_ui_text(prop, "Only First", "Use the start of the stroke for the depth");
 
   prop = RNA_def_property(srna, "use_offset_absolute", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", CURVE_PAINT_FLAG_DEPTH_STROKE_OFFSET_ABS);
   RNA_def_property_ui_text(
       prop, "Absolute Offset", "Apply a fixed offset (don't scale by the radius)");
 
+  prop = RNA_def_property(srna, "use_project_only_selected", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", CURVE_PAINT_FLAG_DEPTH_ONLY_SELECTED);
+  RNA_def_property_ui_text(
+      prop, "Project Onto Selected", "Project the strokes only onto selected objects");
+
   prop = RNA_def_property(srna, "error_threshold", PROP_INT, PROP_PIXEL);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_range(prop, 1, 100);
   RNA_def_property_ui_text(prop, "Tolerance", "Allow deviation for a smoother, less precise line");
 
   prop = RNA_def_property(srna, "fit_method", PROP_ENUM, PROP_PIXEL);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_sdna(prop, nullptr, "fit_method");
   RNA_def_property_enum_items(prop, rna_enum_curve_fit_method_items);
   RNA_def_property_ui_text(prop, "Method", "Curve fitting method");
 
   prop = RNA_def_property(srna, "corner_angle", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_range(prop, 0, M_PI);
   RNA_def_property_ui_text(prop, "Corner Angle", "Angles above this are considered corners");
 
   prop = RNA_def_property(srna, "radius_min", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_range(prop, 0.0, 100.0);
   RNA_def_property_ui_range(prop, 0.0f, 10.0, 10, 2);
   RNA_def_property_ui_text(
@@ -4409,6 +4441,7 @@ static void rna_def_curve_paint_settings(BlenderRNA *brna)
       "Minimum radius when the minimum pressure is applied (also the minimum when tapering)");
 
   prop = RNA_def_property(srna, "radius_max", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_range(prop, 0.0, 100.0);
   RNA_def_property_ui_range(prop, 0.0f, 10.0, 10, 2);
   RNA_def_property_ui_text(
@@ -4417,18 +4450,21 @@ static void rna_def_curve_paint_settings(BlenderRNA *brna)
       "Radius to use when the maximum pressure is applied (or when a tablet isn't used)");
 
   prop = RNA_def_property(srna, "radius_taper_start", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_range(prop, 0.0f, 1.0, 1, 2);
   RNA_def_property_ui_text(
       prop, "Radius Min", "Taper factor for the radius of each point along the curve");
 
   prop = RNA_def_property(srna, "radius_taper_end", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_range(prop, 0.0, 10.0);
   RNA_def_property_ui_range(prop, 0.0f, 1.0, 1, 2);
   RNA_def_property_ui_text(
       prop, "Radius Max", "Taper factor for the radius of each point along the curve");
 
   prop = RNA_def_property(srna, "surface_offset", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_range(prop, -10.0, 10.0);
   RNA_def_property_ui_range(prop, -1.0f, 1.0, 1, 2);
   RNA_def_property_ui_text(prop, "Offset", "Offset the stroke from the surface");
@@ -4440,6 +4476,7 @@ static void rna_def_curve_paint_settings(BlenderRNA *brna)
   };
 
   prop = RNA_def_property(srna, "depth_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_sdna(prop, nullptr, "depth_mode");
   RNA_def_property_enum_items(prop, depth_mode_items);
   RNA_def_property_ui_text(prop, "Depth", "Method of projecting depth");
@@ -4464,6 +4501,7 @@ static void rna_def_curve_paint_settings(BlenderRNA *brna)
   };
 
   prop = RNA_def_property(srna, "surface_plane", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_sdna(prop, nullptr, "surface_plane");
   RNA_def_property_enum_items(prop, surface_plane_items);
   RNA_def_property_ui_text(prop, "Plane", "Plane for projected stroke");
@@ -6010,7 +6048,8 @@ static void rna_def_scene_render_view(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "viewflag", SCE_VIEW_DISABLE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Enabled", "Disable or enable the render view");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_RENDER_OPTIONS | NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
 }
 
 static void rna_def_render_views(BlenderRNA *brna, PropertyRNA *cprop)
@@ -7794,11 +7833,11 @@ static void rna_def_raytrace_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "trace_max_roughness", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(
-      prop,
-      "Raytrace Max Roughness",
-      "Maximum roughness to use the tracing pipeline for. Higher "
-      "roughness surfaces will use horizon scan. A value of 1 will disable horizon scan");
+  RNA_def_property_ui_text(prop,
+                           "Raytrace Max Roughness",
+                           "Maximum roughness to use the tracing pipeline for. Higher "
+                           "roughness surfaces will use fast GI approximation. A value of 1 will "
+                           "disable fast GI approximation");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
@@ -7857,6 +7896,20 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
        0,
        "Screen-Trace",
        "Raytrace against the depth buffer. Fallback to light probes for invalid rays"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem fast_gi_method_items[] = {
+      {FAST_GI_AO_ONLY,
+       "AMBIENT_OCCLUSION_ONLY",
+       0,
+       "Ambient Occlusion",
+       "Use ambient occlusion instead of full global illumination"},
+      {FAST_GI_FULL,
+       "GLOBAL_ILLUMINATION",
+       0,
+       "Global Illumination",
+       "Compute global illumination taking into account light bouncing off surrounding objects"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -8242,40 +8295,78 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  /* Horizon Scan */
+  /* Fast GI approximation */
 
-  prop = RNA_def_property(srna, "horizon_thickness", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_float_sdna(prop, nullptr, "gtao_thickness");
-  RNA_def_property_ui_text(prop,
-                           "Thickness",
-                           "Constant thickness of the surfaces considered when doing horizon scan "
-                           "and by extension ambient occlusion");
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
+  prop = RNA_def_property(srna, "fast_gi_thickness_near", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_ui_text(
+      prop,
+      "Near Thickness",
+      "Geometric thickness of the surfaces when computing fast GI and ambient occlusion. "
+      "Reduces light leaking and missing contact occlusion");
+  RNA_def_property_range(prop, 0.0f, 100000.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1.0f, 3);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "horizon_quality", PROP_FLOAT, PROP_FACTOR);
+  prop = RNA_def_property(srna, "fast_gi_thickness_far", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Far Thickness",
+      "Angular thickness of the surfaces when computing fast GI and ambient occlusion. "
+      "Reduces energy loss and missing occlusion of far geometry");
+  RNA_def_property_range(prop, DEG2RADF(1.0f), DEG2RADF(180.0f));
+  RNA_def_property_ui_range(prop, DEG2RADF(1.0f), DEG2RADF(180.0f), 10.0f, 3);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "fast_gi_quality", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "gtao_quality");
-  RNA_def_property_ui_text(prop, "Trace Precision", "Precision of the horizon scan");
+  RNA_def_property_ui_text(prop, "Trace Precision", "Precision of the fast GI ray marching");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "horizon_bias", PROP_FLOAT, PROP_FACTOR);
+  prop = RNA_def_property(srna, "fast_gi_step_count", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_range(prop, 1, 64);
+  RNA_def_property_ui_text(prop, "Step Count", "Amount of screen sample per GI ray");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "fast_gi_ray_count", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_range(prop, 1, 16);
+  RNA_def_property_ui_text(prop, "Ray Count", "Amount of GI ray to trace for each pixel");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "fast_gi_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, fast_gi_method_items);
+  RNA_def_property_ui_text(prop, "Method", "Fast GI approximation method");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "fast_gi_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_range(prop, 0.0f, 100000.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Distance",
+                           "If non-zero, the maximum distance at which other surfaces will "
+                           "contribute to the fast GI approximation");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "fast_gi_bias", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "gtao_focus");
   RNA_def_property_ui_text(
-      prop, "Bias", "Bias the horizon angles to reduce self intersection artifacts");
+      prop, "Bias", "Bias the shading normal to reduce self intersection artifacts");
   RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 0.5f, 1.0f, 2);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "horizon_resolution", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "fast_gi_resolution", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "gtao_resolution");
   RNA_def_property_enum_items(prop, eevee_resolution_scale_items);
   RNA_def_property_ui_text(prop,
                            "Resolution",
-                           "Control the quality of the horizon scan lighting. "
+                           "Control the quality of the fast GI lighting. "
                            "Higher resolution uses more memory");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);

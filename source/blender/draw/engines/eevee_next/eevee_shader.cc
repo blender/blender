@@ -139,12 +139,12 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_debug_irradiance_grid";
     case DEBUG_GBUFFER:
       return "eevee_debug_gbuffer";
-    case DISPLAY_PROBE_GRID:
-      return "eevee_display_probe_grid";
-    case DISPLAY_PROBE_REFLECTION:
-      return "eevee_display_probe_reflection";
+    case DISPLAY_PROBE_VOLUME:
+      return "eevee_display_lightprobe_volume";
+    case DISPLAY_PROBE_SPHERE:
+      return "eevee_display_lightprobe_sphere";
     case DISPLAY_PROBE_PLANAR:
-      return "eevee_display_probe_planar";
+      return "eevee_display_lightprobe_planar";
     case DOF_BOKEH_LUT:
       return "eevee_depth_of_field_bokeh_lut";
     case DOF_DOWNSAMPLE:
@@ -210,25 +210,25 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
     case RAY_TILE_COMPACT:
       return "eevee_ray_tile_compact";
     case LIGHTPROBE_IRRADIANCE_BOUNDS:
-      return "eevee_lightprobe_irradiance_bounds";
+      return "eevee_lightprobe_volume_bounds";
     case LIGHTPROBE_IRRADIANCE_OFFSET:
-      return "eevee_lightprobe_irradiance_offset";
+      return "eevee_lightprobe_volume_offset";
     case LIGHTPROBE_IRRADIANCE_RAY:
-      return "eevee_lightprobe_irradiance_ray";
+      return "eevee_lightprobe_volume_ray";
     case LIGHTPROBE_IRRADIANCE_LOAD:
-      return "eevee_lightprobe_irradiance_load";
+      return "eevee_lightprobe_volume_load";
     case LIGHTPROBE_IRRADIANCE_WORLD:
-      return "eevee_lightprobe_irradiance_world";
+      return "eevee_lightprobe_volume_world";
     case SPHERE_PROBE_CONVOLVE:
-      return "eevee_reflection_probe_convolve";
+      return "eevee_lightprobe_sphere_convolve";
     case SPHERE_PROBE_REMAP:
-      return "eevee_reflection_probe_remap";
+      return "eevee_lightprobe_sphere_remap";
     case SPHERE_PROBE_IRRADIANCE:
-      return "eevee_reflection_probe_irradiance";
+      return "eevee_lightprobe_sphere_irradiance";
     case SPHERE_PROBE_SELECT:
-      return "eevee_reflection_probe_select";
+      return "eevee_lightprobe_sphere_select";
     case SPHERE_PROBE_SUNLIGHT:
-      return "eevee_reflection_probe_sunlight";
+      return "eevee_lightprobe_sphere_sunlight";
     case SHADOW_CLIPMAP_CLEAR:
       return "eevee_shadow_clipmap_clear";
     case SHADOW_DEBUG:

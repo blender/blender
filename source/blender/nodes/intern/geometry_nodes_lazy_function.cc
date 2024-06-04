@@ -546,6 +546,9 @@ static void execute_multi_function_on_value_variant(const MultiFunction &fn,
 
     /* Store the new fields in the output. */
     for (const int i : output_values.index_range()) {
+      if (output_values[i] == nullptr) {
+        continue;
+      }
       output_values[i]->set(GField{operation, i});
     }
   }
@@ -559,12 +562,18 @@ static void execute_multi_function_on_value_variant(const MultiFunction &fn,
       SocketValueVariant &input_variant = *input_values[i];
       input_variant.convert_to_single();
       const void *value = input_variant.get_single_ptr_raw();
-      const CPPType &cpp_type = fn.param_type(params.next_param_index()).data_type().single_type();
+      const mf::ParamType param_type = fn.param_type(params.next_param_index());
+      const CPPType &cpp_type = param_type.data_type().single_type();
       params.add_readonly_single_input(GPointer{cpp_type, value});
     }
     for (const int i : output_values.index_range()) {
+      if (output_values[i] == nullptr) {
+        params.add_ignored_single_output("");
+        continue;
+      }
       SocketValueVariant &output_variant = *output_values[i];
-      const CPPType &cpp_type = fn.param_type(params.next_param_index()).data_type().single_type();
+      const mf::ParamType param_type = fn.param_type(params.next_param_index());
+      const CPPType &cpp_type = param_type.data_type().single_type();
       const eNodeSocketDatatype socket_type =
           bke::geo_nodes_base_cpp_type_to_socket_type(cpp_type).value();
       void *value = output_variant.allocate_single(socket_type);
@@ -716,12 +725,19 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
       input_values[i] = params.try_get_input_data_ptr<SocketValueVariant>(i);
     }
     for (const int i : outputs_.index_range()) {
-      output_values[i] = new (params.get_output_data_ptr(i)) SocketValueVariant();
+      if (params.get_output_usage(i) != lf::ValueUsage::Unused) {
+        output_values[i] = new (params.get_output_data_ptr(i)) SocketValueVariant();
+      }
+      else {
+        output_values[i] = nullptr;
+      }
     }
     execute_multi_function_on_value_variant(
         *fn_item_.fn, fn_item_.owned_fn, input_values, output_values);
     for (const int i : outputs_.index_range()) {
-      params.output_set(i);
+      if (params.get_output_usage(i) != lf::ValueUsage::Unused) {
+        params.output_set(i);
+      }
     }
   }
 };

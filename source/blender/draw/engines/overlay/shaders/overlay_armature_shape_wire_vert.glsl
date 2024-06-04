@@ -13,10 +13,10 @@ void main()
   vec3 world_pos = (model_mat * vec4(pos, 1.0)).xyz;
   gl_Position = point_world_to_ndc(world_pos);
 
-  finalColor.rgb = mix(state_color.rgb, bone_color.rgb, 0.5);
-  finalColor.a = 1.0;
-
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+  geometry_in.finalColor.rgb = mix(state_color.rgb, bone_color.rgb, 0.5);
+  geometry_in.finalColor.a = 1.0;
+  /* Because the packing clamps the value, the wire width is passed in compressed. */
+  geometry_in.wire_width = bone_color.a * WIRE_WIDTH_COMPRESSION;
 
   view_clipping_distances(world_pos);
 }

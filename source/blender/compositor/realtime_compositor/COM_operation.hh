@@ -94,7 +94,7 @@ class Operation {
    * 2. Resetting the results of the operation.
    * 3. Calling the execute method of the operation.
    * 4. Releasing the results mapped to the inputs. */
-  void evaluate();
+  virtual void evaluate();
 
   /* Get a reference to the output result identified by the given identifier. */
   Result &get_result(StringRef identifier);

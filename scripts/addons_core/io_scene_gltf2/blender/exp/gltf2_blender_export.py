@@ -356,8 +356,9 @@ def __should_include_json_value(key, value, export_settings):
         # We can't have this empty collection, because it can't be animated
         return False
     elif not __is_empty_collection(value):
-        if key.startswith("KHR_") or key.startswith("EXT_"):
-            export_settings['gltf_need_to_keep_extension_declaration'].append(key)
+        # If extensions is not empty, export it, always
+        # This can be an official extension, or a user extension
+        export_settings['gltf_need_to_keep_extension_declaration'].append(key)
     elif __is_empty_collection(value) and key in allowed_empty_collections:
         # We can have this empty collection for this extension. So keeping it, and
         # store that this extension declaration needs to be kept

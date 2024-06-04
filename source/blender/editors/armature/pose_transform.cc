@@ -418,7 +418,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
   if (use_selected) {
     CTX_data_selected_pose_bones(C, &selected_bones);
 
-    if (!selected_bones.is_empty()) {
+    if (selected_bones.is_empty()) {
       return OPERATOR_CANCELLED;
     }
   }

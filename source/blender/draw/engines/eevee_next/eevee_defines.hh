@@ -34,7 +34,7 @@
 #define CULLING_TILE_GROUP_SIZE 256
 
 /* Reflection Probes. */
-/* When changed update parallel sum loop in `eevee_reflection_probe_remap_comp.glsl`. */
+/* When changed update parallel sum loop in `eevee_lightprobe_sphere_remap_comp.glsl`. */
 #define SPHERE_PROBE_REMAP_GROUP_SIZE 32
 #define SPHERE_PROBE_GROUP_SIZE 16
 #define SPHERE_PROBE_SELECT_GROUP_SIZE 64
@@ -125,7 +125,7 @@
 #define SHADOW_ROG_ID 0
 
 /* Deferred Lighting. */
-#define DEFERRED_RADIANCE_FORMAT GPU_R11F_G11F_B10F
+#define DEFERRED_RADIANCE_FORMAT GPU_R32UI
 #define DEFERRED_GBUFFER_ROG_ID 0
 
 /* Ray-tracing. */

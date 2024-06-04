@@ -19,32 +19,6 @@
 namespace blender::math {
 
 /**
- * Returns true if all components are exactly equal to 0.
- */
-template<typename T, int Size> [[nodiscard]] inline bool is_zero(const VecBase<T, Size> &a)
-{
-  for (int i = 0; i < Size; i++) {
-    if (a[i] != T(0)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
- * Returns true if at least one component is exactly equal to 0.
- */
-template<typename T, int Size> [[nodiscard]] inline bool is_any_zero(const VecBase<T, Size> &a)
-{
-  for (int i = 0; i < Size; i++) {
-    if (a[i] == T(0)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
  * Returns true if the given vectors are equal within the given epsilon.
  * The epsilon is scaled for each component by magnitude of the matching component of `a`.
  */
@@ -743,6 +717,48 @@ template<typename T, int Size>
     }
   }
   return true;
+}
+
+/**
+ * Return true if the absolute values of all components are smaller than given epsilon (0 by
+ * default).
+ *
+ * \note Does not compute the actual length of the vector, for performance.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline bool is_zero(const VecBase<T, Size> &a, const T epsilon = T(0))
+{
+  for (int i = 0; i < Size; i++) {
+    if (math::abs(a[i]) > epsilon) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Returns true if at least one component is exactly equal to 0.
+ */
+template<typename T, int Size> [[nodiscard]] inline bool is_any_zero(const VecBase<T, Size> &a)
+{
+  for (int i = 0; i < Size; i++) {
+    if (a[i] == T(0)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Return true if the squared length of the vector is (almost) equal to 1 (with a
+ * `10 * std::numeric_limits<T>::epsilon()` epsilon error by default).
+ */
+template<typename T, int Size>
+[[nodiscard]] inline bool is_unit(const VecBase<T, Size> &a,
+                                  const T epsilon = T(10) * std::numeric_limits<T>::epsilon())
+{
+  const T length = length_squared(a);
+  return math::abs(length - T(1)) <= epsilon;
 }
 
 /** Intersections. */

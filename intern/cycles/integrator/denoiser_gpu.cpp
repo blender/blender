@@ -15,9 +15,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-DenoiserGPU::DenoiserGPU(Device *path_trace_device, const DenoiseParams &params)
-    : Denoiser(path_trace_device, params)
+DenoiserGPU::DenoiserGPU(Device *denoiser_device, const DenoiseParams &params)
+    : Denoiser(denoiser_device, params)
 {
+  denoiser_queue_ = denoiser_device->gpu_queue_create();
+  DCHECK(denoiser_queue_);
 }
 
 DenoiserGPU::~DenoiserGPU()
@@ -154,23 +156,6 @@ bool DenoiserGPU::denoise_filter_guiding_preprocess(const DenoiseContext &contex
                              &context.num_samples);
 
   return denoiser_queue_->enqueue(DEVICE_KERNEL_FILTER_GUIDING_PREPROCESS, work_size, args);
-}
-
-Device *DenoiserGPU::ensure_denoiser_device(Progress *progress)
-{
-  Device *denoiser_device = Denoiser::ensure_denoiser_device(progress);
-  if (!denoiser_device) {
-    return nullptr;
-  }
-
-  if (!denoiser_queue_) {
-    denoiser_queue_ = denoiser_device->gpu_queue_create();
-    if (!denoiser_queue_) {
-      return nullptr;
-    }
-  }
-
-  return denoiser_device;
 }
 
 DenoiserGPU::DenoiseContext::DenoiseContext(Device *device, const DenoiseTask &task)

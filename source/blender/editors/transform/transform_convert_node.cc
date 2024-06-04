@@ -110,12 +110,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
                           NODE_EDGE_PAN_ZOOM_INFLUENCE);
   customdata->viewrect_prev = customdata->edgepan_data.initial_rect;
 
-  if (t->modifiers & MOD_NODE_ATTACH) {
-    space_node::node_insert_on_link_flags_set(*snode, *t->region);
-  }
-  else {
-    space_node::node_insert_on_link_flags_clear(*snode->edittree);
-  }
+  space_node::node_insert_on_link_flags_set(*snode, *t->region, t->modifiers & MOD_NODE_ATTACH);
 
   t->custom.type.data = customdata;
   t->custom.type.use_free = true;
@@ -243,12 +238,8 @@ static void flushTransNodes(TransInfo *t)
 
     /* Handle intersection with noodles. */
     if (tc->data_len == 1) {
-      if (t->modifiers & MOD_NODE_ATTACH) {
-        space_node::node_insert_on_link_flags_set(*snode, *t->region);
-      }
-      else {
-        space_node::node_insert_on_link_flags_clear(*snode->edittree);
-      }
+      space_node::node_insert_on_link_flags_set(
+          *snode, *t->region, t->modifiers & MOD_NODE_ATTACH);
     }
   }
 }

@@ -586,17 +586,14 @@ static void dyntopo_detail_size_sample_from_surface(Object &ob,
                                                     DyntopoDetailSizeEditCustomData *cd)
 {
   SculptSession &ss = *ob.sculpt;
-  const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  BMVert *active_vertex = reinterpret_cast<BMVert *>(SCULPT_active_vertex_get(ss).i);
 
   float len_accum = 0;
-  int num_neighbors = 0;
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
-    len_accum += len_v3v3(SCULPT_vertex_co_get(ss, active_vertex),
-                          SCULPT_vertex_co_get(ss, ni.vertex));
-    num_neighbors++;
+  Vector<BMVert *, 64> neighbors;
+  for (BMVert *neighbor : vert_neighbors_get_bmesh(*active_vertex, neighbors)) {
+    len_accum += len_v3v3(active_vertex->co, neighbor->co);
   }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  const int num_neighbors = neighbors.size();
 
   if (num_neighbors > 0) {
     const float avg_edge_len = len_accum / num_neighbors;
