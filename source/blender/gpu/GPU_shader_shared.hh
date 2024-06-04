@@ -109,8 +109,9 @@ enum eGPUSeqFlags : uint32_t {
 /* VSE per-strip data for timeline rendering. */
 struct SeqStripDrawData {
   /* Horizontal strip positions (1.0 is one frame). */
-  float left_handle, right_handle; /* Left and right strip sides. */
-  float content_start, content_end; /* Start and end of actual content (only relevant for strips that have holdout regions). */
+  float left_handle, right_handle;  /* Left and right strip sides. */
+  float content_start, content_end; /* Start and end of actual content (only relevant for strips
+                                       that have holdout regions). */
   float handle_width;
   /* Vertical strip positions (1.0 is one channel). */
   float bottom;
@@ -137,7 +138,6 @@ struct SeqContextDrawData {
   float _pad0, _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(SeqContextDrawData, 16)
-
 
 enum TestStatus : uint32_t {
   TEST_STATUS_NONE = 0u,
