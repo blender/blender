@@ -728,7 +728,6 @@ class NODE_PT_active_node_properties(Panel):
     bl_region_type = 'UI'
     bl_category = "Node"
     bl_label = "Properties"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
