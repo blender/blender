@@ -130,8 +130,10 @@ void draw_seq_strip_thumbnail(View2D *v2d,
                               Sequence *seq,
                               float y1,
                               float y2,
+                              float y_top,
                               float pixelx,
-                              float pixely);
+                              float pixely,
+                              float round_radius);
 
 /* sequencer_draw_channels.c */
 

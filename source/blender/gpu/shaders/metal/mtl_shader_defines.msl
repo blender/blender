@@ -2091,6 +2091,11 @@ template<typename T> int findMSB(T x)
   return int(sizeof(T) * 8) - 1 - int(clz(x));
 }
 
+#define unpackUnorm4x8 unpack_unorm4x8_to_float
+#define unpackSnorm4x8 unpack_snorm4x8_to_float
+#define unpackUnorm2x16 unpack_unorm2x16_to_float
+#define unpackSnorm2x16 unpack_snorm2x16_to_float
+
 /* Texture size functions. Add texture types as needed. */
 #define imageSize(image) textureSize(image, 0)
 
