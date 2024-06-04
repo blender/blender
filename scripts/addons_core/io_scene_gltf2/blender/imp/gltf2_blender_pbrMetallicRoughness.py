@@ -242,7 +242,7 @@ def transmission(mh, locs, pbr_node):
 
     if factor > 0 or force_transmission is True:
         # Activate screen refraction (for Eevee)
-        mh.mat.use_screen_refraction = True
+        mh.mat.use_raytrace_refraction = True
 
     scalar_factor_and_texture(
         mh,

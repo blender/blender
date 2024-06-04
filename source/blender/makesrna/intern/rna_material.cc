@@ -191,6 +191,33 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
   WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
 }
 
+static int rna_Material_blend_method_get(PointerRNA *ptr)
+{
+  Material *material = (Material *)ptr->owner_id;
+  switch (material->surface_render_method) {
+    case MA_SURFACE_METHOD_DEFERRED:
+      return MA_BM_HASHED;
+    case MA_SURFACE_METHOD_FORWARD:
+      return MA_BM_BLEND;
+  }
+  return MA_BM_HASHED;
+}
+
+static void rna_Material_blend_method_set(PointerRNA *ptr, int new_blend_method)
+{
+  Material *material = (Material *)ptr->owner_id;
+  switch (new_blend_method) {
+    case MA_BM_SOLID:
+    case MA_BM_CLIP:
+    case MA_BM_HASHED:
+      material->surface_render_method = MA_SURFACE_METHOD_DEFERRED;
+      break;
+    case MA_BM_BLEND:
+      material->surface_render_method = MA_SURFACE_METHOD_FORWARD;
+      break;
+  }
+}
+
 static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
   Material *ma = (Material *)ptr->data;
@@ -915,7 +942,12 @@ void RNA_def_material(BlenderRNA *brna)
   /* Blending (only Eevee for now) */
   prop = RNA_def_property(srna, "blend_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_eevee_blend_items);
-  RNA_def_property_ui_text(prop, "Blend Mode", "Blend Mode for Transparent Faces");
+  RNA_def_property_ui_text(
+      prop,
+      "Blend Mode",
+      "Blend Mode for Transparent Faces (Deprecated: use 'surface_render_method')");
+  RNA_def_property_enum_funcs(
+      prop, "rna_Material_blend_method_get", "rna_Material_blend_method_set", nullptr);
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MATERIAL);
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
@@ -933,14 +965,24 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 #  endif
 
-  /* TODO(fclem): Should be renamed to use_transparency_overlap. */
-  prop = RNA_def_property(srna, "show_transparent_back", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_transparency_overlap", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "blend_flag", MA_BL_HIDE_BACKFACE);
   RNA_def_property_ui_text(prop,
-                           "Show Backface",
+                           "Use Transparency Overlap",
                            "Render multiple transparent layers "
                            "(may introduce transparency sorting problems)");
+
+#  if 1 /* This should be deleted in Blender 4.5 */
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+  prop = RNA_def_property(srna, "show_transparent_back", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "blend_flag", MA_BL_HIDE_BACKFACE);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Backface",
+      "Render multiple transparent layers "
+      "(may introduce transparency sorting problems) (Deprecated: use 'use_tranparency_overlap')");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+#  endif
 
   prop = RNA_def_property(srna, "use_backface_culling", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_CULL_BACKFACE);
@@ -973,8 +1015,7 @@ void RNA_def_material(BlenderRNA *brna)
       "Additionally helps rejecting probes inside the object to avoid light leaks");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
-  /* TODO(fclem): Should be renamed to use_raytraced_transmission. */
-  prop = RNA_def_property(srna, "use_screen_refraction", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_raytrace_refraction", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_SS_REFRACTION);
   RNA_def_property_ui_text(
       prop,
@@ -984,11 +1025,21 @@ void RNA_def_material(BlenderRNA *brna)
       "setting");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
-#  if 1 /* Delete this section once we remove old eevee. */
+#  if 1 /* This should be deleted in Blender 4.5 */
+  prop = RNA_def_property(srna, "use_screen_refraction", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_SS_REFRACTION);
+  RNA_def_property_ui_text(
+      prop,
+      "Raytrace Transmission",
+      "Use raytracing to determine transmitted color instead of using only light probes. "
+      "This prevents the surface from contributing to the lighting of surfaces not using this "
+      "setting (Deprecated: use 'use_raytrace_refraction')");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
   prop = RNA_def_property(srna, "use_sss_translucency", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_TRANSLUCENCY);
   RNA_def_property_ui_text(
-      prop, "Subsurface Translucency", "Add translucency effect to subsurface");
+      prop, "Subsurface Translucency", "Add translucency effect to subsurface (Deprecated)");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "refraction_depth", PROP_FLOAT, PROP_DISTANCE);
@@ -997,7 +1048,7 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Refraction Depth",
                            "Approximate the thickness of the object to compute two refraction "
-                           "events (0 is disabled)");
+                           "events (0 is disabled) (Deprecated)");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 #  endif
 

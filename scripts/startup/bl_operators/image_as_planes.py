@@ -923,7 +923,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, Operator):
         material.shadow_method = self.shadow_method
 
         material.use_backface_culling = self.use_backface_culling
-        material.show_transparent_back = self.show_transparent_back
+        material.use_transparency_overlap = self.show_transparent_back
 
         node_tree = material.node_tree
         out_node = clean_node_tree(node_tree)
