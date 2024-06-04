@@ -631,7 +631,7 @@ static bool paint_smooth_stroke(PaintStroke *stroke,
                                 float r_mouse[2],
                                 float *r_pressure)
 {
-  if (paint_supports_smooth_stroke(*stroke->brush, mode)) {
+  if (paint_supports_smooth_stroke(stroke, *stroke->brush, mode)) {
     float radius = stroke->brush->smooth_stroke_radius * stroke->zoom_2d;
     float u = stroke->brush->smooth_stroke_factor;
 
@@ -1090,17 +1090,24 @@ bool paint_supports_dynamic_size(const Brush &br, PaintMode mode)
   return true;
 }
 
-bool paint_supports_smooth_stroke(const Brush &br, PaintMode mode)
+bool paint_supports_smooth_stroke(PaintStroke *stroke, const Brush &brush, PaintMode mode)
 {
-  if (!(br.flag & BRUSH_SMOOTH_STROKE) ||
-      (br.flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT | BRUSH_LINE)))
+  /* The grease pencil draw tool needs to enable this when the `stroke_mode` is set to
+   * `BRUSH_STROKE_SMOOTH`. */
+  if (mode == PaintMode::GPencil && eBrushGPaintTool(brush.gpencil_tool) == GPAINT_TOOL_DRAW &&
+      stroke->stroke_mode == BRUSH_STROKE_SMOOTH)
+  {
+    return true;
+  }
+  if (!(brush.flag & BRUSH_SMOOTH_STROKE) ||
+      (brush.flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT | BRUSH_LINE)))
   {
     return false;
   }
 
   switch (mode) {
     case PaintMode::Sculpt:
-      if (sculpt_is_grab_tool(br)) {
+      if (sculpt_is_grab_tool(brush)) {
         return false;
       }
       break;
@@ -1488,7 +1495,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
       return OPERATOR_FINISHED;
     }
 
-    if (paint_supports_smooth_stroke(*br, mode)) {
+    if (paint_supports_smooth_stroke(stroke, *br, mode)) {
       stroke->stroke_cursor = WM_paint_cursor_activate(
           SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_tool_poll, paint_draw_smooth_cursor, stroke);
     }
