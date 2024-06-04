@@ -30,8 +30,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "IMB_colormanagement.hh"
-
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
@@ -182,9 +180,6 @@ class GlareOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_glare_highlights");
     GPU_shader_bind(shader);
 
-    float luminance_coefficients[3];
-    IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-    GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
     GPU_shader_uniform_1f(shader, "threshold", node_storage(bnode()).threshold);
 
     const Result &input_image = get_input("Image");

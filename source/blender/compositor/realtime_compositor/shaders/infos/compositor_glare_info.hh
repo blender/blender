@@ -11,7 +11,6 @@
 GPU_SHADER_CREATE_INFO(compositor_glare_highlights)
     .local_group_size(16, 16)
     .push_constant(Type::FLOAT, "threshold")
-    .push_constant(Type::VEC3, "luminance_coefficients")
     .sampler(0, ImageType::FLOAT_2D, "input_tx")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .compute_source("compositor_glare_highlights.glsl")
