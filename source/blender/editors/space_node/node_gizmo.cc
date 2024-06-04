@@ -193,6 +193,7 @@ struct NodeCropWidgetGroup {
 
   struct {
     float2 dims;
+    float2 offset;
   } state;
 
   struct {
@@ -208,38 +209,37 @@ static void gizmo_node_crop_update(NodeCropWidgetGroup *crop_group)
       crop_group->update_data.context, &crop_group->update_data.ptr, crop_group->update_data.prop);
 }
 
-static void two_xy_to_rect(const NodeTwoXYs *nxy, rctf *rect, const float2 &dims, bool is_relative)
+static void two_xy_to_rect(
+    const NodeTwoXYs *nxy, rctf *rect, const float2 &dims, const float2 offset, bool is_relative)
 {
   if (is_relative) {
-    rect->xmin = nxy->fac_x1;
-    rect->xmax = nxy->fac_x2;
-    rect->ymin = nxy->fac_y1;
-    rect->ymax = nxy->fac_y2;
+    rect->xmin = nxy->fac_x1 + (offset.x / dims.x);
+    rect->xmax = nxy->fac_x2 + (offset.x / dims.x);
+    rect->ymin = nxy->fac_y1 + (offset.y / dims.y);
+    rect->ymax = nxy->fac_y2 + (offset.y / dims.y);
   }
   else {
-    rect->xmin = nxy->x1 / dims.x;
-    rect->xmax = nxy->x2 / dims.x;
-    rect->ymin = nxy->y1 / dims.y;
-    rect->ymax = nxy->y2 / dims.y;
+    rect->xmin = (nxy->x1 + offset.x) / dims.x;
+    rect->xmax = (nxy->x2 + offset.x) / dims.x;
+    rect->ymin = (nxy->y1 + offset.y) / dims.y;
+    rect->ymax = (nxy->y2 + offset.y) / dims.y;
   }
 }
 
-static void two_xy_from_rect(NodeTwoXYs *nxy,
-                             const rctf *rect,
-                             const float2 &dims,
-                             bool is_relative)
+static void two_xy_from_rect(
+    NodeTwoXYs *nxy, const rctf *rect, const float2 &dims, const float2 &offset, bool is_relative)
 {
   if (is_relative) {
-    nxy->fac_x1 = rect->xmin;
-    nxy->fac_x2 = rect->xmax;
-    nxy->fac_y1 = rect->ymin;
-    nxy->fac_y2 = rect->ymax;
+    nxy->fac_x1 = rect->xmin - (offset.x / dims.x);
+    nxy->fac_x2 = rect->xmax - (offset.x / dims.x);
+    nxy->fac_y1 = rect->ymin - (offset.y / dims.y);
+    nxy->fac_y2 = rect->ymax - (offset.y / dims.y);
   }
   else {
-    nxy->x1 = rect->xmin * dims.x;
-    nxy->x2 = rect->xmax * dims.x;
-    nxy->y1 = rect->ymin * dims.y;
-    nxy->y2 = rect->ymax * dims.y;
+    nxy->x1 = rect->xmin * dims.x - offset.x;
+    nxy->x2 = rect->xmax * dims.x - offset.x;
+    nxy->y1 = rect->ymin * dims.y - offset.y;
+    nxy->y2 = rect->ymax * dims.y - offset.y;
   }
 }
 
@@ -251,12 +251,13 @@ static void gizmo_node_crop_prop_matrix_get(const wmGizmo *gz,
   float(*matrix)[4] = (float(*)[4])value_p;
   BLI_assert(gz_prop->type->array_length == 16);
   NodeCropWidgetGroup *crop_group = (NodeCropWidgetGroup *)gz->parent_gzgroup->customdata;
-  const float *dims = crop_group->state.dims;
+  const float2 dims = crop_group->state.dims;
+  const float2 offset = crop_group->state.offset;
   const bNode *node = (const bNode *)gz_prop->custom_func.user_data;
   const NodeTwoXYs *nxy = (const NodeTwoXYs *)node->storage;
   bool is_relative = bool(node->custom2);
   rctf rct;
-  two_xy_to_rect(nxy, &rct, dims, is_relative);
+  two_xy_to_rect(nxy, &rct, dims, offset, is_relative);
   matrix[0][0] = fabsf(BLI_rctf_size_x(&rct));
   matrix[1][1] = fabsf(BLI_rctf_size_y(&rct));
   matrix[3][0] = (BLI_rctf_cent_x(&rct) - 0.5f) * dims[0];
@@ -270,21 +271,22 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   const float(*matrix)[4] = (const float(*)[4])value_p;
   BLI_assert(gz_prop->type->array_length == 16);
   NodeCropWidgetGroup *crop_group = (NodeCropWidgetGroup *)gz->parent_gzgroup->customdata;
-  const float *dims = crop_group->state.dims;
+  const float2 dims = crop_group->state.dims;
+  const float2 offset = crop_group->state.offset;
   bNode *node = (bNode *)gz_prop->custom_func.user_data;
   NodeTwoXYs *nxy = (NodeTwoXYs *)node->storage;
   bool is_relative = bool(node->custom2);
   rctf rct;
-  two_xy_to_rect(nxy, &rct, dims, is_relative);
+  two_xy_to_rect(nxy, &rct, dims, offset, is_relative);
   const bool nx = rct.xmin > rct.xmax;
   const bool ny = rct.ymin > rct.ymax;
   BLI_rctf_resize(&rct, fabsf(matrix[0][0]), fabsf(matrix[1][1]));
-  BLI_rctf_recenter(&rct, (matrix[3][0] / dims[0]) + 0.5f, (matrix[3][1] / dims[1]) + 0.5f);
+  BLI_rctf_recenter(&rct, ((matrix[3][0]) / dims[0]) + 0.5f, ((matrix[3][1]) / dims[1]) + 0.5f);
   rctf rct_isect{};
-  rct_isect.xmin = 0;
-  rct_isect.xmax = 1;
-  rct_isect.ymin = 0;
-  rct_isect.ymax = 1;
+  rct_isect.xmin = offset.x / dims.x;
+  rct_isect.xmax = offset.x / dims.x + 1;
+  rct_isect.ymin = offset.y;
+  rct_isect.ymax = offset.y / dims.y + 1;
   BLI_rctf_isect(&rct_isect, &rct, &rct);
   if (nx) {
     std::swap(rct.xmin, rct.xmax);
@@ -292,7 +294,7 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   if (ny) {
     std::swap(rct.ymin, rct.ymax);
   }
-  two_xy_from_rect(nxy, &rct, dims, is_relative);
+  two_xy_from_rect(nxy, &rct, dims, offset, is_relative);
   gizmo_node_crop_update(crop_group);
 }
 
@@ -353,6 +355,7 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
   if (ibuf) {
     crop_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     crop_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
+    copy_v2_v2(crop_group->state.offset, ima->runtime.backdrop_offset);
 
     RNA_float_set_array(gz->ptr, "dimensions", crop_group->state.dims);
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
