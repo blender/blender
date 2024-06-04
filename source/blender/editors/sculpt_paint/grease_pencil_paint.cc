@@ -40,6 +40,18 @@ namespace blender::ed::sculpt_paint::greasepencil {
 
 static constexpr float POINT_OVERRIDE_THRESHOLD_PX = 3.0f;
 
+static float brush_radius_to_pixel_radius(const RegionView3D *rv3d,
+                                          const Scene *scene,
+                                          const Brush *brush,
+                                          const float3 pos)
+{
+  if (BKE_brush_use_locked_size(scene, brush)) {
+    const float pixel_size = ED_view3d_pixel_size(rv3d, pos);
+    return BKE_brush_unprojected_radius_get(scene, brush) / pixel_size;
+  }
+  return float(BKE_brush_size_get(scene, brush));
+}
+
 template<typename T>
 static inline void linear_interpolation(const T &a,
                                         const T &b,
@@ -559,15 +571,18 @@ struct PaintOperationExecutor {
     }
 
     /* If the next sample is far away, we subdivide the segment to add more points. */
-    int new_points_num = 1;
     const float distance_px = math::distance(coords, prev_coords);
-    /* TODO: Do we need to calculate the screen space brush size here? */
-    const float max_spacing_px = (float(brush_->spacing) / 100.0f) *
-                                 BKE_brush_size_get(scene, brush_);
-    if (distance_px > max_spacing_px) {
-      const int subdivisions = int(math::floor(distance_px / max_spacing_px)) - 1;
-      new_points_num += subdivisions;
-    }
+    const float brush_radius_px = brush_radius_to_pixel_radius(
+        rv3d, scene, brush_, math::transform_point(self.placement_.to_world_space(), position));
+    /* Clamp the number of points within a pixel in screen space. */
+    constexpr int max_points_per_pixel = 4;
+    /* The value `brush_->spacing` is a percentage of the brush radius in pixels. */
+    const float max_spacing_px = math::max((float(brush_->spacing) / 100.0f) *
+                                               float(brush_radius_px),
+                                           1.0f / float(max_points_per_pixel));
+    const int new_points_num = (distance_px > max_spacing_px) ?
+                                   int(math::floor(distance_px / max_spacing_px)) :
+                                   1;
 
     /* Resize the curves geometry. */
     extend_curve(curves, on_back, new_points_num);
