@@ -2673,6 +2673,209 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):
             row.prop(gp_settings, "use_fill_limit")
 
 
+class VIEW3D_PT_tools_grease_pencil_v3_brush_stroke(Panel, View3DPanel):
+    bl_context = ".greasepencil_paint"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brush_settings"
+    bl_label = "Stroke"
+    bl_category = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        if ob.type != 'GREASEPENCIL':
+            return False
+        brush = context.tool_settings.gpencil_paint.brush
+        return brush is not None and brush.gpencil_tool == 'DRAW'
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+
+class VIEW3D_PT_tools_grease_pencil_v3_brush_post_processing(View3DPanel, Panel):
+    bl_context = ".greasepencil_paint"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_v3_brush_stroke"
+    bl_label = "Post-Processing"
+    bl_category = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        if ob.type != 'GREASEPENCIL':
+            return False
+        brush = context.tool_settings.gpencil_paint.brush
+        return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL', 'TINT'}
+
+    def draw_header(self, context):
+        brush = context.tool_settings.gpencil_paint.brush
+        gp_settings = brush.gpencil_settings
+        self.layout.use_property_split = False
+        self.layout.prop(gp_settings, "use_settings_postprocess", text=self.bl_label if self.is_popover else "")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        brush = context.tool_settings.gpencil_paint.brush
+        gp_settings = brush.gpencil_settings
+
+        col = layout.column()
+        col.active = gp_settings.use_settings_postprocess
+
+        col1 = col.column(align=True)
+        col1.prop(gp_settings, "pen_smooth_factor")
+        col1.prop(gp_settings, "pen_smooth_steps")
+
+        col1 = col.column(align=True)
+        col1.prop(gp_settings, "pen_subdivision_steps")
+
+        col1 = col.column(align=True)
+        col1.prop(gp_settings, "simplify_factor")
+
+        col1 = col.column(align=True)
+        col1.prop(gp_settings, "use_trim")
+
+        col.separator()
+
+        row = col.row(heading="Outline", align=True)
+        row.prop(gp_settings, "use_settings_outline", text="")
+        row2 = row.row(align=True)
+        row2.enabled = gp_settings.use_settings_outline
+        row2.prop(gp_settings, "material_alt", text="")
+
+        row2 = col.row(align=True)
+        row2.enabled = gp_settings.use_settings_outline
+        row2.prop(gp_settings, "outline_thickness_factor")
+
+
+class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
+    bl_context = ".greasepencil_paint"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_v3_brush_stroke"
+    bl_label = "Randomize"
+    bl_category = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        if ob.type != 'GREASEPENCIL':
+            return False
+        brush = context.tool_settings.gpencil_paint.brush
+        return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL', 'TINT'}
+
+    def draw_header(self, context):
+        brush = context.tool_settings.gpencil_paint.brush
+        gp_settings = brush.gpencil_settings
+        self.layout.use_property_split = False
+        self.layout.prop(gp_settings, "use_settings_random", text=self.bl_label if self.is_popover else "")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.tool_settings
+        brush = tool_settings.gpencil_paint.brush
+        mode = tool_settings.gpencil_paint.color_mode
+        gp_settings = brush.gpencil_settings
+
+        col = layout.column()
+        col.enabled = gp_settings.use_settings_random
+
+        row = col.row(align=True)
+        row.prop(gp_settings, "random_pressure", text="Radius", slider=True)
+        row.prop(gp_settings, "use_stroke_random_radius", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_radius", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_radius and self.is_popover is False:
+            col.template_curve_mapping(gp_settings, "curve_random_pressure", brush=True, use_negative_slope=True)
+
+        row = col.row(align=True)
+        row.prop(gp_settings, "random_strength", text="Strength", slider=True)
+        row.prop(gp_settings, "use_stroke_random_strength", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_strength", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_strength and self.is_popover is False:
+            col.template_curve_mapping(gp_settings, "curve_random_strength", brush=True, use_negative_slope=True)
+
+        row = col.row(align=True)
+        row.prop(gp_settings, "uv_random", text="UV", slider=True)
+        row.prop(gp_settings, "use_stroke_random_uv", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_uv", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_uv and self.is_popover is False:
+            col.template_curve_mapping(gp_settings, "curve_random_uv", brush=True, use_negative_slope=True)
+
+        col.separator()
+
+        col1 = col.column(align=True)
+        col1.enabled = mode == 'VERTEXCOLOR' and gp_settings.use_settings_random
+        row = col1.row(align=True)
+        row.prop(gp_settings, "random_hue_factor", slider=True)
+        row.prop(gp_settings, "use_stroke_random_hue", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_hue", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_hue and self.is_popover is False:
+            col1.template_curve_mapping(gp_settings, "curve_random_hue", brush=True, use_negative_slope=True)
+
+        row = col1.row(align=True)
+        row.prop(gp_settings, "random_saturation_factor", slider=True)
+        row.prop(gp_settings, "use_stroke_random_sat", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_sat", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_sat and self.is_popover is False:
+            col1.template_curve_mapping(gp_settings, "curve_random_saturation", brush=True, use_negative_slope=True)
+
+        row = col1.row(align=True)
+        row.prop(gp_settings, "random_value_factor", slider=True)
+        row.prop(gp_settings, "use_stroke_random_val", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_val", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_val and self.is_popover is False:
+            col1.template_curve_mapping(gp_settings, "curve_random_value", brush=True, use_negative_slope=True)
+
+        col.separator()
+
+        row = col.row(align=True)
+        row.prop(gp_settings, "pen_jitter", slider=True)
+        row.prop(gp_settings, "use_jitter_pressure", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_jitter_pressure and self.is_popover is False:
+            col.template_curve_mapping(gp_settings, "curve_jitter", brush=True, use_negative_slope=True)
+
+
+class VIEW3D_PT_tools_grease_pencil_v3_brush_stabilizer(Panel, View3DPanel):
+    bl_context = ".greasepencil_paint"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_v3_brush_stroke"
+    bl_label = "Stabilize Stroke"
+    bl_category = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        if ob.type != 'GREASEPENCIL':
+            return False
+        brush = context.tool_settings.gpencil_paint.brush
+        return brush is not None and brush.gpencil_tool == 'DRAW'
+
+    def draw_header(self, context):
+        brush = context.tool_settings.gpencil_paint.brush
+        self.layout.use_property_split = False
+        self.layout.prop(brush, "use_smooth_stroke", text=self.bl_label if self.is_popover else "")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        brush = context.tool_settings.gpencil_paint.brush
+
+        col = layout.column()
+        col.active = brush.use_smooth_stroke
+
+        col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+        col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+
+
 class VIEW3D_PT_tools_grease_pencil_v3_brush_mixcolor(View3DPanel, Panel):
     bl_context = ".grease_pencil_paint"
     bl_label = "Color"
@@ -2871,6 +3074,10 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_v3_brush_select,
     VIEW3D_PT_tools_grease_pencil_v3_brush_settings,
     VIEW3D_PT_tools_grease_pencil_v3_brush_advanced,
+    VIEW3D_PT_tools_grease_pencil_v3_brush_stroke,
+    VIEW3D_PT_tools_grease_pencil_v3_brush_post_processing,
+    VIEW3D_PT_tools_grease_pencil_v3_brush_random,
+    VIEW3D_PT_tools_grease_pencil_v3_brush_stabilizer,
     VIEW3D_PT_tools_grease_pencil_v3_brush_mixcolor,
     VIEW3D_PT_tools_grease_pencil_v3_brush_mix_palette,
 
