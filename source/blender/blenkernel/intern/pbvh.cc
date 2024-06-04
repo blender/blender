@@ -1310,10 +1310,6 @@ static void node_update_and_flush_bounds(PBVH &pbvh, PBVHNode &node, const PBVHN
   if ((flag & PBVH_UpdateOriginalBB) && (node.flag & PBVH_UpdateOriginalBB)) {
     node.bounds_orig = node.bounds;
   }
-
-  if ((flag & PBVH_UpdateRedraw) && (node.flag & PBVH_UpdateRedraw)) {
-    node.flag &= ~PBVH_UpdateRedraw;
-  }
 }
 
 static void update_bounds_redraw(PBVH &pbvh, Span<PBVHNode *> nodes, int flag)
@@ -1365,7 +1361,7 @@ void update_bounds(PBVH &pbvh, int flag)
     return;
   }
 
-  if (flag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw)) {
+  if (flag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB)) {
     update_bounds_redraw(pbvh, nodes, flag);
   }
 
