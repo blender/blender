@@ -2732,7 +2732,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_post_processing(View3DPanel, Panel)
         col1.prop(gp_settings, "pen_smooth_steps")
 
         col1 = col.column(align=True)
-        col1.prop(gp_settings, "pen_subdivision_steps")
+        col1.prop(gp_settings, "pen_subdivision_steps", text="Subdivisions")
 
         col1 = col.column(align=True)
         col1.prop(gp_settings, "simplify_factor")
