@@ -180,102 +180,6 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData &mr, const BMFace *e
 
 /** \} */
 
-/* ---------------------------------------------------------------------- */
-/** \name Mesh Elements Extract Struct
- * \{ */
-
-/* TODO(jbakker): move parameters inside a struct. */
-
-using ExtractTriBMeshFn = void(const MeshRenderData &mr, BMLoop **elt, int elt_index, void *data);
-using ExtractTriMeshFn = void(const MeshRenderData &mr,
-                              const int3 &tri,
-                              int elt_index,
-                              void *data);
-using ExtractFaceBMeshFn = void(const MeshRenderData &mr,
-                                const BMFace *f,
-                                int f_index,
-                                void *data);
-using ExtractFaceMeshFn = void(const MeshRenderData &mr, int face_index, void *data);
-using ExtractLEdgeBMeshFn = void(const MeshRenderData &mr,
-                                 const BMEdge *eed,
-                                 int loose_edge_i,
-                                 void *data);
-using ExtractLEdgeMeshFn = void(const MeshRenderData &mr, int2 edge, int loose_edge_i, void *data);
-using ExtractLVertBMeshFn = void(const MeshRenderData &mr,
-                                 const BMVert *eve,
-                                 int loose_vert_i,
-                                 void *data);
-using ExtractLVertMeshFn = void(const MeshRenderData &mr, int loose_vert_i, void *data);
-using ExtractLooseGeomSubdivFn = void(const DRWSubdivCache &subdiv_cache,
-                                      const MeshRenderData &mr,
-                                      void *buffer,
-                                      void *data);
-using ExtractInitFn = void(const MeshRenderData &mr,
-                           MeshBatchCache &cache,
-                           void *buffer,
-                           void *r_data);
-using ExtractFinishFn = void(const MeshRenderData &mr,
-                             MeshBatchCache &cache,
-                             void *buffer,
-                             void *data);
-using ExtractTaskReduceFn = void(void *userdata, void *task_userdata);
-
-using ExtractInitSubdivFn = void(const DRWSubdivCache &subdiv_cache,
-                                 const MeshRenderData &mr,
-                                 MeshBatchCache &cache,
-                                 void *buf,
-                                 void *data);
-using ExtractIterSubdivBMeshFn = void(const DRWSubdivCache &subdiv_cache,
-                                      const MeshRenderData &mr,
-                                      void *data,
-                                      uint subdiv_quad_index,
-                                      const BMFace *coarse_quad);
-using ExtractIterSubdivMeshFn = void(const DRWSubdivCache &subdiv_cache,
-                                     const MeshRenderData &mr,
-                                     void *data,
-                                     uint subdiv_quad_index,
-                                     int coarse_quad_index);
-using ExtractFinishSubdivFn = void(const DRWSubdivCache &subdiv_cache,
-                                   const MeshRenderData &mr,
-                                   MeshBatchCache &cache,
-                                   void *buf,
-                                   void *data);
-
-struct MeshExtract {
-  /** Executed on main thread and return user data for iteration functions. */
-  ExtractInitFn *init;
-  /** Executed on one (or more if use_threading) worker thread(s). */
-  ExtractTriBMeshFn *iter_looptri_bm;
-  ExtractTriMeshFn *iter_corner_tri_mesh;
-  ExtractFaceBMeshFn *iter_face_bm;
-  ExtractFaceMeshFn *iter_face_mesh;
-  ExtractLEdgeBMeshFn *iter_loose_edge_bm;
-  ExtractLEdgeMeshFn *iter_loose_edge_mesh;
-  ExtractLVertBMeshFn *iter_loose_vert_bm;
-  ExtractLVertMeshFn *iter_loose_vert_mesh;
-  ExtractLooseGeomSubdivFn *iter_loose_geom_subdiv;
-  /** Executed on one worker thread after all elements iterations. */
-  ExtractTaskReduceFn *task_reduce;
-  ExtractFinishFn *finish;
-  /** Executed on main thread for subdivision evaluation. */
-  ExtractInitSubdivFn *init_subdiv;
-  ExtractIterSubdivBMeshFn *iter_subdiv_bm;
-  ExtractIterSubdivMeshFn *iter_subdiv_mesh;
-  ExtractFinishSubdivFn *finish_subdiv;
-  /** Used to request common data. */
-  eMRDataType data_type;
-  size_t data_size;
-  /** Used to know if the element callbacks are thread-safe and can be parallelized. */
-  bool use_threading;
-  /**
-   * Offset in bytes of the buffer inside a MeshBufferList instance. Points to a vertex or index
-   * buffer.
-   */
-  size_t mesh_buffer_offset;
-};
-
-/** \} */
-
 /* `draw_cache_extract_mesh_render_data.cc` */
 
 /**
@@ -310,8 +214,6 @@ struct EditLoopData {
   uchar bweight;
 };
 
-void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist);
-eMRIterType mesh_extract_iter_type(const MeshExtract *ext);
 void mesh_render_data_face_flag(const MeshRenderData &mr,
                                 const BMFace *efa,
                                 BMUVOffsets offsets,

@@ -21,31 +21,6 @@
 
 namespace blender::draw {
 
-void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist)
-{
-  /* NOTE: POINTER_OFFSET on windows platforms casts internally to `void *`, but on GCC/CLANG to
-   * `MeshBufferList *`. What shows a different usage versus intent. */
-  void **buffer_ptr = (void **)POINTER_OFFSET(mbuflist, extractor->mesh_buffer_offset);
-  void *buffer = *buffer_ptr;
-  BLI_assert(buffer);
-  return buffer;
-}
-
-eMRIterType mesh_extract_iter_type(const MeshExtract *ext)
-{
-  eMRIterType type = (eMRIterType)0;
-  SET_FLAG_FROM_TEST(
-      type, (ext->iter_looptri_bm || ext->iter_corner_tri_mesh), MR_ITER_CORNER_TRI);
-  SET_FLAG_FROM_TEST(type, (ext->iter_face_bm || ext->iter_face_mesh), MR_ITER_POLY);
-  SET_FLAG_FROM_TEST(
-      type, (ext->iter_loose_edge_bm || ext->iter_loose_edge_mesh), MR_ITER_LOOSE_EDGE);
-  SET_FLAG_FROM_TEST(
-      type, (ext->iter_loose_vert_bm || ext->iter_loose_vert_mesh), MR_ITER_LOOSE_VERT);
-  return type;
-}
-
-/** \} */
-
 /* ---------------------------------------------------------------------- */
 /** \name Extract Edit Flag Utils
  * \{ */
