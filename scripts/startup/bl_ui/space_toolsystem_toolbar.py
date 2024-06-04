@@ -1634,6 +1634,7 @@ class _defs_sculpt:
             props = tool.operator_properties("sculpt.trim_line_gesture")
             layout.prop(props, "trim_solver", expand=False)
             layout.prop(props, "trim_orientation", expand=False)
+            layout.prop(props, "trim_extrude_mode", expand=False)
             layout.prop(props, "use_cursor_depth", expand=False)
             layout.prop(props, "use_limit_to_segment", expand=False)
         return dict(
