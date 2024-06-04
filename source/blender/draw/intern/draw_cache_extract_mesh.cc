@@ -584,6 +584,16 @@ static TaskNode *mesh_extract_render_data_node_create(TaskGraph *task_graph,
 /** \name Extract Loop
  * \{ */
 
+static bool any_attr_requested(const MeshBufferList &buffers)
+{
+  for (const int i : IndexRange(ARRAY_SIZE(buffers.vbo.attr))) {
+    if (DRW_vbo_requested(buffers.vbo.attr[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
                                         MeshBatchCache &cache,
                                         MeshBufferCache &mbc,
@@ -637,30 +647,17 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
 
   MeshBufferList &buffers = mbc.buff;
 
-#define EXTRACT_ADD_REQUESTED(type, name) \
-  do { \
-    if (DRW_##type##_requested(buffers.type.name)) { \
-      extractors.append(&extract_##name); \
-    } \
-  } while (0)
-
-  for (int i = 0; i < GPU_MAX_ATTR; i++) {
-    EXTRACT_ADD_REQUESTED(vbo, attr[i]);
-  }
-  EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
-
-#undef EXTRACT_ADD_REQUESTED
-
-  if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
-      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
-      !DRW_ibo_requested(buffers.ibo.points) && !DRW_ibo_requested(buffers.ibo.fdots) &&
-      !DRW_vbo_requested(buffers.vbo.pos) && !DRW_vbo_requested(buffers.vbo.fdots_pos) &&
-      !DRW_vbo_requested(buffers.vbo.nor) && !DRW_vbo_requested(buffers.vbo.vnor) &&
-      !DRW_vbo_requested(buffers.vbo.fdots_nor) && !DRW_vbo_requested(buffers.vbo.edge_fac) &&
-      !DRW_vbo_requested(buffers.vbo.tan) && !DRW_vbo_requested(buffers.vbo.edit_data) &&
-      !DRW_vbo_requested(buffers.vbo.face_idx) && !DRW_vbo_requested(buffers.vbo.edge_idx) &&
-      !DRW_vbo_requested(buffers.vbo.vert_idx) && !DRW_vbo_requested(buffers.vbo.fdot_idx) &&
-      !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_uv) &&
+  const bool attrs_requested = any_attr_requested(buffers);
+  if (!DRW_ibo_requested(buffers.ibo.lines) && !DRW_ibo_requested(buffers.ibo.lines_loose) &&
+      !DRW_ibo_requested(buffers.ibo.tris) && !DRW_ibo_requested(buffers.ibo.points) &&
+      !DRW_ibo_requested(buffers.ibo.fdots) && !DRW_vbo_requested(buffers.vbo.pos) &&
+      !DRW_vbo_requested(buffers.vbo.fdots_pos) && !DRW_vbo_requested(buffers.vbo.nor) &&
+      !DRW_vbo_requested(buffers.vbo.vnor) && !DRW_vbo_requested(buffers.vbo.fdots_nor) &&
+      !DRW_vbo_requested(buffers.vbo.edge_fac) && !DRW_vbo_requested(buffers.vbo.tan) &&
+      !DRW_vbo_requested(buffers.vbo.edit_data) && !DRW_vbo_requested(buffers.vbo.face_idx) &&
+      !DRW_vbo_requested(buffers.vbo.edge_idx) && !DRW_vbo_requested(buffers.vbo.vert_idx) &&
+      !DRW_vbo_requested(buffers.vbo.fdot_idx) && !DRW_vbo_requested(buffers.vbo.weights) &&
+      !DRW_vbo_requested(buffers.vbo.fdots_uv) &&
       !DRW_vbo_requested(buffers.vbo.fdots_edituv_data) && !DRW_vbo_requested(buffers.vbo.uv) &&
       !DRW_vbo_requested(buffers.vbo.edituv_stretch_area) &&
       !DRW_vbo_requested(buffers.vbo.edituv_stretch_angle) &&
@@ -671,7 +668,8 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
       !DRW_ibo_requested(buffers.ibo.lines_paint_mask) &&
       !DRW_ibo_requested(buffers.ibo.lines_adjacency) &&
       !DRW_vbo_requested(buffers.vbo.skin_roots) && !DRW_vbo_requested(buffers.vbo.sculpt_data) &&
-      !DRW_vbo_requested(buffers.vbo.orco) && !DRW_vbo_requested(buffers.vbo.mesh_analysis))
+      !DRW_vbo_requested(buffers.vbo.orco) && !DRW_vbo_requested(buffers.vbo.mesh_analysis) &&
+      !DRW_vbo_requested(buffers.vbo.attr_viewer) && !attrs_requested)
   {
     return;
   }
@@ -1189,6 +1187,39 @@ void mesh_buffer_cache_create_requested(TaskGraph &task_graph,
         [](void *task_data) { delete static_cast<TaskData *>(task_data); });
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
+  if (attrs_requested) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+      MeshBatchCache &cache;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_attributes(data.mr,
+                             {data.cache.attr_used.requests, GPU_MAX_ATTR},
+                             {data.buffers.vbo.attr, GPU_MAX_ATTR});
+        },
+        new TaskData{*mr, buffers, cache},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
+  if (DRW_vbo_requested(buffers.vbo.attr_viewer)) {
+    struct TaskData {
+      MeshRenderData &mr;
+      MeshBufferList &buffers;
+    };
+    TaskNode *task_node = BLI_task_graph_node_create(
+        &task_graph,
+        [](void *__restrict task_data) {
+          const TaskData &data = *static_cast<TaskData *>(task_data);
+          extract_attr_viewer(data.mr, *data.buffers.vbo.attr_viewer);
+        },
+        new TaskData{*mr, buffers},
+        [](void *task_data) { delete static_cast<TaskData *>(task_data); });
+    BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+  }
 
   if (use_thread) {
     /* First run the requested extractors that do not support asynchronous ranges. */
@@ -1270,37 +1301,25 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
 
   MeshBufferList &buffers = mbc.buff;
 
-#define EXTRACT_ADD_REQUESTED(type, name) \
-  do { \
-    if (DRW_##type##_requested(buffers.type.name)) { \
-      const MeshExtract *extractor = &extract_##name; \
-      extractors.append(extractor); \
-    } \
-  } while (0)
+  const bool attrs_requested = any_attr_requested(buffers);
 
-  for (int i = 0; i < GPU_MAX_ATTR; i++) {
-    EXTRACT_ADD_REQUESTED(vbo, attr[i]);
-  }
-
-#undef EXTRACT_ADD_REQUESTED
-
-  if (extractors.is_empty() && !DRW_ibo_requested(buffers.ibo.lines) &&
-      !DRW_ibo_requested(buffers.ibo.lines_loose) && !DRW_ibo_requested(buffers.ibo.tris) &&
-      !DRW_ibo_requested(buffers.ibo.points) && !DRW_vbo_requested(buffers.vbo.pos) &&
-      !DRW_vbo_requested(buffers.vbo.orco) && !DRW_vbo_requested(buffers.vbo.nor) &&
-      !DRW_vbo_requested(buffers.vbo.edge_fac) && !DRW_vbo_requested(buffers.vbo.tan) &&
-      !DRW_vbo_requested(buffers.vbo.edit_data) && !DRW_vbo_requested(buffers.vbo.face_idx) &&
-      !DRW_vbo_requested(buffers.vbo.edge_idx) && !DRW_vbo_requested(buffers.vbo.vert_idx) &&
-      !DRW_vbo_requested(buffers.vbo.weights) && !DRW_vbo_requested(buffers.vbo.fdots_nor) &&
-      !DRW_vbo_requested(buffers.vbo.fdots_pos) && !DRW_ibo_requested(buffers.ibo.fdots) &&
-      !DRW_vbo_requested(buffers.vbo.uv) && !DRW_vbo_requested(buffers.vbo.edituv_stretch_area) &&
+  if (!DRW_ibo_requested(buffers.ibo.lines) && !DRW_ibo_requested(buffers.ibo.lines_loose) &&
+      !DRW_ibo_requested(buffers.ibo.tris) && !DRW_ibo_requested(buffers.ibo.points) &&
+      !DRW_vbo_requested(buffers.vbo.pos) && !DRW_vbo_requested(buffers.vbo.orco) &&
+      !DRW_vbo_requested(buffers.vbo.nor) && !DRW_vbo_requested(buffers.vbo.edge_fac) &&
+      !DRW_vbo_requested(buffers.vbo.tan) && !DRW_vbo_requested(buffers.vbo.edit_data) &&
+      !DRW_vbo_requested(buffers.vbo.face_idx) && !DRW_vbo_requested(buffers.vbo.edge_idx) &&
+      !DRW_vbo_requested(buffers.vbo.vert_idx) && !DRW_vbo_requested(buffers.vbo.weights) &&
+      !DRW_vbo_requested(buffers.vbo.fdots_nor) && !DRW_vbo_requested(buffers.vbo.fdots_pos) &&
+      !DRW_ibo_requested(buffers.ibo.fdots) && !DRW_vbo_requested(buffers.vbo.uv) &&
+      !DRW_vbo_requested(buffers.vbo.edituv_stretch_area) &&
       !DRW_vbo_requested(buffers.vbo.edituv_stretch_angle) &&
       !DRW_vbo_requested(buffers.vbo.edituv_data) && !DRW_ibo_requested(buffers.ibo.edituv_tris) &&
       !DRW_ibo_requested(buffers.ibo.edituv_lines) &&
       !DRW_ibo_requested(buffers.ibo.edituv_points) &&
       !DRW_ibo_requested(buffers.ibo.lines_paint_mask) &&
       !DRW_ibo_requested(buffers.ibo.lines_adjacency) &&
-      !DRW_vbo_requested(buffers.vbo.sculpt_data))
+      !DRW_vbo_requested(buffers.vbo.sculpt_data) && !attrs_requested)
   {
     return;
   }
@@ -1386,6 +1405,12 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   }
   if (DRW_ibo_requested(buffers.ibo.edituv_points)) {
     extract_edituv_points_subdiv(mr, subdiv_cache, *buffers.ibo.edituv_points);
+  }
+  if (attrs_requested) {
+    extract_attributes_subdiv(mr,
+                              subdiv_cache,
+                              {cache.attr_used.requests, GPU_MAX_ATTR},
+                              {buffers.vbo.attr, GPU_MAX_ATTR});
   }
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);
