@@ -338,7 +338,7 @@ class notify_info:
 
 def extensions_panel_draw_online_extensions_request_impl(
         self,
-        context,
+        _context,
 ):
     layout = self.layout
     layout_header, layout_panel = layout.panel("advanced", default_closed=False)
@@ -353,7 +353,6 @@ def extensions_panel_draw_online_extensions_request_impl(
         ):
             layout_panel.label(text=line)
 
-        row = layout.row()
         row = layout_panel.row(align=True)
         row.alignment = 'LEFT'
         row.label(text="To continue offline, \"Install from Disk\" instead.")
@@ -367,7 +366,7 @@ def extensions_panel_draw_online_extensions_request_impl(
         ).url = "https://docs.blender.org/manual/en/dev/editors/preferences/extensions.html#install"
         layout_panel.separator()
 
-        row = layout.row()
+        row = layout_panel.row()
         props = row.operator("wm.context_set_boolean", text="Dismiss", icon='X')
         props.data_path = "preferences.extensions.use_online_access_handled"
         props.value = True
