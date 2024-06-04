@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_writer_material.hh"
-
 #include "usd_exporter_context.hh"
 #include "usd_hook.hh"
+#include "usd_utils.hh"
+#include "usd_writer_abstract.hh"
 
 #include "BKE_image.h"
 #include "BKE_image_format.h"
@@ -472,7 +473,8 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
   if (uv_node && uv_node->storage) {
     NodeShaderUVMap *shader_uv_map = static_cast<NodeShaderUVMap *>(uv_node->storage);
     /* We need to make valid here because actual uv primvar has been. */
-    uv_name = pxr::TfMakeValidIdentifier(shader_uv_map->uv_map);
+    uv_name = make_safe_name(shader_uv_map->uv_map,
+                             usd_export_context.export_params.allow_unicode);
   }
 
   uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->String).Set(uv_name);
@@ -778,7 +780,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
                                                      const int type)
 {
   pxr::SdfPath shader_path = material.GetPath().AppendChild(
-      pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
+      pxr::TfToken(make_safe_name(name, usd_export_context.export_params.allow_unicode)));
   pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(usd_export_context.stage, shader_path);
 
   switch (type) {

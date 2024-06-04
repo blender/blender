@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_reader_material.hh"
-#include "usd_reader_utils.hh"
-
 #include "usd_asset_utils.hh"
+#include "usd_reader_utils.hh"
+#include "usd_utils.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_image.h"
@@ -1359,7 +1359,7 @@ void build_material_map(const Main *bmain, blender::Map<std::string, Material *>
   BLI_assert_msg(r_mat_map, "...");
 
   LISTBASE_FOREACH (Material *, material, &bmain->materials) {
-    std::string usd_name = pxr::TfMakeValidIdentifier(material->id.name + 2);
+    std::string usd_name = make_safe_name(material->id.name + 2, true);
     r_mat_map->lookup_or_add_default(usd_name) = material;
   }
 }

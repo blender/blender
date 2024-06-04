@@ -44,10 +44,12 @@ bool is_mesh_with_shape_keys(const Object *obj);
  * \param stage: The stage
  * \param obj: The mesh object whose shape keys will be converted to blend shapes
  * \param mesh_prim: The USD mesh that will be assigned the blend shape targets
+ * \param allow_unicode: Whether to allow unicode encoded characters in the blend shape name
  */
 void create_blend_shapes(pxr::UsdStageRefPtr stage,
                          const Object *obj,
-                         const pxr::UsdPrim &mesh_prim);
+                         const pxr::UsdPrim &mesh_prim,
+                         bool allow_unicode);
 
 /**
  * Return the current weight values of the given key.

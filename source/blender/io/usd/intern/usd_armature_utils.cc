@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_armature_utils.hh"
+#include "usd_utils.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_modifier.hh"
@@ -95,22 +96,23 @@ void get_armature_bone_names(const Object *ob_arm,
   visit_bones(ob_arm, visitor);
 }
 
-pxr::TfToken build_usd_joint_path(const Bone *bone)
+pxr::TfToken build_usd_joint_path(const Bone *bone, bool allow_unicode)
 {
-  std::string path(pxr::TfMakeValidIdentifier(bone->name));
+  std::string path(bone->name);
 
   const Bone *parent = bone->parent;
   while (parent) {
-    path = pxr::TfMakeValidIdentifier(parent->name) + std::string("/") + path;
+    path = parent->name + std::string("/") + path;
     parent = parent->parent;
   }
 
-  return pxr::TfToken(path);
+  return pxr::TfToken(make_safe_name(path, allow_unicode));
 }
 
 void create_pose_joints(pxr::UsdSkelAnimation &skel_anim,
                         const Object &obj,
-                        const Map<StringRef, const Bone *> *deform_map)
+                        const Map<StringRef, const Bone *> *deform_map,
+                        bool allow_unicode)
 {
   BLI_assert(obj.pose);
 
@@ -126,7 +128,7 @@ void create_pose_joints(pxr::UsdSkelAnimation &skel_anim,
         continue;
       }
 
-      joints.push_back(build_usd_joint_path(pchan->bone));
+      joints.push_back(build_usd_joint_path(pchan->bone, allow_unicode));
     }
   }
 

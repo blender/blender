@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_abstract.hh"
+#include "usd_utils.hh"
 #include "usd_writer_material.hh"
 
-#include <pxr/base/tf/stringUtils.h>
 #include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usd/usdGeom/scope.h>
 
@@ -213,7 +213,8 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   /* Construct the material. */
-  pxr::TfToken material_name(pxr::TfMakeValidIdentifier(material->id.name + 2));
+  pxr::TfToken material_name(
+      make_safe_name(material->id.name + 2, usd_export_context_.export_params.allow_unicode));
   pxr::SdfPath usd_path = pxr::UsdGeomScope::Define(stage, get_material_library_path())
                               .GetPath()
                               .AppendChild(material_name);
@@ -325,7 +326,8 @@ void USDAbstractWriter::write_user_properties(const pxr::UsdPrim &prim,
       continue;
     }
 
-    std::string prop_name = pxr::TfMakeValidIdentifier(prop->name);
+    std::string prop_name = make_safe_name(prop->name,
+                                           usd_export_context_.export_params.allow_unicode);
     std::string full_prop_name = "userProperties:" + prop_name;
 
     pxr::TfToken prop_token = pxr::TfToken(full_prop_name);

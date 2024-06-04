@@ -48,7 +48,8 @@ static pxr::GfMatrix4d parent_relative_pose_mat(const bPoseChannel *pchan)
 static void initialize(const Object *obj,
                        pxr::UsdSkelSkeleton &skel,
                        pxr::UsdSkelAnimation &skel_anim,
-                       const blender::Map<blender::StringRef, const Bone *> *deform_bones)
+                       const blender::Map<blender::StringRef, const Bone *> *deform_bones,
+                       bool allow_unicode)
 {
   using namespace blender::io::usd;
 
@@ -68,7 +69,7 @@ static void initialize(const Object *obj,
       return;
     }
 
-    joints.push_back(build_usd_joint_path(bone));
+    joints.push_back(build_usd_joint_path(bone, allow_unicode));
     const pxr::GfMatrix4f arm_mat(bone->arm_mat);
     bind_xforms.push_back(pxr::GfMatrix4d(arm_mat));
 
@@ -97,7 +98,7 @@ static void initialize(const Object *obj,
   if (skel_anim) {
     usd_skel_api.CreateAnimationSourceRel().SetTargets(
         pxr::SdfPathVector({pxr::SdfPath(usdtokens::Anim)}));
-    create_pose_joints(skel_anim, *obj, deform_bones);
+    create_pose_joints(skel_anim, *obj, deform_bones, allow_unicode);
   }
 }
 
@@ -166,13 +167,14 @@ void USDArmatureWriter::do_write(HierarchyContext &context)
     }
   }
 
+  const bool allow_unicode = usd_export_context_.export_params.allow_unicode;
   Map<StringRef, const Bone *> *deform_map = usd_export_context_.export_params.only_deform_bones ?
                                                  &deform_map_ :
                                                  nullptr;
 
   if (!this->frame_has_been_written_) {
     init_deform_bones_map(context.object, deform_map);
-    initialize(context.object, skel, skel_anim, deform_map);
+    initialize(context.object, skel, skel_anim, deform_map, allow_unicode);
   }
 
   if (usd_export_context_.export_params.export_animation) {

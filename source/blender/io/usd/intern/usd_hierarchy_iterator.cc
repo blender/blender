@@ -8,6 +8,7 @@
 #include "usd_hierarchy_iterator.hh"
 #include "usd_skel_convert.hh"
 #include "usd_skel_root_utils.hh"
+#include "usd_utils.hh"
 #include "usd_writer_abstract.hh"
 #include "usd_writer_armature.hh"
 #include "usd_writer_camera.hh"
@@ -20,8 +21,6 @@
 #include "usd_writer_volume.hh"
 
 #include <string>
-
-#include <pxr/base/tf/stringUtils.h>
 
 #include "BKE_main.hh"
 
@@ -78,7 +77,7 @@ void USDHierarchyIterator::release_writer(AbstractHierarchyWriter *writer)
 
 std::string USDHierarchyIterator::make_valid_name(const std::string &name) const
 {
-  return pxr::TfMakeValidIdentifier(name);
+  return make_safe_name(name, params_.allow_unicode);
 }
 
 void USDHierarchyIterator::process_usd_skel() const
