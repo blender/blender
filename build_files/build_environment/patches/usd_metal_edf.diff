@@ -1,0 +1,46 @@
+From 4f05a62018ee5134843f7cefed826585f13a509b Mon Sep 17 00:00:00 2001
+From: Dhruv Govil <dgovil2@apple.com>
+Date: Mon, 3 Jun 2024 15:31:34 -0700
+Subject: [PATCH] Fix shader compile bug when using EDF in Storm
+
+Fixes
+https://github.com/PixarAnimationStudios/OpenUSD/issues/3105
+
+Thanks to Lee Kerley for the fix
+---
+ pxr/imaging/hdSt/materialXShaderGen.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/pxr/imaging/hdSt/materialXShaderGen.cpp b/pxr/imaging/hdSt/materialXShaderGen.cpp
+index ca1806bf03..8b0e1a3a41 100644
+--- a/pxr/imaging/hdSt/materialXShaderGen.cpp
++++ b/pxr/imaging/hdSt/materialXShaderGen.cpp
+@@ -692,7 +692,6 @@ HdStMaterialXShaderGen<Base>::_EmitConstantsUniformsAndTypeDefs(
+                 mxContext.getOptions().hwDirectionalAlbedoMethod)),
+             mxStage, false);
+     Base::emitLineBreak(mxStage);
+-    Base::emitTypeDefinitions(mxContext, mxStage);
+ 
+     // Add all constants and ensure that values are initialized
+     const mx::VariableBlock& constants = mxStage.getConstantBlock();
+@@ -945,6 +944,10 @@ HdStMaterialXShaderGenGlsl::_EmitMxFunctions(
+     mx::ShaderGenerator::emitLibraryInclude(
+         "stdlib/" + mx::GlslShaderGenerator::TARGET
+         + "/lib/mx_math.glsl", mxContext, mxStage);
++
++    // Add type definitions
++    emitTypeDefinitions(mxContext, mxStage);
++
+     _EmitConstantsUniformsAndTypeDefs(
+         mxContext, mxStage, _syntax->getConstantQualifier());
+ 
+@@ -1106,6 +1109,9 @@ HdStMaterialXShaderGenMsl::_EmitGlslfxMetalShader(
+     addStageUniform(mx::HW::LIGHT_DATA, mx::Type::FLOAT,
+         "shadowOcclusion", mxStage);
+ 
++    // Add type definitions
++    emitTypeDefinitions(mxContext, mxStage);
++
+     // Add type definitions
+     emitConstantBufferDeclarations(mxContext, resourceBindingCtx, mxStage);
+ 
