@@ -748,6 +748,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 0.4f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->alpha = brush->gpencil_settings->draw_strength;
+        SET_FLAG_FROM_TEST(brush->flag,
+                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                           BRUSH_ALPHA_PRESSURE);
+      }
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -774,6 +780,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->alpha = brush->gpencil_settings->draw_strength;
+        SET_FLAG_FROM_TEST(brush->flag,
+                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                           BRUSH_ALPHA_PRESSURE);
+      }
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -813,6 +825,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->alpha = brush->gpencil_settings->draw_strength;
+        SET_FLAG_FROM_TEST(brush->flag,
+                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                           BRUSH_ALPHA_PRESSURE);
+      }
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -854,6 +872,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 0.3f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->alpha = brush->gpencil_settings->draw_strength;
+        SET_FLAG_FROM_TEST(brush->flag,
+                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                           BRUSH_ALPHA_PRESSURE);
+      }
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -895,6 +919,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->alpha = brush->gpencil_settings->draw_strength;
+        SET_FLAG_FROM_TEST(brush->flag,
+                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                           BRUSH_ALPHA_PRESSURE);
+      }
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = 0.3f;
@@ -941,6 +971,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 1.0f;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_STRENGTH_PRESSURE;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->alpha = brush->gpencil_settings->draw_strength;
+        SET_FLAG_FROM_TEST(brush->flag,
+                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                           BRUSH_ALPHA_PRESSURE);
+      }
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -976,6 +1012,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 0.4f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->alpha = brush->gpencil_settings->draw_strength;
+        SET_FLAG_FROM_TEST(brush->flag,
+                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                           BRUSH_ALPHA_PRESSURE);
+      }
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -1014,6 +1056,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 0.6f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->alpha = brush->gpencil_settings->draw_strength;
+        SET_FLAG_FROM_TEST(brush->flag,
+                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                           BRUSH_ALPHA_PRESSURE);
+      }
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;

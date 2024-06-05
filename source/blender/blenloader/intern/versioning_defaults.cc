@@ -724,12 +724,15 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
     brush->blur_kernel_radius = 2;
 
-    /* Use full strength for all non-sculpt brushes,
-     * when painting we want to use full color/weight always.
-     *
-     * Note that sculpt is an exception,
-     * its values are overwritten by #BKE_brush_sculpt_reset below. */
-    brush->alpha = 1.0;
+    /* Grease Pencil brushes have specific alpha values set. */
+    if (!brush->gpencil_settings) {
+      /* Use full strength for all non-sculpt brushes,
+       * when painting we want to use full color/weight always.
+       *
+       * Note that sculpt is an exception,
+       * its values are overwritten by #BKE_brush_sculpt_reset below. */
+      brush->alpha = 1.0;
+    }
 
     /* Enable anti-aliasing by default. */
     brush->sampling_flag |= BRUSH_PAINT_ANTIALIASING;
