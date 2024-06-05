@@ -171,6 +171,7 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, SeqLoadData *loa
 
   if (SEQ_effect_get_num_inputs(seq->type) == 1) {
     seq->blend_mode = seq->seq1->blend_mode;
+    seq->blend_opacity = seq->seq1->blend_opacity;
   }
 
   if (!load_data->effect.seq1) {
