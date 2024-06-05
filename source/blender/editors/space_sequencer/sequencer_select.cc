@@ -1012,9 +1012,6 @@ static blender::Vector<Sequence *> mouseover_strips_sorted_get(const Scene *scen
     if (SEQ_time_right_handle_frame_get(scene, seq) < v2d->cur.xmin) {
       continue;
     }
-    if (!ED_sequencer_can_select_handle(scene, seq, v2d)) {
-      continue;
-    }
     const rctf body = strip_clickable_area_get(scene, v2d, seq);
     if (!BLI_rctf_isect_pt_v(&body, mouse_co)) {
       continue;
@@ -1049,6 +1046,10 @@ static eSeqHandle get_strip_handle_under_cursor(const Scene *scene,
                                                 const View2D *v2d,
                                                 float mouse_co[2])
 {
+  if (!ED_sequencer_can_select_handle(scene, seq, v2d)) {
+    return SEQ_HANDLE_NONE;
+  }
+
   rctf body, left, right;
   strip_clickable_areas_get(scene, seq, v2d, &body, &left, &right);
   if (BLI_rctf_isect_pt_v(&left, mouse_co)) {
