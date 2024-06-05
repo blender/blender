@@ -342,17 +342,21 @@ vec3 shadow_pcf_offset(vec3 L, vec3 Ng, vec2 random)
  */
 float shadow_texel_radius_at_position(LightData light, const bool is_directional, vec3 P)
 {
+  /* For direction, footprint of the sampled clipmap (or cascade) at the given position.
+   * For punctual, footprint of the tilemap at given position scaled by the LOD level.
+   * Each of these a smooth upper bound estimation (will transition smoothly to the next level). */
   float scale = 1.0;
   if (is_directional) {
-    vec3 lP = light_world_to_local_point(light, P);
+    vec3 lP = transform_direction_transposed(light.object_to_world, P);
     lP -= light_position_get(light);
     LightSunData sun = light_sun_data_get(light);
     if (light.type == LIGHT_SUN) {
-      /* Simplification of `coverage_get(shadow_directional_level_fractional)`. */
-      const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001);
-      scale = length(lP) * narrowing;
+      /* Simplification of `coverage_get(shadow_directional_level_fractional)`.
+       * Do not apply the narrowing since we want the size of the tilemap (not its application
+       * radius). */
+      scale = length(lP) * 2.0;
       scale = max(scale * exp2(light.lod_bias), exp2(light.lod_min));
-      scale = min(scale, exp2(float(sun.clipmap_lod_max)));
+      scale = clamp(scale, exp2(float(sun.clipmap_lod_min)), exp2(float(sun.clipmap_lod_max)));
     }
     else {
       /* Uniform distribution everywhere. No distance scaling.
@@ -371,14 +375,15 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
                                         drw_view_z_distance(P),
                                         uniform_buf.shadow.film_pixel_radius);
     /* This gives the size of pixels at Z = 1. */
-    scale = 0.5 / scale;
+    scale = 1.0 / scale;
     scale = min(scale, float(1 << (SHADOW_TILEMAP_LOD - 1)));
     /* Now scale by distance to the light. */
     scale *= reduce_max(abs(lP));
   }
-  /* Footprint of a tilemap at unit distance from the camera. */
-  const float texel_footprint = 2.0 * M_SQRT2 / SHADOW_MAP_MAX_RES;
-  return texel_footprint * scale;
+  /* Pixel bounding radius inside a tilemap of unit scale.
+   * Take only half of it because we want the radius and not the diameter. */
+  const float texel_radius = M_SQRT2 / SHADOW_MAP_MAX_RES;
+  return texel_radius * scale;
 }
 
 /**

@@ -817,10 +817,15 @@ static void ensure_nodetree_previews(const bContext &C,
        original_path;
        original_path = original_path->next)
   {
-    bNodeTreePath *new_path = MEM_cnew<bNodeTreePath>(__func__);
-    memcpy(new_path, original_path, sizeof(bNodeTreePath));
     bNode *parent = bke::nodeFindNodebyName(job_data->treepath_copy.last()->nodetree,
                                             original_path->node_name);
+    if (parent == nullptr) {
+      /* In some cases (e.g. muted nodes), there may not be an equivalent node in the copied
+       * nodetree. In that case, just skip the node. */
+      continue;
+    }
+    bNodeTreePath *new_path = MEM_cnew<bNodeTreePath>(__func__);
+    memcpy(new_path, original_path, sizeof(bNodeTreePath));
     new_path->nodetree = reinterpret_cast<bNodeTree *>(parent->id);
     job_data->treepath_copy.append(new_path);
   }
