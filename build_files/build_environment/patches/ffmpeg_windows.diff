@@ -1,6 +1,5 @@
-diff -Naur ffmpeg-clean/configure ffmpeg-dirty/configure
---- ffmpeg-clean/configure	2023-02-27 20:43:45.000000000 +0000
-+++ ffmpeg-dirty/configure	2023-05-25 09:49:24.949566500 +0100
+--- ffmpeg-6.1.1\configure	2023-12-30 16:07:26 -0700
++++ external_ffmpeg\configure	2024-03-18 13:17:59 -0600
 @@ -6675,7 +6675,7 @@
  enabled jni               && { [ $target_os = "android" ] && check_headers jni.h && enabled pthreads || die "ERROR: jni not found"; }
  enabled ladspa            && require_headers "ladspa.h dlfcn.h"
@@ -43,7 +42,7 @@ diff -Naur ffmpeg-clean/configure ffmpeg-dirty/configure
  
  enabled libvpx            && {
      enabled libvpx_vp8_decoder && {
-@@ -6840,7 +6839,7 @@
+@@ -6840,12 +6839,12 @@
  enabled libwebp           && {
      enabled libwebp_encoder      && require_pkg_config libwebp "libwebp >= 0.2.0" webp/encode.h WebPGetEncoderVersion
      enabled libwebp_anim_encoder && check_pkg_config libwebp_anim_encoder "libwebpmux >= 0.4.0" webp/mux.h WebPAnimEncoderOptionsInit; }
@@ -52,3 +51,9 @@ diff -Naur ffmpeg-clean/configure ffmpeg-dirty/configure
                               require_cpp_condition libx264 x264.h "X264_BUILD >= 122" && {
                               [ "$toolchain" != "msvc" ] ||
                               require_cpp_condition libx264 x264.h "X264_BUILD >= 158"; } &&
+                              check_cpp_condition libx262 x264.h "X264_MPEG2"
+-enabled libx265           && require_pkg_config libx265 x265 x265.h x265_api_get &&
++enabled libx265           && require libx265 "x265.h" x265_api_get -lx265 &&
+                              require_cpp_condition libx265 x265.h "X265_BUILD >= 89"
+ enabled libxavs           && require libxavs "stdint.h xavs.h" xavs_encoder_encode "-lxavs $pthreads_extralibs $libm_extralibs"
+ enabled libxavs2          && require_pkg_config libxavs2 "xavs2 >= 1.3.0" "stdint.h xavs2.h" xavs2_api_get

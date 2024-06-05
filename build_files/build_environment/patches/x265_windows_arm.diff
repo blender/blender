@@ -1,0 +1,26 @@
+diff --git a/source/CMakeLists.txt b/source/CMakeLists.txt
+index c74db2179..bb8fb3c29 100755
+--- a/source/CMakeLists.txt
++++ b/source/CMakeLists.txt
+@@ -378,7 +378,7 @@ if(GCC)
+             endif()
+         endif()
+     endif(ENABLE_AGGRESSIVE_CHECKS)
+-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CC_VERSION)
++    #execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CC_VERSION)
+ endif(GCC)
+ 
+ find_package(Nasm)
+diff --git a/source/dynamicHDR10/CMakeLists.txt b/source/dynamicHDR10/CMakeLists.txt
+index 22fb79d44..ad0f3a7a8 100644
+--- a/source/dynamicHDR10/CMakeLists.txt
++++ b/source/dynamicHDR10/CMakeLists.txt
+@@ -140,7 +140,7 @@ if(GCC)
+             endif()
+         endif()
+     endif(ENABLE_AGGRESSIVE_CHECKS)
+-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CC_VERSION)
++    #execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CC_VERSION)
+ endif(GCC)
+ 
+ # Build options
