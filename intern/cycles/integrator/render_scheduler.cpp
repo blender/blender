@@ -946,12 +946,14 @@ int RenderScheduler::get_num_samples_during_navigation(int resolution_divider) c
     return 1;
   }
 
-  /* Schedule samples equal to the resolution divider up to a maximum of 4.
+  /* Schedule samples equal to the resolution divider up to a maximum of 4, limited by the maximum
+   * number of samples overall.
    * The idea is to have enough information on the screen by increasing the sample count as the
    * resolution is decreased. */
+  const int max_navigation_samples = min(num_samples_, 4);
   /* NOTE: Changing this formula will change the formula in
    * `RenderScheduler::calculate_resolution_divider_for_time()`. */
-  return min(max(1, resolution_divider / pixel_size_), 4);
+  return min(max(1, resolution_divider / pixel_size_), max_navigation_samples);
 }
 
 bool RenderScheduler::work_need_adaptive_filter() const
