@@ -154,6 +154,15 @@ std::optional<rcti> AbstractView::get_bounds() const
   return bounds_;
 }
 
+std::string AbstractView::get_context_menu_title() const
+{
+  return context_menu_title;
+}
+
+void AbstractView::set_context_menu_title(std::string title)
+{
+  context_menu_title = title;
+}
 /** \} */
 
 }  // namespace blender::ui
