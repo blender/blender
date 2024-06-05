@@ -22,6 +22,7 @@
 #include "BLI_map.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_path_util.h"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
@@ -36,6 +37,14 @@
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
+
+#ifdef WITH_MATERIALX
+#  include "shader/materialx/material.h"
+#  include "shader/materialx/node_parser.h"
+#  include <pxr/usd/sdf/copyUtils.h>
+#  include <pxr/usd/usdMtlx/reader.h>
+#  include <pxr/usd/usdMtlx/utils.h>
+#endif
 
 /* `TfToken` objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -867,13 +876,12 @@ static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_ex
       node, usd_export_context.stage, usd_export_context.export_params);
 }
 
-std::string get_tex_image_asset_filepath(bNode *node,
-                                         const pxr::UsdStageRefPtr stage,
-                                         const USDExportParams &export_params)
+static std::string get_tex_image_asset_filepath(Image *ima,
+                                                const pxr::UsdStageRefPtr stage,
+                                                const USDExportParams &export_params)
 {
   std::string stage_path = stage->GetRootLayer()->GetRealPath();
 
-  Image *ima = reinterpret_cast<Image *>(node->id);
   if (!ima) {
     return "";
   }
@@ -930,6 +938,15 @@ std::string get_tex_image_asset_filepath(bNode *node,
   }
 
   return path;
+}
+
+std::string get_tex_image_asset_filepath(bNode *node,
+                                         const pxr::UsdStageRefPtr stage,
+                                         const USDExportParams &export_params)
+{
+
+  Image *ima = reinterpret_cast<Image *>(node->id);
+  return get_tex_image_asset_filepath(ima, stage, export_params);
 }
 
 /* If the given image is tiled, copy the image tiles to the given
@@ -1023,28 +1040,11 @@ static void copy_single_file(Image *ima,
   }
 }
 
-static void export_texture(const USDExporterContext &usd_export_context, bNode *node)
+static void export_texture(Image *ima,
+                           const pxr::UsdStageRefPtr stage,
+                           const bool allow_overwrite,
+                           ReportList *reports)
 {
-  export_texture(node,
-                 usd_export_context.stage,
-                 usd_export_context.export_params.overwrite_textures,
-                 usd_export_context.export_params.worker_status->reports);
-}
-
-void export_texture(bNode *node,
-                    const pxr::UsdStageRefPtr stage,
-                    const bool allow_overwrite,
-                    ReportList *reports)
-{
-  if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
-    return;
-  }
-
-  Image *ima = reinterpret_cast<Image *>(node->id);
-  if (!ima) {
-    return;
-  }
-
   std::string export_path = stage->GetRootLayer()->GetRealPath();
   if (export_path.empty()) {
     return;
@@ -1075,6 +1075,39 @@ void export_texture(bNode *node,
   }
 }
 
+void export_texture(bNode *node,
+                    const pxr::UsdStageRefPtr stage,
+                    const bool allow_overwrite,
+                    ReportList *reports)
+{
+  if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+    return;
+  }
+
+  Image *ima = reinterpret_cast<Image *>(node->id);
+  if (!ima) {
+    return;
+  }
+
+  return export_texture(ima, stage, allow_overwrite, reports);
+}
+
+static void export_texture(const USDExporterContext &usd_export_context, bNode *node)
+{
+  export_texture(node,
+                 usd_export_context.stage,
+                 usd_export_context.export_params.overwrite_textures,
+                 usd_export_context.export_params.worker_status->reports);
+}
+
+static void export_texture(const USDExporterContext &usd_export_context, Image *ima)
+{
+  export_texture(ima,
+                 usd_export_context.stage,
+                 usd_export_context.export_params.overwrite_textures,
+                 usd_export_context.export_params.worker_status->reports);
+}
+
 const pxr::TfToken token_for_input(const char *input_name)
 {
   const InputSpecMap &input_map = preview_surface_input_map();
@@ -1086,6 +1119,235 @@ const pxr::TfToken token_for_input(const char *input_name)
 
   return spec->input_name;
 }
+
+#ifdef WITH_MATERIALX
+/* A wrapper for the MaterialX code to re-use the standard Texture export code */
+static std::string materialx_export_image(
+    const USDExporterContext &usd_export_context, Main *, Scene *, Image *ima, ImageUser *)
+{
+  auto tex_path = get_tex_image_asset_filepath(
+      ima, usd_export_context.stage, usd_export_context.export_params);
+
+  export_texture(usd_export_context, ima);
+  return tex_path;
+}
+
+/* Utility function to reflow connections and paths within the temporary document
+ * to their final location in the USD document. */
+static pxr::SdfPath reflow_materialx_paths(pxr::SdfPath input_path,
+                                           pxr::SdfPath temp_path,
+                                           const pxr::SdfPath &target_path,
+                                           const Map<std::string, std::string> &rename_pairs)
+{
+
+  auto input_path_string = input_path.GetString();
+  /* First we see if the path is in the rename_pairs,
+   * otherwise we check if it starts with any items in the list plus a path separator (/ or .) .
+   * Checking for the path separators, removes false positives from other prefixed elements. */
+  auto value_lookup_ptr = rename_pairs.lookup_ptr(input_path_string);
+  if (value_lookup_ptr) {
+    input_path = pxr::SdfPath(*value_lookup_ptr);
+  }
+  else {
+    for (const auto &pair : rename_pairs.items()) {
+      if (input_path_string.length() > pair.key.length() &&
+          pxr::TfStringStartsWith(input_path_string, pair.key) &&
+          (input_path_string[pair.key.length()] == '/' ||
+           input_path_string[pair.key.length()] == '.'))
+      {
+        input_path = input_path.ReplacePrefix(pxr::SdfPath(pair.key), pxr::SdfPath(pair.value));
+        break;
+      }
+    }
+  }
+
+  return input_path.ReplacePrefix(temp_path, target_path);
+}
+
+/* Exports the material as a MaterialX nodegraph within the USD layer. */
+static void create_usd_materialx_material(const USDExporterContext &usd_export_context,
+                                          pxr::SdfPath usd_path,
+                                          Material *material,
+                                          pxr::UsdShadeMaterial &usd_material)
+{
+
+  /* We want to re-use the same MaterialX document generation code as used by the renderer.
+   * While the graph is traversed, we also want it to export the textures out. */
+  ExportImageFunction export_image_fn = (usd_export_context.export_image_fn) ?
+                                            usd_export_context.export_image_fn :
+                                            std::bind(materialx_export_image,
+                                                      usd_export_context,
+                                                      std::placeholders::_1,
+                                                      std::placeholders::_2,
+                                                      std::placeholders::_3,
+                                                      std::placeholders::_4);
+  std::string material_name = usd_path.GetElementString();
+  MaterialX::DocumentPtr doc = blender::nodes::materialx::export_to_materialx(
+      usd_export_context.depsgraph, material, material_name, export_image_fn);
+
+  /* We want to merge the MaterialX graph under the same Material as the USDPreviewSurface
+   * This allows for the same material assignment to have two levels of complexity so other
+   * applications and renderers can easily pick which one they want.
+   * This does mean that we need to pre-process the resulting graph so that there are no
+   * name conflicts.
+   * So we first gather all the existing names in this namespace to avoid that. */
+  Set<std::string> used_names;
+  auto material_prim = usd_material.GetPrim();
+  for (const auto &child : material_prim.GetChildren()) {
+    used_names.add(child.GetName().GetString());
+  }
+
+  /* usdMtlx assumes a workflow where the mtlx file is referenced in,
+   * but the resulting structure is not ideal for when the file is inlined.
+   * Some of the issues include turning every shader input into a separate constant, which
+   * leads to very unwieldy shader graphs in other applications. There are also extra nodes
+   * that are only needed when referencing in the file that make editing the graph harder.
+   * Therefore, we opt to copy just what we need over.
+   *
+   * To do this, we first open a temporary stage to process the structure inside */
+
+  auto temp_stage = pxr::UsdStage::CreateInMemory();
+  pxr::UsdMtlxRead(doc, temp_stage, pxr::SdfPath("/root"));
+
+  /* Next we need to find the Material that matches this materials name */
+  auto temp_material_path = pxr::SdfPath("/root/Materials");
+  temp_material_path = temp_material_path.AppendChild(material_prim.GetName());
+  auto temp_material_prim = temp_stage->GetPrimAtPath(temp_material_path);
+  if (!temp_material_prim) {
+    return;
+  }
+
+  pxr::UsdShadeMaterial temp_material{temp_material_prim};
+  if (!temp_material) {
+    return;
+  }
+
+  /* Once we have the material, we need to prepare for renaming any conflicts.
+   * However, we must make sure any new names don't conflict with names in the temp stage either */
+  Set<std::string> temp_used_names;
+  for (const auto &child : temp_material_prim.GetChildren()) {
+    temp_used_names.add(child.GetName().GetString());
+  }
+
+  /* We loop through the top level children of the material, and make sure that the names are
+   * unique across both the destination stage, and this temporary stage.
+   * This is stored for later use so that we can reflow any connections */
+  Map<std::string, std::string> rename_pairs;
+  for (const auto &temp_material_child : temp_material_prim.GetChildren()) {
+    uint32_t conflict_counter = 0;
+    auto name = temp_material_child.GetName().GetString();
+    auto target_name = name;
+    while (used_names.contains(target_name)) {
+      ++conflict_counter;
+      target_name = name + "_mtlx" + std::to_string(conflict_counter);
+
+      while (temp_used_names.contains(target_name)) {
+        ++conflict_counter;
+        target_name = name + "_mtlx" + std::to_string(conflict_counter);
+      }
+    }
+
+    if (conflict_counter == 0) {
+      continue;
+    }
+
+    temp_used_names.add(target_name);
+    auto original_path = temp_material_child.GetPath().GetString();
+    auto new_path =
+        temp_material_child.GetPath().ReplaceName(pxr::TfToken(target_name)).GetString();
+
+    rename_pairs.add_overwrite(original_path, new_path);
+  }
+
+  /* We now need to find the connections from the material to the surface shader
+   * and modify it to match the final target location */
+  for (auto &temp_material_output : temp_material.GetOutputs()) {
+    pxr::SdfPathVector output_paths;
+
+    temp_material_output.GetAttr().GetConnections(&output_paths);
+    if (output_paths.size() == 1) {
+      output_paths[0] = reflow_materialx_paths(
+          output_paths[0], temp_material_path, usd_path, rename_pairs);
+
+      auto target_material_output = usd_material.CreateOutput(temp_material_output.GetBaseName(),
+                                                              temp_material_output.GetTypeName());
+      target_material_output.GetAttr().SetConnections(output_paths);
+    }
+  }
+
+  /* Next we need to iterate through every shader descendant recursively, to process them */
+  for (const auto &temp_child : temp_material_prim.GetAllDescendants()) {
+    /* We only care about shader children */
+    auto temp_shader = pxr::UsdShadeShader(temp_child);
+    if (!temp_shader) {
+      continue;
+    }
+
+    /* First, we process any inputs */
+    for (auto &shader_input : temp_shader.GetInputs()) {
+      pxr::SdfPathVector connection_paths;
+      shader_input.GetAttr().GetConnections(&connection_paths);
+
+      if (connection_paths.size() != 1) {
+        continue;
+      }
+
+      auto connection_path = connection_paths[0];
+
+      auto connection_source = pxr::UsdShadeConnectionSourceInfo(temp_stage, connection_path);
+      auto connection_source_prim = connection_source.source.GetPrim();
+      if (connection_source_prim == temp_material_prim) {
+        /* If it's connected to the material prim, we should just bake down the value.
+         * usdMtlx connects them to constants because it wants to maximize separation between the
+         * input mtlx file and the resulting graph, but this isn't the ideal structure when the
+         * graph is inlined.
+         * Baking the values down makes this much more usable. */
+        auto connection_source_attr = temp_stage->GetAttributeAtPath(connection_path);
+        if (connection_source_attr && shader_input.DisconnectSource()) {
+          pxr::VtValue val;
+          if (connection_source_attr.Get(&val) && !val.IsEmpty()) {
+            shader_input.GetAttr().Set(val);
+          }
+        }
+      }
+      else {
+        /* If it's connected to another prim, then we should fix the path to that prim
+         * SdfCopySpec below will handle some cases, but only if the target path exists first
+         * which is impossible to guarantee in a graph. */
+
+        connection_paths[0] = reflow_materialx_paths(
+            connection_paths[0], temp_material_path, usd_path, rename_pairs);
+        shader_input.GetAttr().SetConnections(connection_paths);
+      }
+    }
+
+    /* Next we iterate through the outputs */
+    for (auto &shader_output : temp_shader.GetOutputs()) {
+      pxr::SdfPathVector connection_paths;
+      shader_output.GetAttr().GetConnections(&connection_paths);
+
+      if (connection_paths.size() != 1) {
+        continue;
+      }
+
+      connection_paths[0] = reflow_materialx_paths(
+          connection_paths[0], temp_material_path, usd_path, rename_pairs);
+      shader_output.GetAttr().SetConnections(connection_paths);
+    } /* Iterate through outputs */
+
+  } /* Iterate through material prim children */
+
+  auto temp_layer = temp_stage->Flatten();
+
+  /* Copy the primspecs from the temporary stage over to the target stage */
+  auto target_root_layer = usd_export_context.stage->GetRootLayer();
+  for (const auto &temp_material_child : temp_material_prim.GetChildren()) {
+    auto target_path = reflow_materialx_paths(
+        temp_material_child.GetPath(), temp_material_path, usd_path, rename_pairs);
+    pxr::SdfCopySpec(temp_layer, temp_material_child.GetPath(), target_root_layer, target_path);
+  }
+}
+#endif
 
 pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_context,
                                           pxr::SdfPath usd_path,
@@ -1103,6 +1365,12 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   else {
     create_usd_viewport_material(usd_export_context, material, usd_material);
   }
+
+#ifdef WITH_MATERIALX
+  if (material->use_nodes && usd_export_context.export_params.generate_materialx_network) {
+    create_usd_materialx_material(usd_export_context, usd_path, material, usd_material);
+  }
+#endif
 
   call_material_export_hooks(usd_export_context.stage,
                              material,

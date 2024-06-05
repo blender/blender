@@ -764,7 +764,14 @@ NodeItem NodeItem::create_node(const std::string &category, Type type) const
   std::string type_str = this->type(type);
   CLOG_INFO(LOG_MATERIALX_SHADER, 2, "<%s type=%s>", category.c_str(), type_str.c_str());
   NodeItem res = empty();
-  res.node = graph_->addNode(category, MaterialX::EMPTY_STRING, type_str);
+  /* Surfaceshader nodes and materials are added directly to the document,
+   * otherwise to thenodegraph */
+  if (type == Type::SurfaceShader || type == Type::Material) {
+    res.node = graph_->getDocument()->addNode(category, MaterialX::EMPTY_STRING, type_str);
+  }
+  else {
+    res.node = graph_->addNode(category, MaterialX::EMPTY_STRING, type_str);
+  }
   return res;
 }
 
@@ -816,7 +823,24 @@ void NodeItem::set_input(const std::string &in_name, const NodeItem &item)
     }
   }
   else if (item.node) {
-    node->setConnectedNode(in_name, item.node);
+    if (type() == Type::SurfaceShader) {
+      auto output_name = item.node->getName() + "_out";
+
+      auto output = graph_->getOutput(output_name);
+      if (!output) {
+        auto output_type = MaterialX::DEFAULT_TYPE_STRING;
+        if (item.node->getType() == "BSDF") {
+          output_type = "BSDF";
+        }
+        output = graph_->addOutput(output_name, output_type);
+      }
+
+      output->setConnectedNode(item.node);
+      node->setConnectedOutput(in_name, output);
+    }
+    else {
+      node->setConnectedNode(in_name, item.node);
+    }
   }
   else if (item.input) {
     node->setAttribute("interfacename", item.input->getName());
