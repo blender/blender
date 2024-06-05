@@ -2847,7 +2847,7 @@ class subcmd_author:
 
         with CleanupPathsContext(files=(outfile_temp,), directories=()):
             try:
-                zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_LZMA)
+                zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_DEFLATED, compresslevel=9)
             except Exception as ex:
                 message_status(msg_fn, "Error creating archive \"{:s}\"".format(str(ex)))
                 return False
