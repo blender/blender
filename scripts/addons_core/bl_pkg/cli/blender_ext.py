@@ -1303,28 +1303,33 @@ def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[st
 
 
 def pkg_manifest_validate_field_permissions(
-        value: Dict,
+        # `Dict[str, str]` is expected but at this point it's only guaranteed to be a dict.
+        value: Dict[Any, Any],
         strict: bool,
 ) -> Optional[str]:
     _ = strict
     # Always strict for now as it doesn't seem as there are repositories using invalid values.
     strict = True
     if strict:
-        values_valid = {
+        keys_valid = {
             "files",
             "network",
             "clipboard",
             "camera",
             "microphone",
         }
-        for i, item in enumerate(value):
-            if not isinstance(item, str):
-                return "at index {:d} must be a string not a {:s}".format(i, str(type(value)))
-            if item not in values_valid:
-                return "at index {:d} must be a value in {!r}".format(i, tuple(values_valid))
+        for item_key, item_value in value.items():
+            if not isinstance(item_key, str):
+                return "key \"{:s}\" must be a string not a {:s}".format(str(item_key), str(type(item_key)))
+            if not isinstance(item_value, str):
+                return "value of \"{:s}\" must be a string not a {:s}".format(item_key, str(type(item_value)))
+            if item_key not in keys_valid:
+                return "value of \"{:s}\" must be a value in {!r}".format(item_key, tuple(keys_valid))
     else:
-        if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)) is not None:
-            return error
+        # TODO: basic validation.
+        # if (error := pkg_manifest_validate_field_any_dict_of_non_empty_strings(value, strict)) is not None:
+        #     return error
+        pass
 
     return None
 
