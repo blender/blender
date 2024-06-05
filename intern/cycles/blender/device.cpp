@@ -156,9 +156,7 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
     }
   }
 
-  if (preferences_device != cpu_device) {
-    adjust_device_info(preferences_device, cpreferences, preview);
-  }
+  adjust_device_info(preferences_device, cpreferences, preview);
   adjust_device_info(cpu_device, cpreferences, preview);
 
   /* Device, which will be used, according to Settings, Scene preferences and command line
