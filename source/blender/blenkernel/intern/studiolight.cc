@@ -840,21 +840,17 @@ void BKE_studiolight_init()
   BLI_addtail(&studiolights, sl);
 
   /* Go over the preset folder and add a studio-light for every image with its path. */
-  /* For portable installs (where USER and SYSTEM paths are the same),
-   * only go over LOCAL data-files once. */
   /* Also reserve icon space for it. */
-  if (!BKE_appdir_app_is_portable_install()) {
-    studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
-                                          STUDIOLIGHT_LIGHTS_FOLDER,
-                                          STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_USER_DEFINED |
-                                              STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
-    studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
-                                          STUDIOLIGHT_WORLD_FOLDER,
-                                          STUDIOLIGHT_TYPE_WORLD | STUDIOLIGHT_USER_DEFINED);
-    studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
-                                          STUDIOLIGHT_MATCAP_FOLDER,
-                                          STUDIOLIGHT_TYPE_MATCAP | STUDIOLIGHT_USER_DEFINED);
-  }
+  studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
+                                        STUDIOLIGHT_LIGHTS_FOLDER,
+                                        STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_USER_DEFINED |
+                                            STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
+  studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
+                                        STUDIOLIGHT_WORLD_FOLDER,
+                                        STUDIOLIGHT_TYPE_WORLD | STUDIOLIGHT_USER_DEFINED);
+  studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
+                                        STUDIOLIGHT_MATCAP_FOLDER,
+                                        STUDIOLIGHT_TYPE_MATCAP | STUDIOLIGHT_USER_DEFINED);
   studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES,
                                         STUDIOLIGHT_LIGHTS_FOLDER,
                                         STUDIOLIGHT_TYPE_STUDIO |

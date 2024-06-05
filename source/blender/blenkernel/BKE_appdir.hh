@@ -101,11 +101,6 @@ std::optional<std::string> BKE_appdir_resource_path_id_with_version(int folder_i
 std::optional<std::string> BKE_appdir_resource_path_id(int folder_id, bool check_is_dir);
 
 /**
- * Check if this is an install with user files kept together
- * with the Blender executable and its installation files.
- */
-bool BKE_appdir_app_is_portable_install();
-/**
  * Return true if templates exist
  */
 bool BKE_appdir_app_template_any();

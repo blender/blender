@@ -267,6 +267,8 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
 
   /* Initialize samplers. */
   this->sampler_state_cache_init();
+
+  compiler = new ShaderCompilerGeneric();
 }
 
 MTLContext::~MTLContext()
@@ -369,6 +371,8 @@ MTLContext::~MTLContext()
   if (this->device) {
     [this->device release];
   }
+
+  delete compiler;
 }
 
 void MTLContext::begin_frame()

@@ -568,7 +568,7 @@ VKShader::VKShader(const char *name) : Shader(name)
   context_ = VKContext::get();
 }
 
-void VKShader::init(const shader::ShaderCreateInfo &info)
+void VKShader::init(const shader::ShaderCreateInfo &info, bool /*is_batch_compilation*/)
 {
   VKShaderInterface *vk_interface = new VKShaderInterface();
   vk_interface->init(info);

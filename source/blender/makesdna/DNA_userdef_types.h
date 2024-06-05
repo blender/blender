@@ -979,10 +979,11 @@ typedef struct UserDef {
   /** #eGPUBackendType */
   short gpu_backend;
 
+  /** Max number of parallel shader compilation subprocesses. */
+  short max_shader_compilation_subprocesses;
+
   /** Number of samples for FPS display calculations. */
   short playback_fps_samples;
-
-  char _pad7[2];
 
   /** Private, defaults to 20 for 72 DPI setting. */
   short widget_unit;

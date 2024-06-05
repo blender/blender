@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "BLI_span.hh"
+#include "BLI_vector.hh"
 #include "GPU_shader_builtin.hh"
 
 namespace blender::gpu {
@@ -58,6 +60,29 @@ const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
  * \return true is create info is valid.
  */
 bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
+
+using BatchHandle = int64_t;
+/**
+ * Request the creation of multiple shaders at once, allowing the backend to use multithreaded
+ * compilation. Returns a handle that can be used to poll if all shaders have been compiled, and to
+ * retrieve the compiled shaders.
+ * NOTE: This function is asynchronous on OpenGL, but it's blocking on Vulkan and Metal.
+ * WARNING: The GPUShaderCreateInfo pointers should be valid until `GPU_shader_batch_finalize` has
+ * returned.
+ */
+BatchHandle GPU_shader_batch_create_from_infos(blender::Span<const GPUShaderCreateInfo *> infos);
+/**
+ * Returns true if all the shaders from the batch have finished their compilation.
+ */
+bool GPU_shader_batch_is_ready(BatchHandle handle);
+/**
+ * Retrieve the compiled shaders, in the same order as the `GPUShaderCreateInfo`s.
+ * If the compilation has not finished yet, this call will block the thread until all the shaders
+ * are ready.
+ * Shaders with compilation errors are returned as null pointers.
+ * WARNING: The handle will be invalidated by this call, you can't request the same batch twice.
+ */
+blender::Vector<GPUShader *> GPU_shader_batch_finalize(BatchHandle &handle);
 
 /** \} */
 
