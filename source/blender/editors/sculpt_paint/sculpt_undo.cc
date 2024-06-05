@@ -149,8 +149,6 @@ struct SculptUndoStep {
   /* Active color attribute at the end of this undo step. */
   SculptAttrRef active_color_end;
 
-  bContext *C;
-
 #ifdef SCULPT_UNDO_DEBUG
   int id;
 #endif
