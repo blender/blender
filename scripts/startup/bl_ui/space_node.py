@@ -705,7 +705,12 @@ class NODE_PT_active_node_color(Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.active_node is not None
+        node = context.active_node
+        if node is None:
+            return False
+        if node.bl_idname == "NodeReroute":
+            return False
+        return True
 
     def draw_header(self, context):
         node = context.active_node
