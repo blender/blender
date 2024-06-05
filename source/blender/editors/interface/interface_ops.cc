@@ -1711,9 +1711,9 @@ int paste_property_drivers(blender::Span<FCurve *> src_drivers,
  * bool to switch between exec and poll behavior.  This isn't great, but seems
  * like the lesser evil under the circumstances.
  *
- * \param copy_entire_array If true, copies drivers of all elements of an array
+ * \param copy_entire_array: If true, copies drivers of all elements of an array
  * property. Otherwise only copies one specific element.
- * \param poll If true, only checks if the driver(s) could be copied rather than
+ * \param poll: If true, only checks if the driver(s) could be copied rather than
  * actually performing the copy.
  *
  * \returns true in exec mode if any copies were successfully made, and false

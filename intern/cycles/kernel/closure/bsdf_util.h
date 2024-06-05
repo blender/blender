@@ -376,7 +376,7 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
    * The proper way to do this would be a Von Kries-style transform, but to keep it simple,
    * we just multiply by the white point here.
    *
-   * Note: The reference implementation sidesteps all this by just hard-coding a XYZ->CIE RGB
+   * NOTE: The reference implementation sidesteps all this by just hard-coding a XYZ->CIE RGB
    * matrix. Since CIE RGB uses E as its white point, this sidesteps the chromatic adaption
    * topic, but the primary colors don't match (unless you happen to actually work in CIE RGB.)
    */

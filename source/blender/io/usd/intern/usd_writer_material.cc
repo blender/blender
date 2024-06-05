@@ -1164,7 +1164,7 @@ static pxr::SdfPath reflow_materialx_paths(pxr::SdfPath input_path,
   return input_path.ReplacePrefix(temp_path, target_path);
 }
 
-/* Exports the material as a MaterialX nodegraph within the USD layer. */
+/* Exports the material as a MaterialX node-graph within the USD layer. */
 static void create_usd_materialx_material(const USDExporterContext &usd_export_context,
                                           pxr::SdfPath usd_path,
                                           Material *material,

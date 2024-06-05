@@ -793,7 +793,7 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
 
   /* Driver can stall if only using minimal image count. */
   uint32_t image_count = capabilities.minImageCount + 1;
-  /* Note: maxImageCount == 0 means no limit. */
+  /* NOTE: maxImageCount == 0 means no limit. */
   if (image_count > capabilities.maxImageCount && capabilities.maxImageCount > 0) {
     image_count = capabilities.maxImageCount;
   }

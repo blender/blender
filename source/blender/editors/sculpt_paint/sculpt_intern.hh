@@ -461,7 +461,10 @@ struct StrokeCache {
   float4x4 symm_rot_mat;
   float4x4 symm_rot_mat_inv;
 
-  /* Accumulate mode. Note: inverted for SCULPT_TOOL_DRAW_SHARP. */
+  /**
+   * Accumulate mode.
+   * \note inverted for #SCULPT_TOOL_DRAW_SHARP.
+   */
   bool accum;
 
   float3 anchored_location;

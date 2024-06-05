@@ -1226,7 +1226,7 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
    * feature used for bone renaming, channels, etc.
    * afterfunc frees rename_orig */
   if (data->text_edit.original_string && (but->flag & UI_BUT_TEXTEDIT_UPDATE)) {
-    /* In this case, we need to keep origstr available,
+    /* In this case, we need to keep `original_string` available,
      * to restore real org string in case we cancel after having typed something already. */
     but->rename_orig = BLI_strdup(data->text_edit.original_string);
   }

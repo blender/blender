@@ -559,7 +559,7 @@ void unassign_animation(ID &animated_id);
  * binding, before un-assigning. This is to ensure that the stored name reflects
  * the actual binding that was used, making re-binding trivial.
  *
- * \param adt the AnimData of the animated ID.
+ * \param adt: the AnimData of the animated ID.
  *
  * \note this does not clear the Animation pointer, just the binding handle.
  */

@@ -85,7 +85,7 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
   }
   else {
     /* Find best device from the ones which are proposed for denoising. */
-    /* The choise is expected to be between few GPUs, or between GPU and a CPU
+    /* The choice is expected to be between few GPUs, or between GPU and a CPU
      * or between few GPU and a CPU. */
     single_denoiser_device = find_best_device(denoiser_device, params.type);
   }
@@ -113,7 +113,7 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
   oidn_params.type = DENOISER_OPENIMAGEDENOISE;
   oidn_params.use_gpu = false;
 
-  /* Used preference CPU when possible, and fallback on cpu fallback device otherwice. */
+  /* Used preference CPU when possible, and fallback on CPU fallback device otherwise. */
   return make_unique<OIDNDenoiser>(
       is_cpu_denoiser_device ? single_denoiser_device : cpu_fallback_device, oidn_params);
 }

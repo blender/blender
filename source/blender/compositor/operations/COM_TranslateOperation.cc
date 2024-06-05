@@ -61,9 +61,9 @@ void TranslateOperation::get_area_of_interest(const int input_idx,
     }
     else if (x_extend_mode_ == MemoryBufferExtend::Repeat) {
       /* The region of interest should consider the whole input image to avoid cropping effects,
-       * e.g. by prior scaling or rotating. Note: this is still consistent with immediate
-       * realization of transform nodes in GPU compositor, where nodes are to be evaluated from
-       * left to right. */
+       * e.g. by prior scaling or rotating.
+       * NOTE: this is still consistent with immediate realization of transform nodes in GPU
+       * compositor, where nodes are to be evaluated from left to right. */
       const int in_width = get_width();
       BLI_rcti_resize_x(&r_input_area, in_width);
     }

@@ -437,7 +437,7 @@ typedef struct ObHook {
 /**
  * This is used as a flag for many kinds of data that use selections, examples include:
  * - #BezTriple.f1, #BezTriple.f2, #BezTriple.f3
- * - #bNote.flag
+ * - #bNode.flag
  * - #MovieTrackingTrack.flag
  * And more, ideally this would have a generic location.
  */

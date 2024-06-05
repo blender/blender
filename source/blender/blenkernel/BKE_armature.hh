@@ -189,7 +189,7 @@ void BKE_pchan_minmax(const Object *ob,
  *
  * \note This uses #BKE_pchan_minmax, see its documentation for details on bounds calculation.
  *
- * \param use_select When true, only consider selected bones. When false, selection state is
+ * \param use_select: When true, only consider selected bones. When false, selection state is
  * ignored and all bones are included in the bounds.
  */
 std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob, bool use_select);

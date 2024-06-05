@@ -218,7 +218,7 @@ CocTile dof_coc_tile_unpack(vec3 fg, vec3 bg)
   return tile;
 }
 
-/* WORKAROUND(fclem): GLSL compilers differs in what qualifiers are requires to pass images as
+/* WORKAROUND(@fclem): GLSL compilers differs in what qualifiers are requires to pass images as
  * parameters. Workaround by using defines. */
 #define dof_coc_tile_load(tiles_fg_img_, tiles_bg_img_, texel_) \
   dof_coc_tile_unpack( \

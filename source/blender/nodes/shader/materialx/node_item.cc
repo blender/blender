@@ -764,8 +764,8 @@ NodeItem NodeItem::create_node(const std::string &category, Type type) const
   std::string type_str = this->type(type);
   CLOG_INFO(LOG_MATERIALX_SHADER, 2, "<%s type=%s>", category.c_str(), type_str.c_str());
   NodeItem res = empty();
-  /* Surfaceshader nodes and materials are added directly to the document,
-   * otherwise to thenodegraph */
+  /* Surface-shader nodes and materials are added directly to the document,
+   * otherwise to the node-graph. */
   if (type == Type::SurfaceShader || type == Type::Material) {
     res.node = graph_->getDocument()->addNode(category, MaterialX::EMPTY_STRING, type_str);
   }

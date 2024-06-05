@@ -359,7 +359,7 @@ bool ensure_active_keyframe(const Scene &scene,
     {
       /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
        * current frame.
-       * Note: Also duplicate the frame when erasing, Otherwise empty drawing is added, see
+       * NOTE: Also duplicate the frame when erasing, Otherwise empty drawing is added, see
        * !119051.
        */
       grease_pencil.insert_duplicate_frame(

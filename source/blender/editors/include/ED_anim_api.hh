@@ -1043,7 +1043,7 @@ void ANIM_center_frame(bContext *C, int smooth_viewtx);
 /**
  * Add horizontal margin to the rectangle.
  *
- * This function assumes that the xmin/xmax are set to a frame range to show.
+ * This function assumes that the X-min/X-max are set to a frame range to show.
  *
  * \return The new rectangle with horizontal margin added, for visual comfort.
  */
