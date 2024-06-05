@@ -2497,7 +2497,7 @@ static void legacy_object_modifier_weight_lineart(ConversionData &conversion_dat
                                                   GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      conversion_data, object, eModifierType_GreasePencilWeightAngle, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilLineart, legacy_md);
   auto &md_lineart = reinterpret_cast<GreasePencilLineartModifierData &>(md);
   auto &legacy_md_lineart = reinterpret_cast<LineartGpencilModifierData &>(legacy_md);
 
