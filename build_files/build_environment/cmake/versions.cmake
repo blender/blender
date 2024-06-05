@@ -351,6 +351,13 @@ set(X264_HASH_TYPE SHA256)
 set(X264_FILE x264-${X264_VERSION}.tar.gz)
 set(X264_HOMEPAGE https://www.videolan.org/developers/x264.html)
 
+set(X265_VERSION 3cf6c1e53037eb9e198860365712e1bafb22f7c6)
+set(X265_URI https://bitbucket.org/multicoreware/x265_git/get/${X265_VERSION}.tar.gz)
+set(X265_HASH 40d12016192cdc740132cb00dd6cc80ead094ff91a1a897181256def2011342e)
+set(X265_HASH_TYPE SHA256)
+set(X265_FILE x265-${X265_VERSION}.tar.gz)
+set(X265_HOMEPAGE https://www.videolan.org/developers/x265.html)
+
 set(OPENJPEG_VERSION 2.5.0)
 set(OPENJPEG_SHORT_VERSION 2.5)
 set(OPENJPEG_URI https://github.com/uclouvain/openjpeg/archive/v${OPENJPEG_VERSION}.tar.gz)
