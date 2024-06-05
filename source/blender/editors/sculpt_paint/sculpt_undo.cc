@@ -1639,7 +1639,7 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
   return unode;
 }
 
-static void sculpt_save_active_attribute(Object &object, SculptAttrRef *attr)
+static void save_active_attribute(Object &object, SculptAttrRef *attr)
 {
   Mesh *mesh = BKE_object_get_original_mesh(&object);
   attr->was_set = true;
@@ -1685,14 +1685,14 @@ void push_begin_ex(Object &ob, const char *name)
       ustack, C, name, BKE_UNDOSYS_TYPE_SCULPT);
 
   if (!us->active_color_start.was_set) {
-    sculpt_save_active_attribute(ob, &us->active_color_start);
+    save_active_attribute(ob, &us->active_color_start);
   }
 
   /* Set end attribute in case push_end is not called,
    * so we don't end up with corrupted state.
    */
   if (!us->active_color_end.was_set) {
-    sculpt_save_active_attribute(ob, &us->active_color_end);
+    save_active_attribute(ob, &us->active_color_end);
     us->active_color_end.was_set = false;
   }
 }
@@ -1727,7 +1727,7 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
   SculptUndoStep *us = (SculptUndoStep *)BKE_undosys_stack_init_or_active_with_type(
       ustack, BKE_UNDOSYS_TYPE_SCULPT);
 
-  sculpt_save_active_attribute(ob, &us->active_color_end);
+  save_active_attribute(ob, &us->active_color_end);
   print_nodes(ob, nullptr);
 }
 
@@ -1745,7 +1745,7 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
   SculptAttrRef existing;
-  sculpt_save_active_attribute(*ob, &existing);
+  save_active_attribute(*ob, &existing);
 
   CustomDataLayer *layer = BKE_id_attribute_find(&mesh->id, attr->name, attr->type, attr->domain);
 
@@ -1786,13 +1786,13 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
   }
 }
 
-static void sculpt_undosys_step_encode_init(bContext * /*C*/, UndoStep *us_p)
+static void step_encode_init(bContext * /*C*/, UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
   new (&us->data.nodes) Vector<std::unique_ptr<Node>>();
 }
 
-static bool sculpt_undosys_step_encode(bContext * /*C*/, Main *bmain, UndoStep *us_p)
+static bool step_encode(bContext * /*C*/, Main *bmain, UndoStep *us_p)
 {
   /* Dummy, encoding is done along the way by adding tiles
    * to the current 'SculptUndoStep' added by encode_init. */
@@ -1812,9 +1812,7 @@ static bool sculpt_undosys_step_encode(bContext * /*C*/, Main *bmain, UndoStep *
   return true;
 }
 
-static void sculpt_undosys_step_decode_undo_impl(bContext *C,
-                                                 Depsgraph *depsgraph,
-                                                 SculptUndoStep *us)
+static void step_decode_undo_impl(bContext *C, Depsgraph *depsgraph, SculptUndoStep *us)
 {
   BLI_assert(us->step.is_applied == true);
 
@@ -1824,9 +1822,7 @@ static void sculpt_undosys_step_decode_undo_impl(bContext *C,
   print_nodes(*CTX_data_active_object(C), nullptr);
 }
 
-static void sculpt_undosys_step_decode_redo_impl(bContext *C,
-                                                 Depsgraph *depsgraph,
-                                                 SculptUndoStep *us)
+static void step_decode_redo_impl(bContext *C, Depsgraph *depsgraph, SculptUndoStep *us)
 {
   BLI_assert(us->step.is_applied == false);
 
@@ -1836,10 +1832,10 @@ static void sculpt_undosys_step_decode_redo_impl(bContext *C,
   print_nodes(*CTX_data_active_object(C), nullptr);
 }
 
-static void sculpt_undosys_step_decode_undo(bContext *C,
-                                            Depsgraph *depsgraph,
-                                            SculptUndoStep *us,
-                                            const bool is_final)
+static void step_decode_undo(bContext *C,
+                             Depsgraph *depsgraph,
+                             SculptUndoStep *us,
+                             const bool is_final)
 {
   /* Walk forward over any applied steps of same type,
    * then walk back in the next loop, un-applying them. */
@@ -1855,7 +1851,7 @@ static void sculpt_undosys_step_decode_undo(bContext *C,
     BLI_assert(us_iter->step.type == us->step.type); /* Previous loop ensures this. */
 
     set_active_layer(C, &((SculptUndoStep *)us_iter)->active_color_start);
-    sculpt_undosys_step_decode_undo_impl(C, depsgraph, us_iter);
+    step_decode_undo_impl(C, depsgraph, us_iter);
 
     if (us_iter == us) {
       if (us_iter->step.prev && us_iter->step.prev->type == BKE_UNDOSYS_TYPE_SCULPT) {
@@ -1868,7 +1864,7 @@ static void sculpt_undosys_step_decode_undo(bContext *C,
   }
 }
 
-static void sculpt_undosys_step_decode_redo(bContext *C, Depsgraph *depsgraph, SculptUndoStep *us)
+static void step_decode_redo(bContext *C, Depsgraph *depsgraph, SculptUndoStep *us)
 {
   SculptUndoStep *us_iter = us;
   while (us_iter->step.prev && (us_iter->step.prev->type == us_iter->step.type)) {
@@ -1879,7 +1875,7 @@ static void sculpt_undosys_step_decode_redo(bContext *C, Depsgraph *depsgraph, S
   }
   while (us_iter && (us_iter->step.is_applied == false)) {
     set_active_layer(C, &((SculptUndoStep *)us_iter)->active_color_end);
-    sculpt_undosys_step_decode_redo_impl(C, depsgraph, us_iter);
+    step_decode_redo_impl(C, depsgraph, us_iter);
 
     if (us_iter == us) {
       set_active_layer(C, &((SculptUndoStep *)us_iter)->active_color_start);
@@ -1889,7 +1885,7 @@ static void sculpt_undosys_step_decode_redo(bContext *C, Depsgraph *depsgraph, S
   }
 }
 
-static void sculpt_undosys_step_decode(
+static void step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
   /* NOTE: behavior for undo/redo closely matches image undo. */
@@ -1935,14 +1931,14 @@ static void sculpt_undosys_step_decode(
 
   SculptUndoStep *us = (SculptUndoStep *)us_p;
   if (dir == STEP_UNDO) {
-    sculpt_undosys_step_decode_undo(C, depsgraph, us, is_final);
+    step_decode_undo(C, depsgraph, us, is_final);
   }
   else if (dir == STEP_REDO) {
-    sculpt_undosys_step_decode_redo(C, depsgraph, us);
+    step_decode_redo(C, depsgraph, us);
   }
 }
 
-static void sculpt_undosys_step_free(UndoStep *us_p)
+static void step_free(UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
   free_list(us->data);
@@ -1970,10 +1966,10 @@ void register_type(UndoType *ut)
 {
   ut->name = "Sculpt";
   ut->poll = nullptr; /* No poll from context for now. */
-  ut->step_encode_init = sculpt_undosys_step_encode_init;
-  ut->step_encode = sculpt_undosys_step_encode;
-  ut->step_decode = sculpt_undosys_step_decode;
-  ut->step_free = sculpt_undosys_step_free;
+  ut->step_encode_init = step_encode_init;
+  ut->step_encode = step_encode;
+  ut->step_decode = step_decode;
+  ut->step_free = step_free;
 
   ut->flags = UNDOTYPE_FLAG_DECODE_ACTIVE_STEP;
 
