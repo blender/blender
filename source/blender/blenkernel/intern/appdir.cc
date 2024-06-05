@@ -391,8 +391,8 @@ static bool get_path_local_ex(char *targetpath,
                    targetpath_maxncpy,
                    check_is_dir,
                    path_base,
-                   blender_version_decimal(version),
-                   relfolder);
+                   (version) ? blender_version_decimal(version) : relfolder,
+                   (version) ? relfolder : nullptr);
 }
 static bool get_path_local(char *targetpath,
                            size_t targetpath_maxncpy,
@@ -403,13 +403,6 @@ static bool get_path_local(char *targetpath,
   const bool check_is_dir = true;
   return get_path_local_ex(
       targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
-}
-
-bool BKE_appdir_app_is_portable_install()
-{
-  /* Detect portable install by the existence of `config` folder. */
-  char dirpath[FILE_MAX];
-  return get_path_local(dirpath, sizeof(dirpath), "config", nullptr);
 }
 
 /**
@@ -465,15 +458,15 @@ static bool get_path_user_ex(char *targetpath,
 {
   char user_path[FILE_MAX];
 
+  /* Environment variable override. */
   if (test_env_path(user_path, "BLENDER_USER_RESOURCES", check_is_dir)) {
     /* Pass. */
   }
+  /* Portable install, to store user files next to Blender executable. */
+  else if (get_path_local_ex(user_path, sizeof(user_path), "portable", nullptr, 0, true)) {
+    /* Pass. */
+  }
   else {
-    /* for portable install, user path is always local */
-    if (BKE_appdir_app_is_portable_install()) {
-      return get_path_local_ex(
-          targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
-    }
     user_path[0] = '\0';
 
     const char *user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
