@@ -128,8 +128,16 @@ static void rna_CurveMapping_white_level_set(PointerRNA *ptr, const float *value
   BKE_curvemapping_set_black_white(cumap, nullptr, nullptr);
 }
 
-static void rna_CurveMapping_tone_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
+static void rna_CurveMapping_tone_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
+  /* Film-like tone only works with the combined curve, which is the fourth curve, so if the user
+   * changed to film-like make the combined curve current, as we now hide the rest of the curves
+   * since they no longer have an effect. */
+  CurveMapping *curve_mapping = (CurveMapping *)ptr->data;
+  if (curve_mapping->tone == CURVE_TONE_FILMLIKE) {
+    curve_mapping->cur = 3;
+  }
+
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
