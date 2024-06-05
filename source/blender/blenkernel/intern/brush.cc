@@ -799,6 +799,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.002f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->gpencil_settings->simplify_px = 0.4f;
+      }
 
       brush->gpencil_settings->draw_random_press = 0.0f;
       brush->gpencil_settings->draw_jitter = 0.0f;
@@ -844,6 +847,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 2;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.000f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->gpencil_settings->simplify_px = 0.0f;
+      }
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_RANDOM;
       brush->gpencil_settings->draw_random_press = 0.6f;
@@ -891,6 +897,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.002f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->gpencil_settings->simplify_px = 0.4f;
+      }
 
       brush->gpencil_settings->flag &= ~GP_BRUSH_GROUP_RANDOM;
       brush->gpencil_settings->draw_random_press = 0.0f;
@@ -938,6 +947,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.002f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->gpencil_settings->simplify_px = 0.4f;
+      }
 
       brush->gpencil_settings->flag &= ~GP_BRUSH_GROUP_RANDOM;
       brush->gpencil_settings->draw_random_press = 0.0f;
@@ -990,6 +1002,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 1;
       brush->gpencil_settings->simplify_f = 0.002f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->gpencil_settings->simplify_px = 0.4f;
+      }
 
       brush->gpencil_settings->draw_random_press = 0.0f;
       brush->gpencil_settings->draw_random_strength = 0.0f;
@@ -1031,6 +1046,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.000f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->gpencil_settings->simplify_px = 0.0f;
+      }
 
       brush->gpencil_settings->draw_random_press = 0.0f;
       brush->gpencil_settings->draw_random_strength = 0.0f;
@@ -1075,6 +1093,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.002f;
+      if (U.experimental.use_grease_pencil_version3) {
+        brush->gpencil_settings->simplify_px = 0.4f;
+      }
 
       brush->gpencil_settings->draw_random_press = 0.0f;
       brush->gpencil_settings->draw_jitter = 0.0f;

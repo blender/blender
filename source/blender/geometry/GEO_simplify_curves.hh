@@ -20,4 +20,13 @@ IndexMask simplify_curve_attribute(const Span<float3> positions,
                                    GSpan attribute_data,
                                    IndexMaskMemory &memory);
 
+/**
+ * Same as above, but only for a single curve. All spans are expected to be the size of the curve.
+ */
+void curve_simplify(const Span<float3> positions,
+                    const bool cyclic,
+                    const float epsilon,
+                    const GSpan attribute_data,
+                    MutableSpan<bool> points_to_delete);
+
 }  // namespace blender::geometry

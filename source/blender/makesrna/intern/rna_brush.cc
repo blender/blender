@@ -1576,6 +1576,17 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Simplify", "Factor of Simplify using adaptive algorithm");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
 
+  prop = RNA_def_property(srna, "simplify_pixel_threshold", PROP_FLOAT, PROP_PIXEL);
+  RNA_def_property_float_sdna(prop, nullptr, "simplify_px");
+  RNA_def_property_range(prop, 0, 10.0);
+  RNA_def_property_ui_range(prop, 0, 10.0, 1.0f, 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Simplify",
+      "Threashold in screen space used for the simplify algorithm. Points within this threashold "
+      "are treated as if they were in a straight line");
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+
   /* Curves for pressure */
   prop = RNA_def_property(srna, "curve_sensitivity", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "curve_sensitivity");

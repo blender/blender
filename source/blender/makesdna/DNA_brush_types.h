@@ -133,7 +133,8 @@ typedef struct BrushGpencilSettings {
 
   /** Factor for external line thickness conversion to outline. */
   float outline_fac;
-  char _pad1[4];
+  /** Screen space simplify threshold. Points within this margin are treated as a straight line. */
+  float simplify_px;
 
   /* optional link of material to replace default in context */
   /** Material. */
