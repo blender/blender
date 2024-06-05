@@ -46,6 +46,16 @@ void BakeManager::set_use_camera(const bool use_camera)
   }
 }
 
+void BakeManager::set_use_seed(const bool use_seed)
+{
+  use_seed_ = use_seed;
+}
+
+bool BakeManager::get_use_seed() const
+{
+  return use_seed_;
+}
+
 void BakeManager::device_update(Device * /*device*/,
                                 DeviceScene *dscene,
                                 Scene *scene,

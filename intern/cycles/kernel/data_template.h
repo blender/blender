@@ -133,6 +133,7 @@ KERNEL_STRUCT_MEMBER(film, int, pass_aov_value)
 KERNEL_STRUCT_MEMBER(film, int, pass_lightgroup)
 /* Baking. */
 KERNEL_STRUCT_MEMBER(film, int, pass_bake_primitive)
+KERNEL_STRUCT_MEMBER(film, int, pass_bake_seed)
 KERNEL_STRUCT_MEMBER(film, int, pass_bake_differential)
 /* Shadow catcher. */
 KERNEL_STRUCT_MEMBER(film, int, use_approximate_shadow_catcher)

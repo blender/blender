@@ -130,7 +130,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   ccl_global float *primitive = buffer + kernel_data.film.pass_bake_primitive;
   ccl_global float *differential = buffer + kernel_data.film.pass_bake_differential;
 
-  int prim = __float_as_uint(primitive[1]);
+  int prim = __float_as_uint(primitive[2]);
   if (prim == -1) {
     /* Accumulate transparency for empty pixels. */
     film_write_transparent(kg, state, 0, 1.0f, buffer);
@@ -140,9 +140,10 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   prim += kernel_data.bake.tri_offset;
 
   /* Random number generator. */
-  uint rng_pixel = __float_as_uint(primitive[0]);
-  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_TABULATED_SOBOL) {
-    rng_pixel = hash_uint(rng_pixel) ^ kernel_data.integrator.seed;
+  uint rng_pixel = 0;
+  if (kernel_data.film.pass_bake_seed != 0) {
+    const uint seed = __float_as_uint(buffer[kernel_data.film.pass_bake_seed]);
+    rng_pixel = hash_uint(seed) ^ kernel_data.integrator.seed;
   }
   else {
     rng_pixel = path_rng_pixel_init(kg, sample, x, y);
@@ -155,8 +156,8 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   path_state_init_integrator(kg, state, sample, rng_pixel);
 
   /* Barycentric UV. */
-  float u = primitive[2];
-  float v = primitive[3];
+  float u = primitive[0];
+  float v = primitive[1];
 
   float dudx = differential[0];
   float dudy = differential[1];
