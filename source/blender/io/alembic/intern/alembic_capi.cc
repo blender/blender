@@ -424,11 +424,17 @@ struct ImportJobData {
   ViewLayer *view_layer;
   wmWindowManager *wm;
 
-  char filepath[1024];
   ImportSettings settings;
 
-  ArchiveReader *archive;
-  std::vector<AbcObjectReader *> readers;
+  blender::Vector<ArchiveReader *> archives;
+  blender::Vector<AbcObjectReader *> readers;
+
+  blender::Vector<std::string> paths;
+
+  /** Min time read from file import. */
+  chrono_t min_time = std::numeric_limits<chrono_t>::max();
+  /** Max time read from file import. */
+  chrono_t max_time = std::numeric_limits<chrono_t>::min();
 
   bool *stop;
   bool *do_update;
@@ -444,7 +450,7 @@ struct ImportJobData {
 static void report_job_duration(const ImportJobData *data)
 {
   blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - data->start_time;
-  std::cout << "Alembic import of '" << data->filepath << "' took ";
+  std::cout << "Alembic import took ";
   blender::timeit::print_duration(duration);
   std::cout << '\n';
 }
@@ -459,20 +465,12 @@ static void sort_readers(blender::MutableSpan<AbcObjectReader *> readers)
       });
 }
 
-static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
+static void import_file(ImportJobData *data, const char *filepath, float progress_factor)
 {
+  blender::timeit::TimePoint start_time = blender::timeit::Clock::now();
   SCOPE_TIMER("Alembic import, objects reading and creation");
 
-  ImportJobData *data = static_cast<ImportJobData *>(user_data);
-
-  data->stop = &worker_status->stop;
-  data->do_update = &worker_status->do_update;
-  data->progress = &worker_status->progress;
-  data->start_time = blender::timeit::Clock::now();
-
-  WM_set_locked_interface(data->wm, true);
-
-  ArchiveReader *archive = ArchiveReader::get(data->bmain, {data->filepath});
+  ArchiveReader *archive = ArchiveReader::get(data->bmain, {filepath});
 
   if (!archive || !archive->valid()) {
     data->error_code = ABC_ARCHIVE_FAIL;
@@ -481,7 +479,7 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
   }
 
   CacheFile *cache_file = static_cast<CacheFile *>(
-      BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
+      BKE_cachefile_add(data->bmain, BLI_path_basename(filepath)));
 
   /* Decrement the ID ref-count because it is going to be incremented for each
    * modifier and constraint that it will be attached to, so since currently
@@ -490,58 +488,57 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
 
   cache_file->is_sequence = data->settings.is_sequence;
   cache_file->scale = data->settings.scale;
-  STRNCPY(cache_file->filepath, data->filepath);
+  STRNCPY(cache_file->filepath, filepath);
 
-  data->archive = archive;
+  data->archives.append(archive);
   data->settings.cache_file = cache_file;
 
   *data->do_update = true;
-  *data->progress = 0.05f;
+  *data->progress += 0.05f * progress_factor;
 
   /* Parse Alembic Archive. */
   AbcObjectReader::ptr_vector assign_as_parent;
-  visit_object(archive->getTop(), data->readers, data->settings, assign_as_parent);
+  std::vector<AbcObjectReader *> readers{};
+  visit_object(archive->getTop(), readers, data->settings, assign_as_parent);
 
   /* There shouldn't be any orphans. */
   BLI_assert(assign_as_parent.empty());
 
   if (G.is_break) {
     data->was_cancelled = true;
+    data->readers.extend(readers);
     return;
   }
 
   *data->do_update = true;
-  *data->progress = 0.1f;
+  *data->progress += 0.05f * progress_factor;
 
   /* Create objects and set scene frame range. */
 
   /* Sort readers by name: when creating a lot of objects in Blender,
    * it is much faster if the order is sorted by name. */
-  sort_readers(data->readers);
+  sort_readers(readers);
+  data->readers.extend(readers);
 
-  const float size = float(data->readers.size());
-  size_t i = 0;
-
-  chrono_t min_time = std::numeric_limits<chrono_t>::max();
-  chrono_t max_time = std::numeric_limits<chrono_t>::min();
+  const float size = float(readers.size());
 
   ISampleSelector sample_sel(0.0);
   std::vector<AbcObjectReader *>::iterator iter;
-  for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+  const float read_object_progress_step = (0.6f / size) * progress_factor;
+  for (iter = readers.begin(); iter != readers.end(); ++iter) {
     AbcObjectReader *reader = *iter;
 
     if (reader->valid()) {
       reader->readObjectData(data->bmain, sample_sel);
 
-      min_time = std::min(min_time, reader->minTime());
-      max_time = std::max(max_time, reader->maxTime());
+      data->min_time = std::min(data->min_time, reader->minTime());
+      data->max_time = std::max(data->max_time, reader->maxTime());
     }
     else {
-      std::cerr << "Object " << reader->name() << " in Alembic file " << data->filepath
+      std::cerr << "Object " << reader->name() << " in Alembic file " << filepath
                 << " is invalid.\n";
     }
-
-    *data->progress = 0.1f + 0.6f * (++i / size);
+    *data->progress += read_object_progress_step;
     *data->do_update = true;
 
     if (G.is_break) {
@@ -550,23 +547,8 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
     }
   }
 
-  if (data->settings.set_frame_range) {
-    Scene *scene = data->scene;
-
-    if (data->settings.is_sequence) {
-      scene->r.sfra = data->settings.sequence_offset;
-      scene->r.efra = scene->r.sfra + (data->settings.sequence_len - 1);
-      scene->r.cfra = scene->r.sfra;
-    }
-    else if (min_time < max_time) {
-      scene->r.sfra = int(round(min_time * FPS));
-      scene->r.efra = int(round(max_time * FPS));
-      scene->r.cfra = scene->r.sfra;
-    }
-  }
-
   /* Setup parenthood. */
-  for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+  for (iter = readers.begin(); iter != readers.end(); ++iter) {
     const AbcObjectReader *reader = *iter;
     const AbcObjectReader *parent_reader = reader->parent_reader;
     Object *ob = reader->object();
@@ -580,12 +562,12 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
   }
 
   /* Setup transformations and constraints. */
-  i = 0;
-  for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+  const float setup_object_transform_progress_step = (0.3f / size) * progress_factor;
+  for (iter = readers.begin(); iter != readers.end(); ++iter) {
     AbcObjectReader *reader = *iter;
     reader->setupObjectTransform(0.0);
 
-    *data->progress = 0.7f + 0.3f * (++i / size);
+    *data->progress += setup_object_transform_progress_step;
     *data->do_update = true;
 
     if (G.is_break) {
@@ -593,6 +575,51 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
       return;
     }
   }
+  blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - start_time;
+  std::cout << "Alembic import " << filepath << " took ";
+  blender::timeit::print_duration(duration);
+  std::cout << '\n';
+}
+
+static void set_frame_range(ImportJobData *data)
+{
+  if (!data->settings.set_frame_range) {
+    return;
+  }
+  Scene *scene = data->scene;
+  if (data->settings.is_sequence) {
+    scene->r.sfra = data->settings.sequence_min_frame;
+    scene->r.efra = data->settings.sequence_max_frame;
+    scene->r.cfra = scene->r.sfra;
+  }
+  else if (data->min_time < data->max_time) {
+    scene->r.sfra = int(round(data->min_time * FPS));
+    scene->r.efra = int(round(data->max_time * FPS));
+    scene->r.cfra = scene->r.sfra;
+  }
+}
+
+static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
+{
+  ImportJobData *data = static_cast<ImportJobData *>(user_data);
+  data->stop = &worker_status->stop;
+  data->do_update = &worker_status->do_update;
+  data->progress = &worker_status->progress;
+  data->start_time = blender::timeit::Clock::now();
+
+  WM_set_locked_interface(data->wm, true);
+  float file_progress_factor = 1.0f / float(data->paths.size());
+  for (int idx : data->paths.index_range()) {
+    import_file(data, data->paths[idx].c_str(), file_progress_factor);
+
+    if (G.is_break || data->was_cancelled) {
+      data->was_cancelled = true;
+      return;
+    }
+
+    worker_status->progress = float(idx + 1) * file_progress_factor;
+  }
+  set_frame_range(data);
 }
 
 static void import_endjob(void *user_data)
@@ -681,14 +708,13 @@ static void import_endjob(void *user_data)
 static void import_freejob(void *user_data)
 {
   ImportJobData *data = static_cast<ImportJobData *>(user_data);
-  delete data->archive;
+  for (ArchiveReader *archive : data->archives) {
+    delete archive;
+  }
   delete data;
 }
 
-bool ABC_import(bContext *C,
-                const char *filepath,
-                const AlembicImportParams *params,
-                bool as_background_job)
+bool ABC_import(bContext *C, const AlembicImportParams *params, bool as_background_job)
 {
   /* Using new here since MEM_* functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
@@ -698,18 +724,17 @@ bool ABC_import(bContext *C,
   job->view_layer = CTX_data_view_layer(C);
   job->wm = CTX_wm_manager(C);
   job->import_ok = false;
-  STRNCPY(job->filepath, filepath);
+  job->paths = params->paths;
 
   job->settings.scale = params->global_scale;
   job->settings.is_sequence = params->is_sequence;
   job->settings.set_frame_range = params->set_frame_range;
-  job->settings.sequence_len = params->sequence_len;
-  job->settings.sequence_offset = params->sequence_offset;
+  job->settings.sequence_min_frame = params->sequence_min_frame;
+  job->settings.sequence_max_frame = params->sequence_max_frame;
   job->settings.validate_meshes = params->validate_meshes;
   job->settings.always_add_cache_reader = params->always_add_cache_reader;
   job->error_code = ABC_NO_ERROR;
   job->was_cancelled = false;
-  job->archive = nullptr;
   job->is_background_job = as_background_job;
 
   G.is_break = false;
