@@ -17,6 +17,7 @@
 
 #include "BLI_map.hh"
 
+#include <mutex>
 #include <string>
 
 namespace blender {
@@ -77,7 +78,9 @@ class Shader {
   Shader(const char *name);
   virtual ~Shader();
 
-  virtual void init(const shader::ShaderCreateInfo &info) = 0;
+  /* `is_batch_compilation` is true when the shader is being compiled as part of a
+   * `GPU_shader_batch`. Backends that use the `ShaderCompilerGeneric` can ignore it. */
+  virtual void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) = 0;
 
   virtual void vertex_shader_from_glsl(MutableSpan<const char *> sources) = 0;
   virtual void geometry_shader_from_glsl(MutableSpan<const char *> sources) = 0;
@@ -159,6 +162,43 @@ static inline const Shader *unwrap(const GPUShader *vert)
 {
   return reinterpret_cast<const Shader *>(vert);
 }
+
+class ShaderCompiler {
+ protected:
+  struct Sources {
+    std::string vert;
+    std::string geom;
+    std::string frag;
+    std::string comp;
+  };
+
+ public:
+  Shader *compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation);
+
+  virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) = 0;
+  virtual bool batch_is_ready(BatchHandle handle) = 0;
+  virtual Vector<Shader *> batch_finalize(BatchHandle &handle) = 0;
+};
+
+/* Generic (fully synchronous) implementation for backends that don't implement their own
+ * ShaderCompiler. Used by Vulkan and Metal. */
+class ShaderCompilerGeneric : public ShaderCompiler {
+ private:
+  struct Batch {
+    Vector<Shader *> shaders;
+    Vector<const shader::ShaderCreateInfo *> infos;
+    bool is_ready = false;
+  };
+  BatchHandle next_batch_handle = 1;
+  Map<BatchHandle, Batch> batches;
+
+ public:
+  ~ShaderCompilerGeneric();
+
+  virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
+  virtual bool batch_is_ready(BatchHandle handle) override;
+  virtual Vector<Shader *> batch_finalize(BatchHandle &handle) override;
+};
 
 enum class Severity {
   Unknown,

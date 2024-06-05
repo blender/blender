@@ -40,6 +40,7 @@ set(SRC
   intern/BLI_memiter.c
   intern/BLI_mempool.c
   intern/BLI_mmap.c
+  intern/BLI_subprocess.cc
   intern/BLI_timer.c
   intern/DLRB_tree.c
   intern/array_store.cc
@@ -365,6 +366,7 @@ set(SRC
   BLI_string_utils.hh
   BLI_struct_equality_utils.hh
   BLI_sub_frame.hh
+  BLI_subprocess.hh
   BLI_sys_types.h
   BLI_system.h
   BLI_task.h

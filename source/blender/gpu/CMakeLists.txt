@@ -88,6 +88,7 @@ set(SRC
   GPU_capabilities.hh
   GPU_common.hh
   GPU_common_types.hh
+  GPU_compilation_subprocess.hh
   GPU_compute.hh
   GPU_context.hh
   GPU_debug.hh
@@ -150,6 +151,7 @@ set(OPENGL_SRC
 
   opengl/gl_backend.cc
   opengl/gl_batch.cc
+  opengl/gl_compilation_subprocess.cc
   opengl/gl_compute.cc
   opengl/gl_context.cc
   opengl/gl_debug.cc
@@ -171,6 +173,7 @@ set(OPENGL_SRC
 
   opengl/gl_backend.hh
   opengl/gl_batch.hh
+  opengl/gl_compilation_subprocess.hh
   opengl/gl_compute.hh
   opengl/gl_context.hh
   opengl/gl_debug.hh
@@ -840,6 +843,10 @@ target_link_libraries(bf_gpu PUBLIC
   bf_draw_shaders
   bf_gpu_shaders
 )
+
+if(WITH_OPENGL_BACKEND AND UNIX)
+target_link_libraries(bf_gpu PUBLIC rt)
+endif()
 
 if(WITH_OPENCOLORIO)
   target_link_libraries(bf_gpu PUBLIC bf_ocio_shaders)
