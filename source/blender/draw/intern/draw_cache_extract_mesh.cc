@@ -74,6 +74,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   const bool calc_loose_geom = DRW_ibo_requested(buffers.ibo.lines) ||
                                DRW_ibo_requested(buffers.ibo.lines_loose) ||
                                DRW_ibo_requested(buffers.ibo.points) ||
+                               DRW_vbo_requested(buffers.vbo.pos) ||
                                DRW_vbo_requested(buffers.vbo.edit_data) ||
                                DRW_vbo_requested(buffers.vbo.vnor) ||
                                DRW_vbo_requested(buffers.vbo.vert_idx) ||
