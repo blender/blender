@@ -154,9 +154,20 @@ struct SculptUndoStep {
 #endif
 };
 
-static UndoSculpt *get_nodes();
-static void sculpt_save_active_attribute(Object &object, SculptAttrRef *attr);
-static UndoSculpt *sculpt_undosys_step_get_nodes(UndoStep *us_p);
+static SculptUndoStep *get_active_step()
+{
+  UndoStack *ustack = ED_undo_stack_get();
+  UndoStep *us = BKE_undosys_stack_init_or_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
+  return reinterpret_cast<SculptUndoStep *>(us);
+}
+
+static UndoSculpt *get_nodes()
+{
+  if (SculptUndoStep *us = get_active_step()) {
+    return &us->data;
+  }
+  return nullptr;
+}
 
 #ifdef SCULPT_UNDO_DEBUG
 #  ifdef _
@@ -226,7 +237,7 @@ static void print_step(Object &ob, UndoStep *us, UndoStep *active, int i)
          us->use_memfile_step ? "true" : "false");
 
   if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
-    UndoSculpt *usculpt = sculpt_undosys_step_get_nodes(us);
+    UndoSculpt *usculpt = reinterpret_cast<SculptUndoStep *>(us)->data;
 
     for (node = usculpt->nodes.first; node; node = node->next) {
       print_sculpt_node(ob, node);
@@ -1967,25 +1978,6 @@ void register_type(UndoType *ut)
   ut->flags = UNDOTYPE_FLAG_DECODE_ACTIVE_STEP;
 
   ut->step_size = sizeof(SculptUndoStep);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Utilities
- * \{ */
-
-static UndoSculpt *sculpt_undosys_step_get_nodes(UndoStep *us_p)
-{
-  SculptUndoStep *us = (SculptUndoStep *)us_p;
-  return &us->data;
-}
-
-static UndoSculpt *get_nodes()
-{
-  UndoStack *ustack = ED_undo_stack_get();
-  UndoStep *us = BKE_undosys_stack_init_or_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
-  return us ? sculpt_undosys_step_get_nodes(us) : nullptr;
 }
 
 /** \} */
