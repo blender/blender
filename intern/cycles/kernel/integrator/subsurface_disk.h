@@ -98,7 +98,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   /* Intersect with the same object. if multiple intersections are found it
    * will use at most BSSRDF_MAX_HITS hits, a random subset of all hits. */
   uint lcg_state = lcg_state_init(
-      rng_state.rng_hash, rng_state.rng_offset, rng_state.sample, 0x68bc21eb);
+      rng_state.rng_pixel, rng_state.rng_offset, rng_state.sample, 0x68bc21eb);
   const int max_hits = BSSRDF_MAX_HITS;
 
   scene_intersect_local(kg, &ray, &ss_isect, object, &lcg_state, max_hits);

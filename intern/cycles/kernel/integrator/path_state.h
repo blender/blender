@@ -38,7 +38,7 @@ ccl_device_inline void path_state_init(IntegratorState state,
 ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
                                                   IntegratorState state,
                                                   const int sample,
-                                                  const uint rng_hash)
+                                                  const uint rng_pixel)
 {
   INTEGRATOR_STATE_WRITE(state, path, sample) = sample;
   INTEGRATOR_STATE_WRITE(state, path, bounce) = 0;
@@ -48,7 +48,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, transparent_bounce) = 0;
   INTEGRATOR_STATE_WRITE(state, path, volume_bounce) = 0;
   INTEGRATOR_STATE_WRITE(state, path, volume_bounds_bounce) = 0;
-  INTEGRATOR_STATE_WRITE(state, path, rng_hash) = rng_hash;
+  INTEGRATOR_STATE_WRITE(state, path, rng_pixel) = rng_pixel;
   INTEGRATOR_STATE_WRITE(state, path, rng_offset) = PRNG_BOUNCE_NUM;
   INTEGRATOR_STATE_WRITE(state, path, flag) = PATH_RAY_CAMERA | PATH_RAY_MIS_SKIP |
                                               PATH_RAY_TRANSPARENT_BACKGROUND;
@@ -307,7 +307,7 @@ ccl_device_inline bool path_state_ao_bounce(KernelGlobals kg, ConstIntegratorSta
 
 /* RNG State loaded onto stack. */
 typedef struct RNGState {
-  uint rng_hash;
+  uint rng_pixel;
   uint rng_offset;
   int sample;
 } RNGState;
@@ -315,7 +315,7 @@ typedef struct RNGState {
 ccl_device_inline void path_state_rng_load(ConstIntegratorState state,
                                            ccl_private RNGState *rng_state)
 {
-  rng_state->rng_hash = INTEGRATOR_STATE(state, path, rng_hash);
+  rng_state->rng_pixel = INTEGRATOR_STATE(state, path, rng_pixel);
   rng_state->rng_offset = INTEGRATOR_STATE(state, path, rng_offset);
   rng_state->sample = INTEGRATOR_STATE(state, path, sample);
 }
@@ -323,9 +323,17 @@ ccl_device_inline void path_state_rng_load(ConstIntegratorState state,
 ccl_device_inline void shadow_path_state_rng_load(ConstIntegratorShadowState state,
                                                   ccl_private RNGState *rng_state)
 {
-  rng_state->rng_hash = INTEGRATOR_STATE(state, shadow_path, rng_hash);
+  rng_state->rng_pixel = INTEGRATOR_STATE(state, shadow_path, rng_pixel);
   rng_state->rng_offset = INTEGRATOR_STATE(state, shadow_path, rng_offset);
   rng_state->sample = INTEGRATOR_STATE(state, shadow_path, sample);
+}
+
+ccl_device_inline void path_state_rng_scramble(ccl_private RNGState *rng_state, const int seed)
+{
+  /* To get an uncorrelated sequence of samples (e.g. for subsurface random walk), just change
+   * the dimension offset since all implemented samplers can generate unlimited numbers of
+   * dimensions anyways. The only thing to ensure is that the offset is divisible by 4. */
+  rng_state->rng_offset = hash_hp_seeded_uint(rng_state->rng_offset, seed) & ~0x3;
 }
 
 ccl_device_inline float path_state_rng_1D(KernelGlobals kg,
@@ -333,7 +341,7 @@ ccl_device_inline float path_state_rng_1D(KernelGlobals kg,
                                           const int dimension)
 {
   return path_rng_1D(
-      kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
+      kg, rng_state->rng_pixel, rng_state->sample, rng_state->rng_offset + dimension);
 }
 
 ccl_device_inline float2 path_state_rng_2D(KernelGlobals kg,
@@ -341,7 +349,7 @@ ccl_device_inline float2 path_state_rng_2D(KernelGlobals kg,
                                            const int dimension)
 {
   return path_rng_2D(
-      kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
+      kg, rng_state->rng_pixel, rng_state->sample, rng_state->rng_offset + dimension);
 }
 
 ccl_device_inline float3 path_state_rng_3D(KernelGlobals kg,
@@ -349,7 +357,7 @@ ccl_device_inline float3 path_state_rng_3D(KernelGlobals kg,
                                            const int dimension)
 {
   return path_rng_3D(
-      kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
+      kg, rng_state->rng_pixel, rng_state->sample, rng_state->rng_offset + dimension);
 }
 
 ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
@@ -359,7 +367,7 @@ ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
                                              const int dimension)
 {
   return path_rng_1D(kg,
-                     rng_state->rng_hash,
+                     rng_state->rng_pixel,
                      rng_state->sample * num_branches + branch,
                      rng_state->rng_offset + dimension);
 }
@@ -371,7 +379,7 @@ ccl_device_inline float2 path_branched_rng_2D(KernelGlobals kg,
                                               const int dimension)
 {
   return path_rng_2D(kg,
-                     rng_state->rng_hash,
+                     rng_state->rng_pixel,
                      rng_state->sample * num_branches + branch,
                      rng_state->rng_offset + dimension);
 }
@@ -383,7 +391,7 @@ ccl_device_inline float3 path_branched_rng_3D(KernelGlobals kg,
                                               const int dimension)
 {
   return path_rng_3D(kg,
-                     rng_state->rng_hash,
+                     rng_state->rng_pixel,
                      rng_state->sample * num_branches + branch,
                      rng_state->rng_offset + dimension);
 }

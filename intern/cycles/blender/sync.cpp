@@ -359,13 +359,39 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
     scene->light_manager->tag_update(scene, LightManager::UPDATE_ALL);
   }
 
-  SamplingPattern sampling_pattern;
-  if (use_developer_ui) {
-    sampling_pattern = (SamplingPattern)get_enum(
-        cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_TABULATED_SOBOL);
-  }
-  else {
-    sampling_pattern = SAMPLING_PATTERN_TABULATED_SOBOL;
+  const bool is_vertex_baking = scene->bake_manager->get_baking() &&
+      b_scene.render().bake().target() != BL::BakeSettings::target_IMAGE_TEXTURES;
+
+  SamplingPattern sampling_pattern = (SamplingPattern)get_enum(
+      cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_TABULATED_SOBOL);
+
+  switch (sampling_pattern) {
+    case SAMPLING_PATTERN_AUTOMATIC:
+      if (is_vertex_baking) {
+        /* When baking vertex colors, the "pixels" in the output are unrelated to their neighbors,
+         * so blue-noise sampling makes no sense. */
+        sampling_pattern = SAMPLING_PATTERN_TABULATED_SOBOL;
+      }
+      else if (!background) {
+        /* For interactive rendering, ensure that the first sample is in itself
+         * blue-noise-distributed for smooth viewport navigation. */
+        sampling_pattern = SAMPLING_PATTERN_BLUE_NOISE_FIRST;
+      }
+      else {
+        /* For non-interactive rendering, default to a full blue-noise pattern. */
+        sampling_pattern = SAMPLING_PATTERN_BLUE_NOISE_PURE;
+      }
+      break;
+    case SAMPLING_PATTERN_TABULATED_SOBOL:
+    case SAMPLING_PATTERN_BLUE_NOISE_PURE:
+      /* Always allowed. */
+      break;
+    default:
+      /* If not using developer UI, default to blue noise for "advanced" patterns. */
+      if (!use_developer_ui) {
+        sampling_pattern = SAMPLING_PATTERN_BLUE_NOISE_PURE;
+      }
+      break;
   }
   integrator->set_sampling_pattern(sampling_pattern);
 
@@ -409,7 +435,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   /* Only use scrambling distance in the viewport if user wants to. */
   bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
   if ((preview && !preview_scrambling_distance) ||
-      sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY)
+      sampling_pattern != SAMPLING_PATTERN_TABULATED_SOBOL)
   {
     scrambling_distance = 1.0f;
   }
@@ -465,9 +491,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
 
   /* No denoising support for vertex color baking, vertices packed into image
    * buffer have no relation to neighbors. */
-  if (scene->bake_manager->get_baking() &&
-      b_scene.render().bake().target() != BL::BakeSettings::target_IMAGE_TEXTURES)
-  {
+  if (is_vertex_baking) {
     denoise_params.use = false;
   }
 

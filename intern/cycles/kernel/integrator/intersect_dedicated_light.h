@@ -129,7 +129,7 @@ ccl_device bool shadow_linking_pick_light_intersection(KernelGlobals kg,
 
   const int object_receiver = light_link_receiver_forward(kg, state);
 
-  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_hash),
+  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_pixel),
                                   INTEGRATOR_STATE(state, path, rng_offset),
                                   INTEGRATOR_STATE(state, path, sample),
                                   0x68bc21eb);

@@ -118,7 +118,7 @@ ccl_device float3 svm_bevel(
 
   /* Setup for multi intersection. */
   LocalIntersection isect;
-  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_hash),
+  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_pixel),
                                   INTEGRATOR_STATE(state, path, rng_offset),
                                   INTEGRATOR_STATE(state, path, sample),
                                   0x64c6a40e);

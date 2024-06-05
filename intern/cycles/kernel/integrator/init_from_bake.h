@@ -130,7 +130,6 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   ccl_global float *primitive = buffer + kernel_data.film.pass_bake_primitive;
   ccl_global float *differential = buffer + kernel_data.film.pass_bake_differential;
 
-  const int seed = __float_as_uint(primitive[0]);
   int prim = __float_as_uint(primitive[1]);
   if (prim == -1) {
     /* Accumulate transparency for empty pixels. */
@@ -141,13 +140,19 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   prim += kernel_data.bake.tri_offset;
 
   /* Random number generator. */
-  const uint rng_hash = hash_uint(seed) ^ kernel_data.integrator.seed;
+  uint rng_pixel = __float_as_uint(primitive[0]);
+  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_TABULATED_SOBOL) {
+    rng_pixel = hash_uint(rng_pixel) ^ kernel_data.integrator.seed;
+  }
+  else {
+    rng_pixel = path_rng_pixel_init(kg, sample, x, y);
+  }
 
   const float2 rand_filter = (sample == 0) ? make_float2(0.5f, 0.5f) :
-                                             path_rng_2D(kg, rng_hash, sample, PRNG_FILTER);
+                                             path_rng_2D(kg, rng_pixel, sample, PRNG_FILTER);
 
   /* Initialize path state for path integration. */
-  path_state_init_integrator(kg, state, sample, rng_hash);
+  path_state_init_integrator(kg, state, sample, rng_pixel);
 
   /* Barycentric UV. */
   float u = primitive[2];

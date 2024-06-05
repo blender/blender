@@ -9,8 +9,8 @@ KERNEL_STRUCT_BEGIN(shadow_path)
 KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, render_pixel_index, KERNEL_FEATURE_PATH_TRACING)
 /* Current sample number. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, sample, KERNEL_FEATURE_PATH_TRACING)
-/* Random number generator seed. */
-KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, rng_hash, KERNEL_FEATURE_PATH_TRACING)
+/* Random number generator per-pixel info. */
+KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, rng_pixel, KERNEL_FEATURE_PATH_TRACING)
 /* Random number dimension offset. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, rng_offset, KERNEL_FEATURE_PATH_TRACING)
 /* Current ray bounce depth. */
