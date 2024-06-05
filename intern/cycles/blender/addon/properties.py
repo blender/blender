@@ -81,26 +81,29 @@ def enum_sampling_pattern(self, context):
          "Use a blue-noise sampling pattern, which optimizes the frequency distribution of noise, for random sampling. For viewport rendering, optimize first sample quality for interactive preview",
          5)]
 
-    if use_debug:
-        items += [
-            ('SOBOL_BURLEY', "Sobol-Burley", "Use on-the-fly computed Owen-scrambled Sobol for random sampling", 0),
-            ('TABULATED_SOBOL', "Tabulated Sobol", "Use pre-computed tables of Owen-scrambled Sobol for random sampling", 1),
-            ('BLUE_NOISE', "Blue-Noise (pure)", "Blue-Noise (pure)", 2),
-            ('BLUE_NOISE_FIRST', "Blue-Noise (first)", "Blue-Noise (first)", 3),
-            ('BLUE_NOISE_ROUND', "Blue-Noise (round)", "Blue-Noise (round)", 4),
-        ]
-    else:
-        items += [('TABULATED_SOBOL',
-                   "Classic",
-                   "Use pre-computed tables of Owen-scrambled Sobol for random sampling",
-                   1),
-                  ('BLUE_NOISE',
-                   "Blue-Noise",
-                   "Use a blue-noise pattern, which optimizes the frequency distribution of noise, for random sampling",
-                   2),
-                  ]
+    debug_items = [
+        ('SOBOL_BURLEY', "Sobol-Burley", "Use on-the-fly computed Owen-scrambled Sobol for random sampling", 0),
+        ('TABULATED_SOBOL', "Tabulated Sobol", "Use pre-computed tables of Owen-scrambled Sobol for random sampling", 1),
+        ('BLUE_NOISE', "Blue-Noise (pure)", "Blue-Noise (pure)", 2),
+        ('BLUE_NOISE_FIRST', "Blue-Noise (first)", "Blue-Noise (first)", 3),
+        ('BLUE_NOISE_ROUND', "Blue-Noise (round)", "Blue-Noise (round)", 4),
+    ]
 
-    return items
+    non_debug_items = [
+        ('TABULATED_SOBOL',
+         "Classic",
+         "Use pre-computed tables of Owen-scrambled Sobol for random sampling",
+         1),
+        ('BLUE_NOISE',
+         "Blue-Noise",
+         "Use a blue-noise pattern, which optimizes the frequency distribution of noise, for random sampling",
+         2),
+    ]
+
+    if use_debug:
+        return items + debug_items
+    else:
+        return items + non_debug_items
 
 
 enum_emission_sampling = (

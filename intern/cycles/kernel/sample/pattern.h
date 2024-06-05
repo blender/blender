@@ -131,9 +131,9 @@ ccl_device_forceinline float4 path_rng_4D(KernelGlobals kg,
 }
 
 ccl_device_inline uint path_rng_pixel_init(KernelGlobals kg,
-                                          const int sample,
-                                          const int x,
-                                          const int y)
+                                           const int sample,
+                                           const int x,
+                                           const int y)
 {
   const uint pattern = kernel_data.integrator.sampling_pattern;
   if (pattern == SAMPLING_PATTERN_TABULATED_SOBOL || pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {

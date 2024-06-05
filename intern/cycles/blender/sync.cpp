@@ -360,7 +360,8 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   }
 
   const bool is_vertex_baking = scene->bake_manager->get_baking() &&
-      b_scene.render().bake().target() != BL::BakeSettings::target_IMAGE_TEXTURES;
+                                b_scene.render().bake().target() !=
+                                    BL::BakeSettings::target_IMAGE_TEXTURES;
 
   SamplingPattern sampling_pattern = (SamplingPattern)get_enum(
       cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_TABULATED_SOBOL);
