@@ -1749,7 +1749,7 @@ static bool draw_cache_view_iter_fn(void *userdata,
   {
     /* Draw the final cache on top of the timeline */
     stripe_top = v2d->cur.ymax - (UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d));
-    stripe_bot = stripe_top - (UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d)) / 6.0f;
+    stripe_bot = stripe_top - (UI_TIME_CACHE_MARGIN_Y / UI_view2d_scale_get_y(v2d));
     col = col_final;
   }
   else {
@@ -1819,7 +1819,7 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
   if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_FINAL_OUT) {
     /* Draw the final cache on top of the timeline */
     float stripe_top = v2d->cur.ymax - (UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d));
-    stripe_bot = stripe_top - (UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d)) / 6.0f;
+    stripe_bot = stripe_top - (UI_TIME_CACHE_MARGIN_Y / UI_view2d_scale_get_y(v2d));
 
     draw_data->quads->add_quad(scene->r.sfra, stripe_bot, scene->r.efra, stripe_top, bg_final);
   }

@@ -470,6 +470,7 @@ void UI_view2d_smooth_view(const bContext *C, ARegion *region, const rctf *cur, 
 
 #define UI_MARKER_MARGIN_Y (42 * UI_SCALE_FAC)
 #define UI_TIME_SCRUB_MARGIN_Y (23 * UI_SCALE_FAC)
+#define UI_TIME_CACHE_MARGIN_Y (UI_TIME_SCRUB_MARGIN_Y / 6.0f)
 
 /** \} */
 

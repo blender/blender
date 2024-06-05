@@ -694,9 +694,30 @@ void BLI_rctf_pad_y(rctf *rect,
     return;
   }
 
-  float total_extend = BLI_rctf_size_y(rect) * total_pad / (boundary_size - total_pad);
-  rect->ymax += total_extend * (pad_max / total_pad);
-  rect->ymin -= total_extend * (pad_min / total_pad);
+  /* To get the padding to work as intended, we have to calculate the
+   * new 'rect' y size that has the same ratio between its padding and size
+   * as our screen space ratio (total_pad / boundary_size).
+   *
+   * Here is how the equation was derived:
+   *
+   * ratio = local_pad / new_local_view_size = total_pad / boundary_size
+   * Where, new_local_view_size = local_view_size + local_pad
+   *
+   * ratio = local_pad / (local_view_size + local_pad) ->
+   * ratio * local_view_size + ratio * local_pad = local_pad ->
+   * ratio * local_view_size = local_pad * (1 - ratio) ->
+   * ratio * local_view_size / (1 - ratio) = local_pad ->
+   * total_pad * local_view_size / (boundary_size - total_pad) = local_pad
+   *
+   * We can then remove the first "total_pad" in the equation as we need to
+   * divide pad_(max/min) by "total_pad" when we are calculating the final ymax/ymin.
+   */
+
+  float local_view_size = BLI_rctf_size_y(rect);
+  float local_pad = local_view_size / (boundary_size - total_pad);
+
+  rect->ymax += local_pad * pad_max;
+  rect->ymin -= local_pad * pad_min;
 }
 
 void BLI_rctf_interp(rctf *rect, const rctf *rect_a, const rctf *rect_b, const float fac)

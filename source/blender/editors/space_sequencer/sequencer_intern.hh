@@ -285,6 +285,9 @@ void SEQUENCER_OT_strip_modifier_equalizer_redefine(wmOperatorType *ot);
 
 /* `sequencer_view.cc` */
 
+void SEQ_get_timeline_region_padding(const bContext *C, float *r_pad_top, float *r_pad_bottom);
+void SEQ_add_timeline_region_padding(const bContext *C, rctf *view_box);
+
 void SEQUENCER_OT_sample(wmOperatorType *ot);
 void SEQUENCER_OT_view_all(wmOperatorType *ot);
 void SEQUENCER_OT_view_frame(wmOperatorType *ot);
