@@ -2394,7 +2394,7 @@ class EXTENSIONS_OT_repo_lock(Operator):
             return {'CANCELLED'}
 
         self.report({'INFO'}, "Locked {:d} repos(s)".format(len(lock_result)))
-        BlPkgRepoLock.lock = lock_handle
+        EXTENSIONS_OT_repo_lock.lock = lock_handle
         return {'FINISHED'}
 
 
@@ -2404,14 +2404,14 @@ class EXTENSIONS_OT_repo_unlock(Operator):
     bl_label = "Unlock Repository (Testing)"
 
     def execute(self, _context):
-        lock_handle = BlPkgRepoLock.lock
+        lock_handle = EXTENSIONS_OT_repo_lock.lock
         if lock_handle is None:
             self.report({'ERROR'}, "Lock not held!")
             return {'CANCELLED'}
 
         lock_result = lock_handle.release()
 
-        BlPkgRepoLock.lock = None
+        EXTENSIONS_OT_repo_lock.lock = None
 
         if lock_result_any_failed_with_report(self, lock_result):
             # This isn't canceled, but there were issues unlocking.
