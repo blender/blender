@@ -23,6 +23,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
@@ -84,6 +85,9 @@
 #include "RNA_define.hh"
 
 #include "bmesh.hh"
+
+#include "editors/sculpt_paint/brushes/types.hh"
+#include "mesh_brush_common.hh"
 
 using blender::float3;
 using blender::MutableSpan;
@@ -1238,6 +1242,33 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVerte
   }
 }
 
+void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const BMVert &vert)
+{
+  using namespace blender::ed::sculpt_paint;
+  if (orig_data.unode->type == undo::Type::Position) {
+    BM_log_original_vert_data(
+        orig_data.bm_log, &const_cast<BMVert &>(vert), &orig_data.co, &orig_data.no);
+  }
+  else if (orig_data.unode->type == undo::Type::Mask) {
+    orig_data.mask = BM_log_original_mask(orig_data.bm_log, &const_cast<BMVert &>(vert));
+  }
+}
+
+void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const int i)
+{
+  using namespace blender::ed::sculpt_paint;
+  if (orig_data.unode->type == undo::Type::Position) {
+    orig_data.co = orig_data.coords[i];
+    orig_data.no = orig_data.normals[i];
+  }
+  else if (orig_data.unode->type == undo::Type::Color) {
+    orig_data.col = orig_data.colors[i];
+  }
+  else if (orig_data.unode->type == undo::Type::Mask) {
+    orig_data.mask = orig_data.vmasks[i];
+  }
+}
+
 namespace blender::ed::sculpt_paint {
 
 static void sculpt_rake_data_update(SculptRakeData *srd, const float co[3])
@@ -2389,12 +2420,12 @@ static float sculpt_apply_hardness(const SculptSession &ss, const float input_le
   return final_len;
 }
 
-static void sculpt_apply_texture(SculptSession &ss,
-                                 const Brush &brush,
-                                 const float brush_point[3],
-                                 const int thread_id,
-                                 float *r_value,
-                                 float r_rgba[4])
+void sculpt_apply_texture(const SculptSession &ss,
+                          const Brush &brush,
+                          const float brush_point[3],
+                          const int thread_id,
+                          float *r_value,
+                          float r_rgba[4])
 {
   const blender::ed::sculpt_paint::StrokeCache &cache = *ss.cache;
   const Scene *scene = cache.vc->scene;
@@ -3516,9 +3547,17 @@ static void do_brush_action(const Sculpt &sd,
 
   /* Apply one type of brush action. */
   switch (brush.sculpt_tool) {
-    case SCULPT_TOOL_DRAW:
-      SCULPT_do_draw_brush(sd, ob, nodes);
+    case SCULPT_TOOL_DRAW: {
+      const bool use_vector_displacement = (brush.flag2 & BRUSH_USE_COLOR_AS_DISPLACEMENT &&
+                                            (brush.mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
+      if (use_vector_displacement) {
+        ed::sculpt_paint::do_draw_vector_displacement_brush(sd, ob, nodes);
+      }
+      else {
+        ed::sculpt_paint::do_draw_brush(sd, ob, nodes);
+      }
       break;
+    }
     case SCULPT_TOOL_SMOOTH:
       if (brush.smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
         smooth::do_smooth_brush(sd, ob, nodes);
@@ -5622,12 +5661,16 @@ static void sculpt_stroke_update_step(bContext *C,
    *
    * Same applies to the DEG_id_tag_update() invoked from
    * sculpt_flush_update_step().
+   *
+   * For some brushes, flushing is done in the brush code itself.
    */
-  if (ss.deform_modifiers_active) {
-    SCULPT_flush_stroke_deform(sd, ob, sculpt_tool_is_proxy_used(brush.sculpt_tool));
-  }
-  else if (ss.shapekey_active) {
-    sculpt_update_keyblock(ob);
+  if (!(ELEM(brush.sculpt_tool, SCULPT_TOOL_DRAW) && BKE_pbvh_type(*ss.pbvh) == PBVH_FACES)) {
+    if (ss.deform_modifiers_active) {
+      SCULPT_flush_stroke_deform(sd, ob, sculpt_tool_is_proxy_used(brush.sculpt_tool));
+    }
+    else if (ss.shapekey_active) {
+      sculpt_update_keyblock(ob);
+    }
   }
 
   ss.cache->first_time = false;
@@ -6244,3 +6287,245 @@ void SCULPT_cube_tip_init(const Sculpt & /*sd*/,
   invert_m4_m4(mat, tmat);
 }
 /** \} */
+
+namespace blender::ed::sculpt_paint {
+
+void fill_factor_from_hide_and_mask(const Mesh &mesh,
+                                    const Span<int> verts,
+                                    const MutableSpan<float> r_factors)
+{
+  BLI_assert(verts.size() == r_factors.size());
+
+  /* TODO: Avoid overhead of accessing attributes for every PBVH node. */
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point)) {
+    const VArraySpan span(mask);
+    for (const int i : verts.index_range()) {
+      r_factors[i] = 1.0f - span[verts[i]];
+    }
+  }
+  else {
+    r_factors.fill(1.0f);
+  }
+
+  if (const VArray hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point)) {
+    const VArraySpan span(hide_vert);
+    for (const int i : verts.index_range()) {
+      r_factors[i] = span[verts[i]] ? 0.0f : r_factors[i];
+    }
+  }
+}
+
+void calc_front_face(const float3 &view_normal,
+                     const Span<float3> vert_normals,
+                     const Span<int> verts,
+                     const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == factors.size());
+
+  for (const int i : verts.index_range()) {
+    const float dot = math::dot(view_normal, vert_normals[verts[i]]);
+    factors[i] *= dot > 0.0f ? dot : 0.0f;
+  }
+}
+
+void calc_distance_falloff(SculptSession &ss,
+                           const Span<float3> positions,
+                           const Span<int> verts,
+                           const eBrushFalloffShape falloff_shape,
+                           const MutableSpan<float> r_distances,
+                           const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == factors.size());
+  BLI_assert(verts.size() == r_distances.size());
+
+  SculptBrushTest test;
+  const SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, test, falloff_shape);
+
+  for (const int i : verts.index_range()) {
+    if (factors[i] == 0.0f) {
+      r_distances[i] = FLT_MAX;
+      continue;
+    }
+    if (!sculpt_brush_test_sq_fn(test, positions[verts[i]])) {
+      factors[i] = 0.0f;
+      r_distances[i] = FLT_MAX;
+      continue;
+    }
+    r_distances[i] = math::sqrt(test.dist);
+  }
+}
+
+void calc_brush_strength_factors(const SculptSession &ss,
+                                 const Brush &brush,
+                                 const Span<int> verts,
+                                 const Span<float> distances,
+                                 const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == distances.size());
+  BLI_assert(verts.size() == factors.size());
+
+  const StrokeCache &cache = *ss.cache;
+
+  for (const int i : verts.index_range()) {
+    if (factors[i] == 0.0f) {
+      /* Skip already masked-out points, as they might be outside of the brush radius and be
+       * unaffected anyway. Having such large values in the calculations below might lead to
+       * non-finite values, leading to undesired results. */
+      continue;
+    }
+
+    const float hardness = sculpt_apply_hardness(ss, distances[i]);
+    const float strength = BKE_brush_curve_strength(&brush, hardness, cache.radius);
+
+    factors[i] *= strength;
+  }
+}
+
+void calc_brush_texture_factors(SculptSession &ss,
+                                const Brush &brush,
+                                const Span<float3> vert_positions,
+                                const Span<int> verts,
+                                const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == factors.size());
+
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
+  const MTex *mtex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
+  if (!mtex->tex) {
+    return;
+  }
+
+  for (const int i : verts.index_range()) {
+    float texture_value;
+    float4 texture_rgba;
+    /* NOTE: This is not a thread-safe call. */
+    sculpt_apply_texture(
+        ss, brush, vert_positions[verts[i]], thread_id, &texture_value, texture_rgba);
+
+    factors[i] *= texture_value;
+  }
+}
+
+void apply_translations(const Span<float3> translations,
+                        const Span<int> verts,
+                        const MutableSpan<float3> positions)
+{
+  BLI_assert(verts.size() == translations.size());
+
+  for (const int i : verts.index_range()) {
+    const int vert = verts[i];
+    positions[vert] += translations[i];
+  }
+}
+
+void apply_crazyspace_to_translations(const Span<float3x3> deform_imats,
+                                      const Span<int> verts,
+                                      const MutableSpan<float3> translations)
+{
+  BLI_assert(verts.size() == translations.size());
+
+  for (const int i : verts.index_range()) {
+    translations[i] = math::transform_point(deform_imats[verts[i]], translations[i]);
+  }
+}
+
+void clip_and_lock_translations(const Sculpt &sd,
+                                const SculptSession &ss,
+                                const Span<float3> positions,
+                                const Span<int> verts,
+                                const MutableSpan<float3> translations)
+{
+  BLI_assert(verts.size() == translations.size());
+
+  const StrokeCache *cache = ss.cache;
+  if (!cache) {
+    return;
+  }
+  for (const int axis : IndexRange(3)) {
+    if (sd.flags & (SCULPT_LOCK_X << axis)) {
+      for (float3 &translation : translations) {
+        translation[axis] = 0.0f;
+      }
+      continue;
+    }
+
+    if (!(cache->flag & (CLIP_X << axis))) {
+      continue;
+    }
+
+    const float4x4 mirror(cache->clip_mirror_mtx);
+    const float4x4 mirror_inverse = math::invert(mirror);
+    for (const int i : verts.index_range()) {
+      const int vert = verts[i];
+
+      /* Transform into the space of the mirror plane, check translations, then transform back. */
+      float3 co_mirror = math::transform_point(mirror, positions[vert]);
+      if (math::abs(co_mirror[axis]) > cache->clip_tolerance[axis]) {
+        continue;
+      }
+      /* Clear the translation in the local space of the mirror object. */
+      co_mirror[axis] = 0.0f;
+      const float3 co_local = math::transform_point(mirror_inverse, co_mirror);
+      translations[i][axis] = co_local[axis] - positions[vert][axis];
+    }
+  }
+}
+
+MutableSpan<float3> mesh_brush_positions_for_write(SculptSession &ss, Mesh & /*mesh*/)
+{
+  /* TODO: Eventually this should retrieve mutable positions directly from the mesh or the active
+   * shape key, instead of keeping a mutable reference to an array stored in the PBVH. That will
+   * help avoid copies when user edits don't affect positions, will help to make code safer because
+   * there will be less potentially-stale state, and will make it less confusing by avoiding
+   * redundant data storage. */
+  return BKE_pbvh_get_vert_positions(*ss.pbvh);
+}
+
+void flush_positions_to_shape_keys(Object &object,
+                                   const Span<int> verts,
+                                   const Span<float3> positions,
+                                   const MutableSpan<float3> positions_mesh)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  KeyBlock *active_key = BKE_keyblock_from_object(&object);
+  if (!active_key) {
+    return;
+  }
+  MutableSpan active_key_data(static_cast<float3 *>(active_key->data), active_key->totelem);
+
+  /* For relative keys editing of base should update other keys. */
+  if (bool *dependent = BKE_keyblock_get_dependent_keys(mesh.key, object.shapenr - 1)) {
+    /* TODO: Avoid allocation by using translations already calculated by brush. */
+    Array<float3> offsets(verts.size());
+    for (const int i : verts.index_range()) {
+      offsets[i] = positions[verts[i]] - active_key_data[verts[i]];
+    }
+
+    int i;
+    LISTBASE_FOREACH_INDEX (KeyBlock *, other_key, &mesh.key->block, i) {
+      if ((other_key != active_key) && dependent[i]) {
+        MutableSpan<float3> data(static_cast<float3 *>(other_key->data), other_key->totelem);
+        apply_translations(offsets, verts, data);
+      }
+    }
+
+    MEM_freeN(dependent);
+  }
+
+  /* Modifying of basis key should update mesh. */
+  if (active_key == mesh.key->refkey) {
+    /* TODO: There are too many positions arrays getting passed around. We should have a better
+     * naming system or not have to constantly update both the base shape key and original
+     * positions. OTOH, maybe it's just a consequence of the bad design of shape keys. */
+    apply_translations(positions, verts, positions_mesh);
+  }
+
+  /* Apply new positions to active shape key. */
+  for (const int vert : verts) {
+    active_key_data[vert] = positions[vert];
+  }
+}
+
+}  // namespace blender::ed::sculpt_paint
