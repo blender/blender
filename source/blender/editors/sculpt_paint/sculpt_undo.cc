@@ -125,7 +125,7 @@ namespace blender::ed::sculpt_paint::undo {
 
 #define NO_ACTIVE_LAYER bke::AttrDomain::Auto
 
-struct UndoSculpt {
+struct StepData {
   Vector<std::unique_ptr<Node>> nodes;
 
   size_t undo_size;
@@ -141,7 +141,7 @@ struct SculptAttrRef {
 struct SculptUndoStep {
   UndoStep step;
   /* NOTE: will split out into list for multi-object-sculpt-mode. */
-  UndoSculpt data;
+  StepData data;
 
   /* Active color attribute at the start of this undo step. */
   SculptAttrRef active_color_start;
@@ -161,7 +161,7 @@ static SculptUndoStep *get_active_step()
   return reinterpret_cast<SculptUndoStep *>(us);
 }
 
-static UndoSculpt *get_nodes()
+static StepData *get_step_data()
 {
   if (SculptUndoStep *us = get_active_step()) {
     return &us->data;
@@ -237,9 +237,9 @@ static void print_step(Object &ob, UndoStep *us, UndoStep *active, int i)
          us->use_memfile_step ? "true" : "false");
 
   if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
-    UndoSculpt *usculpt = reinterpret_cast<SculptUndoStep *>(us)->data;
+    StepData *step_data = reinterpret_cast<SculptUndoStep *>(us)->data;
 
-    for (node = usculpt->nodes.first; node; node = node->next) {
+    for (node = step_data->nodes.first; node; node = node->next) {
       print_sculpt_node(ob, node);
     }
   }
@@ -889,7 +889,7 @@ static void refine_subdiv(Depsgraph *depsgraph,
                                      reinterpret_cast<float(*)[3]>(deformed_verts.data()));
 }
 
-static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
+static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -901,7 +901,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
   bool clear_automask_cache = false;
-  for (const std::unique_ptr<Node> &unode : usculpt.nodes) {
+  for (const std::unique_ptr<Node> &unode : step_data.nodes) {
     if (!ELEM(unode->type, Type::Color, Type::Mask)) {
       clear_automask_cache = true;
     }
@@ -915,16 +915,16 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
     ss->last_automasking_settings_hash = 0;
   }
 
-  if (!usculpt.nodes.is_empty()) {
+  if (!step_data.nodes.is_empty()) {
     /* Only do early object update for edits if first node needs this.
      * Undo steps like geometry does not need object to be updated before they run and will
      * ensure object is updated after the node is handled. */
-    const Node *first_unode = usculpt.nodes.first().get();
+    const Node *first_unode = step_data.nodes.first().get();
     if (first_unode->type != Type::Geometry) {
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
     }
 
-    if (bmesh_restore(C, *usculpt.nodes.first(), object, ss)) {
+    if (bmesh_restore(C, *step_data.nodes.first(), object, ss)) {
       return;
     }
   }
@@ -949,7 +949,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   Vector<bool> modified_verts_color;
   Vector<bool> modified_faces_face_set;
   Vector<bool> modified_grids;
-  for (std::unique_ptr<Node> &unode : usculpt.nodes) {
+  for (std::unique_ptr<Node> &unode : step_data.nodes) {
     if (!STREQ(unode->idname, object.id.name)) {
       continue;
     }
@@ -1022,7 +1022,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   }
 
   if (use_multires_undo) {
-    for (std::unique_ptr<Node> &unode : usculpt.nodes) {
+    for (std::unique_ptr<Node> &unode : step_data.nodes) {
       if (!STREQ(unode->idname, object.id.name)) {
         continue;
       }
@@ -1109,9 +1109,9 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   }
 }
 
-static void free_list(UndoSculpt &usculpt)
+static void free_step_data(StepData &step_data)
 {
-  for (std::unique_ptr<Node> &unode : usculpt.nodes) {
+  for (std::unique_ptr<Node> &unode : step_data.nodes) {
     geometry_free_data(&unode->geometry_original);
     geometry_free_data(&unode->geometry_modified);
     geometry_free_data(&unode->geometry_bmesh_enter);
@@ -1119,18 +1119,18 @@ static void free_list(UndoSculpt &usculpt)
       BM_log_entry_drop(unode->bm_entry);
     }
   }
-  usculpt.nodes.~Vector();
+  step_data.nodes.~Vector();
 }
 
 Node *get_node(const PBVHNode *node, const Type type)
 {
-  UndoSculpt *usculpt = get_nodes();
+  StepData *step_data = get_step_data();
 
-  if (usculpt == nullptr) {
+  if (step_data == nullptr) {
     return nullptr;
   }
 
-  for (std::unique_ptr<Node> &unode : usculpt->nodes) {
+  for (std::unique_ptr<Node> &unode : step_data->nodes) {
     if (unode->node == node && unode->type == type) {
       return unode.get();
     }
@@ -1163,12 +1163,12 @@ static size_t alloc_and_store_hidden(const SculptSession *ss, Node *unode)
  * Will also add the node to the list in the undo step. */
 static Node *alloc_node_type(const Object &object, const Type type)
 {
-  UndoSculpt *usculpt = get_nodes();
+  StepData *step_data = get_step_data();
   std::unique_ptr<Node> unode = std::make_unique<Node>();
-  usculpt->nodes.append(std::move(unode));
-  usculpt->undo_size += sizeof(Node);
+  step_data->nodes.append(std::move(unode));
+  step_data->undo_size += sizeof(Node);
 
-  Node *node_ptr = usculpt->nodes.last().get();
+  Node *node_ptr = step_data->nodes.last().get();
   STRNCPY(node_ptr->idname, object.id.name);
   node_ptr->type = type;
 
@@ -1180,9 +1180,9 @@ static Node *alloc_node_type(const Object &object, const Type type)
  * return it. */
 static Node *find_or_alloc_node_type(const Object &object, const Type type)
 {
-  UndoSculpt *usculpt = get_nodes();
+  StepData *step_data = get_step_data();
 
-  for (std::unique_ptr<Node> &unode : usculpt->nodes) {
+  for (std::unique_ptr<Node> &unode : step_data->nodes) {
     if (unode->type == type) {
       return unode.get();
     }
@@ -1193,7 +1193,7 @@ static Node *find_or_alloc_node_type(const Object &object, const Type type)
 
 static Node *alloc_node(const Object &object, const PBVHNode *node, const Type type)
 {
-  UndoSculpt *usculpt = get_nodes();
+  StepData *step_data = get_step_data();
   const SculptSession *ss = object.sculpt;
 
   Node *unode = alloc_node_type(object, type);
@@ -1207,7 +1207,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
     unode->grid_size = ss->subdiv_ccg->grid_size;
 
     unode->grids = bke::pbvh::node_grid_indices(*node);
-    usculpt->undo_size += unode->grids.as_span().size_in_bytes();
+    step_data->undo_size += unode->grids.as_span().size_in_bytes();
 
     const int grid_area = unode->grid_size * unode->grid_size;
     verts_num = unode->grids.size() * grid_area;
@@ -1220,7 +1220,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
 
     verts_num = unode->vert_indices.size();
 
-    usculpt->undo_size += unode->vert_indices.as_span().size_in_bytes();
+    step_data->undo_size += unode->vert_indices.as_span().size_in_bytes();
   }
 
   bool need_loops = type == Type::Color;
@@ -1230,7 +1230,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
     unode->corner_indices = bke::pbvh::node_corners(*node);
     unode->mesh_corners_num = mesh.corners_num;
 
-    usculpt->undo_size += unode->corner_indices.as_span().size_in_bytes();
+    step_data->undo_size += unode->corner_indices.as_span().size_in_bytes();
   }
 
   if (need_faces) {
@@ -1240,45 +1240,45 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
     else {
       bke::pbvh::node_face_indices_calc_grids(*ss->pbvh, *node, unode->face_indices);
     }
-    usculpt->undo_size += unode->face_indices.as_span().size_in_bytes();
+    step_data->undo_size += unode->face_indices.as_span().size_in_bytes();
   }
 
   switch (type) {
     case Type::Position: {
       unode->position.reinitialize(verts_num);
-      usculpt->undo_size += unode->position.as_span().size_in_bytes();
+      step_data->undo_size += unode->position.as_span().size_in_bytes();
 
       /* Needed for original data lookup. */
       unode->normal.reinitialize(verts_num);
-      usculpt->undo_size += unode->normal.as_span().size_in_bytes();
+      step_data->undo_size += unode->normal.as_span().size_in_bytes();
       break;
     }
     case Type::HideVert: {
       if (BKE_pbvh_type(*ss->pbvh) == PBVH_GRIDS) {
-        usculpt->undo_size += alloc_and_store_hidden(ss, unode);
+        step_data->undo_size += alloc_and_store_hidden(ss, unode);
       }
       else {
         unode->vert_hidden.resize(unode->vert_indices.size());
-        usculpt->undo_size += unode->vert_hidden.size() / 8;
+        step_data->undo_size += unode->vert_hidden.size() / 8;
       }
 
       break;
     }
     case Type::HideFace: {
       unode->face_hidden.resize(unode->face_indices.size());
-      usculpt->undo_size += unode->face_hidden.size() / 8;
+      step_data->undo_size += unode->face_hidden.size() / 8;
       break;
     }
     case Type::Mask: {
       unode->mask.reinitialize(verts_num);
-      usculpt->undo_size += unode->mask.as_span().size_in_bytes();
+      step_data->undo_size += unode->mask.as_span().size_in_bytes();
       break;
     }
     case Type::Color: {
       /* Allocate vertex colors, even for loop colors we still
        * need this for original data lookup. */
       unode->col.reinitialize(verts_num);
-      usculpt->undo_size += unode->col.as_span().size_in_bytes();
+      step_data->undo_size += unode->col.as_span().size_in_bytes();
 
       /* Allocate loop colors separately too. */
       if (ss->vcol_domain == bke::AttrDomain::Corner) {
@@ -1296,14 +1296,14 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
       break;
     case Type::FaceSet: {
       unode->face_sets.reinitialize(unode->face_indices.size());
-      usculpt->undo_size += unode->face_sets.as_span().size_in_bytes();
+      step_data->undo_size += unode->face_sets.as_span().size_in_bytes();
       break;
     }
   }
 
   if (ss->deform_modifiers_active) {
     unode->orig_position.reinitialize(unode->vert_indices.size());
-    usculpt->undo_size += unode->orig_position.as_span().size_in_bytes();
+    step_data->undo_size += unode->orig_position.as_span().size_in_bytes();
   }
 
   return unode;
@@ -1475,14 +1475,14 @@ static void store_face_sets(const Mesh &mesh, Node &unode)
 
 static Node *bmesh_push(const Object &object, const PBVHNode *node, Type type)
 {
-  UndoSculpt *usculpt = get_nodes();
+  StepData *step_data = get_step_data();
   const SculptSession *ss = object.sculpt;
 
-  Node *unode = usculpt->nodes.is_empty() ? nullptr : usculpt->nodes.first().get();
+  Node *unode = step_data->nodes.is_empty() ? nullptr : step_data->nodes.first().get();
 
   if (unode == nullptr) {
-    usculpt->nodes.append(std::make_unique<Node>());
-    unode = usculpt->nodes.last().get();
+    step_data->nodes.append(std::make_unique<Node>());
+    unode = step_data->nodes.last().get();
 
     STRNCPY(unode->idname, object.id.name);
     unode->type = type;
@@ -1704,11 +1704,11 @@ void push_end(Object &ob)
 
 void push_end_ex(Object &ob, const bool use_nested_undo)
 {
-  UndoSculpt *usculpt = get_nodes();
+  StepData *step_data = get_step_data();
 
   /* We don't need normals in the undo stack. */
-  for (std::unique_ptr<Node> &unode : usculpt->nodes) {
-    usculpt->undo_size -= unode->normal.as_span().size_in_bytes();
+  for (std::unique_ptr<Node> &unode : step_data->nodes) {
+    step_data->undo_size -= unode->normal.as_span().size_in_bytes();
     unode->normal = {};
   }
 
@@ -1941,7 +1941,7 @@ static void step_decode(
 static void step_free(UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
-  free_list(us->data);
+  free_step_data(us->data);
 }
 
 void geometry_begin(Object &ob, const wmOperator *op)
