@@ -26,7 +26,7 @@ static void test_buffer_texture()
   /* Vertex buffer. */
   GPUVertFormat format = {};
   uint value_pos = GPU_vertformat_attr_add(&format, "value", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  VertBuf *vertex_buffer = GPU_vertbuf_create_with_format_ex(&format,
+  VertBuf *vertex_buffer = GPU_vertbuf_create_with_format_ex(format,
                                                              GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
   float4 value = float4(42.42, 23.23, 1.0, -1.0);
   GPU_vertbuf_data_alloc(vertex_buffer, 4);

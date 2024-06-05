@@ -1581,14 +1581,14 @@ void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data)
   const bool resize = (callbuf->count == GPU_vertbuf_get_vertex_alloc(buf));
 
   if (UNLIKELY(resize)) {
-    GPU_vertbuf_data_resize(buf, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
+    GPU_vertbuf_data_resize(*buf, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
   }
 
   GPU_vertbuf_vert_set(buf, callbuf->count, data);
 
   if (G.f & G_FLAG_PICKSEL) {
     if (UNLIKELY(resize)) {
-      GPU_vertbuf_data_resize(callbuf->buf_select, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
+      GPU_vertbuf_data_resize(*callbuf->buf_select, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
     }
     GPU_vertbuf_attr_set(callbuf->buf_select, 0, callbuf->count, &DST.select_id);
   }
@@ -1605,7 +1605,7 @@ void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint
   UNUSED_VARS_NDEBUG(attr_len);
 
   if (UNLIKELY(resize)) {
-    GPU_vertbuf_data_resize(buf, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
+    GPU_vertbuf_data_resize(*buf, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
   }
 
   for (int i = 0; i < attr_len; i++) {
@@ -1614,7 +1614,7 @@ void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint
 
   if (G.f & G_FLAG_PICKSEL) {
     if (UNLIKELY(resize)) {
-      GPU_vertbuf_data_resize(callbuf->buf_select, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
+      GPU_vertbuf_data_resize(*callbuf->buf_select, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
     }
     GPU_vertbuf_attr_set(callbuf->buf_select, 0, callbuf->count, &DST.select_id);
   }

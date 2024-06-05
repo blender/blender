@@ -31,7 +31,7 @@ namespace blender::draw {
  * \{ */
 
 static void init_vbo_for_attribute(const MeshRenderData &mr,
-                                   gpu::VertBuf *vbo,
+                                   gpu::VertBuf &vbo,
                                    const DRW_AttributeRequest &request,
                                    bool build_on_device,
                                    uint32_t len)
@@ -52,10 +52,10 @@ static void init_vbo_for_attribute(const MeshRenderData &mr,
   }
 
   if (build_on_device) {
-    GPU_vertbuf_init_build_on_device(vbo, &format, len);
+    GPU_vertbuf_init_build_on_device(vbo, format, len);
   }
   else {
-    GPU_vertbuf_init_with_format(vbo, &format);
+    GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, len);
   }
 }
@@ -67,7 +67,7 @@ static void extract_data_mesh_mapped_corner(const Span<T> attribute,
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  MutableSpan data(static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo)), indices.size());
+  MutableSpan data(static_cast<VBOType *>(GPU_vertbuf_get_data(vbo)), indices.size());
 
   if constexpr (std::is_same_v<T, VBOType>) {
     array_utils::gather(attribute, indices, data);
@@ -88,7 +88,7 @@ static void extract_data_mesh_face(const OffsetIndices<int> faces,
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  MutableSpan data(static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo)), faces.total_size());
+  MutableSpan data(static_cast<VBOType *>(GPU_vertbuf_get_data(vbo)), faces.total_size());
 
   threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
@@ -102,7 +102,7 @@ static void extract_data_bmesh_vert(const BMesh &bm, const int cd_offset, gpu::V
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
 
   const BMFace *face;
   BMIter f_iter;
@@ -122,7 +122,7 @@ static void extract_data_bmesh_edge(const BMesh &bm, const int cd_offset, gpu::V
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
 
   const BMFace *face;
   BMIter f_iter;
@@ -142,7 +142,7 @@ static void extract_data_bmesh_face(const BMesh &bm, const int cd_offset, gpu::V
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
 
   const BMFace *face;
   BMIter f_iter;
@@ -158,7 +158,7 @@ static void extract_data_bmesh_loop(const BMesh &bm, const int cd_offset, gpu::V
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
 
   const BMFace *face;
   BMIter f_iter;
@@ -256,7 +256,7 @@ void extract_attributes(const MeshRenderData &mr,
 {
   for (const int i : vbos.index_range()) {
     if (DRW_vbo_requested(vbos[i])) {
-      init_vbo_for_attribute(mr, vbos[i], requests[i], false, uint32_t(mr.corners_num));
+      init_vbo_for_attribute(mr, *vbos[i], requests[i], false, uint32_t(mr.corners_num));
       extract_attribute(mr, requests[i], *vbos[i]);
     }
   }
@@ -276,12 +276,12 @@ void extract_attributes_subdiv(const MeshRenderData &mr,
       /* Prepare VBO for coarse data. The compute shader only expects floats. */
       gpu::VertBuf *src_data = GPU_vertbuf_calloc();
       GPUVertFormat coarse_format = draw::init_format_for_attribute(request.cd_type, "data");
-      GPU_vertbuf_init_with_format_ex(src_data, &coarse_format, GPU_USAGE_STATIC);
-      GPU_vertbuf_data_alloc(src_data, uint32_t(coarse_mesh->corners_num));
+      GPU_vertbuf_init_with_format_ex(*src_data, coarse_format, GPU_USAGE_STATIC);
+      GPU_vertbuf_data_alloc(*src_data, uint32_t(coarse_mesh->corners_num));
 
       extract_attribute(mr, request, *src_data);
 
-      gpu::VertBuf *dst_buffer = vbos[i];
+      gpu::VertBuf &dst_buffer = *vbos[i];
       init_vbo_for_attribute(mr, dst_buffer, request, true, subdiv_cache.num_subdiv_loops);
 
       /* Ensure data is uploaded properly. */
@@ -291,7 +291,7 @@ void extract_attributes_subdiv(const MeshRenderData &mr,
         using Converter = AttributeConverter<T>;
         if constexpr (!std::is_void_v<typename Converter::VBOType>) {
           draw_subdiv_interp_custom_data(subdiv_cache,
-                                         src_data,
+                                         *src_data,
                                          dst_buffer,
                                          Converter::gpu_component_type,
                                          Converter::gpu_component_len,
@@ -311,9 +311,9 @@ void extract_attr_viewer(const MeshRenderData &mr, gpu::VertBuf &vbo)
     GPU_vertformat_attr_add(&format, "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   }
 
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
-  MutableSpan vbo_data(static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
+  MutableSpan vbo_data(static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
 
   const StringRefNull attr_name = ".viewer";
   const bke::AttributeAccessor attributes = mr.mesh->attributes();

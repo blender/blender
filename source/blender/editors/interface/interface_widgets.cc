@@ -400,14 +400,14 @@ static struct {
   uint vflag_id;
 } g_ui_batch_cache = {nullptr};
 
-static GPUVertFormat *vflag_format()
+static const GPUVertFormat &vflag_format()
 {
   if (g_ui_batch_cache.format.attr_len == 0) {
     GPUVertFormat *format = &g_ui_batch_cache.format;
     g_ui_batch_cache.vflag_id = GPU_vertformat_attr_add(
         format, "vflag", GPU_COMP_U32, 1, GPU_FETCH_INT);
   }
-  return &g_ui_batch_cache.format;
+  return g_ui_batch_cache.format;
 }
 
 #define INNER 0
@@ -444,7 +444,7 @@ blender::gpu::Batch *ui_batch_roundbox_widget_get()
   if (g_ui_batch_cache.roundbox_widget == nullptr) {
     blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
 
-    GPU_vertbuf_data_alloc(vbo, 12);
+    GPU_vertbuf_data_alloc(*vbo, 12);
 
     GPUIndexBufBuilder ibuf;
     GPU_indexbuf_init(&ibuf, GPU_PRIM_TRIS, 6, 12);
@@ -472,7 +472,7 @@ blender::gpu::Batch *ui_batch_roundbox_shadow_get()
     GPUVertBufRaw vflag_step;
     blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
     const int vcount = (WIDGET_SIZE_MAX + 1) * 2 + 2 + WIDGET_SIZE_MAX;
-    GPU_vertbuf_data_alloc(vbo, vcount);
+    GPU_vertbuf_data_alloc(*vbo, vcount);
     GPU_vertbuf_attr_get_raw_data(vbo, g_ui_batch_cache.vflag_id, &vflag_step);
 
     for (int c = 0; c < 4; c++) {

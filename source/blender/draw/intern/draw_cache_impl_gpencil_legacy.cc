@@ -448,13 +448,13 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
     /* Create VBOs. */
     GPUVertFormat *format = gpencil_stroke_format();
     GPUVertFormat *format_col = gpencil_color_format();
-    cache->vbo = GPU_vertbuf_create_with_format_ex(format, vbo_flag);
-    cache->vbo_col = GPU_vertbuf_create_with_format_ex(format_col, vbo_flag);
+    cache->vbo = GPU_vertbuf_create_with_format_ex(*format, vbo_flag);
+    cache->vbo_col = GPU_vertbuf_create_with_format_ex(*format_col, vbo_flag);
     /* Add extra space at the end of the buffer because of quad load. */
-    GPU_vertbuf_data_alloc(cache->vbo, iter.vert_len + 2);
-    GPU_vertbuf_data_alloc(cache->vbo_col, iter.vert_len + 2);
-    iter.verts = (gpStrokeVert *)GPU_vertbuf_get_data(cache->vbo);
-    iter.cols = (gpColorVert *)GPU_vertbuf_get_data(cache->vbo_col);
+    GPU_vertbuf_data_alloc(*cache->vbo, iter.vert_len + 2);
+    GPU_vertbuf_data_alloc(*cache->vbo_col, iter.vert_len + 2);
+    iter.verts = (gpStrokeVert *)GPU_vertbuf_get_data(*cache->vbo);
+    iter.cols = (gpColorVert *)GPU_vertbuf_get_data(*cache->vbo_col);
     /* Create IBO. */
     GPU_indexbuf_init(&iter.ibo, GPU_PRIM_TRIS, iter.tri_len, 0xFFFFFFFFu);
 
@@ -629,13 +629,13 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
     GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
     GPUVertFormat *format = gpencil_stroke_format();
     GPUVertFormat *format_color = gpencil_color_format();
-    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format_ex(format, vbo_flag);
-    gpu::VertBuf *vbo_col = GPU_vertbuf_create_with_format_ex(format_color, vbo_flag);
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format_ex(*format, vbo_flag);
+    gpu::VertBuf *vbo_col = GPU_vertbuf_create_with_format_ex(*format_color, vbo_flag);
     /* Add extra space at the start and end the buffer because of quad load and cyclic. */
-    GPU_vertbuf_data_alloc(vbo, 1 + vert_len + 1 + 2);
-    GPU_vertbuf_data_alloc(vbo_col, 1 + vert_len + 1 + 2);
-    gpStrokeVert *verts = (gpStrokeVert *)GPU_vertbuf_get_data(vbo);
-    gpColorVert *cols = (gpColorVert *)GPU_vertbuf_get_data(vbo_col);
+    GPU_vertbuf_data_alloc(*vbo, 1 + vert_len + 1 + 2);
+    GPU_vertbuf_data_alloc(*vbo_col, 1 + vert_len + 1 + 2);
+    gpStrokeVert *verts = (gpStrokeVert *)GPU_vertbuf_get_data(*vbo);
+    gpColorVert *cols = (gpColorVert *)GPU_vertbuf_get_data(*vbo_col);
 
     /* Create fill indices. */
     if (do_fill && gps->tot_triangles > 0) {
@@ -895,10 +895,10 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
 
     /* Create VBO. */
     GPUVertFormat *format = gpencil_edit_stroke_format();
-    cache->edit_vbo = GPU_vertbuf_create_with_format(format);
+    cache->edit_vbo = GPU_vertbuf_create_with_format(*format);
     /* Add extra space at the end of the buffer because of quad load. */
-    GPU_vertbuf_data_alloc(cache->edit_vbo, vert_len);
-    iter.verts = (gpEditVert *)GPU_vertbuf_get_data(cache->edit_vbo);
+    GPU_vertbuf_data_alloc(*cache->edit_vbo, vert_len);
+    iter.verts = (gpEditVert *)GPU_vertbuf_get_data(*cache->edit_vbo);
 
     /* Fill buffers with data. */
     BKE_gpencil_visible_stroke_advanced_iter(
@@ -924,7 +924,7 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
 
     /* Create VBO. */
     GPUVertFormat *format = gpencil_edit_curve_format();
-    cache->edit_curve_vbo = GPU_vertbuf_create_with_format(format);
+    cache->edit_curve_vbo = GPU_vertbuf_create_with_format(*format);
 
     /* Count data. */
     BKE_gpencil_visible_stroke_advanced_iter(
@@ -934,8 +934,8 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
     int vert_len = iterdata.curve_len;
     if (vert_len > 0) {
 
-      GPU_vertbuf_data_alloc(cache->edit_curve_vbo, vert_len);
-      iter.verts = (gpEditCurveVert *)GPU_vertbuf_get_data(cache->edit_curve_vbo);
+      GPU_vertbuf_data_alloc(*cache->edit_curve_vbo, vert_len);
+      iter.verts = (gpEditCurveVert *)GPU_vertbuf_get_data(*cache->edit_curve_vbo);
 
       /* Fill buffers with data. */
       BKE_gpencil_visible_stroke_advanced_iter(

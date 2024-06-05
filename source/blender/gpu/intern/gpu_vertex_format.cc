@@ -48,10 +48,10 @@ void GPU_vertformat_clear(GPUVertFormat *format)
 #endif
 }
 
-void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src)
+void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat &src)
 {
   /* copy regular struct fields */
-  memcpy(dest, src, sizeof(GPUVertFormat));
+  memcpy(dest, &src, sizeof(GPUVertFormat));
 }
 
 static uint comp_size(GPUVertCompType type)

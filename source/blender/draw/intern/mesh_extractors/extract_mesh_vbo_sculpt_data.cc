@@ -20,29 +20,27 @@
 
 namespace blender::draw {
 
-static GPUVertFormat *get_sculpt_data_format()
+static const GPUVertFormat &get_sculpt_data_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "fset", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     GPU_vertformat_attr_add(&format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
-  return &format;
+  return format;
 }
 
 void extract_sculpt_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
-  GPUVertFormat *format = get_sculpt_data_format();
-
-  GPU_vertbuf_init_with_format(&vbo, format);
-  GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
+  GPU_vertbuf_init_with_format(vbo, get_sculpt_data_format());
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
 
   struct gpuSculptData {
     uchar4 face_set_color;
     float mask;
   };
 
-  MutableSpan vbo_data(static_cast<gpuSculptData *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
+  MutableSpan vbo_data(static_cast<gpuSculptData *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
 
   const int default_face_set = mr.mesh->face_sets_color_default;
   const int face_set_seed = mr.mesh->face_sets_color_seed;
@@ -123,17 +121,17 @@ void extract_sculpt_data_subdiv(const MeshRenderData &mr,
     GPU_vertformat_attr_add(&mask_format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     const Span<int> corner_verts = coarse_mesh.corner_verts();
     mask_vbo = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format(mask_vbo, &mask_format);
-    GPU_vertbuf_data_alloc(mask_vbo, corner_verts.size());
+    GPU_vertbuf_init_with_format(*mask_vbo, mask_format);
+    GPU_vertbuf_data_alloc(*mask_vbo, corner_verts.size());
 
-    MutableSpan mask_vbo_data(static_cast<float *>(GPU_vertbuf_get_data(mask_vbo)),
+    MutableSpan mask_vbo_data(static_cast<float *>(GPU_vertbuf_get_data(*mask_vbo)),
                               corner_verts.size());
     array_utils::gather(mask, corner_verts, mask_vbo_data);
 
     subdiv_mask_vbo = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_build_on_device(subdiv_mask_vbo, &mask_format, subdiv_corners_num);
+    GPU_vertbuf_init_build_on_device(*subdiv_mask_vbo, mask_format, subdiv_corners_num);
 
-    draw_subdiv_interp_custom_data(subdiv_cache, mask_vbo, subdiv_mask_vbo, GPU_COMP_F32, 1, 0);
+    draw_subdiv_interp_custom_data(subdiv_cache, *mask_vbo, *subdiv_mask_vbo, GPU_COMP_F32, 1, 0);
   }
 
   /* Then, gather face sets. */
@@ -141,14 +139,14 @@ void extract_sculpt_data_subdiv(const MeshRenderData &mr,
   GPU_vertformat_attr_add(&face_set_format, "msk", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   gpu::VertBuf *face_set_vbo = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format(face_set_vbo, &face_set_format);
-  GPU_vertbuf_data_alloc(face_set_vbo, subdiv_corners_num);
+  GPU_vertbuf_init_with_format(*face_set_vbo, face_set_format);
+  GPU_vertbuf_data_alloc(*face_set_vbo, subdiv_corners_num);
 
   struct gpuFaceSet {
     uchar4 color;
   };
 
-  MutableSpan face_set_vbo_data(static_cast<gpuFaceSet *>(GPU_vertbuf_get_data(face_set_vbo)),
+  MutableSpan face_set_vbo_data(static_cast<gpuFaceSet *>(GPU_vertbuf_get_data(*face_set_vbo)),
                                 subdiv_corners_num);
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
   if (face_sets.is_empty()) {
@@ -176,8 +174,7 @@ void extract_sculpt_data_subdiv(const MeshRenderData &mr,
   }
 
   /* Finally, interleave mask and face sets. */
-  GPUVertFormat *format = get_sculpt_data_format();
-  GPU_vertbuf_init_build_on_device(&vbo, format, subdiv_corners_num);
+  GPU_vertbuf_init_build_on_device(vbo, get_sculpt_data_format(), subdiv_corners_num);
   draw_subdiv_build_sculpt_data_buffer(subdiv_cache, subdiv_mask_vbo, face_set_vbo, &vbo);
 
   if (mask_vbo) {

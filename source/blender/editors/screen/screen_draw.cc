@@ -79,8 +79,8 @@ static blender::gpu::Batch *batch_screen_edges_get(int *corner_len)
     GPUVertFormat format = {0};
     uint pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-    GPU_vertbuf_data_alloc(vbo, CORNER_RESOLUTION * 2 * 4 + 2);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+    GPU_vertbuf_data_alloc(*vbo, CORNER_RESOLUTION * 2 * 4 + 2);
 
     uint vidx = 0;
     for (int corner = 0; corner < 4; corner++) {

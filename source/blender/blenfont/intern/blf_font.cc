@@ -198,8 +198,8 @@ static void blf_batch_draw_init()
   g_batch.glyph_flags_loc = GPU_vertformat_attr_add(
       &format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
-  g_batch.verts = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STREAM);
-  GPU_vertbuf_data_alloc(g_batch.verts, BLF_BATCH_DRAW_LEN_MAX);
+  g_batch.verts = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STREAM);
+  GPU_vertbuf_data_alloc(*g_batch.verts, BLF_BATCH_DRAW_LEN_MAX);
 
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
@@ -209,8 +209,8 @@ static void blf_batch_draw_init()
   g_batch.glyph_len = 0;
 
   /* A dummy VBO containing 4 points, attributes are not used. */
-  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-  GPU_vertbuf_data_alloc(vbo, 4);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*vbo, 4);
 
   /* We render a quad as a triangle strip and instance it for each glyph. */
   g_batch.batch = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, nullptr, GPU_BATCH_OWNS_VBO);
@@ -336,7 +336,7 @@ void blf_batch_draw()
   }
 
   GPUTexture *texture = blf_batch_cache_texture_load();
-  GPU_vertbuf_data_len_set(g_batch.verts, g_batch.glyph_len);
+  GPU_vertbuf_data_len_set(*g_batch.verts, g_batch.glyph_len);
   GPU_vertbuf_use(g_batch.verts); /* Send data. */
 
   GPU_batch_program_set_builtin(g_batch.batch, GPU_SHADER_TEXT);

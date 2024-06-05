@@ -92,10 +92,10 @@ void extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &cache, gpu:
     v_len = 1;
   }
 
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, v_len);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, v_len);
 
-  MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(&vbo)),
+  MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(vbo)),
                               v_len * format.attr_len);
   threading::memory_bandwidth_bound_task(uv_data.size_in_bytes() * 2, [&]() {
     if (mr.extract_type == MR_EXTRACT_BMESH) {
@@ -148,7 +148,7 @@ void extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
     v_len = 1;
   }
 
-  GPU_vertbuf_init_build_on_device(&vbo, &format, v_len);
+  GPU_vertbuf_init_build_on_device(vbo, format, v_len);
 
   if (uv_layers == 0) {
     return;

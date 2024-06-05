@@ -173,9 +173,9 @@ static void drw_volume_wireframe_cb(
   uint pos_id = do_hq_normals ? attr_id.pos_hq_id : attr_id.pos_id;
   uint nor_id = do_hq_normals ? attr_id.nor_hq_id : attr_id.nor_id;
 
-  cache->face_wire.pos_nor_in_order = GPU_vertbuf_create_with_format(do_hq_normals ? &format_hq :
-                                                                                     &format);
-  GPU_vertbuf_data_alloc(cache->face_wire.pos_nor_in_order, totvert);
+  cache->face_wire.pos_nor_in_order = GPU_vertbuf_create_with_format(do_hq_normals ? format_hq :
+                                                                                     format);
+  GPU_vertbuf_data_alloc(*cache->face_wire.pos_nor_in_order, totvert);
   GPU_vertbuf_attr_fill(cache->face_wire.pos_nor_in_order, pos_id, verts);
   GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
 
@@ -243,8 +243,8 @@ static void drw_volume_selection_surface_cb(
   }
 
   /* Create vertex buffer. */
-  gpu::VertBuf *vbo_surface = GPU_vertbuf_create_with_format(&format);
-  GPU_vertbuf_data_alloc(vbo_surface, totvert);
+  gpu::VertBuf *vbo_surface = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*vbo_surface, totvert);
   GPU_vertbuf_attr_fill(vbo_surface, pos_id, verts);
 
   /* Create index buffer. */

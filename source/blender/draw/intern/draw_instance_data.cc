@@ -114,8 +114,8 @@ blender::gpu::VertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
     GPU_VERTBUF_DISCARD_SAFE(handle->buf);
 
     blender::gpu::VertBuf *vert = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(vert, format, GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(vert, DRW_BUFFER_VERTS_CHUNK);
+    GPU_vertbuf_init_with_format_ex(*vert, *format, GPU_USAGE_DYNAMIC);
+    GPU_vertbuf_data_alloc(*vert, DRW_BUFFER_VERTS_CHUNK);
 
     handle->buf = vert;
   }
@@ -212,9 +212,9 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
       uint vert_len = *(handle->vert_len);
       uint target_buf_size = ((vert_len / DRW_BUFFER_VERTS_CHUNK) + 1) * DRW_BUFFER_VERTS_CHUNK;
       if (target_buf_size < GPU_vertbuf_get_vertex_alloc(handle->buf)) {
-        GPU_vertbuf_data_resize(handle->buf, target_buf_size);
+        GPU_vertbuf_data_resize(*handle->buf, target_buf_size);
       }
-      GPU_vertbuf_data_len_set(handle->buf, vert_len);
+      GPU_vertbuf_data_len_set(*handle->buf, vert_len);
       GPU_vertbuf_use(handle->buf); /* Send data. */
     }
   }

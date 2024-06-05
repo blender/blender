@@ -357,7 +357,7 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
 /** \name Viewport Batches
  * \{ */
 
-static GPUVertFormat *gpu_viewport_batch_format()
+static const GPUVertFormat &gpu_viewport_batch_format()
 {
   if (g_viewport.format.attr_len == 0) {
     GPUVertFormat *format = &g_viewport.format;
@@ -366,14 +366,14 @@ static GPUVertFormat *gpu_viewport_batch_format()
     g_viewport.attr_id.tex_coord = GPU_vertformat_attr_add(
         format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   }
-  return &g_viewport.format;
+  return g_viewport.format;
 }
 
 static blender::gpu::Batch *gpu_viewport_batch_create(const rctf *rect_pos, const rctf *rect_uv)
 {
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(gpu_viewport_batch_format());
   const uint vbo_len = 4;
-  GPU_vertbuf_data_alloc(vbo, vbo_len);
+  GPU_vertbuf_data_alloc(*vbo, vbo_len);
 
   GPUVertBufRaw pos_step, tex_coord_step;
   GPU_vertbuf_attr_get_raw_data(vbo, g_viewport.attr_id.pos, &pos_step);

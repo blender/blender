@@ -88,7 +88,7 @@ class VertBuf {
   VertBuf();
   virtual ~VertBuf();
 
-  void init(const GPUVertFormat *format, GPUUsageType usage);
+  void init(const GPUVertFormat &format, GPUUsageType usage);
   void clear();
 
   /* Data management. */
@@ -147,7 +147,8 @@ class VertBuf {
 }  // namespace blender::gpu
 
 blender::gpu::VertBuf *GPU_vertbuf_calloc();
-blender::gpu::VertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *, GPUUsageType);
+blender::gpu::VertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat &format,
+                                                         GPUUsageType usage);
 
 #define GPU_vertbuf_create_with_format(format) \
   GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC)
@@ -167,10 +168,12 @@ void GPU_vertbuf_discard(blender::gpu::VertBuf *);
 void GPU_vertbuf_handle_ref_add(blender::gpu::VertBuf *verts);
 void GPU_vertbuf_handle_ref_remove(blender::gpu::VertBuf *verts);
 
-void GPU_vertbuf_init_with_format_ex(blender::gpu::VertBuf *, const GPUVertFormat *, GPUUsageType);
+void GPU_vertbuf_init_with_format_ex(blender::gpu::VertBuf &verts,
+                                     const GPUVertFormat &format,
+                                     GPUUsageType);
 
-void GPU_vertbuf_init_build_on_device(blender::gpu::VertBuf *verts,
-                                      GPUVertFormat *format,
+void GPU_vertbuf_init_build_on_device(blender::gpu::VertBuf &verts,
+                                      const GPUVertFormat &format,
                                       uint v_len);
 
 #define GPU_vertbuf_init_with_format(verts, format) \
@@ -181,17 +184,17 @@ blender::gpu::VertBuf *GPU_vertbuf_duplicate(blender::gpu::VertBuf *verts);
 /**
  * Create a new allocation, discarding any existing data.
  */
-void GPU_vertbuf_data_alloc(blender::gpu::VertBuf *, uint v_len);
+void GPU_vertbuf_data_alloc(blender::gpu::VertBuf &verts, uint v_len);
 /**
  * Resize buffer keeping existing data.
  */
-void GPU_vertbuf_data_resize(blender::gpu::VertBuf *, uint v_len);
+void GPU_vertbuf_data_resize(blender::gpu::VertBuf &verts, uint v_len);
 /**
  * Set vertex count but does not change allocation.
  * Only this many verts will be uploaded to the GPU and rendered.
  * This is useful for streaming data.
  */
-void GPU_vertbuf_data_len_set(blender::gpu::VertBuf *, uint v_len);
+void GPU_vertbuf_data_len_set(blender::gpu::VertBuf &verts, uint v_len);
 
 /**
  * The most important #set_attr variant is the untyped one. Get it right first.
@@ -248,7 +251,7 @@ void GPU_vertbuf_attr_get_raw_data(blender::gpu::VertBuf *, uint a_idx, GPUVertB
 /**
  * \note Be careful when using this. The data needs to match the expected format.
  */
-void *GPU_vertbuf_get_data(const blender::gpu::VertBuf *verts);
+void *GPU_vertbuf_get_data(const blender::gpu::VertBuf &verts);
 const GPUVertFormat *GPU_vertbuf_get_format(const blender::gpu::VertBuf *verts);
 uint GPU_vertbuf_get_vertex_alloc(const blender::gpu::VertBuf *verts);
 uint GPU_vertbuf_get_vertex_len(const blender::gpu::VertBuf *verts);

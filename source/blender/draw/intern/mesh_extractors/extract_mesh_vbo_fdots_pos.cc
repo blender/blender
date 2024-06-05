@@ -14,22 +14,22 @@
 
 namespace blender::draw {
 
-static GPUVertFormat *get_fdots_pos_format()
+static const GPUVertFormat &get_fdots_pos_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   }
-  return &format;
+  return format;
 }
 
-static GPUVertFormat *get_fdots_nor_format_subdiv()
+static const GPUVertFormat &get_fdots_nor_format_subdiv()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   }
-  return &format;
+  return format;
 }
 
 static void extract_face_dot_positions_mesh(const MeshRenderData &mr, MutableSpan<float3> vbo_data)
@@ -81,11 +81,10 @@ static void extract_face_dot_positions_bm(const MeshRenderData &mr, MutableSpan<
 
 void extract_face_dots_position(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
-  GPUVertFormat *format = get_fdots_pos_format();
-  GPU_vertbuf_init_with_format(&vbo, format);
-  GPU_vertbuf_data_alloc(&vbo, mr.corners_num + mr.loose_indices_num);
+  GPU_vertbuf_init_with_format(vbo, get_fdots_pos_format());
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
 
-  MutableSpan vbo_data(static_cast<float3 *>(GPU_vertbuf_get_data(&vbo)),
+  MutableSpan vbo_data(static_cast<float3 *>(GPU_vertbuf_get_data(vbo)),
                        GPU_vertbuf_get_vertex_len(&vbo));
   if (mr.extract_type == MR_EXTRACT_MESH) {
     extract_face_dot_positions_mesh(mr, vbo_data);
@@ -104,10 +103,10 @@ void extract_face_dots_subdiv(const DRWSubdivCache &subdiv_cache,
   /* The normals may not be requested. */
   if (fdots_nor) {
     GPU_vertbuf_init_build_on_device(
-        fdots_nor, get_fdots_nor_format_subdiv(), subdiv_cache.num_coarse_faces);
+        *fdots_nor, get_fdots_nor_format_subdiv(), subdiv_cache.num_coarse_faces);
   }
   GPU_vertbuf_init_build_on_device(
-      &fdots_pos, get_fdots_pos_format(), subdiv_cache.num_coarse_faces);
+      fdots_pos, get_fdots_pos_format(), subdiv_cache.num_coarse_faces);
   GPU_indexbuf_init_build_on_device(&fdots, subdiv_cache.num_coarse_faces);
   draw_subdiv_build_fdots_buffers(subdiv_cache, &fdots_pos, fdots_nor, &fdots);
 }

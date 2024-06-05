@@ -24,9 +24,9 @@ void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo)
      * alternative. */
     GPU_vertformat_attr_add(&format, "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   }
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
-  MutableSpan vbo_data(static_cast<float4 *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
+  MutableSpan vbo_data(static_cast<float4 *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
 
   const int64_t bytes = orco_data.size_in_bytes() + vbo_data.size_in_bytes();
   threading::memory_bandwidth_bound_task(bytes, [&]() {

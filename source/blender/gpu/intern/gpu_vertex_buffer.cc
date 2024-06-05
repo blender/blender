@@ -41,7 +41,7 @@ VertBuf::~VertBuf()
   BLI_assert(flag == GPU_VERTBUF_INVALID);
 }
 
-void VertBuf::init(const GPUVertFormat *format, GPUUsageType usage)
+void VertBuf::init(const GPUVertFormat &format, GPUUsageType usage)
 {
   /* Strip extended usage flags. */
   usage_ = usage & ~GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
@@ -131,21 +131,21 @@ VertBuf *GPU_vertbuf_calloc()
   return GPUBackend::get()->vertbuf_alloc();
 }
 
-VertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *format, GPUUsageType usage)
+VertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat &format, GPUUsageType usage)
 {
   VertBuf *verts = GPU_vertbuf_calloc();
   verts->init(format, usage);
   return verts;
 }
 
-void GPU_vertbuf_init_with_format_ex(VertBuf *verts,
-                                     const GPUVertFormat *format,
+void GPU_vertbuf_init_with_format_ex(VertBuf &verts,
+                                     const GPUVertFormat &format,
                                      GPUUsageType usage)
 {
-  verts->init(format, usage);
+  verts.init(format, usage);
 }
 
-void GPU_vertbuf_init_build_on_device(VertBuf *verts, GPUVertFormat *format, uint v_len)
+void GPU_vertbuf_init_build_on_device(VertBuf &verts, const GPUVertFormat &format, uint v_len)
 {
   GPU_vertbuf_init_with_format_ex(verts, format, GPU_USAGE_DEVICE_ONLY);
   GPU_vertbuf_data_alloc(verts, v_len);
@@ -184,21 +184,21 @@ void GPU_vertbuf_handle_ref_remove(VertBuf *verts)
 
 /* -------- Data update -------- */
 
-void GPU_vertbuf_data_alloc(VertBuf *verts, uint v_len)
+void GPU_vertbuf_data_alloc(VertBuf &verts, uint v_len)
 {
-  verts->allocate(v_len);
+  verts.allocate(v_len);
 }
 
-void GPU_vertbuf_data_resize(VertBuf *verts, uint v_len)
+void GPU_vertbuf_data_resize(VertBuf &verts, uint v_len)
 {
-  verts->resize(v_len);
+  verts.resize(v_len);
 }
 
-void GPU_vertbuf_data_len_set(VertBuf *verts, uint v_len)
+void GPU_vertbuf_data_len_set(VertBuf &verts, uint v_len)
 {
-  BLI_assert(verts->data != nullptr); /* Only for dynamic data. */
-  BLI_assert(v_len <= verts->vertex_alloc);
-  verts->vertex_len = v_len;
+  BLI_assert(verts.data != nullptr); /* Only for dynamic data. */
+  BLI_assert(v_len <= verts.vertex_alloc);
+  verts.vertex_len = v_len;
 }
 
 void GPU_vertbuf_attr_set(VertBuf *verts, uint a_idx, uint v_idx, const void *data)
@@ -276,10 +276,10 @@ void GPU_vertbuf_attr_get_raw_data(VertBuf *verts, uint a_idx, GPUVertBufRaw *ac
 
 /* -------- Getters -------- */
 
-void *GPU_vertbuf_get_data(const VertBuf *verts)
+void *GPU_vertbuf_get_data(const VertBuf &verts)
 {
   /* TODO: Assert that the format has no padding. */
-  return verts->data;
+  return verts.data;
 }
 
 const GPUVertFormat *GPU_vertbuf_get_format(const VertBuf *verts)

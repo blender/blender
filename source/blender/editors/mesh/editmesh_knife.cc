@@ -1028,8 +1028,8 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
   if (total_hits > 0) {
     GPU_blend(GPU_BLEND_ALPHA);
 
-    blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(format);
-    GPU_vertbuf_data_alloc(vert, total_hits);
+    blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
+    GPU_vertbuf_data_alloc(*vert, total_hits);
 
     int other_verts_count = 0;
     int snapped_verts_count = 0;

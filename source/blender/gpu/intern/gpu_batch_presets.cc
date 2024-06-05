@@ -65,7 +65,7 @@ static ListBase presets_list = {nullptr, nullptr};
 /** \name 3D Primitives
  * \{ */
 
-static GPUVertFormat *preset_3d_format()
+static GPUVertFormat &preset_3d_format()
 {
   if (g_presets_3d.format.attr_len == 0) {
     GPUVertFormat *format = &g_presets_3d.format;
@@ -74,10 +74,10 @@ static GPUVertFormat *preset_3d_format()
     g_presets_3d.attr_id.nor = GPU_vertformat_attr_add(
         format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   }
-  return &g_presets_3d.format;
+  return g_presets_3d.format;
 }
 
-static GPUVertFormat *preset_2d_format()
+static GPUVertFormat &preset_2d_format()
 {
   if (g_presets_2d.format.attr_len == 0) {
     GPUVertFormat *format = &g_presets_2d.format;
@@ -86,7 +86,7 @@ static GPUVertFormat *preset_2d_format()
     g_presets_2d.attr_id.col = GPU_vertformat_attr_add(
         format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   }
-  return &g_presets_2d.format;
+  return g_presets_2d.format;
 }
 
 static void batch_sphere_lat_lon_vert(GPUVertBufRaw *pos_step,
@@ -142,7 +142,7 @@ static blender::gpu::Batch *gpu_batch_sphere(int lat_res, int lon_res)
 
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
   const uint vbo_len = (lat_res - 1) * lon_res * 6;
-  GPU_vertbuf_data_alloc(vbo, vbo_len);
+  GPU_vertbuf_data_alloc(*vbo, vbo_len);
 
   GPUVertBufRaw pos_step, nor_step;
   GPU_vertbuf_attr_get_raw_data(vbo, g_presets_3d.attr_id.pos, &pos_step);
@@ -180,7 +180,7 @@ static blender::gpu::Batch *batch_sphere_wire(int lat_res, int lon_res)
 
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
   const uint vbo_len = (lat_res * lon_res * 2) + ((lat_res - 1) * lon_res * 2);
-  GPU_vertbuf_data_alloc(vbo, vbo_len);
+  GPU_vertbuf_data_alloc(*vbo, vbo_len);
 
   GPUVertBufRaw pos_step, nor_step;
   GPU_vertbuf_attr_get_raw_data(vbo, g_presets_3d.attr_id.pos, &pos_step);
@@ -246,7 +246,7 @@ static blender::gpu::Batch *gpu_batch_preset_panel_drag_widget(float pixelsize,
 {
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
   const uint vbo_len = 4 * 2 * (6 * 2);
-  GPU_vertbuf_data_alloc(vbo, vbo_len);
+  GPU_vertbuf_data_alloc(*vbo, vbo_len);
 
   GPUVertBufRaw pos_step, col_step;
   GPU_vertbuf_attr_get_raw_data(vbo, g_presets_2d.attr_id.pos, &pos_step);
@@ -314,7 +314,7 @@ blender::gpu::Batch *GPU_batch_preset_quad()
 {
   if (!g_presets_2d.batch.quad) {
     blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
-    GPU_vertbuf_data_alloc(vbo, 4);
+    GPU_vertbuf_data_alloc(*vbo, 4);
 
     float pos_data[4][2] = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
     GPU_vertbuf_attr_fill(vbo, g_presets_2d.attr_id.pos, pos_data);

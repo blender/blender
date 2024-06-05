@@ -105,9 +105,9 @@ void extract_edituv_stretch_area(const MeshRenderData &mr,
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
-  MutableSpan<float> vbo_data(static_cast<float *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
+  MutableSpan<float> vbo_data(static_cast<float *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
 
   const int64_t bytes = area_ratio.as_span().size_in_bytes() + vbo_data.size_in_bytes();
   threading::memory_bandwidth_bound_task(bytes, [&]() {
@@ -143,18 +143,18 @@ void extract_edituv_stretch_area_subdiv(const MeshRenderData &mr,
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
-  GPU_vertbuf_init_build_on_device(&vbo, &format, subdiv_cache.num_subdiv_loops);
+  GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);
 
   gpu::VertBuf *coarse_vbo = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format(coarse_vbo, &format);
-  GPU_vertbuf_data_alloc(coarse_vbo, mr.faces_num);
-  MutableSpan coarse_vbo_data(static_cast<float *>(GPU_vertbuf_get_data(coarse_vbo)),
+  GPU_vertbuf_init_with_format(*coarse_vbo, format);
+  GPU_vertbuf_data_alloc(*coarse_vbo, mr.faces_num);
+  MutableSpan coarse_vbo_data(static_cast<float *>(GPU_vertbuf_get_data(*coarse_vbo)),
                               mr.faces_num);
   const AreaInfo info = compute_area_ratio(mr, coarse_vbo_data);
   tot_area = info.tot_area;
   tot_uv_area = info.tot_uv_area;
 
-  GPU_vertbuf_init_build_on_device(&vbo, &format, subdiv_cache.num_subdiv_loops);
+  GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);
   draw_subdiv_build_edituv_stretch_area_buffer(subdiv_cache, coarse_vbo, &vbo);
 
   GPU_vertbuf_discard(coarse_vbo);
