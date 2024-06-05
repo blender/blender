@@ -17,7 +17,9 @@ namespace blender::compositor {
 ConstantFolder::ConstantFolder(NodeOperationBuilder &operations_builder)
     : operations_builder_(operations_builder)
 {
-  BLI_rcti_init(&max_area_, INT_MIN, INT_MAX, INT_MIN, INT_MAX);
+  /* Use maximum render resolution. Avoid having large integers to prevent integer overflows. */
+  const int max_size = 65536;
+  BLI_rcti_init(&max_area_, -max_size, max_size, -max_size, max_size);
   BLI_rcti_init(&first_elem_area_, 0, 1, 0, 1);
 }
 

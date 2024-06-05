@@ -112,32 +112,6 @@ index d78598a84..2f44a5f89 100644
  
  /// A simple timer class for measuring an interval of time using the
  /// ArchTickTimer facilities.
-diff --git a/pxr/base/tf/pxrDoubleConversion/utils.h b/pxr/base/tf/pxrDoubleConversion/utils.h
-index 547ac1110..10fd96cf9 100644
---- a/pxr/base/tf/pxrDoubleConversion/utils.h
-+++ b/pxr/base/tf/pxrDoubleConversion/utils.h
-@@ -78,7 +78,7 @@ inline void abort_noreturn() { abort(); }
-     defined(__sparc__) || defined(__sparc) || defined(__s390__) || \
-     defined(__SH4__) || defined(__alpha__) || \
-     defined(_MIPS_ARCH_MIPS32R2) || \
--    defined(__AARCH64EL__) || defined(__aarch64__) || \
-+    defined(__AARCH64EL__) || defined(__aarch64__) || defined (_M_ARM64) || \
-     defined(__riscv)
- #define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
- #elif defined(__mc68000__)
-diff --git a/pxr/imaging/hio/OpenEXR/OpenEXRCore/internal_dwa_simd.h b/pxr/imaging/hio/OpenEXR/OpenEXRCore/internal_dwa_simd.h
-index 459fb3084..c1f98f160 100644
---- a/pxr/imaging/hio/OpenEXR/OpenEXRCore/internal_dwa_simd.h
-+++ b/pxr/imaging/hio/OpenEXR/OpenEXRCore/internal_dwa_simd.h
-@@ -18,7 +18,7 @@
- // aligned. Unaligned pointers may risk seg-faulting.
- //
- 
--#if defined __SSE2__ || (_MSC_VER >= 1300 && !_M_CEE_PURE)
-+#if defined __SSE2__ || (_MSC_VER >= 1300 && !_M_CEE_PURE && !defined(_M_ARM64))
- #    define IMF_HAVE_SSE2 1
- #    include <emmintrin.h>
- #    include <mmintrin.h>
 diff --git a/pxr/imaging/hioOpenVDB/CMakeLists.txt b/pxr/imaging/hioOpenVDB/CMakeLists.txt
 index e32762cea..d2c08d3da 100644
 --- a/pxr/imaging/hioOpenVDB/CMakeLists.txt

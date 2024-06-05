@@ -352,8 +352,10 @@ class NODE_MT_node(Menu):
         layout.operator_context = 'EXEC_DEFAULT'
         layout.operator("node.clipboard_paste", text="Paste", icon='PASTEDOWN')
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("node.duplicate_move", icon='DUPLICATE')
-        layout.operator("node.duplicate_move_linked")
+        props = layout.operator("node.duplicate_move", icon='DUPLICATE')
+        props.NODE_OT_translate_attach.TRANSFORM_OT_translate.view2d_edge_pan = True
+        props = layout.operator("node.duplicate_move_linked")
+        props.NODE_OT_translate_attach.TRANSFORM_OT_translate.view2d_edge_pan = True
 
         layout.separator()
         layout.operator("node.delete", icon='X')
@@ -703,7 +705,12 @@ class NODE_PT_active_node_color(Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.active_node is not None
+        node = context.active_node
+        if node is None:
+            return False
+        if node.bl_idname == "NodeReroute":
+            return False
+        return True
 
     def draw_header(self, context):
         node = context.active_node
@@ -728,7 +735,6 @@ class NODE_PT_active_node_properties(Panel):
     bl_region_type = 'UI'
     bl_category = "Node"
     bl_label = "Properties"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -864,6 +870,7 @@ class NODE_PT_overlay(Panel):
 
         col = layout.column()
         col.prop(overlay, "show_wire_color", text="Wire Colors")
+        col.prop(overlay, "show_reroute_auto_labels", text="Reroute Auto Labels")
 
         col.separator()
 

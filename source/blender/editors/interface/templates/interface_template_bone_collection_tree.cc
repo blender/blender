@@ -473,6 +473,7 @@ void uiTemplateBoneCollectionTree(uiLayout *layout, bContext *C)
       *block,
       "Bone Collection Tree View",
       std::make_unique<blender::ui::bonecollections::BoneCollectionTreeView>(*armature));
+  tree_view->set_context_menu_title("Bone Collection");
   tree_view->set_min_rows(3);
 
   ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);

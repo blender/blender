@@ -320,7 +320,12 @@ else()
     harvest(libglu/lib mesa/lib "*${SHAREDLIBEXT}*")
     harvest(mesa/lib64 mesa/lib "*${SHAREDLIBEXT}*")
 
-    harvest(dpcpp dpcpp "*")
+    harvest(dpcpp/bin dpcpp/bin "*")
+    harvest(dpcpp/include dpcpp/include "*")
+    harvest(dpcpp/lib dpcpp/lib "libsycl*")
+    # avoid harvesting libpi_unified_runtime and libur_ as they're optional.
+    harvest(dpcpp/lib dpcpp/lib "libpi_level_zero*")
+    harvest(dpcpp/lib/clang dpcpp/lib/clang "*")
     harvest(igc dpcpp/lib/igc "*")
     harvest(ocloc dpcpp/lib/ocloc "*")
   endif()

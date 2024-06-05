@@ -139,6 +139,12 @@ static GreasePencilStrokeOperation *get_stroke_operation(bContext &C, wmOperator
   return nullptr;
 }
 
+static bool stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
+{
+  UNUSED_VARS(C, op, mouse);
+  return true;
+}
+
 static void stroke_update_step(bContext *C,
                                wmOperator *op,
                                PaintStroke *stroke,
@@ -191,12 +197,6 @@ static bool grease_pencil_brush_stroke_poll(bContext *C)
   if (!WM_toolsystem_active_tool_is_brush(C)) {
     return false;
   }
-  return true;
-}
-
-static bool stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
-{
-  UNUSED_VARS(C, op, mouse);
   return true;
 }
 

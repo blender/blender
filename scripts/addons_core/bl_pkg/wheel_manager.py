@@ -327,7 +327,7 @@ def apply_action(
     # without the need to use `.whl` files.
     wheels_to_skip = wheel_list_deduplicate_as_skip_set(wheel_list)
 
-    for key, wheels in wheel_list:
+    for _key, wheels in wheel_list:
         for wheel in wheels:
             if wheel in wheels_to_skip:
                 continue

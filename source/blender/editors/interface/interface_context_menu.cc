@@ -538,7 +538,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   uiLayout *layout;
   const bContextStore *previous_ctx = CTX_store_get(C);
   {
-    pup = UI_popup_menu_begin(C, UI_but_string_get_label(*but).c_str(), ICON_NONE);
+    pup = UI_popup_menu_begin(C, UI_but_context_menu_title_from_button(*but).c_str(), ICON_NONE);
     layout = UI_popup_menu_layout(pup);
 
     set_layout_context_from_button(C, layout, but);

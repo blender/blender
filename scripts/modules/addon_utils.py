@@ -656,6 +656,11 @@ def module_bl_info(mod, *, info_basis=None):
 # -----------------------------------------------------------------------------
 # Extension Utilities
 
+def _version_int_left_digits(x):
+    # Parse as integer until the first non-digit.
+    return int(x[:next((i for i, c in enumerate(x) if not c.isdigit()), len(x))] or "0")
+
+
 def _bl_info_from_extension(mod_name, mod_path):
     # Extract the `bl_info` from an extensions manifest.
     # This is returned as a module which has a `bl_info` variable.
@@ -691,6 +696,14 @@ def _bl_info_from_extension(mod_name, mod_path):
         return None, filepath_toml
     if type(value) is not str:
         print("Error: \"version\" is not a string in", filepath_toml)
+        return None, filepath_toml
+    try:
+        value = tuple(
+            (int if i < 2 else _version_int_left_digits)(x)
+            for i, x in enumerate(value.split(".", 2))
+        )
+    except BaseException as ex:
+        print("Error: \"version\" is not a semantic version (X.Y.Z) in ", filepath_toml)
         return None, filepath_toml
     bl_info["version"] = value
 

@@ -318,7 +318,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
       "Data Set Tree View",
       std::make_unique<GeometryDataSetTreeView>(
           spreadsheet_get_display_geometry_set(sspreadsheet, object), *C));
-
+  tree_view->set_context_menu_title("Spreadsheet");
   ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }
 

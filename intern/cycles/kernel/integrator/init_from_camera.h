@@ -20,17 +20,17 @@ ccl_device_inline void integrate_camera_sample(KernelGlobals kg,
                                                const int sample,
                                                const int x,
                                                const int y,
-                                               const uint rng_hash,
+                                               const uint rng_pixel,
                                                ccl_private Ray *ray)
 {
   /* Filter sampling. */
   const float2 rand_filter = (sample == 0) ? make_float2(0.5f, 0.5f) :
-                                             path_rng_2D(kg, rng_hash, sample, PRNG_FILTER);
+                                             path_rng_2D(kg, rng_pixel, sample, PRNG_FILTER);
 
   /* Motion blur (time) and depth of field (lens) sampling. (time, lens_x, lens_y) */
   const float3 rand_time_lens = (kernel_data.cam.shuttertime != -1.0f ||
                                  kernel_data.cam.aperturesize > 0.0f) ?
-                                    path_rng_3D(kg, rng_hash, sample, PRNG_LENS_TIME) :
+                                    path_rng_3D(kg, rng_pixel, sample, PRNG_LENS_TIME) :
                                     zero_float3();
 
   /* We use x for time and y,z for lens because in practice with Sobol
@@ -78,12 +78,12 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
       kg, state, render_buffer, scheduled_sample, tile->sample_offset);
 
   /* Initialize random number seed for path. */
-  const uint rng_hash = path_rng_hash_init(kg, sample, x, y);
+  const uint rng_pixel = path_rng_pixel_init(kg, sample, x, y);
 
   {
     /* Generate camera ray. */
     Ray ray;
-    integrate_camera_sample(kg, sample, x, y, rng_hash, &ray);
+    integrate_camera_sample(kg, sample, x, y, rng_pixel, &ray);
     if (ray.tmax == 0.0f) {
       return true;
     }
@@ -93,7 +93,7 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
   }
 
   /* Initialize path state for path integration. */
-  path_state_init_integrator(kg, state, sample, rng_hash);
+  path_state_init_integrator(kg, state, sample, rng_pixel);
 
   /* Continue with intersect_closest kernel, optionally initializing volume
    * stack before that if the camera may be inside a volume. */

@@ -23,6 +23,7 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
+#include "mesh_brush_common.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
@@ -587,6 +588,38 @@ float factor_get(const Cache *automasking,
   return automasking_factor_end(ss, automasking, vert, mask);
 }
 
+static void mesh_orig_vert_data_update(SculptOrigVertData &orig_data, const int vert)
+{
+  if (orig_data.unode->type == undo::Type::Position) {
+    orig_data.co = orig_data.coords[vert];
+    orig_data.no = orig_data.normals[vert];
+  }
+  else if (orig_data.unode->type == undo::Type::Color) {
+    orig_data.col = orig_data.colors[vert];
+  }
+  else if (orig_data.unode->type == undo::Type::Mask) {
+    orig_data.mask = orig_data.vmasks[vert];
+  }
+}
+
+void calc_vert_factors(Object &object,
+                       const Cache &cache,
+                       const PBVHNode &node,
+                       const Span<int> verts,
+                       const MutableSpan<float> factors)
+{
+  SculptSession &ss = *object.sculpt;
+
+  NodeData data = node_begin(object, &cache, node);
+
+  for (const int i : verts.index_range()) {
+    if (data.orig_data) {
+      mesh_orig_vert_data_update(*data.orig_data, i);
+    }
+    factors[i] *= factor_get(&cache, ss, BKE_pbvh_make_vref(verts[i]), &data);
+  }
+}
+
 NodeData node_begin(Object &object, const Cache *automasking, const PBVHNode &node)
 {
   if (!automasking) {
@@ -602,10 +635,24 @@ NodeData node_begin(Object &object, const Cache *automasking, const PBVHNode &no
   return automask_data;
 }
 
-void node_update(auto_mask::NodeData &automask_data, PBVHVertexIter &vd)
+void node_update(auto_mask::NodeData &automask_data, const PBVHVertexIter &vd)
 {
   if (automask_data.orig_data) {
     SCULPT_orig_vert_data_update(*automask_data.orig_data, vd);
+  }
+}
+
+void node_update(auto_mask::NodeData &automask_data, const BMVert &vert)
+{
+  if (automask_data.orig_data) {
+    SCULPT_orig_vert_data_update(*automask_data.orig_data, vert);
+  }
+}
+
+void node_update(auto_mask::NodeData &automask_data, const int i)
+{
+  if (automask_data.orig_data) {
+    SCULPT_orig_vert_data_update(*automask_data.orig_data, i);
   }
 }
 

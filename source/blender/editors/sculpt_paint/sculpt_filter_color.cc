@@ -286,7 +286,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
     }
   });
 
-  SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
+  flush_update_step(C, UpdateType::Color);
 }
 
 static void sculpt_color_filter_end(bContext *C, Object &ob)
@@ -295,7 +295,7 @@ static void sculpt_color_filter_end(bContext *C, Object &ob)
 
   undo::push_end(ob);
   filter::cache_free(ss);
-  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
+  flush_update_done(C, ob, UpdateType::Color);
 }
 
 static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)

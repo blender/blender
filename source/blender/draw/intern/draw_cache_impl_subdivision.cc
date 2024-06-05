@@ -2177,16 +2177,16 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
     draw_subdiv_cache_ensure_mat_offsets(draw_cache, mesh_eval, batch_cache.mat_len);
   }
 
-  MeshRenderData *mr = mesh_render_data_create(ob,
-                                               mesh,
-                                               is_editmode,
-                                               is_paint_mode,
-                                               edit_mode_active,
-                                               object_to_world,
-                                               do_final,
-                                               do_uvedit,
-                                               use_hide,
-                                               ts);
+  std::unique_ptr<MeshRenderData> mr = mesh_render_data_create(ob,
+                                                               mesh,
+                                                               is_editmode,
+                                                               is_paint_mode,
+                                                               edit_mode_active,
+                                                               object_to_world,
+                                                               do_final,
+                                                               do_uvedit,
+                                                               use_hide,
+                                                               ts);
   draw_cache.use_hide = use_hide;
 
   /* Used for setting loop normals flags. Mapped extraction is only used during edit mode.
@@ -2197,8 +2197,6 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
   draw_subdiv_cache_update_extra_coarse_face_data(draw_cache, mesh_eval, *mr);
 
   mesh_buffer_cache_create_requested_subdiv(batch_cache, mbc, draw_cache, *mr);
-
-  mesh_render_data_free(mr);
 
   return true;
 }

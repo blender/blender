@@ -613,35 +613,6 @@ static void node_composit_buts_combsep_color(uiLayout *layout, bContext * /*C*/,
   }
 }
 
-static void node_composit_backdrop_viewer(
-    SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
-{
-  //  node_composit_backdrop_canvas(snode, backdrop, node, x, y);
-  if (node->custom1 == 0) {
-    const float backdropWidth = backdrop->x;
-    const float backdropHeight = backdrop->y;
-    const float cx = x + snode->zoom * backdropWidth * node->custom3;
-    const float cy = y + snode->zoom * backdropHeight * node->custom4;
-    const float cross_size = 12 * U.pixelsize;
-
-    GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-    immUniformColor3f(1.0f, 1.0f, 1.0f);
-
-    immBegin(GPU_PRIM_LINES, 4);
-    immVertex2f(pos, cx - cross_size, cy - cross_size);
-    immVertex2f(pos, cx + cross_size, cy + cross_size);
-    immVertex2f(pos, cx + cross_size, cy - cross_size);
-    immVertex2f(pos, cx - cross_size, cy + cross_size);
-    immEnd();
-
-    immUnbindProgram();
-  }
-}
-
 static void node_composit_backdrop_boxmask(
     SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
@@ -864,9 +835,6 @@ static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
     case CMP_NODE_CRYPTOMATTE_LEGACY:
       ntype->draw_buttons = node_composit_buts_cryptomatte_legacy;
       ntype->draw_buttons_ex = node_composit_buts_cryptomatte_legacy_ex;
-      break;
-    case CMP_NODE_VIEWER:
-      ntype->draw_backdrop = node_composit_backdrop_viewer;
       break;
   }
 }
@@ -1564,7 +1532,7 @@ static void std_node_socket_interface_draw(ID *id,
 
   const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
   if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
-    if (ELEM(type, SOCK_INT, SOCK_VECTOR)) {
+    if (ELEM(type, SOCK_INT, SOCK_VECTOR, SOCK_MATRIX)) {
       uiItemR(col, &ptr, "default_input", DEFAULT_FLAGS, nullptr, ICON_NONE);
     }
   }

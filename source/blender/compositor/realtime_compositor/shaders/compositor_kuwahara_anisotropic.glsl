@@ -61,6 +61,10 @@ void main()
 #elif defined(CONSTANT_SIZE)
   float radius = max(0.0, size);
 #endif
+  if (radius == 0) {
+    imageStore(output_img, texel, texture_load(input_tx, texel));
+    return;
+  }
 
   /* Compute the width and height of an ellipse that is more width-elongated for high anisotropy
    * and more circular for low anisotropy, controlled using the eccentricity factor. Since the

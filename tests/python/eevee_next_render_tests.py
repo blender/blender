@@ -87,14 +87,14 @@ def setup():
             bpy.ops.object.lightprobe_add(type='VOLUME', location=(0.0, 0.0, 2.0))
             grid = bpy.context.selected_objects[0]
             grid.scale = (8.0, 4.5, 4.5)
-            grid.data.grid_resolution_x = 32
-            grid.data.grid_resolution_y = 16
-            grid.data.grid_resolution_z = 8
-            grid.data.grid_bake_samples = 128
-            grid.data.grid_capture_world = True
-            grid.data.grid_surfel_density = 100
+            grid.data.resolution_x = 32
+            grid.data.resolution_y = 16
+            grid.data.resolution_z = 8
+            grid.data.bake_samples = 128
+            grid.data.capture_world = True
+            grid.data.surfel_density = 100
             # Make lighting smoother for most of the case.
-            grid.data.grid_dilation_threshold = 1.0
+            grid.data.dilation_threshold = 1.0
             bpy.ops.object.lightprobe_cache_bake(subset='ACTIVE')
 
 

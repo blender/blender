@@ -50,25 +50,6 @@ enum {
   DRW_MESH_WEIGHT_STATE_LOCK_RELATIVE = (1 << 2),
 };
 
-enum eMRIterType {
-  MR_ITER_CORNER_TRI = 1 << 0,
-  MR_ITER_POLY = 1 << 1,
-  MR_ITER_LOOSE_EDGE = 1 << 2,
-  MR_ITER_LOOSE_VERT = 1 << 3,
-};
-ENUM_OPERATORS(eMRIterType, MR_ITER_LOOSE_VERT)
-
-enum eMRDataType {
-  MR_DATA_NONE = 0,
-  MR_DATA_POLY_NOR = 1 << 1,
-  MR_DATA_LOOP_NOR = 1 << 2,
-  MR_DATA_LOOSE_GEOM = 1 << 4,
-  /** Force loop normals calculation. */
-  MR_DATA_TAN_LOOP_NOR = 1 << 5,
-  MR_DATA_POLYS_SORTED = 1 << 6,
-};
-ENUM_OPERATORS(eMRDataType, MR_DATA_POLYS_SORTED)
-
 int mesh_render_mat_len_get(const Object &object, const Mesh &mesh);
 
 struct MeshBufferList {

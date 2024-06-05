@@ -591,7 +591,7 @@ def register():
     )
     WindowManager.extension_show_legacy_addons = BoolProperty(
         name="Show Legacy Add-ons",
-        description="Only show extensions, hiding legacy add-ons",
+        description="Show add-ons which are not packaged as extensions",
         default=True,
     )
 

@@ -110,7 +110,7 @@ static void split_pixel_node(
 {
   PBVHNode *node = &split->node;
 
-  const Bounds<float3> cb = node->vb;
+  const Bounds<float3> cb = node->bounds;
 
   if (count_node_pixels(*node) <= pbvh.pixel_leaf_limit || split->depth >= pbvh.depth_limit) {
     node_data_get(split->node).rebuild_undo_regions();
@@ -135,11 +135,11 @@ static void split_pixel_node(
   child1->flag = PBVH_TexLeaf;
   child2->flag = PBVH_TexLeaf;
 
-  child1->vb = cb;
-  child1->vb.max[axis] = mid;
+  child1->bounds = cb;
+  child1->bounds.max[axis] = mid;
 
-  child2->vb = cb;
-  child2->vb.min[axis] = mid;
+  child2->bounds = cb;
+  child2->bounds.min[axis] = mid;
 
   NodeData &data = node_data_get(split->node);
 

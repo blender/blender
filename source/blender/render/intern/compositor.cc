@@ -532,10 +532,11 @@ class RealtimeCompositor {
     }
     else {
       void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+      WM_system_gpu_context_activate(re_system_gpu_context);
+
       void *re_blender_gpu_context = RE_blender_gpu_context_ensure(&render_);
 
       GPU_render_begin();
-      WM_system_gpu_context_activate(re_system_gpu_context);
       GPU_context_active_set(static_cast<GPUContext *>(re_blender_gpu_context));
     }
 

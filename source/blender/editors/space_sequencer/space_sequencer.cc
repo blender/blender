@@ -483,46 +483,35 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
     return;
   }
 
-  /* Initialize default view with 7 channels, that are visible even if empty. */
   rctf strip_boundbox;
-  BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, 6.0f);
+  /* Initialize default view with 7 channels, that are visible even if empty. */
+  SEQ_timeline_init_boundbox(scene, &strip_boundbox);
   Editing *ed = SEQ_editing_get(scene);
   if (ed != nullptr) {
     SEQ_timeline_expand_boundbox(scene, ed->seqbasep, &strip_boundbox);
   }
-
-  /* Clamp Y max. Scrubbing area height must be added, so strips aren't occluded. */
-  rcti scrub_rect;
-  ED_time_scrub_region_rect_get(region, &scrub_rect);
+  /* We need to calculate how much the current view is padded and add this padding to our
+   * strip bounding box. Without this, the scrub-bar or other overlays would occlude the
+   * displayed strips in the timeline.
+   */
+  float pad_top, pad_bottom;
+  SEQ_get_timeline_region_padding(C, &pad_top, &pad_bottom);
   const float pixel_view_size_y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
-  const float scrub_bar_height = BLI_rcti_size_y(&scrub_rect) * pixel_view_size_y;
+  /* Add the padding and make sure we have a margin of one channel in each direction.*/
+  strip_boundbox.ymax += 1.0f + pad_top * pixel_view_size_y;
+  strip_boundbox.ymin -= 1.0f + pad_bottom * pixel_view_size_y;
 
-  /* Channel n has range of <n, n+1>, +1 for empty channel. */
-  strip_boundbox.ymax += 2.0f + scrub_bar_height;
-
-  /* Clamp Y min. Scroller and marker area height must be added, so strips aren't occluded. */
-  float scroll_bar_height = v2d->hor.ymax * pixel_view_size_y;
-
-  ListBase *markers = ED_context_get_markers(C);
-  if (markers != nullptr && !BLI_listbase_is_empty(markers)) {
-    float markers_size = UI_MARKER_MARGIN_Y * pixel_view_size_y;
-    strip_boundbox.ymin -= markers_size;
-  }
-  else {
-    strip_boundbox.ymin -= scroll_bar_height;
-  }
-
-  /* If strip is deleted, don't move view automatically, keep current range until it is changed. */
+  /* If a strip has been deleted, don't move the view automatically, keep current range until it is
+   * changed. */
   strip_boundbox.ymax = max_ff(sseq->runtime->timeline_clamp_custom_range, strip_boundbox.ymax);
 
   rctf view_clamped = v2d->cur;
-
-  const float range_y = BLI_rctf_size_y(&view_clamped);
+  float range_y = BLI_rctf_size_y(&view_clamped);
   if (view_clamped.ymax > strip_boundbox.ymax) {
     view_clamped.ymax = strip_boundbox.ymax;
     view_clamped.ymin = max_ff(strip_boundbox.ymin, strip_boundbox.ymax - range_y);
   }
-  if (view_clamped.ymin < strip_boundbox.ymin) {
+  else if (view_clamped.ymin < strip_boundbox.ymin) {
     view_clamped.ymin = strip_boundbox.ymin;
     view_clamped.ymax = min_ff(strip_boundbox.ymax, strip_boundbox.ymin + range_y);
   }

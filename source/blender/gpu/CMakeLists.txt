@@ -503,6 +503,9 @@ set(GLSL_SRC
   shaders/gpu_shader_keyframe_shape_vert.glsl
   shaders/gpu_shader_keyframe_shape_frag.glsl
 
+  shaders/gpu_shader_sequencer_strips_vert.glsl
+  shaders/gpu_shader_sequencer_strips_frag.glsl
+
   shaders/gpu_shader_codegen_lib.glsl
 
   shaders/common/gpu_shader_bicubic_sampler_lib.glsl
@@ -753,16 +756,6 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
 
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_bloom_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_common_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_dof_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_effects_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_lightprobe_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_material_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_motion_blur_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_shadow_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_volume_info.hh
-
   ../draw/engines/image/shaders/infos/engine_image_info.hh
   ../draw/intern/shaders/draw_debug_info.hh
   ../draw/intern/shaders/draw_fullscreen_info.hh
@@ -798,6 +791,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_instance_varying_color_varying_size_info.hh
   shaders/infos/gpu_shader_keyframe_shape_info.hh
   shaders/infos/gpu_shader_line_dashed_uniform_color_info.hh
+  shaders/infos/gpu_shader_sequencer_info.hh
   shaders/infos/gpu_shader_simple_lighting_info.hh
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh

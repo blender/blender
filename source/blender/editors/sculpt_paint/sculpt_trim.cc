@@ -89,8 +89,16 @@ enum class ExtrudeMode {
 };
 
 static EnumPropertyItem extrude_modes[] = {
-    {int(ExtrudeMode::Project), "PROJECT", 0, "Project", "Project back faces when extruding"},
-    {int(ExtrudeMode::Fixed), "FIXED", 0, "Fixed", "Extrude back faces by fixed amount"},
+    {int(ExtrudeMode::Project),
+     "PROJECT",
+     0,
+     "Project",
+     "Align trim geometry with the perspective of the current view for a tapered shape"},
+    {int(ExtrudeMode::Fixed),
+     "FIXED",
+     0,
+     "Fixed",
+     "Align trim geometry orthogonally for a shape with 90 degree angles"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

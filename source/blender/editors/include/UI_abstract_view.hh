@@ -63,9 +63,10 @@ class AbstractView {
   /* See #get_bounds(). */
   std::optional<rcti> bounds_;
 
+  std::string context_menu_title;
+
  public:
   virtual ~AbstractView() = default;
-
   /**
    * If a view wants to support dropping data into it, it has to return a drop target here.
    * That is an object implementing #DropTargetInterface.
@@ -107,6 +108,9 @@ class AbstractView {
    * Updated as part of #UI_block_end(), before that it's unset.
    */
   std::optional<rcti> get_bounds() const;
+
+  std::string get_context_menu_title() const;
+  void set_context_menu_title(std::string title);
 
  protected:
   AbstractView() = default;

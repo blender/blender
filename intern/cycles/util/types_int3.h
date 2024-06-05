@@ -53,8 +53,8 @@ ccl_device_inline void print_int3(ccl_private const char *label, const int3 a);
 
 #if defined(__KERNEL_METAL__)
 /* Metal has native packed_int3. */
-#elif defined(__KERNEL_CUDA__)
-/* CUDA int3 is already packed. */
+#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_ONEAPI__)
+/* CUDA and oneAPI int3 are already packed. */
 typedef int3 packed_int3;
 #else
 /* HIP int3 is not packed (https://github.com/ROCm-Developer-Tools/HIP/issues/706). */

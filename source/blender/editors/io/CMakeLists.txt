@@ -105,6 +105,9 @@ if(WITH_ALEMBIC)
 endif()
 
 if(WITH_USD)
+  list(APPEND INC_SYS
+    ${USD_INCLUDE_DIRS}
+  )
   list(APPEND LIB
     bf_io_usd
   )

@@ -39,6 +39,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       case CD_PROP_INT32:
         value_declaration = &b.add_input<decl::Int>("Value").default_value(1);
         break;
+      case CD_PROP_FLOAT4X4:
+        value_declaration = &b.add_input<decl::Matrix>("Value");
+        break;
       default:
         BLI_assert_unreachable();
         break;
@@ -93,6 +96,8 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
     case SOCK_RGBA:
     case SOCK_ROTATION:
       return CD_PROP_FLOAT3;
+    case SOCK_MATRIX:
+      return CD_PROP_FLOAT4X4;
     default:
       return {};
   }
@@ -146,11 +151,23 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 }
 
 template<typename T> struct AccumulationInfo {
-  static inline const T initial_value = []() { return T(); }();
+  static inline const T initial_value = []() {
+    if constexpr (std::is_same_v<T, float4x4>) {
+      return float4x4::identity();
+    }
+    else {
+      return T();
+    }
+  }();
 
   static T accumulate(const T &a, const T &b)
   {
-    return a + b;
+    if constexpr (std::is_same_v<T, float4x4>) {
+      return a * b;
+    }
+    else {
+      return a + b;
+    }
   }
 };
 
@@ -195,7 +212,7 @@ class AccumulateFieldInput final : public bke::GeometryFieldInput {
 
     bke::attribute_math::convert_to_static_type(g_values.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      if constexpr (is_same_any_v<T, int, float, float3>) {
+      if constexpr (is_same_any_v<T, int, float, float3, float4x4>) {
         Array<T> outputs(domain_size);
         const VArray<T> values = g_values.typed<T>();
 
@@ -302,7 +319,7 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
 
     bke::attribute_math::convert_to_static_type(g_values.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      if constexpr (is_same_any_v<T, int, float, float3>) {
+      if constexpr (is_same_any_v<T, int, float, float3, float4x4>) {
         const VArray<T> values = g_values.typed<T>();
         if (group_indices.is_single()) {
           T accumulation = AccumulationInfo<T>::initial_value;
@@ -379,20 +396,21 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_rna(StructRNA *srna)
 {
-  RNA_def_node_enum(
-      srna,
-      "data_type",
-      "Data Type",
-      "Type of data stored in attribute",
-      rna_enum_attribute_type_items,
-      NOD_storage_enum_accessors(data_type),
-      CD_PROP_FLOAT,
-      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
-        *r_free = true;
-        return enum_items_filter(rna_enum_attribute_type_items, [](const EnumPropertyItem &item) {
-          return ELEM(item.value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_INT32);
-        });
-      });
+  static EnumPropertyItem items[] = {
+      {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Add floating point values"},
+      {CD_PROP_INT32, "INT", 0, "Integer", "Add integer values"},
+      {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "Add 3D vector values"},
+      {CD_PROP_FLOAT4X4, "TRANSFORM", 0, "Transform", "Multiply transformation matrices"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type",
+                    "Type of data that is accumulated",
+                    items,
+                    NOD_storage_enum_accessors(data_type),
+                    CD_PROP_FLOAT);
 
   RNA_def_node_enum(srna,
                     "domain",

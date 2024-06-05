@@ -1488,8 +1488,8 @@ class I18n:
             if langs:
                 translations &= langs
             translations = [('"' + lng + '"', self.trans[lng]) for lng in sorted(translations)]
-            print("Translated keys saved to .py file:")
-            print(*(k for k in keys.keys()))
+            print(f"Translated {len(keys)} keys saved to .py file:")
+            print(*(k for k in keys.keys()), sep="\n")
             for key in keys.keys():
                 if ref.msgs[key].is_commented:
                     continue
@@ -1525,6 +1525,8 @@ class I18n:
                         ret.append(tab + "  (" + ('"' + gen_comments[0] + '",' if gen_comments else "") + ")),")
                 # All languages
                 for lngstr, trans in translations:
+                    if key not in trans.msgs:
+                        continue  # Happens if no language is enabled in translation UI, and new messages are generated.
                     if trans.msgs[key].is_commented:
                         continue
                     # Language code and translation.

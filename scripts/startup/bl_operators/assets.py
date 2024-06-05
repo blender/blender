@@ -40,8 +40,8 @@ class ASSET_OT_tag_add(AssetBrowserMetadataOperator, Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        active_asset = SpaceAssetInfo.get_active_asset(context)
-        active_asset.tags.new(data_("Tag"))
+        active_asset = context.asset
+        active_asset.asset_data.tags.new(data_("Tag"))
 
         return {'FINISHED'}
 

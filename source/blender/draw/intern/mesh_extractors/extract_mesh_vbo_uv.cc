@@ -10,14 +10,12 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
+#include "BKE_attribute.hh"
+
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
 namespace blender::draw {
-
-/* ---------------------------------------------------------------------- */
-/** \name Extract UV  layers
- * \{ */
 
 /* Initialize the vertex format to be used for UVs. Return true if any UV layer is
  * found, false otherwise. */
@@ -81,12 +79,8 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
   return true;
 }
 
-static void extract_uv_init(const MeshRenderData &mr,
-                            MeshBatchCache &cache,
-                            void *buf,
-                            void * /*tls_data*/)
+void extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &cache, gpu::VertBuf &vbo)
 {
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPUVertFormat format = {0};
 
   const CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
@@ -98,46 +92,51 @@ static void extract_uv_init(const MeshRenderData &mr,
     v_len = 1;
   }
 
-  GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, v_len);
+  GPU_vertbuf_init_with_format(&vbo, &format);
+  GPU_vertbuf_data_alloc(&vbo, v_len);
 
-  MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(vbo)),
+  MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(&vbo)),
                               v_len * format.attr_len);
-  int vbo_index = 0;
-  for (const int i : IndexRange(MAX_MTFACE)) {
-    if (uv_layers & (1 << i)) {
-      if (mr.extract_type == MR_EXTRACT_BMESH) {
-        int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_PROP_FLOAT2, i);
-        BMIter f_iter;
-        BMFace *efa;
-        BM_ITER_MESH (efa, &f_iter, mr.bm, BM_FACES_OF_MESH) {
-          BMLoop *l_iter, *l_first;
-          l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
-          do {
-            uv_data[vbo_index] = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_ofs);
-            vbo_index++;
-          } while ((l_iter = l_iter->next) != l_first);
+  threading::memory_bandwidth_bound_task(uv_data.size_in_bytes() * 2, [&]() {
+    if (mr.extract_type == MR_EXTRACT_BMESH) {
+      const BMesh &bm = *mr.bm;
+      for (const int i : IndexRange(MAX_MTFACE)) {
+        if (uv_layers & (1 << i)) {
+          MutableSpan<float2> data = uv_data.slice(i * bm.totloop, bm.totloop);
+          const int offset = CustomData_get_n_offset(cd_ldata, CD_PROP_FLOAT2, i);
+          threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+            for (const int face_index : range) {
+              const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+              const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
+              for ([[maybe_unused]] const int i : IndexRange(face.len)) {
+                const int index = BM_elem_index_get(loop);
+                data[index] = BM_ELEM_CD_GET_FLOAT_P(loop, offset);
+                loop = loop->next;
+              }
+            }
+          });
         }
       }
-      else {
-        const Span<float2> uv_map(
-            static_cast<const float2 *>(CustomData_get_layer_n(cd_ldata, CD_PROP_FLOAT2, i)),
-            mr.corners_num);
-        array_utils::copy(uv_map, uv_data.slice(vbo_index, mr.corners_num));
-        vbo_index += mr.corners_num;
+    }
+    else {
+      const bke::AttributeAccessor attributes = mr.mesh->attributes();
+      for (const int i : IndexRange(MAX_MTFACE)) {
+        if (uv_layers & (1 << i)) {
+          const StringRef name = CustomData_get_layer_name(cd_ldata, CD_PROP_FLOAT2, i);
+          const VArray uv_map = *attributes.lookup_or_default<float2>(
+              name, bke::AttrDomain::Corner, float2(0));
+          array_utils::copy(uv_map, uv_data.slice(i * mr.corners_num, mr.corners_num));
+        }
       }
     }
-  }
+  });
 }
 
-static void extract_uv_init_subdiv(const DRWSubdivCache &subdiv_cache,
-                                   const MeshRenderData & /*mr*/,
-                                   MeshBatchCache &cache,
-                                   void *buffer,
-                                   void * /*data*/)
+void extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
+                            const MeshBatchCache &cache,
+                            gpu::VertBuf &vbo)
 {
   const Mesh *coarse_mesh = subdiv_cache.mesh;
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
   GPUVertFormat format = {0};
 
   uint v_len = subdiv_cache.num_subdiv_loops;
@@ -149,7 +148,7 @@ static void extract_uv_init_subdiv(const DRWSubdivCache &subdiv_cache,
     v_len = 1;
   }
 
-  GPU_vertbuf_init_build_on_device(vbo, &format, v_len);
+  GPU_vertbuf_init_build_on_device(&vbo, &format, v_len);
 
   if (uv_layers == 0) {
     return;
@@ -160,25 +159,9 @@ static void extract_uv_init_subdiv(const DRWSubdivCache &subdiv_cache,
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
       const int offset = int(subdiv_cache.num_subdiv_loops) * pack_layer_index++;
-      draw_subdiv_extract_uvs(subdiv_cache, vbo, i, offset);
+      draw_subdiv_extract_uvs(subdiv_cache, &vbo, i, offset);
     }
   }
 }
-
-constexpr MeshExtract create_extractor_uv()
-{
-  MeshExtract extractor = {nullptr};
-  extractor.init = extract_uv_init;
-  extractor.init_subdiv = extract_uv_init_subdiv;
-  extractor.data_type = MR_DATA_NONE;
-  extractor.data_size = 0;
-  extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.uv);
-  return extractor;
-}
-
-/** \} */
-
-const MeshExtract extract_uv = create_extractor_uv();
 
 }  // namespace blender::draw

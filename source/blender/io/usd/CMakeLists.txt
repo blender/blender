@@ -97,6 +97,7 @@ set(SRC
   intern/usd_hook.cc
   intern/usd_light_convert.cc
   intern/usd_mesh_utils.cc
+  intern/usd_utils.cc
 
   intern/usd_writer_abstract.cc
   intern/usd_writer_armature.cc
@@ -143,6 +144,7 @@ set(SRC
   intern/usd_hook.hh
   intern/usd_light_convert.hh
   intern/usd_mesh_utils.hh
+  intern/usd_utils.hh
 
   intern/usd_writer_abstract.hh
   intern/usd_writer_armature.hh

@@ -63,8 +63,8 @@ ccl_device_inline void print_float3(ccl_private const char *label, const float3 
  * CPU SIMD instructions can be used. */
 #if defined(__KERNEL_METAL__)
 /* Metal has native packed_float3. */
-#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
-/* CUDA and HIP float3 are already packed. */
+#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__) || defined(__KERNEL_ONEAPI__)
+/* CUDA, HIP and oneAPI float3 are already packed. */
 typedef float3 packed_float3;
 #else
 struct packed_float3 {

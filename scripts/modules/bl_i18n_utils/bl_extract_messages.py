@@ -209,7 +209,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             # core classes
             "Context", "Event", "Function", "UILayout", "UnknownType", "Struct",
             # registerable classes
-            "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
+            "Panel", "Menu", "Header", "RenderEngine",
+            "Operator", "OperatorProperties", "OperatorMacro", "Macro", "KeyingSetInfo",
         )
         }
 
@@ -388,45 +389,42 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
     # Dump Messages
 
-    def process_cls_list(cls_list):
-        if not cls_list:
-            return
-
-        def full_class_id(cls):
-            """Gives us 'ID.Light.AreaLight' which is best for sorting."""
-            # Always the same issue, some classes listed in blacklist should actually no more exist (they have been
-            # unregistered), but are still listed by __subclasses__() calls... :/
-            if cls in blacklist_rna_class:
-                return cls.__name__
-            cls_id = ""
-            bl_rna = getattr(cls, "bl_rna", None)
-            # It seems that py-defined 'wrappers' RNA classes (like `MeshEdge` in `bpy_types.py`) need to be accessed
-            # once from `bpy.types` before they have a valid `bl_rna` member.
-            # Weirdly enough, this is only triggered on release builds, debug builds somehow do not have that issue.
+    def full_class_id(cls):
+        """Gives us 'ID.Light.AreaLight' which is best for sorting."""
+        # Always the same issue, some classes listed in blacklist should actually no more exist (they have been
+        # unregistered), but are still listed by __subclasses__() calls... :/
+        if cls in blacklist_rna_class:
+            return cls.__name__
+        cls_id = ""
+        bl_rna = getattr(cls, "bl_rna", None)
+        # It seems that py-defined 'wrappers' RNA classes (like `MeshEdge` in `bpy_types.py`) need to be accessed
+        # once from `bpy.types` before they have a valid `bl_rna` member.
+        # Weirdly enough, this is only triggered on release builds, debug builds somehow do not have that issue.
+        if bl_rna is None:
+            if getattr(bpy.types, cls.__name__, None) is not None:
+                bl_rna = getattr(cls, "bl_rna", None)
             if bl_rna is None:
-                if getattr(bpy.types, cls.__name__, None) is not None:
-                    bl_rna = getattr(cls, "bl_rna", None)
-                if bl_rna is None:
-                    raise TypeError("Unknown RNA class")
-            while bl_rna:
-                cls_id = bl_rna.identifier + "." + cls_id
-                bl_rna = bl_rna.base
-            return cls_id
+                raise TypeError("Unknown RNA class")
+        while bl_rna:
+            cls_id = bl_rna.identifier + "." + cls_id
+            bl_rna = bl_rna.base
+        return cls_id
 
-        if verbose:
-            print(cls_list)
-        cls_list.sort(key=full_class_id)
+    def cls_set_generate_recurse(cls_list):
+        ret_cls_set = set()
         for cls in cls_list:
-            if verbose:
-                print(cls)
             reports["rna_structs"].append(cls)
+            # Fully skip operators related types, they are discovered separately through introspection of `bpy.ops`.
+            if issubclass(cls, bpy.types.Operator) or issubclass(cls, bpy.types.OperatorProperties):
+                continue
             # Ignore those Operator sub-classes (anyway, will get the same from OperatorProperties sub-classes!)...
-            if (cls in blacklist_rna_class) or issubclass(cls, bpy.types.Operator):
+            if cls in blacklist_rna_class:
                 reports["rna_structs_skipped"].append(cls)
             else:
-                walk_class(cls)
-            # Recursively process subclasses.
-            process_cls_list(cls.__subclasses__())
+                ret_cls_set.add(cls)
+            # Recursively discover subclasses, even if the current class was black-listed.
+            ret_cls_set |= cls_set_generate_recurse(cls.__subclasses__())
+        return ret_cls_set
 
     # FIXME Workaround weird new (blender 3.2) issue where some classes (like `bpy.types.Modifier`)
     # are not listed by `bpy.types.ID.__base__.__subclasses__()` until they are accessed from
@@ -435,8 +433,26 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     for cls_name in cls_dir:
         getattr(bpy.types, cls_name)
 
-    # Parse everything (recursively parsing from bpy_struct "class"...).
-    process_cls_list(bpy.types.ID.__base__.__subclasses__())
+    # Parse everything (recursively parsing from bpy_struct "class"...), except operators.
+    cls_set = cls_set_generate_recurse(bpy.types.ID.__base__.__subclasses__())
+
+    # Operators need special handling, as the mix between the RNA types for operators, and their properties, creates
+    # a lot of issues for 'children-based' recursive type processing above. So instead, discover operators from
+    # introspecting `bpy.ops`.
+    for op_category_name in dir(bpy.ops):
+        op_category = getattr(bpy.ops, op_category_name)
+        for op_name in dir(op_category):
+            op = getattr(op_category, op_name, None)
+            if not op:
+                print(f"Cannot get Operator 'bpy.ops.{op_category}.{op_name}'")
+                continue
+            cls_set.add(op.get_rna_type().bl_rna.__class__)
+
+    cls_list = sorted(cls_set, key=full_class_id)
+    for cls in cls_list:
+        if verbose:
+            print(cls)
+        walk_class(cls)
 
     # Parse keymap preset preferences
     for preset_filename in sorted(
@@ -454,6 +470,11 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     # And parse keymaps!
     from bl_keymap_utils import keymap_hierarchy
     walk_keymap_hierarchy(keymap_hierarchy.generate(), "KM_HIERARCHY")
+
+    if verbose:
+        print()
+        print("---------------------------------------------------------")
+        print()
 
 
 ##### Python source code #####

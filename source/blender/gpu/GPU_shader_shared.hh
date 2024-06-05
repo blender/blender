@@ -90,6 +90,55 @@ struct MultiIconCallData {
 };
 BLI_STATIC_ASSERT_ALIGN(MultiIconCallData, 16)
 
+#define GPU_SEQ_STRIP_DRAW_DATA_LEN 256
+
+enum eGPUSeqFlags : uint32_t {
+  GPU_SEQ_FLAG_BACKGROUND_PART = (1u << 0u),
+  GPU_SEQ_FLAG_SINGLE_IMAGE = (1u << 1u),
+  GPU_SEQ_FLAG_COLOR_BAND = (1u << 2u),
+  GPU_SEQ_FLAG_TRANSITION = (1u << 3u),
+  GPU_SEQ_FLAG_LOCKED = (1u << 4u),
+  GPU_SEQ_FLAG_MISSING_TITLE = (1u << 5u),
+  GPU_SEQ_FLAG_MISSING_CONTENT = (1u << 6u),
+  GPU_SEQ_FLAG_SELECTED = (1u << 7u),
+  GPU_SEQ_FLAG_ACTIVE = (1u << 8u),
+  GPU_SEQ_FLAG_HIGHLIGHT = (1u << 9u),
+  GPU_SEQ_FLAG_HANDLES = (1u << 10u),
+};
+
+/* VSE per-strip data for timeline rendering. */
+struct SeqStripDrawData {
+  /* Horizontal strip positions (1.0 is one frame). */
+  float left_handle, right_handle;  /* Left and right strip sides. */
+  float content_start, content_end; /* Start and end of actual content (only relevant for strips
+                                       that have holdout regions). */
+  float handle_width;
+  /* Vertical strip positions (1.0 is one channel). */
+  float bottom;
+  float top;
+  float strip_content_top; /* Content coordinate, i.e. below title bar if there is one. */
+  uint flags;              /* eGPUSeqFlags bitmask. */
+  /* Strip colors, each is uchar4 packed with equivalent of packUnorm4x8. */
+  uint col_background;
+  uint col_outline;
+  uint col_color_band;
+  uint col_transition_in, col_transition_out;
+  uint col_handle_left, col_handle_right;
+};
+BLI_STATIC_ASSERT_ALIGN(SeqStripDrawData, 16)
+BLI_STATIC_ASSERT(sizeof(SeqStripDrawData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 16384,
+                  "SeqStripDrawData UBO must not exceed minspec UBO size (16K)")
+
+/* VSE global data for timeline rendering. */
+struct SeqContextDrawData {
+  float pixelx, pixely; /* Size of one pixel in timeline coordinate space. */
+  float inv_pixelx, inv_pixely;
+  float round_radius;
+  uint col_back;
+  float _pad0, _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(SeqContextDrawData, 16)
+
 enum TestStatus : uint32_t {
   TEST_STATUS_NONE = 0u,
   TEST_STATUS_PASSED = 1u,

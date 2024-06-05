@@ -1064,10 +1064,8 @@ typedef enum eInsertKeyFlags {
   INSERTKEY_CYCLE_AWARE = (1 << 9),
   /** don't create new F-Curves (implied by INSERTKEY_REPLACE) */
   INSERTKEY_AVAILABLE = (1 << 10),
-  /* Keep last. */
-  INSERTKEY_MAX,
 } eInsertKeyFlags;
-ENUM_OPERATORS(eInsertKeyFlags, INSERTKEY_MAX);
+ENUM_OPERATORS(eInsertKeyFlags, INSERTKEY_AVAILABLE);
 
 /* ************************************************ */
 /* Animation Data */

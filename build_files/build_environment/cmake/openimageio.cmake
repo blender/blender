@@ -104,6 +104,8 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -Dpybind11_ROOT=${LIBDIR}/pybind11
   -DPython_EXECUTABLE=${PYTHON_BINARY}
   -DTBB_ROOT=${LIBDIR}/tbb
+  -Dlibdeflate_ROOT=${LIBDIR}/deflate
+  -Dfmt_ROOT=${LIBDIR}/fmt
 )
 
 ExternalProject_Add(external_openimageio
@@ -120,9 +122,6 @@ ExternalProject_Add(external_openimageio
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
       ${PATCH_DIR}/oiio_webp.diff &&
-    ${PATCH_CMD} -p 1 -N -d
-      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/oiio_4044.diff &&
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
       ${PATCH_DIR}/oiio_4062.diff

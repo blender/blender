@@ -314,6 +314,7 @@ class USERPREF_PT_interface_statusbar(InterfacePanel, CenterAlignMixIn, Panel):
         col.prop(view, "show_statusbar_scene_duration", text="Scene Duration")
         col.prop(view, "show_statusbar_memory", text="System Memory")
         col.prop(view, "show_statusbar_vram", text="Video Memory")
+        col.prop(view, "show_extensions_updates", text="Extensions Updates")
         col.prop(view, "show_statusbar_version", text="Blender Version")
 
 
@@ -2267,7 +2268,8 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
         addon_preferences_class = type(addon_preferences)
         box_prefs = layout.box()
-        box_prefs.label(text="Preferences:")
+        box_prefs.label(text="Preferences")
+        box_prefs.separator(type='LINE')
         addon_preferences_class.layout = box_prefs
         try:
             draw(context)

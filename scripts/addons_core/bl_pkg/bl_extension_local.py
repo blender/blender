@@ -16,11 +16,11 @@ __all__ = (
 import os
 import sys
 
-from .wheel_manager import WheelSource
-
 from typing import (
     List,
 )
+
+from .wheel_manager import WheelSource
 
 
 def sync(

@@ -18,6 +18,8 @@
 #include "DNA_curve_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -1105,22 +1107,63 @@ void BKE_curvemapping_evaluateRGBF(const CurveMapping *cumap,
       cumap, &cumap->cm[2], BKE_curvemap_evaluateF(cumap, &cumap->cm[3], vecin[2]));
 }
 
-static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap,
-                                               float vecout[3],
-                                               const float vecin[3],
-                                               const int channel_offset[3])
+/* Contrary to standard tone curve implementations, the film-like implementation tries to preserve
+ * the hue of the colors as much as possible. To understand why this might be a problem, consider
+ * the violet color (0.5, 0.0, 1.0). If this color was to be evaluated at a power curve x^4, the
+ * color will be blue (0.0625, 0.0, 1.0). So the color changes and not just its luminosity, which
+ * is what film-like tone curves tries to avoid.
+ *
+ * First, the channels with the lowest and highest values are identified and evaluated at the
+ * curve. Then, the third channel---the median---is computed while maintaining the original hue of
+ * the color. To do that, we look at the equation for deriving the hue from RGB values. Assuming
+ * the maximum, minimum, and median channels are known, and ignoring the 1/3 period offset of the
+ * hue, the equation is:
+ *
+ *   hue = (median - min) / (max - min)                                  [1]
+ *
+ * Since we have the new values for the minimum and maximum after evaluating at the curve, we also
+ * have:
+ *
+ *   hue = (new_median - new_min) / (new_max - new_min)                  [2]
+ *
+ * Since we want the hue to be equivalent, by equating [1] and [2] and rearranging:
+ *
+ *   (new_median - new_min) / (new_max - new_min) = (median - min) / (max - min)
+ *   new_median - new_min = (new_max - new_min) * (median - min) / (max - min)
+ *   new_median = new_min + (new_max - new_min) * (median - min) / (max - min)
+ *   new_median = new_min + (median - min) * ((new_max - new_min) / (max - min))  [QED]
+ *
+ * Which gives us the median color that preserves the hue. More intuitively, the median is computed
+ * such that the change in the distance from the median to the minimum is proportional to the
+ * change in the distance from the minimum to the maximum. Finally, each of the new minimum,
+ * maximum, and median values are written to the color channel that they were originally extracted
+ * from. */
+static blender::float3 evaluate_film_like(const CurveMapping *curve_mapping, blender::float3 input)
 {
-  const float v0in = vecin[channel_offset[0]];
-  const float v1in = vecin[channel_offset[1]];
-  const float v2in = vecin[channel_offset[2]];
+  /* Film-like curves are only evaluated on the combined curve, which is the fourth curve map. */
+  const CurveMap *curve_map = curve_mapping->cm + 3;
 
-  const float v0 = BKE_curvemap_evaluateF(cumap, &cumap->cm[channel_offset[0]], v0in);
-  const float v2 = BKE_curvemap_evaluateF(cumap, &cumap->cm[channel_offset[2]], v2in);
-  const float v1 = v2 + ((v0 - v2) * (v1in - v2in) / (v0in - v2in));
+  /* Find the maximum, minimum, and median of the color channels. */
+  const float minimum = blender::math::reduce_min(input);
+  const float maximum = blender::math::reduce_max(input);
+  const float median = blender::math::max(
+      blender::math::min(input.x, input.y),
+      blender::math::min(input.z, blender::math::max(input.x, input.y)));
 
-  vecout[channel_offset[0]] = v0;
-  vecout[channel_offset[1]] = v1;
-  vecout[channel_offset[2]] = v2;
+  const float new_min = BKE_curvemap_evaluateF(curve_mapping, curve_map, minimum);
+  const float new_max = BKE_curvemap_evaluateF(curve_mapping, curve_map, maximum);
+
+  /* Compute the new median using the ratio between the new and the original range. */
+  const float scaling_ratio = (new_max - new_min) / (maximum - minimum);
+  const float new_median = new_min + (median - minimum) * scaling_ratio;
+
+  /* Write each value to its original channel. */
+  const blender::float3 median_or_min = blender::float3(input.x == minimum ? new_min : new_median,
+                                                        input.y == minimum ? new_min : new_median,
+                                                        input.z == minimum ? new_min : new_median);
+  return blender::float3(input.x == maximum ? new_max : median_or_min.x,
+                         input.y == maximum ? new_max : median_or_min.y,
+                         input.z == maximum ? new_max : median_or_min.z);
 }
 
 void BKE_curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
@@ -1132,6 +1175,7 @@ void BKE_curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
   const float r = (vecin[0] - black[0]) * bwmul[0];
   const float g = (vecin[1] - black[1]) * bwmul[1];
   const float b = (vecin[2] - black[2]) * bwmul[2];
+  const float balanced_color[3] = {r, g, b};
 
   switch (cumap->tone) {
     default:
@@ -1142,47 +1186,8 @@ void BKE_curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
       break;
     }
     case CURVE_TONE_FILMLIKE: {
-      if (r >= g) {
-        if (g > b) {
-          /* Case 1: r >= g >  b */
-          const int shuffeled_channels[] = {0, 1, 2};
-          curvemapping_evaluateRGBF_filmlike(cumap, vecout, vecin, shuffeled_channels);
-        }
-        else if (b > r) {
-          /* Case 2: b >  r >= g */
-          const int shuffeled_channels[] = {2, 0, 1};
-          curvemapping_evaluateRGBF_filmlike(cumap, vecout, vecin, shuffeled_channels);
-        }
-        else if (b > g) {
-          /* Case 3: r >= b >  g */
-          const int shuffeled_channels[] = {0, 2, 1};
-          curvemapping_evaluateRGBF_filmlike(cumap, vecout, vecin, shuffeled_channels);
-        }
-        else {
-          /* Case 4: r >= g == b */
-          copy_v2_fl2(vecout,
-                      BKE_curvemap_evaluateF(cumap, &cumap->cm[0], r),
-                      BKE_curvemap_evaluateF(cumap, &cumap->cm[1], g));
-          vecout[2] = vecout[1];
-        }
-      }
-      else {
-        if (r >= b) {
-          /* Case 5: g >  r >= b */
-          const int shuffeled_channels[] = {1, 0, 2};
-          curvemapping_evaluateRGBF_filmlike(cumap, vecout, vecin, shuffeled_channels);
-        }
-        else if (b > g) {
-          /* Case 6: b >  g >  r */
-          const int shuffeled_channels[] = {2, 1, 0};
-          curvemapping_evaluateRGBF_filmlike(cumap, vecout, vecin, shuffeled_channels);
-        }
-        else {
-          /* Case 7: g >= b >  r */
-          const int shuffeled_channels[] = {1, 2, 0};
-          curvemapping_evaluateRGBF_filmlike(cumap, vecout, vecin, shuffeled_channels);
-        }
-      }
+      const blender::float3 output = evaluate_film_like(cumap, balanced_color);
+      copy_v3_v3(vecout, output);
       break;
     }
   }

@@ -1,21 +1,43 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 7fa9423e2..6de9b072b 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -242,7 +242,7 @@ OPTION(EMBREE_MIN_WIDTH "Enables min-width feature to enlarge curve and point th
- IF (APPLE AND CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND (CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64" OR CMAKE_OSX_ARCHITECTURES MATCHES "arm64"))
-   MESSAGE(STATUS "Building for Apple silicon")
-   SET(EMBREE_ARM ON)
--ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-+ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-   MESSAGE(STATUS "Building for AArch64")
-   SET(EMBREE_ARM ON)
- ENDIF()
+diff --git a/common/cmake/dpcpp.cmake b/common/cmake/dpcpp.cmake
+index 4113610c5..12c24fb11 100644
+--- a/common/cmake/dpcpp.cmake
++++ b/common/cmake/dpcpp.cmake
+@@ -45,7 +45,7 @@ IF (EMBREE_SYCL_SUPPORT)
+ 
+   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-sycl")   # makes dpcpp compiler compatible with clang++
+   
+-  SET(CMAKE_CXX_FLAGS_SYCL "-fsycl -fsycl-unnamed-lambda -Xclang -fsycl-allow-func-ptr")
++  SET(CMAKE_CXX_FLAGS_SYCL "-fsycl -nolibsycl -fsycl-unnamed-lambda -Xclang -fsycl-allow-func-ptr")
+   SET(CMAKE_CXX_FLAGS_SYCL "${CMAKE_CXX_FLAGS_SYCL} -Wno-mismatched-tags -Wno-pessimizing-move -Wno-reorder -Wno-unneeded-internal-declaration -Wno-delete-non-abstract-non-virtual-dtor -Wno-dangling-field -Wno-unknown-pragmas -Wno-logical-op-parentheses")
+   
+   IF (SYCL_ONEAPI_ICX AND WIN32)
+diff --git a/common/simd/arm/sse2neon.h b/common/simd/arm/sse2neon.h
+index b18d41e78..35e50a6e3 100644
+--- a/common/simd/arm/sse2neon.h
++++ b/common/simd/arm/sse2neon.h
+@@ -9038,7 +9038,7 @@ FORCE_INLINE int _sse2neon_sido_negative(int res, int lb, int imm8, int bound)
+ FORCE_INLINE int _sse2neon_clz(unsigned int x)
+ {
+ #if _MSC_VER
+-    DWORD cnt = 0;
++    unsigned long cnt = 0;
+     if (_BitScanForward(&cnt, x))
+         return cnt;
+     return 32;
+@@ -9050,7 +9050,7 @@ FORCE_INLINE int _sse2neon_clz(unsigned int x)
+ FORCE_INLINE int _sse2neon_ctz(unsigned int x)
+ {
+ #if _MSC_VER
+-    DWORD cnt = 0;
++    unsigned long cnt = 0;
+     if (_BitScanReverse(&cnt, x))
+         return 31 - cnt;
+     return 32;
 diff --git a/kernels/CMakeLists.txt b/kernels/CMakeLists.txt
-index fae31f4a4..8bb3601e7 100644
+index 7d1386853..6bfc8a9c6 100644
 --- a/kernels/CMakeLists.txt
 +++ b/kernels/CMakeLists.txt
-@@ -208,6 +208,12 @@ embree_files(EMBREE_LIBRARY_FILES_AVX512 ${AVX512})
+@@ -213,6 +213,12 @@ embree_files(EMBREE_LIBRARY_FILES_AVX512 ${AVX512})
  #message("AVX2: ${EMBREE_LIBRARY_FILES_AVX2}")
  #message("AVX512: ${EMBREE_LIBRARY_FILES_AVX512}")
  
@@ -37,57 +59,3 @@ index fae31f4a4..8bb3601e7 100644
    DISABLE_STACK_PROTECTOR_FOR_INTERSECTORS(${EMBREE_LIBRARY_FILES_AVX2})
    ADD_LIBRARY(embree_avx2 STATIC ${EMBREE_LIBRARY_FILES_AVX2})
    TARGET_LINK_LIBRARIES(embree_avx2 PRIVATE tasking)
-diff --git a/kernels/rthwif/rtbuild/rtbuild.cpp b/kernels/rthwif/rtbuild/rtbuild.cpp
-index 6d439f939..367b1ce7b 100644
---- a/kernels/rthwif/rtbuild/rtbuild.cpp
-+++ b/kernels/rthwif/rtbuild/rtbuild.cpp
-@@ -10,7 +10,7 @@ namespace embree
- {
-   using namespace embree::isa;
- 
--  static std::unique_ptr<tbb::task_arena> g_arena;
-+  static tbb::task_arena g_arena(tbb::this_task_arena::max_concurrency(),tbb::this_task_arena::max_concurrency());
-   
-   typedef enum _ze_raytracing_accel_format_internal_t {
-     ZE_RTAS_DEVICE_FORMAT_EXP_INVALID = 0,      // invalid acceleration structure format
-@@ -210,13 +210,10 @@ namespace embree
-   
-   RTHWIF_API void zeRTASInitExp()
-   {
--    uint32_t numThreads = tbb::this_task_arena::max_concurrency();
--    g_arena.reset(new tbb::task_arena(numThreads,numThreads));
-   }
-   
-   RTHWIF_API void zeRTASExitExp()
-   {
--    g_arena.reset();
-   }
- 
-   typedef struct _zet_base_desc_t
-@@ -740,7 +737,7 @@ namespace embree
-       //if (op->hBuilder != hBuilder)
-       //  return ZE_RESULT_ERROR_INVALID_ARGUMENT;
-       
--      g_arena->execute([&](){ op->group.run([=](){
-+      g_arena.execute([&](){ op->group.run([=](){
-          op->errorCode = zeRTASBuilderBuildExpInternal(args,
-                                                        pScratchBuffer, scratchBufferSizeBytes,
-                                                        pRtasBuffer, rtasBufferSizeBytes,
-@@ -753,7 +750,7 @@ namespace embree
-     else
-     {
-       ze_result_t errorCode = ZE_RESULT_SUCCESS;
--      g_arena->execute([&](){ errorCode = zeRTASBuilderBuildExpInternal(args,
-+      g_arena.execute([&](){ errorCode = zeRTASBuilderBuildExpInternal(args,
-                                                                         pScratchBuffer, scratchBufferSizeBytes,
-                                                                         pRtasBuffer, rtasBufferSizeBytes,
-                                                                         pBuildUserPtr, pBounds, pRtasBufferSizeBytes);
-@@ -801,7 +798,7 @@ namespace embree
-     VALIDATE(hParallelOperation);
-     
-     ze_rtas_parallel_operation_t* op = (ze_rtas_parallel_operation_t*) hParallelOperation;
--    g_arena->execute([&](){ op->group.wait(); });
-+    g_arena.execute([&](){ op->group.wait(); });
-     return op->errorCode;
-   }
- }

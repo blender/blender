@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_color.h"
+#include "BLI_utildefines.h"
+
 #include "COM_GlareThresholdOperation.h"
 
 #include "IMB_colormanagement.hh"
@@ -31,17 +35,14 @@ void GlareThresholdOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   const float threshold = settings_->threshold;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    const float *color = it.in(0);
-    if (IMB_colormanagement_get_luminance(color) >= threshold) {
-      it.out[0] = color[0] - threshold;
-      it.out[1] = color[1] - threshold;
-      it.out[2] = color[2] - threshold;
+    float4 hsva;
+    rgb_to_hsv_v(it.in(0), hsva);
 
-      CLAMP3_MIN(it.out, 0.0f);
-    }
-    else {
-      zero_v3(it.out);
-    }
+    hsva.z = math::max(0.0f, hsva.z - threshold);
+
+    hsv_to_rgb_v(hsva, it.out);
+    CLAMP3_MIN(it.out, 0.0f);
+    it.out[3] = 1.0f;
   }
 }
 

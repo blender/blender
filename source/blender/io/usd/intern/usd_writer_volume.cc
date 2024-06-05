@@ -4,6 +4,7 @@
 
 #include "usd_writer_volume.hh"
 #include "usd_hierarchy_iterator.hh"
+#include "usd_utils.hh"
 
 #include <pxr/base/tf/pathUtils.h>
 #include <pxr/usd/usdVol/openVDBAsset.h>
@@ -73,7 +74,8 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
   for (const int i : IndexRange(num_grids)) {
     const bke::VolumeGridData *grid = BKE_volume_grid_get(volume, i);
     const std::string grid_name = bke::volume_grid::get_name(*grid);
-    const std::string grid_id = pxr::TfMakeValidIdentifier(grid_name);
+    const std::string grid_id = make_safe_name(grid_name,
+                                               usd_export_context_.export_params.allow_unicode);
     const pxr::SdfPath grid_path = volume_path.AppendPath(pxr::SdfPath(grid_id));
     pxr::UsdVolOpenVDBAsset usd_grid = pxr::UsdVolOpenVDBAsset::Define(stage, grid_path);
     usd_grid.GetFieldNameAttr().Set(pxr::TfToken(grid_name), timecode);

@@ -282,15 +282,6 @@ void *GPU_vertbuf_get_data(const VertBuf *verts)
   return verts->data;
 }
 
-void *GPU_vertbuf_steal_data(VertBuf *verts)
-{
-  /* TODO: Assert that the format has no padding. */
-  BLI_assert(verts->data);
-  void *data = verts->data;
-  verts->data = nullptr;
-  return data;
-}
-
 const GPUVertFormat *GPU_vertbuf_get_format(const VertBuf *verts)
 {
   return &verts->format;

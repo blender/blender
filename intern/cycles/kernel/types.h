@@ -16,6 +16,10 @@
 #  define __EMBREE__
 #endif
 
+#ifdef __APPLE__
+#  include <TargetConditionals.h>
+#endif
+
 #include "util/math.h"
 #include "util/math_fast.h"
 #include "util/math_intersect.h"
@@ -336,6 +340,11 @@ enum PathTraceDimension {
 enum SamplingPattern {
   SAMPLING_PATTERN_SOBOL_BURLEY = 0,
   SAMPLING_PATTERN_TABULATED_SOBOL = 1,
+  SAMPLING_PATTERN_BLUE_NOISE_PURE = 2,
+  SAMPLING_PATTERN_BLUE_NOISE_FIRST = 3,
+  SAMPLING_PATTERN_BLUE_NOISE_ROUND = 4,
+  /* Never used in kernel. */
+  SAMPLING_PATTERN_AUTOMATIC = 5,
 
   SAMPLING_NUM_PATTERNS,
 };
@@ -731,12 +740,12 @@ typedef struct Ray {
   float tmax; /* end distance */
   float time; /* time (for motion blur) */
 
-  RaySelfPrimitives self;
-
 #ifdef __RAY_DIFFERENTIALS__
   float dP;
   float dD;
 #endif
+
+  RaySelfPrimitives self;
 } Ray;
 
 /* Intersection */
@@ -747,6 +756,67 @@ typedef struct Intersection {
   int object;
   int type;
 } Intersection;
+
+/* On certain GPUs (Apple Silicon), splitting every integrator state field into its own separate
+ * array can be detrimental for cache utilisation. By enabling __INTEGRATOR_GPU_PACKED_STATE__, we
+ * specify that certain fields should be packed together. This improves cache hit ratios in cases
+ * where fields are often accessed together (e.g. "ray" and "isect").
+ */
+#if defined(TARGET_CPU_ARM64) || defined(__KERNEL_METAL_APPLE__)
+#  define __INTEGRATOR_GPU_PACKED_STATE__
+
+/* Generate packed layouts for structs declared with KERNEL_STRUCT_BEGIN_PACKED. For example the
+ * following template...
+ *
+ *    KERNEL_STRUCT_BEGIN_PACKED(shadow_ray, KERNEL_FEATURE_PATH_TRACING)
+ *    KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, packed_float3, P, KERNEL_FEATURE_PATH_TRACING)
+ *    KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, packed_float3, D, KERNEL_FEATURE_PATH_TRACING)
+ *    KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, tmin, KERNEL_FEATURE_PATH_TRACING)
+ *    KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, tmax, KERNEL_FEATURE_PATH_TRACING)
+ *    KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, time, KERNEL_FEATURE_PATH_TRACING)
+ *    KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, float, dP, KERNEL_FEATURE_PATH_TRACING)
+ *    KERNEL_STRUCT_MEMBER_PACKED(shadow_ray, int, self_light, KERNEL_FEATURE_SHADOW_LINKING)
+ *    KERNEL_STRUCT_END(shadow_ray)
+ *
+ * ...will produce the following packed struct:
+ *
+ *    struct packed_shadow_ray {
+ *      packed_float3 P;
+ *      packed_float3 D;
+ *      float tmin;
+ *      float tmax;
+ *      float time;
+ *      float dP;
+ *      int self_light;
+ *    };
+ */
+
+#  define KERNEL_STRUCT_BEGIN(name) struct dummy_##name {
+#  define KERNEL_STRUCT_BEGIN_PACKED(parent_struct, feature) struct packed_##parent_struct {
+#  define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature)
+#  define KERNEL_STRUCT_MEMBER_PACKED(parent_struct, type, name, feature) type name;
+#  define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) type name;
+#  define KERNEL_STRUCT_END(name) \
+    } \
+    ;
+#  define KERNEL_STRUCT_END_ARRAY(name, cpu_size, gpu_size) \
+    } \
+    ;
+#  define KERNEL_STRUCT_VOLUME_STACK_SIZE MAX_VOLUME_STACK_SIZE
+
+#  include "kernel/integrator/shadow_state_template.h"
+#  include "kernel/integrator/state_template.h"
+
+#  undef KERNEL_STRUCT_BEGIN
+#  undef KERNEL_STRUCT_BEGIN_PACKED
+#  undef KERNEL_STRUCT_MEMBER
+#  undef KERNEL_STRUCT_MEMBER_PACKED
+#  undef KERNEL_STRUCT_ARRAY_MEMBER
+#  undef KERNEL_STRUCT_END
+#  undef KERNEL_STRUCT_END_ARRAY
+#  undef KERNEL_STRUCT_VOLUME_STACK_SIZE
+
+#endif
 
 /* Primitives */
 

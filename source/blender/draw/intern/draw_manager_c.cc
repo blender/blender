@@ -88,7 +88,6 @@
 
 #include "engines/basic/basic_engine.h"
 #include "engines/compositor/compositor_engine.h"
-#include "engines/eevee/eevee_engine.h"
 #include "engines/eevee_next/eevee_engine.h"
 #include "engines/external/external_engine.h"
 #include "engines/gpencil/gpencil_engine.h"
@@ -3044,9 +3043,6 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 void DRW_engines_register()
 {
   using namespace blender::draw;
-  RE_engines_register(&DRW_engine_viewport_eevee_type);
-  /* Always register EEVEE Next so it can be used in background mode with `--factory-startup`.
-   * (Needed for tests). */
   RE_engines_register(&DRW_engine_viewport_eevee_next_type);
 
   RE_engines_register(&DRW_engine_viewport_workbench_type);

@@ -127,6 +127,10 @@ class DeviceInfo {
     return id == info.id && use_hardware_raytracing == info.use_hardware_raytracing &&
            kernel_optimization_level == info.kernel_optimization_level;
   }
+  bool operator!=(const DeviceInfo &info) const
+  {
+    return !(*this == info);
+  }
 };
 
 /* Device */

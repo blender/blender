@@ -108,33 +108,6 @@ set(SRC
   engines/compositor/compositor_engine.cc
   engines/image/image_engine.cc
   engines/image/image_shader.cc
-  engines/eevee/eevee_bloom.cc
-  engines/eevee/eevee_cryptomatte.cc
-  engines/eevee/eevee_data.cc
-  engines/eevee/eevee_depth_of_field.cc
-  engines/eevee/eevee_effects.cc
-  engines/eevee/eevee_engine.cc
-  engines/eevee/eevee_lightcache.cc
-  engines/eevee/eevee_lightprobes.cc
-  engines/eevee/eevee_lights.cc
-  engines/eevee/eevee_lookdev.cc
-  engines/eevee/eevee_lut_gen.cc
-  engines/eevee/eevee_materials.cc
-  engines/eevee/eevee_mist.cc
-  engines/eevee/eevee_motion_blur.cc
-  engines/eevee/eevee_occlusion.cc
-  engines/eevee/eevee_render.cc
-  engines/eevee/eevee_renderpasses.cc
-  engines/eevee/eevee_sampling.cc
-  engines/eevee/eevee_screen_raytrace.cc
-  engines/eevee/eevee_shaders.cc
-  engines/eevee/eevee_shaders_extra.cc
-  engines/eevee/eevee_shadows.cc
-  engines/eevee/eevee_shadows_cascade.cc
-  engines/eevee/eevee_shadows_cube.cc
-  engines/eevee/eevee_subsurface.cc
-  engines/eevee/eevee_temporal_sampling.cc
-  engines/eevee/eevee_volumes.cc
   engines/eevee_next/eevee_ambient_occlusion.cc
   engines/eevee_next/eevee_camera.cc
   engines/eevee_next/eevee_cryptomatte.cc
@@ -267,10 +240,6 @@ set(SRC
   engines/basic/basic_engine.h
   engines/basic/basic_private.h
   engines/compositor/compositor_engine.h
-  engines/eevee/eevee_engine.h
-  engines/eevee/eevee_lightcache.h
-  engines/eevee/eevee_private.hh
-  engines/eevee/engine_eevee_shared_defines.h
   engines/eevee_next/eevee_ambient_occlusion.hh
   engines/eevee_next/eevee_camera.hh
   engines/eevee_next/eevee_cryptomatte.hh
@@ -353,104 +322,6 @@ set(LIB
 )
 
 set(GLSL_SRC
-  engines/eevee/shaders/ambient_occlusion_lib.glsl
-  engines/eevee/shaders/background_vert.glsl
-  engines/eevee/shaders/common_uniforms_lib.glsl
-  engines/eevee/shaders/common_utiltex_lib.glsl
-  engines/eevee/shaders/lights_lib.glsl
-  engines/eevee/shaders/lightprobe_lib.glsl
-  engines/eevee/shaders/lightprobe_filter_glossy_frag.glsl
-  engines/eevee/shaders/lightprobe_filter_diffuse_frag.glsl
-  engines/eevee/shaders/lightprobe_filter_visibility_frag.glsl
-  engines/eevee/shaders/lightprobe_geom.glsl
-  engines/eevee/shaders/lightprobe_vert.glsl
-  engines/eevee/shaders/lightprobe_vert_no_geom.glsl
-  engines/eevee/shaders/lightprobe_cube_display_frag.glsl
-  engines/eevee/shaders/lightprobe_cube_display_vert.glsl
-  engines/eevee/shaders/lightprobe_grid_display_frag.glsl
-  engines/eevee/shaders/lightprobe_grid_display_vert.glsl
-  engines/eevee/shaders/lightprobe_grid_fill_frag.glsl
-  engines/eevee/shaders/lightprobe_planar_display_frag.glsl
-  engines/eevee/shaders/lightprobe_planar_display_vert.glsl
-  engines/eevee/shaders/lookdev_world_frag.glsl
-  engines/eevee/shaders/closure_eval_lib.glsl
-  engines/eevee/shaders/closure_eval_diffuse_lib.glsl
-  engines/eevee/shaders/closure_eval_glossy_lib.glsl
-  engines/eevee/shaders/closure_eval_surface_lib.glsl
-  engines/eevee/shaders/closure_eval_refraction_lib.glsl
-  engines/eevee/shaders/closure_eval_volume_lib.glsl
-  engines/eevee/shaders/closure_eval_translucent_lib.glsl
-  engines/eevee/shaders/closure_type_lib.glsl
-  engines/eevee/shaders/eevee_empty.glsl
-  engines/eevee/shaders/eevee_empty_volume.glsl
-  engines/eevee/shaders/effect_bloom_frag.glsl
-  engines/eevee/shaders/effect_dof_bokeh_frag.glsl
-  engines/eevee/shaders/effect_dof_dilate_tiles_frag.glsl
-  engines/eevee/shaders/effect_dof_downsample_frag.glsl
-  engines/eevee/shaders/effect_dof_filter_frag.glsl
-  engines/eevee/shaders/effect_dof_flatten_tiles_frag.glsl
-  engines/eevee/shaders/effect_dof_gather_frag.glsl
-  engines/eevee/shaders/effect_dof_lib.glsl
-  engines/eevee/shaders/effect_dof_reduce_frag.glsl
-  engines/eevee/shaders/effect_dof_resolve_frag.glsl
-  engines/eevee/shaders/effect_dof_scatter_frag.glsl
-  engines/eevee/shaders/effect_dof_scatter_vert.glsl
-  engines/eevee/shaders/effect_dof_setup_frag.glsl
-  engines/eevee/shaders/effect_reflection_lib.glsl
-  engines/eevee/shaders/effect_reflection_resolve_frag.glsl
-  engines/eevee/shaders/effect_reflection_trace_frag.glsl
-  engines/eevee/shaders/effect_downsample_frag.glsl
-  engines/eevee/shaders/effect_downsample_cube_frag.glsl
-  engines/eevee/shaders/effect_gtao_frag.glsl
-  engines/eevee/shaders/effect_velocity_resolve_frag.glsl
-  engines/eevee/shaders/effect_velocity_tile_frag.glsl
-  engines/eevee/shaders/effect_minmaxz_frag.glsl
-  engines/eevee/shaders/effect_mist_frag.glsl
-  engines/eevee/shaders/effect_motion_blur_frag.glsl
-  engines/eevee/shaders/effect_subsurface_frag.glsl
-  engines/eevee/shaders/effect_translucency_frag.glsl
-  engines/eevee/shaders/effect_temporal_aa.glsl
-  engines/eevee/shaders/lightprobe_planar_downsample_frag.glsl
-  engines/eevee/shaders/lightprobe_planar_downsample_geom.glsl
-  engines/eevee/shaders/lightprobe_planar_downsample_vert.glsl
-  engines/eevee/shaders/object_motion_frag.glsl
-  engines/eevee/shaders/object_motion_vert.glsl
-  engines/eevee/shaders/prepass_frag.glsl
-  engines/eevee/shaders/shadow_accum_frag.glsl
-  engines/eevee/shaders/shadow_frag.glsl
-  engines/eevee/shaders/shadow_vert.glsl
-  engines/eevee/shaders/bsdf_lut_frag.glsl
-  engines/eevee/shaders/btdf_lut_frag.glsl
-  engines/eevee/shaders/bsdf_common_lib.glsl
-  engines/eevee/shaders/irradiance_lib.glsl
-  engines/eevee/shaders/octahedron_lib.glsl
-  engines/eevee/shaders/bsdf_sampling_lib.glsl
-  engines/eevee/shaders/random_lib.glsl
-  engines/eevee/shaders/raytrace_lib.glsl
-  engines/eevee/shaders/renderpass_accumulate_frag.glsl
-  engines/eevee/shaders/renderpass_lib.glsl
-  engines/eevee/shaders/renderpass_postprocess_frag.glsl
-  engines/eevee/shaders/cryptomatte_frag.glsl
-  engines/eevee/shaders/cryptomatte_vert.glsl
-  engines/eevee/shaders/ltc_lib.glsl
-  engines/eevee/shaders/ssr_lib.glsl
-  engines/eevee/shaders/surface_frag.glsl
-  engines/eevee/shaders/surface_geom.glsl
-  engines/eevee/shaders/surface_lib.glsl
-  engines/eevee/shaders/surface_vert.glsl
-  engines/eevee/shaders/update_noise_frag.glsl
-  engines/eevee/shaders/volumetric_accum_frag.glsl
-  engines/eevee/shaders/volumetric_lib.glsl
-  engines/eevee/shaders/volumetric_frag.glsl
-  engines/eevee/shaders/volumetric_geom.glsl
-  engines/eevee/shaders/volumetric_vert.glsl
-  engines/eevee/shaders/volumetric_resolve_frag.glsl
-  engines/eevee/shaders/volumetric_scatter_frag.glsl
-  engines/eevee/shaders/volumetric_integration_frag.glsl
-  engines/eevee/shaders/world_vert.glsl
-  engines/eevee/shaders/infos/engine_eevee_legacy_shared.h
-  engines/eevee/engine_eevee_shared_defines.h
-
   engines/eevee_next/shaders/eevee_ambient_occlusion_lib.glsl
   engines/eevee_next/shaders/eevee_ambient_occlusion_pass_comp.glsl
   engines/eevee_next/shaders/eevee_attributes_lib.glsl

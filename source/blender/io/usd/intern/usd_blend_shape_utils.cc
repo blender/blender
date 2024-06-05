@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_blend_shape_utils.hh"
+#include "usd_utils.hh"
 
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdSkel/animMapper.h>
@@ -190,7 +191,8 @@ bool is_mesh_with_shape_keys(const Object *obj)
 
 void create_blend_shapes(pxr::UsdStageRefPtr stage,
                          const Object *obj,
-                         const pxr::UsdPrim &mesh_prim)
+                         const pxr::UsdPrim &mesh_prim,
+                         bool allow_unicode)
 {
   const Key *key = get_mesh_shape_key(obj);
 
@@ -229,7 +231,7 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
       continue;
     }
 
-    pxr::TfToken name(pxr::TfMakeValidIdentifier(kb->name));
+    pxr::TfToken name(make_safe_name(kb->name, allow_unicode));
     blendshape_names.push_back(name);
 
     pxr::SdfPath path = mesh_prim.GetPath().AppendChild(name);

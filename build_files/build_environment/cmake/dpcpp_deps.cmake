@@ -71,3 +71,13 @@ ExternalProject_Add(external_unifiedruntime
   BUILD_COMMAND echo .
   INSTALL_COMMAND echo .
 )
+
+ExternalProject_Add(external_unifiedmemoryframework
+  URL file://${PACKAGE_DIR}/${UNIFIED_MEMORY_FRAMEWORK_FILE}
+  URL_HASH ${UNIFIED_MEMORY_FRAMEWORK_HASH_TYPE}=${UNIFIED_MEMORY_FRAMEWORK_HASH}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  PREFIX ${BUILD_DIR}/unifiedmemoryframework
+  CONFIGURE_COMMAND echo .
+  BUILD_COMMAND echo .
+  INSTALL_COMMAND echo .
+)

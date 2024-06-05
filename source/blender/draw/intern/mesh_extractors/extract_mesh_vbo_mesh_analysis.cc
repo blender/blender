@@ -22,25 +22,6 @@
 
 namespace blender::draw {
 
-/* ---------------------------------------------------------------------- */
-/** \name Extract Edit Mesh Analysis Colors
- * \{ */
-
-static void extract_mesh_analysis_init(const MeshRenderData &mr,
-                                       MeshBatchCache & /*cache*/,
-                                       void *buf,
-                                       void * /*tls_data*/)
-{
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  }
-
-  GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-}
-
 static void axis_from_enum_v3(float v[3], const char axis)
 {
   zero_v3(v);
@@ -68,7 +49,7 @@ BLI_INLINE float overhang_remap(float fac, float min, float max, float minmax_ir
   return fac;
 }
 
-static void statvis_calc_overhang(const MeshRenderData &mr, float *r_overhang)
+static void statvis_calc_overhang(const MeshRenderData &mr, MutableSpan<float> r_overhang)
 {
   const MeshStatVis *statvis = &mr.toolsettings->statvis;
   const float min = statvis->overhang_min / float(M_PI);
@@ -139,11 +120,11 @@ BLI_INLINE float thickness_remap(float fac, float min, float max, float minmax_i
   return fac;
 }
 
-static void statvis_calc_thickness(const MeshRenderData &mr, float *r_thickness)
+static void statvis_calc_thickness(const MeshRenderData &mr, MutableSpan<float> r_thickness)
 {
   const float eps_offset = 0.00002f; /* values <= 0.00001 give errors */
   /* cheating to avoid another allocation */
-  float *face_dists = r_thickness + (mr.corners_num - mr.faces_num);
+  float *face_dists = r_thickness.data() + (mr.corners_num - mr.faces_num);
   BMEditMesh *em = mr.edit_bmesh;
   const float scale = 1.0f / mat4_to_scale(mr.object_to_world.ptr());
   const MeshStatVis *statvis = &mr.toolsettings->statvis;
@@ -303,7 +284,7 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*threa
           ((verts_shared == 0) || (len_squared_v3v3(ix_pair[0], ix_pair[1]) > data->epsilon)));
 }
 
-static void statvis_calc_intersect(const MeshRenderData &mr, float *r_intersect)
+static void statvis_calc_intersect(const MeshRenderData &mr, MutableSpan<float> r_intersect)
 {
   BMEditMesh *em = mr.edit_bmesh;
 
@@ -384,7 +365,7 @@ BLI_INLINE float distort_remap(float fac, float min, float /*max*/, float minmax
   return fac;
 }
 
-static void statvis_calc_distort(const MeshRenderData &mr, float *r_distort)
+static void statvis_calc_distort(const MeshRenderData &mr, MutableSpan<float> r_distort)
 {
   BMEditMesh *em = mr.edit_bmesh;
   const MeshStatVis *statvis = &mr.toolsettings->statvis;
@@ -487,7 +468,7 @@ BLI_INLINE float sharp_remap(float fac, float min, float /*max*/, float minmax_i
   return fac;
 }
 
-static void statvis_calc_sharp(const MeshRenderData &mr, float *r_sharp)
+static void statvis_calc_sharp(const MeshRenderData &mr, MutableSpan<float> r_sharp)
 {
   BMEditMesh *em = mr.edit_bmesh;
   const MeshStatVis *statvis = &mr.toolsettings->statvis;
@@ -581,51 +562,35 @@ static void statvis_calc_sharp(const MeshRenderData &mr, float *r_sharp)
   MEM_freeN(vert_angles);
 }
 
-static void extract_analysis_iter_finish_mesh(const MeshRenderData &mr,
-                                              MeshBatchCache & /*cache*/,
-                                              void *buf,
-                                              void * /*data*/)
+void extract_mesh_analysis(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
-  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   BLI_assert(mr.edit_bmesh);
 
-  float *l_weight = (float *)GPU_vertbuf_get_data(vbo);
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  }
+  GPU_vertbuf_init_with_format(&vbo, &format);
+  GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
+  MutableSpan<float> vbo_data(static_cast<float *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
 
   switch (mr.toolsettings->statvis.type) {
     case SCE_STATVIS_OVERHANG:
-      statvis_calc_overhang(mr, l_weight);
+      statvis_calc_overhang(mr, vbo_data);
       break;
     case SCE_STATVIS_THICKNESS:
-      statvis_calc_thickness(mr, l_weight);
+      statvis_calc_thickness(mr, vbo_data);
       break;
     case SCE_STATVIS_INTERSECT:
-      statvis_calc_intersect(mr, l_weight);
+      statvis_calc_intersect(mr, vbo_data);
       break;
     case SCE_STATVIS_DISTORT:
-      statvis_calc_distort(mr, l_weight);
+      statvis_calc_distort(mr, vbo_data);
       break;
     case SCE_STATVIS_SHARP:
-      statvis_calc_sharp(mr, l_weight);
+      statvis_calc_sharp(mr, vbo_data);
       break;
   }
 }
-
-constexpr MeshExtract create_extractor_mesh_analysis()
-{
-  MeshExtract extractor = {nullptr};
-  extractor.init = extract_mesh_analysis_init;
-  extractor.finish = extract_analysis_iter_finish_mesh;
-  /* This is not needed for all visualization types.
-   * Maybe split into different extract. */
-  extractor.data_type = MR_DATA_POLY_NOR;
-  extractor.data_size = 0;
-  extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.mesh_analysis);
-  return extractor;
-}
-
-/** \} */
-
-const MeshExtract extract_mesh_analysis = create_extractor_mesh_analysis();
 
 }  // namespace blender::draw

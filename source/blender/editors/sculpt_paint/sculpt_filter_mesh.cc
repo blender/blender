@@ -733,7 +733,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
     bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
   }
 
-  SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
+  flush_update_step(C, UpdateType::Position);
 }
 
 static void sculpt_mesh_update_strength(wmOperator *op,
@@ -784,7 +784,7 @@ static void sculpt_mesh_filter_end(bContext *C)
   SculptSession &ss = *ob.sculpt;
 
   cache_free(ss);
-  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
+  flush_update_done(C, ob, UpdateType::Position);
 }
 
 static int sculpt_mesh_filter_confirm(SculptSession &ss,

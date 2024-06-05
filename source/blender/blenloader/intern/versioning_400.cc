@@ -844,6 +844,63 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
         bmain, NTREE_SHADER, SH_NODE_SUBSURFACE_SCATTERING, 4, 1, 5);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 51)) {
+    /* Convert blend method to math nodes. */
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    bool scene_uses_eevee_legacy = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+
+    if (scene_uses_eevee_legacy) {
+      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+        if (!material->use_nodes || material->nodetree == nullptr) {
+          continue;
+        }
+
+        if (ELEM(material->blend_method, MA_BM_HASHED, MA_BM_BLEND)) {
+          /* Compatible modes. Nothing to change. */
+          continue;
+        }
+
+        if (material->blend_shadow == MA_BS_NONE) {
+          /* No need to match the surface since shadows are disabled. */
+        }
+        else if (material->blend_shadow == MA_BS_SOLID) {
+          /* This is already versionned an transfered to `transparent_shadows`. */
+        }
+        else if ((material->blend_shadow == MA_BS_CLIP && material->blend_method != MA_BM_CLIP) ||
+                 (material->blend_shadow == MA_BS_HASHED))
+        {
+          BLO_reportf_wrap(fd->reports,
+                           RPT_WARNING,
+                           RPT_("Couldn't convert material %s because of different Blend Mode "
+                                "and Shadow Mode\n"),
+                           material->id.name + 2);
+          continue;
+        }
+
+        /* TODO(fclem): Check if theshold is driven or has animation. Bail out if needed? */
+
+        float threshold = (material->blend_method == MA_BM_CLIP) ? material->alpha_threshold :
+                                                                   2.0f;
+
+        if (!versioning_eevee_material_blend_mode_settings(material->nodetree, threshold)) {
+          BLO_reportf_wrap(
+              fd->reports,
+              RPT_WARNING,
+              RPT_("Couldn't convert material %s because of non-trivial alpha blending\n"),
+              material->id.name + 2);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 52)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE)) {
+        STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE_NEXT);
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
@@ -4029,56 +4086,43 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 51)) {
-    /* Convert blend method to math nodes. */
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    bool scene_uses_eevee_legacy = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
-
-    if (scene_uses_eevee_legacy) {
-      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
-        if (!material->use_nodes || material->nodetree == nullptr) {
-          continue;
-        }
-
-        if (ELEM(material->blend_method, MA_BM_HASHED, MA_BM_BLEND)) {
-          /* Compatible modes. Nothing to change. */
-          continue;
-        }
-
-        if (material->blend_shadow == MA_BS_NONE) {
-          /* No need to match the surface since shadows are disabled. */
-        }
-        else if (material->blend_shadow == MA_BS_SOLID) {
-          /* This is already versionned an transfered to `transparent_shadows`. */
-        }
-        else if ((material->blend_shadow == MA_BS_CLIP && material->blend_method != MA_BM_CLIP) ||
-                 (material->blend_shadow == MA_BS_HASHED))
-        {
-          BLO_reportf_wrap(fd->reports,
-                           RPT_WARNING,
-                           RPT_("Couldn't convert material %s because of different Blend Mode "
-                                "and Shadow Mode\n"),
-                           material->id.name + 2);
-          continue;
-        }
-
-        /* TODO(fclem): Check if theshold is driven or has animation. Bail out if needed? */
-
-        float threshold = (material->blend_method == MA_BM_CLIP) ? material->alpha_threshold :
-                                                                   2.0f;
-
-        if (!versioning_eevee_material_blend_mode_settings(material->nodetree, threshold)) {
-          BLO_reportf_wrap(
-              fd->reports,
-              RPT_WARNING,
-              RPT_("Couldn't convert material %s because of non-trivial alpha blending\n"),
-              material->id.name + 2);
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 53)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_NODE) {
+            SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
+            snode->overlay.flag |= SN_OVERLAY_SHOW_REROUTE_AUTO_LABELS;
+          }
         }
       }
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 52)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 55)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != CMP_NODE_CURVE_RGB) {
+          continue;
+        }
+
+        CurveMapping &curve_mapping = *static_cast<CurveMapping *>(node->storage);
+
+        /* Film-like tone only works with the combined curve, which is the fourth curve, so make
+         * the combined curve current, as we now hide the rest of the curves since they no longer
+         * have an effect. */
+        if (curve_mapping.tone == CURVE_TONE_FILMLIKE) {
+          curve_mapping.cur = 3;
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 1)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
 

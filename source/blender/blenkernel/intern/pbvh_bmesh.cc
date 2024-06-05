@@ -210,7 +210,7 @@ static void pbvh_bmesh_node_finalize(PBVH &pbvh,
   PBVHNode *n = &pbvh.nodes[node_index];
   bool has_visible = false;
 
-  n->vb = negative_bounds();
+  n->bounds = negative_bounds();
 
   for (BMFace *f : n->bm_faces) {
     /* Update ownership of faces. */
@@ -232,7 +232,7 @@ static void pbvh_bmesh_node_finalize(PBVH &pbvh,
         }
       }
       /* Update node bounding box. */
-      math::min_max(float3(v->co), n->vb.min, n->vb.max);
+      math::min_max(float3(v->co), n->bounds.min, n->bounds.max);
     } while ((l_iter = l_iter->next) != l_first);
 
     if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -240,10 +240,10 @@ static void pbvh_bmesh_node_finalize(PBVH &pbvh,
     }
   }
 
-  BLI_assert(n->vb.min[0] <= n->vb.max[0] && n->vb.min[1] <= n->vb.max[1] &&
-             n->vb.min[2] <= n->vb.max[2]);
+  BLI_assert(n->bounds.min[0] <= n->bounds.max[0] && n->bounds.min[1] <= n->bounds.max[1] &&
+             n->bounds.min[2] <= n->bounds.max[2]);
 
-  n->orig_vb = n->vb;
+  n->bounds_orig = n->bounds;
 
   /* Build GPU buffers for new node and update vertex normals. */
   BKE_pbvh_node_mark_rebuild_draw(n);
@@ -350,8 +350,9 @@ static void pbvh_bmesh_node_split(PBVH &pbvh,
   n = &pbvh.nodes[node_index];
 
   /* Update bounding box. */
-  n->vb = bounds::merge(pbvh.nodes[n->children_offset].vb, pbvh.nodes[n->children_offset + 1].vb);
-  n->orig_vb = n->vb;
+  n->bounds = bounds::merge(pbvh.nodes[n->children_offset].bounds,
+                            pbvh.nodes[n->children_offset + 1].bounds);
+  n->bounds_orig = n->bounds;
 }
 
 /** Recursively split the node if it exceeds the leaf_limit. */
@@ -2069,9 +2070,9 @@ static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *pbvh,
     n = &pbvh->nodes[node_index];
 
     /* Update bounding box. */
-    n->vb = bounds::merge(pbvh->nodes[n->children_offset].vb,
-                          pbvh->nodes[n->children_offset + 1].vb);
-    n->orig_vb = n->vb;
+    n->bounds = bounds::merge(pbvh->nodes[n->children_offset].bounds,
+                              pbvh->nodes[n->children_offset + 1].bounds);
+    n->bounds_orig = n->bounds;
   }
   else {
     /* Node does not have children so it's a leaf node, populate with faces and tag accordingly
@@ -2084,7 +2085,7 @@ static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *pbvh,
     n->flag = PBVH_Leaf;
     n->bm_faces.reserve(node->totface);
 
-    n->vb = face_bounds[node->start];
+    n->bounds = face_bounds[node->start];
 
     const int end = node->start + node->totface;
 
@@ -2116,13 +2117,13 @@ static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *pbvh,
         has_visible = true;
       }
 
-      n->vb = bounds::merge(n->vb, face_bounds[BM_elem_index_get(f)]);
+      n->bounds = bounds::merge(n->bounds, face_bounds[BM_elem_index_get(f)]);
     }
 
-    BLI_assert(n->vb.min[0] <= n->vb.max[0] && n->vb.min[1] <= n->vb.max[1] &&
-               n->vb.min[2] <= n->vb.max[2]);
+    BLI_assert(n->bounds.min[0] <= n->bounds.max[0] && n->bounds.min[1] <= n->bounds.max[1] &&
+               n->bounds.min[2] <= n->bounds.max[2]);
 
-    n->orig_vb = n->vb;
+    n->bounds_orig = n->bounds;
 
     /* Build GPU buffers for new node and update vertex normals. */
     BKE_pbvh_node_mark_rebuild_draw(n);

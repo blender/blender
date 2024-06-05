@@ -263,7 +263,7 @@ def draw_material_settings(self, context):
     if mat.blend_method not in {'OPAQUE', 'CLIP', 'HASHED'}:
         layout.prop(mat, "show_transparent_back")
 
-    layout.prop(mat, "use_screen_refraction")
+    layout.prop(mat, "use_raytrace_refraction")
     layout.prop(mat, "refraction_depth")
     layout.prop(mat, "use_sss_translucency")
     layout.prop(mat, "pass_index")
@@ -334,9 +334,9 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         col = layout.column()
         col.prop(mat, "surface_render_method", text="Render Method")
         if mat.surface_render_method == 'BLENDED':
-            col.prop(mat, "show_transparent_back", text="Transparency Overlap")
+            col.prop(mat, "use_transparency_overlap", text="Transparency Overlap")
         elif mat.surface_render_method == 'DITHERED':
-            col.prop(mat, "use_screen_refraction", text="Raytraced Transmission")
+            col.prop(mat, "use_raytrace_refraction", text="Raytraced Transmission")
 
         col = layout.column()
         col.prop(mat, "thickness_mode", text="Thickness")

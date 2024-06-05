@@ -792,7 +792,8 @@ class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        asset_data = asset_utils.SpaceAssetInfo.get_active_asset(context)
+        active_asset = context.asset
+        asset_data = active_asset.asset_data
 
         row = layout.row()
         row.template_list(

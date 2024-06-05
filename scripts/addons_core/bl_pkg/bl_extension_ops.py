@@ -155,9 +155,6 @@ def extension_url_find_repo_index_and_pkg_id(url):
     from .bl_extension_utils import (
         pkg_manifest_archive_url_abs_from_remote_url,
     )
-    from .bl_extension_ops import (
-        extension_repos_read,
-    )
     # return repo_index, pkg_id
     from . import repo_cache_store
 
@@ -466,13 +463,13 @@ def _preferences_ensure_sync():
     # This is a general issue:
     from . import repo_cache_store
     sync_required = False
-    for repo_index, (
+    for (
             pkg_manifest_remote,
             pkg_manifest_local,
-    ) in enumerate(zip(
+    ) in zip(
         repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
         repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
-    )):
+    ):
         if pkg_manifest_remote is None:
             sync_required = True
             break

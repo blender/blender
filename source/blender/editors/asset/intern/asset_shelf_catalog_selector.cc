@@ -209,7 +209,7 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
       *block,
       "asset catalog tree view",
       std::make_unique<AssetCatalogSelectorTree>(*library, *shelf));
-
+  tree_view->set_context_menu_title("Catalog");
   ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }
 

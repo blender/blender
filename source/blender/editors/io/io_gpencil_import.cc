@@ -132,7 +132,7 @@ static bool wm_gpencil_import_svg_poll(bContext *C)
 
 void WM_OT_gpencil_import_svg(wmOperatorType *ot)
 {
-  ot->name = "Import SVG";
+  ot->name = "Import SVG as Grease Pencil";
   ot->description = "Import SVG into grease pencil";
   ot->idname = "WM_OT_gpencil_import_svg";
 

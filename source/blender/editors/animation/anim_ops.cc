@@ -232,6 +232,10 @@ static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *ev
   }
 
   const Scene *scene = CTX_data_scene(C);
+  if (!SEQ_editing_get(scene)) {
+    return false;
+  }
+
   const View2D *v2d = UI_view2d_fromcontext(C);
 
   float mouse_co[2];

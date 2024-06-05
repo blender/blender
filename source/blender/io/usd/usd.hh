@@ -129,9 +129,11 @@ struct USDExportParams {
   bool export_cameras = true;
   bool export_curves = true;
   bool export_volumes = true;
-
   eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize::USD_TEXTURE_SIZE_KEEP;
   int usdz_downscale_custom_size = 128;
+
+  bool allow_unicode = false;
+
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
 
