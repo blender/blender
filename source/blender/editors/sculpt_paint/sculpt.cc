@@ -1213,8 +1213,12 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
                                 const blender::ed::sculpt_paint::undo::Type type)
 {
   using namespace blender::ed::sculpt_paint;
-  undo::Node *unode = undo::push_node(ob, &node, type);
-  SCULPT_orig_vert_data_unode_init(data, ob, *unode);
+  if (undo::Node *unode = undo::get_node(&node, type)) {
+    SCULPT_orig_vert_data_unode_init(data, ob, *unode);
+  }
+  else {
+    data = {};
+  }
 }
 
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter)
@@ -1333,7 +1337,7 @@ static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
       const int offset = CustomData_get_offset_named(&ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       if (offset != -1) {
         for (PBVHNode *node : nodes) {
-          if (undo::push_node(object, node, undo::Type::Mask)) {
+          if (undo::get_node(node, undo::Type::Mask)) {
             for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
               const float orig_mask = BM_log_original_mask(ss.bm_log, vert);
               BM_ELEM_CD_SET_FLOAT(vert, offset, orig_mask);
@@ -1398,7 +1402,7 @@ static void restore_color(Object &object, const Span<PBVHNode *> nodes)
     }
     case PBVH_BMESH: {
       for (PBVHNode *node : nodes) {
-        if (undo::Node *unode = undo::push_node(object, node, undo::Type::Color)) {
+        if (undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
           restore_generic(node, unode);
         }
       }
@@ -1461,7 +1465,7 @@ static void restore_position(Object &object, const Span<PBVHNode *> nodes)
     }
     case PBVH_BMESH: {
       for (PBVHNode *node : nodes) {
-        if (undo::push_node(object, node, undo::Type::Position)) {
+        if (undo::get_node(node, undo::Type::Position)) {
           for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
             copy_v3_v3(vert->co, BM_log_original_vert_co(ss.bm_log, vert));
           }
@@ -1895,8 +1899,10 @@ static void calc_area_normal_and_center_task(const Object &ob,
   bool normal_test_r, area_test_r;
 
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::push_node(ob, node, undo::Type::Position);
-    use_original = (!unode->position.is_empty() || unode->bm_entry);
+    unode = undo::get_node(node, undo::Type::Position);
+    if (unode) {
+      use_original = (!unode->position.is_empty() || unode->bm_entry);
+    }
   }
 
   SculptBrushTest normal_test;
@@ -3743,7 +3749,7 @@ static void sculpt_combine_proxies_node(Object &object,
   float(*orco)[3] = nullptr;
   if (use_orco && !ss.bm) {
     orco = reinterpret_cast<float(*)[3]>(
-        (undo::push_node(object, &node, undo::Type::Position)->position.data()));
+        (undo::get_node(&node, undo::Type::Position)->position.data()));
   }
 
   MutableSpan<PBVHProxyNode> proxies = BKE_pbvh_node_get_proxies(&node);
