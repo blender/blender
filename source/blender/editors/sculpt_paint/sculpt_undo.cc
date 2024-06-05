@@ -1059,7 +1059,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   }
 
   if (changed_position) {
-    bke::pbvh::update_bounds(*ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
+    bke::pbvh::update_bounds(*ss->pbvh);
+    bke::pbvh::store_bounds_orig(*ss->pbvh);
   }
   if (changed_mask) {
     bke::pbvh::update_mask(*ss->pbvh);

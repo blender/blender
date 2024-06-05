@@ -545,7 +545,7 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
   cache->radius_squared = cache->radius * cache->radius;
 
   if (ss.pbvh) {
-    bke::pbvh::update_bounds(*ss.pbvh, PBVH_UpdateBB);
+    bke::pbvh::update_bounds(*ss.pbvh);
   }
 }
 

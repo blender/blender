@@ -829,7 +829,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     BKE_pbvh_node_mark_update(node);
   }
 
-  blender::bke::pbvh::update_bounds(*ss->pbvh, PBVH_UpdateBB);
+  blender::bke::pbvh::update_bounds(*ss->pbvh);
 }
 
 static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)

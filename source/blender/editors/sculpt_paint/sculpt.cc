@@ -5368,7 +5368,7 @@ void flush_update_step(bContext *C, UpdateType update_type)
     rcti r;
 
     if (update_type == UpdateType::Position) {
-      bke::pbvh::update_bounds(*ss.pbvh, PBVH_UpdateBB);
+      bke::pbvh::update_bounds(*ss.pbvh);
     }
 
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -5469,7 +5469,7 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
   }
 
   if (update_type == UpdateType::Position) {
-    bke::pbvh::update_bounds(*ss.pbvh, PBVH_UpdateOriginalBB);
+    bke::pbvh::store_bounds_orig(*ss.pbvh);
 
     /* Coordinates were modified, so fake neighbors are not longer valid. */
     SCULPT_fake_neighbors_free(ob);

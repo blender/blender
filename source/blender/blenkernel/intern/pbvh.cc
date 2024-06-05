@@ -1277,97 +1277,72 @@ void update_node_bounds_bmesh(PBVHNode &node)
   node.bounds = bounds;
 }
 
-/* Not recursive */
-static void calc_node_bounds(PBVH &pbvh, PBVHNode *node)
-{
-  if (node->flag & PBVH_Leaf) {
-    switch (pbvh.header.type) {
-      case PBVH_FACES:
-        update_node_bounds_mesh(pbvh.vert_positions, *node);
-        break;
-      case PBVH_GRIDS:
-        update_node_bounds_grids(pbvh.gridkey, pbvh.subdiv_ccg->grids, *node);
-        break;
-      case PBVH_BMESH:
-        update_node_bounds_bmesh(*node);
-        break;
-    }
-  }
-  else {
-    node->bounds = bounds::merge(pbvh.nodes[node->children_offset].bounds,
-                                 pbvh.nodes[node->children_offset + 1].bounds);
-  }
-}
-
-static void node_update_and_flush_bounds(PBVH &pbvh, PBVHNode &node, const PBVHNodeFlags flag)
-{
-  if ((flag & PBVH_UpdateBB) && (node.flag & PBVH_UpdateBB)) {
-    /* don't clear flag yet, leave it for flushing later */
-    /* Note that bvh usage is read-only here, so no need to thread-protect it. */
-    calc_node_bounds(pbvh, &node);
-  }
-
-  if ((flag & PBVH_UpdateOriginalBB) && (node.flag & PBVH_UpdateOriginalBB)) {
-    node.bounds_orig = node.bounds;
-  }
-}
-
-static void update_bounds_redraw(PBVH &pbvh, Span<PBVHNode *> nodes, int flag)
-{
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (PBVHNode *node : nodes.slice(range)) {
-      node_update_and_flush_bounds(pbvh, *node, PBVHNodeFlags(flag));
-    }
-  });
-}
-
-static int flush_bounds(PBVH &pbvh, PBVHNode *node, int flag)
-{
-  int update = 0;
-
-  /* Difficult to multi-thread well, we just do single threaded recursive. */
-  if (node->flag & PBVH_Leaf) {
-    if (flag & PBVH_UpdateBB) {
-      update |= (node->flag & PBVH_UpdateBB);
-      node->flag &= ~PBVH_UpdateBB;
-    }
-
-    if (flag & PBVH_UpdateOriginalBB) {
-      update |= (node->flag & PBVH_UpdateOriginalBB);
-      node->flag &= ~PBVH_UpdateOriginalBB;
-    }
-
-    return update;
-  }
-
-  update |= flush_bounds(pbvh, &pbvh.nodes[node->children_offset], flag);
-  update |= flush_bounds(pbvh, &pbvh.nodes[node->children_offset + 1], flag);
-
-  if (update & PBVH_UpdateBB) {
-    calc_node_bounds(pbvh, node);
-  }
-  if (update & PBVH_UpdateOriginalBB) {
-    node->bounds_orig = node->bounds;
-  }
-
-  return update;
-}
-
-void update_bounds(PBVH &pbvh, int flag)
+static bool update_leaf_node_bounds(PBVH &pbvh)
 {
   Vector<PBVHNode *> nodes = search_gather(
-      pbvh, [&](PBVHNode &node) { return update_search(&node, flag); });
-  if (nodes.is_empty()) {
-    return;
+      pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateBB); });
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.as_span().slice(range)) {
+      switch (pbvh.header.type) {
+        case PBVH_FACES:
+          update_node_bounds_mesh(pbvh.vert_positions, *node);
+          break;
+        case PBVH_GRIDS:
+          update_node_bounds_grids(pbvh.gridkey, pbvh.subdiv_ccg->grids, *node);
+          break;
+        case PBVH_BMESH:
+          update_node_bounds_bmesh(*node);
+          break;
+      }
+    }
+  });
+  return !nodes.is_empty();
+}
+
+struct BoundsMergeInfo {
+  Bounds<float3> bounds;
+  bool update;
+};
+
+static BoundsMergeInfo merge_child_bounds(MutableSpan<PBVHNode> nodes, const int node_index)
+{
+  PBVHNode &node = nodes[node_index];
+  if (node.flag & PBVH_Leaf) {
+    const bool update = node.flag & PBVH_UpdateBB;
+    node.flag &= ~PBVH_UpdateBB;
+    return {node.bounds, update};
   }
 
-  if (flag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB)) {
-    update_bounds_redraw(pbvh, nodes, flag);
+  const BoundsMergeInfo info_0 = merge_child_bounds(nodes, node.children_offset + 0);
+  const BoundsMergeInfo info_1 = merge_child_bounds(nodes, node.children_offset + 1);
+  const bool update = info_0.update || info_1.update;
+  if (update) {
+    node.bounds = bounds::merge(info_0.bounds, info_1.bounds);
   }
+  node.flag &= ~PBVH_UpdateBB;
+  return {node.bounds, update};
+}
 
-  if (flag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB)) {
-    flush_bounds(pbvh, &pbvh.nodes.first(), flag);
+static void flush_bounds_to_parents(PBVH &pbvh)
+{
+  pbvh.nodes.first().bounds = merge_child_bounds(pbvh.nodes, 0).bounds;
+}
+
+void update_bounds(PBVH &pbvh)
+{
+  if (update_leaf_node_bounds(pbvh)) {
+    flush_bounds_to_parents(pbvh);
   }
+}
+
+void store_bounds_orig(PBVH &pbvh)
+{
+  MutableSpan<PBVHNode> nodes = pbvh.nodes;
+  threading::parallel_for(nodes.index_range(), 256, [&](const IndexRange range) {
+    for (const int i : range) {
+      nodes[i].bounds_orig = nodes[i].bounds;
+    }
+  });
 }
 
 void node_update_mask_mesh(const Span<float> mask, PBVHNode &node)
@@ -1686,8 +1661,8 @@ int BKE_pbvh_get_grid_num_faces(const PBVH &pbvh)
 
 void BKE_pbvh_node_mark_update(PBVHNode *node)
 {
-  node->flag |= PBVH_UpdateNormals | PBVH_UpdateBB | PBVH_UpdateOriginalBB |
-                PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_RebuildPixels;
+  node->flag |= PBVH_UpdateNormals | PBVH_UpdateBB | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw |
+                PBVH_RebuildPixels;
 }
 
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node)
@@ -2847,7 +2822,8 @@ void BKE_pbvh_vert_coords_apply(PBVH &pbvh, const Span<float3> vert_positions)
       BKE_pbvh_node_mark_update(&node);
     }
 
-    update_bounds(pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
+    update_bounds(pbvh);
+    store_bounds_orig(pbvh);
   }
 }
 

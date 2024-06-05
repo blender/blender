@@ -353,7 +353,21 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, BMLog *log, PBVHNode *node, bool u
 void BKE_pbvh_bmesh_after_stroke(PBVH &pbvh);
 
 namespace blender::bke::pbvh {
-void update_bounds(PBVH &pbvh, int flags);
+
+/**
+ * Recalculate node bounding boxes based on the current coordinates. Calculation is only done for
+ * affected nodes with the #PBVH_UpdateBB flag set.
+ */
+void update_bounds(PBVH &pbvh);
+
+/**
+ * Copy all current node bounds to the original bounds. "Original" bounds are typically from before
+ * a brush stroke started (while the "regular" bounds update on every change of positions). These
+ * are stored to optimize the BVH traversal for original coordinates enabled by various "use
+ * original" arguments in the PBVH API.
+ */
+void store_bounds_orig(PBVH &pbvh);
+
 void update_mask(PBVH &pbvh);
 void update_visibility(PBVH &pbvh);
 void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg);
