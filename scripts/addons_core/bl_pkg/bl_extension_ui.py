@@ -895,7 +895,7 @@ def extensions_panel_draw(panel, context):
     row_b = row.row(align=True)
     row_b.prop(wm, "extension_type", text="")
     row_b.popover("USERPREF_PT_extensions_filter", text="", icon='FILTER')
-    row_b.popover("USERPREF_PT_extensions_tags", text="", icon='COLOR')
+    row_b.popover("USERPREF_PT_extensions_tags", text="", icon='TAG')
 
     row_b.separator()
     row_b.popover("USERPREF_PT_extensions_repos", text="Repositories")
