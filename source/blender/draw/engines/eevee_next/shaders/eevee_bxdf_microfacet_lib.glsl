@@ -138,7 +138,10 @@ BsdfSample bxdf_ggx_sample_transmission(
 /* Compute the GGX BxDF without the Fresnel term, multiplied by the cosine foreshortening term. */
 BsdfEval bxdf_ggx_eval(vec3 N, vec3 L, vec3 V, float alpha, float eta, const bool do_reflection)
 {
-  alpha = max(square(BSDF_ROUGHNESS_THRESHOLD), alpha);
+  /* This threshold was computed based on precision of NVidia compiler (see #118997).
+   * These drivers tend to produce NaNs in the computation of the NDF (`D`) if alpha is close to 0.
+   */
+  alpha = max(1e-3, alpha);
 
   float LV = dot(L, V);
   float NV = dot(N, V);
