@@ -282,6 +282,40 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "sp_quat", "VtArray<GfQuatf>", "uniform", 3)
         self.check_primvar_missing(prim, "sp_mat4x4")
 
+    def test_materialx_network(self):
+        """Test exporting that a MaterialX export makes it out alright"""
+        bpy.ops.wm.open_mainfile(
+            filepath=str(self.testdir / "usd_materials_export.blend")
+        )
+        export_path = self.tempdir / "materialx.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(export_path),
+            export_materials=True,
+            generate_materialx_network=True,
+            evaluation_mode="RENDER",
+        )
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        stage = Usd.Stage.Open(str(export_path))
+        material_prim = stage.GetPrimAtPath("/root/_materials/Material")
+        self.assertTrue(material_prim, "Could not find Material prim")
+
+        material = UsdShade.Material(material_prim)
+        mtlx_output = material.GetOutput("mtlx:surface")
+        self.assertTrue(mtlx_output, "Could not find mtlx output")
+
+        connection, source_name, _ = UsdShade.ConnectableAPI.GetConnectedSource(
+            mtlx_output
+        ) or [None, None, None]
+
+        self.assertTrue((connection and source_name), "Could not find mtlx output source")
+
+        shader = UsdShade.Shader(connection.GetPrim())
+        self.assertTrue(shader, "Connected prim is not a shader")
+
+        shader_id = shader.GetIdAttr().Get()
+        self.assertEqual(shader_id, "ND_standard_surface_surfaceshader", "Shader is not a Standard Surface")
+
 
 def main():
     global args

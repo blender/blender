@@ -63,7 +63,9 @@ class HydraSceneDelegate : public pxr::HdSceneDelegate {
   std::unique_ptr<WorldData> world_data_;
 
  public:
-  HydraSceneDelegate(pxr::HdRenderIndex *parent_index, pxr::SdfPath const &delegate_id);
+  HydraSceneDelegate(pxr::HdRenderIndex *parent_index,
+                     pxr::SdfPath const &delegate_id,
+                     bool use_materialx);
   ~HydraSceneDelegate() override = default;
 
   /* Delegate methods */

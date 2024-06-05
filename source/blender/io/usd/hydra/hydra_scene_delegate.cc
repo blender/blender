@@ -33,8 +33,9 @@ bool HydraSceneDelegate::ShadingSettings::operator==(const ShadingSettings &othe
 }
 
 HydraSceneDelegate::HydraSceneDelegate(pxr::HdRenderIndex *parent_index,
-                                       pxr::SdfPath const &delegate_id)
-    : HdSceneDelegate(parent_index, delegate_id)
+                                       pxr::SdfPath const &delegate_id,
+                                       const bool use_materialx)
+    : HdSceneDelegate(parent_index, delegate_id), use_materialx(use_materialx)
 {
   instancer_data_ = std::make_unique<InstancerData>(this, instancer_prim_id());
   world_data_ = std::make_unique<WorldData>(this, world_prim_id());

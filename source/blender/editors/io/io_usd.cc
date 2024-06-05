@@ -232,6 +232,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool evaluation_mode = RNA_enum_get(op->ptr, "evaluation_mode");
 
   const bool generate_preview_surface = RNA_boolean_get(op->ptr, "generate_preview_surface");
+  const bool generate_materialx_network = RNA_boolean_get(op->ptr, "generate_materialx_network");
   const bool export_textures = RNA_boolean_get(op->ptr, "export_textures");
   const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
   const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
@@ -287,6 +288,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       use_instancing,
       eEvaluationMode(evaluation_mode),
       generate_preview_surface,
+      generate_materialx_network,
       export_textures,
       overwrite_textures,
       relative_paths,
@@ -383,13 +385,15 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   box = uiLayoutBox(layout);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
   uiItemR(col, ptr, "generate_preview_surface", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "generate_materialx_network", UI_ITEM_NONE, nullptr, ICON_NONE);
   const bool export_mtl = RNA_boolean_get(ptr, "export_materials");
   uiLayoutSetActive(col, export_mtl);
 
   row = uiLayoutRow(col, true);
   uiItemR(row, ptr, "export_textures", UI_ITEM_NONE, nullptr, ICON_NONE);
   const bool preview = RNA_boolean_get(ptr, "generate_preview_surface");
-  uiLayoutSetActive(row, export_mtl && preview);
+  const bool materialx = RNA_boolean_get(ptr, "generate_materialx_network");
+  uiLayoutSetActive(row, export_mtl && (preview || materialx));
 
   uiLayout *col2 = uiLayoutColumn(col, true);
   uiLayoutSetPropSep(col2, true);
@@ -578,9 +582,15 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "generate_preview_surface",
                   true,
-                  "To USD Preview Surface",
+                  "USD Preview Surface Network",
                   "Generate an approximate USD Preview Surface shader "
                   "representation of a Principled BSDF node network");
+
+  RNA_def_boolean(ot->srna,
+                  "generate_materialx_network",
+                  false,
+                  "MaterialX Network",
+                  "Generate a MaterialX network representation of the materials");
 
   RNA_def_boolean(ot->srna,
                   "convert_orientation",

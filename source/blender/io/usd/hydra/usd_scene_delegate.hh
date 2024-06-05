@@ -24,8 +24,12 @@ class USDSceneDelegate {
   std::string temp_dir_;
   std::string temp_file_;
 
+  bool use_materialx = true;
+
  public:
-  USDSceneDelegate(pxr::HdRenderIndex *render_index, pxr::SdfPath const &delegate_id);
+  USDSceneDelegate(pxr::HdRenderIndex *render_index,
+                   pxr::SdfPath const &delegate_id,
+                   bool use_materialx);
   ~USDSceneDelegate();
 
   void populate(Depsgraph *depsgraph);
