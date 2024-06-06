@@ -1642,7 +1642,7 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         row.template_list(
             "USERPREF_UL_asset_libraries", "user_asset_libraries",
             paths, "asset_libraries",
-            paths, "active_asset_library"
+            paths, "active_asset_library",
         )
 
         col = row.column(align=True)
@@ -2145,7 +2145,7 @@ class USERPREF_PT_extensions_repos(Panel):
         row.template_list(
             "USERPREF_UL_extension_repos", "user_extension_repos",
             extensions, "repos",
-            extensions, "active_repo"
+            extensions, "active_repo",
         )
 
         col = row.column(align=True)

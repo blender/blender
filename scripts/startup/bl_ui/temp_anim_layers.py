@@ -35,7 +35,7 @@ class VIEW3D_PT_animation_layers(Panel):
         # FIXME: this should be done in response to a message-bus callback, notifier, whatnot.
         adt = context.object.animation_data
         with _wm_selected_action_lock:
-            selected_action = getattr(adt, 'action', None)
+            selected_action = getattr(adt, "action", None)
             # Only set if it has to change, to avoid unnecessary notifies (that cause
             # a redraw, that cause this code to be called, etc.)
             if context.window_manager.selected_action != selected_action:
@@ -45,7 +45,7 @@ class VIEW3D_PT_animation_layers(Panel):
         # This has to go via an auxiliary property, as assigning an Animation
         # data-block should be possible even when `context.object.animation_data`
         # is `None`, and thus its `animation` property does not exist.
-        col.template_ID(context.window_manager, 'selected_action')
+        col.template_ID(context.window_manager, "selected_action")
 
         col = layout.column(align=False)
         anim = adt and adt.action
@@ -54,21 +54,21 @@ class VIEW3D_PT_animation_layers(Panel):
 
             # Binding selector.
             row = binding_sub.row(align=True)
-            row.prop(adt, 'action_binding', text="Binding")
-            row.operator('anim.binding_unassign_object', text="", icon='X')
+            row.prop(adt, "action_binding", text="Binding")
+            row.operator("anim.binding_unassign_object", text="", icon='X')
 
             binding = anim.bindings.get(adt.action_binding, None)
             if binding:
-                binding_sub.prop(binding, 'name_display', text="Name")
+                binding_sub.prop(binding, "name_display", text="Name")
 
             internal_sub = binding_sub.box().column(align=True)
             internal_sub.active = False
-            internal_sub.prop(adt, 'action_binding_handle', text="handle")
+            internal_sub.prop(adt, "action_binding_handle", text="handle")
             if binding:
-                internal_sub.prop(binding, 'name', text="Internal Name")
+                internal_sub.prop(binding, "name", text="Internal Name")
 
         if adt:
-            col.prop(adt, 'action_binding_name', text="ADT Binding Name")
+            col.prop(adt, "action_binding_name", text="ADT Binding Name")
         else:
             col.label(text="ADT Binding Name: -")
 

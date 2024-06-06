@@ -60,20 +60,20 @@ class QuickFur(ObjectModeOperator, Operator):
         min=0.001, max=100,
         soft_min=0.01, soft_max=10,
         default=0.1,
-        subtype='DISTANCE'
+        subtype='DISTANCE',
     )
     radius: FloatProperty(
         name="Hair Radius",
         min=0.0, max=10,
         soft_min=0.0001, soft_max=0.1,
         default=0.001,
-        subtype='DISTANCE'
+        subtype='DISTANCE',
     )
     view_percentage: FloatProperty(
         name="View Percentage",
         min=0.0, max=1.0,
         default=1.0,
-        subtype='FACTOR'
+        subtype='FACTOR',
     )
     apply_hair_guides: BoolProperty(
         name="Apply Hair Guides",

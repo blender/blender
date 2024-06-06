@@ -79,7 +79,7 @@ def bake_action(
         obj,
         *,
         action, frames,
-        bake_options: BakeOptions
+        bake_options: BakeOptions,
 ):
     """
     :arg obj: Object to bake.

@@ -1046,7 +1046,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
         # print message
         msg = rpt_("StudioLight Installed {!r} into {!r}").format(
             ", ".join(e.name for e in self.files),
-            path_studiolights
+            path_studiolights,
         )
         print(msg)
         self.report({'INFO'}, msg)

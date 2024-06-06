@@ -80,7 +80,7 @@ class TEXT_HT_footer(Header):
                     text=iface_("Text: External")
                     if text.library
                     else iface_("Text: Internal"),
-                    translate=False
+                    translate=False,
                 )
 
 
