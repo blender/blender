@@ -590,16 +590,8 @@ float factor_get(const Cache *automasking,
 
 static void mesh_orig_vert_data_update(SculptOrigVertData &orig_data, const int vert)
 {
-  if (orig_data.unode->type == undo::Type::Position) {
-    orig_data.co = orig_data.coords[vert];
-    orig_data.no = orig_data.normals[vert];
-  }
-  else if (orig_data.unode->type == undo::Type::Color) {
-    orig_data.col = orig_data.colors[vert];
-  }
-  else if (orig_data.unode->type == undo::Type::Mask) {
-    orig_data.mask = orig_data.vmasks[vert];
-  }
+  orig_data.co = orig_data.coords[vert];
+  orig_data.no = orig_data.normals[vert];
 }
 
 void calc_vert_factors(Object &object,
