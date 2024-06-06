@@ -1510,9 +1510,7 @@ def pkg_manifest_is_valid_or_error_impl(
 
             # When the default value is None, skip all type checks.
             if not (is_default_value and x_val is None):
-                if x_ty is None:
-                    pass
-                elif isinstance(x_val, x_ty):
+                if isinstance(x_val, x_ty):
                     pass
                 else:
                     error_list.append("\"{:s}\" must be a {:s}, not a {:s}".format(
