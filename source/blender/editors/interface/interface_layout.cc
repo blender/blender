@@ -4056,7 +4056,7 @@ static void ui_litem_layout_radial(uiLayout *litem)
       bitem->but->rect.xmax += 1.5f * UI_UNIT_X;
       /* Enable drawing as pie item if supported by widget. */
       if (ui_item_is_radial_drawable(bitem)) {
-        bitem->but->emboss = UI_EMBOSS_RADIAL;
+        bitem->but->emboss = UI_EMBOSS_PIE_MENU;
         bitem->but->drawflag |= UI_BUT_ICON_LEFT;
       }
 

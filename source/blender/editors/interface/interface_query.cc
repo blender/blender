@@ -648,7 +648,7 @@ bool ui_block_is_popover(const uiBlock *block)
 
 bool ui_block_is_pie_menu(const uiBlock *block)
 {
-  return ((block->flag & UI_BLOCK_RADIAL) != 0);
+  return ((block->flag & UI_BLOCK_PIE_MENU) != 0);
 }
 
 bool ui_block_is_popup_any(const uiBlock *block)

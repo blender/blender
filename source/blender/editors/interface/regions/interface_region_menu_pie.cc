@@ -42,7 +42,7 @@
  * \{ */
 
 struct uiPieMenu {
-  uiBlock *block_radial; /* radial block of the pie menu (more could be added later) */
+  uiBlock *pie_block; /* radial block of the pie menu (more could be added later) */
   uiLayout *layout;
   int mx, my;
 };
@@ -54,7 +54,7 @@ static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, 
   int minwidth, width, height;
 
   minwidth = UI_MENU_WIDTH_MIN;
-  block = pie->block_radial;
+  block = pie->pie_block;
 
   /* in some cases we create the block before the region,
    * so we set it delayed here if necessary */
@@ -76,7 +76,7 @@ static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, 
   block->pie_data.pie_center_spawned[0] = pie->mx;
   block->pie_data.pie_center_spawned[1] = pie->my;
 
-  return pie->block_radial;
+  return pie->pie_block;
 }
 
 static float ui_pie_menu_title_width(const char *name, int icon)
@@ -94,18 +94,18 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
 
   uiPieMenu *pie = MEM_cnew<uiPieMenu>(__func__);
 
-  pie->block_radial = UI_block_begin(C, nullptr, __func__, UI_EMBOSS);
+  pie->pie_block = UI_block_begin(C, nullptr, __func__, UI_EMBOSS);
   /* may be useful later to allow spawning pies
    * from old positions */
-  // pie->block_radial->flag |= UI_BLOCK_POPUP_MEMORY;
-  pie->block_radial->puphash = ui_popup_menu_hash(title);
-  pie->block_radial->flag |= UI_BLOCK_RADIAL;
+  // pie->pie_block->flag |= UI_BLOCK_POPUP_MEMORY;
+  pie->pie_block->puphash = ui_popup_menu_hash(title);
+  pie->pie_block->flag |= UI_BLOCK_PIE_MENU;
 
   /* if pie is spawned by a left click, release or click event,
    * it is always assumed to be click style */
   if (event->type == LEFTMOUSE || ELEM(event->val, KM_RELEASE, KM_CLICK)) {
-    pie->block_radial->pie_data.flags |= UI_PIE_CLICK_STYLE;
-    pie->block_radial->pie_data.event_type = EVENT_NONE;
+    pie->pie_block->pie_data.flags |= UI_PIE_CLICK_STYLE;
+    pie->pie_block->pie_data.event_type = EVENT_NONE;
     win->pie_event_type_lock = EVENT_NONE;
   }
   else {
@@ -113,7 +113,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
       /* original pie key has been released, so don't propagate the event */
       if (win->pie_event_type_lock == EVENT_NONE) {
         event_type = EVENT_NONE;
-        pie->block_radial->pie_data.flags |= UI_PIE_CLICK_STYLE;
+        pie->pie_block->pie_data.flags |= UI_PIE_CLICK_STYLE;
       }
       else {
         event_type = win->pie_event_type_last;
@@ -123,12 +123,12 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
       event_type = event->type;
     }
 
-    pie->block_radial->pie_data.event_type = event_type;
+    pie->pie_block->pie_data.event_type = event_type;
     win->pie_event_type_lock = event_type;
   }
 
   pie->layout = UI_block_layout(
-      pie->block_radial, UI_LAYOUT_VERTICAL, UI_LAYOUT_PIEMENU, 0, 0, 200, 0, 0, style);
+      pie->pie_block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PIEMENU, 0, 0, 200, 0, 0, style);
 
   /* NOTE: #wmEvent.xy is where we started dragging in case of #KM_CLICK_DRAG. */
   pie->mx = event->xy[0];
@@ -142,7 +142,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
     if (icon) {
       SNPRINTF(titlestr, " %s", title);
       w = ui_pie_menu_title_width(titlestr, icon);
-      but = uiDefIconTextBut(pie->block_radial,
+      but = uiDefIconTextBut(pie->pie_block,
                              UI_BTYPE_LABEL,
                              0,
                              icon,
@@ -159,12 +159,12 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
     else {
       w = ui_pie_menu_title_width(title, 0);
       but = uiDefBut(
-          pie->block_radial, UI_BTYPE_LABEL, 0, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+          pie->pie_block, UI_BTYPE_LABEL, 0, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     }
     /* do not align left */
     but->drawflag &= ~UI_BUT_TEXT_LEFT;
-    pie->block_radial->pie_data.title = but->str.c_str();
-    pie->block_radial->pie_data.icon = icon;
+    pie->pie_block->pie_data.title = but->str.c_str();
+    pie->pie_block->pie_data.icon = icon;
   }
 
   return pie;

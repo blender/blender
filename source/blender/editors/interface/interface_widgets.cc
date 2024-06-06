@@ -91,7 +91,7 @@ enum uiWidgetTypeEnum {
    * widget. To be used when multiple menu items should be displayed close to each other
    * horizontally. */
   UI_WTYPE_MENU_ITEM_UNPADDED,
-  UI_WTYPE_MENU_ITEM_RADIAL,
+  UI_WTYPE_MENU_ITEM_PIE,
   UI_WTYPE_MENU_BACK,
 
   /* specials */
@@ -2315,7 +2315,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
       /* pass (even if its a menu toolbar) */
     }
     else if (ui_block_is_pie_menu(but->block)) {
-      if (but->emboss == UI_EMBOSS_RADIAL) {
+      if (but->emboss == UI_EMBOSS_PIE_MENU) {
         rect->xmin += 0.3f * U.widget_unit;
       }
     }
@@ -4169,12 +4169,12 @@ static void widget_menu_itembut_unpadded(uiWidgetColors *wcol,
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_menu_radial_itembut(uiBut *but,
-                                       uiWidgetColors *wcol,
-                                       rcti *rect,
-                                       const uiWidgetStateInfo * /*state*/,
-                                       int /*roundboxalign*/,
-                                       const float zoom)
+static void widget_menu_pie_itembut(uiBut *but,
+                                    uiWidgetColors *wcol,
+                                    rcti *rect,
+                                    const uiWidgetStateInfo * /*state*/,
+                                    int /*roundboxalign*/,
+                                    const float zoom)
 {
   const float fac = but->block->pie_data.alphafac;
 
@@ -4712,9 +4712,9 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_nodesocket;
       break;
 
-    case UI_WTYPE_MENU_ITEM_RADIAL:
+    case UI_WTYPE_MENU_ITEM_PIE:
       wt.wcol_theme = &btheme->tui.wcol_pie_menu;
-      wt.custom = widget_menu_radial_itembut;
+      wt.custom = widget_menu_pie_itembut;
       wt.state = widget_state_pie_menu_item;
       break;
   }
@@ -4843,8 +4843,8 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
     }
   }
-  else if (but->emboss == UI_EMBOSS_RADIAL) {
-    wt = widget_type(UI_WTYPE_MENU_ITEM_RADIAL);
+  else if (but->emboss == UI_EMBOSS_PIE_MENU) {
+    wt = widget_type(UI_WTYPE_MENU_ITEM_PIE);
   }
   else {
     BLI_assert(but->emboss == UI_EMBOSS);

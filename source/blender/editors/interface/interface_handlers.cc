@@ -11435,7 +11435,7 @@ static int ui_handle_menus_recursive(bContext *C,
     bool inside = false;
     /* root pie menus accept the key that spawned
      * them as double click to improve responsiveness */
-    const bool do_recursion = (!(block->flag & UI_BLOCK_RADIAL) ||
+    const bool do_recursion = (!(block->flag & UI_BLOCK_PIE_MENU) ||
                                event->type != block->pie_data.event_type);
 
     if (do_recursion) {
@@ -11507,7 +11507,7 @@ static int ui_handle_menus_recursive(bContext *C,
     else {
       uiBlock *block = static_cast<uiBlock *>(menu->region->uiblocks.first);
 
-      if (block->flag & UI_BLOCK_RADIAL) {
+      if (block->flag & UI_BLOCK_PIE_MENU) {
         retval = ui_pie_handler(C, event, menu);
       }
       else if (event->type == LEFTMOUSE || event->val != KM_DBL_CLICK) {
@@ -11764,7 +11764,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
     uiBlock *block = static_cast<uiBlock *>(menu->region->uiblocks.first);
 
     /* set last pie event to allow chained pie spawning */
-    if (block->flag & UI_BLOCK_RADIAL) {
+    if (block->flag & UI_BLOCK_PIE_MENU) {
       win->pie_event_type_last = block->pie_data.event_type;
       reset_pie = true;
     }

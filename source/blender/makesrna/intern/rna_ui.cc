@@ -1659,7 +1659,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
       {UI_EMBOSS, "NORMAL", 0, "Regular", "Draw standard button emboss style"},
       {UI_EMBOSS_NONE, "NONE", 0, "None", "Draw only text and icons"},
       {UI_EMBOSS_PULLDOWN, "PULLDOWN_MENU", 0, "Pulldown Menu", "Draw pulldown menu style"},
-      {UI_EMBOSS_RADIAL, "RADIAL_MENU", 0, "Radial Menu", "Draw radial menu style"},
+      {UI_EMBOSS_PIE_MENU, "RADIAL_MENU", 0, "Pie Menu", "Draw radial menu style"},
       {UI_EMBOSS_NONE_OR_STATUS,
        "NONE_OR_STATUS",
        0,
