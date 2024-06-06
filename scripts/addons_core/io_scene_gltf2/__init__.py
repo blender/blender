@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 50),
+    "version": (4, 2, 51),
     'blender': (4, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -86,6 +86,14 @@ def ensure_filepath_matches_export_format(filepath, export_format):
 
 
 def on_export_format_changed(self, context):
+
+    # Update the filename in collection export settings when the format (.glb/.gltf) changes
+    if isinstance(self.id_data, bpy.types.Collection):
+        self.filepath = ensure_filepath_matches_export_format(
+            self.filepath,
+            self.export_format,
+        )
+
     # Update the filename in the file browser when the format (.glb/.gltf)
     # changes
     sfile = context.space_data
