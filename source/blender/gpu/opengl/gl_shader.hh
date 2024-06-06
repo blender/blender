@@ -278,7 +278,7 @@ class GLShaderCompiler : public ShaderCompiler {
   bool worker_is_lost(GLCompilerWorker *&worker);
 
  public:
-  ~GLShaderCompiler();
+  virtual ~GLShaderCompiler() override;
 
   virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
   virtual bool batch_is_ready(BatchHandle handle) override;

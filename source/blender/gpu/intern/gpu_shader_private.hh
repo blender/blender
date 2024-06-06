@@ -173,6 +173,8 @@ class ShaderCompiler {
   };
 
  public:
+  virtual ~ShaderCompiler(){};
+
   Shader *compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation);
 
   virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) = 0;
@@ -193,7 +195,7 @@ class ShaderCompilerGeneric : public ShaderCompiler {
   Map<BatchHandle, Batch> batches;
 
  public:
-  ~ShaderCompilerGeneric();
+  virtual ~ShaderCompilerGeneric() override;
 
   virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
   virtual bool batch_is_ready(BatchHandle handle) override;
