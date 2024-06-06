@@ -73,6 +73,9 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
         }
         bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
             id, bke::AttrDomain::Point, meta_data.data_type);
+        if (!dst) {
+          return true;
+        }
         bke::attribute_math::gather(*src, vert_indices, dst.span);
         dst.finish();
         return true;
