@@ -1875,10 +1875,11 @@ namespace blender::ed::sculpt_paint {
 
 struct AreaNormalCenterData {
   /* 0 = towards view, 1 = flipped */
-  float area_cos[2][3];
-  float area_nos[2][3];
-  int count_no[2];
-  int count_co[2];
+  std::array<float3, 2> area_cos;
+  std::array<int, 2> count_co;
+
+  std::array<float3, 2> area_nos;
+  std::array<int, 2> count_no;
 };
 
 static void calc_area_normal_and_center_task(const Object &ob,
@@ -1892,12 +1893,9 @@ static void calc_area_normal_and_center_task(const Object &ob,
 {
   const SculptSession &ss = *ob.sculpt;
 
-  PBVHVertexIter vd;
   undo::Node *unode = nullptr;
 
   bool use_original = false;
-  bool normal_test_r, area_test_r;
-
   if (ss.cache && !ss.cache->accum) {
     unode = undo::get_node(node, undo::Type::Position);
     if (unode) {
@@ -1946,7 +1944,6 @@ static void calc_area_normal_and_center_task(const Object &ob,
     float(*orco_coords)[3];
     int(*orco_tris)[3];
     int orco_tris_num;
-
     BKE_pbvh_node_get_bm_orco_data(node, &orco_tris, &orco_tris_num, &orco_coords, nullptr);
 
     for (int i = 0; i < orco_tris_num; i++) {
@@ -1955,35 +1952,28 @@ static void calc_area_normal_and_center_task(const Object &ob,
           orco_coords[orco_tris[i][1]],
           orco_coords[orco_tris[i][2]],
       };
-      float co[3];
-
+      float3 co;
       closest_on_tri_to_point_v3(co, normal_test.location, UNPACK3(co_tri));
 
-      normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
-      area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
-
+      const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
+      const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
       if (!normal_test_r && !area_test_r) {
         continue;
       }
 
-      float3 no;
-      int flip_index;
-
       r_any_vertex_sampled = true;
 
+      float3 no;
       normal_tri_v3(no, UNPACK3(co_tri));
 
-      flip_index = (math::dot(ss.cache->view_normal, no) <= 0.0f);
+      const int flip_index = (math::dot(ss.cache->view_normal, no) <= 0.0f);
       if (use_area_cos && area_test_r) {
         /* Weight the coordinates towards the center. */
         float p = 1.0f - (std::sqrt(area_test.dist) / area_test.radius);
         const float afactor = std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
 
-        float disp[3];
-        sub_v3_v3v3(disp, co, area_test.location);
-        mul_v3_fl(disp, 1.0f - afactor);
-        add_v3_v3v3(co, area_test.location, disp);
-        add_v3_v3(anctd->area_cos[flip_index], co);
+        const float3 disp = (co - area_test.location) * (1.0f - afactor);
+        anctd->area_cos[flip_index] += area_test.location + disp;
 
         anctd->count_co[flip_index] += 1;
       }
@@ -1991,84 +1981,65 @@ static void calc_area_normal_and_center_task(const Object &ob,
         /* Weight the normals towards the center. */
         float p = 1.0f - (std::sqrt(normal_test.dist) / normal_test.radius);
         const float nfactor = std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
-        mul_v3_fl(no, nfactor);
-
-        add_v3_v3(anctd->area_nos[flip_index], no);
+        anctd->area_nos[flip_index] += no * nfactor;
         anctd->count_no[flip_index] += 1;
       }
     }
   }
   else {
+    PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      float co[3];
-
-      /* For bm_vert only. */
-      float no_s[3];
-
+      float3 co;
+      float3 no;
       if (use_original) {
         if (unode->bm_entry) {
           const float *temp_co;
           const float *temp_no_s;
           BM_log_original_vert_data(ss.bm_log, vd.bm_vert, &temp_co, &temp_no_s);
-          copy_v3_v3(co, temp_co);
-          copy_v3_v3(no_s, temp_no_s);
+          co = temp_co;
+          no = temp_no_s;
         }
         else {
-          copy_v3_v3(co, unode->position[vd.i]);
-          copy_v3_v3(no_s, unode->normal[vd.i]);
+          co = unode->position[vd.i];
+          no = unode->normal[vd.i];
         }
       }
       else {
-        copy_v3_v3(co, vd.co);
+        co = vd.co;
+        if (vd.no) {
+          no = vd.no;
+        }
+        else {
+          no = vd.fno;
+        }
       }
 
-      normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
-      area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
-
+      const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
+      const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
       if (!normal_test_r && !area_test_r) {
         continue;
       }
 
-      float no[3];
-      int flip_index;
-
       r_any_vertex_sampled = true;
 
-      if (use_original) {
-        copy_v3_v3(no, no_s);
-      }
-      else {
-        if (vd.no) {
-          copy_v3_v3(no, vd.no);
-        }
-        else {
-          copy_v3_v3(no, vd.fno);
-        }
-      }
-
-      flip_index = (dot_v3v3(ss.cache ? ss.cache->view_normal : ss.cursor_view_normal, no) <=
-                    0.0f);
+      const int flip_index = (math::dot(ss.cache ? ss.cache->view_normal : ss.cursor_view_normal,
+                                        no) <= 0.0f);
 
       if (use_area_cos && area_test_r) {
         /* Weight the coordinates towards the center. */
         float p = 1.0f - (sqrtf(area_test.dist) / area_test.radius);
         const float afactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
 
-        float disp[3];
-        sub_v3_v3v3(disp, co, area_test.location);
-        mul_v3_fl(disp, 1.0f - afactor);
-        add_v3_v3v3(co, area_test.location, disp);
+        const float3 disp = (co - area_test.location) * (1.0f - afactor);
 
-        add_v3_v3(anctd->area_cos[flip_index], co);
+        anctd->area_cos[flip_index] += area_test.location + disp;
         anctd->count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
         /* Weight the normals towards the center. */
         float p = 1.0f - (sqrtf(normal_test.dist) / normal_test.radius);
         const float nfactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
-        mul_v3_fl(no, nfactor);
-
-        add_v3_v3(anctd->area_nos[flip_index], no);
+        anctd->area_nos[flip_index] += no * nfactor;
         anctd->count_no[flip_index] += 1;
       }
     }
@@ -2081,17 +2052,15 @@ static AreaNormalCenterData calc_area_normal_and_center_reduce(const AreaNormalC
 {
   AreaNormalCenterData joined{};
 
-  /* For flatten center. */
-  add_v3_v3v3(joined.area_cos[0], a.area_cos[0], b.area_cos[0]);
-  add_v3_v3v3(joined.area_cos[1], a.area_cos[1], b.area_cos[1]);
+  joined.area_cos[0] = a.area_cos[0] + b.area_cos[0];
+  joined.area_cos[1] = a.area_cos[1] + b.area_cos[1];
+  joined.count_co[0] = a.count_co[0] + b.count_co[0];
+  joined.count_co[1] = a.count_co[1] + b.count_co[1];
 
-  /* For area normal. */
-  add_v3_v3v3(joined.area_nos[0], a.area_nos[0], b.area_nos[0]);
-  add_v3_v3v3(joined.area_nos[1], a.area_nos[1], b.area_nos[1]);
-
-  /* Weights. */
-  add_v2_v2v2_int(joined.count_no, a.count_no, b.count_no);
-  add_v2_v2v2_int(joined.count_co, a.count_co, b.count_co);
+  joined.area_nos[0] = a.area_nos[0] + b.area_nos[0];
+  joined.area_nos[1] = a.area_nos[1] + b.area_nos[1];
+  joined.count_no[0] = a.count_no[0] + b.count_no[0];
+  joined.count_no[1] = a.count_no[1] + b.count_no[1];
 
   return joined;
 }
@@ -2121,7 +2090,7 @@ void calc_area_center(const Brush &brush,
       calc_area_normal_and_center_reduce);
 
   /* For flatten center. */
-  for (n = 0; n < ARRAY_SIZE(anctd.area_cos); n++) {
+  for (n = 0; n < anctd.area_cos.size(); n++) {
     if (anctd.count_co[n] == 0) {
       continue;
     }
@@ -2167,7 +2136,7 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
 
   /* For area normal. */
   float3 result;
-  for (int i = 0; i < ARRAY_SIZE(anctd.area_nos); i++) {
+  for (int i = 0; i < anctd.area_nos.size(); i++) {
     if (normalize_v3_v3(result, anctd.area_nos[i]) != 0.0f) {
       return result;
     }
@@ -2201,7 +2170,7 @@ void calc_area_normal_and_center(const Brush &brush,
       calc_area_normal_and_center_reduce);
 
   /* For flatten center. */
-  for (n = 0; n < ARRAY_SIZE(anctd.area_cos); n++) {
+  for (n = 0; n < anctd.area_cos.size(); n++) {
     if (anctd.count_co[n] == 0) {
       continue;
     }
@@ -2221,7 +2190,7 @@ void calc_area_normal_and_center(const Brush &brush,
   }
 
   /* For area normal. */
-  for (n = 0; n < ARRAY_SIZE(anctd.area_nos); n++) {
+  for (n = 0; n < anctd.area_nos.size(); n++) {
     if (normalize_v3_v3(r_area_no, anctd.area_nos[n]) != 0.0f) {
       break;
     }
