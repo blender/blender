@@ -280,7 +280,7 @@ static void extract_edituv_lines_subdiv_mesh(const MeshRenderData &mr,
                                              const bool sync_selection,
                                              GPUIndexBufBuilder &builder)
 {
-  /* NOTE: #subdiv_loop_edge_index already has the origindex layer baked in. */
+  /* NOTE: #subdiv_loop_edge_index already has the #CD_ORIGINDEX layer baked in. */
   const Span<int> subdiv_loop_edge_index(
       static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.edges_orig_index)),
       subdiv_cache.num_subdiv_loops);

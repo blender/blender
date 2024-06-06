@@ -54,7 +54,7 @@ struct Cache;
  * \todo Get rid of one of the arrays mentioned above to avoid the situation with evaluated
  * positions, original positions, and then a third copy that's just there because of historical
  * reasons. This would involve removing access to positions and normals from the PBVH structure,
- * which should only be concerned with splitting geometry into spacially contiguous chunks.
+ * which should only be concerned with splitting geometry into spatially contiguous chunks.
  */
 
 /**
