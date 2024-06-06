@@ -11506,7 +11506,6 @@ static int ui_handle_menus_recursive(bContext *C,
     }
     else {
       uiBlock *block = static_cast<uiBlock *>(menu->region->uiblocks.first);
-      uiBut *listbox = ui_list_find_mouse_over(menu->region, event);
 
       if (block->flag & UI_BLOCK_RADIAL) {
         retval = ui_pie_handler(C, event, menu);
@@ -11514,7 +11513,7 @@ static int ui_handle_menus_recursive(bContext *C,
       else if (event->type == LEFTMOUSE || event->val != KM_DBL_CLICK) {
         bool handled = false;
 
-        if (listbox) {
+        if (uiBut *listbox = ui_list_find_mouse_over(menu->region, event)) {
           const int retval_test = ui_handle_list_event(C, event, menu->region, listbox);
           if (retval_test != WM_UI_HANDLER_CONTINUE) {
             retval = retval_test;
