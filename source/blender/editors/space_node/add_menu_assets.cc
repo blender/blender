@@ -97,6 +97,8 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Mesh/UV",
               "Point",
               "Volume",
+              "Volume/Operations",
+              "Volume/Primitives",
               "Simulation",
               "Material",
               "Texture",
@@ -106,7 +108,9 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Utilities/Vector",
               "Utilities/Field",
               "Utilities/Math",
+              "Utilities/Matrix",
               "Utilities/Rotation",
+              "Utilities/Deprecated",
               "Group",
               "Layout",
               "Unassigned"};
