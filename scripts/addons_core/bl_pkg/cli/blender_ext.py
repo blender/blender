@@ -232,7 +232,7 @@ class PkgManifest_Build(NamedTuple):
     def _from_dict_impl(
             manifest_build_dict: Dict[str, Any],
             *,
-            extra_paths: List[str],
+            extra_paths: Sequence[str],
             all_errors: bool,
     ) -> Union["PkgManifest_Build", List[str]]:
         # TODO: generalize the type checks, see: `pkg_manifest_is_valid_or_error_impl`.
@@ -241,7 +241,7 @@ class PkgManifest_Build(NamedTuple):
             if not isinstance(value, list):
                 error_list.append("[build]: \"paths\" must be a list, not a {!r}".format(type(value)))
             else:
-                value = value + extra_paths
+                value = [*value, *extra_paths]
                 if (error := pkg_manifest_validate_field_build_path_list(value, strict=True)) is not None:
                     error_list.append(error)
             if not all_errors:
@@ -275,7 +275,7 @@ class PkgManifest_Build(NamedTuple):
     @staticmethod
     def from_dict_all_errors(
             manifest_build_dict: Dict[str, Any],
-            extra_paths: List[str],
+            extra_paths: Sequence[str],
     ) -> Union["PkgManifest_Build", List[str]]:
         return PkgManifest_Build._from_dict_impl(
             manifest_build_dict,
@@ -405,7 +405,7 @@ def scandir_recursive(
 
 def build_paths_expand_iter(
         path: str,
-        path_list: List[str],
+        path_list: Sequence[str],
 ) -> Generator[Tuple[str, str], None, None]:
     """
     Expand paths from a path list which always uses "/" slashes.
@@ -2763,14 +2763,14 @@ class subcmd_author:
         else:
             # Mixing literal and pattern matched lists of files is a hassle.
             # De-duplicate canonical root-relative path names.
-            def filepath_canonical_from_relative(filepath_rel: str):
+            def filepath_canonical_from_relative(filepath_rel: str) -> str:
                 filepath_rel = os.path.normpath(filepath_rel)
                 if os.sep == "\\":
                     filepath_rel = filepath_rel.replace("\\", "/")
                 return filepath_rel
 
             # Use lowercase to prevent duplicates on MS-Windows.
-            build_paths_extra_canonical: Set[int] = set(
+            build_paths_extra_canonical: Set[str] = set(
                 filepath_canonical_from_relative(f).lower()
                 for f in build_paths_extra
             )
