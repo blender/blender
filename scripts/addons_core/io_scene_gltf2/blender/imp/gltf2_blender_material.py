@@ -32,7 +32,7 @@ class BlenderMaterial():
 
         set_extras(mat, pymaterial.extras)
         BlenderMaterial.set_double_sided(pymaterial, mat)
-        BlenderMaterial.set_eevee_blend_method(pymaterial, mat)
+        BlenderMaterial.set_eevee_surface_render_method(pymaterial, mat)
         BlenderMaterial.set_viewport_color(pymaterial, mat, vertex_color)
 
         mat.use_nodes = True
@@ -70,19 +70,12 @@ class BlenderMaterial():
         mat.use_backface_culling = (pymaterial.double_sided != True)
 
     @staticmethod
-    def set_eevee_blend_method(pymaterial, mat):
+    def set_eevee_surface_render_method(pymaterial, mat):
         alpha_mode = pymaterial.alpha_mode or 'OPAQUE'
-        if alpha_mode == 'OPAQUE':
-            mat.blend_method = 'OPAQUE'
-        elif alpha_mode == 'BLEND':
-            mat.blend_method = 'BLEND'
-        elif alpha_mode == 'MASK':
-            # Alpha clipping is done with nodes, NOT with the
-            # blend_method, since the blend_method only affects Eevee
-            # legacy. Using the CLIP method here just hints to Eevee
-            # that the alpha is always 0 or 1.
-            mat.blend_method = 'CLIP'
-            mat.alpha_threshold = 0.5
+        if alpha_mode in ['OPAQUE', 'MASK']:
+            mat.surface_render_method = 'DITHERED'
+        else:
+            mat.surface_render_method = 'BLENDED'
 
     @staticmethod
     def set_viewport_color(pymaterial, mat, vertex_color):
