@@ -5,7 +5,8 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty
-from bpy_extras.node_utils import connect_sockets
+from bpy_extras.node_utils import find_base_socket_type, connect_sockets
+from bpy.app.translations import pgettext_data as data_
 
 from .node_editor.node_functions import (
     NodeEditorBase,
@@ -15,9 +16,7 @@ from .node_editor.node_functions import (
     get_output_location,
     get_internal_socket,
     is_visible_socket,
-    is_viewer_socket,
     is_viewer_link,
-    viewer_socket_name,
     force_update,
 )
 
@@ -65,7 +64,7 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
         output_sockets = self.get_output_sockets(node_tree)
         if len(output_sockets):
             for i, socket in enumerate(output_sockets):
-                if is_viewer_socket(socket) and socket.socket_type == socket_type:
+                if socket.is_inspect_output:
                     # If viewer output is already used but leads to the same socket we can still use it.
                     is_used = self.has_socket_other_users(socket)
                     if is_used:
@@ -82,7 +81,7 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
         if viewer_socket is None:
             # Create viewer socket.
             viewer_socket = node_tree.interface.new_socket(
-                viewer_socket_name, in_out='OUTPUT', socket_type=socket_type)
+                data_("(Viewer)"), in_out='OUTPUT', socket_type=socket_type)
             viewer_socket.is_inspect_output = True
         return viewer_socket
 
@@ -101,9 +100,9 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
         return groupout
 
     @classmethod
-    def search_sockets(cls, node, r_sockets, index=None):
-        """Recursively scan nodes for viewer sockets and store them in a list"""
-        for i, input_socket in enumerate(node.inputs):
+    def search_connected_viewer_sockets(cls, output_node, r_sockets, index=None):
+        """From an output node, recursively scan node tree for connected viewer sockets"""
+        for i, input_socket in enumerate(output_node.inputs):
             if index and i != index:
                 continue
             if len(input_socket.links):
@@ -112,25 +111,26 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
                 external_socket = link.from_socket
                 if hasattr(next_node, "node_tree"):
                     for socket_index, socket in enumerate(next_node.node_tree.interface.items_tree):
+                        # Find inside socket matching outside one.
                         if socket.identifier == external_socket.identifier:
                             break
-                    if is_viewer_socket(socket) and socket not in r_sockets:
+                    if socket.is_inspect_output and socket not in r_sockets:
                         r_sockets.append(socket)
-                        # continue search inside of node group but restrict socket to where we came from.
+                        # Continue search inside of node group but restrict socket to where we came from.
                         groupout = get_group_output_node(next_node.node_tree)
-                        cls.search_sockets(groupout, r_sockets, index=socket_index)
+                        cls.search_connected_viewer_sockets(groupout, r_sockets, index=socket_index)
 
     @classmethod
-    def scan_nodes(cls, tree, sockets):
-        """Recursively get all viewer sockets in a material tree"""
+    def search_viewer_sockets_in_tree(cls, tree, r_sockets):
+        """Recursively get all viewer sockets in a node tree"""
         for node in tree.nodes:
             if hasattr(node, "node_tree"):
                 if node.node_tree is None:
                     continue
                 for socket in cls.get_output_sockets(node.node_tree):
-                    if is_viewer_socket(socket) and (socket not in sockets):
-                        sockets.append(socket)
-                cls.scan_nodes(node.node_tree, sockets)
+                    if socket.is_inspect_output and (socket not in r_sockets):
+                        r_sockets.append(socket)
+                cls.search_viewer_sockets_in_tree(node.node_tree, r_sockets)
 
     @staticmethod
     def remove_socket(tree, socket):
@@ -156,23 +156,16 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
                 output_node = get_group_output_node(node_tree, output_node_idname=self.shader_output_idname)
 
             if output_node is not None:
-                self.search_sockets(output_node, self.used_viewer_sockets_active_mat)
+                self.search_connected_viewer_sockets(output_node, self.used_viewer_sockets_active_mat)
         return socket in self.used_viewer_sockets_active_mat
 
     def has_socket_other_users(self, socket):
         """List the other users for this socket (other materials or geometry nodes groups)"""
         if not hasattr(self, "other_viewer_sockets_users"):
             self.other_viewer_sockets_users = []
-            if socket.socket_type == 'NodeSocketShader':
-                for mat in bpy.data.materials:
-                    if mat.node_tree == bpy.context.space_data.node_tree or not hasattr(mat.node_tree, "nodes"):
-                        continue
-                    # Get viewer node.
-                    output_node = get_group_output_node(mat.node_tree,
-                                                        output_node_idname=self.shader_output_idname)
-                    if output_node is not None:
-                        self.search_sockets(output_node, self.other_viewer_sockets_users)
-            elif socket.socket_type == 'NodeSocketGeometry':
+            if socket.socket_type == 'NodeSocketGeometry':
+                # This operator can only preview Geometry sockets for geometry nodes,
+                # so the rest of them are shader nodes.
                 for obj in bpy.data.objects:
                     for mod in obj.modifiers:
                         if mod.type != 'NODES' or mod.node_group == bpy.context.space_data.node_tree:
@@ -180,7 +173,16 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
                         # Get viewer node.
                         output_node = get_group_output_node(mod.node_group)
                         if output_node is not None:
-                            self.search_sockets(output_node, self.other_viewer_sockets_users)
+                            self.search_connected_viewer_sockets(output_node, self.other_viewer_sockets_users)
+            else:
+                for mat in bpy.data.materials:
+                    if mat.node_tree == bpy.context.space_data.node_tree or not hasattr(mat.node_tree, "nodes"):
+                        continue
+                    # Get viewer node.
+                    output_node = get_group_output_node(mat.node_tree,
+                                                        output_node_idname=self.shader_output_idname)
+                    if output_node is not None:
+                        self.search_connected_viewer_sockets(output_node, self.other_viewer_sockets_users)
         return socket in self.other_viewer_sockets_users
 
     def get_output_index(self, node, output_node, is_base_node_tree, socket_type, check_type=False):
@@ -260,7 +262,7 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
 
         # Scan through all nodes in tree including nodes inside of groups to find viewer sockets.
         self.delete_sockets = []
-        self.scan_nodes(base_node_tree, self.delete_sockets)
+        self.search_viewer_sockets_in_tree(base_node_tree, self.delete_sockets)
 
         if not active.outputs:
             self.cleanup()
@@ -268,7 +270,6 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
 
         # For geometry node trees, we just connect to the group output.
         if space.tree_type == 'GeometryNodeTree':
-            socket_type = 'NodeSocketGeometry'
 
             # Find (or create if needed) the output of this node tree.
             output_node = self.ensure_group_output(base_node_tree)
@@ -286,13 +287,15 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
                 if inp.type == 'GEOMETRY':
                     output_node_socket_index = i
                     break
+
+            node_output = active.outputs[active_node_socket_index]
+            socket_type = find_base_socket_type(node_output)
             if output_node_socket_index is None:
                 output_node_socket_index = self.ensure_viewer_socket(
                     base_node_tree, socket_type, connect_socket=None)
 
         # For shader node trees, we connect to a material output.
         elif space.tree_type == 'ShaderNodeTree':
-            socket_type = 'NodeSocketShader'
             self.init_shader_variables(space, space.shader_type)
 
             # Get or create material_output node.
@@ -312,13 +315,14 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
             if active_node_socket_index is None:
                 return {'CANCELLED'}
 
-            if active.outputs[active_node_socket_index].name == "Volume":
+            node_output = active.outputs[active_node_socket_index]
+            socket_type = find_base_socket_type(node_output)
+            if node_output.name == "Volume":
                 output_node_socket_index = 1
             else:
                 output_node_socket_index = 0
 
         # If there are no nested node groups, the link starts at the active node.
-        node_output = active.outputs[active_node_socket_index]
         if len(path) > 1:
             # Recursively connect inside nested node groups and get the one from base level.
             node_output = self.create_links(path, active, active_node_socket_index, socket_type)
