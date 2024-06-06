@@ -187,9 +187,9 @@ def extensions_panel_draw_legacy_addons(
         sub.active = is_enabled
 
         if module_parent_dirname(mod.__file__) == "addons_core":
-            sub.label(text="Core: " + bl_info["name"])
+            sub.label(text="Core: " + bl_info["name"], translate=False)
         else:
-            sub.label(text="Legacy: " + bl_info["name"])
+            sub.label(text="Legacy: " + bl_info["name"], translate=False)
 
         if bl_info["warning"]:
             sub.label(icon='ERROR')
@@ -660,7 +660,7 @@ def extensions_panel_draw_impl(
 
             sub = row.row()
             sub.active = is_enabled
-            sub.label(text=item_remote["name"])
+            sub.label(text=item_remote["name"], translate=False)
             del sub
 
             row_right = row.row()
@@ -694,16 +694,17 @@ def extensions_panel_draw_impl(
                 col_b = split.column()
 
                 # The full tagline may be multiple lines (not yet supported by Blender's UI).
-                col_a.label(text="{:s}.".format(item_remote["tagline"]))
+                col_a.label(text="{:s}.".format(item_remote["tagline"]), translate=False)
 
                 if value := item_remote.get("website"):
                     # Use half size button, for legacy add-ons there are two, here there is one
                     # however one large button looks silly, so use a half size still.
-                    col_a.split(
-                        factor=0.5).operator(
+                    col_a.split(factor=0.5).operator(
                         "wm.url_open",
                         text=domain_extract_from_url(value),
-                        icon='URL').url = value
+                        translate=False,
+                        icon='URL',
+                    ).url = value
                 del value
 
                 # Note that we could allow removing extensions from non-remote extension repos
@@ -739,20 +740,23 @@ def extensions_panel_draw_impl(
 
                 col_a.label(text="Version")
                 if is_outdated:
-                    col_b.label(text="{:s} ({:s} available)".format(item_local_version, item_version))
+                    col_b.label(
+                        text=iface_("{:s} ({:s} available)").format(item_local_version, item_version),
+                        translate=False,
+                    )
                 else:
-                    col_b.label(text=item_version)
+                    col_b.label(text=item_version, translate=False)
 
                 if has_remote:
                     col_a.label(text="Size")
-                    col_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
+                    col_b.label(text=size_as_fmt_string(item_remote["archive_size"]), translate=False)
 
                 col_a.label(text="License")
-                col_b.label(text=license_info_to_text(item_remote["license"]))
+                col_b.label(text=license_info_to_text(item_remote["license"]), translate=False)
 
                 if len(repos_all) > 1:
                     col_a.label(text="Repository")
-                    col_b.label(text=repos_all[repo_index].name)
+                    col_b.label(text=repos_all[repo_index].name, translate=False)
 
                 if is_installed:
                     col_a.label(text="Path")
