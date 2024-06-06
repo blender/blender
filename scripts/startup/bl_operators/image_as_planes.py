@@ -22,7 +22,7 @@ from bpy.props import (
 
 from bpy.app.translations import (
     pgettext_tip as tip_,
-    contexts as i18n_contexts
+    contexts as i18n_contexts,
 )
 from mathutils import Vector
 
@@ -675,7 +675,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, MaterialProp
     force_reload: BoolProperty(
         name="Force Reload",
         default=False,
-        description="Force reload the image if it is already opened elsewhere in Blender"
+        description="Force reload the image if it is already opened elsewhere in Blender",
     )
 
     image_sequence: BoolProperty(
@@ -903,7 +903,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, MaterialProp
             (fn.name for fn in self.files),
             self.directory,
             force_reload=self.force_reload,
-            find_sequences=self.image_sequence
+            find_sequences=self.image_sequence,
         ))
 
         if not images:
@@ -1029,7 +1029,7 @@ class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, MaterialProp
         elif self.size_mode == 'CAMERA':
             x, y = compute_camera_size(
                 context, context.scene.cursor.location,
-                self.fill_mode, px / py
+                self.fill_mode, px / py,
             )
 
         elif self.size_mode == 'DPI':
@@ -1113,13 +1113,13 @@ class IMAGE_OT_convert_to_mesh_plane(MaterialProperties_MixIn, TextureProperties
             ('IMAGE', "Source Image", "name from laoded image"),
         ],
         default='OBJECT',
-        description="Name for new mesh object and material"
+        description="Name for new mesh object and material",
     )
 
     delete_ref: BoolProperty(
         name="Delete Reference Object",
         default=True,
-        description="Delete empty image object once mesh plane is created"
+        description="Delete empty image object once mesh plane is created",
     )
 
     @classmethod

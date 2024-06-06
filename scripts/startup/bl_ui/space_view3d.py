@@ -1058,7 +1058,7 @@ class VIEW3D_HT_header(Header):
                 layout.popover(
                     panel="VIEW3D_PT_gpencil_sculpt_automasking",
                     text="",
-                    icon=VIEW3D_HT_header._gpencil_sculpt_automasking_icon(tool_settings.gpencil_sculpt)
+                    icon=VIEW3D_HT_header._gpencil_sculpt_automasking_icon(tool_settings.gpencil_sculpt),
                 )
 
         elif object_mode == 'SCULPT':
@@ -1090,7 +1090,7 @@ class VIEW3D_HT_header(Header):
             layout.popover(
                 panel="VIEW3D_PT_sculpt_automasking",
                 text="",
-                icon=VIEW3D_HT_header._sculpt_automasking_icon(tool_settings.sculpt)
+                icon=VIEW3D_HT_header._sculpt_automasking_icon(tool_settings.sculpt),
             )
 
         elif object_mode == 'VERTEX_PAINT':
@@ -3502,8 +3502,11 @@ class VIEW3D_MT_object_convert(Menu):
         ob = context.active_object
 
         if ob and ob.type != "EMPTY":
-            if (ob.type == 'GPENCIL' and context.gpencil_data
-                and not context.preferences.experimental.use_grease_pencil_version3):
+            if (
+                    (ob.type == 'GPENCIL') and
+                    (context.gpencil_data is not None) and
+                    (not context.preferences.experimental.use_grease_pencil_version3)
+            ):
                 layout.operator_enum("gpencil.convert", "type")
             else:
                 layout.operator_enum("object.convert", "target")
@@ -3828,7 +3831,7 @@ class VIEW3D_MT_sculpt(Menu):
             ('SHARPEN', iface_("Sharpen")),
             ('ENHANCE_DETAILS', iface_("Enhance Details")),
             ('ERASE_DISCPLACEMENT', iface_("Erase Multires Displacement")),
-            ('RANDOM', iface_("Randomize"))
+            ('RANDOM', iface_("Randomize")),
         ]
 
         for filter_type, ui_name in sculpt_filters_types:

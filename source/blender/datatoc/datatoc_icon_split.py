@@ -197,7 +197,7 @@ def dice(
             id_str = dice_icon_name(
                 x, y,
                 parts_x, parts_y,
-                name_style=name_style, prefix=output_prefix
+                name_style=name_style, prefix=output_prefix,
             )
             if not id_str:
                 continue

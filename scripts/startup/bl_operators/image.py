@@ -260,7 +260,7 @@ class IMAGE_OT_open_images(Operator):
                 "prefix": file.name[:len(file.name) - len(match.group(0))],
                 "ext": match.group(2),
                 "frame_size": len(match.group(1)),
-                "files": [file.name]
+                "files": [file.name],
             }
             for test_seq in sequences:
                 if (

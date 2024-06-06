@@ -390,7 +390,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                     "module loaded with no associated file, __path__={!r}, aborting!".format(
                         getattr(mod, "__path__", None)
                     ),
-                    name=module_name
+                    name=module_name,
                 )
             mod.__time__ = os.path.getmtime(mod_file)
             mod.__addon_enabled__ = False

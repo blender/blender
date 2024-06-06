@@ -564,7 +564,7 @@ def smpte_from_seconds(time, *, fps=None, fps_base=None):
     return smpte_from_frame(
         time_to_frame(time, fps=fps, fps_base=fps_base),
         fps=fps,
-        fps_base=fps_base
+        fps_base=fps_base,
     )
 
 

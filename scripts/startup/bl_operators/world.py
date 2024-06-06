@@ -112,7 +112,7 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
             from_socket_index = src_node.outputs.find(src_link.from_socket.name)
             dst_tree.links.new(
                 dst_linked_node.outputs[from_socket_index],
-                dst_socket
+                dst_socket,
             )
 
     def _sync_node(

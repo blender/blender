@@ -1450,7 +1450,7 @@ class WM_OT_properties_edit(Operator):
     property_type: EnumProperty(
         name="Type",
         items=rna_custom_property_type_items,
-        update=property_type_update_cb
+        update=property_type_update_cb,
     )
     is_overridable_library: BoolProperty(
         name="Library Overridable",
@@ -3374,7 +3374,7 @@ class WM_MT_splash_about(Menu):
         col.label(text=iface_("Date: {:s} {:s}").format(
             bpy.app.build_commit_date.decode("utf-8", "replace"),
             bpy.app.build_commit_time.decode("utf-8", "replace")),
-            translate=False
+            translate=False,
         )
         col.label(text=iface_("Hash: {:s}").format(bpy.app.build_hash.decode("ascii")), translate=False)
         col.label(text=iface_("Branch: {:s}").format(bpy.app.build_branch.decode("utf-8", "replace")), translate=False)
@@ -3592,5 +3592,5 @@ classes = (
     WM_MT_splash_quick_setup,
     WM_MT_splash,
     WM_MT_splash_about,
-    WM_MT_region_toggle_pie
+    WM_MT_region_toggle_pie,
 )

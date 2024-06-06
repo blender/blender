@@ -1651,7 +1651,7 @@ def pyrna2sphinx(basepath):
             fw("   .. {:s}:: {:s}({:s})\n\n".format(
                 "classmethod" if func.is_classmethod else "method",
                 func.identifier,
-                args_str
+                args_str,
             ))
             fw("      {:s}\n\n".format(func.description))
 
