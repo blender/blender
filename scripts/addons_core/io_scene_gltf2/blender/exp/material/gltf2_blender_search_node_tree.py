@@ -525,6 +525,7 @@ def gather_alpha_info(alpha_nav):
 # Nodes will look like:
 #  Alpha -> [Math:Round] -> Alpha Socket
 #  Alpha -> [Math:X < cutoff] -> [Math:1 - X] -> Alpha Socket
+#  Alpha -> [X > cutoff] -> Alpha Socket (Wrong, but backwards compatible with legacy)
 def detect_alpha_clip(alpha_nav):
     nav = alpha_nav.peek_back()
     if not nav.moved:
@@ -538,7 +539,7 @@ def detect_alpha_clip(alpha_nav):
 
     # Detect 1 - (X < cutoff)
     # (There is no >= node)
-    elif nav.node.type == 'MATH' and nav.node.operation == 'SUBTRACT':
+    if nav.node.type == 'MATH' and nav.node.operation == 'SUBTRACT':
         if nav.get_constant(0)[0] == 1.0:
             nav2 = nav.peek_back(1)
             if nav2.moved and nav2.node.type == 'MATH':
@@ -554,6 +555,21 @@ def detect_alpha_clip(alpha_nav):
                     nav2.select_input_socket(1)
                     alpha_nav.assign(nav2)
                     return in0
+
+    # Detect (X > cutoff)
+    # Wrong when X = cutoff, but backwards compatible with legacy
+    # Alpha Clip setup
+    if nav.node.type == 'MATH':
+        in0 = nav.get_constant(0)[0]
+        in1 = nav.get_constant(1)[0]
+        if nav.node.operation == 'GREATER_THAN' and in1 is not None:
+            nav.select_input_socket(0)
+            alpha_nav.assign(nav)
+            return in1
+        elif nav.node.operation == 'LESS_THAN' and in0 is not None:
+            nav.select_input_socket(1)
+            alpha_nav.assign(nav)
+            return in0
 
     return None
 
