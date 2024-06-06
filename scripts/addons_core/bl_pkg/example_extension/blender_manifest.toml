@@ -10,11 +10,18 @@ version = "0.2.0"
 blender_version_min = "2.80.0"
 maintainer = "Maintainer Name"
 license = [
-    "SPDX:CC-0"
+    "SPDX:CC-0",
 ]
 copyright = [
-    "Developer Name"
+    "Developer Name",
 ]
+
+[permissions]
+network = "Need to sync data to server"
+files = "Import/export files from/to disk"
+clipboard = "Copy rotations"
+camera = "Reason for connecting to a camera"
+microphone = "An add-on could do this in theory"
 
 [build]
 paths_exclude_pattern = [
