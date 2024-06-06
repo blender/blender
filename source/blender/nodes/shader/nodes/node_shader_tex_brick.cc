@@ -22,35 +22,54 @@ static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
   b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field(
       implicit_field_inputs::position);
-  b.add_input<decl::Color>("Color1").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>("Color2").default_value({0.2f, 0.2f, 0.2f, 1.0f});
-  b.add_input<decl::Color>("Mortar").default_value({0.0f, 0.0f, 0.0f, 1.0f}).no_muted_links();
+  b.add_input<decl::Color>("Color1")
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .description("Color of the first reference brick");
+  b.add_input<decl::Color>("Color2")
+      .default_value({0.2f, 0.2f, 0.2f, 1.0f})
+      .description("Color of the second reference brick");
+  b.add_input<decl::Color>("Mortar")
+      .default_value({0.0f, 0.0f, 0.0f, 1.0f})
+      .no_muted_links()
+      .description("Color of the area between bricks");
   b.add_input<decl::Float>("Scale")
       .min(-1000.0f)
       .max(1000.0f)
       .default_value(5.0f)
-      .no_muted_links();
+      .no_muted_links()
+      .description("Scale of the texture");
   b.add_input<decl::Float>("Mortar Size")
       .min(0.0f)
       .max(0.125f)
       .default_value(0.02f)
-      .no_muted_links();
+      .no_muted_links()
+      .description(
+          "Size of the filling between the bricks (known as “mortar”). "
+          "0 means no mortar");
   b.add_input<decl::Float>("Mortar Smooth")
       .min(0.0f)
       .max(1.0f)
       .default_value(0.1f)
-      .no_muted_links();
-  b.add_input<decl::Float>("Bias").min(-1.0f).max(1.0f).no_muted_links();
+      .no_muted_links()
+      .description(
+          "Blurs/softens the edge between the mortar and the bricks. "
+          "This can be useful with a texture and displacement textures");
+  b.add_input<decl::Float>("Bias").min(-1.0f).max(1.0f).no_muted_links().description(
+      "The color variation between Color1 and Color2. "
+      "Values of -1 and 1 only use one of the two colors. "
+      "Values in between mix the colors");
   b.add_input<decl::Float>("Brick Width")
       .min(0.01f)
       .max(100.0f)
       .default_value(0.5f)
-      .no_muted_links();
+      .no_muted_links()
+      .description("Ratio of brick’s width relative to the texture scale");
   b.add_input<decl::Float>("Row Height")
       .min(0.01f)
       .max(100.0f)
       .default_value(0.25f)
-      .no_muted_links();
+      .no_muted_links()
+      .description("Ratio of brick’s row height relative to the texture scale");
   b.add_output<decl::Color>("Color");
   b.add_output<decl::Float>("Fac");
 }

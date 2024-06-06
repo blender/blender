@@ -16,13 +16,20 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
   b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field(
       implicit_field_inputs::position);
-  b.add_input<decl::Color>("Color1").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>("Color2").default_value({0.2f, 0.2f, 0.2f, 1.0f});
+  b.add_input<decl::Color>("Color1")
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .description("Color of the first checker");
+  b.add_input<decl::Color>("Color2")
+      .default_value({0.2f, 0.2f, 0.2f, 1.0f})
+      .description("Color of the second checker");
   b.add_input<decl::Float>("Scale")
       .min(-10000.0f)
       .max(10000.0f)
       .default_value(5.0f)
-      .no_muted_links();
+      .no_muted_links()
+      .description(
+          "Overall texture scale.\n"
+          "The scale is a factor of the bounding box of the face divided by the Scale value");
   b.add_output<decl::Color>("Color");
   b.add_output<decl::Float>("Fac");
 }
