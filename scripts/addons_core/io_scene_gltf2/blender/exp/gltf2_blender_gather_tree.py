@@ -5,7 +5,7 @@
 import bpy
 import uuid
 import numpy as np
-from mathutils import Quaternion, Matrix
+from mathutils import Quaternion, Matrix, Vector
 from ...io.exp.gltf2_io_user_extensions import export_user_extensions
 from ...io.com import gltf2_io
 from ...io.imp.gltf2_io_binary import BinaryData
@@ -907,3 +907,23 @@ class VExportTree:
                 self.export_settings['log'].warning(
                     "We can't remove armature object because some armatures have multiple root bones.")
                 break
+
+    def calculate_collection_center(self):
+        # Because we already filtered the tree, we can use all objects
+        # to calculate the center of the scene
+        # Are taken into account all objects that are direct root in the exported collection
+        centers = []
+
+        for node in [
+            n for n in self.nodes.values() if n.parent_uuid is None and n.blender_type in [
+                VExportNode.OBJECT,
+                VExportNode.ARMATURE,
+                VExportNode.LIGHT,
+                VExportNode.CAMERA]]:
+            if node.matrix_world is not None:
+                centers.append(node.matrix_world.translation)
+
+        if len(centers) == 0:
+            self.export_settings['gltf_collection_center'] = Vector((0.0, 0.0, 0.0))
+
+        self.export_settings['gltf_collection_center'] = sum(centers, Vector()) / len(centers)
