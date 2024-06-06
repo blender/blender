@@ -737,7 +737,7 @@ KeyframeStrip::~KeyframeStrip()
 
 template<> bool Strip::is<KeyframeStrip>() const
 {
-  return this->type() == Type::Keyframe;
+  return this->type() == KeyframeStrip::TYPE;
 }
 
 template<> KeyframeStrip &Strip::as<KeyframeStrip>()
@@ -750,6 +750,11 @@ template<> const KeyframeStrip &Strip::as<KeyframeStrip>() const
 {
   BLI_assert_msg(this->is<KeyframeStrip>(), "Strip is not a KeyframeStrip");
   return *reinterpret_cast<const KeyframeStrip *>(this);
+}
+
+KeyframeStrip::operator Strip &()
+{
+  return this->strip.wrap();
 }
 
 blender::Span<const ChannelBag *> KeyframeStrip::channelbags() const
