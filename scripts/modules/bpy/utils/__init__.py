@@ -384,6 +384,7 @@ def script_paths_system_environment():
         return [_os.path.normpath(env_system_path)]
     return []
 
+
 def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True, use_system_environment=True):
     """
     Returns a list of valid script paths.

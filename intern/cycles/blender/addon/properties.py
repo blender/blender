@@ -82,11 +82,26 @@ def enum_sampling_pattern(self, context):
          5)]
 
     debug_items = [
-        ('SOBOL_BURLEY', "Sobol-Burley", "Use on-the-fly computed Owen-scrambled Sobol for random sampling", 0),
-        ('TABULATED_SOBOL', "Tabulated Sobol", "Use pre-computed tables of Owen-scrambled Sobol for random sampling", 1),
-        ('BLUE_NOISE', "Blue-Noise (pure)", "Blue-Noise (pure)", 2),
-        ('BLUE_NOISE_FIRST', "Blue-Noise (first)", "Blue-Noise (first)", 3),
-        ('BLUE_NOISE_ROUND', "Blue-Noise (round)", "Blue-Noise (round)", 4),
+        ('SOBOL_BURLEY',
+         "Sobol-Burley",
+         "Use on-the-fly computed Owen-scrambled Sobol for random sampling",
+         0),
+        ('TABULATED_SOBOL',
+         "Tabulated Sobol",
+         "Use pre-computed tables of Owen-scrambled Sobol for random sampling",
+         1),
+        ('BLUE_NOISE',
+         "Blue-Noise (pure)",
+         "Use a blue-noise pattern, which optimizes the frequency distribution of noise, for random sampling",
+         2),
+        ('BLUE_NOISE_FIRST',
+         "Blue-Noise (first)",
+         "Use a blue-noise pattern for the first sample, then use Tabulated Sobol for the remaining samples, for random sampling",
+         3),
+        ('BLUE_NOISE_ROUND',
+         "Blue-Noise (round)",
+         "Use a blue-noise sequence with a length rounded up to the next power of 2, for random sampling",
+         4),
     ]
 
     non_debug_items = [
