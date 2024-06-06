@@ -386,6 +386,103 @@ def extensions_panel_draw_online_extensions_request_impl(
     row.operator("extensions.userpref_allow_online", text="Allow Online Access", icon='CHECKMARK')
 
 
+# NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
+def extensions_map_from_legacy_addons_ensure():
+    import os
+    global extensions_map_from_legacy_addons
+    global extensions_map_from_legacy_addons_url
+    if extensions_map_from_legacy_addons is not None:
+        return
+
+    filepath = os.path.join(os.path.dirname(__file__), "extensions_map_from_legacy_addons.py")
+    with open(filepath, "rb") as fh:
+        data = eval(compile(fh.read(), filepath, "eval"), {})
+    extensions_map_from_legacy_addons = data["extensions"]
+    extensions_map_from_legacy_addons_url = data["remote_url"]
+
+
+def extensions_map_from_legacy_addons_reverse_lookup(pkg_id):
+    # Return the old name from the package ID.
+    extensions_map_from_legacy_addons_ensure()
+    for key_addon_module_name, (value_pkg_id, _) in extensions_map_from_legacy_addons.items():
+        if pkg_id == value_pkg_id:
+            return key_addon_module_name
+    return ""
+
+
+extensions_map_from_legacy_addons = None
+extensions_map_from_legacy_addons_url = None
+
+
+# NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
+def extensions_panel_draw_missing_with_extension_impl(
+        *,
+        context,
+        layout,
+        missing_modules,
+):
+    layout_header, layout_panel = layout.panel("builtin_addons", default_closed=True)
+    layout_header.label(text="Missing Built-in Add-ons", icon='ERROR')
+
+    if layout_panel is None:
+        return
+
+    prefs = context.preferences
+    extensions_map_from_legacy_addons_ensure()
+
+    repo_index = -1
+    repo = None
+    for repo_test_index, repo_test in enumerate(prefs.extensions.repos):
+        if (
+                repo_test.use_remote_url and
+                (repo_test.remote_url.rstrip("/") == extensions_map_from_legacy_addons_url)
+        ):
+            repo_index = repo_test_index
+            repo = repo_test
+            break
+
+    box = layout_panel.box()
+    box.label(text="Add-ons previously shipped with Blender are now available from extensions.blender.org.")
+    can_install = True
+
+    if repo is None:
+        # Most likely the user manually removed this.
+        box.label(text="Blender's extension repository not found!", icon='ERROR')
+    elif not repo.enabled:
+        box.label(text="Blender's extension repository must be enabled to install extensions!", icon='ERROR')
+        repo_index = -1
+    del repo
+
+    for addon_module_name in sorted(missing_modules):
+        addon_pkg_id, addon_name = extensions_map_from_legacy_addons[addon_module_name]
+
+        boxsub = box.column().box()
+        colsub = boxsub.column()
+        row = colsub.row()
+
+        row_left = row.row()
+        row_left.alignment = 'LEFT'
+
+        row_left.label(text=addon_name, translate=False)
+
+        row_right = row.row()
+        row_right.alignment = 'RIGHT'
+
+        if repo_index != -1:
+            # NOTE: it's possible this extension is already installed.
+            # the user could have installed it manually, then opened this popup.
+            # This is enough of a corner case that it's not especially worth detecting
+            # and communicating this particular state of affairs to the user.
+            # Worst case, they install and it will re-install an already installed extension.
+            props = row_right.operator("extensions.package_install", text="Install")
+            props.repo_index = repo_index
+            props.pkg_id = addon_pkg_id
+            props.do_legacy_replace = True
+            del props
+
+        row_right.operator("preferences.addon_disable", text="", icon="X", emboss=False).module = addon_module_name
+
+
 def extensions_panel_draw_missing_impl(
         *,
         layout,
@@ -791,6 +888,30 @@ def extensions_panel_draw_impl(
             addon_module_name for addon_module_name in used_addon_module_name_map
             if addon_module_name not in module_names
         }
+
+        # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
+        if missing_modules:
+            # Split the missing modules into two groups, ones which can be upgraded and ones that can't.
+            extensions_map_from_legacy_addons_ensure()
+
+            missing_modules_with_extension = set()
+            missing_modules_without_extension = set()
+
+            for addon_module_name in missing_modules:
+                if addon_module_name in extensions_map_from_legacy_addons:
+                    missing_modules_with_extension.add(addon_module_name)
+                else:
+                    missing_modules_without_extension.add(addon_module_name)
+            if missing_modules_with_extension:
+                extensions_panel_draw_missing_with_extension_impl(
+                    context=context,
+                    layout=layout_topmost,
+                    missing_modules=missing_modules_with_extension,
+                )
+
+            # Pretend none of these shenanigans ever occurred (to simplify removal).
+            missing_modules = missing_modules_without_extension
+        # End code-path for 4.1x migration.
 
         if missing_modules:
             extensions_panel_draw_missing_impl(

@@ -1901,6 +1901,14 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
     # Only used for code-path for dropping an extension.
     url: rna_prop_url
 
+    # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
+    # Only used when moving from  previously built-in add-ons to extensions.
+    do_legacy_replace: BoolProperty(
+        name="Do Legacy Replace",
+        default=False,
+        options={'HIDDEN', 'SKIP_SAVE'}
+    )
+
     @classmethod
     def poll(cls, context):
         if not bpy.app.online_access:
@@ -2013,6 +2021,10 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
 
+        # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
+        if self.do_legacy_replace and (not canceled):
+            self._do_legacy_replace(self.pkg_id, pkg_manifest_local)
+
     def invoke(self, context, event):
         # Only for drop logic!
         if self.properties.is_property_set("url"):
@@ -2079,6 +2091,30 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         layout.separator()
 
         layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[item_remote["type"]])
+
+    @staticmethod
+    def _do_legacy_replace(pkg_id, pkg_manifest_local):
+        # Disables and add-on that was replaced by an extension,
+        # use for upgrading 4.1 preferences or older.
+
+        # Ensure the local meta-data exists, else there may have been a problem installing,
+        # note that this does *not* check if the add-on could be enabled which is intentional.
+        # It's only important the add-on installs to justify disabling the old add-on.
+        # Note that there is no need to report if this was not found as failing to install will
+        # already have reported.
+        if not pkg_manifest_local.get(pkg_id):
+            return
+
+        from .bl_extension_ui import extensions_map_from_legacy_addons_reverse_lookup
+        addon_module_name = extensions_map_from_legacy_addons_reverse_lookup(pkg_id)
+        if not addon_module_name:
+            # This shouldn't happen unless someone goes out of there way
+            # to enable `do_legacy_replace` for a non-legacy extension.
+            # Use a print here as it's such a corner case and harmless.
+            print("Internal error, legacy lookup failed:", addon_module_name)
+            return
+
+        bpy.ops.preferences.addon_disable(module=addon_module_name)
 
 
 class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
