@@ -455,6 +455,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         walk_class(cls)
 
     # Parse keymap preset preferences
+    active_keyconfig = bpy.context.window_manager.keyconfigs.active.name
     for preset_filename in sorted(
             os.listdir(os.path.join(settings.PRESETS_DIR, "keyconfig"))):
         preset_path = os.path.join(settings.PRESETS_DIR, "keyconfig", preset_filename)
@@ -466,6 +467,10 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         preset = bpy.data.window_managers[0].keyconfigs[preset_name]
         if preset.preferences is not None:
             walk_properties(preset.preferences)
+    # Restore original keyconfig
+    bpy.utils.keyconfig_set(
+        os.path.join(settings.PRESETS_DIR, "keyconfig", active_keyconfig + ".py")
+    )
 
     # And parse keymaps!
     from bl_keymap_utils import keymap_hierarchy
