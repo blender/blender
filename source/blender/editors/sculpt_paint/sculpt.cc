@@ -1882,45 +1882,32 @@ struct AreaNormalCenterData {
   std::array<int, 2> count_no;
 };
 
-static void calc_area_normal_and_center_task(const Object &ob,
-                                             const Brush &brush,
-                                             const bool use_area_nos,
-                                             const bool use_area_cos,
-                                             const bool has_bm_orco,
-                                             PBVHNode *node,
-                                             AreaNormalCenterData *anctd,
-                                             bool &r_any_vertex_sampled)
+static SculptBrushTestFn area_normal_and_center_get_normal_test(const SculptSession &ss,
+                                                                const Brush &brush,
+                                                                SculptBrushTest &r_test)
 {
-  const SculptSession &ss = *ob.sculpt;
-
-  undo::Node *unode = nullptr;
-
-  bool use_original = false;
-  if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(node, undo::Type::Position);
-    if (unode) {
-      use_original = (!unode->position.is_empty() || unode->bm_entry);
-    }
-  }
-
-  SculptBrushTest normal_test;
   SculptBrushTestFn sculpt_brush_normal_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, normal_test, brush.falloff_shape);
+      ss, r_test, brush.falloff_shape);
 
   /* Update the test radius to sample the normal using the normal radius of the brush. */
   if (brush.ob_mode == OB_MODE_SCULPT) {
-    float test_radius = std::sqrt(normal_test.radius_squared);
+    float test_radius = std::sqrt(r_test.radius_squared);
     test_radius *= brush.normal_radius_factor;
-    normal_test.radius = test_radius;
-    normal_test.radius_squared = test_radius * test_radius;
+    r_test.radius = test_radius;
+    r_test.radius_squared = test_radius * test_radius;
   }
+  return sculpt_brush_normal_test_sq_fn;
+}
 
-  SculptBrushTest area_test;
+static SculptBrushTestFn area_normal_and_center_get_area_test(const SculptSession &ss,
+                                                              const Brush &brush,
+                                                              SculptBrushTest &r_test)
+{
   SculptBrushTestFn sculpt_brush_area_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, area_test, brush.falloff_shape);
+      ss, r_test, brush.falloff_shape);
 
   if (brush.ob_mode == OB_MODE_SCULPT) {
-    float test_radius = std::sqrt(area_test.radius_squared);
+    float test_radius = std::sqrt(r_test.radius_squared);
     /* Layer brush produces artifacts with normal and area radius */
     /* Enable area radius control only on Scrape for now */
     if (ELEM(brush.sculpt_tool, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_FILL) &&
@@ -1934,9 +1921,60 @@ static void calc_area_normal_and_center_task(const Object &ob,
     else {
       test_radius *= brush.normal_radius_factor;
     }
-    area_test.radius = test_radius;
-    area_test.radius_squared = test_radius * test_radius;
+    r_test.radius = test_radius;
+    r_test.radius_squared = test_radius * test_radius;
   }
+  return sculpt_brush_area_test_sq_fn;
+}
+
+/* Weight the normals towards the center. */
+static float area_normal_calc_weight(const float distance, const float radius)
+{
+  float p = 1.0f - (std::sqrt(distance) / radius);
+  return std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
+}
+
+/* Weight the coordinates towards the center. */
+static float3 area_center_calc_weighted(const float3 &test_location,
+                                        const float distance,
+                                        const float radius,
+                                        const float3 &co)
+{
+  /* Weight the coordinates towards the center. */
+  float p = 1.0f - (std::sqrt(distance) / radius);
+  const float afactor = std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
+
+  const float3 disp = (co - test_location) * (1.0f - afactor);
+  return test_location + disp;
+}
+
+static void calc_area_normal_and_center_task(const Object &ob,
+                                             const Brush &brush,
+                                             const bool use_area_nos,
+                                             const bool use_area_cos,
+                                             const bool has_bm_orco,
+                                             PBVHNode *node,
+                                             AreaNormalCenterData *anctd,
+                                             bool &r_any_vertex_sampled)
+{
+  const SculptSession &ss = *ob.sculpt;
+
+  undo::Node *unode = nullptr;
+  bool use_original = false;
+  if (ss.cache && !ss.cache->accum) {
+    unode = undo::get_node(node, undo::Type::Position);
+    if (unode) {
+      use_original = (!unode->position.is_empty() || unode->bm_entry);
+    }
+  }
+
+  SculptBrushTest normal_test;
+  SculptBrushTestFn sculpt_brush_normal_test_sq_fn = area_normal_and_center_get_normal_test(
+      ss, brush, normal_test);
+
+  SculptBrushTest area_test;
+  SculptBrushTestFn sculpt_brush_area_test_sq_fn = area_normal_and_center_get_area_test(
+      ss, brush, area_test);
 
   /* When the mesh is edited we can't rely on original coords
    * (original mesh may not even have verts in brush radius). */
@@ -1968,20 +2006,14 @@ static void calc_area_normal_and_center_task(const Object &ob,
 
       const int flip_index = (math::dot(ss.cache->view_normal, no) <= 0.0f);
       if (use_area_cos && area_test_r) {
-        /* Weight the coordinates towards the center. */
-        float p = 1.0f - (std::sqrt(area_test.dist) / area_test.radius);
-        const float afactor = std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
-
-        const float3 disp = (co - area_test.location) * (1.0f - afactor);
-        anctd->area_cos[flip_index] += area_test.location + disp;
+        anctd->area_cos[flip_index] += area_center_calc_weighted(
+            area_test.location, area_test.dist, area_test.radius, co);
 
         anctd->count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
-        /* Weight the normals towards the center. */
-        float p = 1.0f - (std::sqrt(normal_test.dist) / normal_test.radius);
-        const float nfactor = std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
-        anctd->area_nos[flip_index] += no * nfactor;
+        anctd->area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                    normal_test.radius);
         anctd->count_no[flip_index] += 1;
       }
     }
@@ -2026,20 +2058,13 @@ static void calc_area_normal_and_center_task(const Object &ob,
                                         no) <= 0.0f);
 
       if (use_area_cos && area_test_r) {
-        /* Weight the coordinates towards the center. */
-        float p = 1.0f - (sqrtf(area_test.dist) / area_test.radius);
-        const float afactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
-
-        const float3 disp = (co - area_test.location) * (1.0f - afactor);
-
-        anctd->area_cos[flip_index] += area_test.location + disp;
+        anctd->area_cos[flip_index] += area_center_calc_weighted(
+            area_test.location, area_test.dist, area_test.radius, co);
         anctd->count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
-        /* Weight the normals towards the center. */
-        float p = 1.0f - (sqrtf(normal_test.dist) / normal_test.radius);
-        const float nfactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
-        anctd->area_nos[flip_index] += no * nfactor;
+        anctd->area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                    normal_test.radius);
         anctd->count_no[flip_index] += 1;
       }
     }
