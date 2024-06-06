@@ -828,6 +828,9 @@ def extensions_panel_draw_impl(
 
                 if is_addon:
                     col_a.label(text="Permissions")
+                    # WARNING: while this is documented to be a dict, old packages may contain a list of strings.
+                    # As it happens dictionary keys & list values both iterate over string,
+                    # however we will want to show the dictionary values eventually.
                     if (value := item_remote.get("permissions")):
                         col_b.label(text=", ".join([iface_(x.title()) for x in value]), translate=False)
                     else:
