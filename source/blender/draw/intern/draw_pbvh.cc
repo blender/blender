@@ -263,7 +263,6 @@ void extract_data_corner_bmesh(const PBVH_GPU_Args &args, const int cd_offset, g
 struct PBVHBatch {
   Vector<int> vbos;
   gpu::Batch *tris = nullptr, *lines = nullptr;
-  int tris_count = 0, lines_count = 0;
   /* Coarse multi-resolution, will use full-sized VBOs only index buffer changes. */
   bool is_coarse = false;
 
@@ -336,7 +335,6 @@ struct PBVHBatches {
   gpu::IndexBuf *tri_index = nullptr;
   gpu::IndexBuf *lines_index = nullptr;
   int faces_count = 0; /* Used by PBVH_BMESH and PBVH_GRIDS */
-  int tris_count = 0, lines_count = 0;
   bool needs_tri_index = false;
 
   int material_index = 0;
@@ -388,10 +386,6 @@ struct PBVHBatches {
   PBVHBatches(const PBVH_GPU_Args &args)
   {
     faces_count = count_faces(args);
-
-    if (args.pbvh_type == PBVH_BMESH) {
-      tris_count = faces_count;
-    }
   }
 
   ~PBVHBatches()
@@ -762,7 +756,6 @@ struct PBVHBatches {
       }
     }
     else {
-      const bke::AttributeAccessor attributes = args.mesh->attributes();
       const GenericRequest &request = std::get<GenericRequest>(vbo.request);
       const StringRef name = request.name;
       const bke::AttrDomain domain = request.domain;
@@ -810,12 +803,12 @@ struct PBVHBatches {
 
   void fill_vbo_bmesh(PBVHVbo &vbo, const PBVH_GPU_Args &args)
   {
-    faces_count = tris_count = count_faces(args);
+    faces_count = count_faces(args);
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
     void *existing_data = GPU_vertbuf_get_data(*vbo.vert_buf);
 
-    int vert_count = tris_count * 3;
+    int vert_count = faces_count * 3;
 
     if (existing_data == nullptr || existing_num != vert_count) {
       /* Allocate buffer if not allocated yet or size changed. */
@@ -1042,7 +1035,7 @@ struct PBVHBatches {
         GPU_INDEXBUF_DISCARD_SAFE(tri_index_coarse);
         GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
 
-        faces_count = tris_count = count;
+        faces_count = count;
       }
     }
   }
@@ -1112,10 +1105,9 @@ struct PBVHBatches {
   void create_index_bmesh(const PBVH_GPU_Args &args)
   {
     GPUIndexBufBuilder elb_lines;
-    GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, tris_count * 3 * 2, INT_MAX);
+    GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, faces_count * 3 * 2, INT_MAX);
 
     int v_index = 0;
-    lines_count = 0;
 
     for (const BMFace *f : *args.bm_faces) {
       if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -1126,7 +1118,6 @@ struct PBVHBatches {
       GPU_indexbuf_add_line_verts(&elb_lines, v_index + 1, v_index + 2);
       GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index);
 
-      lines_count += 3;
       v_index += 3;
     }
 
@@ -1362,13 +1353,11 @@ struct PBVHBatches {
                                   nullptr,
                                   /* can be nullptr if buffer is empty */
                                   do_coarse_grids ? tri_index_coarse : tri_index);
-    batch.tris_count = do_coarse_grids ? tris_count_coarse : tris_count;
     batch.is_coarse = do_coarse_grids;
 
     if (lines_index) {
       batch.lines = GPU_batch_create(
           GPU_PRIM_LINES, nullptr, do_coarse_grids ? lines_index_coarse : lines_index);
-      batch.lines_count = do_coarse_grids ? lines_count_coarse : lines_count;
     }
 
     for (const AttributeRequest &request : requests) {
