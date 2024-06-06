@@ -1032,28 +1032,31 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
 
 bool SCULPT_tool_needs_all_pbvh_nodes(const Brush &brush);
 
-void SCULPT_calc_brush_plane(const Sculpt &sd,
-                             Object &ob,
-                             blender::Span<PBVHNode *> nodes,
-                             float r_area_no[3],
-                             float r_area_co[3]);
+namespace blender::ed::sculpt_paint {
 
-std::optional<blender::float3> SCULPT_calc_area_normal(const Sculpt &sd,
-                                                       Object &ob,
-                                                       blender::Span<PBVHNode *> nodes);
+void calc_brush_plane(const Brush &brush,
+                      Object &ob,
+                      Span<PBVHNode *> nodes,
+                      float r_area_no[3],
+                      float r_area_co[3]);
+
+std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVHNode *> nodes);
+
 /**
  * This calculates flatten center and area normal together,
  * amortizing the memory bandwidth and loop overhead to calculate both at the same time.
  */
-void SCULPT_calc_area_normal_and_center(const Sculpt &sd,
-                                        const Object &ob,
-                                        blender::Span<PBVHNode *> nodes,
-                                        float r_area_no[3],
-                                        float r_area_co[3]);
-void SCULPT_calc_area_center(const Sculpt &sd,
-                             const Object &ob,
-                             blender::Span<PBVHNode *> nodes,
-                             float r_area_co[3]);
+void calc_area_normal_and_center(const Brush &brush,
+                                 const Object &ob,
+                                 Span<PBVHNode *> nodes,
+                                 float r_area_no[3],
+                                 float r_area_co[3]);
+void calc_area_center(const Brush &brush,
+                      const Object &ob,
+                      Span<PBVHNode *> nodes,
+                      float r_area_co[3]);
+
+}
 
 PBVHVertRef SCULPT_nearest_vertex_get(const Object &ob,
                                       const float co[3],
@@ -1620,13 +1623,6 @@ void relax_vertex(SculptSession &ss,
 }
 
 /** \} */
-
-/**
- * Expose 'calc_area_normal' externally (just for vertex paint).
- */
-std::optional<blender::float3> SCULPT_pbvh_calc_area_normal(const Brush &brush,
-                                                            Object &ob,
-                                                            blender::Span<PBVHNode *> nodes);
 
 /**
  * Flip all the edit-data across the axis/axes specified by \a symm.

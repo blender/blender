@@ -1864,12 +1864,14 @@ static float calc_symmetry_feather(const Sculpt &sd,
  * (optionally using original coordinates).
  *
  * Functions are:
- * - #SCULPT_calc_area_center
- * - #SCULPT_calc_area_normal
- * - #SCULPT_calc_area_normal_and_center
+ * - #calc_area_center
+ * - #calc_area_normal
+ * - #calc_area_normal_and_center
  *
  * \note These are all _very_ similar, when changing one, check others.
  * \{ */
+
+namespace blender::ed::sculpt_paint {
 
 struct AreaNormalCenterData {
   /* 0 = towards view, 1 = flipped */
@@ -1888,8 +1890,6 @@ static void calc_area_normal_and_center_task(const Object &ob,
                                              AreaNormalCenterData *anctd,
                                              bool &r_any_vertex_sampled)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   const SculptSession &ss = *ob.sculpt;
 
   PBVHVertexIter vd;
@@ -2096,14 +2096,11 @@ static AreaNormalCenterData calc_area_normal_and_center_reduce(const AreaNormalC
   return joined;
 }
 
-void SCULPT_calc_area_center(const Sculpt &sd,
-                             const Object &ob,
-                             Span<PBVHNode *> nodes,
-                             float r_area_co[3])
+void calc_area_center(const Brush &brush,
+                      const Object &ob,
+                      Span<PBVHNode *> nodes,
+                      float r_area_co[3])
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const SculptSession &ss = *ob.sculpt;
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
   int n;
@@ -2144,18 +2141,8 @@ void SCULPT_calc_area_center(const Sculpt &sd,
   }
 }
 
-std::optional<float3> SCULPT_calc_area_normal(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVHNode *> nodes)
 {
-  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
-  return SCULPT_pbvh_calc_area_normal(*brush, ob, nodes);
-}
-
-std::optional<float3> SCULPT_pbvh_calc_area_normal(const Brush &brush,
-                                                   Object &ob,
-                                                   Span<PBVHNode *> nodes)
-{
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
 
@@ -2188,15 +2175,12 @@ std::optional<float3> SCULPT_pbvh_calc_area_normal(const Brush &brush,
   return std::nullopt;
 }
 
-void SCULPT_calc_area_normal_and_center(const Sculpt &sd,
-                                        const Object &ob,
-                                        Span<PBVHNode *> nodes,
-                                        float r_area_no[3],
-                                        float r_area_co[3])
+void calc_area_normal_and_center(const Brush &brush,
+                                 const Object &ob,
+                                 Span<PBVHNode *> nodes,
+                                 float r_area_no[3],
+                                 float r_area_co[3])
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.sculpt;
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
   int n;
@@ -2243,6 +2227,8 @@ void SCULPT_calc_area_normal_and_center(const Sculpt &sd,
     }
   }
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 /** \} */
 
@@ -2745,7 +2731,7 @@ static float3 calc_sculpt_normal(const Sculpt &sd, Object &ob, Span<PBVHNode *> 
   const SculptSession &ss = *ob.sculpt;
   switch (brush.sculpt_plane) {
     case SCULPT_DISP_DIR_AREA:
-      return SCULPT_calc_area_normal(sd, ob, nodes).value_or(float3(0));
+      return calc_area_normal(brush, ob, nodes).value_or(float3(0));
     case SCULPT_DISP_DIR_VIEW:
       return ss.cache->true_view_normal;
     case SCULPT_DISP_DIR_X:
@@ -3097,11 +3083,12 @@ bool SCULPT_tool_needs_all_pbvh_nodes(const Brush &brush)
   return false;
 }
 
-void SCULPT_calc_brush_plane(
-    const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes, float r_area_no[3], float r_area_co[3])
+namespace blender::ed::sculpt_paint {
+
+void calc_brush_plane(
+    const Brush &brush, Object &ob, Span<PBVHNode *> nodes, float r_area_no[3], float r_area_co[3])
 {
   const SculptSession &ss = *ob.sculpt;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   zero_v3(r_area_co);
   zero_v3(r_area_no);
@@ -3128,7 +3115,7 @@ void SCULPT_calc_brush_plane(
         break;
 
       case SCULPT_DISP_DIR_AREA:
-        SCULPT_calc_area_normal_and_center(sd, ob, nodes, r_area_no, r_area_co);
+        calc_area_normal_and_center(brush, ob, nodes, r_area_no, r_area_co);
         if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
           project_plane_v3_v3v3(r_area_no, r_area_no, ss.cache->view_normal);
           normalize_v3(r_area_no);
@@ -3142,7 +3129,7 @@ void SCULPT_calc_brush_plane(
     /* For flatten center. */
     /* Flatten center has not been calculated yet if we are not using the area normal. */
     if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA) {
-      SCULPT_calc_area_center(sd, ob, nodes, r_area_co);
+      calc_area_center(brush, ob, nodes, r_area_co);
     }
 
     /* For area normal. */
@@ -3188,6 +3175,8 @@ void SCULPT_calc_brush_plane(
     add_v3_v3(r_area_co, ss.cache->plane_offset);
   }
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 int SCULPT_plane_trim(const blender::ed::sculpt_paint::StrokeCache &cache,
                       const Brush &brush,
@@ -5128,8 +5117,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   }
 
   /* Calculate the sampled normal. */
-  if (const std::optional<float3> sampled_normal = SCULPT_pbvh_calc_area_normal(brush, ob, nodes))
-  {
+  if (const std::optional<float3> sampled_normal = calc_area_normal(brush, ob, nodes)) {
     copy_v3_v3(out->normal, *sampled_normal);
     copy_v3_v3(ss.cursor_sampled_normal, *sampled_normal);
   }
