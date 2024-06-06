@@ -147,9 +147,9 @@ set(SDL_FILE SDL2-${SDL_VERSION}.tar.gz)
 set(SDL_CPE "cpe:2.3:a:libsdl:sdl:${SDL_VERSION}:*:*:*:*:*:*:*")
 set(SDL_HOMEPAGE https://www.libsdl.org)
 
-set(OPENCOLLADA_VERSION v1.6.68)
-set(OPENCOLLADA_URI https://github.com/KhronosGroup/OpenCOLLADA/archive/${OPENCOLLADA_VERSION}.tar.gz)
-set(OPENCOLLADA_HASH ee7dae874019fea7be11613d07567493)
+set(OPENCOLLADA_VERSION 717cb7c1041a1796aad3cf843dd8f5095d7a6a33)
+set(OPENCOLLADA_URI https://github.com/aras-p/OpenCOLLADA/archive/${OPENCOLLADA_VERSION}.tar.gz)
+set(OPENCOLLADA_HASH 64cb7f705751790f1a8c6d0dfe6682cd)
 set(OPENCOLLADA_HASH_TYPE MD5)
 set(OPENCOLLADA_FILE opencollada-${OPENCOLLADA_VERSION}.tar.gz)
 
