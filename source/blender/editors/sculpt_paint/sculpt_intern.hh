@@ -1007,7 +1007,7 @@ Set<int> gather_hidden_face_sets(Span<bool> hide_poly, Span<int> face_sets);
  * handles #BMesh, #Mesh, and multi-resolution.
  */
 void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
-                                Object &ob,
+                                const Object &ob,
                                 const PBVHNode &node,
                                 blender::ed::sculpt_paint::undo::Type type);
 /**
@@ -1337,7 +1337,7 @@ struct NodeData {
 /**
  * Call before PBVH vertex iteration.
  */
-NodeData node_begin(Object &object, const Cache *automasking, const PBVHNode &node);
+NodeData node_begin(const Object &object, const Cache *automasking, const PBVHNode &node);
 
 /* Call before factor_get and SCULPT_brush_strength_factor. */
 void node_update(NodeData &automask_data, const PBVHVertexIter &vd);

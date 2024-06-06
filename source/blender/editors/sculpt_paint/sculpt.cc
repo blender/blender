@@ -1208,7 +1208,7 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
 }
 
 void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
-                                Object &ob,
+                                const Object &ob,
                                 const PBVHNode &node,
                                 const blender::ed::sculpt_paint::undo::Type type)
 {

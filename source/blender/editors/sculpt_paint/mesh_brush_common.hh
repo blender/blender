@@ -94,13 +94,8 @@ namespace auto_mask {
 
 /**
  * Calculate all auto-masking influence on each vertex.
- *
- * \todo Remove call to `undo::push_node` deep inside this function so the `object` argument can be
- * const. That may (hopefully) require pulling out the undo node push into the code for each brush.
- * That should help clarify the code path for brushes, and various optimizations will depend on
- * brush implementations doing their own undo pushes.
  */
-void calc_vert_factors(Object &object,
+void calc_vert_factors(const Object &object,
                        const Cache &cache,
                        const PBVHNode &node,
                        Span<int> verts,

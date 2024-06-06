@@ -594,7 +594,7 @@ static void mesh_orig_vert_data_update(SculptOrigVertData &orig_data, const int 
   orig_data.no = orig_data.normals[vert];
 }
 
-void calc_vert_factors(Object &object,
+void calc_vert_factors(const Object &object,
                        const Cache &cache,
                        const PBVHNode &node,
                        const Span<int> verts,
@@ -612,7 +612,7 @@ void calc_vert_factors(Object &object,
   }
 }
 
-NodeData node_begin(Object &object, const Cache *automasking, const PBVHNode &node)
+NodeData node_begin(const Object &object, const Cache *automasking, const PBVHNode &node)
 {
   if (!automasking) {
     return {};
