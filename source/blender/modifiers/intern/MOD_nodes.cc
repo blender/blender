@@ -1021,6 +1021,13 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
         {
           if (node_cache->cache_status != bake::CacheStatus::Baked) {
             node_cache->cache_status = bake::CacheStatus::Invalid;
+            if (!node_cache->bake.frames.is_empty()) {
+              if (node_cache->bake.frames.last()->frame == current_frame_) {
+                /* Remove the last (which is the current) cached frame so that it is simulated
+                 * again. */
+                node_cache->bake.frames.pop_last();
+              }
+            }
           }
         }
       }
