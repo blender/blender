@@ -527,6 +527,9 @@ def extensions_panel_draw_impl(
     """
     import addon_utils
     import os
+    from bpy.app.translations import (
+        pgettext_iface as iface_,
+    )
     from .bl_extension_ops import (
         blender_extension_mark,
         blender_extension_show,
@@ -826,9 +829,10 @@ def extensions_panel_draw_impl(
                 if is_addon:
                     col_a.label(text="Permissions")
                     if (value := item_remote.get("permissions")):
-                        col_b.label(text="{:s}".format(", ".join(value).title()))
+                        col_b.label(text=", ".join([iface_(x.title()) for x in value]), translate=False)
                     else:
                         col_b.label(text="No permissions specified")
+                    del value
 
                 # Remove the maintainers email while it's not private, showing prominently
                 # could cause maintainers to get direct emails instead of issue tracking systems.
