@@ -10904,7 +10904,8 @@ static int ui_but_pie_button_activate(bContext *C, uiBut *but, uiPopupBlockHandl
   uiBut *active_but = ui_region_find_active_but(menu->region);
 
   if (active_but) {
-    button_activate_exit(C, active_but, active_but->active, false, false);
+    /* Use onfree to not execute the hovered active_but. */
+    button_activate_exit(C, active_but, active_but->active, false, true);
   }
 
   button_activate_init(C, menu->region, but, BUTTON_ACTIVATE_OVER);
