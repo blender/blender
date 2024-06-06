@@ -25,7 +25,6 @@ class TestEnvironment:
         self.blender_dir = base_dir / 'blender'
         self.build_dir = base_dir / 'build'
         self.install_dir = self.build_dir / "bin"
-        self.lib_dir = base_dir / 'lib'
         self.benchmarks_dir = self.blender_git_dir / 'tests' / 'benchmarks'
         self.git_executable = 'git'
         self.cmake_executable = 'cmake'
@@ -56,12 +55,6 @@ class TestEnvironment:
             TestConfig.write_default_config(self, config_dir)
 
         if build:
-            if not self.lib_dir.exists():
-                print(f'Creating symlink at {self.lib_dir}')
-                self.lib_dir.symlink_to(self.blender_git_dir.parent / 'lib')
-            else:
-                print(f'Exists {self.lib_dir}')
-
             if not self.blender_dir.exists():
                 print(f'Init git worktree in {self.blender_dir}')
                 self.call([self.git_executable, 'worktree', 'add', '--detach',
