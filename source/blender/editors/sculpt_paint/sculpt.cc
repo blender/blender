@@ -6686,58 +6686,49 @@ void clip_and_lock_translations(const Sculpt &sd,
   }
 }
 
-MutableSpan<float3> mesh_brush_positions_for_write(SculptSession &ss, Mesh & /*mesh*/)
-{
-  /* TODO: Eventually this should retrieve mutable positions directly from the mesh or the active
-   * shape key, instead of keeping a mutable reference to an array stored in the PBVH. That will
-   * help avoid copies when user edits don't affect positions, will help to make code safer because
-   * there will be less potentially-stale state, and will make it less confusing by avoiding
-   * redundant data storage. */
-  return BKE_pbvh_get_vert_positions(*ss.pbvh);
-}
-
-void flush_positions_to_shape_keys(Object &object,
-                                   const Span<int> verts,
-                                   const Span<float3> positions,
-                                   const MutableSpan<float3> positions_mesh)
+void apply_translations_to_shape_keys(Object &object,
+                                      const Span<int> verts,
+                                      const Span<float3> translations,
+                                      const MutableSpan<float3> positions_orig)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   KeyBlock *active_key = BKE_keyblock_from_object(&object);
   if (!active_key) {
     return;
   }
+
   MutableSpan active_key_data(static_cast<float3 *>(active_key->data), active_key->totelem);
+  if (active_key == mesh.key->refkey) {
+    for (const int vert : verts) {
+      active_key_data[vert] = positions_orig[vert];
+    }
+  }
+  else {
+    apply_translations(translations, verts, active_key_data);
+  }
 
   /* For relative keys editing of base should update other keys. */
   if (bool *dependent = BKE_keyblock_get_dependent_keys(mesh.key, object.shapenr - 1)) {
-    /* TODO: Avoid allocation by using translations already calculated by brush. */
-    Array<float3> offsets(verts.size());
-    for (const int i : verts.index_range()) {
-      offsets[i] = positions[verts[i]] - active_key_data[verts[i]];
-    }
-
     int i;
     LISTBASE_FOREACH_INDEX (KeyBlock *, other_key, &mesh.key->block, i) {
       if ((other_key != active_key) && dependent[i]) {
         MutableSpan<float3> data(static_cast<float3 *>(other_key->data), other_key->totelem);
-        apply_translations(offsets, verts, data);
+        apply_translations(translations, verts, data);
       }
     }
-
     MEM_freeN(dependent);
   }
+}
 
-  /* Modifying of basis key should update mesh. */
-  if (active_key == mesh.key->refkey) {
-    /* TODO: There are too many positions arrays getting passed around. We should have a better
-     * naming system or not have to constantly update both the base shape key and original
-     * positions. OTOH, maybe it's just a consequence of the bad design of shape keys. */
-    apply_translations(positions, verts, positions_mesh);
+void apply_translations_to_pbvh(PBVH &pbvh, Span<int> verts, const Span<float3> translations)
+{
+  if (!BKE_pbvh_is_deformed(pbvh)) {
+    return;
   }
-
-  /* Apply new positions to active shape key. */
-  for (const int vert : verts) {
-    active_key_data[vert] = positions[vert];
+  MutableSpan<float3> pbvh_positions = BKE_pbvh_get_vert_positions(pbvh);
+  for (const int i : verts.index_range()) {
+    const int vert = verts[i];
+    pbvh_positions[vert] += translations[i];
   }
 }
 

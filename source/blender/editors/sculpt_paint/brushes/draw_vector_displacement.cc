@@ -64,8 +64,7 @@ static void calc_faces(const Sculpt &sd,
                        const PBVHNode &node,
                        Object &object,
                        LocalData &tls,
-                       MutableSpan<float3> positions_orig,
-                       MutableSpan<float3> mesh_positions)
+                       MutableSpan<float3> positions_orig)
 {
   SculptSession &ss = *object.sculpt;
   StrokeCache &cache = *ss.cache;
@@ -108,7 +107,8 @@ static void calc_faces(const Sculpt &sd,
   }
 
   apply_translations(translations, verts, positions_orig);
-  flush_positions_to_shape_keys(object, verts, positions_orig, mesh_positions);
+  apply_translations_to_shape_keys(object, verts, translations, positions_orig);
+  apply_translations_to_pbvh(*ss.pbvh, verts, translations);
 }
 
 static void calc_grids(Object &object, const Brush &brush, PBVHNode &node)
@@ -224,20 +224,12 @@ void do_draw_vector_displacement_brush(const Sculpt &sd, Object &object, Span<PB
       const PBVH &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
-      MutableSpan<float3> positions_orig = mesh_brush_positions_for_write(*object.sculpt, mesh);
-      MutableSpan<float3> mesh_positions = mesh.vert_positions_for_write();
+      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces(sd,
-                     brush,
-                     positions_eval,
-                     vert_normals,
-                     *nodes[i],
-                     object,
-                     tls,
-                     positions_orig,
-                     mesh_positions);
+          calc_faces(
+              sd, brush, positions_eval, vert_normals, *nodes[i], object, tls, positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });
