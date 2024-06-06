@@ -1042,7 +1042,6 @@ struct PBVHBatches {
         GPU_INDEXBUF_DISCARD_SAFE(tri_index_coarse);
         GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
 
-        tri_index = lines_index = tri_index_coarse = lines_index_coarse = nullptr;
         faces_count = tris_count = count;
       }
     }
