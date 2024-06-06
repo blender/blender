@@ -89,6 +89,10 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
      * or between few GPU and a CPU. */
     single_denoiser_device = find_best_device(denoiser_device, params.type);
   }
+  /* Ensure that we have a device to be used later in the code below. */
+  if (single_denoiser_device == nullptr) {
+    single_denoiser_device = cpu_fallback_device;
+  }
 
   bool is_cpu_denoiser_device = single_denoiser_device->info.type == DEVICE_CPU;
   if (is_cpu_denoiser_device == false) {
