@@ -405,8 +405,14 @@ def __gather_name(blender_object, export_settings):
 
 def __gather_trans_rot_scale(vnode, export_settings):
     if vnode.parent_uuid is None:
-        # No parent, so matrix is world matrix
-        trans, rot, sca = vnode.matrix_world.decompose()
+        # No parent, so matrix is world matrix, except if we export a collection
+        if export_settings['gltf_collection'] and export_settings['gltf_at_collection_center']:
+            # If collection, we need to take into account the collection offset
+            trans, rot, sca = vnode.matrix_world.decompose()
+            trans -= export_settings['gltf_collection_center']
+        else:
+            # No parent, so matrix is world matrix
+            trans, rot, sca = vnode.matrix_world.decompose()
     else:
         # calculate local matrix
         if export_settings['vtree'].nodes[vnode.parent_uuid].skin is None:

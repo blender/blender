@@ -74,6 +74,13 @@ def __gather_scene(blender_scene, export_settings):
     if export_settings['gltf_flatten_obj_hierarchy'] is True:
         vtree.break_obj_hierarchy()
 
+    # Now we filtered the tree, in case of Collection Export,
+    # We need to calculate the collection center,
+    # In order to set the scene center to the collection center
+    # Using object center barycenter for now (another option could be to use bounding box center)
+    if export_settings['gltf_collection'] and export_settings['gltf_at_collection_center']:
+        vtree.calculate_collection_center()
+
     vtree.variants_reset_to_original()
 
     export_user_extensions('vtree_after_filter_hook', export_settings, vtree)

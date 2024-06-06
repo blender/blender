@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 49),
+    "version": (4, 2, 50),
     'blender': (4, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -583,6 +583,13 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         default="",
     )
 
+    # Not starting with "export_", as this is a collection only option
+    at_collection_center: BoolProperty(
+        name="Export at Collection Center",
+        description="Export at Collection center of mass of root objects of the collection",
+        default=False,
+    )
+
     export_extras: BoolProperty(
         name='Custom Properties',
         description='Export custom properties as glTF extras',
@@ -1102,6 +1109,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             export_settings['gltf_active_collection_with_nested'] = False
         export_settings['gltf_active_scene'] = self.use_active_scene
         export_settings['gltf_collection'] = self.collection
+        export_settings['gltf_at_collection_center'] = self.at_collection_center
 
         export_settings['gltf_selected'] = self.use_selection
         export_settings['gltf_layers'] = True  # self.export_layers
@@ -1288,6 +1296,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         is_file_browser = context.space_data.type == 'FILE_BROWSER'
 
         export_main(layout, operator, is_file_browser)
+        export_panel_collection(layout, operator, is_file_browser)
         export_panel_include(layout, operator, is_file_browser)
         export_panel_transform(layout, operator)
         export_panel_data(layout, operator)
@@ -1315,6 +1324,16 @@ def export_main(layout, operator, is_file_browser):
     layout.prop(operator, 'export_copyright')
     if is_file_browser:
         layout.prop(operator, 'will_save_settings')
+
+
+def export_panel_collection(layout, operator, is_file_browser):
+    if is_file_browser:
+        return
+
+    header, body = layout.panel("GLTF_export_collection", default_closed=True)
+    header.label(text="Collection")
+    if body:
+        body.prop(operator, 'at_collection_center')
 
 
 def export_panel_include(layout, operator, is_file_browser):
