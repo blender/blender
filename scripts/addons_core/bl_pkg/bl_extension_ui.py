@@ -454,6 +454,9 @@ def extensions_panel_draw_missing_with_extension_impl(
     del repo
 
     for addon_module_name in sorted(missing_modules):
+        # The `addon_pkg_id` may be an empty string, this signifies that it's not mapped to an extension.
+        # The only reason to include it at all to avoid confusion because this *was* a previously built-in
+        # add-on and this panel is titled "Built-in Add-ons".
         addon_pkg_id, addon_name = extensions_map_from_legacy_addons[addon_module_name]
 
         boxsub = box.column().box()
@@ -468,7 +471,7 @@ def extensions_panel_draw_missing_with_extension_impl(
         row_right = row.row()
         row_right.alignment = 'RIGHT'
 
-        if repo_index != -1:
+        if repo_index != -1 and addon_pkg_id:
             # NOTE: it's possible this extension is already installed.
             # the user could have installed it manually, then opened this popup.
             # This is enough of a corner case that it's not especially worth detecting
