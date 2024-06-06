@@ -4,7 +4,7 @@
 
 #pragma once
 
-/* Note: version header included here to enable correct forward declaration of some types. No other
+/* NOTE: version header included here to enable correct forward declaration of some types. No other
  * OpenVDB headers should be included here, especially openvdb.h, to avoid affecting other
  * compilation units. */
 #include <openvdb/Types.h>

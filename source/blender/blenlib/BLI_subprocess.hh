@@ -41,7 +41,7 @@ namespace blender {
  * Creates a subprocess of the current Blender executable.
  * WARNING: This class doesn't handle subprocess destruction.
  * On Windows, subprocesses are closed automatically when the parent process finishes.
- * On Linux, subprocesses become children of init or systemd when the parent process finishes.
+ * On Linux, subprocesses become children of init or SYSTEMD when the parent process finishes.
  */
 class BlenderSubprocess : NonCopyable {
  private:
@@ -89,7 +89,7 @@ class SharedMemory : NonCopyable {
 
  public:
   /**
-   * WARNING: The name should be unique a unique identifier accross all processes (including
+   * WARNING: The name should be unique a unique identifier across all processes (including
    * multiple Blender instances). You should include the PID of the "owner" process in the name to
    * prevent name collisions.
    * `is_owner` should only be true for the first process that creates a SharedMemory with a given
@@ -116,7 +116,7 @@ class SharedMemory : NonCopyable {
 };
 
 /**
- * Creates or get access to a semaphore that can be used accros multiple processes.
+ * Creates or get access to a semaphore that can be used across multiple processes.
  */
 class SharedSemaphore : NonCopyable {
  private:
@@ -130,7 +130,7 @@ class SharedSemaphore : NonCopyable {
 
  public:
   /**
-   * WARNING: The name should be unique a unique identifier accross all processes (including
+   * WARNING: The name should be unique a unique identifier across all processes (including
    * multiple Blender instances). You should include the PID of the "owner" process in the name to
    * prevent name collisions.
    * `is_owner` should only be true for the last process that needs to read it (It's ok if the

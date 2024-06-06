@@ -297,7 +297,8 @@ static void process_scanlines(const TransformContext &ctx, IndexRange y_range)
     }
   }
   else {
-    /* One sample per pixel. Note: sample at pixel center for proper filtering. */
+    /* One sample per pixel.
+     * NOTE: sample at pixel center for proper filtering. */
     float2 uv_start = ctx.start_uv + ctx.add_x * 0.5f + ctx.add_y * 0.5f;
     for (int yi : y_range) {
       T *output = init_pixel_pointer<T>(ctx.dst, ctx.dst_region_x_range.first(), yi);

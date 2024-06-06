@@ -280,7 +280,7 @@ void initialize_bezt(BezTriple *beztr,
  * This is a helper function for determining whether to insert a keyframe or not
  * when "only insert needed" is enabled.
  *
- * Note: this does *not* determine whether inserting the keyframe would change
+ * NOTE: this does *not* determine whether inserting the keyframe would change
  * the fcurve at points other than the keyframe itself. For example, even if
  * inserting the key wouldn't change the fcurve's value at the time of the
  * keyframe, the resulting changes to bezier interpolation could change the

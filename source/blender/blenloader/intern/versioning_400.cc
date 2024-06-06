@@ -861,7 +861,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
           /* No need to match the surface since shadows are disabled. */
         }
         else if (material->blend_shadow == MA_BS_SOLID) {
-          /* This is already versionned an transfered to `transparent_shadows`. */
+          /* This is already versioned an transferred to `transparent_shadows`. */
         }
         else if ((material->blend_shadow == MA_BS_CLIP && material->blend_method != MA_BM_CLIP) ||
                  (material->blend_shadow == MA_BS_HASHED))
@@ -874,7 +874,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
           continue;
         }
 
-        /* TODO(fclem): Check if theshold is driven or has animation. Bail out if needed? */
+        /* TODO(fclem): Check if threshold is driven or has animation. Bail out if needed? */
 
         float threshold = (material->blend_method == MA_BM_CLIP) ? material->alpha_threshold :
                                                                    2.0f;

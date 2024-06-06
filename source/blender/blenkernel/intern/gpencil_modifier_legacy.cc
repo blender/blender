@@ -478,8 +478,8 @@ void BKE_gpencil_modifier_copydata_generic(const GpencilModifierData *md_src,
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
       GpencilModifierType(md_src->type));
 
-  /* md_dst may have already be fully initialized with some extra allocated data,
-   * we need to free it now to avoid memleak. */
+  /* `md_dst` may have already be fully initialized with some extra allocated data,
+   * we need to free it now to avoid a memory leak. */
   if (mti->free_data) {
     mti->free_data(md_dst);
   }

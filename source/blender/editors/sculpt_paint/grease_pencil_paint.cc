@@ -204,7 +204,7 @@ struct PaintOperationExecutor {
 
   /**
    * Creates a new curve with one point at the beginning or end.
-   * Note: Does not initialize the new curve or points.
+   * \note Does not initialize the new curve or points.
    */
   static void create_blank_curve(bke::CurvesGeometry &curves, const bool on_back)
   {
@@ -248,7 +248,7 @@ struct PaintOperationExecutor {
 
   /**
    * Extends the first or last curve by `new_points_num` number of points.
-   * Note: Does not initialize the new points.
+   * \note Does not initialize the new points.
    */
   static void extend_curve(bke::CurvesGeometry &curves,
                            const bool on_back,

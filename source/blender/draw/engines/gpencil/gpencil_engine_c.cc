@@ -71,7 +71,7 @@ void GPENCIL_engine_init(void *ved)
 
   GPENCIL_ViewLayerData *vldata = GPENCIL_view_layer_data_ensure();
 
-  /* Resize and reset memblocks. */
+  /* Resize and reset memory-blocks. */
   BLI_memblock_clear(vldata->gp_light_pool, gpencil_light_pool_free);
   BLI_memblock_clear(vldata->gp_material_pool, gpencil_material_pool_free);
   BLI_memblock_clear(vldata->gp_object_pool, nullptr);

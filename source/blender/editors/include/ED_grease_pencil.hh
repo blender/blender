@@ -416,7 +416,7 @@ void clipboard_free();
 const bke::CurvesGeometry &clipboard_curves();
 /**
  * Paste curves from the clipboard into the drawing.
- * \param paste_back Render behind existing curves by inserting curves at the front.
+ * \param paste_back: Render behind existing curves by inserting curves at the front.
  * \return Index range of the new curves in the drawing after pasting.
  */
 IndexRange clipboard_paste_strokes(Main &bmain,

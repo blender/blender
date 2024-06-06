@@ -137,7 +137,7 @@ void main()
     }
   }
 
-  /* Outside of strip rounded rect? */
+  /* Outside of strip rounded rectangle? */
   if (sdf > 0.0) {
     col = vec4(0.0);
   }
@@ -147,7 +147,7 @@ void main()
     bool selected = (strip.flags & GPU_SEQ_FLAG_SELECTED) != 0;
     vec4 col_outline = unpackUnorm4x8(strip.col_outline);
     if (selected) {
-      /* Inset 1px line with backround color. */
+      /* Inset 1px line with background color. */
       col = add_outline(sdf, 0.0, 1.0, col, unpackUnorm4x8(context_data.col_back));
       /* 2x wide outline. */
       col = add_outline(sdf, 0.5, -0.5, col, col_outline);

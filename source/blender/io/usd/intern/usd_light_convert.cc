@@ -42,12 +42,13 @@ static const pxr::TfToken texture_file("texture:file", pxr::TfToken::Immortal);
 
 namespace {
 
-/* If the given attribute has an authored value, return its value in the r_value
+/**
+ * If the given attribute has an authored value, return its value in the r_value
  * out parameter.
  *
  * We wish to support older UsdLux APIs in older versions of USD.  For example,
- * in previous versions of the API, shader input attibutes did not have the
- * "inputs:" prefix.  One can provide the older input attibute name in the
+ * in previous versions of the API, shader input attributes did not have the
+ * "inputs:" prefix.  One can provide the older input attribute name in the
  * 'fallback_attr_name' argument, and that attribute will be queried if 'attr'
  * doesn't exist or doesn't have an authored value.
  */
@@ -74,8 +75,10 @@ bool get_authored_value(const pxr::UsdAttribute &attr,
   return false;
 }
 
-/* Helper struct for retrieving shader information when traversing a world material
- * node chain, provided as user data for bke::nodeChainIter(). */
+/**
+ * Helper struct for retrieving shader information when traversing a world material
+ * node chain, provided as user data for #bke::nodeChainIter().
+ */
 struct WorldNtreeSearchResults {
   const blender::io::usd::USDExportParams &params;
   pxr::UsdStageRefPtr stage;
@@ -102,9 +105,11 @@ struct WorldNtreeSearchResults {
 
 namespace blender::io::usd {
 
-/* If the given path already exists on the given stage, return the path with
- * a numerical suffix appende to the name that ensures the path is unique. If
- * the path does not exist on the stage, it will be returned unchanged. */
+/**
+ * If the given path already exists on the given stage, return the path with
+ * a numerical suffix appended to the name that ensures the path is unique. If
+ * the path does not exist on the stage, it will be returned unchanged.
+ */
 static pxr::SdfPath get_unique_path(pxr::UsdStageRefPtr stage, const std::string &path)
 {
   std::string unique_path = path;
@@ -115,8 +120,10 @@ static pxr::SdfPath get_unique_path(pxr::UsdStageRefPtr stage, const std::string
   return pxr::SdfPath(unique_path);
 }
 
-/* Load the image at the given path.  Handle packing and copying based in the import options.
- * Return the opened image on succsss or a nullptr on failure. */
+/**
+ * Load the image at the given path.  Handle packing and copying based in the import options.
+ * Return the opened image on success or a nullptr on failure.
+ */
 static Image *load_image(std::string tex_path, Main *bmain, const USDImportParams &params)
 {
   /* Optionally copy the asset if it's inside a USDZ package. */
@@ -181,9 +188,11 @@ static bNode *append_node(bNode *dst_node,
   return src_node;
 }
 
-/* Callback function for iterating over a shader node chain to retrieve data
+/**
+ * Callback function for iterating over a shader node chain to retrieve data
  * necessary for converting a world material to a USD dome light. It also
- * handles copying textures, if required. */
+ * handles copying textures, if required.
+ */
 static bool node_search(bNode *fromnode,
                         bNode * /* tonode */,
                         void *userdata,
@@ -247,8 +256,10 @@ static bool node_search(bNode *fromnode,
   return true;
 }
 
-/* If the Blender scene has an environment texture,
- * export it as a USD dome light. */
+/**
+ * If the Blender scene has an environment texture,
+ * export it as a USD dome light.
+ */
 void world_material_to_dome_light(const USDExportParams &params,
                                   const Scene *scene,
                                   pxr::UsdStageRefPtr stage)

@@ -1203,7 +1203,7 @@ void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const in
   Layer &layer_lines = grease_pencil.add_layer(DATA_("Lines"));
   grease_pencil.set_active_layer(&layer_lines);
 
-  /* Note: We assume that this keyframe insertion can't fail. */
+  /* NOTE: We assume that this keyframe insertion can't fail. */
   Drawing &drawing_lines = *grease_pencil.insert_frame(layer_lines, frame_number);
   grease_pencil.insert_frame(layer_color, frame_number);
 
