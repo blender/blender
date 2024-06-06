@@ -2808,7 +2808,7 @@ class subcmd_author:
                         result = not os.path.basename(filepath).startswith(".")
                         if result and (not is_dir):
                             # Finally check the path isn't one of the known paths.
-                            if filepath_canonical.lower() in build_paths_extra_canonical:
+                            if filepath_canonical_from_relative(filepath).lower() in build_paths_extra_canonical:
                                 result = False
                         return result
 
