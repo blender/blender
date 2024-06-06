@@ -512,12 +512,13 @@ if(WITH_OPENCOLLADA)
   endif()
 
   list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
+  if(EXISTS ${OPENCOLLADA}/lib/opencollada/pcre.lib)
+    set(PCRE_LIBRARIES
+      optimized ${OPENCOLLADA}/lib/opencollada/pcre.lib
 
-  set(PCRE_LIBRARIES
-    optimized ${OPENCOLLADA}/lib/opencollada/pcre.lib
-
-    debug ${OPENCOLLADA}/lib/opencollada/pcre_d.lib
-  )
+      debug ${OPENCOLLADA}/lib/opencollada/pcre_d.lib
+    )
+  endif()
 endif()
 
 if(WITH_CODEC_FFMPEG)

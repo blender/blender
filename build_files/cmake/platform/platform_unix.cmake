@@ -341,7 +341,13 @@ if(WITH_OPENCOLLADA)
     if(WITH_STATIC_LIBS)
       # PCRE is bundled with OpenCollada without headers, so can't use
       # find_package reliably to detect it.
-      set(PCRE_LIBRARIES ${LIBDIR}/opencollada/lib/libpcre.a)
+      # NOTE: newer fork no longer depends on PCRE: see !122270.
+      if(EXISTS ${LIBDIR}/opencollada/lib/libpcre.a)
+        set(PCRE_LIBRARIES ${LIBDIR}/opencollada/lib/libpcre.a)
+      else()
+        # Quiet warnings.
+        set(PCRE_LIBRARIES)
+      endif()
     else()
       find_package_wrapper(PCRE)
     endif()
