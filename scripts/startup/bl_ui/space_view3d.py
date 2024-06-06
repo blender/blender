@@ -3108,6 +3108,7 @@ class VIEW3D_MT_object_context_menu(Menu):
             layout.separator()
 
             if obj.empty_display_type == 'IMAGE':
+                layout.operator("image.convert_to_mesh_plane", text="Convert to Mesh Plane")
                 layout.operator("gpencil.trace_image")
 
                 layout.separator()
@@ -3500,14 +3501,18 @@ class VIEW3D_MT_object_convert(Menu):
         layout = self.layout
         ob = context.active_object
 
-        if ob and ob.type == 'GPENCIL' and context.gpencil_data and not context.preferences.experimental.use_grease_pencil_version3:
-            layout.operator_enum("gpencil.convert", "type")
-        else:
-            layout.operator_enum("object.convert", "target")
+        if ob and ob.type != "EMPTY":
+            if (ob.type == 'GPENCIL' and context.gpencil_data
+                and not context.preferences.experimental.use_grease_pencil_version3):
+                layout.operator_enum("gpencil.convert", "type")
+            else:
+                layout.operator_enum("object.convert", "target")
 
-        # Potrace lib dependency.
-        if bpy.app.build_options.potrace:
-            layout.operator("gpencil.trace_image", icon='OUTLINER_OB_GREASEPENCIL')
+        else:
+            # Potrace lib dependency.
+            if bpy.app.build_options.potrace:
+                layout.operator("image.convert_to_mesh_plane", text="Convert to Mesh Plane", icon='MESH_PLANE')
+                layout.operator("gpencil.trace_image", icon='OUTLINER_OB_GREASEPENCIL')
 
         if ob and ob.type == 'CURVES':
             layout.operator("curves.convert_to_particle_system", text="Particle System")
