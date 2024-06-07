@@ -1144,28 +1144,25 @@ static float pixel_radius_to_world_space_radius(const RegionView3D *rv3d,
 
 static float brush_radius_at_location(const RegionView3D *rv3d,
                                       const ARegion *region,
-                                      const Scene *scene,
                                       const Brush *brush,
                                       const float3 location,
                                       const float4x4 to_world)
 {
-  if (!BKE_brush_use_locked_size(scene, brush)) {
-    return pixel_radius_to_world_space_radius(
-        rv3d, region, location, to_world, BKE_brush_size_get(scene, brush));
+  if ((brush->flag & BRUSH_LOCK_SIZE) == 0) {
+    return pixel_radius_to_world_space_radius(rv3d, region, location, to_world, brush->size);
   }
-  return BKE_brush_unprojected_radius_get(scene, brush);
+  return brush->unprojected_radius;
 }
 
 float radius_from_input_sample(const RegionView3D *rv3d,
                                const ARegion *region,
-                               const Scene *scene,
                                const Brush *brush,
                                const float pressure,
                                const float3 location,
                                const float4x4 to_world,
                                const BrushGpencilSettings *settings)
 {
-  float radius = brush_radius_at_location(rv3d, region, scene, brush, location, to_world);
+  float radius = brush_radius_at_location(rv3d, region, brush, location, to_world);
   if (BKE_brush_use_size_pressure(brush)) {
     radius *= BKE_curvemapping_evaluateF(settings->curve_sensitivity, 0, pressure);
   }
@@ -1174,10 +1171,9 @@ float radius_from_input_sample(const RegionView3D *rv3d,
 
 float opacity_from_input_sample(const float pressure,
                                 const Brush *brush,
-                                const Scene *scene,
                                 const BrushGpencilSettings *settings)
 {
-  float opacity = BKE_brush_alpha_get(scene, brush);
+  float opacity = brush->alpha;
   if (BKE_brush_use_alpha_pressure(brush)) {
     opacity *= BKE_curvemapping_evaluateF(settings->curve_strength, 0, pressure);
   }

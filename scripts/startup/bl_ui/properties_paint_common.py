@@ -1447,9 +1447,6 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
     if gp_settings is None:
         return
 
-    tool_settings = context.tool_settings
-    ups = tool_settings.unified_paint_settings
-
     grease_pencil_tool = brush.gpencil_tool
 
     if grease_pencil_tool in {'DRAW', 'ERASE', 'TINT'} or tool.idname in {
@@ -1461,36 +1458,26 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
             "builtin.polyline",
     }:
         size = "size"
-        size_owner = ups if ups.use_unified_size else brush
-        if size_owner.use_locked_size == 'SCENE':
+        if brush.use_locked_size == 'SCENE' and (grease_pencil_tool == 'DRAW' or tool.idname in {
+            "builtin.arc",
+            "builtin.curve",
+            "builtin.line",
+            "builtin.box",
+            "builtin.circle",
+            "builtin.polyline",
+        }):
             size = "unprojected_radius"
-
-        UnifiedPaintPanel.prop_unified(
-            layout,
-            context,
-            brush,
-            size,
-            unified_name="use_unified_size",
-            pressure_name="use_pressure_size",
-            text="Radius",
-            slider=True,
-            header=compact,
-        )
+        row = layout.row(align=True)
+        row.prop(brush, size, slider=True, text="Radius")
+        row.prop(brush, "use_pressure_size", text="")
 
         if brush.use_pressure_size and not compact:
             col = layout.column()
             col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True, use_negative_slope=True)
 
-        UnifiedPaintPanel.prop_unified(
-            layout,
-            context,
-            brush,
-            "strength",
-            unified_name="use_unified_strength",
-            pressure_name="use_pressure_strength",
-            slider=True,
-            header=compact,
-        )
+        row = layout.row(align=True)
+        row.prop(brush, "strength", slider=True, text="Strength")
+        row.prop(brush, "use_pressure_strength", text="")
 
         if brush.use_pressure_strength and not compact:
             col = layout.column()

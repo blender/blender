@@ -233,11 +233,9 @@ bool grease_pencil_weight_painting_poll(bContext *C);
 
 float opacity_from_input_sample(const float pressure,
                                 const Brush *brush,
-                                const Scene *scene,
                                 const BrushGpencilSettings *settings);
 float radius_from_input_sample(const RegionView3D *rv3d,
                                const ARegion *region,
-                               const Scene *scene,
                                const Brush *brush,
                                float pressure,
                                float3 location,

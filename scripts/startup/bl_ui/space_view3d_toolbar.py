@@ -2614,10 +2614,8 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):
         if brush is None:
             return
         if brush.gpencil_tool != 'FILL':
-            size_owner = ups if ups.use_unified_size else brush
-
             row = col.row(align=True)
-            row.prop(size_owner, "use_locked_size", expand=True)
+            row.prop(brush, "use_locked_size", expand=True)
             col.separator()
 
             col.prop(brush, "spacing", slider=True)
