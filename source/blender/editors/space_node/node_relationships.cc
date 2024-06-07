@@ -757,7 +757,7 @@ static int view_socket(const bContext &C,
     bNode &target_node = *link->tonode;
     if (is_viewer_socket(target_socket) && ELEM(viewer_node, nullptr, &target_node)) {
       finalize_viewer_link(C, snode, target_node, *link);
-      position_viewer_node(btree, *viewer_node, bnode_to_view, region);
+      position_viewer_node(btree, target_node, bnode_to_view, region);
       return OPERATOR_FINISHED;
     }
   }
