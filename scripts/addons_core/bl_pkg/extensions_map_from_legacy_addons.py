@@ -34,7 +34,6 @@
         "greasepencil_tools": ("grease_pencil_tools", "Grease Pencil Tools"),
         "io_anim_camera": ("export_camera_animation", "Export Camera Animation"),
         "io_anim_nuke_chan": ("nuke_animation_format_chan", "Nuke Animation Format (.chan)"),
-        "io_coat3D": ("coat_applink", "3D-Coat Applink"),
         "io_export_dxf": ("export_autocad_dxf_format_dxf", "Export Autocad DXF Format (.dxf)"),
         "io_export_paper_model": ("export_paper_model", "Export Paper Model"),
         "io_export_pc2": ("export_pointcache_formatpc2", "Export Pointcache Format(.pc2)"),
@@ -97,7 +96,7 @@
         "vdm_brush_baker": ("vdm_brush_baker", "VDM Brush Baker"),
 
         # These were built-in but not mapped to an extension ("install" won't be shown in the UI).
-        "coat_applink": ("", "3D-Coat Applink"),  # External dependencies.
+        "io_coat3D": ("", "3D-Coat Applink"),  # External dependencies.
         "depsgraph_debug": ("", "Dependency Graph Debug"),  # External dependencies.
         "io_import_images_as_planes": ("", "Import Images as Planes"),  # Integrated with Blender.
         "io_mesh_stl": ("", "STL Format"),  # Was on by default.
