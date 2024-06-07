@@ -1206,6 +1206,7 @@ def extensions_repo_active_draw(self, context):
         layout.context_pointer_set("extension_repo", repo)
 
     layout.operator("extensions.repo_sync_all", text="", icon='FILE_REFRESH').use_active_only = True
+
     layout.operator("extensions.package_upgrade_all", text="", icon='IMPORT').use_active_only = True
 
 
