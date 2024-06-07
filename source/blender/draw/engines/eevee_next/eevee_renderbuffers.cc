@@ -24,7 +24,7 @@
 
 namespace blender::eevee {
 
-void RenderBuffers::sync()
+void RenderBuffers::init()
 {
   const eViewLayerEEVEEPassType enabled_passes = inst_.film.enabled_passes_get();
 

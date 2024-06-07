@@ -63,7 +63,7 @@ class RenderBuffers {
     }
   }
 
-  void sync();
+  void init();
 
   /* Acquires (also ensures) the render buffer before rendering to them. */
   void acquire(int2 extent);
