@@ -2192,14 +2192,15 @@ class USERPREF_PT_extensions_repos(Panel):
 
         if layout_panel:
             layout_panel.use_property_split = True
+            use_custom_directory = active_repo.use_custom_directory
 
             col = layout_panel.column(align=False, heading="Custom Directory")
             row = col.row(align=True)
             sub = row.row(align=True)
             sub.prop(active_repo, "use_custom_directory", text="")
             sub = sub.row(align=True)
-            sub.active = active_repo.use_custom_directory
-            if active_repo.use_custom_directory:
+            sub.active = use_custom_directory
+            if use_custom_directory:
                 if active_repo.custom_directory == "":
                     sub.alert = True
                 sub.prop(active_repo, "custom_directory", text="")

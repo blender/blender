@@ -197,7 +197,7 @@ void BKE_preferences_extension_repo_remove(UserDef *userdef, bUserExtensionRepo 
   BLI_freelinkN(&userdef->extension_repos, repo);
 }
 
-bUserExtensionRepo *BKE_preferences_extension_repo_add_default(UserDef *userdef)
+bUserExtensionRepo *BKE_preferences_extension_repo_add_default_remote(UserDef *userdef)
 {
   bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(
       userdef, "extensions.blender.org", "blender_org", "");
@@ -214,6 +214,13 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add_default_user(UserDef *use
   bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(
       userdef, "User Default", "user_default", "");
   return repo;
+}
+
+void BKE_preferences_extension_repo_add_defaults_all(UserDef *userdef)
+{
+  BLI_assert(BLI_listbase_is_empty(&userdef->extension_repos));
+  BKE_preferences_extension_repo_add_default_remote(userdef);
+  BKE_preferences_extension_repo_add_default_user(userdef);
 }
 
 void BKE_preferences_extension_repo_name_set(UserDef *userdef,
