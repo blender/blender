@@ -954,7 +954,7 @@ void blo_do_versions_userdef(UserDef *userdef)
           userdef, static_cast<bUserExtensionRepo *>(userdef->extension_repos.first));
     }
 
-    BKE_preferences_extension_repo_add_default(userdef);
+    BKE_preferences_extension_repo_add_default_remote(userdef);
     BKE_preferences_extension_repo_add_default_user(userdef);
   }
 
