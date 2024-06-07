@@ -1069,7 +1069,7 @@ static gpu::IndexBuf *create_index_faces(const PBVH_GPU_Args &args)
   }
 
   GPUIndexBufBuilder elb_lines;
-  GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, edge_count * 2, INT_MAX);
+  GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, edge_count, INT_MAX);
 
   int vertex_i = 0;
   for (const int tri_i : args.prim_indices) {
@@ -1100,7 +1100,7 @@ static gpu::IndexBuf *create_index_faces(const PBVH_GPU_Args &args)
 static gpu::IndexBuf *create_index_bmesh(const PBVH_GPU_Args &args, const int visible_faces_num)
 {
   GPUIndexBufBuilder elb_lines;
-  GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, visible_faces_num * 3 * 2, INT_MAX);
+  GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, visible_faces_num * 3, INT_MAX);
 
   int v_index = 0;
 
