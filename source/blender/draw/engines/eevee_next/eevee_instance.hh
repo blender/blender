@@ -75,6 +75,8 @@ class Instance {
   uint64_t depsgraph_last_update_ = 0;
   bool overlays_enabled_ = false;
 
+  bool shaders_are_ready_ = true;
+
  public:
   ShaderModule &shaders;
   SyncModule sync;
@@ -194,6 +196,13 @@ class Instance {
    */
   bool do_lightprobe_sphere_sync() const;
   bool do_planar_probe_sync() const;
+
+  /**
+   * Return true when probe passes should be loaded.
+   * It can be true even if do_<type>_probe_sync() is false due to shaders still being compiled.
+   */
+  bool needs_lightprobe_sphere_passes() const;
+  bool needs_planar_probe_passes() const;
 
   /* Render. */
 

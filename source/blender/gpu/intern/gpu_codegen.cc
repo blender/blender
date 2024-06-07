@@ -102,6 +102,8 @@ struct GPUPass {
   uint32_t hash;
   /** Did we already tried to compile the attached GPUShader. */
   bool compiled;
+  /** If this pass is already being_compiled (A GPUPass can be shared by multiple GPUMaterials). */
+  bool compilation_requested;
   /** Hint that an optimized variant of this pass should be created based on a complexity heuristic
    * during pass code generation. */
   bool should_optimize;
@@ -805,6 +807,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
     pass->engine = engine;
     pass->hash = codegen.hash_get();
     pass->compiled = false;
+    pass->compilation_requested = false;
     pass->cached = false;
     /* Only flag pass optimization hint if this is the first generated pass for a material.
      * Optimized passes cannot be optimized further, even if the heuristic is still not
@@ -881,17 +884,22 @@ static bool gpu_pass_shader_validate(GPUPass *pass, GPUShader *shader)
   return (active_samplers_len * 3 <= GPU_max_textures());
 }
 
-bool GPU_pass_compile(GPUPass *pass, const char *shname)
+GPUShaderCreateInfo *GPU_pass_begin_compilation(GPUPass *pass, const char *shname)
+{
+  if (!pass->compilation_requested) {
+    pass->compilation_requested = true;
+    pass->create_info->name_ = shname;
+    GPUShaderCreateInfo *info = reinterpret_cast<GPUShaderCreateInfo *>(
+        static_cast<ShaderCreateInfo *>(pass->create_info));
+    return info;
+  }
+  return nullptr;
+}
+
+bool GPU_pass_finalize_compilation(GPUPass *pass, GPUShader *shader)
 {
   bool success = true;
   if (!pass->compiled) {
-    GPUShaderCreateInfo *info = reinterpret_cast<GPUShaderCreateInfo *>(
-        static_cast<ShaderCreateInfo *>(pass->create_info));
-
-    pass->create_info->name_ = shname;
-
-    GPUShader *shader = GPU_shader_create_from_info(info);
-
     /* NOTE: Some drivers / gpu allows more active samplers than the opengl limit.
      * We need to make sure to count active samplers to avoid undefined behavior. */
     if (!gpu_pass_shader_validate(pass, shader)) {
@@ -904,6 +912,16 @@ bool GPU_pass_compile(GPUPass *pass, const char *shname)
     }
     pass->shader = shader;
     pass->compiled = true;
+  }
+  return success;
+}
+
+bool GPU_pass_compile(GPUPass *pass, const char *shname)
+{
+  bool success = true;
+  if (GPUShaderCreateInfo *info = GPU_pass_begin_compilation(pass, shname)) {
+    GPUShader *shader = GPU_shader_create_from_info(info);
+    success = GPU_pass_finalize_compilation(pass, shader);
   }
   return success;
 }

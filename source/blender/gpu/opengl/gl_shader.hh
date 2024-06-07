@@ -44,6 +44,21 @@ class GLSources : public Vector<GLSource> {
  public:
   GLSources &operator=(Span<const char *> other);
   Vector<const char *> sources_get() const;
+  std::string to_string() const;
+};
+
+/**
+ * The full sources for each shader stage, baked into a single string from their respective
+ * GLSources. (Can be retrieved from GLShader::get_sources())
+ */
+struct GLSourcesBaked : NonCopyable {
+  std::string comp;
+  std::string vert;
+  std::string geom;
+  std::string frag;
+
+  /* Returns the size (in bytes) required to store the source of all the used stages. */
+  size_t size();
 };
 
 /**
@@ -194,6 +209,8 @@ class GLShader : public Shader {
     return program_active_->compute_shader != 0;
   }
 
+  GLSourcesBaked get_sources();
+
  private:
   const char *glsl_patch_get(GLenum gl_stage);
 
@@ -240,7 +257,7 @@ class GLCompilerWorker {
   GLCompilerWorker();
   ~GLCompilerWorker();
 
-  void compile(StringRefNull vert, StringRefNull frag);
+  void compile(const GLSourcesBaked &sources);
   bool is_ready();
   bool load_program_binary(GLint program);
   void release();
@@ -255,14 +272,12 @@ class GLShaderCompiler : public ShaderCompiler {
   Vector<GLCompilerWorker *> workers_;
 
   struct CompilationWork {
-    GLCompilerWorker *worker = nullptr;
-    GLShader *shader = nullptr;
     const shader::ShaderCreateInfo *info = nullptr;
+    GLShader *shader = nullptr;
+    GLSourcesBaked sources;
+
+    GLCompilerWorker *worker = nullptr;
     bool do_async_compilation = false;
-
-    std::string vertex_src;
-    std::string fragment_src;
-
     bool is_ready = false;
   };
 
@@ -274,7 +289,7 @@ class GLShaderCompiler : public ShaderCompiler {
   BatchHandle next_batch_handle = 1;
   Map<BatchHandle, Batch> batches;
 
-  GLCompilerWorker *get_compiler_worker(const char *vert, const char *frag);
+  GLCompilerWorker *get_compiler_worker(const GLSourcesBaked &sources);
   bool worker_is_lost(GLCompilerWorker *&worker);
 
  public:

@@ -322,7 +322,8 @@ Material &MaterialModule::material_sync(Object *ob,
       mat.overlap_masking = MaterialPass();
       mat.capture = MaterialPass();
 
-      if (inst_.do_lightprobe_sphere_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP)) {
+      if (inst_.needs_lightprobe_sphere_passes() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP))
+      {
         mat.lightprobe_sphere_prepass = material_pass_get(
             ob, blender_mat, MAT_PIPE_PREPASS_DEFERRED, geometry_type, MAT_PROBE_REFLECTION);
         mat.lightprobe_sphere_shading = material_pass_get(
@@ -333,7 +334,7 @@ Material &MaterialModule::material_sync(Object *ob,
         mat.lightprobe_sphere_shading = MaterialPass();
       }
 
-      if (inst_.do_planar_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_PLANAR)) {
+      if (inst_.needs_planar_probe_passes() && !(ob->visibility_flag & OB_HIDE_PROBE_PLANAR)) {
         mat.planar_probe_prepass = material_pass_get(
             ob, blender_mat, MAT_PIPE_PREPASS_PLANAR, geometry_type, MAT_PROBE_PLANAR);
         mat.planar_probe_shading = material_pass_get(
