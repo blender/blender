@@ -1268,7 +1268,6 @@ static void create_index_grids(const PBVH_GPU_Args &args,
   const BitGroupVector<> &grid_hidden = args.subdiv_ccg->grid_hidden;
   const Span<int> grid_to_face_map = args.subdiv_ccg->grid_to_face_map;
 
-  batches.use_flat_layout = false;
   int gridsize = args.ccg_key.grid_size;
   int display_gridsize = gridsize;
   int totgrid = args.grid_indices.size();
@@ -1281,12 +1280,12 @@ static void create_index_grids(const PBVH_GPU_Args &args,
     skip = 1 << (args.ccg_key.level - display_level - 1);
   }
 
-  for (const int grid_index : args.grid_indices) {
-    if (!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid_index]]) {
-      batches.use_flat_layout = true;
-      break;
-    }
-  }
+  batches.use_flat_layout = !sharp_faces.is_empty() &&
+                            std::any_of(args.grid_indices.begin(),
+                                        args.grid_indices.end(),
+                                        [&](const int grid) {
+                                          return sharp_faces[grid_to_face_map[grid]];
+                                        });
 
   GPUIndexBufBuilder elb, elb_lines;
 
