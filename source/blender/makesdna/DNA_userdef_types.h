@@ -649,8 +649,9 @@ typedef struct bUserExtensionRepo {
   char custom_dirpath[1024]; /* FILE_MAX */
   char remote_url[1024];     /* FILE_MAX */
 
+  /** Options for the repository (#eUserExtensionRepo_Flag). */
   uint8_t flag;
-  /** The source location when the custom directory isn't used (#eUserExtensionRepo_Source).*/
+  /** The source location when the custom directory isn't used (#eUserExtensionRepo_Source). */
   uint8_t source;
 
   char _pad0[6];
