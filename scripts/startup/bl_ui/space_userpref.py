@@ -2122,6 +2122,15 @@ class USERPREF_PT_keymap(KeymapPanel, Panel):
 # -----------------------------------------------------------------------------
 # Extension Panels
 
+
+class USERPREF_MT_extensions_active_repo(Menu):
+    bl_label = "Active Repository"
+
+    def draw(self, _context):
+        # Add-ons may extend.
+        pass
+
+
 class USERPREF_PT_extensions_repos(Panel):
     bl_label = "Repositories"
     bl_options = {'HIDE_HEADER'}
@@ -2154,8 +2163,8 @@ class USERPREF_PT_extensions_repos(Panel):
         props.index = active_repo_index
 
         col.separator()
-        col.operator("preferences.extension_repo_sync", text="", icon='FILE_REFRESH')
-        col.operator("preferences.extension_repo_upgrade", text="", icon='IMPORT')
+
+        col.menu_contents("USERPREF_MT_extensions_active_repo")
 
         try:
             active_repo = None if active_repo_index < 0 else extensions.repos[active_repo_index]
@@ -2922,6 +2931,7 @@ classes = (
 
     USERPREF_PT_addons,
 
+    USERPREF_MT_extensions_active_repo,
     USERPREF_PT_extensions_repos,
 
     USERPREF_PT_studiolight_lights,

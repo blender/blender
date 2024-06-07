@@ -22,6 +22,7 @@ from bpy.types import (
 
 from bl_ui.space_userpref import (
     USERPREF_PT_addons,
+    USERPREF_MT_extensions_active_repo,
 )
 
 from . import repo_status_text
@@ -1195,6 +1196,19 @@ def tags_panel_draw(panel, context):
         col.prop(wm.extension_tags, "[\"{:s}\"]".format(escape_identifier(t)))
 
 
+def extensions_repo_active_draw(self, context):
+    # Draw icon buttons on the right hand side of the UI-list.
+    from . import repo_active_or_none
+    layout = self.layout
+
+    # Allow the poll functions to only check against the active repository.
+    if (repo := repo_active_or_none()) is not None:
+        layout.context_pointer_set("extension_repo", repo)
+
+    layout.operator("extensions.repo_sync_all", text="", icon='FILE_REFRESH').use_active_only = True
+    layout.operator("extensions.package_upgrade_all", text="", icon='IMPORT').use_active_only = True
+
+
 classes = (
     # Pop-overs.
     USERPREF_PT_extensions_filter,
@@ -1206,6 +1220,7 @@ classes = (
 def register():
     USERPREF_PT_addons.append(extensions_panel_draw)
     USERPREF_PT_extensions_tags.append(tags_panel_draw)
+    USERPREF_MT_extensions_active_repo.append(extensions_repo_active_draw)
 
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -1214,6 +1229,7 @@ def register():
 def unregister():
     USERPREF_PT_addons.remove(extensions_panel_draw)
     USERPREF_PT_extensions_tags.remove(tags_panel_draw)
+    USERPREF_MT_extensions_active_repo.remove(extensions_repo_active_draw)
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)

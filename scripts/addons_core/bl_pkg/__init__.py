@@ -301,26 +301,6 @@ def extenion_repos_sync(*_):
 
 
 @bpy.app.handlers.persistent
-def extenion_repos_upgrade(*_):
-    # This is called from operators (create or an explicit call to sync)
-    # so calling a modal operator is "safe".
-    if (active_repo := repo_active_or_none()) is None:
-        return
-
-    print_debug("UPGRADE:", active_repo.name)
-
-    from contextlib import redirect_stdout
-    import io
-    stdout = io.StringIO()
-
-    with redirect_stdout(stdout):
-        bpy.ops.extensions.package_upgrade_all('INVOKE_DEFAULT', use_active_only=True)
-
-    if text := stdout.getvalue():
-        repo_status_text.from_message("Upgrade \"{:s}\"".format(active_repo.name), text)
-
-
-@bpy.app.handlers.persistent
 def extenion_repos_files_clear(directory, _):
     # Perform a "safe" file deletion by only removing files known to be either
     # packages or known extension meta-data.
@@ -601,9 +581,6 @@ def register():
     handlers = bpy.app.handlers._extension_repos_sync
     handlers.append(extenion_repos_sync)
 
-    handlers = bpy.app.handlers._extension_repos_upgrade
-    handlers.append(extenion_repos_upgrade)
-
     handlers = bpy.app.handlers._extension_repos_files_clear
     handlers.append(extenion_repos_files_clear)
 
@@ -652,10 +629,6 @@ def unregister():
     handlers = bpy.app.handlers._extension_repos_sync
     if extenion_repos_sync in handlers:
         handlers.remove(extenion_repos_sync)
-
-    handlers = bpy.app.handlers._extension_repos_upgrade
-    if extenion_repos_upgrade in handlers:
-        handlers.remove(extenion_repos_upgrade)
 
     handlers = bpy.app.handlers._extension_repos_files_clear
     if extenion_repos_files_clear in handlers:
