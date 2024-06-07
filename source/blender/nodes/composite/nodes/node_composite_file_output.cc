@@ -561,7 +561,7 @@ class FileOutputOperation : public NodeOperation {
 
     const int2 size = result.domain().size;
     FileOutput &file_output = context().render_context()->get_file_output(
-        image_path, format, size, false);
+        image_path, format, size, true);
 
     /* The EXR stores all views in the same file, so we add the actual render view. Otherwise, we
      * add a default unnamed view. */
@@ -588,7 +588,7 @@ class FileOutputOperation : public NodeOperation {
     const int2 size = compute_domain().size;
     const ImageFormatData format = node_storage(bnode()).format;
     FileOutput &file_output = context().render_context()->get_file_output(
-        image_path, format, size, false);
+        image_path, format, size, true);
 
     /* If we are saving views in separate files, we needn't store the view in the channel names, so
      * we add an unnamed view. */
