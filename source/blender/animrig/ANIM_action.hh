@@ -116,6 +116,12 @@ class Action : public ::bAction {
    */
   bool layer_remove(Layer &layer_to_remove);
 
+  /**
+   * If the Action is empty, create a default layer with a single infinite
+   * keyframe strip.
+   */
+  void layer_ensure_at_least_one();
+
   /* Animation Binding access. */
   blender::Span<const Binding *> bindings() const;
   blender::MutableSpan<Binding *> bindings();
@@ -217,6 +223,15 @@ class Action : public ::bAction {
    */
   bool is_binding_animated(binding_handle_t binding_handle) const;
 
+  /**
+   * Get the layer that should be used for user-level keyframe insertion.
+   *
+   * \return The layer, or nullptr if no layer exists that can currently be used
+   * for keyframing (e.g. all layers are locked, once we've implemented
+   * locking).
+   */
+  Layer *get_layer_for_keyframing();
+
  protected:
   /** Return the layer's index, or -1 if not found in this animation. */
   int64_t find_layer_index(const Layer &layer) const;
@@ -301,6 +316,7 @@ class Strip : public ::ActionStrip {
   template<typename T> T &as();
   template<typename T> const T &as() const;
 
+  bool is_infinite() const;
   bool contains_frame(float frame_time) const;
   bool is_last_frame(float frame_time) const;
 
@@ -532,7 +548,8 @@ class KeyframeStrip : public ::KeyframeActionStrip {
                                      StringRefNull rna_path,
                                      int array_index,
                                      float2 time_value,
-                                     const KeyframeSettings &settings);
+                                     const KeyframeSettings &settings,
+                                     eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS);
 };
 static_assert(sizeof(KeyframeStrip) == sizeof(::KeyframeActionStrip),
               "DNA struct and its C++ wrapper must have the same size");

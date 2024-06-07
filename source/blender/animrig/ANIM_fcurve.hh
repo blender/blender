@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "ANIM_keyframing.hh"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
