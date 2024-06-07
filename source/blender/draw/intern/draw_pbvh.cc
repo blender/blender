@@ -803,17 +803,6 @@ static void fill_vbo_bmesh(PBVHVbo &vbo, const PBVH_GPU_Args &args)
     GPU_vertbuf_data_alloc(*vbo.vert_buf, vert_count);
   }
 
-  GPUVertBufRaw access;
-  GPU_vertbuf_attr_get_raw_data(vbo.vert_buf, 0, &access);
-
-#if 0 /* Enable to fuzz GPU data (to check for over-allocation). */
-    existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
-    uchar *c = static_cast<uchar *>(existing_data);
-    for (int i : IndexRange(vert_count * access.stride)) {
-      *c++ = i & 255;
-    }
-#endif
-
   if (const CustomRequest *request_type = std::get_if<CustomRequest>(&vbo.request)) {
     switch (*request_type) {
       case CustomRequest::Position: {
