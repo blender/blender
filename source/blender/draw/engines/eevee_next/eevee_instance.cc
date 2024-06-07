@@ -65,6 +65,11 @@ void Instance::init(const int2 &output_res,
 
   info = "";
 
+  shaders_are_ready_ = shaders.is_ready(is_image_render());
+  if (!shaders_are_ready_) {
+    return;
+  }
+
   if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
     sampling.reset();
   }
@@ -121,6 +126,8 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   debug_mode = (eDebugMode)G.debug_value;
   info = "";
 
+  shaders.is_ready(true);
+
   update_eval_members();
 
   sampling.init(scene);
@@ -175,6 +182,10 @@ void Instance::view_update()
 
 void Instance::begin_sync()
 {
+  if (!shaders_are_ready_) {
+    return;
+  }
+
   /* Needs to be first for sun light parameters. */
   world.sync();
 
@@ -218,6 +229,10 @@ void Instance::begin_sync()
 
 void Instance::object_sync(Object *ob)
 {
+  if (!shaders_are_ready_) {
+    return;
+  }
+
   const bool is_renderable_type = ELEM(ob->type,
                                        OB_CURVES,
                                        OB_GPENCIL_LEGACY,
@@ -303,6 +318,10 @@ void Instance::object_sync_render(void *instance_,
 
 void Instance::end_sync()
 {
+  if (!shaders_are_ready_) {
+    return;
+  }
+
   velocity.end_sync();
   volume.end_sync();  /* Needs to be before shadows. */
   shadows.end_sync(); /* Needs to be before lights. */
@@ -515,6 +534,14 @@ void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
 
 void Instance::draw_viewport()
 {
+  if (!shaders_are_ready_) {
+    DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+    GPU_framebuffer_clear_color_depth(dfbl->default_fb, float4(0.0f), 1.0f);
+    info += "Compiling EEVEE Engine Shaders\n";
+    DRW_viewport_request_redraw();
+    return;
+  }
+
   render_sample();
   velocity.step_swap();
 
