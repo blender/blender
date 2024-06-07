@@ -335,7 +335,7 @@ struct PBVHBatches {
   gpu::IndexBuf *tri_index = nullptr;
   gpu::IndexBuf *lines_index = nullptr;
   int faces_count = 0; /* Used by PBVH_BMESH and PBVH_GRIDS */
-  bool needs_tri_index = false;
+  bool use_flat_layout = false;
 
   int material_index = 0;
 
@@ -600,13 +600,13 @@ static void fill_vbo_grids_intern(
   }
 }
 
-static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool needs_tri_index)
+static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool use_flat_layout)
 {
   int gridsize = args.ccg_key.grid_size;
 
   uint totgrid = args.grid_indices.size();
 
-  auto foreach_solid =
+  auto foreach_flat =
       [&](FunctionRef<void(int x, int y, int grid_index, CCGElem *elems[4], int i)> func) {
         for (int i = 0; i < totgrid; i++) {
           const int grid_index = args.grid_indices[i];
@@ -656,11 +656,11 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool n
         }
       };
 
-  if (needs_tri_index) {
-    fill_vbo_grids_intern(vbo, args, foreach_indexed);
+  if (use_flat_layout) {
+    fill_vbo_grids_intern(vbo, args, foreach_flat);
   }
   else {
-    fill_vbo_grids_intern(vbo, args, foreach_solid);
+    fill_vbo_grids_intern(vbo, args, foreach_indexed);
   }
 }
 
@@ -938,7 +938,7 @@ void PBVHBatches::update(const PBVH_GPU_Args &args)
         fill_vbo_faces(vbo, args);
         break;
       case PBVH_GRIDS:
-        fill_vbo_grids(vbo, args, needs_tri_index);
+        fill_vbo_grids(vbo, args, use_flat_layout);
         break;
       case PBVH_BMESH:
         fill_vbo_bmesh(vbo, args);
@@ -1001,7 +1001,7 @@ int PBVHBatches::create_vbo(const AttributeRequest &request, const PBVH_GPU_Args
       fill_vbo_faces(vbos.last(), args);
       break;
     case PBVH_GRIDS:
-      fill_vbo_grids(vbos.last(), args, needs_tri_index);
+      fill_vbo_grids(vbos.last(), args, use_flat_layout);
       break;
     case PBVH_BMESH:
       fill_vbo_bmesh(vbos.last(), args);
@@ -1268,7 +1268,7 @@ static void create_index_grids(const PBVH_GPU_Args &args,
   const BitGroupVector<> &grid_hidden = args.subdiv_ccg->grid_hidden;
   const Span<int> grid_to_face_map = args.subdiv_ccg->grid_to_face_map;
 
-  batches.needs_tri_index = true;
+  batches.use_flat_layout = false;
   int gridsize = args.ccg_key.grid_size;
   int display_gridsize = gridsize;
   int totgrid = args.grid_indices.size();
@@ -1283,7 +1283,7 @@ static void create_index_grids(const PBVH_GPU_Args &args,
 
   for (const int grid_index : args.grid_indices) {
     if (!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid_index]]) {
-      batches.needs_tri_index = false;
+      batches.use_flat_layout = true;
       break;
     }
   }
@@ -1301,12 +1301,12 @@ static void create_index_grids(const PBVH_GPU_Args &args,
                     2 * totgrid * display_gridsize * (display_gridsize - 1),
                     INT_MAX);
 
-  if (batches.needs_tri_index) {
-    create_tris_from_grids(
+  if (batches.use_flat_layout) {
+    create_quads_from_grids(
         args, display_gridsize, elb, elb_lines, grid_hidden, gridsize, skip, totgrid);
   }
   else {
-    create_quads_from_grids(
+    create_tris_from_grids(
         args, display_gridsize, elb, elb_lines, grid_hidden, gridsize, skip, totgrid);
   }
 
