@@ -203,7 +203,7 @@ void FileOutputOperation::execute_single_layer_multi_view_exr(const FileOutputIn
 
   const int2 size = int2(input.image_input->get_width(), input.image_input->get_height());
   realtime_compositor::FileOutput &file_output = context_->get_render_context()->get_file_output(
-      image_path, format, size, false);
+      image_path, format, size, true);
 
   /* The EXR stores all views in the same file, so we add the actual render view. Otherwise, we
    * add a default unnamed view. */
@@ -232,7 +232,7 @@ void FileOutputOperation::execute_multi_layer()
   const int2 size = int2(get_width(), get_height());
   const ImageFormatData format = node_data_->format;
   realtime_compositor::FileOutput &file_output = context_->get_render_context()->get_file_output(
-      image_path, format, size, false);
+      image_path, format, size, true);
 
   /* If we are saving views in separate files, we needn't store the view in the channel names, so
    * we add an unnamed view. */
