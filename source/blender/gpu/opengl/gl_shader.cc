@@ -1472,6 +1472,30 @@ Vector<const char *> GLSources::sources_get() const
   return result;
 }
 
+std::string GLSources::to_string() const
+{
+  std::string result;
+  for (const GLSource &source : *this) {
+    if (source.source_ref) {
+      result.append(source.source_ref);
+    }
+    else {
+      result.append(source.source);
+    }
+  }
+  return result;
+}
+
+size_t GLSourcesBaked::size()
+{
+  size_t result = 0;
+  result += comp.empty() ? 0 : comp.size() + sizeof('\0');
+  result += vert.empty() ? 0 : vert.size() + sizeof('\0');
+  result += geom.empty() ? 0 : geom.size() + sizeof('\0');
+  result += frag.empty() ? 0 : frag.size() + sizeof('\0');
+  return result;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1588,6 +1612,16 @@ GLuint GLShader::program_get()
   return program_active_->program_id;
 }
 
+GLSourcesBaked GLShader::get_sources()
+{
+  GLSourcesBaked result;
+  result.comp = compute_sources_.to_string();
+  result.vert = vertex_sources_.to_string();
+  result.geom = geometry_sources_.to_string();
+  result.frag = fragment_sources_.to_string();
+  return result;
+}
+
 /** \} */
 
 #if BLI_SUBPROCESS_SUPPORT
@@ -1620,12 +1654,37 @@ GLCompilerWorker::~GLCompilerWorker()
   start_semaphore_->increment();
 }
 
-void GLCompilerWorker::compile(StringRefNull vert, StringRefNull frag)
+void GLCompilerWorker::compile(const GLSourcesBaked &sources)
 {
   BLI_assert(state_ == AVAILABLE);
 
-  strcpy((char *)shared_mem_->get_data(), vert.c_str());
-  strcpy((char *)shared_mem_->get_data() + vert.size() + sizeof('\0'), frag.c_str());
+  ShaderSourceHeader *shared_src = reinterpret_cast<ShaderSourceHeader *>(shared_mem_->get_data());
+  char *next_src = shared_src->sources;
+
+  auto add_src = [&](const std::string &src) {
+    if (!src.empty()) {
+      strcpy(next_src, src.c_str());
+      next_src += src.size() + sizeof('\0');
+    }
+  };
+
+  add_src(sources.comp);
+  add_src(sources.vert);
+  add_src(sources.geom);
+  add_src(sources.frag);
+
+  BLI_assert(size_t(next_src) <= size_t(shared_src) + compilation_subprocess_shared_memory_size);
+
+  if (!sources.comp.empty()) {
+    BLI_assert(sources.vert.empty() && sources.geom.empty() && sources.frag.empty());
+    shared_src->type = ShaderSourceHeader::Type::COMPUTE;
+  }
+  else {
+    BLI_assert(sources.comp.empty() && !sources.vert.empty() && !sources.frag.empty());
+    shared_src->type = sources.geom.empty() ?
+                           ShaderSourceHeader::Type::GRAPHICS :
+                           ShaderSourceHeader::Type::GRAPHICS_WITH_GEOMETRY_STAGE;
+  }
 
   start_semaphore_->increment();
 
@@ -1668,7 +1727,7 @@ bool GLCompilerWorker::load_program_binary(GLint program)
   state_ = COMPILATION_FINISHED;
 
   if (binary->size > 0) {
-    glProgramBinary(program, binary->format, &binary->data_start, binary->size);
+    glProgramBinary(program, binary->format, binary->data, binary->size);
     return true;
   }
 
@@ -1695,7 +1754,7 @@ GLShaderCompiler::~GLShaderCompiler()
   }
 }
 
-GLCompilerWorker *GLShaderCompiler::get_compiler_worker(const char *vert, const char *frag)
+GLCompilerWorker *GLShaderCompiler::get_compiler_worker(const GLSourcesBaked &sources)
 {
   GLCompilerWorker *result = nullptr;
   for (GLCompilerWorker *compiler : workers_) {
@@ -1709,7 +1768,7 @@ GLCompilerWorker *GLShaderCompiler::get_compiler_worker(const char *vert, const 
     workers_.append(result);
   }
   if (result) {
-    result->compile(vert, frag);
+    result->compile(sources);
   }
   return result;
 }
@@ -1739,31 +1798,21 @@ BatchHandle GLShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo 
 
   for (const shader::ShaderCreateInfo *info : infos) {
     const_cast<ShaderCreateInfo *>(info)->finalize();
-    CompilationWork item = {};
+    batch.items.append({});
+    CompilationWork &item = batch.items.last();
     item.info = info;
-    item.do_async_compilation = !info->vertex_source_.is_empty() &&
-                                !info->fragment_source_.is_empty() &&
-                                info->compute_source_.is_empty() &&
-                                info->geometry_source_.is_empty();
-    if (item.do_async_compilation) {
-      item.shader = static_cast<GLShader *>(compile(*info, true));
-      for (const char *src : item.shader->vertex_sources_.sources_get()) {
-        item.vertex_src.append(src);
-      }
-      for (const char *src : item.shader->fragment_sources_.sources_get()) {
-        item.fragment_src.append(src);
-      }
+    item.shader = static_cast<GLShader *>(compile(*info, true));
+    item.sources = item.shader->get_sources();
 
-      size_t required_size = item.vertex_src.size() + item.fragment_src.size();
-      if (required_size < compilation_subprocess_shared_memory_size) {
-        item.worker = get_compiler_worker(item.vertex_src.c_str(), item.fragment_src.c_str());
-      }
-      else {
-        delete item.shader;
-        item.do_async_compilation = false;
-      }
+    size_t required_size = item.sources.size();
+    item.do_async_compilation = required_size <= sizeof(ShaderSourceHeader::sources);
+    if (item.do_async_compilation) {
+      item.worker = get_compiler_worker(item.sources);
     }
-    batch.items.append(item);
+    else {
+      delete item.shader;
+      item.sources = {};
+    }
   }
   return handle;
 }
@@ -1791,7 +1840,7 @@ bool GLShaderCompiler::batch_is_ready(BatchHandle handle)
 
     if (!item.worker) {
       /* Try to acquire an available worker. */
-      item.worker = get_compiler_worker(item.vertex_src.c_str(), item.fragment_src.c_str());
+      item.worker = get_compiler_worker(item.sources);
     }
     else if (item.worker->is_ready()) {
       /* Retrieve the binary compiled by the worker. */

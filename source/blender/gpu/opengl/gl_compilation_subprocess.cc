@@ -25,35 +25,57 @@
 namespace blender::gpu {
 
 class SubprocessShader {
+  GLuint comp_ = 0;
   GLuint vert_ = 0;
+  GLuint geom_ = 0;
   GLuint frag_ = 0;
   GLuint program_ = 0;
   bool success_ = false;
 
  public:
-  SubprocessShader(const char *vert_src, const char *frag_src)
+  SubprocessShader(const char *comp_src,
+                   const char *vert_src,
+                   const char *geom_src,
+                   const char *frag_src)
   {
     GLint status;
-
-    vert_ = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vert_, 1, &vert_src, nullptr);
-    glCompileShader(vert_);
-    glGetShaderiv(vert_, GL_COMPILE_STATUS, &status);
-    if (!status) {
-      return;
-    }
-
-    frag_ = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(frag_, 1, &frag_src, nullptr);
-    glCompileShader(frag_);
-    glGetShaderiv(frag_, GL_COMPILE_STATUS, &status);
-    if (!status) {
-      return;
-    }
-
     program_ = glCreateProgram();
-    glAttachShader(program_, vert_);
-    glAttachShader(program_, frag_);
+
+    auto compile_stage = [&](const char *src, GLenum stage) -> GLuint {
+      if (src == nullptr) {
+        /* We only want status errors if compilation fails. */
+        status = GL_TRUE;
+        return 0;
+      }
+
+      GLuint shader = glCreateShader(stage);
+      glShaderSource(shader, 1, &src, nullptr);
+      glCompileShader(shader);
+      glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+      glAttachShader(program_, shader);
+      return shader;
+    };
+
+    comp_ = compile_stage(comp_src, GL_COMPUTE_SHADER);
+    if (!status) {
+      return;
+    }
+
+    vert_ = compile_stage(vert_src, GL_VERTEX_SHADER);
+    if (!status) {
+      return;
+    }
+
+    geom_ = compile_stage(geom_src, GL_GEOMETRY_SHADER);
+    if (!status) {
+      return;
+    }
+
+    frag_ = compile_stage(frag_src, GL_FRAGMENT_SHADER);
+    if (!status) {
+      return;
+    }
+
     glLinkProgram(program_);
     glGetProgramiv(program_, GL_LINK_STATUS, &status);
     if (!status) {
@@ -65,7 +87,9 @@ class SubprocessShader {
 
   ~SubprocessShader()
   {
+    glDeleteShader(comp_);
     glDeleteShader(vert_);
+    glDeleteShader(geom_);
     glDeleteShader(frag_);
     glDeleteProgram(program_);
   }
@@ -78,8 +102,8 @@ class SubprocessShader {
 
     if (success_) {
       glGetProgramiv(program_, GL_PROGRAM_BINARY_LENGTH, &bin->size);
-      if (bin->size + sizeof(ShaderBinaryHeader) < compilation_subprocess_shared_memory_size) {
-        glGetProgramBinary(program_, bin->size, nullptr, &bin->format, &bin->data_start);
+      if (bin->size <= sizeof(ShaderBinaryHeader::data)) {
+        glGetProgramBinary(program_, bin->size, nullptr, &bin->format, bin->data);
       }
     }
 
@@ -92,7 +116,7 @@ static bool validate_binary(void *binary)
 {
   ShaderBinaryHeader *bin = reinterpret_cast<ShaderBinaryHeader *>(binary);
   GLuint program = glCreateProgram();
-  glProgramBinary(program, bin->format, &bin->data_start, bin->size);
+  glProgramBinary(program, bin->format, bin->data, bin->size);
   GLint status;
   glGetProgramiv(program, GL_LINK_STATUS, &status);
   glDeleteProgram(program);
@@ -165,15 +189,34 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
       break;
     }
 
-    const char *shaders = reinterpret_cast<const char *>(shared_mem.get_data());
-
-    const char *vert_src = shaders;
-    const char *frag_src = shaders + strlen(shaders) + 1;
+    ShaderSourceHeader *source = reinterpret_cast<ShaderSourceHeader *>(shared_mem.get_data());
+    const char *next_src = source->sources;
+    const char *comp_src = nullptr;
+    const char *vert_src = nullptr;
+    const char *geom_src = nullptr;
+    const char *frag_src = nullptr;
 
     DefaultHash<StringRefNull> hasher;
-    uint64_t vert_hash = hasher(vert_src);
-    uint64_t frag_hash = hasher(frag_src);
-    std::string hash_str = std::to_string(vert_hash) + "_" + std::to_string(frag_hash);
+    std::string hash_str = "_";
+
+    auto get_src = [&]() {
+      const char *src = next_src;
+      next_src += strlen(src) + sizeof('\0');
+      hash_str += std::to_string(hasher(src)) + "_";
+      return src;
+    };
+
+    if (source->type == ShaderSourceHeader::Type::COMPUTE) {
+      comp_src = get_src();
+    }
+    else {
+      vert_src = get_src();
+      if (source->type == ShaderSourceHeader::Type::GRAPHICS_WITH_GEOMETRY_STAGE) {
+        geom_src = get_src();
+      }
+      frag_src = get_src();
+    }
+
     std::string cache_path = cache_dir + SEP_STR + hash_str;
 
     /* TODO: This should lock the files? */
@@ -203,14 +246,14 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
       }
     }
 
-    SubprocessShader shader(vert_src, frag_src);
+    SubprocessShader shader(comp_src, vert_src, geom_src, frag_src);
     ShaderBinaryHeader *binary = shader.get_binary(shared_mem.get_data());
 
     end_semaphore.increment();
 
     fstream file(cache_path, std::ios::binary | std::ios::out);
     file.write(reinterpret_cast<char *>(shared_mem.get_data()),
-               binary->size + offsetof(ShaderBinaryHeader, data_start));
+               binary->size + offsetof(ShaderBinaryHeader, data));
   }
 
   GPU_exit();
