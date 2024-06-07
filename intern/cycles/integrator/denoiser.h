@@ -115,6 +115,7 @@ class Denoiser {
   virtual uint get_device_type_mask() const = 0;
 
   Device *denoiser_device_;
+  bool denoise_kernels_are_loaded_;
   DenoiseParams params_;
 };
 
