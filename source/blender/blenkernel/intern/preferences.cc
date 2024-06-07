@@ -216,11 +216,19 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add_default_user(UserDef *use
   return repo;
 }
 
+bUserExtensionRepo *BKE_preferences_extension_repo_add_default_system(UserDef *userdef)
+{
+  bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(userdef, "System", "system", "");
+  repo->source = USER_EXTENSION_REPO_SOURCE_SYSTEM;
+  return repo;
+}
+
 void BKE_preferences_extension_repo_add_defaults_all(UserDef *userdef)
 {
   BLI_assert(BLI_listbase_is_empty(&userdef->extension_repos));
   BKE_preferences_extension_repo_add_default_remote(userdef);
   BKE_preferences_extension_repo_add_default_user(userdef);
+  BKE_preferences_extension_repo_add_default_system(userdef);
 }
 
 void BKE_preferences_extension_repo_name_set(UserDef *userdef,
@@ -269,8 +277,19 @@ size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo
     return BLI_strncpy_rlen(dirpath, repo->custom_dirpath, dirpath_maxncpy);
   }
 
-  std::optional<std::string> path = BKE_appdir_folder_id_user_notest(BLENDER_USER_EXTENSIONS,
-                                                                     nullptr);
+  std::optional<std::string> path = std::nullopt;
+
+  switch (repo->source) {
+    case USER_EXTENSION_REPO_SOURCE_SYSTEM: {
+      path = BKE_appdir_folder_id(BLENDER_SYSTEM_EXTENSIONS, nullptr);
+      break;
+    }
+    default: { /* #USER_EXTENSION_REPO_SOURCE_USER. */
+      path = BKE_appdir_folder_id_user_notest(BLENDER_USER_EXTENSIONS, nullptr);
+      break;
+    }
+  }
+
   /* Highly unlikely to fail as the directory doesn't have to exist. */
   if (!path) {
     dirpath[0] = '\0';

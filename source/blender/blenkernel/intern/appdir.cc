@@ -656,6 +656,18 @@ bool BKE_appdir_folder_id_ex(const int folder_id,
       }
       return false;
 
+    case BLENDER_SYSTEM_EXTENSIONS:
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_SYSTEM_EXTENSIONS")) {
+        break;
+      }
+      if (get_path_system(path, path_maxncpy, "extensions", subfolder)) {
+        break;
+      }
+      if (get_path_local(path, path_maxncpy, "extensions", subfolder)) {
+        break;
+      }
+      return false;
+
     case BLENDER_SYSTEM_PYTHON:
       if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_SYSTEM_PYTHON")) {
         break;

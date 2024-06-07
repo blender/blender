@@ -266,7 +266,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return a system resource path.\n"
     "\n"
-    "   :arg type: string in ['DATAFILES', 'SCRIPTS', 'PYTHON'].\n"
+    "   :arg type: string in ['DATAFILES', 'SCRIPTS', 'EXTENSIONS', 'PYTHON'].\n"
     "   :type type: string\n"
     "   :arg path: Optional subdirectory.\n"
     "   :type path: string or bytes\n");
@@ -275,6 +275,7 @@ static PyObject *bpy_system_resource(PyObject * /*self*/, PyObject *args, PyObje
   const PyC_StringEnumItems type_items[] = {
       {BLENDER_SYSTEM_DATAFILES, "DATAFILES"},
       {BLENDER_SYSTEM_SCRIPTS, "SCRIPTS"},
+      {BLENDER_SYSTEM_EXTENSIONS, "EXTENSIONS"},
       {BLENDER_SYSTEM_PYTHON, "PYTHON"},
       {0, nullptr},
   };

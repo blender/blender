@@ -1659,6 +1659,13 @@ if(DEFINED TARGETDIR_TEXT)
 )
 endif()
 
+# Create a system extensions directory (users or administrators may populate this).
+# This only contains a `readme.txt` explaining it's purpose.
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/release/extensions
+  DESTINATION ${TARGETDIR_VER}
+)
+
 # Install more files specified elsewhere.
 delayed_do_install(${TARGETDIR_VER})
 
