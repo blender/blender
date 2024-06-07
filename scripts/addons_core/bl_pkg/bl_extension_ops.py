@@ -916,6 +916,25 @@ def _repo_dir_and_index_get(repo_index, directory, report_fn):
     return directory
 
 
+def _extensions_maybe_online_action_poll_impl(cls, action_text):
+    if not bpy.app.online_access:
+        cls.poll_message_set(
+            "Online access required to {:s}. {:s}".format(
+                action_text,
+                "Launch Blender without --offline-mode" if bpy.app.online_access_override else
+                "Enable online access in System preferences"
+            )
+        )
+        return False
+
+    repos_all = extension_repos_read(use_active_only=False)
+    if not len(repos_all):
+        cls.poll_message_set("No repositories available")
+        return False
+
+    return True
+
+
 # -----------------------------------------------------------------------------
 # Public Repository Actions
 #
@@ -1080,23 +1099,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
 
     @classmethod
     def poll(cls, _context):
-        if not bpy.app.online_access:
-            if bpy.app.online_access_override:
-                cls.poll_message_set(
-                    "Online access required to check for updates. Launch Blender without --offline-mode"
-                )
-            else:
-                cls.poll_message_set(
-                    "Online access required to check for updates. Enable online access in System preferences"
-                )
-            return False
-
-        repos_all = extension_repos_read(use_active_only=False)
-        if not len(repos_all):
-            cls.poll_message_set("No repositories available")
-            return False
-
-        return True
+        return _extensions_maybe_online_action_poll_impl(cls, "check for updates")
 
     def exec_command_iter(self, is_modal):
         use_active_only = self.use_active_only
@@ -1180,20 +1183,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
 
     @classmethod
     def poll(cls, _context):
-        if not bpy.app.online_access:
-            if bpy.app.online_access_override:
-                cls.poll_message_set("Online access required to install updates. Launch Blender without --offline-mode")
-            else:
-                cls.poll_message_set(
-                    "Online access required to install updates. Enable online access in System preferences")
-            return False
-
-        repos_all = extension_repos_read(use_active_only=False)
-        if not len(repos_all):
-            cls.poll_message_set("No repositories available")
-            return False
-
-        return True
+        return _extensions_maybe_online_action_poll_impl(cls, "install updates")
 
     def exec_command_iter(self, is_modal):
         from . import repo_cache_store
