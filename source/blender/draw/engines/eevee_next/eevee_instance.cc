@@ -554,6 +554,7 @@ void Instance::draw_viewport()
     std::stringstream ss;
     ss << "Compiling Shaders (" << materials.queued_shaders_count << " remaining)";
     info = ss.str();
+    DRW_viewport_request_redraw();
   }
   else if (materials.queued_optimize_shaders_count > 0) {
     std::stringstream ss;
