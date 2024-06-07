@@ -33,7 +33,7 @@ class HIPRTDevice : public HIPDevice {
  public:
   virtual BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const override;
 
-  HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
+  HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
 
   virtual ~HIPRTDevice();
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;

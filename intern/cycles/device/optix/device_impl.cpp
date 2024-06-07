@@ -50,8 +50,8 @@ static void execute_optix_task(TaskPool &pool, OptixTask task, OptixResult &fail
 }
 #  endif
 
-OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
-    : CUDADevice(info, stats, profiler),
+OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+    : CUDADevice(info, stats, profiler, headless),
       sbt_data(this, "__sbt", MEM_READ_ONLY),
       launch_params(this, "kernel_params", false)
 {

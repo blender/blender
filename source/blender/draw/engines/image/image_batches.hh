@@ -60,8 +60,8 @@ class BatchUpdater {
 
   gpu::VertBuf *create_vbo()
   {
-    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-    GPU_vertbuf_data_alloc(vbo, 4);
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+    GPU_vertbuf_data_alloc(*vbo, 4);
     int pos[4][2];
     fill_tri_fan_from_rect<int, rcti>(pos, info.clipping_bounds);
     float uv[4][2];

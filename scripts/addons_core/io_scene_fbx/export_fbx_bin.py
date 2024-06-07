@@ -2663,6 +2663,8 @@ def fbx_data_from_scene(scene, depsgraph, settings):
                 # XXX: When exporting with subsurf information temporarily disable
                 # the last subsurf modifier.
                 tmp_mods.append((last_subsurf, last_subsurf.show_render, last_subsurf.show_viewport))
+                last_subsurf.show_render = False
+                last_subsurf.show_viewport = False
 
         if do_evaluate:
             # If modifiers has been altered need to update dependency graph.

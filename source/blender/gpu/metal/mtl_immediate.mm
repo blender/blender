@@ -184,7 +184,7 @@ void MTLImmediate::end()
          * - Converting from a normalized short2 format to float2
          * - Type truncation e.g. Float4 to Float2.
          * - Type expansion from Float3 to Float4.
-         * - Note: extra components are filled with the corresponding components of (0,0,0,1).
+         * - NOTE: extra components are filled with the corresponding components of (0,0,0,1).
          * (See
          * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format)
          */

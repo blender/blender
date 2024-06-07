@@ -169,7 +169,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache &subdiv_cache, const MeshBufferCach
 
 void DRW_subdiv_cache_free(bke::subdiv::Subdiv *subdiv);
 
-void draw_subdiv_init_origindex_buffer(gpu::VertBuf *buffer,
+void draw_subdiv_init_origindex_buffer(gpu::VertBuf &buffer,
                                        int32_t *vert_origindex,
                                        uint num_loops,
                                        uint loose_len);
@@ -205,8 +205,8 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache &cache,
                                  gpu::VertBuf *orco);
 
 void draw_subdiv_interp_custom_data(const DRWSubdivCache &cache,
-                                    gpu::VertBuf *src_data,
-                                    gpu::VertBuf *dst_data,
+                                    gpu::VertBuf &src_data,
+                                    gpu::VertBuf &dst_data,
                                     int comp_type, /*GPUVertCompType*/
                                     int dimensions,
                                     int dst_offset);
@@ -254,7 +254,7 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache &cache,
                                                    gpu::VertBuf *stretch_angles);
 
 /** Return the format used for the positions and normals VBO. */
-GPUVertFormat *draw_subdiv_get_pos_nor_format();
+const GPUVertFormat &draw_subdiv_get_pos_nor_format();
 
 /** For every coarse edge, there are `resolution - 1` subdivided edges. */
 inline int subdiv_edges_per_coarse_edge(const DRWSubdivCache &cache)

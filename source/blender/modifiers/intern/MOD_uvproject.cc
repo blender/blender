@@ -102,7 +102,8 @@ static blender::bke::SpanAttributeWriter<blender::float2> get_uv_attribute(
   {
     return attribute;
   }
-  const std::string name = BKE_id_attribute_calc_unique_name(mesh.id, md_name);
+  AttributeOwner owner = AttributeOwner::from_id(&mesh.id);
+  const std::string name = BKE_attribute_calc_unique_name(owner, md_name);
   return attributes.lookup_or_add_for_write_span<float2>(name, bke::AttrDomain::Corner);
 }
 

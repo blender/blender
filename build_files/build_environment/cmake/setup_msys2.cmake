@@ -118,6 +118,7 @@ if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe") AND (EXISTS "${D
       "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe"
   )
 endif()
+set(NASM_PATH "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe")
 
 message("Checking for perl")
 # download perl for libvpx

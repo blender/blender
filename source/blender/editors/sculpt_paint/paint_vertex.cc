@@ -287,9 +287,9 @@ Vector<PBVHNode *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush
       return node_in_sphere(node, ss.cache->location, ss.cache->radius_squared, true);
     });
 
-    ss.cache->sculpt_normal_symm =
-        use_normal ? SCULPT_pbvh_calc_area_normal(brush, ob, nodes).value_or(float3(0)) :
-                     float3(0);
+    ss.cache->sculpt_normal_symm = use_normal ?
+                                       calc_area_normal(brush, ob, nodes).value_or(float3(0)) :
+                                       float3(0);
   }
   else {
     const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
@@ -543,7 +543,7 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
   cache->radius_squared = cache->radius * cache->radius;
 
   if (ss.pbvh) {
-    bke::pbvh::update_bounds(*ss.pbvh, PBVH_UpdateBB);
+    bke::pbvh::update_bounds(*ss.pbvh);
   }
 }
 
@@ -2132,7 +2132,8 @@ static void fill_mesh_color(Mesh &mesh,
     BMesh *bm = em->bm;
     const std::string name = attribute_name;
     const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh.id, name.c_str());
-    const AttrDomain domain = BKE_id_attribute_domain(&mesh.id, layer);
+    AttributeOwner owner = AttributeOwner::from_id(&mesh.id);
+    const AttrDomain domain = BKE_attribute_domain(owner, layer);
     if (layer->type == CD_PROP_COLOR) {
       fill_bm_face_or_corner_attribute<ColorPaint4f>(
           *bm, color, domain, layer->offset, use_vert_sel);

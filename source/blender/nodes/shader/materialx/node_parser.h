@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "material.h"
 #include "node_item.h"
 
 #include "DEG_depsgraph.hh"
@@ -17,8 +18,6 @@ namespace blender::nodes::materialx {
 extern struct CLG_LogRef *LOG_MATERIALX_SHADER;
 
 class GroupNodeParser;
-
-using ExportImageFunction = std::function<std::string(Main *, Scene *, Image *, ImageUser *)>;
 
 /**
  * This is base abstraction class for parsing Blender nodes into MaterialX nodes.

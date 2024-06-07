@@ -26,7 +26,6 @@ enum PBVHNodeFlags {
 
   PBVH_UpdateNormals = 1 << 1,
   PBVH_UpdateBB = 1 << 2,
-  PBVH_UpdateOriginalBB = 1 << 3,
   PBVH_UpdateDrawBuffers = 1 << 4,
   PBVH_UpdateRedraw = 1 << 5,
   PBVH_UpdateMask = 1 << 6,

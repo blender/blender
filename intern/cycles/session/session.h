@@ -35,7 +35,7 @@ class SceneParams;
 
 class SessionParams {
  public:
-  /* Device, which is choosen based on Blender Cycles preferences, as well as Scene settings and
+  /* Device, which is chosen based on Blender Cycles preferences, as well as Scene settings and
    * command line arguments. */
   DeviceInfo device;
   /* Device from Cycles preferences for denoising. */

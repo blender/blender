@@ -10,6 +10,9 @@
 #if defined(WIN32)
 #  include "BLI_winstuff.h"
 #endif
+#include "BLI_subprocess.hh"
+#include "BLI_threads.h"
+#include "DNA_userdef_types.h"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -593,6 +596,13 @@ void GLBackend::capabilities_init()
   GLContext::framebuffer_fetch_support = false;
 
   detect_workarounds();
+
+#if BLI_SUBPROCESS_SUPPORT
+  GCaps.max_parallel_compilations = std::min(int(U.max_shader_compilation_subprocesses),
+                                             BLI_system_thread_count());
+#else
+  GCaps.max_parallel_compilations = 0;
+#endif
 
   /* Disable this feature entirely when not debugging. */
   if ((G.debug & G_DEBUG_GPU) == 0) {

@@ -1164,7 +1164,7 @@ void VertexFormatConverter::update_conversion_flags(const GPUVertAttr &vertex_at
 void VertexFormatConverter::init_device_format(const VKWorkarounds &workarounds)
 {
   BLI_assert(needs_conversion_);
-  GPU_vertformat_copy(&converted_format_, source_format_);
+  GPU_vertformat_copy(&converted_format_, *source_format_);
   bool needs_repack = false;
 
   for (int attr_index : IndexRange(converted_format_.attr_len)) {

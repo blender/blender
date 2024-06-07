@@ -86,7 +86,7 @@ void extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
   const Span<int> subdiv_loop_subdiv_edge_index(subdiv_cache.subdiv_loop_subdiv_edge_index,
                                                 subdiv_cache.num_subdiv_loops);
   const Span<int> subdiv_loop_edge_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(subdiv_cache.edges_orig_index)),
+      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.edges_orig_index)),
       subdiv_cache.num_subdiv_edges);
 
   GPUIndexBufBuilder builder;

@@ -97,7 +97,6 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"_extension_repos_update_pre", "on changes to extension repos (before)"},
     {"_extension_repos_update_post", "on changes to extension repos (after)"},
     {"_extension_repos_sync", "on creating or synchronizing the active repository"},
-    {"_extension_repos_upgrade", "on upgrading the active repository"},
     {"_extension_repos_files_clear",
      "remove files from the repository directory (uses as a string argument)"},
 

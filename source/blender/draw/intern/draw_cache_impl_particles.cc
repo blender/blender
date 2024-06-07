@@ -829,11 +829,11 @@ static void particle_batch_cache_ensure_procedural_final_points(ParticleHairCach
   /* Transform feedback buffer only needs to be resident in device memory. */
   GPUUsageType type = GPU_transform_feedback_support() ? GPU_USAGE_DEVICE_ONLY : GPU_USAGE_STATIC;
   cache->final[subdiv].proc_buf = GPU_vertbuf_create_with_format_ex(
-      &format, type | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+      format, type | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
 
   /* Create a destination buffer for the transform feedback. Sized appropriately */
   /* Those are points! not line segments. */
-  GPU_vertbuf_data_alloc(cache->final[subdiv].proc_buf,
+  GPU_vertbuf_data_alloc(*cache->final[subdiv].proc_buf,
                          cache->final[subdiv].strands_res * cache->strands_len);
 }
 
@@ -898,20 +898,20 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
 
   /* Strand Data */
   cache->proc_strand_buf = GPU_vertbuf_create_with_format_ex(
-      &format_data, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-  GPU_vertbuf_data_alloc(cache->proc_strand_buf, cache->strands_len);
+      format_data, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+  GPU_vertbuf_data_alloc(*cache->proc_strand_buf, cache->strands_len);
   GPU_vertbuf_attr_get_raw_data(cache->proc_strand_buf, data_id, &data_step);
 
   cache->proc_strand_seg_buf = GPU_vertbuf_create_with_format_ex(
-      &format_seg, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-  GPU_vertbuf_data_alloc(cache->proc_strand_seg_buf, cache->strands_len);
+      format_seg, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+  GPU_vertbuf_data_alloc(*cache->proc_strand_seg_buf, cache->strands_len);
   GPU_vertbuf_attr_get_raw_data(cache->proc_strand_seg_buf, seg_id, &seg_step);
 
   /* UV layers */
   for (int i = 0; i < cache->num_uv_layers; i++) {
     cache->proc_uv_buf[i] = GPU_vertbuf_create_with_format_ex(
-        &format_uv, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-    GPU_vertbuf_data_alloc(cache->proc_uv_buf[i], cache->strands_len);
+        format_uv, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+    GPU_vertbuf_data_alloc(*cache->proc_uv_buf[i], cache->strands_len);
     GPU_vertbuf_attr_get_raw_data(cache->proc_uv_buf[i], uv_id, &uv_step[i]);
 
     char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
@@ -947,8 +947,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   /* Vertex colors */
   for (int i = 0; i < cache->num_col_layers; i++) {
     cache->proc_col_buf[i] = GPU_vertbuf_create_with_format_ex(
-        &format_col, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-    GPU_vertbuf_data_alloc(cache->proc_col_buf[i], cache->strands_len);
+        format_col, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+    GPU_vertbuf_data_alloc(*cache->proc_col_buf[i], cache->strands_len);
     GPU_vertbuf_attr_get_raw_data(cache->proc_col_buf[i], col_id, &col_step[i]);
 
     char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
@@ -1095,8 +1095,8 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
    * stride requirement. */
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-  GPU_vertbuf_data_alloc(vbo, 1);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*vbo, 1);
 
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, prim_type, element_count, element_count);
@@ -1136,8 +1136,8 @@ static void particle_batch_cache_ensure_procedural_pos(PTCacheEdit *edit,
         &pos_format, "posTime", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
     cache->proc_point_buf = GPU_vertbuf_create_with_format_ex(
-        &pos_format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-    GPU_vertbuf_data_alloc(cache->proc_point_buf, cache->point_len);
+        pos_format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+    GPU_vertbuf_data_alloc(*cache->proc_point_buf, cache->point_len);
 
     GPUVertBufRaw pos_step;
     GPU_vertbuf_attr_get_raw_data(cache->proc_point_buf, pos_id, &pos_step);
@@ -1147,8 +1147,8 @@ static void particle_batch_cache_ensure_procedural_pos(PTCacheEdit *edit,
         &length_format, "hairLength", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
     cache->proc_length_buf = GPU_vertbuf_create_with_format_ex(
-        &length_format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-    GPU_vertbuf_data_alloc(cache->proc_length_buf, cache->strands_len);
+        length_format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+    GPU_vertbuf_data_alloc(*cache->proc_length_buf, cache->strands_len);
 
     GPUVertBufRaw length_step;
     GPU_vertbuf_attr_get_raw_data(cache->proc_length_buf, length_id, &length_step);
@@ -1258,8 +1258,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     }
   }
 
-  hair_cache->pos = GPU_vertbuf_create_with_format(&format);
-  GPU_vertbuf_data_alloc(hair_cache->pos, hair_cache->point_len);
+  hair_cache->pos = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*hair_cache->pos, hair_cache->point_len);
 
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, hair_cache->elems_len, hair_cache->point_len);
@@ -1407,8 +1407,8 @@ static void particle_batch_cache_ensure_pos(Object *object,
     rot_id = GPU_vertformat_attr_add(&format, "part_rot", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   }
 
-  point_cache->pos = GPU_vertbuf_create_with_format(&format);
-  GPU_vertbuf_data_alloc(point_cache->pos, psys->totpart);
+  point_cache->pos = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*point_cache->pos, psys->totpart);
 
   for (curr_point = 0, i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
     state.time = DEG_get_ctime(draw_ctx->depsgraph);
@@ -1440,7 +1440,7 @@ static void particle_batch_cache_ensure_pos(Object *object,
   }
 
   if (curr_point != psys->totpart) {
-    GPU_vertbuf_data_resize(point_cache->pos, curr_point);
+    GPU_vertbuf_data_resize(*point_cache->pos, curr_point);
   }
 
   psys_sim_data_free(&sim);
@@ -1561,8 +1561,8 @@ static void particle_batch_cache_ensure_edit_pos_and_seg(PTCacheEdit *edit,
   uint pos_id, selection_id;
   GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
-  hair_cache->pos = GPU_vertbuf_create_with_format(edit_point_format);
-  GPU_vertbuf_data_alloc(hair_cache->pos, hair_cache->point_len);
+  hair_cache->pos = GPU_vertbuf_create_with_format(*edit_point_format);
+  GPU_vertbuf_data_alloc(*hair_cache->pos, hair_cache->point_len);
   GPU_vertbuf_attr_get_raw_data(hair_cache->pos, pos_id, &data_step);
 
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, hair_cache->elems_len, hair_cache->point_len);
@@ -1625,8 +1625,8 @@ static void particle_batch_cache_ensure_edit_inner_pos(PTCacheEdit *edit,
   uint pos_id, selection_id;
   GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
-  cache->edit_inner_pos = GPU_vertbuf_create_with_format(edit_point_format);
-  GPU_vertbuf_data_alloc(cache->edit_inner_pos, cache->edit_inner_point_len);
+  cache->edit_inner_pos = GPU_vertbuf_create_with_format(*edit_point_format);
+  GPU_vertbuf_data_alloc(*cache->edit_inner_pos, cache->edit_inner_point_len);
 
   int global_key_index = 0;
   for (int point_index = 0; point_index < edit->totpoint; point_index++) {
@@ -1683,8 +1683,8 @@ static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, Particle
   uint pos_id, selection_id;
   GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
-  cache->edit_tip_pos = GPU_vertbuf_create_with_format(edit_point_format);
-  GPU_vertbuf_data_alloc(cache->edit_tip_pos, cache->edit_tip_point_len);
+  cache->edit_tip_pos = GPU_vertbuf_create_with_format(*edit_point_format);
+  GPU_vertbuf_data_alloc(*cache->edit_tip_pos, cache->edit_tip_point_len);
 
   int global_point_index = 0;
   for (int point_index = 0; point_index < edit->totpoint; point_index++) {

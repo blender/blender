@@ -62,9 +62,9 @@ void extract_face_dot_normals(const MeshRenderData &mr, const bool use_hq, gpu::
     if (format.attr_len == 0) {
       GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     }
-    GPU_vertbuf_init_with_format(&vbo, &format);
-    GPU_vertbuf_data_alloc(&vbo, mr.faces_num);
-    MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(&vbo)), mr.faces_num);
+    GPU_vertbuf_init_with_format(vbo, format);
+    GPU_vertbuf_data_alloc(vbo, mr.faces_num);
+    MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(vbo)), mr.faces_num);
 
     if (mr.extract_type == MR_EXTRACT_MESH) {
       extract_face_dot_normals_mesh(mr, vbo_data);
@@ -78,9 +78,9 @@ void extract_face_dot_normals(const MeshRenderData &mr, const bool use_hq, gpu::
     if (format.attr_len == 0) {
       GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     }
-    GPU_vertbuf_init_with_format(&vbo, &format);
-    GPU_vertbuf_data_alloc(&vbo, mr.faces_num);
-    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(&vbo)), mr.faces_num);
+    GPU_vertbuf_init_with_format(vbo, format);
+    GPU_vertbuf_data_alloc(vbo, mr.faces_num);
+    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)), mr.faces_num);
 
     if (mr.extract_type == MR_EXTRACT_MESH) {
       extract_face_dot_normals_mesh(mr, vbo_data);

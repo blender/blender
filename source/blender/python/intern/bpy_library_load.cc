@@ -477,7 +477,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
 
   BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(
       &liblink_params);
-  /* Note: Transfers the ownership of the `blo_handle` to the `lapp_context`. */
+  /* NOTE: Transfers the ownership of the `blo_handle` to the `lapp_context`. */
   BKE_blendfile_link_append_context_library_add(lapp_context, self->abspath, self->blo_handle);
   self->blo_handle = nullptr;
 

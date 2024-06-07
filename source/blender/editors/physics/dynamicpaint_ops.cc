@@ -236,7 +236,8 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
         ED_mesh_color_add(static_cast<Mesh *>(ob->data), name, true, true, op->reports);
       }
       else {
-        BKE_id_attribute_remove(static_cast<ID *>(ob->data), name, nullptr);
+        AttributeOwner owner = AttributeOwner::from_id(static_cast<ID *>(ob->data));
+        BKE_attribute_remove(owner, name, nullptr);
       }
     }
     /* Vertex Weight Layer */

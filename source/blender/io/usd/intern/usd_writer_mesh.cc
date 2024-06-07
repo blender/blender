@@ -759,8 +759,9 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh, pxr::UsdGeom
 {
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
-  CustomDataLayer *velocity_layer = BKE_id_attribute_find(
-      &mesh->id, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point);
+  AttributeOwner owner = AttributeOwner::from_id(const_cast<ID *>(&mesh->id));
+  CustomDataLayer *velocity_layer = BKE_attribute_find(
+      owner, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point);
 
   if (velocity_layer == nullptr) {
     return;

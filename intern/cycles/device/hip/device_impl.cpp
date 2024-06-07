@@ -53,8 +53,8 @@ void HIPDevice::set_error(const string &error)
   }
 }
 
-HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
-    : GPUDevice(info, stats, profiler)
+HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+    : GPUDevice(info, stats, profiler, headless)
 {
   /* Verify that base class types can be used with specific backend types */
   static_assert(sizeof(texMemObject) == sizeof(hipTextureObject_t));
@@ -906,6 +906,12 @@ bool HIPDevice::should_use_graphics_interop()
    * Using HIP device for graphics interoperability which is not part of the OpenGL context is
    * possible, but from the empiric measurements it can be considerably slower than using naive
    * pixels copy. */
+
+  if (headless) {
+    /* Avoid any call which might involve interaction with a graphics backend when we know that
+     * we don't have active graphics context. This avoids potential crash in the driver. */
+    return false;
+  }
 
   /* Disable graphics interop for now, because of driver bug in 21.40. See #92972 */
 #  if 0

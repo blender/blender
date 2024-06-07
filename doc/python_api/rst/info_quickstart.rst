@@ -60,7 +60,7 @@ Both the *Text Editor* and *Python Console* are space types you can select from 
 Rather than manually configuring your spaces for Python development,
 you can use the *Scripting* workspace accessible from the Topbar tabs.
 
-From the text editor you can open ``.py`` files or paste then from the clipboard, then test using *Run Script*.
+From the text editor you can open ``.py`` files or paste them from the clipboard, then test using *Run Script*.
 The Python Console is typically used for typing in snippets and for testing to get immediate feedback,
 but can also have entire scripts pasted into it.
 Scripts can also run from the command line with Blender but to learn scripting in Blender this isn't essential.

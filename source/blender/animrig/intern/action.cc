@@ -60,6 +60,8 @@ namespace {
 constexpr const char *binding_default_name = "Binding";
 constexpr const char *binding_unbound_prefix = "XX";
 
+constexpr const char *layer_default_name = "Layer";
+
 }  // namespace
 
 static animrig::Layer &ActionLayer_alloc()
@@ -191,6 +193,16 @@ bool Action::layer_remove(Layer &layer_to_remove)
                            layer_index,
                            layer_ptr_destructor);
   return true;
+}
+
+void Action::layer_ensure_at_least_one()
+{
+  if (!this->layers().is_empty()) {
+    return;
+  }
+
+  Layer &layer = this->layer_add(DATA_(layer_default_name));
+  layer.strip_add(Strip::Type::Keyframe);
 }
 
 int64_t Action::find_layer_index(const Layer &layer) const
@@ -403,6 +415,21 @@ bool Action::is_binding_animated(const binding_handle_t binding_handle) const
 
   Span<const FCurve *> fcurves = fcurves_for_animation(*this, binding_handle);
   return !fcurves.is_empty();
+}
+
+Layer *Action::get_layer_for_keyframing()
+{
+  /* TODO: handle multiple layers. */
+  if (this->layers().is_empty()) {
+    return nullptr;
+  }
+  if (this->layers().size() > 1) {
+    std::fprintf(stderr,
+                 "Action '%s' has multiple layers, which isn't handled by keyframing code yet.",
+                 this->id.name);
+  }
+
+  return this->layer(0);
 }
 
 bool Action::assign_id(Binding *binding, ID &animated_id)
@@ -689,6 +716,12 @@ Strip::~Strip()
   BLI_assert_unreachable();
 }
 
+bool Strip::is_infinite() const
+{
+  return this->frame_start == -std::numeric_limits<float>::infinity() &&
+         this->frame_end == std::numeric_limits<float>::infinity();
+}
+
 bool Strip::contains_frame(const float frame_time) const
 {
   return this->frame_start <= frame_time && frame_time <= this->frame_end;
@@ -737,7 +770,7 @@ KeyframeStrip::~KeyframeStrip()
 
 template<> bool Strip::is<KeyframeStrip>() const
 {
-  return this->type() == Type::Keyframe;
+  return this->type() == KeyframeStrip::TYPE;
 }
 
 template<> KeyframeStrip &Strip::as<KeyframeStrip>()
@@ -750,6 +783,11 @@ template<> const KeyframeStrip &Strip::as<KeyframeStrip>() const
 {
   BLI_assert_msg(this->is<KeyframeStrip>(), "Strip is not a KeyframeStrip");
   return *reinterpret_cast<const KeyframeStrip *>(this);
+}
+
+KeyframeStrip::operator Strip &()
+{
+  return this->strip.wrap();
 }
 
 blender::Span<const ChannelBag *> KeyframeStrip::channelbags() const
@@ -858,11 +896,25 @@ SingleKeyingResult KeyframeStrip::keyframe_insert(const Binding &binding,
                                                   const StringRefNull rna_path,
                                                   const int array_index,
                                                   const float2 time_value,
-                                                  const KeyframeSettings &settings)
+                                                  const KeyframeSettings &settings,
+                                                  const eInsertKeyFlags insert_key_flags)
 {
-  FCurve &fcurve = this->fcurve_find_or_create(binding, rna_path, array_index);
+  /* Get the fcurve, or create one if it doesn't exist and the keying flags
+   * allow. */
+  FCurve *fcurve = key_insertion_may_create_fcurve(insert_key_flags) ?
+                       &this->fcurve_find_or_create(binding, rna_path, array_index) :
+                       this->fcurve_find(binding, rna_path, array_index);
+  if (!fcurve) {
+    std::fprintf(stderr,
+                 "FCurve %s[%d] for binding %s was not created due to either the Only Insert "
+                 "Available setting or Replace keyframing mode.\n",
+                 rna_path.c_str(),
+                 array_index,
+                 binding.name);
+    return SingleKeyingResult::CANNOT_CREATE_FCURVE;
+  }
 
-  if (!BKE_fcurve_is_keyframable(&fcurve)) {
+  if (!BKE_fcurve_is_keyframable(fcurve)) {
     /* TODO: handle this properly, in a way that can be communicated to the user. */
     std::fprintf(stderr,
                  "FCurve %s[%d] for binding %s doesn't allow inserting keys.\n",
@@ -872,9 +924,8 @@ SingleKeyingResult KeyframeStrip::keyframe_insert(const Binding &binding,
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
   }
 
-  /* TODO: Handle the eInsertKeyFlags. */
   const SingleKeyingResult insert_vert_result = insert_vert_fcurve(
-      &fcurve, time_value, settings, eInsertKeyFlags(0));
+      fcurve, time_value, settings, insert_key_flags);
 
   if (insert_vert_result != SingleKeyingResult::SUCCESS) {
     std::fprintf(stderr,

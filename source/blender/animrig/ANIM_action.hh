@@ -116,6 +116,12 @@ class Action : public ::bAction {
    */
   bool layer_remove(Layer &layer_to_remove);
 
+  /**
+   * If the Action is empty, create a default layer with a single infinite
+   * keyframe strip.
+   */
+  void layer_ensure_at_least_one();
+
   /* Animation Binding access. */
   blender::Span<const Binding *> bindings() const;
   blender::MutableSpan<Binding *> bindings();
@@ -217,6 +223,15 @@ class Action : public ::bAction {
    */
   bool is_binding_animated(binding_handle_t binding_handle) const;
 
+  /**
+   * Get the layer that should be used for user-level keyframe insertion.
+   *
+   * \return The layer, or nullptr if no layer exists that can currently be used
+   * for keyframing (e.g. all layers are locked, once we've implemented
+   * locking).
+   */
+  Layer *get_layer_for_keyframing();
+
  protected:
   /** Return the layer's index, or -1 if not found in this animation. */
   int64_t find_layer_index(const Layer &layer) const;
@@ -301,6 +316,7 @@ class Strip : public ::ActionStrip {
   template<typename T> T &as();
   template<typename T> const T &as() const;
 
+  bool is_infinite() const;
   bool contains_frame(float frame_time) const;
   bool is_last_frame(float frame_time) const;
 
@@ -367,7 +383,27 @@ class Layer : public ::ActionLayer {
   blender::MutableSpan<Strip *> strips();
   const Strip *strip(int64_t index) const;
   Strip *strip(int64_t index);
+
+  /**
+   * Add a new Strip of the given type.
+   *
+   * \see strip_add<T>() for a templated version that returns the strip as its
+   * concrete C++ type.
+   */
   Strip &strip_add(Strip::Type strip_type);
+
+  /**
+   * Add a new strip of the type of T.
+   *
+   * T must be a concrete subclass of animrig::Strip.
+   *
+   * \see KeyframeStrip
+   */
+  template<typename T> T &strip_add()
+  {
+    Strip &strip = this->strip_add(T::TYPE);
+    return strip.as<T>();
+  }
 
   /**
    * Remove the strip from this layer.
@@ -456,9 +492,21 @@ static_assert(sizeof(Binding) == sizeof(::ActionBinding),
  */
 class KeyframeStrip : public ::KeyframeActionStrip {
  public:
+  /**
+   * Low-level strip type.
+   *
+   * Do not use this in comparisons directly, use Strip::as<KeyframeStrip>() or
+   * Strip::is<KeyframeStrip>() instead. This value is here only to make
+   * functions like those easier to write.
+   */
+  static constexpr Strip::Type TYPE = Strip::Type::Keyframe;
+
   KeyframeStrip() = default;
   KeyframeStrip(const KeyframeStrip &other);
   ~KeyframeStrip();
+
+  /** Implicitly convert a KeyframeStrip& to a Strip&. */
+  operator Strip &();
 
   /* ChannelBag array access. */
   blender::Span<const ChannelBag *> channelbags() const;
@@ -500,7 +548,8 @@ class KeyframeStrip : public ::KeyframeActionStrip {
                                      StringRefNull rna_path,
                                      int array_index,
                                      float2 time_value,
-                                     const KeyframeSettings &settings);
+                                     const KeyframeSettings &settings,
+                                     eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS);
 };
 static_assert(sizeof(KeyframeStrip) == sizeof(::KeyframeActionStrip),
               "DNA struct and its C++ wrapper must have the same size");
@@ -559,7 +608,7 @@ void unassign_animation(ID &animated_id);
  * binding, before un-assigning. This is to ensure that the stored name reflects
  * the actual binding that was used, making re-binding trivial.
  *
- * \param adt the AnimData of the animated ID.
+ * \param adt: the AnimData of the animated ID.
  *
  * \note this does not clear the Animation pointer, just the binding handle.
  */

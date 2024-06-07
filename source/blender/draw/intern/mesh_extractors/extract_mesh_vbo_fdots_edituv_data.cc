@@ -18,9 +18,9 @@ void extract_face_dots_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "flag", GPU_COMP_U8, 4, GPU_FETCH_INT);
   }
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, mr.faces_num);
-  MutableSpan vbo_data(static_cast<EditLoopData *>(GPU_vertbuf_get_data(&vbo)), mr.faces_num);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
+  MutableSpan vbo_data(static_cast<EditLoopData *>(GPU_vertbuf_get_data(vbo)), mr.faces_num);
   const BMesh &bm = *mr.bm;
   const BMUVOffsets offsets = BM_uv_map_get_offsets(&bm);
   if (mr.extract_type == MR_EXTRACT_BMESH) {

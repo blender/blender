@@ -578,86 +578,6 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Generic Extension Repository Utilities
- * \{ */
-
-static bool preferences_extension_check_for_updates_enabled_poll(bContext *C)
-{
-  const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
-      &U, U.active_extension_repo);
-
-  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
-    if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
-      CTX_wm_operator_poll_msg_set(
-          C, "Online access required to check for updates. Launch Blender without --offline-mode");
-    }
-    else {
-      CTX_wm_operator_poll_msg_set(C,
-                                   "Online access required to check for updates. Enable online "
-                                   "access in System preferences");
-    }
-    return false;
-  }
-
-  if (repo == nullptr) {
-    CTX_wm_operator_poll_msg_set(C, "No repositories available");
-    return false;
-  }
-
-  if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
-    CTX_wm_operator_poll_msg_set(C, "Local repositories do not require refreshing");
-    return false;
-  }
-
-  if ((repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) != 0) {
-    CTX_wm_operator_poll_msg_set(C, "Active repository is disabled");
-    return false;
-  }
-
-  return true;
-}
-
-static bool preferences_extension_install_updates_enabled_poll(bContext *C)
-{
-  const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
-      &U, U.active_extension_repo);
-
-  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
-    if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
-      CTX_wm_operator_poll_msg_set(
-          C, "Online access required to install updates. Launch Blender without --offline-mode");
-    }
-    else {
-      CTX_wm_operator_poll_msg_set(C,
-                                   "Online access required to install updates. Enable online "
-                                   "access in System preferences");
-    }
-    return false;
-  }
-
-  if (repo == nullptr) {
-    CTX_wm_operator_poll_msg_set(C, "No repositories available");
-    return false;
-  }
-
-  if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
-    CTX_wm_operator_poll_msg_set(C,
-                                 "Local repositories do not require manual update. Reload scripts "
-                                 "or restart Blender to see any updates");
-    return false;
-  }
-
-  if ((repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) != 0) {
-    CTX_wm_operator_poll_msg_set(C, "Active repository is disabled");
-    return false;
-  }
-
-  return true;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Remove Extension Repository Operator
  * \{ */
 
@@ -797,57 +717,6 @@ static void PREFERENCES_OT_extension_repo_remove(wmOperatorType *ot)
   ot->prop = RNA_def_enum(
       ot->srna, "type", repo_type_items, 0, "Type", "Method for removing the repository");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Check for Extension Repository Updates Operator
- * \{ */
-
-static int preferences_extension_repo_sync_exec(bContext *C, wmOperator * /*op*/)
-{
-  Main *bmain = CTX_data_main(C);
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_SYNC);
-  WM_event_add_notifier(C, NC_WINDOW, nullptr);
-  return OPERATOR_FINISHED;
-}
-
-static void PREFERENCES_OT_extension_repo_sync(wmOperatorType *ot)
-{
-  ot->name = "Check for Updates";
-  ot->idname = "PREFERENCES_OT_extension_repo_sync";
-  ot->description = "Refresh the list of extensions for the active repository";
-
-  ot->exec = preferences_extension_repo_sync_exec;
-  ot->poll = preferences_extension_check_for_updates_enabled_poll;
-
-  ot->flag = OPTYPE_INTERNAL;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Update Extension Repository Operator
- * \{ */
-
-static int preferences_extension_repo_upgrade_exec(bContext *C, wmOperator * /*op*/)
-{
-  Main *bmain = CTX_data_main(C);
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPGRADE);
-  WM_event_add_notifier(C, NC_WINDOW, nullptr);
-  return OPERATOR_FINISHED;
-}
-
-static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
-{
-  ot->name = "Install Available Updates for Repository";
-  ot->idname = "PREFERENCES_OT_extension_repo_upgrade";
-  ot->description = "Upgrade all the extensions to their latest version for the active repository";
-  ot->exec = preferences_extension_repo_upgrade_exec;
-  ot->poll = preferences_extension_install_updates_enabled_poll;
-
-  ot->flag = OPTYPE_INTERNAL;
 }
 
 /** \} */
@@ -1171,8 +1040,6 @@ void ED_operatortypes_userpref()
 
   WM_operatortype_append(PREFERENCES_OT_extension_repo_add);
   WM_operatortype_append(PREFERENCES_OT_extension_repo_remove);
-  WM_operatortype_append(PREFERENCES_OT_extension_repo_sync);
-  WM_operatortype_append(PREFERENCES_OT_extension_repo_upgrade);
   WM_operatortype_append(PREFERENCES_OT_extension_url_drop);
 
   WM_operatortype_append(PREFERENCES_OT_associate_blend);

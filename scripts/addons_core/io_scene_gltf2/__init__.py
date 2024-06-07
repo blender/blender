@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 48),
+    "version": (4, 3, 5),
     'blender': (4, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -86,6 +86,14 @@ def ensure_filepath_matches_export_format(filepath, export_format):
 
 
 def on_export_format_changed(self, context):
+
+    # Update the filename in collection export settings when the format (.glb/.gltf) changes
+    if isinstance(self.id_data, bpy.types.Collection):
+        self.filepath = ensure_filepath_matches_export_format(
+            self.filepath,
+            self.export_format,
+        )
+
     # Update the filename in the file browser when the format (.glb/.gltf)
     # changes
     sfile = context.space_data
@@ -581,6 +589,13 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         name="Source Collection",
         description="Export only objects from this collection (and its children)",
         default="",
+    )
+
+    # Not starting with "export_", as this is a collection only option
+    at_collection_center: BoolProperty(
+        name="Export at Collection Center",
+        description="Export at Collection center of mass of root objects of the collection",
+        default=False,
     )
 
     export_extras: BoolProperty(
@@ -1102,6 +1117,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             export_settings['gltf_active_collection_with_nested'] = False
         export_settings['gltf_active_scene'] = self.use_active_scene
         export_settings['gltf_collection'] = self.collection
+        export_settings['gltf_at_collection_center'] = self.at_collection_center
 
         export_settings['gltf_selected'] = self.use_selection
         export_settings['gltf_layers'] = True  # self.export_layers
@@ -1288,6 +1304,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         is_file_browser = context.space_data.type == 'FILE_BROWSER'
 
         export_main(layout, operator, is_file_browser)
+        export_panel_collection(layout, operator, is_file_browser)
         export_panel_include(layout, operator, is_file_browser)
         export_panel_transform(layout, operator)
         export_panel_data(layout, operator)
@@ -1315,6 +1332,16 @@ def export_main(layout, operator, is_file_browser):
     layout.prop(operator, 'export_copyright')
     if is_file_browser:
         layout.prop(operator, 'will_save_settings')
+
+
+def export_panel_collection(layout, operator, is_file_browser):
+    if is_file_browser:
+        return
+
+    header, body = layout.panel("GLTF_export_collection", default_closed=True)
+    header.label(text="Collection")
+    if body:
+        body.prop(operator, 'at_collection_center')
 
 
 def export_panel_include(layout, operator, is_file_browser):
@@ -1765,6 +1792,18 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         default="BLENDER",
     )
 
+    disable_bone_shape: BoolProperty(
+        name='Disable Bone Shape',
+        description='Do not create bone shapes',
+        default=False,
+    )
+
+    bone_shape_scale_factor: FloatProperty(
+        name='Bone Shape Scale',
+        description='Scale factor for bone shapes',
+        default=1.0,
+    )
+
     guess_original_bind_pose: BoolProperty(
         name='Guess Original Bind Pose',
         description=(
@@ -1785,6 +1824,7 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
     )
 
     def draw(self, context):
+        operator = self
         layout = self.layout
 
         layout.use_property_split = True
@@ -1794,9 +1834,9 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         layout.prop(self, 'merge_vertices')
         layout.prop(self, 'import_shading')
         layout.prop(self, 'guess_original_bind_pose')
-        layout.prop(self, 'bone_heuristic')
         layout.prop(self, 'export_import_convert_lighting_mode')
         layout.prop(self, 'import_webp_texture')
+        import_bone_panel(layout, operator)
 
         import_panel_user_extension(context, layout)
 
@@ -1894,6 +1934,16 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
             self.loglevel = logging.CRITICAL
         elif bpy.app.debug_value == 4:
             self.loglevel = logging.DEBUG
+
+
+def import_bone_panel(layout, operator):
+    header, body = layout.panel("GLTF_import_bone", default_closed=False)
+    header.label(text="Bones")
+    if body:
+        body.prop(operator, 'bone_heuristic')
+        if operator.bone_heuristic == 'BLENDER':
+            body.prop(operator, 'disable_bone_shape')
+            body.prop(operator, 'bone_shape_scale_factor')
 
 
 def import_panel_user_extension(context, layout):

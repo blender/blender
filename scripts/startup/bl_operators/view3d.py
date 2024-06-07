@@ -296,6 +296,17 @@ class VIEW3D_FH_camera_background_image(FileHandler):
         return rv3d.view_perspective == 'CAMERA'
 
 
+class VIEW3D_FH_vdb_volume(FileHandler):
+    bl_idname = "VIEW3D_FH_vdb_volume"
+    bl_label = "OpenVDB volume"
+    bl_import_operator = "OBJECT_OT_volume_import"
+    bl_file_extensions = ".vdb"
+
+    @classmethod
+    def poll_drop(cls, context):
+        return context.space_data and context.space_data.type == 'VIEW_3D'
+
+
 classes = (
     VIEW3D_OT_edit_mesh_extrude_individual_move,
     VIEW3D_OT_edit_mesh_extrude_move,
@@ -304,4 +315,5 @@ classes = (
     VIEW3D_OT_transform_gizmo_set,
     VIEW3D_FH_camera_background_image,
     VIEW3D_FH_empty_image,
+    VIEW3D_FH_vdb_volume,
 )

@@ -200,9 +200,9 @@ void extract_edituv_stretch_angle(const MeshRenderData &mr, gpu::VertBuf &vbo)
     GPU_vertformat_attr_add(&format, "uv_angles", GPU_COMP_I16, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
     GPU_vertformat_attr_add(&format, "angle", GPU_COMP_I16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
-  MutableSpan vbo_data(static_cast<UVStretchAngle *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
+  MutableSpan vbo_data(static_cast<UVStretchAngle *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
 
   if (mr.extract_type == MR_EXTRACT_BMESH) {
     extract_uv_stretch_angle_bm(mr, vbo_data);
@@ -212,7 +212,7 @@ void extract_edituv_stretch_angle(const MeshRenderData &mr, gpu::VertBuf &vbo)
   }
 }
 
-static GPUVertFormat *get_edituv_stretch_angle_format_subdiv()
+static const GPUVertFormat &get_edituv_stretch_angle_format_subdiv()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -220,7 +220,7 @@ static GPUVertFormat *get_edituv_stretch_angle_format_subdiv()
     GPU_vertformat_attr_add(&format, "angle", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "uv_angles", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   }
-  return &format;
+  return format;
 }
 
 void extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
@@ -229,7 +229,7 @@ void extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
                                          gpu::VertBuf &vbo)
 {
   GPU_vertbuf_init_build_on_device(
-      &vbo, get_edituv_stretch_angle_format_subdiv(), subdiv_cache.num_subdiv_loops);
+      vbo, get_edituv_stretch_angle_format_subdiv(), subdiv_cache.num_subdiv_loops);
 
   gpu::VertBuf *pos_nor = cache.final.buff.vbo.pos;
   gpu::VertBuf *uvs = cache.final.buff.vbo.uv;
@@ -242,7 +242,7 @@ void extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
   if (!pos_nor) {
     pos_nor = GPU_vertbuf_calloc();
     GPU_vertbuf_init_build_on_device(
-        pos_nor, draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache));
+        *pos_nor, draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache));
 
     draw_subdiv_extract_pos_nor(subdiv_cache, nullptr, pos_nor, nullptr);
   }

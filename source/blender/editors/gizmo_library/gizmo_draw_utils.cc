@@ -25,28 +25,25 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
   /* TODO: store the Batches inside the GizmoGeomInfo and updated it when geom changes
    * So we don't need to re-created and discard it every time */
 
-  blender::gpu::VertBuf *vbo;
-  blender::gpu::IndexBuf *el;
-  blender::gpu::Batch *batch;
-  GPUIndexBufBuilder elb = {0};
-
   GPUVertFormat format = {0};
   uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   /* Elements */
+  GPUIndexBufBuilder elb = {0};
   GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, info->ntris, info->nverts);
   for (int i = 0; i < info->ntris; i++) {
     const ushort *idx = &info->indices[i * 3];
     GPU_indexbuf_add_tri_verts(&elb, idx[0], idx[1], idx[2]);
   }
-  el = GPU_indexbuf_build(&elb);
+  blender::gpu::IndexBuf *el = GPU_indexbuf_build(&elb);
 
-  vbo = GPU_vertbuf_create_with_format(&format);
-  GPU_vertbuf_data_alloc(vbo, info->nverts);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*vbo, info->nverts);
 
   GPU_vertbuf_attr_fill(vbo, pos_id, info->verts);
 
-  batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, el, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
+  blender::gpu::Batch *batch = GPU_batch_create_ex(
+      GPU_PRIM_TRIS, vbo, el, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
   GPU_batch_uniform_4fv(batch, "color", color);

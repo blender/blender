@@ -5277,7 +5277,8 @@ static bool edbm_select_by_attribute_poll(bContext *C)
   }
   Object *obedit = CTX_data_edit_object(C);
   const Mesh *mesh = static_cast<const Mesh *>(obedit->data);
-  const CustomDataLayer *layer = BKE_id_attributes_active_get(&const_cast<ID &>(mesh->id));
+  AttributeOwner owner = AttributeOwner::from_id(&const_cast<ID &>(mesh->id));
+  const CustomDataLayer *layer = BKE_attributes_active_get(owner);
   if (!layer) {
     CTX_wm_operator_poll_msg_set(C, "There must be an active attribute");
     return false;
@@ -5286,7 +5287,7 @@ static bool edbm_select_by_attribute_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "The active attribute must have a boolean type");
     return false;
   }
-  if (BKE_id_attribute_domain(&mesh->id, layer) == bke::AttrDomain::Corner) {
+  if (BKE_attribute_domain(owner, layer) == bke::AttrDomain::Corner) {
     CTX_wm_operator_poll_msg_set(
         C, "The active attribute must be on the vertex, edge, or face domain");
     return false;
@@ -5320,19 +5321,19 @@ static int edbm_select_by_attribute_exec(bContext *C, wmOperator * /*op*/)
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
-
-    const CustomDataLayer *layer = BKE_id_attributes_active_get(&mesh->id);
+    AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+    const CustomDataLayer *layer = BKE_attributes_active_get(owner);
     if (!layer) {
       continue;
     }
     if (layer->type != CD_PROP_BOOL) {
       continue;
     }
-    if (BKE_id_attribute_domain(&mesh->id, layer) == bke::AttrDomain::Corner) {
+    if (BKE_attribute_domain(owner, layer) == bke::AttrDomain::Corner) {
       continue;
     }
     const std::optional<BMIterType> iter_type = domain_to_iter_type(
-        BKE_id_attribute_domain(&mesh->id, layer));
+        BKE_attribute_domain(owner, layer));
     if (!iter_type) {
       continue;
     }

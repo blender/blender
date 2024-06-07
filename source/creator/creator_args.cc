@@ -787,6 +787,7 @@ static void print_help(bArgs *ba, bool all)
   PRINT("\n");
   BLI_args_print_arg_doc(ba, "--env-system-datafiles");
   BLI_args_print_arg_doc(ba, "--env-system-scripts");
+  BLI_args_print_arg_doc(ba, "--env-system-extensions");
   BLI_args_print_arg_doc(ba, "--env-system-python");
   PRINT("\n");
   BLI_args_print_arg_doc(ba, "-noaudio");
@@ -844,18 +845,18 @@ static void print_help(bArgs *ba, bool all)
   PRINT("\n");
 
   PRINT("Environment Variables:\n");
-  PRINT("  $BLENDER_USER_RESOURCES  Top level directory for user files.\n");
-  PRINT("                           (other 'BLENDER_USER_*' variables override when set).\n");
+  PRINT("  $BLENDER_USER_RESOURCES  Replace default directory of all user files.\n");
+  PRINT("                           Other 'BLENDER_USER_*' variables override when set.\n");
   PRINT("  $BLENDER_USER_CONFIG     Directory for user configuration files.\n");
   PRINT("  $BLENDER_USER_SCRIPTS    Directory for user scripts.\n");
   PRINT("  $BLENDER_USER_EXTENSIONS Directory for user extensions.\n");
   PRINT("  $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).\n");
   PRINT("\n");
-  PRINT("  $BLENDER_SYSTEM_RESOURCES  Top level directory for system files.\n");
-  PRINT("                             (other 'BLENDER_SYSTEM_*' variables override when set).\n");
-  PRINT("  $BLENDER_SYSTEM_SCRIPTS    Directory for system wide scripts.\n");
-  PRINT("  $BLENDER_SYSTEM_DATAFILES  Directory for system wide data files.\n");
-  PRINT("  $BLENDER_SYSTEM_PYTHON     Directory for system Python libraries.\n");
+  PRINT("  $BLENDER_SYSTEM_RESOURCES  Replace default directory of all bundled resource files.\n");
+  PRINT("  $BLENDER_SYSTEM_SCRIPTS    Directory to add more bundled scripts.\n");
+  PRINT("  $BLENDER_SYSTEM_EXTENSIONS Directory for system extensions repository.\n");
+  PRINT("  $BLENDER_SYSTEM_DATAFILES  Directory to replace bundled datafiles.\n");
+  PRINT("  $BLENDER_SYSTEM_PYTHON     Directory to replace bundled Python libraries.\n");
 
   if (defs.with_ocio) {
     PRINT("  $OCIO                      Path to override the OpenColorIO configuration file.\n");
@@ -1534,6 +1535,9 @@ static const char arg_handle_env_system_set_doc_scripts[] =
 static const char arg_handle_env_system_set_doc_python[] =
     "\n\t"
     "Set the " STRINGIFY_ARG(BLENDER_SYSTEM_PYTHON) " environment variable.";
+static const char arg_handle_env_system_set_doc_extensions[] =
+    "\n\t"
+    "Set the " STRINGIFY_ARG(BLENDER_SYSTEM_EXTENSIONS) " environment variable.";
 
 static int arg_handle_env_system_set(int argc, const char **argv, void * /*data*/)
 {
@@ -2543,6 +2547,11 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
       ba, nullptr, "--env-system-scripts", CB_EX(arg_handle_env_system_set, scripts), nullptr);
   BLI_args_add(
       ba, nullptr, "--env-system-python", CB_EX(arg_handle_env_system_set, python), nullptr);
+  BLI_args_add(ba,
+               nullptr,
+               "--env-system-extensions",
+               CB_EX(arg_handle_env_system_set, extensions),
+               nullptr);
 
   BLI_args_add(ba, "-t", "--threads", CB(arg_handle_threads_set), nullptr);
 

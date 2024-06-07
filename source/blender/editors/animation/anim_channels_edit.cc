@@ -187,6 +187,18 @@ static bool get_channel_bounds(bAnimContext *ac,
           fcu, anim_data, ac->sl, ac->scene, ale->id, include_handles, range, r_bounds);
       break;
     }
+    case ALE_NONE:
+    case ALE_MASKLAY:
+    case ALE_NLASTRIP:
+    case ALE_ALL:
+    case ALE_SCE:
+    case ALE_OB:
+    case ALE_ACT:
+    case ALE_GROUP:
+    case ALE_ACTION_LAYERED:
+    case ALE_GREASE_PENCIL_DATA:
+    case ALE_GREASE_PENCIL_GROUP:
+      return false;
   }
   return found_bounds;
 }
@@ -291,6 +303,25 @@ void ANIM_set_active_channel(bAnimContext *ac,
         ACHANNEL_SET_FLAG(gpl, ACHANNEL_SETFLAG_CLEAR, GP_LAYER_ACTIVE);
         break;
       }
+      case ANIMTYPE_NONE:
+      case ANIMTYPE_ANIMDATA:
+      case ANIMTYPE_SPECIALDATA__UNUSED:
+      case ANIMTYPE_SUMMARY:
+      case ANIMTYPE_SCENE:
+      case ANIMTYPE_OBJECT:
+      case ANIMTYPE_NLACONTROLS:
+      case ANIMTYPE_FILLDRIVERS:
+      case ANIMTYPE_DSNTREE:
+      case ANIMTYPE_SHAPEKEY:
+      case ANIMTYPE_GPDATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+      case ANIMTYPE_GREASE_PENCIL_LAYER:
+      case ANIMTYPE_MASKDATABLOCK:
+      case ANIMTYPE_MASKLAYER:
+      case ANIMTYPE_PALETTE:
+      case ANIMTYPE_NUM_TYPES:
+        break;
     }
   }
 
@@ -411,9 +442,24 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
       return grease_pencil->is_layer_active(
           static_cast<blender::bke::greasepencil::Layer *>(ale->data));
     }
-    /* These channel types do not have active flags. */
-    case ANIMTYPE_MASKLAYER:
+      /* These channel types do not have active flags. */
+    case ANIMTYPE_NONE:
+    case ANIMTYPE_ANIMDATA:
+    case ANIMTYPE_SPECIALDATA__UNUSED:
+    case ANIMTYPE_SUMMARY:
+    case ANIMTYPE_SCENE:
+    case ANIMTYPE_OBJECT:
+    case ANIMTYPE_NLACONTROLS:
+    case ANIMTYPE_FILLDRIVERS:
     case ANIMTYPE_SHAPEKEY:
+    case ANIMTYPE_GPDATABLOCK:
+    case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+    case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+    case ANIMTYPE_MASKDATABLOCK:
+    case ANIMTYPE_MASKLAYER:
+    case ANIMTYPE_NLATRACK:
+    case ANIMTYPE_PALETTE:
+    case ANIMTYPE_NUM_TYPES:
       break;
   }
   return false;
@@ -543,6 +589,20 @@ static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListB
           return ACHANNEL_SETFLAG_CLEAR;
         }
         break;
+      case ANIMTYPE_NONE:
+      case ANIMTYPE_ANIMDATA:
+      case ANIMTYPE_SPECIALDATA__UNUSED:
+      case ANIMTYPE_SUMMARY:
+      case ANIMTYPE_NLACONTROLS:
+      case ANIMTYPE_FILLDRIVERS:
+      case ANIMTYPE_GPDATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+      case ANIMTYPE_GREASE_PENCIL_LAYER:
+      case ANIMTYPE_MASKDATABLOCK:
+      case ANIMTYPE_PALETTE:
+      case ANIMTYPE_NUM_TYPES:
+        break;
     }
   }
 
@@ -670,6 +730,19 @@ static void anim_channels_select_set(bAnimContext *ac,
         ACHANNEL_SET_FLAG(masklay, sel, MASK_LAYERFLAG_SELECT);
         break;
       }
+      case ANIMTYPE_NONE:
+      case ANIMTYPE_ANIMDATA:
+      case ANIMTYPE_SPECIALDATA__UNUSED:
+      case ANIMTYPE_SUMMARY:
+      case ANIMTYPE_NLACONTROLS:
+      case ANIMTYPE_FILLDRIVERS:
+      case ANIMTYPE_GPDATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+      case ANIMTYPE_MASKDATABLOCK:
+      case ANIMTYPE_PALETTE:
+      case ANIMTYPE_NUM_TYPES:
+        break;
     }
   }
 }
@@ -2250,6 +2323,48 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
         BKE_mask_layer_remove(mask, masklay);
         break;
       }
+      case ANIMTYPE_NONE:
+      case ANIMTYPE_ANIMDATA:
+      case ANIMTYPE_SPECIALDATA__UNUSED:
+      case ANIMTYPE_SUMMARY:
+      case ANIMTYPE_SCENE:
+      case ANIMTYPE_OBJECT:
+      case ANIMTYPE_GROUP:
+      case ANIMTYPE_NLACONTROLS:
+      case ANIMTYPE_FILLACT_LAYERED:
+      case ANIMTYPE_FILLACTD:
+      case ANIMTYPE_FILLDRIVERS:
+      case ANIMTYPE_DSMAT:
+      case ANIMTYPE_DSLAM:
+      case ANIMTYPE_DSCAM:
+      case ANIMTYPE_DSCACHEFILE:
+      case ANIMTYPE_DSCUR:
+      case ANIMTYPE_DSSKEY:
+      case ANIMTYPE_DSWOR:
+      case ANIMTYPE_DSNTREE:
+      case ANIMTYPE_DSPART:
+      case ANIMTYPE_DSMBALL:
+      case ANIMTYPE_DSARM:
+      case ANIMTYPE_DSMESH:
+      case ANIMTYPE_DSTEX:
+      case ANIMTYPE_DSLAT:
+      case ANIMTYPE_DSLINESTYLE:
+      case ANIMTYPE_DSSPK:
+      case ANIMTYPE_DSGPENCIL:
+      case ANIMTYPE_DSMCLIP:
+      case ANIMTYPE_DSHAIR:
+      case ANIMTYPE_DSPOINTCLOUD:
+      case ANIMTYPE_DSVOLUME:
+      case ANIMTYPE_SHAPEKEY:
+      case ANIMTYPE_GPDATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+      case ANIMTYPE_MASKDATABLOCK:
+      case ANIMTYPE_NLATRACK:
+      case ANIMTYPE_NLAACTION:
+      case ANIMTYPE_PALETTE:
+      case ANIMTYPE_NUM_TYPES:
+        break;
     }
   }
 
@@ -3035,6 +3150,51 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
           ACHANNEL_SET_FLAG(nlt, selectmode, NLATRACK_SELECTED);
           break;
         }
+        case ANIMTYPE_NONE:
+        case ANIMTYPE_ANIMDATA:
+        case ANIMTYPE_SPECIALDATA__UNUSED:
+        case ANIMTYPE_SUMMARY:
+        case ANIMTYPE_SCENE:
+        case ANIMTYPE_OBJECT:
+        case ANIMTYPE_FCURVE:
+        case ANIMTYPE_NLACONTROLS:
+        case ANIMTYPE_NLACURVE:
+        case ANIMTYPE_FILLACT_LAYERED:
+        case ANIMTYPE_FILLACTD:
+        case ANIMTYPE_FILLDRIVERS:
+        case ANIMTYPE_DSMAT:
+        case ANIMTYPE_DSLAM:
+        case ANIMTYPE_DSCAM:
+        case ANIMTYPE_DSCACHEFILE:
+        case ANIMTYPE_DSCUR:
+        case ANIMTYPE_DSSKEY:
+        case ANIMTYPE_DSWOR:
+        case ANIMTYPE_DSNTREE:
+        case ANIMTYPE_DSPART:
+        case ANIMTYPE_DSMBALL:
+        case ANIMTYPE_DSARM:
+        case ANIMTYPE_DSMESH:
+        case ANIMTYPE_DSTEX:
+        case ANIMTYPE_DSLAT:
+        case ANIMTYPE_DSLINESTYLE:
+        case ANIMTYPE_DSSPK:
+        case ANIMTYPE_DSGPENCIL:
+        case ANIMTYPE_DSMCLIP:
+        case ANIMTYPE_DSHAIR:
+        case ANIMTYPE_DSPOINTCLOUD:
+        case ANIMTYPE_DSVOLUME:
+        case ANIMTYPE_SHAPEKEY:
+        case ANIMTYPE_GPDATABLOCK:
+        case ANIMTYPE_GPLAYER:
+        case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+        case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+        case ANIMTYPE_GREASE_PENCIL_LAYER:
+        case ANIMTYPE_MASKDATABLOCK:
+        case ANIMTYPE_MASKLAYER:
+        case ANIMTYPE_NLAACTION:
+        case ANIMTYPE_PALETTE:
+        case ANIMTYPE_NUM_TYPES:
+          break;
       }
     }
 

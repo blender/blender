@@ -35,6 +35,8 @@ class Context {
   StateManager *state_manager = nullptr;
   Immediate *imm = nullptr;
 
+  ShaderCompiler *compiler = nullptr;
+
   /**
    * All 4 window frame-buffers.
    * None of them are valid in an off-screen context.

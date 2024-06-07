@@ -70,19 +70,20 @@ bool device_hip_init()
 #endif /* WITH_HIP_DYNLOAD */
 }
 
-Device *device_hip_create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
+Device *device_hip_create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
 {
 #ifdef WITH_HIPRT
   if (info.use_hardware_raytracing)
-    return new HIPRTDevice(info, stats, profiler);
+    return new HIPRTDevice(info, stats, profiler, headless);
   else
-    return new HIPDevice(info, stats, profiler);
+    return new HIPDevice(info, stats, profiler, headless);
 #elif defined(WITH_HIP)
-  return new HIPDevice(info, stats, profiler);
+  return new HIPDevice(info, stats, profiler, headless);
 #else
   (void)info;
   (void)stats;
   (void)profiler;
+  (void)headless;
 
   LOG(FATAL) << "Request to create HIP device without compiled-in support. Should never happen.";
 

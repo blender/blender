@@ -101,11 +101,6 @@ std::optional<std::string> BKE_appdir_resource_path_id_with_version(int folder_i
 std::optional<std::string> BKE_appdir_resource_path_id(int folder_id, bool check_is_dir);
 
 /**
- * Check if this is an install with user files kept together
- * with the Blender executable and its installation files.
- */
-bool BKE_appdir_app_is_portable_install();
-/**
  * Return true if templates exist
  */
 bool BKE_appdir_app_template_any();
@@ -159,7 +154,11 @@ const char *BKE_tempdir_session() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
  */
 void BKE_tempdir_session_purge();
 
-/* folder_id */
+/**
+ * The `folder_id` for #BKE_appdir_folder_id and related functions.
+ *
+ * Run-time only so existing values may change.
+ */
 enum {
   /* general, will find based on user/local/system priority */
   BLENDER_DATAFILES = 2,
@@ -173,7 +172,8 @@ enum {
   /* system */
   BLENDER_SYSTEM_DATAFILES = 52,
   BLENDER_SYSTEM_SCRIPTS = 53,
-  BLENDER_SYSTEM_PYTHON = 54,
+  BLENDER_SYSTEM_EXTENSIONS = 54,
+  BLENDER_SYSTEM_PYTHON = 55,
 };
 
 /** For #BKE_appdir_folder_id_version only. */

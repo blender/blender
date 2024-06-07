@@ -149,6 +149,7 @@ class Drawing : public ::GreasePencilDrawing {
   bool is_instanced() const;
   bool has_users() const;
 };
+static_assert(sizeof(Drawing) == sizeof(::GreasePencilDrawing));
 
 class DrawingReference : public ::GreasePencilDrawingReference {
  public:
@@ -156,6 +157,7 @@ class DrawingReference : public ::GreasePencilDrawingReference {
   DrawingReference(const DrawingReference &other);
   ~DrawingReference();
 };
+static_assert(sizeof(DrawingReference) == sizeof(::GreasePencilDrawingReference));
 
 /**
  * Copies the drawings from one array to another. Assumes that \a dst_drawings is allocated but not
@@ -294,6 +296,7 @@ class TreeNode : public ::GreasePencilLayerTreeNode {
    */
   int64_t depth() const;
 };
+static_assert(sizeof(TreeNode) == sizeof(::GreasePencilLayerTreeNode));
 
 /**
  * A layer mask stores a reference to a layer that will mask other layers.
@@ -305,6 +308,7 @@ class LayerMask : public ::GreasePencilLayerMask {
   LayerMask(const LayerMask &other);
   ~LayerMask();
 };
+static_assert(sizeof(LayerMask) == sizeof(::GreasePencilLayerMask));
 
 /**
  * Structure used to transform frames in a grease pencil layer.
@@ -576,6 +580,7 @@ class Layer : public ::GreasePencilLayer {
    */
   float4x4 parent_to_world(const Object &parent) const;
 };
+static_assert(sizeof(Layer) == sizeof(::GreasePencilLayer));
 
 class LayerGroupRuntime {
  public:
@@ -710,6 +715,7 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   void ensure_nodes_cache() const;
   void tag_nodes_cache_dirty() const;
 };
+static_assert(sizeof(LayerGroup) == sizeof(::GreasePencilLayerTreeGroup));
 
 inline void Drawing::add_user() const
 {

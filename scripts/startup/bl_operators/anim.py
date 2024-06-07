@@ -115,7 +115,7 @@ class ANIM_OT_keying_set_export(Operator):
                 if not found:
                     self.report(
                         {'WARN'},
-                        rpt_("Could not find material or light using Shader Node Tree - {:s}").format(str(ksp.id))
+                        rpt_("Could not find material or light using Shader Node Tree - {:s}").format(str(ksp.id)),
                     )
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
                 # Find compositor node-tree using this node tree.
@@ -126,7 +126,7 @@ class ANIM_OT_keying_set_export(Operator):
                 else:
                     self.report(
                         {'WARN'},
-                        rpt_("Could not find scene using Compositor Node Tree - {:s}").format(str(ksp.id))
+                        rpt_("Could not find scene using Compositor Node Tree - {:s}").format(str(ksp.id)),
                     )
             elif ksp.id.bl_rna.name == "Key":
                 # "keys" conflicts with a Python keyword, hence the simple solution won't work
@@ -262,7 +262,7 @@ class NLA_OT_bake(Operator):
             ('ROTATION', "Rotation", "Bake rotation channels"),
             ('SCALE', "Scale", "Bake scale channels"),
             ('BBONE', "B-Bone", "Bake B-Bone channels"),
-            ('PROPS', "Custom Properties", "Bake custom properties")
+            ('PROPS', "Custom Properties", "Bake custom properties"),
         ),
         default={'LOCATION', 'ROTATION', 'SCALE', 'BBONE', 'PROPS'},
     )
@@ -282,7 +282,7 @@ class NLA_OT_bake(Operator):
             do_rotation='ROTATION' in self.channel_types,
             do_scale='SCALE' in self.channel_types,
             do_bbone='BBONE' in self.channel_types,
-            do_custom_props='PROPS' in self.channel_types
+            do_custom_props='PROPS' in self.channel_types,
         )
 
         if bake_options.do_pose and self.only_selected:
@@ -308,7 +308,7 @@ class NLA_OT_bake(Operator):
         actions = anim_utils.bake_action_objects(
             object_action_pairs,
             frames=range(self.frame_start, self.frame_end + 1, self.step),
-            bake_options=bake_options
+            bake_options=bake_options,
         )
 
         if not any(actions):

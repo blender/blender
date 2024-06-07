@@ -63,8 +63,8 @@ namespace blender::seq {
  * Results of the query for this strip will be cached into #MediaPresence cache. The cache
  * will be created on demand.
  *
- * \param scene Scene to query.
- * \param seq Sequencer strip.
+ * \param scene: Scene to query.
+ * \param seq: Sequencer strip.
  * \return True if media file is missing.
  */
 bool media_presence_is_missing(Scene *scene, const Sequence *seq);

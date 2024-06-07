@@ -1244,7 +1244,7 @@ std::optional<std::string> WM_keymap_item_raw_to_string(const short shift,
     result_array.append(WM_key_event_string(type, compact));
   }
 
-  if (result_array.last() == space) {
+  if (!result_array.is_empty() && (result_array.last() == space)) {
     result_array.remove_last();
   }
 

@@ -65,6 +65,11 @@ void Instance::init(const int2 &output_res,
 
   info = "";
 
+  shaders_are_ready_ = shaders.is_ready(is_image_render());
+  if (!shaders_are_ready_) {
+    return;
+  }
+
   if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
     sampling.reset();
   }
@@ -90,6 +95,7 @@ void Instance::init(const int2 &output_res,
   sampling.init(scene);
   camera.init();
   film.init(output_res, output_rect);
+  render_buffers.init();
   ambient_occlusion.init();
   velocity.init();
   raytracing.init();
@@ -121,6 +127,8 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   debug_mode = (eDebugMode)G.debug_value;
   info = "";
 
+  shaders.is_ready(true);
+
   update_eval_members();
 
   sampling.init(scene);
@@ -128,6 +136,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   /* Film isn't used but init to avoid side effects in other module. */
   rcti empty_rect{0, 0, 0, 0};
   film.init(int2(1), &empty_rect);
+  render_buffers.init();
   velocity.init();
   depth_of_field.init();
   shadows.init();
@@ -175,6 +184,10 @@ void Instance::view_update()
 
 void Instance::begin_sync()
 {
+  if (!shaders_are_ready_) {
+    return;
+  }
+
   /* Needs to be first for sun light parameters. */
   world.sync();
 
@@ -196,7 +209,6 @@ void Instance::begin_sync()
   hiz_buffer.sync();
   main_view.sync();
   film.sync();
-  render_buffers.sync();
   ambient_occlusion.sync();
   volume_probes.sync();
   lookdev.sync();
@@ -218,6 +230,10 @@ void Instance::begin_sync()
 
 void Instance::object_sync(Object *ob)
 {
+  if (!shaders_are_ready_) {
+    return;
+  }
+
   const bool is_renderable_type = ELEM(ob->type,
                                        OB_CURVES,
                                        OB_GPENCIL_LEGACY,
@@ -303,6 +319,10 @@ void Instance::object_sync_render(void *instance_,
 
 void Instance::end_sync()
 {
+  if (!shaders_are_ready_) {
+    return;
+  }
+
   velocity.end_sync();
   volume.end_sync();  /* Needs to be before shadows. */
   shadows.end_sync(); /* Needs to be before lights. */
@@ -352,26 +372,24 @@ void Instance::render_sync()
   DRW_curves_update();
 }
 
+bool Instance::needs_lightprobe_sphere_passes() const
+{
+  return sphere_probes.update_probes_this_sample_;
+}
+
 bool Instance::do_lightprobe_sphere_sync() const
 {
-  if (!sphere_probes.update_probes_this_sample_) {
-    return false;
-  }
-  if (materials.queued_shaders_count > 0) {
-    return false;
-  }
-  return true;
+  return (materials.queued_shaders_count == 0) && needs_lightprobe_sphere_passes();
+}
+
+bool Instance::needs_planar_probe_passes() const
+{
+  return planar_probes.update_probes_;
 }
 
 bool Instance::do_planar_probe_sync() const
 {
-  if (!planar_probes.update_probes_) {
-    return false;
-  }
-  if (materials.queued_shaders_count > 0) {
-    return false;
-  }
-  return true;
+  return (materials.queued_shaders_count == 0) && needs_planar_probe_passes();
 }
 
 /** \} */
@@ -515,6 +533,14 @@ void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
 
 void Instance::draw_viewport()
 {
+  if (!shaders_are_ready_) {
+    DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+    GPU_framebuffer_clear_color_depth(dfbl->default_fb, float4(0.0f), 1.0f);
+    info += "Compiling EEVEE Engine Shaders\n";
+    DRW_viewport_request_redraw();
+    return;
+  }
+
   render_sample();
   velocity.step_swap();
 
@@ -529,6 +555,7 @@ void Instance::draw_viewport()
     std::stringstream ss;
     ss << "Compiling Shaders (" << materials.queued_shaders_count << " remaining)";
     info = ss.str();
+    DRW_viewport_request_redraw();
   }
   else if (materials.queued_optimize_shaders_count > 0) {
     std::stringstream ss;

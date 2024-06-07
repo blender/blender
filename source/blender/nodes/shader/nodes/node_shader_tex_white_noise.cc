@@ -20,10 +20,14 @@ static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
   b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field(
       implicit_field_inputs::position);
-  b.add_input<decl::Float>("W").min(-10000.0f).max(10000.0f).make_available([](bNode &node) {
-    /* Default to 1 instead of 4, because it is faster. */
-    node.custom1 = 1;
-  });
+  b.add_input<decl::Float>("W")
+      .min(-10000.0f)
+      .max(10000.0f)
+      .make_available([](bNode &node) {
+        /* Default to 1 instead of 4, because it is faster. */
+        node.custom1 = 1;
+      })
+      .description("Value used as seed in 1D and 4D dimensions");
   b.add_output<decl::Float>("Value");
   b.add_output<decl::Color>("Color");
 }

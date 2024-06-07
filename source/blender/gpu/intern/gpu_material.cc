@@ -143,6 +143,8 @@ struct GPUMaterial {
 
   uint32_t refcount;
 
+  bool do_batch_compilation;
+
 #ifndef NDEBUG
   char name[64];
 #else
@@ -951,21 +953,8 @@ void GPU_material_release(GPUMaterial *mat)
   GPU_material_free_single(mat);
 }
 
-void GPU_material_compile(GPUMaterial *mat)
+static void gpu_material_finalize(GPUMaterial *mat, bool success)
 {
-  bool success;
-
-  BLI_assert(ELEM(mat->status, GPU_MAT_QUEUED, GPU_MAT_CREATED));
-  BLI_assert(mat->pass);
-
-/* NOTE: The shader may have already been compiled here since we are
- * sharing GPUShader across GPUMaterials. In this case it's a no-op. */
-#ifndef NDEBUG
-  success = GPU_pass_compile(mat->pass, mat->name);
-#else
-  success = GPU_pass_compile(mat->pass, __func__);
-#endif
-
   mat->flag |= GPU_MATFLAG_UPDATED;
 
   if (success) {
@@ -1014,6 +1003,64 @@ void GPU_material_compile(GPUMaterial *mat)
     GPU_pass_release(mat->pass);
     mat->pass = nullptr;
     gpu_node_graph_free(&mat->graph);
+  }
+}
+
+void GPU_material_compile(GPUMaterial *mat)
+{
+  bool success;
+  BLI_assert(ELEM(mat->status, GPU_MAT_QUEUED, GPU_MAT_CREATED));
+  BLI_assert(mat->pass);
+
+/* NOTE: The shader may have already been compiled here since we are
+ * sharing GPUShader across GPUMaterials. In this case it's a no-op. */
+#ifndef NDEBUG
+  success = GPU_pass_compile(mat->pass, mat->name);
+#else
+  success = GPU_pass_compile(mat->pass, __func__);
+#endif
+
+  gpu_material_finalize(mat, success);
+}
+
+BatchHandle GPU_material_batch_compile(blender::Span<GPUMaterial *> mats)
+{
+  blender::Vector<GPUShaderCreateInfo *> infos;
+  infos.reserve(mats.size());
+
+  for (GPUMaterial *mat : mats) {
+    BLI_assert(ELEM(mat->status, GPU_MAT_QUEUED, GPU_MAT_CREATED));
+    BLI_assert(mat->pass);
+#ifndef NDEBUG
+    const char *name = mat->name;
+#else
+    const char *name = __func__;
+#endif
+    mat->do_batch_compilation = false;
+    if (GPUShaderCreateInfo *info = GPU_pass_begin_compilation(mat->pass, name)) {
+      infos.append(info);
+      mat->do_batch_compilation = true;
+    }
+  }
+
+  return GPU_shader_batch_create_from_infos(infos);
+}
+
+bool GPU_material_batch_is_ready(BatchHandle handle)
+{
+  return GPU_shader_batch_is_ready(handle);
+}
+
+void GPU_material_batch_finalize(BatchHandle &handle, blender::Span<GPUMaterial *> mats)
+{
+  blender::Vector<GPUShader *> shaders = GPU_shader_batch_finalize(handle);
+  int i = 0;
+  for (GPUMaterial *mat : mats) {
+    bool success = true;
+    if (mat->do_batch_compilation) {
+      success = GPU_pass_finalize_compilation(mat->pass, shaders[i++]);
+    }
+    gpu_material_finalize(mat, success);
   }
 }
 

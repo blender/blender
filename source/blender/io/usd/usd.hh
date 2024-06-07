@@ -111,6 +111,7 @@ struct USDExportParams {
   bool use_instancing = false;
   enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
   bool generate_preview_surface = true;
+  bool generate_materialx_network = true;
   bool export_textures = true;
   bool overwrite_textures = true;
   bool relative_paths = true;

@@ -443,7 +443,7 @@ class AddPresetTextEditor(AddPresetBase, Operator):
 
     preset_values = [
         "filepaths.text_editor",
-        "filepaths.text_editor_args"
+        "filepaths.text_editor_args",
     ]
 
     preset_subdir = "text_editor"
@@ -539,7 +539,7 @@ class AddPresetEEVEERaytracing(AddPresetBase, Operator):
 
     preset_defines = [
         "eevee = bpy.context.scene.eevee",
-        "options = eevee.ray_tracing_options"
+        "options = eevee.ray_tracing_options",
     ]
 
     preset_values = [
@@ -865,7 +865,7 @@ class WM_OT_operator_presets_cleanup(Operator):
                 "filepath",
                 "directory",
                 "files",
-                "filename"
+                "filename",
             ]
 
         self._cleanup_operators_presets(operators, properties_exclude)

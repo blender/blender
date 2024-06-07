@@ -267,6 +267,8 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
 
   /* Initialize samplers. */
   this->sampler_state_cache_init();
+
+  compiler = new ShaderCompilerGeneric();
 }
 
 MTLContext::~MTLContext()
@@ -369,6 +371,8 @@ MTLContext::~MTLContext()
   if (this->device) {
     [this->device release];
   }
+
+  delete compiler;
 }
 
 void MTLContext::begin_frame()
@@ -674,9 +678,9 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
           GPU_vertformat_attr_add(
               &dummy_vertformat_[sampler_format], "dummy", comp_type, 4, fetch_mode);
           dummy_verts_[sampler_format] = GPU_vertbuf_create_with_format_ex(
-              &dummy_vertformat_[sampler_format],
+              dummy_vertformat_[sampler_format],
               GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-          GPU_vertbuf_data_alloc(dummy_verts_[sampler_format], 64);
+          GPU_vertbuf_data_alloc(*dummy_verts_[sampler_format], 64);
         }
         tex = GPU_texture_create_from_vertbuf("Dummy TextureBuffer", dummy_verts_[sampler_format]);
         break;

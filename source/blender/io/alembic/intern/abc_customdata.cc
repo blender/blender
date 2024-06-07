@@ -522,8 +522,9 @@ void read_velocity(const V3fArraySamplePtr &velocities,
     return;
   }
 
-  CustomDataLayer *velocity_layer = BKE_id_attribute_new(
-      &config.mesh->id, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point, nullptr);
+  AttributeOwner owner = AttributeOwner::from_id(&config.mesh->id);
+  CustomDataLayer *velocity_layer = BKE_attribute_new(
+      owner, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point, nullptr);
   float(*velocity)[3] = (float(*)[3])velocity_layer->data;
 
   for (int i = 0; i < num_velocity_vectors; i++) {

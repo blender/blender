@@ -775,7 +775,7 @@ void BlenderDisplayDriver::draw(const Params &params)
   const int position_attribute = GPU_vertformat_attr_add(
       format, display_shader_->position_attribute_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  /* Note: Shader is bound again through IMM to register this shader with the IMM module
+  /* NOTE: Shader is bound again through IMM to register this shader with the IMM module
    * and perform required setup for IMM rendering. This is required as the IMM module
    * needs to be aware of which shader is bound, and the main display shader
    * is bound externally. */

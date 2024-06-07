@@ -40,21 +40,10 @@ struct Cache;
 
 /**
  * Note on the various positions arrays:
- * - positions_sculpt: The positions affected by brush strokes (maybe indirectly). Owned by the
- *   PBVH or mesh.
- * - positions_mesh: Positions owned by the original mesh. Not the same as `positions_sculpt` if
+ * - positions_orig: Positions owned by the original mesh. Not the same as `positions_eval` if
  *   there are deform modifiers.
  * - positions_eval: Positions after procedural deformation, used to build the PBVH. Translations
- *   are built for these values, then applied to `positions_sculpt`.
- *
- * Only two of these arrays are actually necessary. The third comes from the fact that the PBVH
- * currently stores its own copy of positions when there are deformations. If that was removed, the
- * situation would be clearer.
- *
- * \todo Get rid of one of the arrays mentioned above to avoid the situation with evaluated
- * positions, original positions, and then a third copy that's just there because of historical
- * reasons. This would involve removing access to positions and normals from the PBVH structure,
- * which should only be concerned with splitting geometry into spacially contiguous chunks.
+ *   are built for these values, then applied to `positions_orig`.
  */
 
 /**
@@ -105,13 +94,8 @@ namespace auto_mask {
 
 /**
  * Calculate all auto-masking influence on each vertex.
- *
- * \todo Remove call to `undo::push_node` deep inside this function so the `object` argument can be
- * const. That may (hopefully) require pulling out the undo node push into the code for each brush.
- * That should help clarify the code path for brushes, and various optimizations will depend on
- * brush implementations doing their own undo pushes.
  */
-void calc_vert_factors(Object &object,
+void calc_vert_factors(const Object &object,
                        const Cache &cache,
                        const PBVHNode &node,
                        Span<int> verts,
@@ -148,20 +132,20 @@ void clip_and_lock_translations(const Sculpt &sd,
                                 MutableSpan<float3> translations);
 
 /**
- * Retrieve the final mutable positions array to be modified.
- *
- * \note See the comment at the top of this file for context.
- */
-MutableSpan<float3> mesh_brush_positions_for_write(SculptSession &ss, Mesh &mesh);
-
-/**
  * Applying final positions to shape keys is non-trivial because the mesh positions and the active
  * shape key positions must be kept in sync, and shape keys dependent on the active key must also
  * be modified.
  */
-void flush_positions_to_shape_keys(Object &object,
-                                   Span<int> verts,
-                                   Span<float3> positions,
-                                   MutableSpan<float3> positions_mesh);
+void apply_translations_to_shape_keys(Object &object,
+                                      Span<int> verts,
+                                      Span<float3> translations,
+                                      MutableSpan<float3> positions_mesh);
+
+/**
+ * Currently the PBVH owns its own copy of deformed positions that needs to be updated to stay in
+ * sync with brush deformations.
+ * \todo This should be removed one the PBVH no longer stores this copy of deformed positions.
+ */
+void apply_translations_to_pbvh(PBVH &pbvh, Span<int> verts, Span<float3> positions_orig);
 
 }  // namespace blender::ed::sculpt_paint

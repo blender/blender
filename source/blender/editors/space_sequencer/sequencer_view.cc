@@ -358,8 +358,7 @@ static void seq_view_collection_rect_timeline(const bContext *C,
 
     if (orig_height > timeline_ymax - timeline_ymin) {
       /* Do nothing, we can't align the viewport any better if we
-       * are zoomed out futher than the current timeline bounds.
-       */
+       * are zoomed out further than the current timeline bounds. */
       return;
     }
 

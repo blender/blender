@@ -1766,7 +1766,8 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
 
     CustomData_free_layer_named(&mesh->corner_data, uv_names[i], mesh->corners_num);
 
-    const std::string new_name = BKE_id_attribute_calc_unique_name(mesh->id, uv_names[i].c_str());
+    AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+    const std::string new_name = BKE_attribute_calc_unique_name(owner, uv_names[i].c_str());
     uv_names[i] = new_name;
 
     CustomData_add_layer_named_with_data(

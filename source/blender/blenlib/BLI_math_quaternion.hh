@@ -630,8 +630,11 @@ AxisAngleBase<T, AngleT> to_axis_angle(const QuaternionBase<T> &quat)
   T sin_half_angle = math::length(axis);
   /* Prevent division by zero for axis conversion. */
   if (sin_half_angle < T(0.0005)) {
-    sin_half_angle = T(1);
-    axis[1] = T(1);
+    using AngleAxisT = typename AxisAngleBase<T, AngleT>::vec3_type;
+    const AngleAxisT identity_axis = AxisAngleBase<T, AngleT>::identity().axis();
+    BLI_assert(abs(cos_half_angle) > 0.0005);
+    AxisAngleBase<T, AngleT> identity(identity_axis * sign(cos_half_angle), AngleT(0));
+    return identity;
   }
   /* Normalize the axis. */
   axis /= sin_half_angle;

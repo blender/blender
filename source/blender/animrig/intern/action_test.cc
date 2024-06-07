@@ -168,6 +168,16 @@ TEST_F(ActionLayersTest, remove_strip)
   }
 }
 
+TEST_F(ActionLayersTest, add_remove_strip_of_concrete_type)
+{
+  Layer &layer = anim->layer_add("Test Læür");
+  KeyframeStrip &key_strip = layer.strip_add<KeyframeStrip>();
+
+  /* key_strip is of type KeyframeStrip, but should be implicitly converted to a
+   * Strip reference. */
+  EXPECT_TRUE(layer.strip_remove(key_strip));
+}
+
 TEST_F(ActionLayersTest, add_binding)
 {
   { /* Creating an 'unused' Binding should just be called 'Binding'. */

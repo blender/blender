@@ -746,6 +746,8 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Memory & Limits"
 
     def draw_centered(self, context, layout):
+        import sys
+
         prefs = context.preferences
         system = prefs.system
         edit = prefs.edit
@@ -771,6 +773,11 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
         col = layout.column()
         col.prop(system, "vbo_time_out", text="VBO Time Out")
         col.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
+
+        if sys.platform != "darwin":
+            layout.separator()
+            col = layout.column()
+            col.prop(system, "max_shader_compilation_subprocesses")
 
 
 class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
@@ -1635,7 +1642,7 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         row.template_list(
             "USERPREF_UL_asset_libraries", "user_asset_libraries",
             paths, "asset_libraries",
-            paths, "active_asset_library"
+            paths, "active_asset_library",
         )
 
         col = row.column(align=True)
@@ -2115,6 +2122,15 @@ class USERPREF_PT_keymap(KeymapPanel, Panel):
 # -----------------------------------------------------------------------------
 # Extension Panels
 
+
+class USERPREF_MT_extensions_active_repo(Menu):
+    bl_label = "Active Repository"
+
+    def draw(self, _context):
+        # Add-ons may extend.
+        pass
+
+
 class USERPREF_PT_extensions_repos(Panel):
     bl_label = "Repositories"
     bl_options = {'HIDE_HEADER'}
@@ -2138,7 +2154,7 @@ class USERPREF_PT_extensions_repos(Panel):
         row.template_list(
             "USERPREF_UL_extension_repos", "user_extension_repos",
             extensions, "repos",
-            extensions, "active_repo"
+            extensions, "active_repo",
         )
 
         col = row.column(align=True)
@@ -2147,8 +2163,8 @@ class USERPREF_PT_extensions_repos(Panel):
         props.index = active_repo_index
 
         col.separator()
-        col.operator("preferences.extension_repo_sync", text="", icon='FILE_REFRESH')
-        col.operator("preferences.extension_repo_upgrade", text="", icon='IMPORT')
+
+        col.menu_contents("USERPREF_MT_extensions_active_repo")
 
         try:
             active_repo = None if active_repo_index < 0 else extensions.repos[active_repo_index]
@@ -2185,14 +2201,15 @@ class USERPREF_PT_extensions_repos(Panel):
 
         if layout_panel:
             layout_panel.use_property_split = True
+            use_custom_directory = active_repo.use_custom_directory
 
             col = layout_panel.column(align=False, heading="Custom Directory")
             row = col.row(align=True)
             sub = row.row(align=True)
             sub.prop(active_repo, "use_custom_directory", text="")
             sub = sub.row(align=True)
-            sub.active = active_repo.use_custom_directory
-            if active_repo.use_custom_directory:
+            sub.active = use_custom_directory
+            if use_custom_directory:
                 if active_repo.custom_directory == "":
                     sub.alert = True
                 sub.prop(active_repo, "custom_directory", text="")
@@ -2202,6 +2219,10 @@ class USERPREF_PT_extensions_repos(Panel):
                 # prefer a read-only property over a label because this is not necessarily
                 # valid UTF-8 which will raise a Python exception when passed in as text.
                 sub.prop(active_repo, "directory", text="")
+
+            row = layout_panel.row()
+            row.active = not use_custom_directory
+            row.prop(active_repo, "source")
 
             if active_repo.use_remote_url:
                 row = layout_panel.row(align=True, heading="Authentication")
@@ -2910,6 +2931,7 @@ classes = (
 
     USERPREF_PT_addons,
 
+    USERPREF_MT_extensions_active_repo,
     USERPREF_PT_extensions_repos,
 
     USERPREF_PT_studiolight_lights,

@@ -482,7 +482,15 @@ using namespace blender::realtime_compositor;
 
 class FileOutputOperation : public NodeOperation {
  public:
-  using NodeOperation::NodeOperation;
+  FileOutputOperation(Context &context, DNode node) : NodeOperation(context, node)
+  {
+    for (const bNodeSocket *input : node->input_sockets()) {
+      InputDescriptor &descriptor = this->get_input_descriptor(input->identifier);
+      /* Inputs for multi-layer files need to be the same size, while they can be different for
+       * individual file outputs. */
+      descriptor.realization_options.realize_on_operation_domain = this->is_multi_layer();
+    }
+  }
 
   void execute() override
   {
@@ -500,7 +508,6 @@ class FileOutputOperation : public NodeOperation {
 
   void execute_single_layer()
   {
-    const int2 size = compute_domain().size;
     for (const bNodeSocket *input : this->node()->input_sockets()) {
       const Result &result = get_input(input->identifier);
       /* We only write images, not single values. */
@@ -528,6 +535,7 @@ class FileOutputOperation : public NodeOperation {
       char image_path[FILE_MAX];
       get_single_layer_image_path(base_path, format, image_path);
 
+      const int2 size = result.domain().size;
       FileOutput &file_output = context().render_context()->get_file_output(
           image_path, format, size, socket.save_as_render);
 
@@ -551,9 +559,9 @@ class FileOutputOperation : public NodeOperation {
     const char *path_view = has_views ? "" : context().get_view_name().data();
     get_multi_layer_exr_image_path(base_path, path_view, image_path);
 
-    const int2 size = compute_domain().size;
+    const int2 size = result.domain().size;
     FileOutput &file_output = context().render_context()->get_file_output(
-        image_path, format, size, false);
+        image_path, format, size, true);
 
     /* The EXR stores all views in the same file, so we add the actual render view. Otherwise, we
      * add a default unnamed view. */
@@ -580,7 +588,7 @@ class FileOutputOperation : public NodeOperation {
     const int2 size = compute_domain().size;
     const ImageFormatData format = node_storage(bnode()).format;
     FileOutput &file_output = context().render_context()->get_file_output(
-        image_path, format, size, false);
+        image_path, format, size, true);
 
     /* If we are saving views in separate files, we needn't store the view in the channel names, so
      * we add an unnamed view. */

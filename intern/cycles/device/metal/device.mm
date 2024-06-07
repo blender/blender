@@ -18,9 +18,12 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef WITH_METAL
 
-Device *device_metal_create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
+Device *device_metal_create(const DeviceInfo &info,
+                            Stats &stats,
+                            Profiler &profiler,
+                            bool headless)
 {
-  return new MetalDevice(info, stats, profiler);
+  return new MetalDevice(info, stats, profiler, headless);
 }
 
 bool device_metal_init()

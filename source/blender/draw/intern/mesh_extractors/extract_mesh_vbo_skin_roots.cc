@@ -39,9 +39,9 @@ void extract_skin_roots(const MeshRenderData &mr, gpu::VertBuf &vbo)
     }
   }
 
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, skin_roots.size());
-  MutableSpan vbo_data(static_cast<SkinRootData *>(GPU_vertbuf_get_data(&vbo)), skin_roots.size());
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, skin_roots.size());
+  MutableSpan vbo_data(static_cast<SkinRootData *>(GPU_vertbuf_get_data(vbo)), skin_roots.size());
   vbo_data.copy_from(skin_roots);
 }
 

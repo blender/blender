@@ -211,7 +211,7 @@ static int pygpu_vertbuf_fill(blender::gpu::VertBuf *buf,
     return 0;
   }
 
-  if (GPU_vertbuf_get_data(buf) == nullptr) {
+  if (GPU_vertbuf_get_data(*buf) == nullptr) {
     PyErr_SetString(PyExc_ValueError, "Can't fill, static buffer already in use");
     return 0;
   }
@@ -251,10 +251,10 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject * /*type*/, PyObject *args, 
     return nullptr;
   }
 
-  const GPUVertFormat *fmt = &((BPyGPUVertFormat *)params.py_fmt)->fmt;
+  const GPUVertFormat &fmt = ((BPyGPUVertFormat *)params.py_fmt)->fmt;
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(fmt);
 
-  GPU_vertbuf_data_alloc(vbo, params.len);
+  GPU_vertbuf_data_alloc(*vbo, params.len);
 
   return BPyGPUVertBuf_CreatePyObject(vbo);
 }

@@ -22,6 +22,7 @@ from bpy.types import (
 
 from bl_ui.space_userpref import (
     USERPREF_PT_addons,
+    USERPREF_MT_extensions_active_repo,
 )
 
 from . import repo_status_text
@@ -187,9 +188,9 @@ def extensions_panel_draw_legacy_addons(
         sub.active = is_enabled
 
         if module_parent_dirname(mod.__file__) == "addons_core":
-            sub.label(text="Core: " + bl_info["name"])
+            sub.label(text="Core: " + bl_info["name"], translate=False)
         else:
-            sub.label(text="Legacy: " + bl_info["name"])
+            sub.label(text="Legacy: " + bl_info["name"], translate=False)
 
         if bl_info["warning"]:
             sub.label(icon='ERROR')
@@ -386,6 +387,106 @@ def extensions_panel_draw_online_extensions_request_impl(
     row.operator("extensions.userpref_allow_online", text="Allow Online Access", icon='CHECKMARK')
 
 
+# NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
+def extensions_map_from_legacy_addons_ensure():
+    import os
+    global extensions_map_from_legacy_addons
+    global extensions_map_from_legacy_addons_url
+    if extensions_map_from_legacy_addons is not None:
+        return
+
+    filepath = os.path.join(os.path.dirname(__file__), "extensions_map_from_legacy_addons.py")
+    with open(filepath, "rb") as fh:
+        data = eval(compile(fh.read(), filepath, "eval"), {})
+    extensions_map_from_legacy_addons = data["extensions"]
+    extensions_map_from_legacy_addons_url = data["remote_url"]
+
+
+def extensions_map_from_legacy_addons_reverse_lookup(pkg_id):
+    # Return the old name from the package ID.
+    extensions_map_from_legacy_addons_ensure()
+    for key_addon_module_name, (value_pkg_id, _) in extensions_map_from_legacy_addons.items():
+        if pkg_id == value_pkg_id:
+            return key_addon_module_name
+    return ""
+
+
+extensions_map_from_legacy_addons = None
+extensions_map_from_legacy_addons_url = None
+
+
+# NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
+def extensions_panel_draw_missing_with_extension_impl(
+        *,
+        context,
+        layout,
+        missing_modules,
+):
+    layout_header, layout_panel = layout.panel("builtin_addons", default_closed=True)
+    layout_header.label(text="Missing Built-in Add-ons", icon='ERROR')
+
+    if layout_panel is None:
+        return
+
+    prefs = context.preferences
+    extensions_map_from_legacy_addons_ensure()
+
+    repo_index = -1
+    repo = None
+    for repo_test_index, repo_test in enumerate(prefs.extensions.repos):
+        if (
+                repo_test.use_remote_url and
+                (repo_test.remote_url.rstrip("/") == extensions_map_from_legacy_addons_url)
+        ):
+            repo_index = repo_test_index
+            repo = repo_test
+            break
+
+    box = layout_panel.box()
+    box.label(text="Add-ons previously shipped with Blender are now available from extensions.blender.org.")
+    can_install = True
+
+    if repo is None:
+        # Most likely the user manually removed this.
+        box.label(text="Blender's extension repository not found!", icon='ERROR')
+    elif not repo.enabled:
+        box.label(text="Blender's extension repository must be enabled to install extensions!", icon='ERROR')
+        repo_index = -1
+    del repo
+
+    for addon_module_name in sorted(missing_modules):
+        # The `addon_pkg_id` may be an empty string, this signifies that it's not mapped to an extension.
+        # The only reason to include it at all to avoid confusion because this *was* a previously built-in
+        # add-on and this panel is titled "Built-in Add-ons".
+        addon_pkg_id, addon_name = extensions_map_from_legacy_addons[addon_module_name]
+
+        boxsub = box.column().box()
+        colsub = boxsub.column()
+        row = colsub.row()
+
+        row_left = row.row()
+        row_left.alignment = 'LEFT'
+
+        row_left.label(text=addon_name, translate=False)
+
+        row_right = row.row()
+        row_right.alignment = 'RIGHT'
+
+        if repo_index != -1 and addon_pkg_id:
+            # NOTE: it's possible this extension is already installed.
+            # the user could have installed it manually, then opened this popup.
+            # This is enough of a corner case that it's not especially worth detecting
+            # and communicating this particular state of affairs to the user.
+            # Worst case, they install and it will re-install an already installed extension.
+            props = row_right.operator("extensions.package_install", text="Install")
+            props.repo_index = repo_index
+            props.pkg_id = addon_pkg_id
+            props.do_legacy_replace = True
+            del props
+
+        row_right.operator("preferences.addon_disable", text="", icon="X", emboss=False).module = addon_module_name
+
+
 def extensions_panel_draw_missing_impl(
         *,
         layout,
@@ -430,6 +531,9 @@ def extensions_panel_draw_impl(
     """
     import addon_utils
     import os
+    from bpy.app.translations import (
+        pgettext_iface as iface_,
+    )
     from .bl_extension_ops import (
         blender_extension_mark,
         blender_extension_show,
@@ -660,7 +764,7 @@ def extensions_panel_draw_impl(
 
             sub = row.row()
             sub.active = is_enabled
-            sub.label(text=item_remote["name"])
+            sub.label(text=item_remote["name"], translate=False)
             del sub
 
             row_right = row.row()
@@ -694,16 +798,17 @@ def extensions_panel_draw_impl(
                 col_b = split.column()
 
                 # The full tagline may be multiple lines (not yet supported by Blender's UI).
-                col_a.label(text="{:s}.".format(item_remote["tagline"]))
+                col_a.label(text="{:s}.".format(item_remote["tagline"]), translate=False)
 
                 if value := item_remote.get("website"):
                     # Use half size button, for legacy add-ons there are two, here there is one
                     # however one large button looks silly, so use a half size still.
-                    col_a.split(
-                        factor=0.5).operator(
+                    col_a.split(factor=0.5).operator(
                         "wm.url_open",
                         text=domain_extract_from_url(value),
-                        icon='URL').url = value
+                        translate=False,
+                        icon='URL',
+                    ).url = value
                 del value
 
                 # Note that we could allow removing extensions from non-remote extension repos
@@ -727,10 +832,14 @@ def extensions_panel_draw_impl(
 
                 if is_addon:
                     col_a.label(text="Permissions")
+                    # WARNING: while this is documented to be a dict, old packages may contain a list of strings.
+                    # As it happens dictionary keys & list values both iterate over string,
+                    # however we will want to show the dictionary values eventually.
                     if (value := item_remote.get("permissions")):
-                        col_b.label(text="{:s}".format(", ".join(value).title()))
+                        col_b.label(text=", ".join([iface_(x.title()) for x in value]), translate=False)
                     else:
                         col_b.label(text="No permissions specified")
+                    del value
 
                 # Remove the maintainers email while it's not private, showing prominently
                 # could cause maintainers to get direct emails instead of issue tracking systems.
@@ -739,20 +848,23 @@ def extensions_panel_draw_impl(
 
                 col_a.label(text="Version")
                 if is_outdated:
-                    col_b.label(text="{:s} ({:s} available)".format(item_local_version, item_version))
+                    col_b.label(
+                        text=iface_("{:s} ({:s} available)").format(item_local_version, item_version),
+                        translate=False,
+                    )
                 else:
-                    col_b.label(text=item_version)
+                    col_b.label(text=item_version, translate=False)
 
                 if has_remote:
                     col_a.label(text="Size")
-                    col_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
+                    col_b.label(text=size_as_fmt_string(item_remote["archive_size"]), translate=False)
 
                 col_a.label(text="License")
-                col_b.label(text=license_info_to_text(item_remote["license"]))
+                col_b.label(text=license_info_to_text(item_remote["license"]), translate=False)
 
                 if len(repos_all) > 1:
                     col_a.label(text="Repository")
-                    col_b.label(text=repos_all[repo_index].name)
+                    col_b.label(text=repos_all[repo_index].name, translate=False)
 
                 if is_installed:
                     col_a.label(text="Path")
@@ -787,6 +899,30 @@ def extensions_panel_draw_impl(
             addon_module_name for addon_module_name in used_addon_module_name_map
             if addon_module_name not in module_names
         }
+
+        # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
+        if missing_modules:
+            # Split the missing modules into two groups, ones which can be upgraded and ones that can't.
+            extensions_map_from_legacy_addons_ensure()
+
+            missing_modules_with_extension = set()
+            missing_modules_without_extension = set()
+
+            for addon_module_name in missing_modules:
+                if addon_module_name in extensions_map_from_legacy_addons:
+                    missing_modules_with_extension.add(addon_module_name)
+                else:
+                    missing_modules_without_extension.add(addon_module_name)
+            if missing_modules_with_extension:
+                extensions_panel_draw_missing_with_extension_impl(
+                    context=context,
+                    layout=layout_topmost,
+                    missing_modules=missing_modules_with_extension,
+                )
+
+            # Pretend none of these shenanigans ever occurred (to simplify removal).
+            missing_modules = missing_modules_without_extension
+        # End code-path for 4.1x migration.
 
         if missing_modules:
             extensions_panel_draw_missing_impl(
@@ -895,7 +1031,7 @@ def extensions_panel_draw(panel, context):
     row_b = row.row(align=True)
     row_b.prop(wm, "extension_type", text="")
     row_b.popover("USERPREF_PT_extensions_filter", text="", icon='FILTER')
-    row_b.popover("USERPREF_PT_extensions_tags", text="", icon='COLOR')
+    row_b.popover("USERPREF_PT_extensions_tags", text="", icon='TAG')
 
     row_b.separator()
     row_b.popover("USERPREF_PT_extensions_repos", text="Repositories")
@@ -1060,6 +1196,20 @@ def tags_panel_draw(panel, context):
         col.prop(wm.extension_tags, "[\"{:s}\"]".format(escape_identifier(t)))
 
 
+def extensions_repo_active_draw(self, context):
+    # Draw icon buttons on the right hand side of the UI-list.
+    from . import repo_active_or_none
+    layout = self.layout
+
+    # Allow the poll functions to only check against the active repository.
+    if (repo := repo_active_or_none()) is not None:
+        layout.context_pointer_set("extension_repo", repo)
+
+    layout.operator("extensions.repo_sync_all", text="", icon='FILE_REFRESH').use_active_only = True
+
+    layout.operator("extensions.package_upgrade_all", text="", icon='IMPORT').use_active_only = True
+
+
 classes = (
     # Pop-overs.
     USERPREF_PT_extensions_filter,
@@ -1071,6 +1221,7 @@ classes = (
 def register():
     USERPREF_PT_addons.append(extensions_panel_draw)
     USERPREF_PT_extensions_tags.append(tags_panel_draw)
+    USERPREF_MT_extensions_active_repo.append(extensions_repo_active_draw)
 
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -1079,6 +1230,7 @@ def register():
 def unregister():
     USERPREF_PT_addons.remove(extensions_panel_draw)
     USERPREF_PT_extensions_tags.remove(tags_panel_draw)
+    USERPREF_MT_extensions_active_repo.remove(extensions_repo_active_draw)
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)

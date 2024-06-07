@@ -192,6 +192,7 @@ void SCULPT_do_multiplane_scrape_brush(const Sculpt &sd,
                                        blender::Span<PBVHNode *> nodes)
 {
   using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
@@ -210,10 +211,10 @@ void SCULPT_do_multiplane_scrape_brush(const Sculpt &sd,
   float temp[3];
   float4x4 mat;
 
-  SCULPT_calc_brush_plane(sd, ob, nodes, area_no_sp, area_co);
+  calc_brush_plane(brush, ob, nodes, area_no_sp, area_co);
 
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_no = SCULPT_calc_area_normal(sd, ob, nodes).value_or(float3(0));
+    area_no = calc_area_normal(brush, ob, nodes).value_or(float3(0));
   }
   else {
     area_no = area_no_sp;

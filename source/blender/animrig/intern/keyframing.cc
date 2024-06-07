@@ -52,9 +52,9 @@ CombinedKeyingResult::CombinedKeyingResult()
   result_counter.fill(0);
 }
 
-void CombinedKeyingResult::add(const SingleKeyingResult result)
+void CombinedKeyingResult::add(const SingleKeyingResult result, const int count)
 {
-  result_counter[int(result)]++;
+  result_counter[int(result)] += count;
 }
 
 void CombinedKeyingResult::merge(const CombinedKeyingResult &other)
@@ -94,7 +94,7 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
   if (this->get_count(SingleKeyingResult::UNKNOWN_FAILURE) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::UNKNOWN_FAILURE);
     errors.append(
-        fmt::format(RPT_("Could not insert {:d} key(s) for unknown reasons."), error_count));
+        fmt::format(RPT_("There were {:d} keying failures for unknown reasons."), error_count));
   }
 
   if (this->get_count(SingleKeyingResult::CANNOT_CREATE_FCURVE) > 0) {
@@ -127,22 +127,43 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
 
   if (this->get_count(SingleKeyingResult::ID_NOT_EDITABLE) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::ID_NOT_EDITABLE);
-    errors.append(fmt::format(
-        RPT_("Inserting keys on {:d} ID(s) has been skipped because they are not editable."),
-        error_count));
+    errors.append(fmt::format(RPT_("Inserting keys on {:d} data-block(s) has been skipped because "
+                                   "they are not editable."),
+                              error_count));
   }
 
   if (this->get_count(SingleKeyingResult::ID_NOT_ANIMATABLE) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::ID_NOT_ANIMATABLE);
-    errors.append(fmt::format(
-        RPT_("Inserting keys on {:d} ID(s) has been skipped because they cannot be animated."),
-        error_count));
+    errors.append(fmt::format(RPT_("Inserting keys on {:d} data-block(s) has been skipped because "
+                                   "they cannot be animated."),
+                              error_count));
   }
 
   if (this->get_count(SingleKeyingResult::CANNOT_RESOLVE_PATH) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::CANNOT_RESOLVE_PATH);
-    errors.append(fmt::format(RPT_("Inserting keys on {:d} ID(s) has been skipped because the RNA "
-                                   "path wasn't valid for them."),
+    errors.append(fmt::format(RPT_("Inserting keys on {:d} data-block(s) has been skipped because "
+                                   "the RNA path wasn't valid for them."),
+                              error_count));
+  }
+
+  if (this->get_count(SingleKeyingResult::NO_VALID_LAYER) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::NO_VALID_LAYER);
+    errors.append(fmt::format(RPT_("Inserting keys on {:d} data-block(s) has been skipped because "
+                                   "there were no layers that could accept the keys."),
+                              error_count));
+  }
+
+  if (this->get_count(SingleKeyingResult::NO_VALID_STRIP) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::NO_VALID_STRIP);
+    errors.append(fmt::format(RPT_("Inserting keys on {:d} data-block(s) has been skipped because "
+                                   "there were no strips that could accept the keys."),
+                              error_count));
+  }
+
+  if (this->get_count(SingleKeyingResult::NO_VALID_BINDING) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::NO_VALID_BINDING);
+    errors.append(fmt::format(RPT_("Inserting keys on {:d} data-block(s) has been skipped because "
+                                   "of missing animation bindings."),
                               error_count));
   }
 
@@ -235,6 +256,11 @@ eInsertKeyFlags get_keyframing_flags(Scene *scene)
   }
 
   return flag;
+}
+
+bool key_insertion_may_create_fcurve(const eInsertKeyFlags insert_key_flags)
+{
+  return (insert_key_flags & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) == 0;
 }
 
 /** Used to make curves newly added to a cyclic Action cycle with the correct period. */
@@ -540,8 +566,8 @@ static SingleKeyingResult insert_keyframe_fcurve_value(Main *bmain,
    * - if we're replacing keyframes only, DO NOT create new F-Curves if they do not exist yet
    *   but still try to get the F-Curve if it exists...
    */
-  const bool can_create_curve = (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) == 0;
-  FCurve *fcu = can_create_curve ?
+
+  FCurve *fcu = key_insertion_may_create_fcurve(flag) ?
                     action_fcurve_ensure(bmain, act, group, ptr, rna_path, array_index) :
                     action_fcurve_find(act, rna_path, array_index);
 
@@ -934,19 +960,20 @@ int clear_keyframe(Main *bmain,
   return key_count;
 }
 
-CombinedKeyingResult insert_key_action(Main *bmain,
-                                       bAction *action,
-                                       PointerRNA *ptr,
-                                       PropertyRNA *prop,
-                                       const std::string &rna_path,
-                                       const float frame,
-                                       const Span<float> values,
-                                       eInsertKeyFlags insert_key_flag,
-                                       eBezTriple_KeyframeType key_type,
-                                       const BitSpan keying_mask)
+static CombinedKeyingResult insert_key_legacy_action(Main *bmain,
+                                                     bAction *action,
+                                                     PointerRNA *ptr,
+                                                     PropertyRNA *prop,
+                                                     const std::string &rna_path,
+                                                     const float frame,
+                                                     const Span<float> values,
+                                                     eInsertKeyFlags insert_key_flag,
+                                                     eBezTriple_KeyframeType key_type,
+                                                     const BitSpan keying_mask)
 {
   BLI_assert(bmain != nullptr);
   BLI_assert(action != nullptr);
+  BLI_assert(action->wrap().is_action_legacy());
 
   const char *group = default_channel_group_for_path(ptr, rna_path);
 
@@ -975,6 +1002,105 @@ CombinedKeyingResult insert_key_action(Main *bmain,
   return combined_result;
 }
 
+struct KeyInsertData {
+  float2 position;
+  int array_index;
+};
+
+static SingleKeyingResult insert_key_layer(Layer &layer,
+                                           Binding &binding,
+                                           const std::string &rna_path,
+                                           const KeyInsertData &key_data,
+                                           const KeyframeSettings &key_settings,
+                                           const eInsertKeyFlags insert_key_flags)
+{
+  /* TODO: we currently assume there will always be precisely one strip, which
+   * is infinite and has no time offset. This will not hold true in the future
+   * when we add support for multiple strips. */
+  BLI_assert(layer.strips().size() == 1);
+  Strip *strip = layer.strip(0);
+  BLI_assert(strip->is_infinite());
+  BLI_assert(strip->frame_offset == 0.0);
+
+  return strip->as<KeyframeStrip>().keyframe_insert(
+      binding, rna_path, key_data.array_index, key_data.position, key_settings, insert_key_flags);
+}
+
+static CombinedKeyingResult insert_key_layered_action(Action &action,
+                                                      const int32_t binding_handle,
+                                                      PointerRNA *rna_pointer,
+                                                      const blender::Span<RNAPath> rna_paths,
+                                                      const float scene_frame,
+                                                      const KeyframeSettings &key_settings,
+                                                      const eInsertKeyFlags insert_key_flags)
+{
+  BLI_assert(action.is_action_layered());
+
+  ID *id = rna_pointer->owner_id;
+  CombinedKeyingResult combined_result;
+
+  Binding *binding = action.binding_for_handle(binding_handle);
+  if (binding == nullptr) {
+    binding = &action.binding_add_for_id(*id);
+    const bool success = action.assign_id(binding, *id);
+    UNUSED_VARS_NDEBUG(success);
+    BLI_assert_msg(
+        success,
+        "With a new Binding, the only reason this could fail is that the ID itself cannot be "
+        "animated, which should have been caught and handled by higher-level functions.");
+  }
+
+  /* Ensure that at least one layer exists. If not, create the default layer
+   * with the default infinite keyframe strip. */
+  action.layer_ensure_at_least_one();
+
+  /* TODO: we currently assume this will always successfully find a layer.
+   * However, that may not be true in the future when we implement features like
+   * layer locking: if layers already exist, but they are all locked, then the
+   * default layer won't be added by the line above, but there also won't be any
+   * layers we can insert keys into. */
+  Layer *layer = action.get_layer_for_keyframing();
+  BLI_assert(layer != nullptr);
+
+  const bool use_visual_keyframing = insert_key_flags & INSERTKEY_MATRIX;
+
+  for (const RNAPath &rna_path : rna_paths) {
+    PointerRNA ptr;
+    PropertyRNA *prop = nullptr;
+    const bool path_resolved = RNA_path_resolve_property(
+        rna_pointer, rna_path.path.c_str(), &ptr, &prop);
+    if (!path_resolved) {
+      std::fprintf(stderr,
+                   "Failed to insert key on binding %s due to unresolved RNA path: %s\n",
+                   binding->name,
+                   rna_path.path.c_str());
+      combined_result.add(SingleKeyingResult::CANNOT_RESOLVE_PATH);
+      continue;
+    }
+    const std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr,
+                                                                                        prop);
+    BLI_assert(rna_path_id_to_prop.has_value());
+    Vector<float> rna_values = get_keyframe_values(&ptr, prop, use_visual_keyframing);
+
+    for (const int property_index : rna_values.index_range()) {
+      /* If we're only keying one array element, skip all elements other than
+       * that one. */
+      if (rna_path.index.has_value() && *rna_path.index != property_index) {
+        continue;
+      }
+
+      const KeyInsertData key_data = {{scene_frame, rna_values[property_index]}, property_index};
+      const SingleKeyingResult result = insert_key_layer(
+          *layer, *binding, *rna_path_id_to_prop, key_data, key_settings, insert_key_flags);
+      combined_result.add(result);
+    }
+  }
+
+  DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION_NO_FLUSH);
+
+  return combined_result;
+}
+
 CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
                                     const blender::Span<RNAPath> rna_paths,
                                     const float scene_frame,
@@ -984,14 +1110,32 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
                                     const AnimationEvalContext &anim_eval_context)
 {
   ID *id = rna_pointer->owner_id;
-  bAction *action = id_action_ensure(bmain, id);
   CombinedKeyingResult combined_result;
 
-  if (action == nullptr) {
+  /* Init animdata if none available yet. */
+  AnimData *adt = BKE_animdata_ensure_id(id);
+  if (adt == nullptr) {
+    combined_result.add(SingleKeyingResult::ID_NOT_ANIMATABLE);
     return combined_result;
   }
 
-  AnimData *adt = BKE_animdata_from_id(id);
+  bAction *action = id_action_ensure(bmain, id);
+  BLI_assert(action != nullptr);
+
+  if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action->wrap().is_action_layered()) {
+    /* TODO: Don't hardcode key settings. */
+    KeyframeSettings key_settings;
+    key_settings.keyframe_type = key_type;
+    key_settings.handle = HD_AUTO_ANIM;
+    key_settings.interpolation = BEZT_IPO_BEZ;
+    return insert_key_layered_action(action->wrap(),
+                                     adt->binding_handle,
+                                     rna_pointer,
+                                     rna_paths,
+                                     scene_frame,
+                                     key_settings,
+                                     insert_key_flags);
+  }
 
   /* Keyframing functions can deal with the nla_context being a nullptr. */
   ListBase nla_cache = {nullptr, nullptr};
@@ -1012,6 +1156,7 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
     const bool path_resolved = RNA_path_resolve_property(
         rna_pointer, rna_path.path.c_str(), &ptr, &prop);
     if (!path_resolved) {
+      combined_result.add(SingleKeyingResult::CANNOT_RESOLVE_PATH);
       continue;
     }
     const std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr,
@@ -1027,16 +1172,16 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
                                           &anim_eval_context,
                                           nullptr,
                                           successful_remaps);
-    const CombinedKeyingResult result = insert_key_action(bmain,
-                                                          action,
-                                                          rna_pointer,
-                                                          prop,
-                                                          rna_path_id_to_prop->c_str(),
-                                                          nla_frame,
-                                                          rna_values.as_span(),
-                                                          insert_key_flags,
-                                                          key_type,
-                                                          successful_remaps);
+    const CombinedKeyingResult result = insert_key_legacy_action(bmain,
+                                                                 action,
+                                                                 rna_pointer,
+                                                                 prop,
+                                                                 rna_path_id_to_prop->c_str(),
+                                                                 nla_frame,
+                                                                 rna_values.as_span(),
+                                                                 insert_key_flags,
+                                                                 key_type,
+                                                                 successful_remaps);
     combined_result.merge(result);
   }
   BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);

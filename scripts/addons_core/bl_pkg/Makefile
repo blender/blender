@@ -19,6 +19,7 @@ PY_FILES_MYPY=$(filter-out \
 	./bl_extension_ops.py \
 	./bl_extension_ui.py \
 	./bl_extension_utils.py \
+	./extensions_map_from_legacy_addons.py \
 	./wheel_manager.py \
 	./example_extension/__init__.py \
 	./example_extension/foo.py \

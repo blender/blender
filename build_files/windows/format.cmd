@@ -27,4 +27,6 @@ set PATH=%CF_PATH%;%PATH%
 REM Use -B to avoid writing __pycache__ in lib directory and causing update conflicts.
 %PYTHON% -B %FORMAT_PATHS% %FORMAT_ARGS%
 
+call "%~dp0\autopep8.cmd"
+
 :EOF

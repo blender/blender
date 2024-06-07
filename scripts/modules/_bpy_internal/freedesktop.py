@@ -435,7 +435,7 @@ def call_handle_checked(
         fn: Callable[[bool, bool], Optional[str]],
         *,
         do_register: bool,
-        all_users: bool
+        all_users: bool,
 ) -> Optional[str]:
     try:
         result = fn(do_register, all_users)

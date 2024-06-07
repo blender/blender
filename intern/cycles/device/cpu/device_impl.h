@@ -54,7 +54,7 @@ class CPUDevice : public Device {
   mutable unique_ptr<openpgl::cpp::Device> guiding_device;
 #endif
 
-  CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_);
+  CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_);
   ~CPUDevice();
 
   virtual BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;

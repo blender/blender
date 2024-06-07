@@ -71,9 +71,9 @@ void extract_face_dots_uv(const MeshRenderData &mr, gpu::VertBuf &vbo)
     GPU_vertformat_alias_add(&format, "au");
     GPU_vertformat_alias_add(&format, "pos");
   }
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, mr.faces_num);
-  MutableSpan<float2> vbo_data(static_cast<float2 *>(GPU_vertbuf_get_data(&vbo)), mr.faces_num);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
+  MutableSpan<float2> vbo_data(static_cast<float2 *>(GPU_vertbuf_get_data(vbo)), mr.faces_num);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
     extract_face_dots_uv_mesh(mr, vbo_data);

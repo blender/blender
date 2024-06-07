@@ -338,8 +338,8 @@ static gpu::VertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata,
 
     const int vert_len = lattice_render_data_verts_len_get(rdata);
 
-    cache->pos = GPU_vertbuf_create_with_format(&format);
-    GPU_vertbuf_data_alloc(cache->pos, vert_len);
+    cache->pos = GPU_vertbuf_create_with_format(format);
+    GPU_vertbuf_data_alloc(*cache->pos, vert_len);
     for (int i = 0; i < vert_len; i++) {
       const BPoint *bp = lattice_render_data_vert_bpoint(rdata, i);
       GPU_vertbuf_attr_set(cache->pos, attr_id.pos, i, bp->vec);
@@ -434,8 +434,8 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 
     const int vert_len = lattice_render_data_verts_len_get(rdata);
 
-    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-    GPU_vertbuf_data_alloc(vbo, vert_len);
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+    GPU_vertbuf_data_alloc(*vbo, vert_len);
     for (int i = 0; i < vert_len; i++) {
       const BPoint *bp = lattice_render_data_vert_bpoint(rdata, i);
 

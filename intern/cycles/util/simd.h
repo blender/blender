@@ -213,8 +213,8 @@ type shuffle_neon(const type &a, const type &b)
                                     (i3 * 4) + 2 + 16,
                                     (i3 * 4) + 3 + 16};
 
-    // Note: This cannot all be put in a single line due to how MSVC ARM64
-    // implements the function calls as several layers of macros.
+    /* NOTE: This cannot all be put in a single line due to how MSVC ARM64
+     * implements the function calls as several layers of macros. */
     int8x16x2_t t = {int8x16_t(a), int8x16_t(b)};
     uint8x16_t idx = *(uint8x16_t *)tbl;
     return type(vqtbl2q_s8(t, idx));

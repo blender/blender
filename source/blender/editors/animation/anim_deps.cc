@@ -281,11 +281,56 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
       case ANIMTYPE_GPLAYER:
         animchan_sync_gplayer(ale);
         break;
-      case ANIMTYPE_GREASE_PENCIL_LAYER:
+      case ANIMTYPE_GREASE_PENCIL_LAYER: {
         using namespace blender::bke::greasepencil;
         GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
         Layer *layer = static_cast<Layer *>(ale->data);
         layer->set_selected(grease_pencil->is_layer_active(layer));
+        break;
+      }
+
+      case ANIMTYPE_NONE:
+      case ANIMTYPE_ANIMDATA:
+      case ANIMTYPE_SPECIALDATA__UNUSED:
+      case ANIMTYPE_SUMMARY:
+      case ANIMTYPE_SCENE:
+      case ANIMTYPE_OBJECT:
+      case ANIMTYPE_NLACONTROLS:
+      case ANIMTYPE_NLACURVE:
+      case ANIMTYPE_FILLACT_LAYERED:
+      case ANIMTYPE_FILLACTD:
+      case ANIMTYPE_FILLDRIVERS:
+      case ANIMTYPE_DSMAT:
+      case ANIMTYPE_DSLAM:
+      case ANIMTYPE_DSCAM:
+      case ANIMTYPE_DSCACHEFILE:
+      case ANIMTYPE_DSCUR:
+      case ANIMTYPE_DSSKEY:
+      case ANIMTYPE_DSWOR:
+      case ANIMTYPE_DSNTREE:
+      case ANIMTYPE_DSPART:
+      case ANIMTYPE_DSMBALL:
+      case ANIMTYPE_DSARM:
+      case ANIMTYPE_DSMESH:
+      case ANIMTYPE_DSTEX:
+      case ANIMTYPE_DSLAT:
+      case ANIMTYPE_DSLINESTYLE:
+      case ANIMTYPE_DSSPK:
+      case ANIMTYPE_DSGPENCIL:
+      case ANIMTYPE_DSMCLIP:
+      case ANIMTYPE_DSHAIR:
+      case ANIMTYPE_DSPOINTCLOUD:
+      case ANIMTYPE_DSVOLUME:
+      case ANIMTYPE_SHAPEKEY:
+      case ANIMTYPE_GPDATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+      case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+      case ANIMTYPE_MASKDATABLOCK:
+      case ANIMTYPE_MASKLAYER:
+      case ANIMTYPE_NLATRACK:
+      case ANIMTYPE_NLAACTION:
+      case ANIMTYPE_PALETTE:
+      case ANIMTYPE_NUM_TYPES:
         break;
     }
   }
@@ -393,7 +438,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
       }
 #endif
       /* Prevent crashes in cases where it can't be handled */
-      ale->update = 0;
+      ale->update = eAnim_Update_Flags(0);
     }
 
     BLI_assert(ale->update == 0);

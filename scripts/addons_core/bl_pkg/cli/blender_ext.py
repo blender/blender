@@ -101,6 +101,11 @@ RE_CONTROL_CHARS = re.compile(r'[\x00-\x1f\x7f-\x9f]')
 # 16kb to be responsive even on slow connections.
 CHUNK_SIZE_DEFAULT = 1 << 14
 
+# Short descriptions for the UI:
+# Used for project tag-line & permissions values.
+TERSE_DESCRIPTION_MAX_LENGTH = 64
+
+
 # Standard out may be communicating with a parent process,
 # arbitrary prints are NOT acceptable.
 
@@ -232,7 +237,7 @@ class PkgManifest_Build(NamedTuple):
     def _from_dict_impl(
             manifest_build_dict: Dict[str, Any],
             *,
-            extra_paths: List[str],
+            extra_paths: Sequence[str],
             all_errors: bool,
     ) -> Union["PkgManifest_Build", List[str]]:
         # TODO: generalize the type checks, see: `pkg_manifest_is_valid_or_error_impl`.
@@ -241,7 +246,7 @@ class PkgManifest_Build(NamedTuple):
             if not isinstance(value, list):
                 error_list.append("[build]: \"paths\" must be a list, not a {!r}".format(type(value)))
             else:
-                value = value + extra_paths
+                value = [*value, *extra_paths]
                 if (error := pkg_manifest_validate_field_build_path_list(value, strict=True)) is not None:
                     error_list.append(error)
             if not all_errors:
@@ -275,7 +280,7 @@ class PkgManifest_Build(NamedTuple):
     @staticmethod
     def from_dict_all_errors(
             manifest_build_dict: Dict[str, Any],
-            extra_paths: List[str],
+            extra_paths: Sequence[str],
     ) -> Union["PkgManifest_Build", List[str]]:
         return PkgManifest_Build._from_dict_impl(
             manifest_build_dict,
@@ -405,7 +410,7 @@ def scandir_recursive(
 
 def build_paths_expand_iter(
         path: str,
-        path_list: List[str],
+        path_list: Sequence[str],
 ) -> Generator[Tuple[str, str], None, None]:
     """
     Expand paths from a path list which always uses "/" slashes.
@@ -1167,6 +1172,25 @@ def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
     return None
 
 
+def pkg_manifest_validate_terse_description_or_error(value: str) -> Optional[str]:
+    # Could be an argument.
+    length_limit = TERSE_DESCRIPTION_MAX_LENGTH
+    if (length_limit != -1) and (len(value) > length_limit):
+        return "a value no longer than {:d} characters expected, found {:d}".format(length_limit, len(value))
+
+    if (error := pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(value, True)) is not None:
+        return error
+
+    # As we don't have a reliable (unicode aware) punctuation check, just check the last character is alpha/numeric.
+    if value[-1].isalnum():
+        pass  # OK.
+    elif value[-1] in {")", "]", "}"}:
+        pass  # Allow closing brackets (sometimes used to mention formats).
+    else:
+        return "alpha-numeric suffix expected, the string must not end with punctuation"
+    return None
+
+
 # -----------------------------------------------------------------------------
 # Manifest Validation (Generic Callbacks)
 #
@@ -1282,19 +1306,7 @@ def pkg_manifest_validate_field_type(value: str, strict: bool) -> Optional[str]:
 
 def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[str]:
     if strict:
-        if (error := pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(value, strict)) is not None:
-            return error
-
-        # Additional requirements.
-        if len(value) > 64:
-            return "a value no longer than 64 characters expected, found {:d}".format(len(value))
-        # As we don't have a reliable (unicode aware) punctuation check, just check the last character is alpha/numeric.
-        if value[-1].isalnum():
-            pass  # OK.
-        elif value[-1] in {")", "]", "}"}:
-            pass  # Allow closing brackets (sometimes used to mention formats).
-        else:
-            return "alpha-numeric suffix expected, the string must not end with punctuation"
+        return pkg_manifest_validate_terse_description_or_error(value)
     else:
         if (error := pkg_manifest_validate_field_any_non_empty_string(value, strict)) is not None:
             return error
@@ -1303,33 +1315,57 @@ def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[st
 
 
 def pkg_manifest_validate_field_permissions(
-        # `Dict[str, str]` is expected but at this point it's only guaranteed to be a dict.
-        value: Dict[Any, Any],
+        value: Union[
+            # `Dict[str, str]` is expected but at this point it's only guaranteed to be a dict.
+            Dict[Any, Any],
+            # Kept for old files.
+            List[Any],
+        ],
         strict: bool,
 ) -> Optional[str]:
-    _ = strict
-    # Always strict for now as it doesn't seem as there are repositories using invalid values.
-    strict = True
+
+    keys_valid = {
+        "files",
+        "network",
+        "clipboard",
+        "camera",
+        "microphone",
+    }
+
     if strict:
-        keys_valid = {
-            "files",
-            "network",
-            "clipboard",
-            "camera",
-            "microphone",
-        }
+        # A list may be passed in when not-strict.
+        if not isinstance(value, dict):
+            return "permissions must be a table of strings, not a {:s}".format(str(type(value)))
+
         for item_key, item_value in value.items():
+            # Validate the key.
             if not isinstance(item_key, str):
                 return "key \"{:s}\" must be a string not a {:s}".format(str(item_key), str(type(item_key)))
-            if not isinstance(item_value, str):
-                return "value of \"{:s}\" must be a string not a {:s}".format(item_key, str(type(item_value)))
             if item_key not in keys_valid:
                 return "value of \"{:s}\" must be a value in {!r}".format(item_key, tuple(keys_valid))
+
+            # Validate the value.
+            if not isinstance(item_value, str):
+                return "value of \"{:s}\" must be a string not a {:s}".format(item_key, str(type(item_value)))
+
+            if (error := pkg_manifest_validate_terse_description_or_error(item_value)) is not None:
+                return "value of \"{:s}\": {:s}".format(item_key, error)
+
     else:
-        # TODO: basic validation.
-        # if (error := pkg_manifest_validate_field_any_dict_of_non_empty_strings(value, strict)) is not None:
-        #     return error
-        pass
+        if isinstance(value, dict):
+            for item_key, item_value in value.items():
+                if not isinstance(item_key, str):
+                    return "key \"{:s}\" must be a string not a {:s}".format(str(item_key), str(type(item_key)))
+                if not isinstance(item_value, str):
+                    return "value of \"{:s}\" must be a string not a {:s}".format(item_key, str(type(item_value)))
+        elif isinstance(value, list):
+            # Historic beta convention, keep for compatibility.
+            for i, item in enumerate(value):
+                if not isinstance(item, str):
+                    return "Expected item at index {:d} to be an int not a {:s}".format(i, str(type(item)))
+        else:
+            # The caller doesn't allow this.
+            assert False, "internal error, disallowed type"
 
     return None
 
@@ -1434,7 +1470,7 @@ def pkg_manifest_validate_field_archive_hash(
 # Keep in sync with `PkgManifest`.
 # key, type, check_fn.
 pkg_manifest_known_keys_and_types: Tuple[
-    Tuple[str, type, Callable[[Any, bool], Optional[str]]],
+    Tuple[str, Union[type, Tuple[type, ...]], Callable[[Any, bool], Optional[str]]],
     ...,
 ] = (
     ("id", str, pkg_manifest_validate_field_idname),
@@ -1451,7 +1487,8 @@ pkg_manifest_known_keys_and_types: Tuple[
     ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
     ("website", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
     ("copyright", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
-    ("permissions", dict, pkg_manifest_validate_field_permissions),
+    # Type should be `dict` eventually, some existing packages will have a list of strings instead.
+    ("permissions", (dict, list), pkg_manifest_validate_field_permissions),
     ("tags", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("wheels", list, pkg_manifest_validate_field_wheels),
 )
@@ -1510,14 +1547,15 @@ def pkg_manifest_is_valid_or_error_impl(
 
             # When the default value is None, skip all type checks.
             if not (is_default_value and x_val is None):
-                if x_ty is None:
-                    pass
-                elif isinstance(x_val, x_ty):
+                if isinstance(x_val, x_ty):
                     pass
                 else:
                     error_list.append("\"{:s}\" must be a {:s}, not a {:s}".format(
-                        x_key,
-                        x_ty.__name__,
+                        x_key, (
+                            "[{:s}]".format(", ".join(x_ty_elem.__name__ for x_ty_elem in x_ty))
+                            if isinstance(x_ty, tuple) else
+                            x_ty.__name__
+                        ),
                         type(x_val).__name__,
                     ))
                     if not all_errors:
@@ -2763,14 +2801,14 @@ class subcmd_author:
         else:
             # Mixing literal and pattern matched lists of files is a hassle.
             # De-duplicate canonical root-relative path names.
-            def filepath_canonical_from_relative(filepath_rel: str):
+            def filepath_canonical_from_relative(filepath_rel: str) -> str:
                 filepath_rel = os.path.normpath(filepath_rel)
                 if os.sep == "\\":
                     filepath_rel = filepath_rel.replace("\\", "/")
                 return filepath_rel
 
             # Use lowercase to prevent duplicates on MS-Windows.
-            build_paths_extra_canonical: Set[int] = set(
+            build_paths_extra_canonical: Set[str] = set(
                 filepath_canonical_from_relative(f).lower()
                 for f in build_paths_extra
             )
@@ -2808,7 +2846,7 @@ class subcmd_author:
                         result = not os.path.basename(filepath).startswith(".")
                         if result and (not is_dir):
                             # Finally check the path isn't one of the known paths.
-                            if filepath_canonical.lower() in build_paths_extra_canonical:
+                            if filepath_canonical_from_relative(filepath).lower() in build_paths_extra_canonical:
                                 result = False
                         return result
 
@@ -3046,6 +3084,9 @@ class subcmd_dummy:
                     fh.write("""version = "1.0.0"\n""")
                     fh.write("""tagline = "This is a tagline"\n""")
                     fh.write("""blender_version_min = "0.0.0"\n""")
+                    fh.write("""[permissions]\n""")
+                    for value in ("files", "network", "clipboard", "camera", "microphone"):
+                        fh.write("""{:s} = "Example text"\n""".format(value))
 
                 with open(os.path.join(pkg_src_dir, "__init__.py"), "w", encoding="utf-8") as fh:
                     fh.write("""

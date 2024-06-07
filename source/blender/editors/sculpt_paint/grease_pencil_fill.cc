@@ -632,14 +632,13 @@ static bke::CurvesGeometry boundary_to_curves(const Scene &scene,
     constexpr const float pressure = 1.0f;
     radii.span[point_i] = ed::greasepencil::radius_from_input_sample(view_context.rv3d,
                                                                      view_context.region,
-                                                                     &scene,
                                                                      &brush,
                                                                      pressure,
                                                                      position,
                                                                      placement.to_world_space(),
                                                                      brush.gpencil_settings);
     opacities.span[point_i] = ed::greasepencil::opacity_from_input_sample(
-        pressure, &brush, &scene, brush.gpencil_settings);
+        pressure, &brush, brush.gpencil_settings);
   }
 
   if (scene.toolsettings->gp_paint->mode == GPPAINT_FLAG_USE_VERTEXCOLOR) {

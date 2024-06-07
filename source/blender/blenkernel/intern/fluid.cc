@@ -3295,8 +3295,9 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   float time_mult = fds->dx / (DT_DEFAULT * (25.0f / FPS));
 
   if (use_speedvectors) {
-    CustomDataLayer *velocity_layer = BKE_id_attribute_new(
-        &mesh->id, "velocity", CD_PROP_FLOAT3, AttrDomain::Point, nullptr);
+    AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+    CustomDataLayer *velocity_layer = BKE_attribute_new(
+        owner, "velocity", CD_PROP_FLOAT3, AttrDomain::Point, nullptr);
     velarray = static_cast<float(*)[3]>(velocity_layer->data);
   }
 

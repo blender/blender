@@ -540,7 +540,6 @@ def main() -> None:
                 "./lib",
                 # Just data.
                 "./doc/python_api/examples",
-                "./scripts/addons_core",
                 "./scripts/presets",
                 "./scripts/templates_py",
 

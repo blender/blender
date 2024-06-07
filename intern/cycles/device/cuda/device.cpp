@@ -60,14 +60,15 @@ bool device_cuda_init()
 #endif /* WITH_CUDA_DYNLOAD */
 }
 
-Device *device_cuda_create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
+Device *device_cuda_create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
 {
 #ifdef WITH_CUDA
-  return new CUDADevice(info, stats, profiler);
+  return new CUDADevice(info, stats, profiler, headless);
 #else
   (void)info;
   (void)stats;
   (void)profiler;
+  (void)headless;
 
   LOG(FATAL) << "Request to create CUDA device without compiled-in support. Should never happen.";
 

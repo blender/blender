@@ -233,11 +233,9 @@ bool grease_pencil_weight_painting_poll(bContext *C);
 
 float opacity_from_input_sample(const float pressure,
                                 const Brush *brush,
-                                const Scene *scene,
                                 const BrushGpencilSettings *settings);
 float radius_from_input_sample(const RegionView3D *rv3d,
                                const ARegion *region,
-                               const Scene *scene,
                                const Brush *brush,
                                float pressure,
                                float3 location,
@@ -416,7 +414,7 @@ void clipboard_free();
 const bke::CurvesGeometry &clipboard_curves();
 /**
  * Paste curves from the clipboard into the drawing.
- * \param paste_back Render behind existing curves by inserting curves at the front.
+ * \param paste_back: Render behind existing curves by inserting curves at the front.
  * \return Index range of the new curves in the drawing after pasting.
  */
 IndexRange clipboard_paste_strokes(Main &bmain,

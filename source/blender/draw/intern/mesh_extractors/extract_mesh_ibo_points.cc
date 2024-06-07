@@ -226,7 +226,7 @@ static void extract_points_subdiv_mesh(const MeshRenderData &mr,
 
   const Span<bool> hide_vert = mr.hide_vert;
   const Span<int> corner_orig_verts{
-      static_cast<int *>(GPU_vertbuf_get_data(subdiv_cache.verts_orig_index)),
+      static_cast<int *>(GPU_vertbuf_get_data(*subdiv_cache.verts_orig_index)),
       subdiv_cache.num_subdiv_loops};
 
   IndexMaskMemory memory;
@@ -287,7 +287,7 @@ static void extract_points_subdiv_bm(const MeshRenderData &mr,
   const int loose_edge_verts_num = verts_per_edge * loose_edges.size();
 
   const Span<int> corner_orig_verts{
-      static_cast<int *>(GPU_vertbuf_get_data(subdiv_cache.verts_orig_index)),
+      static_cast<int *>(GPU_vertbuf_get_data(*subdiv_cache.verts_orig_index)),
       subdiv_cache.num_subdiv_loops};
 
   const auto show_vert_bm = [&](const int vert_index) {

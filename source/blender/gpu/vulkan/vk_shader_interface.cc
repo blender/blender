@@ -138,7 +138,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 
   /* Constants */
   int constant_id = 0;
-  for (const ShaderCreateInfo::SpecializationConstant &constant : info.specialization_constants_) {
+  for (const SpecializationConstant &constant : info.specialization_constants_) {
     copy_input_name(input, constant.name, name_buffer_, name_buffer_offset);
     input->location = constant_id++;
     input++;

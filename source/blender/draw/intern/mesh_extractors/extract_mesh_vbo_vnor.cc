@@ -73,9 +73,9 @@ void extract_vert_normals(const MeshRenderData &mr, gpu::VertBuf &vbo)
     GPU_vertformat_attr_add(&format, "vnor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
   const int size = mr.corners_num + mr.loose_indices_num;
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, size);
-  MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(&vbo)), size);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, size);
+  MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)), size);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
     extract_vert_normals_mesh(mr, vbo_data);

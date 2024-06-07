@@ -61,8 +61,8 @@ void MetalDevice::set_error(const string &error)
   }
 }
 
-MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
-    : Device(info, stats, profiler), texture_info(this, "texture_info", MEM_GLOBAL)
+MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+    : Device(info, stats, profiler, headless), texture_info(this, "texture_info", MEM_GLOBAL)
 {
   @autoreleasepool {
     {

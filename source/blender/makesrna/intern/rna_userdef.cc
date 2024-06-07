@@ -439,6 +439,15 @@ static void rna_userdef_extension_repo_use_remote_url_set(PointerRNA *ptr, bool 
       ptr, value, USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL);
 }
 
+static void rna_userdef_extension_repo_source_set(PointerRNA *ptr, int value)
+{
+  Main *bmain = G.main;
+  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+  repo->source = value;
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+}
+
 static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
                                                Scene * /*scene*/,
                                                PointerRNA *ptr)
@@ -6196,6 +6205,15 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       "GPU Backend",
       "GPU backend to use (requires restarting Blender for changes to take effect)");
 
+  prop = RNA_def_property(srna, "max_shader_compilation_subprocesses", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, INT16_MAX);
+  RNA_def_property_ui_text(prop,
+                           "Max Shader Compilation Subprocesses",
+                           "Max number of parallel shader compilation subprocesses, "
+                           "clamped at the max threads supported by the CPU "
+                           "(requires restarting Blender for changes to take effect). "
+                           "Setting it to 0 disables subprocess shader compilation ");
+
   /* Network. */
 
   prop = RNA_def_property(srna, "use_online_access", PROP_BOOLEAN, PROP_NONE);
@@ -6741,6 +6759,20 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem source_type_items[] = {
+      {USER_EXTENSION_REPO_SOURCE_USER,
+       "USER",
+       0,
+       "User",
+       "Repository managed by the user, stored in user directories"},
+      {USER_EXTENSION_REPO_SOURCE_SYSTEM,
+       "SYSTEM",
+       0,
+       "System",
+       "Read-only repository provided by the system"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "UserExtensionRepo", nullptr);
   RNA_def_struct_sdna(srna, "bUserExtensionRepo");
   RNA_def_struct_ui_text(
@@ -6791,6 +6823,14 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
                                 "rna_userdef_extension_repo_access_token_get",
                                 "rna_userdef_extension_repo_access_token_length",
                                 "rna_userdef_extension_repo_access_token_set");
+
+  prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, source_type_items);
+  RNA_def_property_enum_funcs(prop, nullptr, "rna_userdef_extension_repo_source_set", nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Source",
+      "Select if the repository is in a user managed or system provided directory");
 
   /* NOTE(@ideasman42): this is intended to be used by a package manger component
    * which is not yet integrated. */

@@ -16,7 +16,10 @@ class Stats;
 
 bool device_cuda_init();
 
-Device *device_cuda_create(const DeviceInfo &info, Stats &stats, Profiler &profiler);
+Device *device_cuda_create(const DeviceInfo &info,
+                           Stats &stats,
+                           Profiler &profiler,
+                           bool headless);
 
 void device_cuda_info(vector<DeviceInfo> &devices);
 

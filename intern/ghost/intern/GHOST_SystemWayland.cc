@@ -2256,7 +2256,7 @@ static int file_descriptor_is_io_ready(int fd, const int flags, const int timeou
 
   GHOST_ASSERT(flags & (GWL_IOR_READ | GWL_IOR_WRITE), "X");
 
-  /* Note: We don't bother to account for elapsed time if we get EINTR */
+  /* NOTE: We don't bother to account for elapsed time if we get #EINTR. */
   do {
 #ifdef HAVE_POLL
     pollfd info;

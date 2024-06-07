@@ -358,17 +358,17 @@ static GPUShader *get_subdiv_custom_data_shader(int comp_type, int dimensions)
  * Used for data transfer from OpenSubdiv, and for data processing on our side.
  * \{ */
 
-static GPUVertFormat *get_uvs_format()
+static const GPUVertFormat &get_uvs_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   }
-  return &format;
+  return format;
 }
 
 /* Vertex format for `OpenSubdiv::Osd::PatchArray`. */
-static GPUVertFormat *get_patch_array_format()
+static const GPUVertFormat &get_patch_array_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -379,11 +379,11 @@ static GPUVertFormat *get_patch_array_format()
     GPU_vertformat_attr_add(&format, "stride", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "primitiveIdBase", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
-  return &format;
+  return format;
 }
 
 /* Vertex format used for the `PatchTable::PatchHandle`. */
-static GPUVertFormat *get_patch_handle_format()
+static const GPUVertFormat &get_patch_handle_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -391,42 +391,42 @@ static GPUVertFormat *get_patch_handle_format()
     GPU_vertformat_attr_add(&format, "array_index", GPU_COMP_I32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "patch_index", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
-  return &format;
+  return format;
 }
 
 /* Vertex format used for the quad-tree nodes of the PatchMap. */
-static GPUVertFormat *get_quadtree_format()
+static const GPUVertFormat &get_quadtree_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "child", GPU_COMP_U32, 4, GPU_FETCH_INT);
   }
-  return &format;
+  return format;
 }
 
 /* Vertex format for `OpenSubdiv::Osd::PatchParam`, not really used, it is only for making sure
  * that the #gpu::VertBuf used to wrap the OpenSubdiv patch param buffer is valid. */
-static GPUVertFormat *get_patch_param_format()
+static const GPUVertFormat &get_patch_param_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "data", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   }
-  return &format;
+  return format;
 }
 
 /* Vertex format for the patches' vertices index buffer. */
-static GPUVertFormat *get_patch_index_format()
+static const GPUVertFormat &get_patch_index_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "data", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
-  return &format;
+  return format;
 }
 
 /* Vertex format for the OpenSubdiv vertex buffer. */
-static GPUVertFormat *get_subdiv_vertex_format()
+static const GPUVertFormat &get_subdiv_vertex_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -434,7 +434,7 @@ static GPUVertFormat *get_subdiv_vertex_format()
      * vec3 is promoted to vec4. */
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   }
-  return &format;
+  return format;
 }
 
 struct CompressedPatchCoord {
@@ -453,7 +453,7 @@ MINLINE CompressedPatchCoord make_patch_coord(int ptex_face_index, float u, floa
 }
 
 /* Vertex format used for the #CompressedPatchCoord. */
-static GPUVertFormat *get_blender_patch_coords_format()
+static const GPUVertFormat &get_blender_patch_coords_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -461,19 +461,19 @@ static GPUVertFormat *get_blender_patch_coords_format()
     GPU_vertformat_attr_add(&format, "ptex_face_index", GPU_COMP_U32, 1, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "uv", GPU_COMP_U32, 1, GPU_FETCH_INT);
   }
-  return &format;
+  return format;
 }
 
-static GPUVertFormat *get_origindex_format()
+static const GPUVertFormat &get_origindex_format()
 {
   static GPUVertFormat format;
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "index", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
-  return &format;
+  return format;
 }
 
-GPUVertFormat *draw_subdiv_get_pos_nor_format()
+const GPUVertFormat &draw_subdiv_get_pos_nor_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -481,7 +481,7 @@ GPUVertFormat *draw_subdiv_get_pos_nor_format()
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_alias_add(&format, "vnor");
   }
-  return &format;
+  return format;
 }
 
 /** \} */
@@ -499,8 +499,8 @@ static void vertbuf_bind_gpu(const OpenSubdiv_Buffer *buffer)
 static void *vertbuf_alloc(const OpenSubdiv_Buffer *interface, const uint len)
 {
   gpu::VertBuf *verts = (gpu::VertBuf *)(interface->data);
-  GPU_vertbuf_data_alloc(verts, len);
-  return GPU_vertbuf_get_data(verts);
+  GPU_vertbuf_data_alloc(*verts, len);
+  return GPU_vertbuf_get_data(*verts);
 }
 
 static void vertbuf_device_alloc(const OpenSubdiv_Buffer *interface, const uint len)
@@ -508,7 +508,7 @@ static void vertbuf_device_alloc(const OpenSubdiv_Buffer *interface, const uint 
   gpu::VertBuf *verts = (gpu::VertBuf *)(interface->data);
   /* This assumes that GPU_USAGE_DEVICE_ONLY was used, which won't allocate host memory. */
   // BLI_assert(GPU_vertbuf_get_usage(verts) == GPU_USAGE_DEVICE_ONLY);
-  GPU_vertbuf_data_alloc(verts, len);
+  GPU_vertbuf_data_alloc(*verts, len);
 }
 
 static void vertbuf_wrap_device_handle(const OpenSubdiv_Buffer *interface, uint64_t handle)
@@ -538,10 +538,10 @@ static void opensubdiv_gpu_buffer_init(OpenSubdiv_Buffer *buffer_interface, gpu:
 }
 
 static gpu::VertBuf *create_buffer_and_interface(OpenSubdiv_Buffer *interface,
-                                                 GPUVertFormat *format)
+                                                 const GPUVertFormat &format)
 {
   gpu::VertBuf *buffer = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format_ex(buffer, format, GPU_USAGE_DEVICE_ONLY);
+  GPU_vertbuf_init_with_format_ex(*buffer, format, GPU_USAGE_DEVICE_ONLY);
   opensubdiv_gpu_buffer_init(interface, buffer);
   return buffer;
 }
@@ -560,7 +560,7 @@ static uint tris_count_from_number_of_loops(const uint number_of_loops)
 /** \name Utilities to build a gpu::VertBuf from an origindex buffer.
  * \{ */
 
-void draw_subdiv_init_origindex_buffer(gpu::VertBuf *buffer,
+void draw_subdiv_init_origindex_buffer(gpu::VertBuf &buffer,
                                        int32_t *vert_origindex,
                                        uint num_loops,
                                        uint loose_len)
@@ -575,7 +575,7 @@ void draw_subdiv_init_origindex_buffer(gpu::VertBuf *buffer,
 gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops)
 {
   gpu::VertBuf *buffer = GPU_vertbuf_calloc();
-  draw_subdiv_init_origindex_buffer(buffer, vert_origindex, num_loops, 0);
+  draw_subdiv_init_origindex_buffer(*buffer, vert_origindex, num_loops, 0);
   return buffer;
 }
 
@@ -588,10 +588,10 @@ gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_l
 static void draw_patch_map_build(DRWPatchMap *gpu_patch_map, bke::subdiv::Subdiv *subdiv)
 {
   gpu::VertBuf *patch_map_handles = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format_ex(patch_map_handles, get_patch_handle_format(), GPU_USAGE_STATIC);
+  GPU_vertbuf_init_with_format_ex(*patch_map_handles, get_patch_handle_format(), GPU_USAGE_STATIC);
 
   gpu::VertBuf *patch_map_quadtree = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format_ex(patch_map_quadtree, get_quadtree_format(), GPU_USAGE_STATIC);
+  GPU_vertbuf_init_with_format_ex(*patch_map_quadtree, get_quadtree_format(), GPU_USAGE_STATIC);
 
   OpenSubdiv_Buffer patch_map_handles_interface;
   opensubdiv_gpu_buffer_init(&patch_map_handles_interface, patch_map_handles);
@@ -802,13 +802,13 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache &cach
     if (format.attr_len == 0) {
       GPU_vertformat_attr_add(&format, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
     }
-    GPU_vertbuf_init_with_format_ex(cache.extra_coarse_face_data, &format, GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(cache.extra_coarse_face_data,
+    GPU_vertbuf_init_with_format_ex(*cache.extra_coarse_face_data, format, GPU_USAGE_DYNAMIC);
+    GPU_vertbuf_data_alloc(*cache.extra_coarse_face_data,
                            mr.extract_type == MR_EXTRACT_BMESH ? cache.bm->totface :
                                                                  mesh->faces_num);
   }
 
-  uint32_t *flags_data = (uint32_t *)GPU_vertbuf_get_data(cache.extra_coarse_face_data);
+  uint32_t *flags_data = (uint32_t *)GPU_vertbuf_get_data(*cache.extra_coarse_face_data);
 
   if (mr.extract_type == MR_EXTRACT_BMESH) {
     draw_subdiv_cache_extra_coarse_face_data_bm(cache.bm, mr.efa_act, flags_data);
@@ -929,28 +929,28 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
    * side. */
   cache->patch_coords = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format_ex(
-      cache->patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
-  GPU_vertbuf_data_alloc(cache->patch_coords, cache->num_subdiv_loops);
+      *cache->patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->patch_coords, cache->num_subdiv_loops);
 
   cache->corner_patch_coords = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format_ex(
-      cache->corner_patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
-  GPU_vertbuf_data_alloc(cache->corner_patch_coords, cache->num_subdiv_loops);
+      *cache->corner_patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->corner_patch_coords, cache->num_subdiv_loops);
 
   cache->verts_orig_index = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format_ex(
-      cache->verts_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
-  GPU_vertbuf_data_alloc(cache->verts_orig_index, cache->num_subdiv_loops);
+      *cache->verts_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->verts_orig_index, cache->num_subdiv_loops);
 
   cache->edges_orig_index = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format_ex(
-      cache->edges_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
-  GPU_vertbuf_data_alloc(cache->edges_orig_index, cache->num_subdiv_loops);
+      *cache->edges_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->edges_orig_index, cache->num_subdiv_loops);
 
   cache->edges_draw_flag = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format_ex(
-      cache->edges_draw_flag, get_origindex_format(), GPU_USAGE_DYNAMIC);
-  GPU_vertbuf_data_alloc(cache->edges_draw_flag, cache->num_subdiv_loops);
+      *cache->edges_draw_flag, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->edges_draw_flag, cache->num_subdiv_loops);
 
   cache->subdiv_loop_subdiv_vert_index = static_cast<int *>(
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_vert_index"));
@@ -962,10 +962,10 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_face_index"));
 
   /* Initialize context pointers and temporary buffers. */
-  ctx->patch_coords = (CompressedPatchCoord *)GPU_vertbuf_get_data(cache->patch_coords);
-  ctx->subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(cache->verts_orig_index);
-  ctx->subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(cache->edges_orig_index);
-  ctx->subdiv_loop_edge_draw_flag = (int *)GPU_vertbuf_get_data(cache->edges_draw_flag);
+  ctx->patch_coords = (CompressedPatchCoord *)GPU_vertbuf_get_data(*cache->patch_coords);
+  ctx->subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(*cache->verts_orig_index);
+  ctx->subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(*cache->edges_orig_index);
+  ctx->subdiv_loop_edge_draw_flag = (int *)GPU_vertbuf_get_data(*cache->edges_draw_flag);
   ctx->subdiv_loop_subdiv_vert_index = cache->subdiv_loop_subdiv_vert_index;
   ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
   ctx->subdiv_loop_face_index = cache->subdiv_loop_face_index;
@@ -1119,11 +1119,11 @@ static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
   }
 }
 
-static gpu::VertBuf *gpu_vertbuf_create_from_format(GPUVertFormat *format, uint len)
+static gpu::VertBuf *gpu_vertbuf_create_from_format(const GPUVertFormat &format, uint len)
 {
   gpu::VertBuf *verts = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format(verts, format);
-  GPU_vertbuf_data_alloc(verts, len);
+  GPU_vertbuf_init_with_format(*verts, format);
+  GPU_vertbuf_data_alloc(*verts, len);
   return verts;
 }
 
@@ -1137,7 +1137,7 @@ static void build_vertex_face_adjacency_maps(DRWSubdivCache &cache)
       get_origindex_format(), cache.num_subdiv_verts + 1);
 
   MutableSpan<int> vertex_offsets(
-      static_cast<int *>(GPU_vertbuf_get_data(cache.subdiv_vertex_face_adjacency_offsets)),
+      static_cast<int *>(GPU_vertbuf_get_data(*cache.subdiv_vertex_face_adjacency_offsets)),
       cache.num_subdiv_verts + 1);
   vertex_offsets.fill(0);
 
@@ -1146,7 +1146,7 @@ static void build_vertex_face_adjacency_maps(DRWSubdivCache &cache)
 
   cache.subdiv_vertex_face_adjacency = gpu_vertbuf_create_from_format(get_origindex_format(),
                                                                       cache.num_subdiv_loops);
-  int *adjacent_faces = (int *)GPU_vertbuf_get_data(cache.subdiv_vertex_face_adjacency);
+  int *adjacent_faces = (int *)GPU_vertbuf_get_data(*cache.subdiv_vertex_face_adjacency);
   int *tmp_set_faces = static_cast<int *>(
       MEM_callocN(sizeof(int) * cache.num_subdiv_verts, "tmp subdiv vertex offset"));
 
@@ -1212,7 +1212,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
     cache.fdots_patch_coords = gpu_vertbuf_create_from_format(get_blender_patch_coords_format(),
                                                               mesh_eval->faces_num);
     CompressedPatchCoord *blender_fdots_patch_coords = (CompressedPatchCoord *)
-        GPU_vertbuf_get_data(cache.fdots_patch_coords);
+        GPU_vertbuf_get_data(*cache.fdots_patch_coords);
     for (int i = 0; i < mesh_eval->faces_num; i++) {
       const int ptex_face_index = cache.face_ptex_offset[i];
       if (faces[i].size() == 4) {
@@ -1246,7 +1246,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
 
   /* Save coordinates for corners, as attributes may vary for each loop connected to the same
    * vertex. */
-  memcpy(GPU_vertbuf_get_data(cache.corner_patch_coords),
+  memcpy(GPU_vertbuf_get_data(*cache.corner_patch_coords),
          cache_building_context.patch_coords,
          sizeof(CompressedPatchCoord) * cache.num_subdiv_loops);
 
@@ -1589,8 +1589,8 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
 }
 
 void draw_subdiv_interp_custom_data(const DRWSubdivCache &cache,
-                                    gpu::VertBuf *src_data,
-                                    gpu::VertBuf *dst_data,
+                                    gpu::VertBuf &src_data,
+                                    gpu::VertBuf &dst_data,
                                     int comp_type, /*GPUVertCompType*/
                                     int dimensions,
                                     int dst_offset)
@@ -1606,11 +1606,11 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache &cache,
   int binding_point = 0;
   /* subdiv_face_offset is always at binding point 0 for each shader using it. */
   GPU_vertbuf_bind_as_ssbo(cache.subdiv_face_offset_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(src_data, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(&src_data, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache.face_ptex_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache.corner_patch_coords, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache.extra_coarse_face_data, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(dst_data, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(&dst_data, binding_point++);
   BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, dst_offset, cache.num_subdiv_quads);

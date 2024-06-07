@@ -1473,7 +1473,7 @@ static void paint_draw_2D_view_brush_cursor_default(PaintCursorContext *pcontext
 
 static void grease_pencil_eraser_draw(PaintCursorContext *pcontext)
 {
-  float radius = float(BKE_brush_size_get(pcontext->scene, pcontext->brush));
+  float radius = float(pcontext->brush->size);
 
   /* Red-ish color with alpha. */
   immUniformColor4ub(255, 100, 100, 20);
@@ -1526,7 +1526,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
   }
 
   /* default radius and color */
-  pcontext->pixel_radius = BKE_brush_size_get(pcontext->scene, brush);
+  pcontext->pixel_radius = brush->size;
 
   float3 color(1.0f);
   const int x = pcontext->x;
@@ -1540,13 +1540,13 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       return;
     }
 
-    if (BKE_brush_use_locked_size(pcontext->scene, brush)) {
+    if ((brush->flag & BRUSH_LOCK_SIZE) != 0) {
       const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
       const ed::greasepencil::DrawingPlacement placement(
           *pcontext->scene, *pcontext->region, *pcontext->vc.v3d, *object, layer);
-      const float radius = BKE_brush_unprojected_radius_get(pcontext->scene, brush);
       const float3 location = placement.project(float2(pcontext->x, pcontext->y));
-      pcontext->pixel_radius = project_brush_radius(&pcontext->vc, radius, location);
+      pcontext->pixel_radius = project_brush_radius(
+          &pcontext->vc, brush->unprojected_radius, location);
     }
 
     /* Get current drawing material. */

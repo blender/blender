@@ -600,13 +600,11 @@ static int wm_alembic_import_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
+  blender::Vector<std::string> paths = blender::ed::io::paths_from_operator_properties(op->ptr);
+  if (paths.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
-
-  char filepath[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filepath);
 
   const float scale = RNA_float_get(op->ptr, "scale");
   const bool is_sequence = RNA_boolean_get(op->ptr, "is_sequence");
@@ -615,14 +613,19 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
   const bool always_add_cache_reader = RNA_boolean_get(op->ptr, "always_add_cache_reader");
   const bool as_background_job = RNA_boolean_get(op->ptr, "as_background_job");
 
-  int offset = 0;
-  int sequence_len = 1;
+  int sequence_min_frame = std::numeric_limits<int>::max();
+  int sequence_max_frame = std::numeric_limits<int>::min();
 
   if (is_sequence) {
-    sequence_len = get_sequence_len(filepath, &offset);
-    if (sequence_len < 0) {
-      BKE_report(op->reports, RPT_ERROR, "Unable to determine ABC sequence length");
-      return OPERATOR_CANCELLED;
+    for (const std::string &path : paths) {
+      int offset = 0;
+      int sequence_len = get_sequence_len(path.c_str(), &offset);
+      if (sequence_len < 0) {
+        BKE_report(op->reports, RPT_ERROR, "Unable to determine ABC sequence length");
+        return OPERATOR_CANCELLED;
+      }
+      sequence_min_frame = std::min(sequence_min_frame, offset);
+      sequence_max_frame = std::max(sequence_max_frame, offset + (sequence_len - 1));
     }
   }
 
@@ -632,16 +635,17 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
     blender::ed::object::mode_set(C, OB_MODE_OBJECT);
   }
 
-  AlembicImportParams params = {0};
+  AlembicImportParams params{};
+  params.paths = std::move(paths);
   params.global_scale = scale;
-  params.sequence_len = sequence_len;
-  params.sequence_offset = offset;
+  params.sequence_min_frame = sequence_min_frame;
+  params.sequence_max_frame = sequence_max_frame;
   params.is_sequence = is_sequence;
   params.set_frame_range = set_frame_range;
   params.validate_meshes = validate_meshes;
   params.always_add_cache_reader = always_add_cache_reader;
 
-  bool ok = ABC_import(C, filepath, &params, as_background_job);
+  bool ok = ABC_import(C, &params, as_background_job);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -662,7 +666,8 @@ void WM_OT_alembic_import(wmOperatorType *ot)
                                  FILE_TYPE_FOLDER | FILE_TYPE_ALEMBIC,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_SHOW_PROPS,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_SHOW_PROPS |
+                                     WM_FILESEL_DIRECTORY | WM_FILESEL_FILES,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 

@@ -85,9 +85,13 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
   }
   else {
     /* Find best device from the ones which are proposed for denoising. */
-    /* The choise is expected to be between few GPUs, or between GPU and a CPU
+    /* The choice is expected to be between few GPUs, or between GPU and a CPU
      * or between few GPU and a CPU. */
     single_denoiser_device = find_best_device(denoiser_device, params.type);
+  }
+  /* Ensure that we have a device to be used later in the code below. */
+  if (single_denoiser_device == nullptr) {
+    single_denoiser_device = cpu_fallback_device;
   }
 
   bool is_cpu_denoiser_device = single_denoiser_device->info.type == DEVICE_CPU;
@@ -113,7 +117,7 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
   oidn_params.type = DENOISER_OPENIMAGEDENOISE;
   oidn_params.use_gpu = false;
 
-  /* Used preference CPU when possible, and fallback on cpu fallback device otherwice. */
+  /* Used preference CPU when possible, and fallback on CPU fallback device otherwise. */
   return make_unique<OIDNDenoiser>(
       is_cpu_denoiser_device ? single_denoiser_device : cpu_fallback_device, oidn_params);
 }
@@ -144,7 +148,7 @@ DenoiserType Denoiser::automatic_viewport_denoiser_type(const DeviceInfo &path_t
 }
 
 Denoiser::Denoiser(Device *denoiser_device, const DenoiseParams &params)
-    : denoiser_device_(denoiser_device), params_(params)
+    : denoiser_device_(denoiser_device), denoise_kernels_are_loaded_(false), params_(params)
 {
   DCHECK(denoiser_device_);
   DCHECK(params.use);
@@ -169,6 +173,11 @@ const DenoiseParams &Denoiser::get_params() const
 
 bool Denoiser::load_kernels(Progress *progress)
 {
+  /* If we have successfully loaded kernels once, then there is no need to repeat this again. */
+  if (denoise_kernels_are_loaded_) {
+    return denoise_kernels_are_loaded_;
+  }
+
   if (progress) {
     progress->set_status("Loading denoising kernels (may take a few minutes the first time)");
   }
@@ -191,6 +200,7 @@ bool Denoiser::load_kernels(Progress *progress)
   VLOG_WORK << "Will denoise on " << denoiser_device_->info.description << " ("
             << denoiser_device_->info.id << ")";
 
+  denoise_kernels_are_loaded_ = true;
   return true;
 }
 

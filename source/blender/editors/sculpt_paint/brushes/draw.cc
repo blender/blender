@@ -43,8 +43,7 @@ static void calc_faces(const Sculpt &sd,
                        const PBVHNode &node,
                        Object &object,
                        LocalData &tls,
-                       const MutableSpan<float3> positions_sculpt,
-                       const MutableSpan<float3> positions_mesh)
+                       const MutableSpan<float3> positions_orig)
 {
   SculptSession &ss = *object.sculpt;
   StrokeCache &cache = *ss.cache;
@@ -84,8 +83,9 @@ static void calc_faces(const Sculpt &sd,
     apply_crazyspace_to_translations(ss.deform_imats, verts, translations);
   }
 
-  apply_translations(translations, verts, positions_sculpt);
-  flush_positions_to_shape_keys(object, verts, positions_sculpt, positions_mesh);
+  apply_translations(translations, verts, positions_orig);
+  apply_translations_to_shape_keys(object, verts, translations, positions_orig);
+  apply_translations_to_pbvh(*ss.pbvh, verts, translations);
 }
 
 static void calc_grids(Object &object, const Brush &brush, const float3 &offset, PBVHNode &node)
@@ -201,8 +201,7 @@ void do_draw_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       const PBVH &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
-      MutableSpan<float3> positions_sculpt = mesh_brush_positions_for_write(*object.sculpt, mesh);
-      MutableSpan<float3> positions_mesh = mesh.vert_positions_for_write();
+      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -214,8 +213,7 @@ void do_draw_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
                      *nodes[i],
                      object,
                      tls,
-                     positions_sculpt,
-                     positions_mesh);
+                     positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });

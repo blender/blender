@@ -1068,7 +1068,7 @@ class VIEW3D_HT_header(Header):
                 layout.popover(
                     panel="VIEW3D_PT_gpencil_sculpt_automasking",
                     text="",
-                    icon=VIEW3D_HT_header._gpencil_sculpt_automasking_icon(tool_settings.gpencil_sculpt)
+                    icon=VIEW3D_HT_header._gpencil_sculpt_automasking_icon(tool_settings.gpencil_sculpt),
                 )
 
         elif object_mode == 'SCULPT':
@@ -1100,7 +1100,7 @@ class VIEW3D_HT_header(Header):
             layout.popover(
                 panel="VIEW3D_PT_sculpt_automasking",
                 text="",
-                icon=VIEW3D_HT_header._sculpt_automasking_icon(tool_settings.sculpt)
+                icon=VIEW3D_HT_header._sculpt_automasking_icon(tool_settings.sculpt),
             )
 
         elif object_mode == 'VERTEX_PAINT':
@@ -3118,6 +3118,7 @@ class VIEW3D_MT_object_context_menu(Menu):
             layout.separator()
 
             if obj.empty_display_type == 'IMAGE':
+                layout.operator("image.convert_to_mesh_plane", text="Convert to Mesh Plane")
                 layout.operator("gpencil.trace_image")
 
                 layout.separator()
@@ -3510,14 +3511,21 @@ class VIEW3D_MT_object_convert(Menu):
         layout = self.layout
         ob = context.active_object
 
-        if ob and ob.type == 'GPENCIL' and context.gpencil_data and not context.preferences.experimental.use_grease_pencil_version3:
-            layout.operator_enum("gpencil.convert", "type")
-        else:
-            layout.operator_enum("object.convert", "target")
+        if ob and ob.type != "EMPTY":
+            if (
+                    (ob.type == 'GPENCIL') and
+                    (context.gpencil_data is not None) and
+                    (not context.preferences.experimental.use_grease_pencil_version3)
+            ):
+                layout.operator_enum("gpencil.convert", "type")
+            else:
+                layout.operator_enum("object.convert", "target")
 
-        # Potrace lib dependency.
-        if bpy.app.build_options.potrace:
-            layout.operator("gpencil.trace_image", icon='OUTLINER_OB_GREASEPENCIL')
+        else:
+            # Potrace lib dependency.
+            if bpy.app.build_options.potrace:
+                layout.operator("image.convert_to_mesh_plane", text="Convert to Mesh Plane", icon='MESH_PLANE')
+                layout.operator("gpencil.trace_image", icon='OUTLINER_OB_GREASEPENCIL')
 
         if ob and ob.type == 'CURVES':
             layout.operator("curves.convert_to_particle_system", text="Particle System")
@@ -3816,7 +3824,7 @@ class VIEW3D_MT_sculpt(Menu):
             ('SHARPEN', iface_("Sharpen")),
             ('ENHANCE_DETAILS', iface_("Enhance Details")),
             ('ERASE_DISCPLACEMENT', iface_("Erase Multires Displacement")),
-            ('RANDOM', iface_("Randomize"))
+            ('RANDOM', iface_("Randomize")),
         ]
 
         for filter_type, ui_name in sculpt_filters_types:

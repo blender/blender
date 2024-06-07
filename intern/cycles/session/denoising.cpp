@@ -606,12 +606,12 @@ DenoiserPipeline::DenoiserPipeline(DeviceInfo &denoiser_device_info, const Denoi
   TaskScheduler::init();
 
   /* Initialize device. */
-  device = Device::create(denoiser_device_info, stats, profiler);
+  device = Device::create(denoiser_device_info, stats, profiler, true);
   device->load_kernels(KERNEL_FEATURE_DENOISING);
 
   vector<DeviceInfo> cpu_devices;
   device_cpu_info(cpu_devices);
-  cpu_device = device_cpu_create(cpu_devices[0], device->stats, device->profiler);
+  cpu_device = device_cpu_create(cpu_devices[0], device->stats, device->profiler, true);
 
   denoiser = Denoiser::create(device, cpu_device, params);
   denoiser->load_kernels(nullptr);

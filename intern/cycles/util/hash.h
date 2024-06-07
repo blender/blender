@@ -13,11 +13,11 @@ CCL_NAMESPACE_BEGIN
 /* [0, uint_max] -> [0.0, 1.0) */
 ccl_device_forceinline float uint_to_float_excl(uint n)
 {
-  // Note: we divide by 4294967808 instead of 2^32 because the latter
-  // leads to a [0.0, 1.0] mapping instead of [0.0, 1.0) due to floating
-  // point rounding error. 4294967808 unfortunately leaves (precisely)
-  // one unused ulp between the max number this outputs and 1.0, but
-  // that's the best you can do with this construction.
+  /* NOTE: we divide by 4294967808 instead of 2^32 because the latter
+   * leads to a [0.0, 1.0] mapping instead of [0.0, 1.0) due to floating
+   * point rounding error. 4294967808 unfortunately leaves (precisely)
+   * one unused ULP between the max number this outputs and 1.0, but
+   * that's the best you can do with this construction. */
   return (float)n * (1.0f / 4294967808.0f);
 }
 

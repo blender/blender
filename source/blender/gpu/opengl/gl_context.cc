@@ -84,6 +84,8 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
   active_fb = back_left;
   static_cast<GLStateManager *>(state_manager)->active_fb = static_cast<GLFrameBuffer *>(
       active_fb);
+
+  compiler = GLBackend::get()->get_compiler();
 }
 
 GLContext::~GLContext()

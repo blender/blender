@@ -131,67 +131,6 @@ enum eAnimCont_Types {
  * \{ */
 
 /**
- * This struct defines a structure used for quick and uniform access for
- * channels of animation data.
- */
-struct bAnimListElem {
-  bAnimListElem *next, *prev;
-
-  /** source data this elem represents */
-  void *data;
-  /** (eAnim_ChannelType) one of the ANIMTYPE_* values */
-  int type;
-  /** copy of elem's flags for quick access */
-  int flag;
-  /** for un-named data, the index of the data in its collection */
-  int index;
-
-  /** (eAnim_Update_Flags)  tag the element for updating */
-  char update;
-  /** tag the included data. Temporary always */
-  char tag;
-
-  /** (eAnim_KeyType) type of motion data to expect */
-  short datatype;
-  /** motion data - mostly F-Curves, but can be other types too */
-  void *key_data;
-
-  /**
-   * \note
-   * id here is the "IdAdtTemplate"-style datablock (e.g. Object, Material, Texture, NodeTree)
-   * from which evaluation of the RNA-paths takes place. It's used to figure out how deep
-   * channels should be nested (e.g. for Textures/NodeTrees) in the tree, and allows property
-   * lookups (e.g. for sliders and for inserting keyframes) to work. If we had instead used
-   * bAction or something similar, none of this would be possible: although it's trivial
-   * to use an IdAdtTemplate type to find the source action a channel (e.g. F-Curve) comes from
-   * (i.e. in the AnimEditors, it *must* be the active action, as only that can be edited),
-   * it's impossible to go the other way (i.e. one action may be used in multiple places).
-   */
-  /** ID block that channel is attached to */
-  ID *id;
-  /** source of the animation data attached to ID block */
-  AnimData *adt;
-
-  /**
-   * For list element which corresponds to a f-curve, this is an ID which
-   * owns the f-curve.
-   *
-   * For example, if the f-curve is coming from Action, this id will be set to
-   * action's ID. But if this is a f-curve which is a driver, then the owner
-   * is set to, for example, object.
-   *
-   * NOTE: this is different from id above. The id above will be set to
-   * an object if the f-curve is coming from action associated with that object.
-   */
-  ID *fcurve_owner_id;
-
-  /**
-   * for per-element F-Curves
-   * (e.g. NLA Control Curves), the element that this represents (e.g. NlaStrip) */
-  void *owner;
-};
-
-/**
  * Some types for easier type-testing
  *
  * \note need to keep the order of these synchronized with the channels define code
@@ -292,10 +231,72 @@ enum eAnim_Update_Flags {
   /** Recalculate handles. */
   ANIM_UPDATE_HANDLES = (1 << 2),
 };
+ENUM_OPERATORS(eAnim_Update_Flags, ANIM_UPDATE_HANDLES);
 
 /* used for most tools which change keyframes (flushed by ANIM_animdata_update) */
 #define ANIM_UPDATE_DEFAULT (ANIM_UPDATE_DEPS | ANIM_UPDATE_ORDER | ANIM_UPDATE_HANDLES)
 #define ANIM_UPDATE_DEFAULT_NOHANDLES (ANIM_UPDATE_DEFAULT & ~ANIM_UPDATE_HANDLES)
+
+/**
+ * This struct defines a structure used for quick and uniform access for
+ * channels of animation data.
+ */
+struct bAnimListElem {
+  bAnimListElem *next, *prev;
+
+  /** source data this elem represents */
+  void *data;
+  /** One of the ANIMTYPE_* values. */
+  eAnim_ChannelType type;
+  /** copy of elem's flags for quick access */
+  int flag;
+  /** for un-named data, the index of the data in its collection */
+  int index;
+
+  /** Tag the element for updating. */
+  eAnim_Update_Flags update;
+  /** tag the included data. Temporary always */
+  char tag;
+
+  /** Type of motion data to expect. */
+  eAnim_KeyType datatype;
+  /** motion data - mostly F-Curves, but can be other types too */
+  void *key_data;
+
+  /**
+   * \note
+   * id here is the "IdAdtTemplate"-style datablock (e.g. Object, Material, Texture, NodeTree)
+   * from which evaluation of the RNA-paths takes place. It's used to figure out how deep
+   * channels should be nested (e.g. for Textures/NodeTrees) in the tree, and allows property
+   * lookups (e.g. for sliders and for inserting keyframes) to work. If we had instead used
+   * bAction or something similar, none of this would be possible: although it's trivial
+   * to use an IdAdtTemplate type to find the source action a channel (e.g. F-Curve) comes from
+   * (i.e. in the AnimEditors, it *must* be the active action, as only that can be edited),
+   * it's impossible to go the other way (i.e. one action may be used in multiple places).
+   */
+  /** ID block that channel is attached to */
+  ID *id;
+  /** source of the animation data attached to ID block */
+  AnimData *adt;
+
+  /**
+   * For list element which corresponds to a f-curve, this is an ID which
+   * owns the f-curve.
+   *
+   * For example, if the f-curve is coming from Action, this id will be set to
+   * action's ID. But if this is a f-curve which is a driver, then the owner
+   * is set to, for example, object.
+   *
+   * NOTE: this is different from id above. The id above will be set to
+   * an object if the f-curve is coming from action associated with that object.
+   */
+  ID *fcurve_owner_id;
+
+  /**
+   * for per-element F-Curves
+   * (e.g. NLA Control Curves), the element that this represents (e.g. NlaStrip) */
+  void *owner;
+};
 
 /** \} */
 
@@ -1043,7 +1044,7 @@ void ANIM_center_frame(bContext *C, int smooth_viewtx);
 /**
  * Add horizontal margin to the rectangle.
  *
- * This function assumes that the xmin/xmax are set to a frame range to show.
+ * This function assumes that the X-min/X-max are set to a frame range to show.
  *
  * \return The new rectangle with horizontal margin added, for visual comfort.
  */

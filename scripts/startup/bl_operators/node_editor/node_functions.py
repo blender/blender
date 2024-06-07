@@ -4,8 +4,6 @@
 
 import bpy
 
-viewer_socket_name = "tmp_viewer"
-
 
 def node_editor_poll(cls, context):
     space = context.space_data
@@ -76,17 +74,12 @@ def is_visible_socket(socket):
     return not socket.hide and socket.enabled and socket.type != 'CUSTOM'
 
 
-def is_viewer_socket(socket):
-    # checks if a internal socket is a valid viewer socket.
-    return socket.name == viewer_socket_name and socket.is_inspect_output
-
-
 def is_viewer_link(link, output_node):
     if link.to_node == output_node and link.to_socket == output_node.inputs[0]:
         return True
     if link.to_node.type == 'GROUP_OUTPUT':
         socket = get_internal_socket(link.to_socket)
-        if is_viewer_socket(socket):
+        if socket.is_inspect_output:
             return True
     return False
 

@@ -129,7 +129,7 @@ void extract_data_vert_faces(const PBVH_GPU_Args &args, const Span<T> attribute,
   const Span<int> tri_faces = args.tri_faces;
   const Span<bool> hide_poly = args.hide_poly;
 
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
   for (const int tri_i : args.prim_indices) {
     if (!hide_poly.is_empty() && hide_poly[tri_faces[tri_i]]) {
       continue;
@@ -151,7 +151,7 @@ void extract_data_face_faces(const PBVH_GPU_Args &args, const Span<T> attribute,
   const Span<int> tri_faces = args.tri_faces;
   const Span<bool> hide_poly = args.hide_poly;
 
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
   for (const int tri_i : args.prim_indices) {
     const int face = tri_faces[tri_i];
     if (!hide_poly.is_empty() && hide_poly[face]) {
@@ -174,7 +174,7 @@ void extract_data_corner_faces(const PBVH_GPU_Args &args,
   const Span<int> tri_faces = args.tri_faces;
   const Span<bool> hide_poly = args.hide_poly;
 
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
   for (const int tri_i : args.prim_indices) {
     if (!hide_poly.is_empty() && hide_poly[tri_faces[tri_i]]) {
       continue;
@@ -207,7 +207,7 @@ void extract_data_vert_bmesh(const PBVH_GPU_Args &args, const int cd_offset, gpu
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
 
   for (const BMFace *f : *args.bm_faces) {
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -228,7 +228,7 @@ void extract_data_face_bmesh(const PBVH_GPU_Args &args, const int cd_offset, gpu
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
 
   for (const BMFace *f : *args.bm_faces) {
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -244,7 +244,7 @@ void extract_data_corner_bmesh(const PBVH_GPU_Args &args, const int cd_offset, g
 {
   using Converter = AttributeConverter<T>;
   using VBOType = typename Converter::VBOType;
-  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(&vbo));
+  VBOType *data = static_cast<VBOType *>(GPU_vertbuf_get_data(vbo));
 
   for (const BMFace *f : *args.bm_faces) {
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -455,7 +455,7 @@ struct PBVHBatches {
     const bke::AttributeAccessor attributes = args.mesh->attributes();
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
 
-    short4 *data = static_cast<short4 *>(GPU_vertbuf_get_data(&vert_buf));
+    short4 *data = static_cast<short4 *>(GPU_vertbuf_get_data(vert_buf));
 
     short4 face_no;
     int last_face = -1;
@@ -492,11 +492,11 @@ struct PBVHBatches {
     uint vert_count = args.grid_indices.size() * vert_per_grid;
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
-    void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
+    void *existing_data = GPU_vertbuf_get_data(*vbo.vert_buf);
 
     if (existing_data == nullptr || existing_num != vert_count) {
       /* Allocate buffer if not allocated yet or size changed. */
-      GPU_vertbuf_data_alloc(vbo.vert_buf, vert_count);
+      GPU_vertbuf_data_alloc(*vbo.vert_buf, vert_count);
     }
 
     GPUVertBufRaw access;
@@ -550,7 +550,7 @@ struct PBVHBatches {
             });
           }
           else {
-            MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)),
+            MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(*vbo.vert_buf)),
                         GPU_vertbuf_get_vertex_len(vbo.vert_buf))
                 .fill(0.0f);
           }
@@ -597,7 +597,7 @@ struct PBVHBatches {
         using Converter = AttributeConverter<T>;
         using VBOType = typename Converter::VBOType;
         if constexpr (!std::is_void_v<VBOType>) {
-          std::fill_n(static_cast<VBOType *>(GPU_vertbuf_get_data(vbo.vert_buf)),
+          std::fill_n(static_cast<VBOType *>(GPU_vertbuf_get_data(*vbo.vert_buf)),
                       GPU_vertbuf_get_vertex_len(vbo.vert_buf),
                       Converter::convert(fallback_value_for_fill<T>()));
         }
@@ -674,11 +674,11 @@ struct PBVHBatches {
     const int totvert = this->count_faces(args) * 3;
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
-    void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
+    void *existing_data = GPU_vertbuf_get_data(*vbo.vert_buf);
 
     if (existing_data == nullptr || existing_num != totvert) {
       /* Allocate buffer if not allocated yet or size changed. */
-      GPU_vertbuf_data_alloc(vbo.vert_buf, totvert);
+      GPU_vertbuf_data_alloc(*vbo.vert_buf, totvert);
     }
 
     gpu::VertBuf &vert_buf = *vbo.vert_buf;
@@ -696,7 +696,7 @@ struct PBVHBatches {
           break;
         }
         case CustomRequest::Mask: {
-          float *data = static_cast<float *>(GPU_vertbuf_get_data(&vert_buf));
+          float *data = static_cast<float *>(GPU_vertbuf_get_data(vert_buf));
           if (const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask",
                                                                    bke::AttrDomain::Point))
           {
@@ -723,7 +723,7 @@ struct PBVHBatches {
           break;
         }
         case CustomRequest::FaceSet: {
-          uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
+          uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vert_buf));
           if (const VArray<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
                                                                     bke::AttrDomain::Face))
           {
@@ -792,7 +792,7 @@ struct PBVHBatches {
   void gpu_flush()
   {
     for (PBVHVbo &vbo : vbos) {
-      if (vbo.vert_buf && GPU_vertbuf_get_data(vbo.vert_buf)) {
+      if (vbo.vert_buf && GPU_vertbuf_get_data(*vbo.vert_buf)) {
         GPU_vertbuf_use(vbo.vert_buf);
       }
     }
@@ -813,13 +813,13 @@ struct PBVHBatches {
     faces_count = tris_count = count_faces(args);
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
-    void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
+    void *existing_data = GPU_vertbuf_get_data(*vbo.vert_buf);
 
     int vert_count = tris_count * 3;
 
     if (existing_data == nullptr || existing_num != vert_count) {
       /* Allocate buffer if not allocated yet or size changed. */
-      GPU_vertbuf_data_alloc(vbo.vert_buf, vert_count);
+      GPU_vertbuf_data_alloc(*vbo.vert_buf, vert_count);
     }
 
     GPUVertBufRaw access;
@@ -836,7 +836,7 @@ struct PBVHBatches {
     if (const CustomRequest *request_type = std::get_if<CustomRequest>(&vbo.request)) {
       switch (*request_type) {
         case CustomRequest::Position: {
-          float3 *data = static_cast<float3 *>(GPU_vertbuf_get_data(vbo.vert_buf));
+          float3 *data = static_cast<float3 *>(GPU_vertbuf_get_data(*vbo.vert_buf));
           for (const BMFace *f : *args.bm_faces) {
             if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
               continue;
@@ -852,7 +852,7 @@ struct PBVHBatches {
           break;
         }
         case CustomRequest::Normal: {
-          short4 *data = static_cast<short4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
+          short4 *data = static_cast<short4 *>(GPU_vertbuf_get_data(*vbo.vert_buf));
           for (const BMFace *f : *args.bm_faces) {
             if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
               continue;
@@ -876,7 +876,7 @@ struct PBVHBatches {
         case CustomRequest::Mask: {
           const int cd_offset = args.cd_mask_layer;
           if (cd_offset != -1) {
-            float *data = static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf));
+            float *data = static_cast<float *>(GPU_vertbuf_get_data(*vbo.vert_buf));
 
             for (const BMFace *f : *args.bm_faces) {
               if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -892,7 +892,7 @@ struct PBVHBatches {
             }
           }
           else {
-            MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(vbo.vert_buf)),
+            MutableSpan(static_cast<float *>(GPU_vertbuf_get_data(*vbo.vert_buf)),
                         GPU_vertbuf_get_vertex_len(vbo.vert_buf))
                 .fill(0.0f);
           }
@@ -902,7 +902,7 @@ struct PBVHBatches {
           const int cd_offset = CustomData_get_offset_named(
               &args.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
-          uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vbo.vert_buf));
+          uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(*vbo.vert_buf));
           if (cd_offset != -1) {
             for (const BMFace *f : *args.bm_faces) {
               if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -1021,7 +1021,7 @@ struct PBVHBatches {
     }
 
     vbos.append_as(request);
-    vbos.last().vert_buf = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STATIC);
+    vbos.last().vert_buf = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC);
     fill_vbo(vbos.last(), args);
 
     return vbos.index_range().last();

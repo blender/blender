@@ -258,7 +258,7 @@ template<typename T, int Size>
 }
 
 template<typename T, int Size>
-void min_max(const VecBase<T, Size> &vector, VecBase<T, Size> &min, VecBase<T, Size> &max)
+inline void min_max(const VecBase<T, Size> &vector, VecBase<T, Size> &min, VecBase<T, Size> &max)
 {
   min = math::min(vector, min);
   max = math::max(vector, max);

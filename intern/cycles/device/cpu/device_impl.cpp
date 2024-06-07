@@ -55,8 +55,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_)
-    : Device(info_, stats_, profiler_), texture_info(this, "texture_info", MEM_GLOBAL)
+CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_)
+    : Device(info_, stats_, profiler_, headless_), texture_info(this, "texture_info", MEM_GLOBAL)
 {
   /* Pick any kernel, all of them are supposed to have same level of microarchitecture
    * optimization. */

@@ -26,7 +26,7 @@ class MyPanel(bpy.types.Panel):
 
 classes = [
     MyPropGroup,
-    MyPanel
+    MyPanel,
 ]
 
 class_register, class_unregister = bpy.utils.register_classes_factory(classes)

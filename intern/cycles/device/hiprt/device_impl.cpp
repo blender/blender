@@ -57,8 +57,8 @@ BVHLayoutMask HIPRTDevice::get_bvh_layout_mask(const uint /* kernel_features */)
   return BVH_LAYOUT_HIPRT;
 }
 
-HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
-    : HIPDevice(info, stats, profiler),
+HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+    : HIPDevice(info, stats, profiler, headless),
       global_stack_buffer(this, "global_stack_buffer", MEM_DEVICE_ONLY),
       hiprt_context(NULL),
       scene(NULL),

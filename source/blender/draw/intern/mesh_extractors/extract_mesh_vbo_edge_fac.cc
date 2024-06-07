@@ -131,9 +131,9 @@ void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
     if (format.attr_len == 0) {
       GPU_vertformat_attr_add(&format, "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     }
-    GPU_vertbuf_init_with_format(&vbo, &format);
-    GPU_vertbuf_data_alloc(&vbo, mr.corners_num + mr.loose_indices_num);
-    MutableSpan vbo_data(static_cast<float *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
+    GPU_vertbuf_init_with_format(vbo, format);
+    GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
+    MutableSpan vbo_data(static_cast<float *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
     if (mr.extract_type == MR_EXTRACT_MESH) {
       extract_edge_factor_mesh(mr, vbo_data);
     }
@@ -147,9 +147,9 @@ void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
     if (format.attr_len == 0) {
       GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
     }
-    GPU_vertbuf_init_with_format(&vbo, &format);
-    GPU_vertbuf_data_alloc(&vbo, mr.corners_num + mr.loose_indices_num);
-    MutableSpan vbo_data(static_cast<uint8_t *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
+    GPU_vertbuf_init_with_format(vbo, format);
+    GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
+    MutableSpan vbo_data(static_cast<uint8_t *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
     if (mr.extract_type == MR_EXTRACT_MESH) {
       extract_edge_factor_mesh(mr, vbo_data);
     }
@@ -162,7 +162,7 @@ void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
 
 /* Different function than the one used for the non-subdivision case, as we directly take care of
  * the buggy AMD driver case. */
-static GPUVertFormat *get_subdiv_edge_fac_format()
+static const GPUVertFormat &get_subdiv_edge_fac_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -173,7 +173,7 @@ static GPUVertFormat *get_subdiv_edge_fac_format()
       GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
     }
   }
-  return &format;
+  return format;
 }
 
 static gpu::VertBuf *build_poly_other_map_vbo(const DRWSubdivCache &subdiv_cache)
@@ -185,10 +185,10 @@ static gpu::VertBuf *build_poly_other_map_vbo(const DRWSubdivCache &subdiv_cache
     GPU_vertformat_attr_add(&format, "poly_other", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
 
-  GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, subdiv_cache.num_subdiv_loops);
+  GPU_vertbuf_init_with_format(*vbo, format);
+  GPU_vertbuf_data_alloc(*vbo, subdiv_cache.num_subdiv_loops);
 
-  MutableSpan vbo_data{static_cast<int *>(GPU_vertbuf_get_data(vbo)),
+  MutableSpan vbo_data{static_cast<int *>(GPU_vertbuf_get_data(*vbo)),
                        subdiv_cache.num_subdiv_loops};
 
   Array<MEdgeDataPrev> edge_data(subdiv_cache.num_subdiv_edges);
@@ -228,7 +228,7 @@ void extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
                                 gpu::VertBuf &pos_nor,
                                 gpu::VertBuf &vbo)
 {
-  GPU_vertbuf_init_build_on_device(&vbo,
+  GPU_vertbuf_init_build_on_device(vbo,
                                    get_subdiv_edge_fac_format(),
                                    subdiv_cache.num_subdiv_loops +
                                        subdiv_loose_edges_num(mr, subdiv_cache) * 2);

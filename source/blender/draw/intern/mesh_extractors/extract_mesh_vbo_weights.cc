@@ -120,9 +120,9 @@ void extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache, gpu:
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
-  GPU_vertbuf_init_with_format(&vbo, &format);
-  GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
-  MutableSpan<float> vbo_data(static_cast<float *>(GPU_vertbuf_get_data(&vbo)), mr.corners_num);
+  GPU_vertbuf_init_with_format(vbo, format);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
+  MutableSpan<float> vbo_data(static_cast<float *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
 
   const DRW_MeshWeightState &weight_state = cache.weight_state;
   if (weight_state.defgroup_active == -1) {
@@ -147,12 +147,12 @@ void extract_weights_subdiv(const MeshRenderData &mr,
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
-  GPU_vertbuf_init_build_on_device(&vbo, &format, subdiv_cache.num_subdiv_loops);
+  GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);
 
   gpu::VertBuf *coarse_weights = GPU_vertbuf_calloc();
   extract_weights(mr, cache, *coarse_weights);
 
-  draw_subdiv_interp_custom_data(subdiv_cache, coarse_weights, &vbo, GPU_COMP_F32, 1, 0);
+  draw_subdiv_interp_custom_data(subdiv_cache, *coarse_weights, vbo, GPU_COMP_F32, 1, 0);
 
   GPU_vertbuf_discard(coarse_weights);
 }

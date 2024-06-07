@@ -57,8 +57,12 @@ FileOutputOperation::FileOutputOperation(const CompositorContext *context,
                                          Vector<FileOutputInput> inputs)
     : context_(context), node_data_(node_data), file_output_inputs_(inputs)
 {
+  /* Inputs for multi-layer files need to be the same size, while they can be different for
+   * individual file outputs. */
+  const ResizeMode resize_mode = this->is_multi_layer() ? ResizeMode::Center : ResizeMode::None;
+
   for (const FileOutputInput &input : inputs) {
-    add_input_socket(input.data_type);
+    add_input_socket(input.data_type, resize_mode);
   }
   this->set_canvas_input_index(RESOLUTION_INPUT_ANY);
 }
@@ -71,13 +75,14 @@ void FileOutputOperation::init_execution()
     if (!input.image_input) {
       continue;
     }
-    input.output_buffer = initialize_buffer(get_width(), get_height(), input.data_type);
+    input.output_buffer = initialize_buffer(
+        input.image_input->get_width(), input.image_input->get_height(), input.data_type);
   }
 }
 
-void FileOutputOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
-                                                       const rcti &area,
-                                                       Span<MemoryBuffer *> inputs)
+void FileOutputOperation::update_memory_buffer(MemoryBuffer * /*output*/,
+                                               const rcti & /*area*/,
+                                               Span<MemoryBuffer *> inputs)
 {
   for (int i = 0; i < file_output_inputs_.size(); i++) {
     const FileOutputInput &input = file_output_inputs_[i];
@@ -86,8 +91,9 @@ void FileOutputOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/
     }
 
     int channels_count = get_channels_count(input.data_type);
-    MemoryBuffer output_buf(input.output_buffer, channels_count, get_width(), get_height());
-    output_buf.copy_from(inputs[i], area, 0, inputs[i]->get_num_channels(), 0);
+    MemoryBuffer output_buf(
+        input.output_buffer, channels_count, inputs[i]->get_width(), inputs[i]->get_height());
+    output_buf.copy_from(inputs[i], inputs[i]->get_rect(), 0, inputs[i]->get_num_channels(), 0);
   }
 }
 
@@ -139,7 +145,6 @@ void FileOutputOperation::deinit_execution()
 
 void FileOutputOperation::execute_single_layer()
 {
-  const int2 size = int2(get_width(), get_height());
   for (const FileOutputInput &input : file_output_inputs_) {
     /* We only write images, not single values. */
     if (!input.image_input || input.image_input->get_flags().is_constant_operation) {
@@ -170,6 +175,7 @@ void FileOutputOperation::execute_single_layer()
     char image_path[FILE_MAX];
     get_single_layer_image_path(base_path, format, image_path);
 
+    const int2 size = int2(input.image_input->get_width(), input.image_input->get_height());
     realtime_compositor::FileOutput &file_output = context_->get_render_context()->get_file_output(
         image_path, format, size, input.data->save_as_render);
 
@@ -195,9 +201,9 @@ void FileOutputOperation::execute_single_layer_multi_view_exr(const FileOutputIn
   const char *path_view = has_views ? "" : context_->get_view_name();
   get_multi_layer_exr_image_path(base_path, path_view, image_path);
 
-  const int2 size = int2(get_width(), get_height());
+  const int2 size = int2(input.image_input->get_width(), input.image_input->get_height());
   realtime_compositor::FileOutput &file_output = context_->get_render_context()->get_file_output(
-      image_path, format, size, false);
+      image_path, format, size, true);
 
   /* The EXR stores all views in the same file, so we add the actual render view. Otherwise, we
    * add a default unnamed view. */
@@ -226,7 +232,7 @@ void FileOutputOperation::execute_multi_layer()
   const int2 size = int2(get_width(), get_height());
   const ImageFormatData format = node_data_->format;
   realtime_compositor::FileOutput &file_output = context_->get_render_context()->get_file_output(
-      image_path, format, size, false);
+      image_path, format, size, true);
 
   /* If we are saving views in separate files, we needn't store the view in the channel names, so
    * we add an unnamed view. */
