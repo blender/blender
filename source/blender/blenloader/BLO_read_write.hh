@@ -36,6 +36,7 @@
 #include "DNA_windowmanager_types.h" /* for eReportType */
 
 #include "BLI_function_ref.hh"
+#include "BLI_implicit_sharing.hh"
 
 namespace blender {
 class ImplicitSharingInfo;
@@ -291,10 +292,10 @@ void BLO_read_string(BlendDataReader *reader, const char **ptr_p);
 
 /* Misc. */
 
-void blo_read_shared_impl(BlendDataReader *reader,
-                          void *data,
-                          const blender::ImplicitSharingInfo **r_sharing_info,
-                          blender::FunctionRef<const blender::ImplicitSharingInfo *()> read_fn);
+blender::ImplicitSharingInfoAndData blo_read_shared_impl(
+    BlendDataReader *reader,
+    const void **ptr_p,
+    blender::FunctionRef<const blender::ImplicitSharingInfo *()> read_fn);
 
 /**
  * Check if there is any shared data for the given data pointer. If yes, return the existing
@@ -306,9 +307,12 @@ const blender::ImplicitSharingInfo *BLO_read_shared(
     T **data_ptr,
     blender::FunctionRef<const blender::ImplicitSharingInfo *()> read_fn)
 {
-  const blender::ImplicitSharingInfo *sharing_info;
-  blo_read_shared_impl(reader, *data_ptr, &sharing_info, read_fn);
-  return sharing_info;
+  blender::ImplicitSharingInfoAndData shared_data = blo_read_shared_impl(
+      reader, (const void **)data_ptr, read_fn);
+  /* Need const-cast here, because not all DNA members that reference potentially shared data are
+   * const yet. */
+  *data_ptr = const_cast<T *>(static_cast<const T *>(shared_data.data));
+  return shared_data.sharing_info;
 }
 
 int BLO_read_fileversion_get(BlendDataReader *reader);
