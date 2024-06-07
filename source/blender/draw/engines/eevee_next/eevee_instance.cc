@@ -352,24 +352,26 @@ void Instance::render_sync()
   DRW_curves_update();
 }
 
-bool Instance::needs_lightprobe_sphere_passes() const
-{
-  return sphere_probes.update_probes_this_sample_;
-}
-
 bool Instance::do_lightprobe_sphere_sync() const
 {
-  return (materials.queued_shaders_count == 0) && needs_lightprobe_sphere_passes();
-}
-
-bool Instance::needs_planar_probe_passes() const
-{
-  return planar_probes.update_probes_;
+  if (!sphere_probes.update_probes_this_sample_) {
+    return false;
+  }
+  if (materials.queued_shaders_count > 0) {
+    return false;
+  }
+  return true;
 }
 
 bool Instance::do_planar_probe_sync() const
 {
-  return (materials.queued_shaders_count == 0) && needs_planar_probe_passes();
+  if (!planar_probes.update_probes_) {
+    return false;
+  }
+  if (materials.queued_shaders_count > 0) {
+    return false;
+  }
+  return true;
 }
 
 /** \} */
