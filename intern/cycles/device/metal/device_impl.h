@@ -106,7 +106,7 @@ class MetalDevice : public Device {
 
   void set_error(const string &error) override;
 
-  MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
+  MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
 
   virtual ~MetalDevice();
 

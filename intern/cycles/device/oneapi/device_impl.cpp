@@ -47,8 +47,8 @@ static void queue_error_cb(const char *message, void *user_ptr)
   }
 }
 
-OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
-    : GPUDevice(info, stats, profiler),
+OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+    : GPUDevice(info, stats, profiler, headless),
       device_queue_(nullptr),
 #  ifdef WITH_EMBREE_GPU
       embree_device(nullptr),

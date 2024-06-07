@@ -42,7 +42,7 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
   pause_ = false;
   new_work_added_ = false;
 
-  device = Device::create(params.device, stats, profiler);
+  device = Device::create(params.device, stats, profiler, params_.headless);
 
   if (device->have_error()) {
     progress.set_error(device->error_message());
@@ -54,7 +54,7 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
     denoise_device = device;
   }
   else {
-    denoise_device = Device::create(params.denoise_device, stats, profiler);
+    denoise_device = Device::create(params.denoise_device, stats, profiler, params_.headless);
 
     if (denoise_device->have_error()) {
       progress.set_error(denoise_device->error_message());

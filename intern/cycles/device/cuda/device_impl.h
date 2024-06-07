@@ -43,7 +43,7 @@ class CUDADevice : public GPUDevice {
 
   void set_error(const string &error) override;
 
-  CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
+  CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
 
   virtual ~CUDADevice();
 
