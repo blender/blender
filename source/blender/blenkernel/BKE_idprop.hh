@@ -208,7 +208,7 @@ bool IDP_EqualsProperties(const IDProperty *prop1,
                           const IDProperty *prop2) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * Allocate a new ID.
+ * Allocate a new IDProperty.
  *
  * This function takes three arguments: the ID property type, a union which defines
  * its initial value, and a name.

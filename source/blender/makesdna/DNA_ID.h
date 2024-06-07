@@ -226,7 +226,7 @@ typedef enum eIDPropertySubType {
 /** #IDProperty.flag. */
 enum {
   /**
-   * This #IDProperty may be statically overridden.
+   * This #IDProperty may be library-overridden.
    * Should only be used/be relevant for custom properties.
    */
   IDP_FLAG_OVERRIDABLE_LIBRARY = 1 << 0,
