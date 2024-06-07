@@ -876,7 +876,7 @@ static void generate_specialization_constant_declarations(const shader::ShaderCr
                                                           std::stringstream &ss)
 {
   uint index = MTL_SHADER_SPECIALIZATION_CONSTANT_BASE_ID;
-  for (const ShaderCreateInfo::SpecializationConstant &sc : info->specialization_constants_) {
+  for (const SpecializationConstant &sc : info->specialization_constants_) {
     /* TODO(Metal): Output specialization constant chain. */
     ss << "constant " << sc.type << " " << sc.name << " [[function_constant(" << index << ")]];\n";
     index++;

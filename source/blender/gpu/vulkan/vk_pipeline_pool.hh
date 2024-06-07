@@ -24,7 +24,7 @@ namespace gpu {
 struct VKComputeInfo {
   VkShaderModule vk_shader_module;
   VkPipelineLayout vk_pipeline_layout;
-  Vector<shader::ShaderCreateInfo::SpecializationConstant::Value> specialization_constants;
+  Vector<shader::SpecializationConstant::Value> specialization_constants;
 
   bool operator==(const VKComputeInfo &other) const
   {

@@ -844,24 +844,14 @@ static void multires_unsubdivide_get_grid_corners_on_base_mesh(BMFace *f1,
   while (edge_x && !BM_elem_flag_test(current_vertex_x, BM_ELEM_TAG)) {
     edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
   }
-  if (edge_x) {
-    *r_corner_x = current_vertex_x;
-  }
-  else {
-    *r_corner_x = nullptr;
-  }
+  *r_corner_x = current_vertex_x;
 
   /* Same for y axis */
   edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
   while (edge_y && !BM_elem_flag_test(current_vertex_y, BM_ELEM_TAG)) {
     edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
   }
-  if (edge_y) {
-    *r_corner_y = current_vertex_y;
-  }
-  else {
-    *r_corner_y = nullptr;
-  }
+  *r_corner_y = current_vertex_y;
 }
 
 static BMesh *get_bmesh_from_mesh(Mesh *mesh)
@@ -1060,6 +1050,9 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
       /* Map the two obtained vertices to the base mesh. */
       const int corner_x_index = orig_to_base_vmap[BM_elem_index_get(corner_x)];
       const int corner_y_index = orig_to_base_vmap[BM_elem_index_get(corner_y)];
+      if (corner_x_index < 0 || corner_y_index < 0) {
+        continue;
+      }
 
       /* Iterate over the loops of the same vertex in the base mesh. With the previously obtained
        * vertices and the current vertex it is possible to get the index of the loop in the base
