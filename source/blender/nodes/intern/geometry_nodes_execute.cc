@@ -375,42 +375,160 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
   return nullptr;
 }
 
-bool id_property_type_matches_socket(const bNodeTreeInterfaceSocket &socket,
-                                     const IDProperty &property,
-                                     const bool use_name_for_ids)
+static bool old_id_property_type_matches_socket_convert_to_new_int(const IDProperty &old_property,
+                                                                   IDProperty *new_property)
+{
+  if (old_property.type != IDP_INT) {
+    return false;
+  }
+  if (new_property) {
+    BLI_assert(new_property->type == IDP_INT);
+    IDP_Int(new_property) = IDP_Int(&old_property);
+  }
+  return true;
+}
+
+static bool old_id_property_type_matches_socket_convert_to_new_float_vec(
+    const IDProperty &old_property, IDProperty *new_property, const int len)
+{
+  if (!(old_property.type == IDP_ARRAY &&
+        ELEM(old_property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && old_property.len == len))
+  {
+    return false;
+  }
+
+  if (new_property) {
+    BLI_assert(new_property->type == IDP_ARRAY && new_property->subtype == IDP_FLOAT &&
+               new_property->len == len);
+
+    switch (old_property.subtype) {
+      case IDP_DOUBLE: {
+        double *const old_value = static_cast<double *const>(IDP_Array(&old_property));
+        float *new_value = static_cast<float *>(new_property->data.pointer);
+        for (int i = 0; i < len; i++) {
+          new_value[i] = float(old_value[i]);
+        }
+        break;
+      }
+      case IDP_INT: {
+        int *const old_value = static_cast<int *const>(IDP_Array(&old_property));
+        float *new_value = static_cast<float *>(new_property->data.pointer);
+        for (int i = 0; i < len; i++) {
+          new_value[i] = float(old_value[i]);
+        }
+        break;
+      }
+      case IDP_FLOAT: {
+        float *const old_value = static_cast<float *const>(IDP_Array(&old_property));
+        memcpy(new_property->data.pointer, old_value, sizeof(float) * size_t(len));
+        break;
+      }
+    }
+  }
+  return true;
+}
+
+static bool old_id_property_type_matches_socket_convert_to_new_string(
+    const IDProperty &old_property, IDProperty *new_property)
+{
+  if (old_property.type != IDP_STRING || new_property->subtype != IDP_STRING_SUB_UTF8) {
+    return false;
+  }
+  if (new_property) {
+    BLI_assert(new_property->type == IDP_STRING && new_property->subtype == IDP_STRING_SUB_UTF8);
+    IDP_AssignString(new_property, IDP_String(&old_property));
+  }
+  return true;
+}
+
+/**
+ * Check if the given `old_property` property type is compatible with the given `socket` type. E.g.
+ * a `SOCK_FLOAT` socket can use data from `IDP_FLOAT`, `IDP_INT` and `IDP_DOUBLE` idproperties.
+ *
+ * If `new_property` is given, it is expected to be of the 'perfect match' type with the given
+ * `socket` (see #id_property_create_from_socket), and its value will be set from the value of
+ * `old_property`, if possible.
+ */
+static bool old_id_property_type_matches_socket_convert_to_new(
+    const bNodeTreeInterfaceSocket &socket,
+    const IDProperty &old_property,
+    IDProperty *new_property,
+    const bool use_name_for_ids)
 {
   const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
   const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
   switch (type) {
     case SOCK_FLOAT:
-      return ELEM(property.type, IDP_FLOAT, IDP_DOUBLE);
+      if (!ELEM(old_property.type, IDP_FLOAT, IDP_INT, IDP_DOUBLE)) {
+        return false;
+      }
+      if (new_property) {
+        BLI_assert(new_property->type == IDP_FLOAT);
+        switch (old_property.type) {
+          case IDP_DOUBLE:
+            IDP_Float(new_property) = float(IDP_Double(&old_property));
+            break;
+          case IDP_INT:
+            IDP_Float(new_property) = float(IDP_Int(&old_property));
+            break;
+          case IDP_FLOAT:
+            IDP_Float(new_property) = IDP_Float(&old_property);
+            break;
+        }
+      }
+      return true;
     case SOCK_INT:
-      return property.type == IDP_INT;
+      return old_id_property_type_matches_socket_convert_to_new_int(old_property, new_property);
     case SOCK_VECTOR:
     case SOCK_ROTATION:
-      return property.type == IDP_ARRAY &&
-             ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && property.len == 3;
+      return old_id_property_type_matches_socket_convert_to_new_float_vec(
+          old_property, new_property, 3);
     case SOCK_RGBA:
-      return property.type == IDP_ARRAY &&
-             ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && property.len == 4;
+      return old_id_property_type_matches_socket_convert_to_new_float_vec(
+          old_property, new_property, 4);
     case SOCK_BOOLEAN:
       if (is_layer_selection_field(socket)) {
-        return property.type == IDP_STRING;
+        return old_id_property_type_matches_socket_convert_to_new_string(old_property,
+                                                                         new_property);
       }
-      return property.type == IDP_BOOLEAN;
+      if (!ELEM(old_property.type, IDP_BOOLEAN, IDP_INT)) {
+        return false;
+      }
+      /* Exception: Do conversion from old Integer property (for versioning from older data model),
+       * but do not consider int idprop as a valid input for a bool socket. */
+      if (new_property) {
+        BLI_assert(new_property->type == IDP_BOOLEAN);
+        switch (old_property.type) {
+          case IDP_INT:
+            IDP_Bool(new_property) = bool(IDP_Int(&old_property));
+            break;
+          case IDP_BOOLEAN:
+            IDP_Bool(new_property) = IDP_Bool(&old_property);
+            break;
+        }
+      }
+      return old_property.type == IDP_BOOLEAN;
     case SOCK_STRING:
-      return property.type == IDP_STRING;
+      return old_id_property_type_matches_socket_convert_to_new_string(old_property, new_property);
     case SOCK_MENU:
-      return property.type == IDP_INT;
+      return old_id_property_type_matches_socket_convert_to_new_int(old_property, new_property);
     case SOCK_OBJECT:
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
     case SOCK_IMAGE:
     case SOCK_MATERIAL:
       if (use_name_for_ids) {
-        return property.type == IDP_STRING;
+        return old_id_property_type_matches_socket_convert_to_new_string(old_property,
+                                                                         new_property);
       }
-      return property.type == IDP_ID;
+      if (old_property.type != IDP_ID) {
+        return false;
+      }
+      if (new_property) {
+        BLI_assert(new_property->type == IDP_ID);
+        new_property->data.pointer = IDP_Id(&old_property);
+      }
+      return true;
     case SOCK_CUSTOM:
     case SOCK_MATRIX:
     case SOCK_GEOMETRY:
@@ -419,6 +537,14 @@ bool id_property_type_matches_socket(const bNodeTreeInterfaceSocket &socket,
   }
   BLI_assert_unreachable();
   return false;
+}
+
+bool id_property_type_matches_socket(const bNodeTreeInterfaceSocket &socket,
+                                     const IDProperty &property,
+                                     const bool use_name_for_ids)
+{
+  return old_id_property_type_matches_socket_convert_to_new(
+      socket, property, nullptr, use_name_for_ids);
 }
 
 static void init_socket_cpp_value_from_property(const IDProperty &property,
@@ -937,22 +1063,10 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
       const IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties,
                                                             socket_identifier.c_str());
       if (old_prop != nullptr) {
-        if (nodes::id_property_type_matches_socket(socket, *old_prop, use_name_for_ids)) {
-          /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
-           * want to replace the values). So release it temporarily and replace it after. */
-          IDPropertyUIData *ui_data = new_prop->ui_data;
-          new_prop->ui_data = nullptr;
-          IDP_CopyPropertyContent(new_prop, old_prop);
-          if (new_prop->ui_data != nullptr) {
-            IDP_ui_data_free(new_prop);
-          }
-          new_prop->ui_data = ui_data;
-        }
-        else if (old_prop->type == IDP_INT && new_prop->type == IDP_BOOLEAN) {
-          /* Support versioning from integer to boolean property values. The actual value is stored
-           * in the same variable for both types. */
-          new_prop->data.val = old_prop->data.val != 0;
-        }
+        /* Re-use the value (and only the value!) from the old property if possible, handling
+         * conversion to new property's type as needed. */
+        nodes::old_id_property_type_matches_socket_convert_to_new(
+            socket, *old_prop, new_prop, use_name_for_ids);
       }
     }
 
