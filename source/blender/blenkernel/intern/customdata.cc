@@ -5470,8 +5470,6 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
 
   BLO_read_struct(reader, CustomDataExternal, &data->external);
 
-  blender::Map<void *, const ImplicitSharingInfo *> sharing_info_by_data;
-
   int i = 0;
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
@@ -5488,17 +5486,8 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
             if (layer->data == nullptr) {
               return nullptr;
             }
-            const ImplicitSharingInfo *sharing_info = sharing_info_by_data.lookup_default(
-                layer->data, nullptr);
-            if (sharing_info != nullptr) {
-              sharing_info->add_user();
-            }
-            else {
-              sharing_info = make_implicit_sharing_info_for_layer(
-                  eCustomDataType(layer->type), layer->data, count);
-              sharing_info_by_data.add(layer->data, sharing_info);
-            }
-            return sharing_info;
+            return make_implicit_sharing_info_for_layer(
+                eCustomDataType(layer->type), layer->data, count);
           });
       i++;
     }
