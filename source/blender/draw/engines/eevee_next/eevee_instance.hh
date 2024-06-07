@@ -75,8 +75,6 @@ class Instance {
   uint64_t depsgraph_last_update_ = 0;
   bool overlays_enabled_ = false;
 
-  bool shaders_are_ready_ = true;
-
  public:
   ShaderModule &shaders;
   SyncModule sync;

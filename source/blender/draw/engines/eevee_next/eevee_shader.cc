@@ -53,27 +53,19 @@ ShaderModule::ShaderModule()
     shader = nullptr;
   }
 
-  Vector<const GPUShaderCreateInfo *> infos;
-  infos.reserve(MAX_SHADER_TYPE);
-
+#ifndef NDEBUG
+  /* Ensure all shader are described. */
   for (auto i : IndexRange(MAX_SHADER_TYPE)) {
     const char *name = static_shader_create_info_name_get(eShaderType(i));
-    const GPUShaderCreateInfo *create_info = GPU_shader_create_info_get(name);
-    infos.append(create_info);
-
-#ifndef NDEBUG
     if (name == nullptr) {
       std::cerr << "EEVEE: Missing case for eShaderType(" << i
                 << ") in static_shader_create_info_name_get().";
       BLI_assert(0);
     }
+    const GPUShaderCreateInfo *create_info = GPU_shader_create_info_get(name);
     BLI_assert_msg(create_info != nullptr, "EEVEE: Missing create info for static shader.");
+  }
 #endif
-  }
-
-  if (GPU_use_parallel_compilation()) {
-    compilation_handle_ = GPU_shader_batch_create_from_infos(infos);
-  }
 }
 
 ShaderModule::~ShaderModule()
@@ -89,22 +81,6 @@ ShaderModule::~ShaderModule()
 /** \name Static shaders
  *
  * \{ */
-
-bool ShaderModule::is_ready(bool block)
-{
-  if (compilation_handle_ == 0) {
-    return true;
-  }
-
-  if (block || GPU_shader_batch_is_ready(compilation_handle_)) {
-    Vector<GPUShader *> shaders = GPU_shader_batch_finalize(compilation_handle_);
-    for (int i : IndexRange(MAX_SHADER_TYPE)) {
-      shaders_[i] = shaders[i];
-    }
-  }
-
-  return compilation_handle_ == 0;
-}
 
 const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_type)
 {
@@ -324,16 +300,15 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
 
 GPUShader *ShaderModule::static_shader_get(eShaderType shader_type)
 {
-  BLI_assert(is_ready());
   if (shaders_[shader_type] == nullptr) {
     const char *shader_name = static_shader_create_info_name_get(shader_type);
-    if (GPU_use_parallel_compilation()) {
+
+    shaders_[shader_type] = GPU_shader_create_from_info_name(shader_name);
+
+    if (shaders_[shader_type] == nullptr) {
       fprintf(stderr, "EEVEE: error: Could not compile static shader \"%s\"\n", shader_name);
-      BLI_assert(0);
     }
-    else {
-      shaders_[shader_type] = GPU_shader_create_from_info_name(shader_name);
-    }
+    BLI_assert(shaders_[shader_type] != nullptr);
   }
   return shaders_[shader_type];
 }
