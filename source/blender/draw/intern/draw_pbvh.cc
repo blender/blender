@@ -1031,21 +1031,23 @@ void PBVHBatches::update_pre(const PBVH_GPU_Args &args)
   }
 }
 
-static gpu::IndexBuf *create_index_faces(const PBVH_GPU_Args &args)
+static gpu::IndexBuf *create_index_faces(const Span<int2> edges,
+                                         const Span<int> corner_verts,
+                                         const Span<int> corner_edges,
+                                         const Span<int3> corner_tris,
+                                         const Span<int> tri_faces,
+                                         const Span<bool> hide_poly,
+                                         const Span<int> tri_indices)
 {
-  const Span<int2> edges = args.mesh->edges();
 
   /* Calculate number of edges. */
   int edge_count = 0;
-  for (const int tri_i : args.prim_indices) {
-    const int face_i = args.tri_faces[tri_i];
-    if (!args.hide_poly.is_empty() && args.hide_poly[face_i]) {
+  for (const int tri_i : tri_indices) {
+    if (!hide_poly.is_empty() && hide_poly[tri_faces[tri_i]]) {
       continue;
     }
-
     const int3 real_edges = bke::mesh::corner_tri_get_real_edges(
-        edges, args.corner_verts, args.corner_edges, args.corner_tris[tri_i]);
-
+        edges, corner_verts, corner_edges, corner_tris[tri_i]);
     if (real_edges[0] != -1) {
       edge_count++;
     }
@@ -1057,33 +1059,39 @@ static gpu::IndexBuf *create_index_faces(const PBVH_GPU_Args &args)
     }
   }
 
-  GPUIndexBufBuilder elb_lines;
-  GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, edge_count, INT_MAX);
+  GPUIndexBufBuilder builder;
+  GPU_indexbuf_init(&builder, GPU_PRIM_LINES, edge_count, INT_MAX);
+  MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
 
-  int vertex_i = 0;
-  for (const int tri_i : args.prim_indices) {
-    const int face_i = args.tri_faces[tri_i];
-    if (!args.hide_poly.is_empty() && args.hide_poly[face_i]) {
+  int edge_i = 0;
+  int vert_i = 0;
+  for (const int tri_i : tri_indices) {
+    if (!hide_poly.is_empty() && hide_poly[tri_faces[tri_i]]) {
       continue;
     }
 
     const int3 real_edges = bke::mesh::corner_tri_get_real_edges(
-        edges, args.corner_verts, args.corner_edges, args.corner_tris[tri_i]);
+        edges, corner_verts, corner_edges, corner_tris[tri_i]);
 
     if (real_edges[0] != -1) {
-      GPU_indexbuf_add_line_verts(&elb_lines, vertex_i, vertex_i + 1);
+      data[edge_i] = uint2(vert_i, vert_i + 1);
+      edge_i++;
     }
     if (real_edges[1] != -1) {
-      GPU_indexbuf_add_line_verts(&elb_lines, vertex_i + 1, vertex_i + 2);
+      data[edge_i] = uint2(vert_i + 1, vert_i + 2);
+      edge_i++;
     }
     if (real_edges[2] != -1) {
-      GPU_indexbuf_add_line_verts(&elb_lines, vertex_i + 2, vertex_i);
+      data[edge_i] = uint2(vert_i + 2, vert_i);
+      edge_i++;
     }
 
-    vertex_i += 3;
+    vert_i += 3;
   }
 
-  return GPU_indexbuf_build(&elb_lines);
+  gpu::IndexBuf *ibo = GPU_indexbuf_calloc();
+  GPU_indexbuf_build_in_place_ex(&builder, 0, vert_i, false, ibo);
+  return ibo;
 }
 
 static gpu::IndexBuf *create_index_bmesh(const PBVH_GPU_Args &args, const int visible_faces_num)
@@ -1318,7 +1326,13 @@ void PBVHBatches::create_index(const PBVH_GPU_Args &args)
 {
   switch (args.pbvh_type) {
     case PBVH_FACES:
-      lines_index = create_index_faces(args);
+      lines_index = create_index_faces(args.mesh->edges(),
+                                       args.corner_verts,
+                                       args.corner_edges,
+                                       args.corner_tris,
+                                       args.tri_faces,
+                                       args.hide_poly,
+                                       args.prim_indices);
       break;
     case PBVH_BMESH:
       lines_index = create_index_bmesh(args, faces_count);
