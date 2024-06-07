@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Blender Foundation
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # This is a data file that is evaluated directly (not imported).
 # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
 {
