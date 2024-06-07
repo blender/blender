@@ -406,6 +406,8 @@ static IDProperty *IDP_CopyString(const IDProperty *prop, const int flag)
   return newp;
 }
 
+/* FIXME: This function is broken for bytes (in case there are null chars in it), needs a
+ * dedicated function which takes directly the size of the byte buffer. */
 void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, const size_t st_maxncpy)
 {
   BLI_assert(prop->type == IDP_STRING);
@@ -421,6 +423,7 @@ void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, const size_t st_m
   }
 }
 
+/* FIXME: Should never be called for `byte` subtype, needs an assert. */
 void IDP_AssignString(IDProperty *prop, const char *st)
 {
   IDP_AssignStringMaxSize(prop, st, 0);
@@ -997,6 +1000,9 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
       prop->data.val = bool(val->i);
       break;
     case IDP_ARRAY: {
+      /* FIXME: This seems to be the only place in code allowing `IDP_GROUP` as subtype of an
+       * `IDP_ARRAY`. This is most likely a mistake. `IDP_GROUP` array should be of type
+       * `IDP_IDPARRAY`, as done e.g. in #idp_from_PySequence_Buffer in bpy API. */
       if (ELEM(val->array.type, IDP_FLOAT, IDP_INT, IDP_DOUBLE, IDP_GROUP, IDP_BOOLEAN)) {
         prop = static_cast<IDProperty *>(MEM_callocN(sizeof(IDProperty), "IDProperty array"));
         prop->subtype = val->array.type;

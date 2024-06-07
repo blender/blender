@@ -328,7 +328,8 @@ static PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
   return BPy_IDGroup_WrapData(self->owner_id, idprop, self->prop);
 }
 
-/* returns nullptr on success, error string on failure */
+/* Return identified matching IDProperty type, or -1 if error (e.g. mixed and/or incompatible
+ * types, etc.). */
 static char idp_sequence_type(PyObject *seq_fast)
 {
   PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
@@ -346,6 +347,7 @@ static char idp_sequence_type(PyObject *seq_fast)
       type = IDP_DOUBLE;
     }
     else if (PyBool_Check(item)) {
+      /* Mixed boolean and any other type. */
       if (i != 0 && (type != IDP_BOOLEAN)) {
         return -1;
       }
@@ -357,7 +359,8 @@ static char idp_sequence_type(PyObject *seq_fast)
       }
     }
     else if (PyMapping_Check(item)) {
-      if (i != 0 && (type != IDP_IDPARRAY)) { /* mixed dict/int */
+      /* Mixed dict and any other type. */
+      if (i != 0 && (type != IDP_IDPARRAY)) {
         return -1;
       }
       type = IDP_IDPARRAY;
@@ -470,6 +473,7 @@ static int idp_array_type_from_formatstr_and_size(const char *typestr, Py_ssize_
     if (itemsize == 4) {
       return IDP_INT;
     }
+    /* TODO: Support Booleans? */
   }
 
   return -1;
@@ -522,9 +526,11 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
 
   ob_seq_fast_items = PySequence_Fast_ITEMS(ob);
 
+  /* IDProperties do not support mixed type of data in an array. Try to extract a single type from
+   * the whole sequence, or error. */
   if ((val.array.type = idp_sequence_type(ob)) == char(-1)) {
     PyErr_SetString(PyExc_TypeError,
-                    "only floats, ints and dicts are allowed in ID property arrays");
+                    "only floats, ints, booleans and dicts are allowed in ID property arrays");
     return nullptr;
   }
 
