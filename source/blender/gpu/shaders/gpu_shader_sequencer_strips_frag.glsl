@@ -150,9 +150,9 @@ void main()
     vec4 col_outline = unpackUnorm4x8(strip.col_outline);
     if (selected) {
       /* Inset 1px line with background color. */
-      col = add_outline(sdf, 0.0, 1.0, col, unpackUnorm4x8(context_data.col_back));
+      col = add_outline(sdf, 0.0, 2.0, col, unpackUnorm4x8(context_data.col_back));
       /* 2x wide outline. */
-      col = add_outline(sdf, 0.5, -0.5, col, col_outline);
+      col = add_outline(sdf, 0.5, 0.5, col, col_outline);
     }
     else {
       col = add_outline(sdf, 0.0, 0.0, col, col_outline);
