@@ -28,13 +28,6 @@ NAME_PREFIX = feature_sets.__name__.split('.')
 # noinspection SpellCheckingInspection
 PROMOTED_FEATURE_SETS = [
     {
-        "name": "CloudRig",
-        "author": "Demeter Dzadik",
-        "description": "Feature set developed by the Blender Animation Studio",
-        "doc_url": "https://gitlab.com/blender/CloudRig/-/wikis/",
-        "link": "https://gitlab.com/blender/CloudRig/",
-    },
-    {
         "name": "Experimental Rigs by Alexander Gavrilov",
         "author": "Alexander Gavrilov",
         "description":
