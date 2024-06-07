@@ -48,7 +48,7 @@ class OneapiDevice : public GPUDevice {
  public:
   virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const override;
 
-  OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
+  OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
 
   virtual ~OneapiDevice();
 #  ifdef WITH_EMBREE_GPU

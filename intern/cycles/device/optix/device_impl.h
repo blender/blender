@@ -88,7 +88,7 @@ class OptiXDevice : public CUDADevice {
   thread_mutex delayed_free_bvh_mutex;
 
  public:
-  OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
+  OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
   ~OptiXDevice();
 
   BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;

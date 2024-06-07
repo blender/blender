@@ -40,7 +40,8 @@ PathTrace::PathTrace(Device *device,
     vector<DeviceInfo> cpu_devices;
     device_cpu_info(cpu_devices);
 
-    cpu_device_.reset(device_cpu_create(cpu_devices[0], device->stats, device->profiler));
+    cpu_device_.reset(
+        device_cpu_create(cpu_devices[0], device->stats, device->profiler, device_->headless));
   }
 
   /* Create path tracing work in advance, so that it can be reused by incremental sampling as much

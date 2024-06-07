@@ -14,9 +14,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-Device *device_cpu_create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
+Device *device_cpu_create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
 {
-  return new CPUDevice(info, stats, profiler);
+  return new CPUDevice(info, stats, profiler, headless);
 }
 
 void device_cpu_info(vector<DeviceInfo> &devices)
