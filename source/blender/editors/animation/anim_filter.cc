@@ -613,7 +613,7 @@ static void key_data_from_adt(bAnimListElem &ale, AnimData *adt)
  * provided animation channel-data.
  */
 static bAnimListElem *make_new_animlistelem(void *data,
-                                            short datatype,
+                                            const eAnim_ChannelType datatype,
                                             ID *owner_id,
                                             ID *fcurve_owner_id)
 {
@@ -927,6 +927,16 @@ static bAnimListElem *make_new_animlistelem(void *data,
         ale->datatype = ALE_NONE;
         break;
       }
+
+      case ANIMTYPE_NONE:
+      case ANIMTYPE_ANIMDATA:
+      case ANIMTYPE_SPECIALDATA__UNUSED:
+      case ANIMTYPE_DSMBALL:
+      case ANIMTYPE_GPDATABLOCK:
+      case ANIMTYPE_MASKDATABLOCK:
+      case ANIMTYPE_PALETTE:
+      case ANIMTYPE_NUM_TYPES:
+        break;
     }
   }
 
@@ -2726,7 +2736,8 @@ static size_t animdata_filter_ds_obdata(
   size_t items = 0;
 
   IdAdtTemplate *iat = static_cast<IdAdtTemplate *>(ob->data);
-  short type = 0, expanded = 0;
+  eAnim_ChannelType type = ANIMTYPE_NONE;
+  short expanded = 0;
 
   /* get settings based on data type */
   switch (ob->type) {
@@ -2948,7 +2959,8 @@ static size_t animdata_filter_ds_obanim(
   size_t items = 0;
 
   AnimData *adt = ob->adt;
-  short type = 0, expanded = 1;
+  eAnim_ChannelType type = ANIMTYPE_NONE;
+  short expanded = 1;
   void *cdata = nullptr;
 
   /* determine the type of expander channels to use */
@@ -3139,7 +3151,8 @@ static size_t animdata_filter_ds_scene(
   size_t items = 0;
 
   AnimData *adt = sce->adt;
-  short type = 0, expanded = 1;
+  eAnim_ChannelType type = ANIMTYPE_NONE;
+  short expanded = 1;
   void *cdata = nullptr;
 
   /* determine the type of expander channels to use */

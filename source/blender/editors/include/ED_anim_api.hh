@@ -231,6 +231,7 @@ enum eAnim_Update_Flags {
   /** Recalculate handles. */
   ANIM_UPDATE_HANDLES = (1 << 2),
 };
+ENUM_OPERATORS(eAnim_Update_Flags, ANIM_UPDATE_HANDLES);
 
 /* used for most tools which change keyframes (flushed by ANIM_animdata_update) */
 #define ANIM_UPDATE_DEFAULT (ANIM_UPDATE_DEPS | ANIM_UPDATE_ORDER | ANIM_UPDATE_HANDLES)
@@ -245,20 +246,20 @@ struct bAnimListElem {
 
   /** source data this elem represents */
   void *data;
-  /** (eAnim_ChannelType) one of the ANIMTYPE_* values */
-  int type;
+  /** One of the ANIMTYPE_* values. */
+  eAnim_ChannelType type;
   /** copy of elem's flags for quick access */
   int flag;
   /** for un-named data, the index of the data in its collection */
   int index;
 
-  /** (eAnim_Update_Flags)  tag the element for updating */
-  char update;
+  /** Tag the element for updating. */
+  eAnim_Update_Flags update;
   /** tag the included data. Temporary always */
   char tag;
 
-  /** (eAnim_KeyType) type of motion data to expect */
-  short datatype;
+  /** Type of motion data to expect. */
+  eAnim_KeyType datatype;
   /** motion data - mostly F-Curves, but can be other types too */
   void *key_data;
 
