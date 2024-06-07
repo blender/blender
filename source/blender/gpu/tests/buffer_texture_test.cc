@@ -29,7 +29,7 @@ static void test_buffer_texture()
   VertBuf *vertex_buffer = GPU_vertbuf_create_with_format_ex(format,
                                                              GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
   float4 value = float4(42.42, 23.23, 1.0, -1.0);
-  GPU_vertbuf_data_alloc(vertex_buffer, 4);
+  GPU_vertbuf_data_alloc(*vertex_buffer, 4);
   GPU_vertbuf_attr_fill(vertex_buffer, value_pos, &value);
   GPU_vertbuf_bind_as_texture(vertex_buffer,
                               GPU_shader_get_sampler_binding(shader, "bufferTexture"));
