@@ -1152,17 +1152,17 @@ struct PBVHBatches {
       const BoundedBitSpan gh = grid_hidden.is_empty() ? BoundedBitSpan() :
                                                          grid_hidden[args.grid_indices[i]];
 
-      for (int j = 0; j < gridsize - skip; j += skip) {
-        for (int k = 0; k < gridsize - skip; k += skip) {
+      for (int y = 0; y < gridsize - skip; y += skip) {
+        for (int x = 0; x < gridsize - skip; x += skip) {
           /* Skip hidden grid face */
-          if (!gh.is_empty() && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
+          if (!gh.is_empty() && paint_is_grid_face_hidden(gh, gridsize, x, y)) {
             continue;
           }
           /* Indices in a Clockwise QUAD disposition. */
-          v0 = offset + j * gridsize + k;
-          v1 = offset + j * gridsize + k + skip;
-          v2 = offset + (j + skip) * gridsize + k + skip;
-          v3 = offset + (j + skip) * gridsize + k;
+          v0 = offset + y * gridsize + x;
+          v1 = offset + y * gridsize + x + skip;
+          v2 = offset + (y + skip) * gridsize + x + skip;
+          v3 = offset + (y + skip) * gridsize + x;
 
           GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
           GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
@@ -1170,7 +1170,7 @@ struct PBVHBatches {
           GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
           GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
 
-          if (j / skip + 2 == display_gridsize) {
+          if (y / skip + 2 == display_gridsize) {
             GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
           }
           grid_visible = true;
@@ -1201,19 +1201,19 @@ struct PBVHBatches {
                                                          grid_hidden[args.grid_indices[i]];
 
       uint v0, v1, v2, v3;
-      for (int j = 0; j < gridsize - skip; j += skip) {
-        for (int k = 0; k < gridsize - skip; k += skip) {
+      for (int y = 0; y < gridsize - skip; y += skip) {
+        for (int x = 0; x < gridsize - skip; x += skip) {
           /* Skip hidden grid face */
-          if (!gh.is_empty() && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
+          if (!gh.is_empty() && paint_is_grid_face_hidden(gh, gridsize, x, y)) {
             continue;
           }
 
-          v0 = (j * (gridsize - 1) + k) * 4;
+          v0 = (y * (gridsize - 1) + x) * 4;
 
           if (skip > 1) {
-            v1 = (j * (gridsize - 1) + k + skip - 1) * 4;
-            v2 = ((j + skip - 1) * (gridsize - 1) + k + skip - 1) * 4;
-            v3 = ((j + skip - 1) * (gridsize - 1) + k) * 4;
+            v1 = (y * (gridsize - 1) + x + skip - 1) * 4;
+            v2 = ((y + skip - 1) * (gridsize - 1) + x + skip - 1) * 4;
+            v3 = ((y + skip - 1) * (gridsize - 1) + x) * 4;
           }
           else {
             v1 = v2 = v3 = v0;
@@ -1234,7 +1234,7 @@ struct PBVHBatches {
           GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
           GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
 
-          if ((j / skip) + 2 == display_gridsize) {
+          if (y / skip + 2 == display_gridsize) {
             GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
           }
           grid_visible = true;
