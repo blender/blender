@@ -649,8 +649,11 @@ typedef struct bUserExtensionRepo {
   char custom_dirpath[1024]; /* FILE_MAX */
   char remote_url[1024];     /* FILE_MAX */
 
-  int flag;
-  char _pad0[4];
+  uint8_t flag;
+  /** The source location when the custom directory isn't used (#eUserExtensionRepo_Source).*/
+  uint8_t source;
+
+  char _pad0[6];
 } bUserExtensionRepo;
 
 typedef enum eUserExtensionRepo_Flag {
@@ -662,6 +665,15 @@ typedef enum eUserExtensionRepo_Flag {
   USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP = 1 << 4,
   USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN = 1 << 5,
 } eUserExtensionRepo_Flag;
+
+/**
+ * The source to use (User or System), only valid when the
+ * #USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY flag isn't set.
+ */
+typedef enum eUserExtensionRepo_Source {
+  USER_EXTENSION_REPO_SOURCE_USER = 0,
+  USER_EXTENSION_REPO_SOURCE_SYSTEM = 1,
+} eUserExtensionRepo_Source;
 
 typedef struct SolidLight {
   int flag;

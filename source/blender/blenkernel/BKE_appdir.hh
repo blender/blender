@@ -168,7 +168,8 @@ enum {
   /* system */
   BLENDER_SYSTEM_DATAFILES = 52,
   BLENDER_SYSTEM_SCRIPTS = 53,
-  BLENDER_SYSTEM_PYTHON = 54,
+  BLENDER_SYSTEM_EXTENSIONS = 54,
+  BLENDER_SYSTEM_PYTHON = 55,
 };
 
 /** For #BKE_appdir_folder_id_version only. */
