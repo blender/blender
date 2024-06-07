@@ -916,7 +916,17 @@ def _repo_dir_and_index_get(repo_index, directory, report_fn):
     return directory
 
 
-def _extensions_maybe_online_action_poll_impl(cls, action_text):
+def _extensions_maybe_online_action_poll_impl(cls, repo, action_text):
+
+    # Only operating on the active repository.
+    if repo is not None:
+        if not repo.enabled:
+            cls.poll_message_set("Active repository is disabled")
+            return False
+        if not repo.use_remote_url:
+            cls.poll_message_set("Local repositories do not support: {:s}".format(action_text))
+            return False
+
     if not bpy.app.online_access:
         cls.poll_message_set(
             "Online access required to {:s}. {:s}".format(
@@ -1087,6 +1097,8 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
+    # TODO: this text should be dynamic, changing when `use_active_only is True`.
+    # """Refresh the list of extensions for the active repository"""
     """Refresh the list of extensions for all the remote repositories"""
     bl_idname = "extensions.repo_sync_all"
     bl_label = "Check for Updates"
@@ -1098,8 +1110,9 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
     )
 
     @classmethod
-    def poll(cls, _context):
-        return _extensions_maybe_online_action_poll_impl(cls, "check for updates")
+    def poll(cls, context):
+        repo = getattr(context, "extension_repo", None)
+        return _extensions_maybe_online_action_poll_impl(cls, repo, "check for updates")
 
     def exec_command_iter(self, is_modal):
         use_active_only = self.use_active_only
@@ -1168,6 +1181,8 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
+    # TODO: this text should be dynamic, changing when `use_active_only is True`.
+    # """Upgrade all the extensions to their latest version for the active repository"""
     """Upgrade all the extensions to their latest version for all the remote repositories"""
     bl_idname = "extensions.package_upgrade_all"
     bl_label = "Ext Package Upgrade All"
@@ -1182,8 +1197,9 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
     )
 
     @classmethod
-    def poll(cls, _context):
-        return _extensions_maybe_online_action_poll_impl(cls, "install updates")
+    def poll(cls, context):
+        repo = getattr(context, "extension_repo", None)
+        return _extensions_maybe_online_action_poll_impl(cls, repo, "install updates")
 
     def exec_command_iter(self, is_modal):
         from . import repo_cache_store
