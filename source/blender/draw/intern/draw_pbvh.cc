@@ -1404,12 +1404,9 @@ static PBVHBatch &ensure_batch(PBVHBatches &batches,
                                const PBVH_GPU_Args &args,
                                const bool do_coarse_grids)
 {
-  std::string key = build_key(requests, do_coarse_grids);
-  if (PBVHBatch *batch = batches.batches.lookup_ptr(key)) {
-    return *batch;
-  }
-  return batches.batches.lookup_or_add(std::move(key),
-                                       create_batch(batches, requests, args, do_coarse_grids));
+  return batches.batches.lookup_or_add_cb(build_key(requests, do_coarse_grids), [&]() {
+    return create_batch(batches, requests, args, do_coarse_grids);
+  });
 }
 
 void node_update(PBVHBatches *batches, const PBVH_GPU_Args &args)
