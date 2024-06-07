@@ -1185,7 +1185,8 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
   const CustomDataLayer *active_color_layer = BKE_id_attributes_color_find(
       &mesh->id, mesh->active_color_attribute);
   BLI_assert(active_color_layer != nullptr);
-  const bke::AttrDomain domain = BKE_id_attribute_domain(&mesh->id, active_color_layer);
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  const bke::AttrDomain domain = BKE_attribute_domain(owner, active_color_layer);
 
   const int channels_num = targets->channels_num;
   const bool is_noncolor = targets->is_noncolor;

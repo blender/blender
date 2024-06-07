@@ -229,7 +229,8 @@ int ED_mesh_uv_add(
     name = DATA_("UVMap");
   }
 
-  const std::string unique_name = BKE_id_attribute_calc_unique_name(mesh->id, name);
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  const std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
   bool is_init = false;
 
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
@@ -386,8 +387,9 @@ int ED_mesh_color_add(
     name = "Col";
   }
 
-  CustomDataLayer *layer = BKE_id_attribute_new(
-      &mesh->id, name, CD_PROP_BYTE_COLOR, bke::AttrDomain::Corner, reports);
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  CustomDataLayer *layer = BKE_attribute_new(
+      owner, name, CD_PROP_BYTE_COLOR, bke::AttrDomain::Corner, reports);
 
   if (do_init) {
     const char *active_name = mesh->active_color_attribute;
@@ -426,7 +428,8 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
     return true;
   }
 
-  const std::string unique_name = BKE_id_attribute_calc_unique_name(mesh->id, name);
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  const std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
   if (!mesh->attributes_for_write().add(unique_name,
                                         bke::AttrDomain::Corner,
                                         CD_PROP_BYTE_COLOR,
@@ -510,9 +513,10 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
   Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
   const char *name = CustomData_get_active_layer_name(ldata, CD_PROP_FLOAT2);
-  if (!BKE_id_attribute_remove(&mesh->id, name, op->reports)) {
+  if (!BKE_attribute_remove(owner, name, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -601,7 +605,8 @@ static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator *op)
 {
   Object *object = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(object->data);
-  const bool ret_a = BKE_id_attribute_remove(&mesh->id, ".sculpt_mask", op->reports);
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  const bool ret_a = BKE_attribute_remove(owner, ".sculpt_mask", op->reports);
   int ret_b = mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_GRID_PAINT_MASK);
 
   if (ret_a || ret_b == OPERATOR_FINISHED) {

@@ -194,7 +194,8 @@ void rna_property_for_attribute_type_set_value(PointerRNA &ptr,
 
 bool attribute_set_poll(bContext &C, const ID &object_data)
 {
-  const CustomDataLayer *layer = BKE_id_attributes_active_get(&const_cast<ID &>(object_data));
+  AttributeOwner owner = AttributeOwner::from_id(&const_cast<ID &>(object_data));
+  const CustomDataLayer *layer = BKE_attributes_active_get(owner);
   if (!layer) {
     CTX_wm_operator_poll_msg_set(&C, "No active attribute");
     return false;
@@ -212,9 +213,10 @@ static bool geometry_attributes_poll(bContext *C)
 {
   const Object *ob = object::context_object(C);
   const Main *bmain = CTX_data_main(C);
-  const ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  AttributeOwner owner = AttributeOwner::from_id(data);
   return (ob && BKE_id_is_editable(bmain, &ob->id) && data && BKE_id_is_editable(bmain, data)) &&
-         BKE_id_attributes_supported(data);
+         BKE_attributes_supported(owner);
 }
 
 static bool geometry_attributes_remove_poll(bContext *C)
@@ -225,7 +227,8 @@ static bool geometry_attributes_remove_poll(bContext *C)
 
   Object *ob = object::context_object(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
-  if (BKE_id_attributes_active_get(data) != nullptr) {
+  AttributeOwner owner = AttributeOwner::from_id(data);
+  if (BKE_attributes_active_get(owner) != nullptr) {
     return true;
   }
 
@@ -258,13 +261,14 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "name", name);
   eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
   bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
-  CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
 
   if (layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_set(id, layer->name);
+  BKE_attributes_active_set(owner, layer->name);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -328,13 +332,14 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_get(id);
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  CustomDataLayer *layer = BKE_attributes_active_get(owner);
 
-  if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
+  if (!BKE_attribute_remove(owner, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
-  int *active_index = BKE_id_attributes_active_index_p(id);
+  int *active_index = BKE_attributes_active_index_p(owner);
   if (*active_index > 0) {
     *active_index -= 1;
   }
@@ -369,7 +374,8 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "name", name);
   eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
   bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
-  CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
 
   float color[4];
   RNA_float_get_array(op->ptr, "color", color);
@@ -416,6 +422,7 @@ static bool geometry_attribute_convert_poll(bContext *C)
 
   Object *ob = object::context_object(C);
   ID *data = static_cast<ID *>(ob->data);
+  AttributeOwner owner = AttributeOwner::from_id(data);
   if (GS(data->name) != ID_ME) {
     return false;
   }
@@ -423,7 +430,7 @@ static bool geometry_attribute_convert_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
     return false;
   }
-  if (BKE_id_attributes_active_get(data) == nullptr) {
+  if (BKE_attributes_active_get(owner) == nullptr) {
     return false;
   }
   return true;
@@ -433,7 +440,8 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *ob_data = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
+  AttributeOwner owner = AttributeOwner::from_id(ob_data);
+  CustomDataLayer *layer = BKE_attributes_active_get(owner);
   const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
       RNA_enum_get(op->ptr, "mode"));
   Mesh *mesh = reinterpret_cast<Mesh *>(ob_data);
@@ -474,7 +482,8 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
           BKE_defvert_add_index_notest(dverts + i, defgroup_index, weight);
         }
       }
-      int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
+      AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+      int *active_index = BKE_attributes_active_index_p(owner);
       if (*active_index > 0) {
         *active_index -= 1;
       }
@@ -596,8 +605,8 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
   if (active_name.empty()) {
     return OPERATOR_CANCELLED;
   }
-
-  if (!BKE_id_attribute_remove(id, active_name.c_str(), op->reports)) {
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  if (!BKE_attribute_remove(owner, active_name.c_str(), op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -647,7 +656,8 @@ static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  CustomDataLayer *new_layer = BKE_id_attribute_duplicate(id, active_name, op->reports);
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  CustomDataLayer *new_layer = BKE_attribute_duplicate(owner, active_name, op->reports);
   if (new_layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -701,9 +711,10 @@ static int geometry_attribute_convert_invoke(bContext *C,
 {
   Object *ob = object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
 
   const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(
-      BKE_id_attributes_active_get(&mesh->id)->name);
+      BKE_attributes_active_get(owner)->name);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {

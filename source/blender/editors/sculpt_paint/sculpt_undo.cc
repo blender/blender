@@ -1747,7 +1747,8 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
   SculptAttrRef existing;
   save_active_attribute(*ob, &existing);
 
-  CustomDataLayer *layer = BKE_id_attribute_find(&mesh->id, attr->name, attr->type, attr->domain);
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  CustomDataLayer *layer = BKE_attribute_find(owner, attr->name, attr->type, attr->domain);
 
   /* Temporary fix for #97408. This is a fundamental
    * bug in the undo stack; the operator code needs to push
@@ -1758,13 +1759,13 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
    * domain and just unconvert it.
    */
   if (!layer) {
-    layer = BKE_id_attribute_search_for_write(
-        &mesh->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+    layer = BKE_attribute_search_for_write(
+        owner, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
     if (layer) {
       if (ED_geometry_attribute_convert(
               mesh, attr->name, eCustomDataType(attr->type), attr->domain, nullptr))
       {
-        layer = BKE_id_attribute_find(&mesh->id, attr->name, attr->type, attr->domain);
+        layer = BKE_attribute_find(owner, attr->name, attr->type, attr->domain);
       }
     }
   }
@@ -1773,7 +1774,7 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
     /* Memfile undo killed the layer; re-create it. */
     mesh->attributes_for_write().add(
         attr->name, attr->domain, attr->type, bke::AttributeInitDefaultValue());
-    layer = BKE_id_attribute_find(&mesh->id, attr->name, attr->type, attr->domain);
+    layer = BKE_attribute_find(owner, attr->name, attr->type, attr->domain);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 
