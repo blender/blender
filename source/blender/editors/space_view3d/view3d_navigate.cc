@@ -277,9 +277,10 @@ void ViewOpsData::init_navigation(bContext *C,
     negate_v3_v3(this->dyn_ofs, pivot_new);
     this->use_dyn_ofs = true;
 
-    {
-      /* The pivot has changed so the offset needs to be updated as well.
-       * Calculate new #RegionView3D::ofs and #RegionView3D::dist. */
+    if (pivot_type == VIEWOPS_FLAG_DEPTH_NAVIGATE) {
+      /* Ensure we'll always be able to zoom into the new pivot point and panning won't go bad when
+       * dist is zero. Therefore, set a new #RegionView3D::ofs and #RegionView3D::dist so that the
+       * dist value becomes the distance from the new pivot point. */
 
       if (rv3d->is_persp) {
         float my_origin[3]; /* Original #RegionView3D.ofs. */
@@ -287,9 +288,6 @@ void ViewOpsData::init_navigation(bContext *C,
         float dvec[3];
 
         negate_v3_v3(my_origin, rv3d->ofs); /* ofs is flipped */
-
-        /* Set the dist value to be the distance from this 3d point this means you'll
-         * always be able to zoom into it and panning won't go bad when dist was zero. */
 
         /* remove dist value */
         float3 upvec;
@@ -302,22 +300,30 @@ void ViewOpsData::init_navigation(bContext *C,
 
         /* find a new ofs value that is along the view axis
          * (rather than the mouse location) */
-        closest_to_line_v3(dvec, pivot_new, my_pivot, my_origin);
+        float lambda = closest_to_line_v3(dvec, pivot_new, my_pivot, my_origin);
 
         negate_v3_v3(rv3d->ofs, dvec);
         rv3d->dist = len_v3v3(my_pivot, dvec);
+
+        if (lambda < 0.0f) {
+          /* The distance is actually negative. */
+          rv3d->dist *= -1;
+        }
       }
       else {
         const float mval_region_mid[2] = {float(region->winx) / 2.0f, float(region->winy) / 2.0f};
         ED_view3d_win_to_3d(v3d, region, pivot_new, mval_region_mid, rv3d->ofs);
         negate_v3(rv3d->ofs);
       }
-
-      /* XXX: The initial state captured by #ViewOpsData::state_backup is being modified here.
-       * This causes the state when canceling a navigation operation to not be fully restored. */
-      this->init.dist = rv3d->dist;
-      copy_v3_v3(this->init.ofs, rv3d->ofs);
     }
+
+    /* Reinitialize `this->init.dist` and `this->init.ofs` as these values may have changed
+     * when #ED_view3d_persp_ensure was called or when the operator uses `Auto Depth`.
+     *
+     * XXX: The initial state captured by #ViewOpsData::state_backup is being modified here.
+     * This causes the state not to be fully restored when canceling a navigation operation. */
+    this->init.dist = rv3d->dist;
+    copy_v3_v3(this->init.ofs, rv3d->ofs);
   }
 
   if (viewops_flag & VIEWOPS_FLAG_INIT_ZFAC) {
