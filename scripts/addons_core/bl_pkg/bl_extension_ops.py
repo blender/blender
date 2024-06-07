@@ -270,6 +270,15 @@ def repo_iter_valid_local_only(context):
         yield repo_item
 
 
+def wm_wait_cursor(value):
+    for wm in bpy.data.window_managers:
+        for window in wm.windows:
+            if value:
+                window.cursor_modal_set('WAIT')
+            else:
+                window.cursor_modal_restore()
+
+
 # A named-tuple copy of `context.preferences.extensions.repos` (`bpy.types.UserExtensionRepo`).
 # This is done for the following reasons.
 #
@@ -826,8 +835,6 @@ class CommandHandle:
         handle.wm = context.window_manager
 
         handle.wm.modal_handler_add(op)
-        for window in handle.wm.windows:
-            window.cursor_modal_set('WAIT')
 
         op._runtime_handle = handle
         return {'RUNNING_MODAL'}
@@ -873,9 +880,6 @@ class CommandHandle:
             context.workspace.status_text_set(None)
             repo_status_text.running = False
 
-            for window in self.wm.windows:
-                window.cursor_modal_restore()
-
             if self.request_exit:
                 return {'CANCELLED'}
             return {'FINISHED'}
@@ -883,6 +887,7 @@ class CommandHandle:
         return {'RUNNING_MODAL'}
 
     def op_modal_impl(self, op, context, event):
+        pass_through = True
         refresh = False
         if event.type == 'TIMER':
             refresh = True
@@ -891,9 +896,14 @@ class CommandHandle:
                 print("Request exit!")
                 self.request_exit = True
                 refresh = True
+                # This escape event was handled.
+                pass_through = False
 
         if refresh:
             return self.op_modal_step(op, context)
+
+        if pass_through:
+            return {'RUNNING_MODAL', 'PASS_THROUGH'}
         return {'RUNNING_MODAL'}
 
 
@@ -996,18 +1006,29 @@ class _ExtCmdMixIn:
         repo_status_text.title = cmd_batch.title
 
         result = CommandHandle.op_exec_from_iter(self, context, cmd_batch, is_modal)
+        canceled = None
         if 'FINISHED' in result:
-            self.exec_command_finish(False)
+            canceled = False
         elif 'CANCELLED' in result:
-            self.exec_command_finish(True)
+            canceled = True
+
+        if canceled is not None:
+            self.exec_command_finish(canceled)
         return result
 
     def modal(self, context, event):
         result = self._runtime_handle.op_modal_impl(self, context, event)
+        canceled = None
         if 'FINISHED' in result:
-            self.exec_command_finish(False)
+            canceled = False
         elif 'CANCELLED' in result:
-            self.exec_command_finish(True)
+            canceled = True
+
+        if canceled is not None:
+            wm_wait_cursor(True)
+            self.exec_command_finish(canceled)
+            wm_wait_cursor(False)
+
         return result
 
 
