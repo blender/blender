@@ -1097,8 +1097,6 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
-    # TODO: this text should be dynamic, changing when `use_active_only is True`.
-    # """Refresh the list of extensions for the active repository"""
     """Refresh the list of extensions for all the remote repositories"""
     bl_idname = "extensions.repo_sync_all"
     bl_label = "Check for Updates"
@@ -1113,6 +1111,12 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
     def poll(cls, context):
         repo = getattr(context, "extension_repo", None)
         return _extensions_maybe_online_action_poll_impl(cls, repo, "check for updates")
+
+    @classmethod
+    def description(cls, context, props):
+        if props.use_active_only:
+            return "Refresh the list of extensions for the active repository"
+        return ""  # Default.
 
     def exec_command_iter(self, is_modal):
         use_active_only = self.use_active_only
@@ -1181,8 +1185,6 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
-    # TODO: this text should be dynamic, changing when `use_active_only is True`.
-    # """Upgrade all the extensions to their latest version for the active repository"""
     """Upgrade all the extensions to their latest version for all the remote repositories"""
     bl_idname = "extensions.package_upgrade_all"
     bl_label = "Ext Package Upgrade All"
@@ -1200,6 +1202,12 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
     def poll(cls, context):
         repo = getattr(context, "extension_repo", None)
         return _extensions_maybe_online_action_poll_impl(cls, repo, "install updates")
+
+    @classmethod
+    def description(cls, context, props):
+        if props.use_active_only:
+            return "Upgrade all the extensions to their latest version for the active repository"
+        return ""  # Default.
 
     def exec_command_iter(self, is_modal):
         from . import repo_cache_store
