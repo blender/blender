@@ -1159,10 +1159,10 @@ struct PBVHBatches {
             continue;
           }
           /* Indices in a Clockwise QUAD disposition. */
-          v0 = offset + y * gridsize + x;
-          v1 = offset + y * gridsize + x + skip;
-          v2 = offset + (y + skip) * gridsize + x + skip;
-          v3 = offset + (y + skip) * gridsize + x;
+          v0 = offset + CCG_grid_xy_to_index(gridsize, x, y);
+          v1 = offset + CCG_grid_xy_to_index(gridsize, x + skip, y);
+          v2 = offset + CCG_grid_xy_to_index(gridsize, x + skip, y + skip);
+          v3 = offset + CCG_grid_xy_to_index(gridsize, x, y + skip);
 
           GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
           GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
