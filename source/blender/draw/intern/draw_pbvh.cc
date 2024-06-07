@@ -357,11 +357,6 @@ struct PBVHBatches {
   void create_index(const PBVH_GPU_Args &args);
 };
 
-static PBVHBatch create_batch(PBVHBatches &batches,
-                              const Span<AttributeRequest> requests,
-                              const PBVH_GPU_Args &args,
-                              bool do_coarse_grids);
-
 static int count_faces(const PBVH_GPU_Args &args)
 {
   int count = 0;
@@ -448,19 +443,6 @@ int PBVHBatches::ensure_vbo(const AttributeRequest &request, const PBVH_GPU_Args
     }
   }
   return this->create_vbo(request, args);
-}
-
-static PBVHBatch &ensure_batch(PBVHBatches &batches,
-                               const Span<AttributeRequest> requests,
-                               const PBVH_GPU_Args &args,
-                               const bool do_coarse_grids)
-{
-  std::string key = build_key(requests, do_coarse_grids);
-  if (PBVHBatch *batch = batches.batches.lookup_ptr(key)) {
-    return *batch;
-  }
-  return batches.batches.lookup_or_add(std::move(key),
-                                       create_batch(batches, requests, args, do_coarse_grids));
 }
 
 static void fill_vbo_normal_faces(const PBVH_GPU_Args &args, gpu::VertBuf &vert_buf)
@@ -1415,6 +1397,19 @@ static PBVHBatch create_batch(PBVHBatches &batches,
   }
 
   return batch;
+}
+
+static PBVHBatch &ensure_batch(PBVHBatches &batches,
+                               const Span<AttributeRequest> requests,
+                               const PBVH_GPU_Args &args,
+                               const bool do_coarse_grids)
+{
+  std::string key = build_key(requests, do_coarse_grids);
+  if (PBVHBatch *batch = batches.batches.lookup_ptr(key)) {
+    return *batch;
+  }
+  return batches.batches.lookup_or_add(std::move(key),
+                                       create_batch(batches, requests, args, do_coarse_grids));
 }
 
 void node_update(PBVHBatches *batches, const PBVH_GPU_Args &args)
