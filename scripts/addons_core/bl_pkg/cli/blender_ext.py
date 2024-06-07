@@ -1361,7 +1361,7 @@ def pkg_manifest_validate_field_permissions(
         elif isinstance(value, list):
             # Historic beta convention, keep for compatibility.
             for i, item in enumerate(value):
-                if not isinstance(item_key, str):
+                if not isinstance(item, str):
                     return "Expected item at index {:d} to be an int not a {:s}".format(i, str(type(item)))
         else:
             # The caller doesn't allow this.
