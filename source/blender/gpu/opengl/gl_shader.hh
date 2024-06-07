@@ -96,7 +96,7 @@ class GLShader : public Shader {
     ~GLProgram();
   };
 
-  using GLProgramCacheKey = Vector<shader::ShaderCreateInfo::SpecializationConstant::Value>;
+  using GLProgramCacheKey = Vector<shader::SpecializationConstant::Value>;
   Map<GLProgramCacheKey, GLProgram> program_cache_;
 
   /**
@@ -105,6 +105,8 @@ class GLShader : public Shader {
    */
   GLProgram *program_active_ = nullptr;
 
+  /* When true, the shader generates its GLSources but it's not compiled.
+   * (Used for batch compilation) */
   bool async_compilation_ = false;
 
   /**
@@ -298,6 +300,8 @@ class GLShaderCompiler : public ShaderCompiler {
   virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
   virtual bool batch_is_ready(BatchHandle handle) override;
   virtual Vector<Shader *> batch_finalize(BatchHandle &handle) override;
+
+  virtual void precompile_specializations(Span<ShaderSpecialization> specializations) override;
 };
 
 #else

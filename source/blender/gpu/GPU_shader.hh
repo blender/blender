@@ -12,6 +12,7 @@
 
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
+#include "GPU_common_types.hh"
 #include "GPU_shader_builtin.hh"
 
 namespace blender::gpu {
@@ -218,6 +219,13 @@ void GPU_shader_constant_int(GPUShader *sh, const char *name, int value);
 void GPU_shader_constant_uint(GPUShader *sh, const char *name, unsigned int value);
 void GPU_shader_constant_float(GPUShader *sh, const char *name, float value);
 void GPU_shader_constant_bool(GPUShader *sh, const char *name, bool value);
+
+struct ShaderSpecialization {
+  GPUShader *shader;
+  blender::Vector<blender::gpu::shader::SpecializationConstant> constants;
+};
+
+void GPU_shaders_precompile_specializations(blender::Span<ShaderSpecialization> specializations);
 
 /** \} */
 

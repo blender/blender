@@ -16,6 +16,7 @@
 #include "BLI_hash.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+#include "GPU_common_types.hh"
 #include "GPU_material.hh"
 #include "GPU_texture.hh"
 
@@ -32,104 +33,6 @@ namespace blender::gpu::shader {
     ShaderCreateInfo _info(#_info); \
     _info
 #endif
-
-enum class Type {
-  /* Types supported natively across all GPU back-ends. */
-  FLOAT = 0,
-  VEC2,
-  VEC3,
-  VEC4,
-  MAT3,
-  MAT4,
-  UINT,
-  UVEC2,
-  UVEC3,
-  UVEC4,
-  INT,
-  IVEC2,
-  IVEC3,
-  IVEC4,
-  BOOL,
-  /* Additionally supported types to enable data optimization and native
-   * support in some GPU back-ends.
-   * NOTE: These types must be representable in all APIs. E.g. `VEC3_101010I2` is aliased as vec3
-   * in the GL back-end, as implicit type conversions from packed normal attribute data to vec3 is
-   * supported. UCHAR/CHAR types are natively supported in Metal and can be used to avoid
-   * additional data conversions for `GPU_COMP_U8` vertex attributes. */
-  VEC3_101010I2,
-  UCHAR,
-  UCHAR2,
-  UCHAR3,
-  UCHAR4,
-  CHAR,
-  CHAR2,
-  CHAR3,
-  CHAR4,
-  USHORT,
-  USHORT2,
-  USHORT3,
-  USHORT4,
-  SHORT,
-  SHORT2,
-  SHORT3,
-  SHORT4
-};
-
-BLI_INLINE int to_component_count(const Type &type)
-{
-  switch (type) {
-    case Type::FLOAT:
-    case Type::UINT:
-    case Type::INT:
-    case Type::BOOL:
-      return 1;
-    case Type::VEC2:
-    case Type::UVEC2:
-    case Type::IVEC2:
-      return 2;
-    case Type::VEC3:
-    case Type::UVEC3:
-    case Type::IVEC3:
-      return 3;
-    case Type::VEC4:
-    case Type::UVEC4:
-    case Type::IVEC4:
-      return 4;
-    case Type::MAT3:
-      return 9;
-    case Type::MAT4:
-      return 16;
-    /* Alias special types. */
-    case Type::UCHAR:
-    case Type::USHORT:
-      return 1;
-    case Type::UCHAR2:
-    case Type::USHORT2:
-      return 2;
-    case Type::UCHAR3:
-    case Type::USHORT3:
-      return 3;
-    case Type::UCHAR4:
-    case Type::USHORT4:
-      return 4;
-    case Type::CHAR:
-    case Type::SHORT:
-      return 1;
-    case Type::CHAR2:
-    case Type::SHORT2:
-      return 2;
-    case Type::CHAR3:
-    case Type::SHORT3:
-      return 3;
-    case Type::CHAR4:
-    case Type::SHORT4:
-      return 4;
-    case Type::VEC3_101010I2:
-      return 3;
-  }
-  BLI_assert_unreachable();
-  return -1;
-}
 
 /* All of these functions is a bit out of place */
 static inline Type to_type(const eGPUType type)
@@ -554,32 +457,6 @@ struct ShaderCreateInfo {
   using SubpassIn = FragOut;
   Vector<SubpassIn> subpass_inputs_;
 
-  struct SpecializationConstant {
-    struct Value {
-      union {
-        uint32_t u;
-        int32_t i;
-        float f;
-      };
-
-      bool operator==(const Value &other) const
-      {
-        return u == other.u;
-      }
-    };
-
-    Type type;
-    StringRefNull name;
-    Value default_value;
-
-    bool operator==(const SpecializationConstant &b) const
-    {
-      TEST_EQUAL(*this, b, type);
-      TEST_EQUAL(*this, b, name);
-      TEST_EQUAL(*this, b, default_value);
-      return true;
-    }
-  };
   Vector<SpecializationConstant> specialization_constants_;
 
   struct Sampler {
@@ -832,14 +709,14 @@ struct ShaderCreateInfo {
     constant.name = name;
     switch (type) {
       case Type::INT:
-        constant.default_value.i = static_cast<int>(default_value);
+        constant.value.i = static_cast<int>(default_value);
         break;
       case Type::BOOL:
       case Type::UINT:
-        constant.default_value.u = static_cast<uint>(default_value);
+        constant.value.u = static_cast<uint>(default_value);
         break;
       case Type::FLOAT:
-        constant.default_value.f = static_cast<float>(default_value);
+        constant.value.f = static_cast<float>(default_value);
         break;
       default:
         BLI_assert_msg(0, "Only scalar types can be used as constants");
@@ -1226,13 +1103,11 @@ struct ShaderCreateInfo {
 }  // namespace blender::gpu::shader
 
 namespace blender {
-template<>
-struct DefaultHash<Vector<gpu::shader::ShaderCreateInfo::SpecializationConstant::Value>> {
-  uint64_t operator()(
-      const Vector<gpu::shader::ShaderCreateInfo::SpecializationConstant::Value> &key) const
+template<> struct DefaultHash<Vector<blender::gpu::shader::SpecializationConstant::Value>> {
+  uint64_t operator()(const Vector<blender::gpu::shader::SpecializationConstant::Value> &key) const
   {
     uint64_t hash = 0;
-    for (const gpu::shader::ShaderCreateInfo::SpecializationConstant::Value &value : key) {
+    for (const blender::gpu::shader::SpecializationConstant::Value &value : key) {
       hash = hash * 33 ^ uint64_t(value.u);
     }
     return hash;

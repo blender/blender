@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 /**
  * Describes the load operation of a frame-buffer attachment at the start of a render pass.
  */
@@ -70,3 +72,151 @@ enum eGPUFrontFace {
   GPU_CLOCKWISE,
   GPU_COUNTERCLOCKWISE,
 };
+
+namespace blender::gpu::shader {
+
+enum class Type {
+  /* Types supported natively across all GPU back-ends. */
+  FLOAT = 0,
+  VEC2,
+  VEC3,
+  VEC4,
+  MAT3,
+  MAT4,
+  UINT,
+  UVEC2,
+  UVEC3,
+  UVEC4,
+  INT,
+  IVEC2,
+  IVEC3,
+  IVEC4,
+  BOOL,
+  /* Additionally supported types to enable data optimization and native
+   * support in some GPU back-ends.
+   * NOTE: These types must be representable in all APIs. E.g. `VEC3_101010I2` is aliased as vec3
+   * in the GL back-end, as implicit type conversions from packed normal attribute data to vec3 is
+   * supported. UCHAR/CHAR types are natively supported in Metal and can be used to avoid
+   * additional data conversions for `GPU_COMP_U8` vertex attributes. */
+  VEC3_101010I2,
+  UCHAR,
+  UCHAR2,
+  UCHAR3,
+  UCHAR4,
+  CHAR,
+  CHAR2,
+  CHAR3,
+  CHAR4,
+  USHORT,
+  USHORT2,
+  USHORT3,
+  USHORT4,
+  SHORT,
+  SHORT2,
+  SHORT3,
+  SHORT4
+};
+
+BLI_INLINE int to_component_count(const Type &type)
+{
+  switch (type) {
+    case Type::FLOAT:
+    case Type::UINT:
+    case Type::INT:
+    case Type::BOOL:
+      return 1;
+    case Type::VEC2:
+    case Type::UVEC2:
+    case Type::IVEC2:
+      return 2;
+    case Type::VEC3:
+    case Type::UVEC3:
+    case Type::IVEC3:
+      return 3;
+    case Type::VEC4:
+    case Type::UVEC4:
+    case Type::IVEC4:
+      return 4;
+    case Type::MAT3:
+      return 9;
+    case Type::MAT4:
+      return 16;
+    /* Alias special types. */
+    case Type::UCHAR:
+    case Type::USHORT:
+      return 1;
+    case Type::UCHAR2:
+    case Type::USHORT2:
+      return 2;
+    case Type::UCHAR3:
+    case Type::USHORT3:
+      return 3;
+    case Type::UCHAR4:
+    case Type::USHORT4:
+      return 4;
+    case Type::CHAR:
+    case Type::SHORT:
+      return 1;
+    case Type::CHAR2:
+    case Type::SHORT2:
+      return 2;
+    case Type::CHAR3:
+    case Type::SHORT3:
+      return 3;
+    case Type::CHAR4:
+    case Type::SHORT4:
+      return 4;
+    case Type::VEC3_101010I2:
+      return 3;
+  }
+  BLI_assert_unreachable();
+  return -1;
+}
+
+struct SpecializationConstant {
+  struct Value {
+    union {
+      uint32_t u;
+      int32_t i;
+      float f;
+    };
+
+    inline bool operator==(const Value &other) const
+    {
+      return u == other.u;
+    }
+  };
+
+  Type type;
+  StringRefNull name;
+  Value value;
+
+  SpecializationConstant() {}
+
+  SpecializationConstant(const char *name, uint32_t value) : type(Type::UINT), name(name)
+  {
+    this->value.u = value;
+  }
+
+  SpecializationConstant(const char *name, int value) : type(Type::INT), name(name)
+  {
+    this->value.i = value;
+  }
+
+  SpecializationConstant(const char *name, float value) : type(Type::FLOAT), name(name)
+  {
+    this->value.f = value;
+  }
+
+  SpecializationConstant(const char *name, bool value) : type(Type::BOOL), name(name)
+  {
+    this->value.u = value ? 1 : 0;
+  }
+
+  inline bool operator==(const SpecializationConstant &b) const
+  {
+    return this->type == b.type && this->name == b.name && this->value == b.value;
+  }
+};
+
+}  // namespace blender::gpu::shader
