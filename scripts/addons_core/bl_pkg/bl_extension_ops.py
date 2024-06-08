@@ -840,7 +840,7 @@ class CommandHandle:
 
         handle = CommandHandle()
         handle.cmd_batch = cmd_batch
-        handle.modal_timer = context.window_manager.event_timer_add(0.01, window=context.window)
+        handle.modal_timer = context.window_manager.event_timer_add(0.1, window=context.window)
         handle.wm = context.window_manager
 
         handle.wm.modal_handler_add(op)
