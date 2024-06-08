@@ -82,7 +82,7 @@ def rna_prop_repo_enum_local_only_itemf(_self, context):
                 repo_item.name if repo_item.enabled else (repo_item.name + " (disabled)"),
                 "",
             )
-            for repo_item in repo_iter_valid_local_only(context)
+            for repo_item in repo_iter_valid_local_only(context, exclude_system=True)
         ]
     # Prevent the strings from being freed.
     rna_prop_repo_enum_local_only_itemf._result = result
@@ -255,12 +255,15 @@ def extension_theme_enable(repo_directory, pkg_idname):
     extension_theme_enable_filepath(os.path.join(theme_dir, theme_files[0]))
 
 
-def repo_iter_valid_local_only(context):
+def repo_iter_valid_local_only(context, *, exclude_system):
     from . import repo_paths_or_none
     extension_repos = context.preferences.extensions.repos
     for repo_item in extension_repos:
         if not repo_item.enabled:
             continue
+        if exclude_system:
+            if (not repo_item.use_custom_directory) and (repo_item.source == 'SYSTEM'):
+                continue
         # Ignore repositories that have invalid settings.
         directory, remote_url = repo_paths_or_none(repo_item)
         if directory is None:
@@ -305,6 +308,7 @@ def operator_finished_result(operator_result):
 class RepoItem(NamedTuple):
     name: str
     directory: str
+    source: str
     remote_url: str
     module: str
     use_cache: bool
@@ -525,6 +529,7 @@ def extension_repos_read_index(index, *, include_disabled=False):
             return RepoItem(
                 name=repo_item.name,
                 directory=directory,
+                source="" if repo_item.use_custom_directory else repo_item.source,
                 remote_url=remote_url,
                 module=repo_item.module,
                 use_cache=repo_item.use_cache,
@@ -562,6 +567,7 @@ def extension_repos_read(*, include_disabled=False, use_active_only=False):
         result.append(RepoItem(
             name=repo_item.name,
             directory=directory,
+            source="" if repo_item.use_custom_directory else repo_item.source,
             remote_url=remote_url,
             module=repo_item.module,
             use_cache=repo_item.use_cache,
@@ -1822,7 +1828,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
     @classmethod
     def poll(cls, context):
-        if next(repo_iter_valid_local_only(context), None) is None:
+        if next(repo_iter_valid_local_only(context, exclude_system=True), None) is None:
             cls.poll_message_set("There must be at least one \"Local\" repository set to install extensions into")
             return False
         return True
@@ -1890,8 +1896,8 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             from .bl_extension_ops import repo_iter_valid_local_only
             from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
 
-            if not list(repo_iter_valid_local_only(bpy.context)):
-                self.report({'ERROR'}, "No Local Repositories")
+            if not list(repo_iter_valid_local_only(context, exclude_system=True)):
+                self.report({'ERROR'}, "No local user repositories")
                 return {'CANCELLED'}
 
             if isinstance(result := pkg_manifest_dict_from_file_or_error(filepath), str):
@@ -2174,6 +2180,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
+    """Disable and uninstall the extension"""
     bl_idname = "extensions.package_uninstall"
     bl_label = "Ext Package Uninstall"
     __slots__ = _ExtCmdMixIn.cls_slots
@@ -2255,6 +2262,27 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
+
+
+# Only exists for an error message.
+class EXTENSIONS_OT_package_uninstall_system(Operator):
+    # Copy `EXTENSIONS_OT_package_uninstall` doc-string.
+    bl_label = "Uninstall"
+
+    bl_idname = "extensions.package_uninstall_system"
+    bl_options = {'INTERNAL'}
+
+    @classmethod
+    def poll(cls, contest):
+        cls.poll_message_set("System extensions are read-only and cannot be uninstalled")
+        return False
+
+    @classmethod
+    def description(cls, context, props):
+        return EXTENSIONS_OT_package_uninstall.__doc__
+
+    def execute(self, _context):
+        return {'CANCELLED'}
 
 
 class EXTENSIONS_OT_package_disable(Operator):
@@ -2653,6 +2681,7 @@ classes = (
     EXTENSIONS_OT_package_install_files,
     EXTENSIONS_OT_package_install,
     EXTENSIONS_OT_package_uninstall,
+    EXTENSIONS_OT_package_uninstall_system,
     EXTENSIONS_OT_package_disable,
 
     EXTENSIONS_OT_package_theme_enable,

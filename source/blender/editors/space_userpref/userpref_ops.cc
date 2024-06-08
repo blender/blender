@@ -581,11 +581,6 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 /** \name Remove Extension Repository Operator
  * \{ */
 
-enum class bUserExtensionRepoRemoveType {
-  RepoOnly = 0,
-  RepoWithDirectory = 1,
-};
-
 static bool preferences_extension_repo_remove_poll(bContext *C)
 {
   if (BLI_listbase_is_empty(&U.extension_repos)) {
@@ -600,16 +595,24 @@ static int preferences_extension_repo_remove_invoke(bContext *C,
                                                     const wmEvent * /*event*/)
 {
   const int index = RNA_int_get(op->ptr, "index");
-  bUserExtensionRepoRemoveType repo_type = bUserExtensionRepoRemoveType(
-      RNA_enum_get(op->ptr, "type"));
+  bool remove_files = RNA_boolean_get(op->ptr, "remove_files");
   const bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(
       BLI_findlink(&U.extension_repos, index));
 
   if (!repo) {
     return OPERATOR_CANCELLED;
   }
+
+  if (remove_files) {
+    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) == 0) {
+      if (repo->source == USER_EXTENSION_REPO_SOURCE_SYSTEM) {
+        remove_files = false;
+      }
+    }
+  }
+
   std::string message;
-  if (repo_type == bUserExtensionRepoRemoveType::RepoWithDirectory) {
+  if (remove_files) {
     char dirpath[FILE_MAX];
     BKE_preferences_extension_repo_dirpath_get(repo, dirpath, sizeof(dirpath));
 
@@ -618,16 +621,15 @@ static int preferences_extension_repo_remove_invoke(bContext *C,
     }
     else {
       message = IFACE_("Remove, local files not found.");
-      repo_type = bUserExtensionRepoRemoveType::RepoOnly;
+      remove_files = false;
     }
   }
   else {
     message = IFACE_("Remove, keeping local files.");
   }
 
-  const char *confirm_text = (repo_type == bUserExtensionRepoRemoveType::RepoWithDirectory) ?
-                                 IFACE_("Remove Repository & Files") :
-                                 IFACE_("Remove Repository");
+  const char *confirm_text = remove_files ? IFACE_("Remove Repository & Files") :
+                                            IFACE_("Remove Repository");
 
   return WM_operator_confirm_ex(
       C, op, nullptr, message.c_str(), confirm_text, ALERT_ICON_WARNING, true);
@@ -636,8 +638,7 @@ static int preferences_extension_repo_remove_invoke(bContext *C,
 static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
 {
   const int index = RNA_int_get(op->ptr, "index");
-  const bUserExtensionRepoRemoveType repo_type = bUserExtensionRepoRemoveType(
-      RNA_enum_get(op->ptr, "type"));
+  bool remove_files = RNA_boolean_get(op->ptr, "remove_files");
   bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(
       BLI_findlink(&U.extension_repos, index));
   if (!repo) {
@@ -647,7 +648,17 @@ static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
 
-  if (repo_type == bUserExtensionRepoRemoveType::RepoWithDirectory) {
+  if (remove_files) {
+    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) == 0) {
+      if (repo->source == USER_EXTENSION_REPO_SOURCE_SYSTEM) {
+        /* The UI doesn't show this option, if it's accessed disallow it. */
+        BKE_report(op->reports, RPT_WARNING, "Unable to remove files for \"System\" repositories");
+        remove_files = false;
+      }
+    }
+  }
+
+  if (remove_files) {
     char dirpath[FILE_MAX];
     BKE_preferences_extension_repo_dirpath_get(repo, dirpath, sizeof(dirpath));
     if (dirpath[0] && BLI_is_dir(dirpath)) {
@@ -702,21 +713,15 @@ static void PREFERENCES_OT_extension_repo_remove(wmOperatorType *ot)
 
   ot->flag = OPTYPE_INTERNAL;
 
-  static const EnumPropertyItem repo_type_items[] = {
-      {int(bUserExtensionRepoRemoveType::RepoOnly), "REPO_ONLY", 0, "Remove Repository"},
-      {int(bUserExtensionRepoRemoveType::RepoWithDirectory),
-       "REPO_AND_DIRECTORY",
-       0,
-       "Remove Repository & Files",
-       "Delete all associated local files when removing"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
-
-  ot->prop = RNA_def_enum(
-      ot->srna, "type", repo_type_items, 0, "Type", "Method for removing the repository");
-  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  PropertyRNA *prop;
+  prop = RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "remove_files",
+                         false,
+                         "Remove Files",
+                         "Remove extension files when removing the repository");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
