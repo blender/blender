@@ -360,6 +360,18 @@ float closest_to_line_segment_v3(float r_close[3],
                                  const float p[3],
                                  const float l1[3],
                                  const float l2[3]);
+
+/**
+ * Finds the points where a ray and a segment are closest to each other.
+ *
+ * \return A value in [0, 1] that corresponds to the position of #r_close on the line segment.
+ */
+float closest_ray_to_segment_v3(const float ray_origin[3],
+                                const float ray_direction[3],
+                                const float v0[3],
+                                const float v1[3],
+                                float r_close[3]);
+
 void closest_to_plane_normalized_v3(float r_close[3], const float plane[4], const float pt[3]);
 /**
  * Find the closest point on a plane.
