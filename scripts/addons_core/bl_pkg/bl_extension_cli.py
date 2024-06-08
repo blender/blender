@@ -57,9 +57,10 @@ if show_color:
     }
 
     def colorize(text: str, color: str) -> str:
-        return (color_codes[color] + text + color_codes["normal"])
+        return color_codes[color] + text + color_codes["normal"]
 else:
     def colorize(text: str, color: str) -> str:
+        _ = color
         return text
 
 # -----------------------------------------------------------------------------
@@ -136,7 +137,7 @@ class subcmd_utils:
                 errors.append("Malformed package name \"{:s}\", expected \"repo_id.pkg_id\"!".format(pkg_id_full))
                 continue
             if repo_id:
-                repo_index, repo_packages = repo_map.get(repo_id, (-1, ()))
+                repo_index, _repo_packages = repo_map.get(repo_id, (-1, ()))
                 if repo_index == -1:
                     errors.append("Repository \"{:s}\" not found in [{:s}]!".format(
                         repo_id,
@@ -145,7 +146,7 @@ class subcmd_utils:
                     continue
             else:
                 repo_index = -1
-                for repo_id_iter, (repo_index_iter, repo_packages_iter) in repo_map.items():
+                for _repo_id_iter, (repo_index_iter, repo_packages_iter) in repo_map.items():
                     if pkg_id in repo_packages_iter:
                         repo_index = repo_index_iter
                         break
@@ -408,7 +409,7 @@ class subcmd_repo:
     def add(
             *,
             name: str,
-            id: str,
+            repo_id: str,
             directory: str,
             url: str,
             cache: bool,
@@ -424,7 +425,7 @@ class subcmd_repo:
 
         repo = extension_repos.new(
             name=name,
-            module=id,
+            module=repo_id,
             custom_directory=directory,
             remote_url=url,
         )
@@ -438,21 +439,21 @@ class subcmd_repo:
     @staticmethod
     def remove(
             *,
-            id: str,
+            repo_id: str,
             no_prefs: bool,
     ) -> bool:
         from bpy import context
         extension_repos = context.preferences.extensions.repos
         extension_repos_module_map = {repo.module: repo for repo in extension_repos}
-        repo = extension_repos_module_map.get(id)
+        repo = extension_repos_module_map.get(repo_id)
         if repo is None:
             sys.stderr.write("Repository: \"{:s}\" not found in [{:s}]\n".format(
-                id,
+                repo_id,
                 ", ".join(["\"{:s}\"".format(x) for x in sorted(extension_repos_module_map.keys())])
             ))
             return False
         extension_repos.remove(repo)
-        print("Removed repo \"{:s}\"".format(id))
+        print("Removed repo \"{:s}\"".format(repo_id))
 
         if not no_prefs:
             blender_preferences_write()
@@ -547,7 +548,7 @@ def generic_arg_repo_id(subparse: argparse.ArgumentParser) -> None:
 
 def generic_arg_package_repo_id_positional(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
-        dest="id",
+        dest="repo_id",
         metavar="ID",
         type=str,
         help=(
@@ -771,7 +772,7 @@ def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse
 
     subparse.set_defaults(
         func=lambda args: subcmd_repo.add(
-            id=args.id,
+            repo_id=args.repo_id,
             name=args.name,
             directory=args.directory,
             url=args.url,
@@ -797,7 +798,7 @@ def cli_extension_args_repo_remove(subparsers: "argparse._SubParsersAction[argpa
 
     subparse.set_defaults(
         func=lambda args: subcmd_repo.remove(
-            id=args.id,
+            repo_id=args.repo_id,
             no_prefs=args.no_prefs,
         ),
     )
