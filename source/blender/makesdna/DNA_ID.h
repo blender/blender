@@ -224,7 +224,7 @@ typedef enum eIDPropertySubType {
 } eIDPropertySubType;
 
 /** #IDProperty.flag. */
-enum {
+typedef enum eIDPropertyFlag {
   /**
    * This #IDProperty may be library-overridden.
    * Should only be used/be relevant for custom properties.
@@ -241,7 +241,7 @@ enum {
    * #RNA_property_is_set, currently this is a runtime flag.
    */
   IDP_FLAG_GHOST = 1 << 7,
-};
+} eIDPropertyFlag;
 
 /* add any future new id property types here. */
 
