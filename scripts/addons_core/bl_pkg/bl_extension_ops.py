@@ -279,6 +279,15 @@ def wm_wait_cursor(value):
                 window.cursor_modal_restore()
 
 
+def operator_finished_result(operator_result):
+    # Inspect results for modal operator, return None when the result isn't known.
+    if 'CANCELLED' in operator_result:
+        return True
+    if 'FINISHED' in operator_result:
+        return False
+    return None
+
+
 # A named-tuple copy of `context.preferences.extensions.repos` (`bpy.types.UserExtensionRepo`).
 # This is done for the following reasons.
 #
@@ -906,6 +915,13 @@ class CommandHandle:
             return {'RUNNING_MODAL', 'PASS_THROUGH'}
         return {'RUNNING_MODAL'}
 
+    def op_modal_cancel(self, op, context):
+        import time
+        self.request_exit = True
+        while operator_finished_result(self.op_modal_step(op, context)) is None:
+            # Avoid high CPU use on exit.
+            time.sleep(0.1)
+
 
 def _report(ty, msg):
     if ty == 'DONE':
@@ -1006,30 +1022,23 @@ class _ExtCmdMixIn:
         repo_status_text.title = cmd_batch.title
 
         result = CommandHandle.op_exec_from_iter(self, context, cmd_batch, is_modal)
-        canceled = None
-        if 'FINISHED' in result:
-            canceled = False
-        elif 'CANCELLED' in result:
-            canceled = True
-
-        if canceled is not None:
+        if (canceled := operator_finished_result(result)) is not None:
             self.exec_command_finish(canceled)
         return result
 
     def modal(self, context, event):
         result = self._runtime_handle.op_modal_impl(self, context, event)
-        canceled = None
-        if 'FINISHED' in result:
-            canceled = False
-        elif 'CANCELLED' in result:
-            canceled = True
-
-        if canceled is not None:
+        if (canceled := operator_finished_result(result)) is not None:
             wm_wait_cursor(True)
             self.exec_command_finish(canceled)
             wm_wait_cursor(False)
 
         return result
+
+    def cancel(self, context):
+        canceled = True
+        self._runtime_handle.op_modal_cancel(self, context)
+        self.exec_command_finish(canceled)
 
 
 class EXTENSIONS_OT_dummy_progress(Operator, _ExtCmdMixIn):
