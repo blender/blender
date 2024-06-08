@@ -31,15 +31,20 @@
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
+#include "BKE_image.h"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
 
 #include "BIF_glutil.hh"
+
+#include "DNA_vfont_types.h"
 
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
@@ -47,12 +52,14 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_thumbs.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.hh"
 
@@ -1589,23 +1596,193 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
   return ui_tooltip_create_with_data(C, data, init_position, nullptr, aspect);
 }
 
-static uiTooltipData *ui_tooltip_data_from_search_item_tooltip_data(
-    const uiSearchItemTooltipData *item_tooltip_data)
+static void ui_tooltip_from_image(Image &ima, uiTooltipData &data)
+{
+  if (ima.filepath[0]) {
+    char root[FILE_MAX];
+    BLI_path_split_dir_part(ima.filepath, root, FILE_MAX);
+    UI_tooltip_text_field_add(&data, root, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+  }
+
+  std::string image_type;
+  switch (ima.source) {
+    case IMA_SRC_FILE:
+      image_type = TIP_("Single Image");
+      break;
+    case IMA_SRC_SEQUENCE:
+      image_type = TIP_("Image Sequence");
+      break;
+    case IMA_SRC_MOVIE:
+      image_type = TIP_("Movie");
+      break;
+    case IMA_SRC_GENERATED:
+      image_type = TIP_("Generated");
+      break;
+    case IMA_SRC_VIEWER:
+      image_type = TIP_("Viewer");
+      break;
+    case IMA_SRC_TILED:
+      image_type = TIP_("UDIM Tiles");
+      break;
+  }
+  UI_tooltip_text_field_add(&data, image_type, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+
+  short w;
+  short h;
+  ImBuf *ibuf = BKE_image_preview(&ima, 200.0f * UI_SCALE_FAC, &w, &h);
+
+  if (ibuf) {
+    UI_tooltip_text_field_add(
+        &data, fmt::format("{} \u00D7 {}", w, h), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+  }
+
+  if (BKE_image_has_anim(&ima)) {
+    ImBufAnim *anim = static_cast<ImBufAnim *>(ima.anims.first);
+    if (anim) {
+      int duration = IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN);
+      UI_tooltip_text_field_add(
+          &data, fmt::format("Frames: {}", duration), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+    }
+  }
+
+  UI_tooltip_text_field_add(
+      &data, ima.colorspace_settings.name, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+
+  UI_tooltip_text_field_add(
+      &data, fmt::format(TIP_("Users: {}"), ima.id.us), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+
+  if (ibuf) {
+    uiTooltipImage image_data;
+    image_data.width = int(ibuf->x);
+    image_data.height = int(ibuf->y);
+    image_data.ibuf = ibuf;
+    image_data.border = true;
+    image_data.background = uiTooltipImageBackground::Checkerboard_Themed;
+    image_data.premultiplied = true;
+    UI_tooltip_text_field_add(&data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(&data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_image_field_add(&data, image_data);
+  }
+}
+
+static void ui_tooltip_from_clip(MovieClip &clip, uiTooltipData &data)
+{
+  if (clip.filepath[0]) {
+    char root[FILE_MAX];
+    BLI_path_split_dir_part(clip.filepath, root, FILE_MAX);
+    UI_tooltip_text_field_add(&data, root, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+  }
+
+  std::string image_type;
+  switch (clip.source) {
+    case IMA_SRC_SEQUENCE:
+      image_type = TIP_("Image Sequence");
+      break;
+    case IMA_SRC_MOVIE:
+      image_type = TIP_("Movie");
+      break;
+  }
+  UI_tooltip_text_field_add(&data, image_type, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+
+  if (clip.anim) {
+    ImBufAnim *anim = clip.anim;
+
+    UI_tooltip_text_field_add(&data,
+                              fmt::format("{} \u00D7 {}",
+                                          IMB_anim_get_image_width(anim),
+                                          IMB_anim_get_image_height(anim)),
+                              {},
+                              UI_TIP_STYLE_NORMAL,
+                              UI_TIP_LC_NORMAL);
+
+    UI_tooltip_text_field_add(
+        &data,
+        fmt::format("Frames: {}", IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN)),
+        {},
+        UI_TIP_STYLE_NORMAL,
+        UI_TIP_LC_NORMAL);
+
+    ImBuf *ibuf = IMB_anim_previewframe(anim);
+
+    if (ibuf) {
+      /* Resize. */
+      float scale = float(200.0f * UI_SCALE_FAC) / float(std::max(ibuf->x, ibuf->y));
+      IMB_scaleImBuf(ibuf, scale * ibuf->x, scale * ibuf->y);
+      IMB_rect_from_float(ibuf);
+
+      uiTooltipImage image_data;
+      image_data.width = int(ibuf->x);
+      image_data.height = int(ibuf->y);
+      image_data.ibuf = ibuf;
+      image_data.border = true;
+      image_data.background = uiTooltipImageBackground::Checkerboard_Themed;
+      image_data.premultiplied = true;
+      UI_tooltip_text_field_add(&data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+      UI_tooltip_text_field_add(&data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+      UI_tooltip_image_field_add(&data, image_data);
+      IMB_freeImBuf(ibuf);
+    }
+  }
+}
+
+static void ui_tooltip_from_vfont(VFont &font, uiTooltipData &data)
+{
+  if (!font.filepath[0]) {
+    /* Let's not bother with packed files _for now_.*/
+    return;
+  }
+
+  float color[4];
+  const uiWidgetColors *theme = ui_tooltip_get_theme();
+  rgba_uchar_to_float(color, theme->text);
+  ImBuf *ibuf = IMB_font_preview(font.filepath, 200 * UI_SCALE_FAC, color);
+  if (ibuf) {
+    uiTooltipImage image_data;
+    image_data.width = ibuf->x;
+    image_data.height = ibuf->y;
+    image_data.ibuf = ibuf;
+    image_data.border = false;
+    image_data.background = uiTooltipImageBackground::None;
+    image_data.premultiplied = false;
+    image_data.text_color = true;
+    UI_tooltip_image_field_add(&data, image_data);
+    IMB_freeImBuf(ibuf);
+  }
+}
+
+static uiTooltipData *ui_tooltip_data_from_search_item_tooltip_data(ID *id)
 {
   uiTooltipData *data = MEM_new<uiTooltipData>(__func__);
+  const ID_Type type_id = GS(id->name);
 
-  if (item_tooltip_data->description[0]) {
-    UI_tooltip_text_field_add(
-        data, item_tooltip_data->description, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL, true);
+  UI_tooltip_text_field_add(data, id->name + 2, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_MAIN);
+
+  if (type_id == ID_IM) {
+    ui_tooltip_from_image(*reinterpret_cast<Image *>(id), *data);
+  }
+  else if (type_id == ID_MC) {
+    ui_tooltip_from_clip(*reinterpret_cast<MovieClip *>(id), *data);
+  }
+  else if (type_id == ID_VF) {
+    ui_tooltip_from_vfont(*reinterpret_cast<VFont *>(id), *data);
+  }
+  else {
+    UI_tooltip_text_field_add(data,
+                              fmt::format(TIP_("Choose {} data-block to be assigned to this user"),
+                                          BKE_idtype_idcode_to_name(GS(id->name))),
+                              {},
+                              UI_TIP_STYLE_NORMAL,
+                              UI_TIP_LC_NORMAL);
   }
 
-  if (item_tooltip_data->name && item_tooltip_data->name[0]) {
+  /** Additional info about the item (e.g. library name of a linked data-block). */
+  if (ID_IS_LINKED(id)) {
     UI_tooltip_text_field_add(
-        data, item_tooltip_data->name, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE, true);
-  }
-  if (item_tooltip_data->hint[0]) {
-    UI_tooltip_text_field_add(
-        data, item_tooltip_data->hint, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL, true);
+        data,
+        fmt::format(TIP_("Source library: {}\n{}"), id->lib->id.name + 2, id->lib->filepath),
+        {},
+        UI_TIP_STYLE_NORMAL,
+        UI_TIP_LC_NORMAL);
   }
 
   if (data->fields.is_empty()) {
@@ -1615,13 +1792,12 @@ static uiTooltipData *ui_tooltip_data_from_search_item_tooltip_data(
   return data;
 }
 
-ARegion *UI_tooltip_create_from_search_item_generic(
-    bContext *C,
-    const ARegion *searchbox_region,
-    const rcti *item_rect,
-    const uiSearchItemTooltipData *item_tooltip_data)
+ARegion *UI_tooltip_create_from_search_item_generic(bContext *C,
+                                                    const ARegion *searchbox_region,
+                                                    const rcti *item_rect,
+                                                    ID *id)
 {
-  uiTooltipData *data = ui_tooltip_data_from_search_item_tooltip_data(item_tooltip_data);
+  uiTooltipData *data = ui_tooltip_data_from_search_item_tooltip_data(id);
   if (data == nullptr) {
     return nullptr;
   }

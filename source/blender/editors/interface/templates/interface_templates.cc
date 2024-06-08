@@ -498,26 +498,10 @@ static void id_search_cb_objects_from_scene(const bContext *C,
 }
 
 static ARegion *template_ID_search_menu_item_tooltip(
-    bContext *C, ARegion *region, const rcti *item_rect, void *arg, void *active)
+    bContext *C, ARegion *region, const rcti *item_rect, void * /*arg*/, void *active)
 {
-  TemplateID *template_ui = static_cast<TemplateID *>(arg);
   ID *active_id = static_cast<ID *>(active);
-  StructRNA *type = RNA_property_pointer_type(&template_ui->ptr, template_ui->prop);
-
-  uiSearchItemTooltipData tooltip_data = {{0}};
-
-  tooltip_data.name = active_id->name + 2;
-  SNPRINTF(tooltip_data.description,
-           TIP_("Choose %s data-block to be assigned to this user"),
-           RNA_struct_ui_name(type));
-  if (ID_IS_LINKED(active_id)) {
-    SNPRINTF(tooltip_data.hint,
-             TIP_("Source library: %s\n%s"),
-             active_id->lib->id.name + 2,
-             active_id->lib->filepath);
-  }
-
-  return UI_tooltip_create_from_search_item_generic(C, region, item_rect, &tooltip_data);
+  return UI_tooltip_create_from_search_item_generic(C, region, item_rect, active_id);
 }
 
 /* ID Search browse menu, open */

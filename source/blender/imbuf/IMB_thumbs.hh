@@ -91,6 +91,8 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
 ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y);
 bool IMB_thumb_load_font_get_hash(char *r_hash);
 
+ImBuf *IMB_font_preview(const char *filename, unsigned int width, float color[4]);
+
 /* Threading */
 
 void IMB_thumb_locks_acquire();
