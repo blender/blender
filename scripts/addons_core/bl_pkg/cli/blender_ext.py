@@ -121,7 +121,7 @@ def debug_stack_trace_to_file() -> None:
     """
     import inspect
     stack = inspect.stack(context=1)
-    with open("/tmp/out.txt", "w") as fh:
+    with open("/tmp/out.txt", "w", encoding="utf-8") as fh:
         for frame_info in stack[1:]:
             fh.write("{:s}:{:d}: {:s}\n".format(
                 frame_info.filename,
@@ -1877,8 +1877,9 @@ def url_is_filesystem(url: str) -> bool:
     if url.startswith(URL_KNOWN_PREFIX):
         return False
 
-    # Argument parsing must ensure this never happens.
-    raise ValueError("prefix not known")
+    # Error handling must ensure this never happens.
+    assert False, "unreachable, prefix not known"
+
     return False
 
 

@@ -2390,8 +2390,8 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
             if p
         )
 
-        # collect the categories that can be filtered on
-        addon_modules = [mod for mod in addon_utils.modules(refresh=False)]
+        # Collect the categories that can be filtered on.
+        addon_modules = addon_utils.modules(refresh=False)
 
         self._draw_addon_header(layout, prefs, wm)
 

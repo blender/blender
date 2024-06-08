@@ -85,7 +85,7 @@ def rna_prop_repo_enum_local_only_itemf(_self, context):
             for repo_item in repo_iter_valid_local_only(context, exclude_system=True)
         ]
     # Prevent the strings from being freed.
-    rna_prop_repo_enum_local_only_itemf._result = result
+    rna_prop_repo_enum_local_only_itemf.result = result
     return result
 
 
@@ -974,7 +974,7 @@ def _extensions_maybe_online_action_poll_impl(cls, repo, action_text):
             return False
 
     repos_all = extension_repos_read(use_active_only=False)
-    if not len(repos_all):
+    if not repos_all:
         cls.poll_message_set("No repositories available")
         return False
 
@@ -1153,7 +1153,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
         return _extensions_maybe_online_action_poll_impl(cls, repo, "check for updates")
 
     @classmethod
-    def description(cls, context, props):
+    def description(cls, _context, props):
         if props.use_active_only:
             return "Refresh the list of extensions for the active repository"
         return ""  # Default.
@@ -1252,7 +1252,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
         return _extensions_maybe_online_action_poll_impl(cls, repo, "install updates")
 
     @classmethod
-    def description(cls, context, props):
+    def description(cls, _context, props):
         if props.use_active_only:
             return "Upgrade all the extensions to their latest version for the active repository"
         return ""  # Default.
@@ -1845,9 +1845,11 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
     def draw(self, context):
         if self._drop_variables is not None:
-            return self._draw_for_drop(context)
+            self._draw_for_drop(context)
+            return
         elif self._legacy_drop is not None:
-            return self._draw_for_legacy_drop(context)
+            self._draw_for_legacy_drop(context)
+            return
 
         # Override draw because the repository names may be over-long and not fit well in the UI.
         # Show the text & repository names in two separate rows.
@@ -1873,7 +1875,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             body.prop(self, "target", text="Target Path")
             body.prop(self, "overwrite", text="Overwrite")
 
-    def _invoke_for_drop(self, context, event):
+    def _invoke_for_drop(self, context, _event):
         # Drop logic.
         print("DROP FILE:", self.url)
 
@@ -1893,7 +1895,6 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             self._drop_variables = True
             self._legacy_drop = None
 
-            from .bl_extension_ops import repo_iter_valid_local_only
             from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
 
             if not list(repo_iter_valid_local_only(context, exclude_system=True)):
@@ -1922,7 +1923,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
         return {'RUNNING_MODAL'}
 
-    def _draw_for_drop(self, context):
+    def _draw_for_drop(self, _context):
 
         layout = self.layout
         layout.operator_context = 'EXEC_DEFAULT'
@@ -1934,7 +1935,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
         layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[pkg_type])
 
-    def _draw_for_legacy_drop(self, context):
+    def _draw_for_legacy_drop(self, _context):
 
         layout = self.layout
         layout.operator_context = 'EXEC_DEFAULT'
@@ -1972,7 +1973,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
     )
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         if not bpy.app.online_access:
             if bpy.app.online_access_override:
                 cls.poll_message_set(
@@ -2094,7 +2095,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         return self.execute(context)
 
-    def _invoke_for_drop(self, context, event):
+    def _invoke_for_drop(self, context, _event):
         from .bl_extension_utils import url_parse_for_blender
 
         url = self.url
@@ -2132,15 +2133,15 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
     def draw(self, context):
         if self._drop_variables is not None:
-            return self._draw_for_drop(context)
+            self._draw_for_drop(context)
 
-    def _draw_for_drop(self, context):
+    def _draw_for_drop(self, _context):
         from .bl_extension_ui import (
             size_as_fmt_string,
         )
         layout = self.layout
 
-        repo_index, repo_name, pkg_id, item_remote = self._drop_variables
+        _repo_index, repo_name, pkg_id, item_remote = self._drop_variables
 
         layout.label(text="Do you want to install the following {:s}?".format(item_remote["type"]))
 
@@ -2273,12 +2274,12 @@ class EXTENSIONS_OT_package_uninstall_system(Operator):
     bl_options = {'INTERNAL'}
 
     @classmethod
-    def poll(cls, contest):
+    def poll(cls, _contest):
         cls.poll_message_set("System extensions are read-only and cannot be uninstalled")
         return False
 
     @classmethod
-    def description(cls, context, props):
+    def description(cls, _context, _props):
         return EXTENSIONS_OT_package_uninstall.__doc__
 
     def execute(self, _context):
@@ -2303,8 +2304,7 @@ class EXTENSIONS_OT_package_theme_enable(Operator):
     pkg_id: rna_prop_pkg_id
     repo_index: rna_prop_repo_index
 
-    def execute(self, context):
-        self.repo_index
+    def execute(self, _context):
         repo_item = extension_repos_read_index(self.repo_index)
         extension_theme_enable(repo_item.directory, self.pkg_id)
         print(repo_item.directory, self.pkg_id)
@@ -2320,7 +2320,6 @@ class EXTENSIONS_OT_package_theme_disable(Operator):
     repo_index: rna_prop_repo_index
 
     def execute(self, context):
-        import os
         repo_item = extension_repos_read_index(self.repo_index)
         dirpath = os.path.join(repo_item.directory, self.pkg_id)
         if os.path.samefile(dirpath, os.path.dirname(context.preferences.themes[0].filepath)):
@@ -2574,7 +2573,7 @@ class EXTENSIONS_OT_userpref_show_online(Operator):
     bl_options = {'INTERNAL'}
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         if bpy.app.online_access_override:
             if not bpy.app.online_access:
                 cls.poll_message_set("Blender was launched in offline-mode which cannot be changed at runtime")

@@ -364,7 +364,7 @@ class NotifyHandle:
 _notify_queue = []
 
 
-def _ui_refresh_apply(*, notify):
+def _ui_refresh_apply():
     # Ensure the preferences are redrawn when the update is complete.
     if bpy.context.preferences.active_section == 'EXTENSIONS':
         for wm in bpy.data.window_managers:
@@ -407,7 +407,7 @@ def _ui_refresh_timer():
 
     # If the generator exited, either step to the next action or early exit here.
     if sync_info is ...:
-        _ui_refresh_apply(notify=notify)
+        _ui_refresh_apply()
         if len(_notify_queue) <= 1:
             # Keep `_notify_queuy[0]` because we may want to keep accessing the text even when updates are complete.
             if wm.extensions_updates == WM_EXTENSIONS_UPDATE_CHECKING:
@@ -418,7 +418,7 @@ def _ui_refresh_timer():
         return default_wait
 
     # TODO: redraw the status bar.
-    _ui_refresh_apply(notify=notify)
+    _ui_refresh_apply()
 
     update_count = notify.updates_count()
     if update_count != wm.extensions_updates:

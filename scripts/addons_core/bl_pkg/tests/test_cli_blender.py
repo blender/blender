@@ -458,7 +458,7 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             )
         )
 
-        returncode, stdout, stderr = run_blender((
+        returncode, stdout, _stderr = run_blender((
             "-b",
             "--python-expr",
             # Return an `exitcode` of 64 if the module exists.

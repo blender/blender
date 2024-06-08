@@ -499,7 +499,7 @@ def cli_extension(argv):
 
 
 class BlExtDummyGroup(bpy.types.PropertyGroup):
-    """Dummy"""
+    # Dummy.
     pass
 
 

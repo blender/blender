@@ -315,7 +315,7 @@ class notify_info:
     _update_state = None
 
     @staticmethod
-    def update_ensure(context, repos):
+    def update_ensure(repos):
         """
         Ensure updates are triggered if the preferences display extensions
         and an online sync has not yet run.
@@ -387,6 +387,10 @@ def extensions_panel_draw_online_extensions_request_impl(
     row.operator("extensions.userpref_allow_online", text="Allow Online Access", icon='CHECKMARK')
 
 
+extensions_map_from_legacy_addons = None
+extensions_map_from_legacy_addons_url = None
+
+
 # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
 def extensions_map_from_legacy_addons_ensure():
     import os
@@ -409,10 +413,6 @@ def extensions_map_from_legacy_addons_reverse_lookup(pkg_id):
         if pkg_id == value_pkg_id:
             return key_addon_module_name
     return ""
-
-
-extensions_map_from_legacy_addons = None
-extensions_map_from_legacy_addons_url = None
 
 
 # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
@@ -444,7 +444,6 @@ def extensions_panel_draw_missing_with_extension_impl(
 
     box = layout_panel.box()
     box.label(text="Add-ons previously shipped with Blender are now available from extensions.blender.org.")
-    can_install = True
 
     if repo is None:
         # Most likely the user manually removed this.
@@ -563,7 +562,7 @@ def extensions_panel_draw_impl(
     repos_all = extension_repos_read()
 
     if bpy.app.online_access:
-        if notify_info.update_ensure(context, repos_all):
+        if notify_info.update_ensure(repos_all):
             # TODO: should be part of the status bar.
             from .bl_extension_notify import update_ui_text
             text, icon = update_ui_text()
@@ -576,7 +575,7 @@ def extensions_panel_draw_impl(
     show_themes = filter_by_type in {"", "theme"}
     if show_addons:
         used_addon_module_name_map = {addon.module: addon for addon in prefs.addons}
-        addon_modules = [mod for mod in addon_utils.modules(refresh=False)]
+        addon_modules = addon_utils.modules(refresh=False)
 
     if show_themes:
         active_theme_info = pkg_repo_and_id_from_theme_path(repos_all, prefs.themes[0].filepath)
@@ -627,20 +626,16 @@ def extensions_panel_draw_impl(
                 local_ex = None
             continue
 
+        repo = repos_all[repo_index]
+        has_remote = (repo.remote_url != "")
+        del repo
         if pkg_manifest_remote is None:
-            repo = repos_all[repo_index]
-            has_remote = (repo.remote_url != "")
             if has_remote:
                 # NOTE: it would be nice to detect when the repository ran sync and it failed.
                 # This isn't such an important distinction though, the main thing users should be aware of
                 # is that a "sync" is required.
                 errors_on_draw.append("Repository: \"{:s}\" must sync with the remote repository.".format(repo.name))
-            del repo
             continue
-        else:
-            repo = repos_all[repo_index]
-            has_remote = (repo.remote_url != "")
-            del repo
 
         # Read-only.
         is_system_repo = repos_all[repo_index].source == 'SYSTEM'
@@ -971,9 +966,9 @@ class USERPREF_PT_extensions_tags(Panel):
     bl_region_type = 'HEADER'
     bl_ui_units_x = 13
 
-    def draw(self, context):
+    def draw(self, _context):
         # Extended by the `bl_pkg` add-on.
-        layout = self.layout
+        pass
 
 
 class USERPREF_MT_extensions_settings(Menu):
@@ -1148,7 +1143,7 @@ def tags_current(wm):
     if filter_by_type == "add-on":
         # Legacy add-on categories as tags.
         import addon_utils
-        addon_modules = [mod for mod in addon_utils.modules(refresh=False)]
+        addon_modules = addon_utils.modules(refresh=False)
         for mod in addon_modules:
             module_name = mod.__name__
             is_extension = addon_utils.check_extension(module_name)
@@ -1183,14 +1178,14 @@ def tags_refresh(wm):
     for tag in tags_to_add:
         tags_idprop[tag] = True
 
-    return tags_idprop, list(sorted(tags_next))
+    return list(sorted(tags_next))
 
 
 def tags_panel_draw(panel, context):
     from bpy.utils import escape_identifier
     layout = panel.layout
     wm = context.window_manager
-    tags_idprop, tags_sorted = tags_refresh(wm)
+    tags_sorted = tags_refresh(wm)
     layout.label(text="Show Tags")
     # Add one so the first row is longer in the case of an odd number.
     tags_len_half = (len(tags_sorted) + 1) // 2
@@ -1202,7 +1197,7 @@ def tags_panel_draw(panel, context):
         col.prop(wm.extension_tags, "[\"{:s}\"]".format(escape_identifier(t)))
 
 
-def extensions_repo_active_draw(self, context):
+def extensions_repo_active_draw(self, _context):
     # Draw icon buttons on the right hand side of the UI-list.
     from . import repo_active_or_none
     layout = self.layout

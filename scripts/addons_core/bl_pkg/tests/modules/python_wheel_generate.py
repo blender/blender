@@ -143,11 +143,12 @@ def generate_from_source(
         },
     )
 
+# Example usage:
 
-if __name__ == "__main__":
-    filename, data = generate_from_source(
-        module_name="blender_example_module",
-        version="0.0.1",
-        source="print(\"Hello World\")"
-    )
-    print(filename, len(data))
+# if __name__ == "__main__":
+#     filename, data = generate_from_source(
+#         module_name="blender_example_module",
+#         version="0.0.1",
+#         source="print(\"Hello World\")"
+#     )
+#     print(filename, len(data))
