@@ -20,7 +20,6 @@
 shared uint tiles_local[SHADOW_TILEDATA_PER_TILEMAP];
 shared uint levels_rendered;
 shared uint force_base_page;
-shared uint base_page_do_update_flag;
 
 int shadow_tile_offset_lds(ivec2 tile, int lod)
 {
@@ -58,11 +57,6 @@ void main()
         ShadowTileDataPacked tile_data = tiles_buf[tile_offset];
 
         if ((tile_data & SHADOW_IS_USED) == 0) {
-          if (lod == SHADOW_TILEMAP_LOD) {
-            /* Save the flag to recover it if needed. This is fine to write non-atomically because
-             * there is only one tile at the base level. */
-            base_page_do_update_flag = tile_data & SHADOW_DO_UPDATE;
-          }
           /* Do not consider this tile as going to be rendered if it is not used.
            * Simplify checks later. This is a local modification. */
           tile_data &= ~SHADOW_DO_UPDATE;
@@ -111,14 +105,6 @@ void main()
           tiles_local[tile_offset] |= SHADOW_TILE_AMENDED;
           /* Visibility value to write back. */
           tiles_local[tile_offset] |= SHADOW_TILE_MASKED;
-        }
-        else if ((lod == SHADOW_TILEMAP_LOD) && (force_base_page != 0u)) {
-          /* Recover the update flag value. */
-          tiles_local[tile_offset] |= base_page_do_update_flag;
-          /* Tag as modified so that we can amend it inside the `tiles_buf`. */
-          tiles_local[tile_offset] |= SHADOW_TILE_AMENDED;
-          /* Visibility value to write back. */
-          tiles_local[tile_offset] &= ~SHADOW_TILE_MASKED;
         }
       }
     }
@@ -186,6 +172,25 @@ void main()
 #endif
 
     barrier();
+
+#if 1 /* Can be disabled for debugging. */
+    if (gl_LocalInvocationIndex == 0u) {
+      /* WATCH: To be kept in sync with `max_view_per_tilemap()` function. */
+      bool is_render = max_view_per_tilemap == SHADOW_TILEMAP_LOD;
+      /* Tag base page to be rendered if any other tile is needed by this shadow.
+       * Fixes issue with shadow map ray tracing sampling invalide tiles.
+       * Only do this in for final render or if all the main levels were already rendered.
+       * This last heuristic avoids very low quality shadows during viewport animation, transform
+       * or jittered shadows. */
+      if ((force_base_page != 0u) && ((levels_rendered == 0u) || is_render)) {
+        int tile_offset = shadow_tile_offset_lds(ivec2(0), SHADOW_TILEMAP_LOD);
+        /* Tag as modified so that we can amend it inside the `tiles_buf`. */
+        tiles_local[tile_offset] |= SHADOW_TILE_AMENDED;
+        /* Visibility value to write back. */
+        tiles_local[tile_offset] &= ~SHADOW_TILE_MASKED;
+      }
+    }
+#endif
 
     /* Flush back visibility bits to the tile SSBO. */
     for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++) {
