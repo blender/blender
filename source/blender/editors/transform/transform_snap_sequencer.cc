@@ -65,10 +65,10 @@ static bool seq_snap_source_points_build(const Scene *scene,
   int i = 0;
   for (Sequence *seq : snap_sources) {
     int left = 0, right = 0;
-    if (seq->flag & SEQ_LEFTSEL) {
+    if (seq->flag & SEQ_LEFTSEL && !(seq->flag & SEQ_RIGHTSEL)) {
       left = right = SEQ_time_left_handle_frame_get(scene, seq);
     }
-    else if (seq->flag & SEQ_RIGHTSEL) {
+    else if (seq->flag & SEQ_RIGHTSEL && !(seq->flag & SEQ_LEFTSEL)) {
       left = right = SEQ_time_right_handle_frame_get(scene, seq);
     }
     else {
