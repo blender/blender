@@ -987,7 +987,7 @@ class USERPREF_MT_extensions_settings(Menu):
         layout.operator("extensions.package_upgrade_all", text="Install Available Updates", icon='IMPORT')
         layout.operator("extensions.package_install_files", text="Install from Disk...")
 
-        if prefs.experimental.use_extension_utils:
+        if prefs.experimental.use_extensions_debug:
             layout.separator()
 
             layout.prop(addon_prefs, "show_development_reports")
@@ -1019,7 +1019,7 @@ def extensions_panel_draw(panel, context):
 
     addon_prefs = prefs.addons[__package__].preferences
 
-    show_development = prefs.experimental.use_extension_utils
+    show_development = prefs.experimental.use_extensions_debug
     show_development_reports = show_development and addon_prefs.show_development_reports
 
     wm = context.window_manager
