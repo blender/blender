@@ -642,6 +642,9 @@ def extensions_panel_draw_impl(
             has_remote = (repo.remote_url != "")
             del repo
 
+        # Read-only.
+        is_system_repo = repos_all[repo_index].source == 'SYSTEM'
+
         for pkg_id, item_remote in pkg_manifest_remote.items():
             if filter_by_type and (filter_by_type != item_remote["type"]):
                 continue
@@ -816,10 +819,13 @@ def extensions_panel_draw_impl(
                 if is_installed:
                     rowsub = col_b.row()
                     rowsub.alignment = 'RIGHT'
-                    props = rowsub.operator("extensions.package_uninstall", text="Uninstall")
-                    props.repo_index = repo_index
-                    props.pkg_id = pkg_id
-                    del props, rowsub
+                    if is_system_repo:
+                        rowsub.operator("extensions.package_uninstall_system", text="Uninstall")
+                    else:
+                        props = rowsub.operator("extensions.package_uninstall", text="Uninstall")
+                        props.repo_index = repo_index
+                        props.pkg_id = pkg_id
+                        del props, rowsub
 
                 del split, col_a, col_b
 
