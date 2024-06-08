@@ -431,7 +431,7 @@ static bool old_id_property_type_matches_socket_convert_to_new_float_vec(
 static bool old_id_property_type_matches_socket_convert_to_new_string(
     const IDProperty &old_property, IDProperty *new_property)
 {
-  if (old_property.type != IDP_STRING || new_property->subtype != IDP_STRING_SUB_UTF8) {
+  if (old_property.type != IDP_STRING || old_property.subtype != IDP_STRING_SUB_UTF8) {
     return false;
   }
   if (new_property) {
