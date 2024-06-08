@@ -183,6 +183,7 @@ static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float 
 static bool is_vert_slide_visible(TransInfo *t,
                                   SnapObjectContext *sctx,
                                   TransDataEdgeSlideVert *sv,
+                                  const float4x4 &obmat,
                                   const float4 &plane_near)
 {
   const float3 &v_co_orig = sv->v_co_orig();
@@ -193,7 +194,8 @@ static bool is_vert_slide_visible(TransInfo *t,
   };
 
   float3 hit_loc;
-  for (const float3 &p : points) {
+  for (float3 &p : points) {
+    p = math::transform_point(obmat, p);
     float3 view_vec;
     float lambda, ray_depth = FLT_MAX;
 
@@ -249,13 +251,17 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
   /* Use for visibility checks. */
   SnapObjectContext *snap_context = nullptr;
   bool use_occlude_geometry = false;
+  const float4x4 *obmat = nullptr;
   float4 plane_near;
   if (t->spacetype == SPACE_VIEW3D) {
     View3D *v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
-    use_occlude_geometry = (v3d && TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->dt > OB_WIRE &&
-                            !XRAY_ENABLED(v3d));
-    planes_from_projmat(t->persmat, nullptr, nullptr, nullptr, nullptr, plane_near, nullptr);
-    snap_context = ED_transform_snap_object_context_create(t->scene, 0);
+    Object *obedit = TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit;
+    use_occlude_geometry = (v3d && obedit->dt > OB_WIRE && !XRAY_ENABLED(v3d));
+    if (use_occlude_geometry) {
+      obmat = &obedit->object_to_world();
+      planes_from_projmat(t->persmat, nullptr, nullptr, nullptr, nullptr, plane_near, nullptr);
+      snap_context = ED_transform_snap_object_context_create(t->scene, 0);
+    }
   }
 
   /* Find mouse vectors, the global one, and one per loop in case we have
@@ -276,7 +282,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
   for (int i : sld->sv.index_range()) {
     TransDataEdgeSlideVert *sv = &sld->sv[i];
     bool is_visible = !use_occlude_geometry ||
-                      is_vert_slide_visible(t, snap_context, sv, plane_near);
+                      is_vert_slide_visible(t, snap_context, sv, *obmat, plane_near);
 
     /* This test is only relevant if object is not wire-drawn! See #32068. */
     if (!is_visible && !use_calc_direction) {
