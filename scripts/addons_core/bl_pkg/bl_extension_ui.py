@@ -988,17 +988,14 @@ class USERPREF_MT_extensions_settings(Menu):
         layout.operator("extensions.package_upgrade_all", text="Install Available Updates", icon='IMPORT')
         layout.operator("extensions.package_install_files", text="Install from Disk...")
 
+        layout.separator()
+        layout.operator("extensions.repo_refresh_all", text="Refresh All", icon='FILE_REFRESH')
+
         if prefs.experimental.use_extensions_debug:
             layout.separator()
 
             layout.prop(addon_prefs, "show_development_reports")
 
-            layout.separator()
-
-            # We might want to expose this for all users, the purpose of this
-            # is to refresh after changes have been made to the repos outside of Blender
-            # it's disputable if this is a common case.
-            layout.operator("preferences.addon_refresh", text="Refresh (file-system)", icon='FILE_REFRESH')
             layout.separator()
 
             layout.operator("extensions.package_install_marked", text="Install Marked", icon='IMPORT')

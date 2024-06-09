@@ -1224,6 +1224,41 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
         _preferences_ui_redraw()
 
 
+class EXTENSIONS_OT_repo_refresh_all(Operator):
+    """Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting).\n""" \
+        """Any issues are reported as warnings"""
+    bl_idname = "extensions.repo_refresh_all"
+    bl_label = "Refresh All"
+
+    def _exceptions_as_report(self, repo_name, ex):
+        self.report({'WARNING'}, "{:s}: {:s}".format(repo_name, str(ex)))
+
+    def execute(self, context):
+        import addon_utils
+        from . import repo_cache_store
+
+        repos_all = extension_repos_read()
+        for repo_item in repos_all:
+            # Re-generate JSON meta-data from TOML files (needed for offline repository).
+            repo_cache_store.refresh_remote_from_directory(
+                directory=repo_item.directory,
+                error_fn=lambda ex: self._exceptions_as_report(repo_item.name, ex),
+                force=True,
+            )
+            repo_cache_store.refresh_local_from_directory(
+                directory=repo_item.directory,
+                error_fn=lambda ex: self._exceptions_as_report(repo_item.name, ex),
+            )
+
+        # In-line `bpy.ops.preferences.addon_refresh`.
+        addon_utils.modules_refresh()
+
+        _preferences_ui_redraw()
+        _preferences_ui_refresh_addons()
+
+        return {'FINISHED'}
+
+
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
     """Upgrade all the extensions to their latest version for all the remote repositories"""
     bl_idname = "extensions.package_upgrade_all"
@@ -2676,6 +2711,7 @@ class EXTENSIONS_OT_package_enable_not_installed(Operator):
 classes = (
     EXTENSIONS_OT_repo_sync,
     EXTENSIONS_OT_repo_sync_all,
+    EXTENSIONS_OT_repo_refresh_all,
 
     EXTENSIONS_OT_package_install_files,
     EXTENSIONS_OT_package_install,
