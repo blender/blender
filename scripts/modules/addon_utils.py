@@ -536,8 +536,9 @@ def reset_all(*, reload_scripts=False):
     """
     import sys
 
-    # initializes addons_fake_modules
-    modules_refresh()
+    # Ensures stale `addons_fake_modules` isn't used.
+    modules._is_first = True
+    addons_fake_modules.clear()
 
     for path, pkg_id in _paths_with_extension_repos():
         if not pkg_id:

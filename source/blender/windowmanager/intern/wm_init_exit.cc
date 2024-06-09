@@ -276,6 +276,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   read_homefile_params.use_empty_data = false;
   read_homefile_params.filepath_startup_override = nullptr;
   read_homefile_params.app_template_override = WM_init_state_app_template_get();
+  read_homefile_params.is_first_time = true;
 
   wm_homefile_read_ex(C, &read_homefile_params, nullptr, &params_file_read_post);
 
