@@ -43,6 +43,11 @@ struct wmHomeFileRead_Params {
    */
   unsigned int use_empty_data : 1;
   /**
+   * When true, this is the first time the home file is read.
+   * In this case resetting the previous state can be skipped.
+   */
+  unsigned int is_first_time : 1;
+  /**
    * Optional path pointing to an alternative blend file (may be NULL).
    */
   const char *filepath_startup_override;
