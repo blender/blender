@@ -93,8 +93,8 @@ static bool test_projected_edge_dist(const DistProjectedAABBPrecalc *precalc,
                                      const float vb[3],
                                      BVHTreeNearest *nearest)
 {
-  float near_co[3], lambda;
-  lambda = closest_ray_to_segment_v3(precalc->ray_origin, precalc->ray_direction, va, vb, near_co);
+  float near_co[3];
+  closest_ray_to_segment_v3(precalc->ray_origin, precalc->ray_direction, va, vb, near_co);
   return test_projected_vert_dist(precalc, clip_plane, clip_plane_len, is_persp, near_co, nearest);
 }
 
