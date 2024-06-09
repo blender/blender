@@ -1021,7 +1021,9 @@ def dump_asset_messages(msgs, reports, settings):
 
 
 def dump_addon_bl_info(msgs, reports, module, settings):
-    for prop in ('name', 'location', 'description', 'warning'):
+    for prop in ('name', 'description'):
+        if prop not in module.bl_info:
+            continue
         process_msg(
             msgs,
             settings.DEFAULT_CONTEXT,
@@ -1077,10 +1079,8 @@ def dump_messages(do_messages, do_checks, settings):
     # Get strings from addons' bl_info.
     import addon_utils
     for module in addon_utils.modules():
-        # Only process official add-ons, i.e. those marked as 'OFFICIAL' and
-        # existing in the system add-ons directory (not user-installed ones).
-        if (module.bl_info['support'] != 'OFFICIAL'
-                or not bpy.path.is_subdir(module.__file__, bpy.utils.system_resource('SCRIPTS'))):
+        # Only process official add-ons, i.e. those in the system directory (not user-installed ones).
+        if not bpy.path.is_subdir(module.__file__, bpy.utils.system_resource('SCRIPTS')):
             continue
         dump_addon_bl_info(msgs, reports, module, settings)
 
