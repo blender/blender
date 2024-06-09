@@ -25,9 +25,6 @@ from bl_ui.space_userpref import (
     USERPREF_MT_extensions_active_repo,
 )
 
-from . import repo_status_text
-
-
 # -----------------------------------------------------------------------------
 # Generic Utilities
 
@@ -541,11 +538,13 @@ def extensions_panel_draw_impl(
         repo_cache_store_refresh_from_prefs,
     )
 
-    from . import repo_cache_store
+    from . import repo_cache_store_ensure
+
+    repo_cache_store = repo_cache_store_ensure()
 
     # This isn't elegant, but the preferences aren't available on registration.
     if not repo_cache_store.is_init():
-        repo_cache_store_refresh_from_prefs()
+        repo_cache_store_refresh_from_prefs(repo_cache_store)
 
     layout = self.layout
 
@@ -1009,6 +1008,10 @@ class USERPREF_MT_extensions_settings(Menu):
 
 
 def extensions_panel_draw(panel, context):
+    from . import (
+        repo_status_text,
+    )
+
     prefs = context.preferences
 
     from .bl_extension_ops import (
@@ -1119,11 +1122,13 @@ def extensions_panel_draw(panel, context):
 
 def tags_current(wm):
     from .bl_extension_ops import blender_filter_by_type_map
-    from . import repo_cache_store
+    from . import repo_cache_store_ensure
+
+    repo_cache_store = repo_cache_store_ensure()
 
     # This isn't elegant, but the preferences aren't available on registration.
     if not repo_cache_store.is_init():
-        repo_cache_store_refresh_from_prefs()
+        repo_cache_store_refresh_from_prefs(repo_cache_store)
 
     filter_by_type = blender_filter_by_type_map[wm.extension_type]
 

@@ -126,6 +126,8 @@ def repo_active_or_none():
 
 
 def repo_stats_calc_outdated_for_repo_directory(repo_directory):
+
+    repo_cache_store = repo_cache_store_ensure()
     pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
         directory=repo_directory,
         error_fn=print,
@@ -361,7 +363,8 @@ def monkeypatch_extenions_repos_update_post_impl():
     import os
     from . import bl_extension_ops
 
-    bl_extension_ops.repo_cache_store_refresh_from_prefs()
+    repo_cache_store = repo_cache_store_ensure()
+    bl_extension_ops.repo_cache_store_refresh_from_prefs(repo_cache_store)
 
     # Refresh newly added directories.
     extension_repos = bpy.context.preferences.extensions.repos
@@ -458,7 +461,33 @@ def monkeypatch_uninstall():
 repo_status_text = StatusInfoUI()
 
 # Singleton to cache all repositories JSON data and handles refreshing.
-repo_cache_store = None
+_repo_cache_store = None
+
+
+def repo_cache_store_ensure():
+    # pylint: disable-next=global-statement
+    global _repo_cache_store
+
+    if _repo_cache_store is not None:
+        return _repo_cache_store
+
+    from . import (
+        bl_extension_ops,
+        bl_extension_utils,
+    )
+    _repo_cache_store = bl_extension_utils.RepoCacheStore()
+    bl_extension_ops.repo_cache_store_refresh_from_prefs(_repo_cache_store)
+    return _repo_cache_store
+
+
+def repo_cache_store_clear():
+    # pylint: disable-next=global-statement
+    global _repo_cache_store
+
+    if _repo_cache_store is None:
+        return
+    _repo_cache_store.clear()
+    _repo_cache_store = None
 
 
 # -----------------------------------------------------------------------------
@@ -476,7 +505,9 @@ def theme_preset_draw(menu, context):
     if not repos_all:
         return
     import os
+    repo_cache_store = repo_cache_store_ensure()
     menu_idname = type(menu).__name__
+
     for i, pkg_manifest_local in enumerate(repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print)):
         if pkg_manifest_local is None:
             continue
@@ -517,21 +548,13 @@ cli_commands = []
 def register():
     prefs = bpy.context.preferences
 
-    # pylint: disable-next=global-statement
-    global repo_cache_store
-
     from bpy.types import WindowManager
     from . import (
         bl_extension_ops,
         bl_extension_ui,
-        bl_extension_utils,
     )
 
-    if repo_cache_store is None:
-        repo_cache_store = bl_extension_utils.RepoCacheStore()
-    else:
-        repo_cache_store.clear()
-    bl_extension_ops.repo_cache_store_refresh_from_prefs()
+    repo_cache_store_clear()
 
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -596,9 +619,6 @@ def register():
 
 
 def unregister():
-    # pylint: disable-next=global-statement
-    global repo_cache_store
-
     from bpy.types import WindowManager
     from . import (
         bl_extension_ops,
@@ -618,11 +638,7 @@ def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    if repo_cache_store is None:
-        pass
-    else:
-        repo_cache_store.clear()
-        repo_cache_store = None
+    repo_cache_store_clear()
 
     from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
     USERPREF_MT_interface_theme_presets.remove(theme_preset_draw)

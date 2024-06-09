@@ -110,13 +110,14 @@ class subcmd_utils:
     ) -> Union[List[Tuple[int, str]], str]:
         # Takes a terse lists of package names and expands to repo index and name list,
         # returning an error string if any can't be resolved.
-        from . import repo_cache_store
+        from . import repo_cache_store_ensure
         from .bl_extension_ops import extension_repos_read
 
         repo_map = {}
         errors = []
 
         repos_all = extension_repos_read()
+        repo_cache_store = repo_cache_store_ensure()
         for (
                 repo_index,
                 pkg_manifest,
@@ -235,9 +236,10 @@ class subcmd_query:
         # NOTE: exactly how this data is extracted is rather arbitrary.
         # This uses the same code paths as drawing code.
         from .bl_extension_ops import extension_repos_read
-        from . import repo_cache_store
+        from . import repo_cache_store_ensure
 
         repos_all = extension_repos_read()
+        repo_cache_store = repo_cache_store_ensure()
 
         for repo_index, (
                 pkg_manifest_remote,
