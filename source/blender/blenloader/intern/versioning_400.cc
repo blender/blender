@@ -3843,6 +3843,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 31)) {
+    bool only_uses_eevee_legacy_or_workbench = true;
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!(STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE) ||
+            STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH)))
+      {
+        only_uses_eevee_legacy_or_workbench = false;
+      }
+    }
     /* Mark old EEVEE world volumes for showing conversion operator. */
     LISTBASE_FOREACH (World *, world, &bmain->worlds) {
       if (world->nodetree) {
@@ -3854,6 +3862,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
             LISTBASE_FOREACH (bNodeLink *, node_link, &world->nodetree->links) {
               if (node_link->tonode == output_node && node_link->tosock == volume_input_socket) {
                 world->flag |= WO_USE_EEVEE_FINITE_VOLUME;
+                /* Only display a warning message if we are sure this can be used by EEVEE. */
+                if (only_uses_eevee_legacy_or_workbench) {
+                  BLO_reportf_wrap(fd->reports,
+                                   RPT_WARNING,
+                                   RPT_("%s contains a volume shader that might need to be "
+                                        "converted to object (see world volume panel)\n"),
+                                   world->id.name + 2);
+                }
               }
             }
           }
