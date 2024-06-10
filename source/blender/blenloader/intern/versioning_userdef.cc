@@ -164,7 +164,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_view3d.time_gp_keyframe);
   }
 
-  if (!USER_VERSION_ATLEAST(402, 57)) {
+  if (!USER_VERSION_ATLEAST(403, 1)) {
     FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_generated);
     FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_generated_select);
   }
