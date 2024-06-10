@@ -1226,7 +1226,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_repo_refresh_all(Operator):
-    """Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting).\n""" \
+    """Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting). """ \
         """Any issues are reported as warnings"""
     bl_idname = "extensions.repo_refresh_all"
     bl_label = "Refresh All"
