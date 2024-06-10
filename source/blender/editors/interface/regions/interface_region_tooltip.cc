@@ -1089,9 +1089,8 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
     const std::string hsva_st = fmt::format(
         "{}:  {:.3f}  {:.3f}  {:.3f}  {:.3f}", TIP_("HSVA"), hsva[0], hsva[1], hsva[2], hsva[3]);
 
-    const float aspect = min_ff(1.0f, but->block->aspect);
     const uiFontStyle *fs = UI_FSTYLE_WIDGET;
-    BLF_size(blf_mono_font, fs->points * UI_SCALE_FAC / aspect);
+    BLF_size(blf_mono_font, fs->points * UI_SCALE_FAC);
     float w = BLF_width(blf_mono_font, hsva_st.c_str(), hsva_st.size());
 
     uiTooltipImage image_data;
@@ -1244,8 +1243,7 @@ static uiTooltipData *ui_tooltip_data_from_custom_func(bContext *C, uiBut *but)
 static ARegion *ui_tooltip_create_with_data(bContext *C,
                                             uiTooltipData *data,
                                             const float init_position[2],
-                                            const rcti *init_rect_overlap,
-                                            const float aspect)
+                                            const rcti *init_rect_overlap)
 {
   const float pad_px = UI_TIP_PADDING;
   wmWindow *win = CTX_wm_window(C);
@@ -1267,11 +1265,10 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 
   /* Set font, get bounding-box. */
   data->fstyle = style->widget; /* copy struct */
-  ui_fontscale(&data->fstyle.points, aspect);
 
   UI_fontstyle_set(&data->fstyle);
 
-  data->wrap_width = min_ii(UI_TIP_MAXWIDTH * U.pixelsize / aspect, winx - (UI_TIP_PADDING * 2));
+  data->wrap_width = min_ii(UI_TIP_MAXWIDTH * U.pixelsize, winx - (UI_TIP_PADDING * 2));
 
   font_flag |= BLF_WORD_WRAP;
   BLF_enable(data->fstyle.uifont_id, font_flag);
@@ -1280,8 +1277,8 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   BLF_wordwrap(blf_mono_font, data->wrap_width);
 
   /* These defines tweaked depending on font. */
-#define TIP_BORDER_X (16.0f / aspect)
-#define TIP_BORDER_Y (6.0f / aspect)
+#define TIP_BORDER_X (16.0f)
+#define TIP_BORDER_Y (6.0f)
 
   int h = BLF_height_max(data->fstyle.uifont_id);
 
@@ -1328,8 +1325,6 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     field->geom.lines = info.lines;
     field->geom.x_pos = x_pos;
   }
-
-  // fontw *= aspect;
 
   BLF_disable(data->fstyle.uifont_id, font_flag);
   BLF_disable(blf_mono_font, font_flag);
@@ -1503,8 +1498,6 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
     bContext *C, ARegion *butregion, uiBut *but, uiButExtraOpIcon *extra_icon, bool is_label)
 {
   wmWindow *win = CTX_wm_window(C);
-  /* Aspect values that shrink text are likely unreadable. */
-  const float aspect = min_ff(1.0f, but->block->aspect);
   float init_position[2];
 
   if (but->drawflag & UI_BUT_NO_TOOLTIP) {
@@ -1562,7 +1555,7 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
   }
 
   ARegion *region = ui_tooltip_create_with_data(
-      C, data, init_position, is_no_overlap ? &init_rect : nullptr, aspect);
+      C, data, init_position, is_no_overlap ? &init_rect : nullptr);
 
   return region;
 }
@@ -1575,7 +1568,6 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
 {
   wmWindow *win = CTX_wm_window(C);
-  const float aspect = 1.0f;
   float init_position[2] = {float(win->eventstate->xy[0]), float(win->eventstate->xy[1])};
 
   uiTooltipData *data = ui_tooltip_data_from_gizmo(C, gz);
@@ -1593,7 +1585,7 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
     }
   }
 
-  return ui_tooltip_create_with_data(C, data, init_position, nullptr, aspect);
+  return ui_tooltip_create_with_data(C, data, init_position, nullptr);
 }
 
 static void ui_tooltip_from_image(Image &ima, uiTooltipData &data)
@@ -1802,13 +1794,12 @@ ARegion *UI_tooltip_create_from_search_item_generic(bContext *C,
     return nullptr;
   }
 
-  const float aspect = 1.0f;
   const wmWindow *win = CTX_wm_window(C);
   float init_position[2];
   init_position[0] = win->eventstate->xy[0];
   init_position[1] = item_rect->ymin + searchbox_region->winrct.ymin - (UI_POPUP_MARGIN / 2);
 
-  return ui_tooltip_create_with_data(C, data, init_position, nullptr, aspect);
+  return ui_tooltip_create_with_data(C, data, init_position, nullptr);
 }
 
 void UI_tooltip_free(bContext *C, bScreen *screen, ARegion *region)
