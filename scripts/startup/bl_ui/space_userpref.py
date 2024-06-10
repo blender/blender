@@ -2252,7 +2252,8 @@ class USERPREF_PT_extensions_repos(Panel):
                 row = layout_panel.row(align=True, heading="Authentication")
                 row.prop(active_repo, "use_access_token")
 
-            layout_panel.prop(active_repo, "use_cache")
+                layout_panel.prop(active_repo, "use_cache")
+
             layout_panel.separator()
 
             layout_panel.prop(active_repo, "module")
