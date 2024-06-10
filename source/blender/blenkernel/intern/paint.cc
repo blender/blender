@@ -265,12 +265,12 @@ static ePaintOverlayControlFlags overlay_flags = (ePaintOverlayControlFlags)0;
 
 void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex)
 {
-  Paint *p = BKE_paint_get_active(scene, view_layer);
-  if (!p) {
+  Paint *paint = BKE_paint_get_active(scene, view_layer);
+  if (!paint) {
     return;
   }
 
-  Brush *br = BKE_paint_brush(p);
+  Brush *br = BKE_paint_brush(paint);
   if (!br) {
     return;
   }
@@ -285,12 +285,12 @@ void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const
 
 void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve)
 {
-  Paint *p = BKE_paint_get_active(scene, view_layer);
-  if (p == nullptr) {
+  Paint *paint = BKE_paint_get_active(scene, view_layer);
+  if (paint == nullptr) {
     return;
   }
 
-  Brush *br = BKE_paint_brush(p);
+  Brush *br = BKE_paint_brush(paint);
   if (br && br->curve == curve) {
     overlay_flags |= PAINT_OVERLAY_INVALID_CURVE;
   }
@@ -981,17 +981,17 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
   return pc;
 }
 
-Palette *BKE_paint_palette(Paint *p)
+Palette *BKE_paint_palette(Paint *paint)
 {
-  return p ? p->palette : nullptr;
+  return paint ? paint->palette : nullptr;
 }
 
-void BKE_paint_palette_set(Paint *p, Palette *palette)
+void BKE_paint_palette_set(Paint *paint, Palette *palette)
 {
-  if (p) {
-    id_us_min((ID *)p->palette);
-    p->palette = palette;
-    id_us_plus((ID *)p->palette);
+  if (paint) {
+    id_us_min((ID *)paint->palette);
+    paint->palette = palette;
+    id_us_plus((ID *)paint->palette);
   }
 }
 
@@ -1268,15 +1268,15 @@ bool BKE_paint_always_hide_test(const Object *ob)
           (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
 }
 
-void BKE_paint_cavity_curve_preset(Paint *p, int preset)
+void BKE_paint_cavity_curve_preset(Paint *paint, int preset)
 {
   CurveMapping *cumap = nullptr;
   CurveMap *cuma = nullptr;
 
-  if (!p->cavity_curve) {
-    p->cavity_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
+  if (!paint->cavity_curve) {
+    paint->cavity_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
   }
-  cumap = p->cavity_curve;
+  cumap = paint->cavity_curve;
   cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
   cumap->preset = preset;
 
@@ -1445,41 +1445,41 @@ void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float st
   }
 }
 
-void BKE_paint_blend_write(BlendWriter *writer, Paint *p)
+void BKE_paint_blend_write(BlendWriter *writer, Paint *paint)
 {
-  if (p->cavity_curve) {
-    BKE_curvemapping_blend_write(writer, p->cavity_curve);
+  if (paint->cavity_curve) {
+    BKE_curvemapping_blend_write(writer, paint->cavity_curve);
   }
-  if (p->brush_asset_reference) {
-    BKE_asset_weak_reference_write(writer, p->brush_asset_reference);
+  if (paint->brush_asset_reference) {
+    BKE_asset_weak_reference_write(writer, paint->brush_asset_reference);
   }
-  if (p->eraser_brush_asset_reference) {
-    BKE_asset_weak_reference_write(writer, p->eraser_brush_asset_reference);
+  if (paint->eraser_brush_asset_reference) {
+    BKE_asset_weak_reference_write(writer, paint->eraser_brush_asset_reference);
   }
 }
 
-void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *p)
+void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *paint)
 {
-  BLO_read_struct(reader, CurveMapping, &p->cavity_curve);
-  if (p->cavity_curve) {
-    BKE_curvemapping_blend_read(reader, p->cavity_curve);
+  BLO_read_struct(reader, CurveMapping, &paint->cavity_curve);
+  if (paint->cavity_curve) {
+    BKE_curvemapping_blend_read(reader, paint->cavity_curve);
   }
   else {
-    BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
+    BKE_paint_cavity_curve_preset(paint, CURVE_PRESET_LINE);
   }
 
-  BLO_read_struct(reader, AssetWeakReference, &p->brush_asset_reference);
-  if (p->brush_asset_reference) {
-    BKE_asset_weak_reference_read(reader, p->brush_asset_reference);
+  BLO_read_struct(reader, AssetWeakReference, &paint->brush_asset_reference);
+  if (paint->brush_asset_reference) {
+    BKE_asset_weak_reference_read(reader, paint->brush_asset_reference);
   }
 
-  BLO_read_struct(reader, AssetWeakReference, &p->eraser_brush_asset_reference);
-  if (p->eraser_brush_asset_reference) {
-    BKE_asset_weak_reference_read(reader, p->eraser_brush_asset_reference);
+  BLO_read_struct(reader, AssetWeakReference, &paint->eraser_brush_asset_reference);
+  if (paint->eraser_brush_asset_reference) {
+    BKE_asset_weak_reference_read(reader, paint->eraser_brush_asset_reference);
   }
 
-  p->paint_cursor = nullptr;
-  paint_runtime_init(scene->toolsettings, p);
+  paint->paint_cursor = nullptr;
+  paint_runtime_init(scene->toolsettings, paint);
 }
 
 bool paint_is_grid_face_hidden(const blender::BoundedBitSpan grid_hidden,
