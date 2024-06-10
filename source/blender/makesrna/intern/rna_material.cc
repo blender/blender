@@ -836,8 +836,8 @@ void RNA_def_material(BlenderRNA *brna)
        "SPHERE",
        0,
        "Sphere",
-       "Approximate the object as sphere, which diameter is equal to thickness the defined by the "
-       "node tree"},
+       "Approximate the object as a sphere whose diameter is equal to the thickness defined by "
+       "the node tree"},
       {MA_THICKNESS_SLAB,
        "SLAB",
        0,
