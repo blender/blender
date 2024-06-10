@@ -3920,7 +3920,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       world->sun_threshold = default_world->sun_threshold;
       world->sun_angle = default_world->sun_angle;
       world->sun_shadow_maximum_resolution = default_world->sun_shadow_maximum_resolution;
-      world->flag |= WO_USE_SUN_SHADOW;
+      /* Having the sun extracted is mandatory to keep the same look and avoid too much light
+       * leaking compared to EEVEE-Legacy. But adding shadows might create performance overhead and
+       * change the result in a very different way. So we disable shadows in older file. */
+      world->flag &= ~WO_USE_SUN_SHADOW;
     }
   }
 
