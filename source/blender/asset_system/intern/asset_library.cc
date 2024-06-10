@@ -35,6 +35,12 @@ using namespace blender::asset_system;
 
 bool AssetLibrary::save_catalogs_when_file_is_saved = true;
 
+bool AS_asset_libraries_available()
+{
+  const AssetLibraryService *service = AssetLibraryService::get();
+  return service != nullptr;
+}
+
 void AS_asset_libraries_exit()
 {
   /* NOTE: Can probably removed once #WITH_DESTROY_VIA_LOAD_HANDLER gets enabled by default. */
