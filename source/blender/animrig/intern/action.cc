@@ -163,13 +163,19 @@ Layer *Action::layer(const int64_t index)
 
 Layer &Action::layer_add(const StringRefNull name)
 {
-  using namespace blender::animrig;
-
   Layer &new_layer = ActionLayer_alloc();
   STRNCPY_UTF8(new_layer.name, name.c_str());
 
   grow_array_and_append<::ActionLayer *>(&this->layer_array, &this->layer_array_num, &new_layer);
   this->layer_active_index = this->layer_array_num - 1;
+
+  /* If this is the first layer in this Action, it means that it could have been
+   * used as a legacy Action before. As a result, this->idroot may be non-zero
+   * while it should be zero for layered Actions.
+   *
+   * And since setting this to 0 when it is already supposed to be 0 is fine,
+   * there is no check for whether this is actually the first layer. */
+  this->idroot = 0;
 
   return new_layer;
 }
@@ -361,6 +367,15 @@ Binding &Action::binding_add()
       &this->binding_array, &this->binding_array_num, &binding);
 
   anim_binding_name_ensure_unique(*this, binding);
+
+  /* If this is the first binding in this Action, it means that it could have
+   * been used as a legacy Action before. As a result, this->idroot may be
+   * non-zero while it should be zero for layered Actions.
+   *
+   * And since setting this to 0 when it is already supposed to be 0 is fine,
+   * there is no check for whether this is actually the first layer. */
+  this->idroot = 0;
+
   return binding;
 }
 
