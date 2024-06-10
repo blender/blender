@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
+#include "BLI_math_euler.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion.hh"
 
@@ -47,7 +48,10 @@ float4x4 mix3(const float3 &weights, const float4x4 &v0, const float4x4 &v1, con
 {
   const float3 location = mix3(weights, v0.location(), v1.location(), v2.location());
   const math::Quaternion rotation = mix3(
-      weights, math::to_quaternion(v0), math::to_quaternion(v1), math::to_quaternion(v2));
+      weights,
+      math::normalized_to_quaternion_safe(math::normalize(float3x3(v0))),
+      math::normalized_to_quaternion_safe(math::normalize(float3x3(v1))),
+      math::normalized_to_quaternion_safe(math::normalize(float3x3(v2))));
   const float3 scale = mix3(weights, math::to_scale(v0), math::to_scale(v1), math::to_scale(v2));
   return math::from_loc_rot_scale<float4x4>(location, rotation, scale);
 }
