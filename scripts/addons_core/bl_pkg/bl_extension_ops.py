@@ -1136,7 +1136,7 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
 class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
     """Refresh the list of extensions for all the remote repositories"""
     bl_idname = "extensions.repo_sync_all"
-    bl_label = "Check for Updates"
+    bl_label = "Refresh Remote"
     __slots__ = _ExtCmdMixIn.cls_slots
 
     use_active_only: BoolProperty(
@@ -1229,7 +1229,7 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
     """Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting). """ \
         """Any issues are reported as warnings"""
     bl_idname = "extensions.repo_refresh_all"
-    bl_label = "Refresh All"
+    bl_label = "Refresh Local"
 
     def _exceptions_as_report(self, repo_name, ex):
         self.report({'WARNING'}, "{:s}: {:s}".format(repo_name, str(ex)))

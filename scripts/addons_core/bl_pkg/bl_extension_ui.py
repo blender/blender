@@ -982,15 +982,13 @@ class USERPREF_MT_extensions_settings(Menu):
 
         addon_prefs = prefs.addons[__package__].preferences
 
-        layout.operator("extensions.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
+        layout.operator("extensions.repo_sync_all", icon='FILE_REFRESH')
+        layout.operator("extensions.repo_refresh_all")
 
         layout.separator()
 
         layout.operator("extensions.package_upgrade_all", text="Install Available Updates", icon='IMPORT')
         layout.operator("extensions.package_install_files", text="Install from Disk...")
-
-        layout.separator()
-        layout.operator("extensions.repo_refresh_all", text="Refresh All", icon='FILE_REFRESH')
 
         if prefs.experimental.use_extensions_debug:
             layout.separator()
