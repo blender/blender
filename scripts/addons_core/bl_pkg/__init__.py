@@ -267,7 +267,7 @@ def repos_to_notify():
             bl_extension_ops.RepoItem(
                 name=repo_item.name,
                 directory=repo_directory,
-                source="" if repo_item.use_custom_directory else repo_item.source,
+                source="" if repo_item.use_remote_url else repo_item.source,
                 remote_url=remote_url,
                 module=repo_item.module,
                 use_cache=repo_item.use_cache,
