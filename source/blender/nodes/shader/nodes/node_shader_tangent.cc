@@ -33,14 +33,16 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
     if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
       PointerRNA eval_obptr;
 
-      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
-      PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
-      uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
+      Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+      if (depsgraph) {
+        DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
+        PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
+        uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
+        return;
+      }
     }
-    else {
-      uiItemR(row, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", 0);
-    }
+
+    uiItemR(row, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
   }
   else {
     uiItemR(row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, 0);
