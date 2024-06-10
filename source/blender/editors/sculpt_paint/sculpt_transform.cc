@@ -175,7 +175,7 @@ static void transform_node(Object &ob,
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_update(node);
+  BKE_pbvh_node_mark_positions_update(node);
 }
 
 static void sculpt_transform_all_vertices(Object &ob)
@@ -238,7 +238,7 @@ static void elastic_transform_node(Object &ob,
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_update(node);
+  BKE_pbvh_node_mark_positions_update(node);
 }
 
 static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float transform_radius)

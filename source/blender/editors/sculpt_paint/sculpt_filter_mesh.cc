@@ -518,7 +518,7 @@ static void mesh_filter_task(Object &ob,
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_update(node);
+  BKE_pbvh_node_mark_positions_update(node);
 }
 
 static void mesh_filter_enhance_details_init_directions(SculptSession &ss)
@@ -826,7 +826,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     }
     BKE_pbvh_vertex_iter_end;
 
-    BKE_pbvh_node_mark_update(node);
+    BKE_pbvh_node_mark_positions_update(node);
   }
 
   blender::bke::pbvh::update_bounds(*ss->pbvh);

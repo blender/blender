@@ -60,7 +60,7 @@ static void apply_projection(gesture::GestureData &gesture_data, PBVHNode *node)
   BKE_pbvh_vertex_iter_end;
 
   if (any_updated) {
-    BKE_pbvh_node_mark_update(node);
+    BKE_pbvh_node_mark_positions_update(node);
   }
 }
 

@@ -1464,7 +1464,7 @@ static void cloth_filter_apply_forces_task(Object &ob,
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_update(node);
+  BKE_pbvh_node_mark_positions_update(node);
 }
 
 static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)

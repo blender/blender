@@ -3560,21 +3560,17 @@ static void sculpt_topology_update(const Sculpt &sd,
         ob, node, brush.sculpt_tool == SCULPT_TOOL_MASK ? undo::Type::Mask : undo::Type::Position);
     BKE_pbvh_node_mark_update(node);
 
-    if (BKE_pbvh_type(*ss.pbvh) == PBVH_BMESH) {
-      BKE_pbvh_node_mark_topology_update(node);
-      BKE_pbvh_bmesh_node_save_orig(ss.bm, ss.bm_log, node, false);
-    }
+    BKE_pbvh_node_mark_topology_update(node);
+    BKE_pbvh_bmesh_node_save_orig(ss.bm, ss.bm_log, node, false);
   }
 
-  if (BKE_pbvh_type(*ss.pbvh) == PBVH_BMESH) {
-    bke::pbvh::bmesh_update_topology(*ss.pbvh,
-                                     mode,
-                                     ss.cache->location,
-                                     ss.cache->view_normal,
-                                     ss.cache->radius,
-                                     (brush.flag & BRUSH_FRONTFACE) != 0,
-                                     (brush.falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE));
-  }
+  bke::pbvh::bmesh_update_topology(*ss.pbvh,
+                                   mode,
+                                   ss.cache->location,
+                                   ss.cache->view_normal,
+                                   ss.cache->radius,
+                                   (brush.flag & BRUSH_FRONTFACE) != 0,
+                                   (brush.falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE));
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss.cache->true_location);
@@ -3612,7 +3608,7 @@ static void push_undo_nodes(Object &ob, const Brush &brush, PBVHNode *node)
 
   if (need_coords) {
     undo::push_node(ob, node, undo::Type::Position);
-    BKE_pbvh_node_mark_update(node);
+    BKE_pbvh_node_mark_positions_update(node);
   }
 }
 

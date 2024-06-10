@@ -367,7 +367,7 @@ static void update_modified_node_grids(PBVHNode &node, PartialUpdateData &data)
       }))
   {
     if (data.changed_position) {
-      BKE_pbvh_node_mark_update(&node);
+      BKE_pbvh_node_mark_positions_update(&node);
     }
     if (data.changed_mask) {
       BKE_pbvh_node_mark_update_mask(&node);
