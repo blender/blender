@@ -142,3 +142,16 @@ index 53c026689..e99a5ac17 100644
      plugin
  )
  
+diff --git a/cmake/macros/Private.cmake b/cmake/macros/Private.cmake
+index f0bc34ed8..c39db4bc4 100644
+--- a/cmake/macros/Private.cmake
++++ b/cmake/macros/Private.cmake
+@@ -979,7 +979,7 @@ function(_pxr_python_module NAME)
+         return()
+     endif()
+
+-    if (WIN32 AND PXR_USE_DEBUG_PYTHON)
++    if (WIN32 AND PXR_USE_DEBUG_PYTHON AND NOT "${CMAKE_DEBUG_POSTFIX}" STREQUAL "_d")
+         # On Windows when compiling with debug python the library must be named with _d.
+         set(LIBRARY_NAME "_${NAME}_d")
+     else()
