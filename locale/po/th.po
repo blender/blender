@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -170,30 +170,6 @@ msgid "Action Groups"
 msgstr "กลุ่มการกระทำ"
 
 
-msgid "Mix Mode"
-msgstr "โหมดผสม"
-
-
-msgid "Replace"
-msgstr "แทนที่"
-
-
-msgid "Add"
-msgstr "เพิ่ม"
-
-
-msgid "Subtract"
-msgstr "ลบ"
-
-
-msgid "Multiply"
-msgstr "คูณ"
-
-
-msgid "Keyframe"
-msgstr "คีย์เฟรม"
-
-
 msgid "Add-on"
 msgstr "แอดออน"
 
@@ -222,8 +198,20 @@ msgid "Action"
 msgstr "กระทำ"
 
 
-msgid "None"
-msgstr "ไม่มี"
+msgid "Replace"
+msgstr "แทนที่"
+
+
+msgid "Add"
+msgstr "เพิ่ม"
+
+
+msgid "Subtract"
+msgstr "ลบ"
+
+
+msgid "Multiply"
+msgstr "คูณ"
 
 
 msgid "End Frame"
@@ -533,6 +521,10 @@ msgid "Object"
 msgstr "วัตถุ"
 
 
+msgid "None"
+msgstr "ไม่มี"
+
+
 msgid "Internal"
 msgstr "ภายใน"
 
@@ -799,6 +791,10 @@ msgstr "แคชการปรับเปลี่ยน"
 
 msgid "Armature"
 msgstr "โครงร่าง"
+
+
+msgid "Mix Mode"
+msgstr "โหมดผสม"
 
 
 msgid "Rotation X"
@@ -1181,6 +1177,10 @@ msgid "Use"
 msgstr "ใช้"
 
 
+msgid "Keyframe"
+msgstr "คีย์เฟรม"
+
+
 msgid "Frames"
 msgstr "เฟรม"
 
@@ -1292,10 +1292,6 @@ msgid "Grid scale"
 msgstr "ขนาดตะแกรง"
 
 
-msgid "Translation"
-msgstr "แปลภาษา"
-
-
 msgid "Repeat"
 msgstr "ทำซ้ำ"
 
@@ -1358,10 +1354,6 @@ msgstr "โลก"
 
 msgid "Users"
 msgstr "ผู้ใช้"
-
-
-msgid "Layers"
-msgstr "ชั้น"
 
 
 msgid "Wire"
@@ -1482,6 +1474,10 @@ msgstr "เรียงตาม"
 
 msgid "Grid Settings"
 msgstr "การตั้งค่าตะแกรง"
+
+
+msgid "Layers"
+msgstr "ชั้น"
 
 
 msgid "Selected"
@@ -2475,6 +2471,10 @@ msgid "Round"
 msgstr "มน"
 
 
+msgid "Translation"
+msgstr "แปลภาษา"
+
+
 msgctxt "Operator"
 msgid "Select"
 msgstr "เลือก"
@@ -3311,10 +3311,6 @@ msgid "Toolbar"
 msgstr "แถบเครื่องมือ"
 
 
-msgid "Shapes"
-msgstr "รูปทรง"
-
-
 msgid "Show Brush"
 msgstr "แสดงแปรง"
 
@@ -3935,34 +3931,6 @@ msgid "Animation"
 msgstr "แอนิเมชัน"
 
 
-msgid "File:"
-msgstr "ไฟล์:"
-
-
-msgid "Missing script files"
-msgstr "ขาดไฟล์สคริปต์"
-
-
-msgid "Description:"
-msgstr "คำอธิบาย:"
-
-
-msgid "Author:"
-msgstr "ผู้สร้าง:"
-
-
-msgid "Version:"
-msgstr "เวอร์ชัน:"
-
-
-msgid "Warning:"
-msgstr "ระวัง:"
-
-
-msgid "Internet:"
-msgstr "อินเตอร์เน็ต:"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "เอกสาร"
@@ -4041,6 +4009,10 @@ msgstr "หมายเลขเฟรม"
 
 msgid "+ Non-Grouped Keyframes"
 msgstr "+ คีย์เฟรมที่ไม่มีกลุ่ม"
+
+
+msgid "Shapes"
+msgstr "รูปทรง"
 
 
 msgctxt "Operator"
@@ -4527,10 +4499,6 @@ msgid "Render Output"
 msgstr "ผลลัพธ์การเรนเดอร์"
 
 
-msgid "Preferences:"
-msgstr "การตั้งค่า:"
-
-
 msgid "Player"
 msgstr "ตัวเล่น"
 
@@ -4541,6 +4509,34 @@ msgstr "ข้อผิดพลาด (ดูที่คอนโซล)"
 
 msgid ":"
 msgstr ":"
+
+
+msgid "Missing script files"
+msgstr "ขาดไฟล์สคริปต์"
+
+
+msgid "Description:"
+msgstr "คำอธิบาย:"
+
+
+msgid "File:"
+msgstr "ไฟล์:"
+
+
+msgid "Author:"
+msgstr "ผู้สร้าง:"
+
+
+msgid "Version:"
+msgstr "เวอร์ชัน:"
+
+
+msgid "Warning:"
+msgstr "ระวัง:"
+
+
+msgid "Internet:"
+msgstr "อินเตอร์เน็ต:"
 
 
 msgctxt "Operator"
