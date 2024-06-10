@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -57,10 +57,6 @@ msgstr "AOV 列表"
 
 msgid "Collection of AOVs"
 msgstr "AOV 集盒"
-
-
-msgid "F-Curves"
-msgstr "F 曲線"
 
 
 msgid "Action F-Curves"
@@ -247,38 +243,6 @@ msgid "Collection of action groups"
 msgstr "動作群組的集盒"
 
 
-msgid "Influence"
-msgstr "影響"
-
-
-msgid "Mix Mode"
-msgstr "混合模式"
-
-
-msgid "Replace"
-msgstr "替換"
-
-
-msgid "Offset"
-msgstr "偏移"
-
-
-msgid "Add"
-msgstr "加"
-
-
-msgid "Subtract"
-msgstr "減"
-
-
-msgid "Multiply"
-msgstr "相乘"
-
-
-msgid "Strips"
-msgstr "片段"
-
-
 msgid "Action Pose Markers"
 msgstr "動作姿態標記"
 
@@ -301,10 +265,6 @@ msgstr "作用中姿勢標記索引"
 
 msgid "Index of active pose marker"
 msgstr "作用中姿勢標記的索引"
-
-
-msgid "Keyframe"
-msgstr "鍵幀"
 
 
 msgid "Add-on"
@@ -499,16 +459,16 @@ msgid "Active Action for this data-block"
 msgstr "此數據組塊的作用中動作"
 
 
-msgid "None"
-msgstr "無"
-
-
 msgid "Action Blending"
 msgstr "動作混合"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "用於合成作用中動作的結果和 NLA 堆疊結果的方法"
+
+
+msgid "Replace"
+msgstr "替換"
 
 
 msgid "The strip values replace the accumulated results by amount specified by influence"
@@ -523,12 +483,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "根據頻道類型，妥善以加法、乘法或四元數等數學方法來結合累積貨運算出結果的片段值"
 
 
+msgid "Add"
+msgstr "加"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "片段的權重結果被添加到累積的結果"
 
 
+msgid "Subtract"
+msgstr "減"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "從累積的結果移除片段的權重結果"
+
+
+msgid "Multiply"
+msgstr "相乘"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1807,6 +1779,10 @@ msgid "Passes to include in the active baking pass"
 msgstr "通遞以含入作用中烘焙通遞內"
 
 
+msgid "None"
+msgstr "無"
+
+
 msgid "Emit"
 msgstr "發射"
 
@@ -2157,10 +2133,6 @@ msgstr "蠟筆"
 
 msgid "Grease Pencil data-blocks"
 msgstr "蠟筆數據組塊"
-
-
-msgid "Grease Pencil v3"
-msgstr "蠟筆 v3"
 
 
 msgid "Hair Curves"
@@ -4519,6 +4491,10 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "定義要顯示影像的哪一層、通遞和框幀的參數"
 
 
+msgid "Offset"
+msgstr "偏移"
+
+
 msgid "Rotation"
 msgstr "旋轉"
 
@@ -5812,6 +5788,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "約束作用於方向的殘餘弧度錯誤"
 
 
+msgid "Influence"
+msgstr "影響"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "約束對最終解決方案的影響量"
 
@@ -6138,6 +6118,10 @@ msgstr "最小值"
 
 msgid "Minimum value for target channel range"
 msgstr "目標通道範圍的最小值"
+
+
+msgid "Mix Mode"
+msgstr "混合模式"
 
 
 msgid "Target object"
@@ -11829,6 +11813,10 @@ msgid "Frame is being edited (painted on)"
 msgstr "正被編輯的框幀 (繪於其上)"
 
 
+msgid "Keyframe"
+msgstr "鍵幀"
+
+
 msgid "Breakdown"
 msgstr "分解"
 
@@ -12830,14 +12818,6 @@ msgid "Grid Scale"
 msgstr "格線縮放"
 
 
-msgid "Local Matrix"
-msgstr "區域矩陣矩陣"
-
-
-msgid "Translation"
-msgstr "平移"
-
-
 msgid "Repeat"
 msgstr "重復"
 
@@ -12884,6 +12864,10 @@ msgstr "筆刷"
 
 msgid "Font"
 msgstr "字型"
+
+
+msgid "Grease Pencil v3"
+msgstr "蠟筆 v3"
 
 
 msgid "Key"
@@ -12990,6 +12974,10 @@ msgid "A collection of F-Curves for animation"
 msgstr "動畫的 F 曲線集盒"
 
 
+msgid "F-Curves"
+msgstr "F 曲線"
+
+
 msgid "The individual F-Curves that make up the action"
 msgstr "構成動作的個別 F 曲線"
 
@@ -13013,10 +13001,6 @@ msgstr "ID 根基類型"
 
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "動作可使用的 ID 塊類型 -「不要更動，除非您知道您在做什麼」"
-
-
-msgid "Layers"
-msgstr "層"
 
 
 msgid "Pose Markers"
@@ -15128,6 +15112,10 @@ msgid "Freehand annotation sketchbook"
 msgstr "隨手畫註記草圖簿"
 
 
+msgid "Layers"
+msgstr "層"
+
+
 msgid "Filter by Type"
 msgstr "依類型過濾"
 
@@ -15659,6 +15647,14 @@ msgid "Cast a square spot light shape"
 msgstr "投射方形聚光外形"
 
 
+msgid "Visibility Collection"
+msgstr "可見的集盒"
+
+
+msgid "Parallax Radius"
+msgstr "視差半徑"
+
+
 msgid "Clamp Direct"
 msgstr "限定直接"
 
@@ -15671,28 +15667,16 @@ msgid "Dilation Radius"
 msgstr "擴張半徑"
 
 
+msgid "Intensity"
+msgstr "強度"
+
+
 msgid "Resolution X"
 msgstr "解析度 X"
 
 
 msgid "Resolution Y"
 msgstr "解析度 Y"
-
-
-msgid "Intensity"
-msgstr "強度"
-
-
-msgid "Parallax Radius"
-msgstr "視差半徑"
-
-
-msgid "Bias for reducing light-bleed on variance shadow maps"
-msgstr "減少變異陰影映射光出血的偏差"
-
-
-msgid "Visibility Collection"
-msgstr "可見的集盒"
 
 
 msgid "Mask data-block defining mask for compositing"
@@ -15717,10 +15701,6 @@ msgstr "遮罩的第一幀 (用於序段編輯器)"
 
 msgid "Collection of layers which defines this mask"
 msgstr "定義此遮罩的層集盒"
-
-
-msgid "Blend Mode for Transparent Faces"
-msgstr "透明面的混合模式"
 
 
 msgctxt "Material"
@@ -16513,6 +16493,10 @@ msgstr "旋轉矩陣"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "存取位置、旋轉、縮放 (包括增減) 的矩陣，在套用約束與親子關係處理之前"
+
+
+msgid "Local Matrix"
+msgstr "區域矩陣矩陣"
 
 
 msgid "Inverse of object's parent matrix at time of parenting"
@@ -23323,10 +23307,6 @@ msgid "Fluid simulation modifier"
 msgstr "流體模擬修改器"
 
 
-msgid "Inflow/Outflow"
-msgstr "流入/流出"
-
-
 msgid "Hook modifier to modify the location of vertices"
 msgstr "修改頂點位置的鉤修改器"
 
@@ -24198,10 +24178,6 @@ msgstr "僅添加邊框至原始資料"
 
 msgid "Subdivision surface modifier"
 msgstr "細分表面修改器"
-
-
-msgid "Number of subdivisions to perform"
-msgstr "要執行的細分數"
 
 
 msgid "Number of subdivisions to perform when rendering"
@@ -28878,10 +28854,6 @@ msgid "Invoke"
 msgstr "喚起"
 
 
-msgid "Operator Properties"
-msgstr "操作器屬性"
-
-
 msgid "Add keyframes on every frame between the selected keyframes"
 msgstr "在所選鍵幀的每個框幀之間都插入鍵幀"
 
@@ -30347,6 +30319,10 @@ msgstr "油印蠟紙筆刷控制"
 
 msgid "Control the stencil brush"
 msgstr "控制油印蠟紙筆刷"
+
+
+msgid "Translation"
+msgstr "平移"
 
 
 msgid "Primary"
@@ -33902,6 +33878,18 @@ msgid "Select Mode"
 msgstr "選取模式"
 
 
+msgid "Blend Mode for Transparent Faces"
+msgstr "透明面的混合模式"
+
+
+msgid "Emission Strength"
+msgstr "發光強度"
+
+
+msgid "Relative Paths"
+msgstr "相對路徑"
+
+
 msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "設定曲線點"
@@ -33941,16 +33929,8 @@ msgid "Edit image in an external application"
 msgstr "以外部應用程式編輯影像"
 
 
-msgid "Emission Strength"
-msgstr "發光強度"
-
-
 msgid "Filepath used for importing the file"
 msgstr "用來匯入檔案的檔案路徑"
-
-
-msgid "Relative Paths"
-msgstr "相對路徑"
 
 
 msgctxt "Operator"
@@ -45059,12 +45039,12 @@ msgid "URL to open"
 msgstr "要開啟的 URL"
 
 
+msgid "Subdivision"
+msgstr "細分"
+
+
 msgid "UV Maps"
 msgstr "UV 映射"
-
-
-msgid "Shapes"
-msgstr "外形"
 
 
 msgid "Textures Directory"
@@ -45360,22 +45340,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Integrator Presets"
-msgstr "整合器預設置"
-
-
-msgid "Sampling Presets"
-msgstr "取樣預設置"
-
-
-msgid "Film"
-msgstr "底片"
-
-
-msgid "Passes"
-msgstr "通遞數"
-
-
 msgid "Chain Scaling"
 msgstr "鏈縮放"
 
@@ -45464,8 +45428,20 @@ msgid "Ray Visibility"
 msgstr "光線可見性"
 
 
+msgid "Integrator Presets"
+msgstr "整合器預設置"
+
+
 msgid "Post Processing"
 msgstr "後製"
+
+
+msgid "Sampling Presets"
+msgstr "取樣預設置"
+
+
+msgid "Film"
+msgstr "底片"
 
 
 msgid "Pixel Filter"
@@ -45482,6 +45458,10 @@ msgstr "光徑"
 
 msgid "Max Bounces"
 msgstr "最大反彈數"
+
+
+msgid "Passes"
+msgstr "通遞數"
 
 
 msgid "Performance"
@@ -45502,10 +45482,6 @@ msgstr "最終算繪"
 
 msgid "Threads"
 msgstr "執行緒"
-
-
-msgid "Subdivision"
-msgstr "細分"
 
 
 msgid "Render Pass"
@@ -45815,6 +45791,10 @@ msgstr "備註"
 
 msgid "Keyframing Settings"
 msgstr "鍵幀處理設定"
+
+
+msgid "Strips"
+msgstr "片段"
 
 
 msgid "Feature Weights"
@@ -48626,10 +48606,6 @@ msgstr "每個像素要算繪的樣本數"
 
 msgid "Sampling Pattern"
 msgstr "取樣樣式"
-
-
-msgid "Sobol-Burley"
-msgstr "Sobol-Burley"
 
 
 msgid "Seed value for integrator to get different noise patterns"
@@ -55104,6 +55080,10 @@ msgid "Occlude objects with the environment color as they are further away"
 msgstr "當它們遠離時以環境色彩遮擋物體"
 
 
+msgid "Operator Properties"
+msgstr "操作器屬性"
+
+
 msgid "Session State"
 msgstr "作業階段狀態"
 
@@ -55711,36 +55691,8 @@ msgid "Resize"
 msgstr "調整大小"
 
 
-msgid "File:"
-msgstr "檔案："
-
-
-msgid "Missing script files"
-msgstr "遺失的命令稿檔案"
-
-
-msgid "Description:"
-msgstr "描述："
-
-
-msgid "Author:"
-msgstr "作者："
-
-
-msgid "Version:"
-msgstr "版本："
-
-
-msgid "Warning:"
-msgstr "警告："
-
-
-msgid "Internet:"
-msgstr "網際網路："
-
-
-msgid "Size:"
-msgstr "大小："
+msgid "Warning"
+msgstr "警告"
 
 
 msgctxt "Operator"
@@ -56125,6 +56077,10 @@ msgstr "外推"
 
 msgid "Pivot Offset"
 msgstr "樞紐點偏移"
+
+
+msgid "Shapes"
+msgstr "外形"
 
 
 msgid "Axes"
@@ -57334,10 +57290,6 @@ msgid "Excluded Paths"
 msgstr "排除的路徑"
 
 
-msgid "Preferences:"
-msgstr "偏好設定："
-
-
 msgid "Invert Wheel Zoom Direction"
 msgstr "反轉滾輪遠近調焦方向"
 
@@ -57350,8 +57302,36 @@ msgid "Error (see console)"
 msgstr "錯誤 (查看主控臺)"
 
 
+msgid "Missing script files"
+msgstr "遺失的命令稿檔案"
+
+
+msgid "Description:"
+msgstr "描述："
+
+
 msgid "Location:"
 msgstr "位置："
+
+
+msgid "File:"
+msgstr "檔案："
+
+
+msgid "Author:"
+msgstr "作者："
+
+
+msgid "Version:"
+msgstr "版本："
+
+
+msgid "Warning:"
+msgstr "警告："
+
+
+msgid "Internet:"
+msgstr "網際網路："
 
 
 msgctxt "Operator"
@@ -57693,11 +57673,6 @@ msgstr "切換雕刻目標"
 
 
 msgctxt "Operator"
-msgid "Invert Mask"
-msgstr "反轉遮罩"
-
-
-msgctxt "Operator"
 msgid "Fill Mask"
 msgstr "填入遮罩"
 
@@ -57705,6 +57680,11 @@ msgstr "填入遮罩"
 msgctxt "Operator"
 msgid "Clear Mask"
 msgstr "清除遮罩"
+
+
+msgctxt "Operator"
+msgid "Invert Mask"
+msgstr "反轉遮罩"
 
 
 msgctxt "Operator"
@@ -58496,10 +58476,6 @@ msgstr "%s，快取已過期！"
 
 msgid "%s, not exact since frame %i"
 msgstr "%s，從第 %i 幀起便不精確"
-
-
-msgid "Warning"
-msgstr "警告"
 
 
 msgid "Invalid Input Error"
@@ -61186,6 +61162,10 @@ msgstr "無作用中骨骼"
 
 msgid "Radius (Parent)"
 msgstr "半徑 (親代)"
+
+
+msgid "Size:"
+msgstr "大小："
 
 
 msgid "Displays global values"

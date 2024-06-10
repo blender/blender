@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -175,14 +175,6 @@ msgid "Expanded"
 msgstr "विस्तृत"
 
 
-msgid "Influence"
-msgstr "प्रभाव"
-
-
-msgid "Add"
-msgstr "जोड़ें"
-
-
 msgid "Off"
 msgstr "बंद"
 
@@ -239,8 +231,8 @@ msgid "Action"
 msgstr "कार्य"
 
 
-msgid "None"
-msgstr "कोई नहीं"
+msgid "Add"
+msgstr "जोड़ें"
 
 
 msgid "Nothing"
@@ -409,6 +401,10 @@ msgstr "-Z"
 
 msgid "Object"
 msgstr "वस्तु"
+
+
+msgid "None"
+msgstr "कोई नहीं"
 
 
 msgid "Emit"
@@ -866,6 +862,10 @@ msgstr "निवेश"
 
 msgid "Error"
 msgstr "त्रुटि"
+
+
+msgid "Influence"
+msgstr "प्रभाव"
 
 
 msgid "Copy Location"
@@ -1778,10 +1778,6 @@ msgid "Users"
 msgstr "प्रयोक्ता"
 
 
-msgid "Layers"
-msgstr "परतें"
-
-
 msgid "Stick"
 msgstr "छड़ी"
 
@@ -2020,6 +2016,10 @@ msgstr "अधिकतम"
 
 msgid "Rounds"
 msgstr "दौर"
+
+
+msgid "Layers"
+msgstr "परतें"
 
 
 msgid "Alpha Mode"
@@ -4596,10 +4596,6 @@ msgid "Search Menu"
 msgstr "खोज विकल्प-सूची"
 
 
-msgid "Shapes"
-msgstr "आकृतियाँ"
-
-
 msgid "Canvas"
 msgstr "चित्रपटी"
 
@@ -4610,10 +4606,6 @@ msgstr "तालाबंदी x"
 
 msgid "Lock Y"
 msgstr "तालाबंदी y"
-
-
-msgid "Film"
-msgstr "चलचित्र"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -4634,6 +4626,10 @@ msgstr "पूर्वनिश्चित रंग"
 
 msgid "Cloth Presets"
 msgstr "पूर्वनिश्चित कपड़ा"
+
+
+msgid "Film"
+msgstr "चलचित्र"
 
 
 msgid "Performance"
@@ -5246,28 +5242,8 @@ msgid "Animation"
 msgstr "अनुप्राणन"
 
 
-msgid "File:"
-msgstr "संचिका:"
-
-
-msgid "Description:"
-msgstr "वर्णन:"
-
-
-msgid "Author:"
-msgstr "लेखक:"
-
-
-msgid "Version:"
-msgstr "संस्करण:"
-
-
-msgid "Warning:"
-msgstr "चेतावनी:"
-
-
-msgid "Size:"
-msgstr "आकार:"
+msgid "Warning"
+msgstr "चेतावनी"
 
 
 msgid "OSL shader compilation succeeded"
@@ -5415,6 +5391,10 @@ msgstr "गणना..."
 msgctxt "Operator"
 msgid "Animate Path"
 msgstr "पथ अनुप्राणित करें"
+
+
+msgid "Shapes"
+msgstr "आकृतियाँ"
 
 
 msgid "Axes"
@@ -5794,12 +5774,28 @@ msgid "B"
 msgstr "बी"
 
 
-msgid "Preferences:"
-msgstr "वरीयताएँ:"
+msgid "Description:"
+msgstr "वर्णन:"
 
 
 msgid "Location:"
 msgstr "स्थिति:"
+
+
+msgid "File:"
+msgstr "संचिका:"
+
+
+msgid "Author:"
+msgstr "लेखक:"
+
+
+msgid "Version:"
+msgstr "संस्करण:"
+
+
+msgid "Warning:"
+msgstr "चेतावनी:"
 
 
 msgctxt "Operator"
@@ -6031,10 +6027,6 @@ msgstr "अस्थायी संचिका पुनर्स्थाप�
 
 msgid "Error deleting '%s' (ignored)"
 msgstr "हटाने में त्रुटि '%s' (अनदेखी)"
-
-
-msgid "Warning"
-msgstr "चेतावनी"
 
 
 msgid "Invalid Input Error"
@@ -6703,6 +6695,10 @@ msgstr "झुकाव:"
 
 msgid "4L"
 msgstr "४ एल"
+
+
+msgid "Size:"
+msgstr "आकार:"
 
 
 msgid "fps: %i"

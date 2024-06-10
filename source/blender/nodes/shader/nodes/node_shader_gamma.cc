@@ -19,7 +19,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Gamma correction value\n"
           "Gamma controls the relative intensity of the mid-tones compared to the full black and "
-          "full white.");
+          "full white");
   b.add_output<decl::Color>("Color");
 }
 

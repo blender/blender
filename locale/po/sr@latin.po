@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -33,10 +33,6 @@ msgstr "Boja"
 
 msgid "Value"
 msgstr "Vrednost"
-
-
-msgid "F-Curves"
-msgstr "F-kriva"
 
 
 msgid "Action Group"
@@ -183,42 +179,6 @@ msgid "Expanded"
 msgstr "Prošireno"
 
 
-msgid "Influence"
-msgstr "Uticaj"
-
-
-msgid "Mix Mode"
-msgstr "Režim mešanja"
-
-
-msgid "Replace"
-msgstr "Zameni"
-
-
-msgid "Offset"
-msgstr "Odstojanje"
-
-
-msgid "Add"
-msgstr "Dodaj"
-
-
-msgid "Subtract"
-msgstr "Oduzimanje"
-
-
-msgid "Multiply"
-msgstr "Umnoženo"
-
-
-msgid "Strips"
-msgstr "Trake"
-
-
-msgid "Keyframe"
-msgstr "Ključni kadar"
-
-
 msgid "Module"
 msgstr "Modul"
 
@@ -275,8 +235,20 @@ msgid "Action"
 msgstr "Akcija"
 
 
-msgid "None"
-msgstr "Ništa"
+msgid "Replace"
+msgstr "Zameni"
+
+
+msgid "Add"
+msgstr "Dodaj"
+
+
+msgid "Subtract"
+msgstr "Oduzimanje"
+
+
+msgid "Multiply"
+msgstr "Umnoženo"
 
 
 msgid "Nothing"
@@ -625,6 +597,10 @@ msgstr "Objekat"
 
 msgid "Tangent"
 msgstr "Magenta"
+
+
+msgid "None"
+msgstr "Ništa"
 
 
 msgid "Emit"
@@ -1463,6 +1439,10 @@ msgid "Image"
 msgstr "Slika"
 
 
+msgid "Offset"
+msgstr "Odstojanje"
+
+
 msgid "Rotation"
 msgstr "Rotacija"
 
@@ -2044,6 +2024,10 @@ msgid "Constraint modifying the transformation of objects and bones"
 msgstr "Ograničenje koji menja transformaciju objekata i kostiju"
 
 
+msgid "Influence"
+msgstr "Uticaj"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Nivo koji će uticaj ovog ograničenja imati na krajnji rezultat"
 
@@ -2242,6 +2226,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Postavlja minimalnu Y vrednost renderovanog okvira"
+
+
+msgid "Mix Mode"
+msgstr "Režim mešanja"
 
 
 msgid "Transform Channel"
@@ -4730,6 +4718,10 @@ msgid "Frame is being edited (painted on)"
 msgstr "Kadar se uređuje (omogući crtanje)"
 
 
+msgid "Keyframe"
+msgstr "Ključni kadar"
+
+
 msgid "Extreme"
 msgstr "Ekstrem"
 
@@ -5163,14 +5155,6 @@ msgid "Grid Scale"
 msgstr "Razmera mreže"
 
 
-msgid "Local Matrix"
-msgstr "Lokalna matrica"
-
-
-msgid "Translation"
-msgstr "Prelaz"
-
-
 msgid "Repeat"
 msgstr "Ponovi"
 
@@ -5271,16 +5255,16 @@ msgid "Users"
 msgstr "Korisnici"
 
 
+msgid "F-Curves"
+msgstr "F-kriva"
+
+
 msgid "Frame Range"
 msgstr "Opseg kadrova:"
 
 
 msgid "Groups"
 msgstr "Grupe"
-
-
-msgid "Layers"
-msgstr "Slojevi"
 
 
 msgid "Stick"
@@ -6151,6 +6135,10 @@ msgid "Use Textures"
 msgstr "Koristi teksture"
 
 
+msgid "Layers"
+msgstr "Slojevi"
+
+
 msgid "Selected"
 msgstr "Izabrano"
 
@@ -6471,16 +6459,16 @@ msgid "Spot Size"
 msgstr "Veličina projekcije"
 
 
+msgid "Intensity"
+msgstr "Intenzitet"
+
+
 msgid "Resolution X"
 msgstr "Rezolucija X"
 
 
 msgid "Resolution Y"
 msgstr "Rezolucija Y"
-
-
-msgid "Intensity"
-msgstr "Intenzitet"
 
 
 msgid "Active Shape Index"
@@ -6929,6 +6917,10 @@ msgstr "Slotovi materijala u objektu"
 
 msgid "Input Matrix"
 msgstr "Ulazna matrica"
+
+
+msgid "Local Matrix"
+msgstr "Lokalna matrica"
 
 
 msgid "Matrix World"
@@ -10225,10 +10217,6 @@ msgid "Fill Rim"
 msgstr "Ispuni obod"
 
 
-msgid "Number of subdivisions to perform"
-msgstr "Broj podela"
-
-
 msgid "Number of subdivisions to perform when rendering"
 msgstr "Broj podela prilikom renderinga"
 
@@ -11920,10 +11908,6 @@ msgid "Object Constraints"
 msgstr "Ograničenja objekta"
 
 
-msgid "Operator Properties"
-msgstr "Osobine operatora"
-
-
 msgctxt "Operator"
 msgid "Clean Keyframes"
 msgstr "Očisti ključne kadrove"
@@ -12722,6 +12706,10 @@ msgstr "Skalar"
 
 msgid "Factor to scale brush size by"
 msgstr "Faktor uvećanja veličine četkice"
+
+
+msgid "Translation"
+msgstr "Prelaz"
 
 
 msgid "Primary"
@@ -14750,6 +14738,10 @@ msgid "Select Mode"
 msgstr "Mod izabora"
 
 
+msgid "Relative Paths"
+msgstr "Relativne putanje"
+
+
 msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "Tačke bazierove krive"
@@ -14766,10 +14758,6 @@ msgstr "Bela tačka"
 msgctxt "Operator"
 msgid "Image Edit Externally"
 msgstr "Uredi sliku eksterno"
-
-
-msgid "Relative Paths"
-msgstr "Relativne putanje"
 
 
 msgctxt "Operator"
@@ -20137,12 +20125,12 @@ msgid "Import STL"
 msgstr "Uvoz u STL"
 
 
+msgid "Subdivision"
+msgstr "Podela površi"
+
+
 msgid "UV Maps"
 msgstr "UV Mape"
-
-
-msgid "Shapes"
-msgstr "Oblici"
 
 
 msgid "Textures Directory"
@@ -20270,14 +20258,6 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Film"
-msgstr "Film"
-
-
-msgid "Passes"
-msgstr "Prolaza"
-
-
 msgid "Bone Constraints"
 msgstr "Ograničenja kostiju"
 
@@ -20334,6 +20314,10 @@ msgid "Post Processing"
 msgstr "Naknadna obrada"
 
 
+msgid "Film"
+msgstr "Film"
+
+
 msgid "Pixel Filter"
 msgstr "Filter piksela"
 
@@ -20350,16 +20334,16 @@ msgid "Max Bounces"
 msgstr "Maks. odbijanja"
 
 
+msgid "Passes"
+msgstr "Prolaza"
+
+
 msgid "Performance"
 msgstr "Performanse"
 
 
 msgid "Threads"
 msgstr "Procesa"
-
-
-msgid "Subdivision"
-msgstr "Podela površi"
 
 
 msgid "Mist Pass"
@@ -20481,6 +20465,10 @@ msgstr "Audio"
 
 msgid "Note"
 msgstr "Beleška"
+
+
+msgid "Strips"
+msgstr "Trake"
 
 
 msgid "Playback"
@@ -23889,6 +23877,10 @@ msgid "Use Mist"
 msgstr "Koristi maglu"
 
 
+msgid "Operator Properties"
+msgstr "Osobine operatora"
+
+
 msgid "Search"
 msgstr "Pretraga"
 
@@ -24113,36 +24105,8 @@ msgid "Gesture Straight Line"
 msgstr "Crtaj prave linije"
 
 
-msgid "File:"
-msgstr "Datoteka:"
-
-
-msgid "Missing script files"
-msgstr "Nedostaje datoteka skripte"
-
-
-msgid "Description:"
-msgstr "Opis:"
-
-
-msgid "Author:"
-msgstr "Autor:"
-
-
-msgid "Version:"
-msgstr "Verzija:"
-
-
-msgid "Warning:"
-msgstr "Upozorenje:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgid "Size:"
-msgstr "Veličina:"
+msgid "Warning"
+msgstr "Upozorenje"
 
 
 msgctxt "Operator"
@@ -24309,6 +24273,10 @@ msgstr "Pre"
 msgctxt "Operator"
 msgid "Add Bone Constraint"
 msgstr "Dodaj ograničenja kosti"
+
+
+msgid "Shapes"
+msgstr "Oblici"
 
 
 msgid "Axes"
@@ -25001,16 +24969,40 @@ msgid "B"
 msgstr "B"
 
 
-msgid "Preferences:"
-msgstr "Vaša podešavanja"
-
-
 msgid "Invert Wheel Zoom Direction"
 msgstr "Obrnuti smer približavanja točkićem"
 
 
+msgid "Missing script files"
+msgstr "Nedostaje datoteka skripte"
+
+
+msgid "Description:"
+msgstr "Opis:"
+
+
 msgid "Location:"
 msgstr "Lokacija:"
+
+
+msgid "File:"
+msgstr "Datoteka:"
+
+
+msgid "Author:"
+msgstr "Autor:"
+
+
+msgid "Version:"
+msgstr "Verzija:"
+
+
+msgid "Warning:"
+msgstr "Upozorenje:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
 
 
 msgctxt "Operator"
@@ -25273,11 +25265,6 @@ msgstr "Sakrij maskirano"
 
 
 msgctxt "Operator"
-msgid "Invert Mask"
-msgstr "Obrnuta maska"
-
-
-msgctxt "Operator"
 msgid "Fill Mask"
 msgstr "Ispuni masku"
 
@@ -25285,6 +25272,11 @@ msgstr "Ispuni masku"
 msgctxt "Operator"
 msgid "Clear Mask"
 msgstr "Očisti masku"
+
+
+msgctxt "Operator"
+msgid "Invert Mask"
+msgstr "Obrnuta maska"
 
 
 msgid "Bone Settings"
@@ -25536,10 +25528,6 @@ msgstr "Pronađeno je %i tačaka!"
 
 msgid "%i frames on disk"
 msgstr "%i kadrova na disku"
-
-
-msgid "Warning"
-msgstr "Upozorenje"
 
 
 msgid "Undefined Type"
@@ -26589,6 +26577,10 @@ msgstr "Glavni poluprečnik"
 
 msgid "4L"
 msgstr "4L"
+
+
+msgid "Size:"
+msgstr "Veličina:"
 
 
 msgid "Radius of curve control points"

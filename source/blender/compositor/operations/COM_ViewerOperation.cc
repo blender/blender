@@ -165,6 +165,10 @@ void ViewerOperation::update_memory_buffer_finished(MemoryBuffer * /*output*/,
                                                     const rcti & /*area*/,
                                                     Span<MemoryBuffer *> /*inputs*/)
 {
+  if (!image_) {
+    return;
+  }
+
   const std::unique_ptr<MetaData> meta_data =
       this->get_input_socket(0)->get_reader()->get_meta_data();
 

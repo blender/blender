@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -234,30 +234,6 @@ msgid "Collection of action groups"
 msgstr "Toimintaryhmäkokoelma"
 
 
-msgid "Mix Mode"
-msgstr "Sekoitustila"
-
-
-msgid "Replace"
-msgstr "Korvaa"
-
-
-msgid "Offset"
-msgstr "Siirros"
-
-
-msgid "Add"
-msgstr "Lisää"
-
-
-msgid "Subtract"
-msgstr "Vähennä"
-
-
-msgid "Multiply"
-msgstr "Kerro"
-
-
 msgid "Add-on"
 msgstr "Lisäosa"
 
@@ -318,8 +294,24 @@ msgid "Active Action for this data-block"
 msgstr "Aktiiviset toiminnot tälle data-palikalle"
 
 
+msgid "Replace"
+msgstr "Korvaa"
+
+
 msgid "Combine"
 msgstr "Yhdistä"
+
+
+msgid "Add"
+msgstr "Lisää"
+
+
+msgid "Subtract"
+msgstr "Vähennä"
+
+
+msgid "Multiply"
+msgstr "Kerro"
 
 
 msgid "Nothing"
@@ -2430,6 +2422,10 @@ msgid "Image User"
 msgstr "Kuvan käyttäjä"
 
 
+msgid "Offset"
+msgstr "Siirros"
+
+
 msgid "Rotation"
 msgstr "Kierto"
 
@@ -2777,6 +2773,10 @@ msgstr "Maksimi"
 
 msgid "Minimum"
 msgstr "Minimi"
+
+
+msgid "Mix Mode"
+msgstr "Sekoitustila"
 
 
 msgid "Target object"
@@ -4646,10 +4646,6 @@ msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktiivinen öljykynän taso"
-
-
 msgid "Key"
 msgstr "Avain"
 
@@ -4678,10 +4674,6 @@ msgid "World"
 msgstr "Maailma"
 
 
-msgid "Layers"
-msgstr "Tasot"
-
-
 msgid "Push"
 msgstr "Työnnä"
 
@@ -4696,6 +4688,10 @@ msgstr "Polku"
 
 msgid "Normals"
 msgstr "Normaalit"
+
+
+msgid "Layers"
+msgstr "Tasot"
 
 
 msgid "Corner"
@@ -7022,6 +7018,10 @@ msgid "Active Layer"
 msgstr "Aktiivinen taso"
 
 
+msgid "Active Grease Pencil layer"
+msgstr "Aktiivinen öljykynän taso"
+
+
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Lisää uusi taso"
@@ -7726,36 +7726,8 @@ msgid "Snap"
 msgstr "Napsauta"
 
 
-msgid "File:"
-msgstr "Tiedosto:"
-
-
-msgid "name"
-msgstr "nimi"
-
-
-msgid "Description:"
-msgstr "Kuvaus­:"
-
-
-msgid "Version:"
-msgstr "Versio:"
-
-
-msgid "Warning:"
-msgstr "Varoitus:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgid "Path:"
-msgstr "Polku:"
-
-
-msgid "Size:"
-msgstr "Koko:"
+msgid "Warning"
+msgstr "Varoitus"
 
 
 msgid "Viewports"
@@ -8006,6 +7978,10 @@ msgstr "Kartta"
 
 msgid "category"
 msgstr "kategoria"
+
+
+msgid "name"
+msgstr "nimi"
 
 
 msgid "B/W"
@@ -8376,10 +8352,6 @@ msgid "Axis X"
 msgstr "X-akselit"
 
 
-msgid "Preferences:"
-msgstr "Mieltymykset:"
-
-
 msgid "Use Light"
 msgstr "Käytä valoa"
 
@@ -8400,8 +8372,28 @@ msgid "Error (see console)"
 msgstr "Virhe (katso konsoli)"
 
 
+msgid "Description:"
+msgstr "Kuvaus­:"
+
+
 msgid "Location:"
 msgstr "Sijainti:"
+
+
+msgid "File:"
+msgstr "Tiedosto:"
+
+
+msgid "Version:"
+msgstr "Versio:"
+
+
+msgid "Warning:"
+msgstr "Varoitus:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
 
 
 msgctxt "Operator"
@@ -8653,10 +8645,6 @@ msgstr "Väri"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Pinta"
-
-
-msgid "Warning"
-msgstr "Varoitus"
 
 
 msgid "Invalid Input Error"
@@ -9147,14 +9135,6 @@ msgstr "Ryhmittäminen"
 
 msgid "Material Groups"
 msgstr "Materiaaliryhmät"
-
-
-msgid "Data Types"
-msgstr "Tietotyypit"
-
-
-msgid "Mesh Data"
-msgstr "Muototieto"
 
 
 msgctxt "Mesh"
@@ -9924,6 +9904,10 @@ msgid "Radius (Parent)"
 msgstr "Säde (isäntä)"
 
 
+msgid "Size:"
+msgstr "Koko:"
+
+
 msgid "right"
 msgstr "oikea"
 
@@ -10281,6 +10265,10 @@ msgstr "Sisämarki"
 
 msgid "Outer Mask"
 msgstr "Ulkomaski"
+
+
+msgid "Path:"
+msgstr "Polku:"
 
 
 msgid "Base Path:"
@@ -11394,14 +11382,6 @@ msgstr "UV-muokkaaminen"
 msgctxt "WorkSpace"
 msgid "Video Editing"
 msgstr "Videoeditointi"
-
-
-msgid "3D View > Sidebar > VR"
-msgstr "3D-näkymä > sivupaneeli > VR"
-
-
-msgid "File > Import-Export"
-msgstr "Tieodosto > Tuo-Vie"
 
 
 msgid "FBX format"

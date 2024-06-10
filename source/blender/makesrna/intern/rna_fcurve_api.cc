@@ -77,7 +77,7 @@ static void rna_FCurve_bake(FCurve *fcu,
   if (start_frame >= end_frame) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Invalid frame range (%d - %d). End Frame is larger than Start Frame",
+                "Invalid frame range (%d - %d). Start Frame is larger than End Frame",
                 start_frame,
                 end_frame);
     return;

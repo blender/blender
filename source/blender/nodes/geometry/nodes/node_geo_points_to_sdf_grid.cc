@@ -93,7 +93,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   bke::VolumeGrid<float> grid = points_to_grid(params.extract_input<GeometrySet>("Points"),
                                                params.extract_input<Field<float>>("Radius"),
                                                params.extract_input<float>("Voxel Size"));
-  params.set_output("SDF Grid", std::move(grid));
+  if (grid) {
+    params.set_output("SDF Grid", std::move(grid));
+  }
+
+  params.set_default_remaining_outputs();
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2024-05-03 12:13+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -246,34 +246,6 @@ msgid "Collection of action groups"
 msgstr "ﻡﺍﺪﻗﺍ ﯼﺎﻫ‌ﻩﻭﺮﮔ ﻪﻋﻮﻤﺠﻣ"
 
 
-msgid "Influence"
-msgstr "ﺫﻮﻔﻧ"
-
-
-msgid "Mix Mode"
-msgstr "ﯽﺒﯿﮐﺮﺗ ﺖﻟﺎﺣ"
-
-
-msgid "Replace"
-msgstr "ﻦﯾﺰﮕﯾﺎﺟ"
-
-
-msgid "Offset"
-msgstr "ﺖﺴﻓﺍ"
-
-
-msgid "Add"
-msgstr "ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
-msgid "Subtract"
-msgstr "ﻥﺩﺮﮐ‌ﻖﯾﺮﻔﺗ"
-
-
-msgid "Multiply"
-msgstr "ﺏﺮﺿ"
-
-
 msgid "Action Pose Markers"
 msgstr "ﻞﻤﻋ ﺖﺳﮊ ﯼﺎﻫﺮﮕﻧﺎﺸﻧ"
 
@@ -506,16 +478,16 @@ msgid "Active Action for this data-block"
 msgstr "ﻩﺩﺍﺩ ﮎﻮﻠﺑ ﻦﯾﺍ ﯼﺍﺮﺑ ﻝﺎﻌﻓ ﻡﺍﺪﻗﺍ"
 
 
-msgid "None"
-msgstr "ﻡﺍﺪﮐ ﭻﯿﻫ"
-
-
 msgid "Action Blending"
 msgstr "ﺭﺍﺩﺮﮐ ﺐﯿﮐﺮﺗ"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "NLA ﻪﺘﺳﺩ ﻪﺠﯿﺘﻧ ﺎﺑ ﻝﺎﻌﻓ ﻡﺍﺪﻗﺍ ﻪﺠﯿﺘﻧ ﺐﯿﮐﺮﺗ ﯼﺍﺮﺑ ﻩﺩﺎﻔﺘﺳﺍ ﺩﺭﻮﻣ ﺵﻭﺭ"
+
+
+msgid "Replace"
+msgstr "ﻦﯾﺰﮕﯾﺎﺟ"
 
 
 msgid "The strip values replace the accumulated results by amount specified by influence"
@@ -530,12 +502,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "ﺪﻧﻮﺷ ﯽﻣ ﺐﯿﮐﺮﺗ ﻝﺎﻧﺎﮐ ﻉﻮﻧ ﺱﺎﺳﺍ ﺮﺑ ﻂﻠﺘﺨﻣ ﺩﺍﺪﻋﺍ ﺎﯾ ﺏﺮﺿ ،ﻊﻤﺟ ﺕﺎﯿﺿﺎﯾﺭ ﺯﺍ ﺐﺳﺎﻨﻣ ﻩﺩﺎﻔﺘﺳﺍ ﺎﺑ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﺎﺑ ﺭﺍﻮﻧ ﺮﯾﺩﺎﻘﻣ"
 
 
+msgid "Add"
+msgstr "ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "ﺩﻮﺷ‌ﯽﻣ ﻪﻓﺎﺿﺍ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﻪﺑ ﺭﺍﻮﻧ ﯽﻧﺯﻭ ﻪﺠﯿﺘﻧ"
 
 
+msgid "Subtract"
+msgstr "ﻥﺩﺮﮐ‌ﻖﯾﺮﻔﺗ"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "ﺩﻮﺷ ﯽﻣ ﻑﺬﺣ ﻩﺪﺷ ﯼﺭﻭﺁ ﻊﻤﺟ ﺞﯾﺎﺘﻧ ﺯﺍ ﺭﺍﻮﻧ ﯽﻧﺯﻭ ﻪﺠﯿﺘﻧ"
+
+
+msgid "Multiply"
+msgstr "ﺏﺮﺿ"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1035,6 +1019,10 @@ msgid "Object"
 msgstr "ءﯽﺷ"
 
 
+msgid "None"
+msgstr "ﻡﺍﺪﮐ ﭻﯿﻫ"
+
+
 msgid "Indirect"
 msgstr "ﻢﯿﻘﺘﺴﻣ ﺮﯿﻏ"
 
@@ -1355,6 +1343,10 @@ msgstr "ﺶﺸﮐ"
 
 msgid "Image"
 msgstr "ﺮﯾﻮﺼﺗ"
+
+
+msgid "Offset"
+msgstr "ﺖﺴﻓﺍ"
 
 
 msgid "Rotation"
@@ -1721,6 +1713,10 @@ msgid "Input"
 msgstr "ﯼﺩﻭﺭﻭ"
 
 
+msgid "Influence"
+msgstr "ﺫﻮﻔﻧ"
+
+
 msgid "Disable"
 msgstr "ﻝﺎﻌﻓﺮﯿﻏ"
 
@@ -1775,6 +1771,10 @@ msgstr "ﺮﭽﯿﻣﺭﺁ"
 
 msgid "Follow Path"
 msgstr "ﺮﯿﺴﻣ ﻩﺪﻨﻨﮐ ﻝﺎﺒﻧﺩ"
+
+
+msgid "Mix Mode"
+msgstr "ﯽﺒﯿﮐﺮﺗ ﺖﻟﺎﺣ"
 
 
 msgid "X Location"
@@ -2392,10 +2392,6 @@ msgid "Space"
 msgstr "ﺎﻀﻓ"
 
 
-msgid "Local Matrix"
-msgstr "ﯽﻠﺤﻣ ﺲﮑﯾﺮﺗﺎﻣ"
-
-
 msgid "Red"
 msgstr "ﺰﻣﺮﻗ"
 
@@ -2454,10 +2450,6 @@ msgstr "ﻩﺮﺠﻨﭘ ﺖﯾﺮﯾﺪﻣ"
 
 msgid "World"
 msgstr "ﻥﺎﻬﺟ"
-
-
-msgid "Layers"
-msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
 
 
 msgid "B-Bone"
@@ -2683,6 +2675,10 @@ msgid "Max"
 msgstr "ﻪﻨﯿﺸﯿﺑ"
 
 
+msgid "Layers"
+msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
+
+
 msgid "U"
 msgstr "U"
 
@@ -2794,6 +2790,10 @@ msgstr "ﺲﻧﺎﺠﺗ ﻞﻔﻗ"
 
 msgid "Input Matrix"
 msgstr "ﺲﯾﺮﺗﺎﻣ ﯼﺩﻭﺭﻭ"
+
+
+msgid "Local Matrix"
+msgstr "ﯽﻠﺤﻣ ﺲﮑﯾﺮﺗﺎﻣ"
 
 
 msgid "Object Mode"
@@ -4756,34 +4756,6 @@ msgid "Rotate"
 msgstr "ﺶﺧﺮﭼ"
 
 
-msgid "File:"
-msgstr ":ﻩﺪﻧﻭﺮﭘ"
-
-
-msgid "Description:"
-msgstr ":ﺢﯿﺿﻮﺗ"
-
-
-msgid "Author:"
-msgstr ":ﻩﺪﻨﺴﯾﻮﻧ"
-
-
-msgid "Version:"
-msgstr ":ﻪﺨﺴﻧ"
-
-
-msgid "Warning:"
-msgstr ":ﺭﺍﺪﺸﻫ"
-
-
-msgid "Internet:"
-msgstr ":ﺖﻧﺮﺘﻨﯾﺍ"
-
-
-msgid "Size:"
-msgstr ":ﻩﺯﺍﺪﻧﺍ"
-
-
 msgid "Tracking"
 msgstr "ﯽﺑﺎﯾﺩﺭ"
 
@@ -4924,8 +4896,32 @@ msgid "B"
 msgstr "B"
 
 
+msgid "Description:"
+msgstr ":ﺢﯿﺿﻮﺗ"
+
+
 msgid "Location:"
 msgstr ":ﻥﺎﮑﻣ"
+
+
+msgid "File:"
+msgstr ":ﻩﺪﻧﻭﺮﭘ"
+
+
+msgid "Author:"
+msgstr ":ﻩﺪﻨﺴﯾﻮﻧ"
+
+
+msgid "Version:"
+msgstr ":ﻪﺨﺴﻧ"
+
+
+msgid "Warning:"
+msgstr ":ﺭﺍﺪﺸﻫ"
+
+
+msgid "Internet:"
+msgstr ":ﺖﻧﺮﺘﻨﯾﺍ"
 
 
 msgctxt "Operator"
@@ -5295,6 +5291,10 @@ msgstr ":ﻉﺎﻌﺷ"
 
 msgid "4L"
 msgstr "4L"
+
+
+msgid "Size:"
+msgstr ":ﻩﺯﺍﺪﻧﺍ"
 
 
 msgid "Motion"

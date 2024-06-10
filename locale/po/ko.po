@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -57,10 +57,6 @@ msgstr "AOV 목록"
 
 msgid "Collection of AOVs"
 msgstr "AOV 컬렉션"
-
-
-msgid "F-Curves"
-msgstr "F-커브"
 
 
 msgid "Action F-Curves"
@@ -243,38 +239,6 @@ msgid "Collection of action groups"
 msgstr "액션 그룹의 컬렉션"
 
 
-msgid "Influence"
-msgstr "영향"
-
-
-msgid "Mix Mode"
-msgstr "조합 모드"
-
-
-msgid "Replace"
-msgstr "바꾸기"
-
-
-msgid "Offset"
-msgstr "오프셋"
-
-
-msgid "Add"
-msgstr "추가"
-
-
-msgid "Subtract"
-msgstr "빼기"
-
-
-msgid "Multiply"
-msgstr "곱하기"
-
-
-msgid "Strips"
-msgstr "스트립"
-
-
 msgid "Action Pose Markers"
 msgstr "액션 포즈 마커"
 
@@ -297,10 +261,6 @@ msgstr "활성 포즈 마커 인덱스"
 
 msgid "Index of active pose marker"
 msgstr "활성 포즈 마커의 인덱스"
-
-
-msgid "Keyframe"
-msgstr "키 프레임"
 
 
 msgid "Add-on"
@@ -419,16 +379,16 @@ msgid "Active Action for this data-block"
 msgstr "이 데이터 블록에 대한 활성 액션"
 
 
-msgid "None"
-msgstr "None"
-
-
 msgid "Action Blending"
 msgstr "액션 블렌딩"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "NLA 스택의 결과와 함께 활성 액선의 결과를 컴포지팅하기 위해 사용된 방법"
+
+
+msgid "Replace"
+msgstr "바꾸기"
 
 
 msgid "The strip values replace the accumulated results by amount specified by influence"
@@ -443,12 +403,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "스트립 값은 채널 유형에 따라 더하기, 곱하기 또는 쿼터니언 수학을 적절하게 사용하여 누적 결과와 결합됩니다"
 
 
+msgid "Add"
+msgstr "추가"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "스트립의 가중된 결과는 누적된 결과로 추가됨"
 
 
+msgid "Subtract"
+msgstr "빼기"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "스트립의 가중된 결과는 누적된 결과에서 제거됨"
+
+
+msgid "Multiply"
+msgstr "곱하기"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1307,6 +1279,10 @@ msgstr "패스 필터"
 
 msgid "Passes to include in the active baking pass"
 msgstr "활성 배이킹 패스에 포함하는 패스"
+
+
+msgid "None"
+msgstr "None"
 
 
 msgid "Emit"
@@ -3633,6 +3609,10 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "이미지의 레이어, 패스 및 프레임을 정의하는 매개 변수"
 
 
+msgid "Offset"
+msgstr "오프셋"
+
+
 msgid "Rotation"
 msgstr "회전"
 
@@ -4958,6 +4938,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "오리엔테이션에서 작동하는 제약들에 대해 라디안 단위의 예측 오차의 양"
 
 
+msgid "Influence"
+msgstr "영향"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "최종 솔루션에 미치는 영향력 제약의 양"
 
@@ -5292,6 +5276,10 @@ msgstr "최소치"
 
 msgid "Minimum value for target channel range"
 msgstr "대상 채널 범위에 대한 최소의 값"
+
+
+msgid "Mix Mode"
+msgstr "조합 모드"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -12178,6 +12166,10 @@ msgid "Frame is being edited (painted on)"
 msgstr "프레임은 편집중인 (에서 페인트됨)"
 
 
+msgid "Keyframe"
+msgstr "키 프레임"
+
+
 msgid "Breakdown"
 msgstr "브렉다운"
 
@@ -14026,14 +14018,6 @@ msgid "Grid scale"
 msgstr "격자 축적"
 
 
-msgid "Local Matrix"
-msgstr "로컬 매트릭스"
-
-
-msgid "Translation"
-msgstr "옮기기"
-
-
 msgid "Grease Pencil Layers"
 msgstr "그리스 펜슬 레이어"
 
@@ -14258,6 +14242,10 @@ msgid "A collection of F-Curves for animation"
 msgstr "에니메이션에 대한 F-커브의 컬렉션"
 
 
+msgid "F-Curves"
+msgstr "F-커브"
+
+
 msgid "The individual F-Curves that make up the action"
 msgstr "액션을 구성하는 개별 F-커브"
 
@@ -14281,10 +14269,6 @@ msgstr "ID 루트 유형"
 
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "액션을 사용할 수있는 ID 블록의 유형 - 수행중인 액션을 알지 못하면 변경하지 마십시오"
-
-
-msgid "Layers"
-msgstr "레이어"
 
 
 msgid "Pose Markers"
@@ -16931,6 +16915,10 @@ msgid "Grease Pencil weight paint"
 msgstr "그리스 펜슬 웨이트 페인트"
 
 
+msgid "Layers"
+msgstr "레이어"
+
+
 msgid "Onion Opacity"
 msgstr "어니언 불투명도"
 
@@ -17065,10 +17053,6 @@ msgstr "표면 오프셋"
 
 msgid "Offset amount when drawing in surface mode"
 msgstr "표면 모드에서 그리기 할 때의 오프셋 양"
-
-
-msgid "Grease Pencil data-block"
-msgstr "그리스 펜슬 데이터 블록"
 
 
 msgid "Image data-block referencing an external or packed image"
@@ -17833,40 +17817,8 @@ msgid "Light Probe data-block for lighting capture objects"
 msgstr "라이팅 캡처 오브젝트를 위한 라이트 프로브 데이터 블록"
 
 
-msgid "Probe clip end, beyond which objects will not appear in reflections"
-msgstr "프로브 클립 종료, 그 이상의 오브젝트는 반사광이 나타나지 않습니다"
-
-
 msgid "Probe clip start, below which objects will not appear in reflections"
 msgstr "프로브 클립 시작, 그 이하의 오브젝트는 반사광이 나타나지 않습니다"
-
-
-msgid "Control how fast the probe influence decreases"
-msgstr "프로브 영향이 얼마나 빨리 감소하는지 제어합니다"
-
-
-msgid "Clamp Direct"
-msgstr "클램프 직접"
-
-
-msgid "Clamp Indirect"
-msgstr "클램프 간접"
-
-
-msgid "Smoother irradiance interpolation but introduce light bleeding"
-msgstr "매끄러운 방사 보간법이지만 라이트 번짐"
-
-
-msgid "Resolution X"
-msgstr "해상도 X"
-
-
-msgid "Resolution Y"
-msgstr "해상도 Y"
-
-
-msgid "Resolution Z"
-msgstr "해상도 Z"
 
 
 msgid "Influence Distance"
@@ -17877,24 +17829,48 @@ msgid "Influence distance of the probe"
 msgstr "프로브의 영향 거리"
 
 
-msgid "Type of influence volume"
-msgstr "영향 볼륨의 유형"
-
-
-msgid "Intensity"
-msgstr "강도"
-
-
-msgid "Modify the intensity of the lighting captured by this probe"
-msgstr "이 프로브에서 캡처한 라이트닝의 강도를 수정합니다"
-
-
 msgid "Invert Collection"
 msgstr "컬렉션을 반전"
 
 
-msgid "Invert visibility collection"
-msgstr "가시성 컬렉션을 반전"
+msgid "Show the clipping distances in the 3D view"
+msgstr "3D 뷰에서 클리핑 거리를 표시합니다"
+
+
+msgid "Show the influence volume in the 3D view"
+msgstr "3D뷰에서 영향력 볼륨을 표시합니다"
+
+
+msgid "Type of light probe"
+msgstr "라이트 프로브의 유형"
+
+
+msgid "Visibility Bleed Bias"
+msgstr "가시성 번짐 성향"
+
+
+msgid "Visibility Blur"
+msgstr "가시성 블러"
+
+
+msgid "Visibility Bias"
+msgstr "가시성 바이어스"
+
+
+msgid "Visibility Collection"
+msgstr "가시성 컬렉션"
+
+
+msgid "Probe clip end, beyond which objects will not appear in reflections"
+msgstr "프로브 클립 종료, 그 이상의 오브젝트는 반사광이 나타나지 않습니다"
+
+
+msgid "Control how fast the probe influence decreases"
+msgstr "프로브 영향이 얼마나 빨리 감소하는지 제어합니다"
+
+
+msgid "Type of influence volume"
+msgstr "영향 볼륨의 유형"
 
 
 msgid "Parallax Radius"
@@ -17909,24 +17885,12 @@ msgid "Type of parallax volume"
 msgstr "시차 볼륨의 유형"
 
 
-msgid "Show the clipping distances in the 3D view"
-msgstr "3D 뷰에서 클리핑 거리를 표시합니다"
-
-
-msgid "Show the influence volume in the 3D view"
-msgstr "3D뷰에서 영향력 볼륨을 표시합니다"
-
-
 msgid "Parallax"
 msgstr "시차"
 
 
 msgid "Show the parallax correction volume in the 3D view"
 msgstr "3D뷰에서 시차 보정 볼륨을 표시합니다"
-
-
-msgid "Type of light probe"
-msgstr "라이트 프로브의 유형"
 
 
 msgid "Use Custom Parallax"
@@ -17937,32 +17901,36 @@ msgid "Enable custom settings for the parallax correction volume"
 msgstr "시차 보정 볼륨에 대한 커스텀 설정을 사용"
 
 
-msgid "Visibility Bleed Bias"
-msgstr "가시성 번짐 성향"
+msgid "Clamp Direct"
+msgstr "클램프 직접"
 
 
-msgid "Bias for reducing light-bleed on variance shadow maps"
-msgstr "분산 섀도우 맵에 라이트 번짐을 줄이기 위한 성향"
+msgid "Clamp Indirect"
+msgstr "클램프 간접"
 
 
-msgid "Visibility Blur"
-msgstr "가시성 블러"
+msgid "Smoother irradiance interpolation but introduce light bleeding"
+msgstr "매끄러운 방사 보간법이지만 라이트 번짐"
 
 
-msgid "Filter size of the visibility blur"
-msgstr "가시성 블러 이펙트의 필터 크기"
+msgid "Intensity"
+msgstr "강도"
 
 
-msgid "Visibility Bias"
-msgstr "가시성 바이어스"
+msgid "Modify the intensity of the lighting captured by this probe"
+msgstr "이 프로브에서 캡처한 라이트닝의 강도를 수정합니다"
 
 
-msgid "Visibility Collection"
-msgstr "가시성 컬렉션"
+msgid "Resolution X"
+msgstr "해상도 X"
 
 
-msgid "Restrict objects visible for this probe"
-msgstr "이 프로브에서 볼 수있는 오브젝트를 제한"
+msgid "Resolution Y"
+msgstr "해상도 Y"
+
+
+msgid "Resolution Z"
+msgstr "해상도 Z"
 
 
 msgid "Mask data-block defining mask for compositing"
@@ -17999,10 +17967,6 @@ msgstr "클립 임계 값"
 
 msgid "A pixel is rendered only if its alpha value is above this threshold"
 msgstr "알파 값이 이 임계 값보다 큰 경우에만 픽셀이 렌더됩니다"
-
-
-msgid "Blend Mode for Transparent Faces"
-msgstr "투명 페이스에 대한 혼합 모드"
 
 
 msgid "Render surface without transparency"
@@ -18255,10 +18219,6 @@ msgstr "현재 월드 배경을 사용하여 미리보기 렌더를 사용합니
 
 msgid "Subsurface Translucency"
 msgstr "서브 표면 반투명"
-
-
-msgid "Add translucency effect to subsurface"
-msgstr "서브 표면에 반투명 이펙트를 추가"
 
 
 msgid "Transparent Shadows"
@@ -18627,6 +18587,10 @@ msgstr "셰이더"
 
 msgid "Grease Pencil Data"
 msgstr "그리스 펜슬 데이터"
+
+
+msgid "Grease Pencil data-block"
+msgstr "그리스 펜슬 데이터 블록"
 
 
 msgid "Interface"
@@ -19055,6 +19019,10 @@ msgstr "입력 매트릭스"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "제약 조건 및 부모 지정이 적용되기 전에 위치, 회전 및 축적 (델타 포함)에 대한 매트릭스 액세스"
+
+
+msgid "Local Matrix"
+msgstr "로컬 매트릭스"
 
 
 msgid "Parent Inverse Matrix"
@@ -28153,10 +28121,6 @@ msgid "Fluid simulation modifier"
 msgstr "유체 시뮬레이션 모디파이어"
 
 
-msgid "Inflow/Outflow"
-msgstr "유입/유출"
-
-
 msgid "Hook modifier to modify the location of vertices"
 msgstr "버텍스의 위치를 수정하려면 후크 모디파이어"
 
@@ -29306,10 +29270,6 @@ msgstr "각도에 따른 두께를 클램프"
 
 msgid "Subdivision surface modifier"
 msgstr "섭디비젼 표면 모디파이어"
-
-
-msgid "Number of subdivisions to perform"
-msgstr "실행하는 섭디비젼의 수"
 
 
 msgid "Number of subdivisions to perform when rendering"
@@ -34645,10 +34605,6 @@ msgid "Enable to use the region under the cursor for modal execution"
 msgstr "모달 실행을 위해 커서 아래 지역에 사용 가능"
 
 
-msgid "Operator Properties"
-msgstr "작업자 속성"
-
-
 msgid "Add keyframes on every frame between the selected keyframes"
 msgstr "선택된 키 프레임 사이의 모든 프레임에 프레임을 추가"
 
@@ -36394,6 +36350,10 @@ msgstr "스텐실 브러시 컨트롤"
 
 msgid "Control the stencil brush"
 msgstr "스텐실 브러시 컨트롤"
+
+
+msgid "Translation"
+msgstr "옮기기"
 
 
 msgid "Primary"
@@ -39344,6 +39304,11 @@ msgid "Remove existing add-ons with the same ID"
 msgstr "동일한 ID와 기존의 애드온을 제거"
 
 
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "모두 새로 고침"
+
+
 msgid "Automatically pack all external files into the .blend file"
 msgstr "자동으로 모든 외부 파일을 .blend 파일에 포장합니다"
 
@@ -41798,6 +41763,18 @@ msgid "Clear the currently selected render slot"
 msgstr "현재 선택된 렌더 슬롯을 지우기"
 
 
+msgid "Blend Mode for Transparent Faces"
+msgstr "투명 페이스에 대한 혼합 모드"
+
+
+msgid "Emission Strength"
+msgstr "방출 강도"
+
+
+msgid "Relative Paths"
+msgstr "상대적인 경로"
+
+
 msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "커브 포인트를 설정"
@@ -41841,16 +41818,8 @@ msgid "Edit image in an external application"
 msgstr "외부 어플리케이션에서 이미지를 편집합니다"
 
 
-msgid "Emission Strength"
-msgstr "방출 강도"
-
-
 msgid "Filepath used for importing the file"
 msgstr "파일을 가져오기에 사용된 파일 경로"
-
-
-msgid "Relative Paths"
-msgstr "상대적인 경로"
 
 
 msgctxt "Operator"
@@ -51205,30 +51174,6 @@ msgid "Add or remove grease pencil material preset"
 msgstr "그리이스 펜슬 매테리얼 프리셋을 추가 또는 제거"
 
 
-msgid "Bake the active view layer lighting"
-msgstr "활성 뷰레이어 라이트닝을 베이크"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "배이킹 시작전 밀리 초 지연"
-
-
-msgid "Bake both irradiance grids and reflection cubemaps"
-msgstr "방사 조도 격자 및 반사 큐브 맵을 모두 구워 내기"
-
-
-msgid "Dirty Only"
-msgstr "더티 만"
-
-
-msgid "Cubemaps Only"
-msgstr "큐브맵 만"
-
-
-msgid "Try to only bake reflection cubemaps if irradiance grids are up to date"
-msgstr "방사 조도 격자가 최신인 경우에만 반사 큐브 맵을 베이크합니다"
-
-
 msgctxt "Operator"
 msgid "New Scene"
 msgstr "새로운 씬"
@@ -57111,16 +57056,16 @@ msgid "Site"
 msgstr "사이트"
 
 
+msgid "Subdivision"
+msgstr "섭디비젼"
+
+
 msgid "UV Maps"
 msgstr "UV 맵"
 
 
 msgid "Instancing"
 msgstr "인스턴싱"
-
-
-msgid "Shapes"
-msgstr "셰이프"
 
 
 msgid "Textures Directory"
@@ -57666,22 +57611,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Integrator Presets"
-msgstr "적분기 프리셋"
-
-
-msgid "Sampling Presets"
-msgstr "샘플링 프리셋"
-
-
-msgid "Film"
-msgstr "필름"
-
-
-msgid "Passes"
-msgstr "패스"
-
-
 msgid "Bone Constraints"
 msgstr "본 제약"
 
@@ -57798,8 +57727,20 @@ msgid "Ray Visibility"
 msgstr "광선 가시성"
 
 
+msgid "Integrator Presets"
+msgstr "적분기 프리셋"
+
+
 msgid "Post Processing"
 msgstr "후처리"
+
+
+msgid "Sampling Presets"
+msgstr "샘플링 프리셋"
+
+
+msgid "Film"
+msgstr "필름"
 
 
 msgid "Pixel Filter"
@@ -57826,6 +57767,10 @@ msgid "Shutter Curve"
 msgstr "셔터 커브"
 
 
+msgid "Passes"
+msgstr "패스"
+
+
 msgid "Performance"
 msgstr "성능"
 
@@ -57840,10 +57785,6 @@ msgstr "최종 렌더"
 
 msgid "Threads"
 msgstr "스레드"
-
-
-msgid "Subdivision"
-msgstr "섭디비젼"
 
 
 msgid "Render Pass"
@@ -58382,6 +58323,10 @@ msgstr "프레임 오버레이"
 
 msgid "Proxy Settings"
 msgstr "프록시 설정"
+
+
+msgid "Strips"
+msgstr "스트립"
 
 
 msgid "Strip Cache"
@@ -64565,18 +64510,6 @@ msgstr "스프라이트 기본 피사계 심도를 사용하기 위한 밝기 �
 
 msgid "Trace Precision"
 msgstr "추적 정밀도"
-
-
-msgid "Auto Bake"
-msgstr "자동 베이크"
-
-
-msgid "Auto bake indirect lighting when editing probes"
-msgstr "자동으로 프로브 편집시 간접 라이트닝을 베이크"
-
-
-msgid "Light Cache Info"
-msgstr "라이트 캐시 정보"
 
 
 msgid "Cubemap Display Size"
@@ -71989,6 +71922,10 @@ msgid "Occlude objects with the environment color as they are further away"
 msgstr "멀리있는 환경 컬러를 가진 오브젝트를 폐색합니다"
 
 
+msgid "Operator Properties"
+msgstr "작업자 속성"
+
+
 msgid "Work Space UI Tag"
 msgstr "작업 공간 UI 태그"
 
@@ -72520,36 +72457,8 @@ msgid "Eyedropper ColorRamp PointSampling Map"
 msgstr "아이드라퍼 컬러램프 포인트샘플링 맵"
 
 
-msgid "File:"
-msgstr "파일:"
-
-
-msgid "Missing script files"
-msgstr "스크립트 파일이 누락 됨"
-
-
-msgid "Description:"
-msgstr "설명:"
-
-
-msgid "Author:"
-msgstr "작성자:"
-
-
-msgid "Version:"
-msgstr "버젼:"
-
-
-msgid "Warning:"
-msgstr "경고:"
-
-
-msgid "Internet:"
-msgstr "인터넷:"
-
-
-msgid "Size:"
-msgstr "크기:"
+msgid "Warning"
+msgstr "경고"
 
 
 msgctxt "Operator"
@@ -73003,6 +72912,10 @@ msgstr "대상 본 추가"
 
 msgid "Pivot Offset"
 msgstr "피벗 오프셋"
+
+
+msgid "Shapes"
+msgstr "셰이프"
 
 
 msgid "Axes"
@@ -74215,16 +74128,6 @@ msgid "Cascade Size"
 msgstr "캐스케이드 크기"
 
 
-msgctxt "Operator"
-msgid "Bake Indirect Lighting"
-msgstr "간접 라이트닝을 베이크"
-
-
-msgctxt "Operator"
-msgid "Delete Lighting Cache"
-msgstr "라이트닝 캐시를 삭제"
-
-
 msgid "Diffuse Occlusion"
 msgstr "확산 폐색"
 
@@ -74239,11 +74142,6 @@ msgstr "최대 자식 입자"
 
 msgid "Render Engine"
 msgstr "렌더 엔진"
-
-
-msgctxt "Operator"
-msgid "Bake Cubemap Only"
-msgstr "큐브맵 만 베이크"
 
 
 msgid "General Override"
@@ -75269,11 +75167,6 @@ msgstr "프레임 범위를 스트립으로 설정"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "모두 새로 고침"
-
-
-msgctxt "Operator"
 msgid "Sequence Render Animation"
 msgstr "시퀀스 렌더 애니메이션"
 
@@ -75983,10 +75876,6 @@ msgid "Pan Sensitivity"
 msgstr "팬 감도"
 
 
-msgid "Preferences:"
-msgstr "환경 설정:"
-
-
 msgid "Use Light"
 msgstr "라이트를 사용"
 
@@ -76020,8 +75909,36 @@ msgid ":"
 msgstr ":"
 
 
+msgid "Missing script files"
+msgstr "스크립트 파일이 누락 됨"
+
+
+msgid "Description:"
+msgstr "설명:"
+
+
 msgid "Location:"
 msgstr "위치:"
+
+
+msgid "File:"
+msgstr "파일:"
+
+
+msgid "Author:"
+msgstr "작성자:"
+
+
+msgid "Version:"
+msgstr "버젼:"
+
+
+msgid "Warning:"
+msgstr "경고:"
+
+
+msgid "Internet:"
+msgstr "인터넷:"
 
 
 msgctxt "Operator"
@@ -76398,11 +76315,6 @@ msgstr "피벗을 설정"
 
 
 msgctxt "Operator"
-msgid "Invert Mask"
-msgstr "마스크를 반전"
-
-
-msgctxt "Operator"
 msgid "Fill Mask"
 msgstr "마스크를 채우기"
 
@@ -76410,6 +76322,11 @@ msgstr "마스크를 채우기"
 msgctxt "Operator"
 msgid "Clear Mask"
 msgstr "마스크를 지우기"
+
+
+msgctxt "Operator"
+msgid "Invert Mask"
+msgstr "마스크를 반전"
 
 
 msgctxt "Operator"
@@ -77678,10 +77595,6 @@ msgid "%s, not exact since frame %i"
 msgstr "%s, 프레임 %i 이후 정확하지 않음"
 
 
-msgid "Warning"
-msgstr "경고"
-
-
 msgid "Invalid Input Error"
 msgstr "잘못된 입력 오류"
 
@@ -77933,18 +77846,6 @@ msgstr "연속되는 에지 링이 존재하지 않음"
 
 msgid "Basic"
 msgstr "기본"
-
-
-msgid "%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"
-msgstr "%d Ref. 큐브맵, %d Irr. 샘플 (메모리에있는%s)"
-
-
-msgid "Baking light cache"
-msgstr "라이트 캐시를 배이킹"
-
-
-msgid "No light cache in this scene"
-msgstr "이 씬에 라이트 캐시가 없음"
 
 
 msgid "GpencilMode"
@@ -81992,6 +81893,10 @@ msgstr "활성 본 없음"
 
 msgid "Radius (Parent)"
 msgstr "반경 (부모)"
+
+
+msgid "Size:"
+msgstr "크기:"
 
 
 msgid "Displays global values"

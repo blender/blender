@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -231,30 +231,6 @@ msgid "Collection of action groups"
 msgstr "Collectie van actiegroepen"
 
 
-msgid "Influence"
-msgstr "Invloed"
-
-
-msgid "Mix Mode"
-msgstr "Mixmodus"
-
-
-msgid "Replace"
-msgstr "Vervangen"
-
-
-msgid "Add"
-msgstr "Toevoegen"
-
-
-msgid "Subtract"
-msgstr "Aftrekken"
-
-
-msgid "Multiply"
-msgstr "Vermenigvuldigen"
-
-
 msgid "Module"
 msgstr "Module"
 
@@ -279,12 +255,24 @@ msgid "Action"
 msgstr "Actie"
 
 
-msgid "None"
-msgstr "Geen"
+msgid "Replace"
+msgstr "Vervangen"
 
 
 msgid "Combine"
 msgstr "Combineer"
+
+
+msgid "Add"
+msgstr "Toevoegen"
+
+
+msgid "Subtract"
+msgstr "Aftrekken"
+
+
+msgid "Multiply"
+msgstr "Vermenigvuldigen"
 
 
 msgid "Nothing"
@@ -548,6 +536,10 @@ msgstr "-Y"
 
 msgid "Object"
 msgstr "Object"
+
+
+msgid "None"
+msgstr "Geen"
 
 
 msgid "Direct"
@@ -1059,6 +1051,10 @@ msgid "Rotation error"
 msgstr "Rotatiefout"
 
 
+msgid "Influence"
+msgstr "Invloed"
+
+
 msgid "Disable"
 msgstr "Uitzetten"
 
@@ -1105,6 +1101,10 @@ msgstr "Skelet"
 
 msgid "Floor"
 msgstr "Vloer"
+
+
+msgid "Mix Mode"
+msgstr "Mixmodus"
 
 
 msgid "Active Clip"
@@ -2029,10 +2029,6 @@ msgid "Users"
 msgstr "Gebruikers"
 
 
-msgid "Layers"
-msgstr "Lagen"
-
-
 msgid "X-Axis Mirror"
 msgstr "X-As Spiegel"
 
@@ -2283,6 +2279,10 @@ msgstr "Gebruik Nodes"
 
 msgid "Annotation"
 msgstr "Annotatie"
+
+
+msgid "Layers"
+msgstr "Lagen"
 
 
 msgid "Only selected keyframes"
@@ -3947,6 +3947,11 @@ msgstr "Algemeen"
 
 msgid "Animation settings"
 msgstr "Animatie-instellingen"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Ververs Alles"
 
 
 msgctxt "Operator"
@@ -7248,32 +7253,8 @@ msgid "Animation Channels"
 msgstr "Animatie Kanalen"
 
 
-msgid "File:"
-msgstr "Bestand:"
-
-
-msgid "Description:"
-msgstr "Beschrijving:"
-
-
-msgid "Author:"
-msgstr "Auteur:"
-
-
-msgid "Version:"
-msgstr "Versie:"
-
-
-msgid "Warning:"
-msgstr "Waarschuwing:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgid "Path:"
-msgstr "Pad:"
+msgid "Warning"
+msgstr "Waarschuwing"
 
 
 msgctxt "Operator"
@@ -7935,11 +7916,6 @@ msgstr "Synchroniseer Selectie"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Ververs Alles"
-
-
-msgctxt "Operator"
 msgid "Movie"
 msgstr "Film"
 
@@ -8180,10 +8156,6 @@ msgid "Double Click Speed"
 msgstr "Snelheid Dubbelklik"
 
 
-msgid "Preferences:"
-msgstr "Instellingen:"
-
-
 msgid "Use Light"
 msgstr "Gebruik Licht"
 
@@ -8192,8 +8164,32 @@ msgid ":"
 msgstr ":"
 
 
+msgid "Description:"
+msgstr "Beschrijving:"
+
+
 msgid "Location:"
 msgstr "Locatie:"
+
+
+msgid "File:"
+msgstr "Bestand:"
+
+
+msgid "Author:"
+msgstr "Auteur:"
+
+
+msgid "Version:"
+msgstr "Versie:"
+
+
+msgid "Warning:"
+msgstr "Waarschuwing:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
 
 
 msgctxt "Operator"
@@ -8669,10 +8665,6 @@ msgstr "var"
 
 msgid "%i frames found!"
 msgstr "%i frames gevonden!"
-
-
-msgid "Warning"
-msgstr "Waarschuwing"
 
 
 msgid "RenderView"
@@ -9305,6 +9297,10 @@ msgstr "Vouwranden"
 
 msgid "Center:"
 msgstr "Midden:"
+
+
+msgid "Path:"
+msgstr "Pad:"
 
 
 msgid "Old"
