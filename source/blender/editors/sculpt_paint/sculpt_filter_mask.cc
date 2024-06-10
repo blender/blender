@@ -237,7 +237,7 @@ void SCULPT_OT_mask_filter(wmOperatorType *ot)
       "auto_iteration_count",
       true,
       "Auto Iteration Count",
-      "Use a automatic number of iterations based on the number of vertices of the sculpt");
+      "Use an automatic number of iterations based on the number of vertices of the sculpt");
 }
 
 }  // namespace blender::ed::sculpt_paint::mask

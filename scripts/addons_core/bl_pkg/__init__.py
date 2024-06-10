@@ -56,8 +56,8 @@ class BlExtPreferences(AddonPreferences):
     show_development_reports: BoolProperty(
         name="Show Development Reports",
         description=(
-            "Show the result of running commands in the main interface "
-            "this has the advantage that multiple processes that run at once have their errors properly grouped "
+            "Show the result of running commands in the main interface. "
+            "This has the advantage that multiple processes that run at once have their errors properly grouped, "
             "which is not the case for reports which are mixed together"
         ),
         default=False,

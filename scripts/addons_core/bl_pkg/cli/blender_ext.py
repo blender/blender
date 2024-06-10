@@ -2439,7 +2439,7 @@ class subcmd_client:
             directories_to_clean.remove(filepath_local_pkg_temp)
 
         if is_reinstall:
-            message_status(msg_fn, "Re-Installed \"{:s}\"".format(manifest.id))
+            message_status(msg_fn, "Reinstalled \"{:s}\"".format(manifest.id))
         else:
             message_status(msg_fn, "Installed \"{:s}\"".format(manifest.id))
 
