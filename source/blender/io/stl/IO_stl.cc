@@ -23,3 +23,8 @@ void STL_export(bContext *C, const STLExportParams *export_params)
   SCOPED_TIMER("STL Export");
   blender::io::stl::exporter_main(C, *export_params);
 }
+
+Mesh *STL_import_mesh(const STLImportParams *import_params)
+{
+  return blender::io::stl::read_stl_file(*import_params);
+}
