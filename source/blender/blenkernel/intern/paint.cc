@@ -663,24 +663,24 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
   return PaintMode::Invalid;
 }
 
-Brush *BKE_paint_brush(Paint *p)
+Brush *BKE_paint_brush(Paint *paint)
 {
-  return (Brush *)BKE_paint_brush_for_read((const Paint *)p);
+  return (Brush *)BKE_paint_brush_for_read((const Paint *)paint);
 }
 
-const Brush *BKE_paint_brush_for_read(const Paint *p)
+const Brush *BKE_paint_brush_for_read(const Paint *paint)
 {
-  return p ? p->brush : nullptr;
+  return paint ? paint->brush : nullptr;
 }
 
-void BKE_paint_brush_set(Paint *p, Brush *br)
+void BKE_paint_brush_set(Paint *paint, Brush *brush)
 {
-  if (p) {
-    id_us_min((ID *)p->brush);
-    id_us_plus((ID *)br);
-    p->brush = br;
+  if (paint) {
+    id_us_min((ID *)paint->brush);
+    id_us_plus((ID *)brush);
+    paint->brush = brush;
 
-    BKE_paint_toolslots_brush_update(p);
+    BKE_paint_toolslots_brush_update(paint);
   }
 }
 
