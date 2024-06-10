@@ -1337,9 +1337,9 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   RegionView3D *rv3d = drwctx->rv3d;
   const bool navigating = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
 
-  Paint *p = nullptr;
+  Paint *paint = nullptr;
   if (drwctx->evil_C != nullptr) {
-    p = BKE_paint_get_active_from_context(drwctx->evil_C);
+    paint = BKE_paint_get_active_from_context(drwctx->evil_C);
   }
 
   /* Frustum planes to show only visible PBVH nodes. */
@@ -1348,7 +1348,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   PBVHFrustumPlanes update_frustum;
   PBVHFrustumPlanes draw_frustum;
 
-  if (p && (p->flags & PAINT_SCULPT_DELAY_UPDATES)) {
+  if (paint && (paint->flags & PAINT_SCULPT_DELAY_UPDATES)) {
     update_frustum.planes = update_planes;
     update_frustum.num_planes = 6;
     bke::pbvh::get_frustum_planes(*pbvh, &update_frustum);
@@ -1371,14 +1371,14 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 
   /* Fast mode to show low poly multires while navigating. */
   scd->fast_mode = false;
-  if (p && (p->flags & PAINT_FAST_NAVIGATE)) {
+  if (paint && (paint->flags & PAINT_FAST_NAVIGATE)) {
     scd->fast_mode = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
   }
 
   /* Update draw buffers only for visible nodes while painting.
    * But do update them otherwise so navigating stays smooth. */
   bool update_only_visible = rv3d && !(rv3d->rflag & RV3D_PAINTING);
-  if (p && (p->flags & PAINT_SCULPT_DELAY_UPDATES)) {
+  if (paint && (paint->flags & PAINT_SCULPT_DELAY_UPDATES)) {
     update_only_visible = true;
   }
 

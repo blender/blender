@@ -892,8 +892,8 @@ PaintStroke *paint_stroke_new(bContext *C,
   PaintStroke *stroke = MEM_new<PaintStroke>(__func__);
   ToolSettings *toolsettings = CTX_data_tool_settings(C);
   UnifiedPaintSettings *ups = &toolsettings->unified_paint_settings;
-  Paint *p = BKE_paint_get_active_from_context(C);
-  Brush *br = stroke->brush = BKE_paint_brush(p);
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  Brush *br = stroke->brush = BKE_paint_brush(paint);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   float zoomx, zoomy;
 
@@ -951,8 +951,8 @@ PaintStroke *paint_stroke_new(bContext *C,
 
   /* initialize here to avoid initialization conflict with threaded strokes */
   BKE_curvemapping_init(br->curve);
-  if (p->flags & PAINT_USE_CAVITY_MASK) {
-    BKE_curvemapping_init(p->cavity_curve);
+  if (paint->flags & PAINT_USE_CAVITY_MASK) {
+    BKE_curvemapping_init(paint->cavity_curve);
   }
 
   BKE_paint_set_overlay_override(eOverlayFlags(br->overlay_flags));
@@ -1438,10 +1438,10 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
 int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintStroke **stroke_p)
 {
   Scene *scene = CTX_data_scene(C);
-  Paint *p = BKE_paint_get_active_from_context(C);
+  Paint *paint = BKE_paint_get_active_from_context(C);
   PaintMode mode = BKE_paintmode_get_active_from_context(C);
   PaintStroke *stroke = *stroke_p;
-  Brush *br = stroke->brush = BKE_paint_brush(p);
+  Brush *br = stroke->brush = BKE_paint_brush(paint);
   PaintSample sample_average;
   float mouse[2];
   bool first_dab = false;
@@ -1615,7 +1615,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     wmWindow *window = CTX_wm_window(C);
     ARegion *region = CTX_wm_region(C);
 
-    if (region && (p->flags & PAINT_SHOW_BRUSH)) {
+    if (region && (paint->flags & PAINT_SHOW_BRUSH)) {
       WM_paint_cursor_tag_redraw(window, region);
     }
   }
@@ -1702,12 +1702,12 @@ bool paint_stroke_started(PaintStroke *stroke)
 
 bool paint_brush_tool_poll(bContext *C)
 {
-  Paint *p = BKE_paint_get_active_from_context(C);
+  Paint *paint = BKE_paint_get_active_from_context(C);
   Object *ob = CTX_data_active_object(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  if (p && ob && BKE_paint_brush(p) &&
+  if (paint && ob && BKE_paint_brush(paint) &&
       (area && ELEM(area->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
       (region && region->regiontype == RGN_TYPE_WINDOW))
   {

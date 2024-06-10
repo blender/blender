@@ -175,17 +175,17 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name);
  */
 bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint);
 void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3]);
-void BKE_paint_free(Paint *p);
+void BKE_paint_free(Paint *paint);
 /**
  * Called when copying scene settings, so even if 'src' and 'tar' are the same still do a
  * #id_us_plus(), rather than if we were copying between 2 existing scenes where a matching
  * value should decrease the existing user count as with #paint_brush_set()
  */
-void BKE_paint_copy(const Paint *src, Paint *tar, int flag);
+void BKE_paint_copy(const Paint *src, Paint *dst, int flag);
 
 void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint);
 
-void BKE_paint_cavity_curve_preset(Paint *p, int preset);
+void BKE_paint_cavity_curve_preset(Paint *paint, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paintmode(PaintMode mode);
 bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, PaintMode mode);
@@ -202,7 +202,7 @@ Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *paint);
 void BKE_paint_brush_set(Paint *paint, Brush *brush);
 Palette *BKE_paint_palette(Paint *paint);
-void BKE_paint_palette_set(Paint *p, Palette *palette);
+void BKE_paint_palette_set(Paint *paint, Palette *palette);
 void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, int add_index);
 
 /**

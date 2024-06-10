@@ -261,12 +261,12 @@ static ePaintOverlayControlFlags overlay_flags = (ePaintOverlayControlFlags)0;
 
 void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex)
 {
-  Paint *p = BKE_paint_get_active(scene, view_layer);
-  if (!p) {
+  Paint *paint = BKE_paint_get_active(scene, view_layer);
+  if (!paint) {
     return;
   }
 
-  Brush *br = BKE_paint_brush(p);
+  Brush *br = BKE_paint_brush(paint);
   if (!br) {
     return;
   }
@@ -281,12 +281,12 @@ void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const
 
 void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve)
 {
-  Paint *p = BKE_paint_get_active(scene, view_layer);
-  if (p == nullptr) {
+  Paint *paint = BKE_paint_get_active(scene, view_layer);
+  if (paint == nullptr) {
     return;
   }
 
-  Brush *br = BKE_paint_brush(p);
+  Brush *br = BKE_paint_brush(paint);
   if (br && br->curve == curve) {
     overlay_flags |= PAINT_OVERLAY_INVALID_CURVE;
   }
@@ -763,17 +763,17 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
   return pc;
 }
 
-Palette *BKE_paint_palette(Paint *p)
+Palette *BKE_paint_palette(Paint *paint)
 {
-  return p ? p->palette : nullptr;
+  return paint ? paint->palette : nullptr;
 }
 
-void BKE_paint_palette_set(Paint *p, Palette *palette)
+void BKE_paint_palette_set(Paint *paint, Palette *palette)
 {
-  if (p) {
-    id_us_min((ID *)p->palette);
-    p->palette = palette;
-    id_us_plus((ID *)p->palette);
+  if (paint) {
+    id_us_min((ID *)paint->palette);
+    paint->palette = palette;
+    id_us_plus((ID *)paint->palette);
   }
 }
 
@@ -1050,15 +1050,15 @@ bool BKE_paint_always_hide_test(const Object *ob)
           (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
 }
 
-void BKE_paint_cavity_curve_preset(Paint *p, int preset)
+void BKE_paint_cavity_curve_preset(Paint *paint, int preset)
 {
   CurveMapping *cumap = nullptr;
   CurveMap *cuma = nullptr;
 
-  if (!p->cavity_curve) {
-    p->cavity_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
+  if (!paint->cavity_curve) {
+    paint->cavity_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
   }
-  cumap = p->cavity_curve;
+  cumap = paint->cavity_curve;
   cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
   cumap->preset = preset;
 
@@ -1206,18 +1206,18 @@ void BKE_paint_free(Paint *paint)
   MEM_SAFE_FREE(paint->tool_slots);
 }
 
-void BKE_paint_copy(const Paint *src, Paint *tar, const int flag)
+void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
 {
-  tar->brush = src->brush;
-  tar->cavity_curve = BKE_curvemapping_copy(src->cavity_curve);
-  tar->tool_slots = static_cast<PaintToolSlot *>(MEM_dupallocN(src->tool_slots));
+  dst->brush = src->brush;
+  dst->cavity_curve = BKE_curvemapping_copy(src->cavity_curve);
+  dst->tool_slots = static_cast<PaintToolSlot *>(MEM_dupallocN(src->tool_slots));
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus((ID *)tar->brush);
-    id_us_plus((ID *)tar->palette);
+    id_us_plus((ID *)dst->brush);
+    id_us_plus((ID *)dst->palette);
     if (src->tool_slots != nullptr) {
-      for (int i = 0; i < tar->tool_slots_len; i++) {
-        id_us_plus((ID *)tar->tool_slots[i].brush);
+      for (int i = 0; i < dst->tool_slots_len; i++) {
+        id_us_plus((ID *)dst->tool_slots[i].brush);
       }
     }
   }
@@ -1235,35 +1235,35 @@ void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float st
   }
 }
 
-void BKE_paint_blend_write(BlendWriter *writer, Paint *p)
+void BKE_paint_blend_write(BlendWriter *writer, Paint *paint)
 {
-  if (p->cavity_curve) {
-    BKE_curvemapping_blend_write(writer, p->cavity_curve);
+  if (paint->cavity_curve) {
+    BKE_curvemapping_blend_write(writer, paint->cavity_curve);
   }
-  BLO_write_struct_array(writer, PaintToolSlot, p->tool_slots_len, p->tool_slots);
+  BLO_write_struct_array(writer, PaintToolSlot, paint->tool_slots_len, paint->tool_slots);
 }
 
-void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *p)
+void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *paint)
 {
-  BLO_read_struct(reader, CurveMapping, &p->cavity_curve);
-  if (p->cavity_curve) {
-    BKE_curvemapping_blend_read(reader, p->cavity_curve);
+  BLO_read_struct(reader, CurveMapping, &paint->cavity_curve);
+  if (paint->cavity_curve) {
+    BKE_curvemapping_blend_read(reader, paint->cavity_curve);
   }
   else {
-    BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
+    BKE_paint_cavity_curve_preset(paint, CURVE_PRESET_LINE);
   }
 
-  BLO_read_struct_array(reader, PaintToolSlot, p->tool_slots_len, &p->tool_slots);
+  BLO_read_struct_array(reader, PaintToolSlot, paint->tool_slots_len, &paint->tool_slots);
 
   /* Workaround for invalid data written in older versions. */
-  const size_t expected_size = sizeof(PaintToolSlot) * p->tool_slots_len;
-  if (p->tool_slots && MEM_allocN_len(p->tool_slots) < expected_size) {
-    MEM_freeN(p->tool_slots);
-    p->tool_slots = static_cast<PaintToolSlot *>(MEM_callocN(expected_size, "PaintToolSlot"));
+  const size_t expected_size = sizeof(PaintToolSlot) * paint->tool_slots_len;
+  if (paint->tool_slots && MEM_allocN_len(paint->tool_slots) < expected_size) {
+    MEM_freeN(paint->tool_slots);
+    paint->tool_slots = static_cast<PaintToolSlot *>(MEM_callocN(expected_size, "PaintToolSlot"));
   }
 
-  p->paint_cursor = nullptr;
-  BKE_paint_runtime_init(scene->toolsettings, p);
+  paint->paint_cursor = nullptr;
+  BKE_paint_runtime_init(scene->toolsettings, paint);
 }
 
 bool paint_is_grid_face_hidden(const blender::BoundedBitSpan grid_hidden,

@@ -2122,10 +2122,10 @@ static void paint_draw_cursor(bContext *C, int x, int y, void * /*unused*/)
 
 /* Public API */
 
-void ED_paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
+void ED_paint_cursor_start(Paint *paint, bool (*poll)(bContext *C))
 {
-  if (p && !p->paint_cursor) {
-    p->paint_cursor = WM_paint_cursor_activate(
+  if (paint && !paint->paint_cursor) {
+    paint->paint_cursor = WM_paint_cursor_activate(
         SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, paint_draw_cursor, nullptr);
   }
 
