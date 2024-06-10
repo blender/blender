@@ -504,6 +504,8 @@ struct TicketMutex {
   pthread_cond_t cond;
   pthread_mutex_t mutex;
   uint queue_head, queue_tail;
+  pthread_t owner;
+  bool has_owner;
 };
 
 TicketMutex *BLI_ticket_mutex_alloc()
@@ -524,24 +526,46 @@ void BLI_ticket_mutex_free(TicketMutex *ticket)
   MEM_freeN(ticket);
 }
 
-void BLI_ticket_mutex_lock(TicketMutex *ticket)
+static bool ticket_mutex_lock(TicketMutex *ticket, const bool check_recursive)
 {
   uint queue_me;
 
   pthread_mutex_lock(&ticket->mutex);
+
+  /* Check for recursive locks, for debugging only. */
+  if (check_recursive && ticket->has_owner && pthread_equal(pthread_self(), ticket->owner)) {
+    pthread_mutex_unlock(&ticket->mutex);
+    return false;
+  }
+
   queue_me = ticket->queue_tail++;
 
   while (queue_me != ticket->queue_head) {
     pthread_cond_wait(&ticket->cond, &ticket->mutex);
   }
 
+  ticket->owner = pthread_self();
+  ticket->has_owner = true;
+
   pthread_mutex_unlock(&ticket->mutex);
+  return true;
+}
+
+void BLI_ticket_mutex_lock(TicketMutex *ticket)
+{
+  ticket_mutex_lock(ticket, false);
+}
+
+bool BLI_ticket_mutex_lock_check_recursive(TicketMutex *ticket)
+{
+  return ticket_mutex_lock(ticket, true);
 }
 
 void BLI_ticket_mutex_unlock(TicketMutex *ticket)
 {
   pthread_mutex_lock(&ticket->mutex);
   ticket->queue_head++;
+  ticket->has_owner = false;
   pthread_cond_broadcast(&ticket->cond);
   pthread_mutex_unlock(&ticket->mutex);
 }
