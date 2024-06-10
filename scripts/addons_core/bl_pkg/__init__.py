@@ -292,6 +292,12 @@ def extenion_repos_sync(*_):
     print_debug("SYNC:", active_repo.name)
     # There may be nothing to upgrade.
 
+    # FIXME: don't use the operator, this is error prone.
+    # The same method used to update the status-bar on startup would be preferable.
+    if not bpy.ops.extensions.repo_sync_all.poll():
+        print("skipping sync, poll failed")
+        return
+
     from contextlib import redirect_stdout
     import io
     stdout = io.StringIO()
