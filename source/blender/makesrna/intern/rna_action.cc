@@ -788,30 +788,45 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
 {
   SpaceAction *saction = (SpaceAction *)ptr->data;
-  bAction *act = (bAction *)value.owner_id;
+  bAction *action = (bAction *)value.owner_id;
 
-  if (act) {
-    /* there can still be actions that will have undefined id-root
-     * (i.e. floating "action-library" members) which we will not
-     * be able to resolve an idroot for automatically, so let these through
-     */
-    if (act->idroot == 0) {
-      return 1;
-    }
-
-    if (saction) {
-      if (saction->mode == SACTCONT_ACTION) {
-        /* this is only Object-level for now... */
-        return act->idroot == ID_OB;
-      }
-      else if (saction->mode == SACTCONT_SHAPEKEY) {
-        /* obviously shapekeys only */
-        return act->idroot == ID_KE;
-      }
-    }
+  if (!action) {
+    return false;
   }
 
-  return 0;
+  if (action->idroot == 0) {
+    /* Always accept Actions that have not been bound to some ID type. */
+    return true;
+  }
+
+  /* Layered Actions are never limited to a specific ID type, and so these
+   * should always be shown. This is a more expensive test than just checking
+   * `action->idroot` though, and that should always be zero for layered actions
+   * anyway. */
+  if (action->wrap().is_action_layered()) {
+    return true;
+  }
+
+  if (!saction) {
+    return false;
+  }
+
+  switch (saction->mode) {
+    case SACTCONT_ACTION:
+      /* This is only Object-level for now. */
+      return action->idroot == ID_OB;
+    case SACTCONT_SHAPEKEY:
+      return action->idroot == ID_KE;
+    case SACTCONT_GPENCIL:
+    case SACTCONT_DOPESHEET:
+    case SACTCONT_MASK:
+    case SACTCONT_CACHEFILE:
+    case SACTCONT_TIMELINE:
+      /* These types do not have an 'action' selector. */
+      return false;
+  }
+
+  return false;
 }
 
 /* All FCurves need to be validated when the "show_only_errors" button is enabled. */
