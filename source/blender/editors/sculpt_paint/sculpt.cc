@@ -5607,7 +5607,7 @@ void flush_update_step(bContext *C, UpdateType update_type)
          * are trivial to access from the PBVH. Updating the object's evaluated geometry bounding
          * box is necessary because sculpt strokes don't cause an object reevaluation. */
         mesh->tag_positions_changed_no_normals();
-        /* Sculpt mode does node use or recalculate face corner normals, so they are cleared. */
+        /* Sculpt mode does not use or recalculate face corner normals, so they are cleared. */
         mesh->runtime->corner_normals_cache.tag_dirty();
       }
       else {
