@@ -4,7 +4,9 @@
 
 # ./blender.bin --background --python tests/python/bl_pyapi_idprop.py -- --verbose
 import bpy
+import rna_prop_ui
 import idprop
+
 import unittest
 from array import array
 
@@ -198,6 +200,58 @@ class TestIdPropertyCreation(TestHelper, unittest.TestCase):
     def test_invalid_type(self):
         with self.assertRaises(TypeError):
             self.id[self.key_id] = self
+
+
+class TestIdPropertyUIData(TestHelper, unittest.TestCase):
+    # Default testing idprop key identifier.
+    key_id = "a"
+
+    def test_int(self):
+        value = 2
+        rna_prop_ui.rna_idprop_ui_create(self.id, self.key_id, default=value)
+        self.assertEqual(self.id[self.key_id], value)
+        self.assertTrue(isinstance(self.id[self.key_id], int))
+        self.assertEqual(self.id[self.key_id],
+                         self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)))
+
+    def test_double(self):
+        value = 2.5
+        rna_prop_ui.rna_idprop_ui_create(self.id, self.key_id, default=value)
+        self.assertEqual(self.id[self.key_id], value)
+        self.assertTrue(isinstance(self.id[self.key_id], float))
+        self.assertEqual(self.id[self.key_id],
+                         self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)))
+
+    def test_unicode(self):
+        value = "Hello World"
+        rna_prop_ui.rna_idprop_ui_create(self.id, self.key_id, default=value)
+        self.assertEqual(self.id[self.key_id], value)
+        self.assertTrue(isinstance(self.id[self.key_id], str))
+        self.assertEqual(self.id[self.key_id],
+                         self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)))
+
+    # NOTE: Bytes strings are not supported currently.
+
+    def test_enum(self):
+        value = 1
+        items = [('A', '', ''), ('B', '', '')]
+        rna_prop_ui.rna_idprop_ui_create(self.id, self.key_id, default=value, items=items)
+        # 'Enum' 'type' of idprop currently returns integer value for direct subscription,
+        # and string key for `path_resolve` usage. See also #122843 .
+        self.assertEqual(self.id[self.key_id], value)
+        if False:  # FIXME
+            self.assertEqual(self.id[self.key_id],
+                             self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)))
+        else:
+            self.assertEqual(self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)), 'B')
+        self.assertEqual(self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)), 'B')
+        self.id[self.key_id] = 0
+        self.assertEqual(self.id[self.key_id], 0)
+        if False:  # FIXME
+            self.assertEqual(self.id[self.key_id],
+                             self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)))
+        else:
+            self.assertEqual(self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)), 'A')
 
 
 class TestIdPropertyGroupView(TestHelper, unittest.TestCase):
