@@ -1393,8 +1393,15 @@ void file_draw_list(const bContext *C, ARegion *region)
       text_col[3] /= 2;
     }
 
-    const char *message = is_filtered ? IFACE_("No results match the search filter") :
-                                        IFACE_("No items");
+    const char *message = [&]() {
+      if (!filelist_is_ready(files)) {
+        return IFACE_("Loading...");
+      }
+      if (is_filtered) {
+        return IFACE_("No results match the search filter");
+      }
+      return IFACE_("No items");
+    }();
 
     UI_fontstyle_draw_simple(&style->widget,
                              tile_draw_rect.xmin + UI_UNIT_X,
