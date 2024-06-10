@@ -254,7 +254,7 @@ def repo_iter_valid_local_only(context, *, exclude_system):
         if not repo_item.enabled:
             continue
         if exclude_system:
-            if (not repo_item.use_custom_directory) and (repo_item.source == 'SYSTEM'):
+            if (not repo_item.use_remote_url) and (repo_item.source == 'SYSTEM'):
                 continue
         # Ignore repositories that have invalid settings.
         directory, remote_url = repo_paths_or_none(repo_item)
@@ -520,7 +520,7 @@ def extension_repos_read_index(index, *, include_disabled=False):
             return RepoItem(
                 name=repo_item.name,
                 directory=directory,
-                source="" if repo_item.use_custom_directory else repo_item.source,
+                source="" if repo_item.use_remote_url else repo_item.source,
                 remote_url=remote_url,
                 module=repo_item.module,
                 use_cache=repo_item.use_cache,
@@ -558,7 +558,7 @@ def extension_repos_read(*, include_disabled=False, use_active_only=False):
         result.append(RepoItem(
             name=repo_item.name,
             directory=directory,
-            source="" if repo_item.use_custom_directory else repo_item.source,
+            source="" if repo_item.use_remote_url else repo_item.source,
             remote_url=remote_url,
             module=repo_item.module,
             use_cache=repo_item.use_cache,

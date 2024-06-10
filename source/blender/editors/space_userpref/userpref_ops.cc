@@ -604,7 +604,7 @@ static int preferences_extension_repo_remove_invoke(bContext *C,
   }
 
   if (remove_files) {
-    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) == 0) {
+    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
       if (repo->source == USER_EXTENSION_REPO_SOURCE_SYSTEM) {
         remove_files = false;
       }
@@ -649,7 +649,7 @@ static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
 
   if (remove_files) {
-    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) == 0) {
+    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) == 0) {
       if (repo->source == USER_EXTENSION_REPO_SOURCE_SYSTEM) {
         /* The UI doesn't show this option, if it's accessed disallow it. */
         BKE_report(op->reports, RPT_WARNING, "Unable to remove files for \"System\" repositories");

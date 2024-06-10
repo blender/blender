@@ -669,7 +669,7 @@ typedef enum eUserExtensionRepo_Flag {
 
 /**
  * The source to use (User or System), only valid when the
- * #USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY flag isn't set.
+ * #USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL flag isn't set.
  */
 typedef enum eUserExtensionRepo_Source {
   USER_EXTENSION_REPO_SOURCE_USER = 0,
