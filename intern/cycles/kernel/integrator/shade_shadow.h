@@ -87,7 +87,8 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
   ray.tmax = (hit < num_recorded_hits) ? INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit, t) :
                                          ray.tmax;
 
-  shader_setup_from_volume(kg, shadow_sd, &ray);
+  /* `object` is only needed for light tree with light linking, it is irrelevant for shadow. */
+  shader_setup_from_volume(kg, shadow_sd, &ray, OBJECT_NONE);
 
   VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i));
   const float step_size = volume_stack_step_size(kg, volume_read_lambda_pass);
