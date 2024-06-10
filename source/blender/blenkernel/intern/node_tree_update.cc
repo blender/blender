@@ -1105,15 +1105,6 @@ class NodeTreeMainUpdater {
 
   void update_link_validation(bNodeTree &ntree)
   {
-    const Span<const bNode *> toposort = ntree.toposort_left_to_right();
-
-    /* Build an array of toposort indices to allow retrieving the "depth" for each node. */
-    Array<int> toposort_indices(toposort.size());
-    for (const int i : toposort.index_range()) {
-      const bNode &node = *toposort[i];
-      toposort_indices[node.index()] = i;
-    }
-
     /* Tests if enum references are undefined. */
     const auto is_invalid_enum_ref = [](const bNodeSocket &socket) -> bool {
       if (socket.type == SOCK_MENU) {
@@ -1148,7 +1139,9 @@ class NodeTreeMainUpdater {
       }
       const bNode &from_node = *link->fromnode;
       const bNode &to_node = *link->tonode;
-      if (toposort_indices[from_node.index()] > toposort_indices[to_node.index()]) {
+      if (from_node.runtime->toposort_left_to_right_index >
+          to_node.runtime->toposort_left_to_right_index)
+      {
         link->flag &= ~NODE_LINK_VALID;
         ntree.runtime->link_errors_by_target_node.add(
             link->tonode->identifier,
