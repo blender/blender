@@ -3765,6 +3765,10 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sequencer_generic.blade,
         ],
         'SEQUENCER_PREVIEW': [
+            (
+                _defs_sequencer_select.select_timeline,
+                _defs_sequencer_select.box_timeline,
+            ),
             *_tools_annotate,
             None,
             _defs_sequencer_generic.blade,
