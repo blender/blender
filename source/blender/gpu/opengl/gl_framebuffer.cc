@@ -229,11 +229,11 @@ void GLFrameBuffer::update_attachments()
 void GLFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
                                             Span<GPUAttachmentState> color_attachment_states)
 {
-  GPU_depth_mask(depth_attachment_state == GPU_ATTACHEMENT_WRITE);
+  GPU_depth_mask(depth_attachment_state == GPU_ATTACHMENT_WRITE);
 
   bool any_read = false;
   for (auto attachment : color_attachment_states.index_range()) {
-    if (attachment == GPU_ATTACHEMENT_READ) {
+    if (attachment == GPU_ATTACHMENT_READ) {
       any_read = true;
       break;
     }
@@ -253,14 +253,14 @@ void GLFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
     for (int i : color_attachment_states.index_range()) {
       GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
       GPUTexture *attach_tex = this->attachments_[type].tex;
-      if (color_attachment_states[i] == GPU_ATTACHEMENT_READ) {
+      if (color_attachment_states[i] == GPU_ATTACHMENT_READ) {
         tmp_detached_[type] = this->attachments_[type]; /* Bypass feedback loop check. */
         GPU_texture_bind_ex(attach_tex, GPUSamplerState::default_sampler(), i);
       }
       else {
         tmp_detached_[type] = GPU_ATTACHMENT_NONE;
       }
-      bool attach_write = color_attachment_states[i] == GPU_ATTACHEMENT_WRITE;
+      bool attach_write = color_attachment_states[i] == GPU_ATTACHMENT_WRITE;
       attachments[i] = (attach_tex && attach_write) ? to_gl(type) : GL_NONE;
     }
     /* We have to use `glDrawBuffers` instead of `glColorMaski` because the later is overwritten
@@ -277,14 +277,14 @@ void GLFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
     for (int i : color_attachment_states.index_range()) {
       GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
 
-      if (color_attachment_states[i] == GPU_ATTACHEMENT_WRITE) {
+      if (color_attachment_states[i] == GPU_ATTACHMENT_WRITE) {
         if (tmp_detached_[type].tex != nullptr) {
           /* Re-attach previous read attachments. */
           this->attachment_set(type, tmp_detached_[type]);
           tmp_detached_[type] = GPU_ATTACHMENT_NONE;
         }
       }
-      else if (color_attachment_states[i] == GPU_ATTACHEMENT_READ) {
+      else if (color_attachment_states[i] == GPU_ATTACHMENT_READ) {
         tmp_detached_[type] = this->attachments_[type];
         unwrap(tmp_detached_[type].tex)->detach_from(this);
         GPU_texture_bind_ex(tmp_detached_[type].tex, GPUSamplerState::default_sampler(), i);

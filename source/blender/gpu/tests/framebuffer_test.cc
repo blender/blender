@@ -378,14 +378,14 @@ static void test_framebuffer_subpass_input()
 
   /* Metal Raster Order Group does not need that. */
   GPU_framebuffer_subpass_transition(
-      framebuffer, {GPU_ATTACHEMENT_IGNORE, GPU_ATTACHEMENT_WRITE, GPU_ATTACHEMENT_IGNORE});
+      framebuffer, {GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_WRITE, GPU_ATTACHMENT_IGNORE});
 
   GPU_batch_set_shader(batch, shader_write);
   GPU_batch_draw(batch);
 
   /* Metal Raster Order Group does not need that. */
   GPU_framebuffer_subpass_transition(
-      framebuffer, {GPU_ATTACHEMENT_IGNORE, GPU_ATTACHEMENT_READ, GPU_ATTACHEMENT_WRITE});
+      framebuffer, {GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_READ, GPU_ATTACHMENT_WRITE});
 
   GPU_batch_set_shader(batch, shader_read);
   GPU_batch_draw(batch);

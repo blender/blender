@@ -132,12 +132,12 @@ void FrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment_s
 {
   /* NOTE: Depth is not supported as input attachment because the Metal API doesn't support it and
    * because depth is not compatible with the framebuffer fetch implementation. */
-  BLI_assert(depth_attachment_state != GPU_ATTACHEMENT_READ);
+  BLI_assert(depth_attachment_state != GPU_ATTACHMENT_READ);
 
   if (!attachments_[GPU_FB_DEPTH_ATTACHMENT].tex &&
       !attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex)
   {
-    BLI_assert(depth_attachment_state == GPU_ATTACHEMENT_IGNORE);
+    BLI_assert(depth_attachment_state == GPU_ATTACHMENT_IGNORE);
   }
 
   BLI_assert(color_attachment_states.size() <= GPU_FB_MAX_COLOR_ATTACHMENT);
@@ -148,7 +148,7 @@ void FrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment_s
     }
     else {
       BLI_assert(i >= color_attachment_states.size() ||
-                 color_attachment_states[i] == GPU_ATTACHEMENT_IGNORE);
+                 color_attachment_states[i] == GPU_ATTACHMENT_IGNORE);
     }
   }
 

@@ -913,7 +913,7 @@ template<class T>
 inline void PassBase<T>::subpass_transition(GPUAttachmentState depth_attachment,
                                             Span<GPUAttachmentState> color_attachments)
 {
-  uint8_t color_states[8] = {GPU_ATTACHEMENT_IGNORE};
+  uint8_t color_states[8] = {GPU_ATTACHMENT_IGNORE};
   for (auto i : color_attachments.index_range()) {
     color_states[i] = uint8_t(color_attachments[i]);
   }
