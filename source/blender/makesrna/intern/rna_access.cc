@@ -1157,6 +1157,10 @@ PropertySubType RNA_property_subtype(PropertyRNA *prop)
   if (prop->magic != RNA_MAGIC) {
     IDProperty *idprop = (IDProperty *)prop;
 
+    if (idprop->type == IDP_STRING && idprop->subtype == IDP_STRING_SUB_BYTE) {
+      return PROP_BYTESTRING;
+    }
+
     if (idprop->ui_data) {
       IDPropertyUIData *ui_data = idprop->ui_data;
       return (PropertySubType)ui_data->rna_subtype;
