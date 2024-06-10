@@ -45,10 +45,10 @@ class TestPathMatch_MixIn:
         if not isinstance(path_pattern, PathPatternMatch):
             path_pattern = PathPatternMatch(path_pattern)
         assert hasattr(path_pattern, "test_path")
-        for success_expected, path in expected_paths:
+        for _success_expected, path in expected_paths:
             success_actual = path_pattern.test_path(path)
-            if False:
-                self.assertEqual(success_actual, success_expected)
+            # Un-comment to pin-point the exact error.
+            # `self.assertEqual(success_actual, success_expected)`
             result.append((success_actual, path))
         return result
 

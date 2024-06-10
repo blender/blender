@@ -10,7 +10,7 @@ This module takes wheels and applies them to a "managed" destination directory.
 """
 
 __all__ = (
-    "apply_action"
+    "apply_action",
 )
 
 import os
@@ -46,7 +46,7 @@ def _wheels_from_dir(dirpath: str) -> Tuple[
         # The values are:
         #   Top level directories.
         Dict[str, List[str]],
-        # Unknown path.s
+        # Unknown paths.
         List[str],
 ]:
     result: Dict[str, List[str]] = {}
@@ -298,7 +298,7 @@ def apply_action(
     # Recursively removing all paths on the users system can be considered relatively risky
     # even if this is located in a known location under the users home directory - better avoid.
     # So build a list of wheel paths and only remove the unused paths from this list.
-    wheels_installed, paths_unknown = _wheels_from_dir(local_dir_site_packages)
+    wheels_installed, _paths_unknown = _wheels_from_dir(local_dir_site_packages)
 
     # Wheels and their top level directories (which would be installed).
     wheels_packages: Dict[str, List[str]] = {}

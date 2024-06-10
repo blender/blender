@@ -153,6 +153,9 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
       info[int(AttrDomain::Layer)].length = grease_pencil->layers().size();
       break;
     }
+    case AttributeOwnerType::None: {
+      break;
+    }
   }
 
   return info;
@@ -182,6 +185,9 @@ static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_acces
     case AttributeOwnerType::GreasePencil: {
       GreasePencil &grease_pencil = *owner.get_grease_pencil();
       return grease_pencil.attributes_for_write();
+    }
+    case AttributeOwnerType::None: {
+      break;
     }
   }
   return {};
@@ -764,6 +770,8 @@ bool BKE_attribute_required(const AttributeOwner &owner, const char *name)
       return BKE_mesh_attribute_required(name);
     case AttributeOwnerType::GreasePencil:
       return false;
+    case AttributeOwnerType::None:
+      break;
   }
   return false;
 }
@@ -825,6 +833,9 @@ int *BKE_attributes_active_index_p(AttributeOwner &owner)
     }
     case AttributeOwnerType::GreasePencil: {
       return &(owner.get_grease_pencil())->attributes_active_index;
+    }
+    case AttributeOwnerType::None: {
+      break;
     }
   }
   return nullptr;

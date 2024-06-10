@@ -40,7 +40,7 @@ static void vertex_buffer_fetch_mode(ColorType color)
   GPU_vertformat_attr_add(&format, "color", comp_type, 4, fetch_mode);
 
   VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(vbo, 4);
+  GPU_vertbuf_data_alloc(*vbo, 4);
 
   struct Vert {
     float2 pos;

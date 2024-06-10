@@ -1483,13 +1483,14 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 }
 
 bool paint_is_grid_face_hidden(const blender::BoundedBitSpan grid_hidden,
-                               int gridsize,
-                               int x,
-                               int y)
+                               const int gridsize,
+                               const int x,
+                               const int y)
 {
-  /* Skip face if any of its corners are hidden. */
-  return grid_hidden[y * gridsize + x] || grid_hidden[y * gridsize + x + 1] ||
-         grid_hidden[(y + 1) * gridsize + x + 1] || grid_hidden[(y + 1) * gridsize + x];
+  return grid_hidden[CCG_grid_xy_to_index(gridsize, x, y)] ||
+         grid_hidden[CCG_grid_xy_to_index(gridsize, x + 1, y)] ||
+         grid_hidden[CCG_grid_xy_to_index(gridsize, x + 1, y + 1)] ||
+         grid_hidden[CCG_grid_xy_to_index(gridsize, x, y + 1)];
 }
 
 bool paint_is_bmesh_face_hidden(const BMFace *f)

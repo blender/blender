@@ -44,7 +44,7 @@ static void test_draw_pass_all_commands()
   const int mvp_location = GPU_shader_get_uniform(sh, "ModelViewProjectionMatrix");
   pass.shader_set(sh);
   pass.framebuffer_set(&fb);
-  pass.subpass_transition(GPU_ATTACHEMENT_IGNORE, {GPU_ATTACHEMENT_WRITE, GPU_ATTACHEMENT_READ});
+  pass.subpass_transition(GPU_ATTACHMENT_IGNORE, {GPU_ATTACHMENT_WRITE, GPU_ATTACHMENT_READ});
   pass.bind_texture("image", tex);
   pass.bind_texture("image", &tex);
   pass.bind_image("missing_image", tex);       /* Should not crash. */

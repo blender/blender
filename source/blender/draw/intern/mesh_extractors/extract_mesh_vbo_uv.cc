@@ -95,38 +95,41 @@ void extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &cache, gpu:
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, v_len);
 
+  Vector<int> uv_indices;
+  for (const int i : IndexRange(MAX_MTFACE)) {
+    if (uv_layers & (1 << i)) {
+      uv_indices.append(i);
+    }
+  }
+
   MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(vbo)),
                               v_len * format.attr_len);
   threading::memory_bandwidth_bound_task(uv_data.size_in_bytes() * 2, [&]() {
     if (mr.extract_type == MR_EXTRACT_BMESH) {
       const BMesh &bm = *mr.bm;
-      for (const int i : IndexRange(MAX_MTFACE)) {
-        if (uv_layers & (1 << i)) {
-          MutableSpan<float2> data = uv_data.slice(i * bm.totloop, bm.totloop);
-          const int offset = CustomData_get_n_offset(cd_ldata, CD_PROP_FLOAT2, i);
-          threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-            for (const int face_index : range) {
-              const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-              const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
-              for ([[maybe_unused]] const int i : IndexRange(face.len)) {
-                const int index = BM_elem_index_get(loop);
-                data[index] = BM_ELEM_CD_GET_FLOAT_P(loop, offset);
-                loop = loop->next;
-              }
+      for (const int i : uv_indices.index_range()) {
+        MutableSpan<float2> data = uv_data.slice(i * bm.totloop, bm.totloop);
+        const int offset = CustomData_get_n_offset(cd_ldata, CD_PROP_FLOAT2, uv_indices[i]);
+        threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+          for (const int face_index : range) {
+            const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+            const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
+            for ([[maybe_unused]] const int i : IndexRange(face.len)) {
+              const int index = BM_elem_index_get(loop);
+              data[index] = BM_ELEM_CD_GET_FLOAT_P(loop, offset);
+              loop = loop->next;
             }
-          });
-        }
+          }
+        });
       }
     }
     else {
       const bke::AttributeAccessor attributes = mr.mesh->attributes();
-      for (const int i : IndexRange(MAX_MTFACE)) {
-        if (uv_layers & (1 << i)) {
-          const StringRef name = CustomData_get_layer_name(cd_ldata, CD_PROP_FLOAT2, i);
-          const VArray uv_map = *attributes.lookup_or_default<float2>(
-              name, bke::AttrDomain::Corner, float2(0));
-          array_utils::copy(uv_map, uv_data.slice(i * mr.corners_num, mr.corners_num));
-        }
+      for (const int i : uv_indices.index_range()) {
+        const StringRef name = CustomData_get_layer_name(cd_ldata, CD_PROP_FLOAT2, uv_indices[i]);
+        const VArray uv_map = *attributes.lookup_or_default<float2>(
+            name, bke::AttrDomain::Corner, float2(0));
+        array_utils::copy(uv_map, uv_data.slice(i * mr.corners_num, mr.corners_num));
       }
     }
   });

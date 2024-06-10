@@ -171,8 +171,7 @@ def file_mtime_or_none(filepath: str) -> Optional[int]:
 
 def scandir_with_demoted_errors(path: str) -> Generator[os.DirEntry[str], None, None]:
     try:
-        for entry in os.scandir(path):
-            yield entry
+        yield from os.scandir(path)
     except Exception as ex:
         print("Error: scandir", ex)
 

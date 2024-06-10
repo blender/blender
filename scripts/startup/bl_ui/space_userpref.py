@@ -2131,6 +2131,31 @@ class USERPREF_MT_extensions_active_repo(Menu):
         pass
 
 
+class USERPREF_MT_extensions_active_repo_remove(Menu):
+    bl_label = "Remove Extension Repository"
+
+    def draw(self, context):
+        layout = self.layout
+
+        extensions = context.preferences.extensions
+        active_repo_index = extensions.active_repo
+
+        try:
+            active_repo = None if active_repo_index < 0 else extensions.repos[active_repo_index]
+        except IndexError:
+            active_repo = None
+
+        is_system_repo = (active_repo.use_custom_directory is False) and (active_repo.source == 'SYSTEM')
+
+        props = layout.operator("preferences.extension_repo_remove", text="Remove Repository")
+        props.index = active_repo_index
+
+        if not is_system_repo:
+            props = layout.operator("preferences.extension_repo_remove", text="Remove Repository & Files")
+            props.index = active_repo_index
+            props.remove_files = True
+
+
 class USERPREF_PT_extensions_repos(Panel):
     bl_label = "Repositories"
     bl_options = {'HIDE_HEADER'}
@@ -2159,8 +2184,7 @@ class USERPREF_PT_extensions_repos(Panel):
 
         col = row.column(align=True)
         col.operator_menu_enum("preferences.extension_repo_add", "type", text="", icon='ADD')
-        props = col.operator_menu_enum("preferences.extension_repo_remove", "type", text="", icon='REMOVE')
-        props.index = active_repo_index
+        col.menu("USERPREF_MT_extensions_active_repo_remove", text="", icon='REMOVE')
 
         col.separator()
 
@@ -2366,8 +2390,8 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
             if p
         )
 
-        # collect the categories that can be filtered on
-        addon_modules = [mod for mod in addon_utils.modules(refresh=False)]
+        # Collect the categories that can be filtered on.
+        addon_modules = addon_utils.modules(refresh=False)
 
         self._draw_addon_header(layout, prefs, wm)
 
@@ -2791,7 +2815,6 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_grease_pencil_version3"}, ("blender/blender/projects/6", "Grease Pencil 3.0")),
                 ({"property": "use_grease_pencil_version3_convert_on_load"}, ("blender/blender/projects/6", "Grease Pencil 3.0")),
                 ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
-                ({"property": "use_extension_utils"}, ("/blender/blender/issues/117286", "#117286")),
                 ({"property": "use_animation_baklava"}, ("/blender/blender/issues/120406", "#120406")),
             ),
         )
@@ -2831,6 +2854,7 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
                 ({"property": "use_asset_indexing"}, None),
                 ({"property": "use_viewport_debug"}, None),
                 ({"property": "use_eevee_debug"}, None),
+                ({"property": "use_extensions_debug"}, ("/blender/blender/issues/119521", "#119521")),
             ),
         )
 
@@ -2932,6 +2956,7 @@ classes = (
     USERPREF_PT_addons,
 
     USERPREF_MT_extensions_active_repo,
+    USERPREF_MT_extensions_active_repo_remove,
     USERPREF_PT_extensions_repos,
 
     USERPREF_PT_studiolight_lights,

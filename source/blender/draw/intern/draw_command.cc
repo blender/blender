@@ -314,8 +314,8 @@ std::string FramebufferBind::serialize() const
 std::string SubPassTransition::serialize() const
 {
   auto to_str = [](GPUAttachmentState state) {
-    return (state != GPU_ATTACHEMENT_IGNORE) ?
-               ((state == GPU_ATTACHEMENT_WRITE) ? "write" : "read") :
+    return (state != GPU_ATTACHMENT_IGNORE) ?
+               ((state == GPU_ATTACHMENT_WRITE) ? "write" : "read") :
                "ignore";
   };
 

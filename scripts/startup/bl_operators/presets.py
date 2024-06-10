@@ -600,6 +600,7 @@ class RemovePresetInterfaceTheme(AddPresetBase, Operator):
         from bpy.utils import is_path_builtin
         preset_menu_class = getattr(bpy.types, cls.preset_menu)
         name = preset_menu_class.bl_label
+        name = bpy.path.clean_name(name)
         filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
         if not bool(filepath) or is_path_builtin(filepath):
             cls.poll_message_set("Built-in themes cannot be removed")
@@ -633,6 +634,7 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
 
         preset_menu_class = getattr(bpy.types, cls.preset_menu)
         name = preset_menu_class.bl_label
+        name = bpy.path.clean_name(name)
         filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
         if (not filepath) or is_path_builtin(filepath):
             cls.poll_message_set("Built-in themes cannot be overwritten")
@@ -644,6 +646,7 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
         import rna_xml
         preset_menu_class = getattr(bpy.types, self.preset_menu)
         name = preset_menu_class.bl_label
+        name = bpy.path.clean_name(name)
         filepath = bpy.utils.preset_find(name, self.preset_subdir, ext=".xml")
         if not bool(filepath) or is_path_builtin(filepath):
             self.report({'ERROR'}, "Built-in themes cannot be overwritten")

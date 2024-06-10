@@ -195,14 +195,14 @@ void GPU_framebuffer_bind_loadstore(GPUFrameBuffer *framebuffer,
  * Example:
  * \code{.c}
  * GPU_framebuffer_bind_loadstore(&fb, {
- *         GPU_ATTACHEMENT_WRITE,  // must be depth buffer
- *         GPU_ATTACHEMENT_READ,   // Color attachment 0
- *         GPU_ATTACHEMENT_IGNORE, // Color attachment 1
- *         GPU_ATTACHEMENT_WRITE}  // Color attachment 2
+ *         GPU_ATTACHMENT_WRITE,  // must be depth buffer
+ *         GPU_ATTACHMENT_READ,   // Color attachment 0
+ *         GPU_ATTACHMENT_IGNORE, // Color attachment 1
+ *         GPU_ATTACHMENT_WRITE}  // Color attachment 2
  * })
  * \endcode
  *
- * \note Excess attachments will have no effect as long as they are GPU_ATTACHEMENT_IGNORE.
+ * \note Excess attachments will have no effect as long as they are GPU_ATTACHMENT_IGNORE.
  */
 void GPU_framebuffer_subpass_transition_array(GPUFrameBuffer *framebuffer,
                                               const GPUAttachmentState *attachment_states,

@@ -110,7 +110,7 @@ static void test_storage_buffer_copy_from_vertex_buffer()
   GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(vbo, 4);
+  GPU_vertbuf_data_alloc(*vbo, 4);
 
   struct Vert {
     float2 pos;

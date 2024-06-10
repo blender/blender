@@ -639,7 +639,7 @@ static void COLLECTION_OT_exporter_export(wmOperatorType *ot)
   ot->poll = collection_exporter_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 
   RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Exporter index", 0, INT_MAX);
 }
@@ -684,7 +684,7 @@ static void COLLECTION_OT_export_all(wmOperatorType *ot)
   ot->poll = collection_exporter_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 }
 
 static int collection_export_recursive(bContext *C,
@@ -733,7 +733,7 @@ static void WM_OT_collection_export_all(wmOperatorType *ot)
   ot->poll = collection_export_all_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = 0;
 }
 
 static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)

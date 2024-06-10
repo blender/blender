@@ -61,11 +61,11 @@ enum eGPUStoreOp {
  */
 enum GPUAttachmentState {
   /** Attachment will not be written during rendering. */
-  GPU_ATTACHEMENT_IGNORE = 0,
+  GPU_ATTACHMENT_IGNORE = 0,
   /** Attachment will be written during render sub-pass. This also works with blending. */
-  GPU_ATTACHEMENT_WRITE,
+  GPU_ATTACHMENT_WRITE,
   /** Attachment is used as input in the fragment shader. Incompatible with depth on Metal. */
-  GPU_ATTACHEMENT_READ,
+  GPU_ATTACHMENT_READ,
 };
 
 enum eGPUFrontFace {

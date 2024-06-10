@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# simple script to enable all addons, and disable
+# Simple script to enable all add-ons, and disable.
 
 """
 ./blender.bin --background --factory-startup --python tests/python/bl_load_addons.py
@@ -14,27 +14,25 @@ import addon_utils
 import sys
 import importlib
 
-BLACKLIST_DIRS = (
+EXCLUDE_DIRECTORIES = (
     bpy.utils.user_resource('SCRIPTS'),
-) + tuple(addon_utils.paths()[1:])
-BLACKLIST_ADDONS = set()
+    *addon_utils.paths()[1:],
+)
+EXCLUDE_ADDONS = set()
 
 
-def _init_addon_blacklist():
+def _init_addon_exclusions():
 
-    # in case we built without cycles
+    # In case we built without cycles.
     if not bpy.app.build_options.cycles:
-        BLACKLIST_ADDONS.add("cycles")
+        EXCLUDE_ADDONS.add("cycles")
 
-    # in case we built without freestyle
+    # In case we built without freestyle.
     if not bpy.app.build_options.freestyle:
-        BLACKLIST_ADDONS.add("render_freestyle_svg")
-
-    # netrender has known problems re-registering
-    BLACKLIST_ADDONS.add("netrender")
+        EXCLUDE_ADDONS.add("render_freestyle_svg")
 
     if not bpy.app.build_options.xr_openxr:
-        BLACKLIST_ADDONS.add("viewport_vr_preview")
+        EXCLUDE_ADDONS.add("viewport_vr_preview")
 
 
 def addon_modules_sorted():
@@ -42,27 +40,27 @@ def addon_modules_sorted():
     modules = addon_utils.modules(module_cache={})
     modules[:] = [
         mod for mod in modules
-        if not (mod.__file__.startswith(BLACKLIST_DIRS))
-        if not (mod.__name__ in BLACKLIST_ADDONS)
+        if not (mod.__file__.startswith(EXCLUDE_DIRECTORIES))
+        if not (mod.__name__ in EXCLUDE_ADDONS)
     ]
     modules.sort(key=lambda mod: mod.__name__)
     return modules
 
 
 def disable_addons():
-    # first disable all
+    # First disable all.
     addons = bpy.context.preferences.addons
     for mod_name in list(addons.keys()):
         addon_utils.disable(mod_name, default_set=True)
     assert bool(addons) is False
 
 
-def test_load_addons():
+def test_load_addons(prefs):
     modules = addon_modules_sorted()
 
     disable_addons()
 
-    addons = bpy.context.preferences.addons
+    addons = prefs.addons
 
     addons_fail = []
 
@@ -70,7 +68,7 @@ def test_load_addons():
         mod_name = mod.__name__
         print("\tenabling:", mod_name)
         addon_utils.enable(mod_name, default_set=True)
-        if (mod_name not in addons) and (mod_name not in BLACKLIST_ADDONS):
+        if (mod_name not in addons) and (mod_name not in EXCLUDE_ADDONS):
             addons_fail.append(mod_name)
 
     if addons_fail:
@@ -82,9 +80,9 @@ def test_load_addons():
     print("")
 
 
-def reload_addons(do_reload=True, do_reverse=True):
+def reload_addons(prefs, do_reload=True, do_reverse=True):
     modules = addon_modules_sorted()
-    addons = bpy.context.preferences.addons
+    addons = prefs.addons
 
     disable_addons()
 
@@ -102,25 +100,31 @@ def reload_addons(do_reload=True, do_reverse=True):
             addon_utils.disable(mod_name, default_set=True)
             assert not (mod_name in addons)
 
-            # now test reloading
+            # Now test reloading.
             if do_reload:
                 sys.modules[mod_name] = importlib.reload(sys.modules[mod_name])
 
         if do_reverse:
-            # in case order matters when it shouldn't
+            # In case order matters when it shouldn't.
             modules.reverse()
 
 
 def main():
+    from bpy import context
+    # Remove repositories since these point to the users home directory by default.
+    prefs = context.preferences
+    extension_repos = prefs.extensions.repos
+    while extension_repos:
+        extension_repos.remove(extension_repos[0])
 
-    _init_addon_blacklist()
+    _init_addon_exclusions()
 
-    # first load addons, print a list of all addons that fail
-    test_load_addons()
+    # First load add-ons, print a list of all add-ons that fail.
+    test_load_addons(prefs)
 
-    reload_addons(do_reload=False, do_reverse=False)
-    reload_addons(do_reload=False, do_reverse=True)
-    reload_addons(do_reload=True, do_reverse=True)
+    reload_addons(prefs, do_reload=False, do_reverse=False)
+    reload_addons(prefs, do_reload=False, do_reverse=True)
+    reload_addons(prefs, do_reload=True, do_reverse=True)
 
 
 if __name__ == "__main__":
