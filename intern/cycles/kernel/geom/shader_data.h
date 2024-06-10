@@ -396,7 +396,8 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
 #ifdef __VOLUME__
 ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
                                                 ccl_private ShaderData *ccl_restrict sd,
-                                                ccl_private const Ray *ccl_restrict ray)
+                                                ccl_private const Ray *ccl_restrict ray,
+                                                const int object)
 {
 
   /* vectors */
@@ -410,7 +411,8 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
   sd->time = ray->time;
   sd->ray_length = 0.0f; /* todo: can we set this to some useful value? */
 
-  sd->object = OBJECT_NONE; /* todo: fill this for texture coordinates */
+  /* TODO: fill relevant fields for texture coordinates. */
+  sd->object = object;
   sd->lamp = LAMP_NONE;
   sd->prim = PRIM_NONE;
   sd->type = PRIMITIVE_VOLUME;
