@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -507,10 +507,6 @@ msgid "Quit Blender"
 msgstr "ब्लेंडर बन्द "
 
 
-msgid "Shapes"
-msgstr "आकार"
-
-
 msgid "Pose Library"
 msgstr "बस्तुको-मुद्रा भण्डार"
 
@@ -541,6 +537,10 @@ msgstr "+ असंग्रहित मुख्याचित्रसाच
 
 msgid "Before"
 msgstr "पहिले "
+
+
+msgid "Shapes"
+msgstr "आकार"
 
 
 msgid "Axes"

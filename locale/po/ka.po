@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2024-05-18 11:56+0000\n"
 "Last-Translator: Tamar <TamMebonia@gmail.com>\n"
 "Language-Team: Georgian <https://translate.blender.org/projects/blender-ui/ui/ka/>\n"
@@ -57,10 +57,6 @@ msgstr "AOV-ების სია"
 
 msgid "Collection of AOVs"
 msgstr "AOV-ების კოლექცია"
-
-
-msgid "F-Curves"
-msgstr "F-წირები"
 
 
 msgid "Action F-Curves"
@@ -247,42 +243,6 @@ msgid "Collection of action groups"
 msgstr "ქმედებათა ჯგუფების კოლექცია"
 
 
-msgid "Influence"
-msgstr "ზეგავლენა"
-
-
-msgid "Mix Mode"
-msgstr "შერევის რეჟიმი"
-
-
-msgid "Replace"
-msgstr "ჩანაცვლება"
-
-
-msgid "Offset"
-msgstr "აცდენა"
-
-
-msgid "Add"
-msgstr "დამატება"
-
-
-msgid "Subtract"
-msgstr "გამოკლება"
-
-
-msgid "Multiply"
-msgstr "გამრავლება"
-
-
-msgid "Strips"
-msgstr "ლენტები"
-
-
-msgid "Collection of animation layers"
-msgstr "ანიმაციის შრეების კოლექცია"
-
-
 msgid "Action Pose Markers"
 msgstr "ქმედების პოზის მარკერები"
 
@@ -305,14 +265,6 @@ msgstr "აქტიური პოზის მარკერის ინდ
 
 msgid "Index of active pose marker"
 msgstr "აქტიური პოზის მარკერის ინდექსი"
-
-
-msgid "Keyframe"
-msgstr "სოლი"
-
-
-msgid "Collection of animation strips"
-msgstr "ანიმაციის ლენტების კოლექცია"
 
 
 msgid "Add-on"
@@ -535,16 +487,16 @@ msgid "Active Action for this data-block"
 msgstr "აქტიური ქმედება ამ მონაცემთა ბლოკისათვის"
 
 
-msgid "None"
-msgstr "არავითარი"
-
-
 msgid "Action Blending"
 msgstr "ქმედებათა შეზავება"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "მეთოდი, რომელიც გამოიყენება აქტიური ქმედებისა და NLA სტეკის შედეგების კომბინირებისათვის"
+
+
+msgid "Replace"
+msgstr "ჩანაცვლება"
 
 
 msgid "The strip values replace the accumulated results by amount specified by influence"
@@ -559,12 +511,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "ლენტის სიდიდეები კომბინირდება აკუმულირებულ შედეგებთან მიმატების, გამრავლების, ან კვატერნიონების წარმოქმნის გამოყენებით, გააჩნია არხის ტიპს"
 
 
+msgid "Add"
+msgstr "დამატება"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "ლენტის შეწონილი შედეგი ემატება აკუმულირებულ შედეგებს"
 
 
+msgid "Subtract"
+msgstr "გამოკლება"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "ლენტის შეწონილი შედეგი გამოაკლდება აკუმულირებულ შედეგებს"
+
+
+msgid "Multiply"
+msgstr "გამრავლება"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -2091,6 +2055,10 @@ msgid "Passes to include in the active baking pass"
 msgstr "რომელი გავლები უნდა შევიდეს აქტიურ ცხობის გადავლაში"
 
 
+msgid "None"
+msgstr "არავითარი"
+
+
 msgid "Emit"
 msgstr "გამოცემა"
 
@@ -2449,14 +2417,6 @@ msgstr "Grease Pencil"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Grease Pencil-ის მონაცემთა ბლოკები"
-
-
-msgid "Grease Pencil v3"
-msgstr "Grease Pencil v3"
-
-
-msgid "Grease Pencil v3 data-blocks"
-msgstr "Grease Pencil v3-ის მონაცემთა ბლოკები"
 
 
 msgid "Hair Curves"
@@ -5359,6 +5319,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "ლოკალურ უკუგდების კამერაში, ეს ფონური გამოსახულება ბმულით დაკავშირებული მიმართვის კამერიდან მოდის, თუ ლოკალურია უკუგდებასთან მიმართებაში"
 
 
+msgid "Offset"
+msgstr "აცდენა"
+
+
 msgid "Rotation"
 msgstr "ბრუნვა"
 
@@ -6980,6 +6944,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "რეზიდუალური შეცდომის ოდენობა რადიანებში ბორკილებისთვის, რომლებიც ორიენტაციაზე მუშაობენ"
 
 
+msgid "Influence"
+msgstr "ზეგავლენა"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "იმ ზეგავლენის ოდენობა, რომელიც ბორკილს ექნება საბოლოო ამონახსენზე"
 
@@ -7354,6 +7322,10 @@ msgstr "მინიმუმი"
 
 msgid "Minimum value for target channel range"
 msgstr "მინიმალური მნიშვნელობა სამიზნე არხის დიაპაზონისთვის"
+
+
+msgid "Mix Mode"
+msgstr "შერევის რეჟიმი"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -16000,6 +15972,10 @@ msgid "Type of keyframe"
 msgstr "საკვანძო კადრის ტიპი"
 
 
+msgid "Keyframe"
+msgstr "სოლი"
+
+
 msgid "Normal keyframe, e.g. for key poses"
 msgstr "ნორმალური საკვანძო კადრი, მაგ.: საკვანძო პოზებისთვის"
 
@@ -19435,70 +19411,6 @@ msgid "Grid scale"
 msgstr "ცხრილის მასშტაბი"
 
 
-msgid "Collection of related drawings"
-msgstr "ურთიერთდაკავშირებული ნახატების კოლექცია"
-
-
-msgid "Set layer visibility"
-msgstr "დააყენე შრის ხილულობა"
-
-
-msgid "Local Matrix"
-msgstr "ლოკალური მატრიცა"
-
-
-msgid "Scale of the layer"
-msgstr "შრის მასშტაბი"
-
-
-msgid "Translation"
-msgstr "თარგმანი"
-
-
-msgid "Use Masks"
-msgstr "გამოიყენე ნიღბები"
-
-
-msgid "Grease Pencil Layer Group"
-msgstr "Grease Pencil-ის შრეთა ჯგუფი"
-
-
-msgid "Group of Grease Pencil layers"
-msgstr "Grease Pencil-ის შრეთა ჯგუფი"
-
-
-msgid "Set layer group visibility"
-msgstr "დააყენე შრეთა ჯგუფის ხილულობა"
-
-
-msgid "Protect group from further editing and/or frame changes"
-msgstr "დაიცავი ჯგუფი შემდგომი რედაქტირებისა და/ან კადრის ცვლილებებისგან"
-
-
-msgid "Group name"
-msgstr "ჯგუფის სახელი"
-
-
-msgid "The visibility of drawings in the layers in this group is affected by the layers in the masks lists"
-msgstr "ნახატების ხილულობა ამ ჯფუფის შრეებში განიცდის ნიღაბთა სიაში მყოფი შრეების ზემოქმედებას"
-
-
-msgid "Grease Pencil Mask Layers"
-msgstr "Grease Pencil-ის ნიღბის შრეები"
-
-
-msgid "Collection of grease pencil masking layers"
-msgstr "Grease Pencil-ის შენიღბვის შრეების კოლექცია"
-
-
-msgid "Active Layer Mask Index"
-msgstr "აქტიური შრის ნიღბის ინდექსი"
-
-
-msgid "Active index in layer mask array"
-msgstr "აქტიური ინდექსი შრის ნიღბის მასივში"
-
-
 msgid "Grease Pencil Layers"
 msgstr "Grease Pencil-ის შრეები"
 
@@ -19527,6 +19439,22 @@ msgid "Note/Layer to add annotation strokes to"
 msgstr "შენიშვნა/შრე, რომელზეც უნდა დაემატოს ანოტაციის მონასმები"
 
 
+msgid "Grease Pencil Mask Layers"
+msgstr "Grease Pencil-ის ნიღბის შრეები"
+
+
+msgid "Collection of grease pencil masking layers"
+msgstr "Grease Pencil-ის შენიღბვის შრეების კოლექცია"
+
+
+msgid "Active Layer Mask Index"
+msgstr "აქტიური შრის ნიღბის ინდექსი"
+
+
+msgid "Active index in layer mask array"
+msgstr "აქტიური ინდექსი შრის ნიღბის მასივში"
+
+
 msgid "Time Modifier Segment"
 msgstr "დროის მოდიფიკატორის სეგმენტი"
 
@@ -19553,22 +19481,6 @@ msgstr "საწყისი კადრი"
 
 msgid "First frame of the segment"
 msgstr "სეგმენტის პირველი კადრი"
-
-
-msgid "Grease Pencil Group"
-msgstr "Grease Pencil-ის ჯგუფი"
-
-
-msgid "Collection of Grease Pencil layers"
-msgstr "Grease Pencil-ის შრეების კოლექცია"
-
-
-msgid "Active Layer Group"
-msgstr "შრეთა აქტიური ჯგუფი"
-
-
-msgid "Active Grease Pencil layer"
-msgstr "Grease Pencil-ის აქტიური შრე"
 
 
 msgid "Editor header containing UI elements"
@@ -19659,6 +19571,10 @@ msgstr "ფუნჯი"
 
 msgid "Font"
 msgstr "შრიფტი"
+
+
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
 
 
 msgid "Key"
@@ -19873,6 +19789,10 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "ყველა F-წირის კადრების კომბინირებული დიაპაზონი ამ ქმედებაში"
 
 
+msgid "F-Curves"
+msgstr "F-წირები"
+
+
 msgid "The individual F-Curves that make up the action"
 msgstr "ინდივიდუალური F-წირები, რომლებიც ამ ქმედებას შეადგენენ"
 
@@ -19908,14 +19828,6 @@ msgstr "ID-ის ძირეული ტიპი"
 
 msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
 msgstr "ID ბლოკის ტიპი, რომელზეც ქმედება შეიძლება იქნას გამოყენებული - არ შეცვალო, თუ ზუსტად არ იცი რას აკეთებ"
-
-
-msgid "Is Empty"
-msgstr "ცარიელია"
-
-
-msgid "Layers"
-msgstr "შრეები"
 
 
 msgid "Pose Markers"
@@ -24200,6 +24112,10 @@ msgid "Grease Pencil weight paint"
 msgstr "Grease Pencil-ის წონის ხატვა"
 
 
+msgid "Layers"
+msgstr "შრეები"
+
+
 msgid "Onion Opacity"
 msgstr "კალკის გაუმჭვირვალობა"
 
@@ -24370,18 +24286,6 @@ msgstr "ზედაპირის აცდენა"
 
 msgid "Offset amount when drawing in surface mode"
 msgstr "აცდენის რაოდენობა ზედაპირის რეჟიმში ხატვის დროს"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Grease Pencil-ის მონაცემთა ბლოკი"
-
-
-msgid "Grease Pencil layer groups"
-msgstr "Grease Pencil-ის შრეთა ჯგუფები"
-
-
-msgid "Grease Pencil layers"
-msgstr "Grease Pencil-ის შრეები"
 
 
 msgid "Image data-block referencing an external or packed image"
@@ -25307,10 +25211,6 @@ msgid "Light Probe data-block for lighting capture objects"
 msgstr "სინათლის ზონდის მონაცემთა ბლოკი დასაფიქსირებელი ობიექტების განათებისთვის"
 
 
-msgid "Probe clip end, beyond which objects will not appear in reflections"
-msgstr "დასასრული ზონდის მოკვეცისა, რომლის მიღმაც ობიექტები ანარეკლებში აღარ გამოჩნდება"
-
-
 msgid "Probe clip start, below which objects will not appear in reflections"
 msgstr "დასაწყისი ზონდის მოკვეცისა, რომლის მიღმაც ობიექტები ანარეკლებში აღარ გამოჩნდება"
 
@@ -25323,8 +25223,112 @@ msgid "Viewport display size of the sampled data"
 msgstr "სემპლირებული მონაცემების სარკმელში ჩვენების ზომა"
 
 
+msgid "Influence Distance"
+msgstr "გავლენის მანძილი"
+
+
+msgid "Influence distance of the probe"
+msgstr "ზონდის ზეგავლენის მანძილი"
+
+
+msgid "Invert Collection"
+msgstr "კოლექციის შექცევა"
+
+
+msgid "Show the clipping distances in the 3D view"
+msgstr "აჩვენე მოკვეცის მანძილები 3გ ხედში"
+
+
+msgid "Display Data (Deprecated)"
+msgstr "ასახე მონაცემები (მოძველებული)"
+
+
+msgid "Deprecated, use use_data_display instead"
+msgstr "მოძველებულია, ამის მაგივრად use_data_display გამოიყენე"
+
+
+msgid "Show the influence volume in the 3D view"
+msgstr "აჩვენე ზეგავლენის მოცულობა 3გ ხედში"
+
+
+msgid "Type of light probe"
+msgstr "სინათლის ზონდის ტიპი"
+
+
+msgid "Light probe that captures precise lighting from all directions at a single point in space"
+msgstr "სინათლის ზონდი, რომელიც აფიქსირებს ზუსტ განათებას ყველა მიმართულებიდან სივრცის ერთ წერტილში"
+
+
+msgid "Light probe that captures incoming light from a single direction on a plane"
+msgstr "სინათლის ზონდი, რომელიც აფიქსირებს ერთი მიმართულებიდან შემომავალ სინათლეს სიბრტყეზე"
+
+
+msgid "Light probe that captures low frequency lighting inside a volume"
+msgstr "სინათლის ზონდი, რომელიც აფიქსირებს დაბალი სიხშირის განათებას მოცულობის შიგნით"
+
+
+msgid "Display Data"
+msgstr "ასახე მონაცემები"
+
+
+msgid "Display sampled data in the viewport to debug captured light"
+msgstr "ასახე სემპლირებული მონაცემები სარკმელში დაფიქსირებულ სინათლეში ხარვეზების აღმოსაფხვრელად"
+
+
+msgid "Visibility Bleed Bias"
+msgstr "ხილულობის ჟონვის წანაცვლება"
+
+
+msgid "Visibility Blur"
+msgstr "ხილულობის გაბუნდოვნება"
+
+
+msgid "Visibility Bias"
+msgstr "ხილულობის მიკერძოება"
+
+
+msgid "Visibility Collection"
+msgstr "ხილულობის კოლექცია"
+
+
+msgid "Probe clip end, beyond which objects will not appear in reflections"
+msgstr "დასასრული ზონდის მოკვეცისა, რომლის მიღმაც ობიექტები ანარეკლებში აღარ გამოჩნდება"
+
+
 msgid "Control how fast the probe influence decreases"
 msgstr "აკონტროლე, რამდენად სწრაფად მცირდება ზონდის ზეგავლენა"
+
+
+msgid "Type of influence volume"
+msgstr "ზეგავლენის მოცულობის ტიპი"
+
+
+msgid "Parallax Radius"
+msgstr "პარალაქსის რადიუსი"
+
+
+msgid "Lowest corner of the parallax bounding box"
+msgstr "პარალაქსის შემომსაზღვრელი ჩარჩოს ყველაზე ქვემო კუთხე"
+
+
+msgid "Type of parallax volume"
+msgstr "პარალაქსის მოცულობის ტიპი"
+
+
+msgid "Parallax"
+msgstr "პარალაქსი"
+
+
+msgid "Show the parallax correction volume in the 3D view"
+msgstr "აჩვენე პარალაქსის შემასწორებელი მოცულობა 3გ ხედში"
+
+
+msgid "Use Custom Parallax"
+msgstr "მორგებული პარალაქსის გამოყენება"
+
+
+msgid "Enable custom settings for the parallax correction volume"
+msgstr "ჩაურთე პარალაქსის შემასწორებელ მოცულობას მორგებული ანაწყობები"
 
 
 msgid "Bake Samples"
@@ -25391,6 +25395,14 @@ msgid "Smoother irradiance interpolation but introduce light bleeding"
 msgstr "გამოსხივების უფრო თანაბარი ინტერპოლაცია, მაგრამ შემოაქვს სინათლის გაჟონვა"
 
 
+msgid "Intensity"
+msgstr "ინტენსივობა"
+
+
+msgid "Modify the intensity of the lighting captured by this probe"
+msgstr "დაამოდიფიცირე ამ ზონდის მიერ დაფიქსირებული განათების ინტენსივობა"
+
+
 msgid "Normal Bias"
 msgstr "ნორმალების წანაცვლება"
 
@@ -25429,130 +25441,6 @@ msgstr "წაღმა ზედაპირზე მოხვედრებ�
 
 msgid "View Bias"
 msgstr "ხედისკენ წანაცვლება"
-
-
-msgid "Influence Distance"
-msgstr "გავლენის მანძილი"
-
-
-msgid "Influence distance of the probe"
-msgstr "ზონდის ზეგავლენის მანძილი"
-
-
-msgid "Type of influence volume"
-msgstr "ზეგავლენის მოცულობის ტიპი"
-
-
-msgid "Intensity"
-msgstr "ინტენსივობა"
-
-
-msgid "Modify the intensity of the lighting captured by this probe"
-msgstr "დაამოდიფიცირე ამ ზონდის მიერ დაფიქსირებული განათების ინტენსივობა"
-
-
-msgid "Invert Collection"
-msgstr "კოლექციის შექცევა"
-
-
-msgid "Invert visibility collection"
-msgstr "ხილულობის კოლექციის შექცევა"
-
-
-msgid "Parallax Radius"
-msgstr "პარალაქსის რადიუსი"
-
-
-msgid "Lowest corner of the parallax bounding box"
-msgstr "პარალაქსის შემომსაზღვრელი ჩარჩოს ყველაზე ქვემო კუთხე"
-
-
-msgid "Type of parallax volume"
-msgstr "პარალაქსის მოცულობის ტიპი"
-
-
-msgid "Show the clipping distances in the 3D view"
-msgstr "აჩვენე მოკვეცის მანძილები 3გ ხედში"
-
-
-msgid "Display Data (Deprecated)"
-msgstr "ასახე მონაცემები (მოძველებული)"
-
-
-msgid "Deprecated, use use_data_display instead"
-msgstr "მოძველებულია, ამის მაგივრად use_data_display გამოიყენე"
-
-
-msgid "Show the influence volume in the 3D view"
-msgstr "აჩვენე ზეგავლენის მოცულობა 3გ ხედში"
-
-
-msgid "Parallax"
-msgstr "პარალაქსი"
-
-
-msgid "Show the parallax correction volume in the 3D view"
-msgstr "აჩვენე პარალაქსის შემასწორებელი მოცულობა 3გ ხედში"
-
-
-msgid "Type of light probe"
-msgstr "სინათლის ზონდის ტიპი"
-
-
-msgid "Light probe that captures precise lighting from all directions at a single point in space"
-msgstr "სინათლის ზონდი, რომელიც აფიქსირებს ზუსტ განათებას ყველა მიმართულებიდან სივრცის ერთ წერტილში"
-
-
-msgid "Light probe that captures incoming light from a single direction on a plane"
-msgstr "სინათლის ზონდი, რომელიც აფიქსირებს ერთი მიმართულებიდან შემომავალ სინათლეს სიბრტყეზე"
-
-
-msgid "Light probe that captures low frequency lighting inside a volume"
-msgstr "სინათლის ზონდი, რომელიც აფიქსირებს დაბალი სიხშირის განათებას მოცულობის შიგნით"
-
-
-msgid "Use Custom Parallax"
-msgstr "მორგებული პარალაქსის გამოყენება"
-
-
-msgid "Enable custom settings for the parallax correction volume"
-msgstr "ჩაურთე პარალაქსის შემასწორებელ მოცულობას მორგებული ანაწყობები"
-
-
-msgid "Display Data"
-msgstr "ასახე მონაცემები"
-
-
-msgid "Display sampled data in the viewport to debug captured light"
-msgstr "ასახე სემპლირებული მონაცემები სარკმელში დაფიქსირებულ სინათლეში ხარვეზების აღმოსაფხვრელად"
-
-
-msgid "Visibility Bleed Bias"
-msgstr "ხილულობის ჟონვის წანაცვლება"
-
-
-msgid "Bias for reducing light-bleed on variance shadow maps"
-msgstr "წანაცვლება, რომელიც ამცირებს სინათლის ჟონვას დისპერსიულ ჩრდილების რუკებზე"
-
-
-msgid "Visibility Blur"
-msgstr "ხილულობის გაბუნდოვნება"
-
-
-msgid "Filter size of the visibility blur"
-msgstr "ხილულობის გაბუნდოვნების ფილტრის ზომა"
-
-
-msgid "Visibility Bias"
-msgstr "ხილულობის მიკერძოება"
-
-
-msgid "Visibility Collection"
-msgstr "ხილულობის კოლექცია"
-
-
-msgid "Restrict objects visible for this probe"
-msgstr "შეზღუდე ამ ზონდისთვის ხილული ობიექტები"
 
 
 msgid "Mask data-block defining mask for compositing"
@@ -25594,10 +25482,6 @@ msgstr "პიქსელი დარენდერდება მხოლ�
 msgctxt "Material"
 msgid "Blend Mode"
 msgstr "შერევის რეჟიმი"
-
-
-msgid "Blend Mode for Transparent Faces"
-msgstr "შერევის რეჟიმი გამჭვირვალე წახნაგებისთვის"
 
 
 msgctxt "Material"
@@ -25836,10 +25720,6 @@ msgid "Refraction Depth"
 msgstr "გარდატეხის სიღრმე"
 
 
-msgid "Approximate the thickness of the object to compute two refraction events (0 is disabled)"
-msgstr "გარდატეხის ორი მოვლენის გამოსათვლელად დაადგინე ობიექტის მიახლოებითი სისქე (0 ნიშნავს გათიშვას)"
-
-
 msgid "Roughness"
 msgstr "ხეშეშობა"
 
@@ -25882,10 +25762,6 @@ msgstr "გამოიყენე ხმაური ბინარულ ხ
 
 msgid "Show Backface"
 msgstr "უკუმხრის ჩვენებ"
-
-
-msgid "Render multiple transparent layers (may introduce transparency sorting problems)"
-msgstr "დაარენდერე რამდენიმე გამჭვირვალე შრე (შეიძლება წარმოშვას გამჭვირვალების დახარისხებასთან დაკავშირებული პრობლემები)"
 
 
 msgid "Specular Color"
@@ -25968,8 +25844,8 @@ msgid "Subsurface Translucency"
 msgstr "ზედაპირქვეშა გაშუქებადობა"
 
 
-msgid "Add translucency effect to subsurface"
-msgstr "დაამატე გაშუქებადობის ეფექტი ზედაპირქვეშას"
+msgid "Render multiple transparent layers (may introduce transparency sorting problems)"
+msgstr "დაარენდერე რამდენიმე გამჭვირვალე შრე (შეიძლება წარმოშვას გამჭვირვალების დახარისხებასთან დაკავშირებული პრობლემები)"
 
 
 msgid "Transparent Shadows"
@@ -26450,6 +26326,10 @@ msgstr "იერფერი"
 
 msgid "Grease Pencil Data"
 msgstr "Grease Pencil-ის მონაცემები"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Grease Pencil-ის მონაცემთა ბლოკი"
 
 
 msgid "Interface"
@@ -27046,6 +26926,10 @@ msgstr "შემავალი მატრიცა"
 
 msgid "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied"
 msgstr "მატრიცა მდებარეობაზე, ბრუნვასა და მასშტაბზე წვდომისთვის (დელტების ჩათვლით), ბორკილებისა და დაქვემდებარების გამოყენებამდე"
+
+
+msgid "Local Matrix"
+msgstr "ლოკალური მატრიცა"
 
 
 msgid ""
@@ -37119,10 +37003,6 @@ msgid "Fluid simulation modifier"
 msgstr "დენადი ნივთიერების სიმულაციის მოდიფიკატორი"
 
 
-msgid "Inflow/Outflow"
-msgstr "შედინება/გამოდინება"
-
-
 msgid "Invert vertex group weights"
 msgstr "შეაქციე წვეროთა ჯგუფის წონები"
 
@@ -37851,10 +37731,6 @@ msgstr "დაყოფის ზედაპირის მოდიფიკ�
 
 msgid "Subdivision surface modifier"
 msgstr "დაყოფის ზედაპირის მოდიფიკატორი"
-
-
-msgid "Number of subdivisions to perform"
-msgstr "ჩასატარებელი დაყოფების რიცხვი"
 
 
 msgid "Number of subdivisions to perform when rendering"
@@ -42437,14 +42313,6 @@ msgid "Focus Region"
 msgstr "ფოკუსის მონაკვეთი"
 
 
-msgid "Operator Properties"
-msgstr "ოპერატორის თვისებები"
-
-
-msgid "Input properties of an operator"
-msgstr "შეიყვანე ოპერატორის თვისებები"
-
-
 msgctxt "Operator"
 msgid "Bake Keyframes"
 msgstr "საკვანძო კადრების ცხობა"
@@ -44537,6 +44405,10 @@ msgstr "ტრაფარეტული ფუნჯის მართვა"
 
 msgid "Control the stencil brush"
 msgstr "მართე ტრაფარეტული ფუნჯი"
+
+
+msgid "Translation"
+msgstr "თარგმანი"
 
 
 msgid "Primary"
@@ -47815,6 +47687,11 @@ msgstr "მოაშორე იმავე ID-ს მქონე არს�
 
 
 msgctxt "Operator"
+msgid "Refresh All"
+msgstr "განაახლე ყველა"
+
+
+msgctxt "Operator"
 msgid "Automatically Pack Resources"
 msgstr "ავტომატურად შეფუთე რესურსები"
 
@@ -49585,6 +49462,10 @@ msgstr "ასხლტომა"
 msgctxt "Operator"
 msgid "Active Layer"
 msgstr "აქტიური შრე"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Grease Pencil-ის აქტიური შრე"
 
 
 msgctxt "Operator"
@@ -51758,6 +51639,18 @@ msgid "Paste new image from the clipboard"
 msgstr "ჩასვი ახალი გამოსახულება გაცვლის ბუფერიდან"
 
 
+msgid "Blend Mode for Transparent Faces"
+msgstr "შერევის რეჟიმი გამჭვირვალე წახნაგებისთვის"
+
+
+msgid "Emission Strength"
+msgstr "გამოცემის სიძლიერე"
+
+
+msgid "Relative Paths"
+msgstr "ფარდობითი მისამართები"
+
+
 msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "დააყენე წირების წერტილი"
@@ -51815,20 +51708,12 @@ msgid "Flip the image vertically"
 msgstr "შეაბრუნე გამოსახულება ვერტიკალურად"
 
 
-msgid "Emission Strength"
-msgstr "გამოცემის სიძლიერე"
-
-
 msgid "Filepath used for importing the file"
 msgstr "ფაილის იმპორტირებისთვის გამოყენებული მისამართი"
 
 
 msgid "Offset Distance"
 msgstr "აცდენის მანძილი"
-
-
-msgid "Relative Paths"
-msgstr "ფარდობითი მისამართები"
 
 
 msgctxt "Operator"
@@ -62689,26 +62574,6 @@ msgid "Add or remove grease pencil material preset"
 msgstr "დაამატე grease pencil მასალის კონფიგურაცია"
 
 
-msgid "Bake the active view layer lighting"
-msgstr "გამოაცხვე აქტიური ხედის შრის განათება"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "მილიწამებით დააყოვნე ცხობის დაწყება"
-
-
-msgid "Dirty Only"
-msgstr "მხოლოდ ჭუჭყიანი"
-
-
-msgid "Only bake light probes that are marked as dirty"
-msgstr "გამოაცხვე სინათლის მხოლოდ ის ზონდები, რომლებიც ჭუჭყიანადაა მონიშნული"
-
-
-msgid "Cubemaps Only"
-msgstr "მხოლოდ კუბრუკები"
-
-
 msgctxt "Operator"
 msgid "New Scene"
 msgstr "ახალი სცენა"
@@ -64195,14 +64060,6 @@ msgstr "მანძილი, რომლის ფარგლებშიც
 
 msgid "Extrude Mode"
 msgstr "ამოყვანის რეჟიმი"
-
-
-msgid "Project back faces when extruding"
-msgstr "ამოყვანისას დააპროეცირე წახნაგთა უკუმხარეები"
-
-
-msgid "Extrude back faces by fixed amount"
-msgstr "დააპროექცირე უკუმხარეები ფიქსირებული ოდენობით"
 
 
 msgid "Trim Mode"
@@ -70863,8 +70720,8 @@ msgid "Include normals of exported meshes in the export"
 msgstr "მოიცავი დაექსპორტირებული მეშების ნორმალები ექსპორტში"
 
 
-msgid "Subdivision Scheme"
-msgstr "დაყოფის სქემა"
+msgid "Subdivision"
+msgstr "ქვედანაყოფი"
 
 
 msgid "Tessellate"
@@ -70885,10 +70742,6 @@ msgstr "UV რუკები"
 
 msgid "Include all mesh UV maps in the export"
 msgstr "მოიცავი მეშების ყველა UV რუკა ექსპორტში"
-
-
-msgid "To USD Preview Surface"
-msgstr "USD-ის გადახედვის ხედაპირად"
 
 
 msgid "Only export deform bones and their parents"
@@ -70952,20 +70805,8 @@ msgid "Also import materials that are not used by any geometry. Note that when t
 msgstr "აგრეთვე დააიმპორტირე მასალები, რომლებსაც არანაირი გეომეტრია არ იყენებს. გაითვალისწინე, რომ როცა ეს ვარიანტი მცდარია, გეომეტრიის მიერ მითითებული მასალები მაინც იმპორტირდება"
 
 
-msgid "Blend Shapes"
-msgstr "შეაზავე ფორმები"
-
-
 msgid "Import final render geometry"
 msgstr "დააიმპორტირე საბოლოო სარენდერო გეომეტრია"
-
-
-msgid "Shapes"
-msgstr "ფორმები"
-
-
-msgid "Skeletons"
-msgstr "ჩონჩხები"
 
 
 msgid "Import Subdivision Scheme"
@@ -71841,30 +71682,6 @@ msgid "Panel containing UI elements"
 msgstr "პანელი, რომელიც UI-ს ელემენტებს შეიცავს"
 
 
-msgid "Light Groups"
-msgstr "სინათლეების ჯგუფები"
-
-
-msgid "Integrator Presets"
-msgstr "ინტეგრატორის წინასწარი წყობები"
-
-
-msgid "Selectability & Visibility"
-msgstr "მონიშვნადობა და ხილულობა"
-
-
-msgid "Physical light sources"
-msgstr "ფიზიკური სინათლის წყარო"
-
-
-msgid "Film"
-msgstr "ფირი"
-
-
-msgid "Passes"
-msgstr "გადავლები"
-
-
 msgid "Chain Scaling"
 msgstr "ჯაჭვის მასშტაბირება"
 
@@ -71966,8 +71783,16 @@ msgid "Ray Visibility"
 msgstr "სხივის ხილულობა"
 
 
+msgid "Integrator Presets"
+msgstr "ინტეგრატორის წინასწარი წყობები"
+
+
 msgid "Post Processing"
 msgstr "თანამდევი დამუშავება"
+
+
+msgid "Film"
+msgstr "ფირი"
 
 
 msgid "Pixel Filter"
@@ -71994,6 +71819,14 @@ msgid "Shutter Curve"
 msgstr "ჩამკეტის წირი"
 
 
+msgid "Passes"
+msgstr "გადავლები"
+
+
+msgid "Light Groups"
+msgstr "სინათლეების ჯგუფები"
+
+
 msgid "Performance"
 msgstr "შესრულება"
 
@@ -72016,10 +71849,6 @@ msgstr "ნაკადები"
 
 msgid "Path Guiding"
 msgstr "ტრაექტორიის მიმართვა"
-
-
-msgid "Subdivision"
-msgstr "ქვედანაყოფი"
 
 
 msgid "Render Pass"
@@ -72608,6 +72437,10 @@ msgid "Sequencer Overlays"
 msgstr "სეკვენსერის გადაფარებები"
 
 
+msgid "Strips"
+msgstr "ლენტები"
+
+
 msgid "Waveforms"
 msgstr "ტალღოვანი ფორმები"
 
@@ -72619,6 +72452,10 @@ msgstr "ლენტის ქეში"
 msgctxt "Operator"
 msgid "Blade"
 msgstr "დანის პირი"
+
+
+msgid "Physical light sources"
+msgstr "ფიზიკური სინათლის წყარო"
 
 
 msgid "Feature Weights"
@@ -72937,6 +72774,10 @@ msgstr "ავტო-შენიღბვა"
 
 msgid "Masking"
 msgstr "შენიღბვა"
+
+
+msgid "Selectability & Visibility"
+msgstr "მონიშვნადობა და ხილულობა"
 
 
 msgid "Curve Edit Mode"
@@ -79516,18 +79357,6 @@ msgstr "სპრაიტის მიჯნა"
 
 msgid "Trace Precision"
 msgstr "მიდევნების სიზუსტე"
-
-
-msgid "Auto Bake"
-msgstr "ავტომატური ცხობა"
-
-
-msgid "Auto bake indirect lighting when editing probes"
-msgstr "ზონდების რედაქტირებისას ავტომატურად გამოაცხვე ირიბი განათება"
-
-
-msgid "Light Cache Info"
-msgstr "სინათლის ქეშის ინფო"
 
 
 msgid "Cubemap Display Size"
@@ -89173,6 +89002,10 @@ msgid "Modal"
 msgstr "მოდალური"
 
 
+msgid "Operator Properties"
+msgstr "ოპერატორის თვისებები"
+
+
 msgid "Action type"
 msgstr "ქმედების ტიპი"
 
@@ -91566,44 +91399,8 @@ msgid "Mesh Filter Modal Map"
 msgstr "მეშის ფილტრის მოდალური რუკა"
 
 
-msgid "File:"
-msgstr "ფაილი:"
-
-
-msgid "name"
-msgstr "სახელი"
-
-
-msgid "Missing script files"
-msgstr "დაკარგული სკრიპტ ფაილები"
-
-
-msgid "Description:"
-msgstr "აღწერა:"
-
-
-msgid "Author:"
-msgstr "ავტორი:"
-
-
-msgid "Version:"
-msgstr "ვერსია:"
-
-
-msgid "Warning:"
-msgstr "გაფრთხილება:"
-
-
-msgid "Internet:"
-msgstr "ინტერნეტი:"
-
-
-msgid "Path:"
-msgstr "მისამართი:"
-
-
-msgid "Size:"
-msgstr "ზომა:"
+msgid "Warning"
+msgstr "გაფრთხილება"
 
 
 msgctxt "Operator"
@@ -93082,6 +92879,10 @@ msgid "Weight Position"
 msgstr "წონის პოზიცია"
 
 
+msgid "Shapes"
+msgstr "ფორმები"
+
+
 msgid "Bone Colors"
 msgstr "ძვლების ფერები"
 
@@ -94544,16 +94345,6 @@ msgid "Volume Shadows"
 msgstr "მოცულობის ჩრდილები"
 
 
-msgctxt "Operator"
-msgid "Bake Indirect Lighting"
-msgstr "გამოაცხე ირიბი განათება"
-
-
-msgctxt "Operator"
-msgid "Delete Lighting Cache"
-msgstr "წაშალე განათების ქეში"
-
-
 msgid "Diffuse Occlusion"
 msgstr "დიფუზიური დახშობა"
 
@@ -94568,11 +94359,6 @@ msgstr "შვილობილი ნაწილაკების მაქ�
 
 msgid "Render Engine"
 msgstr "სარენდერო ძრავა"
-
-
-msgctxt "Operator"
-msgid "Bake Cubemap Only"
-msgstr "გამოაცხვე მხოლოდ კუბრუკა"
 
 
 msgid "General Override"
@@ -94699,6 +94485,10 @@ msgstr "უცნობი დანამატები"
 
 msgid "category"
 msgstr "კატეგორია"
+
+
+msgid "name"
+msgstr "სახელი"
 
 
 msgid "Calibration"
@@ -95935,11 +95725,6 @@ msgstr "ხელახლა აწყობა"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "განაახლე ყველა"
-
-
-msgctxt "Operator"
 msgid "Sequence Render Animation"
 msgstr "ანიმაციის რენდერი თანამიმდევრობიდან"
 
@@ -97060,10 +96845,6 @@ msgid "Invert Pan Axis"
 msgstr "შეაქციე პანორამირების ღერძი"
 
 
-msgid "Preferences:"
-msgstr "სასურველი პარამეტრები:"
-
-
 msgid "No custom MatCaps configured"
 msgstr "ფიქსირებული მასალები კონფიგურირებული არაა"
 
@@ -97148,8 +96929,36 @@ msgid ":"
 msgstr ":"
 
 
+msgid "Missing script files"
+msgstr "დაკარგული სკრიპტ ფაილები"
+
+
+msgid "Description:"
+msgstr "აღწერა:"
+
+
 msgid "Location:"
 msgstr "მდებარეობა:"
+
+
+msgid "File:"
+msgstr "ფაილი:"
+
+
+msgid "Author:"
+msgstr "ავტორი:"
+
+
+msgid "Version:"
+msgstr "ვერსია:"
+
+
+msgid "Warning:"
+msgstr "გაფრთხილება:"
+
+
+msgid "Internet:"
+msgstr "ინტერნეტი:"
 
 
 msgid "User:"
@@ -97663,11 +97472,6 @@ msgstr "საკეტები"
 
 
 msgctxt "Operator"
-msgid "Box Show"
-msgstr "მართკუთხედით გამოვლენა"
-
-
-msgctxt "Operator"
 msgid "Toggle Visibility"
 msgstr "ჩართე-გამორთე ხილულობა"
 
@@ -97685,16 +97489,6 @@ msgstr "შეაქციე ხილული"
 msgctxt "Operator"
 msgid "Hide Masked"
 msgstr "დამალე შენიღბული"
-
-
-msgctxt "Operator"
-msgid "Box Add"
-msgstr "მართკუთხედით დამატება"
-
-
-msgctxt "Operator"
-msgid "Lasso Add"
-msgstr "ქამანდით დამატება"
 
 
 msgctxt "Operator"
@@ -97717,13 +97511,23 @@ msgstr "გადაიტანე ძერწვის რეჟიმი"
 
 
 msgctxt "Operator"
-msgid "Convert to Particle System"
-msgstr "გადაიყვანე ნაწილაკთა სისტემაში"
+msgid "Box Show"
+msgstr "მართკუთხედით გამოვლენა"
 
 
 msgctxt "Operator"
-msgid "Invert Mask"
-msgstr "შეაქციე ნიღაბი"
+msgid "Box Add"
+msgstr "მართკუთხედით დამატება"
+
+
+msgctxt "Operator"
+msgid "Lasso Add"
+msgstr "ქამანდით დამატება"
+
+
+msgctxt "Operator"
+msgid "Convert to Particle System"
+msgstr "გადაიყვანე ნაწილაკთა სისტემაში"
 
 
 msgctxt "Operator"
@@ -97734,6 +97538,11 @@ msgstr "შემავსებელი ნიღაბი"
 msgctxt "Operator"
 msgid "Clear Mask"
 msgstr "გაასუფთავე ნიღაბი"
+
+
+msgctxt "Operator"
+msgid "Invert Mask"
+msgstr "შეაქციე ნიღაბი"
 
 
 msgctxt "Operator"
@@ -99865,10 +99674,6 @@ msgid "pointclouds"
 msgstr "წერტილთა ღრუბლები"
 
 
-msgid "Warning"
-msgstr "გაფრთხილება"
-
-
 msgid "Invalid Input Error"
 msgstr "უვარგისი შენატანის შეცდომა"
 
@@ -100435,38 +100240,6 @@ msgstr "კომპოზიტორის კვანძოვან ხე�
 
 msgid "Basic"
 msgstr "ძირითადი"
-
-
-msgid "Compiling Shaders (%d remaining)"
-msgstr "იერფერების კომპილაცია (დარჩა %d)"
-
-
-msgid "Optimizing Shaders (%d remaining)"
-msgstr "იერფერების ოპტიმიზაცია (დარჩა %d)"
-
-
-msgid "Incompatible Light cache version, please bake again"
-msgstr "სინათლის ქეშის შეუთავსებელი ვერსია, თუ შეიძლება, თავიდან გამოაცხვე"
-
-
-msgid "Error: Light cache is too big for the GPU to be loaded"
-msgstr "შეცდომა: სინათლის ქეში GPU-სთვის მეტისმეტად დიდია, რომ ჩაიტვირთოს"
-
-
-msgid "Error: Light cache dimensions not supported by the GPU"
-msgstr "შეცდომა: GPU-ს სინათლის ქეშის ზომების მხარდაჭერა არ აქვს"
-
-
-msgid "Baking light cache"
-msgstr "სინათლის ქეში ცხვება"
-
-
-msgid "Error: LightCache is too large and will not be saved to disk"
-msgstr "შეცდომა: სინათლის ქეში მეტისმეტად დიდია და დისკზე არ შეინახება"
-
-
-msgid "No light cache in this scene"
-msgstr "ამ სცენაში სინათლის ქეში არაა"
 
 
 msgid "GpencilMode"
@@ -102661,20 +102434,12 @@ msgid "No filename given"
 msgstr "ფაილის სახელი მოცემული არაა"
 
 
-msgid "Rigging"
-msgstr "დარიგვა"
-
-
 msgid "File References"
 msgstr "ფაილზე მითითება"
 
 
-msgid "Data Types"
-msgstr "მონაცემთა ტიპები"
-
-
-msgid "Mesh Data"
-msgstr "მეშის მონაცემები"
+msgid "Rigging"
+msgstr "დარიგვა"
 
 
 msgid "No weights/vertex groups on object(s)"
@@ -103323,16 +103088,16 @@ msgid "Cannot determine bake location on disk"
 msgstr "დისკზე ცხობის მდებარეობა ვერ დადგინდა"
 
 
+msgid "Failed to remove metadata directory %s"
+msgstr "მეტამონაცემების დირექტორია %s ვერ შეიქმნა"
+
+
 msgid "Bake directory of object %s, modifier %s is empty, setting default path"
 msgstr "ობიექტის %s ცხობის დირექტორია, მოდიფიკატორი %s ცარიელია, ყენდება ნაგულისხმები მისამართი"
 
 
 msgid "Path conflict: %d caches set to path %s"
 msgstr "მისამართების კონფლიქტი: %d ქეში დაყენებულია მისამართზე %s"
-
-
-msgid "Failed to remove metadata directory %s"
-msgstr "მეტამონაცემების დირექტორია %s ვერ შეიქმნა"
 
 
 msgid "File must be saved before baking"
@@ -104317,10 +104082,6 @@ msgstr "ობიექტს %s პოზა არ აქვს, ქმედ�
 
 msgid "Unable to remove material slot in edit mode"
 msgstr "რედაქტირების რეჟიმში მასალის სლოტის მოხსნა შეუძლებელია"
-
-
-msgid "Lightcache cannot allocate resources"
-msgstr "სინათლის ქეშს რესურსების ალოკაცია არ შეუძლია"
 
 
 msgid "No active lineset and associated line style to manipulate the modifier"
@@ -106635,6 +106396,10 @@ msgstr "არც ერთი ძვალი არაა აქტიურ�
 
 msgid "Radius (Parent)"
 msgstr "რადიუსი (მშობელი)"
+
+
+msgid "Size:"
+msgstr "ზომა:"
 
 
 msgid "Displays global values"
@@ -109379,6 +109144,10 @@ msgstr "შიდა ნიღაბი"
 
 msgid "Outer Mask"
 msgstr "გარეთა ნიღაბი"
+
+
+msgid "Path:"
+msgstr "მისამართი:"
 
 
 msgid "Base Path:"
@@ -112397,10 +112166,6 @@ msgid "VR Scene Inspection"
 msgstr "VR სცენის ინსპექცია"
 
 
-msgid "3D View > Sidebar > VR"
-msgstr "3გ ხედი > გვერდითა ზოლი > VR"
-
-
 msgid "View the viewport with virtual reality glasses (head-mounted displays)"
 msgstr "დაათვალიერე სარკმელი ვირტუალური რეალობის სათვალით (თავზე ჩამოსაცმელი ეკრანებით)"
 
@@ -112409,24 +112174,12 @@ msgid "Copy Global Transform"
 msgstr "გლობალური გარდაქმნების დაკოპირება"
 
 
-msgid "N-panel in the 3D Viewport"
-msgstr "N-პანელი 3გ სარკმელში"
-
-
-msgid "Asset Browser -> Animations, and 3D Viewport -> Animation panel"
-msgstr "აქტივთა ბრაუზერი -> ანიმაციები, და 3გ სარკმელი -> ანიმაციის პანელი"
-
-
 msgid "Pose Library based on the asset system."
 msgstr "პოზის ბიბლიოთეკა აქტივთა სისტემაზეა დაფუძნებული."
 
 
 msgid "BioVision Motion Capture (BVH) format"
 msgstr "BioVision Motion Capture (BVH) ფორმატი"
-
-
-msgid "File > Import-Export"
-msgstr "ფაილი > იმპორტ-ექსპორტი"
 
 
 msgid "Import-Export BVH from armature objects"
@@ -112445,20 +112198,12 @@ msgid "Scalable Vector Graphics (SVG) 1.1 format"
 msgstr "Scalable Vector Graphics (SVG) 1.1 ფორმატი"
 
 
-msgid "File > Import > Scalable Vector Graphics (.svg)"
-msgstr "ფაილი > იმპორტი > Scalable Vector Graphics (.svg)"
-
-
 msgid "Import SVG as curves"
 msgstr "SVG-ის იმპორტი წირებად"
 
 
 msgid "UV Layout"
 msgstr "UV განლაგება"
-
-
-msgid "UV Editor > UV > Export UV Layout"
-msgstr "UV რედაქტორი > UV > UV განლაგების ექსპორტი"
 
 
 msgid "Export the UV layout as a 2D graphic"
@@ -112491,10 +112236,6 @@ msgstr "USD-ის მაღალი მწარმოებლურობი
 
 msgid "Manage UI translations"
 msgstr "UI თარგმანების მართვა"
-
-
-msgid "Main \"File\" menu, text editor, any UI control"
-msgstr "მთავარი \"ფაილი\" მენიუ, ტექსტური რედაქტორი, ნებისმიერი სახის UI კონტროლი"
 
 
 msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"

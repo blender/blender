@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -243,26 +243,6 @@ msgid "Collection of action groups"
 msgstr "Eylem grupları koleksiyonu"
 
 
-msgid "Replace"
-msgstr "Değiştir"
-
-
-msgid "Offset"
-msgstr "Ofset"
-
-
-msgid "Add"
-msgstr "Topla"
-
-
-msgid "Subtract"
-msgstr "Çıkar"
-
-
-msgid "Multiply"
-msgstr "Çarp"
-
-
 msgid "Action Pose Markers"
 msgstr "Eylem Pozu İmleyicileri"
 
@@ -285,10 +265,6 @@ msgstr "Etkin Poz İmleyicisi İndeksi"
 
 msgid "Index of active pose marker"
 msgstr "Etkin poz imleyicisi indeksi"
-
-
-msgid "Keyframe"
-msgstr "Anahtar Kare"
 
 
 msgid "Add-on"
@@ -495,16 +471,16 @@ msgid "Active Action for this data-block"
 msgstr "Bu veri bloku için Etkin Eylem"
 
 
-msgid "None"
-msgstr "Hiçbiri"
-
-
 msgid "Action Blending"
 msgstr "Eylem Harmanlama"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "Etkin Eylem'in sonucunu DOC yığınının sonucuyla birleştirmek için kullanılan yöntem"
+
+
+msgid "Replace"
+msgstr "Değiştir"
 
 
 msgid "The strip values replace the accumulated results by amount specified by influence"
@@ -519,12 +495,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Şerit değerleri, kanal türüne göre toplama, çarpma veya dördey matematiği kullanılarak uygun biçimde birikmiş sonuçlarla birleştirilir"
 
 
+msgid "Add"
+msgstr "Topla"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Biriken sonuçlara şeridin ağırlıklı sonucu eklenir"
 
 
+msgid "Subtract"
+msgstr "Çıkar"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Biriken sonuçlardan şeridin ağırlıklı sonucu çıkarılır"
+
+
+msgid "Multiply"
+msgstr "Çarp"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1981,6 +1969,10 @@ msgid "Passes to include in the active baking pass"
 msgstr "Etkin pişirme geçişinde içerilecek geçişler"
 
 
+msgid "None"
+msgstr "Hiçbiri"
+
+
 msgid "Emit"
 msgstr "Dışarı Ver"
 
@@ -2331,10 +2323,6 @@ msgstr "Gres Kalemi"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Gres Kalemi veri blokları"
-
-
-msgid "Grease Pencil v3"
-msgstr "Gres Kalemi 3.0"
 
 
 msgid "Hair Curves"
@@ -5142,6 +5130,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "Yerel bir geçersiz kılma kamerasında, bu arka plan görselinin bağlantılı başvuru kamerasından mı geldiği veya geçersiz kılmaya yerel mi olduğu"
 
 
+msgid "Offset"
+msgstr "Ofset"
+
+
 msgid "Rotation"
 msgstr "Döndürme"
 
@@ -6678,6 +6670,10 @@ msgid "Python Scripting"
 msgstr "Python Betiği Yazımı"
 
 
+msgid "Keyframe"
+msgstr "Anahtar Kare"
+
+
 msgid "Frame is selected for editing in the Dope Sheet"
 msgstr "Kare, Döküm Kağıdı'nda düzenleme için seçili"
 
@@ -6767,10 +6763,6 @@ msgid "Space"
 msgstr "Boşluk"
 
 
-msgid "Translation"
-msgstr "Taşıma"
-
-
 msgid "Red"
 msgstr "Kırmızı"
 
@@ -6785,6 +6777,10 @@ msgstr "Mavi"
 
 msgid "Font"
 msgstr "Yazıtipi"
+
+
+msgid "Grease Pencil v3"
+msgstr "Gres Kalemi 3.0"
 
 
 msgid "Key"
@@ -6841,10 +6837,6 @@ msgstr "Dünya"
 
 msgid "Save this data-block even if it has no users"
 msgstr "Kullanıcısı olmasa bile bu veri blokunu kaydet"
-
-
-msgid "Layers"
-msgstr "Katmanlar"
 
 
 msgid "Box"
@@ -7217,6 +7209,10 @@ msgstr "Çizgi Rengini Düzenle"
 
 msgid "Stroke Sculpt Mode"
 msgstr "Vuruş Yontma Kipi"
+
+
+msgid "Layers"
+msgstr "Katmanlar"
 
 
 msgid "2D Layers"
@@ -8617,6 +8613,10 @@ msgid "Curve Falloff Preset"
 msgstr "Eğri Düşüş Önayarı"
 
 
+msgid "Translation"
+msgstr "Taşıma"
+
+
 msgctxt "Operator"
 msgid "Context Menu"
 msgstr "Bağlam Menüsü"
@@ -8795,6 +8795,11 @@ msgstr "Kaydır"
 
 msgid "General"
 msgstr "Genel"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Tümünü Yenile"
 
 
 msgctxt "Operator"
@@ -10318,10 +10323,6 @@ msgid "UV Sculpting"
 msgstr "UV Yontması"
 
 
-msgid "Viewport Sampling Presets"
-msgstr "Görüş Alanı Örnekleme Önayarları"
-
-
 msgid "Bone Constraints"
 msgstr "Kemik Kısıtlamaları"
 
@@ -10336,6 +10337,10 @@ msgstr "2B İmleç"
 
 msgid "Aperture"
 msgstr "Açıklık"
+
+
+msgid "Viewport Sampling Presets"
+msgstr "Görüş Alanı Örnekleme Önayarları"
 
 
 msgid "OpenVDB File"
@@ -11427,38 +11432,6 @@ msgid "Add"
 msgstr "Ekle"
 
 
-msgid "File:"
-msgstr "Dosya:"
-
-
-msgid "Description:"
-msgstr "Açıklama:"
-
-
-msgid "Author:"
-msgstr "Yazar:"
-
-
-msgid "Version:"
-msgstr "Sürüm:"
-
-
-msgid "Warning:"
-msgstr "Uyarı:"
-
-
-msgid "Internet:"
-msgstr "İnternet:"
-
-
-msgid "Path:"
-msgstr "Yol:"
-
-
-msgid "Size:"
-msgstr "Boyut:"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Belgelendirme"
@@ -11912,11 +11885,6 @@ msgstr "Etkin Araçlar"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Tümünü Yenile"
-
-
-msgctxt "Operator"
 msgid "Sequence Render Animation"
 msgstr "Sekans Sunumu Canlandırması"
 
@@ -12170,10 +12138,6 @@ msgid "Default To"
 msgstr "Saptanmışlara Dön"
 
 
-msgid "Preferences:"
-msgstr "Tercihler:"
-
-
 msgctxt "Operator"
 msgid "Load Factory Blender Preferences"
 msgstr "Blender Fabrika Tercihlerini Yükle"
@@ -12187,8 +12151,32 @@ msgid "Error (see console)"
 msgstr "Hata (konsola bakın)"
 
 
+msgid "Description:"
+msgstr "Açıklama:"
+
+
 msgid "Location:"
 msgstr "Konum:"
+
+
+msgid "File:"
+msgstr "Dosya:"
+
+
+msgid "Author:"
+msgstr "Yazar:"
+
+
+msgid "Version:"
+msgstr "Sürüm:"
+
+
+msgid "Warning:"
+msgstr "Uyarı:"
+
+
+msgid "Internet:"
+msgstr "İnternet:"
 
 
 msgid "User:"
@@ -12939,6 +12927,10 @@ msgid "Radius (Parent)"
 msgstr "Yarıçap (Veli)"
 
 
+msgid "Size:"
+msgstr "Boyut:"
+
+
 msgid "User Perspective"
 msgstr "Kullanıcı Perspektifi"
 
@@ -13029,6 +13021,10 @@ msgstr "Şekil Anahtarı Olarak Kaydet"
 
 msgid "Motion"
 msgstr "Hareket"
+
+
+msgid "Path:"
+msgstr "Yol:"
 
 
 msgid "Format:"
@@ -13234,10 +13230,6 @@ msgstr "Video Düzenleme"
 
 msgid "UV Layout"
 msgstr "UV Yerleşimi"
-
-
-msgid "UV Editor > UV > Export UV Layout"
-msgstr "UV Düzenleyicisi > UV > UV Yerleşimi Dışa Aktar"
 
 
 msgid "Cycles Render Engine"

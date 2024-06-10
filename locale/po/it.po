@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
-"PO-Revision-Date: 2024-05-24 15:56+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"PO-Revision-Date: 2024-06-05 18:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -57,50 +57,6 @@ msgstr "Elenco degli AOV"
 
 msgid "Collection of AOVs"
 msgstr "Raccolta di AOV"
-
-
-msgid "Binding Handle"
-msgstr "Maniglia di Legatura"
-
-
-msgid "Number specific to this Binding, unique within the Animation data-blockThis is used, for example, on a KeyframeActionStrip to look up the ActionChannelBag for this Binding"
-msgstr "Numero specifico per questa legatura, univoco all'interno del blocco-dati di Animazione. Viene utilizzato, ad esempio, su un KeyframeAnimationStrip per cercare AnimationChannelBag per questa Legatura"
-
-
-msgid "Action Bindings"
-msgstr "Legature di Azioni"
-
-
-msgid "Collection of animation bindings"
-msgstr "Raccolta di legature di animazione"
-
-
-msgid "Animation Channel Bag"
-msgstr "Borsa Canali Animazione"
-
-
-msgid "Collection of animation channels, typically associated with an animation binding"
-msgstr "Raccolta di canali di animazione, in genere associati a una legatura di animazione"
-
-
-msgid "F-Curves"
-msgstr "Curve-F"
-
-
-msgid "The individual F-Curves that animate the binding"
-msgstr "Le singole Curve-F che animano la legatura"
-
-
-msgid "Collection of F-Curves for a specific animation binding"
-msgstr "Raccolta di Curve-F per una specifica legatura di animazione"
-
-
-msgid "Animation Channels for Bindings"
-msgstr "Canali di Animazione per le Legature"
-
-
-msgid "For each animation binding, a list of animation channels that are meant for that binding"
-msgstr "Per ogni legatura di animazione, un elenco di canali di animazione destinati a tale legatura"
 
 
 msgid "Action F-Curves"
@@ -287,82 +243,6 @@ msgid "Collection of action groups"
 msgstr "Raccolta di gruppi di azioni"
 
 
-msgid "Action Layer"
-msgstr "Livello di Azione"
-
-
-msgid "Influence"
-msgstr "Influenza"
-
-
-msgid "How much of this layer is used when blending into the lower layers"
-msgstr "Quanto di questo livello viene utilizzato durante la fusione con i livelli inferiori"
-
-
-msgid "Mix Mode"
-msgstr "Modalità Miscela"
-
-
-msgid "How animation of this layer is blended into the lower layers"
-msgstr "Come l'animazione di questo livello viene miscelata nei livelli inferiori"
-
-
-msgid "Replace"
-msgstr "Sostituisci"
-
-
-msgid "Channels in this layer override the same channels from underlying layers"
-msgstr "I canali in questo livello sovrascrivono gli stessi canali dei livelli sottostanti"
-
-
-msgid "Offset"
-msgstr "Offset"
-
-
-msgid "Channels in this layer are added to underlying layers as sequential operations"
-msgstr "I canali in questo livello vengono aggiunti ai livelli sottostanti come operazioni sequenziali"
-
-
-msgid "Add"
-msgstr "Aggiungi"
-
-
-msgid "Channels in this layer are added to underlying layers on a per-channel basis"
-msgstr "I canali in questo livello vengono aggiunti ai livelli sottostanti in base al canale"
-
-
-msgid "Subtract"
-msgstr "Sottrai"
-
-
-msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
-msgstr "I canali in questo livello vengono sottratti ai livelli sottostanti in base al canale"
-
-
-msgid "Multiply"
-msgstr "Moltiplica"
-
-
-msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
-msgstr "I canali in questo livello vengono moltiplicati con i livelli sottostanti in base al canale"
-
-
-msgid "Strips"
-msgstr "Spezzoni"
-
-
-msgid "The list of strips that are on this animation layer"
-msgstr "L'elenco delgli spezzoni presenti su questo livello di animazione"
-
-
-msgid "Action Layers"
-msgstr "Livelli di Azione"
-
-
-msgid "Collection of animation layers"
-msgstr "Raccolta di livelli di animazione"
-
-
 msgid "Action Pose Markers"
 msgstr "Indicatori della Posa di Azione"
 
@@ -385,26 +265,6 @@ msgstr "Indice dei Marcatori di Posa Attivi"
 
 msgid "Index of active pose marker"
 msgstr "Indice del marcatore di posa attivo"
-
-
-msgid "Action Strip"
-msgstr "Spezzone d'Azione"
-
-
-msgid "Keyframe"
-msgstr "Keyframe"
-
-
-msgid "Keyframe Animation Strip"
-msgstr "Spezzone Animazione Keyframe"
-
-
-msgid "Action Strips"
-msgstr "Spezzoni d'Azione"
-
-
-msgid "Collection of animation strips"
-msgstr "Raccolta di strisce di animazione"
 
 
 msgid "Add-on"
@@ -627,40 +487,16 @@ msgid "Active Action for this data-block"
 msgstr "Azione Attiva per questo blocco-dati"
 
 
-msgid "Action Binding"
-msgstr "Legatura di Azioni"
-
-
-msgid "The binding identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right binding when assigning an Action"
-msgstr "La legatura identifica quale sottoinsieme dell'azione è considerato per questo blocco-dati, e il suo nome viene utilizzato per trovare la legatura corretta quando si assegna un'Azione"
-
-
-msgid "None"
-msgstr "Nessuno"
-
-
-msgid "Action Binding Handle"
-msgstr "Maniglia di Legatura dell'Azione"
-
-
-msgid "A number that identifies which sub-set of the Action is considered to be for this data-block"
-msgstr "Un numero che identifica quale sottoinsieme dell'Animazione è considerato per questo blocco-dati"
-
-
-msgid "Action Binding Name"
-msgstr "Nome Legatura dell'Azione"
-
-
-msgid "The name of the action binding. The binding identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right binding when assigning an Action"
-msgstr "Il nome della legatura dell'azione. La legatura identifica quale sottoinsieme dell'Azione è considerato per questo blocco-dati, e il suo nome viene utilizzato per trovare la legatura corretta quando si assegna un'Azione"
-
-
 msgid "Action Blending"
 msgstr "Miscelazione di Azioni"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "Metodo utilizzato per combinare i risultati dell'Azione Attiva con i risultati della pila NLA"
+
+
+msgid "Replace"
+msgstr "Sostituisci"
 
 
 msgid "The strip values replace the accumulated results by amount specified by influence"
@@ -675,12 +511,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "I valori strip vengono combinati con i risultati accumulati utilizzando in modo appropriato l'addizione, la moltiplicazione o la matematica dei quaternioni, in base al tipo di canale"
 
 
+msgid "Add"
+msgstr "Aggiungi"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Il risultato pesato dello spezzone viene aggiunto a quelli accumulati"
 
 
+msgid "Subtract"
+msgstr "Sottrai"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Il risultato pesato dello spezzone viene rimosso da quelli accumulati"
+
+
+msgid "Multiply"
+msgstr "Moltiplica"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -2159,6 +2007,10 @@ msgid "Passes to include in the active baking pass"
 msgstr "Passate da includere nel passaggio di precalcolo attivo"
 
 
+msgid "None"
+msgstr "Nessuno"
+
+
 msgid "Emit"
 msgstr "Emissione"
 
@@ -2461,14 +2313,6 @@ msgstr "Matita"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Blocchi-dati Greace Pencil"
-
-
-msgid "Grease Pencil v3"
-msgstr "Grease Pencil v3"
-
-
-msgid "Grease Pencil v3 data-blocks"
-msgstr "Blocchi-dati Greace Pencil v3"
 
 
 msgid "Hair Curves"
@@ -4640,6 +4484,10 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "In una camera di sostituzione locale, se questa immagine di sfondo proviene dalla camera di riferimento collegata o se è locale rispetto a quella di sostituzione"
 
 
+msgid "Offset"
+msgstr "Offset"
+
+
 msgid "Rotation"
 msgstr "Rotazione"
 
@@ -5737,6 +5585,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Quantità di errore residuo in radianti per i vincoli che lavorano sull'orientamento"
 
 
+msgid "Influence"
+msgstr "Influenza"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Ammontare dell'influenza che il vincolo avrà sulla soluzione finale"
 
@@ -6071,6 +5923,10 @@ msgstr "Minimo"
 
 msgid "Minimum value for target channel range"
 msgstr "Valore minimo per l'intervallo del canale obiettivo"
+
+
+msgid "Mix Mode"
+msgstr "Modalità Miscela"
 
 
 msgid "Before Original (Full)"
@@ -12221,6 +12077,10 @@ msgid "Keyframe Type"
 msgstr "Tipo Keyframe"
 
 
+msgid "Keyframe"
+msgstr "Keyframe"
+
+
 msgid "Normal keyframe, e.g. for key poses"
 msgstr "Keyframe normale, per es. per pose chiave"
 
@@ -13834,62 +13694,6 @@ msgid "Grid scale"
 msgstr "Scala Griglia"
 
 
-msgid "Collection of related drawings"
-msgstr "Raccolta di disegni correlati"
-
-
-msgid "Set layer visibility"
-msgstr "Imposta la visibilità del livello"
-
-
-msgid "Local Matrix"
-msgstr "Matrice Locale"
-
-
-msgid "Scale of the layer"
-msgstr "Scala del livello"
-
-
-msgid "Translation"
-msgstr "Traslazione"
-
-
-msgid "Use Masks"
-msgstr "Utilizza Maschere"
-
-
-msgid "Grease Pencil Layer Group"
-msgstr "Gruppo di Livelli Greace Pencil"
-
-
-msgid "Group of Grease Pencil layers"
-msgstr "Gruppo di Livelli di Greace Pencil"
-
-
-msgid "Set layer group visibility"
-msgstr "Imposta la visibilità del gruppo di livelli"
-
-
-msgid "Protect group from further editing and/or frame changes"
-msgstr "Protegge il gruppo da ulteriori modifiche e/o cambi di fotogramma"
-
-
-msgid "Group name"
-msgstr "Nome gruppo"
-
-
-msgid "Grease Pencil Mask Layers"
-msgstr "Livelli di Maschera per Greace Pencil"
-
-
-msgid "Collection of grease pencil masking layers"
-msgstr "Raccolta di livelli di maschera per greace pencil"
-
-
-msgid "Active Layer Mask Index"
-msgstr "Indice Maschera di Livello Attivo"
-
-
 msgid "Grease Pencil Layers"
 msgstr "Livelli Matita"
 
@@ -13910,6 +13714,18 @@ msgid "Active Note"
 msgstr "Nota Attiva"
 
 
+msgid "Grease Pencil Mask Layers"
+msgstr "Livelli di Maschera per Greace Pencil"
+
+
+msgid "Collection of grease pencil masking layers"
+msgstr "Raccolta di livelli di maschera per greace pencil"
+
+
+msgid "Active Layer Mask Index"
+msgstr "Indice Maschera di Livello Attivo"
+
+
 msgid "Last frame of the segment"
 msgstr "Ultimo fotogramma del segmento"
 
@@ -13924,22 +13740,6 @@ msgstr "Primo Fotogramma"
 
 msgid "First frame of the segment"
 msgstr "Primo fotogramma del segmento"
-
-
-msgid "Grease Pencil Group"
-msgstr "Gruppo di Greace Pencil"
-
-
-msgid "Collection of Grease Pencil layers"
-msgstr "Raccolta di livelli Greace Pencil"
-
-
-msgid "Active Layer Group"
-msgstr "Gruppo di Livelli Attivo"
-
-
-msgid "Active Grease Pencil layer"
-msgstr "Livello Greace Pencil Attivo"
 
 
 msgid "Statistical view of the levels of color in an image"
@@ -14022,6 +13822,10 @@ msgstr "Pennello"
 
 msgid "Font"
 msgstr "Carattere"
+
+
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
 
 
 msgid "Key"
@@ -14136,12 +13940,12 @@ msgid "A collection of F-Curves for animation"
 msgstr "Collezione di Curve-F per l'animazione"
 
 
-msgid "Bindings"
-msgstr "Legature"
-
-
 msgid "Curve Frame Range"
 msgstr "Intervallo Fotogrammi Curva"
+
+
+msgid "F-Curves"
+msgstr "Curve-F"
 
 
 msgid "Frame Range"
@@ -14155,14 +13959,6 @@ msgstr "Gruppi"
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "ID Root Type"
-
-
-msgid "Is Empty"
-msgstr "È Vuoto"
-
-
-msgid "Layers"
-msgstr "Livelli"
 
 
 msgid "Pose Markers"
@@ -16661,6 +16457,10 @@ msgid "Grease Pencil weight paint"
 msgstr "Pittura pesi di Greace Pencil"
 
 
+msgid "Layers"
+msgstr "Livelli"
+
+
 msgid "Filter by Type"
 msgstr "Filtra per Tipo"
 
@@ -16727,18 +16527,6 @@ msgstr "Modifica i tratti Greace Pencil anziché i dati del viewport"
 
 msgid "Surface Offset"
 msgstr "Offset Superficie"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Blocco-dati Matita"
-
-
-msgid "Grease Pencil layer groups"
-msgstr "Gruppo di livelli di Greace Pencil"
-
-
-msgid "Grease Pencil layers"
-msgstr "Livelli di Greace Pencil"
 
 
 msgid "Image data-block referencing an external or packed image"
@@ -17408,6 +17196,34 @@ msgid "Display Data Size"
 msgstr "Visualizza Dimensione Dati"
 
 
+msgid "Influence Distance"
+msgstr "Distanza di Influenza"
+
+
+msgid "Invert Collection"
+msgstr "Inverti Raccolta"
+
+
+msgid "Display Data"
+msgstr "Mostra Dati"
+
+
+msgid "Visibility Blur"
+msgstr "Sfocatura Visibilità"
+
+
+msgid "Visibility Bias"
+msgstr "Bias Visibilità"
+
+
+msgid "Visibility Collection"
+msgstr "Visibilità Raccolta"
+
+
+msgid "Parallax"
+msgstr "Parallasse"
+
+
 msgid "Bake Samples"
 msgstr "Campioni Precalcolo"
 
@@ -17440,6 +17256,10 @@ msgid "Search Distance"
 msgstr "Distanza di Ricerca"
 
 
+msgid "Intensity"
+msgstr "Intensità"
+
+
 msgid "Normal Bias"
 msgstr "Bias Normale"
 
@@ -17466,42 +17286,6 @@ msgstr "Soglia di Validità"
 
 msgid "View Bias"
 msgstr "Visualizza Bias"
-
-
-msgid "Influence Distance"
-msgstr "Distanza di Influenza"
-
-
-msgid "Intensity"
-msgstr "Intensità"
-
-
-msgid "Invert Collection"
-msgstr "Inverti Raccolta"
-
-
-msgid "Invert visibility collection"
-msgstr "Inverti visibilità raccolta"
-
-
-msgid "Parallax"
-msgstr "Parallasse"
-
-
-msgid "Display Data"
-msgstr "Mostra Dati"
-
-
-msgid "Visibility Blur"
-msgstr "Sfocatura Visibilità"
-
-
-msgid "Visibility Bias"
-msgstr "Bias Visibilità"
-
-
-msgid "Visibility Collection"
-msgstr "Visibilità Raccolta"
 
 
 msgid "Active Shape Index"
@@ -17535,10 +17319,6 @@ msgstr "Soglia Ritaglio"
 msgctxt "Material"
 msgid "Blend Mode"
 msgstr "Modalità Fusione"
-
-
-msgid "Blend Mode for Transparent Faces"
-msgstr "Modalità Fusione per Facce Trasparenti"
 
 
 msgctxt "Material"
@@ -18083,6 +17863,10 @@ msgid "Grease Pencil Data"
 msgstr "Dati Matita"
 
 
+msgid "Grease Pencil data-block"
+msgstr "Blocco-dati Matita"
+
+
 msgid "Interface"
 msgstr "Interfaccia"
 
@@ -18466,6 +18250,10 @@ msgid "Input Matrix"
 msgstr "Ingresso Matrice"
 
 
+msgid "Local Matrix"
+msgstr "Matrice Locale"
+
+
 msgid "Parent Inverse Matrix"
 msgstr "Matrice Inversa Genitore"
 
@@ -18733,8 +18521,24 @@ msgid "Use Alpha"
 msgstr "Utilizza Alfa"
 
 
+msgid "Scale instance based on face size"
+msgstr "Scala l'istanza in base alle dimensioni della faccia"
+
+
+msgid "Rotate instance according to vertex normal"
+msgstr "Ruota l'istanza in base alla normale dei vertici"
+
+
 msgid "Shape Key Edit Mode"
 msgstr "Modalità Modfifica Chiave Forma"
+
+
+msgid "Display shape keys in edit mode (for meshes only)"
+msgstr "Visualizza le shape keys in modalità modifica (solo per le mesh)"
+
+
+msgid "Use Simulation Cache"
+msgstr "Utilizza Cache Simulazione"
 
 
 msgid "Vertex Groups"
@@ -18745,8 +18549,44 @@ msgid "Vertex groups of the object"
 msgstr "Gruppo di vertici dell'oggetto"
 
 
+msgid "Camera Visibility"
+msgstr "Visibilità Camera"
+
+
+msgid "Object visibility to camera rays"
+msgstr "Visibilità dell'oggetto ai raggi della camera"
+
+
+msgid "Diffuse Visibility"
+msgstr "Visibilità Diffuso"
+
+
+msgid "Object visibility to diffuse rays"
+msgstr "Visibilità dell'oggetto ai raggi di diffusione"
+
+
+msgid "Glossy Visibility"
+msgstr "Visibilità Lucidità"
+
+
+msgid "Object visibility to glossy rays"
+msgstr "Visibilità dell'oggetto ai raggi di lucidità"
+
+
+msgid "Shadow Visibility"
+msgstr "Visibilità Ombra"
+
+
 msgid "Object visibility to shadow rays"
 msgstr "Visibilità dell'oggetto ai raggi di ombra"
+
+
+msgid "Object visibility to transmission rays"
+msgstr "Visibilità dell'oggetto ai raggi di trasmissione"
+
+
+msgid "Object visibility to volume scattering rays"
+msgstr "Visibilità dell'oggetto ai raggi di diffusione volumetrica"
 
 
 msgid "Particle Settings"
@@ -18755,6 +18595,10 @@ msgstr "Impostazioni Particelle"
 
 msgid "Particle settings, reusable by multiple particle systems"
 msgstr "Impostazioni particelle, riutilizzabile da sistemi particellari multipli"
+
+
+msgid "Active Instance Object Index"
+msgstr "Indice Oggetto Istanza Attivo"
 
 
 msgid "Degrees"
@@ -25334,10 +25178,6 @@ msgid "Fluid simulation modifier"
 msgstr "Modificatore di simulazione fluidi"
 
 
-msgid "Inflow/Outflow"
-msgstr "Afflusso/Deflusso"
-
-
 msgid "Hook modifier to modify the location of vertices"
 msgstr "Modificatore Gancio per modificare la posizione dei vertici"
 
@@ -26193,10 +26033,6 @@ msgstr "Aggiunge solo l'orlo ai dati originali"
 
 msgid "Subdivision surface modifier"
 msgstr "Modificatore di suddivisione della superficie"
-
-
-msgid "Number of subdivisions to perform"
-msgstr "Numero di suddivisioni da eseguire"
 
 
 msgid "Number of subdivisions to perform when rendering"
@@ -29768,10 +29604,6 @@ msgid "Focus Region"
 msgstr "Regione Fuoco"
 
 
-msgid "Operator Properties"
-msgstr "Proprietà Operatore"
-
-
 msgid "Add keyframes on every frame between the selected keyframes"
 msgstr "Aggiunge un keyframes su ogni fotogramma tra i keyframes selezionati"
 
@@ -31354,6 +31186,10 @@ msgstr "Fattore di scala di grandezza del pennello"
 msgctxt "Operator"
 msgid "Stencil Brush Control"
 msgstr "Controllo Stencil Pennello"
+
+
+msgid "Translation"
+msgstr "Traslazione"
 
 
 msgid "Primary"
@@ -34263,6 +34099,10 @@ msgid "Interpolate Sequence"
 msgstr "Interpola Sequenza"
 
 
+msgid "Active Grease Pencil layer"
+msgstr "Livello Greace Pencil Attivo"
+
+
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Aggiunge Nuovo Livello"
@@ -35034,6 +34874,14 @@ msgid "Clear the currently selected render slot"
 msgstr "Elimina il render slot selezionato"
 
 
+msgid "Blend Mode for Transparent Faces"
+msgstr "Modalità Fusione per Facce Trasparenti"
+
+
+msgid "Relative Paths"
+msgstr "Percorsi Relativi"
+
+
 msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "Imposta Punto Curve"
@@ -35070,10 +34918,6 @@ msgstr "Modifica l'immagine in un'applicazione esterna"
 
 msgid "Filepath used for importing the file"
 msgstr "Percorso utilizzato per importare il file"
-
-
-msgid "Relative Paths"
-msgstr "Percorsi Relativi"
 
 
 msgctxt "Operator"
@@ -46391,8 +46235,8 @@ msgid "URL to open"
 msgstr "URL da aprire"
 
 
-msgid "Subdivision Scheme"
-msgstr "Schema di Suddivisione"
+msgid "Subdivision"
+msgstr "Suddivisione"
 
 
 msgid "UV Maps"
@@ -46401,10 +46245,6 @@ msgstr "Mappe UV"
 
 msgid "All Custom"
 msgstr "Tutto Personalizzato"
-
-
-msgid "Shapes"
-msgstr "Forme"
 
 
 msgid "Textures Directory"
@@ -46757,22 +46597,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Integrator Presets"
-msgstr "Preimpostazioni Integratore"
-
-
-msgid "Sampling Presets"
-msgstr "Preimpostazioni Campionatura"
-
-
-msgid "Film"
-msgstr "Film"
-
-
-msgid "Passes"
-msgstr "Passaggi"
-
-
 msgid "Chain Scaling"
 msgstr "Scalatura a Catena"
 
@@ -46861,8 +46685,20 @@ msgid "Ray Visibility"
 msgstr "Visibilità Raggio"
 
 
+msgid "Integrator Presets"
+msgstr "Preimpostazioni Integratore"
+
+
 msgid "Post Processing"
 msgstr "Post Elaborazione"
+
+
+msgid "Sampling Presets"
+msgstr "Preimpostazioni Campionatura"
+
+
+msgid "Film"
+msgstr "Film"
 
 
 msgid "Pixel Filter"
@@ -46889,6 +46725,10 @@ msgid "Shutter Curve"
 msgstr "Curva Otturatore"
 
 
+msgid "Passes"
+msgstr "Passaggi"
+
+
 msgid "Performance"
 msgstr "Prestazioni"
 
@@ -46907,10 +46747,6 @@ msgstr "Render Finale"
 
 msgid "Threads"
 msgstr "Processi"
-
-
-msgid "Subdivision"
-msgstr "Suddivisione"
 
 
 msgid "Render Pass"
@@ -47284,6 +47120,10 @@ msgstr "Impostazioni Keyframe"
 
 msgid "Cache Settings"
 msgstr "Impostazioni Cache"
+
+
+msgid "Strips"
+msgstr "Spezzoni"
 
 
 msgid "Feature Weights"
@@ -50288,7 +50128,7 @@ msgstr "Visibilità dell'oggetto per raggi di ombra"
 
 
 msgid "Object visibility for transmission rays"
-msgstr "Visibilità dell'oggetto ai raggi di trasmissione"
+msgstr "Visibilità dell'oggetto per raggi di trasmissione"
 
 
 msgid "Maximum number of bounces the background light will contribute to the render"
@@ -53797,6 +53637,10 @@ msgid "Pixel Coordinates"
 msgstr "Coordinate Pixel"
 
 
+msgid "Display faces colored according to the difference in shape between UVs and their 3D coordinates (blue for low distortion, red for high distortion)"
+msgstr "Visualizza le facce colorate in accordo alla differenza tra le coordinate UV e le loro coordinate 3D (blu per basse distorsioni, rosso per alte distorsioni)"
+
+
 msgid "Live Unwrap"
 msgstr "Scucitura in Tempo Reale"
 
@@ -56005,6 +55849,14 @@ msgid "Pose Rotation Offset"
 msgstr "Offset di Rotazione della Posa"
 
 
+msgid "Bindings"
+msgstr "Legature"
+
+
+msgid "Operator Properties"
+msgstr "Proprietà Operatore"
+
+
 msgctxt "Color"
 msgid "Dark"
 msgstr "Scuro"
@@ -56344,52 +56196,8 @@ msgid "Eyedropper Modal Map"
 msgstr "Mappa Modale Contagocce"
 
 
-msgid "File:"
-msgstr "File:"
-
-
-msgid "Type:"
-msgstr "Tipo:"
-
-
-msgid "Missing script files"
-msgstr "File di script mancanti"
-
-
-msgid "Description:"
-msgstr "Descrizione:"
-
-
-msgid "Author:"
-msgstr "Autore:"
-
-
-msgid "Version:"
-msgstr "Versione:"
-
-
-msgid "Warning:"
-msgstr "Avviso:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgid "License:"
-msgstr "Licenza:"
-
-
-msgid "Missing   "
-msgstr "Mancanti   "
-
-
-msgid "Path:"
-msgstr "Percorso:"
-
-
-msgid "Size:"
-msgstr "Dimensione:"
+msgid "Warning"
+msgstr "Avviso"
 
 
 msgctxt "Operator"
@@ -56760,6 +56568,10 @@ msgstr "Estrapola"
 
 msgid "Pivot Offset"
 msgstr "Offset Perno"
+
+
+msgid "Shapes"
+msgstr "Forme"
 
 
 msgid "Axes"
@@ -57348,11 +57160,6 @@ msgstr "Passo Automatico"
 
 msgid "Refraction"
 msgstr "Rifrazione"
-
-
-msgctxt "Operator"
-msgid "Bake Indirect Lighting"
-msgstr "Precalcolo Illuminazione Indiretta (bake)"
 
 
 msgid "Render Engine"
@@ -58712,10 +58519,6 @@ msgid "Pan Sensitivity"
 msgstr "Sensibilità Pan"
 
 
-msgid "Preferences:"
-msgstr "Preferenze:"
-
-
 msgid "Use Light"
 msgstr "Utilizza Luce"
 
@@ -58740,8 +58543,36 @@ msgid ":"
 msgstr ":"
 
 
+msgid "Missing script files"
+msgstr "File di script mancanti"
+
+
+msgid "Description:"
+msgstr "Descrizione:"
+
+
 msgid "Location:"
 msgstr "Posizione:"
+
+
+msgid "File:"
+msgstr "File:"
+
+
+msgid "Author:"
+msgstr "Autore:"
+
+
+msgid "Version:"
+msgstr "Versione:"
+
+
+msgid "Warning:"
+msgstr "Avviso:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
 
 
 msgid "User:"
@@ -59123,11 +58954,6 @@ msgstr "Nascondi Mascherati"
 
 
 msgctxt "Operator"
-msgid "Invert Mask"
-msgstr "Inverti Maschera"
-
-
-msgctxt "Operator"
 msgid "Fill Mask"
 msgstr "Riempi Maschera"
 
@@ -59135,6 +58961,11 @@ msgstr "Riempi Maschera"
 msgctxt "Operator"
 msgid "Clear Mask"
 msgstr "Pulisci Maschera"
+
+
+msgctxt "Operator"
+msgid "Invert Mask"
+msgstr "Inverti Maschera"
 
 
 msgctxt "Operator"
@@ -59905,16 +59736,32 @@ msgid "ShapeKey"
 msgstr "ShapeKey"
 
 
+msgid "Source and destination meshes do not have the same number of vertices, 'Topology' mapping cannot be used in this case"
+msgstr "Le mesh sorgente e di destinazione non hanno lo stesso numero di vertici, in questo caso non è possibile utilizzare la mappatura 'Topologia'"
+
+
 msgid "Source or destination meshes do not have any vertices, cannot transfer vertex data"
 msgstr "La mesh sorgente o quella di destinazione non ha vertici, impossibile trasferire dati vertice"
+
+
+msgid "Source and destination meshes do not have the same number of edges, 'Topology' mapping cannot be used in this case"
+msgstr "Le mesh sorgente e di destinazione non hanno lo stesso numero di spigoli, in questo caso non è possibile utilizzare la mappatura 'Topologia'"
 
 
 msgid "Source or destination meshes do not have any edges, cannot transfer edge data"
 msgstr "La mesh sorgente o quella di destinazione non ha spigoli, impossibile trasferire dati spigolo"
 
 
+msgid "Source and destination meshes do not have the same number of face corners, 'Topology' mapping cannot be used in this case"
+msgstr "Le mesh sorgente e di destinazione non hanno lo stesso numero di angoli della faccia in questo caso non è possibile utilizzare la mappatura 'Topologia'"
+
+
 msgid "Source or destination meshes do not have any faces, cannot transfer corner data"
 msgstr "La mesh sorgente o quella di destinazione non ha facce, impossibile trasferire dati angolo"
+
+
+msgid "Source and destination meshes do not have the same number of faces, 'Topology' mapping cannot be used in this case"
+msgstr "Le mesh sorgente e di destinazione non hanno lo stesso numero di facce, in questo caso non è possibile utilizzare la mappatura 'Topologia'"
 
 
 msgid "Source or destination meshes do not have any faces, cannot transfer face data"
@@ -60060,10 +59907,6 @@ msgstr "%s, cache non aggiornata!"
 
 msgid "%s, not exact since frame %i"
 msgstr "%s, non esatto dal fotogramma %i"
-
-
-msgid "Warning"
-msgstr "Avviso"
 
 
 msgid "Invalid Input Error"
@@ -61222,10 +61065,6 @@ msgstr "Gruppi Materiale"
 
 msgid "Rigging"
 msgstr "Rigging"
-
-
-msgid "Mesh Data"
-msgstr "Dati Mesh"
 
 
 msgid "Delete selected control points and splines?"
@@ -62971,6 +62810,10 @@ msgid "Radius (Parent)"
 msgstr "Raggio (Genitore)"
 
 
+msgid "Size:"
+msgstr "Dimensione:"
+
+
 msgid "Displays global values"
 msgstr "Mostra valori globali"
 
@@ -63897,6 +63740,10 @@ msgstr "Centro:"
 
 msgid "Inner Edge:"
 msgstr "Spigolo Interno:"
+
+
+msgid "Path:"
+msgstr "Percorso:"
 
 
 msgid "Base Path:"

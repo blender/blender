@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2024-04-13 17:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -243,30 +243,6 @@ msgid "Collection of action groups"
 msgstr "Kolekcja grup akcji"
 
 
-msgid "Influence"
-msgstr "Wpływ"
-
-
-msgid "Replace"
-msgstr "Zastąp"
-
-
-msgid "Offset"
-msgstr "Odstęp"
-
-
-msgid "Add"
-msgstr "Dodaj"
-
-
-msgid "Subtract"
-msgstr "Odejmij"
-
-
-msgid "Multiply"
-msgstr "Pomnóż"
-
-
 msgid "Action Pose Markers"
 msgstr "Znaczniki akcji póz"
 
@@ -487,10 +463,6 @@ msgid "Active Action for this data-block"
 msgstr "Akcja aktywna dla bieżącego bloku danych"
 
 
-msgid "None"
-msgstr "Brak"
-
-
 msgid "Action Blending"
 msgstr "Przenikanie akcji"
 
@@ -499,16 +471,32 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda używana do mieszania rezultatu aktywnej akcji z rezultatem ścieżek NLA"
 
 
+msgid "Replace"
+msgstr "Zastąp"
+
+
 msgid "Combine"
 msgstr "Połącz"
+
+
+msgid "Add"
+msgstr "Dodaj"
 
 
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Ważony rezultat paska jest dodawany do rezultatu całkowitego"
 
 
+msgid "Subtract"
+msgstr "Odejmij"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Ważony rezultat paska jest usuwany z połączonego rezultatu"
+
+
+msgid "Multiply"
+msgstr "Pomnóż"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1743,6 +1731,10 @@ msgid "Bake the normals in tangent space"
 msgstr "Wypala wektory normalne w przestrzeni stycznej"
 
 
+msgid "None"
+msgstr "Brak"
+
+
 msgid "Emit"
 msgstr "Emisja"
 
@@ -2049,10 +2041,6 @@ msgstr "Grease Pencil"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Bloki danych dla Grease Pencil"
-
-
-msgid "Grease Pencil v3"
-msgstr "Grease Pencil v3"
 
 
 msgid "Hair Curves"
@@ -3571,6 +3559,10 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "Parametry określające która warstwa, przebieg oraz klatka obrazu są wyświetlane"
 
 
+msgid "Offset"
+msgstr "Odstęp"
+
+
 msgid "Rotation"
 msgstr "Obrót"
 
@@ -4506,6 +4498,10 @@ msgstr "Wielkość szczątkowego błędu w jednostkach Blendera dla ogranicznik�
 
 msgid "Amount of residual error in radians for constraints that work on orientation"
 msgstr "Wielkość szczątkowego błędu w radianach dla ograniczników które zmieniają orientacje"
+
+
+msgid "Influence"
+msgstr "Wpływ"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -9128,10 +9124,6 @@ msgid "Grid Color"
 msgstr "Kolor siatki"
 
 
-msgid "Translation"
-msgstr "Tłumaczenia"
-
-
 msgid "Grease Pencil Layers"
 msgstr "Warstwy Grease Pencil"
 
@@ -9154,6 +9146,10 @@ msgstr "Pędzel"
 
 msgid "Font"
 msgstr "Czcionka"
+
+
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
 
 
 msgid "Key"
@@ -9238,10 +9234,6 @@ msgstr "Oryginalny ID"
 
 msgid "Groups"
 msgstr "Grupy"
-
-
-msgid "Layers"
-msgstr "Warstwy"
 
 
 msgid "B-Bone"
@@ -9598,6 +9590,10 @@ msgid "Grease Pencil vertex paint"
 msgstr "Rysowanie wierzchołków Grease Pencil"
 
 
+msgid "Layers"
+msgstr "Warstwy"
+
+
 msgid "Frames in absolute range of the scene frame"
 msgstr "Klatki w absolutnym zakresie sceny"
 
@@ -9624,10 +9620,6 @@ msgstr "Adaptacyjna rozdzielczość"
 
 msgid "Show Start Frame"
 msgstr "Wyświetl klatkę początkową"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Blok danych narzędzia Grease Pencil"
 
 
 msgid "X/Y pixels per meter, for the image buffer"
@@ -9720,12 +9712,32 @@ msgid "How smooth is the transition between each cascade"
 msgstr "Jak płynne jest przejście pomiędzy każdą kaskadą"
 
 
+msgid "Invert Collection"
+msgstr "Kolekcja odwróceń"
+
+
+msgid "Show the clipping distances in the 3D view"
+msgstr "Pokazuje odległości przycinania w widoku 3D"
+
+
+msgid "Visibility Collection"
+msgstr "Kolekcja widoczności"
+
+
+msgid "Enable custom settings for the parallax correction volume"
+msgstr "Włącza niestandardowe ustawienia głośności korekcji paralaksy"
+
+
 msgid "Bake Samples"
 msgstr "Wypal próbki"
 
 
 msgid "Number of ray directions to evaluate when baking"
 msgstr "Liczba kierunków promieni do uwzględnienia podczas wypalania"
+
+
+msgid "Intensity"
+msgstr "Intensywność"
 
 
 msgid "Resolution X"
@@ -9750,26 +9762,6 @@ msgstr "Rozdzielczość Z"
 
 msgid "Number of samples along the z axis of the volume"
 msgstr "Liczba próbek wzdłuż osi z objętości"
-
-
-msgid "Intensity"
-msgstr "Intensywność"
-
-
-msgid "Invert Collection"
-msgstr "Kolekcja odwróceń"
-
-
-msgid "Show the clipping distances in the 3D view"
-msgstr "Pokazuje odległości przycinania w widoku 3D"
-
-
-msgid "Enable custom settings for the parallax correction volume"
-msgstr "Włącza niestandardowe ustawienia głośności korekcji paralaksy"
-
-
-msgid "Visibility Collection"
-msgstr "Kolekcja widoczności"
 
 
 msgid "Final frame of the mask (used for sequencer)"
@@ -9938,6 +9930,10 @@ msgstr "Filtr"
 
 msgid "Grease Pencil Data"
 msgstr "Dane narzędzia Grease Pencil"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Blok danych narzędzia Grease Pencil"
 
 
 msgid "Interface"
@@ -12691,6 +12687,10 @@ msgstr "Ustawienie wstępne"
 msgctxt "Curve"
 msgid "Line"
 msgstr "Linia"
+
+
+msgid "Translation"
+msgstr "Tłumaczenia"
 
 
 msgctxt "Operator"
@@ -15596,6 +15596,10 @@ msgid "Export USD"
 msgstr "Eksportuj USD"
 
 
+msgid "Subdivision"
+msgstr "Podział"
+
+
 msgid "Export Textures"
 msgstr "Eksportuj tekstury"
 
@@ -15745,20 +15749,20 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
-msgid "Viewport Sampling Presets"
-msgstr "Predefiniowane położenia rzutni"
-
-
-msgid "Film"
-msgstr "Film"
-
-
 msgid "Aperture"
 msgstr "Szczelina"
 
 
 msgid "Caustics"
 msgstr "Kaustyka"
+
+
+msgid "Viewport Sampling Presets"
+msgstr "Predefiniowane położenia rzutni"
+
+
+msgid "Film"
+msgstr "Film"
 
 
 msgid "Transparent"
@@ -15783,10 +15787,6 @@ msgstr "Kompozytor"
 
 msgid "Path Guiding"
 msgstr "Prowadzenie po ścieżce"
-
-
-msgid "Subdivision"
-msgstr "Podział"
 
 
 msgid "Geometry Data"
@@ -16600,10 +16600,6 @@ msgid "Denoise on GPU"
 msgstr "Odszumiaj przy użyciu procesora graficznego"
 
 
-msgid "Perform denoising on GPU devices, if available. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled"
-msgstr "Wykonuje odszumianie przy użyciu procesora graficznego, jeśli jest dostępny. Jest to znacznie szybsze niż na procesorze, ale wymaga dodatkowej pamięci procesora graficznego. Gdy duże sceny wymagają więcej pamięci, opcja ta może zostać wyłączona"
-
-
 msgid "Device"
 msgstr "Urządzenie"
 
@@ -16878,10 +16874,6 @@ msgstr "Maksymalny rozmiar kształtu bokeh dla głębi ostrości (im mniejszy, t
 
 msgid "Trace Precision"
 msgstr "Precyzja śledzenia"
-
-
-msgid "Auto Bake"
-msgstr "Automatyczne wypalanie"
 
 
 msgid "Precision of the horizon search"
@@ -17627,36 +17619,8 @@ msgid "Rotate Normals"
 msgstr "Obróć wektory normalne"
 
 
-msgid "File:"
-msgstr "Plik:"
-
-
-msgid "Description:"
-msgstr "Opis:"
-
-
-msgid "Author:"
-msgstr "Autor:"
-
-
-msgid "Version:"
-msgstr "Wersja:"
-
-
-msgid "Warning:"
-msgstr "Ostrzeżenie:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgid "Path:"
-msgstr "Ścieżka:"
-
-
-msgid "Size:"
-msgstr "Rozmiar:"
+msgid "Warning"
+msgstr "Uwaga"
 
 
 msgctxt "Operator"
@@ -18214,23 +18178,8 @@ msgid "Light Clamping"
 msgstr "Ograniczenie światła"
 
 
-msgctxt "Operator"
-msgid "Bake Indirect Lighting"
-msgstr "Wypal oświetlenie pośrednie"
-
-
-msgctxt "Operator"
-msgid "Delete Lighting Cache"
-msgstr "Usuń pamięć podręczną oświetlenia"
-
-
 msgid "Render Engine"
 msgstr "Silnik renderowania"
-
-
-msgctxt "Operator"
-msgid "Bake Cubemap Only"
-msgstr "Wypal wyłącznie mapę sześcienną"
 
 
 msgid "General Override"
@@ -18941,17 +18890,37 @@ msgid "Zoom Method"
 msgstr "Metoda powiększania"
 
 
-msgid "Preferences:"
-msgstr "Ustawienia:"
-
-
 msgctxt "Operator"
 msgid "Load Factory Blender Preferences"
 msgstr "Wczytaj preferencje fabryczne programu Blender"
 
 
+msgid "Description:"
+msgstr "Opis:"
+
+
 msgid "Location:"
 msgstr "Położenie:"
+
+
+msgid "File:"
+msgstr "Plik:"
+
+
+msgid "Author:"
+msgstr "Autor:"
+
+
+msgid "Version:"
+msgstr "Wersja:"
+
+
+msgid "Warning:"
+msgstr "Ostrzeżenie:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
 
 
 msgid "User:"
@@ -19704,10 +19673,6 @@ msgstr "%s nie dokładne w klatce %i"
 
 msgid "pointclouds"
 msgstr "punktychmur"
-
-
-msgid "Warning"
-msgstr "Uwaga"
 
 
 msgid "Invalid Input Error"
@@ -23345,6 +23310,10 @@ msgid "Radius (Parent)"
 msgstr "Promień (Rodzic)"
 
 
+msgid "Size:"
+msgstr "Rozmiar:"
+
+
 msgid "Displays global values"
 msgstr "Wyświetla globalne wartości"
 
@@ -24489,6 +24458,10 @@ msgid "Center:"
 msgstr "Centrum:"
 
 
+msgid "Path:"
+msgstr "Ścieżka:"
+
+
 msgid "File Subpath:"
 msgstr "Podścieżka pliku:"
 
@@ -25181,10 +25154,6 @@ msgstr "Edycja UV"
 msgctxt "WorkSpace"
 msgid "Video Editing"
 msgstr "Edycja wideo"
-
-
-msgid "3D View > Sidebar > VR"
-msgstr "Widok 3D > Pasek boczny > VR"
 
 
 msgid "Cycles Render Engine"

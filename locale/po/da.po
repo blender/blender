@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2024-05-23 14:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -53,50 +53,6 @@ msgstr "Liste over AOVs"
 
 msgid "Collection of AOVs"
 msgstr "Samling af AOVs"
-
-
-msgid "Binding Handle"
-msgstr "bindings håndtag"
-
-
-msgid "Number specific to this Binding, unique within the Animation data-blockThis is used, for example, on a KeyframeActionStrip to look up the ActionChannelBag for this Binding"
-msgstr "Nummer specifikt for denne binding, unikt i animationsdatablokken. Dette bruges for eksempel på en KeyframeActionStrip til at slå ActionChannelBag op for denne binding"
-
-
-msgid "Action Bindings"
-msgstr "Handlings bindinger"
-
-
-msgid "Collection of animation bindings"
-msgstr "Samling af animation bindinger"
-
-
-msgid "Animation Channel Bag"
-msgstr "Animation kanal pose"
-
-
-msgid "Collection of animation channels, typically associated with an animation binding"
-msgstr "Samling af animationskanaler, typisk forbundet med en animationsbinding"
-
-
-msgid "F-Curves"
-msgstr "F-curves"
-
-
-msgid "The individual F-Curves that animate the binding"
-msgstr "De individuelle F-kurver, der animerer bindingen"
-
-
-msgid "Collection of F-Curves for a specific animation binding"
-msgstr "Samling af F-kurver til en specifik animationsbinding"
-
-
-msgid "Animation Channels for Bindings"
-msgstr "Animationskanaler til bindinger"
-
-
-msgid "For each animation binding, a list of animation channels that are meant for that binding"
-msgstr "For hver animationsbinding en liste over animationskanaler, der er beregnet til denne binding"
 
 
 msgid "Action F-Curves"
@@ -283,78 +239,6 @@ msgid "Collection of action groups"
 msgstr "Samling af handlingsgrupper"
 
 
-msgid "Action Layer"
-msgstr "Handlingslag"
-
-
-msgid "Influence"
-msgstr "Indflydelse"
-
-
-msgid "How much of this layer is used when blending into the lower layers"
-msgstr "Hvor meget af dette lag bruges, når det blandes ind i de nederste lag"
-
-
-msgid "Mix Mode"
-msgstr "Blandingstilstand"
-
-
-msgid "How animation of this layer is blended into the lower layers"
-msgstr "Hvordan animation af dette lag blandes ind i de nederste lag"
-
-
-msgid "Replace"
-msgstr "Udskift"
-
-
-msgid "Channels in this layer override the same channels from underlying layers"
-msgstr "Kanaler i dette lag tilsidesætter de samme kanaler fra underliggende lag"
-
-
-msgid "Channels in this layer are added to underlying layers as sequential operations"
-msgstr "Kanaler i dette lag føjes til underliggende lag som sekventielle operationer"
-
-
-msgid "Add"
-msgstr "Tilføj"
-
-
-msgid "Channels in this layer are added to underlying layers on a per-channel basis"
-msgstr "Kanaler i dette lag føjes til underliggende lag pr. kanal"
-
-
-msgid "Subtract"
-msgstr "Fratrække"
-
-
-msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
-msgstr "Kanaler i dette lag trækkes fra underliggende lag pr. kanal"
-
-
-msgid "Multiply"
-msgstr "Gange"
-
-
-msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
-msgstr "Kanaler i dette lag multipliceres med underliggende lag pr. kanal"
-
-
-msgid "Strips"
-msgstr "stimmel"
-
-
-msgid "The list of strips that are on this animation layer"
-msgstr "Listen over strimler, der er på dette animationslag"
-
-
-msgid "Action Layers"
-msgstr "Handlingslag"
-
-
-msgid "Collection of animation layers"
-msgstr "Samling af animationslag"
-
-
 msgid "Action Pose Markers"
 msgstr "Handling poserings markøre"
 
@@ -377,26 +261,6 @@ msgstr "Aktiv poséringsmarkør indeks"
 
 msgid "Index of active pose marker"
 msgstr "Indeks for aktive poséringsmarkører"
-
-
-msgid "Action Strip"
-msgstr "Handlings strimel"
-
-
-msgid "Keyframe"
-msgstr "Nøglebillede"
-
-
-msgid "Strip with a set of F-Curves for each animation binding"
-msgstr "Strip med et sæt F-kurver for hver animationsbinding"
-
-
-msgid "Keyframe Animation Strip"
-msgstr "Keyframe Animation Strimel"
-
-
-msgid "Collection of animation strips"
-msgstr "Samling af animationsstrimler"
 
 
 msgid "Add-on"
@@ -623,40 +487,16 @@ msgid "Active Action for this data-block"
 msgstr "Aktiv handling for denne datablok"
 
 
-msgid "Action Binding"
-msgstr "Handlingsbinding"
-
-
-msgid "The binding identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right binding when assigning an Action"
-msgstr "Bindingen identificerer, hvilken delmængde af handlingen der anses for at være en del af denne datablok, og dens navn bruges til at finde den rigtige binding, når der tildeles en handling"
-
-
-msgid "None"
-msgstr "Ingen"
-
-
-msgid "Action Binding Handle"
-msgstr "Action Binding Håndtag"
-
-
-msgid "A number that identifies which sub-set of the Action is considered to be for this data-block"
-msgstr "Et tal, der identificerer, hvilket undersæt af handlingen, der anses for at være en del af denne datablok"
-
-
-msgid "Action Binding Name"
-msgstr "Handling Bindende navn"
-
-
-msgid "The name of the action binding. The binding identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right binding when assigning an Action"
-msgstr "Navnet på handlingen bindende. Bindingen identificerer, hvilken delmængde af handlingen der anses for at være en del af denne datablok, og dens navn bruges til at finde den rigtige binding, når der tildeles en handling"
-
-
 msgid "Action Blending"
 msgstr "Action blanding"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
 msgstr "Metode brugt til at kombinere Active Actions resultat med resultat af NLA stak"
+
+
+msgid "Replace"
+msgstr "Udskift"
 
 
 msgid "The strip values replace the accumulated results by amount specified by influence"
@@ -671,12 +511,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Stripværdierne kombineres med akkumulerede resultater ved passende at bruge addition, multiplikation eller quaternion matematik baseret på kanaltype"
 
 
+msgid "Add"
+msgstr "Tilføj"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Det vægtede resultat af strimlen føjes til de akkumulerede resultater"
 
 
+msgid "Subtract"
+msgstr "Fratrække"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Det vægtede resultat af strimlen fjernes fra de akkumulerede resultater"
+
+
+msgid "Multiply"
+msgstr "Gange"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -1998,6 +1850,10 @@ msgid "Passes to include in the active baking pass"
 msgstr "Passer til at inkludere i det aktive bagepas"
 
 
+msgid "None"
+msgstr "Ingen"
+
+
 msgid "Emit"
 msgstr "Udsende"
 
@@ -2398,6 +2254,10 @@ msgid "Look"
 msgstr "udseende"
 
 
+msgid "Influence"
+msgstr "Indflydelse"
+
+
 msgid "Disable"
 msgstr "Deaktivere"
 
@@ -2444,6 +2304,10 @@ msgstr "Låst spor"
 
 msgid "Armature"
 msgstr "Armatur"
+
+
+msgid "Mix Mode"
+msgstr "Blandingstilstand"
 
 
 msgid "Target object"
@@ -2551,6 +2415,10 @@ msgid "Visibility"
 msgstr "Synlighed"
 
 
+msgid "Keyframe"
+msgstr "Nøglebillede"
+
+
 msgid "Blend Mode"
 msgstr "Blandings måde"
 
@@ -2581,6 +2449,10 @@ msgstr "Lyd"
 
 msgid "Text"
 msgstr "Tekst"
+
+
+msgid "F-Curves"
+msgstr "F-curves"
 
 
 msgid "B-Bone"
@@ -2890,6 +2762,10 @@ msgstr "Følsomhed"
 
 msgid "Dynamics"
 msgstr "dynamik"
+
+
+msgid "Strips"
+msgstr "stimmel"
 
 
 msgid "Timeline"

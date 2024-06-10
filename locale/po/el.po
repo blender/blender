@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'5bc71c870435')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-03 07:20+0000\n"
+"POT-Creation-Date: 2024-06-10 10:16+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -35,14 +35,6 @@ msgid "Select"
 msgstr "Επιλογή"
 
 
-msgid "Add"
-msgstr "Προσθήκη"
-
-
-msgid "Subtract"
-msgstr "Αφαίρεση"
-
-
 msgid "On"
 msgstr "Ενεργό"
 
@@ -51,8 +43,12 @@ msgid "Action"
 msgstr "Δράση"
 
 
-msgid "None"
-msgstr "Κανένα"
+msgid "Add"
+msgstr "Προσθήκη"
+
+
+msgid "Subtract"
+msgstr "Αφαίρεση"
 
 
 msgid "Hold"
@@ -101,6 +97,10 @@ msgstr "Επέκταση"
 
 msgid "Object"
 msgstr "Αντικείμενο"
+
+
+msgid "None"
+msgstr "Κανένα"
 
 
 msgid "Emit"
