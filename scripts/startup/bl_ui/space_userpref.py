@@ -2145,7 +2145,7 @@ class USERPREF_MT_extensions_active_repo_remove(Menu):
         except IndexError:
             active_repo = None
 
-        is_system_repo = (active_repo.use_custom_directory is False) and (active_repo.source == 'SYSTEM')
+        is_system_repo = (active_repo.use_remote_url is False) and (active_repo.source == 'SYSTEM')
 
         props = layout.operator("preferences.extension_repo_remove", text="Remove Repository")
         props.index = active_repo_index
@@ -2203,7 +2203,8 @@ class USERPREF_PT_extensions_repos(Panel):
         # For now it can be accessed from Python if someone is.
         # `layout.prop(active_repo, "use_remote_url", text="Use Remote URL")`
 
-        if active_repo.use_remote_url:
+        use_remote_url = active_repo.use_remote_url
+        if use_remote_url:
             row = layout.row()
             split = row.split(factor=0.936)
             if active_repo.remote_url == "":
@@ -2244,15 +2245,14 @@ class USERPREF_PT_extensions_repos(Panel):
                 # valid UTF-8 which will raise a Python exception when passed in as text.
                 sub.prop(active_repo, "directory", text="")
 
-            row = layout_panel.row()
-            row.active = not use_custom_directory
-            row.prop(active_repo, "source")
-
-            if active_repo.use_remote_url:
+            if use_remote_url:
                 row = layout_panel.row(align=True, heading="Authentication")
                 row.prop(active_repo, "use_access_token")
 
-            layout_panel.prop(active_repo, "use_cache")
+                layout_panel.prop(active_repo, "use_cache")
+            else:
+                layout_panel.prop(active_repo, "source")
+
             layout_panel.separator()
 
             layout_panel.prop(active_repo, "module")

@@ -279,7 +279,12 @@ size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo
 
   std::optional<std::string> path = std::nullopt;
 
-  switch (repo->source) {
+  uint8_t source = repo->source;
+  if (repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL) {
+    source = USER_EXTENSION_REPO_SOURCE_USER;
+  }
+
+  switch (source) {
     case USER_EXTENSION_REPO_SOURCE_SYSTEM: {
       path = BKE_appdir_folder_id(BLENDER_SYSTEM_EXTENSIONS, nullptr);
       break;
