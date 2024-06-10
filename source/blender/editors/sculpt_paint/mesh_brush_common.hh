@@ -28,6 +28,7 @@
 struct Brush;
 struct Mesh;
 struct Object;
+struct PBVH;
 struct PBVHNode;
 struct Sculpt;
 struct SculptSession;
