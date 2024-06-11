@@ -19,5 +19,6 @@ void do_draw_vector_displacement_brush(const Sculpt &sd, Object &object, Span<PB
 void do_scrape_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_fill_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_flatten_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
+void do_inflate_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 
 }  // namespace blender::ed::sculpt_paint

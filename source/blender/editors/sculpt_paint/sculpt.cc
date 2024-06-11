@@ -3780,7 +3780,7 @@ static void do_brush_action(const Sculpt &sd,
       SCULPT_do_pinch_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_INFLATE:
-      SCULPT_do_inflate_brush(sd, ob, nodes);
+      do_inflate_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_GRAB:
       SCULPT_do_grab_brush(sd, ob, nodes);
