@@ -17,7 +17,10 @@
 #include "BLI_bit_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+
 #include "DNA_anim_types.h"
+#include "DNA_windowmanager_types.h"
+
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
@@ -71,7 +74,7 @@ class CombinedKeyingResult {
 
   bool has_errors() const;
 
-  void generate_reports(ReportList *reports);
+  void generate_reports(ReportList *reports, eReportType report_level = RPT_ERROR);
 };
 
 /**
