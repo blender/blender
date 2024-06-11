@@ -161,6 +161,15 @@ struct GBuffer {
       header_tx.clear(uint4(0));
     }
 
+    /* Workaround a Metal bug that is only showing up on ATI/Intel GPUs. */
+    if (GPU_type_matches(
+            GPU_DEVICE_ATI | GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_MAC, GPU_DRIVER_ANY))
+    {
+      header_tx.clear(uint4(0));
+      GPU_framebuffer_bind(gbuffer_fb);
+      return;
+    }
+
     if (!GPU_stencil_export_support()) {
       /* Clearing custom load-store frame-buffers is invalid,
        * clear the stencil as a regular frame-buffer first. */
