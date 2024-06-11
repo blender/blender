@@ -951,9 +951,13 @@ bool DRW_state_is_scene_render();
 bool DRW_state_is_viewport_image_render();
 bool DRW_state_is_playback();
 /**
- * Is the user navigating the region.
+ * Is the user navigating or painting the region.
  */
 bool DRW_state_is_navigating();
+/**
+ * Is the user painting?
+ */
+bool DRW_state_is_painting();
 /**
  * Should text draw in this mode?
  */

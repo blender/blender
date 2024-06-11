@@ -61,10 +61,8 @@ void main()
 
   vec4 col = vec4(0.0);
 
-  bool back_part = (strip.flags & GPU_SEQ_FLAG_BACKGROUND_PART) != 0;
-
-  if (back_part) {
-
+  /* Background. */
+  if ((strip.flags & GPU_SEQ_FLAG_BACKGROUND) != 0) {
     col = unpackUnorm4x8(strip.col_background);
     /* Darker background for multi-image strip hold still regions. */
     if ((strip.flags & GPU_SEQ_FLAG_SINGLE_IMAGE) == 0) {
@@ -72,70 +70,69 @@ void main()
         col.rgb = color_shade(col.rgb, -35.0);
       }
     }
-
-    /* Color band. */
-    if ((strip.flags & GPU_SEQ_FLAG_COLOR_BAND) != 0) {
-      if (co.y < strip.strip_content_top) {
-        col.rgb = unpackUnorm4x8(strip.col_color_band).rgb;
-        /* Darker line to better separate the color band. */
-        if (co.y > strip.strip_content_top - context_data.pixely) {
-          col.rgb = color_shade(col.rgb, -20.0);
-        }
-      }
-    }
-
-    /* Transition. */
-    if ((strip.flags & GPU_SEQ_FLAG_TRANSITION) != 0) {
-      if (co.x >= strip.content_start && co.x <= strip.content_end &&
-          co.y < strip.strip_content_top)
-      {
-        float diag_y = strip.strip_content_top - (strip.strip_content_top - strip.bottom) *
-                                                     (co.x - strip.content_start) /
-                                                     (strip.content_end - strip.content_start);
-        uint transition_color = co.y <= diag_y ? strip.col_transition_in :
-                                                 strip.col_transition_out;
-        col.rgb = unpackUnorm4x8(transition_color).rgb;
-      }
-    }
-
-    col.rgb *= col.a; /* Premultiply alpha. */
   }
-  else {
-    /* Missing media. */
-    if ((strip.flags & GPU_SEQ_FLAG_MISSING_TITLE) != 0) {
-      if (co.y > strip.strip_content_top) {
-        col = blend_color(col, vec4(112.0 / 255.0, 0.0, 0.0, 230.0 / 255.0));
-      }
-    }
-    if ((strip.flags & GPU_SEQ_FLAG_MISSING_CONTENT) != 0) {
-      if (co.y <= strip.strip_content_top) {
-        col = blend_color(col, vec4(64.0 / 255.0, 0.0, 0.0, 230.0 / 255.0));
-      }
-    }
 
-    /* Locked. */
-    if ((strip.flags & GPU_SEQ_FLAG_LOCKED) != 0) {
-      if (co.y <= strip.strip_content_top) {
-        float phase = mod(gl_FragCoord.x + gl_FragCoord.y, 12.0);
-        if (phase >= 8.0) {
-          col = blend_color(col, vec4(0.0, 0.0, 0.0, 0.25));
-        }
+  /* Color band. */
+  if ((strip.flags & GPU_SEQ_FLAG_COLOR_BAND) != 0) {
+    if (co.y < strip.strip_content_top) {
+      col.rgb = unpackUnorm4x8(strip.col_color_band).rgb;
+      /* Darker line to better separate the color band. */
+      if (co.y > strip.strip_content_top - context_data.pixely) {
+        col.rgb = color_shade(col.rgb, -20.0);
       }
     }
+  }
 
-    /* Highlight. */
-    if ((strip.flags & GPU_SEQ_FLAG_HIGHLIGHT) != 0) {
-      col = blend_color(col, vec4(1.0, 1.0, 1.0, 48.0 / 255.0));
+  /* Transition. */
+  if ((strip.flags & GPU_SEQ_FLAG_TRANSITION) != 0) {
+    if (co.x >= strip.content_start && co.x <= strip.content_end && co.y < strip.strip_content_top)
+    {
+      float diag_y = strip.strip_content_top - (strip.strip_content_top - strip.bottom) *
+                                                   (co.x - strip.content_start) /
+                                                   (strip.content_end - strip.content_start);
+      uint transition_color = co.y <= diag_y ? strip.col_transition_in : strip.col_transition_out;
+      col.rgb = unpackUnorm4x8(transition_color).rgb;
     }
+  }
 
-    /* Handles. */
-    if ((strip.flags & GPU_SEQ_FLAG_HANDLES) != 0) {
-      if (co.x >= strip.left_handle && co.x < strip.left_handle + strip.handle_width) {
-        col = blend_color(col, unpackUnorm4x8(strip.col_handle_left));
+  /* Previous parts were all assigning color (not blending it),
+   * make sure from now on alpha is premultiplied. */
+  col.rgb *= col.a;
+
+  /* Missing media. */
+  if ((strip.flags & GPU_SEQ_FLAG_MISSING_TITLE) != 0) {
+    if (co.y > strip.strip_content_top) {
+      col = blend_color(col, vec4(112.0 / 255.0, 0.0, 0.0, 230.0 / 255.0));
+    }
+  }
+  if ((strip.flags & GPU_SEQ_FLAG_MISSING_CONTENT) != 0) {
+    if (co.y <= strip.strip_content_top) {
+      col = blend_color(col, vec4(64.0 / 255.0, 0.0, 0.0, 230.0 / 255.0));
+    }
+  }
+
+  /* Locked. */
+  if ((strip.flags & GPU_SEQ_FLAG_LOCKED) != 0) {
+    if (co.y <= strip.strip_content_top) {
+      float phase = mod(gl_FragCoord.x + gl_FragCoord.y, 12.0);
+      if (phase >= 8.0) {
+        col = blend_color(col, vec4(0.0, 0.0, 0.0, 0.25));
       }
-      if (co.x > strip.right_handle - strip.handle_width && co.x <= strip.right_handle) {
-        col = blend_color(col, unpackUnorm4x8(strip.col_handle_right));
-      }
+    }
+  }
+
+  /* Highlight. */
+  if ((strip.flags & GPU_SEQ_FLAG_HIGHLIGHT) != 0) {
+    col = blend_color(col, vec4(1.0, 1.0, 1.0, 48.0 / 255.0));
+  }
+
+  /* Handles. */
+  if ((strip.flags & GPU_SEQ_FLAG_HANDLES) != 0) {
+    if (co.x >= strip.left_handle && co.x < strip.left_handle + strip.handle_width) {
+      col = blend_color(col, unpackUnorm4x8(strip.col_handle_left));
+    }
+    if (co.x > strip.right_handle - strip.handle_width && co.x <= strip.right_handle) {
+      col = blend_color(col, unpackUnorm4x8(strip.col_handle_right));
     }
   }
 
@@ -144,8 +141,8 @@ void main()
     col = vec4(0.0);
   }
 
-  /* Outline. */
-  if (!back_part) {
+  /* Outline / border. */
+  if ((strip.flags & GPU_SEQ_FLAG_BORDER) != 0) {
     bool selected = (strip.flags & GPU_SEQ_FLAG_SELECTED) != 0;
     vec4 col_outline = unpackUnorm4x8(strip.col_outline);
     if (selected) {
