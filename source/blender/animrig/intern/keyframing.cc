@@ -82,7 +82,7 @@ bool CombinedKeyingResult::has_errors() const
   return false;
 }
 
-void CombinedKeyingResult::generate_reports(ReportList *reports)
+void CombinedKeyingResult::generate_reports(ReportList *reports, const eReportType report_level)
 {
   if (!this->has_errors() && this->get_count(SingleKeyingResult::SUCCESS) == 0) {
     BKE_reportf(
@@ -173,7 +173,7 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
   }
 
   if (errors.size() == 1) {
-    BKE_report(reports, RPT_ERROR, errors[0].c_str());
+    BKE_report(reports, report_level, errors[0].c_str());
     return;
   }
 
@@ -181,7 +181,7 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
   for (const std::string &error : errors) {
     error_message.append(fmt::format("\n- {}", error));
   }
-  BKE_report(reports, RPT_ERROR, error_message.c_str());
+  BKE_report(reports, report_level, error_message.c_str());
 }
 
 const char *default_channel_group_for_path(const PointerRNA *animated_struct,
