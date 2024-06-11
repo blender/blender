@@ -344,6 +344,60 @@ static void versioning_eevee_shadow_settings(Object *object)
   SET_FLAG_FROM_TEST(object->visibility_flag, hide_shadows, OB_HIDE_SHADOW);
 }
 
+static void versioning_eevee_material_shadow_none(Material *material)
+{
+  if (!material->use_nodes || material->nodetree == nullptr) {
+    return;
+  }
+  bNodeTree *ntree = material->nodetree;
+
+  bNode *output_node = version_eevee_output_node_get(ntree, SH_NODE_OUTPUT_MATERIAL);
+  if (output_node == nullptr) {
+    return;
+  }
+
+  bNodeSocket *out_sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Surface");
+
+  bNode *mix_node = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeMixShader");
+  STRNCPY(mix_node->label, "Disable Shadow");
+  mix_node->flag |= NODE_HIDDEN;
+  mix_node->parent = output_node->parent;
+  mix_node->locx = output_node->locx;
+  mix_node->locy = output_node->locy - output_node->height - 120;
+  bNodeSocket *mix_fac = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 0));
+  bNodeSocket *mix_in_1 = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 1));
+  bNodeSocket *mix_in_2 = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 2));
+  bNodeSocket *mix_out = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->outputs, 0));
+  if (out_sock->link != nullptr) {
+    blender::bke::nodeAddLink(
+        ntree, out_sock->link->fromnode, out_sock->link->fromsock, mix_node, mix_in_1);
+    blender::bke::nodeRemLink(ntree, out_sock->link);
+  }
+  blender::bke::nodeAddLink(ntree, mix_node, mix_out, output_node, out_sock);
+
+  bNode *lp_node = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeLightPath");
+  lp_node->flag |= NODE_HIDDEN;
+  lp_node->parent = output_node->parent;
+  lp_node->locx = output_node->locx;
+  lp_node->locy = mix_node->locy + 35;
+  bNodeSocket *is_shadow = blender::bke::nodeFindSocket(lp_node, SOCK_OUT, "Is Shadow Ray");
+  blender::bke::nodeAddLink(ntree, lp_node, is_shadow, mix_node, mix_fac);
+  /* Hide unconnected sockets for cleaner look. */
+  LISTBASE_FOREACH (bNodeSocket *, sock, &lp_node->outputs) {
+    if (sock != is_shadow) {
+      sock->flag |= SOCK_HIDDEN;
+    }
+  }
+
+  bNode *bsdf_node = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeBsdfTransparent");
+  bsdf_node->flag |= NODE_HIDDEN;
+  bsdf_node->parent = output_node->parent;
+  bsdf_node->locx = output_node->locx;
+  bsdf_node->locy = mix_node->locy - 35;
+  bNodeSocket *bsdf_out = blender::bke::nodeFindSocket(bsdf_node, SOCK_OUT, "BSDF");
+  blender::bke::nodeAddLink(ntree, bsdf_node, bsdf_out, mix_node, mix_in_2);
+}
+
 /**
  * Represents a source of transparency inside the closure part of a material node-tree.
  * Sources can be combined together down the tree to figure out where the source of the alpha is.
@@ -883,6 +937,10 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
                                   "alpha blending (need manual adjustment)\n"),
                              material->id.name + 2);
           }
+        }
+
+        if (material->blend_shadow == MA_BS_NONE) {
+          versioning_eevee_material_shadow_none(material);
         }
         /* Set blend_mode & blend_shadow for forward compatibility. */
         material->blend_method = (material->blend_method != MA_BM_BLEND) ? MA_BM_HASHED :
