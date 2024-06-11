@@ -20,6 +20,64 @@ enum eIconSizes {
   NUM_ICON_SIZES,
 };
 
+/** #IDProperty.type */
+typedef enum eIDPropertyType {
+  IDP_STRING = 0,
+  IDP_INT = 1,
+  IDP_FLOAT = 2,
+  /** Array containing int, floats, doubles or groups. */
+  IDP_ARRAY = 5,
+  IDP_GROUP = 6,
+  IDP_ID = 7,
+  IDP_DOUBLE = 8,
+  IDP_IDPARRAY = 9,
+  /**
+   * True or false value, backed by an `int8_t` underlying type for arrays. Values are expected to
+   * be 0 or 1.
+   */
+  IDP_BOOLEAN = 10,
+} eIDPropertyType;
+#define IDP_NUMTYPES 11
+
+/** Used by some IDP utils, keep values in sync with type enum above. */
+enum {
+  IDP_TYPE_FILTER_STRING = 1 << IDP_STRING,
+  IDP_TYPE_FILTER_INT = 1 << IDP_INT,
+  IDP_TYPE_FILTER_FLOAT = 1 << IDP_FLOAT,
+  IDP_TYPE_FILTER_ARRAY = 1 << IDP_ARRAY,
+  IDP_TYPE_FILTER_GROUP = 1 << IDP_GROUP,
+  IDP_TYPE_FILTER_ID = 1 << IDP_ID,
+  IDP_TYPE_FILTER_DOUBLE = 1 << IDP_DOUBLE,
+  IDP_TYPE_FILTER_IDPARRAY = 1 << IDP_IDPARRAY,
+  IDP_TYPE_FILTER_BOOLEAN = 1 << IDP_BOOLEAN,
+};
+
+/** #IDProperty.subtype for #IDP_STRING properties. */
+typedef enum eIDPropertySubType {
+  IDP_STRING_SUB_UTF8 = 0, /* default */
+  IDP_STRING_SUB_BYTE = 1, /* arbitrary byte array, _not_ null terminated */
+} eIDPropertySubType;
+
+/** #IDProperty.flag. */
+typedef enum eIDPropertyFlag {
+  /**
+   * This #IDProperty may be library-overridden.
+   * Should only be used/be relevant for custom properties.
+   */
+  IDP_FLAG_OVERRIDABLE_LIBRARY = 1 << 0,
+  /**
+   * This collection item #IDProperty has been inserted in a local override.
+   * This is used by internal code to distinguish between library-originated items and
+   * local-inserted ones, as many operations are not allowed on the former.
+   */
+  IDP_FLAG_OVERRIDELIBRARY_LOCAL = 1 << 1,
+  /**
+   * This means the property is set but RNA will return false when checking
+   * #RNA_property_is_set, currently this is a runtime flag.
+   */
+  IDP_FLAG_GHOST = 1 << 7,
+} eIDPropertyFlag;
+
 /**
  * Defines for working with IDs.
  *
