@@ -766,7 +766,7 @@ NodeItem NodeItem::create_node(const std::string &category, Type type) const
   NodeItem res = empty();
   /* Surface-shader nodes and materials are added directly to the document,
    * otherwise to the node-graph. */
-  if (type == Type::SurfaceShader || type == Type::Material) {
+  if (ELEM(type, Type::SurfaceShader, Type::Material)) {
     res.node = graph_->getDocument()->addNode(category, MaterialX::EMPTY_STRING, type_str);
   }
   else {

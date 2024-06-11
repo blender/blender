@@ -3906,9 +3906,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 31)) {
     bool only_uses_eevee_legacy_or_workbench = true;
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (!(STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE) ||
-            STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH)))
-      {
+      if (!STR_ELEM(scene->r.engine, RE_engine_id_BLENDER_EEVEE, RE_engine_id_BLENDER_WORKBENCH)) {
         only_uses_eevee_legacy_or_workbench = false;
       }
     }

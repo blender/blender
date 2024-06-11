@@ -110,7 +110,7 @@ class AbstractView {
   std::optional<rcti> get_bounds() const;
 
   std::string get_context_menu_title() const;
-  void set_context_menu_title(std::string title);
+  void set_context_menu_title(const std::string &title);
 
  protected:
   AbstractView() = default;

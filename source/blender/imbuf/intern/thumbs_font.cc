@@ -46,7 +46,7 @@ bool IMB_thumb_load_font_get_hash(char *r_hash)
   return true;
 }
 
-ImBuf *IMB_font_preview(const char *filename, unsigned int width, float color[4])
+ImBuf *IMB_font_preview(const char *filename, uint width, const float color[4])
 {
   int font_id = (filename[0] != '<') ? BLF_load(filename) : 0;
   const char sample[] = "ABCDEFGH\nabcdefg123";

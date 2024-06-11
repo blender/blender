@@ -683,7 +683,7 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   const Scene *scene = win->scene;
   const Editing *ed = SEQ_editing_get(scene);
 
-  if (ed == NULL) {
+  if (ed == nullptr) {
     WM_cursor_set(win, wmcursor);
     return;
   }

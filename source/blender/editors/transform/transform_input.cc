@@ -331,7 +331,6 @@ static int transform_seq_slide_cursor_get(TransInfo *t)
       return WM_CURSOR_NSEW_SCROLL;
     }
 
-    const Scene *scene = t->scene;
     if (SEQ_time_right_handle_frame_get(scene, seq1) !=
         SEQ_time_left_handle_frame_get(scene, seq2))
     {

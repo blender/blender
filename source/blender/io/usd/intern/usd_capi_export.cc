@@ -206,12 +206,12 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
                          enum_value));
 
   char texture_path[FILE_MAX];
-  BLI_strncpy(texture_path, path, FILE_MAX);
+  STRNCPY(texture_path, path);
   BLI_path_append(texture_path, FILE_MAX, "textures");
   BLI_path_slash_ensure(texture_path, sizeof(texture_path));
 
-  struct direntry *entries;
-  unsigned int num_files = BLI_filelist_dir_contents(texture_path, &entries);
+  direntry *entries;
+  uint num_files = BLI_filelist_dir_contents(texture_path, &entries);
 
   for (int index = 0; index < num_files; index++) {
     /* We can skip checking extensions as this folder is only created

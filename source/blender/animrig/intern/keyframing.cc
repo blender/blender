@@ -1141,7 +1141,7 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
   ListBase nla_cache = {nullptr, nullptr};
   NlaKeyframingContext *nla_context = nullptr;
 
-  if (adt && adt->action == action) {
+  if (adt->action == action) {
     PointerRNA id_pointer = RNA_id_pointer_create(id);
     nla_context = BKE_animsys_get_nla_keyframing_context(
         &nla_cache, &id_pointer, adt, &anim_eval_context);

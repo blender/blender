@@ -848,7 +848,7 @@ bool ED_sequencer_handle_is_selected(const Sequence *seq, eSeqHandle handle)
          ((handle == SEQ_HANDLE_RIGHT) && (seq->flag & SEQ_RIGHTSEL));
 }
 
-static bool element_already_selected(const StripSelection selection)
+static bool element_already_selected(const StripSelection &selection)
 {
   if (selection.seq1 == nullptr) {
     return false;
