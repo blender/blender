@@ -102,13 +102,14 @@ static void calc_faces(const Sculpt &sd,
 
   clip_and_lock_translations(sd, ss, positions_eval, verts, translations);
 
+  apply_translations_to_pbvh(*ss.pbvh, verts, translations);
+
   if (!ss.deform_imats.is_empty()) {
     apply_crazyspace_to_translations(ss.deform_imats, verts, translations);
   }
 
   apply_translations(translations, verts, positions_orig);
   apply_translations_to_shape_keys(object, verts, translations, positions_orig);
-  apply_translations_to_pbvh(*ss.pbvh, verts, translations);
 }
 
 static void calc_grids(Object &object, const Brush &brush, PBVHNode &node)
