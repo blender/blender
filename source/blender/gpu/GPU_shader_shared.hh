@@ -128,7 +128,7 @@ struct SeqStripDrawData {
 };
 BLI_STATIC_ASSERT_ALIGN(SeqStripDrawData, 16)
 BLI_STATIC_ASSERT(sizeof(SeqStripDrawData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 16384,
-                  "SeqStripDrawData UBO must not exceed minspec UBO size (16K)")
+                  "SeqStripDrawData UBO must not exceed minspec UBO size (16384)")
 
 /* VSE global data for timeline rendering. */
 struct SeqContextDrawData {
