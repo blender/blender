@@ -1033,6 +1033,11 @@ class _ExtCmdMixIn:
         return result
 
     def cancel(self, context):
+        # Happens when canceling before the operator has run any commands.
+        # Canceling from an operator popup dialog for example.
+        if not hasattr(self, "_runtime_handle"):
+            return
+
         canceled = True
         self._runtime_handle.op_modal_cancel(self, context)
         self.exec_command_finish(canceled)
