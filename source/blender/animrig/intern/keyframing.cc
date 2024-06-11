@@ -1123,7 +1123,7 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
   BLI_assert(action != nullptr);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action->wrap().is_action_layered()) {
-    /* TODO: Don't hardcode key settings. */
+    /* TODO: Don't hard-code key settings. */
     KeyframeSettings key_settings;
     key_settings.keyframe_type = key_type;
     key_settings.handle = HD_AUTO_ANIM;

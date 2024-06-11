@@ -519,7 +519,7 @@ TEST_F(KeyframingTest, insert_key_rna__layered_action__only_available)
   EXPECT_EQ(0, result_1.get_count(SingleKeyingResult::SUCCESS));
 
   /* It's unclear why AnimData and an Action should be created if keying fails
-   * here. It may even be undesireable.  These checks are just here to ensure no
+   * here. It may even be undesirable. These checks are just here to ensure no
    * *unintentional* changes in behavior. */
   ASSERT_NE(nullptr, object->adt);
   ASSERT_NE(nullptr, object->adt->action);
