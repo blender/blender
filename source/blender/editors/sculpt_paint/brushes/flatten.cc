@@ -120,14 +120,15 @@ static void calc_grids(
         i++;
         continue;
       }
-      if (!sculpt_brush_test_sq_fn(test, CCG_elem_offset_co(key, elem, j))) {
+      const float3 &co = CCG_elem_offset_co(key, elem, j);
+      if (!sculpt_brush_test_sq_fn(test, co)) {
         i++;
         continue;
       }
 
       float3 closest;
-      closest_to_plane_normalized_v3(closest, plane, CCG_elem_offset_co(key, elem, j));
-      const float3 translation = closest - CCG_elem_offset_co(key, elem, j);
+      closest_to_plane_normalized_v3(closest, plane, co);
+      const float3 translation = closest - co;
 
       if (!SCULPT_plane_trim(*ss.cache, brush, translation)) {
         i++;
@@ -138,7 +139,7 @@ static void calc_grids(
       const float fade = SCULPT_brush_strength_factor(
           ss,
           brush,
-          CCG_elem_offset_co(key, elem, j),
+          co,
           math::sqrt(test.dist),
           CCG_elem_offset_no(key, elem, j),
           nullptr,

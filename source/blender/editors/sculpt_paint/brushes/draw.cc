@@ -116,7 +116,8 @@ static void calc_grids(Object &object, const Brush &brush, const float3 &offset,
         i++;
         continue;
       }
-      if (!sculpt_brush_test_sq_fn(test, CCG_elem_offset_co(key, elem, j))) {
+      const float3 &co = CCG_elem_offset_co(key, elem, j);
+      if (!sculpt_brush_test_sq_fn(test, co)) {
         i++;
         continue;
       }
@@ -124,7 +125,7 @@ static void calc_grids(Object &object, const Brush &brush, const float3 &offset,
       const float fade = SCULPT_brush_strength_factor(
           ss,
           brush,
-          CCG_elem_offset_co(key, elem, j),
+          co,
           math::sqrt(test.dist),
           CCG_elem_offset_no(key, elem, j),
           nullptr,
