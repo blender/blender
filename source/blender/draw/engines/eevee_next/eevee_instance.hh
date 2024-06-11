@@ -268,6 +268,11 @@ class Instance {
     return DRW_state_is_navigating();
   }
 
+  bool is_painting() const
+  {
+    return DRW_state_is_painting();
+  }
+
   bool use_scene_lights() const
   {
     return (!v3d) ||

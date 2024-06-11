@@ -3000,6 +3000,12 @@ bool DRW_state_is_navigating()
   return (rv3d) && (rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING));
 }
 
+bool DRW_state_is_painting()
+{
+  const RegionView3D *rv3d = DST.draw_ctx.rv3d;
+  return (rv3d) && (rv3d->rflag & (RV3D_PAINTING));
+}
+
 bool DRW_state_show_text()
 {
   return (DST.options.is_select) == 0 && (DST.options.is_depth) == 0 &&

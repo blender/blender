@@ -86,7 +86,7 @@ void Instance::init(const int2 &output_res,
   if (assign_if_different(overlays_enabled_, v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS))) {
     sampling.reset();
   }
-  if (DRW_state_is_navigating()) {
+  if (is_painting()) {
     sampling.reset();
   }
 
