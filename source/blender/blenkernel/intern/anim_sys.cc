@@ -3725,10 +3725,10 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
                                            int index,
                                            const AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
-                                           blender::BitVector<> &r_successful_remaps)
+                                           blender::BitVector<> &r_values_mask)
 {
   const int count = values.size();
-  r_successful_remaps.fill(false);
+  r_values_mask.fill(false);
 
   if (r_force_all != nullptr) {
     *r_force_all = false;
@@ -3745,7 +3745,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
 
   /* No context means no correction. */
   if (context == nullptr || context->strip.act == nullptr) {
-    r_successful_remaps = remap_domain;
+    r_values_mask = remap_domain;
     return;
   }
 
@@ -3762,7 +3762,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   if (blend_mode == NLASTRIP_MODE_REPLACE && influence == 1.0f &&
       BLI_listbase_is_empty(&context->upper_estrips))
   {
-    r_successful_remaps = remap_domain;
+    r_values_mask = remap_domain;
     return;
   }
 
@@ -3836,7 +3836,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   }
 
   for (int i = 0; i < blended_necs->length; i++) {
-    r_successful_remaps[i].set(BLI_BITMAP_TEST_BOOL(blended_necs->remap_domain.ptr, i));
+    r_values_mask[i].set(BLI_BITMAP_TEST_BOOL(blended_necs->remap_domain.ptr, i));
   }
 
   nlaeval_snapshot_free_data(&blended_snapshot);
