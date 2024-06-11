@@ -223,7 +223,7 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
       GPU_vertformat_alias_add(&format, "lnor");
     }
     GPU_vertbuf_init_with_format(&vbo, &format);
-    GPU_vertbuf_data_alloc(&vbo, mr.corners_num);
+    GPU_vertbuf_data_alloc(&vbo, size);
     MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(&vbo)), size);
     MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
     MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
