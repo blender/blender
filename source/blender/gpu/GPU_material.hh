@@ -275,7 +275,7 @@ BatchHandle GPU_material_batch_compile(blender::Span<GPUMaterial *> mats);
  */
 bool GPU_material_batch_is_ready(BatchHandle handle);
 /**
- * Asign the compiled shaders to their respective materials and flag their status.
+ * Assign the compiled shaders to their respective materials and flag their status.
  * The materials list should have the same length and order as in the `GPU_material_batch_compile`
  * call.
  * If the compilation has not finished yet, this call will block the thread until all the
