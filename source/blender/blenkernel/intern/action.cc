@@ -1344,6 +1344,7 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
   copy_v3_v3(pchan->custom_scale_xyz, pchan_from->custom_scale_xyz);
   copy_v3_v3(pchan->custom_translation, pchan_from->custom_translation);
   copy_v3_v3(pchan->custom_rotation_euler, pchan_from->custom_rotation_euler);
+  pchan->custom_shape_wire_width = pchan_from->custom_shape_wire_width;
 
   pchan->drawflag = pchan_from->drawflag;
 }
