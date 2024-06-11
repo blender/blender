@@ -305,7 +305,7 @@ static const char32_t *blf_get_sample_text(FT_Face face)
   return sample;
 }
 
-bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*channels*/)
+bool BLF_thumb_preview(const char *filepath, uchar *buf, int w, int h, int /*channels*/)
 {
   /* Use own FT_Library and direct FreeType calls as this is called from multiple threads. */
   FT_Library ft_lib = nullptr;
@@ -314,7 +314,7 @@ bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*cha
   }
 
   FT_Face face;
-  if (FT_New_Face(ft_lib, filename, 0, &face) != FT_Err_Ok) {
+  if (FT_New_Face(ft_lib, filepath, 0, &face) != FT_Err_Ok) {
     FT_Done_FreeType(ft_lib);
     return false;
   }
