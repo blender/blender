@@ -24,6 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
+#ifdef WITH_IO_STL
   const std::string path = params.extract_input<std::string>("Path");
 
   if (path.empty()) {
@@ -71,6 +72,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   else {
     params.set_default_remaining_outputs();
   }
+#else
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
+  params.set_default_remaining_outputs();
+#endif
 }
 
 static void node_register()
