@@ -3792,7 +3792,7 @@ static void do_brush_action(const Sculpt &sd,
       SCULPT_do_snake_hook_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_NUDGE:
-      SCULPT_do_nudge_brush(sd, ob, nodes);
+      do_nudge_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_THUMB:
       SCULPT_do_thumb_brush(sd, ob, nodes);

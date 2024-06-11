@@ -979,65 +979,6 @@ void SCULPT_do_layer_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   });
 }
 
-static void do_nudge_brush_task(Object &ob, const Brush &brush, const float *cono, PBVHNode *node)
-{
-  using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
-
-  PBVHVertexIter vd;
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
-  const float bstrength = ss.cache->bstrength;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
-      continue;
-    }
-    auto_mask::node_update(automask_data, vd);
-
-    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                brush,
-                                                                vd.co,
-                                                                sqrtf(test.dist),
-                                                                vd.no,
-                                                                vd.fno,
-                                                                vd.mask,
-                                                                vd.vertex,
-                                                                thread_id,
-                                                                &automask_data);
-
-    mul_v3_v3fl(proxy[vd.i], cono, fade);
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-void SCULPT_do_nudge_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
-{
-  using namespace blender;
-  SculptSession &ss = *ob.sculpt;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  float grab_delta[3];
-  float tmp[3], cono[3];
-
-  copy_v3_v3(grab_delta, ss.cache->grab_delta_symmetry);
-
-  cross_v3_v3v3(tmp, ss.cache->sculpt_normal_symm, grab_delta);
-  cross_v3_v3v3(cono, tmp, ss.cache->sculpt_normal_symm);
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_nudge_brush_task(ob, brush, cono, nodes[i]);
-    }
-  });
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
