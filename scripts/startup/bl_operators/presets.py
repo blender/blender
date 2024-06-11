@@ -552,6 +552,15 @@ class AddPresetEEVEERaytracing(AddPresetBase, Operator):
         "options.denoise_spatial",
         "options.denoise_temporal",
         "options.denoise_bilateral",
+        "eevee.fast_gi_method",
+        "eevee.fast_gi_resolution",
+        "eevee.fast_gi_ray_count",
+        "eevee.fast_gi_step_count",
+        "eevee.fast_gi_quality",
+        "eevee.fast_gi_distance",
+        "eevee.fast_gi_thickness_near",
+        "eevee.fast_gi_thickness_far",
+        "eevee.fast_gi_bias",
     ]
 
     preset_subdir = "eevee/raytracing"
