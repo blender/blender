@@ -404,7 +404,7 @@ class TestCLI_WithRepo(unittest.TestCase):
             )
             self.assertEqual(
                 output_json, [
-                    ("STATUS", "Re-Installed \"another_package\"")
+                    ("STATUS", "Reinstalled \"another_package\"")
                 ]
             )
             self.assertTrue(os.path.isdir(os.path.join(temp_dir_local, "another_package")))
