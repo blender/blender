@@ -616,10 +616,36 @@ bool Binding::has_idtype() const
 
 bool assign_animation(Action &anim, ID &animated_id)
 {
+  BLI_assert(anim.is_action_layered());
+
   unassign_animation(animated_id);
 
   Binding *binding = anim.find_suitable_binding_for(animated_id);
   return anim.assign_id(binding, animated_id);
+}
+
+bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
+{
+  if (!dna_action) {
+    /* Clearing the Action is always possible. */
+    return true;
+  }
+
+  if (dna_action->idroot == 0) {
+    /* This is either a never-assigned legacy action, or a layered action. In
+     * any case, it can be assigned to any ID. */
+    return true;
+  }
+
+  const animrig::Action &action = dna_action->wrap();
+  if (!action.is_action_layered()) {
+    /* Legacy Actions can only be assigned if their idroot matches. Empty
+     * Actions are considered both 'layered' and 'legacy' at the same time,
+     * hence this condition checks for 'not layered' rather than 'legacy'. */
+    return action.idroot == id_code;
+  }
+
+  return true;
 }
 
 void unassign_animation(ID &animated_id)

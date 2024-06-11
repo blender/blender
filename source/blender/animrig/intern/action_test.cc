@@ -505,4 +505,46 @@ TEST_F(ActionLayersTest, KeyframeStrip__keyframe_insert)
   EXPECT_EQ(1, channels->fcurves()[1]->totvert);
 }
 
+TEST_F(ActionLayersTest, is_action_assignable_to)
+{
+  EXPECT_TRUE(is_action_assignable_to(nullptr, ID_OB))
+      << "nullptr Actions should be assignable to any type.";
+  EXPECT_TRUE(is_action_assignable_to(nullptr, ID_CA))
+      << "nullptr Actions should be assignable to any type.";
+
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_OB))
+      << "Empty Actions should be assignable to any type.";
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_CA))
+      << "Empty Actions should be assignable to any type.";
+
+  /* Make the Action a legacy one. */
+  FCurve fake_fcurve;
+  BLI_addtail(&anim->curves, &fake_fcurve);
+  ASSERT_FALSE(anim->is_empty());
+  ASSERT_TRUE(anim->is_action_legacy());
+  ASSERT_EQ(0, anim->idroot);
+
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_OB))
+      << "Legacy Actions with idroot=0 should be assignable to any type.";
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_CA))
+      << "Legacy Actions with idroot=0 should be assignable to any type.";
+
+  /* Set the legacy idroot. */
+  anim->idroot = ID_CA;
+  EXPECT_FALSE(is_action_assignable_to(anim, ID_OB))
+      << "Legacy Actions with idroot=ID_CA should NOT be assignable to ID_OB.";
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_CA))
+      << "Legacy Actions with idroot=CA should be assignable to ID_CA.";
+
+  /* Make the Action a layered one. */
+  BLI_poptail(&anim->curves);
+  anim->layer_add("layer");
+  ASSERT_EQ(0, anim->idroot) << "Adding a layer should clear the idroot.";
+
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_OB))
+      << "Layered Actions should be assignable to any type.";
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_CA))
+      << "Layered Actions should be assignable to any type.";
+}
+
 }  // namespace blender::animrig::tests
