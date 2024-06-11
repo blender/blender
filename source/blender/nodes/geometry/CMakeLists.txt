@@ -247,6 +247,7 @@ if(WITH_IO_STL)
     PRIVATE bf_io_common
     PRIVATE bf_io_stl
   )
+  add_definitions(-DWITH_IO_STL)
 endif()
 
 if(WITH_BULLET)
