@@ -1088,13 +1088,8 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
         # Needed to refresh.
         self.repo_directory = directory
 
-        # Lock repositories.
-        self.repo_lock = bl_extension_utils.RepoLock(
-            repo_directories=[directory],
-            cookie=cookie_from_session(),
-        )
-        if lock_result_any_failed_with_report(self, self.repo_lock.acquire()):
-            return None
+        # See comment for `EXTENSIONS_OT_repo_sync_all`.
+        repos_lock = []
 
         cmd_batch = []
         if repo_item.remote_url:
@@ -1109,6 +1104,15 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
                     use_idle=is_modal,
                 )
             )
+            repos_lock.append(repo_item.directory)
+
+        # Lock repositories.
+        self.repo_lock = bl_extension_utils.RepoLock(
+            repo_directories=repos_lock,
+            cookie=cookie_from_session(),
+        )
+        if lock_result_any_failed_with_report(self, self.repo_lock.acquire()):
+            return None
 
         return bl_extension_utils.CommandBatch(
             title="Sync",
@@ -1176,6 +1180,10 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
                     self.report({'WARNING'}, str(ex))
                     return None
 
+        # It's only required to lock remote repositories, local repositories can refresh without being modified,
+        # this is essential for system repositories which may be read-only.
+        repos_lock = []
+
         cmd_batch = []
         for repo_item in repos_all:
             # Local only repositories should still refresh, but not run the sync.
@@ -1189,8 +1197,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
                     access_token=repo_item.access_token,
                     use_idle=is_modal,
                 ))
-
-        repos_lock = [repo_item.directory for repo_item in repos_all]
+                repos_lock.append(repo_item.directory)
 
         # Lock repositories.
         self.repo_lock = bl_extension_utils.RepoLock(

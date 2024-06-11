@@ -47,6 +47,7 @@ __all__ = (
     "RepoLockContext",
 )
 
+import abc
 import json
 import os
 import sys
@@ -55,7 +56,6 @@ import stat
 import subprocess
 import time
 import tomllib
-
 
 from typing import (
     Any,
@@ -169,6 +169,21 @@ def file_mtime_or_none(filepath: str) -> Optional[int]:
         return None
 
 
+def file_mtime_or_none_with_error_fn(
+        filepath: str,
+        *,
+        error_fn: Callable[[Exception], None],
+) -> Optional[int]:
+    try:
+        # For some reason `mypy` thinks this is a float.
+        return int(os.stat(filepath)[stat.ST_MTIME])
+    except FileNotFoundError:
+        pass
+    except Exception as ex:
+        error_fn(ex)
+    return None
+
+
 def scandir_with_demoted_errors(path: str) -> Generator[os.DirEntry[str], None, None]:
     try:
         yield from os.scandir(path)
@@ -261,6 +276,38 @@ def command_output_from_json_0(
 
 def repositories_validate_or_errors(repos: Sequence[str]) -> Optional[InfoItemSeq]:
     return None
+
+
+def repository_iter_package_dirs(
+        directory: str,
+        *,
+        error_fn: Callable[[Exception], None],
+) -> Generator[os.DirEntry[str], None, None]:
+    try:
+        dir_entries = os.scandir(directory)
+    except Exception as ex:
+        dir_entries = None
+        error_fn(ex)
+
+    for entry in (dir_entries if dir_entries is not None else ()):
+        # Only check directories.
+        if not entry.is_dir(follow_symlinks=True):
+            continue
+
+        dirname = entry.name
+
+        # Simply ignore these paths without any warnings (accounts for `.git`, `__pycache__`, etc).
+        if dirname.startswith((".", "_")):
+            continue
+
+        # Report any paths that cannot be used.
+        if not dirname.isidentifier():
+            error_fn(Exception("\"{:s}\" is not a supported module name, skipping".format(
+                os.path.join(directory, dirname)
+            )))
+            continue
+
+        yield entry
 
 
 # -----------------------------------------------------------------------------
@@ -947,8 +994,287 @@ class CommandBatch:
 
 
 # -----------------------------------------------------------------------------
-# Public Repo Cache (non-command-line wrapper)
+# Internal Repo Data Source
 #
+
+class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
+    """
+    The purpose of this class is to be a source for the repository data.
+
+    Assumptions made by the implementation:
+    - Data is stored externally (such as a file-system).
+    - Data can be loaded in a single (blocking) operation.
+    - Data is small enough to fit in memory.
+    - It's faster to detect invalid cache than it is to load the data.
+    """
+    __slots__ = (
+    )
+
+    @abc.abstractmethod
+    def exists(self) -> bool:
+        raise Exception("Caller must define")
+
+    @abc.abstractmethod
+    def cache_is_valid(
+            self,
+            *,
+            error_fn: Callable[[Exception], None],
+    ) -> bool:
+        raise Exception("Caller must define")
+
+    @abc.abstractmethod
+    def cache_clear(self) -> None:
+        raise Exception("Caller must define")
+
+    @abc.abstractmethod
+    def cache_data(self) -> Optional[Dict[str, Dict[str, Any]]]:
+        raise Exception("Caller must define")
+
+    # Should not be called directly use `data(..)` which supports cache.
+    @abc.abstractmethod
+    def _data_load(
+            self,
+            *,
+            error_fn: Callable[[Exception], None],
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        raise Exception("Caller must define")
+
+    def data(
+            self,
+            *,
+            cache_validate: bool,
+            force: bool,
+            error_fn: Callable[[Exception], None],
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        if not self.exists():
+            self.cache_clear()
+            return None
+
+        if force:
+            self.cache_clear()
+        elif cache_validate:
+            if not self.cache_is_valid(error_fn=error_fn):
+                self.cache_clear()
+
+        if (data := self.cache_data()) is None:
+            data = self._data_load(error_fn=error_fn)
+        return data
+
+
+class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
+    __slots__ = (
+        "_data",
+
+        "_filepath",
+        "_mtime",
+    )
+
+    def __init__(self, directory: str):
+        filepath = os.path.join(directory, REPO_LOCAL_JSON)
+
+        self._filepath: str = filepath
+        self._mtime: int = 0
+        self._data: Optional[Dict[str, Dict[str, Any]]] = None
+
+    def exists(self) -> bool:
+        try:
+            return os.path.exists(self._filepath)
+        except Exception:
+            return False
+
+    def cache_is_valid(
+            self,
+            *,
+            error_fn: Callable[[Exception], None],
+    ) -> bool:
+        if self._mtime == 0:
+            return False
+        if not self.exists():
+            return False
+        return self._mtime == file_mtime_or_none_with_error_fn(self._filepath, error_fn=error_fn)
+
+    def cache_clear(self) -> None:
+        self._data = None
+        self._mtime = 0
+
+    def cache_data(self) -> Optional[Dict[str, Dict[str, Any]]]:
+        return self._data
+
+    def _data_load(
+            self,
+            *,
+            error_fn: Callable[[Exception], None],
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        assert self.exists()
+
+        data = None
+        mtime = file_mtime_or_none_with_error_fn(self._filepath, error_fn=error_fn) or 0
+
+        if mtime != 0:
+            try:
+                data = json_from_filepath(self._filepath)
+            except Exception as ex:
+                error_fn(ex)
+
+        self._data = data
+        self._mtime = mtime
+
+        return data
+
+
+class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
+    __slots__ = (
+        "_data",
+
+        "_directory",
+        "_mtime_for_each_package",
+    )
+
+    def __init__(self, directory: str):
+        self._directory: str = directory
+        self._mtime_for_each_package: Optional[Dict[str, int]] = None
+        self._data: Optional[Dict[str, Dict[str, Any]]] = None
+
+    def exists(self) -> bool:
+        try:
+            return os.path.isdir(self._directory)
+        except Exception:
+            return False
+
+    def cache_is_valid(
+            self,
+            *,
+            error_fn: Callable[[Exception], None],
+    ) -> bool:
+        if self._mtime_for_each_package is None:
+            return False
+        if not self.exists():
+            return False
+
+        if self._mtime_for_each_package_changed(
+                directory=self._directory,
+                mtime_for_each_package=self._mtime_for_each_package,
+                error_fn=error_fn,
+        ):
+            return False
+
+        return True
+
+    def cache_clear(self) -> None:
+        self._data = None
+        self._mtime_for_each_package = None
+
+    def cache_data(self) -> Optional[Dict[str, Dict[str, Any]]]:
+        return self._data
+
+    def _data_load(
+            self,
+            *,
+            error_fn: Callable[[Exception], None],
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        assert self.exists()
+
+        mtime_for_each_package = self._mtime_for_each_package_create(
+            directory=self._directory,
+            error_fn=error_fn,
+        )
+
+        data: Dict[str, Any] = {}
+        for dirname in mtime_for_each_package.keys():
+            filepath_toml = os.path.join(self._directory, dirname, PKG_MANIFEST_FILENAME_TOML)
+            try:
+                item_local = toml_from_filepath(filepath_toml)
+            except Exception as ex:
+                item_local = None
+                error_fn(ex)
+
+            if item_local is None:
+                continue
+
+            data[dirname] = item_local
+
+        # Begin: transform to list with ID's in item.
+        # TODO: this transform can probably be removed and the internal format can change
+        # to use the same structure as the actual JSON.
+        data = {
+            "version": "v1",
+            "blocklist": [],
+            "data": [
+                {"id": pkg_idname, **value}
+                for pkg_idname, value in data.items()
+            ],
+        }
+        # End: compatibility change.
+
+        self._data = data
+        self._mtime_for_each_package = mtime_for_each_package
+
+        return data
+
+    @classmethod
+    def _mtime_for_each_package_create(
+            cls,
+            *,
+            directory: str,
+            error_fn: Callable[[Exception], None],
+    ) -> Dict[str, int]:
+        # Caller must check `self.exists()`.
+        assert os.path.isdir(directory)
+
+        mtime_for_each_package: Dict[str, int] = {}
+
+        for entry in repository_iter_package_dirs(directory, error_fn=error_fn):
+            dirname = entry.name
+            filepath_toml = os.path.join(directory, dirname, PKG_MANIFEST_FILENAME_TOML)
+            try:
+                mtime = int(entry.stat().st_mtime)
+            except Exception as ex:
+                error_fn(ex)
+                mtime = 0
+            mtime_for_each_package[dirname] = mtime
+
+        return mtime_for_each_package
+
+    @ classmethod
+    def _mtime_for_each_package_changed(
+            cls,
+            *,
+            directory: str,
+            mtime_for_each_package: Dict[str, int],
+            error_fn: Callable[[Exception], None],
+    ) -> bool:
+        """
+        Detect a change and return as early as possibly.
+        Ideally this would not have to scan many files, since this could become *expensive*
+        with very large repositories however as each package has it's own TOML,
+        there is no viable alternative.
+        """
+        # Caller must check `self.exists()`.
+        assert os.path.isdir(directory)
+
+        package_count = 0
+        for entry in repository_iter_package_dirs(directory, error_fn=error_fn):
+            filename = entry.name
+            mtime_ref = mtime_for_each_package.get(filename)
+            if mtime_ref is None:
+                return True
+
+            filepath_toml = os.path.join(directory, filename, PKG_MANIFEST_FILENAME_TOML)
+
+            mtime_new = (file_mtime_or_none_with_error_fn(filepath_toml, error_fn=error_fn) or 0)
+            if mtime_new != mtime_ref:
+                return True
+            package_count += 1
+
+        if package_count != len(mtime_for_each_package):
+            return True
+
+        return False
+
+
+# -----------------------------------------------------------------------------
+# Public Repo Cache (non-command-line wrapper)
+
 
 class _RepoCacheEntry:
     __slots__ = (
@@ -957,8 +1283,9 @@ class _RepoCacheEntry:
 
         "_pkg_manifest_local",
         "_pkg_manifest_remote",
-        "_pkg_manifest_remote_mtime",
-        "_pkg_manifest_remote_has_warning"
+        "_pkg_manifest_remote_data_source",
+        "_pkg_manifest_remote_has_warning",
+
     )
 
     def __init__(self, directory: str, remote_url: str) -> None:
@@ -968,7 +1295,10 @@ class _RepoCacheEntry:
         # Manifest data per package loaded from the packages local JSON.
         self._pkg_manifest_local: Optional[Dict[str, Dict[str, Any]]] = None
         self._pkg_manifest_remote: Optional[Dict[str, Dict[str, Any]]] = None
-        self._pkg_manifest_remote_mtime = 0
+        self._pkg_manifest_remote_data_source: _RepoDataSouce_ABC = (
+            _RepoDataSouce_JSON(directory) if remote_url else
+            _RepoDataSouce_TOML_FILES(directory)
+        )
         # Avoid many noisy prints.
         self._pkg_manifest_remote_has_warning = False
 
@@ -979,80 +1309,24 @@ class _RepoCacheEntry:
             check_files: bool = False,
             ignore_missing: bool = False,
     ) -> Any:
-        if self._pkg_manifest_remote is not None:
-            if check_files:
-                self._json_data_refresh(error_fn=error_fn)
-            return self._pkg_manifest_remote
+        data = self._pkg_manifest_remote_data_source.data(
+            cache_validate=check_files,
+            force=False,
+            error_fn=error_fn,
+        )
+        if data is not self._pkg_manifest_remote:
+            self._pkg_manifest_remote = data
 
-        filepath_json = os.path.join(self.directory, REPO_LOCAL_JSON)
-
-        try:
-            self._pkg_manifest_remote = json_from_filepath(filepath_json)
-        except Exception as ex:
-            self._pkg_manifest_remote = None
-            error_fn(ex)
-
-        self._pkg_manifest_local = None
-        if self._pkg_manifest_remote is not None:
-            json_mtime = file_mtime_or_none(filepath_json)
-            assert json_mtime is not None
-            self._pkg_manifest_remote_mtime = json_mtime
-            self._pkg_manifest_local = None
-            self._pkg_manifest_remote_has_warning = False
-        else:
+        if data is None:
             if not ignore_missing:
                 # NOTE: this warning will occur when setting up a new repository.
                 # It could be removed but it's also useful to know when the JSON is missing.
                 if self.remote_url:
                     if not self._pkg_manifest_remote_has_warning:
-                        print("Repository file:", filepath_json, "not found, sync required!")
+                        print("Repository data:", self.directory, "not found, sync required!")
                         self._pkg_manifest_remote_has_warning = True
 
         return self._pkg_manifest_remote
-
-    def _json_data_refresh_from_toml(
-            self,
-            *,
-            error_fn: Callable[[Exception], None],
-            force: bool = False,
-    ) -> None:
-        assert self.remote_url == ""
-        # Since there is no remote repo the ID name is defined by the directory name only.
-        local_json_data = self.pkg_manifest_from_local_ensure(error_fn=error_fn)
-        if local_json_data is None:
-            return
-
-        filepath_json = os.path.join(self.directory, REPO_LOCAL_JSON)
-
-        # We might want to adjust where this happens, create the directory here
-        # because this could be a fresh repo might not have been initialized until now.
-        directory = os.path.dirname(filepath_json)
-        try:
-            # A symbolic-link that's followed (good), if it exists and is a file an error is raised here and returned.
-            if not os.path.isdir(directory):
-                os.makedirs(directory, exist_ok=True)
-        except Exception as ex:
-            error_fn(ex)
-            return
-        del directory
-
-        with open(filepath_json, "w", encoding="utf-8") as fh:
-            # Indent because it can be useful to check this file if there are any issues.
-
-            # Begin: transform to list with ID's in item.
-            # TODO: this transform can probably be removed and the internal format can change
-            # to use the same structure as the actual JSON.
-            local_json_data_compat = {
-                "version": "v1",
-                "blocklist": [],
-                "data": [
-                    {"id": pkg_idname, **value}
-                    for pkg_idname, value in local_json_data.items()
-                ],
-            }
-            # End: compatibility change.
-
-            fh.write(json.dumps(local_json_data_compat, indent=2))
 
     def _json_data_refresh(
             self,
@@ -1060,35 +1334,11 @@ class _RepoCacheEntry:
             error_fn: Callable[[Exception], None],
             force: bool = False,
     ) -> None:
-        if force or (self._pkg_manifest_remote is None) or (self._pkg_manifest_remote_mtime == 0):
-            self._pkg_manifest_remote = None
-            self._pkg_manifest_remote_mtime = 0
-            self._pkg_manifest_local = None
-
-        # Detect a local-only repository, there is no server to sync with
-        # so generate the JSON from the TOML files.
-        # While redundant this avoids having support multiple code-paths for local-only/remote repos.
-        if self.remote_url == "":
-            self._json_data_refresh_from_toml(error_fn=error_fn, force=force)
-
-        filepath_json = os.path.join(self.directory, REPO_LOCAL_JSON)
-        mtime_test = file_mtime_or_none(filepath_json)
-        if self._pkg_manifest_remote is not None:
-            # TODO: check the time of every installed package.
-            if mtime_test == self._pkg_manifest_remote_mtime:
-                return
-
-        try:
-            self._pkg_manifest_remote = json_from_filepath(filepath_json)
-        except Exception as ex:
-            self._pkg_manifest_remote = None
-            error_fn(ex)
-
-        self._pkg_manifest_local = None
-        if self._pkg_manifest_remote is not None:
-            json_mtime = file_mtime_or_none(filepath_json)
-            assert json_mtime is not None
-            self._pkg_manifest_remote_mtime = json_mtime
+        self._pkg_manifest_remote_data_source.data(
+            cache_validate=True,
+            force=force,
+            error_fn=error_fn,
+        )
 
     def pkg_manifest_from_local_ensure(
             self,
@@ -1105,31 +1355,10 @@ class _RepoCacheEntry:
                 error_fn=error_fn,
             )
             pkg_manifest_local = {}
-            try:
-                dir_entries = os.scandir(self.directory)
-            except Exception as ex:
-                dir_entries = None
-                error_fn(ex)
 
-            for entry in (dir_entries if dir_entries is not None else ()):
-                # Only check directories.
-                if not entry.is_dir(follow_symlinks=True):
-                    continue
-
-                filename = entry.name
-
-                # Simply ignore these paths without any warnings (accounts for `.git`, `__pycache__`, etc).
-                if filename.startswith((".", "_")):
-                    continue
-
-                # Report any paths that cannot be used.
-                if not filename.isidentifier():
-                    error_fn(Exception("\"{:s}\" is not a supported module name, skipping".format(
-                        os.path.join(self.directory, filename)
-                    )))
-                    continue
-
-                filepath_toml = os.path.join(self.directory, filename, PKG_MANIFEST_FILENAME_TOML)
+            for entry in repository_iter_package_dirs(self.directory, error_fn=error_fn):
+                dirname = entry.name
+                filepath_toml = os.path.join(self.directory, dirname, PKG_MANIFEST_FILENAME_TOML)
                 try:
                     item_local = toml_from_filepath(filepath_toml)
                 except Exception as ex:
@@ -1142,14 +1371,14 @@ class _RepoCacheEntry:
                 pkg_idname = item_local["id"]
                 if has_remote:
                     # This should never happen, the user may have manually renamed a directory.
-                    if pkg_idname != filename:
+                    if pkg_idname != dirname:
                         print("Skipping package with inconsistent name: \"{:s}\" mismatch \"{:s}\"".format(
-                            filename,
+                            dirname,
                             pkg_idname,
                         ))
                         continue
                 else:
-                    pkg_idname = filename
+                    pkg_idname = dirname
 
                 # Validate so local-only packages with invalid manifests aren't used.
                 if (error_str := pkg_manifest_dict_is_valid_or_error(item_local, from_repo=False, strict=False)):
