@@ -19,8 +19,8 @@ static inline bool openimagedenoise_supported()
 #  if defined(__APPLE__)
   /* Always supported through Accelerate framework BNNS. */
   return true;
-#  elif defined(_M_ARM64)
-  /* OIDN supports NEON natively, and all Windows ARM64 platforms support NEON */
+#  elif defined(__aarch64__) || defined(_M_ARM64)
+  /* OIDN 2.2 and up supports ARM64 on Windows and Linux. */
   return true;
 #  else
   return system_cpu_support_sse42();
