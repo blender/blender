@@ -598,6 +598,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     # Tuples of (module name, (short names, ...)).
     pgettext_variants = (
         ("pgettext", ("_",)),
+        ("pgettext_n", ("n_",)),
         ("pgettext_iface", ("iface_",)),
         ("pgettext_tip", ("tip_",)),
         ("pgettext_rpt", ("rpt_",)),
