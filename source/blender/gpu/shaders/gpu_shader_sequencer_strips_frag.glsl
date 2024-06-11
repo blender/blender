@@ -40,16 +40,18 @@ void main()
   vec2 co = co_interp;
 
   SeqStripDrawData strip = strip_data[strip_id];
-  vec2 size = vec2(strip.right_handle - strip.left_handle, strip.top - strip.bottom) * 0.5;
-  vec2 center = vec2(strip.right_handle + strip.left_handle, strip.top + strip.bottom) * 0.5;
 
   /* Transform strip rectangle into pixel coordinates, so that
    * rounded corners have proper aspect ratio and can be expressed in pixels.
+   * Make sure strip right side does not include the last pixel.
    * Also snap to pixel grid coordinates, so that outline/border is clear
    * non-fractional pixel sizes. */
   vec2 view_to_pixel = vec2(context_data.inv_pixelx, context_data.inv_pixely);
-  size = round(size * view_to_pixel);
-  center = round(center * view_to_pixel);
+  vec2 pos1 = round(vec2(strip.left_handle, strip.bottom) * view_to_pixel);
+  vec2 pos2 = round(vec2(strip.right_handle, strip.top) * view_to_pixel);
+  pos2.x -= 1.0;
+  vec2 size = (pos2 - pos1) * 0.5;
+  vec2 center = (pos1 + pos2) * 0.5;
   vec2 pos = round(co * view_to_pixel);
 
   float radius = context_data.round_radius;
@@ -128,10 +130,11 @@ void main()
 
   /* Handles. */
   if ((strip.flags & GPU_SEQ_FLAG_HANDLES) != 0) {
-    if (co.x >= strip.left_handle && co.x < strip.left_handle + strip.handle_width) {
+    float handle_width = strip.handle_width * view_to_pixel.x;
+    if (pos.x >= pos1.x && pos.x < pos1.x + handle_width) {
       col = blend_color(col, unpackUnorm4x8(strip.col_handle_left));
     }
-    if (co.x > strip.right_handle - strip.handle_width && co.x <= strip.right_handle) {
+    if (pos.x > pos2.x - handle_width && pos.x <= pos2.x) {
       col = blend_color(col, unpackUnorm4x8(strip.col_handle_right));
     }
   }
