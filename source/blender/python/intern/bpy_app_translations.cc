@@ -620,6 +620,7 @@ PyDoc_STRVAR(app_translations_pgettext_n_doc,
              "\n"
              "   Extract the given msgid to translation files. This is a no-op function that will "
              "only mark the string to extract, but not perform the actual translation.\n"
+             "\n"
              "   .. note::\n"
              "      See :func:`pgettext` notes.\n"
              "\n"
