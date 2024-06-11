@@ -1123,11 +1123,9 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
   BLI_assert(action != nullptr);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action->wrap().is_action_layered()) {
-    /* TODO: Don't hard-code key settings. */
-    KeyframeSettings key_settings;
+    KeyframeSettings key_settings = get_keyframe_settings(
+        (insert_key_flags & INSERTKEY_NO_USERPREF) == 0);
     key_settings.keyframe_type = key_type;
-    key_settings.handle = HD_AUTO_ANIM;
-    key_settings.interpolation = BEZT_IPO_BEZ;
     return insert_key_layered_action(action->wrap(),
                                      adt->binding_handle,
                                      rna_pointer,
