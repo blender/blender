@@ -335,7 +335,7 @@ typedef enum GroupColorTag {
   LAYERGROUP_COLOR_06,
   LAYERGROUP_COLOR_07,
   LAYERGROUP_COLOR_08,
-};
+} GroupColorTag;
 
 typedef struct GreasePencilLayerTreeGroup {
   GreasePencilLayerTreeNode base;
