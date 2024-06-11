@@ -442,8 +442,8 @@ static bool old_id_property_type_matches_socket_convert_to_new_string(
 }
 
 /**
- * Check if the given `old_property` property type is compatible with the given `socket` type. E.g.
- * a `SOCK_FLOAT` socket can use data from `IDP_FLOAT`, `IDP_INT` and `IDP_DOUBLE` idproperties.
+ * Check if the given `old_property` property type is compatible with the given `socket` type.
+ * E.g. a #SOCK_FLOAT socket can use data from #IDP_FLOAT, #IDP_INT and #IDP_DOUBLE ID-properties.
  *
  * If `new_property` is given, it is expected to be of the 'perfect match' type with the given
  * `socket` (see #id_property_create_from_socket), and its value will be set from the value of

@@ -45,7 +45,7 @@ void main()
 
   /* Transform strip rectangle into pixel coordinates, so that
    * rounded corners have proper aspect ratio and can be expressed in pixels.
-   * Also snap to pixel grid coorinates, so that outline/border is clear
+   * Also snap to pixel grid coordinates, so that outline/border is clear
    * non-fractional pixel sizes. */
   vec2 view_to_pixel = vec2(context_data.inv_pixelx, context_data.inv_pixely);
   size = round(size * view_to_pixel);

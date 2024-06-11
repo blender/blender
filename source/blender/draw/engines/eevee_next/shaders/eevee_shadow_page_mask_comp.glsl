@@ -178,7 +178,7 @@ void main()
       /* WATCH: To be kept in sync with `max_view_per_tilemap()` function. */
       bool is_render = max_view_per_tilemap == SHADOW_TILEMAP_LOD;
       /* Tag base page to be rendered if any other tile is needed by this shadow.
-       * Fixes issue with shadow map ray tracing sampling invalide tiles.
+       * Fixes issue with shadow map ray tracing sampling invalid tiles.
        * Only do this in for final render or if all the main levels were already rendered.
        * This last heuristic avoids very low quality shadows during viewport animation, transform
        * or jittered shadows. */
