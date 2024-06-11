@@ -18,6 +18,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "UI_interface.hh"
 
 #include "DNA_scene_types.h"
 
@@ -741,6 +742,47 @@ static void GREASE_PENCIL_OT_layer_mask_reorder(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "direction", enum_direction, 0, "Direction", "");
 }
 
+const EnumPropertyItem enum_layergroup_color_items[] = {
+    {LAYERGROUP_COLOR_NONE, "NONE", ICON_X, "Set Default icon", ""},
+    {LAYERGROUP_COLOR_01, "COLOR1", ICON_LAYERGROUP_COLOR_01, "Color tag 1", ""},
+    {LAYERGROUP_COLOR_02, "COLOR2", ICON_LAYERGROUP_COLOR_02, "Color tag 2", ""},
+    {LAYERGROUP_COLOR_03, "COLOR3", ICON_LAYERGROUP_COLOR_03, "Color tag 3", ""},
+    {LAYERGROUP_COLOR_04, "COLOR4", ICON_LAYERGROUP_COLOR_04, "Color tag 4", ""},
+    {LAYERGROUP_COLOR_05, "COLOR5", ICON_LAYERGROUP_COLOR_05, "Color tag 5", ""},
+    {LAYERGROUP_COLOR_06, "COLOR6", ICON_LAYERGROUP_COLOR_06, "Color tag 6", ""},
+    {LAYERGROUP_COLOR_07, "COLOR7", ICON_LAYERGROUP_COLOR_07, "Color tag 7", ""},
+    {LAYERGROUP_COLOR_08, "COLOR8", ICON_LAYERGROUP_COLOR_08, "Color tag 8", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static int grease_pencil_layer_group_color_tag_exec(bContext *C, wmOperator *op)
+{
+  using namespace ::blender::bke::greasepencil;
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const int color_tag = RNA_enum_get(op->ptr, "color_tag");
+  LayerGroup *active_group = grease_pencil.get_active_group();
+  active_group->color_tag = color_tag;
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_group_color_tag(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Grease Pencil group color tag";
+  ot->idname = "GREASE_PENCIL_OT_layer_group_color_tag";
+  ot->description = "Change layer group icon";
+
+  ot->exec = grease_pencil_layer_group_color_tag_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->prop = RNA_def_enum(ot->srna, "color_tag", enum_layergroup_color_items, 0, "color tag", "");
+}
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_layers()
@@ -762,4 +804,5 @@ void ED_operatortypes_grease_pencil_layers()
   WM_operatortype_append(GREASE_PENCIL_OT_layer_mask_add);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_mask_remove);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_mask_reorder);
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_group_color_tag);
 }

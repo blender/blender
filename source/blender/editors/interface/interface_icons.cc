@@ -32,6 +32,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -521,6 +522,41 @@ static void vicon_strip_color_draw_library_data_override_noneditable(
                   UI_NO_ICON_OVERLAY_TEXT);
 }
 
+static void vicon_layergroup_color_draw(
+    short color_tag, int x, int y, int w, int /*h*/, float /*alpha*/)
+{
+  bTheme *btheme = UI_GetTheme();
+  const ThemeCollectionColor *layergroup_color = &btheme->collection_color[color_tag];
+
+  const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
+
+  UI_icon_draw_ex(x,
+                  y,
+                  ICON_FILE_FOLDER,
+                  aspect,
+                  1.0f,
+                  0.0f,
+                  layergroup_color->color,
+                  true,
+                  UI_NO_ICON_OVERLAY_TEXT);
+}
+
+#  define DEF_ICON_LAYERGROUP_COLOR_DRAW(index, color) \
+    static void vicon_layergroup_color_draw_##index(int x, int y, int w, int h, float alpha) \
+    { \
+      vicon_layergroup_color_draw(color, x, y, w, h, alpha); \
+    }
+
+DEF_ICON_LAYERGROUP_COLOR_DRAW(01, LAYERGROUP_COLOR_01);
+DEF_ICON_LAYERGROUP_COLOR_DRAW(02, LAYERGROUP_COLOR_02);
+DEF_ICON_LAYERGROUP_COLOR_DRAW(03, LAYERGROUP_COLOR_03);
+DEF_ICON_LAYERGROUP_COLOR_DRAW(04, LAYERGROUP_COLOR_04);
+DEF_ICON_LAYERGROUP_COLOR_DRAW(05, LAYERGROUP_COLOR_05);
+DEF_ICON_LAYERGROUP_COLOR_DRAW(06, LAYERGROUP_COLOR_06);
+DEF_ICON_LAYERGROUP_COLOR_DRAW(07, LAYERGROUP_COLOR_07);
+DEF_ICON_LAYERGROUP_COLOR_DRAW(08, LAYERGROUP_COLOR_08);
+
+#  undef DEF_ICON_LAYERGROUP_COLOR_DRAW
 /* Dynamically render icon instead of rendering a plain color to a texture/buffer
  * This is not strictly a "vicon", as it needs access to icon->obj to get the color info,
  * but it works in a very similar way.
@@ -1174,6 +1210,15 @@ static void init_internal_icons()
   def_internal_vicon(ICON_LIBRARY_DATA_INDIRECT, vicon_strip_color_draw_library_data_indirect);
   def_internal_vicon(ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE,
                      vicon_strip_color_draw_library_data_override_noneditable);
+
+  def_internal_vicon(ICON_LAYERGROUP_COLOR_01, vicon_layergroup_color_draw_01);
+  def_internal_vicon(ICON_LAYERGROUP_COLOR_02, vicon_layergroup_color_draw_02);
+  def_internal_vicon(ICON_LAYERGROUP_COLOR_03, vicon_layergroup_color_draw_03);
+  def_internal_vicon(ICON_LAYERGROUP_COLOR_04, vicon_layergroup_color_draw_04);
+  def_internal_vicon(ICON_LAYERGROUP_COLOR_05, vicon_layergroup_color_draw_05);
+  def_internal_vicon(ICON_LAYERGROUP_COLOR_06, vicon_layergroup_color_draw_06);
+  def_internal_vicon(ICON_LAYERGROUP_COLOR_07, vicon_layergroup_color_draw_07);
+  def_internal_vicon(ICON_LAYERGROUP_COLOR_08, vicon_layergroup_color_draw_08);
 }
 
 static void init_iconfile_list(ListBase *list)
