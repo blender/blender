@@ -3817,18 +3817,18 @@ static void do_brush_action(const Sculpt &sd,
       break;
     case SCULPT_TOOL_FILL:
       if (invert && brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        SCULPT_do_scrape_brush(sd, ob, nodes);
+        do_scrape_brush(sd, ob, nodes);
       }
       else {
-        SCULPT_do_fill_brush(sd, ob, nodes);
+        do_fill_brush(sd, ob, nodes);
       }
       break;
     case SCULPT_TOOL_SCRAPE:
       if (invert && brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        SCULPT_do_fill_brush(sd, ob, nodes);
+        do_fill_brush(sd, ob, nodes);
       }
       else {
-        SCULPT_do_scrape_brush(sd, ob, nodes);
+        do_scrape_brush(sd, ob, nodes);
       }
       break;
     case SCULPT_TOOL_MASK:
@@ -5867,7 +5867,9 @@ static void sculpt_stroke_update_step(bContext *C,
    *
    * For some brushes, flushing is done in the brush code itself.
    */
-  if (!(ELEM(brush.sculpt_tool, SCULPT_TOOL_DRAW) && BKE_pbvh_type(*ss.pbvh) == PBVH_FACES)) {
+  if (!(ELEM(brush.sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_FILL) &&
+        BKE_pbvh_type(*ss.pbvh) == PBVH_FACES))
+  {
     if (ss.deform_modifiers_active) {
       SCULPT_flush_stroke_deform(sd, ob, sculpt_tool_is_proxy_used(brush.sculpt_tool));
     }
@@ -6725,6 +6727,23 @@ void apply_translations_to_pbvh(PBVH &pbvh, Span<int> verts, const Span<float3> 
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
     pbvh_positions[vert] += translations[i];
+  }
+}
+
+void scale_translations(const MutableSpan<float3> translations, const Span<float> factors)
+{
+  for (const int i : translations.index_range()) {
+    translations[i] *= factors[i];
+  }
+}
+
+void scale_factors(const MutableSpan<float> factors, const float strength)
+{
+  if (strength == 1.0f) {
+    return;
+  }
+  for (float &factor : factors) {
+    factor *= strength;
   }
 }
 

@@ -2018,8 +2018,6 @@ float SCULPT_clay_thumb_get_stabilized_pressure(
 
 void SCULPT_do_draw_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 
-void SCULPT_do_fill_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
-void SCULPT_do_scrape_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_clay_thumb_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_flatten_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_clay_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
