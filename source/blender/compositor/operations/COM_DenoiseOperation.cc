@@ -15,8 +15,11 @@ namespace blender::compositor {
 bool COM_is_denoise_supported()
 {
 #ifdef WITH_OPENIMAGEDENOISE
-  /* Always supported through Accelerate framework BNNS on macOS. */
 #  ifdef __APPLE__
+  /* Always supported through Accelerate framework BNNS on macOS. */
+  return true;
+#  elif defined(__aarch64__) || defined(_M_ARM64)
+  /* OIDN 2.2 and up supports ARM64 on Windows and Linux. */
   return true;
 #  else
   return BLI_cpu_support_sse42();
