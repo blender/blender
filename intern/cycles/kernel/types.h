@@ -763,7 +763,7 @@ typedef struct Intersection {
  * specify that certain fields should be packed together. This improves cache hit ratios in cases
  * where fields are often accessed together (e.g. "ray" and "isect").
  */
-#if defined(TARGET_CPU_ARM64) || defined(__KERNEL_METAL_APPLE__)
+#if (defined(__APPLE__) && TARGET_CPU_ARM64) || defined(__KERNEL_METAL_APPLE__)
 #  define __INTEGRATOR_GPU_PACKED_STATE__
 
 /* Generate packed layouts for structs declared with KERNEL_STRUCT_BEGIN_PACKED. For example the
