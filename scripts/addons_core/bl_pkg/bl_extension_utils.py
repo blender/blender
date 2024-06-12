@@ -1158,10 +1158,66 @@ class PkgManifest_Normalized(NamedTuple):
         )
 
 
+def repository_id_with_error_fn(
+        item: Dict[str, Any],
+        *,
+        repo_directory: str,
+        error_fn: Callable[[Exception], None],
+) -> Optional[str]:
+    if not (pkg_idname := item.get("id", "")):
+        error_fn(ValueError("{:s}: \"id\" missing".format(repo_directory)))
+        return None
+
+    if not (isinstance(pkg_idname, str)):
+        error_fn(ValueError("{:s}: \"id\" must be a string".format(repo_directory)))
+        return None
+
+    return pkg_idname
+
+
+def repository_filter_skip(item: Dict[str, Any]) -> bool:
+    # TODO: filter out items that:
+    # - Don't match this systems platform.
+    # - Don't match the version range of Blender.
+    _ item
+    return False
+
+
+def repository_filter_packages(
+        data: List[Dict[str, Any]],
+        *,
+        repo_directory: str,
+        error_fn: Callable[[Exception], None],
+) -> Dict[str, PkgManifest_Normalized]:
+    pkg_manifest_map = {}
+    for item in data:
+        if (pkg_idname := repository_id_with_error_fn(
+                item,
+                repo_directory=repo_directory,
+                error_fn=error_fn,
+        )) is None:
+            continue
+
+        if repository_filter_skip(item):
+            continue
+
+        if (value := PkgManifest_Normalized.from_dict_with_error_fn(
+                item,
+                pkg_idname=pkg_idname,
+                error_fn=error_fn,
+        )) is None:
+            continue
+
+        pkg_manifest_map[pkg_idname] = value
+
+    return pkg_manifest_map
+
+
 class RepoRemoteData(NamedTuple):
     version: str
     blocklist: List[str]
-    data: List[Dict[str, Any]]
+    # Converted from the `data` field.
+    pkg_manifest_map: Dict[str, PkgManifest_Normalized]
 
 
 class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
@@ -1304,7 +1360,11 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
         data = RepoRemoteData(
             version=data_dict.get("version", "v1"),
             blocklist=data_dict.get("blocklist", []),
-            data=data_dict.get("data", []),
+            pkg_manifest_map=repository_filter_packages(
+                data_dict.get("data", []),
+                repo_directory=os.path.dirname(self._filepath),
+                error_fn=error_fn,
+            ),
         )
 
         self._data = data
@@ -1370,7 +1430,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             error_fn=error_fn,
         )
 
-        packages: Dict[str, Any] = {}
+        pkg_manifest_map: Dict[str, PkgManifest_Normalized] = {}
         for dirname in mtime_for_each_package.keys():
             filepath_toml = os.path.join(self._directory, dirname, PKG_MANIFEST_FILENAME_TOML)
             try:
@@ -1382,7 +1442,25 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             if item_local is None:
                 continue
 
-            packages[dirname] = item_local
+            # Unlikely but possible.
+            if (pkg_idname := repository_id_with_error_fn(
+                    item_local,
+                    repo_directory=self._directory,
+                    error_fn=error_fn,
+            )) is None:
+                continue
+
+            if repository_filter_skip(item_local):
+                continue
+
+            if (value := PkgManifest_Normalized.from_dict_with_error_fn(
+                    item_local,
+                    pkg_idname=pkg_idname,
+                    error_fn=error_fn,
+            )) is None:
+                continue
+
+            pkg_manifest_map[dirname] = value
 
         # Begin: transform to list with ID's in item.
         # TODO: this transform can probably be removed and the internal format can change
@@ -1390,10 +1468,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
         data = RepoRemoteData(
             version="v1",
             blocklist=[],
-            data=[
-                {"id": pkg_idname, **value}
-                for pkg_idname, value in packages.items()
-            ],
+            pkg_manifest_map=pkg_manifest_map,
         )
         # End: compatibility change.
 
@@ -1478,7 +1553,7 @@ class _RepoCacheEntry:
         self.remote_url = remote_url
         # Manifest data per package loaded from the packages local JSON.
         self._pkg_manifest_local: Optional[Dict[str, PkgManifest_Normalized]] = None
-        self._pkg_manifest_remote: Optional[RepoRemoteData] = None
+        self._pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
         self._pkg_manifest_remote_data_source: _RepoDataSouce_ABC = (
             _RepoDataSouce_JSON(directory) if remote_url else
             _RepoDataSouce_TOML_FILES(directory)
@@ -1492,16 +1567,21 @@ class _RepoCacheEntry:
             error_fn: Callable[[Exception], None],
             check_files: bool = False,
             ignore_missing: bool = False,
-    ) -> Any:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         data = self._pkg_manifest_remote_data_source.data(
             cache_validate=check_files,
             force=False,
             error_fn=error_fn,
         )
-        if data is not self._pkg_manifest_remote:
-            self._pkg_manifest_remote = data
 
-        if data is None:
+        pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
+        if data is not None:
+            pkg_manifest_remote = data.pkg_manifest_map
+
+        if pkg_manifest_remote is not self._pkg_manifest_remote:
+            self._pkg_manifest_remote = pkg_manifest_remote
+
+        if pkg_manifest_remote is None:
             if not ignore_missing:
                 # NOTE: this warning will occur when setting up a new repository.
                 # It could be removed but it's also useful to know when the JSON is missing.
@@ -1552,7 +1632,13 @@ class _RepoCacheEntry:
                 if item_local is None:
                     continue
 
-                pkg_idname = item_local["id"]
+                if (pkg_idname := repository_id_with_error_fn(
+                        item_local,
+                        repo_directory=self.directory,
+                        error_fn=error_fn,
+                )) is None:
+                    continue
+
                 if has_remote:
                     # This should never happen, the user may have manually renamed a directory.
                     if pkg_idname != dirname:
@@ -1584,7 +1670,7 @@ class _RepoCacheEntry:
             *,
             error_fn: Callable[[Exception], None],
             ignore_missing: bool = False,
-    ) -> Optional[RepoRemoteData]:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         if self._pkg_manifest_remote is None:
             self._json_data_ensure(
                 ignore_missing=ignore_missing,
@@ -1674,29 +1760,11 @@ class RepoCacheStore:
                 if repo_entry.directory not in directory_subset:
                     continue
 
-            json_data = repo_entry._json_data_ensure(
+            yield repo_entry._json_data_ensure(
                 check_files=check_files,
                 ignore_missing=ignore_missing,
                 error_fn=error_fn,
             )
-            if json_data is None:
-                # The repository may be fresh, not yet initialized.
-                yield None
-            else:
-                pkg_manifest_remote = {}
-                for item_remote in json_data.data:
-                    # TODO(@ideasman42): we may want to include the "id", as part of moving to a new format
-                    # the "id" used not to be part of each item so users of this API assume it's not.
-                    # The `item_remote` could be used in-place however that needs further testing.
-                    pkg_idname = item_remote["id"]
-                    if (value := PkgManifest_Normalized.from_dict_with_error_fn(
-                            item_remote,
-                            pkg_idname=pkg_idname,
-                            error_fn=error_fn,
-                    )) is not None:
-                        pkg_manifest_remote[pkg_idname] = value
-                    del value
-                yield pkg_manifest_remote
 
     def pkg_manifest_from_local_ensure(
             self,
