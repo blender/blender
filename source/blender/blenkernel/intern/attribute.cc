@@ -54,8 +54,6 @@ AttributeOwner AttributeOwner::from_id(ID *id)
       return AttributeOwner(AttributeOwnerType::Curves, id);
     case ID_GP:
       return AttributeOwner(AttributeOwnerType::GreasePencil, id);
-    default:
-      BLI_assert_unreachable();
   }
   return {};
 }

@@ -215,6 +215,9 @@ static bool geometry_attributes_poll(bContext *C)
   const Main *bmain = CTX_data_main(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
   AttributeOwner owner = AttributeOwner::from_id(data);
+  if (!owner.is_valid()) {
+    return false;
+  }
   return (ob && BKE_id_is_editable(bmain, &ob->id) && data && BKE_id_is_editable(bmain, data)) &&
          BKE_attributes_supported(owner);
 }
