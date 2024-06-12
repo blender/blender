@@ -3755,10 +3755,10 @@ static void do_brush_action(const Sculpt &sd,
       const bool use_vector_displacement = (brush.flag2 & BRUSH_USE_COLOR_AS_DISPLACEMENT &&
                                             (brush.mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
       if (use_vector_displacement) {
-        ed::sculpt_paint::do_draw_vector_displacement_brush(sd, ob, nodes);
+        do_draw_vector_displacement_brush(sd, ob, nodes);
       }
       else {
-        ed::sculpt_paint::do_draw_brush(sd, ob, nodes);
+        do_draw_brush(sd, ob, nodes);
       }
       break;
     }
