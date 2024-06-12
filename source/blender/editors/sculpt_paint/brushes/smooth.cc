@@ -35,7 +35,8 @@ static Vector<float> iteration_strengths(const float strength)
 {
   constexpr int max_iterations = 4;
 
-  BLI_assert(strength >= 0.0f);
+  BLI_assert_msg(strength >= 0.0f,
+                 "The smooth brush expects a non-negative strength to behave properly");
   const float clamped_strength = std::min(strength, 1.0f);
 
   const int count = int(clamped_strength * max_iterations);

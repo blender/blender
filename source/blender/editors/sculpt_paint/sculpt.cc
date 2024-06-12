@@ -3773,7 +3773,7 @@ static void do_brush_action(const Sculpt &sd,
           smooth::enhance_details_brush(sd, ob, nodes);
         }
         else {
-          do_smooth_brush(sd, ob, nodes, ss.cache->bstrength);
+          do_smooth_brush(sd, ob, nodes, std::clamp(ss.cache->bstrength, 0.0f, 1.0f));
         }
       }
       else if (brush.smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
