@@ -121,6 +121,7 @@ set(SRC
   brushes/flatten.cc
   brushes/inflate.cc
   brushes/scrape.cc
+  brushes/smooth.cc
 
   brushes/types.hh
 )

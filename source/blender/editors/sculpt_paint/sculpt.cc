@@ -3764,7 +3764,17 @@ static void do_brush_action(const Sculpt &sd,
     }
     case SCULPT_TOOL_SMOOTH:
       if (brush.smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-        smooth::do_smooth_brush(sd, ob, nodes);
+        /* NOTE: The enhance brush needs to initialize its state on the first brush step. The
+         * stroke strength can become 0 during the stroke, but it can not change sign (the sign is
+         * determined in the beginning of the stroke. So here it is important to not switch to
+         * enhance brush in the middle of the stroke. */
+        if (ss.cache->bstrength < 0.0f) {
+          /* Invert mode, intensify details. */
+          smooth::enhance_details_brush(sd, ob, nodes);
+        }
+        else {
+          do_smooth_brush(sd, ob, nodes, ss.cache->bstrength);
+        }
       }
       else if (brush.smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
         smooth::do_surface_smooth_brush(sd, ob, nodes);
@@ -3873,11 +3883,10 @@ static void do_brush_action(const Sculpt &sd,
       brush.autosmooth_factor > 0)
   {
     if (brush.flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
-      smooth::do_smooth_brush(
-          sd, ob, nodes, brush.autosmooth_factor * (1.0f - ss.cache->pressure));
+      do_smooth_brush(sd, ob, nodes, brush.autosmooth_factor * (1.0f - ss.cache->pressure));
     }
     else {
-      smooth::do_smooth_brush(sd, ob, nodes, brush.autosmooth_factor);
+      do_smooth_brush(sd, ob, nodes, brush.autosmooth_factor);
     }
   }
 
@@ -6744,6 +6753,45 @@ void scale_factors(const MutableSpan<float> factors, const float strength)
   }
   for (float &factor : factors) {
     factor *= strength;
+  }
+}
+
+void calc_vert_neighbors_interior(const OffsetIndices<int> faces,
+                                  const Span<int> corner_verts,
+                                  const GroupedSpan<int> vert_to_face,
+                                  const BitSpan boundary_verts,
+                                  const Span<bool> hide_poly,
+                                  const Span<int> verts,
+                                  const MutableSpan<Vector<int>> result)
+{
+  BLI_assert(result.size() == verts.size());
+  BLI_assert(corner_verts.size() == faces.total_size());
+  for (Vector<int> &vector : result) {
+    vector.clear();
+  }
+
+  for (const int i : verts.index_range()) {
+    const int vert = verts[i];
+    Vector<int> &neighbors = result[i];
+    for (const int face : vert_to_face[vert]) {
+      if (!hide_poly.is_empty() && hide_poly[face]) {
+        continue;
+      }
+      const int2 verts = bke::mesh::face_find_adjacent_verts(faces[face], corner_verts, vert);
+      neighbors.append_non_duplicates(verts[0]);
+      neighbors.append_non_duplicates(verts[1]);
+    }
+
+    if (boundary_verts[vert]) {
+      if (neighbors.size() == 2) {
+        /* Do not include neighbors of corner vertices. */
+        neighbors.clear();
+      }
+      else {
+        /* Only include other boundary vertices as neighbors of boundary vertices. */
+        neighbors.remove_if([&](const int vert) { return !boundary_verts[vert]; });
+      }
+    }
   }
 }
 
