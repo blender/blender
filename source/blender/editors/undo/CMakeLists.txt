@@ -28,13 +28,6 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  bf_editor_armature
-  bf_editor_curve
-  bf_editor_curves
-  bf_editor_lattice
-  bf_editor_mesh
-  bf_editor_metaball
-  bf_editor_physics
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
