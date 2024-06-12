@@ -6795,4 +6795,57 @@ void calc_vert_neighbors_interior(const OffsetIndices<int> faces,
   }
 }
 
+void calc_translations_to_plane(const Span<float3> vert_positions,
+                                const Span<int> verts,
+                                const float4 &plane,
+                                const MutableSpan<float3> translations)
+{
+  for (const int i : verts.index_range()) {
+    const float3 &position = vert_positions[verts[i]];
+    float3 closest;
+    closest_to_plane_normalized_v3(closest, plane, position);
+    translations[i] = closest - position;
+  }
+}
+
+void filter_plane_trim_limit_factors(const Brush &brush,
+                                     const StrokeCache &cache,
+                                     const Span<float3> translations,
+                                     const MutableSpan<float> factors)
+{
+  if (!(brush.flag & BRUSH_PLANE_TRIM)) {
+    return;
+  }
+  const float threshold = cache.radius_squared * cache.plane_trim_squared;
+  for (const int i : translations.index_range()) {
+    if (math::length_squared(translations[i]) <= threshold) {
+      factors[i] = 0.0f;
+    }
+  }
+}
+
+void filter_below_plane_factors(const Span<float3> vert_positions,
+                                const Span<int> verts,
+                                const float4 &plane,
+                                const MutableSpan<float> factors)
+{
+  for (const int i : verts.index_range()) {
+    if (plane_point_side_v3(plane, vert_positions[verts[i]]) <= 0.0f) {
+      factors[i] = 0.0f;
+    }
+  }
+}
+
+void filter_above_plane_factors(const Span<float3> vert_positions,
+                                const Span<int> verts,
+                                const float4 &plane,
+                                const MutableSpan<float> factors)
+{
+  for (const int i : verts.index_range()) {
+    if (plane_point_side_v3(plane, vert_positions[verts[i]]) > 0.0f) {
+      factors[i] = 0.0f;
+    }
+  }
+}
+
 }  // namespace blender::ed::sculpt_paint
