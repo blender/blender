@@ -1179,7 +1179,6 @@ def repository_filter_skip(item: Dict[str, Any]) -> bool:
     # TODO: filter out items that:
     # - Don't match this systems platform.
     # - Don't match the version range of Blender.
-    _ item
     return False
 
 
