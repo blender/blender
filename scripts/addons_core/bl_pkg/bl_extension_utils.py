@@ -1226,12 +1226,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
         for entry in repository_iter_package_dirs(directory, error_fn=error_fn):
             dirname = entry.name
             filepath_toml = os.path.join(directory, dirname, PKG_MANIFEST_FILENAME_TOML)
-            try:
-                mtime = int(entry.stat().st_mtime)
-            except Exception as ex:
-                error_fn(ex)
-                mtime = 0
-            mtime_for_each_package[dirname] = mtime
+            mtime_for_each_package[dirname] = file_mtime_or_none_with_error_fn(filepath_toml, error_fn=error_fn) or 0
 
         return mtime_for_each_package
 
@@ -1260,9 +1255,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
                 return True
 
             filepath_toml = os.path.join(directory, filename, PKG_MANIFEST_FILENAME_TOML)
-
-            mtime_new = (file_mtime_or_none_with_error_fn(filepath_toml, error_fn=error_fn) or 0)
-            if mtime_new != mtime_ref:
+            if mtime_ref != (file_mtime_or_none_with_error_fn(filepath_toml, error_fn=error_fn) or 0):
                 return True
             package_count += 1
 
