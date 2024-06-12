@@ -2180,7 +2180,7 @@ class subcmd_server:
         repo_data: List[Dict[str, Any]] = []
         # Write package meta-data into each directory.
         repo_gen_dict = {
-            "version": "1",
+            "version": "v1",
             "blocklist": [],
             "data": repo_data,
         }
