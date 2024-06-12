@@ -291,11 +291,11 @@ void UI_list_panel_unique_str(Panel *panel, char *r_name)
  * \note The only panels that should need to be deleted at runtime are panels with the
  * #PANEL_TYPE_INSTANCED flag set.
  */
-static void panel_delete(const bContext *C, ARegion *region, ListBase *panels, Panel *panel)
+static void panel_delete(ARegion *region, ListBase *panels, Panel *panel)
 {
   /* Recursively delete children. */
   LISTBASE_FOREACH_MUTABLE (Panel *, child, &panel->children) {
-    panel_delete(C, region, &panel->children, child);
+    panel_delete(region, &panel->children, child);
   }
   BLI_freelistN(&panel->children);
 
@@ -319,7 +319,7 @@ void UI_panels_free_instanced(const bContext *C, ARegion *region)
       }
 
       /* Free the panel and its sub-panels. */
-      panel_delete(C, region, &region->panels, panel);
+      panel_delete(region, &region->panels, panel);
     }
   }
 }
