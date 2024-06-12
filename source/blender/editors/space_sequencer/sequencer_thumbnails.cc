@@ -515,10 +515,6 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     return;
   }
 
-  bool clipped = false;
-  float image_height, image_width, thumb_width;
-  rcti crop;
-
   StripElem *se = seq->strip->stripdata;
   if (se->orig_height == 0 || se->orig_width == 0) {
     return;
@@ -538,21 +534,27 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   Editing *ed = SEQ_editing_get(scene);
   ListBase *channels = ed ? SEQ_channels_displayed_get(ed) : nullptr;
 
+  float thumb_width, image_width, image_height;
   const float thumb_height = y2 - y1;
   seq_get_thumb_image_dimensions(
       seq, pixelx, pixely, &thumb_width, thumb_height, &image_width, &image_height);
+
+  const float zoom_x = thumb_width / image_width;
+  const float zoom_y = thumb_height / image_height;
+  const float crop_x_multiplier = 1.0f / pixelx / (zoom_y / pixely);
 
   float thumb_y_end = y1 + thumb_height;
 
   const float seq_left_handle = SEQ_time_left_handle_frame_get(scene, seq);
   const float seq_right_handle = SEQ_time_right_handle_frame_get(scene, seq);
 
-  float cut_off = 0;
   float upper_thumb_bound = SEQ_time_has_right_still_frames(scene, seq) ? (seq->start + seq->len) :
                                                                           seq_right_handle;
   if (seq->type == SEQ_TYPE_IMAGE) {
     upper_thumb_bound = seq_right_handle;
   }
+  /* Exclude rightmost strip pixel column. */
+  upper_thumb_bound -= pixelx;
 
   float timeline_frame = SEQ_render_thumbnail_first_frame_get(scene, seq, thumb_width, &v2d->cur);
 
@@ -566,7 +568,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   /* Start drawing. */
   while (timeline_frame < upper_thumb_bound) {
     float thumb_x_end = timeline_frame + thumb_width;
-    clipped = false;
+    bool clipped = false;
 
     /* Checks to make sure that thumbs are loaded only when in view and within the confines of the
      * strip. Some may not be required but better to have conditions for safety as x1 here is
@@ -576,25 +578,24 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     }
 
     /* Set the clipping bound to show the left handle moving over thumbs and not shift thumbs. */
-    if (IN_RANGE_INCL(seq_left_handle, timeline_frame, thumb_x_end)) {
+    float cut_off = 0.0f;
+    if (seq_left_handle > timeline_frame && seq_left_handle < thumb_x_end) {
       cut_off = seq_left_handle - timeline_frame;
       clipped = true;
     }
 
     /* Clip if full thumbnail cannot be displayed. */
-    if (thumb_x_end > (upper_thumb_bound)) {
+    if (thumb_x_end > upper_thumb_bound) {
       thumb_x_end = upper_thumb_bound;
       clipped = true;
     }
 
-    float zoom_x = thumb_width / image_width;
-    float zoom_y = thumb_height / image_height;
-
-    int cropx_min = int((cut_off / pixelx) / (zoom_y / pixely));
-    int cropx_max = int(((thumb_x_end - timeline_frame) / pixelx) / (zoom_y / pixely));
+    int cropx_min = int(cut_off * crop_x_multiplier);
+    int cropx_max = int((thumb_x_end - timeline_frame) * crop_x_multiplier);
     if (cropx_max < 1) {
       break;
     }
+    rcti crop;
     BLI_rcti_init(&crop, cropx_min, cropx_max - 1, 0, int(image_height) - 1);
 
     /* Get the image. */
@@ -654,7 +655,6 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     ED_draw_imbuf_ctx_clipping(
         C, ibuf, xpos, y1, true, xpos, y1, thumb_x_end, thumb_y_end, zoom_x, zoom_y);
     IMB_freeImBuf(ibuf);
-    cut_off = 0;
     timeline_frame = SEQ_render_thumbnail_next_frame_get(scene, seq, timeline_frame, thumb_width);
   }
   last_displayed_thumbnails_list_cleanup(last_displayed_thumbnails, timeline_frame, FLT_MAX);
