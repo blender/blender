@@ -55,6 +55,19 @@ void ConstantFolder::make_constant(float3 value) const
   graph->disconnect(output);
 }
 
+void ConstantFolder::make_constant(int value) const
+{
+  VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
+             << ").";
+
+  foreach (ShaderInput *sock, output->links) {
+    sock->set(value);
+    sock->constant_folded_in = true;
+  }
+
+  graph->disconnect(output);
+}
+
 void ConstantFolder::make_constant_clamp(float value, bool clamp) const
 {
   make_constant(clamp ? saturatef(value) : value);

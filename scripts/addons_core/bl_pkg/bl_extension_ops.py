@@ -172,7 +172,7 @@ def extension_url_find_repo_index_and_pkg_id(url):
         if not remote_url:
             continue
         for pkg_id, item_remote in pkg_manifest_remote.items():
-            archive_url = item_remote["archive_url"]
+            archive_url = item_remote.archive_url
             archive_url_basename = archive_url.rpartition("/")[2]
             # First compare the filenames, if this matches, check the full URL.
             if url_basename != archive_url_basename:
@@ -222,7 +222,7 @@ def pkg_info_check_exclude_filter_ex(name, tagline, search_lower):
 
 
 def pkg_info_check_exclude_filter(item, search_lower):
-    return pkg_info_check_exclude_filter_ex(item["name"], item["tagline"], search_lower)
+    return pkg_info_check_exclude_filter_ex(item.name, item.tagline, search_lower)
 
 
 def extension_theme_enable_filepath(filepath):
@@ -443,14 +443,14 @@ def _preferences_install_post_enable_on_install(
             print("Package should have been installed but not found:", pkg_id)
             return
 
-        if item_local["type"] == "add-on":
+        if item_local.type == "add-on":
             # Check if the add-on will have been enabled from re-installing.
             if pkg_id in pkg_id_sequence_upgrade:
                 continue
 
             addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, pkg_id)
             addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
-        elif item_local["type"] == "theme":
+        elif item_local.type == "theme":
             if has_theme:
                 continue
             extension_theme_enable(directory, pkg_id)
@@ -616,7 +616,7 @@ def _pkg_marked_by_repo(pkg_manifest_all):
         item = pkg_manifest.get(pkg_id)
         if item is None:
             continue
-        if filter_by_type and (filter_by_type != item["type"]):
+        if filter_by_type and (filter_by_type != item.type):
             continue
         if search_lower and not pkg_info_check_exclude_filter(item, search_lower):
             continue
@@ -710,10 +710,8 @@ def _extensions_repo_sync_wheels(repo_cache_store):
         repo_directory = repo.directory
         for pkg_id, item_local in pkg_manifest_local.items():
             pkg_dirpath = os.path.join(repo_directory, pkg_id)
-            wheels_rel = item_local.get("wheels", None)
-            if wheels_rel is None:
-                continue
-            if not isinstance(wheels_rel, list):
+            wheels_rel = item_local.wheels
+            if not wheels_rel:
                 continue
 
             # Filter only the wheels for this platform.
@@ -1407,7 +1405,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                     # Not installed.
                     continue
 
-                if item_remote["version"] != item_local["version"]:
+                if item_remote.version != item_local.version:
                     packages_to_upgrade[repo_index].append(pkg_id)
                     package_count += 1
 
@@ -1545,7 +1543,9 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
             pkg_manifest_remote = pkg_manifest_remote_all[repo_index]
 
             pkg_id_sequence_addon_only = [
-                pkg_id for pkg_id in pkg_id_sequence if pkg_manifest_remote[pkg_id]["type"] == "add-on"]
+                pkg_id for pkg_id in pkg_id_sequence
+                if pkg_manifest_remote[pkg_id].type == "add-on"
+            ]
             if pkg_id_sequence_addon_only:
                 self._repo_map_packages_addon_only.append((repo_item.directory, pkg_id_sequence_addon_only))
 
@@ -2268,17 +2268,17 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         _repo_index, repo_name, pkg_id, item_remote = self._drop_variables
 
-        layout.label(text="Do you want to install the following {:s}?".format(item_remote["type"]))
+        layout.label(text="Do you want to install the following {:s}?".format(item_remote.type))
 
         col = layout.column(align=True)
-        col.label(text="Name: {:s}".format(item_remote["name"]))
+        col.label(text="Name: {:s}".format(item_remote.name))
         col.label(text="Repository: {:s}".format(repo_name))
-        col.label(text="Size: {:s}".format(size_as_fmt_string(item_remote["archive_size"], precision=0)))
+        col.label(text="Size: {:s}".format(size_as_fmt_string(item_remote.archive_size, precision=0)))
         del col
 
         layout.separator()
 
-        layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[item_remote["type"]])
+        layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[item_remote.type])
 
     @staticmethod
     def _do_legacy_replace(pkg_id, pkg_manifest_local):

@@ -310,6 +310,26 @@ def repository_iter_package_dirs(
         yield entry
 
 
+def license_info_to_text(license_list: Sequence[str]) -> str:
+    # See: https://spdx.org/licenses/
+    # - Note that we could include all, for now only common, GPL compatible licenses.
+    # - Note that many of the human descriptions are not especially more humanly readable
+    #   than the short versions, so it's questionable if we should attempt to add all of these.
+    _spdx_id_to_text = {
+        "GPL-2.0-only": "GNU General Public License v2.0 only",
+        "GPL-2.0-or-later": "GNU General Public License v2.0 or later",
+        "GPL-3.0-only": "GNU General Public License v3.0 only",
+        "GPL-3.0-or-later": "GNU General Public License v3.0 or later",
+    }
+    result = []
+    for item in license_list:
+        if item.startswith("SPDX:"):
+            item = item[5:]
+            item = _spdx_id_to_text.get(item, item)
+        result.append(item)
+    return ", ".join(result)
+
+
 # -----------------------------------------------------------------------------
 # Public Stand-Alone Utilities
 #
@@ -997,11 +1017,207 @@ class CommandBatch:
 # Internal Repo Data Source
 #
 
+# See similar named tuple: `bl_pkg.cli.blender_ext.PkgManifest`.
+# This type is loaded from an external source and had it's valued parsed into a known "normalized" state.
+# Some transformation is performed to the purpose of displaying in the UI although this type isn't specifically for UI.
+class PkgManifest_Normalized(NamedTuple):
+    # Intentionally excluded:
+    # - `id`: The caller must know the ID and is typically stored as part of a dictionary
+    #   where the `id` is the key and `PkgManifest_Normalized` is the value.
+    # - `schema_version`: any versioning should be handled as part of normalization.
+    # - `blender_version_max`: this is used to exclude packages, part of filtering before inclusion.
+    name: str
+    tagline: str
+    version: str
+    type: str
+    maintainer: str
+    license: str
+
+    # Optional.
+    website: str
+    permissions: Dict[str, str]
+    tags: Tuple[str]
+    wheels: Tuple[str]
+
+    # Remote.
+    archive_size: int
+    archive_url: str
+
+    @staticmethod
+    def from_dict_with_error_fn(
+        manifest_dict: Dict[str, Any],
+        *,
+        # Only for useful error messages.
+        pkg_idname: str,
+        error_fn: Callable[[Exception], None],
+    ) -> Optional["PkgManifest_Normalized"]:
+        # NOTE: it is expected there are no errors here for typical usage.
+        # Any errors here will return none with a terse message which is not intended to
+        # be helpful for debugging, besides letting users/developers know there is a problem.
+        #
+        # This is done because it's expected the data from repositories is valid and
+        # anyone developing packages runs the "validate" function before publishing for others to use.
+        #
+        # Checks here are mainly to prevent corrupt/invalid repositories or TOML files
+        # from breaking Blender's internal functionality.
+
+        try:
+            name = manifest_dict["name"]
+            tagline = manifest_dict["tagline"]
+            version = manifest_dict["version"]
+            type = manifest_dict["type"]
+            maintainer = manifest_dict["maintainer"]
+            license = manifest_dict["license"]
+
+            # Optional.
+            website = manifest_dict.get("website", "")
+            permissions: Union[List[str], Dict[str, str]] = manifest_dict.get("permissions", {})
+            tags = manifest_dict.get("tags", [])
+            wheels = manifest_dict.get("wheels", [])
+
+            # Remote only (not found in TOML files).
+            archive_size = manifest_dict.get("archive_size", 0)
+            archive_url = manifest_dict.get("archive_url", "")
+
+        except KeyError as ex:
+            error_fn(KeyError("{:s}: missing key {:s}".format(pkg_idname, str(ex))))
+            return None
+
+        # This is an old (now unsupported) format, convert into a dictionary.
+        if isinstance(permissions, list):
+            permissions = {key: "Undefined" for key in permissions}
+
+        try:
+            if not (isinstance(name, str) and name):
+                raise TypeError("{:s}: \"name\" must be a non-empty string".format(pkg_idname))
+
+            if not isinstance(tagline, str):
+                raise TypeError("{:s}: \"tagline\" must be a string".format(pkg_idname))
+
+            if not (isinstance(version, str) and version):
+                raise TypeError("{:s}: \"version\" must be a non-empty string".format(pkg_idname))
+
+            if not (isinstance(type, str) and type):
+                raise TypeError("{:s}: \"type\" must be a non-empty string".format(pkg_idname))
+
+            if not (isinstance(maintainer, str) and maintainer):
+                raise TypeError("{:s}: \"maintainer\" must be a non-empty string".format(pkg_idname))
+
+            if not (
+                    isinstance(license, list) and
+                    license and
+                    (not any(1 for x in license if not isinstance(x, str)))
+            ):
+                raise TypeError("{:s}: \"license\" must be a non-empty list of strings".format(pkg_idname))
+
+            # Optional.
+            if not isinstance(website, str):
+                raise TypeError("{:s}: \"website\" must be a string".format(pkg_idname))
+
+            if not (
+                    isinstance(permissions, dict) and
+                    (not any(1 for k, v in permissions.items() if not (isinstance(k, str) and isinstance(v, str))))
+            ):
+                raise TypeError("{:s}: \"permissions\" must be a non-empty list of strings".format(pkg_idname))
+
+            if not (isinstance(tags, list) and (not any(1 for x in tags if not isinstance(x, str)))):
+                raise TypeError("{:s}: \"tags\" must be a non-empty list of strings".format(pkg_idname))
+
+            if not (isinstance(wheels, list) and (not any(1 for x in wheels if not isinstance(x, str)))):
+                raise TypeError("{:s}: \"wheels\" must be a non-empty list of strings".format(pkg_idname))
+
+            # Remote only.
+            if not isinstance(archive_size, int):
+                raise TypeError("{:s}: \"archive_size\" must be an int".format(pkg_idname))
+
+            if not isinstance(archive_url, str):
+                raise TypeError("{:s}: \"archive_url\" must a string".format(pkg_idname))
+
+        except TypeError as ex:
+            error_fn(ex)
+            return None
+
+        return PkgManifest_Normalized(
+            name=name,
+            tagline=tagline,
+            version=version,
+            type=type,
+            # Remove the maintainers email while it's not private, showing prominently
+            # could cause maintainers to get direct emails instead of issue tracking systems.
+            maintainer=maintainer.split("<", 1)[0].rstrip(),
+            license=license_info_to_text(license),
+
+            # Optional.
+            website=website,
+            permissions=permissions,
+            tags=tuple(tags),
+            wheels=tuple(wheels),
+
+            archive_size=archive_size,
+            archive_url=archive_url,
+        )
+
+
+def repository_id_with_error_fn(
+        item: Dict[str, Any],
+        *,
+        repo_directory: str,
+        error_fn: Callable[[Exception], None],
+) -> Optional[str]:
+    if not (pkg_idname := item.get("id", "")):
+        error_fn(ValueError("{:s}: \"id\" missing".format(repo_directory)))
+        return None
+
+    if not (isinstance(pkg_idname, str)):
+        error_fn(ValueError("{:s}: \"id\" must be a string".format(repo_directory)))
+        return None
+
+    return pkg_idname
+
+
+def repository_filter_skip(item: Dict[str, Any]) -> bool:
+    # TODO: filter out items that:
+    # - Don't match this systems platform.
+    # - Don't match the version range of Blender.
+    _ item
+    return False
+
+
+def repository_filter_packages(
+        data: List[Dict[str, Any]],
+        *,
+        repo_directory: str,
+        error_fn: Callable[[Exception], None],
+) -> Dict[str, PkgManifest_Normalized]:
+    pkg_manifest_map = {}
+    for item in data:
+        if (pkg_idname := repository_id_with_error_fn(
+                item,
+                repo_directory=repo_directory,
+                error_fn=error_fn,
+        )) is None:
+            continue
+
+        if repository_filter_skip(item):
+            continue
+
+        if (value := PkgManifest_Normalized.from_dict_with_error_fn(
+                item,
+                pkg_idname=pkg_idname,
+                error_fn=error_fn,
+        )) is None:
+            continue
+
+        pkg_manifest_map[pkg_idname] = value
+
+    return pkg_manifest_map
+
 
 class RepoRemoteData(NamedTuple):
     version: str
     blocklist: List[str]
-    data: List[Dict[str, Any]]
+    # Converted from the `data` field.
+    pkg_manifest_map: Dict[str, PkgManifest_Normalized]
 
 
 class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
@@ -1144,7 +1360,11 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
         data = RepoRemoteData(
             version=data_dict.get("version", "v1"),
             blocklist=data_dict.get("blocklist", []),
-            data=data_dict.get("data", []),
+            pkg_manifest_map=repository_filter_packages(
+                data_dict.get("data", []),
+                repo_directory=os.path.dirname(self._filepath),
+                error_fn=error_fn,
+            ),
         )
 
         self._data = data
@@ -1210,7 +1430,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             error_fn=error_fn,
         )
 
-        packages: Dict[str, Any] = {}
+        pkg_manifest_map: Dict[str, PkgManifest_Normalized] = {}
         for dirname in mtime_for_each_package.keys():
             filepath_toml = os.path.join(self._directory, dirname, PKG_MANIFEST_FILENAME_TOML)
             try:
@@ -1222,7 +1442,25 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             if item_local is None:
                 continue
 
-            packages[dirname] = item_local
+            # Unlikely but possible.
+            if (pkg_idname := repository_id_with_error_fn(
+                    item_local,
+                    repo_directory=self._directory,
+                    error_fn=error_fn,
+            )) is None:
+                continue
+
+            if repository_filter_skip(item_local):
+                continue
+
+            if (value := PkgManifest_Normalized.from_dict_with_error_fn(
+                    item_local,
+                    pkg_idname=pkg_idname,
+                    error_fn=error_fn,
+            )) is None:
+                continue
+
+            pkg_manifest_map[dirname] = value
 
         # Begin: transform to list with ID's in item.
         # TODO: this transform can probably be removed and the internal format can change
@@ -1230,10 +1468,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
         data = RepoRemoteData(
             version="v1",
             blocklist=[],
-            data=[
-                {"id": pkg_idname, **value}
-                for pkg_idname, value in packages.items()
-            ],
+            pkg_manifest_map=pkg_manifest_map,
         )
         # End: compatibility change.
 
@@ -1317,8 +1552,8 @@ class _RepoCacheEntry:
         self.directory = directory
         self.remote_url = remote_url
         # Manifest data per package loaded from the packages local JSON.
-        self._pkg_manifest_local: Optional[Dict[str, Dict[str, Any]]] = None
-        self._pkg_manifest_remote: Optional[RepoRemoteData] = None
+        self._pkg_manifest_local: Optional[Dict[str, PkgManifest_Normalized]] = None
+        self._pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
         self._pkg_manifest_remote_data_source: _RepoDataSouce_ABC = (
             _RepoDataSouce_JSON(directory) if remote_url else
             _RepoDataSouce_TOML_FILES(directory)
@@ -1332,16 +1567,21 @@ class _RepoCacheEntry:
             error_fn: Callable[[Exception], None],
             check_files: bool = False,
             ignore_missing: bool = False,
-    ) -> Any:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         data = self._pkg_manifest_remote_data_source.data(
             cache_validate=check_files,
             force=False,
             error_fn=error_fn,
         )
-        if data is not self._pkg_manifest_remote:
-            self._pkg_manifest_remote = data
 
-        if data is None:
+        pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
+        if data is not None:
+            pkg_manifest_remote = data.pkg_manifest_map
+
+        if pkg_manifest_remote is not self._pkg_manifest_remote:
+            self._pkg_manifest_remote = pkg_manifest_remote
+
+        if pkg_manifest_remote is None:
             if not ignore_missing:
                 # NOTE: this warning will occur when setting up a new repository.
                 # It could be removed but it's also useful to know when the JSON is missing.
@@ -1369,7 +1609,7 @@ class _RepoCacheEntry:
             *,
             error_fn: Callable[[Exception], None],
             ignore_missing: bool = False,
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         # Important for local-only repositories (where the directory name defines the ID).
         has_remote = self.remote_url != ""
 
@@ -1392,7 +1632,13 @@ class _RepoCacheEntry:
                 if item_local is None:
                     continue
 
-                pkg_idname = item_local["id"]
+                if (pkg_idname := repository_id_with_error_fn(
+                        item_local,
+                        repo_directory=self.directory,
+                        error_fn=error_fn,
+                )) is None:
+                    continue
+
                 if has_remote:
                     # This should never happen, the user may have manually renamed a directory.
                     if pkg_idname != dirname:
@@ -1409,7 +1655,13 @@ class _RepoCacheEntry:
                     error_fn(Exception(error_str))
                     continue
 
-                pkg_manifest_local[pkg_idname] = item_local
+                if (value := PkgManifest_Normalized.from_dict_with_error_fn(
+                        item_local,
+                        pkg_idname=pkg_idname,
+                        error_fn=error_fn,
+                )) is not None:
+                    pkg_manifest_local[pkg_idname] = value
+                del value
             self._pkg_manifest_local = pkg_manifest_local
         return self._pkg_manifest_local
 
@@ -1418,7 +1670,7 @@ class _RepoCacheEntry:
             *,
             error_fn: Callable[[Exception], None],
             ignore_missing: bool = False,
-    ) -> Optional[RepoRemoteData]:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         if self._pkg_manifest_remote is None:
             self._json_data_ensure(
                 ignore_missing=ignore_missing,
@@ -1484,7 +1736,7 @@ class RepoCacheStore:
             error_fn: Callable[[Exception], None],
             ignore_missing: bool = False,
             directory_subset: Optional[Set[str]] = None,
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         for repo_entry in self._repos:
             if directory == repo_entry.directory:
                 # Force refresh.
@@ -1502,30 +1754,17 @@ class RepoCacheStore:
             check_files: bool = False,
             ignore_missing: bool = False,
             directory_subset: Optional[Set[str]] = None,
-    ) -> Generator[Optional[Dict[str, Dict[str, Any]]], None, None]:
+    ) -> Generator[Optional[Dict[str, PkgManifest_Normalized]], None, None]:
         for repo_entry in self._repos:
             if directory_subset is not None:
                 if repo_entry.directory not in directory_subset:
                     continue
 
-            json_data = repo_entry._json_data_ensure(
+            yield repo_entry._json_data_ensure(
                 check_files=check_files,
                 ignore_missing=ignore_missing,
                 error_fn=error_fn,
             )
-            if json_data is None:
-                # The repository may be fresh, not yet initialized.
-                yield None
-            else:
-                pkg_manifest_remote = {}
-                for item_remote in json_data.data:
-                    # TODO(@ideasman42): we may want to include the "id", as part of moving to a new format
-                    # the "id" used not to be part of each item so users of this API assume it's not.
-                    # The `item_remote` could be used in-place however that needs further testing.
-                    item_remove_copy = item_remote.copy()
-                    pkg_idname = item_remove_copy.pop("id")
-                    pkg_manifest_remote[pkg_idname] = item_remove_copy
-                yield pkg_manifest_remote
 
     def pkg_manifest_from_local_ensure(
             self,
@@ -1533,7 +1772,7 @@ class RepoCacheStore:
             error_fn: Callable[[Exception], None],
             check_files: bool = False,
             directory_subset: Optional[Set[str]] = None,
-    ) -> Generator[Optional[Dict[str, Dict[str, Any]]], None, None]:
+    ) -> Generator[Optional[Dict[str, PkgManifest_Normalized]], None, None]:
         for repo_entry in self._repos:
             if directory_subset is not None:
                 if repo_entry.directory not in directory_subset:
