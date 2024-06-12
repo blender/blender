@@ -2781,7 +2781,10 @@ class subcmd_author:
                 paths=None,
                 paths_exclude_pattern=[
                     "__pycache__/",
+                    # Hidden dot-files.
                     ".*",
+                    # Any packages built in-source.
+                    "/*.zip",
                 ],
             )
 
@@ -2859,24 +2862,16 @@ class subcmd_author:
                 message_status(msg_fn, "Error building path list \"{:s}\"".format(str(ex)))
                 return False
 
-        pkg_filename = manifest.id + PKG_EXT
-
         if pkg_output_filepath != "":
+            # The directory may be empty, that is fine as join handles this correctly.
+            pkg_dirpath, pkg_filename = os.path.split(pkg_output_filepath)
             outfile = pkg_output_filepath
+            outfile_temp = os.path.join(pkg_dirpath, "." + pkg_filename)
+            del pkg_dirpath
         else:
+            pkg_filename = "{:s}-{:s}{:s}".format(manifest.id, manifest.version, PKG_EXT)
             outfile = os.path.join(pkg_output_dir, pkg_filename)
-
-        outfile_temp = outfile + "@"
-
-        filenames_root_exclude = {
-            pkg_filename,
-            # It's possible a temporary file exists from a previous run which was not cleaned up.
-            # Although in general this should be cleaned up - power failure etc may mean it exists.
-            pkg_filename + "@",
-
-            # Keep the `PKG_MANIFEST_FILENAME_TOML` as this is used when installing packages
-            # to a users local repository, where there is no `PKG_REPO_LIST_FILENAME` to access the meta-data.
-        }
+            outfile_temp = os.path.join(pkg_output_dir, "." + pkg_filename)
 
         request_exit = False
 
@@ -2893,9 +2888,6 @@ class subcmd_author:
 
             with contextlib.closing(zip_fh_context) as zip_fh:
                 for filepath_abs, filepath_rel in build_paths:
-                    if filepath_rel in filenames_root_exclude:
-                        continue
-
                     # Handy for testing that sub-directories:
                     # zip_fh.write(filepath_abs, manifest.id + "/" + filepath_rel)
                     compress_type = zipfile.ZIP_STORED if filepath_skip_compress(filepath_abs) else None
