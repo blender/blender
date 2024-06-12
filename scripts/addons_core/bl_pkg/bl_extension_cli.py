@@ -16,9 +16,10 @@ import argparse
 import os
 import sys
 
+from .bl_extension_utils import PkgManifest_Normalized
+
 from typing import (
     Any,
-    Dict,
     List,
     Optional,
     Tuple,
@@ -189,19 +190,19 @@ class subcmd_query:
 
         def list_item(
                 pkg_id: str,
-                item_remote: Optional[Dict[str, Any]],
-                item_local: Optional[Dict[str, Any]],
+                item_remote: Optional[PkgManifest_Normalized],
+                item_local: Optional[PkgManifest_Normalized],
         ) -> None:
             # Both can't be None.
             assert item_remote is not None or item_local is not None
 
             if item_remote is not None:
-                item_version = item_remote["version"]
+                item_version = item_remote.version
                 if item_local is None:
                     item_local_version = None
                     is_outdated = False
                 else:
-                    item_local_version = item_local["version"]
+                    item_local_version = item_local.version
                     is_outdated = item_local_version != item_version
 
                 if item_local is not None:
@@ -218,15 +219,15 @@ class subcmd_query:
             else:
                 # All local-only packages are installed.
                 status_info = " [{:s}]".format(colorize("installed", "green"))
-                assert isinstance(item_local, dict)
+                assert isinstance(item_local, PkgManifest_Normalized)
                 item = item_local
 
             print(
                 "  {:s}{:s}: \"{:s}\", {:s}".format(
                     colorize(pkg_id, "bold"),
                     status_info,
-                    item["name"],
-                    colorize(item.get("tagline", "<no tagline>"), "faint"),
+                    item.name,
+                    colorize(item.tagline or "<no tagline>", "faint"),
                 ))
 
         if sync:

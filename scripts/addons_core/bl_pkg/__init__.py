@@ -171,7 +171,7 @@ def repo_stats_calc_outdated_for_repo_directory(repo_directory):
         if item_remote is None:
             continue
 
-        if item_remote["version"] != item_local["version"]:
+        if item_remote.version != item_local.version:
             package_count += 1
     return package_count
 
@@ -537,7 +537,7 @@ def theme_preset_draw(menu, context):
         repo_item = repos_all[i]
         directory = repo_item.directory
         for pkg_idname, value in pkg_manifest_local.items():
-            if value["type"] != "theme":
+            if value.type != "theme":
                 continue
 
             theme_dir, theme_files = pkg_theme_file_list(directory, pkg_idname)
