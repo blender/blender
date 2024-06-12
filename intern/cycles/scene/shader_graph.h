@@ -96,6 +96,10 @@ class ShaderInput {
   {
     ((Node *)parent)->set(socket_type, f);
   }
+  void set(int f)
+  {
+    ((Node *)parent)->set(socket_type, f);
+  }
 
   void disconnect();
 
