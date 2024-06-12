@@ -2139,7 +2139,7 @@ static void draw_interface_panel_content(const bContext *C,
       PointerRNA panel_ptr = RNA_pointer_create(
           modifier_ptr->owner_id, &RNA_NodesModifierPanel, panel);
       if (uiLayout *panel_layout = uiLayoutPanelProp(
-              C, layout, &panel_ptr, "is_open", sub_interface_panel.name))
+              C, layout, &panel_ptr, "is_open", IFACE_(sub_interface_panel.name)))
       {
         draw_interface_panel_content(C, panel_layout, modifier_ptr, nmd, sub_interface_panel);
       }
