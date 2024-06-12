@@ -1662,8 +1662,9 @@ void GLCompilerWorker::compile(const GLSourcesBaked &sources)
 
   auto add_src = [&](const std::string &src) {
     if (!src.empty()) {
-      strcpy(next_src, src.c_str());
-      next_src += src.size() + sizeof('\0');
+      const size_t src_size = src.size() + 1;
+      memcpy(next_src, src.c_str(), src_size);
+      next_src += src_size;
     }
   };
 
