@@ -395,13 +395,13 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
 IndexRange ShadowDirectional::clipmap_level_range(const Camera &cam)
 {
   using namespace blender::math;
+  /* Covers the closest points of the view. */
+  /* FIXME: IndexRange does not support negative indices. Clamp to 0 for now. */
+  int min_level = max(0.0f, floor(log2(abs(cam.data_get().clip_near))));
   /* Covers the farthest points of the view. */
   int max_level = ceil(log2(cam.bound_radius() + distance(cam.bound_center(), cam.position())));
   /* We actually need to cover a bit more because of clipmap origin snapping. */
-  max_level += 1;
-  /* Covers the closest points of the view. */
-  /* FIXME: IndexRange does not support negative range. Clamp to 1 for now. */
-  int min_level = max(0.0f, floor(log2(abs(cam.data_get().clip_near))));
+  max_level = max(min_level, max_level) + 1;
   IndexRange range(min_level, max_level - min_level + 1);
   /* 32 to be able to pack offset into a single int2.
    * The maximum level count is bounded by the mantissa of a 32bit float.  */
