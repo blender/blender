@@ -54,8 +54,9 @@ AttributeOwner AttributeOwner::from_id(ID *id)
       return AttributeOwner(AttributeOwnerType::Curves, id);
     case ID_GP:
       return AttributeOwner(AttributeOwnerType::GreasePencil, id);
+    default:
+      return {};
   }
-  return {};
 }
 
 AttributeOwnerType AttributeOwner::type() const
