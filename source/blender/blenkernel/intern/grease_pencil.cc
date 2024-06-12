@@ -1362,6 +1362,7 @@ LayerGroup::LayerGroup()
   new (&this->base) TreeNode(GP_LAYER_TREE_GROUP);
 
   BLI_listbase_clear(&this->children);
+  this->color_tag = LAYERGROUP_COLOR_NONE;
 
   this->runtime = MEM_new<LayerGroupRuntime>(__func__);
 }

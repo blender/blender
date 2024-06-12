@@ -464,6 +464,13 @@ class InsertAvailableTest(AbstractKeyframingTest, unittest.TestCase):
         for fcurve in action.fcurves:
             self.assertEqual(len(fcurve.keyframe_points), 2)
 
+    def test_insert_available(self):
+        keyed_object = _create_animation_object()
+        self.assertIsNone(keyed_object.animation_data, "Precondition check: test object should not have animdata yet")
+
+        keyed_ok = keyed_object.keyframe_insert("location", options={'INSERTKEY_AVAILABLE'})
+        self.assertFalse(keyed_ok, "Should not key with INSERTKEY_AVAILABLE when no F-Curves are available")
+
 
 class InsertNeededTest(AbstractKeyframingTest, unittest.TestCase):
 

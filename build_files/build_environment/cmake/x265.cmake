@@ -137,8 +137,12 @@ SAVE
 END
 ")
     file(WRITE ${_ar_cmake} "\
-set(ARG_AR $\{CMAKE_ARGV0\})
-set(ARG_AR_INPUT $\{CMAKE_ARGV1\})
+math(EXPR INDEX_AR \"$\{CMAKE_ARGC\}-2\")
+math(EXPR INDEX_AR_INPUT \"$\{CMAKE_ARGC\}-1\")
+
+set(ARG_AR $\{CMAKE_ARGV$\{INDEX_AR\}\})
+set(ARG_AR_INPUT $\{CMAKE_ARGV$\{INDEX_AR_INPUT\}\})
+
 execute_process(
   COMMAND $\{ARG_AR\} -M
   INPUT_FILE $\{ARG_AR_INPUT\}

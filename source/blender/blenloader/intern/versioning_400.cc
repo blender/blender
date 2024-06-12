@@ -347,6 +347,60 @@ static void versioning_eevee_shadow_settings(Object *object)
   SET_FLAG_FROM_TEST(object->visibility_flag, hide_shadows, OB_HIDE_SHADOW);
 }
 
+static void versioning_eevee_material_shadow_none(Material *material)
+{
+  if (!material->use_nodes || material->nodetree == nullptr) {
+    return;
+  }
+  bNodeTree *ntree = material->nodetree;
+
+  bNode *output_node = version_eevee_output_node_get(ntree, SH_NODE_OUTPUT_MATERIAL);
+  if (output_node == nullptr) {
+    return;
+  }
+
+  bNodeSocket *out_sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Surface");
+
+  bNode *mix_node = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeMixShader");
+  STRNCPY(mix_node->label, "Disable Shadow");
+  mix_node->flag |= NODE_HIDDEN;
+  mix_node->parent = output_node->parent;
+  mix_node->locx = output_node->locx;
+  mix_node->locy = output_node->locy - output_node->height - 120;
+  bNodeSocket *mix_fac = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 0));
+  bNodeSocket *mix_in_1 = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 1));
+  bNodeSocket *mix_in_2 = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 2));
+  bNodeSocket *mix_out = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->outputs, 0));
+  if (out_sock->link != nullptr) {
+    blender::bke::nodeAddLink(
+        ntree, out_sock->link->fromnode, out_sock->link->fromsock, mix_node, mix_in_1);
+    blender::bke::nodeRemLink(ntree, out_sock->link);
+  }
+  blender::bke::nodeAddLink(ntree, mix_node, mix_out, output_node, out_sock);
+
+  bNode *lp_node = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeLightPath");
+  lp_node->flag |= NODE_HIDDEN;
+  lp_node->parent = output_node->parent;
+  lp_node->locx = output_node->locx;
+  lp_node->locy = mix_node->locy + 35;
+  bNodeSocket *is_shadow = blender::bke::nodeFindSocket(lp_node, SOCK_OUT, "Is Shadow Ray");
+  blender::bke::nodeAddLink(ntree, lp_node, is_shadow, mix_node, mix_fac);
+  /* Hide unconnected sockets for cleaner look. */
+  LISTBASE_FOREACH (bNodeSocket *, sock, &lp_node->outputs) {
+    if (sock != is_shadow) {
+      sock->flag |= SOCK_HIDDEN;
+    }
+  }
+
+  bNode *bsdf_node = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeBsdfTransparent");
+  bsdf_node->flag |= NODE_HIDDEN;
+  bsdf_node->parent = output_node->parent;
+  bsdf_node->locx = output_node->locx;
+  bsdf_node->locy = mix_node->locy - 35;
+  bNodeSocket *bsdf_out = blender::bke::nodeFindSocket(bsdf_node, SOCK_OUT, "BSDF");
+  blender::bke::nodeAddLink(ntree, bsdf_node, bsdf_out, mix_node, mix_in_2);
+}
+
 /**
  * Represents a source of transparency inside the closure part of a material node-tree.
  * Sources can be combined together down the tree to figure out where the source of the alpha is.
@@ -849,18 +903,15 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     Scene *scene = static_cast<Scene *>(bmain->scenes.first);
     bool scene_uses_eevee_legacy = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 
-    if (scene_uses_eevee_legacy) {
-      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+    LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+      if (scene_uses_eevee_legacy) {
         if (!material->use_nodes || material->nodetree == nullptr) {
-          continue;
+          /* Nothing to version. */
         }
-
-        if (ELEM(material->blend_method, MA_BM_HASHED, MA_BM_BLEND)) {
+        else if (ELEM(material->blend_method, MA_BM_HASHED, MA_BM_BLEND)) {
           /* Compatible modes. Nothing to change. */
-          continue;
         }
-
-        if (material->blend_shadow == MA_BS_NONE) {
+        else if (material->blend_shadow == MA_BS_NONE) {
           /* No need to match the surface since shadows are disabled. */
         }
         else if (material->blend_shadow == MA_BS_SOLID) {
@@ -869,26 +920,36 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
         else if ((material->blend_shadow == MA_BS_CLIP && material->blend_method != MA_BM_CLIP) ||
                  (material->blend_shadow == MA_BS_HASHED))
         {
-          BLO_reportf_wrap(fd->reports,
-                           RPT_WARNING,
-                           RPT_("Couldn't convert material %s because of different Blend Mode "
-                                "and Shadow Mode\n"),
-                           material->id.name + 2);
-          continue;
-        }
-
-        /* TODO(fclem): Check if threshold is driven or has animation. Bail out if needed? */
-
-        float threshold = (material->blend_method == MA_BM_CLIP) ? material->alpha_threshold :
-                                                                   2.0f;
-
-        if (!versioning_eevee_material_blend_mode_settings(material->nodetree, threshold)) {
           BLO_reportf_wrap(
               fd->reports,
               RPT_WARNING,
-              RPT_("Couldn't convert material %s because of non-trivial alpha blending\n"),
+              RPT_("Material %s could not be converted because of different Blend Mode "
+                   "and Shadow Mode (need manual adjustment)\n"),
               material->id.name + 2);
         }
+        else {
+          /* TODO(fclem): Check if threshold is driven or has animation. Bail out if needed? */
+
+          float threshold = (material->blend_method == MA_BM_CLIP) ? material->alpha_threshold :
+                                                                     2.0f;
+
+          if (!versioning_eevee_material_blend_mode_settings(material->nodetree, threshold)) {
+            BLO_reportf_wrap(fd->reports,
+                             RPT_WARNING,
+                             RPT_("Material %s could not be converted because of non-trivial "
+                                  "alpha blending (need manual adjustment)\n"),
+                             material->id.name + 2);
+          }
+        }
+
+        if (material->blend_shadow == MA_BS_NONE) {
+          versioning_eevee_material_shadow_none(material);
+        }
+        /* Set blend_mode & blend_shadow for forward compatibility. */
+        material->blend_method = (material->blend_method != MA_BM_BLEND) ? MA_BM_HASHED :
+                                                                           MA_BM_BLEND;
+        material->blend_shadow = (material->blend_shadow == MA_BS_SOLID) ? MA_BS_SOLID :
+                                                                           MA_BS_HASHED;
       }
     }
   }
@@ -3880,6 +3941,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 31)) {
+    bool only_uses_eevee_legacy_or_workbench = true;
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!STR_ELEM(scene->r.engine, RE_engine_id_BLENDER_EEVEE, RE_engine_id_BLENDER_WORKBENCH)) {
+        only_uses_eevee_legacy_or_workbench = false;
+      }
+    }
     /* Mark old EEVEE world volumes for showing conversion operator. */
     LISTBASE_FOREACH (World *, world, &bmain->worlds) {
       if (world->nodetree) {
@@ -3891,6 +3958,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
             LISTBASE_FOREACH (bNodeLink *, node_link, &world->nodetree->links) {
               if (node_link->tonode == output_node && node_link->tosock == volume_input_socket) {
                 world->flag |= WO_USE_EEVEE_FINITE_VOLUME;
+                /* Only display a warning message if we are sure this can be used by EEVEE. */
+                if (only_uses_eevee_legacy_or_workbench) {
+                  BLO_reportf_wrap(fd->reports,
+                                   RPT_WARNING,
+                                   RPT_("%s contains a volume shader that might need to be "
+                                        "converted to object (see world volume panel)\n"),
+                                   world->id.name + 2);
+                }
               }
             }
           }
@@ -3957,7 +4032,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       world->sun_threshold = default_world->sun_threshold;
       world->sun_angle = default_world->sun_angle;
       world->sun_shadow_maximum_resolution = default_world->sun_shadow_maximum_resolution;
-      world->flag |= WO_USE_SUN_SHADOW;
+      /* Having the sun extracted is mandatory to keep the same look and avoid too much light
+       * leaking compared to EEVEE-Legacy. But adding shadows might create performance overhead and
+       * change the result in a very different way. So we disable shadows in older file. */
+      world->flag &= ~WO_USE_SUN_SHADOW;
     }
   }
 

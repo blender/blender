@@ -3416,11 +3416,13 @@ static int object_convert_exec(bContext *C, wmOperator *op)
             curves_id->geometry.wrap() = drawings[i].drawing.strokes();
             geometries[i] = bke::GeometrySet::from_curves(curves_id);
           }
-          bke::GeometrySet joined_curves = geometry::join_geometries(geometries, {});
+          if (geometries.size() > 0) {
+            bke::GeometrySet joined_curves = geometry::join_geometries(geometries, {});
 
-          new_curves->geometry.wrap() = joined_curves.get_curves()->geometry.wrap();
-          new_curves->geometry.wrap().tag_topology_changed();
-          BKE_object_material_from_eval_data(bmain, newob, &joined_curves.get_curves()->id);
+            new_curves->geometry.wrap() = joined_curves.get_curves()->geometry.wrap();
+            new_curves->geometry.wrap().tag_topology_changed();
+            BKE_object_material_from_eval_data(bmain, newob, &joined_curves.get_curves()->id);
+          }
         }
 
         BKE_object_free_derived_caches(newob);

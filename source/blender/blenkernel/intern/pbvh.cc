@@ -2823,7 +2823,7 @@ void BKE_pbvh_vert_coords_apply(PBVH &pbvh, const Span<float3> vert_positions)
     }
 
     for (PBVHNode &node : pbvh.nodes) {
-      BKE_pbvh_node_mark_update(&node);
+      BKE_pbvh_node_mark_positions_update(&node);
     }
 
     update_bounds(pbvh);

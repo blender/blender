@@ -27,11 +27,7 @@
 #include "BKE_global.hh"
 #include "BKE_sound.h"
 
-#include "GPU_batch.hh"
-#include "GPU_batch_presets.hh"
 #include "GPU_immediate.hh"
-#include "GPU_shader_shared.hh"
-#include "GPU_uniform_buffer.hh"
 #include "GPU_viewport.hh"
 
 #include "ED_anim_api.hh"
@@ -68,8 +64,10 @@
 /* Own include. */
 #include "sequencer_intern.hh"
 #include "sequencer_quads_batch.hh"
+#include "sequencer_strips_batch.hh"
 
 using namespace blender;
+using namespace blender::ed::seq;
 
 #define MUTE_ALPHA 120
 
@@ -1276,115 +1274,8 @@ static void visible_strips_ordered_get(TimelineDrawContext *timeline_ctx,
   }
 }
 
-static uint color_pack(const uchar rgba[4])
-{
-  return rgba[0] | (rgba[1] << 8u) | (rgba[2] << 16u) | (rgba[3] << 24u);
-}
-
-static float calc_strip_round_radius(float pixely)
-{
-  float height_pixels = 1.0f / pixely;
-  if (height_pixels < 16.0f) {
-    return 0.0f;
-  }
-  if (height_pixels < 64.0f) {
-    return 4.0f;
-  }
-  if (height_pixels < 128.0f) {
-    return 6.0f;
-  }
-  return 8.0f;
-}
-
-class SeqStripsBatch {
-  SeqContextDrawData context_;
-  Array<SeqStripDrawData> strips_;
-  GPUUniformBuf *ubo_context_ = nullptr;
-  GPUUniformBuf *ubo_strips_ = nullptr;
-  GPUShader *shader_ = nullptr;
-  gpu::Batch *batch_ = nullptr;
-  int binding_context_ = 0;
-  int binding_strips_ = 0;
-  int strips_count_ = 0;
-
- public:
-  SeqStripsBatch(float pixelx, float pixely) : strips_(GPU_SEQ_STRIP_DRAW_DATA_LEN)
-  {
-    context_.pixelx = pixelx;
-    context_.pixely = pixely;
-    context_.inv_pixelx = 1.0f / pixelx;
-    context_.inv_pixely = 1.0f / pixely;
-    context_.round_radius = calc_strip_round_radius(pixely);
-
-    uchar col[4];
-    UI_GetThemeColor3ubv(TH_BACK, col);
-    col[3] = 255;
-    context_.col_back = color_pack(col);
-
-    shader_ = GPU_shader_get_builtin_shader(GPU_SHADER_SEQUENCER_STRIPS);
-    binding_strips_ = GPU_shader_get_ubo_binding(shader_, "strip_data");
-    binding_context_ = GPU_shader_get_ubo_binding(shader_, "context_data");
-
-    ubo_context_ = GPU_uniformbuf_create_ex(sizeof(SeqContextDrawData), &context_, __func__);
-    ubo_strips_ = GPU_uniformbuf_create(sizeof(SeqStripDrawData) * GPU_SEQ_STRIP_DRAW_DATA_LEN);
-
-    batch_ = GPU_batch_preset_quad();
-  }
-
-  ~SeqStripsBatch()
-  {
-    flush_batch();
-
-    GPU_uniformbuf_unbind(ubo_strips_);
-    GPU_uniformbuf_free(ubo_strips_);
-    GPU_uniformbuf_unbind(ubo_context_);
-    GPU_uniformbuf_free(ubo_context_);
-  }
-
-  SeqStripDrawData &add_strip(const StripDrawContext &strip)
-  {
-    if (strips_count_ == GPU_SEQ_STRIP_DRAW_DATA_LEN) {
-      flush_batch();
-    }
-
-    SeqStripDrawData &res = strips_[strips_count_];
-    strips_count_++;
-
-    memset(&res, 0, sizeof(res));
-    res.content_start = strip.content_start;
-    res.content_end = strip.content_end;
-    res.top = strip.top;
-    res.bottom = strip.bottom;
-    res.strip_content_top = strip.strip_content_top;
-    res.left_handle = strip.left_handle;
-    res.right_handle = strip.right_handle;
-    res.handle_width = strip.handle_width;
-    if (strip.is_single_image) {
-      res.flags |= GPU_SEQ_FLAG_SINGLE_IMAGE;
-    }
-    return res;
-  }
-
-  void flush_batch()
-  {
-    if (strips_count_ == 0) {
-      return;
-    }
-
-    GPU_uniformbuf_update(ubo_strips_, strips_.data());
-
-    GPU_shader_bind(shader_);
-    GPU_uniformbuf_bind(ubo_strips_, binding_strips_);
-    GPU_uniformbuf_bind(ubo_context_, binding_context_);
-
-    GPU_batch_set_shader(batch_, shader_);
-    GPU_batch_draw_instance_range(batch_, 0, strips_count_);
-    strips_count_ = 0;
-  }
-};
-
 static void draw_strips_background(TimelineDrawContext *timeline_ctx,
-                                   SeqStripsBatch &strips_batch,
+                                   StripsDrawBatch &strips_batch,
                                    const Vector<StripDrawContext> &strips)
 {
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
@@ -1392,12 +1283,19 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
   const bool show_overlay = (timeline_ctx->sseq->flag & SEQ_SHOW_OVERLAY) != 0;
   const Scene *scene = timeline_ctx->scene;
   for (const StripDrawContext &strip : strips) {
-    SeqStripDrawData &data = strips_batch.add_strip(strip);
-
-    data.flags |= GPU_SEQ_FLAG_BACKGROUND_PART;
+    SeqStripDrawData &data = strips_batch.add_strip(strip.content_start,
+                                                    strip.content_end,
+                                                    strip.top,
+                                                    strip.bottom,
+                                                    strip.strip_content_top,
+                                                    strip.left_handle,
+                                                    strip.right_handle,
+                                                    strip.handle_width,
+                                                    strip.is_single_image);
 
     /* Background color. */
     uchar col[4];
+    data.flags |= GPU_SEQ_FLAG_BACKGROUND;
     color3ubv_from_seq(scene, strip.seq, strip.show_strip_color_tag, col);
     col[3] = mute_alpha_factor_get(timeline_ctx->channels, strip.seq);
     /* Muted strips: turn almost gray. */
@@ -1452,7 +1350,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
 }
 
 static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
-                                   SeqStripsBatch &strips_batch,
+                                   StripsDrawBatch &strips_batch,
                                    const Vector<StripDrawContext> &strips)
 {
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
@@ -1463,7 +1361,16 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
 
   uchar col[4];
   for (const StripDrawContext &strip : strips) {
-    SeqStripDrawData &data = strips_batch.add_strip(strip);
+    SeqStripDrawData &data = strips_batch.add_strip(strip.content_start,
+                                                    strip.content_end,
+                                                    strip.top,
+                                                    strip.bottom,
+                                                    strip.strip_content_top,
+                                                    strip.left_handle,
+                                                    strip.right_handle,
+                                                    strip.handle_width,
+                                                    strip.is_single_image);
+    data.flags |= GPU_SEQ_FLAG_BORDER;
 
     /* Missing media state. */
     if (strip.missing_data_block || strip.missing_media) {
@@ -1562,7 +1469,7 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
 }
 
 static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
-                            SeqStripsBatch &strips_batch,
+                            StripsDrawBatch &strips_batch,
                             const Vector<StripDrawContext> &strips)
 {
   if (strips.is_empty()) {
@@ -1624,7 +1531,7 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void draw_seq_strips(TimelineDrawContext *timeline_ctx, SeqStripsBatch &strips_batch)
+static void draw_seq_strips(TimelineDrawContext *timeline_ctx, StripsDrawBatch &strips_batch)
 {
   if (timeline_ctx->ed == nullptr) {
     return;
@@ -1982,7 +1889,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 {
   SeqQuadsBatch quads_batch;
   TimelineDrawContext ctx = timeline_draw_context_get(C, &quads_batch);
-  SeqStripsBatch strips_batch(ctx.pixelx, ctx.pixely);
+  StripsDrawBatch strips_batch(ctx.pixelx, ctx.pixely);
 
   draw_timeline_pre_view_callbacks(&ctx);
   UI_ThemeClearColor(TH_BACK);

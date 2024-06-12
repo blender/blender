@@ -402,13 +402,14 @@ static int insert_key(bContext *C, wmOperator *op)
     }
     Vector<RNAPath> rna_paths = construct_rna_paths(&id_ptr);
 
-    combined_result.merge(animrig::insert_key_rna(&id_ptr,
-                                                  rna_paths.as_span(),
-                                                  scene_frame,
-                                                  insert_key_flags,
-                                                  key_type,
-                                                  bmain,
-                                                  anim_eval_context));
+    combined_result.merge(animrig::insert_keyframes(bmain,
+                                                    &id_ptr,
+                                                    std::nullopt,
+                                                    rna_paths.as_span(),
+                                                    scene_frame,
+                                                    anim_eval_context,
+                                                    key_type,
+                                                    insert_key_flags));
   }
 
   if (combined_result.get_count(animrig::SingleKeyingResult::SUCCESS) == 0) {
@@ -1025,21 +1026,22 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
       /* standard properties */
       if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
         const char *identifier = RNA_property_identifier(prop);
-        const char *group = default_channel_group_for_path(&ptr, identifier);
+        const std::optional<blender::StringRefNull> group = default_channel_group_for_path(
+            &ptr, identifier);
 
-        if (all) {
-          /* -1 indicates operating on the entire array (or the property itself otherwise) */
-          index = -1;
-        }
-
-        CombinedKeyingResult result = insert_keyframe(bmain,
-                                                      *ptr.owner_id,
-                                                      group,
-                                                      path->c_str(),
-                                                      index,
-                                                      &anim_eval_context,
-                                                      eBezTriple_KeyframeType(ts->keyframe_type),
-                                                      flag);
+        /* NOTE: `index == -1` is a magic number, meaning either "operate on all
+         * elements" or "not an array property". */
+        const std::optional<int> array_index = (all || index < 0) ? std::nullopt :
+                                                                    std::optional(index);
+        PointerRNA owner_ptr = RNA_id_pointer_create(ptr.owner_id);
+        CombinedKeyingResult result = insert_keyframes(bmain,
+                                                       &owner_ptr,
+                                                       group,
+                                                       {{*path, {}, array_index}},
+                                                       std::nullopt,
+                                                       anim_eval_context,
+                                                       eBezTriple_KeyframeType(ts->keyframe_type),
+                                                       flag);
         changed = result.get_count(SingleKeyingResult::SUCCESS) != 0;
       }
       else {

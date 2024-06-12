@@ -597,6 +597,14 @@ static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
 bool assign_animation(Action &anim, ID &animated_id);
 
 /**
+ * Return whether the given Action can be assigned to the ID.
+ *
+ * This always returns `true` for layered Actions. For legacy Actions it
+ * returns `true` if the Action's `idroot` matches the ID.
+ */
+bool is_action_assignable_to(const bAction *dna_action, ID_Type id_code);
+
+/**
  * Ensure that this ID is no longer animated.
  */
 void unassign_animation(ID &animated_id);

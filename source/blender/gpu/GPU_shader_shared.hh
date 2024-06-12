@@ -93,7 +93,7 @@ BLI_STATIC_ASSERT_ALIGN(MultiIconCallData, 16)
 #define GPU_SEQ_STRIP_DRAW_DATA_LEN 256
 
 enum eGPUSeqFlags : uint32_t {
-  GPU_SEQ_FLAG_BACKGROUND_PART = (1u << 0u),
+  GPU_SEQ_FLAG_BACKGROUND = (1u << 0u),
   GPU_SEQ_FLAG_SINGLE_IMAGE = (1u << 1u),
   GPU_SEQ_FLAG_COLOR_BAND = (1u << 2u),
   GPU_SEQ_FLAG_TRANSITION = (1u << 3u),
@@ -104,6 +104,7 @@ enum eGPUSeqFlags : uint32_t {
   GPU_SEQ_FLAG_ACTIVE = (1u << 8u),
   GPU_SEQ_FLAG_HIGHLIGHT = (1u << 9u),
   GPU_SEQ_FLAG_HANDLES = (1u << 10u),
+  GPU_SEQ_FLAG_BORDER = (1u << 11u),
 };
 
 /* VSE per-strip data for timeline rendering. */
@@ -127,7 +128,7 @@ struct SeqStripDrawData {
 };
 BLI_STATIC_ASSERT_ALIGN(SeqStripDrawData, 16)
 BLI_STATIC_ASSERT(sizeof(SeqStripDrawData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 16384,
-                  "SeqStripDrawData UBO must not exceed minspec UBO size (16K)")
+                  "SeqStripDrawData UBO must not exceed minspec UBO size (16384)")
 
 /* VSE global data for timeline rendering. */
 struct SeqContextDrawData {

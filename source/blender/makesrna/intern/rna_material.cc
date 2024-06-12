@@ -218,6 +218,29 @@ static void rna_Material_blend_method_set(PointerRNA *ptr, int new_blend_method)
   }
 }
 
+static void rna_Material_render_method_set(PointerRNA *ptr, int new_render_method)
+{
+  Material *material = (Material *)ptr->owner_id;
+  material->surface_render_method = new_render_method;
+
+  /* Still sets the legacy property for forward compatibility. */
+  switch (new_render_method) {
+    case MA_SURFACE_METHOD_DEFERRED:
+      material->blend_method = MA_BM_HASHED;
+      break;
+    case MA_SURFACE_METHOD_FORWARD:
+      material->blend_method = MA_BM_BLEND;
+      break;
+  }
+}
+static void rna_Material_transparent_shadow_set(PointerRNA *ptr, bool new_value)
+{
+  Material *material = (Material *)ptr->owner_id;
+  SET_FLAG_FROM_TEST(material->blend_flag, new_value, MA_BL_TRANSPARENT_SHADOW);
+  /* Still sets the legacy property for forward compatibility. */
+  material->blend_shadow = new_value ? MA_BS_HASHED : MA_BS_SOLID;
+}
+
 static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
   Material *ma = (Material *)ptr->data;
@@ -931,6 +954,8 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Surface Render Method",
                            "Controls the blending and the compatibility with certain features");
+  /* Setter function for forward compatibility. */
+  RNA_def_property_enum_funcs(prop, nullptr, "rna_Material_render_method_set", nullptr);
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "displacement_method", PROP_ENUM, PROP_NONE);
@@ -996,23 +1021,24 @@ void RNA_def_material(BlenderRNA *brna)
       prop, "Shadow Backface Culling", "Use back face culling when casting shadows");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
+  prop = RNA_def_property(srna, "use_backface_culling_lightprobe_volume", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, nullptr, "blend_flag", MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED);
+  RNA_def_property_ui_text(
+      prop,
+      "Light Probe Volume Backface Culling",
+      "Consider material single sided for light probe volume capture. "
+      "Additionally helps rejecting probes inside the object to avoid light leaks");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
   prop = RNA_def_property(srna, "use_transparent_shadow", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_TRANSPARENT_SHADOW);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_Material_transparent_shadow_set");
   RNA_def_property_ui_text(
       prop,
       "Transparent Shadows",
       "Use transparent shadows for this material if it contains a Transparent BSDF, "
       "disabling will render faster but not give accurate shadows");
-  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
-
-  prop = RNA_def_property(srna, "lightprobe_volume_single_sided", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(
-      prop, nullptr, "blend_flag", MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED);
-  RNA_def_property_ui_text(
-      prop,
-      "Light Probe Volume Single Sided",
-      "Consider material single sided for light probe volume capture. "
-      "Additionally helps rejecting probes inside the object to avoid light leaks");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "use_raytrace_refraction", PROP_BOOLEAN, PROP_NONE);

@@ -11,6 +11,7 @@ bl_info = {
     "description": "Various tools to enhance and speed up node-based workflow",
     "warning": "",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/node/node_wrangler.html",
+    "support": 'OFFICIAL',
     "category": "Node",
 }
 

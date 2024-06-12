@@ -28,14 +28,17 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
   if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
     PointerRNA eval_obptr;
 
-    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
-    PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
-    uiItemPointerR(layout, ptr, "layer_name", &dataptr, "color_attributes", "", ICON_GROUP_VCOL);
+    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+    if (depsgraph) {
+      DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
+      PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
+      uiItemPointerR(layout, ptr, "layer_name", &dataptr, "color_attributes", "", ICON_GROUP_VCOL);
+      return;
+    }
   }
-  else {
-    uiItemL(layout, RPT_("No mesh in active object"), ICON_ERROR);
-  }
+
+  uiItemR(layout, ptr, "layer_name", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_GROUP_VCOL);
+  uiItemL(layout, RPT_("No mesh in active object"), ICON_ERROR);
 }
 
 static void node_shader_init_vertex_color(bNodeTree * /*ntree*/, bNode *node)

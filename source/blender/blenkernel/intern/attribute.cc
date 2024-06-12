@@ -67,33 +67,33 @@ AttributeOwnerType AttributeOwner::type() const
 
 bool AttributeOwner::is_valid() const
 {
-  return ptr_ != nullptr && type_ != AttributeOwnerType::None;
+  return ptr_ != nullptr;
 }
 
 Mesh *AttributeOwner::get_mesh() const
 {
-  BLI_assert(ptr_ != nullptr);
+  BLI_assert(this->is_valid());
   BLI_assert(type_ == AttributeOwnerType::Mesh);
   return reinterpret_cast<Mesh *>(ptr_);
 }
 
 PointCloud *AttributeOwner::get_pointcloud() const
 {
-  BLI_assert(ptr_ != nullptr);
+  BLI_assert(this->is_valid());
   BLI_assert(type_ == AttributeOwnerType::PointCloud);
   return reinterpret_cast<PointCloud *>(ptr_);
 }
 
 Curves *AttributeOwner::get_curves() const
 {
-  BLI_assert(ptr_ != nullptr);
+  BLI_assert(this->is_valid());
   BLI_assert(type_ == AttributeOwnerType::Curves);
   return reinterpret_cast<Curves *>(ptr_);
 }
 
 GreasePencil *AttributeOwner::get_grease_pencil() const
 {
-  BLI_assert(ptr_ != nullptr);
+  BLI_assert(this->is_valid());
   BLI_assert(type_ == AttributeOwnerType::GreasePencil);
   return reinterpret_cast<GreasePencil *>(ptr_);
 }
@@ -153,9 +153,6 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
       info[int(AttrDomain::Layer)].length = grease_pencil->layers().size();
       break;
     }
-    case AttributeOwnerType::None: {
-      break;
-    }
   }
 
   return info;
@@ -185,9 +182,6 @@ static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_acces
     case AttributeOwnerType::GreasePencil: {
       GreasePencil &grease_pencil = *owner.get_grease_pencil();
       return grease_pencil.attributes_for_write();
-    }
-    case AttributeOwnerType::None: {
-      break;
     }
   }
   return {};
@@ -770,8 +764,6 @@ bool BKE_attribute_required(const AttributeOwner &owner, const char *name)
       return BKE_mesh_attribute_required(name);
     case AttributeOwnerType::GreasePencil:
       return false;
-    case AttributeOwnerType::None:
-      break;
   }
   return false;
 }
@@ -833,9 +825,6 @@ int *BKE_attributes_active_index_p(AttributeOwner &owner)
     }
     case AttributeOwnerType::GreasePencil: {
       return &(owner.get_grease_pencil())->attributes_active_index;
-    }
-    case AttributeOwnerType::None: {
-      break;
     }
   }
   return nullptr;

@@ -31,6 +31,7 @@ class ConstantFolder {
   /* Constant folding helpers */
   void make_constant(float value) const;
   void make_constant(float3 value) const;
+  void make_constant(int value) const;
   void make_constant_clamp(float value, bool clamp) const;
   void make_constant_clamp(float3 value, bool clamp) const;
   void make_zero() const;

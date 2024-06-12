@@ -79,13 +79,14 @@ static void calc_faces(const Sculpt &sd,
 
   clip_and_lock_translations(sd, ss, positions_eval, verts, translations);
 
+  apply_translations_to_pbvh(*ss.pbvh, verts, translations);
+
   if (!ss.deform_imats.is_empty()) {
     apply_crazyspace_to_translations(ss.deform_imats, verts, translations);
   }
 
   apply_translations(translations, verts, positions_orig);
   apply_translations_to_shape_keys(object, verts, translations, positions_orig);
-  apply_translations_to_pbvh(*ss.pbvh, verts, translations);
 }
 
 static void calc_grids(Object &object, const Brush &brush, const float3 &offset, PBVHNode &node)
@@ -115,7 +116,8 @@ static void calc_grids(Object &object, const Brush &brush, const float3 &offset,
         i++;
         continue;
       }
-      if (!sculpt_brush_test_sq_fn(test, CCG_elem_offset_co(key, elem, j))) {
+      const float3 &co = CCG_elem_offset_co(key, elem, j);
+      if (!sculpt_brush_test_sq_fn(test, co)) {
         i++;
         continue;
       }
@@ -123,7 +125,7 @@ static void calc_grids(Object &object, const Brush &brush, const float3 &offset,
       const float fade = SCULPT_brush_strength_factor(
           ss,
           brush,
-          CCG_elem_offset_co(key, elem, j),
+          co,
           math::sqrt(test.dist),
           CCG_elem_offset_no(key, elem, j),
           nullptr,
@@ -182,17 +184,13 @@ static void calc_bmesh(Object &object, const Brush &brush, const float3 &offset,
 
 }  // namespace draw_cc
 
-void do_draw_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+static void offset_positions(const Sculpt &sd,
+                             Object &object,
+                             const float3 &offset,
+                             Span<PBVHNode *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  const float bstrength = ss.cache->bstrength;
-
-  /* Offset with as much as possible factored in already. */
-  float3 effective_normal;
-  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
-
-  const float3 offset = effective_normal * ss.cache->radius * ss.cache->scale * bstrength;
 
   switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
     case PBVH_FACES: {
@@ -234,6 +232,31 @@ void do_draw_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       });
       break;
   }
+}
+
+void do_draw_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+{
+  const SculptSession &ss = *object.sculpt;
+  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
+
+  float3 effective_normal;
+  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
+
+  const float3 offset = effective_normal * ss.cache->radius * ss.cache->scale *
+                        ss.cache->bstrength;
+
+  offset_positions(sd, object, offset, nodes);
+}
+
+void do_nudge_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+{
+  const SculptSession &ss = *object.sculpt;
+
+  const float3 offset = math::cross(
+      math::cross(ss.cache->sculpt_normal_symm, ss.cache->grab_delta_symmetry),
+      ss.cache->sculpt_normal_symm);
+
+  offset_positions(sd, object, offset * ss.cache->bstrength, nodes);
 }
 
 }  // namespace blender::ed::sculpt_paint

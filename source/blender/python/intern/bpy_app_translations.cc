@@ -615,6 +615,38 @@ static PyObject *app_translations_pgettext(BlenderAppTranslations * /*self*/,
   return _py_pgettext(args, kw, BLT_pgettext);
 }
 
+PyDoc_STRVAR(app_translations_pgettext_n_doc,
+             ".. method:: pgettext_n(msgid, msgctxt=None)\n"
+             "\n"
+             "   Extract the given msgid to translation files. This is a no-op function that will "
+             "only mark the string to extract, but not perform the actual translation.\n"
+             "\n"
+             "   .. note::\n"
+             "      See :func:`pgettext` notes.\n"
+             "\n"
+             "   :arg msgid: The string to extract.\n"
+             "   :type msgid: string\n"
+             "   :arg msgctxt: The translation context (defaults to BLT_I18NCONTEXT_DEFAULT).\n"
+             "   :type msgctxt: string or None\n"
+             "   :return: The original string.\n"
+             "\n");
+static PyObject *app_translations_pgettext_n(BlenderAppTranslations * /*self*/,
+                                             PyObject *args,
+                                             PyObject *kw)
+{
+  static const char *kwlist[] = {"msgid", "msgctxt", NULL};
+  PyObject *msgid, *msgctxt;
+  // (void)_pgettext;
+
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kw, "O|O:bpy.app.translations.pgettext", (char **)kwlist, &msgid, &msgctxt))
+  {
+    return nullptr;
+  }
+
+  return Py_INCREF_RET(msgid);
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     app_translations_pgettext_iface_doc,
@@ -776,6 +808,10 @@ static PyMethodDef app_translations_methods[] = {
      (PyCFunction)app_translations_pgettext,
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      app_translations_pgettext_doc},
+    {"pgettext_n",
+     (PyCFunction)app_translations_pgettext_n,
+     METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+     app_translations_pgettext_n_doc},
     {"pgettext_iface",
      (PyCFunction)app_translations_pgettext_iface,
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,

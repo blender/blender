@@ -159,7 +159,7 @@ std::string AbstractView::get_context_menu_title() const
   return context_menu_title;
 }
 
-void AbstractView::set_context_menu_title(std::string title)
+void AbstractView::set_context_menu_title(const std::string &title)
 {
   context_menu_title = title;
 }

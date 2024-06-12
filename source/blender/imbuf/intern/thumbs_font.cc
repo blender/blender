@@ -20,7 +20,7 @@
 /* Only change if we need to update the previews in the on-disk cache. */
 #define FONT_THUMB_VERSION "1.0.1"
 
-ImBuf *IMB_thumb_load_font(const char *filename, uint x, uint y)
+ImBuf *IMB_thumb_load_font(const char *filepath, uint x, uint y)
 {
   ImBuf *ibuf = IMB_allocImBuf(x, y, 32, IB_rect | IB_metadata);
 
@@ -28,7 +28,7 @@ ImBuf *IMB_thumb_load_font(const char *filename, uint x, uint y)
   const float col[4] = {1.0f, 1.0f, 1.0f, 0.0f};
   IMB_rectfill(ibuf, col);
 
-  if (!BLF_thumb_preview(filename, ibuf->byte_buffer.data, ibuf->x, ibuf->y, ibuf->channels)) {
+  if (!BLF_thumb_preview(filepath, ibuf->byte_buffer.data, ibuf->x, ibuf->y, ibuf->channels)) {
     IMB_freeImBuf(ibuf);
     ibuf = nullptr;
   }
@@ -46,9 +46,9 @@ bool IMB_thumb_load_font_get_hash(char *r_hash)
   return true;
 }
 
-ImBuf *IMB_font_preview(const char *filename, unsigned int width, float color[4])
+ImBuf *IMB_font_preview(const char *filepath, uint width, const float color[4])
 {
-  int font_id = (filename[0] != '<') ? BLF_load(filename) : 0;
+  int font_id = (filepath[0] != '<') ? BLF_load(filepath) : 0;
   const char sample[] = "ABCDEFGH\nabcdefg123";
 
   BLF_buffer_col(font_id, color);

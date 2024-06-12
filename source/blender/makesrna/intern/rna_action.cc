@@ -790,42 +790,29 @@ bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
   SpaceAction *saction = (SpaceAction *)ptr->data;
   bAction *action = (bAction *)value.owner_id;
 
-  if (!action) {
-    return false;
-  }
-
-  if (action->idroot == 0) {
-    /* Always accept Actions that have not been bound to some ID type. */
-    return true;
-  }
-
-  /* Layered Actions are never limited to a specific ID type, and so these
-   * should always be shown. This is a more expensive test than just checking
-   * `action->idroot` though, and that should always be zero for layered actions
-   * anyway. */
-  if (action->wrap().is_action_layered()) {
-    return true;
-  }
-
   if (!saction) {
+    /* Unable to determine what this Action is going to be assigned to, so
+     * reject it for now. This is mostly to have a non-functional refactor of
+     * this code; personally I (Sybren) wouldn't mind to always return `true` in
+     * this case. */
     return false;
   }
 
   switch (saction->mode) {
     case SACTCONT_ACTION:
-      /* This is only Object-level for now. */
-      return action->idroot == ID_OB;
+      return blender::animrig::is_action_assignable_to(action, ID_OB);
     case SACTCONT_SHAPEKEY:
-      return action->idroot == ID_KE;
+      return blender::animrig::is_action_assignable_to(action, ID_KE);
     case SACTCONT_GPENCIL:
     case SACTCONT_DOPESHEET:
     case SACTCONT_MASK:
     case SACTCONT_CACHEFILE:
     case SACTCONT_TIMELINE:
-      /* These types do not have an 'action' selector. */
-      return false;
+      break;
   }
 
+  /* Same as above, I (Sybren) wouldn't mind returning `true` here to just
+   * always show all Actions in an unexpected place. */
   return false;
 }
 
@@ -1253,7 +1240,6 @@ static void rna_def_action_binding(BlenderRNA *brna)
       "to specify what it gets animated by");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_ActionBinding_name_set");
   RNA_def_property_string_maxlength(prop, sizeof(ActionBinding::name) - 2);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_ActionBinding_name_update");
@@ -1263,6 +1249,7 @@ static void rna_def_action_binding(BlenderRNA *brna)
       "Used when connecting an Animation to a data-block, to find the correct binding handle");
 
   prop = RNA_def_property(srna, "name_display", PROP_STRING, PROP_NONE);
+  RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop,
                                 "rna_ActionBinding_name_display_get",
                                 "rna_ActionBinding_name_display_length",

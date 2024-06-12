@@ -1548,6 +1548,10 @@ void wmGetProjectionMatrix(float mat[4][4], const rcti *winrct);
 /* Threaded Jobs Manager. */
 enum eWM_JobFlag {
   WM_JOB_PRIORITY = (1 << 0),
+  /**
+   * Only one render job can run at a time, this tags them a such. New jobs with this flag will
+   * wait on previous ones to finish then.
+   */
   WM_JOB_EXCL_RENDER = (1 << 1),
   WM_JOB_PROGRESS = (1 << 2),
 };
@@ -1570,6 +1574,7 @@ enum eWM_JobType {
   WM_JOB_TYPE_OBJECT_BAKE_TEXTURE,
   WM_JOB_TYPE_OBJECT_BAKE,
   WM_JOB_TYPE_FILESEL_READDIR,
+  WM_JOB_TYPE_ASSET_LIBRARY_LOAD,
   WM_JOB_TYPE_CLIP_BUILD_PROXY,
   WM_JOB_TYPE_CLIP_TRACK_MARKERS,
   WM_JOB_TYPE_CLIP_SOLVE_CAMERA,

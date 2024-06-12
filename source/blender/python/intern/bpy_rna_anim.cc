@@ -402,29 +402,41 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     }
   }
   else {
-    ID *id = self->ptr.owner_id;
+    BLI_assert(BKE_id_is_in_global_main(self->ptr.owner_id));
 
-    BLI_assert(BKE_id_is_in_global_main(id));
-    CombinedKeyingResult combined_result = insert_keyframe(G_MAIN,
-                                                           *id,
-                                                           group_name,
-                                                           path_full,
-                                                           index,
-                                                           &anim_eval_context,
-                                                           eBezTriple_KeyframeType(keytype),
-                                                           eInsertKeyFlags(options));
+    const std::optional<blender::StringRefNull> channel_group = group_name ?
+                                                                    std::optional(group_name) :
+                                                                    std::nullopt;
+    CombinedKeyingResult combined_result = insert_keyframes(G_MAIN,
+                                                            &self->ptr,
+                                                            channel_group,
+                                                            {{path_full, {}, index}},
+                                                            std::nullopt,
+                                                            anim_eval_context,
+                                                            eBezTriple_KeyframeType(keytype),
+                                                            eInsertKeyFlags(options));
     const int success_count = combined_result.get_count(SingleKeyingResult::SUCCESS);
     if (success_count == 0) {
-      combined_result.generate_reports(&reports);
+      /* Ideally this would use the GUI presentation of RPT_ERROR, as the resulting pop-up has more
+       * vertical space than the single-line warning in the status bar. However, semantically these
+       * may not be errors at all, as skipping the keying of certain properties due to the 'only
+       * insert available' flag is not an error.
+       *
+       * Furthermore, using RPT_ERROR here would cause this function to raise a Python exception,
+       * rather than returning a boolean. */
+      combined_result.generate_reports(&reports, RPT_WARNING);
     }
     result = success_count != 0;
   }
 
   MEM_freeN((void *)path_full);
 
-  if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
+  if (BPy_reports_to_error(&reports, PyExc_RuntimeError, false) == -1) {
+    BKE_reports_free(&reports);
     return nullptr;
   }
+  BPy_reports_write_stdout(&reports, nullptr);
+  BKE_reports_free(&reports);
 
   if (result) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);

@@ -725,14 +725,18 @@ ccl_device_forceinline bool integrate_volume_equiangular_sample_light(
                                         path_flag,
                                         &ls))
   {
+    ls.emitter_id = EMITTER_NONE;
     return false;
   }
 
   if (ls.shader & SHADER_EXCLUDE_SCATTER) {
+    ls.emitter_id = EMITTER_NONE;
     return false;
   }
 
   if (ls.t == FLT_MAX) {
+    /* Sampled distant/background light is valid in volume segment, but we are going to sample the
+     * light position with distance sampling instead of equiangular. */
     return false;
   }
 
@@ -991,10 +995,11 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
 ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
                                                  IntegratorState state,
                                                  ccl_private Ray *ccl_restrict ray,
+                                                 const int object,
                                                  ccl_global float *ccl_restrict render_buffer)
 {
   ShaderData sd;
-  shader_setup_from_volume(kg, &sd, ray);
+  shader_setup_from_volume(kg, &sd, ray, object);
 
   /* Load random number state. */
   RNGState rng_state;
@@ -1003,7 +1008,6 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   /* Sample light ahead of volume stepping, for equiangular sampling. */
   /* TODO: distant lights are ignored now, but could instead use even distribution. */
   LightSample ls ccl_optional_struct_init;
-  ls.emitter_id = EMITTER_NONE;
   const bool need_light_sample = !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_TERMINATE);
 
   EquiangularCoefficients equiangular_coeffs = {zero_float3(), make_float2(ray->tmin, ray->tmax)};
@@ -1188,7 +1192,8 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
     volume_stack_clean(kg, state);
   }
 
-  const VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
+  const VolumeIntegrateEvent event = volume_integrate(
+      kg, state, &ray, isect.object, render_buffer);
   if (event == VOLUME_PATH_MISSED) {
     /* End path. */
     integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);

@@ -48,26 +48,6 @@ def sizes_as_percentage_string(size_partial: int, size_final: int) -> str:
     return "{:-6.2f}%".format(percent * 100)
 
 
-def license_info_to_text(license_list):
-    # See: https://spdx.org/licenses/
-    # - Note that we could include all, for now only common, GPL compatible licenses.
-    # - Note that many of the human descriptions are not especially more humanly readable
-    #   than the short versions, so it's questionable if we should attempt to add all of these.
-    _spdx_id_to_text = {
-        "GPL-2.0-only": "GNU General Public License v2.0 only",
-        "GPL-2.0-or-later": "GNU General Public License v2.0 or later",
-        "GPL-3.0-only": "GNU General Public License v3.0 only",
-        "GPL-3.0-or-later": "GNU General Public License v3.0 or later",
-    }
-    result = []
-    for item in license_list:
-        if item.startswith("SPDX:"):
-            item = item[5:]
-            item = _spdx_id_to_text.get(item, item)
-        result.append(item)
-    return ", ".join(result)
-
-
 def pkg_repo_and_id_from_theme_path(repos_all, filepath):
     import os
     if not filepath:
@@ -642,7 +622,7 @@ def extensions_panel_draw_impl(
         is_system_repo = repos_all[repo_index].source == 'SYSTEM'
 
         for pkg_id, item_remote in pkg_manifest_remote.items():
-            if filter_by_type and (filter_by_type != item_remote["type"]):
+            if filter_by_type and (filter_by_type != item_remote.type):
                 continue
             if search_lower and (not pkg_info_check_exclude_filter(item_remote, search_lower)):
                 continue
@@ -654,7 +634,7 @@ def extensions_panel_draw_impl(
                 continue
 
             if extension_tags:
-                if tags := item_remote.get("tags"):
+                if tags := item_remote.tags:
                     if not any(True for t in tags if extension_tags.get(t, True)):
                         continue
                 else:
@@ -663,7 +643,7 @@ def extensions_panel_draw_impl(
 
             is_addon = False
             is_theme = False
-            match item_remote["type"]:
+            match item_remote.type:
                 case "add-on":
                     is_addon = True
                 case "theme":
@@ -689,12 +669,12 @@ def extensions_panel_draw_impl(
             if enabled_only and (not is_enabled):
                 continue
 
-            item_version = item_remote["version"]
+            item_version = item_remote.version
             if item_local is None:
                 item_local_version = None
                 is_outdated = False
             else:
-                item_local_version = item_local["version"]
+                item_local_version = item_local.version
                 is_outdated = item_local_version != item_version
 
             if updates_only:
@@ -763,7 +743,7 @@ def extensions_panel_draw_impl(
 
             sub = row.row()
             sub.active = is_enabled
-            sub.label(text=item_remote["name"], translate=False)
+            sub.label(text=item_remote.name, translate=False)
             del sub
 
             row_right = row.row()
@@ -797,9 +777,9 @@ def extensions_panel_draw_impl(
                 col_b = split.column()
 
                 # The full tagline may be multiple lines (not yet supported by Blender's UI).
-                col_a.label(text="{:s}.".format(item_remote["tagline"]), translate=False)
+                col_a.label(text="{:s}.".format(item_remote.tagline), translate=False)
 
-                if value := item_remote.get("website"):
+                if value := item_remote.website:
                     # Use half size button, for legacy add-ons there are two, here there is one
                     # however one large button looks silly, so use a half size still.
                     col_a.split(factor=0.5).operator(
@@ -837,16 +817,14 @@ def extensions_panel_draw_impl(
                     # WARNING: while this is documented to be a dict, old packages may contain a list of strings.
                     # As it happens dictionary keys & list values both iterate over string,
                     # however we will want to show the dictionary values eventually.
-                    if (value := item_remote.get("permissions")):
+                    if (value := item_remote.permissions):
                         col_b.label(text=", ".join([iface_(x.title()) for x in value]), translate=False)
                     else:
                         col_b.label(text="No permissions specified")
                     del value
 
-                # Remove the maintainers email while it's not private, showing prominently
-                # could cause maintainers to get direct emails instead of issue tracking systems.
                 col_a.label(text="Maintainer")
-                col_b.label(text=item_remote["maintainer"].split("<", 1)[0].rstrip(), translate=False)
+                col_b.label(text=item_remote.maintainer, translate=False)
 
                 col_a.label(text="Version")
                 if is_outdated:
@@ -859,10 +837,10 @@ def extensions_panel_draw_impl(
 
                 if has_remote:
                     col_a.label(text="Size")
-                    col_b.label(text=size_as_fmt_string(item_remote["archive_size"]), translate=False)
+                    col_b.label(text=size_as_fmt_string(item_remote.archive_size), translate=False)
 
                 col_a.label(text="License")
-                col_b.label(text=license_info_to_text(item_remote["license"]), translate=False)
+                col_b.label(text=item_remote.license, translate=False)
 
                 if len(repos_all) > 1:
                     col_a.label(text="Repository")
@@ -982,15 +960,13 @@ class USERPREF_MT_extensions_settings(Menu):
 
         addon_prefs = prefs.addons[__package__].preferences
 
-        layout.operator("extensions.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
+        layout.operator("extensions.repo_sync_all", icon='FILE_REFRESH')
+        layout.operator("extensions.repo_refresh_all")
 
         layout.separator()
 
         layout.operator("extensions.package_upgrade_all", text="Install Available Updates", icon='IMPORT')
         layout.operator("extensions.package_install_files", text="Install from Disk...")
-
-        layout.separator()
-        layout.operator("extensions.repo_refresh_all", text="Refresh All", icon='FILE_REFRESH')
 
         if prefs.experimental.use_extensions_debug:
             layout.separator()
@@ -1139,9 +1115,9 @@ def tags_current(wm):
         if pkg_manifest_remote is None:
             continue
         for item_remote in pkg_manifest_remote.values():
-            if filter_by_type != item_remote["type"]:
+            if filter_by_type != item_remote.type:
                 continue
-            if pkg_tags := item_remote.get("tags"):
+            if pkg_tags := item_remote.tags:
                 tags.update(pkg_tags)
 
     if filter_by_type == "add-on":

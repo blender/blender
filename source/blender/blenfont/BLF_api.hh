@@ -300,7 +300,7 @@ void BLF_draw_buffer(int fontid, const char *str, size_t str_len, ResultBLF *r_i
  *
  * \note called from a thread, so it bypasses the normal BLF_* api (which isn't thread-safe).
  */
-bool BLF_thumb_preview(const char *filename, unsigned char *buf, int w, int h, int channels)
+bool BLF_thumb_preview(const char *filepath, unsigned char *buf, int w, int h, int channels)
     ATTR_NONNULL();
 
 /* `blf_default.cc` */

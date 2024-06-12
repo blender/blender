@@ -1561,7 +1561,7 @@ static void edit_modify_coordinates(
 
   undo::push_begin(ob, op);
   for (PBVHNode *node : nodes) {
-    BKE_pbvh_node_mark_update(node);
+    BKE_pbvh_node_mark_positions_update(node);
     undo::push_node(ob, node, undo::Type::Position);
   }
   switch (mode) {

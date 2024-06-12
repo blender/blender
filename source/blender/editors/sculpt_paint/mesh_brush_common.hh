@@ -28,6 +28,7 @@
 struct Brush;
 struct Mesh;
 struct Object;
+struct PBVH;
 struct PBVHNode;
 struct Sculpt;
 struct SculptSession;
@@ -37,6 +38,9 @@ namespace blender::ed::sculpt_paint {
 namespace auto_mask {
 struct Cache;
 };
+
+void scale_translations(MutableSpan<float3> translations, Span<float> factors);
+void scale_factors(MutableSpan<float> factors, float strength);
 
 /**
  * Note on the various positions arrays:
@@ -147,5 +151,14 @@ void apply_translations_to_shape_keys(Object &object,
  * \todo This should be removed one the PBVH no longer stores this copy of deformed positions.
  */
 void apply_translations_to_pbvh(PBVH &pbvh, Span<int> verts, Span<float3> positions_orig);
+
+void scrape_calc_translations(const Span<float3> vert_positions,
+                              const Span<int> verts,
+                              const float4 &plane,
+                              const MutableSpan<float3> translations);
+void scrape_calc_plane_trim_limit(const Brush &brush,
+                                  const StrokeCache &cache,
+                                  const Span<float3> translations,
+                                  const MutableSpan<float> factors);
 
 }  // namespace blender::ed::sculpt_paint

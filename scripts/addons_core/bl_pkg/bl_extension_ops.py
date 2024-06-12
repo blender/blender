@@ -172,7 +172,7 @@ def extension_url_find_repo_index_and_pkg_id(url):
         if not remote_url:
             continue
         for pkg_id, item_remote in pkg_manifest_remote.items():
-            archive_url = item_remote["archive_url"]
+            archive_url = item_remote.archive_url
             archive_url_basename = archive_url.rpartition("/")[2]
             # First compare the filenames, if this matches, check the full URL.
             if url_basename != archive_url_basename:
@@ -222,7 +222,7 @@ def pkg_info_check_exclude_filter_ex(name, tagline, search_lower):
 
 
 def pkg_info_check_exclude_filter(item, search_lower):
-    return pkg_info_check_exclude_filter_ex(item["name"], item["tagline"], search_lower)
+    return pkg_info_check_exclude_filter_ex(item.name, item.tagline, search_lower)
 
 
 def extension_theme_enable_filepath(filepath):
@@ -443,14 +443,14 @@ def _preferences_install_post_enable_on_install(
             print("Package should have been installed but not found:", pkg_id)
             return
 
-        if item_local["type"] == "add-on":
+        if item_local.type == "add-on":
             # Check if the add-on will have been enabled from re-installing.
             if pkg_id in pkg_id_sequence_upgrade:
                 continue
 
             addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, pkg_id)
             addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
-        elif item_local["type"] == "theme":
+        elif item_local.type == "theme":
             if has_theme:
                 continue
             extension_theme_enable(directory, pkg_id)
@@ -616,7 +616,7 @@ def _pkg_marked_by_repo(pkg_manifest_all):
         item = pkg_manifest.get(pkg_id)
         if item is None:
             continue
-        if filter_by_type and (filter_by_type != item["type"]):
+        if filter_by_type and (filter_by_type != item.type):
             continue
         if search_lower and not pkg_info_check_exclude_filter(item, search_lower):
             continue
@@ -710,10 +710,8 @@ def _extensions_repo_sync_wheels(repo_cache_store):
         repo_directory = repo.directory
         for pkg_id, item_local in pkg_manifest_local.items():
             pkg_dirpath = os.path.join(repo_directory, pkg_id)
-            wheels_rel = item_local.get("wheels", None)
-            if wheels_rel is None:
-                continue
-            if not isinstance(wheels_rel, list):
+            wheels_rel = item_local.wheels
+            if not wheels_rel:
                 continue
 
             # Filter only the wheels for this platform.
@@ -1033,6 +1031,11 @@ class _ExtCmdMixIn:
         return result
 
     def cancel(self, context):
+        # Happens when canceling before the operator has run any commands.
+        # Canceling from an operator popup dialog for example.
+        if not hasattr(self, "_runtime_handle"):
+            return
+
         canceled = True
         self._runtime_handle.op_modal_cancel(self, context)
         self.exec_command_finish(canceled)
@@ -1088,13 +1091,8 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
         # Needed to refresh.
         self.repo_directory = directory
 
-        # Lock repositories.
-        self.repo_lock = bl_extension_utils.RepoLock(
-            repo_directories=[directory],
-            cookie=cookie_from_session(),
-        )
-        if lock_result_any_failed_with_report(self, self.repo_lock.acquire()):
-            return None
+        # See comment for `EXTENSIONS_OT_repo_sync_all`.
+        repos_lock = []
 
         cmd_batch = []
         if repo_item.remote_url:
@@ -1109,6 +1107,15 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
                     use_idle=is_modal,
                 )
             )
+            repos_lock.append(repo_item.directory)
+
+        # Lock repositories.
+        self.repo_lock = bl_extension_utils.RepoLock(
+            repo_directories=repos_lock,
+            cookie=cookie_from_session(),
+        )
+        if lock_result_any_failed_with_report(self, self.repo_lock.acquire()):
+            return None
 
         return bl_extension_utils.CommandBatch(
             title="Sync",
@@ -1136,7 +1143,7 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
 class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
     """Refresh the list of extensions for all the remote repositories"""
     bl_idname = "extensions.repo_sync_all"
-    bl_label = "Check for Updates"
+    bl_label = "Refresh Remote"
     __slots__ = _ExtCmdMixIn.cls_slots
 
     use_active_only: BoolProperty(
@@ -1176,6 +1183,10 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
                     self.report({'WARNING'}, str(ex))
                     return None
 
+        # It's only required to lock remote repositories, local repositories can refresh without being modified,
+        # this is essential for system repositories which may be read-only.
+        repos_lock = []
+
         cmd_batch = []
         for repo_item in repos_all:
             # Local only repositories should still refresh, but not run the sync.
@@ -1189,8 +1200,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
                     access_token=repo_item.access_token,
                     use_idle=is_modal,
                 ))
-
-        repos_lock = [repo_item.directory for repo_item in repos_all]
+                repos_lock.append(repo_item.directory)
 
         # Lock repositories.
         self.repo_lock = bl_extension_utils.RepoLock(
@@ -1229,7 +1239,7 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
     """Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting). """ \
         """Any issues are reported as warnings"""
     bl_idname = "extensions.repo_refresh_all"
-    bl_label = "Refresh All"
+    bl_label = "Refresh Local"
 
     def _exceptions_as_report(self, repo_name, ex):
         self.report({'WARNING'}, "{:s}: {:s}".format(repo_name, str(ex)))
@@ -1259,6 +1269,51 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
         _preferences_ui_refresh_addons()
 
         return {'FINISHED'}
+
+
+# Show a dialog when dropping a URL from an unknown repository,
+# with the option to add the repository.
+class EXTENSIONS_OT_repo_add_from_drop(Operator):
+    bl_idname = "extensions.repo_add_from_drop"
+    bl_label = "Add Repository Drop"
+    bl_options = {'INTERNAL'}
+
+    url: rna_prop_url
+
+    def invoke(self, context, _event):
+        wm = context.window_manager
+
+        wm.invoke_props_dialog(
+            self,
+            width=400,
+            confirm_text="Add Repository",
+            title="Unknown Repository",
+        )
+
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        # Open an "Add Remote Repository" popup with the URL pre-filled.
+        bpy.ops.preferences.extension_repo_add('INVOKE_DEFAULT', type='REMOTE', remote_url=self.url)
+        return {'CANCELLED'}
+
+    def draw(self, context):
+        url = self.url
+        # Skip the URL prefix scheme, e.g. `https://` for less "noisy" outpout.
+        url_split = url.partition("://")
+        url_for_display = url_split[2] if url_split[2] else url
+
+        layout = self.layout
+        col = layout.column()
+        lines = (
+            iface_("The dropped URL comes from an unknown repository from:"),
+            url_for_display,
+            iface_("You may optionally add this repository now."),
+            iface_("Once the repository has been created the URL"),
+            iface_("will need to be dropped again."),
+        )
+        for line in lines:
+            col.label(text=line, translate=False)
 
 
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
@@ -1350,7 +1405,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                     # Not installed.
                     continue
 
-                if item_remote["version"] != item_local["version"]:
+                if item_remote.version != item_local.version:
                     packages_to_upgrade[repo_index].append(pkg_id)
                     package_count += 1
 
@@ -1488,7 +1543,9 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
             pkg_manifest_remote = pkg_manifest_remote_all[repo_index]
 
             pkg_id_sequence_addon_only = [
-                pkg_id for pkg_id in pkg_id_sequence if pkg_manifest_remote[pkg_id]["type"] == "add-on"]
+                pkg_id for pkg_id in pkg_id_sequence
+                if pkg_manifest_remote[pkg_id].type == "add-on"
+            ]
             if pkg_id_sequence_addon_only:
                 self._repo_map_packages_addon_only.append((repo_item.directory, pkg_id_sequence_addon_only))
 
@@ -2179,7 +2236,11 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
 
         if repo_index == -1:
-            self.report({'ERROR'}, "Extension: URL not found in remote repositories!\n{:s}".format(url))
+            # The `remote_url` may not be defined, in this case there is not much we can do.
+            if not remote_url:
+                self.report({'ERROR'}, "Extension: URL not found in remote repositories!\n{:s}".format(url))
+            else:
+                bpy.ops.extensions.repo_add_from_drop('INVOKE_DEFAULT', url=remote_url)
             return {'CANCELLED'}
 
         if item_local is not None:
@@ -2207,17 +2268,17 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         _repo_index, repo_name, pkg_id, item_remote = self._drop_variables
 
-        layout.label(text="Do you want to install the following {:s}?".format(item_remote["type"]))
+        layout.label(text="Do you want to install the following {:s}?".format(item_remote.type))
 
         col = layout.column(align=True)
-        col.label(text="Name: {:s}".format(item_remote["name"]))
+        col.label(text="Name: {:s}".format(item_remote.name))
         col.label(text="Repository: {:s}".format(repo_name))
-        col.label(text="Size: {:s}".format(size_as_fmt_string(item_remote["archive_size"], precision=0)))
+        col.label(text="Size: {:s}".format(size_as_fmt_string(item_remote.archive_size, precision=0)))
         del col
 
         layout.separator()
 
-        layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[item_remote["type"]])
+        layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[item_remote.type])
 
     @staticmethod
     def _do_legacy_replace(pkg_id, pkg_manifest_local):
@@ -2753,6 +2814,7 @@ classes = (
     EXTENSIONS_OT_repo_sync,
     EXTENSIONS_OT_repo_sync_all,
     EXTENSIONS_OT_repo_refresh_all,
+    EXTENSIONS_OT_repo_add_from_drop,
 
     EXTENSIONS_OT_package_install_files,
     EXTENSIONS_OT_package_install,

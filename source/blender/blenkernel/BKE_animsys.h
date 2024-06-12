@@ -252,10 +252,13 @@ struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
  * \param prop_ptr: Property about to be keyframed.
  * \param[in,out] values: Span of property values to adjust.
  * \param index: Index of the element about to be updated, or -1.
- * \param[out] r_force_all: Set to true if all channels must be inserted. May be NULL.
- * \param[out] r_successful_remaps: Bits will be enabled for indices that are both intended to be
- * remapped and succeeded remapping. With both, it allows caller to check successfully remapped
- * indices without having to explicitly check whether the index was intended to be remapped.
+ * \param[out] r_force_all: For array properties, set to true if the property
+ * should be treated as all-or-nothing (i.e. where either all elements get keyed
+ * or none do). Irrelevant for non-array properties. May be NULL.
+ * \param[out] r_values_mask: A mask for the elements of `values`, where bits
+ * are set to true for the elements that were both indicated by `index` and for
+ * which valid keying values were successfully computed.  In short, this is a
+ * mask for the indices that can get keyed.
  */
 void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            struct PointerRNA *prop_ptr,
@@ -264,7 +267,7 @@ void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            int index,
                                            const struct AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
-                                           blender::BitVector<> &r_successful_remaps);
+                                           blender::BitVector<> &r_values_mask);
 
 /**
  * Free all cached contexts from the list.

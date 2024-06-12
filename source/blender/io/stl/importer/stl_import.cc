@@ -47,18 +47,7 @@ void stl_import_report_error(FILE *file)
   }
 }
 
-void importer_main(const bContext *C, const STLImportParams &import_params)
-{
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  importer_main(bmain, scene, view_layer, import_params);
-}
-
-void importer_main(Main *bmain,
-                   Scene *scene,
-                   ViewLayer *view_layer,
-                   const STLImportParams &import_params)
+Mesh *read_stl_file(const STLImportParams &import_params)
 {
   FILE *file = BLI_fopen(import_params.filepath, "rb");
   if (!file) {
@@ -67,7 +56,7 @@ void importer_main(Main *bmain,
                 RPT_ERROR,
                 "STL Import: Cannot open file '%s'",
                 import_params.filepath);
-    return;
+    return nullptr;
   }
   BLI_SCOPED_DEFER([&]() { fclose(file); });
 
@@ -84,14 +73,9 @@ void importer_main(Main *bmain,
                 RPT_ERROR,
                 "STL Import: Failed to read file '%s'",
                 import_params.filepath);
-    return;
+    return nullptr;
   }
   bool is_ascii_stl = (file_size != (BINARY_HEADER_SIZE + 4 + BINARY_STRIDE * num_tri));
-
-  /* Name used for both mesh and object. */
-  char ob_name[FILE_MAX];
-  STRNCPY(ob_name, BLI_path_basename(import_params.filepath));
-  BLI_path_extension_strip(ob_name);
 
   Mesh *mesh = is_ascii_stl ?
                    read_stl_ascii(import_params.filepath, import_params.use_facet_normal) :
@@ -103,7 +87,7 @@ void importer_main(Main *bmain,
                 RPT_ERROR,
                 "STL Import: Failed to import mesh from file '%s'",
                 import_params.filepath);
-    return;
+    return nullptr;
   }
 
   if (import_params.use_mesh_validate) {
@@ -113,6 +97,29 @@ void importer_main(Main *bmain,
 #endif
     BKE_mesh_validate(mesh, verbose_validate, false);
   }
+
+  return mesh;
+}
+
+void importer_main(const bContext *C, const STLImportParams &import_params)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  importer_main(bmain, scene, view_layer, import_params);
+}
+
+void importer_main(Main *bmain,
+                   Scene *scene,
+                   ViewLayer *view_layer,
+                   const STLImportParams &import_params)
+{
+  /* Name used for both mesh and object. */
+  char ob_name[FILE_MAX];
+  STRNCPY(ob_name, BLI_path_basename(import_params.filepath));
+  BLI_path_extension_strip(ob_name);
+
+  Mesh *mesh = read_stl_file(import_params);
 
   Mesh *mesh_in_main = BKE_mesh_add(bmain, ob_name);
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_main, nullptr);

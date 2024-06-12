@@ -22,6 +22,7 @@ from bpy.props import (
 )
 from bpy.app.translations import (
     pgettext_iface as iface_,
+    pgettext_n as n_,
     pgettext_tip as tip_,
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
@@ -1388,32 +1389,32 @@ rna_custom_property_type_items = (
     ('PYTHON', "Python", "Edit a Python value directly, for unsupported property types"),
 )
 
-rna_custom_property_subtype_none_item = ('NONE', "Plain Data", "Data values without special behavior")
+rna_custom_property_subtype_none_item = ('NONE', n_("Plain Data"), n_("Data values without special behavior"))
 
 rna_custom_property_subtype_number_items = (
     rna_custom_property_subtype_none_item,
-    ('PIXEL', "Pixel", ""),
-    ('PERCENTAGE', "Percentage", ""),
-    ('FACTOR', "Factor", ""),
-    ('ANGLE', "Angle", ""),
-    ('TIME_ABSOLUTE', "Time", "Time specified in seconds"),
-    ('DISTANCE', "Distance", ""),
-    ('POWER', "Power", ""),
-    ('TEMPERATURE', "Temperature", ""),
+    ('PIXEL', n_("Pixel"), n_("A distance on screen")),
+    ('PERCENTAGE', n_("Percentage"), n_("A percentage between 0 and 100")),
+    ('FACTOR', n_("Factor"), n_("A factor between 0.0 and 1.0")),
+    ('ANGLE', n_("Angle"), n_("A rotational value specified in radians")),
+    ('TIME_ABSOLUTE', n_("Time"), n_("Time specified in seconds")),
+    ('DISTANCE', n_("Distance"), n_("A distance between two points")),
+    ('POWER', n_("Power"), ""),
+    ('TEMPERATURE', n_("Temperature"), ""),
 )
 
 rna_custom_property_subtype_vector_items = (
     rna_custom_property_subtype_none_item,
-    ('COLOR', "Linear Color", "Color in the linear space"),
-    ('COLOR_GAMMA', "Gamma-Corrected Color", "Color in the gamma corrected space"),
-    ('TRANSLATION', "Translation", ""),
-    ('DIRECTION', "Direction", ""),
-    ('VELOCITY', "Velocity", ""),
-    ('ACCELERATION', "Acceleration", ""),
-    ('EULER', "Euler Angles", "Euler rotation angles in radians"),
-    ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
-    ('AXISANGLE', "Axis-Angle", "Angle and axis to rotate around"),
-    ('XYZ', "XYZ", ""),
+    ('COLOR', n_("Linear Color"), n_("Color in the linear space")),
+    ('COLOR_GAMMA', n_("Gamma-Corrected Color"), n_("Color in the gamma corrected space")),
+    ('TRANSLATION', n_("Translation"), ""),
+    ('DIRECTION', n_("Direction"), ""),
+    ('VELOCITY', n_("Velocity"), ""),
+    ('ACCELERATION', n_("Acceleration"), ""),
+    ('EULER', n_("Euler Angles"), n_("Euler rotation angles in radians")),
+    ('QUATERNION', n_("Quaternion Rotation"), n_("Quaternion rotation (affects NLA blending)")),
+    ('AXISANGLE', n_("Axis-Angle"), n_("Angle and axis to rotate around")),
+    ('XYZ', n_("XYZ"), ""),
 )
 
 rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)

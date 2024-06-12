@@ -71,6 +71,19 @@ TEST_F(ActionLayersTest, add_layer)
   ASSERT_EQ(0, layer.strips().size()) << "Expected newly added layer to have no strip.";
 }
 
+TEST_F(ActionLayersTest, add_layer__reset_idroot)
+{
+  /* An empty Action is a valid legacy Action, and thus can have its idroot set to a non-zero
+   * value. If such an Action gets a layer, it no longer is a valid legacy Action, and thus its
+   * idtype should be reset to zero. */
+  anim->idroot = ID_CA; /* Fake that this was assigned to a camera data-block. */
+  ASSERT_NE(0, anim->idroot) << "anim->idroot should not be zero at the start of this test.";
+
+  anim->layer_add("layer name");
+
+  EXPECT_EQ(0, anim->idroot) << "anim->idroot should get reset when the Action becomes layered.";
+}
+
 TEST_F(ActionLayersTest, remove_layer)
 {
   Layer &layer0 = anim->layer_add("Test Læür nul");
@@ -197,6 +210,19 @@ TEST_F(ActionLayersTest, add_binding)
     EXPECT_STREQ(cube->id.name, binding.name);
     EXPECT_EQ(ID_OB, binding.idtype);
   }
+}
+
+TEST_F(ActionLayersTest, add_binding__reset_idroot)
+{
+  /* An empty Action is a valid legacy Action, and thus can have its idroot set
+   * to a non-zero value. If such an Action gets a binding, it no longer is a
+   * valid legacy Action, and thus its idtype should be reset to zero. */
+  anim->idroot = ID_CA; /* Fake that this was assigned to a camera data-block. */
+  ASSERT_NE(0, anim->idroot) << "anim->idroot should not be zero at the start of this test.";
+
+  anim->binding_add();
+
+  EXPECT_EQ(0, anim->idroot) << "anim->idroot should get reset when the Action becomes layered.";
 }
 
 TEST_F(ActionLayersTest, add_binding_multiple)
@@ -477,6 +503,48 @@ TEST_F(ActionLayersTest, KeyframeStrip__keyframe_insert)
   ASSERT_EQ(2, channels->fcurves().size()) << "Expected a second FCurve to be created.";
   EXPECT_EQ(2, channels->fcurves()[0]->totvert);
   EXPECT_EQ(1, channels->fcurves()[1]->totvert);
+}
+
+TEST_F(ActionLayersTest, is_action_assignable_to)
+{
+  EXPECT_TRUE(is_action_assignable_to(nullptr, ID_OB))
+      << "nullptr Actions should be assignable to any type.";
+  EXPECT_TRUE(is_action_assignable_to(nullptr, ID_CA))
+      << "nullptr Actions should be assignable to any type.";
+
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_OB))
+      << "Empty Actions should be assignable to any type.";
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_CA))
+      << "Empty Actions should be assignable to any type.";
+
+  /* Make the Action a legacy one. */
+  FCurve fake_fcurve;
+  BLI_addtail(&anim->curves, &fake_fcurve);
+  ASSERT_FALSE(anim->is_empty());
+  ASSERT_TRUE(anim->is_action_legacy());
+  ASSERT_EQ(0, anim->idroot);
+
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_OB))
+      << "Legacy Actions with idroot=0 should be assignable to any type.";
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_CA))
+      << "Legacy Actions with idroot=0 should be assignable to any type.";
+
+  /* Set the legacy idroot. */
+  anim->idroot = ID_CA;
+  EXPECT_FALSE(is_action_assignable_to(anim, ID_OB))
+      << "Legacy Actions with idroot=ID_CA should NOT be assignable to ID_OB.";
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_CA))
+      << "Legacy Actions with idroot=CA should be assignable to ID_CA.";
+
+  /* Make the Action a layered one. */
+  BLI_poptail(&anim->curves);
+  anim->layer_add("layer");
+  ASSERT_EQ(0, anim->idroot) << "Adding a layer should clear the idroot.";
+
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_OB))
+      << "Layered Actions should be assignable to any type.";
+  EXPECT_TRUE(is_action_assignable_to(anim, ID_CA))
+      << "Layered Actions should be assignable to any type.";
 }
 
 }  // namespace blender::animrig::tests

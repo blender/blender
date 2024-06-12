@@ -828,7 +828,7 @@ void ED_info_draw_stats(
   }
   else if (!(object_mode & OB_MODE_SCULPT)) {
     /* No objects in scene. */
-    stats_row(col1, labels[OBJ], col2, 0, nullptr, y, height);
+    stats_row(col1, labels[OBJ], col2, stats_fmt.totobj, nullptr, y, height);
     return;
   }
 

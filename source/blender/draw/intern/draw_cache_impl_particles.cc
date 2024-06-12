@@ -1571,9 +1571,6 @@ static void particle_batch_cache_ensure_edit_pos_and_seg(PTCacheEdit *edit,
     particle_batch_cache_fill_segments_edit(
         edit, particle, edit->pathcache, 0, edit->totcached, &elb, &data_step);
   }
-  else {
-    BLI_assert_msg(0, "Hairs are not in edit mode!");
-  }
   hair_cache->indices = GPU_indexbuf_build(&elb);
 }
 

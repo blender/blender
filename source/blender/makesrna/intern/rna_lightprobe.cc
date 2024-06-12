@@ -172,7 +172,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, nullptr);
 
-  prop = RNA_def_property(srna, "data_display_size", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "data_display_size", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "data_display_size");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.01f, 1.0f, 1, 3);

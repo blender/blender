@@ -122,6 +122,10 @@ set(SRC
 
   brushes/draw.cc
   brushes/draw_vector_displacement.cc
+  brushes/fill.cc
+  brushes/flatten.cc
+  brushes/inflate.cc
+  brushes/scrape.cc
 
   brushes/types.hh
 )

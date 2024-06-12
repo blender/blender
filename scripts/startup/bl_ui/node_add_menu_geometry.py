@@ -243,11 +243,13 @@ class NODE_MT_geometry_node_GEO_INPUT(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_INPUT"
     bl_label = "Input"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_CONSTANT")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_GROUP")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_SCENE")
+        if context.preferences.experimental.use_new_file_import_nodes:
+            layout.menu("NODE_MT_category_import")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -447,6 +449,16 @@ class NODE_MT_category_PRIMITIVES_MESH(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeMeshLine")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshUVSphere")
         node_add_menu.draw_assets_for_catalog(layout, "Mesh/Primitives")
+
+
+class NODE_MT_category_import(Menu):
+    bl_idname = "NODE_MT_category_import"
+    bl_label = "Import"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeImportSTL")
+        node_add_menu.draw_assets_for_catalog(layout, "Input/Import")
 
 
 class NODE_MT_geometry_node_mesh_topology(Menu):
@@ -816,6 +828,7 @@ classes = (
     NODE_MT_geometry_node_GEO_MESH_OPERATIONS,
     NODE_MT_category_GEO_UV,
     NODE_MT_category_PRIMITIVES_MESH,
+    NODE_MT_category_import,
     NODE_MT_geometry_node_mesh_topology,
     NODE_MT_category_GEO_POINT,
     NODE_MT_category_simulation,
