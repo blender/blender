@@ -3866,7 +3866,7 @@ static void do_brush_action(const Sculpt &sd,
       face_set::do_draw_face_sets_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
-      SCULPT_do_displacement_eraser_brush(sd, ob, nodes);
+      do_displacement_eraser_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
       SCULPT_do_displacement_smear_brush(sd, ob, nodes);
@@ -6006,9 +6006,9 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   {
     return OPERATOR_CANCELLED;
   }
-  if (brush.sculpt_tool == SCULPT_TOOL_DISPLACEMENT_SMEAR) {
-    if (!ss.pbvh || BKE_pbvh_type(*ss.pbvh) == PBVH_BMESH) {
-      BKE_report(op->reports, RPT_ERROR, "Not supported in dynamic topology mode");
+  if (ELEM(brush.sculpt_tool, SCULPT_TOOL_DISPLACEMENT_SMEAR, SCULPT_TOOL_DISPLACEMENT_ERASER)) {
+    if (!ss.pbvh || BKE_pbvh_type(*ss.pbvh) != PBVH_GRIDS) {
+      BKE_report(op->reports, RPT_ERROR, "Only supported in multiresolution mode");
       return OPERATOR_CANCELLED;
     }
   }

@@ -1704,67 +1704,6 @@ void SCULPT_do_slide_relax_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sculpt Multires Displacement Eraser Brush
- * \{ */
-
-static void do_displacement_eraser_brush_task(Object &ob, const Brush &brush, PBVHNode *node)
-{
-  using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
-  const float bstrength = clamp_f(ss.cache->bstrength, 0.0f, 1.0f);
-
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
-
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
-      continue;
-    }
-    auto_mask::node_update(automask_data, vd);
-
-    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                brush,
-                                                                vd.co,
-                                                                sqrtf(test.dist),
-                                                                vd.no,
-                                                                vd.fno,
-                                                                vd.mask,
-                                                                vd.vertex,
-                                                                thread_id,
-                                                                &automask_data);
-
-    float3 limit_co = SCULPT_vertex_limit_surface_get(ss, vd.vertex);
-    float disp[3];
-    sub_v3_v3v3(disp, limit_co, vd.co);
-    mul_v3_v3fl(proxy[vd.i], disp, fade);
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-void SCULPT_do_displacement_eraser_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
-{
-  using namespace blender;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  BKE_curvemapping_init(brush.curve);
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_displacement_eraser_brush_task(ob, brush, nodes[i]);
-    }
-  });
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Sculpt Multires Displacement Smear Brush
  * \{ */
 
