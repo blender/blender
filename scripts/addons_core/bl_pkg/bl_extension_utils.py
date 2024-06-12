@@ -997,6 +997,13 @@ class CommandBatch:
 # Internal Repo Data Source
 #
 
+
+class RepoRemoteData(NamedTuple):
+    version: str
+    blocklist: List[str]
+    data: List[Dict[str, Any]]
+
+
 class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
     """
     The purpose of this class is to be a source for the repository data.
@@ -1027,7 +1034,7 @@ class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
         raise Exception("Caller must define")
 
     @abc.abstractmethod
-    def cache_data(self) -> Optional[Dict[str, Dict[str, Any]]]:
+    def cache_data(self) -> Optional[RepoRemoteData]:
         raise Exception("Caller must define")
 
     # Should not be called directly use `data(..)` which supports cache.
@@ -1036,7 +1043,7 @@ class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
             self,
             *,
             error_fn: Callable[[Exception], None],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+    ) -> Optional[RepoRemoteData]:
         raise Exception("Caller must define")
 
     def data(
@@ -1045,7 +1052,7 @@ class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
             cache_validate: bool,
             force: bool,
             error_fn: Callable[[Exception], None],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+    ) -> Optional[RepoRemoteData]:
         if not self.exists():
             self.cache_clear()
             return None
@@ -1074,7 +1081,7 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
 
         self._filepath: str = filepath
         self._mtime: int = 0
-        self._data: Optional[Dict[str, Dict[str, Any]]] = None
+        self._data: Optional[RepoRemoteData] = None
 
     def exists(self) -> bool:
         try:
@@ -1097,24 +1104,48 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
         self._data = None
         self._mtime = 0
 
-    def cache_data(self) -> Optional[Dict[str, Dict[str, Any]]]:
+    def cache_data(self) -> Optional[RepoRemoteData]:
         return self._data
 
     def _data_load(
             self,
             *,
             error_fn: Callable[[Exception], None],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+    ) -> Optional[RepoRemoteData]:
         assert self.exists()
 
         data = None
         mtime = file_mtime_or_none_with_error_fn(self._filepath, error_fn=error_fn) or 0
 
+        data_dict: Dict[str, Any] = {}
         if mtime != 0:
             try:
-                data = json_from_filepath(self._filepath)
+                data_dict = json_from_filepath(self._filepath) or {}
             except Exception as ex:
                 error_fn(ex)
+
+            # This is *not* a full validation,
+            # just skip malformed JSON files as they're likely to cause issues later on.
+            if not isinstance(data_dict, dict):
+                error_fn(Exception("Remote repository data from {:s} must be a dict not a {:s}".format(
+                    self._filepath,
+                    str(type(data_dict)),
+                )))
+                data_dict = {}
+
+            if not isinstance(data_dict.get("data"), list):
+                error_fn(Exception("Remote repository data from {:s} must contain a \"data\" list".format(
+                    self._filepath,
+                )))
+                data_dict = {}
+
+        # It's important to assign this value even if it's "empty",
+        # otherwise corrupt files will be detected as unset and continuously attempt to load.
+        data = RepoRemoteData(
+            version=data_dict.get("version", "v1"),
+            blocklist=data_dict.get("blocklist", []),
+            data=data_dict.get("data", []),
+        )
 
         self._data = data
         self._mtime = mtime
@@ -1133,7 +1164,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
     def __init__(self, directory: str):
         self._directory: str = directory
         self._mtime_for_each_package: Optional[Dict[str, int]] = None
-        self._data: Optional[Dict[str, Dict[str, Any]]] = None
+        self._data: Optional[RepoRemoteData] = None
 
     def exists(self) -> bool:
         try:
@@ -1164,14 +1195,14 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
         self._data = None
         self._mtime_for_each_package = None
 
-    def cache_data(self) -> Optional[Dict[str, Dict[str, Any]]]:
+    def cache_data(self) -> Optional[RepoRemoteData]:
         return self._data
 
     def _data_load(
             self,
             *,
             error_fn: Callable[[Exception], None],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+    ) -> Optional[RepoRemoteData]:
         assert self.exists()
 
         mtime_for_each_package = self._mtime_for_each_package_create(
@@ -1179,7 +1210,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             error_fn=error_fn,
         )
 
-        data: Dict[str, Any] = {}
+        packages: Dict[str, Any] = {}
         for dirname in mtime_for_each_package.keys():
             filepath_toml = os.path.join(self._directory, dirname, PKG_MANIFEST_FILENAME_TOML)
             try:
@@ -1191,19 +1222,19 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             if item_local is None:
                 continue
 
-            data[dirname] = item_local
+            packages[dirname] = item_local
 
         # Begin: transform to list with ID's in item.
         # TODO: this transform can probably be removed and the internal format can change
         # to use the same structure as the actual JSON.
-        data = {
-            "version": "v1",
-            "blocklist": [],
-            "data": [
+        data = RepoRemoteData(
+            version="v1",
+            blocklist=[],
+            data=[
                 {"id": pkg_idname, **value}
-                for pkg_idname, value in data.items()
+                for pkg_idname, value in packages.items()
             ],
-        }
+        )
         # End: compatibility change.
 
         self._data = data
@@ -1287,7 +1318,7 @@ class _RepoCacheEntry:
         self.remote_url = remote_url
         # Manifest data per package loaded from the packages local JSON.
         self._pkg_manifest_local: Optional[Dict[str, Dict[str, Any]]] = None
-        self._pkg_manifest_remote: Optional[Dict[str, Dict[str, Any]]] = None
+        self._pkg_manifest_remote: Optional[RepoRemoteData] = None
         self._pkg_manifest_remote_data_source: _RepoDataSouce_ABC = (
             _RepoDataSouce_JSON(directory) if remote_url else
             _RepoDataSouce_TOML_FILES(directory)
@@ -1387,7 +1418,7 @@ class _RepoCacheEntry:
             *,
             error_fn: Callable[[Exception], None],
             ignore_missing: bool = False,
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+    ) -> Optional[RepoRemoteData]:
         if self._pkg_manifest_remote is None:
             self._json_data_ensure(
                 ignore_missing=ignore_missing,
@@ -1487,20 +1518,14 @@ class RepoCacheStore:
                 yield None
             else:
                 pkg_manifest_remote = {}
-                # "data" should always exist, it's not the purpose of this function to fully validate though.
-                json_items = json_data.get("data")
-                if json_items is None:
-                    error_fn(ValueError("JSON was missing \"data\" key"))
-                    yield None
-                else:
-                    for item_remote in json_items:
-                        # TODO(@ideasman42): we may want to include the "id", as part of moving to a new format
-                        # the "id" used not to be part of each item so users of this API assume it's not.
-                        # The `item_remote` could be used in-place however that needs further testing.
-                        item_remove_copy = item_remote.copy()
-                        pkg_idname = item_remove_copy.pop("id")
-                        pkg_manifest_remote[pkg_idname] = item_remove_copy
-                    yield pkg_manifest_remote
+                for item_remote in json_data.data:
+                    # TODO(@ideasman42): we may want to include the "id", as part of moving to a new format
+                    # the "id" used not to be part of each item so users of this API assume it's not.
+                    # The `item_remote` could be used in-place however that needs further testing.
+                    item_remove_copy = item_remote.copy()
+                    pkg_idname = item_remove_copy.pop("id")
+                    pkg_manifest_remote[pkg_idname] = item_remove_copy
+                yield pkg_manifest_remote
 
     def pkg_manifest_from_local_ensure(
             self,
