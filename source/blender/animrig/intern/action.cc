@@ -616,8 +616,6 @@ bool Binding::has_idtype() const
 
 bool assign_animation(Action &anim, ID &animated_id)
 {
-  BLI_assert(anim.is_action_layered());
-
   unassign_animation(animated_id);
 
   Binding *binding = anim.find_suitable_binding_for(animated_id);
