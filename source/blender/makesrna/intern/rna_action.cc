@@ -1240,6 +1240,7 @@ static void rna_def_action_binding(BlenderRNA *brna)
       "to specify what it gets animated by");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_ActionBinding_name_set");
   RNA_def_property_string_maxlength(prop, sizeof(ActionBinding::name) - 2);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_ActionBinding_name_update");
@@ -1249,7 +1250,6 @@ static void rna_def_action_binding(BlenderRNA *brna)
       "Used when connecting an Animation to a data-block, to find the correct binding handle");
 
   prop = RNA_def_property(srna, "name_display", PROP_STRING, PROP_NONE);
-  RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop,
                                 "rna_ActionBinding_name_display_get",
                                 "rna_ActionBinding_name_display_length",
