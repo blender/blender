@@ -6,6 +6,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifdef __SUBSURFACE__
+
 /* BSSRDF using disk based importance sampling.
  *
  * BSSRDF Importance Sampling, SIGGRAPH 2013
@@ -197,5 +199,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
 
   return false;
 }
+
+#endif /* __SUBSURFACE__ */
 
 CCL_NAMESPACE_END

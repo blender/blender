@@ -126,7 +126,9 @@ ccl_device
       float ior = fmaxf(stack_load_float(stack, eta_offset), 1e-5f);
 
       ClosureType distribution = (ClosureType)data_node2.y;
+#ifdef __SUBSURFACE__
       ClosureType subsurface_method = (ClosureType)data_node2.z;
+#endif
 
       float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
       float3 coat_normal = stack_valid(coat_normal_offset) ?
@@ -145,7 +147,9 @@ ccl_device
       const float3 clamped_base_color = min(base_color, one_float3());
 
       // get the subsurface scattering data
+#ifdef __SUBSURFACE__
       uint4 data_subsurf = read_node(kg, &offset);
+#endif
 
       uint4 data_alpha_emission_thin = read_node(kg, &offset);
       svm_unpack_node_uchar4(data_alpha_emission_thin.x,

@@ -865,9 +865,11 @@ ccl_device_forceinline void integrator_shade_surface_raytrace(
 ccl_device_forceinline void integrator_shade_surface_mnee(
     KernelGlobals kg, IntegratorState state, ccl_global float *ccl_restrict render_buffer)
 {
+#ifdef __MNEE__
   integrator_shade_surface<(KERNEL_FEATURE_NODE_MASK_SURFACE & ~KERNEL_FEATURE_NODE_RAYTRACE) |
                                KERNEL_FEATURE_MNEE,
                            DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE>(kg, state, render_buffer);
+#endif
 }
 
 CCL_NAMESPACE_END
