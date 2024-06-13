@@ -127,9 +127,6 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler,
   cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
   cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
   cuDevArchitecture = major * 100 + minor * 10;
-
-  /* Pop context set by cuCtxCreate. */
-  cuCtxPopCurrent(NULL);
 }
 
 CUDADevice::~CUDADevice()
