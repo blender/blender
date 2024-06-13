@@ -1189,13 +1189,19 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         # FBX SDK documentation says that normals should use IndexToDirect.
         elem_data_single_string(lay_nor, b"ReferenceInformationType", b"IndexToDirect")
 
-        # Tuple of unique sorted normals and then the index in the unique sorted normals of each normal in t_normal.
-        # Since we don't care about how the normals are sorted, only that they're unique, we can use the fast unique
-        # helper function.
-        t_normal, t_normal_idx = fast_first_axis_unique(t_normal.reshape(-1, 3), return_inverse=True)
+        # Workaround for Unity FBX import issue where the normals are considered invalid if any normals are
+        # deduplicated. See #123088.
+        if normal_mapping == b"ByVertice":
+            # Write every normal without any deduplication, so the indices array will be [0, 1, 2, ..., n].
+            t_normal_idx = np.arange(len(t_normal.reshape(-1, 3)), dtype=normal_idx_fbx_dtype)
+        else:
+            # Tuple of unique sorted normals and then the index in the unique sorted normals of each normal in t_normal.
+            # Since we don't care about how the normals are sorted, only that they're unique, we can use the fast unique
+            # helper function.
+            t_normal, t_normal_idx = fast_first_axis_unique(t_normal.reshape(-1, 3), return_inverse=True)
 
-        # Convert to the type for fbx
-        t_normal_idx = astype_view_signedness(t_normal_idx, normal_idx_fbx_dtype)
+            # Convert to the type for fbx
+            t_normal_idx = astype_view_signedness(t_normal_idx, normal_idx_fbx_dtype)
 
         elem_data_single_float64_array(lay_nor, b"Normals", t_normal)
         # Normal weights, no idea what it is.
