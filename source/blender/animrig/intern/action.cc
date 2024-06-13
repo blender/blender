@@ -460,26 +460,43 @@ bool Action::assign_id(Binding *binding, ID &animated_id)
     return false;
   }
 
-  if (binding) {
-    if (!binding->is_suitable_for(animated_id)) {
-      return false;
-    }
-    this->binding_setup_for_id(*binding, animated_id);
+  /* Check that the new Binding is suitable, before changing `adt`. */
+  if (binding && !binding->is_suitable_for(animated_id)) {
+    return false;
+  }
 
+  /* Unassign any previously-assigned Binding. */
+  Binding *binding_to_unassign = this->binding_for_handle(adt->binding_handle);
+  if (binding_to_unassign) {
+    /* Before unassigning, make sure that the stored Binding name is up to date. The binding name
+     * might have changed in a way that wasn't copied into the ADT yet (for example when the
+     * Action is linked from another file), so better copy the name to be sure that it can be
+     * transparently reassigned later.
+     *
+     * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure
+     * this name is always correct. */
+    STRNCPY_UTF8(adt->binding_name, binding_to_unassign->name);
+  }
+
+  /* Assign the Action itself. */
+  if (!adt->action) {
+    /* Due to the precondition check above, we know that adt->action is either 'this' (in which
+     * case the user count is already correct) or `nullptr` (in which case this is a new
+     * reference, and the user count should be increased). */
+    id_us_plus(&this->id);
+    adt->action = this;
+  }
+
+  /* Assign the Binding. */
+  if (binding) {
+    this->binding_setup_for_id(*binding, animated_id);
     adt->binding_handle = binding->handle;
+
     /* Always make sure the ID's binding name matches the assigned binding. */
     STRNCPY_UTF8(adt->binding_name, binding->name);
   }
   else {
-    unassign_binding(*adt);
-  }
-
-  if (!adt->action) {
-    /* Due to the precondition check above, we know that adt->action is either 'this' (in which
-     * case the user count is already correct) or `nullptr` (in which case this is a new reference,
-     * and the user count should be increased). */
-    id_us_plus(&this->id);
-    adt->action = this;
+    adt->binding_handle = Binding::unassigned;
   }
 
   return true;
@@ -508,8 +525,10 @@ void Action::unassign_id(ID &animated_id)
   BLI_assert_msg(adt, "ID is not animated at all");
   BLI_assert_msg(adt->action == this, "ID is not assigned to this Animation");
 
-  unassign_binding(*adt);
+  /* Unassign the Binding first. */
+  this->assign_id(nullptr, animated_id);
 
+  /* Unassign the Action itself. */
   id_us_min(&this->id);
   adt->action = nullptr;
 }
@@ -655,24 +674,24 @@ void unassign_animation(ID &animated_id)
   anim->unassign_id(animated_id);
 }
 
-void unassign_binding(AnimData &adt)
+void unassign_binding(ID &animated_id)
 {
-  /* Before unassigning, make sure that the stored Binding name is up to date. The binding name
-   * might have changed in a way that wasn't copied into the ADT yet (for example when the
-   * Animation data-block is linked from another file), so better copy the name to be sure that it
-   * can be transparently reassigned later.
-   *
-   * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure this
-   * name is always correct. */
-  if (adt.action) {
-    const Action &anim = adt.action->wrap();
-    const Binding *binding = anim.binding_for_handle(adt.binding_handle);
-    if (binding) {
-      STRNCPY_UTF8(adt.binding_name, binding->name);
-    }
+  AnimData *adt = BKE_animdata_from_id(&animated_id);
+  BLI_assert_msg(adt, "Cannot unassign an Action Binding from a non-animated ID.");
+  if (!adt) {
+    return;
   }
 
-  adt.binding_handle = Binding::unassigned;
+  if (!adt->action) {
+    /* Nothing assigned. */
+    BLI_assert_msg(adt->binding_handle == Binding::unassigned,
+                   "Binding handle should be 'unassigned' when no Action is assigned");
+    return;
+  }
+
+  /* Assign the 'nullptr' binding, effectively unassigning it. */
+  Action &action = adt->action->wrap();
+  action.assign_id(nullptr, animated_id);
 }
 
 /* TODO: rename to get_action(). */
