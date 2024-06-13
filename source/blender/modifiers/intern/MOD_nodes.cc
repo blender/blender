@@ -2242,7 +2242,7 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
       usages.append(IFACE_("Write"));
     }
     if ((usage & geo_log::NamedAttributeUsage::Remove) != geo_log::NamedAttributeUsage::None) {
-      usages.append(IFACE_("Remove"));
+      usages.append(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"));
     }
     for (const int i : usages.index_range()) {
       ss << usages[i];

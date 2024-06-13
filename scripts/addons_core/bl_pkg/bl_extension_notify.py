@@ -16,6 +16,8 @@ import os
 import bpy
 import sys
 
+from bpy.app.translations import pgettext_rpt as rpt_
+
 from . import bl_extension_ops
 from . import bl_extension_utils
 
@@ -349,7 +351,7 @@ class NotifyHandle:
 
     def ui_text(self):
         if self.sync_info is None:
-            return "Checking for Extension Updates", 'SORTTIME', WM_EXTENSIONS_UPDATE_CHECKING
+            return rpt_("Checking for Extension Updates"), 'SORTTIME', WM_EXTENSIONS_UPDATE_CHECKING
         status_data, update_count, extra_warnings = self.sync_info
         text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(
             status_data, update_count,

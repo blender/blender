@@ -767,7 +767,7 @@ static int clear_anim_v3d_invoke(bContext *C, wmOperator *op, const wmEvent * /*
                                   op,
                                   IFACE_("Remove animation from selected objects?"),
                                   nullptr,
-                                  IFACE_("Remove"),
+                                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
                                   ALERT_ICON_NONE,
                                   false);
   }

@@ -107,6 +107,7 @@ def extensions_panel_draw_legacy_addons(
     import addon_utils
     from bpy.app.translations import (
         pgettext_iface as iface_,
+        pgettext_tip as tip_,
     )
     from .bl_extension_ops import (
         pkg_info_check_exclude_filter_ex,
@@ -165,9 +166,9 @@ def extensions_panel_draw_legacy_addons(
         sub.active = is_enabled
 
         if module_parent_dirname(mod.__file__) == "addons_core":
-            sub.label(text="Core: " + bl_info["name"], translate=False)
+            sub.label(text=iface_("Core:") + " " + iface_(bl_info["name"]), translate=False)
         else:
-            sub.label(text="Legacy: " + bl_info["name"], translate=False)
+            sub.label(text=iface_("Legacy:") + " " + iface_(bl_info["name"]), translate=False)
 
         if bl_info["warning"]:
             sub.label(icon='ERROR')
@@ -186,7 +187,10 @@ def extensions_panel_draw_legacy_addons(
             col_b = split.column()
 
             if bl_info["description"]:
-                col_a.label(text="{:s}.".format(bl_info["description"]))
+                col_a.label(
+                    text="{:s}.".format(tip_(bl_info["description"])),
+                    translate=False,
+                )
 
             if bl_info["doc_url"] or bl_info.get("tracker_url"):
                 sub = box.row()
@@ -226,7 +230,7 @@ def extensions_panel_draw_legacy_addons(
                 col_b.label(text=".".join(str(x) for x in value), translate=False)
             if value := bl_info["warning"]:
                 col_a.label(text="Warning")
-                col_b.label(text="  " + iface_(value), icon='ERROR')
+                col_b.label(text="  " + iface_(value), icon='ERROR', translate=False)
             del value
 
             col_a.label(text="File")
@@ -509,6 +513,7 @@ def extensions_panel_draw_impl(
     import os
     from bpy.app.translations import (
         pgettext_iface as iface_,
+        pgettext_tip as tip_,
     )
     from .bl_extension_ops import (
         blender_extension_mark,
@@ -777,7 +782,7 @@ def extensions_panel_draw_impl(
                 col_b = split.column()
 
                 # The full tagline may be multiple lines (not yet supported by Blender's UI).
-                col_a.label(text="{:s}.".format(item_remote.tagline), translate=False)
+                col_a.label(text="{:s}.".format(tip_(item_remote.tagline)), translate=False)
 
                 if value := item_remote.website:
                     # Use half size button, for legacy add-ons there are two, here there is one
@@ -992,6 +997,7 @@ def extensions_panel_draw(panel, context):
 
     prefs = context.preferences
 
+    from bpy.app.translations import pgettext_iface as iface_
     from .bl_extension_ops import (
         blender_filter_by_type_map,
     )
@@ -1035,7 +1041,7 @@ def extensions_panel_draw(panel, context):
         # Don't clip longer names.
         row = box.split(factor=0.9, align=True)
         if repo_status_text.running:
-            row.label(text=repo_status_text.title + "...", icon='INFO')
+            row.label(text=iface_(repo_status_text.title) + "...", icon='INFO', translate=False)
         else:
             row.label(text=repo_status_text.title, icon='INFO')
         if show_development_reports:
@@ -1053,16 +1059,28 @@ def extensions_panel_draw(panel, context):
                         factor=progress / progress_range,
                         text="{:s}, {:s}".format(
                             sizes_as_percentage_string(progress, progress_range),
-                            msg_str,
+                            iface_(msg_str),
                         ),
+                        translate=False,
                     )
                 elif progress_unit == 'BYTE':
-                    boxsub.progress(factor=0.0, text="{:s}, {:s}".format(msg_str, size_as_fmt_string(progress)))
+                    boxsub.progress(
+                        factor=0.0,
+                        text="{:s}, {:s}".format(iface_(msg_str), size_as_fmt_string(progress)),
+                        translate=False,
+                    )
                 else:
                     # We might want to support other types.
-                    boxsub.progress(factor=0.0, text="{:s}, {:d}".format(msg_str, progress))
+                    boxsub.progress(
+                        factor=0.0,
+                        text="{:s}, {:d}".format(iface_(msg_str), progress),
+                        translate=False,
+                    )
             else:
-                boxsub.label(text="{:s}: {:s}".format(ty, msg))
+                boxsub.label(
+                    text="{:s}: {:s}".format(iface_(ty), iface_(msg)),
+                    translate=False,
+                )
 
         # Hide when running.
         if repo_status_text.running:

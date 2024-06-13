@@ -2650,8 +2650,8 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     )
 
     # Weak, add/remove as properties.
-    op_add: BoolProperty(name="Add")
-    op_remove: BoolProperty(name="Remove")
+    op_add: BoolProperty(name="Add", translation_context=i18n_contexts.operator_default)
+    op_remove: BoolProperty(name="Remove", translation_context=i18n_contexts.operator_default)
 
 
 class WM_OT_batch_rename(Operator):

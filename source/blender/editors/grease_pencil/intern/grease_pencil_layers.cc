@@ -71,8 +71,11 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
 
 static int grease_pencil_layer_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return WM_operator_props_popup_confirm_ex(
-      C, op, event, IFACE_("Add New Grease Pencil Layer"), IFACE_("Add"));
+  return WM_operator_props_popup_confirm_ex(C,
+                                            op,
+                                            event,
+                                            IFACE_("Add New Grease Pencil Layer"),
+                                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add"));
 }
 
 static void GREASE_PENCIL_OT_layer_add(wmOperatorType *ot)
