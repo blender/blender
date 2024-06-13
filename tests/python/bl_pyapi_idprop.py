@@ -325,6 +325,9 @@ class TestIdPropertyDynamicRNA(TestHelper, unittest.TestCase):
         self.assertEqual(list(self.id['dynrna_prop']['float_array_prop']), mixed_array)
         self.assertEqual(list(self.id.dynrna_prop.float_array_prop), list(self.id['dynrna_prop']['float_array_prop']))
         self.assertTrue(all((type(i) is float for i in self.id['dynrna_prop']['float_array_prop'])))
+        # Assign out-of int32 range value to a float property.
+        self.id['dynrna_prop']['float_array_prop'] = [1000000000000, 5, 6]
+        print(self.id['dynrna_prop']['float_array_prop'][:])
         with self.assertRaises(TypeError):
             self.id['dynrna_prop']['float_array_prop'] = 2.5
         with self.assertRaises(TypeError):

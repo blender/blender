@@ -509,16 +509,20 @@ static IDProperty *idp_from_PyLong(IDProperty *prop_exist,
                                    const bool can_create)
 {
   IDProperty *prop = nullptr;
-  const int value = PyC_Long_AsI32(ob);
-  if (value == -1 && PyErr_Occurred()) {
-    return prop;
-  }
   if (prop_exist) {
     if (prop_exist->type == IDP_INT) {
+      const int value = PyC_Long_AsI32(ob);
+      if (value == -1 && PyErr_Occurred()) {
+        return prop;
+      }
       IDP_Int(prop_exist) = value;
       prop = prop_exist;
     }
     else if (do_conversion) {
+      const int64_t value = PyC_Long_AsI64(ob);
+      if (value == -1 && PyErr_Occurred()) {
+        return prop;
+      }
       switch (prop_exist->type) {
         case IDP_FLOAT:
           IDP_Float(prop_exist) = float(value);
@@ -540,6 +544,10 @@ static IDProperty *idp_from_PyLong(IDProperty *prop_exist,
     }
   }
   if (!prop && can_create) {
+    const int value = PyC_Long_AsI32(ob);
+    if (value == -1 && PyErr_Occurred()) {
+      return prop;
+    }
     prop = blender::bke::idprop::create(name, value).release();
   }
   return prop;
@@ -756,17 +764,23 @@ static IDProperty *idp_from_PySequence_Fast(IDProperty *prop_exist,
         void *prop_data = IDP_Array(prop);
         for (i = 0; i < val.array.len; i++) {
           item = ob_seq_fast_items[i];
-          const int value = PyC_Long_AsI32(item);
-          if ((value == -1) && PyErr_Occurred()) {
-            continue;
-          }
-          if (to_float) {
-            static_cast<float *>(prop_data)[i] = float(value);
-          }
-          else if (to_double) {
-            static_cast<double *>(prop_data)[i] = double(value);
+          if (to_float || to_double) {
+            const int64_t value = PyC_Long_AsI64(item);
+            if ((value == -1) && PyErr_Occurred()) {
+              continue;
+            }
+            if (to_float) {
+              static_cast<float *>(prop_data)[i] = float(value);
+            }
+            else { /* if (to_double) */
+              static_cast<double *>(prop_data)[i] = double(value);
+            }
           }
           else {
+            const int value = PyC_Long_AsI32(item);
+            if ((value == -1) && PyErr_Occurred()) {
+              continue;
+            }
             static_cast<int *>(prop_data)[i] = value;
           }
         }
