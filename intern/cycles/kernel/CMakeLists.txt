@@ -326,6 +326,7 @@ set(SRC_KERNEL_SAMPLE_HEADERS
 set(SRC_KERNEL_UTIL_HEADERS
   util/color.h
   util/differential.h
+  util/ies.h
   util/lookup_table.h
   util/nanovdb.h
   util/profiling.h

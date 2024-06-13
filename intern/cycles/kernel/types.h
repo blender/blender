@@ -180,6 +180,7 @@ CCL_NAMESPACE_BEGIN
 #define __SHADOW_LINKING__
 #define __LIGHT_TREE__
 #define __OBJECT_MOTION__
+#define __MNEE__
 #define __PASSES__
 #define __PATCH_EVAL__
 #define __POINTCLOUD__
@@ -211,8 +212,8 @@ CCL_NAMESPACE_BEGIN
 
 /* MNEE caused "Compute function exceeds available temporary registers" in macOS < 13 due to a bug
  * in spill buffer allocation sizing. */
-#if !defined(__KERNEL_METAL__) || (__KERNEL_METAL_MACOS__ >= 13)
-#  define __MNEE__
+#if defined(__KERNEL_METAL__) && (__KERNEL_METAL_MACOS__ < 13)
+#  undef __MNEE__
 #endif
 
 #if defined(__KERNEL_METAL_AMD__)
