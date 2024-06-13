@@ -129,6 +129,7 @@ void bone_free(bArmature *arm, EditBone *bone)
     }
   }
 
+  BLI_freelistN(&bone->bone_collections);
   BLI_freelinkN(arm->edbo, bone);
 }
 
