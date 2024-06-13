@@ -56,13 +56,22 @@ void VKCommandBuilder::build_nodes(VKRenderGraph &render_graph,
 
   command_buffer.begin_recording();
   state_.debug_level = 0;
-  state_.active_debug_group_index = -1;
-  for (NodeHandle node_handle : nodes) {
+  state_.active_debug_group_id = -1;
+  int64_t node_group_start = 0;
+  bool is_rendering = false;
+  std::optional<NodeHandle> rendering_scope;
+  for (int64_t node_index : nodes.index_range()) {
+    NodeHandle node_handle = nodes[node_index];
     VKRenderGraphNode &node = render_graph.nodes_[node_handle];
-    if (G.debug & G_DEBUG_GPU) {
-      activate_debug_group(render_graph, command_buffer, node_handle);
+    int64_t node_group_end = node_index;
+    if (node.type == VKNodeType::END_RENDERING || !node_type_is_rendering(node.type)) {
+      build_node_group(render_graph,
+                       command_buffer,
+                       nodes.slice(node_group_start, (node_group_end - node_group_start) + 1),
+                       rendering_scope,
+                       is_rendering);
+      node_group_start = node_index + 1;
     }
-    build_node(render_graph, command_buffer, node_handle, node);
   }
   finish_debug_groups(command_buffer);
   state_.debug_level = 0;
@@ -70,21 +79,73 @@ void VKCommandBuilder::build_nodes(VKRenderGraph &render_graph,
   command_buffer.end_recording();
 }
 
-void VKCommandBuilder::build_node(VKRenderGraph &render_graph,
-                                  VKCommandBufferInterface &command_buffer,
-                                  NodeHandle node_handle,
-                                  VKRenderGraphNode &node)
+void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
+                                        VKCommandBufferInterface &command_buffer,
+                                        Span<NodeHandle> node_group,
+                                        std::optional<NodeHandle> &r_rendering_scope,
+                                        bool &r_is_rendering)
 {
-  build_pipeline_barriers(render_graph, command_buffer, node_handle, node.pipeline_stage_get());
-  node.build_commands(command_buffer, state_.active_pipelines);
+  for (NodeHandle node_handle : node_group) {
+    VKRenderGraphNode &node = render_graph.nodes_[node_handle];
+    build_pipeline_barriers(render_graph, command_buffer, node_handle, node.pipeline_stage_get());
+  }
+
+  for (NodeHandle node_handle : node_group) {
+    VKRenderGraphNode &node = render_graph.nodes_[node_handle];
+    if (node.type == VKNodeType::BEGIN_RENDERING) {
+      BLI_assert(!r_rendering_scope.has_value());
+      BLI_assert(!r_is_rendering);
+      r_rendering_scope = node_handle;
+      r_is_rendering = true;
+
+      /* Check of the node_group spans a full rendering scope. In that case we don't need to set
+       * the VK_RENDERING_SUSPENDING_BIT. */
+      const VKRenderGraphNode &last_node = render_graph.nodes_[node_group[node_group.size() - 1]];
+      bool will_be_suspended = last_node.type != VKNodeType::END_RENDERING;
+      if (will_be_suspended) {
+        node.begin_rendering.vk_rendering_info.flags = VK_RENDERING_SUSPENDING_BIT;
+      }
+    }
+
+    else if (node.type == VKNodeType::END_RENDERING) {
+      BLI_assert(r_rendering_scope.has_value());
+      r_rendering_scope.reset();
+      r_is_rendering = false;
+    }
+    else if (node_type_is_within_rendering(node.type)) {
+      BLI_assert(r_rendering_scope.has_value());
+      if (!r_is_rendering) {
+        // Resuming paused rendering scope.
+        VKRenderGraphNode &rendering_node = render_graph.nodes_[*r_rendering_scope];
+        rendering_node.begin_rendering.vk_rendering_info.flags = VK_RENDERING_RESUMING_BIT;
+        rendering_node.build_commands(command_buffer, state_.active_pipelines);
+        r_is_rendering = true;
+      }
+    }
+    else {
+      // Dispatch or data transfer command that cannot be done before rendering. We have to pause
+      // rendering
+      if (r_is_rendering) {
+        // Pause rendering.
+        r_is_rendering = false;
+        command_buffer.end_rendering();
+      }
+    }
+
+    // std::cout << "node_handle: " << node_handle << ", node_type: " << node.type << "\n";
+    if (G.debug & G_DEBUG_GPU) {
+      activate_debug_group(render_graph, command_buffer, node_handle);
+    }
+    node.build_commands(command_buffer, state_.active_pipelines);
+  }
 }
 
 void VKCommandBuilder::activate_debug_group(VKRenderGraph &render_graph,
                                             VKCommandBufferInterface &command_buffer,
                                             NodeHandle node_handle)
 {
-  int64_t debug_group = render_graph.debug_.node_group_map[node_handle];
-  if (debug_group == state_.active_debug_group_index) {
+  VKRenderGraph::DebugGroupID debug_group = render_graph.debug_.node_group_map[node_handle];
+  if (debug_group == state_.active_debug_group_id) {
     return;
   }
 
@@ -96,15 +157,17 @@ void VKCommandBuilder::activate_debug_group(VKRenderGraph &render_graph,
     num_ends = state_.debug_level;
   }
   else {
-    Vector<const char *> &to_group = render_graph.debug_.used_groups[debug_group];
-    if (state_.active_debug_group_index != -1) {
-      Vector<const char *> &from_group =
-          render_graph.debug_.used_groups[state_.active_debug_group_index];
+    Vector<VKRenderGraph::DebugGroupNameID> &to_group =
+        render_graph.debug_.used_groups[debug_group];
+    if (state_.active_debug_group_id != -1) {
+      Vector<VKRenderGraph::DebugGroupNameID> &from_group =
+          render_graph.debug_.used_groups[state_.active_debug_group_id];
 
-      num_ends = from_group.size();
-      for (int index : IndexRange(min_ii(from_group.size(), to_group.size()))) {
-        num_ends = from_group.size() - index;
+      num_ends = max_ii(from_group.size() - to_group.size(), 0);
+      int num_checks = min_ii(from_group.size(), to_group.size());
+      for (int index : IndexRange(num_checks)) {
         if (from_group[index] != to_group[index]) {
+          num_ends += num_checks - index;
           break;
         }
       }
@@ -121,17 +184,19 @@ void VKCommandBuilder::activate_debug_group(VKRenderGraph &render_graph,
 
   /* Perform the pushes to the debug stack. */
   if (num_begins > 0) {
-    Vector<const char *> &to_group = render_graph.debug_.used_groups[debug_group];
+    Vector<VKRenderGraph::DebugGroupNameID> &to_group =
+        render_graph.debug_.used_groups[debug_group];
     VkDebugUtilsLabelEXT debug_utils_label = {};
     debug_utils_label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
     for (int index : IndexRange(state_.debug_level, num_begins)) {
-      debug_utils_label.pLabelName = to_group[index];
+      std::string group_name = render_graph.debug_.group_names[to_group[index]];
+      debug_utils_label.pLabelName = group_name.c_str();
       command_buffer.begin_debug_utils_label(&debug_utils_label);
     }
   }
 
   state_.debug_level += num_begins;
-  state_.active_debug_group_index = debug_group;
+  state_.active_debug_group_id = debug_group;
 }
 
 void VKCommandBuilder::finish_debug_groups(VKCommandBufferInterface &command_buffer)

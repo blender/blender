@@ -76,6 +76,16 @@ void VKRenderGraph::submit_buffer_for_read(VkBuffer vk_buffer)
   command_buffer_->wait_for_cpu_synchronization();
 }
 
+void VKRenderGraph::submit()
+{
+  std::scoped_lock lock(resources_.mutex);
+  Span<NodeHandle> node_handles = scheduler_.select_nodes(*this);
+  command_builder_.build_nodes(*this, *command_buffer_, node_handles);
+  command_buffer_->submit_with_cpu_synchronization();
+  remove_nodes(node_handles);
+  command_buffer_->wait_for_cpu_synchronization();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -84,7 +94,8 @@ void VKRenderGraph::submit_buffer_for_read(VkBuffer vk_buffer)
 
 void VKRenderGraph::debug_group_begin(const char *name)
 {
-  debug_.group_stack.append(name);
+  DebugGroupNameID name_id = debug_.group_names.index_of_or_add(std::string(name));
+  debug_.group_stack.append(name_id);
   debug_.group_used = false;
 }
 

@@ -25,7 +25,6 @@
 
 namespace blender::gpu::render_graph {
 class VKResourceStateTracker;
-class VKRenderGraphLinks;
 
 /** Struct describing the access to an image. */
 struct VKImageAccess {

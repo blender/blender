@@ -45,6 +45,7 @@
 #include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "BKE_global.hh"
 
@@ -61,6 +62,8 @@ class VKScheduler;
 class VKRenderGraph : public NonCopyable {
   friend class VKCommandBuilder;
   friend class VKScheduler;
+  using DebugGroupNameID = int64_t;
+  using DebugGroupID = int64_t;
 
   /** All links inside the graph indexable via NodeHandle. */
   Vector<VKRenderGraphNodeLinks> links_;
@@ -93,22 +96,24 @@ class VKRenderGraph : public NonCopyable {
   VKResourceStateTracker &resources_;
 
   struct {
+    VectorSet<std::string> group_names;
+
     /** Current stack of debug group names. */
-    Vector<const char *> group_stack;
+    Vector<DebugGroupNameID> group_stack;
     /** Has a node been added to the current stack? If not the group stack will be added to
      * used_groups.*/
     bool group_used = false;
     /** All used debug groups. */
-    Vector<Vector<const char *>> used_groups;
+    Vector<Vector<DebugGroupNameID>> used_groups;
     /**
      * Map of a node_handle to an index of debug group in used_groups.
      *
      * <source>
-     * int used_group_index = node_group_map[node_handle];
-     * const Vector<const char*> &used_group = used_groups[used_group_index];
+     * int used_group_id = node_group_map[node_handle];
+     * const Vector<DebugGroupNameID> &used_group = used_groups[used_group_id];
      * </source>
      */
-    Vector<int64_t> node_group_map;
+    Vector<DebugGroupID> node_group_map;
   } debug_;
 
  public:
@@ -145,8 +150,11 @@ class VKRenderGraph : public NonCopyable {
       links_.resize(nodes_.size());
     }
     VKRenderGraphNode &node = nodes_[node_handle];
-    VKRenderGraphNodeLinks &node_links = links_[node_handle];
     node.set_node_data<NodeInfo>(create_info);
+
+    VKRenderGraphNodeLinks &node_links = links_[node_handle];
+    BLI_assert(node_links.inputs.is_empty());
+    BLI_assert(node_links.outputs.is_empty());
     node.build_links<NodeInfo>(resources_, node_links, create_info);
 
     if (G.debug & G_DEBUG_GPU) {
@@ -180,6 +188,11 @@ class VKRenderGraph : public NonCopyable {
   ADD_NODE(VKBlitImageNode)
   ADD_NODE(VKDispatchNode)
   ADD_NODE(VKDispatchIndirectNode)
+  ADD_NODE(VKDrawNode)
+  ADD_NODE(VKDrawIndexedNode)
+  ADD_NODE(VKDrawIndexedIndirectNode)
+  ADD_NODE(VKDrawIndirectNode)
+  ADD_NODE(VKUpdateMipmapsNode)
 #undef ADD_NODE
 
   /**
@@ -207,6 +220,11 @@ class VKRenderGraph : public NonCopyable {
   void submit_for_present(VkImage vk_swapchain_image);
 
   /**
+   * Submit full graph.
+   */
+  void submit();
+
+  /**
    * Push a new debugging group to the stack with the given name.
    *
    * New nodes added to the render graph will be associated with this debug group.
@@ -223,6 +241,6 @@ class VKRenderGraph : public NonCopyable {
 
  private:
   void remove_nodes(Span<NodeHandle> node_handles);
-};  // namespace blender::gpu::render_graph
+};
 
 }  // namespace blender::gpu::render_graph

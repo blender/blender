@@ -8,35 +8,34 @@
 
 #pragma once
 
-#include "render_graph/vk_render_graph_links.hh"
 #include "render_graph/vk_resource_access_info.hh"
 #include "vk_node_info.hh"
 
 namespace blender::gpu::render_graph {
+
 /**
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
-struct VKDispatchData {
+struct VKDrawData {
   VKPipelineData pipeline_data;
-  uint32_t group_count_x;
-  uint32_t group_count_y;
-  uint32_t group_count_z;
+  VKVertexBufferBindings vertex_buffers;
+  uint32_t vertex_count;
+  uint32_t instance_count;
+  uint32_t first_vertex;
+  uint32_t first_instance;
 };
 
-/**
- * Information needed to add a node to the render graph.
- */
-struct VKDispatchCreateInfo : NonCopyable {
-  VKDispatchData dispatch_node = {};
+struct VKDrawCreateInfo {
+  VKDrawData node_data = {};
   const VKResourceAccessInfo &resources;
-  VKDispatchCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
+  VKDrawCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
 };
 
-class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
-                                         VKDispatchCreateInfo,
-                                         VKDispatchData,
-                                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                         VKResourceType::IMAGE | VKResourceType::BUFFER> {
+class VKDrawNode : public VKNodeInfo<VKNodeType::DRAW,
+                                     VKDrawCreateInfo,
+                                     VKDrawData,
+                                     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                     VKResourceType::IMAGE | VKResourceType::BUFFER> {
  public:
   /**
    * Update the node data with the data inside create_info.
@@ -47,16 +46,8 @@ class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
    */
   template<typename Node> static void set_node_data(Node &node, const CreateInfo &create_info)
   {
-    node.dispatch = create_info.dispatch_node;
-    vk_pipeline_data_copy(node.dispatch.pipeline_data, create_info.dispatch_node.pipeline_data);
-  }
-
-  /**
-   * Free the pipeline data stored in the render graph node data.
-   */
-  void free_data(VKDispatchData &data)
-  {
-    vk_pipeline_data_free(data.pipeline_data);
+    node.draw = create_info.node_data;
+    vk_pipeline_data_copy(node.draw.pipeline_data, create_info.node_data.pipeline_data);
   }
 
   /**
@@ -67,6 +58,8 @@ class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
                    const CreateInfo &create_info) override
   {
     create_info.resources.build_links(resources, node_links);
+    vk_vertex_buffer_bindings_build_links(
+        resources, node_links, create_info.node_data.vertex_buffers);
   }
 
   /**
@@ -78,10 +71,19 @@ class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
   {
     vk_pipeline_data_build_commands(command_buffer,
                                     data.pipeline_data,
-                                    r_bound_pipelines.compute,
-                                    VK_PIPELINE_BIND_POINT_COMPUTE,
-                                    VK_SHADER_STAGE_COMPUTE_BIT);
-    command_buffer.dispatch(data.group_count_x, data.group_count_y, data.group_count_z);
+                                    r_bound_pipelines.graphics.pipeline,
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    VK_SHADER_STAGE_ALL_GRAPHICS);
+    vk_vertex_buffer_bindings_build_commands(
+        command_buffer, data.vertex_buffers, r_bound_pipelines.graphics.vertex_buffers);
+
+    command_buffer.draw(
+        data.vertex_count, data.instance_count, data.first_vertex, data.first_instance);
+  }
+
+  void free_data(Data &data)
+  {
+    vk_pipeline_data_free(data.pipeline_data);
   }
 };
 }  // namespace blender::gpu::render_graph
