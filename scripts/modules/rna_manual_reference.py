@@ -1059,7 +1059,6 @@ url_manual_mapping = (
     ("bpy.types.spacefilebrowser.recent_folders*", "editors/file_browser.html#bpy-types-spacefilebrowser-recent-folders"),
     ("bpy.types.spacefilebrowser.system_folders*", "editors/file_browser.html#bpy-types-spacefilebrowser-system-folders"),
     ("bpy.types.spacenodeeditor.show_annotation*", "interface/controls/nodes/introduction.html#bpy-types-spacenodeeditor-show-annotation"),
-    ("bpy.types.spacenodeeditor.use_auto_render*", "compositing/sidebar.html#bpy-types-spacenodeeditor-use-auto-render"),
     ("bpy.types.spaceoutliner.use_filter_object*", "editors/outliner/interface.html#bpy-types-spaceoutliner-use-filter-object"),
     ("bpy.types.spacesequenceeditor.use_proxies*", "editors/video_sequencer/preview/sidebar.html#bpy-types-spacesequenceeditor-use-proxies"),
     ("bpy.types.spaceuveditor.edge_display_type*", "editors/uv/overlays.html#bpy-types-spaceuveditor-edge-display-type"),

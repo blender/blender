@@ -492,24 +492,6 @@ static bool any_node_uses_id(const bNodeTree *ntree, const ID *id)
 }
 
 /**
- * Tag the space to recalculate the compositing tree using auto-compositing pipeline.
- *
- * Will check the space to be using a compositing tree, and check whether auto-compositing
- * is enabled. If the checks do not pass then the function has no affect.
- */
-static void node_area_tag_recalc_auto_compositing(SpaceNode *snode, ScrArea *area)
-{
-  if (!ED_node_is_compositor(snode)) {
-    return;
-  }
-
-  if (snode->flag & SNODE_AUTO_RENDER) {
-    snode->runtime->recalc_auto_compositing = true;
-    ED_area_tag_refresh(area);
-  }
-}
-
-/**
  * Tag the space to recalculate the current tree.
  *
  * For all node trees this will do `snode_set_context()` which takes care of setting an active
@@ -562,9 +544,6 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
           WM_gizmomap_tag_refresh(region->gizmo_map);
           break;
         }
-        case ND_TRANSFORM_DONE:
-          node_area_tag_recalc_auto_compositing(snode, area);
-          break;
       }
       break;
 
@@ -715,13 +694,7 @@ static void node_area_refresh(const bContext *C, ScrArea *area)
     if (snode->nodetree->type == NTREE_COMPOSIT) {
       Scene *scene = (Scene *)snode->id;
       if (scene->use_nodes) {
-        /* recalc is set on 3d view changes for auto compo */
-        if (snode->runtime->recalc_auto_compositing) {
-          snode->runtime->recalc_auto_compositing = false;
-          snode->runtime->recalc_regular_compositing = false;
-          node_render_changed_exec((bContext *)C, nullptr);
-        }
-        else if (snode->runtime->recalc_regular_compositing) {
+        if (snode->runtime->recalc_regular_compositing) {
           snode->runtime->recalc_regular_compositing = false;
           /* Only start compositing if its result will be visible either in the backdrop or in a
            * viewer image. */

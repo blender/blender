@@ -562,9 +562,6 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
     {
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
     }
-
-    /* XXX(ton): temp, first hack to get auto-render in compositor work. */
-    WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM_DONE, CTX_data_scene(C));
   }
 }
 

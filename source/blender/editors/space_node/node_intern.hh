@@ -89,13 +89,6 @@ struct SpaceNode_Runtime {
   float2 cursor;
 
   /**
-   * Indicates that the compositing tree in the space needs to be re-evaluated using the
-   * auto-compositing pipeline.
-   * Takes priority over the regular compositing.
-   */
-  bool recalc_auto_compositing;
-
-  /**
    * Indicates that the compositing int the space tree needs to be re-evaluated using
    * regular compositing pipeline.
    */

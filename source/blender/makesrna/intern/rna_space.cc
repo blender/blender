@@ -7774,12 +7774,6 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Annotation", "Show annotations for this view");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 
-  prop = RNA_def_property(srna, "use_auto_render", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SNODE_AUTO_RENDER);
-  RNA_def_property_ui_text(
-      prop, "Auto Render", "Re-render and composite changed layers on 3D edits");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
-
   prop = RNA_def_property(srna, "backdrop_zoom", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "zoom");
   RNA_def_property_float_default(prop, 1.0f);
