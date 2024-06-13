@@ -795,6 +795,11 @@ struct LightCullingData {
   uint tile_y_len;
   /** Number of word per tile. Depends on the maximum number of lights. */
   uint tile_word_len;
+  /** Is the view being processed by light culling flipped (true for light probe planes). */
+  bool32_t view_is_flipped;
+  uint _pad0;
+  uint _pad1;
+  uint _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(LightCullingData, 16)
 
