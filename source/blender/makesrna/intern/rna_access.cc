@@ -552,18 +552,6 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
   return prop_rna_or_id.idprop;
 }
 
-PropertyRNA *rna_ensure_property_realdata(PropertyRNA **prop, PointerRNA *ptr)
-{
-  PropertyRNAOrID prop_rna_or_id;
-
-  rna_property_rna_or_id_get(*prop, ptr, &prop_rna_or_id);
-
-  *prop = prop_rna_or_id.rnaprop;
-  return (prop_rna_or_id.is_idprop || prop_rna_or_id.is_rna_storage_idprop) ?
-             (PropertyRNA *)prop_rna_or_id.idprop :
-             prop_rna_or_id.rnaprop;
-}
-
 PropertyRNA *rna_ensure_property(PropertyRNA *prop)
 {
   /* the quick version if we don't need the idproperty */
