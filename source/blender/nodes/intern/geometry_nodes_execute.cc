@@ -1052,7 +1052,7 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
       continue;
     }
 
-    new_prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
+    new_prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE;
     if (socket.description && socket.description[0] != '\0') {
       IDPropertyUIData *ui_data = IDP_ui_data_ensure(new_prop);
       ui_data->description = BLI_strdup(socket.description);

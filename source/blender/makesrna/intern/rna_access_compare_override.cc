@@ -181,9 +181,8 @@ bool RNA_property_overridable_library_set(PointerRNA * /*ptr*/,
   /* Only works for pure custom properties IDProps. */
   if (prop->magic != RNA_MAGIC) {
     IDProperty *idprop = (IDProperty *)prop;
-
-    idprop->flag = is_overridable ? (idprop->flag | IDP_FLAG_OVERRIDABLE_LIBRARY) :
-                                    (idprop->flag & ~IDP_FLAG_OVERRIDABLE_LIBRARY);
+    constexpr short flags = (IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE);
+    idprop->flag = is_overridable ? (idprop->flag | flags) : (idprop->flag & ~flags);
     return true;
   }
 
