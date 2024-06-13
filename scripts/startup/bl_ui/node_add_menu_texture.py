@@ -4,6 +4,9 @@
 
 import bpy
 from bpy.types import Menu
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+)
 from bl_ui import node_add_menu
 
 
@@ -109,6 +112,7 @@ class NODE_MT_category_texture_group(Menu):
 class NODE_MT_texture_node_add_all(Menu):
     bl_idname = "NODE_MT_texture_node_add_all"
     bl_label = "Add"
+    bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, _context):
         layout = self.layout

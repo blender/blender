@@ -3430,7 +3430,11 @@ int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op)
       bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       gpencil_layer_new_name_get(gpd, name, sizeof(name));
       RNA_property_string_set(op->ptr, prop, name);
-      return WM_operator_props_dialog_popup(C, op, 200, IFACE_("Add New Layer"), IFACE_("Add"));
+      return WM_operator_props_dialog_popup(C,
+                                            op,
+                                            200,
+                                            IFACE_("Add New Layer"),
+                                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add"));
     }
   }
   return 0;

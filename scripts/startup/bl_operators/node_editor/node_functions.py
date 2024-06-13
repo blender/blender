@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
+from bpy.app.translations import pgettext_tip as tip_
 
 
 def node_editor_poll(cls, context):
@@ -25,8 +26,9 @@ def node_editor_poll(cls, context):
 def node_space_type_poll(cls, context, types):
     if context.space_data.tree_type not in types:
         tree_types_str = ", ".join(t.split('NodeTree')[0].lower() for t in sorted(types))
-        cls.poll_message_set("Current node tree type not supported.\n"
-                             "Should be one of " + tree_types_str + ".")
+        poll_message = tip_("Current node tree type not supported.\n"
+                            "Should be one of {:s}.").format(tree_types_str)
+        cls.poll_message_set(poll_message)
         return False
     return True
 
