@@ -782,6 +782,8 @@ static int view_socket(const bContext &C,
   if (viewer_bsocket == nullptr) {
     return OPERATOR_CANCELLED;
   }
+  viewer_bsocket->flag &= ~SOCK_HIDDEN;
+
   bNodeLink *viewer_link = nullptr;
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &btree.links) {
     if (link->tosock == viewer_bsocket) {
