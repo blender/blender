@@ -48,6 +48,12 @@ Main *BKE_main_new()
   bmain->lock = static_cast<MainLock *>(MEM_mallocN(sizeof(SpinLock), "main lock"));
   BLI_spin_init((SpinLock *)bmain->lock);
   bmain->is_global_main = false;
+
+  /* Just rebuilding the Action Binding to ID* map once is likely cheaper than,
+   * for every ID, when it's loaded from disk, check whether it's animated or
+   * not, and then figure out which Main it went into, and then set the flag. */
+  bmain->is_action_binding_to_id_map_dirty = true;
+
   return bmain;
 }
 

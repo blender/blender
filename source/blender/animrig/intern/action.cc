@@ -41,6 +41,7 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_fcurve.hh"
+#include "action_runtime.hh"
 
 #include "atomic_ops.h"
 
@@ -347,7 +348,7 @@ Binding *Action::binding_find_by_name(const StringRefNull binding_name)
 
 Binding &Action::binding_allocate()
 {
-  Binding &binding = MEM_new<ActionBinding>(__func__)->wrap();
+  Binding &binding = *MEM_new<Binding>(__func__);
   this->last_binding_handle++;
   BLI_assert_msg(this->last_binding_handle > 0, "Animation Binding handle overflow");
   binding.handle = this->last_binding_handle;
@@ -464,6 +465,8 @@ bool Action::assign_id(Binding *binding, ID &animated_id)
   /* Unassign any previously-assigned Binding. */
   Binding *binding_to_unassign = this->binding_for_handle(adt->binding_handle);
   if (binding_to_unassign) {
+    binding_to_unassign->users_remove(animated_id);
+
     /* Before unassigning, make sure that the stored Binding name is up to date. The binding name
      * might have changed in a way that wasn't copied into the ADT yet (for example when the
      * Action is linked from another file), so better copy the name to be sure that it can be
@@ -487,6 +490,7 @@ bool Action::assign_id(Binding *binding, ID &animated_id)
   if (binding) {
     this->binding_setup_for_id(*binding, animated_id);
     adt->binding_handle = binding->handle;
+    binding->users_add(animated_id);
 
     /* Always make sure the ID's binding name matches the assigned binding. */
     STRNCPY_UTF8(adt->binding_name, binding->name);
@@ -612,6 +616,32 @@ int64_t Layer::find_strip_index(const Strip &strip) const
 
 /* ----- ActionBinding implementation ----------- */
 
+Binding::Binding()
+{
+  memset(this, 0, sizeof(*this));
+  this->runtime = MEM_new<BindingRuntime>(__func__);
+}
+
+Binding::Binding(const Binding &other)
+{
+  memset(this, 0, sizeof(*this));
+  STRNCPY(this->name, other.name);
+  this->idtype = other.idtype;
+  this->handle = other.handle;
+  this->runtime = MEM_new<BindingRuntime>(__func__);
+}
+
+Binding::~Binding()
+{
+  MEM_delete(this->runtime);
+}
+
+void Binding::blend_read_post()
+{
+  BLI_assert(!this->runtime);
+  this->runtime = MEM_new<BindingRuntime>(__func__);
+}
+
 bool Binding::is_suitable_for(const ID &animated_id) const
 {
   if (!this->has_idtype()) {
@@ -628,6 +658,47 @@ bool Binding::has_idtype() const
 {
   return this->idtype != 0;
 }
+
+Span<ID *> Binding::users(Main &bmain) const
+{
+  if (bmain.is_action_binding_to_id_map_dirty) {
+    internal::rebuild_binding_user_cache(bmain);
+  }
+  BLI_assert(this->runtime);
+  return this->runtime->users.as_span();
+}
+
+Vector<ID *> Binding::runtime_users()
+{
+  BLI_assert_msg(this->runtime, "Binding::runtime should always be allocated");
+  return this->runtime->users;
+}
+
+void Binding::users_add(ID &animated_id)
+{
+  BLI_assert(this->runtime);
+  this->runtime->users.append_non_duplicates(&animated_id);
+}
+
+void Binding::users_remove(ID &animated_id)
+{
+  BLI_assert(this->runtime);
+  Vector<ID *> &users = this->runtime->users;
+
+  const int64_t vector_index = users.first_index_of_try(&animated_id);
+  if (vector_index < 0) {
+    return;
+  }
+
+  users.remove_and_reorder(vector_index);
+}
+
+void Binding::users_invalidate(Main &bmain)
+{
+  bmain.is_action_binding_to_id_map_dirty = true;
+}
+
+/* ----- Functions  ----------- */
 
 bool assign_animation(Action &anim, ID &animated_id)
 {
@@ -701,6 +772,24 @@ Action *get_animation(ID &animated_id)
     return nullptr;
   }
   return &adt->action->wrap();
+}
+
+std::optional<std::pair<Action *, Binding *>> get_action_binding_pair(ID &animated_id)
+{
+  AnimData *adt = BKE_animdata_from_id(&animated_id);
+  if (!adt || !adt->action) {
+    /* Not animated by any Action. */
+    return std::nullopt;
+  }
+
+  Action &action = adt->action->wrap();
+  Binding *binding = action.binding_for_handle(adt->binding_handle);
+  if (!binding) {
+    /* Will not receive any animation from this Action. */
+    return std::nullopt;
+  }
+
+  return std::make_pair(&action, binding);
 }
 
 std::string Binding::name_prefix_for_idtype() const

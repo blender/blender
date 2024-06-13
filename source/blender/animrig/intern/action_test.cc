@@ -241,6 +241,7 @@ TEST_F(ActionLayersTest, anim_assign_id)
 {
   /* Assign to the only, 'virgin' Binding, should always work. */
   Binding &binding_cube = anim->binding_add();
+  ASSERT_NE(nullptr, binding_cube.runtime);
   ASSERT_STREQ(binding_cube.name, "XXBinding");
   ASSERT_TRUE(anim->assign_id(&binding_cube, cube->id));
   EXPECT_EQ(binding_cube.handle, cube->adt->binding_handle);
@@ -248,17 +249,25 @@ TEST_F(ActionLayersTest, anim_assign_id)
   EXPECT_STREQ(binding_cube.name, cube->adt->binding_name)
       << "The binding name should be copied to the adt";
 
+  EXPECT_TRUE(binding_cube.users(*bmain).contains(&cube->id))
+      << "Expecting Cube to be registered as animated by its binding.";
+
   /* Assign another ID to the same Binding. */
   ASSERT_TRUE(anim->assign_id(&binding_cube, suzanne->id));
   EXPECT_STREQ(binding_cube.name, "OBBinding");
   EXPECT_STREQ(binding_cube.name, cube->adt->binding_name)
       << "The binding name should be copied to the adt";
 
+  EXPECT_TRUE(binding_cube.users(*bmain).contains(&cube->id))
+      << "Expecting Suzanne to be registered as animated by the Cube binding.";
+
   { /* Assign Cube to another animation+binding without unassigning first. */
     Action *another_anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACOtherAnim"));
     Binding &another_binding = another_anim->binding_add();
     ASSERT_FALSE(another_anim->assign_id(&another_binding, cube->id))
         << "Assigning animation (with this function) when already assigned should fail.";
+    EXPECT_TRUE(binding_cube.users(*bmain).contains(&cube->id))
+        << "Expecting Cube to still be registered as animated by its binding.";
   }
 
   { /* Assign Cube to another binding of the same Animation, this should work. */
@@ -268,6 +277,10 @@ TEST_F(ActionLayersTest, anim_assign_id)
     ASSERT_EQ(anim->id.us, user_count_pre)
         << "Assigning to a different binding of the same animation should _not_ change the user "
            "count of that Animation";
+    EXPECT_FALSE(binding_cube.users(*bmain).contains(&cube->id))
+        << "Expecting Cube to no longer be registered as animated by the Cube binding.";
+    EXPECT_TRUE(binding_cube_2.users(*bmain).contains(&cube->id))
+        << "Expecting Cube to be registered as animated by the 'cube_2' binding.";
   }
 
   { /* Unassign the animation. */
@@ -275,6 +288,12 @@ TEST_F(ActionLayersTest, anim_assign_id)
     anim->unassign_id(cube->id);
     ASSERT_EQ(anim->id.us, user_count_pre - 1)
         << "Unassigning an animation should lower its user count";
+
+    ASSERT_EQ(2, anim->bindings().size()) << "Expecting the Action to have two Bindings";
+    EXPECT_FALSE(anim->binding(0)->users(*bmain).contains(&cube->id))
+        << "Expecting Cube to no longer be registered as animated by any binding.";
+    EXPECT_FALSE(anim->binding(1)->users(*bmain).contains(&cube->id))
+        << "Expecting Cube to no longer be registered as animated by any binding.";
   }
 
   /* Assign Cube to another 'virgin' binding. This should not cause a name
@@ -286,11 +305,15 @@ TEST_F(ActionLayersTest, anim_assign_id)
       << "The binding should be uniquely named";
   EXPECT_STREQ("OBBinding.002", cube->adt->binding_name)
       << "The binding name should be copied to the adt";
+  EXPECT_TRUE(another_binding_cube.users(*bmain).contains(&cube->id))
+      << "Expecting Cube to be registered as animated by the 'another_binding_cube' binding.";
 
   /* Create an ID of another type. This should not be assignable to this binding. */
   ID *mesh = static_cast<ID *>(BKE_id_new_nomain(ID_ME, "Mesh"));
   EXPECT_FALSE(anim->assign_id(&binding_cube, *mesh))
       << "Mesh should not be animatable by an Object binding";
+  EXPECT_FALSE(another_binding_cube.users(*bmain).contains(mesh))
+      << "Expecting Mesh to not be registered as animated by the 'binding_cube' binding.";
   BKE_id_free(nullptr, mesh);
 }
 
