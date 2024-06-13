@@ -218,38 +218,13 @@ bool RNA_property_copy(
     return false;
   }
 
-  PropertyRNA *prop_dst = prop;
-  PropertyRNA *prop_src = prop;
-
-  /* Ensure we get real property data,
-   * be it an actual RNA property, or an #IDProperty in disguise. */
-  prop_dst = rna_ensure_property_realdata(&prop_dst, ptr);
-  prop_src = rna_ensure_property_realdata(&prop_src, fromptr);
-
-  /* IDprops: destination may not exist, if source does and is set, try to create it. */
-  /* NOTE: this is sort of quick hack/bandage to fix the issue,
-   * we need to rethink how IDProps are handled in 'diff' RNA code completely, IMHO. */
-  if (prop_src != NULL && prop_dst == NULL && RNA_property_is_set(fromptr, prop)) {
-    BLI_assert(prop_src->magic != RNA_MAGIC);
-    IDProperty *idp_dst = RNA_struct_idprops(ptr, true);
-    IDProperty *prop_idp_dst = IDP_CopyProperty((IDProperty *)prop_src);
-    IDP_AddToGroup(idp_dst, prop_idp_dst);
-    rna_idproperty_touch(prop_idp_dst);
-    /* Nothing else to do here... */
-    return true;
-  }
-
-  if (ELEM(NULL, prop_dst, prop_src)) {
-    return false;
-  }
-
   IDOverrideLibraryPropertyOperation opop = {
       .operation = LIBOVERRIDE_OP_REPLACE,
       .subitem_reference_index = index,
       .subitem_local_index = index,
   };
   return rna_property_override_operation_apply(
-      bmain, ptr, fromptr, NULL, prop_dst, prop_src, NULL, NULL, NULL, NULL, &opop);
+      bmain, ptr, fromptr, NULL, prop, prop, NULL, NULL, NULL, NULL, &opop);
 }
 
 static int rna_property_override_diff(Main *bmain,
