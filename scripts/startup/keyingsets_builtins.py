@@ -505,6 +505,7 @@ class WholeCharacterMixin:
             bpy.types.BoolProperty,
             bpy.types.IntProperty,
             bpy.types.FloatProperty,
+            bpy.types.EnumProperty,
         }
 
         # go over all custom properties for bone
