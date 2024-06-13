@@ -2036,8 +2036,6 @@ void SCULPT_do_slide_relax_brush(const Sculpt &sd, Object &ob, blender::Span<PBV
 void SCULPT_do_displacement_smear_brush(const Sculpt &sd,
                                         Object &ob,
                                         blender::Span<PBVHNode *> nodes);
-void SCULPT_do_mask_brush_draw(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
-void SCULPT_do_mask_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 /** \} */
 
 void SCULPT_bmesh_topology_rake(const Sculpt &sd,

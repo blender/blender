@@ -53,6 +53,11 @@ void scale_factors(MutableSpan<float> factors, float strength);
  */
 
 /**
+ * Calculate initial influence factors based on vertex visibility.
+ */
+void fill_factor_from_hide(const Mesh &mesh, Span<int> vert_indices, MutableSpan<float> r_factors);
+
+/**
  * Calculate initial influence factors based on vertex visibility and masking.
  */
 void fill_factor_from_hide_and_mask(const Mesh &mesh,
