@@ -114,13 +114,6 @@ struct SculptOrigVertData {
   const float *col;
 };
 
-struct SculptOrigFaceData {
-  blender::ed::sculpt_paint::undo::Node *unode;
-  BMLog *bm_log;
-  const int *face_sets;
-  int face_set;
-};
-
 enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
   AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
