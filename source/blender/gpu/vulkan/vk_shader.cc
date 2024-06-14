@@ -672,29 +672,7 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 
   push_constants = VKPushConstants(&vk_interface.push_constants_layout_get());
 
-  bool result;
-  if (use_render_graph) {
-    result = true;
-  }
-  else {
-    if (is_graphics_shader()) {
-      BLI_assert((fragment_module_ != VK_NULL_HANDLE && info->tf_type_ == GPU_SHADER_TFB_NONE) ||
-                 (fragment_module_ == VK_NULL_HANDLE && info->tf_type_ != GPU_SHADER_TFB_NONE));
-      BLI_assert(compute_module_ == VK_NULL_HANDLE);
-      pipeline_ = VKPipeline::create_graphics_pipeline();
-      result = true;
-    }
-    else {
-      BLI_assert(vertex_module_ == VK_NULL_HANDLE);
-      BLI_assert(geometry_module_ == VK_NULL_HANDLE);
-      BLI_assert(fragment_module_ == VK_NULL_HANDLE);
-      BLI_assert(compute_module_ != VK_NULL_HANDLE);
-      pipeline_ = VKPipeline::create_compute_pipeline(compute_module_, vk_pipeline_layout);
-      result = pipeline_.is_valid();
-    }
-  }
-
-  return result;
+  return true;
 }
 
 bool VKShader::finalize_pipeline_layout(VkDevice vk_device,

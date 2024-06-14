@@ -33,17 +33,11 @@ void VKUniformBuffer::update(const void *data)
 
 void VKUniformBuffer::allocate()
 {
-  /*
-   * TODO: make uniform buffers device local. In order to do that we should remove the upload
-   * during binding, as that will reset the graphics pipeline and already attached resources would
-   * not be bound anymore.
-   */
-  const bool is_host_visible = !use_render_graph;
   buffer_.create(size_in_bytes_,
                  GPU_USAGE_STATIC,
                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 is_host_visible);
+                 false);
   debug::object_label(buffer_.vk_handle(), name_);
 }
 

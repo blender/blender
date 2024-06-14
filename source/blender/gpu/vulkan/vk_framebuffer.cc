@@ -155,16 +155,8 @@ void VKFrameBuffer::build_clear_attachments_color(
 void VKFrameBuffer::clear(render_graph::VKClearAttachmentsNode::CreateInfo &clear_attachments)
 {
   VKContext &context = *VKContext::get();
-  if (use_render_graph) {
-    rendering_ensure(context);
-    context.render_graph.add_node(clear_attachments);
-  }
-  else {
-    VKCommandBuffers &command_buffers = context.command_buffers_get();
-    command_buffers.clear(
-        Span<VkClearAttachment>(clear_attachments.attachments, clear_attachments.attachment_count),
-        Span<VkClearRect>(&clear_attachments.vk_clear_rect, 1));
-  }
+  rendering_ensure(context);
+  context.render_graph.add_node(clear_attachments);
 }
 
 void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
@@ -422,12 +414,7 @@ static void blit_aspect(VKContext &context,
                                   dst_texture.height_get());
   region.dstOffsets[1].z = 1;
 
-  if (use_render_graph) {
-    context.render_graph.add_node(blit_image);
-  }
-  else {
-    context.command_buffers_get().blit(dst_texture, src_texture, Span<VkImageBlit>(&region, 1));
-  }
+  context.render_graph.add_node(blit_image);
 }
 
 void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
@@ -456,12 +443,6 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
     if (src_attachment.tex && dst_attachment.tex) {
       VKTexture &src_texture = *unwrap(unwrap(src_attachment.tex));
       VKTexture &dst_texture = *unwrap(unwrap(dst_attachment.tex));
-      if (!use_render_graph) {
-        color_attachment_layout_ensure(context, src_slot, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-        dst_framebuffer.color_attachment_layout_ensure(
-            context, dst_slot, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-      }
-
       blit_aspect(context,
                   dst_texture,
                   src_texture,
@@ -483,12 +464,6 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
     if (src_attachment.tex && dst_attachment.tex) {
       VKTexture &src_texture = *unwrap(unwrap(src_attachment.tex));
       VKTexture &dst_texture = *unwrap(unwrap(dst_attachment.tex));
-      if (!use_render_graph) {
-        depth_attachment_layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-        dst_framebuffer.depth_attachment_layout_ensure(context,
-                                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-      }
-
       blit_aspect(context,
                   dst_texture,
                   src_texture,
