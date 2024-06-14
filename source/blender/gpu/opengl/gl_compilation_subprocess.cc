@@ -6,10 +6,10 @@
 
 #if BLI_SUBPROCESS_SUPPORT
 
-#  include "BLI_tempfile.h"
 #  include "BLI_fileops.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_path_util.h"
+#  include "BLI_tempfile.h"
 #  include "CLG_log.h"
 #  include "GHOST_C-api.h"
 #  include "GPU_context.hh"
