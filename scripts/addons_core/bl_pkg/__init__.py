@@ -498,7 +498,7 @@ def repo_cache_store_ensure():
         bl_extension_ops,
         bl_extension_utils,
     )
-    _repo_cache_store = bl_extension_utils.RepoCacheStore()
+    _repo_cache_store = bl_extension_utils.RepoCacheStore(bpy.app.version)
     bl_extension_ops.repo_cache_store_refresh_from_prefs(_repo_cache_store)
     return _repo_cache_store
 
