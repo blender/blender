@@ -4479,6 +4479,8 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
     immUnbindProgram();
   }
 
+  GPU_blend(GPU_BLEND_ALPHA);
+
   for (const int zone_i : zone_draw_order) {
     const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
     /* Draw the contour lines. */
@@ -4497,6 +4499,8 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
 
     immUnbindProgram();
   }
+
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 #define USE_DRAW_TOT_UPDATE
