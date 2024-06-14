@@ -557,8 +557,9 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         # Install.
 
         stdout = run_blender_extensions_no_errors(("install", ",".join(packages_to_install), "--enable"))
+        # Sort output because the order doesn't matter and may change depending on how jobs are split up.
         self.assertEqual(
-            tuple(line for line in stdout.split("\n") if line.startswith("STATUS ")),
+            tuple(line for line in sorted(stdout.split("\n")) if line.startswith("STATUS ")),
             (
                 '''STATUS Installed "my_test_pkg"''',
                 '''STATUS Installed "my_test_pkg_a"''',
