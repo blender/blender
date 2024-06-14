@@ -145,23 +145,10 @@ def repo_stats_calc_outdated_for_repo_directory(repo_directory):
     if pkg_manifest_local is None:
         return 0
 
-    # pylint: disable-next=using-constant-test
-    if False:
-        # TODO: support this, currently creating this data involves a conversion which isn't free.
-        # This can probably be done once and cached, but for now use another function that provides this.
-        pkg_manifest_remote = repo_cache_store.refresh_remote_from_directory(
-            directory=repo_directory,
-            error_fn=print,
-        )
-    else:
-        pkg_manifest_remote = None
-        for pkg_manifest_remote_test in repo_cache_store.pkg_manifest_from_remote_ensure(
-                error_fn=print,
-                ignore_missing=True,
-                directory_subset=[repo_directory],
-        ):
-            pkg_manifest_remote = pkg_manifest_remote_test
-            break
+    pkg_manifest_remote = repo_cache_store.refresh_remote_from_directory(
+        directory=repo_directory,
+        error_fn=print,
+    )
 
     if pkg_manifest_remote is None:
         return 0
