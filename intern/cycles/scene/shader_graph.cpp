@@ -1056,6 +1056,7 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
   dot_dy->set_math_type(NODE_VECTOR_MATH_DOT_PRODUCT);
 
   GeometryNode *geom = (GeometryNode *)add(create_node<GeometryNode>());
+  connect(geom->output("Normal"), bump->input("Normal"));
   connect(geom->output("Normal"), dot_center->input("Vector2"));
   connect(geom->output("Normal"), dot_dx->input("Vector2"));
   connect(geom->output("Normal"), dot_dy->input("Vector2"));

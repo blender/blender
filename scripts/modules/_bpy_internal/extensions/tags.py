@@ -9,6 +9,7 @@
 # Other platforms can send PRs to extend this list further.
 
 addons = {
+    "All",  # Added automatically for legacy add-ons without a category.
     "3D View",
     "Add Curve",
     "Add Mesh",
@@ -23,13 +24,13 @@ addons = {
     "Import-Export",
     "Lighting",
     "Material",
-    "Modeling",
     "Mesh",
+    "Modeling",
     "Node",
     "Object",
     "Paint",
-    "Pipeline",
     "Physics",
+    "Pipeline",
     "Render",
     "Rigging",
     "Scene",
