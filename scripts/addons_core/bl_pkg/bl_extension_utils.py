@@ -777,6 +777,7 @@ class CommandBatch:
         "title",
 
         "_batch",
+        "_batch_job_limit",
         "_request_exit",
         "_log_added_since_accessed",
     )
@@ -786,9 +787,11 @@ class CommandBatch:
             *,
             title: str,
             batch: Sequence[InfoItemCallable],
+            batch_job_limit: int,
     ):
         self.title = title
         self._batch = [CommandBatchItem(fn_with_args) for fn_with_args in batch]
+        self._batch_job_limit = batch_job_limit
         self._request_exit = False
         self._log_added_since_accessed = True
 
@@ -858,7 +861,16 @@ class CommandBatch:
 
         status_data_changed = False
 
+        # NOTE: the method of limiting the number of running jobs won't be efficient
+        # with large numbers of jobs (tens of thousands or more), since all jobs are iterated over each time.
+        # To support this a queue of not-yet-started jobs could be used ... or this whole function could be re-thought.
+        # At this point in time using such large numbers of jobs isn't likely, so accept the simple loop each time
+        # this function is called.
+        batch_job_limit = self._batch_job_limit
+
+        running_count = 0
         complete_count = 0
+
         for cmd_index in reversed(range(len(self._batch))):
             cmd = self._batch[cmd_index]
             if cmd.status == CommandBatchItem.STATUS_COMPLETE:
@@ -869,6 +881,10 @@ class CommandBatch:
 
             # First time initialization.
             if cmd.fn_iter is None:
+                if 0 != batch_job_limit and running_count >= batch_job_limit:
+                    # Try again later.
+                    continue
+
                 cmd.fn_iter = cmd.invoke()
                 cmd.status = CommandBatchItem.STATUS_RUNNING
                 status_data_changed = True
@@ -907,6 +923,9 @@ class CommandBatch:
                                 cmd.has_warning = True
                                 status_data_changed = True
                         cmd.msg_log.append((ty, msg))
+
+            if cmd.status == CommandBatchItem.STATUS_RUNNING:
+                running_count += 1
 
         # Check if all are complete.
         assert complete_count == len([cmd for cmd in self._batch if cmd.status == CommandBatchItem.STATUS_COMPLETE])

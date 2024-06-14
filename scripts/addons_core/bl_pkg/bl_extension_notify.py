@@ -222,6 +222,7 @@ def sync_status_generator(repos_fn):
         # Used as a prefix in status.
         title="Update",
         batch=cmd_batch_partial,
+        batch_job_limit=5,
     )
     del cmd_batch_partial
 
