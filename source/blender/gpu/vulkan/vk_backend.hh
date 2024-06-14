@@ -58,12 +58,12 @@ class VKBackend : public GPUBackend {
   Fence *fence_alloc() override;
   FrameBuffer *framebuffer_alloc(const char *name) override;
   IndexBuf *indexbuf_alloc() override;
-  PixelBuffer *pixelbuf_alloc(uint size) override;
+  PixelBuffer *pixelbuf_alloc(size_t size) override;
   QueryPool *querypool_alloc() override;
   Shader *shader_alloc(const char *name) override;
   Texture *texture_alloc(const char *name) override;
-  UniformBuf *uniformbuf_alloc(int size, const char *name) override;
-  StorageBuf *storagebuf_alloc(int size, GPUUsageType usage, const char *name) override;
+  UniformBuf *uniformbuf_alloc(size_t size, const char *name) override;
+  StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) override;
   VertBuf *vertbuf_alloc() override;
 
   /* Render Frame Coordination --

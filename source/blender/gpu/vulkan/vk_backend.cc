@@ -225,7 +225,7 @@ IndexBuf *VKBackend::indexbuf_alloc()
   return new VKIndexBuffer();
 }
 
-PixelBuffer *VKBackend::pixelbuf_alloc(uint size)
+PixelBuffer *VKBackend::pixelbuf_alloc(size_t size)
 {
   return new VKPixelBuffer(size);
 }
@@ -245,12 +245,12 @@ Texture *VKBackend::texture_alloc(const char *name)
   return new VKTexture(name);
 }
 
-UniformBuf *VKBackend::uniformbuf_alloc(int size, const char *name)
+UniformBuf *VKBackend::uniformbuf_alloc(size_t size, const char *name)
 {
   return new VKUniformBuffer(size, name);
 }
 
-StorageBuf *VKBackend::storagebuf_alloc(int size, GPUUsageType usage, const char *name)
+StorageBuf *VKBackend::storagebuf_alloc(size_t size, GPUUsageType usage, const char *name)
 {
   return new VKStorageBuffer(size, usage, name);
 }

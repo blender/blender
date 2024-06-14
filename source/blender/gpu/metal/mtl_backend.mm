@@ -73,7 +73,7 @@ IndexBuf *MTLBackend::indexbuf_alloc()
   return new MTLIndexBuf();
 };
 
-PixelBuffer *MTLBackend::pixelbuf_alloc(uint size)
+PixelBuffer *MTLBackend::pixelbuf_alloc(size_t size)
 {
   return new MTLPixelBuffer(size);
 };
@@ -93,12 +93,12 @@ Texture *MTLBackend::texture_alloc(const char *name)
   return new gpu::MTLTexture(name);
 }
 
-UniformBuf *MTLBackend::uniformbuf_alloc(int size, const char *name)
+UniformBuf *MTLBackend::uniformbuf_alloc(size_t size, const char *name)
 {
   return new MTLUniformBuf(size, name);
 };
 
-StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const char *name)
+StorageBuf *MTLBackend::storagebuf_alloc(size_t size, GPUUsageType usage, const char *name)
 {
   return new MTLStorageBuf(size, usage, name);
 }

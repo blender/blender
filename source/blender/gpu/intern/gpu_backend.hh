@@ -48,12 +48,12 @@ class GPUBackend {
   virtual Fence *fence_alloc() = 0;
   virtual FrameBuffer *framebuffer_alloc(const char *name) = 0;
   virtual IndexBuf *indexbuf_alloc() = 0;
-  virtual PixelBuffer *pixelbuf_alloc(uint size) = 0;
+  virtual PixelBuffer *pixelbuf_alloc(size_t size) = 0;
   virtual QueryPool *querypool_alloc() = 0;
   virtual Shader *shader_alloc(const char *name) = 0;
   virtual Texture *texture_alloc(const char *name) = 0;
-  virtual UniformBuf *uniformbuf_alloc(int size, const char *name) = 0;
-  virtual StorageBuf *storagebuf_alloc(int size, GPUUsageType usage, const char *name) = 0;
+  virtual UniformBuf *uniformbuf_alloc(size_t size, const char *name) = 0;
+  virtual StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) = 0;
   virtual VertBuf *vertbuf_alloc() = 0;
 
   /* Render Frame Coordination --
