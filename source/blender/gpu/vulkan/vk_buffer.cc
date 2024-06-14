@@ -51,7 +51,7 @@ static VkMemoryPropertyFlags vma_preferred_flags(const bool is_host_visible)
  * staging buffer can be skipped, or in case of a vertex buffer an intermediate buffer can be
  * removed.
  */
-bool VKBuffer::create(int64_t size_in_bytes,
+bool VKBuffer::create(size_t size_in_bytes,
                       GPUUsageType usage,
                       VkBufferUsageFlags buffer_usage,
                       const bool is_host_visible)

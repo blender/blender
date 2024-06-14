@@ -132,7 +132,7 @@ class GLPixelBuffer : public PixelBuffer {
   GLuint gl_id_ = 0;
 
  public:
-  GLPixelBuffer(uint size);
+  GLPixelBuffer(size_t size);
   ~GLPixelBuffer();
 
   void *map() override;

@@ -18,7 +18,7 @@ class VKPixelBuffer : public PixelBuffer {
   VKBuffer buffer_;
 
  public:
-  VKPixelBuffer(int64_t size);
+  VKPixelBuffer(size_t size);
   void *map() override;
   void unmap() override;
   int64_t get_native_handle() override;

@@ -768,7 +768,7 @@ uint GLTexture::gl_bindcode_get() const
 /** \name Pixel Buffer
  * \{ */
 
-GLPixelBuffer::GLPixelBuffer(uint size) : PixelBuffer(size)
+GLPixelBuffer::GLPixelBuffer(size_t size) : PixelBuffer(size)
 {
   glGenBuffers(1, &gl_id_);
   BLI_assert(gl_id_);
