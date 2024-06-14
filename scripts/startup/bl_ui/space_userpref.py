@@ -741,6 +741,9 @@ class USERPREF_PT_system_network(SystemPanel, CenterAlignMixIn, Panel):
                 text = iface_("Disabled on startup, overriding the preference.")
             row.label(text=text, translate=False)
 
+        layout.row().prop(system, "network_timeout", text="Time Out")
+        layout.row().prop(system, "network_connection_limit", text="Connection Limit")
+
 
 class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Memory & Limits"

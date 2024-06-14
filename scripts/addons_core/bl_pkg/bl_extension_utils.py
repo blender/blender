@@ -464,6 +464,7 @@ def repo_sync(
         remote_url: str,
         online_user_agent: str,
         access_token: str,
+        timeout: float,
         use_idle: bool,
         force_exit_ok: bool = False,
         dry_run: bool = False,
@@ -485,6 +486,7 @@ def repo_sync(
         "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
+        "--timeout", "{:g}".format(timeout),
         *(("--force-exit-ok",) if force_exit_ok else ()),
         *(("--demote-connection-errors-to-status",) if demote_connection_errors_to_status else ()),
         *(("--extension-override", extension_override) if extension_override else ()),
@@ -558,6 +560,7 @@ def pkg_install(
         blender_version: Tuple[int, int, int],
         online_user_agent: str,
         access_token: str,
+        timeout: float,
         use_cache: bool,
         use_idle: bool,
 ) -> Generator[InfoItemSeq, None, None]:
@@ -573,6 +576,7 @@ def pkg_install(
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
         "--local-cache", str(int(use_cache)),
+        "--timeout", "{:g}".format(timeout),
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
 

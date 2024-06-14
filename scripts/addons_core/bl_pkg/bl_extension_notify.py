@@ -175,6 +175,10 @@ def sync_status_generator(repos_fn):
 
     from functools import partial
 
+    prefs = bpy.context.preferences
+    network_timeout = prefs.system.network_timeout
+    network_connection_limit = prefs.system.network_connection_limit
+
     cmd_batch_partial = []
     for repo_item, do_online_sync in repos_and_do_online:
         # Local only repositories should still refresh, but not run the sync.
@@ -186,6 +190,7 @@ def sync_status_generator(repos_fn):
             remote_url=bl_extension_ops.url_append_defaults(repo_item.remote_url),
             online_user_agent=bl_extension_ops.online_user_agent_from_blender(),
             access_token=repo_item.access_token,
+            timeout=network_timeout,
             # Never sleep while there is no input, as this blocks Blender.
             use_idle=False,
             # Needed so the user can exit blender without warnings about a broken pipe.
@@ -222,7 +227,7 @@ def sync_status_generator(repos_fn):
         # Used as a prefix in status.
         title="Update",
         batch=cmd_batch_partial,
-        batch_job_limit=5,
+        batch_job_limit=network_connection_limit,
     )
     del cmd_batch_partial
 

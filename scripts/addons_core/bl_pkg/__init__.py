@@ -59,10 +59,6 @@ def _local_module_reload():
 
 class BlExtPreferences(AddonPreferences):
     bl_idname = __name__
-    timeout: IntProperty(
-        name="Time Out",
-        default=10,
-    )
     show_development_reports: BoolProperty(
         name="Show Development Reports",
         description=(
