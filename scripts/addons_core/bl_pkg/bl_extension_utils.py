@@ -360,20 +360,10 @@ def repo_index_outdated(directory: str) -> bool:
 
 
 def platform_from_this_system() -> str:
-    import platform
-    system_replace = {
-        "darwin": "macos",
-    }
-    machine_replace = {
-        "x86_64": "x64",
-        "amd64": "x64",
-    }
-    system = platform.system().lower()
-    machine = platform.machine().lower()
-    return "{:s}-{:s}".format(
-        system_replace.get(system, system),
-        machine_replace.get(machine, machine),
-    )
+    from .cli.blender_ext import platform_from_this_system
+    result = platform_from_this_system()
+    assert isinstance(result, str)
+    return result
 
 
 def _url_append_query(url: str, query: Dict[str, str]) -> str:
@@ -565,6 +555,7 @@ def pkg_install(
         directory: str,
         remote_url: str,
         pkg_id_sequence: Sequence[str],
+        blender_version: Tuple[int, int, int],
         online_user_agent: str,
         access_token: str,
         use_cache: bool,
@@ -578,6 +569,7 @@ def pkg_install(
         "install", ",".join(pkg_id_sequence),
         "--local-dir", directory,
         "--remote-url", remote_url,
+        "--blender-version", "{:d}.{:d}.{:d}".format(*blender_version),
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
         "--local-cache", str(int(use_cache)),
@@ -1175,17 +1167,33 @@ def repository_id_with_error_fn(
     return pkg_idname
 
 
-def repository_filter_skip(item: Dict[str, Any]) -> bool:
-    # TODO: filter out items that:
-    # - Don't match this systems platform.
-    # - Don't match the version range of Blender.
-    return False
+# Values used to exclude incompatible packages when listing & installing.
+class PkgManifest_FilterParams(NamedTuple):
+    platform: str
+    blender_version: Tuple[int, int, int]
+
+
+def repository_filter_skip(
+        item: Dict[str, Any],
+        filter_params: PkgManifest_FilterParams,
+        error_fn: Callable[[Exception], None],
+) -> bool:
+    from .cli.blender_ext import repository_filter_skip
+    result = repository_filter_skip(
+        item,
+        filter_blender_version=filter_params.blender_version,
+        filter_platform=filter_params.platform,
+        error_fn=error_fn,
+    )
+    assert isinstance(result, bool)
+    return result
 
 
 def repository_filter_packages(
         data: List[Dict[str, Any]],
         *,
         repo_directory: str,
+        filter_params: PkgManifest_FilterParams,
         error_fn: Callable[[Exception], None],
 ) -> Dict[str, PkgManifest_Normalized]:
     pkg_manifest_map = {}
@@ -1197,7 +1205,7 @@ def repository_filter_packages(
         )) is None:
             continue
 
-        if repository_filter_skip(item):
+        if repository_filter_skip(item, filter_params, error_fn):
             continue
 
         if (value := PkgManifest_Normalized.from_dict_with_error_fn(
@@ -1288,14 +1296,20 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
         "_data",
 
         "_filepath",
+        "_filter_params",
         "_mtime",
     )
 
-    def __init__(self, directory: str):
+    def __init__(
+            self,
+            directory: str,
+            filter_params: PkgManifest_FilterParams,
+    ):
         filepath = os.path.join(directory, REPO_LOCAL_JSON)
 
         self._filepath: str = filepath
         self._mtime: int = 0
+        self._filter_params: PkgManifest_FilterParams = filter_params
         self._data: Optional[RepoRemoteData] = None
 
     def exists(self) -> bool:
@@ -1362,6 +1376,7 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
             pkg_manifest_map=repository_filter_packages(
                 data_dict.get("data", []),
                 repo_directory=os.path.dirname(self._filepath),
+                filter_params=self._filter_params,
                 error_fn=error_fn,
             ),
         )
@@ -1377,11 +1392,17 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
         "_data",
 
         "_directory",
+        "_filter_params",
         "_mtime_for_each_package",
     )
 
-    def __init__(self, directory: str):
+    def __init__(
+            self,
+            directory: str,
+            filter_params: PkgManifest_FilterParams,
+    ):
         self._directory: str = directory
+        self._filter_params = filter_params
         self._mtime_for_each_package: Optional[Dict[str, int]] = None
         self._data: Optional[RepoRemoteData] = None
 
@@ -1449,7 +1470,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             )) is None:
                 continue
 
-            if repository_filter_skip(item_local):
+            if repository_filter_skip(item_local, self._filter_params, error_fn):
                 continue
 
             if (value := PkgManifest_Normalized.from_dict_with_error_fn(
@@ -1546,7 +1567,12 @@ class _RepoCacheEntry:
 
     )
 
-    def __init__(self, directory: str, remote_url: str) -> None:
+    def __init__(
+            self,
+            directory: str,
+            remote_url: str,
+            filter_params: PkgManifest_FilterParams,
+    ) -> None:
         assert directory != ""
         self.directory = directory
         self.remote_url = remote_url
@@ -1554,8 +1580,8 @@ class _RepoCacheEntry:
         self._pkg_manifest_local: Optional[Dict[str, PkgManifest_Normalized]] = None
         self._pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
         self._pkg_manifest_remote_data_source: _RepoDataSouce_ABC = (
-            _RepoDataSouce_JSON(directory) if remote_url else
-            _RepoDataSouce_TOML_FILES(directory)
+            _RepoDataSouce_JSON(directory, filter_params) if remote_url else
+            _RepoDataSouce_TOML_FILES(directory, filter_params)
         )
         # Avoid many noisy prints.
         self._pkg_manifest_remote_has_warning = False
@@ -1691,11 +1717,16 @@ class _RepoCacheEntry:
 class RepoCacheStore:
     __slots__ = (
         "_repos",
+        "_filter_params",
         "_is_init",
     )
 
-    def __init__(self) -> None:
+    def __init__(self, blender_version: Tuple[int, int, int]) -> None:
         self._repos: List[_RepoCacheEntry] = []
+        self._filter_params = PkgManifest_FilterParams(
+            platform=platform_from_this_system(),
+            blender_version=blender_version,
+        )
         self._is_init = False
 
     def is_init(self) -> bool:
@@ -1718,7 +1749,7 @@ class RepoCacheStore:
         for directory, remote_url in repos:
             repo_entry_test = repos_prev.get((directory, remote_url))
             if repo_entry_test is None:
-                repo_entry_test = _RepoCacheEntry(directory, remote_url)
+                repo_entry_test = _RepoCacheEntry(directory, remote_url, self._filter_params)
             self._repos.append(repo_entry_test)
         self._is_init = True
 
