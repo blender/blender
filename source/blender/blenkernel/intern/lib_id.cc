@@ -160,12 +160,25 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
  * This has to be called from each make_local_* func, we could call from BKE_lib_id_make_local()
  * but then the make local functions would not be self contained.
  *
- * NOTE(@ideasman42): that the id _must_ have a library.
+ * This function can be used to remap paths in both directions. Typically, an ID comes from a
+ * library and is made local (`lib_to` is then `nullptr`). But an ID can also be moved from current
+ * Main into a library (`lib_from is then `nullptr`), or between two libraries (both `lib_to` and
+ * `lib_from` are provided then).
+ *
+ * \param lib_to The library into which the id is moved to (used to get the destination root path).
+ * If `nullptr`, the current Main filepath is used.
+ *
+ * \param lib_from The library from which the id is coming from (used to get the source root path).
+ * If `nullptr`, the current Main filepath is used.
+ *
  * TODO: This can probably be replaced by an ID-level version of #BKE_bpath_relative_rebase.
  */
-static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
+static void lib_id_library_local_paths(Main *bmain, Library *lib_to, Library *lib_from, ID *id)
 {
-  const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->runtime.filepath_abs};
+  BLI_assert(lib_to || lib_from);
+  const char *bpath_user_data[2] = {
+      lib_to ? lib_to->runtime.filepath_abs : BKE_main_blendfile_path(bmain),
+      lib_from ? lib_from->runtime.filepath_abs : BKE_main_blendfile_path(bmain)};
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;
@@ -198,7 +211,7 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
     BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   }
 
-  lib_id_library_local_paths(bmain, id->lib, id);
+  lib_id_library_local_paths(bmain, nullptr, id->lib, id);
 
   id_fake_user_clear(id);
 
@@ -461,7 +474,7 @@ void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const i
 {
   if (ID_IS_LINKED(old_id)) {
     BKE_lib_id_expand_local(bmain, new_id, flags);
-    lib_id_library_local_paths(bmain, old_id->lib, new_id);
+    lib_id_library_local_paths(bmain, nullptr, old_id->lib, new_id);
   }
 }
 
@@ -692,6 +705,8 @@ ID *BKE_id_copy_in_lib(Main *bmain,
   data.flag = flag;
   BKE_library_foreach_ID_link(bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_NOP);
 
+  /* FIXME: Check if this code can be moved in #BKE_libblock_copy_in_lib ? Would feel more fitted
+   * there, having library handling split between both functions does not look good. */
   /* Do not make new copy local in case we are copying outside of main...
    * XXX TODO: is this behavior OK, or should we need a separate flag to control that? */
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
@@ -700,6 +715,16 @@ ID *BKE_id_copy_in_lib(Main *bmain,
      * handled together with their owner ID copying code. */
     if (!ID_IS_LINKED(newid) && (newid->flag & LIB_EMBEDDED_DATA) == 0) {
       lib_id_copy_ensure_local(bmain, id, newid, 0);
+    }
+    /* If the ID was copied into a library, ensure paths are properly remapped, and that it has a
+     * 'linked' tag set. */
+    if (ID_IS_LINKED(newid)) {
+      if (newid->lib != id->lib) {
+        lib_id_library_local_paths(bmain, newid->lib, id->lib, newid);
+      }
+      if ((newid->tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT)) == 0) {
+        newid->tag |= LIB_TAG_EXTERN;
+      }
     }
   }
   else {
@@ -1482,6 +1507,13 @@ void BKE_libblock_copy_in_lib(Main *bmain,
 
   /* The id->flag bits to copy over. */
   const int copy_idflag_mask = LIB_EMBEDDED_DATA;
+  /* The id->tag bits to copy over. */
+  const int copy_idtag_mask =
+      /* Only copy potentially existing 'linked' tags if the new ID is being placed into a library.
+       *
+       * Further tag and paths remapping is handled in #BKE_id_copy_in_lib.
+       */
+      ((owner_library && *owner_library) ? (LIB_TAG_EXTERN | LIB_TAG_INDIRECT) : 0);
 
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
     /* r_newid already contains pointer to allocated memory. */
@@ -1515,6 +1547,7 @@ void BKE_libblock_copy_in_lib(Main *bmain,
   }
 
   new_id->flag = (new_id->flag & ~copy_idflag_mask) | (id->flag & copy_idflag_mask);
+  new_id->tag = (new_id->tag & ~copy_idtag_mask) | (id->tag & copy_idtag_mask);
 
   /* Embedded ID data handling. */
   if (is_embedded_id && (orig_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
