@@ -3408,7 +3408,7 @@ static void ui_textedit_ime_end(wmWindow *win, uiBut * /*but*/)
 
 void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete)
 {
-  BLI_assert((but->semi_modal_state && !but->active) || but->active);
+  BLI_assert(but->active || but->semi_modal_state);
   uiHandleButtonData *data = but->semi_modal_state ? but->semi_modal_state : but->active;
 
   ui_region_to_window(data->region, &x, &y);
