@@ -1110,7 +1110,7 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
     case SOCK_ROTATION:
     case SOCK_RGBA:
     case SOCK_MATRIX: {
-      const CPPType &type = node_geo_simulation_cc::get_simulation_item_cpp_type(socket_type);
+      const CPPType &type = *bke::socket_type_to_geo_nodes_base_cpp_type(socket_type);
       SocketValueVariant prev_value_variant = *static_cast<const SocketValueVariant *>(prev);
       SocketValueVariant next_value_variant = *static_cast<const SocketValueVariant *>(next);
       if (prev_value_variant.is_context_dependent_field() ||
