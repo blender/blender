@@ -92,7 +92,7 @@ void light_eval_single_closure(LightData light,
                                const bool is_transmission)
 {
   attenuation *= light_power_get(light, cl.type);
-  if (attenuation < 1e-5) {
+  if (attenuation < 1e-30) {
     return;
   }
   float ltc_result = light_ltc(utility_tx, light, cl.N, V, lv, cl.ltc_mat);
