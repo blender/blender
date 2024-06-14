@@ -2014,7 +2014,9 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
       build_nodetree(group_ntree);
     }
     else {
-      BLI_assert_msg(0, "Unknown ID type used for node");
+      /* Ignore this case. It can happen when the node type is not known currently. Either because
+       * it belongs to an add-on or because it comes from a different Blender version that does
+       * support the ID type here already. */
     }
   }
 
