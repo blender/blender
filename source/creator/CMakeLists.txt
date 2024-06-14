@@ -1696,12 +1696,6 @@ install(
 
 set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/release/datafiles/assets/publish/)
 
-# TODO temporary change for development only. Remove before merging.
-set(ASSET_BUNDLE_TESTING_DIR "${ASSET_BUNDLE_DIR}/../testing/")
-if(EXISTS "${ASSET_BUNDLE_TESTING_DIR}")
-  set(ASSET_BUNDLE_DIR "${ASSET_BUNDLE_TESTING_DIR}")
-endif()
-
 if(EXISTS "${ASSET_BUNDLE_DIR}")
   install(
     DIRECTORY ${ASSET_BUNDLE_DIR}
