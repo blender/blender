@@ -390,6 +390,10 @@ static std::shared_ptr<DictionaryValue> write_blob_simple_gspan(BlobWriter &blob
     return read_blob_raw_data_with_endian(
         blob_reader, io_data, sizeof(float), r_data.size() * 4, r_data.data());
   }
+  if (type.is<math::Quaternion>()) {
+    return read_blob_raw_data_with_endian(
+        blob_reader, io_data, sizeof(float), r_data.size() * 4, r_data.data());
+  }
   return false;
 }
 

@@ -96,6 +96,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
                            socket,
                            &node,
                            static_cast<bNodeSocket *>(node.inputs.first));
+          break;
         }
       }
 
