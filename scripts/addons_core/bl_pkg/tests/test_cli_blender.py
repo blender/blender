@@ -33,6 +33,7 @@ from typing import (
 
 
 # For more useful output that isn't clipped.
+# pylint: disable-next=protected-access
 unittest.util._MAX_LENGTH = 10_000
 
 PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
@@ -63,8 +64,9 @@ import python_wheel_generate  # noqa: E402
 # Don't import as module, instead load the class.
 def execfile(filepath: str, *, name: str = "__main__") -> Dict[str, Any]:
     global_namespace = {"__file__": filepath, "__name__": name}
-    with open(filepath, encoding="utf-8") as file_handle:
-        exec(compile(file_handle.read(), filepath, 'exec'), global_namespace)
+    with open(filepath, encoding="utf-8") as fh:
+        # pylint: disable-next=exec-used
+        exec(compile(fh.read(), filepath, 'exec'), global_namespace)
     return global_namespace
 
 
@@ -556,7 +558,7 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
 
         stdout = run_blender_extensions_no_errors(("install", ",".join(packages_to_install), "--enable"))
         self.assertEqual(
-            tuple([line for line in stdout.split("\n") if line.startswith("STATUS ")]),
+            tuple(line for line in stdout.split("\n") if line.startswith("STATUS ")),
             (
                 '''STATUS Installed "my_test_pkg"''',
                 '''STATUS Installed "my_test_pkg_a"''',
@@ -573,18 +575,21 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             (
                 '''import sys\n'''
                 '''try:\n'''
-                '''    import {:s}\n'''
+                '''    import {wheel_module_name:s}\n'''
                 '''    found = True\n'''
                 '''except ModuleNotFoundError:\n'''
                 '''    found = False\n'''
                 '''if found:\n'''
-                '''    if {:s}.__version__ == "{:s}":\n'''
+                '''    if {wheel_module_name:s}.__version__ == "{packages_wheel_version_max:s}":\n'''
                 '''        sys.exit(64)  # Success!\n'''
                 '''    else:\n'''
                 '''        sys.exit(32)\n'''
                 '''else:\n'''
                 '''    sys.exit(16)\n'''
-            ).format(wheel_module_name, wheel_module_name, packages_wheel_version_max),
+            ).format(
+                wheel_module_name=wheel_module_name,
+                packages_wheel_version_max=packages_wheel_version_max,
+            ),
         ))
 
         self.assertEqual(returncode, 64)

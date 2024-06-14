@@ -74,7 +74,8 @@ watch_check_ruff:
 check_pylint:
 	@cd "$(BASE_DIR)" && \
 	    pylint $(PY_FILES) \
-	    --disable=C0111,C0301,C0302,C0103,C0415,R1702,R1705,R0902,R0903,R0913,E0611,E0401,I1101,R0801,C0209,W0511,W0718,W0719,C0413,R0911,R0912,R0914,R0915
+	    --disable=C0103,C0111,C0201,C0301,C0302,C0415,R1702,R1705,R0902,R0903,R0913,E0611,E0401,I1101,R0801,C0209,W0511,W0718,W0719,C0413,R0911,R0912,R0914,R0915 \
+	    --msg-template='{abspath}:{line}:{column}: {msg_id}: {msg} ({symbol})'
 watch_check_pylint:
 	@cd "$(BASE_DIR)" && \
 	while true; do \

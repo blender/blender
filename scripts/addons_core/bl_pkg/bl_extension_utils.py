@@ -360,8 +360,8 @@ def repo_index_outdated(directory: str) -> bool:
 
 
 def platform_from_this_system() -> str:
-    from .cli.blender_ext import platform_from_this_system
-    result = platform_from_this_system()
+    from .cli.blender_ext import platform_from_this_system as platform_from_this_system_impl
+    result = platform_from_this_system_impl()
     assert isinstance(result, str)
     return result
 
@@ -642,7 +642,7 @@ def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
     with open(filepath, "r", encoding="utf-8") as fh:
         data = fh.read()
 
-    def key_replace(match: re.Match[str]) -> str:
+    def key_replace(_match: re.Match[str]) -> str:
         return "version = \"0.0.0\""
 
     data = re.sub(r"^\s*version\s*=\s*\"[^\"]+\"", key_replace, data, flags=re.MULTILINE)
@@ -803,7 +803,7 @@ class CommandBatch:
             request_exit: Optional[bool] = None
             while True:
                 try:
-                    # Request `request_exit` starts of as None, then it's a boolean.
+                    # Request `request_exit` starts off as None, then it's a boolean.
                     json_messages = cmd.fn_iter.send(request_exit)  # type: ignore
                 except StopIteration:
                     break
@@ -910,7 +910,7 @@ class CommandBatch:
 
         # Check if all are complete.
         assert complete_count == len([cmd for cmd in self._batch if cmd.status == CommandBatchItem.STATUS_COMPLETE])
-        all_complete = (complete_count == len(self._batch))
+        all_complete = complete_count == len(self._batch)
         return CommandBatch_ExecNonBlockingResult(
             messages=command_output,
             all_complete=all_complete,
@@ -1054,75 +1054,80 @@ class PkgManifest_Normalized(NamedTuple):
         # from breaking Blender's internal functionality.
 
         try:
-            name = manifest_dict["name"]
-            tagline = manifest_dict["tagline"]
-            version = manifest_dict["version"]
-            type = manifest_dict["type"]
-            maintainer = manifest_dict["maintainer"]
-            license = manifest_dict["license"]
+            field_name = manifest_dict["name"]
+            field_tagline = manifest_dict["tagline"]
+            field_version = manifest_dict["version"]
+            field_type = manifest_dict["type"]
+            field_maintainer = manifest_dict["maintainer"]
+            field_license = manifest_dict["license"]
 
             # Optional.
-            website = manifest_dict.get("website", "")
-            permissions: Union[List[str], Dict[str, str]] = manifest_dict.get("permissions", {})
-            tags = manifest_dict.get("tags", [])
-            wheels = manifest_dict.get("wheels", [])
+            field_website = manifest_dict.get("website", "")
+            field_permissions: Union[List[str], Dict[str, str]] = manifest_dict.get("permissions", {})
+            field_tags = manifest_dict.get("tags", [])
+            field_wheels = manifest_dict.get("wheels", [])
 
             # Remote only (not found in TOML files).
-            archive_size = manifest_dict.get("archive_size", 0)
-            archive_url = manifest_dict.get("archive_url", "")
+            field_archive_size = manifest_dict.get("archive_size", 0)
+            field_archive_url = manifest_dict.get("archive_url", "")
 
         except KeyError as ex:
             error_fn(KeyError("{:s}: missing key {:s}".format(pkg_idname, str(ex))))
             return None
 
         # This is an old (now unsupported) format, convert into a dictionary.
-        if isinstance(permissions, list):
-            permissions = {key: "Undefined" for key in permissions}
+        if isinstance(field_permissions, list):
+            field_permissions = {key: "Undefined" for key in field_permissions}
 
         try:
-            if not (isinstance(name, str) and name):
+            if not (isinstance(field_name, str) and field_name):
                 raise TypeError("{:s}: \"name\" must be a non-empty string".format(pkg_idname))
 
-            if not isinstance(tagline, str):
+            if not isinstance(field_tagline, str):
                 raise TypeError("{:s}: \"tagline\" must be a string".format(pkg_idname))
 
-            if not (isinstance(version, str) and version):
+            if not (isinstance(field_version, str) and field_version):
                 raise TypeError("{:s}: \"version\" must be a non-empty string".format(pkg_idname))
 
-            if not (isinstance(type, str) and type):
+            if not (isinstance(field_type, str) and field_type):
                 raise TypeError("{:s}: \"type\" must be a non-empty string".format(pkg_idname))
 
-            if not (isinstance(maintainer, str) and maintainer):
+            if not (isinstance(field_maintainer, str) and field_maintainer):
                 raise TypeError("{:s}: \"maintainer\" must be a non-empty string".format(pkg_idname))
 
             if not (
-                    isinstance(license, list) and
-                    license and
-                    (not any(1 for x in license if not isinstance(x, str)))
+                    isinstance(field_license, list) and
+                    field_license and
+                    (not any(1 for x in field_license if not isinstance(x, str)))
             ):
                 raise TypeError("{:s}: \"license\" must be a non-empty list of strings".format(pkg_idname))
 
             # Optional.
-            if not isinstance(website, str):
+            if not isinstance(field_website, str):
                 raise TypeError("{:s}: \"website\" must be a string".format(pkg_idname))
 
             if not (
-                    isinstance(permissions, dict) and
-                    (not any(1 for k, v in permissions.items() if not (isinstance(k, str) and isinstance(v, str))))
+                    isinstance(field_permissions, dict) and
+                    (
+                        not any(
+                            1 for k, v in field_permissions.items()
+                            if not (isinstance(k, str) and isinstance(v, str))
+                        )
+                    )
             ):
                 raise TypeError("{:s}: \"permissions\" must be a non-empty list of strings".format(pkg_idname))
 
-            if not (isinstance(tags, list) and (not any(1 for x in tags if not isinstance(x, str)))):
+            if not (isinstance(field_tags, list) and (not any(1 for x in field_tags if not isinstance(x, str)))):
                 raise TypeError("{:s}: \"tags\" must be a non-empty list of strings".format(pkg_idname))
 
-            if not (isinstance(wheels, list) and (not any(1 for x in wheels if not isinstance(x, str)))):
+            if not (isinstance(field_wheels, list) and (not any(1 for x in field_wheels if not isinstance(x, str)))):
                 raise TypeError("{:s}: \"wheels\" must be a non-empty list of strings".format(pkg_idname))
 
             # Remote only.
-            if not isinstance(archive_size, int):
+            if not isinstance(field_archive_size, int):
                 raise TypeError("{:s}: \"archive_size\" must be an int".format(pkg_idname))
 
-            if not isinstance(archive_url, str):
+            if not isinstance(field_archive_url, str):
                 raise TypeError("{:s}: \"archive_url\" must a string".format(pkg_idname))
 
         except TypeError as ex:
@@ -1130,23 +1135,23 @@ class PkgManifest_Normalized(NamedTuple):
             return None
 
         return PkgManifest_Normalized(
-            name=name,
-            tagline=tagline,
-            version=version,
-            type=type,
+            name=field_name,
+            tagline=field_tagline,
+            version=field_version,
+            type=field_type,
             # Remove the maintainers email while it's not private, showing prominently
             # could cause maintainers to get direct emails instead of issue tracking systems.
-            maintainer=maintainer.split("<", 1)[0].rstrip(),
-            license=license_info_to_text(license),
+            maintainer=field_maintainer.split("<", 1)[0].rstrip(),
+            license=license_info_to_text(field_license),
 
             # Optional.
-            website=website,
-            permissions=permissions,
-            tags=tuple(tags),
-            wheels=tuple(wheels),
+            website=field_website,
+            permissions=field_permissions,
+            tags=tuple(field_tags),
+            wheels=tuple(field_wheels),
 
-            archive_size=archive_size,
-            archive_url=archive_url,
+            archive_size=field_archive_size,
+            archive_url=field_archive_url,
         )
 
 
@@ -1160,7 +1165,7 @@ def repository_id_with_error_fn(
         error_fn(ValueError("{:s}: \"id\" missing".format(repo_directory)))
         return None
 
-    if not (isinstance(pkg_idname, str)):
+    if not isinstance(pkg_idname, str):
         error_fn(ValueError("{:s}: \"id\" must be a string".format(repo_directory)))
         return None
 
@@ -1178,8 +1183,8 @@ def repository_filter_skip(
         filter_params: PkgManifest_FilterParams,
         error_fn: Callable[[Exception], None],
 ) -> bool:
-    from .cli.blender_ext import repository_filter_skip
-    result = repository_filter_skip(
+    from .cli.blender_ext import repository_filter_skip as repository_filter_skip_impl
+    result = repository_filter_skip_impl(
         item,
         filter_blender_version=filter_params.blender_version,
         filter_platform=filter_params.platform,
@@ -1772,7 +1777,6 @@ class RepoCacheStore:
             *,
             error_fn: Callable[[Exception], None],
             ignore_missing: bool = False,
-            directory_subset: Optional[Set[str]] = None,
     ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         for repo_entry in self._repos:
             if directory == repo_entry.directory:

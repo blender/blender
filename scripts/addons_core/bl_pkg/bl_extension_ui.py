@@ -375,13 +375,14 @@ extensions_map_from_legacy_addons_url = None
 # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
 def extensions_map_from_legacy_addons_ensure():
     import os
-    global extensions_map_from_legacy_addons
-    global extensions_map_from_legacy_addons_url
+    # pylint: disable-next=global-statement
+    global extensions_map_from_legacy_addons, extensions_map_from_legacy_addons_url
     if extensions_map_from_legacy_addons is not None:
         return
 
     filepath = os.path.join(os.path.dirname(__file__), "extensions_map_from_legacy_addons.py")
     with open(filepath, "rb") as fh:
+        # pylint: disable-next=eval-used
         data = eval(compile(fh.read(), filepath, "eval"), {})
     extensions_map_from_legacy_addons = data["extensions"]
     extensions_map_from_legacy_addons_url = data["remote_url"]
@@ -610,7 +611,7 @@ def extensions_panel_draw_impl(
                 local_ex = None
             continue
 
-        has_remote = (repos_all[repo_index].remote_url != "")
+        has_remote = repos_all[repo_index].remote_url != ""
         if pkg_manifest_remote is None:
             if has_remote:
                 # NOTE: it would be nice to detect when the repository ran sync and it failed.
@@ -658,12 +659,14 @@ def extensions_panel_draw_impl(
                 if is_installed:
                     # Currently we only need to know the module name once installed.
                     addon_module_name = "bl_ext.{:s}.{:s}".format(repos_all[repo_index].module, pkg_id)
+                    # pylint: disable-next=possibly-used-before-assignment
                     is_enabled = addon_module_name in used_addon_module_name_map
 
                 else:
                     is_enabled = False
                     addon_module_name = None
             elif is_theme:
+                # pylint: disable-next=possibly-used-before-assignment
                 is_enabled = (repo_index, pkg_id) == active_theme_info
                 addon_module_name = None
             else:
@@ -868,6 +871,7 @@ def extensions_panel_draw_impl(
             extension_tags=extension_tags,
             enabled_only=enabled_only,
             used_addon_module_name_map=used_addon_module_name_map,
+            # pylint: disable-next=possibly-used-before-assignment
             addon_modules=addon_modules,
         )
 
@@ -939,7 +943,7 @@ class USERPREF_PT_extensions_filter(Panel):
         col = layout.column(heading="Show")
         col.use_property_split = True
         sub = col.column()
-        sub.active = (not wm.extension_updates_only)
+        sub.active = not wm.extension_updates_only
         sub.prop(wm, "extension_show_legacy_addons", text="Legacy Add-ons")
 
 

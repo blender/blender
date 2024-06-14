@@ -174,6 +174,7 @@ def message_progress(msg_fn: MessageFn, s: str, progress: int, progress_range: i
 
 
 def force_exit_ok_enable() -> None:
+    # pylint: disable-next=global-statement
     global FORCE_EXIT_OK
     FORCE_EXIT_OK = True
     # Without this, some errors are printed on exit.
@@ -479,6 +480,7 @@ def pkg_manifest_from_dict_and_validate_impl(
     for key in PkgManifest._fields:
         val = data.get(key, ...)
         if val is ...:
+            # pylint: disable-next=no-member
             val = PkgManifest._field_defaults.get(key, ...)
         # `pkg_manifest_is_valid_or_error{_all}` will have caught this, assert all the same.
         assert val is not ...
@@ -1209,6 +1211,7 @@ def pkg_manifest_validate_field_nop(
         strict: bool,
 ) -> Optional[str]:
     _ = strict, value
+    # pylint: disable-next=useless-return
     return None
 
 
@@ -1432,6 +1435,7 @@ def pkg_manifest_validate_field_wheels(
             return "wheel paths must end with \".whl\", found {!r}".format(wheel)
 
         wheel_filename_split = wheel_filename.split("-")
+        # pylint: disable-next=superfluous-parens
         if not (5 <= len(wheel_filename_split) <= 6):
             return "wheel filename must follow the spec \"{:s}\", found {!r}".format(filename_spec, wheel_filename)
 
@@ -1534,9 +1538,11 @@ def pkg_manifest_is_valid_or_error_impl(
             is_default_value = False
             x_val = data.get(x_key, ...)
             if x_val is ...:
+                # pylint: disable-next=no-member
                 x_val = PkgManifest._field_defaults.get(x_key, ...)
                 if from_repo:
                     if x_val is ...:
+                        # pylint: disable-next=no-member
                         x_val = PkgManifest_Archive._field_defaults.get(x_key, ...)
                 if x_val is ...:
                     error_list.append("missing \"{:s}\"".format(x_key))
@@ -1861,7 +1867,7 @@ def pkg_manifest_detect_duplicates(pkg_idname: str, pkg_items: List[PkgManifest]
             item_curr = version_ranges[i]
 
             # Previous maximum is less than or equal to the current minimum, no overlap.
-            if not (item_prev[1] <= item_curr[0]):
+            if item_prev[1] > item_curr[0]:
                 duplicates_found.append("{:s} & {:s}".format(
                     version_range_as_str(*item_prev),
                     version_range_as_str(*item_curr),

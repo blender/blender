@@ -11,10 +11,10 @@ __all__ = (
     "update_ui_text",
 )
 
-
-import os
-import bpy
 import sys
+import os
+
+import bpy
 
 from bpy.app.translations import pgettext_rpt as rpt_
 
