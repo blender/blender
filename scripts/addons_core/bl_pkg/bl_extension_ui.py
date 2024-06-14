@@ -1117,7 +1117,11 @@ def extensions_panel_draw(panel, context):
 
 
 def tags_current(wm):
-    from .bl_extension_ops import blender_filter_by_type_map
+    from .bl_extension_ops import (
+        blender_filter_by_type_map,
+        repo_cache_store_refresh_from_prefs,
+    )
+
     from . import repo_cache_store_ensure
 
     repo_cache_store = repo_cache_store_ensure()
