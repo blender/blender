@@ -545,7 +545,7 @@ void VKFrameBuffer::render_pass_create()
       VKImageViewInfo image_view_info = {eImageViewUsage::Attachment,
                                          IndexRange(max_ii(attachment.layer, 0), 1),
                                          IndexRange(attachment.mip, 1),
-                                         {'r', 'g', 'b', 'a'},
+                                         {{'r', 'g', 'b', 'a'}},
                                          false,
                                          srgb_ && enabled_srgb_};
       const VKImageView &image_view = texture.image_view_get(image_view_info);
@@ -778,7 +778,7 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
       VKImageViewInfo image_view_info = {eImageViewUsage::Attachment,
                                          IndexRange(max_ii(attachment.layer, 0), 1),
                                          IndexRange(attachment.mip, 1),
-                                         {'r', 'g', 'b', 'a'},
+                                         {{'r', 'g', 'b', 'a'}},
                                          false,
                                          srgb_ && enabled_srgb_};
       vk_image_view = color_texture.image_view_get(image_view_info).vk_handle();
@@ -818,7 +818,7 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
       VKImageViewInfo image_view_info = {eImageViewUsage::Attachment,
                                          IndexRange(max_ii(attachment.layer, 0), 1),
                                          IndexRange(attachment.mip, 1),
-                                         {'r', 'g', 'b', 'a'},
+                                         {{'r', 'g', 'b', 'a'}},
                                          is_stencil_attachment,
                                          false};
       depth_image_view = depth_texture.image_view_get(image_view_info).vk_handle();
