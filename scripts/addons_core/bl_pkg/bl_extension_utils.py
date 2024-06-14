@@ -1627,7 +1627,7 @@ class _RepoCacheEntry:
             *,
             error_fn: Callable[[Exception], None],
             force: bool = False,
-    ) -> None:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         data = self._pkg_manifest_remote_data_source.data(
             cache_validate=True,
             force=force,
@@ -1640,6 +1640,8 @@ class _RepoCacheEntry:
 
         if pkg_manifest_remote is not self._pkg_manifest_remote:
             self._pkg_manifest_remote = pkg_manifest_remote
+
+        return pkg_manifest_remote
 
     def pkg_manifest_from_local_ensure(
             self,
@@ -1764,11 +1766,10 @@ class RepoCacheStore:
             *,
             error_fn: Callable[[Exception], None],
             force: bool = False,
-    ) -> None:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         for repo_entry in self._repos:
             if directory == repo_entry.directory:
-                repo_entry._json_data_refresh(force=force, error_fn=error_fn)
-                return
+                return repo_entry._json_data_refresh(force=force, error_fn=error_fn)
         raise ValueError("Directory {:s} not a known repo".format(directory))
 
     def refresh_local_from_directory(
