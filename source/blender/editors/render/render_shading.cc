@@ -555,9 +555,9 @@ static int material_slot_copy_exec(bContext *C, wmOperator * /*op*/)
        * materials, and not obdata ones. */
       const bool is_same_obdata = ob->data == ob_iter->data;
 
-      /* If we are using the same obdata, make the target object inherit the matbits of the active object.
-       * Without this, object material slots are not copied unless the target object already had its
-       * material slot link set to object. */
+      /* If we are using the same obdata, make the target object inherit the matbits of the active
+       * object. Without this, object material slots are not copied unless the target object
+       * already had its material slot link set to object. */
       if (is_same_obdata) {
         for (int i = ob->totcol; i--;) {
           if (ob->matbits[i]) {
