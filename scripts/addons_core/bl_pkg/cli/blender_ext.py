@@ -1835,7 +1835,7 @@ def repo_sync_from_remote(
     return True
 
 
-def repo_pkginfo_from_local(*, local_dir: str) -> Optional[Dict[str, Any]]:
+def repo_pkginfo_from_local_as_dict(*, local_dir: str) -> Optional[Dict[str, Any]]:
     """
     Load package cache.
     """
@@ -1860,8 +1860,8 @@ def pkg_repo_dat_from_json(json_data: Dict[str, Any]) -> PkgRepoData:
     return result_new
 
 
-def repo_pkginfo_from_local_with_idname_as_key(*, local_dir: str) -> Optional[PkgRepoData]:
-    result = repo_pkginfo_from_local(local_dir=local_dir)
+def repo_pkginfo_from_local(*, local_dir: str) -> Optional[PkgRepoData]:
+    result = repo_pkginfo_from_local_as_dict(local_dir=local_dir)
     if result is None:
         return None
     return pkg_repo_dat_from_json(result)
@@ -2187,6 +2187,9 @@ class subcmd_server:
         for entry in os.scandir(repo_dir):
             if not entry.name.endswith(PKG_EXT):
                 continue
+            # Temporary files (during generation) use a "." prefix, skip them.
+            if entry.name.startswith("."):
+                continue
 
             # Harmless, but skip directories.
             if entry.is_dir():
@@ -2491,14 +2494,15 @@ class subcmd_client:
             return False
 
         # Extract...
-        pkg_repo_data = repo_pkginfo_from_local_with_idname_as_key(local_dir=local_dir)
+        pkg_repo_data = repo_pkginfo_from_local(local_dir=local_dir)
         if pkg_repo_data is None:
             # TODO: raise warning.
             return False
 
         # Most likely this doesn't have duplicates,but any errors procured by duplicates
         # are likely to be obtuse enough that it's better to guarantee there are none.
-        packages = tuple(sorted(set(packages)))
+        packages_as_set = set(packages)
+        packages = tuple(sorted(packages_as_set))
 
         # Ensure a private directory so a local cache can be created.
         local_cache_dir = repo_local_private_dir_ensure_with_subdir(local_dir=local_dir, subdir="cache")
@@ -2506,19 +2510,28 @@ class subcmd_client:
         # Needed so relative paths can be properly calculated.
         remote_url_strip = remote_url_params_strip(remote_url)
 
-        # TODO: this could be optimized to only lookup known ID's.
-        json_data_pkg_info_map: Dict[str, Dict[str, Any]] = {
-            pkg_info["id"]: pkg_info for pkg_info in pkg_repo_data.data
-        }
+        # TODO: filter by version and platform.
+        json_data_pkg_info = [
+            pkg_info for pkg_info in pkg_repo_data.data
+            if pkg_info["id"] in packages_as_set
+        ]
+
+        # Narrow down:
+        json_data_pkg_info_map: Dict[str, List[Dict[str, Any]]] = {pkg_idname: [] for pkg_idname in packages}
+        for pkg_info in json_data_pkg_info:
+            json_data_pkg_info_map[pkg_info["id"]].append(pkg_info)
 
         has_error = False
         packages_info: List[PkgManifest_Archive] = []
-        for pkg_idname in packages:
-            pkg_info = json_data_pkg_info_map.get(pkg_idname)
-            if pkg_info is None:
+        for pkg_idname, pkg_info_list in json_data_pkg_info_map.items():
+            if not pkg_info_list:
                 message_error(msg_fn, "Package \"{:s}\", not found".format(pkg_idname))
                 has_error = True
                 continue
+
+            # TODO: use a tie breaker.
+            pkg_info = pkg_info_list[0]
+
             manifest_archive = pkg_manifest_archive_from_dict_and_validate(pkg_info, strict=False)
             if isinstance(manifest_archive, str):
                 message_error(msg_fn, "Package malformed meta-data for \"{:s}\", error: {:s}".format(

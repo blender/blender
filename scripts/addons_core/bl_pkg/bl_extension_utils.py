@@ -1597,11 +1597,18 @@ class _RepoCacheEntry:
             error_fn: Callable[[Exception], None],
             force: bool = False,
     ) -> None:
-        self._pkg_manifest_remote_data_source.data(
+        data = self._pkg_manifest_remote_data_source.data(
             cache_validate=True,
             force=force,
             error_fn=error_fn,
         )
+
+        pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
+        if data is not None:
+            pkg_manifest_remote = data.pkg_manifest_map
+
+        if pkg_manifest_remote is not self._pkg_manifest_remote:
+            self._pkg_manifest_remote = pkg_manifest_remote
 
     def pkg_manifest_from_local_ensure(
             self,
