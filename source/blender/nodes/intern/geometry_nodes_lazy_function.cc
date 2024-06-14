@@ -1215,7 +1215,7 @@ class LazyFunctionForIndexSwitchSocketUsage : public lf::LazyFunction {
       }
     }
     else {
-      const int value = index_variant.get<bool>();
+      const int value = index_variant.get<int>();
       for (const int i : outputs_.index_range()) {
         params.set_output(i, i == value);
       }
