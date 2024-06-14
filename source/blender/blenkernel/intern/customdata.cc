@@ -44,6 +44,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_anonymous_attribute_id.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"
 #include "BKE_customdata_file.h"
 #include "BKE_deform.hh"
@@ -1528,6 +1529,26 @@ static void layerDefault_propquaternion(void *data, const int count)
   MutableSpan(static_cast<math::Quaternion *>(data), count).fill(math::Quaternion::identity());
 }
 
+static void layerInterp_propquaternion(const void **sources,
+                                       const float *weights,
+                                       const float * /*sub_weights*/,
+                                       int count,
+                                       void *dest)
+{
+  using blender::math::Quaternion;
+  Quaternion result;
+  blender::bke::attribute_math::DefaultMixer<Quaternion> mixer({&result, 1},
+                                                               Quaternion::identity());
+
+  for (int i = 0; i < count; i++) {
+    const float interp_weight = weights[i];
+    const Quaternion *src = static_cast<const Quaternion *>(sources[i]);
+    mixer.mix_in(0, *src, interp_weight);
+  }
+  mixer.finalize();
+  *static_cast<Quaternion *>(dest) = result;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Callbacks for (#math::Quaternion, #CD_PROP_FLOAT4X4)
  * \{ */
@@ -2129,7 +2150,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      N_("Quaternion"),
      nullptr,
      nullptr,
-     nullptr,
+     layerInterp_propquaternion,
      nullptr,
      layerDefault_propquaternion},
 };
