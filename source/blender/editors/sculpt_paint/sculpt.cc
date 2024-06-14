@@ -6594,16 +6594,14 @@ void calc_distance_falloff(SculptSession &ss,
 
 void calc_brush_strength_factors(const SculptSession &ss,
                                  const Brush &brush,
-                                 const Span<int> verts,
                                  const Span<float> distances,
                                  const MutableSpan<float> factors)
 {
-  BLI_assert(verts.size() == distances.size());
-  BLI_assert(verts.size() == factors.size());
+  BLI_assert(factors.size() == distances.size());
 
   const StrokeCache &cache = *ss.cache;
 
-  for (const int i : verts.index_range()) {
+  for (const int i : factors.index_range()) {
     if (factors[i] == 0.0f) {
       /* Skip already masked-out points, as they might be outside of the brush radius and be
        * unaffected anyway. Having such large values in the calculations below might lead to

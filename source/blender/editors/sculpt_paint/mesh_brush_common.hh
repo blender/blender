@@ -88,7 +88,6 @@ void calc_distance_falloff(SculptSession &ss,
  */
 void calc_brush_strength_factors(const SculptSession &ss,
                                  const Brush &brush,
-                                 Span<int> vert_indices,
                                  Span<float> distances,
                                  MutableSpan<float> factors);
 
