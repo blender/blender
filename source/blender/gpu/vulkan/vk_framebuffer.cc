@@ -857,7 +857,7 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
                                is_stencil_attachment ?
                                    static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_DEPTH_BIT |
                                                                    VK_IMAGE_ASPECT_STENCIL_BIT) :
-                                   VK_IMAGE_ASPECT_DEPTH_BIT});
+                                   static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_DEPTH_BIT)});
     break;
   }
 
