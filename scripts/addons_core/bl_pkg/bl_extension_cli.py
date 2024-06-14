@@ -16,8 +16,6 @@ import argparse
 import os
 import sys
 
-from .bl_extension_utils import PkgManifest_Normalized
-
 from typing import (
     Any,
     List,
@@ -25,6 +23,8 @@ from typing import (
     Tuple,
     Union,
 )
+
+from .bl_extension_utils import PkgManifest_Normalized
 
 show_color = (
     False if os.environ.get("NO_COLOR") else

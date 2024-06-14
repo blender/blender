@@ -370,7 +370,7 @@ def _preferences_ensure_disabled(*, repo_item, pkg_id_sequence, default_set):
     # Needed for `startswith` check.
     prefix_addon_modules = {prefix_base + pkg_id for pkg_id in modules_clear}
     # Needed for `startswith` check (sub-modules).
-    prefix_addon_modules_base = tuple([module + "." for module in prefix_addon_modules])
+    prefix_addon_modules_base = tuple(module + "." for module in prefix_addon_modules)
 
     # NOTE(@ideasman42): clearing the modules is not great practice,
     # however we need to ensure this is fully un-loaded then reloaded.
@@ -657,6 +657,7 @@ def _extensions_wheel_filter_for_platform(wheels):
         wheel_filename_split = wheel_filename[:-4].split("-")
         # Skipping, should never happen as validation will fail,
         # keep paranoid check although this might be removed in the future.
+        # pylint: disable-next=superfluous-parens
         if not (5 <= len(wheel_filename_split) <= 6):
             print("Error: wheel doesn't follow naming spec \"{:s}\"".format(wheel_filename))
             continue
@@ -840,7 +841,7 @@ class CommandHandle:
 
         handle.wm.modal_handler_add(op)
 
-        op._runtime_handle = handle
+        op.runtime_handle_set(handle)
         return {'RUNNING_MODAL'}
 
     def op_modal_step(self, op, context):
@@ -880,7 +881,7 @@ class CommandHandle:
 
         if command_result.all_complete:
             self.wm.event_timer_remove(self.modal_timer)
-            del op._runtime_handle
+            op.runtime_handle_clear()
             context.workspace.status_text_set(None)
             repo_status_text.running = False
 
@@ -1039,6 +1040,14 @@ class _ExtCmdMixIn:
         canceled = True
         self._runtime_handle.op_modal_cancel(self, context)
         self.exec_command_finish(canceled)
+
+    def runtime_handle_set(self, runtime_handle):
+        assert isinstance(runtime_handle, CommandHandle)
+        # pylint: disable-next=attribute-defined-outside-init
+        self._runtime_handle = runtime_handle
+
+    def runtime_handle_clear(self):
+        del self._runtime_handle
 
 
 class EXTENSIONS_OT_dummy_progress(Operator, _ExtCmdMixIn):
@@ -1244,7 +1253,7 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
     def _exceptions_as_report(self, repo_name, ex):
         self.report({'WARNING'}, "{:s}: {:s}".format(repo_name, str(ex)))
 
-    def execute(self, context):
+    def execute(self, _context):
         import addon_utils
 
         repos_all = extension_repos_read()
@@ -1292,12 +1301,12 @@ class EXTENSIONS_OT_repo_add_from_drop(Operator):
 
         return {'RUNNING_MODAL'}
 
-    def execute(self, context):
+    def execute(self, _context):
         # Open an "Add Remote Repository" popup with the URL pre-filled.
         bpy.ops.preferences.extension_repo_add('INVOKE_DEFAULT', type='REMOTE', remote_url=self.url)
         return {'CANCELLED'}
 
-    def draw(self, context):
+    def draw(self, _context):
         url = self.url
         # Skip the URL prefix scheme, e.g. `https://` for less "noisy" outpout.
         url_split = url.partition("://")
@@ -2045,7 +2054,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         layout = self.layout
         layout.operator_context = 'EXEC_DEFAULT'
 
-        pkg_id, pkg_type = self._drop_variables
+        _pkg_id, pkg_type = self._drop_variables
 
         layout.label(text="Local Repository")
         layout.prop(self, "repo", text="")
@@ -2720,7 +2729,7 @@ class EXTENSIONS_OT_userpref_show_online(Operator):
                 return False
         return True
 
-    def execute(self, context):
+    def execute(self, _context):
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT', section='SYSTEM')
         return {'FINISHED'}
 
@@ -2733,7 +2742,7 @@ class EXTENSIONS_OT_userpref_allow_online(Operator):
     bl_options = {'INTERNAL'}
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         if bpy.app.online_access_override:
             if not bpy.app.online_access:
                 cls.poll_message_set("Blender was launched in offline-mode which cannot be changed at runtime")
@@ -2754,11 +2763,11 @@ class EXTENSIONS_OT_userpref_allow_online_popup(Operator):
     bl_label = ""
     bl_options = {'INTERNAL'}
 
-    def execute(self, context):
+    def execute(self, _context):
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT', section='SYSTEM')
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         if bpy.app.online_access_override:
             # No Cancel/Confirm buttons.
@@ -2775,7 +2784,7 @@ class EXTENSIONS_OT_userpref_allow_online_popup(Operator):
             )
         return {'RUNNING_MODAL'}
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         col = layout.column()
         if bpy.app.online_access_override:
@@ -2800,11 +2809,11 @@ class EXTENSIONS_OT_package_enable_not_installed(Operator):
     bl_label = "Enable Extension"
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         cls.poll_message_set("Extension needs to be installed before it can be enabled")
         return False
 
-    def execute(self, context):
+    def execute(self, _context):
         # This operator only exists to be able to show disabled check-boxes for extensions
         # while giving users a reasonable explanation on why is that.
         return {'CANCELLED'}
