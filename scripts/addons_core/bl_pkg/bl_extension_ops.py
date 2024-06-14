@@ -81,6 +81,22 @@ def rna_prop_repo_enum_local_only_itemf(_self, context):
     return result
 
 
+def repo_lookup_by_index_or_none(index):
+    extensions = bpy.context.preferences.extensions
+    extension_repos = extensions.repos
+    try:
+        return extension_repos[index]
+    except IndexError:
+        return None
+
+
+def repo_lookup_by_index_or_none_with_report(index, report_fn):
+    result = repo_lookup_by_index_or_none(index)
+    if result is None:
+        report_fn({'WARNING'}, "Called with invalid index")
+    return result
+
+
 is_background = bpy.app.background
 
 # Execute tasks concurrently.
@@ -144,10 +160,10 @@ def _preferences_repo_find_by_remote_url(context, remote_url):
     remote_url = remote_url.rstrip("/")
     prefs = context.preferences
     extension_repos = prefs.extensions.repos
-    for repo in extension_repos:
+    for i, repo in enumerate(extension_repos):
         if repo.use_remote_url and repo.remote_url.rstrip("/") == remote_url:
-            return repo
-    return None
+            return repo, i
+    return None, -1
 
 
 def extension_url_find_repo_index_and_pkg_id(url):
@@ -1341,6 +1357,52 @@ class EXTENSIONS_OT_repo_add_from_drop(Operator):
             col.label(text=line, translate=False)
 
 
+# Show a dialog when dropping an extensions for a disabled repository.
+class EXTENSIONS_OT_repo_enable_from_drop(Operator):
+    bl_idname = "extensions.repo_enable_from_drop"
+    bl_label = "Enable Repository from Drop"
+    bl_options = {'INTERNAL'}
+
+    repo_index: rna_prop_repo_index
+
+    __slots__ = (
+        "_repo_name",
+    )
+
+    def invoke(self, context, _event):
+        print(self.repo_index)
+        if (repo := repo_lookup_by_index_or_none_with_report(self.repo_index, self.report)) is None:
+            return {'CANCELLED'}
+        self._repo_name = repo.name
+
+        wm = context.window_manager
+        wm.invoke_props_dialog(
+            self,
+            width=400,
+            confirm_text="Enable Repository",
+            title="Disabled Repository",
+        )
+
+        return {'RUNNING_MODAL'}
+
+    def execute(self, _context):
+        if (repo := repo_lookup_by_index_or_none(self.repo_index)) is not None:
+            repo.enabled = True
+
+        return {'CANCELLED'}
+
+    def draw(self, _context):
+        layout = self.layout
+        col = layout.column()
+        lines = (
+            iface_("The dropped URL comes from a disabled repository:"),
+            self._repo_name,
+            iface_("Enabled the repository before dropping again or cancel."),
+        )
+        for line in lines:
+            col.label(text=line, translate=False)
+
+
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
     """Upgrade all the extensions to their latest version for all the remote repositories"""
     bl_idname = "extensions.package_upgrade_all"
@@ -2275,11 +2337,16 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         # First check if this is part of a disabled repository.
         url, url_params = url_parse_for_blender(url)
         remote_url = url_params.get("repository")
-        repo_from_url = None if remote_url is None else _preferences_repo_find_by_remote_url(context, remote_url)
+        repo_from_url, repo_index_from_url = (
+            (None, -1) if remote_url is None else
+            _preferences_repo_find_by_remote_url(context, remote_url)
+        )
 
         if repo_from_url and not repo_from_url.enabled:
-            self.report({'ERROR'}, "Extension: repository \"{:s}\" exists but is disabled".format(repo_from_url.name))
+            bpy.ops.extensions.repo_enable_from_drop('INVOKE_DEFAULT', repo_index=repo_index_from_url)
             return {'CANCELLED'}
+
+        del repo_from_url, repo_index_from_url
 
         _preferences_ensure_sync()
 
@@ -2866,6 +2933,7 @@ classes = (
     EXTENSIONS_OT_repo_sync_all,
     EXTENSIONS_OT_repo_refresh_all,
     EXTENSIONS_OT_repo_add_from_drop,
+    EXTENSIONS_OT_repo_enable_from_drop,
 
     EXTENSIONS_OT_package_install_files,
     EXTENSIONS_OT_package_install,
