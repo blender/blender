@@ -2139,7 +2139,7 @@ static void draw_interface_panel_content(const bContext *C,
       PointerRNA panel_ptr = RNA_pointer_create(
           modifier_ptr->owner_id, &RNA_NodesModifierPanel, panel);
       if (uiLayout *panel_layout = uiLayoutPanelProp(
-              C, layout, &panel_ptr, "is_open", sub_interface_panel.name))
+              C, layout, &panel_ptr, "is_open", IFACE_(sub_interface_panel.name)))
       {
         draw_interface_panel_content(C, panel_layout, modifier_ptr, nmd, sub_interface_panel);
       }
@@ -2242,7 +2242,7 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
       usages.append(IFACE_("Write"));
     }
     if ((usage & geo_log::NamedAttributeUsage::Remove) != geo_log::NamedAttributeUsage::None) {
-      usages.append(IFACE_("Remove"));
+      usages.append(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"));
     }
     for (const int i : usages.index_range()) {
       ss << usages[i];

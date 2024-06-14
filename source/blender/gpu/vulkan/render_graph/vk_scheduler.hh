@@ -71,6 +71,7 @@ class VKScheduler {
    */
   [[nodiscard]] Span<NodeHandle> select_nodes_for_buffer(const VKRenderGraph &render_graph,
                                                          VkBuffer vk_buffer);
+  [[nodiscard]] Span<NodeHandle> select_nodes(const VKRenderGraph &render_graph);
 
  private:
   /**
@@ -79,6 +80,48 @@ class VKScheduler {
    * Result is stored in `result_`.
    */
   void select_all_nodes(const VKRenderGraph &render_graph);
+
+  void reorder_nodes(const VKRenderGraph &render_graph);
+
+  /**
+   * Any data transfer or dispatch nodes should be scheduled before or after a rendering scope.
+   *
+   * - Data transfer and dispatch nodes at the beginning are scheduled before
+   *   the rendering begin.
+   * - Data transfer and dispatch nodes at the end are scheduled after the
+   *   rendering end.
+   * - Data transfer and dispatch nodes in between draw commands will be pushed
+   *   to the beginning if they are not yet being used.
+   * - When used the rendering will be suspended and the data transfer/dispath nodes are
+   *   scheduled between the suspended rendering and when the suspended rendering is
+   *   continued.
+   *
+   * NOTE: Clearing attachments is considered a rendering command as specified by the vulkan
+   * specification.
+   */
+  void move_transfer_and_dispatch_outside_rendering_scope(const VKRenderGraph &render_graph);
+
+  /**
+   * Find the first rendering scope inside the given search range of the result_.
+   */
+  std::optional<std::pair<int64_t, int64_t>> find_rendering_scope(
+      const VKRenderGraph &render_graph, IndexRange search_range) const;
+  template<typename FuncT>
+  void foreach_rendering_scope(const VKRenderGraph &render_graph, const FuncT &func) const
+  {
+    for (std::optional<std::pair<int64_t, int64_t>> rendering_scope =
+             find_rendering_scope(render_graph, IndexRange(result_.index_range()));
+         rendering_scope.has_value();
+         rendering_scope =
+             find_rendering_scope(render_graph,
+                                  IndexRange(rendering_scope.value().second + 1,
+                                             result_.size() - rendering_scope.value().second - 1)))
+    {
+      func(rendering_scope.value().first, rendering_scope.value().second);
+    }
+  }
+
+  void debug_print(const VKRenderGraph &render_graph) const;
 };
 
 }  // namespace blender::gpu::render_graph

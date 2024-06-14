@@ -10,6 +10,8 @@
 
 #include <memory>
 
+#include "DNA_ID_enums.h"
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
 #include "BLI_span.hh"
@@ -83,9 +85,12 @@ void IDP_FreeArray(IDProperty *prop);
  */
 IDProperty *IDP_NewStringMaxSize(const char *st,
                                  size_t st_maxncpy,
-                                 const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(3);
-IDProperty *IDP_NewString(const char *st, const char *name) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(2);
+                                 const char *name,
+                                 eIDPropertyFlag flags = {}) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(3);
+IDProperty *IDP_NewString(const char *st,
+                          const char *name,
+                          eIDPropertyFlag flags = {}) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 /**
  * \param st: The string to assign.
  * Doesn't need to be null terminated when clamped by `maxncpy`.
@@ -236,7 +241,8 @@ bool IDP_EqualsProperties(const IDProperty *prop1,
  */
 IDProperty *IDP_New(char type,
                     const IDPropertyTemplate *val,
-                    const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+                    const char *name,
+                    eIDPropertyFlag flags = {}) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
  * \note This will free allocated data, all child properties of arrays and groups, and unlink IDs!
@@ -319,6 +325,9 @@ void IDP_repr_fn(const IDProperty *prop,
                  void *user_data);
 void IDP_print(const IDProperty *prop);
 
+const char *IDP_type_str(eIDPropertyType type, short sub_type);
+const char *IDP_type_str(const IDProperty *prop);
+
 void IDP_BlendWrite(BlendWriter *writer, const IDProperty *prop);
 void IDP_BlendReadData_impl(BlendDataReader *reader,
                             IDProperty **prop,
@@ -387,23 +396,34 @@ class IDPropertyDeleter {
 };
 
 /** \brief Allocate a new IDProperty of type IDP_BOOLEAN, set its name and value. */
-std::unique_ptr<IDProperty, IDPropertyDeleter> create_bool(StringRefNull prop_name, bool value);
+std::unique_ptr<IDProperty, IDPropertyDeleter> create_bool(StringRefNull prop_name,
+                                                           bool value,
+                                                           eIDPropertyFlag flags = {});
 
 /** \brief Allocate a new IDProperty of type IDP_INT, set its name and value. */
-std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, int32_t value);
+std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
+                                                      int32_t value,
+                                                      eIDPropertyFlag flags = {});
 
 /** \brief Allocate a new IDProperty of type IDP_FLOAT, set its name and value. */
-std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, float value);
+std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
+                                                      float value,
+                                                      eIDPropertyFlag flags = {});
 
 /** \brief Allocate a new IDProperty of type IDP_DOUBLE, set its name and value. */
-std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, double value);
+std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
+                                                      double value,
+                                                      eIDPropertyFlag flags = {});
 
 /** \brief Allocate a new IDProperty of type IDP_STRING, set its name and value. */
 std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
-                                                      const StringRefNull value);
+                                                      const StringRefNull value,
+                                                      eIDPropertyFlag flags = {});
 
 /** \brief Allocate a new IDProperty of type IDP_ID, set its name and value. */
-std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, ID *value);
+std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
+                                                      ID *value,
+                                                      eIDPropertyFlag flags = {});
 
 /**
  * \brief Allocate a new IDProperty of type IDP_ARRAY and sub-type IDP_INT.
@@ -411,14 +431,17 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, I
  * \param values: The values will be copied into the IDProperty.
  */
 std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
-                                                      Span<int32_t> values);
+                                                      Span<int32_t> values,
+                                                      eIDPropertyFlag flags = {});
 
 /**
  * \brief Allocate a new IDProperty of type IDP_ARRAY and sub-type IDP_FLOAT.
  *
  * \param values: The values will be copied into the IDProperty.
  */
-std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, Span<float> values);
+std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
+                                                      Span<float> values,
+                                                      eIDPropertyFlag flags = {});
 
 /**
  * \brief Allocate a new IDProperty of type IDP_ARRAY and sub-type IDP_DOUBLE.
@@ -426,7 +449,8 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, S
  * \param values: The values will be copied into the IDProperty.
  */
 std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
-                                                      Span<double> values);
+                                                      Span<double> values,
+                                                      eIDPropertyFlag flags = {});
 
 /**
  * \brief Allocate a new IDProperty of type IDP_GROUP.
@@ -434,6 +458,7 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
  * \param prop_name: The name of the newly created property.
  */
 
-std::unique_ptr<IDProperty, IDPropertyDeleter> create_group(StringRefNull prop_name);
+std::unique_ptr<IDProperty, IDPropertyDeleter> create_group(StringRefNull prop_name,
+                                                            eIDPropertyFlag flags = {});
 
 }  // namespace blender::bke::idprop

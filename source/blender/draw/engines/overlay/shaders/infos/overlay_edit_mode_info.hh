@@ -492,13 +492,17 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire_clipped)
 /** \name Edit Curves
  * \{ */
 
+GPU_SHADER_INTERFACE_INFO(overlay_edit_curves_handle_iface, "")
+    .smooth(Type::VEC4, "finalColor")
+    .smooth(Type::VEC4, "leftColor");
+
 GPU_SHADER_CREATE_INFO(overlay_edit_curves_handle)
     .do_static_compilation(true)
     .typedef_source("overlay_shader_shared.h")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::UINT, "data")
     .vertex_in(2, Type::FLOAT, "selection")
-    .vertex_out(overlay_edit_smooth_color_iface.smooth(Type::VEC4, "leftColor"))
+    .vertex_out(overlay_edit_curves_handle_iface)
     .uniform_buf(0, "int", "curvesInfoBlock[4]")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_edit_curves_handle_vert.glsl")

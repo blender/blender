@@ -230,43 +230,42 @@ bool BKE_animdata_action_ensure_idroot(const ID *owner, bAction *action)
 
 void BKE_animdata_free(ID *id, const bool do_id_user)
 {
-  /* Only some ID-blocks have this info for now, so we cast the
-   * types that do to be of type IdAdtTemplate
-   */
-  if (id_can_have_animdata(id)) {
-    IdAdtTemplate *iat = (IdAdtTemplate *)id;
-    AnimData *adt = iat->adt;
+  if (!id_can_have_animdata(id)) {
+    return;
+  }
 
-    /* check if there's any AnimData to start with */
-    if (adt) {
-      if (do_id_user) {
-        /* unlink action (don't free, as it's in its own list) */
-        if (adt->action) {
-          id_us_min(&adt->action->id);
-        }
-        /* same goes for the temporarily displaced action */
-        if (adt->tmpact) {
-          id_us_min(&adt->tmpact->id);
-        }
-      }
+  IdAdtTemplate *iat = (IdAdtTemplate *)id;
+  AnimData *adt = iat->adt;
+  if (!adt) {
+    return;
+  }
 
-      /* free nla data */
-      BKE_nla_tracks_free(&adt->nla_tracks, do_id_user);
-
-      /* free drivers - stored as a list of F-Curves */
-      BKE_fcurves_free(&adt->drivers);
-
-      /* free driver array cache */
-      MEM_SAFE_FREE(adt->driver_array);
-
-      /* free overrides */
-      /* TODO... */
-
-      /* free animdata now */
-      MEM_freeN(adt);
-      iat->adt = nullptr;
+  if (do_id_user) {
+    /* unlink action (don't free, as it's in its own list) */
+    if (adt->action) {
+      id_us_min(&adt->action->id);
+    }
+    /* same goes for the temporarily displaced action */
+    if (adt->tmpact) {
+      id_us_min(&adt->tmpact->id);
     }
   }
+
+  /* free nla data */
+  BKE_nla_tracks_free(&adt->nla_tracks, do_id_user);
+
+  /* free drivers - stored as a list of F-Curves */
+  BKE_fcurves_free(&adt->drivers);
+
+  /* free driver array cache */
+  MEM_SAFE_FREE(adt->driver_array);
+
+  /* free overrides */
+  /* TODO... */
+
+  /* free animdata now */
+  MEM_freeN(adt);
+  iat->adt = nullptr;
 }
 
 bool BKE_animdata_id_is_animated(const ID *id)

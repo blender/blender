@@ -262,12 +262,6 @@ static void rna_AnimData_action_binding_handle_set(
     return;
   }
 
-  if (new_binding_handle == blender::animrig::Binding::unassigned) {
-    /* No need to check with the Animation, as 'no binding' is always valid. */
-    adt->binding_handle = blender::animrig::Binding::unassigned;
-    return;
-  }
-
   blender::animrig::Action *anim = blender::animrig::get_animation(animated_id);
   if (!anim) {
     /* No animation to verify the binding handle is valid. As the binding handle
@@ -280,20 +274,23 @@ static void rna_AnimData_action_binding_handle_set(
   }
 
   blender::animrig::Binding *binding = anim->binding_for_handle(new_binding_handle);
-  if (!binding) {
-    WM_reportf(RPT_ERROR,
-               "Animation '%s' has no binding with handle %d",
-               anim->id.name + 2,
-               new_binding_handle);
-    return;
-  }
   if (!anim->assign_id(binding, animated_id)) {
-    WM_reportf(RPT_ERROR,
-               "Animation '%s' binding '%s' (%d) could not be assigned to %s",
-               anim->id.name + 2,
-               binding->name,
-               binding->handle,
-               animated_id.name + 2);
+    if (binding) {
+      WM_reportf(RPT_ERROR,
+                 "Action '%s' binding '%s' (%d) could not be assigned to %s",
+                 anim->id.name + 2,
+                 binding->name,
+                 binding->handle,
+                 animated_id.name + 2);
+    }
+    else {
+      /* This is highly unexpected, as unassigning a Binding should always be allowed. */
+      BLI_assert_unreachable();
+      WM_reportf(RPT_ERROR,
+                 "Action '%s' binding could not be unassigned from %s",
+                 anim->id.name + 2,
+                 animated_id.name + 2);
+    }
     return;
   }
 }

@@ -23,6 +23,7 @@ class VKFrameBuffer;
 class VKVertexAttributeObject;
 class VKBatch;
 class VKStateManager;
+class VKShader;
 
 class VKContext : public Context, NonCopyable {
  private:
@@ -52,6 +53,7 @@ class VKContext : public Context, NonCopyable {
   void end_frame() override;
 
   void flush() override;
+  void flush_render_graph();
   void finish() override;
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) override;
@@ -87,7 +89,10 @@ class VKContext : public Context, NonCopyable {
   /**
    * Update the give shader data with the current state of the context.
    */
-  void update_pipeline_data(render_graph::VKPipelineData &pipeline_data);
+  void update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data);
+  void update_pipeline_data(GPUPrimType primitive,
+                            VKVertexAttributeObject &vao,
+                            render_graph::VKPipelineData &r_pipeline_data);
 
   void bind_graphics_pipeline(const GPUPrimType prim_type,
                               const VKVertexAttributeObject &vertex_attribute_object);
@@ -121,6 +126,10 @@ class VKContext : public Context, NonCopyable {
  private:
   void swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &data);
   void swap_buffers_post_handler();
+
+  void update_pipeline_data(VKShader &shader,
+                            VkPipeline vk_pipeline,
+                            render_graph::VKPipelineData &r_pipeline_data);
 };
 
 BLI_INLINE bool operator==(const VKContext &a, const VKContext &b)

@@ -20,7 +20,7 @@ float film_depth_convert_to_scene(float depth)
     /* TODO */
     return 1.0;
   }
-  return abs(drw_depth_screen_to_view(depth));
+  return -drw_depth_screen_to_view(depth);
 }
 
 /* Load a texture sample in a specific format. Combined pass needs to use this. */

@@ -16,6 +16,26 @@ bl_info = {
 }
 
 if "bpy" in locals():
+    # This doesn't need to be inline because sub-modules aren't important into the global name-space.
+    # The check for `bpy` ensures this is always assigned before use.
+    # pylint: disable-next=used-before-assignment
+    _local_module_reload()
+
+import bpy
+
+from bpy.props import (
+    BoolProperty,
+    EnumProperty,
+    IntProperty,
+    PointerProperty,
+    StringProperty,
+)
+
+
+# -----------------------------------------------------------------------------
+# Local Module Reload
+
+def _local_module_reload():
     import importlib
     from . import (
         bl_extension_cli,
@@ -31,46 +51,6 @@ if "bpy" in locals():
     importlib.reload(bl_extension_ops)
     importlib.reload(bl_extension_ui)
     importlib.reload(bl_extension_utils)
-    del (
-        bl_extension_cli,
-        bl_extension_local,
-        bl_extension_notify,
-        bl_extension_ops,
-        bl_extension_ui,
-        bl_extension_utils,
-    )
-    del importlib
-
-import bpy
-
-from bpy.props import (
-    BoolProperty,
-    EnumProperty,
-    IntProperty,
-    PointerProperty,
-    StringProperty,
-)
-
-from bpy.types import (
-    AddonPreferences,
-)
-
-
-class BlExtPreferences(AddonPreferences):
-    bl_idname = __name__
-    timeout: IntProperty(
-        name="Time Out",
-        default=10,
-    )
-    show_development_reports: BoolProperty(
-        name="Show Development Reports",
-        description=(
-            "Show the result of running commands in the main interface. "
-            "This has the advantage that multiple processes that run at once have their errors properly grouped, "
-            "which is not the case for reports which are mixed together"
-        ),
-        default=False,
-    )
 
 
 class StatusInfoUI:
@@ -144,22 +124,10 @@ def repo_stats_calc_outdated_for_repo_directory(repo_directory):
     if pkg_manifest_local is None:
         return 0
 
-    if False:
-        # TODO: support this, currently creating this data involves a conversion which isn't free.
-        # This can probably be done once and cached, but for now use another function that provides this.
-        pkg_manifest_remote = repo_cache_store.refresh_remote_from_directory(
-            directory=repo_directory,
-            error_fn=print,
-        )
-    else:
-        pkg_manifest_remote = None
-        for pkg_manifest_remote_test in repo_cache_store.pkg_manifest_from_remote_ensure(
-                error_fn=print,
-                ignore_missing=True,
-                directory_subset=[repo_directory],
-        ):
-            pkg_manifest_remote = pkg_manifest_remote_test
-            break
+    pkg_manifest_remote = repo_cache_store.refresh_remote_from_directory(
+        directory=repo_directory,
+        error_fn=print,
+    )
 
     if pkg_manifest_remote is None:
         return 0
@@ -384,6 +352,7 @@ def monkeypatch_extenions_repos_update_pre_impl():
 
 def monkeypatch_extenions_repos_update_post_impl():
     import os
+    # pylint: disable-next=redefined-outer-name
     from . import bl_extension_ops
 
     repo_cache_store = repo_cache_store_ensure()
@@ -463,8 +432,7 @@ def monkeypatch_install():
 def monkeypatch_uninstall():
     handlers = bpy.app.handlers._extension_repos_update_pre
     fn_override = monkeypatch_extensions_repos_update_pre
-    for i in range(len(handlers)):
-        fn = handlers[i]
+    for i, fn in enumerate(handlers):
         if fn is fn_override:
             handlers[i] = fn_override._fn_orig
             del fn_override._fn_orig
@@ -472,8 +440,7 @@ def monkeypatch_uninstall():
 
     handlers = bpy.app.handlers._extension_repos_update_post
     fn_override = monkeypatch_extenions_repos_update_post
-    for i in range(len(handlers)):
-        fn = handlers[i]
+    for i, fn in enumerate(handlers):
         if fn is fn_override:
             handlers[i] = fn_override._fn_orig
             del fn_override._fn_orig
@@ -498,7 +465,7 @@ def repo_cache_store_ensure():
         bl_extension_ops,
         bl_extension_utils,
     )
-    _repo_cache_store = bl_extension_utils.RepoCacheStore()
+    _repo_cache_store = bl_extension_utils.RepoCacheStore(bpy.app.version)
     bl_extension_ops.repo_cache_store_refresh_from_prefs(_repo_cache_store)
     return _repo_cache_store
 
@@ -561,7 +528,6 @@ class BlExtDummyGroup(bpy.types.PropertyGroup):
 # Registration
 
 classes = (
-    BlExtPreferences,
     BlExtDummyGroup,
 )
 

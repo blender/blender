@@ -55,9 +55,8 @@ AttributeOwner AttributeOwner::from_id(ID *id)
     case ID_GP:
       return AttributeOwner(AttributeOwnerType::GreasePencil, id);
     default:
-      BLI_assert_unreachable();
+      return {};
   }
-  return {};
 }
 
 AttributeOwnerType AttributeOwner::type() const

@@ -188,6 +188,7 @@
 /* Resource bindings. */
 
 /* Textures. */
+/** WARNING: Don't forget to update the reserved slots info. */
 /* Used anywhere. (Starts at index 2, since 0 and 1 are used by draw_gpencil) */
 #define RBUFS_UTILITY_TEX_SLOT 2
 #define HIZ_TEX_SLOT 3
@@ -201,6 +202,11 @@
 /* Currently only used by ray-tracing, but might become used by forward too. */
 #define PLANAR_PROBE_DEPTH_TEX_SLOT 10
 #define PLANAR_PROBE_RADIANCE_TEX_SLOT 11
+/* Reserved slots info */
+#define MATERIAL_TEXTURE_RESERVED_SLOT_FIRST RBUFS_UTILITY_TEX_SLOT
+#define MATERIAL_TEXTURE_RESERVED_SLOT_LAST_NO_EVAL HIZ_TEX_SLOT
+#define MATERIAL_TEXTURE_RESERVED_SLOT_LAST_HYBRID SPHERE_PROBE_TEX_SLOT
+#define MATERIAL_TEXTURE_RESERVED_SLOT_LAST_FORWARD VOLUME_TRANSMITTANCE_TEX_SLOT
 
 /* Images. */
 #define RBUFS_COLOR_SLOT 0

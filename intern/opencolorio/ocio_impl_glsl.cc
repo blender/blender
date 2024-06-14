@@ -204,6 +204,10 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   info.define("texture1D", "texture");
   info.define("texture2D", "texture");
   info.define("texture3D", "texture");
+  /* Work around unsupported in keyword in Metal GLSL emulation. */
+#ifdef __APPLE__
+  info.define("in", "");
+#endif
   info.typedef_source("ocio_shader_shared.hh");
   info.sampler(TEXTURE_SLOT_IMAGE, ImageType::FLOAT_2D, "image_texture");
   info.sampler(TEXTURE_SLOT_OVERLAY, ImageType::FLOAT_2D, "overlay_texture");

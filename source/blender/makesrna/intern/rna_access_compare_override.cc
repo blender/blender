@@ -181,9 +181,8 @@ bool RNA_property_overridable_library_set(PointerRNA * /*ptr*/,
   /* Only works for pure custom properties IDProps. */
   if (prop->magic != RNA_MAGIC) {
     IDProperty *idprop = (IDProperty *)prop;
-
-    idprop->flag = is_overridable ? (idprop->flag | IDP_FLAG_OVERRIDABLE_LIBRARY) :
-                                    (idprop->flag & ~IDP_FLAG_OVERRIDABLE_LIBRARY);
+    constexpr short flags = (IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE);
+    idprop->flag = is_overridable ? (idprop->flag | flags) : (idprop->flag & ~flags);
     return true;
   }
 
@@ -220,31 +219,6 @@ bool RNA_property_copy(
     return false;
   }
 
-  PropertyRNA *prop_dst = prop;
-  PropertyRNA *prop_src = prop;
-
-  /* Ensure we get real property data,
-   * be it an actual RNA property, or an #IDProperty in disguise. */
-  prop_dst = rna_ensure_property_realdata(&prop_dst, ptr);
-  prop_src = rna_ensure_property_realdata(&prop_src, fromptr);
-
-  /* IDprops: destination may not exist, if source does and is set, try to create it. */
-  /* NOTE: this is sort of quick hack/bandage to fix the issue,
-   * we need to rethink how IDProps are handled in 'diff' RNA code completely, IMHO. */
-  if (prop_src != nullptr && prop_dst == nullptr && RNA_property_is_set(fromptr, prop)) {
-    BLI_assert(prop_src->magic != RNA_MAGIC);
-    IDProperty *idp_dst = RNA_struct_idprops(ptr, true);
-    IDProperty *prop_idp_dst = IDP_CopyProperty((IDProperty *)prop_src);
-    IDP_AddToGroup(idp_dst, prop_idp_dst);
-    rna_idproperty_touch(prop_idp_dst);
-    /* Nothing else to do here... */
-    return true;
-  }
-
-  if (ELEM(nullptr, prop_dst, prop_src)) {
-    return false;
-  }
-
   IDOverrideLibraryPropertyOperation opop{};
   opop.operation = LIBOVERRIDE_OP_REPLACE;
   opop.subitem_reference_index = index;
@@ -253,8 +227,8 @@ bool RNA_property_copy(
   RNAPropertyOverrideApplyContext rnaapply_ctx;
   rnaapply_ctx.ptr_dst = *ptr;
   rnaapply_ctx.ptr_src = *fromptr;
-  rnaapply_ctx.prop_dst = prop_dst;
-  rnaapply_ctx.prop_src = prop_src;
+  rnaapply_ctx.prop_dst = prop;
+  rnaapply_ctx.prop_src = prop;
   rnaapply_ctx.liboverride_operation = &opop;
 
   return rna_property_override_operation_apply(bmain, rnaapply_ctx);

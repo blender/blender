@@ -5,7 +5,9 @@
 """
 This test emulates running packaging commands with Blender via the command line.
 
-This also happens to test packages with ``*.whl``.
+This also happens to test:
+- Packages with ``*.whl``.
+- Packages compatibility (mixing supported/unsupported platforms & versions).
 
 Command to run this test:
    make test_cli_blender BLENDER_BIN=$PWD/../../../blender.bin
@@ -21,11 +23,18 @@ import time
 import unittest
 
 from typing import (
+    Any,
     Dict,
+    NamedTuple,
+    Optional,
     Sequence,
     Tuple,
 )
 
+
+# For more useful output that isn't clipped.
+# pylint: disable-next=protected-access
+unittest.util._MAX_LENGTH = 10_000
 
 PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 
@@ -35,6 +44,10 @@ VERBOSE_CMD = False
 BLENDER_BIN = os.environ.get("BLENDER_BIN")
 if BLENDER_BIN is None:
     raise Exception("BLENDER_BIN: environment variable not defined")
+
+BLENDER_VERSION_STR = subprocess.check_output([BLENDER_BIN, "--version"]).split()[1].decode('ascii')
+BLENDER_VERSION: Tuple[int, int, int] = tuple(int(x) for x in BLENDER_VERSION_STR.split("."))  # type: ignore
+assert len(BLENDER_VERSION) == 3
 
 
 # Arguments to ensure extensions are enabled (currently it's an experimental feature).
@@ -48,6 +61,28 @@ sys.path.append(os.path.join(BASE_DIR, "modules"))
 import python_wheel_generate  # noqa: E402
 
 
+# Don't import as module, instead load the class.
+def execfile(filepath: str, *, name: str = "__main__") -> Dict[str, Any]:
+    global_namespace = {"__file__": filepath, "__name__": name}
+    with open(filepath, encoding="utf-8") as fh:
+        # pylint: disable-next=exec-used
+        exec(compile(fh.read(), filepath, 'exec'), global_namespace)
+    return global_namespace
+
+
+_blender_ext = execfile(
+    os.path.join(
+        BASE_DIR,
+        "..",
+        "cli",
+        "blender_ext.py",
+    ),
+    name="blender_ext",
+)
+platform_from_this_system = _blender_ext["platform_from_this_system"]
+assert callable(platform_from_this_system)
+
+
 # Write the command to a script, use so it's possible to manually run commands outside of the test environment.
 TEMP_COMMAND_OUTPUT = ""  # os.path.join(tempfile.gettempdir(), "blender_test.sh")
 
@@ -58,6 +93,37 @@ USE_PAUSE_BEFORE_EXIT = False
 # -----------------------------------------------------------------------------
 # Utility Functions
 
+
+# Generate different version numbers as strings, used for automatically creating versions
+# which are known to be compatible or incompatible with the current version.
+def blender_version_relative(version_offset: Tuple[int, int, int]) -> str:
+    version_new = (
+        BLENDER_VERSION[0] + version_offset[0],
+        BLENDER_VERSION[1] + version_offset[1],
+        BLENDER_VERSION[2] + version_offset[2],
+    )
+    assert min(*version_new) >= 0
+    return "{:d}.{:d}.{:d}".format(*version_new)
+
+
+def python_script_generate_for_addon(text: str) -> str:
+    return (
+        '''def register():\n'''
+        '''    print("Register success{sep:s}{text:s}:", __name__)\n'''
+        '''\n'''
+        '''def unregister():\n'''
+        '''    print("Unregister success{sep:s}{text:s}:", __name__)\n'''
+    ).format(
+        sep=" " if text else "",
+        text=text,
+    )
+
+
+class WheelModuleParams(NamedTuple):
+    module_name: str
+    module_version: str
+
+
 def path_to_url(path: str) -> str:
     from urllib.parse import urljoin
     from urllib.request import pathname2url
@@ -67,7 +133,7 @@ def path_to_url(path: str) -> str:
 def pause_until_keyboard_interrupt() -> None:
     print("Waiting for keyboard interrupt...")
     try:
-        time.sleep(10_000)
+        time.sleep(100_000)
     except KeyboardInterrupt:
         pass
     print("Exiting!")
@@ -93,26 +159,34 @@ def contents_to_filesystem(
 
 def create_package(
         pkg_src_dir: str,
+        *,
         pkg_idname: str,
-        wheel_module_name: str,
-        wheel_module_version: str,
+
+        # Optional.
+        wheel_params: Optional[WheelModuleParams] = None,
+        platforms: Optional[Tuple[str, ...]] = None,
+        blender_version_min: Optional[str] = None,
+        blender_version_max: Optional[str] = None,
+        python_script: Optional[str] = None,
 ) -> None:
     pkg_name = pkg_idname.replace("_", " ").title()
 
-    wheel_filename, wheel_filedata = python_wheel_generate.generate_from_source(
-        module_name=wheel_module_name,
-        version=wheel_module_version,
-        source=(
-            "__version__ = {!r}\n"
-            "print(\"The wheel has been found\")\n"
-        ).format(wheel_module_version),
-    )
+    if wheel_params is not None:
+        wheel_filename, wheel_filedata = python_wheel_generate.generate_from_source(
+            module_name=wheel_params.module_name,
+            version=wheel_params.module_version,
+            source=(
+                "__version__ = {!r}\n"
+                "print(\"The wheel has been found\")\n"
+            ).format(wheel_params.module_version),
+        )
 
-    wheel_dir = os.path.join(pkg_src_dir, "wheels")
-    os.makedirs(wheel_dir, exist_ok=True)
-    path = os.path.join(wheel_dir, wheel_filename)
-    with open(path, "wb") as fh:
-        fh.write(wheel_filedata)
+        wheel_dir = os.path.join(pkg_src_dir, "wheels")
+        os.makedirs(wheel_dir, exist_ok=True)
+
+        wheel_path = os.path.join(wheel_dir, wheel_filename)
+        with open(wheel_path, "wb") as fh:
+            fh.write(wheel_filedata)
 
     with open(os.path.join(pkg_src_dir, PKG_MANIFEST_FILENAME_TOML), "w", encoding="utf-8") as fh:
         fh.write('''# Example\n''')
@@ -125,19 +199,25 @@ def create_package(
         fh.write('''license = ["SPDX:GPL-2.0-or-later"]\n''')
         fh.write('''version = "1.0.0"\n''')
         fh.write('''tagline = "This is a tagline"\n''')
-        fh.write('''blender_version_min = "0.0.0"\n''')
+        fh.write('''blender_version_min = "{:s}"\n'''.format(blender_version_min or "0.0.0"))
+        if blender_version_min is not None:
+            fh.write('''blender_version_max = "{:s}"\n'''.format(blender_version_max))
         fh.write('''\n''')
-        fh.write('''wheels = ["./wheels/{:s}"]\n'''.format(wheel_filename))
+
+        if wheel_params is not None:
+            fh.write('''wheels = ["./wheels/{:s}"]\n'''.format(wheel_filename))
+
+        if platforms is not None:
+            fh.write('''platforms = [{:s}]\n'''.format(", ".join(["\"{:s}\"".format(x) for x in platforms])))
 
     with open(os.path.join(pkg_src_dir, "__init__.py"), "w", encoding="utf-8") as fh:
-        fh.write((
-            '''import {:s}\n'''
-            '''def register():\n'''
-            '''    print("Register success:", __name__)\n'''
-            '''\n'''
-            '''def unregister():\n'''
-            '''    print("Unregister success:", __name__)\n'''
-        ).format(wheel_module_name))
+        if wheel_params is not None:
+            fh.write("import {:s}\n".format(wheel_params.module_name))
+
+        if python_script is not None:
+            fh.write(python_script)
+        else:
+            fh.write(python_script_generate_for_addon(text=""))
 
 
 def run_blender(
@@ -275,34 +355,64 @@ user_dirs: Tuple[str, ...] = (
 
 class TestWithTempBlenderUser_MixIn(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls) -> None:
+    @staticmethod
+    def _repo_dirs_create() -> None:
         for dirname in user_dirs:
             os.makedirs(os.path.join(TEMP_DIR_BLENDER_USER, dirname), exist_ok=True)
+        os.makedirs(os.path.join(TEMP_DIR_BLENDER_USER, dirname), exist_ok=True)
+        os.makedirs(TEMP_DIR_REMOTE, exist_ok=True)
 
-    @classmethod
-    def tearDownClass(cls) -> None:
+    @staticmethod
+    def _repo_dirs_destroy() -> None:
         for dirname in user_dirs:
             shutil.rmtree(os.path.join(TEMP_DIR_BLENDER_USER, dirname))
+        shutil.rmtree(TEMP_DIR_REMOTE)
 
+    def setUp(self) -> None:
+        self._repo_dirs_create()
 
-class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+    def tearDown(self) -> None:
+        self._repo_dirs_destroy()
 
-    # Internal utilities.
-    def _build_package(
+    def repo_add(self, *, repo_id: str, repo_name: str) -> None:
+        stdout = run_blender_extensions_no_errors((
+            "repo-add",
+            "--name", repo_name,
+            "--directory", TEMP_DIR_LOCAL,
+            "--url", TEMP_DIR_REMOTE_AS_URL,
+            # A bit odd, this argument avoids running so many commands to setup a test.
+            "--clear-all",
+            repo_id,
+        ))
+        self.assertEqual(stdout, "Info: Preferences saved\n")
+
+    def build_package(
             self,
             *,
             pkg_idname: str,
-            wheel_module_name: str,
-            wheel_module_version: str,
+            wheel_params: Optional[WheelModuleParams] = None,
+
+            # Optional.
+            pkg_filename: Optional[str] = None,
+            platforms: Optional[Tuple[str, ...]] = None,
+            blender_version_min: Optional[str] = None,
+            blender_version_max: Optional[str] = None,
+            python_script: Optional[str] = None,
     ) -> None:
-        pkg_output_filepath = os.path.join(TEMP_DIR_REMOTE, pkg_idname + ".zip")
+        if pkg_filename is None:
+            pkg_filename = pkg_idname
+        pkg_output_filepath = os.path.join(TEMP_DIR_REMOTE, pkg_filename + ".zip")
         with tempfile.TemporaryDirectory() as package_build_dir:
             create_package(
                 package_build_dir,
                 pkg_idname=pkg_idname,
-                wheel_module_name=wheel_module_name,
-                wheel_module_version=wheel_module_version,
+
+                # Optional.
+                wheel_params=wheel_params,
+                platforms=platforms,
+                blender_version_min=blender_version_min,
+                blender_version_max=blender_version_max,
+                python_script=python_script,
             )
             stdout = run_blender_extensions_no_errors((
                 "build",
@@ -315,8 +425,11 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
                     "Building {:s}.zip\n"
                     "complete\n"
                     "created \"{:s}\", {:d}\n"
-                ).format(pkg_idname, pkg_output_filepath, os.path.getsize(pkg_output_filepath)),
+                ).format(pkg_filename, pkg_output_filepath, os.path.getsize(pkg_output_filepath)),
             )
+
+
+class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
 
     def test_simple_package(self) -> None:
         """
@@ -324,26 +437,20 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         """
 
         repo_id = "test_repo_module_name"
+        repo_name = "MyTestRepo"
 
-        stdout = run_blender_extensions_no_errors((
-            "repo-add",
-            "--name", "MyTestRepo",
-            "--directory", TEMP_DIR_LOCAL,
-            "--url", TEMP_DIR_REMOTE_AS_URL,
-            # A bit odd, this argument avoids running so many commands to setup a test.
-            "--clear-all",
-            repo_id,
-        ))
-        self.assertEqual(stdout, "Info: Preferences saved\n")
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
 
         wheel_module_name = "my_custom_wheel"
 
         # Create a package contents.
         pkg_idname = "my_test_pkg"
-        self._build_package(
+        self.build_package(
             pkg_idname=pkg_idname,
-            wheel_module_name=wheel_module_name,
-            wheel_module_version="1.0.1",
+            wheel_params=WheelModuleParams(
+                module_name=wheel_module_name,
+                module_version="1.0.1",
+            ),
         )
 
         # Generate the repository.
@@ -367,19 +474,19 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         self.assertEqual(
             stdout,
             (
-                '''test_repo_module_name:\n'''
+                '''{:s}:\n'''
                 '''    name: "MyTestRepo"\n'''
                 '''    directory: "{:s}"\n'''
                 '''    url: "{:s}"\n'''
-            ).format(TEMP_DIR_LOCAL, TEMP_DIR_REMOTE_AS_URL))
+            ).format(repo_id, TEMP_DIR_LOCAL, TEMP_DIR_REMOTE_AS_URL))
 
         stdout = run_blender_extensions_no_errors(("list",))
         self.assertEqual(
             stdout,
             (
-                '''Repository: "MyTestRepo" (id=test_repo_module_name)\n'''
+                '''Repository: "MyTestRepo" (id={:s})\n'''
                 '''  my_test_pkg: "My Test Pkg", This is a tagline\n'''
-            )
+            ).format(repo_id)
         )
 
         stdout = run_blender_extensions_no_errors(("install", pkg_idname, "--enable"))
@@ -424,10 +531,12 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
                 ("my_test_pkg_c", "3.0.1"),
         ):
             packages_to_install.append(pkg_idname)
-            self._build_package(
+            self.build_package(
                 pkg_idname=pkg_idname,
-                wheel_module_name=wheel_module_name,
-                wheel_module_version=wheel_module_version,
+                wheel_params=WheelModuleParams(
+                    module_name=wheel_module_name,
+                    module_version=wheel_module_version,
+                ),
             )
 
         # Generate the repository.
@@ -448,8 +557,9 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         # Install.
 
         stdout = run_blender_extensions_no_errors(("install", ",".join(packages_to_install), "--enable"))
+        # Sort output because the order doesn't matter and may change depending on how jobs are split up.
         self.assertEqual(
-            tuple([line for line in stdout.split("\n") if line.startswith("STATUS ")]),
+            tuple(line for line in sorted(stdout.split("\n")) if line.startswith("STATUS ")),
             (
                 '''STATUS Installed "my_test_pkg"''',
                 '''STATUS Installed "my_test_pkg_a"''',
@@ -466,18 +576,21 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             (
                 '''import sys\n'''
                 '''try:\n'''
-                '''    import {:s}\n'''
+                '''    import {wheel_module_name:s}\n'''
                 '''    found = True\n'''
                 '''except ModuleNotFoundError:\n'''
                 '''    found = False\n'''
                 '''if found:\n'''
-                '''    if {:s}.__version__ == "{:s}":\n'''
+                '''    if {wheel_module_name:s}.__version__ == "{packages_wheel_version_max:s}":\n'''
                 '''        sys.exit(64)  # Success!\n'''
                 '''    else:\n'''
                 '''        sys.exit(32)\n'''
                 '''else:\n'''
                 '''    sys.exit(16)\n'''
-            ).format(wheel_module_name, wheel_module_name, packages_wheel_version_max),
+            ).format(
+                wheel_module_name=wheel_module_name,
+                packages_wheel_version_max=packages_wheel_version_max,
+            ),
         ))
 
         self.assertEqual(returncode, 64)
@@ -486,6 +599,156 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             print(TEMP_DIR_REMOTE)
             print(TEMP_DIR_BLENDER_USER)
             pause_until_keyboard_interrupt()
+
+
+class TestPlatform(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+    def test_platform_filter(self) -> None:
+        """
+        Check that packages from different platforms are properly filtered.
+        """
+        platforms_other = ["linux-x64", "macos-arm64", "windows-x64"]
+
+        platform_this = platform_from_this_system()
+
+        if platform_this in platforms_other:
+            platforms_other.remove(platform_this)
+        else:  # For a predictable length.
+            del platforms_other[-1]
+        assert len(platforms_other) == 2
+
+        # Create two packages with the same ID, and ensure the package seen by Blender is the one for our platform.
+
+        repo_id = "test_repo_module_name"
+        repo_name = "MyTestRepo"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        # Create a range of versions, note that only minimum versions beginning
+        # with `version_c_this` and higher can be installed with this Blender session.
+        version_a = blender_version_relative((-2, 0, 0))
+        version_b = blender_version_relative((-1, 0, 0))
+        version_c_this = blender_version_relative((0, 0, 0))
+        version_d = blender_version_relative((0, 1, 0))
+        version_e = blender_version_relative((0, 2, 0))
+
+        python_script_this = python_script_generate_for_addon("for this platform")
+        python_script_old = python_script_generate_for_addon("old")
+        python_script_new = python_script_generate_for_addon("new")
+        python_script_other = python_script_generate_for_addon("other")
+        python_script_conflict = python_script_generate_for_addon("conflict")
+
+        # Create a package contents (with a different wheel version).
+        pkg_idname = "my_platform_test"
+        for platform in (platform_this, *platforms_other):
+            if platform == platform_this:
+                python_script = python_script_this
+            else:
+                python_script = python_script_other
+
+            self.build_package(
+                pkg_idname=pkg_idname,
+                platforms=(platform,),
+                # Needed to prevent duplicates.
+                pkg_filename="{:s}-{:s}".format(pkg_idname, platform.replace("-", "_")),
+                blender_version_min=version_c_this,
+                blender_version_max=version_d,
+                python_script=python_script,
+            )
+
+        # Generate the repository.
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stdout, "found 3 packages.\n")
+
+        for version_range, pkg_filename_suffix, python_script in (
+                ((version_a, version_b), "_no_conflict_old", python_script_old),
+                ((version_d, version_e), "_no_conflict_new", python_script_new),
+        ):
+            self.build_package(
+                pkg_idname=pkg_idname,
+                platforms=(platform_this,),
+                pkg_filename="{:s}-{:s}{:s}".format(pkg_idname, platform_this.replace("-", "_"), pkg_filename_suffix),
+                blender_version_min=version_range[0],
+                blender_version_max=version_range[1],
+                python_script=python_script + "\n" + "print(" + repr(version_range) + ")",
+            )
+
+        # Re-generate the repository (no conflicts).
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stdout, "found 5 packages.\n")
+
+        # Install the package and check it installs the correct package.
+        stdout = run_blender_extensions_no_errors((
+            "sync",
+        ))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Extensions list for \"MyTestRepo\" updated",
+        )
+
+        stdout = run_blender_extensions_no_errors(("list",))
+        self.assertEqual(
+            stdout,
+            (
+                '''Repository: "MyTestRepo" (id={:s})\n'''
+                '''  {:s}: "My Platform Test", This is a tagline\n'''
+            ).format(repo_id, pkg_idname)
+        )
+
+        stdout = run_blender_extensions_no_errors(("install", pkg_idname, "--enable"), force_script_and_pause=False)
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")][0],
+            "STATUS Installed \"{:s}\"".format(pkg_idname)
+        )
+
+        # Ensure the correct package was installed, using the script text as an identifier.
+        self.assertTrue("Register success for this platform: " in stdout)
+
+        stdout = run_blender_extensions_no_errors(("remove", pkg_idname))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")][0],
+            "STATUS Removed \"{:s}\"".format(pkg_idname)
+        )
+
+        # Now add two conflicting packages, one with a version, one without any versions.
+        for version_range, pkg_filename_suffix in (
+                (("", ""), "_conflict_no_version"),
+                ((version_a, version_e), "_conflict"),
+        ):
+            self.build_package(
+                pkg_idname=pkg_idname,
+                platforms=(platform_this,),
+                pkg_filename="{:s}-{:s}{:s}".format(pkg_idname, platform_this.replace("-", "_"), pkg_filename_suffix),
+                blender_version_min=version_range[0] or None,
+                blender_version_max=version_range[1] or None,
+                python_script=python_script_conflict,
+            )
+
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stdout, (
+            '''WARN: archive found with duplicates for id {pkg_idname:s}: '''
+            '''3 duplicate(s) found, conflicting blender versions \"{platform:s}\": '''
+            '''([undefined] & [{version_a:s} -> {version_b:s}], '''
+            '''[{version_a:s} -> {version_b:s}] & [{version_a:s} -> {version_e:s}], '''
+            '''[{version_a:s} -> {version_e:s}] & [{version_c:s} -> {version_d:s}])\n'''
+            '''found 7 packages.\n'''
+        ).format(
+            pkg_idname=pkg_idname,
+            platform=platform_this,
+            version_a=version_a,
+            version_b=version_b,
+            version_c=version_c_this,
+            version_d=version_d,
+            version_e=version_e,
+        ))
 
 
 def main() -> None:

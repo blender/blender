@@ -76,7 +76,7 @@ CullingTile tile_culling_get(uvec2 tile_co)
 
   for (int i = 0; i < 8; i++) {
     /* Culling in view space for precision. */
-    corners[i] = project_point(ProjectionMatrixInverse, corners[i]);
+    corners[i] = project_point(drw_view.wininv, corners[i]);
   }
 
   bool is_persp = ProjectionMatrix[3][3] == 0.0;
@@ -153,6 +153,10 @@ void main()
     vec3 v_up = drw_normal_world_to_view(light_y_axis(light));
     vec3 v_back = drw_normal_world_to_view(light_z_axis(light));
     float radius = light_local_data_get(light).influence_radius_max;
+
+    if (light_cull_buf.view_is_flipped) {
+      v_right = -v_right;
+    }
 
     Sphere sphere = shape_sphere(vP, radius);
     bool intersect_tile = intersect(tile, sphere);

@@ -93,9 +93,6 @@ void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*dat
 void VKVertexBuffer::read(void *data) const
 {
   VKContext &context = *VKContext::get();
-  if (!use_render_graph) {
-    context.flush();
-  }
   if (buffer_.is_mapped()) {
     buffer_.read(context, data);
     return;

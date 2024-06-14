@@ -1039,6 +1039,11 @@ static void iter_shader_to_rgba_depth_count(bNode *node,
     depth_level++;
     max_depth = std::max(max_depth, depth_level);
   }
+
+  if (node->runtime->tmp_flag >= depth_level) {
+    /* We already iterated this branch at this or a greater depth. */
+    return;
+  }
   node->runtime->tmp_flag = std::max(node->runtime->tmp_flag, depth_level);
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {

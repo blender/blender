@@ -254,6 +254,90 @@ class TestIdPropertyUIData(TestHelper, unittest.TestCase):
             self.assertEqual(self.id.path_resolve('["%s"]' % bpy.utils.escape_identifier(self.key_id)), 'A')
 
 
+# Check statically typed underlying IDProperties storage for dynamic RNA properties.
+class TestIdPropertyDynamicRNA(TestHelper, unittest.TestCase):
+
+    class TestDynRNAClass(bpy.types.PropertyGroup):
+        string_prop: bpy.props.StringProperty()
+        int_prop: bpy.props.IntProperty()
+        float_array_prop: bpy.props.FloatVectorProperty(size=[3])
+
+    def setUp(self):
+        super().setUp()
+        bpy.utils.register_class(self.TestDynRNAClass)
+        assert(type(self.id) == bpy.types.Scene)
+        bpy.types.Scene.dynrna_prop = bpy.props.PointerProperty(type=self.TestDynRNAClass)
+        assert(hasattr(self.id, "dynrna_prop"))
+
+    def tearDown(self):
+        del bpy.types.Scene.dynrna_prop
+        bpy.utils.unregister_class(self.TestDynRNAClass)
+        super().tearDown()
+
+    def test_dynamic_rna_basics(self):
+        # The IDP_Group matching a registered RNA Pointer property to a registered
+        # PropertyGroup type always exists.
+        self.assertTrue('dynrna_prop' in self.id)
+        # However, the underlying idprop data for each property of the PropertyGroup
+        # does not exist untill set through an RNA property access.
+        self.assertTrue(len(self.id['dynrna_prop']) == 0)
+
+        self.id.dynrna_prop.string_prop = "Test String"
+        self.assertTrue(len(self.id['dynrna_prop']) == 1)
+        self.assertEqual(self.id.dynrna_prop.string_prop, self.id['dynrna_prop']['string_prop'])
+        self.id['dynrna_prop']['string_prop'] = "String test"
+        self.assertEqual(self.id.dynrna_prop.string_prop, self.id['dynrna_prop']['string_prop'])
+
+        self.id.dynrna_prop.int_prop = 1
+        self.assertTrue(len(self.id['dynrna_prop']) == 2)
+        self.assertEqual(self.id.dynrna_prop.int_prop, self.id['dynrna_prop']['int_prop'])
+        self.id['dynrna_prop']['int_prop'] = 33
+        self.assertEqual(self.id.dynrna_prop.int_prop, self.id['dynrna_prop']['int_prop'])
+
+        self.id.dynrna_prop.float_array_prop = [1.0, 2.0, 3.0]
+        self.assertTrue(len(self.id['dynrna_prop']) == 3)
+        self.assertEqual(list(self.id.dynrna_prop.float_array_prop), list(self.id['dynrna_prop']['float_array_prop']))
+        self.id['dynrna_prop']['float_array_prop'] = [0.1, 1.0, 10.0]
+        self.assertEqual(list(self.id.dynrna_prop.float_array_prop), list(self.id['dynrna_prop']['float_array_prop']))
+
+    def test_static_type(self):
+        # Check that the idproperty behind the defined RNA ones are statically typed, and cannot be
+        # assigned random other types of values.
+        self.id.dynrna_prop.string_prop = "Test String"
+        self.id.dynrna_prop.int_prop = 1
+        self.id.dynrna_prop.float_array_prop = [1.0, 2.0, 3.0]
+
+        with self.assertRaises(TypeError):
+            self.id['dynrna_prop']['string_prop'] = b"Test String"
+
+        # Supported conversion from bool to int.
+        self.id['dynrna_prop']['int_prop'] = False
+        self.assertEqual(self.id['dynrna_prop']['int_prop'], 0)
+        self.assertEqual(self.id.dynrna_prop.int_prop, self.id['dynrna_prop']['int_prop'])
+        self.assertEqual(type(self.id['dynrna_prop']['int_prop']), int)
+        with self.assertRaises(TypeError):
+            self.id['dynrna_prop']['int_prop'] = 2.5
+        with self.assertRaises(TypeError):
+            self.id['dynrna_prop']['int_prop'] = "100"
+
+        mixed_array = [5, 2.5, 2]
+        self.id['dynrna_prop']['float_array_prop'] = mixed_array
+        self.assertEqual(list(self.id['dynrna_prop']['float_array_prop']), mixed_array)
+        self.assertEqual(list(self.id.dynrna_prop.float_array_prop), list(self.id['dynrna_prop']['float_array_prop']))
+        self.assertTrue(all((type(i) is float for i in self.id['dynrna_prop']['float_array_prop'])))
+        # Assign out-of int32 range value to a float property.
+        self.id['dynrna_prop']['float_array_prop'] = [1000000000000, 5, 6]
+        with self.assertRaises(TypeError):
+            self.id['dynrna_prop']['float_array_prop'] = 2.5
+        with self.assertRaises(TypeError):
+            self.id['dynrna_prop']['float_array_prop'] = [True, False, False]
+        # Length of the array is also considered as static/fixed.
+        with self.assertRaises(TypeError):
+            self.id['dynrna_prop']['float_array_prop'] = [5.0, 2.5]
+        with self.assertRaises(TypeError):
+            self.id['dynrna_prop']['float_array_prop'] = [1.0, 10.0, 100.0, 0.1]
+
+
 class TestIdPropertyGroupView(TestHelper, unittest.TestCase):
 
     def test_type(self):

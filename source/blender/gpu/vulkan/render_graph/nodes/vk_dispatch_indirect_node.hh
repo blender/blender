@@ -86,7 +86,7 @@ class VKDispatchIndirectNode
   {
     vk_pipeline_data_build_commands(command_buffer,
                                     data.pipeline_data,
-                                    r_bound_pipelines,
+                                    r_bound_pipelines.compute,
                                     VK_PIPELINE_BIND_POINT_COMPUTE,
                                     VK_SHADER_STAGE_COMPUTE_BIT);
     command_buffer.dispatch_indirect(data.buffer, data.offset);

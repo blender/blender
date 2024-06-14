@@ -92,9 +92,7 @@ bool VKBuffer::create(int64_t size_in_bytes,
     return false;
   }
 
-  if (use_render_graph) {
-    device.resources.add_buffer(vk_buffer_);
-  }
+  device.resources.add_buffer(vk_buffer_);
 
   if (is_host_visible) {
     return map();
@@ -122,22 +120,13 @@ void VKBuffer::clear(VKContext &context, uint32_t clear_value)
   fill_buffer.vk_buffer = vk_buffer_;
   fill_buffer.data = clear_value;
   fill_buffer.size = size_in_bytes_;
-  if (use_render_graph) {
-    context.render_graph.add_node(fill_buffer);
-  }
-  else {
-    VKCommandBuffers &command_buffers = context.command_buffers_get();
-    command_buffers.fill(*this, fill_buffer.data);
-  }
+  context.render_graph.add_node(fill_buffer);
 }
 
 void VKBuffer::read(VKContext &context, void *data) const
 {
   BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
-  if (use_render_graph) {
-    context.render_graph.submit_buffer_for_read(vk_buffer_);
-  }
-
+  context.render_graph.submit_buffer_for_read(vk_buffer_);
   memcpy(data, mapped_memory_, size_in_bytes_);
 }
 

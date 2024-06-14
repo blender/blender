@@ -442,7 +442,9 @@ ccl_device_inline IntegratorState integrator_state_shadow_catcher_split(KernelGl
   to_state->path = state->path;
   to_state->ray = state->ray;
   to_state->isect = state->isect;
+#  ifdef __VOLUME__
   integrator_state_copy_volume_stack(kg, to_state, state);
+#  endif
 #endif
 
   return to_state;

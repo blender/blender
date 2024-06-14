@@ -194,6 +194,15 @@ static void extract_lines_bm(const MeshRenderData &mr,
 
   no_loose_wire = visible_loose_edges.is_empty();
 
+  if (DRW_ibo_requested(lines_loose) && !DRW_ibo_requested(lines)) {
+    GPUIndexBufBuilder builder;
+    GPU_indexbuf_init(&builder, GPU_PRIM_LINES, visible_loose_edges.size(), max_index);
+    MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+    fill_loose_lines_ibo(mr, visible_loose_edges, data);
+    GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, false, lines_loose);
+    return;
+  }
+
   const IndexMask all_loose_edges = IndexMask::from_indices(mr.loose_edges, memory);
   const IndexMask non_loose_edges = all_loose_edges.complement(IndexRange(bm.totedge), memory);
   const IndexMask visible_non_loose_edges = IndexMask::from_predicate(

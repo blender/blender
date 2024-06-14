@@ -140,22 +140,13 @@ void VKBackend::samplers_update()
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {
   VKContext &context = *VKContext::get();
-  if (use_render_graph) {
-    render_graph::VKResourceAccessInfo &resources = context.update_and_get_access_info();
-    render_graph::VKDispatchNode::CreateInfo dispatch_info(resources);
-    context.update_pipeline_data(dispatch_info.dispatch_node.pipeline_data);
-    dispatch_info.dispatch_node.group_count_x = groups_x_len;
-    dispatch_info.dispatch_node.group_count_y = groups_y_len;
-    dispatch_info.dispatch_node.group_count_z = groups_z_len;
-    context.render_graph.add_node(dispatch_info);
-  }
-  else {
-    render_graph::VKResourceAccessInfo resource_access_info = {};
-    context.state_manager_get().apply_bindings(context, resource_access_info);
-    context.bind_compute_pipeline();
-    VKCommandBuffers &command_buffers = context.command_buffers_get();
-    command_buffers.dispatch(groups_x_len, groups_y_len, groups_z_len);
-  }
+  render_graph::VKResourceAccessInfo &resources = context.update_and_get_access_info();
+  render_graph::VKDispatchNode::CreateInfo dispatch_info(resources);
+  context.update_pipeline_data(dispatch_info.dispatch_node.pipeline_data);
+  dispatch_info.dispatch_node.group_count_x = groups_x_len;
+  dispatch_info.dispatch_node.group_count_y = groups_y_len;
+  dispatch_info.dispatch_node.group_count_z = groups_z_len;
+  context.render_graph.add_node(dispatch_info);
 }
 
 void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
@@ -163,21 +154,12 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   BLI_assert(indirect_buf);
   VKContext &context = *VKContext::get();
   VKStorageBuffer &indirect_buffer = *unwrap(indirect_buf);
-  if (use_render_graph) {
-    render_graph::VKResourceAccessInfo &resources = context.update_and_get_access_info();
-    render_graph::VKDispatchIndirectNode::CreateInfo dispatch_indirect_info(resources);
-    context.update_pipeline_data(dispatch_indirect_info.dispatch_indirect_node.pipeline_data);
-    dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.vk_handle();
-    dispatch_indirect_info.dispatch_indirect_node.offset = 0;
-    context.render_graph.add_node(dispatch_indirect_info);
-  }
-  else {
-    render_graph::VKResourceAccessInfo resource_access_info = {};
-    context.state_manager_get().apply_bindings(context, resource_access_info);
-    context.bind_compute_pipeline();
-    VKCommandBuffers &command_buffers = context.command_buffers_get();
-    command_buffers.dispatch(indirect_buffer);
-  }
+  render_graph::VKResourceAccessInfo &resources = context.update_and_get_access_info();
+  render_graph::VKDispatchIndirectNode::CreateInfo dispatch_indirect_info(resources);
+  context.update_pipeline_data(dispatch_indirect_info.dispatch_indirect_node.pipeline_data);
+  dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.vk_handle();
+  dispatch_indirect_info.dispatch_indirect_node.offset = 0;
+  context.render_graph.add_node(dispatch_indirect_info);
 }
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
@@ -279,6 +261,8 @@ void VKBackend::capabilities_init(VKDevice &device)
   /* Reset all capabilities from previous context. */
   GCaps = {};
   GCaps.geometry_shader_support = true;
+  GCaps.texture_view_support = true;
+  GCaps.stencil_export_support = true;
   GCaps.shader_draw_parameters_support =
       device.physical_device_vulkan_11_features_get().shaderDrawParameters;
 

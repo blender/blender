@@ -6,10 +6,10 @@
 
 #if BLI_SUBPROCESS_SUPPORT
 
-#  include "BKE_appdir.hh"
 #  include "BLI_fileops.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_path_util.h"
+#  include "BLI_tempfile.h"
 #  include "CLG_log.h"
 #  include "GHOST_C-api.h"
 #  include "GPU_context.hh"
@@ -163,8 +163,9 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   GPUContext *gpu_context = GPU_context_create(nullptr, ghost_context);
   GPU_init();
 
-  BKE_tempdir_init(nullptr);
-  std::string cache_dir = std::string(BKE_tempdir_base()) + "BLENDER_SHADER_CACHE" + SEP_STR;
+  static char tmp_dir[1024];
+  BLI_temp_directory_path_get(tmp_dir, sizeof(tmp_dir));
+  std::string cache_dir = std::string(tmp_dir) + "BLENDER_SHADER_CACHE" + SEP_STR;
   BLI_dir_create_recursive(cache_dir.c_str());
 
   while (true) {

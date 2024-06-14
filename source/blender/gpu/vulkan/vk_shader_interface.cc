@@ -16,6 +16,8 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 {
   static char PUSH_CONSTANTS_FALLBACK_NAME[] = "push_constants_fallback";
   static size_t PUSH_CONSTANTS_FALLBACK_NAME_LEN = strlen(PUSH_CONSTANTS_FALLBACK_NAME);
+  static char SUBPASS_FALLBACK_NAME[] = "gpu_sybpass_img_0";
+  static size_t SUBPASS_FALLBACK_NAME_LEN = strlen(SUBPASS_FALLBACK_NAME);
 
   using namespace blender::gpu::shader;
   shader_builtins_ = info.builtins_;
@@ -50,6 +52,11 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     }
   }
 
+  for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
+    image_offset_ = max_ii(image_offset_, subpass_in.index);
+    uniform_len_++;
+  }
+
   /* Reserve 1 uniform buffer for push constants fallback. */
   size_t names_size = info.interface_names_size_;
   const VKDevice &device = VKBackend::get().device_get();
@@ -59,6 +66,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     ubo_len_++;
     names_size += PUSH_CONSTANTS_FALLBACK_NAME_LEN + 1;
   }
+  names_size += info.subpass_inputs_.size() * SUBPASS_FALLBACK_NAME_LEN;
 
   /* Make sure that the image slots don't overlap with other sampler or image slots. */
   image_offset_++;
@@ -105,6 +113,11 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   }
 
   /* Images, Samplers and buffers. */
+  for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
+    copy_input_name(input, SUBPASS_FALLBACK_NAME, name_buffer_, name_buffer_offset);
+    input->location = input->binding = subpass_in.index;
+    input++;
+  }
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
       copy_input_name(input, res.sampler.name, name_buffer_, name_buffer_offset);
@@ -175,6 +188,16 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   access_masks_ = Array<VkAccessFlags>(resources_len);
   access_masks_.fill(VK_ACCESS_NONE);
   uint32_t descriptor_set_location = 0;
+  for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
+    const ShaderInput *input = shader_input_get(
+        shader::ShaderCreateInfo::Resource::BindType::SAMPLER, subpass_in.index);
+    BLI_assert(STREQ(input_name_get(input), SUBPASS_FALLBACK_NAME));
+    BLI_assert(input);
+    descriptor_set_location_update(input,
+                                   descriptor_set_location++,
+                                   shader::ShaderCreateInfo::Resource::BindType::SAMPLER,
+                                   std::nullopt);
+  }
   for (ShaderCreateInfo::Resource &res : all_resources) {
     const ShaderInput *input = shader_input_get(res);
     BLI_assert(input);
@@ -210,9 +233,11 @@ void VKShaderInterface::descriptor_set_location_update(
     std::optional<const shader::ShaderCreateInfo::Resource> resource)
 {
   BLI_assert_msg(resource.has_value() ||
-                     bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER,
+                     ELEM(bind_type,
+                          shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER,
+                          shader::ShaderCreateInfo::Resource::BindType::SAMPLER),
                  "Incorrect parameters, when no resource is given, it must be the uniform buffer "
-                 "for storing push constants.");
+                 "for storing push constants or sampler for subpasses.");
   BLI_assert_msg(!resource.has_value() || resource->bind_type == bind_type,
                  "Incorrect parameter, bind types do not match.");
 
@@ -252,7 +277,10 @@ void VKShaderInterface::descriptor_set_location_update(
     };
   }
   else if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
-    access_masks_[index] = VK_ACCESS_UNIFORM_READ_BIT;
+    vk_access_flags |= VK_ACCESS_UNIFORM_READ_BIT;
+  }
+  else if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
+    vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
   }
   access_masks_[index] = vk_access_flags;
 }
@@ -348,6 +376,10 @@ void VKShaderInterface::init_descriptor_set_layout_info(
       info.compute_source_.is_empty() && info.compute_source_generated.empty() ?
           VK_SHADER_STAGE_ALL_GRAPHICS :
           VK_SHADER_STAGE_COMPUTE_BIT;
+  for (int index : IndexRange(info.subpass_inputs_.size())) {
+    UNUSED_VARS(index);
+    descriptor_set_layout_info_.bindings.append(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+  }
   for (const shader::ShaderCreateInfo::Resource &res : all_resources) {
     descriptor_set_layout_info_.bindings.append(to_vk_descriptor_type(res));
   }

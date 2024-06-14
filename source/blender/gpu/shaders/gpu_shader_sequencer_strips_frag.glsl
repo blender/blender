@@ -50,6 +50,8 @@ void main()
   vec2 pos1 = round(vec2(strip.left_handle, strip.bottom) * view_to_pixel);
   vec2 pos2 = round(vec2(strip.right_handle, strip.top) * view_to_pixel);
   pos2.x -= 1.0;
+  /* Make sure strip is at least 1px wide. */
+  pos2.x = max(pos2.x, pos1.x + 1.0);
   vec2 size = (pos2 - pos1) * 0.5;
   vec2 center = (pos1 + pos2) * 0.5;
   vec2 pos = round(co * view_to_pixel);

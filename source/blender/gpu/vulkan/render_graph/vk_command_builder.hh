@@ -52,7 +52,7 @@ class VKCommandBuilder {
      * Index of the active debug_group. Points to an element in
      * `VKRenderGraph.debug_.used_groups`.
      */
-    int64_t active_debug_group_index = -1;
+    int64_t active_debug_group_id = -1;
     /** Current level of debug groups. (number of nested debug groups). */
     int debug_level = 0;
   } state_;
@@ -78,21 +78,23 @@ class VKCommandBuilder {
 
  private:
   /**
-   * Build the commands for the given node_handle and node.
+   * Build the commands of the node group provided by the `node_group` parameter. The commands are
+   * recorded into the given `command_buffer`.
    *
-   * The dependencies of the node handle are checked and when needed a pipeline barrier will be
-   * generated and added to the command buffer.
-   *
-   * Based on the node.type the correct node class will be used for adding commands to the command
-   * buffer.
+   * build_nodes splits the given node_handles into groups. All synchronization events inside the
+   * group will be pushed to the front or back of this group. This allows us to record resource
+   * usage on node level, perform reordering and then invoke the synchronization events outside
+   * rendering scopes.
    */
-  void build_node(VKRenderGraph &render_graph,
-                  VKCommandBufferInterface &command_buffer,
-                  NodeHandle node_handle,
-                  VKRenderGraphNode &node);
+  void build_node_group(VKRenderGraph &render_graph,
+                        VKCommandBufferInterface &command_buffer,
+                        Span<NodeHandle> node_group,
+                        std::optional<NodeHandle> &r_rendering_scope,
+                        bool &r_is_rendering);
 
   /**
-   * Build the pipeline barriers that should be recorded before the given node handle.
+   * Build the pipeline barriers that should be recorded before any other commands of the node
+   * group the given node is part of is being recorded.
    */
   void build_pipeline_barriers(VKRenderGraph &render_graph,
                                VKCommandBufferInterface &command_buffer,

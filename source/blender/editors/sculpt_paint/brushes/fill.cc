@@ -36,18 +36,6 @@ struct LocalData {
   Vector<float3> translations;
 };
 
-BLI_NOINLINE static void calc_plane_side_factors(const Span<float3> vert_positions,
-                                                 const Span<int> verts,
-                                                 const float4 &plane,
-                                                 const MutableSpan<float> factors)
-{
-  for (const int i : verts.index_range()) {
-    if (plane_point_side_v3(plane, vert_positions[verts[i]]) > 0.0f) {
-      factors[i] = 0.0f;
-    }
-  }
-}
-
 static void calc_faces(const Sculpt &sd,
                        const Brush &brush,
                        const float4 &plane,
@@ -87,12 +75,12 @@ static void calc_faces(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  calc_plane_side_factors(positions_eval, verts, plane, factors);
+  filter_above_plane_factors(positions_eval, verts, plane, factors);
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  scrape_calc_translations(positions_eval, verts, plane, translations);
-  scrape_calc_plane_trim_limit(brush, *ss.cache, translations, factors);
+  calc_translations_to_plane(positions_eval, verts, plane, translations);
+  filter_plane_trim_limit_factors(brush, *ss.cache, translations, factors);
   scale_translations(translations, factors);
 
   clip_and_lock_translations(sd, ss, positions_eval, verts, translations);

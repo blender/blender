@@ -936,6 +936,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   extensions_device.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
   extensions_device.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
   extensions_device.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  extensions_device.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
 
   /* Enable MoltenVK required instance extensions. */
 #ifdef __APPLE__

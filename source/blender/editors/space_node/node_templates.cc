@@ -635,7 +635,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
     but = uiDefBut(block,
                    UI_BTYPE_BUT,
                    0,
-                   IFACE_("Remove"),
+                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
                    0,
                    0,
                    UI_UNIT_X * 4,

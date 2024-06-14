@@ -215,6 +215,9 @@ static bool geometry_attributes_poll(bContext *C)
   const Main *bmain = CTX_data_main(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
   AttributeOwner owner = AttributeOwner::from_id(data);
+  if (!owner.is_valid()) {
+    return false;
+  }
   return (ob && BKE_id_is_editable(bmain, &ob->id) && data && BKE_id_is_editable(bmain, data)) &&
          BKE_attributes_supported(owner);
 }
@@ -283,7 +286,8 @@ static int geometry_attribute_add_invoke(bContext *C, wmOperator *op, const wmEv
   if (!RNA_property_is_set(op->ptr, prop)) {
     RNA_property_string_set(op->ptr, prop, DATA_("Attribute"));
   }
-  return WM_operator_props_popup_confirm_ex(C, op, event, IFACE_("Add Attribute"), IFACE_("Add"));
+  return WM_operator_props_popup_confirm_ex(
+      C, op, event, IFACE_("Add Attribute"), CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add"));
 }
 
 void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
@@ -405,8 +409,11 @@ static int geometry_color_attribute_add_invoke(bContext *C, wmOperator *op, cons
   if (!RNA_property_is_set(op->ptr, prop)) {
     RNA_property_string_set(op->ptr, prop, DATA_("Color"));
   }
-  return WM_operator_props_popup_confirm_ex(
-      C, op, event, IFACE_("Add Color Attribute"), IFACE_("Add"));
+  return WM_operator_props_popup_confirm_ex(C,
+                                            op,
+                                            event,
+                                            IFACE_("Add Color Attribute"),
+                                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add"));
 }
 
 enum class ConvertAttributeMode {

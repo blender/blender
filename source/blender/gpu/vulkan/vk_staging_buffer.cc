@@ -36,15 +36,7 @@ void VKStagingBuffer::copy_to_device(VKContext &context)
   copy_buffer.dst_buffer = device_buffer_.vk_handle();
   copy_buffer.region.size = device_buffer_.size_in_bytes();
 
-  if (use_render_graph) {
-    context.render_graph.add_node(copy_buffer);
-  }
-  else {
-    VKCommandBuffers &command_buffers = context.command_buffers_get();
-    command_buffers.copy(
-        device_buffer_, copy_buffer.src_buffer, Span<VkBufferCopy>(&copy_buffer.region, 1));
-    command_buffers.submit();
-  }
+  context.render_graph.add_node(copy_buffer);
 }
 
 void VKStagingBuffer::copy_from_device(VKContext &context)
@@ -55,15 +47,7 @@ void VKStagingBuffer::copy_from_device(VKContext &context)
   copy_buffer.dst_buffer = host_buffer_.vk_handle();
   copy_buffer.region.size = device_buffer_.size_in_bytes();
 
-  if (use_render_graph) {
-    context.render_graph.add_node(copy_buffer);
-  }
-  else {
-    VKCommandBuffers &command_buffers = context.command_buffers_get();
-    command_buffers.copy(
-        host_buffer_, copy_buffer.src_buffer, Span<VkBufferCopy>(&copy_buffer.region, 1));
-    command_buffers.submit();
-  }
+  context.render_graph.add_node(copy_buffer);
 }
 
 void VKStagingBuffer::free()

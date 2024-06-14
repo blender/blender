@@ -1420,66 +1420,6 @@ class _defs_sculpt:
         ]
 
     @ToolDef.from_fn
-    def hide_border():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("paint.hide_show")
-            layout.prop(props, "area", expand=False)
-
-        return dict(
-            idname="builtin.box_hide",
-            label="Box Hide",
-            icon="ops.sculpt.border_hide",
-            widget=None,
-            keymap=(),
-            draw_settings=draw_settings,
-        )
-
-    @ToolDef.from_fn
-    def hide_lasso():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("paint.hide_show_lasso_gesture")
-            layout.prop(props, "area", expand=False)
-
-        return dict(
-            idname="builtin.lasso_hide",
-            label="Lasso Hide",
-            icon="ops.sculpt.lasso_hide",
-            widget=None,
-            keymap=(),
-            draw_settings=draw_settings,
-        )
-
-    @ToolDef.from_fn
-    def hide_line():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("paint.hide_show_line_gesture")
-            layout.prop(props, "use_limit_to_segment", expand=False)
-
-        return dict(
-            idname="builtin.line_hide",
-            label="Line Hide",
-            icon="ops.sculpt.line_hide",
-            widget=None,
-            keymap=(),
-            draw_settings=draw_settings,
-        )
-
-    @ToolDef.from_fn
-    def hide_polyline():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("paint.hide_show_polyline_gesture")
-            layout.prop(props, "area", expand=False)
-
-        return dict(
-            idname="builtin.polyline_hide",
-            label="Polyline Hide",
-            icon="ops.sculpt.polyline_hide",
-            widget=None,
-            keymap=(),
-            draw_settings=draw_settings,
-        )
-
-    @ToolDef.from_fn
     def mask_border():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("paint.mask_box_gesture")
@@ -1535,6 +1475,66 @@ class _defs_sculpt:
             idname="builtin.polyline_mask",
             label="Polyline Mask",
             icon="ops.sculpt.polyline_mask",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def hide_border():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.hide_show")
+            layout.prop(props, "area", expand=False)
+
+        return dict(
+            idname="builtin.box_hide",
+            label="Box Hide",
+            icon="ops.sculpt.border_hide",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def hide_lasso():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.hide_show_lasso_gesture")
+            layout.prop(props, "area", expand=False)
+
+        return dict(
+            idname="builtin.lasso_hide",
+            label="Lasso Hide",
+            icon="ops.sculpt.lasso_hide",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def hide_line():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.hide_show_line_gesture")
+            layout.prop(props, "use_limit_to_segment", expand=False)
+
+        return dict(
+            idname="builtin.line_hide",
+            label="Line Hide",
+            icon="ops.sculpt.line_hide",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def hide_polyline():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.hide_show_polyline_gesture")
+            layout.prop(props, "area", expand=False)
+
+        return dict(
+            idname="builtin.polyline_hide",
+            label="Polyline Hide",
+            icon="ops.sculpt.polyline_hide",
             widget=None,
             keymap=(),
             draw_settings=draw_settings,

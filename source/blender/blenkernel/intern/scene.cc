@@ -107,7 +107,15 @@
 
 #include "bmesh.hh"
 
+using blender::bke::CompositorRuntime;
 using blender::bke::SceneRuntime;
+
+CompositorRuntime::~CompositorRuntime()
+{
+  if (preview_depsgraph) {
+    DEG_graph_free(preview_depsgraph);
+  }
+}
 
 CurveMapping *BKE_sculpt_default_cavity_curve()
 

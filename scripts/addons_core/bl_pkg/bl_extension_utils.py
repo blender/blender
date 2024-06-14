@@ -360,20 +360,10 @@ def repo_index_outdated(directory: str) -> bool:
 
 
 def platform_from_this_system() -> str:
-    import platform
-    system_replace = {
-        "darwin": "macos",
-    }
-    machine_replace = {
-        "x86_64": "x64",
-        "amd64": "x64",
-    }
-    system = platform.system().lower()
-    machine = platform.machine().lower()
-    return "{:s}-{:s}".format(
-        system_replace.get(system, system),
-        machine_replace.get(machine, machine),
-    )
+    from .cli.blender_ext import platform_from_this_system as platform_from_this_system_impl
+    result = platform_from_this_system_impl()
+    assert isinstance(result, str)
+    return result
 
 
 def _url_append_query(url: str, query: Dict[str, str]) -> str:
@@ -474,6 +464,7 @@ def repo_sync(
         remote_url: str,
         online_user_agent: str,
         access_token: str,
+        timeout: float,
         use_idle: bool,
         force_exit_ok: bool = False,
         dry_run: bool = False,
@@ -495,6 +486,7 @@ def repo_sync(
         "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
+        "--timeout", "{:g}".format(timeout),
         *(("--force-exit-ok",) if force_exit_ok else ()),
         *(("--demote-connection-errors-to-status",) if demote_connection_errors_to_status else ()),
         *(("--extension-override", extension_override) if extension_override else ()),
@@ -565,8 +557,10 @@ def pkg_install(
         directory: str,
         remote_url: str,
         pkg_id_sequence: Sequence[str],
+        blender_version: Tuple[int, int, int],
         online_user_agent: str,
         access_token: str,
+        timeout: float,
         use_cache: bool,
         use_idle: bool,
 ) -> Generator[InfoItemSeq, None, None]:
@@ -578,9 +572,11 @@ def pkg_install(
         "install", ",".join(pkg_id_sequence),
         "--local-dir", directory,
         "--remote-url", remote_url,
+        "--blender-version", "{:d}.{:d}.{:d}".format(*blender_version),
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
         "--local-cache", str(int(use_cache)),
+        "--timeout", "{:g}".format(timeout),
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
 
@@ -650,7 +646,7 @@ def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
     with open(filepath, "r", encoding="utf-8") as fh:
         data = fh.read()
 
-    def key_replace(match: re.Match[str]) -> str:
+    def key_replace(_match: re.Match[str]) -> str:
         return "version = \"0.0.0\""
 
     data = re.sub(r"^\s*version\s*=\s*\"[^\"]+\"", key_replace, data, flags=re.MULTILINE)
@@ -785,6 +781,7 @@ class CommandBatch:
         "title",
 
         "_batch",
+        "_batch_job_limit",
         "_request_exit",
         "_log_added_since_accessed",
     )
@@ -794,9 +791,11 @@ class CommandBatch:
             *,
             title: str,
             batch: Sequence[InfoItemCallable],
+            batch_job_limit: int,
     ):
         self.title = title
         self._batch = [CommandBatchItem(fn_with_args) for fn_with_args in batch]
+        self._batch_job_limit = batch_job_limit
         self._request_exit = False
         self._log_added_since_accessed = True
 
@@ -811,7 +810,7 @@ class CommandBatch:
             request_exit: Optional[bool] = None
             while True:
                 try:
-                    # Request `request_exit` starts of as None, then it's a boolean.
+                    # Request `request_exit` starts off as None, then it's a boolean.
                     json_messages = cmd.fn_iter.send(request_exit)  # type: ignore
                 except StopIteration:
                     break
@@ -866,7 +865,16 @@ class CommandBatch:
 
         status_data_changed = False
 
+        # NOTE: the method of limiting the number of running jobs won't be efficient
+        # with large numbers of jobs (tens of thousands or more), since all jobs are iterated over each time.
+        # To support this a queue of not-yet-started jobs could be used ... or this whole function could be re-thought.
+        # At this point in time using such large numbers of jobs isn't likely, so accept the simple loop each time
+        # this function is called.
+        batch_job_limit = self._batch_job_limit
+
+        running_count = 0
         complete_count = 0
+
         for cmd_index in reversed(range(len(self._batch))):
             cmd = self._batch[cmd_index]
             if cmd.status == CommandBatchItem.STATUS_COMPLETE:
@@ -877,6 +885,10 @@ class CommandBatch:
 
             # First time initialization.
             if cmd.fn_iter is None:
+                if 0 != batch_job_limit and running_count >= batch_job_limit:
+                    # Try again later.
+                    continue
+
                 cmd.fn_iter = cmd.invoke()
                 cmd.status = CommandBatchItem.STATUS_RUNNING
                 status_data_changed = True
@@ -916,9 +928,12 @@ class CommandBatch:
                                 status_data_changed = True
                         cmd.msg_log.append((ty, msg))
 
+            if cmd.status == CommandBatchItem.STATUS_RUNNING:
+                running_count += 1
+
         # Check if all are complete.
         assert complete_count == len([cmd for cmd in self._batch if cmd.status == CommandBatchItem.STATUS_COMPLETE])
-        all_complete = (complete_count == len(self._batch))
+        all_complete = complete_count == len(self._batch)
         return CommandBatch_ExecNonBlockingResult(
             messages=command_output,
             all_complete=all_complete,
@@ -1062,75 +1077,80 @@ class PkgManifest_Normalized(NamedTuple):
         # from breaking Blender's internal functionality.
 
         try:
-            name = manifest_dict["name"]
-            tagline = manifest_dict["tagline"]
-            version = manifest_dict["version"]
-            type = manifest_dict["type"]
-            maintainer = manifest_dict["maintainer"]
-            license = manifest_dict["license"]
+            field_name = manifest_dict["name"]
+            field_tagline = manifest_dict["tagline"]
+            field_version = manifest_dict["version"]
+            field_type = manifest_dict["type"]
+            field_maintainer = manifest_dict["maintainer"]
+            field_license = manifest_dict["license"]
 
             # Optional.
-            website = manifest_dict.get("website", "")
-            permissions: Union[List[str], Dict[str, str]] = manifest_dict.get("permissions", {})
-            tags = manifest_dict.get("tags", [])
-            wheels = manifest_dict.get("wheels", [])
+            field_website = manifest_dict.get("website", "")
+            field_permissions: Union[List[str], Dict[str, str]] = manifest_dict.get("permissions", {})
+            field_tags = manifest_dict.get("tags", [])
+            field_wheels = manifest_dict.get("wheels", [])
 
             # Remote only (not found in TOML files).
-            archive_size = manifest_dict.get("archive_size", 0)
-            archive_url = manifest_dict.get("archive_url", "")
+            field_archive_size = manifest_dict.get("archive_size", 0)
+            field_archive_url = manifest_dict.get("archive_url", "")
 
         except KeyError as ex:
             error_fn(KeyError("{:s}: missing key {:s}".format(pkg_idname, str(ex))))
             return None
 
         # This is an old (now unsupported) format, convert into a dictionary.
-        if isinstance(permissions, list):
-            permissions = {key: "Undefined" for key in permissions}
+        if isinstance(field_permissions, list):
+            field_permissions = {key: "Undefined" for key in field_permissions}
 
         try:
-            if not (isinstance(name, str) and name):
+            if not (isinstance(field_name, str) and field_name):
                 raise TypeError("{:s}: \"name\" must be a non-empty string".format(pkg_idname))
 
-            if not isinstance(tagline, str):
+            if not isinstance(field_tagline, str):
                 raise TypeError("{:s}: \"tagline\" must be a string".format(pkg_idname))
 
-            if not (isinstance(version, str) and version):
+            if not (isinstance(field_version, str) and field_version):
                 raise TypeError("{:s}: \"version\" must be a non-empty string".format(pkg_idname))
 
-            if not (isinstance(type, str) and type):
+            if not (isinstance(field_type, str) and field_type):
                 raise TypeError("{:s}: \"type\" must be a non-empty string".format(pkg_idname))
 
-            if not (isinstance(maintainer, str) and maintainer):
+            if not (isinstance(field_maintainer, str) and field_maintainer):
                 raise TypeError("{:s}: \"maintainer\" must be a non-empty string".format(pkg_idname))
 
             if not (
-                    isinstance(license, list) and
-                    license and
-                    (not any(1 for x in license if not isinstance(x, str)))
+                    isinstance(field_license, list) and
+                    field_license and
+                    (not any(1 for x in field_license if not isinstance(x, str)))
             ):
                 raise TypeError("{:s}: \"license\" must be a non-empty list of strings".format(pkg_idname))
 
             # Optional.
-            if not isinstance(website, str):
+            if not isinstance(field_website, str):
                 raise TypeError("{:s}: \"website\" must be a string".format(pkg_idname))
 
             if not (
-                    isinstance(permissions, dict) and
-                    (not any(1 for k, v in permissions.items() if not (isinstance(k, str) and isinstance(v, str))))
+                    isinstance(field_permissions, dict) and
+                    (
+                        not any(
+                            1 for k, v in field_permissions.items()
+                            if not (isinstance(k, str) and isinstance(v, str))
+                        )
+                    )
             ):
                 raise TypeError("{:s}: \"permissions\" must be a non-empty list of strings".format(pkg_idname))
 
-            if not (isinstance(tags, list) and (not any(1 for x in tags if not isinstance(x, str)))):
+            if not (isinstance(field_tags, list) and (not any(1 for x in field_tags if not isinstance(x, str)))):
                 raise TypeError("{:s}: \"tags\" must be a non-empty list of strings".format(pkg_idname))
 
-            if not (isinstance(wheels, list) and (not any(1 for x in wheels if not isinstance(x, str)))):
+            if not (isinstance(field_wheels, list) and (not any(1 for x in field_wheels if not isinstance(x, str)))):
                 raise TypeError("{:s}: \"wheels\" must be a non-empty list of strings".format(pkg_idname))
 
             # Remote only.
-            if not isinstance(archive_size, int):
+            if not isinstance(field_archive_size, int):
                 raise TypeError("{:s}: \"archive_size\" must be an int".format(pkg_idname))
 
-            if not isinstance(archive_url, str):
+            if not isinstance(field_archive_url, str):
                 raise TypeError("{:s}: \"archive_url\" must a string".format(pkg_idname))
 
         except TypeError as ex:
@@ -1138,23 +1158,23 @@ class PkgManifest_Normalized(NamedTuple):
             return None
 
         return PkgManifest_Normalized(
-            name=name,
-            tagline=tagline,
-            version=version,
-            type=type,
+            name=field_name,
+            tagline=field_tagline,
+            version=field_version,
+            type=field_type,
             # Remove the maintainers email while it's not private, showing prominently
             # could cause maintainers to get direct emails instead of issue tracking systems.
-            maintainer=maintainer.split("<", 1)[0].rstrip(),
-            license=license_info_to_text(license),
+            maintainer=field_maintainer.split("<", 1)[0].rstrip(),
+            license=license_info_to_text(field_license),
 
             # Optional.
-            website=website,
-            permissions=permissions,
-            tags=tuple(tags),
-            wheels=tuple(wheels),
+            website=field_website,
+            permissions=field_permissions,
+            tags=tuple(field_tags),
+            wheels=tuple(field_wheels),
 
-            archive_size=archive_size,
-            archive_url=archive_url,
+            archive_size=field_archive_size,
+            archive_url=field_archive_url,
         )
 
 
@@ -1168,24 +1188,40 @@ def repository_id_with_error_fn(
         error_fn(ValueError("{:s}: \"id\" missing".format(repo_directory)))
         return None
 
-    if not (isinstance(pkg_idname, str)):
+    if not isinstance(pkg_idname, str):
         error_fn(ValueError("{:s}: \"id\" must be a string".format(repo_directory)))
         return None
 
     return pkg_idname
 
 
-def repository_filter_skip(item: Dict[str, Any]) -> bool:
-    # TODO: filter out items that:
-    # - Don't match this systems platform.
-    # - Don't match the version range of Blender.
-    return False
+# Values used to exclude incompatible packages when listing & installing.
+class PkgManifest_FilterParams(NamedTuple):
+    platform: str
+    blender_version: Tuple[int, int, int]
+
+
+def repository_filter_skip(
+        item: Dict[str, Any],
+        filter_params: PkgManifest_FilterParams,
+        error_fn: Callable[[Exception], None],
+) -> bool:
+    from .cli.blender_ext import repository_filter_skip as repository_filter_skip_impl
+    result = repository_filter_skip_impl(
+        item,
+        filter_blender_version=filter_params.blender_version,
+        filter_platform=filter_params.platform,
+        error_fn=error_fn,
+    )
+    assert isinstance(result, bool)
+    return result
 
 
 def repository_filter_packages(
         data: List[Dict[str, Any]],
         *,
         repo_directory: str,
+        filter_params: PkgManifest_FilterParams,
         error_fn: Callable[[Exception], None],
 ) -> Dict[str, PkgManifest_Normalized]:
     pkg_manifest_map = {}
@@ -1197,7 +1233,7 @@ def repository_filter_packages(
         )) is None:
             continue
 
-        if repository_filter_skip(item):
+        if repository_filter_skip(item, filter_params, error_fn):
             continue
 
         if (value := PkgManifest_Normalized.from_dict_with_error_fn(
@@ -1288,14 +1324,20 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
         "_data",
 
         "_filepath",
+        "_filter_params",
         "_mtime",
     )
 
-    def __init__(self, directory: str):
+    def __init__(
+            self,
+            directory: str,
+            filter_params: PkgManifest_FilterParams,
+    ):
         filepath = os.path.join(directory, REPO_LOCAL_JSON)
 
         self._filepath: str = filepath
         self._mtime: int = 0
+        self._filter_params: PkgManifest_FilterParams = filter_params
         self._data: Optional[RepoRemoteData] = None
 
     def exists(self) -> bool:
@@ -1362,6 +1404,7 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
             pkg_manifest_map=repository_filter_packages(
                 data_dict.get("data", []),
                 repo_directory=os.path.dirname(self._filepath),
+                filter_params=self._filter_params,
                 error_fn=error_fn,
             ),
         )
@@ -1377,11 +1420,17 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
         "_data",
 
         "_directory",
+        "_filter_params",
         "_mtime_for_each_package",
     )
 
-    def __init__(self, directory: str):
+    def __init__(
+            self,
+            directory: str,
+            filter_params: PkgManifest_FilterParams,
+    ):
         self._directory: str = directory
+        self._filter_params = filter_params
         self._mtime_for_each_package: Optional[Dict[str, int]] = None
         self._data: Optional[RepoRemoteData] = None
 
@@ -1449,7 +1498,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             )) is None:
                 continue
 
-            if repository_filter_skip(item_local):
+            if repository_filter_skip(item_local, self._filter_params, error_fn):
                 continue
 
             if (value := PkgManifest_Normalized.from_dict_with_error_fn(
@@ -1546,7 +1595,12 @@ class _RepoCacheEntry:
 
     )
 
-    def __init__(self, directory: str, remote_url: str) -> None:
+    def __init__(
+            self,
+            directory: str,
+            remote_url: str,
+            filter_params: PkgManifest_FilterParams,
+    ) -> None:
         assert directory != ""
         self.directory = directory
         self.remote_url = remote_url
@@ -1554,8 +1608,8 @@ class _RepoCacheEntry:
         self._pkg_manifest_local: Optional[Dict[str, PkgManifest_Normalized]] = None
         self._pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
         self._pkg_manifest_remote_data_source: _RepoDataSouce_ABC = (
-            _RepoDataSouce_JSON(directory) if remote_url else
-            _RepoDataSouce_TOML_FILES(directory)
+            _RepoDataSouce_JSON(directory, filter_params) if remote_url else
+            _RepoDataSouce_TOML_FILES(directory, filter_params)
         )
         # Avoid many noisy prints.
         self._pkg_manifest_remote_has_warning = False
@@ -1596,12 +1650,21 @@ class _RepoCacheEntry:
             *,
             error_fn: Callable[[Exception], None],
             force: bool = False,
-    ) -> None:
-        self._pkg_manifest_remote_data_source.data(
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
+        data = self._pkg_manifest_remote_data_source.data(
             cache_validate=True,
             force=force,
             error_fn=error_fn,
         )
+
+        pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
+        if data is not None:
+            pkg_manifest_remote = data.pkg_manifest_map
+
+        if pkg_manifest_remote is not self._pkg_manifest_remote:
+            self._pkg_manifest_remote = pkg_manifest_remote
+
+        return pkg_manifest_remote
 
     def pkg_manifest_from_local_ensure(
             self,
@@ -1684,11 +1747,16 @@ class _RepoCacheEntry:
 class RepoCacheStore:
     __slots__ = (
         "_repos",
+        "_filter_params",
         "_is_init",
     )
 
-    def __init__(self) -> None:
+    def __init__(self, blender_version: Tuple[int, int, int]) -> None:
         self._repos: List[_RepoCacheEntry] = []
+        self._filter_params = PkgManifest_FilterParams(
+            platform=platform_from_this_system(),
+            blender_version=blender_version,
+        )
         self._is_init = False
 
     def is_init(self) -> bool:
@@ -1711,7 +1779,7 @@ class RepoCacheStore:
         for directory, remote_url in repos:
             repo_entry_test = repos_prev.get((directory, remote_url))
             if repo_entry_test is None:
-                repo_entry_test = _RepoCacheEntry(directory, remote_url)
+                repo_entry_test = _RepoCacheEntry(directory, remote_url, self._filter_params)
             self._repos.append(repo_entry_test)
         self._is_init = True
 
@@ -1721,11 +1789,10 @@ class RepoCacheStore:
             *,
             error_fn: Callable[[Exception], None],
             force: bool = False,
-    ) -> None:
+    ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         for repo_entry in self._repos:
             if directory == repo_entry.directory:
-                repo_entry._json_data_refresh(force=force, error_fn=error_fn)
-                return
+                return repo_entry._json_data_refresh(force=force, error_fn=error_fn)
         raise ValueError("Directory {:s} not a known repo".format(directory))
 
     def refresh_local_from_directory(
@@ -1734,7 +1801,6 @@ class RepoCacheStore:
             *,
             error_fn: Callable[[Exception], None],
             ignore_missing: bool = False,
-            directory_subset: Optional[Set[str]] = None,
     ) -> Optional[Dict[str, PkgManifest_Normalized]]:
         for repo_entry in self._repos:
             if directory == repo_entry.directory:

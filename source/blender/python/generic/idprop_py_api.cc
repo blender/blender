@@ -341,7 +341,9 @@ static char idp_sequence_type(PyObject *seq_fast)
   for (i = 0; i < len; i++) {
     item = seq_fast_items[i];
     if (PyFloat_Check(item)) {
-      if (type == IDP_IDPARRAY) { /* mixed dict/int */
+      /* Mixed float and any other type but int.
+       * NOTE: Mixed float/int is allowed, and considered as float values. */
+      if (!ELEM(type, IDP_INT, IDP_DOUBLE)) {
         return -1;
       }
       type = IDP_DOUBLE;
@@ -354,7 +356,9 @@ static char idp_sequence_type(PyObject *seq_fast)
       type = IDP_BOOLEAN;
     }
     else if (PyLong_Check(item)) {
-      if (type == IDP_IDPARRAY) { /* mixed dict/int */
+      /* Mixed int and any other type but float.
+       * NOTE: Mixed float/int is allowed, and considered as float values. */
+      if (!ELEM(type, IDP_INT, IDP_DOUBLE)) {
         return -1;
       }
     }
@@ -408,53 +412,214 @@ static const char *idp_try_read_name(PyObject *name_obj)
 /**
  * The 'idp_from_Py*' functions expect that the input type has been checked before
  * and return nullptr if the IDProperty can't be created.
+ *
+ * \param prop_exist If not null, attempt to assign given `ob` value to this property first, and
+ *                   only create a new one if not possible.
+ *                   If no assignment (or conversion and assignment) is possible, the current
+ *                   value remains unchanged.
+ *
+ * \param do_conversion If `true`, allow some 'reasonable' conversion of input value to match the
+ *                     `prop_exist` property type. E.g. can convert an `int` to a `float`, but not
+ *                     the other way around.
+ *
+ * \param can_create Whether creating a new IDProperty is allowed.
+ *
+ * \return `prop_exist` if given and it could be assigned given `ob` value, a new IDProperty
+ *         otherwise.
  */
 
-static IDProperty *idp_from_PyFloat(const char *name, PyObject *ob)
+static IDProperty *idp_from_PyFloat(IDProperty *prop_exist,
+                                    const char *name,
+                                    PyObject *ob,
+                                    const bool do_conversion,
+                                    const bool can_create)
 {
-  return blender::bke::idprop::create(name, PyFloat_AsDouble(ob)).release();
-}
-
-static IDProperty *idp_from_PyBool(const char *name, PyObject *ob)
-{
-  return blender::bke::idprop::create_bool(name, PyC_Long_AsBool(ob)).release();
-}
-
-static IDProperty *idp_from_PyLong(const char *name, PyObject *ob)
-{
-  const int value = PyC_Long_AsI32(ob);
-  if (value == -1 && PyErr_Occurred()) {
-    return nullptr;
+  IDProperty *prop = nullptr;
+  const double value = PyFloat_AsDouble(ob);
+  if (prop_exist) {
+    if (prop_exist->type == IDP_DOUBLE) {
+      IDP_Double(prop_exist) = value;
+      prop = prop_exist;
+    }
+    else if (do_conversion) {
+      switch (prop_exist->type) {
+        case IDP_FLOAT:
+          IDP_Float(prop_exist) = float(value);
+          prop = prop_exist;
+          break;
+        case IDP_STRING:
+        case IDP_INT:
+        case IDP_ARRAY:
+        case IDP_GROUP:
+        case IDP_ID:
+        case IDP_DOUBLE:
+        case IDP_IDPARRAY:
+        case IDP_BOOLEAN:
+          break;
+      }
+    }
   }
-  return blender::bke::idprop::create(name, value).release();
-}
-
-static IDProperty *idp_from_PyUnicode(const char *name, PyObject *ob)
-{
-  IDProperty *prop;
-  IDPropertyTemplate val = {0};
-#ifdef USE_STRING_COERCE
-  Py_ssize_t value_len;
-  PyObject *value_coerce = nullptr;
-  val.string.str = PyC_UnicodeAsBytesAndSize(ob, &value_len, &value_coerce);
-  val.string.len = int(value_len) + 1;
-  val.string.subtype = IDP_STRING_SUB_UTF8;
-  prop = IDP_New(IDP_STRING, &val, name);
-  Py_XDECREF(value_coerce);
-#else
-  val.str = PyUnicode_AsUTF8(ob);
-  prop = IDP_New(IDP_STRING, val, name);
-#endif
+  if (!prop && can_create) {
+    prop = blender::bke::idprop::create(name, value).release();
+  }
   return prop;
 }
 
-static IDProperty *idp_from_PyBytes(const char *name, PyObject *ob)
+static IDProperty *idp_from_PyBool(IDProperty *prop_exist,
+                                   const char *name,
+                                   PyObject *ob,
+                                   const bool do_conversion,
+                                   const bool can_create)
 {
-  IDPropertyTemplate val = {0};
-  val.string.str = PyBytes_AS_STRING(ob);
-  val.string.len = PyBytes_GET_SIZE(ob);
-  val.string.subtype = IDP_STRING_SUB_BYTE;
-  return IDP_New(IDP_STRING, &val, name);
+  IDProperty *prop = nullptr;
+  const bool value = PyC_Long_AsBool(ob);
+  if (prop_exist) {
+    if (prop_exist->type == IDP_BOOLEAN) {
+      IDP_Bool(prop_exist) = value;
+      prop = prop_exist;
+    }
+    else if (do_conversion) {
+      switch (prop_exist->type) {
+        case IDP_INT:
+          IDP_Int(prop_exist) = int(value);
+          prop = prop_exist;
+          break;
+        case IDP_STRING:
+        case IDP_FLOAT:
+        case IDP_ARRAY:
+        case IDP_GROUP:
+        case IDP_ID:
+        case IDP_DOUBLE:
+        case IDP_IDPARRAY:
+        case IDP_BOOLEAN:
+          break;
+      }
+    }
+  }
+  if (!prop && can_create) {
+    prop = blender::bke::idprop::create_bool(name, value).release();
+  }
+  return prop;
+}
+
+static IDProperty *idp_from_PyLong(IDProperty *prop_exist,
+                                   const char *name,
+                                   PyObject *ob,
+                                   const bool do_conversion,
+                                   const bool can_create)
+{
+  IDProperty *prop = nullptr;
+  if (prop_exist) {
+    if (prop_exist->type == IDP_INT) {
+      const int value = PyC_Long_AsI32(ob);
+      if (value == -1 && PyErr_Occurred()) {
+        return prop;
+      }
+      IDP_Int(prop_exist) = value;
+      prop = prop_exist;
+    }
+    else if (do_conversion) {
+      const int64_t value = PyC_Long_AsI64(ob);
+      if (value == -1 && PyErr_Occurred()) {
+        return prop;
+      }
+      switch (prop_exist->type) {
+        case IDP_FLOAT:
+          IDP_Float(prop_exist) = float(value);
+          prop = prop_exist;
+          break;
+        case IDP_DOUBLE:
+          IDP_Double(prop_exist) = double(value);
+          prop = prop_exist;
+          break;
+        case IDP_STRING:
+        case IDP_INT:
+        case IDP_ARRAY:
+        case IDP_GROUP:
+        case IDP_ID:
+        case IDP_IDPARRAY:
+        case IDP_BOOLEAN:
+          break;
+      }
+    }
+  }
+  if (!prop && can_create) {
+    const int value = PyC_Long_AsI32(ob);
+    if (value == -1 && PyErr_Occurred()) {
+      return prop;
+    }
+    prop = blender::bke::idprop::create(name, value).release();
+  }
+  return prop;
+}
+
+static IDProperty *idp_from_PyUnicode(IDProperty *prop_exist,
+                                      const char *name,
+                                      PyObject *ob,
+                                      const bool /*do_conversion*/,
+                                      const bool can_create)
+{
+  IDProperty *prop = nullptr;
+  Py_ssize_t value_len = 0;
+  const char *value = nullptr;
+
+#ifdef USE_STRING_COERCE
+  PyObject *value_coerce = nullptr;
+  value = PyC_UnicodeAsBytesAndSize(ob, &value_len, &value_coerce);
+#else
+  value = PyUnicode_AsUTF8AndSize(ob, &value_len);
+#endif
+
+  if (prop_exist) {
+    if (prop_exist->type == IDP_STRING && prop_exist->subtype == IDP_STRING_SUB_UTF8) {
+      IDP_AssignStringMaxSize(prop_exist, value, int(value_len) + 1);
+      prop = prop_exist;
+    }
+    /* No conversion. */
+  }
+
+  if (!prop && can_create) {
+    IDPropertyTemplate val = {0};
+    val.string.str = value;
+    val.string.len = int(value_len) + 1;
+    val.string.subtype = IDP_STRING_SUB_UTF8;
+    prop = IDP_New(IDP_STRING, &val, name);
+  }
+
+#ifdef USE_STRING_COERCE
+  Py_XDECREF(value_coerce);
+#endif
+
+  return prop;
+}
+
+static IDProperty *idp_from_PyBytes(IDProperty *prop_exist,
+                                    const char *name,
+                                    PyObject *ob,
+                                    const bool /*do_conversion*/,
+                                    const bool can_create)
+{
+  IDProperty *prop = nullptr;
+  Py_ssize_t value_len = PyBytes_GET_SIZE(ob);
+  const char *value = PyBytes_AS_STRING(ob);
+
+  if (prop_exist) {
+    if (prop_exist->type == IDP_STRING && prop_exist->subtype == IDP_STRING_SUB_BYTE) {
+      IDP_AssignStringMaxSize(prop_exist, value, int(value_len) + 1);
+      prop = prop_exist;
+    }
+    /* No conversion. */
+  }
+
+  if (!prop && can_create) {
+    IDPropertyTemplate val = {0};
+    val.string.str = value;
+    val.string.len = int(value_len);
+    val.string.subtype = IDP_STRING_SUB_BYTE;
+    prop = IDP_New(IDP_STRING, &val, name);
+  }
+
+  return prop;
 }
 
 static int idp_array_type_from_formatstr_and_size(const char *typestr, Py_ssize_t itemsize)
@@ -496,28 +661,41 @@ static const char *idp_format_from_array_type(int type)
   return nullptr;
 }
 
-static IDProperty *idp_from_PySequence_Buffer(const char *name, Py_buffer *buffer)
+static IDProperty *idp_from_PySequence_Buffer(IDProperty *prop_exist,
+                                              const char *name,
+                                              Py_buffer &buffer,
+                                              const int idp_type,
+                                              const bool /*do_conversion*/,
+                                              const bool can_create)
 {
-  IDProperty *prop;
-  IDPropertyTemplate val = {0};
+  BLI_assert(idp_type != -1);
+  IDProperty *prop = nullptr;
 
-  const int id_type = idp_array_type_from_formatstr_and_size(buffer->format, buffer->itemsize);
-  if (id_type == -1) {
-    /* should never happen as the type has been checked before */
-    return nullptr;
+  if (prop_exist) {
+    if (prop_exist->type == IDP_ARRAY && prop_exist->subtype == idp_type) {
+      BLI_assert(buffer.len == prop_exist->len);
+      memcpy(IDP_Array(prop_exist), buffer.buf, buffer.len);
+      prop = prop_exist;
+    }
+    /* No conversion. */
   }
-
-  val.array.type = id_type;
-  val.array.len = buffer->len / buffer->itemsize;
-
-  prop = IDP_New(IDP_ARRAY, &val, name);
-  memcpy(IDP_Array(prop), buffer->buf, buffer->len);
+  if (!prop && can_create) {
+    IDPropertyTemplate val = {0};
+    val.array.type = idp_type;
+    val.array.len = buffer.len / buffer.itemsize;
+    prop = IDP_New(IDP_ARRAY, &val, name);
+    memcpy(IDP_Array(prop), buffer.buf, buffer.len);
+  }
   return prop;
 }
 
-static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
+static IDProperty *idp_from_PySequence_Fast(IDProperty *prop_exist,
+                                            const char *name,
+                                            PyObject *ob,
+                                            const bool do_conversion,
+                                            const bool can_create)
 {
-  IDProperty *prop;
+  IDProperty *prop = nullptr;
   IDPropertyTemplate val = {0};
 
   PyObject **ob_seq_fast_items;
@@ -528,17 +706,120 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
 
   /* IDProperties do not support mixed type of data in an array. Try to extract a single type from
    * the whole sequence, or error. */
-  if ((val.array.type = idp_sequence_type(ob)) == char(-1)) {
+  val.array.type = idp_sequence_type(ob);
+  if (val.array.type == char(-1)) {
     PyErr_SetString(PyExc_TypeError,
                     "only floats, ints, booleans and dicts are allowed in ID property arrays");
     return nullptr;
   }
-
-  /* validate sequence and derive type.
-   * we assume IDP_INT unless we hit a float
-   * number; then we assume it's */
+  if (!ELEM(val.array.type, IDP_DOUBLE, IDP_INT, IDP_BOOLEAN, IDP_IDPARRAY)) {
+    /* Should never happen. */
+    PyErr_SetString(PyExc_RuntimeError, "internal error with idp array.type");
+    BLI_assert_unreachable();
+    return nullptr;
+  }
 
   val.array.len = PySequence_Fast_GET_SIZE(ob);
+
+  /* NOTE: For now do not consider resizing existing array property. Also do not handle IDPARRAY.
+   * - 'static type' also means 'fixed length' (e.g. vectors or matrices cases).
+   * - For 'dynamic type' case, it's not really a problem if array properties get replaced
+   * currently.
+   */
+  if (prop_exist && prop_exist->len == val.array.len) {
+    switch (val.array.type) {
+      case IDP_DOUBLE: {
+        const bool to_float = (prop_exist->subtype == IDP_FLOAT);
+        if (!(prop_exist->type == IDP_ARRAY &&
+              (prop_exist->subtype == IDP_DOUBLE || (do_conversion && to_float))))
+        {
+          break;
+        }
+        prop = prop_exist;
+        void *prop_data = IDP_Array(prop);
+        for (i = 0; i < val.array.len; i++) {
+          item = ob_seq_fast_items[i];
+          const double value = PyFloat_AsDouble(item);
+          if ((value == -1.0) && PyErr_Occurred()) {
+            continue;
+          }
+          if (to_float) {
+            static_cast<float *>(prop_data)[i] = float(value);
+          }
+          else {
+            static_cast<double *>(prop_data)[i] = value;
+          }
+        }
+        break;
+      }
+      case IDP_INT: {
+        const bool to_float = (prop_exist->subtype == IDP_FLOAT);
+        const bool to_double = (prop_exist->subtype == IDP_DOUBLE);
+        if (!(prop_exist->type == IDP_ARRAY &&
+              (prop_exist->subtype == IDP_INT || (do_conversion && (to_float || to_double)))))
+        {
+          break;
+        }
+        prop = prop_exist;
+        void *prop_data = IDP_Array(prop);
+        for (i = 0; i < val.array.len; i++) {
+          item = ob_seq_fast_items[i];
+          if (to_float || to_double) {
+            const int64_t value = PyC_Long_AsI64(item);
+            if ((value == -1) && PyErr_Occurred()) {
+              continue;
+            }
+            if (to_float) {
+              static_cast<float *>(prop_data)[i] = float(value);
+            }
+            else { /* if (to_double) */
+              static_cast<double *>(prop_data)[i] = double(value);
+            }
+          }
+          else {
+            const int value = PyC_Long_AsI32(item);
+            if ((value == -1) && PyErr_Occurred()) {
+              continue;
+            }
+            static_cast<int *>(prop_data)[i] = value;
+          }
+        }
+        break;
+      }
+      case IDP_BOOLEAN: {
+        const bool to_int = (prop_exist->subtype == IDP_INT);
+        if (!(prop_exist->type == IDP_ARRAY &&
+              (prop_exist->subtype == IDP_BOOLEAN || (do_conversion && to_int))))
+        {
+          break;
+        }
+        prop = prop_exist;
+        void *prop_data = IDP_Array(prop);
+        for (i = 0; i < val.array.len; i++) {
+          item = ob_seq_fast_items[i];
+          const int value = PyC_Long_AsBool(item);
+          if ((value == -1) && PyErr_Occurred()) {
+            continue;
+          }
+          if (to_int) {
+            static_cast<int *>(prop_data)[i] = value;
+          }
+          else {
+            static_cast<bool *>(prop_data)[i] = bool(value);
+          }
+        }
+        break;
+      }
+      case IDP_IDPARRAY: {
+        /* TODO? */
+        break;
+      }
+    }
+  }
+
+  if (prop || !can_create) {
+    return prop;
+  }
 
   switch (val.array.type) {
     case IDP_DOUBLE: {
@@ -592,18 +873,19 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
       }
       break;
     }
-    default:
-      /* should never happen */
-      PyErr_SetString(PyExc_RuntimeError, "internal error with idp array.type");
-      return nullptr;
   }
   return prop;
 }
 
-static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
+static IDProperty *idp_from_PySequence(IDProperty *prop_exist,
+                                       const char *name,
+                                       PyObject *ob,
+                                       const bool do_conversion,
+                                       const bool can_create)
 {
   Py_buffer buffer;
   bool use_buffer = false;
+  int idp_buffer_type = -1;
 
   if (PyObject_CheckBuffer(ob)) {
     if (PyObject_GetBuffer(ob, &buffer, PyBUF_ND | PyBUF_FORMAT) == -1) {
@@ -612,11 +894,18 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
       PyErr_Clear();
     }
     else {
-      const char format = PyC_StructFmt_type_from_str(buffer.format);
-      if (PyC_StructFmt_type_is_float_any(format) ||
-          (PyC_StructFmt_type_is_int_any(format) && buffer.itemsize == 4))
-      {
-        use_buffer = true;
+      idp_buffer_type = idp_array_type_from_formatstr_and_size(buffer.format, buffer.itemsize);
+      if (idp_buffer_type != -1) {
+        /* If creating a new IDProp is not allowed, and the existing one is not usable (same size
+         * and type), then the 'buffer assignment' process cannot be used. */
+        if (!can_create && (!prop_exist || (prop_exist->type != idp_buffer_type) ||
+                            (prop_exist->len != buffer.len)))
+        {
+          PyBuffer_Release(&buffer);
+        }
+        else {
+          use_buffer = true;
+        }
       }
       else {
         PyBuffer_Release(&buffer);
@@ -625,14 +914,16 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
   }
 
   if (use_buffer) {
-    IDProperty *prop = idp_from_PySequence_Buffer(name, &buffer);
+    IDProperty *prop = idp_from_PySequence_Buffer(
+        prop_exist, name, buffer, idp_buffer_type, do_conversion, can_create);
     PyBuffer_Release(&buffer);
     return prop;
   }
 
   PyObject *ob_seq_fast = PySequence_Fast(ob, "py -> idprop");
   if (ob_seq_fast != nullptr) {
-    IDProperty *prop = idp_from_PySequence_Fast(name, ob_seq_fast);
+    IDProperty *prop = idp_from_PySequence_Fast(
+        prop_exist, name, ob_seq_fast, do_conversion, can_create);
     Py_DECREF(ob_seq_fast);
     return prop;
   }
@@ -640,9 +931,15 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
   return nullptr;
 }
 
-static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
+static IDProperty *idp_from_PyMapping(IDProperty * /*prop_exist*/,
+                                      const char *name,
+                                      PyObject *ob,
+                                      const bool /*do_conversion*/,
+                                      const bool /*can_create*/)
 {
   IDProperty *prop;
+
+  /* TODO: Handle editing in-place of existing property (#IDP_FLAG_STATIC_TYPE flag). */
 
   PyObject *keys, *vals, *key, *pval;
   int i, len;
@@ -674,43 +971,61 @@ static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
   return prop;
 }
 
-static IDProperty *idp_from_DatablockPointer(const char *name, PyObject *ob)
+static IDProperty *idp_from_DatablockPointer(IDProperty *prop_exist,
+                                             const char *name,
+                                             PyObject *ob,
+                                             const bool /*do_conversion*/,
+                                             const bool can_create)
 {
-  ID *id = nullptr;
-  pyrna_id_FromPyObject(ob, &id);
-  return blender::bke::idprop::create(name, id).release();
+  IDProperty *prop = nullptr;
+  ID *value = nullptr;
+  pyrna_id_FromPyObject(ob, &value);
+  if (prop_exist) {
+    if (prop_exist->type == IDP_ID) {
+      IDP_AssignID(prop_exist, value, 0);
+      prop = prop_exist;
+    }
+    /* No conversion. */
+  }
+  if (!prop && can_create) {
+    prop = blender::bke::idprop::create(name, value).release();
+  }
+  return prop;
 }
 
-static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
+static IDProperty *idp_from_PyObject(IDProperty *prop_exist,
+                                     const char *name,
+                                     PyObject *ob,
+                                     const bool do_conversion,
+                                     const bool can_create)
 {
-  const char *name = idp_try_read_name(name_obj);
   if (name == nullptr) {
     return nullptr;
   }
 
   if (PyFloat_Check(ob)) {
-    return idp_from_PyFloat(name, ob);
+    return idp_from_PyFloat(prop_exist, name, ob, do_conversion, can_create);
   }
   if (PyBool_Check(ob)) {
-    return idp_from_PyBool(name, ob);
+    return idp_from_PyBool(prop_exist, name, ob, do_conversion, can_create);
   }
   if (PyLong_Check(ob)) {
-    return idp_from_PyLong(name, ob);
+    return idp_from_PyLong(prop_exist, name, ob, do_conversion, can_create);
   }
   if (PyUnicode_Check(ob)) {
-    return idp_from_PyUnicode(name, ob);
+    return idp_from_PyUnicode(prop_exist, name, ob, do_conversion, can_create);
   }
   if (PyBytes_Check(ob)) {
-    return idp_from_PyBytes(name, ob);
+    return idp_from_PyBytes(prop_exist, name, ob, do_conversion, can_create);
   }
   if (PySequence_Check(ob)) {
-    return idp_from_PySequence(name, ob);
+    return idp_from_PySequence(prop_exist, name, ob, do_conversion, can_create);
   }
   if (ob == Py_None || pyrna_id_CheckPyObject(ob)) {
-    return idp_from_DatablockPointer(name, ob);
+    return idp_from_DatablockPointer(prop_exist, name, ob, do_conversion, can_create);
   }
   if (PyMapping_Check(ob)) {
-    return idp_from_PyMapping(name, ob);
+    return idp_from_PyMapping(prop_exist, name, ob, do_conversion, can_create);
   }
 
   PyErr_Format(
@@ -726,55 +1041,72 @@ static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
 
 bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group, PyObject *ob)
 {
-  IDProperty *prop = idp_from_PyObject(name_obj, ob);
-  if (prop == nullptr) {
+  const char *name = idp_try_read_name(name_obj);
+  if (!name) {
     return false;
   }
 
+  /* If the container is an array of IDProperties, always add a new property to it. */
   if (group->type == IDP_IDPARRAY) {
-    IDP_AppendArray(group, prop);
+    IDProperty *new_prop = idp_from_PyObject(nullptr, name, ob, false, true);
+    if (new_prop == nullptr) {
+      return false;
+    }
+
+    IDP_AppendArray(group, new_prop);
     /* IDP_AppendArray does a shallow copy (memcpy), only free memory */
-    MEM_freeN(prop);
-  }
-  else {
-    IDProperty *prop_exist;
+    MEM_freeN(new_prop);
 
-    /* avoid freeing when types match in case they are referenced by the UI, see: #37073
-     * obviously this isn't a complete solution, but helps for common cases. */
-    prop_exist = IDP_GetPropertyFromGroup(group, prop->name);
-
-    if (prop_exist && prop_exist->ui_data) {
-      /* Take ownership of the existing property's UI data. */
-      const eIDPropertyUIDataType src_type = IDP_ui_data_type(prop_exist);
-      IDPropertyUIData *ui_data = prop_exist->ui_data;
-      prop_exist->ui_data = nullptr;
-
-      prop->ui_data = IDP_TryConvertUIData(ui_data, src_type, IDP_ui_data_type(prop));
-    }
-
-    if ((prop_exist != nullptr) && (prop_exist->type == prop->type) &&
-        (prop_exist->subtype == prop->subtype))
-    {
-      /* Preserve prev/next links!!! See #42593. */
-      prop->prev = prop_exist->prev;
-      prop->next = prop_exist->next;
-      prop->flag = prop_exist->flag;
-
-      IDP_FreePropertyContent(prop_exist);
-      *prop_exist = *prop;
-      MEM_freeN(prop);
-    }
-    else {
-      const bool overridable = prop_exist ?
-                                   (prop_exist->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0 :
-                                   false;
-      IDP_ReplaceInGroup_ex(group, prop, prop_exist);
-      if (overridable) {
-        prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
-      }
-    }
+    return true;
   }
 
+  IDProperty *prop_exist = IDP_GetPropertyFromGroup(group, name);
+
+  /* If existing property is flagged to be statically typed, do not re-type it. Assign the value if
+   * possible (potentially converting it), or fail. See #122743. */
+  if (prop_exist && (prop_exist->flag & IDP_FLAG_STATIC_TYPE) != 0) {
+    IDProperty *prop = idp_from_PyObject(prop_exist, name, ob, true, false);
+    BLI_assert(ELEM(prop, prop_exist, nullptr));
+    if (prop != prop_exist) {
+      PyErr_Format(PyExc_TypeError,
+                   "Cannot assign a '%.200s' value to the existing '%s' %s IDProperty",
+                   Py_TYPE(ob)->tp_name,
+                   name,
+                   IDP_type_str(prop_exist));
+      return false;
+    }
+    return true;
+  }
+
+  /* Attempt to assign new value in existing IDProperty, if types (and potentially subtypes) match
+   * exactly. Otherwise, create a new IDProperty. */
+  IDProperty *new_prop = idp_from_PyObject(prop_exist, name, ob, false, true);
+  if (new_prop == nullptr) {
+    return false;
+  }
+  if (new_prop == prop_exist) {
+    return true;
+  }
+
+  /* Property was created with no existing counterpart, just insert it in the group container. */
+  if (!prop_exist) {
+    IDP_ReplaceInGroup_ex(group, new_prop, nullptr);
+    return true;
+  }
+
+  /* Try to preserve UI data from the existing, replaced property. See: #37073. */
+  if (prop_exist->ui_data) {
+    /* Take ownership of the existing property's UI data. */
+    const eIDPropertyUIDataType src_type = IDP_ui_data_type(prop_exist);
+    IDPropertyUIData *ui_data = prop_exist->ui_data;
+    prop_exist->ui_data = nullptr;
+
+    new_prop->ui_data = IDP_TryConvertUIData(ui_data, src_type, IDP_ui_data_type(new_prop));
+  }
+  /* Copy over the 'overridable' flag from existing property. */
+  new_prop->flag |= (prop_exist->flag & IDP_FLAG_OVERRIDABLE_LIBRARY);
+
+  IDP_ReplaceInGroup_ex(group, new_prop, prop_exist);
   return true;
 }
 

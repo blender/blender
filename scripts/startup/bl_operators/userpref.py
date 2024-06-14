@@ -749,9 +749,6 @@ class PREFERENCES_OT_addon_install(Operator):
             if mod.__name__ in addons_new:
                 bl_info = addon_utils.module_bl_info(mod)
 
-                if self.enable_on_install:
-                    bpy.ops.preferences.addon_enable(module=mod.__name__)
-
                 # show the newly installed addon.
                 context.preferences.view.show_addons_enabled_only = False
                 context.window_manager.addon_filter = 'All'
@@ -760,6 +757,12 @@ class PREFERENCES_OT_addon_install(Operator):
 
         # in case a new module path was created to install this addon.
         bpy.utils.refresh_script_paths()
+
+        # Auto enable if needed.
+        if self.enable_on_install:
+            for mod in addon_utils.modules(refresh=False):
+                if mod.__name__ in addons_new:
+                    bpy.ops.preferences.addon_enable(module=mod.__name__)
 
         # print message
         msg = rpt_("Modules Installed ({:s}) from {!r} into {!r}").format(

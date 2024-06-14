@@ -22,20 +22,108 @@ namespace blender::gpu::render_graph {
 enum class VKNodeType {
   UNUSED,
   BEGIN_RENDERING,
-  END_RENDERING,
+  BLIT_IMAGE,
   CLEAR_ATTACHMENTS,
   CLEAR_COLOR_IMAGE,
   CLEAR_DEPTH_STENCIL_IMAGE,
-  FILL_BUFFER,
   COPY_BUFFER,
   COPY_IMAGE,
   COPY_IMAGE_TO_BUFFER,
   COPY_BUFFER_TO_IMAGE,
-  BLIT_IMAGE,
   DISPATCH,
   DISPATCH_INDIRECT,
+  DRAW,
+  DRAW_INDEXED,
+  DRAW_INDEXED_INDIRECT,
+  DRAW_INDIRECT,
+  END_RENDERING,
+  FILL_BUFFER,
   SYNCHRONIZATION,
+  UPDATE_MIPMAPS,
 };
+
+BLI_INLINE std::ostream &operator<<(std::ostream &os, const VKNodeType node_type)
+{
+  switch (node_type) {
+    case VKNodeType::UNUSED:
+      os << "UNUSED";
+      break;
+    case VKNodeType::BEGIN_RENDERING:
+      os << "BEGIN_RENDERING";
+      break;
+    case VKNodeType::END_RENDERING:
+      os << "END_RENDERING";
+      break;
+    case VKNodeType::CLEAR_ATTACHMENTS:
+      os << "CLEAR_ATTACHMENTS";
+      break;
+    case VKNodeType::CLEAR_COLOR_IMAGE:
+      os << "CLEAR_COLOR_IMAGE";
+      break;
+    case VKNodeType::CLEAR_DEPTH_STENCIL_IMAGE:
+      os << "CLEAR_DEPTH_STENCIL_IMAGE";
+      break;
+    case VKNodeType::FILL_BUFFER:
+      os << "FILL_BUFFER";
+      break;
+    case VKNodeType::COPY_BUFFER:
+      os << "COPY_BUFFER";
+      break;
+    case VKNodeType::COPY_IMAGE:
+      os << "COPY_IMAGE";
+      break;
+    case VKNodeType::COPY_IMAGE_TO_BUFFER:
+      os << "COPY_IMAGE_TO_BUFFER";
+      break;
+    case VKNodeType::COPY_BUFFER_TO_IMAGE:
+      os << "COPY_BUFFER_TO_IMAGE";
+      break;
+    case VKNodeType::BLIT_IMAGE:
+      os << "BLIT_IMAGE";
+      break;
+    case VKNodeType::DISPATCH:
+      os << "DISPATCH";
+      break;
+    case VKNodeType::DISPATCH_INDIRECT:
+      os << "DISPATCH_INDIRECT";
+      break;
+    case VKNodeType::DRAW:
+      os << "DRAW";
+      break;
+    case VKNodeType::DRAW_INDEXED:
+      os << "DRAW_INDEXED";
+      break;
+    case VKNodeType::DRAW_INDEXED_INDIRECT:
+      os << "DRAW_INDEXED_INDIRECT";
+      break;
+    case VKNodeType::DRAW_INDIRECT:
+      os << "DRAW_INDIRECT";
+      break;
+    case VKNodeType::SYNCHRONIZATION:
+      os << "SYNCHRONIZATION";
+      break;
+    case VKNodeType::UPDATE_MIPMAPS:
+      os << "UPDATE_MIPMAPS";
+      break;
+  }
+  return os;
+}
+
+BLI_INLINE bool node_type_is_within_rendering(VKNodeType node_type)
+{
+  return ELEM(node_type,
+              VKNodeType::CLEAR_ATTACHMENTS,
+              VKNodeType::DRAW,
+              VKNodeType::DRAW_INDEXED,
+              VKNodeType::DRAW_INDEXED_INDIRECT,
+              VKNodeType::DRAW_INDIRECT);
+}
+
+BLI_INLINE bool node_type_is_rendering(VKNodeType node_type)
+{
+  return ELEM(node_type, VKNodeType::BEGIN_RENDERING, VKNodeType::END_RENDERING) ||
+         node_type_is_within_rendering(node_type);
+}
 
 /**
  * Info class for a node type.

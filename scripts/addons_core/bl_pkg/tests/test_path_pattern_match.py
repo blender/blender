@@ -25,8 +25,9 @@ BASE_DIR = os.path.normpath(os.path.join(CURRENT_DIR, ".."))
 # Don't import as module, instead load the class.
 def execfile(filepath: str, *, name: str = "__main__") -> Dict[str, Any]:
     global_namespace = {"__file__": filepath, "__name__": name}
-    with open(filepath, encoding="utf-8") as file_handle:
-        exec(compile(file_handle.read(), filepath, 'exec'), global_namespace)
+    with open(filepath, encoding="utf-8") as fh:
+        # pylint: disable-next=exec-used
+        exec(compile(fh.read(), filepath, 'exec'), global_namespace)
     return global_namespace
 
 

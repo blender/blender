@@ -345,6 +345,44 @@ GPUShader *ShaderModule::static_shader_get(eShaderType shader_type)
  *
  * \{ */
 
+/* Helper class to get free sampler slots for materials. */
+class SamplerSlots {
+  int first_reserved_;
+  int last_reserved_;
+  int index_;
+
+ public:
+  SamplerSlots(eMaterialPipeline pipeline_type,
+               eMaterialGeometry geometry_type,
+               bool has_shader_to_rgba)
+  {
+    index_ = 0;
+    if (ELEM(geometry_type, MAT_GEOM_POINT_CLOUD, MAT_GEOM_CURVES)) {
+      index_ = 1;
+    }
+    else if (geometry_type == MAT_GEOM_GPENCIL) {
+      index_ = 2;
+    }
+
+    first_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_FIRST;
+    last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_NO_EVAL;
+    if (pipeline_type == MAT_PIPE_DEFERRED && has_shader_to_rgba) {
+      last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_HYBRID;
+    }
+    else if (pipeline_type == MAT_PIPE_FORWARD) {
+      last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_FORWARD;
+    }
+  }
+
+  int get()
+  {
+    if (index_ == first_reserved_) {
+      index_ = last_reserved_ + 1;
+    }
+    return index_++;
+  }
+};
+
 void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOutput *codegen_)
 {
   using namespace blender::gpu::shader;
@@ -389,12 +427,12 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     info.define("UNI_ATTR(a)", "vec4(0.0)");
   }
 
-  /* First indices are reserved by the engine.
-   * Put material samplers in reverse order, starting from the last slot. */
-  int sampler_slot = GPU_max_textures_frag() - 1;
+  SamplerSlots sampler_slots(
+      pipeline_type, geometry_type, GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA));
+
   for (auto &resource : info.batch_resources_) {
     if (resource.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
-      resource.slot = sampler_slot--;
+      resource.slot = sampler_slots.get();
     }
   }
 
@@ -543,7 +581,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
         /* TODO(fclem): Eventually, we could add support for loading both. For now, remove the
          * vertex inputs after conversion (avoid name collision). */
         for (auto &input : info.vertex_inputs_) {
-          info.sampler(sampler_slot--, ImageType::FLOAT_3D, input.name, Frequency::BATCH);
+          info.sampler(sampler_slots.get(), ImageType::FLOAT_3D, input.name, Frequency::BATCH);
         }
         info.vertex_inputs_.clear();
         /* Volume materials require these for loading the grid attributes from smoke sims. */
@@ -562,7 +600,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
           global_vars << input.type << " " << input.name << ";\n";
         }
         else {
-          info.sampler(sampler_slot--, ImageType::FLOAT_BUFFER, input.name, Frequency::BATCH);
+          info.sampler(sampler_slots.get(), ImageType::FLOAT_BUFFER, input.name, Frequency::BATCH);
         }
       }
       info.vertex_inputs_.clear();
@@ -572,7 +610,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
         /* Even if world do not have grid attributes, we use dummy texture binds to pass correct
          * defaults. So we have to replace all attributes as samplers. */
         for (auto &input : info.vertex_inputs_) {
-          info.sampler(sampler_slot--, ImageType::FLOAT_3D, input.name, Frequency::BATCH);
+          info.sampler(sampler_slots.get(), ImageType::FLOAT_3D, input.name, Frequency::BATCH);
         }
         info.vertex_inputs_.clear();
       }
@@ -595,7 +633,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     case MAT_GEOM_VOLUME:
       /** Volume grid attributes come from 3D textures. Transfer attributes to samplers. */
       for (auto &input : info.vertex_inputs_) {
-        info.sampler(sampler_slot--, ImageType::FLOAT_3D, input.name, Frequency::BATCH);
+        info.sampler(sampler_slots.get(), ImageType::FLOAT_3D, input.name, Frequency::BATCH);
       }
       info.vertex_inputs_.clear();
       break;

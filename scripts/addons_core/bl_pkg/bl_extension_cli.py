@@ -16,8 +16,6 @@ import argparse
 import os
 import sys
 
-from .bl_extension_utils import PkgManifest_Normalized
-
 from typing import (
     Any,
     List,
@@ -25,6 +23,8 @@ from typing import (
     Tuple,
     Union,
 )
+
+from .bl_extension_utils import PkgManifest_Normalized
 
 show_color = (
     False if os.environ.get("NO_COLOR") else
@@ -129,7 +129,12 @@ class subcmd_utils:
         ):
             # Show any exceptions created while accessing the JSON,
             repo = repos_all[repo_index]
-            repo_map[repo.module] = (repo_index, set(pkg_manifest.keys()))
+            if pkg_manifest is None:
+                errors.append("Repository \"{:s}\" has no data, sync may be needed!".format(repo.module))
+                repo_packages = set()
+            else:
+                repo_packages = set(pkg_manifest.keys())
+            repo_map[repo.module] = (repo_index, repo_packages)
 
         repos_and_packages = []
 

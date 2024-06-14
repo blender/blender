@@ -41,6 +41,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_attribute.hh"
@@ -690,6 +691,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       light->shadow_maximum_resolution = 0.001f;
       light->transmission_fac = 1.0f;
       SET_FLAG_FROM_TEST(light->mode, false, LA_SHAD_RES_ABSOLUTE);
+    }
+  }
+
+  {
+    LISTBASE_FOREACH (World *, world, &bmain->worlds) {
+      SET_FLAG_FROM_TEST(world->flag, true, WO_USE_SUN_SHADOW);
     }
   }
 }

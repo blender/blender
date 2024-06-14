@@ -125,7 +125,7 @@ HRTF_loadLeftHrtfSet(PyTypeObject* type, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_HRTF_loadRightHrtfSet_doc,
-	".. method:: loadLeftHrtfSet(extension, directory)\n\n"
+	".. method:: loadRightHrtfSet(extension, directory)\n\n"
 	"   Loads all HRTFs from a directory.\n\n"
 	"   :arg extension: The file extension of the hrtfs.\n"
 	"   :type extension: string\n"

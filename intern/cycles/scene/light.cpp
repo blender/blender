@@ -287,6 +287,10 @@ void LightManager::device_update_distribution(Device *,
                                               Progress &progress)
 {
   KernelIntegrator *kintegrator = &dscene->data.integrator;
+  if (kintegrator->use_light_tree) {
+    dscene->light_distribution.free();
+    return;
+  }
 
   /* Update CDF over lights. */
   progress.set_status("Updating Lights", "Computing distribution");
@@ -294,6 +298,8 @@ void LightManager::device_update_distribution(Device *,
   /* Counts emissive triangles in the scene. */
   size_t num_triangles = 0;
 
+  const int num_lights = kintegrator->num_lights;
+  const size_t max_num_triangles = std::numeric_limits<int>::max() - 1 - kintegrator->num_lights;
   foreach (Object *object, scene->objects) {
     if (progress.get_cancel()) {
       return;
@@ -317,18 +323,18 @@ void LightManager::device_update_distribution(Device *,
         num_triangles++;
       }
     }
+
+    if (num_triangles > max_num_triangles) {
+      progress.set_error(
+          "Number of emissive triangles exceeds the limit, consider using Light Tree or disabling "
+          "Emission Sampling on some emissive materials");
+    }
   }
 
-  const size_t num_lights = kintegrator->num_lights;
   const size_t num_distribution = num_triangles + num_lights;
 
   /* Distribution size. */
   kintegrator->num_distribution = num_distribution;
-
-  if (kintegrator->use_light_tree) {
-    dscene->light_distribution.free();
-    return;
-  }
 
   VLOG_INFO << "Use light distribution with " << num_distribution << " emitters.";
 

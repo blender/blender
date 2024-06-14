@@ -19,9 +19,14 @@
 #include "nodes/vk_copy_image_to_buffer_node.hh"
 #include "nodes/vk_dispatch_indirect_node.hh"
 #include "nodes/vk_dispatch_node.hh"
+#include "nodes/vk_draw_indexed_indirect_node.hh"
+#include "nodes/vk_draw_indexed_node.hh"
+#include "nodes/vk_draw_indirect_node.hh"
+#include "nodes/vk_draw_node.hh"
 #include "nodes/vk_end_rendering_node.hh"
 #include "nodes/vk_fill_buffer_node.hh"
 #include "nodes/vk_synchronization_node.hh"
+#include "nodes/vk_update_mipmaps_node.hh"
 
 namespace blender::gpu::render_graph {
 
@@ -40,8 +45,8 @@ using NodeHandle = uint64_t;
 struct VKRenderGraphNode {
   VKNodeType type;
   union {
-    VKBlitImageNode::Data blit_image;
     VKBeginRenderingNode::Data begin_rendering;
+    VKBlitImageNode::Data blit_image;
     VKClearAttachmentsNode::Data clear_attachments;
     VKClearColorImageNode::Data clear_color_image;
     VKClearDepthStencilImageNode::Data clear_depth_stencil_image;
@@ -49,11 +54,16 @@ struct VKRenderGraphNode {
     VKCopyBufferToImageNode::Data copy_buffer_to_image;
     VKCopyImageNode::Data copy_image;
     VKCopyImageToBufferNode::Data copy_image_to_buffer;
-    VKEndRenderingNode::Data end_rendering;
     VKDispatchNode::Data dispatch;
     VKDispatchIndirectNode::Data dispatch_indirect;
+    VKDrawNode::Data draw;
+    VKDrawIndexedNode::Data draw_indexed;
+    VKDrawIndexedIndirectNode::Data draw_indexed_indirect;
+    VKDrawIndirectNode::Data draw_indirect;
+    VKEndRenderingNode::Data end_rendering;
     VKFillBufferNode::Data fill_buffer;
     VKSynchronizationNode::Data synchronization;
+    VKUpdateMipmapsNode::Data update_mipmaps;
   };
 
   /**
@@ -126,8 +136,18 @@ struct VKRenderGraphNode {
         return VKDispatchNode::pipeline_stage;
       case VKNodeType::DISPATCH_INDIRECT:
         return VKDispatchIndirectNode::pipeline_stage;
+      case VKNodeType::DRAW:
+        return VKDrawNode::pipeline_stage;
+      case VKNodeType::DRAW_INDEXED:
+        return VKDrawIndexedNode::pipeline_stage;
+      case VKNodeType::DRAW_INDEXED_INDIRECT:
+        return VKDrawIndexedIndirectNode::pipeline_stage;
+      case VKNodeType::DRAW_INDIRECT:
+        return VKDrawIndirectNode::pipeline_stage;
       case VKNodeType::SYNCHRONIZATION:
         return VKSynchronizationNode::pipeline_stage;
+      case VKNodeType::UPDATE_MIPMAPS:
+        return VKUpdateMipmapsNode::pipeline_stage;
     }
     BLI_assert_unreachable();
     return VK_PIPELINE_STAGE_NONE;
@@ -169,8 +189,14 @@ struct VKRenderGraphNode {
             VKNodeType::COPY_IMAGE_TO_BUFFER, VKCopyImageToBufferNode, copy_image_to_buffer)
         BUILD_COMMANDS(VKNodeType::BLIT_IMAGE, VKBlitImageNode, blit_image)
         BUILD_COMMANDS(VKNodeType::SYNCHRONIZATION, VKSynchronizationNode, synchronization)
+        BUILD_COMMANDS(VKNodeType::UPDATE_MIPMAPS, VKUpdateMipmapsNode, update_mipmaps)
         BUILD_COMMANDS(VKNodeType::DISPATCH, VKDispatchNode, dispatch)
         BUILD_COMMANDS(VKNodeType::DISPATCH_INDIRECT, VKDispatchIndirectNode, dispatch_indirect)
+        BUILD_COMMANDS(VKNodeType::DRAW, VKDrawNode, draw)
+        BUILD_COMMANDS(VKNodeType::DRAW_INDEXED, VKDrawIndexedNode, draw_indexed)
+        BUILD_COMMANDS(
+            VKNodeType::DRAW_INDEXED_INDIRECT, VKDrawIndexedIndirectNode, draw_indexed_indirect)
+        BUILD_COMMANDS(VKNodeType::DRAW_INDIRECT, VKDrawIndirectNode, draw_indirect)
 #undef BUILD_COMMANDS
     }
   }
@@ -191,6 +217,11 @@ struct VKRenderGraphNode {
 
       FREE_DATA(VKNodeType::DISPATCH, VKDispatchNode, dispatch)
       FREE_DATA(VKNodeType::DISPATCH_INDIRECT, VKDispatchIndirectNode, dispatch_indirect)
+      FREE_DATA(VKNodeType::DRAW, VKDrawNode, draw)
+      FREE_DATA(VKNodeType::DRAW_INDEXED, VKDrawIndexedNode, draw_indexed)
+      FREE_DATA(
+          VKNodeType::DRAW_INDEXED_INDIRECT, VKDrawIndexedIndirectNode, draw_indexed_indirect)
+      FREE_DATA(VKNodeType::DRAW_INDIRECT, VKDrawIndirectNode, draw_indirect)
 #undef FREE_DATA
 
       case VKNodeType::UNUSED:
@@ -206,6 +237,7 @@ struct VKRenderGraphNode {
       case VKNodeType::COPY_BUFFER_TO_IMAGE:
       case VKNodeType::BLIT_IMAGE:
       case VKNodeType::SYNCHRONIZATION:
+      case VKNodeType::UPDATE_MIPMAPS:
         break;
     }
   }

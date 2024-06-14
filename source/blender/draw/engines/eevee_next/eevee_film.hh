@@ -268,6 +268,9 @@ class Film {
       case EEVEE_RENDER_PASS_AO:
         result.append(RE_PASSNAME_AO);
         break;
+      case EEVEE_RENDER_PASS_TRANSPARENT:
+        result.append(RE_PASSNAME_TRANSPARENT);
+        break;
       case EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT:
         build_cryptomatte_passes(RE_PASSNAME_CRYPTOMATTE_OBJECT);
         break;

@@ -2964,11 +2964,12 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna,
-                  "use_base_parent",
-                  false,
-                  "Parent",
-                  "Parent newly created objects to the original instancer");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_base_parent",
+                             false,
+                             "Parent",
+                             "Parent newly created objects to the original instancer");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_boolean(
       ot->srna, "use_hierarchy", false, "Keep Hierarchy", "Maintain parent child relationships");
 }

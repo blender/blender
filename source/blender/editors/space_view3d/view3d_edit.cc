@@ -40,6 +40,7 @@
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 #include "ED_transform_snap_object_context.hh"
+#include "ED_undo.hh"
 
 #include "view3d_intern.hh" /* own include */
 
@@ -322,6 +323,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 
   if (rv3d->persp == RV3D_CAMOB) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+    ED_undo_push(C, op->type->name);
   }
   return OPERATOR_FINISHED;
 }
@@ -342,7 +344,9 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
   ot->poll = ED_operator_region_view3d_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* No undo, edited data is usually not undoable, otherwise (camera view), a manual undo push is
+   * done. */
+  ot->flag = OPTYPE_REGISTER;
 
   /* properties */
   WM_operator_properties_border(ot);
@@ -354,7 +358,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 /** \name Clear Render Border Operator
  * \{ */
 
-static int clear_render_border_exec(bContext *C, wmOperator * /*op*/)
+static int clear_render_border_exec(bContext *C, wmOperator *op)
 {
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = ED_view3d_context_rv3d(C);
@@ -382,6 +386,7 @@ static int clear_render_border_exec(bContext *C, wmOperator * /*op*/)
 
   if (rv3d->persp == RV3D_CAMOB) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+    ED_undo_push(C, op->type->name);
   }
   return OPERATOR_FINISHED;
 }
@@ -398,7 +403,9 @@ void VIEW3D_OT_clear_render_border(wmOperatorType *ot)
   ot->poll = ED_operator_view3d_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* No undo, edited data is usually not undoable, otherwise (camera view), a manual undo push is
+   * done. */
+  ot->flag = OPTYPE_REGISTER;
 }
 
 /** \} */

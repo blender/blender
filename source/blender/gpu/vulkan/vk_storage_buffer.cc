@@ -97,15 +97,7 @@ void VKStorageBuffer::copy_sub(VertBuf *src, uint dst_offset, uint src_offset, u
   copy_buffer.region.size = copy_size;
 
   VKContext &context = *VKContext::get();
-  if (use_render_graph) {
-    context.render_graph.add_node(copy_buffer);
-  }
-  else {
-    VKCommandBuffers &command_buffers = context.command_buffers_get();
-    command_buffers.copy(
-        buffer_, copy_buffer.src_buffer, Span<VkBufferCopy>(&copy_buffer.region, 1));
-    context.flush();
-  }
+  context.render_graph.add_node(copy_buffer);
 }
 
 void VKStorageBuffer::async_flush_to_host()
@@ -117,10 +109,6 @@ void VKStorageBuffer::read(void *data)
 {
   ensure_allocated();
   VKContext &context = *VKContext::get();
-  if (!use_render_graph) {
-    context.flush();
-  }
-
   VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::DeviceToHost);
   staging_buffer.copy_from_device(context);
   staging_buffer.host_buffer_get().read(context, data);

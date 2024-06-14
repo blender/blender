@@ -212,7 +212,8 @@ def RKS_GEN_custom_props(_ksi, _context, ks, data):
     # Only some RNA types can be animated.
     prop_type_compat = {bpy.types.BoolProperty,
                         bpy.types.IntProperty,
-                        bpy.types.FloatProperty}
+                        bpy.types.FloatProperty,
+                        bpy.types.EnumProperty}
 
     # When working with a pose, 'id_block' is the armature object (which should
     # get the animation data), whereas 'data' is the bone being keyed.

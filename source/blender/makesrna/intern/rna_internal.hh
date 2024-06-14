@@ -515,12 +515,6 @@ extern StructRNA RNA_PropertyGroup;
  * or NULL (in case IDProp could not be found, or prop is a real RNA property).
  */
 IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr) ATTR_WARN_UNUSED_RESULT;
-/**
- * This function always return the valid, real data pointer, be it a regular RNA property one,
- * or an #IDProperty one.
- */
-PropertyRNA *rna_ensure_property_realdata(PropertyRNA **prop,
-                                          PointerRNA *ptr) ATTR_WARN_UNUSED_RESULT;
 PropertyRNA *rna_ensure_property(PropertyRNA *prop) ATTR_WARN_UNUSED_RESULT;
 
 /* Override default callbacks. */
