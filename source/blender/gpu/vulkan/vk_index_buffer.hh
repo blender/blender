@@ -34,7 +34,11 @@ class VKIndexBuffer : public IndexBuf, public VKBindableResource {
 
   VkBuffer vk_handle() const
   {
-    return buffer_.vk_handle();
+    return buffer_get().vk_handle();
+  }
+  VkIndexType vk_index_type() const
+  {
+    return to_vk_index_type(index_type_);
   }
 
  private:
@@ -42,6 +46,7 @@ class VKIndexBuffer : public IndexBuf, public VKBindableResource {
   void allocate();
   void ensure_updated();
   VKBuffer &buffer_get();
+  const VKBuffer &buffer_get() const;
 };
 
 static inline VKIndexBuffer *unwrap(IndexBuf *index_buffer)

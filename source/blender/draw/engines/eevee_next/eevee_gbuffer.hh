@@ -155,12 +155,6 @@ struct GBuffer {
   /* Bind the GBuffer frame-buffer correctly using the correct workarounds. */
   void bind(Framebuffer &gbuffer_fb)
   {
-    if (/* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
-        GPU_backend_get_type() == GPU_BACKEND_VULKAN)
-    {
-      header_tx.clear(uint4(0));
-    }
-
     /* Workaround a Metal bug that is only showing up on ATI/Intel GPUs. */
     if (GPU_type_matches(
             GPU_DEVICE_ATI | GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_MAC, GPU_DRIVER_ANY))

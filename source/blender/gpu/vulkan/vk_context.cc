@@ -118,6 +118,11 @@ void VKContext::activate()
 
 void VKContext::deactivate()
 {
+  if (use_render_graph) {
+    /* Draw manager draws in a different context than the rest of the UI. Although run from the
+     * same thread. Commands inside the rendergraph need to be submitted into the device queue. */
+    flush_render_graph();
+  }
   immDeactivate();
   is_active_ = false;
 }
@@ -134,12 +139,31 @@ void VKContext::end_frame()
 
 void VKContext::flush()
 {
-  command_buffers_.submit();
+  if (use_render_graph) {
+  }
+  else {
+    command_buffers_.submit();
+  }
+}
+void VKContext::flush_render_graph()
+{
+  BLI_assert(use_render_graph);
+  if (has_active_framebuffer()) {
+    VKFrameBuffer &framebuffer = *active_framebuffer_get();
+    if (framebuffer.is_rendering()) {
+      framebuffer.rendering_end(*this);
+    }
+  }
+  render_graph.submit();
 }
 
 void VKContext::finish()
 {
-  command_buffers_.finish();
+  if (use_render_graph) {
+  }
+  else {
+    command_buffers_.finish();
+  }
 }
 
 void VKContext::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb)
@@ -236,32 +260,59 @@ void VKContext::bind_compute_pipeline()
   pipeline.bind(*this, VK_PIPELINE_BIND_POINT_COMPUTE);
   shader->push_constants.update(*this);
   if (shader->has_descriptor_set()) {
-    descriptor_set_.bind(*this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_COMPUTE);
+    descriptor_set_.bind(*this, shader->vk_pipeline_layout, VK_PIPELINE_BIND_POINT_COMPUTE);
   }
 }
 
-void VKContext::update_pipeline_data(render_graph::VKPipelineData &pipeline_data)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pipeline
+ * \{ */
+
+void VKContext::update_pipeline_data(GPUPrimType primitive,
+                                     VKVertexAttributeObject &vao,
+                                     render_graph::VKPipelineData &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
-  pipeline_data.vk_pipeline_layout = vk_shader.vk_pipeline_layout_get();
-  pipeline_data.vk_pipeline = vk_shader.ensure_and_get_compute_pipeline();
+  BLI_assert(vk_shader.is_graphics_shader());
+  VKFrameBuffer &framebuffer = *active_framebuffer_get();
+  update_pipeline_data(
+      vk_shader,
+      vk_shader.ensure_and_get_graphics_pipeline(primitive, vao, state_manager_get(), framebuffer),
+      r_pipeline_data);
+}
+
+void VKContext::update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data)
+{
+  VKShader &vk_shader = unwrap(*shader);
+  BLI_assert(vk_shader.is_compute_shader());
+  update_pipeline_data(vk_shader, vk_shader.ensure_and_get_compute_pipeline(), r_pipeline_data);
+}
+
+void VKContext::update_pipeline_data(VKShader &vk_shader,
+                                     VkPipeline vk_pipeline,
+                                     render_graph::VKPipelineData &r_pipeline_data)
+{
+  r_pipeline_data.vk_pipeline_layout = vk_shader.vk_pipeline_layout;
+  r_pipeline_data.vk_pipeline = vk_pipeline;
 
   /* Update push constants. */
-  pipeline_data.push_constants_data = nullptr;
-  pipeline_data.push_constants_size = 0;
+  r_pipeline_data.push_constants_data = nullptr;
+  r_pipeline_data.push_constants_size = 0;
   const VKPushConstants::Layout &push_constants_layout =
       vk_shader.interface_get().push_constants_layout_get();
   vk_shader.push_constants.update(*this);
   if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::PUSH_CONSTANTS) {
-    pipeline_data.push_constants_size = push_constants_layout.size_in_bytes();
-    pipeline_data.push_constants_data = vk_shader.push_constants.data();
+    r_pipeline_data.push_constants_size = push_constants_layout.size_in_bytes();
+    r_pipeline_data.push_constants_data = vk_shader.push_constants.data();
   }
 
   /* Update descriptor set. */
-  pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+  r_pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
   if (vk_shader.has_descriptor_set()) {
     descriptor_set_.update(*this);
-    pipeline_data.vk_descriptor_set = descriptor_set_get().active_descriptor_set()->vk_handle();
+    r_pipeline_data.vk_descriptor_set = descriptor_set_get().active_descriptor_set()->vk_handle();
   }
 }
 
@@ -295,7 +346,7 @@ void VKContext::bind_graphics_pipeline(const GPUPrimType prim_type,
   pipeline.bind(*this, VK_PIPELINE_BIND_POINT_GRAPHICS);
   shader->push_constants.update(*this);
   if (shader->has_descriptor_set()) {
-    descriptor_set_.bind(*this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_GRAPHICS);
+    descriptor_set_.bind(*this, shader->vk_pipeline_layout, VK_PIPELINE_BIND_POINT_GRAPHICS);
   }
 }
 

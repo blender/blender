@@ -53,6 +53,41 @@ VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttrib
 /** \name Bind resources
  * \{ */
 
+void VKVertexAttributeObject::bind(
+    render_graph::VKVertexBufferBindings &r_vertex_buffer_bindings) const
+{
+  /* TODO: VBOs and Buffers can share the same setup and can also split the buffers from the
+   * offsets so we don't need to loop. */
+  const bool use_vbos = !vbos.is_empty();
+  Array<bool> visited_bindings(bindings.size());
+  visited_bindings.fill(false);
+
+  const VKBuffer &dummy = VKBackend::get().device_get().dummy_buffer_get();
+  for (VkVertexInputAttributeDescription attribute : attributes) {
+    if (visited_bindings[attribute.binding]) {
+      continue;
+    }
+    visited_bindings[attribute.binding] = true;
+
+    VkBuffer buffer = dummy.vk_handle();
+    VkDeviceSize offset = 0;
+
+    if (use_vbos && attribute.binding < vbos.size()) {
+      BLI_assert(vbos[attribute.binding]);
+      buffer = vbos[attribute.binding]->vk_handle();
+    }
+    else if (!use_vbos && attribute.binding < buffers.size()) {
+      buffer = buffers[attribute.binding].buffer.vk_handle();
+      offset = buffers[attribute.binding].offset;
+    }
+
+    r_vertex_buffer_bindings.buffer[attribute.binding] = buffer;
+    r_vertex_buffer_bindings.offset[attribute.binding] = offset;
+    r_vertex_buffer_bindings.buffer_count = max_ii(r_vertex_buffer_bindings.buffer_count,
+                                                   attribute.binding + 1);
+  }
+}
+
 void VKVertexAttributeObject::bind(VKContext &context)
 {
   const bool use_vbos = !vbos.is_empty();

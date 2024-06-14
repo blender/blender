@@ -99,6 +99,10 @@ void VKIndexBuffer::allocate()
   debug::object_label(buffer_.vk_handle(), "IndexBuffer");
 }
 
+const VKBuffer &VKIndexBuffer::buffer_get() const
+{
+  return is_subrange_ ? unwrap(src_)->buffer_ : buffer_;
+}
 VKBuffer &VKIndexBuffer::buffer_get()
 {
   return is_subrange_ ? unwrap(src_)->buffer_ : buffer_;

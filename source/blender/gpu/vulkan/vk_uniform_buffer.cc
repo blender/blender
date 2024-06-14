@@ -38,7 +38,7 @@ void VKUniformBuffer::allocate()
    * during binding, as that will reset the graphics pipeline and already attached resources would
    * not be bound anymore.
    */
-  const bool is_host_visible = true;
+  const bool is_host_visible = !use_render_graph;
   buffer_.create(size_in_bytes_,
                  GPU_USAGE_STATIC,
                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
@@ -67,7 +67,7 @@ void VKUniformBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
 
   /* Upload attached data, during bind time. */
   if (data_) {
-    buffer_.update(data_);
+    update(data_);
     MEM_SAFE_FREE(data_);
   }
 

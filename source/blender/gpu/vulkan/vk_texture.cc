@@ -68,77 +68,96 @@ void VKTexture::generate_mipmap()
   }
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.submit();
-
-  layout_ensure(context,
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                VK_ACCESS_MEMORY_WRITE_BIT,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_ACCESS_TRANSFER_READ_BIT);
-
-  for (int src_mipmap : IndexRange(mipmaps_ - 1)) {
-    int dst_mipmap = src_mipmap + 1;
-    int3 src_size(1);
-    int3 dst_size(1);
-    mip_size_get(src_mipmap, src_size);
-    mip_size_get(dst_mipmap, dst_size);
-
-    /* GPU Texture stores the array length in the first unused dimension size.
-     * Vulkan uses layers and the array length should be removed from the dimensions. */
+  if (use_render_graph) {
+    render_graph::VKUpdateMipmapsNode::Data update_mipmaps = {};
+    update_mipmaps.vk_image = vk_image_handle();
+    update_mipmaps.l0_size = int3(1);
+    mip_size_get(0, update_mipmaps.l0_size);
     if (ELEM(this->type_get(), GPU_TEXTURE_1D_ARRAY)) {
-      src_size.y = 1;
-      src_size.z = 1;
-      dst_size.y = 1;
-      dst_size.z = 1;
+      update_mipmaps.l0_size.y = 1;
+      update_mipmaps.l0_size.z = 1;
     }
-    if (ELEM(this->type_get(), GPU_TEXTURE_2D_ARRAY)) {
-      src_size.z = 1;
-      dst_size.z = 1;
+    else if (ELEM(this->type_get(), GPU_TEXTURE_2D_ARRAY)) {
+      update_mipmaps.l0_size.z = 1;
     }
+    update_mipmaps.vk_image_aspect = to_vk_image_aspect_flag_bits(device_format_);
+    update_mipmaps.mipmaps = mipmaps_;
+    update_mipmaps.layer_count = vk_layer_count(1);
+    context.render_graph.add_node(update_mipmaps);
+  }
+  else {
+    VKCommandBuffers &command_buffers = context.command_buffers_get();
+    command_buffers.submit();
 
     layout_ensure(context,
-                  IndexRange(src_mipmap, 1),
+                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                  VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                  VK_ACCESS_MEMORY_WRITE_BIT,
+                  VK_PIPELINE_STAGE_TRANSFER_BIT,
+                  VK_ACCESS_TRANSFER_READ_BIT);
+
+    for (int src_mipmap : IndexRange(mipmaps_ - 1)) {
+      int dst_mipmap = src_mipmap + 1;
+      int3 src_size(1);
+      int3 dst_size(1);
+      mip_size_get(src_mipmap, src_size);
+      mip_size_get(dst_mipmap, dst_size);
+
+      /* GPU Texture stores the array length in the first unused dimension size.
+       * Vulkan uses layers and the array length should be removed from the dimensions. */
+      if (ELEM(this->type_get(), GPU_TEXTURE_1D_ARRAY)) {
+        src_size.y = 1;
+        src_size.z = 1;
+        dst_size.y = 1;
+        dst_size.z = 1;
+      }
+      if (ELEM(this->type_get(), GPU_TEXTURE_2D_ARRAY)) {
+        src_size.z = 1;
+        dst_size.z = 1;
+      }
+
+      layout_ensure(context,
+                    IndexRange(src_mipmap, 1),
+                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    VK_ACCESS_TRANSFER_WRITE_BIT,
+                    VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    VK_ACCESS_TRANSFER_READ_BIT);
+
+      VkImageBlit image_blit = {};
+      image_blit.srcOffsets[0] = {0, 0, 0};
+      image_blit.srcOffsets[1] = {src_size.x, src_size.y, src_size.z};
+      image_blit.srcSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
+      image_blit.srcSubresource.mipLevel = src_mipmap;
+      image_blit.srcSubresource.baseArrayLayer = 0;
+      image_blit.srcSubresource.layerCount = vk_layer_count(1);
+
+      image_blit.dstOffsets[0] = {0, 0, 0};
+      image_blit.dstOffsets[1] = {dst_size.x, dst_size.y, dst_size.z};
+      image_blit.dstSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
+      image_blit.dstSubresource.mipLevel = dst_mipmap;
+      image_blit.dstSubresource.baseArrayLayer = 0;
+      image_blit.dstSubresource.layerCount = vk_layer_count(1);
+
+      command_buffers.blit(*this,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                           *this,
+                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                           Span<VkImageBlit>(&image_blit, 1));
+    }
+
+    /* Ensure that all mipmap levels are in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`. */
+    layout_ensure(context,
+                  IndexRange(mipmaps_ - 1, 1),
                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                   VK_PIPELINE_STAGE_TRANSFER_BIT,
                   VK_ACCESS_TRANSFER_WRITE_BIT,
-                  VK_PIPELINE_STAGE_TRANSFER_BIT,
-                  VK_ACCESS_TRANSFER_READ_BIT);
-
-    VkImageBlit image_blit = {};
-    image_blit.srcOffsets[0] = {0, 0, 0};
-    image_blit.srcOffsets[1] = {src_size.x, src_size.y, src_size.z};
-    image_blit.srcSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
-    image_blit.srcSubresource.mipLevel = src_mipmap;
-    image_blit.srcSubresource.baseArrayLayer = 0;
-    image_blit.srcSubresource.layerCount = vk_layer_count(1);
-
-    image_blit.dstOffsets[0] = {0, 0, 0};
-    image_blit.dstOffsets[1] = {dst_size.x, dst_size.y, dst_size.z};
-    image_blit.dstSubresource.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
-    image_blit.dstSubresource.mipLevel = dst_mipmap;
-    image_blit.dstSubresource.baseArrayLayer = 0;
-    image_blit.dstSubresource.layerCount = vk_layer_count(1);
-
-    command_buffers.blit(*this,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                         *this,
-                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                         Span<VkImageBlit>(&image_blit, 1));
+                  VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                  VK_ACCESS_MEMORY_READ_BIT);
+    current_layout_set(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   }
-
-  /* Ensure that all mipmap levels are in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`. */
-  layout_ensure(context,
-                IndexRange(mipmaps_ - 1, 1),
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_ACCESS_TRANSFER_WRITE_BIT,
-                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                VK_ACCESS_MEMORY_READ_BIT);
-  current_layout_set(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 }
 
 void VKTexture::copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspect)
@@ -787,6 +806,7 @@ const VKImageView &VKTexture::image_view_get()
   image_view_info_.layer_range = layer_range();
   image_view_info_.mip_range = mip_map_range();
   image_view_info_.use_srgb = true;
+  image_view_info_.use_stencil = use_stencil_;
 
   if (is_texture_view()) {
     return source_texture_->image_view_get(image_view_info_);

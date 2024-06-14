@@ -279,6 +279,8 @@ void VKBackend::capabilities_init(VKDevice &device)
   /* Reset all capabilities from previous context. */
   GCaps = {};
   GCaps.geometry_shader_support = true;
+  GCaps.texture_view_support = true;
+  GCaps.stencil_export_support = true;
   GCaps.shader_draw_parameters_support =
       device.physical_device_vulkan_11_features_get().shaderDrawParameters;
 

@@ -31,7 +31,7 @@ namespace blender::gpu {
  * During development of the render graph this is set to true. But when committing to main this
  * must be set to false.
  */
-static constexpr bool use_render_graph = false;
+static constexpr bool use_render_graph = true;
 
 /**
  * Based on the usage of an Image View a different image view type should be created.

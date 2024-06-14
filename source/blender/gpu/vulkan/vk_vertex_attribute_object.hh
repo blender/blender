@@ -6,6 +6,7 @@
  * \ingroup gpu
  */
 
+#include "render_graph/vk_render_graph.hh"
 #include "vk_buffer.hh"
 #include "vk_common.hh"
 
@@ -23,6 +24,10 @@ class VKImmediate;
 
 using AttributeMask = uint16_t;
 
+// TODO: VKVertexAttributeObject should not contain any reference to VBO's. This should make the
+// API be compatible with both VKBatch and VKImmediate.
+// TODO: In steam of storing the bindings/attributes we should add a data structure that can store
+// them. Building the bindings/attributes should be done inside VKPipelinePool.
 class VKVertexAttributeObject {
  public:
   bool is_valid = false;
@@ -40,6 +45,7 @@ class VKVertexAttributeObject {
   void clear();
 
   void bind(VKContext &context);
+  void bind(render_graph::VKVertexBufferBindings &r_vertex_buffer_bindings) const;
 
   /** Copy assignment operator. */
   VKVertexAttributeObject &operator=(const VKVertexAttributeObject &other);

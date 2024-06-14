@@ -38,6 +38,13 @@ class VKFrameBuffer : public FrameBuffer {
   bool enabled_srgb_;
   bool is_rendering_ = false;
 
+  VkFormat depth_attachment_format_ = VK_FORMAT_UNDEFINED;
+  VkFormat stencil_attachment_format_ = VK_FORMAT_UNDEFINED;
+  Vector<VkFormat> color_attachment_formats_;
+
+  Array<GPULoadStore, GPU_FB_MAX_ATTACHMENT> load_stores;
+  Array<GPUAttachmentState, GPU_FB_MAX_ATTACHMENT> attachment_states_;
+
  public:
   /**
    * Create a conventional frame-buffer to attach texture to.
@@ -58,9 +65,6 @@ class VKFrameBuffer : public FrameBuffer {
                         const void *clear_value) override;
 
   void attachment_set_loadstore_op(GPUAttachmentType type, GPULoadStore /*ls*/) override;
-
-  void begin_rendering(VKContext &context);
-  void end_rendering(VKContext &context);
 
  protected:
   void subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
@@ -102,6 +106,9 @@ class VKFrameBuffer : public FrameBuffer {
 
   Array<VkViewport, 16> vk_viewports_get() const;
   Array<VkRect2D, 16> vk_render_areas_get() const;
+  VkFormat depth_attachment_format_get() const;
+  VkFormat stencil_attachment_format_get() const;
+  Span<VkFormat> color_attachment_formats_get() const;
 
   void depth_attachment_layout_ensure(VKContext &context, VkImageLayout requested_layout);
   void color_attachment_layout_ensure(VKContext &context,
@@ -140,6 +147,11 @@ class VKFrameBuffer : public FrameBuffer {
    * Is being triggered when framebuffer is deactivated or when
    */
   void rendering_end(VKContext &context);
+
+  bool is_rendering() const
+  {
+    return is_rendering_;
+  }
 
   /**
    * Return the number of color attachments of this frame buffer, including unused color

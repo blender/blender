@@ -207,6 +207,10 @@ void VKDevice::init_glsl_patch()
 
   /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
   ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
+  if (GPU_stencil_export_support()) {
+    ss << "#extension GL_ARB_shader_stencil_export: enable\n";
+    ss << "#define GPU_ARB_shader_stencil_export 1\n";
+  }
   if (!workarounds_.shader_output_layer) {
     ss << "#define gpu_Layer gl_Layer\n";
   }

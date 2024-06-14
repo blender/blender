@@ -157,7 +157,7 @@ void VKPushConstants::update(VKContext &context)
       if (!use_render_graph) {
         VKCommandBuffers &command_buffers = context.command_buffers_get();
         command_buffers.push_constants(*this,
-                                       shader->vk_pipeline_layout_get(),
+                                       shader->vk_pipeline_layout,
                                        shader->is_graphics_shader() ?
                                            VK_SHADER_STAGE_ALL_GRAPHICS :
                                            VK_SHADER_STAGE_COMPUTE_BIT);
