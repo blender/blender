@@ -967,8 +967,6 @@ class USERPREF_MT_extensions_settings(Menu):
 
         prefs = context.preferences
 
-        addon_prefs = prefs.addons[__package__].preferences
-
         layout.operator("extensions.repo_sync_all", icon='FILE_REFRESH')
         layout.operator("extensions.repo_refresh_all")
 
@@ -978,9 +976,6 @@ class USERPREF_MT_extensions_settings(Menu):
         layout.operator("extensions.package_install_files", text="Install from Disk...")
 
         if prefs.experimental.use_extensions_debug:
-            layout.separator()
-
-            layout.prop(addon_prefs, "show_development_reports")
 
             layout.separator()
 
@@ -1006,10 +1001,9 @@ def extensions_panel_draw(panel, context):
         blender_filter_by_type_map,
     )
 
-    addon_prefs = prefs.addons[__package__].preferences
-
     show_development = prefs.experimental.use_extensions_debug
-    show_development_reports = show_development and addon_prefs.show_development_reports
+    # This could be a separate option.
+    show_development_reports = show_development
 
     wm = context.window_manager
     layout = panel.layout

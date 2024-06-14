@@ -31,10 +31,6 @@ from bpy.props import (
     StringProperty,
 )
 
-from bpy.types import (
-    AddonPreferences,
-)
-
 
 # -----------------------------------------------------------------------------
 # Local Module Reload
@@ -55,19 +51,6 @@ def _local_module_reload():
     importlib.reload(bl_extension_ops)
     importlib.reload(bl_extension_ui)
     importlib.reload(bl_extension_utils)
-
-
-class BlExtPreferences(AddonPreferences):
-    bl_idname = __name__
-    show_development_reports: BoolProperty(
-        name="Show Development Reports",
-        description=(
-            "Show the result of running commands in the main interface. "
-            "This has the advantage that multiple processes that run at once have their errors properly grouped, "
-            "which is not the case for reports which are mixed together"
-        ),
-        default=False,
-    )
 
 
 class StatusInfoUI:
@@ -545,7 +528,6 @@ class BlExtDummyGroup(bpy.types.PropertyGroup):
 # Registration
 
 classes = (
-    BlExtPreferences,
     BlExtDummyGroup,
 )
 
