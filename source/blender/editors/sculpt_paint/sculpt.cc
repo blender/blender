@@ -1187,24 +1187,16 @@ enum StrokeFlags {
   CLIP_Z = 4,
 };
 
-void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
-                                      const Object &ob,
+static void orig_vert_data_unode_init(SculptOrigVertData &data,
                                       const blender::ed::sculpt_paint::undo::Node &unode)
 {
-  const SculptSession &ss = *ob.sculpt;
-
   memset(&data, 0, sizeof(data));
-  data.unode = &unode;
+  data.undo_type = unode.type;
 
-  if (ss.bm) {
-    data.bm_log = ss.bm_log;
-  }
-  else {
-    data.coords = data.unode->position.data();
-    data.normals = data.unode->normal.data();
-    data.vmasks = data.unode->mask.data();
-    data.colors = data.unode->col.data();
-  }
+  data.coords = unode.position.data();
+  data.normals = unode.normal.data();
+  data.vmasks = unode.mask.data();
+  data.colors = unode.col.data();
 }
 
 void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
@@ -1213,8 +1205,13 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
                                 const blender::ed::sculpt_paint::undo::Type type)
 {
   using namespace blender::ed::sculpt_paint;
-  if (undo::Node *unode = undo::get_node(&node, type)) {
-    SCULPT_orig_vert_data_unode_init(data, ob, *unode);
+  data.undo_type = type;
+  const SculptSession &ss = *ob.sculpt;
+  if (ss.bm) {
+    data.bm_log = ss.bm_log;
+  }
+  else if (undo::Node *unode = undo::get_node(&node, type)) {
+    orig_vert_data_unode_init(data, *unode);
   }
   else {
     data = {};
@@ -1224,7 +1221,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter)
 {
   using namespace blender::ed::sculpt_paint;
-  if (orig_data.unode->type == undo::Type::Position) {
+  if (orig_data.undo_type == undo::Type::Position) {
     if (orig_data.bm_log) {
       BM_log_original_vert_data(orig_data.bm_log, iter.bm_vert, &orig_data.co, &orig_data.no);
     }
@@ -1233,10 +1230,10 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVerte
       orig_data.no = orig_data.normals[iter.i];
     }
   }
-  else if (orig_data.unode->type == undo::Type::Color) {
+  else if (orig_data.undo_type == undo::Type::Color) {
     orig_data.col = orig_data.colors[iter.i];
   }
-  else if (orig_data.unode->type == undo::Type::Mask) {
+  else if (orig_data.undo_type == undo::Type::Mask) {
     if (orig_data.bm_log) {
       orig_data.mask = BM_log_original_mask(orig_data.bm_log, iter.bm_vert);
     }
@@ -1249,11 +1246,11 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVerte
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const BMVert &vert)
 {
   using namespace blender::ed::sculpt_paint;
-  if (orig_data.unode->type == undo::Type::Position) {
+  if (orig_data.undo_type == undo::Type::Position) {
     BM_log_original_vert_data(
         orig_data.bm_log, &const_cast<BMVert &>(vert), &orig_data.co, &orig_data.no);
   }
-  else if (orig_data.unode->type == undo::Type::Mask) {
+  else if (orig_data.undo_type == undo::Type::Mask) {
     orig_data.mask = BM_log_original_mask(orig_data.bm_log, &const_cast<BMVert &>(vert));
   }
 }
@@ -1261,14 +1258,14 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const BMVert &v
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const int i)
 {
   using namespace blender::ed::sculpt_paint;
-  if (orig_data.unode->type == undo::Type::Position) {
+  if (orig_data.undo_type == undo::Type::Position) {
     orig_data.co = orig_data.coords[i];
     orig_data.no = orig_data.normals[i];
   }
-  else if (orig_data.unode->type == undo::Type::Color) {
+  else if (orig_data.undo_type == undo::Type::Color) {
     orig_data.col = orig_data.colors[i];
   }
-  else if (orig_data.unode->type == undo::Type::Mask) {
+  else if (orig_data.undo_type == undo::Type::Mask) {
     orig_data.mask = orig_data.vmasks[i];
   }
 }
@@ -1380,7 +1377,7 @@ static void restore_color(Object &object, const Span<PBVHNode *> nodes)
   SculptSession &ss = *object.sculpt;
   const auto restore_generic = [&](PBVHNode *node, undo::Node *unode) {
     SculptOrigVertData orig_vert_data;
-    SCULPT_orig_vert_data_unode_init(orig_vert_data, object, *unode);
+    orig_vert_data_unode_init(orig_vert_data, *unode);
     PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
       SCULPT_orig_vert_data_update(orig_vert_data, vd);
