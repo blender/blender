@@ -993,6 +993,7 @@ def url_retrieve_to_data_iter(
     """
     from urllib.error import ContentTooShortError
     from urllib.request import urlopen
+    import socket
 
     request = urllib.request.Request(
         url,
@@ -1000,7 +1001,10 @@ def url_retrieve_to_data_iter(
         headers=headers,
     )
 
-    with contextlib.closing(urlopen(request, timeout=timeout_in_seconds)) as fp:
+    with (
+            urlopen(request, timeout=timeout_in_seconds) if (timeout_in_seconds > 0.0) else
+            urlopen(request)
+    ) as fp:
         response_headers = fp.info()
 
         size = -1
@@ -1010,7 +1014,7 @@ def url_retrieve_to_data_iter(
 
         yield (b'', size, response_headers)
 
-        if timeout_in_seconds == -1.0:
+        if timeout_in_seconds <= 0.0:
             while True:
                 block = fp.read(chunk_size)
                 if not block:

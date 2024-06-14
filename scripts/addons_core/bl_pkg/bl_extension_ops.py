@@ -1105,6 +1105,8 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
                 self.report({'ERROR'}, str(ex))
                 return {'CANCELLED'}
 
+        prefs = bpy.context.preferences
+
         # Needed to refresh.
         self.repo_directory = directory
 
@@ -1121,6 +1123,7 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
                     remote_url=url_append_defaults(repo_item.remote_url),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
+                    timeout=prefs.system.network_timeout,
                     use_idle=is_modal,
                 )
             )
@@ -1201,6 +1204,8 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
                     self.report({'WARNING'}, str(ex))
                     return None
 
+        prefs = bpy.context.preferences
+
         # It's only required to lock remote repositories, local repositories can refresh without being modified,
         # this is essential for system repositories which may be read-only.
         repos_lock = []
@@ -1216,6 +1221,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
                     remote_url=url_append_defaults(repo_item.remote_url),
                     online_user_agent=online_user_agent_from_blender(),
                     access_token=repo_item.access_token,
+                    timeout=prefs.system.network_timeout,
                     use_idle=is_modal,
                 ))
                 repos_lock.append(repo_item.directory)
@@ -1388,8 +1394,9 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 assert False, "unreachable"  # Poll prevents this.
             return None
 
-        # TODO: use a preference.
-        network_connection_limit = 5
+        prefs = context.preferences
+
+        network_connection_limit = prefs.system.network_connection_limit
 
         # NOTE: Unless we have a "clear-cache" operator - there isn't a great place to apply cache-clearing.
         # So when cache is disabled simply clear all cache before performing an update.
@@ -1449,6 +1456,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
                     access_token=repo_item.access_token,
+                    timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
                     use_idle=is_modal,
                 ))
@@ -1538,8 +1546,9 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
         self._repo_map_packages_addon_only = []
         package_count = 0
 
-        # TODO: use a preference.
-        network_connection_limit = 5
+        prefs = bpy.context.preferences
+
+        network_connection_limit = prefs.system.network_connection_limit
 
         cmd_batch = []
         for repo_index, pkg_id_sequence in sorted(repo_pkg_map.items()):
@@ -1564,6 +1573,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
                     access_token=repo_item.access_token,
+                    timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
                     use_idle=is_modal,
                 ))
@@ -2153,6 +2163,8 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             self.report({'ERROR'}, "Package ID not set")
             return None
 
+        prefs = bpy.context.preferences
+
         # Detect upgrade.
         repo_cache_store = repo_cache_store_ensure()
         pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
@@ -2191,6 +2203,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
                     access_token=repo_item.access_token,
+                    timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
                     use_idle=is_modal,
                 )
