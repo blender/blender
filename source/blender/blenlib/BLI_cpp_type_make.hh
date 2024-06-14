@@ -231,8 +231,14 @@ CPPType::CPPType(TypeTag<T> /*type*/,
     default_construct_indices_ = default_construct_indices_cb<T>;
     value_initialize_ = value_initialize_cb<T>;
     value_initialize_indices_ = value_initialize_indices_cb<T>;
-    static T default_value;
-    default_value_ = &default_value;
+    if constexpr (bool(Flags & CPPTypeFlags::IdentityDefaultValue)) {
+      static const T default_value = T::identity();
+      default_value_ = &default_value;
+    }
+    else {
+      static const T default_value = T();
+      default_value_ = &default_value;
+    }
   }
   if constexpr (std::is_destructible_v<T>) {
     destruct_ = destruct_cb<T>;
