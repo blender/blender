@@ -21,10 +21,6 @@ ExternalProject_Add(external_igc_opencl_clang
   CONFIGURE_COMMAND echo .
   BUILD_COMMAND echo .
   INSTALL_COMMAND echo .
-
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/igc_opencl_clang/src/external_igc_opencl_clang/ <
-    ${PATCH_DIR}/igc_opencl_clang.diff
 )
 
 set(IGC_OPENCL_CLANG_PATCH_DIR ${BUILD_DIR}/igc_opencl_clang/src/external_igc_opencl_clang/patches)
@@ -58,7 +54,10 @@ ExternalProject_Add(external_igc_llvm
       ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0005-Enable-use-of-GNU-C-extension.patch &&
     ${PATCH_CMD} -p 1 -d
       ${IGC_LLVM_SOURCE_DIR} <
-      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0006-Make-globals-used-for-array-initialization-codegen-c.patch
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0006-Make-globals-used-for-array-initialization-codegen-c.patch &&
+    ${PATCH_CMD} -p 1 -d
+      ${IGC_LLVM_SOURCE_DIR} <
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0007-clang-Sema-check-default-argument-promotions-for-pri.patch
 )
 add_dependencies(
   external_igc_llvm
