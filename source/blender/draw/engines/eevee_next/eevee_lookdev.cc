@@ -164,11 +164,10 @@ static eDRWLevelOfDetail calc_level_of_detail(const float viewport_scale)
   return DRW_LOD_LOW;
 }
 
-static int calc_sphere_size(const float viewport_scale)
+static int calc_sphere_extent(const float viewport_scale)
 {
   const int sphere_radius = U.lookdev_sphere_size * UI_SCALE_FAC * viewport_scale;
-  const int sphere_size = sphere_radius * 2;
-  return sphere_size;
+  return sphere_radius * 2;
 }
 
 void LookdevModule::sync()
@@ -177,29 +176,39 @@ void LookdevModule::sync()
     return;
   }
   const float viewport_scale = calc_viewport_scale();
-  const int sphere_size = calc_sphere_size(viewport_scale);
-  const int2 extent(sphere_size, sphere_size);
+  const int2 extent = int2(calc_sphere_extent(viewport_scale));
 
-  const eGPUTextureFormat depth_format = GPU_DEPTH_COMPONENT24;
   const eGPUTextureFormat color_format = GPU_RGBA16F;
 
-  depth_tx_.ensure_2d(depth_format, extent);
   for (int index : IndexRange(num_spheres)) {
     if (spheres_[index].color_tx_.ensure_2d(color_format, extent)) {
+      /* Request redraw if the lightprobe were off and the sampling was already finished. */
       if (inst_.sampling.finished_viewport()) {
         inst_.sampling.reset();
       }
     }
 
-    spheres_[index].framebuffer.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx_),
+    spheres_[index].framebuffer.ensure(GPU_ATTACHMENT_NONE,
                                        GPU_ATTACHMENT_TEXTURE(spheres_[index].color_tx_));
   }
 
-  float4 position = inst_.camera.data_get().viewinv *
-                    float4(0.0, 0.0, -inst_.camera.data_get().clip_near, 1.0);
-  float4x4 model_m4 = float4x4::identity();
-  model_m4 = math::translate(model_m4, float3(position));
-  model_m4 = math::scale(model_m4, float3(sphere_scale));
+  const Camera &cam = inst_.camera;
+  float sphere_distance = cam.data_get().clip_near;
+  int2 display_extent = inst_.film.display_extent_get();
+  float pixel_radius = inst_.shadows.screen_pixel_radius(
+      cam.data_get().wininv, cam.is_perspective(), display_extent);
+
+  if (cam.is_perspective()) {
+    pixel_radius *= sphere_distance;
+  }
+
+  this->sphere_radius_ = (extent.x / 2) * pixel_radius;
+  this->sphere_position_ = cam.position() -
+                           cam.forward() * (sphere_distance + this->sphere_radius_);
+
+  float4x4 model_m4 = float4x4(float3x3(cam.data_get().viewmat));
+  model_m4.location() = this->sphere_position_;
+  model_m4 = math::scale(model_m4, float3(this->sphere_radius_));
 
   ResourceHandle handle = inst_.manager->resource_handle(model_m4);
   gpu::Batch *geom = DRW_cache_sphere_get(calc_level_of_detail(viewport_scale));
@@ -218,8 +227,7 @@ void LookdevModule::sync_pass(PassSimple &pass,
   pass.clear_depth(1.0f);
   pass.clear_color(float4(0.0, 0.0, 0.0, 1.0));
 
-  const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
+  const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_CULL_BACK;
 
   GPUMaterial *gpumat = inst_.shaders.material_shader_get(
       mat, mat->nodetree, MAT_PIPE_FORWARD, MAT_GEOM_MESH, MAT_PROBE_NONE);
