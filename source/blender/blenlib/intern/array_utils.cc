@@ -113,13 +113,14 @@ BooleanMix booleans_mix_calc(const VArray<bool> &varray, const IndexRange range_
           }
 
           const Span<bool> slice = span.slice(range);
-          const bool first = slice.first();
-          for (const bool value : slice.drop_front(1)) {
-            if (value != first) {
+          const bool compare_value = (init == BooleanMix::None) ? slice.first() :
+                                                                  (init == BooleanMix::AllTrue);
+          for (const bool value : slice) {
+            if (value != compare_value) {
               return BooleanMix::Mixed;
             }
           }
-          return first ? BooleanMix::AllTrue : BooleanMix::AllFalse;
+          return compare_value ? BooleanMix::AllTrue : BooleanMix::AllFalse;
         },
         [&](BooleanMix a, BooleanMix b) { return (a == b) ? a : BooleanMix::Mixed; });
   }
