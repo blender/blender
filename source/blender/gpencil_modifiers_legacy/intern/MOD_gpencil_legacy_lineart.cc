@@ -438,7 +438,7 @@ static void options_light_reference_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, "Cached from the first Line Art modifier.", ICON_INFO);
+    uiItemL(layout, RPT_("Cached from the first Line Art modifier."), ICON_INFO);
     return;
   }
 

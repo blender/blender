@@ -7220,10 +7220,10 @@ void uiTemplateCacheFile(uiLayout *layout,
   /* TODO: unused for now, so no need to expose. */
 #if 0
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &fileptr, "forward_axis", UI_ITEM_NONE, "Forward Axis", ICON_NONE);
+  uiItemR(row, &fileptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &fileptr, "up_axis", UI_ITEM_NONE, "Up Axis", ICON_NONE);
+  uiItemR(row, &fileptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 #endif
 }
 
