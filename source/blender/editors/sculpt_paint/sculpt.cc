@@ -2602,9 +2602,9 @@ static float brush_strength(const Sculpt &sd,
   }
 }
 
-static float sculpt_apply_hardness(const SculptSession &ss, const float input_len)
+static float sculpt_apply_hardness(const blender::ed::sculpt_paint::StrokeCache &cache,
+                                   const float input_len)
 {
-  const blender::ed::sculpt_paint::StrokeCache &cache = *ss.cache;
   float final_len = input_len;
   const float hardness = cache.paint_brush.hardness;
   float p = input_len / cache.radius;
@@ -2709,7 +2709,7 @@ float SCULPT_brush_strength_factor(
   sculpt_apply_texture(ss, brush, brush_point, thread_id, &avg, rgba);
 
   /* Hardness. */
-  const float final_len = sculpt_apply_hardness(ss, len);
+  const float final_len = sculpt_apply_hardness(*cache, len);
 
   /* Falloff curve. */
   avg *= BKE_brush_curve_strength(&brush, final_len, cache->radius);
@@ -2744,7 +2744,7 @@ void SCULPT_brush_strength_color(
   sculpt_apply_texture(ss, brush, brush_point, thread_id, &avg, r_rgba);
 
   /* Hardness. */
-  const float final_len = sculpt_apply_hardness(ss, len);
+  const float final_len = sculpt_apply_hardness(*cache, len);
 
   /* Falloff curve. */
   const float falloff = BKE_brush_curve_strength(&brush, final_len, cache->radius) *
@@ -6592,14 +6592,12 @@ void calc_distance_falloff(SculptSession &ss,
   }
 }
 
-void calc_brush_strength_factors(const SculptSession &ss,
+void calc_brush_strength_factors(const StrokeCache &cache,
                                  const Brush &brush,
                                  const Span<float> distances,
                                  const MutableSpan<float> factors)
 {
   BLI_assert(factors.size() == distances.size());
-
-  const StrokeCache &cache = *ss.cache;
 
   for (const int i : factors.index_range()) {
     if (factors[i] == 0.0f) {
@@ -6609,7 +6607,7 @@ void calc_brush_strength_factors(const SculptSession &ss,
       continue;
     }
 
-    const float hardness = sculpt_apply_hardness(ss, distances[i]);
+    const float hardness = sculpt_apply_hardness(cache, distances[i]);
     const float strength = BKE_brush_curve_strength(&brush, hardness, cache.radius);
 
     factors[i] *= strength;

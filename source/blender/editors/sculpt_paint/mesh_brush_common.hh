@@ -86,7 +86,7 @@ void calc_distance_falloff(SculptSession &ss,
 /**
  * Modify the factors based on distances to the brush cursor, using various brush settings.
  */
-void calc_brush_strength_factors(const SculptSession &ss,
+void calc_brush_strength_factors(const StrokeCache &cache,
                                  const Brush &brush,
                                  Span<float> distances,
                                  MutableSpan<float> factors);

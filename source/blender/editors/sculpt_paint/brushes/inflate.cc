@@ -54,7 +54,7 @@ static void calc_faces(const Sculpt &sd,
                        const MutableSpan<float3> positions_orig)
 {
   SculptSession &ss = *object.sculpt;
-  StrokeCache &cache = *ss.cache;
+  const StrokeCache &cache = *ss.cache;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
@@ -71,10 +71,10 @@ static void calc_faces(const Sculpt &sd,
   const MutableSpan<float> distances = tls.distances;
   calc_distance_falloff(
       ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances, factors);
-  calc_brush_strength_factors(ss, brush, distances, factors);
+  calc_brush_strength_factors(cache, brush, distances, factors);
 
-  if (ss.cache->automasking) {
-    auto_mask::calc_vert_factors(object, *ss.cache->automasking, node, verts, factors);
+  if (cache.automasking) {
+    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
   }
 
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
