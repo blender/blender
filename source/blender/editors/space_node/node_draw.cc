@@ -4462,7 +4462,7 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
     float zone_color[4];
     UI_GetThemeColor4fv(get_theme_id(zone_i), zone_color);
     if (zone_color[3] == 0.0f) {
-      break;
+      continue;
     }
     const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
     /* Draw the background. */
