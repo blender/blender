@@ -266,8 +266,6 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->guiding_directional_sampling_type = guiding_params.sampling_type;
   kintegrator->guiding_roughness_threshold = guiding_params.roughness_threshold;
 
-  kintegrator->seed = seed;
-
   kintegrator->sample_clamp_direct = (sample_clamp_direct == 0.0f) ? FLT_MAX :
                                                                      sample_clamp_direct * 3.0f;
   kintegrator->sample_clamp_indirect = (sample_clamp_indirect == 0.0f) ?
@@ -286,6 +284,17 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   }
   if (kintegrator->sampling_pattern == SAMPLING_PATTERN_BLUE_NOISE_FIRST) {
     kintegrator->blue_noise_sequence_length -= 1;
+  }
+
+  /* The blue-noise sampler needs a randomized seed to scramble properly, providing e.g. 0 won't
+   * work properly. Therefore, hash the seed in those cases. */
+  if (kintegrator->sampling_pattern == SAMPLING_PATTERN_BLUE_NOISE_FIRST ||
+      kintegrator->sampling_pattern == SAMPLING_PATTERN_BLUE_NOISE_PURE)
+  {
+    kintegrator->seed = hash_uint(seed);
+  }
+  else {
+    kintegrator->seed = seed;
   }
 
   /* NOTE: The kintegrator->use_light_tree is assigned to the efficient value in the light manager,
