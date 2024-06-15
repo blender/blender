@@ -312,7 +312,9 @@ if(WITH_CODEC_FFMPEG)
       theora theoradec theoraenc
       vorbis vorbisenc vorbisfile ogg
       vpx
-      x264)
+      x264
+      x265
+    )
     if(DEFINED LIBDIR)
       if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
         list(APPEND FFMPEG_FIND_COMPONENTS aom)
