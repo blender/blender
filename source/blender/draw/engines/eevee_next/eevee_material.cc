@@ -255,6 +255,8 @@ Material &MaterialModule::material_sync(Object *ob,
                                         eMaterialGeometry geometry_type,
                                         bool has_motion)
 {
+  bool hide_on_camera = ob->visibility_flag & OB_HIDE_CAMERA;
+
   if (geometry_type == MAT_GEOM_VOLUME) {
     MaterialKey material_key(
         blender_mat, geometry_type, MAT_PIPE_VOLUME_MATERIAL, ob->visibility_flag);
@@ -268,7 +270,8 @@ Material &MaterialModule::material_sync(Object *ob,
     });
 
     /* Volume needs to use one sub pass per object to support layering. */
-    VolumeLayer *layer = inst_.pipelines.volume.register_and_get_layer(ob);
+    VolumeLayer *layer = hide_on_camera ? nullptr :
+                                          inst_.pipelines.volume.register_and_get_layer(ob);
     if (layer) {
       mat.volume_occupancy.sub_pass = layer->occupancy_add(
           ob, blender_mat, mat.volume_occupancy.gpumat);
@@ -317,8 +320,20 @@ Material &MaterialModule::material_sync(Object *ob,
     }
     else {
       /* Order is important for transparent. */
-      mat.prepass = material_pass_get(ob, blender_mat, prepass_pipe, geometry_type);
+      if (!hide_on_camera) {
+        mat.prepass = material_pass_get(ob, blender_mat, prepass_pipe, geometry_type);
+      }
+      else {
+        mat.prepass = MaterialPass();
+      }
+
       mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
+      if (hide_on_camera) {
+        /* Only null the sub_pass.
+         * mat.shading.gpumat is is always needed for using the GPU_material API. */
+        mat.shading.sub_pass = nullptr;
+      }
+
       mat.overlap_masking = MaterialPass();
       mat.capture = MaterialPass();
 
@@ -347,7 +362,7 @@ Material &MaterialModule::material_sync(Object *ob,
 
       mat.has_surface = GPU_material_has_surface_output(mat.shading.gpumat);
       mat.has_volume = GPU_material_has_volume_output(mat.shading.gpumat);
-      if (mat.has_volume) {
+      if (mat.has_volume && !hide_on_camera) {
         mat.volume_occupancy = material_pass_get(
             ob, blender_mat, MAT_PIPE_VOLUME_OCCUPANCY, geometry_type);
         mat.volume_material = material_pass_get(
@@ -376,7 +391,7 @@ Material &MaterialModule::material_sync(Object *ob,
     return mat;
   });
 
-  if (mat.is_alpha_blend_transparent) {
+  if (mat.is_alpha_blend_transparent && !hide_on_camera) {
     /* Transparent needs to use one sub pass per object to support reordering.
      * NOTE: Pre-pass needs to be created first in order to be sorted first. */
     mat.overlap_masking.sub_pass = inst_.pipelines.forward.prepass_transparent_add(
@@ -387,7 +402,8 @@ Material &MaterialModule::material_sync(Object *ob,
 
   if (mat.has_volume) {
     /* Volume needs to use one sub pass per object to support layering. */
-    VolumeLayer *layer = inst_.pipelines.volume.register_and_get_layer(ob);
+    VolumeLayer *layer = hide_on_camera ? nullptr :
+                                          inst_.pipelines.volume.register_and_get_layer(ob);
     if (layer) {
       mat.volume_occupancy.sub_pass = layer->occupancy_add(
           ob, blender_mat, mat.volume_occupancy.gpumat);
