@@ -13,7 +13,7 @@ namespace blender::nodes::node_shader_tex_coord_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Generated");
+  b.add_output<decl::Vector>("Generated").translation_context(BLT_I18NCONTEXT_ID_TEXTURE);
   b.add_output<decl::Vector>("Normal");
   b.add_output<decl::Vector>("UV");
   b.add_output<decl::Vector>("Object");

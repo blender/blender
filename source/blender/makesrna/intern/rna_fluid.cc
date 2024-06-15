@@ -2883,6 +2883,7 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "texture_map_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "texture_type");
   RNA_def_property_enum_items(prop, flow_texture_types);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXTURE);
   RNA_def_property_ui_text(prop, "Mapping", "Texture mapping type");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_flow_reset");
 

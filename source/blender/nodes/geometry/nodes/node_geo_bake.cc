@@ -83,7 +83,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   data->items_num = 1;
 
   NodeGeometryBakeItem &item = data->items[0];
-  item.name = BLI_strdup("Geometry");
+  item.name = BLI_strdup(DATA_("Geometry"));
   item.identifier = data->next_identifier++;
   item.attribute_domain = int16_t(AttrDomain::Point);
   item.socket_type = SOCK_GEOMETRY;
