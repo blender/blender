@@ -55,9 +55,11 @@ set(X265_EXTRA_ARGS
 )
 
 if(UNIX)
+  # Use the suffix `.part` so this library isn't included when installing,
+  # as the library which is merged is used instead.
   list(APPEND X265_EXTRA_ARGS
-    -DCMAKE_STATIC_LIBRARY_SUFFIX_C=_unmerged${LIB_SUFFIX}${LIBEXT}
-    -DCMAKE_STATIC_LIBRARY_SUFFIX_CXX=_unmerged${LIB_SUFFIX}${LIBEXT}
+    -DCMAKE_STATIC_LIBRARY_SUFFIX_C=_unmerged${LIB_SUFFIX}${LIBEXT}.part
+    -DCMAKE_STATIC_LIBRARY_SUFFIX_CXX=_unmerged${LIB_SUFFIX}${LIBEXT}.part
   )
 endif()
 
@@ -130,7 +132,7 @@ if(UNIX)
     set(_ar_cmake "${BUILD_DIR}/x265/tmp/x265_ar_script.cmake")
     file(WRITE ${_ar_stdin} "\
 CREATE ${LIBDIR}/x265/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}
-ADDLIB ${LIBDIR}/x265/lib/${LIB_PREFIX}x265${LIB_SUFFIX}_unmerged${LIBEXT}
+ADDLIB ${LIBDIR}/x265/lib/${LIB_PREFIX}x265${LIB_SUFFIX}_unmerged${LIBEXT}.part
 ADDLIB ${LIBDIR}/x265_10/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}
 ADDLIB ${LIBDIR}/x265_12/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}
 SAVE
@@ -159,7 +161,7 @@ execute_process(
     ExternalProject_Add_Step(external_x265 after_install
       COMMAND libtool -static -o
         ${LIBDIR}/x265/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}
-        ${LIBDIR}/x265/lib/${LIB_PREFIX}x265${LIB_SUFFIX}_unmerged${LIBEXT}
+        ${LIBDIR}/x265/lib/${LIB_PREFIX}x265${LIB_SUFFIX}_unmerged${LIBEXT}.part
         ${LIBDIR}/x265_10/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}
         ${LIBDIR}/x265_12/lib/${LIB_PREFIX}x265${LIB_SUFFIX}${LIBEXT}
       DEPENDEES install
