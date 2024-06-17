@@ -1408,10 +1408,6 @@ std::string UI_but_extra_icon_string_get_tooltip(bContext &C, const uiButExtraOp
 std::string UI_but_extra_icon_string_get_operator_keymap(const bContext &C,
                                                          const uiButExtraOpIcon &extra_icon);
 
-/* Edit i18n stuff. */
-/* Name of the main py op from i18n addon. */
-#define EDTSRC_I18N_OP_NAME "UI_OT_edittranslation"
-
 /**
  * Special Buttons
  *

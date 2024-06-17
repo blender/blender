@@ -5,9 +5,9 @@
 bl_info = {
     "name": "Manage UI translations",
     "author": "Bastien Montagne",
-    "version": (2, 0, 0),
-    "blender": (4, 0, 0),
-    "location": "Main \"File\" menu, text editor, any UI control",
+    "version": (2, 1, 0),
+    "blender": (4, 2, 0),
+    "location": "Render properties, I18n Update Translation panel",
     "description": "Allows managing UI translations directly from Blender "
     "(update main .po files, update scripts' translations, etc.)",
     "doc_url": "https://developer.blender.org/docs/handbook/translating/translator_guide/",
@@ -18,7 +18,6 @@ bl_info = {
 
 from . import (
     settings,
-    edit_translation,
     update_repo,
     update_addon,
     update_ui,
@@ -26,7 +25,6 @@ from . import (
 if "bpy" in locals():
     import importlib
     importlib.reload(settings)
-    importlib.reload(edit_translation)
     importlib.reload(update_repo)
     importlib.reload(update_addon)
     importlib.reload(update_ui)
@@ -34,7 +32,7 @@ if "bpy" in locals():
 import bpy
 
 
-classes = settings.classes + edit_translation.classes + update_repo.classes + update_addon.classes + update_ui.classes
+classes = settings.classes + update_repo.classes + update_addon.classes + update_ui.classes
 
 
 def register():

@@ -2186,141 +2186,7 @@ static void UI_OT_editsource(wmOperatorType *ot)
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Edit Translation Operator
- * \{ */
-
-/**
- * EditTranslation utility functions and operator.
- *
- * \note this includes utility functions and button matching checks.
- * this only works in conjunction with a Python operator!
- */
-static void edittranslation_find_po_file(const char *root,
-                                         const char *uilng,
-                                         char *path,
-                                         const size_t path_maxncpy)
-{
-  char tstr[32]; /* Should be more than enough! */
-
-  /* First, full lang code. */
-  SNPRINTF(tstr, "%s.po", uilng);
-  BLI_path_join(path, path_maxncpy, root, uilng, tstr);
-  if (BLI_is_file(path)) {
-    return;
-  }
-
-  /* Now try without the second ISO code part (`_BR` in `pt_BR`). */
-  {
-    const char *tc = nullptr;
-    size_t szt = 0;
-    tstr[0] = '\0';
-
-    tc = strchr(uilng, '_');
-    if (tc) {
-      szt = tc - uilng;
-      if (szt < sizeof(tstr)) {            /* Paranoid, should always be true! */
-        BLI_strncpy(tstr, uilng, szt + 1); /* +1 for '\0' char! */
-      }
-    }
-    if (tstr[0]) {
-      /* Because of some codes like sr_SR@latin... */
-      tc = strchr(uilng, '@');
-      if (tc) {
-        BLI_strncpy(tstr + szt, tc, sizeof(tstr) - szt);
-      }
-
-      BLI_path_join(path, path_maxncpy, root, tstr);
-      BLI_strncat(tstr, ".po", sizeof(tstr));
-      BLI_path_append(path, path_maxncpy, tstr);
-      if (BLI_is_file(path)) {
-        return;
-      }
-    }
-  }
-
-  /* Else no po file! */
-  path[0] = '\0';
-}
-
-static int edittranslation_exec(bContext *C, wmOperator *op)
-{
-  uiBut *but = UI_context_active_but_get(C);
-  if (but == nullptr) {
-    BKE_report(op->reports, RPT_ERROR, "Active button not found");
-    return OPERATOR_CANCELLED;
-  }
-
-  wmOperatorType *ot;
-  PointerRNA ptr;
-  char popath[FILE_MAX];
-  const char *root = U.i18ndir;
-  const char *uilng = BLT_lang_get();
-
-  if (!BLI_is_dir(root)) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               "Please set your Preferences' 'Translation Branches "
-               "Directory' path to a valid directory");
-    return OPERATOR_CANCELLED;
-  }
-  ot = WM_operatortype_find(EDTSRC_I18N_OP_NAME, false);
-  if (ot == nullptr) {
-    BKE_reportf(op->reports,
-                RPT_ERROR,
-                "Could not find operator '%s'! Please enable ui_translate add-on "
-                "in the User Preferences",
-                EDTSRC_I18N_OP_NAME);
-    return OPERATOR_CANCELLED;
-  }
-  /* Try to find a valid po file for current language... */
-  edittranslation_find_po_file(root, uilng, popath, FILE_MAX);
-  // printf("po path: %s\n", popath);
-  if (popath[0] == '\0') {
-    BKE_reportf(
-        op->reports, RPT_ERROR, "No valid po found for language '%s' under %s", uilng, root);
-    return OPERATOR_CANCELLED;
-  }
-
-  WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_string_set(&ptr, "lang", uilng);
-  RNA_string_set(&ptr, "po_file", popath);
-
-  const EnumPropertyItem enum_item = UI_but_rna_enum_item_get(*C, *but).value_or(
-      EnumPropertyItem{});
-  RNA_string_set(&ptr, "enum_label", enum_item.name);
-  RNA_string_set(&ptr, "enum_tip", enum_item.description);
-  RNA_string_set(&ptr, "rna_enum", enum_item.identifier);
-
-  RNA_string_set(&ptr, "but_label", UI_but_string_get_label(*but).c_str());
-  RNA_string_set(&ptr, "rna_label", UI_but_string_get_rna_label(*but).c_str());
-
-  RNA_string_set(&ptr, "but_tip", UI_but_string_get_tooltip(*C, *but).c_str());
-  RNA_string_set(&ptr, "rna_tip", UI_but_string_get_rna_tooltip(*C, *but).c_str());
-
-  RNA_string_set(&ptr, "rna_struct", UI_but_string_get_rna_struct_identifier(*but).c_str());
-  RNA_string_set(&ptr, "rna_prop", UI_but_string_get_rna_property_identifier(*but).c_str());
-  RNA_string_set(&ptr, "rna_ctxt", UI_but_string_get_rna_label_context(*but).c_str());
-
-  const int ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
-
-  return ret;
-}
-
-static void UI_OT_edittranslation_init(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Edit Translation";
-  ot->idname = "UI_OT_edittranslation_init";
-  ot->description = "Edit i18n in current language for the active button";
-
-  /* callbacks */
-  ot->exec = edittranslation_exec;
-}
-
 #endif /* WITH_PYTHON */
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Reload Translation Operator
@@ -2884,7 +2750,6 @@ void ED_operatortypes_ui()
   WM_operatortype_append(UI_OT_drop_material);
 #ifdef WITH_PYTHON
   WM_operatortype_append(UI_OT_editsource);
-  WM_operatortype_append(UI_OT_edittranslation_init);
 #endif
   WM_operatortype_append(UI_OT_reloadtranslation);
   WM_operatortype_append(UI_OT_button_execute);
