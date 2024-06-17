@@ -207,6 +207,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   if (hair_cache->num_uv_layers == 0) {
     DRW_shgroup_buffer_texture(shgrp, "u", g_dummy_vbo);
     DRW_shgroup_buffer_texture(shgrp, "au", g_dummy_vbo);
+    DRW_shgroup_buffer_texture(shgrp, "a", g_dummy_vbo);
   }
   if (hair_cache->num_col_layers == 0) {
     DRW_shgroup_buffer_texture(shgrp, "c", g_dummy_vbo);
@@ -378,6 +379,7 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
   if (hair_cache->num_uv_layers == 0) {
     sub_ps.bind_texture("u", g_dummy_vbo);
     sub_ps.bind_texture("au", g_dummy_vbo);
+    sub_ps.bind_texture("a", g_dummy_vbo);
   }
   if (hair_cache->num_col_layers == 0) {
     sub_ps.bind_texture("c", g_dummy_vbo);
