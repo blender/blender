@@ -330,7 +330,7 @@ int main(int argc,
 #  endif /* USE_WIN32_UNICODE_ARGS */
 #endif   /* WIN32 */
 
-#if defined(WITH_OPENGL_BACKEND) && defined(BLI_SUBPROCESS_SUPPORT)
+#if defined(WITH_OPENGL_BACKEND) && BLI_SUBPROCESS_SUPPORT
   if (strcmp(argv[0], "--compilation-subprocess") == 0) {
     BLI_assert(argc == 2);
     GPU_compilation_subprocess_run(argv[1]);
