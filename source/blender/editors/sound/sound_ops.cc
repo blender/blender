@@ -301,6 +301,8 @@ static int sound_bake_animation_exec(bContext *C, wmOperator * /*op*/)
 
   for (cfra = (scene->r.sfra > 0) ? (scene->r.sfra - 1) : 0; cfra <= scene->r.efra + 1; cfra++) {
     scene->r.cfra = cfra;
+    /* Make sure the camera is updated, since it will affect stereo/surround output. */
+    BKE_scene_camera_switch_update(scene);
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
 
