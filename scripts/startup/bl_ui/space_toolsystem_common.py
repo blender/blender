@@ -832,11 +832,7 @@ class ToolSelectPanelHelper:
             else:
                 label = "Active Tool"
 
-            split = layout.split(factor=0.33)
-            row = split.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Drag:")
-            row = split.row()
+            row = layout.row(heading="Drag")
             row.context_pointer_set("tool", tool)
             row.popover(panel="TOPBAR_PT_tool_fallback", text=iface_(label, "Operator"))
 

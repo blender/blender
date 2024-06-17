@@ -87,7 +87,8 @@ class _template_widget:
         @staticmethod
         def draw_settings(_context, layout, tool):
             props = tool.gizmo_group_properties("VIEW3D_GGT_xform_extrude")
-            layout.prop(props, "axis_type", expand=True)
+            row = layout.row(align=True)
+            row.prop(props, "axis_type", expand=True)
 
     class VIEW3D_GGT_xform_gizmo:
         @staticmethod
@@ -526,13 +527,9 @@ class _defs_view3d_add:
         show_extra = False
         if not extra:
             row = layout.row()
-            row.label(text="Depth:")
+            row.prop(tool_settings, "plane_depth", text="Depth")
             row = layout.row()
-            row.prop(tool_settings, "plane_depth", text="")
-            row = layout.row()
-            row.label(text="Orientation:")
-            row = layout.row()
-            row.prop(tool_settings, "plane_orientation", text="")
+            row.prop(tool_settings, "plane_orientation", text="Orientation")
             row = layout.row()
             row.prop(tool_settings, "snap_elements_tool")
 
@@ -836,7 +833,8 @@ class _defs_edit_mesh:
             layout.prop(props, "steps")
             layout.prop(props, "dupli")
             props = tool.gizmo_group_properties("MESH_GGT_spin")
-            layout.prop(props, "axis")
+            row = layout.row(align=True)
+            row.prop(props, "axis", expand=True)
 
         return dict(
             idname="builtin.spin",
@@ -1130,8 +1128,7 @@ class _defs_edit_mesh:
 
                 layout.prop(props, "visible_measurements")
                 layout.prop(props, "angle_snapping")
-                layout.label(text="Angle Snapping Increment")
-                layout.prop(props, "angle_snapping_increment", text="")
+                layout.prop(props, "angle_snapping_increment", text="Snap Increment")
             if show_extra:
                 layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
@@ -1907,8 +1904,10 @@ class _defs_weight_paint:
                 )
 
             props = tool.operator_properties("paint.weight_gradient")
-            layout.prop(props, "type", expand=True)
-            layout.popover("VIEW3D_PT_tools_weight_gradient")
+            row = layout.row()
+            row.prop(props, "type", expand=True)
+            row = layout.row()
+            row.popover("VIEW3D_PT_tools_weight_gradient")
 
         return dict(
             idname="builtin.gradient",
@@ -2992,7 +2991,6 @@ class _defs_sequencer_generic:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sequencer.split")
             row = layout.row()
-            row.use_property_split = False
             row.prop(props, "type", expand=True)
         return dict(
             idname="builtin.blade",
