@@ -395,7 +395,7 @@ void Camera::update(Scene *scene)
 
   /* depth of field */
   kcam->aperturesize = aperturesize;
-  kcam->focaldistance = focaldistance;
+  kcam->focaldistance = max(focaldistance, 1e-5f);
   kcam->blades = (blades < 3) ? 0.0f : blades;
   kcam->bladesrotation = bladesrotation;
 
