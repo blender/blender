@@ -6,7 +6,7 @@
 
 #if BLI_SUBPROCESS_SUPPORT
 
-/* Based on https://github.com/jarikomppa/ipc (Unlicensed) */
+/* Based on https://github.com/jarikomppa/ipc (Unlicense) */
 
 #  include "BLI_assert.h"
 #  include "BLI_path_util.h"
