@@ -89,6 +89,9 @@ void Instance::init(const int2 &output_res,
   if (is_painting()) {
     sampling.reset();
   }
+  if (is_navigating() && scene->eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT) {
+    sampling.reset();
+  }
 
   update_eval_members();
 
