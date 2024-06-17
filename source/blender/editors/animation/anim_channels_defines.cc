@@ -3600,7 +3600,6 @@ static bAnimChannelType ACF_GPL_LEGACY = {
 
 /* Grease Pencil Animation functions ------------------------------------------- */
 
-#ifdef WITH_GREASE_PENCIL_V3
 namespace blender::ed::animation::greasepencil {
 
 /* Get pointer to the setting */
@@ -3843,7 +3842,6 @@ static bAnimChannelType ACF_GPLGROUP = {
     /*setting_flag*/ greasepencil::layer_setting_flag,
     /*setting_ptr*/ greasepencil::layer_group_setting_ptr,
 };
-#endif
 
 /* Mask Datablock ------------------------------------------- */
 
@@ -4415,15 +4413,9 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_GPD_LEGACY; /* Grease Pencil Datablock (Legacy) */
     animchannelTypeInfo[type++] = &ACF_GPL_LEGACY; /* Grease Pencil Layer (Legacy) */
 
-#ifdef WITH_GREASE_PENCIL_V3
     animchannelTypeInfo[type++] = &ACF_GPD;      /* Grease Pencil Datablock. */
     animchannelTypeInfo[type++] = &ACF_GPLGROUP; /* Grease Pencil Layer Group. */
     animchannelTypeInfo[type++] = &ACF_GPL;      /* Grease Pencil Layer. */
-#else
-    animchannelTypeInfo[type++] = nullptr;
-    animchannelTypeInfo[type++] = nullptr;
-    animchannelTypeInfo[type++] = nullptr;
-#endif
 
     animchannelTypeInfo[type++] = &ACF_MASKDATA;  /* Mask Datablock */
     animchannelTypeInfo[type++] = &ACF_MASKLAYER; /* Mask Layer */
@@ -5549,7 +5541,6 @@ static void draw_setting_widget(bAnimContext *ac,
   }
 }
 
-#ifdef WITH_GREASE_PENCIL_V3
 static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
                                              uiBlock *block,
                                              const rctf *rect,
@@ -5633,7 +5624,6 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
                   channel_height);
   }
 }
-#endif
 
 void ANIM_channel_draw_widgets(const bContext *C,
                                bAnimContext *ac,
@@ -6056,11 +6046,9 @@ void ANIM_channel_draw_widgets(const bContext *C,
             }
           }
         }
-#ifdef WITH_GREASE_PENCIL_V3
         else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
           draw_grease_pencil_layer_widgets(ale, block, rect, offset, channel_height, array_index);
         }
-#endif
 
         /* Only if RNA-Path found. */
         if (rna_path) {

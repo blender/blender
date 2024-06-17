@@ -157,9 +157,7 @@ void RNA_def_depsgraph(BlenderRNA *brna);
 void RNA_def_dynamic_paint(BlenderRNA *brna);
 void RNA_def_fcurve(BlenderRNA *brna);
 void RNA_def_gpencil(BlenderRNA *brna);
-#ifdef WITH_GREASE_PENCIL_V3
 void RNA_def_grease_pencil(BlenderRNA *brna);
-#endif
 void RNA_def_greasepencil_modifier(BlenderRNA *brna);
 void RNA_def_shader_fx(BlenderRNA *brna);
 void RNA_def_curves(BlenderRNA *brna);
@@ -489,9 +487,7 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_palettes(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_gpencil_legacy(BlenderRNA *brna, PropertyRNA *cprop);
-#ifdef WITH_GREASE_PENCIL_V3
 void RNA_def_main_grease_pencil(BlenderRNA *brna, PropertyRNA *cprop);
-#endif
 void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop);

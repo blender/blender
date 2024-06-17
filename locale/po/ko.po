@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -301,6 +301,22 @@ msgstr "Full"
 
 msgid "Auto"
 msgstr "Auto"
+
+
+msgid "Always"
+msgstr "항상"
+
+
+msgid "Never"
+msgstr "않음"
+
+
+msgid "Center"
+msgstr "중심"
+
+
+msgid "Bottom"
+msgstr "Bottom"
 
 
 msgid "Fribidi Library"
@@ -3073,6 +3089,12 @@ msgid "Curve Radius"
 msgstr "커브 반경"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "추가"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "제거"
 
@@ -3803,10 +3825,6 @@ msgstr "왼쪽"
 
 msgid "Right"
 msgstr "오른쪽"
-
-
-msgid "Center"
-msgstr "중심"
 
 
 msgid "Pole Merge Start Angle"
@@ -6333,10 +6351,6 @@ msgstr "활성화된 회전 범위"
 
 msgid "Rotation range on which pivoting should occur"
 msgstr "피벗팅하면 발생합 하는 회전 범위"
-
-
-msgid "Always"
-msgstr "항상"
 
 
 msgid "Use the pivot point in every rotation"
@@ -11280,10 +11294,6 @@ msgstr "버블"
 
 msgid "Create bubble particle system"
 msgstr "버블 파티클 시스템을 생성"
-
-
-msgid "Bottom"
-msgstr "Bottom"
 
 
 msgid "Top"
@@ -18487,10 +18497,6 @@ msgstr "편집하는 동안, 절반 해상도의 메타볼을 업데이트"
 
 msgid "While editing, update metaball without polygonization"
 msgstr "편집하는 동안, 풀리고니제이션없이 메타볼을 업데이트"
-
-
-msgid "Never"
-msgstr "않음"
 
 
 msgid "While editing, don't update metaball at all"
@@ -25711,11 +25717,6 @@ msgid "Show/Hide Faces"
 msgstr "페이스를 표시/숨기기"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "추가"
-
-
 msgid "Shape Key Specials"
 msgstr "셰이프 키 지정"
 
@@ -25927,6 +25928,11 @@ msgstr "활성화된 모드"
 
 msgid "Names"
 msgstr "이름"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "부모"
 
 
 msgid "Bone Roll"
@@ -39304,11 +39310,6 @@ msgid "Remove existing add-ons with the same ID"
 msgstr "동일한 ID와 기존의 애드온을 제거"
 
 
-msgctxt "Operator"
-msgid "Refresh All"
-msgstr "모두 새로 고침"
-
-
 msgid "Automatically pack all external files into the .blend file"
 msgstr "자동으로 모든 외부 파일을 .blend 파일에 포장합니다"
 
@@ -41428,6 +41429,10 @@ msgstr "키 프레임을 결정"
 
 msgid "Decimate F-Curves by removing keyframes that influence the curve shape the least"
 msgstr "커브 셰이프에 가장 영향을 미치는 키 프레임을 제거하여 F-커브를 데시메이트"
+
+
+msgid "Remove"
+msgstr "제거"
 
 
 msgid "Which mode to use for decimation"
@@ -46011,6 +46016,26 @@ msgstr "노드 컬러 프리셋을 추가 또는 제거"
 
 msgid "Copy color to all selected nodes"
 msgstr "컬러를 선택된 모든 노드에 복사"
+
+
+msgid "Overlay Mode"
+msgstr "오버레이 모드"
+
+
+msgid "Current"
+msgstr "현재"
+
+
+msgid "Exponent"
+msgstr "지수"
+
+
+msgid "Fraction"
+msgstr "분수"
+
+
+msgid "Wrap"
+msgstr "감싸기"
 
 
 msgctxt "Operator"
@@ -51724,10 +51749,6 @@ msgid "Applies a filter to modify the current mask"
 msgstr "현재 마스크를 수정하기 위해 필터를 적용합니다"
 
 
-msgid "Use a automatic number of iterations based on the number of vertices of the sculpt"
-msgstr "스컬프트의 버텍스 수에 따라 자동 반복 횟수를 사용"
-
-
 msgid "Filter that is going to be applied to the mask"
 msgstr "마스크에 적용될 필터"
 
@@ -53738,139 +53759,6 @@ msgstr "활성 버튼의 UI 소스 코드를 편집"
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "번역을 편집"
-
-
-msgid "Translate the label and tooltip of the given property"
-msgstr "해당 속성의 레이블 및 툴팁을 번역합니다"
-
-
-msgid "Label of the control"
-msgstr "컨트롤의 라벨"
-
-
-msgid "Flags about the label of the button"
-msgstr "버튼의 레이블에 대한 플래그"
-
-
-msgid "Message is marked as fuzzy in po file"
-msgstr "po 파일에서 메시지가 퍼지로 표시됨"
-
-
-msgid "Some error occurred with this message"
-msgstr "일부 오류 메시지가 발생했습니다"
-
-
-msgid "Tip of the control"
-msgstr "컨트롤의 팁"
-
-
-msgid "Flags about the tip of the button"
-msgstr "버튼의 팁에 대한 플래그들"
-
-
-msgid "Remove all local translation files, to be able to use the system ones again"
-msgstr "시스템을 다시 사용할 수있게하려면 모든 로컬 번역 파일을 제거하십시오"
-
-
-msgid "Label of the enum item of the control, if any"
-msgstr "컨트롤의 열거 항목에 레이블, 있는 경우"
-
-
-msgid "Flags about the RNA enum item label of the button"
-msgstr "버튼의 RNA 열거 항목에 대한 플래그들"
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "컨트롤의 열거 항목에 팁, 있는 경우"
-
-
-msgid "Flags about the RNA enum item tip of the button"
-msgstr "버튼의 RNA 열거 항목에 대한 플레그들"
-
-
-msgid "Current (translated) language"
-msgstr "현재 (번역된) 언어"
-
-
-msgid "Original label of the control"
-msgstr "컨트롤의 원본 라벨"
-
-
-msgid "Original tip of the control"
-msgstr "컨트롤의 원본 팁"
-
-
-msgid "Original label of the enum item of the control, if any"
-msgstr "컨트롤의 열거 항목에 원본 라벨있는 경우"
-
-
-msgid "Original tip of the enum item of the control, if any"
-msgstr "컨트롤의 열거 항목의 원래 팁 (있는 경우)"
-
-
-msgid "Original RNA-defined label of the control, if any"
-msgstr "컨트롤의 원본 RNA 정의된 레이블 (있는 경우)"
-
-
-msgid "Original RNA-defined tip of the control, if any"
-msgstr "컨트롤의 원래 RNA 정의된 팁 (있는 경우)"
-
-
-msgid "Path to the matching po file"
-msgstr "일치하는 po 파일에 대한 경로"
-
-
-msgid "RNA context for label"
-msgstr "라벨의 RNA 컨텍스트"
-
-
-msgid "Identifier of the RNA enum item, if any"
-msgstr "RNA 열거의 식별자, 있는 경우"
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "컨트롤의 RNA 정의된 레이블, 있는 경우"
-
-
-msgid "Flags about the RNA-defined label of the button"
-msgstr "버튼의 RNA 정의된 레이블에 대한 플래그들"
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "RNA 속성의 식별자, 있는 경우"
-
-
-msgid "Identifier of the RNA struct, if any"
-msgstr "RNA 데이터 구조의 식별자, 있는 경우"
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "컨트롤의 RNA 정의된 팁, 있는 경우"
-
-
-msgid "Flags about the RNA-defined tip of the button"
-msgstr "버튼의 RNA 정의된 팁에 대한 플레그들"
-
-
-msgid "Stats from opened po"
-msgstr "열린 po에서 통계"
-
-
-msgid "Try to rebuild mo file, and refresh Blender's UI"
-msgstr "mo 파일을 다시 작성하고 Blender의 UI를 새로 고칩니다"
-
-
-msgid "Update po file, try to rebuild mo file, and refresh Blender's UI"
-msgstr "po 파일을 업데이트하고, mo 파일을 다시 빌드하고, 블렌더의 UI를 새로 고칩니다"
-
-
-msgid "Edit i18n in current language for the active button"
-msgstr "활성 버튼에 대해 현재 언어에서 i18n을 편집"
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "아이드라퍼"
 
@@ -54028,15 +53916,6 @@ msgstr "호출하는 작업자의 이름 (ID)"
 
 msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
 msgstr "주어진 애드온의 번역 데이터를 업데이트 (부가 기능 소스 코드에서 파이 튜플로 발견됨)"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "편집 번역을 Mo 업데이트"
-
-
-msgid "Try to \"compile\" given po file into relevant blender.mo file"
-msgstr "주어진 po 파일을 관련 blender.mo 파일로 \"컴파일\"합니다"
 
 
 msgctxt "Operator"
@@ -54477,10 +54356,6 @@ msgstr "아일랜드를 포장"
 
 msgid "Space between islands"
 msgstr "아일랜드 사이 공간"
-
-
-msgid "Fraction"
-msgstr "분수"
 
 
 msgctxt "Operator"
@@ -56104,10 +55979,6 @@ msgstr "컨텍스트 열거 주기"
 
 msgid "Toggle a context value"
 msgstr "컨텍스트 값을 토글"
-
-
-msgid "Wrap"
-msgstr "감싸기"
 
 
 msgid "Wrap back to the first/last values"
@@ -64468,28 +64339,8 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "3D 뷰포트를 렌더링 할 때 앨리어싱 제거 방법"
 
 
-msgid "Color applied to the bloom effect"
-msgstr "블룸 이펙트에 적용된 컬러"
-
-
-msgid "Blend factor"
-msgstr "혼합 팩터"
-
-
 msgid "Knee"
 msgstr "굽은 구조"
-
-
-msgid "Makes transition between under/over-threshold gradual"
-msgstr "점진적으로 언더/오버 스레숄드 사이 변환을 만들기"
-
-
-msgid "Bloom spread distance"
-msgstr "블룸 퍼짐 거리"
-
-
-msgid "Filters out pixels under this level of brightness"
-msgstr "이 밝기 레벨에서 픽셀을 필터링합니다"
 
 
 msgid "Max Size"
@@ -64658,10 +64509,6 @@ msgstr "렌더 샘플"
 
 msgid "Number of samples, unlimited if 0"
 msgstr "샘플 수, 0인 경우 무제한"
-
-
-msgid "High brightness pixels generate a glowing effect"
-msgstr "고휘도 픽셀로 빛나는 이팩트를 생성"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -66662,10 +66509,6 @@ msgid "Display white edges"
 msgstr "화이트 에지 표시"
 
 
-msgid "Overlay Mode"
-msgstr "오버레이 모드"
-
-
 msgid "Overlay mode of rasterized mask"
 msgstr "래스터 마스크의 오버레이 모드"
 
@@ -66840,14 +66683,6 @@ msgstr "마지막 작업을 조정"
 
 msgid "Toolbar"
 msgstr "툴바"
-
-
-msgid "Show Seconds"
-msgstr "초 단위 표시"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "프레임이 아닌 초 단위로 타이밍을 표시합니다"
 
 
 msgid "Show Stable"
@@ -67927,10 +67762,6 @@ msgstr "참조"
 
 msgid "Show reference frame only"
 msgstr "참조 프레임 만 표시"
-
-
-msgid "Current"
-msgstr "현재"
 
 
 msgid "Show current frame only"
@@ -72922,11 +72753,6 @@ msgid "Axes"
 msgstr "축"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "제거"
-
-
 msgid "Damping Max"
 msgstr "감폭 최대"
 
@@ -73358,11 +73184,6 @@ msgstr "스플라인:"
 
 msgid "Parenting:"
 msgstr "부모 지정:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "부모"
 
 
 msgctxt "Operator"
@@ -73963,10 +73784,6 @@ msgstr "갇힌 공기 파티클 샘플링"
 
 msgid "Particle Life Maximum"
 msgstr "파티클 수명 최대"
-
-
-msgid "Exponent"
-msgstr "지수"
 
 
 msgid "Surface Tension"
@@ -75164,6 +74981,11 @@ msgstr "활성 도구"
 msgctxt "Operator"
 msgid "Set Frame Range to Strips"
 msgstr "프레임 범위를 스트립으로 설정"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "모두 새로 고침"
 
 
 msgctxt "Operator"
@@ -78773,20 +78595,8 @@ msgid "Active button not found"
 msgstr "활성 버튼을 찾을 수 없습니다"
 
 
-msgid "Please set your Preferences' 'Translation Branches Directory' path to a valid directory"
-msgstr "환경 설정의 '번역 브랜치 디렉토리'경로를 유효한 디렉토리로 설정하십시오"
-
-
 msgid "Could not compute a valid data path"
 msgstr "유효한 데이터 경로를 계산할 수 없습니다"
-
-
-msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
-msgstr "작업자 '%s'를 찾을 수 없습니다! 사용자 환경 설정에서 ui_translate 부가 기능을 활성화하십시오"
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "언어 '%s'에 대한 %s에서 유효한 po를 찾을 수 없습니다"
 
 
 msgid "%d items"

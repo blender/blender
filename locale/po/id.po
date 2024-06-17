@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-06-08 04:55+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -289,18 +289,6 @@ msgid "Add-on Preferences"
 msgstr "Pengaturan Tambahan"
 
 
-msgid "Show Development Reports"
-msgstr "Menampilkan Laporan Pengembangan"
-
-
-msgid "Show the result of running commands in the main interface this has the advantage that multiple processes that run at once have their errors properly grouped which is not the case for reports which are mixed together"
-msgstr "Menampilkan hasil perintah yang berjalan di antarmuka utama ini mempunyai keuntungan bahwa beberapa proses yang berjalan sekaligus memiliki kesalahan yang dikelompokkan dengan benar yang tidak terjadi pada laporan yang dicampur bersama"
-
-
-msgid "Time Out"
-msgstr "Waktu Habis"
-
-
 msgid "Compute Device Type"
 msgstr "Tipe Perangkat Komputasi"
 
@@ -419,6 +407,18 @@ msgstr "Jalur ke biner gltfpack"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Menampilkan simpul Keluaran Bahan glTF di Editor Peneduh (Menu Tambah > Keluaran)"
+
+
+msgid "Always"
+msgstr "Selalu"
+
+
+msgid "Center"
+msgstr "Tengah"
+
+
+msgid "Bottom"
+msgstr "Bawah"
 
 
 msgid "Fribidi Library"
@@ -4221,10 +4221,16 @@ msgid "Either add or remove curves depending on the minimum distance of the curv
 msgstr "Menambah atau menghapus kurva, tergantung pada jarak minimum kurva di bawah kursor"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Tambahkan"
+
+
 msgid "Add new curves between existing curves, taking the minimum distance into account"
 msgstr "Menambah kurva baru di antara kurva yang ada, memperhitungkan jarak minimum"
 
 
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Hapus"
 
@@ -5146,10 +5152,6 @@ msgstr "Kiri"
 
 msgid "Right"
 msgstr "Kanan"
-
-
-msgid "Center"
-msgstr "Tengah"
 
 
 msgid "Angle at which interocular distance starts to fade to 0"
@@ -6944,10 +6946,6 @@ msgstr "Objek pelacak film untuk diikuti"
 
 msgid "Enabled Rotation Range"
 msgstr "Aktifkan Jarak Rotasi"
-
-
-msgid "Always"
-msgstr "Selalu"
 
 
 msgid "Use the pivot point in every rotation"
@@ -9437,10 +9435,6 @@ msgstr "Buat sistem partikel gelembung"
 
 msgid "Enable collisions with back domain border"
 msgstr "Aktifkan tabrakan dengan border domain belakang"
-
-
-msgid "Bottom"
-msgstr "Bawah"
 
 
 msgid "Enable collisions with bottom domain border"
@@ -14173,11 +14167,6 @@ msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Tambahkan"
-
-
 msgid "Shape Key Specials"
 msgstr "Spesial Kunci Bentuk"
 
@@ -14345,6 +14334,11 @@ msgstr "Modus Sunting"
 
 msgid "Names"
 msgstr "Nama"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Induk"
 
 
 msgid "Hooks"
@@ -18478,6 +18472,10 @@ msgid "Set Cursor"
 msgstr "Set Kursor"
 
 
+msgid "Remove"
+msgstr "Hapus"
+
+
 msgid "Replace Existing"
 msgstr "Menggantikan yang Ada"
 
@@ -19504,6 +19502,14 @@ msgstr "Tipe Pohon"
 
 msgid "Copy color to all selected nodes"
 msgstr "Modus Sunting"
+
+
+msgid "Current"
+msgstr "Setelah Ini"
+
+
+msgid "Wrap"
+msgstr "Bungkus"
 
 
 msgctxt "Operator"
@@ -21613,22 +21619,8 @@ msgid "Edit Source"
 msgstr "Gambar Latar"
 
 
-msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Orientasi Transformasi"
-
-
-msgid "Path to the matching po file"
-msgstr "Tidak dapat membuka dokumen"
-
-
 msgid "Operator Name"
 msgstr "Nama Operator"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Orientasi Transformasi"
 
 
 msgid "Invert Selection"
@@ -22445,10 +22437,6 @@ msgstr "Hubungkan Koneksi"
 
 msgid "Context Attributes"
 msgstr "Atribut Konteks"
-
-
-msgid "Wrap"
-msgstr "Bungkus"
 
 
 msgid "Header Text"
@@ -24116,10 +24104,6 @@ msgid "Show reference frame only"
 msgstr "Saluran"
 
 
-msgid "Current"
-msgstr "Setelah Ini"
-
-
 msgid "Columns"
 msgstr "Kolum"
 
@@ -25288,11 +25272,6 @@ msgid "Shapes"
 msgstr "Bentuk"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Hapus"
-
-
 msgid "Display Size X"
 msgstr "Tampilkan Ukuran X"
 
@@ -25649,11 +25628,6 @@ msgstr "Transformasi:"
 
 msgid "Parenting:"
 msgstr "Pengindukan:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "Induk"
 
 
 msgctxt "Operator"
@@ -27063,6 +27037,10 @@ msgstr "Radius Penghapus"
 
 msgid "Show Warning"
 msgstr "Tampilkan Peringatan"
+
+
+msgid "Time Out"
+msgstr "Waktu Habis"
 
 
 msgid "B"

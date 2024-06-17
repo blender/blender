@@ -509,10 +509,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_GD_LEGACY:
       return &RNA_GreasePencil;
     case ID_GP:
-#  ifdef WITH_GREASE_PENCIL_V3
       return &RNA_GreasePencilv3;
-#  endif
-      break;
     case ID_GR:
       return &RNA_Collection;
     case ID_CV:

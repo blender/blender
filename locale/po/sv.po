@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -237,6 +237,18 @@ msgstr "Auto"
 
 msgid "Distribute memory across devices"
 msgstr "Fördela minne över enheter"
+
+
+msgid "Always"
+msgstr "Alltid"
+
+
+msgid "Never"
+msgstr "Aldrig"
+
+
+msgid "Center"
+msgstr "Mitten"
 
 
 msgid "Translation Root"
@@ -1983,8 +1995,9 @@ msgid "Count"
 msgstr "Antal"
 
 
-msgid "Remove"
-msgstr "Ta bort"
+msgctxt "Operator"
+msgid "Add"
+msgstr "Lägg till"
 
 
 msgid "Angle"
@@ -2199,10 +2212,6 @@ msgstr "Vänster"
 
 msgid "Right"
 msgstr "Höger"
-
-
-msgid "Center"
-msgstr "Mitten"
 
 
 msgid "Collision Quality"
@@ -2631,10 +2640,6 @@ msgstr "Strikt"
 
 msgid "Uniform"
 msgstr "Enhetlig"
-
-
-msgid "Always"
-msgstr "Alltid"
 
 
 msgid "Use Relative Offset"
@@ -4217,10 +4222,6 @@ msgid "Viewport Size"
 msgstr "Storlek i vy"
 
 
-msgid "Never"
-msgstr "Aldrig"
-
-
 msgid "Frame Rate"
 msgstr "Bildfrekvens"
 
@@ -5474,11 +5475,6 @@ msgid "Area"
 msgstr "Område"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Lägg till"
-
-
 msgid "Shape Key Specials"
 msgstr "Specialare för formnycklar"
 
@@ -5603,6 +5599,11 @@ msgstr "Spara och ladda"
 
 msgid "Names"
 msgstr "Namn"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Förälder"
 
 
 msgid "Select More/Less"
@@ -8724,6 +8725,10 @@ msgid "Camera"
 msgstr "Kamera"
 
 
+msgid "Remove"
+msgstr "Ta bort"
+
+
 msgid "Rounded"
 msgstr "Rundad"
 
@@ -10262,6 +10267,14 @@ msgid "Tree Type"
 msgstr "Trädtyp"
 
 
+msgid "Exponent"
+msgstr "Exponent"
+
+
+msgid "Wrap"
+msgstr "Radbrytning"
+
+
 msgid "Toggle preview display for selected nodes"
 msgstr "Förhandvisning av/på för markerade noder"
 
@@ -11621,10 +11634,6 @@ msgstr "Klistra in objekt"
 
 msgid "Save a Collada file"
 msgstr "Spara en Collada-fil"
-
-
-msgid "Wrap"
-msgstr "Radbrytning"
 
 
 msgctxt "Operator"
@@ -13706,6 +13715,10 @@ msgid "Navigate"
 msgstr "Navigera"
 
 
+msgid "name"
+msgstr "namn"
+
+
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentation"
@@ -14208,11 +14221,6 @@ msgstr "Förälder:"
 
 
 msgctxt "Operator"
-msgid "Parent"
-msgstr "Förälder"
-
-
-msgctxt "Operator"
 msgid "Clear"
 msgstr "Nollställ"
 
@@ -14396,10 +14404,6 @@ msgid "Bubbles"
 msgstr "Bubblor"
 
 
-msgid "Exponent"
-msgstr "Exponent"
-
-
 msgid "Surface Tension"
 msgstr "Ytspänning"
 
@@ -14534,10 +14538,6 @@ msgstr "Okända tillägg"
 
 msgid "category"
 msgstr "kategori"
-
-
-msgid "name"
-msgstr "namn"
 
 
 msgid "Calibration"

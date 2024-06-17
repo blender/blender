@@ -1550,14 +1550,12 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         break;
       }
       case bke::GeometryComponent::Type::GreasePencil: {
-        if (U.experimental.use_grease_pencil_version3) {
-          const geo_log::GeometryInfoLog::GreasePencilInfo &grease_pencil_info =
-              *value_log.grease_pencil_info;
-          fmt::format_to(fmt::appender(buf),
-                         TIP_("\u2022 Grease Pencil: {} layers"),
-                         to_string(grease_pencil_info.layers_num));
-          break;
-        }
+        const geo_log::GeometryInfoLog::GreasePencilInfo &grease_pencil_info =
+            *value_log.grease_pencil_info;
+        fmt::format_to(fmt::appender(buf),
+                       TIP_("\u2022 Grease Pencil: {} layers"),
+                       to_string(grease_pencil_info.layers_num));
+        break;
       }
     }
     if (type != component_types.last()) {

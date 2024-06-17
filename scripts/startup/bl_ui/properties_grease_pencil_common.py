@@ -562,7 +562,6 @@ class GreasePencilMaterialsPanel:
         show_full_ui = (self.bl_space_type == 'PROPERTIES')
 
         is_view3d = (self.bl_space_type == 'VIEW_3D')
-        is_grease_pencil_version3 = context.preferences.experimental.use_grease_pencil_version3
 
         tool_settings = context.scene.tool_settings
         gpencil_paint = tool_settings.gpencil_paint
@@ -614,16 +613,11 @@ class GreasePencilMaterialsPanel:
                     icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
                     row.prop(slot, "link", icon=icon_link, icon_only=True)
 
-                if is_grease_pencil_version3 and ob.mode == 'EDIT':
+                if ob.mode == 'EDIT':
                     row = layout.row(align=True)
                     row.operator("grease_pencil.stroke_material_set", text="Assign")
                     row.operator("grease_pencil.material_select", text="Select").deselect = False
                     row.operator("grease_pencil.material_select", text="Deselect").deselect = True
-                elif not is_grease_pencil_version3 and ob.data.use_stroke_edit_mode:
-                    row = layout.row(align=True)
-                    row.operator("gpencil.stroke_change_color", text="Assign")
-                    row.operator("gpencil.material_select", text="Select").deselect = False
-                    row.operator("gpencil.material_select", text="Deselect").deselect = True
         # stroke color
             ma = None
             if is_view3d and brush is not None:

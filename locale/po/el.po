@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -37,6 +37,14 @@ msgstr "Επιλογή"
 
 msgid "On"
 msgstr "Ενεργό"
+
+
+msgid "Always"
+msgstr "Πάντα"
+
+
+msgid "Center"
+msgstr "Κεντράρισμα"
 
 
 msgid "Action"
@@ -135,10 +143,6 @@ msgid "Deform"
 msgstr "Παραμόρφωση"
 
 
-msgid "Remove"
-msgstr "Remove"
-
-
 msgid "Mode"
 msgstr "Κατάσταση"
 
@@ -161,10 +165,6 @@ msgstr "Μεγέθυνση"
 
 msgid "Left"
 msgstr "Αριστερά"
-
-
-msgid "Center"
-msgstr "Κεντράρισμα"
 
 
 msgid "Linear"
@@ -233,10 +233,6 @@ msgstr "Κάμερα"
 
 msgid "Bone"
 msgstr "Οστό"
-
-
-msgid "Always"
-msgstr "Πάντα"
 
 
 msgid "Script"
@@ -767,6 +763,10 @@ msgstr "Both"
 
 msgid "Join"
 msgstr "Ένωσε"
+
+
+msgid "Remove"
+msgstr "Remove"
 
 
 msgid "Next Keyframe"

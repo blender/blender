@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -309,6 +309,18 @@ msgstr "Verteile Speicher über das Gerät"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Erschaffe mehr Raum für große Szenen, indem der Speicher über verbundene Geräte (z.B. NVLink) verteilt wird, anstatt diesen zu duplizieren"
+
+
+msgid "Always"
+msgstr "Überall"
+
+
+msgid "Center"
+msgstr "Zentrum"
+
+
+msgid "Bottom"
+msgstr "Unten"
 
 
 msgid "Fribidi Library"
@@ -3452,10 +3464,12 @@ msgid "Curve Radius"
 msgstr "Kurvenradius"
 
 
-msgid "Density Mode"
-msgstr "Dichtemodus"
+msgctxt "Operator"
+msgid "Add"
+msgstr "Hinzufügen"
 
 
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Entfernen"
 
@@ -4422,10 +4436,6 @@ msgstr "Links"
 
 msgid "Right"
 msgstr "Rechts"
-
-
-msgid "Center"
-msgstr "Zentrum"
 
 
 msgid "Pole Merge Start Angle"
@@ -6740,10 +6750,6 @@ msgstr "Rotiere um einen andern Punkt"
 
 msgid "Enabled Rotation Range"
 msgstr "Allgemeine Rotationsdämpfung"
-
-
-msgid "Always"
-msgstr "Überall"
 
 
 msgid "Use the pivot point in every rotation"
@@ -10403,10 +10409,6 @@ msgstr "Blase"
 
 msgid "Create bubble particle system"
 msgstr "Erstellen eines Blasenpartikelsystems"
-
-
-msgid "Bottom"
-msgstr "Unten"
 
 
 msgid "Top"
@@ -20229,11 +20231,6 @@ msgid "Unwrap"
 msgstr "Auspacken"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Hinzufügen"
-
-
 msgid "Strip"
 msgstr "Streifen"
 
@@ -20445,6 +20442,11 @@ msgstr "Markierung umbenennen"
 
 msgid "Names"
 msgstr "Namen"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Elternteil"
 
 
 msgid "Select More/Less"
@@ -29789,11 +29791,6 @@ msgstr "Entfernen vorhandener Add-Ons mit derselben ID"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Alles Aktualisieren"
-
-
-msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Lesezeichen hinzufügen"
 
@@ -31462,6 +31459,10 @@ msgstr "3D-Cursor setzen"
 msgctxt "Operator"
 msgid "Decimate Keyframes"
 msgstr "Schlüsselbilder dezimieren"
+
+
+msgid "Remove"
+msgstr "Entfernen"
 
 
 msgctxt "Operator"
@@ -34176,6 +34177,26 @@ msgstr "Spieleigenschaft hinzufügen"
 
 msgid "Copy color to all selected nodes"
 msgstr "Beschränkungen"
+
+
+msgid "Overlay Mode"
+msgstr "Überlagerungsmodus"
+
+
+msgid "Current"
+msgstr "Aktuelle Szene"
+
+
+msgid "Exponent"
+msgstr "Exponent"
+
+
+msgid "Fraction"
+msgstr "Bruch"
+
+
+msgid "Wrap"
+msgstr "Umschließen"
 
 
 msgctxt "Operator"
@@ -39268,55 +39289,6 @@ msgstr "Sensor zum aktiven Objekt hinzufügen"
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Übersetzung bearbeiten"
-
-
-msgid "Label of the control"
-msgstr "Beschriftung der Steuerelemente"
-
-
-msgid "Message is marked as fuzzy in po file"
-msgstr "Nachricht, die in der po Datei als unklar markiert ist"
-
-
-msgid "Tip of the control"
-msgstr "Tooltip"
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "Der Typ diese Beschränkung"
-
-
-msgid "Original label of the control"
-msgstr "Original Beschriftung des Steuerelements"
-
-
-msgid "Original tip of the control"
-msgstr "Original Tipp des Steuerelements"
-
-
-msgid "Path to the matching po file"
-msgstr "In .blend-Datei einpacken"
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "Koordinaten des Kontrollpunktes"
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "Der Name dieser Eigenschaft"
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "Koordinaten des Kontrollpunktes"
-
-
-msgid "Stats from opened po"
-msgstr "Zustand der geöffneten Po-Datei"
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Pipette"
 
@@ -39364,11 +39336,6 @@ msgstr "I18n Add-on importieren"
 
 msgid "Operator Name"
 msgstr "Operatorname"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Verschieben"
 
 
 msgctxt "Operator"
@@ -39545,10 +39512,6 @@ msgstr "Stärke"
 msgctxt "Operator"
 msgid "Pack Islands"
 msgstr "Bild einpacken"
-
-
-msgid "Fraction"
-msgstr "Bruch"
 
 
 msgctxt "Operator"
@@ -40407,10 +40370,6 @@ msgstr "Minimale Kettenlänge"
 
 msgid "Context Attributes"
 msgstr "Kontext  Attribut"
-
-
-msgid "Wrap"
-msgstr "Umschließen"
 
 
 msgid "Header Text"
@@ -46590,10 +46549,6 @@ msgid "Shadow Shift"
 msgstr "Schatten tauschen"
 
 
-msgid "Blend factor"
-msgstr "Mischfaktor"
-
-
 msgid "Denoise Amount"
 msgstr "Entrauschmenge"
 
@@ -47663,10 +47618,6 @@ msgid "Display white edges"
 msgstr "Weiße Kanten anzeigen"
 
 
-msgid "Overlay Mode"
-msgstr "Überlagerungsmodus"
-
-
 msgid "Alpha Channel"
 msgstr "Alphakanal"
 
@@ -47793,14 +47744,6 @@ msgstr "Rotkanal im Einzelbild anzeigen"
 
 msgid "Toolbar"
 msgstr "Werkzeugleiste"
-
-
-msgid "Show Seconds"
-msgstr "Sekunden anzeigen"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "Zeit in Sekunden anstatt Einzelbilder anzeigen"
 
 
 msgid "Show Stable"
@@ -48484,10 +48427,6 @@ msgstr "Referenz"
 
 msgid "Show reference frame only"
 msgstr "Python-Referenzen in Tooltips zeigen"
-
-
-msgid "Current"
-msgstr "Aktuelle Szene"
 
 
 msgid "Show current frame only"
@@ -52661,11 +52600,6 @@ msgid "Axes"
 msgstr "Achsen"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Entfernen"
-
-
 msgid "Display Size X"
 msgstr "Größe X anzeigen"
 
@@ -53099,11 +53033,6 @@ msgstr "Spline:"
 
 msgid "Parenting:"
 msgstr "Kindbeziehung:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "Elternteil"
 
 
 msgctxt "Operator"
@@ -53620,10 +53549,6 @@ msgstr "Maschengenerator"
 
 msgid "Bubbles"
 msgstr "Blasen"
-
-
-msgid "Exponent"
-msgstr "Exponent"
 
 
 msgid "Velocity Source"
@@ -54883,6 +54808,11 @@ msgstr "Setup"
 msgctxt "Operator"
 msgid "Rebuild"
 msgstr "Neu bauen"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Alles Aktualisieren"
 
 
 msgctxt "Operator"
@@ -58097,10 +58027,6 @@ msgstr "Online-Python-Referenz"
 
 msgid "Menu Missing:"
 msgstr "Menü fehlt:"
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "Für Sprache '%s' unter %s wurde kein gültiger po gefunden"
 
 
 msgid "%d items"

@@ -69,6 +69,7 @@ set(SRC
   templates/interface_template_asset_view.cc
   templates/interface_template_attribute_search.cc
   templates/interface_template_bone_collection_tree.cc
+  templates/interface_template_grease_pencil_layer_tree.cc
   templates/interface_template_light_linking.cc
   templates/interface_template_list.cc
   templates/interface_template_node_inputs.cc
@@ -123,13 +124,6 @@ endif()
 
 if(WITH_INPUT_IME)
   add_definitions(-DWITH_INPUT_IME)
-endif()
-
-if(WITH_EXPERIMENTAL_FEATURES)
-  add_definitions(-DWITH_GREASE_PENCIL_V3)
-  list(APPEND SRC
-    templates/interface_template_grease_pencil_layer_tree.cc
-  )
 endif()
 
 blender_add_lib(bf_editor_interface "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

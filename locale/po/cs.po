@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -381,6 +381,22 @@ msgstr "Zobrazí glTF uživatelské rozhraní k správě variant materiálů"
 
 msgid "Display glTF UI to manage animations"
 msgstr "Zobrazí glTF uživatelské rozhraní k správě animací"
+
+
+msgid "Always"
+msgstr "Vždy"
+
+
+msgid "Never"
+msgstr "Invertovat"
+
+
+msgid "Center"
+msgstr "Střed"
+
+
+msgid "Bottom"
+msgstr "Dole"
 
 
 msgid "Fribidi Library"
@@ -2763,6 +2779,12 @@ msgid "Curve Radius"
 msgstr "Poloměr křivky"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Přidat"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Odstranit"
 
@@ -3385,10 +3407,6 @@ msgstr "Zleva"
 
 msgid "Right"
 msgstr "Zprava"
-
-
-msgid "Center"
-msgstr "Střed"
 
 
 msgid "Child Particle"
@@ -5155,10 +5173,6 @@ msgstr "Vybrat cestu"
 
 msgid "Enabled Rotation Range"
 msgstr "Původni rotace"
-
-
-msgid "Always"
-msgstr "Vždy"
 
 
 msgid "Use the pivot point in every rotation"
@@ -7622,10 +7636,6 @@ msgstr "Adaptivní Doména"
 
 msgid "Use Adaptive Time Steps"
 msgstr "Použít Adaptivní Časové Kroky"
-
-
-msgid "Bottom"
-msgstr "Dole"
 
 
 msgid "Top"
@@ -10628,10 +10638,6 @@ msgstr "Nastavit okraje renderování"
 
 msgid "Update"
 msgstr "Aktualizace"
-
-
-msgid "Never"
-msgstr "Invertovat"
 
 
 msgid "Filename of the movie or sequence file"
@@ -14367,11 +14373,6 @@ msgid "Unwrap"
 msgstr "Rozbalit"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Přidat"
-
-
 msgid "Shape Key Specials"
 msgstr "Zaklíčovat tvar"
 
@@ -14527,6 +14528,11 @@ msgstr "Přiřadit Materiál"
 
 msgid "Names"
 msgstr "Názvy"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Rodič"
 
 
 msgid "Bone Roll"
@@ -21745,11 +21751,6 @@ msgstr "URL"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Obnovit Vše"
-
-
-msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Přidat háček"
 
@@ -22725,6 +22726,10 @@ msgstr "Křivky"
 msgctxt "Operator"
 msgid "Decimate Keyframes"
 msgstr "Decimovat Klíčové Snímky"
+
+
+msgid "Remove"
+msgstr "Odstranit"
 
 
 msgctxt "Operator"
@@ -25362,6 +25367,22 @@ msgstr "Přidat předvolbu pro látku"
 
 msgid "Copy color to all selected nodes"
 msgstr "Odstranit označené Objekt(y)"
+
+
+msgid "Current"
+msgstr "Aktuální"
+
+
+msgid "Exponent"
+msgstr "Exponent"
+
+
+msgid "Fraction"
+msgstr "Zlomek"
+
+
+msgid "Wrap"
+msgstr "Zbalit"
 
 
 msgctxt "Operator"
@@ -30015,59 +30036,6 @@ msgstr "Upraví vazbu na aktivní kost"
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Překlad"
-
-
-msgid "Label of the control"
-msgstr "Jméno skriptu"
-
-
-msgid "Tip of the control"
-msgstr "Vazba sledování"
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "Vazba sledování"
-
-
-msgid "Original label of the control"
-msgstr "Souřadnice kontrolního bodu"
-
-
-msgid "Original tip of the control"
-msgstr "Souřadnice kontrolního bodu"
-
-
-msgid "Original tip of the enum item of the control, if any"
-msgstr "Vyrovná úhly označených plošek"
-
-
-msgid "Path to the matching po file"
-msgstr "Načíst tento soubor"
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "Souřadnice kontrolního bodu"
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "Velikost štětce"
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "Souřadnice kontrolního bodu"
-
-
-msgid "Stats from opened po"
-msgstr "Odstranit ze všech skupin"
-
-
-msgid "Edit i18n in current language for the active button"
-msgstr "Nastavit současný jazyk pro tuto konzoli"
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Kapátko"
 
@@ -30089,11 +30057,6 @@ msgstr "Ovladač Kapátka"
 msgctxt "Operator"
 msgid "Update I18n Add-on"
 msgstr "Aktualizovat I18n Doplněk"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Překlad"
 
 
 msgctxt "Operator"
@@ -30293,10 +30256,6 @@ msgstr "Minimalizovat roztažení"
 msgctxt "Operator"
 msgid "Pack Islands"
 msgstr "Přibalit obrázek"
-
-
-msgid "Fraction"
-msgstr "Zlomek"
 
 
 msgctxt "Operator"
@@ -31164,10 +31123,6 @@ msgstr "Auto Připojení"
 
 msgid "Import Units"
 msgstr "Importovat Jednotky"
-
-
-msgid "Wrap"
-msgstr "Zbalit"
 
 
 msgid "Header Text"
@@ -35585,28 +35540,8 @@ msgid "Shading Settings"
 msgstr "Nastavení Stínování"
 
 
-msgid "Color applied to the bloom effect"
-msgstr "Barva aplikovaná na bloom efekt"
-
-
-msgid "Blend factor"
-msgstr "Faktor mixování"
-
-
 msgid "Knee"
 msgstr "Koleno"
-
-
-msgid "Makes transition between under/over-threshold gradual"
-msgstr "Tvoří přechod mezi pod prahovou hodnotou/nad prahovou hodnotou postupný"
-
-
-msgid "Bloom spread distance"
-msgstr "Vzdálenost rozpětí bloom efektu"
-
-
-msgid "Filters out pixels under this level of brightness"
-msgstr "Filtruje obrazové body pod touto úrovní jasu"
 
 
 msgid "Denoise Amount"
@@ -35735,10 +35670,6 @@ msgstr "Vzorkování renderu"
 
 msgid "Number of samples, unlimited if 0"
 msgstr "Počet vzorků, neomezených, pokud 0"
-
-
-msgid "High brightness pixels generate a glowing effect"
-msgstr "Pixely s vysokým jasem generují zářící efekt"
 
 
 msgid "High Quality Slight Defocus"
@@ -36712,10 +36643,6 @@ msgid "Toolbar"
 msgstr "Panelu nástrojů"
 
 
-msgid "Show Seconds"
-msgstr "Zobrazit senzory"
-
-
 msgid "Show Stable"
 msgstr "Zobrazit Stabilní"
 
@@ -37274,10 +37201,6 @@ msgstr "Rozdíl"
 
 msgid "Show reference frame only"
 msgstr "Ukáže nabídky v záhlaví"
-
-
-msgid "Current"
-msgstr "Aktuální"
 
 
 msgid "Show current frame only"
@@ -39705,11 +39628,6 @@ msgid "Axes"
 msgstr "Osy"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Odstranit"
-
-
 msgid "Display Size X"
 msgstr "Velikost Zobrazení X"
 
@@ -39974,11 +39892,6 @@ msgstr "Rodič:"
 
 msgid "Transform:"
 msgstr "Transformace:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "Rodič"
 
 
 msgctxt "Operator"
@@ -40371,10 +40284,6 @@ msgstr "Vzorkování zachycených vzduchových částic"
 
 msgid "Particle Life Maximum"
 msgstr "Maximální životnost částic"
-
-
-msgid "Exponent"
-msgstr "Exponent"
 
 
 msgid "Surface Tension"
@@ -41199,6 +41108,11 @@ msgstr "Aktivní nástroje"
 msgctxt "Operator"
 msgid "Rebuild"
 msgstr "Přebudovat"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Obnovit Vše"
 
 
 msgctxt "Operator"

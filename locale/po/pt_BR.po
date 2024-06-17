@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -406,6 +406,22 @@ msgstr "Caminho para o executável glTFpack"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Exibe o nó de saída de material glTF no Editor de Sombreamento (menu Adicionar > Saída)"
+
+
+msgid "Always"
+msgstr "Sempre"
+
+
+msgid "Never"
+msgstr "Nunca"
+
+
+msgid "Center"
+msgstr "Centralizar"
+
+
+msgid "Bottom"
+msgstr "Base"
 
 
 msgid "Fribidi Library"
@@ -3585,6 +3601,12 @@ msgid "Curve Radius"
 msgstr "Escalonar pelos raios das curvas"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Adicionar"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Remover"
 
@@ -4155,10 +4177,6 @@ msgstr "Esquerda"
 
 msgid "Right"
 msgstr "Direita"
-
-
-msgid "Center"
-msgstr "Centralizar"
 
 
 msgid "Pole Merge Start Angle"
@@ -6297,10 +6315,6 @@ msgstr "Faixa de rotação habilitada"
 
 msgid "Rotation range on which pivoting should occur"
 msgstr "Intervalo de rotação no qual o pivotamento deve ocorrer."
-
-
-msgid "Always"
-msgstr "Sempre"
 
 
 msgid "Use the pivot point in every rotation"
@@ -10381,10 +10395,6 @@ msgstr "Domínio adaptativo"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "Adaptar resolução de simulação e tamanho ao fluido."
-
-
-msgid "Bottom"
-msgstr "Base"
 
 
 msgid "Top"
@@ -15587,10 +15597,6 @@ msgstr "Durante a edição, atualizar meta-esfera na metade da resolução"
 
 msgid "While editing, update metaball without polygonization"
 msgstr "Durante a edição, atualizar o objeto meta-esfera sem torná-lo poligonal"
-
-
-msgid "Never"
-msgstr "Nunca"
 
 
 msgid "While editing, don't update metaball at all"
@@ -22397,11 +22403,6 @@ msgid "Show/Hide Faces"
 msgstr "Mostrar ou ocultar faces"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Adicionar"
-
-
 msgid "Shape Key Specials"
 msgstr "Especiais para chaves de formato"
 
@@ -22581,6 +22582,11 @@ msgstr "Modos embutidos"
 
 msgid "Names"
 msgstr "Nomes"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Parente"
 
 
 msgid "Bone Roll"
@@ -34858,11 +34864,6 @@ msgstr "Remove os complementos existentes com o mesmo identificador."
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Atualizar Tudo"
-
-
-msgctxt "Operator"
 msgid "Automatically Pack Resources"
 msgstr "Empacotar Recursos Automaticamente"
 
@@ -36956,6 +36957,10 @@ msgstr "Definir cursor"
 
 msgid "Interactively set the current frame and value cursor"
 msgstr "Permite definir interativamente o quadro atual e o valor do cursor."
+
+
+msgid "Remove"
+msgstr "Remover"
 
 
 msgctxt "Operator"
@@ -41001,6 +41006,22 @@ msgstr "Permite adicionar ou remover uma predefinição de nó de cor."
 
 msgid "Copy color to all selected nodes"
 msgstr "Copia as cores para todos os nós selecionados"
+
+
+msgid "Overlay Mode"
+msgstr "Modo de sobreposição"
+
+
+msgid "Current"
+msgstr "Atual"
+
+
+msgid "Exponent"
+msgstr "Exponente"
+
+
+msgid "Wrap"
+msgstr "Envolver"
 
 
 msgctxt "Operator"
@@ -48242,139 +48263,6 @@ msgstr "Permite editar o código fonte do botão ativo da interface de usuário.
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Editar Tradução"
-
-
-msgid "Translate the label and tooltip of the given property"
-msgstr "Traduz o rótulo e a dica de uma dada propriedade"
-
-
-msgid "Label of the control"
-msgstr "Rótulo do controle"
-
-
-msgid "Flags about the label of the button"
-msgstr "Bandeiras sobre o rótulo do botão."
-
-
-msgid "Message is marked as fuzzy in po file"
-msgstr "A mensagem está marcada como confusa dentro do arquivo po."
-
-
-msgid "Some error occurred with this message"
-msgstr "Algum erro ocorreu com esta mensagem."
-
-
-msgid "Tip of the control"
-msgstr "Dica do controle."
-
-
-msgid "Flags about the tip of the button"
-msgstr "Bandeiras sobre a dica do botão."
-
-
-msgid "Remove all local translation files, to be able to use the system ones again"
-msgstr "Limpa (remove) todos os arquivos de tradução local, para ser possível o uso de todos os presentes no sistema novamente"
-
-
-msgid "Label of the enum item of the control, if any"
-msgstr "Rótulo do item de enumeração do controle, caso haja."
-
-
-msgid "Flags about the RNA enum item label of the button"
-msgstr "Bandeiras sobre o rótulo do item do enumerador RNA do botão."
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "Dica do item de enumeração do controle, caso haja."
-
-
-msgid "Flags about the RNA enum item tip of the button"
-msgstr "Bandeiras sobre a dica do botão de item de enumerador RNA."
-
-
-msgid "Current (translated) language"
-msgstr "Linguagem atual (traduzida)."
-
-
-msgid "Original label of the control"
-msgstr "Rótulo original do controle."
-
-
-msgid "Original tip of the control"
-msgstr "Dica original do controle."
-
-
-msgid "Original label of the enum item of the control, if any"
-msgstr "Rótulo original do item de enumeração do controle, caso haja."
-
-
-msgid "Original tip of the enum item of the control, if any"
-msgstr "Dica original do enumerador de item do controle, caso haja."
-
-
-msgid "Original RNA-defined label of the control, if any"
-msgstr "Rótulo original do controle RNA-definido, caso haja."
-
-
-msgid "Original RNA-defined tip of the control, if any"
-msgstr "Dica original do controle RNA-definido, caso haja."
-
-
-msgid "Path to the matching po file"
-msgstr "Caminho para o catálogo de tradução .po respectivo."
-
-
-msgid "RNA context for label"
-msgstr "Contexto RNA para o rótulo"
-
-
-msgid "Identifier of the RNA enum item, if any"
-msgstr "Identificador do item de RNA enumerado, caso haja."
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "Rótulo do controle RNA-definido, caso haja."
-
-
-msgid "Flags about the RNA-defined label of the button"
-msgstr "Bandeiras sobre o rótulo RNA-definido do botão."
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "Identificador da propriedade RNA, caso haja."
-
-
-msgid "Identifier of the RNA struct, if any"
-msgstr "Identificador da estrutura RNA, caso haja."
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "A dica do controle RNA-definido, caso haja."
-
-
-msgid "Flags about the RNA-defined tip of the button"
-msgstr "Bandeiras sobre a dica de RNA-definido do botão."
-
-
-msgid "Stats from opened po"
-msgstr "Estatísticas do po aberto"
-
-
-msgid "Try to rebuild mo file, and refresh Blender's UI"
-msgstr "Tenta reconstruir o arquivo mo, e atualiza a interface de usuário Blender"
-
-
-msgid "Update po file, try to rebuild mo file, and refresh Blender's UI"
-msgstr "Atualizar o arquivo po, tentar reconstruir o arquivo mo, e atualizar a interface de usuário Blender"
-
-
-msgid "Edit i18n in current language for the active button"
-msgstr "Edita o i18n na linguagem atual para o botão ativo."
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Conta-gotas"
 
@@ -48515,11 +48403,6 @@ msgstr "Nome (id) do operador para invocar."
 
 msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
 msgstr "Atualiza os dados de tradução do complemento fornecidos (encontrados como uma tupla dentro do código fonte do complemento)."
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Edição da tradução atualiza o .MO"
 
 
 msgctxt "Operator"
@@ -50174,10 +50057,6 @@ msgstr "Ciclo de configuração de contexto"
 
 msgid "Toggle a context value"
 msgstr "Alterna um valor de contexto."
-
-
-msgid "Wrap"
-msgstr "Envolver"
 
 
 msgid "Wrap back to the first/last values"
@@ -57470,28 +57349,8 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "Método de anti serrilhado quando renderizar na janela de exibição 3D"
 
 
-msgid "Color applied to the bloom effect"
-msgstr "Cor aplicada ao efeito de reluzir"
-
-
-msgid "Blend factor"
-msgstr "Fator de mesclagem"
-
-
 msgid "Knee"
 msgstr "Joelho"
-
-
-msgid "Makes transition between under/over-threshold gradual"
-msgstr "Faz a transição entre abaixo/acima do limite gradual"
-
-
-msgid "Bloom spread distance"
-msgstr "Distância de espalhamento do reluzir"
-
-
-msgid "Filters out pixels under this level of brightness"
-msgstr "Filtra os pixels abaixo deste nível de brilho"
 
 
 msgid "Denoise Amount"
@@ -57564,10 +57423,6 @@ msgstr "Fator para a mesclagem de oclusão ambiente."
 
 msgid "Precision of the horizon search"
 msgstr "Precisão da busca do horizonte"
-
-
-msgid "High brightness pixels generate a glowing effect"
-msgstr "Pixels com alto brilho produzem um efeito brilhante"
 
 
 msgid "Bent Normals"
@@ -59097,10 +58952,6 @@ msgid "Mask displayed and edited in this space"
 msgstr "Mascara os mostrados e editados dentro deste espaço."
 
 
-msgid "Overlay Mode"
-msgstr "Modo de sobreposição"
-
-
 msgid "Overlay mode of rasterized mask"
 msgstr "Modo de sobreposição da máscara rasterizada."
 
@@ -59271,14 +59122,6 @@ msgstr "Ajustar Última Operação"
 
 msgid "Toolbar"
 msgstr "Barra de Ferramentas"
-
-
-msgid "Show Seconds"
-msgstr "Mostrar como segundos"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "Mostra o tempo em segundos e não em quadros."
 
 
 msgid "Show Stable"
@@ -60115,10 +59958,6 @@ msgstr "Referência"
 
 msgid "Show reference frame only"
 msgstr "Mostra somente o quadro de referência."
-
-
-msgid "Current"
-msgstr "Atual"
 
 
 msgid "Show current frame only"
@@ -62894,10 +62733,6 @@ msgid "Render stylized strokes in this Layer"
 msgstr "Renderiza os traços estilizados nesta camada."
 
 
-msgid "Deliver bloom pass"
-msgstr "Entrega um passo de reluzir"
-
-
 msgid "Boxes"
 msgstr "Caixas"
 
@@ -63957,11 +63792,6 @@ msgid "Axes"
 msgstr "Eixos"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Remover"
-
-
 msgid "Control Rotation"
 msgstr "Controlar rotação"
 
@@ -64219,11 +64049,6 @@ msgstr "Transformações:"
 
 
 msgctxt "Operator"
-msgid "Parent"
-msgstr "Parente"
-
-
-msgctxt "Operator"
 msgid "Clear"
 msgstr "Limpar"
 
@@ -64457,10 +64282,6 @@ msgstr "Limitar onda"
 
 msgid "Heat"
 msgstr "Calor"
-
-
-msgid "Exponent"
-msgstr "Exponente"
 
 
 msgid "Lower"
@@ -65272,6 +65093,11 @@ msgstr "Definir"
 msgctxt "Operator"
 msgid "Rebuild"
 msgstr "Reconstruir"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Atualizar Tudo"
 
 
 msgctxt "Operator"
@@ -68353,18 +68179,6 @@ msgstr "Combinação de botão ativo não pode ser encontrada."
 
 msgid "Active button not found"
 msgstr "Botão ativo não encontrado."
-
-
-msgid "Please set your Preferences' 'Translation Branches Directory' path to a valid directory"
-msgstr "Por favor, configure as preferências de usuário de seu caminho de \"Diretório de vertentes de tradução\" para um diretório válido"
-
-
-msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
-msgstr "Não foi possível encontrar operador '%s' ! Por favor, habilite o complemento \"ui_translate\" dentro das preferências de usuário."
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "Nenhum \"po\" válido encontrado para a língua '%s' dentro de %s."
 
 
 msgid "%d items"

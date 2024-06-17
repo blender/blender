@@ -294,8 +294,7 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeCollectionInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeImageInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeIsViewport")
-        if context.preferences.experimental.use_grease_pencil_version3:
-            node_add_menu.add_node_type(layout, "GeometryNodeInputNamedLayerSelection")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputNamedLayerSelection")
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolMousePosition")
         node_add_menu.add_node_type(layout, "GeometryNodeObjectInfo")

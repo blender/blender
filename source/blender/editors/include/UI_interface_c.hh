@@ -1414,10 +1414,6 @@ std::string UI_but_extra_icon_string_get_tooltip(bContext &C, const uiButExtraOp
 std::string UI_but_extra_icon_string_get_operator_keymap(const bContext &C,
                                                          const uiButExtraOpIcon &extra_icon);
 
-/* Edit i18n stuff. */
-/* Name of the main py op from i18n addon. */
-#define EDTSRC_I18N_OP_NAME "UI_OT_edittranslation"
-
 /**
  * Special Buttons
  *
@@ -2749,10 +2745,7 @@ void uiTemplateLightLinkingCollection(uiLayout *layout,
                                       const char *propname);
 
 void uiTemplateBoneCollectionTree(uiLayout *layout, bContext *C);
-
-#ifdef WITH_GREASE_PENCIL_V3
 void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C);
-#endif
 
 void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr);
 /**

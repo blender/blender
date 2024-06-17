@@ -4214,8 +4214,24 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 3)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (BrushGpencilSettings *settings = brush->gpencil_settings) {
+        /* Copy the `draw_strength` value to the `alpha` value. */
+        brush->alpha = settings->draw_strength;
+
+        /* We approximate the simplify pixel threshold by taking the previous threshold (world
+         * space) and dividing by the legacy radius conversion factor. This should generally give
+         * reasonable "pixel" threshold values. */
+        settings->simplify_px = settings->simplify_f /
+                                blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 4)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
+
 
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning

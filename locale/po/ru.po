@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
-"PO-Revision-Date: 2024-06-10 08:42+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-06-17 10:20+0000\n"
 "Last-Translator: Fatih Alexandr <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -401,6 +401,22 @@ msgstr "Путь к бинарному файлу gltfpack"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Отобразить ноду вывода материала glTF в редакторе шейдеров (меню Добавить > Вывод)"
+
+
+msgid "Always"
+msgstr "Всегда"
+
+
+msgid "Never"
+msgstr "Никогда"
+
+
+msgid "Center"
+msgstr "Центр"
+
+
+msgid "Bottom"
+msgstr "Снизу"
 
 
 msgid "Fribidi Library"
@@ -1481,6 +1497,14 @@ msgstr "Отключить перетаскивание ассетов"
 
 msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
 msgstr "Отключить перетаскивание ассетов по умолчанию по событиям перетаскивания. Полезно для реализации пользовательского перетаскивания через пользовательские элементы карты клавиш"
+
+
+msgid "Visible by Default"
+msgstr "Видимый по умолчанию"
+
+
+msgid "Unhide the asset shelf when it's available for the first time, otherwise it will be hidden"
+msgstr "Раскрыть полку ассета когда она впервые становится доступной, иначе она будет скрыта"
 
 
 msgid "Space Type"
@@ -2992,7 +3016,7 @@ msgstr "Маневрировать для избежания столкнове�
 
 
 msgid "Separate"
-msgstr "Разделение"
+msgstr "Отделение"
 
 
 msgid "Keep from going through other boids"
@@ -3546,7 +3570,7 @@ msgstr "Ослабление конечной рукоятки"
 
 
 msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Умножить канал ослабления конца (Ease Out) B-кости на локальное значение масштаба Y конечной рукоятки. Это выполняется после масштабирования ослабления и не зависит от него"
+msgstr "Умножить канал плавного выхода (Ease Out) B-кости на локальное значение масштаба Y конечной рукоятки. Это выполняется после масштабирования ослабления и не зависит от него"
 
 
 msgid "Start Handle Ease"
@@ -3554,7 +3578,7 @@ msgstr "Ослабление начальной рукоятки"
 
 
 msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Умножить канал ослабления начала (Ease Out) B-кости на локальное значение масштаба Y начальной рукоятки. Это выполняется после масштабирования ослабления и не зависит от него"
+msgstr "Умножить канал плавного входа (Ease In) B-кости на локальное значение масштаба Y начальной рукоятки. Это выполняется после масштабирования ослабления и не зависит от него"
 
 
 msgid "End Handle Scale"
@@ -4225,10 +4249,6 @@ msgid "How many times the Density brush tries to add a new curve"
 msgstr "Количество попыток кисти «‎Плотность»‎ добавить новую кривую"
 
 
-msgid "Density Mode"
-msgstr "Режим плотности"
-
-
 msgid "Determines whether the brush adds or removes curves"
 msgstr "Добавлять или удалять кривые с помощью кисти"
 
@@ -4237,10 +4257,16 @@ msgid "Either add or remove curves depending on the minimum distance of the curv
 msgstr "Добавлять или удалять кривые в зависимости от минимального расстояния между кривыми под курсором"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Добавить"
+
+
 msgid "Add new curves between existing curves, taking the minimum distance into account"
 msgstr "Добавлять новые кривые между существующими кривыми с учетом минимального расстояния"
 
 
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Удалить"
 
@@ -5461,10 +5487,6 @@ msgstr "Слева"
 
 msgid "Right"
 msgstr "Справа"
-
-
-msgid "Center"
-msgstr "Центр"
 
 
 msgid "Pole Merge Start Angle"
@@ -8425,10 +8447,6 @@ msgid "Rotation range on which pivoting should occur"
 msgstr "Диапазон вращения, на котором активирован центр трансформаций"
 
 
-msgid "Always"
-msgstr "Всегда"
-
-
 msgid "Use the pivot point in every rotation"
 msgstr "Центр трансформации работает для любого вращения"
 
@@ -8670,7 +8688,7 @@ msgstr "Способ ограничения объекта целевой пов
 
 
 msgid "The point is constrained to the surface of the target object, with distance offset towards the original point location"
-msgstr "Ограничить точку поверхностью целевого объекта с расстоянием смещения, посчитанным относительно исходного положения точки"
+msgstr "Ограничить точку поверхностью целевого объекта с расстоянием смещения, посчитанным относительно положения точки ориджина"
 
 
 msgid "The point is constrained to be inside the target object"
@@ -10913,7 +10931,7 @@ msgstr "Красить"
 
 
 msgid "Anti-Aliasing"
-msgstr "Сглаживание"
+msgstr "Устранение ступенчатости"
 
 
 msgid "Use 5× multisampling to smooth paint edges"
@@ -11670,7 +11688,7 @@ msgstr "AV1"
 
 
 msgid "Output Quality"
-msgstr "Выходное качество"
+msgstr "Качество вывода"
 
 
 msgid "Constant Rate Factor (CRF); tradeoff between video quality and file size"
@@ -14466,10 +14484,6 @@ msgid "Enable collisions with back domain border"
 msgstr "Разрешить столкновения с задней границей домена"
 
 
-msgid "Bottom"
-msgstr "Снизу"
-
-
 msgid "Enable collisions with bottom domain border"
 msgstr "Разрешить столкновения с нижней границей домена"
 
@@ -15710,6 +15724,10 @@ msgid "Maximum number of frames to show before current frame"
 msgstr "Максимальное число кадров, показываемых перед текущим кадром"
 
 
+msgid "Annotation Layer Opacity"
+msgstr "Непрозрачность слоя аннотаций"
+
+
 msgid "Blend Mode"
 msgstr "Режим смешивания"
 
@@ -16605,6 +16623,14 @@ msgstr "Инициализация инструмента"
 
 msgid "Postpone running until tool operator run (when used with a tool)"
 msgstr "Отложить выполнения до запуска оператора инструмента (при использовании с инструментом)"
+
+
+msgid "Use fallback tools keymap"
+msgstr "Использовать раскладку клавиш запасных инструментов"
+
+
+msgid "Add fallback tools keymap to this gizmo type"
+msgstr "Добавить раскладку клавиш для запасных инструментов к этому типу гизмо"
 
 
 msgid "VR Redraws"
@@ -22980,10 +23006,6 @@ msgid "While editing, update metaball without polygonization"
 msgstr "Обновлять метасферу без полигонализации при редактировании"
 
 
-msgid "Never"
-msgstr "Никогда"
-
-
 msgid "While editing, don't update metaball at all"
 msgstr "Без обновления метасферы при редактировании"
 
@@ -23050,6 +23072,10 @@ msgstr "Нодовая система, состоящая из связанны�
 
 msgid "The node tree label"
 msgstr "Метка нодовой системы"
+
+
+msgid "Color Tag"
+msgstr "Цветной тег"
 
 
 msgid "Attribute"
@@ -23130,6 +23156,10 @@ msgstr "Использовать границы для нодов предпро
 
 msgid "Edit"
 msgstr "Правка"
+
+
+msgid "The node group is used in edit mode"
+msgstr "Группа нод используется в режиме редактирования"
 
 
 msgid "Sculpt"
@@ -23574,6 +23604,10 @@ msgstr "Редактировать штрихи Grease Pencil"
 
 msgid "Sculpt Grease Pencil Strokes"
 msgstr "Скульптинг штрихов Grease Pencil"
+
+
+msgid "Draw Mode"
+msgstr "Режим рисования"
 
 
 msgid "Paint Grease Pencil Strokes"
@@ -25072,7 +25106,7 @@ msgstr "Аннотации"
 
 
 msgid "Grease Pencil data-block used for annotations in the 3D view"
-msgstr "Датаблок Grease Pencil, используемого для аннотаций в 3D-виде"
+msgstr "Блок данных Grease Pencil, используемый для аннотаций в 3D-виде"
 
 
 msgid "Hydra"
@@ -26628,6 +26662,10 @@ msgstr "Использовать теги пользовательского и�
 
 msgid "Filter the UI by tags"
 msgstr "Фильтровать по тегам пользовательского интерфейса"
+
+
+msgid "Pin Scene"
+msgstr "Прикрепить сцену"
 
 
 msgid "World data-block describing the environment and ambient lighting of a scene"
@@ -30781,11 +30819,6 @@ msgid "Area"
 msgstr "Область"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Добавить"
-
-
 msgid "Shape Key Specials"
 msgstr "Настройка ключа формы"
 
@@ -30878,6 +30911,10 @@ msgstr "Сцена"
 
 msgid "Change"
 msgstr "Изменить"
+
+
+msgid "Set Color Tag"
+msgstr "Установить цветной тег"
 
 
 msgid "Sequencer"
@@ -31014,6 +31051,11 @@ msgstr "Включённые режимы"
 
 msgid "Names"
 msgstr "Названия"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Родитель"
 
 
 msgid "Bone Roll"
@@ -40139,6 +40181,10 @@ msgid "Socket"
 msgstr "Сокет"
 
 
+msgid "Default Input"
+msgstr "Вход по умолчанию"
+
+
 msgid "Socket description"
 msgstr "Описание сокета"
 
@@ -41949,6 +41995,15 @@ msgstr "Свернуть область, отображающую настрой
 
 msgid "File sorting mode"
 msgstr "Режим сортировки файлов"
+
+
+msgctxt "Operator"
+msgid "Redo Catalog Edits"
+msgstr "Повторить изменения каталога"
+
+
+msgid "Redo the last undone edit to the asset catalogs"
+msgstr "Повторить последнее отменённое изменение каталогов ассета"
 
 
 msgid "Enable easier reuse of selected data-blocks through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
@@ -44378,11 +44433,11 @@ msgstr "Спустить данные редактирования из акти
 
 msgctxt "Operator"
 msgid "Redo"
-msgstr "Вернуть"
+msgstr "Повторить"
 
 
 msgid "Redo previous action"
-msgstr "Возвратить последнее действие"
+msgstr "Повторить последнее действие"
 
 
 msgctxt "Operator"
@@ -45145,11 +45200,6 @@ msgstr "Удалить существующие аддоны с одинаков
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Обновить всё"
-
-
-msgctxt "Operator"
 msgid "Automatically Pack Resources"
 msgstr "Автоматически упаковывать ресурсы"
 
@@ -45359,6 +45409,11 @@ msgid "Pack Resources"
 msgstr "Упаковать ресурсы"
 
 
+msgctxt "Operator"
+msgid "Pack Linked Libraries"
+msgstr "Упаковать связанные библиотеки"
+
+
 msgid "Move to parent directory"
 msgstr "Перейти в родительскую папку"
 
@@ -45541,6 +45596,11 @@ msgstr "Использовать файл из исходного места (с
 
 msgid "Write file to original location (overwrite existing file)"
 msgstr "Записать файл в исходное место (перезаписать существующий файл)"
+
+
+msgctxt "Operator"
+msgid "Unpack Linked Libraries"
+msgstr "Распаковать связанные библиотеки"
 
 
 msgid "Restore all packed linked data-blocks to their original locations"
@@ -45934,6 +45994,10 @@ msgstr "Стабилизировать штрихи"
 
 msgid "Wait for first click instead of painting immediately"
 msgstr "Ожидать первого нажатия, а не рисовать сразу"
+
+
+msgid "Delete the active frame for the active Annotation Layer"
+msgstr "Удалить активный кадр для активного слоя аннотаций"
 
 
 msgid "Projection Type"
@@ -46472,6 +46536,33 @@ msgstr "Добавить новый слой"
 
 msgid "Add new layer or note for the active data-block"
 msgstr "Добавить новый слой или заметку для активного датаблока"
+
+
+msgctxt "Operator"
+msgid "Add New Annotation Layer"
+msgstr "Добавить новый слой аннотаций"
+
+
+msgid "Add new Annotation layer or note for the active data-block"
+msgstr "Добавить новый слой аннотаций или заметку для активного блока данных"
+
+
+msgctxt "Operator"
+msgid "Move Annotation Layer"
+msgstr "Переместить слой аннотаций"
+
+
+msgid "Move the active Annotation layer up/down in the list"
+msgstr "Переместить активный слой аннотаций вверх/вниз по списку"
+
+
+msgctxt "Operator"
+msgid "Remove Annotation Layer"
+msgstr "Удалить слой аннотаций"
+
+
+msgid "Remove active Annotation layer"
+msgstr "Удалить активный слой аннотаций"
 
 
 msgctxt "Operator"
@@ -47381,6 +47472,10 @@ msgstr "Интерактивно установить текущий кадр и
 msgctxt "Operator"
 msgid "Decimate Keyframes"
 msgstr "Упростить ключевые кадры"
+
+
+msgid "Remove"
+msgstr "Удалить"
 
 
 msgid "Use an error margin to specify how much the curve is allowed to deviate from the original path"
@@ -48356,7 +48451,7 @@ msgstr "Переключить выделение всех видимых отч
 
 
 msgid "Toggle box selection"
-msgstr "Переключить на выделение прямоугольником"
+msgstr "Переключить выделение прямоугольником"
 
 
 msgctxt "Operator"
@@ -51622,6 +51717,10 @@ msgid "Add a file node to the current node editor"
 msgstr "Добавить ноду файла в текущий нодовый редактор"
 
 
+msgid "Add an existing node group to the current node editor"
+msgstr "Добавить существующую группу нод в текущий редактор нод"
+
+
 msgctxt "Operator"
 msgid "Add Mask Node"
 msgstr "Добавить ноду маски"
@@ -52010,6 +52109,26 @@ msgstr "Добавить или удалить предустановку цве
 
 msgid "Copy color to all selected nodes"
 msgstr "Копировать цвет на все выделенные ноды"
+
+
+msgid "Overlay Mode"
+msgstr "Режим перекрытия"
+
+
+msgid "Current"
+msgstr "Текущий"
+
+
+msgid "Exponent"
+msgstr "Экспонента"
+
+
+msgid "Fraction"
+msgstr "Дробная часть"
+
+
+msgid "Wrap"
+msgstr "Обёртка"
 
 
 msgctxt "Operator"
@@ -52662,7 +52781,7 @@ msgstr "Создать простой штрих с базовыми цвета�
 
 msgctxt "Operator"
 msgid "Monkey"
-msgstr "Обезьяна"
+msgstr "Обезьянка"
 
 
 msgid "Construct a Suzanne grease pencil object"
@@ -54573,6 +54692,11 @@ msgstr "Обновить драйверы"
 
 msgid "Clear Drivers"
 msgstr "Очистить драйверы"
+
+
+msgctxt "Operator"
+msgid "Set Color Tag"
+msgstr "Установить цветной тег"
 
 
 msgctxt "Operator"
@@ -57638,7 +57762,7 @@ msgstr "Повторить последнее действие"
 
 msgctxt "Operator"
 msgid "Toggle Maximize Area"
-msgstr "Переключить развёрнутость области"
+msgstr "Переключить максимизацию области"
 
 
 msgid "Toggle display selected area as fullscreen/maximized"
@@ -57834,10 +57958,6 @@ msgstr "Фильтр маски"
 
 msgid "Applies a filter to modify the current mask"
 msgstr "Применить фильтр чтобы изменить текущую маску"
-
-
-msgid "Use a automatic number of iterations based on the number of vertices of the sculpt"
-msgstr "Использовать автоматическое количество итераций в зависимости от количества вершин модели"
 
 
 msgid "Filter that is going to be applied to the mask"
@@ -59443,6 +59563,10 @@ msgid "Unlink active text data-block"
 msgstr "Отсоединить активный текстовый датаблок"
 
 
+msgid "Scale selected bendy bones display size"
+msgstr "Масштабировать размер отображения выбранных сгибаемых костей"
+
+
 msgid "Constraint Axis"
 msgstr "Оси ограничителя"
 
@@ -59902,139 +60026,6 @@ msgstr "Редактировать исходный код интерфейса 
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Редактировать перевод"
-
-
-msgid "Translate the label and tooltip of the given property"
-msgstr "Перевести метку и всплывающую подсказку свойства"
-
-
-msgid "Label of the control"
-msgstr "Метка элемента управления"
-
-
-msgid "Flags about the label of the button"
-msgstr "Флаги по метке кнопки"
-
-
-msgid "Message is marked as fuzzy in po file"
-msgstr "Сообщение отмечено как неточное в файле .po"
-
-
-msgid "Some error occurred with this message"
-msgstr "Ошибка при обработке этого сообщения"
-
-
-msgid "Tip of the control"
-msgstr "Подсказка к элементу управления"
-
-
-msgid "Flags about the tip of the button"
-msgstr "Флаги по подсказке к кнопке"
-
-
-msgid "Remove all local translation files, to be able to use the system ones again"
-msgstr "Удалить все локальные файлы переводов, чтобы вернуться к использованию системных переводов"
-
-
-msgid "Label of the enum item of the control, if any"
-msgstr "Метка элемента перечисления элемента управления, если задана"
-
-
-msgid "Flags about the RNA enum item label of the button"
-msgstr "Флаги по RNA-метке элемента перечисления кнопки"
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "Подсказка к элементу перечисления элемента управления, если задана"
-
-
-msgid "Flags about the RNA enum item tip of the button"
-msgstr "Флаги по RNA-подсказке к элементу перечисления кнопки"
-
-
-msgid "Current (translated) language"
-msgstr "Текущий (переведённый) язык"
-
-
-msgid "Original label of the control"
-msgstr "Исходная метка элемента управления"
-
-
-msgid "Original tip of the control"
-msgstr "Исходная подсказка к элементу управления"
-
-
-msgid "Original label of the enum item of the control, if any"
-msgstr "Исходная метка элемента перечисления элемента управления, если задана"
-
-
-msgid "Original tip of the enum item of the control, if any"
-msgstr "Исходная подсказка к элементу перечисления элемента управления, если задана"
-
-
-msgid "Original RNA-defined label of the control, if any"
-msgstr "Определяемая в RNA исходная метка элемента управления, если задана"
-
-
-msgid "Original RNA-defined tip of the control, if any"
-msgstr "Определяемая в RNA исходная подсказка к элементу управления, если задана"
-
-
-msgid "Path to the matching po file"
-msgstr "Путь к соответствующему файлу .po"
-
-
-msgid "RNA context for label"
-msgstr "RNA-контекст метки"
-
-
-msgid "Identifier of the RNA enum item, if any"
-msgstr "Идентификатор элемента перечисления RNA, если задан"
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "Определяемая в RNA метка элемента управления, если задана"
-
-
-msgid "Flags about the RNA-defined label of the button"
-msgstr "Флаги по определяемой в RNA метке кнопки"
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "Идентификатор свойства RNA, если задан"
-
-
-msgid "Identifier of the RNA struct, if any"
-msgstr "Идентификатор структуры RNA, если задан"
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "Определяемая в RNA подсказка к элементу управления, если задана"
-
-
-msgid "Flags about the RNA-defined tip of the button"
-msgstr "Флаги по определяемой в RNA подсказке к кнопке"
-
-
-msgid "Stats from opened po"
-msgstr "Статистика по открытому файлу .po"
-
-
-msgid "Try to rebuild mo file, and refresh Blender's UI"
-msgstr "Попытаться перестроить файл .mo и обновить интерфейс Blender"
-
-
-msgid "Update po file, try to rebuild mo file, and refresh Blender's UI"
-msgstr "Обновить файл .po, попытаться обновить файл .mo и обновить интерфейс Blender"
-
-
-msgid "Edit i18n in current language for the active button"
-msgstr "Редактировать перевод активной кнопки на текущем языке"
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Пипетка"
 
@@ -60183,15 +60174,6 @@ msgstr "Имя (идентификатор) вызываемого операт�
 
 msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
 msgstr "Обновить данные перевода этого аддона (найденные как python-кортежи в исходном коде аддона)"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Редактировать перевод с обновлением .mo"
-
-
-msgid "Try to \"compile\" given po file into relevant blender.mo file"
-msgstr "Попытаться скомпилировать заданный .po-файл в соответствующий файл .mo"
 
 
 msgctxt "Operator"
@@ -60632,10 +60614,6 @@ msgstr "Упаковать острова"
 
 msgid "Space between islands"
 msgstr "Пространство между островами"
-
-
-msgid "Fraction"
-msgstr "Дробная часть"
 
 
 msgid "Original bounding box"
@@ -62333,10 +62311,6 @@ msgid "Toggle a context value"
 msgstr "Переключить значение контекста"
 
 
-msgid "Wrap"
-msgstr "Обёртка"
-
-
 msgid "Wrap back to the first/last values"
 msgstr "Перейти циклично к первому/последнему значению"
 
@@ -63038,7 +63012,11 @@ msgstr "Прорисовка окна"
 
 
 msgid "Undo/Redo"
-msgstr "Отмена/возврат"
+msgstr "Отменить/повторить"
+
+
+msgid "Undo and redo"
+msgstr "Отменить и повторить"
 
 
 msgctxt "Operator"
@@ -63080,7 +63058,7 @@ msgstr "Переназначить относительные пути при с
 
 msgctxt "Operator"
 msgid "Save Startup File"
-msgstr "Сохранить стартовый файл"
+msgstr "Сохранить файл запуска"
 
 
 msgctxt "Operator"
@@ -63256,6 +63234,10 @@ msgid "Generate system information, saved into a text file"
 msgstr "Сгенерировать информацию о системе и сохранить в текстовый файл"
 
 
+msgid "Set the fallback tool instead of the primary tool"
+msgstr "Установить запасной инструмент вместо основного инструмента"
+
+
 msgid "Cycle"
 msgstr "Цикл"
 
@@ -63268,9 +63250,18 @@ msgid "Identifier of the tool"
 msgstr "Идентификатор инструмента"
 
 
+msgid "Set the fallback tool instead of the primary"
+msgstr "Установить запасной инструмент вместо основного"
+
+
 msgctxt "Operator"
 msgid "Toolbar"
 msgstr "Панель инструментов"
+
+
+msgctxt "Operator"
+msgid "Fallback Tool Pie Menu"
+msgstr "Круговое меню запасного инструмента"
 
 
 msgctxt "Operator"
@@ -63419,6 +63410,11 @@ msgstr "Переместить рабочее пространство в кон
 
 msgid "Reorder workspace to be first in the list"
 msgstr "Переместить рабочее пространство в начало списка"
+
+
+msgctxt "Operator"
+msgid "Pin Scene to Workspace"
+msgstr "Прикрепить сцену к рабочей области"
 
 
 msgctxt "Operator"
@@ -64223,7 +64219,7 @@ msgstr "Подстройка"
 
 msgctxt "Operator"
 msgid "Select Box"
-msgstr "Выделение прямоугольником"
+msgstr "Выделить рамкой"
 
 
 msgctxt "Operator"
@@ -64330,6 +64326,10 @@ msgstr "Слот"
 
 msgid "Predefined node color"
 msgstr "Предопределённый цвет ноды"
+
+
+msgid "Group Sockets"
+msgstr "Порты группы"
 
 
 msgctxt "Operator"
@@ -70870,28 +70870,8 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "Метод сглаживания в 3D-вьюпорте"
 
 
-msgid "Color applied to the bloom effect"
-msgstr "Цвет, применяемый к эффекту свечения"
-
-
-msgid "Blend factor"
-msgstr "Коэффициент смешения"
-
-
 msgid "Knee"
 msgstr "Переход"
-
-
-msgid "Makes transition between under/over-threshold gradual"
-msgstr "Сделать плавный переход между недозасветом и перезасветом"
-
-
-msgid "Bloom spread distance"
-msgstr "Размер свечения"
-
-
-msgid "Filters out pixels under this level of brightness"
-msgstr "Выфильтровать пиксели, которые ниже этого порога по яркости"
 
 
 msgid "Max Size"
@@ -71100,10 +71080,6 @@ msgstr "Сэмплов на рендере"
 
 msgid "Number of samples, unlimited if 0"
 msgstr "Количество сэмплов, 0 — не ограничено"
-
-
-msgid "High brightness pixels generate a glowing effect"
-msgstr "Создать эффект свечения вокруг ярких пикселей"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -71948,6 +71924,10 @@ msgid "Use the Scene's Sequencer timeline as input"
 msgstr "Использовать временную шкалу секвенсора сцены в качестве входа"
 
 
+msgid "Use Annotations"
+msgstr "Использовать аннотации"
+
+
 msgid "Show Annotations in OpenGL previews"
 msgstr "Показывать аннотации в превью OpenGL"
 
@@ -72418,6 +72398,10 @@ msgstr "Показывать смещения"
 
 msgid "Display strip in/out offsets"
 msgstr "Показывать смещения начала/конца клипа"
+
+
+msgid "Show Color Tags"
+msgstr "Показать цветные теги"
 
 
 msgid "Shuffle"
@@ -73148,10 +73132,6 @@ msgid "Display white edges"
 msgstr "Отображать границы белыми"
 
 
-msgid "Overlay Mode"
-msgstr "Режим перекрытия"
-
-
 msgid "Overlay mode of rasterized mask"
 msgstr "Режим перекрытия для растеризованной маски"
 
@@ -73326,14 +73306,6 @@ msgstr "Настроить последнюю операцию"
 
 msgid "Toolbar"
 msgstr "Панель инструментов"
-
-
-msgid "Show Seconds"
-msgstr "Отображать секунды"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "Отображать время в секундах, а не в кадрах"
 
 
 msgid "Show Stable"
@@ -74460,10 +74432,6 @@ msgstr "Эталон"
 
 msgid "Show reference frame only"
 msgstr "Отображать только кадр эталона"
-
-
-msgid "Current"
-msgstr "Текущий"
 
 
 msgid "Show current frame only"
@@ -75754,6 +75722,10 @@ msgid "Theme settings for collection colors"
 msgstr "Настройки темы цветов коллекций"
 
 
+msgid "Collection Color Tag"
+msgstr "Коллекция цветных тегов"
+
+
 msgid "Theme Console"
 msgstr "Тема консоли"
 
@@ -77009,7 +76981,7 @@ msgstr "Элемент привязки нодов"
 
 
 msgid "Node X"
-msgstr "X ноды"
+msgstr "По X ноды"
 
 
 msgid "Snap to left/right node border"
@@ -77017,7 +76989,7 @@ msgstr "Привязка к левой/правой границе ноды"
 
 
 msgid "Node Y"
-msgstr "Y ноды"
+msgstr "По Y ноды"
 
 
 msgid "Snap to top/bottom node border"
@@ -77025,7 +76997,7 @@ msgstr "Привязка в верхней/нижней границе ноды"
 
 
 msgid "Node X / Y"
-msgstr "X / Y ноды"
+msgstr "По X / Y ноды"
 
 
 msgid "Snap to any node border"
@@ -78373,6 +78345,10 @@ msgid "Render cryptomatte object pass, for isolating objects in compositing"
 msgstr "Рендерить проход объектов Cryptomatte, изолирующий объекты в постобработке"
 
 
+msgid "Node ID"
+msgstr "Идентификатор ноды"
+
+
 msgid "Display single bounding box for the entire grid"
 msgstr "Отображать одним габаритным контейнером для всей сетки"
 
@@ -78625,6 +78601,10 @@ msgid "Search"
 msgstr "Поиск"
 
 
+msgid "Alt Click Tool Prompt"
+msgstr "Нажатие Alt - подсказка инструмента"
+
+
 msgid ""
 "Hold Alt-LMB to place the Cursor (instead of LMB), allows tools to activate on press instead of drag.\n"
 "Incompatible with the input preference \"Emulate 3 Button Mouse\" when the \"Alt\" key is used"
@@ -78701,7 +78681,12 @@ msgstr "Инструмент 3D-вида: сдвиг"
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Select Box"
-msgstr "Инструмент 3D-вида: выделение прямоугольником"
+msgstr "Инструмент 3D-вида: выделение рамкой"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Select Box (fallback)"
+msgstr "Инструмент 3D-вида: выделить рамкой (резервный вариант)"
 
 
 msgctxt "WindowManager"
@@ -79059,6 +79044,16 @@ msgstr "UV-редактор"
 
 
 msgctxt "WindowManager"
+msgid "Image Editor Tool: Uv, Select Box"
+msgstr "Инструмент редактора изображений: UV, выделить рамкой"
+
+
+msgctxt "WindowManager"
+msgid "Image Editor Tool: Uv, Select Box (fallback)"
+msgstr "Инструмент редактора изображений: UV, выделить рамкой (резервный вариант)"
+
+
+msgctxt "WindowManager"
 msgid "Image Editor Tool: Uv, Move"
 msgstr "Инструмент редактора изображений: UV, перемещение"
 
@@ -79119,8 +79114,28 @@ msgstr "Видеоредактор"
 
 
 msgctxt "WindowManager"
+msgid "Sequencer Timeline Tool: Select Box"
+msgstr "Инструмент секвенсора временной шкалы: выделить рамкой"
+
+
+msgctxt "WindowManager"
+msgid "Sequencer Timeline Tool: Select Box (fallback)"
+msgstr "Инструмент секвенсора временной шкалы: выделить рамкой (резервный вариант)"
+
+
+msgctxt "WindowManager"
 msgid "SequencerPreview"
 msgstr "Предпросмотр видеоредактора"
+
+
+msgctxt "WindowManager"
+msgid "Sequencer Preview Tool: Select Box"
+msgstr "Инструмент секвенсора превью: выделение рамкой"
+
+
+msgctxt "WindowManager"
+msgid "Sequencer Preview Tool: Select Box (fallback)"
+msgstr "Инструмент секвенсора превью: выделение рамкой (резервный вариант)"
 
 
 msgctxt "WindowManager"
@@ -79841,6 +79856,10 @@ msgid "Read about what's new in this version of Blender"
 msgstr "Прочитайте о том, что нового появилось в этой версии Blender"
 
 
+msgid "Fallback Tool"
+msgstr "Запасной инструмент"
+
+
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Руководство"
@@ -79963,11 +79982,6 @@ msgstr "Формы"
 
 msgid "Axes"
 msgstr "Оси"
-
-
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Удалить"
 
 
 msgid "Damping Max"
@@ -80410,11 +80424,6 @@ msgstr "Сплайн:"
 
 msgid "Parenting:"
 msgstr "Родительство:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "Родитель"
 
 
 msgctxt "Operator"
@@ -80995,10 +81004,6 @@ msgstr "Сэмплинг частиц на гребне волны"
 
 msgid "Particle Life Maximum"
 msgstr "Жизнь частиц Максимум"
-
-
-msgid "Exponent"
-msgstr "Экспонента"
 
 
 msgid "Surface Tension"
@@ -82300,6 +82305,15 @@ msgstr "Уровень белого:"
 
 msgid "Active Tools"
 msgstr "Активные инструменты"
+
+
+msgid "Color Tags"
+msgstr "Цветные теги"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Обновить всё"
 
 
 msgctxt "Operator"
@@ -84026,6 +84040,11 @@ msgstr "Предыдущий блок"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "Следующий блок"
+
+
+msgctxt "Operator"
+msgid "Suzanne"
+msgstr "Сюзанна"
 
 
 msgctxt "Operator"
@@ -86167,6 +86186,11 @@ msgstr "Копировать одно на выделение"
 
 
 msgctxt "Operator"
+msgid "Copy Full Data Path"
+msgstr "Копировать полный путь к данным"
+
+
+msgctxt "Operator"
 msgid "Remove from Quick Favorites"
 msgstr "Удалить из избранного"
 
@@ -86202,20 +86226,8 @@ msgid "Active button not found"
 msgstr "Активная кнопка не найдена"
 
 
-msgid "Please set your Preferences' 'Translation Branches Directory' path to a valid directory"
-msgstr "Установите путь к папке с ветвями переводов на вкладке «Файл» в настройках Blender"
-
-
 msgid "Could not compute a valid data path"
 msgstr "Не удалось определить правильный путь к данным"
-
-
-msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
-msgstr "Не найден оператор '%s'! Включите аддон ui_translate в настройках"
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "Нет допустимого файла .po для языка «%s» в %s"
 
 
 msgid "%d items"
@@ -86257,7 +86269,7 @@ msgstr "Яркость"
 
 
 msgid "Redo"
-msgstr "Вернуть"
+msgstr "Повторить"
 
 
 msgid "Menu \"%s\" not found"
@@ -86351,7 +86363,7 @@ msgstr "Расширение по горизонтали"
 
 
 msgid "Extend Extrapolated"
-msgstr "Расширение экстраполированного"
+msgstr "Расширение экстраполированно"
 
 
 msgid "Reset Curve"
@@ -86552,6 +86564,10 @@ msgstr "Выбор связываемых данных идентификато�
 
 msgid "Can't edit external library data"
 msgstr "Правка данных из внешних библиотек невозможна"
+
+
+msgid "Operator cannot redo"
+msgstr "Оператор не может повторить"
 
 
 msgid "Today"
@@ -88029,6 +88045,10 @@ msgid "Maximize Area"
 msgstr "Развернуть на всё окно"
 
 
+msgid "Full Screen Area"
+msgstr "Во весь экран"
+
+
 msgid "Show Header"
 msgstr "Отображать заголовок"
 
@@ -89029,6 +89049,10 @@ msgstr "Нет активного действия для выдвижения"
 
 msgid "Select an existing NLA Track or an empty action line first"
 msgstr "Сначала выделите существующий трек НЛА или пустую строку действия"
+
+
+msgid "Label Size"
+msgstr "Размер метки"
 
 
 msgid " Named Attribute"
@@ -91643,6 +91667,10 @@ msgid "Unable to create user config path"
 msgstr "Не удалось создать директорию под настройки пользователя"
 
 
+msgid "Startup file saved"
+msgstr "Файл запуска сохранён"
+
+
 msgid "Context window not set"
 msgstr "Контекстное окно не установлено"
 
@@ -91793,11 +91821,11 @@ msgstr "Оператор «%s» не включает отмену, неверн
 
 
 msgid "Operator redo '%s' does not have register enabled, incorrect invoke function"
-msgstr "Возврат оператора «%s» не включает регистрацию, неверная функция invoke"
+msgstr "Оператор повторить '%s' не включает регистрацию, неверная функция вызова"
 
 
 msgid "Operator redo '%s': wrong context"
-msgstr "Возврат оператора «%s»: неверный контекст"
+msgstr "Оператор повторить '%s': неверный контекст"
 
 
 msgid "Property from path '%s' has length %d instead of %d"

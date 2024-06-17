@@ -1818,12 +1818,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
   /* method to move channels depends on the editor */
   if (ac.datatype == ANIMCONT_GPENCIL) {
     /* Grease Pencil channels */
-    if (U.experimental.use_grease_pencil_version3) {
-      rearrange_grease_pencil_channels(&ac, mode);
-    }
-    else {
-      rearrange_gpencil_channels(&ac, mode);
-    }
+    rearrange_grease_pencil_channels(&ac, mode);
   }
   else if (ac.datatype == ANIMCONT_MASK) {
     /* Grease Pencil channels */

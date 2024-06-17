@@ -7,10 +7,6 @@ if(WITH_BLENDER)
     add_definitions(-DWITH_INPUT_NDOF)
   endif()
 
-  if(WITH_EXPERIMENTAL_FEATURES)
-    add_definitions(-DWITH_GREASE_PENCIL_V3)
-  endif()
-
   add_subdirectory(animation)
   add_subdirectory(armature)
   add_subdirectory(asset)

@@ -432,8 +432,6 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       cryptomatte_tx_.clear(float4(0.0f));
     }
   }
-
-  force_disable_reprojection_ = (scene_eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
 }
 
 void Film::sync()
@@ -518,7 +516,7 @@ void Film::end_sync()
   use_reprojection_ = inst_.sampling.interactive_mode();
 
   /* Just bypass the reprojection and reset the accumulation. */
-  if (inst_.is_viewport() && force_disable_reprojection_ && inst_.sampling.is_reset()) {
+  if (!use_reprojection_ && inst_.sampling.is_reset()) {
     use_reprojection_ = false;
     data_.use_history = false;
   }

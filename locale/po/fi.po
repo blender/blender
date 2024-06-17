@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -260,6 +260,14 @@ msgstr "Täysi"
 
 msgid "Auto"
 msgstr "Automaattinen"
+
+
+msgid "Always"
+msgstr "Aina"
+
+
+msgid "Center"
+msgstr "Keskus"
 
 
 msgid "Fribidi Library"
@@ -2086,8 +2094,9 @@ msgid "Curve Radius"
 msgstr "Käyrän säde"
 
 
-msgid "Remove"
-msgstr "Poista"
+msgctxt "Operator"
+msgid "Add"
+msgstr "Lisää"
 
 
 msgid "Minimum Distance"
@@ -2528,10 +2537,6 @@ msgstr "Vasen"
 
 msgid "Right"
 msgstr "Oikea"
-
-
-msgid "Center"
-msgstr "Keskus"
 
 
 msgid "Child Particle"
@@ -3257,10 +3262,6 @@ msgstr "Lukitut akselit"
 
 msgid "Free Axis"
 msgstr "Vapaat akselit"
-
-
-msgid "Always"
-msgstr "Aina"
 
 
 msgid "-X Rotation"
@@ -4747,11 +4748,6 @@ msgid "Area"
 msgstr "Alue"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Lisää"
-
-
 msgid "Utilities"
 msgstr "Työkalut"
 
@@ -4835,6 +4831,11 @@ msgstr "Tallenna & lataa"
 
 msgid "Names"
 msgstr "Nimet"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Isäntä"
 
 
 msgid "Select More/Less"
@@ -7271,6 +7272,10 @@ msgid "Only Curves"
 msgstr "Vain käyriä"
 
 
+msgid "Remove"
+msgstr "Poista"
+
+
 msgid "Handle Length"
 msgstr "Kahvan pituus"
 
@@ -7730,6 +7735,10 @@ msgid "Warning"
 msgstr "Varoitus"
 
 
+msgid "name"
+msgstr "nimi"
+
+
 msgid "Viewports"
 msgstr "Näkymät"
 
@@ -7892,11 +7901,6 @@ msgstr "Muutos:"
 
 
 msgctxt "Operator"
-msgid "Parent"
-msgstr "Isäntä"
-
-
-msgctxt "Operator"
 msgid "Clear"
 msgstr "Siivoa"
 
@@ -7978,10 +7982,6 @@ msgstr "Kartta"
 
 msgid "category"
 msgstr "kategoria"
-
-
-msgid "name"
-msgstr "nimi"
 
 
 msgid "B/W"

@@ -1353,17 +1353,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
   }
 
-  if (BKE_addon_find(&U.addons, "ui_translate")) {
-    uiItemFullO(layout,
-                "UI_OT_edittranslation_init",
-                nullptr,
-                ICON_NONE,
-                nullptr,
-                WM_OP_INVOKE_DEFAULT,
-                UI_ITEM_NONE,
-                nullptr);
-  }
-
   /* Show header tools for header buttons. */
   if (ui_block_is_popup_any(but->block) == false) {
     const ARegion *region = CTX_wm_region(C);

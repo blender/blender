@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -103,10 +103,6 @@ msgstr "घुमाव लेउ "
 
 msgid "Local Location"
 msgstr "Local स्थान"
-
-
-msgid "Remove"
-msgstr "हटाउने"
 
 
 msgid "Direction"
@@ -258,6 +254,10 @@ msgstr "पुर्व-स्थापित कपड  संग्रह ब�
 
 msgid "Limit"
 msgstr "हद"
+
+
+msgid "Remove"
+msgstr "हटाउने"
 
 
 msgctxt "Operator"

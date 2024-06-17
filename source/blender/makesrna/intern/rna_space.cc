@@ -3406,11 +3406,6 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
         continue;
       }
     }
-    if (!U.experimental.use_grease_pencil_version3 &&
-        bke::AttrDomain(item->value) == bke::AttrDomain::Layer)
-    {
-      continue;
-    }
     if (bke::AttrDomain(item->value) == bke::AttrDomain::Point &&
         component_type == bke::GeometryComponent::Type::Mesh)
     {

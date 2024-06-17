@@ -2783,14 +2783,7 @@ class VIEW3D_MT_add(Menu):
         if context.preferences.experimental.use_new_point_cloud_type:
             layout.operator("object.pointcloud_add", text="Point Cloud", icon='OUTLINER_OB_POINTCLOUD')
         layout.menu("VIEW3D_MT_volume_add", text="Volume", text_ctxt=i18n_contexts.id_id, icon='OUTLINER_OB_VOLUME')
-        if context.preferences.experimental.use_grease_pencil_version3:
-            layout.menu("VIEW3D_MT_grease_pencil_add", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
-        else:
-            layout.operator_menu_enum(
-                "object.gpencil_add",
-                "type",
-                text="Grease Pencil",
-                icon='OUTLINER_OB_GREASEPENCIL')
+        layout.menu("VIEW3D_MT_grease_pencil_add", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
 
         layout.separator()
 
@@ -3513,14 +3506,7 @@ class VIEW3D_MT_object_convert(Menu):
         ob = context.active_object
 
         if ob and ob.type != "EMPTY":
-            if (
-                    (ob.type == 'GPENCIL') and
-                    (context.gpencil_data is not None) and
-                    (not context.preferences.experimental.use_grease_pencil_version3)
-            ):
-                layout.operator_enum("gpencil.convert", "type")
-            else:
-                layout.operator_enum("object.convert", "target")
+            layout.operator_enum("object.convert", "target")
 
         else:
             # Potrace lib dependency.
@@ -6158,6 +6144,10 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
         layout.operator("grease_pencil.set_uniform_thickness")
         layout.operator("grease_pencil.set_uniform_opacity")
 
+        layout.separator()
+
+        layout.operator_menu_enum("grease_pencil.set_curve_type", property="type")
+
 
 class VIEW3D_MT_edit_greasepencil_point(Menu):
     bl_label = "Point"
@@ -6174,6 +6164,10 @@ class VIEW3D_MT_edit_greasepencil_point(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_greasepencil_vertex_group")
+
+        layout.separator()
+
+        layout.operator_menu_enum("grease_pencil.set_handle_type", property="type")
 
 
 class VIEW3D_MT_edit_curves_add(Menu):
@@ -8028,12 +8022,9 @@ class VIEW3D_PT_gpencil_origin(Panel):
             row = layout.row()
             row.label(text="Offset")
             row = layout.row()
-            if context.preferences.experimental.use_grease_pencil_version3:
-                row.prop(tool_settings, "gpencil_surface_offset", text="")
-                row = layout.row()
-                row.prop(tool_settings, "use_gpencil_project_only_selected")
-            else:
-                row.prop(gpd, "zdepth_offset", text="")
+            row.prop(tool_settings, "gpencil_surface_offset", text="")
+            row = layout.row()
+            row.prop(tool_settings, "use_gpencil_project_only_selected")
 
         if tool_settings.gpencil_stroke_placement_view3d == 'STROKE':
             row = layout.row()

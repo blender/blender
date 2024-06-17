@@ -159,9 +159,6 @@ void register_node_tree_type_geo()
 
 bool is_layer_selection_field(const bNodeTreeInterfaceSocket &socket)
 {
-  if (!U.experimental.use_grease_pencil_version3) {
-    return false;
-  }
   const blender::bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
   BLI_assert(typeinfo != nullptr);
 

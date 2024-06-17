@@ -1544,10 +1544,8 @@ static void std_node_socket_interface_draw(ID *id,
   }
 
   if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
-    if (U.experimental.use_grease_pencil_version3) {
-      if (type == SOCK_BOOLEAN) {
-        uiItemR(col, &ptr, "layer_selection_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
-      }
+    if (type == SOCK_BOOLEAN) {
+      uiItemR(col, &ptr, "layer_selection_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
     }
     uiLayout *sub = uiLayoutColumn(col, false);
     uiLayoutSetActive(sub, !is_layer_selection_field(*interface_socket));

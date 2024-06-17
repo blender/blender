@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -192,6 +192,10 @@ msgstr "เต็ม"
 
 msgid "Auto"
 msgstr "อัตโนมัติ"
+
+
+msgid "Bottom"
+msgstr "ล่าง"
 
 
 msgid "Action"
@@ -645,8 +649,9 @@ msgid "Connected"
 msgstr "เชื่อมต่อกัน"
 
 
-msgid "Remove"
-msgstr "ลบ"
+msgctxt "Operator"
+msgid "Add"
+msgstr "เพิ่ม"
 
 
 msgid "Angle"
@@ -1143,10 +1148,6 @@ msgstr "Zip"
 
 msgid "Delete"
 msgstr "ลบ"
-
-
-msgid "Bottom"
-msgstr "ล่าง"
 
 
 msgid "Top"
@@ -2000,11 +2001,6 @@ msgid "Files"
 msgstr "ไฟล์"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "เพิ่ม"
-
-
 msgid "Math"
 msgstr "คณิตศาสตร์"
 
@@ -2092,6 +2088,11 @@ msgstr "บันทึกและโหลด"
 
 msgid "Names"
 msgstr "ชื่อ"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "แม่"
 
 
 msgid "Face Data"
@@ -2679,6 +2680,10 @@ msgid "Join"
 msgstr "เชื่อมโยง"
 
 
+msgid "Remove"
+msgstr "ลบ"
+
+
 msgid "Replace Existing"
 msgstr "แทนที่ที่มีอยู่"
 
@@ -3202,15 +3207,6 @@ msgid "Randomize"
 msgstr "สุ่ม"
 
 
-msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "แก้ไขการแปล"
-
-
-msgid "Path to the matching po file"
-msgstr "ตำแหน่งไปยังไฟล์ po ที่ตรงกัน"
-
-
 msgid "Reset UV projection"
 msgstr "ตั้งค่าการฉาย UV ใหม่"
 
@@ -3680,14 +3676,6 @@ msgid "Adjust Last Operation"
 msgstr "ปรับตัวดำเนินการล่าสุด"
 
 
-msgid "Show Seconds"
-msgstr "แสดงวินาที"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "แสดงเวลาเป็นวินาที ไม่ใช่จำนวนเฟรม"
-
-
 msgctxt "MovieClip"
 msgid "View"
 msgstr "มุมมอง"
@@ -4042,11 +4030,6 @@ msgstr "แม่:"
 
 msgid "Transform:"
 msgstr "การปรับเปลี่ยน:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "แม่"
 
 
 msgid "Animation:"

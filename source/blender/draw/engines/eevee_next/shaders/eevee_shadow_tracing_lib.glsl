@@ -376,7 +376,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
                                         uniform_buf.shadow.film_pixel_radius);
     /* This gives the size of pixels at Z = 1. */
     scale = 1.0 / scale;
-    scale = min(scale, float(1 << (SHADOW_TILEMAP_LOD - 1)));
+    scale = min(scale, float(1 << SHADOW_TILEMAP_LOD));
     /* Now scale by distance to the light. */
     scale *= reduce_max(abs(lP));
   }
@@ -396,13 +396,8 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
 float shadow_normal_offset(vec3 Ng, vec3 L)
 {
   /* Attenuate depending on light angle. */
-  /* TODO: Should we take the light shape into consideration? */
   float cos_theta = abs(dot(Ng, L));
-  float sin_theta = sqrt(saturate(1.0 - square(cos_theta)));
-  /* Note that we still bias by one pixel anyway to fight quantization artifacts.
-   * This helps with self intersection of slopped surfaces and gives softer soft shadow (?! why).
-   * FIXME: This is likely to hide some issue, and we need a user facing bias parameter anyway. */
-  return sin_theta + 3.0;
+  return sin_from_cos(cos_theta);
 }
 
 /**
