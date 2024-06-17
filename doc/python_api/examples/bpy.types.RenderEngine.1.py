@@ -5,8 +5,6 @@ Simple Render Engine
 
 import bpy
 import array
-import gpu
-from gpu_extras.presets import draw_texture_2d
 
 
 class CustomRenderEngine(bpy.types.RenderEngine):
@@ -95,6 +93,10 @@ class CustomRenderEngine(bpy.types.RenderEngine):
     # Blender will draw overlays for selection and editing on top of the
     # rendered image automatically.
     def view_draw(self, context, depsgraph):
+        # Lazily import GPU module, so that the render engine works in
+        # background mode where the GPU module can't be imported by default.
+        import gpu
+
         region = context.region
         scene = depsgraph.scene
 
@@ -116,6 +118,8 @@ class CustomRenderEngine(bpy.types.RenderEngine):
 
 class CustomDrawData:
     def __init__(self, dimensions):
+        import gpu
+
         # Generate dummy float image buffer
         self.dimensions = dimensions
         width, height = dimensions
@@ -134,6 +138,7 @@ class CustomDrawData:
         del self.texture
 
     def draw(self):
+        from gpu_extras.presets import draw_texture_2d
         draw_texture_2d(self.texture, (0, 0), self.texture.width, self.texture.height)
 
 

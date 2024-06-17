@@ -90,6 +90,7 @@ enum class CPPTypeFlags {
   Hashable = 1 << 0,
   Printable = 1 << 1,
   EqualityComparable = 1 << 2,
+  IdentityDefaultValue = 1 << 3,
 
   BasicType = Hashable | Printable | EqualityComparable,
 };

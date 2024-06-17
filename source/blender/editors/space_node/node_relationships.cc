@@ -944,6 +944,10 @@ static bool should_create_drag_link_search_menu(const bNodeTree &node_tree,
   if (nldrag.start_socket->type == SOCK_CUSTOM) {
     return false;
   }
+  if (nldrag.start_socket->type == SOCK_TEXTURE) {
+    /* This socket types is not used anymore, but can currently still exists in files. */
+    return false;
+  }
   return true;
 }
 

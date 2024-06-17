@@ -37,10 +37,12 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
   if (!U.experimental.use_new_volume_nodes) {
     return;
   }
-  params.add_item(IFACE_("Volume"), [](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("GeometryNodeStoreNamedGrid");
-    params.update_and_connect_available_socket(node, "Volume");
-  });
+  if (params.other_socket().type == SOCK_GEOMETRY) {
+    params.add_item(IFACE_("Volume"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeStoreNamedGrid");
+      params.update_and_connect_available_socket(node, "Volume");
+    });
+  }
   if (params.in_out() == SOCK_IN) {
     if (params.other_socket().type == SOCK_STRING) {
       params.add_item(IFACE_("Name"), [](LinkSearchOpParams &params) {

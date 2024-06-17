@@ -38,6 +38,7 @@ struct SimulationData;
 }
 namespace undo {
 struct Node;
+enum class Type : int8_t;
 }
 }
 struct BMLog;
@@ -101,7 +102,7 @@ struct SculptVertexNeighborIter {
 struct SculptOrigVertData {
   BMLog *bm_log;
 
-  const blender::ed::sculpt_paint::undo::Node *unode;
+  blender::ed::sculpt_paint::undo::Type undo_type;
   const blender::float3 *coords;
   const blender::float3 *normals;
   const float *vmasks;
@@ -114,13 +115,6 @@ struct SculptOrigVertData {
   const float *col;
 };
 
-struct SculptOrigFaceData {
-  blender::ed::sculpt_paint::undo::Node *unode;
-  BMLog *bm_log;
-  const int *face_sets;
-  int face_set;
-};
-
 enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
   AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
@@ -128,7 +122,7 @@ enum eBoundaryAutomaskMode {
 
 namespace blender::ed::sculpt_paint::undo {
 
-enum class Type {
+enum class Type : int8_t {
   Position,
   HideVert,
   HideFace,
@@ -1021,13 +1015,6 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVerte
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const BMVert &vert);
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, int i);
 
-/**
- * Initialize a #SculptOrigVertData for accessing original vertex data;
- * handles #BMesh, #Mesh, and multi-resolution.
- */
-void SCULPT_orig_vert_data_unode_init(SculptOrigVertData &data,
-                                      const Object &ob,
-                                      const blender::ed::sculpt_paint::undo::Node &unode);
 /** \} */
 
 /* -------------------------------------------------------------------- */

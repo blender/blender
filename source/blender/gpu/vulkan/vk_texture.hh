@@ -50,7 +50,7 @@ class VKTexture : public Texture, public VKBindableResource {
   VKImageViewInfo image_view_info_ = {eImageViewUsage::ShaderBinding,
                                       IndexRange(0, VK_REMAINING_ARRAY_LAYERS),
                                       IndexRange(0, VK_REMAINING_MIP_LEVELS),
-                                      {'r', 'g', 'b', 'a'},
+                                      {{'r', 'g', 'b', 'a'}},
                                       false,
                                       false};
 

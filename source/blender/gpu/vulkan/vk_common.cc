@@ -857,7 +857,7 @@ VkSamplerAddressMode to_vk_sampler_address_mode(const GPUSamplerExtendMode exten
 {
   switch (extend_mode) {
     case GPU_SAMPLER_EXTEND_MODE_EXTEND:
-      return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+      return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     case GPU_SAMPLER_EXTEND_MODE_REPEAT:
       return VK_SAMPLER_ADDRESS_MODE_REPEAT;
     case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:

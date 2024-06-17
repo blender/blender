@@ -4114,8 +4114,8 @@ static void frame_node_draw(const bContext &C,
                             TreeDrawContext &tree_draw_ctx,
                             const ARegion &region,
                             const SpaceNode &snode,
-                            bNodeTree &ntree,
-                            bNode &node,
+                            const bNodeTree &ntree,
+                            const bNode &node,
                             uiBlock &block)
 {
   /* Skip if out of view. */
@@ -4294,7 +4294,8 @@ static void node_draw(const bContext &C,
                       bNodeInstanceKey key)
 {
   if (node.is_frame()) {
-    frame_node_draw(C, tree_draw_ctx, region, snode, ntree, node, block);
+    /* Should have been drawn before already. */
+    BLI_assert_unreachable();
   }
   else if (node.is_reroute()) {
     reroute_node_draw(C, tree_draw_ctx, region, snode, ntree, node, block);
@@ -4387,10 +4388,12 @@ static void find_bounds_by_zone_recursive(const SpaceNode &snode,
   }
 }
 
-static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
-                            const ARegion &region,
-                            const SpaceNode &snode,
-                            const bNodeTree &ntree)
+static void node_draw_zones_and_frames(const bContext &C,
+                                       TreeDrawContext &tree_draw_ctx,
+                                       const ARegion &region,
+                                       const SpaceNode &snode,
+                                       const bNodeTree &ntree,
+                                       Span<uiBlock *> blocks)
 {
   const bNodeTreeZones *zones = ntree.zones();
   if (zones == nullptr) {
@@ -4400,7 +4403,7 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
   Array<Vector<float2>> bounds_by_zone(zones->zones.size());
   Array<bke::CurvesGeometry> fillet_curve_by_zone(zones->zones.size());
   /* Bounding box area of zones is used to determine draw order. */
-  Array<float> bounding_box_area_by_zone(zones->zones.size());
+  Array<float> bounding_box_width_by_zone(zones->zones.size());
 
   for (const int zone_i : zones->zones.index_range()) {
     const bNodeTreeZone &zone = *zones->zones[zone_i];
@@ -4410,9 +4413,8 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
     const int boundary_positions_num = boundary_positions.size();
 
     const Bounds<float2> bounding_box = *bounds::min_max(boundary_positions);
-    const float bounding_box_area = (bounding_box.max.x - bounding_box.min.x) *
-                                    (bounding_box.max.y - bounding_box.min.y);
-    bounding_box_area_by_zone[zone_i] = bounding_box_area;
+    const float bounding_box_width = bounding_box.max.x - bounding_box.min.x;
+    bounding_box_width_by_zone[zone_i] = bounding_box_width;
 
     bke::CurvesGeometry boundary_curve(boundary_positions_num, 1);
     boundary_curve.cyclic_for_write().first() = true;
@@ -4447,39 +4449,72 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  Vector<int> zone_draw_order;
-  for (const int zone_i : zones->zones.index_range()) {
-    zone_draw_order.append(zone_i);
+  using ZoneOrNode = std::variant<const bNodeTreeZone *, const bNode *>;
+  Vector<ZoneOrNode> draw_order;
+  for (const std::unique_ptr<bNodeTreeZone> &zone : zones->zones) {
+    draw_order.append(zone.get());
   }
-  std::sort(zone_draw_order.begin(), zone_draw_order.end(), [&](const int a, const int b) {
+  for (const bNode *node : ntree.all_nodes()) {
+    if (node->flag & NODE_BACKGROUND) {
+      draw_order.append(node);
+    }
+  }
+  auto get_zone_or_node_width = [&](const ZoneOrNode &zone_or_node) {
+    if (const bNodeTreeZone *const *zone_p = std::get_if<const bNodeTreeZone *>(&zone_or_node)) {
+      const bNodeTreeZone &zone = **zone_p;
+      return bounding_box_width_by_zone[zone.index];
+    }
+    if (const bNode *const *node_p = std::get_if<const bNode *>(&zone_or_node)) {
+      const bNode &node = **node_p;
+      return BLI_rctf_size_x(&node.runtime->totr);
+    }
+    BLI_assert_unreachable();
+    return 0.0f;
+  };
+  std::sort(draw_order.begin(), draw_order.end(), [&](const ZoneOrNode &a, const ZoneOrNode &b) {
     /* Draw zones with smaller bounding box on top to make them visible. */
-    return bounding_box_area_by_zone[a] > bounding_box_area_by_zone[b];
+    return get_zone_or_node_width(a) > get_zone_or_node_width(b);
   });
 
-  /* Draw all the contour lines after to prevent them from getting hidden by overlapping zones.
-   */
-  for (const int zone_i : zone_draw_order) {
-    float zone_color[4];
-    UI_GetThemeColor4fv(get_theme_id(zone_i), zone_color);
-    if (zone_color[3] == 0.0f) {
-      break;
-    }
-    const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
-    /* Draw the background. */
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformThemeColorBlend(TH_BACK, get_theme_id(zone_i), zone_color[3]);
+  for (const ZoneOrNode &zone_or_node : draw_order) {
+    if (const bNodeTreeZone *const *zone_p = std::get_if<const bNodeTreeZone *>(&zone_or_node)) {
+      const bNodeTreeZone &zone = **zone_p;
+      const int zone_i = zone.index;
+      float zone_color[4];
+      UI_GetThemeColor4fv(get_theme_id(zone_i), zone_color);
+      if (zone_color[3] == 0.0f) {
+        continue;
+      }
+      const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
+      /* Draw the background. */
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      immUniformThemeColorBlend(TH_BACK, get_theme_id(zone_i), zone_color[3]);
 
-    immBegin(GPU_PRIM_TRI_FAN, fillet_boundary_positions.size() + 1);
-    for (const float3 &p : fillet_boundary_positions) {
-      immVertex3fv(pos, p);
-    }
-    immVertex3fv(pos, fillet_boundary_positions[0]);
-    immEnd();
+      immBegin(GPU_PRIM_TRI_FAN, fillet_boundary_positions.size() + 1);
+      for (const float3 &p : fillet_boundary_positions) {
+        immVertex3fv(pos, p);
+      }
+      immVertex3fv(pos, fillet_boundary_positions[0]);
+      immEnd();
 
-    immUnbindProgram();
+      immUnbindProgram();
+    }
+    if (const bNode *const *node_p = std::get_if<const bNode *>(&zone_or_node)) {
+      const bNode &node = **node_p;
+      frame_node_draw(C, tree_draw_ctx, region, snode, ntree, node, *blocks[node.index()]);
+    }
   }
 
-  for (const int zone_i : zone_draw_order) {
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  /* Draw all the contour lines after to prevent them from getting hidden by overlapping zones. */
+  for (const ZoneOrNode &zone_or_node : draw_order) {
+    const bNodeTreeZone *const *zone_p = std::get_if<const bNodeTreeZone *>(&zone_or_node);
+    if (!zone_p) {
+      continue;
+    }
+    const bNodeTreeZone &zone = **zone_p;
+    const int zone_i = zone.index;
     const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
     /* Draw the contour lines. */
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
@@ -4497,6 +4532,8 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
 
     immUnbindProgram();
   }
+
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 #define USE_DRAW_TOT_UPDATE
@@ -4514,20 +4551,12 @@ static void node_draw_nodetree(const bContext &C,
   BLI_rctf_init_minmax(&region.v2d.tot);
 #endif
 
-  /* Draw background nodes, last nodes in front. */
   for (const int i : nodes.index_range()) {
 #ifdef USE_DRAW_TOT_UPDATE
     /* Unrelated to background nodes, update the v2d->tot,
      * can be anywhere before we draw the scroll bars. */
     BLI_rctf_union(&region.v2d.tot, &nodes[i]->runtime->totr);
 #endif
-
-    if (!(nodes[i]->flag & NODE_BACKGROUND)) {
-      continue;
-    }
-
-    const bNodeInstanceKey key = bke::BKE_node_instance_key(parent_key, &ntree, nodes[i]);
-    node_draw(C, tree_draw_ctx, region, snode, ntree, *nodes[i], *blocks[i], key);
   }
 
   /* Node lines. */
@@ -4553,6 +4582,7 @@ static void node_draw_nodetree(const bContext &C,
   /* Draw foreground nodes, last nodes in front. */
   for (const int i : nodes.index_range()) {
     if (nodes[i]->flag & NODE_BACKGROUND) {
+      /* Background nodes are drawn before mixed with zones already. */
       continue;
     }
 
@@ -4679,7 +4709,7 @@ static void draw_nodetree(const bContext &C,
   }
 
   node_update_nodetree(C, tree_draw_ctx, ntree, nodes, blocks);
-  node_draw_zones(tree_draw_ctx, region, *snode, ntree);
+  node_draw_zones_and_frames(C, tree_draw_ctx, region, *snode, ntree, blocks);
   node_draw_nodetree(C, tree_draw_ctx, region, *snode, ntree, nodes, blocks, parent_key);
 }
 

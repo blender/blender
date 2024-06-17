@@ -1117,7 +1117,7 @@ void sequencer_draw_preview(const bContext *C,
 
   /* Setup view. */
   sequencer_display_size(scene, viewrect);
-  UI_view2d_totRect_set(v2d, roundf(viewrect[0] + 0.5f), roundf(viewrect[1] + 0.5f));
+  UI_view2d_totRect_set(v2d, roundf(viewrect[0]), roundf(viewrect[1]));
   UI_view2d_curRect_validate(v2d);
   UI_view2d_view_ortho(v2d);
 

@@ -363,13 +363,16 @@ class ShadowModule {
     do_full_update_ = true;
   }
 
+  /** Compute approximate screen pixel space radius. */
+  static float screen_pixel_radius(const float4x4 &wininv,
+                                   bool is_perspective,
+                                   const int2 &extent);
+
  private:
   void remove_unused();
   void debug_page_map_call(DRWPass *pass);
   bool shadow_update_finished();
 
-  /** Compute approximate screen pixel space radius. */
-  float screen_pixel_radius(const View &view, const int2 &extent);
   /** Compute approximate punctual shadow pixel world space radius, 1 unit away of the light. */
   float tilemap_pixel_radius();
 

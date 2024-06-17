@@ -173,6 +173,19 @@ static void mark_bezier_vector_edges_sharp(const int profile_point_num,
   }
 }
 
+static float4x4 build_point_matrix(const float3 &location,
+                                   const float3 &tangent,
+                                   const float3 &normal)
+{
+  float4x4 matrix = float4x4::identity();
+  matrix.x_axis() = tangent;
+  /* Normal and tangent may not be orthogonal in case of custom normals. */
+  matrix.y_axis() = math::normalize(math::cross(normal, tangent));
+  matrix.z_axis() = normal;
+  matrix.location() = location;
+  return matrix;
+}
+
 static void fill_mesh_positions(const int main_point_num,
                                 const int profile_point_num,
                                 const Span<float3> main_positions,
@@ -184,7 +197,7 @@ static void fill_mesh_positions(const int main_point_num,
 {
   if (profile_point_num == 1) {
     for (const int i_ring : IndexRange(main_point_num)) {
-      float4x4 point_matrix = math::from_orthonormal_axes<float4x4>(
+      float4x4 point_matrix = build_point_matrix(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
       if (!radii.is_empty()) {
         point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
@@ -194,7 +207,7 @@ static void fill_mesh_positions(const int main_point_num,
   }
   else {
     for (const int i_ring : IndexRange(main_point_num)) {
-      float4x4 point_matrix = math::from_orthonormal_axes<float4x4>(
+      float4x4 point_matrix = build_point_matrix(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
       if (!radii.is_empty()) {
         point_matrix = math::scale(point_matrix, float3(radii[i_ring]));

@@ -24,7 +24,7 @@ class VKStorageBuffer : public StorageBuf, public VKBindableResource {
   VKBuffer buffer_;
 
  public:
-  VKStorageBuffer(int size, GPUUsageType usage, const char *name);
+  VKStorageBuffer(size_t size, GPUUsageType usage, const char *name);
 
   void update(const void *data) override;
   void bind(int slot) override;

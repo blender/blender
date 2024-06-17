@@ -15,7 +15,7 @@
 
 namespace blender::gpu {
 
-VKStorageBuffer::VKStorageBuffer(int size, GPUUsageType usage, const char *name)
+VKStorageBuffer::VKStorageBuffer(size_t size, GPUUsageType usage, const char *name)
     : StorageBuf(size, name), usage_(usage)
 {
 }

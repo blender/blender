@@ -63,7 +63,7 @@ class DummyBackend : public GPUBackend {
   {
     return nullptr;
   }
-  PixelBuffer *pixelbuf_alloc(uint /*size*/) override
+  PixelBuffer *pixelbuf_alloc(size_t /*size*/) override
   {
     return nullptr;
   }
@@ -79,11 +79,11 @@ class DummyBackend : public GPUBackend {
   {
     return nullptr;
   }
-  UniformBuf *uniformbuf_alloc(int /*size*/, const char * /*name*/) override
+  UniformBuf *uniformbuf_alloc(size_t /*size*/, const char * /*name*/) override
   {
     return nullptr;
   }
-  StorageBuf *storagebuf_alloc(int /*size*/,
+  StorageBuf *storagebuf_alloc(size_t /*size*/,
                                GPUUsageType /*usage*/,
                                const char * /*name*/) override
   {
