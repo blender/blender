@@ -1164,6 +1164,7 @@ void register_standard_node_socket_types()
   bke::nodeRegisterSocketType(make_socket_type_float(PROP_TIME_ABSOLUTE));
   bke::nodeRegisterSocketType(make_socket_type_float(PROP_DISTANCE));
   bke::nodeRegisterSocketType(make_socket_type_float(PROP_WAVELENGTH));
+  bke::nodeRegisterSocketType(make_socket_type_float(PROP_COLOR_TEMPERATURE));
 
   bke::nodeRegisterSocketType(make_socket_type_int(PROP_NONE));
   bke::nodeRegisterSocketType(make_socket_type_int(PROP_UNSIGNED));
