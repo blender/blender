@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include "BLI_bit_span.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
