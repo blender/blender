@@ -93,8 +93,6 @@ void DepthOfField::sync()
   if (camera.is_orthographic()) {
     /* FIXME: Why is this needed? Some kind of implicit unit conversion? */
     aperture *= 0.04f;
-    /* Really strange behavior from Cycles but replicating. */
-    focus_distance_ += camera.data_get().clip_near;
   }
 
   if (camera.is_panoramic()) {
