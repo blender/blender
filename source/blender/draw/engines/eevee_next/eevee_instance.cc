@@ -89,6 +89,9 @@ void Instance::init(const int2 &output_res,
   if (is_painting()) {
     sampling.reset();
   }
+  if (is_navigating() && scene->eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT) {
+    sampling.reset();
+  }
 
   update_eval_members();
 
@@ -608,6 +611,7 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
   CHECK_PASS_LEGACY(ENVIRONMENT, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(SHADOW, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_EEVEE(TRANSPARENT, SOCK_RGBA, 4, "RGBA");
 
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
     if ((aov->flag & AOV_CONFLICT) != 0) {
