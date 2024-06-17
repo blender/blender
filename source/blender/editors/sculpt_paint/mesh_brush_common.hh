@@ -159,6 +159,18 @@ void apply_translations_to_shape_keys(Object &object,
 void apply_translations_to_pbvh(PBVH &pbvh, Span<int> verts, Span<float3> positions_orig);
 
 /**
+ * Write the new translated positions to the original mesh, taking into account inverse
+ * deformation from modifiers, axis locking, and clipping. Flush the deformation to shape keys as
+ * well.
+ */
+void write_translations(const Sculpt &sd,
+                        Object &object,
+                        Span<float3> positions_eval,
+                        Span<int> verts,
+                        MutableSpan<float3> translations,
+                        MutableSpan<float3> positions_orig);
+
+/**
  * Find vertices connected to the indexed vertices across faces. For boundary vertices (stored in
  * the \a boundary_verts argument), only include other boundary vertices. Also skip connectivity
  * accross hidden faces and skip neighbors of corner vertices.
