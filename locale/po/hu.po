@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -207,6 +207,18 @@ msgstr "MetalRT"
 
 msgid "Auto"
 msgstr "Automatikus"
+
+
+msgid "Always"
+msgstr "Mindig"
+
+
+msgid "Center"
+msgstr "Közép"
+
+
+msgid "Bottom"
+msgstr "Alulnézet"
 
 
 msgid "Action"
@@ -1084,6 +1096,12 @@ msgid "Curve Radius"
 msgstr "Görbe sugara"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Hozzáadás"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Eltávolítás"
 
@@ -1247,10 +1265,6 @@ msgstr "Bal"
 
 msgid "Right"
 msgstr "Jobb"
-
-
-msgid "Center"
-msgstr "Közép"
 
 
 msgid "Linear"
@@ -2486,10 +2500,6 @@ msgid "Rotation range on which pivoting should occur"
 msgstr "Forgási tartomány, amiben a középponosítás zajlik"
 
 
-msgid "Always"
-msgstr "Mindig"
-
-
 msgid "Use the pivot point in every rotation"
 msgstr "Középpont használata minden forgatásál"
 
@@ -3578,10 +3588,6 @@ msgstr "Hőmérséklet rács"
 
 msgid "Time Scale"
 msgstr "Idő méretezés"
-
-
-msgid "Bottom"
-msgstr "Alulnézet"
 
 
 msgid "Top"
@@ -7175,11 +7181,6 @@ msgid "Grease Pencil Vertex Groups"
 msgstr "Zsírkréta csúcspont csoportok"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Hozzáadás"
-
-
 msgid "Strip"
 msgstr "Sáv"
 
@@ -7258,6 +7259,11 @@ msgstr "Beállítások"
 
 msgid "Save & Load"
 msgstr "Mentés & Betöltés"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Szülő"
 
 
 msgid "Relations"
@@ -10724,6 +10730,10 @@ msgid "Decimate Keyframes"
 msgstr "Kulcs-képkockák tizedelése"
 
 
+msgid "Remove"
+msgstr "Eltávolítás"
+
+
 msgid "Jump to previous/next keyframe"
 msgstr "Ugrás az előző/következő kulcskockára"
 
@@ -11090,6 +11100,10 @@ msgstr "Csomópont (node) hozzáadása"
 msgctxt "Operator"
 msgid "Duplicate Item"
 msgstr "Elem duplikálása"
+
+
+msgid "Exponent"
+msgstr "Exponenciális"
 
 
 msgid "Add an object to the scene"
@@ -12733,11 +12747,6 @@ msgstr "Elferdítés"
 msgctxt "Operator"
 msgid "Edit Source"
 msgstr "Forrás szerkesztése"
-
-
-msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Fordítás szerkesztése"
 
 
 msgctxt "Operator"
@@ -14848,14 +14857,6 @@ msgid "Pivot center for rotation/scaling"
 msgstr "Forgatás/átméretezés középpontja"
 
 
-msgid "Show Seconds"
-msgstr "Másodpercek mutatása"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "Az időzítés megjelenítése másodpercekben, képkockák helyett"
-
-
 msgctxt "MovieClip"
 msgid "View"
 msgstr "Nézet"
@@ -15964,11 +15965,6 @@ msgid "Extrapolate"
 msgstr "Extrapolálás"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Eltávolítás"
-
-
 msgid "Views Format:"
 msgstr "Megtekintési formátum:"
 
@@ -16057,11 +16053,6 @@ msgstr "Spline:"
 
 
 msgctxt "Operator"
-msgid "Parent"
-msgstr "Szülő"
-
-
-msgctxt "Operator"
 msgid "Clear"
 msgstr "Törlés"
 
@@ -16100,10 +16091,6 @@ msgstr "Erőtér"
 msgctxt "Operator"
 msgid "Bake All Dynamics"
 msgstr "Minden dinamikus kisütése"
-
-
-msgid "Exponent"
-msgstr "Exponenciális"
 
 
 msgid "Surface Thickness"

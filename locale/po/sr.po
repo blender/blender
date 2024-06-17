@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -205,6 +205,22 @@ msgstr "Комплетно"
 
 msgid "Auto"
 msgstr "Ауто"
+
+
+msgid "Always"
+msgstr "Увек"
+
+
+msgid "Never"
+msgstr "Никад"
+
+
+msgid "Center"
+msgstr "Средиште"
+
+
+msgid "Bottom"
+msgstr "Одоздо"
 
 
 msgid "Fribidi Library"
@@ -1295,6 +1311,12 @@ msgid "Curve Radius"
 msgstr "Полупречник криве"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Додај"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Уклони"
 
@@ -1533,10 +1555,6 @@ msgstr "Лево"
 
 msgid "Right"
 msgstr "Десно"
-
-
-msgid "Center"
-msgstr "Средиште"
 
 
 msgid "Child Particle"
@@ -2639,10 +2657,6 @@ msgstr "Ограничења објекта"
 
 msgid "Rotate around a different point"
 msgstr "Ротирај око различитих тачака"
-
-
-msgid "Always"
-msgstr "Увек"
 
 
 msgid "Use Relative Offset"
@@ -4472,10 +4486,6 @@ msgstr "Подеси брзину симулације"
 
 msgid "Adaptive Domain"
 msgstr "Прилагодљиви домен"
-
-
-msgid "Bottom"
-msgstr "Одоздо"
 
 
 msgid "Top"
@@ -6649,10 +6659,6 @@ msgstr "Величина рендеринга"
 
 msgid "Update"
 msgstr "Освежи"
-
-
-msgid "Never"
-msgstr "Никад"
 
 
 msgid "Filename of the movie or sequence file"
@@ -9059,11 +9065,6 @@ msgid "Show/Hide Faces"
 msgstr "Прикажи/сакриј странице"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Додај"
-
-
 msgid "Vertex Group Specials"
 msgstr "Специјална група темена"
 
@@ -9198,6 +9199,11 @@ msgstr "Преименуј маркер"
 
 msgid "Names"
 msgstr "Имена"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Родитељ"
 
 
 msgid "Bone Roll"
@@ -14686,6 +14692,10 @@ msgid "Set Cursor"
 msgstr "Постави курсор"
 
 
+msgid "Remove"
+msgstr "Уклони"
+
+
 msgid "Flatten"
 msgstr "Изравнавање"
 
@@ -16437,6 +16447,18 @@ msgstr "Направи ново дрво чворова"
 
 msgid "Tree Type"
 msgstr "Врста дрвета"
+
+
+msgid "Current"
+msgstr "Текуће"
+
+
+msgid "Exponent"
+msgstr "Експонент"
+
+
+msgid "Wrap"
+msgstr "Прелом текста"
 
 
 msgctxt "Operator"
@@ -19198,39 +19220,6 @@ msgstr "Уреди изворни код активног дугмета"
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Уреди превод"
-
-
-msgid "Label of the control"
-msgstr "Наслов контроле"
-
-
-msgid "Tip of the control"
-msgstr "Савет контроле"
-
-
-msgid "Original label of the control"
-msgstr "Оригинална ознака контроле"
-
-
-msgid "Original tip of the control"
-msgstr "Оригинални врх контроле"
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "Наслов контроле дефинисан у РНК, уколико постоји"
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "Савет контроле дефинисан у РНК, уколико постоји"
-
-
-msgid "Edit i18n in current language for the active button"
-msgstr "Поставља подразумевани језик конзоле"
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Пипета"
 
@@ -19874,10 +19863,6 @@ msgstr "Атрибути:"
 
 msgid "Cycle backwards"
 msgstr "Уназад"
-
-
-msgid "Wrap"
-msgstr "Прелом текста"
 
 
 msgid "Header Text"
@@ -22548,10 +22533,6 @@ msgid "Show red channel in the frame"
 msgstr "Прикажи црвени канал у кадру"
 
 
-msgid "Show Seconds"
-msgstr "Прикажи секунде"
-
-
 msgid "Show Stable"
 msgstr "Прикажи стабилизовано"
 
@@ -22807,10 +22788,6 @@ msgstr "Референца"
 
 msgid "Show reference frame only"
 msgstr "Прикажи само референтни кадар"
-
-
-msgid "Current"
-msgstr "Текуће"
 
 
 msgid "Show current frame only"
@@ -24284,11 +24261,6 @@ msgstr "Осе"
 
 
 msgctxt "Operator"
-msgid "Remove"
-msgstr "Уклони"
-
-
-msgctxt "Operator"
 msgid "Add Image"
 msgstr "Додај слику"
 
@@ -24389,11 +24361,6 @@ msgstr "Трансформација:"
 
 
 msgctxt "Operator"
-msgid "Parent"
-msgstr "Родитељ"
-
-
-msgctxt "Operator"
 msgid "Clear"
 msgstr "Очисти"
 
@@ -24479,10 +24446,6 @@ msgstr "Боја слоја"
 
 msgid "Heat"
 msgstr "Топлота"
-
-
-msgid "Exponent"
-msgstr "Експонент"
 
 
 msgid "Lower"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -309,6 +309,22 @@ msgstr "Розподілити пам'ять по пристроях"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Зробити більше місця для великих сцен, щоб припасувати згідно розподілення пам'яті по взаємопов'язаних пристроях (наприклад, через NVLink), а не дублювати їх"
+
+
+msgid "Always"
+msgstr "Завжди"
+
+
+msgid "Never"
+msgstr "Не оновлювати"
+
+
+msgid "Center"
+msgstr "Центр"
+
+
+msgid "Bottom"
+msgstr "Знизу"
 
 
 msgid "Fribidi Library"
@@ -3323,6 +3339,12 @@ msgid "Curve Radius"
 msgstr "Радіус кривої"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Додати"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Вилучення"
 
@@ -4253,10 +4275,6 @@ msgstr "Зліва"
 
 msgid "Right"
 msgstr "Справа"
-
-
-msgid "Center"
-msgstr "Центр"
 
 
 msgid "Pole Merge Start Angle"
@@ -6887,10 +6905,6 @@ msgstr "Допустимий діапазон обертання"
 
 msgid "Rotation range on which pivoting should occur"
 msgstr "Діапазон обертання, у якому має відбуватися оберт"
-
-
-msgid "Always"
-msgstr "Завжди"
 
 
 msgid "Use the pivot point in every rotation"
@@ -12610,10 +12624,6 @@ msgstr "Створити систему частинок бульок"
 
 msgid "Enable collisions with back domain border"
 msgstr "Увімкнути зіткнення із задньою границею домену"
-
-
-msgid "Bottom"
-msgstr "Знизу"
 
 
 msgid "Enable collisions with bottom domain border"
@@ -21315,10 +21325,6 @@ msgid "While editing, update metaball without polygonization"
 msgstr "При редагуванні оновлювати метакулі без полігонізації"
 
 
-msgid "Never"
-msgstr "Не оновлювати"
-
-
 msgid "While editing, don't update metaball at all"
 msgstr "Під час редагування метакулі зовсім не оновлюються"
 
@@ -29077,11 +29083,6 @@ msgid "Unwrap"
 msgstr "Розгортка"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Додати"
-
-
 msgid "Shape Key Specials"
 msgstr "Параметри ключа форми"
 
@@ -29301,6 +29302,11 @@ msgstr "Увімкнені Режими"
 
 msgid "Names"
 msgstr "Назви"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Приріднення"
 
 
 msgid "Bone Roll"
@@ -44636,11 +44642,6 @@ msgid "Remove existing add-ons with the same ID"
 msgstr "Вилучити існуючі додатки з однаковим ID"
 
 
-msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Освіжити Все"
-
-
 msgid "Automatically pack all external files into the .blend file"
 msgstr "Автоматично упаковувати всі зовнішні дані до .blend-файлу"
 
@@ -47458,6 +47459,10 @@ msgstr "Спростити Ключкадри"
 
 msgid "Decimate F-Curves by removing keyframes that influence the curve shape the least"
 msgstr "Спростити Ф-Криві шляхом вилучення ключкадрів, що впливають на форму кривої найменше"
+
+
+msgid "Remove"
+msgstr "Вилучення"
 
 
 msgid "The ratio of remaining keyframes after the operation"
@@ -52539,6 +52544,26 @@ msgstr "Додати або вилучити передустановку кол
 
 msgid "Copy color to all selected nodes"
 msgstr "Скопіювати колір для всіх обраних вузлів"
+
+
+msgid "Overlay Mode"
+msgstr "Режим Накладання"
+
+
+msgid "Current"
+msgstr "Поточний"
+
+
+msgid "Exponent"
+msgstr "Експоненціально"
+
+
+msgid "Fraction"
+msgstr "Дробова частина"
+
+
+msgid "Wrap"
+msgstr "Обгортка"
 
 
 msgctxt "Operator"
@@ -59466,10 +59491,6 @@ msgid "Applies a filter to modify the current mask"
 msgstr "Застосовує фільтр до модифікування поточної маски"
 
 
-msgid "Use a automatic number of iterations based on the number of vertices of the sculpt"
-msgstr "Вжити автоматичну кількість повторень на сонові кількості вершин ліплення"
-
-
 msgid "Filter that is going to be applied to the mask"
 msgstr "Фільтр, що буде застосованим до маски"
 
@@ -61942,139 +61963,6 @@ msgstr "Редагувати вихідний код для кнопки"
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Відредагувати переклад"
-
-
-msgid "Translate the label and tooltip of the given property"
-msgstr "Перекласти позначку та підказку даної властивості"
-
-
-msgid "Label of the control"
-msgstr "Напис на елементі керування"
-
-
-msgid "Flags about the label of the button"
-msgstr "Прапорці, що стосуються напису на кнопці"
-
-
-msgid "Message is marked as fuzzy in po file"
-msgstr "Повідомлення позначене неточним у po-файлі"
-
-
-msgid "Some error occurred with this message"
-msgstr "Із цим повідомленням трапилась помилка"
-
-
-msgid "Tip of the control"
-msgstr "Підказка до елементу керування"
-
-
-msgid "Flags about the tip of the button"
-msgstr "Прапорці щодо підказки до кнопки"
-
-
-msgid "Remove all local translation files, to be able to use the system ones again"
-msgstr "Вилучити всі локальні файли перекладу, щоб бути у змозі використовувати знову системні"
-
-
-msgid "Label of the enum item of the control, if any"
-msgstr "Мітка елемента переліку елемента керування, якщо є"
-
-
-msgid "Flags about the RNA enum item label of the button"
-msgstr "Прапорці за RNA-міткою елемента переліку кнопки"
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "Підказка до елементу списку елементу керування, якщо є"
-
-
-msgid "Flags about the RNA enum item tip of the button"
-msgstr "Прапорці за RNA-підказкою до елемента переліку кнопки"
-
-
-msgid "Current (translated) language"
-msgstr "Поточна мова (переклад)"
-
-
-msgid "Original label of the control"
-msgstr "Оригінальний напис на елементі керування"
-
-
-msgid "Original tip of the control"
-msgstr "Оригінальна підказка до елементу керування"
-
-
-msgid "Original label of the enum item of the control, if any"
-msgstr "Початковий напис елементу переліку елементу керування, якщо є"
-
-
-msgid "Original tip of the enum item of the control, if any"
-msgstr "Оригінальна підказка до елементу списку елементу керування, якщо є"
-
-
-msgid "Original RNA-defined label of the control, if any"
-msgstr "Оригінальний визначений в RNA напис елемента керування, якщо є"
-
-
-msgid "Original RNA-defined tip of the control, if any"
-msgstr "Оригінальна визначена в RNA підказка до елемента керування, якщо є"
-
-
-msgid "Path to the matching po file"
-msgstr "Шлях до відповідного файлу .po"
-
-
-msgid "RNA context for label"
-msgstr "RNA-контекст мітки"
-
-
-msgid "Identifier of the RNA enum item, if any"
-msgstr "Ідентифікатор елемента переліку RNA, якщо є"
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "Визначений в RNA напис елемента керування, якщо є"
-
-
-msgid "Flags about the RNA-defined label of the button"
-msgstr "Прапорці щодо визначеного в RNA напису кнопки"
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "Ідентифікатор RNA-властивості, якщо є"
-
-
-msgid "Identifier of the RNA struct, if any"
-msgstr "Ідентифікатор структури RNA, якщо є"
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "Визначена в RNA підказка до елемента керування, якщо є"
-
-
-msgid "Flags about the RNA-defined tip of the button"
-msgstr "Прапорці щодо визначеної в RNA підказки до кнопки"
-
-
-msgid "Stats from opened po"
-msgstr "Статистика відкритого po"
-
-
-msgid "Try to rebuild mo file, and refresh Blender's UI"
-msgstr "Спробувати перебудувати файл mo та освіжити Інтерфейс Користувача Blender'а"
-
-
-msgid "Update po file, try to rebuild mo file, and refresh Blender's UI"
-msgstr "Оновити файл po, спробувати перебудувати файл mo та освіжити Інтерфейс Користувача Blender'а"
-
-
-msgid "Edit i18n in current language for the active button"
-msgstr "Редагувати для активної кнопки переклад поточною мовою"
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Піпетка"
 
@@ -62242,15 +62130,6 @@ msgstr "Назва (id) оператора для виклику"
 
 msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
 msgstr "Оновити дані перекладу для додатку (знайдене у кортежах сирцевого коду додатку)"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Редагувати переклад з оновленням .mo"
-
-
-msgid "Try to \"compile\" given po file into relevant blender.mo file"
-msgstr "Спробувати \"скомпілювати\" даний файл po у відповідний файл blender.mo"
 
 
 msgctxt "Operator"
@@ -62699,10 +62578,6 @@ msgstr "Упакувати острівці"
 
 msgid "Space between islands"
 msgstr "Відстань між острівцями"
-
-
-msgid "Fraction"
-msgstr "Дробова частина"
 
 
 msgctxt "Operator"
@@ -64678,10 +64553,6 @@ msgstr "Цикл за переліком у контексті"
 
 msgid "Toggle a context value"
 msgstr "Перемкнути контекстне значення"
-
-
-msgid "Wrap"
-msgstr "Обгортка"
 
 
 msgid "Wrap back to the first/last values"
@@ -73976,28 +73847,8 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "Метод загладжування при рендерингу вікна 3D-огляду"
 
 
-msgid "Color applied to the bloom effect"
-msgstr "Колір, застосований до ефекту свічення"
-
-
-msgid "Blend factor"
-msgstr "Фактор змішання"
-
-
 msgid "Knee"
 msgstr "Коліно"
-
-
-msgid "Makes transition between under/over-threshold gradual"
-msgstr "Робить перехід між під/над-пороговою поступовостями"
-
-
-msgid "Bloom spread distance"
-msgstr "Відстань поширення свічення"
-
-
-msgid "Filters out pixels under this level of brightness"
-msgstr "Відфільтровує пікселі нижче цього рівня яскравості"
 
 
 msgid "Denoise Amount"
@@ -74246,10 +74097,6 @@ msgstr "Вибірки рендера"
 
 msgid "Number of samples, unlimited if 0"
 msgstr "Кількість вибірок, необмежена якщо 0"
-
-
-msgid "High brightness pixels generate a glowing effect"
-msgstr "Пікселі з високою яскравістю генерують ефект сяяння"
 
 
 msgid "High Quality Slight Defocus"
@@ -76459,10 +76306,6 @@ msgid "Display white edges"
 msgstr "Показувати білі краї"
 
 
-msgid "Overlay Mode"
-msgstr "Режим Накладання"
-
-
 msgid "Overlay mode of rasterized mask"
 msgstr "Режим накладання растрованої маски"
 
@@ -76637,14 +76480,6 @@ msgstr "Наладнати останню операцію"
 
 msgid "Toolbar"
 msgstr "Смуга засобів"
-
-
-msgid "Show Seconds"
-msgstr "Показати секунди"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "Показати час в секундах, а не в кадрах"
 
 
 msgid "Show Stable"
@@ -77809,10 +77644,6 @@ msgstr "Орієнтир"
 
 msgid "Show reference frame only"
 msgstr "Показати лише кадр за посиланням"
-
-
-msgid "Current"
-msgstr "Поточний"
 
 
 msgid "Show current frame only"
@@ -82376,10 +82207,6 @@ msgid "Render cryptomatte object pass, for isolating objects in compositing"
 msgstr "Рендерити прохід об'єкта Cryptomatte, для ізолювання об'єктів при компонуванні"
 
 
-msgid "Deliver bloom pass"
-msgstr "Подати прохід свічення"
-
-
 msgid "Deliver volume direct light pass"
 msgstr "Подати прохід прямого освітлення об'єму"
 
@@ -84288,11 +84115,6 @@ msgid "Axes"
 msgstr "Осі"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Вилучення"
-
-
 msgid "Damping Max"
 msgstr "Згасання Макс"
 
@@ -84817,11 +84639,6 @@ msgstr "Сплайн:"
 
 msgid "Parenting:"
 msgstr "Приріднювання:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "Приріднення"
 
 
 msgctxt "Operator"
@@ -85486,10 +85303,6 @@ msgstr "Відбір Частинок Захопленого Повітря"
 
 msgid "Particle Life Maximum"
 msgstr "Максимум Життя Частинки"
-
-
-msgid "Exponent"
-msgstr "Експоненціально"
 
 
 msgid "Surface Tension"
@@ -86927,6 +86740,11 @@ msgstr "Уклад"
 msgctxt "Operator"
 msgid "Rebuild"
 msgstr "Перебудова"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Освіжити Все"
 
 
 msgctxt "Operator"
@@ -91349,24 +91167,12 @@ msgid "Active button not found"
 msgstr "Активної кнопки не знайдено"
 
 
-msgid "Please set your Preferences' 'Translation Branches Directory' path to a valid directory"
-msgstr "Будь ласка задайте шлях 'Каталог Гілок Перекладу' у ваших Уподобаннях до дійсного каталогу"
-
-
 msgid "Could not compute a valid data path"
 msgstr "Неможливо обчислити дійсний шлях даних"
 
 
 msgid "Failed to create the override operation"
 msgstr "Збій операції створення заміщення"
-
-
-msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
-msgstr "Не знайдено оператора '%s'! Увімкніть додаток ui_translate у користувацьких уподобаннях"
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "Не знайдено правильного po-файлу для мови '%s' під %s"
 
 
 msgid "%d items"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -389,6 +389,10 @@ msgstr "Canlandırmaları yönetmek için glTF arayüzünü görüntüle"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Gölgelendirici Düzenleyicisinde glTF Malzeme Çıktısı düğümünü görüntüler (Ekle > Çıktı menüsü)"
+
+
+msgid "Center"
+msgstr "Merkez"
 
 
 msgid "Fribidi Library"
@@ -4095,10 +4099,6 @@ msgid "How many times the Density brush tries to add a new curve"
 msgstr "Yoğunluk fırçasının kaç kere yeni bir eğri ekleme denemeleri"
 
 
-msgid "Density Mode"
-msgstr "Yoğunluk Kipi"
-
-
 msgid "Determines whether the brush adds or removes curves"
 msgstr "Fırçanın eğri ekleyip eklemediğini belirler"
 
@@ -4107,12 +4107,13 @@ msgid "Either add or remove curves depending on the minimum distance of the curv
 msgstr "İmlecin altındaki eğrilerin en düşük uzaklığına bağlı olarak eğriler ekle veya kaldır"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Ekle"
+
+
 msgid "Add new curves between existing curves, taking the minimum distance into account"
 msgstr "En düşük uzaklığı dikkate alarak var olan eğriler arasına yeni eğriler ekle"
-
-
-msgid "Remove"
-msgstr "Kaldır"
 
 
 msgid "Remove curves whose root points are too close"
@@ -5336,10 +5337,6 @@ msgstr "Sol"
 
 msgid "Right"
 msgstr "Sağ"
-
-
-msgid "Center"
-msgstr "Merkez"
 
 
 msgid "Pole Merge Start Angle"
@@ -7898,11 +7895,6 @@ msgid "Unwrap"
 msgstr "Açılım"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Ekle"
-
-
 msgid "Keying"
 msgstr "Anahtarlama"
 
@@ -8798,11 +8790,6 @@ msgstr "Genel"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Tümünü Yenile"
-
-
-msgctxt "Operator"
 msgid "Cleanup Bookmarks"
 msgstr "Yer İmlerini Temizle"
 
@@ -8980,6 +8967,10 @@ msgstr "Yan"
 msgctxt "View3D"
 msgid "Camera"
 msgstr "Kamera"
+
+
+msgid "Remove"
+msgstr "Kaldır"
 
 
 msgid "Active Channels at Cursor"
@@ -9205,6 +9196,10 @@ msgstr "Yeni Geometri Düğümü Değiştiricisi"
 msgctxt "Operator"
 msgid "New Node Tree"
 msgstr "Yeni Düğüm Ağacı"
+
+
+msgid "Wrap"
+msgstr "Sar"
 
 
 msgctxt "Operator"
@@ -9767,14 +9762,6 @@ msgid "Copy as New Driver"
 msgstr "Yeni Sürücü Olarak Kopyala"
 
 
-msgid "Message is marked as fuzzy in po file"
-msgstr "İleti, po dosyasında bulanık olarak imlenmiş"
-
-
-msgid "Some error occurred with this message"
-msgstr "Bu ileti ile ilgili bir hata oluştu"
-
-
 msgid "Clean up i18n working repository (po files)"
 msgstr "i18n çalışma deposunu temizle (po dosyaları)"
 
@@ -9927,10 +9914,6 @@ msgstr "Önceden t"
 
 msgid "Keep Open"
 msgstr "Açık Tut"
-
-
-msgid "Wrap"
-msgstr "Sar"
 
 
 msgctxt "Operator"
@@ -11882,6 +11865,11 @@ msgstr "Yeni"
 
 msgid "Active Tools"
 msgstr "Etkin Araçlar"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Tümünü Yenile"
 
 
 msgctxt "Operator"

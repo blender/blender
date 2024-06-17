@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -73,6 +73,10 @@ msgstr "יובכ"
 
 msgid "Full"
 msgstr "אלמ"
+
+
+msgid "Center"
+msgstr "זכרמ"
 
 
 msgid "Animation Data"
@@ -240,10 +244,6 @@ msgid "Tail"
 msgstr "בנז"
 
 
-msgid "Remove"
-msgstr "רסה"
-
-
 msgid "Vertex Color"
 msgstr "דוקדוק עבצ"
 
@@ -289,10 +289,6 @@ msgstr "לאמש"
 
 msgid "Right"
 msgstr "ןימי"
-
-
-msgid "Center"
-msgstr "זכרמ"
 
 
 msgid "Gamma"
@@ -751,6 +747,10 @@ msgid "Select Vertex Group"
 msgstr "דוקדוק תצובק רחב"
 
 
+msgid "Remove"
+msgstr "רסה"
+
+
 msgid "Image Name"
 msgstr "הנומת םש"
 
@@ -872,6 +872,10 @@ msgid "Animation"
 msgstr "היצמינא"
 
 
+msgid "name"
+msgstr "םש"
+
+
 msgid "Credits"
 msgstr "תודות"
 
@@ -887,10 +891,6 @@ msgstr "טוריפ"
 
 msgid "Dimension"
 msgstr "דמימ"
-
-
-msgid "name"
-msgstr "םש"
 
 
 msgid "Sort By"
