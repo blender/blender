@@ -69,8 +69,6 @@ class Film {
   SwapChain<Texture, 2> combined_tx_;
   /** Weight buffers. Double buffered to allow updating it during accumulation. */
   SwapChain<Texture, 2> weight_tx_;
-  /** User setting to disable reprojection. Useful for debugging or have a more precise render. */
-  bool force_disable_reprojection_ = false;
 
   PassSimple accumulate_ps_ = {"Film.Accumulate"};
   PassSimple cryptomatte_post_ps_ = {"Film.Cryptomatte.Post"};
