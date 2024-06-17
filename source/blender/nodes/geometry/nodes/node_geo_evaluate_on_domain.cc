@@ -75,8 +75,7 @@ static void node_rna(StructRNA *srna)
                     "Domain the field is evaluated in",
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom1),
-                    int(AttrDomain::Point),
-                    enums::domain_experimental_grease_pencil_version3_fn);
+                    int(AttrDomain::Point));
 
   RNA_def_node_enum(srna,
                     "data_type",

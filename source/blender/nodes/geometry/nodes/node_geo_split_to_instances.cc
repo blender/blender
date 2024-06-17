@@ -343,8 +343,7 @@ static void node_rna(StructRNA *srna)
                     "Attribute domain for the Selection and Group ID inputs",
                     rna_enum_attribute_domain_without_corner_items,
                     NOD_inline_enum_accessors(custom1),
-                    int(AttrDomain::Point),
-                    enums::domain_without_corner_experimental_grease_pencil_version3_fn);
+                    int(AttrDomain::Point));
 }
 
 static void node_register()

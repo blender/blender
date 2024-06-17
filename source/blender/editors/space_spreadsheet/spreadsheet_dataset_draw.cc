@@ -83,10 +83,6 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
 
   void build_grease_pencil()
   {
-    if (!U.experimental.use_grease_pencil_version3) {
-      return;
-    }
-
     GeometryDataSetTreeViewItem &grease_pencil = this->add_tree_item<GeometryDataSetTreeViewItem>(
         bke::GeometryComponent::Type::GreasePencil,
         IFACE_("Grease Pencil"),

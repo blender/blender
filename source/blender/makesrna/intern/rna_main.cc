@@ -98,9 +98,7 @@ RNA_MAIN_LISTBASE_FUNCS_DEF(collections)
 RNA_MAIN_LISTBASE_FUNCS_DEF(curves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(fonts)
 RNA_MAIN_LISTBASE_FUNCS_DEF(gpencils)
-#  ifdef WITH_GREASE_PENCIL_V3
 RNA_MAIN_LISTBASE_FUNCS_DEF(grease_pencils)
-#  endif
 RNA_MAIN_LISTBASE_FUNCS_DEF(hair_curves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(images)
 RNA_MAIN_LISTBASE_FUNCS_DEF(lattices)
@@ -337,14 +335,12 @@ void RNA_def_main(BlenderRNA *brna)
        "Grease Pencil",
        "Grease Pencil data-blocks",
        RNA_def_main_gpencil_legacy},
-#  ifdef WITH_GREASE_PENCIL_V3
       {"grease_pencils_v3",
        "GreasePencilv3",
        "rna_Main_grease_pencils_begin",
-       "Grease Pencil v3",
-       "Grease Pencil v3 data-blocks",
+       "Grease Pencil",
+       "Grease Pencil data-blocks",
        RNA_def_main_grease_pencil},
-#  endif
       {"movieclips",
        "MovieClip",
        "rna_Main_movieclips_begin",

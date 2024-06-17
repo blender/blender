@@ -2044,7 +2044,6 @@ void RNA_def_main_gpencil_legacy(BlenderRNA *brna, PropertyRNA *cprop)
       func, "do_ui_user", true, "", "Make sure interface does not reference this grease pencil");
 }
 
-#  ifdef WITH_GREASE_PENCIL_V3
 void RNA_def_main_grease_pencil(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -2054,7 +2053,6 @@ void RNA_def_main_grease_pencil(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_sdna(srna, "Main");
   RNA_def_struct_ui_text(srna, "Main Grease Pencils", "Collection of grease pencils");
 }
-#  endif
 
 void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
 {

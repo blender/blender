@@ -246,41 +246,23 @@ class DOPESHEET_HT_editor_buttons:
         if st.mode == 'GPENCIL':
             ob = context.active_object
 
-            if context.preferences.experimental.use_grease_pencil_version3:
-                enable_but = ob is not None and ob.type == 'GREASEPENCIL'
+            enable_but = ob is not None and ob.type == 'GREASEPENCIL'
 
-                row = layout.row(align=True)
-                row.enabled = enable_but
-                row.operator("grease_pencil.layer_add", icon='ADD', text="")
-                row.operator("grease_pencil.layer_remove", icon='REMOVE', text="")
-                row.menu("GREASE_PENCIL_MT_grease_pencil_add_layer_extra", icon='DOWNARROW_HLT', text="")
+            row = layout.row(align=True)
+            row.enabled = enable_but
+            row.operator("grease_pencil.layer_add", icon='ADD', text="")
+            row.operator("grease_pencil.layer_remove", icon='REMOVE', text="")
+            row.menu("GREASE_PENCIL_MT_grease_pencil_add_layer_extra", icon='DOWNARROW_HLT', text="")
 
-                row = layout.row(align=True)
-                row.enabled = enable_but
-                row.operator("anim.channels_move", icon='TRIA_UP', text="").direction = 'UP'
-                row.operator("anim.channels_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            row = layout.row(align=True)
+            row.enabled = enable_but
+            row.operator("anim.channels_move", icon='TRIA_UP', text="").direction = 'UP'
+            row.operator("anim.channels_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-                row = layout.row(align=True)
-                row.enabled = enable_but
-                row.operator("grease_pencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
-                row.operator("grease_pencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
-            else:
-                enable_but = ob is not None and ob.type == 'GPENCIL'
-                row = layout.row(align=True)
-                row.enabled = enable_but
-                row.operator("gpencil.layer_add", icon='ADD', text="")
-                row.operator("gpencil.layer_remove", icon='REMOVE', text="")
-                row.menu("GPENCIL_MT_layer_context_menu", icon='DOWNARROW_HLT', text="")
-
-                row = layout.row(align=True)
-                row.enabled = enable_but
-                row.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
-                row.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
-
-                row = layout.row(align=True)
-                row.enabled = enable_but
-                row.operator("gpencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
-                row.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
+            row = layout.row(align=True)
+            row.enabled = enable_but
+            row.operator("grease_pencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
+            row.operator("grease_pencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
 
         layout.separator_spacer()
 

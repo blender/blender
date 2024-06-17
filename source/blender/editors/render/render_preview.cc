@@ -194,16 +194,8 @@ void ED_preview_ensure_dbase(const bool with_gpencil)
     base_initialized = true;
   }
   if (!base_initialized_gpencil && with_gpencil) {
-
-    if (U.experimental.use_grease_pencil_version3) {
-      G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend,
-                                                      datatoc_preview_grease_pencil_blend_size);
-    }
-    else {
-      G_pr_main_grease_pencil = load_main_from_memory(
-          datatoc_preview_grease_pencil_legacy_blend,
-          datatoc_preview_grease_pencil_legacy_blend_size);
-    }
+    G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend,
+                                                    datatoc_preview_grease_pencil_blend_size);
     base_initialized_gpencil = true;
   }
 #else

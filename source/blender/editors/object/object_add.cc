@@ -2995,11 +2995,13 @@ static const EnumPropertyItem convert_target_items[] = {
 #else
      "Mesh from Curve, Surface, Metaball, or Text objects"},
 #endif
+#if 0
     {OB_GPENCIL_LEGACY,
      "GPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
      "Grease Pencil",
      "Grease Pencil from Curve or Mesh objects"},
+#endif
 #ifdef WITH_POINT_CLOUD
     {OB_POINTCLOUD,
      "POINTCLOUD",
@@ -3008,13 +3010,11 @@ static const EnumPropertyItem convert_target_items[] = {
      "Point Cloud from Mesh objects"},
 #endif
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Curves", "Curves from evaluated curve data"},
-#ifdef WITH_GREASE_PENCIL_V3
     {OB_GREASE_PENCIL,
      "GREASEPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
-     "Grease Pencil v3",
-     "Grease Pencil v3 from Grease Pencil"},
-#endif
+     "Grease Pencil",
+     "Grease Pencil from Curve or Mesh objects"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -3036,12 +3036,7 @@ static const EnumPropertyItem *convert_target_itemf(bContext *C,
   if (U.experimental.use_new_point_cloud_type) {
     RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_POINTCLOUD);
   }
-  if (U.experimental.use_grease_pencil_version3) {
-    RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_GREASE_PENCIL);
-  }
-  else {
-    RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_GPENCIL_LEGACY);
-  }
+  RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_GREASE_PENCIL);
 
   RNA_enum_item_end(&item, &totitem);
 
@@ -3332,20 +3327,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         }
       }
       ob_gpencil->actcol = actcol;
-    }
-    else if (U.experimental.use_grease_pencil_version3 && ob->type == OB_GPENCIL_LEGACY &&
-             target == OB_GREASE_PENCIL)
-    {
-      ob->flag |= OB_DONE;
-
-      if (keep_original) {
-        BLI_assert_unreachable();
-      }
-      else {
-        newob = ob;
-      }
-
-      bke::greasepencil::convert::legacy_gpencil_object(*bmain, *newob);
     }
     else if (target == OB_CURVES) {
       ob->flag |= OB_DONE;

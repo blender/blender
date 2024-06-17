@@ -58,14 +58,6 @@ const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
 
 bool generic_attribute_type_supported(const EnumPropertyItem &item);
 
-const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext * /*C*/,
-                                                                      PointerRNA * /*ptr*/,
-                                                                      PropertyRNA * /*prop*/,
-                                                                      bool *r_free);
-
-const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version3_fn(
-    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free);
-
 }  // namespace enums
 
 bool custom_data_type_supports_grids(eCustomDataType data_type);

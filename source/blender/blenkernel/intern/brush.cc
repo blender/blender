@@ -710,10 +710,8 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
   brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
   brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
 
-  /* GPv3 uses the `Scene` size aka BRUSH_LOCK_SIZE by default. */
-  if (U.experimental.use_grease_pencil_version3) {
-    brush->flag |= BRUSH_LOCK_SIZE;
-  }
+  /* GP uses the `Scene` size aka BRUSH_LOCK_SIZE by default. */
+  brush->flag |= BRUSH_LOCK_SIZE;
 
   brush->rgb[0] = 0.498f;
   brush->rgb[1] = 1.0f;
@@ -740,20 +738,15 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
   switch (type) {
     case GP_BRUSH_PRESET_AIRBRUSH: {
       brush->size = 300.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->unprojected_radius = brush->size *
-                                    bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-      }
+      brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 0.4f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->alpha = brush->gpencil_settings->draw_strength;
-        SET_FLAG_FROM_TEST(brush->flag,
-                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
-                           BRUSH_ALPHA_PRESSURE);
-      }
+      brush->alpha = brush->gpencil_settings->draw_strength;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                         BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -773,19 +766,14 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     case GP_BRUSH_PRESET_INK_PEN: {
       brush->size = 60.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->unprojected_radius = brush->size *
-                                    bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-      }
+      brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->alpha = brush->gpencil_settings->draw_strength;
-        SET_FLAG_FROM_TEST(brush->flag,
-                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
-                           BRUSH_ALPHA_PRESSURE);
-      }
+      brush->alpha = brush->gpencil_settings->draw_strength;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                         BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -799,9 +787,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.002f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->gpencil_settings->simplify_px = 0.4f;
-      }
+      brush->gpencil_settings->simplify_px = 0.4f;
 
       brush->gpencil_settings->draw_random_press = 0.0f;
       brush->gpencil_settings->draw_jitter = 0.0f;
@@ -821,19 +807,14 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     case GP_BRUSH_PRESET_INK_PEN_ROUGH: {
       brush->size = 60.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->unprojected_radius = brush->size *
-                                    bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-      }
+      brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->alpha = brush->gpencil_settings->draw_strength;
-        SET_FLAG_FROM_TEST(brush->flag,
-                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
-                           BRUSH_ALPHA_PRESSURE);
-      }
+      brush->alpha = brush->gpencil_settings->draw_strength;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                         BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -847,9 +828,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 2;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.000f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->gpencil_settings->simplify_px = 0.0f;
-      }
+      brush->gpencil_settings->simplify_px = 0.0f;
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_RANDOM;
       brush->gpencil_settings->draw_random_press = 0.6f;
@@ -871,19 +850,14 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     case GP_BRUSH_PRESET_MARKER_BOLD: {
       brush->size = 150.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->unprojected_radius = brush->size *
-                                    bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-      }
+      brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 0.3f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->alpha = brush->gpencil_settings->draw_strength;
-        SET_FLAG_FROM_TEST(brush->flag,
-                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
-                           BRUSH_ALPHA_PRESSURE);
-      }
+      brush->alpha = brush->gpencil_settings->draw_strength;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                         BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -897,9 +871,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.002f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->gpencil_settings->simplify_px = 0.4f;
-      }
+      brush->gpencil_settings->simplify_px = 0.4f;
 
       brush->gpencil_settings->flag &= ~GP_BRUSH_GROUP_RANDOM;
       brush->gpencil_settings->draw_random_press = 0.0f;
@@ -921,19 +893,15 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     case GP_BRUSH_PRESET_MARKER_CHISEL: {
       brush->size = 150.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->unprojected_radius = brush->size *
-                                    bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-      }
+      brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->alpha = brush->gpencil_settings->draw_strength;
-        SET_FLAG_FROM_TEST(brush->flag,
-                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
-                           BRUSH_ALPHA_PRESSURE);
-      }
+      brush->alpha = brush->gpencil_settings->draw_strength;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                         BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = 0.3f;
@@ -947,9 +915,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.002f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->gpencil_settings->simplify_px = 0.4f;
-      }
+      brush->gpencil_settings->simplify_px = 0.4f;
 
       brush->gpencil_settings->flag &= ~GP_BRUSH_GROUP_RANDOM;
       brush->gpencil_settings->draw_random_press = 0.0f;
@@ -975,20 +941,15 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     case GP_BRUSH_PRESET_PEN: {
       brush->size = 25.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->unprojected_radius = brush->size *
-                                    bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-      }
+      brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_STRENGTH_PRESSURE;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->alpha = brush->gpencil_settings->draw_strength;
-        SET_FLAG_FROM_TEST(brush->flag,
-                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
-                           BRUSH_ALPHA_PRESSURE);
-      }
+      brush->alpha = brush->gpencil_settings->draw_strength;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                         BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -1002,9 +963,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 1;
       brush->gpencil_settings->simplify_f = 0.002f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->gpencil_settings->simplify_px = 0.4f;
-      }
+      brush->gpencil_settings->simplify_px = 0.4f;
 
       brush->gpencil_settings->draw_random_press = 0.0f;
       brush->gpencil_settings->draw_random_strength = 0.0f;
@@ -1019,20 +978,15 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     case GP_BRUSH_PRESET_PENCIL_SOFT: {
       brush->size = 80.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->unprojected_radius = brush->size *
-                                    bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-      }
+      brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 0.4f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->alpha = brush->gpencil_settings->draw_strength;
-        SET_FLAG_FROM_TEST(brush->flag,
-                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
-                           BRUSH_ALPHA_PRESSURE);
-      }
+      brush->alpha = brush->gpencil_settings->draw_strength;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                         BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -1046,9 +1000,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.000f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->gpencil_settings->simplify_px = 0.0f;
-      }
+      brush->gpencil_settings->simplify_px = 0.0f;
 
       brush->gpencil_settings->draw_random_press = 0.0f;
       brush->gpencil_settings->draw_random_strength = 0.0f;
@@ -1066,20 +1018,15 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     case GP_BRUSH_PRESET_PENCIL: {
       brush->size = 20.0f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->unprojected_radius = brush->size *
-                                    bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-      }
+      brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 0.6f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->alpha = brush->gpencil_settings->draw_strength;
-        SET_FLAG_FROM_TEST(brush->flag,
-                           (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
-                           BRUSH_ALPHA_PRESSURE);
-      }
+      brush->alpha = brush->gpencil_settings->draw_strength;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) != 0,
+                         BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
@@ -1093,9 +1040,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 0;
       brush->gpencil_settings->simplify_f = 0.002f;
-      if (U.experimental.use_grease_pencil_version3) {
-        brush->gpencil_settings->simplify_px = 0.4f;
-      }
+      brush->gpencil_settings->simplify_px = 0.4f;
 
       brush->gpencil_settings->draw_random_press = 0.0f;
       brush->gpencil_settings->draw_jitter = 0.0f;

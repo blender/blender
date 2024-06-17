@@ -470,16 +470,6 @@ static void rna_NodeSocketStandard_value_and_relation_update(bContext *C, Pointe
   DEG_relations_tag_update(bmain);
 }
 
-bool rna_NodeSocketMaterial_default_value_poll(PointerRNA * /*ptr*/, PointerRNA value)
-{
-  if (U.experimental.use_grease_pencil_version3) {
-    return true;
-  }
-  /* Do not show grease pencil materials for now. */
-  Material *ma = static_cast<Material *>(value.data);
-  return ma->gp_style == nullptr;
-}
-
 const EnumPropertyItem *RNA_node_enum_definition_itemf(
     const blender::bke::RuntimeNodeEnumItems &enum_items, bool *r_free)
 {
@@ -1530,8 +1520,6 @@ static void rna_def_node_socket_material(BlenderRNA *brna, const char *identifie
   prop = RNA_def_property(srna, "default_value", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "value");
   RNA_def_property_struct_type(prop, "Material");
-  RNA_def_property_pointer_funcs(
-      prop, nullptr, nullptr, nullptr, "rna_NodeSocketMaterial_default_value_poll");
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(
       prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");

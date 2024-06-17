@@ -56,7 +56,6 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)
-  add_definitions(-DWITH_GREASE_PENCIL_V3)
   add_definitions(-DWITH_ANIM_BAKLAVA)
 endif()
 
