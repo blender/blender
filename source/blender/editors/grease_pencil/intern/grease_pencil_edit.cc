@@ -3054,6 +3054,81 @@ static void GREASE_PENCIL_OT_set_curve_type(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Set Handle Type Operator
+ * \{ */
+
+static int grease_pencil_set_handle_type_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const HandleType dst_handle_type = HandleType(RNA_enum_get(op->ptr, "type"));
+
+  bool changed = false;
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+
+    const bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+    const VArraySpan<bool> selection = *attributes.lookup_or_default<bool>(
+        ".selection", bke::AttrDomain::Point, true);
+    const VArraySpan<bool> selection_left = *attributes.lookup_or_default<bool>(
+        ".selection_handle_left", bke::AttrDomain::Point, true);
+    const VArraySpan<bool> selection_right = *attributes.lookup_or_default<bool>(
+        ".selection_handle_right", bke::AttrDomain::Point, true);
+
+    MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
+    MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();
+
+    threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange range) {
+      for (const int point_i : range) {
+        if (selection_left[point_i] || selection[point_i]) {
+          handle_types_left[point_i] = int8_t(dst_handle_type);
+        }
+        if (selection_right[point_i] || selection[point_i]) {
+          handle_types_right[point_i] = int8_t(dst_handle_type);
+        }
+      }
+    });
+
+    curves.calculate_bezier_auto_handles();
+    curves.tag_topology_changed();
+    info.drawing.tag_topology_changed();
+
+    changed = true;
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_set_handle_type(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Set Handle Type";
+  ot->idname = "GREASE_PENCIL_OT_set_handle_type";
+  ot->description = "Set the handle type for bezier curves";
+
+  /* Callbacks. */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = grease_pencil_set_handle_type_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", rna_enum_curves_handle_type_items, CURVE_TYPE_POLY, "Type", nullptr);
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -3087,4 +3162,5 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_snap_to_cursor);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_cursor_to_selected);
   WM_operatortype_append(GREASE_PENCIL_OT_set_curve_type);
+  WM_operatortype_append(GREASE_PENCIL_OT_set_handle_type);
 }

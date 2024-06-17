@@ -6172,6 +6172,10 @@ class VIEW3D_MT_edit_greasepencil_point(Menu):
 
         layout.menu("VIEW3D_MT_greasepencil_vertex_group")
 
+        layout.separator()
+
+        layout.operator_menu_enum("grease_pencil.set_handle_type", property="type")
+
 
 class VIEW3D_MT_edit_curves_add(Menu):
     bl_label = "Add"
