@@ -1970,6 +1970,26 @@ static ImBuf *seq_render_strip_stack_apply_effect(
   return out;
 }
 
+static bool is_opaque_alpha_over(const Sequence *seq)
+{
+  if (seq->blend_mode != SEQ_TYPE_ALPHAOVER) {
+    return false;
+  }
+  if (seq->blend_opacity < 100.0f) {
+    return false;
+  }
+  if (seq->mul < 1.0f && (seq->flag & SEQ_MULTIPLY_ALPHA) != 0) {
+    return false;
+  }
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+    /* Assume result is not opaque if there is an enabled Mask modifier. */
+    if ((smd->flag & SEQUENCE_MODIFIER_MUTE) == 0 && smd->type == seqModifierType_Mask) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
                                      SeqRenderState *state,
                                      ListBase *channels,
@@ -2008,9 +2028,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 
     /* Early out for alpha over. It requires image to be rendered, so it can't use
      * `seq_get_early_out_for_blend_mode`. */
-    if (out == nullptr && seq->blend_mode == SEQ_TYPE_ALPHAOVER &&
-        early_out == StripEarlyOut::DoEffect && seq->blend_opacity == 100.0f)
-    {
+    if (out == nullptr && early_out == StripEarlyOut::DoEffect && is_opaque_alpha_over(seq)) {
       ImBuf *test = seq_render_strip(context, state, seq, timeline_frame);
       if (ELEM(test->planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB)) {
         early_out = StripEarlyOut::UseInput2;
