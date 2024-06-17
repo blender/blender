@@ -557,13 +557,13 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
     rms *= volume;
 
     bool is_clipping = false;
-
-    if (value_max > 1 || value_min < -1) {
+    float clamped_min = clamp_f(value_min, -1.0f, 1.0f);
+    float clamped_max = clamp_f(value_max, -1.0f, 1.0f);
+    if (clamped_min != value_min || clamped_max != value_max) {
       is_clipping = true;
-
-      CLAMP_MAX(value_max, 1.0f);
-      CLAMP_MIN(value_min, -1.0f);
     }
+    value_min = clamped_min;
+    value_max = clamped_max;
 
     /* We are drawing only half to the waveform, mirroring the lower part upwards.
      * If both min and max are on the same side of zero line, we want to draw a bar
@@ -596,9 +596,9 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
        * height, join them. */
       if (std::abs(y_mid - prev_y_mid) > timeline_ctx->pixely) {
         float x0 = draw_start_frame + (i - 1) * frames_per_pixel;
-        timeline_ctx->quads->add_line(x0, prev_y_mid, x1, y_mid, color);
+        timeline_ctx->quads->add_line(x0, prev_y_mid, x1, y_mid, is_clipping ? color_clip : color);
       }
-      timeline_ctx->quads->add_line(x1, y_mid, x2, y_mid, color);
+      timeline_ctx->quads->add_line(x1, y_mid, x2, y_mid, is_clipping ? color_clip : color);
     }
     else {
       float rms_min = y_zero + max_ff(-rms, value_min) * y_scale;
