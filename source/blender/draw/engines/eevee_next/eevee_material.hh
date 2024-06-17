@@ -215,6 +215,7 @@ struct MaterialKey {
                                              to_displacement_type(mat_->displacement_method),
                                              to_thickness_type(mat_->thickness_mode),
                                              mat_->blend_flag);
+    options = (options << 1) | (visibility_flags & OB_HIDE_CAMERA ? 0 : 1);
     options = (options << 1) | (visibility_flags & OB_HIDE_SHADOW ? 0 : 1);
     options = (options << 1) | (visibility_flags & OB_HIDE_PROBE_CUBEMAP ? 0 : 1);
     options = (options << 1) | (visibility_flags & OB_HIDE_PROBE_PLANAR ? 0 : 1);
