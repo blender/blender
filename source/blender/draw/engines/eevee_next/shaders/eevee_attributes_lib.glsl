@@ -22,7 +22,7 @@ int g_attr_id = 0;
 /* Point clouds and curves are not compatible with volume grids.
  * They will fallback to their own attributes loading. */
 #if defined(MAT_VOLUME) && !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINT_CLOUD)
-#  if defined(OBINFO_LIB) && !defined(MAT_GEOM_WORLD)
+#  if defined(VOLUME_INFO_LIB) && !defined(MAT_GEOM_WORLD)
 #    define GRID_ATTRIBUTES
 #  endif
 

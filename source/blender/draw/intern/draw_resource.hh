@@ -73,6 +73,8 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
 {
   object_attrs_len = 0;
   object_attrs_offset = 0;
+  bool is_holdout = (ref.object->base_flag & BASE_HOLDOUT) ||
+                    (ref.object->visibility_flag & OB_HOLDOUT);
 
   ob_color = ref.object->color;
   index = ref.object->index;
@@ -85,6 +87,7 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
       flag, ref.object->base_flag & BASE_FROM_SET, eObjectInfoFlag::OBJECT_FROM_SET);
   SET_FLAG_FROM_TEST(
       flag, ref.object->transflag & OB_NEG_SCALE, eObjectInfoFlag::OBJECT_NEGATIVE_SCALE);
+  SET_FLAG_FROM_TEST(flag, is_holdout, eObjectInfoFlag::OBJECT_HOLDOUT);
 
   if (ref.dupli_object == nullptr) {
     /* TODO(fclem): this is rather costly to do at draw time. Maybe we can

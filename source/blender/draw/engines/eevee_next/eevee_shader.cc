@@ -406,12 +406,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   GPUCodegenOutput &codegen = *codegen_;
   ShaderCreateInfo &info = *reinterpret_cast<ShaderCreateInfo *>(codegen.create_info);
 
-  /* WORKAROUND: Replace by new ob info. */
-  int64_t ob_info_index = info.additional_infos_.first_index_of_try("draw_object_infos");
-  if (ob_info_index != -1) {
-    info.additional_infos_[ob_info_index] = "draw_object_infos_new";
-  }
-
   /* WORKAROUND: Add new ob attr buffer. */
   if (GPU_material_uniform_attributes(gpumat) != nullptr) {
     info.additional_info("draw_object_attribute_new");
@@ -588,9 +582,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         info.vertex_inputs_.clear();
         /* Volume materials require these for loading the grid attributes from smoke sims. */
         info.additional_info("draw_volume_infos");
-        if (ob_info_index == -1) {
-          info.additional_info("draw_object_infos_new");
-        }
       }
       break;
     case MAT_GEOM_POINT_CLOUD:

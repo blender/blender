@@ -54,7 +54,10 @@ GPU_SHADER_CREATE_INFO(eevee_geom_mesh)
     .vertex_in(1, Type::VEC3, "nor")
     .vertex_source("eevee_geom_mesh_vert.glsl")
     .vertex_out(eevee_surf_iface)
-    .additional_info("draw_modelmat_new", "draw_resource_id_varying", "draw_view");
+    .additional_info("draw_modelmat_new",
+                     "draw_object_infos_new",
+                     "draw_resource_id_varying",
+                     "draw_view");
 
 GPU_SHADER_INTERFACE_INFO(eevee_surf_point_cloud_iface, "point_cloud_interp")
     .smooth(Type::FLOAT, "radius")
@@ -71,6 +74,7 @@ GPU_SHADER_CREATE_INFO(eevee_geom_point_cloud)
     .vertex_out(eevee_surf_point_cloud_flat_iface)
     .additional_info("draw_pointcloud_new",
                      "draw_modelmat_new",
+                     "draw_object_infos_new",
                      "draw_resource_id_varying",
                      "draw_view");
 
@@ -91,7 +95,10 @@ GPU_SHADER_CREATE_INFO(eevee_geom_gpencil)
     .define("MAT_GEOM_GPENCIL")
     .vertex_source("eevee_geom_gpencil_vert.glsl")
     .vertex_out(eevee_surf_iface)
-    .additional_info("draw_gpencil_new", "draw_resource_id_varying", "draw_resource_id_new");
+    .additional_info("draw_gpencil_new",
+                     "draw_object_infos_new",
+                     "draw_resource_id_varying",
+                     "draw_resource_id_new");
 
 GPU_SHADER_INTERFACE_INFO(eevee_surf_curve_iface, "curve_interp")
     .smooth(Type::VEC2, "barycentric_coords")
@@ -111,6 +118,7 @@ GPU_SHADER_CREATE_INFO(eevee_geom_curves)
     .vertex_out(eevee_surf_curve_iface)
     .vertex_out(eevee_surf_curve_flat_iface)
     .additional_info("draw_modelmat_new",
+                     "draw_object_infos_new",
                      "draw_resource_id_varying",
                      "draw_view",
                      "draw_hair_new",
@@ -122,7 +130,10 @@ GPU_SHADER_CREATE_INFO(eevee_geom_world)
     .builtins(BuiltinBits::VERTEX_ID)
     .vertex_source("eevee_geom_world_vert.glsl")
     .vertex_out(eevee_surf_iface)
-    .additional_info("draw_modelmat_new", "draw_resource_id_varying", "draw_view");
+    .additional_info("draw_modelmat_new",
+                     "draw_object_infos_new", /* Unused, but allow debug compilation. */
+                     "draw_resource_id_varying",
+                     "draw_view");
 
 /** \} */
 
