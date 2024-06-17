@@ -49,6 +49,13 @@ void main()
 
   nodetree_surface(closure_rand);
 
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
+    g_holdout = 1.0;
+  }
+
+  g_holdout = saturate(g_holdout);
+
   vec3 radiance, transmittance;
   forward_lighting_eval(g_thickness, radiance, transmittance);
 
@@ -64,6 +71,6 @@ void main()
 
   radiance *= 1.0 - saturate(g_holdout);
 
-  out_radiance = vec4(radiance, 0.0);
+  out_radiance = vec4(radiance, g_holdout);
   out_transmittance = vec4(transmittance, saturate(average(transmittance)));
 }
