@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
-"PO-Revision-Date: 2024-06-05 18:56+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-06-14 23:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -405,6 +405,22 @@ msgstr "Percorso del binario gltfpack"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Visualizza il nodo Output Materiale glTF nell'Editor Shader (Menu Aggiungi > Output)"
+
+
+msgid "Always"
+msgstr "Sempre"
+
+
+msgid "Never"
+msgstr "Mai"
+
+
+msgid "Center"
+msgstr "Centro"
+
+
+msgid "Bottom"
+msgstr "Basso"
 
 
 msgid "Fribidi Library"
@@ -3849,10 +3865,12 @@ msgid "Curve Radius"
 msgstr "Raggio Curva"
 
 
-msgid "Density Mode"
-msgstr "Modalità Densità"
+msgctxt "Operator"
+msgid "Add"
+msgstr "Aggiungi"
 
 
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Rimuovi"
 
@@ -4666,10 +4684,6 @@ msgstr "Sinistra"
 
 msgid "Right"
 msgstr "Destra"
-
-
-msgid "Center"
-msgstr "Centro"
 
 
 msgid "Pole Merge Start Angle"
@@ -6892,10 +6906,6 @@ msgstr "Campo Rotazione Possibile"
 
 msgid "Rotation range on which pivoting should occur"
 msgstr "Intervallo di rotazione in cui dovrebbe avvenire la rotazione"
-
-
-msgid "Always"
-msgstr "Sempre"
 
 
 msgid "Use the pivot point in every rotation"
@@ -11499,10 +11509,6 @@ msgstr "Dominio Adattabile"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "Adatta la risoluzione della simulazione e la dimensione al fluido"
-
-
-msgid "Bottom"
-msgstr "Basso"
 
 
 msgid "Top"
@@ -17795,10 +17801,6 @@ msgid "Metaball edit update behavior"
 msgstr "Comportamento di aggiornamento modifiche metaball"
 
 
-msgid "Never"
-msgstr "Mai"
-
-
 msgid "MovieClip data-block referencing an external movie file"
 msgstr "Blocco-dati Filmato che referenzia un filmato esterno"
 
@@ -23308,11 +23310,6 @@ msgid "Show/Hide Faces"
 msgstr "Mostra/Nascondi Facce"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Aggiungi"
-
-
 msgid "Shape Key Specials"
 msgstr "Chiave Forma Speciali"
 
@@ -23504,6 +23501,11 @@ msgstr "Modalità Abilitate"
 
 msgid "Names"
 msgstr "Nomi"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Genitore"
 
 
 msgid "Bone Roll"
@@ -34600,6 +34602,10 @@ msgid "Decimate Keyframes"
 msgstr "Decima Keyframes"
 
 
+msgid "Remove"
+msgstr "Rimuovi"
+
+
 msgctxt "Operator"
 msgid "Copy Driver Variables"
 msgstr "Copia Variabili Guida"
@@ -38149,6 +38155,22 @@ msgstr "Aggiunge/rimuove una Preimpostazione Colore Nodo"
 
 msgid "Copy color to all selected nodes"
 msgstr "Copia il colore a tutti i nodi selezionati"
+
+
+msgid "Overlay Mode"
+msgstr "Modalità Sovrapposizione"
+
+
+msgid "Current"
+msgstr "Corrente"
+
+
+msgid "Exponent"
+msgstr "Esponente"
+
+
+msgid "Wrap"
+msgstr "Ricomincia"
 
 
 msgctxt "Operator"
@@ -44090,47 +44112,6 @@ msgstr "Modifica il codice sorgente per un pulsante"
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Modifica Traduzione"
-
-
-msgid "Label of the control"
-msgstr "Nome del controllore da modificare"
-
-
-msgid "Message is marked as fuzzy in po file"
-msgstr "Il messaggio è marcato 'fuzzy' (da verificare) nel file po"
-
-
-msgid "Tip of the control"
-msgstr "Suggerimenti del controllo"
-
-
-msgid "Original label of the control"
-msgstr "Etichetta originale del controllo"
-
-
-msgid "Original tip of the control"
-msgstr "Suggerimento originale del controllo"
-
-
-msgid "Identifier of the RNA enum item, if any"
-msgstr "Identificatore dell'enum. RNA, se presente"
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "Identificatore della proprietà RNA, se presente"
-
-
-msgid "Identifier of the RNA struct, if any"
-msgstr "Identificatore della strut. RNA, se presente"
-
-
-msgid "Stats from opened po"
-msgstr "Statistiche del PO aperto"
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Contagocce"
 
@@ -44212,11 +44193,6 @@ msgstr "Aggiorna Esistente"
 
 msgid "Operator Name"
 msgstr "Nome Operatore"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Modifica Traduzione Aggiorna Mo"
 
 
 msgctxt "Operator"
@@ -45605,10 +45581,6 @@ msgstr "Cicla all'indietro"
 
 msgid "Toggle a context value"
 msgstr "Commuta lo stato del font"
-
-
-msgid "Wrap"
-msgstr "Ricomincia"
 
 
 msgid "Header Text"
@@ -52485,10 +52457,6 @@ msgid "Display white edges"
 msgstr "Visualizza gli spigoli bianchi"
 
 
-msgid "Overlay Mode"
-msgstr "Modalità Sovrapposizione"
-
-
 msgid "Alpha Channel"
 msgstr "Canale Alfa"
 
@@ -52595,14 +52563,6 @@ msgstr "Mostra canale rosso nel fotogramma"
 
 msgid "Toolbar"
 msgstr "Barra Strumenti"
-
-
-msgid "Show Seconds"
-msgstr "Mostra Secondi"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "Mostra il tempo in secondi anziché in fotogrammi"
 
 
 msgid "Show Stable"
@@ -53283,10 +53243,6 @@ msgstr "Riferimento"
 
 msgid "Show reference frame only"
 msgstr "Mostra solo fotogramma di riferimento"
-
-
-msgid "Current"
-msgstr "Corrente"
 
 
 msgid "Show current frame only"
@@ -56433,6 +56389,10 @@ msgid "3D View"
 msgstr "Vista 3D"
 
 
+msgid "(Viewer)"
+msgstr "(Visualizzatore)"
+
+
 msgid "Modifiers cannot be added to object: "
 msgstr "Non possono essere aggiunti modificatori all'oggetto: "
 
@@ -56576,11 +56536,6 @@ msgstr "Forme"
 
 msgid "Axes"
 msgstr "Assi"
-
-
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Rimuovi"
 
 
 msgid "Control Rotation"
@@ -56812,11 +56767,6 @@ msgstr "Trasforma:"
 
 msgid "Spline:"
 msgstr "Spline:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "Genitore"
 
 
 msgctxt "Operator"
@@ -57128,10 +57078,6 @@ msgstr "Calore"
 
 msgid "Particle Radius"
 msgstr "Raggio Particelle"
-
-
-msgid "Exponent"
-msgstr "Esponente"
 
 
 msgid "Surface Tension"
@@ -60593,14 +60539,6 @@ msgstr "La corrispondenza col bottone attivo non può essere trovata"
 
 msgid "Active button not found"
 msgstr "Bottone attivo non trovato"
-
-
-msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
-msgstr "Impossibile trovare l'operatore '%s'! Per favore abilita l'addon ui_translate nelle Preferenze Utente"
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "Nessun file PO valido per la lingua '%s' in %s"
 
 
 msgid "%d items"

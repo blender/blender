@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -185,6 +185,18 @@ msgstr "पूर्ण"
 
 msgid "Auto"
 msgstr "स्वत:"
+
+
+msgid "Never"
+msgstr "कभी नहीं"
+
+
+msgid "Center"
+msgstr "केंद्र"
+
+
+msgid "Bottom"
+msgstr "नीचे"
 
 
 msgid "Fribidi Library"
@@ -631,6 +643,12 @@ msgid "Curve Radius"
 msgstr "वक्र में त्रिज्या"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "जोड़ें"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "हटाएँ"
 
@@ -757,10 +775,6 @@ msgstr "बाईं ओर"
 
 msgid "Right"
 msgstr "दाईं ओर"
-
-
-msgid "Center"
-msgstr "केंद्र"
 
 
 msgid "Child Particle"
@@ -1501,10 +1515,6 @@ msgid "Delete"
 msgstr "मिटाएँ"
 
 
-msgid "Bottom"
-msgstr "नीचे"
-
-
 msgid "Top"
 msgstr "शीर्ष"
 
@@ -2202,10 +2212,6 @@ msgid "Vertices"
 msgstr "शिरोबिन्दु"
 
 
-msgid "Never"
-msgstr "कभी नहीं"
-
-
 msgid "Converter"
 msgstr "परिवर्तक"
 
@@ -2796,11 +2802,6 @@ msgid "Align"
 msgstr "संरेखित करें"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "जोड़ें"
-
-
 msgid "Strip"
 msgstr "पट्टी"
 
@@ -2883,6 +2884,11 @@ msgstr "सक्षम किया गया रूप"
 
 msgid "Names"
 msgstr "नाम"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "कारण"
 
 
 msgid "Bone Roll"
@@ -3773,6 +3779,10 @@ msgid "Both"
 msgstr "दोनों"
 
 
+msgid "Remove"
+msgstr "हटाएँ"
+
+
 msgid "Flatten"
 msgstr "समतल"
 
@@ -4009,6 +4019,14 @@ msgstr "निर्गम"
 msgctxt "Operator"
 msgid "Hide"
 msgstr "छिपाएँ"
+
+
+msgid "Current"
+msgstr "वर्तमान"
+
+
+msgid "Wrap"
+msgstr "आच्छादन"
 
 
 msgid "Set the boundaries for viewer operations"
@@ -4493,10 +4511,6 @@ msgstr "बाएँ पैन करें"
 
 msgid "Pan Right"
 msgstr "दाएँ पैन करें"
-
-
-msgid "Wrap"
-msgstr "आच्छादन"
 
 
 msgctxt "Operator"
@@ -5033,10 +5047,6 @@ msgid "Reference"
 msgstr "संदर्भ"
 
 
-msgid "Current"
-msgstr "वर्तमान"
-
-
 msgid "Find Text"
 msgstr "पाठ ढूँढें"
 
@@ -5402,11 +5412,6 @@ msgstr "अक्ष"
 
 
 msgctxt "Operator"
-msgid "Remove"
-msgstr "हटाएँ"
-
-
-msgctxt "Operator"
 msgid "Add Image"
 msgstr "छवि जोड़ें"
 
@@ -5466,11 +5471,6 @@ msgstr "कारण"
 
 msgid "Transform:"
 msgstr "संचनांतरण:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "कारण"
 
 
 msgctxt "Operator"

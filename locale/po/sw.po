@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-05-27 11:42+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -401,6 +401,22 @@ msgstr "Njia ya gltfpack binary"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Inaonyesha nodi ya Pato la Nyenzo ya glTF katika Kihariri cha Shader (Menyu Ongeza > Pato)"
+
+
+msgid "Always"
+msgstr "Daima"
+
+
+msgid "Never"
+msgstr "Kamwe"
+
+
+msgid "Center"
+msgstr "Katikati"
+
+
+msgid "Bottom"
+msgstr "Chini"
 
 
 msgid "Fribidi Library"
@@ -4129,10 +4145,6 @@ msgid "How many times the Density brush tries to add a new curve"
 msgstr "Ni mara ngapi brashi ya Uzito inajaribu kuongeza mkunjo mpya"
 
 
-msgid "Density Mode"
-msgstr "Hali ya Msongamano"
-
-
 msgid "Determines whether the brush adds or removes curves"
 msgstr "Huamua ikiwa brashi inaongeza au kuondoa mikunjo"
 
@@ -4141,10 +4153,16 @@ msgid "Either add or remove curves depending on the minimum distance of the curv
 msgstr "Ima ongeza au ondoa mikunjo kulingana na umbali wa chini kabisa wa mikondo chini ya mshale."
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Ongeza"
+
+
 msgid "Add new curves between existing curves, taking the minimum distance into account"
 msgstr "Ongeza mikondo mipya kati ya mikondo iliyopo, ukizingatia umbali wa chini kabisa"
 
 
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Ondoa"
 
@@ -5169,10 +5187,6 @@ msgstr "Weka umbali kati ya macho - umbali wa ndege ya stereo / 30 inapaswa kuwa
 
 msgid "Pivot"
 msgstr "Egemeo"
-
-
-msgid "Center"
-msgstr "Katikati"
 
 
 msgid "Pole Merge Start Angle"
@@ -7999,10 +8013,6 @@ msgstr "Safu ya Mzunguko Imewezeshwa"
 
 msgid "Rotation range on which pivoting should occur"
 msgstr "Mzunguko wa mzunguko ambao pivoting inapaswa kutokea"
-
-
-msgid "Always"
-msgstr "Daima"
 
 
 msgid "Use the pivot point in every rotation"
@@ -13797,10 +13807,6 @@ msgstr "Unda mfumo wa chembe za Bubble"
 
 msgid "Enable collisions with back domain border"
 msgstr "Washa migongano na mpaka wa nyuma wa kikoa"
-
-
-msgid "Bottom"
-msgstr "Chini"
 
 
 msgid "Enable collisions with bottom domain border"
@@ -24011,14 +24017,6 @@ msgid "True if this material has grease pencil data"
 msgstr "Ni kweli ikiwa nyenzo hii ina data ya penseli ya grisi"
 
 
-msgid "Light Probe Volume Single Sided"
-msgstr "Mwanga Probe Volume Single Sid"
-
-
-msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks"
-msgstr "Zingatia nyenzo iliyo na upande mmoja kwa kunasa sauti ya uchunguzi wa mwanga."
-
-
 msgid "Line Color"
 msgstr "Rangi ya Mstari"
 
@@ -24249,6 +24247,10 @@ msgstr "Kukata Uso"
 
 msgid "Use back face culling to hide the back side of faces"
 msgstr "Tumia kukata uso wa nyuma ili kuficha upande wa nyuma wa nyuso"
+
+
+msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks"
+msgstr "Zingatia nyenzo iliyo na upande mmoja kwa kunasa sauti ya uchunguzi wa mwanga."
 
 
 msgid "Shadow Backface Culling"
@@ -24637,10 +24639,6 @@ msgstr "Wakati wa kuhariri, sasisha metaball katika azimio la nusu"
 
 msgid "While editing, update metaball without polygonization"
 msgstr "Wakati wa kuhariri, sasisha metaball bila polygonization"
-
-
-msgid "Never"
-msgstr "Kamwe"
 
 
 msgid "While editing, don't update metaball at all"
@@ -32458,11 +32456,6 @@ msgid "Area"
 msgstr "Eneo"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Ongeza"
-
-
 msgid "Attribute Specials"
 msgstr "Maalum ya Sifa"
 
@@ -32724,6 +32717,11 @@ msgstr "Mipangilio ya KeyPresets"
 
 msgid "Save & Load"
 msgstr "Okoa"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Mzazi"
 
 
 msgid "Lightgroup Sync"
@@ -52867,11 +52865,6 @@ msgstr "Ondoa viongezi vilivyopo na kitambulisho sawa"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Onyesha upya Wote"
-
-
-msgctxt "Operator"
 msgid "Automatically Pack Resources"
 msgstr "Pakiti Rasilimali Kiotomatiki"
 
@@ -56561,6 +56554,10 @@ msgstr "Tambua Fremu Muhimu"
 
 msgid "Decimate F-Curves by removing keyframes that influence the curve shape the least"
 msgstr "Tambua F-Curves kwa kuondoa fremu muhimu zinazoathiri umbo la curve hata kidogo"
+
+
+msgid "Remove"
+msgstr "Ondoa"
 
 
 msgid "The ratio of remaining keyframes after the operation"
@@ -62823,6 +62820,26 @@ msgstr "Ongeza au ondoa Uwekaji Awali wa Rangi ya Nodi"
 
 msgid "Copy color to all selected nodes"
 msgstr "Nakili rangi kwa nodi zote zilizochaguliwa"
+
+
+msgid "Overlay Mode"
+msgstr "Njia ya Uwekeleaji"
+
+
+msgid "Current"
+msgstr "Sasa"
+
+
+msgid "Exponent"
+msgstr "Kielelezo"
+
+
+msgid "Fraction"
+msgstr "Sehemu"
+
+
+msgid "Wrap"
+msgstr "Funga"
 
 
 msgctxt "Operator"
@@ -70966,10 +70983,6 @@ msgid "Applies a filter to modify the current mask"
 msgstr "Hutumia kichujio kurekebisha kinyago cha sasa"
 
 
-msgid "Use a automatic number of iterations based on the number of vertices of the sculpt"
-msgstr "Tumia nambari otomatiki ya marudio kulingana na idadi ya vipeo vya sanamu"
-
-
 msgid "Filter that is going to be applied to the mask"
 msgstr "Kichujio ambacho kitatumika kwenye barakoa"
 
@@ -73611,139 +73624,6 @@ msgstr "Hariri msimbo wa chanzo wa UI wa kitufe kinachotumika"
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Hariri Tafsiri"
-
-
-msgid "Translate the label and tooltip of the given property"
-msgstr "Tafsiri lebo na ncha ya zana ya mali uliyopewa"
-
-
-msgid "Label of the control"
-msgstr "Lebo ya udhibiti"
-
-
-msgid "Flags about the label of the button"
-msgstr "Alama kuhusu lebo ya kitufe"
-
-
-msgid "Message is marked as fuzzy in po file"
-msgstr "Ujumbe umetiwa alama kuwa haueleweki katika faili ya po"
-
-
-msgid "Some error occurred with this message"
-msgstr "Hitilafu fulani ilitokea kwa ujumbe huu"
-
-
-msgid "Tip of the control"
-msgstr "Kidokezo cha udhibiti"
-
-
-msgid "Flags about the tip of the button"
-msgstr "Bendera kuhusu ncha ya kitufe"
-
-
-msgid "Remove all local translation files, to be able to use the system ones again"
-msgstr "Ondoa faili zote za tafsiri za ndani, ili kuweza kutumia zile za mfumo tena"
-
-
-msgid "Label of the enum item of the control, if any"
-msgstr "Lebo ya kipengee cha enum cha udhibiti, ikiwa kipo"
-
-
-msgid "Flags about the RNA enum item label of the button"
-msgstr "Alama kuhusu lebo ya kipengee cha RNA enum ya kitufe"
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "Kidokezo cha kipengee cha enum cha udhibiti, ikiwa kipo"
-
-
-msgid "Flags about the RNA enum item tip of the button"
-msgstr "Alama kuhusu kidokezo cha kipengee cha RNA cha kitufe"
-
-
-msgid "Current (translated) language"
-msgstr "Lugha ya sasa (iliyotafsiriwa)."
-
-
-msgid "Original label of the control"
-msgstr "Lebo ya asili ya udhibiti"
-
-
-msgid "Original tip of the control"
-msgstr "Kidokezo cha asili cha udhibiti"
-
-
-msgid "Original label of the enum item of the control, if any"
-msgstr "Lebo asili ya kipengee cha enum cha udhibiti, ikiwa ipo"
-
-
-msgid "Original tip of the enum item of the control, if any"
-msgstr "Kidokezo asili cha kipengee cha enum cha udhibiti, ikiwa kipo"
-
-
-msgid "Original RNA-defined label of the control, if any"
-msgstr "Lebo halisi ya RNA-iliyofafanuliwa ya udhibiti, ikiwa ipo"
-
-
-msgid "Original RNA-defined tip of the control, if any"
-msgstr "Ncha ya Udhibiti iliyofafanuliwa ya RNA, ikiwa ipo"
-
-
-msgid "Path to the matching po file"
-msgstr "Njia ya faili ya po inayolingana"
-
-
-msgid "RNA context for label"
-msgstr "Muktadha wa RNA kwa lebo"
-
-
-msgid "Identifier of the RNA enum item, if any"
-msgstr "Kitambulisho cha kipengee cha RNA enum, ikiwa kipo"
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "Lebo iliyofafanuliwa na RNA ya udhibiti, ikiwa ipo"
-
-
-msgid "Flags about the RNA-defined label of the button"
-msgstr "Alama kuhusu lebo iliyofafanuliwa na RNA ya kitufe"
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "Kitambulisho cha mali ya RNA, ikiwa ipo"
-
-
-msgid "Identifier of the RNA struct, if any"
-msgstr "Kitambulisho cha muundo wa RNA, ikiwa kipo"
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "Ncha ya udhibiti iliyofafanuliwa na RNA, ikiwa ipo"
-
-
-msgid "Flags about the RNA-defined tip of the button"
-msgstr "Alama kuhusu ncha iliyofafanuliwa ya RNA ya kitufe"
-
-
-msgid "Stats from opened po"
-msgstr "Takwimu kutoka kwa kufunguliwa po"
-
-
-msgid "Try to rebuild mo file, and refresh Blender's UI"
-msgstr "Jaribu kuunda upya faili ya mo, na onyesha upya UI ya Blender"
-
-
-msgid "Update po file, try to rebuild mo file, and refresh Blender's UI"
-msgstr "Sasisha faili ya po, jaribu kuunda tena faili ya mo, na usasishe UI ya Blender"
-
-
-msgid "Edit i18n in current language for the active button"
-msgstr "Hariri i18n katika lugha ya sasa kwa kitufe kinachotumika"
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Mchoro wa macho"
 
@@ -73910,15 +73790,6 @@ msgstr "Safisha Hazina ya Kazi ya I18n"
 
 msgid "Clean up i18n working repository (po files)"
 msgstr "Safisha hazina ya kufanya kazi ya i18n (faili za po)"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Hariri Usasishaji wa Tafsiri Mo"
-
-
-msgid "Try to \"compile\" given po file into relevant blender.mo file"
-msgstr "Jaribu \"kukusanya\" faili ya po kwenye faili husika ya blender.mo"
 
 
 msgctxt "Operator"
@@ -74587,10 +74458,6 @@ msgstr "Tumia ukubwa wa UV zilizopo ili kuzidisha ukingo"
 
 msgid "Just add the margin, ignoring any UV scale"
 msgstr "Ongeza tu ukingo, ukipuuza kiwango chochote cha UV"
-
-
-msgid "Fraction"
-msgstr "Sehemu"
 
 
 msgid "Specify a precise fraction of final UV output"
@@ -76845,10 +76712,6 @@ msgstr "Muktadha Enum Mzunguko"
 
 msgid "Toggle a context value"
 msgstr "Geuza thamani ya muktadha"
-
-
-msgid "Wrap"
-msgstr "Funga"
 
 
 msgid "Wrap back to the first/last values"
@@ -87714,32 +87577,8 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "Njia ya kupinga kutengwa wakati wa kutoa lango la kutazama la 3d"
 
 
-msgid "Maximum intensity a bloom pixel can have (0 to disable)"
-msgstr "Upeo wa juu zaidi pikseli ya maua inaweza kuwa (0 ili kuzima)"
-
-
-msgid "Color applied to the bloom effect"
-msgstr "Rangi inayotumika kwenye athari ya kuchanua"
-
-
-msgid "Blend factor"
-msgstr "Sababu ya mchanganyiko"
-
-
 msgid "Knee"
 msgstr "Goti"
-
-
-msgid "Makes transition between under/over-threshold gradual"
-msgstr "Hufanya mpito kati ya chini ya/juu ya kizingiti polepole"
-
-
-msgid "Bloom spread distance"
-msgstr "Bloom kuenea umbali"
-
-
-msgid "Filters out pixels under this level of brightness"
-msgstr "Huchuja saizi chini ya kiwango hiki cha mwangaza"
 
 
 msgid "Denoise Amount"
@@ -88016,10 +87855,6 @@ msgstr "Idadi ya sampuli kwa kila pikseli za uwasilishaji"
 
 msgid "Number of samples, unlimited if 0"
 msgstr "Idadi ya sampuli, isiyo na kikomo ikiwa 0"
-
-
-msgid "High brightness pixels generate a glowing effect"
-msgstr "Pikseli za mwangaza wa juu hutoa athari inayowaka"
 
 
 msgid "High Quality Slight Defocus"
@@ -90509,10 +90344,6 @@ msgid "Display white edges"
 msgstr "Onyesha kingo nyeupe"
 
 
-msgid "Overlay Mode"
-msgstr "Njia ya Uwekeleaji"
-
-
 msgid "Overlay mode of rasterized mask"
 msgstr "Njia ya kuwekelea ya barakoa iliyoboreshwa"
 
@@ -90691,14 +90522,6 @@ msgstr "Rekebisha Operesheni ya Mwisho"
 
 msgid "Toolbar"
 msgstr "Upauzana"
-
-
-msgid "Show Seconds"
-msgstr "Onyesha Sekunde"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "Onyesha muda katika sekunde sio fremu"
 
 
 msgid "Show Stable"
@@ -91947,10 +91770,6 @@ msgstr "Onyesha wekeleo la eneo la mstatili"
 
 msgid "Show reference frame only"
 msgstr "Onyesha fremu ya marejeleo pekee"
-
-
-msgid "Current"
-msgstr "Sasa"
 
 
 msgid "Show current frame only"
@@ -97411,10 +97230,6 @@ msgid "View Layer settings for EEVEE"
 msgstr "Tazama mipangilio ya Tabaka ya EEVEE"
 
 
-msgid "Deliver bloom pass"
-msgstr "Toa pasi ya maua"
-
-
 msgid "Deliver alpha blended surfaces in a separate pass"
 msgstr "Peana nyuso zilizochanganywa za alfa kwa njia tofauti"
 
@@ -100805,6 +100620,10 @@ msgid "Warning"
 msgstr "Onyo"
 
 
+msgid "name"
+msgstr "jina"
+
+
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Hati"
@@ -102478,11 +102297,6 @@ msgstr "Mashoka"
 
 
 msgctxt "Operator"
-msgid "Remove"
-msgstr "Ondoa"
-
-
-msgctxt "Operator"
 msgid "Remove Unused"
 msgstr "Ondoa Isiyotumika"
 
@@ -103134,11 +102948,6 @@ msgstr "Malezi:"
 
 
 msgctxt "Operator"
-msgid "Parent"
-msgstr "Mzazi"
-
-
-msgctxt "Operator"
 msgid "Clear"
 msgstr "Wazi"
 
@@ -103186,12 +102995,12 @@ msgid "Invert"
 msgstr "Geuza"
 
 
-msgid "Render Method"
-msgstr "Njia ya Kupeana"
-
-
 msgid "Light Probe Volume"
 msgstr "Kiasi cha Uchunguzi wa Mwanga"
+
+
+msgid "Render Method"
+msgstr "Njia ya Kupeana"
 
 
 msgid "Intersection"
@@ -103873,10 +103682,6 @@ msgid "Particle Life Maximum"
 msgstr "Upeo wa Maisha ya Chembe"
 
 
-msgid "Exponent"
-msgstr "Kielelezo"
-
-
 msgid "Surface Tension"
 msgstr "Mvutano wa uso"
 
@@ -104250,10 +104055,6 @@ msgstr "Viongezeo visivyojulikana"
 
 msgid "category"
 msgstr "kitengo"
-
-
-msgid "name"
-msgstr "jina"
 
 
 msgid "Display Thin"
@@ -105653,6 +105454,11 @@ msgstr "Weka"
 msgctxt "Operator"
 msgid "Rebuild"
 msgstr "Jenga upya"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Onyesha upya Wote"
 
 
 msgctxt "Operator"
@@ -111635,20 +111441,12 @@ msgid "Active button not found"
 msgstr "Kitufe kinachotumika hakijapatikana"
 
 
-msgid "Please set your Preferences' 'Translation Branches Directory' path to a valid directory"
-msgstr "Tafadhali weka njia ya Mapendeleo' 'Tawi la Matawi ya Tafsiri' kwenye saraka halali."
-
-
 msgid "Could not compute a valid data path"
 msgstr "Haikuweza kukokotoa njia halali ya data"
 
 
 msgid "Failed to create the override operation"
 msgstr "Imeshindwa kuunda operesheni ya kubatilisha"
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "Hakuna po halali iliyopatikana kwa lugha '%s' chini ya %s"
 
 
 msgid "%d items"

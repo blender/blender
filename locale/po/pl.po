@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
-"PO-Revision-Date: 2024-04-13 17:56+0000\n"
-"Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-06-13 16:56+0000\n"
+"Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 5.0.1"
+"X-Generator: Weblate 5.5.2"
 
 
 msgid "Shader AOV"
@@ -381,6 +381,18 @@ msgstr "Ścieżka pliku glTFpack"
 
 msgid "Path to gltfpack binary"
 msgstr "Ścieżka do pliku binarnego gltfpack"
+
+
+msgid "Always"
+msgstr "Zawsze"
+
+
+msgid "Center"
+msgstr "Centrum"
+
+
+msgid "Bottom"
+msgstr "Dół"
 
 
 msgid "Fribidi Library"
@@ -3307,6 +3319,12 @@ msgid "Curve Radius"
 msgstr "Promień krzywej"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Dodaj"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Usuń"
 
@@ -3681,10 +3699,6 @@ msgstr "Lewo"
 
 msgid "Right"
 msgstr "Prawo"
-
-
-msgid "Center"
-msgstr "Centrum"
 
 
 msgid "Child Particle"
@@ -5694,10 +5708,6 @@ msgstr "Włącz zakres rotacji"
 
 msgid "Rotation range on which pivoting should occur"
 msgstr "Zakres rotacji dla której powinno następować odniesienie do pivota"
-
-
-msgid "Always"
-msgstr "Zawsze"
 
 
 msgid "Use the pivot point in every rotation"
@@ -8700,10 +8710,6 @@ msgid "Delete"
 msgstr "Usuń"
 
 
-msgid "Bottom"
-msgstr "Dół"
-
-
 msgid "Top"
 msgstr "Góra"
 
@@ -10078,6 +10084,18 @@ msgid "Texture Paint"
 msgstr "Malowanie tekstury"
 
 
+msgid "Rigid Body Settings"
+msgstr "Ustawienia bryły sztywnej"
+
+
+msgid "Settings for rigid body simulation"
+msgstr "Ustawienia symulacji bryły sztywnej"
+
+
+msgid "Rigid Body Constraint"
+msgstr "Ograniczenia bryły sztywnej"
+
+
 msgid "Euler Rotation"
 msgstr "Obrót kątami Eulera"
 
@@ -10261,6 +10279,10 @@ msgstr "Adnotacje"
 
 msgid "Render Data"
 msgstr "Dane renderowania"
+
+
+msgid "Rigid Body World"
+msgstr "Świat bryły sztywnej"
 
 
 msgid "Sequence Editor"
@@ -11214,6 +11236,10 @@ msgid "Assets"
 msgstr "Prefabrykaty"
 
 
+msgid "Select Grouped"
+msgstr "Zaznacz pogrupowane"
+
+
 msgid "Track"
 msgstr "Ścieżka"
 
@@ -11246,6 +11272,10 @@ msgid "Snap"
 msgstr "Przyciągaj"
 
 
+msgid "Select Linked"
+msgstr "Zaznacz połaczone"
+
+
 msgid "Align"
 msgstr "Wyrównaj"
 
@@ -11257,11 +11287,6 @@ msgstr "Pokaż/Ukryj ściany"
 msgctxt "WindowManager"
 msgid "Area"
 msgstr "Obszar"
-
-
-msgctxt "Operator"
-msgid "Add"
-msgstr "Dodaj"
 
 
 msgid "Math"
@@ -11392,6 +11417,14 @@ msgstr "Konwertuj"
 
 msgid "Quick Effects"
 msgstr "Szybkie efekty"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
 
 
 msgid "Viewpoint"
@@ -11672,6 +11705,10 @@ msgstr "Sortuje kanały według numeru pierwszej klatki"
 
 msgid "Sort channels by last frame number"
 msgstr "Sortuje kanały według numeru ostatniej klatki"
+
+
+msgid "Select Pattern"
+msgstr "Zaznacz według wzoru"
 
 
 msgid "Show Preview"
@@ -13067,11 +13104,6 @@ msgstr "Ustawienia ogólne"
 
 
 msgctxt "Operator"
-msgid "Check for Updates"
-msgstr "Sprawdź aktualizacje"
-
-
-msgctxt "Operator"
 msgid "Automatically Pack Resources"
 msgstr "Automatycznie spakuj zasoby"
 
@@ -13730,6 +13762,10 @@ msgstr "Tylko krzywe"
 msgctxt "Operator"
 msgid "Set Cursor"
 msgstr "Ustaw kursor"
+
+
+msgid "Remove"
+msgstr "Usuń"
 
 
 msgid "Error Margin"
@@ -14737,6 +14773,11 @@ msgstr "Dodaje nowe predefiniowane położenie rzutni"
 
 
 msgctxt "Operator"
+msgid "Viewport Render"
+msgstr "Renderowanie rzutni"
+
+
+msgctxt "Operator"
 msgid "Render"
 msgstr "Renderuj"
 
@@ -14745,8 +14786,111 @@ msgid "Render active scene"
 msgstr "Renderuje aktywną scenę"
 
 
+msgid "Create rigid body constraints between selected rigid bodies"
+msgstr "Tworzy ograniczenia bryły sztycznej pomiędzy zaznaczonymi bryłami sztywnymi"
+
+
 msgid "Hinge"
 msgstr "Zawias"
+
+
+msgid "Restrict rigid body rotation to one axis"
+msgstr "Ogranicza obrót bryły sztywnej do jednej osi"
+
+
+msgid "Restrict rigid body translation to one axis"
+msgstr "Ogranicza przesunięcie bryły sztywnej do jednej osi"
+
+
+msgid "Restrict rigid body translation and rotation to one axis"
+msgstr "Ogranicza przesunięcie i obrót bryły sztywnej do jednej osi"
+
+
+msgctxt "Operator"
+msgid "Add Rigid Body Constraint"
+msgstr "Dodaj ograniczenia bryły sztywnej"
+
+
+msgid "Add Rigid Body Constraint to active object"
+msgstr "Dodaj ograniczenia bryły sztywnej do aktywnego obiektu"
+
+
+msgid "Rigid Body Constraint Type"
+msgstr "Rodzaj ograniczenia bryły sztywnej"
+
+
+msgctxt "Operator"
+msgid "Remove Rigid Body Constraint"
+msgstr "Usuń ograniczenie bryły sztywnej"
+
+
+msgid "Remove Rigid Body Constraint from Object"
+msgstr "Usuwa ograniczenie bryły sztywnej z obiektu"
+
+
+msgctxt "Operator"
+msgid "Add Rigid Body"
+msgstr "Dodaj bryłę sztywną"
+
+
+msgid "Add active object as Rigid Body"
+msgstr "Dodaje aktywny obiekt jako bryłę sztywną"
+
+
+msgid "Rigid Body Type"
+msgstr "Rodzaj bryły sztywnej"
+
+
+msgctxt "Operator"
+msgid "Remove Rigid Body"
+msgstr "Usuń bryłę sztywną"
+
+
+msgid "Remove Rigid Body settings from Object"
+msgstr "Usuwa ustawienia bryły sztywnej z obiektu"
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "Kopiuj ustawienia bryły sztywnej"
+
+
+msgid "Copy Rigid Body settings from active object to selected"
+msgstr "Kopiuje ustawienia bryły sztywnej z aktywnego obiektu do zaznaczonego"
+
+
+msgid "Remove selected objects from Rigid Body simulation"
+msgstr "Usuwa zaznaczone obiekty z symulacji bryły sztywnej"
+
+
+msgid "Change collision shapes for selected Rigid Body Objects"
+msgstr "Zmienia kształty kolizji dla zaznaczonych obiektów bryły sztywnej"
+
+
+msgid "Rigid Body Shape"
+msgstr "Kształt bryły sztywnej"
+
+
+msgid "Combines all of its direct rigid body children into one rigid object"
+msgstr "Łączy wszystkie bezpośrednie dzieci bryły sztywnej w jeden obiekt bryły sztywnej"
+
+
+msgctxt "Operator"
+msgid "Add Rigid Body World"
+msgstr "Dodaj świat bryły sztywnej"
+
+
+msgid "Add Rigid Body simulation world to the current scene"
+msgstr "Dodaje świat z symulacją bryły sztywnej do bieżącej sceny"
+
+
+msgctxt "Operator"
+msgid "Remove Rigid Body World"
+msgstr "Usuń świat bryły sztywnej"
+
+
+msgid "Remove Rigid Body simulation world from the current scene"
+msgstr "Usuwa świat z symulacją bryły sztywnej z bieżącej sceny"
 
 
 msgctxt "Operator"
@@ -15105,6 +15249,15 @@ msgstr "Sfera ICO"
 msgctxt "Operator"
 msgid "Local View"
 msgstr "Lokalny widok"
+
+
+msgctxt "Operator"
+msgid "Remove from Local View"
+msgstr "Usuń z widoku lokalnego"
+
+
+msgid "Move selected objects out of local view"
+msgstr "Przesuwa zaznaczone obiekty poza lokalny widok"
 
 
 msgid "Move the view"
@@ -16664,6 +16817,10 @@ msgid "Use Open Shading Language"
 msgstr "Używa Open Shading Language"
 
 
+msgid "Limit texture size used by viewport rendering"
+msgstr "Ogranicza rozmiar tekstur używanych do renderowania rzutni"
+
+
 msgid "No Limit"
 msgstr "Brak ograniczeń"
 
@@ -16752,6 +16909,10 @@ msgid "Line thickness mode for Freestyle line drawing"
 msgstr "Tryb grubości linii rysowanej przy użyciu narzędzia Freestyle"
 
 
+msgid "Pixel size for viewport rendering"
+msgstr "Rozmiar piksela dla renderowania rzutni"
+
+
 msgid "Resolution Scale"
 msgstr "Skala rozdzielczości"
 
@@ -16836,32 +16997,8 @@ msgid "Number of samples"
 msgstr "Liczba próbek"
 
 
-msgid "Maximum intensity a bloom pixel can have (0 to disable)"
-msgstr "Maksymalna intensywność jaką może mieć piksel poświaty (0, aby wyłączyć)"
-
-
-msgid "Color applied to the bloom effect"
-msgstr "Kolor stosowany do efektu poświaty"
-
-
-msgid "Blend factor"
-msgstr "Czynnik zmieszania"
-
-
 msgid "Knee"
 msgstr "Stopniowanie"
-
-
-msgid "Makes transition between under/over-threshold gradual"
-msgstr "Sprawia, że przejście między wartością poniżej/powyżej progu jest stopniowe"
-
-
-msgid "Bloom spread distance"
-msgstr "Odległość rozprzestrzeniania się poświaty"
-
-
-msgid "Filters out pixels under this level of brightness"
-msgstr "Odfiltrowuje piksele poniżej tego poziomu jasności"
 
 
 msgid "Max Size"
@@ -16979,6 +17116,10 @@ msgstr "Pokaż Gizmo"
 
 msgid "Viewport navigation gizmo"
 msgstr "Gizmo do nawigacji rzutnią"
+
+
+msgid "Adjust Last Operation"
+msgstr "Dostosuj ostatnią operację"
 
 
 msgid "Toolbar"
@@ -17241,6 +17382,10 @@ msgstr "Rysowanie tekstur/Modyfikator UV"
 
 msgid "Animated"
 msgstr "Animowana"
+
+
+msgid "UV Local View"
+msgstr "Lokalny widok UV"
 
 
 msgid "Snap to"
@@ -17930,11 +18075,6 @@ msgstr "Dodaj ogranicznik obiektu"
 
 
 msgctxt "Operator"
-msgid "Remove"
-msgstr "Usuń"
-
-
-msgctxt "Operator"
 msgid "Remove Unused"
 msgstr "Usuń nieużywane"
 
@@ -18601,6 +18741,11 @@ msgid "Install Application Template..."
 msgstr "Instaluj szablon aplikacji..."
 
 
+msgctxt "Operator"
+msgid "Purge Unused Data"
+msgstr "Wyczyść nieużywane dane"
+
+
 msgctxt "WindowManager"
 msgid "New"
 msgstr "Nowy"
@@ -18716,13 +18861,46 @@ msgstr "Universal Scene Description (.usd*)"
 
 
 msgctxt "Operator"
+msgid "SVG as Grease Pencil"
+msgstr "SVG jako Grease Pencil"
+
+
+msgctxt "Operator"
+msgid "Wavefront (.obj)"
+msgstr "Wavefront (.obj)"
+
+
+msgctxt "Operator"
+msgid "Stanford PLY (.ply)"
+msgstr "Stanford PLY (.ply)"
+
+
+msgctxt "Operator"
+msgid "STL (.stl)"
+msgstr "STL (.stl)"
+
+
+msgctxt "Operator"
 msgid "Render Image"
 msgstr "Renderuj obraz"
 
 
 msgctxt "Operator"
+msgid "Operator Search..."
+msgstr "Szukaj operatora..."
+
+
+msgctxt "Operator"
 msgid "Release Notes"
 msgstr "Informacje o wydaniu"
+
+
+msgid "No active item"
+msgstr "Brak aktywnego elementu"
+
+
+msgid "No active marker"
+msgstr "Brak aktywnego znacznika"
 
 
 msgctxt "Operator"
@@ -18945,6 +19123,16 @@ msgstr "Perspektywiczny/prostokątny"
 msgctxt "Operator"
 msgid "Viewport Render Image"
 msgstr "Obraz renderowania rzutni"
+
+
+msgctxt "Operator"
+msgid "Viewport Render Keyframes"
+msgstr "Rnderowanie klatek kluczowych rzutni"
+
+
+msgctxt "Operator"
+msgid "Toggle Local View"
+msgstr "Przełącz lokalny widok"
 
 
 msgctxt "Operator"
@@ -19259,6 +19447,11 @@ msgstr "Krycie koloru"
 
 msgid "Attribute Text"
 msgstr "Tekst atrybutu"
+
+
+msgctxt "Operator"
+msgid "Viewport Render Animation"
+msgstr "Renderowanie rzutni z animacją"
 
 
 msgctxt "Operator"
@@ -19692,7 +19885,7 @@ msgstr "Niezdefiniowany typ"
 
 
 msgid "Can't add Rigid Body to non mesh object"
-msgstr "Nie można dodać Ciała Sztywnego do obiektu innego typu niż Siatka"
+msgstr "Nie można dodać Bryły Sztywnej do obiektu innego typu niż siatka"
 
 
 msgid "Can't create Rigid Body world"
@@ -20584,10 +20777,6 @@ msgstr "Nie odnaleziono dopasowania dla aktywnego przycisku"
 
 msgid "Active button not found"
 msgstr "Nie odnaleziono aktywnego przycisku"
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "Nie odnaleziono prawidłowego 'po' dla języka '%s' pod '%s'"
 
 
 msgid "%d items"
@@ -23470,6 +23659,10 @@ msgid "No active camera"
 msgstr "Brak aktywnej kamery"
 
 
+msgid "No more than 16 local views"
+msgstr "Nie więcej niż 16 widoków lokalnych"
+
+
 msgid "along X"
 msgstr "wzdłuż X"
 
@@ -24232,6 +24425,10 @@ msgstr "Nie odnaleziono ogranicznika '%s' w obiekcie '%s'"
 
 msgid "DeformGroup '%s' not in object '%s'"
 msgstr "DeformGroup '%s' nie istnieje w obiekcie '%s'"
+
+
+msgid "Viewport not in local view"
+msgstr "Rzutnia nie znajduje się w widoku lokalnym"
 
 
 msgid "Object should be of mesh type"

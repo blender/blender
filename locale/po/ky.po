@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -59,6 +59,18 @@ msgstr "Толук"
 
 msgid "Auto"
 msgstr "Авто"
+
+
+msgid "Always"
+msgstr "Дайыма"
+
+
+msgid "Center"
+msgstr "Борбор"
+
+
+msgid "Bottom"
+msgstr "Асты"
 
 
 msgid "Animation Data"
@@ -297,6 +309,12 @@ msgid "Volume"
 msgstr "Көлөм"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Кошуу"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Өчүрүү"
 
@@ -395,10 +413,6 @@ msgstr "Сол"
 
 msgid "Right"
 msgstr "Оң"
-
-
-msgid "Center"
-msgstr "Борбор"
 
 
 msgid "Cloth Settings"
@@ -516,10 +530,6 @@ msgstr "Камера"
 
 msgid "Bone"
 msgstr "Сөөк"
-
-
-msgid "Always"
-msgstr "Дайыма"
 
 
 msgid "Script"
@@ -813,10 +823,6 @@ msgstr "Кысылышы"
 
 msgid "Delete"
 msgstr "Өчүрүү"
-
-
-msgid "Bottom"
-msgstr "Асты"
 
 
 msgid "Top"
@@ -1390,11 +1396,6 @@ msgid "Align"
 msgstr "Түздөө"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Кошуу"
-
-
 msgid "Node"
 msgstr "Түйүн"
 
@@ -1964,6 +1965,10 @@ msgstr "Айлантуу"
 msgctxt "Operator"
 msgid "Scale"
 msgstr "Масштаб"
+
+
+msgid "Remove"
+msgstr "Өчүрүү"
 
 
 msgid "Sigma"
@@ -2896,10 +2901,6 @@ msgid "Gravitation"
 msgstr "Тартыш"
 
 
-msgid "Show Seconds"
-msgstr "Секундаларды көрсөтүү"
-
-
 msgctxt "MovieClip"
 msgid "View"
 msgstr "Көрүнүш"
@@ -3134,11 +3135,6 @@ msgstr "Ачуу..."
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Колдонмо"
-
-
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Өчүрүү"
 
 
 msgctxt "Operator"

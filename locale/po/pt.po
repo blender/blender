@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
-"PO-Revision-Date: 2024-06-07 19:00+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-06-14 16:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -408,6 +408,22 @@ msgstr "Caminho para o binário glTFpack"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Mostra o Nó de Saída de Material glTF no Editor de Sombreadores (Menu Adicionar > Saída)"
+
+
+msgid "Always"
+msgstr "Sempre"
+
+
+msgid "Never"
+msgstr "Nunca"
+
+
+msgid "Center"
+msgstr "Centralizar"
+
+
+msgid "Bottom"
+msgstr "Base"
 
 
 msgid "Fribidi Library"
@@ -1482,6 +1498,18 @@ msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "Mostrar recursos das bibliotecas de recursos configuradas nas Preferências"
 
 
+msgid "Activate Operator"
+msgstr "Activar Operador"
+
+
+msgid "Default Preview Size"
+msgstr "Tamanho da Pré-Visualização Padrão"
+
+
+msgid "Default size of the asset preview thumbnails in pixels"
+msgstr "Tamanho pré definido da miniatura de pré-visualização do recurso em pixels"
+
+
 msgid "ID Name"
 msgstr "Nome do identificador"
 
@@ -1504,6 +1532,10 @@ msgstr "Impedir arrastar recurso"
 
 msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
 msgstr "Desactivar o posicionamento por arrastamento pré definido em eventos de arrastar. Útil para implementar comportamento personalizado ao arrastar via atalhos de teclado personalizados"
+
+
+msgid "Visible by Default"
+msgstr "Visível por defeito"
 
 
 msgid "Space Type"
@@ -4252,10 +4284,6 @@ msgid "How many times the Density brush tries to add a new curve"
 msgstr "Quantas vezes o pincel Densidade tenta adicionar uma nova curva"
 
 
-msgid "Density Mode"
-msgstr "Modo de Densidade"
-
-
 msgid "Determines whether the brush adds or removes curves"
 msgstr "Determina se o pincel adiciona ou remove curvas"
 
@@ -4264,10 +4292,16 @@ msgid "Either add or remove curves depending on the minimum distance of the curv
 msgstr "Adicionar ou remover curvas dependendo da distância mínima entre as curvas sob o cursor"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Adicionar"
+
+
 msgid "Add new curves between existing curves, taking the minimum distance into account"
 msgstr "Adicionar novas curvas por entre curvas existentes, tendo em conta a distância mínima"
 
 
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Remover"
 
@@ -5495,10 +5529,6 @@ msgid "Right"
 msgstr "Direita"
 
 
-msgid "Center"
-msgstr "Centralizar"
-
-
 msgid "Pole Merge Start Angle"
 msgstr "Ângulo inicial de Fusão dos Pólos"
 
@@ -6182,11 +6212,11 @@ msgstr "Colecção filha com as definições de colecção"
 
 
 msgid "Light Linking"
-msgstr "Associação de Iluminação"
+msgstr "Associação de Luzes"
 
 
 msgid "Light linking settings of the collection object"
-msgstr "Definições de associação de iluminação do objecto da colecção"
+msgstr "Definições de associação de luzes do objecto da colecção"
 
 
 msgid "Collection Children"
@@ -6202,11 +6232,11 @@ msgstr "Está Aberto"
 
 
 msgid "Collection Light Linking"
-msgstr "Associação de Iluminação de Colecções"
+msgstr "Associação de Luzes de Colecções"
 
 
 msgid "Light linking settings of objects and children collections of a collection"
-msgstr "Definições de associação de iluminação de objectos e colecções descendentes da colecção"
+msgstr "Definições de associação de luzes de objectos e colecções descendentes da colecção"
 
 
 msgid "Link State"
@@ -6234,7 +6264,7 @@ msgstr "Objecto da colecção e definições relativas à colecção"
 
 
 msgid "Light linking settings of the collection"
-msgstr "Definições de associação de iluminação da colecção"
+msgstr "Definições de associação de luzes da colecção"
 
 
 msgid "Collection Objects"
@@ -8461,10 +8491,6 @@ msgstr "Faixa de rotação ativada"
 
 msgid "Rotation range on which pivoting should occur"
 msgstr "Intervalo de rotação no qual o pivotamento deve ocorrer."
-
-
-msgid "Always"
-msgstr "Sempre"
 
 
 msgid "Use the pivot point in every rotation"
@@ -14744,10 +14770,6 @@ msgstr "Criar sistema de partículas de bolhas"
 
 msgid "Enable collisions with back domain border"
 msgstr "Activar colisões com a fronteira traseira do domínio"
-
-
-msgid "Bottom"
-msgstr "Base"
 
 
 msgid "Enable collisions with bottom domain border"
@@ -25404,14 +25426,6 @@ msgid "True if this material has grease pencil data"
 msgstr "Verdadeiro se este material contém dados Grease Pencil"
 
 
-msgid "Light Probe Volume Single Sided"
-msgstr "Volume de Sonda de Luz Lado Único"
-
-
-msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks"
-msgstr "Considerar material com apenas um lado para captura de volume da sonda de luz. Adicionalmente ajuda a rejeitar sondas dentro de objectos para evitar fugas de luz"
-
-
 msgid "Line Color"
 msgstr "Cor da linha"
 
@@ -25646,6 +25660,10 @@ msgstr "Ocultação de Faces Reversas"
 
 msgid "Use back face culling to hide the back side of faces"
 msgstr "Usar ocultação do reverso das faces para esconder o lado traseiro das faces"
+
+
+msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks"
+msgstr "Considerar material com apenas um lado para captura de volume da sonda de luz. Adicionalmente ajuda a rejeitar sondas dentro de objectos para evitar fugas de luz"
 
 
 msgid "Shadow Backface Culling"
@@ -26050,10 +26068,6 @@ msgstr "Durante a edição, actualizar objecto esfera-meta na metade da resoluç
 
 msgid "While editing, update metaball without polygonization"
 msgstr "Durante a edição, actualizar o objecto esfera-meta sem torná-lo poligonal."
-
-
-msgid "Never"
-msgstr "Nunca"
 
 
 msgid "While editing, don't update metaball at all"
@@ -26689,7 +26703,7 @@ msgstr "Renderizar apenas sombras e refçexos neste objecto, para composição d
 
 
 msgid "Light linking settings"
-msgstr "Definições de Vinculo de luzes"
+msgstr "Definições de associação de luzes"
 
 
 msgid "Lightgroup"
@@ -35111,7 +35125,7 @@ msgstr "Adicionar Atributo"
 
 
 msgid "Light Linking Specials"
-msgstr "Especiais de Conexão de Luzes"
+msgstr "Especiais de Associação de Luzes"
 
 
 msgid "Shadow Linking Specials"
@@ -35189,11 +35203,6 @@ msgstr "Desembrulhar"
 msgctxt "WindowManager"
 msgid "Area"
 msgstr "Área"
-
-
-msgctxt "Operator"
-msgid "Add"
-msgstr "Adicionar"
 
 
 msgid "Attribute Specials"
@@ -35506,6 +35515,11 @@ msgstr "Modos embutidos"
 
 msgid "Names"
 msgstr "Nomes"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Parente"
 
 
 msgid "Bone Roll"
@@ -46202,6 +46216,10 @@ msgid "Provide a selection of faces that use the specified material"
 msgstr "Fornece uma selecção de faces que usam um determinado material"
 
 
+msgid "Active item"
+msgstr "Item activo"
+
+
 msgid "Merge by Distance"
 msgstr "Fundir por Distância"
 
@@ -49048,6 +49066,10 @@ msgid "Value to Normal"
 msgstr "Valor para as normais"
 
 
+msgid "Attribute Domain"
+msgstr "Domínio do Atributo"
+
+
 msgid "Socket Type"
 msgstr "Tipo de conexão"
 
@@ -49440,8 +49462,144 @@ msgid "Node Tree Interface"
 msgstr "Interface de Árvore de Nós"
 
 
+msgid "Declaration of sockets and ui panels of a node group"
+msgstr "Declaração de conectores e painéis de interface do utilizador de um grupo de nós"
+
+
+msgid "Active Index"
+msgstr "Índice Activo"
+
+
+msgid "Items in the node interface"
+msgstr "Itens no interface de nós"
+
+
+msgid "Node Tree Interface Item"
+msgstr "Item de interface de árvore de nós"
+
+
+msgid "Item in a node tree interface"
+msgstr "Item num interface de árvore de nós"
+
+
+msgid "Global index of the item among all items in the interface"
+msgstr "Índice global do item de entre todos os itens no interface"
+
+
+msgid "Item Type"
+msgstr "Tipo de Item"
+
+
+msgid "Type of interface item"
+msgstr "Tipo de item de interface"
+
+
+msgid "Socket"
+msgstr "Conector"
+
+
+msgid "Panel that contains the item"
+msgstr "Painel que contém o item"
+
+
+msgid "Position of the item in its parent panel"
+msgstr "Posição do item no painel ascendente"
+
+
+msgid "Declaration of a node panel"
+msgstr "Declaração de um panel do nó"
+
+
+msgid "Default Closed"
+msgstr "Fechado por defeito"
+
+
+msgid "Panel is closed by default on new nodes"
+msgstr "Painel está fechado por defeito em novos nós"
+
+
+msgid "Panel description"
+msgstr "Descrição do Painel"
+
+
+msgid "Items in the node panel"
+msgstr "Itens no painel de nó"
+
+
+msgid "Panel name"
+msgstr "Nome do painel"
+
+
+msgid "Node Tree Interface Socket"
+msgstr "Conector de interface de árvore de nós"
+
+
+msgid "Declaration of a node socket"
+msgstr "Declaração de conector de nó"
+
+
+msgid "Attribute domain used by the geometry nodes modifier to create an attribute output"
+msgstr "Domínio de atributo a usar pelo modificador de Geometry Nodes para criar uma saída de atributo"
+
+
+msgid "Socket Type Name"
+msgstr "Nome de Tipo de Conector"
+
+
+msgid "Name of the socket type"
+msgstr "Nome do tipo do conector"
+
+
+msgid "Default Attribute"
+msgstr "Atributo Pré Definido"
+
+
+msgid "The attribute name used by default when the node group is used by a geometry nodes modifier"
+msgstr "O nome do atributo usado por defeito quando um grupo de nós é usado por um modificador Geometry Nodes"
+
+
+msgid "Socket description"
+msgstr "Descrição de Conector"
+
+
+msgid "Hide in Modifier"
+msgstr "Esconder no Modificador"
+
+
+msgid "Don't show the input value in the geometry nodes modifier interface"
+msgstr "Não mostrar o valor de entrada no interface do modificador geometry nodes"
+
+
+msgid "Hide the socket input value even when the socket is not connected"
+msgstr "Esconder o valor de entrada do conector mesmo quando este não estiver conectado"
+
+
+msgid "Input/Output Type"
+msgstr "Tipo de Entrada/Saída"
+
+
+msgid "Input or output socket type"
+msgstr "Tipo de entrada ou saída do conector"
+
+
+msgid "Generate a input node socket"
+msgstr "Gerar um conector de entrada de nó"
+
+
+msgid "Generate a output node socket"
+msgstr "Gerar um conector de saída de nó"
+
+
+msgid "Type of the socket generated by this interface item"
+msgstr "Tipo de conector gerado por este item de interface"
+
+
 msgid "Boolean Node Socket Interface"
 msgstr "Interface de conector de nó tipo booleano"
+
+
+msgid "Collection Node Socket Interface"
+msgstr "Interface de Conector de Nó Tipo Colecção"
 
 
 msgid "Color Node Socket Interface"
@@ -49460,8 +49618,32 @@ msgid "Minimum value"
 msgstr "Valor mínimo"
 
 
+msgid "Subtype of the default value"
+msgstr "Subtipo do valor pré definido"
+
+
+msgid "Geometry Node Socket Interface"
+msgstr "Interface de Conector de Nó Tipo Geometria"
+
+
+msgid "Image Node Socket Interface"
+msgstr "Interface de Conector de Nó de Imagem"
+
+
 msgid "Integer Node Socket Interface"
 msgstr "Interface de conector de nó de inteiros"
+
+
+msgid "Material Node Socket Interface"
+msgstr "Interface de Conector de Nó Tipo Material"
+
+
+msgid "Object Node Socket Interface"
+msgstr "Interface de Conector de Nó Tipo Objecto"
+
+
+msgid "Rotation Node Socket Interface"
+msgstr "Interface de Conector de Nó Tipo Rotação"
 
 
 msgid "Shader Node Socket Interface"
@@ -49470,6 +49652,10 @@ msgstr "Interface de conector de nó de sombreador"
 
 msgid "String Node Socket Interface"
 msgstr "Interface de conector de nó de variável texto"
+
+
+msgid "Texture Node Socket Interface"
+msgstr "Interface de Conector de Nó Tipo Textura"
 
 
 msgid "Vector Node Socket Interface"
@@ -49504,6 +49690,10 @@ msgid "Object Base"
 msgstr "Base do objecto"
 
 
+msgid "An object instance in a render layer"
+msgstr "Uma instância de um objecto numa camada de renderização"
+
+
 msgid "Object this base links to"
 msgstr "Objecto ao qual esta base está ligada"
 
@@ -49528,12 +49718,56 @@ msgid "Active Object constraint"
 msgstr "Restrições ativas do objecto"
 
 
+msgid "Object cast shadows in the 3D viewport"
+msgstr "Objecto projecta sombras na janela de visualização 3D"
+
+
 msgid "Object Grease Pencil Modifiers"
 msgstr "Modificadores Grease Pencil de Objecto"
 
 
 msgid "Collection of object grease pencil modifiers"
 msgstr "Colecção de modificadores grease pencil de objecto"
+
+
+msgid "Object Light Linking"
+msgstr "Associação de Luzes do Objecto"
+
+
+msgid "Blocker Collection"
+msgstr "Colecção Bloqueadora"
+
+
+msgid "Collection which defines objects which block light from this emitter"
+msgstr "Colecção que define objectos que bloqueiam luz deste emissor"
+
+
+msgid "Receiver Collection"
+msgstr "Colecção Receptora"
+
+
+msgid "Collection which defines light linking relation of this emitter"
+msgstr "Colecção que define a relação de a associação de luzes deste emissor"
+
+
+msgid "Object Line Art"
+msgstr "Desenho de Linhas do Objecto"
+
+
+msgid "Angles smaller than this will be treated as creases"
+msgstr "Ângulos menores que este valor serão tratados como vincos"
+
+
+msgid "Inherit"
+msgstr "Herdar"
+
+
+msgid "Use settings from the parent collection"
+msgstr "Usar definições da colecção ascendente"
+
+
+msgid "Generate feature lines for this object's data"
+msgstr "Gerar linhas de feições para os dados deste objecto"
 
 
 msgid "Object Modifiers"
@@ -55069,6 +55303,10 @@ msgid "Interactively set the current frame and value cursor"
 msgstr "Permite definir interativamente o fotograma actual e o valor do cursor."
 
 
+msgid "Remove"
+msgstr "Remover"
+
+
 msgctxt "Operator"
 msgid "Copy Driver Variables"
 msgstr "Copiar as variáveis dos controladores"
@@ -58971,6 +59209,22 @@ msgid "Copy color to all selected nodes"
 msgstr "Copia as cores para todos os nós selecionados"
 
 
+msgid "Overlay Mode"
+msgstr "Modo de sobreposição"
+
+
+msgid "Current"
+msgstr "Atual"
+
+
+msgid "Exponent"
+msgstr "Exponente"
+
+
+msgid "Wrap"
+msgstr "Envolver"
+
+
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "Alternar visualização das opções dos nós"
@@ -59666,6 +59920,38 @@ msgstr "Atrelamento de deformação laplaciana"
 
 msgid "Bind mesh to system in laplacian deform modifier"
 msgstr "Atrela a malha para um sistema no modificador de deformação laplaciano."
+
+
+msgctxt "Operator"
+msgid "New Light Linking Collection"
+msgstr "Nova Colecção de Associação de Luzes"
+
+
+msgid "Create new light linking collection used by the active emitter"
+msgstr "Criar nova colecção de associação de luzes pelo emissor activo"
+
+
+msgctxt "Operator"
+msgid "Select Light Linking Blockers"
+msgstr "Seleccionar Bloqueadores de Associação de Luzes"
+
+
+msgid "State of the light linking"
+msgstr "Estado da associação de luzes"
+
+
+msgctxt "Operator"
+msgid "Select Light Linking Receivers"
+msgstr "Seleccionar receptores de associação de luzes"
+
+
+msgctxt "Operator"
+msgid "Remove From Light Linking Collection"
+msgstr "Remover da Colecção de Associação de Luzes"
+
+
+msgid "Remove this object or collection from the light linking collection"
+msgstr "Remover este objecto ou colecção da colecção de associação de luzes"
 
 
 msgid "Subset"
@@ -65238,123 +65524,6 @@ msgstr "Permite editar o código fonte do botão activo da interface de utilizad
 
 
 msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "Editar tradução (uso pessoal)"
-
-
-msgid "Label of the control"
-msgstr "Rótulo do controlo"
-
-
-msgid "Flags about the label of the button"
-msgstr "Bandeiras sobre o rótulo do botão."
-
-
-msgid "Message is marked as fuzzy in po file"
-msgstr "A mensagem está marcada como confusa dentro do ficheiro po."
-
-
-msgid "Some error occurred with this message"
-msgstr "Algum erro ocorreu com esta mensagem."
-
-
-msgid "Tip of the control"
-msgstr "Dica do controlo."
-
-
-msgid "Flags about the tip of the button"
-msgstr "Bandeiras sobre a dica do botão."
-
-
-msgid "Label of the enum item of the control, if any"
-msgstr "Rótulo do item de enumeração do controlo, caso haja."
-
-
-msgid "Flags about the RNA enum item label of the button"
-msgstr "Bandeiras sobre o rótulo do item do enumerador RNA do botão."
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "Dica do item de enumeração do controlo, caso haja."
-
-
-msgid "Flags about the RNA enum item tip of the button"
-msgstr "Bandeiras sobre a dica do botão de item de enumerador RNA."
-
-
-msgid "Current (translated) language"
-msgstr "Linguagem actual (traduzida)."
-
-
-msgid "Original label of the control"
-msgstr "Rótulo original do controlo."
-
-
-msgid "Original tip of the control"
-msgstr "Dica original do controlo."
-
-
-msgid "Original label of the enum item of the control, if any"
-msgstr "Rótulo original do item de enumeração do controlo, caso haja."
-
-
-msgid "Original tip of the enum item of the control, if any"
-msgstr "Dica original do enumerador de item do controlo, caso haja."
-
-
-msgid "Original RNA-defined label of the control, if any"
-msgstr "Rótulo original do controlo RNA-definido, caso haja."
-
-
-msgid "Original RNA-defined tip of the control, if any"
-msgstr "Dica original do controlo RNA-definido, caso haja."
-
-
-msgid "Path to the matching po file"
-msgstr "Caminho para o catálogo de tradução .po respectivo."
-
-
-msgid "RNA context for label"
-msgstr "Contexto RNA para o rótulo"
-
-
-msgid "Identifier of the RNA enum item, if any"
-msgstr "Identificador do item de RNA enumerado, caso haja."
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "Rótulo do controlo RNA-definido, caso haja."
-
-
-msgid "Flags about the RNA-defined label of the button"
-msgstr "Bandeiras sobre o rótulo RNA-definido do botão."
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "Identificador da propriedade RNA, caso haja."
-
-
-msgid "Identifier of the RNA struct, if any"
-msgstr "Identificador da estrutura RNA, caso haja."
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "A dica do controlo RNA-definido, caso haja."
-
-
-msgid "Flags about the RNA-defined tip of the button"
-msgstr "Bandeiras sobre a dica de RNA-definido do botão."
-
-
-msgid "Stats from opened po"
-msgstr "Estatísticas do po aberto"
-
-
-msgid "Edit i18n in current language for the active button"
-msgstr "Edita o i18n na linguagem actual para o botão ativo."
-
-
-msgctxt "Operator"
 msgid "Eyedropper"
 msgstr "Conta-gotas"
 
@@ -65491,11 +65660,6 @@ msgstr "Nome (id) do operador para invocar."
 
 msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
 msgstr "Atualiza os dados de tradução da extensão fornecidos (encontrados como uma tupla dentro do código fonte do complemento)."
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "Edição da tradução atualiza o .MO"
 
 
 msgctxt "Operator"
@@ -67035,10 +67199,6 @@ msgstr "Ciclo de definição de contexto"
 
 msgid "Toggle a context value"
 msgstr "Alterna um valor de contexto."
-
-
-msgid "Wrap"
-msgstr "Envolver"
 
 
 msgid "Wrap back to the first/last values"
@@ -74717,10 +74877,6 @@ msgid "Mask displayed and edited in this space"
 msgstr "Mascara os mostrados e editados dentro deste espaço."
 
 
-msgid "Overlay Mode"
-msgstr "Modo de sobreposição"
-
-
 msgid "Overlay mode of rasterized mask"
 msgstr "Modo de sobreposição da máscara rasterizada."
 
@@ -74871,14 +75027,6 @@ msgstr "Mostrar canal vermelho"
 
 msgid "Show red channel in the frame"
 msgstr "Mostra o canal vermelho no fotograma."
-
-
-msgid "Show Seconds"
-msgstr "Mostrar como segundos"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "Mostra o tempo em segundos e não em fotogramas."
 
 
 msgid "Show Stable"
@@ -75678,10 +75826,6 @@ msgstr "Referência"
 
 msgid "Show reference frame only"
 msgstr "Mostra somente o fotograma de referência."
-
-
-msgid "Current"
-msgstr "Atual"
 
 
 msgid "Show current frame only"
@@ -79537,11 +79681,6 @@ msgid "Axes"
 msgstr "Eixos"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "Remover"
-
-
 msgid "Control Rotation"
 msgstr "Controlar rotação"
 
@@ -79734,11 +79873,6 @@ msgstr "Transformações:"
 
 
 msgctxt "Operator"
-msgid "Parent"
-msgstr "Parente"
-
-
-msgctxt "Operator"
 msgid "Clear"
 msgstr "Limpar"
 
@@ -79915,10 +80049,6 @@ msgstr "Limitar onda"
 
 msgid "Heat"
 msgstr "Calor"
-
-
-msgid "Exponent"
-msgstr "Exponente"
 
 
 msgid "Lower"
@@ -81732,6 +81862,14 @@ msgid "Key %d"
 msgstr "Chave %d"
 
 
+msgid "Light Linking for %s"
+msgstr "Associação de luzes para %s"
+
+
+msgid "Cannot unlink unsupported '%s' from light linking collection '%s'"
+msgstr "Não é possível desassociar '%s' não suportado da colecção de associação de luzes '%s'"
+
+
 msgid "MaskLayer"
 msgstr "Camada de máscara"
 
@@ -82696,14 +82834,6 @@ msgstr "Combinação de botão activo não pode ser encontrada."
 
 msgid "Active button not found"
 msgstr "Botão activo não encontrado."
-
-
-msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
-msgstr "Não foi possível encontrar operador '%s' ! Por favor, ative a extensão \"ui_translate\" dentro das preferências de utilizador."
-
-
-msgid "No valid po found for language '%s' under %s"
-msgstr "Nenhum \"po\" válido encontrado para a língua '%s' dentro de %s."
 
 
 msgid "%d items"

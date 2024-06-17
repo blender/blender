@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-04-29 13:28+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -206,6 +206,22 @@ msgstr "ﻼ﻿ﻣﺎﻛ"
 
 msgid "Auto"
 msgstr "ﻲﺗﺍﺫ"
+
+
+msgid "Always"
+msgstr "ﺎﻤﺋﺍﺩ"
+
+
+msgid "Never"
+msgstr "ﺍﺪﺑﺍ"
+
+
+msgid "Center"
+msgstr "ﺰﻛﺮﻤﻟﺍ"
+
+
+msgid "Bottom"
+msgstr "ﻞﻔﺳﺃ"
 
 
 msgid "Fribidi Library"
@@ -1980,6 +1996,12 @@ msgid "Curve Radius"
 msgstr "ﻰﻨﺤﻨﻤﻟﺍ ﺮﻄﻗ"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "ﻒﺿﺃ"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "ﺔﻟﺍﺯﺇ"
 
@@ -2310,10 +2332,6 @@ msgstr "ﺭﺎﺴﻳ"
 
 msgid "Right"
 msgstr "ﻦﻴﻤﻳ"
-
-
-msgid "Center"
-msgstr "ﺰﻛﺮﻤﻟﺍ"
 
 
 msgid "Child Particle"
@@ -4296,10 +4314,6 @@ msgstr "ﻥﺍﺭﻭﺪﻠﻟ ﻝﺎﻌﻔﻟﺍ ﻝﺎﺠﻤﻟﺍ"
 
 msgid "Rotation range on which pivoting should occur"
 msgstr "ﺮﻳﻭﺪﺘﻟﺍ ﻞﺼﺤﻳ ﻪﻴﻓ ﻱﺬﻟﺍ ﺮﻳﻭﺪﺘﻟﺍ ﻕﺎﻈﻧ"
-
-
-msgid "Always"
-msgstr "ﺎﻤﺋﺍﺩ"
 
 
 msgid "Use the pivot point in every rotation"
@@ -7653,10 +7667,6 @@ msgstr "ﺔﻤﻠﻗﺄﺘﻣ ﺕﺎﻓﺎﺴﻣ"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "ﻞﺋﺎﺴﻟﺍ ﻒﻴﻀﺘﺴﻣ ﻲﻓ ﺔﻣﺪﺨﺘﺴﻣ ﺔﻗﺩ ﺮﺒﻛﺍ"
-
-
-msgid "Bottom"
-msgstr "ﻞﻔﺳﺃ"
 
 
 msgid "Top"
@@ -11743,10 +11753,6 @@ msgstr "ﺔﻗﺪﻟﺍ ﻒﺼﻨﺑ ﺔﻠﻋﺎﻔﺘﻤﻟﺍ ﺓﺮﻜﻟﺍ
 
 msgid "While editing, update metaball without polygonization"
 msgstr "ﻊﻴﻠﻀﺗ ﻥﻭﺪﺑ ﻞﻋﺎﻔﺘﻟﺍ ﺓﺮﻛ ﺙﺪّﺣ ,ﺮﻳﺮﺤﺘﻟﺍ ءﺎﻨﺛﺃ"
-
-
-msgid "Never"
-msgstr "ﺍﺪﺑﺍ"
 
 
 msgid "While editing, don't update metaball at all"
@@ -16485,11 +16491,6 @@ msgid "Show/Hide Faces"
 msgstr "ﻪﺟﻭﻷ﻿ﺍ ﻲﻔﺧﺇ/ﺮﻬﻇﺍ"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "ﻒﺿﺃ"
-
-
 msgid "Shape Key Specials"
 msgstr "ﻞﻜﺸﻟﺍ ﺡﺎﺘﻔﻣ ﺕﺎﻓﺎﺿﺇ"
 
@@ -16616,6 +16617,11 @@ msgstr "ﺔﻠﻌﻔﻤﻟﺍ ﻁﺎﻤﻧﻻ﻿ﺍ"
 
 msgid "Names"
 msgstr "ءﺎﻤﺳﺃ"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "ﻞﺻﺃ"
 
 
 msgid "Bone Roll"
@@ -23337,6 +23343,10 @@ msgid "Set Cursor"
 msgstr "ﺮﺷﺆﻤﻟﺍ ﻊﺿ"
 
 
+msgid "Remove"
+msgstr "ﺔﻟﺍﺯﺇ"
+
+
 msgid "Flatten"
 msgstr "ﺢﻄّﺳ"
 
@@ -25254,6 +25264,22 @@ msgstr "ﺓﺪﻘﻌﻟﺍ ﻥﻮﻠﻟ ﻖﺒﺴﻣ ﺩﺍﺪﻋﺇ ﻎﻟﺍ �
 
 msgid "Copy color to all selected nodes"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺪﻘﻌﻟﺍ ﻞﻜﻟ ﻥﻮﻠﻟﺍ ﺦﺴﻧﺍ"
+
+
+msgid "Overlay Mode"
+msgstr "ﺔﻴﻄﻐﺘﻟﺍ ﻊﺿﻭ"
+
+
+msgid "Current"
+msgstr "ﻲﻟﺎﺤﻟﺍ"
+
+
+msgid "Exponent"
+msgstr "ﻒﻋﺎﻀﻤﻟﺍ"
+
+
+msgid "Wrap"
+msgstr "ﻒﻠﻟﺍ"
 
 
 msgctxt "Operator"
@@ -28193,74 +28219,12 @@ msgid "Edit Source"
 msgstr "ﺭﺪﺼﻤﻟﺍ ﺭﺮﺣ"
 
 
-msgctxt "Operator"
-msgid "Edit Translation"
-msgstr "ﺔﺣﺍﺯﻹ﻿ﺍ ﺭﺮﺣ"
-
-
-msgid "Label of the control"
-msgstr "ﻢﻜﺤﺘﻤﻟﺍ ﻖﺼﻠﻣ"
-
-
-msgid "Tip of the control"
-msgstr "ﻢﻜﺤﺘﻤﻟﺍ ﺡﺮﺷ"
-
-
-msgid "Label of the enum item of the control, if any"
-msgstr "ﺪﺟﻭ ﺍﺫﺍ ,ﻢﻜﺤﺘﻤﻟﺍ ﺩﺍﺪﻋ ﺮﺼﻨﻋ ﺺﻧ"
-
-
-msgid "Tip of the enum item of the control, if any"
-msgstr "ﺪﺟﻭ ﺍﺫﺍ ,ﻢﻜﺤﺘﻤﻠﻟ ﺩﺍﺪﻌﻟﺍ ﺮﺼﻨﻋ ﺡﺮﺷ"
-
-
-msgid "Original label of the control"
-msgstr "ﻢﻜﺤﺘﻤﻠﻟ ﻲﻠﺻﻻ﻿ﺍ ﻖﺼﻠﻤﻟﺍ"
-
-
-msgid "Original tip of the control"
-msgstr "ﻢﻜﺤﺘﻤﻠﻟ ﻲﻠﺻﻻ﻿ﺍ ﺡﺮﺸﻟﺍ"
-
-
-msgid "Original tip of the enum item of the control, if any"
-msgstr "ﺪﺟﻭ ﺍﺫﺍ ,ﻢﻜﺤﺘﻤﻠﻟ ﺩﺍﺪﻌﻟﺍ ﺮﺼﻨﻌﻟ ﻲﻠﺻﻻ﻿ﺍ ﺡﺮﺸﻟﺍ"
-
-
-msgid "Path to the matching po file"
-msgstr "ﺐﺳﺎﻨﻤﻟﺍ ﺮﻴﻴﺼﺘﻟﺍ ﻒﻠﻤﻟ ﺭﺎﺴﻣ"
-
-
-msgid "RNA context for label"
-msgstr "ﻖﺼﻠﻤﻟ RNA ﻕﺎﻴﺳ"
-
-
-msgid "RNA-defined label of the control, if any"
-msgstr "ﺪﺟﻭ ﺍﺫﺍ ,ﻢﻜﺤﺘﻤﻠﻟ ﻑﺮﻌﻤﻟﺍ RNA ـﻟﺍ ﻖﺼﻠﻣ"
-
-
-msgid "Identifier of the RNA property, if any"
-msgstr "ﺪﺟﻭ ﺍﺫﺍ ,RNA ـﻟﺍ ﺔﻴﺻﺎﺧ ﻑﺮّﻌﻣ"
-
-
-msgid "Identifier of the RNA struct, if any"
-msgstr "ﺪﺟﻭ ﺍﺫﺍ ,RNA ـﻟﺍ ﺔﻠﺘﻛ ﻑﺮّﻌﻣ"
-
-
-msgid "RNA-defined tip of the control, if any"
-msgstr "ﺪﺟﻭ ﺍﺫﺍ ,ﻢﻜﺤﺘﻤﻠﻟ ﻑﺮﻌﻤﻟﺍ RNA ـﻟﺍ ﻖﺼﻠﻣ"
-
-
 msgid "Export POT"
 msgstr "POT ﺭﺪّﺻ"
 
 
 msgid "Operator Name"
 msgstr "ﻞﻣﺎﻌﻟﺍ ﻢﺳﺍ"
-
-
-msgctxt "Operator"
-msgid "Edit Translation Update Mo"
-msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﺭﺮﺤﻤﻟ mo ـﻟﺍ ﺙﺪّﺣ"
 
 
 msgid "Invert Selection"
@@ -28841,10 +28805,6 @@ msgstr "ﻕﺎﻴﺴﻟﺍ ﺩﺍﺪﻋ ﺓﺭﻭﺩ"
 
 msgid "Toggle a context value"
 msgstr "ﻕﺎﻴﺴﻟﺍ ﺔﻤﻴﻗ ﺐﻠﻗﺍ"
-
-
-msgid "Wrap"
-msgstr "ﻒﻠﻟﺍ"
 
 
 msgctxt "Operator"
@@ -33318,10 +33278,6 @@ msgid "Mask displayed and edited in this space"
 msgstr "ءﺎﻀﻔﻟﺍ ﺍﺬﻫ ﻲﻓ ﺭﺮﺤﻳ ﻭ ﻉﺎﻨﻘﻟﺍ ﺮﻬﻈﻳ"
 
 
-msgid "Overlay Mode"
-msgstr "ﺔﻴﻄﻐﺘﻟﺍ ﻊﺿﻭ"
-
-
 msgid "Alpha Channel"
 msgstr "ﺎﻔﻟﺍ ﺓﺎﻨﻗ"
 
@@ -33396,14 +33352,6 @@ msgstr "ءﺍﺮﻤﺤﻟﺍ ﺓﺎﻨﻘﻟﺍ ﺮﻬﻇﺍ"
 
 msgid "Show red channel in the frame"
 msgstr "ﺭﺎﻃﻻ﻿ﺍ ﻲﻓ ءﺍﺮﻤﺤﻟﺍ ﺓﺎﻨﻘﻟﺍ ﺮﻬﻇﺍ"
-
-
-msgid "Show Seconds"
-msgstr "ﻲﻧﺍﻮﺜﻟﺍ ﺮﻬﻇﺇ"
-
-
-msgid "Show timing in seconds not frames"
-msgstr "ﺮﻃﻻ﻿ﺎﺑ ﻻ﻿ ﻲﻧﺍﻮﺜﻟﺎﺑ ﺖﻴﻗﻮﺘﻟﺍ ﺮﻬﻇﺍ"
 
 
 msgid "Show Stable"
@@ -33622,10 +33570,6 @@ msgstr "ﻊﺟﺮﻣ"
 
 msgid "Show reference frame only"
 msgstr "ﻂﻘﻓ ﻊﺟﺮﻤﻟﺍ ﺡﺎﺘﻔﻣ ﺮﻬﻇﺃ"
-
-
-msgid "Current"
-msgstr "ﻲﻟﺎﺤﻟﺍ"
 
 
 msgid "Show current frame only"
@@ -35634,11 +35578,6 @@ msgid "Axes"
 msgstr "ﺭﻭﺎﺤﻣ"
 
 
-msgctxt "Operator"
-msgid "Remove"
-msgstr "ﺔﻟﺍﺯﺇ"
-
-
 msgid "Control Rotation"
 msgstr "ﻥﺍﺭﻭﺩ ﻢﻜﺤﺘﻟﺍ"
 
@@ -35783,11 +35722,6 @@ msgstr ":ﻞﺻﻷ﻿ﺍ"
 
 msgid "Transform:"
 msgstr ":ﻞﻳﻮﺤﺗ"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "ﻞﺻﺃ"
 
 
 msgctxt "Operator"
@@ -35938,10 +35872,6 @@ msgstr "ﻥﻮﻟ ﺔﻘﺒﻃ"
 
 msgid "Wave Clamp"
 msgstr "ﺔﺟﻮﻤﻟﺍ ﺪﺣ"
-
-
-msgid "Exponent"
-msgstr "ﻒﻋﺎﻀﻤﻟﺍ"
 
 
 msgid "Auto-Step"

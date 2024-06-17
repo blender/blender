@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-04-29 13:31+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -42,6 +42,18 @@ msgstr "Модул"
 
 msgid "On"
 msgstr "Върху"
+
+
+msgid "Always"
+msgstr "Винаги"
+
+
+msgid "Center"
+msgstr "Център"
+
+
+msgid "Bottom"
+msgstr "Дъно"
 
 
 msgid "Action"
@@ -148,10 +160,6 @@ msgid "Index"
 msgstr "Индекс"
 
 
-msgid "Remove"
-msgstr "Премахване"
-
-
 msgid "Fill"
 msgstr "Запълни"
 
@@ -178,10 +186,6 @@ msgstr "Отрязване"
 
 msgid "Left"
 msgstr "Ляво"
-
-
-msgid "Center"
-msgstr "Център"
 
 
 msgid "Default Goal (vertex target position) value, when no Vertex Group used"
@@ -274,10 +278,6 @@ msgstr "Натрупващо се"
 
 msgid "Camera"
 msgstr "Камера"
-
-
-msgid "Always"
-msgstr "Винаги"
 
 
 msgid "Front"
@@ -426,10 +426,6 @@ msgstr "Отток"
 
 msgid "Delete"
 msgstr "Изтриване"
-
-
-msgid "Bottom"
-msgstr "Дъно"
 
 
 msgid "Collision"
@@ -1104,6 +1100,10 @@ msgid "Join"
 msgstr "Събери"
 
 
+msgid "Remove"
+msgstr "Премахване"
+
+
 msgid "Next Keyframe"
 msgstr "Следващ Ключов Кадър"
 
@@ -1222,6 +1222,10 @@ msgstr "Направи с Единствен Потребител"
 msgctxt "Operator"
 msgid "Hide"
 msgstr "Скриване"
+
+
+msgid "Wrap"
+msgstr "Обвив"
 
 
 msgctxt "Operator"
@@ -1528,10 +1532,6 @@ msgstr "Делта X"
 msgctxt "Operator"
 msgid "Zoom Camera 1:1"
 msgstr "Увеличи Камера 1:1"
-
-
-msgid "Wrap"
-msgstr "Обвив"
 
 
 msgid "Doc ID"

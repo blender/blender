@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-05-23 14:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -283,18 +283,6 @@ msgid "Add-on Preferences"
 msgstr "tilføjelses præference"
 
 
-msgid "Show Development Reports"
-msgstr "Vis udviklingsrapporter"
-
-
-msgid "Show the result of running commands in the main interface this has the advantage that multiple processes that run at once have their errors properly grouped which is not the case for reports which are mixed together"
-msgstr "Vis resultatet af at køre kommandoer i hovedgrænsefladen, dette har den fordel, at flere processer, der kører på én gang, har deres fejl korrekt grupperet, hvilket ikke er tilfældet for rapporter, der er blandet sammen"
-
-
-msgid "Time Out"
-msgstr "Tiden er gået"
-
-
 msgid "Compute Device Type"
 msgstr "computer type"
 
@@ -409,6 +397,14 @@ msgstr "Sti til gltfpack binær"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Viser glTF Material Output node i Shader Editor (Menu Tilføj > Output)"
+
+
+msgid "Center"
+msgstr "Centrum"
+
+
+msgid "Bottom"
+msgstr "Bund"
 
 
 msgid "Fribidi Library"
@@ -2238,10 +2234,6 @@ msgid "Right"
 msgstr "Højre"
 
 
-msgid "Center"
-msgstr "Centrum"
-
-
 msgid "Angular"
 msgstr "angular"
 
@@ -2401,10 +2393,6 @@ msgstr "Tid"
 
 msgid "Compression"
 msgstr "Kompression"
-
-
-msgid "Bottom"
-msgstr "Bund"
 
 
 msgid "Top"
@@ -2870,6 +2858,10 @@ msgstr "Detaljer"
 
 msgid "Priority"
 msgstr "Prioritet"
+
+
+msgid "Time Out"
+msgstr "Tiden er gået"
 
 
 msgid "Sharpen"

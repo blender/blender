@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'a2795852cd29')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 10:16+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -245,6 +245,18 @@ msgstr "Volledig"
 
 msgid "Auto"
 msgstr "Auto"
+
+
+msgid "Always"
+msgstr "Altijd"
+
+
+msgid "Center"
+msgstr "Midden"
+
+
+msgid "Bottom"
+msgstr "Onderkant"
 
 
 msgid "Animation Data"
@@ -826,6 +838,12 @@ msgid "Has Color"
 msgstr "Heeft Kleur"
 
 
+msgctxt "Operator"
+msgid "Add"
+msgstr "Toevoegen"
+
+
+msgctxt "Operator"
 msgid "Remove"
 msgstr "Verwijder"
 
@@ -936,10 +954,6 @@ msgstr "Links"
 
 msgid "Right"
 msgstr "Rechts"
-
-
-msgid "Center"
-msgstr "Midden"
 
 
 msgid "Friction"
@@ -1145,10 +1159,6 @@ msgstr "Vergrendel Z Rotatie"
 
 msgid "Bone"
 msgstr "Bot"
-
-
-msgid "Always"
-msgstr "Altijd"
 
 
 msgid "Front"
@@ -1605,10 +1615,6 @@ msgstr "Maximale Resolutie"
 
 msgid "Delete"
 msgstr "Verwijder"
-
-
-msgid "Bottom"
-msgstr "Onderkant"
 
 
 msgid "Top"
@@ -2825,11 +2831,6 @@ msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
 
-msgctxt "Operator"
-msgid "Add"
-msgstr "Toevoegen"
-
-
 msgid "Layout"
 msgstr "Indeling"
 
@@ -2897,6 +2898,11 @@ msgstr "Opslaan & Laden"
 
 msgid "Names"
 msgstr "Namen"
+
+
+msgctxt "Operator"
+msgid "Parent"
+msgstr "Ouder"
 
 
 msgid "Select Similar"
@@ -3950,11 +3956,6 @@ msgstr "Animatie-instellingen"
 
 
 msgctxt "Operator"
-msgid "Refresh All"
-msgstr "Ververs Alles"
-
-
-msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Voeg Boekenlegger Toe"
 
@@ -4367,6 +4368,10 @@ msgstr "Selecteer Groep van Punten"
 msgctxt "Operator"
 msgid "Set Cursor"
 msgstr "Zet Cursor"
+
+
+msgid "Remove"
+msgstr "Verwijder"
 
 
 msgctxt "Operator"
@@ -4814,6 +4819,10 @@ msgstr "Knip Koppelingen"
 msgctxt "Operator"
 msgid "New Node Tree"
 msgstr "Nieuwe Node Boom"
+
+
+msgid "Current"
+msgstr "Huidige"
 
 
 msgctxt "Operator"
@@ -6906,10 +6915,6 @@ msgid "Show Red Channel"
 msgstr "Toon Rode Kanaal"
 
 
-msgid "Show Seconds"
-msgstr "Toon Seconden"
-
-
 msgctxt "MovieClip"
 msgid "View"
 msgstr "Weergave"
@@ -7013,10 +7018,6 @@ msgstr "Deeltjeseigenschappen"
 
 msgid "Reference"
 msgstr "Voorbeeld"
-
-
-msgid "Current"
-msgstr "Huidige"
 
 
 msgid "Find Text"
@@ -7402,11 +7403,6 @@ msgstr "Animeer Pad"
 
 
 msgctxt "Operator"
-msgid "Remove"
-msgstr "Verwijder"
-
-
-msgctxt "Operator"
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
@@ -7508,11 +7504,6 @@ msgstr "Ouder:"
 
 msgid "Transform:"
 msgstr "Transformeer:"
-
-
-msgctxt "Operator"
-msgid "Parent"
-msgstr "Ouder"
 
 
 msgid "Animation:"
@@ -7913,6 +7904,11 @@ msgstr "Maak"
 
 msgid "Sync Selection"
 msgstr "Synchroniseer Selectie"
+
+
+msgctxt "Operator"
+msgid "Refresh All"
+msgstr "Ververs Alles"
 
 
 msgctxt "Operator"
