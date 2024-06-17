@@ -51,6 +51,7 @@
 
 #include "GEO_join_geometries.hh"
 #include "GEO_reorder.hh"
+#include "GEO_set_curve_type.hh"
 #include "GEO_smooth_curves.hh"
 #include "GEO_subdivide_curves.hh"
 
@@ -2983,6 +2984,76 @@ static void GREASE_PENCIL_OT_snap_cursor_to_selected(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Set Curve Type Operator
+ * \{ */
+
+static int grease_pencil_set_curve_type_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
+  const bool use_handles = RNA_boolean_get(op->ptr, "use_handles");
+
+  bool changed = false;
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    IndexMaskMemory memory;
+    const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+        *object, info.drawing, info.layer_index, memory);
+    if (strokes.is_empty()) {
+      return;
+    }
+
+    geometry::ConvertCurvesOptions options;
+    options.convert_bezier_handles_to_poly_points = use_handles;
+    options.convert_bezier_handles_to_catmull_rom_points = use_handles;
+    options.keep_bezier_shape_as_nurbs = use_handles;
+    options.keep_catmull_rom_shape_as_nurbs = use_handles;
+
+    curves = geometry::convert_curves(curves, strokes, dst_type, {}, options);
+    info.drawing.tag_topology_changed();
+
+    changed = true;
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_set_curve_type(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Set Curve Type";
+  ot->idname = "GREASE_PENCIL_OT_set_curve_type";
+  ot->description = "Set type of selected curves";
+
+  /* Callbacks. */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = grease_pencil_set_curve_type_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", rna_enum_curves_type_items, CURVE_TYPE_POLY, "Type", "Curve type");
+
+  RNA_def_boolean(ot->srna,
+                  "use_handles",
+                  false,
+                  "Handles",
+                  "Take handle information into account in the conversion");
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -3015,4 +3086,5 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_snap_to_grid);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_to_cursor);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_cursor_to_selected);
+  WM_operatortype_append(GREASE_PENCIL_OT_set_curve_type);
 }
