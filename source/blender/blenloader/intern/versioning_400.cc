@@ -17,6 +17,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_defaults.h"
 #include "DNA_light_types.h"
@@ -4163,6 +4164,31 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 60)) {
+    /* Limit Rotation constraints from old files should use the legacy Limit
+     * Rotation behavior. */
+    LISTBASE_FOREACH (Object *, obj, &bmain->objects) {
+      LISTBASE_FOREACH (bConstraint *, constraint, &obj->constraints) {
+        if (constraint->type != CONSTRAINT_TYPE_ROTLIMIT) {
+          continue;
+        }
+        static_cast<bRotLimitConstraint *>(constraint->data)->flag |= LIMIT_ROT_LEGACY_BEHAVIOR;
+      }
+
+      if (!obj->pose) {
+        continue;
+      }
+      LISTBASE_FOREACH (bPoseChannel *, pbone, &obj->pose->chanbase) {
+        LISTBASE_FOREACH (bConstraint *, constraint, &pbone->constraints) {
+          if (constraint->type != CONSTRAINT_TYPE_ROTLIMIT) {
+            continue;
+          }
+          static_cast<bRotLimitConstraint *>(constraint->data)->flag |= LIMIT_ROT_LEGACY_BEHAVIOR;
+        }
+      }
+    }
   }
 
   /**
