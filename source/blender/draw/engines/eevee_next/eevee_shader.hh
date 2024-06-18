@@ -186,7 +186,7 @@ class ShaderModule {
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type);
 
-  void material_create_info_ammend(GPUMaterial *mat, GPUCodegenOutput *codegen);
+  void material_create_info_amend(GPUMaterial *mat, GPUCodegenOutput *codegen);
 
   /** Only to be used by Instance constructor. */
   static ShaderModule *module_get();
