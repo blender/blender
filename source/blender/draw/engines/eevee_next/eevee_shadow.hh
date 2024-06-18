@@ -371,7 +371,7 @@ class ShadowModule {
  private:
   void remove_unused();
   void debug_page_map_call(DRWPass *pass);
-  bool shadow_update_finished();
+  bool shadow_update_finished(int loop_count);
 
   /** Compute approximate punctual shadow pixel world space radius, 1 unit away of the light. */
   float tilemap_pixel_radius();
