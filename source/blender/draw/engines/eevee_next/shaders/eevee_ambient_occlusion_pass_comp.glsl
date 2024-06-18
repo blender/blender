@@ -37,8 +37,8 @@ void main()
                                              uniform_buf.ao.thickness_near,
                                              uniform_buf.ao.thickness_far,
                                              uniform_buf.ao.angle_bias,
-                                             2,
-                                             10,
+                                             ao_slice_count,
+                                             ao_step_count,
                                              false,
                                              true);
 

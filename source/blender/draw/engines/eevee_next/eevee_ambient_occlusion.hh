@@ -29,6 +29,8 @@ class AmbientOcclusion {
   class Instance &inst_;
 
   bool render_pass_enabled_;
+  int ray_count_ = 0;
+  int step_count_ = 0;
 
   AOData &data_;
   PassSimple render_pass_ps_ = {"AO Render Pass"};
