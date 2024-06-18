@@ -1594,6 +1594,8 @@ static void surface_handle_leave(void *data, wl_surface * /*wl_surface*/, wl_out
   }
 }
 
+#if defined(WL_SURFACE_PREFERRED_BUFFER_SCALE_SINCE_VERSION) && \
+    defined(WL_SURFACE_PREFERRED_BUFFER_TRANSFORM_SINCE_VERSION)
 static void surface_handle_preferred_buffer_scale(void * /*data*/,
                                                   wl_surface * /*wl_surface*/,
                                                   int32_t factor)
@@ -1609,12 +1611,17 @@ static void surface_handle_preferred_buffer_transform(void * /*data*/,
   /* Only available in interface version 6. */
   CLOG_INFO(LOG, 2, "handle_preferred_buffer_transform (transform=%u)", transform);
 }
+#endif /* WL_SURFACE_PREFERRED_BUFFER_SCALE_SINCE_VERSION && \
+        * WL_SURFACE_PREFERRED_BUFFER_TRANSFORM_SINCE_VERSION */
 
 static const wl_surface_listener wl_surface_listener = {
     /*enter*/ surface_handle_enter,
     /*leave*/ surface_handle_leave,
+#if defined(WL_SURFACE_PREFERRED_BUFFER_SCALE_SINCE_VERSION) && \
+    defined(WL_SURFACE_PREFERRED_BUFFER_TRANSFORM_SINCE_VERSION)
     /*preferred_buffer_scale*/ surface_handle_preferred_buffer_scale,
     /*preferred_buffer_transform*/ surface_handle_preferred_buffer_transform,
+#endif
 };
 
 #undef LOG
