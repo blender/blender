@@ -385,7 +385,7 @@ class SamplerSlots {
   }
 };
 
-void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOutput *codegen_)
+void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOutput *codegen_)
 {
   using namespace blender::gpu::shader;
 
@@ -842,7 +842,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
  * thread unsafe manner. */
 static void codegen_callback(void *thunk, GPUMaterial *mat, GPUCodegenOutput *codegen)
 {
-  reinterpret_cast<ShaderModule *>(thunk)->material_create_info_ammend(mat, codegen);
+  reinterpret_cast<ShaderModule *>(thunk)->material_create_info_amend(mat, codegen);
 }
 
 static GPUPass *pass_replacement_cb(void *thunk, GPUMaterial *mat)
