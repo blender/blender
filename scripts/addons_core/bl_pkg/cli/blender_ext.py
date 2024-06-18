@@ -190,6 +190,7 @@ def force_exit_ok_enable() -> None:
 
 def read_with_timeout(fh: IO[bytes], size: int, *, timeout_in_seconds: float) -> Optional[bytes]:
     # TODO: implement timeout (TimeoutError).
+    _ = timeout_in_seconds
     return fh.read(size)
 
 
@@ -999,7 +1000,6 @@ def url_retrieve_to_data_iter(
     """
     from urllib.error import ContentTooShortError
     from urllib.request import urlopen
-    import socket
 
     request = urllib.request.Request(
         url,

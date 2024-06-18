@@ -182,6 +182,7 @@ def print_debug(*args, **kw):
 
 def repos_to_notify():
     import os
+    from . import bl_extension_ops
     from .bl_extension_utils import (
         repo_index_outdated,
         scandir_with_demoted_errors,

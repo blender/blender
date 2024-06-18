@@ -1456,7 +1456,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 assert False, "unreachable"  # Poll prevents this.
             return None
 
-        prefs = context.preferences
+        prefs = bpy.context.preferences
 
         network_connection_limit = prefs.system.network_connection_limit
 
@@ -1509,7 +1509,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 continue
 
             repo_item = repos_all[repo_index]
-            for pkg_id_sequence in sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
+            for pkg_id_sequence in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
                 cmd_batch.append(partial(
                     bl_extension_utils.pkg_install,
                     directory=repo_item.directory,
