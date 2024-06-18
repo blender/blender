@@ -238,25 +238,34 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
 }
 
 void VKTexture::update_sub(
-    int mip, int offset[3], int extent_[3], eGPUDataFormat format, const void *data)
+    int mip, int offset_[3], int extent_[3], eGPUDataFormat format, const void *data)
 {
   BLI_assert(!is_texture_view());
 
   const bool is_compressed = (format_flag_ & GPU_FORMAT_COMPRESSED);
 
   int3 extent = int3(extent_[0], max_ii(extent_[1], 1), max_ii(extent_[2], 1));
+  int3 offset = int3(offset_[0], offset_[1], offset_[2]);
+  int layers = 1;
+  int start_layer = 0;
   if (type_ & GPU_TEXTURE_1D) {
+    layers = extent.y;
+    start_layer = offset.y;
     extent.y = 1;
     extent.z = 1;
+    offset.y = 0;
+    offset.z = 0;
   }
   if (type_ & (GPU_TEXTURE_2D | GPU_TEXTURE_CUBE)) {
+    layers = extent.z;
+    start_layer = offset.z;
     extent.z = 1;
+    offset.z = 0;
   }
 
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKContext &context = *VKContext::get();
-  int layers = vk_layer_count(1);
-  size_t sample_len = size_t(extent.x) * extent.y * extent.z;
+  size_t sample_len = size_t(extent.x) * extent.y * extent.z * layers;
   size_t device_memory_size = sample_len * to_bytesize(device_format_);
 
   if (is_compressed) {
@@ -283,12 +292,13 @@ void VKTexture::update_sub(
   copy_buffer_to_image.region.imageExtent.depth = extent.z;
   copy_buffer_to_image.region.bufferRowLength =
       context.state_manager_get().texture_unpack_row_length_get();
-  copy_buffer_to_image.region.imageOffset.x = offset[0];
-  copy_buffer_to_image.region.imageOffset.y = offset[1];
-  copy_buffer_to_image.region.imageOffset.z = offset[2];
+  copy_buffer_to_image.region.imageOffset.x = offset.x;
+  copy_buffer_to_image.region.imageOffset.y = offset.y;
+  copy_buffer_to_image.region.imageOffset.z = offset.z;
   copy_buffer_to_image.region.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(
       to_vk_image_aspect_flag_bits(device_format_), false);
   copy_buffer_to_image.region.imageSubresource.mipLevel = mip;
+  copy_buffer_to_image.region.imageSubresource.baseArrayLayer = start_layer;
   copy_buffer_to_image.region.imageSubresource.layerCount = layers;
 
   context.render_graph.add_node(copy_buffer_to_image);
