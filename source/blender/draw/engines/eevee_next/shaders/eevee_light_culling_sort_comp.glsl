@@ -55,6 +55,8 @@ void main()
         }
       }
     }
+
+    barrier();
   }
 
   if (valid_thread) {
