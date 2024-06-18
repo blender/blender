@@ -1148,8 +1148,6 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
     postEditBoneDuplicate(arm->edbo, ob);
 
-    ED_armature_edit_validate_active(arm);
-
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
   }
@@ -1423,8 +1421,6 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
     }
 
     postEditBoneDuplicate(arm->edbo, obedit);
-
-    ED_armature_edit_validate_active(arm);
 
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
     DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);

@@ -1291,7 +1291,6 @@ bool ED_armature_edit_select_op_from_tagged(bArmature *arm, const int sel_op)
     }
 
     ED_armature_edit_sync_selection(arm->edbo);
-    ED_armature_edit_validate_active(arm);
   }
 
   return changed;
