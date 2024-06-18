@@ -14,7 +14,11 @@ from bpy.props import (
     FloatVectorProperty,
     CollectionProperty,
 )
-from bpy.app.translations import pgettext_rpt as rpt_
+from bpy.app.translations import (
+    pgettext_rpt as rpt_,
+    contexts as i18n_contexts,
+)
+
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy_extras.node_utils import connect_sockets
 from mathutils import Vector
@@ -492,6 +496,7 @@ class NWAddAttrNode(Operator, NWBase):
 class NWFrameSelected(Operator, NWBase):
     bl_idname = "node.nw_frame_selected"
     bl_label = "Frame Selected"
+    bl_translation_context = i18n_contexts.id_nodetree
     bl_description = "Add a frame node and parent the selected nodes to it"
     bl_options = {'REGISTER', 'UNDO'}
 
