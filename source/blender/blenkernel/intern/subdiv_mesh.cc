@@ -557,7 +557,9 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
   CustomData_free(&subdiv_mesh.face_data, 0);
   CustomData_copy_layout(
       &coarse_mesh.face_data, &subdiv_mesh.face_data, mask.pmask, CD_SET_DEFAULT, num_faces);
-  subdiv_mesh.face_offsets_for_write().last() = num_loops;
+  if (num_faces != 0) {
+    subdiv_mesh.face_offsets_for_write().last() = num_loops;
+  }
 
   /* Create corner data for interpolation without topology attributes. */
   CustomData_copy(&coarse_mesh.corner_data,
