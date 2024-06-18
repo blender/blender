@@ -65,7 +65,7 @@ struct HorizonScanResult {
  */
 HorizonScanResult horizon_scan_eval(vec3 vP,
                                     vec3 vN,
-                                    vec3 noise,
+                                    vec4 noise,
                                     vec2 pixel_size,
                                     float search_distance,
                                     float thickness_near,
@@ -142,7 +142,7 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
           time += 1.0;
         }
 
-        float lod = 1.0 + float(j) * uniform_buf.ao.lod_factor;
+        float lod = 1.0 + saturate(float(j) - noise.w) * uniform_buf.ao.lod_factor;
 
         vec2 sample_uv = ssray.origin.xy + ssray.direction.xy * time;
         float sample_depth = textureLod(hiz_tx, sample_uv * uniform_buf.hiz.uv_scale, lod).r;
