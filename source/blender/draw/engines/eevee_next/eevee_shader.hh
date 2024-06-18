@@ -28,9 +28,10 @@ namespace blender::eevee {
 enum eShaderType {
   AMBIENT_OCCLUSION_PASS = 0,
 
-  FILM_FRAG,
+  FILM_COPY,
   FILM_COMP,
   FILM_CRYPTOMATTE_POST,
+  FILM_FRAG,
 
   DEFERRED_CAPTURE_EVAL,
   DEFERRED_COMBINE,

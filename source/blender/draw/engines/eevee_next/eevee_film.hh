@@ -55,6 +55,9 @@ class Film {
   /** Incoming combined buffer with post FX applied (motion blur + depth of field). */
   GPUTexture *combined_final_tx_ = nullptr;
 
+  /** Are we using the compute shader/pipeline. */
+  bool use_compute_;
+
   /**
    * Main accumulation textures containing every render-pass except depth, cryptomatte and
    * combined.
@@ -71,6 +74,7 @@ class Film {
   SwapChain<Texture, 2> weight_tx_;
 
   PassSimple accumulate_ps_ = {"Film.Accumulate"};
+  PassSimple copy_ps_ = {"Film.Copy"};
   PassSimple cryptomatte_post_ps_ = {"Film.Cryptomatte.Post"};
 
   FilmData &data_;
@@ -296,6 +300,8 @@ class Film {
    * Precompute sample weights if they are uniform across the whole film extent.
    */
   void update_sample_table();
+
+  void init_pass(PassSimple &pass, GPUShader *sh);
 };
 
 /** \} */
