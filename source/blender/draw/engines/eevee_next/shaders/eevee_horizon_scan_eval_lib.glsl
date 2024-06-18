@@ -156,16 +156,12 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
         const float bias = 2.0 * 2.4e-7;
         sample_depth += reversed ? -bias : bias;
 
-        vec3 vP_sample = drw_point_screen_to_view(vec3(sample_uv, sample_depth));
+        vec3 vP_sample_front = drw_point_screen_to_view(vec3(sample_uv, sample_depth));
+        vec3 vP_sample_back = vP_sample_front - vV * thickness_near;
 
         float sample_distance;
-        vec3 vL_front = normalize_and_get_length(vP_sample - vP, sample_distance);
-        if (sample_distance > search_distance) {
-          continue;
-        }
-
-        vec3 vL_back = normalize_and_get_length((vP_sample - vV * thickness_near) - vP,
-                                                sample_distance);
+        vec3 vL_front = normalize_and_get_length(vP_sample_front - vP, sample_distance);
+        vec3 vL_back = normalize(vP_sample_back - vP);
         if (sample_distance > search_distance) {
           continue;
         }
