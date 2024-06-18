@@ -3844,7 +3844,7 @@ static void do_brush_action(const Sculpt &sd,
           do_mask_brush(sd, ob, nodes);
           break;
         case BRUSH_MASK_SMOOTH:
-          smooth::do_smooth_mask_brush(sd, ob, nodes, ss.cache->bstrength);
+          do_smooth_mask_brush(sd, ob, nodes, ss.cache->bstrength);
           break;
       }
       break;
@@ -6785,6 +6785,42 @@ void scale_factors(const MutableSpan<float> factors, const float strength)
   }
   for (float &factor : factors) {
     factor *= strength;
+  }
+}
+
+OffsetIndices<int> create_node_vert_offsets(Span<PBVHNode *> nodes, Array<int> &node_data)
+{
+  node_data.reinitialize(nodes.size() + 1);
+  for (const int i : nodes.index_range()) {
+    node_data[i] = bke::pbvh::node_unique_verts(*nodes[i]).size();
+  }
+  return offset_indices::accumulate_counts_to_offsets(node_data);
+}
+
+void calc_vert_neighbors(const OffsetIndices<int> faces,
+                         const Span<int> corner_verts,
+                         const GroupedSpan<int> vert_to_face,
+                         const Span<bool> hide_poly,
+                         const Span<int> verts,
+                         const MutableSpan<Vector<int>> result)
+{
+  BLI_assert(result.size() == verts.size());
+  BLI_assert(corner_verts.size() == faces.total_size());
+  for (Vector<int> &vector : result) {
+    vector.clear();
+  }
+
+  for (const int i : verts.index_range()) {
+    const int vert = verts[i];
+    Vector<int> &neighbors = result[i];
+    for (const int face : vert_to_face[vert]) {
+      if (!hide_poly.is_empty() && hide_poly[face]) {
+        continue;
+      }
+      const int2 verts = bke::mesh::face_find_adjacent_verts(faces[face], corner_verts, vert);
+      neighbors.append_non_duplicates(verts[0]);
+      neighbors.append_non_duplicates(verts[1]);
+    }
   }
 }
 

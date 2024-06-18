@@ -1584,8 +1584,6 @@ float3 neighbor_coords_average_interior(const SculptSession &ss, PBVHVertRef ver
 
 void enhance_details_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 
-void do_smooth_mask_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes, float bstrength);
-
 /* Surface Smooth Brush. */
 
 void surface_smooth_laplacian_step(SculptSession &ss,

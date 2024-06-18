@@ -124,6 +124,7 @@ set(SRC
   brushes/multires_displacement_eraser.cc
   brushes/scrape.cc
   brushes/smooth.cc
+  brushes/smooth_mask.cc
 
   brushes/types.hh
 )

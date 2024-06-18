@@ -173,9 +173,16 @@ void write_translations(const Sculpt &sd,
                         MutableSpan<float3> positions_orig);
 
 /**
- * Find vertices connected to the indexed vertices across faces. For boundary vertices (stored in
- * the \a boundary_verts argument), only include other boundary vertices. Also skip connectivity
- * accross hidden faces and skip neighbors of corner vertices.
+ * Creates OffsetIndices based on each node's unique vertex count, allowing for easy slicing of a
+ * new array.
+ */
+OffsetIndices<int> create_node_vert_offsets(Span<PBVHNode *> nodes, Array<int> &node_data);
+
+/**
+ * Find vertices connected to the indexed vertices across faces.
+ *
+ * Does not handle boundary vertices differently, so this method is generally inappropriate for
+ * functions that are related to coordinates. See #calc_vert_neighbors_interior
  *
  * \note A vector allocated per element is typically not a good strategy for performance because
  * of each vector's 24 byte overhead, non-contiguous memory, and the possibility of further heap
@@ -184,6 +191,20 @@ void write_translations(const Sculpt &sd,
  *  2. We want to avoid using edges, and the remaining topology map we have access to is the
  *     vertex to face map. That requires deduplication when building the neighbors, which
  *     requires some intermediate data structure like a vector anyway.
+ */
+void calc_vert_neighbors(OffsetIndices<int> faces,
+                         Span<int> corner_verts,
+                         GroupedSpan<int> vert_to_face,
+                         Span<bool> hide_poly,
+                         Span<int> verts,
+                         MutableSpan<Vector<int>> result);
+
+/**
+ * Find vertices connected to the indexed vertices across faces. For boundary vertices (stored in
+ * the \a boundary_verts argument), only include other boundary vertices. Also skip connectivity
+ * accross hidden faces and skip neighbors of corner vertices.
+ *
+ * \note See #calc_vert_neighbors for information on why we use a Vector per element.
  */
 void calc_vert_neighbors_interior(OffsetIndices<int> faces,
                                   Span<int> corner_verts,
