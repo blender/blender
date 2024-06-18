@@ -1345,16 +1345,17 @@ class EXTENSIONS_OT_repo_add_from_drop(Operator):
         url_for_display = url_split[2] if url_split[2] else url
 
         layout = self.layout
-        col = layout.column()
-        lines = (
-            iface_("The dropped URL comes from an unknown repository from:"),
-            url_for_display,
-            iface_("You may optionally add this repository now."),
-            iface_("Once the repository has been created the URL"),
-            iface_("will need to be dropped again."),
-        )
-        for line in lines:
-            col.label(text=line, translate=False)
+        col = layout.column(align=True)
+        col.label(text="The dropped extension comes from an unknown repository.")
+        col.label(text="If you trust its source, add the repository and try again.")
+
+        col.separator()
+        if url_for_display:
+            box = col.box()
+            subcol = box.column(align=True)
+            subcol.label(text=iface_("URL: {:s}").format(url_for_display), translate=False)
+        else:
+            col.label(text="Alternatively download the extension to Install from Disk.")
 
 
 # Show a dialog when dropping an extensions for a disabled repository.
@@ -1367,6 +1368,7 @@ class EXTENSIONS_OT_repo_enable_from_drop(Operator):
 
     __slots__ = (
         "_repo_name",
+        "_repo_remote_url",
     )
 
     def invoke(self, context, _event):
@@ -1374,6 +1376,7 @@ class EXTENSIONS_OT_repo_enable_from_drop(Operator):
         if (repo := repo_lookup_by_index_or_none_with_report(self.repo_index, self.report)) is None:
             return {'CANCELLED'}
         self._repo_name = repo.name
+        self._repo_remote_url = repo.remote_url
 
         wm = context.window_manager
         wm.invoke_props_dialog(
@@ -1394,13 +1397,14 @@ class EXTENSIONS_OT_repo_enable_from_drop(Operator):
     def draw(self, _context):
         layout = self.layout
         col = layout.column()
-        lines = (
-            iface_("The dropped URL comes from a disabled repository:"),
-            self._repo_name,
-            iface_("Enabled the repository before dropping again or cancel."),
-        )
-        for line in lines:
-            col.label(text=line, translate=False)
+        col.label(text="The dropped extension comes from a disabled repository.")
+        col.label(text="Enable the repository and try again.")
+        col.separator()
+
+        box = col.box()
+        subcol = box.column(align=True)
+        subcol.label(text=iface_("Name: {:s}").format(self._repo_name), translate=False)
+        subcol.label(text=iface_("URL: {:s}").format(self._repo_remote_url), translate=False)
 
 
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
@@ -2329,6 +2333,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         return self.execute(context)
 
     def _invoke_for_drop(self, context, _event):
+        import string
         from .bl_extension_utils import url_parse_for_blender
 
         url = self.url
@@ -2353,15 +2358,14 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
 
         if repo_index == -1:
-            # The `remote_url` may not be defined, in this case there is not much we can do.
-            if not remote_url:
-                self.report({'ERROR'}, "Extension: URL not found in remote repositories!\n{:s}".format(url))
-            else:
-                bpy.ops.extensions.repo_add_from_drop('INVOKE_DEFAULT', url=remote_url)
+            bpy.ops.extensions.repo_add_from_drop('INVOKE_DEFAULT', url="" if remote_url is None else remote_url)
             return {'CANCELLED'}
 
         if item_local is not None:
-            self.report({'ERROR'}, "Extension: \"{:s}\" Already installed!".format(pkg_id))
+            self.report({'ERROR'}, iface_("{:s} \"{:s}\" already installed!").format(
+                iface_(string.capwords(item_local.type)),
+                item_local.name,
+            ))
             return {'CANCELLED'}
 
         self._drop_variables = repo_index, repo_name, pkg_id, item_remote
