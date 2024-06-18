@@ -15,6 +15,7 @@
 #include "BLI_hash.h"
 #include "BLI_rect.h"
 
+#include "GPU_debug.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_texture.hh"
 
@@ -436,61 +437,34 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
 void Film::sync()
 {
-  /* We use a fragment shader for viewport because we need to output the depth. */
-  bool use_compute = (inst_.is_viewport() == false);
+  /* We use a fragment shader for viewport because we need to output the depth.
+   *
+   * Compute shader is also used to work around Metal/Intel iGPU issues concerning
+   * read write support for array textures. In this case the copy_ps_ is used to
+   * copy the right color/value to the framebuffer. */
+  use_compute_ = !inst_.is_viewport() ||
+                 GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY);
 
-  eShaderType shader = use_compute ? FILM_COMP : FILM_FRAG;
+  eShaderType shader = use_compute_ ? FILM_COMP : FILM_FRAG;
 
   /* TODO(fclem): Shader variation for panoramic & scaled resolution. */
 
-  RenderBuffers &rbuffers = inst_.render_buffers;
-  VelocityModule &velocity = inst_.velocity;
-
-  GPUSamplerState filter = {GPU_SAMPLER_FILTERING_LINEAR};
-
-  /* For viewport, only previous motion is supported.
-   * Still bind previous step to avoid undefined behavior. */
-  eVelocityStep step_next = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
-
   GPUShader *sh = inst_.shaders.static_shader_get(shader);
   accumulate_ps_.init();
-  accumulate_ps_.specialize_constant(sh, "enabled_categories", uint(enabled_categories_));
-  accumulate_ps_.specialize_constant(sh, "samples_len", &data_.samples_len);
-  accumulate_ps_.specialize_constant(sh, "use_reprojection", &use_reprojection_);
-  accumulate_ps_.specialize_constant(sh, "scaling_factor", data_.scaling_factor);
-  accumulate_ps_.specialize_constant(sh, "combined_id", &data_.combined_id);
-  accumulate_ps_.specialize_constant(sh, "display_id", &data_.display_id);
-  accumulate_ps_.specialize_constant(sh, "normal_id", &data_.normal_id);
-  accumulate_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
-  accumulate_ps_.shader_set(sh);
-  accumulate_ps_.bind_resources(inst_.uniform_data);
-  accumulate_ps_.bind_ubo("camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
-  accumulate_ps_.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
-  accumulate_ps_.bind_ubo("camera_next", &(*velocity.camera_steps[step_next]));
-  accumulate_ps_.bind_texture("depth_tx", &rbuffers.depth_tx);
-  accumulate_ps_.bind_texture("combined_tx", &combined_final_tx_);
-  accumulate_ps_.bind_texture("vector_tx", &rbuffers.vector_tx);
-  accumulate_ps_.bind_texture("rp_color_tx", &rbuffers.rp_color_tx);
-  accumulate_ps_.bind_texture("rp_value_tx", &rbuffers.rp_value_tx);
-  accumulate_ps_.bind_texture("cryptomatte_tx", &rbuffers.cryptomatte_tx);
-  /* NOTE(@fclem): 16 is the max number of sampled texture in many implementations.
-   * If we need more, we need to pack more of the similar passes in the same textures as arrays or
-   * use image binding instead. */
-  accumulate_ps_.bind_image("in_weight_img", &weight_tx_.current());
-  accumulate_ps_.bind_image("out_weight_img", &weight_tx_.next());
-  accumulate_ps_.bind_texture("in_combined_tx", &combined_tx_.current(), filter);
-  accumulate_ps_.bind_image("out_combined_img", &combined_tx_.next());
-  accumulate_ps_.bind_image("depth_img", &depth_tx_);
-  accumulate_ps_.bind_image("color_accum_img", &color_accum_tx_);
-  accumulate_ps_.bind_image("value_accum_img", &value_accum_tx_);
-  accumulate_ps_.bind_image("cryptomatte_img", &cryptomatte_tx_);
+  init_pass(accumulate_ps_, sh);
   /* Sync with rendering passes. */
   accumulate_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
-  if (use_compute) {
+  if (use_compute_) {
     accumulate_ps_.dispatch(int3(math::divide_ceil(data_.extent, int2(FILM_GROUP_SIZE)), 1));
   }
   else {
     accumulate_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  }
+
+  copy_ps_.init();
+  if (use_compute_ && inst_.is_viewport()) {
+    init_pass(copy_ps_, inst_.shaders.static_shader_get(FILM_COPY));
+    copy_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
   const int cryptomatte_layer_count = cryptomatte_layer_len_get();
@@ -509,6 +483,49 @@ void Film::sync()
     cryptomatte_post_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
     cryptomatte_post_ps_.dispatch(int3(UNPACK2(dispatch_size), 1));
   }
+}
+
+void Film::init_pass(PassSimple &pass, GPUShader *sh)
+{
+  GPUSamplerState filter = {GPU_SAMPLER_FILTERING_LINEAR};
+  RenderBuffers &rbuffers = inst_.render_buffers;
+  VelocityModule &velocity = inst_.velocity;
+
+  pass.specialize_constant(sh, "enabled_categories", uint(enabled_categories_));
+  pass.specialize_constant(sh, "samples_len", &data_.samples_len);
+  pass.specialize_constant(sh, "use_reprojection", &use_reprojection_);
+  pass.specialize_constant(sh, "scaling_factor", data_.scaling_factor);
+  pass.specialize_constant(sh, "combined_id", &data_.combined_id);
+  pass.specialize_constant(sh, "display_id", &data_.display_id);
+  pass.specialize_constant(sh, "normal_id", &data_.normal_id);
+  pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+  pass.shader_set(sh);
+  /* For viewport, only previous motion is supported.
+   * Still bind previous step to avoid undefined behavior. */
+  eVelocityStep step_next = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
+
+  pass.bind_resources(inst_.uniform_data);
+  pass.bind_ubo("camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
+  pass.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
+  pass.bind_ubo("camera_next", &(*velocity.camera_steps[step_next]));
+  pass.bind_texture("depth_tx", &rbuffers.depth_tx);
+  pass.bind_texture("combined_tx", &combined_final_tx_);
+  pass.bind_texture("vector_tx", &rbuffers.vector_tx);
+  pass.bind_texture("rp_color_tx", &rbuffers.rp_color_tx);
+  pass.bind_texture("rp_value_tx", &rbuffers.rp_value_tx);
+  pass.bind_texture("cryptomatte_tx", &rbuffers.cryptomatte_tx);
+  /* NOTE(@fclem): 16 is the max number of sampled texture in many implementations.
+   * If we need more, we need to pack more of the similar passes in the same textures as arrays or
+   * use image binding instead. */
+  pass.bind_image("in_weight_img", &weight_tx_.current());
+  pass.bind_image("out_weight_img", &weight_tx_.next());
+  pass.bind_texture("in_combined_tx", &combined_tx_.current(), filter);
+  pass.bind_image("out_combined_img", &combined_tx_.next());
+  pass.bind_image("depth_img", &depth_tx_);
+  pass.bind_image("color_accum_img", &color_accum_tx_);
+  pass.bind_image("value_accum_img", &value_accum_tx_);
+  pass.bind_image("cryptomatte_img", &cryptomatte_tx_);
+  copy_ps_.bind_resources(inst_.uniform_data);
 }
 
 void Film::end_sync()
@@ -678,6 +695,7 @@ void Film::accumulate(View &view, GPUTexture *combined_final_tx)
   inst_.uniform_data.push_update();
 
   inst_.manager->submit(accumulate_ps_, view);
+  inst_.manager->submit(copy_ps_, view);
 
   combined_tx_.swap();
   weight_tx_.swap();

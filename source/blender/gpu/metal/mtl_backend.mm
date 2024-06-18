@@ -207,6 +207,7 @@ void MTLBackend::platform_init(MTLContext *ctx)
   else if (strstr(vendor, "Intel")) {
     device = GPU_DEVICE_INTEL;
     driver = GPU_DRIVER_OFFICIAL;
+    support_level = GPU_SUPPORT_LEVEL_LIMITED;
   }
   else if (strstr(vendor, "Apple") || strstr(vendor, "APPLE")) {
     /* Apple Silicon. */
