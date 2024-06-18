@@ -47,7 +47,7 @@ class GpencilExporterPDF : public GpencilExporter {
    * \param do_fill: True if the stroke is only fill
    */
   void export_stroke_to_polyline(
-      bGPDlayer *gpl, bGPDstroke *gps, bool is_stroke, bool do_fill, bool normalize);
+      bGPdata *gpd, bGPDlayer *gpl, bGPDstroke *gps, bool is_stroke, bool do_fill, bool normalize);
   /**
    * Set color.
    * \param do_fill: True if the stroke is only fill.
