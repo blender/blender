@@ -1395,6 +1395,12 @@ BLI_STATIC_ASSERT_ALIGN(ShadowPagesInfoData, 16)
 
 struct ShadowStatistics {
   /** Statistics that are read back to CPU after a few frame (to avoid stall). */
+  /**
+   * WARNING: Excepting `view_needed_count` it is uncertain if these are accurate.
+   * This is because `eevee_shadow_page_allocate_comp` runs on all pages even for
+   * directional. There might be some lingering states somewhere as relying on
+   * `page_update_count` was causing non-deterministic infinite loop. Needs further investigation.
+   */
   int page_used_count;
   int page_update_count;
   int page_allocated_count;
