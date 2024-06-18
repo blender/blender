@@ -19,10 +19,17 @@ OSL_CLOSURE_STRUCT_BEGIN(Diffuse, diffuse)
   OSL_CLOSURE_STRUCT_MEMBER(Diffuse, VECTOR, packed_float3, N, NULL)
 OSL_CLOSURE_STRUCT_END(Diffuse, diffuse)
 
+/* Deprecated form, will be removed in OSL 2.0. */
 OSL_CLOSURE_STRUCT_BEGIN(OrenNayar, oren_nayar)
   OSL_CLOSURE_STRUCT_MEMBER(OrenNayar, VECTOR, packed_float3, N, NULL)
   OSL_CLOSURE_STRUCT_MEMBER(OrenNayar, FLOAT, float, roughness, NULL)
 OSL_CLOSURE_STRUCT_END(OrenNayar, oren_nayar)
+
+OSL_CLOSURE_STRUCT_BEGIN(OrenNayarDiffuseBSDF, oren_nayar_diffuse_bsdf)
+  OSL_CLOSURE_STRUCT_MEMBER(OrenNayarDiffuseBSDF, VECTOR, packed_float3, N, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(OrenNayarDiffuseBSDF, VECTOR, packed_float3, albedo, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(OrenNayarDiffuseBSDF, FLOAT, float, roughness, NULL)
+OSL_CLOSURE_STRUCT_END(OrenNayarDiffuseBSDF, oren_nayar)
 
 OSL_CLOSURE_STRUCT_BEGIN(Translucent, translucent)
   OSL_CLOSURE_STRUCT_MEMBER(Translucent, VECTOR, packed_float3, N, NULL)

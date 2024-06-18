@@ -2613,7 +2613,7 @@ DiffuseBsdfNode::DiffuseBsdfNode() : BsdfNode(get_node_type())
 
 void DiffuseBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler, input("Roughness"), NULL);
+  BsdfNode::compile(compiler, input("Roughness"), nullptr, input("Color"));
 }
 
 void DiffuseBsdfNode::compile(OSLCompiler &compiler)
