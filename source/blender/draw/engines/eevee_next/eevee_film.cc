@@ -253,6 +253,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
         data_.scaling_factor = BKE_render_preview_pixel_size(&inst_.scene->r);
       }
     }
+    /* Sharpen the LODs (1.5x) to avoid TAA filtering causing over-blur (see #122941). */
+    data_.texture_lod_bias = 1.0f / (data_.scaling_factor * 1.5f);
   }
   {
     rcti fallback_rect;
