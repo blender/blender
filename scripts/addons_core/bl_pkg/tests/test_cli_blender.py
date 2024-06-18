@@ -36,6 +36,8 @@ from typing import (
 # pylint: disable-next=protected-access
 unittest.util._MAX_LENGTH = 10_000
 
+PKG_EXT = ".zip"
+
 PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 
 VERBOSE_CMD = False
@@ -401,7 +403,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
     ) -> None:
         if pkg_filename is None:
             pkg_filename = pkg_idname
-        pkg_output_filepath = os.path.join(TEMP_DIR_REMOTE, pkg_filename + ".zip")
+        pkg_output_filepath = os.path.join(TEMP_DIR_REMOTE, pkg_filename + PKG_EXT)
         with tempfile.TemporaryDirectory() as package_build_dir:
             create_package(
                 package_build_dir,
@@ -422,10 +424,10 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             self.assertEqual(
                 stdout,
                 (
-                    "Building {:s}.zip\n"
+                    "building: {:s}{:s}\n"
                     "complete\n"
-                    "created \"{:s}\", {:d}\n"
-                ).format(pkg_filename, pkg_output_filepath, os.path.getsize(pkg_output_filepath)),
+                    "created: \"{:s}\", {:d}\n"
+                ).format(pkg_filename, PKG_EXT, pkg_output_filepath, os.path.getsize(pkg_output_filepath)),
             )
 
 

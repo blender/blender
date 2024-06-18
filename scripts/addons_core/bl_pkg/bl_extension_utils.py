@@ -695,6 +695,11 @@ def pkg_manifest_archive_url_abs_from_remote_url(remote_url: str, archive_url: s
     return archive_url
 
 
+def pkg_manifest_dict_apply_build_generated_table(manifest_dict: Dict[str, Any]) -> None:
+    from .cli.blender_ext import pkg_manifest_dict_apply_build_generated_table as fn
+    fn(manifest_dict)
+
+
 def pkg_is_legacy_addon(filepath: str) -> bool:
     from .cli.blender_ext import pkg_is_legacy_addon as pkg_is_legacy_addon_extern
     result = pkg_is_legacy_addon_extern(filepath)
@@ -1233,6 +1238,10 @@ def repository_filter_packages(
         )) is None:
             continue
 
+        # No need to call: `pkg_manifest_dict_apply_build_generated_table(item_local)`
+        # Because these values will have been applied when generating the JSON.
+        assert "generated" not in item.get("build", {})
+
         if repository_filter_skip(item, filter_params, error_fn):
             continue
 
@@ -1497,6 +1506,9 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
                     error_fn=error_fn,
             )) is None:
                 continue
+
+            # Apply generated variables before filtering.
+            pkg_manifest_dict_apply_build_generated_table(item_local)
 
             if repository_filter_skip(item_local, self._filter_params, error_fn):
                 continue
