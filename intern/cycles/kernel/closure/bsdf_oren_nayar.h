@@ -24,6 +24,10 @@ static_assert(sizeof(ShaderClosure) >= sizeof(OrenNayarBsdf), "OrenNayarBsdf is 
 
 ccl_device_inline float bsdf_oren_nayar_G(const float cosTheta)
 {
+  if (cosTheta < 1e-6f) {
+    /* The tan(theta) term starts to act up at low cosTheta, so fall back to Taylor expansion. */
+    return (M_PI_2_F - 2.0f / 3.0f) - cosTheta;
+  }
   const float sinTheta = sin_from_cos(cosTheta);
   const float theta = safe_acosf(cosTheta);
   return sinTheta * (theta - 2.0f / 3.0f - sinTheta * cosTheta) +
