@@ -226,7 +226,7 @@ void extract_edit_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
   GPU_vertbuf_init_with_format(vbo, get_edit_data_format());
   const int size = mr.corners_num + mr.loose_indices_num;
   GPU_vertbuf_data_alloc(vbo, size);
-  MutableSpan vbo_data(static_cast<EditLoopData *>(GPU_vertbuf_get_data(vbo)), size);
+  MutableSpan vbo_data = vbo.data<EditLoopData>();
   if (mr.extract_type == MR_EXTRACT_MESH) {
     extract_edit_data_mesh(mr, vbo_data);
   }
@@ -243,11 +243,9 @@ static void extract_edit_subdiv_data_mesh(const MeshRenderData &mr,
   const int loose_edges_num = mr.loose_edges.size();
   const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index, corners_num);
-  const Span<int> subdiv_loop_vert_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.verts_orig_index)), corners_num);
+  const Span<int> subdiv_loop_vert_index = subdiv_cache.verts_orig_index->data<int>();
   /* NOTE: #subdiv_loop_edge_index already has the origindex layer baked in. */
-  const Span<int> subdiv_loop_edge_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.edges_orig_index)), corners_num);
+  const Span<int> subdiv_loop_edge_index = subdiv_cache.edges_orig_index->data<int>();
 
   MutableSpan corners_data = vbo_data.take_front(corners_num);
   MutableSpan loose_edge_data = vbo_data.slice(corners_num, loose_edges_num * verts_per_edge);
@@ -323,10 +321,8 @@ static void extract_edit_subdiv_data_bm(const MeshRenderData &mr,
   const int loose_edges_num = mr.loose_edges.size();
   const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index, corners_num);
-  const Span<int> subdiv_loop_vert_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.verts_orig_index)), corners_num);
-  const Span<int> subdiv_loop_edge_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.edges_orig_index)), corners_num);
+  const Span<int> subdiv_loop_vert_index = subdiv_cache.verts_orig_index->data<int>();
+  const Span<int> subdiv_loop_edge_index = subdiv_cache.edges_orig_index->data<int>();
 
   MutableSpan corners_data = vbo_data.take_front(corners_num);
   MutableSpan loose_edge_data = vbo_data.slice(corners_num, loose_edges_num * verts_per_edge);
@@ -388,7 +384,7 @@ void extract_edit_data_subdiv(const MeshRenderData &mr,
   GPU_vertbuf_init_with_format(vbo, get_edit_data_format());
   const int size = subdiv_full_vbo_size(mr, subdiv_cache);
   GPU_vertbuf_data_alloc(vbo, size);
-  MutableSpan vbo_data(static_cast<EditLoopData *>(GPU_vertbuf_get_data(vbo)), size);
+  MutableSpan vbo_data = vbo.data<EditLoopData>();
   if (mr.extract_type == MR_EXTRACT_MESH) {
     extract_edit_subdiv_data_mesh(mr, subdiv_cache, vbo_data);
   }

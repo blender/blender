@@ -264,10 +264,6 @@ static void create_points_position_time_vbo(const bke::CurvesGeometry &curves,
       format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
   GPU_vertbuf_data_alloc(*cache.proc_point_buf, cache.points_num);
 
-  MutableSpan posTime_data{
-      static_cast<PositionAndParameter *>(GPU_vertbuf_get_data(*cache.proc_point_buf)),
-      cache.points_num};
-
   GPUVertFormat length_format = {0};
   GPU_vertformat_attr_add(&length_format, "hairLength", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
@@ -276,11 +272,10 @@ static void create_points_position_time_vbo(const bke::CurvesGeometry &curves,
   GPU_vertbuf_data_alloc(*cache.proc_length_buf, cache.curves_num);
 
   /* TODO: Only create hairLength VBO when necessary. */
-  MutableSpan hairLength_data{static_cast<float *>(GPU_vertbuf_get_data(*cache.proc_length_buf)),
-                              cache.curves_num};
-
-  fill_points_position_time_vbo(
-      curves.points_by_curve(), curves.positions(), posTime_data, hairLength_data);
+  fill_points_position_time_vbo(curves.points_by_curve(),
+                                curves.positions(),
+                                cache.proc_point_buf->data<PositionAndParameter>(),
+                                cache.proc_length_buf->data<float>());
 }
 
 static uint32_t bezier_data_value(int8_t left_handle_type, int8_t right_handle_type)
@@ -317,19 +312,15 @@ static void create_edit_points_position_and_data(
   GPU_vertbuf_init_with_format(*cache.edit_points_data, format_data);
   GPU_vertbuf_data_alloc(*cache.edit_points_data, size);
 
-  float3 *pos_buffer_data = static_cast<float3 *>(GPU_vertbuf_get_data(*cache.edit_points_pos));
-  uint32_t *data_buffer_data = static_cast<uint32_t *>(
-      GPU_vertbuf_get_data(*cache.edit_points_data));
+  MutableSpan<float3> pos_dst = cache.edit_points_pos->data<float3>();
+  pos_dst.take_front(deformed_positions.size()).copy_from(deformed_positions);
 
-  MutableSpan<float3> pos_dst(pos_buffer_data, deformed_positions.size());
-  pos_dst.copy_from(deformed_positions);
+  MutableSpan<uint32_t> data_dst = cache.edit_points_data->data<uint32_t>();
 
-  MutableSpan<uint32_t> data_dst(data_buffer_data, size);
-
-  MutableSpan<uint32_t> handle_data_left(data_buffer_data + deformed_positions.size(),
+  MutableSpan<uint32_t> handle_data_left(data_dst.data() + deformed_positions.size(),
                                          bezier_point_count);
   MutableSpan<uint32_t> handle_data_right(
-      data_buffer_data + deformed_positions.size() + bezier_point_count, bezier_point_count);
+      data_dst.data() + deformed_positions.size() + bezier_point_count, bezier_point_count);
 
   const Span<float3> left_handle_positions = curves.handle_positions_left();
   const Span<float3> right_handle_positions = curves.handle_positions_right();
@@ -371,10 +362,9 @@ static void create_edit_points_position_and_data(
     return;
   }
 
-  MutableSpan<float3> left_handles(pos_buffer_data + deformed_positions.size(),
-                                   bezier_point_count);
+  MutableSpan<float3> left_handles(pos_dst.data() + deformed_positions.size(), bezier_point_count);
   MutableSpan<float3> right_handles(
-      pos_buffer_data + deformed_positions.size() + bezier_point_count, bezier_point_count);
+      pos_dst.data() + deformed_positions.size() + bezier_point_count, bezier_point_count);
 
   /* TODO: Use deformed left_handle_positions and left_handle_positions. */
   array_utils::gather_group_to_group(
@@ -395,8 +385,7 @@ static void create_edit_points_selection(const bke::CurvesGeometry &curves,
   const int vert_count = curves.points_num() + bezier_point_count * 2;
   GPU_vertbuf_init_with_format(*cache.edit_points_selection, format_data);
   GPU_vertbuf_data_alloc(*cache.edit_points_selection, vert_count);
-  MutableSpan<float> data(static_cast<float *>(GPU_vertbuf_get_data(*cache.edit_points_selection)),
-                          vert_count);
+  MutableSpan<float> data = cache.edit_points_selection->data<float>();
 
   const VArray<float> attribute = *curves.attributes().lookup_or_default<float>(
       ".selection", bke::AttrDomain::Point, 1.0f);
@@ -548,9 +537,7 @@ static void ensure_control_point_attribute(const Curves &curves,
   bke::AttributeReader<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
       request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
 
-  MutableSpan<ColorGeometry4f> vbo_span{
-      static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(attr_vbo)),
-      attributes.domain_size(request.domain)};
+  MutableSpan<ColorGeometry4f> vbo_span = attr_vbo.data<ColorGeometry4f>();
 
   attribute.varray.materialize(vbo_span);
 }

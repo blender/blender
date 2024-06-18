@@ -453,8 +453,8 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
     /* Add extra space at the end of the buffer because of quad load. */
     GPU_vertbuf_data_alloc(*cache->vbo, iter.vert_len + 2);
     GPU_vertbuf_data_alloc(*cache->vbo_col, iter.vert_len + 2);
-    iter.verts = (gpStrokeVert *)GPU_vertbuf_get_data(*cache->vbo);
-    iter.cols = (gpColorVert *)GPU_vertbuf_get_data(*cache->vbo_col);
+    iter.verts = cache->vbo->data<gpStrokeVert>().data();
+    iter.cols = cache->vbo_col->data<gpColorVert>().data();
     /* Create IBO. */
     GPU_indexbuf_init(&iter.ibo, GPU_PRIM_TRIS, iter.tri_len, 0xFFFFFFFFu);
 
@@ -634,8 +634,8 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
     /* Add extra space at the start and end the buffer because of quad load and cyclic. */
     GPU_vertbuf_data_alloc(*vbo, 1 + vert_len + 1 + 2);
     GPU_vertbuf_data_alloc(*vbo_col, 1 + vert_len + 1 + 2);
-    gpStrokeVert *verts = (gpStrokeVert *)GPU_vertbuf_get_data(*vbo);
-    gpColorVert *cols = (gpColorVert *)GPU_vertbuf_get_data(*vbo_col);
+    gpStrokeVert *verts = vbo->data<gpStrokeVert>().data();
+    gpColorVert *cols = vbo_col->data<gpColorVert>().data();
 
     /* Create fill indices. */
     if (do_fill && gps->tot_triangles > 0) {
@@ -898,7 +898,7 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
     cache->edit_vbo = GPU_vertbuf_create_with_format(*format);
     /* Add extra space at the end of the buffer because of quad load. */
     GPU_vertbuf_data_alloc(*cache->edit_vbo, vert_len);
-    iter.verts = (gpEditVert *)GPU_vertbuf_get_data(*cache->edit_vbo);
+    iter.verts = cache->edit_vbo->data<gpEditVert>().data();
 
     /* Fill buffers with data. */
     BKE_gpencil_visible_stroke_advanced_iter(
@@ -935,7 +935,7 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
     if (vert_len > 0) {
 
       GPU_vertbuf_data_alloc(*cache->edit_curve_vbo, vert_len);
-      iter.verts = (gpEditCurveVert *)GPU_vertbuf_get_data(*cache->edit_curve_vbo);
+      iter.verts = cache->edit_curve_vbo->data<gpEditCurveVert>().data();
 
       /* Fill buffers with data. */
       BKE_gpencil_visible_stroke_advanced_iter(

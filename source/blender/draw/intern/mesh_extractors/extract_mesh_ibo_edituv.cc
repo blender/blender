@@ -251,9 +251,7 @@ static void extract_edituv_lines_subdiv_bm(const MeshRenderData &mr,
                                            GPUIndexBufBuilder &builder)
 {
   const BMesh &bm = *mr.bm;
-  const Span<int> subdiv_loop_edge_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.edges_orig_index)),
-      subdiv_cache.num_subdiv_loops);
+  const Span<int> subdiv_loop_edge_index = subdiv_cache.edges_orig_index->data<int>();
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index,
                                          subdiv_cache.num_subdiv_loops);
 
@@ -281,9 +279,7 @@ static void extract_edituv_lines_subdiv_mesh(const MeshRenderData &mr,
                                              GPUIndexBufBuilder &builder)
 {
   /* NOTE: #subdiv_loop_edge_index already has the #CD_ORIGINDEX layer baked in. */
-  const Span<int> subdiv_loop_edge_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.edges_orig_index)),
-      subdiv_cache.num_subdiv_loops);
+  const Span<int> subdiv_loop_edge_index = subdiv_cache.edges_orig_index->data<int>();
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index,
                                          subdiv_cache.num_subdiv_loops);
   /* TODO: Replace subdiv quad iteration with coarse face iteration. */
@@ -409,9 +405,7 @@ static void extract_edituv_points_subdiv_bm(const MeshRenderData &mr,
                                             GPUIndexBufBuilder &builder)
 {
   const BMesh &bm = *mr.bm;
-  const Span<int> subdiv_loop_vert_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.verts_orig_index)),
-      subdiv_cache.num_subdiv_loops);
+  const Span<int> subdiv_loop_vert_index = subdiv_cache.verts_orig_index->data<int>();
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index,
                                          subdiv_cache.num_subdiv_loops);
 
@@ -436,9 +430,7 @@ static void extract_edituv_points_subdiv_mesh(const MeshRenderData &mr,
                                               const bool sync_selection,
                                               GPUIndexBufBuilder &builder)
 {
-  const Span<int> subdiv_loop_vert_index(
-      static_cast<const int *>(GPU_vertbuf_get_data(*subdiv_cache.verts_orig_index)),
-      subdiv_cache.num_subdiv_loops);
+  const Span<int> subdiv_loop_vert_index = subdiv_cache.verts_orig_index->data<int>();
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index,
                                          subdiv_cache.num_subdiv_loops);
 

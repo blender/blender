@@ -20,7 +20,7 @@ void extract_face_dots_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
   }
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.faces_num);
-  MutableSpan vbo_data(static_cast<EditLoopData *>(GPU_vertbuf_get_data(vbo)), mr.faces_num);
+  MutableSpan vbo_data = vbo.data<EditLoopData>();
   const BMesh &bm = *mr.bm;
   const BMUVOffsets offsets = BM_uv_map_get_offsets(&bm);
   if (mr.extract_type == MR_EXTRACT_BMESH) {

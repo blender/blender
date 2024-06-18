@@ -192,7 +192,7 @@ void extract_tangents(const MeshRenderData &mr,
   GPU_vertbuf_data_alloc(vbo, v_len);
 
   if (use_hq) {
-    short(*tan_data)[4] = (short(*)[4])GPU_vertbuf_get_data(vbo);
+    short4 *tan_data = vbo.data<short4>().data();
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
@@ -214,7 +214,7 @@ void extract_tangents(const MeshRenderData &mr,
     }
   }
   else {
-    GPUPackedNormal *tan_data = (GPUPackedNormal *)GPU_vertbuf_get_data(vbo);
+    GPUPackedNormal *tan_data = vbo.data<GPUPackedNormal>().data();
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
@@ -283,7 +283,7 @@ void extract_tangents_subdiv(const MeshRenderData &mr,
    */
   int pack_layer_index = 0;
   for (int i = 0; i < tan_len; i++) {
-    float(*tan_data)[4] = (float(*)[4])GPU_vertbuf_get_data(*coarse_vbo);
+    float4 *tan_data = coarse_vbo->data<float4>().data();
     const char *name = tangent_names[i];
     const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
         &corner_data, CD_TANGENT, name);
@@ -300,7 +300,7 @@ void extract_tangents_subdiv(const MeshRenderData &mr,
     draw_subdiv_interp_custom_data(subdiv_cache, *coarse_vbo, vbo, GPU_COMP_F32, 4, dst_offset);
   }
   if (use_orco_tan) {
-    float(*tan_data)[4] = (float(*)[4])GPU_vertbuf_get_data(*coarse_vbo);
+    float4 *tan_data = coarse_vbo->data<float4>().data();
     const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
         &corner_data, CD_TANGENT, 0);
     for (int corner = 0; corner < mr.corners_num; corner++) {

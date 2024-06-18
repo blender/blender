@@ -211,7 +211,7 @@ static int pygpu_vertbuf_fill(blender::gpu::VertBuf *buf,
     return 0;
   }
 
-  if (GPU_vertbuf_get_data(*buf) == nullptr) {
+  if (buf->data<char>().data() == nullptr) {
     PyErr_SetString(PyExc_ValueError, "Can't fill, static buffer already in use");
     return 0;
   }

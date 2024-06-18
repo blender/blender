@@ -76,8 +76,7 @@ void extract_positions(const MeshRenderData &mr, gpu::VertBuf &vbo)
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
 
-  MutableSpan vbo_data(static_cast<float3 *>(GPU_vertbuf_get_data(vbo)),
-                       GPU_vertbuf_get_vertex_len(&vbo));
+  MutableSpan vbo_data = vbo.data<float3>();
   if (mr.extract_type == MR_EXTRACT_MESH) {
     extract_positions_mesh(mr, vbo_data);
   }
@@ -200,7 +199,7 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
   }
   GPU_vertbuf_init_with_format(*flags_buffer, flag_format);
   GPU_vertbuf_data_alloc(*flags_buffer, divide_ceil_u(mr.verts_num, 4));
-  char *flags = static_cast<char *>(GPU_vertbuf_get_data(*flags_buffer));
+  char *flags = flags_buffer->data<char>().data();
   extract_vertex_flags(mr, flags);
   GPU_vertbuf_tag_dirty(flags_buffer);
 
@@ -220,15 +219,12 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
 
   if (subdiv_cache.use_custom_loop_normals) {
     const Mesh *coarse_mesh = subdiv_cache.mesh;
-    const Span<float3> corner_normals = coarse_mesh->corner_normals();
 
     gpu::VertBuf *src_custom_normals = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format(*src_custom_normals, get_custom_normals_format());
     GPU_vertbuf_data_alloc(*src_custom_normals, coarse_mesh->corners_num);
 
-    memcpy(GPU_vertbuf_get_data(*src_custom_normals),
-           corner_normals.data(),
-           corner_normals.size_in_bytes());
+    src_custom_normals->data<float3>().copy_from(coarse_mesh->corner_normals());
 
     gpu::VertBuf *dst_custom_normals = GPU_vertbuf_calloc();
     GPU_vertbuf_init_build_on_device(

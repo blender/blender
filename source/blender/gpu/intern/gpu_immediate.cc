@@ -227,7 +227,7 @@ blender::gpu::Batch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
   VertBuf *verts = GPU_vertbuf_create_with_format(imm->vertex_format);
   GPU_vertbuf_data_alloc(*verts, vertex_len);
 
-  imm->vertex_data = (uchar *)GPU_vertbuf_get_data(*verts);
+  imm->vertex_data = verts->data<uchar>().data();
 
   imm->batch = GPU_batch_create_ex(prim_type, verts, nullptr, GPU_BATCH_OWNS_VBO);
   imm->batch->flag |= GPU_BATCH_BUILDING;

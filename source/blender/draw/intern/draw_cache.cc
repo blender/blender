@@ -823,7 +823,7 @@ void DRW_vertbuf_create_wiredata(blender::gpu::VertBuf *vbo, const int vert_len)
   GPU_vertbuf_data_alloc(*vbo, vert_len);
 
   if (GPU_vertbuf_get_format(vbo)->stride == 1) {
-    memset(GPU_vertbuf_get_data(*vbo), 0xFF, size_t(vert_len));
+    memset(vbo->data<uint8_t>().data(), 0xFF, size_t(vert_len));
   }
   else {
     GPUVertBufRaw wd_step;

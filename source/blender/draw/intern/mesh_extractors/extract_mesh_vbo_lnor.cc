@@ -210,7 +210,7 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
     }
     GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, size);
-    MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(vbo)), size);
+    MutableSpan vbo_data = vbo.data<short4>();
     MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
     MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
 
@@ -232,7 +232,7 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
     }
     GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, size);
-    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)), size);
+    MutableSpan vbo_data = vbo.data<GPUPackedNormal>();
     MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
     MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
 

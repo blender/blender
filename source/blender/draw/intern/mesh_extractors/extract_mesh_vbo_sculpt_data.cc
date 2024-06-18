@@ -40,7 +40,7 @@ void extract_sculpt_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
     float mask;
   };
 
-  MutableSpan vbo_data(static_cast<gpuSculptData *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
+  MutableSpan vbo_data = vbo.data<gpuSculptData>();
 
   const int default_face_set = mr.mesh->face_sets_color_default;
   const int face_set_seed = mr.mesh->face_sets_color_seed;
@@ -124,8 +124,7 @@ void extract_sculpt_data_subdiv(const MeshRenderData &mr,
     GPU_vertbuf_init_with_format(*mask_vbo, mask_format);
     GPU_vertbuf_data_alloc(*mask_vbo, corner_verts.size());
 
-    MutableSpan mask_vbo_data(static_cast<float *>(GPU_vertbuf_get_data(*mask_vbo)),
-                              corner_verts.size());
+    MutableSpan mask_vbo_data = mask_vbo->data<float>();
     array_utils::gather(mask, corner_verts, mask_vbo_data);
 
     subdiv_mask_vbo = GPU_vertbuf_calloc();
@@ -146,8 +145,7 @@ void extract_sculpt_data_subdiv(const MeshRenderData &mr,
     uchar4 color;
   };
 
-  MutableSpan face_set_vbo_data(static_cast<gpuFaceSet *>(GPU_vertbuf_get_data(*face_set_vbo)),
-                                subdiv_corners_num);
+  MutableSpan face_set_vbo_data = face_set_vbo->data<gpuFaceSet>();
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
   if (face_sets.is_empty()) {
     face_set_vbo_data.fill({uchar4{UCHAR_MAX}});

@@ -122,7 +122,7 @@ void extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache, gpu:
   }
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan<float> vbo_data(static_cast<float *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
+  MutableSpan<float> vbo_data = vbo.data<float>();
 
   const DRW_MeshWeightState &weight_state = cache.weight_state;
   if (weight_state.defgroup_active == -1) {

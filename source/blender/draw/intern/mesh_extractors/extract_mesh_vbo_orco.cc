@@ -26,7 +26,7 @@ void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo)
   }
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan vbo_data(static_cast<float4 *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
+  MutableSpan vbo_data = vbo.data<float4>();
 
   const int64_t bytes = orco_data.size_in_bytes() + vbo_data.size_in_bytes();
   threading::memory_bandwidth_bound_task(bytes, [&]() {

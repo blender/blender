@@ -751,8 +751,7 @@ BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,
   int tot = is_instancing ? GPU_vertbuf_get_vertex_len(batch->inst[0]) :
                             GPU_vertbuf_get_vertex_len(batch->verts[0]);
   /* HACK: get VBO data without actually drawing. */
-  int *select_id = static_cast<int *>(
-      (void *)static_cast<int *>(GPU_vertbuf_get_data(*state->select_buf)));
+  int *select_id = state->select_buf->data<int>().data();
 
   /* Batching */
   if (!is_instancing) {

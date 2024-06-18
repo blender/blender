@@ -264,8 +264,7 @@ static void pointcloud_extract_position_and_radius(const PointCloud &pointcloud,
   GPU_vertbuf_init_with_format_ex(*cache.eval_cache.pos_rad, format, usage_flag);
 
   GPU_vertbuf_data_alloc(*cache.eval_cache.pos_rad, positions.size());
-  MutableSpan<float4> vbo_data{
-      static_cast<float4 *>(GPU_vertbuf_get_data(*cache.eval_cache.pos_rad)), pointcloud.totpoint};
+  MutableSpan<float4> vbo_data = cache.eval_cache.pos_rad->data<float4>();
   if (radii) {
     const VArraySpan<float> radii_span(std::move(radii));
     threading::parallel_for(vbo_data.index_range(), 4096, [&](IndexRange range) {
@@ -315,9 +314,7 @@ static void pointcloud_extract_attribute(const PointCloud &pointcloud,
   GPU_vertbuf_init_with_format_ex(attr_buf, format, usage_flag);
   GPU_vertbuf_data_alloc(attr_buf, pointcloud.totpoint);
 
-  MutableSpan<ColorGeometry4f> vbo_data{
-      static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(attr_buf)), pointcloud.totpoint};
-  attribute.varray.materialize(vbo_data);
+  attribute.varray.materialize(attr_buf.data<ColorGeometry4f>());
 }
 
 /** \} */

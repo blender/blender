@@ -21,8 +21,8 @@ void GLVertBuf::acquire_data()
   }
 
   /* Discard previous data if any. */
-  MEM_SAFE_FREE(data);
-  data = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
+  MEM_SAFE_FREE(data_);
+  data_ = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
 }
 
 void GLVertBuf::resize_data()
@@ -31,7 +31,7 @@ void GLVertBuf::resize_data()
     return;
   }
 
-  data = (uchar *)MEM_reallocN(data, sizeof(uchar) * this->size_alloc_get());
+  data_ = (uchar *)MEM_reallocN(data_, sizeof(uchar) * this->size_alloc_get());
 }
 
 void GLVertBuf::release_data()
@@ -47,7 +47,7 @@ void GLVertBuf::release_data()
     memory_usage -= vbo_size_;
   }
 
-  MEM_SAFE_FREE(data);
+  MEM_SAFE_FREE(data_);
 }
 
 void GLVertBuf::duplicate_data(VertBuf *dst_)
@@ -71,8 +71,8 @@ void GLVertBuf::duplicate_data(VertBuf *dst_)
     memory_usage += dst->vbo_size_;
   }
 
-  if (data != nullptr) {
-    dst->data = (uchar *)MEM_dupallocN(src->data);
+  if (data_ != nullptr) {
+    dst->data_ = (uchar *)MEM_dupallocN(src->data_);
   }
 }
 
@@ -97,12 +97,12 @@ void GLVertBuf::bind()
     glBufferData(GL_ARRAY_BUFFER, vbo_size_, nullptr, to_gl(usage_));
     /* Do not transfer data from host to device when buffer is device only. */
     if (usage_ != GPU_USAGE_DEVICE_ONLY) {
-      glBufferSubData(GL_ARRAY_BUFFER, 0, vbo_size_, data);
+      glBufferSubData(GL_ARRAY_BUFFER, 0, vbo_size_, data_);
     }
     memory_usage += vbo_size_;
 
     if (usage_ == GPU_USAGE_STATIC) {
-      MEM_SAFE_FREE(data);
+      MEM_SAFE_FREE(data_);
     }
     flag &= ~GPU_VERTBUF_DATA_DIRTY;
     flag |= GPU_VERTBUF_DATA_UPLOADED;

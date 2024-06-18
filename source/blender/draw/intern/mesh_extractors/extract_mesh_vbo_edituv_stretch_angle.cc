@@ -202,7 +202,7 @@ void extract_edituv_stretch_angle(const MeshRenderData &mr, gpu::VertBuf &vbo)
   }
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan vbo_data(static_cast<UVStretchAngle *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
+  MutableSpan vbo_data = vbo.data<UVStretchAngle>();
 
   if (mr.extract_type == MR_EXTRACT_BMESH) {
     extract_uv_stretch_angle_bm(mr, vbo_data);

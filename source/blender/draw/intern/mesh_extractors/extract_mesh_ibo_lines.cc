@@ -270,7 +270,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
 
   GPU_vertbuf_data_alloc(*flags, loose_edges_num);
 
-  MutableSpan<uint> flags_data(static_cast<uint *>(GPU_vertbuf_get_data(*flags)), loose_edges_num);
+  MutableSpan<uint> flags_data = flags->data<uint>();
 
   switch (mr.extract_type) {
     case MR_EXTRACT_MESH: {
