@@ -3069,15 +3069,6 @@ struct LineartCache;
 typedef struct GreasePencilLineartModifierData {
   ModifierData modifier;
 
-  /* [Important] Note on legacy material/layer selection variables:
-   *
-   * Now uses the layer/material variables in the `influence`
-   * field above, thus old layer/material fields are obsolete.
-   *
-   * Do not change any of the data below since the layout of these
-   * data is currently shared with the old line art modifier.
-   * See `BKE_grease_pencil_lineart_wrap_v3` for how it works. */
-
   uint16_t edge_types; /* line type enable flags, bits in eLineartEdgeFlag */
 
   /** Object or Collection, from #eGreasePencilLineartSource. */
