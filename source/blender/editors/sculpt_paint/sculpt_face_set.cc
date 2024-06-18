@@ -472,10 +472,10 @@ void do_draw_face_sets_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> node
 
   if (ss.cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
-    for (int i = 0; i < 4; i++) {
+    for (int iteration = 0; iteration < 4; iteration++) {
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          do_relax_face_sets_brush_task(ob, brush, i, nodes[i]);
+          do_relax_face_sets_brush_task(ob, brush, iteration, nodes[i]);
         }
       });
     }
