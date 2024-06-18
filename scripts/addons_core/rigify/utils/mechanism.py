@@ -35,6 +35,18 @@ def _set_default_attr(obj, options, attr, value):
     if hasattr(obj, attr):
         options.setdefault(attr, value)
 
+def limit_rotation_ensure_legacy_behavior(constraint: bpy.types.Constraint):
+    """
+    Ensure that the given Limit Rotation constraint is configured to use the old
+    pre-Blender 4.2 Limit Rotation behavior.
+    """
+    # The Legacy Behavior option was introduced during Blender 4.2 development,
+    # so guard against it possibly not existing in that case and earlier.
+    # However, in later versions we still want an error if the attribute doesn't
+    # exist (e.g. if it's removed or renamed).
+    if bpy.app.version < (4, 3, 0) and not hasattr(constraint, "use_legacy_behavior"):
+        return
+    constraint.use_legacy_behavior = True
 
 def make_constraint(
         owner: Object | PoseBone, con_type: str,
@@ -122,6 +134,12 @@ def make_constraint(
 
     for p, v in options.items():
         setattr(con, p, force_lazy(v))
+
+    if con.type == 'LIMIT_ROTATION' and con.owner_space == 'LOCAL':
+        # We only do this for local-space Limit Rotation constraints
+        # because that's the only situation where the legacy behavior is
+        # meaningful--it's broken for anything else.
+        limit_rotation_ensure_legacy_behavior(con)
 
     return con
 
