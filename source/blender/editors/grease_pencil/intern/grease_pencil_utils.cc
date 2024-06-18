@@ -346,9 +346,10 @@ static Array<std::pair<int, int>> get_visible_frames_for_layer(
   const int last_frame = sorted_keys.last();
   const int last_frame_index = sorted_keys.index_range().last();
   const bool is_before_first = (current_frame < sorted_keys.first());
+  const std::optional<int> current_start_frame = layer.start_frame_at(current_frame);
   for (const int frame_i : sorted_keys.index_range()) {
     const int frame_number = sorted_keys[frame_i];
-    if (frame_number == current_frame) {
+    if (current_start_frame && *current_start_frame == frame_number) {
       continue;
     }
     const GreasePencilFrame &frame = layer.frames().lookup(frame_number);
