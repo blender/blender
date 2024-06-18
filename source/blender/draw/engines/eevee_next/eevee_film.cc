@@ -214,7 +214,6 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 {
   Sampling &sampling = inst_.sampling;
   Scene &scene = *inst_.scene;
-  // SceneEEVEE &scene_eevee = scene.eevee; /* UNUSED. */
 
   enabled_categories_ = PassCategory(0);
   init_aovs();
