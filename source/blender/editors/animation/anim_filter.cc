@@ -618,330 +618,330 @@ static bAnimListElem *make_new_animlistelem(void *data,
                                             ID *owner_id,
                                             ID *fcurve_owner_id)
 {
-  bAnimListElem *ale = nullptr;
-
-  /* only allocate memory if there is data to convert */
-  if (data) {
-    /* allocate and set generic data */
-    ale = static_cast<bAnimListElem *>(MEM_callocN(sizeof(bAnimListElem), "bAnimListElem"));
-
-    ale->data = data;
-    ale->type = datatype;
-
-    ale->id = owner_id;
-    ale->adt = BKE_animdata_from_id(owner_id);
-    ale->fcurve_owner_id = fcurve_owner_id;
-
-    /* do specifics */
-    switch (datatype) {
-      case ANIMTYPE_SUMMARY: {
-        /* Nothing to include for now... this is just a dummy wrapper around
-         * all the other channels in the DopeSheet, and gets included at the start of the list. */
-        ale->key_data = nullptr;
-        ale->datatype = ALE_ALL;
-        break;
-      }
-      case ANIMTYPE_SCENE: {
-        Scene *sce = (Scene *)data;
-
-        ale->flag = sce->flag;
-
-        ale->key_data = sce;
-        ale->datatype = ALE_SCE;
-
-        ale->adt = BKE_animdata_from_id(static_cast<ID *>(data));
-        break;
-      }
-      case ANIMTYPE_OBJECT: {
-        Base *base = (Base *)data;
-        Object *ob = base->object;
-
-        ale->flag = ob->flag;
-
-        ale->key_data = ob;
-        ale->datatype = ALE_OB;
-
-        ale->adt = BKE_animdata_from_id(&ob->id);
-        break;
-      }
-      case ANIMTYPE_FILLACT_LAYERED: {
-        bAction *action = (bAction *)data;
-
-        ale->flag = action->flag;
-
-        ale->key_data = action;
-        ale->datatype = ALE_ACTION_LAYERED;
-        break;
-      }
-      case ANIMTYPE_FILLACTD: {
-        bAction *act = (bAction *)data;
-
-        ale->flag = act->flag;
-
-        ale->key_data = act;
-        ale->datatype = ALE_ACT;
-        break;
-      }
-      case ANIMTYPE_FILLDRIVERS: {
-        AnimData *adt = (AnimData *)data;
-
-        ale->flag = adt->flag;
-
-        /* XXX drivers don't show summary for now. */
-        ale->key_data = nullptr;
-        ale->datatype = ALE_NONE;
-        break;
-      }
-      case ANIMTYPE_DSMAT: {
-        Material *ma = (Material *)data;
-        ale->flag = FILTER_MAT_OBJD(ma);
-        key_data_from_adt(*ale, ma->adt);
-        break;
-      }
-      case ANIMTYPE_DSLAM: {
-        Light *la = (Light *)data;
-        ale->flag = FILTER_LAM_OBJD(la);
-        key_data_from_adt(*ale, la->adt);
-        break;
-      }
-      case ANIMTYPE_DSCAM: {
-        Camera *ca = (Camera *)data;
-        ale->flag = FILTER_CAM_OBJD(ca);
-        key_data_from_adt(*ale, ca->adt);
-        break;
-      }
-      case ANIMTYPE_DSCACHEFILE: {
-        CacheFile *cache_file = (CacheFile *)data;
-        ale->flag = FILTER_CACHEFILE_OBJD(cache_file);
-        key_data_from_adt(*ale, cache_file->adt);
-        break;
-      }
-      case ANIMTYPE_DSCUR: {
-        Curve *cu = (Curve *)data;
-        ale->flag = FILTER_CUR_OBJD(cu);
-        key_data_from_adt(*ale, cu->adt);
-        break;
-      }
-      case ANIMTYPE_DSARM: {
-        bArmature *arm = (bArmature *)data;
-        ale->flag = FILTER_ARM_OBJD(arm);
-        key_data_from_adt(*ale, arm->adt);
-        break;
-      }
-      case ANIMTYPE_DSMESH: {
-        Mesh *mesh = (Mesh *)data;
-        ale->flag = FILTER_MESH_OBJD(mesh);
-        key_data_from_adt(*ale, mesh->adt);
-        break;
-      }
-      case ANIMTYPE_DSLAT: {
-        Lattice *lt = (Lattice *)data;
-        ale->flag = FILTER_LATTICE_OBJD(lt);
-        key_data_from_adt(*ale, lt->adt);
-        break;
-      }
-      case ANIMTYPE_DSSPK: {
-        Speaker *spk = (Speaker *)data;
-        ale->flag = FILTER_SPK_OBJD(spk);
-        key_data_from_adt(*ale, spk->adt);
-        break;
-      }
-      case ANIMTYPE_DSHAIR: {
-        Curves *curves = (Curves *)data;
-        ale->flag = FILTER_CURVES_OBJD(curves);
-        key_data_from_adt(*ale, curves->adt);
-        break;
-      }
-      case ANIMTYPE_DSPOINTCLOUD: {
-        PointCloud *pointcloud = (PointCloud *)data;
-        ale->flag = FILTER_POINTS_OBJD(pointcloud);
-        key_data_from_adt(*ale, pointcloud->adt);
-        break;
-      }
-      case ANIMTYPE_DSVOLUME: {
-        Volume *volume = (Volume *)data;
-        ale->flag = FILTER_VOLUME_OBJD(volume);
-        key_data_from_adt(*ale, volume->adt);
-        break;
-      }
-      case ANIMTYPE_DSSKEY: {
-        Key *key = (Key *)data;
-        ale->flag = FILTER_SKE_OBJD(key);
-        key_data_from_adt(*ale, key->adt);
-        break;
-      }
-      case ANIMTYPE_DSWOR: {
-        World *wo = (World *)data;
-        ale->flag = FILTER_WOR_SCED(wo);
-        key_data_from_adt(*ale, wo->adt);
-        break;
-      }
-      case ANIMTYPE_DSNTREE: {
-        bNodeTree *ntree = (bNodeTree *)data;
-        ale->flag = FILTER_NTREE_DATA(ntree);
-        key_data_from_adt(*ale, ntree->adt);
-        break;
-      }
-      case ANIMTYPE_DSLINESTYLE: {
-        FreestyleLineStyle *linestyle = (FreestyleLineStyle *)data;
-        ale->flag = FILTER_LS_SCED(linestyle);
-        key_data_from_adt(*ale, linestyle->adt);
-        break;
-      }
-      case ANIMTYPE_DSPART: {
-        ParticleSettings *part = (ParticleSettings *)ale->data;
-        ale->flag = FILTER_PART_OBJD(part);
-        key_data_from_adt(*ale, part->adt);
-        break;
-      }
-      case ANIMTYPE_DSTEX: {
-        Tex *tex = (Tex *)data;
-        ale->flag = FILTER_TEX_DATA(tex);
-        key_data_from_adt(*ale, tex->adt);
-        break;
-      }
-      case ANIMTYPE_DSGPENCIL: {
-        bGPdata *gpd = (bGPdata *)data;
-        /* NOTE: we just reuse the same expand filter for this case */
-        ale->flag = EXPANDED_GPD(gpd);
-
-        /* XXX: currently, this is only used for access to its animation data */
-        key_data_from_adt(*ale, gpd->adt);
-        break;
-      }
-      case ANIMTYPE_DSMCLIP: {
-        MovieClip *clip = (MovieClip *)data;
-        ale->flag = EXPANDED_MCLIP(clip);
-        key_data_from_adt(*ale, clip->adt);
-        break;
-      }
-      case ANIMTYPE_NLACONTROLS: {
-        AnimData *adt = (AnimData *)data;
-
-        ale->flag = adt->flag;
-
-        ale->key_data = nullptr;
-        ale->datatype = ALE_NONE;
-        break;
-      }
-      case ANIMTYPE_GROUP: {
-        bActionGroup *agrp = (bActionGroup *)data;
-
-        ale->flag = agrp->flag;
-
-        ale->key_data = nullptr;
-        ale->datatype = ALE_GROUP;
-        break;
-      }
-      case ANIMTYPE_FCURVE:
-      case ANIMTYPE_NLACURVE: /* practically the same as ANIMTYPE_FCURVE.
-                               * Differences are applied post-creation */
-      {
-        FCurve *fcu = (FCurve *)data;
-
-        ale->flag = fcu->flag;
-
-        ale->key_data = fcu;
-        ale->datatype = ALE_FCURVE;
-        break;
-      }
-      case ANIMTYPE_SHAPEKEY: {
-        KeyBlock *kb = (KeyBlock *)data;
-        Key *key = (Key *)ale->id;
-
-        ale->flag = kb->flag;
-
-        /* whether we have keyframes depends on whether there is a Key block to find it from */
-        if (key) {
-          /* index of shapekey is defined by place in key's list */
-          ale->index = BLI_findindex(&key->block, kb);
-
-          /* the corresponding keyframes are from the animdata */
-          if (ale->adt && ale->adt->action) {
-            bAction *act = ale->adt->action;
-            /* Try to find the F-Curve which corresponds to this exactly. */
-            if (std::optional<std::string> rna_path = BKE_keyblock_curval_rnapath_get(key, kb)) {
-              ale->key_data = (void *)BKE_fcurve_find(&act->curves, rna_path->c_str(), 0);
-            }
-          }
-          ale->datatype = (ale->key_data) ? ALE_FCURVE : ALE_NONE;
-        }
-        break;
-      }
-      case ANIMTYPE_GPLAYER: {
-        bGPDlayer *gpl = (bGPDlayer *)data;
-
-        ale->flag = gpl->flag;
-
-        ale->key_data = nullptr;
-        ale->datatype = ALE_GPFRAME;
-        break;
-      }
-      case ANIMTYPE_GREASE_PENCIL_LAYER: {
-        GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(data);
-
-        ale->flag = layer->base.flag;
-
-        ale->key_data = nullptr;
-        ale->datatype = ALE_GREASE_PENCIL_CEL;
-        break;
-      }
-      case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP: {
-        GreasePencilLayerTreeGroup *layer_group = static_cast<GreasePencilLayerTreeGroup *>(data);
-
-        ale->flag = layer_group->base.flag;
-
-        ale->key_data = nullptr;
-        ale->datatype = ALE_GREASE_PENCIL_GROUP;
-        break;
-      }
-      case ANIMTYPE_GREASE_PENCIL_DATABLOCK: {
-        GreasePencil *grease_pencil = static_cast<GreasePencil *>(data);
-
-        ale->flag = grease_pencil->flag;
-
-        ale->key_data = nullptr;
-        ale->datatype = ALE_GREASE_PENCIL_DATA;
-        break;
-      }
-      case ANIMTYPE_MASKLAYER: {
-        MaskLayer *masklay = (MaskLayer *)data;
-
-        ale->flag = masklay->flag;
-
-        ale->key_data = nullptr;
-        ale->datatype = ALE_MASKLAY;
-        break;
-      }
-      case ANIMTYPE_NLATRACK: {
-        NlaTrack *nlt = (NlaTrack *)data;
-
-        ale->flag = nlt->flag;
-
-        ale->key_data = &nlt->strips;
-        ale->datatype = ALE_NLASTRIP;
-        break;
-      }
-      case ANIMTYPE_NLAACTION: {
-        /* nothing to include for now... nothing editable from NLA-perspective here */
-        ale->key_data = nullptr;
-        ale->datatype = ALE_NONE;
-        break;
-      }
-
-      case ANIMTYPE_NONE:
-      case ANIMTYPE_ANIMDATA:
-      case ANIMTYPE_SPECIALDATA__UNUSED:
-      case ANIMTYPE_DSMBALL:
-      case ANIMTYPE_GPDATABLOCK:
-      case ANIMTYPE_MASKDATABLOCK:
-      case ANIMTYPE_PALETTE:
-      case ANIMTYPE_NUM_TYPES:
-        break;
-    }
+  /* Only allocate memory if there is data to convert. */
+  if (!data) {
+    return nullptr;
   }
 
-  /* return created datatype */
+  /* Allocate and set generic data. */
+  bAnimListElem *ale = static_cast<bAnimListElem *>(
+      MEM_callocN(sizeof(bAnimListElem), "bAnimListElem"));
+
+  ale->data = data;
+  ale->type = datatype;
+
+  ale->id = owner_id;
+  ale->adt = BKE_animdata_from_id(owner_id);
+  ale->fcurve_owner_id = fcurve_owner_id;
+
+  /* do specifics */
+  switch (datatype) {
+    case ANIMTYPE_SUMMARY: {
+      /* Nothing to include for now... this is just a dummy wrapper around
+       * all the other channels in the DopeSheet, and gets included at the start of the list. */
+      ale->key_data = nullptr;
+      ale->datatype = ALE_ALL;
+      break;
+    }
+    case ANIMTYPE_SCENE: {
+      Scene *sce = (Scene *)data;
+
+      ale->flag = sce->flag;
+
+      ale->key_data = sce;
+      ale->datatype = ALE_SCE;
+
+      ale->adt = BKE_animdata_from_id(static_cast<ID *>(data));
+      break;
+    }
+    case ANIMTYPE_OBJECT: {
+      Base *base = (Base *)data;
+      Object *ob = base->object;
+
+      ale->flag = ob->flag;
+
+      ale->key_data = ob;
+      ale->datatype = ALE_OB;
+
+      ale->adt = BKE_animdata_from_id(&ob->id);
+      break;
+    }
+    case ANIMTYPE_FILLACT_LAYERED: {
+      bAction *action = (bAction *)data;
+
+      ale->flag = action->flag;
+
+      ale->key_data = action;
+      ale->datatype = ALE_ACTION_LAYERED;
+      break;
+    }
+    case ANIMTYPE_FILLACTD: {
+      bAction *act = (bAction *)data;
+
+      ale->flag = act->flag;
+
+      ale->key_data = act;
+      ale->datatype = ALE_ACT;
+      break;
+    }
+    case ANIMTYPE_FILLDRIVERS: {
+      AnimData *adt = (AnimData *)data;
+
+      ale->flag = adt->flag;
+
+      /* XXX drivers don't show summary for now. */
+      ale->key_data = nullptr;
+      ale->datatype = ALE_NONE;
+      break;
+    }
+    case ANIMTYPE_DSMAT: {
+      Material *ma = (Material *)data;
+      ale->flag = FILTER_MAT_OBJD(ma);
+      key_data_from_adt(*ale, ma->adt);
+      break;
+    }
+    case ANIMTYPE_DSLAM: {
+      Light *la = (Light *)data;
+      ale->flag = FILTER_LAM_OBJD(la);
+      key_data_from_adt(*ale, la->adt);
+      break;
+    }
+    case ANIMTYPE_DSCAM: {
+      Camera *ca = (Camera *)data;
+      ale->flag = FILTER_CAM_OBJD(ca);
+      key_data_from_adt(*ale, ca->adt);
+      break;
+    }
+    case ANIMTYPE_DSCACHEFILE: {
+      CacheFile *cache_file = (CacheFile *)data;
+      ale->flag = FILTER_CACHEFILE_OBJD(cache_file);
+      key_data_from_adt(*ale, cache_file->adt);
+      break;
+    }
+    case ANIMTYPE_DSCUR: {
+      Curve *cu = (Curve *)data;
+      ale->flag = FILTER_CUR_OBJD(cu);
+      key_data_from_adt(*ale, cu->adt);
+      break;
+    }
+    case ANIMTYPE_DSARM: {
+      bArmature *arm = (bArmature *)data;
+      ale->flag = FILTER_ARM_OBJD(arm);
+      key_data_from_adt(*ale, arm->adt);
+      break;
+    }
+    case ANIMTYPE_DSMESH: {
+      Mesh *mesh = (Mesh *)data;
+      ale->flag = FILTER_MESH_OBJD(mesh);
+      key_data_from_adt(*ale, mesh->adt);
+      break;
+    }
+    case ANIMTYPE_DSLAT: {
+      Lattice *lt = (Lattice *)data;
+      ale->flag = FILTER_LATTICE_OBJD(lt);
+      key_data_from_adt(*ale, lt->adt);
+      break;
+    }
+    case ANIMTYPE_DSSPK: {
+      Speaker *spk = (Speaker *)data;
+      ale->flag = FILTER_SPK_OBJD(spk);
+      key_data_from_adt(*ale, spk->adt);
+      break;
+    }
+    case ANIMTYPE_DSHAIR: {
+      Curves *curves = (Curves *)data;
+      ale->flag = FILTER_CURVES_OBJD(curves);
+      key_data_from_adt(*ale, curves->adt);
+      break;
+    }
+    case ANIMTYPE_DSPOINTCLOUD: {
+      PointCloud *pointcloud = (PointCloud *)data;
+      ale->flag = FILTER_POINTS_OBJD(pointcloud);
+      key_data_from_adt(*ale, pointcloud->adt);
+      break;
+    }
+    case ANIMTYPE_DSVOLUME: {
+      Volume *volume = (Volume *)data;
+      ale->flag = FILTER_VOLUME_OBJD(volume);
+      key_data_from_adt(*ale, volume->adt);
+      break;
+    }
+    case ANIMTYPE_DSSKEY: {
+      Key *key = (Key *)data;
+      ale->flag = FILTER_SKE_OBJD(key);
+      key_data_from_adt(*ale, key->adt);
+      break;
+    }
+    case ANIMTYPE_DSWOR: {
+      World *wo = (World *)data;
+      ale->flag = FILTER_WOR_SCED(wo);
+      key_data_from_adt(*ale, wo->adt);
+      break;
+    }
+    case ANIMTYPE_DSNTREE: {
+      bNodeTree *ntree = (bNodeTree *)data;
+      ale->flag = FILTER_NTREE_DATA(ntree);
+      key_data_from_adt(*ale, ntree->adt);
+      break;
+    }
+    case ANIMTYPE_DSLINESTYLE: {
+      FreestyleLineStyle *linestyle = (FreestyleLineStyle *)data;
+      ale->flag = FILTER_LS_SCED(linestyle);
+      key_data_from_adt(*ale, linestyle->adt);
+      break;
+    }
+    case ANIMTYPE_DSPART: {
+      ParticleSettings *part = (ParticleSettings *)ale->data;
+      ale->flag = FILTER_PART_OBJD(part);
+      key_data_from_adt(*ale, part->adt);
+      break;
+    }
+    case ANIMTYPE_DSTEX: {
+      Tex *tex = (Tex *)data;
+      ale->flag = FILTER_TEX_DATA(tex);
+      key_data_from_adt(*ale, tex->adt);
+      break;
+    }
+    case ANIMTYPE_DSGPENCIL: {
+      bGPdata *gpd = (bGPdata *)data;
+      /* NOTE: we just reuse the same expand filter for this case */
+      ale->flag = EXPANDED_GPD(gpd);
+
+      /* XXX: currently, this is only used for access to its animation data */
+      key_data_from_adt(*ale, gpd->adt);
+      break;
+    }
+    case ANIMTYPE_DSMCLIP: {
+      MovieClip *clip = (MovieClip *)data;
+      ale->flag = EXPANDED_MCLIP(clip);
+      key_data_from_adt(*ale, clip->adt);
+      break;
+    }
+    case ANIMTYPE_NLACONTROLS: {
+      AnimData *adt = (AnimData *)data;
+
+      ale->flag = adt->flag;
+
+      ale->key_data = nullptr;
+      ale->datatype = ALE_NONE;
+      break;
+    }
+    case ANIMTYPE_GROUP: {
+      bActionGroup *agrp = (bActionGroup *)data;
+
+      ale->flag = agrp->flag;
+
+      ale->key_data = nullptr;
+      ale->datatype = ALE_GROUP;
+      break;
+    }
+    case ANIMTYPE_FCURVE:
+    case ANIMTYPE_NLACURVE: /* practically the same as ANIMTYPE_FCURVE.
+                             * Differences are applied post-creation */
+    {
+      FCurve *fcu = (FCurve *)data;
+
+      ale->flag = fcu->flag;
+
+      ale->key_data = fcu;
+      ale->datatype = ALE_FCURVE;
+      break;
+    }
+    case ANIMTYPE_SHAPEKEY: {
+      KeyBlock *kb = (KeyBlock *)data;
+      Key *key = (Key *)ale->id;
+
+      ale->flag = kb->flag;
+
+      /* whether we have keyframes depends on whether there is a Key block to find it from */
+      if (key) {
+        /* index of shapekey is defined by place in key's list */
+        ale->index = BLI_findindex(&key->block, kb);
+
+        /* the corresponding keyframes are from the animdata */
+        if (ale->adt && ale->adt->action) {
+          bAction *act = ale->adt->action;
+          /* Try to find the F-Curve which corresponds to this exactly. */
+          if (std::optional<std::string> rna_path = BKE_keyblock_curval_rnapath_get(key, kb)) {
+            ale->key_data = (void *)BKE_fcurve_find(&act->curves, rna_path->c_str(), 0);
+          }
+        }
+        ale->datatype = (ale->key_data) ? ALE_FCURVE : ALE_NONE;
+      }
+      break;
+    }
+    case ANIMTYPE_GPLAYER: {
+      bGPDlayer *gpl = (bGPDlayer *)data;
+
+      ale->flag = gpl->flag;
+
+      ale->key_data = nullptr;
+      ale->datatype = ALE_GPFRAME;
+      break;
+    }
+    case ANIMTYPE_GREASE_PENCIL_LAYER: {
+      GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(data);
+
+      ale->flag = layer->base.flag;
+
+      ale->key_data = nullptr;
+      ale->datatype = ALE_GREASE_PENCIL_CEL;
+      break;
+    }
+    case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP: {
+      GreasePencilLayerTreeGroup *layer_group = static_cast<GreasePencilLayerTreeGroup *>(data);
+
+      ale->flag = layer_group->base.flag;
+
+      ale->key_data = nullptr;
+      ale->datatype = ALE_GREASE_PENCIL_GROUP;
+      break;
+    }
+    case ANIMTYPE_GREASE_PENCIL_DATABLOCK: {
+      GreasePencil *grease_pencil = static_cast<GreasePencil *>(data);
+
+      ale->flag = grease_pencil->flag;
+
+      ale->key_data = nullptr;
+      ale->datatype = ALE_GREASE_PENCIL_DATA;
+      break;
+    }
+    case ANIMTYPE_MASKLAYER: {
+      MaskLayer *masklay = (MaskLayer *)data;
+
+      ale->flag = masklay->flag;
+
+      ale->key_data = nullptr;
+      ale->datatype = ALE_MASKLAY;
+      break;
+    }
+    case ANIMTYPE_NLATRACK: {
+      NlaTrack *nlt = (NlaTrack *)data;
+
+      ale->flag = nlt->flag;
+
+      ale->key_data = &nlt->strips;
+      ale->datatype = ALE_NLASTRIP;
+      break;
+    }
+    case ANIMTYPE_NLAACTION: {
+      /* nothing to include for now... nothing editable from NLA-perspective here */
+      ale->key_data = nullptr;
+      ale->datatype = ALE_NONE;
+      break;
+    }
+
+    case ANIMTYPE_NONE:
+    case ANIMTYPE_ANIMDATA:
+    case ANIMTYPE_SPECIALDATA__UNUSED:
+    case ANIMTYPE_DSMBALL:
+    case ANIMTYPE_GPDATABLOCK:
+    case ANIMTYPE_MASKDATABLOCK:
+    case ANIMTYPE_PALETTE:
+    case ANIMTYPE_NUM_TYPES:
+      break;
+  }
+
   return ale;
 }
 
