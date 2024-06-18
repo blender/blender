@@ -449,13 +449,14 @@ struct FilmData {
   float exposure_scale;
   /** Scaling factor for scaled resolution rendering. */
   int scaling_factor;
+  /** Software LOD bias to apply to when sampling texture inside the node-tree evaluation. */
+  float texture_lod_bias;
   /** Film pixel filter radius. */
   float filter_radius;
   /** Precomputed samples. First in the table is the closest one. The rest is unordered. */
   int samples_len;
   /** Sum of the weights of all samples in the sample table. */
   float samples_weight_total;
-  int _pad1;
   int _pad2;
   FilmSample samples[FILM_PRECOMP_SAMPLE_MAX];
 };

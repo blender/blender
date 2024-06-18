@@ -1580,7 +1580,7 @@ RenderEngineType *ED_view3d_engine_type(const Scene *scene, int drawtype)
    */
   RenderEngineType *type = RE_engines_find(scene->r.engine);
   if (drawtype == OB_MATERIAL && (type->flag & RE_USE_EEVEE_VIEWPORT)) {
-    return RE_engines_find(RE_engine_id_BLENDER_EEVEE);
+    return RE_engines_find(RE_engine_id_BLENDER_EEVEE_NEXT);
   }
   return type;
 }
@@ -2477,8 +2477,7 @@ bool ED_view3d_has_depth_buffer_updated(const Depsgraph *depsgraph, const View3D
   bool is_viewport_preview_solid = v3d->shading.type == OB_SOLID;
   bool is_viewport_preview_material = v3d->shading.type == OB_MATERIAL;
   bool is_viewport_render_eevee = v3d->shading.type == OB_RENDER &&
-                                  (STREQ(engine_name, RE_engine_id_BLENDER_EEVEE) ||
-                                   STREQ(engine_name, RE_engine_id_BLENDER_EEVEE_NEXT));
+                                  (STREQ(engine_name, RE_engine_id_BLENDER_EEVEE_NEXT));
   bool is_viewport_render_workbench = v3d->shading.type == OB_RENDER &&
                                       STREQ(engine_name, RE_engine_id_BLENDER_WORKBENCH);
   bool is_viewport_render_external_with_overlay = v3d->shading.type == OB_RENDER &&

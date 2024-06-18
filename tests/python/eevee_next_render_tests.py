@@ -42,6 +42,7 @@ def setup():
         eevee.volumetric_end = 50.0
         eevee.volumetric_samples = 128
         eevee.use_volumetric_shadows = True
+        eevee.clamp_volume_indirect = 0.0
 
         # Motion Blur
         if scene.render.use_motion_blur:

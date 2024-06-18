@@ -196,7 +196,7 @@ ifndef DEPS_BUILD_DIR
 endif
 
 ifndef DEPS_INSTALL_DIR
-	DEPS_INSTALL_DIR:=$(shell dirname "$(BLENDER_DIR)")/lib/$(OS_LIBDIR)_$(CPU)
+	DEPS_INSTALL_DIR:=$(BLENDER_DIR)/lib/$(OS_LIBDIR)_$(CPU)
 endif
 
 # Set the LIBDIR, an empty string when not found.

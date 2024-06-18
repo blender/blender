@@ -1067,6 +1067,11 @@ typedef enum eRotLimit_Flags {
   LIMIT_XROT = (1 << 0),
   LIMIT_YROT = (1 << 1),
   LIMIT_ZROT = (1 << 2),
+
+  /* Use the legacy behavior of the Limit Rotation constraint. See the
+   * implementation of `rotlimit_evaluate()` in constraint.cc for more
+   * details. */
+  LIMIT_ROT_LEGACY_BEHAVIOR = (1 << 3),
 } eRotLimit_Flags;
 
 /* distance limit constraint */

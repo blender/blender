@@ -51,6 +51,9 @@ void AmbientOcclusion::init()
   data_.thickness_far = sce_eevee.fast_gi_thickness_far;
   /* Size is multiplied by 2 because it is applied in NDC [-1..1] range. */
   data_.pixel_size = float2(2.0f) / float2(inst_.film.render_extent_get());
+
+  ray_count_ = sce_eevee.fast_gi_ray_count;
+  step_count_ = sce_eevee.fast_gi_step_count;
 }
 
 void AmbientOcclusion::sync()
@@ -60,7 +63,10 @@ void AmbientOcclusion::sync()
   }
 
   render_pass_ps_.init();
-  render_pass_ps_.shader_set(inst_.shaders.static_shader_get(AMBIENT_OCCLUSION_PASS));
+  GPUShader *sh = inst_.shaders.static_shader_get(AMBIENT_OCCLUSION_PASS);
+  render_pass_ps_.specialize_constant(sh, "ao_slice_count", ray_count_);
+  render_pass_ps_.specialize_constant(sh, "ao_step_count", step_count_);
+  render_pass_ps_.shader_set(sh);
 
   render_pass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, &inst_.pipelines.utility_tx);
   render_pass_ps_.bind_resources(inst_.uniform_data);

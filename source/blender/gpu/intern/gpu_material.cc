@@ -875,6 +875,12 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   if (GPUPass *default_pass = pass_replacement_cb ? pass_replacement_cb(thunk, mat) : nullptr) {
     mat->pass = default_pass;
     GPU_pass_acquire(mat->pass);
+    /** WORKAROUND:
+     * The node tree code is never executed in default replaced passes,
+     * but the GPU validation will still complain if the node tree UBO is not bound.
+     * So we create a dummy UBO with (at least) the size of the default material one (192 bytes).
+     * We allocate 256 bytes to leave some room for future changes. */
+    mat->ubo = GPU_uniformbuf_create_ex(256, nullptr, "Dummy UBO");
   }
   else {
     /* Create source code and search pass cache for an already compiled version. */
