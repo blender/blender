@@ -133,11 +133,15 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
     const char *title = "Blender - Unsupported Graphics Card Configuration";
     const char *text = "";
 #if defined(WIN32)
-    if (strncmp(BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0) {
+    if (strncmp(BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0 &&
+        strstr(BLI_getenv("PROCESSOR_IDENTIFIER"), "Qualcomm") != NULL)
+    {
       text =
           "A driver with support for OpenGL 4.3 or higher is required.\n\n"
-          "If you are on a Qualcomm 8cx Gen3 device or newer, you need to download the"
-          "\"OpenCL™, OpenGL®, and Vulkan® Compatibility Pack\" from the MS Store.";
+          "Qualcomm devices require the \"OpenCL™, OpenGL®, and Vulkan® Compatibility Pack\" "
+          "from the Microsoft Store.\n\n"
+          "Devices using processors older than a Qualcomm Snapdragon 8cx Gen3 are incompatible, "
+          "but may be able to run an emulated x64 copy of Blender, such as a 3.x LTS release.";
     }
     else
 #endif
