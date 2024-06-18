@@ -13,7 +13,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
+import zipfile
 
 import unittest.util
 
@@ -21,11 +23,18 @@ from typing import (
     Any,
     Sequence,
     Dict,
+    List,
     NamedTuple,
     Optional,
     Set,
     Tuple,
+    Union,
 )
+
+# A tree of files.
+FileTree = Dict[str, Union["FileTree", bytes]]
+
+JSON_OutputElem = Tuple[str, Any]
 
 # For more useful output that isn't clipped.
 # pylint: disable-next=protected-access
@@ -116,16 +125,40 @@ def rmdir_contents(directory: str) -> None:
             os.unlink(filepath)
 
 
-# -----------------------------------------------------------------------------
-# HTTP Server (simulate remote access)
-#
+def manifest_dict_from_archive(filepath: str) -> Dict[str, Any]:
+    with zipfile.ZipFile(filepath, mode="r") as zip_fh:
+        manifest_data = zip_fh.read(PKG_MANIFEST_FILENAME_TOML)
+        manifest_dict = tomllib.loads(manifest_data.decode("utf-8"))
+        return manifest_dict
+
 
 # -----------------------------------------------------------------------------
 # Generate Repository
 #
 
 
-def my_create_package(dirpath: str, filename: str, *, metadata: Dict[str, Any], files: Dict[str, bytes]) -> None:
+def files_create_in_dir(basedir: str, files: FileTree) -> None:
+    if not os.path.isdir(basedir):
+        os.makedirs(basedir)
+    for filename_iter, data in files.items():
+        path = os.path.join(basedir, filename_iter)
+        if isinstance(data, bytes):
+            with open(path, "wb") as fh:
+                fh.write(data)
+        elif isinstance(data, dict):
+            files_create_in_dir(path, data)
+        else:
+            assert False, "Unreachable"
+
+
+def my_create_package(
+        dirpath: str,
+        filename: str,
+        *,
+        metadata: Dict[str, Any],
+        files: FileTree,
+        build_args_extra: Tuple[str, ...],
+) -> Sequence[JSON_OutputElem]:
     """
     Create a package using the command line interface.
     """
@@ -139,7 +172,7 @@ def my_create_package(dirpath: str, filename: str, *, metadata: Dict[str, Any], 
         temp_dir_pkg_manifest_toml = os.path.join(temp_dir_pkg, PKG_MANIFEST_FILENAME_TOML)
         with open(temp_dir_pkg_manifest_toml, "wb") as fh:
             # NOTE: escaping is not supported, this is primitive TOML writing for tests.
-            data = "".join((
+            data_list = [
                 """# Example\n""",
                 """schema_version = "{:s}"\n""".format(metadata_copy.pop("schema_version")),
                 """id = "{:s}"\n""".format(metadata_copy.pop("id")),
@@ -151,21 +184,27 @@ def my_create_package(dirpath: str, filename: str, *, metadata: Dict[str, Any], 
                 """blender_version_min = "{:s}"\n""".format(metadata_copy.pop("blender_version_min")),
                 """maintainer = "{:s}"\n""".format(metadata_copy.pop("maintainer")),
                 """license = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in metadata_copy.pop("license"))),
-            )).encode('utf-8')
-            fh.write(data)
+            ]
+
+            if (value := metadata_copy.pop("platforms", None)) is not None:
+                data_list.append("""platforms = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in value)))
+
+            if (value := metadata_copy.pop("wheels", None)) is not None:
+                data_list.append("""wheels = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in value)))
+
+            fh.write("".join(data_list).encode('utf-8'))
 
         if metadata_copy:
             raise Exception("Unexpected mata-data: {!r}".format(metadata_copy))
 
-        for filename_iter, data in files.items():
-            with open(os.path.join(temp_dir_pkg, filename_iter), "wb") as fh:
-                fh.write(data)
+        files_create_in_dir(temp_dir_pkg, files)
 
         output_json = command_output_from_json_0(
             [
                 "build",
                 "--source-dir", temp_dir_pkg,
                 "--output-filepath", outfile,
+                *build_args_extra,
             ],
             exclude_types={"PROGRESS"},
         )
@@ -177,6 +216,8 @@ def my_create_package(dirpath: str, filename: str, *, metadata: Dict[str, Any], 
 
         if output_json_error:
             raise Exception("Creating a package produced some error output: {!r}".format(output_json_error))
+
+        return output_json
 
 
 class PkgTemplate(NamedTuple):
@@ -209,20 +250,21 @@ def my_generate_repo(
             files={
                 "__init__.py": b"# This is a script\n",
             },
+            build_args_extra=(),
         )
 
 
 def command_output_filter_include(
-        output_json: Sequence[Tuple[str, Any]],
+        output_json: Sequence[JSON_OutputElem],
         include_types: Set[str],
-) -> Sequence[Tuple[str, Any]]:
+) -> Sequence[JSON_OutputElem]:
     return [(a, b) for a, b in output_json if a in include_types]
 
 
 def command_output_filter_exclude(
-        output_json: Sequence[Tuple[str, Any]],
+        output_json: Sequence[JSON_OutputElem],
         exclude_types: Set[str],
-) -> Sequence[Tuple[str, Any]]:
+) -> Sequence[JSON_OutputElem]:
     return [(a, b) for a, b in output_json if a not in exclude_types]
 
 
@@ -248,7 +290,7 @@ def command_output_from_json_0(
         *,
         exclude_types: Optional[Set[str]] = None,
         expected_returncode: int = 0,
-) -> Sequence[Tuple[str, Any]]:
+) -> Sequence[JSON_OutputElem]:
     result = []
 
     proc = subprocess.run(
@@ -276,6 +318,115 @@ class TestCLI(unittest.TestCase):
 
     def test_version(self) -> None:
         self.assertEqual(command_output(["--version"]), "0.1\n")
+
+
+class TestCLI_Build(unittest.TestCase):
+
+    dirpath = ""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.dirpath = TEMP_DIR_LOCAL
+        if os.path.isdir(cls.dirpath):
+            rmdir_contents(TEMP_DIR_LOCAL)
+        else:
+            os.makedirs(TEMP_DIR_LOCAL)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if os.path.isdir(cls.dirpath):
+            rmdir_contents(TEMP_DIR_LOCAL)
+
+    def test_build_multi_platform(self) -> None:
+        platforms = [
+            "linux-arm64",
+            "linux-x64",
+            "macos-arm64",
+            "macos-x64",
+            "windows-arm64",
+            "windows-x64",
+        ]
+        wheels = [
+            # Must be included in all packages.
+            "my_portable_package-3.0.1-py3-none-any.whl",
+            # Each package must include only one.
+            "my_platform_package-10.3.0-cp311-cp311-macosx_11_0_arm64.whl",
+            "my_platform_package-10.3.0-cp311-cp311-macosx_11_0_x86_64.whl",
+            "my_platform_package-10.3.0-cp311-cp311-manylinux_2_28_aarch64.whl",
+            "my_platform_package-10.3.0-cp311-cp311-manylinux_2_28_x86_64.whl",
+            "my_platform_package-10.3.0-cp311-cp311-win_amd64.whl",
+            "my_platform_package-10.3.0-cp311-cp311-win_arm64.whl",
+        ]
+
+        pkg_idname = "my_test"
+        output_json = my_create_package(
+            self.dirpath,
+            pkg_idname + PKG_EXT,
+            metadata={
+                "schema_version": "1.0.0",
+                "id": "multi_platform_test",
+                "name": "Multi Platform Test",
+                "tagline": """This package has a tagline""",
+                "version": "1.0.0",
+                "type": "add-on",
+                "tags": ["UV", "Modeling"],
+                "blender_version_min": "0.0.0",
+                "maintainer": "Some Developer",
+                "license": ["SPDX:GPL-2.0-or-later"],
+                "platforms": platforms,
+                "wheels": ["./wheels/" + filename for filename in wheels]
+            },
+            files={
+                "__init__.py": b"# This is a script\n",
+                "wheels": {filename: b"" for filename in wheels},
+            },
+            build_args_extra=(
+                # Include `add: {...}` so the file list can be scanned.
+                "--verbose",
+                "--split-platforms",
+            ),
+        )
+
+        output_json = command_output_filter_include(
+            output_json,
+            include_types={'STATUS'},
+        )
+
+        packages: List[Tuple[str, List[JSON_OutputElem]]] = [("", [])]
+        for _, message in output_json:
+            if message.startswith("building: "):
+                assert not packages[-1][0]
+                assert not packages[-1][1]
+                packages[-1] = (message.removeprefix("building: "), [])
+            elif message.startswith("add: "):
+                packages[-1][1].append(message.removeprefix("add: "))
+            elif message.startswith("created: "):
+                pass
+            elif message == "complete":
+                packages.append(("", []))
+            else:
+                raise Exception("Unexpected status: {:s}".format(message))
+
+        packages_dict = dict(packages)
+        for platform in platforms:
+            filename = "{:s}-{:s}{:s}".format(pkg_idname, platform.replace("-", "_"), PKG_EXT)
+            value = packages_dict.get(filename)
+            assert isinstance(value, list)
+            # A check here that gives a better error would be nice, for now, check there are always 4 files.
+            self.assertEqual(len(value), 4)
+
+            manifest_dict = manifest_dict_from_archive(os.path.join(self.dirpath, filename))
+
+            # Ensure the generated data is included:
+            # `[build.generated]`
+            # `platforms = [{platform}]`
+            build_value = manifest_dict.get("build")
+            assert build_value is not None
+            build_generated_value = build_value.get("generated")
+            assert build_generated_value is not None
+            build_generated_platforms_value = build_generated_value.get("platforms")
+            assert build_generated_platforms_value is not None
+            self.assertEqual(build_generated_platforms_value, [platform])
 
 
 class TestCLI_WithRepo(unittest.TestCase):
@@ -439,6 +590,9 @@ class TestCLI_WithRepo(unittest.TestCase):
 
 if __name__ == "__main__":
     if USE_HTTP:
+        # This doesn't take advantage of a HTTP client/server.
+        del TestCLI_Build
+
         with HTTPServerContext(directory=TEMP_DIR_REMOTE, port=HTTP_PORT):
             unittest.main()
     else:
