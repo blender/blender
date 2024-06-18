@@ -263,9 +263,10 @@ static OffsetIndices<int> recent_position_offsets(TransCustomData &custom_data, 
 
 /**
  * Creates map of indices to `tc.data` representing the curves.
- * For bezier curves it uses the layout [L0, P0, R0, L1, P1, R1, L2, P2, R2], where [P0, P1, P2],
- * [L0, L1, L2] and [R0, R1, R2] are positions, left handles and right handles respectively.
- * Other curve types just use the positions [P0, P1, ..., Pn] of the control points directly.
+ * For bezier curves it uses the layout `[L0, P0, R0, L1, P1, R1, L2, P2, R2]`,
+ * where `[P0, P1, P2]`, `[L0, L1, L2]` and `[R0, R1, R2]` are positions,
+ *  left handles and right handles respectively.
+ * Other curve types just use the positions `[P0, P1, ..., Pn]` of the control points directly.
  */
 static void fill_map(const CurveType curve_type,
                      const IndexRange curve_points,

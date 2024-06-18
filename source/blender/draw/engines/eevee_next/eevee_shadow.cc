@@ -1138,7 +1138,7 @@ bool ShadowModule::shadow_update_finished(int loop_count)
 {
   if (loop_count >= (SHADOW_MAX_TILEMAP * SHADOW_TILEMAP_LOD) / SHADOW_VIEW_MAX) {
     /* We have reach the maximum theoretical number of updates.
-     * This can indicate a problem in the statistic buffer readback or update tagging. */
+     * This can indicate a problem in the statistic buffer read-back or update tagging. */
     return true;
   }
 
@@ -1171,7 +1171,7 @@ int ShadowModule::max_view_per_tilemap()
     return SHADOW_TILEMAP_LOD;
   }
   /* For now very simple heuristic. Can be improved later by taking into consideration how many
-   * tilemaps are updating, but we cannot know the ones updated by casters. */
+   * tile-maps are updating, but we cannot know the ones updated by casters. */
   int potential_view_count = 0;
   for (auto i : IndexRange(tilemap_pool.tilemaps_data.size())) {
     if (tilemap_pool.tilemaps_data[i].projection_type == SHADOW_PROJECTION_CUBEFACE) {
@@ -1248,7 +1248,7 @@ void ShadowModule::set_view(View &view, int2 extent)
       if (assign_if_different(update_casters_, false)) {
         /* Run caster update only once. */
         /* TODO(fclem): There is an optimization opportunity here where we can
-         * test casters only against the static tilemaps instead of all of them. */
+         * test casters only against the static tile-maps instead of all of them. */
         inst_.manager->submit(caster_update_ps_, view);
       }
       if (loop_count == 0) {
