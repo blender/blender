@@ -191,7 +191,7 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
 
     D = normalize(Pfocus - lens_uvw);
     /* Compute position the ray will be if it traveled until it intersected the near clip plane.
-     * This allows for correct DOF while allowing near cliping. */
+     * This allows for correct DOF while allowing near clipping. */
     P = Pcamera + lens_uvw + (D * (kernel_data.cam.nearclip / D.z));
   }
   else {

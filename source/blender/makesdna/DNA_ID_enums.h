@@ -75,7 +75,7 @@ typedef enum eIDPropertyFlag {
    * This #IDProperty has a static type, i.e. its #eIDPropertyType cannot be changed by assigning a
    * new value to it.
    *
-   * Currently, array len is also considered as fixed (i.e. part of the type) when this flag is
+   * Currently, array length is also considered as fixed (i.e. part of the type) when this flag is
    * set. This allows to avoid IDProperty storing vectors e.g. to see their length modified.
    *
    * \note Currently, all overridable IDProp are also statically typed. IDProps used as storage for

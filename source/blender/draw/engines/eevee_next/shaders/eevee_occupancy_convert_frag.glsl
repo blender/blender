@@ -57,7 +57,7 @@ void main()
   /* True if last interface was a volume entry. */
   /* Initialized to front facing if first hit is a backface to support camera inside the volume. */
   bool last_frontfacing = !is_front_face_hit(hit_ordered[0]);
-  /* Add artificial backfacing hit to close volumes we entered but never exited.
+  /* Add artificial back-facing hit to close volumes we entered but never exited.
    * Fixes issues with non-manifold meshes or things like water planes. */
   hit_ordered[hit_count] = -1.0;
   /* Bit index of the last interface. */
