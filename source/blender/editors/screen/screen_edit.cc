@@ -807,6 +807,8 @@ void ED_region_exit(bContext *C, ARegion *region)
   CTX_wm_region_set(C, region);
 
   WM_event_remove_handlers(C, &region->handlers);
+  WM_event_modal_handler_region_replace(win, region, nullptr);
+
   if (region->regiontype == RGN_TYPE_TEMPORARY) {
     /* This may be a popup region such as a popover or splash screen.
      * In the case of popups which spawn popups it's possible for
@@ -817,6 +819,7 @@ void ED_region_exit(bContext *C, ARegion *region)
      * they're not technically nested as they're both stored in #Screen::regionbase. */
     WM_event_ui_handler_region_popup_replace(win, region, nullptr);
   }
+
   WM_draw_region_free(region);
   /* The region is not in a state that it can be visible in anymore. Reinitializing is needed. */
   region->visible = false;
