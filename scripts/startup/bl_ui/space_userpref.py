@@ -1252,7 +1252,7 @@ class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_theme_strip_colors(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Strip Colors"
+    bl_label = "Strip Color Tags"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, _context):
