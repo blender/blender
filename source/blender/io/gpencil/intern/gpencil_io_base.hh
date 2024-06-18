@@ -79,7 +79,7 @@ class GpencilIO {
   float2 gpencil_3D_point_to_2D(const float3 co);
 
   /** Get radius of point. */
-  float stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps);
+  float stroke_point_radius_get(bGPdata *gpd, bGPDlayer *gpl, bGPDstroke *gps);
   /** Create a list of selected objects sorted from back to front */
   void create_object_list();
 
