@@ -1119,7 +1119,7 @@ static void free_step_data(StepData &step_data)
       BM_log_entry_drop(unode->bm_entry);
     }
   }
-  step_data.nodes.~Vector();
+  step_data.~StepData();
 }
 
 Node *get_node(const PBVHNode *node, const Type type)
@@ -1790,7 +1790,7 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
 static void step_encode_init(bContext * /*C*/, UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
-  new (&us->data.nodes) Vector<std::unique_ptr<Node>>();
+  new (&us->data) StepData();
 }
 
 static bool step_encode(bContext * /*C*/, Main *bmain, UndoStep *us_p)
