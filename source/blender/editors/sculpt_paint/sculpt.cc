@@ -3485,7 +3485,8 @@ namespace blender::ed::sculpt_paint {
 /* NOTE: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
-static void sculpt_topology_update(const Sculpt &sd,
+static void sculpt_topology_update(const Scene & /*scene*/,
+                                   const Sculpt &sd,
                                    Object &ob,
                                    const Brush &brush,
                                    UnifiedPaintSettings & /*ups*/,
@@ -3578,7 +3579,8 @@ static void push_undo_nodes(Object &ob, const Brush &brush, PBVHNode *node)
   }
 }
 
-static void do_brush_action(const Sculpt &sd,
+static void do_brush_action(const Scene &scene,
+                            const Sculpt &sd,
                             Object &ob,
                             const Brush &brush,
                             UnifiedPaintSettings &ups,
@@ -3747,10 +3749,10 @@ static void do_brush_action(const Sculpt &sd,
       }
       break;
     case SCULPT_TOOL_CREASE:
-      SCULPT_do_crease_brush(sd, ob, nodes);
+      do_crease_brush(scene, sd, ob, nodes);
       break;
     case SCULPT_TOOL_BLOB:
-      SCULPT_do_crease_brush(sd, ob, nodes);
+      do_blob_brush(scene, sd, ob, nodes);
       break;
     case SCULPT_TOOL_PINCH:
       SCULPT_do_pinch_brush(sd, ob, nodes);
@@ -4134,13 +4136,15 @@ void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache &ca
 
 namespace blender::ed::sculpt_paint {
 
-using BrushActionFunc = void (*)(const Sculpt &sd,
+using BrushActionFunc = void (*)(const Scene &scene,
+                                 const Sculpt &sd,
                                  Object &ob,
                                  const Brush &brush,
                                  UnifiedPaintSettings &ups,
                                  PaintModeSettings &paint_mode_settings);
 
-static void do_tiled(const Sculpt &sd,
+static void do_tiled(const Scene &scene,
+                     const Sculpt &sd,
                      Object &ob,
                      const Brush &brush,
                      UnifiedPaintSettings &ups,
@@ -4179,7 +4183,7 @@ static void do_tiled(const Sculpt &sd,
 
   /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
-  action(sd, ob, brush, ups, paint_mode_settings);
+  action(scene, sd, ob, brush, ups, paint_mode_settings);
 
   /* Now do it for all the tiles. */
   copy_v3_v3_int(cur, start);
@@ -4198,13 +4202,14 @@ static void do_tiled(const Sculpt &sd,
           cache->plane_offset[dim] = cur[dim] * step[dim];
           cache->initial_location[dim] = cur[dim] * step[dim] + original_initial_location[dim];
         }
-        action(sd, ob, brush, ups, paint_mode_settings);
+        action(scene, sd, ob, brush, ups, paint_mode_settings);
       }
     }
   }
 }
 
-static void do_radial_symmetry(const Sculpt &sd,
+static void do_radial_symmetry(const Scene &scene,
+                               const Sculpt &sd,
                                Object &ob,
                                const Brush &brush,
                                UnifiedPaintSettings &ups,
@@ -4220,7 +4225,7 @@ static void do_radial_symmetry(const Sculpt &sd,
     const float angle = 2.0f * M_PI * i / sd.radial_symm[axis - 'X'];
     ss.cache->radial_symmetry_pass = i;
     SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
-    do_tiled(sd, ob, brush, ups, paint_mode_settings, action);
+    do_tiled(scene, sd, ob, brush, ups, paint_mode_settings, action);
   }
 }
 
@@ -4239,7 +4244,8 @@ static void sculpt_fix_noise_tear(const Sculpt &sd, Object &ob)
   }
 }
 
-static void do_symmetrical_brush_actions(const Sculpt &sd,
+static void do_symmetrical_brush_actions(const Scene &scene,
+                                         const Sculpt &sd,
                                          Object &ob,
                                          const BrushActionFunc action,
                                          UnifiedPaintSettings &ups,
@@ -4266,11 +4272,11 @@ static void do_symmetrical_brush_actions(const Sculpt &sd,
     cache.radial_symmetry_pass = 0;
 
     SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
-    do_tiled(sd, ob, brush, ups, paint_mode_settings, action);
+    do_tiled(scene, sd, ob, brush, ups, paint_mode_settings, action);
 
-    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, symm, 'X', feather);
-    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, symm, 'Y', feather);
-    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, symm, 'Z', feather);
+    do_radial_symmetry(scene, sd, ob, brush, ups, paint_mode_settings, action, symm, 'X', feather);
+    do_radial_symmetry(scene, sd, ob, brush, ups, paint_mode_settings, action, symm, 'Y', feather);
+    do_radial_symmetry(scene, sd, ob, brush, ups, paint_mode_settings, action, symm, 'Z', feather);
   }
 }
 
@@ -5800,6 +5806,7 @@ static void sculpt_stroke_update_step(bContext *C,
                                       PointerRNA *itemptr)
 {
   UnifiedPaintSettings &ups = CTX_data_tool_settings(C)->unified_paint_settings;
+  const Scene &scene = *CTX_data_scene(C);
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -5828,10 +5835,11 @@ static void sculpt_stroke_update_step(bContext *C,
   }
 
   if (dyntopo::stroke_is_dyntopo(ss, brush)) {
-    do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups, tool_settings.paint_mode);
+    do_symmetrical_brush_actions(
+        scene, sd, ob, sculpt_topology_update, ups, tool_settings.paint_mode);
   }
 
-  do_symmetrical_brush_actions(sd, ob, do_brush_action, ups, tool_settings.paint_mode);
+  do_symmetrical_brush_actions(scene, sd, ob, do_brush_action, ups, tool_settings.paint_mode);
   sculpt_combine_proxies(sd, ob);
 
   /* Hack to fix noise texture tearing mesh. */
@@ -5851,8 +5859,10 @@ static void sculpt_stroke_update_step(bContext *C,
    */
   if (!(ELEM(brush.sculpt_tool,
              SCULPT_TOOL_DRAW,
-             SCULPT_TOOL_CLAY_STRIPS,
              SCULPT_TOOL_SCRAPE,
+             SCULPT_TOOL_BLOB,
+             SCULPT_TOOL_CREASE,
+             SCULPT_TOOL_CLAY_STRIPS,
              SCULPT_TOOL_FILL) &&
         BKE_pbvh_type(*ss.pbvh) == PBVH_FACES))
   {
@@ -6543,7 +6553,7 @@ void calc_front_face(const float3 &view_normal,
 
   for (const int i : verts.index_range()) {
     const float dot = math::dot(view_normal, vert_normals[verts[i]]);
-    factors[i] *= dot > 0.0f ? dot : 0.0f;
+    factors[i] *= std::max(dot, 0.0f);
   }
 }
 
@@ -6788,6 +6798,13 @@ void scale_translations(const MutableSpan<float3> translations, const Span<float
 {
   for (const int i : translations.index_range()) {
     translations[i] *= factors[i];
+  }
+}
+
+void scale_translations(const MutableSpan<float3> translations, const float factor)
+{
+  for (const int i : translations.index_range()) {
+    translations[i] *= factor;
   }
 }
 
