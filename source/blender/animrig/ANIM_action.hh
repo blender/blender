@@ -641,6 +641,19 @@ Span<FCurve *> fcurves_for_animation(Action &anim, binding_handle_t binding_hand
 Span<const FCurve *> fcurves_for_animation(const Action &anim, binding_handle_t binding_handle);
 
 /**
+ * Return all F-Curves in the Action.
+ *
+ * This works for both legacy and layered Actions.
+ *
+ * This is a utility function whose purpose is unclear after multi-layer animation is introduced.
+ * It might still be useful, it might not be.
+
+ * The use of this function is an indicator for code that might have to be altered when
+ * multi-layered animation is getting implemented.
+ */
+Vector<const FCurve *> fcurves_all(const Action &action);
+
+/**
  * Get (or add relevant data to be able to do so) F-Curve from the given Action,
  * for the given Animation Data block. This assumes that all the destinations are valid.
  * \param ptr: can be a null pointer.

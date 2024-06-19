@@ -1101,6 +1101,43 @@ Span<const FCurve *> fcurves_for_animation(const Action &anim,
   return bag->fcurves();
 }
 
+Vector<const FCurve *> fcurves_all(const Action &action)
+{
+  /* Empty means Empty. */
+  if (action.is_empty()) {
+    return {};
+  }
+
+  /* Legacy Action. */
+  if (action.is_action_legacy()) {
+    Vector<const FCurve *> legacy_curves;
+    LISTBASE_FOREACH (const FCurve *, fcurve, &action.curves) {
+      legacy_curves.append(fcurve);
+    }
+    return legacy_curves;
+  }
+
+  /* Layered Action. */
+  BLI_assert(action.is_action_layered());
+
+  Vector<const FCurve *> all_fcurves;
+  for (const Layer *layer : action.layers()) {
+    for (const Strip *strip : layer->strips()) {
+      switch (strip->type()) {
+        case Strip::Type::Keyframe: {
+          const KeyframeStrip &key_strip = strip->as<KeyframeStrip>();
+          for (const ChannelBag *bag : key_strip.channelbags()) {
+            for (const FCurve *fcurve : bag->fcurves()) {
+              all_fcurves.append(fcurve);
+            }
+          }
+        }
+      }
+    }
+  }
+  return all_fcurves;
+}
+
 FCurve *action_fcurve_find(bAction *act, const char rna_path[], const int array_index)
 {
   if (ELEM(nullptr, act, rna_path)) {

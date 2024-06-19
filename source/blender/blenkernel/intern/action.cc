@@ -1570,7 +1570,12 @@ void BKE_action_frame_range_calc(const bAction *act,
   float min = 999999999.0f, max = -999999999.0f;
   bool foundvert = false, foundmod = false;
 
-  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+#ifdef WITH_ANIM_BAKLAVA
+  const blender::animrig::Action &action = act->wrap();
+  for (const FCurve *fcu : fcurves_all(action)) {
+#else
+  LISTBASE_FOREACH (const FCurve *, fcu, &act->curves) {
+#endif /* WITH_ANIM_BAKLAVA */
     /* if curve has keyframes, consider them first */
     if (fcu->totvert) {
       float nmin, nmax;
@@ -1632,7 +1637,14 @@ void BKE_action_frame_range_calc(const bAction *act,
 
       foundmod = true;
     }
+
+    /* This block is here just so that editors/IDEs do not get confused about the two opening curly
+     * braces in the `#ifdef WITH_ANIM_BAKLAVA` block above, but one closing curly brace here. */
+#ifdef WITH_ANIM_BAKLAVA
   }
+#else
+  }
+#endif /* WITH_ANIM_BAKLAVA */
 
   if (foundvert || foundmod) {
     *r_start = max_ff(min, MINAFRAMEF);
