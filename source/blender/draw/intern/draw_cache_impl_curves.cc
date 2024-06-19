@@ -442,11 +442,10 @@ static void create_sculpt_cage_ibo(const OffsetIndices<int> points_by_curve,
   GPU_indexbuf_build_in_place(&elb, cache.sculpt_cage_ibo);
 }
 
-static void calc_edit_handles_vbo(const bke::CurvesGeometry &curves,
+static void calc_edit_handles_ibo(const bke::CurvesGeometry &curves,
                                   const IndexMask bezier_curves,
                                   const OffsetIndices<int> bezier_offsets,
-                                  const IndexMask nurbs_curves,
-                                  const OffsetIndices<int> nurbs_offsets,
+                                  const IndexMask other_curves,
                                   CurvesBatchCache &cache)
 {
   const int bezier_point_count = bezier_offsets.total_size();
@@ -454,14 +453,10 @@ static void calc_edit_handles_vbo(const bke::CurvesGeometry &curves,
   const int vert_len = curves.points_num() + 2 * bezier_point_count;
   /* For each point has 2 lines from 2 point and one restart entry. */
   const int index_len_for_bezier_handles = 6 * bezier_point_count;
-  const VArray<bool> cyclic = curves.cyclic();
-  /* All NURBS control points plus restart for every curve.
-   * Add space for possible cyclic curves.
-   * If one point curves or two point cyclic curves are present, not all builder's buffer space
-   * will be used. */
-  const int index_len_for_nurbs = nurbs_offsets.total_size() + nurbs_curves.size() +
-                                  array_utils::count_booleans(cyclic, nurbs_curves);
-  const int index_len = index_len_for_bezier_handles + index_len_for_nurbs;
+  const int index_len = (curves.points_num() - bezier_point_count) +
+                        /* One restart entry and one possible cyclic for each non Bezier curve. */
+                        2 * (curves.curves_num() - bezier_curves.size()) +
+                        index_len_for_bezier_handles;
   /* Use two index buffer builders for the same underlying memory. */
   GPUIndexBufBuilder elb, right_elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
@@ -484,7 +479,8 @@ static void calc_edit_handles_vbo(const bke::CurvesGeometry &curves,
       GPU_indexbuf_add_primitive_restart(&right_elb);
     }
   });
-  nurbs_curves.foreach_index([&](const int64_t src_i) {
+  const VArray<bool> cyclic = curves.cyclic();
+  other_curves.foreach_index([&](const int64_t src_i) {
     IndexRange curve_points = points_by_curve[src_i];
     if (curve_points.size() <= 1) {
       return;
@@ -1128,18 +1124,8 @@ void DRW_curves_batch_cache_create_requested(Object *ob)
     create_edit_points_selection(curves_orig, bezier_curves, bezier_offsets, cache);
   }
   if (DRW_ibo_requested(cache.edit_handles_ibo)) {
-    IndexMaskMemory nurbs_memory;
-    const IndexMask nurbs_curves = bke::curves::indices_for_type(curves_orig.curve_types(),
-                                                                 curves_orig.curve_type_counts(),
-                                                                 CURVE_TYPE_NURBS,
-                                                                 curves_orig.curves_range(),
-                                                                 nurbs_memory);
-    Array<int> nurbs_point_offset_data(nurbs_curves.size() + 1);
-    const OffsetIndices<int> nurbs_offsets = offset_indices::gather_selected_offsets(
-        curves_orig.points_by_curve(), nurbs_curves, nurbs_point_offset_data);
-
-    calc_edit_handles_vbo(
-        curves_orig, bezier_curves, bezier_offsets, nurbs_curves, nurbs_offsets, cache);
+    const IndexMask other_curves = bezier_curves.complement(curves_orig.curves_range(), memory);
+    calc_edit_handles_ibo(curves_orig, bezier_curves, bezier_offsets, other_curves, cache);
   }
   if (DRW_ibo_requested(cache.sculpt_cage_ibo)) {
     create_sculpt_cage_ibo(curves_orig.points_by_curve(), cache);
