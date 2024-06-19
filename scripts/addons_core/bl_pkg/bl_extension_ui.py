@@ -576,8 +576,8 @@ def extensions_panel_draw_impl(
         remote_ex = ex
 
     def error_fn_local(ex):
-        nonlocal remote_ex
-        remote_ex = ex
+        nonlocal local_ex
+        local_ex = ex
 
     for repo_index, (
             pkg_manifest_remote,
