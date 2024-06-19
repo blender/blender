@@ -1449,9 +1449,9 @@ static NodeGeometry *geometry_get(Node *unode)
   return &unode->geometry_modified;
 }
 
-static Node *geometry_push(const Object &object, const Type type)
+static Node *geometry_push(const Object &object)
 {
-  Node *unode = find_or_alloc_node_type(type);
+  Node *unode = find_or_alloc_node_type(Type::Geometry);
   unode->applied = false;
   unode->geometry_clear_pbvh = true;
 
@@ -1573,7 +1573,7 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
       return;
     }
     if (type == Type::Geometry) {
-      unode = geometry_push(object, type);
+      unode = geometry_push(object);
       BLI_thread_unlock(LOCK_CUSTOM1);
       // return unode;
       return;
