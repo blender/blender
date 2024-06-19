@@ -2182,6 +2182,21 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
             split.label(text="Volume", text_ctxt=i18n_contexts.id_sound)
             split.prop(strip, "volume", text="")
 
+            split = col.split(factor=0.4)
+            split.alignment = 'RIGHT'
+            split.label(text="Offset", text_ctxt=i18n_contexts.id_sound)
+            split.prop(strip, "sound_offset", text="")
+
+            layout.use_property_split = False
+            col = layout.column()
+
+            split = col.split(factor=0.4)
+            split.label(text="")
+            split.prop(sound, "use_mono")
+
+            layout.use_property_split = True
+            col = layout.column()
+
             audio_channels = context.scene.render.ffmpeg.audio_channels
             pan_enabled = sound.use_mono and audio_channels != 'MONO'
             pan_text = "{:.2f}°".format(strip.pan * 90.0)
@@ -2191,11 +2206,6 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
             split.label(text="Pan", text_ctxt=i18n_contexts.id_sound)
             split.prop(strip, "pan", text="")
             split.enabled = pan_enabled
-
-            split = col.split(factor=0.4)
-            split.alignment = 'RIGHT'
-            split.label(text="Offset", text_ctxt=i18n_contexts.id_sound)
-            split.prop(strip, "sound_offset", text="")
 
             if audio_channels not in {'MONO', 'STEREO'}:
                 split = col.split(factor=0.4)
@@ -2211,9 +2221,6 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
             layout.use_property_split = False
             col = layout.column()
 
-            split = col.split(factor=0.4)
-            split.label(text="")
-            split.prop(sound, "use_mono")
             if overlay_settings.waveform_display_type == 'DEFAULT_WAVEFORMS':
                 split = col.split(factor=0.4)
                 split.label(text="")
