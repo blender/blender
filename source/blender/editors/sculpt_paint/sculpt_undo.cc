@@ -131,6 +131,21 @@ struct StepData {
 
   Vector<std::unique_ptr<Node>> nodes;
 
+  /**
+   * #undo::Node is stored per PBVH node to reduce data storage needed for changes only impacting
+   * small portions of the mesh. During undo step creation and brush evaluation we often need to
+   * look up the undo state for a specific PBVH node. That lookup must be protected by a lock since
+   * nodes are pushed from multiple threads. This map speeds up undo node access to reduce the
+   * amount of time we wait for the lock.
+   *
+   * This is only accessible when building the undo step, in between #push_begin and #push_end.
+   *
+   * \todo All nodes in a single step have the same type, so using the type as part of the map key
+   * should be unnecessary. However, to remove it, first the storage of the undo type should be
+   * moved to #StepData from #Node.
+   */
+  Map<std::pair<const PBVHNode *, Type>, Node *> undo_nodes_by_pbvh_node;
+
   size_t undo_size;
 };
 
@@ -1124,18 +1139,11 @@ static void free_step_data(StepData &step_data)
 Node *get_node(const PBVHNode *node, const Type type)
 {
   StepData *step_data = get_step_data();
-
   if (step_data == nullptr) {
     return nullptr;
   }
 
-  for (std::unique_ptr<Node> &unode : step_data->nodes) {
-    if (unode->node == node && unode->type == type) {
-      return unode.get();
-    }
-  }
-
-  return nullptr;
+  return step_data->undo_nodes_by_pbvh_node.lookup_default({node, type}, nullptr);
 }
 
 static size_t alloc_and_store_hidden(const SculptSession *ss, const PBVHNode &node, Node *unode)
@@ -1194,7 +1202,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
   const SculptSession *ss = object.sculpt;
 
   Node *unode = alloc_node_type(type);
-  unode->node = node;
+  step_data->undo_nodes_by_pbvh_node.add({node, type}, unode);
 
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
@@ -1708,6 +1716,8 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
     unode->normal = {};
   }
 
+  step_data->undo_nodes_by_pbvh_node.clear_and_shrink();
+
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   if (wm->op_undo_depth == 0 || use_nested_undo) {
@@ -2027,8 +2037,7 @@ static void push_all_grids(Object *object)
 
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
   for (PBVHNode *node : nodes) {
-    Node *unode = push_node(*object, node, Type::Position);
-    unode->node = nullptr;
+    push_node(*object, node, Type::Position);
   }
 }
 

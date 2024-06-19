@@ -157,8 +157,6 @@ struct NodeGeometry {
 struct Node {
   Type type;
 
-  const void *node; /* only during push, not valid afterwards! */
-
   Array<float3> position;
   Array<float3> orig_position;
   Array<float3> normal;
@@ -1643,7 +1641,19 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache);
 
 namespace blender::ed::sculpt_paint::undo {
 
+/**
+ * Store undo data of the given type for a PBVH node.
+ *
+ * This is only possible when building an undo step, in between #push_begin and #push_end.
+ */
 undo::Node *push_node(const Object &object, const PBVHNode *node, undo::Type type);
+
+/**
+ * Retrieve the undo data of a given type for the active undo step. For example, this is used to
+ * access "original" data from before the current stroke.
+ *
+ * This is only possible when building an undo step, in between #push_begin and #push_end.
+ */
 undo::Node *get_node(const PBVHNode *node, undo::Type type);
 
 /**
