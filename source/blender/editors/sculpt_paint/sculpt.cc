@@ -1952,8 +1952,8 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
                                                   const Brush &brush,
                                                   const bool use_area_nos,
                                                   const bool use_area_cos,
-                                                  PBVHNode *node,
-                                                  AreaNormalCenterData *anctd,
+                                                  const PBVHNode &node,
+                                                  AreaNormalCenterData &anctd,
                                                   bool &r_any_vertex_sampled)
 {
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
@@ -1968,13 +1968,13 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
   undo::Node *unode = nullptr;
   bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(node, undo::Type::Position);
+    unode = undo::get_node(&node, undo::Type::Position);
     if (unode) {
       use_original = !unode->position.is_empty();
     }
   }
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
     if (!hide_vert.is_empty() && hide_vert[vert]) {
@@ -2001,14 +2001,14 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
 
     const int flip_index = math::dot(view_normal, no) <= 0.0f;
     if (use_area_cos && area_test_r) {
-      anctd->area_cos[flip_index] += area_center_calc_weighted(
+      anctd.area_cos[flip_index] += area_center_calc_weighted(
           area_test.location, area_test.dist, area_test.radius, co);
-      anctd->count_co[flip_index] += 1;
+      anctd.count_co[flip_index] += 1;
     }
     if (use_area_nos && normal_test_r) {
-      anctd->area_nos[flip_index] += no *
-                                     area_normal_calc_weight(normal_test.dist, normal_test.radius);
-      anctd->count_no[flip_index] += 1;
+      anctd.area_nos[flip_index] += no *
+                                    area_normal_calc_weight(normal_test.dist, normal_test.radius);
+      anctd.count_no[flip_index] += 1;
     }
   }
 }
@@ -2017,8 +2017,8 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
                                                    const Brush &brush,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
-                                                   PBVHNode *node,
-                                                   AreaNormalCenterData *anctd,
+                                                   const PBVHNode &node,
+                                                   AreaNormalCenterData &anctd,
                                                    bool &r_any_vertex_sampled)
 {
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
@@ -2038,14 +2038,14 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
   undo::Node *unode = nullptr;
   bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(node, undo::Type::Position);
+    unode = undo::get_node(&node, undo::Type::Position);
     if (unode) {
       use_original = !unode->position.is_empty();
     }
   }
 
   int i = 0;
-  for (const int grid : bke::pbvh::node_grid_indices(*node)) {
+  for (const int grid : bke::pbvh::node_grid_indices(node)) {
     CCGElem *elem = grids[grid];
     for (const int j : IndexRange(key.grid_area)) {
       if (!grid_hidden.is_empty() && grid_hidden[grid][j]) {
@@ -2074,14 +2074,14 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
 
       const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
-        anctd->area_cos[flip_index] += area_center_calc_weighted(
+        anctd.area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
-        anctd->count_co[flip_index] += 1;
+        anctd.count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
-        anctd->area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                    normal_test.radius);
-        anctd->count_no[flip_index] += 1;
+        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                   normal_test.radius);
+        anctd.count_no[flip_index] += 1;
       }
 
       i++;
@@ -2094,8 +2094,8 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
                                                    const bool has_bm_orco,
-                                                   PBVHNode *node,
-                                                   AreaNormalCenterData *anctd,
+                                                   const PBVHNode &node,
+                                                   AreaNormalCenterData &anctd,
                                                    bool &r_any_vertex_sampled)
 {
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
@@ -2110,7 +2110,7 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
   undo::Node *unode = nullptr;
   bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(node, undo::Type::Position);
+    unode = undo::get_node(&node, undo::Type::Position);
     if (unode) {
       use_original = unode->bm_entry != nullptr;
     }
@@ -2122,7 +2122,8 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
     float(*orco_coords)[3];
     int(*orco_tris)[3];
     int orco_tris_num;
-    BKE_pbvh_node_get_bm_orco_data(node, &orco_tris, &orco_tris_num, &orco_coords, nullptr);
+    BKE_pbvh_node_get_bm_orco_data(
+        &const_cast<PBVHNode &>(node), &orco_tris, &orco_tris_num, &orco_coords, nullptr);
 
     for (int i = 0; i < orco_tris_num; i++) {
       const float *co_tri[3] = {
@@ -2146,20 +2147,20 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
 
       const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
-        anctd->area_cos[flip_index] += area_center_calc_weighted(
+        anctd.area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
 
-        anctd->count_co[flip_index] += 1;
+        anctd.count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
-        anctd->area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                    normal_test.radius);
-        anctd->count_no[flip_index] += 1;
+        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                   normal_test.radius);
+        anctd.count_no[flip_index] += 1;
       }
     }
   }
   else {
-    for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+    for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&const_cast<PBVHNode &>(node))) {
       if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
         continue;
       }
@@ -2187,14 +2188,14 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
 
       const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
-        anctd->area_cos[flip_index] += area_center_calc_weighted(
+        anctd.area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
-        anctd->count_co[flip_index] += 1;
+        anctd.count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
-        anctd->area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                    normal_test.radius);
-        anctd->count_no[flip_index] += 1;
+        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                   normal_test.radius);
+        anctd.count_no[flip_index] += 1;
       }
     }
   }
@@ -2251,18 +2252,18 @@ void calc_area_center(const Brush &brush,
                                                     brush,
                                                     false,
                                                     true,
-                                                    nodes[i],
-                                                    &anctd,
+                                                    *nodes[i],
+                                                    anctd,
                                                     any_vertex_sampled);
               break;
             }
             case PBVH_GRIDS:
               calc_area_normal_and_center_node_grids(
-                  ss, brush, false, true, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, false, true, *nodes[i], anctd, any_vertex_sampled);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, false, true, has_bm_orco, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, false, true, has_bm_orco, *nodes[i], anctd, any_vertex_sampled);
               break;
           }
         }
@@ -2320,18 +2321,18 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
                                                     brush,
                                                     true,
                                                     false,
-                                                    nodes[i],
-                                                    &anctd,
+                                                    *nodes[i],
+                                                    anctd,
                                                     any_vertex_sampled);
               break;
             }
             case PBVH_GRIDS:
               calc_area_normal_and_center_node_grids(
-                  ss, brush, true, false, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, true, false, *nodes[i], anctd, any_vertex_sampled);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, true, false, has_bm_orco, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, true, false, has_bm_orco, *nodes[i], anctd, any_vertex_sampled);
               break;
           }
         }
@@ -2387,18 +2388,18 @@ void calc_area_normal_and_center(const Brush &brush,
                                                     brush,
                                                     true,
                                                     true,
-                                                    nodes[i],
-                                                    &anctd,
+                                                    *nodes[i],
+                                                    anctd,
                                                     any_vertex_sampled);
               break;
             }
             case PBVH_GRIDS:
               calc_area_normal_and_center_node_grids(
-                  ss, brush, true, true, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, true, true, *nodes[i], anctd, any_vertex_sampled);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, true, true, has_bm_orco, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, true, true, has_bm_orco, *nodes[i], anctd, any_vertex_sampled);
               break;
           }
         }
