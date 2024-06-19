@@ -103,8 +103,14 @@ enum eGPUSeqFlags : uint32_t {
   GPU_SEQ_FLAG_SELECTED = (1u << 7u),
   GPU_SEQ_FLAG_ACTIVE = (1u << 8u),
   GPU_SEQ_FLAG_HIGHLIGHT = (1u << 9u),
-  GPU_SEQ_FLAG_HANDLES = (1u << 10u),
-  GPU_SEQ_FLAG_BORDER = (1u << 11u),
+  GPU_SEQ_FLAG_BORDER = (1u << 10u),
+  GPU_SEQ_FLAG_SELECTED_LH = (1u << 11u),
+  GPU_SEQ_FLAG_SELECTED_RH = (1u << 12u),
+  GPU_SEQ_FLAG_DRAW_LH = (1u << 13u),
+  GPU_SEQ_FLAG_DRAW_RH = (1u << 14u),
+
+  GPU_SEQ_FLAG_ANY_HANDLE = GPU_SEQ_FLAG_SELECTED_LH | GPU_SEQ_FLAG_SELECTED_RH |
+                            GPU_SEQ_FLAG_DRAW_LH | GPU_SEQ_FLAG_DRAW_RH
 };
 
 /* VSE per-strip data for timeline rendering. */
@@ -124,7 +130,7 @@ struct SeqStripDrawData {
   uint col_outline;
   uint col_color_band;
   uint col_transition_in, col_transition_out;
-  uint col_handle_left, col_handle_right;
+  float _pad0, _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(SeqStripDrawData, 16)
 BLI_STATIC_ASSERT(sizeof(SeqStripDrawData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 16384,
