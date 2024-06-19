@@ -144,6 +144,20 @@ int active_update_and_get(bContext *C, Object &ob, const float mval[2])
   return active_face_set_get(ss);
 }
 
+bool create_face_sets_mesh(Object &object)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (attributes.contains(".sculpt_face_set")) {
+    return false;
+  }
+  attributes.add<int>(".sculpt_face_set",
+                      bke::AttrDomain::Face,
+                      bke::AttributeInitVArray(VArray<int>::ForSingle(1, mesh.faces_num)));
+  mesh.face_sets_color_default = 1;
+  return true;
+}
+
 bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);

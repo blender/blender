@@ -512,7 +512,7 @@ static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
 
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES:
-      face_set::ensure_face_sets_mesh(*object).finish();
+      face_set::create_face_sets_mesh(*object);
       break;
     default:
       BLI_assert_unreachable();
