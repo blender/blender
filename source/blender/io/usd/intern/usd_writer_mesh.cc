@@ -129,6 +129,12 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
 
     write_mesh(context, mesh, subsurfData);
 
+    auto prim = usd_export_context_.stage->GetPrimAtPath(usd_export_context_.usd_path);
+    if (prim.IsValid() && object_eval) {
+      prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
+      write_id_properties(prim, mesh->id, get_export_time_code());
+    }
+
     if (needsfree) {
       free_export_mesh(mesh);
     }
@@ -138,12 +144,6 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
       free_export_mesh(mesh);
     }
     throw;
-  }
-
-  auto prim = usd_export_context_.stage->GetPrimAtPath(usd_export_context_.usd_path);
-  if (prim.IsValid() && object_eval) {
-    prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
-    write_id_properties(prim, mesh->id, get_export_time_code());
   }
 }
 
