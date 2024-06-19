@@ -634,7 +634,7 @@ BoundBox Camera::viewplane_bounds_get()
      *           / scaled_horz_dof_ray, nearclip
      *          /
      *         /
-     *        / horz_dof_ray, focaldistance
+     *        / max_aperture_size, focaldistance
      *       /|
      *      / |
      *     /  |
