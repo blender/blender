@@ -3042,8 +3042,10 @@ static void rna_def_sound(BlenderRNA *brna)
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not meant to be animated */
-  RNA_def_property_ui_text(prop, "Sound Offset", "Sound offset in seconds");
-  // TODO do we need to create any extra translation stuff for this?
+  RNA_def_property_ui_text(
+      prop,
+      "Sound Offset",
+      "Offset of the sound from the beginning of the strip, expressed in seconds");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
 

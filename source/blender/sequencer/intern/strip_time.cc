@@ -575,8 +575,13 @@ void seq_time_translate_handles(const Scene *scene, Sequence *seq, const int off
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
 }
 
-static void seq_time_slip_strip_ex(const Scene *scene, Sequence *seq, int delta, bool recursed)
+static void seq_time_slip_strip_ex(
+    const Scene *scene, Sequence *seq, int delta, float subframe_delta, bool recursed)
 {
+  if (seq->type == SEQ_TYPE_SOUND_RAM && subframe_delta != 0.0f) {
+    seq->sound_offset += subframe_delta / FPS;
+  }
+
   if (delta == 0) {
     return;
   }
@@ -600,7 +605,7 @@ static void seq_time_slip_strip_ex(const Scene *scene, Sequence *seq, int delta,
       return;
     }
     LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {
-      seq_time_slip_strip_ex(scene, seq_child, delta, true);
+      seq_time_slip_strip_ex(scene, seq_child, delta, subframe_delta, true);
     }
   }
 
@@ -618,9 +623,9 @@ static void seq_time_slip_strip_ex(const Scene *scene, Sequence *seq, int delta,
   seq_time_update_effects_strip_range(scene, effects);
 }
 
-void SEQ_time_slip_strip(const Scene *scene, Sequence *seq, int delta)
+void SEQ_time_slip_strip(const Scene *scene, Sequence *seq, int delta, float subframe_delta)
 {
-  seq_time_slip_strip_ex(scene, seq, delta, false);
+  seq_time_slip_strip_ex(scene, seq, delta, subframe_delta, false);
 }
 
 int SEQ_time_get_rounded_sound_offset(const Scene *scene, const Sequence *seq)

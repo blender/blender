@@ -192,34 +192,22 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Sequenc
   strip_ctx.seq = seq;
   strip_ctx.bottom = seq->machine + SEQ_STRIP_OFSBOTTOM;
   strip_ctx.top = seq->machine + SEQ_STRIP_OFSTOP;
-  strip_ctx.content_start = SEQ_time_left_handle_frame_get(scene, seq);
-  strip_ctx.content_end = SEQ_time_right_handle_frame_get(scene, seq);
-  if (SEQ_time_has_left_still_frames(scene, seq)) {
-    strip_ctx.content_start = SEQ_time_start_frame_get(seq);
-  }
-  if (SEQ_time_has_right_still_frames(scene, seq)) {
-    strip_ctx.content_end = SEQ_time_content_end_frame_get(scene, seq);
-  }
+  strip_ctx.left_handle = SEQ_time_left_handle_frame_get(scene, seq);
+  strip_ctx.right_handle = SEQ_time_right_handle_frame_get(scene, seq);
+  strip_ctx.content_start = SEQ_time_start_frame_get(seq);
+  strip_ctx.content_end = SEQ_time_content_end_frame_get(scene, seq);
 
   if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound != nullptr) {
     /* Visualize subframe sound offsets */
-    const double sound_offset = seq->sound->offset_time + seq->sound_offset;
-    if (sound_offset >= 0.0f) {
-      strip_ctx.content_start += sound_offset * FPS;
-    }
-    else {
-      strip_ctx.content_end += sound_offset * FPS;
-    }
+    const double sound_offset = (seq->sound->offset_time + seq->sound_offset) * FPS;
+    strip_ctx.content_start += sound_offset;
+    strip_ctx.content_end += sound_offset;
   }
 
-  /* Limit body to strip bounds. Meta strip can end up with content outside of strip range. */
-  strip_ctx.content_start = min_ff(strip_ctx.content_start,
-                                   SEQ_time_right_handle_frame_get(scene, seq));
-  strip_ctx.content_end = max_ff(strip_ctx.content_end,
-                                 SEQ_time_left_handle_frame_get(scene, seq));
+  /* Limit body to strip bounds. */
+  strip_ctx.content_start = min_ff(strip_ctx.content_start, strip_ctx.right_handle);
+  strip_ctx.content_end = max_ff(strip_ctx.content_end, strip_ctx.left_handle);
 
-  strip_ctx.left_handle = SEQ_time_left_handle_frame_get(scene, seq);
-  strip_ctx.right_handle = SEQ_time_right_handle_frame_get(scene, seq);
   strip_ctx.strip_length = strip_ctx.right_handle - strip_ctx.left_handle;
 
   strip_draw_context_set_text_overlay_visibility(ctx, &strip_ctx);

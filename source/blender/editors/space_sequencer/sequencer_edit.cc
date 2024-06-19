@@ -466,6 +466,8 @@ void SEQUENCER_OT_snap(wmOperatorType *ot)
 struct SlipData {
   float init_mouseloc[2];
   int previous_offset;
+  float previous_subframe_offset;
+  float subframe_restore;
   Sequence **seq_array;
   int num_seq;
   bool slow;
@@ -522,7 +524,6 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
   initNumInput(&data->num_input);
   data->num_input.idx_max = 0;
-  data->num_input.val_flag[0] |= NUM_NO_FRACTION;
   data->num_input.unit_sys = USER_UNIT_NONE;
   data->num_input.unit_type[0] = 0;
 
@@ -542,7 +543,7 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sequencer_slip_strips(Scene *scene, SlipData *data, int delta)
+static void sequencer_slip_strips(Scene *scene, SlipData *data, int delta, float subframe_delta)
 {
   for (int i = data->num_seq - 1; i >= 0; i--) {
     Sequence *seq = data->seq_array[i];
@@ -552,7 +553,7 @@ static void sequencer_slip_strips(Scene *scene, SlipData *data, int delta)
       continue;
     }
 
-    SEQ_time_slip_strip(scene, seq, delta);
+    SEQ_time_slip_strip(scene, seq, delta, subframe_delta);
   }
 
   for (int i = data->num_seq - 1; i >= 0; i--) {
@@ -592,7 +593,6 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
-  int offset = RNA_int_get(op->ptr, "offset");
 
   /* Count the amount of elements to trim. */
   int num_seq = slip_count_sequences(ed->seqbasep);
@@ -608,8 +608,17 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
 
   slip_add_sequences(ed->seqbasep, data->seq_array);
 
+  float offset_fl = RNA_float_get(op->ptr, "offset");
+  int offset = round_fl_to_int(offset_fl);
+
+  float subframe_delta = 0.0f;
+  if (std::trunc(offset_fl) != offset_fl) {
+    /* Only apply subframe offsets if the input is not an integer. */
+    subframe_delta = offset_fl - offset;
+  }
+
   sequencer_slip_apply_limits(scene, data, &offset);
-  sequencer_slip_strips(scene, data, offset);
+  sequencer_slip_strips(scene, data, offset, subframe_delta);
 
   MEM_freeN(data->seq_array);
   MEM_freeN(data);
@@ -638,6 +647,37 @@ static void sequencer_slip_update_header(Scene *scene, ScrArea *area, SlipData *
   ED_area_status_text(area, msg);
 }
 
+static void handle_number_input(
+    bContext *C, wmOperator *op, ScrArea *area, SlipData *data, Scene *scene)
+{
+  float offset_fl;
+  applyNumInput(&data->num_input, &offset_fl);
+  int offset = round_fl_to_int(offset_fl);
+
+  const int delta_offset = sequencer_slip_apply_limits(scene, data, &offset);
+  sequencer_slip_update_header(scene, area, data, offset);
+
+  RNA_float_set(op->ptr, "offset", offset_fl);
+
+  float subframe_delta = 0.0f;
+  if (data->subframe_restore != 0.0f) {
+    /* Always remove the previous subframe adjustments we have potentially made with the mouse
+     * input when the user starts enterning values by hand.
+     */
+    subframe_delta = -data->subframe_restore;
+    data->subframe_restore = 0.0f;
+  }
+  if (std::trunc(offset_fl) != offset_fl) {
+    /* Only apply subframe offsets if the input is not an integer. */
+    subframe_delta = offset_fl - data->previous_subframe_offset - delta_offset;
+    data->subframe_restore += subframe_delta;
+  }
+  data->previous_subframe_offset = offset_fl;
+  sequencer_slip_strips(scene, data, delta_offset, subframe_delta);
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+}
+
 static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Scene *scene = CTX_data_scene(C);
@@ -648,19 +688,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Modal numinput active, try to handle numeric inputs. */
   if (event->val == KM_PRESS && has_numInput && handleNumInput(C, &data->num_input, event)) {
-    float offset_fl;
-    applyNumInput(&data->num_input, &offset_fl);
-    int offset = round_fl_to_int(offset_fl);
-
-    const int delta_offset = sequencer_slip_apply_limits(scene, data, &offset);
-    sequencer_slip_update_header(scene, area, data, offset);
-
-    RNA_int_set(op->ptr, "offset", offset);
-
-    sequencer_slip_strips(scene, data, delta_offset);
-
-    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-
+    handle_number_input(C, op, area, data, scene);
     return OPERATOR_RUNNING_MODAL;
   }
 
@@ -669,7 +697,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (!has_numInput) {
         float mouseloc[2];
         int offset;
-        int mouse_x;
+        float mouse_x;
         View2D *v2d = UI_view2d_fromcontext(C);
 
         if (data->slow) {
@@ -683,14 +711,28 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
         /* Choose the side based on which side of the current frame the mouse is. */
         UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
-        offset = mouseloc[0] - data->init_mouseloc[0];
+        float offset_fl = mouseloc[0] - data->init_mouseloc[0];
+        offset = offset_fl;
 
         const int delta_offset = sequencer_slip_apply_limits(scene, data, &offset);
         sequencer_slip_update_header(scene, area, data, offset);
 
-        RNA_int_set(op->ptr, "offset", offset);
-
-        sequencer_slip_strips(scene, data, delta_offset);
+        if (!data->slow) {
+          RNA_float_set(op->ptr, "offset", offset);
+        }
+        float subframe_delta = 0.0f;
+        if (data->slow) {
+          RNA_float_set(op->ptr, "offset", offset_fl);
+          subframe_delta = offset_fl - data->previous_subframe_offset - delta_offset;
+          data->subframe_restore += subframe_delta;
+        }
+        else if (data->subframe_restore != 0.0f) {
+          /* If we exit slow mode, make sure we undo the fractional adjustments we have done. */
+          subframe_delta = -data->subframe_restore;
+          data->subframe_restore = 0.0f;
+        }
+        data->previous_subframe_offset = offset_fl;
+        sequencer_slip_strips(scene, data, delta_offset, subframe_delta);
 
         WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
       }
@@ -713,8 +755,9 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
     case EVT_ESCKEY:
     case RIGHTMOUSE: {
-      int offset = RNA_int_get(op->ptr, "offset");
-      sequencer_slip_strips(scene, data, -offset);
+      int offset = data->previous_offset;
+      float subframe_delta = data->subframe_restore;
+      sequencer_slip_strips(scene, data, -offset, -subframe_delta);
 
       MEM_freeN(data->seq_array);
       MEM_freeN(data);
@@ -749,18 +792,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Modal numinput inactive, try to handle numeric inputs. */
   if (!handled && event->val == KM_PRESS && handleNumInput(C, &data->num_input, event)) {
-    float offset_fl;
-    applyNumInput(&data->num_input, &offset_fl);
-    int offset = round_fl_to_int(offset_fl);
-
-    const int delta_offset = sequencer_slip_apply_limits(scene, data, &offset);
-    sequencer_slip_update_header(scene, area, data, offset);
-
-    RNA_int_set(op->ptr, "offset", offset);
-
-    sequencer_slip_strips(scene, data, delta_offset);
-
-    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+    handle_number_input(C, op, area, data, scene);
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -782,15 +814,19 @@ void SEQUENCER_OT_slip(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_int(ot->srna,
-              "offset",
-              0,
-              INT32_MIN,
-              INT32_MAX,
-              "Offset",
-              "Offset to the data of the strip",
-              INT32_MIN,
-              INT32_MAX);
+  /* Properties. */
+  PropertyRNA *prop;
+
+  prop = RNA_def_float(ot->srna,
+                       "offset",
+                       0,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Offset",
+                       "Offset to the data of the strip",
+                       -FLT_MAX,
+                       FLT_MAX);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, 0);
 }
 
 /** \} */

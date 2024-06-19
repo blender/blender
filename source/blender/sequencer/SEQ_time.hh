@@ -123,7 +123,7 @@ void SEQ_time_update_meta_strip_range(const Scene *scene, Sequence *seq_meta);
 /**
  * Move contents of a strip without moving the strip handles.
  */
-void SEQ_time_slip_strip(const Scene *scene, Sequence *seq, int delta);
+void SEQ_time_slip_strip(const Scene *scene, Sequence *seq, int delta, float subframe_delta);
 /**
  * Get difference between scene and movie strip frame-rate.
  */
