@@ -135,8 +135,9 @@ struct SeqContextDrawData {
   float pixelx, pixely; /* Size of one pixel in timeline coordinate space. */
   float inv_pixelx, inv_pixely;
   float round_radius;
+  float pixelsize;
   uint col_back;
-  float _pad0, _pad1;
+  float _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(SeqContextDrawData, 16)
 

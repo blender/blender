@@ -25,11 +25,14 @@ vec4 blend_color(vec4 cur, vec4 color)
 }
 
 /* Given signed distance `d` to a shape and current premultiplied color `cur`, blends
- * in an outline of at least 1px width (plus `extra_half_width` on each side), inset
- * by `inset` pixels. Outline color `outline_color` is in straight alpha. */
-vec4 add_outline(float d, float extra_half_width, float inset, vec4 cur, vec4 outline_color)
+ * in an outline at distance between `edge1` and `edge2`.
+ * Outline color `outline_color` is in straight alpha. */
+vec4 add_outline(float d, float edge1, float edge2, vec4 cur, vec4 outline_color)
 {
-  float f = abs(d + inset) - extra_half_width;
+  d -= 0.5;
+  edge1 *= context_data.pixelsize;
+  edge2 *= context_data.pixelsize;
+  float f = abs(d + (edge1 + edge2) * 0.5) - abs(edge2 - edge1) * 0.5 + 0.5;
   float a = clamp(1.0 - f, 0.0, 1.0);
   outline_color.a *= a;
   return blend_color(cur, outline_color);
@@ -152,12 +155,12 @@ void main()
     vec4 col_outline = unpackUnorm4x8(strip.col_outline);
     if (selected) {
       /* Inset 1px line with background color. */
-      col = add_outline(sdf, 0.0, 2.0, col, unpackUnorm4x8(context_data.col_back));
-      /* 2x wide outline. */
-      col = add_outline(sdf, 0.5, 0.5, col, col_outline);
+      col = add_outline(sdf, 2.0, 3.0, col, unpackUnorm4x8(context_data.col_back));
+      /* 2px wide outline. */
+      col = add_outline(sdf, 0.0, 2.0, col, col_outline);
     }
     else {
-      col = add_outline(sdf, 0.0, 0.0, col, col_outline);
+      col = add_outline(sdf, 0.0, 1.0, col, col_outline);
     }
   }
 
