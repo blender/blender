@@ -21,6 +21,7 @@
 #include "MEM_guardedalloc.h" /* for MEM_freeN MEM_mallocN MEM_callocN */
 
 #include "BLI_endian_switch.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -132,6 +133,7 @@ void DNA_sdna_free(SDNA *sdna)
   MEM_freeN((void *)sdna->names_array_len);
   MEM_freeN((void *)sdna->types);
   MEM_freeN(sdna->structs);
+  MEM_freeN(sdna->types_alignment);
 
 #ifdef WITH_DNA_GHASH
   if (sdna->structs_map) {
@@ -520,6 +522,19 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
       names_array_len[i] = DNA_elem_array_size(sdna->names[i]);
     }
     sdna->names_array_len = names_array_len;
+  }
+
+  sdna->types_alignment = static_cast<int *>(
+      MEM_malloc_arrayN(sdna->types_len, sizeof(int), __func__));
+  for (int i = 0; i < sdna->types_len; i++) {
+    sdna->types_alignment[i] = int(__STDCPP_DEFAULT_NEW_ALIGNMENT__);
+  }
+  {
+    uint dummy_index = 0;
+    /* TODO: This should be generalized at some point. We should be able to specify overaligned
+     * types directly in the DNA struct definitions. */
+    sdna->types_alignment[DNA_struct_find_without_alias_ex(sdna, "mat4x4f", &dummy_index)] =
+        alignof(blender::float4x4);
   }
 
   return true;
@@ -1265,7 +1280,9 @@ void *DNA_struct_reconstruct(const DNA_ReconstructInfo *reconstruct_info,
   const SDNA_Struct *new_struct = newsdna->structs[new_struct_nr];
   const int new_block_size = newsdna->types_size[new_struct->type];
 
-  char *new_blocks = static_cast<char *>(MEM_callocN(blocks * new_block_size, "reconstruct"));
+  const int alignment = DNA_struct_alignment(newsdna, new_struct_nr);
+  char *new_blocks = static_cast<char *>(
+      MEM_calloc_arrayN_aligned(new_block_size, blocks, alignment, "reconstruct"));
   reconstruct_structs(reconstruct_info,
                       blocks,
                       old_struct_nr,
@@ -1695,6 +1712,11 @@ int DNA_elem_type_size(const eSDNA_Type elem_nr)
 
   /* weak */
   return 8;
+}
+
+int DNA_struct_alignment(const SDNA *sdna, const int struct_nr)
+{
+  return sdna->types_alignment[struct_nr];
 }
 
 /* -------------------------------------------------------------------- */

@@ -1825,7 +1825,8 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
       }
       else {
         /* SDNA_CMP_EQUAL */
-        temp = MEM_mallocN(bh->len, blockname);
+        const int alignment = DNA_struct_alignment(fd->filesdna, bh->SDNAnr);
+        temp = MEM_mallocN_aligned(bh->len, alignment, blockname);
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data) {
           memcpy(temp, (bh + 1), bh->len);

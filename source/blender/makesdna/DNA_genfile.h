@@ -191,6 +191,11 @@ int DNA_struct_member_size(const struct SDNA *sdna, short type, short name);
 int DNA_elem_type_size(eSDNA_Type elem_nr);
 
 /**
+ * Get the alignment that should be used when allocating memory for this type.
+ */
+int DNA_struct_alignment(const struct SDNA *sdna, int struct_nr);
+
+/**
  * Rename a struct
  */
 bool DNA_sdna_patch_struct_by_name(struct SDNA *sdna,

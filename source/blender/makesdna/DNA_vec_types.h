@@ -50,6 +50,11 @@ typedef struct vec4f {
   float x, y, z, w;
 } vec4f;
 
+/**
+ * This type generally shouldn't be used. It only exists for cases where a DNA type that
+ * corresponds to `blender:float4x4` is required. Note that `float4x4` is 16 byte aligned, but we
+ * can't enforce that this struct yet.
+ */
 typedef struct mat4x4f {
   float value[4][4];
 } mat4x4f;
