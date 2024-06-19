@@ -162,6 +162,7 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/fresnel.h
   svm/wireframe.h
   svm/wavelength.h
+  svm/gabor.h
   svm/gamma.h
   svm/brightness.h
   svm/geometry.h

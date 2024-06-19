@@ -94,6 +94,7 @@ set(SRC
   nodes/node_shader_tex_checker.cc
   nodes/node_shader_tex_coord.cc
   nodes/node_shader_tex_environment.cc
+  nodes/node_shader_tex_gabor.cc
   nodes/node_shader_tex_gradient.cc
   nodes/node_shader_tex_image.cc
   nodes/node_shader_tex_magic.cc

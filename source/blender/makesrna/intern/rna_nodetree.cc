@@ -4872,6 +4872,29 @@ static void def_sh_tex_environment(StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
+static void def_sh_tex_gabor(StructRNA *srna)
+{
+  static const EnumPropertyItem prop_gabor_types[] = {
+      {SHD_GABOR_TYPE_2D,
+       "2D",
+       0,
+       "2D",
+       "Use the 2D vector (X, Y) as input. The Z component is ignored"},
+      {SHD_GABOR_TYPE_3D, "3D", 0, "3D", "Use the 3D vector (X, Y, Z) as input"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeTexGabor", "storage");
+  def_sh_tex(srna);
+
+  PropertyRNA *prop;
+  prop = RNA_def_property(srna, "gabor_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "type");
+  RNA_def_property_enum_items(prop, prop_gabor_types);
+  RNA_def_property_ui_text(prop, "Type", "The type of Gabor noise to evaluate");
+  RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
+}
+
 static void def_sh_tex_image(StructRNA *srna)
 {
   static const EnumPropertyItem prop_projection_items[] = {

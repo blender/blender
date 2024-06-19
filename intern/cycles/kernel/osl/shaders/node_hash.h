@@ -82,4 +82,46 @@ color hash_vector4_to_color(vector4 k)
                hash_vector4_to_float(vector4(k.w, k.z, k.y, k.x)));
 }
 
+/* **** Hash a float or a vec[234] into a vector3 [0, 1] **** */
+
+vector3 hash_float_to_vector3(float k)
+{
+  return vector3(hash_float_to_float(k),
+                 hash_vector2_to_float(vector2(k, 1.0)),
+                 hash_vector2_to_float(vector2(k, 2.0)));
+}
+
+vector3 hash_vector2_to_vector3(vector2 k)
+{
+  return vector3(hash_vector2_to_float(k),
+                 hash_vector3_to_float(vector3(k.x, k.y, 1.0)),
+                 hash_vector3_to_float(vector3(k.x, k.y, 2.0)));
+}
+
+vector3 hash_vector4_to_vector3(vector4 k)
+{
+  return vector3(hash_vector4_to_float(k),
+                 hash_vector4_to_float(vector4(k.z, k.x, k.w, k.y)),
+                 hash_vector4_to_float(vector4(k.w, k.z, k.y, k.x)));
+}
+
+/* Hashing float or vector[234] into vector2 of components in range [0, 1]. */
+
+vector2 hash_float_to_vector2(float k)
+{
+  return vector2(hash_float_to_float(k), hash_vector2_to_float(vector2(k, 1.0)));
+}
+
+vector2 hash_vector3_to_vector2(vector3 k)
+{
+  return vector2(hash_vector3_to_float(vector3(k.x, k.y, k.z)),
+                 hash_vector3_to_float(vector3(k.z, k.x, k.y)));
+}
+
+vector2 hash_vector4_to_vector2(vector4 k)
+{
+  return vector2(hash_vector4_to_float(vector4(k.x, k.y, k.z, k.w)),
+                 hash_vector4_to_float(vector4(k.z, k.x, k.w, k.y)));
+}
+
 #undef vector3
