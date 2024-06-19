@@ -1138,9 +1138,8 @@ Node *get_node(const PBVHNode *node, const Type type)
   return nullptr;
 }
 
-static size_t alloc_and_store_hidden(const SculptSession *ss, Node *unode)
+static size_t alloc_and_store_hidden(const SculptSession *ss, const PBVHNode &node, Node *unode)
 {
-  const PBVHNode *node = static_cast<const PBVHNode *>(unode->node);
   if (!ss->subdiv_ccg) {
     return 0;
   }
@@ -1149,7 +1148,7 @@ static size_t alloc_and_store_hidden(const SculptSession *ss, Node *unode)
     return 0;
   }
 
-  const Span<int> grid_indices = bke::pbvh::node_grid_indices(*node);
+  const Span<int> grid_indices = bke::pbvh::node_grid_indices(node);
   unode->grid_hidden = BitGroupVector<>(grid_indices.size(), grid_hidden.group_size());
   for (const int i : grid_indices.index_range()) {
     unode->grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
@@ -1253,7 +1252,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
     }
     case Type::HideVert: {
       if (BKE_pbvh_type(*ss->pbvh) == PBVH_GRIDS) {
-        step_data->undo_size += alloc_and_store_hidden(ss, unode);
+        step_data->undo_size += alloc_and_store_hidden(ss, *node, unode);
       }
       else {
         unode->vert_hidden.resize(unode->vert_indices.size());
@@ -1351,7 +1350,7 @@ static void store_coords(const Object &object, Node *unode)
   }
 }
 
-static void store_hidden(const Object &object, Node *unode)
+static void store_hidden(const Object &object, const PBVHNode &node, Node *unode)
 {
   if (!unode->grids.is_empty()) {
     /* Already stored during allocation. */
@@ -1365,8 +1364,7 @@ static void store_hidden(const Object &object, Node *unode)
     return;
   }
 
-  const PBVHNode *node = static_cast<const PBVHNode *>(unode->node);
-  const Span<int> verts = bke::pbvh::node_verts(*node);
+  const Span<int> verts = bke::pbvh::node_verts(node);
   for (const int i : verts.index_range()) {
     unode->vert_hidden[i].set(hide_vert[verts[i]]);
   }
@@ -1596,7 +1594,7 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
         store_coords(object, unode);
         break;
       case Type::HideVert:
-        store_hidden(object, unode);
+        store_hidden(object, *node, unode);
         break;
       case Type::HideFace:
         store_face_hidden(object, *unode);
