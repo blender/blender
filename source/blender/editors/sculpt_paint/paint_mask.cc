@@ -101,6 +101,47 @@ Array<float> duplicate_mask(const Object &object)
   return {};
 }
 
+void update_mask_mesh(Object &object,
+                      const Span<PBVHNode *> nodes,
+                      FunctionRef<void(MutableSpan<float>, Span<int>)> update_fn)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+      ".sculpt_mask", bke::AttrDomain::Point);
+  if (!mask) {
+    return;
+  }
+
+  struct LocalData {
+    Vector<int> visible_verts;
+    Vector<float> mask;
+  };
+
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    LocalData &tls = all_tls.local();
+    threading::isolate_task([&]() {
+      for (PBVHNode *node : nodes.slice(range)) {
+        const Span<int> verts = hide::node_visible_verts(*node, hide_vert, tls.visible_verts);
+        tls.mask.reinitialize(verts.size());
+        array_utils::gather<float>(mask.span, verts, tls.mask);
+        update_fn(tls.mask, verts);
+        if (array_utils::indexed_data_equal<float>(mask.span, verts, tls.mask)) {
+          continue;
+        }
+        undo::push_node(object, node, undo::Type::Mask);
+        array_utils::scatter<float>(tls.mask, verts, mask.span);
+        bke::pbvh::node_update_mask_mesh(mask.span, *node);
+        BKE_pbvh_node_mark_redraw(node);
+      }
+    });
+  });
+
+  mask.finish();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

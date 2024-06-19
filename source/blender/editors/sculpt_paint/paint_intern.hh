@@ -476,6 +476,14 @@ void write_mask_mesh(Object &object,
                      const Span<PBVHNode *> nodes,
                      FunctionRef<void(MutableSpan<float>, Span<int>)> write_fn);
 
+/**
+ * Write to each node's mask data for visible vertices. Store undo data and mark for redraw only
+ * if the data is actually changed.
+ */
+void update_mask_mesh(Object &object,
+                      const Span<PBVHNode *> nodes,
+                      FunctionRef<void(MutableSpan<float>, Span<int>)> update_fn);
+
 void PAINT_OT_mask_flood_fill(wmOperatorType *ot);
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_box_gesture(wmOperatorType *ot);
