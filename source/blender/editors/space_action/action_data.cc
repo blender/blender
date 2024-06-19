@@ -32,6 +32,8 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
+#include "ANIM_action.hh"
+
 #include "ED_anim_api.hh"
 #include "ED_screen.hh"
 
@@ -310,6 +312,14 @@ static bool action_pushdown_poll(bContext *C)
   if (!adt || !saction->action) {
     return false;
   }
+
+#ifdef WITH_ANIM_BAKLAVA
+  blender::animrig::Action &action = saction->action->wrap();
+  if (!action.is_action_legacy()) {
+    CTX_wm_operator_poll_msg_set(C, "Layered Actions cannot be used as NLA strips");
+    return false;
+  }
+#endif
 
   /* NOTE: We check this for the AnimData block in question and not the global flag,
    *       as the global flag may be left dirty by some of the browsing ops here.
