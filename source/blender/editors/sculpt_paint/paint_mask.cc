@@ -356,30 +356,6 @@ static void fill_mask(
   }
 }
 
-static void invert_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
-{
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
-  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-
-  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
-  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
-      ".sculpt_mask", bke::AttrDomain::Point);
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(object, node, undo::Type::Mask);
-      for (const int vert : bke::pbvh::node_unique_verts(*node)) {
-        if (!hide_vert.is_empty() && hide_vert[vert]) {
-          continue;
-        }
-        mask.span[vert] = 1.0f - mask.span[vert];
-      }
-      BKE_pbvh_node_mark_redraw(node);
-      bke::pbvh::node_update_mask_mesh(mask.span, *node);
-    }
-  });
-  mask.finish();
-}
-
 static void invert_mask_grids(Main &bmain,
                               const Scene &scene,
                               Depsgraph &depsgraph,
@@ -452,7 +428,11 @@ static void invert_mask(Main &bmain, const Scene &scene, Depsgraph &depsgraph, O
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*object.sculpt->pbvh, {});
   switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
     case PBVH_FACES:
-      invert_mask_mesh(object, nodes);
+      write_mask_mesh(object, nodes, [&](MutableSpan<float> mask, const Span<int> verts) {
+        for (const int vert : verts) {
+          mask[vert] = 1.0f - mask[vert];
+        }
+      });
       break;
     case PBVH_GRIDS:
       invert_mask_grids(bmain, scene, depsgraph, object, nodes);

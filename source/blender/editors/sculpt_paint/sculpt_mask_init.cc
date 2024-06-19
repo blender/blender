@@ -31,6 +31,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "bmesh.hh"
@@ -46,9 +47,9 @@ enum class InitMode {
   Island,
 };
 
-static void init_mask_mesh(Object &object,
-                           const Span<PBVHNode *> nodes,
-                           FunctionRef<void(MutableSpan<float>, Span<int>)> write_fn)
+void write_mask_mesh(Object &object,
+                     const Span<PBVHNode *> nodes,
+                     FunctionRef<void(MutableSpan<float>, Span<int>)> write_fn)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -68,7 +69,8 @@ static void init_mask_mesh(Object &object,
     Vector<int> &index_data = all_index_data.local();
     for (const int i : range) {
       write_fn(mask.span, hide::node_visible_verts(*nodes[i], hide_vert, index_data));
-      BKE_pbvh_node_mark_update_mask(nodes[i]);
+      BKE_pbvh_node_mark_redraw(nodes[i]);
+      bke::pbvh::node_update_mask_mesh(mask.span, *nodes[i]);
     }
   });
   mask.finish();
@@ -114,8 +116,8 @@ static void init_mask_grids(Main &bmain,
       BKE_pbvh_node_mark_update_mask(nodes[i]);
     }
   });
-
   BKE_subdiv_ccg_average_grids(subdiv_ccg);
+  bke::pbvh::update_mask(*ss.pbvh);
 }
 
 static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
@@ -146,14 +148,14 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     case PBVH_FACES: {
       switch (mode) {
         case InitMode::Random:
-          init_mask_mesh(ob, nodes, [&](MutableSpan<float> mask, Span<int> verts) {
+          write_mask_mesh(ob, nodes, [&](MutableSpan<float> mask, Span<int> verts) {
             for (const int vert : verts) {
               mask[vert] = BLI_hash_int_01(vert + seed);
             }
           });
           break;
         case InitMode::FaceSet:
-          init_mask_mesh(ob, nodes, [&](MutableSpan<float> mask, Span<int> verts) {
+          write_mask_mesh(ob, nodes, [&](MutableSpan<float> mask, Span<int> verts) {
             for (const int vert : verts) {
               const int face_set = face_set::vert_face_set_get(ss, PBVHVertRef{vert});
               mask[vert] = BLI_hash_int_01(face_set + seed);
@@ -162,7 +164,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
           break;
         case InitMode::Island:
           SCULPT_topology_islands_ensure(ob);
-          init_mask_mesh(ob, nodes, [&](MutableSpan<float> mask, Span<int> verts) {
+          write_mask_mesh(ob, nodes, [&](MutableSpan<float> mask, Span<int> verts) {
             for (const int vert : verts) {
               const int island = SCULPT_vertex_island_get(ss, PBVHVertRef{vert});
               mask[vert] = BLI_hash_int_01(island + seed);
@@ -263,13 +265,13 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
           BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
       });
+      bke::pbvh::update_mask(*ss.pbvh);
       break;
     }
   }
 
   undo::push_end(ob);
 
-  bke::pbvh::update_mask(*ss.pbvh);
   SCULPT_tag_update_overlays(C);
   return OPERATOR_FINISHED;
 }
