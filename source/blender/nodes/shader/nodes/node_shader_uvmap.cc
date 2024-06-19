@@ -76,10 +76,9 @@ static int node_shader_gpu_uvmap(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* NODE: "From Instances" not implemented
-   * UV selection not implemented
-   */
-  NodeItem res = texcoord_node();
+  /* NODE: "From Instances" not implemented */
+  NodeShaderUVMap *attr = static_cast<NodeShaderUVMap *>(node_->storage);
+  NodeItem res = texcoord_node(NodeItem::Type::Vector2, attr->uv_map);
   return res;
 }
 #endif

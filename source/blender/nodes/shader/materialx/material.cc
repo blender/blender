@@ -52,7 +52,7 @@ class DefaultMaterialNodeParser : public NodeParser {
 MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                                            Material *material,
                                            const std::string &material_name,
-                                           ExportImageFunction export_image_fn)
+                                           const ExportParams &export_params)
 {
   CLOG_INFO(LOG_MATERIALX_SHADER, 0, "Material: %s", material->id.name);
 
@@ -69,7 +69,7 @@ MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                              NodeItem::Type::Material,
                              nullptr,
                              NodeItem(doc.get()),
-                             export_image_fn};
+                             export_params};
       output_node->typeinfo->materialx_fn(&data, output_node, nullptr);
       output_item = data.result;
     }
@@ -81,7 +81,7 @@ MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                                               nullptr,
                                               NodeItem::Type::Material,
                                               nullptr,
-                                              export_image_fn)
+                                              export_params)
                         .compute_error();
     }
   }
@@ -93,7 +93,7 @@ MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                                             nullptr,
                                             NodeItem::Type::Material,
                                             nullptr,
-                                            export_image_fn)
+                                            export_params)
                       .compute();
   }
 

@@ -16,15 +16,17 @@ struct Main;
 struct Material;
 struct Scene;
 
-class ExportImageFunction;
-
 namespace blender::nodes::materialx {
 
-using ExportImageFunction = std::function<std::string(Main *, Scene *, Image *, ImageUser *)>;
+struct ExportParams {
+  std::function<std::string(Main *, Scene *, Image *, ImageUser *)> image_fn;
+  std::string new_active_uvmap_name;
+  std::string original_active_uvmap_name;
+};
 
 MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                                            Material *material,
                                            const std::string &material_name,
-                                           ExportImageFunction export_image_fn);
+                                           const ExportParams &export_params);
 
 }  // namespace blender::nodes::materialx

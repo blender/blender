@@ -24,7 +24,7 @@ struct USDExportParams;
 pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_context,
                                           pxr::SdfPath usd_path,
                                           Material *material,
-                                          const std::string &active_uv,
+                                          const std::string &active_uvmap_name,
                                           ReportList *reports);
 
 /* Returns a USDPreviewSurface token name for a given Blender shader Socket name,
