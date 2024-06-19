@@ -12,6 +12,7 @@ struct PBVHNode;
 
 namespace blender::ed::sculpt_paint {
 
+void do_clay_strips_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_displacement_eraser_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 /** A simple normal-direction displacement. */
 void do_draw_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
