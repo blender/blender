@@ -176,6 +176,10 @@ static AssetShelfType *lookup_type_from_idname_in_context(const bContext *C)
   return type_find_from_idname(*idname);
 }
 
+constexpr int LEFT_COL_WIDTH_UNITS = 10;
+constexpr int RIGHT_COL_WIDTH_UNITS = 30;
+constexpr int LAYOUT_WIDTH_UNITS = LEFT_COL_WIDTH_UNITS + RIGHT_COL_WIDTH_UNITS;
+
 static void popover_panel_draw(const bContext *C, Panel *panel)
 {
   AssetShelfType *shelf_type = lookup_type_from_idname_in_context(C);
@@ -183,12 +187,8 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
 
   const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
 
-  const int left_col_width_units = 10;
-  const int right_col_width_units = 30;
-  const int layout_width_units = left_col_width_units + right_col_width_units;
-
   uiLayout *layout = panel->layout;
-  uiLayoutSetUnitsX(layout, layout_width_units);
+  uiLayoutSetUnitsX(layout, LAYOUT_WIDTH_UNITS);
 
   AssetShelf *shelf = get_shelf_for_popup(*C, *shelf_type);
   if (!shelf) {
@@ -203,7 +203,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
 
   uiLayout *row = uiLayoutRow(layout, false);
   uiLayout *catalogs_col = uiLayoutColumn(row, false);
-  uiLayoutSetUnitsX(catalogs_col, left_col_width_units);
+  uiLayoutSetUnitsX(catalogs_col, LEFT_COL_WIDTH_UNITS);
   uiLayoutSetFixedSize(catalogs_col, true);
   library_selector_draw(C, catalogs_col, *shelf);
   catalog_tree_draw(*catalogs_col, *shelf);
@@ -221,7 +221,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
           ICON_VIEWZOOM);
 
   uiLayout *asset_view_col = uiLayoutColumn(right_col, false);
-  uiLayoutSetUnitsX(asset_view_col, right_col_width_units);
+  uiLayoutSetUnitsX(asset_view_col, RIGHT_COL_WIDTH_UNITS);
   uiLayoutSetFixedSize(asset_view_col, true);
 
   build_asset_view(*asset_view_col, shelf->settings.asset_library_reference, *shelf, *C, *region);
@@ -253,6 +253,10 @@ void popover_panel_register(ARegionType *region_type)
   pt->draw = popover_panel_draw;
   pt->poll = popover_panel_poll;
   pt->listener = asset::list::asset_reading_region_listen_fn;
+  /* Move to have first asset item under cursor. */
+  pt->offset_units_xy.x = -(LEFT_COL_WIDTH_UNITS + 1.5f);
+  /* Offset so mouse is below search button, over the first row of assets. */
+  pt->offset_units_xy.y = 2.5f;
   BLI_addtail(&region_type->paneltypes, pt);
   WM_paneltype_add(pt);
 }

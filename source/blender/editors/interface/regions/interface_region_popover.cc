@@ -185,6 +185,20 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
      * areas near the bottom of the window on refreshes. */
     handle->max_size_y = UI_UNIT_Y * 16.0f;
   }
+  else if (pup->panel_type &&
+           (pup->panel_type->offset_units_xy.x || pup->panel_type->offset_units_xy.y))
+  {
+    UI_block_flag_enable(block, UI_BLOCK_LOOP);
+    UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+    UI_block_direction_set(block, block->direction);
+    block->minbounds = UI_MENU_WIDTH_MIN;
+
+    const int bounds_offset[2] = {
+        int(pup->panel_type->offset_units_xy.x * UI_UNIT_X),
+        int(pup->panel_type->offset_units_xy.y * UI_UNIT_Y),
+    };
+    UI_block_bounds_set_popup(block, block_margin, bounds_offset);
+  }
   else {
     /* Not attached to a button. */
     int bounds_offset[2] = {0, 0};
