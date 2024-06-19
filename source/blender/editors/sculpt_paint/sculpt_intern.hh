@@ -978,6 +978,8 @@ namespace blender::ed::sculpt_paint {
 
 namespace hide {
 
+Span<int> node_visible_verts(const PBVHNode &node, Span<bool> hide_vert, Vector<int> &indices);
+
 bool vert_visible_get(const SculptSession &ss, PBVHVertRef vertex);
 bool vert_all_faces_visible_get(const SculptSession &ss, PBVHVertRef vertex);
 bool vert_any_face_visible_get(const SculptSession &ss, PBVHVertRef vertex);

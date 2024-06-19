@@ -135,25 +135,6 @@ static const EnumPropertyItem mode_items[] = {
     {int(FloodFillMode::InverseMeshValue), "INVERT", 0, "Invert", "Invert the mask"},
     {0}};
 
-static Span<int> get_visible_verts(const PBVHNode &node,
-                                   const Span<bool> hide_vert,
-                                   Vector<int> &indices)
-{
-  if (BKE_pbvh_node_fully_hidden_get(&node)) {
-    return {};
-  }
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
-  if (hide_vert.is_empty()) {
-    return verts;
-  }
-  indices.resize(verts.size());
-  const int *end = std::copy_if(verts.begin(), verts.end(), indices.begin(), [&](const int vert) {
-    return !hide_vert[vert];
-  });
-  indices.resize(end - indices.begin());
-  return indices;
-}
-
 static Span<int> get_hidden_verts(const PBVHNode &node,
                                   const Span<bool> hide_vert,
                                   Vector<int> &indices)
@@ -243,7 +224,7 @@ static void fill_mask_mesh(Object &object, const float value, const Span<PBVHNod
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     Vector<int> &index_data = all_index_data.local();
     for (PBVHNode *node : nodes.slice(range)) {
-      const Span<int> verts = get_visible_verts(*node, hide_vert, index_data);
+      const Span<int> verts = hide::node_visible_verts(*node, hide_vert, index_data);
       if (std::all_of(verts.begin(), verts.end(), [&](int i) { return mask.span[i] == value; })) {
         continue;
       }
