@@ -4212,9 +4212,9 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
         /* We approximate the simplify pixel threshold by taking the previous threshold (world
          * space) and dividing by the legacy radius conversion factor. This should generally give
-         * reasonable "pixel" threshold values. */
+         * reasonable "pixel" threshold values, at least for previous GPv2 defaults. */
         settings->simplify_px = settings->simplify_f /
-                                blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+                                blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR * 0.1f;
       }
     }
   }
