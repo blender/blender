@@ -1956,6 +1956,7 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
                                                   AreaNormalCenterData *anctd,
                                                   bool &r_any_vertex_sampled)
 {
+  const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   SculptBrushTest normal_test;
   SculptBrushTestFn sculpt_brush_normal_test_sq_fn = area_normal_and_center_get_normal_test(
       ss, brush, normal_test);
@@ -1998,9 +1999,7 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
 
     r_any_vertex_sampled = true;
 
-    const int flip_index = (math::dot(ss.cache ? ss.cache->view_normal : ss.cursor_view_normal,
-                                      no) <= 0.0f);
-
+    const int flip_index = math::dot(view_normal, no) <= 0.0f;
     if (use_area_cos && area_test_r) {
       anctd->area_cos[flip_index] += area_center_calc_weighted(
           area_test.location, area_test.dist, area_test.radius, co);
@@ -2022,6 +2021,7 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
                                                    AreaNormalCenterData *anctd,
                                                    bool &r_any_vertex_sampled)
 {
+  const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   const CCGKey key = *BKE_pbvh_get_grid_key(*ss.pbvh);
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const Span<CCGElem *> grids = subdiv_ccg.grids;
@@ -2072,9 +2072,7 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
 
       r_any_vertex_sampled = true;
 
-      const int flip_index = (math::dot(ss.cache ? ss.cache->view_normal : ss.cursor_view_normal,
-                                        no) <= 0.0f);
-
+      const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
         anctd->area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
@@ -2100,7 +2098,7 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
                                                    AreaNormalCenterData *anctd,
                                                    bool &r_any_vertex_sampled)
 {
-
+  const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   SculptBrushTest normal_test;
   SculptBrushTestFn sculpt_brush_normal_test_sq_fn = area_normal_and_center_get_normal_test(
       ss, brush, normal_test);
@@ -2146,7 +2144,7 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
       float3 no;
       normal_tri_v3(no, UNPACK3(co_tri));
 
-      const int flip_index = (math::dot(ss.cache->view_normal, no) <= 0.0f);
+      const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
         anctd->area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
@@ -2187,9 +2185,7 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
 
       r_any_vertex_sampled = true;
 
-      const int flip_index = (math::dot(ss.cache ? ss.cache->view_normal : ss.cursor_view_normal,
-                                        no) <= 0.0f);
-
+      const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
         anctd->area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
