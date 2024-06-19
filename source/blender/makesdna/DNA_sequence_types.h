@@ -244,6 +244,9 @@ typedef struct Sequence {
   float pitch DNA_DEPRECATED, pan;
   float strobe;
 
+  float sound_offset;
+  char _pad4[4];
+
   /** Struct pointer for effect settings. */
   void *effectdata;
 

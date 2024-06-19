@@ -3037,6 +3037,16 @@ static void rna_def_sound(BlenderRNA *brna)
   RNA_def_property_float_funcs(prop, nullptr, nullptr, "rna_Sequence_pan_range");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
 
+  prop = RNA_def_property(srna, "sound_offset", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "sound_offset");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not meant to be animated */
+  RNA_def_property_ui_text(prop, "Sound Offset", "Sound offset in seconds");
+  // TODO do we need to create any extra translation stuff for this?
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
+
   prop = RNA_def_property(srna, "show_waveform", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_AUDIO_DRAW_WAVEFORM);
   RNA_def_property_ui_text(

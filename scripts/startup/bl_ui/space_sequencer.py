@@ -2192,6 +2192,11 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
             split.prop(strip, "pan", text="")
             split.enabled = pan_enabled
 
+            split = col.split(factor=0.4)
+            split.alignment = 'RIGHT'
+            split.label(text="Offset", text_ctxt=i18n_contexts.id_sound)
+            split.prop(strip, "sound_offset", text="")
+
             if audio_channels not in {'MONO', 'STEREO'}:
                 split = col.split(factor=0.4)
                 split.alignment = 'RIGHT'

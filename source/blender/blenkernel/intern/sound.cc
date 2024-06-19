@@ -736,7 +736,8 @@ void *BKE_sound_add_scene_sound(
   }
   sound_verify_evaluated_id(&sequence->sound->id);
   const double fps = FPS;
-  const double offset_time = sequence->sound->offset_time - frameskip / fps;
+  const double offset_time = sequence->sound->offset_time + sequence->sound_offset -
+                             frameskip / fps;
   if (offset_time >= 0.0f) {
     return AUD_Sequence_add(scene->sound_scene,
                             sequence->sound->playback_handle,
@@ -794,7 +795,7 @@ void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
   if (sequence->scene_sound) {
     double offset_time = 0.0f;
     if (sequence->sound != nullptr) {
-      offset_time = sequence->sound->offset_time;
+      offset_time = sequence->sound->offset_time + sequence->sound_offset;
     }
     BKE_sound_move_scene_sound(scene,
                                sequence->scene_sound,
