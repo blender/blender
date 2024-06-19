@@ -297,8 +297,7 @@ void VKCommandBuilder::add_buffer_read_barriers(VKRenderGraph &render_graph,
     resource_state.write_access = VK_ACCESS_NONE;
     resource_state.read_stages |= node_stages;
     resource_state.write_stages = VK_PIPELINE_STAGE_NONE;
-
-    add_buffer_barrier(resource.buffer.vk_buffer, wait_access, read_access);
+    add_buffer_barrier(resource.buffer.vk_buffer, wait_access, link.vk_access_flags);
   }
 }
 

@@ -117,7 +117,7 @@ void VKContext::activate()
 void VKContext::deactivate()
 {
   /* Draw manager draws in a different context than the rest of the UI. Although run from the
-   * same thread. Commands inside the rendergraph need to be submitted into the device queue. */
+   * same thread. Commands inside the render-graph need to be submitted into the device queue. */
   flush_render_graph();
   immDeactivate();
   is_active_ = false;

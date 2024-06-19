@@ -38,7 +38,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 #define SOCK_BLACKBODY_INTENSITY_ID 8
   b.add_input<decl::Color>("Blackbody Tint").default_value({1.0f, 1.0f, 1.0f, 1.0f});
 #define SOCK_BLACKBODY_TINT_ID 8
-  b.add_input<decl::Float>("Temperature").default_value(1000.0f).min(0.0f).max(6500.0f);
+  b.add_input<decl::Float>("Temperature")
+      .default_value(1000.0f)
+      .min(0.0f)
+      .max(6500.0f)
+      .subtype(PROP_COLOR_TEMPERATURE);
   b.add_input<decl::String>("Temperature Attribute").default_value("temperature");
   b.add_input<decl::Float>("Weight").unavailable();
   b.add_output<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);

@@ -276,6 +276,11 @@ typedef enum NodeNoiseType {
   NODE_NOISE_HETERO_TERRAIN
 } NodeNoiseType;
 
+typedef enum NodeGaborType {
+  NODE_GABOR_TYPE_2D,
+  NODE_GABOR_TYPE_3D,
+} NodeGaborType;
+
 typedef enum NodeWaveType { NODE_WAVE_BANDS, NODE_WAVE_RINGS } NodeWaveType;
 
 typedef enum NodeWaveBandsDirection {

@@ -192,24 +192,24 @@ void GpencilExporterPDF::export_gpencil_layers()
         /* Fill. */
         if ((is_fill) && (params_.flag & GP_EXPORT_FILL)) {
           /* Fill is exported as polygon for fill and stroke in a different shape. */
-          export_stroke_to_polyline(gpl, gps_duplicate, is_stroke, true, false);
+          export_stroke_to_polyline(gpd_eval, gpl, gps_duplicate, is_stroke, true, false);
         }
 
         /* Stroke. */
         if (is_stroke) {
           if (is_normalized) {
-            export_stroke_to_polyline(gpl, gps_duplicate, is_stroke, false, true);
+            export_stroke_to_polyline(gpd_eval, gpl, gps_duplicate, is_stroke, false, true);
           }
           else {
             bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-                rv3d_->viewmat, gpd_, gpl, gps_duplicate, 3, diff_mat_.ptr(), 0.0f);
+                rv3d_->viewmat, gpd_eval, gpl, gps_duplicate, 3, diff_mat_.ptr(), 0.0f);
 
             /* Sample stroke. */
             if (params_.stroke_sample > 0.0f) {
               BKE_gpencil_stroke_sample(gpd_eval, gps_perimeter, params_.stroke_sample, false, 0);
             }
 
-            export_stroke_to_polyline(gpl, gps_perimeter, is_stroke, false, false);
+            export_stroke_to_polyline(gpd_eval, gpl, gps_perimeter, is_stroke, false, false);
 
             BKE_gpencil_free_stroke(gps_perimeter);
           }
@@ -220,7 +220,8 @@ void GpencilExporterPDF::export_gpencil_layers()
   }
 }
 
-void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
+void GpencilExporterPDF::export_stroke_to_polyline(bGPdata *gpd,
+                                                   bGPDlayer *gpl,
                                                    bGPDstroke *gps,
                                                    const bool is_stroke,
                                                    const bool do_fill,
@@ -238,7 +239,7 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
   copy_v3_v3(&pt_dst->x, &pt_src->x);
   pt_dst->pressure = avg_pressure;
 
-  const float radius = stroke_point_radius_get(gpl, gps_temp);
+  const float radius = stroke_point_radius_get(gpd, gpl, gps_temp);
 
   BKE_gpencil_free_stroke(gps_temp);
 

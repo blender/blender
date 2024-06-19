@@ -190,8 +190,7 @@ ccl_device_inline ProjectionTransform projection_perspective(float fov, float n,
 
 ccl_device_inline ProjectionTransform projection_orthographic(float znear, float zfar)
 {
-  Transform t = transform_scale(1.0f, 1.0f, 1.0f / (zfar - znear)) *
-                transform_translate(0.0f, 0.0f, -znear);
+  Transform t = transform_scale(1.0f, 1.0f, 1.0f / (zfar - znear));
 
   return ProjectionTransform(t);
 }

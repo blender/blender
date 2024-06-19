@@ -386,8 +386,10 @@ static int insert_key(bContext *C, wmOperator *op)
       depsgraph, BKE_scene_frame_get(scene));
 
   animrig::CombinedKeyingResult combined_result;
+  blender::Set<ID *> ids;
   for (PointerRNA &id_ptr : selection) {
     ID *selected_id = id_ptr.owner_id;
+    ids.add(selected_id);
     if (!id_can_have_animdata(selected_id)) {
       BKE_reportf(op->reports,
                   RPT_ERROR,
@@ -414,6 +416,10 @@ static int insert_key(bContext *C, wmOperator *op)
 
   if (combined_result.get_count(animrig::SingleKeyingResult::SUCCESS) == 0) {
     combined_result.generate_reports(op->reports);
+  }
+
+  for (ID *id : ids) {
+    DEG_id_tag_update(id, ID_RECALC_ANIMATION_NO_FLUSH);
   }
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);

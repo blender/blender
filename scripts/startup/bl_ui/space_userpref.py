@@ -1252,7 +1252,7 @@ class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_theme_strip_colors(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Strip Colors"
+    bl_label = "Strip Color Tags"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, _context):
@@ -2467,8 +2467,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
             colsub = box.column()
             row = colsub.row(align=True)
 
-            is_extension = addon_utils.check_extension(addon_module_name)
-
             row.operator(
                 "preferences.addon_expand",
                 icon='DISCLOSURE_TRI_DOWN' if bl_info["show_expanded"] else 'DISCLOSURE_TRI_RIGHT',
@@ -2512,11 +2510,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 if value := bl_info["version"]:
                     split = colsub.row().split(factor=0.15)
                     split.label(text="Version:")
-                    # Extensions use SEMVER.
-                    if is_extension:
-                        split.label(text=value, translate=False)
-                    else:
-                        split.label(text=".".join(str(x) for x in value), translate=False)
+                    split.label(text=".".join(str(x) for x in value), translate=False)
                 if value := bl_info["warning"]:
                     split = colsub.row().split(factor=0.15)
                     split.label(text="Warning:")

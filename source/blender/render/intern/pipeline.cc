@@ -2074,7 +2074,7 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, const bool
       char scene_engine[32];
       STRNCPY(scene_engine, re->r.engine);
       if (use_eevee_for_freestyle_render(re)) {
-        change_renderdata_engine(re, RE_engine_id_BLENDER_EEVEE);
+        change_renderdata_engine(re, RE_engine_id_BLENDER_EEVEE_NEXT);
       }
 
       RE_engine_render(re, false);

@@ -50,9 +50,20 @@ void main()
   float thickness = nodetree_thickness() * thickness_mode;
 
   /** Transparency weight is already applied through dithering, remove it from other closures. */
-  float transparency = 1.0 - average(g_transmittance);
-  float transparency_rcp = safe_rcp(transparency);
-  g_emission *= transparency_rcp;
+  float alpha = 1.0 - average(g_transmittance);
+  float alpha_rcp = safe_rcp(alpha);
+
+  /* Object holdout. */
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
+    /* alpha is set from rejected pixels / dithering. */
+    g_holdout = 1.0;
+
+    /* Set alpha to 0.0 so that lighting is not computed. */
+    alpha_rcp = 0.0;
+  }
+
+  g_emission *= alpha_rcp;
 
   ivec2 out_texel = ivec2(gl_FragCoord.xy);
 
@@ -72,12 +83,12 @@ void main()
   /* ----- GBuffer output ----- */
 
   GBufferData gbuf_data;
-  gbuf_data.closure[0] = g_closure_get_resolved(0, transparency_rcp);
+  gbuf_data.closure[0] = g_closure_get_resolved(0, alpha_rcp);
 #if CLOSURE_BIN_COUNT > 1
-  gbuf_data.closure[1] = g_closure_get_resolved(1, transparency_rcp);
+  gbuf_data.closure[1] = g_closure_get_resolved(1, alpha_rcp);
 #endif
 #if CLOSURE_BIN_COUNT > 2
-  gbuf_data.closure[2] = g_closure_get_resolved(2, transparency_rcp);
+  gbuf_data.closure[2] = g_closure_get_resolved(2, alpha_rcp);
 #endif
   gbuf_data.surface_N = g_data.N;
   gbuf_data.thickness = thickness;

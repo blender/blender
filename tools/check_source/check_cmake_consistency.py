@@ -369,7 +369,7 @@ def main() -> None:
             if cf not in global_c:
                 print("missing_c: ", cf)
 
-            # Check if automake builds a corresponding .o file.
+            # Check if `automake` builds a corresponding `.o` file.
             '''
             if cf in global_c:
                 out1 = os.path.splitext(cf)[0] + ".o"

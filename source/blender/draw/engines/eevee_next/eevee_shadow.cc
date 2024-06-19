@@ -1134,8 +1134,14 @@ float ShadowModule::screen_pixel_radius(const float4x4 &wininv,
   return math::distance(p0, p1) / min_dim;
 }
 
-bool ShadowModule::shadow_update_finished()
+bool ShadowModule::shadow_update_finished(int loop_count)
 {
+  if (loop_count >= (SHADOW_MAX_TILEMAP * SHADOW_TILEMAP_LOD) / SHADOW_VIEW_MAX) {
+    /* We have reach the maximum theoretical number of updates.
+     * This can indicate a problem in the statistic buffer read-back or update tagging. */
+    return true;
+  }
+
   if (!inst_.is_image_render()) {
     /* For viewport, only run the shadow update once per redraw.
      * This avoids the stall from the read-back and freezes from long shadow update. */
@@ -1154,7 +1160,7 @@ bool ShadowModule::shadow_update_finished()
   statistics_buf_.current().read();
   ShadowStatistics stats = statistics_buf_.current();
   /* Rendering is finished if we rendered all the remaining pages. */
-  return stats.page_rendered_count == stats.page_update_count;
+  return stats.view_needed_count <= SHADOW_VIEW_MAX;
 }
 
 int ShadowModule::max_view_per_tilemap()
@@ -1165,7 +1171,7 @@ int ShadowModule::max_view_per_tilemap()
     return SHADOW_TILEMAP_LOD;
   }
   /* For now very simple heuristic. Can be improved later by taking into consideration how many
-   * tilemaps are updating, but we cannot know the ones updated by casters. */
+   * tile-maps are updating, but we cannot know the ones updated by casters. */
   int potential_view_count = 0;
   for (auto i : IndexRange(tilemap_pool.tilemaps_data.size())) {
     if (tilemap_pool.tilemaps_data[i].projection_type == SHADOW_PROJECTION_CUBEFACE) {
@@ -1231,8 +1237,8 @@ void ShadowModule::set_view(View &view, int2 extent)
   }
 
   inst_.hiz_buffer.update();
-  bool first_loop = true;
 
+  int loop_count = 0;
   do {
     DRW_stats_group_start("Shadow");
     {
@@ -1242,10 +1248,10 @@ void ShadowModule::set_view(View &view, int2 extent)
       if (assign_if_different(update_casters_, false)) {
         /* Run caster update only once. */
         /* TODO(fclem): There is an optimization opportunity here where we can
-         * test casters only against the static tilemaps instead of all of them. */
+         * test casters only against the static tile-maps instead of all of them. */
         inst_.manager->submit(caster_update_ps_, view);
       }
-      if (assign_if_different(first_loop, false)) {
+      if (loop_count == 0) {
         inst_.manager->submit(jittered_transparent_caster_update_ps_, view);
       }
       inst_.manager->submit(tilemap_usage_ps_, view);
@@ -1259,6 +1265,8 @@ void ShadowModule::set_view(View &view, int2 extent)
        * If parameter buffer exceeds limits, then other work will not be impacted. */
       bool use_flush = (shadow_technique == ShadowTechnique::TILE_COPY) &&
                        (GPU_backend_get_type() == GPU_BACKEND_METAL);
+      /* Flush every loop as these passes are very heavy. */
+      use_flush |= loop_count != 0;
 
       if (use_flush) {
         GPU_flush();
@@ -1300,7 +1308,10 @@ void ShadowModule::set_view(View &view, int2 extent)
       GPU_memory_barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
     }
     DRW_stats_group_end();
-  } while (!shadow_update_finished());
+
+    loop_count++;
+
+  } while (!shadow_update_finished(loop_count));
 
   if (prev_fb) {
     GPU_framebuffer_bind(prev_fb);

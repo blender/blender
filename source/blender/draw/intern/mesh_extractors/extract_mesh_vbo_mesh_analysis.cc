@@ -572,7 +572,7 @@ void extract_mesh_analysis(const MeshRenderData &mr, gpu::VertBuf &vbo)
   }
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan<float> vbo_data(static_cast<float *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
+  MutableSpan<float> vbo_data = vbo.data<float>();
 
   switch (mr.toolsettings->statvis.type) {
     case SCE_STATVIS_OVERHANG:

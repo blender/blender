@@ -1459,6 +1459,29 @@ static bUnitCollection buImperialTempCollection = {
     /*length*/ UNIT_COLLECTION_LENGTH(buImperialTempDef),
 };
 
+/* Color Temperature */
+static bUnitDef buColorTempDef[] = {
+    /* Base unit. */
+    {
+        /*name*/ "kelvin",
+        /*name_plural*/ "kelvin",
+        /*name_short*/ "K",
+        /*name_alt*/ nullptr,
+        /*name_display*/ "Kelvin",
+        /*identifier*/ "KELVIN",
+        /*scalar*/ 1.0f,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_NONE,
+    },
+    NULL_UNIT,
+};
+static bUnitCollection buColorTempCollection = {
+    /*units*/ buColorTempDef,
+    /*base_unit*/ 0,
+    /*flag*/ 0,
+    /*length*/ UNIT_COLLECTION_LENGTH(buColorTempDef),
+};
+
 #define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / B_UNIT_TYPE_TOT) / sizeof(void *)) - 1)
 static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
     /* Natural. */
@@ -1477,6 +1500,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_POWER*/ nullptr,
         /*B_UNIT_TEMPERATURE*/ nullptr,
         /*B_UNIT_WAVELENGTH*/ nullptr,
+        /*B_UNIT_COLOR_TEMPERATURE*/ nullptr,
     },
     /* Metric. */
     {
@@ -1494,6 +1518,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_POWER*/ &buPowerCollection,
         /*B_UNIT_TEMPERATURE*/ &buMetricTempCollection,
         /*B_UNIT_WAVELENGTH*/ &buWavelengthLenCollection,
+        /*B_UNIT_COLOR_TEMPERATURE*/ &buColorTempCollection,
     },
     /* Imperial. */
     {
@@ -1511,6 +1536,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_POWER*/ &buPowerCollection,
         /*B_UNIT_TEMPERATURE*/ &buImperialTempCollection,
         /*B_UNIT_WAVELENGTH*/ &buWavelengthLenCollection,
+        /*B_UNIT_COLOR_TEMPERATURE*/ &buColorTempCollection,
     },
     {nullptr},
 };

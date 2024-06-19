@@ -922,6 +922,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   uiBlock *block = ui_popup_block_refresh(C, handle, butregion, but);
   handle = block->handle;
 
+  /* Wait with tooltips until the mouse is moved, button handling will re-enable them on the first
+   * actual mouse move. */
+  block->tooltipdisabled = true;
+
   if (can_refresh) {
     CTX_wm_region_popup_set(C, region_popup_prev);
   }

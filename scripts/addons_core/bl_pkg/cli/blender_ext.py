@@ -114,6 +114,10 @@ TERSE_DESCRIPTION_MAX_LENGTH = 64
 def print(*args: Any, **kw: Dict[str, Any]) -> None:
     raise Exception("Illegal print(*({!r}), **{{{!r}}})".format(args, kw))
 
+# # Useful for testing.
+# def print(*args: Any, **kw: Dict[str, Any]):
+#     __builtins__.print(*args, **kw, file=open('/tmp/output.txt', 'a'))
+
 
 def debug_stack_trace_to_file() -> None:
     """
@@ -186,6 +190,7 @@ def force_exit_ok_enable() -> None:
 
 def read_with_timeout(fh: IO[bytes], size: int, *, timeout_in_seconds: float) -> Optional[bytes]:
     # TODO: implement timeout (TimeoutError).
+    _ = timeout_in_seconds
     return fh.read(size)
 
 
@@ -613,6 +618,8 @@ def pkg_manifest_from_zipfile_and_validate_impl(
     manifest_dict = toml_from_bytes(file_content)
     assert isinstance(manifest_dict, dict)
 
+    pkg_manifest_dict_apply_build_generated_table(manifest_dict)
+
     # TODO: forward actual error.
     if manifest_dict is None:
         return ["Archive does not contain a manifest"]
@@ -993,7 +1000,6 @@ def url_retrieve_to_data_iter(
     """
     from urllib.error import ContentTooShortError
     from urllib.request import urlopen
-    import socket
 
     request = urllib.request.Request(
         url,
@@ -1621,23 +1627,161 @@ def pkg_manifest_is_valid_or_error_all(
 
 
 # -----------------------------------------------------------------------------
+# Manifest Utilities
+
+def pkg_manifest_dict_apply_build_generated_table(manifest_dict: Dict[str, Any]) -> None:
+    # Swap in values from `[build.generated]` if it exists:
+    if (build_generated := manifest_dict.get("build", {}).get("generated")) is None:
+        return
+
+    if (platforms := build_generated.get("platforms")) is not None:
+        manifest_dict["platforms"] = platforms
+
+
+# -----------------------------------------------------------------------------
 # Standalone Utilities
+
+platform_system_replace = {
+    "darwin": "macos",
+}
+
+platform_machine_replace = {
+    "x86_64": "x64",
+    "amd64": "x64",
+    # Used on Linux for ARM64 (APPLE already uses `arm64`).
+    "aarch64": "arm64",
+    "aarch32": "arm32",
+}
+
+# Use when converting a Python `.whl` platform to a Blender `platform_from_this_system` platform.
+platform_system_replace_for_wheels = {
+    "macosx": "macos",
+    "manylinux": "linux",
+    "musllinux": "linux",
+    "win": "windows",
+}
+
 
 def platform_from_this_system() -> str:
     import platform
-    system_replace = {
-        "darwin": "macos",
-    }
-    machine_replace = {
-        "x86_64": "x64",
-        "amd64": "x64",
-    }
     system = platform.system().lower()
     machine = platform.machine().lower()
     return "{:s}-{:s}".format(
-        system_replace.get(system, system),
-        machine_replace.get(machine, machine),
+        platform_system_replace.get(system, system),
+        platform_machine_replace.get(machine, machine),
     )
+
+
+def blender_platform_from_wheel_platform(wheel_platform: str) -> str:
+    """
+    Convert a wheel to a Blender compatible platform: e.g.
+    - ``linux_x86_64``              -> ``linux-x64``.
+    - ``manylinux_2_28_x86_64``     -> ``linux-x64``.
+    - ``manylinux2014_aarch64``     -> ``linux-arm64``.
+    - ``win_amd64``                 -> ``windows-x64``.
+    - ``macosx_11_0_arm64``         -> ``macos-arm64``.
+    - ``manylinux2014_x86_64``      -> ``linux-x64``.
+    """
+
+    i = wheel_platform.find("_")
+    if i == -1:
+        # WARNING: this should never or almost never happen.
+        # Return the result as we don't have a better alternative.
+        return wheel_platform
+
+    head = wheel_platform[:i]
+    tail = wheel_platform[i + 1:]
+
+    for wheel_src, blender_dst in platform_system_replace_for_wheels.items():
+        if head == wheel_src:
+            head = blender_dst
+            break
+        # Account for:
+        # `manylinux2014` -> `linux`.
+        # `win32` -> `windows`.
+        if head.startswith(wheel_src) and head[len(wheel_src):].isdigit():
+            head = blender_dst
+            break
+
+    for wheel_src, blender_dst in platform_machine_replace.items():
+        if (tail == wheel_src) or (tail.endswith("_" + wheel_src)):
+            # NOTE: in some cases this skips GLIBC versions.
+            tail = blender_dst
+            break
+    else:
+        # Avoid GLIBC or MACOS versions being included in the `machine` value.
+        # This works as long as all known machine values are added to `platform_machine_replace`
+        # (only `x86_64` at the moment).
+        tail = tail.rpartition("_")[2]
+
+    return "{:s}-{:s}".format(head, tail)
+
+
+def blender_platform_compatible_with_wheel_platform(platform: str, wheel_platform: str) -> bool:
+    assert platform
+    if wheel_platform == "any":
+        return True
+    platform_blender = blender_platform_from_wheel_platform(wheel_platform)
+    return platform == platform_blender
+
+
+def build_paths_filter_wheels_by_platform(
+        build_paths: List[Tuple[str, str]],
+        platform: str,
+) -> List[Tuple[str, str]]:
+    """
+    All paths are wheels with filenames that follow the wheel spec.
+    Return wheels which are compatible with the ``platform``.
+    """
+    build_paths_for_platform: List[Tuple[str, str]] = []
+
+    for item in build_paths:
+        # Both the absolute/relative path can be used to get the filename.
+        # Use the relative since it's likely to be shorter.
+        wheel_filename = os.path.splitext(os.path.basename(item[1]))[0]
+
+        wheel_filename_split = wheel_filename.split("-")
+        # This should be unreachable because the manifest has been validated, add assert.
+        assert len(wheel_filename_split) >= 5, "Internal error, manifest validation disallows this"
+
+        wheel_platform = wheel_filename_split[-1]
+
+        if blender_platform_compatible_with_wheel_platform(platform, wheel_platform):
+            build_paths_for_platform.append(item)
+
+    return build_paths_for_platform
+
+
+def build_paths_filter_by_platform(
+        build_paths: List[Tuple[str, str]],
+        wheel_range: Tuple[int, int],
+        platforms: Tuple[str, ...],
+) -> Generator[Tuple[List[Tuple[str, str]], str], None, None]:
+    if not platforms:
+        yield (build_paths, "")
+        return
+
+    if wheel_range[0] == wheel_range[1]:
+        # Not an error, but there is no reason to split the packages in this case,
+        # caller may warn about this although it's not an error.
+        for platform in platforms:
+            yield (build_paths, platform)
+        return
+
+    build_paths_head = build_paths[:wheel_range[0]]
+    build_paths_wheels = build_paths[wheel_range[0]:wheel_range[1]]
+    build_paths_tail = build_paths[wheel_range[1]:]
+
+    for platform in platforms:
+        wheels_for_platform = build_paths_filter_wheels_by_platform(build_paths_wheels, platform)
+        yield (
+            [
+                *build_paths_head,
+                *wheels_for_platform,
+                *build_paths_tail,
+            ],
+            platform,
+        )
 
 
 def repository_filter_skip(
@@ -2105,6 +2249,25 @@ def arg_handle_str_as_package_names(value: str) -> Sequence[str]:
         if (error_msg := pkg_idname_is_valid_or_error(pkg_idname)) is not None:
             raise argparse.ArgumentTypeError("Invalid name \"{:s}\". {:s}".format(pkg_idname, error_msg))
     return result
+
+
+# -----------------------------------------------------------------------------
+# Argument Handlers ("build" command)
+
+def generic_arg_built_split_platforms(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--split-platforms",
+        dest="split_platforms",
+        action="store_true",
+        default=False,
+        help=(
+            "Build a separate package for each platform.\n"
+            "Adding the platform as a file name suffix (before the extension).\n"
+            "\n"
+            "This can be useful to reduce the upload size of packages that bundle large\n"
+            "platform-specific modules (``*.whl`` files)."
+        ),
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -2990,6 +3153,7 @@ class subcmd_author:
             pkg_source_dir: str,
             pkg_output_dir: str,
             pkg_output_filepath: str,
+            split_platforms: bool,
             verbose: bool,
     ) -> bool:
         if not os.path.isdir(pkg_source_dir):
@@ -3022,6 +3186,25 @@ class subcmd_author:
                 message_error(msg_fn, "Error parsing TOML \"{:s}\" {:s}".format(pkg_manifest_filepath, error_msg))
             return False
 
+        if split_platforms:
+            # NOTE: while this could be made into a warning which disables `split_platforms`,
+            # this could result in further problems for automated tasks which operate on the output
+            # where they would expect a platform suffix on each archive. So consider this an error.
+            if not manifest.platforms:
+                message_error(
+                    msg_fn,
+                    "Error in arguments \"--split-platforms\" with a manifest that does not declare \"platforms\"",
+                )
+                return False
+
+        if (manifest_build_data := manifest_data.get("build")) is not None:
+            if "generated" in manifest_build_data:
+                message_error(
+                    msg_fn,
+                    "Error in TOML \"{:s}\" contains reserved value: [build.generated]".format(pkg_manifest_filepath),
+                )
+                return False
+
         # Always include wheels & manifest.
         build_paths_extra = (
             # Inclusion of the manifest is implicit.
@@ -3029,8 +3212,9 @@ class subcmd_author:
             PKG_MANIFEST_FILENAME_TOML,
             *(manifest.wheels or ()),
         )
+        build_paths_wheel_range = 1, 1 + len(manifest.wheels or ())
 
-        if (manifest_build_data := manifest_data.get("build")) is not None:
+        if manifest_build_data is not None:
             manifest_build_test = PkgManifest_Build.from_dict_all_errors(
                 manifest_build_data,
                 extra_paths=build_paths_extra,
@@ -3128,53 +3312,101 @@ class subcmd_author:
                 message_status(msg_fn, "Error building path list \"{:s}\"".format(str(ex)))
                 return False
 
-        if pkg_output_filepath != "":
-            # The directory may be empty, that is fine as join handles this correctly.
-            pkg_dirpath, pkg_filename = os.path.split(pkg_output_filepath)
-            outfile = pkg_output_filepath
-            outfile_temp = os.path.join(pkg_dirpath, "." + pkg_filename)
-            del pkg_dirpath
-        else:
-            pkg_filename = "{:s}-{:s}{:s}".format(manifest.id, manifest.version, PKG_EXT)
-            outfile = os.path.join(pkg_output_dir, pkg_filename)
-            outfile_temp = os.path.join(pkg_output_dir, "." + pkg_filename)
-
         request_exit = False
 
-        request_exit |= message_status(msg_fn, "Building {:s}".format(pkg_filename))
-        if request_exit:
-            return False
+        # A pass-through when there are no platforms to split.
+        for build_paths_for_platform, platform in build_paths_filter_by_platform(
+            build_paths,
+            build_paths_wheel_range,
+            tuple(manifest.platforms) if (split_platforms and manifest.platforms) else (),
+        ):
+            if pkg_output_filepath != "":
+                # The directory may be empty, that is fine as join handles this correctly.
+                pkg_dirpath, pkg_filename = os.path.split(pkg_output_filepath)
 
-        with CleanupPathsContext(files=(outfile_temp,), directories=()):
-            try:
-                zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_DEFLATED, compresslevel=9)
-            except Exception as ex:
-                message_status(msg_fn, "Error creating archive \"{:s}\"".format(str(ex)))
+                if platform:
+                    pkg_filename, pkg_filename_ext = os.path.splitext(pkg_filename)
+                    pkg_filename = "{:s}-{:s}{:s}".format(
+                        pkg_filename,
+                        platform.replace("-", "_"),
+                        pkg_filename_ext,
+                    )
+                    del pkg_filename_ext
+                    outfile = os.path.join(pkg_dirpath, pkg_filename)
+                else:
+                    outfile = pkg_output_filepath
+
+                outfile_temp = os.path.join(pkg_dirpath, "." + pkg_filename)
+                del pkg_dirpath
+            else:
+                if platform:
+                    pkg_filename = "{:s}-{:s}-{:s}{:s}".format(
+                        manifest.id,
+                        manifest.version,
+                        platform.replace("-", "_"),
+                        PKG_EXT,
+                    )
+                else:
+                    pkg_filename = "{:s}-{:s}{:s}".format(
+                        manifest.id,
+                        manifest.version,
+                        PKG_EXT,
+                    )
+                outfile = os.path.join(pkg_output_dir, pkg_filename)
+                outfile_temp = os.path.join(pkg_output_dir, "." + pkg_filename)
+
+            request_exit |= message_status(msg_fn, "building: {:s}".format(pkg_filename))
+            if request_exit:
                 return False
 
-            with contextlib.closing(zip_fh_context) as zip_fh:
-                for filepath_abs, filepath_rel in build_paths:
-                    # Handy for testing that sub-directories:
-                    # zip_fh.write(filepath_abs, manifest.id + "/" + filepath_rel)
-                    compress_type = zipfile.ZIP_STORED if filepath_skip_compress(filepath_abs) else None
-                    try:
-                        zip_fh.write(filepath_abs, filepath_rel, compress_type=compress_type)
-                    except Exception as ex:
-                        message_status(msg_fn, "Error adding to archive \"{:s}\"".format(str(ex)))
-                        return False
-
-                    if verbose:
-                        message_status(msg_fn, "add: {:s}".format(filepath_rel))
-
-                request_exit |= message_status(msg_fn, "complete")
-                if request_exit:
+            with CleanupPathsContext(files=(outfile_temp,), directories=()):
+                try:
+                    zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_DEFLATED, compresslevel=9)
+                except Exception as ex:
+                    message_status(msg_fn, "Error creating archive \"{:s}\"".format(str(ex)))
                     return False
 
-            if os.path.exists(outfile):
-                os.unlink(outfile)
-            os.rename(outfile_temp, outfile)
+                with contextlib.closing(zip_fh_context) as zip_fh:
+                    for filepath_abs, filepath_rel in build_paths_for_platform:
 
-        message_status(msg_fn, "created \"{:s}\", {:d}".format(outfile, os.path.getsize(outfile)))
+                        zip_data_override: Optional[bytes] = None
+                        if platform and (filepath_rel == PKG_MANIFEST_FILENAME_TOML):
+                            with open(filepath_abs, "rb") as temp_fh:
+                                zip_data_override = temp_fh.read()
+                                zip_data_override = zip_data_override + b"".join((
+                                    b"\n",
+                                    b"\n",
+                                    b"# BEGIN GENERATED CONTENT.\n",
+                                    b"# This must not be included in source manifests.\n",
+                                    b"[build.generated]\n",
+                                    "platforms = [\"{:s}\"]\n".format(platform).encode("utf-8"),
+                                    b"# END GENERATED CONTENT.\n",
+                                ))
+
+                        # Handy for testing that sub-directories:
+                        # zip_fh.write(filepath_abs, manifest.id + "/" + filepath_rel)
+                        compress_type = zipfile.ZIP_STORED if filepath_skip_compress(filepath_abs) else None
+                        try:
+                            if zip_data_override is not None:
+                                zip_fh.writestr(filepath_rel, zip_data_override, compress_type=compress_type)
+                            else:
+                                zip_fh.write(filepath_abs, filepath_rel, compress_type=compress_type)
+                        except Exception as ex:
+                            message_status(msg_fn, "Error adding to archive \"{:s}\"".format(str(ex)))
+                            return False
+
+                        if verbose:
+                            message_status(msg_fn, "add: {:s}".format(filepath_rel))
+
+                    request_exit |= message_status(msg_fn, "complete")
+                    if request_exit:
+                        return False
+
+                if os.path.exists(outfile):
+                    os.unlink(outfile)
+                os.rename(outfile_temp, outfile)
+
+        message_status(msg_fn, "created: \"{:s}\", {:d}".format(outfile, os.path.getsize(outfile)))
         return True
 
     @staticmethod
@@ -3375,6 +3607,7 @@ def unregister():
                     pkg_source_dir=pkg_src_dir,
                     pkg_output_dir=repo_dir,
                     pkg_output_filepath="",
+                    split_platforms=False,
                     verbose=False,
                 ):
                     # Error running command.
@@ -3613,6 +3846,7 @@ def argparse_create_author_build(
     generic_arg_package_source_dir(subparse)
     generic_arg_package_output_dir(subparse)
     generic_arg_package_output_filepath(subparse)
+    generic_arg_built_split_platforms(subparse)
     generic_arg_verbose(subparse)
 
     if args_internal:
@@ -3624,6 +3858,7 @@ def argparse_create_author_build(
             pkg_source_dir=args.source_dir,
             pkg_output_dir=args.output_dir,
             pkg_output_filepath=args.output_filepath,
+            split_platforms=args.split_platforms,
             verbose=args.verbose,
         ),
     )

@@ -3069,15 +3069,6 @@ struct LineartCache;
 typedef struct GreasePencilLineartModifierData {
   ModifierData modifier;
 
-  /* [Important] Note on legacy material/layer selection variables:
-   *
-   * Now uses the layer/material variables in the `influence`
-   * field above, thus old layer/material fields are obsolete.
-   *
-   * Do not change any of the data below since the layout of these
-   * data is currently shared with the old line art modifier.
-   * See `BKE_grease_pencil_lineart_wrap_v3` for how it works. */
-
   uint16_t edge_types; /* line type enable flags, bits in eLineartEdgeFlag */
 
   /** Object or Collection, from #eGreasePencilLineartSource. */
@@ -3093,15 +3084,12 @@ typedef struct GreasePencilLineartModifierData {
   struct Object *source_object;
   struct Collection *source_collection;
 
-  /* These are redundant in GPv3, see above for explanations. */
   struct Material *target_material;
   char target_layer[64];
 
   /**
    * These two variables are to pass on vertex group information from mesh to strokes.
    * `vgname` specifies which vertex groups our strokes from source_vertex_group will go to.
-   *
-   * These are redundant in GPv3, see above for explanations.
    */
   char source_vertex_group[64];
   char vgname[64];

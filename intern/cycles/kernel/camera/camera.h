@@ -186,13 +186,16 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
     /* compute point on plane of focus */
     float3 Pfocus = D * kernel_data.cam.focaldistance;
 
-    /* update ray for effect of lens */
+    /* Update ray for effect of lens */
     float3 lens_uvw = float2_to_float3(lens_uv);
-    P = Pcamera + lens_uvw;
+
     D = normalize(Pfocus - lens_uvw);
+    /* Compute position the ray will be if it traveled until it intersected the near clip plane.
+     * This allows for correct DOF while allowing near clipping. */
+    P = Pcamera + lens_uvw + (D * (kernel_data.cam.nearclip / D.z));
   }
   else {
-    P = Pcamera;
+    P = Pcamera + make_float3(0.0f, 0.0f, kernel_data.cam.nearclip);
   }
   /* transform ray from camera to world */
   Transform cameratoworld = kernel_data.cam.cameratoworld;

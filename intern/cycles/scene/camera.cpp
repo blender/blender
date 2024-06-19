@@ -395,7 +395,7 @@ void Camera::update(Scene *scene)
 
   /* depth of field */
   kcam->aperturesize = aperturesize;
-  kcam->focaldistance = focaldistance;
+  kcam->focaldistance = max(focaldistance, 1e-5f);
   kcam->blades = (blades < 3) ? 0.0f : blades;
   kcam->bladesrotation = bladesrotation;
 
@@ -593,40 +593,70 @@ BoundBox Camera::viewplane_bounds_get()
    * checks we need in a more clear and smart fashion? */
   BoundBox bounds = BoundBox::empty;
 
+  const float max_aperture_size = aperture_ratio < 1.0f ? aperturesize / aperture_ratio :
+                                                          aperturesize;
+
   if (camera_type == CAMERA_PANORAMA) {
+    const float extend = max_aperture_size + nearclip;
     if (use_spherical_stereo == false) {
-      bounds.grow(make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w), nearclip);
+      bounds.grow(make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w), extend);
     }
     else {
       float half_eye_distance = interocular_distance * 0.5f;
 
       bounds.grow(
           make_float3(cameratoworld.x.w + half_eye_distance, cameratoworld.y.w, cameratoworld.z.w),
-          nearclip);
+          extend);
 
       bounds.grow(
           make_float3(cameratoworld.z.w, cameratoworld.y.w + half_eye_distance, cameratoworld.z.w),
-          nearclip);
+          extend);
 
       bounds.grow(
           make_float3(cameratoworld.x.w - half_eye_distance, cameratoworld.y.w, cameratoworld.z.w),
-          nearclip);
+          extend);
 
       bounds.grow(
           make_float3(cameratoworld.x.w, cameratoworld.y.w - half_eye_distance, cameratoworld.z.w),
-          nearclip);
+          extend);
     }
   }
   else {
-    bounds.grow(transform_raster_to_world(0.0f, 0.0f));
-    bounds.grow(transform_raster_to_world(0.0f, (float)height));
-    bounds.grow(transform_raster_to_world((float)width, (float)height));
-    bounds.grow(transform_raster_to_world((float)width, 0.0f));
+    /* max_aperture_size = Max horizontal distance a ray travels from aperture edge to focus point.
+     * Scale that value based on the ratio between focaldistance and nearclip to figure out the
+     * horizontal distance the DOF ray will travel before reaching the nearclip plane, where it
+     * will start rendering from.
+     * In some cases (focus distance is close to camera, and nearclip plane is far from camera),
+     * this scaled value is larger than nearclip, in which case we add it to `extend` to extend the
+     * bounding box to account for these rays.
+     *
+     * ----------------- nearclip plane
+     *           / scaled_horz_dof_ray, nearclip
+     *          /
+     *         /
+     *        / max_aperture_size, focaldistance
+     *       /|
+     *      / |
+     *     /  |
+     *    /   |
+     *   ------ max_aperture_size, 0
+     *  0, 0
+     */
+
+    const float scaled_horz_dof_ray = (max_aperture_size > 0.0f) ?
+                                          max_aperture_size * (nearclip / focaldistance) :
+                                          0.0f;
+    const float extend = max_aperture_size + max(nearclip, scaled_horz_dof_ray);
+
+    bounds.grow(transform_raster_to_world(0.0f, 0.0f), extend);
+    bounds.grow(transform_raster_to_world(0.0f, (float)height), extend);
+    bounds.grow(transform_raster_to_world((float)width, (float)height), extend);
+    bounds.grow(transform_raster_to_world((float)width, 0.0f), extend);
     if (camera_type == CAMERA_PERSPECTIVE) {
       /* Center point has the most distance in local Z axis,
        * use it to construct bounding box/
        */
-      bounds.grow(transform_raster_to_world(0.5f * width, 0.5f * height));
+      bounds.grow(transform_raster_to_world(0.5f * width, 0.5f * height), extend);
     }
   }
   return bounds;

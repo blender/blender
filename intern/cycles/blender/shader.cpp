@@ -945,6 +945,14 @@ static ShaderNode *add_node(Scene *scene,
     get_tex_mapping(noise, b_texture_mapping);
     node = noise;
   }
+  else if (b_node.is_a(&RNA_ShaderNodeTexGabor)) {
+    BL::ShaderNodeTexGabor b_gabor_node(b_node);
+    GaborTextureNode *gabor = graph->create_node<GaborTextureNode>();
+    gabor->set_type((NodeGaborType)b_gabor_node.gabor_type());
+    BL::TexMapping b_texture_mapping(b_gabor_node.texture_mapping());
+    get_tex_mapping(gabor, b_texture_mapping);
+    node = gabor;
+  }
   else if (b_node.is_a(&RNA_ShaderNodeTexCoord)) {
     BL::ShaderNodeTexCoord b_tex_coord_node(b_node);
     TextureCoordinateNode *tex_coord = graph->create_node<TextureCoordinateNode>();

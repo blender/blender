@@ -1345,16 +1345,17 @@ class EXTENSIONS_OT_repo_add_from_drop(Operator):
         url_for_display = url_split[2] if url_split[2] else url
 
         layout = self.layout
-        col = layout.column()
-        lines = (
-            iface_("The dropped URL comes from an unknown repository from:"),
-            url_for_display,
-            iface_("You may optionally add this repository now."),
-            iface_("Once the repository has been created the URL"),
-            iface_("will need to be dropped again."),
-        )
-        for line in lines:
-            col.label(text=line, translate=False)
+        col = layout.column(align=True)
+        col.label(text="The dropped extension comes from an unknown repository.")
+        col.label(text="If you trust its source, add the repository and try again.")
+
+        col.separator()
+        if url_for_display:
+            box = col.box()
+            subcol = box.column(align=True)
+            subcol.label(text=iface_("URL: {:s}").format(url_for_display), translate=False)
+        else:
+            col.label(text="Alternatively download the extension to Install from Disk.")
 
 
 # Show a dialog when dropping an extensions for a disabled repository.
@@ -1367,6 +1368,7 @@ class EXTENSIONS_OT_repo_enable_from_drop(Operator):
 
     __slots__ = (
         "_repo_name",
+        "_repo_remote_url",
     )
 
     def invoke(self, context, _event):
@@ -1374,6 +1376,7 @@ class EXTENSIONS_OT_repo_enable_from_drop(Operator):
         if (repo := repo_lookup_by_index_or_none_with_report(self.repo_index, self.report)) is None:
             return {'CANCELLED'}
         self._repo_name = repo.name
+        self._repo_remote_url = repo.remote_url
 
         wm = context.window_manager
         wm.invoke_props_dialog(
@@ -1394,13 +1397,14 @@ class EXTENSIONS_OT_repo_enable_from_drop(Operator):
     def draw(self, _context):
         layout = self.layout
         col = layout.column()
-        lines = (
-            iface_("The dropped URL comes from a disabled repository:"),
-            self._repo_name,
-            iface_("Enabled the repository before dropping again or cancel."),
-        )
-        for line in lines:
-            col.label(text=line, translate=False)
+        col.label(text="The dropped extension comes from a disabled repository.")
+        col.label(text="Enable the repository and try again.")
+        col.separator()
+
+        box = col.box()
+        subcol = box.column(align=True)
+        subcol.label(text=iface_("Name: {:s}").format(self._repo_name), translate=False)
+        subcol.label(text=iface_("URL: {:s}").format(self._repo_remote_url), translate=False)
 
 
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
@@ -1456,7 +1460,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 assert False, "unreachable"  # Poll prevents this.
             return None
 
-        prefs = context.preferences
+        prefs = bpy.context.preferences
 
         network_connection_limit = prefs.system.network_connection_limit
 
@@ -1509,7 +1513,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 continue
 
             repo_item = repos_all[repo_index]
-            for pkg_id_sequence in sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
+            for pkg_id_sequence in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
                 cmd_batch.append(partial(
                     bl_extension_utils.pkg_install,
                     directory=repo_item.directory,
@@ -2329,7 +2333,11 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         return self.execute(context)
 
     def _invoke_for_drop(self, context, _event):
-        from .bl_extension_utils import url_parse_for_blender
+        import string
+        from .bl_extension_utils import (
+            platform_from_this_system,
+            url_parse_for_blender,
+        )
 
         url = self.url
         print("DROP URL:", url)
@@ -2342,9 +2350,13 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             _preferences_repo_find_by_remote_url(context, remote_url)
         )
 
-        if repo_from_url and not repo_from_url.enabled:
-            bpy.ops.extensions.repo_enable_from_drop('INVOKE_DEFAULT', repo_index=repo_index_from_url)
-            return {'CANCELLED'}
+        if repo_from_url:
+            if not repo_from_url.enabled:
+                bpy.ops.extensions.repo_enable_from_drop('INVOKE_DEFAULT', repo_index=repo_index_from_url)
+                return {'CANCELLED'}
+            repo_form_url_name = repo_from_url.name
+        else:
+            repo_form_url_name = ""
 
         del repo_from_url, repo_index_from_url
 
@@ -2353,15 +2365,40 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
 
         if repo_index == -1:
-            # The `remote_url` may not be defined, in this case there is not much we can do.
-            if not remote_url:
-                self.report({'ERROR'}, "Extension: URL not found in remote repositories!\n{:s}".format(url))
+            # The package ID could not be found, the two common causes for this error are:
+            # - The platform or Blender version may be unsupported.
+            # - The repository may not have been added.
+            if repo_form_url_name:
+                # NOTE: we *could* support reading the repository JSON that without compatibility filtering.
+                # This would allow us to give a more detailed error message, noting that the extension was found
+                # and the reason it isn't compatible. The down side of this is it would tie us to the decision to
+                # keep syncing all extensions when Blender requests to sync with the server.
+                # As some point we may want to sync only compatible extension meta-data
+                # (to reduce the network overhead of incompatible packages).
+                # So don't assume we have global knowledge of every URL.
+                # One possible solution is to include the version range & platforms in the URL
+                # as we already do for the repository, allowing us to trigger an report instantly
+                # when an incompatible extension is dropped. see: `extensions-website/#190`.
+                self.report(
+                    {'ERROR'},
+                    iface_(
+                        "Repository \"{:s}\" found but the extension dropped may be incompatible with this system.\n"
+                        "Check for an extension compatible with Blender v{:s} on \"{:s}\"."
+                    ).format(
+                        repo_form_url_name,
+                        ".".join(str(v) for v in bpy.app.version),
+                        platform_from_this_system(),
+                    )
+                )
             else:
-                bpy.ops.extensions.repo_add_from_drop('INVOKE_DEFAULT', url=remote_url)
+                bpy.ops.extensions.repo_add_from_drop('INVOKE_DEFAULT', url="" if remote_url is None else remote_url)
             return {'CANCELLED'}
 
         if item_local is not None:
-            self.report({'ERROR'}, "Extension: \"{:s}\" Already installed!".format(pkg_id))
+            self.report({'ERROR'}, iface_("{:s} \"{:s}\" already installed!").format(
+                iface_(string.capwords(item_local.type)),
+                item_local.name,
+            ))
             return {'CANCELLED'}
 
         self._drop_variables = repo_index, repo_name, pkg_id, item_remote

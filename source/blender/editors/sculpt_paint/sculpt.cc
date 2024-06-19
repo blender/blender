@@ -1952,10 +1952,10 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
                                                   const Brush &brush,
                                                   const bool use_area_nos,
                                                   const bool use_area_cos,
-                                                  PBVHNode *node,
-                                                  AreaNormalCenterData *anctd,
-                                                  bool &r_any_vertex_sampled)
+                                                  const PBVHNode &node,
+                                                  AreaNormalCenterData &anctd)
 {
+  const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   SculptBrushTest normal_test;
   SculptBrushTestFn sculpt_brush_normal_test_sq_fn = area_normal_and_center_get_normal_test(
       ss, brush, normal_test);
@@ -1967,13 +1967,13 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
   undo::Node *unode = nullptr;
   bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(node, undo::Type::Position);
+    unode = undo::get_node(&node, undo::Type::Position);
     if (unode) {
       use_original = !unode->position.is_empty();
     }
   }
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
     if (!hide_vert.is_empty() && hide_vert[vert]) {
@@ -1996,20 +1996,16 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
       continue;
     }
 
-    r_any_vertex_sampled = true;
-
-    const int flip_index = (math::dot(ss.cache ? ss.cache->view_normal : ss.cursor_view_normal,
-                                      no) <= 0.0f);
-
+    const int flip_index = math::dot(view_normal, no) <= 0.0f;
     if (use_area_cos && area_test_r) {
-      anctd->area_cos[flip_index] += area_center_calc_weighted(
+      anctd.area_cos[flip_index] += area_center_calc_weighted(
           area_test.location, area_test.dist, area_test.radius, co);
-      anctd->count_co[flip_index] += 1;
+      anctd.count_co[flip_index] += 1;
     }
     if (use_area_nos && normal_test_r) {
-      anctd->area_nos[flip_index] += no *
-                                     area_normal_calc_weight(normal_test.dist, normal_test.radius);
-      anctd->count_no[flip_index] += 1;
+      anctd.area_nos[flip_index] += no *
+                                    area_normal_calc_weight(normal_test.dist, normal_test.radius);
+      anctd.count_no[flip_index] += 1;
     }
   }
 }
@@ -2018,10 +2014,10 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
                                                    const Brush &brush,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
-                                                   PBVHNode *node,
-                                                   AreaNormalCenterData *anctd,
-                                                   bool &r_any_vertex_sampled)
+                                                   const PBVHNode &node,
+                                                   AreaNormalCenterData &anctd)
 {
+  const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   const CCGKey key = *BKE_pbvh_get_grid_key(*ss.pbvh);
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const Span<CCGElem *> grids = subdiv_ccg.grids;
@@ -2038,14 +2034,14 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
   undo::Node *unode = nullptr;
   bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(node, undo::Type::Position);
+    unode = undo::get_node(&node, undo::Type::Position);
     if (unode) {
       use_original = !unode->position.is_empty();
     }
   }
 
   int i = 0;
-  for (const int grid : bke::pbvh::node_grid_indices(*node)) {
+  for (const int grid : bke::pbvh::node_grid_indices(node)) {
     CCGElem *elem = grids[grid];
     for (const int j : IndexRange(key.grid_area)) {
       if (!grid_hidden.is_empty() && grid_hidden[grid][j]) {
@@ -2070,20 +2066,16 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
         continue;
       }
 
-      r_any_vertex_sampled = true;
-
-      const int flip_index = (math::dot(ss.cache ? ss.cache->view_normal : ss.cursor_view_normal,
-                                        no) <= 0.0f);
-
+      const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
-        anctd->area_cos[flip_index] += area_center_calc_weighted(
+        anctd.area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
-        anctd->count_co[flip_index] += 1;
+        anctd.count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
-        anctd->area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                    normal_test.radius);
-        anctd->count_no[flip_index] += 1;
+        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                   normal_test.radius);
+        anctd.count_no[flip_index] += 1;
       }
 
       i++;
@@ -2096,11 +2088,10 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
                                                    const bool has_bm_orco,
-                                                   PBVHNode *node,
-                                                   AreaNormalCenterData *anctd,
-                                                   bool &r_any_vertex_sampled)
+                                                   const PBVHNode &node,
+                                                   AreaNormalCenterData &anctd)
 {
-
+  const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   SculptBrushTest normal_test;
   SculptBrushTestFn sculpt_brush_normal_test_sq_fn = area_normal_and_center_get_normal_test(
       ss, brush, normal_test);
@@ -2112,7 +2103,7 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
   undo::Node *unode = nullptr;
   bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(node, undo::Type::Position);
+    unode = undo::get_node(&node, undo::Type::Position);
     if (unode) {
       use_original = unode->bm_entry != nullptr;
     }
@@ -2124,7 +2115,8 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
     float(*orco_coords)[3];
     int(*orco_tris)[3];
     int orco_tris_num;
-    BKE_pbvh_node_get_bm_orco_data(node, &orco_tris, &orco_tris_num, &orco_coords, nullptr);
+    BKE_pbvh_node_get_bm_orco_data(
+        &const_cast<PBVHNode &>(node), &orco_tris, &orco_tris_num, &orco_coords, nullptr);
 
     for (int i = 0; i < orco_tris_num; i++) {
       const float *co_tri[3] = {
@@ -2141,27 +2133,24 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
         continue;
       }
 
-      r_any_vertex_sampled = true;
-
       float3 no;
       normal_tri_v3(no, UNPACK3(co_tri));
 
-      const int flip_index = (math::dot(ss.cache->view_normal, no) <= 0.0f);
+      const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
-        anctd->area_cos[flip_index] += area_center_calc_weighted(
+        anctd.area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
-
-        anctd->count_co[flip_index] += 1;
+        anctd.count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
-        anctd->area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                    normal_test.radius);
-        anctd->count_no[flip_index] += 1;
+        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                   normal_test.radius);
+        anctd.count_no[flip_index] += 1;
       }
     }
   }
   else {
-    for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+    for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&const_cast<PBVHNode &>(node))) {
       if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
         continue;
       }
@@ -2185,20 +2174,16 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
         continue;
       }
 
-      r_any_vertex_sampled = true;
-
-      const int flip_index = (math::dot(ss.cache ? ss.cache->view_normal : ss.cursor_view_normal,
-                                        no) <= 0.0f);
-
+      const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
-        anctd->area_cos[flip_index] += area_center_calc_weighted(
+        anctd.area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
-        anctd->count_co[flip_index] += 1;
+        anctd.count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
-        anctd->area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                    normal_test.radius);
-        anctd->count_no[flip_index] += 1;
+        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                   normal_test.radius);
+        anctd.count_no[flip_index] += 1;
       }
     }
   }
@@ -2231,8 +2216,6 @@ void calc_area_center(const Brush &brush,
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
   int n;
 
-  bool any_vertex_sampled = false;
-
   const PBVHType type = BKE_pbvh_type(*ss.pbvh);
   const AreaNormalCenterData anctd = threading::parallel_reduce(
       nodes.index_range(),
@@ -2255,18 +2238,16 @@ void calc_area_center(const Brush &brush,
                                                     brush,
                                                     false,
                                                     true,
-                                                    nodes[i],
-                                                    &anctd,
-                                                    any_vertex_sampled);
+                                                    *nodes[i],
+                                                    anctd);
               break;
             }
             case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(
-                  ss, brush, false, true, nodes[i], &anctd, any_vertex_sampled);
+              calc_area_normal_and_center_node_grids(ss, brush, false, true, *nodes[i], anctd);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, false, true, has_bm_orco, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, false, true, has_bm_orco, *nodes[i], anctd);
               break;
           }
         }
@@ -2300,8 +2281,6 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
   SculptSession &ss = *ob.sculpt;
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
 
-  bool any_vertex_sampled = false;
-
   const PBVHType type = BKE_pbvh_type(*ss.pbvh);
   const AreaNormalCenterData anctd = threading::parallel_reduce(
       nodes.index_range(),
@@ -2324,18 +2303,16 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
                                                     brush,
                                                     true,
                                                     false,
-                                                    nodes[i],
-                                                    &anctd,
-                                                    any_vertex_sampled);
+                                                    *nodes[i],
+                                                    anctd);
               break;
             }
             case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(
-                  ss, brush, true, false, nodes[i], &anctd, any_vertex_sampled);
+              calc_area_normal_and_center_node_grids(ss, brush, true, false, *nodes[i], anctd);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, true, false, has_bm_orco, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, true, false, has_bm_orco, *nodes[i], anctd);
               break;
           }
         }
@@ -2343,15 +2320,11 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
       },
       calc_area_normal_and_center_reduce);
 
-  if (!any_vertex_sampled) {
-    return std::nullopt;
-  }
-
-  /* For area normal. */
-  float3 result;
-  for (int i = 0; i < anctd.area_nos.size(); i++) {
-    if (normalize_v3_v3(result, anctd.area_nos[i]) != 0.0f) {
-      return result;
+  for (const int i : {0, 1}) {
+    if (anctd.count_no[i] != 0) {
+      if (!math::is_zero(anctd.area_nos[i])) {
+        return math::normalize(anctd.area_nos[i]);
+      }
     }
   }
   return std::nullopt;
@@ -2366,8 +2339,6 @@ void calc_area_normal_and_center(const Brush &brush,
   SculptSession &ss = *ob.sculpt;
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
   int n;
-
-  bool any_vertex_sampled = false;
 
   const PBVHType type = BKE_pbvh_type(*ss.pbvh);
   const AreaNormalCenterData anctd = threading::parallel_reduce(
@@ -2391,18 +2362,16 @@ void calc_area_normal_and_center(const Brush &brush,
                                                     brush,
                                                     true,
                                                     true,
-                                                    nodes[i],
-                                                    &anctd,
-                                                    any_vertex_sampled);
+                                                    *nodes[i],
+                                                    anctd);
               break;
             }
             case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(
-                  ss, brush, true, true, nodes[i], &anctd, any_vertex_sampled);
+              calc_area_normal_and_center_node_grids(ss, brush, true, true, *nodes[i], anctd);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, true, true, has_bm_orco, nodes[i], &anctd, any_vertex_sampled);
+                  ss, brush, true, true, has_bm_orco, *nodes[i], anctd);
               break;
           }
         }
@@ -3814,7 +3783,7 @@ static void do_brush_action(const Sculpt &sd,
       SCULPT_do_clay_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLAY_STRIPS:
-      SCULPT_do_clay_strips_brush(sd, ob, nodes);
+      do_clay_strips_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       SCULPT_do_multiplane_scrape_brush(sd, ob, nodes);
@@ -3844,7 +3813,7 @@ static void do_brush_action(const Sculpt &sd,
           do_mask_brush(sd, ob, nodes);
           break;
         case BRUSH_MASK_SMOOTH:
-          smooth::do_smooth_mask_brush(sd, ob, nodes, ss.cache->bstrength);
+          do_smooth_mask_brush(sd, ob, nodes, ss.cache->bstrength);
           break;
       }
       break;
@@ -5881,7 +5850,11 @@ static void sculpt_stroke_update_step(bContext *C,
    *
    * For some brushes, flushing is done in the brush code itself.
    */
-  if (!(ELEM(brush.sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_FILL) &&
+  if (!(ELEM(brush.sculpt_tool,
+             SCULPT_TOOL_DRAW,
+             SCULPT_TOOL_CLAY_STRIPS,
+             SCULPT_TOOL_SCRAPE,
+             SCULPT_TOOL_FILL) &&
         BKE_pbvh_type(*ss.pbvh) == PBVH_FACES))
   {
     if (ss.deform_modifiers_active) {
@@ -6540,14 +6513,24 @@ void fill_factor_from_hide_and_mask(const Mesh &mesh,
 {
   BLI_assert(verts.size() == r_factors.size());
 
-  fill_factor_from_hide(mesh, verts, r_factors);
-
   /* TODO: Avoid overhead of accessing attributes for every PBVH node. */
   const bke::AttributeAccessor attributes = mesh.attributes();
   if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point)) {
     const VArraySpan span(mask);
     for (const int i : verts.index_range()) {
-      r_factors[i] -= std::max(1.0f - span[verts[i]], 0.0f);
+      r_factors[i] = 1.0f - span[verts[i]];
+    }
+  }
+  else {
+    r_factors.fill(1.0f);
+  }
+
+  if (const VArray hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point)) {
+    const VArraySpan span(hide_vert);
+    for (const int i : verts.index_range()) {
+      if (span[verts[i]]) {
+        r_factors[i] = 0.0f;
+      }
     }
   }
 }
@@ -6590,6 +6573,36 @@ void calc_distance_falloff(SculptSession &ss,
       continue;
     }
     r_distances[i] = math::sqrt(test.dist);
+  }
+}
+
+void calc_cube_distance_falloff(SculptSession &ss,
+                                const Brush &brush,
+                                const float4x4 &mat,
+                                const Span<float3> positions,
+                                const Span<int> verts,
+                                const MutableSpan<float> r_distances,
+                                const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == factors.size());
+  BLI_assert(verts.size() == r_distances.size());
+
+  SculptBrushTest test;
+  SCULPT_brush_test_init(ss, test);
+  const float tip_roundness = brush.tip_roundness;
+  const float tip_scale_x = brush.tip_scale_x;
+  for (const int i : verts.index_range()) {
+    if (factors[i] == 0.0f) {
+      r_distances[i] = FLT_MAX;
+      continue;
+    }
+    /* TODO: Break up #SCULPT_brush_test_cube. */
+    if (!SCULPT_brush_test_cube(test, positions[verts[i]], mat.ptr(), tip_roundness, tip_scale_x))
+    {
+      factors[i] = 0.0f;
+      r_distances[i] = FLT_MAX;
+    }
+    r_distances[i] = test.dist;
   }
 }
 
@@ -6751,6 +6764,27 @@ void apply_translations_to_pbvh(PBVH &pbvh, Span<int> verts, const Span<float3> 
   }
 }
 
+void write_translations(const Sculpt &sd,
+                        Object &object,
+                        const Span<float3> positions_eval,
+                        const Span<int> verts,
+                        const MutableSpan<float3> translations,
+                        const MutableSpan<float3> positions_orig)
+{
+  SculptSession &ss = *object.sculpt;
+
+  clip_and_lock_translations(sd, ss, positions_eval, verts, translations);
+
+  apply_translations_to_pbvh(*ss.pbvh, verts, translations);
+
+  if (!ss.deform_imats.is_empty()) {
+    apply_crazyspace_to_translations(ss.deform_imats, verts, translations);
+  }
+
+  apply_translations(translations, verts, positions_orig);
+  apply_translations_to_shape_keys(object, verts, translations, positions_orig);
+}
+
 void scale_translations(const MutableSpan<float3> translations, const Span<float> factors)
 {
   for (const int i : translations.index_range()) {
@@ -6765,6 +6799,42 @@ void scale_factors(const MutableSpan<float> factors, const float strength)
   }
   for (float &factor : factors) {
     factor *= strength;
+  }
+}
+
+OffsetIndices<int> create_node_vert_offsets(Span<PBVHNode *> nodes, Array<int> &node_data)
+{
+  node_data.reinitialize(nodes.size() + 1);
+  for (const int i : nodes.index_range()) {
+    node_data[i] = bke::pbvh::node_unique_verts(*nodes[i]).size();
+  }
+  return offset_indices::accumulate_counts_to_offsets(node_data);
+}
+
+void calc_vert_neighbors(const OffsetIndices<int> faces,
+                         const Span<int> corner_verts,
+                         const GroupedSpan<int> vert_to_face,
+                         const Span<bool> hide_poly,
+                         const Span<int> verts,
+                         const MutableSpan<Vector<int>> result)
+{
+  BLI_assert(result.size() == verts.size());
+  BLI_assert(corner_verts.size() == faces.total_size());
+  for (Vector<int> &vector : result) {
+    vector.clear();
+  }
+
+  for (const int i : verts.index_range()) {
+    const int vert = verts[i];
+    Vector<int> &neighbors = result[i];
+    for (const int face : vert_to_face[vert]) {
+      if (!hide_poly.is_empty() && hide_poly[face]) {
+        continue;
+      }
+      const int2 verts = bke::mesh::face_find_adjacent_verts(faces[face], corner_verts, vert);
+      neighbors.append_non_duplicates(verts[0]);
+      neighbors.append_non_duplicates(verts[1]);
+    }
   }
 }
 

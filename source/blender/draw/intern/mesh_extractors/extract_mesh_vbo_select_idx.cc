@@ -21,7 +21,7 @@ static MutableSpan<int> init_vbo_data(gpu::VertBuf &vbo, const int size)
   }
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, size);
-  return {static_cast<int *>(GPU_vertbuf_get_data(vbo)), size};
+  return vbo.data<int>();
 }
 
 /* TODO: Use #glVertexID to get loop index and use the data structure on the CPU to retrieve the
@@ -211,8 +211,7 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
     return;
   }
 
-  MutableSpan<int32_t> vbo_data(static_cast<int32_t *>(GPU_vertbuf_get_data(vbo)),
-                                subdiv_full_vbo_size(mr, subdiv_cache));
+  MutableSpan<int32_t> vbo_data = vbo.data<int32_t>();
 
   const Span<int2> coarse_edges = mr.edges;
   const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
@@ -239,11 +238,10 @@ void extract_vert_index_subdiv(const DRWSubdivCache &subdiv_cache,
                                gpu::VertBuf &vbo)
 {
   /* Each element points to an element in the `ibo.points`. */
-  draw_subdiv_init_origindex_buffer(
-      vbo,
-      (int32_t *)GPU_vertbuf_get_data(*subdiv_cache.verts_orig_index),
-      subdiv_cache.num_subdiv_loops,
-      subdiv_full_vbo_size(mr, subdiv_cache));
+  draw_subdiv_init_origindex_buffer(vbo,
+                                    subdiv_cache.verts_orig_index->data<int32_t>().data(),
+                                    subdiv_cache.num_subdiv_loops,
+                                    subdiv_full_vbo_size(mr, subdiv_cache));
   if (!mr.orig_index_vert) {
     return;
   }
@@ -251,7 +249,7 @@ void extract_vert_index_subdiv(const DRWSubdivCache &subdiv_cache,
   /* Remap the vertex indices to those pointed by the origin indices layer. At this point, the
    * VBO data is a copy of #verts_orig_index which contains the coarse vertices indices, so
    * the memory can both be accessed for lookup and immediately overwritten. */
-  int32_t *vbo_data = static_cast<int32_t *>(GPU_vertbuf_get_data(vbo));
+  int32_t *vbo_data = vbo.data<int32_t>().data();
   for (int i = 0; i < subdiv_cache.num_subdiv_loops; i++) {
     if (vbo_data[i] == -1) {
       continue;
@@ -270,8 +268,7 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
     return;
   }
 
-  MutableSpan<int32_t> vbo_data(static_cast<int32_t *>(GPU_vertbuf_get_data(vbo)),
-                                subdiv_full_vbo_size(mr, subdiv_cache));
+  MutableSpan<int32_t> vbo_data = vbo.data<int32_t>();
 
   const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
   MutableSpan data = vbo_data.slice(subdiv_cache.num_subdiv_loops,
@@ -287,11 +284,10 @@ void extract_edge_index_subdiv(const DRWSubdivCache &subdiv_cache,
                                const MeshRenderData &mr,
                                gpu::VertBuf &vbo)
 {
-  draw_subdiv_init_origindex_buffer(
-      vbo,
-      static_cast<int32_t *>(GPU_vertbuf_get_data(*subdiv_cache.edges_orig_index)),
-      subdiv_cache.num_subdiv_loops,
-      subdiv_loose_edges_num(mr, subdiv_cache) * 2);
+  draw_subdiv_init_origindex_buffer(vbo,
+                                    subdiv_cache.edges_orig_index->data<int32_t>().data(),
+                                    subdiv_cache.num_subdiv_loops,
+                                    subdiv_loose_edges_num(mr, subdiv_cache) * 2);
   extract_edge_idx_loose_geom_subdiv(subdiv_cache, mr, vbo);
 }
 
@@ -309,7 +305,7 @@ void extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
   /* Remap the face indices to those pointed by the origin indices layer. At this point, the
    * VBO data is a copy of #subdiv_loop_face_index which contains the coarse face indices, so
    * the memory can both be accessed for lookup and immediately overwritten. */
-  int32_t *vbo_data = static_cast<int32_t *>(GPU_vertbuf_get_data(vbo));
+  int32_t *vbo_data = vbo.data<int32_t>().data();
   for (int i = 0; i < subdiv_cache.num_subdiv_loops; i++) {
     vbo_data[i] = mr.orig_index_face[vbo_data[i]];
   }

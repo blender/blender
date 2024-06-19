@@ -133,7 +133,7 @@ void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
     }
     GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
-    MutableSpan vbo_data(static_cast<float *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
+    MutableSpan vbo_data = vbo.data<float>();
     if (mr.extract_type == MR_EXTRACT_MESH) {
       extract_edge_factor_mesh(mr, vbo_data);
     }
@@ -149,7 +149,7 @@ void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
     }
     GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
-    MutableSpan vbo_data(static_cast<uint8_t *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
+    MutableSpan vbo_data = vbo.data<uint8_t>();
     if (mr.extract_type == MR_EXTRACT_MESH) {
       extract_edge_factor_mesh(mr, vbo_data);
     }
@@ -187,9 +187,7 @@ static gpu::VertBuf *build_poly_other_map_vbo(const DRWSubdivCache &subdiv_cache
 
   GPU_vertbuf_init_with_format(*vbo, format);
   GPU_vertbuf_data_alloc(*vbo, subdiv_cache.num_subdiv_loops);
-
-  MutableSpan vbo_data{static_cast<int *>(GPU_vertbuf_get_data(*vbo)),
-                       subdiv_cache.num_subdiv_loops};
+  MutableSpan vbo_data = vbo->data<int>();
 
   Array<MEdgeDataPrev> edge_data(subdiv_cache.num_subdiv_edges);
   Array<int> tmp_edge_corner_count(subdiv_cache.num_subdiv_edges, 0);

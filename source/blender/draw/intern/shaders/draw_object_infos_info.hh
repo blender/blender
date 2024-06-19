@@ -18,6 +18,7 @@ GPU_SHADER_CREATE_INFO(draw_object_infos)
 
 GPU_SHADER_CREATE_INFO(draw_volume_infos)
     .typedef_source("draw_shader_shared.hh")
+    .define("VOLUME_INFO_LIB")
     .uniform_buf(DRW_OBJ_DATA_INFO_UBO_SLOT, "VolumeInfos", "drw_volume", Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_curves_infos)

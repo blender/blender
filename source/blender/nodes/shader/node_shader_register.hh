@@ -84,6 +84,7 @@ void register_node_type_sh_tex_brick();
 void register_node_type_sh_tex_checker();
 void register_node_type_sh_tex_coord();
 void register_node_type_sh_tex_environment();
+void register_node_type_sh_tex_gabor();
 void register_node_type_sh_tex_gradient();
 void register_node_type_sh_tex_ies();
 void register_node_type_sh_tex_image();

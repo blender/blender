@@ -2288,6 +2288,8 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 
   if (data.num_total[INDEX_ID_NULL] == 0) {
     BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
+    MEM_delete(static_cast<LibQueryUnusedIDsData *>(op->customdata));
+    op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }
 

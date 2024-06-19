@@ -202,7 +202,6 @@ void ED_armature_undosys_type(UndoType *ut);
 
 /** Sync selection to parent for connected children. */
 void ED_armature_edit_sync_selection(ListBase *edbo);
-void ED_armature_edit_validate_active(bArmature *arm);
 /**
  * \param clear_connected: When false caller is responsible for keeping the flag in a valid state.
  */

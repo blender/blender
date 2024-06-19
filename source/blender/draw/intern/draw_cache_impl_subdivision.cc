@@ -500,7 +500,7 @@ static void *vertbuf_alloc(const OpenSubdiv_Buffer *interface, const uint len)
 {
   gpu::VertBuf *verts = (gpu::VertBuf *)(interface->data);
   GPU_vertbuf_data_alloc(*verts, len);
-  return GPU_vertbuf_get_data(*verts);
+  return verts->data<char>().data();
 }
 
 static void vertbuf_device_alloc(const OpenSubdiv_Buffer *interface, const uint len)
@@ -568,8 +568,7 @@ void draw_subdiv_init_origindex_buffer(gpu::VertBuf &buffer,
   GPU_vertbuf_init_with_format_ex(buffer, get_origindex_format(), GPU_USAGE_STATIC);
   GPU_vertbuf_data_alloc(buffer, num_loops + loose_len);
 
-  int32_t *vbo_data = (int32_t *)GPU_vertbuf_get_data(buffer);
-  memcpy(vbo_data, vert_origindex, num_loops * sizeof(int32_t));
+  buffer.data<int32_t>().copy_from({vert_origindex, num_loops});
 }
 
 gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops)
@@ -729,7 +728,7 @@ static uint32_t compute_coarse_face_flag_bm(BMFace *f, BMFace *efa_act)
 
 static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
                                                         BMFace *efa_act,
-                                                        uint32_t *flags_data)
+                                                        MutableSpan<uint32_t> flags_data)
 {
   BMFace *f;
   BMIter iter;
@@ -747,7 +746,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
 
 static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData &mr,
                                                           const Mesh *mesh,
-                                                          uint32_t *flags_data)
+                                                          MutableSpan<uint32_t> flags_data)
 {
   const OffsetIndices faces = mesh->faces();
   for (const int i : faces.index_range()) {
@@ -770,7 +769,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData &
 static void draw_subdiv_cache_extra_coarse_face_data_mapped(const Mesh *mesh,
                                                             BMesh *bm,
                                                             MeshRenderData &mr,
-                                                            uint32_t *flags_data)
+                                                            MutableSpan<uint32_t> flags_data)
 {
   if (bm == nullptr) {
     draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);
@@ -808,7 +807,7 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache &cach
                                                                  mesh->faces_num);
   }
 
-  uint32_t *flags_data = (uint32_t *)GPU_vertbuf_get_data(*cache.extra_coarse_face_data);
+  MutableSpan<uint32_t> flags_data = cache.extra_coarse_face_data->data<uint32_t>();
 
   if (mr.extract_type == MR_EXTRACT_BMESH) {
     draw_subdiv_cache_extra_coarse_face_data_bm(cache.bm, mr.efa_act, flags_data);
@@ -962,10 +961,10 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_face_index"));
 
   /* Initialize context pointers and temporary buffers. */
-  ctx->patch_coords = (CompressedPatchCoord *)GPU_vertbuf_get_data(*cache->patch_coords);
-  ctx->subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(*cache->verts_orig_index);
-  ctx->subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(*cache->edges_orig_index);
-  ctx->subdiv_loop_edge_draw_flag = (int *)GPU_vertbuf_get_data(*cache->edges_draw_flag);
+  ctx->patch_coords = cache->patch_coords->data<CompressedPatchCoord>().data();
+  ctx->subdiv_loop_vert_index = cache->verts_orig_index->data<int>().data();
+  ctx->subdiv_loop_edge_index = cache->edges_orig_index->data<int>().data();
+  ctx->subdiv_loop_edge_draw_flag = cache->edges_draw_flag->data<int>().data();
   ctx->subdiv_loop_subdiv_vert_index = cache->subdiv_loop_subdiv_vert_index;
   ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
   ctx->subdiv_loop_face_index = cache->subdiv_loop_face_index;
@@ -1136,9 +1135,7 @@ static void build_vertex_face_adjacency_maps(DRWSubdivCache &cache)
   cache.subdiv_vertex_face_adjacency_offsets = gpu_vertbuf_create_from_format(
       get_origindex_format(), cache.num_subdiv_verts + 1);
 
-  MutableSpan<int> vertex_offsets(
-      static_cast<int *>(GPU_vertbuf_get_data(*cache.subdiv_vertex_face_adjacency_offsets)),
-      cache.num_subdiv_verts + 1);
+  MutableSpan<int> vertex_offsets = cache.subdiv_vertex_face_adjacency_offsets->data<int>();
   vertex_offsets.fill(0);
 
   offset_indices::build_reverse_offsets(
@@ -1146,7 +1143,7 @@ static void build_vertex_face_adjacency_maps(DRWSubdivCache &cache)
 
   cache.subdiv_vertex_face_adjacency = gpu_vertbuf_create_from_format(get_origindex_format(),
                                                                       cache.num_subdiv_loops);
-  int *adjacent_faces = (int *)GPU_vertbuf_get_data(*cache.subdiv_vertex_face_adjacency);
+  MutableSpan<int> adjacent_faces = cache.subdiv_vertex_face_adjacency->data<int>();
   int *tmp_set_faces = static_cast<int *>(
       MEM_callocN(sizeof(int) * cache.num_subdiv_verts, "tmp subdiv vertex offset"));
 
@@ -1211,8 +1208,8 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
     /* Build patch coordinates for all the face dots. */
     cache.fdots_patch_coords = gpu_vertbuf_create_from_format(get_blender_patch_coords_format(),
                                                               mesh_eval->faces_num);
-    CompressedPatchCoord *blender_fdots_patch_coords = (CompressedPatchCoord *)
-        GPU_vertbuf_get_data(*cache.fdots_patch_coords);
+    CompressedPatchCoord *blender_fdots_patch_coords =
+        cache.fdots_patch_coords->data<CompressedPatchCoord>().data();
     for (int i = 0; i < mesh_eval->faces_num; i++) {
       const int ptex_face_index = cache.face_ptex_offset[i];
       if (faces[i].size() == 4) {
@@ -1246,7 +1243,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
 
   /* Save coordinates for corners, as attributes may vary for each loop connected to the same
    * vertex. */
-  memcpy(GPU_vertbuf_get_data(*cache.corner_patch_coords),
+  memcpy(cache.corner_patch_coords->data<CompressedPatchCoord>().data(),
          cache_building_context.patch_coords,
          sizeof(CompressedPatchCoord) * cache.num_subdiv_loops);
 

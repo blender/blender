@@ -81,6 +81,8 @@ void USDSceneDelegate::populate(Depsgraph *depsgraph)
   delegate_->Populate(stage_->GetPseudoRoot());
 
   WM_reports_from_reports_move(nullptr, &worker_reports);
+
+  BKE_reports_free(&worker_reports);
 }
 
 }  // namespace blender::io::hydra

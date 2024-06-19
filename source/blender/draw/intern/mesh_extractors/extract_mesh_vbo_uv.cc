@@ -102,8 +102,7 @@ void extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &cache, gpu:
     }
   }
 
-  MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(vbo)),
-                              v_len * format.attr_len);
+  MutableSpan<float2> uv_data = vbo.data<float2>();
   threading::memory_bandwidth_bound_task(uv_data.size_in_bytes() * 2, [&]() {
     if (mr.extract_type == MR_EXTRACT_BMESH) {
       const BMesh &bm = *mr.bm;

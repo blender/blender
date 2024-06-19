@@ -8,6 +8,8 @@
 
 #include "sequencer_strips_batch.hh"
 
+#include "DNA_userdef_types.h"
+
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"
 #include "GPU_shader_shared.hh"
@@ -44,6 +46,7 @@ StripsDrawBatch::StripsDrawBatch(float pixelx, float pixely) : strips_(GPU_SEQ_S
   context_.inv_pixelx = 1.0f / pixelx;
   context_.inv_pixely = 1.0f / pixely;
   context_.round_radius = calc_strip_round_radius(pixely);
+  context_.pixelsize = U.pixelsize;
 
   uchar col[4];
   UI_GetThemeColor3ubv(TH_BACK, col);

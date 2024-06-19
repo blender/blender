@@ -126,7 +126,25 @@ namespace blender::ed::sculpt_paint::undo {
 #define NO_ACTIVE_LAYER bke::AttrDomain::Auto
 
 struct StepData {
+  /** Name of the object associated with this undo data (`object.id.name`). */
+  std::string object_name;
+
   Vector<std::unique_ptr<Node>> nodes;
+
+  /**
+   * #undo::Node is stored per PBVH node to reduce data storage needed for changes only impacting
+   * small portions of the mesh. During undo step creation and brush evaluation we often need to
+   * look up the undo state for a specific PBVH node. That lookup must be protected by a lock since
+   * nodes are pushed from multiple threads. This map speeds up undo node access to reduce the
+   * amount of time we wait for the lock.
+   *
+   * This is only accessible when building the undo step, in between #push_begin and #push_end.
+   *
+   * \todo All nodes in a single step have the same type, so using the type as part of the map key
+   * should be unnecessary. However, to remove it, first the storage of the undo type should be
+   * moved to #StepData from #Node.
+   */
+  Map<std::pair<const PBVHNode *, Type>, Node *> undo_nodes_by_pbvh_node;
 
   size_t undo_size;
 };
@@ -896,6 +914,9 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object &object = *BKE_view_layer_active_object_get(view_layer);
+  if (step_data.object_name != object.id.name) {
+    return;
+  }
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   SculptSession *ss = object.sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
@@ -950,10 +971,6 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   Vector<bool> modified_faces_face_set;
   Vector<bool> modified_grids;
   for (std::unique_ptr<Node> &unode : step_data.nodes) {
-    if (!STREQ(unode->idname, object.id.name)) {
-      continue;
-    }
-
     /* Check if undo data matches current data well enough to continue. */
     if (unode->mesh_verts_num) {
       if (ss->totvert != unode->mesh_verts_num) {
@@ -1023,9 +1040,6 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
 
   if (use_multires_undo) {
     for (std::unique_ptr<Node> &unode : step_data.nodes) {
-      if (!STREQ(unode->idname, object.id.name)) {
-        continue;
-      }
       modified_grids.resize(unode->mesh_grids_num, false);
       modified_grids.as_mutable_span().fill_indices(unode->grids.as_span(), true);
     }
@@ -1119,29 +1133,21 @@ static void free_step_data(StepData &step_data)
       BM_log_entry_drop(unode->bm_entry);
     }
   }
-  step_data.nodes.~Vector();
+  step_data.~StepData();
 }
 
 Node *get_node(const PBVHNode *node, const Type type)
 {
   StepData *step_data = get_step_data();
-
   if (step_data == nullptr) {
     return nullptr;
   }
 
-  for (std::unique_ptr<Node> &unode : step_data->nodes) {
-    if (unode->node == node && unode->type == type) {
-      return unode.get();
-    }
-  }
-
-  return nullptr;
+  return step_data->undo_nodes_by_pbvh_node.lookup_default({node, type}, nullptr);
 }
 
-static size_t alloc_and_store_hidden(const SculptSession *ss, Node *unode)
+static size_t alloc_and_store_hidden(const SculptSession *ss, const PBVHNode &node, Node *unode)
 {
-  const PBVHNode *node = static_cast<const PBVHNode *>(unode->node);
   if (!ss->subdiv_ccg) {
     return 0;
   }
@@ -1150,7 +1156,7 @@ static size_t alloc_and_store_hidden(const SculptSession *ss, Node *unode)
     return 0;
   }
 
-  const Span<int> grid_indices = bke::pbvh::node_grid_indices(*node);
+  const Span<int> grid_indices = bke::pbvh::node_grid_indices(node);
   unode->grid_hidden = BitGroupVector<>(grid_indices.size(), grid_hidden.group_size());
   for (const int i : grid_indices.index_range()) {
     unode->grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
@@ -1161,7 +1167,7 @@ static size_t alloc_and_store_hidden(const SculptSession *ss, Node *unode)
 
 /* Allocate node and initialize its default fields specific for the given undo type.
  * Will also add the node to the list in the undo step. */
-static Node *alloc_node_type(const Object &object, const Type type)
+static Node *alloc_node_type(const Type type)
 {
   StepData *step_data = get_step_data();
   std::unique_ptr<Node> unode = std::make_unique<Node>();
@@ -1169,7 +1175,6 @@ static Node *alloc_node_type(const Object &object, const Type type)
   step_data->undo_size += sizeof(Node);
 
   Node *node_ptr = step_data->nodes.last().get();
-  STRNCPY(node_ptr->idname, object.id.name);
   node_ptr->type = type;
 
   return node_ptr;
@@ -1178,7 +1183,7 @@ static Node *alloc_node_type(const Object &object, const Type type)
 /* Will return first existing undo node of the given type.
  * If such node does not exist will allocate node of this type, register it in the undo step and
  * return it. */
-static Node *find_or_alloc_node_type(const Object &object, const Type type)
+static Node *find_or_alloc_node_type(const Type type)
 {
   StepData *step_data = get_step_data();
 
@@ -1188,7 +1193,7 @@ static Node *find_or_alloc_node_type(const Object &object, const Type type)
     }
   }
 
-  return alloc_node_type(object, type);
+  return alloc_node_type(type);
 }
 
 static Node *alloc_node(const Object &object, const PBVHNode *node, const Type type)
@@ -1196,8 +1201,8 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
   StepData *step_data = get_step_data();
   const SculptSession *ss = object.sculpt;
 
-  Node *unode = alloc_node_type(object, type);
-  unode->node = node;
+  Node *unode = alloc_node_type(type);
+  step_data->undo_nodes_by_pbvh_node.add({node, type}, unode);
 
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
@@ -1255,7 +1260,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
     }
     case Type::HideVert: {
       if (BKE_pbvh_type(*ss->pbvh) == PBVH_GRIDS) {
-        step_data->undo_size += alloc_and_store_hidden(ss, unode);
+        step_data->undo_size += alloc_and_store_hidden(ss, *node, unode);
       }
       else {
         unode->vert_hidden.resize(unode->vert_indices.size());
@@ -1353,7 +1358,7 @@ static void store_coords(const Object &object, Node *unode)
   }
 }
 
-static void store_hidden(const Object &object, Node *unode)
+static void store_hidden(const Object &object, const PBVHNode &node, Node *unode)
 {
   if (!unode->grids.is_empty()) {
     /* Already stored during allocation. */
@@ -1367,8 +1372,7 @@ static void store_hidden(const Object &object, Node *unode)
     return;
   }
 
-  const PBVHNode *node = static_cast<const PBVHNode *>(unode->node);
-  const Span<int> verts = bke::pbvh::node_verts(*node);
+  const Span<int> verts = bke::pbvh::node_verts(node);
   for (const int i : verts.index_range()) {
     unode->vert_hidden[i].set(hide_vert[verts[i]]);
   }
@@ -1453,9 +1457,9 @@ static NodeGeometry *geometry_get(Node *unode)
   return &unode->geometry_modified;
 }
 
-static Node *geometry_push(const Object &object, const Type type)
+static Node *geometry_push(const Object &object)
 {
-  Node *unode = find_or_alloc_node_type(object, type);
+  Node *unode = find_or_alloc_node_type(Type::Geometry);
   unode->applied = false;
   unode->geometry_clear_pbvh = true;
 
@@ -1484,7 +1488,6 @@ static Node *bmesh_push(const Object &object, const PBVHNode *node, Type type)
     step_data->nodes.append(std::make_unique<Node>());
     unode = step_data->nodes.last().get();
 
-    STRNCPY(unode->idname, object.id.name);
     unode->type = type;
     unode->applied = true;
 
@@ -1578,7 +1581,7 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
       return;
     }
     if (type == Type::Geometry) {
-      unode = geometry_push(object, type);
+      unode = geometry_push(object);
       BLI_thread_unlock(LOCK_CUSTOM1);
       // return unode;
       return;
@@ -1599,7 +1602,7 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
         store_coords(object, unode);
         break;
       case Type::HideVert:
-        store_hidden(object, unode);
+        store_hidden(object, *node, unode);
         break;
       case Type::HideFace:
         store_face_hidden(object, *unode);
@@ -1683,6 +1686,7 @@ void push_begin_ex(Object &ob, const char *name)
 
   SculptUndoStep *us = (SculptUndoStep *)BKE_undosys_step_push_init_with_type(
       ustack, C, name, BKE_UNDOSYS_TYPE_SCULPT);
+  us->data.object_name = ob.id.name;
 
   if (!us->active_color_start.was_set) {
     save_active_attribute(ob, &us->active_color_start);
@@ -1711,6 +1715,8 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
     step_data->undo_size -= unode->normal.as_span().size_in_bytes();
     unode->normal = {};
   }
+
+  step_data->undo_nodes_by_pbvh_node.clear_and_shrink();
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
@@ -1790,7 +1796,7 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
 static void step_encode_init(bContext * /*C*/, UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
-  new (&us->data.nodes) Vector<std::unique_ptr<Node>>();
+  new (&us->data) StepData();
 }
 
 static bool step_encode(bContext * /*C*/, Main *bmain, UndoStep *us_p)
@@ -2031,8 +2037,7 @@ static void push_all_grids(Object *object)
 
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
   for (PBVHNode *node : nodes) {
-    Node *unode = push_node(*object, node, Type::Position);
-    unode->node = nullptr;
+    push_node(*object, node, Type::Position);
   }
 }
 

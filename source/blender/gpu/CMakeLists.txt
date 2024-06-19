@@ -600,6 +600,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_tex_brick.glsl
   shaders/material/gpu_shader_material_tex_checker.glsl
   shaders/material/gpu_shader_material_tex_environment.glsl
+  shaders/material/gpu_shader_material_tex_gabor.glsl
   shaders/material/gpu_shader_material_tex_gradient.glsl
   shaders/material/gpu_shader_material_tex_image.glsl
   shaders/material/gpu_shader_material_tex_magic.glsl

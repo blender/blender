@@ -290,9 +290,9 @@ float BKE_camera_object_dof_distance(const Object *ob)
                   ob->object_to_world().location(),
                   cam->dof.focus_object->object_to_world().location());
     }
-    return fabsf(dot_v3v3(view_dir, dof_dir));
+    return fmax(fabsf(dot_v3v3(view_dir, dof_dir)), 1e-5f);
   }
-  return cam->dof.focus_distance;
+  return fmax(cam->dof.focus_distance, 1e-5f);
 }
 
 float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y)

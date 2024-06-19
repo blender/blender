@@ -348,11 +348,11 @@ void region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 
 void region_init(wmWindowManager *wm, ARegion *region)
 {
-  /* Region-data should've been created by a previously called #region_before_redraw(). */
+  /* Region-data should've been created by a previously called #region_on_poll_success(). */
   RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
   BLI_assert_msg(
       shelf_regiondata,
-      "Region-data should've been created by a previously called `region_before_redraw()`.");
+      "Region-data should've been created by a previously called `region_on_poll_success()`.");
 
   AssetShelf *active_shelf = shelf_regiondata->active_shelf;
 
@@ -501,7 +501,7 @@ void region_layout(const bContext *C, ARegion *region)
   RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
   BLI_assert_msg(
       shelf_regiondata,
-      "Region-data should've been created by a previously called `region_before_redraw()`.");
+      "Region-data should've been created by a previously called `region_on_poll_success()`.");
 
   const AssetShelf *active_shelf = shelf_regiondata->active_shelf;
   if (!active_shelf) {

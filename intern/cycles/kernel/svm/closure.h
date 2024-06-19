@@ -445,7 +445,8 @@ ccl_device
         }
         else {
           bsdf->roughness = roughness;
-          sd->flag |= bsdf_oren_nayar_setup(bsdf);
+          const Spectrum color = saturate(rgb_to_spectrum(stack_load_float3(stack, data_node.y)));
+          sd->flag |= bsdf_oren_nayar_setup(sd, bsdf, color);
         }
       }
       break;

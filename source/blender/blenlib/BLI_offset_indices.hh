@@ -12,6 +12,9 @@
 
 namespace blender::offset_indices {
 
+/** Utility struct that can be passed into a function to skip a check for sorted indices. */
+struct NoSortCheck {};
+
 /**
  * References an array of ascending indices. A pair of consecutive indices encode an index range.
  * Another common way to store the same kind of data is to store the start and size of every range
@@ -34,6 +37,13 @@ template<typename T> class OffsetIndices {
   {
     BLI_assert(offsets_.size() < 2 || std::is_sorted(offsets_.begin(), offsets_.end()));
   }
+
+  /**
+   * Same as above, but skips the debug check that indices are sorted, because that can have a
+   * high performance impact making debug builds unusable for files that would be fine otherwise.
+   * This can be used when it is known that the indices are sorted already.
+   */
+  OffsetIndices(const Span<T> offsets, NoSortCheck) : offsets_(offsets) {}
 
   /** Return the total number of elements in the referenced arrays. */
   T total_size() const

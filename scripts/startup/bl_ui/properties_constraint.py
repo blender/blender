@@ -233,6 +233,7 @@ class ConstraintButtonsPanel:
 
         layout.prop(con, "euler_order", text="Order")
         layout.prop(con, "use_transform_limit")
+        layout.prop(con, "use_legacy_behavior")
         self.space_template(layout, con, target=False, owner=True)
 
         self.draw_influence(layout, con)
