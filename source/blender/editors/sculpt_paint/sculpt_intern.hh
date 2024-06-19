@@ -157,8 +157,7 @@ struct NodeGeometry {
 struct Node {
   Type type;
 
-  char idname[MAX_ID_NAME]; /* Name instead of pointer. */
-  const void *node;         /* only during push, not valid afterwards! */
+  const void *node; /* only during push, not valid afterwards! */
 
   Array<float3> position;
   Array<float3> orig_position;
