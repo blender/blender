@@ -1557,76 +1557,80 @@ bool BKE_action_has_single_frame(const bAction *act)
 }
 
 void BKE_action_frame_range_calc(const bAction *act,
-                                 bool include_modifiers,
+                                 const bool include_modifiers,
                                  float *r_start,
                                  float *r_end)
 {
+  if (!act) {
+    *r_start = 0.0f;
+    *r_end = 0.0f;
+    return;
+  }
+
   float min = 999999999.0f, max = -999999999.0f;
-  short foundvert = 0, foundmod = 0;
+  bool foundvert = false, foundmod = false;
 
-  if (act) {
-    LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
-      /* if curve has keyframes, consider them first */
-      if (fcu->totvert) {
-        float nmin, nmax;
+  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+    /* if curve has keyframes, consider them first */
+    if (fcu->totvert) {
+      float nmin, nmax;
 
-        /* get extents for this curve
-         * - no "selected only", since this is often used in the backend
-         * - no "minimum length" (we will apply this later), otherwise
-         *   single-keyframe curves will increase the overall length by
-         *   a phantom frame (#50354)
-         */
-        BKE_fcurve_calc_range(fcu, &nmin, &nmax, false);
-
-        /* compare to the running tally */
-        min = min_ff(min, nmin);
-        max = max_ff(max, nmax);
-
-        foundvert = 1;
-      }
-
-      /* if include_modifiers is enabled, need to consider modifiers too
-       * - only really care about the last modifier
+      /* get extents for this curve
+       * - no "selected only", since this is often used in the backend
+       * - no "minimum length" (we will apply this later), otherwise
+       *   single-keyframe curves will increase the overall length by
+       *   a phantom frame (#50354)
        */
-      if ((include_modifiers) && (fcu->modifiers.last)) {
-        FModifier *fcm = static_cast<FModifier *>(fcu->modifiers.last);
+      BKE_fcurve_calc_range(fcu, &nmin, &nmax, false);
 
-        /* only use the maximum sensible limits of the modifiers if they are more extreme */
-        switch (fcm->type) {
-          case FMODIFIER_TYPE_LIMITS: /* Limits F-Modifier */
-          {
-            FMod_Limits *fmd = (FMod_Limits *)fcm->data;
+      /* compare to the running tally */
+      min = min_ff(min, nmin);
+      max = max_ff(max, nmax);
 
-            if (fmd->flag & FCM_LIMIT_XMIN) {
-              min = min_ff(min, fmd->rect.xmin);
-            }
-            if (fmd->flag & FCM_LIMIT_XMAX) {
-              max = max_ff(max, fmd->rect.xmax);
-            }
-            break;
+      foundvert = true;
+    }
+
+    /* if include_modifiers is enabled, need to consider modifiers too
+     * - only really care about the last modifier
+     */
+    if ((include_modifiers) && (fcu->modifiers.last)) {
+      FModifier *fcm = static_cast<FModifier *>(fcu->modifiers.last);
+
+      /* only use the maximum sensible limits of the modifiers if they are more extreme */
+      switch (fcm->type) {
+        case FMODIFIER_TYPE_LIMITS: /* Limits F-Modifier */
+        {
+          FMod_Limits *fmd = (FMod_Limits *)fcm->data;
+
+          if (fmd->flag & FCM_LIMIT_XMIN) {
+            min = min_ff(min, fmd->rect.xmin);
           }
-          case FMODIFIER_TYPE_CYCLES: /* Cycles F-Modifier */
-          {
-            FMod_Cycles *fmd = (FMod_Cycles *)fcm->data;
-
-            if (fmd->before_mode != FCM_EXTRAPOLATE_NONE) {
-              min = MINAFRAMEF;
-            }
-            if (fmd->after_mode != FCM_EXTRAPOLATE_NONE) {
-              max = MAXFRAMEF;
-            }
-            break;
+          if (fmd->flag & FCM_LIMIT_XMAX) {
+            max = max_ff(max, fmd->rect.xmax);
           }
-            /* TODO: function modifier may need some special limits */
-
-          default: /* all other standard modifiers are on the infinite range... */
-            min = MINAFRAMEF;
-            max = MAXFRAMEF;
-            break;
+          break;
         }
+        case FMODIFIER_TYPE_CYCLES: /* Cycles F-Modifier */
+        {
+          FMod_Cycles *fmd = (FMod_Cycles *)fcm->data;
 
-        foundmod = 1;
+          if (fmd->before_mode != FCM_EXTRAPOLATE_NONE) {
+            min = MINAFRAMEF;
+          }
+          if (fmd->after_mode != FCM_EXTRAPOLATE_NONE) {
+            max = MAXFRAMEF;
+          }
+          break;
+        }
+          /* TODO: function modifier may need some special limits */
+
+        default: /* all other standard modifiers are on the infinite range... */
+          min = MINAFRAMEF;
+          max = MAXFRAMEF;
+          break;
       }
+
+      foundmod = true;
     }
   }
 
