@@ -563,9 +563,7 @@ static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
 }
 
-static float mask_flood_fill_get_new_value_for_elem(const float elem,
-                                                    FloodFillMode mode,
-                                                    float value)
+static float mask_gesture_get_new_value(const float elem, FloodFillMode mode, float value)
 {
   switch (mode) {
     case FloodFillMode::Value:
@@ -579,57 +577,68 @@ static float mask_flood_fill_get_new_value_for_elem(const float elem,
   return 0.0f;
 }
 
-static void gesture_apply_task(gesture::GestureData &gesture_data,
-                               const SculptMaskWriteInfo mask_write,
-                               PBVHNode *node)
-{
-  MaskOperation *mask_operation = (MaskOperation *)gesture_data.operation;
-  Object *ob = gesture_data.vc.obact;
-
-  const bool is_multires = BKE_pbvh_type(*gesture_data.ss->pbvh) == PBVH_GRIDS;
-
-  PBVHVertexIter vd;
-  bool any_masked = false;
-  bool redraw = false;
-
-  BKE_pbvh_vertex_iter_begin (*gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    const float *co = SCULPT_vertex_co_get(*gesture_data.ss, vd.vertex);
-    const float3 vertex_normal = SCULPT_vertex_normal_get(*gesture_data.ss, vd.vertex);
-
-    if (gesture::is_affected(gesture_data, co, vertex_normal)) {
-      float prevmask = vd.mask;
-      if (!any_masked) {
-        any_masked = true;
-
-        undo::push_node(*ob, node, undo::Type::Mask);
-
-        if (is_multires) {
-          BKE_pbvh_node_mark_positions_update(node);
-        }
-      }
-      const float new_mask = mask_flood_fill_get_new_value_for_elem(
-          prevmask, mask_operation->mode, mask_operation->value);
-      if (prevmask != new_mask) {
-        SCULPT_mask_vert_set(BKE_pbvh_type(*ob->sculpt->pbvh), mask_write, new_mask, vd);
-        redraw = true;
-      }
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  if (redraw) {
-    BKE_pbvh_node_mark_update_mask(node);
-  }
-}
-
 static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
-  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(*gesture_data.ss);
-  threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      gesture_apply_task(gesture_data, mask_write, gesture_data.nodes[i]);
+  const PBVH &pbvh = *gesture_data.ss->pbvh;
+  const Span<PBVHNode *> nodes = gesture_data.nodes;
+  const MaskOperation &op = *reinterpret_cast<const MaskOperation *>(gesture_data.operation);
+  Object &object = *gesture_data.vc.obact;
+  switch (BKE_pbvh_type(*gesture_data.ss->pbvh)) {
+    case PBVH_FACES: {
+      const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+      const Span<float3> normals = BKE_pbvh_get_vert_normals(pbvh);
+      update_mask_mesh(object, nodes, [&](MutableSpan<float> node_mask, const Span<int> verts) {
+        for (const int i : verts.index_range()) {
+          const int vert = verts[i];
+          if (gesture::is_affected(gesture_data, positions[vert], normals[vert])) {
+            node_mask[i] = mask_gesture_get_new_value(node_mask[i], op.mode, op.value);
+          }
+        }
+      });
+      break;
     }
-  });
+    case PBVH_GRIDS: {
+      SubdivCCG &subdiv_ccg = *gesture_data.ss->subdiv_ccg;
+      const Span<CCGElem *> grids = subdiv_ccg.grids;
+      const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+      const CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          for (const int grid : bke::pbvh::node_grid_indices(*node)) {
+            CCGElem *elem = grids[grid];
+            BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
+              if (gesture::is_affected(gesture_data,
+                                       CCG_elem_offset_co(key, elem, i),
+                                       CCG_elem_offset_no(key, elem, i)))
+              {
+                float &mask = CCG_elem_offset_mask(key, elem, i);
+                mask = mask_gesture_get_new_value(mask, op.mode, op.value);
+              }
+            });
+            BKE_pbvh_node_mark_update_mask(node);
+          }
+        }
+      });
+      break;
+    }
+    case PBVH_BMESH: {
+      BMesh &bm = *gesture_data.ss->bm;
+      const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+            if (gesture::is_affected(gesture_data, vert->co, vert->no)) {
+              const float old_mask = BM_ELEM_CD_GET_FLOAT(vert, offset);
+              const float new_mask = mask_gesture_get_new_value(old_mask, op.mode, op.value);
+              BM_ELEM_CD_SET_FLOAT(vert, offset, new_mask);
+            }
+          }
+          BKE_pbvh_node_mark_update_mask(node);
+        }
+      });
+      break;
+    }
+  }
 }
 
 static void gesture_end(bContext &C, gesture::GestureData &gesture_data)

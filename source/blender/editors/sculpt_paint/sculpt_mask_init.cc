@@ -8,7 +8,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bit_span_ops.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_hash.h"
 #include "BLI_task.h"
@@ -74,22 +73,6 @@ void write_mask_mesh(Object &object,
     }
   });
   mask.finish();
-}
-
-template<typename Fn>
-static void foreach_visible_grid_vert(const CCGKey &key,
-                                      const BitGroupVector<> &grid_hidden,
-                                      const int grid,
-                                      const Fn &fn)
-{
-  if (grid_hidden.is_empty()) {
-    for (const int i : IndexRange(key.grid_area)) {
-      fn(i);
-    }
-  }
-  else {
-    bits::foreach_0_index(grid_hidden[grid], fn);
-  }
 }
 
 static void init_mask_grids(Main &bmain,
@@ -188,9 +171,10 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
               nodes,
               [&](const BitGroupVector<> &grid_hidden, const int grid_index, CCGElem *grid) {
                 const int verts_start = grid_index * key.grid_area;
-                foreach_visible_grid_vert(key, grid_hidden, grid_index, [&](const int i) {
-                  CCG_elem_offset_mask(key, grid, i) = BLI_hash_int_01(verts_start + i + seed);
-                });
+                BKE_subdiv_ccg_foreach_visible_grid_vert(
+                    key, grid_hidden, grid_index, [&](const int i) {
+                      CCG_elem_offset_mask(key, grid, i) = BLI_hash_int_01(verts_start + i + seed);
+                    });
               });
           break;
         }
@@ -210,9 +194,10 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
               [&](const BitGroupVector<> &grid_hidden, const int grid_index, CCGElem *grid) {
                 const int face_set = face_sets[grid_to_face[grid_index]];
                 const float value = BLI_hash_int_01(face_set + seed);
-                foreach_visible_grid_vert(key, grid_hidden, grid_index, [&](const int i) {
-                  CCG_elem_offset_mask(key, grid, i) = value;
-                });
+                BKE_subdiv_ccg_foreach_visible_grid_vert(
+                    key, grid_hidden, grid_index, [&](const int i) {
+                      CCG_elem_offset_mask(key, grid, i) = value;
+                    });
               });
           break;
         }
@@ -226,10 +211,12 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
               nodes,
               [&](const BitGroupVector<> &grid_hidden, const int grid_index, CCGElem *grid) {
                 const int verts_start = grid_index * key.grid_area;
-                foreach_visible_grid_vert(key, grid_hidden, grid_index, [&](const int i) {
-                  const int island = SCULPT_vertex_island_get(ss, PBVHVertRef{verts_start + i});
-                  CCG_elem_offset_mask(key, grid, i) = BLI_hash_int_01(island + seed);
-                });
+                BKE_subdiv_ccg_foreach_visible_grid_vert(
+                    key, grid_hidden, grid_index, [&](const int i) {
+                      const int island = SCULPT_vertex_island_get(ss,
+                                                                  PBVHVertRef{verts_start + i});
+                      CCG_elem_offset_mask(key, grid, i) = BLI_hash_int_01(island + seed);
+                    });
               });
           break;
         }
