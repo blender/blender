@@ -169,4 +169,13 @@ MINLINE float xor_fl(float x, int y)
   return int_as_float(float_as_int(x) ^ y);
 }
 
+MINLINE float half_to_float(ushort h)
+{
+  const uint sign = (h & 0x8000);
+  const uint exponent = (h & 0x7c00) + 0x1C000;
+  const uint mantissa = (h & 0x03FF);
+  const uint x = (sign << 16) | (exponent << 13) | (mantissa << 13);
+  return uint_as_float(x);
+}
+
 #endif /* __MATH_BITS_INLINE_C__ */

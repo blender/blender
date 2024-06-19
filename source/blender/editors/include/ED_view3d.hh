@@ -886,6 +886,11 @@ bool ED_view3d_autodist_simple(ARegion *region,
 bool ED_view3d_depth_read_cached_seg(
     const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
+/**
+ * Returns viewport color in linear space, matching #ED_space_node_color_sample().
+ */
+bool ED_view3d_viewport_color_sample(ARegion *region, const int mval[2], float r_col[3]);
+
 enum eV3DSelectMode {
   /* all elements in the region, ignore depth */
   VIEW3D_SELECT_ALL = 0,
