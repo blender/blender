@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_bit_span.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
