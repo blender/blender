@@ -3676,6 +3676,8 @@ static void cursor_surface_handle_preferred_buffer_scale(void * /*data*/,
   CLOG_INFO(LOG, 2, "handle_preferred_buffer_scale (factor=%d)", factor);
 }
 
+#if defined(WL_SURFACE_PREFERRED_BUFFER_SCALE_SINCE_VERSION) && \
+    defined(WL_SURFACE_PREFERRED_BUFFER_TRANSFORM_SINCE_VERSION)
 static void cursor_surface_handle_preferred_buffer_transform(void * /*data*/,
                                                              wl_surface * /*wl_surface*/,
                                                              uint32_t transform)
@@ -3683,12 +3685,17 @@ static void cursor_surface_handle_preferred_buffer_transform(void * /*data*/,
   /* Only available in interface version 6. */
   CLOG_INFO(LOG, 2, "handle_preferred_buffer_transform (transform=%u)", transform);
 }
+#endif /* WL_SURFACE_PREFERRED_BUFFER_SCALE_SINCE_VERSION && \
+        * WL_SURFACE_PREFERRED_BUFFER_TRANSFORM_SINCE_VERSION */
 
 static const wl_surface_listener cursor_surface_listener = {
     /*enter*/ cursor_surface_handle_enter,
     /*leave*/ cursor_surface_handle_leave,
+#if defined(WL_SURFACE_PREFERRED_BUFFER_SCALE_SINCE_VERSION) && \
+    defined(WL_SURFACE_PREFERRED_BUFFER_TRANSFORM_SINCE_VERSION)
     /*preferred_buffer_scale*/ cursor_surface_handle_preferred_buffer_scale,
     /*preferred_buffer_transform*/ cursor_surface_handle_preferred_buffer_transform,
+#endif
 };
 
 #undef LOG
