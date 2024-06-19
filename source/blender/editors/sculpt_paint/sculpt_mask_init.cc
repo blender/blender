@@ -34,19 +34,16 @@
 #include <cmath>
 #include <cstdlib>
 
-/* Mask Init operator. */
-/* Initializes mask values for the entire mesh depending on the mode. */
-
 namespace blender::ed::sculpt_paint::mask {
 
-enum eSculptMaskInitMode {
-  SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
-  SCULPT_MASK_INIT_RANDOM_PER_FACE_SET,
-  SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART,
+enum class InitMode {
+  Random,
+  FaceSet,
+  Island,
 };
 
 static void mask_init_task(Object &ob,
-                           const int mode,
+                           const InitMode mode,
                            const int seed,
                            const SculptMaskWriteInfo mask_write,
                            PBVHNode *node)
@@ -57,15 +54,15 @@ static void mask_init_task(Object &ob,
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float mask;
     switch (mode) {
-      case SCULPT_MASK_INIT_RANDOM_PER_VERTEX:
+      case InitMode::Random:
         mask = BLI_hash_int_01(vd.index + seed);
         break;
-      case SCULPT_MASK_INIT_RANDOM_PER_FACE_SET: {
+      case InitMode::FaceSet: {
         const int face_set = face_set::vert_face_set_get(ss, vd.vertex);
         mask = BLI_hash_int_01(face_set + seed);
         break;
       }
-      case SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART:
+      case InitMode::Island:
         mask = BLI_hash_int_01(SCULPT_vertex_island_get(ss, vd.vertex) + seed);
         break;
     }
@@ -87,7 +84,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const int mode = RNA_enum_get(op->ptr, "mode");
+  const InitMode mode = InitMode(RNA_enum_get(op->ptr, "mode"));
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), &ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), &ob, mmd);
@@ -103,7 +100,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   undo::push_begin(ob, op);
 
-  if (mode == SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART) {
+  if (mode == InitMode::Island) {
     SCULPT_topology_islands_ensure(ob);
   }
 
@@ -127,28 +124,22 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
 void SCULPT_OT_mask_init(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Init Mask";
   ot->description = "Creates a new mask for the entire mesh";
   ot->idname = "SCULPT_OT_mask_init";
 
-  /* api callbacks */
   ot->exec = sculpt_mask_init_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   static EnumPropertyItem modes[] = {
-      {SCULPT_MASK_INIT_RANDOM_PER_VERTEX, "RANDOM_PER_VERTEX", 0, "Random per Vertex", ""},
-      {SCULPT_MASK_INIT_RANDOM_PER_FACE_SET, "RANDOM_PER_FACE_SET", 0, "Random per Face Set", ""},
-      {SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART,
-       "RANDOM_PER_LOOSE_PART",
-       0,
-       "Random per Loose Part",
-       ""},
+      {int(InitMode::Random), "RANDOM_PER_VERTEX", 0, "Random per Vertex", ""},
+      {int(InitMode::FaceSet), "RANDOM_PER_FACE_SET", 0, "Random per Face Set", ""},
+      {int(InitMode::Island), "RANDOM_PER_LOOSE_PART", 0, "Random per Loose Part", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  RNA_def_enum(ot->srna, "mode", modes, SCULPT_MASK_INIT_RANDOM_PER_VERTEX, "Mode", "");
+  RNA_def_enum(ot->srna, "mode", modes, int(InitMode::Random), "Mode", "");
 }
 
 }  // namespace blender::ed::sculpt_paint::mask
