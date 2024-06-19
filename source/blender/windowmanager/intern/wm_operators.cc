@@ -42,6 +42,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_utils.hh"
@@ -84,6 +85,8 @@
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
+
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -2525,6 +2528,31 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
   ED_area_status_text(area, msg);
 }
 
+/* Helper: Compute the brush radius in pixels at the mouse position. */
+static float grease_pencil_unprojected_brush_radius_pixel_size(const bContext *C,
+                                                               const Brush *brush,
+                                                               const blender::float2 mval)
+{
+  using namespace blender;
+  Scene *scene = CTX_data_scene(C);
+  ARegion *region = CTX_wm_region(C);
+  View3D *view3d = CTX_wm_view3d(C);
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  Object *object = CTX_data_active_object(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *eval_object = DEG_get_evaluated_object(depsgraph, object);
+
+  BLI_assert(object->type == OB_GREASE_PENCIL);
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(eval_object->data);
+
+  ed::greasepencil::DrawingPlacement placement(
+      *scene, *region, *view3d, *eval_object, grease_pencil->get_active_layer());
+  const float3 position = placement.project(mval);
+  const float pixel_size = ED_view3d_pixel_size(
+      rv3d, math::transform_point(placement.to_world_space(), position));
+  return brush->unprojected_radius / pixel_size;
+}
+
 static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, const wmEvent *event)
 {
   float d[2] = {0, 0};
@@ -2563,7 +2591,13 @@ static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, con
   rc->scale_fac = 1.0f;
   if (rc->ptr.owner_id && GS(rc->ptr.owner_id->name) == ID_BR && rc->prop == &rna_Brush_size) {
     Brush *brush = reinterpret_cast<Brush *>(rc->ptr.owner_id);
-    rc->scale_fac = ED_gpencil_radial_control_scale(C, brush, rc->initial_value, event->mval);
+    if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY) &&
+        (brush->gpencil_tool == GPAINT_TOOL_DRAW) && (brush->flag & BRUSH_LOCK_SIZE) != 0)
+    {
+      const float radius_px = grease_pencil_unprojected_brush_radius_pixel_size(
+          C, brush, blender::float2(event->mval));
+      rc->scale_fac = max_ff(radius_px, 1.0f) / max_ff(rc->initial_value, 1.0f);
+    }
   }
 
   rc->initial_mouse[0] -= d[0];
