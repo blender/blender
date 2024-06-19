@@ -339,10 +339,12 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
   Array<uiBlock *> blocks(nodes.size());
   /* Add node uiBlocks in drawing order - prevents events going to overlapping nodes. */
   for (const int i : nodes.index_range()) {
-    std::string block_name = "node_" + std::string(nodes[i]->name);
-    blocks[i] = UI_block_begin(&C, CTX_wm_region(&C), std::move(block_name), UI_EMBOSS);
+    const bNode &node = *nodes[i];
+    std::string block_name = "node_" + std::string(node.name);
+    uiBlock *block = UI_block_begin(&C, CTX_wm_region(&C), std::move(block_name), UI_EMBOSS);
+    blocks[node.index()] = block;
     /* This cancels events for background nodes. */
-    UI_block_flag_enable(blocks[i], UI_BLOCK_CLIP_EVENTS);
+    UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
   }
 
   return blocks;
@@ -4003,7 +4005,7 @@ static void node_update_nodetree(const bContext &C,
 
   for (const int i : nodes.index_range()) {
     bNode &node = *nodes[i];
-    uiBlock &block = *blocks[i];
+    uiBlock &block = *blocks[node.index()];
     if (node.is_frame()) {
       /* Frame sizes are calculated after all other nodes have calculating their #totr. */
       continue;
@@ -4579,13 +4581,14 @@ static void node_draw_nodetree(const bContext &C,
 
   /* Draw foreground nodes, last nodes in front. */
   for (const int i : nodes.index_range()) {
-    if (nodes[i]->flag & NODE_BACKGROUND) {
+    bNode &node = *nodes[i];
+    if (node.flag & NODE_BACKGROUND) {
       /* Background nodes are drawn before mixed with zones already. */
       continue;
     }
 
-    const bNodeInstanceKey key = bke::BKE_node_instance_key(parent_key, &ntree, nodes[i]);
-    node_draw(C, tree_draw_ctx, region, snode, ntree, *nodes[i], *blocks[i], key);
+    const bNodeInstanceKey key = bke::BKE_node_instance_key(parent_key, &ntree, &node);
+    node_draw(C, tree_draw_ctx, region, snode, ntree, node, *blocks[node.index()], key);
   }
 }
 
