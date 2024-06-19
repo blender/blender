@@ -248,12 +248,12 @@ static void insert_keys_forward(const TimeMapping &mapping,
   const int offset = gp_dst_range.sfra - gp_src_range.sfra;
   for (const int i : sorted_keys.index_range()) {
     const int gp_key = sorted_keys[i];
-    const int gp_start_key = std::max(gp_key, gp_src_range.sfra);
-    if (gp_start_key > gp_src_range.efra) {
+    const int gp_insert_key = std::max(gp_key, gp_src_range.sfra);
+    if (gp_insert_key > gp_src_range.efra) {
       continue;
     }
 
-    const int scene_key = mapping.scene_frame_after_local_frame(gp_key + offset);
+    const int scene_key = mapping.scene_frame_after_local_frame(gp_insert_key + offset);
     dst_frames.add_overwrite(scene_key, frames.lookup(gp_key));
   }
 }
