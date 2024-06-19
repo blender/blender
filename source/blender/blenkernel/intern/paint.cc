@@ -1989,11 +1989,8 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
     }
   }
-
-  /* Create vertex paint mask layer if there isn't one already. */
-  if (attributes.add<float>(".sculpt_mask", AttrDomain::Point, AttributeInitDefaultValue())) {
-    /* The evaluated mesh must be updated to contain the new data. */
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  else {
+    attributes.add<float>(".sculpt_mask", AttrDomain::Point, AttributeInitDefaultValue());
   }
 }
 
