@@ -79,7 +79,7 @@ void AmbientOcclusion::sync()
   render_pass_ps_.push_constant("out_ao_img_layer_index",
                                 &inst_.render_buffers.data.ambient_occlusion_id);
 
-  render_pass_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS & GPU_BARRIER_TEXTURE_FETCH);
+  render_pass_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   render_pass_ps_.dispatch(
       math::divide_ceil(inst_.film.render_extent_get(), int2(AMBIENT_OCCLUSION_PASS_TILE_SIZE)));
 }

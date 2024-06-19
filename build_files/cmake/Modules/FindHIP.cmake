@@ -23,6 +23,8 @@ endif()
 
 set(_hip_SEARCH_DIRS
   ${HIP_ROOT_DIR}
+  /opt/rocm
+  /opt/rocm/hip
 )
 
 find_program(HIP_HIPCC_EXECUTABLE
