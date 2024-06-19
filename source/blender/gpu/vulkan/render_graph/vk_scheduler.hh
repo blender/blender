@@ -92,7 +92,7 @@ class VKScheduler {
    *   rendering end.
    * - Data transfer and dispatch nodes in between draw commands will be pushed
    *   to the beginning if they are not yet being used.
-   * - When used the rendering will be suspended and the data transfer/dispath nodes are
+   * - When used the rendering will be suspended and the data transfer/dispatch nodes are
    *   scheduled between the suspended rendering and when the suspended rendering is
    *   continued.
    *

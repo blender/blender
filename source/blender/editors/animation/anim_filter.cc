@@ -3678,7 +3678,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
     case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
     {
       /* Due to code in `actedit_get_context()`, the equation below holds. The `data` pointer is no
-       * longer used here, in favour of always passing `ac` down the call chain. The called code
+       * longer used here, in favor of always passing `ac` down the call chain. The called code
        * can access it via `ac->ads`. Because the anim filtering code is quite complex, I (Sybren)
        * want to keep this assertion in place. */
       BLI_assert_msg(ac->ads == data, "ANIMCONT_DOPESHEET");
@@ -3694,7 +3694,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
     case ANIMCONT_NLA:     /* NLA Editor */
     {
       /* Due to code in `actedit_get_context()`, the equation below holds. The `data` pointer is no
-       * longer used here, in favour of always passing `ac` down the call chain. The called code
+       * longer used here, in favor of always passing `ac` down the call chain. The called code
        * can access it via `ac->ads`. Because the anim filtering code is quite complex, I (Sybren)
        * want to keep this assertion in place. */
       BLI_assert_msg(ac->ads == data, "ANIMCONT_FCURVES/DRIVERS/NLA");
@@ -3709,7 +3709,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
      * except we only have the summary for now */
     case ANIMCONT_TIMELINE: {
       /* Due to code in `actedit_get_context()`, the equation below holds. The `data` pointer is no
-       * longer used here, in favour of always passing `ac` down the call chain. The called code
+       * longer used here, in favor of always passing `ac` down the call chain. The called code
        * can access it via `ac->ads`. Because the anim filtering code is quite complex, I (Sybren)
        * want to keep this assertion in place. */
       BLI_assert_msg(ac->ads == data, "ANIMCONT_TIMELINE");

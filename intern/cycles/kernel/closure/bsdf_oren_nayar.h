@@ -19,7 +19,7 @@ static_assert(sizeof(ShaderClosure) >= sizeof(OrenNayarBsdf), "OrenNayarBsdf is 
 
 /* NOTE: This implements the improved Oren-Nayar model by Yasuhiro Fujii
  * (https://mimosa-pudica.net/improved-oren-nayar.html), plus an
- * energy-preserving multiscattering term based on the OpenPBR specification
+ * energy-preserving multi-scattering term based on the OpenPBR specification
  * (https://academysoftwarefoundation.github.io/OpenPBR). */
 
 ccl_device_inline float bsdf_oren_nayar_G(const float cosTheta)

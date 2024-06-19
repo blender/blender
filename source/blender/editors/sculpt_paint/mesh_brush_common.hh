@@ -202,7 +202,7 @@ void calc_vert_neighbors(OffsetIndices<int> faces,
 /**
  * Find vertices connected to the indexed vertices across faces. For boundary vertices (stored in
  * the \a boundary_verts argument), only include other boundary vertices. Also skip connectivity
- * accross hidden faces and skip neighbors of corner vertices.
+ * across hidden faces and skip neighbors of corner vertices.
  *
  * \note See #calc_vert_neighbors for information on why we use a Vector per element.
  */
