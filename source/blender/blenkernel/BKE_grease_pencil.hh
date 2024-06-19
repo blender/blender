@@ -848,8 +848,15 @@ class GreasePencilRuntime {
    * Allocated and freed by the drawing code. See `DRW_grease_pencil_batch_cache_*` functions.
    */
   void *batch_cache = nullptr;
-  /* The frame on which the object was evaluated (only valid for evaluated object). */
+  /**
+   * The frame on which the object was evaluated (only valid for evaluated object).
+   */
   int eval_frame = 0;
+  /**
+   * Set to true while drawing a stroke (e.g. with the draw tool).
+   * Used for example to temporarily hide the paint cursor in the viewport.
+   */
+  bool is_drawing_stroke = false;
 
  public:
   GreasePencilRuntime() {}

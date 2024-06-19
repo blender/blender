@@ -719,6 +719,9 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
       CTX_data_main(&C), object, brush);
   const int material_index = BKE_object_material_index_get(object, material);
 
+  /* We're now starting to draw. */
+  grease_pencil->runtime->is_drawing_stroke = true;
+
   PaintOperationExecutor executor{C};
   executor.process_start_sample(*this, C, start_sample, material_index);
 
@@ -948,6 +951,9 @@ void PaintOperation::on_stroke_done(const bContext &C)
   }
   drawing.set_texture_matrices({texture_space_}, IndexRange::from_single(active_curve));
   drawing.tag_topology_changed();
+
+  /* Now we're done drawing. */
+  grease_pencil.runtime->is_drawing_stroke = false;
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil.id);

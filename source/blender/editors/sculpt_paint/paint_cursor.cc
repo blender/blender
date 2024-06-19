@@ -1540,6 +1540,11 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       return;
     }
 
+    /* Hide the cursor while drwaing. */
+    if (grease_pencil->runtime->is_drawing_stroke) {
+      return;
+    }
+
     if ((brush->flag & BRUSH_LOCK_SIZE) != 0) {
       const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
       const ed::greasepencil::DrawingPlacement placement(
