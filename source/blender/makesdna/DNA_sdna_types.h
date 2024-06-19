@@ -80,6 +80,13 @@ typedef struct SDNA {
     /** A version of #SDNA.structs_map that uses #SDNA.alias.types for its keys. */
     struct GHash *structs_map;
   } alias;
+
+  /**
+   * Alignment used when allocating pointers to this type. The actual minimum alignment of the
+   * type may be lower in some cases. For example, the pointer alignment of a single char is at
+   * least 8 bytes, but the alignment of the type itself is 1.
+   */
+  int *types_alignment;
 } SDNA;
 
 #

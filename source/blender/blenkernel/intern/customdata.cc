@@ -2155,6 +2155,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerDefault_propquaternion},
 };
 
+static_assert(sizeof(mat4x4f) == sizeof(blender::float4x4));
+
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     /*   0-4 */ "CDMVert",
     "CDMSticky",
