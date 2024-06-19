@@ -1953,8 +1953,7 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
                                                   const bool use_area_nos,
                                                   const bool use_area_cos,
                                                   const PBVHNode &node,
-                                                  AreaNormalCenterData &anctd,
-                                                  bool &r_any_vertex_sampled)
+                                                  AreaNormalCenterData &anctd)
 {
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   SculptBrushTest normal_test;
@@ -1997,8 +1996,6 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
       continue;
     }
 
-    r_any_vertex_sampled = true;
-
     const int flip_index = math::dot(view_normal, no) <= 0.0f;
     if (use_area_cos && area_test_r) {
       anctd.area_cos[flip_index] += area_center_calc_weighted(
@@ -2018,8 +2015,7 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
                                                    const PBVHNode &node,
-                                                   AreaNormalCenterData &anctd,
-                                                   bool &r_any_vertex_sampled)
+                                                   AreaNormalCenterData &anctd)
 {
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   const CCGKey key = *BKE_pbvh_get_grid_key(*ss.pbvh);
@@ -2070,8 +2066,6 @@ static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
         continue;
       }
 
-      r_any_vertex_sampled = true;
-
       const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
         anctd.area_cos[flip_index] += area_center_calc_weighted(
@@ -2095,8 +2089,7 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
                                                    const bool use_area_cos,
                                                    const bool has_bm_orco,
                                                    const PBVHNode &node,
-                                                   AreaNormalCenterData &anctd,
-                                                   bool &r_any_vertex_sampled)
+                                                   AreaNormalCenterData &anctd)
 {
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
   SculptBrushTest normal_test;
@@ -2140,8 +2133,6 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
         continue;
       }
 
-      r_any_vertex_sampled = true;
-
       float3 no;
       normal_tri_v3(no, UNPACK3(co_tri));
 
@@ -2149,7 +2140,6 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
       if (use_area_cos && area_test_r) {
         anctd.area_cos[flip_index] += area_center_calc_weighted(
             area_test.location, area_test.dist, area_test.radius, co);
-
         anctd.count_co[flip_index] += 1;
       }
       if (use_area_nos && normal_test_r) {
@@ -2183,8 +2173,6 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
       if (!normal_test_r && !area_test_r) {
         continue;
       }
-
-      r_any_vertex_sampled = true;
 
       const int flip_index = math::dot(view_normal, no) <= 0.0f;
       if (use_area_cos && area_test_r) {
@@ -2228,8 +2216,6 @@ void calc_area_center(const Brush &brush,
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
   int n;
 
-  bool any_vertex_sampled = false;
-
   const PBVHType type = BKE_pbvh_type(*ss.pbvh);
   const AreaNormalCenterData anctd = threading::parallel_reduce(
       nodes.index_range(),
@@ -2253,17 +2239,15 @@ void calc_area_center(const Brush &brush,
                                                     false,
                                                     true,
                                                     *nodes[i],
-                                                    anctd,
-                                                    any_vertex_sampled);
+                                                    anctd);
               break;
             }
             case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(
-                  ss, brush, false, true, *nodes[i], anctd, any_vertex_sampled);
+              calc_area_normal_and_center_node_grids(ss, brush, false, true, *nodes[i], anctd);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, false, true, has_bm_orco, *nodes[i], anctd, any_vertex_sampled);
+                  ss, brush, false, true, has_bm_orco, *nodes[i], anctd);
               break;
           }
         }
@@ -2297,8 +2281,6 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
   SculptSession &ss = *ob.sculpt;
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
 
-  bool any_vertex_sampled = false;
-
   const PBVHType type = BKE_pbvh_type(*ss.pbvh);
   const AreaNormalCenterData anctd = threading::parallel_reduce(
       nodes.index_range(),
@@ -2322,17 +2304,15 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
                                                     true,
                                                     false,
                                                     *nodes[i],
-                                                    anctd,
-                                                    any_vertex_sampled);
+                                                    anctd);
               break;
             }
             case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(
-                  ss, brush, true, false, *nodes[i], anctd, any_vertex_sampled);
+              calc_area_normal_and_center_node_grids(ss, brush, true, false, *nodes[i], anctd);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, true, false, has_bm_orco, *nodes[i], anctd, any_vertex_sampled);
+                  ss, brush, true, false, has_bm_orco, *nodes[i], anctd);
               break;
           }
         }
@@ -2340,15 +2320,11 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
       },
       calc_area_normal_and_center_reduce);
 
-  if (!any_vertex_sampled) {
-    return std::nullopt;
-  }
-
-  /* For area normal. */
-  float3 result;
-  for (int i = 0; i < anctd.area_nos.size(); i++) {
-    if (normalize_v3_v3(result, anctd.area_nos[i]) != 0.0f) {
-      return result;
+  for (const int i : {0, 1}) {
+    if (anctd.count_no[i] != 0) {
+      if (!math::is_zero(anctd.area_nos[i])) {
+        return math::normalize(anctd.area_nos[i]);
+      }
     }
   }
   return std::nullopt;
@@ -2363,8 +2339,6 @@ void calc_area_normal_and_center(const Brush &brush,
   SculptSession &ss = *ob.sculpt;
   const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
   int n;
-
-  bool any_vertex_sampled = false;
 
   const PBVHType type = BKE_pbvh_type(*ss.pbvh);
   const AreaNormalCenterData anctd = threading::parallel_reduce(
@@ -2389,17 +2363,15 @@ void calc_area_normal_and_center(const Brush &brush,
                                                     true,
                                                     true,
                                                     *nodes[i],
-                                                    anctd,
-                                                    any_vertex_sampled);
+                                                    anctd);
               break;
             }
             case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(
-                  ss, brush, true, true, *nodes[i], anctd, any_vertex_sampled);
+              calc_area_normal_and_center_node_grids(ss, brush, true, true, *nodes[i], anctd);
               break;
             case PBVH_BMESH:
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, true, true, has_bm_orco, *nodes[i], anctd, any_vertex_sampled);
+                  ss, brush, true, true, has_bm_orco, *nodes[i], anctd);
               break;
           }
         }
