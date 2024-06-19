@@ -35,6 +35,7 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
+#include "gpu_py.hh"
 #include "gpu_py_texture.hh"
 
 #include "gpu_py_offscreen.hh" /* own include */
@@ -101,6 +102,8 @@ static void pygpu_offscreen_stack_context__tp_dealloc(OffScreenStackContext *sel
 
 static PyObject *pygpu_offscreen_stack_context_enter(OffScreenStackContext *self)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self->py_offscreen);
 
   if (!self->is_explicitly_bound) {
@@ -119,6 +122,8 @@ static PyObject *pygpu_offscreen_stack_context_enter(OffScreenStackContext *self
 static PyObject *pygpu_offscreen_stack_context_exit(OffScreenStackContext *self,
                                                     PyObject * /*args*/)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self->py_offscreen);
 
   if (self->level == -1) {
@@ -266,6 +271,8 @@ static PyObject *pygpu_offscreen_unbind(BPyGPUOffScreen *self, PyObject *args, P
 
 static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args, PyObject *kwds)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   GPUOffScreen *ofs = nullptr;
   int width, height;
   PyC_StringEnum pygpu_textureformat = {pygpu_framebuffer_color_texture_formats, GPU_RGBA8};

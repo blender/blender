@@ -11,7 +11,6 @@
 
 #include <Python.h>
 
-#include "gpu_py.hh"
 #include "gpu_py_types.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -34,42 +33,42 @@ PyObject *bpygpu_types_init()
 {
   PyObject *submodule;
 
-  submodule = bpygpu_create_module(&pygpu_types_module_def);
+  submodule = PyModule_Create(&pygpu_types_module_def);
 
-  if (bpygpu_finalize_type(&BPyGPU_BufferType) < 0) {
+  if (PyType_Ready(&BPyGPU_BufferType) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUVertFormat_Type) < 0) {
+  if (PyType_Ready(&BPyGPUVertFormat_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUVertBuf_Type) < 0) {
+  if (PyType_Ready(&BPyGPUVertBuf_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUIndexBuf_Type) < 0) {
+  if (PyType_Ready(&BPyGPUIndexBuf_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUBatch_Type) < 0) {
+  if (PyType_Ready(&BPyGPUBatch_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUOffScreen_Type) < 0) {
+  if (PyType_Ready(&BPyGPUOffScreen_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUShader_Type) < 0) {
+  if (PyType_Ready(&BPyGPUShader_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUTexture_Type) < 0) {
+  if (PyType_Ready(&BPyGPUTexture_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUFrameBuffer_Type) < 0) {
+  if (PyType_Ready(&BPyGPUFrameBuffer_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUUniformBuf_Type) < 0) {
+  if (PyType_Ready(&BPyGPUUniformBuf_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUShaderCreateInfo_Type) < 0) {
+  if (PyType_Ready(&BPyGPUShaderCreateInfo_Type) < 0) {
     return nullptr;
   }
-  if (bpygpu_finalize_type(&BPyGPUStageInterfaceInfo_Type) < 0) {
+  if (PyType_Ready(&BPyGPUStageInterfaceInfo_Type) < 0) {
     return nullptr;
   }
 

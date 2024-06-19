@@ -99,6 +99,8 @@ static int pygpu_shader_uniform_location_get(GPUShader *shader,
 
 static PyObject *pygpu_shader__tp_new(PyTypeObject * /*type*/, PyObject *args, PyObject *kwds)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   struct {
     const char *vertexcode;
     const char *fragcode;
@@ -948,6 +950,8 @@ PyDoc_STRVAR(
     "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   PyC_StringEnum pygpu_bultinshader = {pygpu_shader_builtin_items};
   PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
 
@@ -992,6 +996,8 @@ PyDoc_STRVAR(
     "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUShaderCreateInfo *o)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   if (!BPyGPUShaderCreateInfo_Check(o)) {
     PyErr_Format(PyExc_TypeError, "Expected a GPUShaderCreateInfo, got %s", Py_TYPE(o)->tp_name);
     return nullptr;
@@ -1080,7 +1086,7 @@ PyObject *bpygpu_shader_init()
 {
   PyObject *submodule;
 
-  submodule = bpygpu_create_module(&pygpu_shader_module_def);
+  submodule = PyModule_Create(&pygpu_shader_module_def);
 
   return submodule;
 }

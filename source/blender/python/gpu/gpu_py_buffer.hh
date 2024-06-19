@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 extern PyTypeObject BPyGPU_BufferType;
 
 #define BPyGPU_Buffer_Check(v) (Py_TYPE(v) == &BPyGPU_BufferType)

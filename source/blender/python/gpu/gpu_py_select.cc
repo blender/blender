@@ -40,6 +40,8 @@ PyDoc_STRVAR(
     "   :type select: int\n");
 static PyObject *pygpu_select_load_id(PyObject * /*self*/, PyObject *value)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   uint id;
   if ((id = PyC_Long_AsU32(value)) == uint(-1)) {
     return nullptr;
@@ -80,7 +82,7 @@ PyObject *bpygpu_select_init()
 {
   PyObject *submodule;
 
-  submodule = bpygpu_create_module(&pygpu_select_module_def);
+  submodule = PyModule_Create(&pygpu_select_module_def);
 
   return submodule;
 }

@@ -49,6 +49,8 @@ static bool pygpu_batch_is_program_or_error(BPyGPUBatch *self)
 
 static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, PyObject *kwds)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   const char *exc_str_missing_arg = "GPUBatch.__new__() missing required argument '%s' (pos %d)";
 
   PyC_StringEnum prim_type = {bpygpu_primtype_items, GPU_PRIM_NONE};
@@ -181,7 +183,6 @@ PyDoc_STRVAR(
     "   :type program: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
 {
-
   static bool deprecation_warning_issued = false;
 
   /* Deprecation warning raised when calling `gpu.types.GPUBatch.program_set`.  */

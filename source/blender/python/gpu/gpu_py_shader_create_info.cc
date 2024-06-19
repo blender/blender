@@ -19,6 +19,7 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
+#include "gpu_py.hh"
 #include "gpu_py_shader.hh" /* own include */
 #include "gpu_py_texture.hh"
 

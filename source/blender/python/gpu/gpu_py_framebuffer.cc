@@ -323,6 +323,8 @@ static bool pygpu_framebuffer_new_parse_arg(PyObject *o, GPUAttachment *r_attach
 
 static PyObject *pygpu_framebuffer__tp_new(PyTypeObject * /*self*/, PyObject *args, PyObject *kwds)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   if (!GPU_context_active_get()) {
     PyErr_SetString(PyExc_RuntimeError, "No active GPU context found");
     return nullptr;

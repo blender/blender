@@ -24,7 +24,6 @@
 #include "gpu_py_state.hh"
 #include "gpu_py_types.hh"
 
-#include "gpu_py.hh"
 #include "gpu_py_api.hh" /* Own include. */
 
 /* -------------------------------------------------------------------- */
@@ -54,7 +53,7 @@ PyObject *BPyInit_gpu()
   PyObject *submodule;
   PyObject *mod;
 
-  mod = bpygpu_create_module(&pygpu_module_def);
+  mod = PyModule_Create(&pygpu_module_def);
 
   PyModule_AddObject(mod, "types", (submodule = bpygpu_types_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
