@@ -13,9 +13,9 @@ buildbot:
     cuda12:
         version: '12.1.1'
     hip:
-        version: '5.5.30571'
+        version: '5.7.32000'
     hiprt:
-        version: '2.0.3a134c7'
+        version: '2.0.e1ff193'
     optix:
         version: '7.3.0'
     ocloc:
