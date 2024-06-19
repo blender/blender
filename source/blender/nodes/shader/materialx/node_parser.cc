@@ -25,7 +25,7 @@ NodeParser::NodeParser(MaterialX::GraphElement *graph,
                        const bNodeSocket *socket_out,
                        NodeItem::Type to_type,
                        GroupNodeParser *group_parser,
-                       ExportImageFunction export_image_fn)
+                       const ExportParams &export_params)
     : graph_(graph),
       depsgraph_(depsgraph),
       material_(material),
@@ -33,7 +33,7 @@ NodeParser::NodeParser(MaterialX::GraphElement *graph,
       socket_out_(socket_out),
       to_type_(to_type),
       group_parser_(group_parser),
-      export_image_fn_(export_image_fn)
+      export_params_(export_params)
 {
 }
 
@@ -170,7 +170,7 @@ NodeItem NodeParser::empty() const
   return NodeItem(graph_);
 }
 
-NodeItem NodeParser::texcoord_node(NodeItem::Type type)
+NodeItem NodeParser::texcoord_node(NodeItem::Type type, const std::string &attribute_name)
 {
   BLI_assert(ELEM(type, NodeItem::Type::Vector2, NodeItem::Type::Vector3));
   std::string name = TEXCOORD_NODE_NAME;
@@ -180,7 +180,18 @@ NodeItem NodeParser::texcoord_node(NodeItem::Type type)
   NodeItem res = empty();
   res.node = graph_->getNode(name);
   if (!res.node) {
-    res = create_node("texcoord", type);
+    /* TODO: Use "Pref" generated texture coordinates for 3D, but needs
+     * work in USD and Hydra mesh export. */
+    const bool is_active_uvmap = attribute_name == "" ||
+                                 attribute_name == export_params_.original_active_uvmap_name;
+    if (export_params_.new_active_uvmap_name == "st" && is_active_uvmap) {
+      res = create_node("texcoord", type);
+    }
+    else {
+      const std::string &geomprop = (is_active_uvmap) ? export_params_.new_active_uvmap_name :
+                                                        attribute_name;
+      res = create_node("geompropvalue", type, {{"geomprop", val(geomprop)}});
+    }
     res.node->setName(name);
   }
   return res;
@@ -249,7 +260,7 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
                            link->fromsock,
                            to_type,
                            group_parser_,
-                           export_image_fn_,
+                           export_params_,
                            use_group_default)
         .compute_full();
   }
@@ -261,7 +272,7 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
                                 link->fromsock,
                                 to_type,
                                 group_parser_,
-                                export_image_fn_,
+                                export_params_,
                                 use_group_default)
         .compute_full();
   }
@@ -275,7 +286,7 @@ NodeItem NodeParser::get_input_link(const bNodeSocket &socket,
   }
 
   NodeParserData data = {
-      graph_, depsgraph_, material_, to_type, group_parser_, empty(), export_image_fn_};
+      graph_, depsgraph_, material_, to_type, group_parser_, empty(), export_params_};
   from_node->typeinfo->materialx_fn(&data, const_cast<bNode *>(from_node), link->fromsock);
   return data.result;
 }

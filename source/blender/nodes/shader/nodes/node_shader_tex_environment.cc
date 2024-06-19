@@ -142,10 +142,10 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeTexEnvironment *tex_env = static_cast<NodeTexEnvironment *>(node_->storage);
 
   std::string image_path = image->id.name;
-  if (export_image_fn_) {
+  if (export_params_.image_fn) {
     Scene *scene = DEG_get_input_scene(depsgraph_);
     Main *bmain = DEG_get_bmain(depsgraph_);
-    image_path = export_image_fn_(bmain, scene, image, &tex_env->iuser);
+    image_path = export_params_.image_fn(bmain, scene, image, &tex_env->iuser);
   }
 
   NodeItem vector = get_input_link("Vector", NodeItem::Type::Vector2);

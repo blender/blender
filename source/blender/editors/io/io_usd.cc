@@ -216,6 +216,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_animation = RNA_boolean_get(op->ptr, "export_animation");
   const bool export_hair = RNA_boolean_get(op->ptr, "export_hair");
   const bool export_uvmaps = RNA_boolean_get(op->ptr, "export_uvmaps");
+  const bool rename_uvmaps = RNA_boolean_get(op->ptr, "rename_uvmaps");
   const bool export_mesh_colors = RNA_boolean_get(op->ptr, "export_mesh_colors");
   const bool export_normals = RNA_boolean_get(op->ptr, "export_normals");
   const bool export_materials = RNA_boolean_get(op->ptr, "export_materials");
@@ -276,6 +277,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       export_animation,
       export_hair,
       export_uvmaps,
+      rename_uvmaps,
       export_normals,
       export_mesh_colors,
       export_materials,
@@ -376,6 +378,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   {
     uiLayout *col = uiLayoutColumn(panel, false);
     uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "rename_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     uiItemR(col, ptr, "triangulate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -540,6 +543,11 @@ void WM_OT_usd_export(wmOperatorType *ot)
       ot->srna, "export_hair", false, "Hair", "Export hair particle systems as USD curves");
   RNA_def_boolean(
       ot->srna, "export_uvmaps", true, "UV Maps", "Include all mesh UV maps in the export");
+  RNA_def_boolean(ot->srna,
+                  "rename_uvmaps",
+                  true,
+                  "Rename UV Maps",
+                  "Rename active render UV map to \"st\" to match USD conventions");
   RNA_def_boolean(ot->srna,
                   "export_mesh_colors",
                   true,

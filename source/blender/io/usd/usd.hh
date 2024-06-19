@@ -99,6 +99,7 @@ struct USDExportParams {
   bool export_animation = false;
   bool export_hair = true;
   bool export_uvmaps = true;
+  bool rename_uvmaps = true;
   bool export_normals = true;
   bool export_mesh_colors = true;
   bool export_materials = true;

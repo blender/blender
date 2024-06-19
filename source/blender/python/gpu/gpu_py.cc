@@ -53,72 +53,16 @@ PyC_StringEnumItems bpygpu_dataformat_items[] = {
 /** \name Utilities
  * \{ */
 
-static const char g_error[] = "GPU API is not available in background mode";
-
-static PyObject *py_error__ml_meth(PyObject * /*self*/, PyObject * /*args*/)
-{
-  PyErr_SetString(PyExc_SystemError, g_error);
-  return nullptr;
-}
-
-static PyObject *py_error__getter(PyObject * /*self*/, void * /*type*/)
-{
-  PyErr_SetString(PyExc_SystemError, g_error);
-  return nullptr;
-}
-
-static int py_error__setter(PyObject * /*self*/, PyObject * /*value*/, void * /*type*/)
-{
-  PyErr_SetString(PyExc_SystemError, g_error);
-  return -1;
-}
-
-static PyObject *py_error__tp_new(PyTypeObject * /*type*/,
-                                  PyObject * /*args*/,
-                                  PyObject * /*kwds*/)
-{
-  PyErr_SetString(PyExc_SystemError, g_error);
-  return nullptr;
-}
-
-PyObject *bpygpu_create_module(PyModuleDef *module_type)
-{
-  if (!GPU_is_init() && module_type->m_methods) {
-    /* Replace all methods with an error method.
-     * That way when the method is called, an error will appear instead. */
-    for (PyMethodDef *meth = module_type->m_methods; meth->ml_name; meth++) {
-      meth->ml_meth = py_error__ml_meth;
-    }
-  }
-
-  PyObject *module = PyModule_Create(module_type);
-
-  return module;
-}
-
-int bpygpu_finalize_type(PyTypeObject *py_type)
+bool bpygpu_is_init_or_error(void)
 {
   if (!GPU_is_init()) {
-    if (py_type->tp_methods) {
-      /* Replace all methods with an error method. */
-      for (PyMethodDef *meth = py_type->tp_methods; meth->ml_name; meth++) {
-        meth->ml_meth = py_error__ml_meth;
-      }
-    }
-    if (py_type->tp_getset) {
-      /* Replace all getters and setter with a functions that always returns error. */
-      for (PyGetSetDef *getset = py_type->tp_getset; getset->name; getset++) {
-        getset->get = py_error__getter;
-        getset->set = py_error__setter;
-      }
-    }
-    if (py_type->tp_new) {
-      /* If initialized, return error. */
-      py_type->tp_new = py_error__tp_new;
-    }
+    PyErr_SetString(PyExc_SystemError,
+                    "GPU functions for drawing are not available in background mode");
+
+    return false;
   }
 
-  return PyType_Ready(py_type);
+  return true;
 }
 
 /** \} */
