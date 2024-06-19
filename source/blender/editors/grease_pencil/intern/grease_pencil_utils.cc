@@ -168,16 +168,16 @@ float3 DrawingPlacement::project(const float2 co) const
   float3 proj_point;
   if (depth_ == DrawingPlacementDepth::Surface) {
     /* Project using the viewport depth cache. */
-    BLI_assert(depth_cache_ != nullptr);
     float depth;
-    if (ED_view3d_depth_read_cached(depth_cache_, int2(co), 4, &depth)) {
+    if (depth_cache_ != nullptr && ED_view3d_depth_read_cached(depth_cache_, int2(co), 4, &depth))
+    {
       ED_view3d_depth_unproject_v3(region_, int2(co), depth, proj_point);
       float3 normal;
       ED_view3d_depth_read_cached_normal(region_, depth_cache_, int2(co), normal);
       proj_point += normal * surface_offset_;
     }
-    /* If we didn't hit anything, use the view plane for placement. */
     else {
+      /* Fallback to `View` placement. */
       ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
     }
   }
