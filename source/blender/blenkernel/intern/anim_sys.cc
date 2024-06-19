@@ -800,6 +800,17 @@ static void action_idcode_patch_check(ID *id, bAction *act)
     return;
   }
 
+#ifdef WITH_ANIM_BAKLAVA
+  if (act->wrap().is_action_layered()) {
+    /* Layered Actions can always be assigned to any ID. It's actually the Binding that is limited
+     * to an ID type (similar to legacy Actions). Layered Actions are evaluated differently,
+     * though, and their evaluation shouldn't end up here. At the moment of writing it can still
+     * happen through NLA evaluation, though, so there's no assert here to prevent this. */
+    /* TODO: when possible, add a BLI_assert_unreachable() here. */
+    return;
+  }
+#endif
+
   idcode = GS(id->name);
 
   /* the actual checks... hopefully not too much of a performance hit in the long run... */
