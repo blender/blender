@@ -46,7 +46,7 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
                                       const AssetWeakReference &weak_ref);
 
 /** Get asset weak reference from ID. */
-std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(ID &id);
+std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(const ID &id);
 
 /** Asset editing operations. */
 

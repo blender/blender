@@ -420,13 +420,13 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
   return asset_link_id(global_main, id_type, asset_lib_path, asset_name);
 }
 
-std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(ID &id)
+std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(const ID &id)
 {
   if (!asset_edit_id_is_editable(id)) {
     return std::nullopt;
   }
 
-  bUserAssetLibrary *user_library = BKE_preferences_asset_library_containing_path(
+  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_containing_path(
       &U, id.lib->runtime.filepath_abs);
 
   const short idcode = GS(id.name);
@@ -435,9 +435,8 @@ std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(ID &id)
     return asset_weak_reference_for_user_library(
         *user_library, idcode, id.name + 2, id.lib->runtime.filepath_abs);
   }
-  else {
-    return asset_weak_reference_for_essentials(idcode, id.name + 2, id.lib->runtime.filepath_abs);
-  }
+
+  return asset_weak_reference_for_essentials(idcode, id.name + 2, id.lib->runtime.filepath_abs);
 }
 
 bool asset_edit_id_is_editable(const ID &id)
