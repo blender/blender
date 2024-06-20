@@ -4797,7 +4797,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
       if (delta_frames < 1.0) {
         /* We can render faster than the scene frame rate. However skipping or delaying frames
          * here seems to in practice lead to jittery playback so just step forward a minimum of
-         * one frame. (Even though this can lead to too fast playback, the jitteryness is more
+         * one frame. (Even though this can lead to too fast playback, the jitteriness is more
          * annoying)
          */
         delta_frames = 1.0f;

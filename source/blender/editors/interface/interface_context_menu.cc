@@ -821,7 +821,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
 
     /* Keying Sets */
-    /* TODO: check on modifyability of Keying Set when doing this */
+    /* TODO: check on modifiability of Keying Set when doing this. */
     if (is_anim) {
       uiItemS(layout);
 
