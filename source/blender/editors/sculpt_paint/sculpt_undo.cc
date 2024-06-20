@@ -132,6 +132,9 @@ struct StepData {
   /** Name of the object's active shape key when the undo step was created. */
   std::string active_shape_key_name;
 
+  float3 pivot_pos;
+  float4 pivot_rot;
+
   Vector<std::unique_ptr<Node>> nodes;
 
   /**
@@ -926,15 +929,15 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   SculptSession *ss = object.sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
+  /* Restore pivot. */
+  ss->pivot_pos = step_data.pivot_pos;
+  ss->pivot_rot = step_data.pivot_rot;
+
   bool clear_automask_cache = false;
   for (const std::unique_ptr<Node> &unode : step_data.nodes) {
     if (!ELEM(unode->type, Type::Color, Type::Mask)) {
       clear_automask_cache = true;
     }
-
-    /* Restore pivot. */
-    copy_v3_v3(ss->pivot_pos, unode->pivot_pos);
-    copy_v3_v3(ss->pivot_rot, unode->pivot_rot);
   }
 
   if (clear_automask_cache) {
@@ -1632,10 +1635,6 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
     BLI_thread_unlock(LOCK_CUSTOM1);
   });
 
-  /* Store sculpt pivot. */
-  copy_v3_v3(unode->pivot_pos, ss->pivot_pos);
-  copy_v3_v3(unode->pivot_rot, ss->pivot_rot);
-
   return unode;
 }
 
@@ -1696,6 +1695,12 @@ void push_begin_ex(Object &ob, const char *name)
     save_active_attribute(ob, &us->active_color_end);
     us->active_color_end.was_set = false;
   }
+
+  const SculptSession &ss = *ob.sculpt;
+
+  /* Store sculpt pivot. */
+  us->data.pivot_pos = ss.pivot_pos;
+  us->data.pivot_rot = ss.pivot_rot;
 
   if (const KeyBlock *key = BKE_keyblock_from_object(&ob)) {
     us->data.active_shape_key_name = key->name;

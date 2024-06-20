@@ -207,10 +207,6 @@ struct Node {
   /* Geometry at the bmesh enter moment. */
   undo::NodeGeometry geometry_bmesh_enter;
 
-  /* pivot */
-  float3 pivot_pos;
-  float pivot_rot[4];
-
   /* Sculpt Face Sets */
   Array<int> face_sets;
 
