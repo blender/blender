@@ -422,6 +422,17 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
 
 std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(const ID &id)
 {
+  /* Brush is local to the file. */
+  if (!id.lib) {
+    AssetWeakReference weak_ref;
+
+    weak_ref.asset_library_type = eAssetLibraryType::ASSET_LIBRARY_LOCAL;
+    weak_ref.relative_asset_identifier = BLI_sprintfN(
+        "%s/%s", BKE_idtype_idcode_to_name(GS(id.name)), id.name + 2);
+
+    return weak_ref;
+  }
+
   if (!asset_edit_id_is_editable(id)) {
     return std::nullopt;
   }
