@@ -378,7 +378,7 @@ DefNode(GeometryNode, GEO_NODE_INPUT_MESH_FACE_NEIGHBORS, 0, "MESH_FACE_NEIGHBOR
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_ISLAND, 0, "MESH_ISLAND", InputMeshIsland, "Mesh Island", "Retrieve information about separate connected regions in a mesh")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_VERTEX_NEIGHBORS, 0, "MESH_VERTEX_NEIGHBORS", InputMeshVertexNeighbors, "Vertex Neighbors", "Retrieve topology information relating to each vertex of a mesh")
 DefNode(GeometryNode, GEO_NODE_INPUT_NAMED_ATTRIBUTE, 0, "INPUT_ATTRIBUTE", InputNamedAttribute, "Named Attribute", "Retrieve the data of a specified attribute")
-DefNode(GeometryNode, GEO_NODE_INPUT_NAMED_LAYER_SELECTION, 0, "INPUT_NAMED_LAYER_SELECTION", InputNamedLayerSelection, "Named Layer Selection", "Output a selection of a grease pencil layer");
+DefNode(GeometryNode, GEO_NODE_INPUT_NAMED_LAYER_SELECTION, 0, "INPUT_NAMED_LAYER_SELECTION", InputNamedLayerSelection, "Named Layer Selection", "Output a selection of a grease pencil layer")
 DefNode(GeometryNode, GEO_NODE_INPUT_NORMAL, 0, "INPUT_NORMAL", InputNormal, "Normal", "Retrieve a unit length vector indicating the direction pointing away from the geometry at each element")
 DefNode(GeometryNode, GEO_NODE_INPUT_POSITION, 0, "POSITION", InputPosition, "Position", "Retrieve a vector indicating the location of each element")
 DefNode(GeometryNode, GEO_NODE_INPUT_RADIUS, 0, "INPUT_RADIUS", InputRadius, "Radius", "Retrieve the radius at each point on curve or point cloud geometry")
