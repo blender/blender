@@ -116,10 +116,6 @@ void IDNode::destroy()
     return;
   }
 
-  for (ComponentNode *comp_node : components.values()) {
-    delete comp_node;
-  }
-
   /* Free memory used by this evaluated ID. */
   if (!ELEM(id_cow, id_orig, nullptr)) {
     deg_free_eval_copy_datablock(id_cow);
@@ -127,6 +123,10 @@ void IDNode::destroy()
     id_cow = nullptr;
     DEG_COW_PRINT(
         "Destroy evaluated ID for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
+  }
+
+  for (ComponentNode *comp_node : components.values()) {
+    delete comp_node;
   }
 
   /* Tag that the node is freed. */
