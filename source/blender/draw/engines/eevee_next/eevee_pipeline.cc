@@ -501,30 +501,6 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
 
 void DeferredLayer::begin_sync()
 {
-  if (GPU_use_parallel_compilation()) {
-    /* Pre-compile specialization constants in parallel. */
-    Vector<ShaderSpecialization> specializations;
-    for (int i = 0; i < 3; i++) {
-      GPUShader *sh = inst_.shaders.static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
-      for (bool use_split_indirect : {false, true}) {
-        for (bool use_lightprobe_eval : {false, true}) {
-          for (bool use_transmission : {false, true}) {
-            specializations.append(
-                {sh,
-                 {{"render_pass_shadow_id", inst_.render_buffers.data.shadow_id},
-                  {"use_split_indirect", use_split_indirect},
-                  {"use_lightprobe_eval", use_lightprobe_eval},
-                  {"use_transmission", use_transmission},
-                  {"shadow_ray_count", inst_.shadows.get_data().ray_count},
-                  {"shadow_ray_step_count", inst_.shadows.get_data().step_count}}});
-          }
-        }
-      }
-    }
-
-    GPU_shaders_precompile_specializations(specializations);
-  }
-
   {
     prepass_ps_.init();
     /* Textures. */
