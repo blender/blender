@@ -1649,7 +1649,8 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache);
 namespace blender::ed::sculpt_paint::undo {
 
 /**
- * Store undo data of the given type for a PBVH node.
+ * Store undo data of the given type for a PBVH node. This function can be called by multiple
+ * threads concurrently, as long as they don't pass the same PBVH node.
  *
  * This is only possible when building an undo step, in between #push_begin and #push_end.
  */
