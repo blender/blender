@@ -852,6 +852,7 @@ struct KeyInsertData {
 static SingleKeyingResult insert_key_layer(Layer &layer,
                                            Binding &binding,
                                            const std::string &rna_path,
+                                           const std::optional<PropertySubType> prop_subtype,
                                            const KeyInsertData &key_data,
                                            const KeyframeSettings &key_settings,
                                            const eInsertKeyFlags insert_key_flags)
@@ -864,8 +865,13 @@ static SingleKeyingResult insert_key_layer(Layer &layer,
   BLI_assert(strip->is_infinite());
   BLI_assert(strip->frame_offset == 0.0);
 
-  return strip->as<KeyframeStrip>().keyframe_insert(
-      binding, rna_path, key_data.array_index, key_data.position, key_settings, insert_key_flags);
+  return strip->as<KeyframeStrip>().keyframe_insert(binding,
+                                                    rna_path,
+                                                    key_data.array_index,
+                                                    prop_subtype,
+                                                    key_data.position,
+                                                    key_settings,
+                                                    insert_key_flags);
 }
 
 static CombinedKeyingResult insert_key_layered_action(Action &action,
@@ -922,6 +928,7 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
     const std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr,
                                                                                         prop);
     BLI_assert(rna_path_id_to_prop.has_value());
+    const PropertySubType prop_subtype = RNA_property_subtype(prop);
     Vector<float> rna_values = get_keyframe_values(&ptr, prop, use_visual_keyframing);
 
     for (const int property_index : rna_values.index_range()) {
@@ -932,8 +939,13 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
       }
 
       const KeyInsertData key_data = {{scene_frame, rna_values[property_index]}, property_index};
-      const SingleKeyingResult result = insert_key_layer(
-          *layer, *binding, *rna_path_id_to_prop, key_data, key_settings, insert_key_flags);
+      const SingleKeyingResult result = insert_key_layer(*layer,
+                                                         *binding,
+                                                         *rna_path_id_to_prop,
+                                                         prop_subtype,
+                                                         key_data,
+                                                         key_settings,
+                                                         insert_key_flags);
       combined_result.add(result);
     }
   }
