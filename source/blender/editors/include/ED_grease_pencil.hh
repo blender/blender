@@ -119,7 +119,16 @@ class DrawingPlacement {
   float3 project(float2 co) const;
   void project(Span<float2> src, MutableSpan<float3> dst) const;
 
+  /**
+   * Projects a 3D position (in local space) to the drawing plane.
+   */
+  float3 reproject(float3 pos) const;
+  void reproject(Span<float3> src, MutableSpan<float3> dst) const;
+
   float4x4 to_world_space() const;
+
+ private:
+  float3 project_depth(float2 co) const;
 };
 
 void set_selected_frames_type(bke::greasepencil::Layer &layer,

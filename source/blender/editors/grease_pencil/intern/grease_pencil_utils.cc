@@ -163,35 +163,36 @@ void DrawingPlacement::set_origin_to_nearest_stroke(const float2 co)
   plane_from_point_normal_v3(placement_plane_, placement_loc_, placement_normal_);
 }
 
+float3 DrawingPlacement::project_depth(const float2 co) const
+{
+  float3 proj_point;
+  float depth;
+  if (depth_cache_ != nullptr && ED_view3d_depth_read_cached(depth_cache_, int2(co), 4, &depth)) {
+    ED_view3d_depth_unproject_v3(region_, int2(co), depth, proj_point);
+    float3 normal;
+    ED_view3d_depth_read_cached_normal(region_, depth_cache_, int2(co), normal);
+    proj_point += normal * surface_offset_;
+  }
+  else {
+    /* Fallback to `View` placement. */
+    ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
+  }
+  return proj_point;
+}
+
 float3 DrawingPlacement::project(const float2 co) const
 {
   float3 proj_point;
   if (depth_ == DrawingPlacementDepth::Surface) {
     /* Project using the viewport depth cache. */
-    float depth;
-    if (depth_cache_ != nullptr && ED_view3d_depth_read_cached(depth_cache_, int2(co), 4, &depth))
-    {
-      ED_view3d_depth_unproject_v3(region_, int2(co), depth, proj_point);
-      float3 normal;
-      ED_view3d_depth_read_cached_normal(region_, depth_cache_, int2(co), normal);
-      proj_point += normal * surface_offset_;
-    }
-    else {
-      /* Fallback to `View` placement. */
-      ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
-    }
+    proj_point = this->project_depth(co);
   }
   else {
-    if (ELEM(plane_,
-             DrawingPlacementPlane::Front,
-             DrawingPlacementPlane::Side,
-             DrawingPlacementPlane::Top,
-             DrawingPlacementPlane::Cursor))
-    {
-      ED_view3d_win_to_3d_on_plane(region_, placement_plane_, co, false, proj_point);
-    }
-    else if (plane_ == DrawingPlacementPlane::View) {
+    if (plane_ == DrawingPlacementPlane::View) {
       ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
+    }
+    else {
+      ED_view3d_win_to_3d_on_plane(region_, placement_plane_, co, false, proj_point);
     }
   }
   return math::transform_point(world_space_to_layer_space_, proj_point);
@@ -202,6 +203,55 @@ void DrawingPlacement::project(const Span<float2> src, MutableSpan<float3> dst) 
   threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
       dst[i] = this->project(src[i]);
+    }
+  });
+}
+
+float3 DrawingPlacement::reproject(const float3 pos) const
+{
+  float3 proj_point;
+  if (depth_ == DrawingPlacementDepth::Surface) {
+    /* First project the position into view space. */
+    float2 co;
+    if (ED_view3d_project_float_global(region_,
+                                       math::transform_point(layer_space_to_world_space_, pos),
+                                       co,
+                                       V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK)
+    {
+      /* Can't reproject the point. */
+      return pos;
+    }
+    /* Project using the viewport depth cache. */
+    proj_point = this->project_depth(co);
+  }
+  else {
+    if (plane_ != DrawingPlacementPlane::View) {
+      /* Reproject the point onto the `placement_plane_` from the current view. */
+      RegionView3D *rv3d = static_cast<RegionView3D *>(region_->regiondata);
+
+      float3 ray_co, ray_no;
+      if (rv3d->is_persp) {
+        ray_co = float3(rv3d->viewinv[3]);
+        ray_no = math::normalize(ray_co - math::transform_point(layer_space_to_world_space_, pos));
+      }
+      else {
+        ray_co = math::transform_point(layer_space_to_world_space_, pos);
+        ray_no = -float3(rv3d->viewinv[2]);
+      }
+      float lambda;
+      if (isect_ray_plane_v3(ray_co, ray_no, placement_plane_, &lambda, false)) {
+        proj_point = ray_co + ray_no * lambda;
+      }
+    }
+  }
+  return math::transform_point(world_space_to_layer_space_, proj_point);
+}
+
+void DrawingPlacement::reproject(const Span<float3> src, MutableSpan<float3> dst) const
+{
+  threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      dst[i] = this->reproject(src[i]);
     }
   });
 }

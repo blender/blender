@@ -7,6 +7,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
@@ -26,6 +27,7 @@
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
+#include "GEO_join_geometries.hh"
 #include "GEO_simplify_curves.hh"
 #include "GEO_smooth_curves.hh"
 
@@ -822,6 +824,46 @@ static void simplify_stroke(bke::greasepencil::Drawing &drawing,
   }
 }
 
+static void outline_stroke(bke::greasepencil::Drawing &drawing,
+                           const int active_curve,
+                           const float4x4 &viewmat,
+                           const ed::greasepencil::DrawingPlacement &placement,
+                           const float outline_radius,
+                           const int material_index,
+                           const bool on_back)
+{
+  /* Get the outline stroke (single curve). */
+  bke::CurvesGeometry outline = ed::greasepencil::create_curves_outline(
+      drawing,
+      IndexRange::from_single(active_curve),
+      viewmat,
+      3,
+      outline_radius,
+      0.0f,
+      material_index);
+
+  /* Reproject the outline onto the drawing placement. */
+  placement.reproject(outline.positions(), outline.positions_for_write());
+
+  /* Remove the original stroke. */
+  drawing.strokes_for_write().remove_curves(IndexRange::from_single(active_curve), {});
+
+  /* Join the outline stroke into the drawing. */
+  Curves *outline_curve = bke::curves_new_nomain(std::move(outline));
+  Curves *other_curves = bke::curves_new_nomain(std::move(drawing.strokes_for_write()));
+  std::array<bke::GeometrySet, 2> geometry_sets;
+  if (on_back) {
+    geometry_sets = {bke::GeometrySet::from_curves(outline_curve),
+                     bke::GeometrySet::from_curves(other_curves)};
+  }
+  else {
+    geometry_sets = {bke::GeometrySet::from_curves(other_curves),
+                     bke::GeometrySet::from_curves(outline_curve)};
+  }
+  drawing.strokes_for_write() = std::move(
+      geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
+}
+
 static int trim_end_points(bke::greasepencil::Drawing &drawing,
                            const float epsilon,
                            const bool on_back,
@@ -918,6 +960,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
   using namespace blender::bke;
   Scene *scene = CTX_data_scene(&C);
   Object *object = CTX_data_active_object(&C);
+  RegionView3D *rv3d = CTX_wm_region_view3d(&C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   Paint *paint = &scene->toolsettings->gp_paint->paint;
@@ -947,6 +990,26 @@ void PaintOperation::on_stroke_done(const bContext &C)
                       this->screen_space_smoothed_coords_.as_span().drop_back(num_points_removed),
                       settings->simplify_px,
                       active_curve);
+    }
+    if ((settings->flag & GP_BRUSH_OUTLINE_STROKE) != 0) {
+      const float outline_radius = float(brush->unprojected_radius) * settings->outline_fac * 0.5f;
+      const int material_index = [&]() {
+        Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
+            CTX_data_main(&C), object, brush);
+        const int active_index = BKE_object_material_index_get(object, material);
+        if (settings->material_alt == nullptr) {
+          return active_index;
+        }
+        const int alt_index = BKE_object_material_slot_find_index(object, settings->material_alt);
+        return (alt_index > -1) ? alt_index - 1 : active_index;
+      }();
+      outline_stroke(drawing,
+                     active_curve,
+                     float4x4(rv3d->viewmat),
+                     placement_,
+                     outline_radius,
+                     material_index,
+                     on_back);
     }
   }
   drawing.set_texture_matrices({texture_space_}, IndexRange::from_single(active_curve));
