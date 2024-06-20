@@ -37,7 +37,6 @@
 #include "BLI_array_utils.hh"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_key_types.h"
@@ -134,6 +133,8 @@ struct StepData {
 
   float3 pivot_pos;
   float4 pivot_rot;
+
+  std::mutex nodes_mutex;
 
   Vector<std::unique_ptr<Node>> nodes;
 
@@ -1574,8 +1575,10 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
 
   Node *unode;
 
+  StepData *step_data = get_step_data();
+
   /* List is manipulated by multiple threads, so we lock. */
-  BLI_thread_lock(LOCK_CUSTOM1);
+  std::scoped_lock lock(step_data->nodes_mutex);
 
   ss->needs_flush_to_id = 1;
 
@@ -1584,18 +1587,15 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
       /* Dynamic topology stores only one undo node per stroke,
        * regardless of the number of PBVH nodes modified. */
       unode = bmesh_push(object, node, type);
-      BLI_thread_unlock(LOCK_CUSTOM1);
       // return unode;
       return;
     }
     if (type == Type::Geometry) {
       unode = geometry_push(object);
-      BLI_thread_unlock(LOCK_CUSTOM1);
       // return unode;
       return;
     }
     if ((unode = get_node(node, type))) {
-      BLI_thread_unlock(LOCK_CUSTOM1);
       // return unode;
       return;
     }
@@ -1631,8 +1631,6 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
         store_face_sets(*static_cast<const Mesh *>(object.data), *unode);
         break;
     }
-
-    BLI_thread_unlock(LOCK_CUSTOM1);
   });
 
   return unode;
