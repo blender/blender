@@ -138,6 +138,8 @@ static std::array<float4x4, 8> transform_matrices_init(
   return mats;
 }
 
+static constexpr float transform_mirror_max_distance_eps = 0.00002f;
+
 static void transform_node(Object &ob,
                            const std::array<float4x4, 8> &transform_mats,
                            PBVHNode *node)
@@ -148,6 +150,8 @@ static void transform_node(Object &ob,
   SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
 
   PBVHVertexIter vd;
+
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   undo::push_node(ob, node, undo::Type::Position);
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -172,6 +176,17 @@ static void transform_node(Object &ob,
     sub_v3_v3v3(disp, transformed_co, start_co);
     mul_v3_fl(disp, 1.0f - fade);
     add_v3_v3v3(vd.co, start_co, disp);
+
+    /* Keep vertices on the mirror axis. */
+    if ((symm & PAINT_SYMM_X) && (fabs(start_co[0]) < transform_mirror_max_distance_eps)) {
+      vd.co[0] = 0.0f;
+    }
+    if ((symm & PAINT_SYMM_Y) && (fabs(start_co[1]) < transform_mirror_max_distance_eps)) {
+      vd.co[1] = 0.0f;
+    }
+    if ((symm & PAINT_SYMM_Z) && (fabs(start_co[2]) < transform_mirror_max_distance_eps)) {
+      vd.co[2] = 0.0f;
+    }
   }
   BKE_pbvh_vertex_iter_end;
 
