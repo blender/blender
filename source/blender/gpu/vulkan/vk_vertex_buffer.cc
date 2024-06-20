@@ -62,9 +62,9 @@ void VKVertexBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
     buffer_view_info.range = buffer_.size_in_bytes();
 
     VK_ALLOCATION_CALLBACKS;
-    const VKDevice &device = VKBackend::get().device_get();
+    const VKDevice &device = VKBackend::get().device;
     vkCreateBufferView(
-        device.device_get(), &buffer_view_info, vk_allocation_callbacks, &vk_buffer_view_);
+        device.vk_handle(), &buffer_view_info, vk_allocation_callbacks, &vk_buffer_view_);
   }
 
   /* TODO: Check if we can move this check inside the descriptor set. */
@@ -127,9 +127,9 @@ void VKVertexBuffer::resize_data()
 void VKVertexBuffer::release_data()
 {
   if (vk_buffer_view_ != VK_NULL_HANDLE) {
-    const VKDevice &device = VKBackend::get().device_get();
+    const VKDevice &device = VKBackend::get().device;
     VK_ALLOCATION_CALLBACKS;
-    vkDestroyBufferView(device.device_get(), vk_buffer_view_, vk_allocation_callbacks);
+    vkDestroyBufferView(device.vk_handle(), vk_buffer_view_, vk_allocation_callbacks);
     vk_buffer_view_ = VK_NULL_HANDLE;
   }
 
@@ -193,7 +193,7 @@ void VKVertexBuffer::duplicate_data(VertBuf * /*dst*/)
 void VKVertexBuffer::device_format_ensure()
 {
   if (!vertex_format_converter.is_initialized()) {
-    const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
+    const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
     vertex_format_converter.init(&format, workarounds);
   }
 }

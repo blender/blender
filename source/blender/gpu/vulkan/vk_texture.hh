@@ -143,56 +143,6 @@ class VKTexture : public Texture, public VKBindableResource {
   VkExtent3D vk_extent_3d(int mip_level) const;
 
   /* -------------------------------------------------------------------- */
-  /** \name Image Layout
-   * \{ */
- public:
-  /**
-   * Update the current layout attribute, without actually changing the layout.
-   *
-   * Vulkan can change the layout of an image, when a command is being executed.
-   * The start of a render pass or the end of a render pass can also alter the
-   * actual layout of the image. This method allows to change the last known layout
-   * that the image is using.
-   *
-   * NOTE: When we add command encoding, this should partly being done inside
-   * the command encoder, as there is more accurate determination of the transition
-   * of the layout. Only the final transition should then be stored inside the texture
-   * to be used by as initial layout for the next set of commands.
-   */
-  void current_layout_set(VkImageLayout new_layout);
-  VkImageLayout current_layout_get() const;
-
-  /**
-   * Ensure the layout of the texture. This also performs the conversion by adding a memory
-   * barrier to the active command buffer to perform the conversion.
-   *
-   * When texture is already in the requested layout, nothing will be done.
-   */
-  void layout_ensure(VKContext &context,
-                     VkImageLayout requested_layout,
-                     VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                     VkAccessFlags src_access = VK_ACCESS_MEMORY_WRITE_BIT,
-                     VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                     VkAccessFlags dst_access = VK_ACCESS_MEMORY_READ_BIT);
-
- private:
-  /**
-   * Internal function to ensure the layout of a single mipmap level. Note that the caller is
-   * responsible to update the current_layout of the image at the end of the operation and make
-   * sure that all mipmap levels are in that given layout.
-   */
-  void layout_ensure(VKContext &context,
-                     IndexRange mipmap_range,
-                     VkImageLayout current_layout,
-                     VkImageLayout requested_layout,
-                     VkPipelineStageFlags src_stage,
-                     VkAccessFlags src_access,
-                     VkPipelineStageFlags dst_stage,
-                     VkAccessFlags dst_access);
-
-  /** \} */
-
-  /* -------------------------------------------------------------------- */
   /** \name Image Views
    * \{ */
 

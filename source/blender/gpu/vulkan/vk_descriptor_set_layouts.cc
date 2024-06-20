@@ -45,10 +45,10 @@ VkDescriptorSetLayout VKDescriptorSetLayouts::get_or_create(const VKDescriptorSe
   vk_descriptor_set_layout_create_info_.bindingCount = vk_descriptor_set_layout_bindings_.size();
   vk_descriptor_set_layout_create_info_.pBindings = vk_descriptor_set_layout_bindings_.data();
 
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   VkDescriptorSetLayout vk_descriptor_set_layout = VK_NULL_HANDLE;
   VK_ALLOCATION_CALLBACKS;
-  vkCreateDescriptorSetLayout(device.device_get(),
+  vkCreateDescriptorSetLayout(device.vk_handle(),
                               &vk_descriptor_set_layout_create_info_,
                               vk_allocation_callbacks,
                               &vk_descriptor_set_layout);
@@ -84,10 +84,10 @@ void VKDescriptorSetLayouts::deinit()
 {
   std::scoped_lock mutex(mutex_);
   VK_ALLOCATION_CALLBACKS;
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   for (VkDescriptorSetLayout &vk_descriptor_set_layout : vk_descriptor_set_layouts_.values()) {
     vkDestroyDescriptorSetLayout(
-        device.device_get(), vk_descriptor_set_layout, vk_allocation_callbacks);
+        device.vk_handle(), vk_descriptor_set_layout, vk_allocation_callbacks);
   }
   vk_descriptor_set_layouts_.clear();
 }

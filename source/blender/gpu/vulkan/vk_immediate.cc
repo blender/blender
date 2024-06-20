@@ -22,7 +22,7 @@ VKImmediate::~VKImmediate() {}
 uchar *VKImmediate::begin()
 {
   VKContext &context = *VKContext::get();
-  const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
+  const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
   vertex_format_converter.init(&vertex_format, workarounds);
   const size_t bytes_needed = vertex_buffer_size(&vertex_format_converter.device_format_get(),
                                                  vertex_len);

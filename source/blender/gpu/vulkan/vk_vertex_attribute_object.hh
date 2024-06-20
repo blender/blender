@@ -44,7 +44,6 @@ class VKVertexAttributeObject {
   VKVertexAttributeObject();
   void clear();
 
-  void bind(VKContext &context);
   void bind(render_graph::VKVertexBufferBindings &r_vertex_buffer_bindings) const;
 
   /** Copy assignment operator. */
@@ -74,9 +73,6 @@ class VKVertexAttributeObject {
                        const VKShaderInterface &interface,
                        AttributeMask &r_occupied_attributes,
                        const bool use_instancing);
-
-  void bind_vbos(VKContext &context);
-  void bind_buffers(VKContext &context);
 };
 
 }  // namespace blender::gpu

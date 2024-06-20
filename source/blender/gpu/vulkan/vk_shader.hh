@@ -12,7 +12,7 @@
 
 #include "vk_backend.hh"
 #include "vk_context.hh"
-#include "vk_pipeline.hh"
+#include "vk_push_constants.hh"
 
 #include "BLI_string_ref.hh"
 
@@ -34,7 +34,6 @@ class VKShader : public Shader {
    */
   VkDescriptorSetLayout vk_descriptor_set_layout_ = VK_NULL_HANDLE;
   /* deprecated `when use_render_graph=true`. In that case use vk_pipeline_ */
-  VKPipeline pipeline_;
 
   /**
    * Last created VkPipeline handle. This handle is used as template when building a variation of
@@ -98,13 +97,7 @@ class VKShader : public Shader {
                                               VKStateManager &state_manager,
                                               VKFrameBuffer &framebuffer);
 
-  VKPipeline &pipeline_get();
-
   const VKShaderInterface &interface_get() const;
-
-  void update_graphics_pipeline(VKContext &context,
-                                const GPUPrimType prim_type,
-                                const VKVertexAttributeObject &vertex_attribute_object);
 
   bool is_graphics_shader() const
   {

@@ -30,7 +30,7 @@ void VKBindableResource::unbind_from_active_context()
 
 void VKBindableResource::unbind_from_all_contexts()
 {
-  for (const VKContext &context : VKBackend::get().device_get().contexts_get()) {
+  for (const VKContext &context : VKBackend::get().device.contexts_get()) {
     VKStateManager &state_manager = context.state_manager_get();
     state_manager.unbind_from_all_namespaces(*this);
   }

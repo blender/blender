@@ -59,7 +59,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 
   /* Reserve 1 uniform buffer for push constants fallback. */
   size_t names_size = info.interface_names_size_;
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   const VKPushConstants::StorageType push_constants_storage_type =
       VKPushConstants::Layout::determine_storage_type(info, device);
   if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {

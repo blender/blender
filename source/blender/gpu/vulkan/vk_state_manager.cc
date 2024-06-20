@@ -9,7 +9,6 @@
 #include "vk_state_manager.hh"
 #include "vk_context.hh"
 #include "vk_index_buffer.hh"
-#include "vk_pipeline.hh"
 #include "vk_shader.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
@@ -21,12 +20,8 @@ namespace blender::gpu {
 
 void VKStateManager::apply_state()
 {
-  VKContext &context = *VKContext::get();
-  if (context.shader) {
-    VKShader &shader = unwrap(*context.shader);
-    VKPipeline &pipeline = shader.pipeline_get();
-    pipeline.state_manager_get().set_state(state, mutable_state);
-  }
+  /* Intentionally empty. State is polled during pipeline creation and doesn't need to be applied.
+   * If this leads to issues we should have an active state. */
 }
 
 void VKStateManager::apply_bindings(VKContext &context,
@@ -46,11 +41,7 @@ void VKStateManager::apply_bindings(VKContext &context,
 
 void VKStateManager::force_state()
 {
-  VKContext &context = *VKContext::get();
-  BLI_assert(context.shader);
-  VKShader &shader = unwrap(*context.shader);
-  VKPipeline &pipeline = shader.pipeline_get();
-  pipeline.state_manager_get().force_state(state, mutable_state);
+  /* Intentionally empty. State is polled during pipeline creation and is always forced. */
 }
 
 void VKStateManager::issue_barrier(eGPUBarrier /*barrier_bits*/) {}

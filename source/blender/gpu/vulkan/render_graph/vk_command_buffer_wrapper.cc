@@ -45,14 +45,14 @@ VKCommandBufferWrapper::VKCommandBufferWrapper()
 VKCommandBufferWrapper::~VKCommandBufferWrapper()
 {
   VK_ALLOCATION_CALLBACKS;
-  VKDevice &device = VKBackend::get().device_get();
+  VKDevice &device = VKBackend::get().device;
 
   if (vk_command_pool_ != VK_NULL_HANDLE) {
-    vkDestroyCommandPool(device.device_get(), vk_command_pool_, vk_allocation_callbacks);
+    vkDestroyCommandPool(device.vk_handle(), vk_command_pool_, vk_allocation_callbacks);
     vk_command_pool_ = VK_NULL_HANDLE;
   }
   if (vk_fence_ != VK_NULL_HANDLE) {
-    vkDestroyFence(device.device_get(), vk_fence_, vk_allocation_callbacks);
+    vkDestroyFence(device.vk_handle(), vk_fence_, vk_allocation_callbacks);
     vk_fence_ = VK_NULL_HANDLE;
   }
 }
@@ -60,10 +60,10 @@ VKCommandBufferWrapper::~VKCommandBufferWrapper()
 void VKCommandBufferWrapper::begin_recording()
 {
   VK_ALLOCATION_CALLBACKS;
-  VKDevice &device = VKBackend::get().device_get();
+  VKDevice &device = VKBackend::get().device;
   if (vk_command_pool_ == VK_NULL_HANDLE) {
     vk_command_pool_create_info_.queueFamilyIndex = device.queue_family_get();
-    vkCreateCommandPool(device.device_get(),
+    vkCreateCommandPool(device.vk_handle(),
                         &vk_command_pool_create_info_,
                         vk_allocation_callbacks,
                         &vk_command_pool_);
@@ -71,12 +71,11 @@ void VKCommandBufferWrapper::begin_recording()
     vk_command_pool_create_info_.queueFamilyIndex = 0;
   }
   if (vk_fence_ == VK_NULL_HANDLE) {
-    vkCreateFence(
-        device.device_get(), &vk_fence_create_info_, vk_allocation_callbacks, &vk_fence_);
+    vkCreateFence(device.vk_handle(), &vk_fence_create_info_, vk_allocation_callbacks, &vk_fence_);
   }
   BLI_assert(vk_command_buffer_ == VK_NULL_HANDLE);
   vkAllocateCommandBuffers(
-      device.device_get(), &vk_command_buffer_allocate_info_, &vk_command_buffer_);
+      device.vk_handle(), &vk_command_buffer_allocate_info_, &vk_command_buffer_);
 
   vkBeginCommandBuffer(vk_command_buffer_, &vk_command_buffer_begin_info_);
 }
@@ -88,16 +87,16 @@ void VKCommandBufferWrapper::end_recording()
 
 void VKCommandBufferWrapper::submit_with_cpu_synchronization()
 {
-  VKDevice &device = VKBackend::get().device_get();
-  vkResetFences(device.device_get(), 1, &vk_fence_);
+  VKDevice &device = VKBackend::get().device;
+  vkResetFences(device.vk_handle(), 1, &vk_fence_);
   vkQueueSubmit(device.queue_get(), 1, &vk_submit_info_, vk_fence_);
   vk_command_buffer_ = VK_NULL_HANDLE;
 }
 
 void VKCommandBufferWrapper::wait_for_cpu_synchronization()
 {
-  VKDevice &device = VKBackend::get().device_get();
-  while (vkWaitForFences(device.device_get(), 1, &vk_fence_, true, UINT64_MAX) == VK_TIMEOUT) {
+  VKDevice &device = VKBackend::get().device;
+  while (vkWaitForFences(device.vk_handle(), 1, &vk_fence_, true, UINT64_MAX) == VK_TIMEOUT) {
   }
 }
 
@@ -317,14 +316,14 @@ void VKCommandBufferWrapper::push_constants(VkPipelineLayout layout,
 
 void VKCommandBufferWrapper::begin_rendering(const VkRenderingInfo *p_rendering_info)
 {
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   BLI_assert(device.functions.vkCmdBeginRendering);
   device.functions.vkCmdBeginRendering(vk_command_buffer_, p_rendering_info);
 }
 
 void VKCommandBufferWrapper::end_rendering()
 {
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   BLI_assert(device.functions.vkCmdEndRendering);
   device.functions.vkCmdEndRendering(vk_command_buffer_);
 }
@@ -332,7 +331,7 @@ void VKCommandBufferWrapper::end_rendering()
 void VKCommandBufferWrapper::begin_debug_utils_label(
     const VkDebugUtilsLabelEXT *vk_debug_utils_label)
 {
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   if (device.functions.vkCmdBeginDebugUtilsLabel) {
     device.functions.vkCmdBeginDebugUtilsLabel(vk_command_buffer_, vk_debug_utils_label);
   }
@@ -340,7 +339,7 @@ void VKCommandBufferWrapper::begin_debug_utils_label(
 
 void VKCommandBufferWrapper::end_debug_utils_label()
 {
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   if (device.functions.vkCmdEndDebugUtilsLabel) {
     device.functions.vkCmdEndDebugUtilsLabel(vk_command_buffer_);
   }

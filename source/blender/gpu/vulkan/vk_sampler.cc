@@ -24,7 +24,7 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
   BLI_assert(sampler_state.type != GPU_SAMPLER_STATE_TYPE_INTERNAL);
   BLI_assert(vk_sampler_ == VK_NULL_HANDLE);
 
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
 
   VkSamplerCreateInfo sampler_info = {};
   sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -69,7 +69,7 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
   }
 
   VK_ALLOCATION_CALLBACKS
-  vkCreateSampler(device.device_get(), &sampler_info, vk_allocation_callbacks, &vk_sampler_);
+  vkCreateSampler(device.vk_handle(), &sampler_info, vk_allocation_callbacks, &vk_sampler_);
   debug::object_label(vk_sampler_, sampler_state.to_string().c_str());
 }
 
@@ -79,9 +79,9 @@ void VKSampler::free()
   if (vk_sampler_ != VK_NULL_HANDLE) {
     VK_ALLOCATION_CALLBACKS
 
-    const VKDevice &device = VKBackend::get().device_get();
-    if (device.device_get() != VK_NULL_HANDLE) {
-      vkDestroySampler(device.device_get(), vk_sampler_, vk_allocation_callbacks);
+    const VKDevice &device = VKBackend::get().device;
+    if (device.vk_handle() != VK_NULL_HANDLE) {
+      vkDestroySampler(device.vk_handle(), vk_sampler_, vk_allocation_callbacks);
     }
     vk_sampler_ = VK_NULL_HANDLE;
   }

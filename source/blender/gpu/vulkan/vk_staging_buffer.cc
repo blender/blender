@@ -7,7 +7,6 @@
  */
 
 #include "vk_staging_buffer.hh"
-#include "vk_command_buffers.hh"
 #include "vk_context.hh"
 
 namespace blender::gpu {
