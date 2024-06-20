@@ -73,7 +73,7 @@ struct SphereProbeAtlasCoord {
   {
     SphereProbePixelArea coord;
     coord.extent = area_extent(mip_lvl);
-    coord.offset = area_offset();
+    coord.offset = area_offset(mip_lvl);
     coord.layer = atlas_layer;
     return coord;
   }
@@ -220,7 +220,7 @@ class LightProbeModule {
   /** True if the auto bake feature is enabled & available in this context. */
   bool auto_bake_enabled_;
 
-  eLightProbeResolution sphere_object_resolution_ = LIGHT_PROBE_RESOLUTION_64;
+  eLightProbeResolution sphere_object_resolution_ = LIGHT_PROBE_RESOLUTION_128;
 
  public:
   LightProbeModule(Instance &inst);
