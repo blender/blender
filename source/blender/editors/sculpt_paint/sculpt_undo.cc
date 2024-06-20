@@ -1572,7 +1572,7 @@ static Node *bmesh_push(const Object &object, const PBVHNode *node, Type type)
   return unode;
 }
 
-Node *push_node(const Object &object, const PBVHNode *node, Type type)
+void push_node(const Object &object, const PBVHNode *node, Type type)
 {
   SculptSession &ss = *object.sculpt;
 
@@ -1634,8 +1634,6 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
         break;
     }
   });
-
-  return unode;
 }
 
 static void save_active_attribute(Object &object, SculptAttrRef *attr)
