@@ -179,11 +179,12 @@ def extension_url_find_repo_index_and_pkg_id(url):
     repo_cache_store = repo_cache_store_ensure()
 
     for repo_index, (
-            pkg_manifest_remote,
             pkg_manifest_local,
+            pkg_manifest_remote,
     ) in enumerate(zip(
-        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
         repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
+        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
+        strict=True,
     )):
         # It's possible the remote repo could not be connected to when syncing.
         # Allow it to be None without raising an exception.
@@ -500,11 +501,12 @@ def _preferences_ensure_sync():
     repo_cache_store = repo_cache_store_ensure()
     sync_required = False
     for (
-            pkg_manifest_remote,
             pkg_manifest_local,
+            pkg_manifest_remote,
     ) in zip(
-        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
         repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
+        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
+        strict=True,
     ):
         if pkg_manifest_remote is None:
             sync_required = True

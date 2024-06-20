@@ -1617,6 +1617,7 @@ class _RepoCacheEntry:
         self.directory = directory
         self.remote_url = remote_url
         # Manifest data per package loaded from the packages local JSON.
+        # TODO(@ideasman42): use `_RepoDataSouce_ABC` for `pkg_manifest_local`.
         self._pkg_manifest_local: Optional[Dict[str, PkgManifest_Normalized]] = None
         self._pkg_manifest_remote: Optional[Dict[str, PkgManifest_Normalized]] = None
         self._pkg_manifest_remote_data_source: _RepoDataSouce_ABC = (
@@ -1837,11 +1838,16 @@ class RepoCacheStore:
                 if repo_entry.directory not in directory_subset:
                     continue
 
-            yield repo_entry._json_data_ensure(
-                check_files=check_files,
-                ignore_missing=ignore_missing,
-                error_fn=error_fn,
-            )
+            # While we could yield a valid manifest here,
+            # leave it to the caller to skip "remote" data for local-only repositories.
+            if repo_entry.remote_url:
+                yield repo_entry._json_data_ensure(
+                    check_files=check_files,
+                    ignore_missing=ignore_missing,
+                    error_fn=error_fn,
+                )
+            else:
+                yield None
 
     def pkg_manifest_from_local_ensure(
             self,
