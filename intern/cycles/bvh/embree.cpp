@@ -178,7 +178,7 @@ void BVHEmbree::build(Progress &progress,
   rtcCommitScene(scene);
 }
 
-string BVHEmbree::get_last_error_message()
+const char *BVHEmbree::get_last_error_message()
 {
   const RTCError error_code = rtcGetDeviceError(rtc_device);
   switch (error_code) {

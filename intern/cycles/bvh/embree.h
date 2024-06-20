@@ -41,7 +41,7 @@ class BVHEmbree : public BVH {
   bool offload_scenes_to_gpu(const vector<RTCScene> &scenes);
 #  endif
 
-  string get_last_error_message();
+  const char *get_last_error_message();
 
   RTCScene scene;
 
