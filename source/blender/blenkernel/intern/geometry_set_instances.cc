@@ -13,6 +13,8 @@
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
+#include "DEG_depsgraph_query.hh"
+
 namespace blender::bke {
 
 static void add_final_mesh_as_geometry_component(const Object &object, GeometrySet &geometry_set)
@@ -28,6 +30,9 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
 
 GeometrySet object_get_evaluated_geometry_set(const Object &object)
 {
+  if (!DEG_object_geometry_is_evaluated(object)) {
+    return {};
+  }
   if (object.type == OB_MESH && object.mode == OB_MODE_EDIT) {
     GeometrySet geometry_set;
     if (object.runtime->geometry_set_eval != nullptr) {
