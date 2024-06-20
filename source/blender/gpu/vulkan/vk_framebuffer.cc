@@ -56,6 +56,8 @@ void VKFrameBuffer::bind(bool enabled_srgb)
   Shader::set_framebuffer_srgb_target(enabled_srgb && srgb_);
   load_stores.fill(default_load_store());
   attachment_states_.fill(GPU_ATTACHMENT_WRITE);
+  viewport_reset();
+  scissor_reset();
 }
 
 Array<VkViewport, 16> VKFrameBuffer::vk_viewports_get() const
@@ -486,7 +488,6 @@ void VKFrameBuffer::update_size()
       return;
     }
   }
-  size_set(1, 1);
 }
 
 void VKFrameBuffer::update_srgb()
@@ -528,9 +529,6 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
   dirty_state_ = false;
   depth_attachment_format_ = VK_FORMAT_UNDEFINED;
   stencil_attachment_format_ = VK_FORMAT_UNDEFINED;
-
-  viewport_reset();
-  scissor_reset();
 
   render_graph::VKResourceAccessInfo access_info;
   render_graph::VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
