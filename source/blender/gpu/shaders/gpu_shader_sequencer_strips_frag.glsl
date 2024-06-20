@@ -46,13 +46,11 @@ void main()
 
   /* Transform strip rectangle into pixel coordinates, so that
    * rounded corners have proper aspect ratio and can be expressed in pixels.
-   * Make sure strip right side does not include the last pixel.
    * Also snap to pixel grid coordinates, so that outline/border is clear
    * non-fractional pixel sizes. */
   vec2 view_to_pixel = vec2(context_data.inv_pixelx, context_data.inv_pixely);
   vec2 pos1 = round(vec2(strip.left_handle, strip.bottom) * view_to_pixel);
   vec2 pos2 = round(vec2(strip.right_handle, strip.top) * view_to_pixel);
-  pos2.x -= 1.0;
   /* Make sure strip is at least 1px wide. */
   pos2.x = max(pos2.x, pos1.x + 1.0);
   vec2 size = (pos2 - pos1) * 0.5;
@@ -177,13 +175,6 @@ void main()
     }
   }
 
-  /* Inset 1px line with background color. */
-  if (border && selected) {
-    /* Inset line should be inside regular border or inside the handles. */
-    float d = max(sdf_inner - 2.0 * context_data.pixelsize, sdf);
-    col = add_outline(d, 2.0, 3.0, col, unpackUnorm4x8(context_data.col_back));
-  }
-
   /* Outside of strip rounded rectangle? */
   if (sdf > 0.0) {
     col = vec4(0.0);
@@ -191,7 +182,18 @@ void main()
 
   /* Outline / border. */
   if (border) {
-    col = add_outline(sdf, 0.0, outline_width, col, col_outline);
+
+    if (selected) {
+      /* Selection highlight + darker inset line. */
+      col = add_outline(sdf, 1.0, 3.0, col, col_outline);
+      /* Inset line should be inside regular border or inside the handles. */
+      float d = max(sdf_inner - 3.0 * context_data.pixelsize, sdf);
+      col = add_outline(d, 3.0, 4.0, col, vec4(0, 0, 0, 0.33));
+    }
+
+    /* Outer 1px outline for all strips. */
+    col = add_outline(
+        sdf, 0.0, 1.0, col, selected ? unpackUnorm4x8(context_data.col_back) : col_outline);
   }
 
   fragColor = col;
