@@ -453,8 +453,8 @@ void multires_force_sculpt_rebuild(Object *object)
     return;
   }
 
-  SculptSession *ss = object->sculpt;
-  bke::pbvh::free(ss->pbvh);
+  SculptSession &ss = *object->sculpt;
+  bke::pbvh::free(ss.pbvh);
 }
 
 void multires_force_external_reload(Object *object)

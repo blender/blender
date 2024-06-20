@@ -85,9 +85,9 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
 
 static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
 {
-  SculptSession *ss = gesture_data.ss;
+  SculptSession &ss = *gesture_data.ss;
   const Sculpt &sd = *CTX_data_tool_settings(&C)->sculpt;
-  if (ss->deform_modifiers_active || ss->shapekey_active) {
+  if (ss.deform_modifiers_active || ss.shapekey_active) {
     SCULPT_flush_stroke_deform(sd, *gesture_data.vc.obact, true);
   }
 
