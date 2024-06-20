@@ -1587,6 +1587,36 @@ void push_node(const Object &object, const PBVHNode *node, Type type)
   fill_node_data(object, node, type, *unode);
 }
 
+void push_nodes(Object &object, const Span<const PBVHNode *> nodes, const Type type)
+{
+  SculptSession &ss = *object.sculpt;
+  if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
+    for (const PBVHNode *node : nodes) {
+      bmesh_push(object, node, type);
+    }
+    return;
+  }
+
+  StepData *step_data = get_step_data();
+
+  Vector<std::pair<const PBVHNode *, Node *>, 32> nodes_to_fill;
+  for (const PBVHNode *node : nodes) {
+    bool newly_added;
+    Node *unode = ensure_node(*step_data, *node, type, newly_added);
+    if (newly_added) {
+      nodes_to_fill.append({node, unode});
+    }
+  }
+
+  ss.needs_flush_to_id = 1;
+
+  threading::parallel_for(nodes_to_fill.index_range(), 1, [&](const IndexRange range) {
+    for (const auto &[node, unode] : nodes_to_fill.as_span().slice(range)) {
+      fill_node_data(object, node, type, *unode);
+    }
+  });
+}
+
 static void save_active_attribute(Object &object, SculptAttrRef *attr)
 {
   Mesh *mesh = BKE_object_get_original_mesh(&object);

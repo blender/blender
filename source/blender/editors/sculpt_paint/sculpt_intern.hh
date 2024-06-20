@@ -1653,6 +1653,7 @@ namespace blender::ed::sculpt_paint::undo {
  * This is only possible when building an undo step, in between #push_begin and #push_end.
  */
 void push_node(const Object &object, const PBVHNode *node, undo::Type type);
+void push_nodes(Object &object, Span<const PBVHNode *> nodes, undo::Type type);
 
 /**
  * Retrieve the undo data of a given type for the active undo step. For example, this is used to

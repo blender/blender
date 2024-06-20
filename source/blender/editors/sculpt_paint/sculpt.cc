@@ -3544,38 +3544,46 @@ static void sculpt_topology_update(const Scene & /*scene*/,
   mul_m4_v3(ob.object_to_world().ptr(), location);
 }
 
-static void push_undo_nodes(Object &ob, const Brush &brush, PBVHNode *node)
+static void push_undo_nodes(Object &ob, const Brush &brush, const Span<PBVHNode *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
 
   bool need_coords = ss.cache->supports_gravity;
 
   if (brush.sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
-    BKE_pbvh_node_mark_update_face_sets(node);
+    for (PBVHNode *node : nodes) {
+      BKE_pbvh_node_mark_update_face_sets(node);
+    }
 
     /* Draw face sets in smooth mode moves the vertices. */
     if (ss.cache->alt_smooth) {
       need_coords = true;
     }
     else {
-      undo::push_node(ob, node, undo::Type::FaceSet);
+      undo::push_nodes(ob, nodes, undo::Type::FaceSet);
     }
   }
   else if (brush.sculpt_tool == SCULPT_TOOL_MASK) {
-    undo::push_node(ob, node, undo::Type::Mask);
-    BKE_pbvh_node_mark_update_mask(node);
+    undo::push_nodes(ob, nodes, undo::Type::Mask);
+    for (PBVHNode *node : nodes) {
+      BKE_pbvh_node_mark_update_mask(node);
+    }
   }
   else if (SCULPT_tool_is_paint(brush.sculpt_tool)) {
-    undo::push_node(ob, node, undo::Type::Color);
-    BKE_pbvh_node_mark_update_color(node);
+    undo::push_nodes(ob, nodes, undo::Type::Color);
+    for (PBVHNode *node : nodes) {
+      BKE_pbvh_node_mark_update_color(node);
+    }
   }
   else {
     need_coords = true;
   }
 
   if (need_coords) {
-    undo::push_node(ob, node, undo::Type::Position);
-    BKE_pbvh_node_mark_positions_update(node);
+    undo::push_nodes(ob, nodes, undo::Type::Position);
+    for (PBVHNode *node : nodes) {
+      BKE_pbvh_node_mark_positions_update(node);
+    }
   }
 }
 
@@ -3685,11 +3693,7 @@ static void do_brush_action(const Scene &scene,
   float location[3];
 
   if (!use_pixels) {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      for (const int i : range) {
-        push_undo_nodes(ob, brush, nodes[i]);
-      }
-    });
+    push_undo_nodes(ob, brush, nodes);
   }
 
   if (sculpt_brush_needs_normal(ss, sd, brush)) {
