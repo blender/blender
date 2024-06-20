@@ -60,52 +60,65 @@ uint32_t Material::pack_data(float metallic, float roughness, float alpha)
   return (packed_alpha << 16u) | (packed_roughness << 8u) | packed_metallic;
 }
 
-void get_material_image(Object *ob,
-                        int material_slot,
-                        ::Image *&image,
-                        ImageUser *&iuser,
-                        GPUSamplerState &sampler_state)
+MaterialTexture::MaterialTexture(Object *ob, int material_index)
 {
   const ::bNode *node = nullptr;
 
-  ED_object_get_active_image(ob, material_slot + 1, &image, &iuser, &node, nullptr);
-  if (node && image) {
-    switch (node->type) {
-      case SH_NODE_TEX_IMAGE: {
-        const NodeTexImage *storage = static_cast<NodeTexImage *>(node->storage);
-        const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
-        sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
-        switch (storage->extension) {
-          case SHD_IMAGE_EXTENSION_EXTEND:
-          default:
-            sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_EXTEND;
-            sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_EXTEND;
-            break;
-          case SHD_IMAGE_EXTENSION_REPEAT:
-            sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
-            sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
-            break;
-          case SHD_IMAGE_EXTENSION_MIRROR:
-            sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT;
-            sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT;
-            break;
-          case SHD_IMAGE_EXTENSION_CLIP:
-            sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
-            sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
-            break;
-        }
-        break;
-      }
-      case SH_NODE_TEX_ENVIRONMENT: {
-        const NodeTexEnvironment *storage = static_cast<NodeTexEnvironment *>(node->storage);
-        const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
-        sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
-        break;
-      }
-      default:
-        BLI_assert_msg(0, "Node type not supported by workbench");
-    }
+  ::Image *image = nullptr;
+  ImageUser *user = nullptr;
+  ED_object_get_active_image(ob, material_index + 1, &image, &user, &node, nullptr);
+  if (!node || !image) {
+    return;
   }
+
+  switch (node->type) {
+    case SH_NODE_TEX_IMAGE: {
+      const NodeTexImage *storage = static_cast<NodeTexImage *>(node->storage);
+      const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
+      sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
+      switch (storage->extension) {
+        case SHD_IMAGE_EXTENSION_EXTEND:
+        default:
+          sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_EXTEND;
+          sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_EXTEND;
+          break;
+        case SHD_IMAGE_EXTENSION_REPEAT:
+          sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+          sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+          break;
+        case SHD_IMAGE_EXTENSION_MIRROR:
+          sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT;
+          sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT;
+          break;
+        case SHD_IMAGE_EXTENSION_CLIP:
+          sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
+          sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
+          break;
+      }
+      break;
+    }
+    case SH_NODE_TEX_ENVIRONMENT: {
+      const NodeTexEnvironment *storage = static_cast<NodeTexEnvironment *>(node->storage);
+      const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
+      sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
+      break;
+    }
+    default:
+      BLI_assert_msg(0, "Node type not supported by workbench");
+  }
+
+  gpu = BKE_image_get_gpu_material_texture(image, user, true);
+  premultiplied = image->alpha_mode == IMA_ALPHA_PREMUL;
+  alpha_cutoff = !ELEM(image->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED);
+  name = image->id.name;
+}
+
+MaterialTexture::MaterialTexture(::Image *image, ImageUser *user /* = nullptr */)
+{
+  gpu = BKE_image_get_gpu_material_texture(image, user, true);
+  premultiplied = image->alpha_mode == IMA_ALPHA_PREMUL;
+  alpha_cutoff = !ELEM(image->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED);
+  name = image->id.name;
 }
 
 }  // namespace blender::workbench
