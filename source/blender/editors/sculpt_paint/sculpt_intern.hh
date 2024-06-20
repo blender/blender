@@ -193,16 +193,6 @@ struct Node {
   BMLogEntry *bm_entry;
   bool applied;
 
-  /* Geometry modification operations.
-   *
-   * Original geometry is stored before some modification is run and is used to restore state of
-   * the object when undoing the operation
-   *
-   * Modified geometry is stored after the modification and is used to redo the modification. */
-  bool geometry_clear_pbvh;
-  undo::NodeGeometry geometry_original;
-  undo::NodeGeometry geometry_modified;
-
   /* Geometry at the bmesh enter moment. */
   undo::NodeGeometry geometry_bmesh_enter;
 

@@ -38,6 +38,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "iostream"
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
@@ -139,6 +140,21 @@ struct StepData {
 
   float3 pivot_pos;
   float4 pivot_rot;
+
+  /* Geometry modification operations.
+   *
+   * Original geometry is stored before some modification is run and is used to restore state of
+   * the object when undoing the operation
+   *
+   * Modified geometry is stored after the modification and is used to redo the modification. */
+  bool geometry_clear_pbvh;
+  undo::NodeGeometry geometry_original;
+  undo::NodeGeometry geometry_modified;
+
+  /* Geometry at the bmesh enter moment. */
+  undo::NodeGeometry geometry_bmesh_enter;
+
+  bool applied;
 
   std::mutex nodes_mutex;
 
@@ -859,19 +875,19 @@ static void geometry_free_data(NodeGeometry *geometry)
                                      &geometry->face_offsets_sharing_info);
 }
 
-static void restore_geometry(Node &unode, Object &object)
+static void restore_geometry(StepData &step_data, Object &object)
 {
-  if (unode.geometry_clear_pbvh) {
+  if (step_data.geometry_clear_pbvh) {
     SCULPT_pbvh_clear(object);
   }
 
-  if (unode.applied) {
-    restore_geometry_data(&unode.geometry_modified, object);
-    unode.applied = false;
+  if (step_data.applied) {
+    restore_geometry_data(&step_data.geometry_modified, object);
+    step_data.applied = false;
   }
   else {
-    restore_geometry_data(&unode.geometry_original, object);
-    unode.applied = true;
+    restore_geometry_data(&step_data.geometry_original, object);
+    step_data.applied = true;
   }
 }
 
@@ -983,74 +999,77 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   Vector<bool> modified_verts_color;
   Vector<bool> modified_faces_face_set;
   Vector<bool> modified_grids;
-  for (std::unique_ptr<Node> &unode : step_data.nodes) {
-    /* Check if undo data matches current data well enough to continue. */
-    if (unode->mesh_verts_num) {
-      if (ss.totvert != unode->mesh_verts_num) {
-        continue;
+  if (step_data.type == Type::Geometry) {
+    restore_geometry(step_data, object);
+    changed_all_geometry = true;
+    BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
+  }
+  else {
+    for (std::unique_ptr<Node> &unode : step_data.nodes) {
+      /* Check if undo data matches current data well enough to continue. */
+      if (unode->mesh_verts_num) {
+        if (ss.totvert != unode->mesh_verts_num) {
+          continue;
+        }
       }
-    }
-    else if (unode->mesh_grids_num && subdiv_ccg != nullptr) {
-      if ((subdiv_ccg->grids.size() != unode->mesh_grids_num) ||
-          (subdiv_ccg->grid_size != unode->grid_size))
-      {
-        continue;
+      else if (unode->mesh_grids_num && subdiv_ccg != nullptr) {
+        if ((subdiv_ccg->grids.size() != unode->mesh_grids_num) ||
+            (subdiv_ccg->grid_size != unode->grid_size))
+        {
+          continue;
+        }
+
+        use_multires_undo = true;
       }
 
-      use_multires_undo = true;
-    }
-
-    switch (step_data.type) {
-      case Type::None:
-        BLI_assert_unreachable();
-        break;
-      case Type::Position:
-        modified_verts_position.resize(ss.totvert, false);
-        if (restore_coords(C, object, depsgraph, step_data, *unode, modified_verts_position)) {
-          changed_position = true;
-        }
-        break;
-      case Type::HideVert:
-        modified_verts_hide.resize(ss.totvert, false);
-        if (restore_hidden(object, *unode, modified_verts_hide)) {
-          changed_hide_vert = true;
-        }
-        break;
-      case Type::HideFace:
-        modified_faces_hide.resize(ss.totfaces, false);
-        if (restore_hidden_face(object, *unode, modified_faces_hide)) {
-          changed_hide_face = true;
-        }
-        break;
-      case Type::Mask:
-        modified_verts_mask.resize(ss.totvert, false);
-        if (restore_mask(object, *unode, modified_verts_mask)) {
-          changed_mask = true;
-        }
-        break;
-      case Type::FaceSet:
-        modified_faces_face_set.resize(ss.totfaces, false);
-        if (restore_face_sets(object, *unode, modified_faces_face_set)) {
-          changed_face_sets = true;
-        }
-        break;
-      case Type::Color:
-        modified_verts_color.resize(ss.totvert, false);
-        if (restore_color(object, *unode, modified_verts_color)) {
-          changed_color = true;
-        }
-        break;
-      case Type::Geometry:
-        restore_geometry(*unode, object);
-        changed_all_geometry = true;
-        BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
-        break;
-
-      case Type::DyntopoBegin:
-      case Type::DyntopoEnd:
-      case Type::DyntopoSymmetrize:
-        BLI_assert_msg(0, "Dynamic topology should've already been handled");
-        break;
+      switch (step_data.type) {
+        case Type::None:
+          BLI_assert_unreachable();
+          break;
+        case Type::Position:
+          modified_verts_position.resize(ss.totvert, false);
+          if (restore_coords(C, object, depsgraph, step_data, *unode, modified_verts_position)) {
+            changed_position = true;
+          }
+          break;
+        case Type::HideVert:
+          modified_verts_hide.resize(ss.totvert, false);
+          if (restore_hidden(object, *unode, modified_verts_hide)) {
+            changed_hide_vert = true;
+          }
+          break;
+        case Type::HideFace:
+          modified_faces_hide.resize(ss.totfaces, false);
+          if (restore_hidden_face(object, *unode, modified_faces_hide)) {
+            changed_hide_face = true;
+          }
+          break;
+        case Type::Mask:
+          modified_verts_mask.resize(ss.totvert, false);
+          if (restore_mask(object, *unode, modified_verts_mask)) {
+            changed_mask = true;
+          }
+          break;
+        case Type::FaceSet:
+          modified_faces_face_set.resize(ss.totfaces, false);
+          if (restore_face_sets(object, *unode, modified_faces_face_set)) {
+            changed_face_sets = true;
+          }
+          break;
+        case Type::Color:
+          modified_verts_color.resize(ss.totvert, false);
+          if (restore_color(object, *unode, modified_verts_color)) {
+            changed_color = true;
+          }
+          break;
+        case Type::Geometry:
+        case Type::DyntopoBegin:
+        case Type::DyntopoEnd:
+        case Type::DyntopoSymmetrize:
+          /* Handled elsewhere. */
+          BLI_assert_unreachable();
+          break;
+      }
     }
   }
 
@@ -1141,9 +1160,9 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
 
 static void free_step_data(StepData &step_data)
 {
+  geometry_free_data(&step_data.geometry_original);
+  geometry_free_data(&step_data.geometry_modified);
   for (std::unique_ptr<Node> &unode : step_data.nodes) {
-    geometry_free_data(&unode->geometry_original);
-    geometry_free_data(&unode->geometry_modified);
     geometry_free_data(&unode->geometry_bmesh_enter);
     if (unode->bm_entry) {
       BM_log_entry_drop(unode->bm_entry);
@@ -1316,43 +1335,28 @@ static void store_color(const Object &object, Node &unode)
   }
 }
 
-static NodeGeometry *geometry_get(Node &unode)
+static NodeGeometry *geometry_get(StepData &step_data)
 {
-  if (!unode.geometry_original.is_initialized) {
-    return &unode.geometry_original;
+  if (!step_data.geometry_original.is_initialized) {
+    return &step_data.geometry_original;
   }
 
-  BLI_assert(!unode.geometry_modified.is_initialized);
+  BLI_assert(!step_data.geometry_modified.is_initialized);
 
-  return &unode.geometry_modified;
+  return &step_data.geometry_modified;
 }
 
-static Node *geometry_push(const Object &object)
+static void geometry_push(const Object &object)
 {
   StepData *step_data = get_step_data();
 
-  Node *unode = nullptr;
-  for (std::unique_ptr<Node> &iter_unode : step_data->nodes) {
-    if (step_data->type == Type::Geometry) {
-      unode = iter_unode.get();
-      break;
-    }
-  }
+  step_data->type = Type::Geometry;
 
-  if (!unode) {
-    step_data->nodes.append(std::make_unique<Node>());
+  step_data->applied = false;
+  step_data->geometry_clear_pbvh = true;
 
-    unode = step_data->nodes.last().get();
-    step_data->type = Type::Geometry;
-  }
-
-  unode->applied = false;
-  unode->geometry_clear_pbvh = true;
-
-  NodeGeometry *geometry = geometry_get(*unode);
+  NodeGeometry *geometry = geometry_get(*step_data);
   store_geometry_data(geometry, object);
-
-  return unode;
 }
 
 static void store_face_sets(const Mesh &mesh, Node &unode)
@@ -1743,6 +1747,8 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
     unode->normal = {};
   }
 
+  std::cout << step_data->nodes.size() << '\n';
+
   step_data->undo_size = threading::parallel_reduce(
       step_data->nodes.index_range(),
       16,
@@ -2088,8 +2094,8 @@ void push_multires_mesh_begin(bContext *C, const char *str)
 
   push_begin_ex(*object, str);
 
-  Node *geometry_unode = geometry_push(*object);
-  geometry_unode->geometry_clear_pbvh = false;
+  geometry_push(*object);
+  get_step_data()->geometry_clear_pbvh = false;
 
   push_all_grids(object);
 }
@@ -2103,8 +2109,8 @@ void push_multires_mesh_end(bContext *C, const char *str)
 
   Object *object = CTX_data_active_object(C);
 
-  Node *geometry_unode = geometry_push(*object);
-  geometry_unode->geometry_clear_pbvh = false;
+  geometry_push(*object);
+  get_step_data()->geometry_clear_pbvh = false;
 
   push_end(*object);
 }
