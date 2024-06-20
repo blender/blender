@@ -54,43 +54,34 @@ void MeshPass::init_subpasses(ePipelineType pipeline, eLightingType lighting, bo
   }
 }
 
-PassMain::Sub &MeshPass::get_subpass(
-    eGeometryType geometry_type,
-    ::Image *image /* = nullptr */,
-    GPUSamplerState sampler_state /* = GPUSamplerState::default_sampler() */,
-    ImageUser *iuser /* = nullptr */)
+PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
+                                     const MaterialTexture *texture /* = nullptr */)
 {
   is_empty_ = false;
 
-  if (image) {
-    ImageGPUTextures gputex = BKE_image_get_gpu_material_texture(image, iuser, true);
-    if (gputex.texture) {
-      auto add_cb = [&] {
-        PassMain::Sub *sub_pass = passes_[int(geometry_type)][int(eShaderType::TEXTURE)];
-        sub_pass = &sub_pass->sub(image->id.name);
-        if (gputex.tile_mapping) {
-          sub_pass->bind_texture(WB_TILE_ARRAY_SLOT, gputex.texture, sampler_state);
-          sub_pass->bind_texture(WB_TILE_DATA_SLOT, gputex.tile_mapping);
-        }
-        else {
-          sub_pass->bind_texture(WB_TEXTURE_SLOT, gputex.texture, sampler_state);
-        }
-        sub_pass->push_constant("isImageTile", gputex.tile_mapping != nullptr);
-        sub_pass->push_constant("imagePremult", image->alpha_mode == IMA_ALPHA_PREMUL);
-        /* TODO(@pragma37): This setting should be exposed on the user side,
-         * either as a global parameter (and set it here)
-         * or by reading the Material Clipping Threshold (and set it per material) */
-        float alpha_cutoff = 0.1f;
-        if (ELEM(image->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED)) {
-          alpha_cutoff = -FLT_MAX;
-        }
-        sub_pass->push_constant("imageTransparencyCutoff", alpha_cutoff);
-        return sub_pass;
-      };
+  if (texture && texture->gpu.texture) {
+    auto add_cb = [&] {
+      PassMain::Sub *sub_pass = passes_[int(geometry_type)][int(eShaderType::TEXTURE)];
+      sub_pass = &sub_pass->sub(texture->name);
+      if (texture->gpu.tile_mapping) {
+        sub_pass->bind_texture(WB_TILE_ARRAY_SLOT, texture->gpu.texture, texture->sampler_state);
+        sub_pass->bind_texture(WB_TILE_DATA_SLOT, texture->gpu.tile_mapping);
+      }
+      else {
+        sub_pass->bind_texture(WB_TEXTURE_SLOT, texture->gpu.texture, texture->sampler_state);
+      }
+      sub_pass->push_constant("isImageTile", texture->gpu.tile_mapping != nullptr);
+      sub_pass->push_constant("imagePremult", texture->premultiplied);
+      /* TODO(@pragma37): This setting should be exposed on the user side,
+       * either as a global parameter (and set it here)
+       * or by reading the Material Clipping Threshold (and set it per material) */
+      float alpha_cutoff = texture->alpha_cutoff ? 0.1f : -FLT_MAX;
+      sub_pass->push_constant("imageTransparencyCutoff", alpha_cutoff);
+      return sub_pass;
+    };
 
-      return *texture_subpass_map_.lookup_or_add_cb(
-          TextureSubPassKey(gputex.texture, geometry_type), add_cb);
-    }
+    return *texture_subpass_map_.lookup_or_add_cb(
+        TextureSubPassKey(texture->gpu.texture, geometry_type), add_cb);
   }
 
   return *passes_[int(geometry_type)][int(eShaderType::MATERIAL)];
