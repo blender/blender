@@ -136,8 +136,6 @@ struct StepData {
 
   std::mutex nodes_mutex;
 
-  Vector<std::unique_ptr<Node>> nodes;
-
   /**
    * #undo::Node is stored per PBVH node to reduce data storage needed for changes only impacting
    * small portions of the mesh. During undo step creation and brush evaluation we often need to
@@ -151,7 +149,10 @@ struct StepData {
    * should be unnecessary. However, to remove it, first the storage of the undo type should be
    * moved to #StepData from #Node.
    */
-  Map<std::pair<const PBVHNode *, Type>, Node *> undo_nodes_by_pbvh_node;
+  Map<std::pair<const PBVHNode *, Type>, std::unique_ptr<Node>> undo_nodes_by_pbvh_node;
+
+  /** Storage of per-node undo data after creation of the undo step is finished. */
+  Vector<std::unique_ptr<Node>> nodes;
 
   size_t undo_size;
 };
@@ -1148,11 +1149,17 @@ static void free_step_data(StepData &step_data)
 const Node *get_node(const PBVHNode *node, const Type type)
 {
   StepData *step_data = get_step_data();
-  if (step_data == nullptr) {
+  if (!step_data) {
     return nullptr;
   }
-
-  return step_data->undo_nodes_by_pbvh_node.lookup_default({node, type}, nullptr);
+  /* This access does not need to be locked because this function is not expected to be called
+   * while the per-node undo data is being pushed. In other words, this must not be called
+   * concurrently with #push_node.*/
+  std::unique_ptr<Node> *node_ptr = step_data->undo_nodes_by_pbvh_node.lookup_ptr({node, type});
+  if (!node_ptr) {
+    return nullptr;
+  }
+  return node_ptr->get();
 }
 
 static size_t alloc_and_store_hidden(const SculptSession &ss, const PBVHNode &node, Node &unode)
@@ -1174,28 +1181,13 @@ static size_t alloc_and_store_hidden(const SculptSession &ss, const PBVHNode &no
   return unode.grid_hidden.all_bits().full_ints_num() / bits::BitsPerInt;
 }
 
-/* Allocate node and initialize its default fields specific for the given undo type.
- * Will also add the node to the list in the undo step. */
-static Node *alloc_node_type(const Type type)
-{
-  StepData *step_data = get_step_data();
-  std::unique_ptr<Node> unode = std::make_unique<Node>();
-  step_data->nodes.append(std::move(unode));
-  step_data->undo_size += sizeof(Node);
-
-  Node *node_ptr = step_data->nodes.last().get();
-  node_ptr->type = type;
-
-  return node_ptr;
-}
-
-static Node *alloc_node(const Object &object, const PBVHNode *node, const Type type)
+static void fill_node_data(const Object &object,
+                           const PBVHNode *node,
+                           const Type type,
+                           Node &unode)
 {
   StepData *step_data = get_step_data();
   const SculptSession &ss = *object.sculpt;
-
-  Node &unode = *alloc_node_type(type);
-  step_data->undo_nodes_by_pbvh_node.add({node, type}, &unode);
 
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
@@ -1306,8 +1298,6 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
     unode.orig_position.reinitialize(unode.vert_indices.size());
     step_data->undo_size += unode.orig_position.as_span().size_in_bytes();
   }
-
-  return &unode;
 }
 
 static void store_coords(const Object &object, Node &unode)
@@ -1466,7 +1456,11 @@ static Node *geometry_push(const Object &object)
   }
 
   if (!unode) {
-    unode = alloc_node_type(Type::Geometry);
+    step_data->nodes.append(std::make_unique<Node>());
+    step_data->undo_size += sizeof(Node);
+
+    unode = step_data->nodes.last().get();
+    unode->type = Type::Geometry;
   }
 
   unode->applied = false;
@@ -1486,10 +1480,16 @@ static void store_face_sets(const Mesh &mesh, Node &unode)
       unode.face_sets.as_mutable_span());
 }
 
-static Node *bmesh_push(const Object &object, const PBVHNode *node, Type type)
+/**
+ * Dynamic topology stores only one undo node per stroke, regardless of the number of PBVH nodes
+ * modified.
+ */
+static void bmesh_push(const Object &object, const PBVHNode *node, Type type)
 {
   StepData *step_data = get_step_data();
   const SculptSession &ss = *object.sculpt;
+
+  std::scoped_lock lock(step_data->nodes_mutex);
 
   Node *unode = step_data->nodes.is_empty() ? nullptr : step_data->nodes.first().get();
 
@@ -1565,72 +1565,77 @@ static Node *bmesh_push(const Object &object, const PBVHNode *node, Type type)
         break;
     }
   }
+}
 
-  return unode;
+/**
+ * Add an undo node for the PBVH node to the step's storage. If the node was newly created and
+ * needs to be filled with data, set \a r_new to true.
+ */
+static Node *ensure_node(StepData &step_data, const PBVHNode &node, const Type type, bool &r_new)
+{
+  std::scoped_lock lock(step_data.nodes_mutex);
+  r_new = false;
+  std::unique_ptr<Node> &unode = step_data.undo_nodes_by_pbvh_node.lookup_or_add_cb(
+      {&node, type}, [&]() {
+        std::unique_ptr<Node> unode = std::make_unique<Node>();
+        unode->type = type;
+        r_new = true;
+        return unode;
+      });
+  return unode.get();
 }
 
 void push_node(const Object &object, const PBVHNode *node, Type type)
 {
   SculptSession &ss = *object.sculpt;
-
-  Node *unode;
+  if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
+    bmesh_push(object, node, type);
+    return;
+  }
 
   StepData *step_data = get_step_data();
 
-  /* List is manipulated by multiple threads, so we lock. */
-  std::scoped_lock lock(step_data->nodes_mutex);
+  bool newly_added;
+  Node *unode = ensure_node(*step_data, *node, type, newly_added);
+  if (!newly_added) {
+    /* The node was already filled with data for this undo step. */
+    return;
+  }
 
   ss.needs_flush_to_id = 1;
 
-  threading::isolate_task([&]() {
-    if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
-      /* Dynamic topology stores only one undo node per stroke,
-       * regardless of the number of PBVH nodes modified. */
-      unode = bmesh_push(object, node, type);
-      // return unode;
-      return;
-    }
-    if ((unode = step_data->undo_nodes_by_pbvh_node.lookup_default({node, type}, nullptr))) {
-      // return unode;
-      return;
-    }
+  fill_node_data(object, node, type, *unode);
 
-    unode = alloc_node(object, node, type);
-
-    /* NOTE: If this ever becomes a bottleneck, make a lock inside of the node.
-     * so we release global lock sooner, but keep data locked for until it is
-     * fully initialized. */
-    switch (type) {
-      case Type::Position:
-        store_coords(object, *unode);
-        break;
-      case Type::HideVert:
-        store_hidden(object, *node, *unode);
-        break;
-      case Type::HideFace:
-        store_face_hidden(object, *unode);
-        break;
-      case Type::Mask:
-        store_mask(object, *unode);
-        break;
-      case Type::Color:
-        store_color(object, *unode);
-        break;
-      case Type::DyntopoBegin:
-      case Type::DyntopoEnd:
-      case Type::DyntopoSymmetrize:
-        /* Dyntopo should be handled above. */
-        BLI_assert_unreachable();
-        break;
-      case Type::Geometry:
-        /* See #geometry_push. */
-        BLI_assert_unreachable();
-        break;
-      case Type::FaceSet:
-        store_face_sets(*static_cast<const Mesh *>(object.data), *unode);
-        break;
-    }
-  });
+  switch (type) {
+    case Type::Position:
+      store_coords(object, *unode);
+      break;
+    case Type::HideVert:
+      store_hidden(object, *node, *unode);
+      break;
+    case Type::HideFace:
+      store_face_hidden(object, *unode);
+      break;
+    case Type::Mask:
+      store_mask(object, *unode);
+      break;
+    case Type::Color:
+      store_color(object, *unode);
+      break;
+    case Type::DyntopoBegin:
+    case Type::DyntopoEnd:
+    case Type::DyntopoSymmetrize:
+      /* Dyntopo should be handled above. */
+      BLI_assert_unreachable();
+      break;
+    case Type::Geometry:
+      /* See #geometry_push. */
+      BLI_assert_unreachable();
+      break;
+    case Type::FaceSet:
+      store_face_sets(*static_cast<const Mesh *>(object.data), *unode);
+      break;
+  }
 }
 
 static void save_active_attribute(Object &object, SculptAttrRef *attr)
@@ -1711,13 +1716,18 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
 {
   StepData *step_data = get_step_data();
 
+  /* Move undo node storage from map to vector. */
+  step_data->nodes.reserve(step_data->undo_nodes_by_pbvh_node.size());
+  for (std::unique_ptr<Node> &node : step_data->undo_nodes_by_pbvh_node.values()) {
+    step_data->nodes.append(std::move(node));
+  }
+  step_data->undo_nodes_by_pbvh_node.clear_and_shrink();
+
   /* We don't need normals in the undo stack. */
   for (std::unique_ptr<Node> &unode : step_data->nodes) {
     step_data->undo_size -= unode->normal.as_span().size_in_bytes();
     unode->normal = {};
   }
-
-  step_data->undo_nodes_by_pbvh_node.clear_and_shrink();
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
