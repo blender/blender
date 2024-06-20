@@ -557,10 +557,11 @@ struct MaskOperation {
   float value;
 };
 
-static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
+static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &gesture_data)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
+  undo::push_begin(*gesture_data.vc.obact, &op);
 }
 
 static float mask_gesture_get_new_value(const float elem, FloodFillMode mode, float value)
@@ -648,6 +649,7 @@ static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
     multires_mark_as_modified(depsgraph, gesture_data.vc.obact, MULTIRES_COORDS_MODIFIED);
   }
   blender::bke::pbvh::update_mask(*gesture_data.ss->pbvh);
+  undo::push_end(*gesture_data.vc.obact);
 }
 
 static void init_operation(bContext &C, gesture::GestureData &gesture_data, wmOperator &op)

@@ -1304,9 +1304,12 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
     case Type::DyntopoBegin:
     case Type::DyntopoEnd:
     case Type::DyntopoSymmetrize:
-      BLI_assert_msg(0, "Dynamic topology should've already been handled");
+      /* Dyntopo should be handled elsewhere. */
+      BLI_assert_unreachable();
       break;
     case Type::Geometry:
+      /* See #geometry_push. */
+      BLI_assert_unreachable();
       break;
     case Type::FaceSet: {
       unode->face_sets.reinitialize(unode->face_indices.size());
@@ -1590,11 +1593,6 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
       // return unode;
       return;
     }
-    if (type == Type::Geometry) {
-      unode = geometry_push(object);
-      // return unode;
-      return;
-    }
     if ((unode = get_node(node, type))) {
       // return unode;
       return;
@@ -1624,8 +1622,12 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
       case Type::DyntopoBegin:
       case Type::DyntopoEnd:
       case Type::DyntopoSymmetrize:
-        BLI_assert_msg(0, "Dynamic topology should've already been handled");
+        /* Dyntopo should be handled above. */
+        BLI_assert_unreachable();
+        break;
       case Type::Geometry:
+        /* See #geometry_push. */
+        BLI_assert_unreachable();
         break;
       case Type::FaceSet:
         store_face_sets(*static_cast<const Mesh *>(object.data), *unode);
@@ -1958,18 +1960,18 @@ static void step_free(UndoStep *us_p)
 void geometry_begin(Object &ob, const wmOperator *op)
 {
   push_begin(ob, op);
-  push_node(ob, nullptr, Type::Geometry);
+  geometry_push(ob);
 }
 
 void geometry_begin_ex(Object &ob, const char *name)
 {
   push_begin_ex(ob, name);
-  push_node(ob, nullptr, Type::Geometry);
+  geometry_push(ob);
 }
 
 void geometry_end(Object &ob)
 {
-  push_node(ob, nullptr, Type::Geometry);
+  geometry_push(ob);
   push_end(ob);
 }
 
@@ -2055,7 +2057,7 @@ void push_multires_mesh_begin(bContext *C, const char *str)
 
   push_begin_ex(*object, str);
 
-  Node *geometry_unode = push_node(*object, nullptr, Type::Geometry);
+  Node *geometry_unode = geometry_push(*object);
   geometry_unode->geometry_clear_pbvh = false;
 
   push_all_grids(object);
@@ -2070,7 +2072,7 @@ void push_multires_mesh_end(bContext *C, const char *str)
 
   Object *object = CTX_data_active_object(C);
 
-  Node *geometry_unode = push_node(*object, nullptr, Type::Geometry);
+  Node *geometry_unode = geometry_push(*object);
   geometry_unode->geometry_clear_pbvh = false;
 
   push_end(*object);

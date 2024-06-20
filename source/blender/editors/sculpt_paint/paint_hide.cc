@@ -1277,11 +1277,12 @@ static void partialvis_gesture_update_bmesh(gesture::GestureData &gesture_data)
       *gesture_data.vc.obact, gesture_data.nodes, operation->action, selection_test_fn);
 }
 
-static void hide_show_begin(bContext &C, gesture::GestureData & /*gesture_data*/)
+static void hide_show_begin(bContext &C, wmOperator &op, gesture::GestureData & /*gesture_data*/)
 {
   Object *ob = CTX_data_active_object(&C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
 
+  undo::push_begin(*ob, &op);
   BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
 }
 
@@ -1305,6 +1306,7 @@ static void hide_show_end(bContext &C, gesture::GestureData &gesture_data)
 {
   SCULPT_topology_islands_invalidate(*gesture_data.vc.obact->sculpt);
   tag_update_visibility(C);
+  undo::push_end(*gesture_data.vc.obact);
 }
 
 static void hide_show_init_properties(bContext & /*C*/,

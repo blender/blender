@@ -1806,7 +1806,7 @@ struct GestureData {
 /* Common abstraction structure for gesture operations. */
 struct Operation {
   /* Initial setup (data updates, special undo push...). */
-  void (*begin)(bContext &, GestureData &);
+  void (*begin)(bContext &, wmOperator &, GestureData &);
 
   /* Apply the gesture action for each symmetry pass. */
   void (*apply_for_symmetry_pass)(bContext &, GestureData &);

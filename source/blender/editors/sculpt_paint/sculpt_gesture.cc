@@ -444,9 +444,8 @@ bool is_affected(GestureData &gesture_data, const float3 &co, const float3 &vert
 void apply(bContext &C, GestureData &gesture_data, wmOperator &op)
 {
   Operation *operation = gesture_data.operation;
-  undo::push_begin(*CTX_data_active_object(&C), &op);
 
-  operation->begin(C, gesture_data);
+  operation->begin(C, op, gesture_data);
 
   for (int symmpass = 0; symmpass <= gesture_data.symm; symmpass++) {
     if (SCULPT_is_symmetry_iteration_valid(symmpass, gesture_data.symm)) {
@@ -458,8 +457,6 @@ void apply(bContext &C, GestureData &gesture_data, wmOperator &op)
   }
 
   operation->end(C, gesture_data);
-
-  undo::push_end(*CTX_data_active_object(&C));
 
   SCULPT_tag_update_overlays(&C);
 }
