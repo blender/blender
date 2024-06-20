@@ -4,25 +4,13 @@
 
 ##################################################################################################
 #
-# This is a build system used by platform maintainers to build library dependencies on
-# Windows, macOS and Linux.
+# This is a build system used by platform maintainers to build library dependencies.
+# For users building Blender, we recommend using the precompiled libraries from lib/
+# on all platforms.
 #
-# For users building Blender, we recommend using the precompiled libraries from lib/ on
-# Windows and macOS, and install_deps.sh on Linux.
-#
-# WINDOWS USAGE:
-#   Don't call this cmake file yourself, use build_deps.cmd
-#   build_deps 2013 x64 / build_deps 2013 x86
-#   build_deps 2015 x64 / build_deps 2015 x86
-#
-# MAC OS X USAGE:
-#   Install with homebrew: brew install autoconf automake bison cmake libtool pkg-config yasm
-#   Additional requirements for macOS arm64: brew install flex
-#   Run "make deps" from main Blender directory
-#
-# LINUX USAGE:
-#   Install compiler cmake autoconf automake libtool yasm tcl
-#   Run "make deps" from main Blender directory
+# This CMake project is usually built through wrappers:
+# * Windows: build_files/build_environment/windows/build_deps.cmd
+# * macOS and Linux: "make deps" from the blender directory
 #
 ##################################################################################################
 
