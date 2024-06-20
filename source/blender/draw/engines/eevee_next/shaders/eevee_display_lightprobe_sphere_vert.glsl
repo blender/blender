@@ -27,6 +27,7 @@ void main()
 
   vec3 vs_offset = vec3(lP, 0.0) * sphere_radius;
   vec3 vP = drw_point_world_to_view(ws_probe_pos) + vs_offset;
+  P = drw_point_view_to_world(vP);
 
   gl_Position = drw_point_view_to_homogenous(vP);
   /* Small bias to let the icon draw without Z-fighting. */
