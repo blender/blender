@@ -347,18 +347,21 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiItemR(row, ptr, "author_blender_name", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiLayoutSetActive(row, RNA_boolean_get(op->ptr, "export_custom_properties"));
 #  if PXR_VERSION >= 2403
-    uiItemR(col, ptr, "allow_unicode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "allow_unicode", UI_ITEM_NONE, nullptr, ICON_NONE);
 #  endif
 
-    col = uiLayoutColumnWithHeading(col, true, IFACE_("File References"));
-    uiItemR(col, ptr, "relative_paths", UI_ITEM_NONE, nullptr, ICON_NONE);
+    sub = uiLayoutColumnWithHeading(col, true, IFACE_("File References"));
+    uiItemR(sub, ptr, "relative_paths", UI_ITEM_NONE, nullptr, ICON_NONE);
 
+    col = uiLayoutColumn(panel, false);
     uiItemR(col, ptr, "convert_orientation", UI_ITEM_NONE, nullptr, ICON_NONE);
     if (RNA_boolean_get(ptr, "convert_orientation")) {
       uiItemR(col, ptr, "export_global_forward_selection", UI_ITEM_NONE, nullptr, ICON_NONE);
       uiItemR(col, ptr, "export_global_up_selection", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
     uiItemR(col, ptr, "xform_op_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+    col = uiLayoutColumn(panel, false);
     uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
