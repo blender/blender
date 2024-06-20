@@ -147,7 +147,7 @@ mat3 ltc_matrix(vec4 lut)
 mat3x3 ltc_tangent_basis(vec3 N, vec3 V)
 {
   float NV = dot(N, V);
-  if (NV > 0.9999) {
+  if (NV > 0.999999) {
     /* Mostly for orthographic view and surfel light eval. */
     return from_up_axis(N);
   }

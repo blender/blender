@@ -663,17 +663,6 @@ const bTheme U_theme_default = {
     .vertex_size = 3,
     .outline_width = 1,
     .facedot_size = 4,
-    .movie = RGBA(0x4d6890ff),
-    .movieclip = RGBA(0x8f4c4cff),
-    .mask = RGBA(0x8f5656ff),
-    .image = RGBA(0x8f744bff),
-    .scene = RGBA(0x808033ff),
-    .audio = RGBA(0x448080ff),
-    .effect = RGBA(0x514a73ff),
-    .transition = RGBA(0x50458fff),
-    .meta = RGBA(0x5b4d91ff),
-    .text_strip = RGBA(0x824c8fff),
-    .color_strip = RGBA(0x8f8f8fff),
     .active_strip = RGBA(0xffffffff),
     .selected_strip = RGBA(0xff8f0dff),
     .gp_vertex_size = 3,
@@ -695,6 +684,17 @@ const bTheme U_theme_default = {
     .keytype_generated_select = RGBA(0xa28962ff),
     .keyborder = RGBA(0x000000ff),
     .keyborder_select = RGBA(0x000000ff),
+    .movie = RGBA(0x6282a3ff),
+    .movieclip = RGBA(0x8f6e56ff),
+    .mask = RGBA(0x8f5656ff),
+    .image = RGBA(0x8c548cff),
+    .scene = RGBA(0x999999ff),
+    .audio = RGBA(0x568f6dff),
+    .effect = RGBA(0x7b5f80ff),
+    .transition = RGBA(0x867accff),
+    .meta = RGBA(0x7b995cff),
+    .text_strip = RGBA(0x9f926fff),
+    .color_strip = RGBA(0x99995cff),
   },
   .space_image = {
     .back = RGBA(0x30303000),
@@ -1236,19 +1236,19 @@ const bTheme U_theme_default = {
   },
   .strip_color = {
     {
-      .color = RGBA(0xe2605bff),
+      .color = RGBA(0xcc5a52ff),
     },
     {
-      .color = RGBA(0xf1a355ff),
+      .color = RGBA(0xcc8a48ff),
     },
     {
-      .color = RGBA(0xf1dc55ff),
+      .color = RGBA(0xb3a33fff),
     },
     {
-      .color = RGBA(0x7bcc7bff),
+      .color = RGBA(0x5c995cff),
     },
     {
-      .color = RGBA(0x5db6eaff),
+      .color = RGBA(0x519fccff),
     },
     {
       .color = RGBA(0x8d59daff),
@@ -1257,10 +1257,10 @@ const bTheme U_theme_default = {
       .color = RGBA(0xc673b8ff),
     },
     {
-      .color = RGBA(0x7a5441ff),
+      .color = RGBA(0x996952ff),
     },
     {
-      .color = RGBA(0x5f5f5fff),
+      .color = RGBA(0x808080ff),
     },
   },
 };

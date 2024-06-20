@@ -169,6 +169,20 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_sequencer.keytype_generated_select);
   }
 
+  if (!USER_VERSION_ATLEAST(402, 62)) {
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.audio);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.color_strip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.effect);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.image);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.meta);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.movie);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.movieclip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.scene);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.text_strip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.transition);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
