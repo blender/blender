@@ -112,7 +112,7 @@ static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
   }
 }
 
-struct AttributesForInterpolation : NonCopyable, NonMovable {
+struct AttributesForResample : NonCopyable, NonMovable {
   Vector<GSpan> src;
   Vector<GMutableSpan> dst;
 
@@ -133,7 +133,7 @@ struct AttributesForInterpolation : NonCopyable, NonMovable {
 static void gather_point_attributes_to_interpolate(
     const CurvesGeometry &src_curves,
     CurvesGeometry &dst_curves,
-    AttributesForInterpolation &result,
+    AttributesForResample &result,
     const ResampleCurvesOutputAttributeIDs &output_ids)
 {
   VectorSet<bke::AttributeIDRef> ids;
@@ -193,7 +193,7 @@ static void gather_point_attributes_to_interpolate(
 
 static void copy_or_defaults_for_unselected_curves(const CurvesGeometry &src_curves,
                                                    const IndexMask &unselected_curves,
-                                                   const AttributesForInterpolation &attributes,
+                                                   const AttributesForResample &attributes,
                                                    CurvesGeometry &dst_curves)
 {
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
@@ -265,7 +265,7 @@ static void resample_to_uniform(const CurvesGeometry &src_curves,
 
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
-  AttributesForInterpolation attributes;
+  AttributesForResample attributes;
   gather_point_attributes_to_interpolate(src_curves, dst_curves, attributes, output_ids);
 
   src_curves.ensure_evaluated_lengths();
@@ -528,7 +528,7 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
 
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
-  AttributesForInterpolation attributes;
+  AttributesForResample attributes;
   gather_point_attributes_to_interpolate(src_curves, dst_curves, attributes, output_ids);
 
   src_curves.ensure_can_interpolate_to_evaluated();
