@@ -129,6 +129,9 @@ struct StepData {
   /** Name of the object associated with this undo data (`object.id.name`). */
   std::string object_name;
 
+  /** Name of the object's active shape key when the undo step was created. */
+  std::string active_shape_key_name;
+
   Vector<std::unique_ptr<Node>> nodes;
 
   /**
@@ -443,6 +446,7 @@ static bool restore_deformed(
 static bool restore_coords(bContext *C,
                            Object &object,
                            Depsgraph *depsgraph,
+                           const StepData &step_data,
                            Node &unode,
                            MutableSpan<bool> modified_verts)
 {
@@ -452,11 +456,12 @@ static bool restore_coords(bContext *C,
   if (unode.mesh_verts_num) {
     /* Regular mesh restore. */
 
-    if (ss->shapekey_active && !STREQ(ss->shapekey_active->name, unode.shapeName)) {
+    if (ss->shapekey_active && ss->shapekey_active->name != step_data.active_shape_key_name) {
       /* Shape key has been changed before calling undo operator. */
 
       Key *key = BKE_key_from_object(&object);
-      KeyBlock *kb = key ? BKE_keyblock_find_name(key, unode.shapeName) : nullptr;
+      KeyBlock *kb = key ? BKE_keyblock_find_name(key, step_data.active_shape_key_name.c_str()) :
+                           nullptr;
 
       if (kb) {
         object.shapenr = BLI_findindex(&key->block, kb) + 1;
@@ -990,7 +995,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     switch (unode->type) {
       case Type::Position:
         modified_verts_position.resize(ss->totvert, false);
-        if (restore_coords(C, object, depsgraph, *unode, modified_verts_position)) {
+        if (restore_coords(C, object, depsgraph, step_data, *unode, modified_verts_position)) {
           changed_position = true;
         }
         break;
@@ -1631,14 +1636,6 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
   copy_v3_v3(unode->pivot_pos, ss->pivot_pos);
   copy_v3_v3(unode->pivot_rot, ss->pivot_rot);
 
-  /* Store active shape key. */
-  if (ss->shapekey_active) {
-    STRNCPY(unode->shapeName, ss->shapekey_active->name);
-  }
-  else {
-    unode->shapeName[0] = '\0';
-  }
-
   return unode;
 }
 
@@ -1698,6 +1695,10 @@ void push_begin_ex(Object &ob, const char *name)
   if (!us->active_color_end.was_set) {
     save_active_attribute(ob, &us->active_color_end);
     us->active_color_end.was_set = false;
+  }
+
+  if (const KeyBlock *key = BKE_keyblock_from_object(&ob)) {
+    us->data.active_shape_key_name = key->name;
   }
 }
 

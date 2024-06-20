@@ -194,9 +194,6 @@ struct Node {
   BMLogEntry *bm_entry;
   bool applied;
 
-  /* shape keys */
-  char shapeName[MAX_NAME]; /* `sizeof(KeyBlock::name)`. */
-
   /* Geometry modification operations.
    *
    * Original geometry is stored before some modification is run and is used to restore state of
