@@ -443,6 +443,7 @@ enum FillToolFitMethod {
  * \param boundary_layers: Layers that are purely for boundaries, regular strokes are not rendered.
  * \param src_drawings: Drawings to include as boundary strokes.
  * \param invert: Construct boundary around empty areas instead.
+ * \param alpha_threshold: Render transparent stroke where opacity is below the threshold.
  * \param fill_point: Point from which to start the bucket fill.
  * \param fit_method: View fitting method to include all strokes.
  * \param stroke_material_index: Material index to use for the new strokes.
@@ -455,6 +456,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                  const VArray<bool> &boundary_layers,
                                  Span<DrawingInfo> src_drawings,
                                  bool invert,
+                                 const std::optional<float> alpha_threshold,
                                  const float2 &fill_point,
                                  FillToolFitMethod fit_method,
                                  int stroke_material_index,
