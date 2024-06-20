@@ -99,7 +99,7 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
             repo_directories=repo_directories,
             cookie=cookie_from_session(),
     ) as lock_result:
-        for directory, repo_files in zip(repo_directories, repos_notify_files):
+        for directory, repo_files in zip(repo_directories, repos_notify_files, strict=True):
             repo_files = [os.path.join(directory, filepath_rel) for filepath_rel in repo_files]
 
             # If locking failed, remove the temporary files that were written to.

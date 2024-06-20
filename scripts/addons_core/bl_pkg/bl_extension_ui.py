@@ -495,6 +495,27 @@ def extensions_panel_draw_missing_impl(
         row_right.operator("preferences.addon_disable", text="", icon="X", emboss=False).module = addon_module_name
 
 
+def pkg_manifest_zip_all_items(pkg_manifest_local, pkg_manifest_remote):
+    if pkg_manifest_remote is None:
+        if pkg_manifest_local is not None:
+            for pkg_id, item_local in pkg_manifest_local.items():
+                yield pkg_id, (item_local, None)
+        # If both are none, there are no items, that's OK.
+        return
+    elif pkg_manifest_local is None:
+        for pkg_id, item_remote in pkg_manifest_remote.items():
+            yield pkg_id, (None, item_remote)
+        return
+
+    assert (pkg_manifest_remote is not None) and (pkg_manifest_local is not None)
+    pkg_manifest_local_copy = pkg_manifest_local.copy()
+    for pkg_id, item_remote in pkg_manifest_remote.items():
+        yield pkg_id, (pkg_manifest_local_copy.pop(pkg_id, None), item_remote)
+    # Orphan packages (if they exist).
+    for pkg_id, item_local in pkg_manifest_local_copy.items():
+        yield pkg_id, (item_local, None)
+
+
 def extensions_panel_draw_impl(
         self,
         context,
@@ -568,23 +589,24 @@ def extensions_panel_draw_impl(
     # Collect exceptions accessing repositories, and optionally show them.
     errors_on_draw = []
 
-    remote_ex = None
     local_ex = None
-
-    def error_fn_remote(ex):
-        nonlocal remote_ex
-        remote_ex = ex
+    remote_ex = None
 
     def error_fn_local(ex):
         nonlocal local_ex
         local_ex = ex
 
+    def error_fn_remote(ex):
+        nonlocal remote_ex
+        remote_ex = ex
+
     for repo_index, (
-            pkg_manifest_remote,
             pkg_manifest_local,
+            pkg_manifest_remote,
     ) in enumerate(zip(
-        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=error_fn_remote),
         repo_cache_store.pkg_manifest_from_local_ensure(error_fn=error_fn_local),
+        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=error_fn_remote),
+        strict=True,
     )):
         # Show any exceptions created while accessing the JSON,
         # if the JSON has an IO error while being read or if the directory doesn't exist.
@@ -622,25 +644,25 @@ def extensions_panel_draw_impl(
                         repos_all[repo_index].name,
                     )
                 )
-            continue
+                continue
 
         # Read-only.
         is_system_repo = repos_all[repo_index].source == 'SYSTEM'
 
-        for pkg_id, item_remote in pkg_manifest_remote.items():
-            if filter_by_type and (filter_by_type != item_remote.type):
+        for pkg_id, (item_local, item_remote) in pkg_manifest_zip_all_items(pkg_manifest_local, pkg_manifest_remote):
+            item = item_local or item_remote
+            if filter_by_type and (filter_by_type != item.type):
                 continue
-            if search_lower and (not pkg_info_check_exclude_filter(item_remote, search_lower)):
+            if search_lower and (not pkg_info_check_exclude_filter(item, search_lower)):
                 continue
 
-            item_local = pkg_manifest_local.get(pkg_id)
             is_installed = item_local is not None
 
             if installed_only and (is_installed == 0):
                 continue
 
             if extension_tags:
-                if tags := item_remote.tags:
+                if tags := item.tags:
                     if not any(True for t in tags if extension_tags.get(t, True)):
                         continue
                 else:
@@ -649,7 +671,7 @@ def extensions_panel_draw_impl(
 
             is_addon = False
             is_theme = False
-            match item_remote.type:
+            match item.type:
                 case "add-on":
                     is_addon = True
                 case "theme":
@@ -677,7 +699,7 @@ def extensions_panel_draw_impl(
             if enabled_only and (not is_enabled):
                 continue
 
-            item_version = item_remote.version
+            item_version = item.version
             if item_local is None:
                 item_local_version = None
                 is_outdated = False
@@ -751,13 +773,13 @@ def extensions_panel_draw_impl(
 
             sub = row.row()
             sub.active = is_enabled
-            sub.label(text=item_remote.name, translate=False)
+            sub.label(text=item.name, translate=False)
             del sub
 
-            row_right = row.row()
+            row_right = row.row(align=True)
             row_right.alignment = 'RIGHT'
 
-            if has_remote:
+            if has_remote and (item_remote is not None):
                 if is_installed:
                     # Include uninstall below.
                     if is_outdated:
@@ -776,7 +798,13 @@ def extensions_panel_draw_impl(
                     del props
             else:
                 # Right space for alignment with the button.
-                row_right.label(text="Installed   ")
+                if item_remote is None:
+                    # There is a local item with no remote
+                    row_right.label(text="Orphan")
+                    row_right.label(text="", icon='ORPHAN_DATA')
+                else:
+                    row_right.label(text="Installed   ")
+
                 row_right.active = False
 
             if show:
@@ -785,9 +813,9 @@ def extensions_panel_draw_impl(
                 col_b = split.column()
 
                 # The full tagline may be multiple lines (not yet supported by Blender's UI).
-                col_a.label(text="{:s}.".format(tip_(item_remote.tagline)), translate=False)
+                col_a.label(text="{:s}.".format(tip_(item.tagline)), translate=False)
 
-                if value := item_remote.website:
+                if value := item.website:
                     # Use half size button, for legacy add-ons there are two, here there is one
                     # however one large button looks silly, so use a half size still.
                     col_a.split(factor=0.5).operator(
@@ -825,14 +853,14 @@ def extensions_panel_draw_impl(
                     # WARNING: while this is documented to be a dict, old packages may contain a list of strings.
                     # As it happens dictionary keys & list values both iterate over string,
                     # however we will want to show the dictionary values eventually.
-                    if (value := item_remote.permissions):
+                    if (value := item.permissions):
                         col_b.label(text=", ".join([iface_(x).title() for x in value]), translate=False)
                     else:
                         col_b.label(text="No permissions specified")
                     del value
 
                 col_a.label(text="Maintainer")
-                col_b.label(text=item_remote.maintainer, translate=False)
+                col_b.label(text=item.maintainer, translate=False)
 
                 col_a.label(text="Version")
                 if is_outdated:
@@ -843,12 +871,12 @@ def extensions_panel_draw_impl(
                 else:
                     col_b.label(text=item_version, translate=False)
 
-                if has_remote:
+                if has_remote and (item_remote is not None):
                     col_a.label(text="Size")
                     col_b.label(text=size_as_fmt_string(item_remote.archive_size), translate=False)
 
                 col_a.label(text="License")
-                col_b.label(text=item_remote.license, translate=False)
+                col_b.label(text=item.license, translate=False)
 
                 if len(repos_all) > 1:
                     col_a.label(text="Repository")
@@ -1131,13 +1159,20 @@ def tags_current(wm):
     filter_by_type = blender_filter_by_type_map[wm.extension_type]
 
     tags = set()
-    for pkg_manifest_remote in repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print):
-        if pkg_manifest_remote is None:
-            continue
-        for item_remote in pkg_manifest_remote.values():
-            if filter_by_type != item_remote.type:
+
+    for (
+            pkg_manifest_local,
+            pkg_manifest_remote,
+    ) in zip(
+        repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
+        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
+        strict=True,
+    ):
+        for pkg_id, (item_local, item_remote) in pkg_manifest_zip_all_items(pkg_manifest_local, pkg_manifest_remote):
+            item = item_local or item_remote
+            if filter_by_type != item.type:
                 continue
-            if pkg_tags := item_remote.tags:
+            if pkg_tags := item.tags:
                 tags.update(pkg_tags)
 
     if filter_by_type == "add-on":
