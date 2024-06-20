@@ -19,6 +19,8 @@
 
 #include "GEO_transform.hh"
 
+#include "BLT_translation.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_object_info_cc {
@@ -58,6 +60,25 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (object == nullptr) {
     params.set_default_remaining_outputs();
     return;
+  }
+  if (!DEG_object_geometry_is_evaluated(*object)) {
+    params.error_message_add(NodeWarningType::Error,
+                             TIP_("Can't access object's geometry because it's not evaluated yet. "
+                                  "This can happen when there is a dependency cycle"));
+    params.set_default_remaining_outputs();
+    return;
+  }
+  if (transform_space_relative) {
+    if (!DEG_object_transform_is_evaluated(*object) ||
+        !DEG_object_transform_is_evaluated(*self_object))
+    {
+      params.error_message_add(
+          NodeWarningType::Error,
+          TIP_("Can't access objects transforms because it's not evaluated yet. "
+               "This can happen when there is a dependency cycle"));
+      params.set_default_remaining_outputs();
+      return;
+    }
   }
 
   const float4x4 &object_matrix = object->object_to_world();
