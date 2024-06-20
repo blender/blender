@@ -881,22 +881,23 @@ static void get_strip_text_color(const TimelineDrawContext *ctx,
                                  const StripDrawContext *strip,
                                  uchar r_col[4])
 {
-  /* Text: white when selected/active, black otherwise. */
   const Sequence *seq = strip->seq;
   const bool active_or_selected = (seq->flag & SELECT) || strip->is_active_strip;
 
-  if (active_or_selected) {
-    r_col[0] = r_col[1] = r_col[2] = 255;
-  }
-  else {
-    r_col[0] = r_col[1] = r_col[2] = 0;
-  }
-  r_col[3] = 255;
+  /* Text: white when selected/active, black otherwise. */
+  r_col[0] = r_col[1] = r_col[2] = r_col[3] = 255;
 
-  /* Muted strips: gray color, reduce opacity. */
-  if (SEQ_render_is_muted(ctx->channels, seq)) {
-    r_col[0] = r_col[1] = r_col[2] = 192;
-    r_col[3] *= 0.66f;
+  /* If not active or selected, draw text black. */
+  if (!active_or_selected) {
+    r_col[0] = r_col[1] = r_col[2] = 0;
+
+    /* On muted and missing media/data-block strips: gray color, reduce opacity. */
+    if ((SEQ_render_is_muted(ctx->channels, seq)) ||
+        (strip->missing_data_block || strip->missing_media))
+    {
+      r_col[0] = r_col[1] = r_col[2] = 192;
+      r_col[3] *= 0.66f;
+    }
   }
 }
 
@@ -1301,7 +1302,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
     /* Muted strips: turn almost gray. */
     if (col[3] == MUTE_ALPHA) {
       uchar muted_color[3] = {128, 128, 128};
-      UI_GetColorPtrBlendShade3ubv(col, muted_color, col, 0.8f, 0);
+      UI_GetColorPtrBlendShade3ubv(col, muted_color, col, 0.5f, 0);
     }
     data.col_background = color_pack(col);
 
