@@ -881,17 +881,17 @@ static void get_strip_text_color(const TimelineDrawContext *ctx,
                                  const StripDrawContext *strip,
                                  uchar r_col[4])
 {
-  /* Text: white 75% opacity, fully opaque when selected/active. */
+  /* Text: white when selected/active, black otherwise. */
   const Sequence *seq = strip->seq;
   const bool active_or_selected = (seq->flag & SELECT) || strip->is_active_strip;
+
   if (active_or_selected) {
     r_col[0] = r_col[1] = r_col[2] = 255;
-    r_col[3] = 255;
   }
   else {
-    r_col[0] = r_col[1] = r_col[2] = 224;
-    r_col[3] = 192;
+    r_col[0] = r_col[1] = r_col[2] = 0;
   }
+  r_col[3] = 255;
 
   /* Muted strips: gray color, reduce opacity. */
   if (SEQ_render_is_muted(ctx->channels, seq)) {
@@ -1512,13 +1512,8 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
   /* Draw icons. */
   draw_strip_icons(timeline_ctx, strips);
 
-  /* Draw text labels with a drop shadow. */
-  const int font_id = BLF_default();
-  BLF_enable(font_id, BLF_SHADOW);
-  BLF_shadow(font_id, FontShadowType::Blur3x3, float4{0.0f, 0.0f, 0.0f, 1.0f});
-  BLF_shadow_offset(font_id, 1, -1);
+  /* Draw text labels. */
   UI_view2d_text_cache_draw(timeline_ctx->region);
-  BLF_disable(font_id, BLF_SHADOW);
   GPU_blend(GPU_BLEND_NONE);
 }
 
