@@ -78,6 +78,7 @@ void VKDevice::init(void *ghost_context)
   init_physical_device_properties();
   init_physical_device_memory_properties();
   init_physical_device_features();
+  init_physical_device_extensions();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
   init_functions();
@@ -141,6 +142,25 @@ void VKDevice::init_physical_device_features()
 
   vkGetPhysicalDeviceFeatures2(vk_physical_device_, &features);
   vk_physical_device_features_ = features.features;
+}
+
+void VKDevice::init_physical_device_extensions()
+{
+  uint32_t count = 0;
+  vkEnumerateDeviceExtensionProperties(vk_physical_device_, nullptr, &count, nullptr);
+  device_extensions_ = Array<VkExtensionProperties>(count);
+  vkEnumerateDeviceExtensionProperties(
+      vk_physical_device_, nullptr, &count, device_extensions_.data());
+}
+
+bool VKDevice::supports_extension(const char *extension_name) const
+{
+  for (const VkExtensionProperties &vk_extension_properties : device_extensions_) {
+    if (STREQ(vk_extension_properties.extensionName, extension_name)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void VKDevice::init_memory_allocator()

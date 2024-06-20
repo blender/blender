@@ -87,6 +87,7 @@ class VKDevice : public NonCopyable {
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
   VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
   VkPhysicalDeviceVulkan12Features vk_physical_device_vulkan_12_features_ = {};
+  Array<VkExtensionProperties> device_extensions_;
 
   /** Functions of vk_ext_debugutils for this device/instance. */
   debug::VKDebuggingTools debugging_tools_;
@@ -214,6 +215,14 @@ class VKDevice : public NonCopyable {
   std::string vendor_name() const;
   std::string driver_version() const;
 
+  /**
+   * Check if a specific extension is supported by the device.
+   *
+   * This should be called from vk_backend to set the correct capabilities and workarounds needed
+   * for this device.
+   */
+  bool supports_extension(const char *extension_name) const;
+
   const VKWorkarounds &workarounds_get() const
   {
     return workarounds_;
@@ -248,6 +257,7 @@ class VKDevice : public NonCopyable {
   void init_physical_device_properties();
   void init_physical_device_memory_properties();
   void init_physical_device_features();
+  void init_physical_device_extensions();
   void init_debug_callbacks();
   void init_memory_allocator();
   void init_pipeline_cache();
