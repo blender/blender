@@ -112,6 +112,11 @@ void Instance::init(const int2 &output_res,
   volume_probes.init();
   volume.init();
   lookdev.init(visible_rect);
+
+  /* Pre-compile specialization constants in parallel (if supported). */
+  shaders.precompile_specializations(
+      render_buffers.data.shadow_id, shadows.get_data().ray_count, shadows.get_data().step_count);
+  shaders_are_ready_ = shaders.is_ready(is_image_render());
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
