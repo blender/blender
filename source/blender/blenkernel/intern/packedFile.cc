@@ -896,13 +896,13 @@ void BKE_packedfile_blend_write(BlendWriter *writer, const PackedFile *pf)
 
 void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p)
 {
-  BLO_read_packed_address(reader, pf_p);
+  BLO_read_struct(reader, PackedFile, pf_p);
   PackedFile *pf = *pf_p;
   if (pf == nullptr) {
     return;
   }
 
-  BLO_read_packed_address(reader, &pf->data);
+  BLO_read_data_address(reader, &pf->data);
   if (pf->data == nullptr) {
     /* We cannot allow a PackedFile with a nullptr data field,
      * the whole code assumes this is not possible. See #70315. */

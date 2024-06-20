@@ -1359,9 +1359,6 @@ void blo_filedata_free(FileData *fd)
   if (fd->globmap) {
     oldnewmap_free(fd->globmap);
   }
-  if (fd->packedmap) {
-    oldnewmap_free(fd->packedmap);
-  }
   if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP)) {
     oldnewmap_free(fd->libmap);
   }
@@ -1452,16 +1449,6 @@ void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr)
   return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
 }
 
-/* Used to restore packed data after undo. */
-static void *newpackedadr(FileData *fd, const void *adr)
-{
-  if (fd->packedmap && adr) {
-    return oldnewmap_lookup_and_inc(fd->packedmap, adr, true);
-  }
-
-  return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
-}
-
 /* only lib data */
 static void *newlibadr(FileData *fd, ID * /*self_id*/, const bool is_linked_only, const void *adr)
 {
@@ -1509,90 +1496,6 @@ static void change_link_placeholder_to_real_ID_pointer(ListBase *mainlist,
     if (fd) {
       change_link_placeholder_to_real_ID_pointer_fd(fd, old, newp);
     }
-  }
-}
-
-/* XXX disabled this feature - packed files also belong in temp saves and quit.blend,
- * to make restore work. */
-
-static void insert_packedmap(FileData *fd, PackedFile *pf)
-{
-  oldnewmap_insert(fd->packedmap, pf, pf, 0);
-  oldnewmap_insert(fd->packedmap, pf->data, pf->data, 0);
-}
-
-void blo_make_packed_pointer_map(FileData *fd, Main *oldmain)
-{
-  fd->packedmap = oldnewmap_new();
-
-  LISTBASE_FOREACH (Image *, ima, &oldmain->images) {
-    if (ima->packedfile) {
-      insert_packedmap(fd, ima->packedfile);
-    }
-
-    LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
-      if (imapf->packedfile) {
-        insert_packedmap(fd, imapf->packedfile);
-      }
-    }
-  }
-
-  LISTBASE_FOREACH (VFont *, vfont, &oldmain->fonts) {
-    if (vfont->packedfile) {
-      insert_packedmap(fd, vfont->packedfile);
-    }
-  }
-
-  LISTBASE_FOREACH (bSound *, sound, &oldmain->sounds) {
-    if (sound->packedfile) {
-      insert_packedmap(fd, sound->packedfile);
-    }
-  }
-
-  LISTBASE_FOREACH (Volume *, volume, &oldmain->volumes) {
-    if (volume->packedfile) {
-      insert_packedmap(fd, volume->packedfile);
-    }
-  }
-
-  LISTBASE_FOREACH (Library *, lib, &oldmain->libraries) {
-    if (lib->packedfile) {
-      insert_packedmap(fd, lib->packedfile);
-    }
-  }
-}
-
-void blo_end_packed_pointer_map(FileData *fd, Main *oldmain)
-{
-  /* used entries were restored, so we put them to zero */
-  for (NewAddress &entry : fd->packedmap->map.values()) {
-    if (entry.nr > 0) {
-      entry.newp = nullptr;
-    }
-  }
-
-  LISTBASE_FOREACH (Image *, ima, &oldmain->images) {
-    ima->packedfile = static_cast<PackedFile *>(newpackedadr(fd, ima->packedfile));
-
-    LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
-      imapf->packedfile = static_cast<PackedFile *>(newpackedadr(fd, imapf->packedfile));
-    }
-  }
-
-  LISTBASE_FOREACH (VFont *, vfont, &oldmain->fonts) {
-    vfont->packedfile = static_cast<PackedFile *>(newpackedadr(fd, vfont->packedfile));
-  }
-
-  LISTBASE_FOREACH (bSound *, sound, &oldmain->sounds) {
-    sound->packedfile = static_cast<PackedFile *>(newpackedadr(fd, sound->packedfile));
-  }
-
-  LISTBASE_FOREACH (Library *, lib, &oldmain->libraries) {
-    lib->packedfile = static_cast<PackedFile *>(newpackedadr(fd, lib->packedfile));
-  }
-
-  LISTBASE_FOREACH (Volume *, volume, &oldmain->volumes) {
-    volume->packedfile = static_cast<PackedFile *>(newpackedadr(fd, volume->packedfile));
   }
 }
 
@@ -4817,11 +4720,6 @@ void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
 {
   void *new_address = newdataadr_no_us(reader->fd, old_address);
   return blo_verify_data_address(new_address, old_address, expected_size);
-}
-
-void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_address)
-{
-  return newpackedadr(reader->fd, old_address);
 }
 
 void *BLO_read_struct_array_with_size(BlendDataReader *reader,

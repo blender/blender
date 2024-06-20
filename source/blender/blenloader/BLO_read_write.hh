@@ -246,7 +246,6 @@ void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_add
 void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
                                           const void *old_address,
                                           size_t expected_size);
-void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_address);
 void *BLO_read_struct_array_with_size(BlendDataReader *reader,
                                       const void *old_address,
                                       size_t expected_size);
@@ -259,8 +258,6 @@ void *BLO_read_struct_array_with_size(BlendDataReader *reader,
 #define BLO_read_struct_array(reader, struct_name, array_size, ptr_p) \
   *((void **)ptr_p) = BLO_read_struct_array_with_size( \
       reader, *((void **)ptr_p), sizeof(struct_name) * (array_size))
-#define BLO_read_packed_address(reader, ptr_p) \
-  *((void **)ptr_p) = BLO_read_get_new_packed_address((reader), *(ptr_p))
 
 /* Read all elements in list
  *
