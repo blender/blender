@@ -1247,15 +1247,10 @@ static void visible_strips_ordered_get(TimelineDrawContext *timeline_ctx,
   Vector<Sequence *> strips = sequencer_visible_strips_get(timeline_ctx->C);
   r_unselected.clear();
   r_selected.clear();
-  const bool act_seq_is_selected = act_seq != nullptr && (act_seq->flag & SELECT) != 0;
-
-  if (act_seq_is_selected) {
-    strips.remove_if([&](Sequence *seq) { return seq == act_seq; });
-  }
 
   for (Sequence *seq : strips) {
-    /* Selected active will be added last. */
-    if (act_seq_is_selected && seq == act_seq) {
+    /* Active will be added last. */
+    if (seq == act_seq) {
       continue;
     }
 
@@ -1267,10 +1262,15 @@ static void visible_strips_ordered_get(TimelineDrawContext *timeline_ctx,
       r_selected.append(strip_ctx);
     }
   }
-  /* Add selected active, if any. */
-  if (act_seq_is_selected) {
+  /* Add active, if any. */
+  if (act_seq) {
     StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, act_seq);
-    r_selected.append(strip_ctx);
+    if ((act_seq->flag & SELECT) == 0) {
+      r_unselected.append(strip_ctx);
+    }
+    else {
+      r_selected.append(strip_ctx);
+    }
   }
 }
 
