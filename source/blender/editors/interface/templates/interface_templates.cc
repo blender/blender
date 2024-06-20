@@ -6427,7 +6427,7 @@ static std::string ui_template_status_tooltip(bContext *C, void * /*argN*/, cons
     tooltip_message += fmt::format(RPT_("File saved by newer Blender\n({}), expect loss of data"),
                                    writer_ver_str);
   }
-  if (bmain->is_asset_repository) {
+  if (bmain->is_asset_edit_file) {
     if (!tooltip_message.empty()) {
       tooltip_message += "\n\n";
     }

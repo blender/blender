@@ -144,12 +144,10 @@ struct Main {
   bool has_forward_compatibility_issues;
 
   /**
-   * The currently opened .blend file was created as an asset library storage.
-   *
-   * This is used to warn the user when they try to save it from Blender UI, since this will likely
-   * break the automatic management from the asset library system.
+   * This .blend file is managed by the asset system (via API in `BKE_asset_edit()`), manual edits
+   * may be overridden.
    */
-  bool is_asset_repository;
+  bool is_asset_edit_file;
 
   /** Commit timestamp from `buildinfo`. */
   uint64_t build_commit_timestamp;

@@ -4032,7 +4032,7 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
     uiItemL(layout, message_line2, ICON_NONE);
   }
 
-  if (bmain->is_asset_repository) {
+  if (bmain->is_asset_edit_file) {
     if (bmain->has_forward_compatibility_issues) {
       uiItemS_ex(layout, 1.4f);
     }
@@ -4147,7 +4147,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
 
   /* Title. */
   if (bmain->has_forward_compatibility_issues) {
-    if (bmain->is_asset_repository) {
+    if (bmain->is_asset_edit_file) {
       uiItemL_ex(
           layout,
           RPT_("Convert asset blend file to regular blend file with an older Blender version?"),
@@ -4160,7 +4160,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
           layout, RPT_("Overwrite file with an older Blender version?"), ICON_NONE, true, false);
     }
   }
-  else if (bmain->is_asset_repository) {
+  else if (bmain->is_asset_edit_file) {
     uiItemL_ex(
         layout, RPT_("Convert asset blend file to regular blend file?"), ICON_NONE, true, false);
   }
