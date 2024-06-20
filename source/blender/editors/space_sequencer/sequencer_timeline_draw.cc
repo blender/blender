@@ -71,7 +71,7 @@ using namespace blender::ed::seq;
 
 #define MUTE_ALPHA 120
 
-constexpr float MISSING_ICON_SIZE = 16.0f;
+constexpr float MISSING_ICON_SIZE = 12.0f;
 
 struct StripDrawContext {
   Sequence *seq;
