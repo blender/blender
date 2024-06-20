@@ -1190,9 +1190,7 @@ enum StrokeFlags {
 static void orig_vert_data_unode_init(SculptOrigVertData &data,
                                       const blender::ed::sculpt_paint::undo::Node &unode)
 {
-  memset(&data, 0, sizeof(data));
-  data.undo_type = unode.type;
-
+  data = {};
   data.coords = unode.position.data();
   data.normals = unode.normal.data();
   data.vmasks = unode.mask.data();
@@ -1212,6 +1210,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
   }
   else if (const undo::Node *unode = undo::get_node(&node, type)) {
     orig_vert_data_unode_init(data, *unode);
+    data.undo_type = type;
   }
   else {
     data = {};

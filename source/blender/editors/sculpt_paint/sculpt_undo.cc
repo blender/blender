@@ -125,6 +125,12 @@ namespace blender::ed::sculpt_paint::undo {
 #define NO_ACTIVE_LAYER bke::AttrDomain::Auto
 
 struct StepData {
+  /**
+   * The type of data stored in this undo step. For historical reasons this is often set when the
+   * first undo node is pushed.
+   */
+  Type type = Type::None;
+
   /** Name of the object associated with this undo data (`object.id.name`). */
   std::string object_name;
 
@@ -149,7 +155,7 @@ struct StepData {
    * should be unnecessary. However, to remove it, first the storage of the undo type should be
    * moved to #StepData from #Node.
    */
-  Map<std::pair<const PBVHNode *, Type>, std::unique_ptr<Node>> undo_nodes_by_pbvh_node;
+  Map<const PBVHNode *, std::unique_ptr<Node>> undo_nodes_by_pbvh_node;
 
   /** Storage of per-node undo data after creation of the undo step is finished. */
   Vector<std::unique_ptr<Node>> nodes;
@@ -716,7 +722,10 @@ static bool restore_face_sets(Object &object,
   return modified;
 }
 
-static void bmesh_restore_generic(Node &unode, Object &object, SculptSession &ss)
+static void bmesh_restore_generic(StepData &step_data,
+                                  Node &unode,
+                                  Object &object,
+                                  SculptSession &ss)
 {
   if (unode.applied) {
     BM_log_undo(ss.bm, ss.bm_log);
@@ -727,7 +736,7 @@ static void bmesh_restore_generic(Node &unode, Object &object, SculptSession &ss
     unode.applied = true;
   }
 
-  if (unode.type == Type::Mask) {
+  if (step_data.type == Type::Mask) {
     Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
     for (PBVHNode *node : nodes) {
       BKE_pbvh_node_mark_redraw(node);
@@ -870,9 +879,10 @@ static void restore_geometry(Node &unode, Object &object)
  *
  * Returns true if this was a dynamic-topology undo step, otherwise
  * returns false to indicate the non-dyntopo code should run. */
-static int bmesh_restore(bContext *C, Node &unode, Object &object, SculptSession &ss)
+static int bmesh_restore(
+    bContext *C, StepData &step_data, Node &unode, Object &object, SculptSession &ss)
 {
-  switch (unode.type) {
+  switch (step_data.type) {
     case Type::DyntopoBegin:
       bmesh_restore_begin(C, unode, object, ss);
       return true;
@@ -882,7 +892,7 @@ static int bmesh_restore(bContext *C, Node &unode, Object &object, SculptSession
       return true;
     default:
       if (ss.bm_log) {
-        bmesh_restore_generic(unode, object, ss);
+        bmesh_restore_generic(step_data, unode, object, ss);
         return true;
       }
       break;
@@ -935,13 +945,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   ss.pivot_pos = step_data.pivot_pos;
   ss.pivot_rot = step_data.pivot_rot;
 
-  bool clear_automask_cache = false;
-  for (const std::unique_ptr<Node> &unode : step_data.nodes) {
-    if (!ELEM(unode->type, Type::Color, Type::Mask)) {
-      clear_automask_cache = true;
-    }
-  }
-
+  const bool clear_automask_cache = !ELEM(step_data.type, Type::Color, Type::Mask);
   if (clear_automask_cache) {
     ss.last_automasking_settings_hash = 0;
   }
@@ -950,12 +954,11 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     /* Only do early object update for edits if first node needs this.
      * Undo steps like geometry does not need object to be updated before they run and will
      * ensure object is updated after the node is handled. */
-    const Node *first_unode = step_data.nodes.first().get();
-    if (first_unode->type != Type::Geometry) {
+    if (step_data.type != Type::Geometry) {
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
     }
 
-    if (bmesh_restore(C, *step_data.nodes.first(), object, ss)) {
+    if (bmesh_restore(C, step_data, *step_data.nodes.first(), object, ss)) {
       return;
     }
   }
@@ -997,7 +1000,10 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       use_multires_undo = true;
     }
 
-    switch (unode->type) {
+    switch (step_data.type) {
+      case Type::None:
+        BLI_assert_unreachable();
+        break;
       case Type::Position:
         modified_verts_position.resize(ss.totvert, false);
         if (restore_coords(C, object, depsgraph, step_data, *unode, modified_verts_position)) {
@@ -1152,10 +1158,13 @@ const Node *get_node(const PBVHNode *node, const Type type)
   if (!step_data) {
     return nullptr;
   }
+  if (step_data->type != type) {
+    return nullptr;
+  }
   /* This access does not need to be locked because this function is not expected to be called
    * while the per-node undo data is being pushed. In other words, this must not be called
    * concurrently with #push_node.*/
-  std::unique_ptr<Node> *node_ptr = step_data->undo_nodes_by_pbvh_node.lookup_ptr({node, type});
+  std::unique_ptr<Node> *node_ptr = step_data->undo_nodes_by_pbvh_node.lookup_ptr(node);
   if (!node_ptr) {
     return nullptr;
   }
@@ -1324,7 +1333,7 @@ static Node *geometry_push(const Object &object)
 
   Node *unode = nullptr;
   for (std::unique_ptr<Node> &iter_unode : step_data->nodes) {
-    if (iter_unode->type == Type::Geometry) {
+    if (step_data->type == Type::Geometry) {
       unode = iter_unode.get();
       break;
     }
@@ -1334,7 +1343,7 @@ static Node *geometry_push(const Object &object)
     step_data->nodes.append(std::make_unique<Node>());
 
     unode = step_data->nodes.last().get();
-    unode->type = Type::Geometry;
+    step_data->type = Type::Geometry;
   }
 
   unode->applied = false;
@@ -1400,6 +1409,9 @@ static void fill_node_data(const Object &object,
   }
 
   switch (type) {
+    case Type::None:
+      BLI_assert_unreachable();
+      break;
     case Type::Position: {
       unode.position.reinitialize(verts_num);
       /* Needed for original data lookup. */
@@ -1477,7 +1489,7 @@ BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, 
     step_data->nodes.append(std::make_unique<Node>());
     unode = step_data->nodes.last().get();
 
-    unode->type = type;
+    step_data->type = type;
     unode->applied = true;
 
     if (type == Type::DyntopoEnd) {
@@ -1509,6 +1521,9 @@ BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, 
     PBVHNode *node_mut = const_cast<PBVHNode *>(node);
 
     switch (type) {
+      case Type::None:
+        BLI_assert_unreachable();
+        break;
       case Type::Position:
       case Type::Mask:
         /* Before any vertex values get modified, ensure their
@@ -1551,17 +1566,15 @@ BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, 
  * Add an undo node for the PBVH node to the step's storage. If the node was newly created and
  * needs to be filled with data, set \a r_new to true.
  */
-static Node *ensure_node(StepData &step_data, const PBVHNode &node, const Type type, bool &r_new)
+static Node *ensure_node(StepData &step_data, const PBVHNode &node, bool &r_new)
 {
   std::scoped_lock lock(step_data.nodes_mutex);
   r_new = false;
-  std::unique_ptr<Node> &unode = step_data.undo_nodes_by_pbvh_node.lookup_or_add_cb(
-      {&node, type}, [&]() {
-        std::unique_ptr<Node> unode = std::make_unique<Node>();
-        unode->type = type;
-        r_new = true;
-        return unode;
-      });
+  std::unique_ptr<Node> &unode = step_data.undo_nodes_by_pbvh_node.lookup_or_add_cb(&node, [&]() {
+    std::unique_ptr<Node> unode = std::make_unique<Node>();
+    r_new = true;
+    return unode;
+  });
   return unode.get();
 }
 
@@ -1576,7 +1589,7 @@ void push_node(const Object &object, const PBVHNode *node, Type type)
   StepData *step_data = get_step_data();
 
   bool newly_added;
-  Node *unode = ensure_node(*step_data, *node, type, newly_added);
+  Node *unode = ensure_node(*step_data, *node, newly_added);
   if (!newly_added) {
     /* The node was already filled with data for this undo step. */
     return;
@@ -1598,11 +1611,13 @@ void push_nodes(Object &object, const Span<const PBVHNode *> nodes, const Type t
   }
 
   StepData *step_data = get_step_data();
+  BLI_assert(ELEM(step_data->type, Type::None, type));
+  step_data->type = type;
 
   Vector<std::pair<const PBVHNode *, Node *>, 32> nodes_to_fill;
   for (const PBVHNode *node : nodes) {
     bool newly_added;
-    Node *unode = ensure_node(*step_data, *node, type, newly_added);
+    Node *unode = ensure_node(*step_data, *node, newly_added);
     if (newly_added) {
       nodes_to_fill.append({node, unode});
     }
@@ -1829,7 +1844,7 @@ static bool step_encode(bContext * /*C*/, Main *bmain, UndoStep *us_p)
   us->step.data_size = us->data.undo_size;
 
   Node *unode = us->data.nodes.is_empty() ? nullptr : us->data.nodes.last().get();
-  if (unode && unode->type == Type::DyntopoEnd) {
+  if (unode && us->data.type == Type::DyntopoEnd) {
     us->step.use_memfile_step = true;
   }
   us->step.is_applied = true;

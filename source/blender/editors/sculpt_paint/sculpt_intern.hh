@@ -123,6 +123,7 @@ enum eBoundaryAutomaskMode {
 namespace blender::ed::sculpt_paint::undo {
 
 enum class Type : int8_t {
+  None,
   Position,
   HideVert,
   HideFace,
@@ -155,8 +156,6 @@ struct NodeGeometry {
 };
 
 struct Node {
-  Type type;
-
   Array<float3> position;
   Array<float3> orig_position;
   Array<float3> normal;
