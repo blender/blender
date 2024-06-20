@@ -798,7 +798,7 @@ def extensions_panel_draw_impl(
                     del props
             else:
                 # Right space for alignment with the button.
-                if item_remote is None:
+                if has_remote and (item_remote is None):
                     # There is a local item with no remote
                     row_right.label(text="Orphan")
                     row_right.label(text="", icon='ORPHAN_DATA')

@@ -650,7 +650,7 @@ def cli_extension_args_install_file(subparsers: "argparse._SubParsersAction[argp
         "install-file",
         help="Install package from file.",
         description=(
-            "Install a package file into a local repository."
+            "Install a package file into a user repository."
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
