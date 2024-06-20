@@ -1189,22 +1189,6 @@ static Node *alloc_node_type(const Type type)
   return node_ptr;
 }
 
-/* Will return first existing undo node of the given type.
- * If such node does not exist will allocate node of this type, register it in the undo step and
- * return it. */
-static Node *find_or_alloc_node_type(const Type type)
-{
-  StepData *step_data = get_step_data();
-
-  for (std::unique_ptr<Node> &unode : step_data->nodes) {
-    if (unode->type == type) {
-      return unode.get();
-    }
-  }
-
-  return alloc_node_type(type);
-}
-
 static Node *alloc_node(const Object &object, const PBVHNode *node, const Type type)
 {
   StepData *step_data = get_step_data();
@@ -1471,7 +1455,20 @@ static NodeGeometry *geometry_get(Node &unode)
 
 static Node *geometry_push(const Object &object)
 {
-  Node *unode = find_or_alloc_node_type(Type::Geometry);
+  StepData *step_data = get_step_data();
+
+  Node *unode = nullptr;
+  for (std::unique_ptr<Node> &iter_unode : step_data->nodes) {
+    if (iter_unode->type == Type::Geometry) {
+      unode = iter_unode.get();
+      break;
+    }
+  }
+
+  if (!unode) {
+    unode = alloc_node_type(Type::Geometry);
+  }
+
   unode->applied = false;
   unode->geometry_clear_pbvh = true;
 
