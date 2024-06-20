@@ -1162,14 +1162,14 @@ const Node *get_node(const PBVHNode *node, const Type type)
   return node_ptr->get();
 }
 
-static size_t alloc_and_store_hidden(const SculptSession &ss, const PBVHNode &node, Node &unode)
+static void alloc_and_store_hidden(const SculptSession &ss, const PBVHNode &node, Node &unode)
 {
   if (!ss.subdiv_ccg) {
-    return 0;
+    return;
   }
   const BitGroupVector<> grid_hidden = ss.subdiv_ccg->grid_hidden;
   if (grid_hidden.is_empty()) {
-    return 0;
+    return;
   }
 
   const Span<int> grid_indices = bke::pbvh::node_grid_indices(node);
@@ -1177,8 +1177,6 @@ static size_t alloc_and_store_hidden(const SculptSession &ss, const PBVHNode &no
   for (const int i : grid_indices.index_range()) {
     unode.grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
   }
-
-  return unode.grid_hidden.all_bits().full_ints_num() / bits::BitsPerInt;
 }
 
 static void fill_node_data(const Object &object,
@@ -1186,7 +1184,6 @@ static void fill_node_data(const Object &object,
                            const Type type,
                            Node &unode)
 {
-  StepData *step_data = get_step_data();
   const SculptSession &ss = *object.sculpt;
 
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1197,7 +1194,6 @@ static void fill_node_data(const Object &object,
     unode.grid_size = ss.subdiv_ccg->grid_size;
 
     unode.grids = bke::pbvh::node_grid_indices(*node);
-    step_data->undo_size += unode.grids.as_span().size_in_bytes();
 
     const int grid_area = unode.grid_size * unode.grid_size;
     verts_num = unode.grids.size() * grid_area;
@@ -1209,8 +1205,6 @@ static void fill_node_data(const Object &object,
     unode.unique_verts_num = bke::pbvh::node_unique_verts(*node).size();
 
     verts_num = unode.vert_indices.size();
-
-    step_data->undo_size += unode.vert_indices.as_span().size_in_bytes();
   }
 
   bool need_loops = type == Type::Color;
@@ -1219,8 +1213,6 @@ static void fill_node_data(const Object &object,
   if (need_loops) {
     unode.corner_indices = bke::pbvh::node_corners(*node);
     unode.mesh_corners_num = mesh.corners_num;
-
-    step_data->undo_size += unode.corner_indices.as_span().size_in_bytes();
   }
 
   if (need_faces) {
@@ -1230,50 +1222,42 @@ static void fill_node_data(const Object &object,
     else {
       bke::pbvh::node_face_indices_calc_grids(*ss.pbvh, *node, unode.face_indices);
     }
-    step_data->undo_size += unode.face_indices.as_span().size_in_bytes();
   }
 
   switch (type) {
     case Type::Position: {
       unode.position.reinitialize(verts_num);
-      step_data->undo_size += unode.position.as_span().size_in_bytes();
 
       /* Needed for original data lookup. */
       unode.normal.reinitialize(verts_num);
-      step_data->undo_size += unode.normal.as_span().size_in_bytes();
       break;
     }
     case Type::HideVert: {
       if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
-        step_data->undo_size += alloc_and_store_hidden(ss, *node, unode);
+        alloc_and_store_hidden(ss, *node, unode);
       }
       else {
         unode.vert_hidden.resize(unode.vert_indices.size());
-        step_data->undo_size += unode.vert_hidden.size() / 8;
       }
 
       break;
     }
     case Type::HideFace: {
       unode.face_hidden.resize(unode.face_indices.size());
-      step_data->undo_size += unode.face_hidden.size() / 8;
       break;
     }
     case Type::Mask: {
       unode.mask.reinitialize(verts_num);
-      step_data->undo_size += unode.mask.as_span().size_in_bytes();
       break;
     }
     case Type::Color: {
       /* Allocate vertex colors, even for loop colors we still
        * need this for original data lookup. */
       unode.col.reinitialize(verts_num);
-      step_data->undo_size += unode.col.as_span().size_in_bytes();
 
       /* Allocate loop colors separately too. */
       if (ss.vcol_domain == bke::AttrDomain::Corner) {
         unode.loop_col.reinitialize(unode.corner_indices.size());
-        unode.undo_size += unode.loop_col.as_span().size_in_bytes();
       }
       break;
     }
@@ -1289,14 +1273,12 @@ static void fill_node_data(const Object &object,
       break;
     case Type::FaceSet: {
       unode.face_sets.reinitialize(unode.face_indices.size());
-      step_data->undo_size += unode.face_sets.as_span().size_in_bytes();
       break;
     }
   }
 
   if (ss.deform_modifiers_active) {
     unode.orig_position.reinitialize(unode.vert_indices.size());
-    step_data->undo_size += unode.orig_position.as_span().size_in_bytes();
   }
 }
 
@@ -1457,7 +1439,6 @@ static Node *geometry_push(const Object &object)
 
   if (!unode) {
     step_data->nodes.append(std::make_unique<Node>());
-    step_data->undo_size += sizeof(Node);
 
     unode = step_data->nodes.last().get();
     unode->type = Type::Geometry;
@@ -1712,6 +1693,27 @@ void push_end(Object &ob)
   push_end_ex(ob, false);
 }
 
+static size_t node_size_in_bytes(const Node &node)
+{
+  size_t size = sizeof(Node);
+  size += node.position.as_span().size_in_bytes();
+  size += node.orig_position.as_span().size_in_bytes();
+  size += node.normal.as_span().size_in_bytes();
+  size += node.col.as_span().size_in_bytes();
+  size += node.mask.as_span().size_in_bytes();
+  size += node.loop_col.as_span().size_in_bytes();
+  size += node.orig_loop_col.as_span().size_in_bytes();
+  size += node.vert_indices.as_span().size_in_bytes();
+  size += node.corner_indices.as_span().size_in_bytes();
+  size += node.vert_hidden.size() / 8;
+  size += node.face_hidden.size() / 8;
+  size += node.grids.as_span().size_in_bytes();
+  size += node.grid_hidden.all_bits().size() / 8;
+  size += node.face_sets.as_span().size_in_bytes();
+  size += node.face_indices.as_span().size_in_bytes();
+  return size;
+}
+
 void push_end_ex(Object &ob, const bool use_nested_undo)
 {
   StepData *step_data = get_step_data();
@@ -1725,9 +1727,20 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
 
   /* We don't need normals in the undo stack. */
   for (std::unique_ptr<Node> &unode : step_data->nodes) {
-    step_data->undo_size -= unode->normal.as_span().size_in_bytes();
     unode->normal = {};
   }
+
+  step_data->undo_size = threading::parallel_reduce(
+      step_data->nodes.index_range(),
+      16,
+      0,
+      [&](const IndexRange range, size_t size) {
+        for (const int i : range) {
+          size += node_size_in_bytes(*step_data->nodes[i]);
+        }
+        return size;
+      },
+      std::plus<size_t>());
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);

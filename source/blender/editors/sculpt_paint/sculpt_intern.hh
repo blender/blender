@@ -211,8 +211,6 @@ struct Node {
   Array<int> face_sets;
 
   Vector<int> face_indices;
-
-  size_t undo_size;
 };
 
 }
