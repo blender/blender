@@ -1054,12 +1054,12 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   if (vulkan_device->has_extensions({VK_KHR_MAINTENANCE_4_EXTENSION_NAME})) {
     required_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   }
-#ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
+#ifdef WITH_VULKAN_MOLTENVK
   /* According to the Vulkan specs, when `VK_KHR_portability_subset` is available it should be
    * enabled. See
    * https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451*/
   if (vulkan_device->has_extensions({VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME})) {
-    extensions_device.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+    required_device_extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
 #endif
   vulkan_device->ensure_device(required_device_extensions, optional_device_extensions);
