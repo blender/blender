@@ -1661,7 +1661,7 @@ undo::Node *push_node(const Object &object, const PBVHNode *node, undo::Type typ
  *
  * This is only possible when building an undo step, in between #push_begin and #push_end.
  */
-undo::Node *get_node(const PBVHNode *node, undo::Type type);
+const undo::Node *get_node(const PBVHNode *node, undo::Type type);
 
 /**
  * Pushes an undo step using the operator name. This is necessary for

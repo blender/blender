@@ -1145,7 +1145,7 @@ static void free_step_data(StepData &step_data)
   step_data.~StepData();
 }
 
-Node *get_node(const PBVHNode *node, const Type type)
+const Node *get_node(const PBVHNode *node, const Type type)
 {
   StepData *step_data = get_step_data();
   if (step_data == nullptr) {
@@ -1593,7 +1593,7 @@ Node *push_node(const Object &object, const PBVHNode *node, Type type)
       // return unode;
       return;
     }
-    if ((unode = get_node(node, type))) {
+    if ((unode = step_data->undo_nodes_by_pbvh_node.lookup_default({node, type}, nullptr))) {
       // return unode;
       return;
     }
