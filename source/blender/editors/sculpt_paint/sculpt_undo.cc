@@ -38,7 +38,6 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include "iostream"
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
@@ -1746,8 +1745,6 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
   for (std::unique_ptr<Node> &unode : step_data->nodes) {
     unode->normal = {};
   }
-
-  std::cout << step_data->nodes.size() << '\n';
 
   step_data->undo_size = threading::parallel_reduce(
       step_data->nodes.index_range(),
