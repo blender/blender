@@ -1179,109 +1179,6 @@ static void alloc_and_store_hidden(const SculptSession &ss, const PBVHNode &node
   }
 }
 
-static void fill_node_data(const Object &object,
-                           const PBVHNode *node,
-                           const Type type,
-                           Node &unode)
-{
-  const SculptSession &ss = *object.sculpt;
-
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
-
-  int verts_num;
-  if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
-    unode.mesh_grids_num = ss.subdiv_ccg->grids.size();
-    unode.grid_size = ss.subdiv_ccg->grid_size;
-
-    unode.grids = bke::pbvh::node_grid_indices(*node);
-
-    const int grid_area = unode.grid_size * unode.grid_size;
-    verts_num = unode.grids.size() * grid_area;
-  }
-  else {
-    unode.mesh_verts_num = ss.totvert;
-
-    unode.vert_indices = bke::pbvh::node_verts(*node);
-    unode.unique_verts_num = bke::pbvh::node_unique_verts(*node).size();
-
-    verts_num = unode.vert_indices.size();
-  }
-
-  bool need_loops = type == Type::Color;
-  const bool need_faces = ELEM(type, Type::FaceSet, Type::HideFace);
-
-  if (need_loops) {
-    unode.corner_indices = bke::pbvh::node_corners(*node);
-    unode.mesh_corners_num = mesh.corners_num;
-  }
-
-  if (need_faces) {
-    if (BKE_pbvh_type(*ss.pbvh) == PBVH_FACES) {
-      bke::pbvh::node_face_indices_calc_mesh(mesh.corner_tri_faces(), *node, unode.face_indices);
-    }
-    else {
-      bke::pbvh::node_face_indices_calc_grids(*ss.pbvh, *node, unode.face_indices);
-    }
-  }
-
-  switch (type) {
-    case Type::Position: {
-      unode.position.reinitialize(verts_num);
-
-      /* Needed for original data lookup. */
-      unode.normal.reinitialize(verts_num);
-      break;
-    }
-    case Type::HideVert: {
-      if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
-        alloc_and_store_hidden(ss, *node, unode);
-      }
-      else {
-        unode.vert_hidden.resize(unode.vert_indices.size());
-      }
-
-      break;
-    }
-    case Type::HideFace: {
-      unode.face_hidden.resize(unode.face_indices.size());
-      break;
-    }
-    case Type::Mask: {
-      unode.mask.reinitialize(verts_num);
-      break;
-    }
-    case Type::Color: {
-      /* Allocate vertex colors, even for loop colors we still
-       * need this for original data lookup. */
-      unode.col.reinitialize(verts_num);
-
-      /* Allocate loop colors separately too. */
-      if (ss.vcol_domain == bke::AttrDomain::Corner) {
-        unode.loop_col.reinitialize(unode.corner_indices.size());
-      }
-      break;
-    }
-    case Type::DyntopoBegin:
-    case Type::DyntopoEnd:
-    case Type::DyntopoSymmetrize:
-      /* Dyntopo should be handled elsewhere. */
-      BLI_assert_unreachable();
-      break;
-    case Type::Geometry:
-      /* See #geometry_push. */
-      BLI_assert_unreachable();
-      break;
-    case Type::FaceSet: {
-      unode.face_sets.reinitialize(unode.face_indices.size());
-      break;
-    }
-  }
-
-  if (ss.deform_modifiers_active) {
-    unode.orig_position.reinitialize(unode.vert_indices.size());
-  }
-}
-
 static void store_coords(const Object &object, Node &unode)
 {
   SculptSession &ss = *object.sculpt;
@@ -1328,10 +1225,6 @@ static void store_coords(const Object &object, Node &unode)
 
 static void store_hidden(const Object &object, const PBVHNode &node, Node &unode)
 {
-  if (!unode.grids.is_empty()) {
-    /* Already stored during allocation. */
-  }
-
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert",
@@ -1461,11 +1354,117 @@ static void store_face_sets(const Mesh &mesh, Node &unode)
       unode.face_sets.as_mutable_span());
 }
 
+static void fill_node_data(const Object &object,
+                           const PBVHNode *node,
+                           const Type type,
+                           Node &unode)
+{
+  const SculptSession &ss = *object.sculpt;
+
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  int verts_num;
+  if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
+    unode.mesh_grids_num = ss.subdiv_ccg->grids.size();
+    unode.grid_size = ss.subdiv_ccg->grid_size;
+
+    unode.grids = bke::pbvh::node_grid_indices(*node);
+
+    const int grid_area = unode.grid_size * unode.grid_size;
+    verts_num = unode.grids.size() * grid_area;
+  }
+  else {
+    unode.mesh_verts_num = ss.totvert;
+
+    unode.vert_indices = bke::pbvh::node_verts(*node);
+    unode.unique_verts_num = bke::pbvh::node_unique_verts(*node).size();
+
+    verts_num = unode.vert_indices.size();
+  }
+
+  bool need_loops = type == Type::Color;
+  const bool need_faces = ELEM(type, Type::FaceSet, Type::HideFace);
+
+  if (need_loops) {
+    unode.corner_indices = bke::pbvh::node_corners(*node);
+    unode.mesh_corners_num = mesh.corners_num;
+  }
+
+  if (need_faces) {
+    if (BKE_pbvh_type(*ss.pbvh) == PBVH_FACES) {
+      bke::pbvh::node_face_indices_calc_mesh(mesh.corner_tri_faces(), *node, unode.face_indices);
+    }
+    else {
+      bke::pbvh::node_face_indices_calc_grids(*ss.pbvh, *node, unode.face_indices);
+    }
+  }
+
+  switch (type) {
+    case Type::Position: {
+      unode.position.reinitialize(verts_num);
+      /* Needed for original data lookup. */
+      unode.normal.reinitialize(verts_num);
+      if (ss.deform_modifiers_active) {
+        unode.orig_position.reinitialize(unode.vert_indices.size());
+      }
+      store_coords(object, unode);
+      break;
+    }
+    case Type::HideVert: {
+      if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
+        alloc_and_store_hidden(ss, *node, unode);
+      }
+      else {
+        unode.vert_hidden.resize(unode.vert_indices.size());
+        store_hidden(object, *node, unode);
+      }
+      break;
+    }
+    case Type::HideFace: {
+      unode.face_hidden.resize(unode.face_indices.size());
+      store_face_hidden(object, unode);
+      break;
+    }
+    case Type::Mask: {
+      unode.mask.reinitialize(verts_num);
+      store_mask(object, unode);
+      break;
+    }
+    case Type::Color: {
+      /* Allocate vertex colors, even for loop colors we still
+       * need this for original data lookup. */
+      unode.col.reinitialize(verts_num);
+
+      /* Allocate loop colors separately too. */
+      if (ss.vcol_domain == bke::AttrDomain::Corner) {
+        unode.loop_col.reinitialize(unode.corner_indices.size());
+      }
+      store_color(object, unode);
+      break;
+    }
+    case Type::DyntopoBegin:
+    case Type::DyntopoEnd:
+    case Type::DyntopoSymmetrize:
+      /* Dyntopo should be handled elsewhere. */
+      BLI_assert_unreachable();
+      break;
+    case Type::Geometry:
+      /* See #geometry_push. */
+      BLI_assert_unreachable();
+      break;
+    case Type::FaceSet: {
+      unode.face_sets.reinitialize(unode.face_indices.size());
+      store_face_sets(*static_cast<const Mesh *>(object.data), unode);
+      break;
+    }
+  }
+}
+
 /**
  * Dynamic topology stores only one undo node per stroke, regardless of the number of PBVH nodes
  * modified.
  */
-static void bmesh_push(const Object &object, const PBVHNode *node, Type type)
+BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, Type type)
 {
   StepData *step_data = get_step_data();
   const SculptSession &ss = *object.sculpt;
@@ -1586,37 +1585,6 @@ void push_node(const Object &object, const PBVHNode *node, Type type)
   ss.needs_flush_to_id = 1;
 
   fill_node_data(object, node, type, *unode);
-
-  switch (type) {
-    case Type::Position:
-      store_coords(object, *unode);
-      break;
-    case Type::HideVert:
-      store_hidden(object, *node, *unode);
-      break;
-    case Type::HideFace:
-      store_face_hidden(object, *unode);
-      break;
-    case Type::Mask:
-      store_mask(object, *unode);
-      break;
-    case Type::Color:
-      store_color(object, *unode);
-      break;
-    case Type::DyntopoBegin:
-    case Type::DyntopoEnd:
-    case Type::DyntopoSymmetrize:
-      /* Dyntopo should be handled above. */
-      BLI_assert_unreachable();
-      break;
-    case Type::Geometry:
-      /* See #geometry_push. */
-      BLI_assert_unreachable();
-      break;
-    case Type::FaceSet:
-      store_face_sets(*static_cast<const Mesh *>(object.data), *unode);
-      break;
-  }
 }
 
 static void save_active_attribute(Object &object, SculptAttrRef *attr)
