@@ -1643,7 +1643,10 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession &ss = *ob->sculpt;
   Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  /* Use the "unchecked" function, because this code also runs as part of the depsgraph node that
+   * evaluates the object's geometry. So from perspective of the depsgraph, the mesh is not fully
+   * evaluated yet. */
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh_unchecked(ob_eval);
   MultiresModifierData *mmd = sculpt_multires_modifier_get(scene, ob, true);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
