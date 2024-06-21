@@ -26,13 +26,10 @@ from bl_ui.space_userpref import (
     USERPREF_MT_extensions_active_repo,
 )
 
-# We may want to change these.
-USE_EXTENSIONS_CHECKBOX = False
-USE_EXTENSIONS_ADDON_PREFS = False
 # TODO: choose how to show this when an add-on is an extension/core/legacy.
 # The information is somewhat useful as you can only remove legacy add-ons from the add-ons sections.
 # Whereas extensions must be removed from the extensions section.
-# So without showing a distinction - the existance of these buttons is not clear.
+# So without showing a distinction - the existence of these buttons is not clear.
 USE_SHOW_ADDON_TYPE_AS_TEXT = True
 USE_SHOW_ADDON_TYPE_AS_ICON = True
 
@@ -992,44 +989,6 @@ def extensions_panel_draw_impl(
             props.repo_index = repo_index
             del props
 
-            if USE_EXTENSIONS_CHECKBOX:
-                if is_installed:
-                    if is_addon:
-                        row.operator(
-                            "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
-                            icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT',
-                            text="",
-                            emboss=False,
-                        ).module = addon_module_name
-                    elif is_theme:
-                        props = row.operator(
-                            "extensions.package_theme_disable" if is_enabled else "extensions.package_theme_enable",
-                            icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT',
-                            text="",
-                            emboss=False,
-                        )
-                        props.repo_index = repo_index
-                        props.pkg_id = pkg_id
-                        del props
-                    else:
-                        # Use a place-holder checkbox icon to avoid odd text alignment
-                        # when mixing with installed add-ons.
-                        # Non add-ons have no concept of "enabled" right now, use installed.
-                        row.operator(
-                            "extensions.package_disabled",
-                            text="",
-                            icon='CHECKBOX_HLT',
-                            emboss=False,
-                        )
-                else:
-                    # Not installed, always placeholder.
-                    row.operator(
-                        "extensions.package_enable_not_installed",
-                        text="",
-                        icon='CHECKBOX_DEHLT',
-                        emboss=False,
-                    )
-
             if show_development:
                 if mark:
                     props = row.operator("extensions.package_mark_clear", text="", icon='RADIOBUT_ON', emboss=False)
@@ -1041,19 +1000,16 @@ def extensions_panel_draw_impl(
 
             sub = row.row()
             sub.active = is_enabled
-            if USE_EXTENSIONS_CHECKBOX:
-                sub.label(text=item.name, translate=False)
-            else:
-                # Without checking `is_enabled` here, there is no way for the user to know if an extension
-                # is enabled or not, which is useful to show - when they may be considering removing/updating
-                # extensions based on them being used or not.
-                sub.label(
-                    text=(
-                        item.name if (is_enabled or is_installed is False) else
-                        item.name + iface_(" [disabled]")
-                    ),
-                    translate=False,
-                )
+            # Without checking `is_enabled` here, there is no way for the user to know if an extension
+            # is enabled or not, which is useful to show - when they may be considering removing/updating
+            # extensions based on them being used or not.
+            sub.label(
+                text=(
+                    item.name if (is_enabled or is_installed is False) else
+                    item.name + iface_(" [disabled]")
+                ),
+                translate=False,
+            )
             del sub
 
             # Add a top-level row so `row_right` can have a grayed out button/label
@@ -1154,12 +1110,6 @@ def extensions_panel_draw_impl(
                 if is_installed:
                     col_a.label(text="Path")
                     col_b.label(text=os.path.join(repos_all[repo_index].directory, pkg_id), translate=False)
-
-                # Show addon user preferences.
-                if USE_EXTENSIONS_ADDON_PREFS:
-                    if is_enabled and is_addon:
-                        if (addon_preferences := used_addon_module_name_map[addon_module_name].preferences) is not None:
-                            USERPREF_PT_addons.draw_addon_preferences(box, context, addon_preferences)
 
     # Finally show any errors in a single panel which can be dismissed.
     display_errors.errors_curr = errors_on_draw
