@@ -60,11 +60,6 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon);
  * Resizable Icons for Blender
  */
 void UI_icons_init();
-/**
- * Reload the textures for internal icons.
- * This function will release the previous textures.
- */
-void UI_icons_reload_internal_textures();
 
 /**
  * NOTE: returns unscaled by DPI.
