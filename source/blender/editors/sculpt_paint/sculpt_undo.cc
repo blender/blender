@@ -137,6 +137,16 @@ struct StepData {
   /** Name of the object's active shape key when the undo step was created. */
   std::string active_shape_key_name;
 
+  /* The number of vertices in the entire mesh. */
+  int mesh_verts_num;
+  /* The number of face corners in the entire mesh. */
+  int mesh_corners_num;
+
+  /** The number of grids in the entire mesh. */
+  int mesh_grids_num;
+  /** A copy of #SubdivCCG::grid_size. */
+  int grid_size;
+
   float3 pivot_pos;
   float4 pivot_rot;
 
@@ -482,7 +492,7 @@ static bool restore_coords(bContext *C,
   SculptSession &ss = *object.sculpt;
   SubdivCCG *subdiv_ccg = ss.subdiv_ccg;
 
-  if (unode.mesh_verts_num) {
+  if (step_data.mesh_verts_num) {
     /* Regular mesh restore. */
 
     if (ss.shapekey_active && ss.shapekey_active->name != step_data.active_shape_key_name) {
@@ -582,12 +592,15 @@ static bool restore_coords(bContext *C,
   return true;
 }
 
-static bool restore_hidden(Object &object, Node &unode, MutableSpan<bool> modified_vertices)
+static bool restore_hidden(Object &object,
+                           const StepData &step_data,
+                           Node &unode,
+                           MutableSpan<bool> modified_vertices)
 {
   SculptSession &ss = *object.sculpt;
   SubdivCCG *subdiv_ccg = ss.subdiv_ccg;
 
-  if (unode.mesh_verts_num) {
+  if (step_data.mesh_verts_num) {
     Mesh &mesh = *static_cast<Mesh *>(object.data);
     bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
     bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
@@ -650,7 +663,10 @@ static bool restore_hidden_face(Object &object, Node &unode, MutableSpan<bool> m
   return modified;
 }
 
-static bool restore_color(Object &object, Node &unode, MutableSpan<bool> modified_vertices)
+static bool restore_color(Object &object,
+                          const StepData &step_data,
+                          Node &unode,
+                          MutableSpan<bool> modified_vertices)
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   SculptSession &ss = *object.sculpt;
@@ -665,7 +681,7 @@ static bool restore_color(Object &object, Node &unode, MutableSpan<bool> modifie
     modified = true;
   }
 
-  if (!unode.loop_col.is_empty() && unode.mesh_corners_num == mesh.corners_num) {
+  if (!unode.loop_col.is_empty() && step_data.mesh_corners_num == mesh.corners_num) {
     BKE_pbvh_swap_colors(*ss.pbvh, unode.corner_indices, unode.loop_col);
     modified = true;
   }
@@ -677,13 +693,16 @@ static bool restore_color(Object &object, Node &unode, MutableSpan<bool> modifie
   return modified;
 }
 
-static bool restore_mask(Object &object, Node &unode, MutableSpan<bool> modified_vertices)
+static bool restore_mask(Object &object,
+                         const StepData &step_data,
+                         Node &unode,
+                         MutableSpan<bool> modified_vertices)
 {
   Mesh *mesh = BKE_object_get_original_mesh(&object);
   SculptSession &ss = *object.sculpt;
   SubdivCCG *subdiv_ccg = ss.subdiv_ccg;
 
-  if (unode.mesh_verts_num) {
+  if (step_data.mesh_verts_num) {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
         ".sculpt_mask", bke::AttrDomain::Point);
@@ -990,7 +1009,22 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     }
   }
 
+  /* Check if undo data matches current data well enough to continue. */
   bool use_multires_undo = false;
+  if (step_data.mesh_verts_num) {
+    if (ss.totvert != step_data.mesh_verts_num) {
+      return;
+    }
+  }
+  else if (step_data.mesh_grids_num && subdiv_ccg != nullptr) {
+    if ((subdiv_ccg->grids.size() != step_data.mesh_grids_num) ||
+        (subdiv_ccg->grid_size != step_data.grid_size))
+    {
+      return;
+    }
+
+    use_multires_undo = true;
+  }
 
   bool changed_all_geometry = false;
   bool changed_position = false;
@@ -1017,21 +1051,6 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   }
   else {
     for (std::unique_ptr<Node> &unode : step_data.nodes) {
-      /* Check if undo data matches current data well enough to continue. */
-      if (unode->mesh_verts_num) {
-        if (ss.totvert != unode->mesh_verts_num) {
-          continue;
-        }
-      }
-      else if (unode->mesh_grids_num && subdiv_ccg != nullptr) {
-        if ((subdiv_ccg->grids.size() != unode->mesh_grids_num) ||
-            (subdiv_ccg->grid_size != unode->grid_size))
-        {
-          continue;
-        }
-
-        use_multires_undo = true;
-      }
 
       switch (step_data.type) {
         case Type::None:
@@ -1045,7 +1064,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           break;
         case Type::HideVert:
           modified_verts_hide.resize(ss.totvert, false);
-          if (restore_hidden(object, *unode, modified_verts_hide)) {
+          if (restore_hidden(object, step_data, *unode, modified_verts_hide)) {
             changed_hide_vert = true;
           }
           break;
@@ -1057,7 +1076,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           break;
         case Type::Mask:
           modified_verts_mask.resize(ss.totvert, false);
-          if (restore_mask(object, *unode, modified_verts_mask)) {
+          if (restore_mask(object, step_data, *unode, modified_verts_mask)) {
             changed_mask = true;
           }
           break;
@@ -1069,7 +1088,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           break;
         case Type::Color:
           modified_verts_color.resize(ss.totvert, false);
-          if (restore_color(object, *unode, modified_verts_color)) {
+          if (restore_color(object, step_data, *unode, modified_verts_color)) {
             changed_color = true;
           }
           break;
@@ -1085,8 +1104,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   }
 
   if (use_multires_undo) {
+    modified_grids.resize(step_data.mesh_grids_num, false);
     for (std::unique_ptr<Node> &unode : step_data.nodes) {
-      modified_grids.resize(unode->mesh_grids_num, false);
       modified_grids.as_mutable_span().fill_indices(unode->grids.as_span(), true);
     }
   }
@@ -1387,17 +1406,12 @@ static void fill_node_data(const Object &object,
 
   int verts_num;
   if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
-    unode.mesh_grids_num = ss.subdiv_ccg->grids.size();
-    unode.grid_size = ss.subdiv_ccg->grid_size;
-
     unode.grids = bke::pbvh::node_grid_indices(*node);
 
-    const int grid_area = unode.grid_size * unode.grid_size;
+    const int grid_area = ss.subdiv_ccg->grid_size * ss.subdiv_ccg->grid_size;
     verts_num = unode.grids.size() * grid_area;
   }
   else {
-    unode.mesh_verts_num = ss.totvert;
-
     unode.vert_indices = bke::pbvh::node_verts(*node);
     unode.unique_verts_num = bke::pbvh::node_unique_verts(*node).size();
 
@@ -1409,7 +1423,6 @@ static void fill_node_data(const Object &object,
 
   if (need_loops) {
     unode.corner_indices = bke::pbvh::node_corners(*node);
-    unode.mesh_corners_num = mesh.corners_num;
   }
 
   if (need_faces) {
@@ -1704,6 +1717,23 @@ void push_begin_ex(Object &ob, const char *name)
   }
 
   const SculptSession &ss = *ob.sculpt;
+
+  switch (BKE_pbvh_type(*ss.pbvh)) {
+    case PBVH_FACES: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      us->data.mesh_verts_num = ss.totvert;
+      us->data.mesh_corners_num = mesh.corners_num;
+      break;
+    }
+    case PBVH_GRIDS: {
+      us->data.mesh_grids_num = ss.subdiv_ccg->grids.size();
+      us->data.grid_size = ss.subdiv_ccg->grid_size;
+      break;
+    }
+    case PBVH_BMESH: {
+      break;
+    }
+  }
 
   /* Store sculpt pivot. */
   us->data.pivot_pos = ss.pivot_pos;

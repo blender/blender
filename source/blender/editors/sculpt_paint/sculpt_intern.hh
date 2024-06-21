@@ -168,10 +168,6 @@ struct Node {
 
   /* Mesh. */
 
-  /* to verify if totvert it still the same */
-  int mesh_verts_num;
-  int mesh_corners_num;
-
   Array<int> vert_indices;
   int unique_verts_num;
 
@@ -182,10 +178,6 @@ struct Node {
 
   /* Multires. */
 
-  /** The number of grids in the entire mesh. */
-  int mesh_grids_num;
-  /** A copy of #SubdivCCG::grid_size. */
-  int grid_size;
   /** Indices of grids in the PBVH node. */
   Array<int> grids;
   BitGroupVector<> grid_hidden;
