@@ -552,6 +552,10 @@ def register():
     bl_extension_ops.register()
     bl_extension_ui.register()
 
+    WindowManager.addon_tags = PointerProperty(
+        name="Addon Tags",
+        type=BlExtDummyGroup,
+    )
     WindowManager.extension_tags = PointerProperty(
         name="Extension Tags",
         type=BlExtDummyGroup,
@@ -582,11 +586,6 @@ def register():
     WindowManager.extension_installed_only = BoolProperty(
         name="Show Installed Extensions",
         description="Only show installed extensions",
-    )
-    WindowManager.extension_show_legacy_addons = BoolProperty(
-        name="Show Legacy Add-ons",
-        description="Show add-ons which are not packaged as extensions",
-        default=True,
     )
 
     from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
@@ -623,7 +622,6 @@ def unregister():
     del WindowManager.extension_type
     del WindowManager.extension_enabled_only
     del WindowManager.extension_installed_only
-    del WindowManager.extension_show_legacy_addons
 
     for cls in classes:
         bpy.utils.unregister_class(cls)

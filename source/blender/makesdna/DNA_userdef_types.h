@@ -1142,7 +1142,7 @@ typedef enum eUserPref_Section {
   USER_SECTION_SYSTEM = 3,
   USER_SECTION_THEME = 4,
   USER_SECTION_INPUT = 5,
-  USER_SECTION_EXTENSIONS = 6,
+  USER_SECTION_ADDONS = 6,
   USER_SECTION_LIGHT = 7,
   USER_SECTION_KEYMAP = 8,
 #ifdef WITH_USERDEF_WORKSPACES
@@ -1155,6 +1155,7 @@ typedef enum eUserPref_Section {
   USER_SECTION_NAVIGATION = 14,
   USER_SECTION_FILE_PATHS = 15,
   USER_SECTION_EXPERIMENTAL = 16,
+  USER_SECTION_EXTENSIONS = 17,
 } eUserPref_Section;
 
 /** #UserDef_SpaceData.flag (State of the user preferences UI). */
