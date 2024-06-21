@@ -984,10 +984,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  if (!USER_VERSION_ATLEAST(402, 50)) {
-    userdef->statusbar_flag |= STATUSBAR_SHOW_EXTENSIONS_UPDATES;
-  }
-
   if (!USER_VERSION_ATLEAST(402, 51)) {
     userdef->sequencer_editor_flag |= USER_SEQ_ED_SIMPLE_TWEAKING;
   }
@@ -1014,6 +1010,10 @@ void blo_do_versions_userdef(UserDef *userdef)
   if (!USER_VERSION_ATLEAST(402, 59)) {
     userdef->network_timeout = 10;
     userdef->network_connection_limit = 5;
+  }
+
+  if (!USER_VERSION_ATLEAST(402, 63)) {
+    userdef->statusbar_flag |= STATUSBAR_SHOW_EXTENSIONS_UPDATES;
   }
 
   /**
