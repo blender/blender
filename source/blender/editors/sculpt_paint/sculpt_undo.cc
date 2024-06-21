@@ -124,6 +124,25 @@ namespace blender::ed::sculpt_paint::undo {
 
 #define NO_ACTIVE_LAYER bke::AttrDomain::Auto
 
+/* Storage of geometry for the undo node.
+ * Is used as a storage for either original or modified geometry. */
+struct NodeGeometry {
+  /* Is used for sanity check, helping with ensuring that two and only two
+   * geometry pushes happened in the undo stack. */
+  bool is_initialized;
+
+  CustomData vert_data;
+  CustomData edge_data;
+  CustomData corner_data;
+  CustomData face_data;
+  int *face_offset_indices;
+  const ImplicitSharingInfo *face_offsets_sharing_info;
+  int totvert;
+  int totedge;
+  int totloop;
+  int faces_num;
+};
+
 struct StepData {
   /**
    * The type of data stored in this undo step. For historical reasons this is often set when the
@@ -157,14 +176,14 @@ struct StepData {
    *
    * Modified geometry is stored after the modification and is used to redo the modification. */
   bool geometry_clear_pbvh;
-  undo::NodeGeometry geometry_original;
-  undo::NodeGeometry geometry_modified;
+  NodeGeometry geometry_original;
+  NodeGeometry geometry_modified;
 
   /* bmesh */
   BMLogEntry *bm_entry;
 
   /* Geometry at the bmesh enter moment. */
-  undo::NodeGeometry geometry_bmesh_enter;
+  NodeGeometry geometry_bmesh_enter;
 
   bool applied;
 
