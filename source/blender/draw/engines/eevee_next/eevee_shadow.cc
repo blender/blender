@@ -92,8 +92,9 @@ void ShadowTileMap::sync_cubeface(
       -half_size, half_size, -half_size, half_size, clip_near, clip_far);
   viewmat = float4x4(float3x3(shadow_face_mat[cubeface])) * math::invert(object_mat);
 
+  /* Same thing as inversion but avoid precision issues. */
+  float4x4 viewinv = object_mat * float4x4(math::transpose(float3x3(shadow_face_mat[cubeface])));
   /* Update corners. */
-  float4x4 viewinv = object_mat;
   corners[0] = float4(viewinv.location(), 0.0f);
   corners[1] = float4(math::transform_point(viewinv, float3(-far_, -far_, -far_)), 0.0f);
   corners[2] = float4(math::transform_point(viewinv, float3(far_, -far_, -far_)), 0.0f);
