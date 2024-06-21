@@ -406,7 +406,9 @@ def addons_panel_draw_items(
             del item_local
         else:
             item_name = bl_info["name"]
-            item_description = bl_info["description"]
+            # A "." is added to the extensions manifest tag-line.
+            # Avoid duplicate dot for legacy add-ons.
+            item_description = bl_info["description"].rstrip(".")
             item_tags = (bl_info["category"],)
             item_warning_legacy = bl_info["warning"]
             if show_expanded:
