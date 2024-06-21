@@ -191,6 +191,10 @@ static void volume_free_data(ID *id)
   BKE_animdata_free(&volume->id, false);
   BKE_volume_batch_cache_free(volume);
   MEM_SAFE_FREE(volume->mat);
+  if (volume->packedfile) {
+    BKE_packedfile_free(volume->packedfile);
+    volume->packedfile = nullptr;
+  }
 #ifdef WITH_OPENVDB
   MEM_delete(volume->runtime->grids);
   volume->runtime->grids = nullptr;
