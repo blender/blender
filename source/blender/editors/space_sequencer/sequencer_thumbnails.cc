@@ -311,7 +311,7 @@ static void sequencer_thumbnail_start_job_if_necessary(
   if (v2d->cur.xmax != sseq->runtime->last_thumbnail_area.xmax ||
       v2d->cur.ymax != sseq->runtime->last_thumbnail_area.ymax)
   {
-    WM_jobs_stop(CTX_wm_manager(C), nullptr, thumbnail_start_job);
+    WM_jobs_stop_type(CTX_wm_manager(C), nullptr, WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL);
   }
 
   sequencer_thumbnail_init_job(C, v2d, ed, thumb_height);

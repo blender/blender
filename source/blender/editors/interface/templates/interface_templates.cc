@@ -5966,22 +5966,22 @@ static void do_running_jobs(bContext *C, void * /*arg*/, int event)
       G.is_break = true;
       break;
     case B_STOPCAST:
-      WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C), nullptr);
+      WM_jobs_stop_all_from_owner(CTX_wm_manager(C), CTX_wm_screen(C));
       break;
     case B_STOPANIM:
       WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, nullptr, nullptr);
       break;
     case B_STOPCOMPO:
-      WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), nullptr);
+      WM_jobs_stop_all_from_owner(CTX_wm_manager(C), CTX_data_scene(C));
       break;
     case B_STOPSEQ:
-      WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), nullptr);
+      WM_jobs_stop_all_from_owner(CTX_wm_manager(C), CTX_data_scene(C));
       break;
     case B_STOPCLIP:
-      WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), nullptr);
+      WM_jobs_stop_all_from_owner(CTX_wm_manager(C), CTX_data_scene(C));
       break;
     case B_STOPFILE:
-      WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), nullptr);
+      WM_jobs_stop_all_from_owner(CTX_wm_manager(C), CTX_data_scene(C));
       break;
     case B_STOPOTHER:
       G.is_break = true;

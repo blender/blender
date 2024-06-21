@@ -782,7 +782,7 @@ static void ensure_nodetree_previews(const bContext &C,
     return;
   }
   if (tree_previews.rendering) {
-    WM_jobs_stop(CTX_wm_manager(&C), CTX_wm_space_node(&C), shader_preview_startjob);
+    WM_jobs_stop_type(CTX_wm_manager(&C), CTX_wm_space_node(&C), WM_JOB_TYPE_RENDER_PREVIEW);
     return;
   }
   tree_previews.rendering = true;
@@ -837,15 +837,10 @@ static void ensure_nodetree_previews(const bContext &C,
   WM_jobs_start(CTX_wm_manager(&C), wm_job);
 }
 
-void stop_preview_job(wmWindowManager &wm)
-{
-  WM_jobs_stop(&wm, nullptr, shader_preview_startjob);
-}
-
 void free_previews(wmWindowManager &wm, SpaceNode &snode)
 {
   /* This should not be called from the drawing pass, because it will result in a deadlock. */
-  WM_jobs_kill(&wm, &snode, shader_preview_startjob);
+  WM_jobs_kill_type(&wm, &snode, WM_JOB_TYPE_RENDER_PREVIEW);
   snode.runtime->tree_previews_per_context.clear_and_shrink();
 }
 

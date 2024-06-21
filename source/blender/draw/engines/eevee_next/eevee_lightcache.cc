@@ -310,7 +310,7 @@ wmJob *EEVEE_NEXT_lightbake_job_create(wmWindowManager *wm,
   }
 
   /* Stop existing baking job. */
-  WM_jobs_stop(wm, nullptr, EEVEE_NEXT_lightbake_job);
+  WM_jobs_stop_type(wm, nullptr, WM_JOB_TYPE_LIGHT_BAKE);
 
   wmJob *wm_job = WM_jobs_get(wm,
                               win,
