@@ -71,6 +71,9 @@ void main()
         return;
       }
     }
+    else {
+      /* None of the verts are behind the camera. The projected AABB is correct. */
+    }
   }
 
   AABB aabb_tag;
