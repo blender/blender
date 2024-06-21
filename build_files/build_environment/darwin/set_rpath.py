@@ -6,6 +6,7 @@
 # macOS utility to remove all `rpaths` and add a new one.
 
 import os
+import pathlib
 import re
 import subprocess
 import sys
@@ -20,8 +21,28 @@ def strip_lib_version(name):
     return name
 
 
+# Patch cmake config to match rename
+def update_cmake_config(oldfile, newfile):
+    for cmakefile in oldfile.parent.glob("cmake/*/*.cmake"):
+        text = cmakefile.read_text()
+        text = text.replace(oldfile.name, newfile.name)
+        cmakefile.write_text(text)
+
+
 rpath = sys.argv[1]
 file = sys.argv[2]
+new_file = strip_lib_version(file)
+
+file = pathlib.Path(file)
+new_file = pathlib.Path(new_file)
+
+# Update cmake config files.
+update_cmake_config(file, new_file)
+
+# Remove if symlink.
+if file.is_symlink():
+    os.remove(file)
+    sys.exit(0)
 
 # Find existing rpaths and delete them one by one.
 p = subprocess.run(['otool', '-l', file], capture_output=True)
@@ -44,7 +65,6 @@ for i, token in enumerate(tokens):
         subprocess.run(['install_name_tool', '-change', token, new_token, file])
 
 # Strip version from library itself.
-new_file = strip_lib_version(file)
-new_id = '@rpath/' + os.path.basename(new_file)
+new_id = '@rpath/' + new_file.name
 os.rename(file, new_file)
 subprocess.run(['install_name_tool', '-id', new_id, new_file])

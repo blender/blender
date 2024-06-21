@@ -85,11 +85,7 @@ else()
       cmake_policy(SET CMP0009 NEW)\n
       file(GLOB_RECURSE shared_libs ${HARVEST_TARGET}/${to}/${pattern}) \n
       foreach(f \${shared_libs}) \n
-        if(IS_SYMLINK \${f})\n
-          if(APPLE)\n
-            file(REMOVE_RECURSE \${f})
-          endif()\n
-        else()\n
+        if((NOT IS_SYMLINK \${f}) OR APPLE)\n
           execute_process(COMMAND ${set_rpath_cmd} \${f}) \n
         endif()\n
       endforeach()")
@@ -230,7 +226,7 @@ else()
   )
   harvest(openimagedenoise/include openimagedenoise/include "*")
   harvest_rpath_lib(openimagedenoise/lib openimagedenoise/lib "*${SHAREDLIBEXT}*")
-  harvest(openimagedenoise/lib/cmake/OpenImageDenoise-${OIDN_VERSION} openimagedenoise/lib/cmake/OpenImageDenoise "*.cmake")
+  harvest(openimagedenoise/lib/cmake openimagedenoise/lib/cmake "*")
   harvest(embree/include embree/include "*.h")
   harvest(embree/lib embree/lib "*.a")
   harvest_rpath_lib(embree/lib embree/lib "*${SHAREDLIBEXT}*")
@@ -292,9 +288,9 @@ else()
   )
   harvest(usd/plugin usd/plugin "*")
   harvest(materialx/include materialx/include "*.h")
+  harvest(materialx/lib/cmake/MaterialX materialx/lib/cmake/MaterialX "*.cmake")
   harvest_rpath_lib(materialx/lib materialx/lib "*${SHAREDLIBEXT}*")
   harvest(materialx/libraries materialx/libraries "*")
-  harvest(materialx/lib/cmake/MaterialX materialx/lib/cmake/MaterialX "*.cmake")
   harvest_rpath_python(
     materialx/python/MaterialX
     python/lib/python${PYTHON_SHORT_VERSION}/site-packages/MaterialX
