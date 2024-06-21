@@ -67,7 +67,6 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win);
  */
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win);
 
-void wm_window_title(wmWindowManager *wm, wmWindow *win);
 /**
  * Initialize #wmWindow without `ghostwin`, open these and clear.
  *
