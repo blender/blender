@@ -793,6 +793,7 @@ def extensions_panel_draw_impl(
         enabled_only,  # `bool`
         updates_only,  # `bool`
         installed_only,  # `bool`
+        operation_in_progress,  # `bool`
         show_development,  # `bool`
 ):
     """
@@ -1006,7 +1007,7 @@ def extensions_panel_draw_impl(
             sub.label(
                 text=(
                     item.name if (is_enabled or is_installed is False) else
-                    item.name + iface_(" [disabled]")
+                    item.name + iface_(" (disabled)")
                 ),
                 translate=False,
             )
@@ -1015,6 +1016,8 @@ def extensions_panel_draw_impl(
             # Add a top-level row so `row_right` can have a grayed out button/label
             # without graying out the menu item since# that is functional.
             row_right_toplevel = row.row(align=True)
+            if operation_in_progress:
+                row_right_toplevel.enabled = False
             row_right_toplevel.alignment = 'RIGHT'
             row_right = row_right_toplevel.row(align=True)
             row_right.alignment = 'RIGHT'
@@ -1040,7 +1043,7 @@ def extensions_panel_draw_impl(
                 # Right space for alignment with the button.
                 if has_remote and (item_remote is None):
                     # There is a local item with no remote
-                    row_right.label(text="Orphan")
+                    row_right.label(text="Orphan   ")
                 else:
                     row_right.label(text="Installed   ")
 
@@ -1349,19 +1352,36 @@ def extensions_panel_draw(panel, context):
     from . import (
         repo_status_text,
     )
-
-    prefs = context.preferences
+    from .bl_extension_notify import (
+        update_in_progress,
+    )
 
     from bpy.app.translations import pgettext_iface as iface_
     from .bl_extension_ops import (
         blender_filter_by_type_map,
     )
 
+    wm = context.window_manager
+    prefs = context.preferences
+
+    # When an update is in progress disallow any destructive operations.
+    # While a non-blocking update is nice, users should *never* be performing
+    # destructive operations with an outdated repository. There are a couple of reasons for this.
+    # - Pressing "Install" on an extension may either fail (the version may be old for e.g.).
+    # - Pressing any buttons immediately before the UI refreshes risks the user installing or operating
+    #   on the wrong extension, one which they may not trust!
+    # Prevent these kinds of accidents by disabling parts of the extension UI while synchronize is in progress.
+    operation_in_progress = False
+    if update_in_progress():
+        operation_in_progress = True
+    elif any(win.modal_operators.get("EXTENSIONS_OT_repo_sync_all") is not None for win in wm.windows):
+        # NOTE: we may want a more generic way to check if sync is running.
+        operation_in_progress = True
+
     show_development = prefs.experimental.use_extensions_debug
     # This could be a separate option.
     show_development_reports = show_development
 
-    wm = context.window_manager
     layout = panel.layout
 
     row = layout.split(factor=0.5)
@@ -1464,6 +1484,7 @@ def extensions_panel_draw(panel, context):
         wm.extension_enabled_only,
         wm.extension_updates_only,
         wm.extension_installed_only,
+        operation_in_progress,
         show_development,
     )
 
