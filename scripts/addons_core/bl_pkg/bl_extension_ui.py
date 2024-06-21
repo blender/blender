@@ -912,9 +912,6 @@ def extensions_panel_draw_impl(
                 )
                 continue
 
-        # Read-only.
-        is_system_repo = repos_all[repo_index].source == 'SYSTEM'
-
         repo_module_prefix = pkg_repo_module_prefix(repos_all[repo_index])
 
         for pkg_id, (item_local, item_remote) in pkg_manifest_zip_all_items(pkg_manifest_local, pkg_manifest_remote):
@@ -1059,7 +1056,11 @@ def extensions_panel_draw_impl(
                 )
             del sub
 
-            row_right = row.row(align=True)
+            # Add a top-level row so `row_right` can have a grayed out button/label
+            # without graying out the menu item since# that is functional.
+            row_right_toplevel = row.row(align=True)
+            row_right_toplevel.alignment = 'RIGHT'
+            row_right = row_right_toplevel.row(align=True)
             row_right.alignment = 'RIGHT'
 
             if has_remote and (item_remote is not None):
@@ -1084,11 +1085,19 @@ def extensions_panel_draw_impl(
                 if has_remote and (item_remote is None):
                     # There is a local item with no remote
                     row_right.label(text="Orphan")
-                    row_right.label(text="", icon='ORPHAN_DATA')
                 else:
                     row_right.label(text="Installed   ")
 
                 row_right.active = False
+
+            row_right = row_right_toplevel.row(align=True)
+            row_right.alignment = 'RIGHT'
+
+            row_right.context_string_set("extension_path", "{:s}.{:s}".format(repos_all[repo_index].module, pkg_id))
+
+            row_right.menu("USERPREF_MT_extensions_item", text="", icon='DOWNARROW_HLT')
+            del row_right
+            del row_right_toplevel
 
             if show:
                 col = box.column()
@@ -1098,20 +1107,6 @@ def extensions_panel_draw_impl(
                 # The full tagline may be multiple lines (not yet supported by Blender's UI).
                 row.label(text=" {:s}.".format(item.tagline), translate=False)
 
-                # Note that we could allow removing extensions from non-remote extension repos
-                # although this is destructive, so don't enable this right now.
-                if is_installed:
-                    rowsub = row.row()
-                    rowsub.alignment = 'RIGHT'
-                    if is_system_repo:
-                        rowsub.operator("extensions.package_uninstall_system", text="Uninstall")
-                    else:
-                        props = rowsub.operator("extensions.package_uninstall", text="Uninstall")
-                        props.repo_index = repo_index
-                        props.pkg_id = pkg_id
-                        del props
-                    del rowsub
-
                 col.separator(type='LINE')
                 del col
 
@@ -1120,19 +1115,6 @@ def extensions_panel_draw_impl(
                 split = col_info.split(factor=0.15)
                 col_a = split.column()
                 col_b = split.column()
-                col_a.alignment = "RIGHT"
-
-                if value := item.website:
-                    col_a.label(text="Website")
-                    # Use half size button the full width button looks silly.
-                    col_b.split(factor=0.5).operator(
-                        "wm.url_open",
-                        text=domain_extract_from_url(value),
-                        translate=False,
-                        icon='URL',
-                    ).url = value
-                del value
-
                 col_a.alignment = "RIGHT"
 
                 if is_addon:
@@ -1275,6 +1257,142 @@ class USERPREF_MT_extensions_settings(Menu):
 
             layout.operator("extensions.repo_lock")
             layout.operator("extensions.repo_unlock")
+
+
+# This menu is used as the icon-only top right drop-down for each extension.
+# - The extension may be installed or not and of any type.
+# - The context string `extension_path` must be set
+class USERPREF_MT_extensions_item(Menu):
+    bl_label = "Extension Item"
+
+    # WARNING: this is slow, so avoid having a generic function
+    # because it could easily be misused to create inefficient.
+    #
+    # This is acceptable when used in this menu since the function
+    # only runs when the user clicks on the menu item.
+    @classmethod
+    def _extension_data_or_error(cls, prefs, extension_path):
+        # NOTE: some of the logic here is duplicated from the main extensions drawing function.
+        # We may want to consider ways to de-duplicate this although currently there doesn't seem
+        # to be a convenient way to do so.
+
+        from . import repo_cache_store_ensure
+        from .bl_extension_ops import extension_repos_read
+
+        repo_module, pkg_id = extension_path.partition(".")[0::2]
+
+        repos_all = extension_repos_read()
+        repo_index, repo = next(
+            (
+                (repo_index, repo)
+                for repo_index, repo in enumerate(repos_all)
+                if repo.module == repo_module
+            ),
+            (-1, None),
+        )
+        if repo is None:
+            # Should never happen.
+            return "Internal error accessing repository"
+
+        repo_cache_store = repo_cache_store_ensure()
+
+        pkg_manifest_local = repo_cache_store.refresh_local_from_directory(directory=repo.directory, error_fn=print)
+        pkg_manifest_remote = repo_cache_store.refresh_remote_from_directory(directory=repo.directory, error_fn=print)
+
+        item_local = (pkg_manifest_local or {}).get(pkg_id)
+        item_remote = (pkg_manifest_remote or {}).get(pkg_id)
+
+        if item_local is None and item_remote is None:
+            # Should never happen.
+            return "Internal error accessing repository meta-data"
+
+        repo_module_prefix = pkg_repo_module_prefix(repo)
+
+        addon_module_name = repo_module_prefix + pkg_id
+
+        is_enabled = False
+        if item_local is not None:
+            match item_local.type:
+                case "add-on":
+                    is_enabled = prefs.addons.get(addon_module_name) is not None
+                case "theme":
+                    active_theme_info = pkg_repo_and_id_from_theme_path(repos_all, prefs.themes[0].filepath)
+                    is_enabled = (repo_index, pkg_id) == active_theme_info
+
+        return repo, repo_index, pkg_id, item_local, item_remote, addon_module_name, is_enabled
+
+    def draw(self, context):
+
+        layout = self.layout
+
+        prefs = context.preferences
+
+        # NOTE: `extension_path` is expected to be set, `getattr` here avoids an unhandled exception
+        # if it's not in the unlikely event that this menu is called from a key binding or similar.
+        # Even though the menu wont work, show a useful label instead of an exception.
+        if isinstance(result := self._extension_data_or_error(prefs, getattr(context, "extension_path", "")), str):
+            layout.label(text=result)
+            return
+
+        show_development = prefs.experimental.use_extensions_debug
+
+        repo, repo_index, pkg_id, item_local, item_remote, addon_module_name, is_enabled = result
+        del result
+
+        item = item_local or item_remote
+
+        is_installed = item_local is not None
+        is_system_repo = repo.source == 'SYSTEM'
+
+        match item.type:
+            case "add-on":
+                if is_installed:
+                    props = layout.operator("preferences.addon_show", text="View Details")
+                    props.module = addon_module_name
+                    del props
+
+                    # Let developers toggle from the menu.
+                    if show_development:
+                        layout.operator(
+                            "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
+                            icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT',
+                            text="Add-on Enabled",
+                            emboss=False,
+                        ).module = addon_module_name
+            case "theme":
+                if is_installed:
+                    props = layout.operator(
+                        "extensions.package_theme_disable" if is_enabled else "extensions.package_theme_enable",
+                        text="Clear Theme" if is_enabled else "Set Theme",
+                    )
+                    props.repo_index = repo_index
+                    props.pkg_id = pkg_id
+                    del props
+
+        if value := item.website:
+            layout.operator("wm.url_open", text="Visit Website", icon='URL').url = value
+        else:
+            # Without this, the menu may sometimes be empty (which seems like a bug).
+            # Instead, have a grayed out web link.
+            # Note that in practice this should happen rarely as most extensions will have a URL.
+            col = layout.column()
+            col.operator("wm.url_open", text="Visit Website", icon='URL').url = ""
+            col.enabled = False
+
+        del value
+
+        # Note that we could allow removing extensions from non-remote extension repos
+        # although this is destructive, so don't enable this right now.
+        if is_installed:
+            layout.separator()
+
+            if is_system_repo:
+                layout.operator("extensions.package_uninstall_system", text="Uninstall")
+            else:
+                props = layout.operator("extensions.package_uninstall", text="Uninstall")
+                props.repo_index = repo_index
+                props.pkg_id = pkg_id
+                del props
 
 
 def extensions_panel_draw(panel, context):
@@ -1581,6 +1699,7 @@ classes = (
     USERPREF_PT_extensions_filter,
     USERPREF_PT_extensions_tags,
     USERPREF_MT_extensions_settings,
+    USERPREF_MT_extensions_item,
 )
 
 
