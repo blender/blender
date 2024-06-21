@@ -39,7 +39,7 @@ static VkImageAspectFlags to_vk_image_aspect_single_bit(const VkImageAspectFlags
 VKTexture::~VKTexture()
 {
   if (vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) {
-    VKDevice &device = VKBackend::get().device_get();
+    VKDevice &device = VKBackend::get().device;
     device.discard_image(vk_image_, allocation_);
 
     vk_image_ = VK_NULL_HANDLE;
@@ -321,7 +321,7 @@ uint VKTexture::gl_bindcode_get() const
 
 bool VKTexture::init_internal()
 {
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   const VKWorkarounds &workarounds = device.workarounds_get();
   device_format_ = format_;
   if (device_format_ == GPU_DEPTH_COMPONENT24 && workarounds.not_aligned_pixel_formats) {
@@ -458,7 +458,7 @@ bool VKTexture::allocate()
   BLI_assert(vk_image_ == VK_NULL_HANDLE);
   BLI_assert(!is_texture_view());
 
-  VKDevice &device = VKBackend::get().device_get();
+  VKDevice &device = VKBackend::get().device;
   VkImageCreateInfo image_info = {};
   image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
   image_info.flags = to_vk_image_create(type_, format_flag_, usage_get());
@@ -525,7 +525,7 @@ void VKTexture::add_to_descriptor_set(AddToDescriptorSetContext &data,
       data.descriptor_set.image_bind(*this, *location);
     }
     else {
-      VKDevice &device = VKBackend::get().device_get();
+      VKDevice &device = VKBackend::get().device;
       const VKSampler &sampler = device.samplers().get(sampler_state);
       data.descriptor_set.bind(*this, *location, sampler);
     }
@@ -534,78 +534,6 @@ void VKTexture::add_to_descriptor_set(AddToDescriptorSetContext &data,
                                              to_vk_image_aspect_flag_bits(device_format_)});
   }
 }
-
-/* -------------------------------------------------------------------- */
-/** \name Image Layout
- * \{ */
-
-VkImageLayout VKTexture::current_layout_get() const
-{
-  if (is_texture_view()) {
-    return source_texture_->current_layout_get();
-  }
-  return current_layout_;
-}
-
-void VKTexture::current_layout_set(const VkImageLayout new_layout)
-{
-  BLI_assert(!is_texture_view());
-  current_layout_ = new_layout;
-}
-
-void VKTexture::layout_ensure(VKContext &context,
-                              const VkImageLayout requested_layout,
-                              const VkPipelineStageFlags src_stage,
-                              const VkAccessFlags src_access,
-                              const VkPipelineStageFlags dst_stage,
-                              const VkAccessFlags dst_access)
-{
-  if (is_texture_view()) {
-    source_texture_->layout_ensure(context, requested_layout);
-    return;
-  }
-  const VkImageLayout current_layout = current_layout_get();
-  if (current_layout == requested_layout) {
-    return;
-  }
-  layout_ensure(context,
-                IndexRange(0, VK_REMAINING_MIP_LEVELS),
-                current_layout,
-                requested_layout,
-                src_stage,
-                src_access,
-                dst_stage,
-                dst_access);
-  current_layout_set(requested_layout);
-}
-
-void VKTexture::layout_ensure(VKContext &context,
-                              const IndexRange mipmap_range,
-                              const VkImageLayout current_layout,
-                              const VkImageLayout requested_layout,
-                              const VkPipelineStageFlags src_stages,
-                              const VkAccessFlags src_access,
-                              const VkPipelineStageFlags dst_stages,
-                              const VkAccessFlags dst_access)
-{
-  BLI_assert(vk_image_ != VK_NULL_HANDLE);
-  VkImageMemoryBarrier barrier{};
-  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  barrier.oldLayout = current_layout;
-  barrier.newLayout = requested_layout;
-  barrier.srcAccessMask = src_access;
-  barrier.dstAccessMask = dst_access;
-  barrier.image = vk_image_;
-  barrier.subresourceRange.aspectMask = to_vk_image_aspect_flag_bits(device_format_);
-  barrier.subresourceRange.baseMipLevel = uint32_t(mipmap_range.start());
-  barrier.subresourceRange.levelCount = uint32_t(mipmap_range.size());
-  barrier.subresourceRange.baseArrayLayer = 0;
-  barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-  context.command_buffers_get().pipeline_barrier(
-      src_stages, dst_stages, Span<VkImageMemoryBarrier>(&barrier, 1));
-}
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Image Views

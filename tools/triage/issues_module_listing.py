@@ -22,6 +22,7 @@ class ModuleInfo:
     name: str
     labelid: str
     buglist: list[str] = dataclasses.field(default_factory=list)
+    buglist_full: list[str] = dataclasses.field(default_factory=list)
 
 
 # Label names and IDs are taken from https://projects.blender.org/blender/blender/labels.
@@ -70,9 +71,13 @@ def compile_list(severity: str) -> None:
 
     uncategorized_reports = []
 
-    for issue in issues_json:
+    issues_json_sorted = sorted(issues_json, key=lambda x: x["number"])
+
+    for issue in issues_json_sorted:
         html_url = issue["html_url"]
         number = issue["number"]
+        created_at = issue["created_at"].rsplit('T', 1)[0]
+        title = issue["title"]
 
         # Check reports module assignment and fill in data.
         for label_iter in issue["labels"]:
@@ -81,6 +86,7 @@ def compile_list(severity: str) -> None:
                 continue
 
             modules[label].buglist.append(f"[#{number}]({html_url})")
+            modules[label].buglist_full.append(f"* [{title}]({html_url}) - {created_at}\n")
             break
     else:
         uncategorized_reports.append(f"[#{number}]({html_url})")
@@ -88,6 +94,7 @@ def compile_list(severity: str) -> None:
     # Print statistics
     print(f"Open {severity} Priority bugs as of {date.today()}:\n")
 
+    # Module overview with numbers
     total = 0
     for module in modules.values():
         buglist_str = (", ".join(module.buglist))
@@ -101,9 +108,17 @@ def compile_list(severity: str) -> None:
 
     print()
     print(f"[Total]({total_url}): {total}")
-
     print()
     print("Uncategorized:", ", ".join(uncategorized_reports))
+    print()
+
+    # Module overview with titles and creation date
+    for module in modules.values():
+        buglist_full_str = ("".join(module.buglist_full))
+        buglist_full_len = len(module.buglist_full)
+        if buglist_full_len != 0:
+            print(f"{module.name}:")
+            print(f"{buglist_full_str}")
 
 
 def main() -> None:

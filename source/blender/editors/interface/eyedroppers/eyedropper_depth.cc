@@ -156,6 +156,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
     char *prop_data_path = RNA_string_get_alloc(op->ptr, "prop_data_path", nullptr, 0, nullptr);
     BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(prop_data_path); });
     if (!prop_data_path) {
+      MEM_freeN(ddr);
       return false;
     }
     PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);

@@ -189,7 +189,8 @@ class GHOST_DeviceVK {
     return true;
   }
 
-  void ensure_device(vector<const char *> &extensions_device)
+  void ensure_device(vector<const char *> &required_extensions,
+                     vector<const char *> &optional_extensions)
   {
     if (device != VK_NULL_HANDLE) {
       return;
@@ -197,6 +198,12 @@ class GHOST_DeviceVK {
     init_generic_queue_family();
 
     vector<VkDeviceQueueCreateInfo> queue_create_infos;
+    vector<const char *> device_extensions(required_extensions);
+    for (const char *optional_extension : optional_extensions) {
+      if (has_extensions({optional_extension})) {
+        device_extensions.push_back(optional_extension);
+      }
+    }
 
     float queue_priorities[] = {1.0f};
     VkDeviceQueueCreateInfo graphic_queue_create_info = {};
@@ -224,19 +231,17 @@ class GHOST_DeviceVK {
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_create_info.queueCreateInfoCount = uint32_t(queue_create_infos.size());
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
-    device_create_info.enabledExtensionCount = uint32_t(extensions_device.size());
-    device_create_info.ppEnabledExtensionNames = extensions_device.data();
+    device_create_info.enabledExtensionCount = uint32_t(device_extensions.size());
+    device_create_info.ppEnabledExtensionNames = device_extensions.data();
     device_create_info.pEnabledFeatures = &device_features;
 
     void *device_create_info_p_next = nullptr;
 
-    /* Enable optional vulkan 12 features when supported on physical device.
-     * Support level for timelineSemaphores is 99%+. */
+    /* Enable optional vulkan 12 features when supported on physical device. */
     VkPhysicalDeviceVulkan12Features vulkan_12_features = {};
     vulkan_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     vulkan_12_features.shaderOutputLayer = features_12.shaderOutputLayer;
     vulkan_12_features.shaderOutputViewportIndex = features_12.shaderOutputViewportIndex;
-    vulkan_12_features.timelineSemaphore = VK_TRUE;
     vulkan_12_features.pNext = device_create_info_p_next;
     device_create_info_p_next = &vulkan_12_features;
 
@@ -254,6 +259,14 @@ class GHOST_DeviceVK {
     dynamic_rendering.dynamicRendering = true;
     dynamic_rendering.pNext = device_create_info_p_next;
     device_create_info_p_next = &dynamic_rendering;
+
+    VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
+        dynamic_rendering_unused_attachments = {};
+    dynamic_rendering_unused_attachments.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
+    dynamic_rendering_unused_attachments.dynamicRenderingUnusedAttachments = VK_TRUE;
+    dynamic_rendering_unused_attachments.pNext = device_create_info_p_next;
+    device_create_info_p_next = &dynamic_rendering_unused_attachments;
 
     /* Query for Mainenance4 (core in Vulkan 1.3). */
     VkPhysicalDeviceMaintenance4FeaturesKHR maintenance_4 = {};
@@ -919,7 +932,8 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #endif
 
   std::vector<VkExtensionProperties> extensions_available = getExtensionsAvailable();
-  vector<const char *> extensions_device;
+  vector<const char *> required_device_extensions;
+  vector<const char *> optional_device_extensions;
   vector<const char *> extensions_enabled;
 
   if (m_debug) {
@@ -931,12 +945,16 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     requireExtension(extensions_available, extensions_enabled, VK_KHR_SURFACE_EXTENSION_NAME);
     requireExtension(extensions_available, extensions_enabled, native_surface_extension_name);
 
-    extensions_device.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
-  extensions_device.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
-  extensions_device.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
-  extensions_device.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-  extensions_device.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
+  required_device_extensions.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+  required_device_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+  required_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  /* NOTE: marking this as an optional extension, but is actually required. Renderdoc doesn't
+   * create a device with this extension, but seems to work when not requesting the extension.
+   */
+  optional_device_extensions.push_back(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
 
   /* Enable MoltenVK required instance extensions. */
 #ifdef __APPLE__
@@ -1027,24 +1045,24 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #endif
   }
 
-  if (!ensure_vulkan_device(instance, m_surface, extensions_device)) {
+  if (!ensure_vulkan_device(instance, m_surface, required_device_extensions)) {
     return GHOST_kFailure;
   }
 
   vulkan_device->users++;
   /* Register optional device extensions */
   if (vulkan_device->has_extensions({VK_KHR_MAINTENANCE_4_EXTENSION_NAME})) {
-    extensions_device.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
+    required_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   }
-#ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
+#ifdef WITH_VULKAN_MOLTENVK
   /* According to the Vulkan specs, when `VK_KHR_portability_subset` is available it should be
    * enabled. See
    * https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451*/
   if (vulkan_device->has_extensions({VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME})) {
-    extensions_device.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+    required_device_extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
 #endif
-  vulkan_device->ensure_device(extensions_device);
+  vulkan_device->ensure_device(required_device_extensions, optional_device_extensions);
 
   vkGetDeviceQueue(
       vulkan_device->device, vulkan_device->generic_queue_family, 0, &m_graphic_queue);

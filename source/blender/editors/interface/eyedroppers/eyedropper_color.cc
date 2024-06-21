@@ -44,6 +44,7 @@
 #include "ED_image.hh"
 #include "ED_node.hh"
 #include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 #include "RE_pipeline.h"
 
@@ -369,6 +370,11 @@ void eyedropper_color_sample_fl(bContext *C, const int event_xy[2], float r_col[
       else if (area->spacetype == SPACE_CLIP) {
         SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         if (ED_space_clip_color_sample(sc, region, mval, r_col)) {
+          return;
+        }
+      }
+      else if (area->spacetype == SPACE_VIEW3D) {
+        if (ED_view3d_viewport_color_sample(region, mval, r_col)) {
           return;
         }
       }

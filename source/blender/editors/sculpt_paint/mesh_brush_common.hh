@@ -45,6 +45,7 @@ struct Cache;
 };
 
 void scale_translations(MutableSpan<float3> translations, Span<float> factors);
+void scale_translations(MutableSpan<float3> translations, float factor);
 void scale_factors(MutableSpan<float> factors, float strength);
 
 /**

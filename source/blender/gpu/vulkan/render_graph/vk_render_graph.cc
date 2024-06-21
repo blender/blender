@@ -14,6 +14,7 @@ VKRenderGraph::VKRenderGraph(std::unique_ptr<VKCommandBufferInterface> command_b
                              VKResourceStateTracker &resources)
     : command_buffer_(std::move(command_buffer)), resources_(resources)
 {
+  submission_id.reset();
 }
 
 void VKRenderGraph::free_data()
@@ -62,6 +63,7 @@ void VKRenderGraph::submit_for_present(VkImage vk_swapchain_image)
    *
    * Currently using CPU synchronization for safety. */
   command_buffer_->submit_with_cpu_synchronization();
+  submission_id.next();
   remove_nodes(node_handles);
   command_buffer_->wait_for_cpu_synchronization();
 }
@@ -72,6 +74,7 @@ void VKRenderGraph::submit_buffer_for_read(VkBuffer vk_buffer)
   Span<NodeHandle> node_handles = scheduler_.select_nodes_for_buffer(*this, vk_buffer);
   command_builder_.build_nodes(*this, *command_buffer_, node_handles);
   command_buffer_->submit_with_cpu_synchronization();
+  submission_id.next();
   remove_nodes(node_handles);
   command_buffer_->wait_for_cpu_synchronization();
 }
@@ -82,6 +85,7 @@ void VKRenderGraph::submit()
   Span<NodeHandle> node_handles = scheduler_.select_nodes(*this);
   command_builder_.build_nodes(*this, *command_buffer_, node_handles);
   command_buffer_->submit_with_cpu_synchronization();
+  submission_id.next();
   remove_nodes(node_handles);
   command_buffer_->wait_for_cpu_synchronization();
 }

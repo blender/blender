@@ -20,6 +20,7 @@
 
 #include "../generic/python_compat.h"
 
+#include "gpu_py.hh"
 #include "gpu_py_uniformbuffer.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -59,6 +60,8 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject * /*self*/,
                                              PyObject *args,
                                              PyObject *kwds)
 {
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
   GPUUniformBuf *ubo = nullptr;
   PyObject *pybuffer_obj;
   char err_out[256] = "unknown error. See console";

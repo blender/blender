@@ -944,6 +944,10 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
 
 Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
 {
+  if (!DEG_object_geometry_is_evaluated(*ob_eval)) {
+    return nullptr;
+  }
+
   Mesh *mesh = nullptr;
 
   if ((ob_eval->type == OB_MESH) && (ob_eval->mode & OB_MODE_EDIT)) {

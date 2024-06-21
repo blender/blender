@@ -33,6 +33,7 @@ struct ID;
 struct Library;
 struct PackedFile;
 struct UniqueName_Map;
+struct Depsgraph;
 
 /* Runtime display data */
 struct DrawData;
@@ -401,6 +402,13 @@ typedef struct ID_Runtime_Remap {
 
 typedef struct ID_Runtime {
   ID_Runtime_Remap remap;
+  /**
+   * The depsgraph that owns this data block. This is only set on data-blocks which are
+   * copied-on-eval by the depsgraph. Additional data-blocks created during depsgraph evaluation
+   * are not owned by any specific depsgraph and thus this pointer is null for those.
+   */
+  struct Depsgraph *depsgraph;
+  void *_pad;
 } ID_Runtime;
 
 typedef struct ID {

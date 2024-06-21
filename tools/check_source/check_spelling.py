@@ -6,7 +6,7 @@
 """
 Script for checking source code spelling.
 
-   python3 tools/check_source/check_spelling.py some_soure_file.py
+   python3 tools/check_source/check_spelling.py some_source_file.py
 
 - Pass in a path for it to be checked recursively.
 - Pass in '--strings' to check strings instead of comments.

@@ -55,6 +55,25 @@ namespace blender::ed::sculpt_paint::hide {
 /** \name Public API
  * \{ */
 
+Span<int> node_visible_verts(const PBVHNode &node,
+                             const Span<bool> hide_vert,
+                             Vector<int> &indices)
+{
+  if (BKE_pbvh_node_fully_hidden_get(&node)) {
+    return {};
+  }
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  if (hide_vert.is_empty()) {
+    return verts;
+  }
+  indices.resize(verts.size());
+  const int *end = std::copy_if(verts.begin(), verts.end(), indices.begin(), [&](const int vert) {
+    return !hide_vert[vert];
+  });
+  indices.resize(end - indices.begin());
+  return indices;
+}
+
 void sync_all_from_faces(Object &object)
 {
   SculptSession &ss = *object.sculpt;
@@ -1258,11 +1277,12 @@ static void partialvis_gesture_update_bmesh(gesture::GestureData &gesture_data)
       *gesture_data.vc.obact, gesture_data.nodes, operation->action, selection_test_fn);
 }
 
-static void hide_show_begin(bContext &C, gesture::GestureData & /*gesture_data*/)
+static void hide_show_begin(bContext &C, wmOperator &op, gesture::GestureData & /*gesture_data*/)
 {
   Object *ob = CTX_data_active_object(&C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
 
+  undo::push_begin(*ob, &op);
   BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
 }
 
@@ -1286,6 +1306,7 @@ static void hide_show_end(bContext &C, gesture::GestureData &gesture_data)
 {
   SCULPT_topology_islands_invalidate(*gesture_data.vc.obact->sculpt);
   tag_update_visibility(C);
+  undo::push_end(*gesture_data.vc.obact);
 }
 
 static void hide_show_init_properties(bContext & /*C*/,

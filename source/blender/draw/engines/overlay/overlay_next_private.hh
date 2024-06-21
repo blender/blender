@@ -82,6 +82,8 @@ class ShapeCache {
   BatchPtr arrows;
   BatchPtr metaball_wire_circle;
 
+  BatchPtr speaker;
+
   ShapeCache();
 };
 

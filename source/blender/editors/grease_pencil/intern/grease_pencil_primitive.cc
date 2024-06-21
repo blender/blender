@@ -124,7 +124,7 @@ struct PrimitiveToolOperation {
   BrushGpencilSettings *settings;
   float4 vertex_color;
   int material_index;
-  float hardness;
+  float softness;
   Brush *brush;
 
   OperatorMode mode;
@@ -507,7 +507,7 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   const bool is_cyclic = ELEM(ptd.type, PrimitiveType::Box, PrimitiveType::Circle);
   cyclic.span.last() = is_cyclic;
   materials.span.last() = ptd.material_index;
-  softness.span.last() = 1.0f - ptd.hardness;
+  softness.span.last() = ptd.softness;
 
   cyclic.finish();
   materials.finish();
@@ -717,8 +717,7 @@ static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmE
                                                float4(0.0f);
   srgb_to_linearrgb_v4(ptd.vertex_color, ptd.vertex_color);
 
-  /* TODO: Add UI for hardness. */
-  ptd.hardness = 1.0f;
+  ptd.softness = 1.0 - ptd.settings->hardness;
 
   BLI_assert(grease_pencil->has_active_layer());
   ptd.drawing = grease_pencil->get_editable_drawing_at(*grease_pencil->get_active_layer(),

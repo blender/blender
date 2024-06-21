@@ -541,12 +541,19 @@ class KeyframeStrip : public ::KeyframeActionStrip {
    * Find an FCurve for this binding + RNA path + array index combination.
    *
    * If it cannot be found, a new one is created.
+   *
+   * \param `prop_subtype` The subtype of the property this fcurve is for, if
+   * available.
    */
-  FCurve &fcurve_find_or_create(const Binding &binding, StringRefNull rna_path, int array_index);
+  FCurve &fcurve_find_or_create(const Binding &binding,
+                                StringRefNull rna_path,
+                                int array_index,
+                                std::optional<PropertySubType> prop_subtype);
 
   SingleKeyingResult keyframe_insert(const Binding &binding,
                                      StringRefNull rna_path,
                                      int array_index,
+                                     std::optional<PropertySubType> prop_subtype,
                                      float2 time_value,
                                      const KeyframeSettings &settings,
                                      eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS);
@@ -639,6 +646,19 @@ Action *get_animation(ID &animated_id);
  */
 Span<FCurve *> fcurves_for_animation(Action &anim, binding_handle_t binding_handle);
 Span<const FCurve *> fcurves_for_animation(const Action &anim, binding_handle_t binding_handle);
+
+/**
+ * Return all F-Curves in the Action.
+ *
+ * This works for both legacy and layered Actions.
+ *
+ * This is a utility function whose purpose is unclear after multi-layer animation is introduced.
+ * It might still be useful, it might not be.
+
+ * The use of this function is an indicator for code that might have to be altered when
+ * multi-layered animation is getting implemented.
+ */
+Vector<const FCurve *> fcurves_all(const Action &action);
 
 /**
  * Get (or add relevant data to be able to do so) F-Curve from the given Action,

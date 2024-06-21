@@ -49,7 +49,7 @@ StripsDrawBatch::StripsDrawBatch(float pixelx, float pixely) : strips_(GPU_SEQ_S
   context_.pixelsize = U.pixelsize;
 
   uchar col[4];
-  UI_GetThemeColor3ubv(TH_BACK, col);
+  UI_GetThemeColorShade3ubv(TH_BACK, -40, col);
   col[3] = 255;
   context_.col_back = color_pack(col);
 

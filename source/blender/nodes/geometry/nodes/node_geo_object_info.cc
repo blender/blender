@@ -19,6 +19,8 @@
 
 #include "GEO_transform.hh"
 
+#include "BLT_translation.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_object_info_cc {
@@ -60,59 +62,99 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float4x4 &object_matrix = object->object_to_world();
-  const float4x4 transform = self_object->world_to_object() * object_matrix;
+  const bool self_transform_evaluated = DEG_object_transform_is_evaluated(*self_object);
+  const bool object_transform_evaluated = DEG_object_transform_is_evaluated(*object);
+  const bool object_geometry_evaluated = DEG_object_geometry_is_evaluated(*object);
 
-  float3 location, scale;
-  math::Quaternion rotation;
+  float4x4 output_transform = float4x4::identity();
+  bool show_transform_error = false;
   if (transform_space_relative) {
-    math::to_loc_rot_scale_safe<true>(transform, location, rotation, scale);
-    params.set_output("Transform", transform);
+    if (self_transform_evaluated && object_transform_evaluated) {
+      output_transform = self_object->world_to_object() * object->object_to_world();
+    }
+    else {
+      show_transform_error = true;
+    }
   }
   else {
-    math::to_loc_rot_scale_safe<true>(object_matrix, location, rotation, scale);
-    params.set_output("Transform", object_matrix);
+    if (object_transform_evaluated) {
+      output_transform = object->object_to_world();
+    }
+    else {
+      show_transform_error = true;
+    }
   }
+  if (show_transform_error) {
+    params.error_message_add(
+        NodeWarningType::Error,
+        TIP_("Can't access object's transforms because it's not evaluated yet. "
+             "This can happen when there is a dependency cycle"));
+  }
+  float3 location, scale;
+  math::Quaternion rotation;
+  math::to_loc_rot_scale_safe<true>(output_transform, location, rotation, scale);
+
   params.set_output("Location", location);
   params.set_output("Rotation", rotation);
   params.set_output("Scale", scale);
 
-  if (params.output_is_required("Geometry")) {
-    /* Compare by `orig_id` because objects may be copied into separate depsgraphs. */
-    if (DEG_get_original_id(&object->id) ==
-        DEG_get_original_id(const_cast<ID *>(&self_object->id)))
-    {
+  if (!params.output_is_required("Geometry")) {
+    return;
+  }
+  /* Compare by `orig_id` because objects may be copied into separate depsgraphs. */
+  if (DEG_get_original_id(&object->id) == DEG_get_original_id(const_cast<ID *>(&self_object->id)))
+  {
+    params.error_message_add(
+        NodeWarningType::Error,
+        params.user_data()->call_data->operator_data ?
+            TIP_("Geometry cannot be retrieved from the edited object itself") :
+            TIP_("Geometry cannot be retrieved from the modifier object"));
+    params.set_default_remaining_outputs();
+    return;
+  }
+  BLI_assert(object != self_object);
+
+  if (!object_geometry_evaluated) {
+    params.error_message_add(NodeWarningType::Error,
+                             TIP_("Can't access object's geometry because it's not evaluated yet. "
+                                  "This can happen when there is a dependency cycle"));
+    params.set_default_remaining_outputs();
+    return;
+  }
+
+  std::optional<float4x4> geometry_transform;
+  if (transform_space_relative) {
+    if (!self_transform_evaluated || !object_transform_evaluated) {
       params.error_message_add(
           NodeWarningType::Error,
-          params.user_data()->call_data->operator_data ?
-              TIP_("Geometry cannot be retrieved from the edited object itself") :
-              TIP_("Geometry cannot be retrieved from the modifier object"));
+          TIP_("Can't access object's transforms because it's not evaluated yet. "
+               "This can happen when there is a dependency cycle"));
       params.set_default_remaining_outputs();
       return;
     }
-    BLI_assert(object != self_object);
+    geometry_transform = self_object->world_to_object() * object->object_to_world();
+  }
 
-    GeometrySet geometry_set;
-    if (params.get_input<bool>("As Instance")) {
-      std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
-      const int handle = instances->add_reference(*object);
-      if (transform_space_relative) {
-        instances->add_instance(handle, transform);
-      }
-      else {
-        instances->add_instance(handle, float4x4::identity());
-      }
-      geometry_set = GeometrySet::from_instances(instances.release());
+  GeometrySet geometry_set;
+  if (params.get_input<bool>("As Instance")) {
+    std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+    const int handle = instances->add_reference(*object);
+    if (transform_space_relative) {
+      instances->add_instance(handle, *geometry_transform);
     }
     else {
-      geometry_set = bke::object_get_evaluated_geometry_set(*object);
-      if (transform_space_relative) {
-        geometry::transform_geometry(geometry_set, transform);
-      }
+      instances->add_instance(handle, float4x4::identity());
     }
-
-    params.set_output("Geometry", geometry_set);
+    geometry_set = GeometrySet::from_instances(instances.release());
   }
+  else {
+    geometry_set = bke::object_get_evaluated_geometry_set(*object);
+    if (transform_space_relative) {
+      geometry::transform_geometry(geometry_set, *geometry_transform);
+    }
+  }
+
+  params.set_output("Geometry", geometry_set);
 }
 
 static void node_node_init(bNodeTree * /*tree*/, bNode *node)

@@ -89,8 +89,7 @@ class VKCommandBuilder {
   void build_node_group(VKRenderGraph &render_graph,
                         VKCommandBufferInterface &command_buffer,
                         Span<NodeHandle> node_group,
-                        std::optional<NodeHandle> &r_rendering_scope,
-                        bool &r_is_rendering);
+                        std::optional<NodeHandle> &r_rendering_scope);
 
   /**
    * Build the pipeline barriers that should be recorded before any other commands of the node

@@ -19,7 +19,6 @@
 #include "vk_descriptor_set_layouts.hh"
 #include "vk_pipeline_pool.hh"
 #include "vk_samplers.hh"
-#include "vk_timeline_semaphore.hh"
 
 namespace blender::gpu {
 class VKBackend;
@@ -66,9 +65,6 @@ class VKDevice : public NonCopyable {
   VKSamplers samplers_;
   VKDescriptorSetLayouts descriptor_set_layouts_;
 
-  /* Semaphore for CPU GPU synchronization when submitting commands to the queue. */
-  VKTimelineSemaphore timeline_semaphore_;
-
   /**
    * Available Contexts for this device.
    *
@@ -91,6 +87,7 @@ class VKDevice : public NonCopyable {
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
   VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
   VkPhysicalDeviceVulkan12Features vk_physical_device_vulkan_12_features_ = {};
+  Array<VkExtensionProperties> device_extensions_;
 
   /** Functions of vk_ext_debugutils for this device/instance. */
   debug::VKDebuggingTools debugging_tools_;
@@ -100,12 +97,9 @@ class VKDevice : public NonCopyable {
 
   /** Buffer to bind to unbound resource locations. */
   VKBuffer dummy_buffer_;
-  std::optional<std::reference_wrapper<VKTexture>> dummy_color_attachment_;
 
   Vector<std::pair<VkImage, VmaAllocation>> discarded_images_;
   Vector<std::pair<VkBuffer, VmaAllocation>> discarded_buffers_;
-  Vector<VkRenderPass> discarded_render_passes_;
-  Vector<VkFramebuffer> discarded_frame_buffers_;
   Vector<VkImageView> discarded_image_views_;
 
   std::string glsl_patch_;
@@ -125,6 +119,9 @@ class VKDevice : public NonCopyable {
     /* Extension: VK_EXT_debug_utils */
     PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabel = nullptr;
     PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabel = nullptr;
+    PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectName = nullptr;
+    PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = nullptr;
+    PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
   } functions;
 
   VkPhysicalDevice physical_device_get() const
@@ -157,7 +154,7 @@ class VKDevice : public NonCopyable {
     return vk_instance_;
   };
 
-  VkDevice device_get() const
+  VkDevice vk_handle() const
   {
     return vk_device_;
   }
@@ -210,7 +207,6 @@ class VKDevice : public NonCopyable {
    * Dummy buffer can only be initialized after the command buffer of the context is retrieved.
    */
   void init_dummy_buffer(VKContext &context);
-  void init_dummy_color_attachment();
   void reinit();
   void deinit();
 
@@ -218,6 +214,14 @@ class VKDevice : public NonCopyable {
   eGPUDriverType driver_type() const;
   std::string vendor_name() const;
   std::string driver_version() const;
+
+  /**
+   * Check if a specific extension is supported by the device.
+   *
+   * This should be called from vk_backend to set the correct capabilities and workarounds needed
+   * for this device.
+   */
+  bool supports_extension(const char *extension_name) const;
 
   const VKWorkarounds &workarounds_get() const
   {
@@ -240,35 +244,12 @@ class VKDevice : public NonCopyable {
     return dummy_buffer_;
   }
 
-  VKTexture &dummy_color_attachment_get() const
-  {
-    BLI_assert(dummy_color_attachment_.has_value());
-    return (*dummy_color_attachment_).get();
-  }
-
   void discard_image(VkImage vk_image, VmaAllocation vma_allocation);
   void discard_image_view(VkImageView vk_image_view);
   void discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation);
-  void discard_render_pass(VkRenderPass vk_render_pass);
-  void discard_frame_buffer(VkFramebuffer vk_framebuffer);
   void destroy_discarded_resources();
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
-
-  /** \} */
-
-  /* -------------------------------------------------------------------- */
-  /** \name Queue management
-   * \{ */
-
-  VKTimelineSemaphore &timeline_semaphore_get()
-  {
-    return timeline_semaphore_;
-  }
-  const VKTimelineSemaphore &timeline_semaphore_get() const
-  {
-    return timeline_semaphore_;
-  }
 
   /** \} */
 
@@ -276,6 +257,7 @@ class VKDevice : public NonCopyable {
   void init_physical_device_properties();
   void init_physical_device_memory_properties();
   void init_physical_device_features();
+  void init_physical_device_extensions();
   void init_debug_callbacks();
   void init_memory_allocator();
   void init_pipeline_cache();

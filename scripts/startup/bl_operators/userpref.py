@@ -888,7 +888,7 @@ class PREFERENCES_OT_addon_show(Operator):
             bl_info = addon_utils.module_bl_info(mod)
             bl_info["show_expanded"] = True
 
-            context.preferences.active_section = 'EXTENSIONS'
+            context.preferences.active_section = 'ADDONS'
             context.preferences.view.show_addons_enabled_only = False
             context.window_manager.addon_filter = 'All'
             context.window_manager.addon_search = bl_info["name"]

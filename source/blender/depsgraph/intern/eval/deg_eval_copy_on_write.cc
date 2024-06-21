@@ -832,7 +832,7 @@ ID *deg_expand_eval_copy_datablock(const Depsgraph *depsgraph, const IDNode *id_
 #endif
   /* Do it now, so remapping will understand that possibly remapped self ID
    * is not to be remapped again. */
-  deg_tag_eval_copy_id(id_cow, id_orig);
+  deg_tag_eval_copy_id(const_cast<Depsgraph &>(*depsgraph), id_cow, id_orig);
   /* Perform remapping of the nodes. */
   RemapCallbackUserData user_data = {nullptr};
   user_data.depsgraph = depsgraph;
@@ -1050,7 +1050,7 @@ bool deg_validate_eval_copy_datablock(ID *id_cow)
   return data.is_valid;
 }
 
-void deg_tag_eval_copy_id(ID *id_cow, const ID *id_orig)
+void deg_tag_eval_copy_id(deg::Depsgraph &depsgraph, ID *id_cow, const ID *id_orig)
 {
   BLI_assert(id_cow != id_orig);
   BLI_assert((id_orig->tag & LIB_TAG_COPIED_ON_EVAL) == 0);
@@ -1058,6 +1058,7 @@ void deg_tag_eval_copy_id(ID *id_cow, const ID *id_orig)
   /* This ID is no longer localized, is a self-sustaining copy now. */
   id_cow->tag &= ~LIB_TAG_LOCALIZED;
   id_cow->orig_id = (ID *)id_orig;
+  id_cow->runtime.depsgraph = &reinterpret_cast<::Depsgraph &>(depsgraph);
 }
 
 bool deg_eval_copy_is_expanded(const ID *id_cow)

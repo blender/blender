@@ -62,6 +62,7 @@ void Instance::init(const int2 &output_res,
   v3d = v3d_;
   rv3d = rv3d_;
   manager = DRW_manager_get();
+  update_eval_members();
 
   info = "";
 
@@ -93,8 +94,6 @@ void Instance::init(const int2 &output_res,
     sampling.reset();
   }
 
-  update_eval_members();
-
   sampling.init(scene);
   camera.init();
   film.init(output_res, output_rect);
@@ -113,6 +112,11 @@ void Instance::init(const int2 &output_res,
   volume_probes.init();
   volume.init();
   lookdev.init(visible_rect);
+
+  /* Pre-compile specialization constants in parallel (if supported). */
+  shaders.precompile_specializations(
+      render_buffers.data.shadow_id, shadows.get_data().ray_count, shadows.get_data().step_count);
+  shaders_are_ready_ = shaders.is_ready(is_image_render());
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
@@ -125,14 +129,13 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   drw_view = nullptr;
   v3d = nullptr;
   rv3d = nullptr;
+  update_eval_members();
 
   is_light_bake = true;
   debug_mode = (eDebugMode)G.debug_value;
   info = "";
 
   shaders.is_ready(true);
-
-  update_eval_members();
 
   sampling.init(scene);
   camera.init();

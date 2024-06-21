@@ -47,6 +47,7 @@ typedef struct GreasePencilLayerRuntimeHandle GreasePencilLayerRuntimeHandle;
 typedef struct GreasePencilLayerGroupRuntimeHandle GreasePencilLayerGroupRuntimeHandle;
 #endif
 
+struct Main;
 struct GreasePencil;
 struct BlendDataReader;
 struct BlendWriter;
@@ -575,7 +576,9 @@ typedef struct GreasePencil {
   blender::IndexMask layer_selection_by_name(const blender::StringRefNull name,
                                              blender::IndexMaskMemory &memory) const;
 
-  void rename_node(blender::bke::greasepencil::TreeNode &node, blender::StringRefNull new_name);
+  void rename_node(Main &bmain,
+                   blender::bke::greasepencil::TreeNode &node,
+                   blender::StringRefNull new_name);
 
   void remove_layer(blender::bke::greasepencil::Layer &layer);
   void remove_group(blender::bke::greasepencil::LayerGroup &group, bool keep_children = false);

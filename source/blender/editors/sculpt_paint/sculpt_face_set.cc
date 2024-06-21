@@ -144,6 +144,20 @@ int active_update_and_get(bContext *C, Object &ob, const float mval[2])
   return active_face_set_get(ss);
 }
 
+bool create_face_sets_mesh(Object &object)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (attributes.contains(".sculpt_face_set")) {
+    return false;
+  }
+  attributes.add<int>(".sculpt_face_set",
+                      bke::AttrDomain::Face,
+                      bke::AttributeInitVArray(VArray<int>::ForSingle(1, mesh.faces_num)));
+  mesh.face_sets_color_default = 1;
+  return true;
+}
+
 bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1726,10 +1740,11 @@ struct FaceSetOperation {
   int new_face_set_id;
 };
 
-static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
+static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &gesture_data)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
+  undo::push_begin(*gesture_data.vc.obact, &op);
 }
 
 static void gesture_apply_mesh(gesture::GestureData &gesture_data, const Span<PBVHNode *> nodes)
@@ -1831,7 +1846,10 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
   }
 }
 
-static void gesture_end(bContext & /*C*/, gesture::GestureData & /*gesture_data*/) {}
+static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
+{
+  undo::push_end(*gesture_data.vc.obact);
+}
 
 static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op*/)
 {

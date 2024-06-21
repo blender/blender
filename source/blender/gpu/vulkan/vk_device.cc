@@ -40,12 +40,7 @@ void VKDevice::deinit()
     return;
   }
 
-  timeline_semaphore_.free(*this);
   dummy_buffer_.free();
-  if (dummy_color_attachment_.has_value()) {
-    delete &(*dummy_color_attachment_).get();
-    dummy_color_attachment_.reset();
-  }
   samplers_.free();
   destroy_discarded_resources();
   pipelines.free_data();
@@ -83,6 +78,7 @@ void VKDevice::init(void *ghost_context)
   init_physical_device_properties();
   init_physical_device_memory_properties();
   init_physical_device_features();
+  init_physical_device_extensions();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
   init_functions();
@@ -91,9 +87,8 @@ void VKDevice::init(void *ghost_context)
   init_pipeline_cache();
 
   samplers_.init();
-  timeline_semaphore_.init(*this);
 
-  debug::object_label(device_get(), "LogicalDevice");
+  debug::object_label(vk_handle(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");
   init_glsl_patch();
 }
@@ -104,9 +99,13 @@ void VKDevice::init_functions()
   /* VK_KHR_dynamic_rendering */
   functions.vkCmdBeginRendering = LOAD_FUNCTION(vkCmdBeginRenderingKHR);
   functions.vkCmdEndRendering = LOAD_FUNCTION(vkCmdEndRenderingKHR);
+
   /* VK_EXT_debug_utils */
   functions.vkCmdBeginDebugUtilsLabel = LOAD_FUNCTION(vkCmdBeginDebugUtilsLabelEXT);
   functions.vkCmdEndDebugUtilsLabel = LOAD_FUNCTION(vkCmdEndDebugUtilsLabelEXT);
+  functions.vkSetDebugUtilsObjectName = LOAD_FUNCTION(vkSetDebugUtilsObjectNameEXT);
+  functions.vkCreateDebugUtilsMessenger = LOAD_FUNCTION(vkCreateDebugUtilsMessengerEXT);
+  functions.vkDestroyDebugUtilsMessenger = LOAD_FUNCTION(vkDestroyDebugUtilsMessengerEXT);
 #undef LOAD_FUNCTION
 }
 
@@ -145,6 +144,25 @@ void VKDevice::init_physical_device_features()
   vk_physical_device_features_ = features.features;
 }
 
+void VKDevice::init_physical_device_extensions()
+{
+  uint32_t count = 0;
+  vkEnumerateDeviceExtensionProperties(vk_physical_device_, nullptr, &count, nullptr);
+  device_extensions_ = Array<VkExtensionProperties>(count);
+  vkEnumerateDeviceExtensionProperties(
+      vk_physical_device_, nullptr, &count, device_extensions_.data());
+}
+
+bool VKDevice::supports_extension(const char *extension_name) const
+{
+  for (const VkExtensionProperties &vk_extension_properties : device_extensions_) {
+    if (STREQ(vk_extension_properties.extensionName, extension_name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void VKDevice::init_memory_allocator()
 {
   VK_ALLOCATION_CALLBACKS;
@@ -175,19 +193,6 @@ void VKDevice::init_dummy_buffer(VKContext &context)
                        GPU_USAGE_DEVICE_ONLY,
                        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
   dummy_buffer_.clear(context, 0);
-}
-
-void VKDevice::init_dummy_color_attachment()
-{
-  if (dummy_color_attachment_.has_value()) {
-    return;
-  }
-
-  GPUTexture *texture = GPU_texture_create_2d(
-      "dummy_attachment", 1, 1, 1, GPU_R32F, GPU_TEXTURE_USAGE_ATTACHMENT, nullptr);
-  BLI_assert(texture);
-  VKTexture &vk_texture = *unwrap(unwrap(texture));
-  dummy_color_attachment_ = std::make_optional(std::reference_wrapper(vk_texture));
 }
 
 void VKDevice::init_glsl_patch()
@@ -366,15 +371,6 @@ void VKDevice::discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation)
   discarded_buffers_.append(std::pair(vk_buffer, vma_allocation));
 }
 
-void VKDevice::discard_render_pass(VkRenderPass vk_render_pass)
-{
-  discarded_render_passes_.append(vk_render_pass);
-}
-void VKDevice::discard_frame_buffer(VkFramebuffer vk_frame_buffer)
-{
-  discarded_frame_buffers_.append(vk_frame_buffer);
-}
-
 void VKDevice::destroy_discarded_resources()
 {
   VK_ALLOCATION_CALLBACKS
@@ -394,16 +390,6 @@ void VKDevice::destroy_discarded_resources()
     std::pair<VkBuffer, VmaAllocation> buffer_allocation = discarded_buffers_.pop_last();
     resources.remove_buffer(buffer_allocation.first);
     vmaDestroyBuffer(mem_allocator_get(), buffer_allocation.first, buffer_allocation.second);
-  }
-
-  while (!discarded_render_passes_.is_empty()) {
-    VkRenderPass vk_render_pass = discarded_render_passes_.pop_last();
-    vkDestroyRenderPass(vk_device_, vk_render_pass, vk_allocation_callbacks);
-  }
-
-  while (!discarded_frame_buffers_.is_empty()) {
-    VkFramebuffer vk_frame_buffer = discarded_frame_buffers_.pop_last();
-    vkDestroyFramebuffer(vk_device_, vk_frame_buffer, vk_allocation_callbacks);
   }
 }
 

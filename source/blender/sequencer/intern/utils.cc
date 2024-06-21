@@ -127,9 +127,9 @@ static const char *give_seqname_by_type(int type)
     case SEQ_TYPE_ADD:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Add");
     case SEQ_TYPE_SUB:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Sub");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Subtract");
     case SEQ_TYPE_MUL:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mul");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Multiply");
     case SEQ_TYPE_ALPHAOVER:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Alpha Over");
     case SEQ_TYPE_ALPHAUNDER:

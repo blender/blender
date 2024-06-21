@@ -177,11 +177,6 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
     return active_resource();
   }
 
-  /* Update and bind active descriptor set to pipeline. */
-  void bind(VKContext &context,
-            VkPipelineLayout vk_pipeline_layout,
-            VkPipelineBindPoint vk_pipeline_bind_point);
-
   /**
    * Update the descriptor set on the device.
    */

@@ -24,12 +24,6 @@ class VKContext;
 
 class VKFrameBuffer : public FrameBuffer {
  private:
-  /* Vulkan object handle. */
-  VkFramebuffer vk_framebuffer_ = VK_NULL_HANDLE;
-  /* Vulkan device who created the handle. */
-  VkDevice vk_device_ = VK_NULL_HANDLE;
-  /* Base render pass used for frame-buffer creation. */
-  VkRenderPass vk_render_pass_ = VK_NULL_HANDLE;
   /* Number of layers if the attachments are layered textures. */
   int depth_ = 1;
 
@@ -50,8 +44,6 @@ class VKFrameBuffer : public FrameBuffer {
    * Create a conventional frame-buffer to attach texture to.
    */
   VKFrameBuffer(const char *name);
-
-  ~VKFrameBuffer();
 
   void bind(bool enabled_srgb) override;
   bool check(char err_out[256]) override;
@@ -85,35 +77,12 @@ class VKFrameBuffer : public FrameBuffer {
                int dst_offset_x,
                int dst_offset_y) override;
 
-  bool is_valid() const
-  {
-    return vk_framebuffer_ != VK_NULL_HANDLE;
-  }
-
-  VkFramebuffer vk_framebuffer_get() const
-  {
-    BLI_assert(vk_framebuffer_ != VK_NULL_HANDLE);
-    return vk_framebuffer_;
-  }
-
-  void vk_render_pass_ensure();
-  VkRenderPass vk_render_pass_get() const
-  {
-    BLI_assert(vk_render_pass_ != VK_NULL_HANDLE);
-    BLI_assert(!dirty_attachments_);
-    return vk_render_pass_;
-  }
-
   Array<VkViewport, 16> vk_viewports_get() const;
   Array<VkRect2D, 16> vk_render_areas_get() const;
   VkFormat depth_attachment_format_get() const;
   VkFormat stencil_attachment_format_get() const;
   Span<VkFormat> color_attachment_formats_get() const;
 
-  void depth_attachment_layout_ensure(VKContext &context, VkImageLayout requested_layout);
-  void color_attachment_layout_ensure(VKContext &context,
-                                      int color_attachment,
-                                      VkImageLayout requested_layout);
   /**
    * Ensure that the size of the frame-buffer matches the first attachment resolution.
    *

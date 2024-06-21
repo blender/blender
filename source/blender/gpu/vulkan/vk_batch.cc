@@ -18,36 +18,6 @@
 
 namespace blender::gpu {
 
-void VKBatch::draw_setup()
-{
-  /* Currently the pipeline is rebuild on each draw command. Clearing the dirty flag for
-   * consistency with the internals of GPU module. */
-  flag &= ~GPU_BATCH_DIRTY;
-
-  /* Finalize graphics pipeline */
-  VKContext &context = *VKContext::get();
-  VKStateManager &state_manager = context.state_manager_get();
-  VKIndexBuffer *index_buffer = index_buffer_get();
-  const bool draw_indexed = index_buffer != nullptr;
-  state_manager.apply_state();
-  render_graph::VKResourceAccessInfo resource_access_info = {};
-  state_manager.apply_bindings(context, resource_access_info);
-  /*
-   * The next statements are order dependent. VBOs and IBOs must be uploaded, before resources can
-   * be bound. Uploading device located buffers flush the graphics pipeline and already bound
-   * resources will be unbound.
-   */
-  VKVertexAttributeObject vao;
-  vao.update_bindings(context, *this);
-  vao.ensure_vbos_uploaded();
-  if (draw_indexed) {
-    index_buffer->upload_data();
-    index_buffer->bind(context);
-  }
-  vao.bind(context);
-  context.bind_graphics_pipeline(prim_type, vao);
-}
-
 void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int instance_count)
 {
   VKContext &context = *VKContext::get();

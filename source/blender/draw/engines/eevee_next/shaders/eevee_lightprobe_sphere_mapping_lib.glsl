@@ -32,12 +32,10 @@ vec3 sphere_probe_texel_to_direction(vec2 local_texel,
                                      SphereProbeUvArea uv_area,
                                      out vec2 sampling_uv)
 {
-  /* Texel in probe atlas. */
-  vec2 texel = local_texel + vec2(texel_area.offset);
   /* UV in sampling area. No half pixel bias to texel as the octahedral map edges area lined up
    * with texel center. Note that we don't use the last row & column of pixel, hence the -2 instead
    * of -1. See sphere_probe_miplvl_scale_bias. */
-  sampling_uv = texel / vec2(texel_area.extent - 2);
+  sampling_uv = local_texel / vec2(texel_area.extent - 2);
   /* Direction in world space. */
   return octahedral_uv_to_direction(sampling_uv);
 }

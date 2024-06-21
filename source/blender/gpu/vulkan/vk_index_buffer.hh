@@ -22,7 +22,6 @@ class VKIndexBuffer : public IndexBuf, public VKBindableResource {
   void upload_data() override;
 
   void bind_as_ssbo(uint binding) override;
-  void bind(VKContext &context);
   void add_to_descriptor_set(AddToDescriptorSetContext &data,
                              int binding,
                              shader::ShaderCreateInfo::Resource::BindType bind_type,

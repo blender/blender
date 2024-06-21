@@ -353,7 +353,7 @@ template<typename T> inline T *MEM_cnew_array(const size_t length, const char *a
 template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &other)
 {
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
-  T *new_object = static_cast<T *>(MEM_mallocN(sizeof(T), allocation_name));
+  T *new_object = static_cast<T *>(MEM_mallocN_aligned(sizeof(T), alignof(T), allocation_name));
   if (new_object) {
     memcpy(new_object, &other, sizeof(T));
   }

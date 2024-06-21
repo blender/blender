@@ -4138,6 +4138,10 @@ bool BKE_object_obdata_texspace_get(Object *ob,
 
 Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const Object *object)
 {
+  if (!DEG_object_geometry_is_evaluated(*object)) {
+    return nullptr;
+  }
+
   /* First attempt to retrieve the evaluated mesh from the evaluated geometry set. Most
    * object types either store it there or add a reference to it if it's owned elsewhere. */
   blender::bke::GeometrySet *geometry_set_eval = object->runtime->geometry_set_eval;
@@ -4165,6 +4169,10 @@ Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const Object *object)
 
 Mesh *BKE_object_get_evaluated_mesh(const Object *object)
 {
+  if (!DEG_object_geometry_is_evaluated(*object)) {
+    return nullptr;
+  }
+
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(object);
   if (!mesh) {
     return nullptr;

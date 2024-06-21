@@ -192,7 +192,7 @@ endif
 DEPS_SOURCE_DIR:=$(BLENDER_DIR)/build_files/build_environment
 
 ifndef DEPS_BUILD_DIR
-	DEPS_BUILD_DIR:=$(BUILD_DIR)/deps
+	DEPS_BUILD_DIR:=$(BUILD_DIR)/deps_$(CPU)
 endif
 
 ifndef DEPS_INSTALL_DIR

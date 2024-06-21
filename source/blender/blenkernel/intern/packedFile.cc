@@ -87,7 +87,7 @@ int BKE_packedfile_read(PackedFile *pf, void *data, int size)
     }
 
     if (size > 0) {
-      memcpy(data, ((char *)pf->data) + pf->seek, size);
+      memcpy(data, ((const char *)pf->data) + pf->seek, size);
     }
     else {
       size = 0;
@@ -148,8 +148,9 @@ void BKE_packedfile_free(PackedFile *pf)
 {
   if (pf) {
     BLI_assert(pf->data != nullptr);
+    BLI_assert(pf->sharing_info != nullptr);
 
-    MEM_SAFE_FREE(pf->data);
+    pf->sharing_info->remove_user_and_delete_if_last();
     MEM_freeN(pf);
   }
   else {
@@ -165,7 +166,7 @@ PackedFile *BKE_packedfile_duplicate(const PackedFile *pf_src)
   PackedFile *pf_dst;
 
   pf_dst = static_cast<PackedFile *>(MEM_dupallocN(pf_src));
-  pf_dst->data = MEM_dupallocN(pf_src->data);
+  pf_dst->sharing_info->add_user();
 
   return pf_dst;
 }
@@ -177,6 +178,7 @@ PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen)
   PackedFile *pf = static_cast<PackedFile *>(MEM_callocN(sizeof(*pf), "PackedFile"));
   pf->data = mem;
   pf->size = memlen;
+  pf->sharing_info = blender::implicit_sharing::info_for_mem_free(mem);
 
   return pf;
 }
@@ -891,18 +893,22 @@ void BKE_packedfile_blend_write(BlendWriter *writer, const PackedFile *pf)
     return;
   }
   BLO_write_struct(writer, PackedFile, pf);
-  BLO_write_raw(writer, pf->size, pf->data);
+  BLO_write_shared(writer, pf->data, pf->size, pf->sharing_info, [&]() {
+    BLO_write_raw(writer, pf->size, pf->data);
+  });
 }
 
 void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p)
 {
-  BLO_read_packed_address(reader, pf_p);
+  BLO_read_struct(reader, PackedFile, pf_p);
   PackedFile *pf = *pf_p;
   if (pf == nullptr) {
     return;
   }
-
-  BLO_read_packed_address(reader, &pf->data);
+  pf->sharing_info = BLO_read_shared(reader, &pf->data, [&]() {
+    BLO_read_data_address(reader, &pf->data);
+    return blender::implicit_sharing::info_for_mem_free(const_cast<void *>(pf->data));
+  });
   if (pf->data == nullptr) {
     /* We cannot allow a PackedFile with a nullptr data field,
      * the whole code assumes this is not possible. See #70315. */

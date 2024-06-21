@@ -12,12 +12,13 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
+#include "BLI_bit_span_ops.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
 
-struct CCGElem;
-struct CCGKey;
+#include "BKE_ccg.hh"
+
 struct Mesh;
 namespace blender::bke::subdiv {
 struct Subdiv;
@@ -286,3 +287,19 @@ const int *BKE_subdiv_ccg_start_face_grid_index_get(const SubdivCCG &subdiv_ccg)
 
 blender::BitGroupVector<> &BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG &subdiv_ccg);
 void BKE_subdiv_ccg_grid_hidden_free(SubdivCCG &subdiv_ccg);
+
+template<typename Fn>
+inline void BKE_subdiv_ccg_foreach_visible_grid_vert(const CCGKey &key,
+                                                     const blender::BitGroupVector<> &grid_hidden,
+                                                     const int grid,
+                                                     const Fn &fn)
+{
+  if (grid_hidden.is_empty()) {
+    for (const int i : blender::IndexRange(key.grid_area)) {
+      fn(i);
+    }
+  }
+  else {
+    blender::bits::foreach_0_index(grid_hidden[grid], fn);
+  }
+}

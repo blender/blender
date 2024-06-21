@@ -858,7 +858,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
            * function. */
           std::string new_name(node.name());
           node.set_name(oldname);
-          grease_pencil.rename_node(node, new_name);
+          grease_pencil.rename_node(*bmain, node, new_name);
           DEG_id_tag_update(&grease_pencil.id, ID_RECALC_SYNC_TO_EVAL);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           break;

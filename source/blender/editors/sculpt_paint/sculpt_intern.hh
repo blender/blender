@@ -123,6 +123,7 @@ enum eBoundaryAutomaskMode {
 namespace blender::ed::sculpt_paint::undo {
 
 enum class Type : int8_t {
+  None,
   Position,
   HideVert,
   HideFace,
@@ -155,8 +156,6 @@ struct NodeGeometry {
 };
 
 struct Node {
-  Type type;
-
   Array<float3> position;
   Array<float3> orig_position;
   Array<float3> normal;
@@ -194,32 +193,13 @@ struct Node {
   BMLogEntry *bm_entry;
   bool applied;
 
-  /* shape keys */
-  char shapeName[MAX_NAME]; /* `sizeof(KeyBlock::name)`. */
-
-  /* Geometry modification operations.
-   *
-   * Original geometry is stored before some modification is run and is used to restore state of
-   * the object when undoing the operation
-   *
-   * Modified geometry is stored after the modification and is used to redo the modification. */
-  bool geometry_clear_pbvh;
-  undo::NodeGeometry geometry_original;
-  undo::NodeGeometry geometry_modified;
-
   /* Geometry at the bmesh enter moment. */
   undo::NodeGeometry geometry_bmesh_enter;
-
-  /* pivot */
-  float3 pivot_pos;
-  float pivot_rot[4];
 
   /* Sculpt Face Sets */
   Array<int> face_sets;
 
   Vector<int> face_indices;
-
-  size_t undo_size;
 };
 
 }
@@ -978,6 +958,8 @@ namespace blender::ed::sculpt_paint {
 
 namespace hide {
 
+Span<int> node_visible_verts(const PBVHNode &node, Span<bool> hide_vert, Vector<int> &indices);
+
 bool vert_visible_get(const SculptSession &ss, PBVHVertRef vertex);
 bool vert_all_faces_visible_get(const SculptSession &ss, PBVHVertRef vertex);
 bool vert_any_face_visible_get(const SculptSession &ss, PBVHVertRef vertex);
@@ -998,6 +980,18 @@ int vert_face_set_get(const SculptSession &ss, PBVHVertRef vertex);
 bool vert_has_face_set(const SculptSession &ss, PBVHVertRef vertex, int face_set);
 bool vert_has_unique_face_set(const SculptSession &ss, PBVHVertRef vertex);
 
+/**
+ * Creates the sculpt face set attribute on the mesh if it doesn't exist.
+ *
+ * \see face_set::ensure_face_sets_mesh if further writing to the attribute is desired.
+ */
+bool create_face_sets_mesh(Object &object);
+
+/**
+ * Ensures that the sculpt face set attribute exists on the mesh.
+ *
+ * \see face_set::create_face_sets_mesh to avoid having to remember to call .finish()
+ */
 bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object);
 int ensure_face_sets_bmesh(Object &object);
 Array<int> duplicate_face_sets(const Mesh &mesh);
@@ -1642,11 +1636,13 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache);
 namespace blender::ed::sculpt_paint::undo {
 
 /**
- * Store undo data of the given type for a PBVH node.
+ * Store undo data of the given type for a PBVH node. This function can be called by multiple
+ * threads concurrently, as long as they don't pass the same PBVH node.
  *
  * This is only possible when building an undo step, in between #push_begin and #push_end.
  */
-undo::Node *push_node(const Object &object, const PBVHNode *node, undo::Type type);
+void push_node(const Object &object, const PBVHNode *node, undo::Type type);
+void push_nodes(Object &object, Span<const PBVHNode *> nodes, undo::Type type);
 
 /**
  * Retrieve the undo data of a given type for the active undo step. For example, this is used to
@@ -1654,7 +1650,7 @@ undo::Node *push_node(const Object &object, const PBVHNode *node, undo::Type typ
  *
  * This is only possible when building an undo step, in between #push_begin and #push_end.
  */
-undo::Node *get_node(const PBVHNode *node, undo::Type type);
+const undo::Node *get_node(const PBVHNode *node, undo::Type type);
 
 /**
  * Pushes an undo step using the operator name. This is necessary for
@@ -1799,7 +1795,7 @@ struct GestureData {
 /* Common abstraction structure for gesture operations. */
 struct Operation {
   /* Initial setup (data updates, special undo push...). */
-  void (*begin)(bContext &, GestureData &);
+  void (*begin)(bContext &, wmOperator &, GestureData &);
 
   /* Apply the gesture action for each symmetry pass. */
   void (*apply_for_symmetry_pass)(bContext &, GestureData &);
@@ -2035,7 +2031,6 @@ void SCULPT_do_snake_hook_brush(const Sculpt &sd, Object &ob, blender::Span<PBVH
 void SCULPT_do_thumb_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_rotate_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_layer_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
-void SCULPT_do_crease_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_pinch_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_grab_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_elastic_deform_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);

@@ -316,6 +316,48 @@ ShapeCache::ShapeCache()
     metaball_wire_circle = BatchPtr(GPU_batch_create_ex(
         GPU_PRIM_LINE_STRIP, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
   };
+  /* speaker */
+  {
+    const int segments = 16;
+    Vector<Vertex> verts;
+
+    for (int j = 0; j < 3; j++) {
+      float z = 0.25f * j - 0.125f;
+      float r = (j == 0 ? 0.5f : 0.25f);
+
+      verts.append({{r, 0.0f, z}});
+
+      for (int i = 1; i < segments; i++) {
+        float x = cosf(2.0f * float(M_PI) * i / segments) * r;
+        float y = sinf(2.0f * float(M_PI) * i / segments) * r;
+        Vertex v{{x, y, z}};
+        verts.append(v);
+        verts.append(v);
+      }
+      Vertex v{{r, 0.0f, z}};
+      verts.append(v);
+    }
+
+    for (int j = 0; j < 4; j++) {
+      float x = (((j + 1) % 2) * (j - 1)) * 0.5f;
+      float y = ((j % 2) * (j - 2)) * 0.5f;
+      for (int i = 0; i < 3; i++) {
+        if (i == 1) {
+          x *= 0.5f;
+          y *= 0.5f;
+        }
+
+        float z = 0.25f * i - 0.125f;
+        Vertex v{{x, y, z}};
+        verts.append(v);
+        if (i == 1) {
+          verts.append(v);
+        }
+      }
+    }
+    speaker = BatchPtr(
+        GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
 }
 
 }  // namespace blender::draw::overlay

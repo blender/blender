@@ -32,6 +32,8 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
+#include "ANIM_action.hh"
+
 #include "ED_anim_api.hh"
 #include "ED_screen.hh"
 
@@ -300,23 +302,29 @@ void ACTION_OT_new(wmOperatorType *ot)
 
 static bool action_pushdown_poll(bContext *C)
 {
-  if (ED_operator_action_active(C)) {
-    SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-    AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
-
-    /* Check for AnimData, Actions, and that tweak-mode is off. */
-    if (adt && saction->action) {
-      /* NOTE: We check this for the AnimData block in question and not the global flag,
-       *       as the global flag may be left dirty by some of the browsing ops here.
-       */
-      if (!(adt->flag & ADT_NLA_EDIT_ON)) {
-        return true;
-      }
-    }
+  if (!ED_operator_action_active(C)) {
+    return false;
   }
 
-  /* something failed... */
-  return false;
+  SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+  AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
+
+  if (!adt || !saction->action) {
+    return false;
+  }
+
+#ifdef WITH_ANIM_BAKLAVA
+  blender::animrig::Action &action = saction->action->wrap();
+  if (!action.is_action_legacy()) {
+    CTX_wm_operator_poll_msg_set(C, "Layered Actions cannot be used as NLA strips");
+    return false;
+  }
+#endif
+
+  /* NOTE: We check this for the AnimData block in question and not the global flag,
+   *       as the global flag may be left dirty by some of the browsing ops here.
+   */
+  return (adt->flag & ADT_NLA_EDIT_ON) == 0;
 }
 
 static int action_pushdown_exec(bContext *C, wmOperator *op)

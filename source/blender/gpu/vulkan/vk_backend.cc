@@ -121,7 +121,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
 void VKBackend::platform_exit()
 {
   GPG.clear();
-  VKDevice &device = VKBackend::get().device_;
+  VKDevice &device = VKBackend::get().device;
   if (device.is_initialized()) {
     device.deinit();
   }
@@ -131,7 +131,7 @@ void VKBackend::delete_resources() {}
 
 void VKBackend::samplers_update()
 {
-  VKDevice &device = VKBackend::get().device_;
+  VKDevice &device = VKBackend::get().device;
   if (device.is_initialized()) {
     device.reinit();
   }
@@ -170,12 +170,12 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
   }
 
   BLI_assert(ghost_context != nullptr);
-  if (!device_.is_initialized()) {
-    device_.init(ghost_context);
+  if (!device.is_initialized()) {
+    device.init(ghost_context);
   }
 
-  VKContext *context = new VKContext(ghost_window, ghost_context, device_.resources);
-  device_.context_register(*context);
+  VKContext *context = new VKContext(ghost_window, ghost_context, device.resources);
+  device.context_register(*context);
   GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
                                       VKContext::swap_buffers_pre_callback,
                                       VKContext::swap_buffers_post_callback);
@@ -262,7 +262,8 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps = {};
   GCaps.geometry_shader_support = true;
   GCaps.texture_view_support = true;
-  GCaps.stencil_export_support = true;
+  GCaps.stencil_export_support = device.supports_extension(
+      VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
   GCaps.shader_draw_parameters_support =
       device.physical_device_vulkan_11_features_get().shaderDrawParameters;
 

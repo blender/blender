@@ -47,7 +47,7 @@ VKContext::~VKContext()
     surface_texture_ = nullptr;
   }
   render_graph.free_data();
-  VKBackend::get().device_.context_unregister(*this);
+  VKBackend::get().device.context_unregister(*this);
 
   delete imm;
   imm = nullptr;
@@ -58,12 +58,11 @@ VKContext::~VKContext()
 void VKContext::sync_backbuffer()
 {
   if (ghost_context_) {
-    VKDevice &device = VKBackend::get().device_;
-    if (!command_buffers_.is_initialized()) {
-      command_buffers_.init(device);
+    VKDevice &device = VKBackend::get().device;
+    if (!is_init_) {
+      is_init_ = true;
       descriptor_pools_.init(device);
       device.init_dummy_buffer(*this);
-      device.init_dummy_color_attachment();
     }
     descriptor_pools_.reset();
   }
@@ -144,7 +143,7 @@ void VKContext::finish() {}
 
 void VKContext::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb)
 {
-  const VKDevice &device = VKBackend::get().device_get();
+  const VKDevice &device = VKBackend::get().device;
   device.memory_statistics_get(r_total_mem_kb, r_free_mem_kb);
 }
 
@@ -215,24 +214,6 @@ void VKContext::rendering_end()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Compute pipeline
- * \{ */
-
-void VKContext::bind_compute_pipeline()
-{
-  VKShader *shader = unwrap(this->shader);
-  BLI_assert(shader);
-  VKPipeline &pipeline = shader->pipeline_get();
-  pipeline.bind(*this, VK_PIPELINE_BIND_POINT_COMPUTE);
-  shader->push_constants.update(*this);
-  if (shader->has_descriptor_set()) {
-    descriptor_set_.bind(*this, shader->vk_pipeline_layout, VK_PIPELINE_BIND_POINT_COMPUTE);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Pipeline
  * \{ */
 
@@ -295,33 +276,6 @@ render_graph::VKResourceAccessInfo &VKContext::update_and_get_access_info()
 /** \name Graphics pipeline
  * \{ */
 
-void VKContext::bind_graphics_pipeline(const GPUPrimType prim_type,
-                                       const VKVertexAttributeObject &vertex_attribute_object)
-{
-  VKShader *shader = unwrap(this->shader);
-  BLI_assert(shader);
-  BLI_assert_msg(
-      prim_type != GPU_PRIM_POINTS || shader->interface_get().is_point_shader(),
-      "GPU_PRIM_POINTS is used with a shader that doesn't set point size before "
-      "drawing fragments. Calling code should be adapted to use a shader that sets the "
-      "gl_PointSize before entering the fragment stage. For example `GPU_SHADER_3D_POINT_*`.");
-
-  shader->update_graphics_pipeline(*this, prim_type, vertex_attribute_object);
-
-  VKPipeline &pipeline = shader->pipeline_get();
-  pipeline.bind(*this, VK_PIPELINE_BIND_POINT_GRAPHICS);
-  shader->push_constants.update(*this);
-  if (shader->has_descriptor_set()) {
-    descriptor_set_.bind(*this, shader->vk_pipeline_layout, VK_PIPELINE_BIND_POINT_GRAPHICS);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Graphics pipeline
- * \{ */
-
 void VKContext::swap_buffers_pre_callback(const GHOST_VulkanSwapChainData *swap_chain_data)
 {
   VKContext *context = VKContext::get();
@@ -365,7 +319,7 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   /* Swap chain commands are CPU synchronized at this moment, allowing to temporary add the swap
    * chain image as device resources. When we move towards GPU swap chain synchronization we need
    * to keep track of the swap chain image between frames. */
-  VKDevice &device = VKBackend::get().device_get();
+  VKDevice &device = VKBackend::get().device;
   device.resources.add_image(swap_chain_data.image,
                              VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                              render_graph::ResourceOwner::SWAP_CHAIN);

@@ -362,9 +362,7 @@ static bool stats_is_object_dynamic_topology_sculpt(const Object *ob)
 
 static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 {
-
   SculptSession *ss = ob->sculpt;
-
   if (ss == nullptr || ss->pbvh == nullptr) {
     return;
   }

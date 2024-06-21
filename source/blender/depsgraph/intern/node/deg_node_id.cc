@@ -79,7 +79,7 @@ void IDNode::init(const ID *id, const char * /*subdata*/)
   previously_visible_components_mask = 0;
 }
 
-void IDNode::init_copy_on_write(ID *id_cow_hint)
+void IDNode::init_copy_on_write(Depsgraph &depsgraph, ID *id_cow_hint)
 {
   /* Create pointer as early as possible, so we can use it for function
    * bindings. Rest of data we'll be copying to the new datablock when
@@ -97,7 +97,7 @@ void IDNode::init_copy_on_write(ID *id_cow_hint)
     id_cow = (ID *)BKE_libblock_alloc_notest(GS(id_orig->name));
     DEG_COW_PRINT(
         "Create shallow copy for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
-    deg_tag_eval_copy_id(id_cow, id_orig);
+    deg_tag_eval_copy_id(depsgraph, id_cow, id_orig);
   }
   else {
     id_cow = id_orig;
@@ -116,10 +116,6 @@ void IDNode::destroy()
     return;
   }
 
-  for (ComponentNode *comp_node : components.values()) {
-    delete comp_node;
-  }
-
   /* Free memory used by this evaluated ID. */
   if (!ELEM(id_cow, id_orig, nullptr)) {
     deg_free_eval_copy_datablock(id_cow);
@@ -127,6 +123,10 @@ void IDNode::destroy()
     id_cow = nullptr;
     DEG_COW_PRINT(
         "Destroy evaluated ID for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
+  }
+
+  for (ComponentNode *comp_node : components.values()) {
+    delete comp_node;
   }
 
   /* Tag that the node is freed. */

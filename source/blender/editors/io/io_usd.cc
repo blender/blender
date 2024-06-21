@@ -216,6 +216,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_animation = RNA_boolean_get(op->ptr, "export_animation");
   const bool export_hair = RNA_boolean_get(op->ptr, "export_hair");
   const bool export_uvmaps = RNA_boolean_get(op->ptr, "export_uvmaps");
+  const bool rename_uvmaps = RNA_boolean_get(op->ptr, "rename_uvmaps");
   const bool export_mesh_colors = RNA_boolean_get(op->ptr, "export_mesh_colors");
   const bool export_normals = RNA_boolean_get(op->ptr, "export_normals");
   const bool export_materials = RNA_boolean_get(op->ptr, "export_materials");
@@ -276,6 +277,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       export_animation,
       export_hair,
       export_uvmaps,
+      rename_uvmaps,
       export_normals,
       export_mesh_colors,
       export_materials,
@@ -345,18 +347,21 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiItemR(row, ptr, "author_blender_name", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiLayoutSetActive(row, RNA_boolean_get(op->ptr, "export_custom_properties"));
 #  if PXR_VERSION >= 2403
-    uiItemR(col, ptr, "allow_unicode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "allow_unicode", UI_ITEM_NONE, nullptr, ICON_NONE);
 #  endif
 
-    col = uiLayoutColumnWithHeading(col, true, IFACE_("File References"));
-    uiItemR(col, ptr, "relative_paths", UI_ITEM_NONE, nullptr, ICON_NONE);
+    sub = uiLayoutColumnWithHeading(col, true, IFACE_("File References"));
+    uiItemR(sub, ptr, "relative_paths", UI_ITEM_NONE, nullptr, ICON_NONE);
 
+    col = uiLayoutColumn(panel, false);
     uiItemR(col, ptr, "convert_orientation", UI_ITEM_NONE, nullptr, ICON_NONE);
     if (RNA_boolean_get(ptr, "convert_orientation")) {
       uiItemR(col, ptr, "export_global_forward_selection", UI_ITEM_NONE, nullptr, ICON_NONE);
       uiItemR(col, ptr, "export_global_up_selection", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
     uiItemR(col, ptr, "xform_op_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+    col = uiLayoutColumn(panel, false);
     uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
@@ -376,6 +381,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   {
     uiLayout *col = uiLayoutColumn(panel, false);
     uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "rename_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     uiItemR(col, ptr, "triangulate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -540,6 +546,11 @@ void WM_OT_usd_export(wmOperatorType *ot)
       ot->srna, "export_hair", false, "Hair", "Export hair particle systems as USD curves");
   RNA_def_boolean(
       ot->srna, "export_uvmaps", true, "UV Maps", "Include all mesh UV maps in the export");
+  RNA_def_boolean(ot->srna,
+                  "rename_uvmaps",
+                  true,
+                  "Rename UV Maps",
+                  "Rename active render UV map to \"st\" to match USD conventions");
   RNA_def_boolean(ot->srna,
                   "export_mesh_colors",
                   true,

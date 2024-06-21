@@ -371,6 +371,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     else {
       MEM_freeN(path);
       path = BLI_strdup(BKE_appdir_folder_default_or_root());
+      BLI_path_slash_ensure(path, FILE_MAXDIR);
     }
   }
 

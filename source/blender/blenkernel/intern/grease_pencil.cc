@@ -21,6 +21,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -3068,17 +3069,139 @@ blender::IndexMask GreasePencil::layer_selection_by_name(const blender::StringRe
   return {};
 }
 
-void GreasePencil::rename_node(blender::bke::greasepencil::TreeNode &node,
+static GreasePencilModifierInfluenceData *influence_data_from_modifier(ModifierData *md)
+{
+  switch (md->type) {
+    case eModifierType_GreasePencilArmature: {
+      auto *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(md);
+      return &amd->influence;
+    }
+    case eModifierType_GreasePencilArray: {
+      auto *mmd = reinterpret_cast<GreasePencilArrayModifierData *>(md);
+      return &mmd->influence;
+    }
+    case eModifierType_GreasePencilBuild: {
+      auto *bmd = reinterpret_cast<GreasePencilBuildModifierData *>(md);
+      return &bmd->influence;
+    }
+    case eModifierType_GreasePencilColor: {
+      auto *cmd = reinterpret_cast<GreasePencilColorModifierData *>(md);
+      return &cmd->influence;
+    }
+    case eModifierType_GreasePencilDash: {
+      auto *dmd = reinterpret_cast<GreasePencilDashModifierData *>(md);
+      return &dmd->influence;
+    }
+    case eModifierType_GreasePencilEnvelope: {
+      auto *emd = reinterpret_cast<GreasePencilEnvelopeModifierData *>(md);
+      return &emd->influence;
+    }
+    case eModifierType_GreasePencilHook: {
+      auto *hmd = reinterpret_cast<GreasePencilHookModifierData *>(md);
+      return &hmd->influence;
+    }
+    case eModifierType_GreasePencilLattice: {
+      auto *lmd = reinterpret_cast<GreasePencilLatticeModifierData *>(md);
+      return &lmd->influence;
+    }
+    case eModifierType_GreasePencilLength: {
+      auto *lmd = reinterpret_cast<GreasePencilLengthModifierData *>(md);
+      return &lmd->influence;
+    }
+    case eModifierType_GreasePencilMirror: {
+      auto *mmd = reinterpret_cast<GreasePencilMirrorModifierData *>(md);
+      return &mmd->influence;
+    }
+    case eModifierType_GreasePencilMultiply: {
+      auto *mmd = reinterpret_cast<GreasePencilMultiModifierData *>(md);
+      return &mmd->influence;
+    }
+    case eModifierType_GreasePencilNoise: {
+      auto *nmd = reinterpret_cast<GreasePencilNoiseModifierData *>(md);
+      return &nmd->influence;
+    }
+    case eModifierType_GreasePencilOffset: {
+      auto *omd = reinterpret_cast<GreasePencilOffsetModifierData *>(md);
+      return &omd->influence;
+    }
+    case eModifierType_GreasePencilOpacity: {
+      auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
+      return &omd->influence;
+    }
+    case eModifierType_GreasePencilOutline: {
+      auto *omd = reinterpret_cast<GreasePencilOutlineModifierData *>(md);
+      return &omd->influence;
+    }
+    case eModifierType_GreasePencilShrinkwrap: {
+      auto *smd = reinterpret_cast<GreasePencilShrinkwrapModifierData *>(md);
+      return &smd->influence;
+    }
+    case eModifierType_GreasePencilSimplify: {
+      auto *smd = reinterpret_cast<GreasePencilSimplifyModifierData *>(md);
+      return &smd->influence;
+    }
+    case eModifierType_GreasePencilSmooth: {
+      auto *smd = reinterpret_cast<GreasePencilSmoothModifierData *>(md);
+      return &smd->influence;
+    }
+    case eModifierType_GreasePencilSubdiv: {
+      auto *smd = reinterpret_cast<GreasePencilSubdivModifierData *>(md);
+      return &smd->influence;
+    }
+    case eModifierType_GreasePencilTexture: {
+      auto *tmd = reinterpret_cast<GreasePencilTextureModifierData *>(md);
+      return &tmd->influence;
+    }
+    case eModifierType_GreasePencilThickness: {
+      auto *tmd = reinterpret_cast<GreasePencilThickModifierData *>(md);
+      return &tmd->influence;
+    }
+    case eModifierType_GreasePencilTime: {
+      auto *tmd = reinterpret_cast<GreasePencilTimeModifierData *>(md);
+      return &tmd->influence;
+    }
+    case eModifierType_GreasePencilTint: {
+      auto *tmd = reinterpret_cast<GreasePencilTintModifierData *>(md);
+      return &tmd->influence;
+    }
+    case eModifierType_GreasePencilWeightAngle: {
+      auto *wmd = reinterpret_cast<GreasePencilWeightAngleModifierData *>(md);
+      return &wmd->influence;
+    }
+    case eModifierType_GreasePencilWeightProximity: {
+      auto *wmd = reinterpret_cast<GreasePencilWeightProximityModifierData *>(md);
+      return &wmd->influence;
+    }
+    case eModifierType_GreasePencilLineart:
+      ATTR_FALLTHROUGH;
+    default:
+      return nullptr;
+  }
+  return nullptr;
+}
+
+void GreasePencil::rename_node(Main &bmain,
+                               blender::bke::greasepencil::TreeNode &node,
                                blender::StringRefNull new_name)
 {
   using namespace blender;
   if (node.name() == new_name) {
     return;
   }
+
+  /* Rename the node. */
   std::string old_name = node.name();
   if (node.is_layer()) {
     node.set_name(unique_layer_name(*this, new_name));
+  }
+  else if (node.is_group()) {
+    node.set_name(unique_layer_group_name(*this, new_name));
+  }
+
+  /* Update layer name dependencies. */
+  if (node.is_layer()) {
     BKE_animdata_fix_paths_rename_all(&this->id, "layers", old_name.c_str(), node.name().c_str());
+    /* Update names in layer masks. */
     for (bke::greasepencil::Layer *layer : this->layers_for_write()) {
       LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &layer->masks) {
         if (STREQ(mask->layer_name, old_name.c_str())) {
@@ -3087,8 +3210,33 @@ void GreasePencil::rename_node(blender::bke::greasepencil::TreeNode &node,
       }
     }
   }
-  else if (node.is_group()) {
-    node.set_name(unique_layer_group_name(*this, new_name));
+
+  /* Update name dependencies outside of the ID. */
+  LISTBASE_FOREACH (Object *, object, &bmain.objects) {
+    if (object->data != this) {
+      continue;
+    }
+
+    /* Update the layer name of the influence data of the modifiers. */
+    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      char *dst_layer_name = nullptr;
+      size_t dst_layer_name_len = 0;
+      /* LineArt doesn't use the `GreasePencilModifierInfluenceData` struct. */
+      if (md->type == eModifierType_GreasePencilLineart) {
+        auto *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
+        dst_layer_name = lmd->target_layer;
+        dst_layer_name_len = sizeof(lmd->target_layer);
+      }
+      else if (GreasePencilModifierInfluenceData *influence_data = influence_data_from_modifier(
+                   md))
+      {
+        dst_layer_name = influence_data->layer_name;
+        dst_layer_name_len = sizeof(influence_data->layer_name);
+      }
+      if (dst_layer_name && STREQ(dst_layer_name, old_name.c_str())) {
+        BLI_strncpy(dst_layer_name, node.name().c_str(), dst_layer_name_len);
+      }
+    }
   }
 }
 

@@ -174,6 +174,11 @@ void SceneResources::init(const SceneState &scene_state)
   }
 
   clip_planes_buf.push_update();
+
+  missing_tx.ensure_2d(
+      GPU_RGBA8, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1.0f, 0.0f, 1.0f, 1.0f));
+  missing_texture.gpu.texture = missing_tx;
+  missing_texture.name = "Missing Texture";
 }
 
 }  // namespace blender::workbench

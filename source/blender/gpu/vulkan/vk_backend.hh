@@ -31,10 +31,11 @@ class VKBackend : public GPUBackend {
 #ifdef WITH_RENDERDOC
   renderdoc::api::Renderdoc renderdoc_api_;
 #endif
-  /* Global instance to device handles. */
-  VKDevice device_;
 
  public:
+  /* Global instance to device handles. */
+  VKDevice device;
+
   VKBackend()
   {
     platform_init();
@@ -80,16 +81,6 @@ class VKBackend : public GPUBackend {
   static VKBackend &get()
   {
     return *static_cast<VKBackend *>(GPUBackend::get());
-  }
-
-  const VKDevice &device_get() const
-  {
-    return device_;
-  }
-
-  VKDevice &device_get()
-  {
-    return device_;
   }
 
   static void platform_init(const VKDevice &device);

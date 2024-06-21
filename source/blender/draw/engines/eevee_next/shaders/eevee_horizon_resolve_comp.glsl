@@ -38,8 +38,12 @@ float sample_weight_get(vec3 center_N, vec3 center_P, ivec2 center_texel, ivec2 
   /* TODO(fclem): Scene parameter. 10000.0 is dependent on scene scale. */
   float depth_weight = filter_planar_weight(center_N, center_P, sample_P, 10000.0);
   float normal_weight = filter_angle_weight(center_N, sample_N);
+  /* Some pixels might have no correct weight (depth & normal weights being very small).
+   * To avoid them have invalid energy (because of float precision),
+   * we weight all valid samples by a very small amount. */
+  float epsilon_weight = 1e-4;
 
-  return depth_weight * normal_weight;
+  return max(epsilon_weight, depth_weight * normal_weight);
 }
 
 SphericalHarmonicL1 load_spherical_harmonic(ivec2 texel, bool valid)

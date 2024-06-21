@@ -73,7 +73,7 @@ void triangulate(BMesh *bm)
 
 void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
 {
-  SculptSession *ss = ob.sculpt;
+  SculptSession &ss = *ob.sculpt;
   Mesh *mesh = static_cast<Mesh *>(ob.data);
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
@@ -85,28 +85,28 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
   /* Create triangles-only BMesh. */
   BMeshCreateParams create_params{};
   create_params.use_toolflags = false;
-  ss->bm = BM_mesh_create(&allocsize, &create_params);
+  ss.bm = BM_mesh_create(&allocsize, &create_params);
 
   BMeshFromMeshParams convert_params{};
   convert_params.calc_face_normal = true;
   convert_params.calc_vert_normal = true;
   convert_params.use_shapekey = true;
   convert_params.active_shapekey = ob.shapenr;
-  BM_mesh_bm_from_me(ss->bm, mesh, &convert_params);
-  triangulate(ss->bm);
+  BM_mesh_bm_from_me(ss.bm, mesh, &convert_params);
+  triangulate(ss.bm);
 
-  BM_data_layer_ensure_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  BM_data_layer_ensure_named(ss.bm, &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   /* Make sure the data for existing faces are initialized. */
-  if (mesh->faces_num != ss->bm->totface) {
-    BM_mesh_normals_update(ss->bm);
+  if (mesh->faces_num != ss.bm->totface) {
+    BM_mesh_normals_update(ss.bm);
   }
 
   /* Enable dynamic topology. */
   mesh->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Enable logging for undo/redo. */
-  ss->bm_log = BM_log_create(ss->bm);
+  ss.bm_log = BM_log_create(ss.bm);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */

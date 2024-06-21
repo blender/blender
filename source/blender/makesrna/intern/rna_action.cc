@@ -440,7 +440,7 @@ static bool rna_KeyframeActionStrip_key_insert(ID *id,
   const animrig::KeyframeSettings settings = animrig::get_keyframe_settings(true);
 
   const animrig::SingleKeyingResult result = key_strip.keyframe_insert(
-      binding, rna_path, array_index, {time, value}, settings, INSERTKEY_NOFLAGS);
+      binding, rna_path, array_index, std::nullopt, {time, value}, settings, INSERTKEY_NOFLAGS);
 
   const bool ok = result == animrig::SingleKeyingResult::SUCCESS;
   if (ok) {

@@ -24,10 +24,11 @@ struct ProjectOperation {
   gesture::Operation operation;
 };
 
-static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
+static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &gesture_data)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
+  undo::push_begin(*gesture_data.vc.obact, &op);
 }
 
 static void apply_projection(gesture::GestureData &gesture_data, PBVHNode *node)
@@ -84,14 +85,15 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
 
 static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
 {
-  SculptSession *ss = gesture_data.ss;
+  SculptSession &ss = *gesture_data.ss;
   const Sculpt &sd = *CTX_data_tool_settings(&C)->sculpt;
-  if (ss->deform_modifiers_active || ss->shapekey_active) {
+  if (ss.deform_modifiers_active || ss.shapekey_active) {
     SCULPT_flush_stroke_deform(sd, *gesture_data.vc.obact, true);
   }
 
   flush_update_step(&C, UpdateType::Position);
   flush_update_done(&C, *gesture_data.vc.obact, UpdateType::Position);
+  undo::push_end(*gesture_data.vc.obact);
 }
 
 static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op*/)

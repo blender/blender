@@ -275,16 +275,26 @@ static void extrude_curves(Curves &curves_id)
   new_curves.resize(new_offsets.last(), new_curves.curves_num());
 
   const bke::AttributeAccessor src_attributes = curves.attributes();
-  GVArray src_selection_array = *src_attributes.lookup(".selection", bke::AttrDomain::Point);
-  if (!src_selection_array) {
-    src_selection_array = VArray<bool>::ForSingle(true, curves.points_num());
+
+  std::array<GVArraySpan, 3> src_selection;
+  std::array<bke::GSpanAttributeWriter, 3> dst_selections;
+
+  const Span<StringRef> selection_attr_names = get_curves_selection_attribute_names(curves);
+  for (const int selection_i : selection_attr_names.index_range()) {
+    const StringRef selection_name = selection_attr_names[selection_i];
+
+    GVArray src_selection_array = *src_attributes.lookup(selection_name, bke::AttrDomain::Point);
+    if (!src_selection_array) {
+      src_selection_array = VArray<bool>::ForSingle(true, curves.points_num());
+    }
+
+    src_selection[selection_i] = src_selection_array;
+    dst_selections[selection_i] = ensure_selection_attribute(
+        new_curves,
+        bke::AttrDomain::Point,
+        src_selection_array.type().is<bool>() ? CD_PROP_BOOL : CD_PROP_FLOAT,
+        selection_name);
   }
-  const GVArraySpan src_selection = src_selection_array;
-  const CPPType &src_selection_type = src_selection.type();
-  bke::GSpanAttributeWriter dst_selection = ensure_selection_attribute(
-      new_curves,
-      bke::AttrDomain::Point,
-      src_selection_type.is<bool>() ? CD_PROP_BOOL : CD_PROP_FLOAT);
 
   threading::parallel_for(curves.curves_range(), 256, [&](IndexRange curves_range) {
     for (const int curve : curves_range) {
@@ -296,29 +306,40 @@ static void extrude_curves(Curves &curves_id)
         const int dest_index = new_offsets[curve] + curve_intervals[i] - first_value + i -
                                first_index;
         const int size = curve_intervals[i + 1] - curve_intervals[i] + 1;
-        GMutableSpan dst_span = dst_selection.span.slice(IndexRange(dest_index, size));
-        if (is_selected) {
-          src_selection_type.copy_assign_n(
-              src_selection.slice(IndexRange(curve_intervals[i], size)).data(),
-              dst_span.data(),
-              size);
-        }
-        else {
-          fill_selection(dst_span, false);
+
+        for (const int selection_i : selection_attr_names.index_range()) {
+          GMutableSpan dst_span = dst_selections[selection_i].span.slice(
+              IndexRange(dest_index, size));
+          if (is_selected) {
+            src_selection[selection_i].type().copy_assign_n(
+                src_selection[selection_i].slice(IndexRange(curve_intervals[i], size)).data(),
+                dst_span.data(),
+                size);
+          }
+          else {
+            fill_selection(dst_span, false);
+          }
         }
 
         is_selected = !is_selected;
       }
     }
   });
-  dst_selection.finish();
+
+  for (const int selection_i : selection_attr_names.index_range()) {
+    dst_selections[selection_i].finish();
+  }
 
   const Span<int> intervals = compress_intervals(curve_interval_ranges, curve_intervals);
 
   bke::MutableAttributeAccessor dst_attributes = new_curves.attributes_for_write();
 
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
-           src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, {}, {".selection"}))
+           src_attributes,
+           dst_attributes,
+           ATTR_DOMAIN_MASK_POINT,
+           {},
+           {".selection", ".selection_handle_left", ".selection_handle_right"}))
   {
     const CPPType &type = attribute.src.type();
     threading::parallel_for(IndexRange(intervals.size() - 1), 512, [&](IndexRange range) {
