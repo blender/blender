@@ -195,7 +195,7 @@ def addon_draw_item_expanded(
 
     if item_description:
         col_a.label(
-            text="{:s}.".format(item_description),
+            text=" {:s}.".format(item_description),
             translate=False,
         )
 
@@ -209,41 +209,39 @@ def addon_draw_item_expanded(
         rowsub.operator("preferences.addon_remove", text="Uninstall").module = mod.__name__
     del rowsub
 
-    if item_doc_url or item_tracker_url:
-        sub = layout.split(factor=0.5)
-        if item_doc_url:
-            sub.operator(
-                "wm.url_open", text="Website", icon='HELP',
-            ).url = item_doc_url
-        else:
-            sub.separator()
+    layout.separator(type='LINE')
 
-        # Only add "Report a Bug" button if tracker_url is set
-        # or the add-on is bundled (use official tracker then).
-        if item_tracker_url:
-            sub.operator(
-                "wm.url_open", text="Report a Bug", icon='URL',
-            ).url = item_tracker_url
-        elif addon_type == ADDON_TYPE_LEGACY_CORE:
-            addon_info = (
-                "Name: {:s} {:s}\n"
-                "Author: {:s}\n"
-            ).format(item_name, item_version, item_maintainer)
-            props = sub.operator(
-                "wm.url_open_preset", text="Report a Bug", icon='URL',
-            )
-            props.type = 'BUG_ADDON'
-            props.id = addon_info
-        else:
-            sub.separator()
-
-    sub = layout.box()
+    sub = layout.column()
     sub.active = is_enabled
-    split = sub.split(factor=0.125)
+    split = sub.split(factor=0.15)
     col_a = split.column()
     col_b = split.column()
 
     col_a.alignment = 'RIGHT'
+
+    if item_doc_url:
+        col_a.label(text="Website")
+        col_b.split(factor=0.5).operator(
+            "wm.url_open", text=domain_extract_from_url(item_doc_url), icon='HELP',
+        ).url = item_doc_url
+    # Only add "Report a Bug" button if tracker_url is set
+    # or the add-on is bundled (use official tracker then).
+    if item_tracker_url or (addon_type == ADDON_TYPE_LEGACY_CORE):
+        col_a.label(text="Feedback")
+        if item_tracker_url:
+            col_b.split(factor=0.5).operator(
+                "wm.url_open", text="Report a Bug", icon='URL',
+            ).url = item_tracker_url
+        else:
+            addon_info = (
+                "Name: {:s} {:s}\n"
+                "Author: {:s}\n"
+            ).format(item_name, item_version, item_maintainer)
+            props = col_b.split(factor=0.5).operator(
+                "wm.url_open_preset", text="Report a Bug", icon='URL',
+            )
+            props.type = 'BUG_ADDON'
+            props.id = addon_info
 
     if USE_SHOW_ADDON_TYPE_AS_TEXT:
         col_a.label(text="Type")
@@ -259,8 +257,9 @@ def addon_draw_item_expanded(
         col_a.label(text="Warning")
         col_b.label(text="  " + item_warning_legacy, icon='ERROR', translate=False)
 
-    col_a.label(text="File")
-    col_b.label(text=mod.__file__, translate=False)
+    if addon_type != ADDON_TYPE_LEGACY_CORE:
+        col_a.label(text="File")
+        col_b.label(text=mod.__file__, translate=False)
 
 
 # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
@@ -485,7 +484,7 @@ def addons_panel_draw_items(
 
             if is_enabled:
                 if (addon_preferences := used_addon_module_name_map[module_name].preferences) is not None:
-                    box = layout.box()
+                    box.separator(type='LINE')
                     USERPREF_PT_addons.draw_addon_preferences(box, context, addon_preferences)
 
 
@@ -616,7 +615,7 @@ def addons_panel_draw(panel, context):
     row_a = split.row()
     row_b = split.row()
     row_a.prop(wm, "addon_search", text="", icon='VIEWZOOM')
-    row_b.prop(view, "show_addons_enabled_only")
+    row_b.prop(view, "show_addons_enabled_only", text="Enabled Only")
     rowsub = row_b.row(align=True)
 
     rowsub.popover("USERPREF_PT_addons_tags", text="", icon='TAG')
@@ -1090,28 +1089,17 @@ def extensions_panel_draw_impl(
                 row_right.active = False
 
             if show:
-                split = box.split(factor=0.8)
-                col_a = split.column()
-                col_b = split.column()
+                col = box.column()
+
+                row = col.row()
 
                 # The full tagline may be multiple lines (not yet supported by Blender's UI).
-                col_a.label(text="{:s}.".format(item.tagline), translate=False)
-
-                if value := item.website:
-                    # Use half size button, for legacy add-ons there are two, here there is one
-                    # however one large button looks silly, so use a half size still.
-                    col_a.split(factor=0.5).operator(
-                        "wm.url_open",
-                        text=domain_extract_from_url(value),
-                        translate=False,
-                        icon='URL',
-                    ).url = value
-                del value
+                row.label(text=" {:s}.".format(item.tagline), translate=False)
 
                 # Note that we could allow removing extensions from non-remote extension repos
                 # although this is destructive, so don't enable this right now.
                 if is_installed:
-                    rowsub = col_b.row()
+                    rowsub = row.row()
                     rowsub.alignment = 'RIGHT'
                     if is_system_repo:
                         rowsub.operator("extensions.package_uninstall_system", text="Uninstall")
@@ -1119,15 +1107,30 @@ def extensions_panel_draw_impl(
                         props = rowsub.operator("extensions.package_uninstall", text="Uninstall")
                         props.repo_index = repo_index
                         props.pkg_id = pkg_id
-                        del props, rowsub
+                        del props
+                    del rowsub
 
-                del split, col_a, col_b
+                col.separator(type='LINE')
+                del col
 
-                boxsub = box.box()
-                boxsub.active = is_enabled
-                split = boxsub.split(factor=0.125)
+                col_info = box.column()
+                col_info.active = is_enabled
+                split = col_info.split(factor=0.15)
                 col_a = split.column()
                 col_b = split.column()
+                col_a.alignment = "RIGHT"
+
+                if value := item.website:
+                    col_a.label(text="Website")
+                    # Use half size button the full width button looks silly.
+                    col_b.split(factor=0.5).operator(
+                        "wm.url_open",
+                        text=domain_extract_from_url(value),
+                        translate=False,
+                        icon='URL',
+                    ).url = value
+                del value
+
                 col_a.alignment = "RIGHT"
 
                 if is_addon:
