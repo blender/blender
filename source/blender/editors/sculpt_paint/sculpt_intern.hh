@@ -38,6 +38,7 @@ struct SimulationData;
 }
 namespace undo {
 struct Node;
+struct StepData;
 enum class Type : int8_t;
 }
 }
@@ -188,13 +189,6 @@ struct Node {
   /** Indices of grids in the PBVH node. */
   Array<int> grids;
   BitGroupVector<> grid_hidden;
-
-  /* bmesh */
-  BMLogEntry *bm_entry;
-  bool applied;
-
-  /* Geometry at the bmesh enter moment. */
-  undo::NodeGeometry geometry_bmesh_enter;
 
   /* Sculpt Face Sets */
   Array<int> face_sets;
@@ -1233,7 +1227,7 @@ ENUM_OPERATORS(WarnFlag, MODIFIER);
 
 /** Enable dynamic topology; mesh will be triangulated */
 void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob);
-void disable(bContext *C, undo::Node *unode);
+void disable(bContext *C, undo::StepData *undo_step);
 void disable_with_undo(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob);
 
 /**
@@ -1666,6 +1660,9 @@ void push_begin(Object &ob, const wmOperator *op);
 void push_begin_ex(Object &ob, const char *name);
 void push_end(Object &ob);
 void push_end_ex(Object &ob, const bool use_nested_undo);
+
+void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh);
+BMLogEntry *get_bmesh_log_entry();
 
 }
 

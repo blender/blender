@@ -2104,7 +2104,7 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
   if (ss.cache && !ss.cache->accum) {
     unode = undo::get_node(&node, undo::Type::Position);
     if (unode) {
-      use_original = unode->bm_entry != nullptr;
+      use_original = undo::get_bmesh_log_entry() != nullptr;
     }
   }
 

@@ -150,6 +150,9 @@ struct StepData {
   undo::NodeGeometry geometry_original;
   undo::NodeGeometry geometry_modified;
 
+  /* bmesh */
+  BMLogEntry *bm_entry;
+
   /* Geometry at the bmesh enter moment. */
   undo::NodeGeometry geometry_bmesh_enter;
 
@@ -737,18 +740,15 @@ static bool restore_face_sets(Object &object,
   return modified;
 }
 
-static void bmesh_restore_generic(StepData &step_data,
-                                  Node &unode,
-                                  Object &object,
-                                  SculptSession &ss)
+static void bmesh_restore_generic(StepData &step_data, Object &object, SculptSession &ss)
 {
-  if (unode.applied) {
+  if (step_data.applied) {
     BM_log_undo(ss.bm, ss.bm_log);
-    unode.applied = false;
+    step_data.applied = false;
   }
   else {
     BM_log_redo(ss.bm, ss.bm_log);
-    unode.applied = true;
+    step_data.applied = true;
   }
 
   if (step_data.type == Type::Mask) {
@@ -763,7 +763,7 @@ static void bmesh_restore_generic(StepData &step_data,
 }
 
 /* Create empty sculpt BMesh and enable logging. */
-static void bmesh_enable(Object &object, Node &unode)
+static void bmesh_enable(Object &object, StepData &step_data)
 {
   SculptSession &ss = *object.sculpt;
   Mesh *mesh = static_cast<Mesh *>(object.data);
@@ -780,39 +780,42 @@ static void bmesh_enable(Object &object, Node &unode)
   mesh->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Restore the BMLog using saved entries. */
-  ss.bm_log = BM_log_from_existing_entries_create(ss.bm, unode.bm_entry);
+  ss.bm_log = BM_log_from_existing_entries_create(ss.bm, step_data.bm_entry);
 }
 
-static void bmesh_restore_begin(bContext *C, Node &unode, Object &object, SculptSession &ss)
+static void bmesh_restore_begin(bContext *C,
+                                StepData &step_data,
+                                Object &object,
+                                SculptSession &ss)
 {
-  if (unode.applied) {
-    dyntopo::disable(C, &unode);
-    unode.applied = false;
+  if (step_data.applied) {
+    dyntopo::disable(C, &step_data);
+    step_data.applied = false;
   }
   else {
-    bmesh_enable(object, unode);
+    bmesh_enable(object, step_data);
 
     /* Restore the mesh from the first log entry. */
     BM_log_redo(ss.bm, ss.bm_log);
 
-    unode.applied = true;
+    step_data.applied = true;
   }
 }
 
-static void bmesh_restore_end(bContext *C, Node &unode, Object &object, SculptSession &ss)
+static void bmesh_restore_end(bContext *C, StepData &step_data, Object &object, SculptSession &ss)
 {
-  if (unode.applied) {
-    bmesh_enable(object, unode);
+  if (step_data.applied) {
+    bmesh_enable(object, step_data);
 
     /* Restore the mesh from the last log entry. */
     BM_log_undo(ss.bm, ss.bm_log);
 
-    unode.applied = false;
+    step_data.applied = false;
   }
   else {
     /* Disable dynamic topology sculpting. */
     dyntopo::disable(C, nullptr);
-    unode.applied = true;
+    step_data.applied = true;
   }
 }
 
@@ -839,10 +842,8 @@ static void store_geometry_data(NodeGeometry *geometry, const Object &object)
   geometry->faces_num = mesh->faces_num;
 }
 
-static void restore_geometry_data(NodeGeometry *geometry, Object &object)
+static void restore_geometry_data(const NodeGeometry *geometry, Mesh *mesh)
 {
-  Mesh *mesh = static_cast<Mesh *>(object.data);
-
   BLI_assert(geometry->is_initialized);
 
   BKE_mesh_clear_geometry(mesh);
@@ -880,12 +881,14 @@ static void restore_geometry(StepData &step_data, Object &object)
     SCULPT_pbvh_clear(object);
   }
 
+  Mesh *mesh = static_cast<Mesh *>(object.data);
+
   if (step_data.applied) {
-    restore_geometry_data(&step_data.geometry_modified, object);
+    restore_geometry_data(&step_data.geometry_modified, mesh);
     step_data.applied = false;
   }
   else {
-    restore_geometry_data(&step_data.geometry_original, object);
+    restore_geometry_data(&step_data.geometry_original, mesh);
     step_data.applied = true;
   }
 }
@@ -894,26 +897,35 @@ static void restore_geometry(StepData &step_data, Object &object)
  *
  * Returns true if this was a dynamic-topology undo step, otherwise
  * returns false to indicate the non-dyntopo code should run. */
-static int bmesh_restore(
-    bContext *C, StepData &step_data, Node &unode, Object &object, SculptSession &ss)
+static int bmesh_restore(bContext *C, StepData &step_data, Object &object, SculptSession &ss)
 {
   switch (step_data.type) {
     case Type::DyntopoBegin:
-      bmesh_restore_begin(C, unode, object, ss);
+      bmesh_restore_begin(C, step_data, object, ss);
       return true;
 
     case Type::DyntopoEnd:
-      bmesh_restore_end(C, unode, object, ss);
+      bmesh_restore_end(C, step_data, object, ss);
       return true;
     default:
       if (ss.bm_log) {
-        bmesh_restore_generic(step_data, unode, object, ss);
+        bmesh_restore_generic(step_data, object, ss);
         return true;
       }
       break;
   }
 
   return false;
+}
+
+void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh)
+{
+  restore_geometry_data(&step_data.geometry_bmesh_enter, &mesh);
+}
+
+BMLogEntry *get_bmesh_log_entry()
+{
+  return get_step_data()->bm_entry;
 }
 
 /* Geometry updates (such as Apply Base, for example) will re-evaluate the object and refine its
@@ -973,7 +985,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
     }
 
-    if (bmesh_restore(C, step_data, *step_data.nodes.first(), object, ss)) {
+    if (bmesh_restore(C, step_data, object, ss)) {
       return;
     }
   }
@@ -1161,11 +1173,9 @@ static void free_step_data(StepData &step_data)
 {
   geometry_free_data(&step_data.geometry_original);
   geometry_free_data(&step_data.geometry_modified);
-  for (std::unique_ptr<Node> &unode : step_data.nodes) {
-    geometry_free_data(&unode->geometry_bmesh_enter);
-    if (unode->bm_entry) {
-      BM_log_entry_drop(unode->bm_entry);
-    }
+  geometry_free_data(&step_data.geometry_bmesh_enter);
+  if (step_data.bm_entry) {
+    BM_log_entry_drop(step_data.bm_entry);
   }
   step_data.~StepData();
 }
@@ -1493,10 +1503,10 @@ BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, 
     unode = step_data->nodes.last().get();
 
     step_data->type = type;
-    unode->applied = true;
+    step_data->applied = true;
 
     if (type == Type::DyntopoEnd) {
-      unode->bm_entry = BM_log_entry_add(ss.bm_log);
+      step_data->bm_entry = BM_log_entry_add(ss.bm_log);
       BM_log_before_all_removed(ss.bm, ss.bm_log);
     }
     else if (type == Type::DyntopoBegin) {
@@ -1505,14 +1515,14 @@ BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, 
        * dynamic-topology immediately does topological edits
        * (converting faces to triangles) that the BMLog can't
        * fully restore from. */
-      NodeGeometry *geometry = &unode->geometry_bmesh_enter;
+      NodeGeometry *geometry = &step_data->geometry_bmesh_enter;
       store_geometry_data(geometry, object);
 
-      unode->bm_entry = BM_log_entry_add(ss.bm_log);
+      step_data->bm_entry = BM_log_entry_add(ss.bm_log);
       BM_log_all_added(ss.bm, ss.bm_log);
     }
     else {
-      unode->bm_entry = BM_log_entry_add(ss.bm_log);
+      step_data->bm_entry = BM_log_entry_add(ss.bm_log);
     }
   }
 
