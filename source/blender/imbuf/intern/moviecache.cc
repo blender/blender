@@ -421,7 +421,7 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey, bool *r_is_cached_em
 
       return item->ibuf;
     }
-    if (r_is_cached_empty) {
+    if (r_is_cached_empty && item->added_empty) {
       *r_is_cached_empty = true;
     }
   }
