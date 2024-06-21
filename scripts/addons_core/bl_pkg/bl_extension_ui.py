@@ -844,7 +844,7 @@ def extensions_panel_draw_impl(
     show_addons = filter_by_type in {"", "add-on"}
     show_themes = filter_by_type in {"", "theme"}
     if show_addons:
-        used_addon_module_name_map = {addon.module: addon for addon in prefs.addons}
+        addons_enabled = {addon.module for addon in prefs.addons}
 
     if show_themes:
         active_theme_info = pkg_repo_and_id_from_theme_path(repos_all, prefs.themes[0].filepath)
@@ -940,7 +940,7 @@ def extensions_panel_draw_impl(
                     # Currently we only need to know the module name once installed.
                     addon_module_name = repo_module_prefix + pkg_id
                     # pylint: disable-next=possibly-used-before-assignment
-                    is_enabled = addon_module_name in used_addon_module_name_map
+                    is_enabled = addon_module_name in addons_enabled
 
                 else:
                     is_enabled = False
