@@ -419,9 +419,9 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
         continue;
       }
 
-      /* If new job is not render, then check for same startjob. */
+      /* If new job is not render, then check for same job type. */
       if (0 == (test->flag & WM_JOB_EXCL_RENDER)) {
-        if (wm_job->startjob != test->startjob) {
+        if (wm_job->job_type != test->job_type) {
           continue;
         }
       }

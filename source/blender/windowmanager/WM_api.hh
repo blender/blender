@@ -1589,7 +1589,10 @@ enum eWM_JobType {
   WM_JOB_TYPE_SEQ_BUILD_PREVIEW,
   WM_JOB_TYPE_POINTCACHE,
   WM_JOB_TYPE_DPAINT_BAKE,
-  WM_JOB_TYPE_ALEMBIC,
+  WM_JOB_TYPE_ALEMBIC_IMPORT,
+  WM_JOB_TYPE_ALEMBIC_EXPORT,
+  WM_JOB_TYPE_USD_IMPORT,
+  WM_JOB_TYPE_USD_EXPORT,
   WM_JOB_TYPE_SHADER_COMPILATION,
   WM_JOB_TYPE_STUDIOLIGHT,
   WM_JOB_TYPE_LIGHT_BAKE,
@@ -1609,8 +1612,8 @@ enum eWM_JobType {
 /**
  * \return current job or adds new job, but doesn't run it.
  *
- * \note every owner only gets a single job,
- * adding a new one will stop running job and when stopped it starts the new one.
+ * \note every owner only gets a single running job of the same \a job_type (or with the
+ * #WM_JOB_EXCL_RENDER flag). Adding a new one will wait for the running job to finish.
  */
 wmJob *WM_jobs_get(wmWindowManager *wm,
                    wmWindow *win,
@@ -1654,8 +1657,17 @@ void WM_jobs_callbacks_ex(wmJob *wm_job,
                           void (*canceled)(void *));
 
 /**
- * If job running, the same owner gave it a new job.
- * if different owner starts existing #wmJob::startjob, it suspends itself.
+ * Register the given \a wm_job and try to start it immediately.
+ *
+ * The new \a wm_job will not start immediately and wait for other blocking jobs
+ * to end in some way if:
+ * - the new job is flagged with #WM_JOB_EXCL_RENDER and another job with the same flag is already
+ *   running (blocks it), or...
+ * - the new job is __not__ flagged with #WM_JOB_EXCL_RENDER and a job of the same #eWM_JobType is
+ *   already running (blocks it).
+ *
+ * If the new \a wm_job is flagged with #WM_JOB_PRIORITY, it will request other blocking jobs to
+ * stop (using #WM_jobs_stop(), so this doesn't take immediate effect) rather than finish its work.
  */
 void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job);
 /**

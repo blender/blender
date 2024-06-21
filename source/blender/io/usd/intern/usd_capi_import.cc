@@ -521,7 +521,7 @@ bool USD_import(bContext *C,
                                 job->scene,
                                 "USD Import",
                                 WM_JOB_PROGRESS,
-                                WM_JOB_TYPE_ALEMBIC);
+                                WM_JOB_TYPE_USD_IMPORT);
 
     /* setup job */
     WM_jobs_customdata_set(wm_job, job, import_freejob);
