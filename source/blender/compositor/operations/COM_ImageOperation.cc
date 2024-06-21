@@ -82,14 +82,24 @@ void ImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   const bool ensure_premultiplied = !ELEM(
       image_->alpha_mode, IMA_ALPHA_CHANNEL_PACKED, IMA_ALPHA_IGNORE);
-  output->copy_from(buffer_, area, ensure_premultiplied, true);
+  if (buffer_) {
+    output->copy_from(buffer_, area, ensure_premultiplied, true);
+  }
+  else {
+    output->fill(area, COM_COLOR_TRANSPARENT);
+  }
 }
 
 void ImageAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                        const rcti &area,
                                                        Span<MemoryBuffer *> /*inputs*/)
 {
-  output->copy_from(buffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
+  if (buffer_) {
+    output->copy_from(buffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
+  }
+  else {
+    output->fill(area, COM_VALUE_ZERO);
+  }
 }
 
 }  // namespace blender::compositor
