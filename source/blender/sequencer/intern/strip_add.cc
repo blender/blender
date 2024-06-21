@@ -340,6 +340,9 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
         seq->sound->flags |= SOUND_FLAGS_CACHING;
       }
     }
+
+    /* Turn on Display Waveform by default. */
+    seq->flag |= SEQ_AUDIO_DRAW_WAVEFORM;
   }
 
   seq_add_sound_av_sync(bmain, scene, seq, load_data);
