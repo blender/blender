@@ -50,6 +50,9 @@ bool path_write_text(const string &path, string &text);
 bool path_read_binary(const string &path, vector<uint8_t> &binary);
 bool path_read_text(const string &path, string &text);
 
+bool path_read_compressed_binary(const string &path, vector<uint8_t> &binary);
+bool path_read_compressed_text(const string &path, string &text);
+
 /* File manipulation. */
 bool path_remove(const string &path);
 
