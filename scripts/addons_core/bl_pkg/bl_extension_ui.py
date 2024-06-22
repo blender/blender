@@ -1202,8 +1202,22 @@ class USERPREF_MT_extensions_settings(Menu):
 
             layout.separator()
 
-            layout.operator("extensions.package_install_marked", text="Install Marked", icon='IMPORT')
-            layout.operator("extensions.package_uninstall_marked", text="Uninstall Marked", icon='X')
+            layout.operator("extensions.package_mark_set_all", text="Mark All")
+            layout.operator("extensions.package_mark_clear_all", text="Unmark All")
+
+            layout.separator()
+
+            layout.operator(
+                "extensions.package_install_marked",
+                text="Install Marked",
+                icon='IMPORT',
+            ).enable_on_install = False
+            layout.operator(
+                "extensions.package_uninstall_marked",
+                text="Uninstall Marked",
+                icon='X',
+            )
+
             layout.operator("extensions.package_obsolete_marked")
 
             layout.separator()

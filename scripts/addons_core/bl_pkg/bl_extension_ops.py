@@ -675,8 +675,9 @@ def _pkg_marked_by_repo(pkg_manifest_all):
         # While this should be prevented, any marked packages out of the range will cause problems, skip them.
         if repo_index >= len(pkg_manifest_all):
             continue
+        if (pkg_manifest := pkg_manifest_all[repo_index]) is None:
+            continue
 
-        pkg_manifest = pkg_manifest_all[repo_index]
         item = pkg_manifest.get(pkg_id)
         if item is None:
             continue
@@ -2713,7 +2714,7 @@ class EXTENSIONS_OT_package_mark_set(Operator):
 
 class EXTENSIONS_OT_package_mark_clear(Operator):
     bl_idname = "extensions.package_mark_clear"
-    bl_label = "Mark Package"
+    bl_label = "Clear Marked Package"
 
     pkg_id: rna_prop_pkg_id
     repo_index: rna_prop_repo_index
@@ -2723,6 +2724,37 @@ class EXTENSIONS_OT_package_mark_clear(Operator):
         blender_extension_mark.discard(key)
         _preferences_ui_redraw()
         return {'FINISHED'}
+
+
+class EXTENSIONS_OT_package_mark_set_all(Operator):
+    bl_idname = "extensions.package_mark_set_all"
+    bl_label = "Mark All Packages"
+
+    def execute(self, _context):
+        repo_cache_store = repo_cache_store_ensure()
+        for repo_index, (
+                pkg_manifest_remote,
+                pkg_manifest_local,
+        ) in enumerate(zip(
+            repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
+            repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
+        )):
+            if pkg_manifest_remote is not None:
+                for pkg_id in pkg_manifest_remote.keys():
+                    blender_extension_mark.add((pkg_id, repo_index))
+            if pkg_manifest_local is not None:
+                for pkg_id in pkg_manifest_local.keys():
+                    blender_extension_mark.add((pkg_id, repo_index))
+        _preferences_ui_redraw()
+        return {'FINISHED'}
+
+
+class EXTENSIONS_OT_package_mark_clear_all(Operator):
+    bl_idname = "extensions.package_mark_clear_all"
+    bl_label = "Clear All Marked Packages"
+
+    def execute(self, _context):
+        blender_extension_mark.clear()
 
 
 class EXTENSIONS_OT_package_show_set(Operator):
@@ -3048,6 +3080,8 @@ classes = (
     EXTENSIONS_OT_package_show_clear,
     EXTENSIONS_OT_package_mark_set,
     EXTENSIONS_OT_package_mark_clear,
+    EXTENSIONS_OT_package_mark_set_all,
+    EXTENSIONS_OT_package_mark_clear_all,
     EXTENSIONS_OT_package_show_settings,
 
     EXTENSIONS_OT_package_obselete_marked,
