@@ -25,6 +25,7 @@ __all__ = (
 
     # Public Stand-Alone Utilities.
     "pkg_theme_file_list",
+    "pkg_manifest_params_compatible_or_error",
     "platform_from_this_system",
     "url_append_query_for_blender",
     "url_parse_for_blender",
@@ -436,19 +437,27 @@ def url_parse_for_blender(url: str) -> Tuple[str, Dict[str, str]]:
     ))
 
     query_known = {}
-    if repo_path := next((value for key, value in query if key == "repository"), None):
-        if repo_path.startswith("/"):
-            repo_url = urllib.parse.urlunparse((
-                parsed_url.scheme,
-                parsed_url.netloc,
-                repo_path[1:],
-                None,  # `parsed_url.params,`
-                None,  # `parsed_url.query,`
-                None,  # `parsed_url.fragment,`
-            ))
-        else:
-            repo_url = repo_path
-        query_known["repository"] = repo_url
+    for key, value in query:
+        value_xform = None
+        match key:
+            case "blender_version_min" | "blender_version_max" | "platforms":
+                if value:
+                    value_xform = value
+            case "repository":
+                if value:
+                    if value.startswith("/"):
+                        value_xform = urllib.parse.urlunparse((
+                            parsed_url.scheme,
+                            parsed_url.netloc,
+                            value[1:],
+                            None,  # `parsed_url.params,`
+                            None,  # `parsed_url.query,`
+                            None,  # `parsed_url.fragment,`
+                        ))
+                    else:
+                        value_xform = value
+        if value_xform is not None:
+            query_known[key] = value_xform
 
     return url_strip, query_known
 
@@ -1216,10 +1225,46 @@ def repository_filter_skip(
         item,
         filter_blender_version=filter_params.blender_version,
         filter_platform=filter_params.platform,
+        skip_message_fn=None,
         error_fn=error_fn,
     )
     assert isinstance(result, bool)
     return result
+
+
+def pkg_manifest_params_compatible_or_error(
+        *,
+        blender_version_min: str,
+        blender_version_max: str,
+        platforms: List[str],
+        this_platform: Tuple[int, int, int],
+        this_blender_version: Tuple[int, int, int],
+        error_fn: Callable[[Exception], None],
+) -> Optional[str]:
+    from .cli.blender_ext import repository_filter_skip as fn
+
+    # Weak, create the minimum information for a manifest to be checked against.
+    item: Dict[str, Any] = {}
+    if blender_version_min:
+        item["blender_version_min"] = blender_version_min
+    if blender_version_max:
+        item["blender_version_max"] = blender_version_max
+    if platforms:
+        item["platforms"] = platforms
+
+    result_report = []
+    result = fn(
+        item=item,
+        filter_blender_version=this_blender_version,
+        filter_platform=this_platform,
+        skip_message_fn=lambda msg: result_report.append(msg),
+        error_fn=error_fn,
+    )
+    assert isinstance(result, bool)
+    if result:
+        assert len(result_report) > 0
+        return "\n".join(result_report)
+    return None
 
 
 def repository_filter_packages(
