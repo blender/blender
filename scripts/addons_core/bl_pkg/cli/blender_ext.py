@@ -2271,7 +2271,7 @@ def arg_handle_str_as_package_names(value: str) -> Sequence[str]:
 # -----------------------------------------------------------------------------
 # Argument Handlers ("build" command)
 
-def generic_arg_built_split_platforms(subparse: argparse.ArgumentParser) -> None:
+def generic_arg_build_split_platforms(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--split-platforms",
         dest="split_platforms",
@@ -3864,7 +3864,7 @@ def argparse_create_author_build(
     generic_arg_package_source_dir(subparse)
     generic_arg_package_output_dir(subparse)
     generic_arg_package_output_filepath(subparse)
-    generic_arg_built_split_platforms(subparse)
+    generic_arg_build_split_platforms(subparse)
     generic_arg_verbose(subparse)
 
     if args_internal:
