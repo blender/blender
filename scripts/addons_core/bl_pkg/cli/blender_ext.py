@@ -116,7 +116,7 @@ def print(*args: Any, **kw: Dict[str, Any]) -> None:
 
 # # Useful for testing.
 # def print(*args: Any, **kw: Dict[str, Any]):
-#     __builtins__.print(*args, **kw, file=open('/tmp/output.txt', 'a'))
+#     __builtins__["print"](*args, **kw, file=open('/tmp/output.txt', 'a'))
 
 
 def debug_stack_trace_to_file() -> None:
@@ -1789,6 +1789,8 @@ def repository_filter_skip(
         *,
         filter_blender_version: Tuple[int, int, int],
         filter_platform: str,
+        # When `skip_message_fn` is set, returning true must call the `skip_message_fn` function.
+        skip_message_fn: Optional[Callable[[str], None]],
         error_fn: Callable[[Exception], None],
 ) -> bool:
     if (platforms := item.get("platforms")) is not None:
@@ -1796,6 +1798,11 @@ def repository_filter_skip(
             # Possibly noisy, but this should *not* be happening on a regular basis.
             error_fn(TypeError("platforms is not a list, found a: {:s}".format(str(type(platforms)))))
         elif platforms and (filter_platform not in platforms):
+            if skip_message_fn is not None:
+                skip_message_fn("This platform ({:s}) isn't one of ({:s})".format(
+                    filter_platform,
+                    ", ".join(platforms),
+                ))
             return True
 
     if filter_blender_version != (0, 0, 0):
@@ -1828,9 +1835,19 @@ def repository_filter_skip(
 
         if (version_min is not None) and (filter_blender_version < version_min):
             # Blender is older than the packages minimum supported version.
+            if skip_message_fn is not None:
+                skip_message_fn("This Blender version ({:s}) doesn't meet the minimum supported version ({:s})".format(
+                    ".".join(str(x) for x in filter_blender_version),
+                    ".".join(str(x) for x in version_min),
+                ))
             return True
         if (version_max is not None) and (filter_blender_version >= version_max):
             # Blender is newer or equal to the maximum value.
+            if skip_message_fn is not None:
+                skip_message_fn("This Blender version ({:s}) must be less than the maximum version ({:s})".format(
+                    ".".join(str(x) for x in filter_blender_version),
+                    ".".join(str(x) for x in version_max),
+                ))
             return True
 
     return False
@@ -2936,6 +2953,7 @@ class subcmd_client:
                     pkg_info,
                     filter_blender_version=blender_version_tuple,
                     filter_platform=platform_this,
+                    skip_message_fn=None,
                     error_fn=error_handle,
                 )
             ]
