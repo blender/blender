@@ -1853,6 +1853,10 @@ static void icon_draw_size(float x,
                            const IconTextOverlay *text_overlay,
                            const bool inverted = false)
 {
+  if (icon_id == ICON_NONE) {
+    return;
+  }
+
   bTheme *btheme = UI_GetTheme();
   const float fdraw_size = float(draw_size);
 
