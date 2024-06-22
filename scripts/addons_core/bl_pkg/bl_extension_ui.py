@@ -42,7 +42,7 @@ def size_as_fmt_string(num: float, *, precision: int = 1) -> str:
         if abs(num) < 1024.0:
             return "{:3.{:d}f}{:s}".format(num, precision, unit)
         num /= 1024.0
-    unit = "yb"
+    unit = "YB"
     return "{:.{:d}f}{:s}".format(num, precision, unit)
 
 
