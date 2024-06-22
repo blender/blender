@@ -7,6 +7,7 @@ set(INC
 )
 
 set(INC_SYS
+  ${ZSTD_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -32,6 +33,7 @@ set(SRC
 
 set(LIB
   ${TBB_LIBRARIES}
+  ${ZSTD_LIBRARIES}
 )
 
 set(SRC_HEADERS

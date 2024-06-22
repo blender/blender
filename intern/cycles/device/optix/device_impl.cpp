@@ -216,7 +216,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                             "";
   string ptx_filename;
   if (need_optix_kernels) {
-    ptx_filename = path_get("lib/kernel_optix" + suffix + ".ptx");
+    ptx_filename = path_get("lib/kernel_optix" + suffix + ".ptx.zst");
     if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
       std::string optix_include_dir = get_optix_include_dir();
       if (optix_include_dir.empty()) {
@@ -348,7 +348,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       string cflags = compile_kernel_get_common_cflags(kernel_features);
       ptx_filename = compile_kernel(cflags, ("kernel" + suffix).c_str(), "optix", true);
     }
-    if (ptx_filename.empty() || !path_read_text(ptx_filename, ptx_data)) {
+    if (ptx_filename.empty() || !path_read_compressed_text(ptx_filename, ptx_data)) {
       set_error(string_printf("Failed to load OptiX kernel from '%s'", ptx_filename.c_str()));
       return false;
     }
@@ -798,8 +798,8 @@ bool OptiXDevice::load_osl_kernels()
   osl_modules.resize(osl_kernels.size() + 1);
 
   { /* Load and compile PTX module with OSL services. */
-    string ptx_data, ptx_filename = path_get("lib/kernel_optix_osl_services.ptx");
-    if (!path_read_text(ptx_filename, ptx_data)) {
+    string ptx_data, ptx_filename = path_get("lib/kernel_optix_osl_services.ptx.zst");
+    if (!path_read_compressed_text(ptx_filename, ptx_data)) {
       set_error(string_printf("Failed to load OptiX OSL services kernel from '%s'",
                               ptx_filename.c_str()));
       return false;
