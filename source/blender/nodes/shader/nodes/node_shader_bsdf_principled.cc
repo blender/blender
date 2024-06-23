@@ -344,12 +344,8 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, flag);
 
-  return GPU_stack_link(mat,
-                        node,
-                        "node_bsdf_principled",
-                        in,
-                        out,
-                        GPU_constant(&use_multi_scatter));
+  return GPU_stack_link(
+      mat, node, "node_bsdf_principled", in, out, GPU_constant(&use_multi_scatter));
 }
 
 static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
