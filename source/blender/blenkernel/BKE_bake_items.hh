@@ -35,7 +35,7 @@ struct BakeState {
   Map<int, std::unique_ptr<BakeItem>> items_by_id;
 };
 
-/** Same as above, but does not own the bake items. */
+/** Same as #BakeState, but does not own the bake items. */
 struct BakeStateRef {
   Map<int, const BakeItem *> items_by_id;
 

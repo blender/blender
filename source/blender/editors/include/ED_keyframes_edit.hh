@@ -309,7 +309,7 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       KeyframeEditFunc key_cb,
                                       FcuEditFunc fcu_cb);
 /**
- * Same as above, except bAnimListElem wrapper is not needed.
+ * Same as #ANIM_animchannel_keyframes_loop, except #bAnimListElem wrapper is not needed.
  * \param keytype: is #eAnim_KeyType.
  */
 short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,

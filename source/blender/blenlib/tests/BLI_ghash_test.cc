@@ -110,7 +110,7 @@ TEST(ghash, InsertRemove)
   BLI_ghash_free(ghash, nullptr, nullptr);
 }
 
-/* Same as above, but this time we allow ghash to shrink. */
+/* Same as `InsertRemove`, but this time we allow ghash to shrink. */
 TEST(ghash, InsertRemoveShrink)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);

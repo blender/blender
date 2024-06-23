@@ -367,7 +367,8 @@ bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src,
  */
 View2D *UI_view2d_fromcontext(const bContext *C);
 /**
- * Same as above, but it returns region-window. Utility for pull-downs or buttons.
+ * Same as #UI_view2d_fromcontext, but it returns region-window.
+ * Utility for pull-downs or buttons.
  */
 View2D *UI_view2d_fromcontext_rwin(const bContext *C);
 
