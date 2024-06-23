@@ -410,8 +410,10 @@ int BKE_preferences_extension_repo_remote_scheme_end(const char *url)
 void BKE_preferences_extension_remote_to_name(const char *remote_url,
                                               char name[sizeof(bUserExtensionRepo::name)])
 {
+  const bool is_file = STRPREFIX(remote_url, "file://");
   name[0] = '\0';
   if (int offset = BKE_preferences_extension_repo_remote_scheme_end(remote_url)) {
+    /* Skip the `://`. */
     remote_url += (offset + 3);
   }
   if (UNLIKELY(remote_url[0] == '\0')) {
@@ -419,13 +421,29 @@ void BKE_preferences_extension_remote_to_name(const char *remote_url,
   }
 
   const char *c = remote_url;
-  /* Skip any delimiters (likely forward slashes for `file:///` on UNIX). */
-  while (*c && url_char_is_delimiter(*c)) {
-    c++;
+  if (is_file) {
+    /* TODO: decode the URL, see: #GHOST_URL_decode which is not a public function. */
+
+    /* Don't use domain name only logic for file paths as this causes
+     * `file:///path/to/repo/index.json` -> `/path`
+     * In this case `/path/to/repo` is preferred. */
+    c = BLI_path_basename(remote_url);
+    /* Remove trailing slash. */
+    while ((remote_url < c) && url_char_is_delimiter(*(c - 1))) {
+      c--;
+    }
   }
-  /* Skip the domain name. */
-  while (*c && !url_char_is_delimiter(*c)) {
-    c++;
+  else {
+    /* Skip any delimiters (likely forward slashes for `file:///` on UNIX).
+     * Although the `file://` case is handled already. So this is quite unlikely.
+     * Skip them anyway because failing to do so may cause the domain to be an empty string. */
+    while (*c && url_char_is_delimiter(*c)) {
+      c++;
+    }
+    /* Skip the domain name. */
+    while (*c && !url_char_is_delimiter(*c)) {
+      c++;
+    }
   }
 
   BLI_strncpy_utf8(
