@@ -253,15 +253,15 @@ def lock_result_any_failed_with_report(op, lock_result, report_type='ERROR'):
     return any_errors
 
 
-def pkg_info_check_exclude_filter_ex(name, tagline, search_lower):
+def pkg_info_check_exclude_filter_ex(name, tagline, search_casefold):
     return (
-        (search_lower in name.lower() or search_lower in iface_(name).lower()) or
-        (search_lower in tagline.lower() or search_lower in iface_(tagline).lower())
+        (search_casefold in name.casefold() or search_casefold in iface_(name).casefold()) or
+        (search_casefold in tagline.casefold() or search_casefold in iface_(tagline).casefold())
     )
 
 
-def pkg_info_check_exclude_filter(item, search_lower):
-    return pkg_info_check_exclude_filter_ex(item.name, item.tagline, search_lower)
+def pkg_info_check_exclude_filter(item, search_casefold):
+    return pkg_info_check_exclude_filter_ex(item.name, item.tagline, search_casefold)
 
 
 def extension_theme_enable_filepath(filepath):
@@ -667,7 +667,7 @@ def _extensions_repo_from_directory_and_report(directory, report_fn):
 def _pkg_marked_by_repo(pkg_manifest_all):
     # NOTE: pkg_manifest_all can be from local or remote source.
     wm = bpy.context.window_manager
-    search_lower = wm.extension_search.lower()
+    search_casefold = wm.extension_search.casefold()
     filter_by_type = blender_filter_by_type_map[wm.extension_type]
 
     repo_pkg_map = {}
@@ -683,7 +683,7 @@ def _pkg_marked_by_repo(pkg_manifest_all):
             continue
         if filter_by_type and (filter_by_type != item.type):
             continue
-        if search_lower and not pkg_info_check_exclude_filter(item, search_lower):
+        if search_casefold and not pkg_info_check_exclude_filter(item, search_casefold):
             continue
 
         pkg_list = repo_pkg_map.get(repo_index)

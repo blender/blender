@@ -363,7 +363,7 @@ def addons_panel_draw_items(
         *,
         addon_modules,  # `Dict[str, ModuleType]`
         used_addon_module_name_map,  # `Dict[str, bpy.types.Addon]`
-        search_lower,  # `str`
+        search_casefold,  # `str`
         addon_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
         addon_extension_manifest_map,  # `Dict[str, PkgManifest_Normalized]`
@@ -415,11 +415,11 @@ def addons_panel_draw_items(
                 item_tracker_url = bl_info.get("tracker_url")
             del bl_info
 
-        if search_lower and (
+        if search_casefold and (
                 not pkg_info_check_exclude_filter_ex(
                     item_name,
                     item_description,
-                    search_lower,
+                    search_casefold,
                 )
         ):
             continue
@@ -490,7 +490,7 @@ def addons_panel_draw_items(
 def addons_panel_draw_impl(
         self,
         context,  # `bpy.types.Context`
-        search_lower,  # `str`
+        search_casefold,  # `str`
         addon_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
 ):
@@ -553,7 +553,7 @@ def addons_panel_draw_impl(
         context,
         addon_modules=addon_modules,
         used_addon_module_name_map=used_addon_module_name_map,
-        search_lower=search_lower,
+        search_casefold=search_casefold,
         addon_tags_exclude=addon_tags_exclude,
         enabled_only=enabled_only,
         addon_extension_manifest_map=addon_extension_manifest_map,
@@ -630,7 +630,7 @@ def addons_panel_draw(panel, context):
     addons_panel_draw_impl(
         panel,
         context,
-        wm.addon_search.lower(),
+        wm.addon_search.casefold(),
         addon_tags_exclude,
         view.show_addons_enabled_only,
     )
@@ -787,7 +787,7 @@ def extensions_map_from_legacy_addons_reverse_lookup(pkg_id):
 def extensions_panel_draw_impl(
         self,
         context,  # `bpy.types.Context`
-        search_lower,   # `str`
+        search_casefold,   # `str`
         filter_by_type,  # `str`
         extension_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
@@ -916,7 +916,7 @@ def extensions_panel_draw_impl(
             item = item_local or item_remote
             if filter_by_type and (filter_by_type != item.type):
                 continue
-            if search_lower and (not pkg_info_check_exclude_filter(item, search_lower)):
+            if search_casefold and (not pkg_info_check_exclude_filter(item, search_casefold)):
                 continue
 
             is_installed = item_local is not None
@@ -1492,7 +1492,7 @@ def extensions_panel_draw(panel, context):
     extensions_panel_draw_impl(
         panel,
         context,
-        wm.extension_search.lower(),
+        wm.extension_search.casefold(),
         blender_filter_by_type_map[wm.extension_type],
         extension_tags_exclude,
         wm.extension_enabled_only,

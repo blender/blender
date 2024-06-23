@@ -1710,7 +1710,7 @@ class USERPREF_UL_extension_repos(UIList):
             range(len(items)),
             key=lambda i: (
                 items[i].use_remote_url is False,
-                items[i].name.lower(),
+                items[i].name.casefold(),
             )
         )):
             indices[orig_index] = index
@@ -2441,7 +2441,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
         show_enabled_only = prefs.view.show_addons_enabled_only
         filter = wm.addon_filter
-        search = wm.addon_search.lower()
+        search = wm.addon_search.casefold()
         support = wm.addon_support
 
         # initialized on demand
@@ -2469,11 +2469,11 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 continue
 
             if search and not (
-                    (search in bl_info["name"].lower() or
-                     search in iface_(bl_info["name"]).lower()) or
-                    (bl_info["author"] and (search in bl_info["author"].lower())) or
-                    ((filter == "All") and (search in bl_info["category"].lower() or
-                                            search in iface_(bl_info["category"]).lower()))
+                    (search in bl_info["name"].casefold() or
+                     search in iface_(bl_info["name"]).casefold()) or
+                    (bl_info["author"] and (search in bl_info["author"].casefold())) or
+                    ((filter == "All") and (search in bl_info["category"].casefold() or
+                                            search in iface_(bl_info["category"]).casefold()))
             ):
                 continue
 
