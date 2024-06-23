@@ -268,6 +268,8 @@ if(WITH_BLENDER)
       back
       blank1
       blender
+      blender_large
+      blender_logo_large
       boids
       bold
       bone_data
@@ -278,6 +280,7 @@ if(WITH_BLENDER)
       camera_data
       camera_stereo
       cancel
+      cancel_large
       center_only
       checkbox_dehlt
       checkbox_hlt
@@ -346,9 +349,11 @@ if(WITH_BLENDER)
       decorate_unlocked
       desktop
       disc
+      disc_large
       disclosure_tri_down
       disclosure_tri_right
       disk_drive
+      disk_drive_large
       documents
       dot
       downarrow_hlt
@@ -367,6 +372,7 @@ if(WITH_BLENDER)
       experimental
       export
       external_drive
+      external_drive_large
       eyedropper
       facesel
       face_corner
@@ -377,6 +383,7 @@ if(WITH_BLENDER)
       fcurve_snapshot
       ff
       file
+      file_large
       filebrowser
       file_3d
       file_archive
@@ -385,12 +392,14 @@ if(WITH_BLENDER)
       file_blend
       file_cache
       file_folder
+      file_folder_large
       file_font
       file_hidden
       file_image
       file_movie
       file_new
       file_parent
+      file_parent_large
       file_refresh
       file_script
       file_sound
@@ -470,6 +479,7 @@ if(WITH_BLENDER)
       indirect_only_off
       indirect_only_on
       info
+      info_large
       internet
       internet_offline
       inversesquarecurve
@@ -624,6 +634,7 @@ if(WITH_BLENDER)
       mute_ipo_off
       mute_ipo_on
       network_drive
+      network_drive_large
       newfolder
       next_keyframe
       nla
@@ -741,6 +752,7 @@ if(WITH_BLENDER)
       prop_on
       prop_projected
       question
+      question_large
       quit
       radiobut_off
       radiobut_on
@@ -912,6 +924,7 @@ if(WITH_BLENDER)
       vis_sel_11
       volume_data
       vpaint_hlt
+      warning_large
       window
       wordwrap_off
       wordwrap_on
