@@ -161,8 +161,88 @@ class CheckSIGINT_Context:
 
 
 # -----------------------------------------------------------------------------
+# Operator Notify State
+#
+# Support for
+
+class OperatorNonBlockingSyncHelper:
+    __slots__ = (
+        "repo_name",
+        "started",
+        "completed",
+    )
+
+    def __init__(self, *, repo_name):
+        self.repo_name = repo_name
+        self.started = False
+        self.completed = False
+
+    def begin(self, region):
+        assert self.started is False
+        self.started = True
+
+        from .bl_extension_notify import (
+            update_ui_region_register,
+            update_non_blocking,
+            update_in_progress,
+        )
+
+        repos_all = extension_repos_read()
+        if self.repo_name:
+            repos_notify = [repo for repo in repos_all if repo.name == self.repo_name]
+        else:
+            repos_notify = [repo for repo in repos_all if repo.remote_url]
+
+        if not repos_notify:
+            self.completed = True
+            return
+
+        update_ui_region_register(region)
+
+        update_non_blocking(repos_fn=lambda: [(repo, True) for repo in repos_notify], immediate=True)
+
+        # Redraw to get the updated notify text, even if it is just to say "Starting...".
+        region.tag_redraw()
+        region.tag_refresh_ui()
+
+    def draw(self, context, op):
+        region = context.region_popup
+        from .bl_extension_notify import (
+            update_ui_text,
+            update_in_progress,
+            update_ui_region_unregister,
+        )
+        if not self.started:
+            self.begin(region)
+            return
+
+        if not update_in_progress():
+            # No updates in progress, show the actual UI.
+            update_ui_region_unregister(region)
+            region.tag_redraw()
+            region.tag_refresh_ui()
+            self.completed = True
+            return
+
+        layout = _operator_draw_hide_buttons_hack(op.layout)
+        text, icon = update_ui_text()
+        layout.label(text=text, icon=icon)
+
+
+# -----------------------------------------------------------------------------
 # Internal Utilities
 #
+
+def _operator_draw_hide_buttons_hack(layout):
+    # EVIL! There is no good way to hide button on operator dialogs,
+    # so use a bad way (scale them to oblivion!)
+    # This could be supported by the internals, for now it's not though.
+    col = layout.column()
+    y = 1000.0
+    col.scale_y = y
+    layout.scale_y = 1.0 / y
+    return col
+
 
 def _sequence_split_with_job_limit(items, job_limit):
     # When only one job is allowed at a time, there is no advantage to splitting the sequence.
@@ -532,40 +612,6 @@ def _preferences_ui_refresh_addons():
     import addon_utils
     # TODO: make a public method.
     addon_utils.modules._is_first = True
-
-
-def _preferences_ensure_sync():
-    # TODO: define when/where exactly sync should be ensured.
-    # This is a general issue:
-    repo_cache_store = repo_cache_store_ensure()
-    sync_required = False
-    for (
-            pkg_manifest_local,
-            pkg_manifest_remote,
-    ) in zip(
-        repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
-        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
-        strict=True,
-    ):
-        if pkg_manifest_remote is None:
-            sync_required = True
-            break
-        if pkg_manifest_local is None:
-            sync_required = True
-            break
-
-    if sync_required:
-        for wm in bpy.data.window_managers:
-            for win in wm.windows:
-                win.cursor_set('WAIT')
-        try:
-            bpy.ops.extensions.repo_sync_all()
-        except Exception as ex:
-            print("Sync failed:", ex)
-
-        for wm in bpy.data.window_managers:
-            for win in wm.windows:
-                win.cursor_set('DEFAULT')
 
 
 def extension_repos_read_index(index, *, include_disabled=False):
@@ -2155,7 +2201,6 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         # These are not supported for dropping. Since at the time of dropping it's not known that the
         # path is referenced from a "local" repository or a "remote" that uses a `file://` URL.
         filepath = self.url
-        print(filepath)
 
         from .bl_extension_utils import pkg_is_legacy_addon
 
@@ -2187,7 +2232,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         self.filepath = filepath
 
         wm = context.window_manager
-        wm.invoke_props_dialog(self)
+        wm.invoke_props_dialog(self, width=400)
 
         return {'RUNNING_MODAL'}
 
@@ -2221,6 +2266,8 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
     __slots__ = _ExtCmdMixIn.cls_slots
 
     _drop_variables = None
+    # Optional draw & keyword-arguments, return True to terminate drawing.
+    _draw_override = None
 
     repo_directory: rna_prop_directory
     repo_index: rna_prop_repo_index
@@ -2255,6 +2302,9 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
     def exec_command_iter(self, is_modal):
         from . import bl_extension_utils
+
+        if not self._is_ready_to_execute():
+            return None
 
         self._addon_restore = []
         self._theme_restore = _preferences_theme_state_create()
@@ -2374,8 +2424,14 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         return self.execute(context)
 
+    def _is_ready_to_execute(self):
+        # When a non-standard override is used, don't execute by pressing "Return"
+        # because this may be an error or some other action.
+        if self._draw_override is not None:
+            return False
+        return True
+
     def _invoke_for_drop(self, context, _event):
-        import string
         from .bl_extension_utils import (
             platform_from_this_system,
             url_parse_for_blender,
@@ -2402,7 +2458,8 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         del error
 
         # Check if this is part of a disabled repository.
-        repo_form_url_name = ""
+        repo_from_url_name = ""
+        repo_from_url = None
         if remote_url := url_params.get("repository"):
             repo_from_url, repo_index_from_url = (
                 (None, -1) if remote_url is None else
@@ -2413,61 +2470,33 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                 if not repo_from_url.enabled:
                     bpy.ops.extensions.repo_enable_from_drop('INVOKE_DEFAULT', repo_index=repo_index_from_url)
                     return {'CANCELLED'}
-                repo_form_url_name = repo_from_url.name
+                repo_from_url_name = repo_from_url.name
             del repo_from_url, repo_index_from_url
 
-        _preferences_ensure_sync()
-
-        repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
-
-        if repo_index == -1:
-            # The package ID could not be found, the two common causes for this error are:
-            # - The platform or Blender version may be unsupported.
-            # - The repository may not have been added.
-            if repo_form_url_name:
-                # NOTE: we *could* support reading the repository JSON that without compatibility filtering.
-                # This would allow us to give a more detailed error message, noting that the extension was found
-                # and the reason it isn't compatible. The down side of this is it would tie us to the decision to
-                # keep syncing all extensions when Blender requests to sync with the server.
-                # As some point we may want to sync only compatible extension meta-data
-                # (to reduce the network overhead of incompatible packages).
-                # So don't assume we have global knowledge of every URL.
-                #
-                # Rely on the version range on platform being included in the URL
-                # (see `pkg_manifest_params_compatible_or_error_for_this_system`).
-                # While this isn't a strict requirement for the server, we can assume they exist for the common case.
-                self.report(
-                    {'ERROR'},
-                    iface_(
-                        "Repository \"{:s}\" found but the extension dropped may be incompatible with this system.\n"
-                        "Check for an extension compatible with Blender v{:s} on \"{:s}\"."
-                    ).format(
-                        repo_form_url_name,
-                        ".".join(str(v) for v in bpy.app.version),
-                        platform_from_this_system(),
-                    )
-                )
-            else:
-                bpy.ops.extensions.repo_add_from_drop('INVOKE_DEFAULT', url="" if remote_url is None else remote_url)
-            return {'CANCELLED'}
-
-        if item_local is not None:
-            self.report({'ERROR'}, iface_("{:s} \"{:s}\" already installed!").format(
-                iface_(string.capwords(item_local.type)),
-                item_local.name,
-            ))
-            return {'CANCELLED'}
-
-        self._drop_variables = repo_index, repo_name, pkg_id, item_remote
-
-        self.repo_index = repo_index
-        self.pkg_id = pkg_id
+        self._draw_override = (
+            self._draw_override_progress,
+            {
+                "context": context,
+                "op_notify": OperatorNonBlockingSyncHelper(repo_name=repo_from_url_name),
+                "remote_url": remote_url,
+                "repo_from_url_name": repo_from_url_name,
+                "url": url,
+            }
+        )
 
         wm = context.window_manager
-        wm.invoke_props_dialog(self)
+        wm.invoke_props_dialog(self, width=400)
         return {'RUNNING_MODAL'}
 
     def draw(self, context):
+        while (draw_and_kwargs := self._draw_override) is not None:
+            draw_fn, draw_kwargs = draw_and_kwargs
+            if draw_fn(**draw_kwargs):
+                # Drawing was done `self.layout` was populated with buttons
+                # which will now be displayed.
+                break
+            # Otherwise draw the "next" function.
+
         if self._drop_variables is not None:
             self._draw_for_drop(context)
 
@@ -2514,6 +2543,162 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             return
 
         bpy.ops.preferences.addon_disable(module=addon_module_name)
+
+    # -------------------------------------------------------------------------
+    # Draw Overrides
+    #
+    # This attempts to make up for Blender's inability to chain dialogs together.
+    # Use `self._draw_override` assigning new overrides or clearing for the default.
+
+    # Pass 1: wait for progress to be complete.
+    def _draw_override_progress(
+            self,
+            *,
+            context,  # `bpy.types.Context`
+            op_notify,  # `OperatorNonBlockingSyncHelper`
+            remote_url,  # `Optional[str]`
+            repo_from_url_name,  # `str`
+            url,  # `str`
+    ):
+        op_notify.draw(context, self)
+        if op_notify.completed:
+            self._draw_override = (
+                self._draw_override_after_sync,
+                {
+                    "context": context,
+                    "remote_url": remote_url,
+                    "repo_from_url_name": repo_from_url_name,
+                    "url": url,
+                },
+            )
+            # Show the next immediately.
+            return False
+
+        # Drawing handled (draw again when refreshing).
+        return True
+
+    # Pass 2: take information from the repository into account.
+    def _draw_override_after_sync(
+            self,
+            *,
+            context,  # `bpy.types.Context`
+            remote_url,   # `Optional[str]`
+            repo_from_url_name,  # `str`
+            url,  # `str`
+    ):
+        import string
+        from .bl_extension_utils import (
+            platform_from_this_system,
+        )
+
+        # The parameters have already been handled.
+        repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
+
+        if repo_index == -1:
+            # The package ID could not be found, the two common causes for this error are:
+            # - The platform or Blender version may be unsupported.
+            # - The repository may not have been added.
+            if repo_from_url_name:
+                # NOTE: we *could* support reading the repository JSON that without compatibility filtering.
+                # This would allow us to give a more detailed error message, noting that the extension was found
+                # and the reason it isn't compatible. The down side of this is it would tie us to the decision to
+                # keep syncing all extensions when Blender requests to sync with the server.
+                # As some point we may want to sync only compatible extension meta-data
+                # (to reduce the network overhead of incompatible packages).
+                # So don't assume we have global knowledge of every URL.
+                #
+                # Rely on the version range on platform being included in the URL
+                # (see `pkg_manifest_params_compatible_or_error_for_this_system`).
+                # While this isn't a strict requirement for the server, we can assume they exist for the common case.
+                self._draw_override = (
+                    self._draw_override_errors,
+                    {
+                        "errors": [
+                            "Repository found:",
+                            "\"{:s}\"".format(repo_from_url_name),
+                            lambda layout: layout.separator(),
+                            "The extension dropped may be incompatible.",
+                            "Check for an extension compatible with:",
+                            "Blender v{:s} on \"{:s}\".".format(
+                                ".".join(str(v) for v in bpy.app.version), platform_from_this_system(),
+                            )
+                        ]
+                    }
+                )
+                return False
+            else:
+                self._draw_override = (
+                    self._draw_override_repo_add,
+                    {"remote_url": "" if remote_url is None else remote_url}
+                )
+                return False
+
+        if item_local is not None:
+            self._draw_override = (
+                self._draw_override_errors,
+                {
+                    "errors": [
+                        iface_("{:s} \"{:s}\" already installed!").format(
+                            iface_(string.capwords(item_local.type)),
+                            item_local.name,
+                        )
+                    ]
+                }
+            )
+            return False
+
+        self._drop_variables = repo_index, repo_name, pkg_id, item_remote
+
+        self.repo_index = repo_index
+        self.pkg_id = pkg_id
+
+        # Finally use the "actual" draw function.
+        self._draw_override = None
+        return True
+
+    # Pass 3: errors (terminating).
+    def _draw_override_errors(
+            self,
+            *,
+            errors,
+    ):
+        layout = _operator_draw_hide_buttons_hack(self.layout)
+        icon = 'ERROR'
+        for error in errors:
+            if isinstance(error, str):
+                layout.label(text=error, translate=False, icon=icon)
+            else:
+                error(layout)
+            icon = 'BLANK1'
+        return True
+
+    # Pass 3: add-repository (terminating).
+    def _draw_override_repo_add(
+            self,
+            *,
+            remote_url,
+    ):
+        # Skip the URL prefix scheme, e.g. `https://` for less "noisy" outpout.
+        url_split = remote_url.partition("://")
+        url_for_display = url_split[2] if url_split[2] else remote_url
+
+        layout = _operator_draw_hide_buttons_hack(self.layout)
+        col = layout.column(align=True)
+        col.label(text="The dropped extension comes from an unknown repository.")
+        col.label(text="If you trust its source, add the repository and try again.")
+
+        col.separator()
+        if url_for_display:
+            box = col.box()
+            subcol = box.column(align=True)
+            subcol.label(text=iface_("URL: {:s}").format(url_for_display), translate=False)
+        else:
+            col.label(text="Alternatively download the extension to Install from Disk.")
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        props = layout.operator("preferences.extension_repo_add", text="Add Repository...")
+        props.remote_url = remote_url
+        return True
 
 
 class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
