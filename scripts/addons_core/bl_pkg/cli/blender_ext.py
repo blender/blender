@@ -2627,7 +2627,10 @@ class subcmd_server:
     ) -> bool:
         import html
         import datetime
-        from string import Template
+        from string import (
+            Template,
+            capwords,
+        )
 
         import urllib
         import urllib.parse
@@ -2636,64 +2639,90 @@ class subcmd_server:
 
         fh = io.StringIO()
 
-        fh.write("<table>\n")
-        fh.write("  <tr>\n")
-        fh.write("    <th>ID</th>\n")
-        fh.write("    <th>Name</th>\n")
-        fh.write("    <th>Description</th>\n")
-        fh.write("    <th>Blender Versions</th>\n")
-        fh.write("    <th>Platforms</th>\n")
-        fh.write("    <th>Size</th>\n")
-        fh.write("  </tr>\n")
-        for manifest_dict in sorted(repo_data, key=lambda manifest: (manifest["id"], manifest["version"])):
+        # Group extensions by their type.
+        repo_data_by_type: Dict[str, List[Dict[str, Any]]] = {}
+
+        for manifest_dict in repo_data:
+            manifest_type = manifest_dict["type"]
+            try:
+                repo_data_typed = repo_data_by_type[manifest_type]
+            except KeyError:
+                repo_data_typed = repo_data_by_type[manifest_type] = []
+            repo_data_typed.append(manifest_dict)
+
+        for manifest_type, repo_data_typed in sorted(repo_data_by_type.items(), key=lambda item: item[0]):
+            # Type heading.
+            fh.write("<p>{:s}</p>\n".format(capwords(manifest_type)))
+            fh.write("<hr>\n")
+
+            fh.write("<table>\n")
             fh.write("  <tr>\n")
-
-            platforms = [platform for platform in manifest_dict.get("platforms", "").split(",") if platform]
-
-            # Parse the URL and add parameters use for drag & drop.
-            parsed_url = urllib.parse.urlparse(manifest_dict["archive_url"])
-            # We could support existing values, currently always empty.
-            # `query = dict(urllib.parse.parse_qsl(parsed_url.query))`
-            query = {"repository": "/index.json"}
-            if (value := manifest_dict.get("blender_version_min", "")):
-                query["blender_version_min"] = value
-            if (value := manifest_dict.get("blender_version_max", "")):
-                query["blender_version_max"] = value
-            if platforms:
-                query["platforms"] = ",".join(platforms)
-            del value
-
-            id_and_link = "<a href=\"{:s}\">{:s}</a>".format(
-                urllib.parse.urlunparse((
-                    parsed_url.scheme,
-                    parsed_url.netloc,
-                    parsed_url.path,
-                    parsed_url.params,
-                    urllib.parse.urlencode(query, doseq=True) if query else None,
-                    parsed_url.fragment,
-                )),
-                html.escape("{:s}-{:s}".format(manifest_dict["id"], manifest_dict["version"])),
-            )
-
-            # Write the table data.
-            fh.write("    <td><tt>{:s}</tt></td>\n".format(id_and_link))
-            fh.write("    <td>{:s}</td>\n".format(html.escape(manifest_dict["name"])))
-            fh.write("    <td>{:s}</td>\n".format(html.escape(manifest_dict["tagline"] or "<NA>")))
-            blender_version_min = manifest_dict.get("blender_version_min", "")
-            blender_version_max = manifest_dict.get("blender_version_max", "")
-            if blender_version_min or blender_version_max:
-                blender_version_str = "{:s} - {:s}".format(
-                    blender_version_min or "~",
-                    blender_version_max or "~",
-                )
-            else:
-                blender_version_str = "all"
-            fh.write("    <td>{:s}</td>\n".format(html.escape(blender_version_str)))
-            fh.write("    <td>{:s}</td>\n".format(html.escape(", ".join(platforms) if platforms else "all")))
-            fh.write("    <td>{:s}</td>\n".format(html.escape(size_as_fmt_string(manifest_dict["archive_size"]))))
+            fh.write("    <th>ID</th>\n")
+            fh.write("    <th>Name</th>\n")
+            fh.write("    <th>Description</th>\n")
+            fh.write("    <th>Website</th>\n")
+            fh.write("    <th>Blender Versions</th>\n")
+            fh.write("    <th>Platforms</th>\n")
+            fh.write("    <th>Size</th>\n")
             fh.write("  </tr>\n")
 
-        fh.write("</table>\n")
+            for manifest_dict in sorted(
+                    repo_data_typed,
+                    key=lambda manifest_dict: (manifest_dict["id"], manifest_dict["version"]),
+            ):
+                fh.write("  <tr>\n")
+
+                platforms = [platform for platform in manifest_dict.get("platforms", "").split(",") if platform]
+
+                # Parse the URL and add parameters use for drag & drop.
+                parsed_url = urllib.parse.urlparse(manifest_dict["archive_url"])
+                # We could support existing values, currently always empty.
+                # `query = dict(urllib.parse.parse_qsl(parsed_url.query))`
+                query = {"repository": "/index.json"}
+                if (value := manifest_dict.get("blender_version_min", "")):
+                    query["blender_version_min"] = value
+                if (value := manifest_dict.get("blender_version_max", "")):
+                    query["blender_version_max"] = value
+                if platforms:
+                    query["platforms"] = ",".join(platforms)
+                del value
+
+                id_and_link = "<a href=\"{:s}\">{:s}</a>".format(
+                    urllib.parse.urlunparse((
+                        parsed_url.scheme,
+                        parsed_url.netloc,
+                        parsed_url.path,
+                        parsed_url.params,
+                        urllib.parse.urlencode(query, doseq=True) if query else None,
+                        parsed_url.fragment,
+                    )),
+                    html.escape("{:s}-{:s}".format(manifest_dict["id"], manifest_dict["version"])),
+                )
+
+                # Write the table data.
+                fh.write("    <td><tt>{:s}</tt></td>\n".format(id_and_link))
+                fh.write("    <td>{:s}</td>\n".format(html.escape(manifest_dict["name"])))
+                fh.write("    <td>{:s}</td>\n".format(html.escape(manifest_dict["tagline"] or "<NA>")))
+                if value := manifest_dict.get("website", ""):
+                    fh.write("    <td><a href=\"{:s}\">link</a></td>\n".format(html.escape(value)))
+                else:
+                    fh.write("    <td>~</td>\n")
+                del value
+                blender_version_min = manifest_dict.get("blender_version_min", "")
+                blender_version_max = manifest_dict.get("blender_version_max", "")
+                if blender_version_min or blender_version_max:
+                    blender_version_str = "{:s} - {:s}".format(
+                        blender_version_min or "~",
+                        blender_version_max or "~",
+                    )
+                else:
+                    blender_version_str = "all"
+                fh.write("    <td>{:s}</td>\n".format(html.escape(blender_version_str)))
+                fh.write("    <td>{:s}</td>\n".format(html.escape(", ".join(platforms) if platforms else "all")))
+                fh.write("    <td>{:s}</td>\n".format(html.escape(size_as_fmt_string(manifest_dict["archive_size"]))))
+                fh.write("  </tr>\n")
+
+            fh.write("</table>\n")
 
         body = fh.getvalue()
         del fh
