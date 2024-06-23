@@ -233,7 +233,7 @@ void CustomData_reset(CustomData *data);
 void CustomData_free(CustomData *data, int totelem);
 
 /**
- * Same as above, but only frees layers which matches the given mask.
+ * Same as #CustomData_free, but only frees layers which matches the given mask.
  */
 void CustomData_free_typemask(CustomData *data, int totelem, eCustomDataMask mask);
 
@@ -258,7 +258,7 @@ const void *CustomData_add_layer_with_data(CustomData *data,
                                            const blender::ImplicitSharingInfo *sharing_info);
 
 /**
- * Same as above but accepts a name.
+ * Same as #CustomData_add_layer but accepts a name.
  */
 void *CustomData_add_layer_named(CustomData *data,
                                  eCustomDataType type,
@@ -304,7 +304,7 @@ bool CustomData_free_layer_named(CustomData *data, blender::StringRef name, cons
 bool CustomData_free_layer_active(CustomData *data, eCustomDataType type, int totelem);
 
 /**
- * Same as above, but free all layers with type.
+ * Same as #CustomData_free_layer_active, but free all layers with type.
  */
 void CustomData_free_layers(CustomData *data, eCustomDataType type, int totelem);
 

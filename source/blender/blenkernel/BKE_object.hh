@@ -507,7 +507,8 @@ Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const Object *object);
 /** Get evaluated mesh for given object. */
 Mesh *BKE_object_get_evaluated_mesh(const Object *object);
 /**
- * Same as above, but does not check if the object's geometry is fully evaluated already.
+ * Same as #BKE_object_get_evaluated_mesh, but does not check
+ * if the object's geometry is fully evaluated already.
  * This should barely ever be used.
  */
 Mesh *BKE_object_get_evaluated_mesh_no_subsurf_unchecked(const Object *object);

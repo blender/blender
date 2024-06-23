@@ -662,17 +662,18 @@ void nodeAttachNode(bNodeTree *ntree, bNode *node, bNode *parent);
 void nodeDetachNode(bNodeTree *ntree, bNode *node);
 
 /**
- * Same as above but expects that the socket definitely is in the node tree.
+ * Finds a node based on given socket and returns true on success.
+ */
+bool nodeFindNodeTry(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex);
+
+/**
+ * Same as #nodeFindNodeTry but expects that the socket definitely is in the node tree.
  */
 void nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex);
 /**
  * Finds a node based on its name.
  */
 bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name);
-/**
- * Finds a node based on given socket and returns true on success.
- */
-bool nodeFindNodeTry(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex);
 
 bool nodeIsParentAndChild(const bNode *parent, const bNode *child);
 

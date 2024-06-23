@@ -96,9 +96,9 @@ typedef int (*BaseMathCheckFunc)(BaseMathObject *);
 typedef int (*BaseMathGetFunc)(BaseMathObject *, int);
 /** Sets the users vector values once its modified. */
 typedef int (*BaseMathSetFunc)(BaseMathObject *, int);
-/** Same as above but only for an index. */
+/** Same as #BaseMathGetFunc but only for an index. */
 typedef int (*BaseMathGetIndexFunc)(BaseMathObject *, int, int);
-/** Same as above but only for an index. */
+/** Same as #BaseMathSetFunc but only for an index. */
 typedef int (*BaseMathSetIndexFunc)(BaseMathObject *, int, int);
 
 struct Mathutils_Callback {

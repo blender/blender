@@ -350,7 +350,7 @@ void BKE_image_all_free_anim_ibufs(struct Main *bmain, int cfra);
 
 void BKE_image_free_all_gputextures(struct Main *bmain);
 /**
- * Same as above but only free animated images.
+ * Same as #BKE_image_free_all_gputextures but only free animated images.
  */
 void BKE_image_free_anim_gputextures(struct Main *bmain);
 void BKE_image_free_old_gputextures(struct Main *bmain);
