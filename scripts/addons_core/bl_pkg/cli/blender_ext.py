@@ -2323,7 +2323,7 @@ def generic_arg_server_generate_html(subparse: argparse.ArgumentParser) -> None:
         action="store_true",
         default=False,
         help=(
-            "Create a HTML file (``index.html``) as well as the repository JSON "
+            "Create a HTML file (``index.html``) as well as the repository JSON\n"
             "to support browsing extensions online with static-hosting."
         ),
     )
@@ -2334,10 +2334,12 @@ def generic_arg_server_generate_html_template(subparse: argparse.ArgumentParser)
         "--html-template",
         dest="html_template",
         default="",
+        metavar="HTML_TEMPLATE_FILE",
         help=(
-            "Optionally override the default HTML template with your own.\n"
+            "An optional HTML file path to override the default HTML template with your own.\n"
             "\n"
-            "The following keys are supported.\n"
+            "The following keys will be replaced with generated contents:\n"
+            "\n"
             "- ``${body}`` is replaced the extensions contents.\n"
             "- ``${date}`` is replaced the creation date.\n"
         ),
