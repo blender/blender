@@ -1709,8 +1709,9 @@ class USERPREF_UL_extension_repos(UIList):
         for index, orig_index in enumerate(sorted(
             range(len(items)),
             key=lambda i: (
-                items[i].use_remote_url is False,
-                items[i].name.casefold(),
+                # Order [Remote, User, System].
+                0 if (repo := items[i]).use_remote_url else (1 if (repo.source != 'SYSTEM') else 2),
+                repo.name.casefold(),
             )
         )):
             indices[orig_index] = index
