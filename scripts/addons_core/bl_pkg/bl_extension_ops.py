@@ -1400,52 +1400,6 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
         return {'FINISHED'}
 
 
-# Show a dialog when dropping a URL from an unknown repository,
-# with the option to add the repository.
-class EXTENSIONS_OT_repo_add_from_drop(Operator):
-    bl_idname = "extensions.repo_add_from_drop"
-    bl_label = "Add Repository Drop"
-    bl_options = {'INTERNAL'}
-
-    url: rna_prop_url
-
-    def invoke(self, context, _event):
-        wm = context.window_manager
-
-        wm.invoke_props_dialog(
-            self,
-            width=400,
-            confirm_text="Add Repository",
-            title="Unknown Repository",
-        )
-
-        return {'RUNNING_MODAL'}
-
-    def execute(self, _context):
-        # Open an "Add Remote Repository" popup with the URL pre-filled.
-        bpy.ops.preferences.extension_repo_add('INVOKE_DEFAULT', type='REMOTE', remote_url=self.url)
-        return {'CANCELLED'}
-
-    def draw(self, _context):
-        url = self.url
-        # Skip the URL prefix scheme, e.g. `https://` for less "noisy" outpout.
-        url_split = url.partition("://")
-        url_for_display = url_split[2] if url_split[2] else url
-
-        layout = self.layout
-        col = layout.column(align=True)
-        col.label(text="The dropped extension comes from an unknown repository.")
-        col.label(text="If you trust its source, add the repository and try again.")
-
-        col.separator()
-        if url_for_display:
-            box = col.box()
-            subcol = box.column(align=True)
-            subcol.label(text=iface_("URL: {:s}").format(url_for_display), translate=False)
-        else:
-            col.label(text="Alternatively download the extension to Install from Disk.")
-
-
 # Show a dialog when dropping an extensions for a disabled repository.
 class EXTENSIONS_OT_repo_enable_from_drop(Operator):
     bl_idname = "extensions.repo_enable_from_drop"
@@ -3242,7 +3196,6 @@ classes = (
     EXTENSIONS_OT_repo_sync,
     EXTENSIONS_OT_repo_sync_all,
     EXTENSIONS_OT_repo_refresh_all,
-    EXTENSIONS_OT_repo_add_from_drop,
     EXTENSIONS_OT_repo_enable_from_drop,
 
     EXTENSIONS_OT_package_install_files,
