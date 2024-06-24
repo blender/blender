@@ -437,11 +437,22 @@ ccl_device float background_light_pdf(KernelGlobals kg, float3 P, float3 directi
   return pdf;
 }
 
+template<bool in_volume_segment>
 ccl_device_forceinline bool background_light_tree_parameters(const float3 centroid,
+                                                             const float t,
                                                              ccl_private float &cos_theta_u,
                                                              ccl_private float2 &distance,
-                                                             ccl_private float3 &point_to_centroid)
+                                                             ccl_private float3 &point_to_centroid,
+                                                             ccl_private float &theta_d)
 {
+  if (in_volume_segment) {
+    if (t == FLT_MAX) {
+      /* In world volume, distant light has no contribution. */
+      return false;
+    }
+    theta_d = t;
+  }
+
   /* Cover the whole sphere */
   cos_theta_u = -1.0f;
 
