@@ -942,11 +942,35 @@ def extensions_panel_draw_impl(
                 # NOTE: it would be nice to detect when the repository ran sync and it failed.
                 # This isn't such an important distinction though, the main thing users should be aware of
                 # is that a "sync" is required.
-                errors_on_draw.append(
-                    "Repository: \"{:s}\" must sync with the remote repository.".format(
-                        repos_all[repo_index].name,
+                if bpy.app.online_access:
+                    errors_on_draw.append(
+                        (
+                            "Repository: \"{:s}\" remote data unavailable, "
+                            "sync with the remote repository."
+                        ).format(
+                            repos_all[repo_index].name,
+                        )
                     )
-                )
+                elif prefs.extensions.use_online_access_handled is False:
+                    # Hide this message when online access hasn't been handled
+                    # as it's unnecessarily noisy to show both messages at once.
+                    pass
+                else:
+                    # This message could also be suppressed when offline after all it is not a surprise that
+                    # the remote data is not available when offline. Don't do this for the following reasons.
+                    #
+                    # - Keeping a remote repository enable when offline, while supported is likely to cause
+                    #   errors/reports elsewhere and this is a hint that data which is expected to display is missing.
+                    # - It's possible to use remote `file://` URL's when offline.
+                    #   Repositories which don't require online access shouldn't have their errors suppressed.
+                    errors_on_draw.append(
+                        (
+                            "Repository: \"{:s}\" remote data unavailable, "
+                            "either allow \"Online Access\" or disable the repository to suppress this message"
+                        ).format(
+                            repos_all[repo_index].name,
+                        )
+                    )
                 continue
 
         repo_module_prefix = pkg_repo_module_prefix(repos_all[repo_index])
