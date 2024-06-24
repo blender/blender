@@ -535,19 +535,13 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
   selection.foreach_segment(GrainSize(512), [&](const IndexMaskSegment selection_segment) {
     /* Evaluate generic point attributes directly to the result attributes. */
     for (const int i_attribute : attributes.dst.index_range()) {
-      const CPPType &type = attributes.src[i_attribute].type();
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
-        Span<T> src = attributes.src[i_attribute].typed<T>();
-        MutableSpan<T> dst = attributes.dst[i_attribute].typed<T>();
-
-        for (const int i_curve : selection_segment) {
-          const IndexRange src_points = src_points_by_curve[i_curve];
-          const IndexRange dst_points = dst_points_by_curve[i_curve];
-          src_curves.interpolate_to_evaluated(
-              i_curve, src.slice(src_points), dst.slice(dst_points));
-        }
-      });
+      for (const int i_curve : selection_segment) {
+        const IndexRange src_points = src_points_by_curve[i_curve];
+        const IndexRange dst_points = dst_points_by_curve[i_curve];
+        src_curves.interpolate_to_evaluated(i_curve,
+                                            attributes.src[i_attribute].slice(src_points),
+                                            attributes.dst[i_attribute].slice(dst_points));
+      }
     }
 
     auto copy_evaluated_data = [&](const Span<float3> src, MutableSpan<float3> dst) {
