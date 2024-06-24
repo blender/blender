@@ -495,7 +495,7 @@ bNodeSocket &String::build(bNodeTree &ntree, bNode &node) const
                                                   &node,
                                                   this->in_out,
                                                   SOCK_STRING,
-                                                  PROP_NONE,
+                                                  this->subtype,
                                                   this->identifier.c_str(),
                                                   this->name.c_str());
   STRNCPY(((bNodeSocketValueString *)socket.default_value)->value, this->default_value.c_str());
@@ -509,6 +509,9 @@ bool String::matches(const bNodeSocket &socket) const
     return false;
   }
   if (socket.type != SOCK_STRING) {
+    return false;
+  }
+  if (socket.typeinfo->subtype != this->subtype) {
     return false;
   }
   return true;
@@ -525,7 +528,12 @@ bNodeSocket &String::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
     BLI_assert(socket.in_out == this->in_out);
     return this->build(ntree, node);
   }
+  if (socket.typeinfo->subtype != this->subtype) {
+    modify_subtype_except_for_storage(socket, this->subtype);
+  }
   this->set_common_flags(socket);
+  bNodeSocketValueString &value = *(bNodeSocketValueString *)socket.default_value;
+  value.subtype = this->subtype;
   return socket;
 }
 

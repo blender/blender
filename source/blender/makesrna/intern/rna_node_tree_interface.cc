@@ -798,6 +798,12 @@ void rna_NodeTreeInterfaceSocketVector_default_value_range(
   *softmax = dval->max;
 }
 
+static const EnumPropertyItem *rna_NodeTreeInterfaceSocketString_subtype_itemf(
+    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
+{
+  return rna_subtype_filter_itemf({PROP_FILEPATH, PROP_NONE}, r_free);
+}
+
 /* using a context update function here, to avoid searching the node if possible */
 static void rna_NodeTreeInterfaceSocket_value_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {

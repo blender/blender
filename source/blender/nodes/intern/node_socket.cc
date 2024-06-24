@@ -1045,9 +1045,9 @@ static bke::bNodeSocketType *make_socket_type_rgba()
   return socktype;
 }
 
-static bke::bNodeSocketType *make_socket_type_string()
+static bke::bNodeSocketType *make_socket_type_string(PropertySubType subtype)
 {
-  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_STRING, PROP_NONE);
+  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_STRING, subtype);
   socktype->base_cpp_type = &blender::CPPType::get<std::string>();
   socktype->get_base_cpp_value = [](const void *socket_value, void *r_value) {
     new (r_value) std::string(((bNodeSocketValueString *)socket_value)->value);
@@ -1185,7 +1185,8 @@ void register_standard_node_socket_types()
 
   bke::nodeRegisterSocketType(make_socket_type_rgba());
 
-  bke::nodeRegisterSocketType(make_socket_type_string());
+  bke::nodeRegisterSocketType(make_socket_type_string(PROP_NONE));
+  bke::nodeRegisterSocketType(make_socket_type_string(PROP_FILEPATH));
 
   bke::nodeRegisterSocketType(make_socket_type_menu());
 
