@@ -394,6 +394,11 @@ class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     @classmethod
     def poll(cls, context):
         mode = cls.get_brush_mode(context)
+        if mode == 'SCULPT_GREASE_PENCIL':
+            settings = cls.paint_settings(context)
+            tool = settings.brush.gpencil_sculpt_tool
+            return tool in {'SMOOTH', 'RANDOMIZE'}
+
         return mode is not None and mode != 'SCULPT_CURVES'
 
     def draw(self, context):

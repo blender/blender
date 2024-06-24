@@ -1075,12 +1075,11 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         tool = brush.gpencil_sculpt_tool
         gp_settings = brush.gpencil_settings
 
-        if tool in {'SMOOTH', 'RANDOMIZE'}:
-            col = layout.column(heading="Affect", align=True)
-            col.prop(gp_settings, "use_edit_position", text="Position")
-            col.prop(gp_settings, "use_edit_strength", text="Strength")
-            col.prop(gp_settings, "use_edit_thickness", text="Thickness")
-            col.prop(gp_settings, "use_edit_uv", text="UV")
+        col = layout.column(heading="Affect", align=True)
+        col.prop(gp_settings, "use_edit_position", text="Position")
+        col.prop(gp_settings, "use_edit_strength", text="Strength")
+        col.prop(gp_settings, "use_edit_thickness", text="Thickness")
+        col.prop(gp_settings, "use_edit_uv", text="UV")
 
     # 3D and 2D Texture Paint.
     elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
