@@ -98,9 +98,9 @@ class GreasePencilDisplayPanel:
         layout.use_property_decorate = False
 
         tool_settings = context.tool_settings
-        if context.mode == 'PAINT_GPENCIL':
+        if context.mode == 'PAINT_GPENCIL' or context.mode == 'PAINT_GREASE_PENCIL':
             settings = tool_settings.gpencil_paint
-        elif context.mode == 'SCULPT_GPENCIL':
+        elif context.mode == 'SCULPT_GPENCIL' or context.mode == 'SCULPT_GREASE_PENCIL':
             settings = tool_settings.gpencil_sculpt_paint
         elif context.mode == 'WEIGHT_GPENCIL' or context.mode == 'WEIGHT_GREASE_PENCIL':
             settings = tool_settings.gpencil_weight_paint
@@ -115,7 +115,7 @@ class GreasePencilDisplayPanel:
             row.use_property_split = False
             row.prop(settings, "show_brush", text="Display Cursor")
 
-        if ob.mode == 'PAINT_GPENCIL':
+        if ob.mode == 'PAINT_GPENCIL' or ob.mode == 'PAINT_GREASE_PENCIL':
             if self.is_popover:
                 row = layout.row(align=True)
                 row.prop(settings, "show_brush", text="Display Cursor")
@@ -125,7 +125,7 @@ class GreasePencilDisplayPanel:
                 row.active = settings.show_brush
                 row.prop(gp_settings, "show_lasso", text="Show Fill Color While Drawing")
 
-        elif ob.mode == 'SCULPT_GPENCIL':
+        elif ob.mode == 'SCULPT_GPENCIL' or ob.mode == 'SCULPT_GREASE_PENCIL':
             col = layout.column(align=True)
             col.active = settings.show_brush
 
@@ -133,7 +133,7 @@ class GreasePencilDisplayPanel:
             if brush.gpencil_sculpt_tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
                 col.prop(brush, "cursor_color_subtract", text="Inverse Color")
 
-        elif ob.mode == 'WEIGHT_GPENCIL':
+        elif ob.mode == 'WEIGHT_GPENCIL' or ob.mode == 'WEIGHT_GREASE_PENCIL':
             col = layout.column(align=True)
             col.active = settings.show_brush
 
