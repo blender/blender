@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -46565,10 +46565,6 @@ msgid "Cubemap Size"
 msgstr "Würfelkartengröße"
 
 
-msgid "64 px"
-msgstr "64 px"
-
-
 msgid "128 px"
 msgstr "128 px"
 
@@ -46607,6 +46603,10 @@ msgstr "16 px"
 
 msgid "32 px"
 msgstr "32 px"
+
+
+msgid "64 px"
+msgstr "64 px"
 
 
 msgid "Factor for ambient occlusion blending"
@@ -51854,11 +51854,6 @@ msgstr "Warnung"
 
 
 msgctxt "Operator"
-msgid "Documentation"
-msgstr "Dokumentation"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Fehler melden"
 
@@ -55702,6 +55697,11 @@ msgstr "Warnung:"
 
 msgid "Internet:"
 msgstr "Internet:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Dokumentation"
 
 
 msgctxt "Operator"
