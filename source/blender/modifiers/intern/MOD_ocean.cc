@@ -632,13 +632,22 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
                 IFACE_("Delete Bake"),
                 ICON_NONE,
                 nullptr,
-                WM_OP_EXEC_DEFAULT,
+                WM_OP_INVOKE_DEFAULT,
                 UI_ITEM_NONE,
                 &op_ptr);
     RNA_boolean_set(&op_ptr, "free", true);
   }
   else {
-    uiItemO(layout, nullptr, ICON_NONE, "OBJECT_OT_ocean_bake");
+    PointerRNA op_ptr;
+    uiItemFullO(layout,
+                "OBJECT_OT_ocean_bake",
+                IFACE_("Bake"),
+                ICON_NONE,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &op_ptr);
+    RNA_boolean_set(&op_ptr, "free", false);
   }
 
   uiItemR(layout, ptr, "filepath", UI_ITEM_NONE, nullptr, ICON_NONE);
