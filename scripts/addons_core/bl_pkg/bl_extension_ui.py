@@ -864,6 +864,45 @@ def extensions_panel_draw_impl(
         nonlocal remote_ex
         remote_ex = ex
 
+    # NOTE: regarding local/remote data.
+    # The simple cases are when only one is available.
+    # - When the extension is not installed, there is only "remote" data.
+    # - When the extension is part of the users local repository, there is no "remote" data.
+    # - When the extension is part of a remote repository but has no remote data,
+    #   this is considered "orphaned", there is also no "remote" data in this case.
+    #
+    # When both remote and local data is available, fields from the manifest are selectively taken
+    # from remote and local data based on the following rationale.
+    # In the general case the "local" data is what the user is running so they
+    # will want to see this even if it no longer matches the remote data.
+    # Unless there is a good reason to do otherwise, this is the rule of thumb.
+    #
+    # Exceptions to this rule:
+    # - *version*: when outdated, it's useful to show both versions as the user may wish to upgrade.
+    #   Otherwise it's typically not useful to attempt to make the user aware of other minor discrepancies.
+    #   (changes to the description or maintainer for e.g.).
+    #
+    # - *website*: the host of the remote repository may wish to override the website with a landing page for
+    #   each extension, this page can show information managed by the organization hosting repository,
+    #   information such access to older versions, reviews, ratings etc.
+    #   Such a page can also link to the authors website (the "local" value of the website).
+
+    #   While this is an opinionated decision it doesn't have significant down-sides:
+    #   - Remote hosts that don't override this value will point to the same URL.
+    #   - Remote hosts that change the value benefit from prioritizing the remote data.
+    #
+    #   The one potential down-side is that the user may have intentionally down-graded an extension,
+    #   then wish to visit the website of that older extension which may point to older documentation
+    #   that no longer applies to the newer version, while this is a corner case, it's possible users hit this.
+    #   We *could* support a "Visit Website" and "Visit Authors Website" in this case,
+    #   however it seems enough of a corner case we can simply expose one.
+    #
+    # - *permissions*: while we only need to show the local value, users need to be aware when upgrading
+    #   an extension results in it having additional permissions.
+    #   This may be a special case - as it can be handled when upgrading instead of the UI.
+    #
+    #   TODO(@ideasman42): handle permissions on upgrade.
+
     for repo_index, (
             pkg_manifest_local,
             pkg_manifest_remote,
@@ -1336,7 +1375,9 @@ class USERPREF_MT_extensions_item(Menu):
                     props.pkg_id = pkg_id
                     del props
 
-        if value := item.website:
+        # Unlike most other value, prioritize the remote website,
+        # see code comments in `extensions_panel_draw_impl`.
+        if value := ((item_remote or item_local).website):
             layout.operator("wm.url_open", text="Visit Website", icon='URL').url = value
         else:
             # Without this, the menu may sometimes be empty (which seems like a bug).
