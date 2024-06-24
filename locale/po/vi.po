@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -93347,10 +93347,6 @@ msgid "Size of every cubemaps"
 msgstr "Kích thước của mỗi một bản đồ lập phương (cubemap)"
 
 
-msgid "64 px"
-msgstr "64 điểm ảnh"
-
-
 msgid "128 px"
 msgstr "128 điểm ảnh"
 
@@ -93451,6 +93447,10 @@ msgid "32 px"
 msgstr "32 điểm ảnh"
 
 
+msgid "64 px"
+msgstr "64 điểm ảnh"
+
+
 msgid "Distance of object that contribute to the ambient occlusion effect"
 msgstr "Khoảng cách của đối tượng đóng góp vào hiệu ứng tính hấp thụ quang xạ môi trường"
 
@@ -93519,16 +93519,8 @@ msgid "Directional Shadows Resolution"
 msgstr "Độ Phân Giải của Bóng Tối Hữu Hướng"
 
 
-msgid "Size of sun light shadow maps"
-msgstr "Kích thước ánh xạ bóng tối của ánh mặt trời"
-
-
 msgid "Cube Shadows Resolution"
 msgstr "Độ Phân Giải Bóng Tối của Khối Lập Phương"
-
-
-msgid "Size of point and area light shadow maps"
-msgstr "Kích thước của ánh xạ bóng tối cho đèn pha và đèn diện tích"
 
 
 msgid "Shadow Pool Size"
@@ -107306,15 +107298,6 @@ msgid "Warning"
 msgstr "Cảnh Báo"
 
 
-msgid "name"
-msgstr "tên"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Tài Liệu"
-
-
 msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Báo Cáo Lỗi"
@@ -110811,6 +110794,10 @@ msgid "category"
 msgstr "hạng mục"
 
 
+msgid "name"
+msgstr "tên"
+
+
 msgid "Display Thin"
 msgstr "Hiển Thị Ngắn Gọn"
 
@@ -113508,6 +113495,11 @@ msgstr "Liên Mạng Thế Giới:"
 
 msgid "User:"
 msgstr "Người Dùng:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Tài Liệu"
 
 
 msgctxt "Operator"

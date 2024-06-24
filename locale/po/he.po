@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -872,10 +872,6 @@ msgid "Animation"
 msgstr "היצמינא"
 
 
-msgid "name"
-msgstr "םש"
-
-
 msgid "Credits"
 msgstr "תודות"
 
@@ -891,6 +887,10 @@ msgstr "טוריפ"
 
 msgid "Dimension"
 msgstr "דמימ"
+
+
+msgid "name"
+msgstr "םש"
 
 
 msgid "Sort By"

@@ -405,7 +405,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
                     width,
                     height,
                     &python_thread_state,
-                    session_params.device);
+                    session_params.denoise_device);
 
     /* At the moment we only free if we are not doing multi-view
      * (or if we are rendering the last view). See #58142/D4239 for discussion.
@@ -702,7 +702,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
                   width,
                   height,
                   &python_thread_state,
-                  session_params.device);
+                  session_params.denoise_device);
 
   /* Save the current state of the denoiser, as it might be disabled by the pass configuration (for
    * passed which do not support denoising). */
@@ -827,7 +827,7 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
                   width,
                   height,
                   &python_thread_state,
-                  session_params.device);
+                  session_params.denoise_device);
 
   if (b_rv3d) {
     sync->sync_view(b_v3d, b_rv3d, width, height);

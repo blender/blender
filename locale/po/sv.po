@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -13715,15 +13715,6 @@ msgid "Navigate"
 msgstr "Navigera"
 
 
-msgid "name"
-msgstr "namn"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Dokumentation"
-
-
 msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Rapportera en bugg"
@@ -14538,6 +14529,10 @@ msgstr "Okända tillägg"
 
 msgid "category"
 msgstr "kategori"
+
+
+msgid "name"
+msgstr "namn"
 
 
 msgid "Calibration"
@@ -15590,6 +15585,11 @@ msgstr "Internet:"
 
 msgid "User:"
 msgstr "Användare:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Dokumentation"
 
 
 msgctxt "Operator"

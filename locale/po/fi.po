@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7735,10 +7735,6 @@ msgid "Warning"
 msgstr "Varoitus"
 
 
-msgid "name"
-msgstr "nimi"
-
-
 msgid "Viewports"
 msgstr "Näkymät"
 
@@ -7982,6 +7978,10 @@ msgstr "Kartta"
 
 msgid "category"
 msgstr "kategoria"
+
+
+msgid "name"
+msgstr "nimi"
 
 
 msgid "B/W"

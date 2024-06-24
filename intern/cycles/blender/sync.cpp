@@ -254,7 +254,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
                             int width,
                             int height,
                             void **python_thread_state,
-                            const DeviceInfo &device_info)
+                            const DeviceInfo &denoise_device_info)
 {
   /* For auto refresh images. */
   ImageManager *image_manager = scene->image_manager;
@@ -274,7 +274,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   const bool background = !b_v3d;
 
   sync_view_layer(b_view_layer);
-  sync_integrator(b_view_layer, background, device_info);
+  sync_integrator(b_view_layer, background, denoise_device_info);
   sync_film(b_view_layer, b_v3d);
   sync_shaders(b_depsgraph, b_v3d, auto_refresh_update);
   sync_images();
@@ -303,7 +303,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
 void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
                                   bool background,
-                                  const DeviceInfo &device_info)
+                                  const DeviceInfo &denoise_device_info)
 {
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
@@ -490,7 +490,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   }
 
   DenoiseParams denoise_params = get_denoise_params(
-      b_scene, b_view_layer, background, device_info);
+      b_scene, b_view_layer, background, denoise_device_info);
 
   /* No denoising support for vertex color baking, vertices packed into image
    * buffer have no relation to neighbors. */
@@ -993,7 +993,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
 DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
                                               BL::ViewLayer &b_view_layer,
                                               bool background,
-                                              const DeviceInfo &device_info)
+                                              const DeviceInfo &denoise_device_info)
 {
   enum DenoiserInput {
     DENOISER_INPUT_RGB = 1,
@@ -1045,7 +1045,7 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
 
     /* Auto select fastest denoiser. */
     if (denoising.type == DENOISER_NONE) {
-      denoising.type = Denoiser::automatic_viewport_denoiser_type(device_info);
+      denoising.type = Denoiser::automatic_viewport_denoiser_type(denoise_device_info);
       if (denoising.type == DENOISER_NONE) {
         denoising.use = false;
       }

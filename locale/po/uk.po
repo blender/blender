@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -73911,10 +73911,6 @@ msgid "Size of every cubemaps"
 msgstr "Розмір кожної з куброзкладок"
 
 
-msgid "64 px"
-msgstr "64 px"
-
-
 msgid "128 px"
 msgstr "128 px"
 
@@ -73999,6 +73995,10 @@ msgid "32 px"
 msgstr "32 px"
 
 
+msgid "64 px"
+msgstr "64 px"
+
+
 msgid "Distance of object that contribute to the ambient occlusion effect"
 msgstr "Відстань об'єкта, що бере участь в ефектів загороди оточення"
 
@@ -74047,16 +74047,8 @@ msgid "Directional Shadows Resolution"
 msgstr "Роздільність напрямлених тіней"
 
 
-msgid "Size of sun light shadow maps"
-msgstr "Розмір розкладок тіней сонцевого освітлювача"
-
-
 msgid "Cube Shadows Resolution"
 msgstr "Роздільність кубічних тіней"
-
-
-msgid "Size of point and area light shadow maps"
-msgstr "Розмір розкладок тіней точкового та площинного освітлювача"
 
 
 msgid "Edge Fading"
@@ -83267,11 +83259,6 @@ msgstr "Попередження"
 
 
 msgctxt "Operator"
-msgid "Documentation"
-msgstr "Документація"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Повідомити про Ваду"
 
@@ -87762,6 +87749,11 @@ msgstr "Попередження:"
 
 msgid "Internet:"
 msgstr "Інтернет:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Документація"
 
 
 msgctxt "Operator"
