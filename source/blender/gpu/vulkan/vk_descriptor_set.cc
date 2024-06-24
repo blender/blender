@@ -138,6 +138,8 @@ void VKDescriptorSetTracker::update(VKContext &context)
   BLI_assert(vk_descriptor_set != VK_NULL_HANDLE);
   debug::object_label(vk_descriptor_set, shader.name_get());
 
+  /* TODO: should be replaced by a better system. The buffer_infos and image_infos can be
+   * reallocated, making previous references invalid. */
   Vector<VkDescriptorBufferInfo> buffer_infos;
   buffer_infos.reserve(16);
   Vector<VkWriteDescriptorSet> descriptor_writes;
@@ -176,7 +178,7 @@ void VKDescriptorSetTracker::update(VKContext &context)
   }
 
   Vector<VkDescriptorImageInfo> image_infos;
-  image_infos.reserve(16);
+  image_infos.reserve(32);
   for (const Binding &binding : bindings_) {
     if (!binding.is_image()) {
       continue;
