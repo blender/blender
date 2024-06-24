@@ -2164,7 +2164,8 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
             from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
 
-            if not list(repo_iter_valid_only(context, exclude_remote=False, exclude_system=True)):
+            repos_valid = list(repo_iter_valid_only(context, exclude_remote=False, exclude_system=True))
+            if not repos_valid:
                 self.report({'ERROR'}, "No user repositories")
                 return {'CANCELLED'}
 
@@ -2177,6 +2178,24 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             del result
 
             self._drop_variables = pkg_id, pkg_type
+
+            # Regarding reusing the last repository.
+            # - If it's a "local" repository, use it.
+            # - If it's a "remote" repository, reset.
+            # This is done because installing a file into a remote repository is a corner-case supported so
+            # it's possible to download large extensions before installing or to down-grade to older versions.
+            # Installing into a remote repository should be intentional, not the default.
+            # This could be annoying to users if they want to install many files into a remote repository,
+            # in this case they would be better off using the file selector "Install from disk"
+            # which supports selecting multiple files, although support for dropping multiple files would
+            # also be good to support.
+            if not self.properties.is_property_set("repo"):
+                repo_module = self.repo
+                if (repo_test := next((repo for repo in repos_valid if repo.module == repo_module), None)) is not None:
+                    if repo_test.use_remote_url:
+                        self.properties.property_unset("repo")
+                del repo_module, repo_test
+
         else:
             self._drop_variables = None
             self._legacy_drop = True
