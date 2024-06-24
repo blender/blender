@@ -108,6 +108,7 @@ void RayTraceModule::sync()
     pass.bind_image("ray_radiance_img", &ray_radiance_tx_);
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_resources(inst_.uniform_data);
+    pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.planar_probes);
     pass.bind_resources(inst_.volume_probes);
     pass.bind_resources(inst_.sphere_probes);
