@@ -307,13 +307,14 @@ def extenion_repos_files_clear(directory, _):
     from .bl_extension_utils import (
         scandir_with_demoted_errors,
         PKG_MANIFEST_FILENAME_TOML,
+        REPO_LOCAL_PRIVATE_DIR,
     )
     # Unlikely but possible a new repository is immediately removed before initializing,
     # avoid errors in this case.
     if not os.path.isdir(directory):
         return
 
-    if os.path.isdir(path := os.path.join(directory, ".blender_ext")):
+    if os.path.isdir(path := os.path.join(directory, REPO_LOCAL_PRIVATE_DIR)):
         try:
             shutil.rmtree(path)
         except Exception as ex:

@@ -717,7 +717,7 @@ def pkg_is_legacy_addon(filepath: str) -> bool:
 
 
 def pkg_repo_cache_clear(local_dir: str) -> None:
-    local_cache_dir = os.path.join(local_dir, ".blender_ext", "cache")
+    local_cache_dir = os.path.join(local_dir, REPO_LOCAL_PRIVATE_DIR, "cache")
     if not os.path.isdir(local_cache_dir):
         return
 
