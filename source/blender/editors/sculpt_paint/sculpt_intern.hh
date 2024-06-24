@@ -674,6 +674,11 @@ bool SCULPT_mode_poll_view3d(bContext *C);
 bool SCULPT_poll(bContext *C);
 
 /**
+ * Determines whether or not the brush cursor should be shown in the viewport
+ */
+bool SCULPT_brush_cursor_poll(bContext *C);
+
+/**
  * Returns true if sculpt session can handle color attributes
  * (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES).  If false an error
  * message will be shown to the user.  Operators should return
