@@ -173,7 +173,7 @@ wmEvent *wm_event_add_ex(wmWindow *win,
                          const wmEvent *event_to_add,
                          const wmEvent *event_to_add_after)
 {
-  wmEvent *event = MEM_new<wmEvent>(__func__);
+  wmEvent *event = MEM_cnew<wmEvent>(__func__);
 
   *event = *event_to_add;
 
@@ -378,7 +378,7 @@ void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint typ
   if (BLI_gset_ensure_p_ex(wm->notifier_queue_set, &note_test, &note_p)) {
     return;
   }
-  wmNotifier *note = MEM_new<wmNotifier>(__func__);
+  wmNotifier *note = MEM_cnew<wmNotifier>(__func__);
   *note = note_test;
   *note_p = note;
   BLI_addtail(&wm->notifier_queue, note);

@@ -397,9 +397,9 @@ static MenuType modifier_add_root_catalogs_menu_type()
 
 void object_modifier_add_asset_register()
 {
-  WM_menutype_add(MEM_new<MenuType>(__func__, modifier_add_catalog_assets_menu_type()));
-  WM_menutype_add(MEM_new<MenuType>(__func__, modifier_add_unassigned_assets_menu_type()));
-  WM_menutype_add(MEM_new<MenuType>(__func__, modifier_add_root_catalogs_menu_type()));
+  WM_menutype_add(MEM_cnew<MenuType>(__func__, modifier_add_catalog_assets_menu_type()));
+  WM_menutype_add(MEM_cnew<MenuType>(__func__, modifier_add_unassigned_assets_menu_type()));
+  WM_menutype_add(MEM_cnew<MenuType>(__func__, modifier_add_root_catalogs_menu_type()));
   WM_operatortype_append(OBJECT_OT_modifier_add_node_group);
 }
 
