@@ -135,6 +135,7 @@ ccl_device void light_tree_importance(const float3 N_or_D,
                                       const float max_distance,
                                       const float min_distance,
                                       const float energy,
+                                      const float theta_d,
                                       ccl_private float &max_importance,
                                       ccl_private float &min_importance)
 {
@@ -213,9 +214,9 @@ ccl_device void light_tree_importance(const float3 N_or_D,
 
   /* TODO: find a good approximation for f_a. */
   const float f_a = 1.0f;
-  /* TODO: also consider t (or theta_a, theta_b) for volume */
-  max_importance = fabsf(f_a * cos_min_incidence_angle * energy * cos_min_outgoing_angle /
-                         (in_volume_segment ? min_distance : sqr(min_distance)));
+  /* Use `(theta_b - theta_a) / d` for volume, see Eq. (4) in the paper. */
+  max_importance = fabsf(f_a * cos_min_incidence_angle * energy * cos_min_outgoing_angle *
+                         (in_volume_segment ? theta_d / min_distance : 1.0f / sqr(min_distance)));
 
   /* TODO: compute proper min importance for volume. */
   if (in_volume_segment) {
@@ -316,12 +317,13 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
   const BoundingBox bbox = knode->bbox;
 
   float3 point_to_centroid;
-  float cos_theta_u;
-  float distance;
+  float cos_theta_u, distance, theta_d;
   if (knode->type == LIGHT_TREE_DISTANT) {
     point_to_centroid = -bcone.axis;
     cos_theta_u = fast_cosf(bcone.theta_o + bcone.theta_e);
     distance = 1.0f;
+    /* For distant lights, the integral in Eq. (4) gives the ray length. */
+    theta_d = t;
     if (t == FLT_MAX) {
       /* In world volume, distant light has no contribution. */
       return;
@@ -332,10 +334,13 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
 
     if (in_volume_segment) {
       const float3 D = N_or_D;
-      const float closest_t = clamp(dot(centroid - P, D), 0.0f, t);
-      const float3 closest_point = P + D * closest_t;
+      const float closest_t = dot(centroid - P, D);
+      const float3 closest_point = P + D * clamp(closest_t, 0.0f, t);
       /* Minimal distance of the ray to the cluster. */
-      distance = len(centroid - closest_point);
+      distance = len(centroid - P - D * closest_t);
+      /* Estimate `theta_b - theta_a` using the centroid of the cluster and the complete ray
+       * segment in volume. */
+      theta_d = fast_atan2f(t - closest_t, distance) + fast_atan2f(closest_t, distance);
       /* Vector that forms a minimal angle with the emitter centroid. */
       point_to_centroid = -compute_v(centroid, P, D, bcone.axis, t);
       cos_theta_u = light_tree_cos_bounding_box_angle(
@@ -356,6 +361,7 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
 
       point_to_centroid = normalize_len(centroid - P, &distance);
       cos_theta_u = light_tree_cos_bounding_box_angle(bbox, P, point_to_centroid);
+      theta_d = 1.0f;
     }
     /* Clamp distance to half the radius of the cluster when splitting is disabled. */
     distance = fmaxf(0.5f * len(centroid - bbox.max), distance);
@@ -370,6 +376,7 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
                                            distance,
                                            distance,
                                            knode->energy,
+                                           theta_d,
                                            max_importance,
                                            min_importance);
 }
@@ -402,7 +409,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
   BoundingCone bcone;
   bcone.theta_o = kemitter->theta_o;
   bcone.theta_e = kemitter->theta_e;
-  float cos_theta_u;
+  float cos_theta_u, theta_d = 1.0f;
   float2 distance; /* distance.x = max_distance, distance.y = min_distance */
   float3 centroid, point_to_centroid, P_c = P;
 
@@ -414,8 +421,10 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
   if (in_volume_segment) {
     const float3 D = N_or_D;
     /* Closest point from ray to the emitter centroid. */
-    const float closest_t = clamp(dot(centroid - P, D), 0.0f, t);
-    P_c += D * closest_t;
+    const float closest_t = dot(centroid - P, D);
+    P_c += D * clamp(closest_t, 0.0f, t);
+    const float d = len(centroid - P - D * closest_t);
+    theta_d = fast_atan2f(t - closest_t, d) + fast_atan2f(closest_t, d);
   }
 
   /* Early out if the emitter is guaranteed to be invisible. */
@@ -444,12 +453,12 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
             klight, centroid, P_c, N_or_D, bcone.axis, cos_theta_u, distance, point_to_centroid);
         break;
       case LIGHT_BACKGROUND:
-        is_visible = background_light_tree_parameters(
-            centroid, cos_theta_u, distance, point_to_centroid);
+        is_visible = background_light_tree_parameters<in_volume_segment>(
+            centroid, t, cos_theta_u, distance, point_to_centroid, theta_d);
         break;
       case LIGHT_DISTANT:
-        is_visible = distant_light_tree_parameters(
-            centroid, bcone.theta_e, cos_theta_u, distance, point_to_centroid);
+        is_visible = distant_light_tree_parameters<in_volume_segment>(
+            centroid, bcone.theta_e, t, cos_theta_u, distance, point_to_centroid, theta_d);
         if (in_volume_segment) {
           centroid = P - bcone.axis;
         }
@@ -477,6 +486,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
                                            distance.x,
                                            distance.y,
                                            energy,
+                                           theta_d,
                                            max_importance,
                                            min_importance);
 }
