@@ -68,7 +68,10 @@ def pkg_repo_and_id_from_theme_path(repos_all, filepath):
     dirpath = os.path.dirname(filepath)
     repo_directory, pkg_id = os.path.split(dirpath)
     for repo_index, repo in enumerate(repos_all):
-        if not os.path.samefile(repo_directory, repo.directory):
+        # Avoid `os.path.samefile` because this relies on file-system checks which aren't always reliable.
+        # Some directories might not exist or have permission issues accessing, see #123657.
+        # No need to normalize the path as the themes path will have been created from `repo.directory`.
+        if repo_directory != repo.directory:
             continue
         return repo_index, pkg_id
     return None
