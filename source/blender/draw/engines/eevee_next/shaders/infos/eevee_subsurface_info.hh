@@ -27,6 +27,11 @@ GPU_SHADER_CREATE_INFO(eevee_subsurface_convolve)
     .sampler(3, ImageType::DEPTH_2D, "depth_tx")
     .sampler(4, ImageType::UINT_2D, "object_id_tx")
     .storage_buf(0, Qualifier::READ, "uint", "tiles_coord_buf[]")
-    .image(0, DEFERRED_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::UINT_2D, "out_direct_img")
-    .image(1, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "out_indirect_img")
+    .image(
+        0, DEFERRED_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::UINT_2D, "out_direct_light_img")
+    .image(1,
+           RAYTRACE_RADIANCE_FORMAT,
+           Qualifier::WRITE,
+           ImageType::FLOAT_2D,
+           "out_indirect_light_img")
     .compute_source("eevee_subsurface_convolve_comp.glsl");

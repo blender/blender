@@ -147,7 +147,7 @@ void main(void)
   accum_radiance *= safe_rcp(accum_weight);
 
   /* Put result in direct diffuse. */
-  imageStore(out_direct_img, texel, uvec4(rgb9e5_encode(accum_radiance)));
+  imageStore(out_direct_light_img, texel, uvec4(rgb9e5_encode(accum_radiance)));
   /* Clear the indirect pass since its content has been merged and convolved with direct light. */
-  imageStore(out_indirect_img, texel, vec4(0.0, 0.0, 0.0, 0.0));
+  imageStore(out_indirect_light_img, texel, vec4(0.0, 0.0, 0.0, 0.0));
 }
