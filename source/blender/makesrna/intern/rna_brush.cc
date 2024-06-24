@@ -1490,8 +1490,9 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   /* Jitter factor for new strokes */
   prop = RNA_def_property(srna, "pen_jitter", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "draw_jitter");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Jitter", "Jitter factor for new strokes");
+  RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(prop, "Jitter", "Jitter factor of brush radius for new strokes");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
