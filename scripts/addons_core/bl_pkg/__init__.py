@@ -270,6 +270,11 @@ def repos_to_notify():
 
 @bpy.app.handlers.persistent
 def extenion_repos_sync(*_):
+    # Ignore in background mode as this is for the UI to stay in sync.
+    # Automated tasks must sync explicitly.
+    if bpy.app.background:
+        return
+
     # This is called from operators (create or an explicit call to sync)
     # so calling a modal operator is "safe".
     if (active_repo := repo_active_or_none()) is None:
@@ -278,8 +283,14 @@ def extenion_repos_sync(*_):
     print_debug("SYNC:", active_repo.name)
     # There may be nothing to upgrade.
 
-    # FIXME: don't use the operator, this is error prone.
-    # The same method used to update the status-bar on startup would be preferable.
+    if not active_repo.use_remote_url:
+        return
+
+    # NOTE: both `extensions.repo_sync_all` and `bl_extension_notify.update_non_blocking` can be used here.
+    # Call the modal operator in this case as this handler is called after adding a repository.
+    # The operator has the benefit of showing a progress bar and reporting errors.
+    # Since this function is used after adding a new repository, it's important the user is aware of any
+    # errors synchronizing data as there may be connection/access issues they need to resolve.
     if not bpy.ops.extensions.repo_sync_all.poll():
         print("skipping sync, poll failed")
         return
