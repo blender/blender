@@ -10,6 +10,8 @@
 
 #include "GHOST_System.hh"
 
+#include <array>
+
 typedef enum {
   NDOF_UnknownDevice = 0,
 
@@ -21,6 +23,8 @@ typedef enum {
   NDOF_SpaceMouseWireless,
   NDOF_SpaceMouseProWireless,
   NDOF_SpaceMouseEnterprise,
+  NDOF_KeyboardPro,
+  NDOF_NumpadPro,
 
   /* Older devices. */
   NDOF_SpacePilot,
@@ -29,76 +33,9 @@ typedef enum {
 
 } NDOF_DeviceT;
 
-/**
- * NDOF device button event types.
- *
- * \note Button values are stored in DNA as part of key-map items.
- * Existing values should not be changed. Otherwise, a mapping must be used,
- * see #NDOF_BUTTON_INDEX_AS_EVENT.
- */
-typedef enum {
-  /* Used internally, never sent or used as an index. */
-  NDOF_BUTTON_NONE = -1,
-  /* These two are available from any 3Dconnexion device. */
-  NDOF_BUTTON_MENU,
-  NDOF_BUTTON_FIT,
-  /* Standard views. */
-  NDOF_BUTTON_TOP,
-  NDOF_BUTTON_BOTTOM,
-  NDOF_BUTTON_LEFT,
-  NDOF_BUTTON_RIGHT,
-  NDOF_BUTTON_FRONT,
-  NDOF_BUTTON_BACK,
-  /* More views. */
-  NDOF_BUTTON_ISO1,
-  NDOF_BUTTON_ISO2,
-  /* 90 degree rotations.
-   * These don't all correspond to physical buttons. */
-  NDOF_BUTTON_ROLL_CW,
-  NDOF_BUTTON_ROLL_CCW,
-  NDOF_BUTTON_SPIN_CW,
-  NDOF_BUTTON_SPIN_CCW,
-  NDOF_BUTTON_TILT_CW,
-  NDOF_BUTTON_TILT_CCW,
-  /* Device control. */
-  NDOF_BUTTON_ROTATE,
-  NDOF_BUTTON_PANZOOM,
-  NDOF_BUTTON_DOMINANT,
-  NDOF_BUTTON_PLUS,
-  NDOF_BUTTON_MINUS,
-  /* Store Views. */
-  NDOF_BUTTON_V1,
-  NDOF_BUTTON_V2,
-  NDOF_BUTTON_V3,
-  _NDOF_UNUSED_0,
-  /* General-purpose buttons.
-   * Users can assign functions via keymap editor. */
-  NDOF_BUTTON_1,
-  NDOF_BUTTON_2,
-  NDOF_BUTTON_3,
-  NDOF_BUTTON_4,
-  NDOF_BUTTON_5,
-  NDOF_BUTTON_6,
-  NDOF_BUTTON_7,
-  NDOF_BUTTON_8,
-  NDOF_BUTTON_9,
-  NDOF_BUTTON_10,
-  /* More general-purpose buttons. */
-  NDOF_BUTTON_A,
-  NDOF_BUTTON_B,
-  NDOF_BUTTON_C,
+typedef std::array<GHOST_NDOF_ButtonT, 6> NDOF_Button_Array;
 
-  /* Keyboard emulation (keep last as they are mapped to regular keyboard events). */
-  NDOF_BUTTON_ESC,
-  NDOF_BUTTON_ENTER,
-  NDOF_BUTTON_DELETE,
-  NDOF_BUTTON_TAB,
-  NDOF_BUTTON_SPACE,
-  NDOF_BUTTON_ALT,
-  NDOF_BUTTON_SHIFT,
-  NDOF_BUTTON_CTRL,
-#define NDOF_BUTTON_NUM (NDOF_BUTTON_CTRL + 1)
-} NDOF_ButtonT;
+typedef enum { ShortButton, LongButton } NDOF_Button_Type;
 
 class GHOST_NDOFManager {
  public:
@@ -145,7 +82,8 @@ class GHOST_NDOFManager {
    * use HID button encoding (not #NDOF_ButtonT).
    */
   void updateButton(int button_number, bool press, uint64_t time);
-  void updateButtons(int button_bits, uint64_t time);
+  void updateButtonsBitmask(int button_bits, uint64_t time);
+  void updateButtonsArray(NDOF_Button_Array buttons, uint64_t time, NDOF_Button_Type type);
   /* #NDOFButton events are sent immediately */
 
   /**
@@ -158,17 +96,20 @@ class GHOST_NDOFManager {
   GHOST_System &system_;
 
  private:
-  void sendButtonEvent(NDOF_ButtonT, bool press, uint64_t time, GHOST_IWindow *);
+  void sendButtonEvent(GHOST_NDOF_ButtonT, bool press, uint64_t time, GHOST_IWindow *);
   void sendKeyEvent(GHOST_TKey, bool press, uint64_t time, GHOST_IWindow *);
 
   NDOF_DeviceT device_type_;
   int hid_map_button_num_;
   int hid_map_button_mask_;
-  const NDOF_ButtonT *hid_map_;
+  const GHOST_NDOF_ButtonT *hid_map_;
 
   int translation_[3];
   int rotation_[3];
+
   int button_depressed_; /* Bit field. */
+  NDOF_Button_Array pressed_buttons_cache_;
+  NDOF_Button_Array pressed_long_buttons_cache_;
 
   uint64_t motion_time_;      /* In milliseconds. */
   uint64_t motion_time_prev_; /* Time of most recent motion event sent. */
@@ -176,4 +117,16 @@ class GHOST_NDOFManager {
   GHOST_TProgress motion_state_;
   bool motion_event_pending_;
   float motion_dead_zone_; /* Discard motion with each component < this. */
+
+  inline static std::array<NDOF_DeviceT, 9> bitmask_devices_ = {
+      NDOF_SpaceNavigator,
+      NDOF_SpaceExplorer,
+      NDOF_SpacePilotPro,
+      NDOF_SpaceMousePro,
+      NDOF_SpaceMouseWireless,
+      NDOF_SpaceMouseProWireless,
+      NDOF_SpacePilot,
+      NDOF_Spaceball5000,
+      NDOF_SpaceTraveler,
+  };
 };

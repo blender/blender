@@ -168,9 +168,8 @@ static const EnumPropertyItem event_ndof_type_items[] = {
     {NDOF_BUTTON_8, "NDOF_BUTTON_8", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Button 8"), ""},
     {NDOF_BUTTON_9, "NDOF_BUTTON_9", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Button 9"), ""},
     {NDOF_BUTTON_10, "NDOF_BUTTON_10", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Button 10"), ""},
-    {NDOF_BUTTON_A, "NDOF_BUTTON_A", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Button A"), ""},
-    {NDOF_BUTTON_B, "NDOF_BUTTON_B", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Button B"), ""},
-    {NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Button C"), ""},
+    {NDOF_BUTTON_11, "NDOF_BUTTON_11", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Button 11"), ""},
+    {NDOF_BUTTON_12, "NDOF_BUTTON_12", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Button 12"), ""},
 #  if 0 /* Never used (converted to keyboard events by GHOST). */
     /* keyboard emulation */
     {NDOF_BUTTON_ESC, "NDOF_BUTTON_ESC", 0, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Esc")},
@@ -422,9 +421,12 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {NDOF_BUTTON_CTRL, "NDOF_BUTTON_CTRL", 0, "NDOF Ctrl", "NdofCtrl"},
 #endif
     /* View buttons. */
-    {NDOF_BUTTON_V1, "NDOF_BUTTON_V1", 0, "NDOF View 1", ""},
-    {NDOF_BUTTON_V2, "NDOF_BUTTON_V2", 0, "NDOF View 2", ""},
-    {NDOF_BUTTON_V3, "NDOF_BUTTON_V3", 0, "NDOF View 3", ""},
+    {NDOF_BUTTON_V1, "NDOF_BUTTON_V1", 0, "NDOF View 1", "NdofView1"},
+    {NDOF_BUTTON_V2, "NDOF_BUTTON_V2", 0, "NDOF View 2", "NdofView2"},
+    {NDOF_BUTTON_V3, "NDOF_BUTTON_V3", 0, "NDOF View 3", "NdofView3"},
+    {NDOF_BUTTON_SAVE_V1, "NDOF_BUTTON_SAVE_V1", 0, "NDOF Save View 1", "NdofSaveView1"},
+    {NDOF_BUTTON_SAVE_V2, "NDOF_BUTTON_SAVE_V2", 0, "NDOF Save View 2", "NdofSaveView2"},
+    {NDOF_BUTTON_SAVE_V3, "NDOF_BUTTON_SAVE_V3", 0, "NDOF Save View 3", "NdofSaveView3"},
     /* general-purpose buttons */
     {NDOF_BUTTON_1, "NDOF_BUTTON_1", 0, "NDOF Button 1", "NdofB1"},
     {NDOF_BUTTON_2, "NDOF_BUTTON_2", 0, "NDOF Button 2", "NdofB2"},
@@ -436,9 +438,9 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {NDOF_BUTTON_8, "NDOF_BUTTON_8", 0, "NDOF Button 8", "NdofB8"},
     {NDOF_BUTTON_9, "NDOF_BUTTON_9", 0, "NDOF Button 9", "NdofB9"},
     {NDOF_BUTTON_10, "NDOF_BUTTON_10", 0, "NDOF Button 10", "NdofB10"},
-    {NDOF_BUTTON_A, "NDOF_BUTTON_A", 0, "NDOF Button A", "NdofBA"},
-    {NDOF_BUTTON_B, "NDOF_BUTTON_B", 0, "NDOF Button B", "NdofBB"},
-    {NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "NDOF Button C", "NdofBC"},
+    {NDOF_BUTTON_11, "NDOF_BUTTON_11", 0, "NDOF Button 11", "NdofB11"},
+    {NDOF_BUTTON_12, "NDOF_BUTTON_12", 0, "NDOF Button 12", "NdofB12"},
+
     /* Action Zones. */
     {EVT_ACTIONZONE_AREA, "ACTIONZONE_AREA", 0, "ActionZone Area", "AZone Area"},
     {EVT_ACTIONZONE_REGION, "ACTIONZONE_REGION", 0, "ActionZone Region", "AZone Region"},

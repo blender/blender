@@ -320,24 +320,27 @@ void icon_draw_rect_input(float x,
   else if (event_type == EVT_RIGHTBRACKETKEY) {
     icon_draw_rect_input_text(&rect, color, "]", 12.0f, 1.5f);
   }
-  else if ((event_type >= NDOF_BUTTON_MENU) && (event_type <= NDOF_BUTTON_C)) {
+  else if (ISNDOF_BUTTON(event_type)) {
     if ((event_type >= NDOF_BUTTON_V1) && (event_type <= NDOF_BUTTON_V3)) {
       char str[7];
-      SNPRINTF(str, "%sv%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, 1 + event_type - NDOF_BUTTON_V1);
+      SNPRINTF(str, "%sv%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, (event_type + 1) - NDOF_BUTTON_V1);
+      icon_draw_rect_input_text(&rect, color, str, 7.5f, 0.0f);
+    }
+    if ((event_type >= NDOF_BUTTON_SAVE_V1) && (event_type <= NDOF_BUTTON_SAVE_V3)) {
+      char str[7];
+      SNPRINTF(
+          str, "%ss%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, (event_type + 1) - NDOF_BUTTON_SAVE_V1);
       icon_draw_rect_input_text(&rect, color, str, 7.5f, 0.0f);
     }
     else if ((event_type >= NDOF_BUTTON_1) && (event_type <= NDOF_BUTTON_9)) {
       char str[6];
-      SNPRINTF(str, "%s%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, 1 + event_type - NDOF_BUTTON_1);
+      SNPRINTF(str, "%s%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, (1 + event_type) - NDOF_BUTTON_1);
       icon_draw_rect_input_text(&rect, color, str, 9.0f, 0.0f);
     }
-    else if (event_type == NDOF_BUTTON_10) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "10", 7.5f, 0.0f);
-    }
-    else if ((event_type >= NDOF_BUTTON_A) && (event_type <= NDOF_BUTTON_C)) {
-      char str[6];
-      SNPRINTF(str, "%s%c", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, 'A' + event_type - NDOF_BUTTON_A);
-      icon_draw_rect_input_text(&rect, color, str, 9.0f, 0.0f);
+    else if (event_type >= NDOF_BUTTON_10 && event_type <= NDOF_BUTTON_12) {
+      char str[7];
+      SNPRINTF(str, "%s1%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, event_type - NDOF_BUTTON_10);
+      icon_draw_rect_input_text(&rect, color, str, 7.5f, 0.0f);
     }
     else if (event_type == NDOF_BUTTON_MENU) {
       icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Me", 6.5f, 0.0f);

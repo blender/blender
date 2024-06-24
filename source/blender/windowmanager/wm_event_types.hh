@@ -281,7 +281,7 @@ enum {
   NDOF_BUTTON_DOMINANT = 0x01a3, /* 419 */
   NDOF_BUTTON_PLUS = 0x01a4,     /* 420 */
   NDOF_BUTTON_MINUS = 0x01a5,    /* 421 */
-  /* Store/restore views. */
+  /* Restore views. */
   NDOF_BUTTON_V1 = 0x01a6, /* 422 */
   NDOF_BUTTON_V2 = 0x01a7, /* 423 */
   NDOF_BUTTON_V3 = 0x01a8, /* 424 */
@@ -297,9 +297,8 @@ enum {
   NDOF_BUTTON_9 = 0x01b2,  /* 434 */
   NDOF_BUTTON_10 = 0x01b3, /* 435 */
   /* More general-purpose buttons. */
-  NDOF_BUTTON_A = 0x01b4, /* 436 */
-  NDOF_BUTTON_B = 0x01b5, /* 437 */
-  NDOF_BUTTON_C = 0x01b6, /* 438 */
+  NDOF_BUTTON_11 = 0x01b4, /* 436 */
+  NDOF_BUTTON_12 = 0x01b5, /* 437 */
 
 /* Disabled as GHOST converts these to keyboard events
  * which use regular keyboard event handling logic. */
@@ -315,8 +314,13 @@ enum {
   NDOF_BUTTON_CTRL = 0x01bd,   /* 445 */
 #endif
 
-#define _NDOF_MAX NDOF_BUTTON_C
-#define _NDOF_BUTTON_MAX NDOF_BUTTON_C
+  /* Store views. */
+  NDOF_BUTTON_SAVE_V1 = 0x01be, /* 446 */
+  NDOF_BUTTON_SAVE_V2 = 0x01bf, /* 447 */
+  NDOF_BUTTON_SAVE_V3 = 0x01c0, /* 448 */
+
+#define _NDOF_MAX NDOF_BUTTON_SAVE_V3
+#define _NDOF_BUTTON_MAX NDOF_BUTTON_SAVE_V3
 
   /* ********** End of Input devices. ********** */
 
@@ -456,8 +460,6 @@ enum eEventType_Mask {
 #define EVT_TYPE_MASK_HOTKEY_INCLUDE \
   (EVT_TYPE_MASK_KEYBOARD | EVT_TYPE_MASK_MOUSE | EVT_TYPE_MASK_NDOF)
 #define EVT_TYPE_MASK_HOTKEY_EXCLUDE EVT_TYPE_MASK_KEYBOARD_MODIFIER
-
-#define NDOF_BUTTON_INDEX_AS_EVENT(i) (_NDOF_BUTTON_MIN + (i))
 
 bool WM_event_type_mask_test(int event_type, enum eEventType_Mask mask);
 

@@ -202,7 +202,7 @@ static void DeviceEvent(uint32_t /*unused*/, uint32_t msg_type, void *msg_arg)
 #ifdef DEBUG_NDOF_BUTTONS
           printf("button bits: 0x%08x\n", button_bits);
 #endif
-          ndof_manager->updateButtons(button_bits, now);
+          ndof_manager->updateButtonsBitmask(button_bits, now);
           ghost_system->notifyExternalEventProcessed();
           break;
         }
