@@ -1863,7 +1863,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
-    """Install an extension from a file into a locally managed repository"""
+    """Install extensions from files into a locally managed repository"""
     bl_idname = "extensions.package_install_files"
     bl_label = "Install from Disk"
     __slots__ = (
