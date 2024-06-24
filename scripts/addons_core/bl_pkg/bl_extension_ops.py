@@ -72,8 +72,8 @@ def rna_prop_repo_enum_valid_only_itemf(_self, context):
         # installing into a remote - while supported is more of a corner case.
         result = []
         repos_valid = list(repo_iter_valid_only(context, exclude_remote=False, exclude_system=True))
-        # The UI-list sorts alphabetically, to the same here.
-        repos_valid.sort(key=lambda repo_item: repo_item.name)
+        # The UI-list sorts alphabetically, do the same here.
+        repos_valid.sort(key=lambda repo_item: repo_item.name.casefold())
         has_local = False
         has_remote = False
         for repo_item in repos_valid:
