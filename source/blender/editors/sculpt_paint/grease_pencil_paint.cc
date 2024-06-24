@@ -675,42 +675,8 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
     placement_.set_origin_to_nearest_stroke(start_sample.mouse_position);
   }
 
-  float3 u_dir;
-  float3 v_dir;
-  /* Set the texture space origin to be the first point. */
-  float3 origin = placement_.project(start_sample.mouse_position);
-  /* Align texture with the drawing plane. */
-  switch (scene->toolsettings->gp_sculpt.lock_axis) {
-    case GP_LOCKAXIS_VIEW:
-      u_dir = math::normalize(
-          placement_.project(float2(region->winx, 0.0f) + start_sample.mouse_position) - origin);
-      v_dir = math::normalize(
-          placement_.project(float2(0.0f, region->winy) + start_sample.mouse_position) - origin);
-      break;
-    case GP_LOCKAXIS_Y:
-      u_dir = float3(1.0f, 0.0f, 0.0f);
-      v_dir = float3(0.0f, 0.0f, 1.0f);
-      break;
-    case GP_LOCKAXIS_X:
-      u_dir = float3(0.0f, 1.0f, 0.0f);
-      v_dir = float3(0.0f, 0.0f, 1.0f);
-      break;
-    case GP_LOCKAXIS_Z:
-      u_dir = float3(1.0f, 0.0f, 0.0f);
-      v_dir = float3(0.0f, 1.0f, 0.0f);
-      break;
-    case GP_LOCKAXIS_CURSOR: {
-      float3x3 mat;
-      BKE_scene_cursor_rot_to_mat3(&scene->cursor, mat.ptr());
-      u_dir = mat * float3(1.0f, 0.0f, 0.0f);
-      v_dir = mat * float3(0.0f, 1.0f, 0.0f);
-      origin = float3(scene->cursor.location);
-      break;
-    }
-  }
-
-  this->texture_space_ = math::transpose(float2x4(float4(u_dir, -math::dot(u_dir, origin)),
-                                                  float4(v_dir, -math::dot(v_dir, origin))));
+  this->texture_space_ = ed::greasepencil::calculate_texture_space(
+      scene, region, start_sample.mouse_position, placement_);
 
   /* `View` is already stored in object space but all others are in layer space. */
   if (scene->toolsettings->gp_sculpt.lock_axis != GP_LOCKAXIS_VIEW) {

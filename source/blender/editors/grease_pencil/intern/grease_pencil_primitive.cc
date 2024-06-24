@@ -126,6 +126,7 @@ struct PrimitiveToolOperation {
   int material_index;
   float softness;
   Brush *brush;
+  float4x2 texture_space;
 
   OperatorMode mode;
   float2 start_position_2d;
@@ -471,6 +472,8 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
   }
 
   ptd.drawing->tag_topology_changed();
+  ptd.drawing->set_texture_matrices({ptd.texture_space},
+                                    IndexRange::from_single(curves.curves_range().last()));
 }
 
 static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
@@ -715,6 +718,9 @@ static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmE
   srgb_to_linearrgb_v4(ptd.vertex_color, ptd.vertex_color);
 
   ptd.softness = 1.0 - ptd.settings->hardness;
+
+  ptd.texture_space = ed::greasepencil::calculate_texture_space(
+      vc.scene, ptd.region, ptd.start_position_2d, ptd.placement);
 
   BLI_assert(grease_pencil->has_active_layer());
   ptd.drawing = grease_pencil->get_editable_drawing_at(*grease_pencil->get_active_layer(),
