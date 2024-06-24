@@ -286,6 +286,10 @@ void BKE_undosys_stack_clear(UndoStack *ustack)
     us_prev = us->prev;
     undosys_step_free_and_unlink(ustack, us);
   }
+  if (UndoStep *us = ustack->step_init) {
+    undosys_step_free_and_unlink(ustack, us);
+    ustack->step_init = nullptr;
+  }
   BLI_listbase_clear(&ustack->steps);
   ustack->step_active = nullptr;
 }
@@ -477,6 +481,10 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
   if (ut->step_encode_init) {
     undosys_stack_validate(ustack, false);
 
+    if (UndoStep *us = ustack->step_init) {
+      undosys_step_free_and_unlink(ustack, us);
+      ustack->step_init = nullptr;
+    }
     if (ustack->step_active) {
       undosys_stack_clear_all_last(ustack, ustack->step_active->next);
     }
