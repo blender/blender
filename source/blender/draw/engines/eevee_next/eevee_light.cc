@@ -576,7 +576,7 @@ void LightModule::set_view(View &view, const int2 extent)
   culling_data_buf_.push_update();
 
   inst_.manager->submit(culling_ps_, view);
-  inst_.manager->submit(update_ps_);
+  inst_.manager->submit(update_ps_, view);
 }
 
 void LightModule::debug_draw(View &view, GPUFrameBuffer *view_fb)
