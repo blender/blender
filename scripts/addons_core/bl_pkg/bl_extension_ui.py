@@ -715,6 +715,23 @@ class notify_info:
                     notify_info._update_state = True
         return in_progress
 
+    def update_show_in_preferences():
+        """
+        An update was triggered externally (not from the interface).
+        Without this call, the message in the preferences UI will not display.
+        """
+        # Skip checking updates when:
+        # - False, updates are running already no need to request displaying again.
+        # - None, updates have not yet run, meaning they will be displayed when the preferences are next drawn.
+        if notify_info._update_state is not True:
+            return
+
+        # NOTE: we could assert `bl_extension_notify.update_in_progress` since it is expected
+        # this function is called when updates have been started, however it's functionally a NOP
+        # where this case is detected and the notification state will switch to being "complete"
+        # (when `update_ensure` runs).
+        notify_info._update_state = False
+
 
 def extensions_panel_draw_online_extensions_request_impl(
         self,
