@@ -184,7 +184,6 @@ class OperatorNonBlockingSyncHelper:
         from .bl_extension_notify import (
             update_ui_region_register,
             update_non_blocking,
-            update_in_progress,
         )
 
         repos_all = extension_repos_read()
@@ -2410,7 +2409,6 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
     def _invoke_for_drop(self, context, _event):
         from .bl_extension_utils import (
-            platform_from_this_system,
             url_parse_for_blender,
         )
 
