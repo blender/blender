@@ -288,6 +288,8 @@ def repository_iter_package_dirs(
     try:
         dir_entries = os.scandir(directory)
     except Exception as ex:
+        # The `isinstance` check is ignored, suppress warning.
+        # pylint: disable-next=no-member
         if not (ignore_missing and isinstance(ex, FileNotFoundError) and ex.filename == directory):
             error_fn(ex)
         dir_entries = None

@@ -255,13 +255,10 @@ def addon_draw_item_expanded(
 
     if item_doc_url:
         col_a.label(text="Website")
-        col_b.split(
-            factor=0.5).operator(
+        col_b.split(factor=0.5).operator(
             "wm.url_open",
             text=domain_extract_from_url(item_doc_url),
-            icon='HELP' if addon_type in {
-                ADDON_TYPE_LEGACY_CORE,
-                ADDON_TYPE_LEGACY_USER} else 'URL',
+            icon='HELP' if addon_type in {ADDON_TYPE_LEGACY_CORE, ADDON_TYPE_LEGACY_USER} else 'URL',
         ).url = item_doc_url
     # Only add "Report a Bug" button if tracker_url is set
     # or the add-on is bundled (use official tracker then).
@@ -758,6 +755,7 @@ class notify_info:
                     notify_info._update_state = True
         return in_progress
 
+    @staticmethod
     def update_show_in_preferences():
         """
         An update was triggered externally (not from the interface).
