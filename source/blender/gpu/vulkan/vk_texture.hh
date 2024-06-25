@@ -52,7 +52,8 @@ class VKTexture : public Texture, public VKBindableResource {
                                       IndexRange(0, VK_REMAINING_MIP_LEVELS),
                                       {{'r', 'g', 'b', 'a'}},
                                       false,
-                                      false};
+                                      false,
+                                      VKImageViewArrayed::DONT_CARE};
 
  public:
   VKTexture(const char *name) : Texture(name) {}
@@ -114,7 +115,7 @@ class VKTexture : public Texture, public VKBindableResource {
   /**
    * Get the current image view for this texture.
    */
-  const VKImageView &image_view_get();
+  const VKImageView &image_view_get(VKImageViewArrayed arrayed);
 
  protected:
   bool init_internal() override;

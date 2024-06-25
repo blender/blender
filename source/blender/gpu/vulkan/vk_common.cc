@@ -698,34 +698,67 @@ VkImageType to_vk_image_type(const eGPUTextureType type)
   return VK_IMAGE_TYPE_1D;
 }
 
-VkImageViewType to_vk_image_view_type(const eGPUTextureType type, const eImageViewUsage view_type)
+VkImageViewType to_vk_image_view_type(const eGPUTextureType type,
+                                      const eImageViewUsage view_type,
+                                      VKImageViewArrayed arrayed)
 {
+  VkImageViewType result = VK_IMAGE_VIEW_TYPE_1D;
+
   switch (type) {
     case GPU_TEXTURE_1D:
     case GPU_TEXTURE_BUFFER:
-      return VK_IMAGE_VIEW_TYPE_1D;
+      result = VK_IMAGE_VIEW_TYPE_1D;
+      break;
     case GPU_TEXTURE_2D:
-      return VK_IMAGE_VIEW_TYPE_2D;
+      result = VK_IMAGE_VIEW_TYPE_2D;
+      break;
     case GPU_TEXTURE_3D:
-      return VK_IMAGE_VIEW_TYPE_3D;
+      result = VK_IMAGE_VIEW_TYPE_3D;
+      break;
     case GPU_TEXTURE_CUBE:
-      return view_type == eImageViewUsage::Attachment ? VK_IMAGE_VIEW_TYPE_2D_ARRAY :
-                                                        VK_IMAGE_VIEW_TYPE_CUBE;
+      result = view_type == eImageViewUsage::Attachment ? VK_IMAGE_VIEW_TYPE_2D_ARRAY :
+                                                          VK_IMAGE_VIEW_TYPE_CUBE;
+      break;
     case GPU_TEXTURE_1D_ARRAY:
-      return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+      result = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+      break;
     case GPU_TEXTURE_2D_ARRAY:
-      return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+      result = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+      break;
     case GPU_TEXTURE_CUBE_ARRAY:
-      return view_type == eImageViewUsage::Attachment ? VK_IMAGE_VIEW_TYPE_2D_ARRAY :
-                                                        VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+      result = view_type == eImageViewUsage::Attachment ? VK_IMAGE_VIEW_TYPE_2D_ARRAY :
+                                                          VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+      break;
 
     case GPU_TEXTURE_ARRAY:
       /* GPU_TEXTURE_ARRAY should always be used together with 1D, 2D, or CUBE. */
       break;
   }
 
-  BLI_assert_unreachable();
-  return VK_IMAGE_VIEW_TYPE_1D;
+  if (arrayed == VKImageViewArrayed::NOT_ARRAYED) {
+    if (result == VK_IMAGE_VIEW_TYPE_1D_ARRAY) {
+      result = VK_IMAGE_VIEW_TYPE_1D;
+    }
+    else if (result == VK_IMAGE_VIEW_TYPE_2D_ARRAY) {
+      result = VK_IMAGE_VIEW_TYPE_2D;
+    }
+    else if (result == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY) {
+      result = VK_IMAGE_VIEW_TYPE_CUBE;
+    }
+  }
+  else if (arrayed == VKImageViewArrayed::ARRAYED) {
+    if (result == VK_IMAGE_VIEW_TYPE_1D) {
+      result = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+    }
+    else if (result == VK_IMAGE_VIEW_TYPE_2D) {
+      result = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+    }
+    else if (result == VK_IMAGE_VIEW_TYPE_CUBE) {
+      result = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+    }
+  }
+
+  return result;
 }
 
 VkComponentSwizzle to_vk_component_swizzle(const char swizzle)

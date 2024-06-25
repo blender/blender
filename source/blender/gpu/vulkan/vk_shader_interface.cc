@@ -174,6 +174,9 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   descriptor_set_bind_types_.fill(shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER);
   access_masks_ = Array<VkAccessFlags>(resources_len);
   access_masks_.fill(VK_ACCESS_NONE);
+  arrayed_ = Array<VKImageViewArrayed>(resources_len);
+  arrayed_.fill(VKImageViewArrayed::DONT_CARE);
+
   uint32_t descriptor_set_location = 0;
   for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
     const ShaderInput *input = shader_input_get(
@@ -183,12 +186,50 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     descriptor_set_location_update(input,
                                    descriptor_set_location++,
                                    shader::ShaderCreateInfo::Resource::BindType::SAMPLER,
-                                   std::nullopt);
+                                   std::nullopt,
+                                   VKImageViewArrayed::DONT_CARE);
   }
   for (ShaderCreateInfo::Resource &res : all_resources) {
     const ShaderInput *input = shader_input_get(res);
     BLI_assert(input);
-    descriptor_set_location_update(input, descriptor_set_location++, res.bind_type, res);
+    VKImageViewArrayed arrayed = VKImageViewArrayed::DONT_CARE;
+    if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
+      arrayed = ELEM(res.image.type,
+                     shader::ImageType::FLOAT_1D_ARRAY,
+                     shader::ImageType::FLOAT_2D_ARRAY,
+                     shader::ImageType::FLOAT_CUBE_ARRAY,
+                     shader::ImageType::INT_1D_ARRAY,
+                     shader::ImageType::INT_2D_ARRAY,
+                     shader::ImageType::INT_CUBE_ARRAY,
+                     shader::ImageType::UINT_1D_ARRAY,
+                     shader::ImageType::UINT_2D_ARRAY,
+                     shader::ImageType::UINT_CUBE_ARRAY,
+                     shader::ImageType::UINT_2D_ARRAY_ATOMIC,
+                     shader::ImageType::INT_2D_ARRAY_ATOMIC) ?
+                    VKImageViewArrayed::ARRAYED :
+                    VKImageViewArrayed::NOT_ARRAYED;
+    }
+    else if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
+      arrayed = ELEM(res.sampler.type,
+                     shader::ImageType::FLOAT_1D_ARRAY,
+                     shader::ImageType::FLOAT_2D_ARRAY,
+                     shader::ImageType::FLOAT_CUBE_ARRAY,
+                     shader::ImageType::INT_1D_ARRAY,
+                     shader::ImageType::INT_2D_ARRAY,
+                     shader::ImageType::INT_CUBE_ARRAY,
+                     shader::ImageType::UINT_1D_ARRAY,
+                     shader::ImageType::UINT_2D_ARRAY,
+                     shader::ImageType::UINT_CUBE_ARRAY,
+                     shader::ImageType::SHADOW_2D_ARRAY,
+                     shader::ImageType::SHADOW_CUBE_ARRAY,
+                     shader::ImageType::DEPTH_2D_ARRAY,
+                     shader::ImageType::DEPTH_CUBE_ARRAY,
+                     shader::ImageType::UINT_2D_ARRAY_ATOMIC,
+                     shader::ImageType::INT_2D_ARRAY_ATOMIC) ?
+                    VKImageViewArrayed::ARRAYED :
+                    VKImageViewArrayed::NOT_ARRAYED;
+    }
+    descriptor_set_location_update(input, descriptor_set_location++, res.bind_type, res, arrayed);
   }
 
   /* Post initializing push constants. */
@@ -200,7 +241,8 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     descriptor_set_location_update(push_constant_input,
                                    push_constants_fallback_location,
                                    shader::ShaderCreateInfo::Resource::UNIFORM_BUFFER,
-                                   std::nullopt);
+                                   std::nullopt,
+                                   VKImageViewArrayed::DONT_CARE);
   }
   push_constants_layout_.init(
       info, *this, push_constants_storage_type, push_constant_descriptor_set_location);
@@ -217,7 +259,8 @@ void VKShaderInterface::descriptor_set_location_update(
     const ShaderInput *shader_input,
     const VKDescriptorSet::Location location,
     const shader::ShaderCreateInfo::Resource::BindType bind_type,
-    std::optional<const shader::ShaderCreateInfo::Resource> resource)
+    std::optional<const shader::ShaderCreateInfo::Resource> resource,
+    VKImageViewArrayed arrayed)
 {
   BLI_assert_msg(resource.has_value() ||
                      ELEM(bind_type,
@@ -232,6 +275,7 @@ void VKShaderInterface::descriptor_set_location_update(
   BLI_assert(descriptor_set_locations_[index].binding == -1);
   descriptor_set_locations_[index] = location;
   descriptor_set_bind_types_[index] = bind_type;
+  arrayed_[index] = arrayed;
 
   VkAccessFlags vk_access_flags = VK_ACCESS_NONE;
   if (resource.has_value()) {
@@ -324,6 +368,17 @@ const VkAccessFlags VKShaderInterface::access_mask(
     return VK_ACCESS_NONE;
   }
   return access_mask(shader_input);
+}
+
+const VKImageViewArrayed VKShaderInterface::arrayed(
+    const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
+{
+  const ShaderInput *shader_input = shader_input_get(bind_type, binding);
+  if (shader_input == nullptr) {
+    return VKImageViewArrayed::DONT_CARE;
+  }
+  int32_t index = shader_input_index(inputs_, shader_input);
+  return arrayed_[index];
 }
 
 const ShaderInput *VKShaderInterface::shader_input_get(

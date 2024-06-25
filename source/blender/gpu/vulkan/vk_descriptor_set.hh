@@ -125,6 +125,7 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
 
     VKTexture *texture = nullptr;
     VkSampler vk_sampler = VK_NULL_HANDLE;
+    VKImageViewArrayed arrayed = VKImageViewArrayed::DONT_CARE;
 
     Binding()
     {
@@ -167,8 +168,13 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
   void bind(VKStorageBuffer &buffer, VKDescriptorSet::Location location);
   void bind(VKUniformBuffer &buffer, VKDescriptorSet::Location location);
   /* TODO: bind as image */
-  void image_bind(VKTexture &texture, VKDescriptorSet::Location location);
-  void bind(VKTexture &texture, VKDescriptorSet::Location location, const VKSampler &sampler);
+  void image_bind(VKTexture &texture,
+                  VKDescriptorSet::Location location,
+                  VKImageViewArrayed arrayed);
+  void bind(VKTexture &texture,
+            VKDescriptorSet::Location location,
+            const VKSampler &sampler,
+            VKImageViewArrayed);
   /* Bind as uniform texel buffer. */
   void bind(VKVertexBuffer &vertex_buffer, VKDescriptorSet::Location location);
 

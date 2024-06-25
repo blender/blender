@@ -23,6 +23,9 @@ class VKShaderInterface : public ShaderInterface {
  private:
   Array<VKDescriptorSet::Location> descriptor_set_locations_;
   Array<shader::ShaderCreateInfo::Resource::BindType> descriptor_set_bind_types_;
+
+  /** Image views should match the binding arrayed aspect.  */
+  Array<VKImageViewArrayed> arrayed_;
   Array<VkAccessFlags> access_masks_;
   VKDescriptorSetLayoutInfo descriptor_set_layout_info_;
 
@@ -59,6 +62,8 @@ class VKShaderInterface : public ShaderInterface {
    */
   const VkAccessFlags access_mask(const shader::ShaderCreateInfo::Resource::BindType &bind_type,
                                   int binding) const;
+  const VKImageViewArrayed arrayed(const shader::ShaderCreateInfo::Resource::BindType &bind_type,
+                                   int binding) const;
 
   /** Get the Layout of the shader. */
   const VKPushConstants::Layout &push_constants_layout_get() const
@@ -103,7 +108,8 @@ class VKShaderInterface : public ShaderInterface {
       const ShaderInput *shader_input,
       const VKDescriptorSet::Location location,
       const shader::ShaderCreateInfo::Resource::BindType bind_type,
-      std::optional<const shader::ShaderCreateInfo::Resource> resource);
+      std::optional<const shader::ShaderCreateInfo::Resource> resource,
+      VKImageViewArrayed arrayed);
 };
 
 }  // namespace blender::gpu
