@@ -723,6 +723,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
   brush->curve_preset = BRUSH_CURVE_SMOOTH;
 
+  /* Use a default spacing of 100%. */
+  brush->spacing = 100;
+
   if (brush->gpencil_settings == nullptr) {
     return;
   }
@@ -740,6 +743,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 300.0f;
       brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) != 0,
+                         BRUSH_SIZE_PRESSURE);
 
       brush->gpencil_settings->draw_strength = 0.4f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
@@ -749,6 +755,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
                          BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
+      /* Use a high point density. */
+      brush->spacing = 15;
+
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
@@ -768,6 +777,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 60.0f;
       brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) != 0,
+                         BRUSH_SIZE_PRESSURE);
 
       brush->gpencil_settings->draw_strength = 1.0f;
       brush->alpha = brush->gpencil_settings->draw_strength;
@@ -809,6 +821,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 60.0f;
       brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) != 0,
+                         BRUSH_SIZE_PRESSURE);
 
       brush->gpencil_settings->draw_strength = 1.0f;
       brush->alpha = brush->gpencil_settings->draw_strength;
@@ -852,6 +867,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 150.0f;
       brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) != 0,
+                         BRUSH_SIZE_PRESSURE);
 
       brush->gpencil_settings->draw_strength = 0.3f;
       brush->alpha = brush->gpencil_settings->draw_strength;
@@ -906,7 +924,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = 0.3f;
       brush->gpencil_settings->draw_angle = DEG2RAD(35.0f);
-      brush->gpencil_settings->draw_angle_factor = 0.5f;
+      brush->gpencil_settings->draw_angle_factor = 0.75f;
       brush->gpencil_settings->hardness = 1.0f;
       copy_v2_fl(brush->gpencil_settings->aspect_ratio, 1.0f);
 
@@ -943,6 +961,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 25.0f;
       brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) != 0,
+                         BRUSH_SIZE_PRESSURE);
 
       brush->gpencil_settings->draw_strength = 1.0f;
       brush->gpencil_settings->flag &= ~GP_BRUSH_USE_STRENGTH_PRESSURE;
@@ -980,6 +1001,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 80.0f;
       brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) != 0,
+                         BRUSH_SIZE_PRESSURE);
 
       brush->gpencil_settings->draw_strength = 0.4f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
@@ -989,6 +1013,8 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
                          BRUSH_ALPHA_PRESSURE);
 
       brush->gpencil_settings->input_samples = 10;
+      /* Use a higher point density. */
+      brush->spacing = 20;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
       brush->gpencil_settings->draw_angle = 0.0f;
       brush->gpencil_settings->draw_angle_factor = 0.0f;
@@ -1020,6 +1046,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->size = 20.0f;
       brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) != 0,
+                         BRUSH_SIZE_PRESSURE);
 
       brush->gpencil_settings->draw_strength = 0.6f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
