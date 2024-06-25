@@ -349,6 +349,18 @@ static void rna_userdef_asset_library_path_set(PointerRNA *ptr, const char *valu
   BKE_preferences_asset_library_path_set(library, value);
 }
 
+/**
+ * Use sparingly as a sync may be time consuming.
+ * Any change that may cause loading remote data to change behavior
+ * (such as the URL or access token) must use this update function.
+ */
+static void rna_userdef_extension_sync_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  BKE_callback_exec(bmain, &ptr, 1, BKE_CB_EVT_EXTENSION_REPOS_SYNC);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+  USERDEF_TAG_DIRTY;
+}
+
 static void rna_userdef_extension_repo_name_set(PointerRNA *ptr, const char *value)
 {
   bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
@@ -6832,7 +6844,7 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
       "Remote URL to the extension repository, "
       "the file-system may be referenced using the file URI scheme: \"file://\"");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_extension_sync_update");
 
   prop = RNA_def_property(srna, "access_token", PROP_STRING, PROP_PASSWORD);
   RNA_def_property_ui_text(
@@ -6841,6 +6853,7 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
                                 "rna_userdef_extension_repo_access_token_get",
                                 "rna_userdef_extension_repo_access_token_length",
                                 "rna_userdef_extension_repo_access_token_set");
+  RNA_def_property_update(prop, 0, "rna_userdef_extension_sync_update");
 
   prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, source_type_items);
@@ -6874,7 +6887,7 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_access_token", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN);
   RNA_def_property_ui_text(prop, "Requires Access Token", "Repository requires an access token");
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_extension_sync_update");
 
   prop = RNA_def_property(srna, "use_custom_directory", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
