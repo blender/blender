@@ -29,11 +29,11 @@ def drawlayout(context, layout, mode='non-panel'):
     col = layout.column(align=True)
     col.operator(operators.NWDetachOutputs.bl_idname, icon='UNLINKED')
     col.operator(operators.NWSwapLinks.bl_idname)
-    col.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes", icon='LAYER_USED')
+    col.menu(NWAddReroutesMenu.bl_idname, icon='LAYER_USED')
     col.separator()
 
     col = layout.column(align=True)
-    col.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected", icon='LINKED')
+    col.menu(NWLinkActiveToSelectedMenu.bl_idname, icon='LINKED')
     if tree_type != 'GeometryNodeTree':
         col.operator(operators.NWLinkToOutputNode.bl_idname, icon='DRIVER')
     col.separator()
@@ -48,7 +48,7 @@ def drawlayout(context, layout, mode='non-panel'):
         col.operator(operators.NWModifyLabels.bl_idname)
     col.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change")
     col.separator()
-    col.menu(NWCopyToSelectedMenu.bl_idname, text="Copy to Selected")
+    col.menu(NWCopyToSelectedMenu.bl_idname)
     col.separator()
 
     col = layout.column(align=True)
@@ -68,7 +68,6 @@ def drawlayout(context, layout, mode='non-panel'):
 
     col = layout.column(align=True)
     col.operator(operators.NWDeleteUnused.bl_idname, icon='CANCEL')
-    col.separator()
 
 
 class NodeWranglerPanel(Panel, NWBaseMenu):
@@ -164,7 +163,7 @@ class NWMergeMixMenu(Menu, NWBaseMenu):
 
 class NWConnectionListOutputs(Menu, NWBaseMenu):
     bl_idname = "NODE_MT_nw_connection_list_out"
-    bl_label = "From:"
+    bl_label = "From Socket"
 
     def draw(self, context):
         layout = self.layout
@@ -182,7 +181,7 @@ class NWConnectionListOutputs(Menu, NWBaseMenu):
 
 class NWConnectionListInputs(Menu, NWBaseMenu):
     bl_idname = "NODE_MT_nw_connection_list_in"
-    bl_label = "To:"
+    bl_label = "To Socket"
 
     def draw(self, context):
         layout = self.layout
@@ -297,7 +296,7 @@ class NWLinkStandardMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Do Not Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = False
@@ -313,7 +312,7 @@ class NWLinkUseNodeNameMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Do Not Replace Links")
         props.replace = False
         props.use_node_name = True
         props.use_outputs_names = False
@@ -329,7 +328,7 @@ class NWLinkUseOutputsNamesMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Do Not Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = True

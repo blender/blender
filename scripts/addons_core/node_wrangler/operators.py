@@ -389,14 +389,14 @@ class NWSwapLinks(Operator, NWBase):
                                     "Some connections have been lost due to differing numbers of output sockets")
             else:
                 if n1.outputs or n2.outputs:
-                    self.report({'WARNING'}, "One of the nodes has no outputs!")
+                    self.report({'WARNING'}, "One of the nodes has no outputs")
                 else:
-                    self.report({'WARNING'}, "Neither of the nodes have outputs!")
+                    self.report({'WARNING'}, "Neither of the nodes have outputs")
 
         # Swap Inputs
         elif len(selected_nodes) == 1:
             if n1.inputs and n1.inputs[0].is_multi_input:
-                self.report({'WARNING'}, "Can't swap inputs of a multi input socket!")
+                self.report({'WARNING'}, "Cannot swap inputs of a multi-input socket")
                 return {'FINISHED'}
             if n1.inputs:
                 types = []
@@ -443,9 +443,9 @@ class NWSwapLinks(Operator, NWBase):
                             connect_sockets(i2f, i1t)
 
                 else:
-                    self.report({'WARNING'}, "This node has no input connections to swap!")
+                    self.report({'WARNING'}, "This node has no input connections to swap")
             else:
-                self.report({'WARNING'}, "This node has no inputs to swap!")
+                self.report({'WARNING'}, "This node has no inputs to swap")
 
         force_update(context)
         return {'FINISHED'}
@@ -580,25 +580,25 @@ class NWReloadImages(Operator):
 class NWMergeNodes(Operator, NWBase):
     bl_idname = "node.nw_merge_nodes"
     bl_label = "Merge Nodes"
-    bl_description = "Merge Selected Nodes"
+    bl_description = "Merge selected nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
     mode: EnumProperty(
-        name="mode",
+        name="Mode",
         description="All possible blend types, boolean operations and math operations",
         items=blend_types + [op for op in geo_combine_operations if op not in blend_types] + [op for op in operations if op not in blend_types],
     )
     merge_type: EnumProperty(
-        name="merge type",
+        name="Merge Type",
         description="Type of Merge to be used",
         items=(
-            ('AUTO', 'Auto', 'Automatic Output Type Detection'),
+            ('AUTO', 'Auto', 'Automatic output type detection'),
             ('SHADER', 'Shader', 'Merge using ADD or MIX Shader'),
-            ('GEOMETRY', 'Geometry', 'Merge using Mesh Boolean or Join Geometry Node'),
-            ('MIX', 'Mix Node', 'Merge using Mix Nodes'),
-            ('MATH', 'Math Node', 'Merge using Math Nodes'),
-            ('ZCOMBINE', 'Z-Combine Node', 'Merge using Z-Combine Nodes'),
-            ('ALPHAOVER', 'Alpha Over Node', 'Merge using Alpha Over Nodes'),
+            ('GEOMETRY', 'Geometry', 'Merge using Mesh Boolean or Join Geometry nodes'),
+            ('MIX', 'Mix Node', 'Merge using Mix nodes'),
+            ('MATH', 'Math Node', 'Merge using Math nodes'),
+            ('ZCOMBINE', 'Z-Combine Node', 'Merge using Z-Combine nodes'),
+            ('ALPHAOVER', 'Alpha Over Node', 'Merge using Alpha Over nodes'),
         ),
     )
 
@@ -984,7 +984,7 @@ class NWMergeNodes(Operator, NWBase):
 class NWBatchChangeNodes(Operator, NWBase):
     bl_idname = "node.nw_batch_change"
     bl_label = "Batch Change"
-    bl_description = "Batch Change Blend Type and Math Operation"
+    bl_description = "Batch change blend type and math operation"
     bl_options = {'REGISTER', 'UNDO'}
 
     blend_type: EnumProperty(
@@ -1052,7 +1052,7 @@ class NWBatchChangeNodes(Operator, NWBase):
 class NWChangeMixFactor(Operator, NWBase):
     bl_idname = "node.nw_factor"
     bl_label = "Change Factor"
-    bl_description = "Change Factors of Mix Nodes and Mix Shader Nodes"
+    bl_description = "Change factors of Mix nodes and Mix Shader nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -1087,7 +1087,7 @@ class NWChangeMixFactor(Operator, NWBase):
 class NWCopySettings(Operator, NWBase):
     bl_idname = "node.nw_copy_settings"
     bl_label = "Copy Settings"
-    bl_description = "Copy Settings of Active Node to Selected Nodes"
+    bl_description = "Copy settings from active to selected nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -1197,12 +1197,12 @@ class NWCopyLabel(Operator, NWBase):
     bl_description = "Copy label from active to selected nodes"
 
     option: EnumProperty(
-        name="option",
+        name="Option",
         description="Source of name of label",
         items=(
-            ('FROM_ACTIVE', 'from active', 'from active node',),
-            ('FROM_NODE', 'from node', 'from node linked to selected node'),
-            ('FROM_SOCKET', 'from socket', 'from socket linked to selected node'),
+            ('FROM_ACTIVE', 'From Active', 'From active node',),
+            ('FROM_NODE', 'From Node', 'From node linked to selected node'),
+            ('FROM_SOCKET', 'From Socket', 'From socket linked to selected node'),
         )
     )
 
@@ -1305,7 +1305,7 @@ class NWModifyLabels(Operator, NWBase):
 class NWAddTextureSetup(Operator, NWBase):
     bl_idname = "node.nw_add_texture"
     bl_label = "Texture Setup"
-    bl_description = "Add Texture Node Setup to Selected Shaders"
+    bl_description = "Add texture node setup to selected shaders"
     bl_options = {'REGISTER', 'UNDO'}
 
     add_mapping: BoolProperty(
@@ -1386,7 +1386,7 @@ class NWAddTextureSetup(Operator, NWBase):
 class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
     bl_idname = "node.nw_add_textures_for_principled"
     bl_label = "Principled Texture Setup"
-    bl_description = "Add Texture Node Setup for Principled BSDF"
+    bl_description = "Add texture node setup for Principled BSDF"
     bl_options = {'REGISTER', 'UNDO'}
 
     directory: StringProperty(
@@ -1682,15 +1682,15 @@ class NWAddReroutes(Operator, NWBase):
     """Add Reroute Nodes and link them to outputs of selected nodes"""
     bl_idname = "node.nw_add_reroutes"
     bl_label = "Add Reroutes"
-    bl_description = "Add Reroutes to Outputs"
+    bl_description = "Add Reroutes to outputs"
     bl_options = {'REGISTER', 'UNDO'}
 
     option: EnumProperty(
-        name="option",
+        name="Option",
         items=[
-            ('ALL', 'to all', 'Add to all outputs'),
-            ('LOOSE', 'to loose', 'Add only to loose outputs'),
-            ('LINKED', 'to linked', 'Add only to linked outputs'),
+            ('ALL', 'To All', 'Add to all outputs'),
+            ('LOOSE', 'To Loose', 'Add only to loose outputs'),
+            ('LINKED', 'To Linked', 'Add only to linked outputs'),
         ]
     )
 
@@ -1927,7 +1927,7 @@ class NWSelectParentChildren(Operator, NWBase):
     bl_options = {'REGISTER', 'UNDO'}
 
     option: EnumProperty(
-        name="option",
+        name="Option",
         items=(
             ('PARENT', 'Select Parent', 'Select Parent Frame'),
             ('CHILD', 'Select Children', 'Select members of selected frame'),
@@ -2143,7 +2143,7 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
         elif tree.type == 'COMPOSITING':
             node_type = "CompositorNodeImage"
         else:
-            self.report({'ERROR'}, "Unsupported Node Tree type!")
+            self.report({'ERROR'}, "Unsupported node tree type")
             return {'CANCELLED'}
 
         if not files[0].name and not filename:
@@ -2154,7 +2154,7 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
             filename = files[0].name
 
         if not path.exists(directory + filename):
-            self.report({'ERROR'}, filename + " does not exist!")
+            self.report({'ERROR'}, filename + " does not exist")
             return {'CANCELLED'}
 
         without_ext = '.'.join(filename.split('.')[:-1])
@@ -2247,7 +2247,7 @@ class NWAddMultipleImages(Operator, NWBase, ImportHelper):
         elif context.space_data.node_tree.type == 'COMPOSITING':
             node_type = "CompositorNodeImage"
         else:
-            self.report({'ERROR'}, "Unsupported Node Tree type!")
+            self.report({'ERROR'}, "Unsupported Node Tree type")
             return {'CANCELLED'}
 
         new_nodes = []
