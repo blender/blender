@@ -2805,7 +2805,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_random(View3DPanel, Panel):
             col.template_curve_mapping(gp_settings, "curve_random_strength", brush=True, use_negative_slope=True)
 
         row = col.row(align=True)
-        row.prop(gp_settings, "uv_random", text="UV", slider=True)
+        row.prop(gp_settings, "uv_random", text="Rotation", slider=True)
         row.prop(gp_settings, "use_stroke_random_uv", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_uv", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_uv and self.is_popover is False:

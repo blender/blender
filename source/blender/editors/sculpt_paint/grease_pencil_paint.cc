@@ -253,6 +253,7 @@ class PaintOperation : public GreasePencilStrokeOperation {
 
   float stroke_random_radius_factor_;
   float stroke_random_opacity_factor_;
+  float stroke_random_rotation_factor_;
 
   friend struct PaintOperationExecutor;
 
@@ -368,6 +369,29 @@ struct PaintOperationExecutor {
     return math::interpolate(opacity, opacity * random_factor, settings_->draw_random_strength);
   }
 
+  float randomize_rotation(PaintOperation &self, const float pressure)
+  {
+    if (!use_settings_random_ || !(settings_->uv_random > 0.0f)) {
+      return 0.0f;
+    }
+    /* Random value in range [-1 .. 1]. */
+    float random_factor = [&]() {
+      if ((settings_->flag2 & GP_BRUSH_USE_UV_AT_STROKE) == 0) {
+        return self.rng_.get_float();
+      }
+      else {
+        return self.stroke_random_rotation_factor_;
+      }
+    }();
+
+    if ((settings_->flag2 & GP_BRUSH_USE_UV_RAND_PRESS) != 0) {
+      random_factor *= BKE_curvemapping_evaluateF(settings_->curve_rand_uv, 0, pressure);
+    }
+
+    const float random_rotation = (random_factor * 2.0f - 1.0f) * float(M_PI);
+    return math::interpolate(0.0f, random_rotation, settings_->uv_random);
+  }
+
   void process_start_sample(PaintOperation &self,
                             const bContext &C,
                             const InputSample &start_sample,
@@ -392,6 +416,8 @@ struct PaintOperationExecutor {
     float start_opacity = ed::greasepencil::opacity_from_input_sample(
         start_sample.pressure, brush_, settings_);
     start_opacity = randomize_opacity(self, 0.0f, start_opacity, start_sample.pressure);
+
+    const float start_rotation = randomize_rotation(self, start_sample.pressure);
 
     Scene *scene = CTX_data_scene(&C);
     const bool on_back = (scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) != 0;
@@ -440,6 +466,14 @@ struct PaintOperationExecutor {
     cyclic.finish();
     materials.finish();
     softness.finish();
+
+    if (settings_->uv_random > 0.0f || attributes.contains("rotation")) {
+      bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
+          "rotation", bke::AttrDomain::Point);
+      rotations.span[last_active_point] = start_rotation;
+      point_attributes_to_skip.add("rotation");
+      rotations.finish();
+    }
 
     /* Only set the attribute if the type is not the default or if it already exists. */
     if (settings_->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("start_cap")) {
@@ -728,6 +762,18 @@ struct PaintOperationExecutor {
       linear_interpolation<float>(prev_opacity, opacity, new_opacities, is_first_sample);
     }
 
+    /* Randomize rotations. */
+    if (use_settings_random_ && (settings_->uv_random > 0.0f || attributes.contains("rotation"))) {
+      bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
+          "rotation", bke::AttrDomain::Point);
+      const MutableSpan<float> new_rotations = rotations.span.slice(new_points);
+      for (const int i : IndexRange(new_points_num)) {
+        new_rotations[i] = randomize_rotation(self, extension_sample.pressure);
+      }
+      point_attributes_to_skip.add("rotation");
+      rotations.finish();
+    }
+
     self.accum_distance_ += distance_px;
 
     /* Update screen space buffers with new points. */
@@ -839,6 +885,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   if ((settings->flag & GP_BRUSH_GROUP_RANDOM) != 0) {
     stroke_random_radius_factor_ = rng_.get_float();
     stroke_random_opacity_factor_ = rng_.get_float();
+    stroke_random_rotation_factor_ = rng_.get_float();
   }
 
   Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
