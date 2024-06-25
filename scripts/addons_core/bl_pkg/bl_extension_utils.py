@@ -283,12 +283,14 @@ def repository_iter_package_dirs(
         directory: str,
         *,
         error_fn: Callable[[Exception], None],
+        ignore_missing: bool = False,
 ) -> Generator[os.DirEntry[str], None, None]:
     try:
         dir_entries = os.scandir(directory)
     except Exception as ex:
+        if not (ignore_missing and isinstance(ex, FileNotFoundError) and ex.filename == directory):
+            error_fn(ex)
         dir_entries = None
-        error_fn(ex)
 
     for entry in (dir_entries if dir_entries is not None else ()):
         # Only check directories.
@@ -1736,7 +1738,11 @@ class _RepoCacheEntry:
         if self._pkg_manifest_local is None:
             pkg_manifest_local = {}
 
-            for entry in repository_iter_package_dirs(self.directory, error_fn=error_fn):
+            for entry in repository_iter_package_dirs(
+                    self.directory,
+                    ignore_missing=ignore_missing,
+                    error_fn=error_fn,
+            ):
                 dirname = entry.name
                 filepath_toml = os.path.join(self.directory, dirname, PKG_MANIFEST_FILENAME_TOML)
                 try:
@@ -1895,6 +1901,7 @@ class RepoCacheStore:
             *,
             error_fn: Callable[[Exception], None],
             check_files: bool = False,
+            ignore_missing: bool = False,
             directory_subset: Optional[Set[str]] = None,
     ) -> Generator[Optional[Dict[str, PkgManifest_Normalized]], None, None]:
         for repo_entry in self._repos:
@@ -1903,7 +1910,10 @@ class RepoCacheStore:
                     continue
             if check_files:
                 repo_entry.force_local_refresh()
-            yield repo_entry.pkg_manifest_from_local_ensure(error_fn=error_fn)
+            yield repo_entry.pkg_manifest_from_local_ensure(
+                ignore_missing=ignore_missing,
+                error_fn=error_fn,
+            )
 
     def clear(self) -> None:
         self._repos.clear()
