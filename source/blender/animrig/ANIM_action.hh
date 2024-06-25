@@ -659,6 +659,7 @@ Span<const FCurve *> fcurves_for_animation(const Action &anim, binding_handle_t 
  * multi-layered animation is getting implemented.
  */
 Vector<const FCurve *> fcurves_all(const Action &action);
+Vector<FCurve *> fcurves_all(Action &action);
 
 /**
  * Get (or add relevant data to be able to do so) F-Curve from the given Action,
