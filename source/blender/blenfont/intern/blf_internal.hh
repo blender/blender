@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -106,6 +107,9 @@ void blf_draw_svg_icon(FontBLF *font,
                        float size,
                        float color[4],
                        float outline_alpha);
+
+blender::Array<uchar> blf_svg_icon_bitmap(
+    FontBLF *font, uint icon_id, float size, int *r_width, int *r_height);
 
 blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
                                                          blender::StringRef str,

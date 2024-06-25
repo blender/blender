@@ -1106,43 +1106,31 @@ void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_
 
 /* ********** Icon/image helpers ********** */
 
+static ImBuf *fileimage_from_icon(int icon_id)
+{
+  int width;
+  int height;
+  blender::Array<uchar> bitmap = BLF_svg_icon_bitmap(icon_id, 256.0f, &width, &height);
+  if (bitmap.is_empty()) {
+    return nullptr;
+  }
+  ImBuf *ibuf = IMB_allocFromBuffer(bitmap.data(), nullptr, width, height, 4);
+  IMB_flipy(ibuf);
+  return ibuf;
+}
+
 void filelist_init_icons()
 {
-  short x, y, k;
-  ImBuf *bbuf;
-  ImBuf *ibuf;
-
   BLI_assert(G.background == false);
-
-#ifdef WITH_HEADLESS
-  bbuf = nullptr;
-#else
-  bbuf = IMB_ibImageFromMemory((const uchar *)datatoc_prvicons_png,
-                               datatoc_prvicons_png_size,
-                               IB_rect,
-                               nullptr,
-                               "<splash>");
+#ifndef WITH_HEADLESS
+  gSpecialFileImages[SPECIAL_IMG_DOCUMENT] = fileimage_from_icon(ICON_FILE_LARGE);
+  gSpecialFileImages[SPECIAL_IMG_DRIVE_DISC] = fileimage_from_icon(ICON_DISC_LARGE);
+  gSpecialFileImages[SPECIAL_IMG_FOLDER] = fileimage_from_icon(ICON_FILE_FOLDER_LARGE);
+  gSpecialFileImages[SPECIAL_IMG_PARENT] = fileimage_from_icon(ICON_FILE_PARENT_LARGE);
+  gSpecialFileImages[SPECIAL_IMG_DRIVE_FIXED] = fileimage_from_icon(ICON_DISK_DRIVE_LARGE);
+  gSpecialFileImages[SPECIAL_IMG_DRIVE_ATTACHED] = fileimage_from_icon(ICON_EXTERNAL_DRIVE_LARGE);
+  gSpecialFileImages[SPECIAL_IMG_DRIVE_REMOTE] = fileimage_from_icon(ICON_NETWORK_DRIVE_LARGE);
 #endif
-  if (bbuf) {
-    for (y = 0; y < SPECIAL_IMG_ROWS; y++) {
-      for (x = 0; x < SPECIAL_IMG_COLS; x++) {
-        int tile = SPECIAL_IMG_COLS * y + x;
-        if (tile < SPECIAL_IMG_MAX) {
-          ibuf = IMB_allocImBuf(SPECIAL_IMG_SIZE, SPECIAL_IMG_SIZE, 32, IB_rect);
-          for (k = 0; k < SPECIAL_IMG_SIZE; k++) {
-            memcpy(
-                &ibuf->byte_buffer.data[4 * (k * SPECIAL_IMG_SIZE)],
-                &bbuf->byte_buffer
-                     .data[4 * ((k + y * SPECIAL_IMG_SIZE) * SPECIAL_IMG_SIZE * SPECIAL_IMG_COLS +
-                                x * SPECIAL_IMG_SIZE)],
-                SPECIAL_IMG_SIZE * sizeof(uint8_t) * 4);
-          }
-          gSpecialFileImages[tile] = ibuf;
-        }
-      }
-    }
-    IMB_freeImBuf(bbuf);
-  }
 }
 
 void filelist_free_icons()
