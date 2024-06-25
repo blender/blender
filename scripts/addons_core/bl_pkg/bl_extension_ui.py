@@ -1222,6 +1222,13 @@ def extensions_panel_draw_impl(
                 col_b = split.column()
                 col_a.alignment = "RIGHT"
 
+                if value := ((item_remote or item_local).website):
+                    col_a.label(text="Website")
+                    col_b.split(factor=0.5).operator(
+                        "wm.url_open", text=domain_extract_from_url(value), icon='HELP',
+                    ).url = value
+                del value
+
                 if is_addon:
                     col_a.label(text="Permissions")
                     # WARNING: while this is documented to be a dict, old packages may contain a list of strings.
