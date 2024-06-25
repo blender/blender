@@ -144,8 +144,10 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
     return any_lock_errors, any_stale_errors
 
 
-def sync_status_generator(repos_fn):
+def sync_status_generator(repos_and_do_online):
     import atexit
+
+    assert isinstance(repos_and_do_online, list)
 
     # Generator results...
     # -> None: do nothing.
@@ -154,13 +156,6 @@ def sync_status_generator(repos_fn):
     # ################ #
     # Setup The Update #
     # ################ #
-
-    yield None
-
-    # Calculate the repositories.
-    # This may be an expensive so yield once before running.
-    repos_and_do_online = list(repos_fn())
-    assert isinstance(repos_and_do_online, list)
 
     if not bpy.app.online_access:
         # Allow file-system only sync.
@@ -319,25 +314,32 @@ class NotifyHandle:
         "sync_info",
 
         "_repos_fn",
+        "_repos_and_do_online",
         "is_complete",
         "_sync_generator",
     )
 
     def __init__(self, repos_fn):
         self._repos_fn = repos_fn
+        self._repos_and_do_online = None
         self._sync_generator = None
         self.is_complete = False
         # status_data, update_count, extra_warnings.
         self.sync_info = None
 
     def run(self):
+        # Return false if there is no work to do (skip this notification).
         assert self._sync_generator is None
-        self._sync_generator = iter(sync_status_generator(self._repos_fn))
+        if not self.realize_repos_and_discard_outdated():
+            return False
+        self._sync_generator = iter(sync_status_generator(self._repos_and_do_online))
+        return True
 
     def run_ensure(self):
+        # Return false if there is no work to do (skip this notification).
         if self.is_running():
-            return
-        self.run()
+            return True
+        return self.run()
 
     def run_step(self):
         assert self._sync_generator is not None
@@ -369,6 +371,46 @@ class NotifyHandle:
             text = text + warning
         return text, icon, update_count
 
+    def realize_repos(self):
+        if self._repos_fn is None:
+            assert self._repos_and_do_online is not None
+            return self._repos_and_do_online
+
+        assert self._repos_and_do_online is None
+        self._repos_and_do_online = list(self._repos_fn())
+        self._repos_fn = None  # Never use again.
+        return self._repos_and_do_online
+
+    def realize_repos_and_discard_outdated(self):
+        repos_and_do_online = self.realize_repos()
+        found = False
+        repo_names = {repo.name for repo, do_online_sync in repos_and_do_online}
+        repo_names_other = set()
+        for notify in _notify_queue:
+            if notify is self:
+                found = True
+                continue
+            if not found:
+                continue
+
+            # Collect names of newer notifications.
+            for repo, do_online_sync in notify.realize_repos():
+                if not do_online_sync:
+                    continue
+                if (name := repo.name) not in repo_names:
+                    continue
+                repo_names_other.add(name)
+
+        if repo_names_other:
+            # Skipping outdated.
+            repos_and_do_online[:] = [
+                (repo, do_online_sync) for repo, do_online_sync in repos_and_do_online
+                if repo.name not in repo_names_other
+            ]
+            if not self._repos_and_do_online:
+                return False
+        return True
+
 
 # A list of `NotifyHandle`, only the first item is allowed to be running.
 _notify_queue = []
@@ -395,13 +437,16 @@ def _ui_refresh_apply():
 def _ui_refresh_timer():
     wm = bpy.context.window_manager
 
+    # Ensure the first item is running, skipping any items that have no work.
+    while _notify_queue and _notify_queue[0].run_ensure() is False:
+        del _notify_queue[0]
+
     if not _notify_queue:
         if wm.extensions_updates == WM_EXTENSIONS_UPDATE_CHECKING:
             wm.extensions_updates = WM_EXTENSIONS_UPDATE_UNSET
         return None
 
     notify = _notify_queue[0]
-    notify.run_ensure()
 
     default_wait = TIME_WAIT_STEP
 
