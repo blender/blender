@@ -255,8 +255,13 @@ def addon_draw_item_expanded(
 
     if item_doc_url:
         col_a.label(text="Website")
-        col_b.split(factor=0.5).operator(
-            "wm.url_open", text=domain_extract_from_url(item_doc_url), icon='HELP',
+        col_b.split(
+            factor=0.5).operator(
+            "wm.url_open",
+            text=domain_extract_from_url(item_doc_url),
+            icon='HELP' if addon_type in {
+                ADDON_TYPE_LEGACY_CORE,
+                ADDON_TYPE_LEGACY_USER} else 'URL',
         ).url = item_doc_url
     # Only add "Report a Bug" button if tracker_url is set
     # or the add-on is bundled (use official tracker then).
@@ -1257,7 +1262,7 @@ def extensions_panel_draw_impl(
                 if value := ((item_remote or item_local).website):
                     col_a.label(text="Website")
                     col_b.split(factor=0.5).operator(
-                        "wm.url_open", text=domain_extract_from_url(value), icon='HELP',
+                        "wm.url_open", text=domain_extract_from_url(value), icon='URL',
                     ).url = value
                 del value
 
