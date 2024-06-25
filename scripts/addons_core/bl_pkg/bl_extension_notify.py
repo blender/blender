@@ -20,9 +20,6 @@ import bpy
 
 from bpy.app.translations import pgettext_rpt as rpt_
 
-from . import bl_extension_ops
-from . import bl_extension_utils
-
 # Request the processes exit, then wait for them to exit.
 # NOTE(@ideasman42): This is all well and good but any delays exiting are unwanted,
 # only keep this as a reference and in case we can speed up forcing them to exit.
@@ -90,6 +87,7 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
     # Although this shouldn't happen on a regular basis. Only when exiting immediately after launching
     # Blender and even then the user would need to be *lucky*.
     from . import cookie_from_session
+    from . import bl_extension_utils
 
     repo_directories_stale = sync_calc_stale_repo_directories(repos_notify)
 
@@ -146,6 +144,8 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
 
 def sync_status_generator(repos_and_do_online):
     import atexit
+    from . import bl_extension_utils
+    from . import bl_extension_ops
 
     assert isinstance(repos_and_do_online, list)
 
@@ -360,6 +360,7 @@ class NotifyHandle:
         return update_count
 
     def ui_text(self):
+        from . import bl_extension_utils
         if self.sync_info is None:
             return rpt_("Checking for Extension Updates"), 'SORTTIME', WM_EXTENSIONS_UPDATE_CHECKING
         status_data, update_count, extra_warnings = self.sync_info
