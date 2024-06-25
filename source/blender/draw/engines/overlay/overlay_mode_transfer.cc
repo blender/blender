@@ -29,7 +29,7 @@ void OVERLAY_mode_transfer_cache_init(OVERLAY_Data *vedata)
 
   for (int i = 0; i < 2; i++) {
     /* Non Meshes Pass (Camera, empties, lights ...) */
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH;
     DRW_PASS_CREATE(psl->mode_transfer_ps[i], state | pd->clipping_state);
   }
 }
@@ -105,6 +105,8 @@ void OVERLAY_mode_transfer_cache_populate(OVERLAY_Data *vedata, Object *ob)
     UI_GetThemeColor3fv(TH_VERTEX_SELECT, color);
     color[3] = mode_transfer_alpha_for_animation_time_get(animation_time);
     srgb_to_linearrgb_v4(color, color);
+    /* Alpha pre-multiply. */
+    mul_v3_fl(color, color[3]);
     DRW_shgroup_uniform_vec4_copy(mode_transfer_grp[i], "ucolor", color);
   }
 

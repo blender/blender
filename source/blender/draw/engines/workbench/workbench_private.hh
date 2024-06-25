@@ -281,6 +281,7 @@ struct SceneResources {
   TextureRef depth_in_front_tx;
 
   Framebuffer clear_fb = {"Clear Main"};
+  Framebuffer clear_depth_only_fb = {"Clear Depth"};
   Framebuffer clear_in_front_fb = {"Clear In Front"};
 
   StorageVectorBuffer<Material> material_buf = {"material_buf"};
