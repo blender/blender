@@ -196,6 +196,7 @@ void GLStorageBuf::async_flush_to_host()
         GL_SHADER_STORAGE_BUFFER, 0, size_in_bytes_, GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT);
     BLI_assert(persistent_ptr_);
     debug::object_label(GL_SHADER_STORAGE_BUFFER, read_ssbo_id_, name_);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
   }
 
   if (GLContext::direct_state_access_support) {
@@ -204,7 +205,7 @@ void GLStorageBuf::async_flush_to_host()
   else {
     glBindBuffer(GL_COPY_READ_BUFFER, ssbo_id_);
     glBindBuffer(GL_COPY_WRITE_BUFFER, read_ssbo_id_);
-    glCopyBufferSubData(GL_SHADER_STORAGE_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, size_in_bytes_);
+    glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, size_in_bytes_);
     glBindBuffer(GL_COPY_READ_BUFFER, 0);
     glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
   }
