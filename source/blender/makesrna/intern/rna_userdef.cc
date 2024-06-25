@@ -59,9 +59,14 @@ const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_EDITING, "EDITING", 0, "Editing", ""},
     {USER_SECTION_ANIMATION, "ANIMATION", 0, "Animation", ""},
     RNA_ENUM_ITEM_SEPR,
-    {USER_SECTION_EXTENSIONS, "EXTENSIONS", 0, "Extensions", ""},
-    {USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", ""},
-    {USER_SECTION_THEME, "THEMES", 0, "Themes", ""},
+    {USER_SECTION_EXTENSIONS,
+     "EXTENSIONS",
+     0,
+     "Get Extensions",
+     "Browse, install and manage extensions from remote and local repositories"},
+    RNA_ENUM_ITEM_SEPR,
+    {USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", "Manage add-ons installed via Extensions"},
+    {USER_SECTION_THEME, "THEMES", 0, "Themes", "Edit and save themes installed via Extensions"},
 #if 0 /* def WITH_USERDEF_WORKSPACES */
     RNA_ENUM_ITEM_SEPR,
     {USER_SECTION_WORKSPACE_CONFIG, "WORKSPACE_CONFIG", 0, "Configuration File", ""},
@@ -7501,8 +7506,7 @@ void RNA_def_userdef(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "space_data.section_active");
   RNA_def_property_enum_items(prop, rna_enum_preference_section_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_UseDef_active_section_itemf");
-  RNA_def_property_ui_text(
-      prop, "Active Section", "Active section of the preferences shown in the user interface");
+  RNA_def_property_ui_text(prop, "Active Section", "Preferences");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
   /* don't expose this directly via the UI, modify via an operator */
