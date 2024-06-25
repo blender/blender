@@ -140,9 +140,10 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
                                     uint clear_stencil)
 {
   BLI_assert(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
+  VkImageAspectFlags vk_image_aspect_device = to_vk_image_aspect_flag_bits(device_format_get());
   VkImageAspectFlags vk_image_aspect = to_vk_image_aspect_flag_bits(
                                            buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) &
-                                       to_vk_image_aspect_flag_bits(device_format_get());
+                                       vk_image_aspect_device;
   if (vk_image_aspect == VK_IMAGE_ASPECT_NONE) {
     /* Early exit: texture doesn't have any aspect that needs to be cleared. */
     return;
@@ -150,11 +151,10 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
 
   render_graph::VKClearDepthStencilImageNode::CreateInfo clear_depth_stencil_image = {};
   clear_depth_stencil_image.node_data.vk_image = vk_image_handle();
-  clear_depth_stencil_image.vk_image_aspects = vk_image_aspect;
+  clear_depth_stencil_image.vk_image_aspects = vk_image_aspect_device;
   clear_depth_stencil_image.node_data.vk_clear_depth_stencil_value.depth = clear_depth;
   clear_depth_stencil_image.node_data.vk_clear_depth_stencil_value.stencil = clear_stencil;
-  clear_depth_stencil_image.node_data.vk_image_subresource_range.aspectMask =
-      to_vk_image_aspect_flag_bits(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
+  clear_depth_stencil_image.node_data.vk_image_subresource_range.aspectMask = vk_image_aspect;
   clear_depth_stencil_image.node_data.vk_image_subresource_range.layerCount =
       VK_REMAINING_ARRAY_LAYERS;
   clear_depth_stencil_image.node_data.vk_image_subresource_range.levelCount =
