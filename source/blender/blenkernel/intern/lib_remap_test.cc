@@ -7,6 +7,8 @@
 
 #include "CLG_log.h"
 
+#include "GHOST_Path-api.hh"
+
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -149,6 +151,7 @@ template<typename TestData> class Context {
     RNA_exit();
     IMB_exit();
     BKE_appdir_exit();
+    GHOST_DisposeSystemPaths();
     CLG_exit();
   }
 };
