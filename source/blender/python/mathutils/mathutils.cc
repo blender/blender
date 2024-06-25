@@ -209,7 +209,7 @@ int mathutils_array_parse_alloc(float **array,
 
     if (num < array_num) {
       PyErr_Format(PyExc_ValueError,
-                   "%.200s: sequence size is %d, expected > %d",
+                   "%.200s: sequence size is %d, expected >= %d",
                    error_prefix,
                    num,
                    array_num);
@@ -238,7 +238,7 @@ int mathutils_array_parse_alloc(float **array,
   if (num < array_num) {
     Py_DECREF(value_fast);
     PyErr_Format(PyExc_ValueError,
-                 "%.200s: sequence size is %d, expected > %d",
+                 "%.200s: sequence size is %d, expected >= %d",
                  error_prefix,
                  num,
                  array_num);
