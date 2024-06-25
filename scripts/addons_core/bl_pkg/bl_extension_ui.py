@@ -910,8 +910,9 @@ def extensions_panel_draw_impl(
     # Needed so the warnings aren't mixed in with other content.
     layout_topmost = layout.column()
 
-    SECTION_INSTALLED, SECTION_AVAILABLE = 0, 1
+    SECTION_ENABLED, SECTION_INSTALLED, SECTION_AVAILABLE = 0, 1, 2
     layout_sections = (
+        ExtensionPanelPropData(layout.column(), iface_("Enabled"), "extension_show_panel_enabled"),
         ExtensionPanelPropData(layout.column(), iface_("Installed"), "extension_show_panel_installed"),
         ExtensionPanelPropData(layout.column(), iface_("Available"), "extension_show_panel_available"),
     )
@@ -1059,41 +1060,9 @@ def extensions_panel_draw_impl(
                     )
                 continue
 
-        def sort_extensions(item):
-            """
-            Sort the list for installed extensions
-
-            The expected order is:
-              * Update
-              * Enable
-              * Alphabetical
-            """
-            pkg_id, (item_local, item_remote) = item
-            item = item_local or item_remote
-
-            is_installed = item_local is not None
-            if not is_installed:
-                return (False, False, "")
-
-            item_version = item.version
-            if item_local is None or item_remote is None:
-                item_remote_version = None
-                is_outdated = False
-            else:
-                item_remote_version = item_remote.version
-                is_outdated = item_remote_version != item_version
-
-            addon_module_name = repo_module_prefix + pkg_id
-            is_enabled = addon_module_name in addons_enabled
-
-            return (not is_outdated, not is_enabled, item.name)
-
         repo_module_prefix = pkg_repo_module_prefix(repos_all[repo_index])
 
-        sorted_items = list(pkg_manifest_zip_all_items(pkg_manifest_local, pkg_manifest_remote))
-        sorted_items.sort(key=sort_extensions)
-
-        for pkg_id, (item_local, item_remote) in sorted_items:
+        for pkg_id, (item_local, item_remote) in pkg_manifest_zip_all_items(pkg_manifest_local, pkg_manifest_remote):
             item = item_local or item_remote
             if filter_by_type and (filter_by_type != item.type):
                 continue
@@ -1146,7 +1115,7 @@ def extensions_panel_draw_impl(
                     continue
 
             if is_enabled:
-                section_type = SECTION_INSTALLED
+                section_type = SECTION_ENABLED
             elif is_installed:
                 section_type = SECTION_INSTALLED
             else:
