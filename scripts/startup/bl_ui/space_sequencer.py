@@ -1873,7 +1873,7 @@ class SEQUENCER_PT_movie_clip(SequencerButtonsPanel, Panel):
         if strip.type == 'MOVIECLIP':
             col = layout.column(heading="Use")
             col.prop(strip, "stabilize2d", text="2D Stabilized Clip")
-            col.prop(strip, "undistort", text="Undestorted Clip")
+            col.prop(strip, "undistort", text="Undistorted Clip")
 
         clip = strip.clip
         if clip:
