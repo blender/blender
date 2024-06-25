@@ -1132,7 +1132,7 @@ class WM_OT_url_open_preset(Operator):
         (('FUND', iface_("Development Fund"),
           tip_("The donation program to support maintenance and improvements")),
          "https://fund.blender.org"),
-        (('BLENDER', iface_("blender.org"),
+        (('BLENDER', "blender.org",
           tip_("Blender's official web-site")),
          "https://www.blender.org"),
         (('CREDITS', iface_("Credits"),
