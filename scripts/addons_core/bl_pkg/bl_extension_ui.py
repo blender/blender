@@ -1200,7 +1200,14 @@ def extensions_panel_draw_impl(
     # Finally show any errors in a single panel which can be dismissed.
     display_errors.errors_curr = errors_on_draw
     if errors_on_draw:
-        display_errors.draw(layout_topmost)
+        # Hide the errors when running an operation (typically synchronizing with remote repositories)
+        # because a common cause for an error is when the user enabled online access for the first time
+        # and no repository data is found. This makes it seem as if there is an error when the user first
+        # enables online access, only to disappear once syncing is complete.
+        # Whatever the exact cause, it's likely that syncing will resolve issues relating
+        # to accessing repositories so it's not helpful to bother the user while this runs.
+        if not operation_in_progress:
+            display_errors.draw(layout_topmost)
 
 
 class USERPREF_PT_extensions_filter(Panel):
