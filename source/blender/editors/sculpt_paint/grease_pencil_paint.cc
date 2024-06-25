@@ -24,6 +24,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_brush_enums.h"
+#include "DNA_material_types.h"
 
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
@@ -315,36 +316,6 @@ struct PaintOperationExecutor {
     BLI_assert(drawing_ != nullptr);
   }
 
-  /* Attributes that are defined explicitly and should not be copied from original geometry. */
-  Set<std::string> skipped_attribute_ids(const bke::AttrDomain domain) const
-  {
-    switch (domain) {
-      case bke::AttrDomain::Point:
-        if (vertex_color_) {
-          return {"position", "radius", "opacity", "vertex_color"};
-        }
-        else {
-          return {"position", "radius", "opacity"};
-        }
-      case bke::AttrDomain::Curve:
-        if (fill_color_) {
-          return {"curve_type",
-                  "material_index",
-                  "cyclic",
-                  "softness",
-                  "start_cap",
-                  "end_cap",
-                  "fill_color"};
-        }
-        else {
-          return {"curve_type", "material_index", "cyclic", "softness", "start_cap", "end_cap"};
-        }
-      default:
-        return {};
-    }
-    return {};
-  }
-
   float randomize_radius(PaintOperation &self,
                          const float distance,
                          const float radius,
@@ -376,7 +347,7 @@ struct PaintOperationExecutor {
                           const float opacity,
                           const float pressure)
   {
-    if (!use_settings_random_ || !(settings_->draw_random_press > 0.0f)) {
+    if (!use_settings_random_ || !(settings_->draw_random_strength > 0.0f)) {
       return opacity;
     }
     float random_factor = [&]() {
@@ -400,7 +371,8 @@ struct PaintOperationExecutor {
   void process_start_sample(PaintOperation &self,
                             const bContext &C,
                             const InputSample &start_sample,
-                            const int material_index)
+                            const int material_index,
+                            const bool use_fill)
   {
     const float2 start_coords = start_sample.mouse_position;
     const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
@@ -439,14 +411,19 @@ struct PaintOperationExecutor {
     const IndexRange curve_points = curves.points_by_curve()[active_curve];
     const int last_active_point = curve_points.last();
 
+    Set<std::string> point_attributes_to_skip;
+    Set<std::string> curve_attributes_to_skip;
     curves.positions_for_write()[last_active_point] = start_location;
     drawing_->radii_for_write()[last_active_point] = start_radius;
     drawing_->opacities_for_write()[last_active_point] = start_opacity;
+    point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
     if (vertex_color_) {
       drawing_->vertex_colors_for_write()[last_active_point] = *vertex_color_;
+      point_attributes_to_skip.add("vertex_color");
     }
-    if (fill_color_) {
+    if (use_fill && fill_color_) {
       drawing_->fill_colors_for_write()[active_curve] = *fill_color_;
+      curve_attributes_to_skip.add("fill_color");
     }
 
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
@@ -459,12 +436,17 @@ struct PaintOperationExecutor {
     cyclic.span[active_curve] = false;
     materials.span[active_curve] = material_index;
     softness.span[active_curve] = softness_;
+    curve_attributes_to_skip.add_multiple({"material_index", "cyclic", "softness"});
+    cyclic.finish();
+    materials.finish();
+    softness.finish();
 
     /* Only set the attribute if the type is not the default or if it already exists. */
     if (settings_->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("start_cap")) {
       bke::SpanAttributeWriter<int8_t> start_caps =
           attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve);
       start_caps.span[active_curve] = settings_->caps_type;
+      curve_attributes_to_skip.add("start_cap");
       start_caps.finish();
     }
 
@@ -472,12 +454,20 @@ struct PaintOperationExecutor {
       bke::SpanAttributeWriter<int8_t> end_caps = attributes.lookup_or_add_for_write_span<int8_t>(
           "end_cap", bke::AttrDomain::Curve);
       end_caps.span[active_curve] = settings_->caps_type;
+      curve_attributes_to_skip.add("end_cap");
       end_caps.finish();
     }
 
-    cyclic.finish();
-    materials.finish();
-    softness.finish();
+    if (use_fill && (start_opacity < 1.0f || attributes.contains("fill_opacity"))) {
+      bke::SpanAttributeWriter<float> fill_opacities =
+          attributes.lookup_or_add_for_write_span<float>(
+              "fill_opacity",
+              bke::AttrDomain::Curve,
+              bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num())));
+      fill_opacities.span[active_curve] = start_opacity;
+      curve_attributes_to_skip.add("fill_opacity");
+      fill_opacities.finish();
+    }
 
     curves.curve_types_for_write()[active_curve] = CURVE_TYPE_POLY;
     curves.update_curve_types();
@@ -485,12 +475,10 @@ struct PaintOperationExecutor {
     /* Initialize the rest of the attributes with default values. */
     bke::fill_attribute_range_default(attributes,
                                       bke::AttrDomain::Point,
-                                      this->skipped_attribute_ids(bke::AttrDomain::Point),
+                                      point_attributes_to_skip,
                                       IndexRange(last_active_point, 1));
-    bke::fill_attribute_range_default(attributes,
-                                      bke::AttrDomain::Curve,
-                                      this->skipped_attribute_ids(bke::AttrDomain::Curve),
-                                      IndexRange(active_curve, 1));
+    bke::fill_attribute_range_default(
+        attributes, bke::AttrDomain::Curve, curve_attributes_to_skip, IndexRange(active_curve, 1));
 
     drawing_->tag_topology_changed();
   }
@@ -700,7 +688,8 @@ struct PaintOperationExecutor {
     /* Resize the curves geometry. */
     extend_curve(curves, on_back, new_points_num);
 
-    /* Subdivide stroke in new_points. */
+    Set<std::string> point_attributes_to_skip;
+    /* Subdivide new segment. */
     const IndexRange new_points = curves.points_by_curve()[active_curve].take_back(new_points_num);
     Array<float2> new_screen_space_coords(new_points_num);
     MutableSpan<float3> positions = curves.positions_for_write();
@@ -708,11 +697,13 @@ struct PaintOperationExecutor {
     MutableSpan<float> new_radii = drawing_->radii_for_write().slice(new_points);
     MutableSpan<float> new_opacities = drawing_->opacities_for_write().slice(new_points);
     linear_interpolation<float2>(prev_coords, coords, new_screen_space_coords, is_first_sample);
+    point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
     if (vertex_color_) {
       MutableSpan<ColorGeometry4f> new_vertex_colors = drawing_->vertex_colors_for_write().slice(
           new_points);
       linear_interpolation<ColorGeometry4f>(
           prev_vertex_color, *vertex_color_, new_vertex_colors, is_first_sample);
+      point_attributes_to_skip.add("vertex_color");
     }
 
     /* Randomize radii. */
@@ -784,7 +775,7 @@ struct PaintOperationExecutor {
     /* Initialize the rest of the attributes with default values. */
     bke::fill_attribute_range_default(attributes,
                                       bke::AttrDomain::Point,
-                                      this->skipped_attribute_ids(bke::AttrDomain::Point),
+                                      point_attributes_to_skip,
                                       curves.points_range().take_back(1));
 
     drawing_->set_texture_matrices({self.texture_space_}, IndexRange::from_single(active_curve));
@@ -853,12 +844,13 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
       CTX_data_main(&C), object, brush);
   const int material_index = BKE_object_material_index_get(object, material);
+  const bool use_fill = (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
 
   /* We're now starting to draw. */
   grease_pencil->runtime->is_drawing_stroke = true;
 
   PaintOperationExecutor executor{C};
-  executor.process_start_sample(*this, C, start_sample, material_index);
+  executor.process_start_sample(*this, C, start_sample, material_index, use_fill);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(&C, NC_GEOM | ND_DATA, grease_pencil);
