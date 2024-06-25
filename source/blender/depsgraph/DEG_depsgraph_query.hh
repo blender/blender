@@ -124,7 +124,7 @@ Depsgraph *DEG_get_depsgraph_by_id(const ID &id);
 bool DEG_is_original_id(const ID *id);
 bool DEG_is_original_object(const Object *object);
 
-/* Opposite of the above.
+/* Opposite of the above (`DEG_is_original_*`).
  *
  * If the data-block is not original it must be evaluated, and vice versa. */
 
@@ -156,10 +156,16 @@ bool DEG_id_is_fully_evaluated(const Depsgraph *depsgraph, const ID *id_eval);
  */
 bool DEG_object_geometry_is_evaluated(const Object &object);
 
-/** Same as above but for the transformation of the object. */
+/**
+ *  Same as #DEG_object_geometry_is_evaluated
+ *  but for the transformation of the object.
+ */
 bool DEG_object_transform_is_evaluated(const Object &object);
 
-/** Same as above but for the geometry of all objects in the collection. */
+/**
+ * Same as #DEG_object_geometry_is_evaluated
+ * but for the geometry of all objects in the collection.
+ */
 bool DEG_collection_geometry_is_evaluated(const Collection &collection);
 
 /** \} */

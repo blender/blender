@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: 2024-04-29 13:28+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -35404,11 +35404,6 @@ msgstr ":ﺮﻳﺬﺤﺗ"
 
 
 msgctxt "Operator"
-msgid "Documentation"
-msgstr "ﻖﻴﺛﻮﺘﻟﺍ"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "ﺄﻄﺧ ﻎﻴﻠﺒﺗ"
 
@@ -36580,6 +36575,11 @@ msgstr ":ﺮﻳﺬﺤﺗ"
 
 msgid "Internet:"
 msgstr ":ﺖﻴﻧﺮﺘﻧﺃ"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "ﻖﻴﺛﻮﺘﻟﺍ"
 
 
 msgctxt "Operator"

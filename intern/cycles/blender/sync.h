@@ -66,12 +66,12 @@ class BlenderSync {
                  int width,
                  int height,
                  void **python_thread_state,
-                 const DeviceInfo &device_info);
+                 const DeviceInfo &denoise_device_info);
   void sync_view_layer(BL::ViewLayer &b_view_layer);
   void sync_render_passes(BL::RenderLayer &b_render_layer, BL::ViewLayer &b_view_layer);
   void sync_integrator(BL::ViewLayer &b_view_layer,
                        bool background,
-                       const DeviceInfo &device_info);
+                       const DeviceInfo &denoise_device_info);
   void sync_camera(BL::RenderSettings &b_render,
                    BL::Object &b_override,
                    int width,
@@ -105,7 +105,7 @@ class BlenderSync {
   static DenoiseParams get_denoise_params(BL::Scene &b_scene,
                                           BL::ViewLayer &b_view_layer,
                                           bool background,
-                                          const DeviceInfo &device);
+                                          const DeviceInfo &denoise_device);
 
  private:
   /* sync */

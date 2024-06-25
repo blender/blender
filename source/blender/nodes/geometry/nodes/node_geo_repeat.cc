@@ -255,7 +255,7 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryRepeatOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_new<NodeGeometryRepeatOutput>(__func__, src_storage);
+  auto *dst_storage = MEM_cnew<NodeGeometryRepeatOutput>(__func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<RepeatItemsAccessor>(*src_node, *dst_node);

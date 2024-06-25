@@ -375,9 +375,13 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   U.active_extension_repo = BLI_findindex(&U.extension_repos, new_repo);
   U.runtime.is_dirty = true;
 
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+  {
+    PointerRNA new_repo_ptr = RNA_pointer_create(nullptr, &RNA_UserExtensionRepo, new_repo);
+    PointerRNA *pointers[] = {&new_repo_ptr};
 
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_SYNC);
+    BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+    BKE_callback_exec(bmain, pointers, ARRAY_SIZE(pointers), BKE_CB_EVT_EXTENSION_REPOS_SYNC);
+  }
 
   /* There's no dedicated notifier for the Preferences. */
   WM_event_add_notifier(C, NC_WINDOW, nullptr);

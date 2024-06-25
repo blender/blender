@@ -1,0 +1,12 @@
+#include "svg_icons.h"
+#include "UI_resources.hh"
+
+const char *blf_get_icon_svg(int icon)
+{
+	switch (icon) 
+	{
+		@SVGCCCONTENTS@
+	default:
+		return datatoc_none_svg;
+	}
+}

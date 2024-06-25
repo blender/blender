@@ -5,6 +5,7 @@
 import bpy
 from bpy.types import Panel, Menu
 from bpy.props import StringProperty
+from bpy.app.translations import contexts as i18n_contexts
 from nodeitems_utils import node_categories_iter, NodeItemCustom
 
 from . import operators
@@ -29,11 +30,11 @@ def drawlayout(context, layout, mode='non-panel'):
     col = layout.column(align=True)
     col.operator(operators.NWDetachOutputs.bl_idname, icon='UNLINKED')
     col.operator(operators.NWSwapLinks.bl_idname)
-    col.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes", icon='LAYER_USED')
+    col.menu(NWAddReroutesMenu.bl_idname, icon='LAYER_USED')
     col.separator()
 
     col = layout.column(align=True)
-    col.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected", icon='LINKED')
+    col.menu(NWLinkActiveToSelectedMenu.bl_idname, icon='LINKED')
     if tree_type != 'GeometryNodeTree':
         col.operator(operators.NWLinkToOutputNode.bl_idname, icon='DRIVER')
     col.separator()
@@ -46,9 +47,9 @@ def drawlayout(context, layout, mode='non-panel'):
     else:
         col.operator(operators.NWClearLabel.bl_idname).option = True
         col.operator(operators.NWModifyLabels.bl_idname)
-    col.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change")
+    col.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change", text_ctxt=i18n_contexts.operator_default)
     col.separator()
-    col.menu(NWCopyToSelectedMenu.bl_idname, text="Copy to Selected")
+    col.menu(NWCopyToSelectedMenu.bl_idname)
     col.separator()
 
     col = layout.column(align=True)
@@ -68,7 +69,6 @@ def drawlayout(context, layout, mode='non-panel'):
 
     col = layout.column(align=True)
     col.operator(operators.NWDeleteUnused.bl_idname, icon='CANCEL')
-    col.separator()
 
 
 class NodeWranglerPanel(Panel, NWBaseMenu):
@@ -132,7 +132,7 @@ class NWMergeGeometryMenu(Menu, NWBaseMenu):
         layout = self.layout
         # The boolean node + Join Geometry node
         for type, name, description in geo_combine_operations:
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name)
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
             props.mode = type
             props.merge_type = 'GEOMETRY'
 
@@ -145,7 +145,7 @@ class NWMergeShadersMenu(Menu, NWBaseMenu):
         layout = self.layout
         for type in ('MIX', 'ADD'):
             name = f'{type.capitalize()} Shader'
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name)
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
             props.mode = type
             props.merge_type = 'SHADER'
 
@@ -157,14 +157,14 @@ class NWMergeMixMenu(Menu, NWBaseMenu):
     def draw(self, context):
         layout = self.layout
         for type, name, description in blend_types:
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name)
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
             props.mode = type
             props.merge_type = 'MIX'
 
 
 class NWConnectionListOutputs(Menu, NWBaseMenu):
     bl_idname = "NODE_MT_nw_connection_list_out"
-    bl_label = "From:"
+    bl_label = "From Socket"
 
     def draw(self, context):
         layout = self.layout
@@ -177,12 +177,14 @@ class NWConnectionListOutputs(Menu, NWBaseMenu):
                 layout.operator(
                     operators.NWCallInputsMenu.bl_idname,
                     text=output.name,
-                    icon="RADIOBUT_OFF").from_socket = index
+                    text_ctxt=i18n_contexts.default,
+                    icon="RADIOBUT_OFF",
+                ).from_socket = index
 
 
 class NWConnectionListInputs(Menu, NWBaseMenu):
     bl_idname = "NODE_MT_nw_connection_list_in"
-    bl_label = "To:"
+    bl_label = "To Socket"
 
     def draw(self, context):
         layout = self.layout
@@ -196,7 +198,11 @@ class NWConnectionListInputs(Menu, NWBaseMenu):
             # of the vector math node being added to the list when
             # the mode is not 'SCALE'.
             if input.enabled:
-                op = layout.operator(operators.NWMakeLink.bl_idname, text=input.name, icon="FORWARD")
+                op = layout.operator(
+                    operators.NWMakeLink.bl_idname, text=input.name,
+                    text_ctxt=i18n_contexts.default,
+                    icon="FORWARD",
+                )
                 op.from_socket = context.scene.NWSourceSocket
                 op.to_socket = index
 
@@ -208,7 +214,7 @@ class NWMergeMathMenu(Menu, NWBaseMenu):
     def draw(self, context):
         layout = self.layout
         for type, name, description in operations:
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name)
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
             props.mode = type
             props.merge_type = 'MATH'
 
@@ -230,7 +236,11 @@ class NWBatchChangeBlendTypeMenu(Menu, NWBaseMenu):
     def draw(self, context):
         layout = self.layout
         for type, name, description in blend_types:
-            props = layout.operator(operators.NWBatchChangeNodes.bl_idname, text=name)
+            props = layout.operator(
+                operators.NWBatchChangeNodes.bl_idname,
+                text=name,
+                text_ctxt=i18n_contexts.default
+            )
             props.blend_type = type
             props.operation = 'CURRENT'
 
@@ -242,7 +252,7 @@ class NWBatchChangeOperationMenu(Menu, NWBaseMenu):
     def draw(self, context):
         layout = self.layout
         for type, name, description in operations:
-            props = layout.operator(operators.NWBatchChangeNodes.bl_idname, text=name)
+            props = layout.operator(operators.NWBatchChangeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
             props.blend_type = 'CURRENT'
             props.operation = type
 
@@ -263,9 +273,9 @@ class NWCopyLabelMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(operators.NWCopyLabel.bl_idname, text="from Active Node's Label").option = 'FROM_ACTIVE'
-        layout.operator(operators.NWCopyLabel.bl_idname, text="from Linked Node's Label").option = 'FROM_NODE'
-        layout.operator(operators.NWCopyLabel.bl_idname, text="from Linked Output's Name").option = 'FROM_SOCKET'
+        layout.operator(operators.NWCopyLabel.bl_idname, text="From Active Node's Label").option = 'FROM_ACTIVE'
+        layout.operator(operators.NWCopyLabel.bl_idname, text="From Linked Node's Label").option = 'FROM_NODE'
+        layout.operator(operators.NWCopyLabel.bl_idname, text="From Linked Output's Name").option = 'FROM_SOCKET'
 
 
 class NWAddReroutesMenu(Menu, NWBaseMenu):
@@ -275,9 +285,9 @@ class NWAddReroutesMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(operators.NWAddReroutes.bl_idname, text="to All Outputs").option = 'ALL'
-        layout.operator(operators.NWAddReroutes.bl_idname, text="to Loose Outputs").option = 'LOOSE'
-        layout.operator(operators.NWAddReroutes.bl_idname, text="to Linked Outputs").option = 'LINKED'
+        layout.operator(operators.NWAddReroutes.bl_idname, text="To All Outputs").option = 'ALL'
+        layout.operator(operators.NWAddReroutes.bl_idname, text="To Loose Outputs").option = 'LOOSE'
+        layout.operator(operators.NWAddReroutes.bl_idname, text="To Linked Outputs").option = 'LINKED'
 
 
 class NWLinkActiveToSelectedMenu(Menu, NWBaseMenu):
@@ -297,7 +307,7 @@ class NWLinkStandardMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Do Not Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = False
@@ -313,7 +323,7 @@ class NWLinkUseNodeNameMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Do Not Replace Links")
         props.replace = False
         props.use_node_name = True
         props.use_outputs_names = False
@@ -329,7 +339,7 @@ class NWLinkUseOutputsNamesMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(operators.NWLinkActiveToSelected.bl_idname, text="Do Not Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = True
@@ -371,7 +381,11 @@ class NWAttributeMenu(bpy.types.Menu):
 
         if attrs:
             for attr in attrs:
-                l.operator(operators.NWAddAttrNode.bl_idname, text=attr).attr_name = attr
+                l.operator(
+                    operators.NWAddAttrNode.bl_idname,
+                    text=attr,
+                    translate=False,
+                ).attr_name = attr
         else:
             l.label(text="No attributes on objects with this material")
 

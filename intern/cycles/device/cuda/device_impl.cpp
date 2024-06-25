@@ -256,7 +256,7 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
     if (!force_ptx) {
-      const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin", name, major, minor));
+      const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
       VLOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
       if (path_exists(cubin)) {
         VLOG_INFO << "Using precompiled kernel.";
@@ -268,7 +268,7 @@ string CUDADevice::compile_kernel(const string &common_cflags,
     int ptx_major = major, ptx_minor = minor;
     while (ptx_major >= 3) {
       const string ptx = path_get(
-          string_printf("lib/%s_compute_%d%d.ptx", name, ptx_major, ptx_minor));
+          string_printf("lib/%s_compute_%d%d.ptx.zst", name, ptx_major, ptx_minor));
       VLOG_INFO << "Testing for pre-compiled kernel " << ptx << ".";
       if (path_exists(ptx)) {
         VLOG_INFO << "Using precompiled kernel.";
@@ -440,7 +440,7 @@ bool CUDADevice::load_kernels(const uint kernel_features)
   string cubin_data;
   CUresult result;
 
-  if (path_read_text(cubin, cubin_data)) {
+  if (path_read_compressed_text(cubin, cubin_data)) {
     result = cuModuleLoadData(&cuModule, cubin_data.c_str());
   }
   else {

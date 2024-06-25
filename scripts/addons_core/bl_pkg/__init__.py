@@ -269,30 +269,39 @@ def repos_to_notify():
 # Handlers
 
 @bpy.app.handlers.persistent
-def extenion_repos_sync(*_):
-    # This is called from operators (create or an explicit call to sync)
-    # so calling a modal operator is "safe".
-    if (active_repo := repo_active_or_none()) is None:
+def extenion_repos_sync(repo, *_):
+    # Ignore in background mode as this is for the UI to stay in sync.
+    # Automated tasks must sync explicitly.
+    if bpy.app.background:
         return
 
-    print_debug("SYNC:", active_repo.name)
+    print_debug("SYNC:", repo.name)
     # There may be nothing to upgrade.
 
-    # FIXME: don't use the operator, this is error prone.
-    # The same method used to update the status-bar on startup would be preferable.
-    if not bpy.ops.extensions.repo_sync_all.poll():
-        print("skipping sync, poll failed")
+    if not repo.use_remote_url:
+        return
+    if not bpy.app.online_access:
+        if not repo.remote_url.startswith("file://"):
+            return
+
+    # NOTE: both `extensions.repo_sync_all` and `bl_extension_notify.update_non_blocking` can be used here.
+    # Call the non-blocking update because the updates are queued and can be de-duplicated.
+    # They're less intrusive as they don't use a modal operator.
+    from .bl_extension_notify import update_non_blocking
+    from .bl_extension_ops import extension_repos_read
+
+    repos_all = extension_repos_read()
+    repos_notify = [repo_iter for repo_iter in repos_all if repo_iter.name == repo.name]
+
+    # The repository may be disabled or invalid for some other reason, in this case skip an update.
+    if not repos_notify:
         return
 
-    from contextlib import redirect_stdout
-    import io
-    stdout = io.StringIO()
+    update_non_blocking(repos_fn=lambda: [(repo_iter, True) for repo_iter in repos_notify], immediate=True)
 
-    with redirect_stdout(stdout):
-        bpy.ops.extensions.repo_sync_all('INVOKE_DEFAULT', use_active_only=True)
-
-    if text := stdout.getvalue():
-        repo_status_text.from_message("Sync \"{:s}\"".format(active_repo.name), text)
+    # Without this the preferences wont show update text.
+    from .bl_extension_ui import notify_info
+    notify_info.update_show_in_preferences()
 
 
 @bpy.app.handlers.persistent
@@ -307,13 +316,14 @@ def extenion_repos_files_clear(directory, _):
     from .bl_extension_utils import (
         scandir_with_demoted_errors,
         PKG_MANIFEST_FILENAME_TOML,
+        REPO_LOCAL_PRIVATE_DIR,
     )
     # Unlikely but possible a new repository is immediately removed before initializing,
     # avoid errors in this case.
     if not os.path.isdir(directory):
         return
 
-    if os.path.isdir(path := os.path.join(directory, ".blender_ext")):
+    if os.path.isdir(path := os.path.join(directory, REPO_LOCAL_PRIVATE_DIR)):
         try:
             shutil.rmtree(path)
         except Exception as ex:

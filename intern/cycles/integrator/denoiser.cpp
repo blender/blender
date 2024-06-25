@@ -122,16 +122,16 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
       is_cpu_denoiser_device ? single_denoiser_device : cpu_fallback_device, oidn_params);
 }
 
-DenoiserType Denoiser::automatic_viewport_denoiser_type(const DeviceInfo &path_trace_device_info)
+DenoiserType Denoiser::automatic_viewport_denoiser_type(const DeviceInfo &denoise_device_info)
 {
 #ifdef WITH_OPENIMAGEDENOISE
-  if (path_trace_device_info.type != DEVICE_CPU &&
-      OIDNDenoiserGPU::is_device_supported(path_trace_device_info))
+  if (denoise_device_info.type != DEVICE_CPU &&
+      OIDNDenoiserGPU::is_device_supported(denoise_device_info))
   {
     return DENOISER_OPENIMAGEDENOISE;
   }
 #else
-  (void)path_trace_device_info;
+  (void)denoise_device_info;
 #endif
 
 #ifdef WITH_OPTIX

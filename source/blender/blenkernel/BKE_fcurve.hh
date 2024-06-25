@@ -331,7 +331,7 @@ FCurve *BKE_fcurve_find_by_rna(PointerRNA *ptr,
                                bool *r_driven,
                                bool *r_special);
 /**
- * Same as above, but takes a context data,
+ * Same as #BKE_fcurve_find_by_rna, but takes a context data,
  * temp hack needed for complex paths like texture ones.
  *
  * \param r_special: Optional, ignored when NULL. Set to `true` if the given RNA `ptr` is a NLA

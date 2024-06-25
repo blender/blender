@@ -1,0 +1,15 @@
+diff --git a/source/CMakeLists.txt b/source/CMakeLists.txt
+index ab5ddfe..50e9a05 100755
+--- a/source/CMakeLists.txt
+--- b/source/CMakeLists.txt
+@@ -478,6 +478,10 @@ if(ARM64)
+   endif()
+ endif(ARM64)
+ 
++if(APPLE)
++  list(APPEND ASM_FLAGS -isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET})
++endif()
++
+ option(WARNINGS_AS_ERRORS "Stop compiles on first warning" OFF)
+ if(WARNINGS_AS_ERRORS)
+     if(GCC)

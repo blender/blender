@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -64459,16 +64459,8 @@ msgid "Directional Shadows Resolution"
 msgstr "방향성 섀도우 해상도"
 
 
-msgid "Size of sun light shadow maps"
-msgstr "태양 빛 섀도우 맵의 크기"
-
-
 msgid "Cube Shadows Resolution"
 msgstr "큐브 섀도우 해상도"
-
-
-msgid "Size of point and area light shadow maps"
-msgstr "포인트 및 영역 라이트 섀도우 맵의 크기"
 
 
 msgid "Edge Fading"
@@ -72293,11 +72285,6 @@ msgstr "경고"
 
 
 msgctxt "Operator"
-msgid "Documentation"
-msgstr "문서"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "버그 신고"
 
@@ -75761,6 +75748,11 @@ msgstr "경고:"
 
 msgid "Internet:"
 msgstr "인터넷:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "문서"
 
 
 msgctxt "Operator"

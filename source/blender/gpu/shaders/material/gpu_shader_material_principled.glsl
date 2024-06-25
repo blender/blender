@@ -57,11 +57,7 @@ void node_bsdf_principled(vec4 base_color,
                           float emission_strength,
                           float thin_film_thickness,
                           float thin_film_ior,
-                          const float do_diffuse,
-                          const float do_coat,
-                          const float do_refraction,
                           const float do_multiscatter,
-                          const float do_sss,
                           out Closure result)
 {
   /* Match cycles. */
@@ -94,11 +90,16 @@ void node_bsdf_principled(vec4 base_color,
   vec3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
 
-  ClosureTransparency transparency_data;
-  transparency_data.weight = weight;
-  transparency_data.transmittance = vec3(1.0 - alpha);
-  transparency_data.holdout = 0.0;
-  weight *= alpha;
+  /* Transparency component. */
+  if (true) {
+    ClosureTransparency transparency_data;
+    transparency_data.weight = weight;
+    transparency_data.transmittance = vec3(1.0 - alpha);
+    transparency_data.holdout = 0.0;
+    closure_eval(transparency_data);
+
+    weight *= alpha;
+  }
 
   /* First layer: Sheen */
   vec3 sheen_data_color = vec3(0.0);
@@ -111,15 +112,17 @@ void node_bsdf_principled(vec4 base_color,
   }
 
   /* Second layer: Coat */
-  ClosureReflection coat_data;
-  coat_data.N = CN;
-  coat_data.roughness = coat_roughness;
-  coat_data.color = vec3(1.0);
-
   if (coat_weight > 0.0) {
-    float coat_NV = dot(coat_data.N, V);
-    float reflectance = bsdf_lut(coat_NV, coat_data.roughness, coat_ior, false).x;
+    float coat_NV = dot(CN, V);
+    float reflectance = bsdf_lut(coat_NV, coat_roughness, coat_ior, false).x;
+
+    ClosureReflection coat_data;
+    coat_data.N = CN;
+    coat_data.roughness = coat_roughness;
+    coat_data.color = vec3(1.0);
     coat_data.weight = weight * coat_weight * reflectance;
+    closure_eval(coat_data);
+
     /* Attenuate lower layers */
     weight *= max((1.0 - reflectance * coat_weight), 0.0);
 
@@ -130,50 +133,38 @@ void node_bsdf_principled(vec4 base_color,
       coat_tint.rgb = mix(vec3(1.0), pow(coat_tint.rgb, vec3(1.0 / NT)), saturate(coat_weight));
     }
   }
-  else {
-    coat_tint.rgb = vec3(1.0);
-    coat_data.weight = 0.0;
+
+  /* Emission component.
+   * Attenuated by sheen and coat.
+   */
+  if (true) {
+    ClosureEmission emission_data;
+    emission_data.weight = weight;
+    emission_data.emission = coat_tint.rgb * emission.rgb * emission_strength;
+    closure_eval(emission_data);
   }
 
-  /* Attenuated by sheen and coat. */
-  ClosureEmission emission_data;
-  emission_data.weight = weight;
-  emission_data.emission = coat_tint.rgb * emission.rgb * emission_strength;
-
   /* Metallic component */
-  ClosureReflection reflection_data;
-  reflection_data.N = N;
-  reflection_data.roughness = roughness;
   vec3 reflection_tint = specular_tint.rgb;
+  vec3 reflection_color = vec3(0.0);
   if (metallic > 0.0) {
     vec3 F0 = clamped_base_color.rgb;
     vec3 F82 = min(reflection_tint, vec3(1.0));
     vec3 metallic_brdf;
     brdf_f82_tint_lut(F0, F82, NV, roughness, do_multiscatter != 0.0, metallic_brdf);
-    reflection_data.color = weight * metallic * metallic_brdf;
+    reflection_color = weight * metallic * metallic_brdf;
     /* Attenuate lower layers */
     weight *= max((1.0 - metallic), 0.0);
   }
-  else {
-    reflection_data.color = vec3(0.0);
-  }
 
   /* Transmission component */
-  ClosureRefraction refraction_data;
-  refraction_data.N = N;
-  refraction_data.roughness = roughness;
-  refraction_data.ior = ior;
   if (transmission_weight > 0.0) {
     vec3 F0 = vec3(F0_from_ior(ior)) * reflection_tint;
     vec3 F90 = vec3(1.0);
     vec3 reflectance, transmittance;
     bsdf_lut(F0,
              F90,
-#ifdef GPU_SHADER_EEVEE_LEGACY_DEFINES
-             clamped_base_color.rgb,
-#else
              sqrt(clamped_base_color.rgb),
-#endif
              NV,
              roughness,
              ior,
@@ -181,16 +172,18 @@ void node_bsdf_principled(vec4 base_color,
              reflectance,
              transmittance);
 
-    reflection_data.color += weight * transmission_weight * reflectance;
+    reflection_color += weight * transmission_weight * reflectance;
 
+    ClosureRefraction refraction_data;
+    refraction_data.N = N;
+    refraction_data.roughness = roughness;
+    refraction_data.ior = ior;
     refraction_data.weight = weight * transmission_weight;
     refraction_data.color = transmittance * coat_tint.rgb;
+    closure_eval(refraction_data);
+
     /* Attenuate lower layers */
     weight *= max((1.0 - transmission_weight), 0.0);
-  }
-  else {
-    refraction_data.weight = 0.0;
-    refraction_data.color = vec3(0.0);
   }
 
   /* Specular component */
@@ -211,103 +204,53 @@ void node_bsdf_principled(vec4 base_color,
     vec3 reflectance, unused;
     bsdf_lut(F0, F90, vec3(0.0), NV, roughness, eta, do_multiscatter != 0.0, reflectance, unused);
 
-    reflection_data.color += weight * reflectance;
+    ClosureReflection reflection_data;
+    reflection_data.N = N;
+    reflection_data.roughness = roughness;
+    reflection_data.color = (reflection_color + weight * reflectance) * coat_tint.rgb;
+
     /* Adjust the weight of picking the closure. */
-    reflection_data.color *= coat_tint.rgb;
     reflection_data.weight = math_average(reflection_data.color);
     reflection_data.color *= safe_rcp(reflection_data.weight);
+    closure_eval(reflection_data);
 
     /* Attenuate lower layers */
     weight *= max((1.0 - math_reduce_max(reflectance)), 0.0);
   }
 
-#ifdef GPU_SHADER_EEVEE_LEGACY_DEFINES
-  /* EEVEE Legacy evaluates the subsurface as a diffuse closure.
-   * So this has no performance penalty. However, using a separate closure for subsurface
-   * (just like for EEVEE-Next) would induce a huge performance hit. */
-  ClosureSubsurface diffuse_data;
-  /* Flag subsurface as disabled by default. */
-  diffuse_data.sss_radius.b = -1.0;
-#else
-  ClosureDiffuse diffuse_data;
-#endif
-  diffuse_data.N = N;
-
-  subsurface_radius = max(subsurface_radius * subsurface_scale, vec3(0.0));
-
   /* Subsurface component */
   if (subsurface_weight > 0.0) {
-#ifdef GPU_SHADER_EEVEE_LEGACY_DEFINES
-    /* For Legacy EEVEE, Subsurface is just part of the diffuse. Just evaluate the mixed color. */
-    /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
-     * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
-    base_color = mix(base_color, clamped_base_color, subsurface_weight);
-    if (do_sss != 0.0) {
-      diffuse_data.sss_radius = subsurface_weight * subsurface_radius;
-    }
-#else
     ClosureSubsurface sss_data;
     sss_data.N = N;
-    sss_data.sss_radius = subsurface_radius;
+    sss_data.sss_radius = max(subsurface_radius * subsurface_scale, vec3(0.0));
     /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
      * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
     sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;
     /* Add energy of the sheen layer until we have proper sheen BSDF. */
     sss_data.color += sheen_data_color;
 
+    /* Adjust the weight of picking the closure. */
     sss_data.weight = math_average(sss_data.color);
     sss_data.color *= safe_rcp(sss_data.weight);
-    result = closure_eval(sss_data);
+    closure_eval(sss_data);
 
     /* Attenuate lower layers */
     weight *= max((1.0 - subsurface_weight), 0.0);
-#endif
   }
 
   /* Diffuse component */
   if (true) {
+    ClosureDiffuse diffuse_data;
+    diffuse_data.N = N;
     diffuse_data.color = weight * base_color.rgb * coat_tint.rgb;
     /* Add energy of the sheen layer until we have proper sheen BSDF. */
     diffuse_data.color += sheen_data_color;
 
     diffuse_data.weight = math_average(diffuse_data.color);
     diffuse_data.color *= safe_rcp(diffuse_data.weight);
+
+    closure_eval(diffuse_data);
   }
 
-  /* Ref. #98190: Defines are optimizations for old compilers.
-   * Might become unnecessary with EEVEE-Next. */
-  if (do_diffuse == 0.0 && do_refraction == 0.0 && do_coat != 0.0) {
-#ifdef PRINCIPLED_COAT
-    /* Metallic & Coat case. */
-    result = closure_eval(reflection_data, coat_data);
-#endif
-  }
-  else if (do_diffuse == 0.0 && do_refraction == 0.0 && do_coat == 0.0) {
-#ifdef PRINCIPLED_METALLIC
-    /* Metallic case. */
-    result = closure_eval(reflection_data);
-#endif
-  }
-  else if (do_diffuse != 0.0 && do_refraction == 0.0 && do_coat == 0.0) {
-#ifdef PRINCIPLED_DIELECTRIC
-    /* Dielectric case. */
-    result = closure_eval(diffuse_data, reflection_data);
-#endif
-  }
-  else if (do_diffuse == 0.0 && do_refraction != 0.0 && do_coat == 0.0) {
-#ifdef PRINCIPLED_GLASS
-    /* Glass case. */
-    result = closure_eval(reflection_data, refraction_data);
-#endif
-  }
-  else {
-#ifdef PRINCIPLED_ANY
-    /* Un-optimized case. */
-    result = closure_eval(diffuse_data, reflection_data, coat_data, refraction_data);
-#endif
-  }
-  Closure emission_cl = closure_eval(emission_data);
-  Closure transparency_cl = closure_eval(transparency_data);
-  result = closure_add(result, emission_cl);
-  result = closure_add(result, transparency_cl);
+  result = Closure(0);
 }

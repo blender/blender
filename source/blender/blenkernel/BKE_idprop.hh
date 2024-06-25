@@ -178,7 +178,7 @@ void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop,
                                      const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
- * Same as above but ensure type match.
+ * Same as #IDP_GetPropertyFromGroup but ensure the `type` matches.
  */
 IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
                                          const char *name,

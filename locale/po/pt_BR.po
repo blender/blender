@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -57369,10 +57369,6 @@ msgid "Trace Precision"
 msgstr "Precisão do Traço"
 
 
-msgid "64 px"
-msgstr "64 px"
-
-
 msgid "128 px"
 msgstr "128 px"
 
@@ -57415,6 +57411,10 @@ msgstr "16 px"
 
 msgid "32 px"
 msgstr "32 px"
+
+
+msgid "64 px"
+msgstr "64 px"
 
 
 msgid "Factor for ambient occlusion blending"
@@ -63330,11 +63330,6 @@ msgstr "Alertas:"
 
 
 msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentação"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Relatar defeito (em inglês)"
 
@@ -65796,6 +65791,11 @@ msgstr "Alerta:"
 
 msgid "Internet:"
 msgstr "Internet:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentação"
 
 
 msgctxt "Operator"

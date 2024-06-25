@@ -195,7 +195,7 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont,
                           const char *ui_name,
                           const char *ui_description);
 /**
- * Same as above but sets #PROP_ENUM_FLAG before setting the default value.
+ * Same as #RNA_def_enum but sets #PROP_ENUM_FLAG before setting the default value.
  */
 PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont,
                                const char *identifier,

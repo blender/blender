@@ -322,6 +322,7 @@ static SocketDeclarationPtr declaration_for_interface_socket(
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueString>(io_socket);
       std::unique_ptr<decl::String> decl = std::make_unique<decl::String>();
       decl->default_value = value.value;
+      decl->subtype = PropertySubType(value.subtype);
       dst = std::move(decl);
       break;
     }

@@ -42,7 +42,7 @@ def size_as_fmt_string(num: float, *, precision: int = 1) -> str:
         if abs(num) < 1024.0:
             return "{:3.{:d}f}{:s}".format(num, precision, unit)
         num /= 1024.0
-    unit = "yb"
+    unit = "YB"
     return "{:.{:d}f}{:s}".format(num, precision, unit)
 
 
@@ -68,7 +68,10 @@ def pkg_repo_and_id_from_theme_path(repos_all, filepath):
     dirpath = os.path.dirname(filepath)
     repo_directory, pkg_id = os.path.split(dirpath)
     for repo_index, repo in enumerate(repos_all):
-        if not os.path.samefile(repo_directory, repo.directory):
+        # Avoid `os.path.samefile` because this relies on file-system checks which aren't always reliable.
+        # Some directories might not exist or have permission issues accessing, see #123657.
+        # No need to normalize the path as the themes path will have been created from `repo.directory`.
+        if repo_directory != repo.directory:
             continue
         return repo_index, pkg_id
     return None
@@ -363,7 +366,7 @@ def addons_panel_draw_items(
         *,
         addon_modules,  # `Dict[str, ModuleType]`
         used_addon_module_name_map,  # `Dict[str, bpy.types.Addon]`
-        search_lower,  # `str`
+        search_casefold,  # `str`
         addon_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
         addon_extension_manifest_map,  # `Dict[str, PkgManifest_Normalized]`
@@ -415,11 +418,11 @@ def addons_panel_draw_items(
                 item_tracker_url = bl_info.get("tracker_url")
             del bl_info
 
-        if search_lower and (
+        if search_casefold and (
                 not pkg_info_check_exclude_filter_ex(
                     item_name,
                     item_description,
-                    search_lower,
+                    search_casefold,
                 )
         ):
             continue
@@ -490,7 +493,7 @@ def addons_panel_draw_items(
 def addons_panel_draw_impl(
         self,
         context,  # `bpy.types.Context`
-        search_lower,  # `str`
+        search_casefold,  # `str`
         addon_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
 ):
@@ -553,7 +556,7 @@ def addons_panel_draw_impl(
         context,
         addon_modules=addon_modules,
         used_addon_module_name_map=used_addon_module_name_map,
-        search_lower=search_lower,
+        search_casefold=search_casefold,
         addon_tags_exclude=addon_tags_exclude,
         enabled_only=enabled_only,
         addon_extension_manifest_map=addon_extension_manifest_map,
@@ -630,7 +633,7 @@ def addons_panel_draw(panel, context):
     addons_panel_draw_impl(
         panel,
         context,
-        wm.addon_search.lower(),
+        wm.addon_search.casefold(),
         addon_tags_exclude,
         view.show_addons_enabled_only,
     )
@@ -712,6 +715,23 @@ class notify_info:
                     notify_info._update_state = True
         return in_progress
 
+    def update_show_in_preferences():
+        """
+        An update was triggered externally (not from the interface).
+        Without this call, the message in the preferences UI will not display.
+        """
+        # Skip checking updates when:
+        # - False, updates are running already no need to request displaying again.
+        # - None, updates have not yet run, meaning they will be displayed when the preferences are next drawn.
+        if notify_info._update_state is not True:
+            return
+
+        # NOTE: we could assert `bl_extension_notify.update_in_progress` since it is expected
+        # this function is called when updates have been started, however it's functionally a NOP
+        # where this case is detected and the notification state will switch to being "complete"
+        # (when `update_ensure` runs).
+        notify_info._update_state = False
+
 
 def extensions_panel_draw_online_extensions_request_impl(
         self,
@@ -787,7 +807,7 @@ def extensions_map_from_legacy_addons_reverse_lookup(pkg_id):
 def extensions_panel_draw_impl(
         self,
         context,  # `bpy.types.Context`
-        search_lower,   # `str`
+        search_casefold,   # `str`
         filter_by_type,  # `str`
         extension_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
@@ -864,6 +884,45 @@ def extensions_panel_draw_impl(
         nonlocal remote_ex
         remote_ex = ex
 
+    # NOTE: regarding local/remote data.
+    # The simple cases are when only one is available.
+    # - When the extension is not installed, there is only "remote" data.
+    # - When the extension is part of the users local repository, there is no "remote" data.
+    # - When the extension is part of a remote repository but has no remote data,
+    #   this is considered "orphaned", there is also no "remote" data in this case.
+    #
+    # When both remote and local data is available, fields from the manifest are selectively taken
+    # from remote and local data based on the following rationale.
+    # In the general case the "local" data is what the user is running so they
+    # will want to see this even if it no longer matches the remote data.
+    # Unless there is a good reason to do otherwise, this is the rule of thumb.
+    #
+    # Exceptions to this rule:
+    # - *version*: when outdated, it's useful to show both versions as the user may wish to upgrade.
+    #   Otherwise it's typically not useful to attempt to make the user aware of other minor discrepancies.
+    #   (changes to the description or maintainer for e.g.).
+    #
+    # - *website*: the host of the remote repository may wish to override the website with a landing page for
+    #   each extension, this page can show information managed by the organization hosting repository,
+    #   information such access to older versions, reviews, ratings etc.
+    #   Such a page can also link to the authors website (the "local" value of the website).
+
+    #   While this is an opinionated decision it doesn't have significant down-sides:
+    #   - Remote hosts that don't override this value will point to the same URL.
+    #   - Remote hosts that change the value benefit from prioritizing the remote data.
+    #
+    #   The one potential down-side is that the user may have intentionally down-graded an extension,
+    #   then wish to visit the website of that older extension which may point to older documentation
+    #   that no longer applies to the newer version, while this is a corner case, it's possible users hit this.
+    #   We *could* support a "Visit Website" and "Visit Authors Website" in this case,
+    #   however it seems enough of a corner case we can simply expose one.
+    #
+    # - *permissions*: while we only need to show the local value, users need to be aware when upgrading
+    #   an extension results in it having additional permissions.
+    #   This may be a special case - as it can be handled when upgrading instead of the UI.
+    #
+    #   TODO(@ideasman42): handle permissions on upgrade.
+
     for repo_index, (
             pkg_manifest_local,
             pkg_manifest_remote,
@@ -903,11 +962,35 @@ def extensions_panel_draw_impl(
                 # NOTE: it would be nice to detect when the repository ran sync and it failed.
                 # This isn't such an important distinction though, the main thing users should be aware of
                 # is that a "sync" is required.
-                errors_on_draw.append(
-                    "Repository: \"{:s}\" must sync with the remote repository.".format(
-                        repos_all[repo_index].name,
+                if bpy.app.online_access:
+                    errors_on_draw.append(
+                        (
+                            "Repository: \"{:s}\" remote data unavailable, "
+                            "sync with the remote repository."
+                        ).format(
+                            repos_all[repo_index].name,
+                        )
                     )
-                )
+                elif prefs.extensions.use_online_access_handled is False:
+                    # Hide this message when online access hasn't been handled
+                    # as it's unnecessarily noisy to show both messages at once.
+                    pass
+                else:
+                    # This message could also be suppressed when offline after all it is not a surprise that
+                    # the remote data is not available when offline. Don't do this for the following reasons.
+                    #
+                    # - Keeping a remote repository enable when offline, while supported is likely to cause
+                    #   errors/reports elsewhere and this is a hint that data which is expected to display is missing.
+                    # - It's possible to use remote `file://` URL's when offline.
+                    #   Repositories which don't require online access shouldn't have their errors suppressed.
+                    errors_on_draw.append(
+                        (
+                            "Repository: \"{:s}\" remote data unavailable, "
+                            "either allow \"Online Access\" or disable the repository to suppress this message"
+                        ).format(
+                            repos_all[repo_index].name,
+                        )
+                    )
                 continue
 
         repo_module_prefix = pkg_repo_module_prefix(repos_all[repo_index])
@@ -916,7 +999,7 @@ def extensions_panel_draw_impl(
             item = item_local or item_remote
             if filter_by_type and (filter_by_type != item.type):
                 continue
-            if search_lower and (not pkg_info_check_exclude_filter(item, search_lower)):
+            if search_casefold and (not pkg_info_check_exclude_filter(item, search_casefold)):
                 continue
 
             is_installed = item_local is not None
@@ -1117,7 +1200,14 @@ def extensions_panel_draw_impl(
     # Finally show any errors in a single panel which can be dismissed.
     display_errors.errors_curr = errors_on_draw
     if errors_on_draw:
-        display_errors.draw(layout_topmost)
+        # Hide the errors when running an operation (typically synchronizing with remote repositories)
+        # because a common cause for an error is when the user enabled online access for the first time
+        # and no repository data is found. This makes it seem as if there is an error when the user first
+        # enables online access, only to disappear once syncing is complete.
+        # Whatever the exact cause, it's likely that syncing will resolve issues relating
+        # to accessing repositories so it's not helpful to bother the user while this runs.
+        if not operation_in_progress:
+            display_errors.draw(layout_topmost)
 
 
 class USERPREF_PT_extensions_filter(Panel):
@@ -1202,8 +1292,22 @@ class USERPREF_MT_extensions_settings(Menu):
 
             layout.separator()
 
-            layout.operator("extensions.package_install_marked", text="Install Marked", icon='IMPORT')
-            layout.operator("extensions.package_uninstall_marked", text="Uninstall Marked", icon='X')
+            layout.operator("extensions.package_mark_set_all", text="Mark All")
+            layout.operator("extensions.package_mark_clear_all", text="Unmark All")
+
+            layout.separator()
+
+            layout.operator(
+                "extensions.package_install_marked",
+                text="Install Marked",
+                icon='IMPORT',
+            ).enable_on_install = False
+            layout.operator(
+                "extensions.package_uninstall_marked",
+                text="Uninstall Marked",
+                icon='X',
+            )
+
             layout.operator("extensions.package_obsolete_marked")
 
             layout.separator()
@@ -1322,7 +1426,9 @@ class USERPREF_MT_extensions_item(Menu):
                     props.pkg_id = pkg_id
                     del props
 
-        if value := item.website:
+        # Unlike most other value, prioritize the remote website,
+        # see code comments in `extensions_panel_draw_impl`.
+        if value := ((item_remote or item_local).website):
             layout.operator("wm.url_open", text="Visit Website", icon='URL').url = value
         else:
             # Without this, the menu may sometimes be empty (which seems like a bug).
@@ -1478,7 +1584,7 @@ def extensions_panel_draw(panel, context):
     extensions_panel_draw_impl(
         panel,
         context,
-        wm.extension_search.lower(),
+        wm.extension_search.casefold(),
         blender_filter_by_type_map[wm.extension_type],
         extension_tags_exclude,
         wm.extension_enabled_only,

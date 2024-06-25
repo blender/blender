@@ -88,6 +88,7 @@ void RayTraceModule::sync()
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_image("out_ray_data_img", &ray_data_tx_);
     pass.bind_ssbo("tiles_coord_buf", &raytrace_tracing_tiles_buf_);
+    pass.bind_resources(inst_.uniform_data);
     pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.gbuffer);
     pass.dispatch(raytrace_tracing_dispatch_buf_);
@@ -107,6 +108,7 @@ void RayTraceModule::sync()
     pass.bind_image("ray_radiance_img", &ray_radiance_tx_);
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_resources(inst_.uniform_data);
+    pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.planar_probes);
     pass.bind_resources(inst_.volume_probes);
     pass.bind_resources(inst_.sphere_probes);

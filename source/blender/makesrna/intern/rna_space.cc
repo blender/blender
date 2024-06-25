@@ -1065,7 +1065,7 @@ static void rna_RegionView3D_quadview_update(Main * /*main*/, Scene * /*scene*/,
   }
 }
 
-/* same as above but call clip==true */
+/** Same as #rna_RegionView3D_quadview_update but call `clip == true`. */
 static void rna_RegionView3D_quadview_clip_update(Main * /*main*/,
                                                   Scene * /*scene*/,
                                                   PointerRNA *ptr)

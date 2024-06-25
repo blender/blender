@@ -1220,7 +1220,9 @@ static void layer_collection_sync(ViewLayer *view_layer,
       child_layer->runtime_flag |= LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
     }
 
-    if (!BLI_listbase_is_empty(&child_collection->exporters)) {
+    if (!BLI_listbase_is_empty(&child_collection->exporters) &&
+        !(ID_IS_LINKED(&child_collection->id) || ID_IS_OVERRIDE_LIBRARY(&child_collection->id)))
+    {
       view_layer->flag |= VIEW_LAYER_HAS_EXPORT_COLLECTIONS;
     }
   }

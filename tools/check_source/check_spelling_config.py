@@ -390,6 +390,7 @@ dict_custom = {
     "symmetrize",
     "symmetrized",
     "targetless",
+    "tedrahedral",
     "teleporting",
     "templating",
     "tertiarily",

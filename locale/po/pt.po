@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-06-14 16:56+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"PO-Revision-Date: 2024-06-21 13:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -410,6 +410,18 @@ msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Mostra o Nó de Saída de Material glTF no Editor de Sombreadores (Menu Adicionar > Saída)"
 
 
+msgid "        Filter by Name"
+msgstr "        Filtrar por Nome"
+
+
+msgid "Show only hotkeys that have this text in their name"
+msgstr "Mostrar apenas atalhos de teclado que tenham este texto no nome"
+
+
+msgid "Hide Mix nodes"
+msgstr "Esconder nós Misturar"
+
+
 msgid "Always"
 msgstr "Sempre"
 
@@ -687,7 +699,7 @@ msgstr "Calcula o caminho dos ossos a partir das bases."
 
 
 msgid "After Current"
-msgstr "Depois do atual"
+msgstr "Depois do actual"
 
 
 msgid "Number of frames to show after the current frame (only for 'Around Frame' Onion-skinning method)"
@@ -695,7 +707,7 @@ msgstr "Número de fotogramas a mostrar após o fotograma actual (apenas para o 
 
 
 msgid "Before Current"
-msgstr "Antes do atual"
+msgstr "Antes do actual"
 
 
 msgid "Number of frames to show before the current frame (only for 'Around Frame' Onion-skinning method)"
@@ -1075,7 +1087,7 @@ msgstr "Espaço ativo"
 
 
 msgid "Space currently being displayed in this area"
-msgstr "O espaço sendo mostrado atualmente nesta área."
+msgstr "O espaço sendo mostrado actualmente nesta área."
 
 
 msgid "Armature Bones"
@@ -9840,7 +9852,7 @@ msgstr "Cena no seu estado avaliado"
 
 
 msgid "Updates"
-msgstr "Atualizações"
+msgstr "Actualizações"
 
 
 msgid "Updates to data-blocks"
@@ -13476,7 +13488,7 @@ msgstr "Número dos níveis da árvore de diretórios a ser mostrados simultanea
 
 
 msgid "Only list current directory's content, with no recursion"
-msgstr "Lista somente o conteúdo do diretório atual, sem recursões."
+msgstr "Lista somente o conteúdo do diretório actual, sem recursões."
 
 
 msgid "Blend File"
@@ -15993,7 +16005,7 @@ msgstr "Fotograma ativo"
 
 
 msgid "Frame currently being displayed for this layer"
-msgstr "Fotograma sendo mostrado atualmente para esta camada."
+msgstr "Fotograma sendo mostrado actualmente para esta camada."
 
 
 msgid "Set annotation Visibility"
@@ -16005,7 +16017,7 @@ msgstr "Cor posterior"
 
 
 msgid "Base color for ghosts after the active frame"
-msgstr "Cor de base para os fantasmas após o fotograma atual."
+msgstr "Cor de base para os fantasmas após o fotograma actual."
 
 
 msgid "Frames After"
@@ -16021,7 +16033,7 @@ msgstr "Cor anterior"
 
 
 msgid "Base color for ghosts before the active frame"
-msgstr "Cor de base para os fantasmas antes do fotograma atual."
+msgstr "Cor de base para os fantasmas antes do fotograma actual."
 
 
 msgid "Frames Before"
@@ -24307,7 +24319,7 @@ msgstr "Nome de ficheiro de imagem ou filme"
 
 
 msgid "Image/Movie file name (without data refreshing)"
-msgstr "Nome do ficheiro de imagem ou filme (sem atualização de dados)."
+msgstr "Nome do ficheiro de imagem ou filme (sem actualização de dados)."
 
 
 msgid "Duration"
@@ -26051,11 +26063,11 @@ msgstr "Influência dos elementos meta-esfera"
 
 
 msgid "Update"
-msgstr "Atualização"
+msgstr "Actualização"
 
 
 msgid "Metaball edit update behavior"
-msgstr "Comportamento de atualização de edição para objecto esfera-meta."
+msgstr "Comportamento de actualização de edição para objecto esfera-meta."
 
 
 msgid "While editing, update metaball always"
@@ -28570,7 +28582,7 @@ msgstr "Definições EEVEE"
 
 
 msgid "Current Frame"
-msgstr "Fotograma atual"
+msgstr "Fotograma actual"
 
 
 msgid "Current frame, to update animation data from Python frame_set() instead"
@@ -28582,7 +28594,7 @@ msgstr "Fotograma actual final"
 
 
 msgid "Current frame with subframe and time remapping applied"
-msgstr "O fotograma atual, com sub-fotograma e remapeamento de tempo aplicado."
+msgstr "O fotograma actual, com sub-fotograma e remapeamento de tempo aplicado."
 
 
 msgid "Final frame of the playback/rendering range"
@@ -28766,7 +28778,7 @@ msgstr "Marcadores de linha do tempo"
 
 
 msgid "Markers used in all timelines for the current scene"
-msgstr "Marcadores usados em todas as linhas do tempo para a cena atual."
+msgstr "Marcadores usados em todas as linhas do tempo para a cena actual."
 
 
 msgid "Tool Settings"
@@ -29117,23 +29129,23 @@ msgstr "Blocos de dados de texto referenciando textos empacotados ou ficheiros e
 
 
 msgid "Current Character"
-msgstr "Caractere atual"
+msgstr "Caractere actual"
 
 
 msgid "Index of current character in current line, and also start index of character in selection if one exists"
-msgstr "Índice do caractere actual na linha atual, e também o índice inicial do caractere na selecção caso algum exista."
+msgstr "Índice do caractere actual na linha actual, e também o índice inicial do caractere na selecção caso algum exista."
 
 
 msgid "Current Line"
-msgstr "Linha atual"
+msgstr "Linha actual"
 
 
 msgid "Current line, and start line of selection if one exists"
-msgstr "Linha atual, e linha inicial de selecção caso alguma exista."
+msgstr "Linha actual, e linha inicial de selecção caso alguma exista."
 
 
 msgid "Current Line Index"
-msgstr "Índice de linha atual"
+msgstr "Índice de linha actual"
 
 
 msgid "Index of current TextLine in TextLine collection"
@@ -30076,7 +30088,7 @@ msgstr "Algoritmo usado para calcular a distância dos pontos de amostragem para
 
 
 msgid "Actual Distance"
-msgstr "Distância atual"
+msgstr "Distância actual"
 
 
 msgid "sqrt(x*x+y*y+z*z)"
@@ -31268,11 +31280,11 @@ msgstr "Quadricula em imagem ladrilhada"
 
 
 msgid "Auto Refresh"
-msgstr "Atualizar automaticamente"
+msgstr "Actualizar automaticamente"
 
 
 msgid "Always refresh image on frame changes"
-msgstr "Sempre atualiza a imagem durante as alterações de fotogramas."
+msgstr "Sempre actualiza a imagem durante as alterações de fotogramas."
 
 
 msgid "Cycle the images in the movie"
@@ -33500,7 +33512,7 @@ msgstr "Índice do caminho ativo"
 
 
 msgid "Current Keying Set index"
-msgstr "Índice de conjunto de inserção de chaves atual"
+msgstr "Índice de conjunto de inserção de chaves actual"
 
 
 msgid "Keying Sets"
@@ -37368,7 +37380,7 @@ msgstr "Factor de efeito de suavização"
 
 
 msgid "Bind current shape"
-msgstr "Atrela o formato atual"
+msgstr "Atrela o formato actual"
 
 
 msgid "Rest Source"
@@ -41400,7 +41412,7 @@ msgstr "Se a posição do marcador é rastreada ou possui chaves inseridas nos f
 
 
 msgid "Is marker muted for current frame"
-msgstr "Este marcador está mudo para o fotograma atual."
+msgstr "Este marcador está mudo para o fotograma actual."
 
 
 msgid "Pattern Bounding Box"
@@ -42285,7 +42297,7 @@ msgstr "Fotograma final da faixa do Editor Não Linear. Alterar este valor tamb�
 
 
 msgid "Amount the strip contributes to the current result"
-msgstr "Define quanto a faixa contribui para o resultado atual."
+msgstr "Define quanto a faixa contribui para o resultado actual."
 
 
 msgid "Modifiers affecting all the F-Curves in the referenced Action"
@@ -42397,7 +42409,7 @@ msgstr "Sincronizar comprimento da ação"
 
 
 msgid "Update range of frames referenced from action after tweaking strip and its keyframes"
-msgstr "Atualiza o intervalo de fotogramas referenciado a partir das ações após o ajuste da faixa e dos seus fotogramas chave."
+msgstr "Actualiza o intervalo de fotogramas referenciado a partir das ações após o ajuste da faixa e dos seus fotogramas chave."
 
 
 msgid "NLA-Strip F-Curves"
@@ -42542,7 +42554,7 @@ msgstr "Mostrar nó no modo de sombreamento texturado da janela de visualizaçã
 
 
 msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "Tipo de nó (obsoleto, use bl_static_type ou bl_idname para a variável texto de identificação atual)."
+msgstr "Tipo de nó (obsoleto, use bl_static_type ou bl_idname para a variável texto de identificação actual)."
 
 
 msgid "Use custom color for the node"
@@ -43423,7 +43435,7 @@ msgstr "Usar passagens Cryptomatte de uma imagem"
 
 
 msgid "Auto-Refresh"
-msgstr "Atualizar automaticamente"
+msgstr "Actualizar automaticamente"
 
 
 msgid "RGB Curves"
@@ -43816,7 +43828,7 @@ msgstr "Caso não definido para alta qualidade, o efeito será aplicado para uma
 
 
 msgid "Glow/glare size (not actual size; relative to initial size of bright area of pixels)"
-msgstr "Tamanho da incandescência ou ofuscamento (não o tamanho atual; relativo ao tamanho inicial das áreas brilhantes dos pixeis)."
+msgstr "Tamanho da incandescência ou ofuscamento (não o tamanho actual; relativo ao tamanho inicial das áreas brilhantes dos pixeis)."
 
 
 msgid "Total number of streaks"
@@ -47986,11 +47998,11 @@ msgstr "Script de sombreador interno para definir o sombreador."
 
 
 msgid "Auto Update"
-msgstr "Atualizar automaticamente"
+msgstr "Actualizar automaticamente"
 
 
 msgid "Automatically update the shader when the .osl file changes (external scripts only)"
-msgstr "Atualiza automaticamente o sombreador quando o ficheiro .osl for alterado (somente scripts externos)."
+msgstr "Actualiza automaticamente o sombreador quando o ficheiro .osl for alterado (somente scripts externos)."
 
 
 msgid "Split a color into its individual components using multiple models"
@@ -48969,6 +48981,10 @@ msgid "Transform a normal vector with unit length"
 msgstr "Transforma o vector das normais com as unidades de comprimento."
 
 
+msgid "Color Attribute"
+msgstr "Atributo de Cor"
+
+
 msgid "Retrieve a color attribute, or the default fallback if none is specified"
 msgstr "Obter um atributo de cor, ou o valor de reserva pré definido se nenhum for especificado"
 
@@ -49618,6 +49634,10 @@ msgid "Minimum value"
 msgstr "Valor mínimo"
 
 
+msgid "Subtype"
+msgstr "Subtipo"
+
+
 msgid "Subtype of the default value"
 msgstr "Subtipo do valor pré definido"
 
@@ -49770,12 +49790,44 @@ msgid "Generate feature lines for this object's data"
 msgstr "Gerar linhas de feições para os dados deste objecto"
 
 
+msgid "Only use the object data to produce occlusion"
+msgstr "Usar apenas dados do objecto para produzir oclusão"
+
+
+msgid "Don't use this object for Line Art rendering"
+msgstr "Não usar este objecto para renderização de Desenho de Linhas"
+
+
+msgid "Include this object but do not generate intersection lines"
+msgstr "Incluir este objecto, mas não gerar linhas de intersecção"
+
+
+msgid "Use this object's crease setting to overwrite scene global"
+msgstr "Usar as definições de vincos deste objecto para sobrepor às definições globais de cena"
+
+
+msgid "Use this object's intersection priority to override collection setting"
+msgstr "Usar a prioridade de intersecção deste objecto para revogar a definição da colecção"
+
+
 msgid "Object Modifiers"
 msgstr "Modificadores de objecto"
 
 
 msgid "Collection of object modifiers"
 msgstr "Coleção de modificadores de objecto."
+
+
+msgid "Active Modifier"
+msgstr "Modificador da Activo"
+
+
+msgid "Object Shader Effects"
+msgstr "Efeitos de Sombreador do Objecto"
+
+
+msgid "Collection of object effects"
+msgstr "Colecção de efeitos de objecto"
 
 
 msgid "Operator Options"
@@ -49796,6 +49848,18 @@ msgstr "Invocar"
 
 msgid "True when invoked (even if only the execute callbacks available)"
 msgstr "Verdadeiro quando invocado (mesmo no caso de somente executar as chamadas de função disponíveis)."
+
+
+msgid "True when run from the 'Adjust Last Operation' panel"
+msgstr "Verdadeiro quando corre a partir do painel \"Ajustar Última Operação'"
+
+
+msgid "Repeat Call"
+msgstr "Chamada Repetida"
+
+
+msgid "True when run from the operator 'Repeat Last'"
+msgstr "Verdadeiro quando corre a partir do operador 'Repetir Último'"
 
 
 msgid "Focus Region"
@@ -49819,6 +49883,11 @@ msgid "Simplify F-Curves by removing closely spaced keyframes"
 msgstr "Simplifica as curvas-f pela remoção de fotogramas chave muito próximos."
 
 
+msgctxt "Operator"
+msgid "Select Keyframes"
+msgstr "Seleccionar Fotogramas Chave"
+
+
 msgid "Select keyframes by clicking on them"
 msgstr "Seleciona os fotogramas chave clicando sobre eles."
 
@@ -49839,6 +49908,14 @@ msgid "Select all keyframes that occur on the same frame as the one under the mo
 msgstr "Seleciona todos os fotogramas chave que ocorrem no mesmo fotograma como este abaixo do rato."
 
 
+msgid "Deselect On Nothing"
+msgstr "Desceleccionar Sobre"
+
+
+msgid "Deselect all when nothing under the cursor"
+msgstr "Desseleccionar tudo quando não há nada sob o cursor"
+
+
 msgid "Extend Select"
 msgstr "Estender selecção"
 
@@ -49855,9 +49932,17 @@ msgid "Mouse Y"
 msgstr "Rato Y"
 
 
+msgid "Wait to Deselect Others"
+msgstr "Esperar para Desseleccionar Outros"
+
+
 msgctxt "Operator"
 msgid "Copy Keyframes"
 msgstr "Copiar fotogramas chave"
+
+
+msgid "Copy selected keyframes to the internal clipboard"
+msgstr "Copiar fotogramas chave seleccionados para área de transferência interna"
 
 
 msgctxt "Operator"
@@ -49867,6 +49952,14 @@ msgstr "Apagar fotogramas chave"
 
 msgid "Remove all selected keyframes"
 msgstr "Remove todos os fotogramas chave seleccionados."
+
+
+msgid "Confirm"
+msgstr "Confirmar"
+
+
+msgid "Prompt for confirmation"
+msgstr "Solicitar Confirmação"
 
 
 msgctxt "Operator"
@@ -49902,6 +49995,11 @@ msgstr "Definir o tipo de facilitação dos fotogramas chave"
 
 msgid "Set easing type for the F-Curve segments starting from the selected keyframes"
 msgstr "Define o tipo de facilitação para os segmentos de curva-f, iniciando a partir dos fotogramas chave seleccionados"
+
+
+msgctxt "Operator"
+msgid "Set F-Curve Extrapolation"
+msgstr "Definir Extrapolação de Curva F"
 
 
 msgid "Set extrapolation mode for selected F-Curves"
@@ -50033,12 +50131,24 @@ msgid "Flip selected keyframes over the selected mirror line"
 msgstr "Vira os fotogramas chave seleccionados sobre a linha de espelhamento selecionada."
 
 
+msgid "By Times Over Current Frame"
+msgstr "Por Vezes Acima do Fotograma Actual"
+
+
 msgid "Flip times of selected keyframes using the current frame as the mirror line"
 msgstr "Vira os tempos dos fotogramas chave seleccionados usando o fotograma actual como linha de espelhamento."
 
 
+msgid "By Values Over Zero Value"
+msgstr "Por Valores Acima do Valor Zero"
+
+
 msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
 msgstr "Vira os valores dos fotogramas chave seleccionados (por exemplo, os valores negativos tornam-se positivos, e vice-versa)."
+
+
+msgid "By Times Over First Selected Marker"
+msgstr "Por Vezes Acima do Primeiro Marcador Seleccionado"
 
 
 msgid "Flip times of selected keyframes using the first selected marker as the reference point"
@@ -50050,9 +50160,17 @@ msgid "New Action"
 msgstr "Nova ação"
 
 
+msgid "Create new action"
+msgstr "Cria Nova Acção"
+
+
 msgctxt "Operator"
 msgid "Paste Keyframes"
 msgstr "Colar fotogramas chave"
+
+
+msgid "Paste keyframes from the internal clipboard for the selected channels, starting on the current frame"
+msgstr "Colar os fotogramas chave a partir da área de transferência para os canais seleccionados, a começar do fotograma actual"
 
 
 msgid "Flipped"
@@ -50100,7 +50218,7 @@ msgstr "Cola o deslocamento de tempo das chaves"
 
 
 msgid "Paste keys starting at current frame"
-msgstr "Cola as chaves que iniciam no fotograma atual."
+msgstr "Cola as chaves que iniciam no fotograma actual."
 
 
 msgid "Frame End"
@@ -50108,7 +50226,7 @@ msgstr "Fotograma final"
 
 
 msgid "Paste keys ending at current frame"
-msgstr "Cola as chaves que terminam no fotograma atual."
+msgstr "Cola as chaves que terminam no fotograma actual."
 
 
 msgid "Frame Relative"
@@ -50125,6 +50243,11 @@ msgstr "Sem deslocamento"
 
 msgid "Paste keys from original time"
 msgstr "Cola as chaves a partir do tempo original."
+
+
+msgctxt "Operator"
+msgid "Set Preview Range to Selected"
+msgstr "Ajustar Limite de Pré Visualização aos Seleccionados"
 
 
 msgid "Set Preview Range based on extents of selected Keyframes"
@@ -50185,6 +50308,26 @@ msgid "Axis Range"
 msgstr "Alcance dos eixos"
 
 
+msgid "Set"
+msgstr "Definir"
+
+
+msgid "Set a new selection"
+msgstr "Definir nova selecção"
+
+
+msgid "Extend existing selection"
+msgstr "Expandir selecção existente"
+
+
+msgid "Subtract existing selection"
+msgstr "Subtrair da selecção existente"
+
+
+msgid "Operator has been activated using a click-drag event"
+msgstr "Operador foi activado usando um evento clicar-arrastar"
+
+
 msgid "Wait for Input"
 msgstr "Aguardar entrada de dados"
 
@@ -50223,7 +50366,7 @@ msgstr "Nos fotogramas chave seleccionados"
 
 
 msgid "On Current Frame"
-msgstr "No fotograma atual"
+msgstr "No fotograma actual"
 
 
 msgid "On Selected Markers"
@@ -50249,11 +50392,19 @@ msgstr "Selecionar à esquerda ou à direita"
 
 
 msgid "Select keyframes to the left or the right of the current frame"
-msgstr "Seleciona os fotogramas chave à esquerda ou à direita do fotograma atual."
+msgstr "Seleciona os fotogramas chave à esquerda ou à direita do fotograma actual."
 
 
 msgid "Check if Select Left or Right"
 msgstr "Verificar por seleções à esquerda ou à direita"
+
+
+msgid "Before Current Frame"
+msgstr "Antes do Fotograma Actual"
+
+
+msgid "After Current Frame"
+msgstr "Após Fotograma Actual"
 
 
 msgctxt "Operator"
@@ -50292,16 +50443,32 @@ msgid "Snap selected keyframes to the times specified"
 msgstr "Atrair os fotogramas chave seleccionados aos tempos especificados"
 
 
+msgid "Selection to Current Frame"
+msgstr "Selecção para Fotograma Actual"
+
+
 msgid "Snap selected keyframes to the current frame"
 msgstr "Atrair os fotogramas chave seleccionados ao fotograma actual"
+
+
+msgid "Selection to Nearest Frame"
+msgstr "Selecção para o Fotograma Mais Próximo"
 
 
 msgid "Snap selected keyframes to the nearest (whole) frame (use to fix accidental subframe offsets)"
 msgstr "Atrai os fotogramas chave seleccionados ao fotograma (inteiro) mais próximo (usar para corrigir deslocamentos acidentais de sub-fotograma)"
 
 
+msgid "Selection to Nearest Second"
+msgstr "Selecção para o Segundo Mais Próximo"
+
+
 msgid "Snap selected keyframes to the nearest second"
 msgstr "Atrair os fotogramas chave seleccionados ao segundo mais próximo"
+
+
+msgid "Selection to Nearest Marker"
+msgstr "Selecção para o Marcador Mais Próximo"
 
 
 msgid "Snap selected keyframes to the nearest marker"
@@ -50346,8 +50513,22 @@ msgid "Clear Fake User and remove copy stashed in this data-block's NLA stack"
 msgstr "Limpa todos os utilizadores virtuais e remove as cópias armazenadas nesta pilha de bloco de dados de animação não linear."
 
 
+msgctxt "Operator"
+msgid "Frame All"
+msgstr "Enquadrar Tudo"
+
+
 msgid "Reset viewable area to show full keyframe range"
 msgstr "Redefine a área visível para mostrar o intervalo completo dos fotogramas chave (como definido para início e fim)."
+
+
+msgctxt "Operator"
+msgid "Go to Current Frame"
+msgstr "Ir para Fotograma Actual"
+
+
+msgid "Move the view to the current frame"
+msgstr "Enquadrar vista no fotograma actual"
 
 
 msgid "Reset viewable area to show selected keyframes range"
@@ -50360,7 +50541,12 @@ msgstr "Alterar fotograma"
 
 
 msgid "Interactively change the current frame number"
-msgstr "Interativamente alterar o número do fotograma atual."
+msgstr "Interativamente alterar o número do fotograma actual."
+
+
+msgctxt "Operator"
+msgid "Select Channel Keyframes"
+msgstr "Seleccionar Fotogramas Chave do Canal"
 
 
 msgid "Select all keyframes of channel under mouse"
@@ -50371,12 +50557,25 @@ msgid "Extend selection"
 msgstr "Estender a selecção"
 
 
+msgctxt "Operator"
+msgid "Frame Channel Under Cursor"
+msgstr "Enquadrar Canal Sob o Cursor"
+
+
+msgid "Reset viewable area to show the channel under the cursor"
+msgstr "Repor a área visível para mostrar o canal sob o cursor"
+
+
 msgid "Include Handles"
 msgstr "Incluir manípulos"
 
 
 msgid "Include handles of keyframes when calculating extents"
 msgstr "Inclui as hastes dos fotogramas chave durante o cálculo das extensões."
+
+
+msgid "Ignore frames outside of the preview range"
+msgstr "Ignorar fotogramas fora do limite de pré visualização"
 
 
 msgctxt "Operator"
@@ -50393,13 +50592,29 @@ msgid "Mouse Click on Channels"
 msgstr "Clicar com o rato nos canais"
 
 
+msgid "Handle mouse clicks over animation channels"
+msgstr "Lidar com cliques de rato sobre canais de animação"
+
+
 msgid "Select Children Only"
 msgstr "Selecionar somente as crianças"
+
+
+msgid "Extend Range"
+msgstr "Expandir Limite"
+
+
+msgid "Selection of active channel to clicked channel"
+msgstr "Selecção do canal activo para cana clicado"
 
 
 msgctxt "Operator"
 msgid "Collapse Channels"
 msgstr "Recolher canais"
+
+
+msgid "Collapse (close) all selected expandable animation channels"
+msgstr "Colapsar (fechar) todos os canais de animação expansíveis seleccionados"
 
 
 msgid "Collapse all channels (not just selected ones)"
@@ -50433,9 +50648,21 @@ msgid "Expand Channels"
 msgstr "Expandir canais"
 
 
+msgid "Expand (open) all selected expandable animation channels"
+msgstr "Expandir (abrir) todos os canais de animação expansíveis seleccionados"
+
+
+msgid "Expand all channels (not just selected ones)"
+msgstr "Expandir todos os canais (não apenas os seleccionados)"
+
+
 msgctxt "Operator"
 msgid "Revive Disabled F-Curves"
 msgstr "Reviver as curvas-f desativadas"
+
+
+msgid "Clear 'disabled' tag from all F-Curves to get broken F-Curves working again"
+msgstr "Remover etiqueta 'desactivado' de todas as Curvas-F, para repor funcionamento de curvas inoperacionais"
 
 
 msgctxt "Operator"
@@ -50472,6 +50699,11 @@ msgid "To Bottom"
 msgstr "Para a base"
 
 
+msgctxt "Operator"
+msgid "Rename Channel"
+msgstr "Renomear Canal"
+
+
 msgid "Rename animation channel under mouse"
 msgstr "Renomeia o canal de animação sob o rato."
 
@@ -50490,6 +50722,15 @@ msgstr "De-selecionar ao invés de seleccionar itens."
 
 msgid "Extend selection instead of deselecting everything first"
 msgstr "Estender a selecção ao invés de de-selecionar tudo primeiramente."
+
+
+msgctxt "Operator"
+msgid "Filter Channels"
+msgstr "Filtrar Canais"
+
+
+msgid "Start entering text which filters the set of channels shown to only include those with matching names"
+msgstr "Introduzir texto que filtra o conjunto de canais mostrado para incluir apenas canais com nomes correspondentes"
 
 
 msgctxt "Operator"
@@ -50575,7 +50816,7 @@ msgstr "Limpar fotograma chave (botões)"
 
 
 msgid "Clear all keyframes on the currently active property"
-msgstr "Limpa todos os fotogramas chave na propriedade ativa atual."
+msgstr "Limpa todos os fotogramas chave na propriedade ativa actual."
 
 
 msgid "Clear keyframes from all elements of the array"
@@ -50637,7 +50878,7 @@ msgstr "Inserir fotogramas chave (botões)"
 
 
 msgid "Insert a keyframe for current UI-active property"
-msgstr "Insere um fotograma chave para a propriedade ativa de interface de utilizador atual."
+msgstr "Insere um fotograma chave para a propriedade ativa de interface de utilizador actual."
 
 
 msgid "Insert a keyframe for all element of the array"
@@ -50743,7 +50984,7 @@ msgstr "Definir fotograma inicial"
 
 msgctxt "Operator"
 msgid "Update Animated Transform Constraints"
-msgstr "Atualizar as restrições de transformações de animação"
+msgstr "Actualizar as restrições de transformações de animação"
 
 
 msgctxt "Operator"
@@ -51362,7 +51603,7 @@ msgstr "Redefinir pincéis"
 
 
 msgid "Return brush to defaults based on current tool"
-msgstr "Redefine os pincéis aos seus padrões com base na ferramenta atual."
+msgstr "Redefine os pincéis aos seus padrões com base na ferramenta actual."
 
 
 msgctxt "Operator"
@@ -51473,11 +51714,11 @@ msgstr "Carrega um ficheiro de cache"
 
 msgctxt "Operator"
 msgid "Refresh Archive"
-msgstr "Atualizar ficheiros"
+msgstr "Actualizar ficheiros"
 
 
 msgid "Update objects paths list with new data from the archive"
-msgstr "Atualiza a lista de caminhos de objectos juntamente com seus dados a partir do(s) ficheiro(s)."
+msgstr "Actualiza a lista de caminhos de objectos juntamente com seus dados a partir do(s) ficheiro(s)."
 
 
 msgctxt "Operator"
@@ -51604,7 +51845,7 @@ msgstr "Limpar caminhos de rastreamento"
 
 
 msgid "Clear tracks after/before current position or clear the whole track"
-msgstr "Limpa os rastreamentos antes ou após a posição atual, ou limpa todas as trilhas dos rastreamentos."
+msgstr "Limpa os rastreamentos antes ou após a posição actual, ou limpa todas as trilhas dos rastreamentos."
 
 
 msgid "Clear action to execute"
@@ -51612,11 +51853,11 @@ msgstr "Limpa a ação para execução"
 
 
 msgid "Clear path up to current frame"
-msgstr "Limpa o caminho até o fotograma atual"
+msgstr "Limpa o caminho até o fotograma actual"
 
 
 msgid "Clear path at remaining frames (after current)"
-msgstr "Limpa os caminhos de rastreamento nos fotogramas remanescentes (após o atual) "
+msgstr "Limpa os caminhos de rastreamento nos fotogramas remanescentes (após o actual)"
 
 
 msgid "Clear the whole path"
@@ -51804,11 +52045,11 @@ msgstr "Posição para a qual saltar"
 
 
 msgid "Jump to start of current path"
-msgstr "Salta para o início do caminho atual"
+msgstr "Salta para o início do caminho actual"
 
 
 msgid "Jump to end of current path"
-msgstr "Salta para o final do caminho atual"
+msgstr "Salta para o final do caminho actual"
 
 
 msgid "Previous Failed"
@@ -51829,7 +52070,7 @@ msgstr "Salta para o próximo fotograma que falhou"
 
 msgctxt "Operator"
 msgid "Center Current Frame"
-msgstr "Centralizar no fotograma atual"
+msgstr "Centralizar no fotograma actual"
 
 
 msgid "Scroll view so current frame would be centered"
@@ -51912,11 +52153,11 @@ msgstr "Junta as trilhas selecionadas."
 
 
 msgid "Delete a keyframe from selected tracks at current frame"
-msgstr "Apaga um fotograma chave a partir das trilhas selecionadas no fotograma atual."
+msgstr "Apaga um fotograma chave a partir das trilhas selecionadas no fotograma actual."
 
 
 msgid "Insert a keyframe to selected tracks at current frame"
-msgstr "Insere um fotograma chave para as trilhas selecionadas no fotograma atual."
+msgstr "Insere um fotograma chave para as trilhas selecionadas no fotograma actual."
 
 
 msgctxt "Operator"
@@ -53225,7 +53466,7 @@ msgstr "Girar"
 
 
 msgid "Extrude selected boundary row around pivot point and current view axis"
-msgstr "Executa uma extrusão das extremidades selecionadas das linhas em torno do ponto pivô e eixo de visão atual."
+msgstr "Executa uma extrusão das extremidades selecionadas das linhas em torno do ponto pivô e eixo de visão actual."
 
 
 msgid "Axis in global view space"
@@ -54030,7 +54271,7 @@ msgstr "Torna absolutos todos os caminhos para ficheiros externos."
 
 
 msgid "Make all paths to external files relative to current .blend"
-msgstr "Torna todos os caminhos para ficheiros externos relativos ao caminho do ficheiro Blender atual."
+msgstr "Torna todos os caminhos para ficheiros externos relativos ao caminho do ficheiro Blender actual."
 
 
 msgctxt "Operator"
@@ -54056,7 +54297,7 @@ msgstr "Navegação no diretório anterior."
 
 
 msgid "Refresh the file list"
-msgstr "Atualiza a lista de ficheiros."
+msgstr "Actualiza a lista de ficheiros."
 
 
 msgctxt "Operator"
@@ -54415,7 +54656,7 @@ msgstr "Adiciona uma nova caixa de texto."
 
 
 msgid "The current text box"
-msgstr "A caixa de texto atual."
+msgstr "A caixa de texto actual."
 
 
 msgctxt "Operator"
@@ -54959,7 +55200,7 @@ msgstr "(De)selecionar todos os traços"
 
 
 msgid "Change selection of all Grease Pencil strokes currently visible"
-msgstr "Altera a selecção de todos os traços de lápis de cera visíveis atualmente."
+msgstr "Altera a selecção de todos os traços de lápis de cera visíveis actualmente."
 
 
 msgid "Select Grease Pencil strokes within a rectangular region"
@@ -55318,7 +55559,7 @@ msgstr "Colar as variáveis dos controladores"
 
 
 msgid "Add copied driver variables to the active driver"
-msgstr "Adiciona as variáveis de controlador previamente copiadas ao controlador atual."
+msgstr "Adiciona as variáveis de controlador previamente copiadas ao controlador actual."
 
 
 msgid "Replace Existing"
@@ -55739,7 +55980,7 @@ msgstr "Amostra de cor"
 
 
 msgid "Use mouse to sample a color in current image"
-msgstr "Permite usar o rato para obter uma amostra de cor na imagem atual."
+msgstr "Permite usar o rato para obter uma amostra de cor na imagem actual."
 
 
 msgctxt "Operator"
@@ -55904,7 +56145,7 @@ msgstr "Importar tipo alvo"
 
 
 msgid "Update Scene Duration"
-msgstr "Atualizar duração da cena"
+msgstr "Actualizar duração da cena"
 
 
 msgid "Extend the scene's duration to the BVH duration (never shortens the scene)"
@@ -55912,7 +56153,7 @@ msgstr "Estende a duração da cena pela duração da hierarquias de volume circ
 
 
 msgid "Update Scene FPS"
-msgstr "Atualizar a taxa de fotogramas da cena"
+msgstr "Actualizar a taxa de fotogramas da cena"
 
 
 msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
@@ -56086,11 +56327,11 @@ msgstr "Reproduz novamente os relatórios seleccionados."
 
 msgctxt "Operator"
 msgid "Update Reports Display"
-msgstr "Atualizar mostrador de relatórios"
+msgstr "Actualizar mostrador de relatórios"
 
 
 msgid "Update the display of reports in Blender UI (internal use)"
-msgstr "Atualiza a amostragem de relatórios na interface de utilizador do Blender (uso interno)."
+msgstr "Actualiza a amostragem de relatórios na interface de utilizador do Blender (uso interno)."
 
 
 msgctxt "Operator"
@@ -57567,7 +57808,7 @@ msgstr "Deslocar anel de arestas"
 
 
 msgid "Create offset edge loop from the current selection"
-msgstr "Cria um deslocamento do anel de arestas a partir da selecção atual."
+msgstr "Cria um deslocamento do anel de arestas a partir da selecção actual."
 
 
 msgid "Cap Endpoint"
@@ -58115,7 +58356,7 @@ msgstr "Selecionar regiões similares"
 
 
 msgid "Select similar face regions to the current selection"
-msgstr "Seleciona regiões de face similares as da selecção atual."
+msgstr "Seleciona regiões de face similares as da selecção actual."
 
 
 msgid "Separate selected geometry into a new mesh"
@@ -58219,7 +58460,7 @@ msgstr "Mostrar o eixo Z"
 
 
 msgid "Sort selected elements from farthest to nearest one in current view"
-msgstr "Ordena os elementos seleccionados a partir do mais longínquo a aquele mais próximo na visualização atual."
+msgstr "Ordena os elementos seleccionados a partir do mais longínquo a aquele mais próximo na visualização actual."
 
 
 msgid "View X Axis"
@@ -58227,7 +58468,7 @@ msgstr "Mostrar o eixo X"
 
 
 msgid "Sort selected elements from left to right one in current view"
-msgstr "Ordena elementos seleccionados da esquerda para a direita na visualização atual."
+msgstr "Ordena elementos seleccionados da esquerda para a direita na visualização actual."
 
 
 msgid "Cursor Distance"
@@ -58559,11 +58800,11 @@ msgstr "Somente os principais ossos selecionados (Somente para geração e grava
 
 
 msgid "Overwrite Current Action"
-msgstr "Sobrescrever a ação atual"
+msgstr "Sobrescrever a ação actual"
 
 
 msgid "Bake animation into current action, instead of creating a new one (useful for baking only part of bones in an armature)"
-msgstr "Gera e grava as animações na ação atual, ao invés de criar uma nova ação (útil para gerar e gravar somente uma parte dos ossos em uma armação)."
+msgstr "Gera e grava as animações na ação actual, ao invés de criar uma nova ação (útil para gerar e gravar somente uma parte dos ossos em uma armação)."
 
 
 msgid "Visual Keying"
@@ -58698,7 +58939,7 @@ msgstr "Usa a selecção em caixa para agarrar as faixas de animação não line
 
 
 msgid "Select strips to the left or the right of the current frame"
-msgstr "Seleciona as faixas à esquerda ou à direita do fotograma atual."
+msgstr "Seleciona as faixas à esquerda ou à direita do fotograma actual."
 
 
 msgctxt "Operator"
@@ -58825,7 +59066,7 @@ msgstr "Adicionar nó de ficheiro"
 
 
 msgid "Add a file node to the current node editor"
-msgstr "Adiciona um nó de ficheiro ao editor de nó atual."
+msgstr "Adiciona um nó de ficheiro ao editor de nó actual."
 
 
 msgctxt "Operator"
@@ -58834,7 +59075,7 @@ msgstr "Adicionar nó de máscara"
 
 
 msgid "Add a mask node to the current node editor"
-msgstr "Adiciona um nó de máscara ao editor de nó atual."
+msgstr "Adiciona um nó de máscara ao editor de nó actual."
 
 
 msgctxt "Operator"
@@ -59214,7 +59455,7 @@ msgstr "Modo de sobreposição"
 
 
 msgid "Current"
-msgstr "Atual"
+msgstr "Actual"
 
 
 msgid "Exponent"
@@ -59280,7 +59521,7 @@ msgstr "Renderizar a camada alterada"
 
 
 msgid "Render current scene, when input node's layer has been changed"
-msgstr "Renderiza a cena atual, quando o nó de camada de entrada for alterado."
+msgstr "Renderiza a cena actual, quando o nó de camada de entrada for alterado."
 
 
 msgctxt "Operator"
@@ -59358,11 +59599,11 @@ msgstr "Ativa e visualiza os nós do mesmo tipo, passo a passo."
 
 msgctxt "Operator"
 msgid "Script Node Update"
-msgstr "Atualizar nó de script"
+msgstr "Actualizar nó de script"
 
 
 msgid "Update shader script node with new sockets and options from the script"
-msgstr "Atualiza o nó de script de sombreador com novos conectores e opções a partir do script."
+msgstr "Actualiza o nó de script de sombreador com novos conectores e opções a partir do script."
 
 
 msgctxt "Operator"
@@ -59498,7 +59739,7 @@ msgstr "Filtro para passagens combinada, difusa, lustro, transmissão, sub-super
 
 
 msgid "Type of pass to bake, some of them may not be supported by the current render engine"
-msgstr "Tipo de passo para gerar e gravar, alguns deles podem não ser suportados pelo motor de renderização atual."
+msgstr "Tipo de passo para gerar e gravar, alguns deles podem não ser suportados pelo motor de renderização actual."
 
 
 msgid "Automatically name the output file with the pass type"
@@ -59711,11 +59952,11 @@ msgstr "Adiciona um tipo de imagem vazia para cena com dados."
 
 msgctxt "Operator"
 msgid "Explode Refresh"
-msgstr "Atualizar explosão"
+msgstr "Actualizar explosão"
 
 
 msgid "Refresh data in the Explode modifier"
-msgstr "Atualiza os dados dentro do modificador explodir."
+msgstr "Actualiza os dados dentro do modificador explodir."
 
 
 msgctxt "Operator"
@@ -60365,7 +60606,7 @@ msgstr "Limpar caminhos de objecto"
 
 msgctxt "Operator"
 msgid "Update Object Paths"
-msgstr "Atualizar caminhos de objecto"
+msgstr "Actualizar caminhos de objecto"
 
 
 msgctxt "Operator"
@@ -61211,7 +61452,7 @@ msgstr "Desvincular ação"
 
 
 msgid "Refresh Drivers"
-msgstr "Atualizar controladores"
+msgstr "Actualizar controladores"
 
 
 msgid "Clear Drivers"
@@ -61926,7 +62167,7 @@ msgstr "Pintura de pesos"
 
 
 msgid "Paint a stroke in the current vertex group's weights"
-msgstr "Permite a pintura de traços dentro dos pesos do grupo de vértices atual."
+msgstr "Permite a pintura de traços dentro dos pesos do grupo de vértices actual."
 
 
 msgctxt "Operator"
@@ -61953,7 +62194,7 @@ msgstr "Definir pesos"
 
 
 msgid "Fill the active vertex group with the current paint weight"
-msgstr "Preenche o grupo de vértices activo com as influências de peso da pintura atual."
+msgstr "Preenche o grupo de vértices activo com as influências de peso da pintura actual."
 
 
 msgctxt "Operator"
@@ -62261,7 +62502,7 @@ msgstr "Define o peso das chaves selecionadas"
 
 
 msgid "Interpolation factor between current brush weight, and keys' weights"
-msgstr "Fator de interpolação entre o peso do pincel atual, e o peso das chaves."
+msgstr "Fator de interpolação entre o peso do pincel actual, e o peso das chaves."
 
 
 msgid "Pose Name"
@@ -62342,7 +62583,7 @@ msgstr "Fator de pesos de influência para nos quais os fotogramas-chave são ma
 
 
 msgid "Frame number of keyframe immediately after the current frame"
-msgstr "Número do fotograma de fotograma chave imediatamente após o fotograma atual."
+msgstr "Número do fotograma de fotograma chave imediatamente após o fotograma actual."
 
 
 msgid "Previous Keyframe"
@@ -62350,7 +62591,7 @@ msgstr "Fotograma chave anterior"
 
 
 msgid "Frame number of keyframe immediately before the current frame"
-msgstr "Número do fotograma de fotograma chave imediatamente antes do fotograma atual."
+msgstr "Número do fotograma de fotograma chave imediatamente antes do fotograma actual."
 
 
 msgctxt "Operator"
@@ -62359,7 +62600,7 @@ msgstr "Ruptura de poses"
 
 
 msgid "Create a suitable breakdown pose on the current frame"
-msgstr "Cria uma ruptura adequada nas poses no fotograma atual."
+msgstr "Cria uma ruptura adequada nas poses no fotograma actual."
 
 
 msgid "Add a constraint to the active bone"
@@ -62434,7 +62675,7 @@ msgstr "Colar pose"
 
 
 msgid "Paste the stored pose on to the current pose"
-msgstr "Cola a pose guardada sobre a pose atual."
+msgstr "Cola a pose guardada sobre a pose actual."
 
 
 msgid "Flipped on X-Axis"
@@ -62442,7 +62683,7 @@ msgstr "Invertido no eixo X"
 
 
 msgid "Paste the stored pose flipped on to current pose"
-msgstr "Cola a pose guardada, invertida sobre a pose atual."
+msgstr "Cola a pose guardada, invertida sobre a pose actual."
 
 
 msgid "On Selected Only"
@@ -62450,7 +62691,7 @@ msgstr "Somente nos selecionados"
 
 
 msgid "Only paste the stored pose on to selected bones in the current pose"
-msgstr "Somente cola a pose guardada sobre os ossos selecionados dentro da pose atual."
+msgstr "Somente cola a pose guardada sobre os ossos selecionados dentro da pose actual."
 
 
 msgctxt "Operator"
@@ -62473,7 +62714,7 @@ msgstr "Limpar os caminhos dos ossos"
 
 msgctxt "Operator"
 msgid "Update Bone Paths"
-msgstr "Atualizar caminhos dos ossos"
+msgstr "Actualizar caminhos dos ossos"
 
 
 msgid "Recalculate paths for bones that already have them"
@@ -62506,7 +62747,7 @@ msgstr "Para o próximo fotograma chave"
 
 
 msgid "Propagate pose to first keyframe following the current frame only"
-msgstr "Propaga a pose somente para o primeiro fotograma chave seguinte ao fotograma atual."
+msgstr "Propaga a pose somente para o primeiro fotograma chave seguinte ao fotograma actual."
 
 
 msgid "To Last Keyframe"
@@ -62538,7 +62779,7 @@ msgstr "Propaga as poses para todos os fotogramas chave selecionados"
 
 
 msgid "Propagate pose to all keyframes occurring on frames with Scene Markers after the current frame"
-msgstr "Propaga a pose para todos os fotogramas chave que ocorrem em fotogramas com marcadores de cena após o fotograma atual."
+msgstr "Propaga a pose para todos os fotogramas chave que ocorrem em fotogramas com marcadores de cena após o fotograma actual."
 
 
 msgid "Flip quaternion values to achieve desired rotations, while maintaining the same orientations"
@@ -62583,7 +62824,7 @@ msgstr "Selecionar o alvo da restrição"
 
 
 msgid "Select bones used as targets for the currently selected bones"
-msgstr "Seleciona os ossos usados como alvos para os ossos atualmente selecionados."
+msgstr "Seleciona os ossos usados como alvos para os ossos actualmente selecionados."
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -62605,7 +62846,7 @@ msgstr "Selecionar osso parente"
 
 
 msgid "Select bones that are parents of the currently selected bones"
-msgstr "Seleciona os ossos que são parentes dos ossos atualmente selecionados."
+msgstr "Seleciona os ossos que são parentes dos ossos actualmente selecionados."
 
 
 msgctxt "Operator"
@@ -62661,7 +62902,7 @@ msgstr "Caminho alvo"
 
 msgctxt "Operator"
 msgid "Refresh"
-msgstr "Atualizar"
+msgstr "Actualizar"
 
 
 msgid "Scan add-on directories for new modules"
@@ -62843,11 +63084,11 @@ msgstr "Gera e grava a partir do cache."
 
 msgctxt "Operator"
 msgid "Delete Current Cache"
-msgstr "Apagar o cache atual"
+msgstr "Apagar o cache actual"
 
 
 msgid "Delete current cache"
-msgstr "Apaga o cache atual."
+msgstr "Apaga o cache actual."
 
 
 msgctxt "Operator"
@@ -63198,7 +63439,7 @@ msgstr "Adicionar ambiente para corpos rígidos"
 
 
 msgid "Add Rigid Body simulation world to the current scene"
-msgstr "Adiciona ambiente de simulação de corpo rígido para a cena atual."
+msgstr "Adiciona ambiente de simulação de corpo rígido para a cena actual."
 
 
 msgctxt "Operator"
@@ -63207,7 +63448,7 @@ msgstr "Remover ambiente para corpos rígidos"
 
 
 msgid "Remove Rigid Body simulation world from the current scene"
-msgstr "Remove o ambiente de simulação de corpo rígido da cena atual."
+msgstr "Remove o ambiente de simulação de corpo rígido da cena actual."
 
 
 msgctxt "Operator"
@@ -63441,7 +63682,7 @@ msgstr "Novo(a)"
 
 
 msgid "Make a full copy of the current scene"
-msgstr "Cria uma cópia completa da cena atual."
+msgstr "Cria uma cópia completa da cena actual."
 
 
 msgid "Copy Settings"
@@ -64130,7 +64371,7 @@ msgstr "Sobrepor selecção"
 
 
 msgid "Replace the current selection"
-msgstr "Substitui a selecção atual."
+msgstr "Substitui a selecção actual."
 
 
 msgctxt "Operator"
@@ -64157,7 +64398,7 @@ msgstr "Insere uma lacuna no fotograma actual até a primeira faixa a direita, i
 
 
 msgid "Frames to insert after current strip"
-msgstr "Fotogramas para inserir após a faixa atual."
+msgstr "Fotogramas para inserir após a faixa actual."
 
 
 msgctxt "Operator"
@@ -64174,7 +64415,7 @@ msgstr "Todas as lacunas"
 
 
 msgid "Do all gaps to right of current frame"
-msgstr "Perfaz todas as lacunas à direita do fotograma atual."
+msgstr "Perfaz todas as lacunas à direita do fotograma actual."
 
 
 msgctxt "Operator"
@@ -64300,11 +64541,11 @@ msgstr "Reconstrói todas as aproximações selecionadas e os índices de códig
 
 msgctxt "Operator"
 msgid "Refresh Sequencer"
-msgstr "Atualizar editor de sequências"
+msgstr "Actualizar editor de sequências"
 
 
 msgid "Refresh the sequencer editor"
-msgstr "Atualiza o editor de sequências."
+msgstr "Actualiza o editor de sequências."
 
 
 msgctxt "Operator"
@@ -64334,7 +64575,7 @@ msgstr "Define o tamanho da renderização e o aspecto a partir da sequência at
 
 
 msgid "Use mouse to sample color in current frame"
-msgstr "Usa o rato para obter uma amostra de cor no fotograma atual."
+msgstr "Usa o rato para obter uma amostra de cor no fotograma actual."
 
 
 msgctxt "Operator"
@@ -64432,7 +64673,7 @@ msgstr "Encolhe a selecção actual de faixas adjacentes selecionadas."
 
 
 msgid "Select all strips adjacent to the current selection"
-msgstr "Seleciona todas as faixas adjacentes a selecção atual."
+msgstr "Seleciona todas as faixas adjacentes a selecção actual."
 
 
 msgctxt "Operator"
@@ -64445,7 +64686,7 @@ msgstr "Seleciona uma cadeia de faixas vinculadas mais próximas do ponteiro do 
 
 
 msgid "Select more strips adjacent to the current selection"
-msgstr "Seleciona mais faixas adjacentes a selecção atual."
+msgstr "Seleciona mais faixas adjacentes a selecção actual."
 
 
 msgid "Offset to the data of the strip"
@@ -64610,11 +64851,11 @@ msgstr "Alterar rácio de ampliação da pré visualização do editor de sequê
 
 msgctxt "Operator"
 msgid "Update Animation Cache"
-msgstr "Atualizar cache de animação"
+msgstr "Actualizar cache de animação"
 
 
 msgid "Update the audio animation cache"
-msgstr "Atualiza o cache de animação de áudio."
+msgstr "Actualiza o cache de animação de áudio."
 
 
 msgctxt "Operator"
@@ -64742,7 +64983,7 @@ msgstr "Empacotar som"
 
 
 msgid "Pack the sound into the current blend file"
-msgstr "Empacota o som dentro do ficheiro .blend atual."
+msgstr "Empacota o som dentro do ficheiro .blend actual."
 
 
 msgctxt "Operator"
@@ -64764,11 +65005,11 @@ msgstr "Nome do bloco de dados de som para desempacotar."
 
 msgctxt "Operator"
 msgid "Update Animation"
-msgstr "Atualizar animação"
+msgstr "Actualizar animação"
 
 
 msgid "Update animation flags"
-msgstr "Atualiza as bandeiras de animação."
+msgstr "Actualiza as bandeiras de animação."
 
 
 msgctxt "Operator"
@@ -64906,7 +65147,7 @@ msgstr "Duplicar linha"
 
 
 msgid "Duplicate the current line"
-msgstr "Duplica a linha atual."
+msgstr "Duplica a linha actual."
 
 
 msgctxt "Operator"
@@ -64949,7 +65190,7 @@ msgstr "Número de linha"
 
 
 msgid "The current line number"
-msgstr "O número da linha atual."
+msgstr "O número da linha actual."
 
 
 msgctxt "Operator"
@@ -65005,11 +65246,11 @@ msgstr "Alterna a substituição de escrita durante a digitação."
 
 msgctxt "Operator"
 msgid "Refresh PyConstraints"
-msgstr "Atualizar as restrições Python"
+msgstr "Actualizar as restrições Python"
 
 
 msgid "Refresh all pyconstraints"
-msgstr "Atualiza todas as restrições Python."
+msgstr "Actualiza todas as restrições Python."
 
 
 msgctxt "Operator"
@@ -65625,11 +65866,11 @@ msgstr "Exporta (gera) também um ficheiro POT."
 
 
 msgid "Update Existing"
-msgstr "Atualizar existentes"
+msgstr "Actualizar existentes"
 
 
 msgid "Update existing po files, if any, instead of overwriting them"
-msgstr "Atualiza os ficheiros .po existentes, caso existam, ao invés de sobrescrevê-los."
+msgstr "Actualiza os ficheiros .po existentes, caso existam, ao invés de sobrescrevê-los."
 
 
 msgctxt "Operator"
@@ -65643,7 +65884,7 @@ msgstr "Importa os dados de tradução da extensão a partir de ficheiros PO."
 
 msgctxt "Operator"
 msgid "Update I18n Add-on"
-msgstr "Atualizar extensão I18n"
+msgstr "Actualizar extensão I18n"
 
 
 msgid "Wrapper operator which will invoke given op after setting its module_name"
@@ -65659,7 +65900,7 @@ msgstr "Nome (id) do operador para invocar."
 
 
 msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
-msgstr "Atualiza os dados de tradução da extensão fornecidos (encontrados como uma tupla dentro do código fonte do complemento)."
+msgstr "Actualiza os dados de tradução da extensão fornecidos (encontrados como uma tupla dentro do código fonte do complemento)."
 
 
 msgctxt "Operator"
@@ -65686,12 +65927,12 @@ msgstr "Guarda as definições de tradução dentro de um ficheiro persistente J
 
 msgctxt "Operator"
 msgid "Init I18n Update Settings"
-msgstr "Definições de inicialização de atualização I18n"
+msgstr "Definições de inicialização de actualização I18n"
 
 
 msgctxt "Operator"
 msgid "Init I18n Update Select Languages"
-msgstr "Inicia a atualização de selecção de línguas I18N"
+msgstr "Inicia a actualização de selecção de línguas I18N"
 
 
 msgid "Invert Selection"
@@ -65712,7 +65953,7 @@ msgstr "Seleciona todos caso seja verdade, caso contrário, de-selecione todos."
 
 msgctxt "Operator"
 msgid "Update I18n Statistics"
-msgstr "Atualizar as estatísticas l18n"
+msgstr "Actualizar as estatísticas l18n"
 
 
 msgid "Skip POT"
@@ -66056,7 +66297,7 @@ msgstr "Limpa a afixação para a selecção ao invés de definí-la."
 
 
 msgid "Project the UV vertices of the mesh as seen in current 3D view"
-msgstr "Projeta os vértices UV da malha como vistos dentro da janela de visualização 3D atual."
+msgstr "Projeta os vértices UV da malha como vistos dentro da janela de visualização 3D actual."
 
 
 msgid "Camera Bounds"
@@ -66852,7 +67093,7 @@ msgstr "Executar como tarefa em plano de fundo"
 
 
 msgid "End frame of the export, use the default value to take the end frame of the current scene"
-msgstr "O fotograma final a ser exportado, use o valor padrão para tomar como base o fotograma final da cena atual."
+msgstr "O fotograma final a ser exportado, use o valor padrão para tomar como base o fotograma final da cena actual."
 
 
 msgid "Export Hair"
@@ -66924,7 +67165,7 @@ msgstr "O tempo no qual o obturador estará aberto."
 
 
 msgid "Start frame of the export, use the default value to take the start frame of the current scene"
-msgstr "O fotograma inicial da exportação, use o valor padrão para tomar como base o fotograma inicial da cena atual."
+msgstr "O fotograma inicial da exportação, use o valor padrão para tomar como base o fotograma inicial da cena actual."
 
 
 msgid "Use Subdivision Schema"
@@ -66965,7 +67206,7 @@ msgstr "Definir intervalo de fotogramas"
 
 
 msgid "If checked, update scene's start and end frame to match those of the Alembic archive"
-msgstr "Caso esteja marcado, atualiza os fotogramas inicial e final da cena para combinar com aqueles que estão presentes no ficheiro tipo Alembic."
+msgstr "Caso esteja marcado, actualiza os fotogramas inicial e final da cena para combinar com aqueles que estão presentes no ficheiro tipo Alembic."
 
 
 msgid "Validate Meshes"
@@ -67582,11 +67823,11 @@ msgstr "Permite definir quais as previsões de blocos de dados serão limpas."
 
 msgctxt "Operator"
 msgid "Refresh Data-Block Previews"
-msgstr "Atualizar previsões de blocos de dados"
+msgstr "Actualizar previsões de blocos de dados"
 
 
 msgid "Ensure data-block previews are available and up-to-date (to be saved in .blend file, only for some types like materials, textures, etc.)"
-msgstr "Garante que as previsões de blocos de dados estejam disponíveis e atualizadas (para serem guardadas no ficheiro Blender, somente para alguns tipos como materiais, texturas, etc.)."
+msgstr "Garante que as previsões de blocos de dados estejam disponíveis e actualizadas (para serem guardadas no ficheiro Blender, somente para alguns tipos como materiais, texturas, etc.)."
 
 
 msgctxt "Operator"
@@ -67777,7 +68018,7 @@ msgstr "Temporizador de redesenho"
 
 
 msgid "Simple redraw timer to test the speed of updating the interface"
-msgstr "Temporizador simples de redesenho para testar a velocidade de atualização da interface."
+msgstr "Temporizador simples de redesenho para testar a velocidade de actualização da interface."
 
 
 msgid "Number of times to redraw"
@@ -67848,7 +68089,7 @@ msgstr "Guardar ficheiro Blender"
 
 
 msgid "Save the current Blender file"
-msgstr "Guarda o ficheiro Blender atual."
+msgstr "Guarda o ficheiro Blender actual."
 
 
 msgctxt "Operator"
@@ -68791,7 +69032,7 @@ msgstr "Reproduzir"
 
 
 msgid "I18n Update Translation"
-msgstr "Atualização da tradução I18N"
+msgstr "Actualização da tradução I18N"
 
 
 msgid "Timeline"
@@ -69147,7 +69388,7 @@ msgstr "Tempo de esmaecimento"
 
 
 msgid "Fade paths and keys further away from current frame"
-msgstr "Esmaece os caminhos e chaves que estão mais distantes do fotograma atual."
+msgstr "Esmaece os caminhos e chaves que estão mais distantes do fotograma actual."
 
 
 msgid "Keep Lengths"
@@ -69659,7 +69900,7 @@ msgstr "Informações de cache"
 
 
 msgid "Info on current cache status"
-msgstr "Informações no status de cache atual."
+msgstr "Informações no status de cache actual."
 
 
 msgid "Cache name"
@@ -70331,7 +70572,7 @@ msgstr "Versões guardadas"
 
 
 msgid "The number of old versions to maintain in the current directory, when manually saving"
-msgstr "O número de versões antigas a ser mantidas dentro do diretório atual, quando os ficheiros são guardados manualmente."
+msgstr "O número de versões antigas a ser mantidas dentro do diretório actual, quando os ficheiros são guardados manualmente."
 
 
 msgid "Python Scripts Directory"
@@ -71397,7 +71638,7 @@ msgstr "Tipo de BVH para janela de visualização"
 
 
 msgid "Choose between faster updates, or faster render"
-msgstr "Permite a escolha entre atualizações rápidas, ou renderização rápida."
+msgstr "Permite a escolha entre actualizações rápidas, ou renderização rápida."
 
 
 msgid "Dynamic BVH"
@@ -71405,7 +71646,7 @@ msgstr "BVH Dinâmica"
 
 
 msgid "Objects can be individually updated, at the cost of slower render time"
-msgstr "Objectos podem ser atualizados individualmente, ao custo de um tempo de renderização mais lento."
+msgstr "Objectos podem ser actualizados individualmente, ao custo de um tempo de renderização mais lento."
 
 
 msgid "Static BVH"
@@ -72009,7 +72250,7 @@ msgstr "Matriz de visualização"
 
 
 msgid "Current view matrix"
-msgstr "Matriz de visualização atual"
+msgstr "Matriz de visualização actual"
 
 
 msgid "View Perspective"
@@ -72029,7 +72270,7 @@ msgstr "Matriz da janela"
 
 
 msgid "Current window matrix"
-msgstr "Matriz de visualização atual"
+msgstr "Matriz de visualização actual"
 
 
 msgid "Render Ambient Occlusion in this Layer"
@@ -72321,7 +72562,7 @@ msgstr "Iniciar no fotograma"
 
 
 msgid "The shutter opens at the current frame"
-msgstr "O obturador abre no fotograma atual."
+msgstr "O obturador abre no fotograma actual."
 
 
 msgid "Center on Frame"
@@ -72329,7 +72570,7 @@ msgstr "Centralizar no fotograma"
 
 
 msgid "The shutter is open during the current frame"
-msgstr "O obturador estará aberto durante o fotograma atual."
+msgstr "O obturador estará aberto durante o fotograma actual."
 
 
 msgid "End on Frame"
@@ -72337,7 +72578,7 @@ msgstr "Finalizar no fotograma"
 
 
 msgid "The shutter closes at the current frame"
-msgstr "O obturador fecha no fotograma atual"
+msgstr "O obturador fecha no fotograma actual"
 
 
 msgid "Curve defining the shutter's openness over time"
@@ -73533,7 +73774,7 @@ msgstr "Fotograma final mostrado no editor de sequências depois que os deslocam
 
 
 msgid "Start frame displayed in the sequence editor after offsets are applied, setting this is equivalent to moving the handle, not the actual start frame"
-msgstr "Fotograma inicial mostrado dentro do editor de sequências após os deslocamentos estarem aplicados, definir isto é equivalente a mover o manipulador, não o fotograma inicial atual."
+msgstr "Fotograma inicial mostrado dentro do editor de sequências após os deslocamentos estarem aplicados, definir isto é equivalente a mover o manipulador, não o fotograma inicial actual."
 
 
 msgid "End Offset"
@@ -75245,7 +75486,7 @@ msgstr "Sincroniza os marcadores com as edições de fotograma chave."
 
 
 msgid "Realtime Updates"
-msgstr "Atualizações em tempo real"
+msgstr "Actualizações em tempo real"
 
 
 msgid "When transforming keyframes, changes to the animation data are flushed to other views"
@@ -75501,11 +75742,11 @@ msgstr "Mostra a imagem actual independente da selecção de objeto."
 
 
 msgid "Update Automatically"
-msgstr "Atualizar automaticamente"
+msgstr "Actualizar automaticamente"
 
 
 msgid "Update other affected window spaces automatically to reflect changes during interactive operations such as transform"
-msgstr "Atualiza outros espaços de janela afetados automaticamente para refletir as mudanças durante as operações interativas como as transformações."
+msgstr "Actualiza outros espaços de janela afetados automaticamente para refletir as mudanças durante as operações interativas como as transformações."
 
 
 msgid "UV editor settings"
@@ -75829,7 +76070,7 @@ msgstr "Mostra somente o fotograma de referência."
 
 
 msgid "Show current frame only"
-msgstr "Mostra somente o fotograma atual."
+msgstr "Mostra somente o fotograma actual."
 
 
 msgid "No display"
@@ -75909,7 +76150,7 @@ msgstr "Realce de linha"
 
 
 msgid "Highlight the current line"
-msgstr "Realça a linha atual."
+msgstr "Realça a linha actual."
 
 
 msgid "Line Numbers"
@@ -75993,7 +76234,7 @@ msgstr "Linhas visíveis"
 
 
 msgid "Amount of lines that can be visible in current editor"
-msgstr "Quantidade de linhas que podem estar visíveis no editor atual."
+msgstr "Quantidade de linhas que podem estar visíveis no editor actual."
 
 
 msgid "3D View Space"
@@ -76837,7 +77078,7 @@ msgstr "Caminho - Após"
 
 
 msgid "Color of path after current frame"
-msgstr "A cor do caminho após o fotograma atual."
+msgstr "A cor do caminho após o fotograma actual."
 
 
 msgid "Path Before"
@@ -76845,7 +77086,7 @@ msgstr "Caminho - Antes"
 
 
 msgid "Color of path before current frame"
-msgstr "A cor do caminho antes do fotograma atual."
+msgstr "A cor do caminho antes do fotograma actual."
 
 
 msgid "Selected Marker"
@@ -78245,7 +78486,7 @@ msgstr "Nome da orientação de transformação personalizada."
 
 
 msgid "Current Transform Orientation"
-msgstr "Orientação de transformação atual"
+msgstr "Orientação de transformação actual"
 
 
 msgid "UI list containing the elements of a collection"
@@ -79311,11 +79552,6 @@ msgstr "Alertas:"
 
 
 msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentação"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Relatar um defeito (em inglês)"
 
@@ -79554,7 +79790,7 @@ msgstr "Complementos:"
 
 msgctxt "Operator"
 msgid "Refresh I18n Data..."
-msgstr "Atualizar dados l18n..."
+msgstr "Actualizar dados l18n..."
 
 
 msgctxt "Operator"
@@ -80238,12 +80474,12 @@ msgstr "Atrair a"
 
 msgctxt "Operator"
 msgid "Before Current Frame"
-msgstr "Antes do fotograma atual"
+msgstr "Antes do fotograma actual"
 
 
 msgctxt "Operator"
 msgid "After Current Frame"
-msgstr "Depois do fotograma atual"
+msgstr "Depois do fotograma actual"
 
 
 msgctxt "Operator"
@@ -80308,7 +80544,7 @@ msgstr "Coluna das chaves selecionadas"
 
 msgctxt "Operator"
 msgid "Column on Current Frame"
-msgstr "Coluna do fotograma atual"
+msgstr "Coluna do fotograma actual"
 
 
 msgctxt "Operator"
@@ -80973,6 +81209,11 @@ msgstr "Internet:"
 
 
 msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentação"
+
+
+msgctxt "Operator"
 msgid "Interactive Mirror"
 msgstr "Espelhamento interativo"
 
@@ -81609,7 +81850,7 @@ msgstr "Passos de caminho:"
 
 
 msgid "No Brushes currently available"
-msgstr "Não há pincéis disponíveis atualmente."
+msgstr "Não há pincéis disponíveis actualmente."
 
 
 msgid "Point cache must be baked"
@@ -81689,7 +81930,7 @@ msgstr "BIBLIOTECA: %s: '%s' faltando em '%s', com o parente '%s'"
 
 
 msgid "Library file, loading empty scene"
-msgstr "Ficheiro de biblioteca, contendo ou carregando uma cena vazia para o projeto atual."
+msgstr "Ficheiro de biblioteca, contendo ou carregando uma cena vazia para o projeto actual."
 
 
 msgid "Unable to create userpref path"
@@ -81793,7 +82034,7 @@ msgstr "Sem memória suficiente disponível."
 
 
 msgid "Canvas mesh not updated"
-msgstr "Malha de lona não atualizada."
+msgstr "Malha de lona não actualizada."
 
 
 msgid "Cannot bake non-'image sequence' formats"
@@ -81835,7 +82076,7 @@ msgstr "Núm. %d"
 
 
 msgid "Cannot pack multiview images from raw data currently..."
-msgstr "Não é possível empacotar imagens de múltipla visualização a partir dos dados brutos atualmente..."
+msgstr "Não é possível empacotar imagens de múltipla visualização a partir dos dados brutos actualmente..."
 
 
 msgid "Did not write, no Multilayer Image"
@@ -82296,7 +82537,7 @@ msgstr "<Modificador desconhecido>"
 
 
 msgid "Add a new control-point to the envelope on the current frame"
-msgstr "Adiciona um novo ponto de controlo para o envelope no fotograma atual."
+msgstr "Adiciona um novo ponto de controlo para o envelope no fotograma actual."
 
 
 msgid "Delete envelope control point"
@@ -82472,11 +82713,11 @@ msgstr "Caminho muito longo, não é possível guardar."
 
 
 msgid "Cannot separate current selection"
-msgstr "Não é possível separar a selecção atual."
+msgstr "Não é possível separar a selecção actual."
 
 
 msgid "Cannot split current selection"
-msgstr "Não é possível dividir a selecção atual."
+msgstr "Não é possível dividir a selecção actual."
 
 
 msgid "Too few selections to merge"
@@ -82496,7 +82737,7 @@ msgstr "Não é possível girar"
 
 
 msgid "Cannot duplicate current selection"
-msgstr "Não é possível duplicar a selecção atual."
+msgstr "Não é possível duplicar a selecção actual."
 
 
 msgid "Active object is not a selected curve"
@@ -84191,7 +84432,7 @@ msgstr "Objecto o qual o ponteiro de dados se refere não é um modificador vál
 
 
 msgid "No active line style in the current scene"
-msgstr "Nenhum estilo de linha activo na cena atual."
+msgstr "Nenhum estilo de linha activo na cena actual."
 
 
 msgid "Blender Render"
@@ -84263,11 +84504,11 @@ msgstr "Amostragem de cor para %s."
 
 
 msgid "Brush. Use Left Click to sample for palette instead"
-msgstr "O pincel atual. Clique com o BEM para obter amostras para a paleta ao invés de amostras para o pincel. "
+msgstr "O pincel actual. Clique com o BEM para obter amostras para a paleta ao invés de amostras para o pincel."
 
 
 msgid "Palette. Use Left Click to sample more colors"
-msgstr "A paleta atual. Clique com o BEM para obter mais amostras de cor."
+msgstr "A paleta actual. Clique com o BEM para obter mais amostras de cor."
 
 
 msgid "Packed MultiLayer files cannot be painted"
@@ -84403,7 +84644,7 @@ msgstr "Ação já foi armazenada."
 
 
 msgid "Could not find current NLA Track"
-msgstr "Não foi possível encontrar a trilha de animação não linear atual."
+msgstr "Não foi possível encontrar a trilha de animação não linear actual."
 
 
 msgid "Internal Error: Could not find Animation Data/NLA Stack to use"
@@ -84491,11 +84732,11 @@ msgstr "Área de pesquisa:"
 
 
 msgid "Marker is disabled at current frame"
-msgstr "O marcador está desativado no fotograma atual."
+msgstr "O marcador está desativado no fotograma actual."
 
 
 msgid "Marker is enabled at current frame"
-msgstr "O marcador está activo no fotograma atual."
+msgstr "O marcador está activo no fotograma actual."
 
 
 msgid "X-position of marker at frame in screen coordinates"
@@ -84687,7 +84928,7 @@ msgstr "Valor:"
 
 
 msgid "Update Dependencies"
-msgstr "Atualizar dependências"
+msgstr "Actualizar dependências"
 
 
 msgid "Invalid variable name, click here for details"
@@ -86881,7 +87122,7 @@ msgstr "Janela com buffer quádruplo criada com sucesso."
 
 
 msgid "Quad-buffer not supported by the system"
-msgstr "A renderização em buffer quádruplo não é suportada pelo sistema atual."
+msgstr "A renderização em buffer quádruplo não é suportada pelo sistema actual."
 
 
 msgid "Failed to create a window compatible with the time sequential display method"

@@ -195,6 +195,7 @@ class String : public SocketDeclaration {
   static constexpr eNodeSocketDatatype static_socket_type = SOCK_STRING;
 
   std::string default_value;
+  PropertySubType subtype = PROP_NONE;
 
   friend StringBuilder;
 
@@ -209,6 +210,7 @@ class String : public SocketDeclaration {
 class StringBuilder : public SocketDeclarationBuilder<String> {
  public:
   StringBuilder &default_value(const std::string value);
+  StringBuilder &subtype(PropertySubType subtype);
 };
 
 class MenuBuilder;
@@ -474,6 +476,12 @@ inline ColorBuilder &ColorBuilder::default_value(const ColorGeometry4f value)
 inline StringBuilder &StringBuilder::default_value(std::string value)
 {
   decl_->default_value = std::move(value);
+  return *this;
+}
+
+inline StringBuilder &StringBuilder::subtype(PropertySubType subtype)
+{
+  decl_->subtype = subtype;
   return *this;
 }
 

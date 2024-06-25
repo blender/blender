@@ -1,0 +1,13 @@
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+const char *blf_get_icon_svg(int icon);
+
+@SVGHCONTENTS@
+
+#ifdef __cplusplus
+}
+#endif

@@ -530,11 +530,13 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     sdna->types_alignment[i] = int(__STDCPP_DEFAULT_NEW_ALIGNMENT__);
   }
   {
-    uint dummy_index = 0;
-    /* TODO: This should be generalized at some point. We should be able to specify overaligned
+    /* TODO: This should be generalized at some point. We should be able to specify `overaligned`
      * types directly in the DNA struct definitions. */
-    sdna->types_alignment[DNA_struct_find_without_alias_ex(sdna, "mat4x4f", &dummy_index)] =
-        alignof(blender::float4x4);
+    uint dummy_index = 0;
+    const int mat4x4f_nr = DNA_struct_find_without_alias_ex(sdna, "mat4x4f", &dummy_index);
+    if (mat4x4f_nr >= 0) {
+      sdna->types_alignment[mat4x4f_nr] = alignof(blender::float4x4);
+    }
   }
 
   return true;

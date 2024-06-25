@@ -1,0 +1,174 @@
+diff --git a/src/doc/builtinplugins.rst b/src/doc/builtinplugins.rst
+index 1654105918..9ad185ce21 100644
+--- a/src/doc/builtinplugins.rst
++++ b/src/doc/builtinplugins.rst
+@@ -1964,7 +1964,7 @@ Lab or duotone modes.
+ 
+ **Custom I/O Overrides**
+ 
+-PSD output supports the "custom I/O" feature via the special ``"oiio:ioproxy"``
++PSD input supports the "custom I/O" feature via the special ``"oiio:ioproxy"``
+ attributes (see Sections :ref:`sec-imageoutput-ioproxy` and
+ :ref:`sec-imageinput-ioproxy`) as well as the `set_ioproxy()` methods.
+ 
+diff --git a/src/psd.imageio/psdinput.cpp b/src/psd.imageio/psdinput.cpp
+index e3972d087f..fd472385bb 100644
+--- a/src/psd.imageio/psdinput.cpp
++++ b/src/psd.imageio/psdinput.cpp
+@@ -1890,6 +1890,8 @@ PSDInput::load_image_data()
+     // setup some generic properties and read any RLE lengths
+     // Image Data Section has RLE lengths for all channels stored first
+     for (ChannelInfo& channel_info : m_image_data.channel_info) {
++        channel_info.width       = m_header.width;
++        channel_info.height      = m_header.height;
+         channel_info.compression = compression;
+         channel_info.channel_id  = id++;
+         channel_info.data_length = row_length * m_header.height;
+@@ -2045,39 +2047,39 @@ PSDInput::read_channel_row(ChannelInfo& channel_info, uint32_t row, char* data)
+             case 16: swap_endian((uint16_t*)data, channel_info.width); break;
+             case 32: swap_endian((uint32_t*)data, channel_info.width); break;
+             }
+-            break;
+-        case Compression_RLE: {
+-            if (!ioseek(channel_info.row_pos[row]))
+-                return false;
+-            uint32_t rle_length = channel_info.rle_lengths[row];
+-            char* rle_buffer;
+-            OIIO_ALLOCATE_STACK_OR_HEAP(rle_buffer, char, rle_length);
+-            if (!ioread(rle_buffer, rle_length)
+-                || !decompress_packbits(rle_buffer, data, rle_length,
+-                                        channel_info.row_length))
+-                return false;
+-        } break;
+-        case Compression_ZIP: {
+-            OIIO_ASSERT(channel_info.decompressed_data.size()
+-                        == static_cast<uint64_t>(channel_info.width)
+-                               * channel_info.height * (m_header.depth / 8));
+-            // We simply copy over the row into destination
+-            uint64_t row_index = static_cast<uint64_t>(row) * channel_info.width
+-                                 * (m_header.depth / 8);
+-            std::memcpy(data, channel_info.decompressed_data.data() + row_index,
+-                        channel_info.row_length);
+-        } break;
+-        case Compression_ZIP_Predict: {
+-            OIIO_ASSERT(channel_info.decompressed_data.size()
+-                        == static_cast<uint64_t>(channel_info.width)
+-                               * channel_info.height * (m_header.depth / 8));
+-            // We simply copy over the row into destination
+-            uint64_t row_index = static_cast<uint64_t>(row) * channel_info.width
+-                                 * (m_header.depth / 8);
+-            std::memcpy(data, channel_info.decompressed_data.data() + row_index,
+-                        channel_info.row_length);
+-        } break;
+         }
++        break;
++    case Compression_RLE: {
++        if (!ioseek(channel_info.row_pos[row]))
++            return false;
++        uint32_t rle_length = channel_info.rle_lengths[row];
++        char* rle_buffer;
++        OIIO_ALLOCATE_STACK_OR_HEAP(rle_buffer, char, rle_length);
++        if (!ioread(rle_buffer, rle_length)
++            || !decompress_packbits(rle_buffer, data, rle_length,
++                                    channel_info.row_length))
++            return false;
++    } break;
++    case Compression_ZIP: {
++        OIIO_ASSERT(channel_info.decompressed_data.size()
++                    == static_cast<uint64_t>(channel_info.width)
++                           * channel_info.height * (m_header.depth / 8));
++        // We simply copy over the row into destination
++        uint64_t row_index = static_cast<uint64_t>(row) * channel_info.width
++                             * (m_header.depth / 8);
++        std::memcpy(data, channel_info.decompressed_data.data() + row_index,
++                    channel_info.row_length);
++    } break;
++    case Compression_ZIP_Predict: {
++        OIIO_ASSERT(channel_info.decompressed_data.size()
++                    == static_cast<uint64_t>(channel_info.width)
++                           * channel_info.height * (m_header.depth / 8));
++        // We simply copy over the row into destination
++        uint64_t row_index = static_cast<uint64_t>(row) * channel_info.width
++                             * (m_header.depth / 8);
++        std::memcpy(data, channel_info.decompressed_data.data() + row_index,
++                    channel_info.row_length);
++    } break;
+     }
+ 
+     return true;
+diff --git a/testsuite/psd-colormodes/ref/out.txt b/testsuite/psd-colormodes/ref/out.txt
+index b521061822..0cc89d8f3b 100644
+--- a/testsuite/psd-colormodes/ref/out.txt
++++ b/testsuite/psd-colormodes/ref/out.txt
+@@ -22,7 +22,7 @@ Comparing "pattern2-8-rgb.psd.tif" and "ref/pattern2.tif"
+ PASS
+ Comparing "pattern2-16-rgb.psd.tif" and "ref/pattern2.tif"
+ PASS
+-Comparing "pattern2-8-cmyk.psd.tif" and "ref/pattern2-cmyk.tif"
++Comparing "pattern2-8-cmyk.psd.tif" and "ref/pattern2-8-cmyk.psd.tif"
+ PASS
+ Comparing "pattern2-16-cmyk.psd.tif" and "ref/pattern2-16-cmyk.psd.tif"
+ PASS
+@@ -30,7 +30,7 @@ Comparing "pattern2-8-multichannel.psd.tif" and "ref/pattern2.tif"
+ PASS
+ Comparing "pattern2-16-multichannel.psd.tif" and "ref/pattern2.tif"
+ PASS
+-Comparing "pattern2-8-grayscale.psd.tif" and "ref/pattern2-gray.tif"
++Comparing "pattern2-8-grayscale.psd.tif" and "ref/pattern2-8-grayscale.psd.tif"
+ PASS
+ Comparing "pattern2-16-grayscale.psd.tif" and "ref/pattern2-16-grayscale.psd.tif"
+ PASS
+diff --git a/testsuite/psd-colormodes/ref/pattern2-16-cmyk.psd.tif b/testsuite/psd-colormodes/ref/pattern2-16-cmyk.psd.tif
+index d01cca324e..f6e8c9f458 100644
+Binary files a/testsuite/psd-colormodes/ref/pattern2-16-cmyk.psd.tif and b/testsuite/psd-colormodes/ref/pattern2-16-cmyk.psd.tif differ
+diff --git a/testsuite/psd-colormodes/ref/pattern2-16-grayscale.psd.tif b/testsuite/psd-colormodes/ref/pattern2-16-grayscale.psd.tif
+index db88e52ad2..1943c31f05 100644
+Binary files a/testsuite/psd-colormodes/ref/pattern2-16-grayscale.psd.tif and b/testsuite/psd-colormodes/ref/pattern2-16-grayscale.psd.tif differ
+diff --git a/testsuite/psd-colormodes/ref/pattern2-cmyk.tif b/testsuite/psd-colormodes/ref/pattern2-8-cmyk.psd.tif
+similarity index 100%
+rename from testsuite/psd-colormodes/ref/pattern2-cmyk.tif
+rename to testsuite/psd-colormodes/ref/pattern2-8-cmyk.psd.tif
+diff --git a/testsuite/psd-colormodes/ref/pattern2-gray.tif b/testsuite/psd-colormodes/ref/pattern2-8-grayscale.psd.tif
+similarity index 100%
+rename from testsuite/psd-colormodes/ref/pattern2-gray.tif
+rename to testsuite/psd-colormodes/ref/pattern2-8-grayscale.psd.tif
+diff --git a/testsuite/psd/ref/out.txt b/testsuite/psd/ref/out.txt
+index 7c0319d6a0..047d6a6281 100644
+--- a/testsuite/psd/ref/out.txt
++++ b/testsuite/psd/ref/out.txt
+@@ -584,7 +584,7 @@ Reading ../oiio-images/psd_rgb_8.psd
+     stRef:originalDocumentID: "E146B3E37A92795EE3EA6577040DE6D5"
+ Reading ../oiio-images/psd_rgb_16.psd
+ ../oiio-images/psd_rgb_16.psd :  320 x  240, 3 channel, uint16 psd
+-    SHA-1: 591F6850EB0B548DF2CE7177661440CB812E5C31
++    SHA-1: E42334B0F0684E3C3BF9125F2920B07C44C17B11
+     channel list: R, G, B
+     Artist: "Daniel Wyatt"
+     DateTime: "2007-01-18T15:49:21"
+@@ -655,7 +655,7 @@ Reading ../oiio-images/psd_rgb_16.psd
+     stRef:originalDocumentID: "E146B3E37A92795EE3EA6577040DE6D5"
+ Reading ../oiio-images/psd_rgb_32.psd
+ ../oiio-images/psd_rgb_32.psd :  320 x  240, 3 channel, float psd
+-    SHA-1: B7F8CE4B4259A92AA13333EA8112C3E37C6BAB39
++    SHA-1: 63CF8F7B010D24EFD3C41F51C16D8D285FE07313
+     channel list: R, G, B
+     Artist: "Daniel Wyatt"
+     DateTime: "2007-01-18T15:49:21"
+@@ -1459,7 +1459,7 @@ Reading src/Layers_16bit_RGB.psd
+ src/Layers_16bit_RGB.psd :   48 x   27, 3 channel, uint16 psd
+     4 subimages: 48x27 [u16,u16,u16], 48x27 [u16,u16,u16,u16], 48x27 [u16,u16,u16,u16], 48x27 [u16,u16,u16,u16]
+  subimage  0:   48 x   27, 3 channel, uint16 psd
+-    SHA-1: 22EAC1FF517BCCEA8EBA31AB240C11518EE42424
++    SHA-1: 0228B2F3AA493695E9653E1C32D303022DDEFAE4
+     channel list: R, G, B
+     DateTime: "2024-03-06T15:22:40+01:00"
+     ICCProfile: 0, 0, 12, 72, 76, 105, 110, 111, 2, 16, 0, 0, 109, 110, 116, 114, ... [3144 x uint8]
+@@ -1653,7 +1653,7 @@ Reading src/Layers_32bit_RGB.psd
+ src/Layers_32bit_RGB.psd :   48 x   27, 3 channel, float psd
+     4 subimages: 48x27 [f,f,f], 48x27 [f,f,f,f], 48x27 [f,f,f,f], 48x27 [f,f,f,f]
+  subimage  0:   48 x   27, 3 channel, float psd
+-    SHA-1: 90D05324071E32026D22E44FA9EF027C80D97308
++    SHA-1: C9C84C45C64884BD4D6F1B1E91CCA6744EA3C06C
+     channel list: R, G, B
+     DateTime: "2024-03-06T15:22:40+01:00"
+     ICCProfile: 0, 0, 2, 56, 108, 99, 109, 115, 4, 48, 0, 0, 109, 110, 116, 114, ... [568 x uint8]

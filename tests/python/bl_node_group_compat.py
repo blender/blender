@@ -56,6 +56,7 @@ subtype_idname = {
     ("VECTOR", "XYZ"): "NodeSocketVectorXYZ",
     ("RGBA", "NONE"): "NodeSocketColor",
     ("STRING", "NONE"): "NodeSocketString",
+    ("STRING", "FILEPATH"): "NodeSocketStringFilePath",
     ("SHADER", "NONE"): "NodeSocketShader",
     ("OBJECT", "NONE"): "NodeSocketObject",
     ("IMAGE", "NONE"): "NodeSocketImage",

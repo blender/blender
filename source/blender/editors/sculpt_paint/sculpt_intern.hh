@@ -38,6 +38,7 @@ struct SimulationData;
 }
 namespace undo {
 struct Node;
+struct StepData;
 enum class Type : int8_t;
 }
 }
@@ -136,25 +137,6 @@ enum class Type : int8_t {
   Color,
 };
 
-/* Storage of geometry for the undo node.
- * Is used as a storage for either original or modified geometry. */
-struct NodeGeometry {
-  /* Is used for sanity check, helping with ensuring that two and only two
-   * geometry pushes happened in the undo stack. */
-  bool is_initialized;
-
-  CustomData vert_data;
-  CustomData edge_data;
-  CustomData corner_data;
-  CustomData face_data;
-  int *face_offset_indices;
-  const ImplicitSharingInfo *face_offsets_sharing_info;
-  int totvert;
-  int totedge;
-  int totloop;
-  int faces_num;
-};
-
 struct Node {
   Array<float3> position;
   Array<float3> orig_position;
@@ -167,10 +149,6 @@ struct Node {
 
   /* Mesh. */
 
-  /* to verify if totvert it still the same */
-  int mesh_verts_num;
-  int mesh_corners_num;
-
   Array<int> vert_indices;
   int unique_verts_num;
 
@@ -181,20 +159,9 @@ struct Node {
 
   /* Multires. */
 
-  /** The number of grids in the entire mesh. */
-  int mesh_grids_num;
-  /** A copy of #SubdivCCG::grid_size. */
-  int grid_size;
   /** Indices of grids in the PBVH node. */
   Array<int> grids;
   BitGroupVector<> grid_hidden;
-
-  /* bmesh */
-  BMLogEntry *bm_entry;
-  bool applied;
-
-  /* Geometry at the bmesh enter moment. */
-  undo::NodeGeometry geometry_bmesh_enter;
 
   /* Sculpt Face Sets */
   Array<int> face_sets;
@@ -705,6 +672,11 @@ bool SCULPT_mode_poll_view3d(bContext *C);
  * Checks for a brush, not just sculpt mode.
  */
 bool SCULPT_poll(bContext *C);
+
+/**
+ * Determines whether or not the brush cursor should be shown in the viewport
+ */
+bool SCULPT_brush_cursor_poll(bContext *C);
 
 /**
  * Returns true if sculpt session can handle color attributes
@@ -1233,7 +1205,7 @@ ENUM_OPERATORS(WarnFlag, MODIFIER);
 
 /** Enable dynamic topology; mesh will be triangulated */
 void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob);
-void disable(bContext *C, undo::Node *unode);
+void disable(bContext *C, undo::StepData *undo_step);
 void disable_with_undo(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob);
 
 /**
@@ -1666,6 +1638,9 @@ void push_begin(Object &ob, const wmOperator *op);
 void push_begin_ex(Object &ob, const char *name);
 void push_end(Object &ob);
 void push_end_ex(Object &ob, const bool use_nested_undo);
+
+void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh);
+BMLogEntry *get_bmesh_log_entry();
 
 }
 

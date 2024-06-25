@@ -564,8 +564,10 @@ void DepthOfField::render(View &view,
 
   Manager &drw = *inst_.manager;
 
-  eGPUTextureUsage usage_readwrite = GPU_TEXTURE_USAGE_SHADER_READ |
-                                     GPU_TEXTURE_USAGE_SHADER_WRITE;
+  constexpr eGPUTextureUsage usage_readwrite = GPU_TEXTURE_USAGE_SHADER_READ |
+                                               GPU_TEXTURE_USAGE_SHADER_WRITE;
+  constexpr eGPUTextureUsage usage_readwrite_attach = usage_readwrite |
+                                                      GPU_TEXTURE_USAGE_ATTACHMENT;
   {
     DRW_stats_group_start("Setup");
     {
@@ -678,7 +680,7 @@ void DepthOfField::render(View &view,
     PassSimple &filter_ps = is_background ? filter_bg_ps_ : filter_fg_ps_;
     PassSimple &scatter_ps = is_background ? scatter_bg_ps_ : scatter_fg_ps_;
 
-    color_tx.current().acquire(half_res, GPU_RGBA16F, usage_readwrite);
+    color_tx.current().acquire(half_res, GPU_RGBA16F, usage_readwrite_attach);
     weight_tx.current().acquire(half_res, GPU_R16F, usage_readwrite);
     occlusion_tx_.acquire(half_res, GPU_RG16F);
 
@@ -689,7 +691,7 @@ void DepthOfField::render(View &view,
       color_tx.swap();
       weight_tx.swap();
 
-      color_tx.current().acquire(half_res, GPU_RGBA16F, usage_readwrite);
+      color_tx.current().acquire(half_res, GPU_RGBA16F, usage_readwrite_attach);
       weight_tx.current().acquire(half_res, GPU_R16F, usage_readwrite);
 
       drw.submit(filter_ps, view);

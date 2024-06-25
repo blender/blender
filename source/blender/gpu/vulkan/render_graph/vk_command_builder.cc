@@ -125,8 +125,10 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
         is_rendering = true;
       }
     }
-
-    // std::cout << "node_handle: " << node_handle << ", node_type: " << node.type << "\n";
+#if 0
+    std::cout << "node_group: " << node_group.first() << "-" << node_group.last()
+              << ", node_handle: " << node_handle << ", node_type: " << node.type << "\n";
+#endif
     if (G.debug & G_DEBUG_GPU) {
       activate_debug_group(render_graph, command_buffer, node_handle);
     }
@@ -374,7 +376,7 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
     VKResourceBarrierState &resource_state = resource.barrier_state;
     VkAccessFlags read_access = resource_state.read_access;
     VkAccessFlags write_access = resource_state.write_access;
-    VkAccessFlags wait_access = VK_ACCESS_NONE;
+    VkAccessFlags wait_access = read_access | write_access;
 
     if (read_access == (read_access | link.vk_access_flags) &&
         resource_state.image_layout == link.vk_image_layout)
@@ -383,19 +385,17 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
       continue;
     }
 
-    read_access |= link.vk_access_flags;
-    wait_access |= write_access;
-    state_.src_stage_mask |= resource_state.write_stages;
+    state_.src_stage_mask |= resource_state.write_stages | resource_state.read_stages;
     state_.dst_stage_mask |= node_stages;
 
-    resource_state.read_access = read_access;
+    resource_state.read_access = link.vk_access_flags;
     resource_state.write_access = VK_ACCESS_NONE;
-    resource_state.read_stages |= node_stages;
+    resource_state.read_stages = node_stages;
     resource_state.write_stages = VK_PIPELINE_STAGE_NONE;
 
     add_image_barrier(resource.image.vk_image,
                       wait_access,
-                      read_access,
+                      link.vk_access_flags,
                       resource_state.image_layout,
                       link.vk_image_layout,
                       link.vk_image_aspect);
@@ -418,14 +418,7 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
     VKResourceBarrierState &resource_state = resource.barrier_state;
     VkAccessFlags read_access = resource_state.read_access;
     VkAccessFlags write_access = resource_state.write_access;
-    VkAccessFlags wait_access = VK_ACCESS_NONE;
-
-    if (read_access != VK_ACCESS_NONE) {
-      wait_access |= read_access;
-    }
-    if (read_access == VK_ACCESS_NONE && write_access != VK_ACCESS_NONE) {
-      wait_access |= write_access;
-    }
+    VkAccessFlags wait_access = read_access | write_access;
 
     state_.src_stage_mask |= resource_state.read_stages | resource_state.write_stages;
     state_.dst_stage_mask |= node_stages;
@@ -462,6 +455,7 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
   vk_image_memory_barrier_.newLayout = new_layout;
   vk_image_memory_barrier_.subresourceRange.aspectMask = aspect_mask;
   vk_image_memory_barriers_.append(vk_image_memory_barrier_);
+  /* Reset state for reuse. */
   vk_image_memory_barrier_.srcAccessMask = VK_ACCESS_NONE;
   vk_image_memory_barrier_.dstAccessMask = VK_ACCESS_NONE;
   vk_image_memory_barrier_.image = VK_NULL_HANDLE;

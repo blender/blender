@@ -27,8 +27,6 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   constant_len_ = info.specialization_constants_.size();
   ssbo_len_ = 0;
   ubo_len_ = 0;
-  image_offset_ = -1;
-  int image_max_binding = -1;
   Vector<ShaderCreateInfo::Resource> all_resources;
   all_resources.extend(info.pass_resources_);
   all_resources.extend(info.batch_resources_);
@@ -36,11 +34,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   for (ShaderCreateInfo::Resource &res : all_resources) {
     switch (res.bind_type) {
       case ShaderCreateInfo::Resource::BindType::IMAGE:
-        uniform_len_++;
-        image_max_binding = max_ii(image_max_binding, res.slot);
-        break;
       case ShaderCreateInfo::Resource::BindType::SAMPLER:
-        image_offset_ = max_ii(image_offset_, res.slot);
         uniform_len_++;
         break;
       case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
@@ -52,10 +46,9 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     }
   }
 
-  for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
-    image_offset_ = max_ii(image_offset_, subpass_in.index);
-    uniform_len_++;
-  }
+  /* Subpass inputs are read as samplers.
+   * In future this can change depending on extensions that will be supported. */
+  uniform_len_ += info.subpass_inputs_.size();
 
   /* Reserve 1 uniform buffer for push constants fallback. */
   size_t names_size = info.interface_names_size_;
@@ -67,12 +60,6 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     names_size += PUSH_CONSTANTS_FALLBACK_NAME_LEN + 1;
   }
   names_size += info.subpass_inputs_.size() * SUBPASS_FALLBACK_NAME_LEN;
-
-  /* Make sure that the image slots don't overlap with other sampler or image slots. */
-  image_offset_++;
-  if (image_offset_ != 0 && image_offset_ <= image_max_binding) {
-    image_offset_ = image_max_binding + 1;
-  }
 
   int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
   inputs_ = static_cast<ShaderInput *>(
@@ -126,7 +113,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
-      input->location = input->binding = res.slot + image_offset_;
+      input->location = input->binding = res.slot + image_offset;
       input++;
     }
   }
@@ -352,8 +339,8 @@ const ShaderInput *VKShaderInterface::shader_input_get(
     case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
       /* Not really nice, but the binding namespace between OpenGL and Vulkan don't match. To fix
        * this we need to check if one of both cases return a binding.
-       * TODO: we might want to introduce a different API to fix this. */
-      return texture_get((binding >= image_offset_) ? binding : binding + image_offset_);
+       */
+      return texture_get((binding >= image_offset) ? binding : binding + image_offset);
     case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
       return texture_get(binding);
     case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:

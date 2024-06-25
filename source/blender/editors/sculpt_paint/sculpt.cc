@@ -70,6 +70,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "ED_gpencil_legacy.hh"
@@ -2104,7 +2105,7 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
   if (ss.cache && !ss.cache->accum) {
     unode = undo::get_node(&node, undo::Type::Position);
     if (unode) {
-      use_original = unode->bm_entry != nullptr;
+      use_original = undo::get_bmesh_log_entry() != nullptr;
     }
   }
 
@@ -4301,6 +4302,51 @@ bool SCULPT_poll(bContext *C)
 {
   using namespace blender::ed::sculpt_paint;
   return SCULPT_mode_poll(C) && blender::ed::sculpt_paint::paint_brush_tool_poll(C);
+}
+
+/**
+ * While most non-brush tools in sculpt mode do not use the brush cursor, the trim tools
+ * and the filter tools are expected to have the cursor visible so that some functionality is
+ * easier to visually estimate.
+ *
+ * See: #122856
+ */
+static bool is_brush_related_tool(bContext *C)
+{
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  Object *ob = CTX_data_active_object(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
+
+  if (paint && ob && BKE_paint_brush(paint) &&
+      (area && ELEM(area->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
+      (region && region->regiontype == RGN_TYPE_WINDOW))
+  {
+    bToolRef *tref = area->runtime.tool;
+    if (tref && tref->runtime && tref->runtime->keymap[0]) {
+      std::array<wmOperatorType *, 7> trim_operators = {
+          WM_operatortype_find("SCULPT_OT_trim_box_gesture", false),
+          WM_operatortype_find("SCULPT_OT_trim_lasso_gesture", false),
+          WM_operatortype_find("SCULPT_OT_trim_line_gesture", false),
+          WM_operatortype_find("SCULPT_OT_trim_polyline_gesture", false),
+          WM_operatortype_find("SCULPT_OT_mesh_filter", false),
+          WM_operatortype_find("SCULPT_OT_cloth_filter", false),
+          WM_operatortype_find("SCULPT_OT_color_filter", false),
+      };
+
+      return std::any_of(trim_operators.begin(), trim_operators.end(), [tref](wmOperatorType *ot) {
+        PointerRNA ptr;
+        return WM_toolsystem_ref_properties_get_from_operator(tref, ot, &ptr);
+      });
+    }
+  }
+  return false;
+}
+
+bool SCULPT_brush_cursor_poll(bContext *C)
+{
+  using namespace blender::ed::sculpt_paint;
+  return SCULPT_mode_poll(C) && (paint_brush_tool_poll(C) || is_brush_related_tool(C));
 }
 
 static const char *sculpt_tool_name(const Sculpt &sd)

@@ -352,6 +352,13 @@ def main():
             [OperatorSpecEditMode("merge_normals", {}, "FACE", {3, 5})],
         ),
 
+        # Quads convert to tris
+        SpecMeshTest(
+            "CubeQuadsConvertToTris", "testCubeQuadsConvertToTris", "expectedCubeQuadsConvertToTris",
+            [OperatorSpecEditMode("quads_convert_to_tris", {"quad_method": "BEAUTY", "ngon_method": "BEAUTY"},
+                                  'FACE', {0, 1, 2, 3, 4, 5})],
+        ),
+
         # select all
         SpecMeshTest(
             "CircleSelectAll", "testCircleSelectAll", "expectedCircleSelectAll",

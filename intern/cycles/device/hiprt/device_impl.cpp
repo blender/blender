@@ -141,7 +141,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   const std::string arch = hipDeviceArch(hipDevId);
 
   if (!use_adaptive_compilation()) {
-    const string fatbin = path_get(string_printf("lib/%s_rt_gfx.hipfb", name));
+    const string fatbin = path_get(string_printf("lib/%s_rt_gfx.hipfb.zst", name));
     VLOG(1) << "Testing for pre-compiled kernel " << fatbin << ".";
     if (path_exists(fatbin)) {
       VLOG(1) << "Using precompiled kernel.";
@@ -309,8 +309,7 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
   string fatbin_data;
   hipError_t result;
 
-  if (path_read_text(fatbin, fatbin_data)) {
-
+  if (path_read_compressed_text(fatbin, fatbin_data)) {
     result = hipModuleLoadData(&hipModule, fatbin_data.c_str());
   }
   else

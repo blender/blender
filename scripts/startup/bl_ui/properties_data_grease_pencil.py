@@ -198,6 +198,10 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
         if layer:
             layout.prop(layer, "use_locked_material")
 
+        layout.separator()
+        layout.operator("grease_pencil.layer_duplicate_object", text="Copy Layer to Selected").only_active = True
+        layout.operator("grease_pencil.layer_duplicate_object", text="Copy All Layers to Selected").only_active = False
+
 
 class GREASE_PENCIL_MT_group_context_menu(Menu):
     bl_label = "Layer Group"

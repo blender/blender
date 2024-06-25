@@ -371,7 +371,7 @@ void ED_object_sculptmode_enter_ex(Main &bmain,
   Paint *paint = BKE_paint_get_active_from_paintmode(&scene, PaintMode::Sculpt);
   BKE_paint_init(&bmain, &scene, PaintMode::Sculpt, PAINT_CURSOR_SCULPT);
 
-  ED_paint_cursor_start(paint, SCULPT_poll);
+  ED_paint_cursor_start(paint, SCULPT_brush_cursor_poll);
 
   /* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
    * As long as no data was added that is not supported. */

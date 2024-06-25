@@ -2167,6 +2167,9 @@ void DepsgraphRelationBuilder::build_driver_id_property(const PointerRNA &target
   if (!rna_prop_affects_parameters_node(&ptr, prop)) {
     return;
   }
+  if (ptr.owner_id) {
+    build_id(ptr.owner_id);
+  }
   const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
   /* Custom properties of bones are placed in their components to improve granularity. */
   OperationKey id_property_key;

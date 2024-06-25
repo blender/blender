@@ -524,6 +524,42 @@ int blf_font_draw_mono(
   return columns;
 }
 
+void blf_draw_svg_icon(
+    FontBLF *font, uint icon_id, float x, float y, float size, float color[4], float outline_alpha)
+{
+  blf_font_size(font, size);
+  font->pos[0] = int(x);
+  font->pos[1] = int(y);
+  font->pos[2] = 0;
+  rgba_float_to_uchar(font->color, color);
+
+  if (outline_alpha > 0) {
+    font->flags |= BLF_SHADOW;
+    font->shadow = FontShadowType::Outline;
+    font->shadow_x = 0;
+    font->shadow_y = 0;
+    font->shadow_color[0] = 0;
+    font->shadow_color[1] = 0;
+    font->shadow_color[2] = 0;
+    font->shadow_color[3] = char(outline_alpha * 255.0f);
+  }
+
+  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
+  blf_batch_draw_begin(font);
+
+  GlyphBLF *g = blf_glyph_ensure_icon(gc, icon_id);
+  if (g) {
+    blf_glyph_draw(font, gc, g, 0, 0);
+  }
+
+  if (outline_alpha > 0) {
+    font->flags &= ~BLF_SHADOW;
+  }
+
+  blf_batch_draw_end();
+  blf_glyph_cache_release(font);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

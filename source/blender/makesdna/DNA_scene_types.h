@@ -2048,7 +2048,7 @@ typedef struct Scene {
    * only used by #BKE_object_handle_update()
    */
   struct CustomData_MeshMasks customdata_mask;
-  /** XXX: same as above but for temp operator use (viewport renders). */
+  /** XXX: same as `customdata_mask` but for temp operator use (viewport renders). */
   struct CustomData_MeshMasks customdata_mask_modal;
 
   /* Color Management. */

@@ -801,7 +801,7 @@ bool BLI_ghash_remove(GHash *gh,
 
 void *BLI_ghash_popkey(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp)
 {
-  /* Same as above but return the value,
+  /* Same as #BLI_ghash_remove but return the value,
    * no free value argument since it will be returned. */
 
   const uint hash = ghash_keyhash(gh, key);

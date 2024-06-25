@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-05-18 11:56+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"PO-Revision-Date: 2024-06-22 21:56+0000\n"
 "Last-Translator: Tamar <TamMebonia@gmail.com>\n"
 "Language-Team: Georgian <https://translate.blender.org/projects/blender-ui/ui/ka/>\n"
 "Language: ka\n"
@@ -409,6 +409,10 @@ msgstr "ასახავს glTF პარამეტრების კვ�
 
 msgid "Always"
 msgstr "ყოველთვის"
+
+
+msgid "Non-Shader"
+msgstr "არა-იერფერი"
 
 
 msgid "Never"
@@ -1495,8 +1499,16 @@ msgid "Show assets from the asset libraries configured in the Preferences"
 msgstr "აჩვენე სასურველ პარამეტრებში კონფიგურირებული აქტივები აქტივთა ბიბლიოთეკებიდან"
 
 
+msgid "Activate Operator"
+msgstr "გაააქტიურე ოპერატორი"
+
+
 msgid "Default Preview Size"
 msgstr "გადახედვის ნაგულისხმები ზომა"
+
+
+msgid "Default size of the asset preview thumbnails in pixels"
+msgstr "აქტივის გადახედვის მიკროასლების ნაგულისხმები ზომა პიქსელებში"
 
 
 msgid "ID Name"
@@ -5523,6 +5535,10 @@ msgstr "პარალელური კამერები თანამ�
 
 msgid "Toe-in"
 msgstr "შეყრა"
+
+
+msgid "Rotated cameras, looking at the same point at the convergence distance"
+msgstr "შემოტრიალებული კამერები, რომლებიც გადაკვეთის მანძილზე ერთსა და იმავე წერტილს უყურებენ"
 
 
 msgid "Interocular Distance"
@@ -13339,6 +13355,10 @@ msgstr "ხმის ლენტი"
 
 msgid "Add camera background image"
 msgstr "დაამატე კამერის ფონური გამოსახულება"
+
+
+msgid "OpenVDB volume"
+msgstr "OpenVDB მოცულობა"
 
 
 msgid "File Select Entry"
@@ -25107,6 +25127,10 @@ msgstr "კონტაქტური ჩრდილი"
 
 msgid "Use screen space ray-tracing to have correct shadowing near occluder, or for small features that does not appear in shadow maps"
 msgstr "გამოიყენე ეკრანული სივრცის სხივების მიდევნება, რომ მომჩრდილველის მახლობლად სწორი მოჩრდილვა მოხდეს, ან პატარა შტრიხებისთვის, რომლებიც ჩრდილის რუკებში არ ჩნდება"
+
+
+msgid "Shadow Jitter"
+msgstr "ჩრდილის რყევა"
 
 
 msgid "Point Light"
@@ -79302,10 +79326,6 @@ msgid "Size of every cubemaps"
 msgstr "ყოველი კუბრუკის ზომა"
 
 
-msgid "64 px"
-msgstr "64 პქს"
-
-
 msgid "128 px"
 msgstr "128 პქს"
 
@@ -79410,6 +79430,10 @@ msgid "32 px"
 msgstr "32 პქს"
 
 
+msgid "64 px"
+msgstr "64 პქს"
+
+
 msgid "Distance of object that contribute to the ambient occlusion effect"
 msgstr "მანძილი ობიექტამდე, რომელსაც წვლილი შეაქვს გარემომცველი წინაღობის ეფექტში"
 
@@ -79468,10 +79492,6 @@ msgstr "EEVEE-ს ანაწყობები ანარეკლები�
 
 msgid "Directional Shadows Resolution"
 msgstr "მიმართულებითი ჩრდილების გარჩევადობა"
-
-
-msgid "Size of sun light shadow maps"
-msgstr "მზის შუქის ჩრდილთა რუკების ზომა"
 
 
 msgid "Shadow Ray Count"
@@ -91310,15 +91330,6 @@ msgid "Warning"
 msgstr "გაფრთხილება"
 
 
-msgid "name"
-msgstr "სახელი"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "დოკუმენტაცია"
-
-
 msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "შეტყობინება ხარვეზის შესახებ"
@@ -94384,6 +94395,10 @@ msgid "category"
 msgstr "კატეგორია"
 
 
+msgid "name"
+msgstr "სახელი"
+
+
 msgid "Calibration"
 msgstr "კალიბრაცია"
 
@@ -96861,6 +96876,11 @@ msgstr "ინტერნეტი:"
 
 msgid "User:"
 msgstr "მომხმარებელი:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "დოკუმენტაცია"
 
 
 msgctxt "Operator"

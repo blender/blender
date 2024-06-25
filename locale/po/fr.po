@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'b143cc1885ef')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-06-10 22:35+0000\n"
+"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"PO-Revision-Date: 2024-06-21 03:56+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -407,20 +407,84 @@ msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Afficher le nœud de sortie de matériau glTF (glTF Material Output) dans l’éditeur de shaders (menu Ajouter > Sortie)"
 
 
+msgid "        Filter by Name"
+msgstr "        Filtrer par nom"
+
+
+msgid "Show only hotkeys that have this text in their name"
+msgstr "N’afficher que les raccourcis contenant ce texte dans leur nom"
+
+
+msgid "Hide Mix nodes"
+msgstr "Cacher les nœuds de mélange"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
+msgstr "Lors de l’ajout de nœuds de mélange avec le raccourci Ctrl+Pavé0 (et similaires), afficher les nœuds soit fermés, soit ouverts avec options visibles"
+
+
 msgid "Always"
 msgstr "Toujours"
+
+
+msgid "Always collapse the new merge nodes"
+msgstr "Toujours cacher les nouveaux nœuds"
+
+
+msgid "Non-Shader"
+msgstr "Sauf shaders"
+
+
+msgid "Collapse in all cases except for shaders"
+msgstr "Cacher dans tous les cas sauf les shaders"
 
 
 msgid "Never"
 msgstr "Jamais"
 
 
+msgid "Never collapse the new merge nodes"
+msgstr "Ne jamais cacher les nouveaux nœuds de mélange"
+
+
+msgid "Mix Node Position"
+msgstr "Position du nœud de mélange"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes"
+msgstr "Position des nouveaux nœuds de mélange ajoutés avec le raccourci Ctrl+Pavé0 (et similaires)"
+
+
 msgid "Center"
 msgstr "Centre"
 
 
+msgid "Place the Mix node between the two nodes"
+msgstr "Placer le nœud de mélange entre les deux nœuds"
+
+
 msgid "Bottom"
 msgstr "En bas"
+
+
+msgid "Place the Mix node at the same height as the lowest node"
+msgstr "Placer le nœud de mélange à la même hauteur que le nœud le plus bas"
+
+
+msgid "Show Hotkey List"
+msgstr "Afficher la liste des raccourcis"
+
+
+msgid "Expand this box into a list of all the hotkeys for functions in this addon"
+msgstr "Déplier cette boîte pour afficher une liste des raccourcis des fonctions de cet add-on"
+
+
+msgid "Show Principled naming tags"
+msgstr "Afficher la nomenclature PBR"
+
+
+msgid "Expand this box into a list of all naming tags for principled texture setup"
+msgstr "Déplier cette boîte pour afficher la nomenclature pour la mise en place de textures PBR"
 
 
 msgid "Fribidi Library"
@@ -4317,8 +4381,18 @@ msgid "How many times the Density brush tries to add a new curve"
 msgstr "Combien de fois la brosse de densité essaie d’ajouter une nouvelle courbe"
 
 
+msgctxt "Operator"
+msgid "Density Mode"
+msgstr "Mode de densité"
+
+
 msgid "Determines whether the brush adds or removes curves"
 msgstr "Détermine si la brosse ajoute ou supprime des courbes"
+
+
+msgctxt "Operator"
+msgid "Auto"
+msgstr "Auto"
 
 
 msgid "Either add or remove curves depending on the minimum distance of the curves under the cursor"
@@ -26129,6 +26203,10 @@ msgid "Approximation used to model the light interactions inside the object"
 msgstr "Approximation à utiliser pour modéliser les interactions de lumière à l’intérieur de l’objet"
 
 
+msgid "Approximate the object as a sphere whose diameter is equal to the thickness defined by the node tree"
+msgstr "Approximer l’objet comme une sphère dont le diamètre est égal à l’épaisseur définie par l’arborescence nodale"
+
+
 msgid "Slab"
 msgstr "Dalle"
 
@@ -26142,7 +26220,11 @@ msgstr "Suppression des faces arrières"
 
 
 msgid "Use back face culling to hide the back side of faces"
-msgstr "Utiliser la suppression (culling) des faces arrière pour cacher le côté arrière des faces"
+msgstr "Utiliser la suppression (culling) des faces arrières pour cacher le côté arrière des faces"
+
+
+msgid "Light Probe Volume Backface Culling"
+msgstr "Suppression faces arrières pour volume de sonde d’éclairage"
 
 
 msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks"
@@ -28952,6 +29034,38 @@ msgid "Scene data-block, consisting in objects and defining time and render rela
 msgstr "Bloc de données scène, fait d’objets et définissant les réglages de temps et de rendu"
 
 
+msgid "Busy Drawing!"
+msgstr "Affichage en cours !"
+
+
+msgid "An internal property used to store only the first mouse position"
+msgstr "Propriété interne utilisée pour stocker la position initiale de la souris"
+
+
+msgid "Lazy Source!"
+msgstr "Source rapide !"
+
+
+msgid "An internal property used to store the first node in a Lazy Connect operation"
+msgstr "Propriété interne utilisée pour stocker le premier nœud d’une opération de connexion rapide"
+
+
+msgid "Lazy Target!"
+msgstr "Cible rapide !"
+
+
+msgid "An internal property used to store the last node in a Lazy Connect operation"
+msgstr "Propriété interne utilisée pour stocker le dernier nœud d’une opération de connexion rapide"
+
+
+msgid "Source Socket!"
+msgstr "Prise source !"
+
+
+msgid "An internal property used to store the source socket in a Lazy Connect operation"
+msgstr "Propriété interne utilisée pour stocker la prise source d’une opération de connexion rapide"
+
+
 msgid "Active Movie Clip"
 msgstr "Clip vidéo actif"
 
@@ -30948,14 +31062,6 @@ msgstr "N’afficher que les extensions installées"
 
 msgid "Filter by extension name, author & category"
 msgstr "Filtrer par nom, auteur et catégorie d’extension"
-
-
-msgid "Show Legacy Add-ons"
-msgstr "Afficher les add-ons hérités"
-
-
-msgid "Show add-ons which are not packaged as extensions"
-msgstr "Afficher les add-ons qui ne sont pas paquetés comme des extensions"
 
 
 msgid "Extension Tags"
@@ -35966,8 +36072,72 @@ msgid "Node Tree Interface Specials"
 msgstr "Opérations d’interface d’arborescence nodale"
 
 
+msgid "Add Reroutes"
+msgstr "Ajouter des reroutages"
+
+
+msgid "Batch Change Blend Type"
+msgstr "Changer le type de fusion par lot"
+
+
+msgid "Batch Change Selected Nodes"
+msgstr "Changer les nœuds sélectionnés par lot"
+
+
+msgid "Batch Change Math Operation"
+msgstr "Changer les opérations de maths par lot"
+
+
+msgid "Copy Label"
+msgstr "Copier le libellé"
+
+
+msgid "Copy to Selected"
+msgstr "Copier vers la sélection"
+
+
+msgid "Link Active to Selected"
+msgstr "Lier le nœud actif à la sélection"
+
+
+msgid "To All Selected"
+msgstr "Vers toute la sélection"
+
+
+msgid "Use Node Name/Label"
+msgstr "Utiliser le nom / libellé du nœud"
+
+
+msgid "Use Outputs Names"
+msgstr "Utiliser les noms des sorties"
+
+
+msgid "Merge Selected Nodes using Geometry Nodes"
+msgstr "Mélanger les nœuds sélectionnés avec des nœuds de géométrie"
+
+
+msgid "Merge Selected Nodes using Math"
+msgstr "Mélanger les nœuds sélectionnés avec des nœuds Maths"
+
+
+msgid "Merge Selected Nodes using Mix"
+msgstr "Mélanger les nœuds sélectionnés avec des nœuds Mélange"
+
+
+msgid "Merge Selected Nodes"
+msgstr "Mélanger les nœuds sélectionnés"
+
+
+msgid "Merge Selected Nodes using Shaders"
+msgstr "Mélanger les nœuds sélectionnés avec des shaders"
+
+
 msgid "Node Wrangler"
 msgstr "Node Wrangler"
+
+
+msgid "Switch Type to..."
+msgstr "Changer le type en…"
 
 
 msgid "Add Modifier"
@@ -49937,6 +50107,11 @@ msgid "Generate fractal Perlin noise"
 msgstr "Générer un bruit fractal de Perlin"
 
 
+msgctxt "Texture"
+msgid "Dimensions"
+msgstr "Dimensions"
+
+
 msgid "Number of dimensions to output noise for"
 msgstr "Nombre de dimensions pour lesquelles générer le bruit"
 
@@ -58743,24 +58918,12 @@ msgid "Install from Disk"
 msgstr "Installer depuis le disque"
 
 
-msgid "Install an extension from a file into a locally managed repository"
-msgstr "Installer une extension depuis un fichier vers un dépôt géré localement"
-
-
 msgid "Legacy Overwrite"
 msgstr "Écraser (héritage)"
 
 
 msgid "Remove existing add-ons with the same ID"
 msgstr "Supprimer les add-ons existants ayant le même ID"
-
-
-msgid "Local Repository"
-msgstr "Dépôt local"
-
-
-msgid "The local repository to install extensions into"
-msgstr "Dépôt local dans lequel installer les extensions"
 
 
 msgid "Legacy Target Path"
@@ -58852,12 +59015,22 @@ msgstr "Ne synchroniser que le dépôt actif"
 
 
 msgctxt "Operator"
+msgid "Enable Repository from Drop"
+msgstr "Activer un dépôt par glisser"
+
+
+msgctxt "Operator"
 msgid "Lock Repository (Testing)"
 msgstr "Verrouiller le dépôt (pour test)"
 
 
 msgid "Lock repositories - to test locking"
 msgstr "Verrouiller les dépôts pour tester le verrouillage"
+
+
+msgctxt "Operator"
+msgid "Refresh Local"
+msgstr "Rafraîchir local"
 
 
 msgid "Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting). Any issues are reported as warnings"
@@ -58867,6 +59040,11 @@ msgstr "Rechercher les changements de modules et métadonnées dans les extensio
 msgctxt "Operator"
 msgid "Ext Repo Sync"
 msgstr "Ext. : synchro. dépôt"
+
+
+msgctxt "Operator"
+msgid "Refresh Remote"
+msgstr "Rafraîchir distant"
 
 
 msgid "Refresh the list of extensions for all the remote repositories"
@@ -63917,7 +64095,7 @@ msgstr "Aucun"
 
 
 msgid "Use backface culling to hide the back side of faces"
-msgstr "Utiliser la suppression (culling) des faces arrière pour cacher le côté arrière des faces"
+msgstr "Utiliser la suppression (culling) des faces arrières pour cacher le côté arrière des faces"
 
 
 msgid "Use alpha channel for transparency"
@@ -69463,7 +69641,7 @@ msgstr "Regrouper les nœuds"
 
 
 msgid "Attach selected nodes to a new common frame"
-msgstr "Attacher les nœuds sélectionnés à un nouveau cadre commun"
+msgstr "Regrouper les nœuds sélectionnés dans un nouveau cadre"
 
 
 msgctxt "Operator"
@@ -69655,24 +69833,778 @@ msgid "Copy color to all selected nodes"
 msgstr "Copier la couleur vers tous les nœuds sélectionnés"
 
 
+msgctxt "Operator"
+msgid "Add UV map"
+msgstr "Ajouter une carte UV"
+
+
+msgid "Add an Attribute node with this name"
+msgstr "Ajouter un nœud d’Attribut ayant ce nom"
+
+
+msgctxt "Operator"
+msgid "Open Selected Images"
+msgstr "Ouvrir les images sélectionnées"
+
+
+msgid "Add multiple images at once"
+msgstr "Renommer plusieurs images à la fois"
+
+
+msgctxt "Operator"
+msgid "Add Reroutes"
+msgstr "Ajouter des reroutages"
+
+
+msgid "Add Reroutes to Outputs"
+msgstr "Ajouter des reroutages aux sorties"
+
+
+msgid "to all"
+msgstr "À toutes"
+
+
+msgid "Add to all outputs"
+msgstr "Ajouter à toutes les sorties"
+
+
+msgid "to loose"
+msgstr "Aux non-liées"
+
+
+msgid "Add only to loose outputs"
+msgstr "N’ajouter qu’aux sorties non-liées"
+
+
+msgid "to linked"
+msgstr "Aux liées"
+
+
+msgid "Add only to linked outputs"
+msgstr "N’ajouter qu’aux sorties liées"
+
+
+msgctxt "Operator"
+msgid "Import Image Sequence"
+msgstr "Importer une séquence d’images"
+
+
+msgid "Add an Image Sequence"
+msgstr "Ajouter une séquence d’images"
+
+
+msgid "Set the file path relative to the blend file, when possible"
+msgstr "Sélectionner le fichier relativement au ficher .blend, si possible"
+
+
+msgctxt "Operator"
+msgid "Texture Setup"
+msgstr "Config de texture"
+
+
+msgid "Add Texture Node Setup to Selected Shaders"
+msgstr "Ajouter une configuration de nœud de texture aux shaders sélectionnés"
+
+
+msgid "Add Mapping Nodes"
+msgstr "Ajouter des nœuds de placage"
+
+
+msgid "Create coordinate and mapping nodes for the texture (ignored for selected texture nodes)"
+msgstr "Créer des nœuds de coordonnées et de placage pour la texture (ignoré pour les nœuds de textures sélectionnés)"
+
+
+msgctxt "Operator"
+msgid "Principled Texture Setup"
+msgstr "Mise en place texture PBR"
+
+
+msgid "Add Texture Node Setup for Principled BSDF"
+msgstr "Ajouter une configuration de nœud de texture aux BSDF guidées"
+
+
+msgid "Folder to search in for image files"
+msgstr "Dossier dans lequel chercher les fichiers images"
+
+
+msgctxt "Operator"
+msgid "Align Nodes"
+msgstr "Aligner les nœuds"
+
+
+msgid "Align the selected nodes neatly in a row/column"
+msgstr "Aligner proprement les nœuds sélectionnés en ligne ou colonne"
+
+
+msgid "The amount of space between nodes"
+msgstr "Quantité d’espace entre les nœuds"
+
+
+msgctxt "Operator"
+msgid "Batch Change"
+msgstr "Changement par lot"
+
+
+msgid "Batch Change Blend Type and Math Operation"
+msgstr "Changer le type de mélange ou l’opération mathématique par lot"
+
+
+msgid "Add Mode"
+msgstr "Nœud Ajouter"
+
+
+msgid "Multiply Mode"
+msgstr "Nœud Multiplier"
+
+
+msgid "Subtract Mode"
+msgstr "Mode Soustraire"
+
+
+msgid "Screen Mode"
+msgstr "Mode Écran"
+
+
+msgid "Divide Mode"
+msgstr "Mode Diviser"
+
+
+msgid "Difference Mode"
+msgstr "Mode Différence"
+
+
+msgid "Darken Mode"
+msgstr "Mode Assombrir"
+
+
+msgid "Lighten Mode"
+msgstr "Mode Éclaircir"
+
+
 msgid "Overlay Mode"
 msgstr "Mode de superposition"
+
+
+msgid "Dodge"
+msgstr "Sous-développer"
+
+
+msgid "Dodge Mode"
+msgstr "Mode Sous-développer couleur"
+
+
+msgid "Burn"
+msgstr "Brûler"
+
+
+msgid "Burn Mode"
+msgstr "Mode Brûler"
+
+
+msgid "Hue Mode"
+msgstr "Mode Teinte"
+
+
+msgid "Saturation Mode"
+msgstr "Mode Saturation"
+
+
+msgid "Value Mode"
+msgstr "Mode Valeur"
+
+
+msgid "Soft Light Mode"
+msgstr "Mode Lumière douce"
+
+
+msgid "Linear Light Mode"
+msgstr "Mode Lumière linéaire"
 
 
 msgid "Current"
 msgstr "Actuelle"
 
 
+msgid "Leave at current state"
+msgstr "Laisser dans l’état actuel"
+
+
+msgid "Next blend type/operation"
+msgstr "Type de mélange ou opération suivante"
+
+
+msgid "Prev"
+msgstr "Précédente"
+
+
+msgid "Previous blend type/operation"
+msgstr "Type de mélange ou opération précédente"
+
+
+msgid "Multiply Add"
+msgstr "Multiplier ajouter"
+
+
+msgid "Multiply Add Mode"
+msgstr "Mode Multiplier ajouter"
+
+
+msgid "Sine Mode"
+msgstr "Mode Sinus"
+
+
+msgid "Cosine Mode"
+msgstr "Mode Cosinus"
+
+
+msgid "Tangent Mode"
+msgstr "Mode Tangente"
+
+
+msgid "Arcsine"
+msgstr "Arc sinus"
+
+
+msgid "Arcsine Mode"
+msgstr "Mode Arc sinus"
+
+
+msgid "Arccosine"
+msgstr "Arc cosinus"
+
+
+msgid "Arccosine Mode"
+msgstr "Mode Arc cosinus"
+
+
+msgid "Arctangent"
+msgstr "Arc tangente"
+
+
+msgid "Arctangent Mode"
+msgstr "Mode Arc tangente"
+
+
+msgid "Arctan2"
+msgstr "Arctan2"
+
+
+msgid "Arctan2 Mode"
+msgstr "Mode Arctan2"
+
+
+msgid "Hyperbolic Sine"
+msgstr "Sinus hyperbolique"
+
+
+msgid "Hyperbolic Sine Mode"
+msgstr "Mode Sinus hyperbolique"
+
+
+msgid "Hyperbolic Cosine"
+msgstr "Cosinus hyperbolique"
+
+
+msgid "Hyperbolic Cosine Mode"
+msgstr "Mode Cosinus hyperbolique"
+
+
+msgid "Hyperbolic Tangent"
+msgstr "Tangente hyperbolique"
+
+
+msgid "Hyperbolic Tangent Mode"
+msgstr "Mode Tangente hyperbolique"
+
+
+msgid "Power Mode"
+msgstr "Mode Puissance"
+
+
+msgid "Logarithm"
+msgstr "Logarithme"
+
+
+msgid "Logarithm Mode"
+msgstr "Mode Logarithme"
+
+
+msgid "Square Root Mode"
+msgstr "Mode Racine carrée"
+
+
+msgid "Inverse Square Root"
+msgstr "Racine carrée inverse"
+
+
+msgid "Inverse Square Root Mode"
+msgstr "Mode Racine carrée inverse"
+
+
 msgid "Exponent"
 msgstr "Exposant"
+
+
+msgid "Exponent Mode"
+msgstr "Mode Exposant"
+
+
+msgid "Minimum Mode"
+msgstr "Mode minimum"
+
+
+msgid "Maximum Mode"
+msgstr "Mode maximum"
+
+
+msgid "Less Than Mode"
+msgstr "Mode Inférieur à"
+
+
+msgid "Greater Than Mode"
+msgstr "Mode Supérieur à"
+
+
+msgid "Sign"
+msgstr "Signe"
+
+
+msgid "Sign Mode"
+msgstr "Mode Signe"
+
+
+msgid "Compare Mode"
+msgstr "Mode Comparer"
+
+
+msgid "Smooth Minimum"
+msgstr "Minimum adouci"
+
+
+msgid "Smooth Minimum Mode"
+msgstr "Mode Minimum adouci"
+
+
+msgid "Smooth Maximum"
+msgstr "Maximum adouci"
+
+
+msgid "Smooth Maximum Mode"
+msgstr "Mode Maximum adouci"
 
 
 msgid "Fraction"
 msgstr "Fraction"
 
 
+msgid "Fraction Mode"
+msgstr "Mode Fraction"
+
+
+msgid "Modulo"
+msgstr "Modulo"
+
+
+msgid "Modulo Mode"
+msgstr "Mode Modulo"
+
+
 msgid "Wrap"
 msgstr "Boucler"
+
+
+msgid "Wrap Mode"
+msgstr "Mode Boucler"
+
+
+msgid "Pingpong"
+msgstr "Ping-pong"
+
+
+msgid "Pingpong Mode"
+msgstr "Épingler Ping-pong"
+
+
+msgid "Absolute Mode"
+msgstr "Mode Absolu"
+
+
+msgid "Round Mode"
+msgstr "Mode Arrondi"
+
+
+msgid "Floor Mode"
+msgstr "Mode Partie entière"
+
+
+msgid "Ceil"
+msgstr "Plafond"
+
+
+msgid "Ceil Mode"
+msgstr "Mode Plafond"
+
+
+msgid "Truncate Mode"
+msgstr "Mode Tronquer"
+
+
+msgid "To Radians"
+msgstr "En radians"
+
+
+msgid "To Radians Mode"
+msgstr "Mode En radians"
+
+
+msgid "To Degrees"
+msgstr "En degrés"
+
+
+msgid "To Degrees Mode"
+msgstr "Mode En degrés"
+
+
+msgctxt "Operator"
+msgid "Reset Backdrop"
+msgstr "Réinitialiser le fond"
+
+
+msgid "Reset the zoom and position of the background image"
+msgstr "Réinitialiser le zoom et la position de l’image d’arrière-plan"
+
+
+msgctxt "Operator"
+msgid "Make Link"
+msgstr "Créer un lien"
+
+
+msgid "Link from this output"
+msgstr "Créer un lien depuis cette sortie"
+
+
+msgctxt "Operator"
+msgid "Clear Label"
+msgstr "Effacer les libellés"
+
+
+msgid "Clear labels on selected nodes"
+msgstr "Effacer les libellés des les nœuds sélectionnés"
+
+
+msgctxt "Operator"
+msgid "Copy Label"
+msgstr "Copier le libellé"
+
+
+msgid "Copy label from active to selected nodes"
+msgstr "Copier le libellé du nœud actif vers les sélectionnés"
+
+
+msgid "Source of name of label"
+msgstr "Source de nom du libellé"
+
+
+msgid "from active"
+msgstr "Depuis actif"
+
+
+msgid "from active node"
+msgstr "Depuis le nœud actif"
+
+
+msgid "from node"
+msgstr "Depuis le nœud"
+
+
+msgid "from node linked to selected node"
+msgstr "Depuis le nœud lié vers le nœud sélectionné"
+
+
+msgid "from socket"
+msgstr "Depuis la prise"
+
+
+msgid "from socket linked to selected node"
+msgstr "Depuis la prise liée vers le nœud sélectionné"
+
+
+msgctxt "Operator"
+msgid "Copy Settings"
+msgstr "Copier les réglages"
+
+
+msgid "Copy Settings of Active Node to Selected Nodes"
+msgstr "Copier les réglages du nœud actif vers les sélectionnés"
+
+
+msgctxt "Operator"
+msgid "Delete Unused Nodes"
+msgstr "Supprimer nœuds inutilisés"
+
+
+msgid "Delete all nodes whose output is not used"
+msgstr "Supprimer tous les nœuds dont la sortie n’est pas utilisée"
+
+
+msgid "Delete Empty Frames"
+msgstr "Supprimer les cadres vides"
+
+
+msgid "Delete all frames that have no nodes inside them"
+msgstr "Supprimer tous les cadres ne contenant aucun nœud"
+
+
+msgid "Delete Muted"
+msgstr "Supprimer les nœuds suspendus"
+
+
+msgid "Delete (but reconnect, like Ctrl-X) all muted nodes"
+msgstr "Supprimer tous les nœuds suspendus, en les reconnectant comme avec Ctrl+X"
+
+
+msgctxt "Operator"
+msgid "Detach Outputs"
+msgstr "Détacher les sorties"
+
+
+msgid "Detach outputs of selected node leaving inputs linked"
+msgstr "Détacher les sorties des nœuds sélectionnés, en laissant leurs entrées liées"
+
+
+msgctxt "Operator"
+msgid "Change Factor"
+msgstr "Changer le facteur"
+
+
+msgid "Change Factors of Mix Nodes and Mix Shader Nodes"
+msgstr "Changer les facteurs des nœuds de mélange de couleur et de shader"
+
+
+msgid "Add a frame node and parent the selected nodes to it"
+msgstr "Ajouter un nœud Cadre et lui parenter les nœuds sélectionnés"
+
+
+msgid "The color of the frame node"
+msgstr "Couleur du nœud Cadre"
+
+
+msgid "The visual name of the frame node"
+msgstr "Nom du nœud Cadre dans l’interface"
+
+
+msgid "Use custom color for the frame node"
+msgstr "Utiliser une couleur personnalisée pour le nœud Cadre"
+
+
+msgctxt "Operator"
+msgid "Lazy Connect"
+msgstr "Connexion rapide"
+
+
+msgid "Connect two nodes without clicking a specific socket (automatically determined"
+msgstr "Connecter deux nœuds sans cliquer sur une prise précise (déteminée automatiqumement)"
+
+
+msgctxt "Operator"
+msgid "Mix Nodes"
+msgstr "Nœuds de mélange"
+
+
+msgid "Add a Mix RGB/Shader node by interactively drawing lines between nodes"
+msgstr "Ajouter un nœud de mélange RVB ou shader en dessinant une ligne entre des nœuds"
+
+
+msgctxt "Operator"
+msgid "Link Active Node to Selected"
+msgstr "Lier le nœud actif à la sélection"
+
+
+msgid "Link active node to selected nodes basing on various criteria"
+msgstr "Lier le nœud actif aux sélectionnés, d’après différents critères"
+
+
+msgid "Link to Composite node or Material Output node"
+msgstr "Lier au nœud Composite ou Sortie matériau"
+
+
+msgid "Make a link from one socket to another"
+msgstr "Créer un lien d’une prise à une autre"
+
+
+msgctxt "Operator"
+msgid "Merge Nodes"
+msgstr "Mélanger les nœuds"
+
+
+msgid "merge type"
+msgstr "Type de mélange"
+
+
+msgid "Type of Merge to be used"
+msgstr "Type de mélange à utiliser"
+
+
+msgid "Automatic Output Type Detection"
+msgstr "Détection auto du type de sortie"
+
+
+msgid "Merge using ADD or MIX Shader"
+msgstr "Mélanger en utilisant un shader addition ou mélange"
+
+
+msgid "Merge using Mesh Boolean or Join Geometry Node"
+msgstr "Mélanger en utilisant Booléen de maillages ou Fusionner les géométries"
+
+
+msgid "Mix Node"
+msgstr "Nœud Mélange"
+
+
+msgid "Merge using Mix Nodes"
+msgstr "Mélanger avec des nœuds Mélange"
+
+
+msgid "Math Node"
+msgstr "Nœud Maths"
+
+
+msgid "Merge using Math Nodes"
+msgstr "Mélanger avec des nœuds Maths"
+
+
+msgid "Z-Combine Node"
+msgstr "Nœud Combiner Z"
+
+
+msgid "Merge using Z-Combine Nodes"
+msgstr "Mélanger avec des nœuds Combiner Z"
+
+
+msgid "Alpha Over Node"
+msgstr "Nœud Alpha au-dessus"
+
+
+msgid "Merge using Alpha Over Nodes"
+msgstr "Mélanger avec des nœuds Alpha au-dessus"
+
+
+msgid "All possible blend types, boolean operations and math operations"
+msgstr "Tous les types de mélanges, d’opérations boolénnes et de maths possibles"
+
+
+msgid "Join Geometry Mode"
+msgstr "Nœud Fusionner les géométries"
+
+
+msgid "Intersect Mode"
+msgstr "Mode Intersection"
+
+
+msgid "Union Mode"
+msgstr "Mode Union"
+
+
+msgctxt "Operator"
+msgid "Modify Labels"
+msgstr "Modifier les libellés"
+
+
+msgid "Modify labels of all selected nodes"
+msgstr "Modifier les libellés de tous les nœuds sélectionnés"
+
+
+msgid "Add to End"
+msgstr "Ajouter à la fin"
+
+
+msgid "Add to Beginning"
+msgstr "Ajouter au début"
+
+
+msgid "Text to Replace"
+msgstr "Texte à remplacer"
+
+
+msgid "Replace with"
+msgstr "Remplacer par"
+
+
+msgctxt "Operator"
+msgid "Reload Images"
+msgstr "Recharger les images"
+
+
+msgid "Update all the image nodes to match their files on disk"
+msgstr "Rafraîchir tous les nœuds d’images depuis le disque"
+
+
+msgctxt "Operator"
+msgid "Reset Nodes"
+msgstr "Réinitialiser les nœuds"
+
+
+msgid "Reset Nodes in Selection"
+msgstr "Réinitialiser les nœuds sélectionnés"
+
+
+msgctxt "Operator"
+msgid "Save This Image"
+msgstr "Enregistrer cette image"
+
+
+msgid "Save the current viewer node to an image file"
+msgstr "Enregistrer le nœud visualiseur actuel vers un fichier image"
+
+
+msgid "Choose the file format to save to"
+msgstr "Choisir le format de fichier à enregistrer"
+
+
+msgid "IRIS"
+msgstr "Iris"
+
+
+msgid "JPEG2000"
+msgstr "JPEG 2000"
+
+
+msgid "TARGA"
+msgstr "TARGA"
+
+
+msgid "CINEON"
+msgstr "Cineon"
+
+
+msgid "OPEN_EXR"
+msgstr "OpenEXR"
+
+
+msgctxt "Operator"
+msgid "Select Parent or Children"
+msgstr "Sélectionner le parent ou l’enfant"
+
+
+msgid "Select Parent Frame"
+msgstr "Sélectionner le cadre parent"
+
+
+msgid "Select Children"
+msgstr "Sélectionner le cadre enfant"
+
+
+msgid "Select members of selected frame"
+msgstr "Sélectionner les nœuds appartenant au cadre sélectionné"
+
+
+msgctxt "Operator"
+msgid "Swap Links"
+msgstr "Échanger les liens"
+
+
+msgid "Swap the output connections of the two selected nodes, or two similar inputs of a single node"
+msgstr "Échanger les connexions en sorties des deux nœuds sélectionnés, ou deux entrées similaires d’un même nœud"
 
 
 msgctxt "Operator"
@@ -82433,7 +83365,7 @@ msgstr "UVTILE"
 
 
 msgid "Export tiles in the UVTILE numbering scheme: u(u_tile + 1)_v(v_tile + 1)"
-msgstr "Exporter les tuiles avec le format numérique UDIM : u(tuile_u + 1)_v(tuile_v + 1)"
+msgstr "Exporter les tuiles avec le format numérique UVTILE : u(tuile_u + 1)_v(tuile_v + 1)"
 
 
 msgid "File format to export the UV layout to"
@@ -86724,6 +87656,14 @@ msgid "Export current scene in a USD archive"
 msgstr "Exporter la scène actuelle dans une archive USD"
 
 
+msgid "Allow Unicode"
+msgstr "Permettre Unicode"
+
+
+msgid "Preserve UTF-8 encoded characters when writing USD prim and property names (requires software utilizing USD 24.03 or greater when opening the resulting files)"
+msgstr "Conserver les caractères encodés en UTF-8 lors de l’écriture des primitives USD et des noms de propriétés (nécessite des logiciels utilisant USD 24.03 ou supérieur à l’ouverture des fichiers exportés)"
+
+
 msgid "Blender Names"
 msgstr "Noms Blender"
 
@@ -90992,8 +91932,12 @@ msgid "Adjust the location of the custom shape"
 msgstr "Ajuster la position de la forme personnalisée"
 
 
+msgid "Wire Width"
+msgstr "Largeur du filaire"
+
+
 msgid "Adjust the line thickness of custom shapes"
-msgstr "Ajuster l’épaisseur du filaire des forme personnalisée"
+msgstr "Ajuster l’épaisseur du filaire des formes personnalisée"
 
 
 msgid "Pose Head Position"
@@ -93001,6 +93945,22 @@ msgstr "Limite de mémoire cache"
 
 msgid "Memory cache limit (in megabytes)"
 msgstr "Limite de mémoire cache (en mégaoctets)"
+
+
+msgid "Network Connection Limit"
+msgstr "Limite de connexions réseau"
+
+
+msgid "Limit the number of simultaneous internet connections online operations may make at once. Zero disables the limit"
+msgstr "Limiter le nombre de connexions simultanées à Internet que peuvent faire les opérations. 0 pour désactiver la limite"
+
+
+msgid "Network Timeout"
+msgstr "Délai d’attente réseau"
+
+
+msgid "The time in seconds to wait for online operations before a connection may fail with a time-out error. Zero uses the systems default"
+msgstr "Temps d’attente en secondes pour les opérations en ligne avant qu’une connexion puisse échouer avec une erreur de délai dépassé. 0 utiliser la valeur par défaut du système"
 
 
 msgid "Register for All Users"
@@ -95817,6 +96777,58 @@ msgid "Path to the pot template file"
 msgstr "Chemin vers le fichier patron pot"
 
 
+msgid "Naming Components for alpha maps"
+msgstr "Éléments de nomenclature pour les cartes d’alpha"
+
+
+msgid "Naming Components for AO maps"
+msgstr "Éléments de nomenclature pour les cartes d’AO"
+
+
+msgid "Naming Components for Base Color maps"
+msgstr "Éléments de nomenclature pour les cartes de couleur de base"
+
+
+msgid "Naming Components for bump maps"
+msgstr "Éléments de nomenclature pour les cartes de relief"
+
+
+msgid "Naming Components for displacement maps"
+msgstr "Éléments de nomenclature pour les cartes de déplacement"
+
+
+msgid "Naming Components for emission maps"
+msgstr "Éléments de nomenclature pour les cartes d’émission"
+
+
+msgid "Gloss"
+msgstr "Brillance"
+
+
+msgid "Naming Components for glossy maps"
+msgstr "Composants de nomenclature pour les cartes de brillance"
+
+
+msgid "Naming Components for metallness maps"
+msgstr "Composants de nomenclature pour les cartes de métallicité"
+
+
+msgid "Naming Components for Normal maps"
+msgstr "Composants de nomenclature pour les cartes de normales"
+
+
+msgid "Naming Components for roughness maps"
+msgstr "Composants de nomenclature pour les cartes de rugosité"
+
+
+msgid "Naming Components for Specular maps"
+msgstr "Composants de nomenclature pour les cartes de spéculaire"
+
+
+msgid "Naming Components for transmission maps"
+msgstr "Composants de nomenclature pour les cartes de transmission"
+
+
 msgid "Python expression to be evaluated as the initial node setting"
 msgstr "Expression Python à évaluer comme réglage de nœud initial"
 
@@ -98105,8 +99117,32 @@ msgid "Method of anti-aliasing when rendering 3d viewport"
 msgstr "Méthode d’anticrénelage pour le rendu des vues 3D"
 
 
+msgid "Maximum intensity a bloom pixel can have (0 to disable) (deprecated)"
+msgstr "Intensité maximale qu’un pixel de flou lumineux peut avoir (0 pour désactiver) (obsolète)"
+
+
+msgid "Color applied to the bloom effect (deprecated)"
+msgstr "Couleur appliquée à l’effet de flou lumineux (obsolète)"
+
+
+msgid "Blend factor (deprecated)"
+msgstr "Facteur de mélange (obsolète)"
+
+
 msgid "Knee"
 msgstr "Inflection"
+
+
+msgid "Makes transition between under/over-threshold gradual (deprecated)"
+msgstr "Rend graduelle la transition avant et après le seuil (obsolète)"
+
+
+msgid "Bloom spread distance (deprecated)"
+msgstr "Distance de diffusion du flou lumineux (obsolète)"
+
+
+msgid "Filters out pixels under this level of brightness (deprecated)"
+msgstr "Éliminer les pixels sous ce niveau de luminosité (obsolète)"
 
 
 msgid "Denoise Amount"
@@ -98261,10 +99297,6 @@ msgid "Size of every cubemaps"
 msgstr "Taille de toutes les cubemaps"
 
 
-msgid "64 px"
-msgstr "64 px"
-
-
 msgid "128 px"
 msgstr "128 px"
 
@@ -98393,6 +99425,10 @@ msgid "32 px"
 msgstr "32 px"
 
 
+msgid "64 px"
+msgstr "64 px"
+
+
 msgid "Distance of object that contribute to the ambient occlusion effect"
 msgstr "Distance de l’objet qui contribue à l’effet d’occlusion ambiante"
 
@@ -98473,16 +99509,8 @@ msgid "Directional Shadows Resolution"
 msgstr "Résolution des ombres directionnelles"
 
 
-msgid "Size of sun light shadow maps"
-msgstr "Taille des cartes d’ombres des éclairages soleils"
-
-
 msgid "Cube Shadows Resolution"
 msgstr "Résolution des cubes d’ombres"
-
-
-msgid "Size of point and area light shadow maps"
-msgstr "Taille des cartes d’ombres des éclairages points et zones"
 
 
 msgid "Shadow Pool Size"
@@ -98563,6 +99591,10 @@ msgstr "Nombre d’échantillons par pixel pour le rendu"
 
 msgid "Number of samples, unlimited if 0"
 msgstr "Nombre d’échantillons, illimité si 0"
+
+
+msgid "High brightness pixels generate a glowing effect (deprecated)"
+msgstr "Les pixels fortement lumineux génèrent un effet luminescent (obsolète)"
 
 
 msgid "High Quality Slight Defocus"
@@ -101515,6 +102547,14 @@ msgstr "Ajuster la dernière opération"
 
 msgid "Toolbar"
 msgstr "Barre d’outils"
+
+
+msgid "Use Timecode"
+msgstr "Utiliser un timecode"
+
+
+msgid "Show timing as a timecode instead of frames"
+msgstr "Afficher les temps sous forme de timecodes plutôt que de frames"
 
 
 msgid "Show Stable"
@@ -108901,6 +109941,10 @@ msgid "View Layer settings for EEVEE"
 msgstr "Réglages du calque de vue pour EEVEE"
 
 
+msgid "Deliver bloom pass (deprecated)"
+msgstr "Fournir la passe de flou lumineux (obsolète)"
+
+
 msgid "Deliver alpha blended surfaces in a separate pass"
 msgstr "Fournir les surfaces avec mélange alpha dans une passe à part"
 
@@ -111254,6 +112298,16 @@ msgstr "Redimensionner"
 
 
 msgctxt "WindowManager"
+msgid "Increase Subdivision"
+msgstr "Augmenter la subdivision"
+
+
+msgctxt "WindowManager"
+msgid "Decrease Subdivision"
+msgstr "Diminuer la subdivision"
+
+
+msgctxt "WindowManager"
 msgid "Knife Tool Modal Map"
 msgstr "Carte modale de l’outil couteau"
 
@@ -112876,6 +113930,10 @@ msgid "Mesh Filter Modal Map"
 msgstr "Carte modale du filtre de maillage"
 
 
+msgid "Checking for Extension Updates"
+msgstr "Recherche des mises à jour d’extensions"
+
+
 msgid "No repositories available"
 msgstr "Aucun dépôt disponible"
 
@@ -112960,20 +114018,12 @@ msgid "Repository not set"
 msgstr "Dépôt non défini"
 
 
-msgid "There must be at least one \"Local\" repository set to install extensions into"
-msgstr "Il faut au moins un dépôt « Local » dans lequel installe les extensions"
-
-
 msgid "Repository"
 msgstr "Dépôt"
 
 
 msgid "Package ID not set"
 msgstr "ID du paquet non défini"
-
-
-msgid "Extension: \"{:s}\" Already installed!"
-msgstr "Extension : « {:s} » déjà installlée !"
 
 
 msgid "Lock not held!"
@@ -112992,10 +114042,6 @@ msgid "Upgrade is not supported for local repositories"
 msgstr "La mise à jour n’est pas prise en charge pour les dépôt locaux"
 
 
-msgid "No local user repositories"
-msgstr "Aucun dépôt local utilisateur"
-
-
 msgid "Error in manifest {:s}"
 msgstr "Erreur dans le manifeste {:s}"
 
@@ -113006,14 +114052,6 @@ msgstr "L’accès en ligne est requis pour installer ou mettre à jour. Lancer 
 
 msgid "Online access required to install or update. Enable online access in System preferences"
 msgstr "L’accès en ligne est requis pour installer ou mettre à jour. Activer l’accès en lignes dans les préférences système"
-
-
-msgid ""
-"Extension: URL not found in remote repositories!\n"
-"{:s}"
-msgstr ""
-"Extension : URL instrouvable dans le dépôt distant !\n"
-"{:s}"
 
 
 msgid "Blender was launched in offline-mode which cannot be changed at runtime"
@@ -113030,6 +114068,18 @@ msgstr "Impossible d’installer depuis un chemin relatif"
 
 msgid "Unable to install a directory"
 msgstr "Impossible d’installer un dossier"
+
+
+msgid "Missing Built-in Add-ons"
+msgstr "Add-ons intégrés manquants"
+
+
+msgid "Add-ons previously shipped with Blender are now available from extensions.blender.org."
+msgstr "Les add-ons livrés précédemment avec Blender sont maintenant disponibles sur extensions.blender.org."
+
+
+msgid "Missing Add-ons"
+msgstr "Add-ons manquants"
 
 
 msgid "Online Extensions"
@@ -113050,32 +114100,24 @@ msgid "Allow Online Access"
 msgstr "Autoriser l’accès en ligne"
 
 
-msgid "Missing Built-in Add-ons"
-msgstr "Add-ons intégrés manquants"
-
-
-msgid "Add-ons previously shipped with Blender are now available from extensions.blender.org."
-msgstr "Les add-ons livrés précédemment avec Blender sont maintenant disponibles sur extensions.blender.org."
-
-
-msgid "Missing Add-ons"
-msgstr "Add-ons manquants"
-
-
 msgid "Show Tags"
 msgstr "Afficher les étiquettes"
 
 
-msgid "Installed   "
-msgstr "Installé   "
+msgid "Maintainer"
+msgstr "Maintenance"
 
 
-msgid "Repository Access Errors:"
-msgstr "Erreur d’accès au dépôt :"
+msgid "Warning"
+msgstr "Avertissement"
 
 
 msgid "Blender's extension repository not found!"
 msgstr "Le dépôt d’extensions de Blender est introuvable !"
+
+
+msgid "Repository Access Errors:"
+msgstr "Erreur d’accès au dépôt :"
 
 
 msgid "Show Only"
@@ -113099,6 +114141,11 @@ msgid "Install from Disk..."
 msgstr "Installer depuis le disque…"
 
 
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Signaler un bug (en)"
+
+
 msgid "Blender's extension repository must be enabled to install extensions!"
 msgstr "Le dépôt d’extensions de Blender doit être activé pour installer des extensions !"
 
@@ -113109,39 +114156,21 @@ msgstr "Installer"
 
 
 msgctxt "Operator"
-msgid "Install Marked"
-msgstr "Installer les marqués"
-
-
-msgctxt "Operator"
 msgid "Uninstall Marked"
 msgstr "Désinstaller les marqués"
 
 
-msgid "Maintainer"
-msgstr "Maintenance"
+msgctxt "Operator"
+msgid "Install Marked"
+msgstr "Installer les marqués"
 
 
-msgid "Warning"
-msgstr "Avertissement"
+msgid "Installed   "
+msgstr "Installé   "
 
 
 msgid "Permissions"
 msgstr "Permissions"
-
-
-msgid "name"
-msgstr "nom"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentation"
-
-
-msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Signaler un bug (en)"
 
 
 msgctxt "Operator"
@@ -113266,6 +114295,22 @@ msgstr "Impossible de lire le bytecode OSO à stocker dans le nœud en %r"
 
 msgid "Failed to write .oso file next to external .osl file at "
 msgstr "Impossible d’écrire le fichier .oso à côté du fichier externe .osl en "
+
+
+msgid "Use Intel OpenImageDenoise AI denoiser"
+msgstr "Utiliser le débruitage IA Intel OpenImageDenoise"
+
+
+msgid "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs when configured in the system tab in the user preferences"
+msgstr "Utiliser le débruitage IA Optix avec accélération GPU. Disponible uniquement sur les GPU NVIDIA, si configuré dans l’onglet Système des préférences utilisateur"
+
+
+msgid "Use GPU accelerated denoising if supported, for the best performance. Prefer OpenImageDenoise over OptiX"
+msgstr "Utiliser le débruitage GPU si pris en charge, pour de meilleures performances. Préférer OpenImageDenoise par rapport à OptiX"
+
+
+msgid "Blender was compiled without a viewport denoiser"
+msgstr "Blender a été compilé sans débruiteur de la vue 3D"
 
 
 msgid "No compatible GPUs found for Cycles"
@@ -113784,12 +114829,307 @@ msgid "Add a new Variant Slot"
 msgstr "Ajouter un nouvel emplacement de variante"
 
 
+msgid "Link Active To Selected"
+msgstr "Lier seulement à la sélection"
+
+
+msgid "Batch Change"
+msgstr "Changement par lot"
+
+
+msgctxt "Operator"
+msgid "Multiple Images"
+msgstr "Plusieurs images"
+
+
+msgctxt "Operator"
+msgid "Image Sequence"
+msgstr "Séquence d’images"
+
+
+msgctxt "Operator"
+msgid "Add Texture Setup"
+msgstr "Ajouter une config de textures"
+
+
+msgctxt "Operator"
+msgid "Add Principled Setup"
+msgstr "Ajouter une config PBR"
+
+
+msgid "(Quick access: Shift+W)"
+msgstr "(Accès rapide : Maj+W)"
+
+
+msgctxt "Operator"
+msgid "Settings from Active"
+msgstr "Réglages depuis l’actif"
+
+
+msgctxt "Operator"
+msgid "Don't Replace Links"
+msgstr "Ne pas remplacer les liens"
+
+
+msgctxt "Operator"
+msgid "Replace Links"
+msgstr "Remplacer les liens"
+
+
+msgid "This operator is removed due to the changes of node menus."
+msgstr "Cet opérateur a été retiré suite aux changements dans les menus de nœuds."
+
+
+msgid "A native implementation of the function is expected in the future."
+msgstr "Une implémentation native de la fonction est attendue dans l’avenir."
+
+
+msgctxt "Operator"
+msgid "Select frame's members (children)"
+msgstr "Sélectionner les enfants d’un cadre"
+
+
+msgctxt "Operator"
+msgid "Select parent frame"
+msgstr "Sélectionner le cadre parent"
+
+
+msgctxt "Operator"
+msgid "Reset Nodes in Frame"
+msgstr "Réinitialiser les nœuds dans le cadre"
+
+
+msgctxt "Operator"
+msgid "Reset Node"
+msgstr "Réinitialiser le nœud"
+
+
+msgid "Use Shaders"
+msgstr "Utiliser des shaders"
+
+
+msgid "Use Geometry Nodes"
+msgstr "Utiliser des nœuds Géométrie"
+
+
+msgid "Use Math Nodes"
+msgstr "Utiliser des nœuds Maths"
+
+
+msgid "Use Mix Nodes"
+msgstr "Utiliser des nœuds Mélange"
+
+
+msgctxt "Operator"
+msgid "Use Z-Combine Nodes"
+msgstr "Utiliser des nœuds Combiner Z"
+
+
+msgctxt "Operator"
+msgid "Use Alpha Over Nodes"
+msgstr "Utiliser des nœuds Alpha au-dessus"
+
+
+msgctxt "Operator"
+msgid "from Active Node's Label"
+msgstr "Depuis le libellé du nœud actif"
+
+
+msgctxt "Operator"
+msgid "from Linked Node's Label"
+msgstr "Depuis le libellé du nœud lié"
+
+
+msgctxt "Operator"
+msgid "from Linked Output's Name"
+msgstr "Depuis le nom de la sortie liée"
+
+
+msgctxt "Operator"
+msgid "to All Outputs"
+msgstr "Vers toutes les sorties"
+
+
+msgctxt "Operator"
+msgid "to Loose Outputs"
+msgstr "Vers les sorties déconnectées"
+
+
+msgctxt "Operator"
+msgid "to Linked Outputs"
+msgstr "Vers les sorties connectées"
+
+
+msgid "No attributes on objects with this material"
+msgstr "Aucun attribut sur les objets ayant ce matériau"
+
+
+msgid "Successfully copied attributes from {} to: {}, "
+msgstr "Attributs copiés avec succès depuis {} vers {}, "
+
+
+msgid "Successfully reset {}, "
+msgstr "{} réinitialisé avec succès, "
+
+
+msgid "View3D not found, cannot run operator"
+msgstr "Vue 3D introuvable, l’opérateur n’a pu être lancé"
+
+
+msgid "Node  deleted"
+msgstr "Nœud  supprimé"
+
+
+msgid "Deleted "
+msgstr "Supprimé "
+
+
+msgid "Nothing deleted"
+msgstr "Aucune suppression"
+
+
+msgid "Reloaded images"
+msgstr "Rechargé images"
+
+
+msgid "No images found to reload in this node tree"
+msgstr "Aucune image à recharger n’a été trouvée dans cette arborescence"
+
+
+msgid "Selected nodes are not of the same type as {}"
+msgstr "Les nœuds sélectionnés ne sont pas du même type que {}"
+
+
+msgid "Ignored {} (not of the same type as {}), "
+msgstr "{} ignoré (pas du même type que {}), "
+
+
+msgid "No folder selected"
+msgstr "Aucun dossier sélectionné"
+
+
+msgid "No files selected"
+msgstr "Aucun fichier sélectionné"
+
+
+msgid "No matching images found"
+msgstr "Aucune image correspondante trouvée"
+
+
+msgid "No file chosen"
+msgstr "Aucun fichier sélectionné"
+
+
+msgid " does not exist!"
+msgstr " n’existe pas !"
+
+
+msgid " does not seem to be part of a sequence"
+msgstr " ne semble pas faire partie d’une séquence"
+
+
+msgid "Ignored {}, "
+msgstr "{} ignorée, "
+
+
+msgid "No free inputs for node: "
+msgstr "Aucune entrée libre pour le nœud : "
+
+
+msgid "Unsupported Node Tree type!"
+msgstr "Type d’arborescence nodale non prise en charge !"
+
+
+msgid "Please select only 1 frame to reset"
+msgstr "Sélectionner un seul cadre à réinitialiser"
+
+
+msgid "No valid node(s) in selection"
+msgstr "Aucun nœud valide dans la sélection"
+
+
+msgid "One of the nodes has no outputs!"
+msgstr "Un des nœuds n’a pas de sortie !"
+
+
+msgid "Neither of the nodes have outputs!"
+msgstr "Aucun des nœuds n’a de sortie !"
+
+
+msgid "Can't swap inputs of a multi input socket!"
+msgstr "Impossible d’échanger les entrées d’une prise multi-entrées !"
+
+
+msgid "This node has no inputs to swap!"
+msgstr "Ce nœud n’a pas d’entrées à échanger !"
+
+
+msgid "This node has no input connections to swap!"
+msgstr "Ce nœud n’a pas de connexions en entrée à échanger !"
+
+
+msgid "Some connections have been lost due to differing numbers of output sockets"
+msgstr "Certaines connexions ont été perdues à cause d’un nombre différent de prises de sortie"
+
+
+msgid "Edit tags for auto texture detection in Principled BSDF setup"
+msgstr "Éditer les éléments pour la détection auto des textures dans la config PBR"
+
+
+msgid "Viewer image not found."
+msgstr "Image du visualiseur introuvable."
+
+
+msgid "Current editor is not a node editor."
+msgstr "L’éditeur actuel n’est pas un éditeur de nœuds."
+
+
+msgid "No node tree was found in the current node editor."
+msgstr "Arborescence de nœuds introuvable dans l’éditeur de nœuds active."
+
+
+msgid "Current node tree is linked from another .blend file."
+msgstr "L’arborescence de nœuds actuelle est liée depuis un autre fichier .blend."
+
+
+msgid "Current node tree does not contain any nodes."
+msgstr "L’arborescence de nœuds actuelle ne contient aucun nœud."
+
+
+msgid "No active node."
+msgstr "Aucun nœud actif."
+
+
+msgid " nodes are selected, but this operator can only work on ."
+msgstr " nœuds sont sélectionnés, mais cet opérateur ne fonctionne que sur ."
+
+
 msgid ""
 "Current node tree type not supported.\n"
 "Should be one of ."
 msgstr ""
 "Le type d’arborescence de nœuds actuel n’est pas pris en charge.\n"
 "Il devrait être parmi"
+
+
+msgid "Active node should be not of type ."
+msgstr "Le nœud actif ne devrait pas être de type ."
+
+
+msgid "Current node has no visible outputs."
+msgstr "Le nœud actuel n’a aucune sortie visible."
+
+
+msgid "At least  nodes must be selected."
+msgstr "Au moins  nœuds doivent être sélectionnés."
+
+
+msgid "At least  node must be selected."
+msgstr "Au moins  nœud doit être sélectionné."
+
+
+msgid "Active node should be of type ."
+msgstr "Le nœud actif devrait être de type ."
 
 
 msgctxt "Operator"
@@ -114467,6 +115807,14 @@ msgid "Active node tree does not contain any nodes."
 msgstr "L’arborescence de nœuds active ne contient aucun nœud."
 
 
+msgid ""
+"Current node tree type not supported.\n"
+"Should be one of {:s}."
+msgstr ""
+"Le type d’arborescence de nœuds actuel n’est pas pris en charge.\n"
+"Il devrait être parmi {:s}."
+
+
 msgid "No camera found"
 msgstr "Caméra introuvable"
 
@@ -114749,6 +116097,66 @@ msgstr "Aucune face active"
 
 msgid "No mesh object"
 msgstr "Pas d’objet maillage"
+
+
+msgid "Plain Data"
+msgstr "Données simples"
+
+
+msgid "Data values without special behavior"
+msgstr "Valeurs de données sans comportement particulier"
+
+
+msgid "A distance on screen"
+msgstr "Distance à l’écran"
+
+
+msgid "A percentage between 0 and 100"
+msgstr "Pourcentage entre 0 et 100"
+
+
+msgid "A factor between 0.0 and 1.0"
+msgstr "Facteur entre 0.0 et 1.0"
+
+
+msgid "A rotational value specified in radians"
+msgstr "Valeur de rotation exprimée en radians"
+
+
+msgid "Time specified in seconds"
+msgstr "Temps exprimé en secondes"
+
+
+msgid "A distance between two points"
+msgstr "Distance entre deux points"
+
+
+msgid "Linear Color"
+msgstr "Couleur linéaire"
+
+
+msgid "Color in the linear space"
+msgstr "Couleur en espace colorimétrique linéaire"
+
+
+msgid "Gamma-Corrected Color"
+msgstr "Couleur gamma-corrigée"
+
+
+msgid "Color in the gamma corrected space"
+msgstr "Couleur en espace colorimétrique gamma-corrigé"
+
+
+msgid "Euler rotation angles in radians"
+msgstr "Angles de rotation d’Euler en radians"
+
+
+msgid "Quaternion rotation (affects NLA blending)"
+msgstr "Rotation quaternion (affecte le mélange NLA)"
+
+
+msgid "Angle and axis to rotate around"
+msgstr "Angle et axe autour duquel tourner"
 
 
 msgid "See OperatorList.txt text block"
@@ -117231,6 +118639,10 @@ msgstr "Add-ons inconnus"
 
 msgid "category"
 msgstr "catégorie"
+
+
+msgid "name"
+msgstr "nom"
 
 
 msgid "Display Thin"
@@ -119870,6 +121282,10 @@ msgid "Time Out"
 msgstr "Dépassement de temps"
 
 
+msgid "Connection Limit"
+msgstr "Limite de connexions"
+
+
 msgid "Undo Memory Limit"
 msgstr "Mémoire max pour l’annulation"
 
@@ -120130,6 +121546,14 @@ msgid "Snap Package Installation"
 msgstr "Installation de paquet Snap"
 
 
+msgid "Enabled on startup, overriding the preference."
+msgstr "Activé au démarrage, préférences écrasées."
+
+
+msgid "Disabled on startup, overriding the preference."
+msgstr "Désactivé au démarrage, préférences écrasées."
+
+
 msgid "Authentication"
 msgstr "Authentification"
 
@@ -120192,6 +121616,11 @@ msgstr "Ensemble de couleurs {:d}"
 
 msgid "Color {:d}"
 msgstr "Couleur {:d}"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentation"
 
 
 msgctxt "Operator"
@@ -124013,6 +125442,18 @@ msgstr "Proxy perdu dans l’objet %s, bibli %s"
 
 msgid "Proxy lost from object %s lib <NONE>"
 msgstr "Proxy perdu dans l’objet %s, bibli <NONE>"
+
+
+msgid "Material %s could not be converted because of different Blend Mode and Shadow Mode (need manual adjustment)"
+msgstr "Conversion du matériau %s impossible car les modes de mélange et d’ombrage sont différents (un ajustement manuel est nécessaire)"
+
+
+msgid "Material %s could not be converted because of non-trivial alpha blending (need manual adjustment)"
+msgstr "Conversion du matériau %s impossible car il y a un mélange complexe (un ajustement manuel est nécessaire)"
+
+
+msgid "%s contains a volume shader that might need to be converted to object (see world volume panel)"
+msgstr "%s contient un shader de volume qui a peut-être besoin d’être converti en objet (voir le panneau Monde > Volume("
 
 
 msgid "2D_Animation"
@@ -131155,6 +132596,10 @@ msgid "• Point Cloud: {} points"
 msgstr "• Nuage de points : {} points"
 
 
+msgid "• Curve: {} points, {} splines"
+msgstr "• Courbes : {} points, {} splines"
+
+
 msgid "• Instances: {}"
 msgstr "• Instances : {}"
 
@@ -134307,6 +135752,10 @@ msgstr "La F-courbe n’a aucun point échantillonné"
 
 msgid "Invalid frame range (%d - %d)"
 msgstr "Intervalle de frames invalide (%d - %d)"
+
+
+msgid "Invalid frame range (%d - %d). Start Frame is larger than End Frame"
+msgstr "Intervalle de frames invalide (%d - %d). La frame de début est plus grande que la frame de fin"
 
 
 msgid "Binary Object"
@@ -138335,6 +139784,22 @@ msgid "Color input on which correction will be applied"
 msgstr "Entrée de couleur sur laquelle la correction sera appliquée"
 
 
+msgid ""
+"Brightness correction value.\n"
+"An additive-type factor by which to increase the overall brightness of the image. Use a negative number to darken an image, and a positive number to brighten it"
+msgstr ""
+"Valeur de correction de luminosité.\n"
+"Un facteur de type additif avec lequel augmenter la luminosité globale de l’image. Utiliser une valeur négative pour assombrir l’image, et une valeur positive pour l’éclaircir"
+
+
+msgid ""
+"Contrast correction value.\n"
+"A scaling type factor by which to make brighter pixels brighter, but keeping the darker pixels dark. Use a negative number to decrease contrast, and a positive number to increase it"
+msgstr ""
+"Valeur de correction de contraste.\n"
+"Un facteur de type multiplicatif avec lequel rendre plus clairs les pixels clairs, tout en gardant sombres les pixels sombres. Utiliser une valeur négative pour diminuer le contraste, et une valeur positive pour l’augmenter"
+
+
 msgid "BSDF"
 msgstr "BSDF"
 
@@ -138701,6 +140166,14 @@ msgstr "Rugosité du vernis"
 
 msgid "Clear Coat Normal"
 msgstr "Normale du vernis"
+
+
+msgid ""
+"Gamma correction value\n"
+"Gamma controls the relative intensity of the mid-tones compared to the full black and full white"
+msgstr ""
+"Valeur de correction gamma\n"
+"Le gamma contrôle l’intensité relative des tons moyens comparés au noir pur et au blanc pur"
 
 
 msgid "True Normal"
@@ -140345,6 +141818,221 @@ msgstr "Tous les add-ons installés par l’utilisateur"
 
 msgid "Import-Export"
 msgstr "Import-export"
+
+
+msgctxt "Preferences"
+msgid "3D View"
+msgstr "Vue 3D"
+
+
+msgctxt "Preferences"
+msgid "Add Curve"
+msgstr "Ajout courbe"
+
+
+msgctxt "Preferences"
+msgid "Add Mesh"
+msgstr "Ajout maillage"
+
+
+msgctxt "Preferences"
+msgid "All"
+msgstr "Tout"
+
+
+msgctxt "Preferences"
+msgid "Animation"
+msgstr "Animation"
+
+
+msgctxt "Preferences"
+msgid "Bake"
+msgstr "Précalcul"
+
+
+msgctxt "Preferences"
+msgid "Camera"
+msgstr "Caméra"
+
+
+msgctxt "Preferences"
+msgid "Compositing"
+msgstr "Compositing"
+
+
+msgctxt "Preferences"
+msgid "Development"
+msgstr "Développement"
+
+
+msgctxt "Preferences"
+msgid "Game Engine"
+msgstr "Moteur de jeu"
+
+
+msgctxt "Preferences"
+msgid "Geometry Nodes"
+msgstr "Nœuds de géométrie"
+
+
+msgctxt "Preferences"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "Preferences"
+msgid "Import-Export"
+msgstr "Import-export"
+
+
+msgctxt "Preferences"
+msgid "Lighting"
+msgstr "Éclairage"
+
+
+msgctxt "Preferences"
+msgid "Material"
+msgstr "Matériau"
+
+
+msgctxt "Preferences"
+msgid "Mesh"
+msgstr "Maillage"
+
+
+msgctxt "Preferences"
+msgid "Modeling"
+msgstr "Modélisation"
+
+
+msgctxt "Preferences"
+msgid "Node"
+msgstr "Nœud"
+
+
+msgctxt "Preferences"
+msgid "Object"
+msgstr "Objet"
+
+
+msgctxt "Preferences"
+msgid "Paint"
+msgstr "Peinture"
+
+
+msgctxt "Preferences"
+msgid "Physics"
+msgstr "Physique"
+
+
+msgctxt "Preferences"
+msgid "Pipeline"
+msgstr "Pipeline"
+
+
+msgctxt "Preferences"
+msgid "Render"
+msgstr "Rendu"
+
+
+msgctxt "Preferences"
+msgid "Rigging"
+msgstr "Rigging"
+
+
+msgctxt "Preferences"
+msgid "Scene"
+msgstr "Scène"
+
+
+msgctxt "Preferences"
+msgid "Sculpt"
+msgstr "Sculpture"
+
+
+msgctxt "Preferences"
+msgid "Sequencer"
+msgstr "Séquenceur"
+
+
+msgctxt "Preferences"
+msgid "System"
+msgstr "Système"
+
+
+msgctxt "Preferences"
+msgid "Text Editor"
+msgstr "Éditeur de texte"
+
+
+msgctxt "Preferences"
+msgid "Tracking"
+msgstr "Suivi"
+
+
+msgctxt "Preferences"
+msgid "UV"
+msgstr "UV"
+
+
+msgctxt "Preferences"
+msgid "User Interface"
+msgstr "Interface utilisateur"
+
+
+msgctxt "Preferences"
+msgid "Accessibility"
+msgstr "Accessibilité"
+
+
+msgctxt "Preferences"
+msgid "Colorful"
+msgstr "Coloré"
+
+
+msgctxt "Preferences"
+msgid "Dark"
+msgstr "Sombre"
+
+
+msgctxt "Preferences"
+msgid "High Contrast"
+msgstr "Contrasté"
+
+
+msgctxt "Preferences"
+msgid "Inspired By"
+msgstr "Inspiré par"
+
+
+msgctxt "Preferences"
+msgid "Light"
+msgstr "Clair"
+
+
+msgctxt "Preferences"
+msgid "Print"
+msgstr "Impression"
+
+
+msgid "camera"
+msgstr "caméra"
+
+
+msgid "clipboard"
+msgstr "presse-papier"
+
+
+msgid "files"
+msgstr "fichiers"
+
+
+msgid "microphone"
+msgstr "microphone"
+
+
+msgid "network"
+msgstr "réseau"
 
 
 msgid "English (English)"
