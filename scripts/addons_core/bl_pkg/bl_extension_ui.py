@@ -654,7 +654,7 @@ def addons_panel_draw(panel, context):
     split = layout.split(factor=0.5)
     row_a = split.row()
     row_b = split.row()
-    row_a.prop(wm, "addon_search", text="", icon='VIEWZOOM')
+    row_a.prop(wm, "addon_search", text="", icon='VIEWZOOM', placeholder="Search Add-ons")
     row_b.prop(view, "show_addons_enabled_only", text="Enabled Only")
     rowsub = row_b.row(align=True)
 
@@ -1558,7 +1558,7 @@ def extensions_panel_draw(panel, context):
 
     row = layout.split(factor=0.5)
     row_a = row.row()
-    row_a.prop(wm, "extension_search", text="", icon='VIEWZOOM')
+    row_a.prop(wm, "extension_search", text="", icon='VIEWZOOM', placeholder="Search Extensions")
     row_b = row.row(align=True)
     row_b.prop(wm, "extension_type", text="")
     row_b.popover("USERPREF_PT_extensions_filter", text="", icon='FILTER')
