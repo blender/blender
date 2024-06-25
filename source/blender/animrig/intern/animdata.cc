@@ -140,7 +140,7 @@ bool animdata_remove_empty_action(AnimData *adt)
 {
   if (adt->action != nullptr) {
     bAction *act = adt->action;
-
+    DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
     if (BLI_listbase_is_empty(&act->curves) && (adt->flag & ADT_NLA_EDIT_ON) == 0) {
       id_us_min(&act->id);
       adt->action = nullptr;
