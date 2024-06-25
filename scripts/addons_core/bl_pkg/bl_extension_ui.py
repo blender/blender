@@ -1060,12 +1060,12 @@ def extensions_panel_draw_impl(
                 addon_module_name = None
 
             item_version = item.version
-            if item_local is None:
-                item_local_version = None
+            if item_local is None or item_remote is None:
+                item_remote_version = None
                 is_outdated = False
             else:
-                item_local_version = item_local.version
-                is_outdated = item_local_version != item_version
+                item_remote_version = item_remote.version
+                is_outdated = item_remote_version != item_version
 
             if updates_only:
                 if not is_outdated:
@@ -1201,7 +1201,7 @@ def extensions_panel_draw_impl(
                 col_a.label(text="Version")
                 if is_outdated:
                     col_b.label(
-                        text=iface_("{:s} ({:s} available)").format(item_local_version, item_version),
+                        text=iface_("{:s} ({:s} available)").format(item_version, item_remote_version),
                         translate=False,
                     )
                 else:
