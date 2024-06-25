@@ -3098,7 +3098,8 @@ class EXTENSIONS_OT_userpref_show_for_update(Operator):
         prefs.view.show_addons_enabled_only = False
 
         # Show only extensions that will be updated.
-        wm.extension_installed_only = False
+        wm.extension_show_panel_enabled = True
+        wm.extension_show_panel_installed = True
         wm.extension_updates_only = True
 
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
