@@ -21,7 +21,7 @@ void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   DRWShadingGroup *grp;
 
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_MUL;
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_MUL;
   DRW_PASS_CREATE(psl->sculpt_mask_ps, state | pd->clipping_state);
 
   GPUShader *sh = OVERLAY_shader_sculpt_mask();
