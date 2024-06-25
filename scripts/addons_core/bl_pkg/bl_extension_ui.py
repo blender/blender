@@ -33,6 +33,12 @@ from bl_ui.space_userpref import (
 USE_SHOW_ADDON_TYPE_AS_TEXT = True
 USE_SHOW_ADDON_TYPE_AS_ICON = True
 
+# For official extensions, it's policy that the website in the JSON listing overrides the developers own website.
+# This incurs and awkward lookup although it's not likely to cause a noticeable slowdown.
+# This choice moves away from the `blender_manifest.toml` being the source of truth for an extensions meta-data
+# so we might want to reconsider this as this at some point.
+USE_ADDON_IGNORE_EXTENSION_MANIFEST_HACK = True
+
 
 # -----------------------------------------------------------------------------
 # Generic Utilities
@@ -164,6 +170,34 @@ addon_type_icon = (
     'FILE_FOLDER',  # `ADDON_TYPE_LEGACY_USER`.
     'PACKAGE',  # `ADDON_TYPE_LEGACY_OTHER`.
 )
+
+if USE_ADDON_IGNORE_EXTENSION_MANIFEST_HACK:
+    # WARNING: poor performance, acceptable as it's only called for expanded add-ons (but not ideal).
+    def addon_ignore_manifest_website_hack_remote_or_default(module_name, item_doc_url):
+        from . import repo_cache_store_ensure
+        from .bl_extension_ops import (
+            extension_repos_read,
+        )
+
+        repos_all = extension_repos_read()
+        repo_module, pkg_id = module_name.split(".")[1:]
+        item_remote = None
+
+        repo_cache_store = repo_cache_store_ensure()
+
+        for repo_index, pkg_manifest_remote in enumerate(
+                repo_cache_store.pkg_manifest_from_remote_ensure(
+                    error_fn=print,
+                    ignore_missing=True,
+                )
+        ):
+            if repos_all[repo_index].module == repo_module:
+                if pkg_manifest_remote is not None:
+                    item_remote = pkg_manifest_remote.get(pkg_id)
+                break
+        if item_remote is None:
+            return item_doc_url
+        return item_remote.website or item_doc_url
 
 
 # This function generalizes over displaying extension & legacy add-ons,
@@ -403,6 +437,10 @@ def addons_panel_draw_items(
                 item_version = item_local.version
                 item_doc_url = item_local.website
                 item_tracker_url = ""
+
+                if USE_ADDON_IGNORE_EXTENSION_MANIFEST_HACK:
+                    item_doc_url = addon_ignore_manifest_website_hack_remote_or_default(module_name, item_doc_url)
+
             del item_local
         else:
             item_name = bl_info["name"]
