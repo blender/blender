@@ -1734,10 +1734,6 @@ class _RepoCacheEntry:
         has_remote = self.remote_url != ""
 
         if self._pkg_manifest_local is None:
-            self._json_data_ensure(
-                ignore_missing=ignore_missing,
-                error_fn=error_fn,
-            )
             pkg_manifest_local = {}
 
             for entry in repository_iter_package_dirs(self.directory, error_fn=error_fn):
