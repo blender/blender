@@ -1138,6 +1138,9 @@ class WM_OT_url_open_preset(Operator):
         (('CREDITS', iface_("Credits"),
           tip_("Lists committers to Blender's source code")),
          "https://www.blender.org/about/credits/"),
+        (('EXTENSIONS', iface_("Extensions Platform"),
+          tip_("Online directory of free and open source extensions")),
+         "https://extensions.blender.org/"),
     ]
 
     def execute(self, context):

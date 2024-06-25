@@ -1346,6 +1346,9 @@ class USERPREF_MT_extensions_settings(Menu):
 
         prefs = context.preferences
 
+        layout.operator("wm.url_open_preset", text="Visit Extensions Platform", icon='URL').type = 'EXTENSIONS'
+        layout.separator()
+
         layout.operator("extensions.repo_sync_all", icon='FILE_REFRESH')
         layout.operator("extensions.repo_refresh_all")
 
