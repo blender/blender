@@ -388,7 +388,7 @@ struct PaintOperationExecutor {
       random_factor *= BKE_curvemapping_evaluateF(settings_->curve_rand_uv, 0, pressure);
     }
 
-    const float random_rotation = (random_factor * 2.0f - 1.0f) * float(M_PI);
+    const float random_rotation = (random_factor * 2.0f - 1.0f) * math::numbers::pi;
     return math::interpolate(0.0f, random_rotation, settings_->uv_random);
   }
 
