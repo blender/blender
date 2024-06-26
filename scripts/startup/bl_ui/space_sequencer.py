@@ -573,7 +573,7 @@ class SEQUENCER_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
         st = context.space_data
-        has_sequencer, _has_preview = _space_view_types(st)
+        has_sequencer, has_preview = _space_view_types(st)
         is_retiming = context.scene.sequence_editor.selected_retiming_keys
 
         layout.operator("sequencer.select_all", text="All").action = 'SELECT'
@@ -582,12 +582,14 @@ class SEQUENCER_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("sequencer.select_box", text="Box Select")
-
         col = layout.column()
         if has_sequencer:
+            col.operator("sequencer.select_box", text="Box Select")
             props = col.operator("sequencer.select_box", text="Box Select (Include Handles)")
             props.include_handles = True
+        elif has_preview:
+            col.operator_context = 'INVOKE_REGION_PREVIEW'
+            col.operator("sequencer.select_box", text="Box Select")
 
         col.separator()
 
