@@ -526,6 +526,30 @@ void WM_operator_properties_gesture_lasso(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "use_smooth_stroke",
+                         false,
+                         "Stabilize Stroke",
+                         "Selection lags behind mouse and follows a smoother path");
+  prop = RNA_def_float(ot->srna,
+                       "smooth_stroke_factor",
+                       0.75f,
+                       0.5f,
+                       0.99f,
+                       "Smooth Stroke Factor",
+                       "Higher values gives a smoother stroke",
+                       0.5f,
+                       0.99f);
+  prop = RNA_def_int(ot->srna,
+                     "smooth_stroke_radius",
+                     35,
+                     10,
+                     200,
+                     "Smooth Stroke Radius",
+                     "Minimum distance from last point before selection continues",
+                     10,
+                     200);
+  RNA_def_property_subtype(prop, PROP_PIXEL);
 }
 
 void WM_operator_properties_gesture_polyline(wmOperatorType *ot)
