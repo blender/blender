@@ -878,7 +878,8 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
 
   if (SCULPT_has_loop_colors(ob)) {
-    BKE_pbvh_ensure_node_loops(*ss.pbvh);
+    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
   }
 
   if (RNA_boolean_get(op->ptr, "contiguous")) {

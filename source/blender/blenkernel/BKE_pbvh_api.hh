@@ -167,6 +167,7 @@ bool raycast_node(PBVH &pbvh,
                   const float (*origco)[3],
                   bool use_origco,
                   Span<int> corner_verts,
+                  Span<int3> corner_tris,
                   Span<int> corner_tri_faces,
                   Span<bool> hide_poly,
                   const float ray_start[3],
@@ -207,6 +208,7 @@ bool find_nearest_to_ray_node(PBVH &pbvh,
                               const float (*origco)[3],
                               bool use_origco,
                               Span<int> corner_verts,
+                              Span<int3> corner_tris,
                               Span<int> corner_tri_faces,
                               Span<bool> hide_poly,
                               const float ray_start[3],
@@ -576,7 +578,7 @@ blender::float4 BKE_pbvh_vertex_color_get(const PBVH &pbvh,
                                           blender::GroupedSpan<int> vert_to_face_map,
                                           PBVHVertRef vertex);
 
-void BKE_pbvh_ensure_node_loops(PBVH &pbvh);
+void BKE_pbvh_ensure_node_loops(PBVH &pbvh, blender::Span<blender::int3> corner_tris);
 int BKE_pbvh_debug_draw_gen_get(PBVHNode &node);
 
 namespace blender::bke::pbvh {

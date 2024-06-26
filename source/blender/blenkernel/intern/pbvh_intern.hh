@@ -154,7 +154,6 @@ struct PBVH {
   /** Only valid for polygon meshes. */
   blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
-  blender::Span<blender::int3> corner_tris;
 
   /* Grid Data */
   CCGKey gridkey;

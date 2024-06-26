@@ -1975,9 +1975,10 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     event->type);
 
   Object &ob = *CTX_data_active_object(C);
+  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
 
   if (SCULPT_has_loop_colors(ob) && ob.sculpt->pbvh) {
-    BKE_pbvh_ensure_node_loops(*ob.sculpt->pbvh);
+    BKE_pbvh_ensure_node_loops(*ob.sculpt->pbvh, mesh.corner_tris());
   }
 
   undo::push_begin_ex(ob, "Vertex Paint");
