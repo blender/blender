@@ -31,7 +31,7 @@ HdCyclesInstancer::~HdCyclesInstancer() {}
 
 #if PXR_VERSION > 2011
 void HdCyclesInstancer::Sync(HdSceneDelegate *sceneDelegate,
-                             HdRenderParam *renderParam,
+                             HdRenderParam * /*renderParam*/,
                              HdDirtyBits *dirtyBits)
 {
   _UpdateInstancer(sceneDelegate, dirtyBits);
@@ -60,6 +60,7 @@ void HdCyclesInstancer::SyncPrimvars()
       continue;
     }
 
+#if PXR_VERSION < 2311
     if (desc.name == HdInstancerTokens->translate) {
       _translate = value.Get<VtVec3fArray>();
     }
@@ -72,6 +73,20 @@ void HdCyclesInstancer::SyncPrimvars()
     else if (desc.name == HdInstancerTokens->instanceTransform) {
       _instanceTransform = value.Get<VtMatrix4dArray>();
     }
+#else
+    if (desc.name == HdInstancerTokens->instanceTranslations) {
+      _translate = value.Get<VtVec3fArray>();
+    }
+    else if (desc.name == HdInstancerTokens->instanceRotations) {
+      _rotate = value.Get<VtVec4fArray>();
+    }
+    else if (desc.name == HdInstancerTokens->instanceScales) {
+      _scale = value.Get<VtVec3fArray>();
+    }
+    else if (desc.name == HdInstancerTokens->instanceTransforms) {
+      _instanceTransform = value.Get<VtMatrix4dArray>();
+    }
+#endif
   }
 
   sceneDelegate->GetRenderIndex().GetChangeTracker().MarkInstancerClean(GetId());
