@@ -764,7 +764,7 @@ if(WITH_GHOST_WAYLAND)
     find_path(WAYLAND_PROTOCOLS_DIR
       NAMES ${_wayland_protocols_reference_file}
       PATH_SUFFIXES share/wayland-protocols
-      PATHS ${LIBDIR}/wayland-protocols
+      HINTS ${LIBDIR}/wayland-protocols
     )
     unset(_wayland_protocols_reference_file)
 
