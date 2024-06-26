@@ -2713,8 +2713,6 @@ void draw_cb(const Mesh &mesh,
              const FunctionRef<void(draw::pbvh::PBVHBatches *batches,
                                     const draw::pbvh::PBVH_GPU_Args &args)> draw_fn)
 {
-  pbvh.draw_cache_invalid = false;
-
   if (update_only_visible) {
     int update_flag = 0;
     Vector<PBVHNode *> nodes = search_gather(pbvh, [&](PBVHNode &node) {
