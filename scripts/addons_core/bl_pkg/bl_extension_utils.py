@@ -597,6 +597,7 @@ def pkg_install(
 def pkg_uninstall(
         *,
         directory: str,
+        user_directory: str,
         pkg_id_sequence: Sequence[str],
         use_idle: bool,
 ) -> Generator[InfoItemSeq, None, None]:
@@ -607,6 +608,7 @@ def pkg_uninstall(
     yield from command_output_from_json_0([
         "uninstall", ",".join(pkg_id_sequence),
         "--local-dir", directory,
+        "--user-dir", user_directory,
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
 
