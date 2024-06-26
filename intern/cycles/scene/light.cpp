@@ -1119,7 +1119,7 @@ void LightManager::device_update_background(Device *device,
   dscene->light_background_conditional_cdf.copy_to_device();
 }
 
-void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Scene *scene)
+void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
 {
   /* Counts lights in the scene. */
   size_t num_lights = 0;
@@ -1153,8 +1153,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
 
   /* Update integrator settings. */
   KernelIntegrator *kintegrator = &dscene->data.integrator;
-  kintegrator->use_light_tree = scene->integrator->get_use_light_tree() &&
-                                device->info.has_light_tree;
+  kintegrator->use_light_tree = scene->integrator->get_use_light_tree();
   kintegrator->num_lights = num_lights;
   kintegrator->num_distant_lights = num_distant_lights;
   kintegrator->num_background_lights = num_background_lights;
@@ -1429,7 +1428,7 @@ void LightManager::device_update(Device *device,
 
   device_free(device, dscene, need_update_background);
 
-  device_update_lights(device, dscene, scene);
+  device_update_lights(dscene, scene);
   if (progress.get_cancel()) {
     return;
   }

@@ -216,20 +216,6 @@ CCL_NAMESPACE_BEGIN
 #  undef __MNEE__
 #endif
 
-#if defined(__KERNEL_METAL_AMD__)
-/* Disabled due to internal compiler perf issue and enable light tree on Metal/AMD. */
-#  undef __LIGHT_TREE__
-/* Disabled due to compiler crash on Metal/AMD. */
-#  undef __MNEE__
-/* Disable due to performance regression on Metal/AMD. */
-#  ifndef WITH_PRINCIPLED_HAIR
-#    undef __PRINCIPLED_HAIR__
-#  endif
-#  ifndef WITH_PATCH_EVAL
-#    undef __PATCH_EVAL__
-#  endif
-#endif
-
 /* Scene-based selective features compilation. */
 /* Scene-based selective features compilation. */
 #ifdef __KERNEL_FEATURES__

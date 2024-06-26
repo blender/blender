@@ -80,34 +80,19 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     auto usable_devices = MetalInfo::get_usable_devices();
     assert(mtlDevId < usable_devices.size());
     mtlDevice = usable_devices[mtlDevId];
-    device_vendor = MetalInfo::get_device_vendor(mtlDevice);
-    assert(device_vendor != METAL_GPU_UNKNOWN);
     metal_printf("Creating new Cycles Metal device: %s\n", info.description.c_str());
 
     /* determine default storage mode based on whether UMA is supported */
 
     default_storage_mode = MTLResourceStorageModeManaged;
 
+    /* We only support Apple Silicon which hasUnifiedMemory support. But leave this check here
+     * just in case a future GPU comes out that doesn't. */
     if ([mtlDevice hasUnifiedMemory]) {
       default_storage_mode = MTLResourceStorageModeShared;
     }
 
-    switch (device_vendor) {
-      default:
-        break;
-      case METAL_GPU_INTEL: {
-        max_threads_per_threadgroup = 64;
-        break;
-      }
-      case METAL_GPU_AMD: {
-        max_threads_per_threadgroup = 128;
-        break;
-      }
-      case METAL_GPU_APPLE: {
-        max_threads_per_threadgroup = 512;
-        break;
-      }
-    }
+    max_threads_per_threadgroup = 512;
 
     use_metalrt = info.use_hardware_raytracing;
     if (auto metalrt = getenv("CYCLES_METALRT")) {
@@ -118,20 +103,18 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
       capture_enabled = true;
     }
 
-    if (device_vendor == METAL_GPU_APPLE) {
-      /* Set kernel_specialization_level based on user preferences. */
-      switch (info.kernel_optimization_level) {
-        case KERNEL_OPTIMIZATION_LEVEL_OFF:
-          kernel_specialization_level = PSO_GENERIC;
-          break;
-        default:
-        case KERNEL_OPTIMIZATION_LEVEL_INTERSECT:
-          kernel_specialization_level = PSO_SPECIALIZED_INTERSECT;
-          break;
-        case KERNEL_OPTIMIZATION_LEVEL_FULL:
-          kernel_specialization_level = PSO_SPECIALIZED_SHADE;
-          break;
-      }
+    /* Set kernel_specialization_level based on user preferences. */
+    switch (info.kernel_optimization_level) {
+      case KERNEL_OPTIMIZATION_LEVEL_OFF:
+        kernel_specialization_level = PSO_GENERIC;
+        break;
+      default:
+      case KERNEL_OPTIMIZATION_LEVEL_INTERSECT:
+        kernel_specialization_level = PSO_SPECIALIZED_INTERSECT;
+        break;
+      case KERNEL_OPTIMIZATION_LEVEL_FULL:
+        kernel_specialization_level = PSO_SPECIALIZED_SHADE;
+        break;
     }
 
     if (auto envstr = getenv("CYCLES_METAL_SPECIALIZATION_LEVEL")) {
@@ -351,41 +334,18 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
   global_defines += "#define WITH_CYCLES_DEBUG\n";
 #  endif
 
-  switch (device_vendor) {
-    default:
-      break;
-    case METAL_GPU_INTEL:
-      global_defines += "#define __KERNEL_METAL_INTEL__\n";
-      break;
-    case METAL_GPU_AMD:
-      global_defines += "#define __KERNEL_METAL_AMD__\n";
-      /* The increased amount of BSDF code leads to a big performance regression
-       * on AMD. There is currently no workaround to fix this general. Instead
-       * disable Principled Hair and patch evaluation. */
-      if (kernel_features & KERNEL_FEATURE_NODE_PRINCIPLED_HAIR) {
-        global_defines += "#define WITH_PRINCIPLED_HAIR\n";
-      }
-      if (kernel_features & KERNEL_FEATURE_PATCH_EVALUATION) {
-        global_defines += "#define WITH_PATCH_EVAL\n";
-      }
-      break;
-    case METAL_GPU_APPLE:
-      global_defines += "#define __KERNEL_METAL_APPLE__\n";
-
-      if (@available(macos 14.0, *)) {
-        /* Use Program Scope Global Built-ins, when available. */
-        global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
-      }
-
-#  ifdef WITH_NANOVDB
-      /* Compiling in NanoVDB results in a marginal drop in render performance,
-       * so disable it for specialized PSOs when no textures are using it. */
-      if ((pso_type == PSO_GENERIC || using_nanovdb) && DebugFlags().metal.use_nanovdb) {
-        global_defines += "#define WITH_NANOVDB\n";
-      }
-#  endif
-      break;
+  global_defines += "#define __KERNEL_METAL_APPLE__\n";
+  if (@available(macos 14.0, *)) {
+    /* Use Program Scope Global Built-ins, when available. */
+    global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
   }
+#  ifdef WITH_NANOVDB
+  /* Compiling in NanoVDB results in a marginal drop in render performance,
+   * so disable it for specialized PSOs when no textures are using it. */
+  if ((pso_type == PSO_GENERIC || using_nanovdb) && DebugFlags().metal.use_nanovdb) {
+    global_defines += "#define WITH_NANOVDB\n";
+  }
+#  endif
 
   NSProcessInfo *processInfo = [NSProcessInfo processInfo];
   NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
@@ -543,7 +503,6 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
 
     id<MTLDevice> mtlDevice;
     string source;
-    MetalGPUVendor device_vendor;
 
     /* Safely gather any state required for the MSL->AIR compilation. */
     {
@@ -566,7 +525,6 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
       }
 
       mtlDevice = instance->mtlDevice;
-      device_vendor = instance->device_vendor;
       source = instance->source[pso_type];
     }
 
@@ -574,14 +532,6 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
      * in this time. */
 
     MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
-
-#  if defined(MAC_OS_VERSION_13_0)
-    if (@available(macos 13.0, *)) {
-      if (device_vendor == METAL_GPU_INTEL) {
-        [options setOptimizationLevel:MTLLibraryOptimizationLevelSize];
-      }
-    }
-#  endif
 
     options.fastMathEnabled = YES;
     if (@available(macos 12.0, *)) {
@@ -1158,8 +1108,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
       }
     }
     MTLStorageMode storage_mode = MTLStorageModeManaged;
-    /* Intel GPUs don't support MTLStorageModeShared for MTLTextures. */
-    if ([mtlDevice hasUnifiedMemory] && device_vendor != METAL_GPU_INTEL) {
+    if ([mtlDevice hasUnifiedMemory]) {
       storage_mode = MTLStorageModeShared;
     }
 

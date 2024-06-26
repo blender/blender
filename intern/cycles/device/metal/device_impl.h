@@ -45,8 +45,6 @@ class MetalDevice : public Device {
       nil; /* encoder used for fetching device pointers from MTLAccelerationStructure */
   /*---------------------------------------------------*/
 
-  MetalGPUVendor device_vendor;
-
   uint kernel_features;
   bool using_nanovdb = false;
   MTLResourceOptions default_storage_mode;
