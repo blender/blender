@@ -112,6 +112,14 @@ def repo_lookup_by_index_or_none_with_report(index, report_fn):
     return result
 
 
+def repo_user_directory(repo_module_name):
+    path = bpy.utils.user_resource('EXTENSIONS')
+    # Technically possible this is empty but in practice never happens.
+    if path:
+        path = os.path.join(path, ".user", repo_module_name)
+    return path
+
+
 is_background = bpy.app.background
 
 # Execute tasks concurrently.
@@ -1808,6 +1816,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
                 partial(
                     bl_extension_utils.pkg_uninstall,
                     directory=repo_item.directory,
+                    user_directory=repo_user_directory(repo_item.module),
                     pkg_id_sequence=pkg_id_sequence,
                     use_idle=is_modal,
                 ))
@@ -2728,6 +2737,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
                 partial(
                     bl_extension_utils.pkg_uninstall,
                     directory=directory,
+                    user_directory=repo_user_directory(repo_item.module),
                     pkg_id_sequence=(pkg_id, ),
                     use_idle=is_modal,
                 ),

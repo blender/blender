@@ -318,6 +318,18 @@ size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo
   return BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), repo->module);
 }
 
+size_t BKE_preferences_extension_repo_user_dirpath_get(const bUserExtensionRepo *repo,
+                                                       char *dirpath,
+                                                       const int dirpath_maxncpy)
+{
+  if (std::optional<std::string> path = BKE_appdir_folder_id_user_notest(BLENDER_USER_EXTENSIONS,
+                                                                         nullptr))
+  {
+    return BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), ".user", repo->module);
+  }
+  return 0;
+}
+
 bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index)
 {
   return static_cast<bUserExtensionRepo *>(BLI_findlink(&userdef->extension_repos, index));

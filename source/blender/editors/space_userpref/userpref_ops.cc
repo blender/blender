@@ -618,10 +618,19 @@ static int preferences_extension_repo_remove_invoke(bContext *C,
   std::string message;
   if (remove_files) {
     char dirpath[FILE_MAX];
+    char user_dirpath[FILE_MAX];
     BKE_preferences_extension_repo_dirpath_get(repo, dirpath, sizeof(dirpath));
+    BKE_preferences_extension_repo_user_dirpath_get(repo, user_dirpath, sizeof(user_dirpath));
 
-    if (dirpath[0]) {
-      message = fmt::format(IFACE_("Remove all files in \"{}\"."), dirpath);
+    if (dirpath[0] || user_dirpath[0]) {
+      message = IFACE_("Remove all files in:");
+      const char *paths[] = {dirpath, user_dirpath};
+      for (int i = 0; i < ARRAY_SIZE(paths); i++) {
+        if (paths[i][0] == '\0') {
+          continue;
+        }
+        message.append(fmt::format("\n\"{}\"", paths[i]));
+      }
     }
     else {
       message = IFACE_("Remove, local files not found.");
@@ -696,6 +705,16 @@ static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
       BKE_callback_exec_string(bmain, BKE_CB_EVT_EXTENSION_REPOS_FILES_CLEAR, dirpath);
 
       if (BLI_delete(dirpath, true, recursive) != 0) {
+        BKE_reportf(op->reports,
+                    RPT_WARNING,
+                    "Unable to remove directory: %s",
+                    errno ? strerror(errno) : "unknown");
+      }
+    }
+
+    BKE_preferences_extension_repo_user_dirpath_get(repo, dirpath, sizeof(dirpath));
+    if (dirpath[0] && BLI_is_dir(dirpath)) {
+      if (BLI_delete(dirpath, true, true) != 0) {
         BKE_reportf(op->reports,
                     RPT_WARNING,
                     "Unable to remove directory: %s",
