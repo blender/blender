@@ -3431,7 +3431,7 @@ static void node_draw_basis(const bContext &C,
                     (void *)"NODE_OT_preview_toggle");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
-  if (node.type == NODE_CUSTOM && node.typeinfo->ui_icon != ICON_NONE) {
+  if (node.is_group() && node.typeinfo->ui_icon != ICON_NONE) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
     uiDefIconBut(&block,
