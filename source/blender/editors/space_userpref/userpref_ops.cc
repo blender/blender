@@ -663,6 +663,19 @@ static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
   }
 
   if (remove_files) {
+    if (!BKE_preferences_extension_repo_module_is_valid(repo)) {
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  /* Account for it not being null terminated. */
+                  "Unable to remove files, the module name \"%.*s\" is invalid and "
+                  "could remove non-repository files",
+                  int(sizeof(repo->module)),
+                  repo->module);
+      remove_files = false;
+    }
+  }
+
+  if (remove_files) {
     char dirpath[FILE_MAX];
     BKE_preferences_extension_repo_dirpath_get(repo, dirpath, sizeof(dirpath));
     if (dirpath[0] && BLI_is_dir(dirpath)) {
