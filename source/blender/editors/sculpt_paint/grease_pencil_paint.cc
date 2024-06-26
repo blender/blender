@@ -326,16 +326,16 @@ struct PaintOperationExecutor {
     if (!use_settings_random_ || !(settings_->draw_random_press > 0.0f)) {
       return radius;
     }
-    float random_factor = [&]() {
-      if ((settings_->flag2 & GP_BRUSH_USE_PRESS_AT_STROKE) == 0) {
-        /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
-        constexpr float noise_scale = 1 / 20.0f;
-        return noise::perlin(float2(distance * noise_scale, self.stroke_random_radius_factor_));
-      }
-      else {
-        return self.stroke_random_radius_factor_;
-      }
-    }();
+    float random_factor = 0.0f;
+    if ((settings_->flag2 & GP_BRUSH_USE_PRESS_AT_STROKE) == 0) {
+      /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
+      constexpr float noise_scale = 1 / 20.0f;
+      random_factor = noise::perlin(
+          float2(distance * noise_scale, self.stroke_random_radius_factor_));
+    }
+    else {
+      random_factor = self.stroke_random_radius_factor_;
+    }
 
     if ((settings_->flag2 & GP_BRUSH_USE_PRESSURE_RAND_PRESS) != 0) {
       random_factor *= BKE_curvemapping_evaluateF(settings_->curve_rand_pressure, 0, pressure);
@@ -352,16 +352,16 @@ struct PaintOperationExecutor {
     if (!use_settings_random_ || !(settings_->draw_random_strength > 0.0f)) {
       return opacity;
     }
-    float random_factor = [&]() {
-      if ((settings_->flag2 & GP_BRUSH_USE_STRENGTH_AT_STROKE) == 0) {
-        /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
-        constexpr float noise_scale = 1 / 20.0f;
-        return noise::perlin(float2(distance * noise_scale, self.stroke_random_opacity_factor_));
-      }
-      else {
-        return self.stroke_random_opacity_factor_;
-      }
-    }();
+    float random_factor = 0.0f;
+    if ((settings_->flag2 & GP_BRUSH_USE_STRENGTH_AT_STROKE) == 0) {
+      /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
+      constexpr float noise_scale = 1 / 20.0f;
+      random_factor = noise::perlin(
+          float2(distance * noise_scale, self.stroke_random_opacity_factor_));
+    }
+    else {
+      random_factor = self.stroke_random_opacity_factor_;
+    }
 
     if ((settings_->flag2 & GP_BRUSH_USE_STRENGTH_RAND_PRESS) != 0) {
       random_factor *= BKE_curvemapping_evaluateF(settings_->curve_rand_strength, 0, pressure);
@@ -375,14 +375,13 @@ struct PaintOperationExecutor {
     if (!use_settings_random_ || !(settings_->uv_random > 0.0f)) {
       return 0.0f;
     }
-    float random_factor = [&]() {
-      if ((settings_->flag2 & GP_BRUSH_USE_UV_AT_STROKE) == 0) {
-        return self.rng_.get_float();
-      }
-      else {
-        return self.stroke_random_rotation_factor_;
-      }
-    }();
+    float random_factor = 0.0f;
+    if ((settings_->flag2 & GP_BRUSH_USE_UV_AT_STROKE) == 0) {
+      random_factor = self.rng_.get_float();
+    }
+    else {
+      random_factor = self.stroke_random_rotation_factor_;
+    }
 
     if ((settings_->flag2 & GP_BRUSH_USE_UV_RAND_PRESS) != 0) {
       random_factor *= BKE_curvemapping_evaluateF(settings_->curve_rand_uv, 0, pressure);
@@ -406,32 +405,30 @@ struct PaintOperationExecutor {
     /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
     constexpr float noise_scale = 1 / 20.0f;
 
-    float random_hue = [&]() {
-      if ((settings_->flag2 & GP_BRUSH_USE_HUE_AT_STROKE) == 0) {
-        return noise::perlin(float2(distance * noise_scale, self.stroke_random_hue_factor_));
-      }
-      else {
-        return self.stroke_random_hue_factor_;
-      }
-    }();
+    float random_hue = 0.0f;
+    if ((settings_->flag2 & GP_BRUSH_USE_HUE_AT_STROKE) == 0) {
+      random_hue = noise::perlin(float2(distance * noise_scale, self.stroke_random_hue_factor_));
+    }
+    else {
+      random_hue = self.stroke_random_hue_factor_;
+    }
 
-    float random_saturation = [&]() {
-      if ((settings_->flag2 & GP_BRUSH_USE_SAT_AT_STROKE) == 0) {
-        return noise::perlin(float2(distance * noise_scale, self.stroke_random_sat_factor_));
-      }
-      else {
-        return self.stroke_random_sat_factor_;
-      }
-    }();
+    float random_saturation = 0.0f;
+    if ((settings_->flag2 & GP_BRUSH_USE_SAT_AT_STROKE) == 0) {
+      random_saturation = noise::perlin(
+          float2(distance * noise_scale, self.stroke_random_sat_factor_));
+    }
+    else {
+      random_saturation = self.stroke_random_sat_factor_;
+    }
 
-    float random_value = [&]() {
-      if ((settings_->flag2 & GP_BRUSH_USE_VAL_AT_STROKE) == 0) {
-        return noise::perlin(float2(distance * noise_scale, self.stroke_random_val_factor_));
-      }
-      else {
-        return self.stroke_random_val_factor_;
-      }
-    }();
+    float random_value = 0.0f;
+    if ((settings_->flag2 & GP_BRUSH_USE_VAL_AT_STROKE) == 0) {
+      random_value = noise::perlin(float2(distance * noise_scale, self.stroke_random_val_factor_));
+    }
+    else {
+      random_value = self.stroke_random_val_factor_;
+    }
 
     if ((settings_->flag2 & GP_BRUSH_USE_HUE_RAND_PRESS) != 0) {
       random_hue *= BKE_curvemapping_evaluateF(settings_->curve_rand_hue, 0, pressure);
