@@ -304,9 +304,6 @@ static AssetWeakReference asset_weak_reference_for_essentials(const short idcode
   return weak_ref;
 }
 
-/**
- * Public API
- */
 std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  const ID &id,
                                                  const StringRef name,
