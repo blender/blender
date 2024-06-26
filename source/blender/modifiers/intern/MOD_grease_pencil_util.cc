@@ -22,6 +22,8 @@
 #include "BKE_lib_query.hh"
 #include "BKE_material.h"
 
+#include "BLT_translation.hh"
+
 #include "BLO_read_write.hh"
 
 #include "RNA_access.hh"
@@ -166,7 +168,7 @@ void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   uiLayoutSetPropSep(layout, true);
   row = uiLayoutRow(layout, true);
   uiLayoutSetPropDecorate(row, false);
-  uiItemR(row, ptr, "use_custom_curve", UI_ITEM_NONE, "Custom Curve", ICON_NONE);
+  uiItemR(row, ptr, "use_custom_curve", UI_ITEM_NONE, IFACE_("Custom Curve"), ICON_NONE);
   if (use_custom_curve) {
     uiTemplateCurveMapping(layout, ptr, "custom_curve", 0, false, false, false, false);
   }

@@ -276,7 +276,14 @@ void main()
 
       shadow_direction = transform_direction(light.object_to_world, shadow_direction);
 
-      light.object_to_world = transform_from_matrix(mat4x4(from_up_axis(shadow_direction)));
+      if (light_sun_data_get(light).shadow_angle == 0.0) {
+        /* The shape is a point. There is nothing to jitter.
+         * `shape_radius` is clamped to a minimum for precision reasons, so `shadow_angle` is
+         * set to 0 only when the light radius is also 0 to detect this case. */
+      }
+      else {
+        light.object_to_world = transform_from_matrix(mat4x4(from_up_axis(shadow_direction)));
+      }
     }
 
     if (light.type == LIGHT_SUN_ORTHO) {
@@ -299,7 +306,14 @@ void main()
         position_on_light = vec3(point_on_unit_shape * light_area_data_get(light).size, 0.0);
       }
       else {
-        position_on_light = sample_ball(rand) * light_local_data_get(light).shape_radius;
+        if (light_local_data_get(light).shadow_radius == 0.0) {
+          /* The shape is a point. There is nothing to jitter.
+           * `shape_radius` is clamped to a minimum for precision reasons, so `shadow_radius` is
+           * set to 0 only when the light radius is also 0 to detect this case. */
+        }
+        else {
+          position_on_light = sample_ball(rand) * light_local_data_get(light).shape_radius;
+        }
       }
     }
 

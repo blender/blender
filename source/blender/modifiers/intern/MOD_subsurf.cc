@@ -403,8 +403,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   Object *ob = static_cast<Object *>(ob_ptr.data);
   const Mesh *mesh = static_cast<const Mesh *>(ob->data);
   if (BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(smd, mesh)) {
-    uiItemL(
-        layout, "Sharp edges or custom normals detected, disabling GPU subdivision", ICON_INFO);
+    uiItemL(layout,
+            RPT_("Sharp edges or custom normals detected, disabling GPU subdivision"),
+            ICON_INFO);
   }
   else if (Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob)) {
     if (ModifierData *md_eval = BKE_modifiers_findby_name(ob_eval, smd->modifier.name)) {
@@ -413,7 +414,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
         if (runtime_data && runtime_data->used_gpu) {
           if (runtime_data->used_cpu) {
-            uiItemL(layout, "Using both CPU and GPU subdivision", ICON_INFO);
+            uiItemL(layout, RPT_("Using both CPU and GPU subdivision"), ICON_INFO);
           }
         }
       }

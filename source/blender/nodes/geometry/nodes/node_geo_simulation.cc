@@ -426,10 +426,10 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     {
       uiLayout *col = uiLayoutColumn(settings_col, true);
       uiLayoutSetActive(col, !is_baked);
-      uiItemR(col, &bake_rna, "use_custom_path", UI_ITEM_NONE, "Custom Path", ICON_NONE);
+      uiItemR(col, &bake_rna, "use_custom_path", UI_ITEM_NONE, IFACE_("Custom Path"), ICON_NONE);
       uiLayout *subcol = uiLayoutColumn(col, true);
       uiLayoutSetActive(subcol, bake->flag & NODES_MODIFIER_BAKE_CUSTOM_PATH);
-      uiItemR(subcol, &bake_rna, "directory", UI_ITEM_NONE, "Path", ICON_NONE);
+      uiItemR(subcol, &bake_rna, "directory", UI_ITEM_NONE, IFACE_("Path"), ICON_NONE);
     }
     {
       uiLayout *col = uiLayoutColumn(settings_col, true);
@@ -437,12 +437,12 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
               &bake_rna,
               "use_custom_simulation_frame_range",
               UI_ITEM_NONE,
-              "Custom Range",
+              IFACE_("Custom Range"),
               ICON_NONE);
       uiLayout *subcol = uiLayoutColumn(col, true);
       uiLayoutSetActive(subcol, bake->flag & NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
-      uiItemR(subcol, &bake_rna, "frame_start", UI_ITEM_NONE, "Start", ICON_NONE);
-      uiItemR(subcol, &bake_rna, "frame_end", UI_ITEM_NONE, "End", ICON_NONE);
+      uiItemR(subcol, &bake_rna, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
+      uiItemR(subcol, &bake_rna, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
     }
   }
 

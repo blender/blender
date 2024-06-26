@@ -99,15 +99,15 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr, 0, false, nullptr);
-  uiItemR(layout, ptr, "texture_map_mode", UI_ITEM_NONE, "Texture Mapping", ICON_NONE);
+  uiItemR(layout, ptr, "texture_map_mode", UI_ITEM_NONE, IFACE_("Texture Mapping"), ICON_NONE);
 
   if (vdmd->texture_map_mode == MOD_VOLUME_DISPLACE_MAP_OBJECT) {
-    uiItemR(layout, ptr, "texture_map_object", UI_ITEM_NONE, "Object", ICON_NONE);
+    uiItemR(layout, ptr, "texture_map_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
   }
 
   uiItemR(layout, ptr, "strength", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "texture_sample_radius", UI_ITEM_NONE, "Sample Radius", ICON_NONE);
-  uiItemR(layout, ptr, "texture_mid_level", UI_ITEM_NONE, "Mid Level", ICON_NONE);
+  uiItemR(layout, ptr, "texture_sample_radius", UI_ITEM_NONE, IFACE_("Sample Radius"), ICON_NONE);
+  uiItemR(layout, ptr, "texture_mid_level", UI_ITEM_NONE, IFACE_("Mid Level"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

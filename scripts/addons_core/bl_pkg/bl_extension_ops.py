@@ -33,6 +33,8 @@ from bpy.props import (
 )
 from bpy.app.translations import (
     pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
+
 )
 
 from . import (
@@ -1060,7 +1062,7 @@ def _repo_dir_and_index_get(repo_index, directory, report_fn):
     return directory
 
 
-def _extensions_maybe_online_action_poll_impl(cls, repo, action_text):
+def _extensions_maybe_online_action_poll_impl(cls, repo, action):
 
     if repo is not None:
         if not repo.enabled:
@@ -1076,13 +1078,19 @@ def _extensions_maybe_online_action_poll_impl(cls, repo, action_text):
 
     if online_access_required:
         if not bpy.app.online_access:
-            cls.poll_message_set(
-                "Online access required to {:s}. {:s}".format(
-                    action_text,
-                    "Launch Blender without --offline-mode" if bpy.app.online_access_override else
-                    "Enable online access in System preferences"
-                )
-            )
+            # Split message into sentences for i18n.
+            match action:
+                case 'CHECK_UPDATES':
+                    message = rpt_("Online access required to check for updates.")
+                case 'INSTALL_UPDATES':
+                    message = rpt_("Online access required to install updates.")
+                case _:
+                    assert False, "Unreachable"
+            if bpy.app.online_access_override:
+                message += " " + rpt_("Launch Blender without --offline-mode")
+            else:
+                message += " " + rpt_("Enable online access in System preferences")
+            cls.poll_message_set(message)
             return False
 
     repos_all = extension_repos_read(use_active_only=False)
@@ -1290,7 +1298,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
     @classmethod
     def poll(cls, context):
         repo = getattr(context, "extension_repo", None)
-        return _extensions_maybe_online_action_poll_impl(cls, repo, "check for updates")
+        return _extensions_maybe_online_action_poll_impl(cls, repo, action='CHECK_UPDATES')
 
     @classmethod
     def description(cls, _context, props):
@@ -1485,7 +1493,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 cls.poll_message_set("Upgrade is not supported for local repositories")
                 return False
 
-        return _extensions_maybe_online_action_poll_impl(cls, repo, "install updates")
+        return _extensions_maybe_online_action_poll_impl(cls, repo, action='INSTALL_UPDATES')
 
     @classmethod
     def description(cls, _context, props):
