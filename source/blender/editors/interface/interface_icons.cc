@@ -2612,25 +2612,41 @@ void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
 
 /* ********** Alert Icons ********** */
 
-ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon)
+ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size)
 {
 #ifdef WITH_HEADLESS
-  UNUSED_VARS(icon);
+  UNUSED_VARS(icon, size);
   return nullptr;
 #else
-  if (icon == ALERT_ICON_NONE) {
+
+  int icon_id = ICON_NONE;
+  switch (icon) {
+    case ALERT_ICON_WARNING:
+      icon_id = ICON_WARNING_LARGE;
+      break;
+    case ALERT_ICON_QUESTION:
+      icon_id = ICON_QUESTION_LARGE;
+      break;
+    case ALERT_ICON_ERROR:
+      icon_id = ICON_CANCEL_LARGE;
+      break;
+    case ALERT_ICON_INFO:
+      icon_id = ICON_INFO_LARGE;
+      break;
+  }
+
+  if (icon_id == ICON_NONE) {
     return nullptr;
   }
-  const int ALERT_IMG_SIZE = 256;
-  icon = eAlertIcon(std::min<int>(icon, ALERT_ICON_MAX - 1));
-  const int left = icon * ALERT_IMG_SIZE;
-  const rcti crop = {left, left + ALERT_IMG_SIZE - 1, 0, ALERT_IMG_SIZE - 1};
-  ImBuf *ibuf = IMB_ibImageFromMemory((const uchar *)datatoc_alert_icons_png,
-                                      datatoc_alert_icons_png_size,
-                                      IB_rect,
-                                      nullptr,
-                                      "alert_icon");
-  IMB_rect_crop(ibuf, &crop);
+
+  int width;
+  int height;
+  blender::Array<uchar> bitmap = BLF_svg_icon_bitmap(icon_id, size, &width, &height);
+  if (bitmap.is_empty()) {
+    return nullptr;
+  }
+  ImBuf *ibuf = IMB_allocFromBuffer(bitmap.data(), nullptr, width, height, 4);
+  IMB_flipy(ibuf);
   IMB_premultiply_alpha(ibuf);
   return ibuf;
 #endif
