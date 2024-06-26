@@ -273,6 +273,22 @@ void init_session_data(const ToolSettings &ts, Object &ob)
       }
     }
   }
+  else if (ob.mode == OB_MODE_VERTEX_PAINT) {
+    /* Allocate scratch array for previous colors if needed. */
+    SculptSession &ss = *ob.sculpt;
+    if (!vwpaint::brush_use_accumulate(*ts.vpaint)) {
+      if (ss.cache->prev_colors_vpaint.is_empty()) {
+        const Mesh *mesh = BKE_object_get_original_mesh(&ob);
+        const GVArray attribute = *mesh->attributes().lookup(mesh->active_color_attribute);
+        ss.cache->prev_colors_vpaint = GArray(attribute.type(), attribute.size());
+        attribute.type().value_initialize_n(ss.cache->prev_colors_vpaint.data(),
+                                            ss.cache->prev_colors_vpaint.size());
+      }
+    }
+    else {
+      ss.cache->prev_colors_vpaint = {};
+    }
+  }
 }
 
 Vector<PBVHNode *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush &brush)
@@ -743,26 +759,9 @@ static void paint_and_tex_color_alpha_intern(const VPaint &vp,
   }
 }
 
-static void vertex_paint_init_stroke(Scene &scene, Depsgraph &depsgraph, Object &ob)
+static void vertex_paint_init_stroke(Depsgraph &depsgraph, Object &ob)
 {
   vwpaint::init_stroke(depsgraph, ob);
-
-  SculptSession &ss = *ob.sculpt;
-  ToolSettings &ts = *scene.toolsettings;
-
-  /* Allocate scratch array for previous colors if needed. */
-  if (!vwpaint::brush_use_accumulate(*ts.vpaint)) {
-    if (ss.cache->prev_colors_vpaint.is_empty()) {
-      const Mesh *mesh = BKE_object_get_original_mesh(&ob);
-      const GVArray attribute = *mesh->attributes().lookup(mesh->active_color_attribute);
-      ss.cache->prev_colors_vpaint = GArray(attribute.type(), attribute.size());
-      attribute.type().value_initialize_n(ss.cache->prev_colors_vpaint.data(),
-                                          ss.cache->prev_colors_vpaint.size());
-    }
-  }
-  else {
-    ss.cache->prev_colors_vpaint = {};
-  }
 }
 
 /** \} */
@@ -999,7 +998,7 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   paint_stroke_set_mode_data(stroke, vpd);
 
   /* If not previously created, create vertex/weight paint mode session data */
-  vertex_paint_init_stroke(scene, depsgraph, ob);
+  vertex_paint_init_stroke(depsgraph, ob);
   vwpaint::update_cache_invariants(C, vp, ss, op, mouse);
   vwpaint::init_session_data(ts, ob);
 
