@@ -264,6 +264,21 @@ void BKE_preferences_extension_repo_module_set(UserDef *userdef,
                  sizeof(repo->module));
 }
 
+bool BKE_preferences_extension_repo_module_is_valid(const bUserExtensionRepo *repo)
+{
+  /* NOTE: this should only ever return false in the case of corrupt file/memory
+   * and can be considered an exceptional situation. */
+  char module_test[sizeof(bUserExtensionRepo::module)];
+  const size_t module_len = strncpy_py_module(module_test, repo->module, sizeof(repo->module));
+  if (module_len == 0) {
+    return false;
+  }
+  if (module_len != BLI_strnlen(repo->module, sizeof(repo->module))) {
+    return false;
+  }
+  return true;
+}
+
 void BKE_preferences_extension_repo_custom_dirpath_set(bUserExtensionRepo *repo, const char *path)
 {
   STRNCPY(repo->custom_dirpath, path);
