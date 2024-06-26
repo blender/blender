@@ -178,8 +178,13 @@ void film_cryptomatte_layer_accum_and_store(
     FilmSample src = film_sample_get(i, texel_film);
     film_sample_cryptomatte_accum(src, layer_component, cryptomatte_tx, crypto_samples);
   }
+  vec4 display_color = vec4(0.0);
   for (int i = 0; i < 4; i++) {
-    cryptomatte_store_film_sample(dst, pass_id, crypto_samples[i], out_color);
+    cryptomatte_store_film_sample(dst, pass_id, crypto_samples[i], display_color);
+  }
+
+  if (uniform_buf.film.display_storage_type == PASS_STORAGE_CRYPTOMATTE) {
+    out_color = display_color;
   }
 }
 
