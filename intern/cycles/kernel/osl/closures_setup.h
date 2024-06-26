@@ -11,6 +11,8 @@
 #include "kernel/closure/bsdf.h"
 #include "kernel/closure/emissive.h"
 
+#include "kernel/geom/object.h"
+
 CCL_NAMESPACE_BEGIN
 
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) \
