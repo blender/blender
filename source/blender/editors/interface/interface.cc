@@ -4783,7 +4783,7 @@ uiBut *uiDefButImage(
   return but;
 }
 
-uiBut *uiDefButAlert(uiBlock *block, int icon, int x, int y, short width, short height)
+uiBut *uiDefButAlert(uiBlock *block, int icon, int x, int y, short width, short /*height*/)
 {
   ImBuf *ibuf = UI_icon_alert_imbuf_get((eAlertIcon)icon, float(width));
   if (ibuf) {

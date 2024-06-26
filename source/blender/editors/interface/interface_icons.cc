@@ -2633,6 +2633,8 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size)
     case ALERT_ICON_INFO:
       icon_id = ICON_INFO_LARGE;
       break;
+    default:
+      icon_id = ICON_NONE;
   }
 
   if (icon_id == ICON_NONE) {
