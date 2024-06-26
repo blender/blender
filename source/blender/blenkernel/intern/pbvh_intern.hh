@@ -129,12 +129,6 @@ struct PBVH {
 
   /* Memory backing for PBVHNode.prim_indices. */
   blender::Array<int> prim_indices;
-  int totprim;
-  int totvert;
-
-  int leaf_limit;
-  int pixel_leaf_limit;
-  int depth_limit;
 
   /* Mesh data. The evaluated deform mesh for mesh sculpting, and the base mesh for grids. */
   Mesh *mesh;
