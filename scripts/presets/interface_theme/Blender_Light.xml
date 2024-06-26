@@ -276,7 +276,7 @@
             outline="#999999ff"
             inner="#50505000"
             inner_sel="#646464b3"
-            item="#c2c2c299"
+            item="#545454ff"
             text="#000000"
             text_sel="#ffffff"
             show_shaded="FALSE"
