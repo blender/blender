@@ -3042,16 +3042,6 @@ void BKE_pbvh_subdiv_cgg_set(PBVH &pbvh, SubdivCCG *subdiv_ccg)
   pbvh.subdiv_ccg = subdiv_ccg;
 }
 
-bool BKE_pbvh_is_drawing(const PBVH &pbvh)
-{
-  return pbvh.is_drawing;
-}
-
-void BKE_pbvh_is_drawing_set(PBVH &pbvh, bool val)
-{
-  pbvh.is_drawing = val;
-}
-
 void BKE_pbvh_update_active_vcol(PBVH &pbvh, Mesh *mesh)
 {
   BKE_pbvh_get_color_layer(mesh, &pbvh.color_layer, &pbvh.color_domain);

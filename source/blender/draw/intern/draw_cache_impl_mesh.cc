@@ -585,10 +585,6 @@ static void mesh_batch_cache_init(Object &object, Mesh &mesh)
 
   cache->is_editmode = mesh.runtime->edit_mesh != nullptr;
 
-  if (object.sculpt && object.sculpt->pbvh) {
-    cache->pbvh_is_drawing = BKE_pbvh_is_drawing(*object.sculpt->pbvh);
-  }
-
   if (cache->is_editmode == false) {
     // cache->edge_len = mesh_render_edges_len_get(mesh);
     // cache->tri_len = mesh_render_corner_tris_len_get(mesh);

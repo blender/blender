@@ -566,8 +566,6 @@ void BKE_pbvh_store_colors_vertex(PBVH &pbvh,
                                   blender::Span<int> indices,
                                   blender::MutableSpan<blender::float4> r_colors);
 
-bool BKE_pbvh_is_drawing(const PBVH &pbvh);
-
 void BKE_pbvh_update_active_vcol(PBVH &pbvh, Mesh *mesh);
 
 void BKE_pbvh_vertex_color_set(PBVH &pbvh,

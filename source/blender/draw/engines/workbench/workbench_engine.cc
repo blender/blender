@@ -123,15 +123,6 @@ class Instance {
 
     const ObjectState object_state = ObjectState(scene_state, resources, ob);
 
-    /* Needed for mesh cache validation, to prevent two copies of
-     * of vertex color arrays from being sent to the GPU (e.g.
-     * when switching from eevee to workbench).
-     */
-    if (ob_ref.object->sculpt && ob_ref.object->sculpt->pbvh) {
-      /* TODO(Miguel Pozo): Could this me moved to sculpt_batches_get()? */
-      BKE_pbvh_is_drawing_set(*ob_ref.object->sculpt->pbvh, object_state.sculpt_pbvh);
-    }
-
     bool is_object_data_visible = (DRW_object_visibility_in_active_context(ob) &
                                    OB_VISIBLE_SELF) &&
                                   (ob->dt >= OB_SOLID || DRW_state_is_scene_render());
