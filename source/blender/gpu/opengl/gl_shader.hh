@@ -299,7 +299,7 @@ class GLShaderCompiler : public ShaderCompiler {
 
   struct SpecializationWork {
     GLShader *shader = nullptr;
-    GLuint program;
+    GLShader::GLProgram *program = nullptr;
     GLSourcesBaked sources;
 
     GLCompilerWorker *worker = nullptr;
