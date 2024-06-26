@@ -1199,12 +1199,12 @@ static void orig_vert_data_unode_init(SculptOrigVertData &data,
   data.colors = unode.col.data();
 }
 
-void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
-                                const Object &ob,
-                                const PBVHNode &node,
-                                const blender::ed::sculpt_paint::undo::Type type)
+SculptOrigVertData SCULPT_orig_vert_data_init(const Object &ob,
+                                              const PBVHNode &node,
+                                              const blender::ed::sculpt_paint::undo::Type type)
 {
   using namespace blender::ed::sculpt_paint;
+  SculptOrigVertData data;
   data.undo_type = type;
   const SculptSession &ss = *ob.sculpt;
   if (ss.bm) {
@@ -1217,6 +1217,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
   else {
     data = {};
   }
+  return data;
 }
 
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter)

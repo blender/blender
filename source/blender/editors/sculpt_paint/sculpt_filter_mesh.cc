@@ -333,8 +333,7 @@ static void mesh_filter_task(Object &ob,
 {
   SculptSession &ss = *ob.sculpt;
 
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   /* When using the relax face sets meshes filter,
    * each 3 iterations, do a whole mesh relax to smooth the contents of the Face Set. */
@@ -818,8 +817,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
   for (PBVHNode *node : nodes) {
     PBVHVertexIter vd;
 
-    SculptOrigVertData orig_data;
-    SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+    SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
     BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
       SCULPT_orig_vert_data_update(orig_data, vd);
