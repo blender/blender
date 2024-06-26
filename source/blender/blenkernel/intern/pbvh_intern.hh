@@ -19,7 +19,6 @@ namespace blender::draw::pbvh {
 struct PBVHBatches;
 }
 
-struct PBVHGPUFormat;
 struct BMVert;
 struct BMFace;
 
@@ -179,8 +178,6 @@ struct PBVH {
 
   CustomDataLayer *color_layer;
   blender::bke::AttrDomain color_domain;
-
-  PBVHGPUFormat *vbo_id;
 
   PBVHPixels pixels;
 
