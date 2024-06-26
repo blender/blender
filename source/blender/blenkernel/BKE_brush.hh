@@ -10,6 +10,8 @@
  * General operations for brushes.
  */
 
+#include "BLI_span.hh"
+
 #include "DNA_brush_enums.h"
 #include "DNA_color_types.h"
 #include "DNA_object_enums.h"
@@ -87,6 +89,15 @@ void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask);
  * Library Operations
  */
 void BKE_brush_curve_preset(Brush *b, enum eCurveMappingPreset preset);
+
+/**
+ * Combine the brush strength based on the distances and brush settings with the existing factors.
+ */
+void BKE_brush_calc_curve_factors(eBrushCurvePreset preset,
+                                  const CurveMapping *cumap,
+                                  blender::Span<float> distances,
+                                  float brush_radius,
+                                  blender::MutableSpan<float> factors);
 /**
  * Uses the brush curve control to find a strength value between 0 and 1.
  */
