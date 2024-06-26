@@ -855,16 +855,6 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     BKE_mesh_legacy_face_map_to_generic(bmain);
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 5)) {
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    bool is_cycles = scene && STREQ(scene->r.engine, RE_engine_id_CYCLES);
-    if (!is_cycles) {
-      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-        versioning_eevee_shadow_settings(object);
-      }
-    }
-  }
-
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 23)) {
     version_nla_tweakmode_incomplete(bmain);
   }
@@ -894,6 +884,17 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     /* Shift animation data to accommodate the new Roughness input. */
     version_node_socket_index_animdata(
         bmain, NTREE_SHADER, SH_NODE_SUBSURFACE_SCATTERING, 4, 1, 5);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 50)) {
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    bool scene_uses_eevee_legacy = scene && STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+
+    if (scene_uses_eevee_legacy) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+        versioning_eevee_shadow_settings(object);
+      }
+    }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 51)) {
