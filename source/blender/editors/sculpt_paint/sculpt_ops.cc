@@ -355,6 +355,10 @@ void ED_object_sculptmode_enter_ex(Main &bmain,
   const int mode_flag = OB_MODE_SCULPT;
   Mesh *mesh = BKE_mesh_from_object(&ob);
 
+  /* Re-triangulating the mesh for position changes in sculpt mode isn't worth the performance
+   * impact, so delay triangulation updates until the user exits sculpt mode. */
+  mesh->runtime->corner_tris_cache.freeze();
+
   /* Enter sculpt mode. */
   ob.mode |= mode_flag;
 
@@ -449,6 +453,8 @@ void ED_object_sculptmode_exit_ex(Main &bmain, Depsgraph &depsgraph, Scene &scen
   using namespace blender::ed::sculpt_paint;
   const int mode_flag = OB_MODE_SCULPT;
   Mesh *mesh = BKE_mesh_from_object(&ob);
+
+  mesh->runtime->corner_tris_cache.unfreeze();
 
   multires_flush_sculpt_updates(&ob);
 

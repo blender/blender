@@ -654,14 +654,10 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
   pbvh->header.type = PBVH_FACES;
 
   const int totvert = mesh->verts_num;
-  const int corner_tris_num = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
-  const OffsetIndices<int> faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
-
-  pbvh->corner_tris.reinitialize(corner_tris_num);
-  mesh::corner_tris_calc(vert_positions, faces, corner_verts, pbvh->corner_tris);
-  const Span<int3> corner_tris = pbvh->corner_tris;
+  const Span<int3> corner_tris = mesh->corner_tris();
+  pbvh->corner_tris = corner_tris;
 
   pbvh->mesh = mesh;
 
@@ -681,7 +677,7 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
 #endif
 
   /* For each face, store the AABB and the AABB centroid */
-  Array<Bounds<float3>> prim_bounds(corner_tris_num);
+  Array<Bounds<float3>> prim_bounds(corner_tris.size());
   const Bounds<float3> cb = threading::parallel_reduce(
       corner_tris.index_range(),
       1024,
@@ -701,7 +697,7 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
       },
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
-  if (corner_tris_num) {
+  if (!corner_tris.is_empty()) {
     const AttributeAccessor attributes = mesh->attributes();
     const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", AttrDomain::Face);
     const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
@@ -716,7 +712,7 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
                vert_bitmap,
                &cb,
                prim_bounds,
-               corner_tris_num);
+               corner_tris.size());
 
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh, tri_faces);

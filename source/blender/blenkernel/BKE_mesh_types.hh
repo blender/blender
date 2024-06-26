@@ -94,6 +94,19 @@ struct LooseEdgeCache : public LooseGeomCache {};
  */
 struct LooseVertCache : public LooseGeomCache {};
 
+struct TrianglesCache {
+  SharedCache<Array<int3>> data;
+  bool frozen = false;
+  bool dirty_while_frozen = false;
+
+  /** Delay applying dirty tags from #tag_dirty() until #unfreeze is called. */
+  void freeze();
+  /** Apply dirty tags from after #freeze, and make future dirty tags apply immediately. */
+  void unfreeze();
+  /** Call instead of `data.tag_dirty()`. */
+  void tag_dirty();
+};
+
 struct MeshRuntime {
   /**
    * "Evaluated" mesh owned by this mesh. Used for objects which don't have effective modifiers, so
@@ -141,7 +154,7 @@ struct MeshRuntime {
   void *batch_cache = nullptr;
 
   /** Cache for derived triangulation of the mesh, accessed with #Mesh::corner_tris(). */
-  SharedCache<Array<int3>> corner_tris_cache;
+  TrianglesCache corner_tris_cache;
   /** Cache for triangle to original face index map, accessed with #Mesh::corner_tri_faces(). */
   SharedCache<Array<int>> corner_tri_faces_cache;
 
