@@ -6775,7 +6775,7 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
 #endif
       uiItemL(layout, "", icon);
 
-      uiItemS_ex(layout, 0.6f);
+      uiItemS_ex(layout, 0.3f);
       uiItemL(layout, xyz_label, ICON_NONE);
       uiItemS_ex(layout, 0.7f);
       return 3;
@@ -6805,13 +6805,19 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
     }
 
     /* Icon and text separately is closer together with aligned layout. */
-    uiItemL(layout, "", icon);
-    if (icon < ICON_MOUSE_LMB || icon > ICON_MOUSE_RMB_DRAG) {
-      /* Mouse icons are left-aligned. Everything else needs a bit of space here. */
-      uiItemS_ex(layout, 0.6f);
+
+    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB_DRAG) {
+      /* Negative space before all narrow mice icons. */
+      uiItemS_ex(layout, -0.5f);
     }
+    uiItemL(layout, "", icon);
+    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB) {
+      /* Negative space after non-drag mice icons. */
+      uiItemS_ex(layout, -0.5f);
+    }
+
+    uiItemS_ex(layout, 0.3f);
     uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text), ICON_NONE);
-    /* Separate items with some extra space. */
     uiItemS_ex(layout, 0.7f);
     ok = true;
   }
