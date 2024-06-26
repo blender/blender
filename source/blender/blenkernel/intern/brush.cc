@@ -914,6 +914,9 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->unprojected_radius = brush->size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
 
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+      SET_FLAG_FROM_TEST(brush->flag,
+                         (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) != 0,
+                         BRUSH_SIZE_PRESSURE);
 
       brush->gpencil_settings->draw_strength = 1.0f;
       brush->alpha = brush->gpencil_settings->draw_strength;
