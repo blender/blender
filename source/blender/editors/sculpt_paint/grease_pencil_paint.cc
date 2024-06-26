@@ -746,19 +746,28 @@ struct PaintOperationExecutor {
       self.smoothed_pen_direction_ = self.screen_space_coords_orig_.last() - coords;
     }
     else {
-      self.smoothed_pen_direction_ = math::interpolate(
-          self.smoothed_pen_direction_, self.screen_space_coords_orig_.last() - coords, 0.1f);
+      /* The smoothing rate is a factor from 0 to 1 that represents how quickly the
+       * `smoothed_pen_direction_` "reacts" to changes in direction.
+       *  - 1.0f: Immediate reaction.
+       *  - 0.0f: No reaction (value never changes). */
+      constexpr float smoothing_rate_factor = 0.3f;
+      self.smoothed_pen_direction_ = math::interpolate(self.smoothed_pen_direction_,
+                                                       self.screen_space_coords_orig_.last() -
+                                                           coords,
+                                                       smoothing_rate_factor);
     }
 
     /* Approximate brush with non-circular shape by changing the radius based on the angle. */
     float radius_factor = 1.0f;
     if (settings_->draw_angle_factor > 0.0f) {
+      /* `angle` is the angle to the horizontal line in screen space. */
       const float angle = settings_->draw_angle;
       const float2 angle_vec = float2(math::cos(angle), math::sin(angle));
 
-      /* `angle_factor` is the angle to the horizontal line in screen space. */
-      const float angle_factor =
-          1.0f - math::abs(math::dot(angle_vec, math::normalize(self.smoothed_pen_direction_)));
+      /* The angle factor is 1.0f when the direction is aligned with the angle vector and 0.0f when
+       * it is orthogonal to the angle vector. This is consistent with the behavior from GPv2. */
+      const float angle_factor = math::abs(
+          math::dot(angle_vec, math::normalize(self.smoothed_pen_direction_)));
 
       /* Influence is controlled by `draw_angle_factor`. */
       radius_factor = math::interpolate(1.0f, angle_factor, settings_->draw_angle_factor);
