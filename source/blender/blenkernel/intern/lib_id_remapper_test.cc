@@ -4,6 +4,7 @@
 
 #include "testing/testing.h"
 
+#include "BKE_idtype.hh"
 #include "BKE_lib_remap.hh"
 
 #include "BLI_string.h"
@@ -16,6 +17,8 @@ namespace blender::bke::id::tests {
 
 TEST(lib_id_remapper, unavailable)
 {
+  BKE_idtype_init();
+
   ID id1;
   ID *idp = &id1;
 
@@ -26,6 +29,8 @@ TEST(lib_id_remapper, unavailable)
 
 TEST(lib_id_remapper, not_mappable)
 {
+  BKE_idtype_init();
+
   ID *idp = nullptr;
 
   IDRemapper remapper;
@@ -35,6 +40,8 @@ TEST(lib_id_remapper, not_mappable)
 
 TEST(lib_id_remapper, mapped)
 {
+  BKE_idtype_init();
+
   ID id1;
   ID id2;
   ID *idp = &id1;
@@ -50,6 +57,8 @@ TEST(lib_id_remapper, mapped)
 
 TEST(lib_id_remapper, unassigned)
 {
+  BKE_idtype_init();
+
   ID id1;
   ID *idp = &id1;
   STRNCPY(id1.name, "OB2");
@@ -63,6 +72,8 @@ TEST(lib_id_remapper, unassigned)
 
 TEST(lib_id_remapper, unassign_when_mapped_to_self)
 {
+  BKE_idtype_init();
+
   ID id_self;
   ID id1;
   ID id2;

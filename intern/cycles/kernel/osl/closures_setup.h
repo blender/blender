@@ -11,6 +11,8 @@
 #include "kernel/closure/bsdf.h"
 #include "kernel/closure/emissive.h"
 
+#include "kernel/geom/object.h"
+
 CCL_NAMESPACE_BEGIN
 
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) \
@@ -774,6 +776,9 @@ ccl_device void osl_closure_emission_setup(KernelGlobals kg,
                                            ccl_private const GenericEmissiveClosure *closure,
                                            float3 *layer_albedo)
 {
+  if (sd->flag & SD_IS_VOLUME_SHADER_EVAL) {
+    weight *= object_volume_density(kg, sd->object);
+  }
   emission_setup(sd, rgb_to_spectrum(weight));
 }
 
@@ -1056,7 +1061,7 @@ ccl_device void osl_closure_absorption_setup(KernelGlobals kg,
                                              ccl_private const VolumeAbsorptionClosure *closure,
                                              float3 *layer_albedo)
 {
-  volume_extinction_setup(sd, rgb_to_spectrum(weight));
+  volume_extinction_setup(sd, rgb_to_spectrum(weight * object_volume_density(kg, sd->object)));
 }
 
 ccl_device void osl_closure_henyey_greenstein_setup(
@@ -1067,6 +1072,7 @@ ccl_device void osl_closure_henyey_greenstein_setup(
     ccl_private const VolumeHenyeyGreensteinClosure *closure,
     float3 *layer_albedo)
 {
+  weight *= object_volume_density(kg, sd->object);
   volume_extinction_setup(sd, rgb_to_spectrum(weight));
 
   ccl_private HenyeyGreensteinVolume *volume = (ccl_private HenyeyGreensteinVolume *)bsdf_alloc(

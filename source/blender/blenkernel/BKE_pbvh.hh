@@ -78,8 +78,6 @@ inline PBVHType BKE_pbvh_type(const PBVH &pbvh)
   return ((const PBVHPublic &)pbvh).type;
 }
 
-/* Needed for the render engines integration. */
-void BKE_pbvh_is_drawing_set(PBVH &pbvh, bool val);
 void BKE_pbvh_draw_debug_cb(PBVH &pbvh,
                             void (*draw_fn)(PBVHNode *node,
                                             void *user_data,

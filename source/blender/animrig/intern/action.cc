@@ -1104,7 +1104,14 @@ Span<const FCurve *> fcurves_for_animation(const Action &anim,
   return bag->fcurves();
 }
 
-Vector<const FCurve *> fcurves_all(const Action &action)
+/* Lots of template args to support transparent non-const and const versions. */
+template<typename ActionType,
+         typename FCurveType,
+         typename LayerType,
+         typename StripType,
+         typename KeyframeStripType,
+         typename ChannelBagType>
+static Vector<FCurveType *> fcurves_all_into(ActionType &action)
 {
   /* Empty means Empty. */
   if (action.is_empty()) {
@@ -1113,24 +1120,24 @@ Vector<const FCurve *> fcurves_all(const Action &action)
 
   /* Legacy Action. */
   if (action.is_action_legacy()) {
-    Vector<const FCurve *> legacy_curves;
-    LISTBASE_FOREACH (const FCurve *, fcurve, &action.curves) {
-      legacy_curves.append(fcurve);
+    Vector<FCurveType *> legacy_fcurves;
+    LISTBASE_FOREACH (FCurveType *, fcurve, &action.curves) {
+      legacy_fcurves.append(fcurve);
     }
-    return legacy_curves;
+    return legacy_fcurves;
   }
 
   /* Layered Action. */
   BLI_assert(action.is_action_layered());
 
-  Vector<const FCurve *> all_fcurves;
-  for (const Layer *layer : action.layers()) {
-    for (const Strip *strip : layer->strips()) {
+  Vector<FCurveType *> all_fcurves;
+  for (LayerType *layer : action.layers()) {
+    for (StripType *strip : layer->strips()) {
       switch (strip->type()) {
         case Strip::Type::Keyframe: {
-          const KeyframeStrip &key_strip = strip->as<KeyframeStrip>();
-          for (const ChannelBag *bag : key_strip.channelbags()) {
-            for (const FCurve *fcurve : bag->fcurves()) {
+          KeyframeStripType &key_strip = strip->template as<KeyframeStrip>();
+          for (ChannelBagType *bag : key_strip.channelbags()) {
+            for (FCurveType *fcurve : bag->fcurves()) {
               all_fcurves.append(fcurve);
             }
           }
@@ -1139,6 +1146,21 @@ Vector<const FCurve *> fcurves_all(const Action &action)
     }
   }
   return all_fcurves;
+}
+
+Vector<FCurve *> fcurves_all(Action &action)
+{
+  return fcurves_all_into<Action, FCurve, Layer, Strip, KeyframeStrip, ChannelBag>(action);
+}
+
+Vector<const FCurve *> fcurves_all(const Action &action)
+{
+  return fcurves_all_into<const Action,
+                          const FCurve,
+                          const Layer,
+                          const Strip,
+                          const KeyframeStrip,
+                          const ChannelBag>(action);
 }
 
 FCurve *action_fcurve_find(bAction *act, const char rna_path[], const int array_index)

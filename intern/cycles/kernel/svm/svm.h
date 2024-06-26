@@ -255,7 +255,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_CLOSURE_EMISSION)
       IF_KERNEL_NODES_FEATURE(EMISSION)
       {
-        svm_node_closure_emission(sd, stack, closure_weight, node);
+        svm_node_closure_emission(kg, sd, stack, closure_weight, node);
       }
       break;
       SVM_CASE(NODE_CLOSURE_BACKGROUND)

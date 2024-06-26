@@ -761,8 +761,7 @@ def user_resource(resource_type, *, path="", create=False):
     :type type: string
     :arg path: Optional subdirectory.
     :type path: string
-    :arg create: Treat the path as a directory and create
-       it if its not existing.
+    :arg create: Treat the path as a directory and create it if its not existing.
     :type create: boolean
     :return: a path.
     :rtype: string
@@ -773,6 +772,55 @@ def user_resource(resource_type, *, path="", create=False):
     if create:
         # should always be true.
         if target_path:
+            # create path if not existing.
+            if not _os.path.exists(target_path):
+                try:
+                    _os.makedirs(target_path)
+                except:
+                    import traceback
+                    traceback.print_exc()
+                    target_path = ""
+            elif not _os.path.isdir(target_path):
+                print("Path {!r} found but isn't a directory!".format(target_path))
+                target_path = ""
+
+    return target_path
+
+
+def extension_path_user(package, *, path="", create=False):
+    """
+    Return a user writable directory associated with an extension.
+
+    .. note::
+
+       This allows each extension to have it's own user directory to store files.
+
+       The location of the extension it self is not a suitable place to store files
+       because it is cleared each upgrade and the users may not have write permissions
+       to the repository (typically "System" repositories).
+
+    :arg package: The ``__package__`` of the extension.
+    :type package: string
+    :arg path: Optional subdirectory.
+    :type path: string
+    :arg create: Treat the path as a directory and create it if its not existing.
+    :type create: boolean
+    :return: a path.
+    :rtype: string
+    """
+    from addon_utils import _extension_module_name_decompose
+
+    # Handles own errors.
+    repo_module, pkg_idname = _extension_module_name_decompose(package)
+
+    target_path = _user_resource('EXTENSIONS')
+    # Should always be true.
+    if target_path:
+        if path:
+            target_path = _os.path.join(target_path, ".user", repo_module, pkg_idname, path)
+        else:
+            target_path = _os.path.join(target_path, ".user", repo_module, pkg_idname)
+        if create:
             # create path if not existing.
             if not _os.path.exists(target_path):
                 try:

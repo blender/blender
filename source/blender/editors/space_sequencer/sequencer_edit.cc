@@ -1994,7 +1994,8 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
   SEQ_prefetch_stop(scene);
 
-  int channel_max = 1, meta_start_frame = MAXFRAME, meta_end_frame = MINFRAME;
+  int channel_max = 1, channel_min = INT_MAX, meta_start_frame = MAXFRAME,
+      meta_end_frame = MINFRAME;
   Sequence *seqm = SEQ_sequence_alloc(active_seqbase, 1, 1, SEQ_TYPE_META);
 
   /* Remove all selected from main list, and put in meta.
@@ -2005,9 +2006,19 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
       BLI_addtail(&seqm->seqbase, seq);
       SEQ_relations_invalidate_cache_preprocessed(scene, seq);
       channel_max = max_ii(seq->machine, channel_max);
+      channel_min = min_ii(seq->machine, channel_min);
       meta_start_frame = min_ii(SEQ_time_left_handle_frame_get(scene, seq), meta_start_frame);
       meta_end_frame = max_ii(SEQ_time_right_handle_frame_get(scene, seq), meta_end_frame);
     }
+  }
+
+  ListBase *channels_cur = SEQ_channels_displayed_get(ed);
+  ListBase *channels_meta = &seqm->channels;
+  for (int i = channel_min; i <= channel_max; i++) {
+    SeqTimelineChannel *channel_cur = SEQ_channel_get_by_index(channels_cur, i);
+    SeqTimelineChannel *channel_meta = SEQ_channel_get_by_index(channels_meta, i);
+    BLI_strncpy(channel_meta->name, channel_cur->name, sizeof(channel_meta->name));
+    channel_meta->flag = channel_cur->flag;
   }
 
   seqm->machine = active_seq ? active_seq->machine : channel_max;

@@ -97,6 +97,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Location", location);
   params.set_output("Rotation", rotation);
   params.set_output("Scale", scale);
+  params.set_output("Transform", output_transform);
 
   if (!params.output_is_required("Geometry")) {
     return;

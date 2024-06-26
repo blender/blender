@@ -2034,7 +2034,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       /* Ensure pbvh nodes have loop indices; the sculpt undo system
        * needs them for color attributes.
        */
-      BKE_pbvh_ensure_node_loops(*ss.pbvh);
+      BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh_orig->corner_tris());
     }
 
     /*

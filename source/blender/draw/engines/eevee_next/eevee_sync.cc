@@ -186,14 +186,6 @@ bool SyncModule::sync_sculpt(Object *ob,
   }
 
   bool pbvh_draw = BKE_sculptsession_use_pbvh_draw(ob, inst_.rv3d) && !DRW_state_is_image_render();
-  /* Needed for mesh cache validation, to prevent two copies of
-   * of vertex color arrays from being sent to the GPU (e.g.
-   * when switching from eevee to workbench).
-   */
-  if (ob_ref.object->sculpt && ob_ref.object->sculpt->pbvh) {
-    BKE_pbvh_is_drawing_set(*ob_ref.object->sculpt->pbvh, pbvh_draw);
-  }
-
   if (!pbvh_draw) {
     return false;
   }

@@ -87,7 +87,23 @@ def source_files_from_git(paths: List[str], changed_only: bool) -> List[str]:
     return [f.decode('ascii') for f in files]
 
 
-def autopep8_ensure_version(autopep8_format_cmd_argument: str) -> Optional[Tuple[int, int, int]]:
+def autopep8_parse_version(version: str) -> Tuple[int, int, int]:
+    # Ensure exactly 3 numbers.
+    major, minor, patch = (tuple(int(n) for n in version.split("-")[0].split(".")) + (0, 0, 0))[0:3]
+    return major, minor, patch
+
+
+def version_str_from_tuple(version: Tuple[int, ...]) -> str:
+    return ".".join(str(x) for x in version)
+
+
+def autopep8_ensure_version_from_command(
+        autopep8_format_cmd_argument: str,
+) -> Optional[Tuple[str, Tuple[int, int, int]]]:
+
+    # The version to parse.
+    version_str: Optional[str] = None
+
     global AUTOPEP8_FORMAT_CMD
     autopep8_format_cmd = None
     version_output = None
@@ -113,14 +129,37 @@ def autopep8_ensure_version(autopep8_format_cmd_argument: str) -> Optional[Tuple
             continue
         AUTOPEP8_FORMAT_CMD = autopep8_format_cmd
         break
-    version_str = None
+
     if version_output is not None:
         version_str = next(iter(v for v in version_output.split() if v[0].isdigit()), None)
+
     if version_str is not None:
-        # Ensure exactly 3 numbers.
-        major, minor, patch = (tuple(int(n) for n in version_str.split("-")[0].split(".")) + (0, 0, 0))[0:3]
-        print("Using {:s} ({:d}.{:d}.{:d})...".format(AUTOPEP8_FORMAT_CMD, major, minor, patch))
-        return major, minor, patch
+        assert isinstance(autopep8_format_cmd, str)
+        major, minor, patch = autopep8_parse_version(version_str)
+        return autopep8_format_cmd, (major, minor, patch)
+
+    return None
+
+
+def autopep8_ensure_version_from_module() -> Optional[Tuple[str, Tuple[int, int, int]]]:
+
+    # The version to parse.
+    version_str: Optional[str] = None
+
+    # Extract the version from the module.
+    try:
+        # pylint: disable-next=import-outside-toplevel
+        import autopep8  # type: ignore
+    except ModuleNotFoundError as ex:
+        if ex.name != "autopep8":
+            raise ex
+        return None
+
+    version_str = autopep8.__version__
+    if version_str is not None:
+        major, minor, patch = autopep8_parse_version(version_str)
+        return autopep8.__file__, (major, minor, patch)
+
     return None
 
 
@@ -143,8 +182,10 @@ def autopep8_format_no_subprocess(files: List[str]) -> None:
         *AUTOPEP8_FORMAT_DEFAULT_ARGS,
         *files
     ]
-    from autopep8 import main
-    main(argv=cmd)
+    # NOTE: this import will have already succeeded, see: `autopep8_ensure_version_from_module`.
+    # pylint: disable-next=import-outside-toplevel
+    from autopep8 import main as autopep8_main
+    autopep8_main(argv=cmd)
 
 
 def argparse_create() -> argparse.ArgumentParser:
@@ -197,30 +238,42 @@ def argparse_create() -> argparse.ArgumentParser:
 def main() -> None:
     args = argparse_create().parse_args()
 
-    version = autopep8_ensure_version(args.autopep8_command)
-    if version is None:
-        print("Unable to detect 'autopep8 --version'")
-        print(
-            "You may want to install autopep8-{:d}.{:d}, "
-            "or use the precompiled libs repository.".format(
-                VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1],
-            ),
-        )
+    if args.no_subprocess:
+        source_and_version = autopep8_ensure_version_from_module()
+    else:
+        source_and_version = autopep8_ensure_version_from_command(args.autopep8_command)
+
+    if source_and_version is None:
+        if args.no_subprocess:
+            sys.stderr.write("ERROR: unable to import \"autopep8\" from Python at \"{:s}\".\n".format(sys.executable))
+        else:
+            sys.stderr.write("ERROR: unable to detect \"autopep8 --version\".\n")
+
+        sys.stderr.write("You may want to install autopep8-{:s}, or use the pre-compiled libs repository.\n".format(
+            version_str_from_tuple(VERSION_MAX_RECOMMENDED[0:2]),
+        ))
         sys.exit(1)
+
+    autopep8_source, version = source_and_version
+
     if version < VERSION_MIN:
-        print("Version of autopep8 is too old:", version, "<", VERSION_MIN)
+        sys.stderr.write("Using \"{:s}\"\nERROR: the autopep8 version is too old: {:s} < {:s}.\n".format(
+            autopep8_source,
+            version_str_from_tuple(version),
+            version_str_from_tuple(VERSION_MIN),
+        ))
         sys.exit(1)
     if version > VERSION_MAX_RECOMMENDED:
-        print(
-            "WARNING: Version of autopep8 is too recent:",
-            version, ">", VERSION_MAX_RECOMMENDED,
-        )
-        print(
-            "You may want to install autopep8-{:d}.{:d}, "
-            "or use the precompiled libs repository.".format(
-                VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1],
-            ),
-        )
+        sys.stderr.write("Using \"{:s}\"\nWARNING: the autopep8 version is too recent: {:s} > {:s}.\n".format(
+            autopep8_source,
+            version_str_from_tuple(version),
+            version_str_from_tuple(VERSION_MAX_RECOMMENDED),
+        ))
+        sys.stderr.write("You may want to install autopep8-{:s}, or use the pre-compiled libs repository.\n".format(
+            version_str_from_tuple(VERSION_MAX_RECOMMENDED[0:2]),
+        ))
+    else:
+        print("Using \"{:s}\", ({:s})...".format(autopep8_source, version_str_from_tuple(version)))
 
     use_default_paths = not (bool(args.paths) or bool(args.changed_only))
 

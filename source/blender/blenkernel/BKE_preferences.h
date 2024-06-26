@@ -106,6 +106,21 @@ size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo
                                                   char *dirpath,
                                                   int dirpath_maxncpy);
 
+/**
+ * Returns a user editable directory associated with this repository.
+ * Needed so extensions may have local data.
+ */
+size_t BKE_preferences_extension_repo_user_dirpath_get(const bUserExtensionRepo *repo,
+                                                       char *dirpath,
+                                                       const int dirpath_maxncpy);
+
+/**
+ * Check the module name is valid, while this should always be the case,
+ * use this as an additional safely check before performing destructive operations
+ * such as recursive file removal to prevent file/memory corruption causing user data loss.
+ */
+bool BKE_preferences_extension_repo_module_is_valid(const bUserExtensionRepo *repo);
+
 bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index);
 bUserExtensionRepo *BKE_preferences_extension_repo_find_by_module(const UserDef *userdef,
                                                                   const char *module);

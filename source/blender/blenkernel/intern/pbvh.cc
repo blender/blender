@@ -323,7 +323,7 @@ static void build_leaf(PBVH &pbvh,
   /* Still need vb for searches */
   update_vb(pbvh.prim_indices, &node, prim_bounds, offset, count);
 
-  if (!pbvh.corner_tris.is_empty()) {
+  if (!corner_tris.is_empty()) {
     build_mesh_leaf_node(corner_verts, corner_tris, tri_faces, hide_poly, vert_bitmap, &node);
   }
   else {
@@ -654,14 +654,9 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
   pbvh->header.type = PBVH_FACES;
 
   const int totvert = mesh->verts_num;
-  const int corner_tris_num = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
-  const OffsetIndices<int> faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
-
-  pbvh->corner_tris.reinitialize(corner_tris_num);
-  mesh::corner_tris_calc(vert_positions, faces, corner_verts, pbvh->corner_tris);
-  const Span<int3> corner_tris = pbvh->corner_tris;
+  const Span<int3> corner_tris = mesh->corner_tris();
 
   pbvh->mesh = mesh;
 
@@ -681,7 +676,7 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
 #endif
 
   /* For each face, store the AABB and the AABB centroid */
-  Array<Bounds<float3>> prim_bounds(corner_tris_num);
+  Array<Bounds<float3>> prim_bounds(corner_tris.size());
   const Bounds<float3> cb = threading::parallel_reduce(
       corner_tris.index_range(),
       1024,
@@ -701,7 +696,7 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
       },
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
-  if (corner_tris_num) {
+  if (!corner_tris.is_empty()) {
     const AttributeAccessor attributes = mesh->attributes();
     const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", AttrDomain::Face);
     const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
@@ -716,7 +711,7 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
                vert_bitmap,
                &cb,
                prim_bounds,
-               corner_tris_num);
+               corner_tris.size());
 
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh, tri_faces);
@@ -2003,6 +1998,7 @@ static bool pbvh_faces_node_raycast(PBVH &pbvh,
                                     const PBVHNode *node,
                                     const float (*origco)[3],
                                     const Span<int> corner_verts,
+                                    const Span<int3> corner_tris,
                                     const Span<int> corner_tri_faces,
                                     const Span<bool> hide_poly,
                                     const float ray_start[3],
@@ -2020,7 +2016,7 @@ static bool pbvh_faces_node_raycast(PBVH &pbvh,
 
   for (const int i : node->prim_indices.index_range()) {
     const int tri_i = node->prim_indices[i];
-    const int3 &tri = pbvh.corner_tris[tri_i];
+    const int3 &tri = corner_tris[tri_i];
     const int3 face_verts = node->face_vert_indices[i];
 
     if (!hide_poly.is_empty() && hide_poly[corner_tri_faces[tri_i]]) {
@@ -2169,6 +2165,7 @@ bool raycast_node(PBVH &pbvh,
                   const float (*origco)[3],
                   bool use_origco,
                   const Span<int> corner_verts,
+                  const Span<int3> corner_tris,
                   const Span<int> corner_tri_faces,
                   const Span<bool> hide_poly,
                   const float ray_start[3],
@@ -2191,6 +2188,7 @@ bool raycast_node(PBVH &pbvh,
                                      node,
                                      origco,
                                      corner_verts,
+                                     corner_tris,
                                      corner_tri_faces,
                                      hide_poly,
                                      ray_start,
@@ -2362,6 +2360,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH &pbvh,
                                            const PBVHNode *node,
                                            const float (*origco)[3],
                                            const Span<int> corner_verts,
+                                           const Span<int3> corner_tris,
                                            const Span<int> corner_tri_faces,
                                            const Span<bool> hide_poly,
                                            const float ray_start[3],
@@ -2375,7 +2374,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH &pbvh,
 
   for (const int i : node->prim_indices.index_range()) {
     const int tri_i = node->prim_indices[i];
-    const int3 &corner_tri = pbvh.corner_tris[tri_i];
+    const int3 &corner_tri = corner_tris[tri_i];
     const int3 face_verts = node->face_vert_indices[i];
 
     if (!hide_poly.is_empty() && hide_poly[corner_tri_faces[tri_i]]) {
@@ -2472,6 +2471,7 @@ bool find_nearest_to_ray_node(PBVH &pbvh,
                               const float (*origco)[3],
                               bool use_origco,
                               const Span<int> corner_verts,
+                              const Span<int3> corner_tris,
                               const Span<int> corner_tri_faces,
                               const Span<bool> hide_poly,
                               const float ray_start[3],
@@ -2491,6 +2491,7 @@ bool find_nearest_to_ray_node(PBVH &pbvh,
                                             node,
                                             origco,
                                             corner_verts,
+                                            corner_tris,
                                             corner_tri_faces,
                                             hide_poly,
                                             ray_start,
@@ -2595,7 +2596,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.vert_positions = pbvh.vert_positions;
       args.corner_verts = mesh.corner_verts();
       args.corner_edges = mesh.corner_edges();
-      args.corner_tris = pbvh.corner_tris;
+      args.corner_tris = mesh.corner_tris();
       args.vert_normals = pbvh.vert_normals;
       args.face_normals = pbvh.face_normals;
       /* Retrieve data from the original mesh. Ideally that would be passed to this function to
@@ -3041,22 +3042,12 @@ void BKE_pbvh_subdiv_cgg_set(PBVH &pbvh, SubdivCCG *subdiv_ccg)
   pbvh.subdiv_ccg = subdiv_ccg;
 }
 
-bool BKE_pbvh_is_drawing(const PBVH &pbvh)
-{
-  return pbvh.is_drawing;
-}
-
-void BKE_pbvh_is_drawing_set(PBVH &pbvh, bool val)
-{
-  pbvh.is_drawing = val;
-}
-
 void BKE_pbvh_update_active_vcol(PBVH &pbvh, Mesh *mesh)
 {
   BKE_pbvh_get_color_layer(mesh, &pbvh.color_layer, &pbvh.color_domain);
 }
 
-void BKE_pbvh_ensure_node_loops(PBVH &pbvh)
+void BKE_pbvh_ensure_node_loops(PBVH &pbvh, const Span<blender::int3> corner_tris)
 {
   using namespace blender;
   BLI_assert(BKE_pbvh_type(pbvh) == PBVH_FACES);
@@ -3088,7 +3079,7 @@ void BKE_pbvh_ensure_node_loops(PBVH &pbvh)
     corner_indices.clear();
 
     for (const int i : node.prim_indices) {
-      const int3 &tri = pbvh.corner_tris[i];
+      const int3 &tri = corner_tris[i];
 
       for (int k = 0; k < 3; k++) {
         if (!BLI_BITMAP_TEST(visit, tri[k])) {

@@ -123,15 +123,6 @@ class Instance {
 
     const ObjectState object_state = ObjectState(scene_state, resources, ob);
 
-    /* Needed for mesh cache validation, to prevent two copies of
-     * of vertex color arrays from being sent to the GPU (e.g.
-     * when switching from eevee to workbench).
-     */
-    if (ob_ref.object->sculpt && ob_ref.object->sculpt->pbvh) {
-      /* TODO(Miguel Pozo): Could this me moved to sculpt_batches_get()? */
-      BKE_pbvh_is_drawing_set(*ob_ref.object->sculpt->pbvh, object_state.sculpt_pbvh);
-    }
-
     bool is_object_data_visible = (DRW_object_visibility_in_active_context(ob) &
                                    OB_VISIBLE_SELF) &&
                                   (ob->dt >= OB_SOLID || DRW_state_is_scene_render());
@@ -474,6 +465,15 @@ class Instance {
                      GPUTexture *color_tx)
   {
     this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
+
+    if (!scene_state.overlays_enabled) {
+      resources.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
+      resources.clear_in_front_fb.bind();
+      GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
+      resources.clear_depth_only_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx));
+      resources.clear_depth_only_fb.bind();
+      GPU_framebuffer_clear_depth_stencil(resources.clear_depth_only_fb, 1.0f, 0x00);
+    }
 
     if (scene_state.sample + 1 < scene_state.samples_len) {
       DRW_viewport_request_redraw();

@@ -795,6 +795,34 @@ _ext_base_pkg_idname_with_dot = _ext_base_pkg_idname + "."
 _ext_manifest_filename_toml = "blender_manifest.toml"
 
 
+def _extension_module_name_decompose(package):
+    """
+    Returns the repository module name and the extensions ID from an extensions module name (``__package__``).
+
+    :arg module_name: The extensions module name.
+    :type module_name: string
+    :return: (repo_module_name, extension_id)
+    :rtype: tuple of strings
+    """
+    if not package.startswith(_ext_base_pkg_idname_with_dot):
+        raise ValueError("The \"package\" does not name an extension")
+
+    repo_module, pkg_idname = package[len(_ext_base_pkg_idname_with_dot):].partition(".")[0::2]
+    if not (repo_module and pkg_idname):
+        raise ValueError("The \"package\" is expected to be a module name containing 3 components")
+
+    if "." in pkg_idname:
+        raise ValueError("The \"package\" is expected to be a module name containing 3 components, found {:d}".format(
+            pkg_idname.count(".") + 3
+        ))
+
+    # Unlikely but possible.
+    if not (repo_module.isidentifier() and pkg_idname.isidentifier()):
+        raise ValueError("The \"package\" contains non-identifier characters")
+
+    return repo_module, pkg_idname
+
+
 def _extension_preferences_idmap():
     repos_idmap = {}
     repos_idmap_disabled = {}

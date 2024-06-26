@@ -346,19 +346,23 @@ function(blender_add_test_suite_executable
           DISCOVER_TESTS FALSE
          )
 
-         # Work-around run-time dynamic loader error
-         #   symbol not found in flat namespace '_PyBaseObject_Type'
-         #
-         # Some tests are testing modules which are linked against Python, while some of unit
-         # tests might not use code path which uses Python functionality. In this case linker
-         # will optimize out all symbols from Python since it decides they are not used. This
-         # somehow conflicts with other libraries which are linked against the test binary and
-         # perform search of _PyBaseObject_Type on startup.
-         #
-         # Work-around by telling the linker that the python libraries should not be stripped.
-         if(APPLE)
-           target_link_libraries("${_test_name}_test" PRIVATE "-Wl,-force_load,${PYTHON_LIBRARIES}")
-         endif()
+        # Work-around run-time dynamic loader error
+        #   symbol not found in flat namespace '_PyBaseObject_Type'
+        #
+        # Some tests are testing modules which are linked against Python, while some of unit
+        # tests might not use code path which uses Python functionality. In this case linker
+        # will optimize out all symbols from Python since it decides they are not used. This
+        # somehow conflicts with other libraries which are linked against the test binary and
+        # perform search of _PyBaseObject_Type on startup.
+        #
+        # Work-around by telling the linker that the python libraries should not be stripped.
+        if(APPLE)
+          target_link_libraries("${_test_name}_test" PRIVATE "-Wl,-force_load,${PYTHON_LIBRARIES}")
+        endif()
+
+        if(WITH_BUILDINFO)
+          target_link_libraries("${_test_name}_test" PRIVATE buildinfoobj)
+        endif()
       endif()
     endforeach()
   endif()

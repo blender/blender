@@ -559,7 +559,8 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
                                          IndexRange(attachment.mip, 1),
                                          {{'r', 'g', 'b', 'a'}},
                                          false,
-                                         srgb_ && enabled_srgb_};
+                                         srgb_ && enabled_srgb_,
+                                         VKImageViewArrayed::DONT_CARE};
       vk_image_view = color_texture.image_view_get(image_view_info).vk_handle();
     }
     attachment_info.imageView = vk_image_view;
@@ -599,7 +600,8 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
                                          IndexRange(attachment.mip, 1),
                                          {{'r', 'g', 'b', 'a'}},
                                          is_stencil_attachment,
-                                         false};
+                                         false,
+                                         VKImageViewArrayed::DONT_CARE};
       depth_image_view = depth_texture.image_view_get(image_view_info).vk_handle();
     }
 

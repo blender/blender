@@ -47,7 +47,7 @@ VKImageView::VKImageView(VKTexture &texture, const VKImageViewInfo &info, String
   VkImageViewCreateInfo image_view_info = {};
   image_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
   image_view_info.image = texture.vk_image_handle();
-  image_view_info.viewType = to_vk_image_view_type(texture.type_get(), info.usage);
+  image_view_info.viewType = to_vk_image_view_type(texture.type_get(), info.usage, info.arrayed);
   image_view_info.format = vk_format_;
   image_view_info.components.r = to_vk_component_swizzle(info.swizzle[0]);
   image_view_info.components.g = to_vk_component_swizzle(info.swizzle[1]);

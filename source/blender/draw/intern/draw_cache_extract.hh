@@ -275,7 +275,6 @@ struct MeshBatchCache {
   bool no_loose_wire;
 
   eV3DShadingColorType color_type;
-  bool pbvh_is_drawing;
 };
 
 #define MBC_EDITUV \

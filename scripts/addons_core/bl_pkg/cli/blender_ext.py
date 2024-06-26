@@ -1099,6 +1099,7 @@ def filepath_retrieve_to_filepath_iter(
 ) -> Generator[Tuple[int, int], None, None]:
     # TODO: `timeout_in_seconds`.
     # Handle temporary file setup.
+    _ = timeout_in_seconds
     with open(filepath_src, 'rb') as fh_input:
         size = os.fstat(fh_input.fileno()).st_size
         with open(filepath, 'wb') as fh_output:
@@ -2420,6 +2421,19 @@ def generic_arg_local_dir(subparse: argparse.ArgumentParser) -> None:
     )
 
 
+def generic_arg_user_dir(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--user-dir",
+        dest="user_dir",
+        default="",
+        type=str,
+        help=(
+            "Additional files associated with this package."
+        ),
+        required=False,
+    )
+
+
 def generic_arg_blender_version(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--blender-version",
@@ -3313,6 +3327,7 @@ class subcmd_client:
             msg_fn: MessageFn,
             *,
             local_dir: str,
+            user_dir: str,
             packages: Sequence[str],
     ) -> bool:
         if not os.path.isdir(local_dir):
@@ -3367,6 +3382,19 @@ class subcmd_client:
                 filepath_local_cache_archive = os.path.join(local_cache_dir, pkg_idname + PKG_EXT)
                 if os.path.exists(filepath_local_cache_archive):
                     files_to_clean.append(filepath_local_cache_archive)
+
+                if user_dir:
+                    filepath_user_pkg = os.path.join(user_dir, pkg_idname)
+                    if os.path.isdir(filepath_user_pkg):
+                        shutil.rmtree(filepath_user_pkg)
+                        try:
+                            shutil.rmtree(filepath_user_pkg)
+                        except Exception as ex:
+                            message_error(
+                                msg_fn,
+                                "Failure to remove \"{:s}\" user files with error ({:s})".format(pkg_idname, str(ex)),
+                            )
+                            continue
 
         return True
 
@@ -4051,12 +4079,14 @@ def argparse_create_client_uninstall(subparsers: "argparse._SubParsersAction[arg
     generic_arg_package_list_positional(subparse)
 
     generic_arg_local_dir(subparse)
+    generic_arg_user_dir(subparse)
     generic_arg_output_type(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_client.uninstall_packages(
             msg_fn_from_args(args),
             local_dir=args.local_dir,
+            user_dir=args.user_dir,
             packages=args.packages.split(","),
         ),
     )

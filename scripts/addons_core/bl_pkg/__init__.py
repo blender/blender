@@ -585,17 +585,24 @@ def register():
         description="Show extensions by type",
         default='ADDON',
     )
-    WindowManager.extension_enabled_only = BoolProperty(
-        name="Show Enabled Extensions",
-        description="Only show enabled extensions",
-    )
     WindowManager.extension_updates_only = BoolProperty(
         name="Show Updates Available",
         description="Only show extensions with updates available",
     )
-    WindowManager.extension_installed_only = BoolProperty(
+    WindowManager.extension_show_panel_enabled = BoolProperty(
+        name="Show Enabled Extensions",
+        description="Only show enabled extensions",
+        default=True,
+    )
+    WindowManager.extension_show_panel_installed = BoolProperty(
         name="Show Installed Extensions",
         description="Only show installed extensions",
+        default=True,
+    )
+    WindowManager.extension_show_panel_available = BoolProperty(
+        name="Show Installed Extensions",
+        description="Only show installed extensions",
+        default=True,
     )
 
     from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
@@ -630,8 +637,9 @@ def unregister():
     del WindowManager.extension_tags
     del WindowManager.extension_search
     del WindowManager.extension_type
-    del WindowManager.extension_enabled_only
-    del WindowManager.extension_installed_only
+    del WindowManager.extension_show_panel_enabled
+    del WindowManager.extension_show_panel_installed
+    del WindowManager.extension_show_panel_available
 
     for cls in classes:
         bpy.utils.unregister_class(cls)
