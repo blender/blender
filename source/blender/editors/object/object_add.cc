@@ -3473,7 +3473,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
       else {
         newob = ob;
-        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
       }
 
       /* make new mesh data from the original copy */
@@ -3495,6 +3494,10 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       BKE_mesh_nomain_to_mesh(new_mesh, ob_data_mesh, newob);
 
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
+
+      if (!keep_original) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+      }
     }
     else if (ob->type == OB_FONT) {
       ob->flag |= OB_DONE;
