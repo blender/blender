@@ -494,17 +494,15 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool u
     GPU_vertbuf_data_alloc(*vbo.vert_buf, vert_count);
   }
 
-  GPUVertBufRaw access;
-  GPU_vertbuf_attr_get_raw_data(vbo.vert_buf, 0, &access);
-
   if (const CustomRequest *request_type = std::get_if<CustomRequest>(&vbo.request)) {
     switch (*request_type) {
       case CustomRequest::Position: {
+        float3 *data = vbo.vert_buf->data<float3>().data();
         foreach_grids(args,
                       use_flat_layout,
                       [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
-                        *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = CCG_elem_co(
-                            args.ccg_key, elems[i]);
+                        *data = CCG_elem_co(args.ccg_key, elems[i]);
+                        data++;
                       });
         break;
       }
@@ -514,40 +512,35 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool u
         const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face",
                                                                 bke::AttrDomain::Face);
 
+        short4 *data = vbo.vert_buf->data<short4>().data();
+
         foreach_grids(args,
                       use_flat_layout,
                       [&](int /*x*/, int /*y*/, int grid_index, CCGElem *elems[4], int /*i*/) {
-                        float3 no(0.0f, 0.0f, 0.0f);
-
-                        const bool smooth = !(!sharp_faces.is_empty() &&
-                                              sharp_faces[grid_to_face_map[grid_index]]);
-
-                        if (smooth) {
-                          no = CCG_elem_no(args.ccg_key, elems[0]);
-                        }
-                        else {
+                        if (!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid_index]]) {
+                          float3 no;
                           normal_quad_v3(no,
                                          CCG_elem_co(args.ccg_key, elems[3]),
                                          CCG_elem_co(args.ccg_key, elems[2]),
                                          CCG_elem_co(args.ccg_key, elems[1]),
                                          CCG_elem_co(args.ccg_key, elems[0]));
+                          *data = normal_float_to_short(no);
                         }
-
-                        short sno[3];
-
-                        normal_float_to_short_v3(sno, no);
-
-                        *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = sno;
+                        else {
+                          *data = normal_float_to_short(CCG_elem_no(args.ccg_key, elems[0]));
+                        }
+                        data++;
                       });
         break;
       }
       case CustomRequest::Mask: {
         if (args.ccg_key.has_mask) {
+          float *data = vbo.vert_buf->data<float>().data();
           foreach_grids(args,
                         use_flat_layout,
                         [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
-                          *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = CCG_elem_mask(
-                              args.ccg_key, elems[i]);
+                          *data = CCG_elem_mask(args.ccg_key, elems[i]);
+                          data++;
                         });
         }
         else {
@@ -561,6 +554,7 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool u
                                                                   bke::AttrDomain::Face))
         {
           const VArraySpan<int> face_sets_span(face_sets);
+          uchar4 *data = vbo.vert_buf->data<uchar4>().data();
           foreach_grids(
               args,
               use_flat_layout,
@@ -576,18 +570,12 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool u
                   BKE_paint_face_set_overlay_color_get(
                       fset, args.face_sets_color_seed, face_set_color);
                 }
-
-                *static_cast<uchar4 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
+                *data = face_set_color;
+                data++;
               });
         }
         else {
-          const uchar white[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
-          foreach_grids(
-              args,
-              use_flat_layout,
-              [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-                *static_cast<uchar4 *>(GPU_vertbuf_raw_step(&access)) = white;
-              });
+          vbo.vert_buf->data<uchar4>().fill(uchar4{UCHAR_MAX});
         }
         break;
       }
