@@ -13,6 +13,7 @@ struct PBVHNode;
 
 namespace blender::ed::sculpt_paint {
 
+void do_clay_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_clay_strips_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_crease_brush(const Scene &scene, const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_blob_brush(const Scene &scene, const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);

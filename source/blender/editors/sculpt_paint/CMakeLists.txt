@@ -115,6 +115,7 @@ set(SRC
   paint_intern.hh
   sculpt_intern.hh
 
+  brushes/clay.cc
   brushes/clay_strips.cc
   brushes/crease.cc
   brushes/draw_vector_displacement.cc
