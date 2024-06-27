@@ -2207,7 +2207,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
             from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
 
-            if not self._repos_valid_for_install():
+            if not self._repos_valid_for_install(context):
                 self.report({'ERROR'}, "No user repositories")
                 return {'CANCELLED'}
 
