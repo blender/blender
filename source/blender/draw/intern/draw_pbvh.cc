@@ -357,42 +357,40 @@ struct PBVHBatches {
   void create_index(const PBVH_GPU_Args &args);
 };
 
+static int count_visible_tris_mesh(const Span<int> tris,
+                                   const Span<int> tri_faces,
+                                   const Span<bool> hide_poly)
+{
+  if (hide_poly.is_empty()) {
+    return tris.size();
+  }
+  return std::count_if(
+      tris.begin(), tris.end(), [&](const int tri) { return !hide_poly[tri_faces[tri]]; });
+}
+
+static int count_visible_tris_bmesh(const Set<BMFace *, 0> &faces)
+{
+  return std::count_if(faces.begin(), faces.end(), [&](const BMFace *face) {
+    return !BM_elem_flag_test_bool(face, BM_ELEM_HIDDEN);
+  });
+}
+
 static int count_faces(const PBVH_GPU_Args &args)
 {
-  int count = 0;
-
   switch (args.pbvh_type) {
-    case PBVH_FACES: {
-      if (!args.hide_poly.is_empty()) {
-        for (const int tri_i : args.prim_indices) {
-          if (!args.hide_poly[args.tri_faces[tri_i]]) {
-            count++;
-          }
-        }
-      }
-      else {
-        count = args.prim_indices.size();
-      }
-      break;
-    }
-    case PBVH_GRIDS: {
-      count = bke::pbvh::count_grid_quads(args.subdiv_ccg->grid_hidden,
-                                          args.grid_indices,
-                                          args.ccg_key.grid_size,
-                                          args.ccg_key.grid_size);
+    case PBVH_FACES:
+      return count_visible_tris_mesh(args.prim_indices, args.tri_faces, args.hide_poly);
+    case PBVH_GRIDS:
+      return bke::pbvh::count_grid_quads(args.subdiv_ccg->grid_hidden,
+                                         args.grid_indices,
+                                         args.ccg_key.grid_size,
+                                         args.ccg_key.grid_size);
 
-      break;
-    }
-    case PBVH_BMESH: {
-      for (const BMFace *f : *args.bm_faces) {
-        if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-          count++;
-        }
-      }
-    }
+    case PBVH_BMESH:
+      return count_visible_tris_bmesh(*args.bm_faces);
   }
-
-  return count;
+  BLI_assert_unreachable();
+  return 0;
 }
 
 PBVHBatches::PBVHBatches(const PBVH_GPU_Args &args)
