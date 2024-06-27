@@ -1188,6 +1188,7 @@ def extension_draw_item(
 
     row_right = row_right_toplevel.row(align=True)
     row_right.alignment = 'RIGHT'
+    row_right.separator()
 
     # Used `extension_path` so the menu can access "this" extension.
     row_right.context_string_set("extension_path", "{:s}.{:s}".format(repo_item.module, pkg_id))
