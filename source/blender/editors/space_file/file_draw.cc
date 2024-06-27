@@ -707,23 +707,12 @@ static void file_draw_preview(const FileList *files,
 
   if (is_link || is_offline) {
     /* Icon at bottom to indicate it is a shortcut, link, alias, or offline. */
-    float icon_x, icon_y;
-    icon_x = xco + (2.0f * UI_SCALE_FAC);
-    icon_y = yco + (2.0f * UI_SCALE_FAC);
     const int arrow = is_link ? ICON_LOOP_FORWARDS : ICON_INTERNET;
     if (!is_icon) {
       /* At very bottom-left if preview style. */
-      const uchar dark[4] = {0, 0, 0, 255};
       const uchar light[4] = {255, 255, 255, 255};
-      UI_icon_draw_ex(icon_x + 1,
-                      icon_y - 1,
-                      arrow,
-                      1.0f / UI_SCALE_FAC,
-                      0.2f,
-                      0.0f,
-                      dark,
-                      false,
-                      UI_NO_ICON_OVERLAY_TEXT);
+      const float icon_x = float(xco) + (2.0f * UI_SCALE_FAC);
+      const float icon_y = float(yco) + (2.0f * UI_SCALE_FAC);
       UI_icon_draw_ex(icon_x,
                       icon_y,
                       arrow,
@@ -731,15 +720,15 @@ static void file_draw_preview(const FileList *files,
                       0.6f,
                       0.0f,
                       light,
-                      false,
+                      true,
                       UI_NO_ICON_OVERLAY_TEXT);
     }
     else {
       /* Link to folder or non-previewed file. */
       uchar icon_color[4];
       UI_GetThemeColor4ubv(TH_BACK, icon_color);
-      icon_x = xco + ((file->typeflag & FILE_TYPE_DIR) ? 0.14f : 0.23f) * scaledx;
-      icon_y = yco + ((file->typeflag & FILE_TYPE_DIR) ? 0.24f : 0.14f) * scaledy;
+      const float icon_x = xco + ((file->typeflag & FILE_TYPE_DIR) ? 0.14f : 0.23f) * scaledx;
+      const float icon_y = yco + ((file->typeflag & FILE_TYPE_DIR) ? 0.24f : 0.14f) * scaledy;
       UI_icon_draw_ex(icon_x,
                       icon_y,
                       arrow,
@@ -755,20 +744,9 @@ static void file_draw_preview(const FileList *files,
            ((!is_icon && !(file->typeflag & FILE_TYPE_FTFONT)) || is_loading))
   {
     /* Smaller, fainter icon at bottom-left for preview image thumbnail, but not for fonts. */
-    float icon_x, icon_y;
-    const uchar dark[4] = {0, 0, 0, 255};
     const uchar light[4] = {255, 255, 255, 255};
-    icon_x = xco + (2.0f * UI_SCALE_FAC);
-    icon_y = yco + (2.0f * UI_SCALE_FAC);
-    UI_icon_draw_ex(icon_x + 1,
-                    icon_y - 1,
-                    icon,
-                    1.0f / UI_SCALE_FAC,
-                    0.2f,
-                    0.0f,
-                    dark,
-                    false,
-                    UI_NO_ICON_OVERLAY_TEXT);
+    const float icon_x = float(xco) + (2.0f * UI_SCALE_FAC);
+    const float icon_y = float(yco) + (2.0f * UI_SCALE_FAC);
     UI_icon_draw_ex(icon_x,
                     icon_y,
                     icon,
@@ -776,7 +754,7 @@ static void file_draw_preview(const FileList *files,
                     0.6f,
                     0.0f,
                     light,
-                    false,
+                    true,
                     UI_NO_ICON_OVERLAY_TEXT);
   }
 
