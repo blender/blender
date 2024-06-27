@@ -439,7 +439,7 @@ static void vicon_collection_color_draw(
                   1.0f,
                   0.0f,
                   collection_color->color,
-                  true,
+                  btheme->tui.icon_border_intensity > 0.0f,
                   UI_NO_ICON_OVERLAY_TEXT);
 }
 
@@ -468,8 +468,15 @@ static void vicon_strip_color_draw(
 
   const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
-  UI_icon_draw_ex(
-      x, y, ICON_SNAP_FACE, aspect, 1.0f, 0.0f, strip_color->color, true, UI_NO_ICON_OVERLAY_TEXT);
+  UI_icon_draw_ex(x,
+                  y,
+                  ICON_SNAP_FACE,
+                  aspect,
+                  1.0f,
+                  0.0f,
+                  strip_color->color,
+                  btheme->tui.icon_border_intensity > 0.0f,
+                  UI_NO_ICON_OVERLAY_TEXT);
 }
 
 #  define DEF_ICON_STRIP_COLOR_DRAW(index, color) \
@@ -539,7 +546,7 @@ static void vicon_layergroup_color_draw(
                   1.0f,
                   0.0f,
                   layergroup_color->color,
-                  true,
+                  btheme->tui.icon_border_intensity > 0.0f,
                   UI_NO_ICON_OVERLAY_TEXT);
 }
 
@@ -1948,7 +1955,10 @@ static void icon_draw_size(float x,
   }
   else if (di->type == ICON_TYPE_MONO_TEXTURE) {
     /* Monochrome icon that uses text or theme color. */
-    const bool with_border = mono_border && (btheme->tui.icon_border_intensity > 0.0f);
+    float outline_intensity = mono_border ? (btheme->tui.icon_border_intensity > 0.0f ?
+                                                 btheme->tui.icon_border_intensity :
+                                                 0.5f) :
+                                            0.0f;
     float color[4];
     if (mono_rgba) {
       rgba_uchar_to_float(color, (const uchar *)mono_rgba);
@@ -1957,12 +1967,7 @@ static void icon_draw_size(float x,
       UI_GetThemeColor4fv(TH_TEXT, color);
     }
     color[3] = alpha;
-    BLF_draw_svg_icon(uint(icon_id),
-                      x,
-                      y,
-                      float(draw_size) / aspect,
-                      color,
-                      with_border ? btheme->tui.icon_border_intensity : 0.0f);
+    BLF_draw_svg_icon(uint(icon_id), x, y, float(draw_size) / aspect, color, outline_intensity);
 
     if (text_overlay && text_overlay->text[0] != '\0') {
       /* Handle the little numbers on top of the icon. */
