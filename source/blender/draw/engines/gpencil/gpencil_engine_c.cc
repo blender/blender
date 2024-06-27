@@ -732,13 +732,13 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
     Array<int> num_vertices_per_stroke(visible_strokes.size());
     int total_num_triangles = 0;
     int total_num_vertices = 0;
-    visible_strokes.foreach_index([&](const int stroke_i) {
+    visible_strokes.foreach_index([&](const int stroke_i, const int pos) {
       const IndexRange points = points_by_curve[stroke_i];
       const int num_stroke_triangles = (points.size() >= 3) ? (points.size() - 2) : 0;
       const int num_stroke_vertices = (points.size() +
                                        int(cyclic[stroke_i] && (points.size() >= 3)));
-      num_triangles_per_stroke[stroke_i] = num_stroke_triangles;
-      num_vertices_per_stroke[stroke_i] = num_stroke_vertices;
+      num_triangles_per_stroke[pos] = num_stroke_triangles;
+      num_vertices_per_stroke[pos] = num_stroke_vertices;
       total_num_triangles += num_stroke_triangles;
       total_num_vertices += num_stroke_vertices;
     });
@@ -788,7 +788,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
                             info.frame_number != pd->cfra && pd->use_multiedit_lines_only;
     const bool is_onion = info.onion_id != 0;
 
-    visible_strokes.foreach_index([&](const int stroke_i) {
+    visible_strokes.foreach_index([&](const int stroke_i, const int pos) {
       const IndexRange points = points_by_curve[stroke_i];
       const int material_index = stroke_materials[stroke_i];
       const MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
@@ -804,8 +804,8 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
                                (only_lines && !is_onion) || hide_onion;
 
       if (skip_stroke) {
-        t_offset += num_triangles_per_stroke[stroke_i];
-        t_offset += num_vertices_per_stroke[stroke_i] * 2;
+        t_offset += num_triangles_per_stroke[pos];
+        t_offset += num_vertices_per_stroke[pos] * 2;
         return;
       }
 
@@ -851,19 +851,19 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
 
       if (show_fill) {
         const int v_first = t_offset * 3;
-        const int v_count = num_triangles_per_stroke[stroke_i] * 3;
+        const int v_count = num_triangles_per_stroke[pos] * 3;
         drawcall_add(geom, v_first, v_count);
       }
 
-      t_offset += num_triangles_per_stroke[stroke_i];
+      t_offset += num_triangles_per_stroke[pos];
 
       if (show_stroke) {
         const int v_first = t_offset * 3;
-        const int v_count = num_vertices_per_stroke[stroke_i] * 2 * 3;
+        const int v_count = num_vertices_per_stroke[pos] * 2 * 3;
         drawcall_add(geom, v_first, v_count);
       }
 
-      t_offset += num_vertices_per_stroke[stroke_i] * 2;
+      t_offset += num_vertices_per_stroke[pos] * 2;
     });
   }
 
