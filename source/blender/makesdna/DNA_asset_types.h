@@ -84,6 +84,9 @@ typedef struct AssetMetaData {
   char _pad[4];
 
 #ifdef __cplusplus
+  AssetMetaData() = default;
+  AssetMetaData(const AssetMetaData &other);
+  AssetMetaData(AssetMetaData &&other);
   /** Enables use with `std::unique_ptr<AssetMetaData>`. */
   ~AssetMetaData();
 #endif
