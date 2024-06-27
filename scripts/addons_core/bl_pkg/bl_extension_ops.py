@@ -719,26 +719,30 @@ def _extensions_repo_from_directory_and_report(directory, report_fn):
     return repo_item
 
 
-def _pkg_marked_by_repo(pkg_manifest_all):
+def _pkg_marked_by_repo(repo_cache_store, pkg_manifest_all):
     # NOTE: pkg_manifest_all can be from local or remote source.
-    wm = bpy.context.window_manager
-    search_casefold = wm.extension_search.casefold()
-    filter_by_type = blender_filter_by_type_map[wm.extension_type]
+    from .bl_extension_ui import ExtensionUI_Visibility
+
+    ui_visibility = None if is_background else ExtensionUI_Visibility(bpy.context, repo_cache_store)
 
     repo_pkg_map = {}
     for pkg_id, repo_index in blender_extension_mark:
-        # While this should be prevented, any marked packages out of the range will cause problems, skip them.
-        if repo_index >= len(pkg_manifest_all):
-            continue
         if (pkg_manifest := pkg_manifest_all[repo_index]) is None:
             continue
 
+        if ui_visibility is not None:
+            if not ui_visibility.test((pkg_id, repo_index)):
+                continue
+        else:
+            # Background mode, just to a simple range check.
+            # While this should be prevented, any marked packages out of the range will cause problems, skip them.
+            if repo_index >= len(pkg_manifest_all):
+                continue
+            if (pkg_manifest := pkg_manifest_all[repo_index]) is None:
+                continue
+
         item = pkg_manifest.get(pkg_id)
         if item is None:
-            continue
-        if filter_by_type and (filter_by_type != item.type):
-            continue
-        if search_casefold and not pkg_info_check_exclude_filter(item, search_casefold):
             continue
 
         pkg_list = repo_pkg_map.get(repo_index)
@@ -1668,7 +1672,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
         pkg_manifest_remote_all = list(repo_cache_store.pkg_manifest_from_remote_ensure(
             error_fn=self.error_fn_from_exception,
         ))
-        repo_pkg_map = _pkg_marked_by_repo(pkg_manifest_remote_all)
+        repo_pkg_map = _pkg_marked_by_repo(repo_cache_store, pkg_manifest_remote_all)
         self._repo_directories = set()
         self._repo_map_packages_addon_only = []
         package_count = 0
@@ -1796,7 +1800,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
         pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure(
             error_fn=self.error_fn_from_exception,
         ))
-        repo_pkg_map = _pkg_marked_by_repo(pkg_manifest_local_all)
+        repo_pkg_map = _pkg_marked_by_repo(repo_cache_store, pkg_manifest_local_all)
         package_count = 0
 
         self._repo_directories = set()
@@ -2577,7 +2581,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
     def _draw_override_after_sync(
             self,
             *,
-            context,  # `bpy.types.Context`
+            _context,  # `bpy.types.Context`
             remote_url,   # `Optional[str]`
             repo_from_url_name,  # `str`
             url,  # `str`
@@ -2912,8 +2916,13 @@ class EXTENSIONS_OT_package_mark_set_all(Operator):
     bl_idname = "extensions.package_mark_set_all"
     bl_label = "Mark All Packages"
 
-    def execute(self, _context):
+    def execute(self, context):
+        from .bl_extension_ui import ExtensionUI_Visibility
+
         repo_cache_store = repo_cache_store_ensure()
+
+        ui_visibility = None if is_background else ExtensionUI_Visibility(context, repo_cache_store)
+
         for repo_index, (
                 pkg_manifest_remote,
                 pkg_manifest_local,
@@ -2923,10 +2932,18 @@ class EXTENSIONS_OT_package_mark_set_all(Operator):
         )):
             if pkg_manifest_remote is not None:
                 for pkg_id in pkg_manifest_remote.keys():
-                    blender_extension_mark.add((pkg_id, repo_index))
+                    key = pkg_id, repo_index
+                    if ui_visibility is not None:
+                        if not ui_visibility.test(key):
+                            continue
+                    blender_extension_mark.add(key)
             if pkg_manifest_local is not None:
                 for pkg_id in pkg_manifest_local.keys():
-                    blender_extension_mark.add((pkg_id, repo_index))
+                    key = pkg_id, repo_index
+                    if ui_visibility is not None:
+                        if not ui_visibility.test(key):
+                            continue
+                    blender_extension_mark.add(key)
         _preferences_ui_redraw()
         return {'FINISHED'}
 
@@ -2937,6 +2954,7 @@ class EXTENSIONS_OT_package_mark_clear_all(Operator):
 
     def execute(self, _context):
         blender_extension_mark.clear()
+        return {'FINISHED'}
 
 
 class EXTENSIONS_OT_package_show_set(Operator):
@@ -2996,7 +3014,7 @@ class EXTENSIONS_OT_package_obselete_marked(Operator):
         repo_cache_store = repo_cache_store_ensure()
 
         pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print))
-        repo_pkg_map = _pkg_marked_by_repo(pkg_manifest_local_all)
+        repo_pkg_map = _pkg_marked_by_repo(repo_cache_store, pkg_manifest_local_all)
         found = False
 
         repos_lock = [repos_all[repo_index].directory for repo_index in sorted(repo_pkg_map.keys())]
