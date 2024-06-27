@@ -32,17 +32,17 @@ struct LocalData {
   Vector<float> new_masks;
 };
 
-static void invert_mask(const MutableSpan<float> masks)
+BLI_NOINLINE static void invert_mask(const MutableSpan<float> masks)
 {
   for (float &mask : masks) {
     mask = 1.0f - mask;
   }
 }
 
-static void apply_factors(const float strength,
-                          const Span<float> current_masks,
-                          const Span<float> factors,
-                          const MutableSpan<float> masks)
+BLI_NOINLINE static void apply_factors(const float strength,
+                                       const Span<float> current_masks,
+                                       const Span<float> factors,
+                                       const MutableSpan<float> masks)
 {
   BLI_assert(current_masks.size() == masks.size());
   BLI_assert(factors.size() == masks.size());
@@ -51,7 +51,7 @@ static void apply_factors(const float strength,
   }
 }
 
-static void clamp_mask(const MutableSpan<float> masks)
+BLI_NOINLINE static void clamp_mask(const MutableSpan<float> masks)
 {
   for (float &mask : masks) {
     mask = std::clamp(mask, 0.0f, 1.0f);
