@@ -3291,14 +3291,13 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   /* Velocities. */
   /* If needed, vertex velocities will be read too. */
   bool use_speedvectors = fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS;
-  float(*velarray)[3] = nullptr;
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  SpanAttributeWriter<float3> velocities;
   float time_mult = fds->dx / (DT_DEFAULT * (25.0f / FPS));
 
   if (use_speedvectors) {
-    AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-    CustomDataLayer *velocity_layer = BKE_attribute_new(
-        owner, "velocity", CD_PROP_FLOAT3, AttrDomain::Point, nullptr);
-    velarray = static_cast<float(*)[3]>(velocity_layer->data);
+    velocities = attributes.lookup_or_add_for_write_only_span<float3>("velocity",
+                                                                      AttrDomain::Point);
   }
 
   /* Loop for vertices and normals. */
@@ -3334,23 +3333,22 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 #  endif
 
     if (use_speedvectors) {
-      velarray[i][0] = manta_liquid_get_vertvel_x_at(fds->fluid, i) * time_mult;
-      velarray[i][1] = manta_liquid_get_vertvel_y_at(fds->fluid, i) * time_mult;
-      velarray[i][2] = manta_liquid_get_vertvel_z_at(fds->fluid, i) * time_mult;
+      velocities.span[i].x = manta_liquid_get_vertvel_x_at(fds->fluid, i) * time_mult;
+      velocities.span[i].y = manta_liquid_get_vertvel_y_at(fds->fluid, i) * time_mult;
+      velocities.span[i].z = manta_liquid_get_vertvel_z_at(fds->fluid, i) * time_mult;
 #  ifdef DEBUG_PRINT
       /* Debugging: Print velocities of vertices. */
-      printf("velarray[%d][0]: %f, velarray[%d][1]: %f, velarray[%d][2]: %f\n",
+      printf("velocities[%d].x: %f, velocities[%d].y: %f, velocities[%d].z: %f\n",
              i,
-             velarray[i][0],
+             velocities.span[i].x,
              i,
-             velarray[i][1],
+             velocities.span[i].y,
              i,
-             velarray[i][2]);
+             velocities.span[i].z);
 #  endif
     }
   }
 
-  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter material_indices = attributes.lookup_or_add_for_write_span<int>(
       "material_index", AttrDomain::Face);
 
@@ -3373,6 +3371,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 #  endif
   }
 
+  velocities.finish();
   material_indices.finish();
 
   mesh_calc_edges(*mesh, false, false);
