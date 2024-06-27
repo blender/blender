@@ -27,10 +27,16 @@
 
 using namespace OCIO_NAMESPACE;
 
+#include "BLI_math_color.h"
+#include "BLI_math_color.hh"
+#include "BLI_math_matrix.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "ocio_impl.h"
 #include "ocio_shader_shared.hh"
+
+using blender::float3x3;
 
 /* **** OpenGL drawing routines using GLSL for color space transform ***** */
 
@@ -547,8 +553,8 @@ static void updateGPUCurveMapping(OCIO_GPUCurveMappping &curvemap,
 }
 
 static void updateGPUDisplayParameters(OCIO_GPUShader &shader,
-                                       float scale,
                                        float exponent,
+                                       float4x4 scene_linear_matrix,
                                        float dither,
                                        bool use_predivide,
                                        bool use_overlay,
@@ -560,8 +566,8 @@ static void updateGPUDisplayParameters(OCIO_GPUShader &shader,
     do_update = true;
   }
   OCIO_GPUParameters &data = shader.parameters;
-  if (data.scale != scale) {
-    data.scale = scale;
+  if (data.scene_linear_matrix != scene_linear_matrix) {
+    data.scene_linear_matrix = scene_linear_matrix;
     do_update = true;
   }
   if (data.exponent != exponent) {
@@ -645,20 +651,22 @@ static OCIO_GPUDisplayShader &getGPUDisplayShader(
 
   /* Create Processors.
    *
-   * Scale and exponent are handled outside of OCIO shader so we can handle them
-   * as uniforms at the binding stage. OCIO would otherwise bake them into the
-   * shader code, requiring slow recompiles when interactively adjusting them.
+   * Scale, white balance and exponent are handled outside of OCIO shader so we
+   * can handle them as uniforms at the binding stage. OCIO would otherwise bake
+   * them into the shader code, requiring slow recompiles when interactively
+   * adjusting them.
    *
    * Note that OCIO does have the concept of dynamic properties, however there
    * is no dynamic gamma and exposure is part of more expensive operations only.
    *
-   * Since exposure must happen in scene linear, we use two processors. The input
-   * is usually scene linear already and so that conversion is often a no-op.
+   * Since exposure and white balance must happen in scene linear, we use two
+   * processors. The input is usually scene linear already and so that conversion
+   * is often a no-op.
    */
   OCIO_ConstProcessorRcPtr *processor_to_scene_linear = OCIO_configGetProcessorWithNames(
       config, input, ROLE_SCENE_LINEAR);
   OCIO_ConstProcessorRcPtr *processor_to_display = OCIO_createDisplayProcessor(
-      config, ROLE_SCENE_LINEAR, view, display, look, 1.0f, 1.0f, false);
+      config, ROLE_SCENE_LINEAR, view, display, look, 1.0f, 1.0f, 0.0f, 0.0f, false, false);
 
   /* Create shader descriptions. */
   if (processor_to_scene_linear && processor_to_display) {
@@ -724,9 +732,12 @@ bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                     const float scale,
                                     const float exponent,
                                     const float dither,
+                                    const float temperature,
+                                    const float tint,
                                     const bool use_predivide,
                                     const bool use_overlay,
-                                    const bool use_hdr)
+                                    const bool use_hdr,
+                                    const bool use_white_balance)
 {
   /* Get GPU shader from cache or create new one. */
   OCIO_GPUDisplayShader &display_shader = getGPUDisplayShader(
@@ -761,7 +772,24 @@ bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
     GPU_uniformbuf_bind(textures.uniforms_buffer, UNIFORMBUF_SLOT_LUTS);
   }
 
-  updateGPUDisplayParameters(shader, scale, exponent, dither, use_predivide, use_overlay, use_hdr);
+  float3x3 matrix = float3x3::identity() * scale;
+  if (use_white_balance) {
+    /* Compute white point of the scene space in XYZ.*/
+    float3x3 xyz_to_scene;
+    configGetXYZtoSceneLinear(config, xyz_to_scene.ptr());
+    float3x3 scene_to_xyz = blender::math::invert(xyz_to_scene);
+    float3 target = scene_to_xyz * float3(1.0f);
+
+    /* Add operations to the matrix.
+     * Note: Since we're multiplying from the right, the operations here will be performed in
+     * reverse list order (scene-to-XYZ, then adaption, then XYZ-to-scene, then exposure). */
+    matrix *= xyz_to_scene;
+    matrix *= blender::math::chromatic_adaption_matrix(
+        blender::math::whitepoint_from_temp_tint(temperature, tint), target);
+    matrix *= scene_to_xyz;
+  }
+  updateGPUDisplayParameters(
+      shader, exponent, float4x4(matrix), dither, use_predivide, use_overlay, use_hdr);
   GPU_uniformbuf_bind(shader.parameters_buffer, UNIFORMBUF_SLOT_DISPLAY);
 
   /* TODO(fclem): remove remains of IMM. */

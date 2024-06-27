@@ -87,6 +87,9 @@ class IOCIOImpl {
                                                            const char *look,
                                                            const float scale,
                                                            const float exponent,
+                                                           const float temperature,
+                                                           const float tint,
+                                                           const bool use_white_balance,
                                                            const bool inverse) = 0;
 
   virtual OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data,
@@ -113,9 +116,12 @@ class IOCIOImpl {
                                     const float /*scale*/,
                                     const float /*exponent*/,
                                     const float /*dither*/,
+                                    const float /*temperature*/,
+                                    const float /*tint*/,
                                     const bool /*use_predivide*/,
                                     const bool /*use_overlay*/,
-                                    const bool /*use_hdr*/)
+                                    const bool /*use_hdr*/,
+                                    const bool /*use_white_balance*/)
   {
     return false;
   }
@@ -200,6 +206,9 @@ class FallbackImpl : public IOCIOImpl {
                                                    const char *look,
                                                    const float scale,
                                                    const float exponent,
+                                                   const float temperature,
+                                                   const float tint,
+                                                   const bool use_white_balance,
                                                    const bool inverse);
 
   OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data,
@@ -291,6 +300,9 @@ class OCIOImpl : public IOCIOImpl {
                                                    const char *look,
                                                    const float scale,
                                                    const float exponent,
+                                                   const float temperature,
+                                                   const float tint,
+                                                   const bool use_white_balance,
                                                    const bool inverse);
 
   OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data,
@@ -313,9 +325,12 @@ class OCIOImpl : public IOCIOImpl {
                             const float scale,
                             const float exponent,
                             const float dither,
+                            const float temperature,
+                            const float tint,
                             const bool use_predivide,
                             const bool use_overlay,
-                            const bool use_hdr);
+                            const bool use_hdr,
+                            const bool use_white_balance);
   void gpuDisplayShaderUnbind(void);
   void gpuCacheFree(void);
 

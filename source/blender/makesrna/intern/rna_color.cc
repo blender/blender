@@ -558,6 +558,18 @@ static std::optional<std::string> rna_ColorManagedViewSettings_path(const Pointe
   return "view_settings";
 }
 
+static void rna_ColorManagedViewSettings_whitepoint_get(PointerRNA *ptr, float value[3])
+{
+  const ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
+  IMB_colormanagement_get_view_whitepoint(view_settings, value);
+}
+
+static void rna_ColorManagedViewSettings_whitepoint_set(PointerRNA *ptr, const float value[3])
+{
+  ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
+  IMB_colormanagement_set_view_whitepoint(view_settings, value);
+}
+
 static bool rna_ColorManagedColorspaceSettings_is_data_get(PointerRNA *ptr)
 {
   ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *)ptr->data;
@@ -1307,6 +1319,41 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", COLORMANAGE_VIEW_USE_CURVES);
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_ColorManagedViewSettings_use_curves_set");
   RNA_def_property_ui_text(prop, "Use Curves", "Use RGB curved for pre-display transformation");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+  prop = RNA_def_property(srna, "use_white_balance", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", COLORMANAGE_VIEW_USE_WHITE_BALANCE);
+  RNA_def_property_ui_text(
+      prop, "Use White Balance", "Perform chromatic adaption from a different white point");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+  prop = RNA_def_property(srna, "white_balance_temperature", PROP_FLOAT, PROP_COLOR_TEMPERATURE);
+  RNA_def_property_float_sdna(prop, nullptr, "temperature");
+  RNA_def_property_float_default(prop, 6500.0f);
+  RNA_def_property_range(prop, 1800.0f, 100000.0f);
+  RNA_def_property_ui_range(prop, 2000.0f, 11000.0f, 100, 0);
+  RNA_def_property_ui_text(prop, "Temperature", "Color temperature of the scene's white point");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+  prop = RNA_def_property(srna, "white_balance_tint", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "tint");
+  RNA_def_property_float_default(prop, 10.0f);
+  RNA_def_property_range(prop, -500.0f, 500.0f);
+  RNA_def_property_ui_range(prop, -150.0f, 150.0f, 1, 1);
+  RNA_def_property_ui_text(
+      prop, "Tint", "Color tint of the scene's white point (the default of 10 matches daylight)");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
+
+  prop = RNA_def_property(srna, "white_balance_whitepoint", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_funcs(prop,
+                               "rna_ColorManagedViewSettings_whitepoint_get",
+                               "rna_ColorManagedViewSettings_whitepoint_set",
+                               nullptr);
+  RNA_def_property_ui_text(prop,
+                           "White Point",
+                           "The color which gets mapped to white "
+                           "(automatically converted to/from temperature and tint)");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
   prop = RNA_def_property(srna, "use_hdr_view", PROP_BOOLEAN, PROP_NONE);

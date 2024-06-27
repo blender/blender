@@ -569,6 +569,24 @@ class AddPresetEEVEERaytracing(AddPresetBase, Operator):
     preset_subdir = "eevee/raytracing"
 
 
+class AddPresetColorManagementWhiteBalance(AddPresetBase, Operator):
+    """Add or remove a white balance preset"""
+    bl_idname = "render.color_management_white_balance_preset_add"
+    bl_label = "Add White Balance Preset"
+    preset_menu = "RENDER_PT_color_management_white_balance_presets"
+
+    preset_defines = [
+        "view_settings = bpy.context.scene.view_settings",
+    ]
+
+    preset_values = [
+        "view_settings.white_balance_temperature",
+        "view_settings.white_balance_tint",
+    ]
+
+    preset_subdir = "color_management/white_balance"
+
+
 class AddPresetNodeColor(AddPresetBase, Operator):
     """Add or remove a Node Color Preset"""
     bl_idname = "node.node_color_preset_add"
@@ -981,6 +999,7 @@ classes = (
     AddPresetGpencilBrush,
     AddPresetGpencilMaterial,
     AddPresetEEVEERaytracing,
+    AddPresetColorManagementWhiteBalance,
     ExecutePreset,
     WM_MT_operator_presets,
     WM_PT_operator_presets,

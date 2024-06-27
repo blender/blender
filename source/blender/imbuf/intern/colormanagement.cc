@@ -30,6 +30,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
+#include "BLI_math_color.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
@@ -195,6 +196,8 @@ struct ColormanageCacheViewSettings {
   float exposure;
   float gamma;
   float dither;
+  float temperature;
+  float tint;
   CurveMapping *curve_mapping;
 };
 
@@ -213,6 +216,8 @@ struct ColormanageCacheData {
   float exposure;              /* exposure value cached buffer is calculated with */
   float gamma;                 /* gamma value cached buffer is calculated with */
   float dither;                /* dither value cached buffer is calculated with */
+  float temperature;           /* temperature value cached buffer is calculated with */
+  float tint;                  /* tint value cached buffer is calculated with */
   CurveMapping *curve_mapping; /* curve mapping used for cached buffer */
   int curve_mapping_timestamp; /* time stamp of curve mapping used for cached buffer */
 };
@@ -299,6 +304,8 @@ static void colormanage_view_settings_to_cache(ImBuf *ibuf,
   cache_view_settings->exposure = view_settings->exposure;
   cache_view_settings->gamma = view_settings->gamma;
   cache_view_settings->dither = ibuf->dither;
+  cache_view_settings->temperature = view_settings->temperature;
+  cache_view_settings->tint = view_settings->tint;
   cache_view_settings->flag = view_settings->flag;
   cache_view_settings->curve_mapping = view_settings->curve_mapping;
 }
@@ -378,7 +385,9 @@ static uchar *colormanage_cache_get(ImBuf *ibuf,
     if (cache_data->look != view_settings->look ||
         cache_data->exposure != view_settings->exposure ||
         cache_data->gamma != view_settings->gamma || cache_data->dither != view_settings->dither ||
-        cache_data->flag != view_settings->flag || cache_data->curve_mapping != curve_mapping ||
+        cache_data->temperature != view_settings->temperature ||
+        cache_data->tint != view_settings->tint || cache_data->flag != view_settings->flag ||
+        cache_data->curve_mapping != curve_mapping ||
         cache_data->curve_mapping_timestamp != curve_mapping_timestamp)
     {
       *cache_handle = nullptr;
@@ -424,6 +433,8 @@ static void colormanage_cache_put(ImBuf *ibuf,
   cache_data->exposure = view_settings->exposure;
   cache_data->gamma = view_settings->gamma;
   cache_data->dither = view_settings->dither;
+  cache_data->temperature = view_settings->temperature;
+  cache_data->tint = view_settings->tint;
   cache_data->flag = view_settings->flag;
   cache_data->curve_mapping = curve_mapping;
   cache_data->curve_mapping_timestamp = curve_mapping_timestamp;
@@ -874,8 +885,11 @@ static ColorSpace *display_transform_get_colorspace(
 static OCIO_ConstCPUProcessorRcPtr *create_display_buffer_processor(const char *look,
                                                                     const char *view_transform,
                                                                     const char *display,
-                                                                    float exposure,
-                                                                    float gamma,
+                                                                    const float exposure,
+                                                                    const float gamma,
+                                                                    const float temperature,
+                                                                    const float tint,
+                                                                    const bool use_white_balance,
                                                                     const char *from_colorspace)
 {
   OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
@@ -890,6 +904,9 @@ static OCIO_ConstCPUProcessorRcPtr *create_display_buffer_processor(const char *
                                                                     (use_look) ? look : "",
                                                                     scale,
                                                                     exponent,
+                                                                    temperature,
+                                                                    tint,
+                                                                    use_white_balance,
                                                                     false);
 
   OCIO_configRelease(config);
@@ -982,6 +999,9 @@ static OCIO_ConstCPUProcessorRcPtr *display_from_scene_linear_processor(
                                                 nullptr,
                                                 1.0f,
                                                 1.0f,
+                                                0.0f,
+                                                0.0f,
+                                                false,
                                                 false);
 
         OCIO_configRelease(config);
@@ -1011,8 +1031,17 @@ static OCIO_ConstCPUProcessorRcPtr *display_to_scene_linear_processor(ColorManag
       OCIO_ConstProcessorRcPtr *processor = nullptr;
 
       if (view_name && config) {
-        processor = OCIO_createDisplayProcessor(
-            config, global_role_scene_linear, view_name, display->name, nullptr, 1.0f, 1.0f, true);
+        processor = OCIO_createDisplayProcessor(config,
+                                                global_role_scene_linear,
+                                                view_name,
+                                                display->name,
+                                                nullptr,
+                                                1.0f,
+                                                1.0f,
+                                                0.0f,
+                                                0.0f,
+                                                false,
+                                                true);
 
         OCIO_configRelease(config);
       }
@@ -1056,6 +1085,8 @@ void IMB_colormanagement_init_default_view_settings(
   view_settings->flag = 0;
   view_settings->gamma = 1.0f;
   view_settings->exposure = 0.0f;
+  view_settings->temperature = 6500.0f;
+  view_settings->tint = 10.0f;
   view_settings->curve_mapping = nullptr;
 }
 
@@ -1480,6 +1511,29 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
 const float *IMB_colormanagement_get_xyz_to_scene_linear()
 {
   return &imbuf_xyz_to_scene_linear[0][0];
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Functions for converting between color temperature/tint and RGB white points
+ * \{ */
+
+void IMB_colormanagement_get_view_whitepoint(const ColorManagedViewSettings *view_settings,
+                                             float whitepoint[3])
+{
+  blender::float3 xyz = blender::math::whitepoint_from_temp_tint(view_settings->temperature,
+                                                                 view_settings->tint);
+  IMB_colormanagement_xyz_to_scene_linear(whitepoint, xyz);
+}
+
+bool IMB_colormanagement_set_view_whitepoint(ColorManagedViewSettings *view_settings,
+                                             const float whitepoint[3])
+{
+  blender::float3 xyz;
+  IMB_colormanagement_scene_linear_to_xyz(xyz, whitepoint);
+  return blender::math::whitepoint_to_temp_tint(
+      xyz, view_settings->temperature, view_settings->tint);
 }
 
 /** \} */
@@ -3934,12 +3988,16 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
     cm_processor->is_data_result = display_space->is_data;
   }
 
+  const bool use_white_balance = applied_view_settings->flag & COLORMANAGE_VIEW_USE_WHITE_BALANCE;
   cm_processor->cpu_processor = create_display_buffer_processor(
       applied_view_settings->look,
       applied_view_settings->view_transform,
       display_settings->display_device,
       applied_view_settings->exposure,
       applied_view_settings->gamma,
+      applied_view_settings->temperature,
+      applied_view_settings->tint,
+      use_white_balance,
       global_role_scene_linear);
 
   if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
@@ -4252,6 +4310,10 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
   const float gamma = applied_view_settings->gamma;
   const float scale = (exposure == 0.0f) ? 1.0f : powf(2.0f, exposure);
   const float exponent = (gamma == 1.0f) ? 1.0f : 1.0f / max_ff(FLT_EPSILON, gamma);
+  const float temperature = applied_view_settings->temperature;
+  const float tint = applied_view_settings->tint;
+  const bool use_white_balance = (applied_view_settings->flag &
+                                  COLORMANAGE_VIEW_USE_WHITE_BALANCE) != 0;
   const bool use_hdr = GPU_hdr_support() &&
                        (applied_view_settings->flag & COLORMANAGE_VIEW_USE_HDR) != 0;
 
@@ -4267,9 +4329,12 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
                                                                 scale,
                                                                 exponent,
                                                                 dither,
+                                                                temperature,
+                                                                tint,
                                                                 predivide,
                                                                 do_overlay_merge,
-                                                                use_hdr);
+                                                                use_hdr,
+                                                                use_white_balance);
 
   OCIO_configRelease(config);
 
