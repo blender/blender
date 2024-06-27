@@ -881,7 +881,7 @@ static const std::array<locus_entry_t, 31> planck_locus{{
     {600.0f, {0.33724f, 0.36051f}, -116.45f},
 }};
 
-bool whitepoint_to_temp_tint(const blender::float3 white, float &temperature, float &tint)
+bool whitepoint_to_temp_tint(const float3 &white, float &temperature, float &tint)
 {
   /* Convert XYZ -> CIE 1960 uv. */
   const float2 uv = float2{4.0f * white.x, 6.0f * white.y} / dot(white, {1.0f, 15.0f, 3.0f});
@@ -912,7 +912,7 @@ bool whitepoint_to_temp_tint(const blender::float3 white, float &temperature, fl
   return true;
 }
 
-blender::float3 whitepoint_from_temp_tint(const float temperature, const float tint)
+float3 whitepoint_from_temp_tint(const float temperature, const float tint)
 {
   /* Find table entry. */
   const float mired = clamp(
@@ -945,11 +945,10 @@ blender::float3 whitepoint_from_temp_tint(const float temperature, const float t
   return float3{x / y, 1.0f, (1.0f - x - y) / y};
 }
 
-blender::float3x3 chromatic_adaption_matrix(const blender::float3 from_XYZ,
-                                            const blender::float3 to_XYZ)
+float3x3 chromatic_adaption_matrix(const float3 &from_XYZ, const float3 &to_XYZ)
 {
   /* Bradford transformation matrix (XYZ -> LMS). */
-  static const blender::float3x3 bradford{
+  static const float3x3 bradford{
       {0.8951f, -0.7502f, 0.0389f},
       {0.2664f, 1.7135f, -0.0685f},
       {-0.1614f, 0.0367f, 1.0296f},
