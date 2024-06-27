@@ -1079,16 +1079,16 @@ static void fill_vbo_bmesh(PBVHVbo &vbo, const PBVH_GPU_Args &args)
 
 void PBVHBatches::update(const PBVH_GPU_Args &args)
 {
-  if (!lines_index) {
+  if (!this->lines_index) {
     create_index(args);
   }
-  for (PBVHVbo &vbo : vbos) {
+  for (PBVHVbo &vbo : this->vbos) {
     switch (args.pbvh_type) {
       case PBVH_FACES:
         fill_vbo_faces(vbo, args);
         break;
       case PBVH_GRIDS:
-        fill_vbo_grids(vbo, args, use_flat_layout);
+        fill_vbo_grids(vbo, args, this->use_flat_layout);
         break;
       case PBVH_BMESH:
         fill_vbo_bmesh(vbo, args);
@@ -1265,14 +1265,14 @@ static gpu::IndexBuf *create_index_bmesh(const PBVH_GPU_Args &args, const int vi
   return GPU_indexbuf_build(&elb_lines);
 }
 
-static void create_tris_from_grids(const PBVH_GPU_Args &args,
-                                   int display_gridsize,
-                                   GPUIndexBufBuilder &elb,
-                                   GPUIndexBufBuilder &elb_lines,
-                                   const BitGroupVector<> &grid_hidden,
-                                   const int gridsize,
-                                   const int skip,
-                                   const int totgrid)
+static void create_grids_index(const PBVH_GPU_Args &args,
+                               int display_gridsize,
+                               GPUIndexBufBuilder &elb,
+                               GPUIndexBufBuilder &elb_lines,
+                               const BitGroupVector<> &grid_hidden,
+                               const int gridsize,
+                               const int skip,
+                               const int totgrid)
 {
   uint offset = 0;
   const uint grid_vert_len = gridsize * gridsize;
@@ -1314,14 +1314,14 @@ static void create_tris_from_grids(const PBVH_GPU_Args &args,
   }
 }
 
-static void create_quads_from_grids(const PBVH_GPU_Args &args,
-                                    int display_gridsize,
-                                    GPUIndexBufBuilder &elb,
-                                    GPUIndexBufBuilder &elb_lines,
-                                    const BitGroupVector<> &grid_hidden,
-                                    const int gridsize,
-                                    const int skip,
-                                    const int totgrid)
+static void create_grids_index_flat_layout(const PBVH_GPU_Args &args,
+                                           int display_gridsize,
+                                           GPUIndexBufBuilder &elb,
+                                           GPUIndexBufBuilder &elb_lines,
+                                           const BitGroupVector<> &grid_hidden,
+                                           const int gridsize,
+                                           const int skip,
+                                           const int totgrid)
 {
   uint offset = 0;
   const uint grid_vert_len = square_uint(gridsize - 1) * 4;
@@ -1450,11 +1450,11 @@ static void create_index_grids(const PBVH_GPU_Args &args,
                     INT_MAX);
 
   if (batches.use_flat_layout) {
-    create_quads_from_grids(
+    create_grids_index_flat_layout(
         args, display_gridsize, elb, elb_lines, grid_hidden, gridsize, skip, totgrid);
   }
   else {
-    create_tris_from_grids(
+    create_grids_index(
         args, display_gridsize, elb, elb_lines, grid_hidden, gridsize, skip, totgrid);
   }
 
