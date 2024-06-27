@@ -274,7 +274,10 @@ class ExecutePreset(Operator):
 
         elif ext == ".xml":
             import rna_xml
-            rna_xml.xml_file_run(context, filepath, preset_class.preset_xml_map)
+            preset_xml_map = preset_class.preset_xml_map
+            preset_xml_secure_types = getattr(preset_class, "preset_xml_secure_types", None)
+
+            rna_xml.xml_file_run(context, filepath, preset_xml_map, secure_types=preset_xml_secure_types)
 
         _call_preset_cb(getattr(preset_class, "post_cb", None), context, filepath)
 
