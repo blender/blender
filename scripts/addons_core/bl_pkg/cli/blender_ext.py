@@ -2648,9 +2648,6 @@ class subcmd_server:
             capwords,
         )
 
-        import urllib
-        import urllib.parse
-
         filepath_repo_html = os.path.join(repo_dir, "index.html")
 
         fh = io.StringIO()
