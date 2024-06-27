@@ -10,6 +10,7 @@ bl_info = {
     "description": "Automatic rigging from building-block components",
     "location": "Armature properties, Bone properties, View3d tools panel, Armature Add menu",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/rigging/rigify/index.html",
+    "support": "OFFICIAL",
     "category": "Rigging",
 }
 
