@@ -234,7 +234,7 @@ def xml2rna(
         root_rna=None,  # must be set
 ):
 
-    def rna2xml_node(xml_node, value):
+    def xml2rna_node(xml_node, value):
         # print("evaluating:", xml_node.nodeName)
 
         # ---------------------------------------------------------------------
@@ -320,7 +320,7 @@ def xml2rna(
                                 if child_xml_real is None or subsubvalue is None:
                                     print("None found {:s} - {:d} collection:".format(child_xml.nodeName, i))
                                 else:
-                                    rna2xml_node(child_xml_real, subsubvalue)
+                                    xml2rna_node(child_xml_real, subsubvalue)
 
                     else:
                         # print(elems)
@@ -329,12 +329,12 @@ def xml2rna(
                             child_xml_real, = elems
 
                             # print(child_xml_real, subvalue)
-                            rna2xml_node(child_xml_real, subvalue)
+                            xml2rna_node(child_xml_real, subvalue)
                         else:
                             # empty is valid too
                             pass
 
-    rna2xml_node(root_xml, root_rna)
+    xml2rna_node(root_xml, root_rna)
 
 
 # -----------------------------------------------------------------------------
