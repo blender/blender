@@ -51,7 +51,7 @@ void VKUniformBuffer::clear_to_zero()
 }
 
 void VKUniformBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
-                                            int slot,
+                                            int binding,
                                             shader::ShaderCreateInfo::Resource::BindType bind_type,
                                             const GPUSamplerState /*sampler_state*/)
 {
@@ -66,7 +66,7 @@ void VKUniformBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
   }
 
   const std::optional<VKDescriptorSet::Location> location =
-      data.shader_interface.descriptor_set_location(bind_type, slot);
+      data.shader_interface.descriptor_set_location(bind_type, binding);
   if (location) {
     if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
       data.descriptor_set.bind(*this, *location);
@@ -76,7 +76,7 @@ void VKUniformBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
     }
     render_graph::VKBufferAccess buffer_access = {};
     buffer_access.vk_buffer = buffer_.vk_handle();
-    buffer_access.vk_access_flags = data.shader_interface.access_mask(bind_type, *location);
+    buffer_access.vk_access_flags = data.shader_interface.access_mask(bind_type, binding);
     data.resource_access_info.buffers.append(buffer_access);
   }
 }
