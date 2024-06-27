@@ -17,6 +17,22 @@ from .utils.rig import METARIG_DIR, get_resource
 from . import feature_set_list
 
 
+class ARMATURE_MT_rigify_metarigs(bpy.types.Menu):
+    """Add -> Armature -> Rigify Meta-Rigs."""
+
+    bl_idname = "ARMATURE_MT_rigify_metarigs"
+    bl_label = "Rigify Meta-Rigs"
+    bl_description = "Add a Rigify Meta-Rig to the scene"
+
+    def draw(self, context):
+        for menu_func in menu_funcs:
+            menu_func(self, context)
+
+
+def _menu_add_rigify_metarigs(self, context):
+    self.layout.menu("ARMATURE_MT_rigify_metarigs")
+
+
 class ArmatureSubMenu(bpy.types.Menu):
     # bl_idname = 'ARMATURE_MT_armature_class'
 
@@ -26,7 +42,7 @@ class ArmatureSubMenu(bpy.types.Menu):
         layout = self.layout
         layout.label(text=self.bl_label)
         for op, name in self.operators:
-            text = capwords(name.replace("_", " ")) + " (Meta-Rig)"
+            text = capwords(name.replace("_", " "))
             layout.operator(op, icon='OUTLINER_OB_ARMATURE', text=text)
 
 
@@ -154,7 +170,7 @@ def create_metarig_ops(dic: dict | None = None):
 def create_menu_funcs():
     global menu_funcs
     for mop, name in metarig_ops[METARIG_DIR]:
-        text = capwords(name.replace("_", " ")) + " (Meta-Rig)"
+        text = capwords(name.replace("_", " "))
         menu_funcs += [make_metarig_menu_func(mop.bl_idname, text)]
 
 
@@ -206,8 +222,8 @@ def register():
     for arm_sub in armature_submenus:
         register_class(arm_sub)
 
-    for mf in menu_funcs:
-        bpy.types.VIEW3D_MT_armature_add.append(mf)
+    register_class(ARMATURE_MT_rigify_metarigs)
+    bpy.types.VIEW3D_MT_armature_add.append(_menu_add_rigify_metarigs)
 
 
 def unregister():
@@ -220,8 +236,8 @@ def unregister():
     for arm_sub in armature_submenus:
         unregister_class(arm_sub)
 
-    for mf in menu_funcs:
-        bpy.types.VIEW3D_MT_armature_add.remove(mf)
+    unregister_class(ARMATURE_MT_rigify_metarigs)
+    bpy.types.VIEW3D_MT_armature_add.remove(_menu_add_rigify_metarigs)
 
 
 def get_external_metarigs(feature_module_names: list[str]):
