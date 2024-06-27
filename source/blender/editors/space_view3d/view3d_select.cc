@@ -2983,7 +2983,7 @@ static bool ed_object_select_pick(bContext *C,
   }
 
   if (gpu != nullptr) {
-    MEM_freeN(gpu);
+    MEM_delete(gpu);
   }
 
   return (changed_object || changed_pose || changed_track);
