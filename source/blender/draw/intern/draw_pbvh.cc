@@ -479,8 +479,13 @@ static void fill_vbo_normal_faces(const PBVH_GPU_Args &args, gpu::VertBuf &vert_
 
 static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool use_flat_layout)
 {
-  uint vert_per_grid = square_i(args.ccg_key.grid_size - 1) * 4;
-  uint vert_count = args.grid_indices.size() * vert_per_grid;
+  const Span<int> grid_indices = args.grid_indices;
+  const Span<CCGElem *> grids = args.grids;
+  const CCGKey key = args.ccg_key;
+  const int gridsize = key.grid_size;
+
+  const int verts_per_grid = use_flat_layout ? square_i(gridsize - 1) * 4 : square_i(gridsize);
+  const int vert_count = args.grid_indices.size() * verts_per_grid;
 
   int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
 
@@ -488,11 +493,6 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool u
     /* Allocate buffer if not allocated yet or size changed. */
     GPU_vertbuf_data_alloc(*vbo.vert_buf, vert_count);
   }
-
-  const Span<int> grid_indices = args.grid_indices;
-  const Span<CCGElem *> grids = args.grids;
-  const CCGKey key = args.ccg_key;
-  const int gridsize = key.grid_size;
 
   if (const CustomRequest *request_type = std::get_if<CustomRequest>(&vbo.request)) {
     switch (*request_type) {
@@ -617,9 +617,6 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool u
         {
           const VArraySpan<int> face_sets_span(face_sets);
           uchar4 *data = vbo.vert_buf->data<uchar4>().data();
-
-          const int verts_per_grid = use_flat_layout ? square_i(gridsize - 1) * 4 :
-                                                       square_i(gridsize);
           for (const int i : grid_indices.index_range()) {
             uchar4 color{UCHAR_MAX};
             const int fset = face_sets_span[grid_to_face_map[grid_indices[i]]];
