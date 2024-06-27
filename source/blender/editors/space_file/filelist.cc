@@ -3210,9 +3210,8 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
       if (job_params->load_asset_library) {
         /* Take ownership over the asset data (shallow copies into unique_ptr managed memory) to
          * pass it on to the asset system. */
-        std::unique_ptr metadata = std::make_unique<AssetMetaData>(
-            std::move(*datablock_info->asset_data));
-        MEM_delete(datablock_info->asset_data);
+        std::unique_ptr metadata = std::make_unique<AssetMetaData>(*datablock_info->asset_data);
+        MEM_freeN(datablock_info->asset_data);
         /* Give back a non-owning pointer, because the data-block info is still needed (e.g. to
          * update the asset index). */
         datablock_info->asset_data = metadata.get();
