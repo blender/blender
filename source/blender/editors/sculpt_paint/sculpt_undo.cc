@@ -931,7 +931,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         MutableSpan<CCGElem *> grids = subdiv_ccg.grids;
         const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-        Array<bool> modified_grids(ss.totvert, false);
+        Array<bool> modified_grids(grids.size(), false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_position_grids(grids, key, *unode, modified_grids);
         }
@@ -974,8 +974,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       if (use_multires_undo(step_data, ss)) {
-        Array<bool> modified_grids(ss.totvert, false);
         SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+        Array<bool> modified_grids(subdiv_ccg.grids.size(), false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_vert_visibility_grids(subdiv_ccg, *unode, modified_grids);
         }
@@ -1051,7 +1051,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       if (use_multires_undo(step_data, ss)) {
-        Array<bool> modified_grids(ss.totvert, false);
+        Array<bool> modified_grids(ss.subdiv_ccg->grids.size(), false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_mask_grids(object, *unode, modified_grids);
         }
