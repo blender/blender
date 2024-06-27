@@ -32,17 +32,17 @@ struct LocalData {
   Vector<float> new_masks;
 };
 
-static void invert_mask(const MutableSpan<float> masks)
+BLI_NOINLINE static void invert_mask(const MutableSpan<float> masks)
 {
   for (float &mask : masks) {
     mask = 1.0f - mask;
   }
 }
 
-static void apply_factors(const float strength,
-                          const Span<float> current_masks,
-                          const Span<float> factors,
-                          const MutableSpan<float> masks)
+BLI_NOINLINE static void apply_factors(const float strength,
+                                       const Span<float> current_masks,
+                                       const Span<float> factors,
+                                       const MutableSpan<float> masks)
 {
   BLI_assert(current_masks.size() == masks.size());
   BLI_assert(factors.size() == masks.size());
@@ -51,7 +51,7 @@ static void apply_factors(const float strength,
   }
 }
 
-static void clamp_mask(const MutableSpan<float> masks)
+BLI_NOINLINE static void clamp_mask(const MutableSpan<float> masks)
 {
   for (float &mask : masks) {
     mask = std::clamp(mask, 0.0f, 1.0f);
@@ -76,7 +76,7 @@ static void calc_faces(const Brush &brush,
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide(mesh, verts, factors);
-
+  filter_region_clip_factors(ss, positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
@@ -85,6 +85,7 @@ static void calc_faces(const Brush &brush,
   const MutableSpan<float> distances = tls.distances;
   calc_distance_falloff(
       ss, positions, verts, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
   if (cache.automasking) {

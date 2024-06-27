@@ -230,17 +230,6 @@ def main() -> None:
     if version < VERSION_MIN:
         print("Version of clang-format is too old:", version, "<", VERSION_MIN)
         sys.exit(1)
-    if version > VERSION_MAX_RECOMMENDED:
-        print(
-            "WARNING: Version of clang-format is too recent:",
-            version, ">", VERSION_MAX_RECOMMENDED,
-        )
-        print(
-            "You may want to install clang-format-{:d}.{:d}, "
-            "or use the precompiled libs repository.".format(
-                VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1],
-            ),
-        )
 
     args = argparse_create().parse_args()
 
@@ -267,6 +256,20 @@ def main() -> None:
     if args.expand_tabs:
         convert_tabs_to_spaces(files + files_retab)
     clang_format(files)
+
+    if version > VERSION_MAX_RECOMMENDED:
+        print()
+        print(
+            "WARNING: Version of clang-format is too recent:",
+            version, ">", VERSION_MAX_RECOMMENDED,
+        )
+        print(
+            "You may want to install clang-format-{:d}.{:d}, "
+            "or use the precompiled libs repository.".format(
+                VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1],
+            ),
+        )
+        print()
 
 
 if __name__ == "__main__":

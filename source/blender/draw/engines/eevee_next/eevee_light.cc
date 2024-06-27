@@ -179,6 +179,8 @@ void Light::shape_parameters_set(const ::Light *la,
     float sun_half_angle = min_ff(la->sun_angle, DEG2RADF(179.9f)) / 2.0f;
     /* Use non-clamped radius for soft shadows. Avoid having a minimum blur. */
     this->sun.shadow_angle = sun_half_angle * trace_scaling_fac;
+    /* Clamp to a minimum to distinguish between point lights and area light shadow. */
+    this->sun.shadow_angle = (sun_half_angle > 0.0f) ? max_ff(1e-8f, sun.shadow_angle) : 0.0f;
     /* Clamp to minimum value before float imprecision artifacts appear. */
     this->sun.shape_radius = clamp(tanf(sun_half_angle), 0.001f, 20.0f);
     /* Stable shading direction. */
@@ -223,6 +225,8 @@ void Light::shape_parameters_set(const ::Light *la,
     }
     /* Use unclamped radius for soft shadows. Avoid having a minimum blur. */
     this->local.shadow_radius = max(0.0f, la->radius) * trace_scaling_fac;
+    /* Clamp to a minimum to distinguish between point lights and area light shadow. */
+    this->local.shadow_radius = (la->radius > 0.0f) ? max_ff(1e-8f, local.shadow_radius) : 0.0f;
     /* Set to default position. */
     this->local.shadow_position = float3(0.0f);
     /* Ensure a minimum radius/energy ratio to avoid harsh cut-offs. (See 114284) */
@@ -343,7 +347,7 @@ void LightModule::begin_sync()
   sun_lights_len_ = 0;
   local_lights_len_ = 0;
 
-  if (use_sun_lights_ && inst_.world.sun_threshold() > 0.0) {
+  if (use_sun_lights_ && inst_.world.sun_threshold() > 0.0f) {
     /* Create a placeholder light to be fed by the GPU after sunlight extraction.
      * Sunlight is disabled if power is zero. */
     ::Light la = blender::dna::shallow_copy(

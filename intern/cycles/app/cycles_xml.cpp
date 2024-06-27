@@ -46,8 +46,9 @@ struct XMLReadState : public XMLReader {
   Shader *shader;    /* Current shader. */
   string base;       /* Base path to current file. */
   float dicing_rate; /* Current dicing rate. */
+  Object *object;    /* Current object. */
 
-  XMLReadState() : scene(NULL), smooth(false), shader(NULL), dicing_rate(1.0f)
+  XMLReadState() : scene(NULL), smooth(false), shader(NULL), dicing_rate(1.0f), object(NULL)
   {
     tfm = transform_identity();
   }
@@ -405,25 +406,33 @@ static void xml_read_background(XMLReadState &state, xml_node node)
 
 /* Mesh */
 
-static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm)
+static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm, Object *object)
 {
-  /* create mesh */
-  Mesh *mesh = new Mesh();
-  scene->geometry.push_back(mesh);
+  if (object && object->get_geometry()->is_mesh()) {
+    /* Use existing object and mesh */
+    object->set_tfm(tfm);
+    Geometry *geometry = object->get_geometry();
+    return static_cast<Mesh *>(geometry);
+  }
+  else {
+    /* Create mesh */
+    Mesh *mesh = new Mesh();
+    scene->geometry.push_back(mesh);
 
-  /* Create object. */
-  Object *object = new Object();
-  object->set_geometry(mesh);
-  object->set_tfm(tfm);
-  scene->objects.push_back(object);
+    /* Create object. */
+    Object *object = new Object();
+    object->set_geometry(mesh);
+    object->set_tfm(tfm);
+    scene->objects.push_back(object);
 
-  return mesh;
+    return mesh;
+  }
 }
 
 static void xml_read_mesh(const XMLReadState &state, xml_node node)
 {
   /* add mesh */
-  Mesh *mesh = xml_add_mesh(state.scene, state.tfm);
+  Mesh *mesh = xml_add_mesh(state.scene, state.tfm, state.object);
   array<Node *> used_shaders = mesh->get_used_shaders();
   used_shaders.push_back_slow(state.shader);
   mesh->set_used_shaders(used_shaders);
@@ -434,7 +443,10 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
 
   /* read vertices and polygons */
   vector<float3> P;
+  vector<float3> VN; /* Vertex normals */
   vector<float> UV;
+  vector<float> T;  /* UV tangents */
+  vector<float> TS; /* UV tangent signs */
   vector<int> verts, nverts;
 
   xml_read_float3_array(P, node, "P");
@@ -481,12 +493,26 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset += nverts[i];
     }
 
-    if (xml_read_float_array(UV, node, "UV")) {
-      ustring name = ustring("UVMap");
-      Attribute *attr = mesh->attributes.add(ATTR_STD_UV, name);
+    /* Vertex normals */
+    if (xml_read_float3_array(VN, node, Attribute::standard_name(ATTR_STD_VERTEX_NORMAL))) {
+      Attribute *attr = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
+      float3 *fdata = attr->data_float3();
+
+      /* Loop over the normals */
+      for (auto n : VN) {
+        fdata[0] = n;
+        fdata++;
+      }
+    }
+
+    /* UV map */
+    if (xml_read_float_array(UV, node, "UV") ||
+        xml_read_float_array(UV, node, Attribute::standard_name(ATTR_STD_UV)))
+    {
+      Attribute *attr = mesh->attributes.add(ATTR_STD_UV);
       float2 *fdata = attr->data_float2();
 
-      /* loop over the triangles */
+      /* Loop over the triangles */
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i] - 2; j++) {
@@ -504,6 +530,58 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
           fdata += 3;
         }
 
+        index_offset += nverts[i];
+      }
+    }
+
+    /* Tangents */
+    if (xml_read_float_array(T, node, Attribute::standard_name(ATTR_STD_UV_TANGENT))) {
+      Attribute *attr = mesh->attributes.add(ATTR_STD_UV_TANGENT);
+      float3 *fdata = attr->data_float3();
+
+      /* Loop over the triangles */
+      index_offset = 0;
+      for (size_t i = 0; i < nverts.size(); i++) {
+        for (int j = 0; j < nverts[i] - 2; j++) {
+          int v0 = index_offset;
+          int v1 = index_offset + j + 1;
+          int v2 = index_offset + j + 2;
+
+          assert(v0 * 3 + 2 < (int)T.size());
+          assert(v1 * 3 + 2 < (int)T.size());
+          assert(v2 * 3 + 2 < (int)T.size());
+
+          fdata[0] = make_float3(T[v0 * 3], T[v0 * 3 + 1], T[v0 * 3 + 2]);
+          fdata[1] = make_float3(T[v1 * 3], T[v1 * 3 + 1], T[v1 * 3 + 2]);
+          fdata[2] = make_float3(T[v2 * 3], T[v2 * 3 + 1], T[v2 * 3 + 2]);
+          fdata += 3;
+        }
+        index_offset += nverts[i];
+      }
+    }
+
+    /* Tangent signs */
+    if (xml_read_float_array(TS, node, Attribute::standard_name(ATTR_STD_UV_TANGENT_SIGN))) {
+      Attribute *attr = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN);
+      float *fdata = attr->data_float();
+
+      /* Loop over the triangles */
+      index_offset = 0;
+      for (size_t i = 0; i < nverts.size(); i++) {
+        for (int j = 0; j < nverts[i] - 2; j++) {
+          int v0 = index_offset;
+          int v1 = index_offset + j + 1;
+          int v2 = index_offset + j + 2;
+
+          assert(v0 < (int)TS.size());
+          assert(v1 < (int)TS.size());
+          assert(v2 < (int)TS.size());
+
+          fdata[0] = TS[v0];
+          fdata[1] = TS[v1];
+          fdata[2] = TS[v2];
+          fdata += 3;
+        }
         index_offset += nverts[i];
       }
     }
@@ -528,10 +606,11 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset += nverts[i];
     }
 
-    /* uv map */
-    if (xml_read_float_array(UV, node, "UV")) {
-      ustring name = ustring("UVMap");
-      Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV, name);
+    /* UV map */
+    if (xml_read_float_array(UV, node, "UV") ||
+        xml_read_float_array(UV, node, Attribute::standard_name(ATTR_STD_UV)))
+    {
+      Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV);
       float3 *fdata = attr->data_float3();
 
 #if 0
@@ -613,7 +692,7 @@ static void xml_read_transform(xml_node node, Transform &tfm)
 
 static void xml_read_state(XMLReadState &state, xml_node node)
 {
-  /* read shader */
+  /* Read shader */
   string shadername;
 
   if (xml_read_string(&shadername, node, "shader")) {
@@ -632,6 +711,25 @@ static void xml_read_state(XMLReadState &state, xml_node node)
     }
   }
 
+  /* Read object */
+  string objectname;
+
+  if (xml_read_string(&objectname, node, "object")) {
+    bool found = false;
+
+    foreach (Object *object, state.scene->objects) {
+      if (object->name == objectname) {
+        state.object = object;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      fprintf(stderr, "Unknown object \"%s\".\n", objectname.c_str());
+    }
+  }
+
   xml_read_float(&state.dicing_rate, node, "dicing_rate");
 
   /* read smooth/flat */
@@ -641,6 +739,26 @@ static void xml_read_state(XMLReadState &state, xml_node node)
   else if (xml_equal_string(node, "interpolation", "flat")) {
     state.smooth = false;
   }
+}
+
+/* Object */
+
+static void xml_read_object(XMLReadState &state, xml_node node)
+{
+  Scene *scene = state.scene;
+
+  /* create mesh */
+  Mesh *mesh = new Mesh();
+  scene->geometry.push_back(mesh);
+
+  /* create object */
+  Object *object = new Object();
+  object->set_geometry(mesh);
+  object->set_tfm(state.tfm);
+
+  xml_read_node(state, object, node);
+
+  scene->objects.push_back(object);
 }
 
 /* Scene */
@@ -689,6 +807,12 @@ static void xml_read_scene(XMLReadState &state, xml_node scene_node)
       if (xml_read_string(&src, node, "src")) {
         xml_read_include(state, src);
       }
+    }
+    else if (string_iequals(node.name(), "object")) {
+      XMLReadState substate = state;
+
+      xml_read_object(substate, node);
+      xml_read_scene(substate, node);
     }
 #ifdef WITH_ALEMBIC
     else if (string_iequals(node.name(), "alembic")) {

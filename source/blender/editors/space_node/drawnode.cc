@@ -397,7 +397,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
   uiItemR(layout, ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "projection") == SHD_PROJ_BOX) {
-    uiItemR(layout, ptr, "projection_blend", DEFAULT_FLAGS, "Blend", ICON_NONE);
+    uiItemR(layout, ptr, "projection_blend", DEFAULT_FLAGS, IFACE_("Blend"), ICON_NONE);
   }
 
   uiItemR(layout, ptr, "extension", DEFAULT_FLAGS, "", ICON_NONE);
@@ -1382,7 +1382,7 @@ static void std_node_socket_draw(
         if (default_value->enum_items->items.is_empty()) {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
           uiItemL(row, text, ICON_NONE);
-          uiItemL(row, "No Items", ICON_NONE);
+          uiItemL(row, IFACE_("No Items"), ICON_NONE);
         }
         else {
           uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);

@@ -585,15 +585,6 @@ def register():
         description="Show extensions by type",
         default='ADDON',
     )
-    WindowManager.extension_updates_only = BoolProperty(
-        name="Show Updates Available",
-        description="Only show extensions with updates available",
-    )
-    WindowManager.extension_show_panel_enabled = BoolProperty(
-        name="Show Enabled Extensions",
-        description="Only show enabled extensions",
-        default=True,
-    )
     WindowManager.extension_show_panel_installed = BoolProperty(
         name="Show Installed Extensions",
         description="Only show installed extensions",
@@ -637,7 +628,6 @@ def unregister():
     del WindowManager.extension_tags
     del WindowManager.extension_search
     del WindowManager.extension_type
-    del WindowManager.extension_show_panel_enabled
     del WindowManager.extension_show_panel_installed
     del WindowManager.extension_show_panel_available
 

@@ -69,24 +69,25 @@ void device_metal_info(vector<DeviceInfo> &devices)
     }
 #  endif
 
-    MetalGPUVendor vendor = MetalInfo::get_device_vendor(device);
+    info.has_nanovdb = true;
 
-    info.has_nanovdb = vendor == METAL_GPU_APPLE;
-    info.has_light_tree = vendor != METAL_GPU_AMD;
-    info.has_mnee = vendor != METAL_GPU_AMD;
+    /* MNEE caused "Compute function exceeds available temporary registers" in macOS < 13 due to a
+     * bug in spill buffer allocation sizing. */
+    info.has_mnee = false;
+    if (@available(macos 13.0, *)) {
+      info.has_mnee = true;
+    }
 
     info.use_hardware_raytracing = false;
 
     /* MetalRT now uses features exposed in Xcode versions corresponding to macOS 14+, so don't
      * expose it in builds from older Xcode versions. */
 #  if defined(MAC_OS_VERSION_14_0)
-    if (vendor != METAL_GPU_INTEL) {
-      if (@available(macos 14.0, *)) {
-        info.use_hardware_raytracing = device.supportsRaytracing;
+    if (@available(macos 14.0, *)) {
+      info.use_hardware_raytracing = device.supportsRaytracing;
 
-        /* Use hardware raytracing for faster rendering on architectures that support it. */
-        info.use_metalrt_by_default = (MetalInfo::get_apple_gpu_architecture(device) >= APPLE_M3);
-      }
+      /* Use hardware raytracing for faster rendering on architectures that support it. */
+      info.use_metalrt_by_default = (MetalInfo::get_apple_gpu_architecture(device) >= APPLE_M3);
     }
 #  endif
 

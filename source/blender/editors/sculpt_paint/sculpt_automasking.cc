@@ -622,8 +622,7 @@ NodeData node_begin(const Object &object, const Cache *automasking, const PBVHNo
   if (automasking->settings.flags &
       (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
   {
-    automask_data.orig_data.emplace();
-    SCULPT_orig_vert_data_init(*automask_data.orig_data, object, node, undo::Type::Position);
+    automask_data.orig_data = SCULPT_orig_vert_data_init(object, node, undo::Type::Position);
   }
   return automask_data;
 }

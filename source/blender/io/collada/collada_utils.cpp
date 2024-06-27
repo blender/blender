@@ -45,6 +45,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
@@ -288,6 +289,10 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
     bc_triangulate_mesh(mesh);
   }
   BKE_mesh_tessface_ensure(mesh);
+
+  /* Ensure data exists if currently in edit mode. */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
+
   return mesh;
 }
 

@@ -21,11 +21,11 @@ CCL_NAMESPACE_BEGIN
 string MetalInfo::get_device_name(id<MTLDevice> device)
 {
   string device_name = [device.name UTF8String];
-  if (get_device_vendor(device) == METAL_GPU_APPLE) {
-    /* Append the GPU core count so we can distinguish between GPU variants in benchmarks. */
-    int gpu_core_count = get_apple_gpu_core_count(device);
-    device_name += string_printf(gpu_core_count ? " (GPU - %d cores)" : " (GPU)", gpu_core_count);
-  }
+
+  /* Append the GPU core count so we can distinguish between GPU variants in benchmarks. */
+  int gpu_core_count = get_apple_gpu_core_count(device);
+  device_name += string_printf(gpu_core_count ? " (GPU - %d cores)" : " (GPU)", gpu_core_count);
+
   return device_name;
 }
 
@@ -49,10 +49,6 @@ int MetalInfo::get_apple_gpu_core_count(id<MTLDevice> device)
 
 AppleGPUArchitecture MetalInfo::get_apple_gpu_architecture(id<MTLDevice> device)
 {
-  if (MetalInfo::get_device_vendor(device) != METAL_GPU_APPLE) {
-    return NOT_APPLE_GPU;
-  }
-
   const char *device_name = [device.name UTF8String];
   if (strstr(device_name, "M1")) {
     return APPLE_M1;
@@ -66,28 +62,7 @@ AppleGPUArchitecture MetalInfo::get_apple_gpu_architecture(id<MTLDevice> device)
   return APPLE_UNKNOWN;
 }
 
-MetalGPUVendor MetalInfo::get_device_vendor(id<MTLDevice> device)
-{
-  const char *device_name = [device.name UTF8String];
-  if (strstr(device_name, "Intel")) {
-    return METAL_GPU_INTEL;
-  }
-  else if (strstr(device_name, "AMD")) {
-    /* Setting this env var hides AMD devices thus exposing any integrated Intel devices. */
-    if (auto str = getenv("CYCLES_METAL_FORCE_INTEL")) {
-      if (atoi(str)) {
-        return METAL_GPU_UNKNOWN;
-      }
-    }
-    return METAL_GPU_AMD;
-  }
-  else if (strstr(device_name, "Apple")) {
-    return METAL_GPU_APPLE;
-  }
-  return METAL_GPU_UNKNOWN;
-}
-
-int MetalInfo::optimal_sort_partition_elements(id<MTLDevice> device)
+int MetalInfo::optimal_sort_partition_elements()
 {
   if (auto str = getenv("CYCLES_METAL_SORT_PARTITION_ELEMENTS")) {
     return atoi(str);
@@ -96,10 +71,8 @@ int MetalInfo::optimal_sort_partition_elements(id<MTLDevice> device)
   /* On M1 and M2 GPUs, we see better cache utilization if we partition the active indices before
    * sorting each partition by material. Partitioning into chunks of 65536 elements results in an
    * overall render time speedup of up to 15%. */
-  if (get_device_vendor(device) == METAL_GPU_APPLE) {
-    return 65536;
-  }
-  return 0;
+
+  return 65536;
 }
 
 vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
@@ -111,36 +84,20 @@ vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
     return usable_devices;
   }
 
-  /* If the system has both an AMD GPU (discrete) and an Intel one (integrated), prefer the AMD
-   * one. This can be overridden with CYCLES_METAL_FORCE_INTEL. */
-  bool has_usable_amd_gpu = false;
-  if (@available(macos 12.3, *)) {
-    for (id<MTLDevice> device in MTLCopyAllDevices()) {
-      has_usable_amd_gpu |= (get_device_vendor(device) == METAL_GPU_AMD);
-    }
-  }
-
   metal_printf("Usable Metal devices:\n");
   for (id<MTLDevice> device in MTLCopyAllDevices()) {
     string device_name = get_device_name(device);
-    MetalGPUVendor vendor = get_device_vendor(device);
     bool usable = false;
 
     if (@available(macos 12.2, *)) {
-      usable |= (vendor == METAL_GPU_APPLE);
-    }
-
-    if (@available(macos 12.3, *)) {
-      usable |= (vendor == METAL_GPU_AMD);
-    }
-
-#  if defined(MAC_OS_VERSION_13_0)
-    if (!has_usable_amd_gpu) {
-      if (@available(macos 13.0, *)) {
-        usable |= (vendor == METAL_GPU_INTEL);
+      const char *device_name_char = [device.name UTF8String];
+      if (!(strstr(device_name_char, "Intel") || strstr(device_name_char, "AMD")) &&
+          strstr(device_name_char, "Apple"))
+      {
+        /* TODO: Implement a better way to identify device vendor instead of relying on name. */
+        usable = true;
       }
     }
-#  endif
 
     if (usable) {
       metal_printf("- %s\n", device_name.c_str());

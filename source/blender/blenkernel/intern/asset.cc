@@ -7,6 +7,7 @@
  */
 
 #include <cstring>
+#include <utility>
 
 #include "DNA_ID.h"
 #include "DNA_defaults.h"
@@ -42,26 +43,44 @@ void BKE_asset_metadata_free(AssetMetaData **asset_data)
 
 AssetMetaData *BKE_asset_metadata_copy(const AssetMetaData *source)
 {
-  AssetMetaData *copy = BKE_asset_metadata_create();
+  return MEM_new<AssetMetaData>(__func__, *source);
+}
 
-  copy->local_type_info = source->local_type_info;
-
-  if (source->properties) {
-    copy->properties = IDP_CopyProperty(source->properties);
+AssetMetaData::AssetMetaData(const AssetMetaData &other)
+    : local_type_info(other.local_type_info),
+      properties(nullptr),
+      catalog_id(other.catalog_id),
+      active_tag(other.active_tag),
+      tot_tags(other.tot_tags)
+{
+  if (other.properties) {
+    properties = IDP_CopyProperty(other.properties);
   }
 
-  BKE_asset_metadata_catalog_id_set(copy, source->catalog_id, source->catalog_simple_name);
+  STRNCPY(catalog_simple_name, other.catalog_simple_name);
 
-  copy->author = BLI_strdup_null(source->author);
-  copy->description = BLI_strdup_null(source->description);
-  copy->copyright = BLI_strdup_null(source->copyright);
-  copy->license = BLI_strdup_null(source->license);
+  author = BLI_strdup_null(other.author);
+  description = BLI_strdup_null(other.description);
+  copyright = BLI_strdup_null(other.copyright);
+  license = BLI_strdup_null(other.license);
 
-  BLI_duplicatelist(&copy->tags, &source->tags);
-  copy->active_tag = source->active_tag;
-  copy->tot_tags = source->tot_tags;
+  BLI_duplicatelist(&tags, &other.tags);
+}
 
-  return copy;
+AssetMetaData::AssetMetaData(AssetMetaData &&other)
+    : local_type_info(other.local_type_info),
+      properties(std::exchange(other.properties, nullptr)),
+      catalog_id(other.catalog_id),
+      author(std::exchange(other.author, nullptr)),
+      description(std::exchange(other.description, nullptr)),
+      copyright(std::exchange(other.copyright, nullptr)),
+      license(std::exchange(other.license, nullptr)),
+      active_tag(other.active_tag),
+      tot_tags(other.tot_tags)
+{
+  STRNCPY(catalog_simple_name, other.catalog_simple_name);
+  tags = other.tags;
+  BLI_listbase_clear(&other.tags);
 }
 
 AssetMetaData::~AssetMetaData()

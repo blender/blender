@@ -141,7 +141,7 @@ void ShadingView::render()
 
   inst_.volume.draw_compute(main_view_, extent_);
 
-  // inst_.lookdev.render_overlay(view_fb_);
+  inst_.ambient_occlusion.render_pass(render_view_);
 
   inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, extent_);
 
@@ -153,8 +153,6 @@ void ShadingView::render()
   inst_.volume_probes.viewport_draw(render_view_, combined_fb_);
   inst_.sphere_probes.viewport_draw(render_view_, combined_fb_);
   inst_.planar_probes.viewport_draw(render_view_, combined_fb_);
-
-  inst_.ambient_occlusion.render_pass(render_view_);
 
   GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
   inst_.film.accumulate(jitter_view_, combined_final_tx);

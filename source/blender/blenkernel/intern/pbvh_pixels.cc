@@ -33,6 +33,9 @@ namespace blender::bke::pbvh::pixels {
  */
 constexpr bool PBVH_PIXELS_SPLIT_NODES_ENABLED = false;
 
+constexpr int depth_limit = 40;
+constexpr int pixel_leaf_limit = 256 * 256;
+
 /**
  * Calculate the delta of two neighbor UV coordinates in the given image buffer.
  */
@@ -112,7 +115,7 @@ static void split_pixel_node(
 
   const Bounds<float3> cb = node->bounds;
 
-  if (count_node_pixels(*node) <= pbvh.pixel_leaf_limit || split->depth >= pbvh.depth_limit) {
+  if (count_node_pixels(*node) <= pixel_leaf_limit || split->depth >= depth_limit) {
     node_data_get(split->node).rebuild_undo_regions();
     return;
   }
@@ -312,14 +315,6 @@ static void split_pixel_nodes(PBVH &pbvh, Mesh *mesh, Image *image, ImageUser *i
 {
   if (G.debug_value == 891) {
     return;
-  }
-
-  if (!pbvh.depth_limit) {
-    pbvh.depth_limit = 40; /* TODO: move into a constant */
-  }
-
-  if (!pbvh.pixel_leaf_limit) {
-    pbvh.pixel_leaf_limit = 256 * 256; /* TODO: move into a constant */
   }
 
   SplitQueueData tdata;

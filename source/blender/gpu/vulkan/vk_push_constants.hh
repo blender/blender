@@ -46,6 +46,8 @@ class VKDevice;
  * data.
  */
 class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
+  friend class VKContext;
+
  public:
   /** Different methods to store push constants. */
   enum class StorageType {

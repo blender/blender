@@ -23,6 +23,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLF_api.hh"
+
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -312,17 +314,19 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
 /* Blender logo. */
 #ifndef WITH_HEADLESS
 
-  const uchar *blender_logo_data = (const uchar *)datatoc_blender_logo_png;
-  size_t blender_logo_data_size = datatoc_blender_logo_png_size;
-  ImBuf *ibuf = IMB_ibImageFromMemory(
-      blender_logo_data, blender_logo_data_size, IB_rect, nullptr, "blender_logo");
+  float size = 0.2f * dialog_width;
+  ImBuf *ibuf = nullptr;
+  int width;
+  int height;
+  blender::Array<uchar> bitmap = BLF_svg_icon_bitmap(
+      ICON_BLENDER_LOGO_LARGE, size, &width, &height);
+  if (!bitmap.is_empty()) {
+    ibuf = IMB_allocFromBuffer(bitmap.data(), nullptr, width, height, 4);
+  }
 
   if (ibuf) {
-    int width = 0.5 * dialog_width;
-    int height = (width * ibuf->y) / ibuf->x;
-
+    IMB_flipy(ibuf);
     IMB_premultiply_alpha(ibuf);
-    IMB_scaleImBuf(ibuf, width, height);
 
     bTheme *btheme = UI_GetTheme();
     const uchar *color = btheme->tui.wcol_menu_back.text_sel;
@@ -334,7 +338,7 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
     /* The logo image. */
     row = uiLayoutRow(layout, false);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
-    uiDefButImage(block, ibuf, 0, U.widget_unit, width, height, color);
+    uiDefButImage(block, ibuf, 0, U.widget_unit, ibuf->x, ibuf->y, color);
 
     /* Padding below the logo. */
     row = uiLayoutRow(layout, false);

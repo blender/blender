@@ -596,11 +596,9 @@ static void do_thumb_brush_task(Object &ob, const Brush &brush, const float *con
   SculptSession &ss = *ob.sculpt;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
   const float bstrength = ss.cache->bstrength;
-
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -660,11 +658,9 @@ static void do_rotate_brush_task(Object &ob, const Brush &brush, const float ang
   SculptSession &ss = *ob.sculpt;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
   const float bstrength = ss.cache->bstrength;
-
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -729,9 +725,8 @@ static void do_layer_brush_task(Object &ob, const Sculpt &sd, const Brush &brush
                                    brush.flag & BRUSH_PERSISTENT;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   const float bstrength = ss.cache->bstrength;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -947,12 +942,10 @@ static void do_grab_brush_task(Object &ob,
   SculptSession &ss = *ob.sculpt;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
   const float bstrength = ss.cache->bstrength;
 
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
-
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, test, brush.falloff_shape);
@@ -1028,12 +1021,11 @@ static void do_elastic_deform_brush_task(Object &ob,
   const float *location = ss.cache->location;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
 
   const float bstrength = ss.cache->bstrength;
 
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
 
@@ -1132,10 +1124,8 @@ static void do_draw_sharp_brush_task(Object &ob,
   SculptSession &ss = *ob.sculpt;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
-
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1207,10 +1197,9 @@ static void do_topology_slide_task(Object &ob, const Brush &brush, PBVHNode *nod
   SculptSession &ss = *ob.sculpt;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
 
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1367,9 +1356,8 @@ static void do_topology_relax_task(Object &ob, const Brush &brush, PBVHNode *nod
   const float bstrength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
 
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   /* TODO(@sergey): This looks very suspicious: proxy is added but is never written.
    * Either this needs to be documented better why it is needed, or removed. The removal is likely

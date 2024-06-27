@@ -793,12 +793,12 @@ class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
     def draw(self, context):
         layout = self.layout
         active_asset = context.asset
-        asset_data = active_asset.asset_data
+        asset_metadata = active_asset.metadata
 
         row = layout.row()
         row.template_list(
-            "ASSETBROWSER_UL_metadata_tags", "asset_tags", asset_data, "tags",
-            asset_data, "active_tag", rows=4,
+            "ASSETBROWSER_UL_metadata_tags", "asset_tags", asset_metadata, "tags",
+            asset_metadata, "active_tag", rows=4,
         )
 
         col = row.column(align=True)

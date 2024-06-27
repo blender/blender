@@ -94,7 +94,7 @@ static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   MEM_freeN(data->ptex_face_corner);
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 /* TODO(sergey): This seems to be generally used information, which almost

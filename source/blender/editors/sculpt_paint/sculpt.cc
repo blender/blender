@@ -20,6 +20,7 @@
 #include "BLI_bit_span_ops.hh"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -1198,12 +1199,12 @@ static void orig_vert_data_unode_init(SculptOrigVertData &data,
   data.colors = unode.col.data();
 }
 
-void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
-                                const Object &ob,
-                                const PBVHNode &node,
-                                const blender::ed::sculpt_paint::undo::Type type)
+SculptOrigVertData SCULPT_orig_vert_data_init(const Object &ob,
+                                              const PBVHNode &node,
+                                              const blender::ed::sculpt_paint::undo::Type type)
 {
   using namespace blender::ed::sculpt_paint;
+  SculptOrigVertData data;
   data.undo_type = type;
   const SculptSession &ss = *ob.sculpt;
   if (ss.bm) {
@@ -1216,6 +1217,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData &data,
   else {
     data = {};
   }
+  return data;
 }
 
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter)
@@ -1443,17 +1445,65 @@ static void restore_face_set(Object &object, const Span<PBVHNode *> nodes)
   }
 }
 
+static BLI_NOINLINE void translations_to_positions(const Span<float3> new_positions,
+                                                   const Span<int> verts,
+                                                   const Span<float3> vert_positions,
+                                                   const MutableSpan<float3> translations)
+{
+  for (const int i : verts.index_range()) {
+    translations[i] = new_positions[i] - vert_positions[verts[i]];
+  }
+}
+
 static void restore_position(Object &object, const Span<PBVHNode *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES: {
-      MutableSpan positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      MutableSpan positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      MutableSpan positions_orig = mesh.vert_positions_for_write();
+
+      struct LocalData {
+        Vector<float3> translations;
+      };
+
+      const bool need_translations = !ss.deform_imats.is_empty() ||
+                                     BKE_keyblock_from_object(&object);
+
+      threading::EnumerableThreadSpecific<LocalData> all_tls;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        LocalData &tls = all_tls.local();
         for (PBVHNode *node : nodes.slice(range)) {
           if (const undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
             const Span<int> verts = bke::pbvh::node_unique_verts(*node);
-            array_utils::scatter(unode->position.as_span(), verts, positions);
+            const Span<float3> undo_positions = unode->position.as_span().take_front(verts.size());
+            if (need_translations) {
+              tls.translations.reinitialize(verts.size());
+              translations_to_positions(undo_positions, verts, positions_eval, tls.translations);
+            }
+
+            array_utils::scatter(undo_positions, verts, positions_eval);
+
+            if (positions_eval.data() != positions_orig.data()) {
+              /* When the evaluated positions and original mesh positions don't point to the same
+               * array, they must both be updated. */
+              if (ss.deform_imats.is_empty()) {
+                array_utils::scatter(undo_positions, verts, positions_orig);
+              }
+              else {
+                /* Because brush deformation is calculated for the evaluated deformed positions,
+                 * the translations have to be transformed to the original space. */
+                apply_crazyspace_to_translations(ss.deform_imats, verts, tls.translations);
+                apply_translations(tls.translations, verts, positions_orig);
+              }
+            }
+
+            if (BKE_keyblock_from_object(&object)) {
+              /* Update dependent shape keys back to their original */
+              apply_translations_to_shape_keys(object, verts, tls.translations, positions_orig);
+            }
+
             BKE_pbvh_node_mark_positions_update(node);
           }
         }
@@ -3789,7 +3839,7 @@ static void do_brush_action(const Scene &scene,
       do_flatten_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLAY:
-      SCULPT_do_clay_brush(sd, ob, nodes);
+      do_clay_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLAY_STRIPS:
       do_clay_strips_brush(sd, ob, nodes);
@@ -5916,12 +5966,13 @@ static void sculpt_stroke_update_step(bContext *C,
    * For some brushes, flushing is done in the brush code itself.
    */
   if (!(ELEM(brush.sculpt_tool,
-             SCULPT_TOOL_DRAW,
-             SCULPT_TOOL_SCRAPE,
              SCULPT_TOOL_BLOB,
-             SCULPT_TOOL_CREASE,
+             SCULPT_TOOL_CLAY,
              SCULPT_TOOL_CLAY_STRIPS,
-             SCULPT_TOOL_FILL) &&
+             SCULPT_TOOL_CREASE,
+             SCULPT_TOOL_DRAW,
+             SCULPT_TOOL_FILL,
+             SCULPT_TOOL_SCRAPE) &&
         BKE_pbvh_type(*ss.pbvh) == PBVH_FACES))
   {
     if (ss.deform_modifiers_active) {
@@ -6616,7 +6667,34 @@ void calc_front_face(const float3 &view_normal,
   }
 }
 
-void calc_distance_falloff(SculptSession &ss,
+void filter_region_clip_factors(const SculptSession &ss,
+                                const Span<float3> positions,
+                                const Span<int> verts,
+                                const MutableSpan<float> factors)
+{
+  const RegionView3D *rv3d = ss.cache ? ss.cache->vc->rv3d : ss.rv3d;
+  const View3D *v3d = ss.cache ? ss.cache->vc->v3d : ss.v3d;
+  if (!RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
+    return;
+  }
+
+  const ePaintSymmetryFlags mirror_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass :
+                                                              ePaintSymmetryFlags(0);
+  const int radial_symmetry_pass = ss.cache ? ss.cache->radial_symmetry_pass : 0;
+  const float4x4 symm_rot_mat_inv = ss.cache ? ss.cache->symm_rot_mat_inv : float4x4::identity();
+  for (const int i : verts.index_range()) {
+    float3 symm_co;
+    flip_v3_v3(symm_co, positions[verts[i]], mirror_symmetry_pass);
+    if (radial_symmetry_pass) {
+      symm_co = math::transform_point(symm_rot_mat_inv, symm_co);
+    }
+    if (ED_view3d_clipping_test(rv3d, symm_co, true)) {
+      factors[i] = 0.0f;
+    }
+  }
+}
+
+void calc_distance_falloff(const SculptSession &ss,
                            const Span<float3> positions,
                            const Span<int> verts,
                            const eBrushFalloffShape falloff_shape,
@@ -6626,21 +6704,33 @@ void calc_distance_falloff(SculptSession &ss,
   BLI_assert(verts.size() == factors.size());
   BLI_assert(verts.size() == r_distances.size());
 
-  SculptBrushTest test;
-  const SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, falloff_shape);
+  const float3 &test_location = ss.cache ? ss.cache->location : ss.cursor_location;
+  if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE && (ss.cache || ss.filter_cache)) {
+    /* The tube falloff shape requires the cached view normal. */
+    const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.filter_cache->view_normal;
+    float4 test_plane;
+    plane_from_point_normal_v3(test_plane, test_location, view_normal);
+    for (const int i : verts.index_range()) {
+      float3 projected;
+      closest_to_plane_normalized_v3(projected, test_plane, positions[verts[i]]);
+      r_distances[i] = math::distance_squared(projected, test_location);
+    }
+  }
+  else {
+    for (const int i : verts.index_range()) {
+      r_distances[i] = math::distance_squared(test_location, positions[verts[i]]);
+    }
+  }
 
-  for (const int i : verts.index_range()) {
-    if (factors[i] == 0.0f) {
-      r_distances[i] = FLT_MAX;
-      continue;
+  const float radius_sq = ss.cache ? ss.cache->radius_squared :
+                                     ss.cursor_radius * ss.cursor_radius;
+  for (const int i : r_distances.index_range()) {
+    if (r_distances[i] < radius_sq) {
+      r_distances[i] = std::sqrt(r_distances[i]);
     }
-    if (!sculpt_brush_test_sq_fn(test, positions[verts[i]])) {
+    else {
       factors[i] = 0.0f;
-      r_distances[i] = FLT_MAX;
-      continue;
     }
-    r_distances[i] = math::sqrt(test.dist);
   }
 }
 
@@ -6674,26 +6764,38 @@ void calc_cube_distance_falloff(SculptSession &ss,
   }
 }
 
+void apply_hardness_to_distances(const StrokeCache &cache, const MutableSpan<float> distances)
+{
+  const float hardness = cache.paint_brush.hardness;
+  if (hardness == 0.0f) {
+    return;
+  }
+  if (hardness == 1.0f) {
+    distances.fill(0.0f);
+    return;
+  }
+  const float radius = cache.radius;
+  const float threshold = hardness * radius;
+  const float radius_inv = math::rcp(radius);
+  const float hardness_inv_rcp = math::rcp(1.0f - hardness);
+  for (const int i : distances.index_range()) {
+    if (distances[i] < threshold) {
+      distances[i] = 0.0f;
+    }
+    else {
+      const float radius_factor = (distances[i] * radius_inv - hardness) * hardness_inv_rcp;
+      distances[i] = radius_factor * radius;
+    }
+  }
+}
+
 void calc_brush_strength_factors(const StrokeCache &cache,
                                  const Brush &brush,
                                  const Span<float> distances,
                                  const MutableSpan<float> factors)
 {
-  BLI_assert(factors.size() == distances.size());
-
-  for (const int i : factors.index_range()) {
-    if (factors[i] == 0.0f) {
-      /* Skip already masked-out points, as they might be outside of the brush radius and be
-       * unaffected anyway. Having such large values in the calculations below might lead to
-       * non-finite values, leading to undesired results. */
-      continue;
-    }
-
-    const float hardness = sculpt_apply_hardness(cache, distances[i]);
-    const float strength = BKE_brush_curve_strength(&brush, hardness, cache.radius);
-
-    factors[i] *= strength;
-  }
+  BKE_brush_calc_curve_factors(
+      eBrushCurvePreset(brush.curve_preset), brush.curve, distances, cache.radius, factors);
 }
 
 void calc_brush_texture_factors(SculptSession &ss,

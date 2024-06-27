@@ -733,36 +733,50 @@ struct PaintOperationExecutor {
     const int last_active_point = curve_points.last();
 
     const float2 prev_coords = self.screen_space_coords_orig_.last();
-    const float prev_radius = drawing_->radii()[last_active_point];
+    float prev_radius = drawing_->radii()[last_active_point];
     const float prev_opacity = drawing_->opacities()[last_active_point];
     const ColorGeometry4f prev_vertex_color = drawing_->vertex_colors()[last_active_point];
 
-    /* Use the vector from the previous to the next point and then interpolate it with the previous
-     * direction to get a smoothed value over time. */
-    self.smoothed_pen_direction_ = math::interpolate(
-        self.smoothed_pen_direction_, coords - self.screen_space_coords_orig_.last(), 0.1f);
+    const bool is_first_sample = (curve_points.size() == 1);
 
-    const float distance_px = math::distance(coords, prev_coords);
+    /* Use the vector from the previous to the next point. Set the direction based on the first two
+     * samples. For subsuquent samples, interpolate with the previous direction to get a smoothed
+     * value over time. */
+    if (is_first_sample) {
+      self.smoothed_pen_direction_ = self.screen_space_coords_orig_.last() - coords;
+    }
+    else {
+      /* The smoothing rate is a factor from 0 to 1 that represents how quickly the
+       * `smoothed_pen_direction_` "reacts" to changes in direction.
+       *  - 1.0f: Immediate reaction.
+       *  - 0.0f: No reaction (value never changes). */
+      constexpr float smoothing_rate_factor = 0.3f;
+      self.smoothed_pen_direction_ = math::interpolate(self.smoothed_pen_direction_,
+                                                       self.screen_space_coords_orig_.last() -
+                                                           coords,
+                                                       smoothing_rate_factor);
+    }
 
     /* Approximate brush with non-circular shape by changing the radius based on the angle. */
+    float radius_factor = 1.0f;
     if (settings_->draw_angle_factor > 0.0f) {
+      /* `angle` is the angle to the horizontal line in screen space. */
       const float angle = settings_->draw_angle;
       const float2 angle_vec = float2(math::cos(angle), math::sin(angle));
 
-      /* `angle_factor` is the angle to the horizontal line in screen space. */
-      const float angle_factor =
-          1.0f - math::abs(math::dot(angle_vec, math::normalize(self.smoothed_pen_direction_)));
+      /* The angle factor is 1.0f when the direction is aligned with the angle vector and 0.0f when
+       * it is orthogonal to the angle vector. This is consistent with the behavior from GPv2. */
+      const float angle_factor = math::abs(
+          math::dot(angle_vec, math::normalize(self.smoothed_pen_direction_)));
 
       /* Influence is controlled by `draw_angle_factor`. */
-      const float radius_factor = math::interpolate(
-          1.0f, angle_factor, settings_->draw_angle_factor);
+      radius_factor = math::interpolate(1.0f, angle_factor, settings_->draw_angle_factor);
       radius *= radius_factor;
     }
 
     /* Overwrite last point if it's very close. */
-    const bool is_first_sample = (curve_points.size() == 1);
+    const float distance_px = math::distance(coords, prev_coords);
     constexpr float point_override_threshold_px = 2.0f;
-
     if (distance_px < point_override_threshold_px) {
       self.accum_distance_ += distance_px;
       /* Don't move the first point of the stroke. */
@@ -779,6 +793,12 @@ struct PaintOperationExecutor {
       drawing_->radii_for_write()[last_active_point] = math::max(radius, prev_radius);
       drawing_->opacities_for_write()[last_active_point] = math::max(opacity, prev_opacity);
       return;
+    }
+
+    /* Adjust the first points radius based on the computed angle. */
+    if (is_first_sample && settings_->draw_angle_factor > 0.0f) {
+      drawing_->radii_for_write()[last_active_point] *= radius_factor;
+      prev_radius = drawing_->radii()[last_active_point];
     }
 
     /* Clamp the number of points within a pixel in screen space. */

@@ -60,6 +60,9 @@ namespace blender::bke::pbvh {
 static void pbvh_bmesh_verify(PBVH *pbvh);
 #endif
 
+/* TODO: choose leaf limit better. */
+constexpr int leaf_limit = 400;
+
 /* -------------------------------------------------------------------- */
 /** \name BMesh Utility API
  *
@@ -261,7 +264,7 @@ static void pbvh_bmesh_node_split(PBVH &pbvh,
   const int cd_face_node_offset = pbvh.cd_face_node_offset;
   PBVHNode *n = &pbvh.nodes[node_index];
 
-  if (n->bm_faces.size() <= pbvh.leaf_limit) {
+  if (n->bm_faces.size() <= leaf_limit) {
     /* Node limit not exceeded. */
     pbvh_bmesh_node_finalize(pbvh, node_index, cd_vert_node_offset, cd_face_node_offset);
     return;
@@ -360,13 +363,10 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH &pbvh, int node_index)
 {
   PBVHNode &node = pbvh.nodes[node_index];
   const int faces_num = node.bm_faces.size();
-  if (faces_num <= pbvh.leaf_limit) {
+  if (faces_num <= leaf_limit) {
     /* Node limit not exceeded */
     return false;
   }
-
-  /* Trigger draw manager cache invalidation. */
-  pbvh.draw_cache_invalid = true;
 
   /* For each BMFace, store the AABB and AABB centroid. */
   Array<Bounds<float3>> face_bounds(faces_num);
@@ -1956,7 +1956,7 @@ static void pbvh_bmesh_node_limit_ensure_fast(PBVH *pbvh,
 {
   FastNodeBuildInfo *child1, *child2;
 
-  if (node->totface <= pbvh->leaf_limit) {
+  if (node->totface <= leaf_limit) {
     return;
   }
 
@@ -2155,9 +2155,6 @@ std::unique_ptr<PBVH> build_bmesh(BMesh *bm,
 
   pbvh->header.type = PBVH_BMESH;
   pbvh->bm_log = log;
-
-  /* TODO: choose leaf limit better. */
-  pbvh->leaf_limit = 400;
 
   pbvh::update_bmesh_offsets(*pbvh, cd_vert_node_offset, cd_face_node_offset);
 

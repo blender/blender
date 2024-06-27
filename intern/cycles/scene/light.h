@@ -142,7 +142,7 @@ class LightManager {
    */
   void test_enabled_lights(Scene *scene);
 
-  void device_update_lights(Device *device, DeviceScene *dscene, Scene *scene);
+  void device_update_lights(DeviceScene *dscene, Scene *scene);
   void device_update_distribution(Device *device,
                                   DeviceScene *dscene,
                                   Scene *scene,

@@ -1936,7 +1936,8 @@ void GLShaderCompiler::prepare_next_specialization_batch()
 
     /** WORKAROUND: Set async_compilation to true, so only the sources are generated. */
     sh->async_compilation_ = true;
-    item.program = sh->program_get();
+    sh->program_get();
+    item.program = sh->program_active_;
     sh->async_compilation_ = false;
 
     item.sources = sh->get_sources();
@@ -1970,10 +1971,8 @@ bool GLShaderCompiler::specialization_batch_is_ready(SpecializationBatchHandle &
     }
 
     if (!item.do_async_compilation) {
-      /* Compilation will happen locally on shader bind. */
-      glDeleteProgram(item.program);
-      item.program = 0;
-      item.shader->program_active_->program_id = 0;
+      glDeleteProgram(item.program->program_id);
+      item.program->program_id = 0;
       item.shader->constants.is_dirty = true;
       item.is_ready = true;
       continue;
@@ -1985,15 +1984,15 @@ bool GLShaderCompiler::specialization_batch_is_ready(SpecializationBatchHandle &
     }
     else if (item.worker->is_ready()) {
       /* Retrieve the binary compiled by the worker. */
-      if (item.worker->load_program_binary(item.program)) {
-        item.worker->release();
-        item.worker = nullptr;
+      if (item.worker->load_program_binary(item.program->program_id)) {
         item.is_ready = true;
       }
       else {
         /* Compilation failed, local compilation will be tried later on shader bind. */
         item.do_async_compilation = false;
       }
+      item.worker->release();
+      item.worker = nullptr;
     }
     else if (worker_is_lost(item.worker)) {
       /* We lost the worker, local compilation will be tried later on shader bind. */

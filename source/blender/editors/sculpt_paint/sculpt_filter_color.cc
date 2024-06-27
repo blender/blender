@@ -81,8 +81,7 @@ static void color_filter_task(Object &ob,
 {
   SculptSession &ss = *ob.sculpt;
 
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Color);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Color);
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.filter_cache->automasking.get(), *node);

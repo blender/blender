@@ -601,8 +601,7 @@ static void boundary_brush_bend_task(Object &ob, const Brush &brush, PBVHNode *n
   const float strength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   const float disp = strength * displacement_from_grab_delta_get(ss, boundary);
   float angle_factor = disp / ss.cache->radius;
@@ -650,8 +649,7 @@ static void brush_slide_task(Object &ob, const Brush &brush, PBVHNode *node)
   const float strength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   const float disp = displacement_from_grab_delta_get(ss, boundary);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
@@ -691,8 +689,7 @@ static void brush_inflate_task(Object &ob, const Brush &brush, PBVHNode *node)
   const float strength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
 
@@ -732,8 +729,7 @@ static void brush_grab_task(Object &ob, const Brush &brush, PBVHNode *node)
   const float strength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
 
@@ -770,8 +766,7 @@ static void brush_twist_task(Object &ob, const Brush &brush, PBVHNode *node)
   const float strength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
 
@@ -819,8 +814,7 @@ static void brush_smooth_task(Object &ob, const Brush &brush, PBVHNode *node)
   const float strength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(orig_data, ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (boundary.edit_info[vd.index].propagation_steps_num == -1) {

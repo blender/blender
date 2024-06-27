@@ -54,7 +54,7 @@ enum eAlertIcon {
   ALERT_ICON_MAX,
 };
 
-ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon);
+ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size);
 
 /**
  * Resizable Icons for Blender
