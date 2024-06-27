@@ -602,7 +602,6 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
             }
           }
           else if (gesture->use_smooth) {
-            const float radius_squared = square_f(radius);
             if (dist_squared > square_f(radius)) {
               float2 result = blender::math::interpolate(
                   current_mouse_position, last_position, factor);
