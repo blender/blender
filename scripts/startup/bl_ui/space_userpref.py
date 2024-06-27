@@ -931,6 +931,43 @@ class USERPREF_MT_interface_theme_presets(Menu):
         ("preferences.themes[0]", "Theme"),
         ("preferences.ui_styles[0]", "ThemeStyle"),
     )
+    # Prevent untrusted XML files "escaping" from these types.
+    preset_xml_secure_types = {
+        "Theme",
+        "ThemeAssetShelf",
+        "ThemeBoneColorSet",
+        "ThemeClipEditor",
+        "ThemeCollectionColor",
+        "ThemeConsole",
+        "ThemeDopeSheet",
+        "ThemeFileBrowser",
+        "ThemeFontStyle",
+        "ThemeGradientColors",
+        "ThemeGraphEditor",
+        "ThemeImageEditor",
+        "ThemeInfo",
+        "ThemeNLAEditor",
+        "ThemeNodeEditor",
+        "ThemeOutliner",
+        "ThemePanelColors",
+        "ThemePreferences",
+        "ThemeProperties",
+        "ThemeSequenceEditor",
+        "ThemeSpaceGeneric",
+        "ThemeSpaceGradient",
+        "ThemeSpaceListGeneric",
+        "ThemeSpreadsheet",
+        "ThemeStatusBar",
+        "ThemeStripColor",
+        "ThemeStyle",
+        "ThemeTextEditor",
+        "ThemeTopBar",
+        "ThemeUserInterface",
+        "ThemeView3D",
+        "ThemeWidgetColors",
+        "ThemeWidgetStateColors",
+    }
+
     draw = Menu.draw_preset
 
     @staticmethod
