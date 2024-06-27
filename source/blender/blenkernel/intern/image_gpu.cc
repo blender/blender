@@ -225,7 +225,6 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
 
     if (ibuf) {
-      const bool tile_use_grayscale = ibuf->planes <= 8;
       const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
       IMB_update_gpu_texture_sub(tex,
                                  ibuf,
@@ -233,7 +232,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
                                  tilelayer,
                                  UNPACK2(tilesize),
                                  use_high_bitdepth,
-                                 tile_use_grayscale,
+                                 use_grayscale,
                                  store_premultiplied);
     }
 
