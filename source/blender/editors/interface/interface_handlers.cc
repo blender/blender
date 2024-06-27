@@ -4413,6 +4413,10 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
   }
 #endif
 
+  /* Force new region handler to run, in case that needs to activate some state (e.g. to handle
+   * #UI_BUT2_FORCE_SEMI_MODAL_ACTIVE). */
+  WM_event_add_mousemove(data->window);
+
   /* this makes adjacent blocks auto open from now on */
   // if (but->block->auto_open == 0) {
   //  but->block->auto_open = 1;
