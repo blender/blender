@@ -41,7 +41,7 @@ class ASSET_OT_tag_add(AssetBrowserMetadataOperator, Operator):
 
     def execute(self, context):
         active_asset = context.asset
-        active_asset.asset_data.tags.new(data_("Tag"))
+        active_asset.metadata.tags.new(data_("Tag"))
 
         return {'FINISHED'}
 
