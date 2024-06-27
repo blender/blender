@@ -81,7 +81,7 @@ static void calc_faces(const Sculpt &sd,
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
 
-  fill_closest_to_plane(test_plane, positions_eval, verts, translations);
+  calc_closest_to_plane(test_plane, positions_eval, verts, translations);
   scale_translations(translations, strength);
   scale_translations(translations, factors);
 
