@@ -1174,9 +1174,9 @@ bool BKE_paint_ensure(Main * /*bmain*/, ToolSettings *ts, Paint **r_paint)
 void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3])
 {
   UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
-  Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
 
   BKE_paint_ensure_from_paintmode(bmain, sce, mode);
+  Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
 
   /* If there's no brush, create one */
   Brush *brush = BKE_paint_brush(paint);
