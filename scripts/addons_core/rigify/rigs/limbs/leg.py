@@ -177,7 +177,7 @@ class Rig(BaseLimbRig):
     def build_ik_pivot(self, ik_name, **args):
         heel_bone = self.get_bone(self.bones.org.heel)
         args = {
-            'position': (heel_bone.head + heel_bone.tail)/2,
+            'position': (heel_bone.head + heel_bone.tail) / 2,
             **args
         }
         return super().build_ik_pivot(ik_name, **args)
@@ -224,7 +224,7 @@ class Rig(BaseLimbRig):
     def make_ik_spin_control_widget(self):
         if self.pivot_type == 'ANKLE_TOE':
             obj = create_ball_socket_widget(self.obj, self.bones.ctrl.ik_spin, size=0.75)
-            rot_fix = Matrix.Rotation(math.pi/2, 4, self.main_axis.upper())
+            rot_fix = Matrix.Rotation(math.pi / 2, 4, self.main_axis.upper())
             adjust_widget_transform_mesh(obj, rot_fix, local=True)
 
     ####################################################
@@ -266,7 +266,7 @@ class Rig(BaseLimbRig):
         return self.copy_bone(org, make_derived_name(org, 'ctrl', '_ik'))
 
     def make_ik_toe_parent_mch_bone(self, org: str):
-        return self.copy_bone(org, make_derived_name(org, 'mch', '_ik_parent'), scale=1/3)
+        return self.copy_bone(org, make_derived_name(org, 'mch', '_ik_parent'), scale=1 / 3)
 
     @stage.parent_bones
     def parent_ik_toe_control(self):

@@ -118,7 +118,7 @@ class Rig(SimpleChainRig):
 
         self.start_control_pos_list = [
             self.PosSpec(
-                0, (i + 1) * start_control_step, self.make_name('start%02d' % (idx+1)))
+                0, (i + 1) * start_control_step, self.make_name('start%02d' % (idx + 1)))
             for idx, i in enumerate(reversed(range(num_start_controls)))
         ]
 
@@ -128,7 +128,7 @@ class Rig(SimpleChainRig):
 
         self.end_control_pos_list = [
             self.PosSpec(
-                end_idx, 1.0 - (i + 1) * end_control_step, self.make_name('end%02d' % (idx+1)))
+                end_idx, 1.0 - (i + 1) * end_control_step, self.make_name('end%02d' % (idx + 1)))
             for idx, i in enumerate(reversed(range(num_end_controls)))
         ]
 
@@ -259,7 +259,7 @@ class Rig(SimpleChainRig):
             self.make_property(
                 master, 'start_controls', 0,
                 min=0, max=self.params.sik_start_controls,
-                description="Enabled extra start controls for "+rig_name
+                description="Enabled extra start controls for " + rig_name
             )
 
             self.add_start_controls_buttons(panel, master, rig_name)
@@ -268,7 +268,7 @@ class Rig(SimpleChainRig):
             self.make_property(
                 master, 'end_controls', 0,
                 min=0, max=self.params.sik_end_controls,
-                description="Enabled extra end controls for "+rig_name
+                description="Enabled extra end controls for " + rig_name
             )
 
             self.add_end_controls_buttons(panel, master, rig_name)
@@ -288,7 +288,7 @@ class Rig(SimpleChainRig):
 
         # IK/FK switch
         if self.use_fk:
-            self.make_property(master, 'IK_FK', 0.0, description='IK/FK switch for '+rig_name)
+            self.make_property(master, 'IK_FK', 0.0, description='IK/FK switch for ' + rig_name)
 
             self.add_fk_snap_buttons(panel, master, rig_name)
 
@@ -510,7 +510,7 @@ class Rig(SimpleChainRig):
             else:
                 bone.rotation_mode = 'XYZ'
                 bone.lock_rotation = (True, False, True)
-        elif (subtype == 0 and index == self.num_main_controls-1
+        elif (subtype == 0 and index == self.num_main_controls - 1
               and self.params.sik_end_controls > 0):
             bone.rotation_mode = 'QUATERNION'
         else:
@@ -684,7 +684,7 @@ class Rig(SimpleChainRig):
         for i, (name, subtype, index) in enumerate(controls):
             key = spline_obj.shape_key_add(name=name, from_mix=False)
             key.value = 0.0
-            key.data[i+1].radius = 0.0
+            key.data[i + 1].radius = 0.0
 
     @stage.rig_bones
     def rig_spline_object(self):
@@ -708,7 +708,7 @@ class Rig(SimpleChainRig):
         hook.object = self.obj
         hook.subtarget = hooks[index] if hooks else ctrl
         hook.center = bone.head
-        hook.vertex_indices_set([i*3, i*3 + 1, i*3 + 2])
+        hook.vertex_indices_set([i * 3, i * 3 + 1, i * 3 + 2])
 
     def rig_spline_radius_shapekey(self, i, ctrl, subtype, index):
         key = self.spline_obj.data.shape_keys.key_blocks[i + 1]
@@ -1309,54 +1309,54 @@ def add_toggle_control_button(panel: 'PanelLayout', *,
 def create_twist_widget(rig, bone_name, size=1.0, head_tail=0.5, bone_transform_name=None):
     obj = create_widget(rig, bone_name, bone_transform_name)
     if obj is not None:
-        verts = [(0.3429814279079437*size, head_tail, 0.22917263209819794*size),
-                 (0.38110050559043884*size, head_tail-0.05291016772389412*size, 0.1578568667*size),
-                 (0.40457412600517273*size, head_tail-0.05291016772389412*size, 0.0804747119*size),
-                 (0.41250014305114746*size, head_tail-0.05291016772389412*size, 0.0),
-                 (0.40457412600517273*size, head_tail-0.05291016772389412*size, -0.080474764*size),
-                 (0.38110050559043884*size, head_tail-0.05291016772389412*size, -0.157856911*size),
-                 (0.3429814279079437*size, head_tail, -0.22917278110980988*size),
-                 (0.22917293012142181*size, head_tail, -0.3429813086986542*size),
-                 (0.1578570008277893*size, head_tail-0.05291016772389412*size, -0.3811003565*size),
-                 (0.0804748609662056*size, head_tail-0.05291016772389412*size, -0.4045739769*size),
-                 (0.0, head_tail-0.05291026830673218*size, -0.4124999940395355*size),
-                 (-0.080474711954593*size, head_tail-0.052910167723892*size, -0.40457397699*size),
-                 (-0.15785688161849*size, head_tail-0.05291016772394*size, -0.38110026717974*size),
-                 (-0.22917267680168152*size, head_tail, -0.3429811894893646*size),
-                 (-0.34298115968704224*size, head_tail, -0.22917254269123077*size),
-                 (-0.38110023736953*size, head_tail-0.05291016772389*size, -0.15785665810108*size),
-                 (-0.40457373857498*size, head_tail-0.05291016772389*size, -0.08047446608543*size),
-                 (-0.4124998152256012*size, head_tail-0.05291016772389412*size, 0.0),
-                 (-0.40457355976104*size, head_tail-0.05291016772389*size, 0.080475136637687*size),
-                 (-0.38109982013702*size, head_tail-0.05291016772389*size, 0.157857269048690*size),
-                 (-0.34298068284988403*size, head_tail, 0.22917301952838898*size),
-                 (-0.2291719913482666*size, head_tail, 0.34298139810562134*size),
-                 (-0.15785618126392*size, head_tail-0.05291016772389*size, 0.38110047578811*size),
-                 (-0.08047392964363*size, head_tail-0.05291016772389*size, 0.40457388758659*size),
-                 (0.0, head_tail-0.05291016772389412*size, 0.41249993443489075*size),
-                 (0.080475620925426*size, head_tail-0.05291016772389*size, 0.40457367897033*size),
-                 (0.157857790589332*size, head_tail-0.05291016772389*size, 0.38109987974166*size),
-                 (0.22917351126670837*size, head_tail, 0.3429807126522064*size),
-                 (0.381100505590438*size, head_tail+0.05290994420647*size, 0.15785686671733*size),
-                 (0.404574126005172*size, head_tail+0.05290994420647*size, 0.08047470450401*size),
-                 (0.41250014305114746*size, head_tail+0.05290994420647621*size, 0.0),
-                 (0.404574126005172*size, head_tail+0.05290994420647*size, -0.0804747715592*size),
-                 (0.381100505590438*size, head_tail+0.05290994420647*size, -0.1578569114208*size),
-                 (0.157857000827789*size, head_tail+0.05290994420647*size, -0.3811003565788*size),
-                 (0.080474860966205*size, head_tail+0.05290994420647*size, -0.4045739769935*size),
-                 (0.0, head_tail+0.05290984362363815*size, -0.4124999940395355*size),
-                 (-0.08047471195459*size, head_tail+0.05290994420647*size, -0.4045739769935*size),
-                 (-0.15785688161849*size, head_tail+0.05290994420647*size, -0.38110026717185*size),
-                 (-0.38110023736953*size, head_tail+0.05290994420647*size, -0.15785665810108*size),
-                 (-0.40457373857498*size, head_tail+0.05290994420647*size, -0.08047447353601*size),
-                 (-0.41249981522560*size, head_tail+0.05290994420647*size, 0.0),
-                 (-0.40457355976104*size, head_tail+0.05290994420647*size, 0.080475129187107*size),
-                 (-0.38109982013702*size, head_tail+0.05290994420647*size, 0.157857269048690*size),
-                 (-0.15785618126392*size, head_tail+0.05290994420647*size, 0.381100475788116*size),
-                 (-0.08047392964363*size, head_tail+0.05290994420647*size, 0.404573887586593*size),
-                 (0.0, head_tail+0.05290994420647621*size, 0.41249993443489075*size),
-                 (0.080475620925426*size, head_tail+0.05290994420647*size, 0.404573678970339*size),
-                 (0.157857790589332*size, head_tail+0.05290994420647*size, 0.381099879741667*size)]
+        verts = [(0.3429814279079437 * size, head_tail, 0.22917263209819794 * size),
+                 (0.38110050559043884 * size, head_tail - 0.05291016772389412 * size, 0.1578568667 * size),
+                 (0.40457412600517273 * size, head_tail - 0.05291016772389412 * size, 0.0804747119 * size),
+                 (0.41250014305114746 * size, head_tail - 0.05291016772389412 * size, 0.0),
+                 (0.40457412600517273 * size, head_tail - 0.05291016772389412 * size, -0.080474764 * size),
+                 (0.38110050559043884 * size, head_tail - 0.05291016772389412 * size, -0.157856911 * size),
+                 (0.3429814279079437 * size, head_tail, -0.22917278110980988 * size),
+                 (0.22917293012142181 * size, head_tail, -0.3429813086986542 * size),
+                 (0.1578570008277893 * size, head_tail - 0.05291016772389412 * size, -0.3811003565 * size),
+                 (0.0804748609662056 * size, head_tail - 0.05291016772389412 * size, -0.4045739769 * size),
+                 (0.0, head_tail - 0.05291026830673218 * size, -0.4124999940395355 * size),
+                 (-0.080474711954593 * size, head_tail - 0.052910167723892 * size, -0.40457397699 * size),
+                 (-0.15785688161849 * size, head_tail - 0.05291016772394 * size, -0.38110026717974 * size),
+                 (-0.22917267680168152 * size, head_tail, -0.3429811894893646 * size),
+                 (-0.34298115968704224 * size, head_tail, -0.22917254269123077 * size),
+                 (-0.38110023736953 * size, head_tail - 0.05291016772389 * size, -0.15785665810108 * size),
+                 (-0.40457373857498 * size, head_tail - 0.05291016772389 * size, -0.08047446608543 * size),
+                 (-0.4124998152256012 * size, head_tail - 0.05291016772389412 * size, 0.0),
+                 (-0.40457355976104 * size, head_tail - 0.05291016772389 * size, 0.080475136637687 * size),
+                 (-0.38109982013702 * size, head_tail - 0.05291016772389 * size, 0.157857269048690 * size),
+                 (-0.34298068284988403 * size, head_tail, 0.22917301952838898 * size),
+                 (-0.2291719913482666 * size, head_tail, 0.34298139810562134 * size),
+                 (-0.15785618126392 * size, head_tail - 0.05291016772389 * size, 0.38110047578811 * size),
+                 (-0.08047392964363 * size, head_tail - 0.05291016772389 * size, 0.40457388758659 * size),
+                 (0.0, head_tail - 0.05291016772389412 * size, 0.41249993443489075 * size),
+                 (0.080475620925426 * size, head_tail - 0.05291016772389 * size, 0.40457367897033 * size),
+                 (0.157857790589332 * size, head_tail - 0.05291016772389 * size, 0.38109987974166 * size),
+                 (0.22917351126670837 * size, head_tail, 0.3429807126522064 * size),
+                 (0.381100505590438 * size, head_tail + 0.05290994420647 * size, 0.15785686671733 * size),
+                 (0.404574126005172 * size, head_tail + 0.05290994420647 * size, 0.08047470450401 * size),
+                 (0.41250014305114746 * size, head_tail + 0.05290994420647621 * size, 0.0),
+                 (0.404574126005172 * size, head_tail + 0.05290994420647 * size, -0.0804747715592 * size),
+                 (0.381100505590438 * size, head_tail + 0.05290994420647 * size, -0.1578569114208 * size),
+                 (0.157857000827789 * size, head_tail + 0.05290994420647 * size, -0.3811003565788 * size),
+                 (0.080474860966205 * size, head_tail + 0.05290994420647 * size, -0.4045739769935 * size),
+                 (0.0, head_tail + 0.05290984362363815 * size, -0.4124999940395355 * size),
+                 (-0.08047471195459 * size, head_tail + 0.05290994420647 * size, -0.4045739769935 * size),
+                 (-0.15785688161849 * size, head_tail + 0.05290994420647 * size, -0.38110026717185 * size),
+                 (-0.38110023736953 * size, head_tail + 0.05290994420647 * size, -0.15785665810108 * size),
+                 (-0.40457373857498 * size, head_tail + 0.05290994420647 * size, -0.08047447353601 * size),
+                 (-0.41249981522560 * size, head_tail + 0.05290994420647 * size, 0.0),
+                 (-0.40457355976104 * size, head_tail + 0.05290994420647 * size, 0.080475129187107 * size),
+                 (-0.38109982013702 * size, head_tail + 0.05290994420647 * size, 0.157857269048690 * size),
+                 (-0.15785618126392 * size, head_tail + 0.05290994420647 * size, 0.381100475788116 * size),
+                 (-0.08047392964363 * size, head_tail + 0.05290994420647 * size, 0.404573887586593 * size),
+                 (0.0, head_tail + 0.05290994420647621 * size, 0.41249993443489075 * size),
+                 (0.080475620925426 * size, head_tail + 0.05290994420647 * size, 0.404573678970339 * size),
+                 (0.157857790589332 * size, head_tail + 0.05290994420647 * size, 0.381099879741667 * size)]
         edges = [(1, 0), (2, 1), (2, 3), (3, 4), (5, 4), (5, 6), (7, 8), (9, 8), (10, 9), (10, 11),
                  (12, 11), (12, 13), (14, 15), (16, 15), (16, 17), (17, 18), (19, 18), (20, 19),
                  (28, 0), (21, 22), (23, 22), (23, 24), (24, 25), (26, 25), (26, 27), (47, 27),

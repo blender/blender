@@ -156,7 +156,7 @@ class Rig(BaseHeadTailRig):
             size=3,
             description="Automation axes",
             default=tuple([i == 0 for i in range(0, 3)])
-            )
+        )
 
     @classmethod
     def parameters_ui(cls, layout, params):

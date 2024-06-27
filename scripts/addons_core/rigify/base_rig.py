@@ -75,6 +75,7 @@ class GenerateCallbackHost(BaseStagedClass, define_stages=True):
     decorator should be repeated for code clarity reasons;
     a warning is printed if this is not done.
     """
+
     def initialize(self):
         """
         Initialize processing after all rig classes are constructed.
@@ -206,6 +207,7 @@ class BaseRig(GenerateCallbackHost, BaseRigMixin):
     and the common generator object. The generation process is also
     split into multiple stages.
     """
+
     def __init__(self, generator: 'BaseGenerator', pose_bone: PoseBone):
         self.generator = generator
 
@@ -296,6 +298,7 @@ class BaseRig(GenerateCallbackHost, BaseRigMixin):
 
 class RigUtility(BoneUtilityMixin, MechanismUtilityMixin):
     """Base class for utility classes that generate part of a rig."""
+
     def __init__(self, owner):
         self.owner = owner
         self.obj = owner.obj
@@ -306,6 +309,7 @@ class RigUtility(BoneUtilityMixin, MechanismUtilityMixin):
 
 class LazyRigComponent(GenerateCallbackHost, RigUtility):
     """Base class for utility classes that generate part of a rig using callbacks. Starts as disabled."""
+
     def __init__(self, owner):
         super().__init__(owner)
 
@@ -320,6 +324,7 @@ class LazyRigComponent(GenerateCallbackHost, RigUtility):
 
 class RigComponent(LazyRigComponent):
     """Base class for utility classes that generate part of a rig using callbacks."""
+
     def __init__(self, owner):
         super().__init__(owner)
         self.enable_component()

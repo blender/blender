@@ -1397,11 +1397,11 @@ class ScriptGenerator(base_generate.GeneratorPlugin):
 
         ui_register = OrderedDict.fromkeys(self.ui_register)
         for s in ui_register:
-            script.write("    bpy.utils.register_class("+s+")\n")
+            script.write("    bpy.utils.register_class(" + s + ")\n")
 
         ui_register_drivers = OrderedDict.fromkeys(self.ui_register_drivers)
         for s in ui_register_drivers:
-            script.write("    bpy.app.driver_namespace['"+s+"'] = "+s+"\n")
+            script.write("    bpy.app.driver_namespace['" + s + "'] = " + s + "\n")
 
         ui_register_props = OrderedDict.fromkeys(self.ui_register_props)
         for classname, text in ui_register_props:
@@ -1413,10 +1413,10 @@ class ScriptGenerator(base_generate.GeneratorPlugin):
             script.write("    del bpy.types.%s\n" % s[0])
 
         for s in ui_register:
-            script.write("    bpy.utils.unregister_class("+s+")\n")
+            script.write("    bpy.utils.unregister_class(" + s + ")\n")
 
         for s in ui_register_drivers:
-            script.write("    del bpy.app.driver_namespace['"+s+"']\n")
+            script.write("    del bpy.app.driver_namespace['" + s + "']\n")
 
         script.write("\nregister()\n")
         script.use_module = True

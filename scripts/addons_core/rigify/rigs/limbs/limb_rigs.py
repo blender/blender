@@ -130,10 +130,10 @@ class BaseLimbRig(BaseRig):
 
         vector = self.get_aux_axis(bones[0]) + self.get_aux_axis(bones[1])
 
-        if elbow_vector.angle(vector) > pi/2:
-            return -pi/2
+        if elbow_vector.angle(vector) > pi / 2:
+            return -pi / 2
         else:
-            return pi/2
+            return pi / 2
 
     def get_segment_pos(self, org: str, seg: int):
         bone = self.get_bone(org)
@@ -184,8 +184,8 @@ class BaseLimbRig(BaseRig):
     @stage.generate_bones
     def make_master_control(self):
         org = self.bones.org.main[0]
-        self.bones.mch.master = self.copy_bone(org, make_derived_name(org, 'mch', '_parent_widget'), scale=1/12)
-        self.bones.ctrl.master = name = self.copy_bone(org, make_derived_name(org, 'ctrl', '_parent'), scale=1/4)
+        self.bones.mch.master = self.copy_bone(org, make_derived_name(org, 'mch', '_parent_widget'), scale=1 / 12)
+        self.bones.ctrl.master = name = self.copy_bone(org, make_derived_name(org, 'ctrl', '_parent'), scale=1 / 4)
         self.get_bone(name).roll = 0
         self.prop_bone = self.bones.ctrl.master
 
@@ -221,7 +221,7 @@ class BaseLimbRig(BaseRig):
     @stage.generate_bones
     def make_mch_follow_bone(self):
         org = self.bones.org.main[0]
-        self.bones.mch.follow = self.copy_bone(org, make_derived_name(org, 'mch', '_parent'), scale=1/4)
+        self.bones.mch.follow = self.copy_bone(org, make_derived_name(org, 'mch', '_parent'), scale=1 / 4)
 
     @stage.parent_bones
     def parent_mch_follow_bone(self):
@@ -272,7 +272,7 @@ class BaseLimbRig(BaseRig):
     @stage.parent_bones
     def parent_fk_control_chain(self):
         fk = self.bones.ctrl.fk
-        for args in zip(count(0), fk, [self.bones.mch.follow]+fk, self.bones.org.main, self.bones.mch.fk):
+        for args in zip(count(0), fk, [self.bones.mch.follow] + fk, self.bones.org.main, self.bones.mch.fk):
             self.parent_fk_control_bone(*args)
 
     def parent_fk_control_bone(self, i: int, ctrl: str, prev: str, _org: str, parent_mch: str | None):
@@ -320,13 +320,13 @@ class BaseLimbRig(BaseRig):
 
     def make_fk_parent_bone(self, i: int, org: str):
         if i >= 2:
-            return self.copy_bone(org, self.get_fk_name(i, org, 'mch'), parent=True, scale=1/4)
+            return self.copy_bone(org, self.get_fk_name(i, org, 'mch'), parent=True, scale=1 / 4)
 
     @stage.parent_bones
     def parent_fk_parent_chain(self):
         mch = self.bones.mch
         orgs = self.bones.org.main
-        for args in zip(count(0), mch.fk, [mch.follow]+self.bones.ctrl.fk, orgs, [None, *orgs]):
+        for args in zip(count(0), mch.fk, [mch.follow] + self.bones.ctrl.fk, orgs, [None, *orgs]):
             self.parent_fk_parent_bone(*args)
 
     def parent_fk_parent_bone(self, i: int, parent_mch: str | None,
@@ -363,7 +363,7 @@ class BaseLimbRig(BaseRig):
     def get_ik_fk_position_chains(self):
         ik_chain = self.get_ik_output_chain()
         tail_chain = self.get_tail_ik_controls()
-        return ik_chain, tail_chain, self.bones.ctrl.fk[0:len(ik_chain)+len(tail_chain)]
+        return ik_chain, tail_chain, self.bones.ctrl.fk[0:len(ik_chain) + len(tail_chain)]
 
     def get_ik_control_chain(self):
         ctrl = self.bones.ctrl
@@ -400,7 +400,7 @@ class BaseLimbRig(BaseRig):
 
         pole = self.get_bone(name)
         pole.head = self.get_bone(orgs[0]).tail + self.elbow_vector
-        pole.tail = pole.head - self.elbow_vector/8
+        pole.tail = pole.head - self.elbow_vector / 8
         pole.roll = 0
 
         return name
@@ -409,7 +409,7 @@ class BaseLimbRig(BaseRig):
         return self.copy_bone(orgs[2], make_derived_name(orgs[2], 'ctrl', '_ik'))
 
     def make_ik_scale_bone(self, ctrl: str, orgs: list[str]):
-        return self.copy_bone(ctrl, make_derived_name(orgs[2], 'mch', '_ik_scale'), scale=1/2)
+        return self.copy_bone(ctrl, make_derived_name(orgs[2], 'mch', '_ik_scale'), scale=1 / 2)
 
     def build_ik_pivot(self, ik_name: str, **args) -> CustomPivotControl | None:
         if self.use_ik_pivot:
@@ -506,7 +506,7 @@ class BaseLimbRig(BaseRig):
         if self.main_axis == 'x':
             roll = 0
         else:
-            roll = pi/2
+            roll = pi / 2
 
         create_ik_arrow_widget(self.obj, ctrl, roll=roll)
 
@@ -522,7 +522,7 @@ class BaseLimbRig(BaseRig):
     @stage.generate_bones
     def make_ik_vispole_bone(self):
         orgs = self.bones.org.main
-        name = self.copy_bone(orgs[1], 'VIS_'+make_derived_name(orgs[0], 'ctrl', '_ik_pole'))
+        name = self.copy_bone(orgs[1], 'VIS_' + make_derived_name(orgs[0], 'ctrl', '_ik_pole'))
         self.bones.ctrl.ik_vispole = name
 
         bone = self.get_bone(name)
@@ -633,7 +633,7 @@ class BaseLimbRig(BaseRig):
 
         add_generic_snap_fk_to_ik(
             panel,
-            fk_bones=fk_chain, ik_bones=ik_chain+tail_chain,
+            fk_bones=fk_chain, ik_bones=ik_chain + tail_chain,
             ik_ctrl_bones=self.get_all_ik_controls(),
             rig_name=rig_name
         )
@@ -681,7 +681,7 @@ class BaseLimbRig(BaseRig):
         # Limit distance from the base of the limb
         con = self.make_constraint(
             mch_target, 'LIMIT_DISTANCE', base_bone,
-            limit_mode='LIMITDIST_INSIDE', distance=len_full*bias,
+            limit_mode='LIMITDIST_INSIDE', distance=len_full * bias,
             # Use custom space to tolerate rig scaling
             space='CUSTOM', space_object=self.obj, space_subtarget=self.bones.mch.follow,
         )
@@ -744,7 +744,7 @@ class BaseLimbRig(BaseRig):
 
     def make_tweak_bone(self, _i: int, entry: SegmentEntry):
         name = make_derived_name(entry.org, 'ctrl', '_tweak')
-        name = self.copy_bone(entry.org, name, scale=1/(2 * self.segments))
+        name = self.copy_bone(entry.org, name, scale=1 / (2 * self.segments))
         put_bone(self.obj, name, entry.pos)
         return name
 
@@ -795,7 +795,7 @@ class BaseLimbRig(BaseRig):
 
     def make_tweak_mch_bone(self, _i: int, entry: SegmentEntry):
         name = make_derived_name(entry.org, 'mch', '_tweak')
-        name = self.copy_bone(entry.org, name, scale=1/(4 * self.segments))
+        name = self.copy_bone(entry.org, name, scale=1 / (4 * self.segments))
         put_bone(self.obj, name, entry.pos)
         return name
 
@@ -870,7 +870,7 @@ class BaseLimbRig(BaseRig):
         if entry.seg_idx is None:
             name = self.copy_bone(entry.org, name)
         else:
-            name = self.copy_bone(entry.org, name, bbone=True, scale=1/self.segments)
+            name = self.copy_bone(entry.org, name, bbone=True, scale=1 / self.segments)
             put_bone(self.obj, name, entry.pos)
             self.get_bone(name).bbone_segments = self.bbone_segments
 
@@ -993,7 +993,7 @@ class BaseLimbRig(BaseRig):
 
         if 'auto' not in params.rotation_axis.lower():
             r = layout.row()
-            r.prop(params, "auto_align_extremity", text="Auto Align "+end)
+            r.prop(params, "auto_align_extremity", text="Auto Align " + end)
 
         r = layout.row()
         r.prop(params, "segments")

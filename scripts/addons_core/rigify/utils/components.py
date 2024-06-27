@@ -95,7 +95,7 @@ class CustomPivotControl(RigComponent):
 
     def rig_bones(self):
         self.make_constraint(
-            self.mch, 'COPY_LOCATION', self.ctrl, space='LOCAL', invert_xyz=(True,)*3)
+            self.mch, 'COPY_LOCATION', self.ctrl, space='LOCAL', invert_xyz=(True,) * 3)
 
     def generate_widgets(self):
         create_pivot_widget(self.obj, self.ctrl, axis_size=self.widget_axis,

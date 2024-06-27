@@ -117,7 +117,7 @@ class ControlBoneParentArmature(ControlBoneParentImplBase):
 
     def generate_bones(self):
         self.output_bone = self.control_node.make_bone(
-            make_derived_name(self.node.name, 'mch', '_arm'), 1/4, rig=self.rig)
+            make_derived_name(self.node.name, 'mch', '_arm'), 1 / 4, rig=self.rig)
 
         self.rig.generator.disable_auto_parent(self.output_bone)
 
@@ -208,7 +208,7 @@ class ControlBoneParentMix(ControlBoneParentImplBase):
 
     def generate_bones(self):
         self.output_bone = self.control_node.make_bone(
-            make_derived_name(self.node.name, 'mch', self.suffix or '_mix'), 1/2, rig=self.rig)
+            make_derived_name(self.node.name, 'mch', self.suffix or '_mix'), 1 / 2, rig=self.rig)
 
         self.rig.generator.disable_auto_parent(self.output_bone)
 
@@ -314,7 +314,7 @@ class ControlBoneParentOffset(ControlBoneParentLayer):
             else:
                 inf, expr, cbs = val
                 inf0, expr0, cbs0 = self.copy_local[key]
-                self.copy_local[key] = self.CopyLocalEntry(inf+inf0, expr+expr0, cbs+cbs0)
+                self.copy_local[key] = self.CopyLocalEntry(inf + inf0, expr + expr0, cbs + cbs0)
 
         for key, val in other.add_orientations.items():
             if key not in self.add_orientations:
@@ -326,7 +326,7 @@ class ControlBoneParentOffset(ControlBoneParentLayer):
             else:
                 ot0, ot1, ot2 = val
                 my0, my1, my2 = self.add_local[key]
-                self.add_local[key] = (ot0+my0, ot1+my1, ot2+my2)
+                self.add_local[key] = (ot0 + my0, ot1 + my1, ot2 + my2)
 
         self.limit_distance = other.limit_distance + self.limit_distance
 
@@ -358,7 +358,7 @@ class ControlBoneParentOffset(ControlBoneParentLayer):
         """
         assert isinstance(variables, dict)
 
-        key: tuple[float, ...] = tuple(round(x*10000) for x in orientation)
+        key: tuple[float, ...] = tuple(round(x * 10000) for x in orientation)
 
         if key not in self.add_local:
             self.add_orientations[key] = orientation
@@ -398,7 +398,7 @@ class ControlBoneParentOffset(ControlBoneParentLayer):
                 # Generate a bone for every distinct orientation used for the drivers
                 for key in self.add_local:
                     self.mch_bones.append(self.control_node.make_bone(
-                        mch_name, 1/4, rig=self.rig, orientation=self.add_orientations[key]))
+                        mch_name, 1 / 4, rig=self.rig, orientation=self.add_orientations[key]))
             else:
                 # Try piggybacking on the parent bone if allowed
                 if not self.parent.is_parent_frozen:
@@ -408,7 +408,7 @@ class ControlBoneParentOffset(ControlBoneParentLayer):
                         self.mch_bones = [bone.name]
                         return
 
-                self.mch_bones.append(self.control_node.make_bone(mch_name, 1/4, rig=self.rig))
+                self.mch_bones.append(self.control_node.make_bone(mch_name, 1 / 4, rig=self.rig))
 
     def parent_bones(self):
         if self.mch_bones:
@@ -463,7 +463,7 @@ class ControlBoneParentOffset(ControlBoneParentLayer):
 
         # Add all expressions together
         if len(expressions) > 1:
-            final_expr = '+'.join('('+expr+')' for expr in expressions)
+            final_expr = '+'.join('(' + expr + ')' for expr in expressions)
         else:
             final_expr = expressions[0]
 

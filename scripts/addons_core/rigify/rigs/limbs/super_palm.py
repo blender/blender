@@ -210,11 +210,11 @@ class Rig(BaseRig):
             if self.make_secondary and fac < 1:
                 self.make_constraint(
                     org, 'COPY_LOCATION', ctrl.secondary, space='LOCAL',
-                    use_offset=True, influence=1-fac
+                    use_offset=True, influence=1 - fac
                 )
                 self.make_constraint(
                     org, 'COPY_ROTATION', ctrl.secondary, space='LOCAL',
-                    euler_order=self.order, mix_mode='ADD', influence=1-fac
+                    euler_order=self.order, mix_mode='ADD', influence=1 - fac
                 )
 
         elif self.make_secondary:
@@ -286,20 +286,20 @@ class Rig(BaseRig):
     def add_parameters(cls, params):
         items = [('X', 'X', ''), ('Z', 'Z', '')]
         params.palm_rotation_axis = bpy.props.EnumProperty(
-                items=items,
-                name="Palm Rotation Axis",
-                default='X',
-                )
+            items=items,
+            name="Palm Rotation Axis",
+            default='X',
+        )
         params.palm_both_sides = bpy.props.BoolProperty(
-                name="Both Sides",
-                default=False,
-                description="Create controls for both sides of the palm"
-                )
+            name="Both Sides",
+            default=False,
+            description="Create controls for both sides of the palm"
+        )
         params.make_extra_control = bpy.props.BoolProperty(
-                name="Extra Control",
-                default=False,
-                description="Create an optional control"
-            )
+            name="Extra Control",
+            default=False,
+            description="Create an optional control"
+        )
 
     @classmethod
     def parameters_ui(cls, layout, params):
@@ -319,7 +319,7 @@ def make_palm_widget(geom, axis='X', radius=0.5):
          (0.1578, 0.25, -0.275), (-0.1578, 0.25, -0.275), (0.1578, 0.75, -0.225), (-0.1578, 0.75, -0.225),
          (0.1578, 0.75, 0.225), (0.1578, 0.25, 0.275), (-0.1578, 0.25, 0.275), (-0.1578, 0.75, 0.225)]
 
-    geom.verts = [(x*sx, y, z*sz) for x, y, z in v]
+    geom.verts = [(x * sx, y, z * sz) for x, y, z in v]
 
     if 'Z' in axis:
         # Flip x/z coordinates

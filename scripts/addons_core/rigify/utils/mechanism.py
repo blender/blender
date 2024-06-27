@@ -35,6 +35,7 @@ def _set_default_attr(obj, options, attr, value):
     if hasattr(obj, attr):
         options.setdefault(attr, value)
 
+
 def limit_rotation_ensure_legacy_behavior(constraint: bpy.types.Constraint):
     """
     Ensure that the given Limit Rotation constraint is configured to use the old
@@ -47,6 +48,7 @@ def limit_rotation_ensure_legacy_behavior(constraint: bpy.types.Constraint):
     if bpy.app.version < (4, 3, 0) and not hasattr(constraint, "use_legacy_behavior"):
         return
     constraint.use_legacy_behavior = True
+
 
 def make_constraint(
         owner: Object | PoseBone, con_type: str,
@@ -103,7 +105,7 @@ def make_constraint(
                     setattr(con_target, key, force_lazy(val))
 
     if insert_index is not None:
-        owner.constraints.move(len(owner.constraints)-1, insert_index)
+        owner.constraints.move(len(owner.constraints) - 1, insert_index)
 
     if target is not None and hasattr(con, 'target'):
         con.target = target
@@ -129,8 +131,8 @@ def make_constraint(
 
     for key in ['min_x', 'max_x', 'min_y', 'max_y', 'min_z', 'max_z']:
         if key in options:
-            _set_default_attr(con, options, 'use_'+key, True)
-            _set_default_attr(con, options, 'use_limit_'+key[-1], True)
+            _set_default_attr(con, options, 'use_' + key, True)
+            _set_default_attr(con, options, 'use_limit_' + key[-1], True)
 
     for p, v in options.items():
         setattr(con, p, force_lazy(v))
@@ -344,7 +346,7 @@ def make_driver(owner: bpy_struct, prop: str, *, index=-1, type='SUM',
         drv_modifier = fcu.modifiers.new('GENERATOR')
         assert isinstance(drv_modifier, FModifierGenerator)
         drv_modifier.mode = 'POLYNOMIAL'
-        drv_modifier.poly_order = len(polynomial)-1
+        drv_modifier.poly_order = len(polynomial) - 1
         for i, v in enumerate(polynomial):
             drv_modifier.coefficients[i] = v
 

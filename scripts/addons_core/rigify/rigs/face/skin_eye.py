@@ -131,9 +131,9 @@ class Rig(BaseSkinRig):
         angle_min, angle_max = self.eye_corner_range
 
         if angle_min < angle < 0:
-            return 1 - min(1.0, angle/angle_min) ** 2
+            return 1 - min(1.0, angle / angle_min) ** 2
         elif 0 < angle < angle_max:
-            return 1 - min(1.0, angle/angle_max) ** 2
+            return 1 - min(1.0, angle / angle_max) ** 2
         else:
             return 0
 
@@ -303,7 +303,7 @@ class Rig(BaseSkinRig):
         mch = self.bones.mch
 
         mch.master = self.copy_bone(org, make_derived_name(org, 'mch'))
-        mch.track = self.copy_bone(org, make_derived_name(org, 'mch', '_track'), scale=1/4)
+        mch.track = self.copy_bone(org, make_derived_name(org, 'mch', '_track'), scale=1 / 4)
 
         put_bone(self.obj, mch.track, self.get_bone(org).tail)
 
@@ -367,11 +367,11 @@ class Rig(BaseSkinRig):
     def make_deform_bone(self):
         org = self.bones.org
         deform = self.bones.deform
-        deform.master = self.copy_bone(org, make_derived_name(org, 'def', '_master'), scale=3/2)
+        deform.master = self.copy_bone(org, make_derived_name(org, 'def', '_master'), scale=3 / 2)
 
         if self.params.make_deform:
             deform.eye = self.copy_bone(org, make_derived_name(org, 'def'))
-            deform.iris = self.copy_bone(org, make_derived_name(org, 'def', '_iris'), scale=1/2)
+            deform.iris = self.copy_bone(org, make_derived_name(org, 'def', '_iris'), scale=1 / 2)
             put_bone(self.obj, deform.iris, self.get_bone(org).tail)
 
     @stage.parent_bones
@@ -654,15 +654,15 @@ class EyeClusterControl(RigComponent):
 
 @widget_generator
 def create_eye_widget(geom, *, size=1):
-    generate_circle_geometry(geom, Vector((0, 0, 0)), size/2)
+    generate_circle_geometry(geom, Vector((0, 0, 0)), size / 2)
 
 
 @widget_generator
 def create_eye_cluster_widget(geom, *, size=1, points):
     hull_points = [points[i] for i in mathutils.geometry.convex_hull_2d(points)]
 
-    generate_circle_hull_geometry(geom, hull_points, size*0.75, size*0.6)
-    generate_circle_hull_geometry(geom, hull_points, size, size*0.85)
+    generate_circle_hull_geometry(geom, hull_points, size * 0.75, size * 0.6)
+    generate_circle_hull_geometry(geom, hull_points, size, size * 0.85)
 
 
 def create_sample(obj):

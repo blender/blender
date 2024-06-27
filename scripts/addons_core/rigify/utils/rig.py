@@ -460,7 +460,7 @@ def write_metarig_widgets(obj: Object):
 
         if ident in id_set:
             for i in count(1):
-                if ident+'_'+str(i) not in id_set:
+                if ident + '_' + str(i) not in id_set:
                     break
 
         id_set.add(ident)

@@ -78,7 +78,7 @@ class Rig(BaseSpineRig):
         orgs = self.bones.org
         pivot = self.pivot_pos
 
-        self.bones.ctrl.hips = self.make_hips_control_bone(orgs[pivot-1], 'hips')
+        self.bones.ctrl.hips = self.make_hips_control_bone(orgs[pivot - 1], 'hips')
         self.bones.ctrl.chest = self.make_chest_control_bone(orgs[pivot], 'chest')
 
     def make_hips_control_bone(self, org: str, name: str):

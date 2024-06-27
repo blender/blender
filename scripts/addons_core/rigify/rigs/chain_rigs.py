@@ -22,6 +22,7 @@ from ..base_rig import BaseRig, stage
 
 class SimpleChainRig(BaseRig):
     """A rig that consists of 3 connected chains of control, org and deform bones."""
+
     def find_org_bones(self, bone: PoseBone):
         return [bone.name] + connected_children_names(self.obj, bone.name)
 

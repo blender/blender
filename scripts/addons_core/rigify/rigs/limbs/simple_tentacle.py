@@ -76,7 +76,7 @@ class Rig(TweakChainRig):
             size=3,
             description="Automation axes",
             default=tuple([i == 0 for i in range(0, 3)])
-            )
+        )
 
         # Setting up extra tweak layers
         ControlLayersOption.TWEAK.add_parameters(params)

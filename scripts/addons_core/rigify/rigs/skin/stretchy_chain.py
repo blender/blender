@@ -59,7 +59,7 @@ class Rig(BasicChainRig):
         # Compute cumulative chain lengths from the start
         bone_lengths = [self.get_bone(org).length for org in orgs]
 
-        self.chain_lengths = [sum(bone_lengths[0:i]) for i in range(len(orgs)+1)]
+        self.chain_lengths = [sum(bone_lengths[0:i]) for i in range(len(orgs) + 1)]
 
         # Compute the chain start to end direction vector
         if not self.params.skin_chain_falloff_length:
@@ -97,10 +97,10 @@ class Rig(BasicChainRig):
             # circular falloff
             if weight >= 0:
                 p = 2 ** weight
-                return (1 - (1 - factor) ** p) ** (1/p)
+                return (1 - (1 - factor) ** p) ** (1 / p)
             else:
                 p = 2 ** -weight
-                return 1 - (1 - factor ** p) ** (1/p)
+                return 1 - (1 - factor ** p) ** (1 / p)
         else:
             # parabolic falloff
             return 1 - (1 - factor) ** (2 ** weight)
@@ -284,7 +284,7 @@ class Rig(BasicChainRig):
         self.make_constraint(
             mch, 'COPY_SCALE', handles[index1], space='LOCAL',
             use_x=True, use_y=use_y, use_z=True,
-            use_offset=True, power=clamp(1-factor)
+            use_offset=True, power=clamp(1 - factor)
         )
         self.make_constraint(
             mch, 'COPY_SCALE', handles[index2], space='LOCAL',

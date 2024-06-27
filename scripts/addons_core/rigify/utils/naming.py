@@ -46,11 +46,11 @@ def combine_name(parts: NameParts, *, prefix=None, base=None, side_z=None, side=
         eff_number = '%03d' % eff_number
 
     return ''.join([
-        eff_prefix+'-' if eff_prefix else '',
+        eff_prefix + '-' if eff_prefix else '',
         base if base is not None else parts.base,
         side_z if side_z is not None else parts.side_z or '',
         side if side is not None else parts.side or '',
-        '.'+eff_number if eff_number else '',
+        '.' + eff_number if eff_number else '',
     ])
 
 
@@ -168,7 +168,7 @@ def get_name_side_z(name: str):
 def get_name_base_and_sides(name: str):
     parts = split_name(name)
     base = combine_name(parts, side='', side_z='')
-    return NameSides(base, Side.from_parts(parts),  SideZ.from_parts(parts))
+    return NameSides(base, Side.from_parts(parts), SideZ.from_parts(parts))
 
 
 def change_name_side(name: str,

@@ -385,12 +385,12 @@ def generate_circle_hull_geometry(geom: GeometryData, points: list[AnyVector],
             angle_next += math.pi * 2
 
         # Adjust gap for circles that are too close
-        angle_prev += max(angle_gap, math.acos(min(1, vec_prev.length/radius/2)))
-        angle_next -= max(angle_gap, math.acos(min(1, vec_next.length/radius/2)))
+        angle_prev += max(angle_gap, math.acos(min(1, vec_prev.length / radius / 2)))
+        angle_next -= max(angle_gap, math.acos(min(1, vec_next.length / radius / 2)))
 
         if angle_next > angle_prev:
             if len(geom.verts) > base:
-                geom.edges.append((len(geom.verts)-1, len(geom.verts)))
+                geom.edges.append((len(geom.verts) - 1, len(geom.verts)))
 
             generate_circle_geometry(
                 geom, pt_cur, radius, angle_range=(angle_prev, angle_next),
@@ -398,7 +398,7 @@ def generate_circle_hull_geometry(geom: GeometryData, points: list[AnyVector],
             )
 
     if len(geom.verts) > base:
-        geom.edges.append((len(geom.verts)-1, base))
+        geom.edges.append((len(geom.verts) - 1, base))
 
 
 def create_circle_polygon(number_verts: int, axis: str, radius=1.0, head_tail=0.0):
@@ -454,11 +454,11 @@ def adjust_widget_axis(obj: Object, axis='y', offset=0.0):
     rot_matrix = Matrix.Diagonal((1.0, s, 1.0, 1.0))
 
     if axis == "x":
-        rot_matrix = Matrix.Rotation(-s*math.pi/2, 4, 'Z')
+        rot_matrix = Matrix.Rotation(-s * math.pi / 2, 4, 'Z')
         trans_matrix = Matrix.Translation((offset, 0.0, 0.0))
 
     elif axis == "z":
-        rot_matrix = Matrix.Rotation(s*math.pi/2, 4, 'X')
+        rot_matrix = Matrix.Rotation(s * math.pi / 2, 4, 'X')
         trans_matrix = Matrix.Translation((0.0, 0.0, offset))
 
     matrix = trans_matrix @ rot_matrix
@@ -495,7 +495,7 @@ def write_widget(obj: Object, name='thing', use_size=True):
     """
     script = ""
     script += "@widget_generator\n"
-    script += "def create_"+name+"_widget(geom"
+    script += "def create_" + name + "_widget(geom"
     if use_size:
         script += ", *, size=1.0"
     script += "):\n"

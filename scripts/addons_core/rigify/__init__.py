@@ -21,7 +21,6 @@ import typing
 
 from bpy.app.translations import pgettext_iface as iface_
 
-
 # The order in which core modules of the addon are loaded and reloaded.
 # Modules not in this list are removed from memory upon reload.
 # With the sole exception of 'utils', modules must be listed in the
@@ -94,7 +93,7 @@ def load_initial_modules() -> list[str]:
         importlib.import_module(name)
 
         module_list = get_loaded_modules()
-        expected_list = names[0: max(11, i+1)]
+        expected_list = names[0: max(11, i + 1)]
 
         if not compare_module_list(module_list, expected_list):
             print(f'!!! RIGIFY: initial load order mismatch after {name} - expected: \n',
@@ -294,7 +293,7 @@ class RigifyPreferences(AddonPreferences):
         )
 
         # Clamp active index to ensure it is in bounds.
-        self.active_feature_set_index = max(0, min(self.active_feature_set_index, len(self.rigify_feature_sets)-1))
+        self.active_feature_set_index = max(0, min(self.active_feature_set_index, len(self.rigify_feature_sets) - 1))
 
         if len(self.rigify_feature_sets) > 0:
             active_fs = self.rigify_feature_sets[self.active_feature_set_index]
@@ -656,7 +655,7 @@ def register():
         items=feature_set_list.feature_set_items,
         name="Feature Set",
         description="Restrict the rig list to a specific custom feature set"
-        )
+    )
 
     bpy.types.PoseBone.rigify_type = StringProperty(name="Rigify Type", description="Rig type for this bone")
     bpy.types.PoseBone.rigify_parameters = PointerProperty(type=RigifyParameters)
@@ -688,7 +687,7 @@ def register():
         ('THEME18', 'THEME18', ''),
         ('THEME19', 'THEME19', ''),
         ('THEME20', 'THEME20', '')
-        ), name='Theme')
+    ), name='Theme')
 
     id_store = bpy.types.WindowManager
     id_store.rigify_collection = EnumProperty(

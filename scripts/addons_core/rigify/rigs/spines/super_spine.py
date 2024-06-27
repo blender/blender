@@ -34,8 +34,8 @@ class Rig(SubstitutionRig, BoneUtilityMixin):
             if neck_pos >= len(orgs):
                 self.raise_error("Neck is too short.")
 
-            spine_orgs = orgs[0: neck_pos-1]
-            head_orgs = orgs[neck_pos-1:]
+            spine_orgs = orgs[0: neck_pos - 1]
+            head_orgs = orgs[neck_pos - 1:]
 
         if self.params.use_tail:
             tail_pos = self.params.tail_pos

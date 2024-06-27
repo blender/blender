@@ -122,7 +122,7 @@ class Rig(BaseRig):
         if self.make_pivot:
             self.make_constraint(
                 self.bones.org, 'COPY_LOCATION', self.bones.ctrl.pivot,
-                space='LOCAL', invert_xyz=(True,)*3
+                space='LOCAL', invert_xyz=(True,) * 3
             )
 
     def generate_widgets(self):

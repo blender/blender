@@ -93,7 +93,7 @@ class Rig(TweakChainRig):
         num_orgs = len(self.bones.org)
 
         for i, mch in enumerate(self.bones.mch.follow):
-            self.make_constraint(mch, 'COPY_TRANSFORMS', master, influence=1-(1+i)/num_orgs)
+            self.make_constraint(mch, 'COPY_TRANSFORMS', master, influence=1 - (1 + i) / num_orgs)
 
     ####################################################
     # Tweak chain

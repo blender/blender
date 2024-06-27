@@ -67,7 +67,7 @@ def get_bone_name(name, btype, suffix=''):
     name = types[btype]
 
     if suffix:
-        results = re.match(pattern,  name)
+        results = re.match(pattern, name)
 
         if results:
             bone_name, addition = results.groups()

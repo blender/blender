@@ -71,7 +71,7 @@ class Rig:
         left_pattern = r'L\.?\d*$'
         right_pattern = r'R\.?\d*$'
 
-        left = sorted([name for name in bones if re.search(left_pattern,  name)])
+        left = sorted([name for name in bones if re.search(left_pattern, name)])
         right = sorted([name for name in bones if re.search(right_pattern, name)])
 
         return left, right
@@ -231,11 +231,11 @@ class Rig:
                 eyeR_ctrl_name,
                 eyes_ctrl_name,
             ] + eye_master_names,
-            'ears'   : [earL_ctrl_name, earR_ctrl_name    ],  # noqa: E202,E203
-            'jaw'    : [jaw_ctrl_name                     ],  # noqa: E202,E203
-            'teeth'  : [teethT_ctrl_name, teethB_ctrl_name],  # noqa: E202,E203
-            'tongue' : [tongue_ctrl_name                  ],  # noqa: E202,E203
-            'nose'   : [master_nose                       ]   # noqa: E202,E203
+            'ears': [earL_ctrl_name, earR_ctrl_name],  # noqa: E202,E203
+            'jaw': [jaw_ctrl_name],  # noqa: E202,E203
+            'teeth': [teethT_ctrl_name, teethB_ctrl_name],  # noqa: E202,E203
+            'tongue': [tongue_ctrl_name],  # noqa: E202,E203
+            'nose': [master_nose]   # noqa: E202,E203
             }
 
     def create_tweak(self, bones, uniques, tails):
@@ -264,7 +264,7 @@ class Rig:
                     symmetrical_bone = bone[:-1] + 'L'
                 else:
                     assert False
-                middle_position = (eb[bone].head + eb[symmetrical_bone].head)/2
+                middle_position = (eb[bone].head + eb[symmetrical_bone].head) / 2
                 eb[tweak_name].head = middle_position
                 eb[tweak_name].tail[0] = middle_position[0]
                 eb[tweak_name].tail[1] = middle_position[1]
@@ -277,11 +277,11 @@ class Rig:
             # create tail bone
             if bone in tails:
                 if 'lip.T.L.001' in bone:
-                    tweak_name = copy_bone(self.obj, bone,  'lips.L')
+                    tweak_name = copy_bone(self.obj, bone, 'lips.L')
                 elif 'lip.T.R.001' in bone:
-                    tweak_name = copy_bone(self.obj, bone,  'lips.R')
+                    tweak_name = copy_bone(self.obj, bone, 'lips.R')
                 else:
-                    tweak_name = copy_bone(self.obj, bone,  tweak_name)
+                    tweak_name = copy_bone(self.obj, bone, tweak_name)
 
                 eb[tweak_name].use_connect = False
                 eb[tweak_name].parent = None
@@ -320,11 +320,11 @@ class Rig:
         org_tongue_bones = sorted([bone for bone in org_bones if 'tongue' in bone])
 
         org_to_ctrls = {
-            'eyes'   : ['eye.L',   'eye.R'       ],  # noqa: E202,E203
-            'ears'   : ['ear.L',   'ear.R'       ],  # noqa: E202,E203
-            'jaw'    : ['jaw.L',   'jaw.R', 'jaw'],  # noqa: E202,E203
-            'teeth'  : ['teeth.T', 'teeth.B'     ],  # noqa: E202,E203
-            'tongue' : [org_tongue_bones[0]      ]   # noqa: E202,E203
+            'eyes': ['eye.L', 'eye.R'],  # noqa: E202,E203
+            'ears': ['ear.L', 'ear.R'],  # noqa: E202,E203
+            'jaw': ['jaw.L', 'jaw.R', 'jaw'],  # noqa: E202,E203
+            'teeth': ['teeth.T', 'teeth.B'],  # noqa: E202,E203
+            'tongue': [org_tongue_bones[0]]   # noqa: E202,E203
         }
 
         tweak_unique = {'lip.T.L': 'lip.T',
@@ -499,7 +499,7 @@ class Rig:
                 eb[bone].parent = eb[lip_tweak]
 
         # parent cheek bones top respective tweaks
-        lips = ['lips.L',   'lips.R']
+        lips = ['lips.L', 'lips.R']
         brows = ['brow.T.L', 'brow.T.R']
         cheekB_defs = ['DEF-cheek.B.L', 'DEF-cheek.B.R']
         cheekT_defs = ['DEF-cheek.T.L', 'DEF-cheek.T.R']
@@ -587,36 +587,36 @@ class Rig:
                 'chin.R',
                 'chin',
                 'tongue.003'
-                ],
+            ],
             'MCH-jaw_master': [
-                 'lip.B'
-                ],
+                'lip.B'
+            ],
             'MCH-jaw_master.001': [
                 'lip.B.L.001',
                 'lip.B.R.001'
-                ],
+            ],
             'MCH-jaw_master.002': [
                 'lips.L',
                 'lips.R',
                 'cheek.B.L.001',
                 'cheek.B.R.001'
-                ],
+            ],
             'MCH-jaw_master.003': [
                 'lip.T',
                 'lip.T.L.001',
                 'lip.T.R.001'
-                ],
+            ],
             'MCH-jaw_master.004': [
                 'cheek.T.L.001',
                 'cheek.T.R.001'
-                ],
+            ],
             'nose_master': [
                 'nose.002',
                 'nose.004',
                 'nose.L.001',
                 'nose.R.001'
-                ]
-             }
+            ]
+        }
 
         for parent in list(groups.keys()):
             for bone in groups[parent]:
@@ -741,37 +741,37 @@ class Rig:
 
         def_specials = {
             # 'bone'             : 'target'
-            'DEF-jaw'               : 'chin',                 # noqa: E203
-            'DEF-chin.L'            : 'lips.L',               # noqa: E203
-            'DEF-jaw.L.001'         : 'chin.L',               # noqa: E203
-            'DEF-chin.R'            : 'lips.R',               # noqa: E203
-            'DEF-jaw.R.001'         : 'chin.R',               # noqa: E203
-            'DEF-brow.T.L.003'      : 'nose',                 # noqa: E203
-            'DEF-ear.L'             : None,                   # noqa: E203
-            'DEF-ear.L.003'         : 'ear.L.004',            # noqa: E203
-            'DEF-ear.L.004'         : 'ear.L',                # noqa: E203
-            'DEF-ear.R'             : None,                   # noqa: E203
-            'DEF-ear.R.003'         : 'ear.R.004',            # noqa: E203
-            'DEF-ear.R.004'         : 'ear.R',                # noqa: E203
-            'DEF-lip.B.L.001'       : 'lips.L',               # noqa: E203
-            'DEF-lip.B.R.001'       : 'lips.R',               # noqa: E203
-            'DEF-cheek.B.L.001'     : 'brow.T.L',             # noqa: E203
-            'DEF-cheek.B.R.001'     : 'brow.T.R',             # noqa: E203
-            'DEF-lip.T.L.001'       : 'lips.L',               # noqa: E203
-            'DEF-lip.T.R.001'       : 'lips.R',               # noqa: E203
-            'DEF-cheek.T.L.001'     : 'nose.L',               # noqa: E203
-            'DEF-nose.L.001'        : 'nose.002',             # noqa: E203
-            'DEF-cheek.T.R.001'     : 'nose.R',               # noqa: E203
-            'DEF-nose.R.001'        : 'nose.002',             # noqa: E203
-            'DEF-forehead.L'        : 'brow.T.L.003',         # noqa: E203
-            'DEF-forehead.L.001'    : 'brow.T.L.002',         # noqa: E203
-            'DEF-forehead.L.002'    : 'brow.T.L.001',         # noqa: E203
-            'DEF-temple.L'          : 'jaw.L',                # noqa: E203
-            'DEF-brow.T.R.003'      : 'nose',                 # noqa: E203
-            'DEF-forehead.R'        : 'brow.T.R.003',         # noqa: E203
-            'DEF-forehead.R.001'    : 'brow.T.R.002',         # noqa: E203
-            'DEF-forehead.R.002'    : 'brow.T.R.001',         # noqa: E203
-            'DEF-temple.R'          : 'jaw.R'                 # noqa: E203
+            'DEF-jaw': 'chin',                 # noqa: E203
+            'DEF-chin.L': 'lips.L',               # noqa: E203
+            'DEF-jaw.L.001': 'chin.L',               # noqa: E203
+            'DEF-chin.R': 'lips.R',               # noqa: E203
+            'DEF-jaw.R.001': 'chin.R',               # noqa: E203
+            'DEF-brow.T.L.003': 'nose',                 # noqa: E203
+            'DEF-ear.L': None,                   # noqa: E203
+            'DEF-ear.L.003': 'ear.L.004',            # noqa: E203
+            'DEF-ear.L.004': 'ear.L',                # noqa: E203
+            'DEF-ear.R': None,                   # noqa: E203
+            'DEF-ear.R.003': 'ear.R.004',            # noqa: E203
+            'DEF-ear.R.004': 'ear.R',                # noqa: E203
+            'DEF-lip.B.L.001': 'lips.L',               # noqa: E203
+            'DEF-lip.B.R.001': 'lips.R',               # noqa: E203
+            'DEF-cheek.B.L.001': 'brow.T.L',             # noqa: E203
+            'DEF-cheek.B.R.001': 'brow.T.R',             # noqa: E203
+            'DEF-lip.T.L.001': 'lips.L',               # noqa: E203
+            'DEF-lip.T.R.001': 'lips.R',               # noqa: E203
+            'DEF-cheek.T.L.001': 'nose.L',               # noqa: E203
+            'DEF-nose.L.001': 'nose.002',             # noqa: E203
+            'DEF-cheek.T.R.001': 'nose.R',               # noqa: E203
+            'DEF-nose.R.001': 'nose.002',             # noqa: E203
+            'DEF-forehead.L': 'brow.T.L.003',         # noqa: E203
+            'DEF-forehead.L.001': 'brow.T.L.002',         # noqa: E203
+            'DEF-forehead.L.002': 'brow.T.L.001',         # noqa: E203
+            'DEF-temple.L': 'jaw.L',                # noqa: E203
+            'DEF-brow.T.R.003': 'nose',                 # noqa: E203
+            'DEF-forehead.R': 'brow.T.R.003',         # noqa: E203
+            'DEF-forehead.R.001': 'brow.T.R.002',         # noqa: E203
+            'DEF-forehead.R.002': 'brow.T.R.001',         # noqa: E203
+            'DEF-temple.R': 'jaw.R'                 # noqa: E203
         }
 
         pattern = r'^DEF-(\w+\.?\w?\.?\w?)(\.?)(\d*?)(\d?)$'
@@ -843,24 +843,24 @@ class Rig:
 
         # copy location constraints for tweak bones of both sides
         tweak_copy_loc_L = {
-            'brow.T.L.002'  : [['brow.T.L.001', 'brow.T.L.003'   ], [0.5, 0.5  ]],  # noqa: E202,E203
-            'ear.L.003'     : [['ear.L.004', 'ear.L.002'         ], [0.5, 0.5  ]],  # noqa: E202,E203
-            'brow.B.L.001'  : [['brow.B.L.002'                   ], [0.6       ]],  # noqa: E202,E203
-            'brow.B.L.003'  : [['brow.B.L.002'                   ], [0.6       ]],  # noqa: E202,E203
+            'brow.T.L.002': [['brow.T.L.001', 'brow.T.L.003'], [0.5, 0.5]],  # noqa: E202,E203
+            'ear.L.003': [['ear.L.004', 'ear.L.002'], [0.5, 0.5]],  # noqa: E202,E203
+            'brow.B.L.001': [['brow.B.L.002'], [0.6]],  # noqa: E202,E203
+            'brow.B.L.003': [['brow.B.L.002'], [0.6]],  # noqa: E202,E203
           # 'brow.B.L.002'  : [['lid.T.L.001',                   ], [0.25      ]],  # noqa: E202,E203
-            'brow.B.L.002'  : [['brow.T.L.002',                  ], [0.25      ]],  # noqa: E202,E203
-            'lid.T.L.001'   : [['lid.T.L.002'                    ], [0.6       ]],  # noqa: E202,E203
-            'lid.T.L.003'   : [['lid.T.L.002',                   ], [0.6       ]],  # noqa: E202,E203
-            'lid.T.L.002'   : [['MCH-eye.L.001',                 ], [0.5       ]],  # noqa: E202,E203
-            'lid.B.L.001'   : [['lid.B.L.002',                   ], [0.6       ]],  # noqa: E202,E203
-            'lid.B.L.003'   : [['lid.B.L.002',                   ], [0.6       ]],  # noqa: E202,E203
-            'lid.B.L.002'   : [['MCH-eye.L.001', 'cheek.T.L.001' ], [0.5, 0.1  ]],  # noqa: E202,E203
-            'cheek.T.L.001' : [['cheek.B.L.001',                 ], [0.5       ]],  # noqa: E202,E203
-            'nose.L'        : [['nose.L.001',                    ], [0.25      ]],  # noqa: E202,E203
-            'nose.L.001'    : [['lip.T.L.001',                   ], [0.2       ]],  # noqa: E202,E203
-            'cheek.B.L.001' : [['lips.L',                        ], [0.5       ]],  # noqa: E202,E203
-            'lip.T.L.001'   : [['lips.L', 'lip.T'                ], [0.25, 0.5 ]],  # noqa: E202,E203
-            'lip.B.L.001'   : [['lips.L', 'lip.B'                ], [0.25, 0.5 ]]   # noqa: E202,E203
+            'brow.B.L.002': [['brow.T.L.002', ], [0.25]],  # noqa: E202,E203
+            'lid.T.L.001': [['lid.T.L.002'], [0.6]],  # noqa: E202,E203
+            'lid.T.L.003': [['lid.T.L.002', ], [0.6]],  # noqa: E202,E203
+            'lid.T.L.002': [['MCH-eye.L.001', ], [0.5]],  # noqa: E202,E203
+            'lid.B.L.001': [['lid.B.L.002', ], [0.6]],  # noqa: E202,E203
+            'lid.B.L.003': [['lid.B.L.002', ], [0.6]],  # noqa: E202,E203
+            'lid.B.L.002': [['MCH-eye.L.001', 'cheek.T.L.001'], [0.5, 0.1]],  # noqa: E202,E203
+            'cheek.T.L.001': [['cheek.B.L.001', ], [0.5]],  # noqa: E202,E203
+            'nose.L': [['nose.L.001', ], [0.25]],  # noqa: E202,E203
+            'nose.L.001': [['lip.T.L.001', ], [0.2]],  # noqa: E202,E203
+            'cheek.B.L.001': [['lips.L', ], [0.5]],  # noqa: E202,E203
+            'lip.T.L.001': [['lips.L', 'lip.T'], [0.25, 0.5]],  # noqa: E202,E203
+            'lip.B.L.001': [['lips.L', 'lip.B'], [0.25, 0.5]]   # noqa: E202,E203
             }
 
         for owner in list(tweak_copy_loc_L.keys()):
@@ -893,9 +893,9 @@ class Rig:
         # inverted tweak bones constraints
         tweak_nose = {
             'nose.001': ['nose.002', 0.35],  # noqa: E202
-            'nose.003': ['nose.002', 0.5 ],  # noqa: E202
-            'nose.005': ['lip.T',    0.5 ],  # noqa: E202
-            'chin.002': ['lip.B',    0.5 ]   # noqa: E202
+            'nose.003': ['nose.002', 0.5],  # noqa: E202
+            'nose.005': ['lip.T', 0.5],  # noqa: E202
+            'chin.002': ['lip.B', 0.5]   # noqa: E202
         }
 
         for owner in list(tweak_nose.keys()):
@@ -979,7 +979,7 @@ class Rig:
             'ctrls': ctrls['ctrls'],
             'tweaks': ctrls['tweaks'],
             'mch': mch
-            }, tweak_unique
+        }, tweak_unique
 
     def generate(self):
 
@@ -1020,7 +1020,7 @@ class Rig:
             all_bones['ctrls']['eyes'][2],
             jaw_prop,
             eyes_prop)
-            ]
+        ]
 
 
 def add_parameters(params):
@@ -2360,10 +2360,10 @@ def create_square_widget(rig, bone_name, size=1.0, bone_transform_name=None):
     obj = create_widget(rig, bone_name, bone_transform_name)
     if obj is not None:
         verts = [
-            (0.5 * size, -2.9802322387695312e-08 * size,  0.5 * size),
-            (-0.5 * size, -2.9802322387695312e-08 * size,  0.5 * size),
-            (0.5 * size,  2.9802322387695312e-08 * size, -0.5 * size),
-            (-0.5 * size,  2.9802322387695312e-08 * size, -0.5 * size),
+            (0.5 * size, -2.9802322387695312e-08 * size, 0.5 * size),
+            (-0.5 * size, -2.9802322387695312e-08 * size, 0.5 * size),
+            (0.5 * size, 2.9802322387695312e-08 * size, -0.5 * size),
+            (-0.5 * size, 2.9802322387695312e-08 * size, -0.5 * size),
         ]
 
         edges = [(0, 1), (2, 3), (0, 2), (3, 1)]

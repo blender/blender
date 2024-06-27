@@ -691,8 +691,8 @@ class DATA_OT_rigify_color_set_add_theme(bpy.types.Operator):
         ('THEME18', 'THEME18', ''),
         ('THEME19', 'THEME19', ''),
         ('THEME20', 'THEME20', '')
-        ),
-         name='Theme')
+    ),
+        name='Theme')
 
     @classmethod
     def poll(cls, context):
@@ -781,7 +781,7 @@ class DATA_UL_rigify_color_sets(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_prop_name, index=0, flt_flag=0):
         row = layout.row(align=True)
         row = row.split(factor=0.1)
-        row.label(text=str(index+1))
+        row.label(text=str(index + 1))
         row = row.split(factor=0.7)
         row.prop(item, "name", text='', emboss=False)
         row = row.row(align=True)

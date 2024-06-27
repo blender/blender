@@ -34,9 +34,9 @@ axis_vectors = {
 
 # Matrices that reshuffle axis order and/or invert them
 shuffle_matrix = {
-    sx+x+sy+y+sz+z: Matrix((
-        axis_vectors[sx+x], axis_vectors[sy+y], axis_vectors[sz+z]
-        )).transposed().freeze()
+    sx + x + sy + y + sz + z: Matrix((
+        axis_vectors[sx + x], axis_vectors[sy + y], axis_vectors[sz + z]
+    )).transposed().freeze()
     for x, y, z in permutations(['x', 'y', 'z'])
     for sx in ('', '-')
     for sy in ('', '-')
@@ -105,7 +105,7 @@ def linsrgb_to_srgb(linsrgb: float):
 
     """
     # From Wikipedia, but easy analogue to the above.
-    gamma = 1.055 * linsrgb**(1./2.4) - 0.055
+    gamma = 1.055 * linsrgb**(1. / 2.4) - 0.055
     scale = linsrgb * 12.92
     # return np.where (linsrgb > 0.0031308, gamma, scale)
     if linsrgb > 0.0031308:
@@ -302,7 +302,7 @@ def select_object(context: bpy.types.Context, obj: bpy.types.Object, deselect_al
 def choose_next_uid(collection: typing.Iterable, prop_name: str, *, min_value=0):
     return 1 + max(
         (getattr(obj, prop_name, min_value - 1) for obj in collection),
-        default=min_value-1,
+        default=min_value - 1,
     )
 
 

@@ -277,7 +277,7 @@ class Rig(BaseSkinRig):
         corner_x = (self.to_mouth_space @ self.corners[side][layer].point).x
         factor = math.sqrt(1 - clamp(pt_x / corner_x) ** 2)
 
-        return [(side_mch, factor), (middle_mch, 1-factor)]
+        return [(side_mch, factor), (middle_mch, 1 - factor)]
 
     def get_parent_for_name(self, name: str, parent_bone: str) -> Lazy[str]:
         """Get single replacement parent for the given child bone."""
@@ -371,7 +371,7 @@ class Rig(BaseSkinRig):
         self.arrange_child_chains()
 
         mch.lock = self.copy_bone(
-            org, make_derived_name(org, 'mch', '_lock'), scale=1/2, parent=True)
+            org, make_derived_name(org, 'mch', '_lock'), scale=1 / 2, parent=True)
 
         mch.top = map_list(self.make_mch_top_bone, range(self.num_layers), repeat(org))
         mch.bottom = map_list(self.make_mch_bottom_bone, range(self.num_layers), repeat(org))
@@ -380,13 +380,13 @@ class Rig(BaseSkinRig):
         mch.mouth_parent = mch.middle[0]
 
     def make_mch_top_bone(self, _i: int, org: str):
-        return self.copy_bone(org, make_derived_name(org, 'mch', '_top'), scale=1/4, parent=True)
+        return self.copy_bone(org, make_derived_name(org, 'mch', '_top'), scale=1 / 4, parent=True)
 
     def make_mch_bottom_bone(self, _i: int, org: str):
-        return self.copy_bone(org, make_derived_name(org, 'mch', '_bottom'), scale=1/3, parent=True)
+        return self.copy_bone(org, make_derived_name(org, 'mch', '_bottom'), scale=1 / 3, parent=True)
 
     def make_mch_middle_bone(self, _i: int, org: str):
-        return self.copy_bone(org, make_derived_name(org, 'mch', '_middle'), scale=2/3, parent=True)
+        return self.copy_bone(org, make_derived_name(org, 'mch', '_middle'), scale=2 / 3, parent=True)
 
     @stage.parent_bones
     def parent_mch_lock_bones(self):
@@ -436,10 +436,10 @@ class Rig(BaseSkinRig):
         fac = self.params.jaw_secondary_influence
 
         for i, name in enumerate(mch.top[1:]):
-            self.make_constraint(name, 'COPY_TRANSFORMS', mch.top[0], influence=fac ** (1+i))
+            self.make_constraint(name, 'COPY_TRANSFORMS', mch.top[0], influence=fac ** (1 + i))
 
         for i, name in enumerate(mch.bottom[1:]):
-            self.make_constraint(name, 'COPY_TRANSFORMS', mch.bottom[0], influence=fac ** (1+i))
+            self.make_constraint(name, 'COPY_TRANSFORMS', mch.bottom[0], influence=fac ** (1 + i))
 
         # Middle bones interpolate the middle between top and bottom
         for mid, bottom in zip(mch.middle, mch.bottom):
@@ -489,7 +489,7 @@ class Rig(BaseSkinRig):
 
         # Mouth influence fade out
         for i, name in enumerate(mch.mouth_layers):
-            self.rig_mch_mouth_layer_bone(i+1, name, ctrl)
+            self.rig_mch_mouth_layer_bone(i + 1, name, ctrl)
 
         # Transfer and combine jaw motion with mouth
         all_jaw = mch.top + mch.bottom + mch.middle

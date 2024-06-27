@@ -6,6 +6,7 @@
 class MetarigError(Exception):
     """ Exception raised for errors.
     """
+
     def __init__(self, message):
         self.message = message
 

@@ -481,7 +481,7 @@ class ControlBoneNode(MainMergeNode, BaseSkinNode):
             # Make weak parent bone
             if self.use_weak_parent:
                 self.weak_parent_bone = self.make_bone(
-                    make_derived_name(self._control_bone, 'mch', '_weak_parent'), 1/2)
+                    make_derived_name(self._control_bone, 'mch', '_weak_parent'), 1 / 2)
 
             # Make requested reparents
             self.reparent_bones = {id(self.node_parent): self._control_bone}
@@ -490,7 +490,7 @@ class ControlBoneNode(MainMergeNode, BaseSkinNode):
             for parent in self.reparent_requests:
                 if id(parent) not in self.reparent_bones:
                     parent_name = self.parent_subrig_names[id(parent)]
-                    bone = self.make_bone(make_derived_name(parent_name, 'mch', '_reparent'), 1/3)
+                    bone = self.make_bone(make_derived_name(parent_name, 'mch', '_reparent'), 1 / 3)
                     self.reparent_bones[id(parent)] = bone
 
     def make_master_bone(self) -> str:

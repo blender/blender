@@ -71,7 +71,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
         orgs = self.bones.org
 
         # Average the adjoining org bone orientations
-        bones = orgs[max(0, node.index-1):node.index+1]
+        bones = orgs[max(0, node.index - 1):node.index + 1]
         quaternions = [get_bone_quaternion(self.obj, name) for name in bones]
         result = sum(quaternions, Quaternion((0, 0, 0, 0))).normalized()
 
@@ -79,7 +79,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
         if node.index in (0, self.num_orgs):
             chain = self.get_node_chain_with_mirror()
             node_prev = chain[node.index]
-            node_next = chain[node.index+2]
+            node_next = chain[node.index + 2]
 
             if node_prev and node_next:
                 # Apply only swing to preserve roll; tgt roll thus doesn't matter
@@ -152,7 +152,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
             chain_end = ControlNodeEnd.MIDDLE
 
         return ControlBoneNode(
-            self, org, name, point=pos, size=self.length/3, index=i,
+            self, org, name, point=pos, size=self.length / 3, index=i,
             allow_scale=self.use_scale, needs_reparent=self.use_reparent_handles,
             chain_end=chain_end,
         )
@@ -191,7 +191,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
                 if is_end == s_is_end and mirror.rig.use_connect_mirror[is_end]:
                     mirror_corner = mirror.rig.params.skin_chain_connect_sharp_angle[is_end]
 
-                    return mirror, mirror.chain_end_neighbor, (corner + mirror_corner)/2
+                    return mirror, mirror.chain_end_neighbor, (corner + mirror_corner) / 2
 
         # Then try connecting ends
         if self.use_connect_ends[is_end]:
@@ -212,7 +212,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
                 link = groups[1 - is_end][0]
                 link_corner = link.rig.params.skin_chain_connect_sharp_angle[1 - is_end]
 
-                return link, link.chain_end_neighbor, (corner + link_corner)/2
+                return link, link.chain_end_neighbor, (corner + link_corner) / 2
 
         return None, None, 0
 
@@ -280,7 +280,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
         handle_axis = (handle_end.point - handle_start.point).normalized()
 
         bone = self.get_bone(name)
-        bone.tail = bone.head + handle_axis * self.length * 3/4
+        bone.tail = bone.head + handle_axis * self.length * 3 / 4
 
         align_bone_roll(self.obj, name, node.org)
         return name
@@ -425,7 +425,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
                     self.prev_node, self.prev_corner
                 )
 
-            elif i == self.num_orgs-1 and self.next_corner > 1e-3:
+            elif i == self.num_orgs - 1 and self.next_corner > 1e-3:
                 self.make_corner_driver(
                     deform, 'bbone_easeout',
                     self.control_nodes[-1], self.control_nodes[-2],
@@ -456,7 +456,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
         }
 
         # Compute and set the ease in rest pose
-        init_val = -1+2*smoothstep(-1, 1, acos((a*a+b*b-c*c)/max(2*a*b, 1e-10)) / angle_threshold)
+        init_val = -1 + 2 * smoothstep(-1, 1, acos((a * a + b * b - c * c) / max(2 * a * b, 1e-10)) / angle_threshold)
 
         setattr(pbone.bone, field, init_val)
 

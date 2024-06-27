@@ -89,11 +89,11 @@ class Rig(BaseHeadTailRig):
 
         # Neck pivot position
         neck_bones = self.bones.org
-        if (len(neck_bones)-1) % 2:     # odd num of neck bones (head excluded)
-            center_bone = self.get_bone(neck_bones[int((len(neck_bones))/2) - 1])
-            neck_bend_eb.head = (center_bone.head + center_bone.tail)/2
+        if (len(neck_bones) - 1) % 2:     # odd num of neck bones (head excluded)
+            center_bone = self.get_bone(neck_bones[int((len(neck_bones)) / 2) - 1])
+            neck_bend_eb.head = (center_bone.head + center_bone.tail) / 2
         else:
-            center_bone = self.get_bone(neck_bones[int((len(neck_bones)-1)/2) - 1])
+            center_bone = self.get_bone(neck_bones[int((len(neck_bones) - 1) / 2) - 1])
             neck_bend_eb.head = center_bone.tail
 
         align_bone_orientation(self.obj, name, neck)
@@ -138,7 +138,7 @@ class Rig(BaseHeadTailRig):
             self.make_neck_bend_widget(ctrl.neck_bend)
 
     def make_neck_widget(self, ctrl: str):
-        radius = 1/max(1, len(self.bones.mch.chain))
+        radius = 1 / max(1, len(self.bones.mch.chain))
 
         create_circle_widget(
             self.obj, ctrl,
@@ -147,11 +147,11 @@ class Rig(BaseHeadTailRig):
         )
 
     def make_neck_bend_widget(self, ctrl: str):
-        radius = 1/max(1, len(self.bones.mch.chain))
+        radius = 1 / max(1, len(self.bones.mch.chain))
 
         create_neck_bend_widget(
             self.obj, ctrl,
-            radius=radius/2,
+            radius=radius / 2,
             head_tail=0.0,
         )
 
@@ -246,7 +246,7 @@ class Rig(BaseHeadTailRig):
         self.bones.mch.chain = map_list(self.make_mch_bone, orgs[1:-1])
 
     def make_mch_bone(self, org: str):
-        return self.copy_bone(org, make_derived_name(org, 'mch'), parent=False, scale=1/4)
+        return self.copy_bone(org, make_derived_name(org, 'mch'), parent=False, scale=1 / 4)
 
     @stage.parent_bones
     def align_mch_chain(self):
@@ -275,9 +275,9 @@ class Rig(BaseHeadTailRig):
 
         self.make_constraint(mch, 'COPY_LOCATION', ik)
 
-        step = 2/(len_mch+1)
-        x_val = (i+1)*step
-        influence = 2*x_val - x_val**2    # parabolic influence of pivot
+        step = 2 / (len_mch + 1)
+        x_val = (i + 1) * step
+        influence = 2 * x_val - x_val**2    # parabolic influence of pivot
 
         self.make_constraint(
             mch, 'COPY_LOCATION', ctrl.neck_bend,

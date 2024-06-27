@@ -386,6 +386,7 @@ class BoneUtilityMixin(object):
 
     Requires self.obj to be the armature object being worked on.
     """
+
     def register_new_bone(self, new_name: str, old_name: Optional[str] = None):
         """Registers creation or renaming of a bone based on old_name"""
         pass
@@ -674,7 +675,7 @@ def compute_chain_x_axis(obj: ArmatureObject, bone_names: list[str]):
     chain_y_axis = last_bone.tail - first_bone.head
     chain_rot_axis = first_bone.y_axis.cross(chain_y_axis)
 
-    if chain_rot_axis.length < first_bone.length/100:
+    if chain_rot_axis.length < first_bone.length / 100:
         return first_bone.x_axis.normalized()
     else:
         return chain_rot_axis.normalized()

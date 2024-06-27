@@ -234,7 +234,7 @@ class BaseHeadTailRig(ConnectingChainRig):
     # Rotation follow
 
     def make_mch_follow_bone(self, org: str, name: str, def_val: float, *, copy_scale=False):
-        bone = self.copy_bone(org, make_derived_name('ROT-'+name, 'mch'), parent=True)
+        bone = self.copy_bone(org, make_derived_name('ROT-' + name, 'mch'), parent=True)
         self.rotation_bones.append(self.RotationBone(org, name, bone, def_val, copy_scale))
         return bone
 
@@ -252,13 +252,13 @@ class BaseHeadTailRig(ConnectingChainRig):
         for org, name, bone, def_val, copy_scale in self.rotation_bones:
             text_name = name.replace('_', ' ').title() + ' Follow'
 
-            self.make_property(self.prop_bone, name+'_follow', default=float(def_val))
-            panel.custom_prop(self.prop_bone, name+'_follow', text=text_name, slider=True)
+            self.make_property(self.prop_bone, name + '_follow', default=float(def_val))
+            panel.custom_prop(self.prop_bone, name + '_follow', text=text_name, slider=True)
 
     @stage.rig_bones
     def rig_mch_follow_bones(self):
         for org, name, bone, def_val, copy_scale in self.rotation_bones:
-            self.rig_mch_rotation_bone(bone, name+'_follow', copy_scale)
+            self.rig_mch_rotation_bone(bone, name + '_follow', copy_scale)
 
     def rig_mch_rotation_bone(self, mch: str, prop_name: str, copy_scale: bool):
         con = self.make_constraint(mch, 'COPY_ROTATION', self.follow_bone)

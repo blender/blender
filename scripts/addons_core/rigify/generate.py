@@ -325,7 +325,7 @@ class Generator(base_generate.BaseGenerator):
             root_bone = new_bone(obj, ROOT_NAME)
             spread = get_xy_spread(metarig.data.bones) or metarig.data.bones[0].length
             spread = float('%.3g' % spread)
-            scale = spread/0.589
+            scale = spread / 0.589
             obj.data.edit_bones[root_bone].head = (0, 0, 0)
             obj.data.edit_bones[root_bone].tail = (0, scale, 0)
             obj.data.edit_bones[root_bone].roll = 0
@@ -728,7 +728,7 @@ def apply_bone_colors(obj, metarig, priorities: Optional[dict[str, dict[str, flo
     pb = obj.pose.bones
 
     color_sets = get_rigify_colors(metarig.data)
-    color_map = {i+1: cset for i, cset in enumerate(color_sets)}
+    color_map = {i + 1: cset for i, cset in enumerate(color_sets)}
 
     collection_table: dict[str, tuple[int, 'RigifyColorSet']] = {
         coll.name: (i, color_map[coll.rigify_color_set_id])

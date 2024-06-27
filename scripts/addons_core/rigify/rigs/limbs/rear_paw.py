@@ -77,7 +77,7 @@ class Rig(pawRig):
         self.bones.mch.ik2_target = self.make_ik2_mch_target_bone(orgs)
 
     def make_ik2_mch_target_bone(self, orgs: list[str]):
-        return self.copy_bone(orgs[3], make_derived_name(orgs[0], 'mch', '_ik2_target'), scale=1/2)
+        return self.copy_bone(orgs[3], make_derived_name(orgs[0], 'mch', '_ik2_target'), scale=1 / 2)
 
     @stage.generate_bones
     def make_ik2_mch_chain(self):

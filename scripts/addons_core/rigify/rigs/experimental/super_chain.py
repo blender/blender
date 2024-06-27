@@ -49,7 +49,7 @@ class Rig:
         eb = self.obj.data.edit_bones
 
         if not pivot:
-            pivot = int(len(org_bones)/2)
+            pivot = int(len(org_bones) / 2)
 
         pivot_name = org_bones[pivot]
         if '.L' in pivot_name:
@@ -65,16 +65,16 @@ class Rig:
 
         self.orient_bone(ctrl_eb, 'y', self.spine_length / 2.5)
 
-        pivot_loc = eb[pivot_name].head + ((eb[pivot_name].tail - eb[pivot_name].head)/2)*(len(org_bones) % 2)
+        pivot_loc = eb[pivot_name].head + ((eb[pivot_name].tail - eb[pivot_name].head) / 2) * (len(org_bones) % 2)
 
         put_bone(self.obj, ctrl_name, pivot_loc)
 
         v = eb[org_bones[-1]].tail - eb[org_bones[0]].head  # Create a vector from head of first ORG to tail of last
         v.normalize()
-        v_proj = eb[org_bones[0]].y_axis.dot(v)*v   # projection of first ORG to v
+        v_proj = eb[org_bones[0]].y_axis.dot(v) * v   # projection of first ORG to v
         v_point = eb[org_bones[0]].y_axis - v_proj  # a vector co-planar to first ORG and v directed out of the chain
 
-        if v_point.magnitude < eb[org_bones[0]].y_axis.magnitude*1e-03:     # if v_point is too small it's not usable
+        if v_point.magnitude < eb[org_bones[0]].y_axis.magnitude * 1e-03:     # if v_point is too small it's not usable
             v_point = eb[org_bones[0]].x_axis
 
         if self.params.tweak_axis == 'auto':
@@ -178,10 +178,10 @@ class Rig:
         # Tweak & Ctrl bones
         v = eb[org_bones[-1]].tail - eb[org_bones[0]].head  # Create a vector from head of first ORG to tail of last
         v.normalize()
-        v_proj = eb[org_bones[0]].y_axis.dot(v)*v   # projection of first ORG to v
+        v_proj = eb[org_bones[0]].y_axis.dot(v) * v   # projection of first ORG to v
         v_point = eb[org_bones[0]].y_axis - v_proj  # a vector co-planar to first ORG and v directed out of the chain
 
-        if v_point.magnitude < eb[org_bones[0]].y_axis.magnitude*1e-03:
+        if v_point.magnitude < eb[org_bones[0]].y_axis.magnitude * 1e-03:
             v_point = eb[org_bones[0]].x_axis
 
         for b in org_bones:     # All
@@ -296,7 +296,7 @@ class Rig:
         # Parent deform bones
         for i, b in enumerate(bones['def']):
             if i > 0:   # For all bones but the first (which has no parent)
-                eb[b].parent = eb[bones['def'][i-1]]  # to previous
+                eb[b].parent = eb[bones['def'][i - 1]]  # to previous
                 eb[b].use_connect = True
             elif self.SINGLE_BONE:
                 eb[b].parent = eb[bones['chain']['mch'][0]]
@@ -306,7 +306,7 @@ class Rig:
         eb[bones['def'][0]].parent = eb[bones['chain']['mch'][0]]
 
         for i, twk in enumerate(bones['chain']['tweak']):
-            eb[twk].parent = eb[bones['chain']['mch_ctrl'][i+1]]
+            eb[twk].parent = eb[bones['chain']['mch_ctrl'][i + 1]]
             eb[twk].inherit_scale = 'NONE'
 
         eb[bones['chain']['ctrl'][0]].parent =\
@@ -325,7 +325,7 @@ class Rig:
             elif mch == bones['chain']['mch'][-1]:
                 eb[mch].parent = eb[bones['chain']['ctrl'][1]]
             else:
-                eb[mch].parent = eb[bones['chain']['tweak'][i-1]]
+                eb[mch].parent = eb[bones['chain']['tweak'][i - 1]]
 
         if 'parent' in bones.keys():
             if self.SINGLE_BONE:
@@ -396,7 +396,7 @@ class Rig:
 
             self.make_constraint(d, {
                 'constraint': 'STRETCH_TO',
-                'subtarget': tweaks[i+1]
+                'subtarget': tweaks[i + 1]
             })
 
         if bones['conv_def']:
@@ -408,11 +408,11 @@ class Rig:
             })
 
         if 'pivot' in bones.keys():
-            step = 2/(len(self.org_bones))
+            step = 2 / (len(self.org_bones))
             for i, b in enumerate(mch_ctrl):
-                x_val = i*step
-                influence = 2*x_val - x_val**2    # parabolic influence of pivot
-                if (i != 0) and (i != len(mch_ctrl)-1):
+                x_val = i * step
+                influence = 2 * x_val - x_val**2    # parabolic influence of pivot
+                if (i != 0) and (i != len(mch_ctrl) - 1):
                     self.make_constraint(b, {
                         'constraint': 'COPY_TRANSFORMS',
                         'subtarget': bones['pivot']['ctrl'],
@@ -455,7 +455,7 @@ class Rig:
             self.make_constraint(pivot, {
                 'constraint': 'COPY_ROTATION',
                 'subtarget': tweaks[-1],
-                'influence':   0.33,
+                'influence': 0.33,
                 'owner_space': 'LOCAL',
                 'target_space': 'LOCAL'
             })
@@ -542,7 +542,7 @@ class Rig:
                 radius=0.15,
                 bone_transform_name=None,
                 axis=self.params.wgt_align_axis,
-                offset=self.params.wgt_offset*pb[bones['chain']['ctrl'][0]].length
+                offset=self.params.wgt_offset * pb[bones['chain']['ctrl'][0]].length
             )
 
         for bone in bones['chain']['tweak']:
@@ -553,7 +553,7 @@ class Rig:
                 radius=0.2,
                 bone_transform_name=None,
                 axis=self.params.wgt_align_axis,
-                offset=self.params.wgt_offset*pb[bones['chain']['ctrl'][0]].length
+                offset=self.params.wgt_offset * pb[bones['chain']['ctrl'][0]].length
             )
 
         create_chain_widget(
@@ -563,7 +563,7 @@ class Rig:
             radius=0.3,
             bone_transform_name=None,
             axis=self.params.wgt_align_axis,
-            offset=self.params.wgt_offset*pb[bones['chain']['ctrl'][0]].length
+            offset=self.params.wgt_offset * pb[bones['chain']['ctrl'][0]].length
         )
 
         invert_last = True
@@ -577,7 +577,7 @@ class Rig:
             radius=0.3,
             bone_transform_name=None,
             axis=self.params.wgt_align_axis,
-            offset=self.params.wgt_offset*pb[bones['chain']['ctrl'][0]].length
+            offset=self.params.wgt_offset * pb[bones['chain']['ctrl'][0]].length
         )
 
         if bones['chain']['conv']:
@@ -588,7 +588,7 @@ class Rig:
                 radius=0.5,
                 bone_transform_name=None,
                 axis=self.params.wgt_align_axis,
-                offset=self.params.wgt_offset*pb[bones['chain']['ctrl'][0]].length
+                offset=self.params.wgt_offset * pb[bones['chain']['ctrl'][0]].length
             )
 
         # Assigning layers to tweaks and ctrls
@@ -708,19 +708,19 @@ def add_parameters(params):
         name="Add DEF on convergence",
         default=False,
         description=""
-        )
+    )
 
     params.def_parenting = bpy.props.BoolProperty(
         name="Prefer DEF parenting",
         default=False,
         description=""
-        )
+    )
 
     params.cluster_ctrls = bpy.props.BoolProperty(
         name="Cluster controls",
         default=False,
         description="Clusterize controls in the same position"
-        )
+    )
 
     params.bbones = bpy.props.IntProperty(
         name='B-Bone Segments',
@@ -782,27 +782,27 @@ def create_sample(obj):
 
     bone = arm.edit_bones.new('spine')
     bone.head[:] = 0.0000, 0.0000, 0.0000
-    bone.tail[:] = 0.0000, 0.5000/8, 1.0000/8
+    bone.tail[:] = 0.0000, 0.5000 / 8, 1.0000 / 8
     bone.roll = 0.0000
     bone.use_connect = False
     bones['spine'] = bone.name
     bone = arm.edit_bones.new('spine.001')
-    bone.head[:] = 0.0000, 0.5000/8, 1.0000/8
-    bone.tail[:] = 0.0000, 0.7500/8, 2.0000/8
+    bone.head[:] = 0.0000, 0.5000 / 8, 1.0000 / 8
+    bone.tail[:] = 0.0000, 0.7500 / 8, 2.0000 / 8
     bone.roll = 0.0000
     bone.use_connect = True
     bone.parent = arm.edit_bones[bones['spine']]
     bones['spine.001'] = bone.name
     bone = arm.edit_bones.new('spine.002')
-    bone.head[:] = 0.0000, 0.7500/8, 2.0000/8
-    bone.tail[:] = 0.0000, 0.5000/8, 3.0000/8
+    bone.head[:] = 0.0000, 0.7500 / 8, 2.0000 / 8
+    bone.tail[:] = 0.0000, 0.5000 / 8, 3.0000 / 8
     bone.roll = 0.0000
     bone.use_connect = True
     bone.parent = arm.edit_bones[bones['spine.001']]
     bones['spine.002'] = bone.name
     bone = arm.edit_bones.new('spine.003')
-    bone.head[:] = 0.0000, 0.5000/8, 3.0000/8
-    bone.tail[:] = 0.0000, 0.0000, 4.0000/8
+    bone.head[:] = 0.0000, 0.5000 / 8, 3.0000 / 8
+    bone.tail[:] = 0.0000, 0.0000, 4.0000 / 8
     bone.roll = 0.0000
     bone.use_connect = True
     bone.parent = arm.edit_bones[bones['spine.002']]

@@ -80,7 +80,7 @@ class Rig(pawRig):
         align_bone_roll(self.obj, chain[1], orgs[1])
 
     def make_ik2_mch_target_bone(self, orgs: list[str]):
-        return self.copy_bone(orgs[3], make_derived_name(orgs[0], 'mch', '_ik2_target'), scale=1/2)
+        return self.copy_bone(orgs[3], make_derived_name(orgs[0], 'mch', '_ik2_target'), scale=1 / 2)
 
     def make_ik2_mch_bone(self, _i: int, org: str):
         return self.copy_bone(org, make_derived_name(org, 'mch', '_ik2'))
@@ -124,8 +124,8 @@ class Rig(pawRig):
         # of the way to a forbidden zone of the rig, and thus avoid flipping.
         # The bones are aligned to the center of the valid transformation zone.
         self.align_ik_control_bone(mch.heel_track)
-        put_bone(self.obj, mch.heel_track, self.get_bone(orgs[2]).tail, scale=1/3)
-        copy_bone_position(self.obj, mch.heel_track, mch.heel_parent, scale=3/4)
+        put_bone(self.obj, mch.heel_track, self.get_bone(orgs[2]).tail, scale=1 / 3)
+        copy_bone_position(self.obj, mch.heel_track, mch.heel_parent, scale=3 / 4)
 
     @stage.parent_bones
     def parent_heel_control_bone(self):

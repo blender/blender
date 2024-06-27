@@ -163,7 +163,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
 
         # Create MCH proxy
         if use_parent_mch:
-            mch_bone = rig.copy_bone(bone, make_derived_name(bone, 'mch', '.parent'), scale=1/3)
+            mch_bone = rig.copy_bone(bone, make_derived_name(bone, 'mch', '.parent'), scale=1 / 3)
 
             set_bone_orientation(rig.obj, mch_bone, mch_orientation or Matrix.Identity(4))
 
@@ -434,7 +434,7 @@ class SwitchParentBuilder(GeneratorPlugin, MechanismUtilityMixin):
         prop_var = [(child['prop_bone'], child['prop_id'])]
 
         for i, (_parent, _parent_name) in enumerate(child['parent_bones']):
-            expr = 'var == %d' % (i+1)
+            expr = 'var == %d' % (i + 1)
             self.make_driver(con.targets[i], 'weight', expression=expr, variables=prop_var)
 
         # Add copy constraints

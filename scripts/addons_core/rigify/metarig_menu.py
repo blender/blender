@@ -95,6 +95,7 @@ def make_metarig_menu_func(bl_idname: str, text: str):
     """ For some reason lambdas don't work for adding multiple menu
         items, so we use this instead to generate the functions.
     """
+
     def metarig_menu(self, _context):
         self.layout.operator(bl_idname, icon='OUTLINER_OB_ARMATURE', text=text)
     return metarig_menu
