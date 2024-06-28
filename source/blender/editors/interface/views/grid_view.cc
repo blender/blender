@@ -163,6 +163,11 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
   UI_but_func_set(view_item_but_, grid_tile_click_fn, view_item_but_, nullptr);
 }
 
+std::optional<std::string> AbstractGridViewItem::debug_name() const
+{
+  return identifier_;
+}
+
 AbstractGridView &AbstractGridViewItem::get_view() const
 {
   if (UNLIKELY(!view_)) {

@@ -456,6 +456,11 @@ std::unique_ptr<TreeViewItemDropTarget> AbstractTreeViewItem::create_drop_target
   return nullptr;
 }
 
+std::optional<std::string> AbstractTreeViewItem::debug_name() const
+{
+  return label_;
+}
+
 AbstractTreeView &AbstractTreeViewItem::get_tree_view() const
 {
   return dynamic_cast<AbstractTreeView &>(get_view());

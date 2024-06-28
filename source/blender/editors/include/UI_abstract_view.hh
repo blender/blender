@@ -212,6 +212,13 @@ class AbstractViewItem {
    */
   virtual std::unique_ptr<DropTargetInterface> create_item_drop_target();
 
+  /**
+   * View types should implement this to return some name or identifier of the item, which is
+   * helpful for debugging (there's nothing to identify the item just from the #AbstractViewItem
+   * otherwise).
+   */
+  virtual std::optional<std::string> debug_name() const;
+
   /** Return the result of #is_filtered_visible(), but ensure the result is cached so it's only
    * queried once per redraw. */
   bool is_filtered_visible_cached() const;
