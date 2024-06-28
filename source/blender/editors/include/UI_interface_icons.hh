@@ -101,9 +101,6 @@ void UI_icon_draw_ex(float x,
 void UI_icons_free();
 void UI_icons_free_drawinfo(void *drawinfo);
 
-void UI_icon_draw_cache_begin();
-void UI_icon_draw_cache_end();
-
 PreviewImage *UI_icon_to_preview(int icon_id);
 
 int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, bool big);
