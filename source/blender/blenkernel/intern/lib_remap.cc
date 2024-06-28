@@ -517,7 +517,7 @@ static void libblock_remap_data(
     id_remap_data.id_owner = (id->flag & LIB_EMBEDDED_DATA) ? BKE_id_owner_get(id) : id;
     libblock_remap_data_preprocess(id_remap_data.id_owner, remap_type, id_remapper);
     BKE_library_foreach_ID_link(
-        nullptr, id, foreach_libblock_remap_callback, &id_remap_data, foreach_id_flags);
+        bmain, id, foreach_libblock_remap_callback, &id_remap_data, foreach_id_flags);
   }
   else {
     /* Note that this is a very 'brute force' approach,
@@ -542,7 +542,7 @@ static void libblock_remap_data(
       id_remap_data.id_owner = id_curr;
       libblock_remap_data_preprocess(id_remap_data.id_owner, remap_type, id_remapper);
       BKE_library_foreach_ID_link(
-          nullptr, id_curr, foreach_libblock_remap_callback, &id_remap_data, foreach_id_flags);
+          bmain, id_curr, foreach_libblock_remap_callback, &id_remap_data, foreach_id_flags);
     }
     FOREACH_MAIN_ID_END;
   }
