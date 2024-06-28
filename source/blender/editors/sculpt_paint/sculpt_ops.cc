@@ -885,7 +885,6 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
 
-
   if (RNA_boolean_get(op->ptr, "contiguous")) {
     sculpt_mask_by_color_contiguous(ob, active_vertex, threshold, invert, preserve_mask);
   }
