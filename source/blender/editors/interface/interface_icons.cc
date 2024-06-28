@@ -21,9 +21,9 @@
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 
-#include "BLI_string.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
