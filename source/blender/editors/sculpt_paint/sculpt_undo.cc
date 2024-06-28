@@ -1232,9 +1232,13 @@ static void store_coords(const Object &object, Node &unode)
                         unode.vert_indices.as_span(),
                         unode.normal.as_mutable_span());
     if (ss.deform_modifiers_active) {
-      array_utils::gather(ss.orig_cos.as_span(),
-                          unode.vert_indices.as_span(),
-                          unode.orig_position.as_mutable_span());
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Span<float3> orig_positions = ss.shapekey_active ? Span(static_cast<const float3 *>(
+                                                                        ss.shapekey_active->data),
+                                                                    mesh.verts_num) :
+                                                               mesh.vert_positions();
+      array_utils::gather(
+          orig_positions, unode.vert_indices.as_span(), unode.orig_position.as_mutable_span());
     }
   }
 }
