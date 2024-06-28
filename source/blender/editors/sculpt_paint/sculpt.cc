@@ -2212,24 +2212,23 @@ void calc_area_center(const Brush &brush,
                       float r_area_co[3])
 {
   const SculptSession &ss = *ob.sculpt;
-  const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
   int n;
 
-  const PBVHType type = BKE_pbvh_type(*ss.pbvh);
-  const AreaNormalCenterData anctd = threading::parallel_reduce(
-      nodes.index_range(),
-      1,
-      AreaNormalCenterData{},
-      [&](const IndexRange range, AreaNormalCenterData anctd) {
-        for (const int i : range) {
-          switch (type) {
-            case PBVH_FACES: {
-              const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-              const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
-              const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
-              const bke::AttributeAccessor attributes = mesh.attributes();
-              const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert",
-                                                                    bke::AttrDomain::Point);
+  AreaNormalCenterData anctd;
+  switch (BKE_pbvh_type(*ss.pbvh)) {
+    case PBVH_FACES: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
               calc_area_normal_and_center_node_mesh(ss,
                                                     vert_positions,
                                                     vert_normals,
@@ -2239,20 +2238,44 @@ void calc_area_center(const Brush &brush,
                                                     true,
                                                     *nodes[i],
                                                     anctd);
-              break;
             }
-            case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(ss, brush, false, true, *nodes[i], anctd);
-              break;
-            case PBVH_BMESH:
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+    case PBVH_BMESH: {
+      const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
+
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
                   ss, brush, false, true, has_bm_orco, *nodes[i], anctd);
-              break;
-          }
-        }
-        return anctd;
-      },
-      calc_area_normal_and_center_reduce);
+            }
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+    case PBVH_GRIDS: {
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
+              calc_area_normal_and_center_node_grids(ss, brush, false, true, *nodes[i], anctd);
+            }
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+  }
 
   /* For flatten center. */
   for (n = 0; n < anctd.area_cos.size(); n++) {
@@ -2278,23 +2301,22 @@ void calc_area_center(const Brush &brush,
 std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVHNode *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
-  const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
 
-  const PBVHType type = BKE_pbvh_type(*ss.pbvh);
-  const AreaNormalCenterData anctd = threading::parallel_reduce(
-      nodes.index_range(),
-      1,
-      AreaNormalCenterData{},
-      [&](const IndexRange range, AreaNormalCenterData anctd) {
-        for (const int i : range) {
-          switch (type) {
-            case PBVH_FACES: {
-              const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-              const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
-              const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
-              const bke::AttributeAccessor attributes = mesh.attributes();
-              const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert",
-                                                                    bke::AttrDomain::Point);
+  AreaNormalCenterData anctd;
+  switch (BKE_pbvh_type(*ss.pbvh)) {
+    case PBVH_FACES: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
               calc_area_normal_and_center_node_mesh(ss,
                                                     vert_positions,
                                                     vert_normals,
@@ -2304,20 +2326,44 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
                                                     false,
                                                     *nodes[i],
                                                     anctd);
-              break;
             }
-            case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(ss, brush, true, false, *nodes[i], anctd);
-              break;
-            case PBVH_BMESH:
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+    case PBVH_BMESH: {
+      const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
+
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
                   ss, brush, true, false, has_bm_orco, *nodes[i], anctd);
-              break;
-          }
-        }
-        return anctd;
-      },
-      calc_area_normal_and_center_reduce);
+            }
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+    case PBVH_GRIDS: {
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
+              calc_area_normal_and_center_node_grids(ss, brush, true, false, *nodes[i], anctd);
+            }
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+  }
 
   for (const int i : {0, 1}) {
     if (anctd.count_no[i] != 0) {
@@ -2336,24 +2382,23 @@ void calc_area_normal_and_center(const Brush &brush,
                                  float r_area_co[3])
 {
   SculptSession &ss = *ob.sculpt;
-  const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
   int n;
 
-  const PBVHType type = BKE_pbvh_type(*ss.pbvh);
-  const AreaNormalCenterData anctd = threading::parallel_reduce(
-      nodes.index_range(),
-      1,
-      AreaNormalCenterData{},
-      [&](const IndexRange range, AreaNormalCenterData anctd) {
-        for (const int i : range) {
-          switch (type) {
-            case PBVH_FACES: {
-              const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-              const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
-              const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
-              const bke::AttributeAccessor attributes = mesh.attributes();
-              const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert",
-                                                                    bke::AttrDomain::Point);
+  AreaNormalCenterData anctd;
+  switch (BKE_pbvh_type(*ss.pbvh)) {
+    case PBVH_FACES: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
               calc_area_normal_and_center_node_mesh(ss,
                                                     vert_positions,
                                                     vert_normals,
@@ -2363,20 +2408,44 @@ void calc_area_normal_and_center(const Brush &brush,
                                                     true,
                                                     *nodes[i],
                                                     anctd);
-              break;
             }
-            case PBVH_GRIDS:
-              calc_area_normal_and_center_node_grids(ss, brush, true, true, *nodes[i], anctd);
-              break;
-            case PBVH_BMESH:
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+    case PBVH_BMESH: {
+      const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
+
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
                   ss, brush, true, true, has_bm_orco, *nodes[i], anctd);
-              break;
-          }
-        }
-        return anctd;
-      },
-      calc_area_normal_and_center_reduce);
+            }
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+    case PBVH_GRIDS: {
+      anctd = threading::parallel_reduce(
+          nodes.index_range(),
+          1,
+          AreaNormalCenterData{},
+          [&](const IndexRange range, AreaNormalCenterData anctd) {
+            for (const int i : range) {
+              calc_area_normal_and_center_node_grids(ss, brush, true, true, *nodes[i], anctd);
+            }
+            return anctd;
+          },
+          calc_area_normal_and_center_reduce);
+      break;
+    }
+  }
 
   /* For flatten center. */
   for (n = 0; n < anctd.area_cos.size(); n++) {
