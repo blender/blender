@@ -535,7 +535,7 @@ class KeyframeStrip : public ::KeyframeActionStrip {
    *
    * If it cannot be found, `nullptr` is returned.
    */
-  FCurve *fcurve_find(const Binding &binding, StringRefNull rna_path, int array_index);
+  FCurve *fcurve_find(const Binding &binding, FCurveDescriptor fcurve_descriptor);
 
   /**
    * Find an FCurve for this binding + RNA path + array index combination.
@@ -545,15 +545,10 @@ class KeyframeStrip : public ::KeyframeActionStrip {
    * \param `prop_subtype` The subtype of the property this fcurve is for, if
    * available.
    */
-  FCurve &fcurve_find_or_create(const Binding &binding,
-                                StringRefNull rna_path,
-                                int array_index,
-                                std::optional<PropertySubType> prop_subtype);
+  FCurve &fcurve_find_or_create(const Binding &binding, FCurveDescriptor fcurve_descriptor);
 
   SingleKeyingResult keyframe_insert(const Binding &binding,
-                                     StringRefNull rna_path,
-                                     int array_index,
-                                     std::optional<PropertySubType> prop_subtype,
+                                     FCurveDescriptor fcurve_descriptor,
                                      float2 time_value,
                                      const KeyframeSettings &settings,
                                      eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS);
@@ -670,13 +665,12 @@ FCurve *action_fcurve_ensure(Main *bmain,
                              bAction *act,
                              const char group[],
                              PointerRNA *ptr,
-                             const char rna_path[],
-                             int array_index);
+                             FCurveDescriptor fcurve_descriptor);
 
 /**
  * Find the F-Curve from the given Action. This assumes that all the destinations are valid.
  */
-FCurve *action_fcurve_find(bAction *act, const char rna_path[], int array_index);
+FCurve *action_fcurve_find(bAction *act, FCurveDescriptor fcurve_descriptor);
 
 }  // namespace blender::animrig
 

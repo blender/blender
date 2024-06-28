@@ -515,7 +515,7 @@ static void gpencil_stroke_path_animation(bContext *C,
 
   /* Ensure we have an F-Curve to add keyframes to */
   act = blender::animrig::id_action_ensure(bmain, (ID *)cu);
-  fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, &ptr, "eval_time", 0);
+  fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, &ptr, {"eval_time", 0});
 
   if (gtd->mode == GP_STROKECONVERT_TIMING_LINEAR) {
     float cfra;

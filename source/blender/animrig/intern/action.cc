@@ -906,8 +906,7 @@ ChannelBag &KeyframeStrip::channelbag_for_binding_add(const Binding &binding)
 }
 
 FCurve *KeyframeStrip::fcurve_find(const Binding &binding,
-                                   const StringRefNull rna_path,
-                                   const int array_index)
+                                   const FCurveDescriptor fcurve_descriptor)
 {
   ChannelBag *channels = this->channelbag_for_binding(binding);
   if (channels == nullptr) {
@@ -920,7 +919,9 @@ FCurve *KeyframeStrip::fcurve_find(const Binding &binding,
   for (FCurve *fcu : channels->fcurves()) {
     /* Check indices first, much cheaper than a string comparison. */
     /* Simple string-compare (this assumes that they have the same root...) */
-    if (fcu->array_index == array_index && fcu->rna_path && StringRef(fcu->rna_path) == rna_path) {
+    if (fcu->array_index == fcurve_descriptor.array_index && fcu->rna_path &&
+        StringRef(fcu->rna_path) == fcurve_descriptor.rna_path)
+    {
       return fcu;
     }
   }
@@ -928,15 +929,13 @@ FCurve *KeyframeStrip::fcurve_find(const Binding &binding,
 }
 
 FCurve &KeyframeStrip::fcurve_find_or_create(const Binding &binding,
-                                             const StringRefNull rna_path,
-                                             const int array_index,
-                                             const std::optional<PropertySubType> prop_subtype)
+                                             const FCurveDescriptor fcurve_descriptor)
 {
-  if (FCurve *existing_fcurve = this->fcurve_find(binding, rna_path, array_index)) {
+  if (FCurve *existing_fcurve = this->fcurve_find(binding, fcurve_descriptor)) {
     return *existing_fcurve;
   }
 
-  FCurve *new_fcurve = create_fcurve_for_channel(rna_path.c_str(), array_index, prop_subtype);
+  FCurve *new_fcurve = create_fcurve_for_channel(fcurve_descriptor);
 
   ChannelBag *channels = this->channelbag_for_binding(binding);
   if (channels == nullptr) {
@@ -951,26 +950,23 @@ FCurve &KeyframeStrip::fcurve_find_or_create(const Binding &binding,
   return *new_fcurve;
 }
 
-SingleKeyingResult KeyframeStrip::keyframe_insert(
-    const Binding &binding,
-    const StringRefNull rna_path,
-    const int array_index,
-    const std::optional<PropertySubType> prop_subtype,
-    const float2 time_value,
-    const KeyframeSettings &settings,
-    const eInsertKeyFlags insert_key_flags)
+SingleKeyingResult KeyframeStrip::keyframe_insert(const Binding &binding,
+                                                  const FCurveDescriptor fcurve_descriptor,
+                                                  const float2 time_value,
+                                                  const KeyframeSettings &settings,
+                                                  const eInsertKeyFlags insert_key_flags)
 {
   /* Get the fcurve, or create one if it doesn't exist and the keying flags
    * allow. */
   FCurve *fcurve = key_insertion_may_create_fcurve(insert_key_flags) ?
-                       &this->fcurve_find_or_create(binding, rna_path, array_index, prop_subtype) :
-                       this->fcurve_find(binding, rna_path, array_index);
+                       &this->fcurve_find_or_create(binding, fcurve_descriptor) :
+                       this->fcurve_find(binding, fcurve_descriptor);
   if (!fcurve) {
     std::fprintf(stderr,
                  "FCurve %s[%d] for binding %s was not created due to either the Only Insert "
                  "Available setting or Replace keyframing mode.\n",
-                 rna_path.c_str(),
-                 array_index,
+                 fcurve_descriptor.rna_path.c_str(),
+                 fcurve_descriptor.array_index,
                  binding.name);
     return SingleKeyingResult::CANNOT_CREATE_FCURVE;
   }
@@ -979,8 +975,8 @@ SingleKeyingResult KeyframeStrip::keyframe_insert(
     /* TODO: handle this properly, in a way that can be communicated to the user. */
     std::fprintf(stderr,
                  "FCurve %s[%d] for binding %s doesn't allow inserting keys.\n",
-                 rna_path.c_str(),
-                 array_index,
+                 fcurve_descriptor.rna_path.c_str(),
+                 fcurve_descriptor.array_index,
                  binding.name);
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
   }
@@ -991,8 +987,8 @@ SingleKeyingResult KeyframeStrip::keyframe_insert(
   if (insert_vert_result != SingleKeyingResult::SUCCESS) {
     std::fprintf(stderr,
                  "Could not insert key into FCurve %s[%d] for binding %s.\n",
-                 rna_path.c_str(),
-                 array_index,
+                 fcurve_descriptor.rna_path.c_str(),
+                 fcurve_descriptor.array_index,
                  binding.name);
     return insert_vert_result;
   }
@@ -1163,22 +1159,22 @@ Vector<const FCurve *> fcurves_all(const Action &action)
                           const ChannelBag>(action);
 }
 
-FCurve *action_fcurve_find(bAction *act, const char rna_path[], const int array_index)
+FCurve *action_fcurve_find(bAction *act, FCurveDescriptor fcurve_descriptor)
 {
-  if (ELEM(nullptr, act, rna_path)) {
+  if (act == nullptr) {
     return nullptr;
   }
-  return BKE_fcurve_find(&act->curves, rna_path, array_index);
+  return BKE_fcurve_find(
+      &act->curves, fcurve_descriptor.rna_path.c_str(), fcurve_descriptor.array_index);
 }
 
 FCurve *action_fcurve_ensure(Main *bmain,
                              bAction *act,
                              const char group[],
                              PointerRNA *ptr,
-                             const char rna_path[],
-                             const int array_index)
+                             FCurveDescriptor fcurve_descriptor)
 {
-  if (ELEM(nullptr, act, rna_path)) {
+  if (act == nullptr) {
     return nullptr;
   }
 
@@ -1186,7 +1182,8 @@ FCurve *action_fcurve_ensure(Main *bmain,
    * - add if not found and allowed to add one
    *   TODO: add auto-grouping support? how this works will need to be resolved
    */
-  FCurve *fcu = BKE_fcurve_find(&act->curves, rna_path, array_index);
+  FCurve *fcu = BKE_fcurve_find(
+      &act->curves, fcurve_descriptor.rna_path.c_str(), fcurve_descriptor.array_index);
 
   if (fcu != nullptr) {
     return fcu;
@@ -1199,13 +1196,17 @@ FCurve *action_fcurve_ensure(Main *bmain,
     PointerRNA resolved_ptr;
     PointerRNA id_ptr = RNA_id_pointer_create(ptr->owner_id);
     const bool resolved = RNA_path_resolve_property(
-        &id_ptr, rna_path, &resolved_ptr, &resolved_prop);
+        &id_ptr, fcurve_descriptor.rna_path.c_str(), &resolved_ptr, &resolved_prop);
     if (resolved) {
       prop_subtype = RNA_property_subtype(resolved_prop);
     }
   }
 
-  fcu = create_fcurve_for_channel(rna_path, array_index, prop_subtype);
+  BLI_assert_msg(!fcurve_descriptor.prop_subtype.has_value(),
+                 "Did not expect a prop_subtype to be passed in. This is fine, but does need some "
+                 "changes to action_fcurve_ensure() to deal with it");
+  fcu = create_fcurve_for_channel(
+      {fcurve_descriptor.rna_path, fcurve_descriptor.array_index, prop_subtype});
 
   if (BLI_listbase_is_empty(&act->curves)) {
     fcu->flag |= FCURVE_ACTIVE;

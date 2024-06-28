@@ -1316,7 +1316,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__quaternion_on_nla__only_
   /* Create an fcurve and key for a single quaternion channel. */
   PointerRNA id_rna_ptr = RNA_id_pointer_create(&object_with_nla->id);
   FCurve *fcu = action_fcurve_ensure(
-      bmain, nla_action, nullptr, &id_rna_ptr, "rotation_quaternion", 0);
+      bmain, nla_action, nullptr, &id_rna_ptr, {"rotation_quaternion", 0});
   const KeyframeSettings keyframe_settings = {BEZT_KEYTYPE_KEYFRAME, HD_AUTO_ANIM, BEZT_IPO_BEZ};
   insert_vert_fcurve(fcu, {1.0, 1.0}, keyframe_settings, INSERTKEY_NOFLAGS);
 
@@ -1356,7 +1356,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__quaternion_on_nla__only_
   /* Directly create an fcurve and key for a single quaternion channel. */
   PointerRNA id_rna_ptr = RNA_id_pointer_create(&object_with_nla->id);
   FCurve *fcu = action_fcurve_ensure(
-      bmain, nla_action, nullptr, &id_rna_ptr, "rotation_quaternion", 0);
+      bmain, nla_action, nullptr, &id_rna_ptr, {"rotation_quaternion", 0});
   const KeyframeSettings keyframe_settings = {BEZT_KEYTYPE_KEYFRAME, HD_AUTO_ANIM, BEZT_IPO_BEZ};
   insert_vert_fcurve(fcu, {11.0, 1.0}, keyframe_settings, INSERTKEY_NOFLAGS);
 
