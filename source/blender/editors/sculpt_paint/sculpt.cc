@@ -203,7 +203,6 @@ const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex)
   return nullptr;
 }
 
-
 const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(*ss.pbvh)) {
@@ -3604,9 +3603,6 @@ static void do_brush_action(const Scene &scene,
 {
   SculptSession &ss = *ob.sculpt;
   Vector<PBVHNode *> nodes, texnodes;
-
-  /* Check for unsupported features. */
-  PBVHType type = BKE_pbvh_type(*ss.pbvh);
 
   const bool use_original = sculpt_tool_needs_original(brush.sculpt_tool) ? true :
                                                                             !ss.cache->accum;
