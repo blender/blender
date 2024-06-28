@@ -1622,6 +1622,7 @@ static int object_grease_pencil_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  Object *original_active_object = CTX_data_active_object(C);
   /* TODO: For now, only support adding the 'Stroke' type. */
   const int type = RNA_enum_get(op->ptr, "type");
 
@@ -1687,8 +1688,6 @@ static int object_grease_pencil_add_exec(bContext *C, wmOperator *op)
     case GREASE_PENCIL_LINEART_OBJECT:
     case GREASE_PENCIL_LINEART_SCENE:
     case GREASE_PENCIL_LINEART_COLLECTION: {
-      Object *original_active_object = CTX_data_active_object(C);
-
       const int type = RNA_enum_get(op->ptr, "type");
       const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
       const bool use_lights = RNA_boolean_get(op->ptr, "use_lights");
