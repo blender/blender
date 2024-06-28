@@ -237,6 +237,7 @@ enum {
 bool BKE_lib_query_foreachid_iter_stop(const LibraryForeachIDData *data);
 void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int cb_flag);
 int BKE_lib_query_foreachid_process_flags_get(const LibraryForeachIDData *data);
+Main *BKE_lib_query_foreachid_process_main_get(const LibraryForeachIDData *data);
 int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData *data,
                                                            int cb_flag,
                                                            bool do_replace);
