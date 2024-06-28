@@ -156,7 +156,9 @@ CachedTexture &CachedTextureContainer::get(Context &context,
 {
   const CachedTextureKey key(size, offset, scale);
 
-  auto &cached_textures_for_id = map_.lookup_or_add_default(texture->id.name);
+  const std::string library_key = texture->id.lib ? texture->id.lib->id.name : "";
+  const std::string id_key = std::string(texture->id.name) + library_key;
+  auto &cached_textures_for_id = map_.lookup_or_add_default(id_key);
 
   /* Invalidate the cache for that texture ID if it was changed and reset the recalculate flag. */
   if (context.query_id_recalc_flag(reinterpret_cast<ID *>(texture)) & ID_RECALC_ALL) {
