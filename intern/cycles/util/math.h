@@ -63,10 +63,16 @@ CCL_NAMESPACE_BEGIN
 #ifndef M_4PI_F
 #  define M_4PI_F (12.566370614359172f) /* 4*pi */
 #endif
+#ifndef M_PI_4F
+#  define M_PI_4F 0.78539816339744830962f /* pi/4 */
+#endif
 
 /* Float sqrt variations */
 #ifndef M_SQRT2_F
 #  define M_SQRT2_F (1.4142135623730950f) /* sqrt(2) */
+#endif
+#ifndef M_SQRT1_2F
+#  define M_SQRT1_2F 0.70710678118654752440f /* sqrt(1/2) */
 #endif
 #ifndef M_SQRT3_F
 #  define M_SQRT3_F (1.7320508075688772f) /* sqrt(3) */
