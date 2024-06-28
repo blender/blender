@@ -637,6 +637,27 @@ void calc_grids_factors(const Object &object,
   }
 }
 
+void calc_vert_factors(const Object &object,
+                       const Cache &cache,
+                       const PBVHNode &node,
+                       const Set<BMVert *, 0> &verts,
+                       const MutableSpan<float> factors)
+{
+  SculptSession &ss = *object.sculpt;
+
+  NodeData data = node_begin(object, &cache, node);
+
+  int i = 0;
+  for (BMVert *vert : verts) {
+    if (data.orig_data) {
+      BM_log_original_vert_data(
+          data.orig_data->bm_log, vert, &data.orig_data->co, &data.orig_data->no);
+    }
+    factors[i] *= factor_get(&cache, ss, BKE_pbvh_make_vref(intptr_t(vert)), &data);
+    i++;
+  }
+}
+
 NodeData node_begin(const Object &object, const Cache *automasking, const PBVHNode &node)
 {
   if (!automasking) {

@@ -1117,22 +1117,6 @@ void sculpt_apply_texture(const SculptSession &ss,
                           float r_rgba[4]);
 
 /**
- * Return a color of a brush texture on a particular vertex multiplied by active masks.
- */
-void SCULPT_brush_strength_color(
-    SculptSession &ss,
-    const Brush &brush,
-    const float brush_point[3],
-    float len,
-    const float vno[3],
-    const float fno[3],
-    float mask,
-    const PBVHVertRef vertex,
-    int thread_id,
-    const blender::ed::sculpt_paint::auto_mask::NodeData *automask_data,
-    float r_rgba[4]);
-
-/**
  * Calculates the vertex offset for a single vertex depending on the brush setting rgb as vector
  * displacement.
  */

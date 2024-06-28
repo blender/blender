@@ -203,66 +203,61 @@ static void calc_grids(const Sculpt &sd,
   apply_translations(translations, grids, subdiv_ccg);
 }
 
-static void calc_bmesh(
-    Object &object, const Brush &brush, const float3 &offset, const float strength, PBVHNode &node)
+static void calc_bmesh(const Sculpt &sd,
+                       Object &object,
+                       const Brush &brush,
+                       const float3 &offset,
+                       const float strength,
+                       PBVHNode &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  const float3 &location = cache.location;
 
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      object, ss.cache->automasking.get(), node);
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
-  const int mask_offset = CustomData_get_offset_named(
-      &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  tls.positions.reinitialize(verts.size());
+  MutableSpan<float3> positions = tls.positions;
+  gather_bmesh_positions(verts, positions);
 
-  /* TODO: Remove usage of proxies. */
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, node).co;
-  int i = 0;
-  for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&node)) {
-    if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
-      i++;
-      continue;
-    }
-    if (!sculpt_brush_test_sq_fn(test, vert->co)) {
-      i++;
-      continue;
-    }
-
-    float3 translation = location - float3(vert->co);
-    if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-      project_translations({&translation, 1}, cache.view_normal);
-    }
-
-    auto_mask::node_update(automask_data, i);
-    const float mask = mask_offset == -1 ? 0.0f : BM_ELEM_CD_GET_FLOAT(vert, mask_offset);
-    const float fade = SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    vert->co,
-                                                    math::sqrt(test.dist),
-                                                    vert->no,
-                                                    nullptr,
-                                                    mask,
-                                                    BKE_pbvh_make_vref(intptr_t(vert)),
-                                                    thread_id,
-                                                    &automask_data);
-
-    translation *= fade;
-    translation *= strength;
-
-    /* The vertices are pinched towards a line instead of a single point. Without this we get a
-     * 'flat' surface surrounding the pinch. */
-    project_translations({&translation, 1}, cache.sculpt_normal_symm);
-
-    translation += offset * fade;
-
-    proxy[i] = translation;
-    i++;
+  tls.factors.reinitialize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal, verts, factors);
   }
+
+  tls.distances.reinitialize(verts.size());
+  const MutableSpan<float> distances = tls.distances;
+  calc_distance_falloff(
+      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  if (cache.automasking) {
+    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
+  }
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+
+  tls.translations.reinitialize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  translations_from_position(positions, cache.location, translations);
+
+  if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+    project_translations(translations, cache.view_normal);
+  }
+
+  scale_translations(translations, factors);
+  scale_translations(translations, strength);
+
+  project_translations(translations, cache.sculpt_normal_symm);
+
+  add_offset_to_translations(translations, factors, offset);
+
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, verts);
 }
 
 static void do_crease_or_blob_brush(const Scene &scene,
@@ -326,8 +321,9 @@ static void do_crease_or_blob_brush(const Scene &scene,
       break;
     case PBVH_BMESH:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh(object, brush, offset, strength, *nodes[i]);
+          calc_bmesh(sd, object, brush, offset, strength, *nodes[i], tls);
         }
       });
       break;

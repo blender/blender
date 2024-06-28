@@ -2692,44 +2692,6 @@ float SCULPT_brush_strength_factor(
   return avg;
 }
 
-void SCULPT_brush_strength_color(
-    SculptSession &ss,
-    const Brush &brush,
-    const float brush_point[3],
-    float len,
-    const float vno[3],
-    const float fno[3],
-    float mask,
-    const PBVHVertRef vertex,
-    int thread_id,
-    const blender::ed::sculpt_paint::auto_mask::NodeData *automask_data,
-    float r_rgba[4])
-{
-  using namespace blender::ed::sculpt_paint;
-  StrokeCache *cache = ss.cache;
-
-  float avg = 1.0f;
-  sculpt_apply_texture(ss, brush, brush_point, thread_id, &avg, r_rgba);
-
-  /* Hardness. */
-  const float final_len = sculpt_apply_hardness(*cache, len);
-
-  /* Falloff curve. */
-  const float falloff = BKE_brush_curve_strength(&brush, final_len, cache->radius) *
-                        frontface(brush, cache->view_normal, vno ? vno : fno);
-
-  /* Paint mask. */
-  const float paint_mask = 1.0f - mask;
-
-  /* Auto-masking. */
-  const float automasking_factor = auto_mask::factor_get(
-      cache->automasking.get(), ss, vertex, automask_data);
-
-  const float masks_combined = falloff * paint_mask * automasking_factor;
-
-  mul_v4_fl(r_rgba, masks_combined);
-}
-
 void SCULPT_calc_vertex_displacement(const SculptSession &ss,
                                      const Brush &brush,
                                      float rgba[3],
@@ -6566,6 +6528,15 @@ void gather_grids_positions(const SubdivCCG &subdiv_ccg,
   }
 }
 
+void gather_bmesh_positions(const Set<BMVert *, 0> &verts, const MutableSpan<float3> positions)
+{
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    positions[i] = vert->co;
+    i++;
+  }
+}
+
 void fill_factor_from_hide(const Mesh &mesh,
                            const Span<int> verts,
                            const MutableSpan<float> r_factors)
@@ -6606,6 +6577,17 @@ void fill_factor_from_hide(const SubdivCCG &subdiv_ccg,
   }
 }
 
+void fill_factor_from_hide(const Set<BMVert *, 0> &verts, const MutableSpan<float> r_factors)
+{
+  BLI_assert(verts.size() == r_factors.size());
+
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    r_factors[i] = BM_elem_flag_test_bool(vert, BM_ELEM_HIDDEN) ? 0.0f : 1.0f;
+    i++;
+  }
+}
+
 void fill_factor_from_hide_and_mask(const Mesh &mesh,
                                     const Span<int> verts,
                                     const MutableSpan<float> r_factors)
@@ -6631,6 +6613,24 @@ void fill_factor_from_hide_and_mask(const Mesh &mesh,
         r_factors[i] = 0.0f;
       }
     }
+  }
+}
+
+void fill_factor_from_hide_and_mask(const BMesh &bm,
+                                    const Set<BMVert *, 0> &verts,
+                                    const MutableSpan<float> r_factors)
+{
+  BLI_assert(verts.size() == r_factors.size());
+
+  /* TODO: Avoid overhead of accessing attributes for every PBVH node. */
+  const int mask_offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    r_factors[i] = (mask_offset == -1) ? 1.0f : 1.0f - BM_ELEM_CD_GET_FLOAT(vert, mask_offset);
+    if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+      r_factors[i] = 0.0f;
+    }
+    i++;
   }
 }
 
@@ -6698,6 +6698,20 @@ void calc_front_face(const float3 &view_normal,
       const float dot = math::dot(view_normal, CCG_elem_offset_no(key, elem, offset));
       factors[start + offset] *= std::max(dot, 0.0f);
     }
+  }
+}
+
+void calc_front_face(const float3 &view_normal,
+                     const Set<BMVert *, 0> &verts,
+                     const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == factors.size());
+
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    const float dot = math::dot(view_normal, float3(vert->no));
+    factors[i] *= std::max(dot, 0.0f);
+    i++;
   }
 }
 
@@ -7001,6 +7015,17 @@ void apply_translations(const Span<float3> translations,
     for (const int offset : IndexRange(key.grid_area)) {
       CCG_elem_offset_co(key, elem, offset) += translations[start + offset];
     }
+  }
+}
+
+void apply_translations(const Span<float3> translations, const Set<BMVert *, 0> &verts)
+{
+  BLI_assert(verts.size() * translations.size());
+
+  int i = 0;
+  for (BMVert *vert : verts) {
+    add_v3_v3(vert->co, translations[i]);
+    i++;
   }
 }
 
