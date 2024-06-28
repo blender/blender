@@ -35,6 +35,9 @@ from bl_ui.space_userpref import (
 USE_SHOW_ADDON_TYPE_AS_TEXT = True
 USE_SHOW_ADDON_TYPE_AS_ICON = True
 
+# Hide these add-ons when enabled (unless running with extensions debugging enabled).
+SECRET_ADDONS = {__package__}
+
 # For official extensions, it's policy that the website in the JSON listing overrides the developers own website.
 # This incurs and awkward lookup although it's not likely to cause a noticeable slowdown.
 # This choice moves away from the `blender_manifest.toml` being the source of truth for an extensions meta-data
@@ -408,6 +411,7 @@ def addons_panel_draw_items(
         addon_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
         addon_extension_manifest_map,  # `Dict[str, PkgManifest_Normalized]`
+        show_development,  # `bool`
 ):
     # NOTE: this duplicates logic from `USERPREF_PT_addons` eventually this logic should be used instead.
     # Don't de-duplicate the logic as this is a temporary state - as long as extensions remains experimental.
@@ -447,6 +451,10 @@ def addons_panel_draw_items(
 
             del item_local
         else:
+            # Weak but allow some add-ons
+            if (module_name in SECRET_ADDONS) and is_enabled and (show_development is False):
+                continue
+
             item_name = bl_info["name"]
             # A "." is added to the extensions manifest tag-line.
             # Avoid duplicate dot for legacy add-ons.
@@ -541,6 +549,7 @@ def addons_panel_draw_impl(
         search_casefold,  # `str`
         addon_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
+        show_development,  # `bool`
 ):
     """
     Show all the items... we may want to paginate at some point.
@@ -605,6 +614,7 @@ def addons_panel_draw_impl(
         addon_tags_exclude=addon_tags_exclude,
         enabled_only=enabled_only,
         addon_extension_manifest_map=addon_extension_manifest_map,
+        show_development=show_development,
     )
 
     # Append missing scripts
@@ -681,6 +691,7 @@ def addons_panel_draw(panel, context):
         wm.addon_search.casefold(),
         addon_tags_exclude,
         view.show_addons_enabled_only,
+        show_development=prefs.experimental.use_extensions_debug,
     )
 
 
