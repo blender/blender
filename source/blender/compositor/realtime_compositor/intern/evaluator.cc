@@ -35,6 +35,7 @@ void Evaluator::evaluate()
   else {
     for (const std::unique_ptr<Operation> &operation : operations_stream_) {
       if (context_.is_canceled()) {
+        context_.cache_manager().skip_next_reset();
         break;
       }
       operation->evaluate();
@@ -73,7 +74,13 @@ void Evaluator::compile_and_evaluate()
 {
   derived_node_tree_ = std::make_unique<DerivedNodeTree>(context_.get_node_tree());
 
-  if (!validate_node_tree() || context_.is_canceled()) {
+  if (!validate_node_tree()) {
+    return;
+  }
+
+  if (context_.is_canceled()) {
+    context_.cache_manager().skip_next_reset();
+    reset();
     return;
   }
 
@@ -83,6 +90,7 @@ void Evaluator::compile_and_evaluate()
 
   for (const DNode &node : schedule) {
     if (context_.is_canceled()) {
+      context_.cache_manager().skip_next_reset();
       reset();
       return;
     }
