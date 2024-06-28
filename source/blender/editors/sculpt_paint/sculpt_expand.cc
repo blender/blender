@@ -1146,16 +1146,29 @@ static void restore_face_set_data(Object &object, Cache *expand_cache)
   }
 }
 
-static void restore_color_data(SculptSession &ss, Cache *expand_cache)
+static void restore_color_data(Object &ob, Cache *expand_cache)
 {
+  SculptSession &ss = *ob.sculpt;
+  Mesh &mesh = *static_cast<Mesh *>(ob.data);
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
   for (PBVHNode *node : nodes) {
     for (const int vert : bke::pbvh::node_unique_verts(*node)) {
-      SCULPT_vertex_color_set(ss, vert, expand_cache->original_colors[vert]);
+      SCULPT_vertex_color_set(faces,
+                              corner_verts,
+                              vert_to_face_map,
+                              color_attribute.domain,
+                              vert,
+                              expand_cache->original_colors[vert],
+                              color_attribute.span);
     }
     BKE_pbvh_node_mark_redraw(node);
   }
+  color_attribute.finish();
 }
 
 static void write_mask_data(SculptSession &ss, const Span<float> mask)
@@ -1221,7 +1234,7 @@ static void restore_original_state(bContext *C, Object &ob, Cache *expand_cache)
       SCULPT_tag_update_overlays(C);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
-      restore_color_data(ss, expand_cache);
+      restore_color_data(ob, expand_cache);
       flush_update_step(C, UpdateType::Color);
       flush_update_done(C, ob, UpdateType::Color);
       break;
@@ -1332,9 +1345,13 @@ static void face_sets_update(Object &object, Cache *expand_cache)
  * Callback to update vertex colors per PBVH node.
  */
 static void colors_update_task(SculptSession &ss,
+                               const OffsetIndices<int> faces,
+                               const Span<int> corner_verts,
+                               const GroupedSpan<int> vert_to_face_map,
                                const Span<bool> hide_vert,
                                const Span<float> mask,
-                               PBVHNode *node)
+                               PBVHNode *node,
+                               bke::GSpanAttributeWriter &color_attribute)
 {
   Cache *expand_cache = ss.expand_cache;
 
@@ -1347,7 +1364,8 @@ static void colors_update_task(SculptSession &ss,
       continue;
     }
 
-    float4 initial_color = SCULPT_vertex_color_get(ss, vert);
+    float4 initial_color = SCULPT_vertex_color_get(
+        faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
 
     const bool enabled = vert_state_get(ss, expand_cache, PBVHVertRef{vert});
     float fade;
@@ -1376,7 +1394,13 @@ static void colors_update_task(SculptSession &ss,
       continue;
     }
 
-    SCULPT_vertex_color_set(ss, vert, final_color);
+    SCULPT_vertex_color_set(faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            color_attribute.domain,
+                            vert,
+                            final_color,
+                            color_attribute.span);
 
     any_changed = true;
   }
@@ -1403,9 +1427,17 @@ static void original_state_store(Object &ob, Cache *expand_cache)
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
+    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    const OffsetIndices<int> faces = mesh.faces();
+    const Span<int> corner_verts = mesh.corner_verts();
+    const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+    const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
+    const GVArraySpan colors = *color_attribute;
+
     expand_cache->original_colors = Array<float4>(totvert);
     for (int i = 0; i < totvert; i++) {
-      expand_cache->original_colors[i] = SCULPT_vertex_color_get(ss, i);
+      expand_cache->original_colors[i] = SCULPT_vertex_color_get(
+          faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, i);
     }
   }
 }
@@ -1476,15 +1508,28 @@ static void update_for_vert(bContext *C, Object &ob, const PBVHVertRef vertex)
       flush_update_step(C, UpdateType::FaceSet);
       break;
     case SCULPT_EXPAND_TARGET_COLORS: {
-      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      const OffsetIndices<int> faces = mesh.faces();
+      const Span<int> corner_verts = mesh.corner_verts();
+      const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
       const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+      bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
+
       threading::parallel_for(expand_cache->nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          colors_update_task(ss, hide_vert, mask, expand_cache->nodes[i]);
+          colors_update_task(ss,
+                             faces,
+                             corner_verts,
+                             vert_to_face_map,
+                             hide_vert,
+                             mask,
+                             expand_cache->nodes[i],
+                             color_attribute);
         }
       });
+      color_attribute.finish();
       flush_update_step(C, UpdateType::Color);
       break;
     }
@@ -2038,11 +2083,16 @@ static void undo_push(Object &ob, Cache *expand_cache)
         undo::push_node(ob, node, undo::Type::FaceSet);
       }
       break;
-    case SCULPT_EXPAND_TARGET_COLORS:
+    case SCULPT_EXPAND_TARGET_COLORS: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      /* The sculpt undo system needs corner indices for corner domain color attributes. */
+      BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
+
       for (PBVHNode *node : nodes) {
         undo::push_node(ob, node, undo::Type::Color);
       }
       break;
+    }
   }
 }
 

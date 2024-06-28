@@ -1495,7 +1495,6 @@ SculptSession::SculptSession()
 {
   /* Code expects attribute domains to be zero initialized. Avoid exposing #AttrDomain definition
    * in header. */
-  this->vcol_domain = blender::bke::AttrDomain::Point;
   for (const int i : blender::IndexRange(ARRAY_SIZE(this->temp_attributes))) {
     this->temp_attributes[i].domain = blender::bke::AttrDomain::Point;
   }
@@ -1694,27 +1693,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss.multires.active = false;
     ss.multires.modifier = nullptr;
     ss.multires.level = 0;
-
-    CustomDataLayer *layer;
-    AttrDomain domain;
-    if (BKE_pbvh_get_color_layer(mesh_orig, &layer, &domain)) {
-      if (layer->type == CD_PROP_COLOR) {
-        ss.vcol = static_cast<MPropCol *>(layer->data);
-      }
-      else {
-        ss.mcol = static_cast<MLoopCol *>(layer->data);
-      }
-
-      ss.vcol_domain = domain;
-      ss.vcol_type = static_cast<eCustomDataType>(layer->type);
-    }
-    else {
-      ss.vcol = nullptr;
-      ss.mcol = nullptr;
-
-      ss.vcol_type = (eCustomDataType)-1;
-      ss.vcol_domain = AttrDomain::Point;
-    }
   }
 
   /* Sculpt Face Sets. */
@@ -1814,19 +1792,10 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   if (is_paint_tool) {
-    if (ss.vcol_domain == AttrDomain::Corner) {
-      /* Ensure pbvh nodes have loop indices; the sculpt undo system
-       * needs them for color attributes.
-       */
-      BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh_orig->corner_tris());
-    }
-
-    /*
-     * We should rebuild the PBVH_pixels when painting canvas changes.
+    /* We should rebuild the PBVH_pixels when painting canvas changes.
      *
      * The relevant changes are stored/encoded in the paint canvas key.
-     * These include the active uv map, and resolutions.
-     */
+     * These include the active uv map, and resolutions. */
     if (U.experimental.use_sculpt_texture_paint && ss.pbvh) {
       char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
       if (ss.last_paint_canvas_key == nullptr ||
@@ -1907,10 +1876,6 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   BKE_id_attributes_default_color_set(&orig_me->id, unique_name.c_str());
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
   BKE_mesh_tessface_clear(orig_me);
-
-  if (object->sculpt && object->sculpt->pbvh) {
-    BKE_pbvh_update_active_vcol(*object->sculpt->pbvh, orig_me);
-  }
 }
 
 void BKE_sculpt_update_object_for_edit(Depsgraph *depsgraph, Object *ob_orig, bool is_paint_tool)
@@ -2159,8 +2124,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
         break;
       }
     }
-
-    BKE_pbvh_update_active_vcol(*ob->sculpt->pbvh, BKE_object_get_original_mesh(ob));
 
     return ob->sculpt->pbvh.get();
   }
@@ -2698,12 +2661,6 @@ static void sculpt_attribute_update_refs(Object *ob, PBVHType pbvhtype)
     if (ss->bm) {
       sculptsession_bmesh_attr_update_internal(ob);
     }
-  }
-
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
-  if (ss->pbvh) {
-    BKE_pbvh_update_active_vcol(*ss->pbvh, mesh);
   }
 }
 

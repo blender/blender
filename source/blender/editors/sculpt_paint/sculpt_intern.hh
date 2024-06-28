@@ -827,13 +827,24 @@ const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVert
 float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
                                           const CCGKey &key,
                                           int vert_index);
-blender::float4 SCULPT_vertex_color_get(const SculptSession &ss, int vert);
-void SCULPT_vertex_color_set(SculptSession &ss, int vert, const blender::float4 &color);
+blender::float4 SCULPT_vertex_color_get(blender::OffsetIndices<int> faces,
+                                        blender::Span<int> corner_verts,
+                                        blender::GroupedSpan<int> vert_to_face_map,
+                                        blender::GSpan color_attribute,
+                                        blender::bke::AttrDomain color_domain,
+                                        int vert);
+void SCULPT_vertex_color_set(blender::OffsetIndices<int> faces,
+                             blender::Span<int> corner_verts,
+                             blender::GroupedSpan<int> vert_to_face_map,
+                             blender::bke::AttrDomain color_domain,
+                             int vert,
+                             const blender::float4 &color,
+                             blender::GMutableSpan color_attribute);
 
 bool SCULPT_vertex_is_occluded(SculptSession &ss, PBVHVertRef vertex, bool original);
 
 /** Returns true if a color attribute exists in the current sculpt session. */
-bool SCULPT_has_colors(const SculptSession &ss);
+bool SCULPT_has_colors(const Mesh &mesh);
 
 /** Returns true if the active color attribute is on loop (AttrDomain::Corner) domain. */
 bool SCULPT_has_loop_colors(const Object &ob);
@@ -1553,7 +1564,13 @@ void bmesh_four_neighbor_average(float avg[3], const float3 &direction, BMVert *
 
 float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex);
 float neighbor_mask_average(SculptSession &ss, SculptMaskWriteInfo write_info, PBVHVertRef vertex);
-float4 neighbor_color_average(SculptSession &ss, int vert);
+float4 neighbor_color_average(SculptSession &ss,
+                              OffsetIndices<int> faces,
+                              Span<int> corner_verts,
+                              GroupedSpan<int> vert_to_face_map,
+                              GSpan color_attribute,
+                              bke::AttrDomain color_domain,
+                              int vert);
 
 /**
  * Mask the mesh boundaries smoothing only the mesh surface without using auto-masking.
@@ -1969,6 +1986,9 @@ void do_draw_face_sets_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> node
 }
 
 namespace color {
+
+bke::GAttributeReader active_color_attribute(const Mesh &mesh);
+bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh);
 
 void do_paint_brush(PaintModeSettings &paint_mode_settings,
                     const Sculpt &sd,

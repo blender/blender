@@ -644,6 +644,8 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession &ss, float 
 
 static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
+  using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
@@ -665,11 +667,19 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), &ob, false);
 
   /* No color attribute? Set color to white. */
-  if (!SCULPT_has_colors(ss)) {
+  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  if (!SCULPT_has_colors(mesh)) {
     copy_v4_fl(active_vertex_color, 1.0f);
   }
   else {
-    active_vertex_color = SCULPT_vertex_color_get(ss, active_vertex.i);
+    const OffsetIndices<int> faces = mesh.faces();
+    const Span<int> corner_verts = mesh.corner_verts();
+    const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+    const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
+    const GVArraySpan colors = *color_attribute;
+
+    active_vertex_color = SCULPT_vertex_color_get(
+        faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, active_vertex.i);
   }
 
   float color_srgb[3];

@@ -37,13 +37,55 @@
 
 namespace blender::ed::sculpt_paint::color {
 
+bke::GAttributeReader active_color_attribute(const Mesh &mesh)
+{
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const StringRef name = mesh.active_color_attribute;
+  const bke::GAttributeReader colors = attributes.lookup(name);
+  if (!colors) {
+    return {};
+  }
+  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(colors.varray.type());
+  if ((CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) == 0) {
+    return {};
+  }
+  if ((ATTR_DOMAIN_AS_MASK(colors.domain) & ATTR_DOMAIN_MASK_COLOR) == 0) {
+    return {};
+  }
+  return colors;
+}
+
+bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh)
+{
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  const StringRef name = mesh.active_color_attribute;
+  bke::GSpanAttributeWriter colors = attributes.lookup_for_write_span(name);
+  if (!colors) {
+    return {};
+  }
+  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(colors.span.type());
+  if ((CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) == 0) {
+    colors.finish();
+    return {};
+  }
+  if ((ATTR_DOMAIN_AS_MASK(colors.domain) & ATTR_DOMAIN_MASK_COLOR) == 0) {
+    colors.finish();
+    return {};
+  }
+  return colors;
+}
+
 static void do_color_smooth_task(Object &ob,
                                  const Span<float3> vert_positions,
                                  const Span<float3> vert_normals,
+                                 const OffsetIndices<int> faces,
+                                 const Span<int> corner_verts,
+                                 const GroupedSpan<int> vert_to_face_map,
                                  const Span<bool> hide_vert,
                                  const Span<float> mask,
                                  const Brush &brush,
-                                 PBVHNode *node)
+                                 PBVHNode *node,
+                                 bke::GSpanAttributeWriter &color_attribute)
 {
   SculptSession &ss = *ob.sculpt;
   const float bstrength = ss.cache->bstrength;
@@ -80,22 +122,39 @@ static void do_color_smooth_task(Object &ob,
                                                     thread_id,
                                                     &automask_data);
 
-    const float4 smooth_color = smooth::neighbor_color_average(ss, vert);
-    float4 col = SCULPT_vertex_color_get(ss, vert);
+    const float4 smooth_color = smooth::neighbor_color_average(ss,
+                                                               faces,
+                                                               corner_verts,
+                                                               vert_to_face_map,
+                                                               color_attribute.span,
+                                                               color_attribute.domain,
+                                                               vert);
+    float4 col = SCULPT_vertex_color_get(
+        faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
     blend_color_interpolate_float(col, col, smooth_color, fade);
-    SCULPT_vertex_color_set(ss, vert, col);
+    SCULPT_vertex_color_set(faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            color_attribute.domain,
+                            vert,
+                            col,
+                            color_attribute.span);
   }
 }
 
 static void do_paint_brush_task(Object &ob,
                                 const Span<float3> vert_positions,
                                 const Span<float3> vert_normals,
+                                const OffsetIndices<int> faces,
+                                const Span<int> corner_verts,
+                                const GroupedSpan<int> vert_to_face_map,
                                 const Span<bool> hide_vert,
                                 const Span<float> mask,
                                 const Brush &brush,
                                 const float (*mat)[4],
                                 float *wet_mix_sampled_color,
-                                PBVHNode *node)
+                                PBVHNode *node,
+                                bke::GSpanAttributeWriter &color_attribute)
 {
   SculptSession &ss = *ob.sculpt;
   const float bstrength = fabsf(ss.cache->bstrength);
@@ -206,10 +265,17 @@ static void do_paint_brush_task(Object &ob,
     const float alpha = BKE_brush_alpha_get(ss.scene, &brush);
     mul_v4_v4fl(buffer_color, color_buffer->color[i], alpha * automasking);
 
-    float4 col = SCULPT_vertex_color_get(ss, vert);
+    float4 col = SCULPT_vertex_color_get(
+        faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
     IMB_blend_color_float(col, orig_data.col, buffer_color, IMB_BlendMode(brush.blend));
     col = math::clamp(col, 0.0f, 1.0f);
-    SCULPT_vertex_color_set(ss, vert, col);
+    SCULPT_vertex_color_set(faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            color_attribute.domain,
+                            vert,
+                            col,
+                            color_attribute.span);
   }
 }
 
@@ -220,7 +286,12 @@ struct SampleWetPaintData {
 
 static void do_sample_wet_paint_task(SculptSession &ss,
                                      const Span<float3> vert_positions,
+                                     const OffsetIndices<int> faces,
+                                     const Span<int> corner_verts,
+                                     const GroupedSpan<int> vert_to_face_map,
                                      const Span<bool> hide_vert,
+                                     const GSpan color_attribute,
+                                     const bke::AttrDomain color_domain,
                                      const Brush &brush,
                                      PBVHNode *node,
                                      SampleWetPaintData *swptd)
@@ -240,7 +311,8 @@ static void do_sample_wet_paint_task(SculptSession &ss,
       continue;
     }
 
-    float4 col = SCULPT_vertex_color_get(ss, vert);
+    float4 col = SCULPT_vertex_color_get(
+        faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
 
     add_v4_v4(swptd->color, col);
     swptd->tot_samples++;
@@ -261,7 +333,8 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.sculpt;
 
-  if (!SCULPT_has_colors(ss)) {
+  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  if (!SCULPT_has_colors(mesh)) {
     return;
   }
 
@@ -287,18 +360,33 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
   }
 
   /* Smooth colors mode. */
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+  bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
+
   if (ss.cache->alt_smooth) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_color_smooth_task(ob, vert_positions, vert_normals, hide_vert, mask, brush, nodes[i]);
+        do_color_smooth_task(ob,
+                             vert_positions,
+                             vert_normals,
+                             faces,
+                             corner_verts,
+                             vert_to_face_map,
+                             hide_vert,
+                             mask,
+                             brush,
+                             nodes[i],
+                             color_attribute);
       }
     });
+    color_attribute.finish();
     return;
   }
 
@@ -313,7 +401,17 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
         SampleWetPaintData{},
         [&](const IndexRange range, SampleWetPaintData swptd) {
           for (const int i : range) {
-            do_sample_wet_paint_task(ss, vert_positions, hide_vert, brush, nodes[i], &swptd);
+            do_sample_wet_paint_task(ss,
+                                     vert_positions,
+                                     faces,
+                                     corner_verts,
+                                     vert_to_face_map,
+                                     hide_vert,
+                                     color_attribute.span,
+                                     color_attribute.domain,
+                                     brush,
+                                     nodes[i],
+                                     &swptd);
           }
           return swptd;
         },
@@ -343,19 +441,35 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_paint_brush_task(
-          ob, vert_positions, vert_normals, hide_vert, mask, brush, mat, wet_color, nodes[i]);
+      do_paint_brush_task(ob,
+                          vert_positions,
+                          vert_normals,
+                          faces,
+                          corner_verts,
+                          vert_to_face_map,
+                          hide_vert,
+                          mask,
+                          brush,
+                          mat,
+                          wet_color,
+                          nodes[i],
+                          color_attribute);
     }
   });
+  color_attribute.finish();
 }
 
 static void do_smear_brush_task(Object &ob,
                                 const Span<float3> vert_positions,
                                 const Span<float3> vert_normals,
+                                const OffsetIndices<int> faces,
+                                const Span<int> corner_verts,
+                                const GroupedSpan<int> vert_to_face_map,
                                 const Span<bool> hide_vert,
                                 const Span<float> mask,
                                 const Brush &brush,
-                                PBVHNode *node)
+                                PBVHNode *node,
+                                bke::GSpanAttributeWriter &color_attribute)
 {
   SculptSession &ss = *ob.sculpt;
   const float bstrength = ss.cache->bstrength;
@@ -494,16 +608,30 @@ static void do_smear_brush_task(Object &ob,
       mul_v4_fl(accum, 1.0f / totw);
     }
 
-    float4 col = SCULPT_vertex_color_get(ss, vert);
+    float4 col = SCULPT_vertex_color_get(
+        faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
     blend_color_interpolate_float(col, ss.cache->prev_colors[vert], accum, fade);
-    SCULPT_vertex_color_set(ss, vert, col);
+    SCULPT_vertex_color_set(faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            color_attribute.domain,
+                            vert,
+                            col,
+                            color_attribute.span);
   }
 }
 
-static void do_smear_store_prev_colors_task(SculptSession &ss, PBVHNode *node, float4 *prev_colors)
+static void do_smear_store_prev_colors_task(const OffsetIndices<int> faces,
+                                            const Span<int> corner_verts,
+                                            const GroupedSpan<int> vert_to_face_map,
+                                            const GSpan color_attribute,
+                                            const bke::AttrDomain color_domain,
+                                            const PBVHNode &node,
+                                            float4 *prev_colors)
 {
-  for (const int vert : bke::pbvh::node_unique_verts(*node)) {
-    prev_colors[vert] = SCULPT_vertex_color_get(ss, vert);
+  for (const int vert : bke::pbvh::node_unique_verts(node)) {
+    prev_colors[vert] = SCULPT_vertex_color_get(
+        faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
   }
 }
 
@@ -512,21 +640,27 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.sculpt;
 
-  if (!SCULPT_has_colors(ss) || ss.cache->bstrength == 0.0f) {
+  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  if (!SCULPT_has_colors(mesh) || ss.cache->bstrength == 0.0f) {
     return;
   }
 
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
 
+  bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
+
   if (ss.cache->prev_colors.is_empty()) {
     ss.cache->prev_colors = Array<float4>(mesh.verts_num);
     for (int i = 0; i < mesh.verts_num; i++) {
-      ss.cache->prev_colors[i] = SCULPT_vertex_color_get(ss, i);
+      ss.cache->prev_colors[i] = SCULPT_vertex_color_get(
+          faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, i);
     }
   }
 
@@ -536,7 +670,17 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   if (ss.cache->alt_smooth) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_color_smooth_task(ob, vert_positions, vert_normals, hide_vert, mask, brush, nodes[i]);
+        do_color_smooth_task(ob,
+                             vert_positions,
+                             vert_normals,
+                             faces,
+                             corner_verts,
+                             vert_to_face_map,
+                             hide_vert,
+                             mask,
+                             brush,
+                             nodes[i],
+                             color_attribute);
       }
     });
   }
@@ -544,15 +688,32 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
     /* Smear mode. */
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_smear_store_prev_colors_task(ss, nodes[i], ss.cache->prev_colors.data());
+        do_smear_store_prev_colors_task(faces,
+                                        corner_verts,
+                                        vert_to_face_map,
+                                        color_attribute.span,
+                                        color_attribute.domain,
+                                        *nodes[i],
+                                        ss.cache->prev_colors.data());
       }
     });
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_smear_brush_task(ob, vert_positions, vert_normals, hide_vert, mask, brush, nodes[i]);
+        do_smear_brush_task(ob,
+                            vert_positions,
+                            vert_normals,
+                            faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            hide_vert,
+                            mask,
+                            brush,
+                            nodes[i],
+                            color_attribute);
       }
     });
   }
+  color_attribute.finish();
 }
 
 }  // namespace blender::ed::sculpt_paint::color

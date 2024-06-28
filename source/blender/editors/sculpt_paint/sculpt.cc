@@ -221,19 +221,32 @@ bool SCULPT_has_loop_colors(const Object &ob)
   return true;
 }
 
-bool SCULPT_has_colors(const SculptSession &ss)
+bool SCULPT_has_colors(const Mesh &mesh)
 {
-  return ss.vcol || ss.mcol;
+  return bool(blender::ed::sculpt_paint::color::active_color_attribute(mesh));
 }
 
-blender::float4 SCULPT_vertex_color_get(const SculptSession &ss, const int vert)
+blender::float4 SCULPT_vertex_color_get(const blender::OffsetIndices<int> faces,
+                                        const blender::Span<int> corner_verts,
+                                        const blender::GroupedSpan<int> vert_to_face_map,
+                                        const blender::GSpan color_attribute,
+                                        const blender::bke::AttrDomain color_domain,
+                                        const int vert)
 {
-  return BKE_pbvh_vertex_color_get(*ss.pbvh, ss.vert_to_face_map, vert);
+  return BKE_pbvh_vertex_color_get(
+      faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
 }
 
-void SCULPT_vertex_color_set(SculptSession &ss, const int vert, const blender::float4 &color)
+void SCULPT_vertex_color_set(const blender::OffsetIndices<int> faces,
+                             const blender::Span<int> corner_verts,
+                             const blender::GroupedSpan<int> vert_to_face_map,
+                             const blender::bke::AttrDomain color_domain,
+                             const int vert,
+                             const blender::float4 &color,
+                             const blender::GMutableSpan color_attribute)
 {
-  BKE_pbvh_vertex_color_set(*ss.pbvh, ss.vert_to_face_map, vert, color);
+  BKE_pbvh_vertex_color_set(
+      faces, corner_verts, vert_to_face_map, color_domain, vert, color, color_attribute);
 }
 
 const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex)
@@ -1378,16 +1391,28 @@ static void restore_color(Object &object, const Span<PBVHNode *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   BLI_assert(BKE_pbvh_type(*ss.pbvh) == PBVH_FACES);
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
       if (const undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
         const Span<int> verts = bke::pbvh::node_unique_verts(*node);
         for (const int i : verts.index_range()) {
-          SCULPT_vertex_color_set(ss, verts[i], unode->col[i]);
+          SCULPT_vertex_color_set(faces,
+                                  corner_verts,
+                                  vert_to_face_map,
+                                  color_attribute.domain,
+                                  verts[i],
+                                  unode->col[i],
+                                  color_attribute.span);
         }
       }
     }
   });
+  color_attribute.finish();
 }
 
 static void restore_face_set(Object &object, const Span<PBVHNode *> nodes)
@@ -3592,6 +3617,8 @@ static void push_undo_nodes(Object &ob, const Brush &brush, const Span<PBVHNode 
     }
   }
   else if (SCULPT_tool_is_paint(brush.sculpt_tool)) {
+    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
     undo::push_nodes(ob, nodes, undo::Type::Color);
     for (PBVHNode *node : nodes) {
       BKE_pbvh_node_mark_update_color(node);

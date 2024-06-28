@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_color.hh"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_color.h"
@@ -42,32 +43,28 @@ using blender::IndexRange;
 
 namespace blender::bke {
 
-template<typename Func>
-inline void to_static_color_type(const eCustomDataType type, const Func &func)
+template<typename Func> inline void to_static_color_type(const CPPType &type, const Func &func)
 {
-  switch (type) {
-    case CD_PROP_COLOR:
-      func(MPropCol());
-      break;
-    case CD_PROP_BYTE_COLOR:
-      func(MLoopCol());
-      break;
-    default:
-      BLI_assert_unreachable();
-      break;
+  if (type.is<ColorGeometry4f>()) {
+    func(MPropCol());
+  }
+  else if (type.is<ColorGeometry4b>()) {
+    func(MLoopCol());
   }
 }
 
-template<typename T> void to_float(const T &src, float dst[4]);
+template<typename T> float4 to_float(const T &src);
 
-template<> void to_float(const MLoopCol &src, float dst[4])
+template<> float4 to_float(const MLoopCol &src)
 {
+  float4 dst;
   rgba_uchar_to_float(dst, reinterpret_cast<const uchar *>(&src));
   srgb_to_linearrgb_v3_v3(dst, dst);
+  return dst;
 }
-template<> void to_float(const MPropCol &src, float dst[4])
+template<> float4 to_float(const MPropCol &src)
 {
-  copy_v4_v4(dst, src.color);
+  return src.color;
 }
 
 template<typename T> void from_float(const float src[4], T &dst);
@@ -85,50 +82,39 @@ template<> void from_float(const float src[4], MPropCol &dst)
 }
 
 template<typename T>
-static void pbvh_vertex_color_get(const PBVH &pbvh,
-                                  const blender::GroupedSpan<int> vert_to_face_map,
-                                  const int vert,
-                                  float r_color[4])
+static float4 pbvh_vertex_color_get(const blender::OffsetIndices<int> faces,
+                                    const blender::Span<int> corner_verts,
+                                    const blender::GroupedSpan<int> vert_to_face_map,
+                                    const blender::GSpan color_attribute,
+                                    const blender::bke::AttrDomain color_domain,
+                                    const int vert)
 {
-  if (pbvh.color_domain == AttrDomain::Corner) {
-    int count = 0;
-    zero_v4(r_color);
-    for (const int i_face : vert_to_face_map[vert]) {
-      const IndexRange face = pbvh.faces[i_face];
-      Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + face.start(), face.size()};
-      Span<int> face_verts = pbvh.corner_verts.slice(face);
-
-      for (const int i : IndexRange(face.size())) {
-        if (face_verts[i] == vert) {
-          float temp[4];
-          to_float(colors[i], temp);
-
-          add_v4_v4(r_color, temp);
-          count++;
-        }
-      }
+  const T *colors_typed = static_cast<const T *>(color_attribute.data());
+  if (color_domain == AttrDomain::Corner) {
+    float4 r_color(0.0f);
+    for (const int face : vert_to_face_map[vert]) {
+      const int corner = mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
+      r_color += to_float(colors_typed[corner]);
     }
-
-    if (count) {
-      mul_v4_fl(r_color, 1.0f / float(count));
-    }
+    return r_color / float(vert_to_face_map[vert].size());
   }
-  else {
-    to_float(static_cast<T *>(pbvh.color_layer->data)[vert], r_color);
-  }
+  return to_float(colors_typed[vert]);
 }
 
 template<typename T>
-static void pbvh_vertex_color_set(PBVH &pbvh,
+static void pbvh_vertex_color_set(const blender::OffsetIndices<int> faces,
+                                  const blender::Span<int> corner_verts,
                                   const blender::GroupedSpan<int> vert_to_face_map,
+                                  const blender::GMutableSpan color_attribute,
+                                  const blender::bke::AttrDomain color_domain,
                                   const int vert,
                                   const float color[4])
 {
-  if (pbvh.color_domain == AttrDomain::Corner) {
+  if (color_domain == AttrDomain::Corner) {
     for (const int i_face : vert_to_face_map[vert]) {
-      const IndexRange face = pbvh.faces[i_face];
-      MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + face.start(), face.size()};
-      Span<int> face_verts = pbvh.corner_verts.slice(face);
+      const IndexRange face = faces[i_face];
+      MutableSpan<T> colors{static_cast<T *>(color_attribute.data()) + face.start(), face.size()};
+      Span<int> face_verts = corner_verts.slice(face);
 
       for (const int i : IndexRange(face.size())) {
         if (face_verts[i] == vert) {
@@ -138,76 +124,88 @@ static void pbvh_vertex_color_set(PBVH &pbvh,
     }
   }
   else {
-    from_float(color, static_cast<T *>(pbvh.color_layer->data)[vert]);
+    from_float(color, static_cast<T *>(color_attribute.data())[vert]);
   }
 }
 
 }  // namespace blender::bke
 
-blender::float4 BKE_pbvh_vertex_color_get(const PBVH &pbvh,
+blender::float4 BKE_pbvh_vertex_color_get(const blender::OffsetIndices<int> faces,
+                                          const blender::Span<int> corner_verts,
                                           const blender::GroupedSpan<int> vert_to_face_map,
+                                          const blender::GSpan color_attribute,
+                                          const blender::bke::AttrDomain color_domain,
                                           const int vert)
 {
   blender::float4 color;
-  blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(color_attribute.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    blender::bke::pbvh_vertex_color_get<T>(pbvh, vert_to_face_map, vert, color);
+    color = blender::bke::pbvh_vertex_color_get<T>(
+        faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
   });
   return color;
 }
 
-void BKE_pbvh_vertex_color_set(PBVH &pbvh,
+void BKE_pbvh_vertex_color_set(const blender::OffsetIndices<int> faces,
+                               const blender::Span<int> corner_verts,
                                const blender::GroupedSpan<int> vert_to_face_map,
+                               const blender::bke::AttrDomain color_domain,
                                const int vert,
-                               const blender::float4 &color)
+                               const blender::float4 &color,
+                               const blender::GMutableSpan color_attribute)
 {
-  blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(color_attribute.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    blender::bke::pbvh_vertex_color_set<T>(pbvh, vert_to_face_map, vert, color);
+    blender::bke::pbvh_vertex_color_set<T>(
+        faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert, color);
   });
 }
 
-void BKE_pbvh_swap_colors(PBVH &pbvh,
-                          const blender::Span<int> indices,
+void BKE_pbvh_swap_colors(const blender::Span<int> indices,
+                          blender::GMutableSpan color_attribute,
                           blender::MutableSpan<blender::float4> r_colors)
 {
-  blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(color_attribute.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    T *pbvh_colors = static_cast<T *>(pbvh.color_layer->data);
+    T *colors_typed = static_cast<T *>(color_attribute.data());
     for (const int i : indices.index_range()) {
-      T temp = pbvh_colors[indices[i]];
-      blender::bke::from_float(r_colors[i], pbvh_colors[indices[i]]);
-      blender::bke::to_float(temp, r_colors[i]);
+      T temp = colors_typed[indices[i]];
+      blender::bke::from_float(r_colors[i], colors_typed[indices[i]]);
+      r_colors[i] = blender::bke::to_float(temp);
     }
   });
 }
 
-void BKE_pbvh_store_colors(PBVH &pbvh,
+void BKE_pbvh_store_colors(const blender::GSpan color_attribute,
                            const blender::Span<int> indices,
                            blender::MutableSpan<blender::float4> r_colors)
 {
-  blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(color_attribute.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    T *pbvh_colors = static_cast<T *>(pbvh.color_layer->data);
+    const T *colors_typed = static_cast<const T *>(color_attribute.data());
     for (const int i : indices.index_range()) {
-      blender::bke::to_float(pbvh_colors[indices[i]], r_colors[i]);
+      r_colors[i] = blender::bke::to_float(colors_typed[indices[i]]);
     }
   });
 }
 
-void BKE_pbvh_store_colors_vertex(PBVH &pbvh,
+void BKE_pbvh_store_colors_vertex(const blender::OffsetIndices<int> faces,
+                                  const blender::Span<int> corner_verts,
                                   const blender::GroupedSpan<int> vert_to_face_map,
+                                  const blender::GSpan color_attribute,
+                                  const blender::bke::AttrDomain color_domain,
                                   const blender::Span<int> verts,
                                   const blender::MutableSpan<blender::float4> r_colors)
 {
-  if (pbvh.color_domain == blender::bke::AttrDomain::Point) {
-    BKE_pbvh_store_colors(pbvh, verts, r_colors);
+  if (color_domain == blender::bke::AttrDomain::Point) {
+    BKE_pbvh_store_colors(color_attribute, verts, r_colors);
   }
   else {
-    blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
+    blender::bke::to_static_color_type(color_attribute.type(), [&](auto dummy) {
       using T = decltype(dummy);
       for (const int i : verts.index_range()) {
-        blender::bke::pbvh_vertex_color_get<T>(pbvh, vert_to_face_map, verts[i], r_colors[i]);
+        r_colors[i] = blender::bke::pbvh_vertex_color_get<T>(
+            faces, corner_verts, vert_to_face_map, color_attribute, color_domain, verts[i]);
       }
     });
   }

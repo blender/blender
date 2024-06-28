@@ -1815,6 +1815,11 @@ static void vpaint_do_paint(bContext *C,
       mesh.active_color_attribute);
   BLI_assert(attribute.domain == vpd.domain);
 
+  if (attribute.domain == bke::AttrDomain::Corner) {
+    /* The sculpt undo system needs PBVH node corner indices for corner domain color attributes. */
+    BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
+  }
+
   /* Paint those leaves. */
   vpaint_paint_leaves(C, vp, vpd, ob, mesh, attribute.span, nodes);
 
@@ -2217,6 +2222,11 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
 
   undo::push_begin(obact, op);
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*obact.sculpt->pbvh, {});
+
+  const Mesh &mesh = *static_cast<const Mesh *>(obact.data);
+  /* The sculpt undo system needs PBVH node corner indices for corner domain color attributes. */
+  BKE_pbvh_ensure_node_loops(*obact.sculpt->pbvh, mesh.corner_tris());
+
   for (PBVHNode *node : nodes) {
     undo::push_node(obact, node, undo::Type::Color);
   }

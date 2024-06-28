@@ -16,6 +16,7 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
+#include "BLI_generic_span.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
@@ -544,36 +545,38 @@ blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const PBVH &pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH &pbvh);
-bool BKE_pbvh_get_color_layer(Mesh *mesh,
-                              CustomDataLayer **r_layer,
-                              blender::bke::AttrDomain *r_domain);
 
-/* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
- * with values in colors. */
-void BKE_pbvh_swap_colors(PBVH &pbvh,
-                          blender::Span<int> indices,
+/* Swaps colors at each element in indices with values in colors. */
+void BKE_pbvh_swap_colors(blender::Span<int> indices,
+                          blender::GMutableSpan color_attribute,
                           blender::MutableSpan<blender::float4> r_colors);
 
-/* Stores colors from the elements in indices (of domain pbvh->vcol_domain)
- * into colors. */
-void BKE_pbvh_store_colors(PBVH &pbvh,
-                           blender::Span<int> indices,
+/* Stores colors from the elements in indices into colors. */
+void BKE_pbvh_store_colors(const blender::GSpan color_attribute,
+                           const blender::Span<int> indices,
                            blender::MutableSpan<blender::float4> r_colors);
 
 /* Like BKE_pbvh_store_colors but handles loop->vert conversion */
-void BKE_pbvh_store_colors_vertex(PBVH &pbvh,
+void BKE_pbvh_store_colors_vertex(blender::OffsetIndices<int> faces,
+                                  blender::Span<int> corner_verts,
                                   blender::GroupedSpan<int> vert_to_face_map,
+                                  blender::GSpan color_attribute,
+                                  blender::bke::AttrDomain color_domain,
                                   blender::Span<int> verts,
                                   blender::MutableSpan<blender::float4> r_colors);
 
-void BKE_pbvh_update_active_vcol(PBVH &pbvh, Mesh *mesh);
-
-void BKE_pbvh_vertex_color_set(PBVH &pbvh,
+void BKE_pbvh_vertex_color_set(blender::OffsetIndices<int> faces,
+                               blender::Span<int> corner_verts,
                                blender::GroupedSpan<int> vert_to_face_map,
+                               blender::bke::AttrDomain color_domain,
                                int vert,
-                               const blender::float4 &color);
-blender::float4 BKE_pbvh_vertex_color_get(const PBVH &pbvh,
+                               const blender::float4 &color,
+                               blender::GMutableSpan color_attribute);
+blender::float4 BKE_pbvh_vertex_color_get(blender::OffsetIndices<int> faces,
+                                          blender::Span<int> corner_verts,
                                           blender::GroupedSpan<int> vert_to_face_map,
+                                          blender::GSpan color_attribute,
+                                          blender::bke::AttrDomain color_domain,
                                           int vert);
 
 void BKE_pbvh_ensure_node_loops(PBVH &pbvh, blender::Span<blender::int3> corner_tris);

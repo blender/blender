@@ -76,12 +76,16 @@ static EnumPropertyItem prop_color_filter_types[] = {
 };
 
 static void color_filter_task(Object &ob,
+                              const OffsetIndices<int> faces,
+                              const Span<int> corner_verts,
+                              const GroupedSpan<int> vert_to_face_map,
                               const Span<bool> hide_vert,
                               const Span<float> mask,
                               const int mode,
                               const float filter_strength,
                               const float *filter_fill_color,
-                              PBVHNode *node)
+                              PBVHNode *node,
+                              bke::GSpanAttributeWriter &color_attribute)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -192,9 +196,20 @@ static void color_filter_task(Object &ob,
         break;
       case COLOR_FILTER_SMOOTH: {
         fade = clamp_f(fade, -1.0f, 1.0f);
-        float4 smooth_color = smooth::neighbor_color_average(ss, vert);
+        float4 smooth_color = smooth::neighbor_color_average(ss,
+                                                             faces,
+                                                             corner_verts,
+                                                             vert_to_face_map,
+                                                             color_attribute.span,
+                                                             color_attribute.domain,
+                                                             vert);
 
-        float4 col = SCULPT_vertex_color_get(ss, vert);
+        float4 col = SCULPT_vertex_color_get(faces,
+                                             corner_verts,
+                                             vert_to_face_map,
+                                             color_attribute.span,
+                                             color_attribute.domain,
+                                             vert);
 
         if (fade < 0.0f) {
           interp_v4_v4v4(smooth_color, smooth_color, col, 0.5f);
@@ -226,12 +241,18 @@ static void color_filter_task(Object &ob,
       }
     }
 
-    SCULPT_vertex_color_set(ss, vert, final_color);
+    SCULPT_vertex_color_set(faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            color_attribute.domain,
+                            vert,
+                            final_color,
+                            color_attribute.span);
   }
   BKE_pbvh_node_mark_update_color(node);
 }
 
-static void sculpt_color_presmooth_init(SculptSession &ss)
+static void sculpt_color_presmooth_init(const Mesh &mesh, SculptSession &ss)
 {
   int totvert = SCULPT_vertex_count_get(ss);
 
@@ -239,8 +260,15 @@ static void sculpt_color_presmooth_init(SculptSession &ss)
     ss.filter_cache->pre_smoothed_color = Array<float4>(totvert);
   }
 
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
+  const GVArraySpan colors = *color_attribute;
+
   for (int i = 0; i < totvert; i++) {
-    ss.filter_cache->pre_smoothed_color[i] = SCULPT_vertex_color_get(ss, i);
+    ss.filter_cache->pre_smoothed_color[i] = SCULPT_vertex_color_get(
+        faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, i);
   }
 
   for (int iteration = 0; iteration < 2; iteration++) {
@@ -281,21 +309,33 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
   IMB_colormanagement_srgb_to_scene_linear_v3(fill_color, fill_color);
 
+  Mesh &mesh = *static_cast<Mesh *>(ob.data);
   if (filter_strength < 0.0 && ss.filter_cache->pre_smoothed_color.is_empty()) {
-    sculpt_color_presmooth_init(ss);
+    sculpt_color_presmooth_init(mesh, ss);
   }
-
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
   threading::parallel_for(ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      color_filter_task(
-          ob, hide_vert, mask, mode, filter_strength, fill_color, ss.filter_cache->nodes[i]);
+      color_filter_task(ob,
+                        faces,
+                        corner_verts,
+                        vert_to_face_map,
+                        hide_vert,
+                        mask,
+                        mode,
+                        filter_strength,
+                        fill_color,
+                        ss.filter_cache->nodes[i],
+                        color_attribute);
     }
   });
-
+  color_attribute.finish();
   flush_update_step(C, UpdateType::Color);
 }
 
