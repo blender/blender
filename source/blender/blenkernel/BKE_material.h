@@ -114,7 +114,7 @@ bool BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);
 bool BKE_object_material_slot_remove(struct Main *bmain, struct Object *ob);
 bool BKE_object_material_slot_used(struct Object *object, short actcol);
 
-int BKE_object_material_index_get(Object *ob, Material *ma);
+int BKE_object_material_index_get(Object *ob, const Material *ma);
 int BKE_object_material_ensure(Main *bmain, Object *ob, Material *material);
 
 struct Material *BKE_gpencil_material(struct Object *ob, short act);
