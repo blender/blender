@@ -1169,7 +1169,7 @@ def extension_draw_item(
 
     # Add a top-level row so `row_right` can have a grayed out button/label
     # without graying out the menu item since# that is functional.
-    row_right_toplevel = row.row()
+    row_right_toplevel = row.row(align=True)
     if operation_in_progress:
         row_right_toplevel.enabled = False
     row_right_toplevel.alignment = 'RIGHT'
@@ -1197,11 +1197,12 @@ def extension_draw_item(
 
         row_right.active = False
 
-    row_right = row_right_toplevel.row()
+    row_right = row_right_toplevel.row(align=True)
     row_right.alignment = 'RIGHT'
+    row_right.separator()
 
-    # NOTE: keep space between any buttons and this menu to prevent stray clicks accidentally running install.
-    # Currently there is enough space by default without an explicit separator.
+    # NOTE: Keep space between any buttons and this menu to prevent stray clicks accidentally running install.
+    # The separator is around together with the align to give some space while keeping the button and the menu still close-by.
     # Used `extension_path` so the menu can access "this" extension.
     row_right.context_string_set("extension_path", "{:s}.{:s}".format(repo_item.module, pkg_id))
     row_right.menu("USERPREF_MT_extensions_item", text="", icon='DOWNARROW_HLT')

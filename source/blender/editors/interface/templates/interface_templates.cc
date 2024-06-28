@@ -1214,13 +1214,15 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             BLT_I18NCONTEXT_ID_LATTICE,
                             BLT_I18NCONTEXT_ID_LIGHT,
                             BLT_I18NCONTEXT_ID_LIGHTPROBE,
+                            BLT_I18NCONTEXT_ID_MASK,
                             BLT_I18NCONTEXT_ID_MATERIAL,
-                            BLT_I18NCONTEXT_ID_MASK, );
+                            BLT_I18NCONTEXT_ID_MESH, );
   BLT_I18N_MSGID_MULTI_CTXT("New",
-                            BLT_I18NCONTEXT_ID_MESH,
                             BLT_I18NCONTEXT_ID_METABALL,
                             BLT_I18NCONTEXT_ID_NODETREE,
                             BLT_I18NCONTEXT_ID_OBJECT,
+                            BLT_I18NCONTEXT_ID_PAINTCURVE,
+                            BLT_I18NCONTEXT_ID_PALETTE,
                             BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
                             BLT_I18NCONTEXT_ID_POINTCLOUD,
                             BLT_I18NCONTEXT_ID_SCENE,
@@ -1232,7 +1234,6 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             BLT_I18NCONTEXT_ID_VOLUME,
                             BLT_I18NCONTEXT_ID_WORKSPACE,
                             BLT_I18NCONTEXT_ID_WORLD, );
-  BLT_I18N_MSGID_MULTI_CTXT("New", BLT_I18NCONTEXT_ID_PAINTCURVE, BLT_I18NCONTEXT_ID_PALETTE, );
   /* NOTE: BLT_I18N_MSGID_MULTI_CTXT takes a maximum number of parameters,
    * check the definition to see if a new call must be added when the limit
    * is exceeded. */

@@ -312,7 +312,7 @@ PYGETTEXT_KEYWORDS = (() +
     ((r"/\*name_display\*/\s*" + _msg_re + r"\s*,"),) +
 
     tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
-           r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*\)").format(it)
+           r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*,?\s*\)").format(it)
           for it in ("BLT_I18N_MSGID_MULTI_CTXT",))
 )
 

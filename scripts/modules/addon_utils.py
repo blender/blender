@@ -1174,7 +1174,7 @@ def _initialize_extensions_site_packages(*, create=False):
 
 
 def _initialize_extensions_repos_once():
-    from bpy_extras.extensions.junction_module import JunctionModuleHandle
+    from _bpy_internal.extensions.junction_module import JunctionModuleHandle
     module_handle = JunctionModuleHandle(_ext_base_pkg_idname)
     module_handle.register_module()
     _ext_global.module_handle = module_handle
