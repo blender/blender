@@ -4,7 +4,8 @@
 
 #define ANTIALIAS 0.75
 
-float get_line_alpha(float center, float relative_radius) {
+float get_line_alpha(float center, float relative_radius)
+{
   float radius = relative_radius * lineThickness;
   float sdf = abs(lineThickness * (lineUV.y - center));
   return smoothstep(radius, radius - ANTIALIAS, sdf);
