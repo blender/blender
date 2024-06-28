@@ -12,7 +12,7 @@ ExternalProject_Add(external_fribidi
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/fribidi
 
-  CONFIGURE_COMMAND
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     ${MESON} setup
       --prefix ${LIBDIR}/fribidi
       ${MESON_BUILD_TYPE}

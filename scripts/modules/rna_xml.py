@@ -229,13 +229,32 @@ def rna2xml(
         fw("{:s}</{:s}>\n".format(root_ident, root_node))
 
 
+# NOTE(@ideasman42): regarding `secure_types`.
+# This is a safe guard when loading an untrusted XML to prevent any possibility of the XML
+# paths "escaping" the intended data types, potentially writing into unexpected settings.
+# This is done because the XML itself defines the attributes which are recursed into,
+# there is a possibility the XML recurse into data that isn't logically owned by "root",
+# out of the theme and into user preferences for e.g. which could change trust settings
+# even executing code.
+#
+# At the time of writing it seems this is not possible with themes (the main user of this functionality),
+# however this could become possible in the future through additional RNA properties and it wouldn't be
+# obvious an exploit existed.
+#
+# In short, it's safest for users of this API to restrict types when loading untrusted XML.
+
 def xml2rna(
         root_xml, *,
         root_rna=None,  # must be set
+        secure_types=None,  # `Optional[Set[str]]`
 ):
 
-    def rna2xml_node(xml_node, value):
+    def xml2rna_node(xml_node, value):
         # print("evaluating:", xml_node.nodeName)
+
+        if (secure_types is not None) and (xml_node.nodeName not in secure_types):
+            print("Loading the XML with type restrictions, skipping \"{:s}\"".format(xml_node.nodeName))
+            return
 
         # ---------------------------------------------------------------------
         # Simple attributes
@@ -320,7 +339,7 @@ def xml2rna(
                                 if child_xml_real is None or subsubvalue is None:
                                     print("None found {:s} - {:d} collection:".format(child_xml.nodeName, i))
                                 else:
-                                    rna2xml_node(child_xml_real, subsubvalue)
+                                    xml2rna_node(child_xml_real, subsubvalue)
 
                     else:
                         # print(elems)
@@ -329,12 +348,12 @@ def xml2rna(
                             child_xml_real, = elems
 
                             # print(child_xml_real, subvalue)
-                            rna2xml_node(child_xml_real, subvalue)
+                            xml2rna_node(child_xml_real, subvalue)
                         else:
                             # empty is valid too
                             pass
 
-    rna2xml_node(root_xml, root_rna)
+    xml2rna_node(root_xml, root_rna)
 
 
 # -----------------------------------------------------------------------------
@@ -354,7 +373,12 @@ def _get_context_val(context, path):
     return value
 
 
-def xml_file_run(context, filepath, rna_map):
+def xml_file_run(
+        context,
+        filepath,
+        rna_map,
+        secure_types=None,  # `Optional[Set[str]]`
+):
     import xml.dom.minidom
 
     xml_nodes = xml.dom.minidom.parse(filepath)
@@ -370,7 +394,7 @@ def xml_file_run(context, filepath, rna_map):
 
         if value is not Ellipsis and value is not None:
             # print("  loading XML: {!r} -> {!r}".format(filepath, rna_path))
-            xml2rna(xml_node, root_rna=value)
+            xml2rna(xml_node, root_rna=value, secure_types=secure_types)
 
 
 def xml_file_write(context, filepath, rna_map, *, skip_typemap=None):

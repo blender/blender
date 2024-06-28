@@ -74,7 +74,6 @@ class AttributeOwner {
 /* Attributes. */
 
 bool BKE_attributes_supported(const AttributeOwner &owner);
-bool BKE_attribute_allow_procedural_access(const char *attribute_name);
 
 /**
  * Create a new attribute layer.

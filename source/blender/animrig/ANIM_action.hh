@@ -535,7 +535,7 @@ class KeyframeStrip : public ::KeyframeActionStrip {
    *
    * If it cannot be found, `nullptr` is returned.
    */
-  FCurve *fcurve_find(const Binding &binding, StringRefNull rna_path, int array_index);
+  FCurve *fcurve_find(const Binding &binding, FCurveDescriptor fcurve_descriptor);
 
   /**
    * Find an FCurve for this binding + RNA path + array index combination.
@@ -545,15 +545,10 @@ class KeyframeStrip : public ::KeyframeActionStrip {
    * \param `prop_subtype` The subtype of the property this fcurve is for, if
    * available.
    */
-  FCurve &fcurve_find_or_create(const Binding &binding,
-                                StringRefNull rna_path,
-                                int array_index,
-                                std::optional<PropertySubType> prop_subtype);
+  FCurve &fcurve_find_or_create(const Binding &binding, FCurveDescriptor fcurve_descriptor);
 
   SingleKeyingResult keyframe_insert(const Binding &binding,
-                                     StringRefNull rna_path,
-                                     int array_index,
-                                     std::optional<PropertySubType> prop_subtype,
+                                     FCurveDescriptor fcurve_descriptor,
                                      float2 time_value,
                                      const KeyframeSettings &settings,
                                      eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS);
@@ -670,13 +665,43 @@ FCurve *action_fcurve_ensure(Main *bmain,
                              bAction *act,
                              const char group[],
                              PointerRNA *ptr,
-                             const char rna_path[],
-                             int array_index);
+                             FCurveDescriptor fcurve_descriptor);
 
 /**
  * Find the F-Curve from the given Action. This assumes that all the destinations are valid.
  */
-FCurve *action_fcurve_find(bAction *act, const char rna_path[], int array_index);
+FCurve *action_fcurve_find(bAction *act, FCurveDescriptor fcurve_descriptor);
+
+/**
+ * Assert the invariants of Project Baklava phase 1.
+ *
+ * For an action the invariants are that it:
+ * - Is a legacy action.
+ * - OR has zero layers.
+ * - OR has a single layer that adheres to the phase 1 invariants for layers.
+ *
+ * For a layer the invariants are that it:
+ * - Has zero strips.
+ * - OR has a single strip that adheres to the phase 1 invariants for strips.
+ *
+ * For a strip the invariants are that it:
+ * - Is a keyframe strip.
+ * - AND is infinite.
+ * - AND has no time offset (i.e. aligns with scene time).
+ *
+ * This simultaneously serves as a todo marker for later phases of Project
+ * Baklava and ensures that the phase-1 invariants hold at runtime.
+ *
+ * TODO: these functions should be changed to assert fewer and fewer assumptions
+ * as we progress through the phases of Project Baklava and more and more of the
+ * new animation system is implemented. Finally, they should be removed entirely
+ * when the full system is completely implemented.
+ */
+void assert_baklava_phase_1_invariants(const Action &action);
+/** \copydoc assert_baklava_phase_1_invariants(const Action &) */
+void assert_baklava_phase_1_invariants(const Layer &layer);
+/** \copydoc assert_baklava_phase_1_invariants(const Action &) */
+void assert_baklava_phase_1_invariants(const Strip &strip);
 
 }  // namespace blender::animrig
 

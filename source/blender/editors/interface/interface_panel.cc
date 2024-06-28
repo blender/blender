@@ -2152,7 +2152,7 @@ void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was_open)
 {
   wmWindow *win = CTX_wm_window(C);
   const wmEvent *event = win->eventstate;
-  uiPanelDragCollapseHandle *dragcol_data = MEM_new<uiPanelDragCollapseHandle>(__func__);
+  uiPanelDragCollapseHandle *dragcol_data = MEM_cnew<uiPanelDragCollapseHandle>(__func__);
 
   dragcol_data->was_first_open = was_open;
   copy_v2_v2_int(dragcol_data->xy_init, event->xy);

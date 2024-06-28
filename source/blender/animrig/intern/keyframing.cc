@@ -563,14 +563,16 @@ static SingleKeyingResult insert_keyframe_fcurve_value(Main *bmain,
                                                        eBezTriple_KeyframeType keytype,
                                                        eInsertKeyFlags flag)
 {
+  BLI_assert(rna_path != nullptr);
+
   /* Make sure the F-Curve exists.
    * - if we're replacing keyframes only, DO NOT create new F-Curves if they do not exist yet
    *   but still try to get the F-Curve if it exists...
    */
 
   FCurve *fcu = key_insertion_may_create_fcurve(flag) ?
-                    action_fcurve_ensure(bmain, act, group, ptr, rna_path, array_index) :
-                    action_fcurve_find(act, rna_path, array_index);
+                    action_fcurve_ensure(bmain, act, group, ptr, {rna_path, array_index}) :
+                    action_fcurve_find(act, {rna_path, array_index});
 
   /* We may not have a F-Curve when we're replacing only. */
   if (!fcu) {
@@ -633,6 +635,7 @@ int delete_keyframe(Main *bmain,
                     int array_index,
                     float cfra)
 {
+  BLI_assert(rna_path != nullptr);
   AnimData *adt = BKE_animdata_from_id(id);
 
   if (ELEM(nullptr, id, adt)) {
@@ -682,7 +685,7 @@ int delete_keyframe(Main *bmain,
   /* Will only loop once unless the array index was -1. */
   int key_count = 0;
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = action_fcurve_find(act, rna_path, array_index);
+    FCurve *fcu = action_fcurve_find(act, {rna_path, array_index});
 
     if (fcu == nullptr) {
       continue;
@@ -718,6 +721,8 @@ int clear_keyframe(Main *bmain,
                    int array_index,
                    eInsertKeyFlags /*flag*/)
 {
+  BLI_assert(rna_path != nullptr);
+
   AnimData *adt = BKE_animdata_from_id(id);
 
   if (ELEM(nullptr, id, adt)) {
@@ -765,7 +770,7 @@ int clear_keyframe(Main *bmain,
   int key_count = 0;
   /* Will only loop once unless the array index was -1. */
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = action_fcurve_find(act, rna_path, array_index);
+    FCurve *fcu = action_fcurve_find(act, {rna_path, array_index});
 
     if (fcu == nullptr) {
       continue;
@@ -857,18 +862,12 @@ static SingleKeyingResult insert_key_layer(Layer &layer,
                                            const KeyframeSettings &key_settings,
                                            const eInsertKeyFlags insert_key_flags)
 {
-  /* TODO: we currently assume there will always be precisely one strip, which
-   * is infinite and has no time offset. This will not hold true in the future
-   * when we add support for multiple strips. */
+  assert_baklava_phase_1_invariants(layer);
   BLI_assert(layer.strips().size() == 1);
-  Strip *strip = layer.strip(0);
-  BLI_assert(strip->is_infinite());
-  BLI_assert(strip->frame_offset == 0.0);
 
+  Strip *strip = layer.strip(0);
   return strip->as<KeyframeStrip>().keyframe_insert(binding,
-                                                    rna_path,
-                                                    key_data.array_index,
-                                                    prop_subtype,
+                                                    {rna_path, key_data.array_index, prop_subtype},
                                                     key_data.position,
                                                     key_settings,
                                                     insert_key_flags);
@@ -1031,6 +1030,9 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
 
     const std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr,
                                                                                         prop);
+    if (!rna_path_id_to_prop.has_value()) {
+      continue;
+    }
 
     /* Handle the `force_all` condition mentioned above, ensuring the
      * "all-or-nothing" behavior if needed.
@@ -1047,7 +1049,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
       /* Determine if at least one element would succeed getting keyed. */
       bool at_least_one_would_succeed = false;
       for (int i = 0; i < rna_values.size(); i++) {
-        const FCurve *fcu = action_fcurve_find(action, rna_path_id_to_prop->c_str(), i);
+        const FCurve *fcu = action_fcurve_find(action, {*rna_path_id_to_prop, i});
         if (!fcu) {
           continue;
         }

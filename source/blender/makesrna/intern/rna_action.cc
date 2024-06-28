@@ -440,7 +440,7 @@ static bool rna_KeyframeActionStrip_key_insert(ID *id,
   const animrig::KeyframeSettings settings = animrig::get_keyframe_settings(true);
 
   const animrig::SingleKeyingResult result = key_strip.keyframe_insert(
-      binding, rna_path, array_index, std::nullopt, {time, value}, settings, INSERTKEY_NOFLAGS);
+      binding, {rna_path, array_index}, {time, value}, settings, INSERTKEY_NOFLAGS);
 
   const bool ok = result == animrig::SingleKeyingResult::SUCCESS;
   if (ok) {
@@ -556,13 +556,14 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
     group = nullptr;
   }
 
+  BLI_assert(data_path != nullptr);
   if (data_path[0] == '\0') {
     BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
     return nullptr;
   }
 
   /* Annoying, check if this exists. */
-  if (blender::animrig::action_fcurve_find(act, data_path, index)) {
+  if (blender::animrig::action_fcurve_find(act, {data_path, index})) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "F-Curve '%s[%d]' already exists in action '%s'",
@@ -571,7 +572,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
                 act->id.name + 2);
     return nullptr;
   }
-  return blender::animrig::action_fcurve_ensure(bmain, act, group, nullptr, data_path, index);
+  return blender::animrig::action_fcurve_ensure(bmain, act, group, nullptr, {data_path, index});
 }
 
 static FCurve *rna_Action_fcurve_find(bAction *act,

@@ -494,6 +494,9 @@ OCIO_ConstProcessorRcPtr *FallbackImpl::createDisplayProcessor(OCIO_ConstConfigR
                                                                const char * /*look*/,
                                                                const float scale,
                                                                const float exponent,
+                                                               const float /*temperature*/,
+                                                               const float /*tint*/,
+                                                               const bool /*use_white_balance*/,
                                                                const bool inverse)
 {
   FallbackTransform transform;

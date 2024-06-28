@@ -76,7 +76,7 @@ void VKVertexBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
   }
   render_graph::VKBufferAccess buffer_access = {};
   buffer_access.vk_buffer = buffer_.vk_handle();
-  buffer_access.vk_access_flags = data.shader_interface.access_mask(bind_type, *location);
+  buffer_access.vk_access_flags = data.shader_interface.access_mask(bind_type, binding);
   data.resource_access_info.buffers.append(buffer_access);
 }
 

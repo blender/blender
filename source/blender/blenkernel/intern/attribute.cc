@@ -199,11 +199,6 @@ bool BKE_attributes_supported(const AttributeOwner &owner)
   return false;
 }
 
-bool BKE_attribute_allow_procedural_access(const char *attribute_name)
-{
-  return blender::bke::allow_procedural_attribute_access(attribute_name);
-}
-
 static bool bke_attribute_rename_if_exists(AttributeOwner &owner,
                                            const char *old_name,
                                            const char *new_name,
@@ -787,7 +782,7 @@ CustomDataLayer *BKE_attributes_active_get(AttributeOwner &owner)
       CustomDataLayer *layer = &customdata->layers[i];
       if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
         if (index == active_index) {
-          if (BKE_attribute_allow_procedural_access(layer->name)) {
+          if (blender::bke::allow_procedural_attribute_access(layer->name)) {
             return layer;
           }
           return nullptr;

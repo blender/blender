@@ -1393,9 +1393,9 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
 void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3])
 {
   UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
-  Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
 
   BKE_paint_ensure_from_paintmode(bmain, sce, mode);
+  Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
 
   copy_v3_v3_uchar(paint->paint_cursor_col, col);
   paint->paint_cursor_col[3] = 128;

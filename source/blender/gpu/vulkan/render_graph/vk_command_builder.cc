@@ -284,20 +284,20 @@ void VKCommandBuilder::add_buffer_read_barriers(VKRenderGraph &render_graph,
     VkAccessFlags write_access = resource_state.write_access;
     VkAccessFlags wait_access = VK_ACCESS_NONE;
 
-    if (read_access == (read_access | link.vk_access_flags)) {
+    if (read_access == (read_access | link.vk_access_flags) &&
+        (resource_state.read_stages & node_stages))
+    {
       /* Has already been covered in a previous call no need to add this one. */
       continue;
     }
 
-    read_access |= link.vk_access_flags;
     wait_access |= write_access;
+    read_access |= link.vk_access_flags;
     state_.src_stage_mask |= resource_state.write_stages;
     state_.dst_stage_mask |= node_stages;
 
     resource_state.read_access = read_access;
-    resource_state.write_access = VK_ACCESS_NONE;
     resource_state.read_stages |= node_stages;
-    resource_state.write_stages = VK_PIPELINE_STAGE_NONE;
     add_buffer_barrier(resource.buffer.vk_buffer, wait_access, link.vk_access_flags);
   }
 }

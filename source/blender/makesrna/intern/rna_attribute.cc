@@ -314,7 +314,7 @@ static int rna_Attribute_domain_get(PointerRNA *ptr)
 static bool rna_Attribute_is_internal_get(PointerRNA *ptr)
 {
   const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-  return !BKE_attribute_allow_procedural_access(layer->name);
+  return !blender::bke::allow_procedural_attribute_access(layer->name);
 }
 
 static bool rna_Attribute_is_required_get(PointerRNA *ptr)

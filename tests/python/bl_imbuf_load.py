@@ -156,6 +156,9 @@ class ImBufLoadTest(ImBufTest):
 
         self.check("*.webp")
 
+    def test_load_psd(self):
+        self.check("*.psd")
+
 
 class ImBufBrokenTest(AbstractImBufTest):
     @classmethod

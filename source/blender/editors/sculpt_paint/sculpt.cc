@@ -6672,6 +6672,8 @@ void filter_region_clip_factors(const SculptSession &ss,
                                 const Span<int> verts,
                                 const MutableSpan<float> factors)
 {
+  BLI_assert(verts.size() == factors.size());
+
   const RegionView3D *rv3d = ss.cache ? ss.cache->vc->rv3d : ss.rv3d;
   const View3D *v3d = ss.cache ? ss.cache->vc->v3d : ss.v3d;
   if (!RV3D_CLIPPING_ENABLED(v3d, rv3d)) {

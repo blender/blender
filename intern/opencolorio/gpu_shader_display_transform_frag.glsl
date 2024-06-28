@@ -159,8 +159,8 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
   /* Convert to scene linear (usually a no-op). */
   col = OCIO_to_scene_linear(col);
 
-  /* Apply exposure in scene linear. */
-  col.rgb *= parameters.scale;
+  /* Apply exposure and white balance in scene linear. */
+  col = parameters.scene_linear_matrix * col;
 
   /* Convert to display space. */
   col = OCIO_to_display(col);

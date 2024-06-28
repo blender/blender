@@ -96,15 +96,6 @@ Spell Checkers
 Utilities
    Not associated with building Blender.
 
-   * icons:
-     Updates PNG icons from SVG files.
-
-     Optionally pass in variables: 'BLENDER_BIN', 'INKSCAPE_BIN'
-     otherwise default paths are used.
-
-     Example
-        make icons INKSCAPE_BIN=/path/to/inkscape
-
    * icons_geom:
      Updates Geometry icons from BLEND file.
 
@@ -564,11 +555,6 @@ source_archive_complete: .FORCE
 	    -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
 # This assumes CMake is still using a default `PACKAGE_DIR` variable:
 	@$(PYTHON) ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
-
-icons: .FORCE
-	@BLENDER_BIN=$(BLENDER_BIN) "$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
-	"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
-	"$(BLENDER_DIR)/release/datafiles/alert_icons_update.py"
 
 icons_geom: .FORCE
 	@BLENDER_BIN=$(BLENDER_BIN) \

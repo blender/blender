@@ -1214,13 +1214,15 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             BLT_I18NCONTEXT_ID_LATTICE,
                             BLT_I18NCONTEXT_ID_LIGHT,
                             BLT_I18NCONTEXT_ID_LIGHTPROBE,
+                            BLT_I18NCONTEXT_ID_MASK,
                             BLT_I18NCONTEXT_ID_MATERIAL,
-                            BLT_I18NCONTEXT_ID_MASK, );
+                            BLT_I18NCONTEXT_ID_MESH, );
   BLT_I18N_MSGID_MULTI_CTXT("New",
-                            BLT_I18NCONTEXT_ID_MESH,
                             BLT_I18NCONTEXT_ID_METABALL,
                             BLT_I18NCONTEXT_ID_NODETREE,
                             BLT_I18NCONTEXT_ID_OBJECT,
+                            BLT_I18NCONTEXT_ID_PAINTCURVE,
+                            BLT_I18NCONTEXT_ID_PALETTE,
                             BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
                             BLT_I18NCONTEXT_ID_POINTCLOUD,
                             BLT_I18NCONTEXT_ID_SCENE,
@@ -1232,7 +1234,6 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             BLT_I18NCONTEXT_ID_VOLUME,
                             BLT_I18NCONTEXT_ID_WORKSPACE,
                             BLT_I18NCONTEXT_ID_WORLD, );
-  BLT_I18N_MSGID_MULTI_CTXT("New", BLT_I18NCONTEXT_ID_PAINTCURVE, BLT_I18NCONTEXT_ID_PALETTE, );
   /* NOTE: BLT_I18N_MSGID_MULTI_CTXT takes a maximum number of parameters,
    * check the definition to see if a new call must be added when the limit
    * is exceeded. */
@@ -6917,6 +6918,14 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout,
   if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
     uiTemplateCurveMapping(
         col, &view_transform_ptr, "curve_mapping", 'c', true, false, false, false);
+  }
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &view_transform_ptr, "use_white_balance", UI_ITEM_NONE, nullptr, ICON_NONE);
+  if (view_settings->flag & COLORMANAGE_VIEW_USE_WHITE_BALANCE) {
+    uiItemR(
+        col, &view_transform_ptr, "white_balance_temperature", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, &view_transform_ptr, "white_balance_tint", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 

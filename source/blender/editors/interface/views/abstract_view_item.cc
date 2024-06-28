@@ -269,6 +269,11 @@ std::unique_ptr<DropTargetInterface> AbstractViewItem::create_item_drop_target()
   return nullptr;
 }
 
+std::optional<std::string> AbstractViewItem::debug_name() const
+{
+  return {};
+}
+
 AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view) {}
 
 void AbstractViewItemDragController::on_drag_start()

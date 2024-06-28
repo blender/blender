@@ -311,10 +311,10 @@ def extenion_repos_files_clear(directory, _):
     #
     # Safer because removing a repository which points to an arbitrary path
     # has the potential to wipe user data #119481.
-    import shutil
     import os
     from .bl_extension_utils import (
         scandir_with_demoted_errors,
+        rmtree_with_fallback_or_error,
         PKG_MANIFEST_FILENAME_TOML,
         REPO_LOCAL_PRIVATE_DIR,
     )
@@ -324,21 +324,15 @@ def extenion_repos_files_clear(directory, _):
         return
 
     if os.path.isdir(path := os.path.join(directory, REPO_LOCAL_PRIVATE_DIR)):
-        try:
-            shutil.rmtree(path)
-        except Exception as ex:
-            print("Failed to remove files", ex)
+        if (error := rmtree_with_fallback_or_error(path)) is not None:
+            print("Failed to remove \"{:s}\", error ({:s})".format(path, error))
 
     for entry in scandir_with_demoted_errors(directory):
-        if not entry.is_dir():
-            continue
         path = entry.path
         if not os.path.exists(os.path.join(path, PKG_MANIFEST_FILENAME_TOML)):
             continue
-        try:
-            shutil.rmtree(path)
-        except Exception as ex:
-            print("Failed to remove files", ex)
+        if (error := rmtree_with_fallback_or_error(path)) is not None:
+            print("Failed to remove \"{:s}\", error ({:s})".format(path, error))
 
 
 # -----------------------------------------------------------------------------

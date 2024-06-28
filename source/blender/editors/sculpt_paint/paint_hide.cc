@@ -729,6 +729,7 @@ static void invert_visibility_mesh(Object &object, const Span<PBVHNode *> nodes)
 
   hide_poly.finish();
   bke::mesh_hide_face_flush(mesh);
+  bke::pbvh::update_visibility(*object.sculpt->pbvh);
 }
 
 static void invert_visibility_grids(Depsgraph &depsgraph,

@@ -12,6 +12,8 @@
 #include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/usd/ar/packageUtils.h>
+#include <pxr/usd/usdGeom/metrics.h>
+#include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xformCache.h>
 #include <pxr/usd/usdGeom/xformCommonAPI.h>
 #include <pxr/usd/usdLux/domeLight.h>
@@ -532,6 +534,19 @@ void dome_light_to_world_material(const USDImportParams &params,
   /* Set the transform. */
   pxr::UsdGeomXformCache xf_cache(motionSampleTime);
   pxr::GfMatrix4d xf = xf_cache.GetLocalToWorldTransform(dome_light.GetPrim());
+
+  pxr::UsdStageRefPtr stage = dome_light.GetPrim().GetStage();
+
+  if (!stage) {
+    CLOG_WARN(
+        &LOG, "Couldn't get stage for dome light %s", dome_light.GetPrim().GetPath().GetText());
+    return;
+  }
+
+  if (pxr::UsdGeomGetStageUpAxis(stage) == pxr::UsdGeomTokens->y) {
+    /* Convert from Y-up to Z-up with a 90 degree rotation about the X-axis. */
+    xf *= pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), 90.0));
+  }
 
   xf = pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), -90.0)) *
        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), -90.0)) * xf;

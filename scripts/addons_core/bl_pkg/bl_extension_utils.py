@@ -30,6 +30,8 @@ __all__ = (
     "url_append_query_for_blender",
     "url_parse_for_blender",
     "file_mtime_or_none",
+    "scandir_with_demoted_errors",
+    "rmtree_with_fallback_or_error",
 
     # Public API.
     "json_from_filepath",
@@ -190,6 +192,20 @@ def scandir_with_demoted_errors(path: str) -> Generator[os.DirEntry[str], None, 
         yield from os.scandir(path)
     except Exception as ex:
         print("Error: scandir", ex)
+
+
+def rmtree_with_fallback_or_error(
+        path: str,
+        *,
+        remove_file: bool = True,
+        remove_link: bool = True,
+) -> Optional[str]:
+    from .cli.blender_ext import rmtree_with_fallback_or_error as fn
+    return fn(
+        path,
+        remove_file=remove_file,
+        remove_link=remove_link,
+    )
 
 
 # -----------------------------------------------------------------------------

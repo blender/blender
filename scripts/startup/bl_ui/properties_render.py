@@ -119,7 +119,7 @@ class RENDER_PT_color_management_display_settings(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_color_management_curves(RenderButtonsPanel, Panel):
-    bl_label = "Use Curves"
+    bl_label = "Curves"
     bl_parent_id = "RENDER_PT_color_management"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
@@ -145,9 +145,60 @@ class RENDER_PT_color_management_curves(RenderButtonsPanel, Panel):
         layout.use_property_split = False
         layout.use_property_decorate = False  # No animation.
 
-        layout.enabled = view.use_curve_mapping
+        layout.active = view.use_curve_mapping
 
         layout.template_curve_mapping(view, "curve_mapping", type='COLOR', levels=True)
+
+
+class RENDER_PT_color_management_white_balance_presets(PresetPanel, Panel):
+    bl_label = "White Balance Presets"
+    preset_subdir = "color_management/white_balance"
+    preset_operator = "script.execute_preset"
+    preset_add_operator = "render.color_management_white_balance_preset_add"
+
+
+class RENDER_PT_color_management_white_balance(RenderButtonsPanel, Panel):
+    bl_label = "White Balance"
+    bl_parent_id = "RENDER_PT_color_management"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+    }
+
+    def draw_header(self, context):
+        scene = context.scene
+        view = scene.view_settings
+
+        self.layout.prop(view, "use_white_balance", text="")
+
+    def draw_header_preset(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        view = scene.view_settings
+
+        RENDER_PT_color_management_white_balance_presets.draw_panel_header(layout)
+
+        eye = layout.operator("ui.eyedropper_color", text="", icon='EYEDROPPER')
+        eye.prop_data_path = "scene.view_settings.white_balance_whitepoint"
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        view = scene.view_settings
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        layout.active = view.use_white_balance
+
+        col = layout.column()
+        col.prop(view, "white_balance_temperature")
+        col.prop(view, "white_balance_tint")
 
 
 class RENDER_PT_eevee_ambient_occlusion(RenderButtonsPanel, Panel):
@@ -1385,6 +1436,8 @@ classes = (
     RENDER_PT_color_management,
     RENDER_PT_color_management_display_settings,
     RENDER_PT_color_management_curves,
+    RENDER_PT_color_management_white_balance_presets,
+    RENDER_PT_color_management_white_balance,
 )
 
 if __name__ == "__main__":  # only for live edit.

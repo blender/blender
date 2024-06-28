@@ -656,7 +656,10 @@ wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetReprese
 
 static void wm_drag_free_asset_data(wmDragAsset **asset_data)
 {
-  MEM_SAFE_FREE(*asset_data);
+  if (*asset_data) {
+    MEM_delete(*asset_data);
+    *asset_data = nullptr;
+  }
 }
 
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)

@@ -441,6 +441,67 @@ def scandir_recursive(
     yield from scandir_recursive_impl(path, path, filter_fn=filter_fn)
 
 
+def rmtree_with_fallback_or_error(
+        path: str,
+        *,
+        remove_file: bool = True,
+        remove_link: bool = True,
+) -> Optional[str]:
+    """
+    Remove a directory, with optional fallbacks to removing files & links.
+    Use this when a directory is expected, but there is the possibility
+    that there is a file or symbolic-link which should be removed instead.
+
+    Intended to be used for user managed files,
+    where removal is required and we can't be certain of the kind of file.
+
+    On failure, a string will be returned containing the first error.
+    """
+    # Note that `shutil.rmtree` has link detection that doesn't match `os.path.islink` exactly,
+    # so use it's callback that raises a link error and remove the link in that case.
+    errors = []
+
+    shutil.rmtree(path, onexc=lambda *args: errors.append(args))
+
+    # Happy path (for practically all cases).
+    if not errors:
+        return None
+
+    is_file = False
+    is_link = False
+
+    for err_type, _err_path, ex in errors:
+        if isinstance(ex, NotADirectoryError):
+            if err_type is os.rmdir:
+                is_file = True
+        if isinstance(ex, OSError):
+            if err_type is os.path.islink:
+                is_link = True
+
+    do_unlink = False
+    if is_file:
+        if remove_file:
+            do_unlink = True
+    if is_link:
+        if remove_link:
+            do_unlink = True
+
+    if do_unlink:
+        # Replace errors with the failure state of `os.unlink`.
+        errors.clear()
+        try:
+            os.unlink(path)
+        except Exception as ex:
+            errors.append((os.unlink, path, ex))
+
+    if errors:
+        # Other information may be useful but it's too verbose to forward to user messages
+        # and is more for debugging purposes.
+        return str(errors[0][2])
+
+    return None
+
+
 def build_paths_expand_iter(
         path: str,
         path_list: Sequence[str],
@@ -3041,8 +3102,13 @@ class subcmd_client:
                 filepath_local_pkg_temp = filepath_local_pkg + "@"
 
                 # It's unlikely this exist, nevertheless if it does - it must be removed.
-                if os.path.isdir(filepath_local_pkg_temp):
-                    shutil.rmtree(filepath_local_pkg_temp)
+                if os.path.exists(filepath_local_pkg_temp):
+                    if (error := rmtree_with_fallback_or_error(filepath_local_pkg_temp)) is not None:
+                        message_warn(
+                            msg_fn,
+                            "Failed to remove temporary directory for \"{:s}\": {:s}".format(manifest.id, error),
+                        )
+                        return False
 
                 directories_to_clean.append(filepath_local_pkg_temp)
 
@@ -3062,7 +3128,13 @@ class subcmd_client:
 
             is_reinstall = False
             if os.path.isdir(filepath_local_pkg):
-                shutil.rmtree(filepath_local_pkg)
+                if (error := rmtree_with_fallback_or_error(filepath_local_pkg)) is not None:
+                    message_warn(
+                        msg_fn,
+                        "Failed to remove existing directory for \"{:s}\": {:s}".format(manifest.id, error),
+                    )
+                    return False
+
                 is_reinstall = True
 
             os.rename(filepath_local_pkg_temp, filepath_local_pkg)
@@ -3337,27 +3409,27 @@ class subcmd_client:
 
         packages_valid = []
 
-        error = False
+        has_error = False
         for pkg_idname in packages:
             # As this simply removes the directories right now,
             # validate this path cannot be used for an unexpected outcome,
             # or using `../../` to remove directories that shouldn't.
             if (pkg_idname in {"", ".", ".."}) or ("\\" in pkg_idname or "/" in pkg_idname):
                 message_error(msg_fn, "Package name invalid \"{:s}\"".format(pkg_idname))
-                error = True
+                has_error = True
                 continue
 
             # This will be a directory.
             filepath_local_pkg = os.path.join(local_dir, pkg_idname)
             if not os.path.isdir(filepath_local_pkg):
                 message_error(msg_fn, "Package not found \"{:s}\"".format(pkg_idname))
-                error = True
+                has_error = True
                 continue
 
             packages_valid.append(pkg_idname)
         del filepath_local_pkg
 
-        if error:
+        if has_error:
             return False
 
         # Ensure a private directory so a local cache can be created.
@@ -3368,10 +3440,9 @@ class subcmd_client:
         with CleanupPathsContext(files=files_to_clean, directories=()):
             for pkg_idname in packages_valid:
                 filepath_local_pkg = os.path.join(local_dir, pkg_idname)
-                try:
-                    shutil.rmtree(filepath_local_pkg)
-                except Exception as ex:
-                    message_error(msg_fn, "Failure to remove \"{:s}\" with error ({:s})".format(pkg_idname, str(ex)))
+
+                if (error := rmtree_with_fallback_or_error(filepath_local_pkg)) is not None:
+                    message_error(msg_fn, "Failure to remove \"{:s}\" with error ({:s})".format(pkg_idname, error))
                     continue
 
                 message_status(msg_fn, "Removed \"{:s}\"".format(pkg_idname))
@@ -3383,13 +3454,10 @@ class subcmd_client:
                 if user_dir:
                     filepath_user_pkg = os.path.join(user_dir, pkg_idname)
                     if os.path.isdir(filepath_user_pkg):
-                        shutil.rmtree(filepath_user_pkg)
-                        try:
-                            shutil.rmtree(filepath_user_pkg)
-                        except Exception as ex:
+                        if (error := rmtree_with_fallback_or_error(filepath_user_pkg)) is not None:
                             message_error(
                                 msg_fn,
-                                "Failure to remove \"{:s}\" user files with error ({:s})".format(pkg_idname, str(ex)),
+                                "Failure to remove \"{:s}\" user files with error ({:s})".format(pkg_idname, error),
                             )
                             continue
 

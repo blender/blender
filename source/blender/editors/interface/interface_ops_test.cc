@@ -112,7 +112,7 @@ class CopyDriversToSelected : public testing::Test {
     PointerRNA cube_ptr = RNA_pointer_create(&cube->id, &RNA_Object, &cube->id);
     bAction *act = animrig::id_action_ensure(bmain, &cube->id);
     FCurve *fcu = animrig::action_fcurve_ensure(
-        bmain, act, "Object Transforms", &cube_ptr, "rotation_quaternion", 3);
+        bmain, act, "Object Transforms", &cube_ptr, {"rotation_quaternion", 3});
     animrig::KeyframeSettings keyframe_settings = {BEZT_KEYTYPE_KEYFRAME, HD_AUTO, BEZT_IPO_BEZ};
     insert_vert_fcurve(fcu, {1.0, 1.0}, keyframe_settings, INSERTKEY_NOFLAGS);
   }

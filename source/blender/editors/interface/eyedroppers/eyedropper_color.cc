@@ -23,11 +23,14 @@
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_image.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "NOD_composite.hh"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.hh"
@@ -84,7 +87,31 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 {
   Eyedropper *eye = MEM_cnew<Eyedropper>(__func__);
 
-  uiBut *but = UI_context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
+  PropertyRNA *prop;
+  if ((prop = RNA_struct_find_property(op->ptr, "prop_data_path")) &&
+      RNA_property_is_set(op->ptr, prop))
+  {
+    char *prop_data_path = RNA_string_get_alloc(op->ptr, "prop_data_path", nullptr, 0, nullptr);
+    BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(prop_data_path); });
+    if (!prop_data_path || prop_data_path[0] == '\0') {
+      MEM_freeN(eye);
+      return false;
+    }
+    PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
+    if (!RNA_path_resolve(&ctx_ptr, prop_data_path, &eye->ptr, &eye->prop)) {
+      BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", prop_data_path);
+      MEM_freeN(eye);
+      return false;
+    }
+    eye->is_undo = true;
+  }
+  else {
+    uiBut *but = UI_context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
+    if (but != nullptr) {
+      eye->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
+    }
+  }
+
   const enum PropertySubType prop_subtype = eye->prop ? RNA_property_subtype(eye->prop) :
                                                         PropertySubType(0);
 
@@ -98,8 +125,6 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
     return false;
   }
   op->customdata = eye;
-
-  eye->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 
   float col[4];
   RNA_property_float_get_array(&eye->ptr, eye->prop, col);
@@ -585,4 +610,14 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+
+  /* Paths relative to the context. */
+  PropertyRNA *prop;
+  prop = RNA_def_string(ot->srna,
+                        "prop_data_path",
+                        nullptr,
+                        0,
+                        "Data Path",
+                        "Path of property to be set with the depth");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }

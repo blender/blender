@@ -13,6 +13,7 @@
 
 #include "BLI_color.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_matrix_types.hh"
 
 namespace blender::math {
 
@@ -38,5 +39,14 @@ inline ColorSceneLinearByteEncoded4b<Alpha> interpolate(
           math::interpolate(a.b, b.b, t),
           math::interpolate(a.a, b.a, t)};
 }
+
+float3 whitepoint_from_temp_tint(float temperature, float tint);
+
+bool whitepoint_to_temp_tint(const float3 &white, float &temperature, float &tint);
+
+/* Computes a matrix to perform chromatic adaption from a source white point (given in the form of
+ * temperature and tint) to a target white point (given as its XYZ values).
+ * The resulting matrix operates on XYZ values, the caller is responsible for RGB conversion. */
+float3x3 chromatic_adaption_matrix(const float3 &from_XYZ, const float3 &to_XYZ);
 
 }  // namespace blender::math

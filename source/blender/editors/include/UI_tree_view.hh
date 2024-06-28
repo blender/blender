@@ -187,6 +187,8 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 
   virtual void build_row(uiLayout &row) = 0;
 
+  /* virtual */ std::optional<std::string> debug_name() const override;
+
   std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
   virtual std::unique_ptr<TreeViewItemDropTarget> create_drop_target();
 

@@ -78,11 +78,6 @@ call "%BLENDER_DIR%\build_files\windows\set_build_dir.cmd"
 
 :convenience_targets
 
-if "%ICONS%" == "1" (
-	call "%BLENDER_DIR%\build_files\windows\icons.cmd"
-	goto EOF
-)
-
 if "%ICONS_GEOM%" == "1" (
 	call "%BLENDER_DIR%\build_files\windows\icons_geom.cmd"
 	goto EOF

@@ -1954,6 +1954,8 @@ void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings
   new_settings->flag = settings->flag;
   new_settings->exposure = settings->exposure;
   new_settings->gamma = settings->gamma;
+  new_settings->temperature = settings->temperature;
+  new_settings->tint = settings->tint;
 
   if (settings->curve_mapping) {
     new_settings->curve_mapping = BKE_curvemapping_copy(settings->curve_mapping);
