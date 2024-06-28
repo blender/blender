@@ -23,8 +23,7 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_blenlib.h"
-#include "BLI_fileops_types.h"
+#include "BLI_string.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -43,7 +42,6 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_icons.h"
