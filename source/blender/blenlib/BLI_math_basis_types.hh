@@ -321,9 +321,9 @@ template<> inline AxisSigned abs(const AxisSigned &axis)
 /** Create basis vector. */
 template<typename T> T to_vector(const Axis axis)
 {
-  BLI_assert(axis <= AxisSigned::from_int(T::type_length - 1));
+  BLI_assert(axis.as_int() < T::type_length);
   T vec{};
-  vec[axis] = 1;
+  vec[axis.as_int()] = 1;
   return vec;
 }
 
