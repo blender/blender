@@ -862,14 +862,10 @@ static SingleKeyingResult insert_key_layer(Layer &layer,
                                            const KeyframeSettings &key_settings,
                                            const eInsertKeyFlags insert_key_flags)
 {
-  /* TODO: we currently assume there will always be precisely one strip, which
-   * is infinite and has no time offset. This will not hold true in the future
-   * when we add support for multiple strips. */
+  assert_baklava_phase_1_invariants(layer);
   BLI_assert(layer.strips().size() == 1);
-  Strip *strip = layer.strip(0);
-  BLI_assert(strip->is_infinite());
-  BLI_assert(strip->frame_offset == 0.0);
 
+  Strip *strip = layer.strip(0);
   return strip->as<KeyframeStrip>().keyframe_insert(binding,
                                                     {rna_path, key_data.array_index, prop_subtype},
                                                     key_data.position,

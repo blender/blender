@@ -434,14 +434,10 @@ bool Action::is_binding_animated(const binding_handle_t binding_handle) const
 
 Layer *Action::get_layer_for_keyframing()
 {
-  /* TODO: handle multiple layers. */
+  assert_baklava_phase_1_invariants(*this);
+
   if (this->layers().is_empty()) {
     return nullptr;
-  }
-  if (this->layers().size() > 1) {
-    std::fprintf(stderr,
-                 "Action '%s' has multiple layers, which isn't handled by keyframing code yet.",
-                 this->id.name);
   }
 
   return this->layer(0);
@@ -1238,4 +1234,35 @@ FCurve *action_fcurve_ensure(Main *bmain,
 
   return fcu;
 }
+
+void assert_baklava_phase_1_invariants(const Action &action)
+{
+  if (action.is_action_legacy()) {
+    return;
+  }
+  if (action.layers().is_empty()) {
+    return;
+  }
+  BLI_assert(action.layers().size() == 1);
+
+  assert_baklava_phase_1_invariants(*action.layer(0));
+}
+
+void assert_baklava_phase_1_invariants(const Layer &layer)
+{
+  if (layer.strips().is_empty()) {
+    return;
+  }
+  BLI_assert(layer.strips().size() == 1);
+
+  assert_baklava_phase_1_invariants(*layer.strip(0));
+}
+
+void assert_baklava_phase_1_invariants(const Strip &strip)
+{
+  BLI_assert(strip.type() == Strip::Type::Keyframe);
+  BLI_assert(strip.is_infinite());
+  BLI_assert(strip.frame_offset == 0.0);
+}
+
 }  // namespace blender::animrig
