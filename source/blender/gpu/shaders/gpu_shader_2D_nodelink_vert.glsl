@@ -42,8 +42,9 @@ void main(void)
 #endif
 
   float line_thickness = thickness;
+  bool is_outline_pass = gl_VertexID < MID_VERTEX;
 
-  if (gl_VertexID < MID_VERTEX) {
+  if (is_outline_pass) {
     /* Outline pass. */
     finalColor = colShadow;
   }
@@ -67,15 +68,15 @@ void main(void)
   }
 
   aspect = node_link_data.aspect;
+  isMainLine = expand.y == 1.0 && !is_outline_pass ? 1 : 0;
   /* Parameters for the dashed line. */
-  isMainLine = expand.y != 1.0 ? 0 : 1;
   dashLength = dash_params.x;
   dashFactor = dash_params.y;
   dashAlpha = dash_params.z;
   /* Approximate line length, no need for real bezier length calculation. */
   lineLength = distance(P0, P3);
   /* TODO: Incorrect U, this leads to non-uniform dash distribution. */
-  lineU = uv.x;
+  lineUV = uv;
 
   float t = uv.x;
   float t2 = t * t;
@@ -106,7 +107,6 @@ void main(void)
              ModelViewProjectionMatrix[1].xy * exp_axis.yy;
 
   float expand_dist = line_thickness * (uv.y * 2.0 - 1.0);
-  colorGradient = expand_dist;
   lineThickness = line_thickness;
 
   finalColor[3] *= dim_factor;
