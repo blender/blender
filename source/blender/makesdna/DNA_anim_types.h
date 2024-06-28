@@ -80,7 +80,7 @@ typedef enum eFModifier_Types {
   FMODIFIER_TYPE_NOISE = 5,
   /** Unimplemented - for applying: FFT, high/low pass filters, etc. */
   FMODIFIER_TYPE_FILTER = 6,
-  FMODIFIER_TYPE_PYTHON = 7,
+  FMODIFIER_TYPE_PYTHON = 7, /* Was never implemented, removed in #123906. */
   FMODIFIER_TYPE_LIMITS = 8,
   FMODIFIER_TYPE_STEPPED = 9,
 
@@ -222,14 +222,6 @@ typedef enum eFMod_Cycling_Modes {
   /** alternate between forward and reverse playback of keyframe range */
   FCM_EXTRAPOLATE_MIRROR,
 } eFMod_Cycling_Modes;
-
-/* Python-script modifier data */
-typedef struct FMod_Python {
-  /** Text buffer containing script to execute. */
-  struct Text *script;
-  /** ID-properties to provide 'custom' settings. */
-  IDProperty *prop;
-} FMod_Python;
 
 /* limits modifier data */
 typedef struct FMod_Limits {

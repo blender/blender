@@ -553,7 +553,6 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
         &RNA_FModifierGenerator,
         &RNA_FModifierLimits,
         &RNA_FModifierNoise,
-        &RNA_FModifierPython,
         &RNA_FModifierStepped,
     };
 

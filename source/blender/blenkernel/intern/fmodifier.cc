@@ -860,64 +860,6 @@ static FModifierTypeInfo FMI_NOISE = {
     /*evaluate_modifier*/ fcm_noise_evaluate,
 };
 
-/* Python F-Curve Modifier --------------------------- */
-
-static void fcm_python_free(FModifier *fcm)
-{
-  FMod_Python *data = (FMod_Python *)fcm->data;
-
-  /* id-properties */
-  IDP_FreeProperty(data->prop);
-}
-
-static void fcm_python_new_data(void *mdata)
-{
-  FMod_Python *data = (FMod_Python *)mdata;
-
-  /* Everything should be set correctly by calloc, except for the prop->type constant. */
-  data->prop = static_cast<IDProperty *>(MEM_callocN(sizeof(IDProperty), "PyFModifierProps"));
-  data->prop->type = IDP_GROUP;
-}
-
-static void fcm_python_copy(FModifier *fcm, const FModifier *src)
-{
-  FMod_Python *pymod = (FMod_Python *)fcm->data;
-  FMod_Python *opymod = (FMod_Python *)src->data;
-
-  pymod->prop = IDP_CopyProperty(opymod->prop);
-}
-
-static void fcm_python_evaluate(const FCurve * /*fcu*/,
-                                const FModifier * /*fcm*/,
-                                float * /*cvalue*/,
-                                float /*evaltime*/,
-                                void * /*storage*/)
-{
-#ifdef WITH_PYTHON
-// FMod_Python *data = (FMod_Python *)fcm->data;
-
-/* FIXME... need to implement this modifier...
- * It will need it execute a script using the custom properties
- */
-#endif /* WITH_PYTHON */
-}
-
-static FModifierTypeInfo FMI_PYTHON = {
-    /*type*/ FMODIFIER_TYPE_PYTHON,
-    /*size*/ sizeof(FMod_Python),
-    /*acttype*/ FMI_TYPE_GENERATE_CURVE,
-    /*requires_flag*/ FMI_REQUIRES_RUNTIME_CHECK,
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_ACTION, "Python"),
-    /*struct_name*/ "FMod_Python",
-    /*storage_size*/ 0,
-    /*free_data*/ fcm_python_free,
-    /*copy_data*/ fcm_python_copy,
-    /*new_data*/ fcm_python_new_data,
-    /*verify_data*/ nullptr /*fcm_python_verify*/,
-    /*evaluate_modifier_time*/ nullptr /*fcm_python_time*/,
-    /*evaluate_modifier*/ fcm_python_evaluate,
-};
-
 /* Limits F-Curve Modifier --------------------------- */
 
 static float fcm_limits_time(const FCurve * /*fcu*/,
@@ -1056,7 +998,7 @@ static void fmods_init_typeinfo()
   fmodifiersTypeInfo[FMODIFIER_TYPE_CYCLES] = &FMI_CYCLES;
   fmodifiersTypeInfo[FMODIFIER_TYPE_NOISE] = &FMI_NOISE;
   fmodifiersTypeInfo[FMODIFIER_TYPE_FILTER] = nullptr;
-  fmodifiersTypeInfo[FMODIFIER_TYPE_PYTHON] = &FMI_PYTHON;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_PYTHON] = nullptr;
   fmodifiersTypeInfo[FMODIFIER_TYPE_LIMITS] = &FMI_LIMITS;
   fmodifiersTypeInfo[FMODIFIER_TYPE_STEPPED] = &FMI_STEPPED;
 

@@ -242,12 +242,9 @@ void BKE_fmodifier_name_set(FModifier *fcm, const char *name);
 /**
  * Callback used by lib_query to walk over all ID usages
  * (mimics `foreach_id` callback of #IDTypeInfo structure).
- */
-void BKE_fmodifiers_foreach_id(ListBase *fmodifiers, LibraryForeachIDData *data);
-
-/**
- * Callback used by lib_query to walk over all ID usages
- * (mimics `foreach_id` callback of #IDTypeInfo structure).
+ *
+ * Note that this is only relevant when the F-Curve is a driver. Otherwise it
+ * won't refer to any other ID.
  */
 void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data);
 
