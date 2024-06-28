@@ -1963,12 +1963,38 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
   SculptBrushTestFn sculpt_brush_area_test_sq_fn = area_normal_and_center_get_area_test(
       ss, brush, area_test);
 
-  const undo::Node *unode = nullptr;
-  bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(&node, undo::Type::Position);
-    if (unode) {
-      use_original = !unode->position.is_empty();
+    if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
+      const Span<float3> orig_positions = unode->position;
+      const Span<float3> orig_normals = unode->normal;
+      const Span<int> verts = bke::pbvh::node_unique_verts(node);
+      for (const int i : verts.index_range()) {
+        const int vert = verts[i];
+        if (!hide_vert.is_empty() && hide_vert[vert]) {
+          continue;
+        }
+        const float3 &co = orig_positions[i];
+        const float3 &no = orig_normals[i];
+
+        const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
+        const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
+        if (!normal_test_r && !area_test_r) {
+          continue;
+        }
+
+        const int flip_index = math::dot(view_normal, no) <= 0.0f;
+        if (use_area_cos && area_test_r) {
+          anctd.area_cos[flip_index] += area_center_calc_weighted(
+              area_test.location, area_test.dist, area_test.radius, co);
+          anctd.count_co[flip_index] += 1;
+        }
+        if (use_area_nos && normal_test_r) {
+          anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
+                                                                     normal_test.radius);
+          anctd.count_no[flip_index] += 1;
+        }
+      }
+      return;
     }
   }
 
@@ -1978,16 +2004,8 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
     if (!hide_vert.is_empty() && hide_vert[vert]) {
       continue;
     }
-    float3 co;
-    float3 no;
-    if (use_original) {
-      co = unode->position[i];
-      no = unode->normal[i];
-    }
-    else {
-      co = vert_positions[vert];
-      no = vert_normals[vert];
-    }
+    const float3 &co = vert_positions[vert];
+    const float3 &no = vert_normals[vert];
 
     const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
     const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
