@@ -1049,17 +1049,27 @@ static short FMI_INIT = 1; /* when non-zero, the list needs to be updated */
 /** This function only gets called when #FMI_INIT is non-zero. */
 static void fmods_init_typeinfo()
 {
-  fmodifiersTypeInfo[0] = nullptr;           /* 'Null' F-Curve Modifier */
-  fmodifiersTypeInfo[1] = &FMI_GENERATOR;    /* Generator F-Curve Modifier */
-  fmodifiersTypeInfo[2] = &FMI_FN_GENERATOR; /* Built-In Function Generator F-Curve Modifier */
-  fmodifiersTypeInfo[3] = &FMI_ENVELOPE;     /* Envelope F-Curve Modifier */
-  fmodifiersTypeInfo[4] = &FMI_CYCLES;       /* Cycles F-Curve Modifier */
-  fmodifiersTypeInfo[5] = &FMI_NOISE;        /* Apply-Noise F-Curve Modifier */
-  fmodifiersTypeInfo[6] = nullptr /*&FMI_FILTER*/;
-  /* Filter F-Curve Modifier */         /* XXX unimplemented. */
-  fmodifiersTypeInfo[7] = &FMI_PYTHON;  /* Custom Python F-Curve Modifier */
-  fmodifiersTypeInfo[8] = &FMI_LIMITS;  /* Limits F-Curve Modifier */
-  fmodifiersTypeInfo[9] = &FMI_STEPPED; /* Stepped F-Curve Modifier */
+  fmodifiersTypeInfo[FMODIFIER_TYPE_NULL] = nullptr;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_GENERATOR] = &FMI_GENERATOR;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_FN_GENERATOR] = &FMI_FN_GENERATOR;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_ENVELOPE] = &FMI_ENVELOPE;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_CYCLES] = &FMI_CYCLES;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_NOISE] = &FMI_NOISE;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_FILTER] = nullptr;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_PYTHON] = &FMI_PYTHON;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_LIMITS] = &FMI_LIMITS;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_STEPPED] = &FMI_STEPPED;
+
+#ifndef NDEBUG
+  /* Check that the array indices are correct. */
+  for (int i = 0; i < FMODIFIER_NUM_TYPES; i++) {
+    if (!fmodifiersTypeInfo[i]) {
+      continue;
+    }
+    BLI_assert_msg(i == fmodifiersTypeInfo[i]->type,
+                   "fmodifiersTypeInfo should be indexed by the modifier type number");
+  }
+#endif
 }
 
 const FModifierTypeInfo *get_fmodifier_typeinfo(const int type)
