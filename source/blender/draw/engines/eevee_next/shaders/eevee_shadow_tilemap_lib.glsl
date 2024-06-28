@@ -6,6 +6,16 @@
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 
+/**
+ * Select the smallest viewport that can contain the given rect of tiles to render.
+ * Returns the viewport size in tile.
+ */
+ivec2 shadow_viewport_size_get(uint viewport_index)
+{
+  /* TODO(fclem): Experiment with non squared viewports. */
+  return ivec2(1u << viewport_index);
+}
+
 /* ---------------------------------------------------------------------- */
 /** \name Tile-map data
  * \{ */
