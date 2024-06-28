@@ -472,7 +472,7 @@ class Binding : public ::ActionBinding {
   std::string name_prefix_for_idtype() const;
 
   /**
-   * Return the name without the prefix.
+   * Return the name without the prefix, also known as the "display name".
    *
    * \see name_prefix_for_idtype
    */
