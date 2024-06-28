@@ -271,33 +271,15 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
     }
   }
 
-  /* TODO: it might be nice to have some iterator that just visits all animation channels
-   * in the layered Action data, and use that to replace this nested for-loop. */
-  for (animrig::Layer *layer : action.layers()) {
-    for (animrig::Strip *strip : layer->strips()) {
-      switch (strip->type()) {
-        case animrig::Strip::Type::Keyframe: {
-          auto &key_strip = strip->as<animrig::KeyframeStrip>();
-          for (animrig::ChannelBag *channelbag_for_binding : key_strip.channelbags()) {
-            for (FCurve *fcurve : channelbag_for_binding->fcurves()) {
-              BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcurve, data));
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /* Legacy F-Curves. */
-  LISTBASE_FOREACH (FCurve *, fcu, &action.curves) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
-  }
+  /* Note that, even though `BKE_fcurve_foreach_id()` exists, it is not called here. That function
+   * is only relevant for drivers, but the F-Curves stored in an Action are always just animation
+   * data, not drivers. */
 
   LISTBASE_FOREACH (TimeMarker *, marker, &action.markers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, marker->camera, IDWALK_CB_NOP);
   }
 
-  /* Even more legacy IPO curves. */
+  /* Legacy IPO curves. */
   if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
     LISTBASE_FOREACH (bActionChannel *, chan, &action.chanbase) {
       BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, chan->ipo, IDWALK_CB_USER);
