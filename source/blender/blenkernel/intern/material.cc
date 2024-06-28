@@ -831,7 +831,7 @@ void BKE_id_material_eval_ensure_default_slot(ID *id)
   }
 }
 
-int BKE_object_material_index_get(Object *ob, Material *ma)
+int BKE_object_material_index_get(Object *ob, const Material *ma)
 {
   short *totcol = BKE_object_material_len_p(ob);
   Material *read_ma = nullptr;

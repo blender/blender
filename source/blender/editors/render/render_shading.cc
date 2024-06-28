@@ -391,29 +391,14 @@ static int material_slot_de_select(bContext *C, bool select)
 
   Vector<Object *> objects = object_array_for_shading_edit_mode_enabled(C);
   for (Object *ob : objects) {
-    short mat_nr_active = -1;
-
     if (ob->totcol == 0) {
       continue;
     }
-    if (obact && (mat_active == BKE_object_material_get(ob, obact->actcol))) {
-      /* Avoid searching since there may be multiple slots with the same material.
-       * For the active object or duplicates: match the material slot index first. */
-      mat_nr_active = obact->actcol - 1;
-    }
-    else {
-      /* Find the first matching material.
-       * NOTE: there may be multiple but that's not a common use case. */
-      for (int i = 0; i < ob->totcol; i++) {
-        const Material *mat = BKE_object_material_get(ob, i + 1);
-        if (mat_active == mat) {
-          mat_nr_active = i;
-          break;
-        }
-      }
-      if (mat_nr_active == -1) {
-        continue;
-      }
+
+    short mat_nr_active = BKE_object_material_index_get(ob, mat_active);
+
+    if (mat_nr_active == -1) {
+      continue;
     }
 
     bool changed = false;
