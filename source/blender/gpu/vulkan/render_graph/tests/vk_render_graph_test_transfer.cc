@@ -136,10 +136,11 @@ TEST(vk_render_graph, clear_clear_copy_and_read_back)
   clear_color_image_dst.vk_clear_color_value = color_black;
 
   VKCopyImageNode::CreateInfo copy_image = {};
-  copy_image.src_image = src_image;
-  copy_image.dst_image = dst_image;
-  copy_image.region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  copy_image.region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  copy_image.node_data.src_image = src_image;
+  copy_image.node_data.dst_image = dst_image;
+  copy_image.node_data.region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  copy_image.node_data.region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  copy_image.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   VKCopyImageToBufferNode::CreateInfo copy_dst_image_to_buffer = {};
   copy_dst_image_to_buffer.src_image = dst_image;
   copy_dst_image_to_buffer.dst_buffer = staging_buffer;

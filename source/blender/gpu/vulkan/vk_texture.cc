@@ -88,15 +88,16 @@ void VKTexture::generate_mipmap()
 void VKTexture::copy_to(VKTexture &dst_texture, VkImageAspectFlags vk_image_aspect)
 {
   render_graph::VKCopyImageNode::CreateInfo copy_image = {};
-  copy_image.src_image = vk_image_handle();
-  copy_image.dst_image = dst_texture.vk_image_handle();
-  copy_image.region.srcSubresource.aspectMask = vk_image_aspect;
-  copy_image.region.srcSubresource.mipLevel = 0;
-  copy_image.region.srcSubresource.layerCount = vk_layer_count(1);
-  copy_image.region.dstSubresource.aspectMask = vk_image_aspect;
-  copy_image.region.dstSubresource.mipLevel = 0;
-  copy_image.region.dstSubresource.layerCount = vk_layer_count(1);
-  copy_image.region.extent = vk_extent_3d(0);
+  copy_image.node_data.src_image = vk_image_handle();
+  copy_image.node_data.dst_image = dst_texture.vk_image_handle();
+  copy_image.node_data.region.srcSubresource.aspectMask = vk_image_aspect;
+  copy_image.node_data.region.srcSubresource.mipLevel = 0;
+  copy_image.node_data.region.srcSubresource.layerCount = vk_layer_count(1);
+  copy_image.node_data.region.dstSubresource.aspectMask = vk_image_aspect;
+  copy_image.node_data.region.dstSubresource.mipLevel = 0;
+  copy_image.node_data.region.dstSubresource.layerCount = vk_layer_count(1);
+  copy_image.node_data.region.extent = vk_extent_3d(0);
+  copy_image.vk_image_aspect = to_vk_image_aspect_flag_bits(device_format_get());
 
   VKContext &context = *VKContext::get();
   context.render_graph.add_node(copy_image);

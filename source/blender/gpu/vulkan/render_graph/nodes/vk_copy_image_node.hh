@@ -24,8 +24,13 @@ struct VKCopyImageData {
   VkImageCopy region;
 };
 
+struct VKCopyImageCreateInfo {
+  VKCopyImageData node_data;
+  VkImageAspectFlags vk_image_aspect;
+};
+
 class VKCopyImageNode : public VKNodeInfo<VKNodeType::COPY_IMAGE,
-                                          VKCopyImageData,
+                                          VKCopyImageCreateInfo,
                                           VKCopyImageData,
                                           VK_PIPELINE_STAGE_TRANSFER_BIT,
                                           VKResourceType::IMAGE> {
@@ -39,7 +44,7 @@ class VKCopyImageNode : public VKNodeInfo<VKNodeType::COPY_IMAGE,
    */
   template<typename Node> static void set_node_data(Node &node, const CreateInfo &create_info)
   {
-    node.copy_image = create_info;
+    node.copy_image = create_info.node_data;
   }
 
   /**
@@ -49,16 +54,17 @@ class VKCopyImageNode : public VKNodeInfo<VKNodeType::COPY_IMAGE,
                    VKRenderGraphNodeLinks &node_links,
                    const CreateInfo &create_info) override
   {
-    ResourceWithStamp src_resource = resources.get_image(create_info.src_image);
-    ResourceWithStamp dst_resource = resources.get_image_and_increase_stamp(create_info.dst_image);
+    ResourceWithStamp src_resource = resources.get_image(create_info.node_data.src_image);
+    ResourceWithStamp dst_resource = resources.get_image_and_increase_stamp(
+        create_info.node_data.dst_image);
     node_links.inputs.append({src_resource,
                               VK_ACCESS_TRANSFER_READ_BIT,
                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                              create_info.region.srcSubresource.aspectMask});
+                              create_info.vk_image_aspect});
     node_links.outputs.append({dst_resource,
                                VK_ACCESS_TRANSFER_WRITE_BIT,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               create_info.region.dstSubresource.aspectMask});
+                               create_info.vk_image_aspect});
   }
 
   /**
