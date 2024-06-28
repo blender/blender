@@ -78,7 +78,6 @@
         "render_freestyle_svg": ("freestyle_svg_exporter", "Freestyle SVG Exporter"),
         "render_povray": ("pov_at_ble", "POV@Ble"),
         "render_ui_animation_render": ("ui_animation_render", "UI Animation Render"),
-        "rigify": ("rigify", "Rigify"),
         "space_clip_editor_refine_solution": ("refine_tracking_solution", "Refine tracking solution"),
         "space_view3d_3d_navigation": ("navigation", "3D Navigation"),
         "space_view3d_align_tools": ("align_tools", "Align Tools"),
