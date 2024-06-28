@@ -827,8 +827,8 @@ const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVert
 float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
                                           const CCGKey &key,
                                           int vert_index);
-blender::float4 SCULPT_vertex_color_get(const SculptSession &ss, PBVHVertRef vertex);
-void SCULPT_vertex_color_set(SculptSession &ss, PBVHVertRef vertex, const blender::float4 &color);
+blender::float4 SCULPT_vertex_color_get(const SculptSession &ss, int vert);
+void SCULPT_vertex_color_set(SculptSession &ss, int vert, const blender::float4 &color);
 
 bool SCULPT_vertex_is_occluded(SculptSession &ss, PBVHVertRef vertex, bool original);
 
@@ -1553,7 +1553,7 @@ void bmesh_four_neighbor_average(float avg[3], const float3 &direction, BMVert *
 
 float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex);
 float neighbor_mask_average(SculptSession &ss, SculptMaskWriteInfo write_info, PBVHVertRef vertex);
-float4 neighbor_color_average(SculptSession &ss, PBVHVertRef vertex);
+float4 neighbor_color_average(SculptSession &ss, int vert);
 
 /**
  * Mask the mesh boundaries smoothing only the mesh surface without using auto-masking.

@@ -17,8 +17,10 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -74,6 +76,8 @@ static EnumPropertyItem prop_color_filter_types[] = {
 };
 
 static void color_filter_task(Object &ob,
+                              const Span<bool> hide_vert,
+                              const Span<float> mask,
                               const int mode,
                               const float filter_strength,
                               const float *filter_fill_color,
@@ -86,21 +90,25 @@ static void color_filter_task(Object &ob,
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.filter_cache->automasking.get(), *node);
 
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-    auto_mask::node_update(automask_data, vd);
+  const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+
+  for (const int i : verts.index_range()) {
+    const int vert = verts[i];
+    if (!hide_vert.is_empty() && hide_vert[vert]) {
+      continue;
+    }
+    SCULPT_orig_vert_data_update(orig_data, i);
+    auto_mask::node_update(automask_data, i);
 
     float3 orig_color;
     float4 final_color;
     float3 hsv_color;
     int hue;
     float brightness, contrast, gain, delta, offset;
-    float fade = vd.mask;
-    fade = 1.0f - fade;
+    float fade = mask.is_empty() ? 1.0f : 1.0f - mask[vert];
     fade *= filter_strength;
     fade *= auto_mask::factor_get(
-        ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        ss.filter_cache->automasking.get(), ss, PBVHVertRef{vert}, &automask_data);
     if (fade == 0.0f) {
       continue;
     }
@@ -184,9 +192,9 @@ static void color_filter_task(Object &ob,
         break;
       case COLOR_FILTER_SMOOTH: {
         fade = clamp_f(fade, -1.0f, 1.0f);
-        float4 smooth_color = smooth::neighbor_color_average(ss, vd.vertex);
+        float4 smooth_color = smooth::neighbor_color_average(ss, vert);
 
-        float4 col = SCULPT_vertex_color_get(ss, vd.vertex);
+        float4 col = SCULPT_vertex_color_get(ss, vert);
 
         if (fade < 0.0f) {
           interp_v4_v4v4(smooth_color, smooth_color, col, 0.5f);
@@ -198,7 +206,7 @@ static void color_filter_task(Object &ob,
           float delta_color[4];
 
           /* Unsharp mask. */
-          copy_v4_v4(delta_color, ss.filter_cache->pre_smoothed_color[vd.index]);
+          copy_v4_v4(delta_color, ss.filter_cache->pre_smoothed_color[vert]);
           sub_v4_v4(delta_color, smooth_color);
 
           copy_v4_v4(final_color, col);
@@ -218,9 +226,8 @@ static void color_filter_task(Object &ob,
       }
     }
 
-    SCULPT_vertex_color_set(ss, vd.vertex, final_color);
+    SCULPT_vertex_color_set(ss, vert, final_color);
   }
-  BKE_pbvh_vertex_iter_end;
   BKE_pbvh_node_mark_update_color(node);
 }
 
@@ -233,8 +240,7 @@ static void sculpt_color_presmooth_init(SculptSession &ss)
   }
 
   for (int i = 0; i < totvert; i++) {
-    ss.filter_cache->pre_smoothed_color[i] = SCULPT_vertex_color_get(
-        ss, BKE_pbvh_index_to_vertex(*ss.pbvh, i));
+    ss.filter_cache->pre_smoothed_color[i] = SCULPT_vertex_color_get(ss, i);
   }
 
   for (int iteration = 0; iteration < 2; iteration++) {
@@ -243,7 +249,7 @@ static void sculpt_color_presmooth_init(SculptSession &ss)
       int total = 0;
 
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, BKE_pbvh_index_to_vertex(*ss.pbvh, i), ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, PBVHVertRef{i}, ni) {
         float col[4] = {0};
 
         copy_v4_v4(col, ss.filter_cache->pre_smoothed_color[ni.index]);
@@ -279,9 +285,14 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
     sculpt_color_presmooth_init(ss);
   }
 
+  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+  const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
   threading::parallel_for(ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      color_filter_task(ob, mode, filter_strength, fill_color, ss.filter_cache->nodes[i]);
+      color_filter_task(
+          ob, hide_vert, mask, mode, filter_strength, fill_color, ss.filter_cache->nodes[i]);
     }
   });
 

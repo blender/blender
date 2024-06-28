@@ -1151,11 +1151,9 @@ static void restore_color_data(SculptSession &ss, Cache *expand_cache)
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   for (PBVHNode *node : nodes) {
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_vertex_color_set(ss, vd.vertex, expand_cache->original_colors[vd.index]);
+    for (const int vert : bke::pbvh::node_unique_verts(*node)) {
+      SCULPT_vertex_color_set(ss, vert, expand_cache->original_colors[vert]);
     }
-    BKE_pbvh_vertex_iter_end;
     BKE_pbvh_node_mark_redraw(node);
   }
 }
@@ -1333,46 +1331,55 @@ static void face_sets_update(Object &object, Cache *expand_cache)
 /**
  * Callback to update vertex colors per PBVH node.
  */
-static void colors_update_task(SculptSession &ss, PBVHNode *node)
+static void colors_update_task(SculptSession &ss,
+                               const Span<bool> hide_vert,
+                               const Span<float> mask,
+                               PBVHNode *node)
 {
   Cache *expand_cache = ss.expand_cache;
 
   bool any_changed = false;
 
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_ALL) {
-    float4 initial_color = SCULPT_vertex_color_get(ss, vd.vertex);
+  const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+  for (const int i : verts.index_range()) {
+    const int vert = verts[i];
+    if (!hide_vert.is_empty() && hide_vert[vert]) {
+      continue;
+    }
 
-    const bool enabled = vert_state_get(ss, expand_cache, vd.vertex);
+    float4 initial_color = SCULPT_vertex_color_get(ss, vert);
+
+    const bool enabled = vert_state_get(ss, expand_cache, PBVHVertRef{vert});
     float fade;
 
     if (enabled) {
-      fade = gradient_value_get(ss, expand_cache, vd.vertex);
+      fade = gradient_value_get(ss, expand_cache, PBVHVertRef{vert});
     }
     else {
       fade = 0.0f;
     }
 
-    fade *= 1.0f - vd.mask;
+    if (!mask.is_empty()) {
+      fade *= 1.0f - mask[vert];
+    }
     fade = clamp_f(fade, 0.0f, 1.0f);
 
-    float final_color[4];
-    float final_fill_color[4];
+    float4 final_color;
+    float4 final_fill_color;
     mul_v4_v4fl(final_fill_color, expand_cache->fill_color, fade);
     IMB_blend_color_float(final_color,
-                          expand_cache->original_colors[vd.index],
+                          expand_cache->original_colors[vert],
                           final_fill_color,
                           IMB_BlendMode(expand_cache->blend_mode));
 
-    if (equals_v4v4(initial_color, final_color)) {
+    if (initial_color == final_color) {
       continue;
     }
 
-    SCULPT_vertex_color_set(ss, vd.vertex, final_color);
+    SCULPT_vertex_color_set(ss, vert, final_color);
 
     any_changed = true;
   }
-  BKE_pbvh_vertex_iter_end;
   if (any_changed) {
     BKE_pbvh_node_mark_update_color(node);
   }
@@ -1398,8 +1405,7 @@ static void original_state_store(Object &ob, Cache *expand_cache)
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
     expand_cache->original_colors = Array<float4>(totvert);
     for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-      expand_cache->original_colors[i] = SCULPT_vertex_color_get(ss, vertex);
+      expand_cache->original_colors[i] = SCULPT_vertex_color_get(ss, i);
     }
   }
 }
@@ -1469,14 +1475,19 @@ static void update_for_vert(bContext *C, Object &ob, const PBVHVertRef vertex)
       face_sets_update(ob, expand_cache);
       flush_update_step(C, UpdateType::FaceSet);
       break;
-    case SCULPT_EXPAND_TARGET_COLORS:
+    case SCULPT_EXPAND_TARGET_COLORS: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+      const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
       threading::parallel_for(expand_cache->nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          colors_update_task(ss, expand_cache->nodes[i]);
+          colors_update_task(ss, hide_vert, mask, expand_cache->nodes[i]);
         }
       });
       flush_update_step(C, UpdateType::Color);
       break;
+    }
   }
 }
 

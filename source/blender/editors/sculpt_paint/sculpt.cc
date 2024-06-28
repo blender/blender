@@ -226,14 +226,14 @@ bool SCULPT_has_colors(const SculptSession &ss)
   return ss.vcol || ss.mcol;
 }
 
-blender::float4 SCULPT_vertex_color_get(const SculptSession &ss, PBVHVertRef vertex)
+blender::float4 SCULPT_vertex_color_get(const SculptSession &ss, const int vert)
 {
-  return BKE_pbvh_vertex_color_get(*ss.pbvh, ss.vert_to_face_map, vertex);
+  return BKE_pbvh_vertex_color_get(*ss.pbvh, ss.vert_to_face_map, vert);
 }
 
-void SCULPT_vertex_color_set(SculptSession &ss, PBVHVertRef vertex, const blender::float4 &color)
+void SCULPT_vertex_color_set(SculptSession &ss, const int vert, const blender::float4 &color)
 {
-  BKE_pbvh_vertex_color_set(*ss.pbvh, ss.vert_to_face_map, vertex, color);
+  BKE_pbvh_vertex_color_set(*ss.pbvh, ss.vert_to_face_map, vert, color);
 }
 
 const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex)
@@ -1377,47 +1377,17 @@ static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
 static void restore_color(Object &object, const Span<PBVHNode *> nodes)
 {
   SculptSession &ss = *object.sculpt;
-  const auto restore_generic = [&](PBVHNode *node, const undo::Node *unode) {
-    SculptOrigVertData orig_vert_data;
-    orig_vert_data_unode_init(orig_vert_data, *unode);
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_orig_vert_data_update(orig_vert_data, vd);
-      SCULPT_vertex_color_set(ss, vd.vertex, orig_vert_data.col);
-    }
-    BKE_pbvh_vertex_iter_end;
-    BKE_pbvh_node_mark_update_color(node);
-  };
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES: {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (PBVHNode *node : nodes.slice(range)) {
-          if (const undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
-            restore_generic(node, unode);
-          }
-        }
-      });
-      break;
-    }
-    case PBVH_BMESH: {
-      for (PBVHNode *node : nodes) {
-        if (const undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
-          restore_generic(node, unode);
+  BLI_assert(BKE_pbvh_type(*ss.pbvh) == PBVH_FACES);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      if (const undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
+        const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+        for (const int i : verts.index_range()) {
+          SCULPT_vertex_color_set(ss, verts[i], unode->col[i]);
         }
       }
-      break;
     }
-    case PBVH_GRIDS: {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (PBVHNode *node : nodes.slice(range)) {
-          if (const undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
-            restore_generic(node, unode);
-          }
-        }
-      });
-      break;
-    }
-  }
+  });
 }
 
 static void restore_face_set(Object &object, const Span<PBVHNode *> nodes)

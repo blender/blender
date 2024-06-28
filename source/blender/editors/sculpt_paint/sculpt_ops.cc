@@ -669,7 +669,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
     copy_v4_fl(active_vertex_color, 1.0f);
   }
   else {
-    active_vertex_color = SCULPT_vertex_color_get(ss, active_vertex);
+    active_vertex_color = SCULPT_vertex_color_get(ss, active_vertex.i);
   }
 
   float color_srgb[3];

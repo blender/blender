@@ -563,18 +563,18 @@ void BKE_pbvh_store_colors(PBVH &pbvh,
 /* Like BKE_pbvh_store_colors but handles loop->vert conversion */
 void BKE_pbvh_store_colors_vertex(PBVH &pbvh,
                                   blender::GroupedSpan<int> vert_to_face_map,
-                                  blender::Span<int> indices,
+                                  blender::Span<int> verts,
                                   blender::MutableSpan<blender::float4> r_colors);
 
 void BKE_pbvh_update_active_vcol(PBVH &pbvh, Mesh *mesh);
 
 void BKE_pbvh_vertex_color_set(PBVH &pbvh,
                                blender::GroupedSpan<int> vert_to_face_map,
-                               PBVHVertRef vertex,
+                               int vert,
                                const blender::float4 &color);
 blender::float4 BKE_pbvh_vertex_color_get(const PBVH &pbvh,
                                           blender::GroupedSpan<int> vert_to_face_map,
-                                          PBVHVertRef vertex);
+                                          int vert);
 
 void BKE_pbvh_ensure_node_loops(PBVH &pbvh, blender::Span<blender::int3> corner_tris);
 int BKE_pbvh_debug_draw_gen_get(PBVHNode &node);
