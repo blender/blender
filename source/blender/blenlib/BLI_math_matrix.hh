@@ -1348,7 +1348,7 @@ inline void to_loc_rot_scale_safe(const MatBase<T, 4, 4> &mat,
                                   VecBase<T, 3> &r_scale)
 {
   EulerXYZBase<T> euler_rotation;
-  to_loc_rot_scale(mat, r_location, euler_rotation, r_scale);
+  to_loc_rot_scale<AllowNegativeScale>(mat, r_location, euler_rotation, r_scale);
   if constexpr (std::is_same_v<std::decay_t<RotationT>, QuaternionBase<T>>) {
     r_rotation = to_quaternion(euler_rotation);
   }
