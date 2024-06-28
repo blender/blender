@@ -86,10 +86,10 @@ static float4 color_vert_get(const OffsetIndices<int> faces,
                              const int vert)
 {
   const T *colors_typed = static_cast<const T *>(color_attribute.data());
-  if (color_domain == AttrDomain::Corner) {
+  if (color_domain == bke::AttrDomain::Corner) {
     float4 r_color(0.0f);
     for (const int face : vert_to_face_map[vert]) {
-      const int corner = mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
+      const int corner = bke::mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
       r_color += to_float(colors_typed[corner]);
     }
     return r_color / float(vert_to_face_map[vert].size());
@@ -106,7 +106,7 @@ static void color_vert_set(const OffsetIndices<int> faces,
                            const int vert,
                            const float color[4])
 {
-  if (color_domain == AttrDomain::Corner) {
+  if (color_domain == bke::AttrDomain::Corner) {
     for (const int i_face : vert_to_face_map[vert]) {
       const IndexRange face = faces[i_face];
       MutableSpan<T> colors{static_cast<T *>(color_attribute.data()) + face.start(), face.size()};
