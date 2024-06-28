@@ -311,7 +311,6 @@ def extenion_repos_files_clear(directory, _):
     #
     # Safer because removing a repository which points to an arbitrary path
     # has the potential to wipe user data #119481.
-    import shutil
     import os
     from .bl_extension_utils import (
         scandir_with_demoted_errors,

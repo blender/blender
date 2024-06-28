@@ -1542,11 +1542,8 @@ class USERPREF_PT_addons_tags(Panel):
     bl_region_type = 'HEADER'
     bl_ui_units_x = 13
 
-    _wm_tags_attr = "addon_tags"
-
-    def draw(self, _context):
-        # Extended by the `bl_pkg` add-on.
-        pass
+    def draw(self, context):
+        tags_panel_draw(self.layout, context, "addon_tags")
 
 
 class USERPREF_PT_extensions_tags(Panel):
@@ -1556,11 +1553,8 @@ class USERPREF_PT_extensions_tags(Panel):
     bl_region_type = 'HEADER'
     bl_ui_units_x = 13
 
-    _wm_tags_attr = "extension_tags"
-
-    def draw(self, _context):
-        # Extended by the `bl_pkg` add-on.
-        pass
+    def draw(self, context):
+        tags_panel_draw(self.layout, context, "extension_tags")
 
 
 class USERPREF_MT_addons_settings(Menu):
@@ -2044,11 +2038,9 @@ def tags_refresh(wm, tags_attr):
     return list(sorted(tags_next))
 
 
-def tags_panel_draw(panel, context):
-    tags_attr = panel._wm_tags_attr
+def tags_panel_draw(layout, context, tags_attr):
     from bpy.utils import escape_identifier
     from bpy.app.translations import contexts as i18n_contexts
-    layout = panel.layout
     wm = context.window_manager
     tags_sorted = tags_refresh(wm, tags_attr)
     layout.label(text="Show Tags")
@@ -2084,8 +2076,6 @@ classes = (
 def register():
     USERPREF_PT_addons.append(addons_panel_draw)
     USERPREF_PT_extensions.append(extensions_panel_draw)
-    USERPREF_PT_addons_tags.append(tags_panel_draw)
-    USERPREF_PT_extensions_tags.append(tags_panel_draw)
     USERPREF_MT_extensions_active_repo.append(extensions_repo_active_draw)
 
     for cls in classes:
@@ -2095,8 +2085,6 @@ def register():
 def unregister():
     USERPREF_PT_addons.remove(addons_panel_draw)
     USERPREF_PT_extensions.remove(extensions_panel_draw)
-    USERPREF_PT_extensions_tags.remove(tags_panel_draw)
-    USERPREF_PT_addons_tags.remove(tags_panel_draw)
     USERPREF_MT_extensions_active_repo.remove(extensions_repo_active_draw)
 
     for cls in reversed(classes):
