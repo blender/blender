@@ -465,6 +465,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_shadow_tilemap_finalize_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_init_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_lib.glsl
+  engines/eevee_next/shaders/eevee_shadow_tilemap_rendermap_comp.glsl
   engines/eevee_next/shaders/eevee_spherical_harmonics_lib.glsl
   engines/eevee_next/shaders/eevee_subsurface_convolve_comp.glsl
   engines/eevee_next/shaders/eevee_subsurface_lib.glsl

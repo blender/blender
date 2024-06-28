@@ -1352,6 +1352,12 @@ struct ShadowRenderView {
   bool32_t is_directional;
   /** If directional, distance along the negative Z axis of the near clip in view space. */
   float clip_near;
+  /** Copy of `ShadowTileMapData.tiles_index`. */
+  int tilemap_tiles_index;
+  /** The level of detail of the tilemap this view is rendering. */
+  int tilemap_lod;
+  /** Updated region of the tilemap. */
+  int2 rect_min;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowRenderView, 16)
 

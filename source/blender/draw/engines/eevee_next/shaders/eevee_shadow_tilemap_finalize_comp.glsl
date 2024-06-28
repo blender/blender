@@ -18,7 +18,7 @@ shared int rect_min_x;
 shared int rect_min_y;
 shared int rect_max_x;
 shared int rect_max_y;
-shared int view_index;
+shared uint lod_rendered;
 
 /**
  * Select the smallest viewport that can contain the given rect of tiles to render.
@@ -36,37 +36,20 @@ int viewport_select(ivec2 rect_size)
   return power_of_two;
 }
 
-/**
- * Select the smallest viewport that can contain the given rect of tiles to render.
- * Returns the viewport size in tile.
- */
-ivec2 viewport_size_get(int viewport_index)
-{
-  /* TODO(fclem): Experiment with non squared viewports. */
-  return ivec2(1 << viewport_index);
-}
-
 void main()
 {
   int tilemap_index = int(gl_GlobalInvocationID.z);
   ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
 
-  uvec2 atlas_texel = shadow_tile_coord_in_atlas(uvec2(tile_co), tilemap_index);
-
   ShadowTileMapData tilemap_data = tilemaps_buf[tilemap_index];
   bool is_cubemap = (tilemap_data.projection_type == SHADOW_PROJECTION_CUBEFACE);
   int lod_max = is_cubemap ? SHADOW_TILEMAP_LOD : 0;
-  int valid_tile_index = -1;
-  uint valid_lod = 0u;
-  /* With all threads (LOD0 size dispatch) load each lod tile from the highest lod
-   * to the lowest, keeping track of the lowest one allocated which will be use for shadowing.
-   * This guarantee a O(1) lookup time.
-   * Add one render view per LOD that has tiles to be rendered. */
+
+  lod_rendered = 0u;
+
   for (int lod = lod_max; lod >= 0; lod--) {
     ivec2 tile_co_lod = tile_co >> lod;
     int tile_index = shadow_tile_offset(uvec2(tile_co_lod), tilemap_data.tiles_index, lod);
-
-    ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
 
     /* Compute update area. */
     if (gl_LocalInvocationIndex == 0u) {
@@ -74,11 +57,11 @@ void main()
       rect_min_y = SHADOW_TILEMAP_RES;
       rect_max_x = 0;
       rect_max_y = 0;
-      view_index = -1;
     }
 
     barrier();
 
+    ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
     bool lod_valid_thread = all(equal(tile_co, tile_co_lod << lod));
     bool do_page_render = tile.is_used && tile.do_update && lod_valid_thread;
     if (do_page_render) {
@@ -94,14 +77,16 @@ void main()
     ivec2 rect_max = ivec2(rect_max_x, rect_max_y);
 
     int viewport_index = viewport_select(rect_max - rect_min);
-    ivec2 viewport_size = viewport_size_get(viewport_index);
+    ivec2 viewport_size = shadow_viewport_size_get(uint(viewport_index));
 
     /* Issue one view if there is an update in the LOD. */
     if (gl_LocalInvocationIndex == 0u) {
       bool lod_has_update = rect_min.x < rect_max.x;
       if (lod_has_update) {
-        view_index = atomicAdd(statistics_buf.view_needed_count, 1);
+        int view_index = atomicAdd(statistics_buf.view_needed_count, 1);
         if (view_index < SHADOW_VIEW_MAX) {
+          lod_rendered |= 1u << lod;
+
           /* Setup the view. */
           view_infos_buf[view_index].viewmat = tilemap_data.viewmat;
           view_infos_buf[view_index].viewinv = inverse(tilemap_data.viewmat);
@@ -146,45 +131,30 @@ void main()
             /* Disable local clipping. */
             render_view_buf[view_index].clip_distance_inv = 0.0;
           }
+          /* For building the render map. */
+          render_view_buf[view_index].tilemap_tiles_index = tilemap_data.tiles_index;
+          render_view_buf[view_index].tilemap_lod = lod;
+          render_view_buf[view_index].rect_min = rect_min;
         }
       }
     }
+  }
 
-    barrier();
+  /* Broadcast result of `lod_rendered`. */
+  barrier();
 
-    bool lod_is_rendered = (view_index >= 0) && (view_index < SHADOW_VIEW_MAX);
-    if (lod_is_rendered && lod_valid_thread) {
-      /* Tile coordinate relative to chosen viewport origin. */
-      ivec2 viewport_tile_co = tile_co_lod - rect_min;
-      /* We need to add page indirection to the render map for the whole viewport even if this one
-       * might extend outside of the shadow-map range. To this end, we need to wrap the threads to
-       * always cover the whole mip. This is because the viewport cannot be bigger than the mip
-       * level itself. */
-      int lod_res = SHADOW_TILEMAP_RES >> lod;
-      ivec2 relative_tile_co = (viewport_tile_co + lod_res) % lod_res;
-      if (all(lessThan(relative_tile_co, viewport_size))) {
-        uint page_packed = shadow_page_pack(tile.page);
-        /* Add page to render map. */
-        int render_page_index = shadow_render_page_index_get(view_index, relative_tile_co);
-        render_map_buf[render_page_index] = do_page_render ? page_packed : 0xFFFFFFFFu;
+  /* With all threads (LOD0 size dispatch) load each lod tile from the highest lod
+   * to the lowest, keeping track of the lowest one allocated which will be use for shadowing.
+   * This guarantee a O(1) lookup time.
+   * Add one render view per LOD that has tiles to be rendered. */
+  int valid_tile_index = -1;
+  uint valid_lod = 0u;
+  for (int lod = lod_max; lod >= 0; lod--) {
+    ivec2 tile_co_lod = tile_co >> lod;
+    int tile_index = shadow_tile_offset(uvec2(tile_co_lod), tilemap_data.tiles_index, lod);
+    ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
 
-        if (do_page_render) {
-          /* Tag tile as rendered. There is a barrier after the read. So it is safe. */
-          tiles_buf[tile_index] |= SHADOW_IS_RENDERED;
-          /* Add page to clear dispatch. */
-          uint page_index = atomicAdd(clear_dispatch_buf.num_groups_z, 1u);
-          /* Add page to tile processing. */
-          atomicAdd(tile_draw_buf.vertex_len, 6u);
-          /* Add page mapping for indexing the page position in atlas and in the frame-buffer. */
-          dst_coord_buf[page_index] = page_packed;
-          src_coord_buf[page_index] = packUvec4x8(
-              uvec4(relative_tile_co.x, relative_tile_co.y, view_index, 0));
-          /* Statistics. */
-          atomicAdd(statistics_buf.page_rendered_count, 1);
-        }
-      }
-    }
-
+    bool lod_is_rendered = ((lod_rendered >> lod) & 1u) == 1u;
     if (tile.is_used && tile.is_allocated && (!tile.do_update || lod_is_rendered)) {
       /* Save highest lod for this thread. */
       valid_tile_index = tile_index;
@@ -198,6 +168,8 @@ void main()
   ShadowTileData tile_data = shadow_tile_unpack(tile_packed);
   ShadowSamplingTile tile_sampling = shadow_sampling_tile_create(tile_data, valid_lod);
   ShadowSamplingTilePacked tile_sampling_packed = shadow_sampling_tile_pack(tile_sampling);
+
+  uvec2 atlas_texel = shadow_tile_coord_in_atlas(uvec2(tile_co), tilemap_index);
   imageStore(tilemaps_img, ivec2(atlas_texel), uvec4(tile_sampling_packed));
 
   if (all(equal(gl_GlobalInvocationID, uvec3(0)))) {

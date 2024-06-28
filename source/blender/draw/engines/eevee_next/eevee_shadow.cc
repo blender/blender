@@ -1022,22 +1022,32 @@ void ShadowModule::end_sync()
         /* Convert the unordered tiles into a texture used during shading. Creates views. */
         PassSimple::Sub &sub = pass.sub("Finalize");
         sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_FINALIZE));
-        sub.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
-        sub.bind_ssbo("tilemaps_clip_buf", tilemap_pool.tilemaps_clip);
-        sub.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
+        sub.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
+        sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
+        sub.bind_ssbo("pages_infos_buf", &pages_infos_data_);
+        sub.bind_ssbo("statistics_buf", &statistics_buf_.current());
         sub.bind_ssbo("view_infos_buf", &shadow_multi_view_.matrices_ubo_get());
-        sub.bind_ssbo("statistics_buf", statistics_buf_.current());
-        sub.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf_);
-        sub.bind_ssbo("tile_draw_buf", tile_draw_buf_);
-        sub.bind_ssbo("dst_coord_buf", dst_coord_buf_);
-        sub.bind_ssbo("src_coord_buf", src_coord_buf_);
-        sub.bind_ssbo("render_map_buf", render_map_buf_);
-        sub.bind_ssbo("render_view_buf", render_view_buf_);
-        sub.bind_ssbo("pages_infos_buf", pages_infos_data_);
-        sub.bind_image("tilemaps_img", tilemap_pool.tilemap_tx);
+        sub.bind_ssbo("render_view_buf", &render_view_buf_);
+        sub.bind_ssbo("tilemaps_clip_buf", &tilemap_pool.tilemaps_clip);
+        sub.bind_image("tilemaps_img", &tilemap_pool.tilemap_tx);
         sub.dispatch(int3(1, 1, tilemap_pool.tilemaps_data.size()));
         sub.barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_UNIFORM | GPU_BARRIER_TEXTURE_FETCH |
                     GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      }
+      {
+        /* Convert the unordered tiles into a texture used during shading. Creates views. */
+        PassSimple::Sub &sub = pass.sub("RenderMap");
+        sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_RENDERMAP));
+        sub.bind_ssbo("statistics_buf", &statistics_buf_.current());
+        sub.bind_ssbo("render_view_buf", &render_view_buf_);
+        sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
+        sub.bind_ssbo("clear_dispatch_buf", &clear_dispatch_buf_);
+        sub.bind_ssbo("tile_draw_buf", &tile_draw_buf_);
+        sub.bind_ssbo("dst_coord_buf", &dst_coord_buf_);
+        sub.bind_ssbo("src_coord_buf", &src_coord_buf_);
+        sub.bind_ssbo("render_map_buf", &render_map_buf_);
+        sub.dispatch(int3(1, 1, SHADOW_VIEW_MAX));
+        sub.barrier(GPU_BARRIER_SHADER_STORAGE);
       }
       {
         /* Amend tilemap_tx content to support clipmap LODs. */
