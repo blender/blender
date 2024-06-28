@@ -7107,7 +7107,7 @@ void apply_translations(const Span<float3> translations,
 
 void apply_translations(const Span<float3> translations, const Set<BMVert *, 0> &verts)
 {
-  BLI_assert(verts.size() * translations.size());
+  BLI_assert(verts.size() == translations.size());
 
   int i = 0;
   for (BMVert *vert : verts) {
