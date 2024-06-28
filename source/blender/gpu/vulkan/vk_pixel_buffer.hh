@@ -30,4 +30,9 @@ class VKPixelBuffer : public PixelBuffer {
   }
 };
 
+static inline VKPixelBuffer *unwrap(PixelBuffer *pixel_buffer)
+{
+  return static_cast<VKPixelBuffer *>(pixel_buffer);
+}
+
 }  // namespace blender::gpu

@@ -13,6 +13,7 @@
 #include "vk_data_conversion.hh"
 #include "vk_framebuffer.hh"
 #include "vk_memory.hh"
+#include "vk_pixel_buffer.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
 #include "vk_state_manager.hh"
@@ -312,13 +313,13 @@ void VKTexture::update_sub(
   context.render_graph.add_node(copy_buffer_to_image);
 }
 
-void VKTexture::update_sub(int /*offset*/[3],
-                           int /*extent*/[3],
-                           eGPUDataFormat /*format*/,
-                           GPUPixelBuffer * /*pixbuf*/)
+void VKTexture::update_sub(int offset_[3],
+                           int extent_[3],
+                           eGPUDataFormat format,
+                           GPUPixelBuffer *pixbuf)
 {
-  BLI_assert(!is_texture_view());
-  NOT_YET_IMPLEMENTED;
+  VKPixelBuffer &pixel_buffer = *unwrap(unwrap(pixbuf));
+  update_sub(0, offset_, extent_, format, pixel_buffer.map());
 }
 
 /* TODO(fclem): Legacy. Should be removed at some point. */
