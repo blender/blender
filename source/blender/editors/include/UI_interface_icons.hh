@@ -22,12 +22,6 @@ struct PreviewImage;
 struct Scene;
 struct bContext;
 
-struct IconFile {
-  IconFile *next, *prev;
-  char filename[256]; /* FILE_MAXFILE size */
-  int index;
-};
-
 struct IconTextOverlay {
   char text[5];
   uchar color[4] = {0};
@@ -127,9 +121,6 @@ void UI_icons_free_drawinfo(void *drawinfo);
 
 void UI_icon_draw_cache_begin();
 void UI_icon_draw_cache_end();
-
-ListBase *UI_iconfile_list();
-int UI_iconfile_get_index(const char *filename);
 
 PreviewImage *UI_icon_to_preview(int icon_id);
 

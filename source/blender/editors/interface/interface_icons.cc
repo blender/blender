@@ -21,8 +21,7 @@
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 
-#include "BLI_blenlib.h"
-#include "BLI_fileops_types.h"
+#include "BLI_string.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -40,7 +39,6 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_icons.h"
@@ -143,9 +141,6 @@ struct IconType {
 };
 
 /* ******************* STATIC LOCAL VARS ******************* */
-/* Static here to cache results of icon directory scan, so it's not
- * scanning the file-system each time the menu is drawn. */
-static ListBase iconfilelist = {nullptr, nullptr};
 static IconTexture icongltex = {{nullptr, nullptr}, 0, 0, 0, 0.0f, 0.0f};
 
 #ifndef WITH_HEADLESS
@@ -1072,33 +1067,6 @@ void UI_icons_reload_internal_textures()
 
 static void init_internal_icons()
 {
-#  if 0 /* temp disabled */
-  if ((btheme != nullptr) && btheme->tui.iconfile[0]) {
-    std::optional<std::string> icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
-    char iconfilestr[FILE_MAX];
-
-    if (icondir.has_value()) {
-      BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir->c_str(), btheme->tui.iconfile);
-
-      /* if the image is missing bbuf will just be nullptr */
-      bbuf = IMB_loadiffname(iconfilestr, IB_rect, nullptr);
-
-      if (bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
-        printf(
-            "\n***WARNING***\n"
-            "Icons file '%s' too small.\n"
-            "Using built-in Icons instead\n",
-            iconfilestr);
-        IMB_freeImBuf(bbuf);
-        bbuf = nullptr;
-      }
-    }
-    else {
-      printf("%s: 'icons' data path not found, continuing\n", __func__);
-    }
-  }
-#  endif
-
   /* Define icons. */
   for (int y = 0; y < ICON_GRID_ROWS; y++) {
     /* Row W has monochrome icons. */
@@ -1176,105 +1144,16 @@ static void init_internal_icons()
                      vicon_strip_color_draw_library_data_override_noneditable);
 }
 
-static void init_iconfile_list(ListBase *list)
-{
-  BLI_listbase_clear(list);
-  const std::optional<std::string> icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
-
-  if (!icondir.has_value()) {
-    return;
-  }
-
-  direntry *dir;
-  const int totfile = BLI_filelist_dir_contents(icondir->c_str(), &dir);
-
-  int index = 1;
-  for (int i = 0; i < totfile; i++) {
-    if (dir[i].type & S_IFREG) {
-      const char *filename = dir[i].relname;
-
-      if (BLI_path_extension_check(filename, ".png")) {
-        /* loading all icons on file start is overkill & slows startup
-         * its possible they change size after blender load anyway. */
-#  if 0
-        int ifilex, ifiley;
-        char iconfilestr[FILE_MAX + 16]; /* allow 256 chars for file+dir */
-        ImBuf *bbuf = nullptr;
-        /* check to see if the image is the right size, continue if not */
-        /* copying strings here should go ok, assuming that we never get back
-         * a complete path to file longer than 256 chars */
-        BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir->c_str(), filename);
-        bbuf = IMB_loadiffname(iconfilestr, IB_rect);
-
-        if (bbuf) {
-          ifilex = bbuf->x;
-          ifiley = bbuf->y;
-          IMB_freeImBuf(bbuf);
-        }
-        else {
-          ifilex = ifiley = 0;
-        }
-
-        /* bad size or failed to load */
-        if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H)) {
-          printf("icon '%s' is wrong size %dx%d\n", iconfilestr, ifilex, ifiley);
-          continue;
-        }
-#  endif /* removed */
-
-        /* found a potential icon file, so make an entry for it in the cache list */
-        IconFile *ifile = MEM_cnew<IconFile>(__func__);
-
-        STRNCPY(ifile->filename, filename);
-        ifile->index = index;
-
-        BLI_addtail(list, ifile);
-
-        index++;
-      }
-    }
-  }
-
-  BLI_filelist_free(dir, totfile);
-  dir = nullptr;
-}
-
-static void free_iconfile_list(ListBase *list)
-{
-  LISTBASE_FOREACH_MUTABLE (IconFile *, ifile, &iconfilelist) {
-    BLI_freelinkN(list, ifile);
-  }
-}
-
 #else
 
 void UI_icons_reload_internal_textures() {}
 
 #endif /* WITH_HEADLESS */
 
-int UI_iconfile_get_index(const char *filename)
-{
-  LISTBASE_FOREACH (const IconFile *, ifile, &iconfilelist) {
-    if (BLI_path_cmp(filename, ifile->filename) == 0) {
-      return ifile->index;
-    }
-  }
-
-  return 0;
-}
-
-ListBase *UI_iconfile_list()
-{
-  ListBase *list = &(iconfilelist);
-
-  return list;
-}
-
 void UI_icons_free()
 {
 #ifndef WITH_HEADLESS
   free_icons_textures();
-  free_iconfile_list(&iconfilelist);
 #endif
   BKE_icons_free();
   BKE_preview_images_free();
@@ -1398,7 +1277,6 @@ bool UI_icon_get_theme_color(int icon_id, uchar color[4])
 void UI_icons_init()
 {
 #ifndef WITH_HEADLESS
-  init_iconfile_list(&iconfilelist);
   UI_icons_reload_internal_textures();
   init_internal_icons();
   init_brush_icons();
