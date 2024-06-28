@@ -603,6 +603,7 @@ typedef enum eGPDlayer_Flag {
 typedef enum eGPDlayer_OnionFlag {
   /* do onion skinning */
   GP_LAYER_ONIONSKIN = (1 << 0),
+  GP_LAYER_ONIONSKIN_CUSTOM_COLOR = (1 << 1),
 } eGPDlayer_OnionFlag;
 
 /** #bGPDlayer.blend_mode */
