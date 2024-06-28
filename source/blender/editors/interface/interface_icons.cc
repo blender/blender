@@ -146,9 +146,6 @@ struct IconType {
 };
 
 /* ******************* STATIC LOCAL VARS ******************* */
-/* Static here to cache results of icon directory scan, so it's not
- * scanning the file-system each time the menu is drawn. */
-static ListBase iconfilelist = {nullptr, nullptr};
 static IconTexture icongltex = {{nullptr, nullptr}, 0, 0, 0, 0.0f, 0.0f};
 
 #ifndef WITH_HEADLESS
@@ -939,33 +936,6 @@ static void icon_verify_datatoc(IconImage *iimg)
 
 static void init_internal_icons()
 {
-#  if 0 /* temp disabled */
-  if ((btheme != nullptr) && btheme->tui.iconfile[0]) {
-    std::optional<std::string> icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
-    char iconfilestr[FILE_MAX];
-
-    if (icondir.has_value()) {
-      BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir->c_str(), btheme->tui.iconfile);
-
-      /* if the image is missing bbuf will just be nullptr */
-      bbuf = IMB_loadiffname(iconfilestr, IB_rect, nullptr);
-
-      if (bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
-        printf(
-            "\n***WARNING***\n"
-            "Icons file '%s' too small.\n"
-            "Using built-in Icons instead\n",
-            iconfilestr);
-        IMB_freeImBuf(bbuf);
-        bbuf = nullptr;
-      }
-    }
-    else {
-      printf("%s: 'icons' data path not found, continuing\n", __func__);
-    }
-  }
-#  endif
-
   /* Define icons. */
   for (int y = 0; y < ICON_GRID_ROWS; y++) {
     /* Row W has monochrome icons. */
@@ -1052,103 +1022,12 @@ static void init_internal_icons()
   def_internal_vicon(ICON_LAYERGROUP_COLOR_08, vicon_layergroup_color_draw_08);
 }
 
-static void init_iconfile_list(ListBase *list)
-{
-  BLI_listbase_clear(list);
-  const std::optional<std::string> icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
-
-  if (!icondir.has_value()) {
-    return;
-  }
-
-  direntry *dir;
-  const int totfile = BLI_filelist_dir_contents(icondir->c_str(), &dir);
-
-  int index = 1;
-  for (int i = 0; i < totfile; i++) {
-    if (dir[i].type & S_IFREG) {
-      const char *filename = dir[i].relname;
-
-      if (BLI_path_extension_check(filename, ".png")) {
-        /* loading all icons on file start is overkill & slows startup
-         * its possible they change size after blender load anyway. */
-#  if 0
-        int ifilex, ifiley;
-        char iconfilestr[FILE_MAX + 16]; /* allow 256 chars for file+dir */
-        ImBuf *bbuf = nullptr;
-        /* check to see if the image is the right size, continue if not */
-        /* copying strings here should go ok, assuming that we never get back
-         * a complete path to file longer than 256 chars */
-        BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir->c_str(), filename);
-        bbuf = IMB_loadiffname(iconfilestr, IB_rect);
-
-        if (bbuf) {
-          ifilex = bbuf->x;
-          ifiley = bbuf->y;
-          IMB_freeImBuf(bbuf);
-        }
-        else {
-          ifilex = ifiley = 0;
-        }
-
-        /* bad size or failed to load */
-        if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H)) {
-          printf("icon '%s' is wrong size %dx%d\n", iconfilestr, ifilex, ifiley);
-          continue;
-        }
-#  endif /* removed */
-
-        /* found a potential icon file, so make an entry for it in the cache list */
-        IconFile *ifile = MEM_cnew<IconFile>(__func__);
-
-        STRNCPY(ifile->filename, filename);
-        ifile->index = index;
-
-        BLI_addtail(list, ifile);
-
-        index++;
-      }
-    }
-  }
-
-  BLI_filelist_free(dir, totfile);
-  dir = nullptr;
-}
-
-static void free_iconfile_list(ListBase *list)
-{
-  LISTBASE_FOREACH_MUTABLE (IconFile *, ifile, &iconfilelist) {
-    BLI_freelinkN(list, ifile);
-  }
-}
-
 #else
 
 #endif /* WITH_HEADLESS */
 
-int UI_iconfile_get_index(const char *filename)
-{
-  LISTBASE_FOREACH (const IconFile *, ifile, &iconfilelist) {
-    if (BLI_path_cmp(filename, ifile->filename) == 0) {
-      return ifile->index;
-    }
-  }
-
-  return 0;
-}
-
-ListBase *UI_iconfile_list()
-{
-  ListBase *list = &(iconfilelist);
-
-  return list;
-}
-
 void UI_icons_free()
 {
-#ifndef WITH_HEADLESS
-  free_iconfile_list(&iconfilelist);
-#endif
   BKE_icons_free();
   BKE_preview_images_free();
 }
@@ -1220,43 +1099,6 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
   return di;
 }
 
-int UI_icon_get_width(int icon_id)
-{
-  Icon *icon = BKE_icon_get(icon_id);
-
-  if (icon == nullptr) {
-    if (G.debug & G_DEBUG) {
-      printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
-    }
-    return 0;
-  }
-
-  DrawInfo *di = icon_ensure_drawinfo(icon);
-  if (di) {
-    return ICON_DEFAULT_WIDTH;
-  }
-
-  return 0;
-}
-
-int UI_icon_get_height(int icon_id)
-{
-  Icon *icon = BKE_icon_get(icon_id);
-  if (icon == nullptr) {
-    if (G.debug & G_DEBUG) {
-      printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
-    }
-    return 0;
-  }
-
-  DrawInfo *di = icon_ensure_drawinfo(icon);
-  if (di) {
-    return ICON_DEFAULT_HEIGHT;
-  }
-
-  return 0;
-}
-
 bool UI_icon_get_theme_color(int icon_id, uchar color[4])
 {
   Icon *icon = BKE_icon_get(icon_id);
@@ -1271,7 +1113,6 @@ bool UI_icon_get_theme_color(int icon_id, uchar color[4])
 void UI_icons_init()
 {
 #ifndef WITH_HEADLESS
-  init_iconfile_list(&iconfilelist);
   init_internal_icons();
   init_brush_icons();
   init_event_icons();
@@ -2573,35 +2414,6 @@ void UI_icon_draw_ex(float x,
                  mono_border,
                  text_overlay,
                  inverted);
-}
-
-void UI_icon_draw_mono_rect(
-    float x, float y, float width, float height, int icon_id, const uchar color[4])
-{
-  Icon *icon = BKE_icon_get(icon_id);
-  if (icon == nullptr) {
-    return;
-  }
-  DrawInfo *di = icon_ensure_drawinfo(icon);
-  if (di->type != ICON_TYPE_MONO_TEXTURE) {
-    return;
-  }
-
-  float fcolor[4];
-  straight_uchar_to_premul_float(fcolor, color);
-
-  icon_draw_texture(x,
-                    y,
-                    width,
-                    height,
-                    di->data.texture.x,
-                    di->data.texture.y,
-                    di->data.texture.w,
-                    di->data.texture.h,
-                    fcolor[3],
-                    fcolor,
-                    false,
-                    nullptr);
 }
 
 void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
