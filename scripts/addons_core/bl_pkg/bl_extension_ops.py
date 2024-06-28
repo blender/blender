@@ -1942,7 +1942,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
     def exec_command_iter(self, is_modal):
         from . import bl_extension_utils
         from .bl_extension_utils import (
-            pkg_manifest_dict_from_file_or_error,
+            pkg_manifest_dict_from_archive_or_error,
             pkg_is_legacy_addon,
         )
 
@@ -1999,7 +1999,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                 continue
             pkg_files.append(source_filepath)
 
-            result = pkg_manifest_dict_from_file_or_error(source_filepath)
+            result = pkg_manifest_dict_from_archive_or_error(source_filepath)
             if isinstance(result, str):
                 continue
             pkg_id = result["id"]
@@ -2205,13 +2205,13 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             self._drop_variables = True
             self._legacy_drop = None
 
-            from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
+            from .bl_extension_utils import pkg_manifest_dict_from_archive_or_error
 
             if not self._repos_valid_for_install(context):
                 self.report({'ERROR'}, "No user repositories")
                 return {'CANCELLED'}
 
-            if isinstance(result := pkg_manifest_dict_from_file_or_error(filepath), str):
+            if isinstance(result := pkg_manifest_dict_from_archive_or_error(filepath), str):
                 self.report({'ERROR'}, "Error in manifest {:s}".format(result))
                 return {'CANCELLED'}
 
