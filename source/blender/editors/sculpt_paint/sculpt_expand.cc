@@ -1158,13 +1158,13 @@ static void restore_color_data(Object &ob, Cache *expand_cache)
   bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
   for (PBVHNode *node : nodes) {
     for (const int vert : bke::pbvh::node_unique_verts(*node)) {
-      SCULPT_vertex_color_set(faces,
-                              corner_verts,
-                              vert_to_face_map,
-                              color_attribute.domain,
-                              vert,
-                              expand_cache->original_colors[vert],
-                              color_attribute.span);
+      color::color_vert_set(faces,
+                            corner_verts,
+                            vert_to_face_map,
+                            color_attribute.domain,
+                            vert,
+                            expand_cache->original_colors[vert],
+                            color_attribute.span);
     }
     BKE_pbvh_node_mark_redraw(node);
   }
@@ -1364,7 +1364,7 @@ static void colors_update_task(SculptSession &ss,
       continue;
     }
 
-    float4 initial_color = SCULPT_vertex_color_get(
+    float4 initial_color = color::color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
 
     const bool enabled = vert_state_get(ss, expand_cache, PBVHVertRef{vert});
@@ -1394,13 +1394,13 @@ static void colors_update_task(SculptSession &ss,
       continue;
     }
 
-    SCULPT_vertex_color_set(faces,
-                            corner_verts,
-                            vert_to_face_map,
-                            color_attribute.domain,
-                            vert,
-                            final_color,
-                            color_attribute.span);
+    color::color_vert_set(faces,
+                          corner_verts,
+                          vert_to_face_map,
+                          color_attribute.domain,
+                          vert,
+                          final_color,
+                          color_attribute.span);
 
     any_changed = true;
   }
@@ -1436,7 +1436,7 @@ static void original_state_store(Object &ob, Cache *expand_cache)
 
     expand_cache->original_colors = Array<float4>(totvert);
     for (int i = 0; i < totvert; i++) {
-      expand_cache->original_colors[i] = SCULPT_vertex_color_get(
+      expand_cache->original_colors[i] = color::color_vert_get(
           faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, i);
     }
   }

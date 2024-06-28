@@ -180,7 +180,7 @@ float4 neighbor_color_average(SculptSession &ss,
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, PBVHVertRef{vert}, ni) {
-    float4 tmp = SCULPT_vertex_color_get(
+    float4 tmp = color::color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute, color_domain, ni.index);
 
     avg += tmp;
@@ -191,7 +191,7 @@ float4 neighbor_color_average(SculptSession &ss,
   if (total > 0) {
     return avg / total;
   }
-  return SCULPT_vertex_color_get(
+  return color::color_vert_get(
       faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
 }
 

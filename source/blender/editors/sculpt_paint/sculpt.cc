@@ -203,51 +203,6 @@ const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex)
   return nullptr;
 }
 
-bool SCULPT_has_loop_colors(const Object &ob)
-{
-  using namespace blender;
-  const Mesh *mesh = BKE_object_get_original_mesh(&ob);
-  const std::optional<bke::AttributeMetaData> meta_data = mesh->attributes().lookup_meta_data(
-      mesh->active_color_attribute);
-  if (!meta_data) {
-    return false;
-  }
-  if (meta_data->domain != bke::AttrDomain::Corner) {
-    return false;
-  }
-  if (!(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
-    return false;
-  }
-  return true;
-}
-
-bool SCULPT_has_colors(const Mesh &mesh)
-{
-  return bool(blender::ed::sculpt_paint::color::active_color_attribute(mesh));
-}
-
-blender::float4 SCULPT_vertex_color_get(const blender::OffsetIndices<int> faces,
-                                        const blender::Span<int> corner_verts,
-                                        const blender::GroupedSpan<int> vert_to_face_map,
-                                        const blender::GSpan color_attribute,
-                                        const blender::bke::AttrDomain color_domain,
-                                        const int vert)
-{
-  return BKE_pbvh_vertex_color_get(
-      faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
-}
-
-void SCULPT_vertex_color_set(const blender::OffsetIndices<int> faces,
-                             const blender::Span<int> corner_verts,
-                             const blender::GroupedSpan<int> vert_to_face_map,
-                             const blender::bke::AttrDomain color_domain,
-                             const int vert,
-                             const blender::float4 &color,
-                             const blender::GMutableSpan color_attribute)
-{
-  BKE_pbvh_vertex_color_set(
-      faces, corner_verts, vert_to_face_map, color_domain, vert, color, color_attribute);
-}
 
 const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex)
 {
@@ -1401,13 +1356,13 @@ static void restore_color(Object &object, const Span<PBVHNode *> nodes)
       if (const undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
         const Span<int> verts = bke::pbvh::node_unique_verts(*node);
         for (const int i : verts.index_range()) {
-          SCULPT_vertex_color_set(faces,
-                                  corner_verts,
-                                  vert_to_face_map,
-                                  color_attribute.domain,
-                                  verts[i],
-                                  unode->col[i],
-                                  color_attribute.span);
+          color::color_vert_set(faces,
+                                corner_verts,
+                                vert_to_face_map,
+                                color_attribute.domain,
+                                verts[i],
+                                unode->col[i],
+                                color_attribute.span);
         }
       }
     }
@@ -3618,7 +3573,11 @@ static void push_undo_nodes(Object &ob, const Brush &brush, const Span<PBVHNode 
   }
   else if (SCULPT_tool_is_paint(brush.sculpt_tool)) {
     const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-    BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
+    if (const bke::GAttributeReader attr = color::active_color_attribute(mesh)) {
+      if (attr.domain == bke::AttrDomain::Corner) {
+        BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
+      }
+    }
     undo::push_nodes(ob, nodes, undo::Type::Color);
     for (PBVHNode *node : nodes) {
       BKE_pbvh_node_mark_update_color(node);
@@ -3648,15 +3607,6 @@ static void do_brush_action(const Scene &scene,
 
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(*ss.pbvh);
-
-  if (SCULPT_tool_is_paint(brush.sculpt_tool) && SCULPT_has_loop_colors(ob)) {
-    if (type != PBVH_FACES) {
-      return;
-    }
-
-    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-    BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
-  }
 
   const bool use_original = sculpt_tool_needs_original(brush.sculpt_tool) ? true :
                                                                             !ss.cache->accum;

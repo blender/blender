@@ -827,27 +827,8 @@ const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVert
 float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
                                           const CCGKey &key,
                                           int vert_index);
-blender::float4 SCULPT_vertex_color_get(blender::OffsetIndices<int> faces,
-                                        blender::Span<int> corner_verts,
-                                        blender::GroupedSpan<int> vert_to_face_map,
-                                        blender::GSpan color_attribute,
-                                        blender::bke::AttrDomain color_domain,
-                                        int vert);
-void SCULPT_vertex_color_set(blender::OffsetIndices<int> faces,
-                             blender::Span<int> corner_verts,
-                             blender::GroupedSpan<int> vert_to_face_map,
-                             blender::bke::AttrDomain color_domain,
-                             int vert,
-                             const blender::float4 &color,
-                             blender::GMutableSpan color_attribute);
 
 bool SCULPT_vertex_is_occluded(SculptSession &ss, PBVHVertRef vertex, bool original);
-
-/** Returns true if a color attribute exists in the current sculpt session. */
-bool SCULPT_has_colors(const Mesh &mesh);
-
-/** Returns true if the active color attribute is on loop (AttrDomain::Corner) domain. */
-bool SCULPT_has_loop_colors(const Object &ob);
 
 const float *SCULPT_vertex_persistent_co_get(const SculptSession &ss, PBVHVertRef vertex);
 blender::float3 SCULPT_vertex_persistent_normal_get(const SculptSession &ss, PBVHVertRef vertex);
@@ -1986,6 +1967,39 @@ void do_draw_face_sets_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> node
 }
 
 namespace color {
+
+/* Swaps colors at each element in indices with values in colors. */
+void swap_gathered_colors(Span<int> indices,
+                          GMutableSpan color_attribute,
+                          MutableSpan<float4> r_colors);
+
+/* Stores colors from the elements in indices into colors. */
+void gather_colors(const GSpan color_attribute,
+                   const Span<int> indices,
+                   MutableSpan<float4> r_colors);
+
+/* Like gather_colors but handles loop->vert conversion */
+void gather_colors_vert(OffsetIndices<int> faces,
+                        Span<int> corner_verts,
+                        GroupedSpan<int> vert_to_face_map,
+                        GSpan color_attribute,
+                        bke::AttrDomain color_domain,
+                        Span<int> verts,
+                        MutableSpan<float4> r_colors);
+
+void color_vert_set(OffsetIndices<int> faces,
+                    Span<int> corner_verts,
+                    GroupedSpan<int> vert_to_face_map,
+                    bke::AttrDomain color_domain,
+                    int vert,
+                    const float4 &color,
+                    GMutableSpan color_attribute);
+float4 color_vert_get(OffsetIndices<int> faces,
+                      Span<int> corner_verts,
+                      GroupedSpan<int> vert_to_face_map,
+                      GSpan color_attribute,
+                      bke::AttrDomain color_domain,
+                      int vert);
 
 bke::GAttributeReader active_color_attribute(const Mesh &mesh);
 bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh);

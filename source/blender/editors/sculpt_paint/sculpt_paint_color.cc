@@ -9,7 +9,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_meshdata_types.h"
 
+#include "BLI_color.hh"
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
@@ -36,6 +38,172 @@
 #include <cstdlib>
 
 namespace blender::ed::sculpt_paint::color {
+
+template<typename Func> inline void to_static_color_type(const CPPType &type, const Func &func)
+{
+  if (type.is<ColorGeometry4f>()) {
+    func(MPropCol());
+  }
+  else if (type.is<ColorGeometry4b>()) {
+    func(MLoopCol());
+  }
+}
+
+template<typename T> float4 to_float(const T &src);
+
+template<> float4 to_float(const MLoopCol &src)
+{
+  float4 dst;
+  rgba_uchar_to_float(dst, reinterpret_cast<const uchar *>(&src));
+  srgb_to_linearrgb_v3_v3(dst, dst);
+  return dst;
+}
+template<> float4 to_float(const MPropCol &src)
+{
+  return src.color;
+}
+
+template<typename T> void from_float(const float src[4], T &dst);
+
+template<> void from_float(const float src[4], MLoopCol &dst)
+{
+  float temp[4];
+  linearrgb_to_srgb_v3_v3(temp, src);
+  temp[3] = src[3];
+  rgba_float_to_uchar(reinterpret_cast<uchar *>(&dst), temp);
+}
+template<> void from_float(const float src[4], MPropCol &dst)
+{
+  copy_v4_v4(dst.color, src);
+}
+
+template<typename T>
+static float4 color_vert_get(const OffsetIndices<int> faces,
+                             const Span<int> corner_verts,
+                             const GroupedSpan<int> vert_to_face_map,
+                             const GSpan color_attribute,
+                             const bke::AttrDomain color_domain,
+                             const int vert)
+{
+  const T *colors_typed = static_cast<const T *>(color_attribute.data());
+  if (color_domain == AttrDomain::Corner) {
+    float4 r_color(0.0f);
+    for (const int face : vert_to_face_map[vert]) {
+      const int corner = mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
+      r_color += to_float(colors_typed[corner]);
+    }
+    return r_color / float(vert_to_face_map[vert].size());
+  }
+  return to_float(colors_typed[vert]);
+}
+
+template<typename T>
+static void color_vert_set(const OffsetIndices<int> faces,
+                           const Span<int> corner_verts,
+                           const GroupedSpan<int> vert_to_face_map,
+                           const GMutableSpan color_attribute,
+                           const bke::AttrDomain color_domain,
+                           const int vert,
+                           const float color[4])
+{
+  if (color_domain == AttrDomain::Corner) {
+    for (const int i_face : vert_to_face_map[vert]) {
+      const IndexRange face = faces[i_face];
+      MutableSpan<T> colors{static_cast<T *>(color_attribute.data()) + face.start(), face.size()};
+      Span<int> face_verts = corner_verts.slice(face);
+
+      for (const int i : IndexRange(face.size())) {
+        if (face_verts[i] == vert) {
+          from_float(color, colors[i]);
+        }
+      }
+    }
+  }
+  else {
+    from_float(color, static_cast<T *>(color_attribute.data())[vert]);
+  }
+}
+
+float4 color_vert_get(const OffsetIndices<int> faces,
+                      const Span<int> corner_verts,
+                      const GroupedSpan<int> vert_to_face_map,
+                      const GSpan color_attribute,
+                      const bke::AttrDomain color_domain,
+                      const int vert)
+{
+  float4 color;
+  to_static_color_type(color_attribute.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    color = color_vert_get<T>(
+        faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
+  });
+  return color;
+}
+
+void color_vert_set(const OffsetIndices<int> faces,
+                    const Span<int> corner_verts,
+                    const GroupedSpan<int> vert_to_face_map,
+                    const bke::AttrDomain color_domain,
+                    const int vert,
+                    const float4 &color,
+                    const GMutableSpan color_attribute)
+{
+  to_static_color_type(color_attribute.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    color_vert_set<T>(
+        faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert, color);
+  });
+}
+
+void swap_gathered_colors(const Span<int> indices,
+                          GMutableSpan color_attribute,
+                          MutableSpan<float4> r_colors)
+{
+  to_static_color_type(color_attribute.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    T *colors_typed = static_cast<T *>(color_attribute.data());
+    for (const int i : indices.index_range()) {
+      T temp = colors_typed[indices[i]];
+      from_float(r_colors[i], colors_typed[indices[i]]);
+      r_colors[i] = to_float(temp);
+    }
+  });
+}
+
+void gather_colors(const GSpan color_attribute,
+                   const Span<int> indices,
+                   MutableSpan<float4> r_colors)
+{
+  to_static_color_type(color_attribute.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    const T *colors_typed = static_cast<const T *>(color_attribute.data());
+    for (const int i : indices.index_range()) {
+      r_colors[i] = to_float(colors_typed[indices[i]]);
+    }
+  });
+}
+
+void gather_colors_vert(const OffsetIndices<int> faces,
+                        const Span<int> corner_verts,
+                        const GroupedSpan<int> vert_to_face_map,
+                        const GSpan color_attribute,
+                        const bke::AttrDomain color_domain,
+                        const Span<int> verts,
+                        const MutableSpan<float4> r_colors)
+{
+  if (color_domain == bke::AttrDomain::Point) {
+    gather_colors(color_attribute, verts, r_colors);
+  }
+  else {
+    to_static_color_type(color_attribute.type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      for (const int i : verts.index_range()) {
+        r_colors[i] = color_vert_get<T>(
+            faces, corner_verts, vert_to_face_map, color_attribute, color_domain, verts[i]);
+      }
+    });
+  }
+}
 
 bke::GAttributeReader active_color_attribute(const Mesh &mesh)
 {
@@ -129,16 +297,16 @@ static void do_color_smooth_task(Object &ob,
                                                                color_attribute.span,
                                                                color_attribute.domain,
                                                                vert);
-    float4 col = SCULPT_vertex_color_get(
+    float4 col = color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
     blend_color_interpolate_float(col, col, smooth_color, fade);
-    SCULPT_vertex_color_set(faces,
-                            corner_verts,
-                            vert_to_face_map,
-                            color_attribute.domain,
-                            vert,
-                            col,
-                            color_attribute.span);
+    color_vert_set(faces,
+                   corner_verts,
+                   vert_to_face_map,
+                   color_attribute.domain,
+                   vert,
+                   col,
+                   color_attribute.span);
   }
 }
 
@@ -265,17 +433,17 @@ static void do_paint_brush_task(Object &ob,
     const float alpha = BKE_brush_alpha_get(ss.scene, &brush);
     mul_v4_v4fl(buffer_color, color_buffer->color[i], alpha * automasking);
 
-    float4 col = SCULPT_vertex_color_get(
+    float4 col = color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
     IMB_blend_color_float(col, orig_data.col, buffer_color, IMB_BlendMode(brush.blend));
     col = math::clamp(col, 0.0f, 1.0f);
-    SCULPT_vertex_color_set(faces,
-                            corner_verts,
-                            vert_to_face_map,
-                            color_attribute.domain,
-                            vert,
-                            col,
-                            color_attribute.span);
+    color_vert_set(faces,
+                   corner_verts,
+                   vert_to_face_map,
+                   color_attribute.domain,
+                   vert,
+                   col,
+                   color_attribute.span);
   }
 }
 
@@ -311,7 +479,7 @@ static void do_sample_wet_paint_task(SculptSession &ss,
       continue;
     }
 
-    float4 col = SCULPT_vertex_color_get(
+    float4 col = color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
 
     add_v4_v4(swptd->color, col);
@@ -332,11 +500,6 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
 
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.sculpt;
-
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
-  if (!SCULPT_has_colors(mesh)) {
-    return;
-  }
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
@@ -359,7 +522,7 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
     }
   }
 
-  /* Smooth colors mode. */
+  Mesh &mesh = *static_cast<Mesh *>(ob.data);
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const OffsetIndices<int> faces = mesh.faces();
@@ -368,7 +531,10 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
-  bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
+  bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
+  if (!color_attribute) {
+    return;
+  }
 
   if (ss.cache->alt_smooth) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -608,16 +774,16 @@ static void do_smear_brush_task(Object &ob,
       mul_v4_fl(accum, 1.0f / totw);
     }
 
-    float4 col = SCULPT_vertex_color_get(
+    float4 col = color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
     blend_color_interpolate_float(col, ss.cache->prev_colors[vert], accum, fade);
-    SCULPT_vertex_color_set(faces,
-                            corner_verts,
-                            vert_to_face_map,
-                            color_attribute.domain,
-                            vert,
-                            col,
-                            color_attribute.span);
+    color_vert_set(faces,
+                   corner_verts,
+                   vert_to_face_map,
+                   color_attribute.domain,
+                   vert,
+                   col,
+                   color_attribute.span);
   }
 }
 
@@ -630,7 +796,7 @@ static void do_smear_store_prev_colors_task(const OffsetIndices<int> faces,
                                             float4 *prev_colors)
 {
   for (const int vert : bke::pbvh::node_unique_verts(node)) {
-    prev_colors[vert] = SCULPT_vertex_color_get(
+    prev_colors[vert] = color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
   }
 }
@@ -641,7 +807,7 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   SculptSession &ss = *ob.sculpt;
 
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
-  if (!SCULPT_has_colors(mesh) || ss.cache->bstrength == 0.0f) {
+  if (ss.cache->bstrength == 0.0f) {
     return;
   }
 
@@ -655,11 +821,14 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
 
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
+  if (!color_attribute) {
+    return;
+  }
 
   if (ss.cache->prev_colors.is_empty()) {
     ss.cache->prev_colors = Array<float4>(mesh.verts_num);
     for (int i = 0; i < mesh.verts_num; i++) {
-      ss.cache->prev_colors[i] = SCULPT_vertex_color_get(
+      ss.cache->prev_colors[i] = color_vert_get(
           faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, i);
     }
   }

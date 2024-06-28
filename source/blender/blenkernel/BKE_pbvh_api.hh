@@ -546,39 +546,6 @@ blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const PBVH &pbvh);
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH &pbvh);
 
-/* Swaps colors at each element in indices with values in colors. */
-void BKE_pbvh_swap_colors(blender::Span<int> indices,
-                          blender::GMutableSpan color_attribute,
-                          blender::MutableSpan<blender::float4> r_colors);
-
-/* Stores colors from the elements in indices into colors. */
-void BKE_pbvh_store_colors(const blender::GSpan color_attribute,
-                           const blender::Span<int> indices,
-                           blender::MutableSpan<blender::float4> r_colors);
-
-/* Like BKE_pbvh_store_colors but handles loop->vert conversion */
-void BKE_pbvh_store_colors_vertex(blender::OffsetIndices<int> faces,
-                                  blender::Span<int> corner_verts,
-                                  blender::GroupedSpan<int> vert_to_face_map,
-                                  blender::GSpan color_attribute,
-                                  blender::bke::AttrDomain color_domain,
-                                  blender::Span<int> verts,
-                                  blender::MutableSpan<blender::float4> r_colors);
-
-void BKE_pbvh_vertex_color_set(blender::OffsetIndices<int> faces,
-                               blender::Span<int> corner_verts,
-                               blender::GroupedSpan<int> vert_to_face_map,
-                               blender::bke::AttrDomain color_domain,
-                               int vert,
-                               const blender::float4 &color,
-                               blender::GMutableSpan color_attribute);
-blender::float4 BKE_pbvh_vertex_color_get(blender::OffsetIndices<int> faces,
-                                          blender::Span<int> corner_verts,
-                                          blender::GroupedSpan<int> vert_to_face_map,
-                                          blender::GSpan color_attribute,
-                                          blender::bke::AttrDomain color_domain,
-                                          int vert);
-
 void BKE_pbvh_ensure_node_loops(PBVH &pbvh, blender::Span<blender::int3> corner_tris);
 int BKE_pbvh_debug_draw_gen_get(PBVHNode &node);
 

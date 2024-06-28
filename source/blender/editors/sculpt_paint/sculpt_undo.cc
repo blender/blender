@@ -588,12 +588,13 @@ static void restore_color(Object &object, StepData &step_data, MutableSpan<bool>
 
   for (std::unique_ptr<Node> &unode : step_data.nodes) {
     if (color_attribute.domain == bke::AttrDomain::Point && !unode->col.is_empty()) {
-      BKE_pbvh_swap_colors(unode->vert_indices.as_span().take_front(unode->unique_verts_num),
-                           color_attribute.span,
-                           unode->col);
+      color::swap_gathered_colors(
+          unode->vert_indices.as_span().take_front(unode->unique_verts_num),
+          color_attribute.span,
+          unode->col);
     }
     else if (color_attribute.domain == bke::AttrDomain::Corner && !unode->loop_col.is_empty()) {
-      BKE_pbvh_swap_colors(unode->corner_indices, color_attribute.span, unode->loop_col);
+      color::swap_gathered_colors(unode->corner_indices, color_attribute.span, unode->loop_col);
     }
 
     modified_vertices.fill_indices(unode->vert_indices.as_span(), true);
@@ -1317,13 +1318,13 @@ static void store_color(const Object &object, const PBVHNode &node, Node &unode)
    * vertex colors for original data lookup. */
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
   unode.col.reinitialize(verts.size());
-  BKE_pbvh_store_colors_vertex(
+  color::gather_colors_vert(
       faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, verts, unode.col);
 
   if (color_attribute.domain == bke::AttrDomain::Corner) {
     unode.corner_indices = bke::pbvh::node_corners(node);
     unode.loop_col.reinitialize(unode.corner_indices.size());
-    BKE_pbvh_store_colors(colors, unode.corner_indices, unode.loop_col);
+    color::gather_colors(colors, unode.corner_indices, unode.loop_col);
   }
 }
 

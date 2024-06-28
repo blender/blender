@@ -652,7 +652,6 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   Brush &brush = *BKE_paint_brush(&sd.paint);
   SculptSession &ss = *ob.sculpt;
   PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
-  blender::float4 active_vertex_color;
 
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -668,19 +667,18 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
 
   /* No color attribute? Set color to white. */
   const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-  if (!SCULPT_has_colors(mesh)) {
-    copy_v4_fl(active_vertex_color, 1.0f);
-  }
-  else {
-    const OffsetIndices<int> faces = mesh.faces();
-    const Span<int> corner_verts = mesh.corner_verts();
-    const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
-    const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
-    const GVArraySpan colors = *color_attribute;
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
 
-    active_vertex_color = SCULPT_vertex_color_get(
-        faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, active_vertex.i);
+  blender::float4 active_vertex_color;
+  if (!color_attribute) {
+    active_vertex_color = float4(1.0f);
   }
+  const GVArraySpan colors = *color_attribute;
+  active_vertex_color = color::color_vert_get(
+      faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, active_vertex.i);
 
   float color_srgb[3];
   IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb, active_vertex_color);
@@ -887,10 +885,6 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
 
-  if (SCULPT_has_loop_colors(ob)) {
-    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-    BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
-  }
 
   if (RNA_boolean_get(op->ptr, "contiguous")) {
     sculpt_mask_by_color_contiguous(ob, active_vertex, threshold, invert, preserve_mask);
