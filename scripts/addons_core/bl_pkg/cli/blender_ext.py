@@ -452,7 +452,7 @@ def rmtree_with_fallback_or_error(
     Use this when a directory is expected, but there is the possibility
     that there is a file or symbolic-link which should be removed instead.
 
-    Intended to be used  user managed files,
+    Intended to be used for user managed files,
     where removal is required and we can't be certain of the kind of file.
 
     On failure, a string will be returned containing the first error.

@@ -451,7 +451,7 @@ def addons_panel_draw_items(
 
             del item_local
         else:
-            # Weak but allow some add-ons
+            # Weak but allow some add-ons to be hidden, as they're for internal use.
             if (module_name in SECRET_ADDONS) and is_enabled and (show_development is False):
                 continue
 
