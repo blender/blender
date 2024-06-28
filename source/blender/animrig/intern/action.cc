@@ -1349,6 +1349,7 @@ void assert_baklava_phase_1_invariants(const Layer &layer)
 
 void assert_baklava_phase_1_invariants(const Strip &strip)
 {
+  UNUSED_VARS_NDEBUG(strip);
   BLI_assert(strip.type() == Strip::Type::Keyframe);
   BLI_assert(strip.is_infinite());
   BLI_assert(strip.frame_offset == 0.0);
