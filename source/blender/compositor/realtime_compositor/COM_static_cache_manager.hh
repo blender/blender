@@ -43,7 +43,9 @@ namespace blender::realtime_compositor {
  *
  * In effect, any resource that was used in the previous evaluation but was not used in the current
  * evaluation will be deleted before the next evaluation. This mechanism is implemented in the
- * reset() method of the class, which should be called before every evaluation. */
+ * reset() method of the class, which should be called before every evaluation. The reset for the
+ * next evaluation can be skipped by calling the skip_next_reset() method, see its description for
+ * more information. */
 class StaticCacheManager {
  public:
   SymmetricBlurWeightsContainer symmetric_blur_weights;
@@ -62,11 +64,24 @@ class StaticCacheManager {
   VanVlietGaussianCoefficientsContainer van_vliet_gaussian_coefficients;
   FogGlowKernelContainer fog_glow_kernels;
 
+ private:
+  /* The cache manager should skip the next reset. See the skip_next_reset() method for more
+   * information. */
+  bool should_skip_next_reset_ = false;
+
+ public:
   /* Reset the cache manager by deleting the cached resources that are no longer needed because
    * they weren't used in the last evaluation and prepare the remaining cached resources to track
    * their needed status in the next evaluation. See the class description for more information.
    * This should be called before every evaluation. */
   void reset();
+
+  /* Specifies that the cache manager should skip the next reset. This is useful for instance when
+   * the evaluation gets canceled before it was fully done, in that case, we wouldn't want to
+   * invalidate the cache because not all operations that use cached resources got the chance to
+   * mark their used resources as still in use. So we wait until a full evaluation happen before we
+   * decide that some resources are no longer needed. */
+  void skip_next_reset();
 };
 
 }  // namespace blender::realtime_compositor
