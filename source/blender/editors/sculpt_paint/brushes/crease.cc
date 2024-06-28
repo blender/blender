@@ -32,6 +32,7 @@ namespace blender::ed::sculpt_paint {
 inline namespace crease_cc {
 
 struct LocalData {
+  Vector<float3> positions;
   Vector<float> factors;
   Vector<float> distances;
   Vector<float3> translations;
@@ -47,6 +48,19 @@ BLI_NOINLINE static void translations_from_position(const Span<float3> positions
   }
 }
 
+BLI_NOINLINE static void translations_from_position(const Span<float3> positions,
+                                                    const float3 &location,
+                                                    const MutableSpan<float3> translations)
+{
+  for (const int i : positions.index_range()) {
+    translations[i] = location - positions[i];
+  }
+}
+
+/**
+ * The vertices are pinched towards a line instead of a single point. Without this we get a
+ * 'flat' surface surrounding the pinch.
+ */
 BLI_NOINLINE static void project_translations(const MutableSpan<float3> translations,
                                               const float3 &plane)
 {
@@ -128,73 +142,65 @@ static void calc_faces(const Sculpt &sd,
   write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 }
 
-static void calc_grids(
-    Object &object, const Brush &brush, const float3 &offset, const float strength, PBVHNode &node)
+static void calc_grids(const Sculpt &sd,
+                       Object &object,
+                       const Brush &brush,
+                       const float3 &offset,
+                       const float strength,
+                       PBVHNode &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  const float3 &location = cache.location;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      object, ss.cache->automasking.get(), node);
 
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = *BKE_pbvh_get_grid_key(*ss.pbvh);
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
-  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  /* TODO: Remove usage of proxies. */
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, node).co;
-  int i = 0;
-  for (const int grid : bke::pbvh::node_grid_indices(node)) {
-    const int grid_verts_start = grid * key.grid_area;
-    CCGElem *elem = grids[grid];
-    for (const int j : IndexRange(key.grid_area)) {
-      if (!grid_hidden.is_empty() && grid_hidden[grid][j]) {
-        i++;
-        continue;
-      }
-      const float3 &co = CCG_elem_offset_co(key, elem, j);
-      if (!sculpt_brush_test_sq_fn(test, co)) {
-        i++;
-        continue;
-      }
+  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const int grid_verts_num = grids.size() * key.grid_area;
 
-      float3 translation = location - co;
-      if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-        project_translations({&translation, 1}, cache.view_normal);
-      }
+  tls.positions.reinitialize(grid_verts_num);
+  MutableSpan<float3> positions = tls.positions;
+  gather_grids_positions(subdiv_ccg, grids, positions);
 
-      auto_mask::node_update(automask_data, i);
-      const float fade = SCULPT_brush_strength_factor(
-          ss,
-          brush,
-          co,
-          math::sqrt(test.dist),
-          CCG_elem_offset_no(key, elem, j),
-          nullptr,
-          key.has_mask ? CCG_elem_offset_mask(key, elem, j) : 0.0f,
-          BKE_pbvh_make_vref(grid_verts_start + j),
-          thread_id,
-          &automask_data);
-
-      translation *= fade;
-      translation *= strength;
-
-      /* The vertices are pinched towards a line instead of a single point. Without this we get a
-       * 'flat' surface surrounding the pinch. */
-      project_translations({&translation, 1}, cache.sculpt_normal_symm);
-
-      translation += offset * fade;
-
-      proxy[i] = translation;
-      i++;
-    }
+  tls.factors.reinitialize(grid_verts_num);
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
+
+  tls.distances.reinitialize(grid_verts_num);
+  const MutableSpan<float> distances = tls.distances;
+  calc_distance_falloff(
+      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  if (cache.automasking) {
+    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
+  }
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+
+  tls.translations.reinitialize(grid_verts_num);
+  const MutableSpan<float3> translations = tls.translations;
+  translations_from_position(positions, cache.location, translations);
+
+  if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+    project_translations(translations, cache.view_normal);
+  }
+
+  scale_translations(translations, factors);
+  scale_translations(translations, strength);
+
+  project_translations(translations, cache.sculpt_normal_symm);
+
+  add_offset_to_translations(translations, factors, offset);
+
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, grids, subdiv_ccg);
 }
 
 static void calc_bmesh(
@@ -284,9 +290,9 @@ static void do_crease_or_blob_brush(const Scene &scene,
   const float strength = std::abs(cache.bstrength) * crease_correction *
                          (invert_strength ? -1.0f : 1.0f);
 
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
     case PBVH_FACES: {
-      threading::EnumerableThreadSpecific<LocalData> all_tls;
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       const PBVH &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
@@ -312,8 +318,9 @@ static void do_crease_or_blob_brush(const Scene &scene,
     }
     case PBVH_GRIDS:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids(object, brush, offset, strength, *nodes[i]);
+          calc_grids(sd, object, brush, offset, strength, *nodes[i], tls);
         }
       });
       break;
