@@ -476,6 +476,12 @@ def gather_skin(vnode, export_settings):
         return None
 
     blender_object = export_settings['vtree'].nodes[vnode].blender_object
+
+    # Lattice can have armature modifiers & vertex groups, but we don't want to export them
+    # Avoid crash getting mesh data from lattices
+    if blender_object and blender_object.type == 'LATTICE':
+        return None
+
     modifiers = {m.type: m for m in blender_object.modifiers} if blender_object else {}
     if "ARMATURE" not in modifiers or modifiers["ARMATURE"].object is None:
         return None
