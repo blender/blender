@@ -164,6 +164,12 @@ ccl_device_inline float len_squared(const float2 a)
   return dot(a, a);
 }
 
+ccl_device_inline float2 safe_normalize(const float2 a)
+{
+  float t = len(a);
+  return (t != 0.0f) ? a / t : a;
+}
+
 #if !defined(__KERNEL_METAL__)
 ccl_device_inline float distance(const float2 a, const float2 b)
 {
@@ -184,12 +190,6 @@ ccl_device_inline float2 normalize_len(const float2 a, ccl_private float *t)
 {
   *t = len(a);
   return a / (*t);
-}
-
-ccl_device_inline float2 safe_normalize(const float2 a)
-{
-  float t = len(a);
-  return (t != 0.0f) ? a / t : a;
 }
 
 ccl_device_inline float2 min(const float2 a, const float2 b)
