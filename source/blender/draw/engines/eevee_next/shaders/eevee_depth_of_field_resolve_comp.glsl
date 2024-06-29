@@ -20,11 +20,6 @@ shared uint shared_max_slight_focus_abs_coc;
  */
 float dof_slight_focus_coc_tile_get(vec2 frag_coord)
 {
-  if (gl_LocalInvocationIndex == 0u) {
-    shared_max_slight_focus_abs_coc = floatBitsToUint(0.0);
-  }
-  barrier();
-
   float local_abs_max = 0.0;
   /* Sample in a cross (X) pattern. This covers all pixels over the whole tile, as long as
    * dof_max_slight_focus_radius is less than the group size. */
@@ -37,6 +32,11 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
       local_abs_max = max(local_abs_max, abs(coc));
     }
   }
+
+  if (gl_LocalInvocationIndex == 0u) {
+    shared_max_slight_focus_abs_coc = floatBitsToUint(0.0);
+  }
+  barrier();
   /* Use atomic reduce operation. */
   atomicMax(shared_max_slight_focus_abs_coc, floatBitsToUint(local_abs_max));
   /* "Broadcast" result across all threads. */
@@ -76,7 +76,7 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
   neighbor_max += abs(neighbor_min) * padding;
   neighbor_min -= abs(neighbor_min) * padding;
   /* Progressively apply the clamp to avoid harsh transition. Also mask by weight. */
-  float fac = saturate(square(center_coc) * 4.0) * weight;
+  float fac = saturate(square(max(0.0, abs(center_coc) - 0.5)) * 4.0) * weight;
   /* Clamp in YCoCg space to avoid too much color drift. */
   color = colorspace_YCoCg_from_scene_linear(color);
   color = mix(color, clamp(color, neighbor_min, neighbor_max), fac);
