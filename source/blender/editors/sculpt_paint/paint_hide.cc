@@ -151,7 +151,7 @@ void mesh_show_all(Object &object, const Span<PBVHNode *> nodes)
     const VArraySpan hide_vert(attribute);
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (PBVHNode *node : nodes.slice(range)) {
-        const Span<int> verts = bke::pbvh::node_verts(*node);
+        const Span<int> verts = bke::pbvh::node_unique_verts(*node);
         if (std::any_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
           undo::push_node(object, node, undo::Type::HideVert);
           BKE_pbvh_node_mark_rebuild_draw(node);
