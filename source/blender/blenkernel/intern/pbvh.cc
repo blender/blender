@@ -202,7 +202,8 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
                                  MutableSpan<bool> vert_bitmap,
                                  PBVHNode *node)
 {
-  node->uniq_verts = node->face_verts = 0;
+  node->uniq_verts = 0;
+  int shared_verts = 0;
   const Span<int> prim_indices = node->prim_indices;
 
   /* reserve size is rough guess */
@@ -215,11 +216,11 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
     const int3 &tri = corner_tris[prim_indices[i]];
     for (int j = 0; j < 3; j++) {
       node->face_vert_indices[i][j] = map_insert_vert(
-          map, vert_bitmap, &node->face_verts, &node->uniq_verts, corner_verts[tri[j]]);
+          map, vert_bitmap, &shared_verts, &node->uniq_verts, corner_verts[tri[j]]);
     }
   }
 
-  node->vert_indices.reinitialize(node->uniq_verts + node->face_verts);
+  node->vert_indices.reinitialize(node->uniq_verts + shared_verts);
 
   /* Build the vertex list, unique verts first */
   for (const MapItem<int, int> item : map.items()) {
@@ -2888,7 +2889,7 @@ void pbvh_vertex_iter_init(PBVH &pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
       uniq_verts = totvert;
       break;
     case PBVH_FACES:
-      totvert = node->uniq_verts + node->face_verts;
+      totvert = node->vert_indices.size();
       uniq_verts = node->uniq_verts;
       break;
     case PBVH_BMESH:
