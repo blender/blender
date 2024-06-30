@@ -765,6 +765,32 @@ def _fake_module_from_extension(mod_name, mod_path):
     return mod
 
 
+def _extension_sync_wheels(
+        *,
+        local_dir,  # `str`
+        wheel_list,  # `List[WheelSource]`
+):  # `-> None`
+    import os
+    import sys
+    from _bpy_internal.extensions.wheel_manager import apply_action
+
+    local_dir_site_packages = os.path.join(
+        local_dir,
+        "lib",
+        "python{:d}.{:d}".format(*sys.version_info[0:2]),
+        "site-packages",
+    )
+
+    apply_action(
+        local_dir=local_dir,
+        local_dir_site_packages=local_dir_site_packages,
+        wheel_list=wheel_list,
+    )
+    if os.path.exists(local_dir_site_packages):
+        if local_dir_site_packages not in sys.path:
+            sys.path.append(local_dir_site_packages)
+
+
 # -----------------------------------------------------------------------------
 # Extensions
 
