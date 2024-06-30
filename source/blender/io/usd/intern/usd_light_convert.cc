@@ -26,9 +26,13 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+
+#include "../hydra/image.hh"
 
 #include <string>
 
@@ -296,6 +300,37 @@ void world_material_to_dome_light(const USDExportParams &params,
                                                 std::string(params.root_prim_path) + "/env_light");
 
   pxr::UsdLuxDomeLight dome_light = pxr::UsdLuxDomeLight::Define(stage, env_light_path);
+
+  if (!res.env_tex_found) {
+    /* Like the Hydra delegate, if no texture is found export a solid
+     * color texture as a stand-in so that Hydra renderers don't
+     * throw errors. */
+
+    float fill_color[4] = {res.world_color[0], res.world_color[1], res.world_color[2], 1.0f};
+
+    std::string source_path = blender::io::hydra::cache_image_color(fill_color);
+    const std::string base_path = stage->GetRootLayer()->GetRealPath();
+
+    /* It'll be short, coming from cache_image_color. */
+    char file_path[64];
+    BLI_path_split_file_part(source_path.c_str(), file_path, 64);
+    char dest_path[FILE_MAX];
+    BLI_path_split_dir_part(base_path.c_str(), dest_path, FILE_MAX);
+
+    BLI_path_append_dir(dest_path, FILE_MAX, "textures");
+    BLI_dir_create_recursive(dest_path);
+
+    BLI_path_append(dest_path, FILE_MAX, file_path);
+
+    if (BLI_copy(source_path.c_str(), dest_path) != 0) {
+      CLOG_WARN(&LOG, "USD Export: Couldn't write world color image to %s", dest_path);
+    }
+    else {
+      res.env_tex_found = true;
+      BLI_path_join(dest_path, FILE_MAX, ".", "textures", file_path);
+      res.file_path = dest_path;
+    }
+  }
 
   if (res.env_tex_found) {
     pxr::SdfAssetPath path(res.file_path);
