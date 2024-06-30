@@ -259,7 +259,7 @@ void main()
   bool valid_local = (l_idx < light_cull_buf.visible_count);
   bool valid_directional = (l_idx >= light_cull_buf.local_lights_len) &&
                            (l_idx < light_cull_buf.items_count);
-  if (!valid_local || !valid_directional) {
+  if (!valid_local && !valid_directional) {
     return;
   }
 
