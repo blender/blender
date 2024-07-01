@@ -20,7 +20,7 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "sculpt_intern.hh"
+#include "editors/sculpt_paint/sculpt_intern.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
