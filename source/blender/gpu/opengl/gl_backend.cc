@@ -323,6 +323,7 @@ static void detect_workarounds()
     GLContext::native_barycentric_support = false;
     GLContext::framebuffer_fetch_support = false;
     GLContext::texture_barrier_support = false;
+    GCaps.stencil_export_support = false;
 
 #if 0
     /* Do not alter OpenGL 4.3 features.
