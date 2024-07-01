@@ -1438,6 +1438,7 @@ def pkg_manifest_validate_field_copyright(
                 return "at index {:d} must be a number or two numbers separated by \"-\"".format(i)
             if not name.strip():
                 return "at index {:d} name may not be empty".format(i)
+        return None
     else:
         return pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)
 
