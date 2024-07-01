@@ -369,7 +369,13 @@ def path_to_url(path: str) -> str:
 def path_from_url(path: str) -> str:
     from urllib.parse import urlparse, unquote
     p = urlparse(path)
-    return os.path.join(p.netloc, unquote(p.path))
+    path_unquote = unquote(p.path)
+    if sys.platform == "win32":
+        # MS-Windows needs special handling for drive letters.
+        # `file:///C:/test` is converted to `/C:/test` which must skip the leading slash.
+        if re.match("/[A-Za-z]:", path_unquote):
+            path_unquote = path_unquote[1:]
+    return os.path.join(p.netloc, path_unquote)
 
 
 def random_acii_lines(*, seed: Union[int, str], width: int) -> Generator[str, None, None]:
