@@ -1579,12 +1579,12 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 continue
 
             repo_item = repos_all[repo_index]
-            for pkg_id_sequence in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
+            for pkg_id_sequence_iter in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
                 cmd_batch.append(partial(
                     bl_extension_utils.pkg_install,
                     directory=repo_item.directory,
                     remote_url=url_append_defaults(repo_item.remote_url),
-                    pkg_id_sequence=pkg_id_sequence,
+                    pkg_id_sequence=pkg_id_sequence_iter,
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
                     access_token=repo_item.access_token,
@@ -1696,12 +1696,12 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
             if not pkg_id_sequence:
                 continue
 
-            for pkg_id_sequence in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
+            for pkg_id_sequence_iter in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
                 cmd_batch.append(partial(
                     bl_extension_utils.pkg_install,
                     directory=repo_item.directory,
                     remote_url=url_append_defaults(repo_item.remote_url),
-                    pkg_id_sequence=pkg_id_sequence,
+                    pkg_id_sequence=pkg_id_sequence_iter,
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
                     access_token=repo_item.access_token,
