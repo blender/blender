@@ -116,8 +116,7 @@ void SubsurfaceModule::precompute_samples_location()
   double golden_angle = M_PI * (3.0 - sqrt(5.0));
   for (auto i : IndexRange(data_.sample_len)) {
     float theta = golden_angle * i + M_PI * 2.0f * rand_u;
-    /* Scale using rand_v in order to keep first sample always at center. */
-    float x = (1.0f + (rand_v / data_.sample_len)) * (i / float(data_.sample_len));
+    float x = (rand_v + i) / data_.sample_len;
     float r = SubsurfaceModule::burley_sample(d, x);
     data_.samples[i].x = cosf(theta) * r;
     data_.samples[i].y = sinf(theta) * r;

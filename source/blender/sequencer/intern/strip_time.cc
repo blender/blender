@@ -62,10 +62,11 @@ float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
   float frame_index;
   float sta = SEQ_time_start_frame_get(seq);
   float end = SEQ_time_content_end_frame_get(scene, seq) - 1;
-  const float frame_index_max = seq->len - 1;
+  float frame_index_max = seq->len - 1;
 
   if (seq->type & SEQ_TYPE_EFFECT) {
     end = SEQ_time_right_handle_frame_get(scene, seq);
+    frame_index_max = end - sta;
   }
 
   if (end < sta) {
