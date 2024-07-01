@@ -1958,18 +1958,13 @@ void pivot_line_preview_draw(uint gpuattr, SculptSession &ss);
 
 }
 
-/* Multi-plane Scrape Brush. */
-/* Main Brush Function. */
-void SCULPT_do_multiplane_scrape_brush(const Sculpt &sd,
-                                       Object &ob,
-                                       blender::Span<PBVHNode *> nodes);
-void SCULPT_multiplane_scrape_preview_draw(uint gpuattr,
-                                           const Brush &brush,
-                                           const SculptSession &ss,
-                                           const float outline_col[3],
-                                           float outline_alpha);
-
 namespace blender::ed::sculpt_paint {
+
+void multiplane_scrape_preview_draw(uint gpuattr,
+                                    const Brush &brush,
+                                    const SculptSession &ss,
+                                    const float outline_col[3],
+                                    float outline_alpha);
 
 namespace face_set {
 

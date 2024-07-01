@@ -3843,7 +3843,7 @@ static void do_brush_action(const Scene &scene,
       do_clay_strips_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-      SCULPT_do_multiplane_scrape_brush(sd, ob, nodes);
+      do_multiplane_scrape_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLAY_THUMB:
       SCULPT_do_clay_thumb_brush(sd, ob, nodes);

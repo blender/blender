@@ -2,9 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup edsculpt
- */
+#include "editors/sculpt_paint/brushes/types.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -30,8 +28,7 @@
 #include <cmath>
 #include <cstdlib>
 
-using blender::float3;
-using blender::MutableSpan;
+namespace blender::ed::sculpt_paint {
 
 struct MultiplaneScrapeSampleData {
   float area_cos[2][3];
@@ -45,7 +42,6 @@ static void calc_multiplane_scrape_surface_task(Object &ob,
                                                 PBVHNode *node,
                                                 MultiplaneScrapeSampleData *mssd)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
 
   PBVHVertexIter vd;
@@ -108,7 +104,6 @@ static void do_multiplane_scrape_brush_task(Object &ob,
                                             const float angle,
                                             PBVHNode *node)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
 
   PBVHVertexIter vd;
@@ -185,14 +180,8 @@ static void do_multiplane_scrape_brush_task(Object &ob,
   BKE_pbvh_vertex_iter_end;
 }
 
-/* Public functions. */
-
-void SCULPT_do_multiplane_scrape_brush(const Sculpt &sd,
-                                       Object &ob,
-                                       blender::Span<PBVHNode *> nodes)
+void do_multiplane_scrape_brush(const Sculpt &sd, Object &ob, const Span<PBVHNode *> nodes)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
@@ -366,13 +355,12 @@ void SCULPT_do_multiplane_scrape_brush(const Sculpt &sd,
   });
 }
 
-void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
-                                           const Brush &brush,
-                                           const SculptSession &ss,
-                                           const float outline_col[3],
-                                           const float outline_alpha)
+void multiplane_scrape_preview_draw(const uint gpuattr,
+                                    const Brush &brush,
+                                    const SculptSession &ss,
+                                    const float outline_col[3],
+                                    const float outline_alpha)
 {
-  using namespace blender;
   if (!(brush.flag2 & BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW)) {
     return;
   }
@@ -434,3 +422,5 @@ void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
 
   immEnd();
 }
+
+}  // namespace blender::ed::sculpt_paint
