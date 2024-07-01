@@ -343,6 +343,7 @@ void end_transform(bContext *C, Object &ob)
   if (ss.filter_cache) {
     filter::cache_free(ss);
   }
+  undo::push_end(ob);
   flush_update_done(C, ob, UpdateType::Position);
 }
 
