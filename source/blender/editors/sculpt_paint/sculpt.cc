@@ -1461,6 +1461,9 @@ static void restore_position(Object &object, const Span<PBVHNode *> nodes)
       break;
     }
     case PBVH_BMESH: {
+      if (!undo::get_bmesh_log_entry()) {
+        return;
+      }
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
           for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
