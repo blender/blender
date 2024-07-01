@@ -1368,6 +1368,11 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block,
                              short height,
                              const char *tip);
 
+void UI_but_operator_set(uiBut *but,
+                         wmOperatorType *optype,
+                         wmOperatorCallContext opcontext,
+                         const PointerRNA *opptr = nullptr);
+
 /** For passing inputs to ButO buttons. */
 PointerRNA *UI_but_operator_ptr_ensure(uiBut *but);
 
@@ -3399,3 +3404,4 @@ blender::ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &regio
                                                             const int xy[2]);
 blender::ui::AbstractViewItem *UI_region_views_find_active_item(const ARegion *region);
 uiBut *UI_region_views_find_active_item_but(const ARegion *region);
+void UI_region_views_clear_search_highlight(const ARegion *region);

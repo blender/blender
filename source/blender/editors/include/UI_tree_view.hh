@@ -392,7 +392,9 @@ class TreeViewItemDropTarget : public DropTargetInterface {
 
 class TreeViewBuilder {
  public:
-  static void build_tree_view(AbstractTreeView &tree_view, uiLayout &layout);
+  static void build_tree_view(AbstractTreeView &tree_view,
+                              uiLayout &layout,
+                              std::optional<StringRef> search_string = {});
 
  private:
   static void ensure_min_rows_items(AbstractTreeView &tree_view);

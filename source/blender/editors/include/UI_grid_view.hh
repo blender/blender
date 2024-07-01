@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
@@ -170,9 +172,10 @@ class GridViewBuilder {
  public:
   GridViewBuilder(uiBlock &block);
 
-  /** Build \a grid_view into the previously provided block, clipped by \a view_bounds (view space,
-   * typically `View2D.cur`). */
-  void build_grid_view(AbstractGridView &grid_view, const View2D &v2d, uiLayout &layout);
+  void build_grid_view(AbstractGridView &grid_view,
+                       const View2D &v2d,
+                       uiLayout &layout,
+                       std::optional<StringRef> search_string = {});
 };
 
 /** \} */

@@ -1443,6 +1443,7 @@ uiBut *ui_list_row_find_index(const ARegion *region,
                               uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_view_item_find_mouse_over(const ARegion *region, const int xy[2]) ATTR_NONNULL(1, 2);
 uiBut *ui_view_item_find_active(const ARegion *region);
+uiBut *ui_view_item_find_search_highlight(const ARegion *region);
 
 using uiButFindPollFn = bool (*)(const uiBut *but, const void *customdata);
 /**

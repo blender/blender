@@ -67,7 +67,7 @@ void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptio
 {
   for (const auto &child : children_) {
     bool skip = false;
-    if (bool(options & IterOptions::SkipFiltered) && !child->is_filtered_visible_cached()) {
+    if (bool(options & IterOptions::SkipFiltered) && !child->is_filtered_visible()) {
       skip = true;
     }
 
@@ -725,13 +725,16 @@ void TreeViewBuilder::ensure_min_rows_items(AbstractTreeView &tree_view)
   }
 }
 
-void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view, uiLayout &layout)
+void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view,
+                                      uiLayout &layout,
+                                      std::optional<StringRef> search_string)
 {
   uiBlock &block = *uiLayoutGetBlock(&layout);
 
   tree_view.build_tree();
   tree_view.update_from_old(block);
   tree_view.change_state_delayed();
+  tree_view.filter(search_string);
 
   ensure_min_rows_items(tree_view);
 
