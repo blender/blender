@@ -2153,6 +2153,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                     bl_extension_utils.pkg_install_files,
                     directory=directory,
                     files=pkg_files,
+                    blender_version=bpy.app.version,
                     use_idle=is_modal,
                 )
             ],
