@@ -81,16 +81,10 @@ static void calc_multiplane_scrape_surface_task(Object &ob,
                                                     &automask_data);
 
     /* Sample the normal and area of the +X and -X axis individually. */
-    if (local_co[0] > 0.0f) {
-      mssd->area_nos[0] += normal * fade;
-      mssd->area_cos[0] += vd.co;
-      mssd->area_count[0]++;
-    }
-    else {
-      mssd->area_nos[1] += normal * fade;
-      mssd->area_cos[1] += vd.co;
-      mssd->area_count[1]++;
-    }
+    const bool plane_index = local_co[0] <= 0.0f;
+    mssd->area_nos[plane_index] += normal * fade;
+    mssd->area_cos[plane_index] += vd.co;
+    mssd->area_count[plane_index]++;
     BKE_pbvh_vertex_iter_end;
   }
 }
@@ -117,20 +111,15 @@ static void do_multiplane_scrape_brush_task(Object &ob,
       ob, ss.cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-
     if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
 
     float3 local_co = math::transform_point(mat, float3(vd.co));
-    bool deform = false;
+    const bool plane_index = local_co[0] <= 0.0f;
 
-    if (local_co[0] > 0.0f) {
-      deform = !SCULPT_plane_point_side(vd.co, scrape_planes[0]);
-    }
-    else {
-      deform = !SCULPT_plane_point_side(vd.co, scrape_planes[1]);
-    }
+    bool deform = false;
+    deform = !SCULPT_plane_point_side(vd.co, scrape_planes[plane_index]);
 
     if (angle < 0.0f) {
       deform = true;
@@ -143,12 +132,7 @@ static void do_multiplane_scrape_brush_task(Object &ob,
     float3 intr;
     float3 val;
 
-    if (local_co[0] > 0.0f) {
-      closest_to_plane_normalized_v3(intr, scrape_planes[0], vd.co);
-    }
-    else {
-      closest_to_plane_normalized_v3(intr, scrape_planes[1], vd.co);
-    }
+    closest_to_plane_normalized_v3(intr, scrape_planes[plane_index], vd.co);
 
     sub_v3_v3v3(val, intr, vd.co);
     if (!SCULPT_plane_trim(*ss.cache, brush, val)) {
