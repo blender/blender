@@ -654,7 +654,7 @@ const Brush *BKE_paint_brush_for_read(const Paint *paint)
 
 bool BKE_paint_brush_set(Paint *paint, Brush *brush)
 {
-  if (paint == nullptr || paint->brush == brush) {
+  if (paint == nullptr) {
     return false;
   }
   if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {

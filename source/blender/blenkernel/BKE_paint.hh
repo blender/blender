@@ -203,6 +203,13 @@ Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *paint);
 Brush *BKE_paint_brush_from_essentials(Main *bmain, const char *name);
 
+/**
+ * Activates \a brush for painting, and updates #Paint.brush_asset_reference so the brush can be
+ * restored after file read.
+ *
+ * \return True on success. If \a brush is already active, this is considered a success (the brush
+ * asset reference will still be updated).
+ */
 bool BKE_paint_brush_set(Paint *paint, Brush *brush);
 bool BKE_paint_brush_set_default(Main *bmain, Paint *paint);
 bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
