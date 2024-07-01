@@ -271,8 +271,38 @@ struct Main {
  * \note Always generate a non-global Main, use #BKE_blender_globals_main_replace to put a newly
  * created one in `G_MAIN`.
  */
-Main *BKE_main_new();
-void BKE_main_free(Main *mainvar);
+Main *BKE_main_new(void);
+/**
+ * Initialize a Main data-base.
+ *
+ * \note Always generate a non-global Main, use #BKE_blender_globals_main_replace to put a newly
+ * created one in `G_MAIN`.
+ */
+void BKE_main_init(Main &bmain);
+/**
+ * Make given \a bmain empty again, and free all runtime mappings.
+ *
+ * This is similar to a call to #BKE_main_destroy followed by #BKE_main_init, however the internal
+ * #Main::lock is kept unchanged, and the #Main::is_global_main flag is not reset to `true` either.
+ *
+ * \note: Unlike #BKE_main_free, only process the given \a bmain, without handling any potential
+ * other linked Main.
+ */
+void BKE_main_clear(Main &bmain);
+/**
+ * Clear and free all data in given \a bmain, but does not free \a bmain itself.
+ *
+ * \note: In most cases, #BKE_main_free should be used instead of this function.
+ *
+ * \note: Unlike #BKE_main_free, only process the given \a bmain, without handling any potential
+ * other linked Main.
+ */
+void BKE_main_destroy(Main &bmain);
+/**
+ * Completely destroy the given \a bmain, and all its linked 'libraries' ones if any (all other
+ * bmains, following the #Main.next chained list).
+ */
+void BKE_main_free(Main *bmain);
 
 /** Struct packaging log/report info about a Main merge result. */
 struct MainMergeReport {
