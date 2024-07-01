@@ -58,6 +58,9 @@ static void sequencer_retiming_data_show_selection(ListBase *seqbase)
     if ((seq->flag & SELECT) == 0) {
       continue;
     }
+    if (!SEQ_retiming_is_allowed(seq)) {
+      continue;
+    }
     seq->flag |= SEQ_SHOW_RETIMING;
   }
 }
@@ -66,6 +69,9 @@ static void sequencer_retiming_data_hide_selection(ListBase *seqbase)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->flag & SELECT) == 0) {
+      continue;
+    }
+    if (!SEQ_retiming_is_allowed(seq)) {
       continue;
     }
     seq->flag &= ~SEQ_SHOW_RETIMING;
@@ -222,6 +228,9 @@ static int retiming_key_add_from_selection(bContext *C,
   bool inserted = false;
 
   for (Sequence *seq : strips) {
+    if (!SEQ_retiming_is_allowed(seq)) {
+      continue;
+    }
     inserted |= retiming_key_add_new_for_seq(C, op, seq, timeline_frame);
   }
 
@@ -348,6 +357,7 @@ static bool freeze_frame_add_from_strip_selection(bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   blender::VectorSet<Sequence *> strips = ED_sequencer_selected_strips_from_context(C);
+  strips.remove_if([&](Sequence *seq) { return !SEQ_retiming_is_allowed(seq); });
   const int timeline_frame = BKE_scene_frame_get(scene);
   bool success = false;
 
@@ -646,6 +656,7 @@ static int strip_speed_set_exec(bContext *C, const wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   blender::VectorSet<Sequence *> strips = ED_sequencer_selected_strips_from_context(C);
+  strips.remove_if([&](Sequence *seq) { return !SEQ_retiming_is_allowed(seq); });
 
   for (Sequence *seq : strips) {
     SeqRetimingKey *key = ensure_left_and_right_keys(C, seq);
