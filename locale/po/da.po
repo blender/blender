@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-05-23 14:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -2728,6 +2728,10 @@ msgid "Reset"
 msgstr "Nulstil"
 
 
+msgid "Property Name"
+msgstr "Egenskabens navn"
+
+
 msgid "Property"
 msgstr "Egenskab"
 
@@ -2738,10 +2742,6 @@ msgstr "Sat fast"
 
 msgid "State"
 msgstr "Tilstand"
-
-
-msgid "Property Name"
-msgstr "Egenskabens navn"
 
 
 msgid "Sensitivity"

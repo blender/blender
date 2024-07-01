@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-06-21 13:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -9621,24 +9621,12 @@ msgid "Surface Emission"
 msgstr "Emisi Permukaan"
 
 
-msgid "Mapping"
-msgstr "Pemetaan"
-
-
 msgid "Texture mapping type"
 msgstr "Tipe pemetaan tekstur"
 
 
-msgid "Generated"
-msgstr "Dihasilkan"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "Partikel"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Absolute Density"
@@ -9903,6 +9891,10 @@ msgstr "Ekstrim"
 
 msgid "Jitter"
 msgstr "Getaran"
+
+
+msgid "Generated"
+msgstr "Dihasilkan"
 
 
 msgid "Grease Pencil Frames"
@@ -10825,6 +10817,10 @@ msgid "ID Root Type"
 msgstr "Tipe Akar ID"
 
 
+msgid "Feature Set"
+msgstr "Warna Standar"
+
+
 msgid "Stick"
 msgstr "Batang"
 
@@ -11662,20 +11658,12 @@ msgid "Pixels"
 msgstr "Pixel"
 
 
-msgid "Movie"
-msgstr "Film"
-
-
 msgid "Movie file"
 msgstr "Dokumen film"
 
 
 msgid "Generated image"
 msgstr "Gambar yang dihasilkan"
-
-
-msgid "Viewer"
-msgstr "Tampilan 3D"
 
 
 msgid "Generate floating-point buffer"
@@ -13765,6 +13753,10 @@ msgid "Modifier Name"
 msgstr "Nama Pengubah"
 
 
+msgid "Mapping"
+msgstr "Pemetaan"
+
+
 msgid "Modifier Type"
 msgstr "Jenis Pengubah"
 
@@ -14205,6 +14197,10 @@ msgstr "Pindah ke Layer"
 
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Shape Key Specials"
@@ -17022,6 +17018,10 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "Kecepatan minimum untuk sebuah pixel diburamkan (digunakan untuk memisahkan latar belakang dari latar depan)"
 
 
+msgid "Viewer"
+msgstr "Tampilan 3D"
+
+
 msgid "And"
 msgstr "Dan"
 
@@ -19791,6 +19791,10 @@ msgid "Copy color to all selected nodes"
 msgstr "Modus Sunting"
 
 
+msgid "Option"
+msgstr "Opsi"
+
+
 msgid "Burn Mode"
 msgstr "Mode Bakar"
 
@@ -20299,6 +20303,11 @@ msgstr "Sunting Cepat"
 msgctxt "Operator"
 msgid "Randomize Transform"
 msgstr "Orientasi Transformasi"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Baru"
 
 
 msgctxt "Operator"
@@ -20935,6 +20944,10 @@ msgstr "Kamera"
 msgctxt "Operator"
 msgid "Update Bone Paths"
 msgstr "Kamera"
+
+
+msgid "Property Name"
+msgstr "Nama Properti"
 
 
 msgctxt "Operator"
@@ -22913,10 +22926,6 @@ msgid "Edit Property"
 msgstr "Modus Sunting"
 
 
-msgid "Property Name"
-msgstr "Nama Properti"
-
-
 msgctxt "Operator"
 msgid "Remove Property"
 msgstr "Induk"
@@ -23472,10 +23481,6 @@ msgid "Menu Item"
 msgstr "Item Menu"
 
 
-msgid "Option"
-msgstr "Opsi"
-
-
 msgid "Progress Bar"
 msgstr "Bar Progres"
 
@@ -23592,10 +23597,6 @@ msgid "Auto IK"
 msgstr "Otomatis"
 
 
-msgid "Active section of the preferences shown in the user interface"
-msgstr "Bagian aktif preferensi ditapilkan di antarmuka pengguna"
-
-
 msgid "Duplicate Camera"
 msgstr "Duplikasi Kamera"
 
@@ -23698,10 +23699,6 @@ msgstr "Secara adaptif blur shader glossy setelah blur memantul, untuk mengurang
 
 msgid "GPU Compute"
 msgstr "Tipe"
-
-
-msgid "Feature Set"
-msgstr "Warna Standar"
 
 
 msgid "Directional Quad Tree"
@@ -23979,10 +23976,6 @@ msgstr "Mengendali akurasi buram gerakan, lebih banyak langkah berarti waktu ren
 
 msgid "Render Samples"
 msgstr "Sampel Render"
-
-
-msgid "Jitter camera position to create accurate blurring using render samples"
-msgstr "Jitter posisi kamera untuk menciptakan keburaman yang akurat menggunakan sampel render"
 
 
 msgid "Grease Pencil Render"
@@ -24567,10 +24560,6 @@ msgstr "Tekstur"
 
 msgid "Has Texture Angle Source"
 msgstr "Tekstur"
-
-
-msgid "Strand / Particle"
-msgstr "Partikel"
 
 
 msgid "User interface styling and color settings"
@@ -25444,6 +25433,44 @@ msgid "Add a new Variant Slot"
 msgstr "Buat Slot Variasi baru"
 
 
+msgid "Description:"
+msgstr "Deskripsi:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Author:"
+msgstr "Pembuat:"
+
+
+msgid "Version:"
+msgstr "Versi:"
+
+
+msgid "Warning:"
+msgstr "Bahaya:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Dokumentasi"
+
+
+msgid "File:"
+msgstr "Dokumen:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Setujui"
+
+
+msgid "Options:"
+msgstr "Opsi:"
+
+
 msgid "    RNA Context: "
 msgstr "    Konteks RNA: "
 
@@ -25520,11 +25547,6 @@ msgstr "Impor..."
 msgctxt "Operator"
 msgid "Export..."
 msgstr "Expor..."
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Baru"
 
 
 msgid "API Defined"
@@ -26681,10 +26703,6 @@ msgid "Filter by Type:"
 msgstr "Saring sesuai Tipe:"
 
 
-msgid "Options:"
-msgstr "Opsi:"
-
-
 msgctxt "Operator"
 msgid "Before Current Frame"
 msgstr "Sebelum Frame Sekarang"
@@ -27550,41 +27568,12 @@ msgid "Missing script files"
 msgstr "Dokumen skrip yang hilang"
 
 
-msgid "Description:"
-msgstr "Deskripsi:"
-
-
 msgid "Location:"
 msgstr "Lokasi:"
 
 
-msgid "File:"
-msgstr "Dokumen:"
-
-
-msgid "Author:"
-msgstr "Pembuat:"
-
-
-msgid "Version:"
-msgstr "Versi:"
-
-
-msgid "Warning:"
-msgstr "Bahaya:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
 msgid "User:"
 msgstr "Pengguna:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Dokumentasi"
 
 
 msgctxt "Operator"
@@ -27932,11 +27921,6 @@ msgstr "Induk"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Sunting Cepat"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Setujui"
 
 
 msgid "Int"
@@ -29442,6 +29426,10 @@ msgstr "Warna Standar"
 
 msgid "Bad vertex index in list"
 msgstr "Gambar Latar"
+
+
+msgid "Movie"
+msgstr "Film"
 
 
 msgid "No active window in context!"

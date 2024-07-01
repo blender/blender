@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1162,10 +1162,6 @@ msgid "Fire"
 msgstr "ไฟ"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Border"
 msgstr "เส้นขอบ"
 
@@ -1495,14 +1491,6 @@ msgstr "ตะแกรง UV"
 
 msgid "Pixels"
 msgstr "พิกเซล"
-
-
-msgid "Single Image"
-msgstr "ภาพเดี่ยว"
-
-
-msgid "Movie"
-msgstr "ภาพยนตร์"
 
 
 msgid "Render Result"
@@ -1999,6 +1987,10 @@ msgstr "ยึดติด"
 
 msgid "Files"
 msgstr "ไฟล์"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Math"
@@ -2976,6 +2968,11 @@ msgid "Edge Length"
 msgstr "ความยาวของเส้นขอบ"
 
 
+msgctxt "Operator"
+msgid "New"
+msgstr "ใหม่"
+
+
 msgctxt "ID"
 msgid "Blur"
 msgstr "เบลอ"
@@ -3309,6 +3306,10 @@ msgstr "แถบเครื่องมือ"
 
 msgid "Show Brush"
 msgstr "แสดงแปรง"
+
+
+msgid "Single Image"
+msgstr "ภาพเดี่ยว"
 
 
 msgid "Mask Display"
@@ -3924,17 +3925,46 @@ msgid "Report a Bug"
 msgstr "รายงานข้อผิดพลาด"
 
 
+msgid "Description:"
+msgstr "คำอธิบาย:"
+
+
+msgid "Internet:"
+msgstr "อินเตอร์เน็ต:"
+
+
+msgid "Author:"
+msgstr "ผู้สร้าง:"
+
+
+msgid "Version:"
+msgstr "เวอร์ชัน:"
+
+
+msgid "Warning:"
+msgstr "ระวัง:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "เอกสาร"
+
+
+msgid "File:"
+msgstr "ไฟล์:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
 msgid "    RNA Path: bpy.types."
 msgstr "    ตำแหน่ง RNA: bpy.types."
 
 
 msgid "    RNA Context: "
 msgstr "    บริบท RNA: "
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "ใหม่"
 
 
 msgid "3D View"
@@ -4493,35 +4523,6 @@ msgid "Missing script files"
 msgstr "ขาดไฟล์สคริปต์"
 
 
-msgid "Description:"
-msgstr "คำอธิบาย:"
-
-
-msgid "File:"
-msgstr "ไฟล์:"
-
-
-msgid "Author:"
-msgstr "ผู้สร้าง:"
-
-
-msgid "Version:"
-msgstr "เวอร์ชัน:"
-
-
-msgid "Warning:"
-msgstr "ระวัง:"
-
-
-msgid "Internet:"
-msgstr "อินเตอร์เน็ต:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "เอกสาร"
-
-
 msgctxt "Operator"
 msgid "Toggle Local View"
 msgstr "สลับมุมมองท้องถิ่น"
@@ -4830,11 +4831,6 @@ msgstr "ต่อแผ่นผิว"
 msgctxt "Operator"
 msgid "Delete Faces"
 msgstr "ลบแผ่นผิว"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "นำไปใช้"
 
 
 msgctxt "Operator"
@@ -5303,6 +5299,10 @@ msgstr "เขียนทับ %s"
 msgctxt "Action"
 msgid "Group"
 msgstr "กลุ่ม"
+
+
+msgid "Movie"
+msgstr "ภาพยนตร์"
 
 
 msgid "%s '%s'"

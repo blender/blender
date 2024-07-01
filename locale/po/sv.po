@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -3397,10 +3397,6 @@ msgid "Vertex Group"
 msgstr "Vertexgrupp"
 
 
-msgid "Mapping"
-msgstr "Mappning"
-
-
 msgid "Initial Velocity"
 msgstr "Initialhastiget"
 
@@ -3671,6 +3667,10 @@ msgstr "Grupper"
 
 msgid "Wire"
 msgstr "Trådmodell"
+
+
+msgid "Theme"
+msgstr "Tema"
 
 
 msgid "Box"
@@ -4119,10 +4119,6 @@ msgstr "Resultatbild i Radiance HDR-format"
 
 msgid "Output image in TIFF format"
 msgstr "Resultatbild i TIFF-format"
-
-
-msgid "Movie"
-msgstr "Film"
 
 
 msgid "Compositing"
@@ -5366,6 +5362,10 @@ msgstr "Lista med ljusgrupper"
 
 msgid "Collection of Lightgroups"
 msgstr "Samling av ljusgrupper"
+
+
+msgid "Mapping"
+msgstr "Mappning"
 
 
 msgid "Max Angle"
@@ -10267,6 +10267,10 @@ msgid "Tree Type"
 msgstr "Trädtyp"
 
 
+msgid "Option"
+msgstr "Alternativ"
+
+
 msgid "Exponent"
 msgstr "Exponent"
 
@@ -10882,6 +10886,11 @@ msgstr "Slumpmässiga skalningsvärden"
 
 
 msgctxt "Operator"
+msgid "New"
+msgstr "Ny"
+
+
+msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "Rensa rotation"
 
@@ -11046,6 +11055,10 @@ msgstr "Spegel"
 msgctxt "Operator"
 msgid "Particle Edit Toggle"
 msgstr "Redigera partiklar på/av"
+
+
+msgid "Property Name"
+msgstr "Egenskapens namn"
 
 
 msgid "Module name of the add-on to disable"
@@ -11697,10 +11710,6 @@ msgid "Context"
 msgstr "Kontext"
 
 
-msgid "Property Name"
-msgstr "Egenskapens namn"
-
-
 msgid "Property name edit"
 msgstr "Redigera egenskapens namn"
 
@@ -12067,10 +12076,6 @@ msgstr "Menyval"
 
 msgid "Number Field"
 msgstr "Nummerfält"
-
-
-msgid "Option"
-msgstr "Alternativ"
 
 
 msgid "Pie Menu"
@@ -13543,10 +13548,6 @@ msgid "Show Shadow"
 msgstr "Visa skugga"
 
 
-msgid "Theme"
-msgstr "Tema"
-
-
 msgid "Active Lightgroup"
 msgstr "Aktiv ljusgrupp"
 
@@ -13743,6 +13744,44 @@ msgid "Unused Textures & Images"
 msgstr "Oanvända texturer och bilder"
 
 
+msgid "Description:"
+msgstr "Beskrivning:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Author:"
+msgstr "Skapare:"
+
+
+msgid "Version:"
+msgstr "Version:"
+
+
+msgid "Warning:"
+msgstr "Varning:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Dokumentation"
+
+
+msgid "File:"
+msgstr "Fil:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Options:"
+msgstr "Alternativ:"
+
+
 msgid "Save to PO File"
 msgstr "Spara till PO-fil"
 
@@ -13815,11 +13854,6 @@ msgstr "Återställ"
 msgctxt "WindowManager"
 msgid "Add New"
 msgstr "Lägg till ny"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Ny"
 
 
 msgctxt "Operator"
@@ -14576,10 +14610,6 @@ msgstr "Ta bort föregående ord"
 msgctxt "Operator"
 msgid "Delete Next Word"
 msgstr "Ta bort nästa ord"
-
-
-msgid "Options:"
-msgstr "Alternativ:"
 
 
 msgctxt "Operator"
@@ -15555,41 +15585,12 @@ msgid "Error (see console)"
 msgstr "Fel (se konsol)"
 
 
-msgid "Description:"
-msgstr "Beskrivning:"
-
-
 msgid "Location:"
 msgstr "Placering:"
 
 
-msgid "File:"
-msgstr "Fil:"
-
-
-msgid "Author:"
-msgstr "Skapare:"
-
-
-msgid "Version:"
-msgstr "Version:"
-
-
-msgid "Warning:"
-msgstr "Varning:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
 msgid "User:"
 msgstr "Användare:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Dokumentation"
 
 
 msgctxt "Operator"
@@ -16147,11 +16148,6 @@ msgstr "Positioner"
 
 msgid "Parents"
 msgstr "Föräldrar"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Applicera"
 
 
 msgid "No Textures"
@@ -16787,6 +16783,10 @@ msgstr "Benomslutningar"
 
 msgid "Image '%s' could not be saved to '%s'"
 msgstr "Bild '%s' kunde inte sparas till '%s'"
+
+
+msgid "Movie"
+msgstr "Film"
 
 
 msgid "Add-on is no longer valid"

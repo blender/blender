@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
-"PO-Revision-Date: 2024-06-23 21:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"PO-Revision-Date: 2024-06-30 21:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -8566,6 +8566,14 @@ msgid "Lower Z angle bound"
 msgstr "Límit inferior d'angle en Z"
 
 
+msgid "Legacy Behavior"
+msgstr "Comportament antiquat"
+
+
+msgid "Use the old semi-broken behavior that doesn't understand that rotations loop around"
+msgstr "[Legacy Behavior]: Reprodueix l'antic comportament mig malgirbat que no entén les rotacions com a bucles"
+
+
 msgid "Limit X"
 msgstr "Límit d'X"
 
@@ -15518,24 +15526,12 @@ msgid "Temperature difference to ambient temperature"
 msgstr "[Temp. Diff.]: Diferència de temperatura respecte de la temperatura ambient"
 
 
-msgid "Mapping"
-msgstr "Mapejat"
-
-
 msgid "Texture mapping type"
 msgstr "[Mapping]: Tipus de mapejat de textura"
 
 
-msgid "Generated"
-msgstr "Generades"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "[Generated]: Coordenades generades centrades en l'objecte de flux"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -16220,6 +16216,10 @@ msgstr "Trontoll"
 
 msgid "A filler or baked keyframe for keying on ones, or some other purpose as needed"
 msgstr "[Jitter]: Una fotofita de complement o precuinada per fita-x-foto, o per algun altre propòsit segons convingui"
+
+
+msgid "Generated"
+msgstr "Generades"
 
 
 msgid "A key generated automatically by a tool, not manually created"
@@ -20101,6 +20101,10 @@ msgid "Armature data-block containing a hierarchy of bones, usually used for rig
 msgstr "Bloc de dades d'esquelet que conté una jerarquia d'ossos, normalment utilitzat per l'engranatge de personatges"
 
 
+msgid "Feature Set"
+msgstr "Joc de funcionalitats"
+
+
 msgid "Animation data for this data-block"
 msgstr "Dades d'animació per al bloc de dades"
 
@@ -20207,6 +20211,10 @@ msgstr "Traçar la línia relacional des de la cua del pare al cap del fill"
 
 msgid "Draw the relationship line from the parent head to the child head"
 msgstr "Traçar la línia relacional des del cap el para al cap del fill"
+
+
+msgid "Theme"
+msgstr "Tema"
 
 
 msgid "Display Axes"
@@ -23252,11 +23260,11 @@ msgstr "Sumar el radi del punt de bisellat al radi transverser"
 
 
 msgid "Texture Space Location"
-msgstr "Ubicació d'espai de textura"
+msgstr "Ubicació d'espai textura"
 
 
 msgid "Texture Space Size"
-msgstr "Mida d'espai de textura"
+msgstr "Mida de l'espai textura"
 
 
 msgid "Twist Method"
@@ -23296,7 +23304,7 @@ msgstr "Espai autotextura"
 
 
 msgid "Adjust active object's texture space automatically when transforming object"
-msgstr "[Auto Texture Space]: Ajusta automàticament l'espai de textura de l'objecte actiu quan es transforma l'objecte"
+msgstr "[Auto Texture Space]: Ajusta automàticament l'espai textura de l'objecte actiu quan es transforma l'objecte"
 
 
 msgid "Bounds Clamp"
@@ -24871,20 +24879,12 @@ msgid "Where the image comes from"
 msgstr "D'on ve la imatge"
 
 
-msgid "Single Image"
-msgstr "Imatge única"
-
-
 msgid "Single image file"
 msgstr "[Single image]: Document únic de la imatge"
 
 
 msgid "Multiple image files, as a sequence"
 msgstr "Múltiples documents d'imatge, com a seqüència"
-
-
-msgid "Movie"
-msgstr "Vídeo"
 
 
 msgid "Movie file"
@@ -24895,16 +24895,8 @@ msgid "Generated image"
 msgstr "Imatge generada"
 
 
-msgid "Viewer"
-msgstr "Visor"
-
-
 msgid "Compositing node viewer"
 msgstr "Visor de nodes de compositar"
-
-
-msgid "UDIM Tiles"
-msgstr "Mosaic UDIM"
 
 
 msgid "Tiled UDIM image texture"
@@ -26444,7 +26436,7 @@ msgstr "[Skin Vertices]: Tots els vèrtexs de la pell"
 
 
 msgid "Texture Space Mesh"
-msgstr "Malla de l'espai de textura"
+msgstr "Malla de l'espai textura"
 
 
 msgid "Derive texture coordinates from another mesh"
@@ -26452,7 +26444,7 @@ msgstr "Coordenades de textura derivades d'una altra malla"
 
 
 msgid "Texture space location"
-msgstr "Ubicació de l'espai de textura"
+msgstr "Ubicació de l'espai textura"
 
 
 msgid "Texture space size"
@@ -27704,7 +27696,7 @@ msgstr "Només mostra la morfofita activa a tota potència"
 
 
 msgid "Display Texture Space"
-msgstr "Mostrar espai de textura"
+msgstr "Mostrar espai textura"
 
 
 msgid "Display the object's texture space"
@@ -31036,6 +31028,10 @@ msgid "Maintained by community developers"
 msgstr "Mantingut pels desenvolupadors de la comunitat"
 
 
+msgid "Addon Tags"
+msgstr "Etiquetes de complements"
+
+
 msgid "Asset Blend Path"
 msgstr "Ruta dels recursos blend"
 
@@ -31044,12 +31040,8 @@ msgid "Full path to the Blender file containing the active asset"
 msgstr "[Asset Blend Path]: Ruta completa al document Blender que conté el recurs actiu"
 
 
-msgid "Show Enabled Extensions"
-msgstr "Mostrar extensions habilitades"
-
-
-msgid "Only show enabled extensions"
-msgstr "Mostrar sols extensions habilitades"
+msgid "Filter by extension name, author & category"
+msgstr "Filtra per nom d'extensió, autor i categoria"
 
 
 msgid "Show Installed Extensions"
@@ -31058,10 +31050,6 @@ msgstr "Mostrar extensions instal·lades"
 
 msgid "Only show installed extensions"
 msgstr "Mostrar sols extensions instal·lades"
-
-
-msgid "Filter by extension name, author & category"
-msgstr "Filtra per nom d'extensió, autor i categoria"
 
 
 msgid "Extension Tags"
@@ -31086,14 +31074,6 @@ msgstr "Temes"
 
 msgid "Only show themes"
 msgstr "Mostrar sols temes"
-
-
-msgid "Show Updates Available"
-msgstr "Mostrar actualitzacions disponibles"
-
-
-msgid "Only show extensions with updates available"
-msgstr "Mostrar sols extensions amb actualitzacions disponibles"
 
 
 msgid "Extensions Updates"
@@ -34484,6 +34464,10 @@ msgid "Invert the fade-out direction of the linear mapping"
 msgstr "Inverteix la direcció d'esvaïment del mapejat lineal"
 
 
+msgid "Mapping"
+msgstr "Mapejat"
+
+
 msgid "Select the mapping type"
 msgstr "Seleccionar el tipus de majeat"
 
@@ -35965,6 +35949,10 @@ msgid "Select Linked"
 msgstr "Seleccionar connectats"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align"
 msgstr "Alinear"
 
@@ -36086,14 +36074,6 @@ msgstr "Canviar seqüencialment els nodes seleccionats"
 
 msgid "Batch Change Math Operation"
 msgstr "Canviar seqüencialment l'operació de càlcul"
-
-
-msgid "To:"
-msgstr "Destí:"
-
-
-msgid "From:"
-msgstr "A partir de:"
 
 
 msgid "Copy Label"
@@ -36334,12 +36314,20 @@ msgstr ""
 "    "
 
 
+msgid "Add-ons Settings"
+msgstr "Paràmetres de complements"
+
+
 msgid "Active Repository"
 msgstr "Repositori actiu"
 
 
 msgid "Remove Extension Repository"
 msgstr "Suprimir repositori d'extensions"
+
+
+msgid "Extension Item"
+msgstr "Element d'extensió"
 
 
 msgid "Extension Settings"
@@ -46344,6 +46332,10 @@ msgid "Interpolate between frames in a Bézier curve, rather than linearly"
 msgstr "Interpola entre fotogrames amb una corba bezier, més que no fent-ho linealment"
 
 
+msgid "Viewer"
+msgstr "Visor"
+
+
 msgid "Visualize data from inside a node graph, in the image editor or as a backdrop"
 msgstr "Visualitzar les dades dins una gràfica de nodes, a l'editor d'imatges o com a pla de fons"
 
@@ -47532,7 +47524,7 @@ msgstr "Troba l'element més pròxim dins d'un grup. Similar al node de \"Mostre
 
 
 msgid "Index Switch"
-msgstr "Substituïdor de l'index"
+msgstr "Substitutor d'index"
 
 
 msgid "Choose between an arbitrary number of values with an index"
@@ -53777,6 +53769,10 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "[Reveal Hidde]: Evidencia tots els ossos ocults en el mode d'edició"
 
 
+msgid "(undocumented operator)"
+msgstr "(operador no documentat)"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Retirar gir"
@@ -55294,10 +55290,6 @@ msgid "Set Active Clip"
 msgstr "Consignar vídeo actiu"
 
 
-msgid "(undocumented operator)"
-msgstr "(operador no documentat)"
-
-
 msgctxt "Operator"
 msgid "Set Axis"
 msgstr "Definir eix"
@@ -56803,7 +56795,7 @@ msgstr "[Make Segment]: Uneix dues corbes pels extrems seleccionats"
 
 msgctxt "Operator"
 msgid "Match Texture Space"
-msgstr "Ajustar espai de textura"
+msgstr "Ajustar espai textura"
 
 
 msgid "Match texture space to object's bounding box"
@@ -58933,12 +58925,24 @@ msgid "Install from Disk"
 msgstr "Instal·lar des de disc"
 
 
+msgid "Install extensions from files into a locally managed repository"
+msgstr "Instal·la extensions des de documents d'un repositori administrat localment"
+
+
 msgid "Legacy Overwrite"
 msgstr "Sobreescriure antiquat"
 
 
 msgid "Remove existing add-ons with the same ID"
 msgstr "Suprimeix els complements existents amb el mateix ID"
+
+
+msgid "User Repository"
+msgstr "Repositori d'usuària"
+
+
+msgid "The user repository to install extensions into"
+msgstr "El repositori local de la usuària a on instal·lar les extensions"
 
 
 msgid "Legacy Target Path"
@@ -58955,8 +58959,23 @@ msgstr "Paquet d'ext Install_marked"
 
 
 msgctxt "Operator"
+msgid "Clear Marked Package"
+msgstr "Retirar paquet parcat"
+
+
+msgctxt "Operator"
+msgid "Clear All Marked Packages"
+msgstr "Retirar tots els paquets marcats"
+
+
+msgctxt "Operator"
 msgid "Mark Package"
 msgstr "Marcar paquet"
+
+
+msgctxt "Operator"
+msgid "Mark All Packages"
+msgstr "Marcar tots els paquets"
 
 
 msgctxt "Operator"
@@ -59505,7 +59524,7 @@ msgstr "Obrir un directori en seleccionar-lo"
 
 
 msgid "Pass Through"
-msgstr "Travessar"
+msgstr "Transitar"
 
 
 msgid "Even on successful execution, pass the event on so other operators can execute on it as well"
@@ -69608,7 +69627,7 @@ msgstr "Suprimir ítem"
 
 
 msgid "Remove an item from the index switch"
-msgstr "Suprimeix un element del communtador d'índex"
+msgstr "Suprimeix un element del substitutor d'índex"
 
 
 msgid "Index to remove"
@@ -69871,28 +69890,16 @@ msgid "Add Reroutes"
 msgstr "Afegir redireccionaments"
 
 
-msgid "Add Reroutes to Outputs"
-msgstr "Afegir redireccionaments a sortides"
-
-
-msgid "to all"
-msgstr "A tots"
+msgid "Option"
+msgstr "Opció"
 
 
 msgid "Add to all outputs"
 msgstr "Afegeix a totes les sortides"
 
 
-msgid "to loose"
-msgstr "a soltes"
-
-
 msgid "Add only to loose outputs"
 msgstr "Afegir només a sortides soltes"
-
-
-msgid "to linked"
-msgstr "a connectades"
 
 
 msgid "Add only to linked outputs"
@@ -69917,10 +69924,6 @@ msgid "Texture Setup"
 msgstr "Configuració de textura"
 
 
-msgid "Add Texture Node Setup to Selected Shaders"
-msgstr "Afegeix una configuració de nodes de textura als aspectors seleccionats"
-
-
 msgid "Add Mapping Nodes"
 msgstr "Afegir nodes de mapejat"
 
@@ -69932,10 +69935,6 @@ msgstr "[Add Mapping Nodes]: Crea nodes de mapejat i de coordenades per a la tex
 msgctxt "Operator"
 msgid "Principled Texture Setup"
 msgstr "Configuració textura postulada"
-
-
-msgid "Add Texture Node Setup for Principled BSDF"
-msgstr "[Principled Texture Setup]: Agegeix una configuració de nodes per als FDDB postulats"
 
 
 msgid "Folder to search in for image files"
@@ -69958,10 +69957,6 @@ msgstr "La quantitat d'espai d'entre nodes"
 msgctxt "Operator"
 msgid "Batch Change"
 msgstr "Canviar en seqüència"
-
-
-msgid "Batch Change Blend Type and Math Operation"
-msgstr "[Batch Change]: Canvia el tipus de Fusió i l'Operació de càlcul seqüencialment"
 
 
 msgid "Add Mode"
@@ -70000,16 +69995,8 @@ msgid "Overlay Mode"
 msgstr "Mode de superposició"
 
 
-msgid "Dodge"
-msgstr "Fintar"
-
-
 msgid "Dodge Mode"
 msgstr "Mode fintar"
-
-
-msgid "Burn"
-msgstr "Cremar"
 
 
 msgid "Burn Mode"
@@ -70320,37 +70307,9 @@ msgid "Source of name of label"
 msgstr "Origen de nom d'etiqueta"
 
 
-msgid "from active"
-msgstr "Des d'actiu"
-
-
-msgid "from active node"
-msgstr "des del node actiu"
-
-
-msgid "from node"
-msgstr "Des de node"
-
-
-msgid "from node linked to selected node"
-msgstr "des de node enllaçat a seleccionat"
-
-
-msgid "from socket"
-msgstr "Des de born"
-
-
-msgid "from socket linked to selected node"
-msgstr "des de born enllaçat al seleccionat"
-
-
 msgctxt "Operator"
 msgid "Copy Settings"
 msgstr "Copiar paràmetres"
-
-
-msgid "Copy Settings of Active Node to Selected Nodes"
-msgstr "Còpia els paràmetres del node actiu als seleccionats"
 
 
 msgctxt "Operator"
@@ -70390,10 +70349,6 @@ msgstr "[Detach Outputs]: Desconnecta les sortides del node seleccionat deixant-
 msgctxt "Operator"
 msgid "Change Factor"
 msgstr "Factor de canvi"
-
-
-msgid "Change Factors of Mix Nodes and Mix Shader Nodes"
-msgstr "[Change Factor]: Factors de canvi dels Nodes mescla i Nodes aspector mescla"
 
 
 msgid "Add a frame node and parent the selected nodes to it"
@@ -70452,56 +70407,28 @@ msgid "Merge Nodes"
 msgstr "Fusionar nodes"
 
 
-msgid "merge type"
-msgstr "tipus de fusió"
-
-
 msgid "Type of Merge to be used"
 msgstr "Mena de fusió que es fa"
-
-
-msgid "Automatic Output Type Detection"
-msgstr "Detecció automàtica de tipus de sortida"
 
 
 msgid "Merge using ADD or MIX Shader"
 msgstr "Fusionar amb Aspector mesclar o Sumar"
 
 
-msgid "Merge using Mesh Boolean or Join Geometry Node"
-msgstr "Fusiona amb node Malla booleana o Unir geometria"
-
-
 msgid "Mix Node"
 msgstr "Node Mesclar"
-
-
-msgid "Merge using Mix Nodes"
-msgstr "Fusiona amb nodes Mesclar"
 
 
 msgid "Math Node"
 msgstr "Node calcular"
 
 
-msgid "Merge using Math Nodes"
-msgstr "Fusiona amb nodes Calcular"
-
-
 msgid "Z-Combine Node"
 msgstr "Node Combinar-Z"
 
 
-msgid "Merge using Z-Combine Nodes"
-msgstr "Fusionar. amb nodes Combinar-Z"
-
-
 msgid "Alpha Over Node"
 msgstr "Node Alfa per sobre"
-
-
-msgid "Merge using Alpha Over Nodes"
-msgstr "Fusiona amb nodes Alfa per sobre"
 
 
 msgid "All possible blend types, boolean operations and math operations"
@@ -73273,6 +73200,11 @@ msgstr "Restablir sobreseïment de biblioteca"
 
 msgid "Reset the selected local overrides to their linked references values"
 msgstr "[Reset Library Override]: Restableix els sobreseïments locals seleccionats als seus valors de referència vinculats"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Nova"
 
 
 msgctxt "Operator"
@@ -76929,6 +76861,10 @@ msgid "Reveal all bones hidden in Pose Mode"
 msgstr "Evidenciar tots els ossos ocults en el mode de Poses"
 
 
+msgid "Property Name"
+msgstr "Nom de propietat"
+
+
 msgctxt "Operator"
 msgid "Clear Pose Rotation"
 msgstr "Retirar rotació de posa"
@@ -78786,10 +78722,6 @@ msgid "Editing"
 msgstr "Edició"
 
 
-msgid "Extensions"
-msgstr "Extensions"
-
-
 msgid "Keymap"
 msgstr "Teclari"
 
@@ -80240,14 +80172,6 @@ msgid "After removing the Strip, delete the associated data also"
 msgstr "Després de suprimir el segment, n'elimina també les dades associades"
 
 
-msgid "Use Retiming Data"
-msgstr "Emprar dades de retemporització"
-
-
-msgid "Operate on retiming data instead of strips"
-msgstr "[Use Retiming Data]: Opera retemporitzant dades enlloc dels segments"
-
-
 msgid "Duplicate the selected strips"
 msgstr "Duplicar segments seleccionats"
 
@@ -80717,6 +80641,11 @@ msgstr "Fotograma del cronograma"
 
 msgid "Frame where key will be added"
 msgstr "Fotograma on s'afegirà la fita"
+
+
+msgctxt "Operator"
+msgid "Delete Retiming Keys"
+msgstr "Eliminar fites de retemporització"
 
 
 msgctxt "Operator"
@@ -82228,19 +82157,19 @@ msgstr "Punt de l'origen que s'acoblarà al referent"
 
 
 msgid "Snap closest point onto target"
-msgstr "Acobla al punt més proper a la referència"
+msgstr "Acoblar punt més proper a referència"
 
 
 msgid "Snap transformation center onto target"
-msgstr "Acoblar centre de transformació a la referència"
+msgstr "Acoblar centre de transformació a referència"
 
 
 msgid "Snap median onto target"
-msgstr "Acoblar mediana a la referència"
+msgstr "Acoblar mediana a referència"
 
 
 msgid "Snap active onto target"
-msgstr "Acoblar actiu a la referència"
+msgstr "Acoblar actiu a referència"
 
 
 msgid "Clamp within the edge extents"
@@ -82315,7 +82244,7 @@ msgstr "Editar espai textura"
 
 
 msgid "Edit object data texture space"
-msgstr "Edita dades de l'objecte espai de textura"
+msgstr "[Edit Texture Space]: Edita dades de l'objecte espai de textura"
 
 
 msgid "Duplicated Keyframes"
@@ -83503,7 +83432,7 @@ msgstr "Crea un mapa UV nou per a cada malla empaquetada"
 
 
 msgid "Share Texture Space"
-msgstr "Compartir espai de textura"
+msgstr "Compartir espai textura"
 
 
 msgid "Objects share texture space, map all objects into a single UV map"
@@ -83748,7 +83677,7 @@ msgstr "[Project from View]: Projecta els vèrtexs UV de la malla com es veu a l
 
 
 msgid "Camera Bounds"
-msgstr "Límits de càmera"
+msgstr "Marges de càmera"
 
 
 msgid "Map UVs to the camera region taking resolution and aspect into account"
@@ -84014,7 +83943,7 @@ msgstr "Acoblar cursor"
 
 
 msgid "Snap cursor to target type"
-msgstr "Acobla el cursor al tipus de referència"
+msgstr "Acoblae cursor a tipus de referència"
 
 
 msgid "Target to snap the selected UVs to"
@@ -84875,7 +84804,7 @@ msgstr "Permutar vista de càmera"
 
 msgctxt "Operator"
 msgid "Frame Camera Bounds"
-msgstr "Enquadrar límits de càmera"
+msgstr "Enquadrar marges de càmera"
 
 
 msgid "Center the camera view, resizing the view to fit its bounds"
@@ -86923,10 +86852,6 @@ msgid "Allow the property to be overridden when the data-block is linked"
 msgstr "Permet que la propietat se sobresegui quan es vinculi el bloc de dades"
 
 
-msgid "Property Name"
-msgstr "Nom de propietat"
-
-
 msgid "Property name edit"
 msgstr "Edita el nom de la propietat"
 
@@ -87833,6 +87758,14 @@ msgstr "Sobreescriu els documents existents quan s'exporten textures"
 
 msgid "Use relative paths to reference external files (i.e. textures, volumes) in USD, otherwise use absolute paths"
 msgstr "Usar rutes relatives per a referenciar documents externs (és a dir, textures, volums) en USD, altrament usar rutes absolutes"
+
+
+msgid "Rename UV Maps"
+msgstr "Reanomenar mapes UV"
+
+
+msgid "Rename active render UV map to \"st\" to match USD conventions"
+msgstr "[Rename UV Maps]: Reanomena el mapa de revelat UV actiu com a \"st\" per adaptar-se a les convencions d'USD"
 
 
 msgid "Root Prim"
@@ -88778,6 +88711,10 @@ msgid "Detect image slots from the material"
 msgstr "Detectar epígrafs d'imatge a partir del material"
 
 
+msgid "Single Image"
+msgstr "Imatge única"
+
+
 msgid "Set image for texture painting directly"
 msgstr "Assigna la imatge per al pintat de textura de manera directa"
 
@@ -89419,16 +89356,6 @@ msgid "Snapping"
 msgstr "Acoblament"
 
 
-msgctxt "ID"
-msgid "Displacement"
-msgstr "Desplaçament"
-
-
-msgctxt "ID"
-msgid "Thickness"
-msgstr "Gruix"
-
-
 msgid "Sun"
 msgstr "Sol"
 
@@ -89601,6 +89528,10 @@ msgstr "Tessel·lació"
 
 msgid "Texture Mask"
 msgstr "Textura màscara"
+
+
+msgid "UDIM Tiles"
+msgstr "Mosaic UDIM"
 
 
 msgid "Histogram"
@@ -90090,8 +90021,8 @@ msgid "Prototypes"
 msgstr "Prototips"
 
 
-msgid "Extensions Filter"
-msgstr "Filtre d'extensions"
+msgid "Extensions"
+msgstr "Extensions"
 
 
 msgid "Repositories"
@@ -90289,10 +90220,6 @@ msgstr "Camp numèric"
 
 msgid "Value Slider"
 msgstr "Lliscador de valor"
-
-
-msgid "Option"
-msgstr "Opció"
 
 
 msgid "Pie Menu"
@@ -92173,10 +92100,6 @@ msgstr "Preferències globals"
 
 msgid "Active Section"
 msgstr "Secció activa"
-
-
-msgid "Active section of the preferences shown in the user interface"
-msgstr "Secció activa de les preferències mostrades a la interfície d'usuària"
 
 
 msgid "Application Template"
@@ -95924,10 +95847,6 @@ msgid "Add ambient occlusion to diffuse surfaces"
 msgstr "Afegir oclusió ambiental a superfícies difusives"
 
 
-msgid "Feature Set"
-msgstr "Joc de funcionalitats"
-
-
 msgid "Feature set to use for rendering"
 msgstr "[Feature Set]: Joc de funcionalitats per al revelat"
 
@@ -96938,6 +96857,10 @@ msgstr "Il·luminació en mida de passos de radiodistanciat de volum"
 
 msgid "Step size when raymarching volume for lighting computation"
 msgstr "Mida dels passos en radiodistanciar volum per a calcular il·luminació"
+
+
+msgid "Widget"
+msgstr "Giny"
 
 
 msgid "Selected UV Element"
@@ -99524,8 +99447,16 @@ msgid "Directional Shadows Resolution"
 msgstr "Resolució d'ombres direccionals"
 
 
+msgid "Size of sun light shadow maps (deprecated)"
+msgstr "Mida dels mapes d'ombres de llum solar (obsolet)"
+
+
 msgid "Cube Shadows Resolution"
 msgstr "Resolució d'ombres de cub"
+
+
+msgid "Size of point and area light shadow maps (deprecated)"
+msgstr "Mida dels mapes d'ombra de llums d'àrea i de punt (obsolet)"
 
 
 msgid "Shadow Pool Size"
@@ -99622,10 +99553,6 @@ msgstr "Mostreja tots els píxels en regions quasi-enfocades per eliminar soroll
 
 msgid "Jitter Camera"
 msgstr "Càmera de trontoll"
-
-
-msgid "Jitter camera position to create accurate blurring using render samples"
-msgstr "[Jitter Camera]: Posició de la càmera de trontoll per a crear un difuminat precís usant mostres de revelat"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -105479,10 +105406,6 @@ msgid "Use global coordinates for the texture coordinates"
 msgstr "Usar coordenades globals per a les coordenades de textura"
 
 
-msgid "Along stroke"
-msgstr "Seguint el traç"
-
-
 msgid "Use stroke length for texture coordinates"
 msgstr "[Along stroke]: Utilitza la longitud del traç per a les coordenades de textura"
 
@@ -105605,10 +105528,6 @@ msgstr "Usar coordenades de l'objecte vinculat per a les coordenades de textura"
 
 msgid "Use UV coordinates for texture coordinates"
 msgstr "Usar coordenades UV per a les coordenades de textura"
-
-
-msgid "Strand / Particle"
-msgstr "Filament / Partícula"
 
 
 msgid "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"
@@ -107804,7 +107723,7 @@ msgstr "Acoblar a"
 
 
 msgid "The target to use while snapping"
-msgstr "[Snap to]: Referent de l'acoblament"
+msgstr "[Snap to]: El referent emprat en l'acoblament"
 
 
 msgid "Snap to all geometry"
@@ -107852,7 +107771,7 @@ msgstr "Acobla a qualsevol límit de node"
 
 
 msgid "Snap Target"
-msgstr "Acoblar a referent"
+msgstr "Referent d'acoblament"
 
 
 msgid "Which part to snap onto the target"
@@ -108084,7 +108003,7 @@ msgstr "Alinear rotació a referent"
 
 
 msgid "Align rotation with the snapping target"
-msgstr "Alinea la rotació amb el referent de l'acoblament"
+msgstr "Alinear rotació amb referent d'acoblament"
 
 
 msgid "Enable snapping when transforming keyframes"
@@ -109784,10 +109703,6 @@ msgid "Wire Color Type"
 msgstr "Tipus de color de trama"
 
 
-msgid "Theme"
-msgstr "Tema"
-
-
 msgid "Show scene wireframes with the theme's wire color"
 msgstr "Mostra els tramats de l'escena amb el color de cables del tema"
 
@@ -110415,10 +110330,6 @@ msgstr "Usar llenç de pintura"
 
 msgid "Does this tool use a painting canvas"
 msgstr "Si l'eina utilitza un llenç de pintura"
-
-
-msgid "Widget"
-msgstr "Giny"
 
 
 msgid "Lighting for a World data-block"
@@ -113957,6 +113868,14 @@ msgid "{:s}: {:s}"
 msgstr "{:s}: {:s}"
 
 
+msgid "The dropped extension comes from a disabled repository."
+msgstr "L'extensió deposada prové d'un repositori deshabilitat."
+
+
+msgid "Enable the repository and try again."
+msgstr "Activar el repositori i tornar a provar."
+
+
 msgid "Legacy Add-ons"
 msgstr "Complements antiquats"
 
@@ -113979,6 +113898,19 @@ msgstr "Repositori: {:s}"
 
 msgid "Size: {:s}"
 msgstr "Mida: {:s}"
+
+
+msgid "The dropped extension comes from an unknown repository."
+msgstr "L'extensió deposada prové d'un repositori desconegut."
+
+
+msgid "If you trust its source, add the repository and try again."
+msgstr "Si confieu en la font, afegiu el repositori i torneu-ho a provar."
+
+
+msgctxt "Operator"
+msgid "Add Repository..."
+msgstr "Afegir repositori..."
 
 
 msgid "System extensions are read-only and cannot be uninstalled"
@@ -114005,18 +113937,6 @@ msgid "Active repository is disabled"
 msgstr "El repositori actiu està deshabilitat"
 
 
-msgid "Online access required to {:s}. {:s}"
-msgstr "Cal accés en línia per a {:s}. {:s}"
-
-
-msgid "Launch Blender without --offline-mode"
-msgstr "Inicieu Blender sense --mode-foradelinia"
-
-
-msgid "Enable online access in System preferences"
-msgstr "Activa l'accés a internet a les preferències del sistema"
-
-
 msgid "No installed packages to update"
 msgstr "No hi ha paquets instal·lats per actualitzar"
 
@@ -114033,12 +113953,28 @@ msgid "Repository not set"
 msgstr "Repositori no configurat"
 
 
+msgid "There must be at least one user repository set to install extensions into"
+msgstr "Cal que hi hagi definit almenys un repositori d'usuària configurat on instal·lar les extensions"
+
+
 msgid "Repository"
 msgstr "Repositori"
 
 
 msgid "Package ID not set"
 msgstr "ID del paquet no definit"
+
+
+msgid ""
+"The extension is incompatible with this system:\n"
+"{:s}"
+msgstr ""
+"L'extensió és incompatible amb aquest sistema:\n"
+"{:s}"
+
+
+msgid "Alternatively download the extension to Install from Disk."
+msgstr "Alternativament descarregueu l'extensió per instal·lar-la des del disc."
 
 
 msgid "Lock not held!"
@@ -114057,6 +113993,10 @@ msgid "Upgrade is not supported for local repositories"
 msgstr "L'actualització no és compatible amb els repositoris locals"
 
 
+msgid "No user repositories"
+msgstr "No hi ha repositoris d'usuària"
+
+
 msgid "Error in manifest {:s}"
 msgstr "Error al manifest {:s}"
 
@@ -114073,8 +114013,20 @@ msgid "Blender was launched in offline-mode which cannot be changed at runtime"
 msgstr "Blender s'ha llançat en mode fora de línia, i no es pot canviar a mitja execució"
 
 
+msgid "Launch Blender without --offline-mode"
+msgstr "Inicieu Blender sense --mode-foradelinia"
+
+
+msgid "Enable online access in System preferences"
+msgstr "Activa l'accés a internet a les preferències del sistema"
+
+
 msgid "Unable to install from disk, no paths were defined"
 msgstr "No s'ha pogut instal·lar des del disc, no s'han definit les rutes"
+
+
+msgid "URL: {:s}"
+msgstr "URL: {:s}"
 
 
 msgid "Unable to install from relative path"
@@ -114083,6 +114035,10 @@ msgstr "No s'ha pogut instal·lar des de ruta relativa"
 
 msgid "Unable to install a directory"
 msgstr "No s'ha pogut instal·lar un directori"
+
+
+msgid "{:s} \"{:s}\" already installed!"
+msgstr "{:s} \"{:s}\" ja instal·lada!"
 
 
 msgid "Missing Built-in Add-ons"
@@ -114095,6 +114051,10 @@ msgstr "Els complements enviats anteriorment amb Blender ara estan disponibles a
 
 msgid "Missing Add-ons"
 msgstr "Falten complements"
+
+
+msgid "Enabled Only"
+msgstr "Sols habilitats"
 
 
 msgid "Online Extensions"
@@ -114119,6 +114079,14 @@ msgid "Show Tags"
 msgstr "Mostrar etiquetes"
 
 
+msgid "Built-in"
+msgstr "Integrat"
+
+
+msgid "Website"
+msgstr "Lloc web"
+
+
 msgid "Maintainer"
 msgstr "Mantenidor"
 
@@ -114133,22 +114101,6 @@ msgstr "No s'ha trobat el repositori d'extensions de Blender!"
 
 msgid "Repository Access Errors:"
 msgstr "Errors d'accés al repositorio:"
-
-
-msgid "Show Only"
-msgstr "Només mostrar"
-
-
-msgid "Enabled Extensions"
-msgstr "Extensions habilitades"
-
-
-msgid "Updates Available"
-msgstr "Hi ha actualitzacions disponibles"
-
-
-msgid "Installed Extensions"
-msgstr "Extensions intal·lades"
 
 
 msgctxt "Operator"
@@ -114170,22 +114122,27 @@ msgid "Install"
 msgstr "Instal·lar"
 
 
-msgctxt "Operator"
-msgid "Uninstall Marked"
-msgstr "Desinstal·lar marcades"
-
-
-msgctxt "Operator"
-msgid "Install Marked"
-msgstr "Instal·lar marcades"
-
-
-msgid "Installed   "
-msgstr "Instal·lada   "
+msgid "Orphan   "
+msgstr "Orfe   "
 
 
 msgid "Permissions"
 msgstr "Permisos"
+
+
+msgctxt "Operator"
+msgid "Mark All"
+msgstr "Marcar tots"
+
+
+msgctxt "Operator"
+msgid "Unmark All"
+msgstr "Desmarcar tots"
+
+
+msgctxt "Operator"
+msgid "Uninstall Marked"
+msgstr "Desinstal·lar marcades"
 
 
 msgctxt "Operator"
@@ -114197,8 +114154,38 @@ msgid "No permissions specified"
 msgstr "Sense permisos especificats"
 
 
+msgctxt "Operator"
+msgid "Install Marked"
+msgstr "Instal·lar marcades"
+
+
+msgctxt "Operator"
+msgid "Visit Website"
+msgstr "Visitar lloc web"
+
+
+msgctxt "Operator"
+msgid "View Details"
+msgstr "Veure detalls"
+
+
+msgctxt "Operator"
+msgid "Clear Theme"
+msgstr "Retirar tema"
+
+
+msgctxt "Operator"
+msgid "Set Theme"
+msgstr "Triar tema"
+
+
 msgid "{:s} ({:s} available)"
 msgstr "{:s} ({:s} disponibles)"
+
+
+msgctxt "Operator"
+msgid "Add-on Enabled"
+msgstr "Complement habilitat"
 
 
 msgid "No selected keys, pasting over scene range"
@@ -114844,14 +114831,6 @@ msgid "Add a new Variant Slot"
 msgstr "Afegir nou epígraf de variant"
 
 
-msgid "Link Active To Selected"
-msgstr "Connectar actiu a selecció"
-
-
-msgid "Batch Change"
-msgstr "Canviar en seqüència"
-
-
 msgctxt "Operator"
 msgid "Multiple Images"
 msgstr "Múltiples imatges"
@@ -114879,11 +114858,6 @@ msgstr "(Accés rápid: Maj+W)"
 msgctxt "Operator"
 msgid "Settings from Active"
 msgstr "Paràmetres des d'actiu"
-
-
-msgctxt "Operator"
-msgid "Don't Replace Links"
-msgstr "No substituir connexions"
 
 
 msgctxt "Operator"
@@ -114945,62 +114919,12 @@ msgid "Use Alpha Over Nodes"
 msgstr "Usar nodes Alfa a sobre"
 
 
-msgctxt "Operator"
-msgid "from Active Node's Label"
-msgstr "des d'etiqueta de Node actiu"
-
-
-msgctxt "Operator"
-msgid "from Linked Node's Label"
-msgstr "des d'etiqueta de node connectat"
-
-
-msgctxt "Operator"
-msgid "from Linked Output's Name"
-msgstr "Des de nom de Sortida connectada"
-
-
-msgctxt "Operator"
-msgid "to All Outputs"
-msgstr "a totes les sortides"
-
-
-msgctxt "Operator"
-msgid "to Loose Outputs"
-msgstr "a les sortides soltes"
-
-
-msgctxt "Operator"
-msgid "to Linked Outputs"
-msgstr "a les sortides connectades"
-
-
 msgid "No attributes on objects with this material"
 msgstr "No hi ha atributs als objectes d'aquest material"
 
 
-msgid "Successfully copied attributes from {} to: {}, "
-msgstr "S'han copiat amb èxit atributs des de {} fins a: {}, "
-
-
-msgid "Successfully reset {}, "
-msgstr "Restabliment de {} exitós, "
-
-
 msgid "View3D not found, cannot run operator"
 msgstr "No és troba la vista 3D, no es pot executar l'operador"
-
-
-msgid "Node  deleted"
-msgstr "Node  eliminat"
-
-
-msgid "Deleted "
-msgstr "Eliminat "
-
-
-msgid "Nothing deleted"
-msgstr "Res no s'ha eliminat"
 
 
 msgid "Reloaded images"
@@ -115035,24 +114959,8 @@ msgid "No file chosen"
 msgstr "No s'ha escollit cap document"
 
 
-msgid " does not exist!"
-msgstr " no existeix!"
-
-
-msgid " does not seem to be part of a sequence"
-msgstr " no sembla formar part d'una seqüència"
-
-
 msgid "Ignored {}, "
 msgstr "Ignorat {}, "
-
-
-msgid "No free inputs for node: "
-msgstr "El node no té entrades lliures: "
-
-
-msgid "Unsupported Node Tree type!"
-msgstr "Tipus d'arbre de nodes no admès!"
 
 
 msgid "Please select only 1 frame to reset"
@@ -115061,26 +114969,6 @@ msgstr "Sisplau seleccioneu un sol marc per redisposar"
 
 msgid "No valid node(s) in selection"
 msgstr "La selecció no conté nodes vàlids"
-
-
-msgid "One of the nodes has no outputs!"
-msgstr "Un dels nodes no té sortides!"
-
-
-msgid "Neither of the nodes have outputs!"
-msgstr "Cap dels nodes no té sortides!"
-
-
-msgid "Can't swap inputs of a multi input socket!"
-msgstr "No es poden intercanviar les entrades d'un born multientrada!"
-
-
-msgid "This node has no inputs to swap!"
-msgstr "Aquest node no té entrades per intercanviar!"
-
-
-msgid "This node has no input connections to swap!"
-msgstr "Aquest node no consta de connexions d'entrada per intercanviar-les!"
 
 
 msgid "Some connections have been lost due to differing numbers of output sockets"
@@ -115276,6 +115164,49 @@ msgstr "Ossos seleccionats des de %s"
 
 msgid "Deselected bones from %s"
 msgstr "Ossos desseleccionats des de %s"
+
+
+msgid "Description:"
+msgstr "Descripció:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Author:"
+msgstr "Autor:"
+
+
+msgid "Version:"
+msgstr "Versió:"
+
+
+msgid "Warning:"
+msgstr "Avís:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentació"
+
+
+msgid "File:"
+msgstr "Document:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Options:"
+msgstr "Opcions:"
+
+
+msgctxt "Operator"
+msgid "Action"
+msgstr "Acció"
 
 
 msgid "Save to PO File"
@@ -115542,11 +115473,6 @@ msgstr "Cercar per tecles actives"
 
 msgid "{:s} (Global)"
 msgstr "{:s} (Global)"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Nova"
 
 
 msgctxt "Operator"
@@ -116363,10 +116289,6 @@ msgstr "Fons de Desenvolupament"
 
 msgid "The donation program to support maintenance and improvements"
 msgstr "Programa de donacions per donar suport a manteniment i millores"
-
-
-msgid "blender.org"
-msgstr "blender.org"
 
 
 msgid "Blender's official web-site"
@@ -119014,10 +118936,6 @@ msgid "Filter by Type:"
 msgstr "Filtrar per tipus:"
 
 
-msgid "Options:"
-msgstr "Opcions:"
-
-
 msgid "Snap To"
 msgstr "Acoblar a"
 
@@ -119725,11 +119643,6 @@ msgstr "Permutar àrea de pantalla completa"
 
 
 msgctxt "Operator"
-msgid "Action"
-msgstr "Acció"
-
-
-msgctxt "Operator"
 msgid "Transition"
 msgstr "Transició"
 
@@ -120243,11 +120156,6 @@ msgstr "Canviar ruta/documents"
 msgctxt "Operator"
 msgid "Swap Data"
 msgstr "Intercanviar dades"
-
-
-msgctxt "Operator"
-msgid "Delete Retiming Keys"
-msgstr "Eliminar fites de retemporització"
 
 
 msgctxt "Operator"
@@ -121452,6 +121360,10 @@ msgid "Remove Repository"
 msgstr "Suprimir repositori"
 
 
+msgid " Preferences"
+msgstr " Preferències"
+
+
 msgid "No custom MatCaps configured"
 msgstr "No s'han configurat MatCaps adaptables"
 
@@ -121589,32 +121501,8 @@ msgid "No custom {:s} configured"
 msgstr "No s'ha configurat cap {:s} personalitzat"
 
 
-msgid "Description:"
-msgstr "Descripció:"
-
-
 msgid "Location:"
 msgstr "Ubicació:"
-
-
-msgid "File:"
-msgstr "Document:"
-
-
-msgid "Author:"
-msgstr "Autor:"
-
-
-msgid "Version:"
-msgstr "Versió:"
-
-
-msgid "Warning:"
-msgstr "Avís:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
 
 
 msgid "User:"
@@ -121631,11 +121519,6 @@ msgstr "Joc de colors {:d}"
 
 msgid "Color {:d}"
 msgstr "Color {:d}"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentació"
 
 
 msgctxt "Operator"
@@ -123884,11 +123767,6 @@ msgstr "Multi-Pintura"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Edició ràpida"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Aplicar"
 
 
 msgctxt "Operator"
@@ -128319,14 +128197,14 @@ msgid "New"
 msgstr "Nova"
 
 
-msgctxt "Material"
-msgid "New"
-msgstr "Nou"
-
-
 msgctxt "Mask"
 msgid "New"
 msgstr "Nova"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Nou"
 
 
 msgctxt "Mesh"
@@ -128347,6 +128225,11 @@ msgstr "Nou"
 msgctxt "Object"
 msgid "New"
 msgstr "Nou"
+
+
+msgctxt "PaintCurve"
+msgid "New"
+msgstr "Nova"
 
 
 msgctxt "ParticleSettings"
@@ -128392,11 +128275,6 @@ msgstr "Nou"
 msgctxt "World"
 msgid "New"
 msgstr "Nou"
-
-
-msgctxt "PaintCurve"
-msgid "New"
-msgstr "Nova"
 
 
 msgid "Samples Transform"
@@ -133679,10 +133557,6 @@ msgid "Add New Extension Repository"
 msgstr "Afegir nova extensió de respositori"
 
 
-msgid "Remove all files in \"{}\"."
-msgstr "Suprimir tots els documents de \"{}\"."
-
-
 msgid "Remove, local files not found."
 msgstr "Suprimir, no s'han trobat els documents locals."
 
@@ -136599,6 +136473,10 @@ msgid "Rigidbody world was not properly initialized, need to step the simulation
 msgstr "El món de cos rígid no s'ha inicialitzat correctament, primer cal general els passos de la simulació"
 
 
+msgid "Movie"
+msgstr "Vídeo"
+
+
 msgid "Use the scene orientation"
 msgstr "Usar l'orientació d'escena"
 
@@ -138090,6 +137968,10 @@ msgid "Collection contains current object"
 msgstr "La col·lecció conté el present objecte"
 
 
+msgid "Can't access collections geometry because it's not evaluated yet. This can happen when there is a dependency cycle"
+msgstr "No pot accedir la geometria de col·leccions perquè encara no està avaluada. Això pot passar quan hi ha alguna dependència cíclica"
+
+
 msgid "Separate Children"
 msgstr "Separar fills"
 
@@ -139363,12 +139245,20 @@ msgid "The total Y size of the region in pixels"
 msgstr "La mida Y total de la regió en píxels"
 
 
+msgid "Can't access object's transforms because it's not evaluated yet. This can happen when there is a dependency cycle"
+msgstr "No pot accedir les transformacions de l'objecte perquè encara no està avaluada. Això pot passar quan hi ha alguna dependència cíclica"
+
+
 msgid "Geometry cannot be retrieved from the edited object itself"
 msgstr "La geometria no es pot extraure de l'objecte editat mateix"
 
 
 msgid "Geometry cannot be retrieved from the modifier object"
 msgstr "La geometria no es pot extraure de l'objecte modificador"
+
+
+msgid "Can't access object's geometry because it's not evaluated yet. This can happen when there is a dependency cycle"
+msgstr "No pot accedir la geometria de l'objecte perquè encara no està avaluada. Això pot passar quan hi ha alguna dependència cíclica"
 
 
 msgid "As Instance"
@@ -141797,6 +141687,10 @@ msgstr "Visualitza el mirador amb ulleres de realitat virtual (dispositius per a
 
 msgid "Copy Global Transform"
 msgstr "Copiar transformació global"
+
+
+msgid "Copy and paste object and bone transforms with ease"
+msgstr "Copiar i enganxar amb comoditat transformacions d'objecte i os"
 
 
 msgid "Pose Library based on the asset system."

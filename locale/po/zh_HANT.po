@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -11287,24 +11287,12 @@ msgid "Temperature difference to ambient temperature"
 msgstr "與週遭溫度之間的溫度差異"
 
 
-msgid "Mapping"
-msgstr "映射方法"
-
-
 msgid "Texture mapping type"
 msgstr "紋理映射類型"
 
 
-msgid "Generated"
-msgstr "生成的"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "將生成的座標系對流動物體置中"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -11833,6 +11821,10 @@ msgstr "極限"
 
 msgid "Jitter"
 msgstr "抖動"
+
+
+msgid "Generated"
+msgstr "生成的"
 
 
 msgid "Frame is selected for editing in the Dope Sheet"
@@ -13017,6 +13009,10 @@ msgid "Markers specific to this action, for labeling poses"
 msgstr "此動作的特定標註，用來為姿勢加上標籤"
 
 
+msgid "Feature Set"
+msgstr "功能設定"
+
+
 msgid "Octahedral"
 msgstr "八面體"
 
@@ -13083,6 +13079,10 @@ msgstr "靜止位置"
 
 msgid "Show Armature in binding pose state (no posing possible)"
 msgstr "於綁定姿勢狀態顯示骨架 (不可能姿勢處理)"
+
+
+msgid "Theme"
+msgstr "主題"
 
 
 msgid "X-Axis Mirror"
@@ -15370,10 +15370,6 @@ msgid "Where the image comes from"
 msgstr "影像來自的地方"
 
 
-msgid "Single Image"
-msgstr "單一影像"
-
-
 msgid "Single image file"
 msgstr "單一影像檔"
 
@@ -15382,20 +15378,12 @@ msgid "Multiple image files, as a sequence"
 msgstr "多個影像檔，為一序段"
 
 
-msgid "Movie"
-msgstr "影片"
-
-
 msgid "Movie file"
 msgstr "影片檔"
 
 
 msgid "Generated image"
 msgstr "生成的影像"
-
-
-msgid "Viewer"
-msgstr "檢視器"
 
 
 msgid "Compositing node viewer"
@@ -20954,6 +20942,10 @@ msgid "Influence factor by which the modifier changes the property"
 msgstr "修改器變更屬性的影響係數"
 
 
+msgid "Mapping"
+msgstr "映射方法"
+
+
 msgid "Select the mapping type"
 msgstr "選取映射類型"
 
@@ -21738,6 +21730,10 @@ msgstr "材質特殊項"
 
 msgid "Select Linked"
 msgstr "選取連結項"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align"
@@ -27648,6 +27644,10 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "像素轉為模糊的最小速度 (用來將背景從前景分離出來)"
 
 
+msgid "Viewer"
+msgstr "檢視器"
+
+
 msgid "Z Combine"
 msgstr "Z 合成"
 
@@ -29965,6 +29965,10 @@ msgid "Reveal Hidden"
 msgstr "揭開隱藏項"
 
 
+msgid "(undocumented operator)"
+msgstr "(未紀錄的操作器)"
+
+
 msgctxt "Operator"
 msgid "(De)select All"
 msgstr "(取消)全選"
@@ -30978,10 +30982,6 @@ msgstr "使用套索選取標記"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "設定作用中剪輯"
-
-
-msgid "(undocumented operator)"
-msgstr "(未紀錄的操作器)"
 
 
 msgctxt "Operator"
@@ -37027,6 +37027,10 @@ msgid "Copy color to all selected nodes"
 msgstr "複製色彩至所有選取的節點"
 
 
+msgid "Option"
+msgstr "選項"
+
+
 msgid "Overlay Mode"
 msgstr "疊層模式"
 
@@ -38134,6 +38138,11 @@ msgstr "隨機化縮放"
 
 msgid "Randomize the scale values"
 msgstr "讓縮放值隨機化"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "新增"
 
 
 msgctxt "Operator"
@@ -39911,6 +39920,10 @@ msgstr "揭開所選項"
 
 msgid "Reveal all bones hidden in Pose Mode"
 msgstr "揭開所有姿勢模式中隱藏的骨骼"
+
+
+msgid "Property Name"
+msgstr "屬性名稱"
 
 
 msgctxt "Operator"
@@ -44620,10 +44633,6 @@ msgid "Edit Property"
 msgstr "編輯屬性"
 
 
-msgid "Property Name"
-msgstr "屬性名稱"
-
-
 msgid "Property name edit"
 msgstr "屬性名稱編輯"
 
@@ -45078,6 +45087,10 @@ msgstr "搖晃"
 
 msgid "Invert the stencil layer"
 msgstr "反轉油印蠟紙分層"
+
+
+msgid "Single Image"
+msgstr "單一影像"
 
 
 msgid "Size to capture the image for re-projecting"
@@ -45775,10 +45788,6 @@ msgstr "數字欄位"
 
 msgid "Value Slider"
 msgstr "數值滑桿"
-
-
-msgid "Option"
-msgstr "選項"
 
 
 msgid "Pie Menu"
@@ -46950,10 +46959,6 @@ msgstr "全域偏好設定"
 
 msgid "Active Section"
 msgstr "作用中區段"
-
-
-msgid "Active section of the preferences shown in the user interface"
-msgstr "在使用者介面中顯示的偏好設定的作用中區段"
 
 
 msgid "Apps"
@@ -48420,10 +48425,6 @@ msgid "Multiple Importance Sampling"
 msgstr "多重重要性取樣"
 
 
-msgid "Feature Set"
-msgstr "功能設定"
-
-
 msgid "Feature set to use for rendering"
 msgstr "用於算繪的功能設定"
 
@@ -48686,6 +48687,10 @@ msgstr "繪圖板壓力"
 
 msgid "Brush Size"
 msgstr "筆刷大小"
+
+
+msgid "Widget"
+msgstr "元件"
 
 
 msgid "Selected UV Element"
@@ -52780,10 +52785,6 @@ msgid "Use global coordinates for the texture coordinates"
 msgstr "為紋理座標使用全域座標"
 
 
-msgid "Along stroke"
-msgstr "沿筆觸"
-
-
 msgid "Use stroke length for texture coordinates"
 msgstr "紋理座標使用筆觸長度"
 
@@ -52894,10 +52895,6 @@ msgstr "為紋理座標使用連結物體的座標"
 
 msgid "Use UV coordinates for texture coordinates"
 msgstr "為紋理座標系使用 UV 座標"
-
-
-msgid "Strand / Particle"
-msgstr "線股 / 粒子"
 
 
 msgid "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"
@@ -54778,10 +54775,6 @@ msgid "Method to display/shade objects in the 3D View"
 msgstr "3D 視圖中顯示/著色物體的方法"
 
 
-msgid "Theme"
-msgstr "主題"
-
-
 msgid "Alpha Threshold"
 msgstr "Alpha 閾值"
 
@@ -54894,10 +54887,6 @@ msgstr "步行與飛行的基礎速度"
 
 msgid "Multiplication factor when using the fast or slow modifiers"
 msgstr "當使用快速或慢速修改器時的相乘係數"
-
-
-msgid "Widget"
-msgstr "元件"
 
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
@@ -55691,6 +55680,44 @@ msgid "Version %r unsupported, must be %r or later"
 msgstr "未支援 %r 版，至少需 %r 或後續版本"
 
 
+msgid "Description:"
+msgstr "描述："
+
+
+msgid "Internet:"
+msgstr "網際網路："
+
+
+msgid "Author:"
+msgstr "作者："
+
+
+msgid "Version:"
+msgstr "版本："
+
+
+msgid "Warning:"
+msgstr "警告："
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "文件"
+
+
+msgid "File:"
+msgstr "檔案："
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Options:"
+msgstr "選項："
+
+
 msgid "Save to PO File"
 msgstr "儲存至 PO 檔"
 
@@ -55821,11 +55848,6 @@ msgstr "匯出..."
 msgctxt "Operator"
 msgid "Restore"
 msgstr "恢復"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "新增"
 
 
 msgid "API Defined"
@@ -56525,10 +56547,6 @@ msgid "Autocomplete"
 msgstr "自動補完"
 
 
-msgid "Options:"
-msgstr "選項："
-
-
 msgid "Snap To"
 msgstr "吸附至"
 
@@ -57163,37 +57181,8 @@ msgid "Missing script files"
 msgstr "遺失的命令稿檔案"
 
 
-msgid "Description:"
-msgstr "描述："
-
-
 msgid "Location:"
 msgstr "位置："
-
-
-msgid "File:"
-msgstr "檔案："
-
-
-msgid "Author:"
-msgstr "作者："
-
-
-msgid "Version:"
-msgstr "版本："
-
-
-msgid "Warning:"
-msgstr "警告："
-
-
-msgid "Internet:"
-msgstr "網際網路："
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "文件"
 
 
 msgctxt "Operator"
@@ -58043,11 +58032,6 @@ msgstr "多繪製"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "快速編輯"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "套用"
 
 
 msgctxt "Operator"
@@ -61871,6 +61855,10 @@ msgstr "網格沒有 VCol 資料"
 
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "姿勢骨骼「%s」中找不到約束「%s」"
+
+
+msgid "Movie"
+msgstr "影片"
 
 
 msgid "Keying set could not be added"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -1535,14 +1535,6 @@ msgid "Add fire"
 msgstr "अग्नि में जोड़ें"
 
 
-msgid "Generated"
-msgstr "उत्पन्न"
-
-
-msgid "UV"
-msgstr "यूवी"
-
-
 msgid "Border"
 msgstr "सीमांत"
 
@@ -1561,6 +1553,10 @@ msgstr "रेखा खंड"
 
 msgid "Grease Pencil Frame"
 msgstr "तैलीय पेंसिल गठन"
+
+
+msgid "Generated"
+msgstr "उत्पन्न"
 
 
 msgid "Grease Pencil Layer"
@@ -2072,10 +2068,6 @@ msgid "Dirty"
 msgstr "गंदे"
 
 
-msgid "Single Image"
-msgstr "एकल छवि"
-
-
 msgid "Single image file"
 msgstr "एक छवि संचिका"
 
@@ -2084,20 +2076,12 @@ msgid "Multiple image files, as a sequence"
 msgstr "एकाधिक छवि संचिकाएं, किसी अनुक्रम के रूप में"
 
 
-msgid "Movie"
-msgstr "चलचित्र"
-
-
 msgid "Movie file"
 msgstr "चलचित्र संचिका"
 
 
 msgid "Generated image"
 msgstr "उत्पन्न छवि"
-
-
-msgid "Viewer"
-msgstr "प्रदर्शक"
 
 
 msgid "Multilayer"
@@ -2798,6 +2782,10 @@ msgid "Files"
 msgstr "संचिकाएँ"
 
 
+msgid "UV"
+msgstr "यूवी"
+
+
 msgid "Align"
 msgstr "संरेखित करें"
 
@@ -3230,6 +3218,10 @@ msgstr "घूर्णन"
 
 msgid "Translate"
 msgstr "स्थानांतर"
+
+
+msgid "Viewer"
+msgstr "प्रदर्शक"
 
 
 msgid "Equal"
@@ -4095,6 +4087,11 @@ msgstr "चयनित कण प्रणाली हटाएँ"
 
 
 msgctxt "Operator"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Operator"
 msgid "Select Camera"
 msgstr "प्रतिबिंबक का चयन करें"
 
@@ -4612,6 +4609,10 @@ msgstr "खोज विकल्प-सूची"
 
 msgid "Canvas"
 msgstr "चित्रपटी"
+
+
+msgid "Single Image"
+msgstr "एकल छवि"
 
 
 msgid "Lock X"
@@ -5285,6 +5286,35 @@ msgid "Assign"
 msgstr "निर्दिष्ट"
 
 
+msgid "Description:"
+msgstr "वर्णन:"
+
+
+msgid "Author:"
+msgstr "लेखक:"
+
+
+msgid "Version:"
+msgstr "संस्करण:"
+
+
+msgid "Warning:"
+msgstr "चेतावनी:"
+
+
+msgid "File:"
+msgstr "संचिका:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Options:"
+msgstr "विकल्प:"
+
+
 msgid "Save to PO File"
 msgstr "PO फाइल को बचाने के लिए"
 
@@ -5354,11 +5384,6 @@ msgstr "संदेश निष्कर्षण प्रक्रिया 
 
 msgid "Could not init languages data!"
 msgstr "नहीं init भाषाओं डेटा सकता है!"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "नई"
 
 
 msgid "3D View"
@@ -5576,10 +5601,6 @@ msgid "Wall"
 msgstr "दीवार"
 
 
-msgid "Options:"
-msgstr "विकल्प:"
-
-
 msgctxt "Operator"
 msgid "Snap"
 msgstr "स्नैप"
@@ -5774,28 +5795,8 @@ msgid "B"
 msgstr "बी"
 
 
-msgid "Description:"
-msgstr "वर्णन:"
-
-
 msgid "Location:"
 msgstr "स्थिति:"
-
-
-msgid "File:"
-msgstr "संचिका:"
-
-
-msgid "Author:"
-msgstr "लेखक:"
-
-
-msgid "Version:"
-msgstr "संस्करण:"
-
-
-msgid "Warning:"
-msgstr "चेतावनी:"
 
 
 msgctxt "Operator"
@@ -5957,11 +5958,6 @@ msgstr "कारण"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "त्वरित संपादन"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "लागू करें"
 
 
 msgid "No AnimData to set action on"
@@ -6782,6 +6778,10 @@ msgstr "लौ"
 msgctxt "Key"
 msgid "Key"
 msgstr "कुंजी"
+
+
+msgid "Movie"
+msgstr "चलचित्र"
 
 
 msgid "Fac"

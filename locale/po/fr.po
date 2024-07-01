@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
-"PO-Revision-Date: 2024-06-21 03:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"PO-Revision-Date: 2024-06-25 01:53+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -8566,6 +8566,14 @@ msgid "Lower Z angle bound"
 msgstr "Limite basse de l’angle en Z"
 
 
+msgid "Legacy Behavior"
+msgstr "Ancien comportement"
+
+
+msgid "Use the old semi-broken behavior that doesn't understand that rotations loop around"
+msgstr "Utiliser l’ancien comportement à moitié fonctionnel qui ne comprenait pas que les rotations bouclent sur elles-mêmes"
+
+
 msgid "Limit X"
 msgstr "Limiter X"
 
@@ -15518,24 +15526,12 @@ msgid "Temperature difference to ambient temperature"
 msgstr "Différence de température par rapport à la température ambiante"
 
 
-msgid "Mapping"
-msgstr "Placage"
-
-
 msgid "Texture mapping type"
 msgstr "Type de placage de texture"
 
 
-msgid "Generated"
-msgstr "Générée"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "Coordonnées générées centrées sur l’objet de flux"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -16220,6 +16216,10 @@ msgstr "Faux fixe"
 
 msgid "A filler or baked keyframe for keying on ones, or some other purpose as needed"
 msgstr "Une image clé de remplissage ou précalculée pour animer sur chaque image, ou autre usage en fonction des besoins"
+
+
+msgid "Generated"
+msgstr "Générée"
 
 
 msgid "A key generated automatically by a tool, not manually created"
@@ -20101,6 +20101,10 @@ msgid "Armature data-block containing a hierarchy of bones, usually used for rig
 msgstr "Bloc de données armature contenant une hiérarchie d’os, généralement utilisé pour rigger des personnages"
 
 
+msgid "Feature Set"
+msgstr "Fonctionnalités"
+
+
 msgid "Animation data for this data-block"
 msgstr "Données d’animation pour ce bloc de données"
 
@@ -20207,6 +20211,10 @@ msgstr "Dessiner la ligne de relation depuis la queue de l’os parent vers la t
 
 msgid "Draw the relationship line from the parent head to the child head"
 msgstr "Dessiner la ligne de relation depuis la tête de l’os parent vers celle de l’os enfant"
+
+
+msgid "Theme"
+msgstr "Thème"
 
 
 msgid "Display Axes"
@@ -24871,20 +24879,12 @@ msgid "Where the image comes from"
 msgstr "D’où provient l’image"
 
 
-msgid "Single Image"
-msgstr "Image unique"
-
-
 msgid "Single image file"
 msgstr "Fichier d’image unique"
 
 
 msgid "Multiple image files, as a sequence"
 msgstr "Plusieurs fichiers d’images, comme séquence"
-
-
-msgid "Movie"
-msgstr "Vidéo"
 
 
 msgid "Movie file"
@@ -24895,16 +24895,8 @@ msgid "Generated image"
 msgstr "Image générée"
 
 
-msgid "Viewer"
-msgstr "Visualiseur"
-
-
 msgid "Compositing node viewer"
 msgstr "Visualiseur des nœuds de compositing"
-
-
-msgid "UDIM Tiles"
-msgstr "Tuiles UDIM"
 
 
 msgid "Tiled UDIM image texture"
@@ -31036,6 +31028,10 @@ msgid "Maintained by community developers"
 msgstr "Maintenus par les développeurs de la communauté"
 
 
+msgid "Addon Tags"
+msgstr "Étiquettes d’add-ons"
+
+
 msgid "Asset Blend Path"
 msgstr "Chemin du blend d’asset"
 
@@ -31044,12 +31040,8 @@ msgid "Full path to the Blender file containing the active asset"
 msgstr "Chemin complet vers le fichier Blender contenant l’asset actif"
 
 
-msgid "Show Enabled Extensions"
-msgstr "Afficher les extensions activées"
-
-
-msgid "Only show enabled extensions"
-msgstr "N’afficher que les extensions activées"
+msgid "Filter by extension name, author & category"
+msgstr "Filtrer par nom, auteur et catégorie d’extension"
 
 
 msgid "Show Installed Extensions"
@@ -31058,10 +31050,6 @@ msgstr "Afficher les extensions installées"
 
 msgid "Only show installed extensions"
 msgstr "N’afficher que les extensions installées"
-
-
-msgid "Filter by extension name, author & category"
-msgstr "Filtrer par nom, auteur et catégorie d’extension"
 
 
 msgid "Extension Tags"
@@ -31086,14 +31074,6 @@ msgstr "Thèmes"
 
 msgid "Only show themes"
 msgstr "N’afficher que les thèmes"
-
-
-msgid "Show Updates Available"
-msgstr "Afficher les mises à jour disponible"
-
-
-msgid "Only show extensions with updates available"
-msgstr "N’afficher que les extensions dont des mises à jour sont disponibles"
 
 
 msgid "Extensions Updates"
@@ -34484,6 +34464,10 @@ msgid "Invert the fade-out direction of the linear mapping"
 msgstr "Inverser la direction du fondu de la conversion linéaire"
 
 
+msgid "Mapping"
+msgstr "Placage"
+
+
 msgid "Select the mapping type"
 msgstr "Sélectionner le type de conversion"
 
@@ -35965,6 +35949,10 @@ msgid "Select Linked"
 msgstr "Sélectionner liés"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align"
 msgstr "Aligner"
 
@@ -36328,12 +36316,20 @@ msgstr ""
 "    "
 
 
+msgid "Add-ons Settings"
+msgstr "Réglages des add-ons"
+
+
 msgid "Active Repository"
 msgstr "Dépôt actif"
 
 
 msgid "Remove Extension Repository"
 msgstr "Supprimer le dépôt d’extensions"
+
+
+msgid "Extension Item"
+msgstr "Élément d’extension"
 
 
 msgid "Extension Settings"
@@ -46338,6 +46334,10 @@ msgid "Interpolate between frames in a Bézier curve, rather than linearly"
 msgstr "Interpoler entre les frames avec une courbe de Bézier, plutôt que linéairement"
 
 
+msgid "Viewer"
+msgstr "Visualiseur"
+
+
 msgid "Visualize data from inside a node graph, in the image editor or as a backdrop"
 msgstr "Visualiser les données à l’intérieur d’une arborescence de nœuds, dans l’éditeur d’image ou en arrière-plan"
 
@@ -53762,6 +53762,10 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "Afficher tous les os cachés en mode édition"
 
 
+msgid "(undocumented operator)"
+msgstr "(opérateur non documenté)"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Réinitialiser le roulis"
@@ -55277,10 +55281,6 @@ msgstr "Sélectionner des marqueurs avec la sélection par lasso"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Définir le clip actif"
-
-
-msgid "(undocumented operator)"
-msgstr "(opérateur non documenté)"
 
 
 msgctxt "Operator"
@@ -58918,12 +58918,24 @@ msgid "Install from Disk"
 msgstr "Installer depuis le disque"
 
 
+msgid "Install extensions from files into a locally managed repository"
+msgstr "Installer des extensions depuis des fichiers vers un dépôt géré localement"
+
+
 msgid "Legacy Overwrite"
 msgstr "Écraser (héritage)"
 
 
 msgid "Remove existing add-ons with the same ID"
 msgstr "Supprimer les add-ons existants ayant le même ID"
+
+
+msgid "User Repository"
+msgstr "Dépôt utilisateur"
+
+
+msgid "The user repository to install extensions into"
+msgstr "Dépôt de l’utilisateur dans lequel installer les extensions"
 
 
 msgid "Legacy Target Path"
@@ -58940,8 +58952,23 @@ msgstr "Ext. : installer paquets marqués"
 
 
 msgctxt "Operator"
+msgid "Clear Marked Package"
+msgstr "Dé-marquer le paquet"
+
+
+msgctxt "Operator"
+msgid "Clear All Marked Packages"
+msgstr "Dé-marquer tous les paquets"
+
+
+msgctxt "Operator"
 msgid "Mark Package"
 msgstr "Marquer le paquet"
+
+
+msgctxt "Operator"
+msgid "Mark All Packages"
+msgstr "Marquer tous les paquets"
 
 
 msgctxt "Operator"
@@ -69856,28 +69883,16 @@ msgid "Add Reroutes"
 msgstr "Ajouter des reroutages"
 
 
-msgid "Add Reroutes to Outputs"
-msgstr "Ajouter des reroutages aux sorties"
-
-
-msgid "to all"
-msgstr "À toutes"
+msgid "Option"
+msgstr "Option"
 
 
 msgid "Add to all outputs"
 msgstr "Ajouter à toutes les sorties"
 
 
-msgid "to loose"
-msgstr "Aux non-liées"
-
-
 msgid "Add only to loose outputs"
 msgstr "N’ajouter qu’aux sorties non-liées"
-
-
-msgid "to linked"
-msgstr "Aux liées"
 
 
 msgid "Add only to linked outputs"
@@ -69902,10 +69917,6 @@ msgid "Texture Setup"
 msgstr "Config de texture"
 
 
-msgid "Add Texture Node Setup to Selected Shaders"
-msgstr "Ajouter une configuration de nœud de texture aux shaders sélectionnés"
-
-
 msgid "Add Mapping Nodes"
 msgstr "Ajouter des nœuds de placage"
 
@@ -69917,10 +69928,6 @@ msgstr "Créer des nœuds de coordonnées et de placage pour la texture (ignoré
 msgctxt "Operator"
 msgid "Principled Texture Setup"
 msgstr "Mise en place texture PBR"
-
-
-msgid "Add Texture Node Setup for Principled BSDF"
-msgstr "Ajouter une configuration de nœud de texture aux BSDF guidées"
 
 
 msgid "Folder to search in for image files"
@@ -69943,10 +69950,6 @@ msgstr "Quantité d’espace entre les nœuds"
 msgctxt "Operator"
 msgid "Batch Change"
 msgstr "Changement par lot"
-
-
-msgid "Batch Change Blend Type and Math Operation"
-msgstr "Changer le type de mélange ou l’opération mathématique par lot"
 
 
 msgid "Add Mode"
@@ -69985,16 +69988,8 @@ msgid "Overlay Mode"
 msgstr "Mode de superposition"
 
 
-msgid "Dodge"
-msgstr "Sous-développer"
-
-
 msgid "Dodge Mode"
 msgstr "Mode Sous-développer couleur"
-
-
-msgid "Burn"
-msgstr "Brûler"
 
 
 msgid "Burn Mode"
@@ -70305,37 +70300,9 @@ msgid "Source of name of label"
 msgstr "Source de nom du libellé"
 
 
-msgid "from active"
-msgstr "Depuis actif"
-
-
-msgid "from active node"
-msgstr "Depuis le nœud actif"
-
-
-msgid "from node"
-msgstr "Depuis le nœud"
-
-
-msgid "from node linked to selected node"
-msgstr "Depuis le nœud lié vers le nœud sélectionné"
-
-
-msgid "from socket"
-msgstr "Depuis la prise"
-
-
-msgid "from socket linked to selected node"
-msgstr "Depuis la prise liée vers le nœud sélectionné"
-
-
 msgctxt "Operator"
 msgid "Copy Settings"
 msgstr "Copier les réglages"
-
-
-msgid "Copy Settings of Active Node to Selected Nodes"
-msgstr "Copier les réglages du nœud actif vers les sélectionnés"
 
 
 msgctxt "Operator"
@@ -70375,10 +70342,6 @@ msgstr "Détacher les sorties des nœuds sélectionnés, en laissant leurs entr�
 msgctxt "Operator"
 msgid "Change Factor"
 msgstr "Changer le facteur"
-
-
-msgid "Change Factors of Mix Nodes and Mix Shader Nodes"
-msgstr "Changer les facteurs des nœuds de mélange de couleur et de shader"
 
 
 msgid "Add a frame node and parent the selected nodes to it"
@@ -70437,56 +70400,28 @@ msgid "Merge Nodes"
 msgstr "Mélanger les nœuds"
 
 
-msgid "merge type"
-msgstr "Type de mélange"
-
-
 msgid "Type of Merge to be used"
 msgstr "Type de mélange à utiliser"
-
-
-msgid "Automatic Output Type Detection"
-msgstr "Détection auto du type de sortie"
 
 
 msgid "Merge using ADD or MIX Shader"
 msgstr "Mélanger en utilisant un shader addition ou mélange"
 
 
-msgid "Merge using Mesh Boolean or Join Geometry Node"
-msgstr "Mélanger en utilisant Booléen de maillages ou Fusionner les géométries"
-
-
 msgid "Mix Node"
 msgstr "Nœud Mélange"
-
-
-msgid "Merge using Mix Nodes"
-msgstr "Mélanger avec des nœuds Mélange"
 
 
 msgid "Math Node"
 msgstr "Nœud Maths"
 
 
-msgid "Merge using Math Nodes"
-msgstr "Mélanger avec des nœuds Maths"
-
-
 msgid "Z-Combine Node"
 msgstr "Nœud Combiner Z"
 
 
-msgid "Merge using Z-Combine Nodes"
-msgstr "Mélanger avec des nœuds Combiner Z"
-
-
 msgid "Alpha Over Node"
 msgstr "Nœud Alpha au-dessus"
-
-
-msgid "Merge using Alpha Over Nodes"
-msgstr "Mélanger avec des nœuds Alpha au-dessus"
 
 
 msgid "All possible blend types, boolean operations and math operations"
@@ -73258,6 +73193,11 @@ msgstr "Réinitialiser la redéfinition de bibliothèque"
 
 msgid "Reset the selected local overrides to their linked references values"
 msgstr "Réinitialiser les redéfinitions locales sélectionnées aux valeurs liées en référence"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Nouvelle"
 
 
 msgctxt "Operator"
@@ -76914,6 +76854,10 @@ msgid "Reveal all bones hidden in Pose Mode"
 msgstr "Afficher tous les os cachés en mode Pose"
 
 
+msgid "Property Name"
+msgstr "Nom de la propriété"
+
+
 msgctxt "Operator"
 msgid "Clear Pose Rotation"
 msgstr "Réinitialiser la rotation de pose"
@@ -78771,10 +78715,6 @@ msgid "Editing"
 msgstr "Édition"
 
 
-msgid "Extensions"
-msgstr "Extensions"
-
-
 msgid "Keymap"
 msgstr "Ensemble de raccourcis"
 
@@ -80225,14 +80165,6 @@ msgid "After removing the Strip, delete the associated data also"
 msgstr "Après la suppression de la bande, effacer également les données associées"
 
 
-msgid "Use Retiming Data"
-msgstr "Utiliser les données de reminutage"
-
-
-msgid "Operate on retiming data instead of strips"
-msgstr "Opérer sur les données de reminutage au lieu des bandes"
-
-
 msgid "Duplicate the selected strips"
 msgstr "Dupliquer les bandes sélectionnées"
 
@@ -80702,6 +80634,11 @@ msgstr "Frame de la timeline"
 
 msgid "Frame where key will be added"
 msgstr "Frame à laquelle ajouter la clé"
+
+
+msgctxt "Operator"
+msgid "Delete Retiming Keys"
+msgstr "Supprimer les clés de reminutage"
 
 
 msgctxt "Operator"
@@ -86908,10 +86845,6 @@ msgid "Allow the property to be overridden when the data-block is linked"
 msgstr "Permettre à la propriété d’être redéfinie quand le bloc de données est lié"
 
 
-msgid "Property Name"
-msgstr "Nom de la propriété"
-
-
 msgid "Property name edit"
 msgstr "Édition du nom de la propriété"
 
@@ -87818,6 +87751,14 @@ msgstr "Écraser les fichiers de texture existants lors de l’export"
 
 msgid "Use relative paths to reference external files (i.e. textures, volumes) in USD, otherwise use absolute paths"
 msgstr "Utiliser des chemins relatifs vers les fichiers externes (c’est-à-dire les textures et volumes) dans l’USD, autrement utiliser des chemins absolus"
+
+
+msgid "Rename UV Maps"
+msgstr "Renommer les cartes UV"
+
+
+msgid "Rename active render UV map to \"st\" to match USD conventions"
+msgstr "Renommer la carte UV en « st » pour se conformer aux conventions USD"
 
 
 msgid "Root Prim"
@@ -88763,6 +88704,10 @@ msgid "Detect image slots from the material"
 msgstr "Détecter les emplacements d’images à partir du matériau"
 
 
+msgid "Single Image"
+msgstr "Image unique"
+
+
 msgid "Set image for texture painting directly"
 msgstr "Définir directement l’image pour la peinture de texture"
 
@@ -89404,16 +89349,6 @@ msgid "Snapping"
 msgstr "Aimantation"
 
 
-msgctxt "ID"
-msgid "Displacement"
-msgstr "Déplacement"
-
-
-msgctxt "ID"
-msgid "Thickness"
-msgstr "Épaisseur"
-
-
 msgid "Sun"
 msgstr "Soleil"
 
@@ -89464,7 +89399,7 @@ msgstr "Étirement des UV"
 
 
 msgid "Clone from Image/UV Map"
-msgstr "Cloner depuis image/carte d’UV"
+msgstr "Cloner depuis image/carte UV"
 
 
 msgid "Color Picker"
@@ -89586,6 +89521,10 @@ msgstr "Tuilage"
 
 msgid "Texture Mask"
 msgstr "Texture masque"
+
+
+msgid "UDIM Tiles"
+msgstr "Tuiles UDIM"
 
 
 msgid "Histogram"
@@ -90075,8 +90014,8 @@ msgid "Prototypes"
 msgstr "Prototypes"
 
 
-msgid "Extensions Filter"
-msgstr "Filtre d’extensions"
+msgid "Extensions"
+msgstr "Extensions"
 
 
 msgid "Repositories"
@@ -90274,10 +90213,6 @@ msgstr "Champ numérique"
 
 msgid "Value Slider"
 msgstr "Curseur de valeur"
-
-
-msgid "Option"
-msgstr "Option"
 
 
 msgid "Pie Menu"
@@ -92158,10 +92093,6 @@ msgstr "Préférences globales"
 
 msgid "Active Section"
 msgstr "Section active"
-
-
-msgid "Active section of the preferences shown in the user interface"
-msgstr "Section active des préférences affichée dans l’interface utilisateur"
 
 
 msgid "Application Template"
@@ -95909,10 +95840,6 @@ msgid "Add ambient occlusion to diffuse surfaces"
 msgstr "Ajouter l’occlusion ambiante aux surfaces diffuses"
 
 
-msgid "Feature Set"
-msgstr "Fonctionnalités"
-
-
 msgid "Feature set to use for rendering"
 msgstr "Ensemble de fonctionnalités à utiliser au rendu"
 
@@ -96923,6 +96850,10 @@ msgstr "Taille de pas d’éclairage du lancer de rayon progressif de volume"
 
 msgid "Step size when raymarching volume for lighting computation"
 msgstr "Taille de pas pour le calcul de l’éclairage, lors du lancer de rayon progressif de volume"
+
+
+msgid "Widget"
+msgstr "Widget"
 
 
 msgid "Selected UV Element"
@@ -99509,8 +99440,16 @@ msgid "Directional Shadows Resolution"
 msgstr "Résolution des ombres directionnelles"
 
 
+msgid "Size of sun light shadow maps (deprecated)"
+msgstr "Taille des cartes d’ombres des éclairages soleils (obsolète)"
+
+
 msgid "Cube Shadows Resolution"
 msgstr "Résolution des cubes d’ombres"
+
+
+msgid "Size of point and area light shadow maps (deprecated)"
+msgstr "Taille des cartes d’ombres des éclairages points et zones (obsolète)"
 
 
 msgid "Shadow Pool Size"
@@ -99607,10 +99546,6 @@ msgstr "Échantillonner tous les pixels dans les régions proches du plan de net
 
 msgid "Jitter Camera"
 msgstr "Agiter la caméra"
-
-
-msgid "Jitter camera position to create accurate blurring using render samples"
-msgstr "Agiter la position de la caméra pour créer un flou précis avec des échantillons de rendu"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -105464,10 +105399,6 @@ msgid "Use global coordinates for the texture coordinates"
 msgstr "Utiliser les coordonnées globales comme coordonnées de texture"
 
 
-msgid "Along stroke"
-msgstr "Le long du trait"
-
-
 msgid "Use stroke length for texture coordinates"
 msgstr "Utiliser la longueur du trait comme coordonnées de texture"
 
@@ -105590,10 +105521,6 @@ msgstr "Utiliser les coordonnées de l’objet lié comme coordonnées de textur
 
 msgid "Use UV coordinates for texture coordinates"
 msgstr "Utiliser les coordonnées UV comme coordonnées de texture"
-
-
-msgid "Strand / Particle"
-msgstr "Fibres / particules"
 
 
 msgid "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"
@@ -109769,10 +109696,6 @@ msgid "Wire Color Type"
 msgstr "Type de couleur des liens"
 
 
-msgid "Theme"
-msgstr "Thème"
-
-
 msgid "Show scene wireframes with the theme's wire color"
 msgstr "Afficher les filaires de la scène avec la couleur de fil du thème"
 
@@ -110400,10 +110323,6 @@ msgstr "Utiliser le canevas de peinture"
 
 msgid "Does this tool use a painting canvas"
 msgstr "Utiliser un canevas de peinture pour cet outil"
-
-
-msgid "Widget"
-msgstr "Widget"
 
 
 msgid "Lighting for a World data-block"
@@ -113942,6 +113861,14 @@ msgid "{:s}: {:s}"
 msgstr "{:s} : {:s}"
 
 
+msgid "The dropped extension comes from a disabled repository."
+msgstr "L’extension déposée vient d’un dépôt désactivé."
+
+
+msgid "Enable the repository and try again."
+msgstr "Activer le dépôt et réessayer."
+
+
 msgid "Legacy Add-ons"
 msgstr "Add-ons (héritage)"
 
@@ -113964,6 +113891,19 @@ msgstr "Dépôt : {:s}"
 
 msgid "Size: {:s}"
 msgstr "Taille : {:s}"
+
+
+msgid "The dropped extension comes from an unknown repository."
+msgstr "L’extension déposée vient d’un dépôt inconnu."
+
+
+msgid "If you trust its source, add the repository and try again."
+msgstr "Si vous faites confiance à sa source, ajoutez le dépôt et réessayez."
+
+
+msgctxt "Operator"
+msgid "Add Repository..."
+msgstr "Ajouter un dépôt…"
 
 
 msgid "System extensions are read-only and cannot be uninstalled"
@@ -113990,18 +113930,6 @@ msgid "Active repository is disabled"
 msgstr "Le dépôt actif est désactivé"
 
 
-msgid "Online access required to {:s}. {:s}"
-msgstr "L’accès en ligne est requis pour {:s}. {:s}"
-
-
-msgid "Launch Blender without --offline-mode"
-msgstr "Lancer Blender sans --offline-mode"
-
-
-msgid "Enable online access in System preferences"
-msgstr "Autoriser l’accès en ligne dans les préférences système"
-
-
 msgid "No installed packages to update"
 msgstr "Aucun paquet installé à mettre à jour"
 
@@ -114018,12 +113946,28 @@ msgid "Repository not set"
 msgstr "Dépôt non défini"
 
 
+msgid "There must be at least one user repository set to install extensions into"
+msgstr "Il faut au moins un dépôt utilisateur dans lequel installer les extensions"
+
+
 msgid "Repository"
 msgstr "Dépôt"
 
 
 msgid "Package ID not set"
 msgstr "ID du paquet non défini"
+
+
+msgid ""
+"The extension is incompatible with this system:\n"
+"{:s}"
+msgstr ""
+"L’extension est incompatible avec ce système :\n"
+"{:s}"
+
+
+msgid "Alternatively download the extension to Install from Disk."
+msgstr "L’extension peut aussi être téléchargée et installée depuis le disque."
 
 
 msgid "Lock not held!"
@@ -114042,6 +113986,10 @@ msgid "Upgrade is not supported for local repositories"
 msgstr "La mise à jour n’est pas prise en charge pour les dépôt locaux"
 
 
+msgid "No user repositories"
+msgstr "Aucun dépôt utilisateur"
+
+
 msgid "Error in manifest {:s}"
 msgstr "Erreur dans le manifeste {:s}"
 
@@ -114058,8 +114006,20 @@ msgid "Blender was launched in offline-mode which cannot be changed at runtime"
 msgstr "Blender a été lancé en mode hors ligne, ce qui ne peut pas être changé en cours d’exécution"
 
 
+msgid "Launch Blender without --offline-mode"
+msgstr "Lancer Blender sans --offline-mode"
+
+
+msgid "Enable online access in System preferences"
+msgstr "Autoriser l’accès en ligne dans les préférences système"
+
+
 msgid "Unable to install from disk, no paths were defined"
 msgstr "Impossible d’installer l’add-on, aucun chemin défini"
+
+
+msgid "URL: {:s}"
+msgstr "URL : {:s}"
 
 
 msgid "Unable to install from relative path"
@@ -114068,6 +114028,10 @@ msgstr "Impossible d’installer depuis un chemin relatif"
 
 msgid "Unable to install a directory"
 msgstr "Impossible d’installer un dossier"
+
+
+msgid "{:s} \"{:s}\" already installed!"
+msgstr "{:s} « {:s} » déjà installé !"
 
 
 msgid "Missing Built-in Add-ons"
@@ -114080,6 +114044,10 @@ msgstr "Les add-ons livrés précédemment avec Blender sont maintenant disponib
 
 msgid "Missing Add-ons"
 msgstr "Add-ons manquants"
+
+
+msgid "Enabled Only"
+msgstr "Activés seulement"
 
 
 msgid "Online Extensions"
@@ -114104,6 +114072,14 @@ msgid "Show Tags"
 msgstr "Afficher les étiquettes"
 
 
+msgid "Built-in"
+msgstr "Intégré"
+
+
+msgid "Website"
+msgstr "Site web"
+
+
 msgid "Maintainer"
 msgstr "Maintenance"
 
@@ -114118,22 +114094,6 @@ msgstr "Le dépôt d’extensions de Blender est introuvable !"
 
 msgid "Repository Access Errors:"
 msgstr "Erreur d’accès au dépôt :"
-
-
-msgid "Show Only"
-msgstr "Afficher seulement"
-
-
-msgid "Enabled Extensions"
-msgstr "Extensions activées"
-
-
-msgid "Updates Available"
-msgstr "Mises à jour disponibles"
-
-
-msgid "Installed Extensions"
-msgstr "Extensions installées"
 
 
 msgctxt "Operator"
@@ -114155,22 +114115,27 @@ msgid "Install"
 msgstr "Installer"
 
 
-msgctxt "Operator"
-msgid "Uninstall Marked"
-msgstr "Désinstaller les marqués"
-
-
-msgctxt "Operator"
-msgid "Install Marked"
-msgstr "Installer les marqués"
-
-
-msgid "Installed   "
-msgstr "Installé   "
+msgid "Orphan   "
+msgstr "Orphelin   "
 
 
 msgid "Permissions"
 msgstr "Permissions"
+
+
+msgctxt "Operator"
+msgid "Mark All"
+msgstr "Marquer tout"
+
+
+msgctxt "Operator"
+msgid "Unmark All"
+msgstr "Dé-marquer tout"
+
+
+msgctxt "Operator"
+msgid "Uninstall Marked"
+msgstr "Désinstaller les marqués"
 
 
 msgctxt "Operator"
@@ -114182,8 +114147,38 @@ msgid "No permissions specified"
 msgstr "Aucune permission renseignée"
 
 
+msgctxt "Operator"
+msgid "Install Marked"
+msgstr "Installer les marqués"
+
+
+msgctxt "Operator"
+msgid "Visit Website"
+msgstr "Voir le site web"
+
+
+msgctxt "Operator"
+msgid "View Details"
+msgstr "Voir les détails"
+
+
+msgctxt "Operator"
+msgid "Clear Theme"
+msgstr "Effacer le thème"
+
+
+msgctxt "Operator"
+msgid "Set Theme"
+msgstr "Définir le thème"
+
+
 msgid "{:s} ({:s} available)"
-msgstr "{:s} ({:s} disponibles)"
+msgstr "{:s} ({:s} disponible)"
+
+
+msgctxt "Operator"
+msgid "Add-on Enabled"
+msgstr "Add-on activé"
 
 
 msgid "No selected keys, pasting over scene range"
@@ -114829,14 +114824,6 @@ msgid "Add a new Variant Slot"
 msgstr "Ajouter un nouvel emplacement de variante"
 
 
-msgid "Link Active To Selected"
-msgstr "Lier seulement à la sélection"
-
-
-msgid "Batch Change"
-msgstr "Changement par lot"
-
-
 msgctxt "Operator"
 msgid "Multiple Images"
 msgstr "Plusieurs images"
@@ -114864,11 +114851,6 @@ msgstr "(Accès rapide : Maj+W)"
 msgctxt "Operator"
 msgid "Settings from Active"
 msgstr "Réglages depuis l’actif"
-
-
-msgctxt "Operator"
-msgid "Don't Replace Links"
-msgstr "Ne pas remplacer les liens"
 
 
 msgctxt "Operator"
@@ -114930,62 +114912,12 @@ msgid "Use Alpha Over Nodes"
 msgstr "Utiliser des nœuds Alpha au-dessus"
 
 
-msgctxt "Operator"
-msgid "from Active Node's Label"
-msgstr "Depuis le libellé du nœud actif"
-
-
-msgctxt "Operator"
-msgid "from Linked Node's Label"
-msgstr "Depuis le libellé du nœud lié"
-
-
-msgctxt "Operator"
-msgid "from Linked Output's Name"
-msgstr "Depuis le nom de la sortie liée"
-
-
-msgctxt "Operator"
-msgid "to All Outputs"
-msgstr "Vers toutes les sorties"
-
-
-msgctxt "Operator"
-msgid "to Loose Outputs"
-msgstr "Vers les sorties déconnectées"
-
-
-msgctxt "Operator"
-msgid "to Linked Outputs"
-msgstr "Vers les sorties connectées"
-
-
 msgid "No attributes on objects with this material"
 msgstr "Aucun attribut sur les objets ayant ce matériau"
 
 
-msgid "Successfully copied attributes from {} to: {}, "
-msgstr "Attributs copiés avec succès depuis {} vers {}, "
-
-
-msgid "Successfully reset {}, "
-msgstr "{} réinitialisé avec succès, "
-
-
 msgid "View3D not found, cannot run operator"
 msgstr "Vue 3D introuvable, l’opérateur n’a pu être lancé"
-
-
-msgid "Node  deleted"
-msgstr "Nœud  supprimé"
-
-
-msgid "Deleted "
-msgstr "Supprimé "
-
-
-msgid "Nothing deleted"
-msgstr "Aucune suppression"
 
 
 msgid "Reloaded images"
@@ -115020,24 +114952,8 @@ msgid "No file chosen"
 msgstr "Aucun fichier sélectionné"
 
 
-msgid " does not exist!"
-msgstr " n’existe pas !"
-
-
-msgid " does not seem to be part of a sequence"
-msgstr " ne semble pas faire partie d’une séquence"
-
-
 msgid "Ignored {}, "
 msgstr "{} ignorée, "
-
-
-msgid "No free inputs for node: "
-msgstr "Aucune entrée libre pour le nœud : "
-
-
-msgid "Unsupported Node Tree type!"
-msgstr "Type d’arborescence nodale non prise en charge !"
 
 
 msgid "Please select only 1 frame to reset"
@@ -115046,26 +114962,6 @@ msgstr "Sélectionner un seul cadre à réinitialiser"
 
 msgid "No valid node(s) in selection"
 msgstr "Aucun nœud valide dans la sélection"
-
-
-msgid "One of the nodes has no outputs!"
-msgstr "Un des nœuds n’a pas de sortie !"
-
-
-msgid "Neither of the nodes have outputs!"
-msgstr "Aucun des nœuds n’a de sortie !"
-
-
-msgid "Can't swap inputs of a multi input socket!"
-msgstr "Impossible d’échanger les entrées d’une prise multi-entrées !"
-
-
-msgid "This node has no inputs to swap!"
-msgstr "Ce nœud n’a pas d’entrées à échanger !"
-
-
-msgid "This node has no input connections to swap!"
-msgstr "Ce nœud n’a pas de connexions en entrée à échanger !"
 
 
 msgid "Some connections have been lost due to differing numbers of output sockets"
@@ -115261,6 +115157,49 @@ msgstr "Os sélectionnés depuis %s"
 
 msgid "Deselected bones from %s"
 msgstr "Os désélectionnés depuis %s"
+
+
+msgid "Description:"
+msgstr "Description :"
+
+
+msgid "Internet:"
+msgstr "Internet :"
+
+
+msgid "Author:"
+msgstr "Auteur :"
+
+
+msgid "Version:"
+msgstr "Version :"
+
+
+msgid "Warning:"
+msgstr "Avertissement :"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentation"
+
+
+msgid "File:"
+msgstr "Fichier :"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Appliquer"
+
+
+msgid "Options:"
+msgstr "Options :"
+
+
+msgctxt "Operator"
+msgid "Action"
+msgstr "Action"
 
 
 msgid "Save to PO File"
@@ -115527,11 +115466,6 @@ msgstr "Chercher par raccourci clavier"
 
 msgid "{:s} (Global)"
 msgstr "{:s} (Global)"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Nouvelle"
 
 
 msgctxt "Operator"
@@ -116348,10 +116282,6 @@ msgstr "Fonds de développement"
 
 msgid "The donation program to support maintenance and improvements"
 msgstr "Le programme de dons pour soutenir la maintenance et l’amélioration"
-
-
-msgid "blender.org"
-msgstr "blender.org"
 
 
 msgid "Blender's official web-site"
@@ -118999,10 +118929,6 @@ msgid "Filter by Type:"
 msgstr "Filtrer par type :"
 
 
-msgid "Options:"
-msgstr "Options :"
-
-
 msgid "Snap To"
 msgstr "Aimanter à"
 
@@ -119710,11 +119636,6 @@ msgstr "(Dés)activer la zone en plein écran"
 
 
 msgctxt "Operator"
-msgid "Action"
-msgstr "Action"
-
-
-msgctxt "Operator"
 msgid "Transition"
 msgstr "Transition"
 
@@ -120228,11 +120149,6 @@ msgstr "Changer les chemin / fichiers"
 msgctxt "Operator"
 msgid "Swap Data"
 msgstr "Intervertir les données"
-
-
-msgctxt "Operator"
-msgid "Delete Retiming Keys"
-msgstr "Supprimer les clés de reminutage"
 
 
 msgctxt "Operator"
@@ -120859,7 +120775,7 @@ msgid ""
 msgstr ""
 "Utiliser plusieurs opérateurs de manière interactive pour ajouter, supprimer ou déplacer de la géométrie.\n"
 "• {:s} - Ajouter de la géométrie en déplaçant le curseur près d’un élément.\n"
-"• {:s} - Extruder des arêtes en déplaçan le curseur.\n"
+"• {:s} - Extruder des arêtes en déplaçant le curseur.\n"
 "• {:s} - Supprimer un élément de maillage"
 
 
@@ -121437,6 +121353,10 @@ msgid "Remove Repository"
 msgstr "Supprimer le dépôt"
 
 
+msgid " Preferences"
+msgstr " Préférences"
+
+
 msgid "No custom MatCaps configured"
 msgstr "Aucune MatCap personnalisée configurée"
 
@@ -121574,32 +121494,8 @@ msgid "No custom {:s} configured"
 msgstr "Aucune {:s} personnalisée configurée"
 
 
-msgid "Description:"
-msgstr "Description :"
-
-
 msgid "Location:"
 msgstr "Position :"
-
-
-msgid "File:"
-msgstr "Fichier :"
-
-
-msgid "Author:"
-msgstr "Auteur :"
-
-
-msgid "Version:"
-msgstr "Version :"
-
-
-msgid "Warning:"
-msgstr "Avertissement :"
-
-
-msgid "Internet:"
-msgstr "Internet :"
 
 
 msgid "User:"
@@ -121616,11 +121512,6 @@ msgstr "Ensemble de couleurs {:d}"
 
 msgid "Color {:d}"
 msgstr "Couleur {:d}"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentation"
 
 
 msgctxt "Operator"
@@ -123869,11 +123760,6 @@ msgstr "Peindre plusieurs poids"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Édition rapide"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Appliquer"
 
 
 msgctxt "Operator"
@@ -128296,12 +128182,12 @@ msgid "New"
 msgstr "Nouvelle"
 
 
-msgctxt "Material"
+msgctxt "Mask"
 msgid "New"
 msgstr "Nouveau"
 
 
-msgctxt "Mask"
+msgctxt "Material"
 msgid "New"
 msgstr "Nouveau"
 
@@ -128324,6 +128210,11 @@ msgstr "Nouveau"
 msgctxt "Object"
 msgid "New"
 msgstr "Nouveau"
+
+
+msgctxt "PaintCurve"
+msgid "New"
+msgstr "Nouvelle"
 
 
 msgctxt "ParticleSettings"
@@ -128369,11 +128260,6 @@ msgstr "Nouveau"
 msgctxt "World"
 msgid "New"
 msgstr "Nouveau"
-
-
-msgctxt "PaintCurve"
-msgid "New"
-msgstr "Nouvelle"
 
 
 msgid "Samples Transform"
@@ -129383,7 +129269,7 @@ msgstr "Impossible d’ajouter la collection car elle est liée"
 
 
 msgid "Could not add the collection because of dependency cycle detected"
-msgstr "Impossible d’ajouter la collection car un cycle de dépendance a été détecté"
+msgstr "Impossible d’ajouter la collection car un cycle de dépendances a été détecté"
 
 
 msgid "Cannot remove an object from a linked or library override collection"
@@ -133656,10 +133542,6 @@ msgid "Add New Extension Repository"
 msgstr "Ajouter un nouveau dépôt d’extensions"
 
 
-msgid "Remove all files in \"{}\"."
-msgstr "Supprimer tous les fichiers dans « {} »."
-
-
 msgid "Remove, local files not found."
 msgstr "Suppression, fichiers locaux introuvables."
 
@@ -136104,7 +135986,7 @@ msgstr "L’indice %d est invalide"
 
 
 msgid "UV map '%s' not found"
-msgstr "La carte d’UV « %s » est introuvable"
+msgstr "La carte UV « %s » est introuvable"
 
 
 msgid "Number of custom normals is not number of loops (%f / %d)"
@@ -136526,6 +136408,10 @@ msgstr "Une forme de collision non-convexe a été passée à la fonction, utili
 
 msgid "Rigidbody world was not properly initialized, need to step the simulation first"
 msgstr "Le monde de corps rigides n’a pas été initialisé correctement, vous devez d’abord faire avancer la simulation frame à frame"
+
+
+msgid "Movie"
+msgstr "Vidéo"
 
 
 msgid "Use the scene orientation"
@@ -138019,6 +137905,10 @@ msgid "Collection contains current object"
 msgstr "La collection contient l’objet actuel"
 
 
+msgid "Can't access collections geometry because it's not evaluated yet. This can happen when there is a dependency cycle"
+msgstr "Impossible d’accéder à la géométrie des collections car elle n’est pas encore évaluée. Peut se produire en cas de cycle de dépendances"
+
+
 msgid "Separate Children"
 msgstr "Séparer les enfants"
 
@@ -139292,12 +139182,20 @@ msgid "The total Y size of the region in pixels"
 msgstr "Taille totale de la région en Y, en pixels"
 
 
+msgid "Can't access object's transforms because it's not evaluated yet. This can happen when there is a dependency cycle"
+msgstr "Impossible d’accéder aux transformations de l’objet car il n’est pas encore évalué. Peut se produire en cas de cycle de dépendances"
+
+
 msgid "Geometry cannot be retrieved from the edited object itself"
 msgstr "La géométrie ne peut pas être obtenue depuis l’objet édité lui-même"
 
 
 msgid "Geometry cannot be retrieved from the modifier object"
 msgstr "La géométrie ne peut pas être obtenue depuis l’objet du modificateur"
+
+
+msgid "Can't access object's geometry because it's not evaluated yet. This can happen when there is a dependency cycle"
+msgstr "Impossible d’accéder à la géométrie de l’objet car il n’est pas encore évalué. Peut se produire en cas de cycle de dépendances"
 
 
 msgid "As Instance"
@@ -141728,6 +141626,10 @@ msgid "Copy Global Transform"
 msgstr "Copier les transformations globales"
 
 
+msgid "Copy and paste object and bone transforms with ease"
+msgstr "Copier et coller facilement les transformations d’objets et d’os"
+
+
 msgid "Pose Library based on the asset system."
 msgstr "Bibliothèque de poses fondée sur le système d’assets."
 
@@ -142312,7 +142214,7 @@ msgstr "Échantillonner UV d’attache"
 
 
 msgid "Sample the surface UV map at the attachment point"
-msgstr "Échantillonner la carte d’UV de la surface au point d’attache"
+msgstr "Échantillonner la carte UV de la surface au point d’attache"
 
 
 msgid "Snap to Surface"

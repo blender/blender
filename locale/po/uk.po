@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -13086,24 +13086,12 @@ msgid "Temperature difference to ambient temperature"
 msgstr "Відмінність температури від температури навколишнього середовища"
 
 
-msgid "Mapping"
-msgstr "Розкладання"
-
-
 msgid "Texture mapping type"
 msgstr "Тип розкладання текстури"
 
 
-msgid "Generated"
-msgstr "Генероване"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "Створені координати центровані за об'єктом, що випускає"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -13776,6 +13764,10 @@ msgstr "Тремтіння"
 
 msgid "A filler or baked keyframe for keying on ones, or some other purpose as needed"
 msgstr "Заповнювач або запечений ключовий кадр для особливих цілей"
+
+
+msgid "Generated"
+msgstr "Генероване"
 
 
 msgid "Frame is selected for editing in the Dope Sheet"
@@ -16343,6 +16335,10 @@ msgid "Armature data-block containing a hierarchy of bones, usually used for rig
 msgstr "Арматурний блок даних, що містить ієрархію кісток, які зазвичай використовуються для оснащення персонажів"
 
 
+msgid "Feature Set"
+msgstr "Набір функцій"
+
+
 msgid "Animation data for this data-block"
 msgstr "Дані анімації для цього блоку даних"
 
@@ -16413,6 +16409,10 @@ msgstr "Позиція спокою"
 
 msgid "Show Armature in binding pose state (no posing possible)"
 msgstr "Показати арматуру у позі прив'язки (зміна пози неможлива)"
+
+
+msgid "Theme"
+msgstr "Тема"
 
 
 msgid "Display Axes"
@@ -20123,20 +20123,12 @@ msgid "Where the image comes from"
 msgstr "Звідки отримати зображення"
 
 
-msgid "Single Image"
-msgstr "Одне зображення"
-
-
 msgid "Single image file"
 msgstr "Один файл зображення"
 
 
 msgid "Multiple image files, as a sequence"
 msgstr "Декілька файлів зображень, як послідовність"
-
-
-msgid "Movie"
-msgstr "Фільм"
 
 
 msgid "Movie file"
@@ -20147,16 +20139,8 @@ msgid "Generated image"
 msgstr "Згенероване зображення"
 
 
-msgid "Viewer"
-msgstr "Оглядач"
-
-
 msgid "Compositing node viewer"
 msgstr "Оглядач вузлів компонування"
-
-
-msgid "UDIM Tiles"
-msgstr "Плитки UDIM"
 
 
 msgid "Tiled UDIM image texture"
@@ -27737,6 +27721,10 @@ msgid "Invert the fade-out direction of the linear mapping"
 msgstr "Інвертувати напрям згасання при прямолінійному розкладанні"
 
 
+msgid "Mapping"
+msgstr "Розкладання"
+
+
 msgid "Select the mapping type"
 msgstr "Виберіть тип розкладання"
 
@@ -29065,6 +29053,10 @@ msgstr "Перемістити на Шар"
 
 msgid "Select Linked"
 msgstr "Виділити пов'язане"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align"
@@ -37400,6 +37392,10 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "Мінімальна швидкість для розмивання пікселя (використовується, щоб відокремити фон від переднього плану)"
 
 
+msgid "Viewer"
+msgstr "Оглядач"
+
+
 msgid "Z Combine"
 msgstr "Z-Комбінація"
 
@@ -40904,6 +40900,10 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "Показати усіх сховані кістки у Режимі Редагування"
 
 
+msgid "(undocumented operator)"
+msgstr "(недокументований оператор)"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Зчистити вертіння"
@@ -42199,10 +42199,6 @@ msgstr "Вибрати мітки за допомогою петлі"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Задати активний відеокліп"
-
-
-msgid "(undocumented operator)"
-msgstr "(недокументований оператор)"
 
 
 msgctxt "Operator"
@@ -52546,6 +52542,10 @@ msgid "Copy color to all selected nodes"
 msgstr "Скопіювати колір для всіх обраних вузлів"
 
 
+msgid "Option"
+msgstr "Опція"
+
+
 msgid "Overlay Mode"
 msgstr "Режим Накладання"
 
@@ -54457,6 +54457,11 @@ msgstr "Рандомізувати Масштаб"
 
 msgid "Randomize the scale values"
 msgstr "Рандомізувати значення масштабу"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Нове"
 
 
 msgctxt "Operator"
@@ -57465,6 +57470,10 @@ msgid "Reveal all bones hidden in Pose Mode"
 msgstr "Показати усі сховані кістки у режимі пози"
 
 
+msgid "Property Name"
+msgstr "Назва властивості"
+
+
 msgctxt "Operator"
 msgid "Clear Pose Rotation"
 msgstr "Зчистити обертання пози"
@@ -59004,10 +59013,6 @@ msgstr "Правити уподобання користувача та уста
 
 msgid "Editing"
 msgstr "Редагування"
-
-
-msgid "Extensions"
-msgstr "Розширення"
 
 
 msgid "Keymap"
@@ -65061,10 +65066,6 @@ msgid "Allow the property to be overridden when the data-block is linked"
 msgstr "Дозволити властивості бути заміщеною, коли блок даних пов'язаний"
 
 
-msgid "Property Name"
-msgstr "Назва властивості"
-
-
 msgid "Property name edit"
 msgstr "Редагувати назву властивості"
 
@@ -66007,6 +66008,10 @@ msgid "Detect image slots from the material"
 msgstr "Виявляти гнізда зображень матеріалу"
 
 
+msgid "Single Image"
+msgstr "Одне зображення"
+
+
 msgid "Set image for texture painting directly"
 msgstr "Задати зображення для текстурного малювання прямо"
 
@@ -66692,6 +66697,10 @@ msgid "Texture Mask"
 msgstr "Текстурна маска"
 
 
+msgid "UDIM Tiles"
+msgstr "Плитки UDIM"
+
+
 msgid "Histogram"
 msgstr "Гістограма"
 
@@ -67100,6 +67109,10 @@ msgid "Prototypes"
 msgstr "Прототипи"
 
 
+msgid "Extensions"
+msgstr "Розширення"
+
+
 msgid "Applications"
 msgstr "Застосунки"
 
@@ -67242,10 +67255,6 @@ msgstr "Числове Поле"
 
 msgid "Value Slider"
 msgstr "Повзунок Значення"
-
-
-msgid "Option"
-msgstr "Опція"
 
 
 msgid "Pie Menu"
@@ -68909,10 +68918,6 @@ msgstr "Глобальні уподобання"
 
 msgid "Active Section"
 msgstr "Активний розділ"
-
-
-msgid "Active section of the preferences shown in the user interface"
-msgstr "Активний розділ уподобань, показуваних в інтерфейсі користувача"
 
 
 msgid "Application Template"
@@ -71331,10 +71336,6 @@ msgid "Cull objects which are further away from camera than this distance"
 msgstr "Відкидати об'єкти, які знаходяться від камери на більшій відстані, ніж ця"
 
 
-msgid "Feature Set"
-msgstr "Набір функцій"
-
-
 msgid "Feature set to use for rendering"
 msgstr "Набір функцій для рендерингу"
 
@@ -71953,6 +71954,10 @@ msgstr "Відхил X"
 
 msgid "Tilt Y"
 msgstr "Відхил Y"
+
+
+msgid "Widget"
+msgstr "Віджет"
 
 
 msgid "Selected UV Element"
@@ -74101,10 +74106,6 @@ msgstr "Вибирати всі пікселі в регіонах, що май�
 
 msgid "Jitter Camera"
 msgstr "Тремтіння Камери"
-
-
-msgid "Jitter camera position to create accurate blurring using render samples"
-msgstr "Тремтіння позиції камери для створення точного розмивання, використовуючи вибірки рендера"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -78574,10 +78575,6 @@ msgid "Use global coordinates for the texture coordinates"
 msgstr "Використати глобальні координати як текстурні координати"
 
 
-msgid "Along stroke"
-msgstr "Вздовж штриха"
-
-
 msgid "Use stroke length for texture coordinates"
 msgstr "Використати для текстурних координат довжину штриха"
 
@@ -78700,10 +78697,6 @@ msgstr "Використати координати пов'язаного об'�
 
 msgid "Use UV coordinates for texture coordinates"
 msgstr "Вжити UV-координати як текстурні координати"
-
-
-msgid "Strand / Particle"
-msgstr "Пасмо/частинка"
 
 
 msgid "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"
@@ -82095,10 +82088,6 @@ msgid "Show VR Camera"
 msgstr "Показ Камери ВР"
 
 
-msgid "Theme"
-msgstr "Тема"
-
-
 msgid "X-Ray Alpha"
 msgstr "Альфа Просвічення"
 
@@ -82461,10 +82450,6 @@ msgstr "Ідентифікатор Запасу"
 
 msgid "Tool Mode"
 msgstr "Режим Засобу"
-
-
-msgid "Widget"
-msgstr "Віджет"
 
 
 msgid "Lighting for a World data-block"
@@ -83497,6 +83482,44 @@ msgid "Couldn't open file %r (%s)"
 msgstr "Неможливо відкрити файл %r (%s)"
 
 
+msgid "Description:"
+msgstr "Опис:"
+
+
+msgid "Internet:"
+msgstr "Інтернет:"
+
+
+msgid "Author:"
+msgstr "Автор:"
+
+
+msgid "Version:"
+msgstr "Версія:"
+
+
+msgid "Warning:"
+msgstr "Попередження:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Документація"
+
+
+msgid "File:"
+msgstr "Файл:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Options:"
+msgstr "Опції:"
+
+
 msgid "Save to PO File"
 msgstr "Зберегти в PO Файл"
 
@@ -83653,11 +83676,6 @@ msgstr "вплив продуктивності!"
 
 msgid "Built without VR/OpenXR features"
 msgstr "Побудовано без функціональностей VR/OpenXR"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Нове"
 
 
 msgid "API Defined"
@@ -85940,10 +85958,6 @@ msgid "Filter by Type:"
 msgstr "Фільтр за Типом:"
 
 
-msgid "Options:"
-msgstr "Опції:"
-
-
 msgid "Snap To"
 msgstr "Підхоп До"
 
@@ -87723,37 +87737,8 @@ msgid "Missing script files"
 msgstr "Відсутні файли скриптів"
 
 
-msgid "Description:"
-msgstr "Опис:"
-
-
 msgid "Location:"
 msgstr "Локація:"
-
-
-msgid "File:"
-msgstr "Файл:"
-
-
-msgid "Author:"
-msgstr "Автор:"
-
-
-msgid "Version:"
-msgstr "Версія:"
-
-
-msgid "Warning:"
-msgstr "Попередження:"
-
-
-msgid "Internet:"
-msgstr "Інтернет:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Документація"
 
 
 msgctxt "Operator"
@@ -89350,11 +89335,6 @@ msgstr "Мульти-Малювання"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Швидке Редагування"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Застосувати"
 
 
 msgctxt "Operator"
@@ -96161,6 +96141,10 @@ msgstr "Функції надано неопуклу форму зіткненн
 
 msgid "Rigidbody world was not properly initialized, need to step the simulation first"
 msgstr "Світ твердого тіла не ініціалізовано належним чином, що необхідно для моделювання"
+
+
+msgid "Movie"
+msgstr "Фільм"
 
 
 msgid "Keying set could not be added"

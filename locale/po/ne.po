@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -406,6 +406,10 @@ msgid "Subdivision Set"
 msgstr "अर्धभाग "
 
 
+msgid "Property Name"
+msgstr "गुण : नाम "
+
+
 msgctxt "Operator"
 msgid "Copy Previous Settings"
 msgstr "पहिलेको बेबस्ता सार्ने"
@@ -479,10 +483,6 @@ msgstr "संदर्भ "
 msgctxt "Operator"
 msgid "Edit Property"
 msgstr "गुण सम्पादन गर्ने"
-
-
-msgid "Property Name"
-msgstr "गुण : नाम "
 
 
 msgid "Property name edit"
