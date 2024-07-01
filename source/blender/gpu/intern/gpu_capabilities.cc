@@ -239,3 +239,15 @@ bool GPU_stereo_quadbuffer_support()
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Creator arguments overrides
+ * \{ */
+
+void GPU_compilation_subprocess_override_set(int count)
+{
+  BLI_assert(GCaps.max_parallel_compilations == -1);
+  GCaps.max_parallel_compilations = count;
+}
+
+/** \} */

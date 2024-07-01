@@ -599,8 +599,14 @@ void GLBackend::capabilities_init()
   detect_workarounds();
 
 #if BLI_SUBPROCESS_SUPPORT
-  GCaps.max_parallel_compilations = std::min(int(U.max_shader_compilation_subprocesses),
-                                             BLI_system_thread_count());
+  if (GCaps.max_parallel_compilations == -1) {
+    GCaps.max_parallel_compilations = std::min(int(U.max_shader_compilation_subprocesses),
+                                               BLI_system_thread_count());
+  }
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    /* Avoid crashes on RenderDoc sessions. */
+    GCaps.max_parallel_compilations = 0;
+  }
 #else
   GCaps.max_parallel_compilations = 0;
 #endif
