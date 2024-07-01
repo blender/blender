@@ -13,6 +13,7 @@
 #include "BKE_pbvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.h"
@@ -25,67 +26,85 @@ namespace blender::ed::sculpt_paint {
 
 inline namespace multires_displacement_eraser_cc {
 
-static void calc_node(
-    const Sculpt &sd, Object &object, const Brush &brush, const float strength, PBVHNode &node)
+struct LocalData {
+  Vector<float3> positions;
+  Vector<float> factors;
+  Vector<float> distances;
+  Vector<float3> translations;
+};
+
+static BLI_NOINLINE void calc_limit_positions(const SubdivCCG &subdiv_ccg,
+                                              const Span<int> grids,
+                                              const MutableSpan<float3> limit_positions)
 {
-  SculptSession &ss = *object.sculpt;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      object, ss.cache->automasking.get(), node);
-
-  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = *BKE_pbvh_get_grid_key(*ss.pbvh);
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
-  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
-
-  int i = 0;
-  for (const int grid : bke::pbvh::node_grid_indices(node)) {
-    const int grid_verts_start = grid * key.grid_area;
-    CCGElem *elem = grids[grid];
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  for (const int grid : grids) {
+    const int start = grid * key.grid_area;
     for (const int y : IndexRange(key.grid_size)) {
       for (const int x : IndexRange(key.grid_size)) {
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-        if (!grid_hidden.is_empty() && grid_hidden[grid][offset]) {
-          i++;
-          continue;
-        }
-        float3 &co = CCG_elem_offset_co(key, elem, offset);
-        if (!sculpt_brush_test_sq_fn(test, co)) {
-          i++;
-          continue;
-        }
-        auto_mask::node_update(automask_data, i);
-        const float fade = SCULPT_brush_strength_factor(
-            ss,
-            brush,
-            co,
-            math::sqrt(test.dist),
-            CCG_elem_offset_no(key, elem, offset),
-            nullptr,
-            key.has_mask ? CCG_elem_offset_mask(key, elem, offset) : 0.0f,
-            BKE_pbvh_make_vref(grid_verts_start + offset),
-            thread_id,
-            &automask_data);
-
         SubdivCCGCoord coord{};
         coord.grid_index = grid;
         coord.x = x;
         coord.y = y;
-        float3 limit_co;
-        BKE_subdiv_ccg_eval_limit_point(*ss.subdiv_ccg, coord, limit_co);
-
-        const float3 translation = (limit_co - co) * fade * strength;
-
-        SCULPT_clip(sd, ss, co, co + translation);
-
-        i++;
+        BKE_subdiv_ccg_eval_limit_point(subdiv_ccg, coord, limit_positions[start + offset]);
       }
     }
   }
+}
+
+static void calc_node(const Sculpt &sd,
+                      Object &object,
+                      const Brush &brush,
+                      const float strength,
+                      PBVHNode &node,
+                      LocalData &tls)
+{
+  SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+
+  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const int grid_verts_num = grids.size() * key.grid_area;
+
+  tls.positions.reinitialize(grid_verts_num);
+  MutableSpan<float3> positions = tls.positions;
+  gather_grids_positions(subdiv_ccg, grids, positions);
+
+  tls.factors.reinitialize(grid_verts_num);
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
+  }
+
+  tls.distances.reinitialize(grid_verts_num);
+  const MutableSpan<float> distances = tls.distances;
+  calc_distance_falloff(
+      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  if (cache.automasking) {
+    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
+  }
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+  scale_factors(factors, strength);
+
+  tls.translations.reinitialize(grid_verts_num);
+  const MutableSpan<float3> translations = tls.translations;
+
+  calc_limit_positions(subdiv_ccg, grids, translations);
+  for (const int i : positions.index_range()) {
+    translations[i] -= positions[i];
+  }
+  scale_translations(translations, factors);
+
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, grids, subdiv_ccg);
 }
 
 }  // namespace multires_displacement_eraser_cc
@@ -96,9 +115,11 @@ void do_displacement_eraser_brush(const Sculpt &sd, Object &object, Span<PBVHNod
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float strength = std::min(ss.cache->bstrength, 1.0f);
 
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    LocalData &tls = all_tls.local();
     for (const int i : range) {
-      calc_node(sd, object, brush, strength, *nodes[i]);
+      calc_node(sd, object, brush, strength, *nodes[i], tls);
     }
   });
 }

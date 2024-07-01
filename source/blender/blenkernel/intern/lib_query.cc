@@ -122,6 +122,11 @@ int BKE_lib_query_foreachid_process_flags_get(const LibraryForeachIDData *data)
   return data->flag;
 }
 
+Main *BKE_lib_query_foreachid_process_main_get(const LibraryForeachIDData *data)
+{
+  return data->bmain;
+}
+
 int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData *data,
                                                            const int cb_flag,
                                                            const bool do_replace)

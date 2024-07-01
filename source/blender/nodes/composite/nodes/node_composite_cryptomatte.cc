@@ -8,6 +8,8 @@
 
 #include <string>
 
+#include <fmt/format.h>
+
 #include "node_composite_util.hh"
 
 #include "BLI_assert.h"
@@ -27,6 +29,7 @@
 #include "GPU_texture.hh"
 
 #include "DNA_image_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
@@ -533,7 +536,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     return Vector<GPUTexture *>();
   }
 
-  /* Returns all the relevant Cryptomatte layers from the selected render. */
+  /* Returns all the relevant Cryptomatte layers from the selected layer. */
   Vector<GPUTexture *> get_layers_from_render()
   {
     Vector<GPUTexture *> layers;
@@ -543,53 +546,50 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
       return layers;
     }
 
-    Render *render = RE_GetSceneRender(scene);
-    if (!render) {
-      return layers;
-    }
-
-    RenderResult *render_result = RE_AcquireResultRead(render);
-    if (!render_result) {
-      RE_ReleaseResult(render);
-      return layers;
-    }
-
-    int view_layer_index;
     const std::string type_name = get_type_name();
+
+    int view_layer_index = 0;
     LISTBASE_FOREACH_INDEX (ViewLayer *, view_layer, &scene->view_layers, view_layer_index) {
-      RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
-      if (!render_layer) {
+      /* Not the viewer layer used by the node. */
+      if (!StringRef(type_name).startswith(view_layer->name)) {
         continue;
       }
 
-      LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
-        /* We are only interested in passes of the current view. Except if the current view is
-         * unnamed, that is, in the case of mono rendering, in which case we just return the first
-         * view. */
-        if (!context().get_view_name().is_empty() &&
-            context().get_view_name() != render_pass->view)
-        {
-          continue;
-        }
+      /* Find out which type of Cryptomatte layer the node uses.  */
+      const char *cryptomatte_type = nullptr;
+      const std::string layer_prefix = std::string(view_layer->name) + ".";
+      if (type_name == layer_prefix + RE_PASSNAME_CRYPTOMATTE_OBJECT) {
+        cryptomatte_type = RE_PASSNAME_CRYPTOMATTE_OBJECT;
+      }
+      else if (type_name == layer_prefix + RE_PASSNAME_CRYPTOMATTE_ASSET) {
+        cryptomatte_type = RE_PASSNAME_CRYPTOMATTE_ASSET;
+      }
+      else if (type_name == layer_prefix + RE_PASSNAME_CRYPTOMATTE_MATERIAL) {
+        cryptomatte_type = RE_PASSNAME_CRYPTOMATTE_MATERIAL;
+      }
 
-        /* If the combined pass name doesn't start with the Cryptomatte type name, then it is not a
-         * Cryptomatte layer. */
-        const std::string combined_name = get_combined_layer_pass_name(render_layer, render_pass);
-        if (combined_name == type_name || !StringRef(combined_name).startswith(type_name)) {
-          continue;
-        }
+      if (!cryptomatte_type) {
+        return layers;
+      }
 
+      /* Each layer stores two ranks/levels, so do ceiling division by two. */
+      const int cryptomatte_layers_count = int(math::ceil(view_layer->cryptomatte_levels / 2.0f));
+      for (int i = 0; i < cryptomatte_layers_count; i++) {
+        const std::string pass_name = fmt::format("{}{:02}", cryptomatte_type, i);
         GPUTexture *pass_texture = context().get_input_texture(
-            scene, view_layer_index, render_pass->name);
+            scene, view_layer_index, pass_name.c_str());
+
+        /* If this Cryptomatte layer wasn't found, then all later Cryptomatte layers can't be used
+         * even if they were found. */
+        if (!pass_texture) {
+          return layers;
+        }
         layers.append(pass_texture);
       }
 
-      if (!layers.is_empty()) {
-        break;
-      }
+      /* The target view later was processed already, no need to check other view layers. */
+      return layers;
     }
-
-    RE_ReleaseResult(render);
 
     return layers;
   }

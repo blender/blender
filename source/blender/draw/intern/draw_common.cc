@@ -142,6 +142,8 @@ void DRW_globals_update()
   UI_GetThemeColor4fv(TH_ACTIVE_SPLINE, gb->color_active_spline);
 
   UI_GetThemeColor4fv(TH_CFRAME, gb->color_current_frame);
+  UI_GetThemeColor4fv(TH_FRAME_BEFORE, gb->color_before_frame);
+  UI_GetThemeColor4fv(TH_FRAME_AFTER, gb->color_after_frame);
 
   /* Meta-ball. */
   UI_COLOR_RGBA_FROM_U8(0xA0, 0x30, 0x30, 0xFF, gb->color_mball_radius);

@@ -337,6 +337,22 @@ def gather_action_animations(obj_uuid: int,
                         "Animation '{}' could not be exported. Cause: {}".format(
                             blender_action.name, error))
                     continue
+            else:
+                # No need to switch action, but we call the hook anyway, in case of user extension
+                export_user_extensions(
+                    'pre_animation_switch_hook',
+                    export_settings,
+                    blender_object,
+                    blender_action,
+                    track_name,
+                    on_type)
+                export_user_extensions(
+                    'post_animation_switch_hook',
+                    export_settings,
+                    blender_object,
+                    blender_action,
+                    track_name,
+                    on_type)
 
         if on_type == "SHAPEKEY":
             if blender_object.data.shape_keys.animation_data.action is None \
@@ -352,6 +368,22 @@ def gather_action_animations(obj_uuid: int,
                     track_name,
                     on_type)
                 blender_object.data.shape_keys.animation_data.action = blender_action
+                export_user_extensions(
+                    'post_animation_switch_hook',
+                    export_settings,
+                    blender_object,
+                    blender_action,
+                    track_name,
+                    on_type)
+            else:
+                # No need to switch action, but we call the hook anyway, in case of user extension
+                export_user_extensions(
+                    'pre_animation_switch_hook',
+                    export_settings,
+                    blender_object,
+                    blender_action,
+                    track_name,
+                    on_type)
                 export_user_extensions(
                     'post_animation_switch_hook',
                     export_settings,

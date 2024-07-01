@@ -115,6 +115,8 @@ struct GlobalsUboStorage {
   float4 color_mball_stiffness_select;
 
   float4 color_current_frame;
+  float4 color_before_frame;
+  float4 color_after_frame;
 
   float4 color_grid;
   float4 color_grid_emphasis;
@@ -228,6 +230,8 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorMballStiffness globalsBlock.color_mball_stiffness
 #  define colorMballStiffnessSelect globalsBlock.color_mball_stiffness_select
 #  define colorCurrentFrame globalsBlock.color_current_frame
+#  define colorBeforeFrame globalsBlock.color_before_frame
+#  define colorAfterFrame globalsBlock.color_after_frame
 #  define colorGrid globalsBlock.color_grid
 #  define colorGridEmphasis globalsBlock.color_grid_emphasis
 #  define colorGridAxisX globalsBlock.color_grid_axis_x

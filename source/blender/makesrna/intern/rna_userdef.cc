@@ -2706,6 +2706,29 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
       "Shade for bones corresponding to a locked weight group during painting");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  /* Time specific. */
+  prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "cframe");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Current Frame", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "before_current_frame", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(
+      prop,
+      "Before Current Frame",
+      "The color for things before the current frame (for onion skinning, motion paths, etc.)");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "after_current_frame", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(
+      prop,
+      "After Current Frame",
+      "The color for things after the current frame (for onion skinning, motion paths, etc.)");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   /* misc */
 
   prop = RNA_def_property(srna, "bundle_solid", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -2738,12 +2761,6 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
   prop = RNA_def_property(srna, "transform", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Transform", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "cframe");
-  RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Current Frame", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   rna_def_userdef_theme_spaces_paint_curves(srna);

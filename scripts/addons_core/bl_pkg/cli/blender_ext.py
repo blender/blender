@@ -461,7 +461,11 @@ def rmtree_with_fallback_or_error(
     # so use it's callback that raises a link error and remove the link in that case.
     errors = []
 
-    shutil.rmtree(path, onexc=lambda *args: errors.append(args))
+    # *DEPRECATED* 2024/07/01 Remove when 3.11 is dropped.
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=lambda *args: errors.append(args))
+    else:
+        shutil.rmtree(path, onerror=lambda *args: errors.append((args[0], args[1], args[2][1])))
 
     # Happy path (for practically all cases).
     if not errors:
@@ -1416,6 +1420,33 @@ def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[st
     return None
 
 
+def pkg_manifest_validate_field_copyright(
+        value: List[str],
+        strict: bool,
+) -> Optional[str]:
+    if strict:
+        for i, copyrignt_text in enumerate(value):
+            if not isinstance(copyrignt_text, str):
+                return "at index {:d} must be a string not a {:s}".format(i, str(type(copyrignt_text)))
+
+            year, name = copyrignt_text.partition(" ")[0::2]
+            year_valid = False
+            if (year_split := year.partition("-"))[1]:
+                if year_split[0].isdigit() and year_split[2].isdigit():
+                    year_valid = True
+            else:
+                if year.isdigit():
+                    year_valid = True
+
+            if not year_valid:
+                return "at index {:d} must be a number or two numbers separated by \"-\"".format(i)
+            if not name.strip():
+                return "at index {:d} name may not be empty".format(i)
+        return None
+    else:
+        return pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)
+
+
 def pkg_manifest_validate_field_permissions(
         value: Union[
             # `Dict[str, str]` is expected but at this point it's only guaranteed to be a dict.
@@ -1589,7 +1620,7 @@ pkg_manifest_known_keys_and_types: Tuple[
     # Optional.
     ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
     ("website", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
-    ("copyright", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
+    ("copyright", list, pkg_manifest_validate_field_copyright),
     # Type should be `dict` eventually, some existing packages will have a list of strings instead.
     ("permissions", (dict, list), pkg_manifest_validate_field_permissions),
     ("tags", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),

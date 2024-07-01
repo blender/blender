@@ -260,7 +260,6 @@ set(SRC
   intern/particle_system.cc
   intern/pbvh.cc
   intern/pbvh_bmesh.cc
-  intern/pbvh_colors.cc
   intern/pbvh_pixels.cc
   intern/pbvh_pixels_copy.cc
   intern/pbvh_uv_islands.cc

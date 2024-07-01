@@ -346,7 +346,6 @@ struct PBVHBatches {
   gpu::IndexBuf *tri_index_coarse = nullptr;
   gpu::IndexBuf *lines_index_coarse = nullptr;
   int coarse_level = 0; /* Coarse multires depth. */
-  int tris_count_coarse = 0, lines_count_coarse = 0;
 
   PBVHBatches(const PBVH_GPU_Args &args);
   ~PBVHBatches();
@@ -1461,8 +1460,6 @@ static void create_index_grids(const PBVH_GPU_Args &args,
   if (do_coarse) {
     batches.tri_index_coarse = GPU_indexbuf_build(&elb);
     batches.lines_index_coarse = GPU_indexbuf_build(&elb_lines);
-    batches.tris_count_coarse = visible_quad_len;
-    batches.lines_count_coarse = totgrid * display_gridsize * (display_gridsize - 1);
   }
   else {
     batches.tri_index = GPU_indexbuf_build(&elb);

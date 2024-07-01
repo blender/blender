@@ -16,13 +16,6 @@ vec2 proj(vec4 pos)
   return (0.5 * (pos.xy / pos.w) + 0.5) * sizeViewport.xy;
 }
 
-float calc_intensity(int segment_start, int segment_current, int segment_end, float min, float max)
-{
-  return ((1.0 - (float(segment_end - segment_current) / float(segment_end - segment_start))) *
-          (max - min)) +
-         min;
-}
-
 void main()
 {
   gl_Position = drw_view.winmat * (drw_view.viewmat * (camera_space_matrix * vec4(pos, 1.0)));
@@ -30,8 +23,6 @@ void main()
   interp_flat.ss_pos = proj(gl_Position);
 
   int frame = gl_VertexID + cacheStart;
-
-  float intensity; /* how faint */
 
   vec3 blend_base = (abs(frame - frameCurrent) == 0) ?
                         colorCurrentFrame.rgb :
@@ -43,13 +34,7 @@ void main()
       interp.color.rgb = customColorPre;
     }
     else {
-      if (selected) {
-        intensity = calc_intensity(frameStart, frame, frameCurrent, 0.25, 0.75);
-      }
-      else {
-        intensity = calc_intensity(frameStart, frame, frameCurrent, 0.68, 0.92);
-      }
-      interp.color.rgb = mix(colorWire.rgb, blend_base, intensity);
+      interp.color.rgb = colorBeforeFrame.rgb;
     }
   }
   else if (frame > frameCurrent) {
@@ -57,14 +42,7 @@ void main()
       interp.color.rgb = customColorPost;
     }
     else {
-      if (selected) {
-        intensity = calc_intensity(frameCurrent, frame, frameEnd, 0.25, 0.75);
-      }
-      else {
-        intensity = calc_intensity(frameCurrent, frame, frameEnd, 0.68, 0.92);
-      }
-
-      interp.color.rgb = mix(colorBonePose.rgb, blend_base, intensity);
+      interp.color.rgb = colorAfterFrame.rgb;
     }
   }
   else {
@@ -73,13 +51,7 @@ void main()
       interp.color.rgb = colorCurrentFrame.rgb;
     }
     else {
-      if (selected) {
-        intensity = 0.92f;
-      }
-      else {
-        intensity = 0.75f;
-      }
-      interp.color.rgb = mix(colorBackground.rgb, blend_base, intensity);
+      interp.color.rgb = blend_base;
     }
   }
 

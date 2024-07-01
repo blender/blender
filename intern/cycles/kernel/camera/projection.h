@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "util/math.h"
+#include "util/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Spherical coordinates <-> Cartesian direction. */
@@ -146,22 +149,40 @@ ccl_device_inline float3 fisheye_lens_polynomial_to_direction(
 ccl_device float2 direction_to_fisheye_lens_polynomial(
     float3 dir, float coeff0, float4 coeffs, float width, float height)
 {
-  float theta = -safe_acosf(dir.x);
+  const float theta = -safe_acosf(dir.x);
 
+  /* Initialize r with the closed-form solution for the special case
+   * coeffs.y = coeffs.z = coeffs.w = 0 */
   float r = (theta - coeff0) / coeffs.x;
 
+  const float4 diff_coeffs = make_float4(1.0f, 2.0f, 3.0f, 4.0f) * coeffs;
+
   for (int i = 0; i < 20; i++) {
-    float r2 = r * r;
-    float4 rr = make_float4(r, r2, r2 * r, r2 * r2);
-    r = (theta - (coeff0 + dot(coeffs, rr))) / coeffs.x;
+    /*  Newton's method for finding roots
+     *
+     *  Given is the result theta = distortion_model(r),
+     *  we need to find r.
+     *  Let F(r) := theta - distortion_model(r).
+     *  Then F(r) = 0 <=> distortion_model(r) = theta
+     *  Therefore we apply Newton's method for finding a root of F(r).
+     *  Newton step for the function F:
+     *  r_n+1 = r_n - F(r_n) / F'(r_n)
+     *  The addition in the implementation is due to canceling of signs.
+     * \{ */
+    const float old_r = r, r2 = r * r;
+    const float F_r = theta - (coeff0 + dot(coeffs, make_float4(r, r2, r2 * r, r2 * r2)));
+    const float dF_r = dot(diff_coeffs, make_float4(1.0f, r, r2, r2 * r));
+    r += F_r / dF_r;
+
+    /* Early termination if the change is below the threshold */
+    if (fabsf(r - old_r) < 1e-6f) {
+      break;
+    }
+    /** \} */
   }
 
-  float phi = atan2f(dir.z, dir.y);
-
-  float u = r * cosf(phi) / width + 0.5f;
-  float v = r * sinf(phi) / height + 0.5f;
-
-  return make_float2(u, v);
+  const float2 uv = r * safe_normalize(make_float2(dir.y, dir.z));
+  return make_float2(0.5f - uv.x / width, uv.y / height + 0.5f);
 }
 
 /* Mirror Ball <-> Cartesion direction */

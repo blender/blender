@@ -496,11 +496,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   int faces_num = 0;
 
   KeyBlock *shapekey_active = nullptr;
-  MPropCol *vcol = nullptr;
-  MLoopCol *mcol = nullptr;
-
-  blender::bke::AttrDomain vcol_domain;
-  eCustomDataType vcol_type = CD_PROP_COLOR;
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */

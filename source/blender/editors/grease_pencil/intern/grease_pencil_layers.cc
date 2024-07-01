@@ -784,6 +784,8 @@ static void GREASE_PENCIL_OT_layer_group_color_tag(wmOperatorType *ot)
   ot->exec = grease_pencil_layer_group_color_tag_exec;
   ot->poll = active_grease_pencil_poll;
 
+  ot->flag = OPTYPE_UNDO;
+
   ot->prop = RNA_def_enum(ot->srna, "color_tag", enum_layergroup_color_items, 0, "color tag", "");
 }
 

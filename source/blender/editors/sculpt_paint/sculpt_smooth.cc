@@ -167,14 +167,21 @@ float neighbor_mask_average(SculptSession &ss,
   return 0.0f;
 }
 
-float4 neighbor_color_average(SculptSession &ss, PBVHVertRef vertex)
+float4 neighbor_color_average(SculptSession &ss,
+                              const OffsetIndices<int> faces,
+                              const Span<int> corner_verts,
+                              const GroupedSpan<int> vert_to_face_map,
+                              const GSpan color_attribute,
+                              const bke::AttrDomain color_domain,
+                              const int vert)
 {
   float4 avg(0);
   int total = 0;
 
   SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    float4 tmp = SCULPT_vertex_color_get(ss, ni.vertex);
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, PBVHVertRef{vert}, ni) {
+    float4 tmp = color::color_vert_get(
+        faces, corner_verts, vert_to_face_map, color_attribute, color_domain, ni.index);
 
     avg += tmp;
     total++;
@@ -184,7 +191,8 @@ float4 neighbor_color_average(SculptSession &ss, PBVHVertRef vertex)
   if (total > 0) {
     return avg / total;
   }
-  return SCULPT_vertex_color_get(ss, vertex);
+  return color::color_vert_get(
+      faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
 }
 
 static void do_enhance_details_brush_task(Object &ob,

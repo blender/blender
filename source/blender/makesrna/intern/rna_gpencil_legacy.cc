@@ -2145,6 +2145,14 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "After Color", "Base color for ghosts after the active frame");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
+  prop = RNA_def_property(srna, "annotation_onion_use_custom_color", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "onion_flag", GP_LAYER_ONIONSKIN_CUSTOM_COLOR);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop,
+                           "Custom Onion Skin Colors",
+                           "Use custom colors for onion skinning instead of the theme");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
   /* pass index for compositing and modifiers */
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "pass_index");

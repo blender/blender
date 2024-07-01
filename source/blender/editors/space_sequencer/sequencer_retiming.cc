@@ -526,6 +526,83 @@ void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Retiming Delete Key
+ * \{ */
+
+static int sequencer_retiming_key_delete_exec(bContext *C, wmOperator * /*op*/)
+{
+  Scene *scene = CTX_data_scene(C);
+
+  blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(scene));
+  blender::Vector<Sequence *> strips_to_handle;
+
+  if (!sequencer_retiming_mode_is_active(C) || selection.size() == 0) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  for (Sequence *seq : selection.values()) {
+    strips_to_handle.append_non_duplicates(seq);
+  }
+
+  for (Sequence *seq : strips_to_handle) {
+    blender::Vector<SeqRetimingKey *> keys_to_delete;
+    for (auto item : selection.items()) {
+      if (item.value != seq) {
+        continue;
+      }
+      keys_to_delete.append(item.key);
+    }
+
+    SEQ_retiming_remove_multiple_keys(seq, keys_to_delete);
+  }
+
+  for (Sequence *seq : strips_to_handle) {
+    SEQ_relations_invalidate_cache_raw(scene, seq);
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
+}
+
+static int sequencer_retiming_key_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Scene *scene = CTX_data_scene(C);
+  ListBase *markers = &scene->markers;
+
+  if (!BLI_listbase_is_empty(markers)) {
+    ARegion *region = CTX_wm_region(C);
+    if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
+      /* Bounding box of 30 pixels is used for markers shortcuts,
+       * prevent conflict with markers shortcuts here. */
+      if (event->mval[1] <= 30) {
+        return OPERATOR_PASS_THROUGH;
+      }
+    }
+  }
+
+  return sequencer_retiming_key_delete_exec(C, op);
+}
+
+void SEQUENCER_OT_retiming_key_delete(wmOperatorType *ot)
+{
+
+  /* Identifiers. */
+  ot->name = "Delete Retiming Keys";
+  ot->idname = "SEQUENCER_OT_retiming_key_delete";
+  ot->description = "Delete selected strips from the sequencer";
+
+  /* Api callbacks. */
+  ot->invoke = sequencer_retiming_key_delete_invoke;
+  ot->exec = sequencer_retiming_key_delete_exec;
+  ot->poll = retiming_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Retiming Set Segment Speed
  * \{ */
 
@@ -914,37 +991,6 @@ int sequencer_retiming_select_all_exec(bContext *C, wmOperator *op)
           break;
       }
     }
-  }
-
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-  return OPERATOR_FINISHED;
-}
-
-int sequencer_retiming_key_remove_exec(bContext *C, wmOperator * /* op */)
-{
-  Scene *scene = CTX_data_scene(C);
-
-  blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(scene));
-  blender::Vector<Sequence *> strips_to_handle;
-
-  for (Sequence *seq : selection.values()) {
-    strips_to_handle.append_non_duplicates(seq);
-  }
-
-  for (Sequence *seq : strips_to_handle) {
-    blender::Vector<SeqRetimingKey *> keys_to_delete;
-    for (auto item : selection.items()) {
-      if (item.value != seq) {
-        continue;
-      }
-      keys_to_delete.append(item.key);
-    }
-
-    SEQ_retiming_remove_multiple_keys(seq, keys_to_delete);
-  }
-
-  for (Sequence *seq : strips_to_handle) {
-    SEQ_relations_invalidate_cache_raw(scene, seq);
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

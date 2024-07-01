@@ -539,19 +539,22 @@ class AnnotationOnionSkin:
 
         gpl = context.active_annotation_layer
         col = layout.column()
+        col.prop(gpl, "annotation_onion_use_custom_color")
         split = col.split(factor=0.5)
         split.active = gpl.use_annotation_onion_skinning
 
         # - Before Frames
         sub = split.column(align=True)
         row = sub.row(align=True)
-        row.prop(gpl, "annotation_onion_before_color", text="")
+        if gpl.annotation_onion_use_custom_color:
+            row.prop(gpl, "annotation_onion_before_color", text="")
         sub.prop(gpl, "annotation_onion_before_range", text="Before")
 
         # - After Frames
         sub = split.column(align=True)
         row = sub.row(align=True)
-        row.prop(gpl, "annotation_onion_after_color", text="")
+        if gpl.annotation_onion_use_custom_color:
+            row.prop(gpl, "annotation_onion_after_color", text="")
         sub.prop(gpl, "annotation_onion_after_range", text="After")
 
 

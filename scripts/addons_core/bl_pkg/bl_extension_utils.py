@@ -39,7 +39,7 @@ __all__ = (
     "json_to_filepath",
 
     "pkg_manifest_dict_is_valid_or_error",
-    "pkg_manifest_dict_from_file_or_error",
+    "pkg_manifest_dict_from_archive_or_error",
     "pkg_manifest_archive_url_abs_from_remote_url",
 
     "CommandBatch",
@@ -201,11 +201,13 @@ def rmtree_with_fallback_or_error(
         remove_link: bool = True,
 ) -> Optional[str]:
     from .cli.blender_ext import rmtree_with_fallback_or_error as fn
-    return fn(
+    result = fn(
         path,
         remove_file=remove_file,
         remove_link=remove_link,
     )
+    assert result is None or isinstance(result, str)
+    return result
 
 
 # -----------------------------------------------------------------------------
@@ -700,7 +702,7 @@ def pkg_manifest_dict_is_valid_or_error(
     return None
 
 
-def pkg_manifest_dict_from_file_or_error(
+def pkg_manifest_dict_from_archive_or_error(
         filepath: str,
 ) -> Union[Dict[str, Any], str]:
     from .cli.blender_ext import pkg_manifest_from_archive_and_validate

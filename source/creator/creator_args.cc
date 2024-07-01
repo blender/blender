@@ -2385,10 +2385,8 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
   if (argc > 1) {
 #  ifdef WITH_PYTHON
     const char script_str[] =
-        "from addon_utils import check, enable\n"
-        "for m in '%s'.split(','):\n"
-        "    if check(m)[1] is False:\n"
-        "        enable(m, persistent=True)";
+        "from _bpy_internal.addons.cli import set_from_cli\n"
+        "set_from_cli('%s')";
     const int slen = strlen(argv[1]) + (sizeof(script_str) - 2);
     char *str = static_cast<char *>(malloc(slen));
     bContext *C = static_cast<bContext *>(data);

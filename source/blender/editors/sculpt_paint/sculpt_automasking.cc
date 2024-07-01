@@ -22,6 +22,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
+#include "BKE_subdiv_ccg.hh"
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
@@ -588,10 +589,10 @@ float factor_get(const Cache *automasking,
   return automasking_factor_end(ss, automasking, vert, mask);
 }
 
-static void mesh_orig_vert_data_update(SculptOrigVertData &orig_data, const int vert)
+static void mesh_orig_vert_data_update(SculptOrigVertData &orig_data, const int i)
 {
-  orig_data.co = orig_data.coords[vert];
-  orig_data.no = orig_data.normals[vert];
+  orig_data.co = orig_data.coords[i];
+  orig_data.no = orig_data.normals[i];
 }
 
 void calc_vert_factors(const Object &object,
@@ -609,6 +610,51 @@ void calc_vert_factors(const Object &object,
       mesh_orig_vert_data_update(*data.orig_data, i);
     }
     factors[i] *= factor_get(&cache, ss, BKE_pbvh_make_vref(verts[i]), &data);
+  }
+}
+
+void calc_grids_factors(const Object &object,
+                        const Cache &cache,
+                        const PBVHNode &node,
+                        const Span<int> grids,
+                        const MutableSpan<float> factors)
+{
+  SculptSession &ss = *object.sculpt;
+  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  NodeData data = node_begin(object, &cache, node);
+
+  for (const int i : grids.index_range()) {
+    const int node_start = i * key.grid_area;
+    const int grids_start = grids[i] * key.grid_area;
+    for (const int offset : IndexRange(key.grid_area)) {
+      if (data.orig_data) {
+        mesh_orig_vert_data_update(*data.orig_data, node_start + offset);
+      }
+      factors[node_start + offset] *= factor_get(
+          &cache, ss, BKE_pbvh_make_vref(grids_start + offset), &data);
+    }
+  }
+}
+
+void calc_vert_factors(const Object &object,
+                       const Cache &cache,
+                       const PBVHNode &node,
+                       const Set<BMVert *, 0> &verts,
+                       const MutableSpan<float> factors)
+{
+  SculptSession &ss = *object.sculpt;
+
+  NodeData data = node_begin(object, &cache, node);
+
+  int i = 0;
+  for (BMVert *vert : verts) {
+    if (data.orig_data) {
+      BM_log_original_vert_data(
+          data.orig_data->bm_log, vert, &data.orig_data->co, &data.orig_data->no);
+    }
+    factors[i] *= factor_get(&cache, ss, BKE_pbvh_make_vref(intptr_t(vert)), &data);
+    i++;
   }
 }
 

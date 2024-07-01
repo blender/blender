@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 __all__ = (
-    "open_external_editor"
+    "open_external_editor",
 )
 
 

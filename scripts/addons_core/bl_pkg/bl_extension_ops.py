@@ -9,6 +9,7 @@ Where the operator shows progress, any errors and supports canceling operations.
 
 __all__ = (
     "extension_repos_read",
+    "pkg_wheel_filter",
 )
 
 import os
@@ -59,6 +60,9 @@ rna_prop_enable_on_install_type_map = {
     "add-on": "Enable Add-on",
     "theme": "Set Current Theme",
 }
+
+_ext_base_pkg_idname = "bl_ext"
+_ext_base_pkg_idname_with_dot = _ext_base_pkg_idname + "."
 
 
 def url_append_defaults(url):
@@ -488,7 +492,7 @@ def _preferences_ensure_disabled(*, repo_item, pkg_id_sequence, default_set):
 
     modules_clear = []
 
-    module_base_elem = ("bl_ext", repo_item.module)
+    module_base_elem = (_ext_base_pkg_idname, repo_item.module)
 
     repo_module = sys.modules.get(".".join(module_base_elem))
     if repo_module is None:
@@ -600,7 +604,7 @@ def _preferences_install_post_enable_on_install(
             if pkg_id in pkg_id_sequence_upgrade:
                 continue
 
-            addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, pkg_id)
+            addon_module_name = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, repo_item.module, pkg_id)
             addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
         elif item_local.type == "theme":
             if has_theme:
@@ -819,12 +823,66 @@ def _extensions_wheel_filter_for_platform(wheels):
     return wheels_compatible
 
 
-def _extensions_repo_sync_wheels(repo_cache_store):
+def pkg_wheel_filter(
+        repo_module,  # `str`
+        pkg_id,  # `str`
+        repo_directory,  # `str`
+        wheels_rel,  # `List[str]`
+):  # `-> Tuple[str, List[str]]`
+    # Filter only the wheels for this platform.
+    wheels_rel = _extensions_wheel_filter_for_platform(wheels_rel)
+    if not wheels_rel:
+        return None
+
+    pkg_dirpath = os.path.join(repo_directory, pkg_id)
+
+    wheels_abs = []
+    for filepath_rel in wheels_rel:
+        filepath_abs = os.path.join(pkg_dirpath, filepath_rel)
+        if not os.path.exists(filepath_abs):
+            continue
+        wheels_abs.append(filepath_abs)
+
+    if not wheels_abs:
+        return None
+
+    unique_pkg_id = "{:s}.{:s}".format(repo_module, pkg_id)
+    return (unique_pkg_id, wheels_abs)
+
+
+def _extension_repos_directory_to_module_map():
+    return {repo.directory: repo.module for repo in bpy.context.preferences.extensions.repos if repo.enabled}
+
+
+def _extensions_enabled():
+    from addon_utils import check_extension
+    extensions_enabled = set()
+    extensions_prefix_len = len(_ext_base_pkg_idname_with_dot)
+    for addon in bpy.context.preferences.addons:
+        module_name = addon.module
+        if check_extension(module_name):
+            extensions_enabled.add(module_name[extensions_prefix_len:].partition(".")[0::2])
+    return extensions_enabled
+
+
+def _extensions_enabled_from_repo_directory_and_pkg_id_sequence(repo_directory_and_pkg_id_sequence):
+    # Use to calculate extensions which will be enabled,
+    # needed so the wheels for the extensions can be enabled before the add-on is enabled that uses them.
+    extensions_enabled_pending = set()
+    repo_directory_to_module_map = _extension_repos_directory_to_module_map()
+    for repo_directory, pkg_id_sequence in repo_directory_and_pkg_id_sequence:
+        repo_module = repo_directory_to_module_map[repo_directory]
+        for pkg_id in pkg_id_sequence:
+            extensions_enabled_pending.add((repo_module, pkg_id))
+    return extensions_enabled_pending
+
+
+def _extensions_repo_sync_wheels(repo_cache_store, extensions_enabled):
     """
     This function collects all wheels from all packages and ensures the packages are either extracted or removed
     when they are no longer used.
     """
-    from .bl_extension_local import sync
+    import addon_utils
 
     repos_all = extension_repos_read()
 
@@ -838,36 +896,47 @@ def _extensions_repo_sync_wheels(repo_cache_store):
         repo_module = repo.module
         repo_directory = repo.directory
         for pkg_id, item_local in pkg_manifest_local.items():
-            pkg_dirpath = os.path.join(repo_directory, pkg_id)
+
+            # Check it's enabled before initializing its wheels.
+            # NOTE: no need for compatibility checks here as only compatible items will be included.
+            if (repo_module, pkg_id) not in extensions_enabled:
+                continue
+
             wheels_rel = item_local.wheels
             if not wheels_rel:
                 continue
 
-            # Filter only the wheels for this platform.
-            wheels_rel = _extensions_wheel_filter_for_platform(wheels_rel)
-            if not wheels_rel:
-                continue
-
-            wheels_abs = []
-            for filepath_rel in wheels_rel:
-                filepath_abs = os.path.join(pkg_dirpath, filepath_rel)
-                if not os.path.exists(filepath_abs):
-                    continue
-                wheels_abs.append(filepath_abs)
-
-            if not wheels_abs:
-                continue
-
-            unique_pkg_id = "{:s}.{:s}".format(repo_module, pkg_id)
-            wheel_list.append((unique_pkg_id, wheels_abs))
+            if (wheel_abs := pkg_wheel_filter(repo_module, pkg_id, repo_directory, wheels_rel)) is not None:
+                wheel_list.append(wheel_abs)
 
     extensions = bpy.utils.user_resource('EXTENSIONS')
     local_dir = os.path.join(extensions, ".local")
 
-    sync(
+    # WARNING: bad level call, avoid making this a public function just now.
+    addon_utils._extension_sync_wheels(
         local_dir=local_dir,
         wheel_list=wheel_list,
     )
+
+
+def _extensions_repo_refresh_on_change(repo_cache_store, *, extensions_enabled, compat_calc, stats_calc):
+    import addon_utils
+    if extensions_enabled is not None:
+        _extensions_repo_sync_wheels(repo_cache_store, extensions_enabled)
+    # Wheel sync handled above.
+
+    if compat_calc:
+        # NOTE: `extensions_enabled` may contain add-ons which are not yet enabled (these are pending).
+        # These will *not* have their compatibility information refreshed here.
+        # This is acceptable because:
+        # - Installing & enabling an extension relies on the extension being compatible,
+        #   so it can be assumed to already be the compatible.
+        # - If the add-on existed and was incompatible it *will* have it's compatibility recalculated.
+        # - Any missing cache entries will cause cache to be re-generated on next start or from an explicit refresh.
+        addon_utils.extensions_refresh(ensure_wheels=False)
+
+    if stats_calc:
+        repo_stats_calc()
 
 
 # -----------------------------------------------------------------------------
@@ -1416,6 +1485,8 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
 
         # In-line `bpy.ops.preferences.addon_refresh`.
         addon_utils.modules_refresh()
+        # Ensure compatibility info and wheels is up to date.
+        addon_utils.extensions_refresh(ensure_wheels=True)
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -1578,12 +1649,12 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 continue
 
             repo_item = repos_all[repo_index]
-            for pkg_id_sequence in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
+            for pkg_id_sequence_iter in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
                 cmd_batch.append(partial(
                     bl_extension_utils.pkg_install,
                     directory=repo_item.directory,
                     remote_url=url_append_defaults(repo_item.remote_url),
-                    pkg_id_sequence=pkg_id_sequence,
+                    pkg_id_sequence=pkg_id_sequence_iter,
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
                     access_token=repo_item.access_token,
@@ -1695,12 +1766,12 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
             if not pkg_id_sequence:
                 continue
 
-            for pkg_id_sequence in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
+            for pkg_id_sequence_iter in _sequence_split_with_job_limit(pkg_id_sequence, network_connection_limit):
                 cmd_batch.append(partial(
                     bl_extension_utils.pkg_install,
                     directory=repo_item.directory,
                     remote_url=url_append_defaults(repo_item.remote_url),
-                    pkg_id_sequence=pkg_id_sequence,
+                    pkg_id_sequence=pkg_id_sequence_iter,
                     online_user_agent=online_user_agent_from_blender(),
                     blender_version=bpy.app.version,
                     access_token=repo_item.access_token,
@@ -1754,8 +1825,21 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                 error_fn=self.error_fn_from_exception,
             )
 
-        _extensions_repo_sync_wheels(repo_cache_store)
-        repo_stats_calc()
+        extensions_enabled = None
+        if self.enable_on_install:
+            extensions_enabled = _extensions_enabled()
+            extensions_enabled.update(
+                _extensions_enabled_from_repo_directory_and_pkg_id_sequence(
+                    self._repo_map_packages_addon_only,
+                )
+            )
+
+        _extensions_repo_refresh_on_change(
+            repo_cache_store,
+            extensions_enabled=extensions_enabled,
+            compat_calc=True,
+            stats_calc=True,
+        )
 
         # TODO: it would be nice to include this message in the banner.
         def handle_error(ex):
@@ -1776,6 +1860,17 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                     # Installed packages are always excluded.
                     pkg_id_sequence_upgrade=[],
                     handle_error=handle_error,
+                )
+
+        if self.enable_on_install:
+            if (extensions_enabled_test := _extensions_enabled()) != extensions_enabled:
+                # Some extensions could not be enabled, re-calculate wheels which may have been setup
+                # in anticipation for the add-on working.
+                _extensions_repo_refresh_on_change(
+                    repo_cache_store,
+                    extensions_enabled=extensions_enabled_test,
+                    compat_calc=False,
+                    stats_calc=False,
                 )
 
         _preferences_ui_redraw()
@@ -1877,8 +1972,12 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
                 error_fn=self.error_fn_from_exception,
             )
 
-        _extensions_repo_sync_wheels(repo_cache_store)
-        repo_stats_calc()
+        _extensions_repo_refresh_on_change(
+            repo_cache_store,
+            extensions_enabled=_extensions_enabled(),
+            compat_calc=True,
+            stats_calc=True,
+        )
 
         _preferences_theme_state_restore(self._theme_restore)
 
@@ -1942,7 +2041,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
     def exec_command_iter(self, is_modal):
         from . import bl_extension_utils
         from .bl_extension_utils import (
-            pkg_manifest_dict_from_file_or_error,
+            pkg_manifest_dict_from_archive_or_error,
             pkg_is_legacy_addon,
         )
 
@@ -1999,7 +2098,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                 continue
             pkg_files.append(source_filepath)
 
-            result = pkg_manifest_dict_from_file_or_error(source_filepath)
+            result = pkg_manifest_dict_from_archive_or_error(source_filepath)
             if isinstance(result, str):
                 continue
             pkg_id = result["id"]
@@ -2081,8 +2180,22 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             error_fn=self.error_fn_from_exception,
         )
 
-        _extensions_repo_sync_wheels(repo_cache_store)
-        repo_stats_calc()
+        extensions_enabled = None
+        if self.enable_on_install:
+            extensions_enabled = _extensions_enabled()
+            # We may want to support multiple.
+            extensions_enabled.update(
+                _extensions_enabled_from_repo_directory_and_pkg_id_sequence(
+                    [(self.repo_directory, self.pkg_id_sequence)]
+                )
+            )
+
+        _extensions_repo_refresh_on_change(
+            repo_cache_store,
+            extensions_enabled=extensions_enabled,
+            compat_calc=True,
+            stats_calc=True,
+        )
 
         # TODO: it would be nice to include this message in the banner.
 
@@ -2108,6 +2221,17 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                 pkg_id_sequence_upgrade=pkg_id_sequence_upgrade,
                 handle_error=handle_error,
             )
+
+        if self.enable_on_install:
+            if (extensions_enabled_test := _extensions_enabled()) != extensions_enabled:
+                # Some extensions could not be enabled, re-calculate wheels which may have been setup
+                # in anticipation for the add-on working.
+                _extensions_repo_refresh_on_change(
+                    repo_cache_store,
+                    extensions_enabled=extensions_enabled_test,
+                    compat_calc=False,
+                    stats_calc=False,
+                )
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -2205,13 +2329,13 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             self._drop_variables = True
             self._legacy_drop = None
 
-            from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
+            from .bl_extension_utils import pkg_manifest_dict_from_archive_or_error
 
             if not self._repos_valid_for_install(context):
                 self.report({'ERROR'}, "No user repositories")
                 return {'CANCELLED'}
 
-            if isinstance(result := pkg_manifest_dict_from_file_or_error(filepath), str):
+            if isinstance(result := pkg_manifest_dict_from_archive_or_error(filepath), str):
                 self.report({'ERROR'}, "Error in manifest {:s}".format(result))
                 return {'CANCELLED'}
 
@@ -2384,8 +2508,21 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             error_fn=self.error_fn_from_exception,
         )
 
-        _extensions_repo_sync_wheels(repo_cache_store)
-        repo_stats_calc()
+        extensions_enabled = None
+        if self.enable_on_install:
+            extensions_enabled = _extensions_enabled()
+            extensions_enabled.update(
+                _extensions_enabled_from_repo_directory_and_pkg_id_sequence(
+                    [(self.repo_directory, (self.pkg_id,))]
+                )
+            )
+
+        _extensions_repo_refresh_on_change(
+            repo_cache_store,
+            extensions_enabled=extensions_enabled,
+            compat_calc=True,
+            stats_calc=True,
+        )
 
         # TODO: it would be nice to include this message in the banner.
         def handle_error(ex):
@@ -2410,6 +2547,17 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                 pkg_id_sequence_upgrade=pkg_id_sequence_upgrade,
                 handle_error=handle_error,
             )
+
+        if self.enable_on_install:
+            if (extensions_enabled_test := _extensions_enabled()) != extensions_enabled:
+                # Some extensions could not be enabled, re-calculate wheels which may have been setup
+                # in anticipation for the add-on working.
+                _extensions_repo_refresh_on_change(
+                    repo_cache_store,
+                    extensions_enabled=extensions_enabled_test,
+                    compat_calc=False,
+                    stats_calc=False,
+                )
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -2581,7 +2729,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
     def _draw_override_after_sync(
             self,
             *,
-            _context,  # `bpy.types.Context`
+            context,  # `bpy.types.Context`
             remote_url,   # `Optional[str]`
             repo_from_url_name,  # `str`
             url,  # `str`
@@ -2590,6 +2738,9 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         from .bl_extension_utils import (
             platform_from_this_system,
         )
+
+        # Quiet unused warning.
+        _ = context
 
         # The parameters have already been handled.
         repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
@@ -2783,8 +2934,12 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
             error_fn=self.error_fn_from_exception,
         )
 
-        _extensions_repo_sync_wheels(repo_cache_store)
-        repo_stats_calc()
+        _extensions_repo_refresh_on_change(
+            repo_cache_store,
+            extensions_enabled=None,
+            compat_calc=True,
+            stats_calc=True,
+        )
 
         _preferences_theme_state_restore(self._theme_restore)
 
@@ -2994,7 +3149,9 @@ class EXTENSIONS_OT_package_show_settings(Operator):
 
     def execute(self, _context):
         repo_item = extension_repos_read_index(self.repo_index)
-        bpy.ops.preferences.addon_show(module="bl_ext.{:s}.{:s}".format(repo_item.module, self.pkg_id))
+        bpy.ops.preferences.addon_show(
+            module="{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, repo_item.module, self.pkg_id),
+        )
         return {'FINISHED'}
 
 

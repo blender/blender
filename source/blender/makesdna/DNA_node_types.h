@@ -226,6 +226,7 @@ typedef struct bNodeSocket {
   bNode &owner_node();
   const bNode &owner_node() const;
   /** Node tree this socket belongs to. */
+  bNodeTree &owner_tree();
   const bNodeTree &owner_tree() const;
 
   /** Links which are incident to this socket. */
@@ -483,6 +484,7 @@ typedef struct bNode {
   blender::MutableSpan<bNodePanelState> panel_states();
   /** Node tree this node belongs to. */
   const bNodeTree &owner_tree() const;
+  bNodeTree &owner_tree();
 #endif
 } bNode;
 

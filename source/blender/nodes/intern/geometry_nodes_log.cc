@@ -9,6 +9,7 @@
 #include "BKE_curves.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
+#include "BKE_type_conversions.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
@@ -482,6 +483,24 @@ ValueLog *GeoTreeLog::find_socket_value_log(const bNodeSocket &query_socket)
   }
 
   return nullptr;
+}
+
+bool GeoTreeLog::try_convert_primitive_socket_value(const GenericValueLog &value_log,
+                                                    const CPPType &dst_type,
+                                                    void *dst)
+{
+  const void *src_value = value_log.value.get();
+  if (!src_value) {
+    return false;
+  }
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+  const CPPType &src_type = *value_log.value.type();
+  if (!conversions.is_convertible(src_type, dst_type) && src_type != dst_type) {
+    return false;
+  }
+  dst_type.destruct(dst);
+  conversions.convert_to_uninitialized(src_type, dst_type, src_value, dst);
+  return true;
 }
 
 GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compute_context)

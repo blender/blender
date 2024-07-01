@@ -3193,7 +3193,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
        * Handling of DNA deprecated data should never be needed in undo case. */
       const int flag = IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_INCLUDE_UI |
                        ((fd->flags & FD_FLAGS_IS_MEMFILE) ? 0 : IDWALK_DO_DEPRECATED_POINTERS);
-      BKE_library_foreach_ID_link(nullptr, id, lib_link_cb, &reader, flag);
+      BKE_library_foreach_ID_link(bmain, id, lib_link_cb, &reader, flag);
 
       after_liblink_id_process(&reader, id);
 

@@ -241,9 +241,10 @@ KeyingScreen &KeyingScreenContainer::get(Context &context,
 
   /* We concatenate the movie clip ID name with the tracking object name to cache multiple tracking
    * objects per movie clip. */
-  const std::string id_name = std::string(movie_clip->id.name) +
-                              std::string(movie_tracking_object->name);
-  auto &cached_keying_screens_for_id = map_.lookup_or_add_default(id_name);
+  const std::string library_key = movie_clip->id.lib ? movie_clip->id.lib->id.name : "";
+  const std::string id_key = std::string(movie_clip->id.name) + library_key;
+  const std::string object_key = id_key + movie_tracking_object->name;
+  auto &cached_keying_screens_for_id = map_.lookup_or_add_default(object_key);
 
   /* Invalidate the keying screen cache for that MovieClip ID if it was changed and reset the
    * recalculate flag. */

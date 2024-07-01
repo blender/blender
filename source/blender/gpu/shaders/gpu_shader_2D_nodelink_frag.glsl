@@ -2,15 +2,26 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#define ANTIALIAS 1.5
-#define MINIMUM_ALPHA 0.5
+#define ANTIALIAS 0.75
+
+float get_line_alpha(float center, float relative_radius)
+{
+  float radius = relative_radius * lineThickness;
+  float sdf = abs(lineThickness * (lineUV.y - center));
+  return smoothstep(radius, radius - ANTIALIAS, sdf);
+}
 
 void main()
 {
-  fragColor = finalColor;
+  if (isMainLine == 0) {
+    fragColor = finalColor;
+    fragColor.a *= get_line_alpha(0.5, 0.5);
+    return;
+  }
 
-  if ((isMainLine != 0) && (dashFactor < 1.0)) {
-    float distance_along_line = lineLength * lineU;
+  float dash_frag_alpha = 1.0;
+  if (dashFactor < 1.0) {
+    float distance_along_line = lineLength * lineUV.x;
     float normalized_distance = fract(distance_along_line / dashLength);
 
     /* Checking if `normalized_distance <= dashFactor` is already enough for a basic
@@ -25,8 +36,9 @@ void main()
     float unclamped_alpha = 1.0 - slope * (normalized_distance_triangle - dashFactor + t);
     float alpha = max(dashAlpha, min(unclamped_alpha, 1.0));
 
-    fragColor.a *= alpha;
+    dash_frag_alpha = alpha;
   }
 
-  fragColor.a *= smoothstep(lineThickness, lineThickness - ANTIALIAS, abs(colorGradient));
+  fragColor = finalColor;
+  fragColor.a *= get_line_alpha(0.5, 0.5) * dash_frag_alpha;
 }

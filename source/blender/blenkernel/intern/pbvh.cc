@@ -640,8 +640,6 @@ static void pbvh_validate_node_prims(PBVH &pbvh, const Span<int> tri_faces)
 void update_mesh_pointers(PBVH &pbvh, Mesh *mesh)
 {
   BLI_assert(pbvh.header.type == PBVH_FACES);
-  pbvh.faces = mesh->faces();
-  pbvh.corner_verts = mesh->corner_verts();
   if (!pbvh.deformed) {
     /* Deformed data not matching the original mesh are owned directly by the PBVH, and are
      * set separately by #BKE_pbvh_vert_coords_apply. */
@@ -719,8 +717,6 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
     test_face_boundaries(pbvh, tri_faces);
 #endif
   }
-
-  BKE_pbvh_update_active_vcol(*pbvh, mesh);
 
 #ifdef VALIDATE_UNIQUE_NODE_FACES
   pbvh_validate_node_prims(pbvh);
@@ -1620,21 +1616,6 @@ IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
   });
   return IndexMask::from_bools(faces_to_update, memory);
 }
-
-}  // namespace blender::bke::pbvh
-
-/***************************** PBVH Access ***********************************/
-
-bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, AttrDomain *r_domain)
-{
-  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  *r_layer = BKE_attribute_search_for_write(
-      owner, mesh->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
-  *r_domain = *r_layer ? BKE_attribute_domain(owner, *r_layer) : AttrDomain::Point;
-  return *r_layer != nullptr;
-}
-
-namespace blender::bke::pbvh {
 
 Bounds<float3> bounds_get(const PBVH &pbvh)
 {
@@ -3043,11 +3024,6 @@ Span<float3> BKE_pbvh_get_vert_normals(const PBVH &pbvh)
 void BKE_pbvh_subdiv_cgg_set(PBVH &pbvh, SubdivCCG *subdiv_ccg)
 {
   pbvh.subdiv_ccg = subdiv_ccg;
-}
-
-void BKE_pbvh_update_active_vcol(PBVH &pbvh, Mesh *mesh)
-{
-  BKE_pbvh_get_color_layer(mesh, &pbvh.color_layer, &pbvh.color_domain);
 }
 
 void BKE_pbvh_ensure_node_loops(PBVH &pbvh, const Span<blender::int3> corner_tris)

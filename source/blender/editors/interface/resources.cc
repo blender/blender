@@ -520,6 +520,12 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_CFRAME:
           cp = ts->cframe;
           break;
+        case TH_FRAME_BEFORE:
+          cp = ts->before_current_frame;
+          break;
+        case TH_FRAME_AFTER:
+          cp = ts->after_current_frame;
+          break;
         case TH_TIME_KEYFRAME:
           cp = ts->time_keyframe;
           break;

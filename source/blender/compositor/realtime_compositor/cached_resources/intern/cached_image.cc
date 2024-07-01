@@ -265,7 +265,9 @@ GPUTexture *CachedImageContainer::get(Context &context,
 
   const CachedImageKey key(image_user_for_frame, pass_name);
 
-  auto &cached_images_for_id = map_.lookup_or_add_default(image->id.name);
+  const std::string library_key = image->id.lib ? image->id.lib->id.name : "";
+  const std::string id_key = std::string(image->id.name) + library_key;
+  auto &cached_images_for_id = map_.lookup_or_add_default(id_key);
 
   /* Invalidate the cache for that image ID if it was changed and reset the recalculate flag. */
   if (context.query_id_recalc_flag(reinterpret_cast<ID *>(image)) & ID_RECALC_ALL) {

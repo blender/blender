@@ -39,14 +39,12 @@ def _local_module_reload():
     import importlib
     from . import (
         bl_extension_cli,
-        bl_extension_local,
         bl_extension_notify,
         bl_extension_ops,
         bl_extension_ui,
         bl_extension_utils,
     )
     importlib.reload(bl_extension_cli)
-    importlib.reload(bl_extension_local)
     importlib.reload(bl_extension_notify)
     importlib.reload(bl_extension_ops)
     importlib.reload(bl_extension_ui)
@@ -91,6 +89,50 @@ def cookie_from_session():
 
 # -----------------------------------------------------------------------------
 # Shared Low Level Utilities
+
+# NOTE(@ideasman42): this is used externally from `addon_utils` which is something we try to avoid but done in
+# the case of generating compatibility cache, avoiding this "bad-level call" would be good but impractical when
+# the command line tool is treated as a stand-alone program (which I prefer to keep).
+def manifest_compatible_with_wheel_data_or_error(
+        pkg_manifest_filepath,  # `str`
+        repo_module,  # `str`
+        pkg_id,  # `str`
+        repo_directory,  # `str`
+        wheel_list,  # `List[Tuple[str, List[str]]]`
+):  # `Optional[str]`
+    from bl_pkg.bl_extension_utils import (
+        pkg_manifest_dict_is_valid_or_error,
+        toml_from_filepath,
+    )
+    from bl_pkg.bl_extension_ops import (
+        pkg_manifest_params_compatible_or_error_for_this_system,
+    )
+
+    try:
+        manifest_dict = toml_from_filepath(pkg_manifest_filepath)
+    except Exception as ex:
+        return "Error reading TOML data {:s}".format(str(ex))
+
+    if (error := pkg_manifest_dict_is_valid_or_error(manifest_dict, from_repo=False, strict=False)):
+        return error
+
+    if isinstance(error := pkg_manifest_params_compatible_or_error_for_this_system(
+            blender_version_min=manifest_dict.get("blender_version_min", ""),
+            blender_version_max=manifest_dict.get("blender_version_max", ""),
+            platforms=manifest_dict.get("platforms", ""),
+    ), str):
+        return error
+
+    # NOTE: the caller may need to collect wheels when refreshing.
+    # While this isn't so clean it happens to be efficient.
+    # It could be refactored to work differently in the future if that is ever needed.
+    if wheels_rel := manifest_dict.get("wheels"):
+        from .bl_extension_ops import pkg_wheel_filter
+        if (wheel_abs := pkg_wheel_filter(repo_module, pkg_id, repo_directory, wheels_rel)) is not None:
+            wheel_list.append(wheel_abs)
+
+    return None
+
 
 def repo_paths_or_none(repo_item):
     if (directory := repo_item.directory) == "":
