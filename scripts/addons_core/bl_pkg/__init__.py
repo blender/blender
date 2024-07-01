@@ -39,14 +39,12 @@ def _local_module_reload():
     import importlib
     from . import (
         bl_extension_cli,
-        bl_extension_local,
         bl_extension_notify,
         bl_extension_ops,
         bl_extension_ui,
         bl_extension_utils,
     )
     importlib.reload(bl_extension_cli)
-    importlib.reload(bl_extension_local)
     importlib.reload(bl_extension_notify)
     importlib.reload(bl_extension_ops)
     importlib.reload(bl_extension_ui)

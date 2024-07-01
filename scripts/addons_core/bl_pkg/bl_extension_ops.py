@@ -824,7 +824,7 @@ def _extensions_repo_sync_wheels(repo_cache_store):
     This function collects all wheels from all packages and ensures the packages are either extracted or removed
     when they are no longer used.
     """
-    from .bl_extension_local import sync
+    import addon_utils
 
     repos_all = extension_repos_read()
 
@@ -864,7 +864,8 @@ def _extensions_repo_sync_wheels(repo_cache_store):
     extensions = bpy.utils.user_resource('EXTENSIONS')
     local_dir = os.path.join(extensions, ".local")
 
-    sync(
+    # WARNING: bad level call, avoid making this a public function just now.
+    addon_utils._extension_sync_wheels(
         local_dir=local_dir,
         wheel_list=wheel_list,
     )
