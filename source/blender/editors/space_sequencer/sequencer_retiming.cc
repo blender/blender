@@ -325,15 +325,12 @@ static bool freeze_frame_add_new_for_seq(const bContext *C,
   SeqRetimingKey *key = SEQ_retiming_add_key(scene, seq, timeline_frame);
 
   if (key == nullptr) {
-    key = SEQ_retiming_key_get_by_timeline_frame(scene, seq, timeline_frame);
+    BKE_report(op->reports, RPT_WARNING, "Cannot create freeze frame");
+    return false;
   }
 
   if (SEQ_retiming_key_is_transition_start(key)) {
     BKE_report(op->reports, RPT_WARNING, "Cannot create key inside of speed transition");
-    return false;
-  }
-  if (key == nullptr) {
-    BKE_report(op->reports, RPT_WARNING, "Cannot create freeze frame");
     return false;
   }
 
