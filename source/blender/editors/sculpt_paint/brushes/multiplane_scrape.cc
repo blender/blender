@@ -36,13 +36,13 @@ struct MultiplaneScrapeSampleData {
   std::array<int, 2> area_count;
 };
 
-static void calc_multiplane_scrape_surface_task(Object &ob,
+static void calc_multiplane_scrape_surface_task(Object &object,
                                                 const Brush &brush,
                                                 const float4x4 &mat,
-                                                PBVHNode *node,
-                                                MultiplaneScrapeSampleData *mssd)
+                                                PBVHNode &node,
+                                                MultiplaneScrapeSampleData &sample)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *object.sculpt;
 
   PBVHVertexIter vd;
 
@@ -57,9 +57,9 @@ static void calc_multiplane_scrape_surface_task(Object &ob,
   test.radius_squared = test_radius * test_radius;
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
+      object, ss.cache->automasking.get(), node);
 
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
@@ -82,21 +82,21 @@ static void calc_multiplane_scrape_surface_task(Object &ob,
 
     /* Sample the normal and area of the +X and -X axis individually. */
     const bool plane_index = local_co[0] <= 0.0f;
-    mssd->area_nos[plane_index] += normal * fade;
-    mssd->area_cos[plane_index] += vd.co;
-    mssd->area_count[plane_index]++;
+    sample.area_nos[plane_index] += normal * fade;
+    sample.area_cos[plane_index] += vd.co;
+    sample.area_count[plane_index]++;
     BKE_pbvh_vertex_iter_end;
   }
 }
 
-static void do_multiplane_scrape_brush_task(Object &ob,
+static void do_multiplane_scrape_brush_task(Object &object,
                                             const Brush &brush,
                                             const float4x4 &mat,
                                             const std::array<float4, 2> &scrape_planes,
                                             const float angle,
                                             PBVHNode *node)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *object.sculpt;
 
   PBVHVertexIter vd;
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
@@ -108,7 +108,7 @@ static void do_multiplane_scrape_brush_task(Object &ob,
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
+      object, ss.cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(test, vd.co)) {
@@ -130,12 +130,11 @@ static void do_multiplane_scrape_brush_task(Object &ob,
     }
 
     float3 intr;
-    float3 val;
 
     closest_to_plane_normalized_v3(intr, scrape_planes[plane_index], vd.co);
 
-    sub_v3_v3v3(val, intr, vd.co);
-    if (!SCULPT_plane_trim(*ss.cache, brush, val)) {
+    float3 translation = intr - float3(vd.co);
+    if (!SCULPT_plane_trim(*ss.cache, brush, translation)) {
       continue;
     }
 
@@ -155,14 +154,14 @@ static void do_multiplane_scrape_brush_task(Object &ob,
                                                                 thread_id,
                                                                 &automask_data);
 
-    mul_v3_v3fl(proxy[vd.i], val, fade);
+    mul_v3_v3fl(proxy[vd.i], translation, fade);
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-void do_multiplane_scrape_brush(const Sculpt &sd, Object &ob, const Span<PBVHNode *> nodes)
+void do_multiplane_scrape_brush(const Sculpt &sd, Object &object, const Span<PBVHNode *> nodes)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   const bool flip = (ss.cache->bstrength < 0.0f);
@@ -172,11 +171,11 @@ void do_multiplane_scrape_brush(const Sculpt &sd, Object &ob, const Span<PBVHNod
 
   float3 area_no_sp;
   float3 area_co;
-  calc_brush_plane(brush, ob, nodes, area_no_sp, area_co);
+  calc_brush_plane(brush, object, nodes, area_no_sp, area_co);
 
   float3 area_no;
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_no = calc_area_normal(brush, ob, nodes).value_or(float3(0));
+    area_no = calc_area_normal(brush, object, nodes).value_or(float3(0));
   }
   else {
     area_no = area_no_sp;
@@ -214,15 +213,15 @@ void do_multiplane_scrape_brush(const Sculpt &sd, Object &ob, const Span<PBVHNod
   if (brush.flag2 & BRUSH_MULTIPLANE_SCRAPE_DYNAMIC) {
     /* Sample the individual normal and area center of the two areas at both sides of the cursor.
      */
-    const MultiplaneScrapeSampleData mssd = threading::parallel_reduce(
+    const MultiplaneScrapeSampleData sample = threading::parallel_reduce(
         nodes.index_range(),
         1,
         MultiplaneScrapeSampleData{},
-        [&](const IndexRange range, MultiplaneScrapeSampleData mssd) {
+        [&](const IndexRange range, MultiplaneScrapeSampleData sample) {
           for (const int i : range) {
-            calc_multiplane_scrape_surface_task(ob, brush, mat, nodes[i], &mssd);
+            calc_multiplane_scrape_surface_task(object, brush, mat, *nodes[i], sample);
           }
-          return mssd;
+          return sample;
         },
         [](const MultiplaneScrapeSampleData &a, const MultiplaneScrapeSampleData &b) {
           MultiplaneScrapeSampleData joined = a;
@@ -241,14 +240,14 @@ void do_multiplane_scrape_brush(const Sculpt &sd, Object &ob, const Span<PBVHNod
     /* Use the area center of both planes to detect if we are sculpting along a concave or convex
      * edge. */
     const std::array<float3, 2> sampled_plane_co{
-        mssd.area_cos[0] * 1.0f / float(mssd.area_count[0]),
-        mssd.area_cos[1] * 1.0f / float(mssd.area_count[1])};
+        sample.area_cos[0] * 1.0f / float(sample.area_count[0]),
+        sample.area_cos[1] * 1.0f / float(sample.area_count[1])};
     const float3 mid_co = math::midpoint(sampled_plane_co[0], sampled_plane_co[1]);
 
     /* Calculate the scrape planes angle based on the sampled normals. */
     const std::array<float3, 2> sampled_plane_normals{
-        math::normalize(mssd.area_nos[0] * 1.0f / float(mssd.area_count[0])),
-        math::normalize(mssd.area_nos[1] * 1.0f / float(mssd.area_count[1]))};
+        math::normalize(sample.area_nos[0] * 1.0f / float(sample.area_count[0])),
+        math::normalize(sample.area_nos[1] * 1.0f / float(sample.area_count[1]))};
 
     float sampled_angle = angle_v3v3(sampled_plane_normals[0], sampled_plane_normals[1]);
     const std::array<float3, 2> sampled_cv{area_no, ss.cache->location - mid_co};
@@ -307,8 +306,12 @@ void do_multiplane_scrape_brush(const Sculpt &sd, Object &ob, const Span<PBVHNod
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_multiplane_scrape_brush_task(
-          ob, brush, mat, multiplane_scrape_planes, ss.cache->multiplane_scrape_angle, nodes[i]);
+      do_multiplane_scrape_brush_task(object,
+                                      brush,
+                                      mat,
+                                      multiplane_scrape_planes,
+                                      ss.cache->multiplane_scrape_angle,
+                                      nodes[i]);
     }
   });
 }
