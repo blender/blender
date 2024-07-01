@@ -30,17 +30,32 @@
 
 namespace blender::ed::sculpt_paint {
 
-struct MultiplaneScrapeSampleData {
+struct ScrapeSampleData {
   std::array<float3, 2> area_cos;
   std::array<float3, 2> area_nos;
   std::array<int, 2> area_count;
 };
 
+static ScrapeSampleData join_samples(const ScrapeSampleData &a, const ScrapeSampleData &b)
+{
+  ScrapeSampleData joined = a;
+
+  joined.area_cos[0] = a.area_cos[0] + b.area_cos[0];
+  joined.area_cos[1] = a.area_cos[1] + b.area_cos[1];
+
+  joined.area_nos[0] = a.area_nos[0] + b.area_nos[0];
+  joined.area_nos[1] = a.area_nos[1] + b.area_nos[1];
+
+  joined.area_count[0] = a.area_count[0] + b.area_count[0];
+  joined.area_count[1] = a.area_count[1] + b.area_count[1];
+  return joined;
+}
+
 static void calc_multiplane_scrape_surface_task(Object &object,
                                                 const Brush &brush,
                                                 const float4x4 &mat,
                                                 PBVHNode &node,
-                                                MultiplaneScrapeSampleData &sample)
+                                                ScrapeSampleData &sample)
 {
   SculptSession &ss = *object.sculpt;
 
@@ -213,29 +228,17 @@ void do_multiplane_scrape_brush(const Sculpt &sd, Object &object, const Span<PBV
   if (brush.flag2 & BRUSH_MULTIPLANE_SCRAPE_DYNAMIC) {
     /* Sample the individual normal and area center of the two areas at both sides of the cursor.
      */
-    const MultiplaneScrapeSampleData sample = threading::parallel_reduce(
+    const ScrapeSampleData sample = threading::parallel_reduce(
         nodes.index_range(),
         1,
-        MultiplaneScrapeSampleData{},
-        [&](const IndexRange range, MultiplaneScrapeSampleData sample) {
+        ScrapeSampleData{},
+        [&](const IndexRange range, ScrapeSampleData sample) {
           for (const int i : range) {
             calc_multiplane_scrape_surface_task(object, brush, mat, *nodes[i], sample);
           }
           return sample;
         },
-        [](const MultiplaneScrapeSampleData &a, const MultiplaneScrapeSampleData &b) {
-          MultiplaneScrapeSampleData joined = a;
-
-          joined.area_cos[0] = a.area_cos[0] + b.area_cos[0];
-          joined.area_cos[1] = a.area_cos[1] + b.area_cos[1];
-
-          joined.area_nos[0] = a.area_nos[0] + b.area_nos[0];
-          joined.area_nos[1] = a.area_nos[1] + b.area_nos[1];
-
-          joined.area_count[0] = a.area_count[0] + b.area_count[0];
-          joined.area_count[1] = a.area_count[1] + b.area_count[1];
-          return joined;
-        });
+        join_samples);
 
     /* Use the area center of both planes to detect if we are sculpting along a concave or convex
      * edge. */
