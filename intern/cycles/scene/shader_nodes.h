@@ -525,6 +525,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, ior)
   NODE_SOCKET_API(float3, normal)
   NODE_SOCKET_API(float, alpha)
+  NODE_SOCKET_API(float, diffuse_roughness)
   NODE_SOCKET_API(ClosureType, subsurface_method)
   NODE_SOCKET_API(float, subsurface_weight)
   NODE_SOCKET_API(float3, subsurface_radius)

@@ -14,6 +14,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             float SubsurfaceIOR = 1.4,
                             float SubsurfaceAnisotropy = 0.0,
                             float Metallic = 0.0,
+                            float DiffuseRoughness = 0.0,
                             float SpecularIORLevel = 0.5,
                             color SpecularTint = color(1.0),
                             float Roughness = 0.5,
@@ -50,6 +51,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   float sheen_weight = max(SheenWeight, 0.0);
   color base_color = max(BaseColor, color(0.0));
   color clamped_base_color = min(base_color, color(1.0));
+  float diffuse_roughness = clamp(DiffuseRoughness, 0.0, 1.0);
 
   float r2 = clamp(Roughness, 0.0, 1.0);
   r2 = r2 * r2;
@@ -77,7 +79,13 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
       }
     }
 
-    BSDF = base_color * diffuse(Normal);
+    if (diffuse_roughness > CLOSURE_WEIGHT_CUTOFF) {
+      BSDF = base_color * oren_nayar_diffuse_bsdf(Normal, base_color, diffuse_roughness);
+    }
+    else {
+      BSDF = base_color * diffuse(Normal);
+    }
+
     if (subsurface_weight > CLOSURE_WEIGHT_CUTOFF) {
       vector radius = max(SubsurfaceScale * SubsurfaceRadius, vector(0.0));
       float subsurface_ior = (subsurface_method == "random_walk_skin") ? SubsurfaceIOR : eta;
