@@ -112,14 +112,9 @@ static void sculpt_rake_rotate(const SculptSession &ss,
 #endif
 }
 
-/**
- * Align the grab delta to the brush normal.
- *
- * \param grab_delta: Typically from `ss.cache->grab_delta_symmetry`.
- */
-static void sculpt_project_v3_normal_align(const SculptSession &ss,
-                                           const float normal_weight,
-                                           float grab_delta[3])
+void sculpt_project_v3_normal_align(const SculptSession &ss,
+                                    const float normal_weight,
+                                    float grab_delta[3])
 {
   /* Signed to support grabbing in (to make a hole) as well as out. */
   const float len_signed = dot_v3v3(ss.cache->sculpt_normal_symm, grab_delta);
@@ -772,84 +767,6 @@ void SCULPT_do_pinch_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
       do_pinch_brush_task(ob, brush, stroke_xz, nodes[i]);
-    }
-  });
-}
-
-static void do_grab_brush_task(Object &ob,
-                               const Brush &brush,
-                               const float *grab_delta,
-                               PBVHNode *node)
-{
-  using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
-
-  PBVHVertexIter vd;
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
-  const float bstrength = ss.cache->bstrength;
-
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-
-  const bool grab_silhouette = brush.flag2 & BRUSH_GRAB_SILHOUETTE;
-
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-
-    if (!sculpt_brush_test_sq_fn(test, orig_data.co)) {
-      continue;
-    }
-    auto_mask::node_update(automask_data, vd);
-
-    float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                          brush,
-                                                          orig_data.co,
-                                                          sqrtf(test.dist),
-                                                          orig_data.no,
-                                                          nullptr,
-                                                          vd.mask,
-                                                          vd.vertex,
-                                                          thread_id,
-                                                          &automask_data);
-
-    if (grab_silhouette) {
-      float silhouette_test_dir[3];
-      normalize_v3_v3(silhouette_test_dir, grab_delta);
-      if (dot_v3v3(ss.cache->initial_normal, ss.cache->grab_delta_symmetry) < 0.0f) {
-        mul_v3_fl(silhouette_test_dir, -1.0f);
-      }
-      float vno[3];
-      copy_v3_v3(vno, orig_data.no);
-      fade *= max_ff(dot_v3v3(vno, silhouette_test_dir), 0.0f);
-    }
-
-    mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-void SCULPT_do_grab_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
-{
-  using namespace blender;
-  SculptSession &ss = *ob.sculpt;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  float grab_delta[3];
-
-  copy_v3_v3(grab_delta, ss.cache->grab_delta_symmetry);
-
-  if (ss.cache->normal_weight > 0.0f) {
-    sculpt_project_v3_normal_align(ss, ss.cache->normal_weight, grab_delta);
-  }
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_grab_brush_task(ob, brush, grab_delta, nodes[i]);
     }
   });
 }

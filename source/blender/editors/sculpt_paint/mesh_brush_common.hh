@@ -49,6 +49,9 @@ struct Cache;
 void scale_translations(MutableSpan<float3> translations, Span<float> factors);
 void scale_translations(MutableSpan<float3> translations, float factor);
 void scale_factors(MutableSpan<float> factors, float strength);
+void translations_from_offset_and_factors(const float3 &offset,
+                                          Span<float> factors,
+                                          MutableSpan<float3> r_translations);
 
 /**
  * Note on the various positions arrays:
@@ -90,6 +93,7 @@ void fill_factor_from_hide_and_mask(const BMesh &bm,
 /**
  * Disable brush influence when vertex normals point away from the view.
  */
+void calc_front_face(const float3 &view_normal, Span<float3> normals, MutableSpan<float> factors);
 void calc_front_face(const float3 &view_normal,
                      Span<float3> vert_normals,
                      Span<int> vert_indices,

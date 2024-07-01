@@ -3816,7 +3816,7 @@ static void do_brush_action(const Scene &scene,
       do_inflate_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_GRAB:
-      SCULPT_do_grab_brush(sd, ob, nodes);
+      do_grab_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_ROTATE:
       SCULPT_do_rotate_brush(sd, ob, nodes);
@@ -5597,6 +5597,18 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
   SculptSession &ss = *ob.sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
+  /* Brushes that also use original coordinates and will need a "restore" step.
+   *  - SCULPT_TOOL_ROTATE
+   *  - SCULPT_TOOL_THUMB
+   *  - SCULPT_TOOL_ELASTIC_DEFORM
+   *  - SCULPT_TOOL_BOUNDARY
+   *  - SCULPT_TOOL_POSE
+   */
+  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB)) {
+    restore_from_undo_step(sd, ob);
+    return;
+  }
+
   /* For the cloth brush it makes more sense to not restore the mesh state to keep running the
    * simulation from the previous state. */
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
@@ -5969,6 +5981,7 @@ static void sculpt_stroke_update_step(bContext *C,
              SCULPT_TOOL_CLAY,
              SCULPT_TOOL_CLAY_STRIPS,
              SCULPT_TOOL_CREASE,
+             SCULPT_TOOL_GRAB,
              SCULPT_TOOL_DRAW,
              SCULPT_TOOL_FILL,
              SCULPT_TOOL_SCRAPE) &&
@@ -6778,6 +6791,17 @@ void calc_front_face(const float3 &view_normal,
 }
 
 void calc_front_face(const float3 &view_normal,
+                     const Span<float3> normals,
+                     const MutableSpan<float> factors)
+{
+  BLI_assert(normals.size() == factors.size());
+
+  for (const int i : normals.index_range()) {
+    const float dot = math::dot(view_normal, normals[i]);
+    factors[i] *= std::max(dot, 0.0f);
+  }
+}
+void calc_front_face(const float3 &view_normal,
                      const SubdivCCG &subdiv_ccg,
                      const Span<int> grids,
                      const MutableSpan<float> factors)
@@ -7304,6 +7328,16 @@ void scale_factors(const MutableSpan<float> factors, const float strength)
   }
   for (float &factor : factors) {
     factor *= strength;
+  }
+}
+void translations_from_offset_and_factors(const float3 &offset,
+                                          const Span<float> factors,
+                                          const MutableSpan<float3> r_translations)
+{
+  BLI_assert(r_translations.size() == factors.size());
+
+  for (const int i : factors.index_range()) {
+    r_translations[i] = offset * factors[i];
   }
 }
 
