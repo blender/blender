@@ -4394,7 +4394,7 @@ def km_sequencer_editor_tool_select_preview(params):
     return (
         "Sequencer Preview Tool: Tweak",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
-        {"items": []}
+        {"items": _template_items_tool_select(params, "sequencer.select", extend="toggle")}
     )
 
 
@@ -4402,7 +4402,7 @@ def km_sequencer_editor_tool_select_timeline(params):
     return (
         "Sequencer Timeline Tool: Tweak",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
-        {"items": []}
+        {"items": _template_items_tool_select(params, "sequencer.select", extend="toggle")}
     )
 
 # NOTE: duplicated from `blender_default.py`.
