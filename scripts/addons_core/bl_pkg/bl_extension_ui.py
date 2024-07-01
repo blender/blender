@@ -435,19 +435,28 @@ def addons_panel_draw_items(
 
         if is_extension:
             del bl_info
-            item_local = addon_extension_manifest_map.get(module_name)
-            item_name = item_local.name
-            item_description = item_local.tagline
-            item_tags = item_local.tags
-            item_warning_legacy = ""
-            if show_expanded:
-                item_maintainer = item_local.maintainer
-                item_version = item_local.version
-                item_doc_url = item_local.website
-                item_tracker_url = ""
+            if (item_local := addon_extension_manifest_map.get(module_name)) is not None:
+                item_name = item_local.name
+                item_description = item_local.tagline
+                item_tags = item_local.tags
+                item_warning_legacy = ""
+                if show_expanded:
+                    item_maintainer = item_local.maintainer
+                    item_version = item_local.version
+                    item_doc_url = item_local.website
+                    item_tracker_url = ""
 
-                if USE_ADDON_IGNORE_EXTENSION_MANIFEST_HACK:
-                    item_doc_url = addon_ignore_manifest_website_hack_remote_or_default(module_name, item_doc_url)
+                    if USE_ADDON_IGNORE_EXTENSION_MANIFEST_HACK:
+                        item_doc_url = addon_ignore_manifest_website_hack_remote_or_default(module_name, item_doc_url)
+            else:
+                item_name = module_name
+                item_description = ""
+                item_tags = ()
+                item_warning_legacy = "Unable to parse the manifest"
+                item_maintainer = ""
+                item_version = "0.0.0"
+                item_doc_url = ""
+                item_tracker_url = ""
 
             del item_local
         else:
