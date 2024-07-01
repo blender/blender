@@ -156,7 +156,7 @@ void BKE_main_idmap_insert_id(IDNameLib_Map *id_map, ID *id)
   }
 }
 
-void BKE_main_idmap_remove_id(IDNameLib_Map *id_map, ID *id)
+void BKE_main_idmap_remove_id(IDNameLib_Map *id_map, const ID *id)
 {
   if (id_map->idmap_types & MAIN_IDMAP_TYPE_NAME) {
     const short id_type = GS(id->name);
@@ -258,14 +258,31 @@ ID *BKE_main_idmap_lookup_uid(IDNameLib_Map *id_map, const uint session_uid)
   return nullptr;
 }
 
+void BKE_main_idmap_clear(IDNameLib_Map &id_map)
+{
+  if (id_map.idmap_types & MAIN_IDMAP_TYPE_NAME) {
+    for (IDNameLib_TypeMap &type_map : id_map.type_maps) {
+      if (type_map.map) {
+        BLI_ghash_clear(type_map.map, nullptr, nullptr);
+      }
+    }
+  }
+  if (id_map.idmap_types & MAIN_IDMAP_TYPE_UID) {
+    BLI_ghash_clear(id_map.uid_map, nullptr, nullptr);
+  }
+
+  if (id_map.valid_id_pointers != nullptr) {
+    BLI_gset_clear(id_map.valid_id_pointers, nullptr);
+  }
+}
+
 void BKE_main_idmap_destroy(IDNameLib_Map *id_map)
 {
   if (id_map->idmap_types & MAIN_IDMAP_TYPE_NAME) {
-    IDNameLib_TypeMap *type_map = id_map->type_maps;
-    for (int i = 0; i < INDEX_ID_MAX; i++, type_map++) {
-      if (type_map->map) {
-        BLI_ghash_free(type_map->map, nullptr, nullptr);
-        type_map->map = nullptr;
+    for (IDNameLib_TypeMap &type_map : id_map->type_maps) {
+      if (type_map.map) {
+        BLI_ghash_free(type_map.map, nullptr, nullptr);
+        type_map.map = nullptr;
       }
     }
     if (id_map->type_maps_keys_pool != nullptr) {
