@@ -130,6 +130,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::extern::fmtlib
   bf_realtime_compositor
 )
 
