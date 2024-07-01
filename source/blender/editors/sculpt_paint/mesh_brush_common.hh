@@ -65,8 +65,13 @@ void translations_from_offset_and_factors(const float3 &offset,
 void gather_grids_positions(const SubdivCCG &subdiv_ccg,
                             Span<int> grids,
                             MutableSpan<float3> positions);
-
 void gather_bmesh_positions(const Set<BMVert *, 0> &verts, MutableSpan<float3> positions);
+
+/** Fill the output array with all normals in the grids referenced by the indices. */
+void gather_grids_normals(const SubdivCCG &subdiv_ccg,
+                          Span<int> grids,
+                          MutableSpan<float3> normals);
+void gather_bmesh_normals(const Set<BMVert *, 0> &verts, MutableSpan<float3> normals);
 
 /**
  * Calculate initial influence factors based on vertex visibility.

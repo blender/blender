@@ -6645,6 +6645,32 @@ void gather_bmesh_positions(const Set<BMVert *, 0> &verts, const MutableSpan<flo
   }
 }
 
+void gather_grids_normals(const SubdivCCG &subdiv_ccg,
+                          const Span<int> grids,
+                          const MutableSpan<float3> normals)
+{
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  BLI_assert(grids.size() * key.grid_area == normals.size());
+
+  for (const int i : grids.index_range()) {
+    CCGElem *elem = elems[grids[i]];
+    const int start = i * key.grid_area;
+    for (const int offset : IndexRange(key.grid_area)) {
+      normals[start + offset] = CCG_elem_offset_no(key, elem, offset);
+    }
+  }
+}
+
+void gather_bmesh_normals(const Set<BMVert *, 0> &verts, const MutableSpan<float3> normals)
+{
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    normals[i] = vert->no;
+    i++;
+  }
+}
+
 void fill_factor_from_hide(const Mesh &mesh,
                            const Span<int> verts,
                            const MutableSpan<float> r_factors)
