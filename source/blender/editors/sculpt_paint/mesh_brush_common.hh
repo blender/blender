@@ -30,6 +30,7 @@
  * new value from scratch.
  */
 
+struct BMesh;
 struct BMVert;
 struct Brush;
 struct Mesh;
@@ -38,6 +39,7 @@ struct PBVH;
 struct PBVHNode;
 struct Sculpt;
 struct SculptSession;
+struct SubdivCCG;
 
 namespace blender::ed::sculpt_paint {
 struct StrokeCache;
