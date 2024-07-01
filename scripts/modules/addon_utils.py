@@ -12,6 +12,7 @@ __all__ = (
     "disable_all",
     "reset_all",
     "module_bl_info",
+    "extensions_refresh",
 )
 
 import bpy as _bpy
@@ -21,6 +22,10 @@ error_encoding = False
 # (name, file, path)
 error_duplicates = []
 addons_fake_modules = {}
+
+# Global cached extensions, set before loading extensions on startup.
+# `{addon_module_name: "Reason for incompatibility", ...}`
+_extensions_incompatible = {}
 
 
 # called only once at startup, avoids calling 'reset_all', correct but slower.
@@ -309,8 +314,6 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     import importlib
     from bpy_restrict_state import RestrictBlend
 
-    is_extension = module_name.startswith(_ext_base_pkg_idname_with_dot)
-
     if handle_error is None:
         def handle_error(ex):
             if isinstance(ex, ImportError):
@@ -322,6 +325,18 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                     return
             import traceback
             traceback.print_exc()
+
+    if (is_extension := module_name.startswith(_ext_base_pkg_idname_with_dot)):
+        # Ensure the extensions are compatible.
+        if _extensions_incompatible:
+            if (error := _extensions_incompatible.get(
+                    module_name[len(_ext_base_pkg_idname_with_dot):].partition(".")[0::2],
+            )):
+                try:
+                    raise RuntimeError("Extension {:s} is incompatible ({:s})".format(module_name, error))
+                except RuntimeError as ex:
+                    handle_error(ex)
+                    return None
 
     # reload if the mtime changes
     mod = sys.modules.get(module_name)
@@ -540,6 +555,10 @@ def reset_all(*, reload_scripts=False):
     modules._is_first = True
     addons_fake_modules.clear()
 
+    # Update extensions compatibility (after reloading preferences).
+    # Potentially refreshing wheels too.
+    _initialize_extensions_compat_data(_bpy.utils.user_resource('EXTENSIONS'), True, None)
+
     for path, pkg_id in _paths_with_extension_repos():
         if not pkg_id:
             _bpy.utils._sys_path_ensure_append(path)
@@ -652,6 +671,336 @@ def module_bl_info(mod, *, info_basis=None):
 
     addon_info["_init"] = None
     return addon_info
+
+
+# -----------------------------------------------------------------------------
+# Extension Pre-Flight Compatibility Check
+#
+# Check extension compatibility on startup so any extensions which are incompatible with Blender are marked as
+# incompatible and wont be loaded. This cache avoids having to scan all extensions on startup on *every* startup.
+#
+# Implementation:
+#
+# The emphasis for this cache is to have minimum overhead for the common case where:
+# - The simple case where there are no extensions enabled (running tests, background tasks etc).
+# - The more involved case where extensions are enabled and have not changed since last time Blender started.
+#   In this case do as little as possible since it runs on every startup, the following steps are unavoidable.
+# - When reading compatibility cache, then run the following tests, regenerating when changes are detected.
+#   - Compare with previous blender version/platform.
+#   - Stat the manifests of all enabled extensions, testing that their modification-time and size are unchanged.
+# - When any changes are detected,
+#   regenerate compatibility information which does more expensive operations
+#   (loading manifests, check version ranges etc).
+#
+# Other notes:
+#
+# - This internal format may change at any point, regenerating the cache should be reasonably fast
+#   but may introduce a small but noticeable pause on startup for user configurations that contain many extensions.
+# - Failure to load will simply ignore the file and regenerate the file as needed.
+#
+# Format:
+#
+# - The cache is ZLIB compressed pickled Python dictionary.
+# - The dictionary keys are as follows:
+#   `"blender": (bpy.app.version, platform.system(), platform.machine(), python_version, magic_number)`
+#   `"filesystem": [(repo_module, pkg_id, manifest_time, manifest_size), ...]`
+#   `"incompatible": {(repo_module, pkg_id): "Reason for being incompatible", ...}`
+#
+
+
+def _pickle_zlib_file_read(filepath):
+    import pickle
+    import gzip
+
+    with gzip.GzipFile(filepath, "rb") as fh:
+        data = pickle.load(fh)
+    return data
+
+
+def _pickle_zlib_file_write(filepath, data) -> None:
+    import pickle
+    import gzip
+
+    with gzip.GzipFile(filepath, "wb", compresslevel=9) as fh:
+        pickle.dump(data, fh)
+
+
+def _extension_repos_module_to_directory_map():
+    return {repo.module: repo.directory for repo in _preferences.extensions.repos if repo.enabled}
+
+
+def _extension_compat_cache_update_needed(
+        cache_data,  # `Dict[str, Any]`
+        blender_id,  # `Tuple[Any, ...]`
+        extensions_enabled,  # `Set[Tuple[str, str]]`
+        print_debug,  # `Optional[Callable[[Any], None]]`
+):  # `-> bool`
+
+    # Detect when Blender itself changes.
+    if cache_data.get("blender") != blender_id:
+        if print_debug is not None:
+            print_debug("blender changed")
+        return True
+
+    # Detect when any of the extensions paths change.
+    cache_filesystem = cache_data.get("filesystem", [])
+
+    # Avoid touching the file-system if at all possible.
+    # When the length is the same and all cached ID's are in this set, we can be sure they are a 1:1 patch.
+    if len(cache_filesystem) != len(extensions_enabled):
+        if print_debug is not None:
+            print_debug("length changes ({:d} -> {:d}).".format(len(cache_filesystem), len(extensions_enabled)))
+        return True
+
+    from os import stat
+    from os.path import join
+    repos_module_to_directory_map = _extension_repos_module_to_directory_map()
+
+    for repo_module, pkg_id, cache_stat_time, cache_stat_size in cache_filesystem:
+        if (repo_module, pkg_id) not in extensions_enabled:
+            if print_debug is not None:
+                print_debug("\"{:s}.{:s}\" no longer enabled.".format(repo_module, pkg_id))
+            return True
+
+        if repo_directory := repos_module_to_directory_map.get(repo_module, ""):
+            pkg_manifest_filepath = join(repo_directory, pkg_id, _ext_manifest_filename_toml)
+        else:
+            pkg_manifest_filepath = ""
+
+        # It's possible an extension has been set as an add-on but cannot find the repository it came from.
+        # In this case behave as if the file can't be found (because it can't) instead of ignoring it.
+        # This is done because it's important to match.
+        if pkg_manifest_filepath:
+            try:
+                statinfo = stat(pkg_manifest_filepath)
+            except Exception:
+                statinfo = None
+        else:
+            statinfo = None
+
+        if statinfo is None:
+            test_time = 0
+            test_size = 0
+        else:
+            test_time = statinfo.st_mtime
+            test_size = statinfo.st_size
+
+        # Detect changes to any files manifest.
+        if cache_stat_time != test_time:
+            if print_debug is not None:
+                print_debug("\"{:s}.{:s}\" time changed ({:g} -> {:g}).".format(
+                    repo_module, pkg_id, cache_stat_time, test_time,
+                ))
+            return True
+        if cache_stat_size != test_size:
+            if print_debug is not None:
+                print_debug("\"{:s}.{:s}\" size changed ({:d} -> {:d}).".format(
+                    repo_module, pkg_id, cache_stat_size, test_size,
+                ))
+            return True
+
+    return False
+
+
+# This function should not run every startup, so it can afford to be slower,
+# although users should not have to wait for it either.
+def _extension_compat_cache_create(
+        blender_id,  # `Tuple[Any, ...]`
+        extensions_enabled,  # `Set[Tuple[str, str]]`
+        wheel_list,  # `List[Tuple[str, List[str]]]`
+        print_debug,  # `Optional[Callable[[Any], None]]`
+):  # `-> Dict[str, Any]`
+    import os
+    from os.path import join
+
+    filesystem = []
+    incompatible = {}
+
+    cache_data = {
+        "blender": blender_id,
+        "filesystem": filesystem,
+        "incompatible": incompatible,
+    }
+
+    repos_module_to_directory_map = _extension_repos_module_to_directory_map()
+
+    for repo_module, pkg_id in extensions_enabled:
+        if repo_directory := repos_module_to_directory_map.get(repo_module, ""):
+            pkg_manifest_filepath = join(repo_directory, pkg_id, _ext_manifest_filename_toml)
+        else:
+            pkg_manifest_filepath = ""
+            if print_debug is not None:
+                print_debug("directory for module \"{:s}\" not found!".format(repo_module))
+
+        if pkg_manifest_filepath:
+            try:
+                statinfo = os.stat(pkg_manifest_filepath)
+            except Exception:
+                statinfo = None
+                if print_debug is not None:
+                    print_debug("unable to find \"{:s}\"".format(pkg_manifest_filepath))
+        else:
+            statinfo = None
+
+        if statinfo is None:
+            test_time = 0.0
+            test_size = 0.0
+        else:
+            test_time = statinfo.st_mtime
+            test_size = statinfo.st_size
+            # Store the reason for failure, to print when attempting to load.
+            from bl_pkg import manifest_compatible_with_wheel_data_or_error
+            if (error := manifest_compatible_with_wheel_data_or_error(
+                    pkg_manifest_filepath,
+                    repo_module,
+                    pkg_id,
+                    repo_directory,
+                    wheel_list,
+            )) is not None:
+                incompatible[(repo_module, pkg_id)] = error
+
+        filesystem.append((repo_module, pkg_id, test_time, test_size))
+
+    return cache_data
+
+
+def _initialize_extensions_compat_ensure_up_to_date(extensions_directory, extensions_enabled, print_debug):
+    import os
+    import platform
+    import sys
+
+    global _extensions_incompatible
+
+    updated = False
+    wheel_list = []
+
+    # Number to bump to change this format and force re-generation.
+    magic_number = 0
+
+    blender_id = (_bpy.app.version, platform.system(), platform.machine(), sys.version_info[0:2], magic_number)
+
+    filepath_compat = os.path.join(extensions_directory, ".cache", "compat.dat")
+
+    # Cache data contains a dict of:
+    # {
+    #   "blender": (...)
+    #   "paths": [path data to detect changes]
+    #   "incompatible": {set of incompatible extensions}
+    # }
+    if os.path.exists(filepath_compat):
+        try:
+            cache_data = _pickle_zlib_file_read(filepath_compat)
+        except Exception as ex:
+            cache_data = None
+            # While this should not happen continuously (that would point to writing invalid cache),
+            # it is not a problem if there is some corruption with the cache and it needs to be re-generated.
+            # Show a message since this should be a rare occurrence - if it happens often it's likely to be a bug.
+            print("Extensions: reading cache failed ({:s}), creating...".format(str(ex)))
+    else:
+        cache_data = None
+        if print_debug is not None:
+            print_debug("doesn't exist, creating...")
+
+    if cache_data is not None:
+        # NOTE: the exception handling here is fairly paranoid and accounts for invalid values in the loaded cache.
+        # An example would be values expected to be lists/dictionaries being other types (None or strings for e.g.).
+        # While this should not happen, some bad value should not prevent Blender from loading properly,
+        # so report the error and regenerate cache.
+        try:
+            if _extension_compat_cache_update_needed(cache_data, blender_id, extensions_enabled, print_debug):
+                cache_data = None
+        except Exception as ex:
+            print("Extension: unexpected error reading cache, this is is a bug! (regenerating)")
+            import traceback
+            traceback.print_exc()
+            cache_data = None
+
+    if cache_data is None:
+        cache_data = _extension_compat_cache_create(blender_id, extensions_enabled, wheel_list, print_debug)
+        try:
+            os.makedirs(os.path.dirname(filepath_compat), exist_ok=True)
+            _pickle_zlib_file_write(filepath_compat, cache_data)
+            if print_debug is not None:
+                print_debug("update written to disk.")
+        except Exception as ex:
+            # Should be rare but should not cause this function to fail.
+            print("Extensions: writing cache failed ({:s}).".format(str(ex)))
+
+        # Set to true even when not written to disk as the run-time data *has* been updated,
+        # cache will attempt to be generated next time this is called.
+        updated = True
+    else:
+        if print_debug is not None:
+            print_debug("up to date.")
+
+    _extensions_incompatible = cache_data["incompatible"]
+
+    return updated, wheel_list
+
+
+def _initialize_extensions_compat_ensure_up_to_date_wheels(extensions_directory, wheel_list):
+    import os
+    _extension_sync_wheels(
+        local_dir=os.path.join(extensions_directory, ".local"),
+        wheel_list=wheel_list,
+    )
+
+
+def _initialize_extensions_compat_data(extensions_directory, ensure_wheels, addon_modules_pending):
+    # WARNING: this function must *never* raise an exception because it would interfere with low level initialization.
+    # As the function deals with file IO, use what are typically over zealous exception checks so as to rule out
+    # interfering with Blender loading properly in unexpected cases such as disk-full, read-only file-system
+    # or any other rare but possible scenarios.
+
+    _extensions_incompatible.clear()
+
+    # Create a set of all extension ID's.
+    extensions_enabled = set()
+    extensions_prefix_len = len(_ext_base_pkg_idname_with_dot)
+    for addon in _preferences.addons:
+        module_name = addon.module
+        if check_extension(module_name):
+            extensions_enabled.add(module_name[extensions_prefix_len:].partition(".")[0::2])
+
+    if addon_modules_pending is not None:
+        for module_name in addon_modules_pending:
+            if check_extension(module_name):
+                extensions_enabled.add(module_name[extensions_prefix_len:].partition(".")[0::2])
+
+    print_debug = (
+        (lambda *args, **kwargs: print("Extension version cache:", *args, **kwargs)) if _bpy.app.debug_python else
+        None
+    )
+
+    # Early exit, use for automated tests.
+    # Avoid (relatively) expensive file-system scanning if at all possible.
+    if not extensions_enabled:
+        if print_debug is not None:
+            print_debug("no extensions, skipping cache data.")
+        return
+
+    # While this isn't expected to fail, any failure here is a bug
+    # but it should not cause Blender's startup to fail.
+    try:
+        updated, wheel_list = _initialize_extensions_compat_ensure_up_to_date(
+            extensions_directory,
+            extensions_enabled,
+            print_debug,
+        )
+    except Exception as ex:
+        print("Extension: unexpected error detecting cache, this is is a bug!")
+        import traceback
+        traceback.print_exc()
+        updated = False
+
+    if ensure_wheels:
+        if updated:
+            try:
+                _initialize_extensions_compat_ensure_up_to_date_wheels(extensions_directory, wheel_list)
+            except Exception as ex:
+                print("Extension: unexpected error updating wheels, this is is a bug!")
+                import traceback
+                traceback.print_exc()
 
 
 # -----------------------------------------------------------------------------
@@ -1149,7 +1498,7 @@ def _initialize_extension_repos_post(*_, is_first=False):
         modules._is_first = True
 
 
-def _initialize_extensions_site_packages(*, create=False):
+def _initialize_extensions_site_packages(*, extensions_directory, create=False):
     # Add extension site-packages to `sys.path` (if it exists).
     # Use for wheels.
     import os
@@ -1161,7 +1510,7 @@ def _initialize_extensions_site_packages(*, create=False):
     # so this can't simply be treated as a module directory unless those files would be excluded
     # which may interfere with the wheels functionality.
     site_packages = os.path.join(
-        _bpy.utils.user_resource('EXTENSIONS'),
+        extensions_directory,
         ".local",
         "lib",
         "python{:d}.{:d}".format(sys.version_info.major, sys.version_info.minor),
@@ -1205,8 +1554,13 @@ def _initialize_extensions_repos_once():
     module_handle.register_module()
     _ext_global.module_handle = module_handle
 
+    extensions_directory = _bpy.utils.user_resource('EXTENSIONS')
+
     # Ensure extensions wheels can be loaded (when found).
-    _initialize_extensions_site_packages()
+    _initialize_extensions_site_packages(extensions_directory=extensions_directory)
+
+    # Ensure extension compatibility data has been loaded and matches the manifests.
+    _initialize_extensions_compat_data(extensions_directory, True, None)
 
     # Setup repositories for the first time.
     # Intentionally don't call `_initialize_extension_repos_pre` as this is the first time,
@@ -1216,3 +1570,16 @@ def _initialize_extensions_repos_once():
     # Internal handlers intended for Blender's own handling of repositories.
     _bpy.app.handlers._extension_repos_update_pre.append(_initialize_extension_repos_pre)
     _bpy.app.handlers._extension_repos_update_post.append(_initialize_extension_repos_post)
+
+
+# -----------------------------------------------------------------------------
+# Extension Public API
+
+def extensions_refresh(ensure_wheels=True, addon_modules_pending=None):
+
+    # Ensure any changes to extensions refresh `_extensions_incompatible`.
+    _initialize_extensions_compat_data(
+        _bpy.utils.user_resource('EXTENSIONS'),
+        ensure_wheels=ensure_wheels,
+        addon_modules_pending=addon_modules_pending,
+    )
