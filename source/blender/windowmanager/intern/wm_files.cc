@@ -4032,7 +4032,7 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
       uiItemS_ex(layout, 1.4f);
     }
 
-    uiItemL(layout, RPT_("This file is managed by the Blender asset system."), ICON_NONE);
+    uiItemL(layout, RPT_("This file is managed by the Blender asset system"), ICON_NONE);
     uiItemL(layout, RPT_("and is expected to contain a single asset data-block."), ICON_NONE);
     uiItemL(layout, RPT_("Take care to avoid data loss when editing assets."), ICON_NONE);
   }
