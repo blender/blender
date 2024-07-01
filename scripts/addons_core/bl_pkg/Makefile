@@ -13,7 +13,6 @@ PY_FILES=$(shell find ./ -type f -name '*.py')
 PY_FILES_MYPY=$(filter-out \
 	./__init__.py \
 	./bl_extension_cli.py \
-	./bl_extension_local.py \
 	./bl_extension_monkeypatch.py \
 	./bl_extension_notify.py \
 	./bl_extension_ops.py \
@@ -27,8 +26,7 @@ PY_FILES_MYPY=$(filter-out \
 
 PY_FILES_MYPY_STANDALONE= \
 	./bl_extension_utils.py \
-	./bl_extension_cli.py \
-	./wheel_manager.py
+	./bl_extension_cli.py
 
 EXTRA_WATCH_FILES=Makefile
 
