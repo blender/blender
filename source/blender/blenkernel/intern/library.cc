@@ -8,6 +8,8 @@
  * Contains code specific to the `Library` ID type.
  */
 
+#include <optional>
+
 /* all types are needed here, in order to do memory operations */
 #include "DNA_ID.h"
 
@@ -48,6 +50,32 @@ static void library_free_data(ID *id)
   }
 }
 
+static void library_copy_data(Main *bmain,
+                              std::optional<Library *> owner_library,
+                              ID *id_dst,
+                              const ID *id_src,
+                              int /*flag*/)
+{
+  /* Libraries are always local IDs. */
+  BLI_assert(!owner_library || *owner_library == nullptr);
+  UNUSED_VARS_NDEBUG(owner_library);
+
+  const Library *library_src = reinterpret_cast<const Library *>(id_src);
+
+  /* Libraries are copyable now, but there should still be only one library ID for each linked
+   * blendfile (based on absolute filepath). */
+  BLI_assert(!bmain || BLI_findstring(&bmain->libraries,
+                                      library_src->runtime.filepath_abs,
+                                      offsetof(Library, runtime.filepath_abs)) == nullptr);
+
+  Library *library_dst = reinterpret_cast<Library *>(id_dst);
+  if (library_src->packedfile) {
+    library_dst->packedfile = BKE_packedfile_duplicate(library_src->packedfile);
+  }
+  library_dst->runtime.filedata = nullptr;
+  library_dst->runtime.name_map = nullptr;
+}
+
 static void library_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Library *lib = (Library *)id;
@@ -86,12 +114,11 @@ IDTypeInfo IDType_ID_LI = {
     /*name*/ "Library",
     /*name_plural*/ N_("libraries"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_LIBRARY,
-    /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA |
-        IDTYPE_FLAGS_NEVER_UNUSED,
+    /*flags*/ IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_NEVER_UNUSED,
     /*asset_type_info*/ nullptr,
 
     /*init_data*/ nullptr,
-    /*copy_data*/ nullptr,
+    /*copy_data*/ library_copy_data,
     /*free_data*/ library_free_data,
     /*make_local*/ nullptr,
     /*foreach_id*/ library_foreach_id,
