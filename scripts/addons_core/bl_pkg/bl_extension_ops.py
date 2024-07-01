@@ -2729,7 +2729,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
     def _draw_override_after_sync(
             self,
             *,
-            _context,  # `bpy.types.Context`
+            context,  # `bpy.types.Context`
             remote_url,   # `Optional[str]`
             repo_from_url_name,  # `str`
             url,  # `str`
@@ -2738,6 +2738,9 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         from .bl_extension_utils import (
             platform_from_this_system,
         )
+
+        # Quiet unused warning.
+        _ = context
 
         # The parameters have already been handled.
         repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
