@@ -20,6 +20,7 @@
 
 #include "BKE_blendfile.hh"
 #include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
@@ -33,6 +34,8 @@
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
+
+using namespace blender::bke::blendfile;
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -128,99 +131,53 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
 
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path_from_global());
 
-  BKE_blendfile_write_partial_begin(bmain_src);
+  PartialWriteContext partial_write_ctx{bmain_src->filepath};
+  const PartialWriteContext::IDAddOptions add_options{PartialWriteContext::IDAddOperations(
+      PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES |
+      (use_fake_user ? PartialWriteContext::IDAddOperations::SET_FAKE_USER : 0))};
 
-  /* array of ID's and backup any data we modify */
-  struct IDStore {
-    ID *id;
-    /* original values */
-    short id_flag;
-    short id_us;
-  } *id_store_array, *id_store;
-  int id_store_len = 0;
+  Py_ssize_t pos, hash;
+  PyObject *key;
+  ID *id = nullptr;
 
-  PyObject *ret;
-  int retval = 0;
-
-  /* collect all id data from the set and store in 'id_store_array' */
-  {
-    Py_ssize_t pos, hash;
-    PyObject *key;
-
-    id_store_array = static_cast<IDStore *>(
-        MEM_mallocN(sizeof(*id_store_array) * PySet_Size(datablocks), __func__));
-    id_store = id_store_array;
-
-    pos = hash = 0;
-    while (_PySet_NextEntry(datablocks, &pos, &key, &hash)) {
-
-      if (!pyrna_id_FromPyObject(key, &id_store->id)) {
-        PyErr_Format(PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(key)->tp_name);
-        ret = nullptr;
-        goto finally;
-      }
-      else {
-        id_store->id_flag = id_store->id->flag;
-        id_store->id_us = id_store->id->us;
-
-        if (use_fake_user) {
-          id_store->id->flag |= LIB_FAKEUSER;
-        }
-        id_store->id->us = 1;
-
-        BKE_blendfile_write_partial_tag_ID(id_store->id, true);
-
-        id_store_len += 1;
-        id_store++;
-      }
+  pos = hash = 0;
+  while (_PySet_NextEntry(datablocks, &pos, &key, &hash)) {
+    if (!pyrna_id_FromPyObject(key, &id)) {
+      PyErr_Format(PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(key)->tp_name);
+      return nullptr;
+    }
+    else {
+      partial_write_ctx.id_add(id, add_options, nullptr);
     }
   }
+  BLI_assert(partial_write_ctx.is_valid());
 
   /* write blend */
   ReportList reports;
 
   BKE_reports_init(&reports, RPT_STORE);
-  retval = BKE_blendfile_write_partial(
-      bmain_src, filepath_abs, write_flags, path_remap.value_found, &reports);
+  bool success = partial_write_ctx.write(
+      filepath_abs, write_flags, path_remap.value_found, reports);
 
   /* cleanup state */
   BKE_blendfile_write_partial_end(bmain_src);
 
-  if (retval) {
+  PyObject *py_return_value;
+  if (success) {
     BKE_reports_print(&reports, RPT_ERROR_ALL);
-    ret = Py_None;
-    Py_INCREF(ret);
+    py_return_value = Py_None;
+    Py_INCREF(py_return_value);
   }
   else {
     if (BPy_reports_to_error(&reports, PyExc_IOError, false) == 0) {
       PyErr_SetString(PyExc_IOError, "Unknown error writing library data");
     }
-    ret = nullptr;
+    py_return_value = nullptr;
   }
 
   BKE_reports_free(&reports);
 
-finally:
-
-  /* clear all flags for ID's added to the store (may run on error too) */
-  id_store = id_store_array;
-
-  for (int i = 0; i < id_store_len; id_store++, i++) {
-
-    if (use_fake_user) {
-      if ((id_store->id_flag & LIB_FAKEUSER) == 0) {
-        id_store->id->flag &= ~LIB_FAKEUSER;
-      }
-    }
-
-    id_store->id->us = id_store->id_us;
-
-    BKE_blendfile_write_partial_tag_ID(id_store->id, false);
-  }
-
-  MEM_freeN(id_store_array);
-
-  return ret;
+  return py_return_value;
 }
 
 #if (defined(__GNUC__) && !defined(__clang__))
