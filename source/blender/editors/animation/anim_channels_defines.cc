@@ -4251,7 +4251,7 @@ static void acf_nlaaction_name(bAnimListElem *ale, char *name)
       BLI_strncpy(name, act->id.name + 2, ANIM_CHAN_NAME_SIZE);
     }
     else {
-      BLI_strncpy(name, "<No Action>", ANIM_CHAN_NAME_SIZE);
+      BLI_strncpy(name, IFACE_("<No Action>"), ANIM_CHAN_NAME_SIZE);
     }
   }
 }

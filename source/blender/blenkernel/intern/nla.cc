@@ -1845,16 +1845,16 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
   if (strip->name[0] == 0) {
     switch (strip->type) {
       case NLASTRIP_TYPE_CLIP: /* act-clip */
-        STRNCPY(strip->name, (strip->act) ? (strip->act->id.name + 2) : ("<No Action>"));
+        STRNCPY(strip->name, (strip->act) ? (strip->act->id.name + 2) : DATA_("<No Action>"));
         break;
       case NLASTRIP_TYPE_TRANSITION: /* transition */
-        STRNCPY(strip->name, "Transition");
+        STRNCPY(strip->name, DATA_("Transition"));
         break;
       case NLASTRIP_TYPE_META: /* meta */
-        STRNCPY(strip->name, "Meta");
+        STRNCPY(strip->name, DATA_("Meta"));
         break;
       default:
-        STRNCPY(strip->name, "NLA Strip");
+        STRNCPY(strip->name, DATA_("NLA Strip"));
         break;
     }
   }
