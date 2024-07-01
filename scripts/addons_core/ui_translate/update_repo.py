@@ -77,7 +77,7 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
                 self.settings.to_json(),
             )
             # Not working (UI is not refreshed...).
-            #self.report({'INFO'}, "Extracting messages, this will take some time...")
+            # self.report({'INFO'}, "Extracting messages, this will take some time...")
             context.window_manager.progress_update(1)
             ret = subprocess.run(cmmd, env=env)
             if ret.returncode != 0:
