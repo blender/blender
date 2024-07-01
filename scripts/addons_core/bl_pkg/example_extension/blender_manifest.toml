@@ -13,7 +13,7 @@ license = [
     "SPDX:CC-0",
 ]
 copyright = [
-    "Developer Name",
+    "2020-2024 Developer Name",
 ]
 
 [permissions]
