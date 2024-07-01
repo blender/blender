@@ -570,6 +570,7 @@ def pkg_install_files(
         *,
         directory: str,
         files: Sequence[str],
+        blender_version: Tuple[int, int, int],
         use_idle: bool,
 ) -> Generator[InfoItemSeq, None, None]:
     """
@@ -579,6 +580,7 @@ def pkg_install_files(
     yield from command_output_from_json_0([
         "install-files", *files,
         "--local-dir", directory,
+        "--blender-version", "{:d}.{:d}.{:d}".format(*blender_version),
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
 
