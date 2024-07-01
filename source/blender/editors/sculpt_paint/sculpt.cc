@@ -1460,14 +1460,16 @@ static void restore_position(Object &object, const Span<PBVHNode *> nodes)
       break;
     }
     case PBVH_BMESH: {
-      for (PBVHNode *node : nodes) {
-        if (undo::get_node(node, undo::Type::Position)) {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
           for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
-            copy_v3_v3(vert->co, BM_log_original_vert_co(ss.bm_log, vert));
+            if (const float *orig_co = BM_log_find_original_vert_co(ss.bm_log, vert)) {
+              copy_v3_v3(vert->co, orig_co);
+            }
           }
           BKE_pbvh_node_mark_positions_update(node);
         }
-      }
+      });
       break;
     }
     case PBVH_GRIDS: {
