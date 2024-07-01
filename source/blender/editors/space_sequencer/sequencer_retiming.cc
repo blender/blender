@@ -137,6 +137,10 @@ static bool retiming_poll(bContext *C)
   return true;
 }
 
+/*-------------------------------------------------------------------- */
+/** \name Retiming Reset
+ * \{ */
+
 static void retiming_key_overlap(Scene *scene, Sequence *seq)
 {
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
@@ -149,19 +153,18 @@ static void retiming_key_overlap(Scene *scene, Sequence *seq)
   SEQ_transform_handle_overlap(scene, seqbase, strips, dependant, true);
 }
 
-/*-------------------------------------------------------------------- */
-/** \name Retiming Reset
- * \{ */
-
 static int sequencer_retiming_reset_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = ed->act_seq;
 
-  SEQ_retiming_data_clear(seq);
+  for (Sequence *seq : SEQ_query_selected_strips(ed->seqbasep)) {
+    if (SEQ_retiming_is_allowed(seq)) {
+      SEQ_retiming_data_clear(seq);
+      retiming_key_overlap(scene, seq);
+    }
+  }
 
-  retiming_key_overlap(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   return OPERATOR_FINISHED;
 }
