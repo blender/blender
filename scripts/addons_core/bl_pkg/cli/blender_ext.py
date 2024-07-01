@@ -2787,7 +2787,7 @@ class subcmd_server:
                 parsed_url = urllib.parse.urlparse(manifest_dict["archive_url"])
                 # We could support existing values, currently always empty.
                 # `query = dict(urllib.parse.parse_qsl(parsed_url.query))`
-                query = {"repository": "/index.json"}
+                query = {"repository": "./index.json"}
                 if (value := manifest_dict.get("blender_version_min", "")):
                     query["blender_version_min"] = value
                 if (value := manifest_dict.get("blender_version_max", "")):
