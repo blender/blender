@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -1649,10 +1649,6 @@ msgid "Add liquid"
 msgstr "Voeg vloeistof toe"
 
 
-msgid "Generated"
-msgstr "Gegenereerd"
-
-
 msgid "Set Size"
 msgstr "Grootte Instellen"
 
@@ -1711,6 +1707,10 @@ msgstr "Framenummer"
 
 msgid "Breakdown"
 msgstr "Afbreken"
+
+
+msgid "Generated"
+msgstr "Gegenereerd"
 
 
 msgid "Grease Pencil Layer"
@@ -2301,10 +2301,6 @@ msgstr "2D Lagen"
 
 msgid "3D Location"
 msgstr "3D Locatie"
-
-
-msgid "Movie"
-msgstr "Film"
 
 
 msgctxt "Light"
@@ -5089,6 +5085,11 @@ msgstr "Rook & Vuur"
 
 
 msgctxt "Operator"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "Maak Rotatie Schoon"
 
@@ -7309,6 +7310,44 @@ msgid "Contributions"
 msgstr "Bijdragen"
 
 
+msgid "Description:"
+msgstr "Beschrijving:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Author:"
+msgstr "Auteur:"
+
+
+msgid "Version:"
+msgstr "Versie:"
+
+
+msgid "Warning:"
+msgstr "Waarschuwing:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentatie"
+
+
+msgid "File:"
+msgstr "Bestand:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Toevoegen"
+
+
+msgid "Options:"
+msgstr "Opties:"
+
+
 msgctxt "Operator"
 msgid "Load"
 msgstr "Laden"
@@ -7317,11 +7356,6 @@ msgstr "Laden"
 msgctxt "Operator"
 msgid "Invert Selection"
 msgstr "Keer Selectie Om"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Nieuw"
 
 
 msgid "No camera found"
@@ -7692,10 +7726,6 @@ msgstr "Toon Banen"
 msgctxt "Operator"
 msgid "Unlock Tracks"
 msgstr "Ontgrendel Banen"
-
-
-msgid "Options:"
-msgstr "Opties:"
 
 
 msgctxt "Operator"
@@ -8155,37 +8185,8 @@ msgid ":"
 msgstr ":"
 
 
-msgid "Description:"
-msgstr "Beschrijving:"
-
-
 msgid "Location:"
 msgstr "Locatie:"
-
-
-msgid "File:"
-msgstr "Bestand:"
-
-
-msgid "Author:"
-msgstr "Auteur:"
-
-
-msgid "Version:"
-msgstr "Versie:"
-
-
-msgid "Warning:"
-msgstr "Waarschuwing:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentatie"
 
 
 msgctxt "Operator"
@@ -8622,11 +8623,6 @@ msgstr "Ouders"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Snel Bewerken"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Toevoegen"
 
 
 msgid "User Library"
@@ -9273,6 +9269,10 @@ msgstr "Sleutel"
 
 msgid "Point is not found in given spline"
 msgstr "Punt is niet gevonden voor de opgegeven Spline"
+
+
+msgid "Movie"
+msgstr "Film"
 
 
 msgid "No active window in context!"

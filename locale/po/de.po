@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -10651,24 +10651,12 @@ msgid "Temperature difference to ambient temperature"
 msgstr "Temperaturdifferenz zur Umgebungstemperatur"
 
 
-msgid "Mapping"
-msgstr "Mapping"
-
-
 msgid "Texture mapping type"
 msgstr "Textur-Mapping"
 
 
-msgid "Generated"
-msgstr "Generieren"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "Generiere Koordinaten zentriert auf das Flow Objekt"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -11065,6 +11053,10 @@ msgstr "Extreme"
 
 msgid "Jitter"
 msgstr "Flimmern"
+
+
+msgid "Generated"
+msgstr "Generieren"
 
 
 msgid "Frame is selected for editing in the Dope Sheet"
@@ -12540,6 +12532,10 @@ msgid "Cyclic Animation"
 msgstr "Zyklische Animation"
 
 
+msgid "Feature Set"
+msgstr "Funktion festlegen"
+
+
 msgid "Animation data for this data-block"
 msgstr "Animationsdaten für diesen Datenblock"
 
@@ -12594,6 +12590,10 @@ msgstr "Skelett im posierten Zustand zeigen"
 
 msgid "Rest Position"
 msgstr "Auflösung"
+
+
+msgid "Theme"
+msgstr "Thema"
 
 
 msgid "Display Axes"
@@ -14620,10 +14620,6 @@ msgid "Where the image comes from"
 msgstr "Woher das Bild stammt"
 
 
-msgid "Single Image"
-msgstr "Einzelnes Bild"
-
-
 msgid "Single image file"
 msgstr "Einzelne Bilddatei"
 
@@ -14632,20 +14628,12 @@ msgid "Multiple image files, as a sequence"
 msgstr "Mehrere Bilddateien als Sequenz"
 
 
-msgid "Movie"
-msgstr "Film"
-
-
 msgid "Movie file"
 msgstr "Filmdatei"
 
 
 msgid "Generated image"
 msgstr "Generiertes Bild"
-
-
-msgid "Viewer"
-msgstr "Betrachter"
 
 
 msgid "Compositing node viewer"
@@ -19569,6 +19557,10 @@ msgid "Name of the modifier"
 msgstr "Name des Modifikators"
 
 
+msgid "Mapping"
+msgstr "Mapping"
+
+
 msgid "Modifier Type"
 msgstr "Modifikatortyp"
 
@@ -20213,6 +20205,10 @@ msgstr "Auf Ebene verschieben"
 
 msgid "Select Linked"
 msgstr "Verknüpfte auswählen"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align"
@@ -25132,6 +25128,10 @@ msgid "Min Speed"
 msgstr "Min Geschwindigkeit"
 
 
+msgid "Viewer"
+msgstr "Betrachter"
+
+
 msgid "Z Combine"
 msgstr "Z kombinieren"
 
@@ -27355,6 +27355,10 @@ msgid "Make Parent"
 msgstr "Elternteil setzen"
 
 
+msgid "(undocumented operator)"
+msgstr "(undokumentierter Operator)"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Rolle entfernen"
@@ -28235,10 +28239,6 @@ msgstr "Marker mit einer Lassoauswahl auswählen"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Aktiver Clip"
-
-
-msgid "(undocumented operator)"
-msgstr "(undokumentierter Operator)"
 
 
 msgctxt "Operator"
@@ -34179,6 +34179,10 @@ msgid "Copy color to all selected nodes"
 msgstr "Beschränkungen"
 
 
+msgid "Option"
+msgstr "Option"
+
+
 msgid "Overlay Mode"
 msgstr "Überlagerungsmodus"
 
@@ -35306,6 +35310,11 @@ msgstr "Zufällige Position"
 
 msgid "Randomize Rotation"
 msgstr "Zufällige Rotation"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Neu"
 
 
 msgctxt "Operator"
@@ -36797,6 +36806,10 @@ msgid "Reveal Selected"
 msgstr "Ausgewählte zeigen"
 
 
+msgid "Property Name"
+msgstr "Eigenschaftsname"
+
+
 msgctxt "Operator"
 msgid "Clear Pose Rotation"
 msgstr "Posenrotation löschen"
@@ -37727,10 +37740,6 @@ msgstr "Einstellungen öffnen..."
 
 msgid "Editing"
 msgstr "Bearbeitung"
-
-
-msgid "Extensions"
-msgstr "Erweiterungen"
 
 
 msgid "File Paths"
@@ -40693,10 +40702,6 @@ msgid "Array Length"
 msgstr "Arraylänge"
 
 
-msgid "Property Name"
-msgstr "Eigenschaftsname"
-
-
 msgid "Property name edit"
 msgstr "Eigenschaftsname bearbeiten"
 
@@ -41296,6 +41301,10 @@ msgstr "Fehlende Textur"
 
 msgid "Missing UVs"
 msgstr "Fehlende UVs"
+
+
+msgid "Single Image"
+msgstr "Einzelnes Bild"
 
 
 msgid "Stencil Image"
@@ -42066,6 +42075,10 @@ msgid "Prototypes"
 msgstr "Prototypen"
 
 
+msgid "Extensions"
+msgstr "Erweiterungen"
+
+
 msgid "Applications"
 msgstr "Anwendungen"
 
@@ -42176,10 +42189,6 @@ msgstr "Nummernfeld"
 
 msgid "Value Slider"
 msgstr "Werteregler"
-
-
-msgid "Option"
-msgstr "Option"
 
 
 msgid "Pie Menu"
@@ -43306,10 +43315,6 @@ msgstr "GlobaleEinstellungen"
 
 msgid "Active Section"
 msgstr "Aktive Auswahl"
-
-
-msgid "Active section of the preferences shown in the user interface"
-msgstr "Aktiver Bereich der Einstellungen, der in der Benutzeroberfläche angezeigt wird"
 
 
 msgid "Apps"
@@ -44897,10 +44902,6 @@ msgid "Fast GI Method"
 msgstr "Schnelle GI Methode"
 
 
-msgid "Feature Set"
-msgstr "Funktion festlegen"
-
-
 msgid "Feature set to use for rendering"
 msgstr "Funktion festlegen, die zum Rendern verwendet werden sollen"
 
@@ -45211,6 +45212,10 @@ msgstr "Neigung X"
 
 msgid "Tilt Y"
 msgstr "Neigung Y"
+
+
+msgid "Widget"
+msgstr "Widget"
 
 
 msgid "Selected UV Element"
@@ -48921,10 +48926,6 @@ msgid "Use UV coordinates for texture coordinates"
 msgstr "Verwende UV-Koordinaten für Texturkoordinaten"
 
 
-msgid "Strand / Particle"
-msgstr "Partikel"
-
-
 msgid "Emission Time Factor"
 msgstr "Emissionszeit-Faktor"
 
@@ -50782,10 +50783,6 @@ msgid "Show VR Camera"
 msgstr "VR Kamera anzeigen"
 
 
-msgid "Theme"
-msgstr "Thema"
-
-
 msgid "X-Ray Alpha"
 msgstr "X-Ray Alpha"
 
@@ -50940,10 +50937,6 @@ msgstr "Hat Datenblock"
 
 msgid "Tool Mode"
 msgstr "Werkzeugmodus"
-
-
-msgid "Widget"
-msgstr "Widget"
 
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
@@ -52014,6 +52007,44 @@ msgid "Apply Pose"
 msgstr "Pose anwenden"
 
 
+msgid "Description:"
+msgstr "Beschreibung:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Author:"
+msgstr "Autor:"
+
+
+msgid "Version:"
+msgstr "Version:"
+
+
+msgid "Warning:"
+msgstr "Warnung:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Dokumentation"
+
+
+msgid "File:"
+msgstr "Datei:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Options:"
+msgstr "Optionen:"
+
+
 msgid "Save to PO File"
 msgstr "Speichere nach PO Datei"
 
@@ -52171,11 +52202,6 @@ msgstr "Performancebeeinflussung!"
 
 msgid "Built without VR/OpenXR features"
 msgstr "Baue ohne VR/OpenXR Eigenschaften"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Neu"
 
 
 msgctxt "Operator"
@@ -54061,10 +54087,6 @@ msgid "Filter by Type:"
 msgstr "Filtern nach Typ:"
 
 
-msgid "Options:"
-msgstr "Optionen:"
-
-
 msgid "Snap To"
 msgstr "Einrasten auf"
 
@@ -55671,37 +55693,8 @@ msgid "Missing script files"
 msgstr "Fehlende Skriptdateien"
 
 
-msgid "Description:"
-msgstr "Beschreibung:"
-
-
 msgid "Location:"
 msgstr "Position:"
-
-
-msgid "File:"
-msgstr "Datei:"
-
-
-msgid "Author:"
-msgstr "Autor:"
-
-
-msgid "Version:"
-msgstr "Version:"
-
-
-msgid "Warning:"
-msgstr "Warnung:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Dokumentation"
 
 
 msgctxt "Operator"
@@ -57057,11 +57050,6 @@ msgstr "Mehrfach malen"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Schnell bearbeiten"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Anwenden"
 
 
 msgctxt "Operator"
@@ -60911,6 +60899,10 @@ msgstr "Masche hat keine UV Daten"
 
 msgid "Mesh has no VCol data"
 msgstr "Masche hat keine VCol Daten"
+
+
+msgid "Movie"
+msgstr "Film"
 
 
 msgid "Keying set could not be added"

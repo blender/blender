@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
-"PO-Revision-Date: 2024-06-14 23:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"PO-Revision-Date: 2024-06-26 13:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -407,12 +407,24 @@ msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Visualizza il nodo Output Materiale glTF nell'Editor Shader (Menu Aggiungi > Output)"
 
 
+msgid "        Filter by Name"
+msgstr "        Filtra per Nome"
+
+
 msgid "Always"
 msgstr "Sempre"
 
 
+msgid "Non-Shader"
+msgstr "Non-Shader"
+
+
 msgid "Never"
 msgstr "Mai"
+
+
+msgid "Mix Node Position"
+msgstr "Posizione Nodo Mix"
 
 
 msgid "Center"
@@ -3863,6 +3875,16 @@ msgstr "Lunghezza della Curva"
 
 msgid "Curve Radius"
 msgstr "Raggio Curva"
+
+
+msgctxt "Operator"
+msgid "Density Mode"
+msgstr "Modalità Densità"
+
+
+msgctxt "Operator"
+msgid "Auto"
+msgstr "Auto"
 
 
 msgctxt "Operator"
@@ -11755,24 +11777,12 @@ msgid "Temperature difference to ambient temperature"
 msgstr "Differenza di temperatura rispetto alla temperatura ambiente"
 
 
-msgid "Mapping"
-msgstr "Mappatura"
-
-
 msgid "Texture mapping type"
 msgstr "Tipo Mappatura Texture"
 
 
-msgid "Generated"
-msgstr "Generate"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "Coordinate generate centrate sull'oggetto del flusso"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -12101,6 +12111,10 @@ msgstr "Estremo"
 
 msgid "Jitter"
 msgstr "Tremolio"
+
+
+msgid "Generated"
+msgstr "Generate"
 
 
 msgid "Frame is selected for editing in the Dope Sheet"
@@ -13981,6 +13995,10 @@ msgstr "Intervallo Fotogrammi Manuale"
 
 msgid "Armature data-block containing a hierarchy of bones, usually used for rigging characters"
 msgstr "Blocco-dati Armatura contenente una gerarchia di ossa normalmente utilizzata per articolare i personaggi"
+
+
+msgid "Feature Set"
+msgstr "Imposta Funzionalità"
 
 
 msgid "Animation data for this data-block"
@@ -16771,16 +16789,8 @@ msgid "Where the image comes from"
 msgstr "Da dove proviene l'immagine"
 
 
-msgid "Single Image"
-msgstr "Immagine Singola"
-
-
 msgid "Single image file"
 msgstr "File immagine singola"
-
-
-msgid "Movie"
-msgstr "Filmato"
 
 
 msgid "Movie file"
@@ -16789,10 +16799,6 @@ msgstr "File del filmato"
 
 msgid "Generated image"
 msgstr "Immagine generata"
-
-
-msgid "Viewer"
-msgstr "Visualizzatore"
 
 
 msgid "Stereo 3D Format"
@@ -17226,6 +17232,10 @@ msgid "Visibility Collection"
 msgstr "Visibilità Raccolta"
 
 
+msgid "Spherical Probe"
+msgstr "Sonda Sferica"
+
+
 msgid "Parallax"
 msgstr "Parallasse"
 
@@ -17559,6 +17569,10 @@ msgstr "Anteprima Mondo"
 
 msgid "Subsurface Translucency"
 msgstr "Traslucenza Subsuperficiale"
+
+
+msgid "Use Transparency Overlap"
+msgstr "Usa Sovrapposizione Trasparenza"
 
 
 msgid "Transparent Shadows"
@@ -18501,9 +18515,18 @@ msgid "Type"
 msgstr "Tipo"
 
 
+msgid "Type of object"
+msgstr "Tipo di oggetto"
+
+
 msgctxt "ID"
 msgid "Surface"
 msgstr "Superficie"
+
+
+msgctxt "ID"
+msgid "Hair Curves"
+msgstr "Curve Capelli"
 
 
 msgctxt "ID"
@@ -22687,6 +22710,10 @@ msgid "True if the modifier tab is expanded"
 msgstr "Vero se la scheda modificatore è espansa"
 
 
+msgid "Mapping"
+msgstr "Mappatura"
+
+
 msgid "Select the mapping type"
 msgstr "Seleziona il tipo di mappatura"
 
@@ -23296,6 +23323,10 @@ msgstr "Materiali Speciali"
 
 msgid "Select Linked"
 msgstr "Seleziona Collegati"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align"
@@ -28592,6 +28623,10 @@ msgid "Min Speed"
 msgstr "Velocità Min"
 
 
+msgid "Viewer"
+msgstr "Visualizzatore"
+
+
 msgid "Z Combine"
 msgstr "Combinamento Z"
 
@@ -30817,6 +30852,10 @@ msgid "Reveal Hidden"
 msgstr "Mostra Nascosti"
 
 
+msgid "(undocumented operator)"
+msgstr "(operatore non documentato)"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Cancella Rollio"
@@ -31734,10 +31773,6 @@ msgstr "Seleziona gli elementi usando la selezione a lazo"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Imposta Filmato Attivo"
-
-
-msgid "(undocumented operator)"
-msgstr "(operatore non documentato)"
 
 
 msgctxt "Operator"
@@ -38157,6 +38192,10 @@ msgid "Copy color to all selected nodes"
 msgstr "Copia il colore a tutti i nodi selezionati"
 
 
+msgid "Option"
+msgstr "Opzione"
+
+
 msgid "Overlay Mode"
 msgstr "Modalità Sovrapposizione"
 
@@ -38167,6 +38206,10 @@ msgstr "Corrente"
 
 msgid "Exponent"
 msgstr "Esponente"
+
+
+msgid "Modulo"
+msgstr "Modulo"
 
 
 msgid "Wrap"
@@ -39366,6 +39409,11 @@ msgstr "Casualizza Posizione"
 
 msgid "Randomize the scale values"
 msgstr "Rende casuali i valori di scala"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Nuovo"
 
 
 msgctxt "Operator"
@@ -41349,6 +41397,10 @@ msgstr "Capovolge i valori dei quaternioni per raggiungere la rotazione desidera
 msgctxt "Operator"
 msgid "Reveal Selected"
 msgstr "Rivela Selezionato"
+
+
+msgid "Property Name"
+msgstr "Nome Proprietà"
 
 
 msgctxt "Operator"
@@ -45844,10 +45896,6 @@ msgid "Edit Property"
 msgstr "Modifica Proprietà"
 
 
-msgid "Property Name"
-msgstr "Nome Proprietà"
-
-
 msgid "Property name edit"
 msgstr "Modifica il nome della proprietà"
 
@@ -46387,6 +46435,10 @@ msgstr "Texture Mancante"
 
 msgid "Missing UVs"
 msgstr "UV Mancanti"
+
+
+msgid "Single Image"
+msgstr "Immagine Singola"
 
 
 msgid "Bleed"
@@ -47240,10 +47292,6 @@ msgstr "Campo Numerico"
 
 msgid "Value Slider"
 msgstr "Cursore Valore"
-
-
-msgid "Option"
-msgstr "Opzione"
 
 
 msgid "Pie Menu"
@@ -48393,10 +48441,6 @@ msgstr "Preferenze globali"
 
 msgid "Active Section"
 msgstr "Sezione Attiva"
-
-
-msgid "Active section of the preferences shown in the user interface"
-msgstr "Sezione attiva delle preferenze utente mostrata nell'interfaccia utente"
 
 
 msgid "Application Template"
@@ -49839,10 +49883,6 @@ msgid "Cull objects which are further away from camera than this distance"
 msgstr "Esclude selettivamente gli oggetti che sono più lontani di questa distanza dalla camera"
 
 
-msgid "Feature Set"
-msgstr "Imposta Funzionalità"
-
-
 msgid "Feature set to use for rendering"
 msgstr "Imposta le funzionalità da usare per il rendering"
 
@@ -50169,6 +50209,10 @@ msgstr "Pressione tavoletta"
 
 msgid "Brush Size"
 msgstr "Dimensione Pennello"
+
+
+msgid "Widget"
+msgstr "Widget"
 
 
 msgid "Selected UV Element"
@@ -53877,10 +53921,6 @@ msgid "Use global coordinates for the texture coordinates"
 msgstr "Utilizza le coordinate globali come coordinate della texture"
 
 
-msgid "Along stroke"
-msgstr "Lungo il tratto"
-
-
 msgid "Use stroke length for texture coordinates"
 msgstr "Utilizza la lunghezza del tratto come coordinate della texture"
 
@@ -53967,10 +54007,6 @@ msgstr "Utilizza le coordinate dell'oggetto collegato come coordinate della text
 
 msgid "Use UV coordinates for texture coordinates"
 msgstr "Utilizza le coordinate UV come coordinate della texture"
-
-
-msgid "Strand / Particle"
-msgstr "Fibra / Particella"
 
 
 msgid "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"
@@ -55733,10 +55769,6 @@ msgid "Walk Speed"
 msgstr "Velocità Camminata"
 
 
-msgid "Widget"
-msgstr "Widget"
-
-
 msgid "Lighting for a World data-block"
 msgstr "Illuminazione per un blocco-dati Mondo"
 
@@ -56244,6 +56276,10 @@ msgid "Reset To Original"
 msgstr "Ripristina Originale"
 
 
+msgid "No active node."
+msgstr "Nessun nodo attivo."
+
+
 msgid "in the asset shelf."
 msgstr "nello scaffale delle risorse."
 
@@ -56251,6 +56287,44 @@ msgstr "nello scaffale delle risorse."
 msgctxt "Operator"
 msgid "Toggle Asset Shelf"
 msgstr "Attiva/disattiva lo Scaffale delle Risorse"
+
+
+msgid "Description:"
+msgstr "Descrizione:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Author:"
+msgstr "Autore:"
+
+
+msgid "Version:"
+msgstr "Versione:"
+
+
+msgid "Warning:"
+msgstr "Avviso:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentazione"
+
+
+msgid "File:"
+msgstr "File:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Options:"
+msgstr "Opzioni:"
 
 
 msgid "Save to PO File"
@@ -56369,11 +56443,6 @@ msgstr "Tracciamento"
 
 msgid "Note:"
 msgstr "Nota:"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Nuovo"
 
 
 msgid "API Defined"
@@ -57328,10 +57397,6 @@ msgstr "Sblocca Tracce"
 msgctxt "Operator"
 msgid "Autocomplete"
 msgstr "Autocompleta"
-
-
-msgid "Options:"
-msgstr "Opzioni:"
 
 
 msgctxt "Operator"
@@ -58460,6 +58525,10 @@ msgid "Pan Sensitivity"
 msgstr "Sensibilità Pan"
 
 
+msgid " Preferences"
+msgstr " Preferenze"
+
+
 msgid "Use Light"
 msgstr "Utilizza Luce"
 
@@ -58488,41 +58557,12 @@ msgid "Missing script files"
 msgstr "File di script mancanti"
 
 
-msgid "Description:"
-msgstr "Descrizione:"
-
-
 msgid "Location:"
 msgstr "Posizione:"
 
 
-msgid "File:"
-msgstr "File:"
-
-
-msgid "Author:"
-msgstr "Autore:"
-
-
-msgid "Version:"
-msgstr "Versione:"
-
-
-msgid "Warning:"
-msgstr "Avviso:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
 msgid "User:"
 msgstr "Utente:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentazione"
 
 
 msgctxt "Operator"
@@ -59569,11 +59609,6 @@ msgstr "Multi-Pittura"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Modifica Veloce"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Applica"
 
 
 msgctxt "Operator"
@@ -63515,6 +63550,10 @@ msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Vincolo '%s' non trovato nell'osso-posa '%s'"
 
 
+msgid "Movie"
+msgstr "Filmato"
+
+
 msgid "Keying set could not be added"
 msgstr "Il Gruppo Chiavi non può essere aggiunto"
 
@@ -64434,6 +64473,16 @@ msgstr "Tutti gli Add-on Installati dall'Utente"
 
 msgid "Import-Export"
 msgstr "Importa-Esporta"
+
+
+msgctxt "Preferences"
+msgid "Pipeline"
+msgstr "Pipeline"
+
+
+msgctxt "Preferences"
+msgid "Rigging"
+msgstr "Rigging"
 
 
 msgid "English (English)"
