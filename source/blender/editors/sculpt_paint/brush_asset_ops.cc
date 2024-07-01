@@ -47,7 +47,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-static int brush_asset_select_exec(bContext *C, wmOperator *op)
+static int brush_asset_activate_exec(bContext *C, wmOperator *op)
 {
   /* This operator currently covers both cases: the file/asset browser file list and the asset list
    * used for the asset-view template. Once the asset list design is used by the Asset Browser,
@@ -67,7 +67,7 @@ static int brush_asset_select_exec(bContext *C, wmOperator *op)
 
   if (!BKE_paint_brush_set(paint, brush)) {
     /* Note brush datablock was still added, so was not a no-op. */
-    BKE_report(op->reports, RPT_WARNING, "Unable to select brush, wrong object mode");
+    BKE_report(op->reports, RPT_WARNING, "Unable to activate brush, wrong object mode");
     return OPERATOR_FINISHED;
   }
 
@@ -78,13 +78,13 @@ static int brush_asset_select_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void BRUSH_OT_asset_select(wmOperatorType *ot)
+void BRUSH_OT_asset_activate(wmOperatorType *ot)
 {
-  ot->name = "Select Brush Asset";
-  ot->description = "Select a brush asset as current sculpt and paint tool";
-  ot->idname = "BRUSH_OT_asset_select";
+  ot->name = "Activate Brush Asset";
+  ot->description = "Activate a brush asset as current sculpt and paint tool";
+  ot->idname = "BRUSH_OT_asset_activate";
 
-  ot->exec = brush_asset_select_exec;
+  ot->exec = brush_asset_activate_exec;
 
   asset::operator_asset_reference_props_register(*ot->srna);
 }

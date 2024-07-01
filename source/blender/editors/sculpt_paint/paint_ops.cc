@@ -976,7 +976,7 @@ void ED_operatortypes_paint()
   WM_operatortype_append(BRUSH_OT_stencil_control);
   WM_operatortype_append(BRUSH_OT_stencil_fit_image_aspect);
   WM_operatortype_append(BRUSH_OT_stencil_reset_transform);
-  WM_operatortype_append(BRUSH_OT_asset_select);
+  WM_operatortype_append(BRUSH_OT_asset_activate);
   WM_operatortype_append(BRUSH_OT_asset_save_as);
   WM_operatortype_append(BRUSH_OT_asset_edit_metadata);
   WM_operatortype_append(BRUSH_OT_asset_load_preview);
