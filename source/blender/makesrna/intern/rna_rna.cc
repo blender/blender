@@ -330,13 +330,17 @@ static bool rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
   PropertyRNA *prop;
   StructRNA *ptype = iter->builtin_parent.type;
 
-  /* function to skip any id properties that are already known by RNA,
-   * for the second loop where we go over unknown id properties */
+  /* Function to skip any id properties that are already known by RNA,
+   * for the second loop where we go over unknown id properties.
+   *
+   * Note that only dynamically-defined RNA properties (the ones actually using IDProperties as
+   * storage back-end) should be checked here. If a custom property is named the same as a 'normal'
+   * RNA property, they are different data. */
   do {
     for (prop = static_cast<PropertyRNA *>(ptype->cont.properties.first); prop; prop = prop->next)
     {
       if ((prop->flag_internal & PROP_INTERN_BUILTIN) == 0 &&
-          STREQ(prop->identifier, idprop->name))
+          (prop->flag & PROP_IDPROPERTY) != 0 && STREQ(prop->identifier, idprop->name))
       {
         return true;
       }
