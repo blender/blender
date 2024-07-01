@@ -435,20 +435,27 @@ void BKE_id_newptr_and_tag_clear(ID *id);
 
 /** Flags to control make local code behavior. */
 enum {
-  /** Making that ID local is part of making local a whole library. */
+  /**
+   * Making that ID local is part of making local a whole library. Implies
+   * #LIB_ID_MAKELOCAL_INDIRECT.
+   */
   LIB_ID_MAKELOCAL_FULL_LIBRARY = 1 << 0,
+  /** Also make local indirectly linked IDs. Implied by #LIB_ID_MAKELOCAL_FULL_LIBRARY. */
+  LIB_ID_MAKELOCAL_INDIRECT = 1 << 1,
 
   /** In case caller code already knows this ID should be made local without copying. */
-  LIB_ID_MAKELOCAL_FORCE_LOCAL = 1 << 1,
+  LIB_ID_MAKELOCAL_FORCE_LOCAL = 1 << 8,
   /** In case caller code already knows this ID should be made local using copying. */
-  LIB_ID_MAKELOCAL_FORCE_COPY = 1 << 2,
+  LIB_ID_MAKELOCAL_FORCE_COPY = 1 << 9,
 
-  /** Clear asset data (in case the ID can actually be made local, in copy case asset data is never
-   * copied over). */
-  LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR = 1 << 3,
+  /**
+   * Clear asset data (in case the ID can actually be made local, in copy case asset data is never
+   * copied over).
+   */
+  LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR = 1 << 16,
 
   /** Clear any liboverride data as part of making this linked data local. */
-  LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR = 1 << 4,
+  LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR = 1 << 17,
 };
 
 /**

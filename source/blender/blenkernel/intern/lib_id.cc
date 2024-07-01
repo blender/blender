@@ -578,9 +578,9 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const int flags)
 {
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
 
-  /* We don't care whether ID is directly or indirectly linked
-   * in case we are making a whole lib local... */
-  if (!lib_local && (id->tag & LIB_TAG_INDIRECT)) {
+  /* Skip indirectly linked IDs, unless the whole library is made local, or handling them is
+   * explicitely requested. */
+  if (!(lib_local || (flags & LIB_ID_MAKELOCAL_INDIRECT) != 0) && (id->tag & LIB_TAG_INDIRECT)) {
     return false;
   }
 
@@ -703,7 +703,12 @@ ID *BKE_id_copy_in_lib(Main *bmain,
   data.id_src = id;
   data.id_dst = newid;
   data.flag = flag;
-  BKE_library_foreach_ID_link(bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_NOP);
+  /* When copying an embedded ID, typically at this point its owner ID pointer will still point to
+   * the owner of the source, this code has no access to its valid (i.e. destination) owner. This
+   * can be added at some point if needed, but currently the #id_copy_libmanagement_cb callback
+   * does need this information. */
+  BKE_library_foreach_ID_link(
+      bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_IGNORE_MISSING_OWNER_ID);
 
   /* FIXME: Check if this code can be moved in #BKE_libblock_copy_in_lib ? Would feel more fitted
    * there, having library handling split between both functions does not look good. */
