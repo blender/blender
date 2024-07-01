@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
+from bpy.app.translations import pgettext_rpt as rpt_
 import importlib
 
 from ..utils.layers import REFS_TOGGLE_SUFFIX, REFS_LIST_SUFFIX, is_collection_ref_list_prop, copy_ref_list
@@ -47,8 +48,9 @@ class POSE_OT_rigify_copy_single_parameter(bpy.types.Operator):
             module = importlib.import_module(self.module_name)
             filter_rig_class = getattr(module, self.class_name)
         except (KeyError, AttributeError, ImportError):
+            message = rpt_("Cannot find class {:s} in {:s}").format(self.class_name, self.module_name)
             self.report(
-                {'ERROR'}, f"Cannot find class {self.class_name} in {self.module_name}")
+                {'ERROR'}, message)
             return {'CANCELLED'}
 
         active_pbone = context.active_pose_bone
@@ -97,10 +99,11 @@ class POSE_OT_rigify_copy_single_parameter(bpy.types.Operator):
                     num_copied += 1
 
         if num_copied:
-            self.report({'INFO'}, f"Copied the value to {num_copied} bones.")
+            message = rpt_("Copied the value to {:d} bones").format(num_copied)
+            self.report({'INFO'}, message)
             return {'FINISHED'}
         else:
-            self.report({'WARNING'}, "No suitable selected bones to copy to.")
+            self.report({'WARNING'}, "No suitable selected bones to copy to")
             return {'CANCELLED'}
 
 
@@ -200,10 +203,9 @@ class POSE_OT_rigify_mirror_parameters(bpy.types.Operator):
                 # Bones without an opposite will just be ignored.
                 continue
             if flip_bone != pb and flip_bone.bone.select:
-                self.report(
-                    {'ERROR'},
-                    f"Bone {pb.name} selected on both sides, mirroring would be ambiguous, "
-                    f"aborting. Only select the left or right side, not both!")
+                message = rpt_("Bone {:s} selected on both sides, mirroring would be ambiguous, "
+                               "aborting. Only select the left or right side, not both").format(pb.name)
+                self.report({'ERROR'}, message)
                 return {'CANCELLED'}
 
         # Then mirror the parameters.
@@ -215,7 +217,8 @@ class POSE_OT_rigify_mirror_parameters(bpy.types.Operator):
 
             num_mirrored += copy_rigify_params(pb, flip_bone, match_type=False, x_mirror=True)
 
-        self.report({'INFO'}, f"Mirrored parameters of {num_mirrored} bones.")
+        message = rpt_("Mirrored parameters of {:d} bones").format(num_mirrored)
+        self.report({'INFO'}, message)
 
         return {'FINISHED'}
 
@@ -260,8 +263,8 @@ class POSE_OT_rigify_copy_parameters(bpy.types.Operator):
                 continue
             num_copied += copy_rigify_params(active_bone, pb, match_type=self.match_type)
 
-        self.report({'INFO'},
-                    f"Copied {get_rigify_type(active_bone)} parameters to {num_copied} bones.")
+        message = rpt_("Copied {:s} parameters to {:d} bones").format(get_rigify_type(active_bone), num_copied)
+        self.report({'INFO'}, message)
 
         return {'FINISHED'}
 

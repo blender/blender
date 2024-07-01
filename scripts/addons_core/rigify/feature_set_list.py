@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, List, Sequence, Optional
 
 import bpy
 from bpy.props import StringProperty
+from bpy.app.translations import pgettext_rpt as rpt_
+
 import os
 import re
 import importlib
@@ -246,27 +248,27 @@ class DATA_OT_rigify_add_feature_set(bpy.types.Operator):
             base_dirname, init_found, data_found = verify_feature_set_archive(zip_archive)
 
             if not base_dirname:
-                self.report({'ERROR'}, "The feature set archive must contain one base directory.")
+                self.report({'ERROR'}, "The feature set archive must contain one base directory")
                 return {'CANCELLED'}
 
             # Patch up some invalid characters to allow using 'Download ZIP' on GitHub.
             fixed_dirname = re.sub(r'[.-]', '_', base_dirname)
 
             if not re.fullmatch(r'[a-zA-Z][a-zA-Z_0-9]*', fixed_dirname):
-                self.report({'ERROR'},
-                            f"The feature set archive base directory name is not a valid "
-                            f"identifier: '{base_dirname}'.")
+                message = rpt_("The feature set archive base directory name is not a valid "
+                               "identifier: '{:s}'").format(base_dirname)
+                self.report({'ERROR'}, message)
                 return {'CANCELLED'}
 
             if fixed_dirname == DEFAULT_NAME:
-                self.report(
-                    {'ERROR'}, f"The '{DEFAULT_NAME}' name is not allowed for feature sets.")
+                message = rpt_("The name '{:s}' is not allowed for feature sets").format(DEFAULT_NAME)
+                self.report({'ERROR'}, message)
                 return {'CANCELLED'}
 
             if not init_found or not data_found:
                 self.report(
                     {'ERROR'},
-                    "The feature set archive has no rigs or metarigs, or is missing __init__.py.")
+                    "The feature set archive has no rigs or metarigs, or is missing __init__.py")
                 return {'CANCELLED'}
 
             base_dir = os.path.join(rigify_config_path, base_dirname)
@@ -274,7 +276,8 @@ class DATA_OT_rigify_add_feature_set(bpy.types.Operator):
 
             for path, name in [(base_dir, base_dirname), (fixed_dir, fixed_dirname)]:
                 if os.path.exists(path):
-                    self.report({'ERROR'}, f"Feature set directory already exists: '{name}'.")
+                    message = rpt_("Feature set directory already exists: '{:s}'").format(name)
+                    self.report({'ERROR'}, message)
                     return {'CANCELLED'}
 
             # Unpack the validated archive and fix the directory name if necessary

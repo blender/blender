@@ -190,14 +190,14 @@ def create_armature_submenus(dic: dict | None = None):
 
         armature_submenus.append(type('Class_' + metarig_category + '_submenu',
                                       (ArmatureSubMenu,), {}))
-        armature_submenus[-1].bl_label = metarig_category + ' (submenu)'
+        armature_submenus[-1].bl_label = metarig_category
         armature_submenus[-1].bl_idname = 'ARMATURE_MT_%s_class' % metarig_category
         armature_submenus[-1].operators = []
         menu_funcs += [make_submenu_func(armature_submenus[-1].bl_idname, metarig_category)]
 
         for mop, name in metarig_ops[metarig_category]:
             arm_sub = next((e for e in armature_submenus
-                            if e.bl_label == metarig_category + ' (submenu)'),
+                            if e.bl_label == metarig_category),
                            '')
             arm_sub.operators.append((mop.bl_idname, name,))
 
