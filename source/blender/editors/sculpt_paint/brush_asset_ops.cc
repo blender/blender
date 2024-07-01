@@ -261,7 +261,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
       bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
 
   if (!BKE_paint_brush_set(paint, brush)) {
-    /* Note brush sset was still saved in editable asset library, so was not a no-op. */
+    /* Note brush asset was still saved in editable asset library, so was not a no-op. */
     BKE_report(op->reports, RPT_WARNING, "Unable to activate just-saved brush asset");
   }
 
