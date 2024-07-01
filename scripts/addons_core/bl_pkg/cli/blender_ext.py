@@ -2777,7 +2777,7 @@ class subcmd_server:
             ):
                 fh.write("  <tr>\n")
 
-                platforms = [platform for platform in manifest_dict.get("platforms", "").split(",") if platform]
+                platforms = manifest_dict.get("platforms", [])
 
                 # Parse the URL and add parameters use for drag & drop.
                 parsed_url = urllib.parse.urlparse(manifest_dict["archive_url"])
