@@ -119,11 +119,12 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
                               const bool do_rescale,
                               const int rescale_size[2],
                               const bool store_premultiplied,
+                              const bool allow_grayscale,
                               bool *r_freedata,
                               eGPUDataFormat *r_data_format)
 {
   bool is_float_rect = (ibuf->float_buffer.data != nullptr);
-  const bool is_grayscale = imb_is_grayscale_texture_format_compatible(ibuf);
+  const bool is_grayscale = allow_grayscale && imb_is_grayscale_texture_format_compatible(ibuf);
   void *data_rect = (is_float_rect) ? (void *)ibuf->float_buffer.data :
                                       (void *)ibuf->byte_buffer.data;
   bool freedata = false;
@@ -297,7 +298,8 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
   bool freebuf = false;
 
   eGPUDataFormat data_format;
-  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, &freebuf, &data_format);
+  void *data = imb_gpu_get_data(
+      ibuf, do_rescale, size, use_premult, use_grayscale, &freebuf, &data_format);
 
   /* Update Texture. */
   GPU_texture_update_sub(tex, data_format, data, x, y, z, w, h, 1);
@@ -377,7 +379,7 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
   }
   BLI_assert(tex != nullptr);
   eGPUDataFormat data_format;
-  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, &freebuf, &data_format);
+  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, true, &freebuf, &data_format);
   GPU_texture_update(tex, data_format, data);
 
   GPU_texture_swizzle_set(tex, imb_gpu_get_swizzle(ibuf));
