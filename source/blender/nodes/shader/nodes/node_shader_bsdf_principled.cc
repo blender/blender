@@ -419,6 +419,8 @@ NODE_SHADER_MATERIALX_BEGIN
         {"coat_tint", get_input_value("Coat Tint", NodeItem::Type::Color3)},
         {"ior", get_input_value("IOR", NodeItem::Type::Float)},
         {"transmission", get_input_value("Transmission Weight", NodeItem::Type::Float)},
+        {"thin_film_thickness", get_input_value("Thin Film Thickness", NodeItem::Type::Float)},
+        {"thin_film_IOR", get_input_value("Thin Film IOR", NodeItem::Type::Float)},
         {"alpha", get_input_value("Alpha", NodeItem::Type::Float)},
         {"normal", get_input_link("Normal", NodeItem::Type::Vector3)},
         {"coat_normal", get_input_link("Coat Normal", NodeItem::Type::Vector3)},
@@ -480,8 +482,12 @@ NODE_SHADER_MATERIALX_BEGIN
         n_coat_bsdf.set_input("tangent", n_coat_tangent);
       }
 
+      NodeItem thin_film_thickness = in["thin_film_thickness"];
+      NodeItem thin_film_ior = in["thin_film_IOR"];
       NodeItem n_thin_film_bsdf = create_node(
-          "thin_film_bsdf", NodeItem::Type::BSDF, {{"thickness", val(0.0f)}, {"ior", val(1.5f)}});
+          "thin_film_bsdf",
+          NodeItem::Type::BSDF,
+          {{"thickness", thin_film_thickness}, {"ior", thin_film_ior}});
 
       NodeItem n_artistic_ior = create_node(
           "artistic_ior",
@@ -637,6 +643,8 @@ NODE_SHADER_MATERIALX_BEGIN
            {"coat_normal", in["coat_normal"]},
            {"emission", in["emission"]},
            {"emission_color", in["emission_color"]},
+           {"thin_film_thickness", in["thin_film_thickness"]},
+           {"thin_film_IOR", in["thin_film_IOR"]},
            {"normal", in["normal"]},
            {"tangent", in["tangent"]},
            {"opacity", in["alpha"].convert(NodeItem::Type::Color3)}});
