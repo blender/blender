@@ -2453,9 +2453,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
             if p
         )
 
-        # Collect the categories that can be filtered on.
-        addon_modules = addon_utils.modules(refresh=False)
-
         self._draw_addon_header(layout, prefs, wm)
 
         layout_topmost = layout.column()
@@ -2488,12 +2485,14 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         search = wm.addon_search.casefold()
         support = wm.addon_support
 
+        module_names = set()
+
         # initialized on demand
         user_addon_paths = []
 
-        for mod in addon_modules:
+        for mod in addon_utils.modules(refresh=False):
+            module_names.add(addon_module_name := mod.__name__)
             bl_info = addon_utils.module_bl_info(mod)
-            addon_module_name = mod.__name__
 
             is_enabled = addon_module_name in used_addon_module_name_map
 
@@ -2628,7 +2627,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 layout_topmost.column().separator()
                 layout_topmost.column().label(text="Missing script files")
 
-                module_names = {mod.__name__ for mod in addon_modules}
                 for addon_module_name in sorted(missing_modules):
                     is_enabled = addon_module_name in used_addon_module_name_map
                     # Addon UI Code

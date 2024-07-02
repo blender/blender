@@ -37,9 +37,8 @@ def _init_addon_exclusions():
 
 def addon_modules_sorted():
     # Pass in an empty module cache to prevent `addon_utils` local module cache being manipulated.
-    modules = addon_utils.modules(module_cache={})
-    modules[:] = [
-        mod for mod in modules
+    modules = [
+        mod for mod in addon_utils.modules(module_cache={})
         if not (mod.__file__.startswith(EXCLUDE_DIRECTORIES))
         if not (mod.__name__ in EXCLUDE_ADDONS)
     ]

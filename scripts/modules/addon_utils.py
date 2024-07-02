@@ -219,14 +219,16 @@ def modules(*, module_cache=addons_fake_modules, refresh=True):
         modules_refresh(module_cache=module_cache)
         modules._is_first = False
 
-    mod_list = list(module_cache.values())
-    mod_list.sort(
-        key=lambda mod: (
-            mod.bl_info.get("category", ""),
-            mod.bl_info.get("name", ""),
-        )
-    )
-    return mod_list
+        # Dictionaries are ordered in more recent versions of Python,
+        # re-create the dictionary from sorted items.
+        # This avoids having to sort on every call to this function.
+        module_cache_items = list(module_cache.items())
+        # Sort by name with the module name as a tie breaker.
+        module_cache_items.sort(key=lambda item: ((item[1].bl_info.get("name") or item[0]).casefold(), item[0]))
+        module_cache.clear()
+        module_cache.update((key, value) for key, value in module_cache_items)
+
+    return module_cache.values()
 
 
 modules._is_first = True
