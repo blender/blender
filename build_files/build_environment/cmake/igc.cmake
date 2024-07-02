@@ -92,12 +92,10 @@ set(IGC_EXTRA_ARGS
   -DIGC_OPTION__ARCHITECTURE_HOST=${IGC_TARGET}
 )
 
-if(UNIX AND NOT APPLE)
-  list(APPEND IGC_EXTRA_ARGS
-       -DFLEX_EXECUTABLE=${LIBDIR}/flex/bin/flex
-       -DFLEX_INCLUDE_DIR=${LIBDIR}/flex/include
-  )
-endif()
+list(APPEND IGC_EXTRA_ARGS
+     -DFLEX_EXECUTABLE=${LIBDIR}/flex/bin/flex
+     -DFLEX_INCLUDE_DIR=${LIBDIR}/flex/include
+)
 
 ExternalProject_Add(external_igc
   URL file://${PACKAGE_DIR}/${IGC_FILE}
@@ -148,11 +146,7 @@ add_dependencies(
   external_igc_spirv_headers
   external_igc_spirv_tools
   external_igc_spirv_translator
+  external_flex
 )
 
-if(UNIX AND NOT APPLE)
-  add_dependencies(
-    external_igc
-    external_flex
-  )
-endif()
+harvest(external_igc igc dpcpp/lib/igc "*")

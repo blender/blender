@@ -145,4 +145,8 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_embree embree/include embree/include "*.h")
+  harvest(external_embree embree/lib embree/lib "*.a")
+  harvest_rpath_lib(external_embree embree/lib embree/lib "*${SHAREDLIBEXT}*")
 endif()

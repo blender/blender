@@ -13,6 +13,7 @@ set(TIFF_EXTRA_ARGS
   -Djbig=OFF
   -Dzstd=OFF
   -Dwebp=OFF
+  -Dlerc=OFF
   -Dtiff-tests=OFF
   -Dsphinx=OFF
 )
@@ -49,4 +50,7 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_tiff tiff/include tiff/include "*.h")
+  harvest(external_tiff tiff/lib tiff/lib "*.a")
 endif()

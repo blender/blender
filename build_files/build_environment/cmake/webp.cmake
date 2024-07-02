@@ -48,4 +48,7 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_webp webp/lib webp/lib "*.a")
+  harvest(external_webp webp/include webp/include "*.h")
 endif()

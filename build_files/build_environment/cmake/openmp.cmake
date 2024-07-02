@@ -35,3 +35,8 @@ add_dependencies(
   external_openmp
   ll
 )
+
+if(APPLE)
+  harvest(external_openmp openmp/lib openmp/lib "libomp.dylib")
+  harvest(external_openmp openmp/include openmp/include "*.h")
+endif()

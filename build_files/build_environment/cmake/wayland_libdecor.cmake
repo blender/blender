@@ -19,3 +19,5 @@ ExternalProject_Add(external_wayland_libdecor
 
   INSTALL_DIR ${LIBDIR}/wayland_libdecor/include/libdecor-0
 )
+
+harvest(external_wayland_libdecor wayland_libdecor/include wayland_libdecor/include "*.h")

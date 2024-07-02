@@ -22,3 +22,6 @@ ExternalProject_Add(external_jemalloc
 
   INSTALL_DIR ${LIBDIR}/jemalloc
 )
+
+harvest(external_jemalloc jemalloc/include jemalloc/include "*.h")
+harvest(external_jemalloc jemalloc/lib jemalloc/lib "*.a")

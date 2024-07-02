@@ -59,4 +59,8 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_openpgl openpgl/include openpgl/include "*.h")
+  harvest(external_openpgl openpgl/lib openpgl/lib "*.a")
+  harvest(external_openpgl openpgl/lib/cmake/openpgl-${OPENPGL_SHORT_VERSION} openpgl/lib/cmake/openpgl "*.cmake")
 endif()

@@ -31,5 +31,8 @@ if((WIN32 AND BUILD_MODE STREQUAL Release) OR UNIX)
 
       DEPENDEES install
     )
+  else()
+    harvest(external_potrace potrace/include potrace/include "*.h")
+    harvest(external_potrace potrace/lib potrace/lib "*.a")
   endif()
 endif()

@@ -44,4 +44,7 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_zstd zstd/include zstd/include "*.h")
+  harvest(external_zstd zstd/lib zstd/lib "*.a")
 endif()

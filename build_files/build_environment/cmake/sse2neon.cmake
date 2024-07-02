@@ -13,9 +13,13 @@ ExternalProject_Add(external_sse2neon
   INSTALL_DIR ${LIBDIR}/sse2neon
 )
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
-  ExternalProject_Add_Step(external_sse2neon after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/sse2neon ${HARVEST_TARGET}/sse2neon
-    DEPENDEES install
-  )
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_sse2neon after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/sse2neon ${HARVEST_TARGET}/sse2neon
+      DEPENDEES install
+    )
+  endif()
+else()
+  harvest(external_sse2neon sse2neon sse2neon "*.h")
 endif()

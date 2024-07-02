@@ -37,4 +37,7 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_pugixml pugixml/include pugixml/include "*.hpp")
+  harvest(external_pugixml pugixml/lib pugixml/lib "*.a")
 endif()

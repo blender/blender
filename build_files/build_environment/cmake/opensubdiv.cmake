@@ -65,6 +65,9 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_opensubdiv opensubdiv/include opensubdiv/include "*.h")
+  harvest_rpath_lib(external_opensubdiv opensubdiv/lib opensubdiv/lib "*${SHAREDLIBEXT}*")
 endif()
 
 add_dependencies(

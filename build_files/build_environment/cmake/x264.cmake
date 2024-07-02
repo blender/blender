@@ -45,13 +45,13 @@ ExternalProject_Add(external_x264
   INSTALL_DIR ${LIBDIR}/x264
 )
 
-if(MSVC)
+if(WIN32)
   set_target_properties(external_x264 PROPERTIES FOLDER Mingw)
-endif()
-
-if(UNIX)
+else()
   add_dependencies(
     external_x264
     external_nasm
   )
+
+  harvest(external_x264 x264/lib ffmpeg/lib "*.a")
 endif()

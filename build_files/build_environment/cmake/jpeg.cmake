@@ -61,4 +61,7 @@ else()
   )
 
   set(JPEG_LIBRARY libjpeg${LIBEXT})
+
+  harvest(external_jpeg jpeg/include jpeg/include "*.h")
+  harvest(external_jpeg jpeg/lib jpeg/lib "libjpeg.a")
 endif()

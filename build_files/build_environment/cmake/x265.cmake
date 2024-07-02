@@ -174,6 +174,8 @@ execute_process(
       DEPENDEES install
     )
   endif()
+
+  harvest(external_x265 x265/lib ffmpeg/lib "*.a")
 endif()
 
 unset(LIB_PREFIX)

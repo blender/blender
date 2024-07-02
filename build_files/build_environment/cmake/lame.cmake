@@ -65,3 +65,7 @@ ExternalProject_Add(external_lame
   INSTALL_COMMAND ${LAME_INSTALL}
   INSTALL_DIR ${LIBDIR}/lame
 )
+
+if(NOT WIN32)
+  harvest(external_lame lame/lib ffmpeg/lib "*.a")
+endif()

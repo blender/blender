@@ -114,7 +114,8 @@ if(NOT APPLE)
   )
 endif()
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_openimagedenoise after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/openimagedenoise/bin
@@ -128,4 +129,9 @@ if(BUILD_MODE STREQUAL Release AND WIN32)
 
       DEPENDEES install
     )
+  endif()
+else()
+  harvest(external_openimagedenoise openimagedenoise/include openimagedenoise/include "*")
+  harvest_rpath_lib(external_openimagedenoise openimagedenoise/lib openimagedenoise/lib "*${SHAREDLIBEXT}*")
+  harvest(external_openimagedenoise openimagedenoise/lib/cmake/OpenImageDenoise-${OIDN_VERSION} openimagedenoise/lib/cmake/OpenImageDenoise "*.cmake")
 endif()

@@ -43,3 +43,7 @@ ExternalProject_Add(external_aom
   INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
   INSTALL_DIR ${LIBDIR}/aom
 )
+
+if(NOT WIN32)
+  harvest(external_aom aom/lib ffmpeg/lib "*.a")
+endif()

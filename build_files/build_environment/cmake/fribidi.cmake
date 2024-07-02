@@ -34,15 +34,20 @@ add_dependencies(
   external_python_site_packages
 )
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
-  ExternalProject_Add_Step(external_fribidi after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/fribidi/include
-      ${HARVEST_TARGET}/fribidi/include
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/fribidi/lib/libfribidi.a
-      ${HARVEST_TARGET}/fribidi/lib/libfribidi.lib
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_fribidi after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/fribidi/include
+        ${HARVEST_TARGET}/fribidi/include
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/fribidi/lib/libfribidi.a
+        ${HARVEST_TARGET}/fribidi/lib/libfribidi.lib
 
-    DEPENDEES install
-  )
+      DEPENDEES install
+    )
+  endif()
+else()
+  harvest(external_fribidi fribidi/include fribidi/include "*.h")
+  harvest(external_fribidi fribidi/lib fribidi/lib "*.a")
 endif()

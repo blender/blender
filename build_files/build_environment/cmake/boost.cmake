@@ -115,3 +115,8 @@ add_dependencies(
   external_python
   external_numpy
 )
+
+if(NOT WIN32)
+  harvest(external_boost boost/include boost/include "*")
+  harvest_rpath_lib(external_boost boost/lib boost/lib "*${SHAREDLIBEXT}*")
+endif()

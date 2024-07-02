@@ -160,5 +160,7 @@ if(WIN32)
 
     DEPENDEES install
   )
-
+else()
+  harvest(external_gmp gmp/include gmp/include "*.h")
+  harvest(external_gmp gmp/lib gmp/lib "*.a")
 endif()

@@ -14,3 +14,7 @@ ExternalProject_Add(external_ogg
 
   INSTALL_DIR ${LIBDIR}/ogg
 )
+
+if(NOT WIN32)
+  harvest(external_ogg ogg/lib ffmpeg/lib "*.a")
+endif()
