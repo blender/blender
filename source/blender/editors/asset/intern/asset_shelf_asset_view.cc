@@ -69,7 +69,6 @@ class AssetViewItem : public ui::PreviewGridItem {
   void disable_asset_drag();
   void build_grid_tile(uiLayout &layout) const override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
-  void on_activate(bContext &C) override;
   std::optional<bool> should_be_active() const override;
   bool should_be_filtered_visible(StringRefNull filter_string) const override;
 
@@ -231,14 +230,6 @@ void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
   if (shelf_type.draw_context_menu) {
     asset_system::AssetRepresentation *asset = handle_get_representation(&asset_);
     shelf_type.draw_context_menu(&C, &shelf_type, asset, &column);
-  }
-}
-
-void AssetViewItem::on_activate(bContext & /*C*/)
-{
-  const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
-  if (asset_view.is_popup_) {
-    UI_popup_menu_close_from_but(reinterpret_cast<uiBut *>(this->view_item_button()));
   }
 }
 

@@ -3403,6 +3403,8 @@ bool UI_view_item_can_rename(const blender::ui::AbstractViewItem &item);
 void UI_view_item_begin_rename(blender::ui::AbstractViewItem &item);
 
 bool UI_view_item_supports_drag(const blender::ui::AbstractViewItem &item);
+/** If this view is displayed in a popup, don't close it when clicking to activate items. */
+bool UI_view_item_popup_keep_open(const blender::ui::AbstractViewItem &item);
 /**
  * Attempt to start dragging \a item_. This will not work if the view item doesn't
  * support dragging, i.e. if it won't create a drag-controller upon request.
