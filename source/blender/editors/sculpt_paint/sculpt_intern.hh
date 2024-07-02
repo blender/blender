@@ -2036,10 +2036,12 @@ void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
                                  blender::Span<PBVHNode *> texnodes);
 bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob);
 
-float SCULPT_clay_thumb_get_stabilized_pressure(
-    const blender::ed::sculpt_paint::StrokeCache &cache);
+namespace blender::ed::sculpt_paint {
 
-void SCULPT_do_clay_thumb_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
+float clay_thumb_get_stabilized_pressure(const blender::ed::sculpt_paint::StrokeCache &cache);
+
+}
+
 void SCULPT_do_snake_hook_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_rotate_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_layer_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);

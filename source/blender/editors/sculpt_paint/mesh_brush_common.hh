@@ -54,6 +54,7 @@ void scale_factors(MutableSpan<float> factors, float strength);
 void translations_from_offset_and_factors(const float3 &offset,
                                           Span<float> factors,
                                           MutableSpan<float3> r_translations);
+void transform_positions(Span<float3> src, const float4x4 &transform, MutableSpan<float3> dst);
 
 /**
  * Note on the various positions arrays:
