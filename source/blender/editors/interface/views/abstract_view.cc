@@ -210,6 +210,16 @@ void AbstractView::set_context_menu_title(const std::string &title)
   context_menu_title = title;
 }
 
+bool AbstractView::get_popup_keep_open() const
+{
+  return popup_keep_open_;
+}
+
+void AbstractView::set_popup_keep_open()
+{
+  popup_keep_open_ = true;
+}
+
 void AbstractView::clear_search_highlight()
 {
   this->foreach_view_item([](AbstractViewItem &item) { item.is_highlighted_search_ = false; });

@@ -69,6 +69,8 @@ class AbstractView {
   std::optional<rcti> bounds_;
 
   std::string context_menu_title;
+  /** See #set_popup_keep_open(). */
+  bool popup_keep_open_ = false;
 
  public:
   virtual ~AbstractView() = default;
@@ -116,6 +118,10 @@ class AbstractView {
 
   std::string get_context_menu_title() const;
   void set_context_menu_title(const std::string &title);
+
+  bool get_popup_keep_open() const;
+  /** If this view is displayed in a popup, don't close it when clicking to activate items. */
+  void set_popup_keep_open();
 
   void clear_search_highlight();
 

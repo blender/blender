@@ -386,6 +386,11 @@ bool UI_view_item_supports_drag(const AbstractViewItem &item)
   return item.create_drag_controller() != nullptr;
 }
 
+bool UI_view_item_popup_keep_open(const AbstractViewItem &item)
+{
+  return item.get_view().get_popup_keep_open();
+}
+
 bool UI_view_item_drag_start(bContext &C, const AbstractViewItem &item)
 {
   const std::unique_ptr<AbstractViewItemDragController> drag_controller =

@@ -4914,6 +4914,21 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
   return WM_UI_HANDLER_CONTINUE;
 }
 
+static void force_activate_view_item_but(bContext *C, ARegion *region, uiButViewItem *but)
+{
+  if (but->active) {
+    button_activate_state(C, but, BUTTON_STATE_EXIT);
+  }
+  else {
+    UI_but_execute(C, region, but);
+  }
+
+  /* By default, activating a view item closes the popup. */
+  if (!UI_view_item_popup_keep_open(*but->view_item)) {
+    UI_popup_menu_close_from_but(but);
+  }
+}
+
 static int ui_do_but_VIEW_ITEM(bContext *C,
                                uiBut *but,
                                uiHandleButtonData *data,
@@ -4937,7 +4952,7 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
             data->dragstarty = event->xy[1];
           }
           else {
-            button_activate_state(C, but, BUTTON_STATE_EXIT);
+            force_activate_view_item_but(C, data->region, view_item_but);
           }
 
           return WM_UI_HANDLER_CONTINUE;
@@ -8110,15 +8125,16 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
         (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0 &&
         (event->val == KM_PRESS))
     {
-      /* For some button types that are typically representing entire sets of data, right-clicking
-       * to spawn the context menu should also activate the item. This makes it clear which item
-       * will be operated on.
-       * Apply the button immediately, so context menu polls get the right active item. */
+      /* For some button types that are typically representing entire sets of data,
+       * right-clicking to spawn the context menu should also activate the item. This makes it
+       * clear which item will be operated on. Apply the button immediately, so context menu
+       * polls get the right active item. */
       uiBut *clicked_view_item_but = but->type == UI_BTYPE_VIEW_ITEM ?
                                          but :
                                          ui_view_item_find_mouse_over(data->region, event->xy);
       if (clicked_view_item_but) {
         UI_but_execute(C, data->region, clicked_view_item_but);
+        ui_apply_but_funcs_after(C);
       }
 
       /* RMB has two options now */
@@ -10036,20 +10052,23 @@ static int ui_handle_view_item_event(bContext *C,
       if (event->val == KM_PRESS) {
         /* Only bother finding the active view item button if the active button isn't already a
          * view item. */
-        uiBut *view_but = (active_but && active_but->type == UI_BTYPE_VIEW_ITEM) ?
-                              active_but :
-                              ui_view_item_find_mouse_over(region, event->xy);
+        uiButViewItem *view_but = static_cast<uiButViewItem *>(
+            (active_but && active_but->type == UI_BTYPE_VIEW_ITEM) ?
+                active_but :
+                ui_view_item_find_mouse_over(region, event->xy));
         /* Will free active button if there already is one. */
         if (view_but) {
-          UI_but_execute(C, region, view_but);
+          force_activate_view_item_but(C, region, view_but);
         }
       }
       break;
     case EVT_RETKEY:
     case EVT_PADENTER:
       if (event->val == KM_PRESS) {
-        if (uiBut *search_highlight_but = ui_view_item_find_search_highlight(region)) {
-          UI_but_execute(C, region, search_highlight_but);
+        if (uiButViewItem *search_highlight_but = static_cast<uiButViewItem *>(
+                ui_view_item_find_search_highlight(region)))
+        {
+          force_activate_view_item_but(C, region, search_highlight_but);
           return WM_UI_HANDLER_BREAK;
         }
       }
