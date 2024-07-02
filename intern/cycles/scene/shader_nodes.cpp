@@ -2727,6 +2727,8 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
 
+  SOCKET_IN_FLOAT(diffuse_roughness, "Diffuse Roughness", 0.0f);
+
   SOCKET_IN_FLOAT(subsurface_weight, "Subsurface Weight", 0.0f);
   SOCKET_IN_FLOAT(subsurface_scale, "Subsurface Scale", 0.1f);
   SOCKET_IN_VECTOR(subsurface_radius, "Subsurface Radius", make_float3(0.1f, 0.1f, 0.1f));
@@ -2839,6 +2841,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   int tangent_offset = compiler.stack_assign_if_linked(input("Tangent"));
   int specular_ior_level_offset = compiler.stack_assign(input("Specular IOR Level"));
   int roughness_offset = compiler.stack_assign(input("Roughness"));
+  int diffuse_roughness_offset = compiler.stack_assign(input("Diffuse Roughness"));
   int specular_tint_offset = compiler.stack_assign(input("Specular Tint"));
   int anisotropic_offset = compiler.stack_assign(input("Anisotropic"));
   int sheen_weight_offset = compiler.stack_assign(input("Sheen Weight"));
@@ -2875,7 +2878,10 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
       tangent_offset,
       compiler.encode_uchar4(
           specular_ior_level_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
-      compiler.encode_uchar4(sheen_weight_offset, sheen_tint_offset, sheen_roughness_offset));
+      compiler.encode_uchar4(sheen_weight_offset,
+                             sheen_tint_offset,
+                             sheen_roughness_offset,
+                             diffuse_roughness_offset));
 
   compiler.add_node(
       compiler.encode_uchar4(

@@ -57,7 +57,7 @@ ccl_device Spectrum bsdf_oren_nayar_get_intensity(ccl_private const ShaderClosur
 
 ccl_device int bsdf_oren_nayar_setup(ccl_private const ShaderData *sd,
                                      ccl_private OrenNayarBsdf *bsdf,
-                                     const Spectrum albedo)
+                                     const Spectrum color)
 {
   bsdf->type = CLOSURE_BSDF_OREN_NAYAR_ID;
 
@@ -66,6 +66,7 @@ ccl_device int bsdf_oren_nayar_setup(ccl_private const ShaderData *sd,
   bsdf->b = sigma * bsdf->a;
 
   /* Compute energy compensation term (except for (1.0f - El) factor since it depends on wo). */
+  const Spectrum albedo = saturate(color);
   const float Eavg = bsdf->a * M_PI_F + ((M_2PI_F - 5.6f) / 3.0f) * bsdf->b;
   const Spectrum Ems = M_1_PI_F * sqr(albedo) * (Eavg / (1.0f - Eavg)) /
                        (one_spectrum() - albedo * (1.0f - Eavg));

@@ -384,6 +384,12 @@ void GLFrameBuffer::bind(bool enabled_srgb)
     }
   }
 
+  if (!GLContext::texture_barrier_support && !GLContext::framebuffer_fetch_support) {
+    for (int index : IndexRange(GPU_FB_MAX_ATTACHMENT)) {
+      tmp_detached_[index] = GPU_ATTACHMENT_NONE;
+    }
+  }
+
   if (dirty_attachments_) {
     this->update_attachments();
     this->viewport_reset();

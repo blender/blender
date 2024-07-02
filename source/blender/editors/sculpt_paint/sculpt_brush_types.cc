@@ -112,14 +112,9 @@ static void sculpt_rake_rotate(const SculptSession &ss,
 #endif
 }
 
-/**
- * Align the grab delta to the brush normal.
- *
- * \param grab_delta: Typically from `ss.cache->grab_delta_symmetry`.
- */
-static void sculpt_project_v3_normal_align(const SculptSession &ss,
-                                           const float normal_weight,
-                                           float grab_delta[3])
+void sculpt_project_v3_normal_align(const SculptSession &ss,
+                                    const float normal_weight,
+                                    float grab_delta[3])
 {
   /* Signed to support grabbing in (to make a hole) as well as out. */
   const float len_signed = dot_v3v3(ss.cache->sculpt_normal_symm, grab_delta);
@@ -776,84 +771,6 @@ void SCULPT_do_pinch_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   });
 }
 
-static void do_grab_brush_task(Object &ob,
-                               const Brush &brush,
-                               const float *grab_delta,
-                               PBVHNode *node)
-{
-  using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
-
-  PBVHVertexIter vd;
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
-  const float bstrength = ss.cache->bstrength;
-
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-
-  const bool grab_silhouette = brush.flag2 & BRUSH_GRAB_SILHOUETTE;
-
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-
-    if (!sculpt_brush_test_sq_fn(test, orig_data.co)) {
-      continue;
-    }
-    auto_mask::node_update(automask_data, vd);
-
-    float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                          brush,
-                                                          orig_data.co,
-                                                          sqrtf(test.dist),
-                                                          orig_data.no,
-                                                          nullptr,
-                                                          vd.mask,
-                                                          vd.vertex,
-                                                          thread_id,
-                                                          &automask_data);
-
-    if (grab_silhouette) {
-      float silhouette_test_dir[3];
-      normalize_v3_v3(silhouette_test_dir, grab_delta);
-      if (dot_v3v3(ss.cache->initial_normal, ss.cache->grab_delta_symmetry) < 0.0f) {
-        mul_v3_fl(silhouette_test_dir, -1.0f);
-      }
-      float vno[3];
-      copy_v3_v3(vno, orig_data.no);
-      fade *= max_ff(dot_v3v3(vno, silhouette_test_dir), 0.0f);
-    }
-
-    mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-void SCULPT_do_grab_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
-{
-  using namespace blender;
-  SculptSession &ss = *ob.sculpt;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  float grab_delta[3];
-
-  copy_v3_v3(grab_delta, ss.cache->grab_delta_symmetry);
-
-  if (ss.cache->normal_weight > 0.0f) {
-    sculpt_project_v3_normal_align(ss, ss.cache->normal_weight, grab_delta);
-  }
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_grab_brush_task(ob, brush, grab_delta, nodes[i]);
-    }
-  });
-}
-
 static void do_elastic_deform_brush_task(Object &ob,
                                          const Brush &brush,
                                          const float *grab_delta,
@@ -1105,20 +1022,16 @@ static void do_topology_slide_task(Object &ob, const Brush &brush, PBVHNode *nod
 
 namespace blender::ed::sculpt_paint::smooth {
 
-void relax_vertex(SculptSession &ss,
-                  PBVHVertexIter *vd,
-                  float factor,
-                  bool filter_boundary_face_sets,
-                  float *r_final_pos)
+static void relax_vertex_interior(SculptSession &ss,
+                                  PBVHVertexIter *vd,
+                                  const float factor,
+                                  const bool filter_boundary_face_sets,
+                                  float *r_final_pos)
 {
   float smooth_pos[3];
-  float final_disp[3];
-  float boundary_normal[3];
   int avg_count = 0;
   int neighbor_count = 0;
   zero_v3(smooth_pos);
-  zero_v3(boundary_normal);
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vd->vertex);
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->vertex, ni) {
@@ -1127,25 +1040,8 @@ void relax_vertex(SculptSession &ss,
         (filter_boundary_face_sets && !face_set::vert_has_unique_face_set(ss, ni.vertex)))
     {
 
-      /* When the vertex to relax is boundary, use only connected boundary vertices for the average
-       * position. */
-      if (is_boundary) {
-        if (!SCULPT_vertex_is_boundary(ss, ni.vertex)) {
-          continue;
-        }
-        add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
-        avg_count++;
-
-        /* Calculate a normal for the constraint plane using the edges of the boundary. */
-        float to_neighbor[3];
-        sub_v3_v3v3(to_neighbor, SCULPT_vertex_co_get(ss, ni.vertex), vd->co);
-        normalize_v3(to_neighbor);
-        add_v3_v3(boundary_normal, to_neighbor);
-      }
-      else {
-        add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
-        avg_count++;
-      }
+      add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
+      avg_count++;
     }
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -1156,19 +1052,85 @@ void relax_vertex(SculptSession &ss,
     return;
   }
 
-  if (avg_count > 0) {
-    mul_v3_fl(smooth_pos, 1.0f / avg_count);
+  if (avg_count == 0) {
+    copy_v3_v3(r_final_pos, vd->co);
+    return;
   }
-  else {
+
+  mul_v3_fl(smooth_pos, 1.0f / avg_count);
+
+  const float3 vno = SCULPT_vertex_normal_get(ss, vd->vertex);
+
+  if (is_zero_v3(vno)) {
     copy_v3_v3(r_final_pos, vd->co);
     return;
   }
 
   float plane[4];
-  float smooth_closest_plane[3];
-  float3 vno;
+  plane_from_point_normal_v3(plane, vd->co, vno);
 
-  if (is_boundary && avg_count == 2) {
+  float smooth_closest_plane[3];
+  closest_to_plane_v3(smooth_closest_plane, plane, smooth_pos);
+
+  float final_disp[3];
+  sub_v3_v3v3(final_disp, smooth_closest_plane, vd->co);
+
+  mul_v3_fl(final_disp, factor);
+  add_v3_v3v3(r_final_pos, vd->co, final_disp);
+}
+
+static void relax_vertex_boundary(SculptSession &ss,
+                                  PBVHVertexIter *vd,
+                                  const float factor,
+                                  const bool filter_boundary_face_sets,
+                                  float *r_final_pos)
+{
+  float smooth_pos[3];
+  float boundary_normal[3];
+  int avg_count = 0;
+  int neighbor_count = 0;
+  zero_v3(smooth_pos);
+  zero_v3(boundary_normal);
+
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->vertex, ni) {
+    neighbor_count++;
+    if (!filter_boundary_face_sets ||
+        (filter_boundary_face_sets && !face_set::vert_has_unique_face_set(ss, ni.vertex)))
+    {
+
+      /* When the vertex to relax is boundary, use only connected boundary vertices for the average
+       * position. */
+      if (!SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+        continue;
+      }
+      add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
+      avg_count++;
+
+      /* Calculate a normal for the constraint plane using the edges of the boundary. */
+      float to_neighbor[3];
+      sub_v3_v3v3(to_neighbor, SCULPT_vertex_co_get(ss, ni.vertex), vd->co);
+      normalize_v3(to_neighbor);
+      add_v3_v3(boundary_normal, to_neighbor);
+    }
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  /* Don't modify corner vertices. */
+  if (neighbor_count <= 2) {
+    copy_v3_v3(r_final_pos, vd->co);
+    return;
+  }
+
+  if (avg_count == 0) {
+    copy_v3_v3(r_final_pos, vd->co);
+    return;
+  }
+
+  mul_v3_fl(smooth_pos, 1.0f / avg_count);
+
+  float3 vno;
+  if (avg_count == 2) {
     normalize_v3_v3(vno, boundary_normal);
   }
   else {
@@ -1180,12 +1142,31 @@ void relax_vertex(SculptSession &ss,
     return;
   }
 
+  float plane[4];
   plane_from_point_normal_v3(plane, vd->co, vno);
+
+  float smooth_closest_plane[3];
   closest_to_plane_v3(smooth_closest_plane, plane, smooth_pos);
+
+  float final_disp[3];
   sub_v3_v3v3(final_disp, smooth_closest_plane, vd->co);
 
   mul_v3_fl(final_disp, factor);
   add_v3_v3v3(r_final_pos, vd->co, final_disp);
+}
+
+void relax_vertex(SculptSession &ss,
+                  PBVHVertexIter *vd,
+                  const float factor,
+                  const bool filter_boundary_face_sets,
+                  float *r_final_pos)
+{
+  if (SCULPT_vertex_is_boundary(ss, vd->vertex)) {
+    relax_vertex_boundary(ss, vd, factor, filter_boundary_face_sets, r_final_pos);
+  }
+  else {
+    relax_vertex_interior(ss, vd, factor, filter_boundary_face_sets, r_final_pos);
+  }
 }
 
 }  // namespace blender::ed::sculpt_paint::smooth

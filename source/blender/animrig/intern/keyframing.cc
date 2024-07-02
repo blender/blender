@@ -855,7 +855,7 @@ struct KeyInsertData {
 };
 
 static SingleKeyingResult insert_key_layer(Layer &layer,
-                                           Binding &binding,
+                                           const Binding &binding,
                                            const std::string &rna_path,
                                            const std::optional<PropertySubType> prop_subtype,
                                            const KeyInsertData &key_data,
@@ -874,7 +874,6 @@ static SingleKeyingResult insert_key_layer(Layer &layer,
 }
 
 static CombinedKeyingResult insert_key_layered_action(Action &action,
-                                                      const int32_t binding_handle,
                                                       PointerRNA *rna_pointer,
                                                       const blender::Span<RNAPath> rna_paths,
                                                       const float scene_frame,
@@ -883,19 +882,13 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
 {
   BLI_assert(action.is_action_layered());
 
-  ID *id = rna_pointer->owner_id;
-  CombinedKeyingResult combined_result;
-
-  Binding *binding = action.binding_for_handle(binding_handle);
-  if (binding == nullptr) {
-    binding = &action.binding_add_for_id(*id);
-    const bool success = action.assign_id(binding, *id);
-    UNUSED_VARS_NDEBUG(success);
-    BLI_assert_msg(
-        success,
-        "With a new Binding, the only reason this could fail is that the ID itself cannot be "
-        "animated, which should have been caught and handled by higher-level functions.");
-  }
+  Binding &binding = action.binding_ensure_for_id(*rna_pointer->owner_id);
+  const bool success = action.assign_id(&binding, *rna_pointer->owner_id);
+  UNUSED_VARS_NDEBUG(success);
+  BLI_assert_msg(
+      success,
+      "The conditions that would cause this Binding assigment to fail (such as the ID not being "
+      "animatible) should have been caught and handled by higher-level functions.");
 
   /* Ensure that at least one layer exists. If not, create the default layer
    * with the default infinite keyframe strip. */
@@ -911,6 +904,7 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
 
   const bool use_visual_keyframing = insert_key_flags & INSERTKEY_MATRIX;
 
+  CombinedKeyingResult combined_result;
   for (const RNAPath &rna_path : rna_paths) {
     PointerRNA ptr;
     PropertyRNA *prop = nullptr;
@@ -919,7 +913,7 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
     if (!path_resolved) {
       std::fprintf(stderr,
                    "Failed to insert key on binding %s due to unresolved RNA path: %s\n",
-                   binding->name,
+                   binding.name,
                    rna_path.path.c_str());
       combined_result.add(SingleKeyingResult::CANNOT_RESOLVE_PATH);
       continue;
@@ -939,7 +933,7 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
 
       const KeyInsertData key_data = {{scene_frame, rna_values[property_index]}, property_index};
       const SingleKeyingResult result = insert_key_layer(*layer,
-                                                         *binding,
+                                                         binding,
                                                          *rna_path_id_to_prop,
                                                          prop_subtype,
                                                          key_data,
@@ -983,7 +977,6 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
         (insert_key_flags & INSERTKEY_NO_USERPREF) == 0);
     key_settings.keyframe_type = key_type;
     return insert_key_layered_action(action->wrap(),
-                                     adt->binding_handle,
                                      struct_pointer,
                                      rna_paths,
                                      scene_frame.value_or(anim_eval_context.eval_time),

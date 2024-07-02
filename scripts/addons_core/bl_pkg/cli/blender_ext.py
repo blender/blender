@@ -135,6 +135,10 @@ def print(*args: Any, **kw: Dict[str, Any]) -> None:
 #     __builtins__["print"](*args, **kw, file=open('/tmp/output.txt', 'a'))
 
 
+def any_as_none(_arg: Any) -> None:
+    pass
+
+
 def debug_stack_trace_to_file() -> None:
     """
     Debugging.
@@ -365,7 +369,24 @@ def path_to_url(path: str) -> str:
 def path_from_url(path: str) -> str:
     from urllib.parse import urlparse, unquote
     p = urlparse(path)
-    return os.path.join(p.netloc, unquote(p.path))
+    path_unquote = unquote(p.path)
+    if sys.platform == "win32":
+        # MS-Windows needs special handling for drive letters.
+        # `file:///C:/test` is converted to `/C:/test` which must skip the leading slash.
+        if (p.netloc == "") and re.match("/[A-Za-z]:", path_unquote):
+            result = path_unquote[1:]
+        else:
+            # Handle UNC paths: `\\HOST\share\path` as a URL on MS-Windows.
+            # - MS-Edge: `file://HOST/share/path` where `netloc="HOST"`, `path="/share/path"`.
+            # - Firefox: `file://///HOST/share/path`  where `netloc=""`, `path="///share/path"`.
+            if p.netloc:
+                result = "//{:s}/{:s}".format(p.netloc, path_unquote.lstrip("/"))
+            else:
+                result = "//{:s}".format(path_unquote.lstrip("/"))
+    else:
+        result = os.path.join(p.netloc, path_unquote)
+
+    return result
 
 
 def random_acii_lines(*, seed: Union[int, str], width: int) -> Generator[str, None, None]:
@@ -2777,13 +2798,13 @@ class subcmd_server:
             ):
                 fh.write("  <tr>\n")
 
-                platforms = [platform for platform in manifest_dict.get("platforms", "").split(",") if platform]
+                platforms = manifest_dict.get("platforms", [])
 
                 # Parse the URL and add parameters use for drag & drop.
                 parsed_url = urllib.parse.urlparse(manifest_dict["archive_url"])
                 # We could support existing values, currently always empty.
                 # `query = dict(urllib.parse.parse_qsl(parsed_url.query))`
-                query = {"repository": "/index.json"}
+                query = {"repository": "./index.json"}
                 if (value := manifest_dict.get("blender_version_min", "")):
                     query["blender_version_min"] = value
                 if (value := manifest_dict.get("blender_version_max", "")):
@@ -3067,6 +3088,7 @@ class subcmd_client:
             *,
             local_dir: str,
             filepath_archive: str,
+            blender_version_tuple: Tuple[int, int, int],
             manifest_compare: Optional[PkgManifest],
     ) -> bool:
         # Implement installing a package to a repository.
@@ -3123,6 +3145,19 @@ class subcmd_client:
                             )
                         )
                         return False
+
+                if repository_filter_skip(
+                    # Converting back to a dict is awkward but harmless,
+                    # done since some callers only have a dictionary.
+                    manifest._asdict(),
+                    filter_blender_version=blender_version_tuple,
+                    filter_platform=platform_from_this_system(),
+                    skip_message_fn=lambda message:
+                        any_as_none(message_warn(msg_fn, "{:s}: {:s}".format(manifest.id, message))),
+                    error_fn=lambda ex:
+                        any_as_none(message_warn(msg_fn, "{:s}: {:s}".format(manifest.id, str(ex)))),
+                ):
+                    return False
 
                 # We have the cache, extract it to a directory.
                 # This will be a directory.
@@ -3184,10 +3219,16 @@ class subcmd_client:
             *,
             local_dir: str,
             package_files: Sequence[str],
+            blender_version: str,
     ) -> bool:
         if not os.path.exists(local_dir):
             message_error(msg_fn, "destination directory \"{:s}\" does not exist".format(local_dir))
             return False
+
+        if isinstance(blender_version_tuple := blender_version_parse_or_error(blender_version), str):
+            message_error(msg_fn, blender_version_tuple)
+            return False
+        assert isinstance(blender_version_tuple, tuple)
 
         # This is a simple file extraction, the main difference is that it validates the manifest before installing.
         directories_to_clean: List[str] = []
@@ -3197,6 +3238,7 @@ class subcmd_client:
                         msg_fn,
                         local_dir=local_dir,
                         filepath_archive=filepath_archive,
+                        blender_version_tuple=blender_version_tuple,
                         # There is no manifest from the repository, leave this unset.
                         manifest_compare=None,
                 ):
@@ -3415,6 +3457,7 @@ class subcmd_client:
                         msg_fn,
                         local_dir=local_dir,
                         filepath_archive=filepath_local_cache_archive,
+                        blender_version_tuple=blender_version_tuple,
                         manifest_compare=manifest_archive.manifest,
                 ):
                     # The package failed to install.
@@ -4120,6 +4163,8 @@ def argparse_create_client_install_files(subparsers: "argparse._SubParsersAction
     generic_arg_file_list_positional(subparse)
 
     generic_arg_local_dir(subparse)
+    generic_arg_blender_version(subparse)
+
     generic_arg_output_type(subparse)
 
     subparse.set_defaults(
@@ -4127,6 +4172,7 @@ def argparse_create_client_install_files(subparsers: "argparse._SubParsersAction
             msg_fn_from_args(args),
             local_dir=args.local_dir,
             package_files=args.files,
+            blender_version=args.blender_version,
         ),
     )
 

@@ -65,7 +65,7 @@ bool ui_but_is_toggle(const uiBut *but)
 bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool for_tooltip)
 {
   /* NOTE: #UI_BTYPE_LABEL is included for highlights, this allows drags. */
-  if (but->type == UI_BTYPE_LABEL) {
+  if (ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_PREVIEW_TILE)) {
     if (for_tooltip) {
       /* It's important labels are considered interactive for the purpose of showing tooltip. */
       if (!ui_but_drag_is_draggable(but) && but->tip_func == nullptr &&
@@ -509,6 +509,21 @@ static bool ui_but_is_active_view_item(const uiBut *but, const void * /*customda
 uiBut *ui_view_item_find_active(const ARegion *region)
 {
   return ui_but_find(region, ui_but_is_active_view_item, nullptr);
+}
+
+uiBut *ui_view_item_find_search_highlight(const ARegion *region)
+{
+  return ui_but_find(
+      region,
+      [](const uiBut *but, const void * /*find_custom_data*/) {
+        if (but->type != UI_BTYPE_VIEW_ITEM) {
+          return false;
+        }
+
+        const uiButViewItem *view_item_but = static_cast<const uiButViewItem *>(but);
+        return view_item_but->view_item->is_search_highlight();
+      },
+      nullptr);
 }
 
 /** \} */

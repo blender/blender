@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -15076,24 +15076,12 @@ msgid "Temperature difference to ambient temperature"
 msgstr "Nhiệt độ chênh lệch với môi trường"
 
 
-msgid "Mapping"
-msgstr "Ánh Xạ"
-
-
 msgid "Texture mapping type"
 msgstr "Kiểu ánh xạ chất liệu"
 
 
-msgid "Generated"
-msgstr "Do Máy Sinh Tạo"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "Các tọa độ tạo ra sẽ được đặt quanh trung tâm của đối tượng phát luồng"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -15778,6 +15766,10 @@ msgstr "Biến Động"
 
 msgid "A filler or baked keyframe for keying on ones, or some other purpose as needed"
 msgstr "Một tư thế chèn thêm, hoặc đã được nướng, cho những cái đang được khóa hóa, hoặc vì mục đích khác nào đó - tùy theo nhu cầu"
+
+
+msgid "Generated"
+msgstr "Do Máy Sinh Tạo"
 
 
 msgid "Frame is selected for editing in the Dope Sheet"
@@ -19564,6 +19556,10 @@ msgid "Armature data-block containing a hierarchy of bones, usually used for rig
 msgstr "Khối dữ liệu khung rối có chứa một phân cấp các xương, thường dùng cho quá trình dàn dựng các nhân vật"
 
 
+msgid "Feature Set"
+msgstr "Bộ Chức Năng"
+
+
 msgid "Animation data for this data-block"
 msgstr "Dữ liệu hoạt họa cho khối dữ liệu này"
 
@@ -19658,6 +19654,10 @@ msgstr "Vẽ đường biểu thị mối quan hệ từ đuôi phụ huynh đ�
 
 msgid "Draw the relationship line from the parent head to the child head"
 msgstr "Vẽ đường biểu thị mối quan hệ từ đầu phụ huynh đến đầu con cái"
+
+
+msgid "Theme"
+msgstr "Kiểu Mẫu"
 
 
 msgid "Display Axes"
@@ -24278,20 +24278,12 @@ msgid "Where the image comes from"
 msgstr "Hình ảnh từ đâu mà đến"
 
 
-msgid "Single Image"
-msgstr "Đơn Hình Ảnh"
-
-
 msgid "Single image file"
 msgstr "Đơn tập tin hình ảnh"
 
 
 msgid "Multiple image files, as a sequence"
 msgstr "Bội số các tập tin hình ảnh, như một trình tự"
-
-
-msgid "Movie"
-msgstr "Phim"
 
 
 msgid "Movie file"
@@ -24302,16 +24294,8 @@ msgid "Generated image"
 msgstr "Hình ảnh do máy sinh tạo"
 
 
-msgid "Viewer"
-msgstr "Quan Sát"
-
-
 msgid "Compositing node viewer"
 msgstr "Quan sát cho các nút trong trình phối hợp"
-
-
-msgid "UDIM Tiles"
-msgstr "Các Ô UDIM"
 
 
 msgid "Tiled UDIM image texture"
@@ -33482,6 +33466,10 @@ msgid "Invert the fade-out direction of the linear mapping"
 msgstr "Đảo nghịch hướng mờ dần của ánh xạ tuyến tính"
 
 
+msgid "Mapping"
+msgstr "Ánh Xạ"
+
+
 msgid "Select the mapping type"
 msgstr "Chọn loại ánh xạ"
 
@@ -34937,6 +34925,10 @@ msgstr "Bổ Sung về Thêm"
 
 msgid "Select Linked"
 msgstr "Chọn cái Kết Nối"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align"
@@ -44426,6 +44418,10 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "Tốc độ tối thiểu để làm cho điểm ảnh bị nhòe đi (dùng để tách biệt nền ra khỏi cảnh trước)"
 
 
+msgid "Viewer"
+msgstr "Quan Sát"
+
+
 msgid "Z Combine"
 msgstr "Kết Hợp Z"
 
@@ -51334,6 +51330,10 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "Hiển thị toàn bộ các xương ẩn giấu trong Chế Độ Biên Soạn"
 
 
+msgid "(undocumented operator)"
+msgstr "(thao tác chưa có chú thích về chức năng)"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Xóa Độ Lăn"
@@ -52849,10 +52849,6 @@ msgstr "Chọn các dấu mốc bằng dây thòng lọng"
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Đặt Đoạn Phim đang Hoạt Động"
-
-
-msgid "(undocumented operator)"
-msgstr "(thao tác chưa có chú thích về chức năng)"
 
 
 msgctxt "Operator"
@@ -66259,6 +66255,10 @@ msgid "Copy color to all selected nodes"
 msgstr "Sao chép màu sắc sang toàn bộ các nút được chọn"
 
 
+msgid "Option"
+msgstr "Tùy Chọn"
+
+
 msgid "Overlay Mode"
 msgstr "Chế Độ Vẽ Lồng"
 
@@ -68698,6 +68698,11 @@ msgstr "Hoàn Lại Vượt Quyền Thư Viện"
 
 msgid "Reset the selected local overrides to their linked references values"
 msgstr "Hoàn lại các vượt quyền cục bộ đã chọn thành các giá trị tham chiếu liên kết của chúng"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Mới"
 
 
 msgctxt "Operator"
@@ -72199,6 +72204,10 @@ msgid "Reveal all bones hidden in Pose Mode"
 msgstr "Hiển thị toàn bộ các xương bị ẩn giấu trong Chế Độ Tư Thế"
 
 
+msgid "Property Name"
+msgstr "Tên Tính Chất"
+
+
 msgctxt "Operator"
 msgid "Clear Pose Rotation"
 msgstr "Xóa Xoay Chiều Tư Thế"
@@ -73966,10 +73975,6 @@ msgid "Editing"
 msgstr "Biên Soạn"
 
 
-msgid "Extensions"
-msgstr "Phần Mở Rộng/Định Dạng"
-
-
 msgid "Keymap"
 msgstr "Bố Trí Phím"
 
@@ -75734,6 +75739,11 @@ msgstr "Khung Hình Lịch Trình Thời Gian"
 
 msgid "Frame where key will be added"
 msgstr "Khung hình nơi khóa sẽ được thêm vào"
+
+
+msgctxt "Operator"
+msgid "Delete Retiming Keys"
+msgstr "Xóa các Khóa Tính Lại Thời Gian"
 
 
 msgctxt "Operator"
@@ -81766,10 +81776,6 @@ msgid "Allow the property to be overridden when the data-block is linked"
 msgstr "Cho phép vượt quyền tính chất khi khối dữ liệu đã được kết nối"
 
 
-msgid "Property Name"
-msgstr "Tên Tính Chất"
-
-
 msgid "Property name edit"
 msgstr "Biên soạn tên tính chất"
 
@@ -83408,6 +83414,10 @@ msgid "Detect image slots from the material"
 msgstr "Phát hiện các khe hình ảnh từ nguyên vật liệu"
 
 
+msgid "Single Image"
+msgstr "Đơn Hình Ảnh"
+
+
 msgid "Set image for texture painting directly"
 msgstr "Đặt hình ảnh cho quá trình sơn chất liệu trực tiếp"
 
@@ -84021,11 +84031,6 @@ msgid "Snapping"
 msgstr "Bám Dính"
 
 
-msgctxt "ID"
-msgid "Displacement"
-msgstr "Dời Hình"
-
-
 msgid "Advanced Filter"
 msgstr "Thao Tác Thanh Lọc Cấp Tiến"
 
@@ -84190,6 +84195,10 @@ msgstr "Bố Trí Ô Cờ"
 
 msgid "Texture Mask"
 msgstr "Màn Chắn Lọc Chất Liệu"
+
+
+msgid "UDIM Tiles"
+msgstr "Các Ô UDIM"
 
 
 msgid "Histogram"
@@ -84662,6 +84671,10 @@ msgid "Prototypes"
 msgstr "Mô Hình Mẫu Đầu Tiên"
 
 
+msgid "Extensions"
+msgstr "Phần Mở Rộng/Định Dạng"
+
+
 msgid "Applications"
 msgstr "Trình Ứng Dụng"
 
@@ -84840,10 +84853,6 @@ msgstr "Ô Số"
 
 msgid "Value Slider"
 msgstr "Thanh Trượt Đổi Giá Trị"
-
-
-msgid "Option"
-msgstr "Tùy Chọn"
 
 
 msgid "Pie Menu"
@@ -86668,10 +86677,6 @@ msgstr "Cài đặt sở thích toàn cầu"
 
 msgid "Active Section"
 msgstr "Phân Vùng Hoạt Động"
-
-
-msgid "Active section of the preferences shown in the user interface"
-msgstr "Phân vùng hoạt động của các cài đặt sở thích đang được hiển thị trong giao diện người dùng"
 
 
 msgid "Application Template"
@@ -90211,10 +90216,6 @@ msgid "Add ambient occlusion to diffuse surfaces"
 msgstr "Thêm tính hấp thụ quang xạ môi trường (THTQXMT) vào các bề mặt khuếch tán"
 
 
-msgid "Feature Set"
-msgstr "Bộ Chức Năng"
-
-
 msgid "Feature set to use for rendering"
 msgstr "Sử dụng bộ chức năng nào khi kết xuất"
 
@@ -91161,6 +91162,10 @@ msgstr "Chiếu Sáng theo Kích Thước Bước của Diễu Hành Tia Thể T
 
 msgid "Step size when raymarching volume for lighting computation"
 msgstr "Kích thước bước khi diễu hành tia thể tích để tính toán ánh sáng"
+
+
+msgid "Widget"
+msgstr "Thành Tố Điều Khiển"
 
 
 msgid "Selected UV Element"
@@ -93605,10 +93610,6 @@ msgstr "Lấy mẫu cho toàn bộ điểm ảnh ở biên vùng nét để gi�
 
 msgid "Jitter Camera"
 msgstr "Rung Động Máy Quay Phim"
-
-
-msgid "Jitter camera position to create accurate blurring using render samples"
-msgstr "Rung động vị trí của máy quay phim để kiến tạo nhòe mờ chính xác dùng các mẫu kết xuất"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -99220,10 +99221,6 @@ msgid "Use global coordinates for the texture coordinates"
 msgstr "Dùng tọa độ toàn cầu làm tọa độ chất liệu"
 
 
-msgid "Along stroke"
-msgstr "Dọc theo đường nét"
-
-
 msgid "Use stroke length for texture coordinates"
 msgstr "Dùng chiều dài nét cho tọa độ chất liệu"
 
@@ -99346,10 +99343,6 @@ msgstr "Dùng tọa độ đối tượng kết nối làm tọa độ chất li
 
 msgid "Use UV coordinates for texture coordinates"
 msgstr "Dùng tọa độ UV cho tọa độ chất liệu"
-
-
-msgid "Strand / Particle"
-msgstr "Sợi / Hạt"
 
 
 msgid "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"
@@ -103341,10 +103334,6 @@ msgid "Wire Color Type"
 msgstr "Thể Loại Màu Dây"
 
 
-msgid "Theme"
-msgstr "Kiểu Mẫu"
-
-
 msgid "Show scene wireframes with the theme's wire color"
 msgstr "Hiển thị các khung dây của cảnh với màu dây từ kiểu mẫu"
 
@@ -103944,10 +103933,6 @@ msgstr "Sử Dụng Khung Vẽ Sơn"
 
 msgid "Does this tool use a painting canvas"
 msgstr "Công cụ này có sử dụng một khung vẽ sơn hay không"
-
-
-msgid "Widget"
-msgstr "Thành Tố Điều Khiển"
 
 
 msgid "Lighting for a World data-block"
@@ -107958,6 +107943,49 @@ msgid "Deselected bones from %s"
 msgstr "Đã hủy chọn các xương từ %s"
 
 
+msgid "Description:"
+msgstr "Miêu Tả:"
+
+
+msgid "Internet:"
+msgstr "Liên Mạng Thế Giới:"
+
+
+msgid "Author:"
+msgstr "Tác Giả:"
+
+
+msgid "Version:"
+msgstr "Phiên Bản:"
+
+
+msgid "Warning:"
+msgstr "Cảnh Cáo:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Tài Liệu"
+
+
+msgid "File:"
+msgstr "Tập Tin:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Áp Dụng"
+
+
+msgid "Options:"
+msgstr "Tùy Chọn:"
+
+
+msgctxt "Operator"
+msgid "Action"
+msgstr "Hành Động"
+
+
 msgid "Save to PO File"
 msgstr "Lưu vào Tập Tin PO"
 
@@ -108210,11 +108238,6 @@ msgstr "Khôi Phục"
 msgctxt "WindowManager"
 msgid "Add New"
 msgstr "Thêm Mới"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Mới"
 
 
 msgctxt "Operator"
@@ -108658,10 +108681,6 @@ msgstr "Quỹ Phát Triển"
 
 msgid "The donation program to support maintenance and improvements"
 msgstr "Chương trình quyên góp để hỗ trợ bảo trì và cải tiến"
-
-
-msgid "blender.org"
-msgstr "blender.org"
 
 
 msgid "Blender's official web-site"
@@ -111129,10 +111148,6 @@ msgid "Filter by Type:"
 msgstr "Thanh Lọc theo Thể Loại:"
 
 
-msgid "Options:"
-msgstr "Tùy Chọn:"
-
-
 msgid "Snap To"
 msgstr "Bám Dính Vào"
 
@@ -111796,11 +111811,6 @@ msgstr "Bật/Tắt Toàn Bộ Địa Phận Màn Hình"
 
 
 msgctxt "Operator"
-msgid "Action"
-msgstr "Hành Động"
-
-
-msgctxt "Operator"
 msgid "Transition"
 msgstr "Chuyển Cảnh"
 
@@ -112287,11 +112297,6 @@ msgstr "Đổi Đường Dẫn/Tập Tin"
 msgctxt "Operator"
 msgid "Swap Data"
 msgstr "Tráo Đổi Dữ Liệu"
-
-
-msgctxt "Operator"
-msgid "Delete Retiming Keys"
-msgstr "Xóa các Khóa Tính Lại Thời Gian"
 
 
 msgctxt "Operator"
@@ -113465,41 +113470,12 @@ msgid "Missing script files"
 msgstr "Các tập tin về tập lệnh bị thất lạc"
 
 
-msgid "Description:"
-msgstr "Miêu Tả:"
-
-
 msgid "Location:"
 msgstr "Vị Trí:"
 
 
-msgid "File:"
-msgstr "Tập Tin:"
-
-
-msgid "Author:"
-msgstr "Tác Giả:"
-
-
-msgid "Version:"
-msgstr "Phiên Bản:"
-
-
-msgid "Warning:"
-msgstr "Cảnh Cáo:"
-
-
-msgid "Internet:"
-msgstr "Liên Mạng Thế Giới:"
-
-
 msgid "User:"
 msgstr "Người Dùng:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Tài Liệu"
 
 
 msgctxt "Operator"
@@ -115643,11 +115619,6 @@ msgstr "Sơn Đồng Loạt"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Biên Soạn Nhanh"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Áp Dụng"
 
 
 msgctxt "Operator"
@@ -119345,6 +119316,11 @@ msgid "New"
 msgstr "Mới"
 
 
+msgctxt "PaintCurve"
+msgid "New"
+msgstr "Mới"
+
+
 msgctxt "ParticleSettings"
 msgid "New"
 msgstr "Mới"
@@ -119386,11 +119362,6 @@ msgstr "Mới"
 
 
 msgctxt "World"
-msgid "New"
-msgstr "Mới"
-
-
-msgctxt "PaintCurve"
 msgid "New"
 msgstr "Mới"
 
@@ -126661,6 +126632,10 @@ msgstr "Một hình va đập không lồi đã được giao cho hàm số, ch�
 
 msgid "Rigidbody world was not properly initialized, need to step the simulation first"
 msgstr "Thế giới thân cứng chưa được khởi thủy đúng đắn, cần khởi bước mô phỏng trước đã"
+
+
+msgid "Movie"
+msgstr "Phim"
 
 
 msgid "Use the scene orientation"

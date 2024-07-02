@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -3622,20 +3622,8 @@ msgid "Add fire"
 msgstr "Tűz hozzáadása"
 
 
-msgid "Mapping"
-msgstr "Letérképezés"
-
-
 msgid "Texture mapping type"
 msgstr "Textúra térképezés típusa"
-
-
-msgid "Generated"
-msgstr "Generált"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Z-offset of texture mapping"
@@ -3996,6 +3984,10 @@ msgstr "Kulcsképkocka"
 
 msgid "Jitter"
 msgstr "Elszórás"
+
+
+msgid "Generated"
+msgstr "Generált"
 
 
 msgid "Grease Pencil Frames"
@@ -5329,20 +5321,12 @@ msgid "Where the image comes from"
 msgstr "Ahonnan a kép származik"
 
 
-msgid "Single Image"
-msgstr "Egyetlen kép"
-
-
 msgid "Single image file"
 msgstr "Egyetlen képfájl"
 
 
 msgid "Multiple image files, as a sequence"
 msgstr "Több képfájl, amelyek sorozatot alkotnak"
-
-
-msgid "Movie"
-msgstr "Film"
 
 
 msgid "Movie file"
@@ -6611,6 +6595,10 @@ msgid "Invert the fade-out direction of the linear mapping"
 msgstr "Az átmenet irányának invertálása a lineáris letérképezésnél"
 
 
+msgid "Mapping"
+msgstr "Letérképezés"
+
+
 msgid "Select the mapping type"
 msgstr "A letérképezés típusának kiválasztása"
 
@@ -7179,6 +7167,10 @@ msgstr "Csatorna"
 
 msgid "Grease Pencil Vertex Groups"
 msgstr "Zsírkréta csúcspont csoportok"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Strip"
@@ -9804,6 +9796,10 @@ msgid "Clear Parent"
 msgstr "Szülő törlése"
 
 
+msgid "(undocumented operator)"
+msgstr "(nem dokumentált operátor)"
+
+
 msgctxt "Operator"
 msgid "(De)select All"
 msgstr "Összes elem kijelölése (megszüntetése)"
@@ -9936,10 +9932,6 @@ msgstr "Klip megnyitása"
 
 msgid "Backwards"
 msgstr "Visszafelé"
-
-
-msgid "(undocumented operator)"
-msgstr "(nem dokumentált operátor)"
 
 
 msgctxt "Operator"
@@ -11102,6 +11094,10 @@ msgid "Duplicate Item"
 msgstr "Elem duplikálása"
 
 
+msgid "Option"
+msgstr "Opció"
+
+
 msgid "Exponent"
 msgstr "Exponenciális"
 
@@ -11395,6 +11391,11 @@ msgstr "Eredetpontot a 3D kurzorhoz"
 
 msgid "Move object origin to position of the 3D cursor"
 msgstr "Objektum eredetpontjának mozgatása a 3D kurzor pozíciójához"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Új"
 
 
 msgid "Change selection of all visible objects in scene"
@@ -13271,6 +13272,10 @@ msgid "Dither"
 msgstr "Szórás"
 
 
+msgid "Single Image"
+msgstr "Egyetlen kép"
+
+
 msgid "Detail Size"
 msgstr "Részlet mérete"
 
@@ -13426,10 +13431,6 @@ msgstr "Számmező"
 
 msgid "Value Slider"
 msgstr "Érték csúszka"
-
-
-msgid "Option"
-msgstr "Opció"
 
 
 msgid "Progress Bar"
@@ -15826,6 +15827,44 @@ msgid "Add Material Variant"
 msgstr "Anyagvariáns hozzáadása"
 
 
+msgid "Description:"
+msgstr "Leírás:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Author:"
+msgstr "Szerző:"
+
+
+msgid "Version:"
+msgstr "Verzió:"
+
+
+msgid "Warning:"
+msgstr "Figyelmeztetés:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Dokumentáció"
+
+
+msgid "File:"
+msgstr "Fájl:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Options:"
+msgstr "Opciók:"
+
+
 msgid "Tool Tips:"
 msgstr "Helyi súgó:"
 
@@ -15856,11 +15895,6 @@ msgstr "Importálás PO..."
 
 msgid "Tracking"
 msgstr "Követés"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Új"
 
 
 msgid "3D View"
@@ -16145,10 +16179,6 @@ msgstr "Kulcs-képkocka B beállítása"
 
 msgid "Filter by Type:"
 msgstr "Szűrés típus szerint:"
-
-
-msgid "Options:"
-msgstr "Opciók:"
 
 
 msgctxt "Operator"
@@ -16546,41 +16576,12 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Görgős zoomolás irányának megfordítása"
 
 
-msgid "Description:"
-msgstr "Leírás:"
-
-
 msgid "Location:"
 msgstr "Hely:"
 
 
-msgid "File:"
-msgstr "Fájl:"
-
-
-msgid "Author:"
-msgstr "Szerző:"
-
-
-msgid "Version:"
-msgstr "Verzió:"
-
-
-msgid "Warning:"
-msgstr "Figyelmeztetés:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
 msgid "User:"
 msgstr "Felhasználó:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Dokumentáció"
 
 
 msgctxt "Operator"
@@ -16805,11 +16806,6 @@ msgstr "Fókusztávolság beállítása"
 
 msgid "Layer:"
 msgstr "Réteg:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Elfogadás"
 
 
 msgid "KeyingSet"
@@ -17674,6 +17670,10 @@ msgstr "Kép nincs csomagolva"
 msgctxt "Key"
 msgid "Key"
 msgstr "Kulcs"
+
+
+msgid "Movie"
+msgstr "Film"
 
 
 msgid "No active window in context!"

@@ -101,7 +101,6 @@ set(SRC
   sculpt_geodesic.cc
   sculpt_gesture.cc
   sculpt_mask_init.cc
-  sculpt_multiplane_scrape.cc
   sculpt_ops.cc
   sculpt_paint_color.cc
   sculpt_paint_image.cc
@@ -127,8 +126,10 @@ set(SRC
   brushes/draw.cc
   brushes/fill.cc
   brushes/flatten.cc
+  brushes/grab.cc
   brushes/inflate.cc
   brushes/mask.cc
+  brushes/multiplane_scrape.cc
   brushes/multires_displacement_eraser.cc
   brushes/scrape.cc
   brushes/smooth.cc

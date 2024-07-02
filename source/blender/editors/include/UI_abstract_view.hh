@@ -22,6 +22,7 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <string>
 
 #include "DNA_defs.h"
 #include "DNA_vec_types.h"
@@ -59,6 +60,10 @@ class AbstractView {
    * may be able to bind the button to a `std::string` or similar.
    */
   std::unique_ptr<std::array<char, MAX_NAME>> rename_buffer_;
+  /* Search/filter string from the previous redraw, stored to detect changes. */
+  std::string prev_filter_string_;
+
+  bool needs_filtering_ = true;
 
   /* See #get_bounds(). */
   std::optional<rcti> bounds_;
@@ -112,6 +117,8 @@ class AbstractView {
   std::string get_context_menu_title() const;
   void set_context_menu_title(const std::string &title);
 
+  void clear_search_highlight();
+
  protected:
   AbstractView() = default;
 
@@ -138,6 +145,9 @@ class AbstractView {
    * #update_from_old() have finished.
    */
   bool is_reconstructed() const;
+
+  void filter(std::optional<StringRef> str);
+  const AbstractViewItem *search_highlight_item() const;
 };
 
 class AbstractViewItem {
@@ -156,9 +166,11 @@ class AbstractViewItem {
   bool is_interactive_ = true;
   bool is_active_ = false;
   bool is_renaming_ = false;
+  /** See #is_search_highlight(). */
+  bool is_highlighted_search_ = false;
 
   /** Cache filtered state here to avoid having to re-query. */
-  mutable std::optional<bool> is_filtered_visible_;
+  bool is_filtered_visible_ = true;
 
  public:
   virtual ~AbstractViewItem() = default;
@@ -219,9 +231,7 @@ class AbstractViewItem {
    */
   virtual std::optional<std::string> debug_name() const;
 
-  /** Return the result of #is_filtered_visible(), but ensure the result is cached so it's only
-   * queried once per redraw. */
-  bool is_filtered_visible_cached() const;
+  bool is_filtered_visible() const;
 
   /** Get the view this item is registered for using #AbstractView::register_item(). */
   AbstractView &get_view() const;
@@ -255,6 +265,11 @@ class AbstractViewItem {
    * can't be sure about the item state.
    */
   bool is_active() const;
+  /**
+   * Should this item be highlighted as matching search result? Only one item should be highlighted
+   * this way at a time. Pressing enter will activate it.
+   */
+  bool is_search_highlight() const;
 
   bool is_renaming() const;
   void begin_renaming();
@@ -298,9 +313,9 @@ class AbstractViewItem {
 
   /**
    * \note Do not call this directly to avoid constantly rechecking the filter state. Instead use
-   *       #is_filtered_visible_cached() for querying.
+   *       #is_filtered_visible() for querying.
    */
-  virtual bool is_filtered_visible() const;
+  virtual bool should_be_filtered_visible(StringRefNull filter_string) const;
 
   /**
    * Add a text button for renaming the item to \a block. This must be used for the built-in

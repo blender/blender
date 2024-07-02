@@ -301,7 +301,6 @@ static void detect_workarounds()
     GCaps.depth_blitting_workaround = true;
     GCaps.mip_render_workaround = true;
     GLContext::debug_layer_workaround = true;
-    GLContext::unused_fb_slot_workaround = true;
     /* Turn off Blender features. */
     GCaps.hdr_viewport_support = false;
     /* Turn off OpenGL 4.4 features. */
@@ -323,6 +322,7 @@ static void detect_workarounds()
     GLContext::native_barycentric_support = false;
     GLContext::framebuffer_fetch_support = false;
     GLContext::texture_barrier_support = false;
+    GCaps.stencil_export_support = false;
 
 #if 0
     /* Do not alter OpenGL 4.3 features.
@@ -598,8 +598,14 @@ void GLBackend::capabilities_init()
   detect_workarounds();
 
 #if BLI_SUBPROCESS_SUPPORT
-  GCaps.max_parallel_compilations = std::min(int(U.max_shader_compilation_subprocesses),
-                                             BLI_system_thread_count());
+  if (GCaps.max_parallel_compilations == -1) {
+    GCaps.max_parallel_compilations = std::min(int(U.max_shader_compilation_subprocesses),
+                                               BLI_system_thread_count());
+  }
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    /* Avoid crashes on RenderDoc sessions. */
+    GCaps.max_parallel_compilations = 0;
+  }
 #else
   GCaps.max_parallel_compilations = 0;
 #endif

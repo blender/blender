@@ -1946,7 +1946,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
   }
 
   if (brush.sculpt_tool == SCULPT_TOOL_MULTIPLANE_SCRAPE) {
-    SCULPT_multiplane_scrape_preview_draw(
+    multiplane_scrape_preview_draw(
         pcontext->pos, brush, ss, pcontext->outline_col, pcontext->outline_alpha);
   }
 

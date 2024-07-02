@@ -1195,6 +1195,14 @@ static bool compositor_needs_render(Scene *sce, const bool this_scene)
         return true;
       }
     }
+
+    if (node->type == CMP_NODE_CRYPTOMATTE &&
+        node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER && (node->flag & NODE_MUTED) == 0)
+    {
+      if (this_scene == 0 || node->id == nullptr || node->id == &sce->id) {
+        return true;
+      }
+    }
   }
   return false;
 }
@@ -1239,6 +1247,25 @@ static void do_render_compositor_scenes(Render *re)
   GSet *scenes_rendered = BLI_gset_ptr_new(__func__);
   for (bNode *node : re->scene->nodetree->all_nodes()) {
     if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
+      if (node->id && node->id != (ID *)re->scene) {
+        Scene *scene = (Scene *)node->id;
+        if (!BLI_gset_haskey(scenes_rendered, scene) &&
+            render_scene_has_layers_to_render(scene, nullptr))
+        {
+          do_render_compositor_scene(re, scene, cfra);
+          BLI_gset_add(scenes_rendered, scene);
+          node->typeinfo->updatefunc(restore_scene->nodetree, node);
+
+          if (scene != re->scene) {
+            changed_scene = true;
+          }
+        }
+      }
+    }
+
+    if (node->type == CMP_NODE_CRYPTOMATTE &&
+        node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER && (node->flag & NODE_MUTED) == 0)
+    {
       if (node->id && node->id != (ID *)re->scene) {
         Scene *scene = (Scene *)node->id;
         if (!BLI_gset_haskey(scenes_rendered, scene) &&

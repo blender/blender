@@ -202,7 +202,8 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
                                  MutableSpan<bool> vert_bitmap,
                                  PBVHNode *node)
 {
-  node->uniq_verts = node->face_verts = 0;
+  node->uniq_verts = 0;
+  int shared_verts = 0;
   const Span<int> prim_indices = node->prim_indices;
 
   /* reserve size is rough guess */
@@ -215,11 +216,11 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
     const int3 &tri = corner_tris[prim_indices[i]];
     for (int j = 0; j < 3; j++) {
       node->face_vert_indices[i][j] = map_insert_vert(
-          map, vert_bitmap, &node->face_verts, &node->uniq_verts, corner_verts[tri[j]]);
+          map, vert_bitmap, &shared_verts, &node->uniq_verts, corner_verts[tri[j]]);
     }
   }
 
-  node->vert_indices.reinitialize(node->uniq_verts + node->face_verts);
+  node->vert_indices.reinitialize(node->uniq_verts + shared_verts);
 
   /* Build the vertex list, unique verts first */
   for (const MapItem<int, int> item : map.items()) {
@@ -1145,10 +1146,8 @@ static void calc_node_vert_normals(const GroupedSpan<int> vert_to_face_map,
 {
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const PBVHNode *node : nodes.slice(range)) {
-      normals_calc_verts_simple(vert_to_face_map,
-                                face_normals,
-                                node->vert_indices.as_span().take_front(node->uniq_verts),
-                                vert_normals);
+      normals_calc_verts_simple(
+          vert_to_face_map, face_normals, node_unique_verts(*node), vert_normals);
     }
   });
 }
@@ -1251,7 +1250,7 @@ void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg)
 void update_node_bounds_mesh(const Span<float3> positions, PBVHNode &node)
 {
   Bounds<float3> bounds = negative_bounds();
-  for (const int vert : node.vert_indices) {
+  for (const int vert : node_verts(node)) {
     math::min_max(positions[vert], bounds.min, bounds.max);
   }
   node.bounds = bounds;
@@ -1350,12 +1349,11 @@ void store_bounds_orig(PBVH &pbvh)
 
 void node_update_mask_mesh(const Span<float> mask, PBVHNode &node)
 {
-  const bool fully_masked = std::all_of(node.vert_indices.begin(),
-                                        node.vert_indices.end(),
-                                        [&](const int vert) { return mask[vert] == 1.0f; });
-  const bool fully_unmasked = std::all_of(node.vert_indices.begin(),
-                                          node.vert_indices.end(),
-                                          [&](const int vert) { return mask[vert] <= 0.0f; });
+  const Span<int> verts = node_verts(node);
+  const bool fully_masked = std::all_of(
+      verts.begin(), verts.end(), [&](const int vert) { return mask[vert] == 1.0f; });
+  const bool fully_unmasked = std::all_of(
+      verts.begin(), verts.end(), [&](const int vert) { return mask[vert] <= 0.0f; });
   SET_FLAG_FROM_TEST(node.flag, fully_masked, PBVH_FullyMasked);
   SET_FLAG_FROM_TEST(node.flag, fully_unmasked, PBVH_FullyUnmasked);
   node.flag &= ~PBVH_UpdateMask;
@@ -1476,9 +1474,9 @@ void update_mask(PBVH &pbvh)
 void node_update_visibility_mesh(const Span<bool> hide_vert, PBVHNode &node)
 {
   BLI_assert(!hide_vert.is_empty());
-  const bool fully_hidden = std::all_of(node.vert_indices.begin(),
-                                        node.vert_indices.end(),
-                                        [&](const int vert) { return hide_vert[vert]; });
+  const Span<int> verts = node_verts(node);
+  const bool fully_hidden = std::all_of(
+      verts.begin(), verts.end(), [&](const int vert) { return hide_vert[vert]; });
   SET_FLAG_FROM_TEST(node.flag, fully_hidden, PBVH_FullyHidden);
   node.flag &= ~PBVH_UpdateVisibility;
 }
@@ -2891,7 +2889,7 @@ void pbvh_vertex_iter_init(PBVH &pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
       uniq_verts = totvert;
       break;
     case PBVH_FACES:
-      totvert = node->uniq_verts + node->face_verts;
+      totvert = node->vert_indices.size();
       uniq_verts = node->uniq_verts;
       break;
     case PBVH_BMESH:

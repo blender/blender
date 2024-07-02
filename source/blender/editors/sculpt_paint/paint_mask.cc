@@ -605,6 +605,7 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
       const CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
+          bool any_changed = false;
           for (const int grid : bke::pbvh::node_grid_indices(*node)) {
             CCGElem *elem = grids[grid];
             BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
@@ -613,6 +614,10 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
                                        CCG_elem_offset_no(key, elem, i)))
               {
                 float &mask = CCG_elem_offset_mask(key, elem, i);
+                if (!any_changed) {
+                  any_changed = true;
+                  undo::push_node(object, node, undo::Type::Mask);
+                }
                 mask = mask_gesture_get_new_value(mask, op.mode, op.value);
               }
             });
@@ -627,9 +632,14 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
       const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
+          bool any_changed = false;
           for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
             if (gesture::is_affected(gesture_data, vert->co, vert->no)) {
               const float old_mask = BM_ELEM_CD_GET_FLOAT(vert, offset);
+              if (!any_changed) {
+                any_changed = true;
+                undo::push_node(object, node, undo::Type::Mask);
+              }
               const float new_mask = mask_gesture_get_new_value(old_mask, op.mode, op.value);
               BM_ELEM_CD_SET_FLOAT(vert, offset, new_mask);
             }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -421,12 +421,12 @@ msgid "Vertex Group"
 msgstr "דוקדוק תצובק"
 
 
-msgid "Generated"
-msgstr "רצוימ"
-
-
 msgid "Collection"
 msgstr "ףסוא"
+
+
+msgid "Generated"
+msgstr "רצוימ"
 
 
 msgid "Window"
@@ -514,10 +514,6 @@ msgstr "ביתנ"
 
 msgid "Mean"
 msgstr "עצוממ"
-
-
-msgid "Movie"
-msgstr "טרס"
 
 
 msgctxt "Material"
@@ -1079,6 +1075,10 @@ msgstr ":עצוממ סוידר"
 
 msgid "Modify"
 msgstr "הנש"
+
+
+msgid "Movie"
+msgstr "טרס"
 
 
 msgid "Missing header"

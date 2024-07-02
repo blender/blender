@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -837,10 +837,6 @@ msgid "Fire"
 msgstr "От"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Visibility"
 msgstr "Көрүнүү"
 
@@ -1052,10 +1048,6 @@ msgstr "Cineon"
 
 msgid "Radiance HDR"
 msgstr "Radiance HDR"
-
-
-msgid "Movie"
-msgstr "Тасма"
 
 
 msgid "Movie file"
@@ -1390,6 +1382,10 @@ msgstr "Канал"
 
 msgid "Files"
 msgstr "Файлдар"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align"
@@ -2216,6 +2212,11 @@ msgstr "Тез түтүн"
 
 msgid "Smoke Style"
 msgstr "Түтүн стили"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Жаңы"
 
 
 msgid "Child"
@@ -3099,6 +3100,40 @@ msgid "Report a Bug"
 msgstr "Ката жөнүндө маалымдоо"
 
 
+msgid "Description:"
+msgstr "Баяндамасы:"
+
+
+msgid "Internet:"
+msgstr "Интернет:"
+
+
+msgid "Author:"
+msgstr "Автору:"
+
+
+msgid "Version:"
+msgstr "Версиясы:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Документация"
+
+
+msgid "File:"
+msgstr "Файлы:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Колдонуу"
+
+
+msgid "Options:"
+msgstr "Опциялар:"
+
+
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "Ырастоолорду түшүрүү"
@@ -3111,11 +3146,6 @@ msgstr "Статистика"
 
 msgid "Tracking"
 msgstr "Трекинг"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Жаңы"
 
 
 msgid "3D View"
@@ -3167,10 +3197,6 @@ msgstr "Пол"
 msgctxt "Operator"
 msgid "Wall"
 msgstr "Дубал"
-
-
-msgid "Options:"
-msgstr "Опциялар:"
 
 
 msgctxt "Operator"
@@ -3298,33 +3324,8 @@ msgid "Error (see console)"
 msgstr "Ката (консолду караңыз)"
 
 
-msgid "Description:"
-msgstr "Баяндамасы:"
-
-
 msgid "Location:"
 msgstr "Жайгашкан жери:"
-
-
-msgid "File:"
-msgstr "Файлы:"
-
-
-msgid "Author:"
-msgstr "Автору:"
-
-
-msgid "Version:"
-msgstr "Версиясы:"
-
-
-msgid "Internet:"
-msgstr "Интернет:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Документация"
 
 
 msgctxt "Operator"
@@ -3425,11 +3426,6 @@ msgstr "Решётка"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Тез оңдоо"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Колдонуу"
 
 
 msgid "Untitled"
@@ -3761,6 +3757,10 @@ msgstr "Өзгөртүү"
 msgctxt "Key"
 msgid "Key"
 msgstr "Ачкыч"
+
+
+msgid "Movie"
+msgstr "Тасма"
 
 
 msgid "AO"

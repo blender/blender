@@ -29,6 +29,7 @@ void AbstractViewItem::update_from_old(const AbstractViewItem &old)
 {
   is_active_ = old.is_active_;
   is_renaming_ = old.is_renaming_;
+  is_highlighted_search_ = old.is_highlighted_search_;
 }
 
 /** \} */
@@ -236,19 +237,15 @@ void AbstractViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*
 /** \name Filtering
  * \{ */
 
-bool AbstractViewItem::is_filtered_visible() const
+bool AbstractViewItem::should_be_filtered_visible(const StringRefNull /*filter_string*/) const
 {
   return true;
 }
 
-bool AbstractViewItem::is_filtered_visible_cached() const
+bool AbstractViewItem::is_filtered_visible() const
 {
-  if (is_filtered_visible_.has_value()) {
-    return *is_filtered_visible_;
-  }
-
-  is_filtered_visible_ = is_filtered_visible();
-  return *is_filtered_visible_;
+  BLI_assert(get_view().needs_filtering_ == false);
+  return is_filtered_visible_;
 }
 
 /** \} */
@@ -321,6 +318,11 @@ bool AbstractViewItem::is_active() const
   BLI_assert_msg(this->get_view().is_reconstructed(),
                  "State can't be queried until reconstruction is completed");
   return is_active_;
+}
+
+bool AbstractViewItem::is_search_highlight() const
+{
+  return is_highlighted_search_;
 }
 
 /** \} */

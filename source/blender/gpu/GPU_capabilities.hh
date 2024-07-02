@@ -65,3 +65,6 @@ bool GPU_stereo_quadbuffer_support();
 
 int GPU_minimum_per_vertex_stride();
 bool GPU_transform_feedback_support();
+
+/** WARNING: Should only be called at startup from creator_args. Never call it at runtime. */
+void GPU_compilation_subprocess_override_set(int count);

@@ -440,9 +440,12 @@ void LightModule::end_sync()
   culling_light_buf_.resize(lights_allocated);
 
   {
+
+    int2 render_extent = inst_.film.render_extent_get();
+    int2 probe_extent = int2(inst_.sphere_probes.probe_render_extent());
+    int2 max_extent = math::max(render_extent, probe_extent);
     /* Compute tile size and total word count. */
     uint word_per_tile = divide_ceil_u(max_ii(lights_len_, 1), 32);
-    int2 render_extent = inst_.film.render_extent_get();
     int2 tiles_extent;
     /* Default to 32 as this is likely to be the maximum
      * tile size used by hardware or compute shading. */
@@ -450,7 +453,7 @@ void LightModule::end_sync()
     bool tile_size_valid = false;
     do {
       tile_size *= 2;
-      tiles_extent = math::divide_ceil(render_extent, int2(tile_size));
+      tiles_extent = math::divide_ceil(max_extent, int2(tile_size));
       uint tile_count = tiles_extent.x * tiles_extent.y;
       if (tile_count > max_tile_count_threshold) {
         continue;

@@ -266,7 +266,7 @@ static void do_color_smooth_task(Object &ob,
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
 
-  const Span<int> verts = bke::pbvh::node_verts(*node);
+  const Span<int> verts = bke::pbvh::node_unique_verts(*node);
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
     if (!hide_vert.is_empty() && hide_vert[verts[i]]) {

@@ -90,23 +90,6 @@ static void calc_faces(const Sculpt &sd,
   write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 }
 
-static BLI_NOINLINE void gather_normals(const SubdivCCG &subdiv_ccg,
-                                        const Span<int> grids,
-                                        const MutableSpan<float3> normals)
-{
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
-  BLI_assert(grids.size() * key.grid_area == normals.size());
-
-  for (const int i : grids.index_range()) {
-    CCGElem *elem = elems[grids[i]];
-    const int start = i * key.grid_area;
-    for (const int offset : IndexRange(key.grid_area)) {
-      normals[start + offset] = CCG_elem_offset_no(key, elem, offset);
-    }
-  }
-}
-
 static void calc_grids(const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
@@ -149,22 +132,12 @@ static void calc_grids(const Sculpt &sd,
 
   tls.translations.reinitialize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
-  gather_normals(subdiv_ccg, grids, translations);
+  gather_grids_normals(subdiv_ccg, grids, translations);
   apply_scale(translations, scale);
   scale_translations(translations, factors);
 
   clip_and_lock_translations(sd, ss, positions, translations);
   apply_translations(translations, grids, subdiv_ccg);
-}
-
-static BLI_NOINLINE void gather_normals(const Set<BMVert *, 0> &verts,
-                                        const MutableSpan<float3> normals)
-{
-  int i = 0;
-  for (const BMVert *vert : verts) {
-    normals[i] = vert->no;
-    i++;
-  }
 }
 
 static void calc_bmesh(const Sculpt &sd,
@@ -206,7 +179,7 @@ static void calc_bmesh(const Sculpt &sd,
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  gather_normals(verts, translations);
+  gather_bmesh_normals(verts, translations);
   apply_scale(translations, scale);
   scale_translations(translations, factors);
 

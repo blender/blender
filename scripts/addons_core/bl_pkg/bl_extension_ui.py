@@ -405,14 +405,14 @@ def addons_panel_draw_items(
         layout,  # `bpy.types.UILayout`
         context,  # `bpy.types.Context`
         *,
-        addon_modules,  # `Dict[str, ModuleType]`
+        addon_modules,  # `Iterable[ModuleType]`
         used_addon_module_name_map,  # `Dict[str, bpy.types.Addon]`
         search_casefold,  # `str`
         addon_tags_exclude,  # `Set[str]`
         enabled_only,  # `bool`
         addon_extension_manifest_map,  # `Dict[str, PkgManifest_Normalized]`
         show_development,  # `bool`
-):
+):  # `-> Set[str]`
     # NOTE: this duplicates logic from `USERPREF_PT_addons` eventually this logic should be used instead.
     # Don't de-duplicate the logic as this is a temporary state - as long as extensions remains experimental.
     import addon_utils
@@ -420,11 +420,15 @@ def addons_panel_draw_items(
         pkg_info_check_exclude_filter_ex,
     )
 
+    # Build a set of module names (used to calculate missing modules).
+    module_names = set()
+
     # Initialized on demand.
     user_addon_paths = []
 
     for mod in addon_modules:
-        module_name = mod.__name__
+        module_names.add(module_name := mod.__name__)
+
         is_enabled = module_name in used_addon_module_name_map
         if enabled_only and (not is_enabled):
             continue
@@ -434,8 +438,9 @@ def addons_panel_draw_items(
         show_expanded = bl_info["show_expanded"]
 
         if is_extension:
-            del bl_info
             if (item_local := addon_extension_manifest_map.get(module_name)) is not None:
+                del bl_info
+
                 item_name = item_local.name
                 item_description = item_local.tagline
                 item_tags = item_local.tags
@@ -449,7 +454,10 @@ def addons_panel_draw_items(
                     if USE_ADDON_IGNORE_EXTENSION_MANIFEST_HACK:
                         item_doc_url = addon_ignore_manifest_website_hack_remote_or_default(module_name, item_doc_url)
             else:
-                item_name = module_name
+                # Show the name because this is used for sorting.
+                item_name = bl_info.get("name") or module_name
+                del bl_info
+
                 item_description = ""
                 item_tags = ()
                 item_warning_legacy = "Unable to parse the manifest"
@@ -550,6 +558,7 @@ def addons_panel_draw_items(
                 if (addon_preferences := used_addon_module_name_map[module_name].preferences) is not None:
                     box.separator(type='LINE')
                     USERPREF_PT_addons.draw_addon_preferences(box, context, addon_preferences)
+    return module_names
 
 
 def addons_panel_draw_impl(
@@ -611,13 +620,12 @@ def addons_panel_draw_impl(
             module_name = repo_module_prefix + pkg_id
             addon_extension_manifest_map[module_name] = item_local
 
-    addon_modules = addon_utils.modules(refresh=False)
     used_addon_module_name_map = {addon.module: addon for addon in prefs.addons}
 
-    addons_panel_draw_items(
+    module_names = addons_panel_draw_items(
         layout,
         context,
-        addon_modules=addon_modules,
+        addon_modules=addon_utils.modules(refresh=False),
         used_addon_module_name_map=used_addon_module_name_map,
         search_casefold=search_casefold,
         addon_tags_exclude=addon_tags_exclude,
@@ -626,9 +634,7 @@ def addons_panel_draw_impl(
         show_development=show_development,
     )
 
-    # Append missing scripts
-    # First collect scripts that are used but have no script file.
-    module_names = {mod.__name__ for mod in addon_modules}
+    # Append missing scripts.
     missing_modules = {
         addon_module_name for addon_module_name in used_addon_module_name_map
         if addon_module_name not in module_names
@@ -2007,8 +2013,7 @@ def tags_current(wm, tags_attr):
     if tags_attr == "addon_tags":
         # Legacy add-on categories as tags.
         import addon_utils
-        addon_modules = addon_utils.modules(refresh=False)
-        for mod in addon_modules:
+        for mod in addon_utils.modules(refresh=False):
             module_name = mod.__name__
             is_extension = addon_utils.check_extension(module_name)
             if is_extension:
@@ -2021,6 +2026,17 @@ def tags_current(wm, tags_attr):
                 tags.add(t)
 
     return tags
+
+
+def tags_clear(wm, tags_attr):
+    import idprop
+    tags_idprop = wm.get(tags_attr)
+    if tags_idprop is None:
+        pass
+    elif isinstance(tags_idprop, idprop.types.IDPropertyGroup):
+        tags_idprop.clear()
+    else:
+        wm[tags_attr] = {}
 
 
 def tags_refresh(wm, tags_attr):

@@ -133,7 +133,6 @@ static void add_index(SculptBoundary &boundary,
  */
 static bool is_vert_in_editable_boundary(SculptSession &ss, const PBVHVertRef initial_vert)
 {
-
   if (!hide::vert_visible_get(ss, initial_vert)) {
     return false;
   }

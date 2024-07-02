@@ -69,8 +69,8 @@ struct PBVHNode {
    * Used for leaf nodes in a mesh-based PBVH (not multires.)
    */
   blender::Array<int, 0> vert_indices;
+  /** The number of vertices in #vert_indices not shared with (owned by) another node. */
   int uniq_verts = 0;
-  int face_verts = 0;
 
   /* Array of indices into the Mesh's corner array.
    * PBVH_FACES only.

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -10553,24 +10553,12 @@ msgid "Temperature difference to ambient temperature"
 msgstr "Diferença de temperatura para a temperatura ambiente."
 
 
-msgid "Mapping"
-msgstr "Mapeamento"
-
-
 msgid "Texture mapping type"
 msgstr "Tipo de mapeamento de textura"
 
 
-msgid "Generated"
-msgstr "Geradas"
-
-
 msgid "Generated coordinates centered to flow object"
 msgstr "Coordenadas geradas centralizadas para o objeto de fluxo."
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -11115,6 +11103,10 @@ msgstr "Tremulação"
 
 msgid "A filler or baked keyframe for keying on ones, or some other purpose as needed"
 msgstr "Para preenchimentos ou quadros-chave gerados e gravados para chaves de interpolação, ou outras finalidades conforme necessário."
+
+
+msgid "Generated"
+msgstr "Geradas"
 
 
 msgid "Frame is selected for editing in the Dope Sheet"
@@ -12363,6 +12355,10 @@ msgstr "Marcadores específicos para esta ação, para rotular poses."
 
 msgid "Armature data-block containing a hierarchy of bones, usually used for rigging characters"
 msgstr "Bloco de dados de armação contendo uma hierarquia de ossos, normalmente usado para arranjos de animação de personagens."
+
+
+msgid "Feature Set"
+msgstr "Conjunto de funcionalidades"
 
 
 msgid "Animation data for this data-block"
@@ -14821,10 +14817,6 @@ msgid "Where the image comes from"
 msgstr "De onde a imagem vem."
 
 
-msgid "Single Image"
-msgstr "Única imagem"
-
-
 msgid "Single image file"
 msgstr "Único arquivo de imagem."
 
@@ -14833,20 +14825,12 @@ msgid "Multiple image files, as a sequence"
 msgstr "Múltiplos arquivos de imagem, como uma sequência."
 
 
-msgid "Movie"
-msgstr "Filme"
-
-
 msgid "Movie file"
 msgstr "Arquivo de filme"
 
 
 msgid "Generated image"
 msgstr "Imagem gerada."
-
-
-msgid "Viewer"
-msgstr "Visualizador"
 
 
 msgid "Compositing node viewer"
@@ -21253,6 +21237,10 @@ msgid "Invert the fade-out direction of the linear mapping"
 msgstr "Inverte a direção de esmaecimento do mapeamento linear."
 
 
+msgid "Mapping"
+msgstr "Mapeamento"
+
+
 msgid "Select the mapping type"
 msgstr "Selecione o tipo de mapeamento"
 
@@ -22389,6 +22377,10 @@ msgstr "Especiais para materiais"
 
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align"
@@ -29048,6 +29040,10 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "Velocidade mínima para que um pixel seja desfocado (usado para separar o plano frontal do plano de fundo)."
 
 
+msgid "Viewer"
+msgstr "Visualizador"
+
+
 msgid "Z Combine"
 msgstr "Combinar Z"
 
@@ -31717,6 +31713,10 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "Revela todos os ossos ocultos no modo de edição."
 
 
+msgid "(undocumented operator)"
+msgstr "(operador não documentado)"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Limpar a rolagem"
@@ -32916,10 +32916,6 @@ msgstr "Seleciona os marcadores usando a seleção por laço."
 msgctxt "Operator"
 msgid "Set Active Clip"
 msgstr "Definir o clipe ativo"
-
-
-msgid "(undocumented operator)"
-msgstr "(operador não documentado)"
 
 
 msgctxt "Operator"
@@ -42541,6 +42537,11 @@ msgstr "Torna aleatórios, os valores de escala."
 
 
 msgctxt "Operator"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "Limpar rotação"
 
@@ -45028,6 +45029,10 @@ msgstr "Revelar selecionado"
 
 msgid "Reveal all bones hidden in Pose Mode"
 msgstr "Revela todos os ossos ocultos no modo de pose."
+
+
+msgid "Property Name"
+msgstr "Nome das propriedades"
 
 
 msgctxt "Operator"
@@ -50516,10 +50521,6 @@ msgid "Edit Property"
 msgstr "Edição de propriedades"
 
 
-msgid "Property Name"
-msgstr "Nome das propriedades"
-
-
 msgid "Property name edit"
 msgstr "Permite a edição do nome da propriedade."
 
@@ -51234,6 +51235,10 @@ msgstr "Modo de operação para pintura de projeção."
 
 msgid "Detect image slots from the material"
 msgstr "Detecta compartimentos de imagens a partir do material."
+
+
+msgid "Single Image"
+msgstr "Única imagem"
 
 
 msgid "Set image for texture painting directly"
@@ -53484,10 +53489,6 @@ msgid "Active Section"
 msgstr "Seção ativa"
 
 
-msgid "Active section of the preferences shown in the user interface"
-msgstr "Seção ativa das preferências de usuário mostrada atualmente na interface"
-
-
 msgid "Application Template"
 msgstr "Modelos de aplicação"
 
@@ -55295,10 +55296,6 @@ msgstr "Abate os objetos mais distantes da câmera do que a distância definida.
 
 msgid "Fast GI Method"
 msgstr "Método de IG Rápido"
-
-
-msgid "Feature Set"
-msgstr "Conjunto de funcionalidades"
 
 
 msgid "Feature set to use for rendering"
@@ -60660,10 +60657,6 @@ msgid "Use global coordinates for the texture coordinates"
 msgstr "Usa as coordenadas globais como coordenadas da textura."
 
 
-msgid "Along stroke"
-msgstr "Ao longo do traço"
-
-
 msgid "Use stroke length for texture coordinates"
 msgstr "Usa o comprimento do traço para as coordenadas de textura."
 
@@ -60786,10 +60779,6 @@ msgstr "Usa as coordenadas vinculadas do objeto para as coordenadas de textura."
 
 msgid "Use UV coordinates for texture coordinates"
 msgstr "Usa as coordenadas definidas no mapa UV para as coordenadas de textura. Caso não haja mapa definido, mapeia pelas coordenadas UV de cada face triangular. individual usada na construção do objeto."
-
-
-msgid "Strand / Particle"
-msgstr "Vertentes e partículas"
 
 
 msgid "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"
@@ -63468,6 +63457,44 @@ msgid "Pasted %d assets"
 msgstr "%d recursos colados"
 
 
+msgid "Description:"
+msgstr "Descrição:"
+
+
+msgid "Internet:"
+msgstr "Internet:"
+
+
+msgid "Author:"
+msgstr "Autor:"
+
+
+msgid "Version:"
+msgstr "Versão:"
+
+
+msgid "Warning:"
+msgstr "Alerta:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Documentação"
+
+
+msgid "File:"
+msgstr "Arquivo:"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Options:"
+msgstr "Opções:"
+
+
 msgid "Save to PO File"
 msgstr "Salvar para arquivo PO"
 
@@ -63604,11 +63631,6 @@ msgstr "Inverter seleção"
 
 msgid "Tracking"
 msgstr "Rastreamento"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Novo(a)"
 
 
 msgctxt "Operator"
@@ -64555,10 +64577,6 @@ msgstr "Mover para Início da Linha"
 msgctxt "Operator"
 msgid "Move to Line End"
 msgstr "Mover para Fim da Linha"
-
-
-msgid "Options:"
-msgstr "Opções:"
 
 
 msgctxt "Operator"
@@ -65765,37 +65783,8 @@ msgid "Missing script files"
 msgstr "Faltando arquivos de script"
 
 
-msgid "Description:"
-msgstr "Descrição:"
-
-
 msgid "Location:"
 msgstr "Localização:"
-
-
-msgid "File:"
-msgstr "Arquivo:"
-
-
-msgid "Author:"
-msgstr "Autor:"
-
-
-msgid "Version:"
-msgstr "Versão:"
-
-
-msgid "Warning:"
-msgstr "Alerta:"
-
-
-msgid "Internet:"
-msgstr "Internet:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Documentação"
 
 
 msgctxt "Operator"
@@ -66885,11 +66874,6 @@ msgstr "Pintura múltipla"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Edição rápida"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Aplicar"
 
 
 msgctxt "Operator"
@@ -71863,6 +71847,10 @@ msgstr "Um formato de colisão não convexo foi passado para a função, use som
 
 msgid "Rigidbody world was not properly initialized, need to step the simulation first"
 msgstr "Ambiente de corpo rígido não foi inicializado corretamente, é necessário acionar a simulação primeiro."
+
+
+msgid "Movie"
+msgstr "Filme"
 
 
 msgid "Keying set could not be added"

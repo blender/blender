@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'37e2a27bdddc')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 08:56+0000\n"
+"POT-Creation-Date: 2024-07-01 09:24+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -7244,10 +7244,6 @@ msgid "UV Grid"
 msgstr "UV Izgarası"
 
 
-msgid "Movie"
-msgstr "Film"
-
-
 msgid "Multilayer"
 msgstr "Çoklukatman"
 
@@ -9272,6 +9268,11 @@ msgstr "Nokta Bulutu Ekle"
 
 msgid "Hair Radius"
 msgstr "Kıl Yarıçapı"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Yeni"
 
 
 msgctxt "Operator"
@@ -11441,6 +11442,39 @@ msgid "Animation UI"
 msgstr "Canlandırma Arayüzü"
 
 
+msgid "Description:"
+msgstr "Açıklama:"
+
+
+msgid "Internet:"
+msgstr "İnternet:"
+
+
+msgid "Author:"
+msgstr "Yazar:"
+
+
+msgid "Version:"
+msgstr "Sürüm:"
+
+
+msgid "Warning:"
+msgstr "Uyarı:"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Belgelendirme"
+
+
+msgid "File:"
+msgstr "Dosya:"
+
+
+msgid "Options:"
+msgstr "Seçenekler:"
+
+
 msgid "Save to PO File"
 msgstr "PO Dosyasına Kaydet"
 
@@ -11480,11 +11514,6 @@ msgstr "Dışa Aktar..."
 msgctxt "WindowManager"
 msgid "Add New"
 msgstr "Yeni Ekle"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Yeni"
 
 
 msgctxt "Operator"
@@ -11626,10 +11655,6 @@ msgid "The donation program to support maintenance and improvements"
 msgstr "Programın bakımı sağlamak ve iyileştirmeleri desteklemek için bağış programı"
 
 
-msgid "blender.org"
-msgstr "blender.org"
-
-
 msgid "Credits"
 msgstr "Katkıda Bulunanlar"
 
@@ -11755,10 +11780,6 @@ msgstr "Saptanmış Ayarları Uygula"
 
 msgid "Custom Color Presets"
 msgstr "Özel Renk Önayarları"
-
-
-msgid "Options:"
-msgstr "Seçenekler:"
 
 
 msgctxt "Operator"
@@ -12134,41 +12155,12 @@ msgid "Error (see console)"
 msgstr "Hata (konsola bakın)"
 
 
-msgid "Description:"
-msgstr "Açıklama:"
-
-
 msgid "Location:"
 msgstr "Konum:"
 
 
-msgid "File:"
-msgstr "Dosya:"
-
-
-msgid "Author:"
-msgstr "Yazar:"
-
-
-msgid "Version:"
-msgstr "Sürüm:"
-
-
-msgid "Warning:"
-msgstr "Uyarı:"
-
-
-msgid "Internet:"
-msgstr "İnternet:"
-
-
 msgid "User:"
 msgstr "Kullanıcı:"
-
-
-msgctxt "Operator"
-msgid "Documentation"
-msgstr "Belgelendirme"
 
 
 msgctxt "Operator"
@@ -12690,6 +12682,11 @@ msgid "New"
 msgstr "Yeni"
 
 
+msgctxt "PaintCurve"
+msgid "New"
+msgstr "Yeni"
+
+
 msgctxt "ParticleSettings"
 msgid "New"
 msgstr "Yeni"
@@ -12731,11 +12728,6 @@ msgstr "Yeni"
 
 
 msgctxt "World"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "PaintCurve"
 msgid "New"
 msgstr "Yeni"
 
@@ -12980,6 +12972,10 @@ msgstr "İşlevler"
 msgctxt "NodeTree"
 msgid "Rounding"
 msgstr "Yuvarlanmış"
+
+
+msgid "Movie"
+msgstr "Film"
 
 
 msgid "Scripting"

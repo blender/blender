@@ -81,6 +81,7 @@ void Camera::init()
     overscan = inst_.scene->eevee.overscan / 100.0f;
   }
   overscan_changed_ = assign_if_different(overscan_, overscan);
+  camera_changed_ = assign_if_different(last_camera_object_, inst_.camera_orig_object);
 }
 
 void Camera::sync()

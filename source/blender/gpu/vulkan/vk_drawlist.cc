@@ -10,19 +10,14 @@
 
 #include "vk_batch.hh"
 #include "vk_common.hh"
+#include "vk_context.hh"
 #include "vk_drawlist.hh"
 #include "vk_index_buffer.hh"
 #include "vk_vertex_buffer.hh"
 
 namespace blender::gpu {
 
-VKDrawList::VKDrawList(int list_length) : length_(list_length)
-{
-  command_buffer_.create(list_length * sizeof(VkDrawIndexedIndirectCommand),
-                         GPU_USAGE_DYNAMIC,
-                         VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-                         true);
-}
+VKDrawList::VKDrawList(int list_length) : length_(list_length) {}
 
 void VKDrawList::append(Batch *gpu_batch, int instance_first, int instance_count)
 {
@@ -35,6 +30,7 @@ void VKDrawList::append(Batch *gpu_batch, int instance_first, int instance_count
   }
 
   /* Record the new command */
+  VKContext &context = *VKContext::get();
   const VKIndexBuffer *index_buffer = batch_->index_buffer_get();
   const bool is_indexed = index_buffer != nullptr;
   if (is_indexed) {
@@ -42,7 +38,10 @@ void VKDrawList::append(Batch *gpu_batch, int instance_first, int instance_count
     if (index_buffer->index_len_get() == 0) {
       return;
     }
-    VkDrawIndexedIndirectCommand &command = get_command<VkDrawIndexedIndirectCommand>();
+
+    const bool new_buffer_needed = command_index_ == 0;
+    std::unique_ptr<VKBuffer> &buffer = tracked_resource_for(context, new_buffer_needed);
+    VkDrawIndexedIndirectCommand &command = get_command<VkDrawIndexedIndirectCommand>(*buffer);
     command.firstIndex = index_buffer->index_base_get();
     command.vertexOffset = index_buffer->index_start_get();
     command.indexCount = index_buffer->index_len_get();
@@ -55,7 +54,10 @@ void VKDrawList::append(Batch *gpu_batch, int instance_first, int instance_count
     if (vertex_buffer == nullptr || vertex_buffer->vertex_len == 0) {
       return;
     }
-    VkDrawIndirectCommand &command = get_command<VkDrawIndirectCommand>();
+
+    const bool new_buffer_needed = command_index_ == 0;
+    std::unique_ptr<VKBuffer> &buffer = tracked_resource_for(context, new_buffer_needed);
+    VkDrawIndirectCommand &command = get_command<VkDrawIndirectCommand>(*buffer);
     command.vertexCount = vertex_buffer->vertex_len;
     command.instanceCount = instance_count;
     command.firstVertex = 0;
@@ -79,14 +81,23 @@ void VKDrawList::submit()
 
   const VKIndexBuffer *index_buffer = batch_->index_buffer_get();
   const bool is_indexed = index_buffer != nullptr;
-  command_buffer_.flush();
-  batch_->multi_draw_indirect(command_buffer_.vk_handle(),
+  VKBuffer &buffer = *active_resource();
+  batch_->multi_draw_indirect(buffer.vk_handle(),
                               command_index_,
                               0,
                               is_indexed ? sizeof(VkDrawIndexedIndirectCommand) :
                                            sizeof(VkDrawIndirectCommand));
   command_index_ = 0;
   batch_ = nullptr;
+}
+
+std::unique_ptr<VKBuffer> VKDrawList::create_resource(VKContext & /*context*/)
+{
+  const size_t bytes_needed = length_ * sizeof(VkDrawIndexedIndirectCommand);
+  std::unique_ptr<VKBuffer> result = std::make_unique<VKBuffer>();
+  result->create(bytes_needed, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, true);
+  debug::object_label(result->vk_handle(), "DrawList.Indirect");
+  return result;
 }
 
 }  // namespace blender::gpu

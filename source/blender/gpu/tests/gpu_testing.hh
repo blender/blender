@@ -52,8 +52,22 @@ class GPUOpenGLTest : public GPUTest {
   {
   }
 };
+
+class GPUOpenGLWorkaroundsTest : public GPUTest {
+ public:
+  GPUOpenGLWorkaroundsTest()
+      : GPUTest(GHOST_kDrawingContextTypeOpenGL,
+                GPU_BACKEND_OPENGL,
+                G_DEBUG_GPU | G_DEBUG_GPU_FORCE_WORKAROUNDS)
+  {
+  }
+};
 #  define GPU_OPENGL_TEST(test_name) \
     TEST_F(GPUOpenGLTest, test_name) \
+    { \
+      test_##test_name(); \
+    } \
+    TEST_F(GPUOpenGLWorkaroundsTest, test_name) \
     { \
       test_##test_name(); \
     }

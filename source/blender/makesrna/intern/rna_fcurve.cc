@@ -53,8 +53,6 @@ const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
      "Reshape F-Curve values, e.g. change amplitude of movements"},
     {FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", "Cyclic extend/repeat keyframe sequence"},
     {FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", "Add pseudo-random noise on top of F-Curves"},
-    // {FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""}, /* FIXME: not implemented yet! */
-    // {FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""}, /* FIXME: not implemented yet! */
     {FMODIFIER_TYPE_LIMITS,
      "LIMITS",
      0,
@@ -207,12 +205,6 @@ static StructRNA *rna_FModifierType_refine(PointerRNA *ptr)
       return &RNA_FModifierCycles;
     case FMODIFIER_TYPE_NOISE:
       return &RNA_FModifierNoise;
-#  if 0
-    case FMODIFIER_TYPE_FILTER:
-      return &RNA_FModifierFilter;
-#  endif
-    case FMODIFIER_TYPE_PYTHON:
-      return &RNA_FModifierPython;
     case FMODIFIER_TYPE_LIMITS:
       return &RNA_FModifierLimits;
     case FMODIFIER_TYPE_STEPPED:
@@ -1542,19 +1534,6 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 
 /* --------- */
 
-static void rna_def_fmodifier_python(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  // PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "FModifierPython", "FModifier");
-  RNA_def_struct_ui_text(
-      srna, "Python F-Modifier", "Perform user-defined operation on the modified F-Curve");
-  RNA_def_struct_sdna_from(srna, "FMod_Python", "data");
-}
-
-/* --------- */
-
 static void rna_def_fmodifier_limits(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -2717,7 +2696,6 @@ void RNA_def_fcurve(BlenderRNA *brna)
   rna_def_fmodifier_envelope_ctrl(brna);
 
   rna_def_fmodifier_cycles(brna);
-  rna_def_fmodifier_python(brna);
   rna_def_fmodifier_limits(brna);
   rna_def_fmodifier_noise(brna);
   rna_def_fmodifier_stepped(brna);
