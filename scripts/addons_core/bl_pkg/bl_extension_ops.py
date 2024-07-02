@@ -3310,6 +3310,8 @@ class EXTENSIONS_OT_userpref_show_for_update(Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
+        from .bl_extension_ui import tags_clear
+
         wm = context.window_manager
         prefs = context.preferences
 
@@ -3318,6 +3320,10 @@ class EXTENSIONS_OT_userpref_show_for_update(Operator):
         # Show only extensions that will be updated.
         wm.extension_show_panel_installed = True
         wm.extension_show_panel_available = False
+
+        # Clear other filtering option.
+        wm.extension_search = ""
+        tags_clear(wm, "extension_tags")
 
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
 
