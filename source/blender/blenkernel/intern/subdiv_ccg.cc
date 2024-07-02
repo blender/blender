@@ -1709,4 +1709,21 @@ void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
   eval_limit_point(subdiv, ptex_face_index, u, v, r_point);
 }
 
+void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
+                                         const CCGKey &key,
+                                         const int grid_index,
+                                         const MutableSpan<float3> r_limit_positions)
+{
+  SubdivCCGCoord coord{};
+  coord.grid_index = grid_index;
+  for (const int y : IndexRange(key.grid_size)) {
+    for (const int x : IndexRange(key.grid_size)) {
+      const int i = CCG_grid_xy_to_index(key.grid_size, x, y);
+      coord.x = x;
+      coord.y = y;
+      BKE_subdiv_ccg_eval_limit_point(subdiv_ccg, coord, r_limit_positions[i]);
+    }
+  }
+}
+
 /** \} */
