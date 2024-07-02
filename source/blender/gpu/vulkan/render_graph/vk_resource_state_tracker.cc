@@ -32,8 +32,10 @@ ResourceHandle VKResourceStateTracker::create_resource_slot()
 
 void VKResourceStateTracker::add_image(VkImage vk_image,
                                        VkImageLayout vk_image_layout,
-                                       ResourceOwner owner)
+                                       ResourceOwner owner,
+                                       const char *name)
 {
+  UNUSED_VARS_NDEBUG(name);
   BLI_assert_msg(!image_resources_.contains(vk_image),
                  "Image resource is added twice to the render graph.");
   std::scoped_lock lock(mutex);
@@ -46,14 +48,18 @@ void VKResourceStateTracker::add_image(VkImage vk_image,
   resource.image.vk_image = vk_image;
   resource.image.vk_image_layout = vk_image_layout;
   resource.stamp = 0;
+#ifndef NDEBUG
+  resource.name = name;
+#endif
 
 #ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
   validate();
 #endif
 }
 
-void VKResourceStateTracker::add_buffer(VkBuffer vk_buffer)
+void VKResourceStateTracker::add_buffer(VkBuffer vk_buffer, const char *name)
 {
+  UNUSED_VARS_NDEBUG(name);
   BLI_assert_msg(!buffer_resources_.contains(vk_buffer),
                  "Buffer resource is added twice to the render graph.");
   std::scoped_lock lock(mutex);
@@ -65,6 +71,9 @@ void VKResourceStateTracker::add_buffer(VkBuffer vk_buffer)
   resource.owner = ResourceOwner::APPLICATION;
   resource.buffer.vk_buffer = vk_buffer;
   resource.stamp = 0;
+#ifndef NDEBUG
+  resource.name = name;
+#endif
 
 #ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
   validate();

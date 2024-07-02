@@ -517,7 +517,7 @@ bool VKTexture::allocate()
   debug::object_label(vk_image_, name_);
 
   device.resources.add_image(
-      vk_image_, VK_IMAGE_LAYOUT_UNDEFINED, render_graph::ResourceOwner::APPLICATION);
+      vk_image_, VK_IMAGE_LAYOUT_UNDEFINED, render_graph::ResourceOwner::APPLICATION, name_);
 
   return result == VK_SUCCESS;
 }

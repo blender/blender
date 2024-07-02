@@ -263,6 +263,8 @@ class VKRenderGraph : public NonCopyable {
     return nodes_.size();
   }
 
+  void debug_print(NodeHandle node_handle) const;
+
  private:
   void remove_nodes(Span<NodeHandle> node_handles);
 };

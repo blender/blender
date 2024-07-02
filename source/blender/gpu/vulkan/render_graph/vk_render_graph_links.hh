@@ -51,7 +51,7 @@ struct VKRenderGraphLink {
    */
   VkImageAspectFlags vk_image_aspect = VK_IMAGE_ASPECT_NONE;
 
-  void debug_print(std::stringstream &ss, const VKResourceStateTracker &resources) const;
+  void debug_print(std::ostream &ss, const VKResourceStateTracker &resources) const;
 };
 
 /**

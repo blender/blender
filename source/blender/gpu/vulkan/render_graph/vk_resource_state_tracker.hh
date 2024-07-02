@@ -163,6 +163,10 @@ class VKResourceStateTracker {
      */
     VKResourceBarrierState barrier_state;
 
+#ifndef NDEBUG
+    const char *name;
+#endif
+
     /**
      * Reset the image layout to its original layout.
      *
@@ -200,7 +204,7 @@ class VKResourceStateTracker {
    * When a buffer is created in VKBuffer, it needs to be registered in the device resources so the
    * resource state can be tracked during its lifetime.
    */
-  void add_buffer(VkBuffer vk_buffer);
+  void add_buffer(VkBuffer vk_buffer, const char *name = nullptr);
 
   /**
    * Register an image resource.
@@ -208,7 +212,10 @@ class VKResourceStateTracker {
    * When an image is created in VKTexture, it needs to be registered in the device resources so
    * the resource state can be tracked during its lifetime.
    */
-  void add_image(VkImage vk_image, VkImageLayout vk_image_layout, ResourceOwner owner);
+  void add_image(VkImage vk_image,
+                 VkImageLayout vk_image_layout,
+                 ResourceOwner owner,
+                 const char *name = nullptr);
 
   /**
    * Remove an registered image.
