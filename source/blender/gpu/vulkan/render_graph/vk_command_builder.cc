@@ -344,6 +344,23 @@ void VKCommandBuilder::add_buffer_barrier(VkBuffer vk_buffer,
                                           VkAccessFlags src_access_mask,
                                           VkAccessFlags dst_access_mask)
 {
+  for (VkBufferMemoryBarrier &vk_buffer_memory_barrier : vk_buffer_memory_barriers_) {
+    if (vk_buffer_memory_barrier.buffer == vk_buffer) {
+      /* When registering read/write buffers, it can be that the node internally requires
+       * read/write. In this case we adjust the dstAccessMask of the read barrier. */
+      if ((vk_buffer_memory_barrier.dstAccessMask & src_access_mask) == src_access_mask) {
+        vk_buffer_memory_barrier.dstAccessMask |= dst_access_mask;
+        return;
+      }
+      /* When re-registering resources we can skip if access mask already contain all the flags. */
+      if ((vk_buffer_memory_barrier.dstAccessMask & dst_access_mask) == dst_access_mask &&
+          (vk_buffer_memory_barrier.srcAccessMask & src_access_mask) == src_access_mask)
+      {
+        return;
+      }
+    }
+  }
+
   vk_buffer_memory_barrier_.srcAccessMask = src_access_mask;
   vk_buffer_memory_barrier_.dstAccessMask = dst_access_mask;
   vk_buffer_memory_barrier_.buffer = vk_buffer;
@@ -448,6 +465,25 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
                                          VkImageAspectFlags aspect_mask)
 {
   BLI_assert(aspect_mask != VK_IMAGE_ASPECT_NONE);
+  for (VkImageMemoryBarrier &vk_image_memory_barrier : vk_image_memory_barriers_) {
+    if (vk_image_memory_barrier.image == vk_image) {
+      /* When registering read/write buffers, it can be that the node internally requires
+       * read/write. In this case we adjust the dstAccessMask of the read barrier. An example is
+       * EEVEE update HIZ compute shader and shadow tagging. */
+      if ((vk_image_memory_barrier.dstAccessMask & src_access_mask) == src_access_mask) {
+        vk_image_memory_barrier.dstAccessMask |= dst_access_mask;
+        return;
+      }
+      /* When re-registering resources we can skip if access mask already contain all the flags. */
+      if ((vk_image_memory_barrier.dstAccessMask & dst_access_mask) == dst_access_mask &&
+          (vk_image_memory_barrier.srcAccessMask & src_access_mask) == src_access_mask &&
+          old_layout == new_layout)
+      {
+        return;
+      }
+    }
+  }
+
   vk_image_memory_barrier_.srcAccessMask = src_access_mask;
   vk_image_memory_barrier_.dstAccessMask = dst_access_mask;
   vk_image_memory_barrier_.image = vk_image;
