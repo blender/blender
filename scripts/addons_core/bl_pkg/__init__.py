@@ -156,9 +156,7 @@ def repo_active_or_none():
     return active_repo
 
 
-def repo_stats_calc_outdated_for_repo_directory(repo_directory):
-
-    repo_cache_store = repo_cache_store_ensure()
+def repo_stats_calc_outdated_for_repo_directory(repo_cache_store, repo_directory):
     pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
         directory=repo_directory,
         error_fn=print,
@@ -194,6 +192,9 @@ def repo_stats_calc():
         return
 
     import os
+
+    repo_cache_store = repo_cache_store_ensure()
+
     package_count = 0
 
     for repo_item in bpy.context.preferences.extensions.repos:
@@ -211,7 +212,7 @@ def repo_stats_calc():
         if not os.path.isdir(repo_directory):
             continue
 
-        package_count += repo_stats_calc_outdated_for_repo_directory(repo_directory)
+        package_count += repo_stats_calc_outdated_for_repo_directory(repo_cache_store, repo_directory)
 
     bpy.context.window_manager.extensions_updates = package_count
 
