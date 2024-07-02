@@ -27,7 +27,7 @@ namespace blender::ed::sculpt_paint {
 
 inline namespace multires_displacement_smear_cc {
 
-static void do_displacement_smear_brush_task(Object &object, const Brush &brush, PBVHNode &node)
+static void calc_node(Object &object, const Brush &brush, PBVHNode &node)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -128,15 +128,32 @@ static void do_displacement_smear_brush_task(Object &object, const Brush &brush,
   }
 }
 
-static void do_displacement_smear_store_prev_disp_task(SculptSession &ss, PBVHNode *node)
+BLI_NOINLINE static void eval_all_limit_positions(const SubdivCCG &subdiv_ccg,
+                                                  const MutableSpan<float3> limit_positions)
 {
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    sub_v3_v3v3(ss.cache->prev_displacement[vd.index],
-                SCULPT_vertex_co_get(ss, vd.vertex),
-                ss.cache->limit_surface_co[vd.index]);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  threading::parallel_for(subdiv_ccg.grids.index_range(), 1024, [&](const IndexRange range) {
+    for (const int grid : range) {
+      const MutableSpan grid_limit_positions = limit_positions.slice(grid * key.grid_area,
+                                                                     key.grid_area);
+      BKE_subdiv_ccg_eval_limit_positions(subdiv_ccg, key, grid, grid_limit_positions);
+    }
+  });
+}
+
+BLI_NOINLINE static void store_node_prev_displacement(const Span<float3> limit_positions,
+                                                      const Span<CCGElem *> elems,
+                                                      const CCGKey &key,
+                                                      const PBVHNode &node,
+                                                      const MutableSpan<float3> prev_displacement)
+{
+  for (const int grid : bke::pbvh::node_grid_indices(node)) {
+    const int start = grid * key.grid_area;
+    CCGElem *elem = elems[grid];
+    for (const int i : IndexRange(key.grid_area)) {
+      prev_displacement[start + i] = CCG_elem_offset_co(key, elem, i) - limit_positions[start + i];
+    }
   }
-  BKE_pbvh_vertex_iter_end;
 }
 
 }  // namespace multires_displacement_smear_cc
@@ -145,29 +162,26 @@ void do_displacement_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> 
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.sculpt;
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const int totvert = SCULPT_vertex_count_get(ss);
-  if (ss.cache->prev_displacement.is_empty()) {
-    ss.cache->prev_displacement = Array<float3>(totvert);
-    ss.cache->limit_surface_co = Array<float3>(totvert);
-    for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+  if (ss.cache->limit_surface_co.is_empty()) {
+    ss.cache->prev_displacement = Array<float3>(elems.size() * key.grid_area);
+    ss.cache->limit_surface_co = Array<float3>(elems.size() * key.grid_area);
 
-      ss.cache->limit_surface_co[i] = SCULPT_vertex_limit_surface_get(ss, vertex);
-      sub_v3_v3v3(ss.cache->prev_displacement[i],
-                  SCULPT_vertex_co_get(ss, vertex),
-                  ss.cache->limit_surface_co[i]);
-    }
+    eval_all_limit_positions(subdiv_ccg, ss.cache->limit_surface_co);
   }
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_displacement_smear_store_prev_disp_task(ss, nodes[i]);
+      store_node_prev_displacement(
+          ss.cache->limit_surface_co, elems, key, *nodes[i], ss.cache->prev_displacement);
     }
   });
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_displacement_smear_brush_task(ob, brush, *nodes[i]);
+      calc_node(ob, brush, *nodes[i]);
     }
   });
 }
