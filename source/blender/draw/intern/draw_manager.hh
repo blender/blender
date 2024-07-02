@@ -159,7 +159,11 @@ class Manager {
 
   /**
    * Populate additional per resource data on demand.
+   * IMPORTANT: Should be called only **once** per object.
    */
+  void extract_object_attributes(ResourceHandle handle,
+                                 const ObjectRef &ref,
+                                 const GPUMaterial *material);
   void extract_object_attributes(ResourceHandle handle,
                                  const ObjectRef &ref,
                                  Span<GPUMaterial *> materials);
@@ -292,6 +296,26 @@ inline void Manager::update_handle_bounds(ResourceHandle handle,
                                           const float3 &bounds_half_extent)
 {
   bounds_buf.current()[handle.resource_index()].sync(bounds_center, bounds_half_extent);
+}
+
+inline void Manager::extract_object_attributes(ResourceHandle handle,
+                                               const ObjectRef &ref,
+                                               const GPUMaterial *material)
+{
+  ObjectInfos &infos = infos_buf.current().get_or_resize(handle.resource_index());
+  infos.object_attrs_offset = attribute_len_;
+
+  const GPUUniformAttrList *attr_list = GPU_material_uniform_attributes(material);
+  if (attr_list == nullptr) {
+    return;
+  }
+
+  LISTBASE_FOREACH (const GPUUniformAttr *, attr, &attr_list->list) {
+    if (attributes_buf.get_or_resize(attribute_len_).sync(ref, *attr)) {
+      infos.object_attrs_len++;
+      attribute_len_++;
+    }
+  }
 }
 
 inline void Manager::extract_object_attributes(ResourceHandle handle,
