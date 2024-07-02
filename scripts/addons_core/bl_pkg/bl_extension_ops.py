@@ -497,6 +497,9 @@ def repo_cache_store_refresh_from_prefs(repo_cache_store, include_disabled=False
         repos.append((directory, remote_url))
 
     repo_cache_store.refresh_from_repos(repos=repos)
+    # Return the repository directory & URL's as it can be useful to know which repositories are now available.
+    # NOTE: it might be better to return a list of `RepoItem`, for now it's not needed.
+    return repos
 
 
 def _preferences_ensure_disabled(*, repo_item, pkg_id_sequence, default_set):
