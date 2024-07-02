@@ -106,14 +106,25 @@ static void calc_node(
 
         float weights_accum = 1.0f;
 
-        SculptVertexNeighborIter ni;
-        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, BKE_pbvh_make_vref(grid_vert_index), ni) {
+        SubdivCCGCoord coord{};
+        coord.grid_index = grid;
+        coord.x = x;
+        coord.y = y;
+
+        SubdivCCGNeighbors neighbors;
+        BKE_subdiv_ccg_neighbor_coords_get(*ss.subdiv_ccg, coord, false, neighbors);
+
+        for (const SubdivCCGCoord neighbor : neighbors.coords) {
+          const int neighbor_grid_vert_index = neighbor.grid_index * key.grid_area +
+                                               CCG_grid_xy_to_index(
+                                                   key.grid_size, neighbor.x, neighbor.y);
           float vertex_disp[3];
           float vertex_disp_norm[3];
           sub_v3_v3v3(vertex_disp,
-                      cache.limit_surface_co[ni.index],
+                      cache.limit_surface_co[neighbor_grid_vert_index],
                       cache.limit_surface_co[grid_vert_index]);
-          const float *neighbor_limit_surface_disp = cache.prev_displacement[ni.index];
+          const float *neighbor_limit_surface_disp =
+              cache.prev_displacement[neighbor_grid_vert_index];
           normalize_v3_v3(vertex_disp_norm, vertex_disp);
 
           if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
@@ -125,7 +136,6 @@ static void calc_node(
           madd_v3_v3fl(interp_limit_surface_disp, neighbor_limit_surface_disp, disp_interp);
           weights_accum += disp_interp;
         }
-        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
         mul_v3_fl(interp_limit_surface_disp, 1.0f / weights_accum);
 
