@@ -2028,6 +2028,17 @@ def tags_current(wm, tags_attr):
     return tags
 
 
+def tags_clear(wm, tags_attr):
+    import idprop
+    tags_idprop = wm.get(tags_attr)
+    if tags_idprop is None:
+        pass
+    elif isinstance(tags_idprop, idprop.types.IDPropertyGroup):
+        tags_idprop.clear()
+    else:
+        wm[tags_attr] = {}
+
+
 def tags_refresh(wm, tags_attr):
     import idprop
     tags_idprop = wm.get(tags_attr)
