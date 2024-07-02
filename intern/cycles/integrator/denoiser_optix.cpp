@@ -219,6 +219,14 @@ uint OptiXDenoiser::get_device_type_mask() const
   return DEVICE_MASK_OPTIX;
 }
 
+bool OptiXDenoiser::is_device_supported(const DeviceInfo &device)
+{
+  if (device.type == DEVICE_OPTIX) {
+    return device.denoisers & DENOISER_OPTIX;
+  }
+  return false;
+}
+
 bool OptiXDenoiser::denoise_buffer(const DenoiseTask &task)
 {
   OptiXDevice *const optix_device = static_cast<OptiXDevice *>(denoiser_device_);

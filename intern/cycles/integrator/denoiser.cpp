@@ -97,7 +97,9 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
   bool is_cpu_denoiser_device = single_denoiser_device->info.type == DEVICE_CPU;
   if (is_cpu_denoiser_device == false) {
 #ifdef WITH_OPTIX
-    if (params.type == DENOISER_OPTIX) {
+    if (params.type == DENOISER_OPTIX &&
+        OptiXDenoiser::is_device_supported(single_denoiser_device->info))
+    {
       return make_unique<OptiXDenoiser>(single_denoiser_device, params);
     }
 #endif

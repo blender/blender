@@ -80,7 +80,7 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
       const int i_point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
       const int i_curve = parent_curves[i_point];
       const IndexRange curve_points = points_by_curve[i_curve];
-      const int offset_point = i_point + offsets[i_point];
+      const int offset_point = i_point + offsets[i_selection];
 
       if (cyclic[i_curve]) {
         output[i_selection] = apply_offset_in_cyclic_range(

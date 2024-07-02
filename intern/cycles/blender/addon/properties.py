@@ -1695,15 +1695,16 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         import _cycles
         compute_device_type = self.get_compute_device_type()
 
-        # We need any OptiX devices, used for rendering
-        for device in _cycles.available_devices(compute_device_type):
-            device_type = device[1]
-            if device_type == 'CPU':
-                continue
+        if compute_device_type == 'OPTIX':
+            # We need any OptiX devices, used for rendering
+            for device in _cycles.available_devices(compute_device_type):
+                device_type = device[1]
+                if device_type == 'CPU':
+                    continue
 
-            has_device_optixdenoiser_support = device[6]
-            if has_device_optixdenoiser_support and self.find_existing_device_entry(device).use:
-                return True
+                has_device_optixdenoiser_support = device[6]
+                if has_device_optixdenoiser_support and self.find_existing_device_entry(device).use:
+                    return True
 
         return False
 

@@ -18,6 +18,8 @@ class OptiXDenoiser : public DenoiserGPU {
   OptiXDenoiser(Device *denoiser_device, const DenoiseParams &params);
   ~OptiXDenoiser();
 
+  static bool is_device_supported(const DeviceInfo &device);
+
  protected:
   virtual uint get_device_type_mask() const override;
 
