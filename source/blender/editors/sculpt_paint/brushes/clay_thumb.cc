@@ -36,37 +36,13 @@ inline namespace clay_thumb_cc {
 
 struct LocalData {
   Vector<float3> positions;
-  Vector<float3> local_positions;
   Vector<float> factors;
   Vector<float> distances;
   Vector<float3> translations;
 };
 
-BLI_NOINLINE static void calc_translations(const Span<float3> positions,
-                                           const Span<float3> local_positions,
-                                           const float4 &plane,
-                                           const float4 &plane_tilt,
-                                           const MutableSpan<float3> translations)
-{
-  for (const int i : positions.index_range()) {
-    float3 closest;
-    closest_to_plane_normalized_v3(closest, plane, positions[i]);
-    float3 closest_tilt;
-    closest_to_plane_normalized_v3(closest_tilt, plane_tilt, positions[i]);
-
-    const float tilt_mix = local_positions[i].y > 0.0f ? 0.0f : 1.0f;
-    const float3 mixed = math::interpolate(closest, closest_tilt, tilt_mix);
-    /* NOTE: This has always been unused since the initial implementation of the tool. */
-    UNUSED_VARS(mixed);
-
-    translations[i] = closest_tilt - positions[i];
-  }
-}
-
 static void calc_faces(const Sculpt &sd,
                        const Brush &brush,
-                       const float4x4 &mat,
-                       const float4 &plane,
                        const float4 &plane_tilt,
                        const float strength,
                        const Span<float3> positions_eval,
@@ -110,13 +86,9 @@ static void calc_faces(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.local_positions.reinitialize(verts.size());
-  MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
-
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations(positions, local_positions, plane, plane_tilt, translations);
+  calc_translations_to_plane(positions, plane_tilt, translations);
 
   scale_translations(translations, factors);
 
@@ -125,8 +97,6 @@ static void calc_faces(const Sculpt &sd,
 
 static void calc_grids(const Sculpt &sd,
                        const Brush &brush,
-                       const float4x4 &mat,
-                       const float4 &plane,
                        const float4 &plane_tilt,
                        const float strength,
                        const PBVHNode &node,
@@ -168,13 +138,9 @@ static void calc_grids(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.local_positions.reinitialize(grid_verts_num);
-  MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
-
   tls.translations.reinitialize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations(positions, local_positions, plane, plane_tilt, translations);
+  calc_translations_to_plane(positions, plane_tilt, translations);
 
   scale_translations(translations, factors);
 
@@ -184,8 +150,6 @@ static void calc_grids(const Sculpt &sd,
 
 static void calc_bmesh(const Sculpt &sd,
                        const Brush &brush,
-                       const float4x4 &mat,
-                       const float4 &plane,
                        const float4 &plane_tilt,
                        const float strength,
                        Object &object,
@@ -224,13 +188,9 @@ static void calc_bmesh(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.local_positions.reinitialize(verts.size());
-  MutableSpan<float3> local_positions = tls.local_positions;
-  transform_positions(positions, mat, local_positions);
-
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations(positions, local_positions, plane, plane_tilt, translations);
+  calc_translations_to_plane(positions, plane_tilt, translations);
 
   scale_translations(translations, factors);
 
@@ -301,9 +261,6 @@ void do_clay_thumb_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> node
   invert_m4_m4(imat.ptr(), mat.ptr());
   rotate_v3_v3v3fl(normal_tilt, area_no_sp, imat[0], DEG2RADF(-ss.cache->clay_thumb_front_angle));
 
-  /* Plane aligned to the geometry normal (back part of the brush). */
-  float4 plane;
-  plane_from_point_normal_v3(plane, location, area_no_sp);
   /* Tilted plane (front part of the brush). */
   plane_from_point_normal_v3(plane_tilt, location, normal_tilt);
 
@@ -320,8 +277,6 @@ void do_clay_thumb_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> node
         for (const int i : range) {
           calc_faces(sd,
                      brush,
-                     mat,
-                     plane,
                      plane_tilt,
                      clay_strength,
                      positions_eval,
@@ -339,7 +294,7 @@ void do_clay_thumb_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> node
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids(sd, brush, mat, plane, plane_tilt, clay_strength, *nodes[i], object, tls);
+          calc_grids(sd, brush, plane_tilt, clay_strength, *nodes[i], object, tls);
         }
       });
       break;
@@ -347,7 +302,7 @@ void do_clay_thumb_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> node
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh(sd, brush, mat, plane, plane_tilt, clay_strength, object, *nodes[i], tls);
+          calc_bmesh(sd, brush, plane_tilt, clay_strength, object, *nodes[i], tls);
         }
       });
       break;
