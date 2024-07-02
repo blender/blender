@@ -393,6 +393,15 @@ Binding &Action::binding_add_for_id(const ID &animated_id)
   return binding;
 }
 
+Binding &Action::binding_ensure_for_id(const ID &animated_id)
+{
+  if (Binding *binding = this->find_suitable_binding_for(animated_id)) {
+    return *binding;
+  }
+
+  return this->binding_add_for_id(animated_id);
+}
+
 Binding *Action::find_suitable_binding_for(const ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);

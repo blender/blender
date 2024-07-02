@@ -188,6 +188,26 @@ class Action : public ::bAction {
    */
   Binding &binding_add_for_id(const ID &animated_id);
 
+  /**
+   * Ensure that an appropriate Binding exists for the given ID.
+   *
+   * If a suitable Binding can be found, that Binding is returned.  Otherwise,
+   * one is created.
+   *
+   * This is essentially a wrapper for `find_suitable_binding_for()` and
+   * `binding_add_for_id()`, and follows their semantics. Notably, like both of
+   * those methods, this Action does not need to already be assigned to the ID.
+   * And like `find_suitable_binding_for()`, if this Action *is* already
+   * assigned to the ID with a valid Binding, that Binding is returned.
+   *
+   * Note that this assigns neither this Action nor the Binding to the ID. This
+   * merely ensures that an appropriate Binding exists.
+   *
+   * \see `Action::find_suitable_binding_for()`
+   * \see `Action::binding_add_for_id()`
+   */
+  Binding &binding_ensure_for_id(const ID &animated_id);
+
   /** Assign this animation to the ID.
    *
    * \param binding: The binding this ID should be animated by, may be nullptr if it is to be
