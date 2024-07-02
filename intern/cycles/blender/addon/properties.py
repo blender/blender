@@ -1648,14 +1648,18 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     def get_num_gpu_devices(self):
         import _cycles
         compute_device_type = self.get_compute_device_type()
-        device_list = _cycles.available_devices(compute_device_type)
+
         num = 0
-        for device in device_list:
-            if device[1] != compute_device_type:
-                continue
-            for dev in self.devices:
-                if dev.use and dev.id == device[2]:
-                    num += 1
+        if compute_device_type != 'NONE':
+            device_list = _cycles.available_devices(compute_device_type)
+            # Device list might be out of sync if the user hasn't opened preference yet
+            self.update_device_entries(device_list)
+            for device in device_list:
+                if device[1] != compute_device_type:
+                    continue
+                for dev in self.devices:
+                    if dev.use and dev.id == device[2]:
+                        num += 1
         return num
 
     def has_multi_device(self):
@@ -1680,7 +1684,10 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         # We need non-CPU devices, used for rendering and supporting OIDN GPU denoising
         if compute_device_type != 'NONE':
-            for device in _cycles.available_devices(compute_device_type):
+            device_list = _cycles.available_devices(compute_device_type)
+            # Device list might be out of sync if the user hasn't opened preference yet
+            self.update_device_entries(device_list)
+            for device in device_list:
                 device_type = device[1]
                 if device_type == 'CPU':
                     continue
