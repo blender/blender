@@ -553,7 +553,10 @@ float2 Film::pixel_jitter_get() const
      * distribution covering the filter shape. This avoids putting samples in areas without any
      * weights. */
     /* TODO(fclem): Importance sampling could be a better option here. */
-    jitter = Sampling::sample_disk(jitter) * data_.filter_radius;
+    /* NOTE: We bias the disk to encompass most of the energy of the filter to avoid energy issues
+     * with motion blur at low sample. */
+    const float bias = 0.5f;
+    jitter = Sampling::sample_disk(jitter) * bias * data_.filter_radius;
   }
   else {
     /* Jitter the size of a whole pixel. [-0.5..0.5] */
