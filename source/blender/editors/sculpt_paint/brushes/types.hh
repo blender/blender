@@ -30,6 +30,7 @@ void do_inflate_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 /** A brush that modifies mask values instead of position. */
 void do_mask_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_multiplane_scrape_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
+void do_pinch_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_nudge_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_rotate_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_scrape_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);

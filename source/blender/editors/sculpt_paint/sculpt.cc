@@ -3810,7 +3810,7 @@ static void do_brush_action(const Scene &scene,
       do_blob_brush(scene, sd, ob, nodes);
       break;
     case SCULPT_TOOL_PINCH:
-      SCULPT_do_pinch_brush(sd, ob, nodes);
+      do_pinch_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_INFLATE:
       do_inflate_brush(sd, ob, nodes);
@@ -7170,6 +7170,19 @@ void apply_translations(const Span<float3> translations, const Set<BMVert *, 0> 
   for (BMVert *vert : verts) {
     add_v3_v3(vert->co, translations[i]);
     i++;
+  }
+}
+
+void project_translations(const MutableSpan<float3> translations, const float3 &plane)
+{
+  /* Equivalent to #project_plane_v3_v3v3. */
+  const float len_sq = math::length_squared(plane);
+  if (len_sq < std::numeric_limits<float>::epsilon()) {
+    return;
+  }
+  const float dot_factor = -math::rcp(len_sq);
+  for (const int i : translations.index_range()) {
+    translations[i] += plane * math::dot(translations[i], plane) * dot_factor;
   }
 }
 

@@ -221,6 +221,9 @@ void apply_translations(Span<float3> translations, Span<int> verts, MutableSpan<
 void apply_translations(Span<float3> translations, Span<int> grids, SubdivCCG &subdiv_ccg);
 void apply_translations(Span<float3> translations, const Set<BMVert *, 0> &verts);
 
+/** Align the translations with plane normal. */
+void project_translations(MutableSpan<float3> translations, const float3 &plane);
+
 /**
  * Rotate translations to account for rotations from procedural deformation.
  *
