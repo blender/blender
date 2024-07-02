@@ -81,28 +81,24 @@ static void calc_node(
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
         const int node_vert_index = node_start + offset;
         const int grid_vert_index = start + offset;
-        float3 &co = CCG_elem_offset_co(key, elem, offset);
 
-        float current_disp[3];
-        float current_disp_norm[3];
-        float interp_limit_surface_disp[3];
+        float3 interp_limit_surface_disp = cache.prev_displacement[grid_vert_index];
 
-        copy_v3_v3(interp_limit_surface_disp, cache.prev_displacement[grid_vert_index]);
-
+        float3 current_disp;
         switch (brush.smear_deform_type) {
           case BRUSH_SMEAR_DEFORM_DRAG:
-            sub_v3_v3v3(current_disp, cache.location, cache.last_location);
+            current_disp = cache.location - cache.last_location;
             break;
           case BRUSH_SMEAR_DEFORM_PINCH:
-            sub_v3_v3v3(current_disp, cache.location, positions[node_vert_index]);
+            current_disp = cache.location - positions[node_vert_index];
             break;
           case BRUSH_SMEAR_DEFORM_EXPAND:
-            sub_v3_v3v3(current_disp, positions[node_vert_index], cache.location);
+            current_disp = positions[node_vert_index] - cache.location;
             break;
         }
 
-        normalize_v3_v3(current_disp_norm, current_disp);
-        mul_v3_v3fl(current_disp, current_disp_norm, cache.bstrength);
+        const float3 current_disp_norm = math::normalize(current_disp);
+        current_disp *= cache.bstrength;
 
         float weights_accum = 1.0f;
 
@@ -118,30 +114,27 @@ static void calc_node(
           const int neighbor_grid_vert_index = neighbor.grid_index * key.grid_area +
                                                CCG_grid_xy_to_index(
                                                    key.grid_size, neighbor.x, neighbor.y);
-          float vertex_disp[3];
-          float vertex_disp_norm[3];
-          sub_v3_v3v3(vertex_disp,
-                      cache.limit_surface_co[neighbor_grid_vert_index],
-                      cache.limit_surface_co[grid_vert_index]);
-          const float *neighbor_limit_surface_disp =
+          const float3 vert_disp = cache.limit_surface_co[neighbor_grid_vert_index] -
+                                   cache.limit_surface_co[grid_vert_index];
+          const float3 &neighbor_limit_surface_disp =
               cache.prev_displacement[neighbor_grid_vert_index];
-          normalize_v3_v3(vertex_disp_norm, vertex_disp);
+          const float3 vert_disp_norm = math::normalize(vert_disp);
 
-          if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
+          if (math::dot(current_disp_norm, vert_disp_norm) >= 0.0f) {
             continue;
           }
 
-          const float disp_interp = clamp_f(
-              -dot_v3v3(current_disp_norm, vertex_disp_norm), 0.0f, 1.0f);
-          madd_v3_v3fl(interp_limit_surface_disp, neighbor_limit_surface_disp, disp_interp);
+          const float disp_interp = std::clamp(
+              -math::dot(current_disp_norm, vert_disp_norm), 0.0f, 1.0f);
+          interp_limit_surface_disp += neighbor_limit_surface_disp * disp_interp;
           weights_accum += disp_interp;
         }
 
-        mul_v3_fl(interp_limit_surface_disp, 1.0f / weights_accum);
+        interp_limit_surface_disp *= math::rcp(weights_accum);
 
-        float new_co[3];
-        add_v3_v3v3(new_co, cache.limit_surface_co[grid_vert_index], interp_limit_surface_disp);
-        interp_v3_v3v3(co, positions[node_vert_index], new_co, factors[node_vert_index]);
+        float3 new_co = cache.limit_surface_co[grid_vert_index] + interp_limit_surface_disp;
+        CCG_elem_offset_co(key, elem, offset) = math::interpolate(
+            positions[node_vert_index], new_co, factors[node_vert_index]);
       }
     }
   }
