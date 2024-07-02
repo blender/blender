@@ -50,6 +50,8 @@ void VolumeProbeModule::init()
   do_full_update_ = irradiance_atlas_tx_.ensure_3d(VOLUME_PROBE_FORMAT, atlas_extent, usage);
 
   if (do_full_update_) {
+    do_update_world_ = true;
+
     /* Delete all references to existing bricks. */
     for (VolumeProbe &grid : inst_.light_probes.volume_map_.values()) {
       grid.bricks.clear();
