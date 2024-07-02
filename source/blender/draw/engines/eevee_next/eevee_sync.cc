@@ -124,6 +124,7 @@ void SyncModule::sync_mesh(Object *ob,
 
   bool is_alpha_blend = false;
   bool has_transparent_shadows = false;
+  bool has_volume = false;
   float inflate_bounds = 0.0f;
   for (auto i : material_array.gpu_materials.index_range()) {
     gpu::Batch *geom = mat_geom[i];
@@ -137,6 +138,7 @@ void SyncModule::sync_mesh(Object *ob,
     if (material.has_volume) {
       volume_call(material.volume_occupancy, inst_.scene, ob, geom, res_handle);
       volume_call(material.volume_material, inst_.scene, ob, geom, res_handle);
+      has_volume = true;
       /* Do not render surface if we are rendering a volume object
        * and do not have a surface closure. */
       if (!material.has_surface) {
@@ -164,6 +166,10 @@ void SyncModule::sync_mesh(Object *ob,
     if (GPU_material_has_displacement_output(gpu_material)) {
       inflate_bounds = math::max(inflate_bounds, mat->inflate_bounds);
     }
+  }
+
+  if (has_volume) {
+    inst_.volume.object_sync(ob_handle);
   }
 
   if (inflate_bounds != 0.0f) {
@@ -195,6 +201,7 @@ bool SyncModule::sync_sculpt(Object *ob,
 
   bool is_alpha_blend = false;
   bool has_transparent_shadows = false;
+  bool has_volume = false;
   float inflate_bounds = 0.0f;
   for (SculptBatch &batch :
        sculpt_batches_per_material_get(ob_ref.object, material_array.gpu_materials))
@@ -209,6 +216,7 @@ bool SyncModule::sync_sculpt(Object *ob,
     if (material.has_volume) {
       volume_call(material.volume_occupancy, inst_.scene, ob, geom, res_handle);
       volume_call(material.volume_material, inst_.scene, ob, geom, res_handle);
+      has_volume = true;
       /* Do not render surface if we are rendering a volume object
        * and do not have a surface closure. */
       if (material.has_surface == false) {
@@ -237,6 +245,10 @@ bool SyncModule::sync_sculpt(Object *ob,
     if (GPU_material_has_displacement_output(gpu_material)) {
       inflate_bounds = math::max(inflate_bounds, mat->inflate_bounds);
     }
+  }
+
+  if (has_volume) {
+    inst_.volume.object_sync(ob_handle);
   }
 
   /* Use a valid bounding box. The PBVH module already does its own culling, but a valid */
@@ -286,6 +298,7 @@ void SyncModule::sync_point_cloud(Object *ob,
     /* Only support single volume material for now. */
     drawcall_add(material.volume_occupancy);
     drawcall_add(material.volume_material);
+    inst_.volume.object_sync(ob_handle);
 
     /* Do not render surface if we are rendering a volume object
      * and do not have a surface closure. */
@@ -330,7 +343,7 @@ void SyncModule::sync_point_cloud(Object *ob,
  * \{ */
 
 void SyncModule::sync_volume(Object *ob,
-                             ObjectHandle & /*ob_handle*/,
+                             ObjectHandle &ob_handle,
                              ResourceHandle res_handle,
                              const ObjectRef &ob_ref)
 {
@@ -364,6 +377,8 @@ void SyncModule::sync_volume(Object *ob,
 
   drawcall_add(material.volume_occupancy, geom, res_handle);
   drawcall_add(material.volume_material, geom, res_handle);
+
+  inst_.volume.object_sync(ob_handle);
 }
 
 /** \} */
@@ -558,6 +573,7 @@ void SyncModule::sync_curves(Object *ob,
     /* Only support single volume material for now. */
     drawcall_add(material.volume_occupancy);
     drawcall_add(material.volume_material);
+    inst_.volume.object_sync(ob_handle);
     /* Do not render surface if we are rendering a volume object
      * and do not have a surface closure. */
     if (material.has_surface == false) {
