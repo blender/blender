@@ -18,6 +18,7 @@
 #include "BLI_array.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
@@ -27,7 +28,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-inline namespace grab_cc {
+inline namespace rotate_cc {
 
 struct LocalData {
   Vector<float> factors;
@@ -35,23 +36,26 @@ struct LocalData {
   Vector<float3> translations;
 };
 
-BLI_NOINLINE static void calc_silhouette_factors(const StrokeCache &cache,
-                                                 const float3 &offset,
-                                                 const Span<float3> normals,
-                                                 const MutableSpan<float> factors)
+BLI_NOINLINE static void calc_translations(const Span<float3> positions,
+                                           const float3 &axis,
+                                           const Span<float> angles,
+                                           const float3 &center,
+                                           const MutableSpan<float3> translations)
 {
-  BLI_assert(normals.size() == factors.size());
+  BLI_assert(positions.size() == angles.size());
+  BLI_assert(positions.size() == translations.size());
 
-  const float sign = math::sign(math::dot(cache.initial_normal, cache.grab_delta_symmetry));
-  const float3 test_dir = math::normalize(offset) * sign;
-  for (const int i : factors.index_range()) {
-    factors[i] *= std::max(math::dot(test_dir, normals[i]), 0.0f);
+  for (const int i : positions.index_range()) {
+    const math::AxisAngle rotation(axis, angles[i]);
+    const float3x3 matrix = math::from_rotation<float3x3>(rotation);
+    const float3 rotated = math::transform_point(matrix, positions[i] - center);
+    translations[i] = rotated + center - positions[i];
   }
 }
 
 static void calc_faces(const Sculpt &sd,
                        const Brush &brush,
-                       const float3 &offset,
+                       const float angle,
                        const Span<float3> positions_eval,
                        const PBVHNode &node,
                        Object &object,
@@ -86,13 +90,12 @@ static void calc_faces(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, orig_data.positions, factors);
 
-  if (brush.flag2 & BRUSH_GRAB_SILHOUETTE) {
-    calc_silhouette_factors(cache, offset, orig_data.normals, factors);
-  }
+  scale_factors(factors, angle);
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  translations_from_offset_and_factors(offset, factors, translations);
+  calc_translations(
+      orig_data.positions, cache.sculpt_normal_symm, factors, cache.location, translations);
 
   write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 }
@@ -100,7 +103,7 @@ static void calc_faces(const Sculpt &sd,
 static void calc_grids(const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
-                       const float3 &offset,
+                       const float angle,
                        PBVHNode &node,
                        LocalData &tls)
 {
@@ -117,6 +120,7 @@ static void calc_grids(const Sculpt &sd,
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
+
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
@@ -134,13 +138,12 @@ static void calc_grids(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, orig_data.positions, factors);
 
-  if (brush.flag2 & BRUSH_GRAB_SILHOUETTE) {
-    calc_silhouette_factors(cache, offset, orig_data.normals, factors);
-  }
+  scale_factors(factors, angle);
 
   tls.translations.reinitialize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
-  translations_from_offset_and_factors(offset, factors, translations);
+  calc_translations(
+      orig_data.positions, cache.sculpt_normal_symm, factors, cache.location, translations);
 
   clip_and_lock_translations(sd, ss, orig_data.positions, translations);
   apply_translations(translations, grids, subdiv_ccg);
@@ -149,7 +152,7 @@ static void calc_grids(const Sculpt &sd,
 static void calc_bmesh(const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
-                       const float3 &offset,
+                       const float angle,
                        PBVHNode &node,
                        LocalData &tls)
 {
@@ -183,32 +186,26 @@ static void calc_bmesh(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, orig_positions, factors);
 
-  if (brush.flag2 & BRUSH_GRAB_SILHOUETTE) {
-    calc_silhouette_factors(cache, offset, orig_normals, factors);
-  }
+  scale_factors(factors, angle);
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  translations_from_offset_and_factors(offset, factors, translations);
+  calc_translations(
+      orig_positions, cache.sculpt_normal_symm, factors, cache.location, translations);
 
   clip_and_lock_translations(sd, ss, orig_positions, translations);
   apply_translations(translations, verts);
 }
 
-}  // namespace grab_cc
+}  // namespace rotate_cc
 
-void do_grab_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_rotate_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  float3 grab_delta = ss.cache->grab_delta_symmetry;
-
-  if (ss.cache->normal_weight > 0.0f) {
-    sculpt_project_v3_normal_align(ss, ss.cache->normal_weight, grab_delta);
-  }
-
-  grab_delta *= ss.cache->bstrength;
+  constexpr std::array<int, 8> flip{1, -1, -1, 1, -1, 1, 1, -1};
+  const float angle = ss.cache->vertex_rotation * flip[ss.cache->mirror_symmetry_pass];
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
@@ -220,8 +217,7 @@ void do_grab_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces(
-              sd, brush, grab_delta, positions_eval, *nodes[i], object, tls, positions_orig);
+          calc_faces(sd, brush, angle, positions_eval, *nodes[i], object, tls, positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });
@@ -231,7 +227,7 @@ void do_grab_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids(sd, object, brush, grab_delta, *nodes[i], tls);
+          calc_grids(sd, object, brush, angle, *nodes[i], tls);
         }
       });
       break;
@@ -239,7 +235,7 @@ void do_grab_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh(sd, object, brush, grab_delta, *nodes[i], tls);
+          calc_bmesh(sd, object, brush, angle, *nodes[i], tls);
         }
       });
       break;
