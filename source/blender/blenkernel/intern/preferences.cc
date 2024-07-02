@@ -437,11 +437,26 @@ int BKE_preferences_extension_repo_remote_scheme_end(const char *url)
 void BKE_preferences_extension_remote_to_name(const char *remote_url,
                                               char name[sizeof(bUserExtensionRepo::name)])
 {
+#ifdef _WIN32
+  const bool is_win32 = true;
+#else
+  const bool is_win32 = false;
+#endif
   const bool is_file = STRPREFIX(remote_url, "file://");
   name[0] = '\0';
   if (int offset = BKE_preferences_extension_repo_remote_scheme_end(remote_url)) {
     /* Skip the `://`. */
     remote_url += (offset + 3);
+
+    if (is_win32) {
+      if (is_file) {
+        /* Skip the slash prefix for: `/C:/`,
+         * not *required* but seems like a bug if it's not done. */
+        if (remote_url[0] == '/' && isalpha(remote_url[1]) && (remote_url[2] == ':')) {
+          remote_url += 1;
+        }
+      }
+    }
   }
   if (UNLIKELY(remote_url[0] == '\0')) {
     return;
@@ -475,6 +490,12 @@ void BKE_preferences_extension_remote_to_name(const char *remote_url,
 
   BLI_strncpy_utf8(
       name, remote_url, std::min(size_t(c - remote_url) + 1, sizeof(bUserExtensionRepo::name)));
+
+  if (is_win32) {
+    if (is_file) {
+      BLI_path_slash_native(name);
+    }
+  }
 }
 
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
