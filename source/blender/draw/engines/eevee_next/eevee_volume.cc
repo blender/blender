@@ -58,7 +58,34 @@ void VolumeModule::init()
   use_reprojection_ = (scene_eval->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) != 0;
 }
 
-void VolumeModule::begin_sync() {}
+void VolumeModule::begin_sync()
+{
+  previous_objects_ = current_objects_;
+  current_objects_.clear();
+}
+
+void VolumeModule::world_sync(const WorldHandle &world_handle)
+{
+  if (!use_reprojection_) {
+    return;
+  }
+
+  if (world_handle.recalc && !inst_.is_playback()) {
+    valid_history_ = false;
+  }
+}
+
+void VolumeModule::object_sync(const ObjectHandle &ob_handle)
+{
+  if (!use_reprojection_) {
+    return;
+  }
+
+  if (ob_handle.recalc && !inst_.is_playback()) {
+    valid_history_ = false;
+  }
+  current_objects_.add(ob_handle.object_key);
+}
 
 void VolumeModule::end_sync()
 {
@@ -92,6 +119,13 @@ void VolumeModule::end_sync()
      * the current view and the history view. Moreover, re-projecting in this huge change is more
      * detrimental than anything. */
     valid_history_ = false;
+  }
+
+  if (valid_history_) {
+    /* Avoid the (potentially expensive) check if valid_history_ is already false. */
+    if (current_objects_ != previous_objects_) {
+      valid_history_ = false;
+    }
   }
 
   if (inst_.camera.is_perspective()) {
