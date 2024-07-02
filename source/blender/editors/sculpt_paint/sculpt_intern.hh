@@ -2048,9 +2048,6 @@ void SCULPT_do_elastic_deform_brush(const Sculpt &sd, Object &ob, blender::Span<
 void SCULPT_do_draw_sharp_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_slide_relax_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 
-void SCULPT_do_displacement_smear_brush(const Sculpt &sd,
-                                        Object &ob,
-                                        blender::Span<PBVHNode *> nodes);
 /** \} */
 
 void SCULPT_bmesh_topology_rake(const Sculpt &sd,

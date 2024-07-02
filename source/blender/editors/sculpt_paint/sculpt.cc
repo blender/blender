@@ -3899,7 +3899,7 @@ static void do_brush_action(const Scene &scene,
       do_displacement_eraser_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
-      SCULPT_do_displacement_smear_brush(sd, ob, nodes);
+      do_displacement_smear_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_PAINT:
       color::do_paint_brush(paint_mode_settings, sd, ob, nodes, texnodes);

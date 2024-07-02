@@ -19,6 +19,7 @@ void do_clay_thumb_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_crease_brush(const Scene &scene, const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_blob_brush(const Scene &scene, const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_displacement_eraser_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
+void do_displacement_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 /** A simple normal-direction displacement. */
 void do_draw_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 /** A simple normal-direction displacement based on image texture RGB/XYZ values. */
