@@ -36,7 +36,8 @@ add_dependencies(
   external_zlib
 )
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
   ExternalProject_Add_Step(external_freetype after_install
     COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${LIBDIR}/freetype
@@ -50,4 +51,8 @@ if(BUILD_MODE STREQUAL Release AND WIN32)
 
     DEPENDEES install
   )
+  endif()
+else()
+  harvest(external_freetype freetype/include freetype/include "*.h")
+  harvest(external_freetype freetype/lib/libfreetype2ST.a freetype/lib/libfreetype.a)
 endif()

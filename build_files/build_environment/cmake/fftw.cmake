@@ -55,7 +55,7 @@ endmacro()
 fftw_build(double)
 fftw_build(float --enable-float)
 
-if(MSVC)
+if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_fftw3_double after_install
       COMMAND ${CMAKE_COMMAND} -E copy
@@ -79,5 +79,13 @@ if(MSVC)
       DEPENDEES install
     )
   endif()
+else()
+  add_custom_target(external_fftw)
+  add_dependencies(
+    external_fftw
+    external_fftw3_double
+    external_fftw3_float)
 
+  harvest(external_fftw3 fftw3/include fftw3/include "*.h")
+  harvest(external_fftw3 fftw3/lib fftw3/lib "*.a")
 endif()

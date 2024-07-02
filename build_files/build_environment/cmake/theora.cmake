@@ -40,6 +40,8 @@ if(NOT WIN32)
 
     INSTALL_DIR ${LIBDIR}/theora
   )
+
+  harvest(external_theora theora/lib ffmpeg/lib "*.a")
 else()
   # We are kind of naughty here and steal vorbis' `FindOgg.cmake`,
   # but given it's a dependency anyway.

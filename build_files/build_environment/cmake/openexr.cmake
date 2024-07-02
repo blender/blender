@@ -65,6 +65,9 @@ if(WIN32)
 
     DEPENDEES install
   )
+else()
+  harvest(external_openexr openexr/include openexr/include "*.h")
+  harvest_rpath_lib(external_openexr openexr/lib openexr/lib "*${SHAREDLIBEXT}*")
 endif()
 
 add_dependencies(

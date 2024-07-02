@@ -181,4 +181,16 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_usd usd/include usd/include "*.h")
+  harvest(external_usd usd/include usd/include "*.hpp")
+  harvest_rpath_lib(external_usd usd/lib usd/lib "libusd_ms${SHAREDLIBEXT}")
+  harvest(external_usd usd/lib/usd usd/lib/usd "*")
+  harvest_rpath_python(
+    external_usd
+    usd/lib/python/pxr
+    python/lib/python${PYTHON_SHORT_VERSION}/site-packages/pxr
+    "*"
+  )
+  harvest(external_usd usd/plugin usd/plugin "*")
 endif()

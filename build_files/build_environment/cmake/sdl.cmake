@@ -47,18 +47,23 @@ ExternalProject_Add(external_sdl
   INSTALL_DIR ${LIBDIR}/sdl
 )
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
-  ExternalProject_Add_Step(external_sdl after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/sdl/include/sdl2
-      ${HARVEST_TARGET}/sdl/include
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/sdl/lib
-      ${HARVEST_TARGET}/sdl/lib
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/sdl/bin
-      ${HARVEST_TARGET}/sdl/lib
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_sdl after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/sdl/include/sdl2
+        ${HARVEST_TARGET}/sdl/include
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/sdl/lib
+        ${HARVEST_TARGET}/sdl/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/sdl/bin
+        ${HARVEST_TARGET}/sdl/lib
 
-    DEPENDEES install
-  )
+      DEPENDEES install
+    )
+  endif()
+else()
+  harvest(external_sdl sdl/include/SDL2 sdl/include "*.h")
+  harvest(external_sdl sdl/lib sdl/lib "libSDL2.a")
 endif()

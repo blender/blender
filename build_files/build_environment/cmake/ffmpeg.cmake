@@ -260,15 +260,20 @@ if(UNIX)
   )
 endif()
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
-  ExternalProject_Add_Step(external_ffmpeg after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/ffmpeg/include
-      ${HARVEST_TARGET}/ffmpeg/include
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/ffmpeg/bin
-      ${HARVEST_TARGET}/ffmpeg/lib
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_ffmpeg after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/ffmpeg/include
+        ${HARVEST_TARGET}/ffmpeg/include
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/ffmpeg/bin
+        ${HARVEST_TARGET}/ffmpeg/lib
 
-    DEPENDEES install
-  )
+      DEPENDEES install
+    )
+  endif()
+else()
+  harvest(external_ffmpeg ffmpeg/include ffmpeg/include "*.h")
+  harvest(external_ffmpeg ffmpeg/lib ffmpeg/lib "*.a")
 endif()

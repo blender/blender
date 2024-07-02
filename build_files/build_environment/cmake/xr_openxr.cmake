@@ -56,4 +56,7 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_xr_openxr_sdk xr_openxr_sdk/include/openxr xr_openxr_sdk/include/openxr "*.h")
+  harvest(external_xr_openxr_sdk xr_openxr_sdk/lib xr_openxr_sdk/lib "*.a")
 endif()

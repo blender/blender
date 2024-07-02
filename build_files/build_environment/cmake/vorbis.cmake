@@ -20,3 +20,7 @@ add_dependencies(
   external_vorbis
   external_ogg
 )
+
+if(NOT WIN32)
+  harvest(external_vorbis vorbis/lib ffmpeg/lib "*.a")
+endif()

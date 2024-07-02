@@ -28,3 +28,10 @@ add_dependencies(
   # Needed for `MESON`.
   external_python_site_packages
 )
+
+harvest(
+  external_wayland_protocols
+  wayland-protocols/share/wayland-protocols
+  wayland-protocols/share/wayland-protocols/
+  "*.xml"
+)

@@ -33,3 +33,5 @@ add_dependencies(
   external_igc
   external_gmmlib
 )
+
+harvest(external_ocloc ocloc dpcpp/lib/ocloc "*")

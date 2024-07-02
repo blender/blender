@@ -77,4 +77,7 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_opencollada opencollada/include/opencollada opencollada/include "*.h")
+  harvest(external_opencollada opencollada/lib/opencollada opencollada/lib "*.a")
 endif()

@@ -222,4 +222,8 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_python python/bin python/bin "python${PYTHON_SHORT_VERSION}")
+  harvest(external_python python/include python/include "*h")
+  harvest(external_python python/lib python/lib "*")
 endif()

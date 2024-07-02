@@ -30,23 +30,28 @@ ExternalProject_Add(external_epoxy
   INSTALL_COMMAND ninja install
 )
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
-  ExternalProject_Add_Step(external_epoxy after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/epoxy/include
-      ${HARVEST_TARGET}/epoxy/include
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/epoxy/bin/epoxy-0.dll
-      ${HARVEST_TARGET}/epoxy/bin/epoxy-0.dll
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/epoxy/lib/epoxy.lib
-      ${HARVEST_TARGET}/epoxy/lib/epoxy.lib
-    DEPENDEES install
-  )
-endif()
-
 add_dependencies(
   external_epoxy
   # Needed for `MESON`.
   external_python_site_packages
 )
+
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_epoxy after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/epoxy/include
+        ${HARVEST_TARGET}/epoxy/include
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/epoxy/bin/epoxy-0.dll
+        ${HARVEST_TARGET}/epoxy/bin/epoxy-0.dll
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/epoxy/lib/epoxy.lib
+        ${HARVEST_TARGET}/epoxy/lib/epoxy.lib
+      DEPENDEES install
+    )
+  endif()
+else()
+  harvest(external_epoxy epoxy/include epoxy/include "*.h")
+  harvest(external_epoxy epoxy/lib epoxy/lib "*.a")
+endif()

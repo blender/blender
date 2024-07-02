@@ -41,4 +41,7 @@ if(WIN32)
 
     DEPENDEES install
   )
+else()
+  harvest(external_imath imath/include imath/include "*.h")
+  harvest_rpath_lib(external_imath imath/lib imath/lib "*${SHAREDLIBEXT}*")
 endif()

@@ -40,3 +40,8 @@ add_dependencies(
   # Needed for `MESON`.
   external_python_site_packages
 )
+
+harvest(external_wayland wayland/bin wayland/bin "wayland-scanner")
+harvest(external_wayland wayland/include wayland/include "*.h")
+# Only needed for running the WESTON compositor.
+harvest(external_wayland wayland/lib64 wayland/lib64 "*")

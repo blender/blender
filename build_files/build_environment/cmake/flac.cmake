@@ -23,6 +23,8 @@ if(NOT WIN32)
 
     INSTALL_DIR ${LIBDIR}/flac
   )
+
+  harvest(external_flac flac/lib sndfile/lib "libFLAC.a")
 else()
   set(FLAC_CXX_FLAGS "-DFLAC__NO_DLL=ON")
 
@@ -52,9 +54,7 @@ else()
 
     INSTALL_DIR ${LIBDIR}/flac
   )
-endif()
 
-if(MSVC)
   add_dependencies(
     external_flac
     external_ogg

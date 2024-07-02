@@ -62,3 +62,8 @@ else()
     DEPENDEES install
   )
 endif()
+
+if(UNIX AND NOT APPLE)
+  harvest(external_zlib zlib/include zlib/include "*.h")
+  harvest(external_zlib zlib/lib zlib/lib "*.a")
+endif()
