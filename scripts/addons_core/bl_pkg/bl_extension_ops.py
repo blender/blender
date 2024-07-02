@@ -70,6 +70,26 @@ def url_append_defaults(url):
     return url_append_query_for_blender(url, blender_version=bpy.app.version)
 
 
+def url_normalize(url):
+    # Ensure consistent use of `file://` so multiple representations aren't considered different repositories.
+    # Currently this only makes changes for UNC paths on WIN32.
+    import sys
+    import re
+
+    prefix = "file://"
+    if url.startswith(prefix):
+        if sys.platform == "win32":
+            # Not a drive, e.g. `file:///C:/path`.
+            path_lstrip = url[len(prefix):].lstrip("/")
+            if re.match("[A-Za-z]:", path_lstrip) is None:
+                # Ensure:
+                # MS-Edge uses: `file://HOST/share/path`
+                # Firefox uses: `file://///HOST/share/path`
+                # Both can work prefer the shorter one.
+                url = prefix + path_lstrip
+    return url
+
+
 def rna_prop_repo_enum_valid_only_itemf(_self, context):
     if context is None:
         result = []
@@ -2588,6 +2608,9 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         url = self.url
         print("DROP URL:", url)
+
+        # Needed for UNC paths on WIN32.
+        url = self.url = url_normalize(url)
 
         url, url_params = url_parse_for_blender(url)
 
