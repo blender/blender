@@ -3828,7 +3828,7 @@ static void do_brush_action(const Scene &scene,
       do_nudge_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_THUMB:
-      SCULPT_do_thumb_brush(sd, ob, nodes);
+      do_thumb_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_LAYER:
       SCULPT_do_layer_brush(sd, ob, nodes);
@@ -5599,12 +5599,11 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
 
   /* Brushes that also use original coordinates and will need a "restore" step.
    *  - SCULPT_TOOL_ROTATE
-   *  - SCULPT_TOOL_THUMB
    *  - SCULPT_TOOL_ELASTIC_DEFORM
    *  - SCULPT_TOOL_BOUNDARY
    *  - SCULPT_TOOL_POSE
    */
-  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB)) {
+  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
     restore_from_undo_step(sd, ob);
     return;
   }
@@ -5982,6 +5981,7 @@ static void sculpt_stroke_update_step(bContext *C,
              SCULPT_TOOL_CLAY_STRIPS,
              SCULPT_TOOL_CREASE,
              SCULPT_TOOL_GRAB,
+             SCULPT_TOOL_THUMB,
              SCULPT_TOOL_DRAW,
              SCULPT_TOOL_FILL,
              SCULPT_TOOL_SCRAPE) &&

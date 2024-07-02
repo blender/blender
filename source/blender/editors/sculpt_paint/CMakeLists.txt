@@ -129,6 +129,7 @@ set(SRC
   brushes/scrape.cc
   brushes/smooth.cc
   brushes/smooth_mask.cc
+  brushes/thumb.cc
 
   brushes/types.hh
 )

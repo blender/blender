@@ -41,5 +41,6 @@ void do_smooth_mask_brush(const Sculpt &sd,
                           Object &object,
                           Span<PBVHNode *> nodes,
                           float brush_strength);
+void do_thumb_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 
 }  // namespace blender::ed::sculpt_paint
