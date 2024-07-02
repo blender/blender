@@ -1271,6 +1271,14 @@ static bool write_file_handle(Main *mainvar,
     FOREACH_MAIN_ID_END;
   }
 
+  /* Recompute all ID usercounts if requested. Allows to avoid skipping writing of IDs wrongly
+   * detected as unused due to invalid usercount. */
+  if (!wd->use_memfile) {
+    if (USER_EXPERIMENTAL_TEST(&U, use_recompute_usercount_on_save_debug)) {
+      BKE_main_id_refcount_recompute(mainvar, false);
+    }
+  }
+
   blo_split_main(&mainlist, mainvar);
 
   SNPRINTF(buf,
