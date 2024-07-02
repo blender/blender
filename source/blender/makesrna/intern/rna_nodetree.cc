@@ -3038,7 +3038,7 @@ static const EnumPropertyItem *rna_Node_view_layer_itemf(bContext * /*C*/,
 
 static void rna_Node_view_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  rna_Node_update(bmain, scene, ptr);
+  rna_Node_update_relations(bmain, scene, ptr);
   if (scene != nullptr && scene->nodetree != nullptr) {
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
@@ -3126,7 +3126,7 @@ static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
   bNode *node = static_cast<bNode *>(ptr->data);
 
   blender::bke::nodeTagUpdateID(node);
-  rna_Node_update(bmain, scene, ptr);
+  rna_Node_update_relations(bmain, scene, ptr);
 }
 
 static void rna_NodeOutputFile_slots_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -4509,7 +4509,7 @@ static void def_texture(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Texture", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "node_output", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "custom1");
@@ -7133,7 +7133,7 @@ static void def_cmp_defocus(StructRNA *srna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(
       prop, "Scene", "Scene from which to select the active camera (render scene if undefined)");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   RNA_def_struct_sdna_from(srna, "NodeDefocus", "storage");
 
@@ -7737,7 +7737,7 @@ static void def_cmp_movieclip(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   RNA_def_struct_sdna_from(srna, "MovieClipUser", "storage");
 }
@@ -7752,7 +7752,7 @@ static void def_cmp_stabilize2d(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
@@ -7783,7 +7783,7 @@ static void def_cmp_moviedistortion(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "distortion_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
@@ -7813,6 +7813,7 @@ static void def_cmp_mask(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Mask", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "use_feather", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "custom1", CMP_NODE_MASK_FLAG_NO_FEATHER);
@@ -8277,7 +8278,7 @@ static void def_cmp_keyingscreen(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   RNA_def_struct_sdna_from(srna, "NodeKeyingScreenData", "storage");
 
@@ -8426,7 +8427,7 @@ static void def_cmp_trackpos(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "position", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
@@ -8520,7 +8521,7 @@ static void def_cmp_planetrackdeform(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   RNA_def_struct_sdna_from(srna, "NodePlaneTrackDeformData", "storage");
 
@@ -8662,7 +8663,7 @@ static void def_cmp_cryptomatte(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Scene", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_funcs(prop,
