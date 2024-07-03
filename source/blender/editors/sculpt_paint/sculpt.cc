@@ -3810,7 +3810,7 @@ static void do_brush_action(const Scene &scene,
       do_blob_brush(scene, sd, ob, nodes);
       break;
     case SCULPT_TOOL_PINCH:
-      SCULPT_do_pinch_brush(sd, ob, nodes);
+      do_pinch_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_INFLATE:
       do_inflate_brush(sd, ob, nodes);
@@ -3819,7 +3819,7 @@ static void do_brush_action(const Scene &scene,
       do_grab_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_ROTATE:
-      SCULPT_do_rotate_brush(sd, ob, nodes);
+      do_rotate_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
       SCULPT_do_snake_hook_brush(sd, ob, nodes);
@@ -3828,7 +3828,7 @@ static void do_brush_action(const Scene &scene,
       do_nudge_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_THUMB:
-      SCULPT_do_thumb_brush(sd, ob, nodes);
+      do_thumb_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_LAYER:
       SCULPT_do_layer_brush(sd, ob, nodes);
@@ -3846,7 +3846,7 @@ static void do_brush_action(const Scene &scene,
       do_multiplane_scrape_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLAY_THUMB:
-      SCULPT_do_clay_thumb_brush(sd, ob, nodes);
+      do_clay_thumb_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_FILL:
       if (invert && brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
@@ -3899,7 +3899,7 @@ static void do_brush_action(const Scene &scene,
       do_displacement_eraser_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
-      SCULPT_do_displacement_smear_brush(sd, ob, nodes);
+      do_displacement_smear_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_PAINT:
       color::do_paint_brush(paint_mode_settings, sd, ob, nodes, texnodes);
@@ -4769,7 +4769,7 @@ static float sculpt_brush_dynamic_size_get(const Brush &brush,
     case SCULPT_TOOL_CLAY_STRIPS:
       return max_ff(initial_size * 0.30f, initial_size * powf(cache.pressure, 1.5f));
     case SCULPT_TOOL_CLAY_THUMB: {
-      float clay_stabilized_pressure = SCULPT_clay_thumb_get_stabilized_pressure(cache);
+      float clay_stabilized_pressure = clay_thumb_get_stabilized_pressure(cache);
       return initial_size * clay_stabilized_pressure;
     }
     default:
@@ -5599,13 +5599,11 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   /* Brushes that also use original coordinates and will need a "restore" step.
-   *  - SCULPT_TOOL_ROTATE
-   *  - SCULPT_TOOL_THUMB
    *  - SCULPT_TOOL_ELASTIC_DEFORM
    *  - SCULPT_TOOL_BOUNDARY
    *  - SCULPT_TOOL_POSE
    */
-  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB)) {
+  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)) {
     restore_from_undo_step(sd, ob);
     return;
   }
@@ -5983,6 +5981,7 @@ static void sculpt_stroke_update_step(bContext *C,
              SCULPT_TOOL_CLAY_STRIPS,
              SCULPT_TOOL_CREASE,
              SCULPT_TOOL_GRAB,
+             SCULPT_TOOL_THUMB,
              SCULPT_TOOL_DRAW,
              SCULPT_TOOL_FILL,
              SCULPT_TOOL_SCRAPE) &&
@@ -7175,6 +7174,19 @@ void apply_translations(const Span<float3> translations, const Set<BMVert *, 0> 
   }
 }
 
+void project_translations(const MutableSpan<float3> translations, const float3 &plane)
+{
+  /* Equivalent to #project_plane_v3_v3v3. */
+  const float len_sq = math::length_squared(plane);
+  if (len_sq < std::numeric_limits<float>::epsilon()) {
+    return;
+  }
+  const float dot_factor = -math::rcp(len_sq);
+  for (const int i : translations.index_range()) {
+    translations[i] += plane * math::dot(translations[i], plane) * dot_factor;
+  }
+}
+
 void apply_crazyspace_to_translations(const Span<float3x3> deform_imats,
                                       const Span<int> verts,
                                       const MutableSpan<float3> translations)
@@ -7357,6 +7369,7 @@ void scale_factors(const MutableSpan<float> factors, const float strength)
     factor *= strength;
   }
 }
+
 void translations_from_offset_and_factors(const float3 &offset,
                                           const Span<float> factors,
                                           const MutableSpan<float3> r_translations)
@@ -7365,6 +7378,17 @@ void translations_from_offset_and_factors(const float3 &offset,
 
   for (const int i : factors.index_range()) {
     r_translations[i] = offset * factors[i];
+  }
+}
+
+void transform_positions(const Span<float3> src,
+                         const float4x4 &transform,
+                         const MutableSpan<float3> dst)
+{
+  BLI_assert(src.size() == dst.size());
+
+  for (const int i : src.index_range()) {
+    dst[i] = math::transform_point(transform, src[i]);
   }
 }
 

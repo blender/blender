@@ -109,6 +109,28 @@ void VKRenderGraph::debug_group_end()
   debug_.group_used = false;
 }
 
+void VKRenderGraph::debug_print(NodeHandle node_handle) const
+{
+  std::ostream &os = std::cout;
+  os << "NODE:\n";
+  const VKRenderGraphNode &node = nodes_[node_handle];
+  os << "  type:" << node.type << "\n";
+
+  const VKRenderGraphNodeLinks &links = links_[node_handle];
+  os << " inputs:\n";
+  for (const VKRenderGraphLink &link : links.inputs) {
+    os << "  ";
+    link.debug_print(os, resources_);
+    os << "\n";
+  }
+  os << " outputs:\n";
+  for (const VKRenderGraphLink &link : links.outputs) {
+    os << "  ";
+    link.debug_print(os, resources_);
+    os << "\n";
+  }
+}
+
 /** \} */
 
 }  // namespace blender::gpu::render_graph

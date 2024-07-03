@@ -64,17 +64,6 @@ static ScrapeSampleData join_samples(const ScrapeSampleData &a, const ScrapeSamp
   return joined;
 }
 
-BLI_NOINLINE static void transform_positions(const Span<float3> src,
-                                             const float4x4 &transform,
-                                             const MutableSpan<float3> dst)
-{
-  BLI_assert(src.size() == dst.size());
-
-  for (const int i : src.index_range()) {
-    dst[i] = math::transform_point(transform, src[i]);
-  }
-}
-
 BLI_NOINLINE static void filter_plane_side_factors(const Span<float3> positions,
                                                    const Span<float3> local_positions,
                                                    const std::array<float4, 2> &scrape_planes,

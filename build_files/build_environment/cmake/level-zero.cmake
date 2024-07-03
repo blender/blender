@@ -23,11 +23,16 @@ ExternalProject_Add(external_level-zero
   INSTALL_DIR ${LIBDIR}/level-zero
 )
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
-  ExternalProject_Add_Step(external_level-zero after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/level-zero
-      ${HARVEST_TARGET}/level-zero
-    DEPENDEES install
-  )
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_level-zero after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/level-zero
+        ${HARVEST_TARGET}/level-zero
+      DEPENDEES install
+    )
+  endif()
+else()
+  harvest(external_level-zero level-zero/include/level_zero level-zero/include/level_zero "*.h")
+  harvest(external_level-zero level-zero/lib level-zero/lib "*${SHAREDLIBEXT}*")
 endif()

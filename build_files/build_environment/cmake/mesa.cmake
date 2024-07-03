@@ -73,3 +73,6 @@ add_dependencies(
   # Needed for `MESON`.
   external_python_site_packages
 )
+
+harvest(external_mesa libglu/lib mesa/lib "*${SHAREDLIBEXT}*")
+harvest(external_mesa mesa/lib64 mesa/lib "*${SHAREDLIBEXT}*")

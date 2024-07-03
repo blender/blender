@@ -121,6 +121,7 @@ set(SRC
 
   brushes/clay.cc
   brushes/clay_strips.cc
+  brushes/clay_thumb.cc
   brushes/crease.cc
   brushes/draw_vector_displacement.cc
   brushes/draw.cc
@@ -131,9 +132,13 @@ set(SRC
   brushes/mask.cc
   brushes/multiplane_scrape.cc
   brushes/multires_displacement_eraser.cc
+  brushes/pinch.cc
+  brushes/multires_displacement_smear.cc
+  brushes/rotate.cc
   brushes/scrape.cc
   brushes/smooth.cc
   brushes/smooth_mask.cc
+  brushes/thumb.cc
 
   brushes/types.hh
 )

@@ -168,12 +168,8 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Sculpt &sd,
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
   MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
-  Array<int> node_vert_offset_data(nodes.size() + 1);
-  for (const int i : nodes.index_range()) {
-    node_vert_offset_data[i] = bke::pbvh::node_unique_verts(*nodes[i]).size();
-  }
-  const OffsetIndices<int> node_vert_offsets = offset_indices::accumulate_counts_to_offsets(
-      node_vert_offset_data);
+  Array<int> node_offset_data;
+  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(nodes, node_offset_data);
   Array<float3> new_positions(node_vert_offsets.total_size());
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;

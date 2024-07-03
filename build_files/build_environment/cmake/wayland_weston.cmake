@@ -62,3 +62,5 @@ add_dependencies(
   # Needed for `MESON`.
   external_python_site_packages
 )
+
+harvest(external_wayland_weston wayland_weston/ wayland_weston/ "*")

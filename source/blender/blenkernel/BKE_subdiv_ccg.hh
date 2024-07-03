@@ -258,6 +258,10 @@ inline int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG &subdiv_ccg, const 
 void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
                                      const SubdivCCGCoord &coord,
                                      float r_point[3]);
+void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
+                                         const CCGKey &key,
+                                         int grid_index,
+                                         blender::MutableSpan<blender::float3> r_limit_positions);
 
 enum SubdivCCGAdjacencyType {
   SUBDIV_CCG_ADJACENT_NONE,

@@ -39,9 +39,14 @@ add_dependencies(
   external_blosc
   external_zlib
 )
+
 if(WIN32)
   add_dependencies(
     external_blosc
     external_pthreads
   )
+endif()
+
+if(APPLE)
+  harvest(external_blosc blosc/lib openvdb/lib "*.a")
 endif()

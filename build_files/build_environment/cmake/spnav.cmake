@@ -30,3 +30,8 @@ ExternalProject_Add(external_spnav
 
   INSTALL_DIR ${LIBDIR}/spnav
 )
+
+if(NOT WIN32)
+  harvest(external_spnav spnav/include spnav/include "*.h")
+  harvest(external_spnav spnav/lib spnav/lib "*.a")
+endif()

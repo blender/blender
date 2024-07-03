@@ -59,6 +59,10 @@ if(BUILD_MODE STREQUAL Release)
 
       DEPENDEES install
     )
+  else()
+    harvest(external_openal openal/include openal/include "*.h")
+    if(UNIX AND NOT APPLE)
+      harvest(external_openal openal/lib openal/lib "*.a")
+    endif()
   endif()
-
 endif()

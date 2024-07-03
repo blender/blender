@@ -27,27 +27,13 @@
 
 namespace blender::ed::sculpt_paint {
 
-inline namespace grab_cc {
+inline namespace thumb_cc {
 
 struct LocalData {
   Vector<float> factors;
   Vector<float> distances;
   Vector<float3> translations;
 };
-
-BLI_NOINLINE static void calc_silhouette_factors(const StrokeCache &cache,
-                                                 const float3 &offset,
-                                                 const Span<float3> normals,
-                                                 const MutableSpan<float> factors)
-{
-  BLI_assert(normals.size() == factors.size());
-
-  const float sign = math::sign(math::dot(cache.initial_normal, cache.grab_delta_symmetry));
-  const float3 test_dir = math::normalize(offset) * sign;
-  for (const int i : factors.index_range()) {
-    factors[i] *= std::max(math::dot(test_dir, normals[i]), 0.0f);
-  }
-}
 
 static void calc_faces(const Sculpt &sd,
                        const Brush &brush,
@@ -69,6 +55,7 @@ static void calc_faces(const Sculpt &sd,
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
+
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
@@ -85,10 +72,6 @@ static void calc_faces(const Sculpt &sd,
   }
 
   calc_brush_texture_factors(ss, brush, orig_data.positions, factors);
-
-  if (brush.flag2 & BRUSH_GRAB_SILHOUETTE) {
-    calc_silhouette_factors(cache, offset, orig_data.normals, factors);
-  }
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -117,6 +100,7 @@ static void calc_grids(const Sculpt &sd,
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
+
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
@@ -133,10 +117,6 @@ static void calc_grids(const Sculpt &sd,
   }
 
   calc_brush_texture_factors(ss, brush, orig_data.positions, factors);
-
-  if (brush.flag2 & BRUSH_GRAB_SILHOUETTE) {
-    calc_silhouette_factors(cache, offset, orig_data.normals, factors);
-  }
 
   tls.translations.reinitialize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
@@ -166,6 +146,7 @@ static void calc_bmesh(const Sculpt &sd,
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, orig_positions, factors);
+
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, orig_normals, factors);
   }
@@ -183,10 +164,6 @@ static void calc_bmesh(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, orig_positions, factors);
 
-  if (brush.flag2 & BRUSH_GRAB_SILHOUETTE) {
-    calc_silhouette_factors(cache, offset, orig_normals, factors);
-  }
-
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_offset_and_factors(offset, factors, translations);
@@ -195,20 +172,16 @@ static void calc_bmesh(const Sculpt &sd,
   apply_translations(translations, verts);
 }
 
-}  // namespace grab_cc
+}  // namespace thumb_cc
 
-void do_grab_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_thumb_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  float3 grab_delta = ss.cache->grab_delta_symmetry;
-
-  if (ss.cache->normal_weight > 0.0f) {
-    sculpt_project_v3_normal_align(ss, ss.cache->normal_weight, grab_delta);
-  }
-
-  grab_delta *= ss.cache->bstrength;
+  const float3 &grab_delta = ss.cache->grab_delta_symmetry;
+  const float3 &normal = ss.cache->sculpt_normal_symm;
+  const float3 offset = math::cross(math::cross(normal, grab_delta), normal) * ss.cache->bstrength;
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
@@ -220,8 +193,7 @@ void do_grab_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces(
-              sd, brush, grab_delta, positions_eval, *nodes[i], object, tls, positions_orig);
+          calc_faces(sd, brush, offset, positions_eval, *nodes[i], object, tls, positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });
@@ -231,7 +203,7 @@ void do_grab_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids(sd, object, brush, grab_delta, *nodes[i], tls);
+          calc_grids(sd, object, brush, offset, *nodes[i], tls);
         }
       });
       break;
@@ -239,7 +211,7 @@ void do_grab_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh(sd, object, brush, grab_delta, *nodes[i], tls);
+          calc_bmesh(sd, object, brush, offset, *nodes[i], tls);
         }
       });
       break;

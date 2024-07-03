@@ -62,4 +62,6 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_shaderc shaderc shaderc "*")
 endif()

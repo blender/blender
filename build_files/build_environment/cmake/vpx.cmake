@@ -109,6 +109,8 @@ ExternalProject_Add(external_vpx
   INSTALL_DIR ${LIBDIR}/vpx
 )
 
-if(MSVC)
+if(WIN32)
   set_target_properties(external_vpx PROPERTIES FOLDER Mingw)
+else()
+  harvest(external_vpx vpx/lib ffmpeg/lib "*.a")
 endif()

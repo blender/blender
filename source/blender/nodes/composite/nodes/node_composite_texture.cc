@@ -40,33 +40,48 @@ class TextureOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &color_result = get_result("Color");
-    Result &value_result = get_result("Value");
-    if (!get_texture() || !context().is_valid_compositing_region()) {
-      if (color_result.should_compute()) {
-        color_result.allocate_invalid();
-      }
-      if (value_result.should_compute()) {
-        value_result.allocate_invalid();
-      }
+    Tex *texture = get_texture();
+    if (!texture || !context().is_valid_compositing_region()) {
+      execute_invalid();
+      return;
+    }
+
+    if (texture->use_nodes) {
+      execute_invalid();
+      context().set_info_message("Viewport compositor setup not fully supported");
       return;
     }
 
     const Domain domain = compute_domain();
     CachedTexture &cached_texture = context().cache_manager().cached_textures.get(
         context(),
-        get_texture(),
+        texture,
         true,
         domain.size,
         get_input("Offset").get_vector_value_default(float4(0.0f)).xyz(),
         get_input("Scale").get_vector_value_default(float4(1.0f)).xyz());
 
+    Result &color_result = get_result("Color");
     if (color_result.should_compute()) {
       color_result.wrap_external(cached_texture.color_texture());
     }
 
+    Result &value_result = get_result("Value");
     if (value_result.should_compute()) {
       value_result.wrap_external(cached_texture.value_texture());
+    }
+  }
+
+  void execute_invalid()
+  {
+    Result &color_result = get_result("Color");
+    if (color_result.should_compute()) {
+      color_result.allocate_invalid();
+    }
+
+    Result &value_result = get_result("Value");
+    if (value_result.should_compute()) {
+      value_result.allocate_invalid();
     }
   }
 
@@ -96,6 +111,8 @@ void register_node_type_cmp_texture()
 
   cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT);
   ntype.declare = file_ns::cmp_node_texture_declare;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Texture nodes not supported in the Viewport compositor");
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

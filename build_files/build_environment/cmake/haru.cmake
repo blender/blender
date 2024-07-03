@@ -39,4 +39,7 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_haru haru/include haru/include "*.h")
+  harvest(external_haru haru/lib haru/lib "*.a")
 endif()

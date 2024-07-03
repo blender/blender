@@ -1830,6 +1830,7 @@ ID *PartialWriteContext::id_add(
   const bool duplicate_dependencies = (options.operations & DUPLICATE_DEPENDENCIES) != 0;
   BLI_assert(clear_dependencies || add_dependencies);
   BLI_assert(!clear_dependencies || !(add_dependencies || duplicate_dependencies));
+  UNUSED_VARS_NDEBUG(add_dependencies, clear_dependencies, duplicate_dependencies);
 
   /* Do not directly add an embedded ID. Add its owner instead. */
   if (id->flag & LIB_EMBEDDED_DATA) {

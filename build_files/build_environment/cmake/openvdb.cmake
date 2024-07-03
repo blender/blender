@@ -125,4 +125,14 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(openvdb openvdb/include/openvdb openvdb/include/openvdb "*.h")
+  harvest(openvdb openvdb/include/nanovdb openvdb/include/nanovdb "*.h")
+  harvest_rpath_lib(openvdb openvdb/lib openvdb/lib "*${SHAREDLIBEXT}*")
+  harvest_rpath_python(
+    openvdb
+    openvdb/lib/python${PYTHON_SHORT_VERSION}
+    python/lib/python${PYTHON_SHORT_VERSION}
+    "*pyopenvdb*"
+  )
 endif()

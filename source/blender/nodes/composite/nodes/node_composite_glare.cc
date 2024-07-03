@@ -741,6 +741,16 @@ class GlareOperation : public NodeOperation {
     const int chain_length = int(std::log2(smaller_glare_dimension)) -
                              compute_bloom_size_halving_count();
 
+    /* If the chain length is less than 2, that means no down-sampling will happen, so we just
+     * return a copy of the highlights. This is a sanitization of a corner case, so no need to
+     * worry about optimizing the copy away. */
+    if (chain_length < 2) {
+      Result bloom_result = context().create_temporary_result(ResultType::Color);
+      bloom_result.allocate_texture(highlights_result.domain());
+      GPU_texture_copy(bloom_result.texture(), highlights_result.texture());
+      return bloom_result;
+    }
+
     Array<Result> downsample_chain = compute_bloom_downsample_chain(highlights_result,
                                                                     chain_length);
 

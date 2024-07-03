@@ -36,6 +36,8 @@ if(NOT WIN32)
 
     INSTALL_DIR ${LIBDIR}/opus
   )
+
+  harvest(external_opus opus/lib ffmpeg/lib "*.a")
 else()
   ExternalProject_Add(external_opus
     URL file://${PACKAGE_DIR}/${OPUS_FILE}

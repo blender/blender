@@ -19,18 +19,23 @@ ExternalProject_Add(external_brotli
   INSTALL_DIR ${LIBDIR}/brotli
 )
 
-if(BUILD_MODE STREQUAL Release AND WIN32)
-  ExternalProject_Add_Step(external_brotli after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/brotli/include
-      ${HARVEST_TARGET}/brotli/include
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/brotli/lib/brotlidec-static${LIBEXT}
-      ${HARVEST_TARGET}/brotli/lib/brotlidec-static${LIBEXT}
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/brotli/lib/brotlicommon-static${LIBEXT}
-      ${HARVEST_TARGET}/brotli/lib/brotlicommon-static${LIBEXT}
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_brotli after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/brotli/include
+        ${HARVEST_TARGET}/brotli/include
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/brotli/lib/brotlidec-static${LIBEXT}
+        ${HARVEST_TARGET}/brotli/lib/brotlidec-static${LIBEXT}
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/brotli/lib/brotlicommon-static${LIBEXT}
+        ${HARVEST_TARGET}/brotli/lib/brotlicommon-static${LIBEXT}
 
-    DEPENDEES install
-  )
+      DEPENDEES install
+    )
+  endif()
+else()
+  harvest(external_brotli brotli/include brotli/include "*.h")
+  harvest(external_brotli brotli/lib brotli/lib "*.a")
 endif()

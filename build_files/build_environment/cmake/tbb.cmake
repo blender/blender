@@ -114,4 +114,7 @@ if(WIN32)
       DEPENDEES install
     )
   endif()
+else()
+  harvest(external_tbb tbb/include tbb/include "*.h")
+  harvest_rpath_lib(external_tbb tbb/lib tbb/lib "libtbb${SHAREDLIBEXT}*")
 endif()

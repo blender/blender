@@ -331,7 +331,8 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   VKDevice &device = VKBackend::get().device;
   device.resources.add_image(swap_chain_data.image,
                              VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                             render_graph::ResourceOwner::SWAP_CHAIN);
+                             render_graph::ResourceOwner::SWAP_CHAIN,
+                             "SwapchainImage");
 
   framebuffer.rendering_end(*this);
   render_graph.add_node(blit_image);
