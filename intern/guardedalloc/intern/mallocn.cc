@@ -15,7 +15,7 @@
 
 #include <cassert>
 
-#include "mallocn_intern.h"
+#include "mallocn_intern.hh"
 
 #ifdef WITH_JEMALLOC_CONF
 /**

@@ -1,13 +1,11 @@
 /* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+#pragma once
 
 /** \file
  * \ingroup intern_mem
  */
-
-#ifndef __MALLOCN_INTERN_H__
-#define __MALLOCN_INTERN_H__
 
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_##x __attribute__((__unused__))
@@ -95,11 +93,7 @@ size_t malloc_usable_size(void *ptr);
 /* Real pointer returned by the malloc or aligned_alloc. */
 #define MEMHEAD_REAL_PTR(memh) ((char *)memh - MEMHEAD_ALIGN_PADDING(memh->alignment))
 
-#include "mallocn_inline.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "mallocn_inline.hh"
 
 #define ALIGNED_MALLOC_MINIMUM_ALIGNMENT sizeof(void *)
 
@@ -227,9 +221,3 @@ void mem_guarded_clearmemlist(void);
 const char *MEM_guarded_name_ptr(void *vmemh);
 void MEM_guarded_name_ptr_set(void *vmemh, const char *str);
 #endif
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __MALLOCN_INTERN_H__ */

@@ -29,7 +29,7 @@
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
 #include "atomic_ops.h"
-#include "mallocn_intern.h"
+#include "mallocn_intern.hh"
 
 /* Only for debugging:
  * store original buffer's name when doing MEM_dupallocN

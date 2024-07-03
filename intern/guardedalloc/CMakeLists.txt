@@ -26,8 +26,8 @@ set(SRC
   ./intern/memory_usage.cc
 
   MEM_guardedalloc.h
-  ./intern/mallocn_inline.h
-  ./intern/mallocn_intern.h
+  ./intern/mallocn_inline.hh
+  ./intern/mallocn_intern.hh
 
   # only so the header is known by cmake
   ../atomic/atomic_ops.h

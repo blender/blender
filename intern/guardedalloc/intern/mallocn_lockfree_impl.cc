@@ -26,7 +26,7 @@
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
 #include "atomic_ops.h"
-#include "mallocn_intern.h"
+#include "mallocn_intern.hh"
 
 typedef struct MemHead {
   /* Length of allocated memory block. */
