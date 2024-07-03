@@ -1580,6 +1580,17 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         ),
     )
 
+    # Be careful when deciding when to call this function,
+    # as Blender can crash with `_cycles.available_devices()` on some drivers.
+    def get_device_list(self, compute_device_type):
+        import _cycles
+        device_list = _cycles.available_devices(compute_device_type)
+        # Make sure device entries are up to date and not referenced before
+        # we know we won't add new devices. This way we guarantee to not
+        # hold pointers to a resized array.
+        self.update_device_entries(device_list)
+        return device_list
+
     def find_existing_device_entry(self, device):
         for device_entry in self.devices:
             if device_entry.id == device[2] and device_entry.type == device[1]:
@@ -1605,13 +1616,9 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     # Gets all devices types for a compute device type.
     def get_devices_for_type(self, compute_device_type):
-        import _cycles
         # Layout of the device tuples: (Name, Type, Persistent ID)
-        device_list = _cycles.available_devices(compute_device_type)
-        # Make sure device entries are up to date and not referenced before
-        # we know we don't add new devices. This way we guarantee to not
-        # hold pointers to a resized array.
-        self.update_device_entries(device_list)
+        device_list = self.get_device_list(compute_device_type)
+
         # Sort entries into lists
         devices = []
         cpu_devices = []
@@ -1627,13 +1634,15 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         return devices
 
     # Refresh device list. This does not happen automatically on Blender
-    # startup due to unstable OpenCL implementations that can cause crashes.
+    # startup due to unstable drivers that can cause crashes.
     def refresh_devices(self):
-        import _cycles
         # Ensure `self.devices` is not re-allocated when the second call to
         # get_devices_for_type is made, freeing items from the first list.
         for device_type in ('CUDA', 'OPTIX', 'HIP', 'METAL', 'ONEAPI'):
-            self.update_device_entries(_cycles.available_devices(device_type))
+            # Query the device list to trigger all required updates.
+            # Note that even though the device list is unused,
+            # the function has side-effects with internal state updates.
+            _device_list = self.get_device_list(device_type)
 
     # Deprecated: use refresh_devices instead.
     def get_devices(self, compute_device_type=''):
@@ -1646,15 +1655,11 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         return self.compute_device_type
 
     def get_num_gpu_devices(self):
-        import _cycles
         compute_device_type = self.get_compute_device_type()
 
         num = 0
         if compute_device_type != 'NONE':
-            device_list = _cycles.available_devices(compute_device_type)
-            # Device list might be out of sync if the user hasn't opened preference yet
-            self.update_device_entries(device_list)
-            for device in device_list:
+            for device in self.get_device_list(compute_device_type):
                 if device[1] != compute_device_type:
                     continue
                 for dev in self.devices:
@@ -1663,15 +1668,14 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         return num
 
     def has_multi_device(self):
-        import _cycles
         compute_device_type = self.get_compute_device_type()
-        device_list = _cycles.available_devices(compute_device_type)
-        for device in device_list:
-            if device[1] == compute_device_type:
-                continue
-            for dev in self.devices:
-                if dev.use and dev.id == device[2]:
-                    return True
+        if compute_device_type != 'NONE':
+            for device in self.get_device_list(compute_device_type):
+                if device[1] == compute_device_type:
+                    continue
+                for dev in self.devices:
+                    if dev.use and dev.id == device[2]:
+                        return True
 
         return False
 
@@ -1679,15 +1683,11 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         return self.get_num_gpu_devices() > 0
 
     def has_oidn_gpu_devices(self):
-        import _cycles
         compute_device_type = self.get_compute_device_type()
 
         # We need non-CPU devices, used for rendering and supporting OIDN GPU denoising
         if compute_device_type != 'NONE':
-            device_list = _cycles.available_devices(compute_device_type)
-            # Device list might be out of sync if the user hasn't opened preference yet
-            self.update_device_entries(device_list)
-            for device in device_list:
+            for device in self.get_device_list(compute_device_type):
                 device_type = device[1]
                 if device_type == 'CPU':
                     continue
@@ -1699,12 +1699,11 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         return False
 
     def has_optixdenoiser_gpu_devices(self):
-        import _cycles
         compute_device_type = self.get_compute_device_type()
 
         if compute_device_type == 'OPTIX':
             # We need any OptiX devices, used for rendering
-            for device in _cycles.available_devices(compute_device_type):
+            for device in self.get_device_list(compute_device_type):
                 device_type = device[1]
                 if device_type == 'CPU':
                     continue
@@ -1810,7 +1809,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         import _cycles
         has_peer_memory = 0
         has_rt_api_support = {'METAL': False, 'HIP': False, 'ONEAPI': False}
-        for device in _cycles.available_devices(compute_device_type):
+        for device in self.get_device_list(compute_device_type):
             if device[3] and self.find_existing_device_entry(device).use:
                 has_peer_memory += 1
             if device[4] and self.find_existing_device_entry(device).use:
