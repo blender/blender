@@ -41,7 +41,6 @@ static void calc_faces_sharp(const Sculpt &sd,
                              const Brush &brush,
                              const float3 &offset,
                              const Span<float3> positions_eval,
-                             const Span<float3> vert_normals,
                              const PBVHNode &node,
                              Object &object,
                              LocalData &tls,
@@ -191,20 +190,12 @@ static void offset_positions(const Sculpt &sd,
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       const PBVH &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
-      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces_sharp(sd,
-                           brush,
-                           offset,
-                           positions_eval,
-                           vert_normals,
-                           *nodes[i],
-                           object,
-                           tls,
-                           positions_orig);
+          calc_faces_sharp(
+              sd, brush, offset, positions_eval, *nodes[i], object, tls, positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });
