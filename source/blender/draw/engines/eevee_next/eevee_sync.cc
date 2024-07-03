@@ -359,8 +359,9 @@ void SyncModule::sync_volume(Object *ob,
   Material &material = inst_.materials.material_get(
       ob, has_motion, material_slot - 1, MAT_GEOM_VOLUME);
 
-  /* Use bounding box tag empty spaces. */
-  gpu::Batch *geom = DRW_cache_cube_get();
+  if (!GPU_material_has_volume_output(material.volume_material.gpumat)) {
+    return;
+  }
 
   auto drawcall_add = [&](MaterialPass &matpass, gpu::Batch *geom, ResourceHandle res_handle) {
     if (matpass.sub_pass == nullptr) {
@@ -373,10 +374,12 @@ void SyncModule::sync_volume(Object *ob,
     }
   };
 
-  inst_.manager->extract_object_attributes(res_handle, ob_ref, material.volume_material.gpumat);
-
+  /* Use bounding box tag empty spaces. */
+  gpu::Batch *geom = DRW_cache_cube_get();
   drawcall_add(material.volume_occupancy, geom, res_handle);
   drawcall_add(material.volume_material, geom, res_handle);
+
+  inst_.manager->extract_object_attributes(res_handle, ob_ref, material.volume_material.gpumat);
 
   inst_.volume.object_sync(ob_handle);
 }
