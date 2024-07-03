@@ -3881,7 +3881,7 @@ static void do_brush_action(const Scene &scene,
       do_draw_sharp_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_ELASTIC_DEFORM:
-      SCULPT_do_elastic_deform_brush(sd, ob, nodes);
+      do_elastic_deform_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
       SCULPT_do_slide_relax_brush(sd, ob, nodes);
@@ -5603,11 +5603,15 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   /* Brushes that also use original coordinates and will need a "restore" step.
-   *  - SCULPT_TOOL_ELASTIC_DEFORM
    *  - SCULPT_TOOL_BOUNDARY
    *  - SCULPT_TOOL_POSE
    */
-  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)) {
+  if (ELEM(brush->sculpt_tool,
+           SCULPT_TOOL_GRAB,
+           SCULPT_TOOL_THUMB,
+           SCULPT_TOOL_ROTATE,
+           SCULPT_TOOL_ELASTIC_DEFORM))
+  {
     restore_from_undo_step(sd, ob);
     return;
   }
@@ -5983,6 +5987,7 @@ static void sculpt_stroke_update_step(bContext *C,
              SCULPT_TOOL_BLOB,
              SCULPT_TOOL_CLAY,
              SCULPT_TOOL_CLAY_STRIPS,
+             SCULPT_TOOL_ELASTIC_DEFORM,
              SCULPT_TOOL_CREASE,
              SCULPT_TOOL_GRAB,
              SCULPT_TOOL_THUMB,
