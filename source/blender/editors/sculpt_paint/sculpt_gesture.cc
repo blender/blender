@@ -442,6 +442,18 @@ bool is_affected(const GestureData &gesture_data, const float3 &position, const 
   return false;
 }
 
+void filter_factors(const GestureData &gesture_data,
+                    const Span<float3> positions,
+                    const Span<float3> normals,
+                    const MutableSpan<float> factors)
+{
+  for (const int i : positions.index_range()) {
+    if (!is_affected(gesture_data, positions[i], normals[i])) {
+      factors[i] = 0.0f;
+    }
+  }
+}
+
 void apply(bContext &C, GestureData &gesture_data, wmOperator &op)
 {
   Operation *operation = gesture_data.operation;
