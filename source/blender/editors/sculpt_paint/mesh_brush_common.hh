@@ -15,6 +15,8 @@
 
 #include "DNA_brush_enums.h"
 
+#include "sculpt_intern.hh"
+
 /**
  * This file contains common operations useful for the implementation of various different brush
  * tools. The design goals of the API are to always operate on more than one data element at a
@@ -166,7 +168,12 @@ void calc_brush_cube_distances(SculptSession &ss,
  * Scale the distances based on the brush radius and the cached "hardness" setting, which increases
  * the strength of the effect for vertices torwards the outside of the radius.
  */
-void apply_hardness_to_distances(const StrokeCache &cache, MutableSpan<float> distances);
+void apply_hardness_to_distances(float radius, float hardness, MutableSpan<float> distances);
+inline void apply_hardness_to_distances(const StrokeCache &cache,
+                                        const MutableSpan<float> distances)
+{
+  apply_hardness_to_distances(cache.radius, cache.paint_brush.hardness, distances);
+}
 
 /**
  * Modify the factors based on distances to the brush cursor, using various brush settings.
