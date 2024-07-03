@@ -386,6 +386,14 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   /* There's no dedicated notifier for the Preferences. */
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
+  /* Mainly useful when adding a repository from a popup since it's not as obvious
+   * the repository was added compared to the repository popover.  */
+  BKE_reportf(op->reports,
+              RPT_INFO,
+              "Added %s \"%s\"",
+              preferences_extension_repo_default_name_from_type(repo_type),
+              new_repo->name);
+
   return OPERATOR_FINISHED;
 }
 

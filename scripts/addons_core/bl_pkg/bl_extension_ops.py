@@ -3339,6 +3339,7 @@ class EXTENSIONS_OT_userpref_tags_set(Operator):
         if self.value is False:
             tags_refresh(wm, tags_attr, default_value=False)
 
+        _preferences_ui_redraw()
         return {'FINISHED'}
 
 
