@@ -6918,7 +6918,7 @@ void calc_brush_distances(const SculptSession &ss,
                           const Span<float3> positions,
                           const Span<int> verts,
                           const eBrushFalloffShape falloff_shape,
-                          const MutableSpan<float> r_distances_sq)
+                          const MutableSpan<float> r_distances)
 {
   BLI_assert(verts.size() == factors.size());
   BLI_assert(verts.size() == r_distances.size());
@@ -6932,12 +6932,12 @@ void calc_brush_distances(const SculptSession &ss,
     for (const int i : verts.index_range()) {
       float3 projected;
       closest_to_plane_normalized_v3(projected, test_plane, positions[verts[i]]);
-      r_distances_sq[i] = math::distance(projected, test_location);
+      r_distances[i] = math::distance(projected, test_location);
     }
   }
   else {
     for (const int i : verts.index_range()) {
-      r_distances_sq[i] = math::distance(test_location, positions[verts[i]]);
+      r_distances[i] = math::distance(test_location, positions[verts[i]]);
     }
   }
 }
@@ -6945,7 +6945,7 @@ void calc_brush_distances(const SculptSession &ss,
 void calc_brush_distances(const SculptSession &ss,
                           const Span<float3> positions,
                           const eBrushFalloffShape falloff_shape,
-                          const MutableSpan<float> r_distances_sq)
+                          const MutableSpan<float> r_distances)
 {
   BLI_assert(positions.size() == factors.size());
   BLI_assert(positions.size() == r_distances.size());
@@ -6959,12 +6959,12 @@ void calc_brush_distances(const SculptSession &ss,
     for (const int i : positions.index_range()) {
       float3 projected;
       closest_to_plane_normalized_v3(projected, test_plane, positions[i]);
-      r_distances_sq[i] = math::distance(projected, test_location);
+      r_distances[i] = math::distance(projected, test_location);
     }
   }
   else {
     for (const int i : positions.index_range()) {
-      r_distances_sq[i] = math::distance(test_location, positions[i]);
+      r_distances[i] = math::distance(test_location, positions[i]);
     }
   }
 }
