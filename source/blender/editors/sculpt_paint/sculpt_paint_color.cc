@@ -751,7 +751,7 @@ static void do_smear_brush_task(Object &ob,
 
     SculptVertexNeighborIter ni2;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, PBVHVertRef{vert}, ni2) {
-      const float3 nco = SCULPT_vertex_co_get(ss, ni2.vertex);
+      const float3 &nco = vert_positions[ni2.index];
 
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ni2.vertex, ni) {
@@ -759,13 +759,13 @@ static void do_smear_brush_task(Object &ob,
           continue;
         }
 
-        float3 vertex_disp = float3(SCULPT_vertex_co_get(ss, ni.vertex)) - vert_positions[vert];
+        float3 vertex_disp = vert_positions[ni.index] - vert_positions[vert];
 
         /* Weight by how close we are to our target distance from vd.co. */
         float w = (1.0f + fabsf(math::length(vertex_disp) / bstrength - 1.0f));
 
         /* TODO: use cotangents (or at least face areas) here. */
-        float len = math::distance(float3(SCULPT_vertex_co_get(ss, ni.vertex)), nco);
+        float len = math::distance(vert_positions[ni.index], nco);
         if (len > 0.0f) {
           len = bstrength / len;
         }
