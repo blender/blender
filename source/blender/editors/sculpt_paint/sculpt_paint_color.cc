@@ -65,16 +65,16 @@ template<> float4 to_float(const MPropCol &src)
   return src.color;
 }
 
-template<typename T> void from_float(const float src[4], T &dst);
+template<typename T> void from_float(const float4 &src, T &dst);
 
-template<> void from_float(const float src[4], MLoopCol &dst)
+template<> void from_float(const float4 &src, MLoopCol &dst)
 {
-  float temp[4];
+  float4 temp;
   linearrgb_to_srgb_v3_v3(temp, src);
   temp[3] = src[3];
   rgba_float_to_uchar(reinterpret_cast<uchar *>(&dst), temp);
 }
-template<> void from_float(const float src[4], MPropCol &dst)
+template<> void from_float(const float4 &src, MPropCol &dst)
 {
   copy_v4_v4(dst.color, src);
 }
@@ -106,7 +106,7 @@ static void color_vert_set(const OffsetIndices<int> faces,
                            const GMutableSpan color_attribute,
                            const bke::AttrDomain color_domain,
                            const int vert,
-                           const float color[4])
+                           const float4 &color)
 {
   if (color_domain == bke::AttrDomain::Corner) {
     for (const int i_face : vert_to_face_map[vert]) {
@@ -361,8 +361,8 @@ static void do_paint_brush_task(Object &ob,
                                 const Span<bool> hide_vert,
                                 const Span<float> mask,
                                 const Brush &brush,
-                                const float (*mat)[4],
-                                float *wet_mix_sampled_color,
+                                const float4x4 &mat,
+                                const float4 wet_mix_sampled_color,
                                 PBVHNode *node,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
@@ -378,11 +378,10 @@ static void do_paint_brush_task(Object &ob,
       ss, test, brush.falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  float4 brush_color(0.0f, 0.0f, 0.0f, 1.0f);
 
-  copy_v3_v3(brush_color,
-             ss.cache->invert ? BKE_brush_secondary_color_get(ss.scene, &brush) :
-                                BKE_brush_color_get(ss.scene, &brush));
+  brush_color.xyz() = ss.cache->invert ? BKE_brush_secondary_color_get(ss.scene, &brush) :
+                                         BKE_brush_color_get(ss.scene, &brush);
 
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color, brush_color);
 
@@ -419,7 +418,7 @@ static void do_paint_brush_task(Object &ob,
     float distance_to_stroke_location = 0.0f;
     if (brush.tip_roundness < 1.0f) {
       affect_vertex = SCULPT_brush_test_cube(
-          test, vert_positions[vert], mat, brush.tip_roundness, brush.tip_scale_x);
+          test, vert_positions[vert], mat.ptr(), brush.tip_roundness, brush.tip_scale_x);
       distance_to_stroke_location = ss.cache->radius * test.dist;
     }
     else {
@@ -445,23 +444,18 @@ static void do_paint_brush_task(Object &ob,
                                                           &automask_data);
 
     /* Density. */
-    float noise = 1.0f;
     const float density = ss.cache->paint_brush.density;
     if (density < 1.0f) {
       const float hash_noise = float(BLI_hash_int_01(ss.cache->density_seed * 1000 * vert));
       if (hash_noise > density) {
-        noise = density * hash_noise;
+        const float noise = density * hash_noise;
         fade = fade * noise;
       }
     }
 
     /* Brush paint color, brush test falloff and flow. */
-    float paint_color[4];
-    float wet_mix_color[4];
-    float buffer_color[4];
-
-    mul_v4_v4fl(paint_color, brush_color, fade * ss.cache->paint_brush.flow);
-    mul_v4_v4fl(wet_mix_color, wet_mix_sampled_color, fade * ss.cache->paint_brush.flow);
+    float4 paint_color = brush_color * fade * ss.cache->paint_brush.flow;
+    float4 wet_mix_color = wet_mix_sampled_color * fade * ss.cache->paint_brush.flow;
 
     /* Interpolate with the wet_mix color for wet paint mixing. */
     blend_color_interpolate_float(
@@ -473,7 +467,7 @@ static void do_paint_brush_task(Object &ob,
     float automasking = auto_mask::factor_get(
         ss.cache->automasking.get(), ss, PBVHVertRef{vert}, &automask_data);
     const float alpha = BKE_brush_alpha_get(ss.scene, &brush);
-    mul_v4_v4fl(buffer_color, color_buffer->color[i], alpha * automasking);
+    const float4 buffer_color = float4(color_buffer->color[i]) * alpha * automasking;
 
     float4 col = color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
@@ -491,7 +485,7 @@ static void do_paint_brush_task(Object &ob,
 
 struct SampleWetPaintData {
   int tot_samples;
-  float color[4];
+  float4 color;
 };
 
 static void do_sample_wet_paint_task(SculptSession &ss,
@@ -521,10 +515,8 @@ static void do_sample_wet_paint_task(SculptSession &ss,
       continue;
     }
 
-    float4 col = color_vert_get(
+    swptd->color += color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
-
-    add_v4_v4(swptd->color, col);
     swptd->tot_samples++;
   }
 }
@@ -552,14 +544,14 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
 
   BKE_curvemapping_init(brush.curve);
 
-  float mat[4][4];
+  float4x4 mat;
 
   /* If the brush is round the tip does not need to be aligned to the surface, so this saves a
    * whole iteration over the affected nodes. */
   if (brush.tip_roundness < 1.0f) {
-    SCULPT_cube_tip_init(sd, ob, brush, mat);
+    SCULPT_cube_tip_init(sd, ob, brush, mat.ptr());
 
-    if (is_zero_m4(mat)) {
+    if (is_zero_m4(mat.ptr())) {
       return;
     }
   }
@@ -628,25 +620,22 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
         },
         [](const SampleWetPaintData &a, const SampleWetPaintData &b) {
           SampleWetPaintData joined{};
+          joined.color = a.color + b.color;
           joined.tot_samples = a.tot_samples + b.tot_samples;
-          add_v4_v4v4(joined.color, a.color, b.color);
           return joined;
         });
 
     if (swptd.tot_samples > 0 && is_finite_v4(swptd.color)) {
-      copy_v4_v4(wet_color, swptd.color);
-      mul_v4_fl(wet_color, 1.0f / swptd.tot_samples);
-      wet_color = math::clamp(wet_color, 0.0f, 1.0f);
+      wet_color = math::clamp(swptd.color / float(swptd.tot_samples), 0.0f, 1.0f);
 
       if (ss.cache->first_time) {
-        copy_v4_v4(ss.cache->wet_mix_prev_color, wet_color);
+        ss.cache->wet_mix_prev_color = wet_color;
       }
       blend_color_interpolate_float(wet_color,
                                     wet_color,
                                     ss.cache->wet_mix_prev_color,
                                     ss.cache->paint_brush.wet_persistence);
-      copy_v4_v4(ss.cache->wet_mix_prev_color, wet_color);
-      ss.cache->wet_mix_prev_color = math::clamp(ss.cache->wet_mix_prev_color, 0.0f, 1.0f);
+      ss.cache->wet_mix_prev_color = math::clamp(wet_color, 0.0f, 1.0f);
     }
   }
 
@@ -690,13 +679,13 @@ static void do_smear_brush_task(Object &ob,
       ss, test, brush.falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  float brush_delta[3];
+  float3 brush_delta;
 
   if (brush.flag & BRUSH_ANCHORED) {
-    copy_v3_v3(brush_delta, ss.cache->grab_delta_symmetry);
+    brush_delta = ss.cache->grab_delta_symmetry;
   }
   else {
-    sub_v3_v3v3(brush_delta, ss.cache->location, ss.cache->last_location);
+    brush_delta = ss.cache->location - ss.cache->last_location;
   }
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
@@ -726,30 +715,29 @@ static void do_smear_brush_task(Object &ob,
                                                     thread_id,
                                                     &automask_data);
 
-    float current_disp[3];
-    float current_disp_norm[3];
-
     const float3 &no = vert_normals[vert];
 
+    float3 current_disp;
     switch (brush.smear_deform_type) {
       case BRUSH_SMEAR_DEFORM_DRAG:
-        copy_v3_v3(current_disp, brush_delta);
+        current_disp = brush_delta;
         break;
       case BRUSH_SMEAR_DEFORM_PINCH:
-        sub_v3_v3v3(current_disp, ss.cache->location, vert_positions[vert]);
+        current_disp = ss.cache->location - vert_positions[vert];
         break;
       case BRUSH_SMEAR_DEFORM_EXPAND:
-        sub_v3_v3v3(current_disp, vert_positions[vert], ss.cache->location);
+        current_disp = vert_positions[vert] - ss.cache->location;
         break;
     }
 
     /* Project into vertex plane. */
-    madd_v3_v3fl(current_disp, no, -dot_v3v3(current_disp, no));
+    current_disp += no * -math::dot(current_disp, no);
 
-    normalize_v3_v3(current_disp_norm, current_disp);
-    mul_v3_v3fl(current_disp, current_disp_norm, bstrength);
+    const float3 current_disp_norm = math::normalize(current_disp);
 
-    float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    current_disp = current_disp_norm * bstrength;
+
+    float4 accum(0);
     float totw = 0.0f;
 
     /*
@@ -763,7 +751,7 @@ static void do_smear_brush_task(Object &ob,
 
     SculptVertexNeighborIter ni2;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, PBVHVertRef{vert}, ni2) {
-      const float *nco = SCULPT_vertex_co_get(ss, ni2.vertex);
+      const float3 nco = SCULPT_vertex_co_get(ss, ni2.vertex);
 
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ni2.vertex, ni) {
@@ -771,16 +759,13 @@ static void do_smear_brush_task(Object &ob,
           continue;
         }
 
-        float vertex_disp[3];
-        float vertex_disp_norm[3];
-
-        sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.vertex), vert_positions[vert]);
+        float3 vertex_disp = float3(SCULPT_vertex_co_get(ss, ni.vertex)) - vert_positions[vert];
 
         /* Weight by how close we are to our target distance from vd.co. */
-        float w = (1.0f + fabsf(len_v3(vertex_disp) / bstrength - 1.0f));
+        float w = (1.0f + fabsf(math::length(vertex_disp) / bstrength - 1.0f));
 
         /* TODO: use cotangents (or at least face areas) here. */
-        float len = len_v3v3(SCULPT_vertex_co_get(ss, ni.vertex), nco);
+        float len = math::distance(float3(SCULPT_vertex_co_get(ss, ni.vertex)), nco);
         if (len > 0.0f) {
           len = bstrength / len;
         }
@@ -795,20 +780,20 @@ static void do_smear_brush_task(Object &ob,
         /* Build directional weight. */
 
         /* Project into vertex plane. */
-        madd_v3_v3fl(vertex_disp, no, -dot_v3v3(no, vertex_disp));
-        normalize_v3_v3(vertex_disp_norm, vertex_disp);
+        vertex_disp += no * -math::dot(no, vertex_disp);
+        const float3 vertex_disp_norm = math::normalize(vertex_disp);
 
-        if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
+        if (math::dot(current_disp_norm, vertex_disp_norm) >= 0.0f) {
           continue;
         }
 
-        const float *neighbor_color = ss.cache->prev_colors[ni.index];
-        float color_interp = -dot_v3v3(current_disp_norm, vertex_disp_norm);
+        const float4 &neighbor_color = ss.cache->prev_colors[ni.index];
+        float color_interp = -math::dot(current_disp_norm, vertex_disp_norm);
 
         /* Square directional weight to get a somewhat sharper result. */
         w *= color_interp * color_interp;
 
-        madd_v4_v4fl(accum, neighbor_color, w);
+        accum += neighbor_color * w;
         totw += w;
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -816,7 +801,7 @@ static void do_smear_brush_task(Object &ob,
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni2);
 
     if (totw != 0.0f) {
-      mul_v4_fl(accum, 1.0f / totw);
+      accum /= totw;
     }
 
     float4 col = color_vert_get(
