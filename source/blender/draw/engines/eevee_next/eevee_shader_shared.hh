@@ -1987,12 +1987,14 @@ struct SubsurfaceData {
   /** xy: 2D sample position [-1..1], zw: sample_bounds. */
   /* NOTE(fclem) Using float4 for alignment. */
   float4 samples[SSS_SAMPLE_MAX];
-  /** Sample index after which samples are not randomly rotated anymore. */
-  int jitter_threshold;
   /** Number of samples precomputed in the set. */
   int sample_len;
-  int _pad0;
+  /** WORKAROUND: To avoid invalid integral for components that have very small radius, we clamp
+   * the minimal radius. This add bias to the SSS effect but this is the simplest workaround I
+   * could find to ship this without visible artifact. */
+  float min_radius;
   int _pad1;
+  int _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(SubsurfaceData, 16)
 
