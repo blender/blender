@@ -18,6 +18,10 @@ void do_clay_strips_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_clay_thumb_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_crease_brush(const Scene &scene, const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_blob_brush(const Scene &scene, const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
+void do_bmesh_topology_rake_brush(const Sculpt &sd,
+                                  Object &ob,
+                                  Span<PBVHNode *> nodes,
+                                  float strength);
 void do_displacement_eraser_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_displacement_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_draw_face_sets_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);

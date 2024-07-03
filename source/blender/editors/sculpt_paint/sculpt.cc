@@ -3926,7 +3926,7 @@ static void do_brush_action(const Scene &scene,
   }
 
   if (sculpt_brush_use_topology_rake(ss, brush)) {
-    SCULPT_bmesh_topology_rake(sd, ob, nodes, brush.topology_rake_factor);
+    do_bmesh_topology_rake_brush(sd, ob, nodes, brush.topology_rake_factor);
   }
 
   if (!auto_mask::tool_can_reuse_automask(brush.sculpt_tool) ||
