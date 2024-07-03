@@ -138,6 +138,7 @@ struct USDExportParams {
 
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
+  char custom_properties_namespace[MAX_IDPROP_NAME] = "";
 
   /** Communication structure between the wmJob management code and the worker code. Currently used
    * to generate safely reports from the worker thread. */
