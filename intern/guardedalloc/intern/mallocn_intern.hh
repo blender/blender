@@ -123,7 +123,7 @@ extern void (*mem_clearmemlist)(void);
 
 /* Prototypes for counted allocator functions */
 size_t MEM_lockfree_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
-void MEM_lockfree_freeN(void *vmemh);
+void MEM_lockfree_freeN(void *vmemh, mem_guarded::internal::AllocationType allocation_type);
 void *MEM_lockfree_dupallocN(const void *vmemh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void *MEM_lockfree_reallocN_id(void *vmemh,
                                size_t len,
@@ -147,8 +147,9 @@ void *MEM_lockfree_malloc_arrayN(size_t len,
     ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
 void *MEM_lockfree_mallocN_aligned(size_t len,
                                    size_t alignment,
-                                   const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
-    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
+                                   const char *str,
+                                   mem_guarded::internal::AllocationType allocation_type)
+    ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 void *MEM_lockfree_calloc_arrayN_aligned(size_t len,
                                          size_t size,
                                          size_t alignment,
@@ -175,7 +176,7 @@ void MEM_lockfree_name_ptr_set(void *vmemh, const char *str);
 
 /* Prototypes for fully guarded allocator functions */
 size_t MEM_guarded_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
-void MEM_guarded_freeN(void *vmemh);
+void MEM_guarded_freeN(void *vmemh, mem_guarded::internal::AllocationType allocation_type);
 void *MEM_guarded_dupallocN(const void *vmemh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void *MEM_guarded_reallocN_id(void *vmemh,
                               size_t len,
@@ -199,8 +200,9 @@ void *MEM_guarded_malloc_arrayN(size_t len,
     ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
 void *MEM_guarded_mallocN_aligned(size_t len,
                                   size_t alignment,
-                                  const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
-    ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
+                                  const char *str,
+                                  mem_guarded::internal::AllocationType allocation_type)
+    ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 void *MEM_guarded_calloc_arrayN_aligned(size_t len, size_t size, size_t alignment, const char *str)
     ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(4);
 void MEM_guarded_printmemlist_pydict(void);

@@ -6,8 +6,12 @@
  * \ingroup intern_mem
  */
 
-#include "../MEM_guardedalloc.h"
+#include <cstddef>
 #include <new>
+
+#include "../intern/mallocn_intern_function_pointers.hh"
+
+using namespace mem_guarded::internal;
 
 void *operator new(size_t size, const char *str);
 void *operator new[](size_t size, const char *str);
@@ -15,33 +19,33 @@ void *operator new[](size_t size, const char *str);
 /* not default but can be used when needing to set a string */
 void *operator new(size_t size, const char *str)
 {
-  return MEM_mallocN(size, str);
+  return mem_mallocN_aligned_ex(size, 1, str, AllocationType::NEW_DELETE);
 }
 void *operator new[](size_t size, const char *str)
 {
-  return MEM_mallocN(size, str);
+  return mem_mallocN_aligned_ex(size, 1, str, AllocationType::NEW_DELETE);
 }
 
 void *operator new(size_t size)
 {
-  return MEM_mallocN(size, "C++/anonymous");
+  return mem_mallocN_aligned_ex(size, 1, "C++/anonymous", AllocationType::NEW_DELETE);
 }
 void *operator new[](size_t size)
 {
-  return MEM_mallocN(size, "C++/anonymous[]");
+  return mem_mallocN_aligned_ex(size, 1, "C++/anonymous[]", AllocationType::NEW_DELETE);
 }
 
 void operator delete(void *p) throw()
 {
-  /* delete NULL is valid in c++ */
+  /* `delete nullptr` is valid in c++. */
   if (p) {
-    MEM_freeN(p);
+    mem_freeN_ex(p, AllocationType::NEW_DELETE);
   }
 }
 void operator delete[](void *p) throw()
 {
-  /* delete NULL is valid in c++ */
+  /* `delete nullptr` is valid in c++. */
   if (p) {
-    MEM_freeN(p);
+    mem_freeN_ex(p, AllocationType::NEW_DELETE);
   }
 }

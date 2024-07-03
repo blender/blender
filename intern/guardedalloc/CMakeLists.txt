@@ -28,6 +28,7 @@ set(SRC
   MEM_guardedalloc.h
   ./intern/mallocn_inline.hh
   ./intern/mallocn_intern.hh
+  ./intern/mallocn_intern_function_pointers.hh
 
   # only so the header is known by cmake
   ../atomic/atomic_ops.h
