@@ -89,7 +89,7 @@ static void color_filter_task(Object &ob,
 {
   SculptSession &ss = *ob.sculpt;
 
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Color);
+  const Span<float4> orig_colors = orig_color_data_get_mesh(ob, *node);
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.filter_cache->automasking.get(), *node);
@@ -101,7 +101,6 @@ static void color_filter_task(Object &ob,
     if (!hide_vert.is_empty() && hide_vert[vert]) {
       continue;
     }
-    SCULPT_orig_vert_data_update(orig_data, i);
     auto_mask::node_update(automask_data, i);
 
     float3 orig_color;
@@ -117,8 +116,8 @@ static void color_filter_task(Object &ob,
       continue;
     }
 
-    copy_v3_v3(orig_color, orig_data.col);
-    final_color[3] = orig_data.col[3]; /* Copy alpha */
+    copy_v3_v3(orig_color, orig_colors[i]);
+    final_color[3] = orig_colors[i][3]; /* Copy alpha */
 
     switch (mode) {
       case COLOR_FILTER_FILL: {
@@ -127,7 +126,7 @@ static void color_filter_task(Object &ob,
         fill_color_rgba[3] = 1.0f;
         fade = clamp_f(fade, 0.0f, 1.0f);
         mul_v4_fl(fill_color_rgba, fade);
-        blend_color_mix_float(final_color, orig_data.col, fill_color_rgba);
+        blend_color_mix_float(final_color, orig_colors[i], fill_color_rgba);
         break;
       }
       case COLOR_FILTER_HUE:

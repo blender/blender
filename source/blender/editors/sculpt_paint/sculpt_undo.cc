@@ -2146,4 +2146,10 @@ void orig_position_data_gather_bmesh(const BMLog &bm_log,
   }
 }
 
+Span<float4> orig_color_data_get_mesh(const Object & /*object*/, const PBVHNode &node)
+{
+  const undo::Node *unode = undo::get_node(&node, undo::Type::Color);
+  return unode->col.as_span();
+}
+
 }  // namespace blender::ed::sculpt_paint

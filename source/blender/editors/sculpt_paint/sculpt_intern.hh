@@ -1650,6 +1650,9 @@ void orig_position_data_gather_bmesh(const BMLog &bm_log,
                                      const Set<BMVert *, 0> &verts,
                                      MutableSpan<float3> positions,
                                      MutableSpan<float3> normals);
+
+Span<float4> orig_color_data_get_mesh(const Object &object, const PBVHNode &node);
+
 }
 
 /** \} */
