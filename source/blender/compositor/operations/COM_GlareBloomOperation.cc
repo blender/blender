@@ -296,6 +296,16 @@ void GlareBloomOperation::generate_glare(float *output,
   const int chain_length = int(std::log2(smaller_glare_dimension)) -
                            compute_bloom_size_halving_count(settings);
 
+  /* If the chain length is less than 2, that means no down-sampling will happen, so we just copy
+   * the highlights to the output. This is a sanitization of a corner case, so no need to worry
+   * about optimizing the copy away. */
+  if (chain_length < 2) {
+    memcpy(output,
+           highlights->get_buffer(),
+           size.x * size.y * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
+    return;
+  }
+
   Array<std::unique_ptr<MemoryBuffer>> downsample_chain = compute_bloom_downsample_chain(
       *highlights, chain_length);
 
