@@ -548,8 +548,9 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   const float seq_left_handle = SEQ_time_left_handle_frame_get(scene, seq);
   const float seq_right_handle = SEQ_time_right_handle_frame_get(scene, seq);
 
-  float upper_thumb_bound = SEQ_time_has_right_still_frames(scene, seq) ? (seq->start + seq->len) :
-                                                                          seq_right_handle;
+  float upper_thumb_bound = SEQ_time_has_right_still_frames(scene, seq) ?
+                                SEQ_time_content_end_frame_get(scene, seq) :
+                                seq_right_handle;
   if (seq->type == SEQ_TYPE_IMAGE) {
     upper_thumb_bound = seq_right_handle;
   }
