@@ -178,7 +178,7 @@ def get_effective_preview_denoiser(context, has_oidn_gpu):
     if has_oidn_gpu:
         return 'OPENIMAGEDENOISE'
 
-    if context.preferences.addons[__package__].preferences.get_devices_for_type('OPTIX'):
+    if has_optixdenoiser_gpu_devices(context):
         return 'OPTIX'
 
     return 'OPENIMAGEDENOISE'
