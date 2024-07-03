@@ -42,13 +42,12 @@ class AssetView : public ui::AbstractGridView {
   const AssetShelf &shelf_;
   std::optional<AssetWeakReference> active_asset_;
   std::optional<asset_system::AssetCatalogFilter> catalog_filter_ = std::nullopt;
-  bool is_popup_ = false;
 
   friend class AssetViewItem;
   friend class AssetDragController;
 
  public:
-  AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf, bool is_popup);
+  AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf);
 
   void build_items() override;
   bool begin_filtering(const bContext &C) const override;
@@ -85,10 +84,8 @@ class AssetDragController : public ui::AbstractViewItemDragController {
   void *create_drag_data() const override;
 };
 
-AssetView::AssetView(const AssetLibraryReference &library_ref,
-                     const AssetShelf &shelf,
-                     const bool is_popup)
-    : library_ref_(library_ref), shelf_(shelf), is_popup_(is_popup)
+AssetView::AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf)
+    : library_ref_(library_ref), shelf_(shelf)
 {
   if (shelf.type->get_active_asset) {
     if (const AssetWeakReference *weak_ref = shelf.type->get_active_asset(shelf.type)) {
@@ -295,8 +292,7 @@ void build_asset_view(uiLayout &layout,
   BLI_assert(tile_width != 0);
   BLI_assert(tile_height != 0);
 
-  const bool is_popup = region.regiontype == RGN_TYPE_TEMPORARY;
-  std::unique_ptr asset_view = std::make_unique<AssetView>(library_ref, shelf, is_popup);
+  std::unique_ptr asset_view = std::make_unique<AssetView>(library_ref, shelf);
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf.settings, *library));
   asset_view->set_tile_size(tile_width, tile_height);
 
