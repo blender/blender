@@ -363,6 +363,13 @@ void SyncModule::sync_volume(Object *ob,
     return;
   }
 
+  /* Do not render the object if there is no attribute used in the volume.
+   * This mimic Cycles behavior (see #124061). */
+  ListBase attr_list = GPU_material_attributes(material.volume_material.gpumat);
+  if (BLI_listbase_is_empty(&attr_list)) {
+    return;
+  }
+
   auto drawcall_add = [&](MaterialPass &matpass, gpu::Batch *geom, ResourceHandle res_handle) {
     if (matpass.sub_pass == nullptr) {
       return;

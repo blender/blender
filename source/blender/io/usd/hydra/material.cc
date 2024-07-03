@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "material.hh"
+#include "usd_private.hh"
 
 #include <Python.h>
 #include <unicodeobject.h>
@@ -80,7 +81,7 @@ void MaterialData::init()
                                          material_library_path,
                                          get_time_code,
                                          export_params,
-                                         image_cache_file_path(),
+                                         blender::io::usd::image_cache_file_path(),
                                          cache_or_get_image_file};
   /* Create USD material. */
   pxr::UsdShadeMaterial usd_material;
