@@ -314,6 +314,7 @@ static void rna_userdef_font_update(Main * /*bmain*/, Scene * /*scene*/, Pointer
 {
   BLF_cache_clear();
   UI_reinit_font();
+  UI_update_text_styles();
 }
 
 static void rna_userdef_language_update(Main *bmain, Scene * /*scene*/, PointerRNA * /*ptr*/)

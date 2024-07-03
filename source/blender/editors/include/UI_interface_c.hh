@@ -2033,6 +2033,10 @@ void UI_init_userdef();
 void UI_reinit_font();
 void UI_exit();
 
+/* When changing UI font, update text style weights with default font weight
+ * if non-variable. Therefore fixed weight bold font will look bold. */
+void UI_update_text_styles();
+
 /* Layout
  *
  * More automated layout of buttons. Has three levels:
