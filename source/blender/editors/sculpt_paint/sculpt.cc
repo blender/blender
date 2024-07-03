@@ -6999,7 +6999,7 @@ void filter_distances_with_radius(const float radius,
   }
 }
 
-void calc_brush_cube_distances(SculptSession &ss,
+void calc_brush_cube_distances(const SculptSession &ss,
                                const Brush &brush,
                                const float4x4 &mat,
                                const Span<float3> positions,
@@ -7029,7 +7029,7 @@ void calc_brush_cube_distances(SculptSession &ss,
   }
 }
 
-void calc_brush_cube_distances(SculptSession &ss,
+void calc_brush_cube_distances(const SculptSession &ss,
                                const Brush &brush,
                                const float4x4 &mat,
                                const Span<float3> positions,
