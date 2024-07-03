@@ -197,8 +197,8 @@ static void calc_faces(const Sculpt &sd,
   tls.distances.reinitialize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   /* NOTE: The distances are not used from this call, it's only used for filtering. */
-  calc_distance_falloff(
-      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
 
   tls.local_positions.reinitialize(verts.size());
   MutableSpan<float3> local_positions = tls.local_positions;
@@ -261,8 +261,8 @@ static void calc_grids(const Sculpt &sd,
   tls.distances.reinitialize(grid_verts_num);
   const MutableSpan<float> distances = tls.distances;
   /* NOTE: The distances are not used from this call, it's only used for filtering. */
-  calc_distance_falloff(
-      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
 
   tls.local_positions.reinitialize(grid_verts_num);
   MutableSpan<float3> local_positions = tls.local_positions;
@@ -323,8 +323,8 @@ static void calc_bmesh(const Sculpt &sd,
   tls.distances.reinitialize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   /* NOTE: The distances are not used from this call, it's only used for filtering. */
-  calc_distance_falloff(
-      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
 
   tls.local_positions.reinitialize(verts.size());
   MutableSpan<float3> local_positions = tls.local_positions;

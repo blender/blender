@@ -126,8 +126,9 @@ static void apply_masks_faces(const Brush &brush,
 
   tls.distances.reinitialize(verts.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_distance_falloff(
-      ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  calc_brush_distances(
+      ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 

@@ -62,8 +62,9 @@ static void calc_faces(const Sculpt &sd,
 
   tls.distances.reinitialize(verts.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_distance_falloff(
-      ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  calc_brush_distances(
+      ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
@@ -109,8 +110,8 @@ static void calc_grids(const Sculpt &sd,
 
   tls.distances.reinitialize(grid_verts_num);
   const MutableSpan<float> distances = tls.distances;
-  calc_distance_falloff(
-      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
@@ -154,8 +155,8 @@ static void calc_bmesh(const Sculpt &sd,
 
   tls.distances.reinitialize(verts.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_distance_falloff(
-      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances, factors);
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
