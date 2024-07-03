@@ -211,222 +211,6 @@ Array<int> duplicate_face_sets(const Mesh &mesh)
 /** \name Draw Face Sets Brush
  * \{ */
 
-constexpr float FACE_SET_BRUSH_MIN_FADE = 0.05f;
-
-static void do_draw_face_sets_brush_faces(Object &ob,
-                                          const Brush &brush,
-                                          const Span<PBVHNode *> nodes)
-{
-  SculptSession &ss = *ob.sculpt;
-  const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
-
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
-  const OffsetIndices<int> faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
-  const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-
-  bke::SpanAttributeWriter<int> attribute = ensure_face_sets_mesh(ob);
-  MutableSpan<int> face_sets = attribute.span;
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    const float bstrength = ss.cache->bstrength;
-    const int thread_id = BLI_task_parallel_thread_id(nullptr);
-    for (PBVHNode *node : nodes.slice(range)) {
-      SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, test, brush.falloff_shape);
-
-      auto_mask::NodeData automask_data = auto_mask::node_begin(
-          ob, ss.cache->automasking.get(), *node);
-
-      bool changed = false;
-
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-        auto_mask::node_update(automask_data, vd);
-
-        for (const int face_i : ss.vert_to_face_map[vd.index]) {
-          const IndexRange face = faces[face_i];
-          const float3 center = bke::mesh::face_center_calc(positions, corner_verts.slice(face));
-
-          if (!sculpt_brush_test_sq_fn(test, center)) {
-            continue;
-          }
-          if (!hide_poly.is_empty() && hide_poly[face_i]) {
-            continue;
-          }
-          const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                      brush,
-                                                                      vd.co,
-                                                                      sqrtf(test.dist),
-                                                                      vd.no,
-                                                                      vd.fno,
-                                                                      vd.mask,
-                                                                      vd.vertex,
-                                                                      thread_id,
-                                                                      &automask_data);
-
-          if (fade > FACE_SET_BRUSH_MIN_FADE) {
-            face_sets[face_i] = ss.cache->paint_face_set;
-            changed = true;
-          }
-        }
-      }
-      BKE_pbvh_vertex_iter_end;
-
-      if (changed) {
-        undo::push_node(ob, node, undo::Type::FaceSet);
-      }
-    }
-  });
-  attribute.finish();
-}
-
-static void do_draw_face_sets_brush_grids(Object &ob,
-                                          const Brush &brush,
-                                          const Span<PBVHNode *> nodes)
-{
-  SculptSession &ss = *ob.sculpt;
-  const float bstrength = ss.cache->bstrength;
-  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-
-  bke::SpanAttributeWriter<int> attribute = ensure_face_sets_mesh(ob);
-  MutableSpan<int> face_sets = attribute.span;
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    const int thread_id = BLI_task_parallel_thread_id(nullptr);
-    for (PBVHNode *node : nodes.slice(range)) {
-      SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, test, brush.falloff_shape);
-
-      auto_mask::NodeData automask_data = auto_mask::node_begin(
-          ob, ss.cache->automasking.get(), *node);
-
-      bool changed = false;
-
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-        auto_mask::node_update(automask_data, vd);
-
-        if (!sculpt_brush_test_sq_fn(test, vd.co)) {
-          continue;
-        }
-        const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                    brush,
-                                                                    vd.co,
-                                                                    sqrtf(test.dist),
-                                                                    vd.no,
-                                                                    vd.fno,
-                                                                    vd.mask,
-                                                                    vd.vertex,
-                                                                    thread_id,
-                                                                    &automask_data);
-
-        if (fade > FACE_SET_BRUSH_MIN_FADE) {
-          const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg,
-                                                                   vd.grid_indices[vd.g]);
-          face_sets[face_index] = ss.cache->paint_face_set;
-          changed = true;
-        }
-      }
-      BKE_pbvh_vertex_iter_end;
-
-      if (changed) {
-        undo::push_node(ob, node, undo::Type::FaceSet);
-      }
-    }
-  });
-  attribute.finish();
-}
-
-static void do_draw_face_sets_brush_bmesh(Object &ob,
-                                          const Brush &brush,
-                                          const Span<PBVHNode *> nodes)
-{
-  SculptSession &ss = *ob.sculpt;
-  const float bstrength = ss.cache->bstrength;
-  const int cd_offset = ensure_face_sets_bmesh(ob);
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    const int thread_id = BLI_task_parallel_thread_id(nullptr);
-    for (PBVHNode *node : nodes.slice(range)) {
-
-      SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, test, brush.falloff_shape);
-
-      /* Disable auto-masking code path which rely on an undo step to access original data.
-       *
-       * This is because the dynamic topology uses BMesh Log based undo system, which creates a
-       * single node for the undo step, and its type could be different for the needs of the brush
-       * undo and the original data access.
-       *
-       * For the brushes like Draw the ss.cache->automasking is set to nullptr at the first step
-       * of the brush, as there is an explicit check there for the brushes which support dynamic
-       * topology. Do it locally here for the Draw Face Set brush here, to mimic the behavior of
-       * the other brushes but without marking the brush as supporting dynamic topology. */
-      auto_mask::NodeData automask_data = auto_mask::node_begin(ob, nullptr, *node);
-
-      bool changed = false;
-
-      for (BMFace *f : BKE_pbvh_bmesh_node_faces(node)) {
-        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-          continue;
-        }
-
-        float3 face_center;
-        BM_face_calc_center_median(f, face_center);
-
-        const BMLoop *l_iter = f->l_first = BM_FACE_FIRST_LOOP(f);
-        do {
-          if (!sculpt_brush_test_sq_fn(test, l_iter->v->co)) {
-            continue;
-          }
-
-          BMVert *vert = l_iter->v;
-
-          /* There is no need to update the automasking data as it is disabled above. Additionally,
-           * there is no access to the PBVHVertexIter as iteration happens over faces.
-           *
-           * The full auto-masking support would be very good to be implemented here, so keeping
-           * the typical code flow for it here for the reference, and ease of looking at what needs
-           * to be done for such integration.
-           *
-           * auto_mask::node_update(automask_data, vd); */
-
-          const float fade = bstrength *
-                             SCULPT_brush_strength_factor(ss,
-                                                          brush,
-                                                          face_center,
-                                                          sqrtf(test.dist),
-                                                          f->no,
-                                                          f->no,
-                                                          0.0f,
-                                                          BKE_pbvh_make_vref(intptr_t(vert)),
-                                                          thread_id,
-                                                          &automask_data);
-
-          if (fade <= FACE_SET_BRUSH_MIN_FADE) {
-            continue;
-          }
-
-          int &fset = *static_cast<int *>(POINTER_OFFSET(f->head.data, cd_offset));
-          fset = ss.cache->paint_face_set;
-          changed = true;
-          break;
-
-        } while ((l_iter = l_iter->next) != f->l_first);
-      }
-
-      if (changed) {
-        undo::push_node(ob, node, undo::Type::FaceSet);
-      }
-    }
-  });
-}
-
 static void do_relax_face_sets_brush_task(Object &ob,
                                           const Brush &brush,
                                           const float strength,
@@ -483,38 +267,24 @@ static std::array<float, 4> iteration_strengths(const float strength, const int 
   return {modified_strength, modified_strength, strength, strength};
 }
 
-void do_draw_face_sets_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+void do_relax_face_sets_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
 {
-  SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   BKE_curvemapping_init(brush.curve);
 
-  if (ss.cache->alt_smooth) {
-    SCULPT_boundary_info_ensure(ob);
-    const SculptSession &ss = *ob.sculpt;
-    const std::array<float, 4> strengths = iteration_strengths(ss.cache->bstrength,
-                                                               ss.cache->iteration_count);
-    for (const float strength : strengths) {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (const int i : range) {
-          do_relax_face_sets_brush_task(ob, brush, strength, nodes[i]);
-        }
-      });
-    }
-  }
-  else {
-    switch (BKE_pbvh_type(*ss.pbvh)) {
-      case PBVH_FACES:
-        do_draw_face_sets_brush_faces(ob, brush, nodes);
-        break;
-      case PBVH_GRIDS:
-        do_draw_face_sets_brush_grids(ob, brush, nodes);
-        break;
-      case PBVH_BMESH:
-        do_draw_face_sets_brush_bmesh(ob, brush, nodes);
-        break;
-    }
+  SCULPT_boundary_info_ensure(ob);
+
+  const SculptSession &ss = *ob.sculpt;
+  const std::array<float, 4> strengths = iteration_strengths(ss.cache->bstrength,
+                                                             ss.cache->iteration_count);
+  for (const float strength : strengths) {
+
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        do_relax_face_sets_brush_task(ob, brush, strength, nodes[i]);
+      }
+    });
   }
 }
 

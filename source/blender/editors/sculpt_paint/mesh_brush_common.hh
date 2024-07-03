@@ -34,6 +34,7 @@
 
 struct BMesh;
 struct BMVert;
+struct BMFace;
 struct Brush;
 struct Mesh;
 struct Object;
@@ -114,6 +115,9 @@ void calc_front_face(const float3 &view_normal,
                      MutableSpan<float> factors);
 void calc_front_face(const float3 &view_normal,
                      const Set<BMVert *, 0> &verts,
+                     const MutableSpan<float> factors);
+void calc_front_face(const float3 &view_normal,
+                     const Set<BMFace *, 0> &faces,
                      const MutableSpan<float> factors);
 
 /**
@@ -216,6 +220,17 @@ void calc_vert_factors(const Object &object,
                        const PBVHNode &node,
                        const Set<BMVert *, 0> &verts,
                        MutableSpan<float> factors);
+
+/**
+ * Calculate all auto-masking influence on each face.
+ */
+void calc_face_factors(const Object &object,
+                       const OffsetIndices<int> faces,
+                       const Span<int> corner_verts,
+                       const Cache &cache,
+                       const PBVHNode &node,
+                       const Span<int> face_indices,
+                       const MutableSpan<float> factors);
 
 }  // namespace auto_mask
 

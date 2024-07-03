@@ -3893,7 +3893,12 @@ static void do_brush_action(const Scene &scene,
       cloth::do_cloth_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
-      face_set::do_draw_face_sets_brush(sd, ob, nodes);
+      if (!ss.cache->alt_smooth) {
+        do_draw_face_sets_brush(sd, ob, nodes);
+      }
+      else {
+        face_set::do_relax_face_sets_brush(sd, ob, nodes);
+      }
       break;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       do_displacement_eraser_brush(sd, ob, nodes);
@@ -6859,6 +6864,20 @@ void calc_front_face(const float3 &view_normal,
   }
 }
 
+void calc_front_face(const float3 &view_normal,
+                     const Set<BMFace *, 0> &faces,
+                     const MutableSpan<float> factors)
+{
+  BLI_assert(faces.size() == factors.size());
+
+  int i = 0;
+  for (const BMFace *face : faces) {
+    const float dot = math::dot(view_normal, float3(face->no));
+    factors[i] *= std::max(dot, 0.0f);
+    i++;
+  }
+}
+
 void filter_region_clip_factors(const SculptSession &ss,
                                 const Span<float3> positions,
                                 const Span<int> verts,
@@ -6892,6 +6911,8 @@ void filter_region_clip_factors(const SculptSession &ss,
                                 const Span<float3> positions,
                                 const MutableSpan<float> factors)
 {
+  BLI_assert(positions.size() == factors.size());
+
   const RegionView3D *rv3d = ss.cache ? ss.cache->vc->rv3d : ss.rv3d;
   const View3D *v3d = ss.cache ? ss.cache->vc->v3d : ss.v3d;
   if (!RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
