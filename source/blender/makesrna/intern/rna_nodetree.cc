@@ -7472,7 +7472,7 @@ static void def_cmp_glare(StructRNA *srna)
 
   prop = RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "size");
-  RNA_def_property_range(prop, 6, 9);
+  RNA_def_property_range(prop, 1, 9);
   RNA_def_property_ui_text(
       prop,
       "Size",
