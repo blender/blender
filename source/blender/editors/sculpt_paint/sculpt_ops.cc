@@ -573,9 +573,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-}  // namespace blender::ed::sculpt_paint
-
-void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
+void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
@@ -601,7 +599,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession &ss, float 
   float brush_co[3];
   copy_v3_v3(brush_co, SCULPT_active_vertex_co_get(ss));
 
-  blender::BitVector<> visited_verts(SCULPT_vertex_count_get(ss));
+  BitVector<> visited_verts(SCULPT_vertex_count_get(ss));
 
   /* Assuming an average of 6 edges per vertex in a triangulated mesh. */
   const int max_preview_verts = SCULPT_vertex_count_get(ss) * 3 * 2;
@@ -644,8 +642,6 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession &ss, float 
 
 static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
@@ -672,7 +668,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
 
-  blender::float4 active_vertex_color;
+  float4 active_vertex_color;
   if (!color_attribute) {
     active_vertex_color = float4(1.0f);
   }
@@ -703,7 +699,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 }
 
-namespace blender::ed::sculpt_paint::mask {
+namespace mask {
 
 /**
  * #sculpt_mask_by_color_delta_get returns values in the (0,1) range that are used to generate the
@@ -806,7 +802,7 @@ static void sculpt_mask_by_color_contiguous(Object &object,
         ss, from_v, to_v, is_duplicate, colors, active_color, threshold, invert, new_mask);
   });
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   update_mask_mesh(object, nodes, [&](MutableSpan<float> node_mask, const Span<int> verts) {
     for (const int i : verts.index_range()) {
@@ -829,7 +825,7 @@ static void sculpt_mask_by_color_full_mesh(Object &object,
       mesh.active_color_attribute, bke::AttrDomain::Point, {});
   const float4 active_color = float4(colors[vertex.i]);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   update_mask_mesh(object, nodes, [&](MutableSpan<float> node_mask, const Span<int> verts) {
     for (const int i : verts.index_range()) {
@@ -936,8 +932,6 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
                 1.0f);
 }
 
-}  // namespace blender::ed::sculpt_paint::mask
-
 enum CavityBakeMixMode {
   AUTOMASK_BAKE_MIX,
   AUTOMASK_BAKE_MULTIPLY,
@@ -959,7 +953,6 @@ static void sculpt_bake_cavity_exec_task(Object &ob,
                                          const SculptMaskWriteInfo mask_write,
                                          PBVHNode *node)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
   PBVHVertexIter vd;
 
@@ -1005,8 +998,7 @@ static void sculpt_bake_cavity_exec_task(Object &ob,
 
 static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
+
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -1030,7 +1022,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   CavityBakeMixMode mode = CavityBakeMixMode(RNA_enum_get(op->ptr, "mix_mode"));
   float factor = RNA_float_get(op->ptr, "mix_factor");
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   /* Set up automasking settings. */
   Sculpt sd2 = sd;
@@ -1085,7 +1077,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   }
 
   /* Create copy of brush with cleared automasking settings. */
-  Brush brush2 = blender::dna::shallow_copy(*brush);
+  Brush brush2 = dna::shallow_copy(*brush);
   brush2.automasking_flags = 0;
   brush2.automasking_boundary_edges_propagation_steps = 1;
   brush2.automasking_cavity_curve = sd2.automasking_cavity_curve;
@@ -1218,9 +1210,10 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "invert", false, "Cavity (Inverted)", "");
 }
 
-void ED_operatortypes_sculpt()
+}  // namespace mask
+
+void operatortypes_sculpt()
 {
-  using namespace blender::ed::sculpt_paint;
   WM_operatortype_append(SCULPT_OT_brush_stroke);
   WM_operatortype_append(SCULPT_OT_sculptmode_toggle);
   WM_operatortype_append(SCULPT_OT_set_persistent_base);
@@ -1255,11 +1248,12 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(mask::SCULPT_OT_mask_init);
 
   WM_operatortype_append(expand::SCULPT_OT_expand);
-  WM_operatortype_append(SCULPT_OT_mask_from_cavity);
+  WM_operatortype_append(mask::SCULPT_OT_mask_from_cavity);
 }
 
-void ED_keymap_sculpt(wmKeyConfig *keyconf)
+void keymap_sculpt(wmKeyConfig *keyconf)
 {
-  using namespace blender::ed::sculpt_paint;
   filter::modal_keymap(keyconf);
 }
+
+}  // namespace blender::ed::sculpt_paint
