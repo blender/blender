@@ -137,7 +137,7 @@ DenoiserType Denoiser::automatic_viewport_denoiser_type(const DeviceInfo &denois
 #endif
 
 #ifdef WITH_OPTIX
-  if (!Device::available_devices(DEVICE_MASK_OPTIX).empty()) {
+  if (OptiXDenoiser::is_device_supported(denoise_device_info)) {
     return DENOISER_OPTIX;
   }
 #endif

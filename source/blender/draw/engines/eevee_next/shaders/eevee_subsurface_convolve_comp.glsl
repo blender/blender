@@ -112,7 +112,9 @@ void main(void)
   }
 
   /* Avoid too small radii that have float imprecision. */
-  vec3 clamped_sss_radius = max(vec3(1e-4), closure.sss_radius / max_radius) * max_radius;
+  vec3 clamped_sss_radius = max(vec3(uniform_buf.subsurface.min_radius),
+                                closure.sss_radius / max_radius) *
+                            max_radius;
   /* Scale albedo because we can have HDR value caused by BSDF sampling. */
   vec3 albedo = closure.color / max(1e-6, reduce_max(closure.color));
   vec3 d = burley_setup(clamped_sss_radius, albedo);
