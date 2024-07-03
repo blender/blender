@@ -1794,9 +1794,9 @@ struct Operation {
 /* Determines whether or not a gesture action should be applied. */
 bool is_affected(const GestureData &gesture_data, const float3 &position, const float3 &normal);
 void filter_factors(const GestureData &gesture_data,
-                  Span<float3> positions,
-                  Span<float3> normals,
-                  MutableSpan<float> factors);
+                    Span<float3> positions,
+                    Span<float3> normals,
+                    MutableSpan<float> factors);
 
 /* Initialization functions. */
 std::unique_ptr<GestureData> init_from_box(bContext *C, wmOperator *op);
