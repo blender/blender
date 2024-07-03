@@ -58,7 +58,7 @@ static void library_copy_data(Main *bmain,
 {
   /* Libraries are always local IDs. */
   BLI_assert(!owner_library || *owner_library == nullptr);
-  UNUSED_VARS_NDEBUG(owner_library);
+  UNUSED_VARS_NDEBUG(bmain, owner_library);
 
   const Library *library_src = reinterpret_cast<const Library *>(id_src);
 
