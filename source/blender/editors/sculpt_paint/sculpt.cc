@@ -6920,7 +6920,6 @@ void calc_brush_distances(const SculptSession &ss,
                           const eBrushFalloffShape falloff_shape,
                           const MutableSpan<float> r_distances)
 {
-  BLI_assert(verts.size() == factors.size());
   BLI_assert(verts.size() == r_distances.size());
 
   const float3 &test_location = ss.cache ? ss.cache->location : ss.cursor_location;
@@ -6947,7 +6946,6 @@ void calc_brush_distances(const SculptSession &ss,
                           const eBrushFalloffShape falloff_shape,
                           const MutableSpan<float> r_distances)
 {
-  BLI_assert(positions.size() == factors.size());
   BLI_assert(positions.size() == r_distances.size());
 
   const float3 &test_location = ss.cache ? ss.cache->location : ss.cursor_location;
