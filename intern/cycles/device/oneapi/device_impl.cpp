@@ -670,7 +670,14 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
     external_queue = reinterpret_cast<SyclQueue *>(created_queue);
 #  ifdef WITH_EMBREE_GPU
     if (embree_device_pointer) {
-      *((RTCDevice *)embree_device_pointer) = rtcNewSYCLDevice(created_queue->get_context(), "");
+      RTCDevice *device_object_ptr = reinterpret_cast<RTCDevice *>(embree_device_pointer);
+      *device_object_ptr = rtcNewSYCLDevice(created_queue->get_context(), "");
+      if (*device_object_ptr == nullptr) {
+        finished_correct = false;
+        oneapi_error_string_ =
+            "Hardware Raytracing is not available; please install "
+            "\"intel-level-zero-gpu-raytracing\" to enable it or disable Embree on GPU.";
+      }
     }
 #  else
     (void)embree_device_pointer;
@@ -1072,7 +1079,27 @@ std::vector<sycl::device> available_sycl_devices()
             filter_out = true;
           }
           /* if not already filtered out, check driver version. */
-          if (!filter_out) {
+          bool check_driver_version = !filter_out;
+          /* We don't know how to check driver version strings for non-Intel GPUs. */
+          if (check_driver_version &&
+              device.get_info<sycl::info::device::vendor>().find("Intel") == std::string::npos)
+          {
+            check_driver_version = false;
+          }
+          /* Because of https://github.com/oneapi-src/unified-runtime/issues/1777, future drivers
+           * may break parsing done by a SYCL runtime from before the fix we expect in major
+           * version 8. Parsed driver version would start with something different than current
+           * "1.3.". To avoid blocking a device by mistake in the case of new driver / old SYCL
+           * runtime, we disable driver version check in case LIBSYCL_MAJOR_VERSION is below 8 and
+           * actual driver version doesn't start with 1.3. */
+#  if __LIBSYCL_MAJOR_VERSION < 8
+          if (check_driver_version &&
+              !string_startswith(device.get_info<sycl::info::device::driver_version>(), "1.3."))
+          {
+            check_driver_version = false;
+          }
+#  endif
+          if (check_driver_version) {
             int driver_build_version = parse_driver_build_version(device);
             if ((driver_build_version > 100000 &&
                  driver_build_version < lowest_supported_driver_version_win) ||
