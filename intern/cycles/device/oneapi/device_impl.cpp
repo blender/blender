@@ -852,7 +852,27 @@ std::vector<sycl::device> OneapiDevice::available_devices()
             filter_out = true;
           }
           /* if not already filtered out, check driver version. */
-          if (!filter_out) {
+          bool check_driver_version = !filter_out;
+          /* We don't know how to check driver version strings for non-Intel GPUs. */
+          if (check_driver_version &&
+              device.get_info<sycl::info::device::vendor>().find("Intel") == std::string::npos)
+          {
+            check_driver_version = false;
+          }
+          /* Because of https://github.com/oneapi-src/unified-runtime/issues/1777, future drivers
+           * may break parsing done by a SYCL runtime from before the fix we expect in major
+           * version 8. Parsed driver version would start with something different than current
+           * "1.3.". To avoid blocking a device by mistake in the case of new driver / old SYCL
+           * runtime, we disable driver version check in case LIBSYCL_MAJOR_VERSION is below 8 and
+           * actual driver version doesn't start with 1.3. */
+#  if __LIBSYCL_MAJOR_VERSION < 8
+          if (check_driver_version &&
+              !string_startswith(device.get_info<sycl::info::device::driver_version>(), "1.3."))
+          {
+            check_driver_version = false;
+          }
+#  endif
+          if (check_driver_version) {
             int driver_build_version = parse_driver_build_version(device);
             if ((driver_build_version > 100000 &&
                  driver_build_version < lowest_supported_driver_version_win) ||
