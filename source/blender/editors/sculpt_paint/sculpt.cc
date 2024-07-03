@@ -3878,7 +3878,7 @@ static void do_brush_action(const Scene &scene,
       pose::do_pose_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DRAW_SHARP:
-      SCULPT_do_draw_sharp_brush(sd, ob, nodes);
+      do_draw_sharp_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_ELASTIC_DEFORM:
       SCULPT_do_elastic_deform_brush(sd, ob, nodes);

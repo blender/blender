@@ -120,6 +120,7 @@ set(SRC
   brushes/crease.cc
   brushes/draw_face_sets.cc
   brushes/draw_vector_displacement.cc
+  brushes/draw_sharp.cc
   brushes/draw.cc
   brushes/fill.cc
   brushes/flatten.cc
