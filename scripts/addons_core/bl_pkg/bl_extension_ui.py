@@ -2096,11 +2096,12 @@ def tags_panel_draw(layout, context, tags_attr):
         tags_len_half = (len(tags_sorted) + 1) // 2
         split = layout.split(factor=0.5)
         col = split.column()
+        tags_prop = getattr(wm, tags_attr)
         for i, t in enumerate(sorted(tags_sorted)):
             if i == tags_len_half:
                 col = split.column()
             col.prop(
-                getattr(wm, tags_attr),
+                tags_prop,
                 "[\"{:s}\"]".format(escape_identifier(t)),
                 text=t,
                 text_ctxt=i18n_contexts.editor_preferences,
