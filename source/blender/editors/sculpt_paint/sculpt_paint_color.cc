@@ -12,6 +12,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_color.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
@@ -28,6 +29,7 @@
 
 #include "IMB_colormanagement.hh"
 
+#include "mesh_brush_common.hh"
 #include "sculpt_intern.hh"
 
 #include "IMB_imbuf.hh"
@@ -243,69 +245,109 @@ bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh)
   return colors;
 }
 
-static void do_color_smooth_task(Object &ob,
+struct LocalData {
+  Vector<float> factors;
+  Vector<float> distances;
+  Vector<float4> colors;
+  Vector<float4> new_colors;
+  Vector<Vector<int>> vert_neighbors;
+};
+
+BLI_NOINLINE static void calc_smooth_colors(const OffsetIndices<int> faces,
+                                            const Span<int> corner_verts,
+                                            const GroupedSpan<int> vert_to_face_map,
+                                            const Span<Vector<int>> vert_neighbors,
+                                            const GSpan colors,
+                                            const bke::AttrDomain color_domain,
+                                            const MutableSpan<float4> smooth_colors)
+{
+  for (const int i : vert_neighbors.index_range()) {
+    float4 sum(0);
+    const Span<int> neighbors = vert_neighbors[i];
+    for (const int vert : neighbors) {
+      sum += color::color_vert_get(
+          faces, corner_verts, vert_to_face_map, colors, color_domain, vert);
+    }
+    smooth_colors[i] = sum / neighbors.size();
+  }
+}
+
+static void do_color_smooth_task(const Object &object,
                                  const Span<float3> vert_positions,
                                  const Span<float3> vert_normals,
                                  const OffsetIndices<int> faces,
                                  const Span<int> corner_verts,
                                  const GroupedSpan<int> vert_to_face_map,
-                                 const Span<bool> hide_vert,
-                                 const Span<float> mask,
+                                 const Span<bool> hide_poly,
                                  const Brush &brush,
-                                 PBVHNode *node,
+                                 const PBVHNode &node,
+                                 LocalData &tls,
                                  bke::GSpanAttributeWriter &color_attribute)
 {
-  SculptSession &ss = *ob.sculpt;
-  const float bstrength = ss.cache->bstrength;
+  const SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
+  tls.factors.reinitialize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  filter_region_clip_factors(ss, vert_positions, verts, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal, vert_normals, verts, factors);
+  }
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+  tls.distances.reinitialize(verts.size());
+  const MutableSpan<float> distances = tls.distances;
+  calc_brush_distances(
+      ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  if (cache.automasking) {
+    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
+  }
+
+  calc_brush_texture_factors(ss, brush, vert_positions, verts, factors);
+
+  tls.colors.reinitialize(verts.size());
+  MutableSpan<float4> colors = tls.colors;
   for (const int i : verts.index_range()) {
-    const int vert = verts[i];
-    if (!hide_vert.is_empty() && hide_vert[verts[i]]) {
-      continue;
-    }
-    if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
-      continue;
-    }
+    colors[i] = color_vert_get(faces,
+                               corner_verts,
+                               vert_to_face_map,
+                               color_attribute.span,
+                               color_attribute.domain,
+                               verts[i]);
+  }
 
-    auto_mask::node_update(automask_data, i);
+  tls.vert_neighbors.reinitialize(verts.size());
+  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
+  const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
 
-    const float fade = bstrength *
-                       SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    vert_positions[vert],
-                                                    sqrtf(test.dist),
-                                                    vert_normals[vert],
-                                                    nullptr,
-                                                    mask.is_empty() ? 0.0f : mask[vert],
-                                                    PBVHVertRef{vert},
-                                                    thread_id,
-                                                    &automask_data);
+  tls.new_colors.reinitialize(verts.size());
+  MutableSpan<float4> new_colors = tls.new_colors;
+  calc_smooth_colors(faces,
+                     corner_verts,
+                     vert_to_face_map,
+                     vert_neighbors,
+                     color_attribute.span,
+                     color_attribute.domain,
+                     new_colors);
 
-    const float4 smooth_color = smooth::neighbor_color_average(ss,
-                                                               faces,
-                                                               corner_verts,
-                                                               vert_to_face_map,
-                                                               color_attribute.span,
-                                                               color_attribute.domain,
-                                                               vert);
-    float4 col = color_vert_get(
-        faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
-    blend_color_interpolate_float(col, col, smooth_color, fade);
+  for (const int i : colors.index_range()) {
+    blend_color_interpolate_float(new_colors[i], colors[i], new_colors[i], factors[i]);
+  }
+
+  for (const int i : verts.index_range()) {
     color_vert_set(faces,
                    corner_verts,
                    vert_to_face_map,
                    color_attribute.domain,
-                   vert,
-                   col,
+                   verts[i],
+                   new_colors[i],
                    color_attribute.span);
   }
 }
@@ -530,6 +572,7 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
   const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
   if (!color_attribute) {
@@ -537,7 +580,9 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
   }
 
   if (ss.cache->alt_smooth) {
+    threading::EnumerableThreadSpecific<LocalData> all_tls;
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      LocalData &tls = all_tls.local();
       for (const int i : range) {
         do_color_smooth_task(ob,
                              vert_positions,
@@ -545,10 +590,10 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
                              faces,
                              corner_verts,
                              vert_to_face_map,
-                             hide_vert,
-                             mask,
+                             hide_poly,
                              brush,
-                             nodes[i],
+                             *nodes[i],
+                             tls,
                              color_attribute);
       }
     });
@@ -818,6 +863,7 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
 
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
@@ -837,7 +883,9 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
 
   /* Smooth colors mode. */
   if (ss.cache->alt_smooth) {
+    threading::EnumerableThreadSpecific<LocalData> all_tls;
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      LocalData &tls = all_tls.local();
       for (const int i : range) {
         do_color_smooth_task(ob,
                              vert_positions,
@@ -845,10 +893,10 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
                              faces,
                              corner_verts,
                              vert_to_face_map,
-                             hide_vert,
-                             mask,
+                             hide_poly,
                              brush,
-                             nodes[i],
+                             *nodes[i],
+                             tls,
                              color_attribute);
       }
     });
