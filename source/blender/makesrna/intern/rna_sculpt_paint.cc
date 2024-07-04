@@ -579,7 +579,7 @@ static void rna_def_paint(BlenderRNA *brna)
                                  "rna_Paint_eraser_brush_poll");
   RNA_def_property_ui_text(prop,
                            "Default Eraser Brush",
-                           "Default eraser bnush for quickly alternating with the main brush");
+                           "Default eraser brush for quickly alternating with the main brush");
   RNA_def_property_update(prop, NC_BRUSH | NA_SELECTED, nullptr);
 
   prop = RNA_def_property(srna, "eraser_brush_asset_reference", PROP_POINTER, PROP_NONE);
