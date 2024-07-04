@@ -207,11 +207,11 @@ def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
 
     if (
             (rna_prop := context_path_to_rna_property(base, data_path)) and
-            (description := iface_(rna_prop.description))
+            (description := tip_(rna_prop.description))
     ):
-        description = iface_("{:s}: {:s}").format(prefix, description)
+        description = tip_("{:s}: {:s}").format(prefix, description)
         if value != Ellipsis:
-            description = "{:s}\n{:s}: {:s}".format(description, iface_("Value"), str(value))
+            description = "{:s}\n{:s}: {:s}".format(description, tip_("Value"), str(value))
         return description
     return None
 
@@ -288,7 +288,7 @@ class WM_OT_context_set_boolean(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -309,7 +309,7 @@ class WM_OT_context_set_int(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -329,7 +329,7 @@ class WM_OT_context_scale_float(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Scale"), value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Scale"), value=props.value)
 
     def execute(self, context):
         data_path = self.data_path
@@ -367,7 +367,7 @@ class WM_OT_context_scale_int(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Scale"), value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Scale"), value=props.value)
 
     def execute(self, context):
         data_path = self.data_path
@@ -411,7 +411,7 @@ class WM_OT_context_set_float(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -431,7 +431,7 @@ class WM_OT_context_set_string(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -451,7 +451,7 @@ class WM_OT_context_set_enum(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -471,7 +471,7 @@ class WM_OT_context_set_value(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Assign"), value=props.value)
 
     def execute(self, context):
         data_path = self.data_path
@@ -495,7 +495,7 @@ class WM_OT_context_toggle(Operator):
         # Currently unsupported, it might be possible to extract this.
         if props.module:
             return None
-        return description_from_data_path(context, props.data_path, prefix=iface_("Toggle"))
+        return description_from_data_path(context, props.data_path, prefix=tip_("Toggle"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -536,7 +536,7 @@ class WM_OT_context_toggle_enum(Operator):
     @classmethod
     def description(cls, context, props):
         value = "({!r}, {!r})".format(props.value_1, props.value_2)
-        return description_from_data_path(context, props.data_path, prefix=iface_("Toggle"), value=value)
+        return description_from_data_path(context, props.data_path, prefix=tip_("Toggle"), value=value)
 
     def execute(self, context):
         data_path = self.data_path
@@ -575,7 +575,7 @@ class WM_OT_context_cycle_int(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Cycle"))
+        return description_from_data_path(context, props.data_path, prefix=tip_("Cycle"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -615,7 +615,7 @@ class WM_OT_context_cycle_enum(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Cycle"))
+        return description_from_data_path(context, props.data_path, prefix=tip_("Cycle"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -664,7 +664,7 @@ class WM_OT_context_cycle_array(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Cycle"))
+        return description_from_data_path(context, props.data_path, prefix=tip_("Cycle"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -693,7 +693,7 @@ class WM_OT_context_menu_enum(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Menu"))
+        return description_from_data_path(context, props.data_path, prefix=tip_("Menu"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -724,7 +724,7 @@ class WM_OT_context_pie_enum(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Pie Menu"))
+        return description_from_data_path(context, props.data_path, prefix=tip_("Pie Menu"))
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -765,7 +765,7 @@ class WM_OT_operator_pie_enum(Operator):
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix=iface_("Pie Menu"))
+        return description_from_data_path(context, props.data_path, prefix=tip_("Pie Menu"))
 
     def invoke(self, context, event):
         wm = context.window_manager
