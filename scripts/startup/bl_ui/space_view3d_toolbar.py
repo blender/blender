@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import bpy
 from bpy.types import Menu, Panel, UIList, WindowManager
 from bpy.app.translations import (
     pgettext_iface as iface_,
@@ -2907,9 +2908,6 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_eraser(View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        tool_settings = context.tool_settings
-        settings = tool_settings.gpencil_paint
-
         if context.region.type == 'TOOL_HEADER':
             return False
 
@@ -2919,6 +2917,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_eraser(View3DPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        tool_settings = context.tool_settings
         settings = tool_settings.gpencil_paint
 
         layout.use_property_split = True
