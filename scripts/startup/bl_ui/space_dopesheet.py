@@ -534,6 +534,9 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator("anim.channels_fcurves_enable")
 
         layout.separator()
+        layout.operator("anim.channels_bake")
+
+        layout.separator()
         layout.operator("anim.channels_view_selected")
 
 

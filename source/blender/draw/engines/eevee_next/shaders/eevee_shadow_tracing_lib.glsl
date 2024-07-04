@@ -73,7 +73,7 @@ struct ShadowTracingSample {
 \
       ShadowTracingSample samp = shadow_map_trace_sample(state, ray); \
 \
-      shadow_map_trace_hit_check(state, samp); \
+      shadow_map_trace_hit_check(state, samp, i == sample_count); \
     } \
     return state.hit; \
   }
@@ -84,25 +84,22 @@ struct ShadowTracingSample {
  * This reverse tracing allows to approximate the geometry behind occluders while minimizing
  * light-leaks.
  */
-void shadow_map_trace_hit_check(inout ShadowMapTracingState state, ShadowTracingSample samp)
+void shadow_map_trace_hit_check(inout ShadowMapTracingState state,
+                                ShadowTracingSample samp,
+                                bool is_last_sample)
 {
-  /* Skip empty tiles since they do not contain actual depth information.
-   * Not doing so would change the z gradient history. */
-  if (samp.skip_sample) {
-    return;
-  }
-  /* For the first sample, regular depth compare since we do not have history values. */
-  if (state.occluder_history.x == SHADOW_TRACING_INVALID_HISTORY) {
-    if (samp.occluder.x > state.ray_time) {
-      state.hit = true;
-      return;
-    }
-    state.occluder_history = samp.occluder;
-    return;
-  }
+  bool is_behind_occluder = samp.occluder.y > 1e-6;
 
-  bool is_behind_occluder = samp.occluder.y > 0.0;
-  if (is_behind_occluder && (state.occluder_slope != SHADOW_TRACING_INVALID_HISTORY)) {
+  if (samp.skip_sample) {
+    /* Skip empty tiles since they do not contain actual depth information.
+     * Not doing so would change the z gradient history. */
+  }
+  else if (state.occluder_history.x == SHADOW_TRACING_INVALID_HISTORY) {
+    /* First sample, regular depth compare since we do not have history values. */
+    state.hit = is_behind_occluder || (is_last_sample && (samp.occluder.x > state.ray_time));
+    state.occluder_history = samp.occluder;
+  }
+  else if (is_behind_occluder && (state.occluder_slope != SHADOW_TRACING_INVALID_HISTORY)) {
     /* Extrapolate last known valid occluder and check if it crossed the ray.
      * Note that we only want to check if the extrapolated occluder is above the ray at a certain
      * time value, we don't actually care about the correct value. So we replace the complex
@@ -111,6 +108,8 @@ void shadow_map_trace_hit_check(inout ShadowMapTracingState state, ShadowTracing
     float delta_time = state.ray_time - state.occluder_history.x;
     float extrapolated_occluder_y = abs(state.occluder_history.y) +
                                     state.occluder_slope * delta_time;
+    /* NOTE: We use the absolute of the function to account for all occluders configurations.
+     * The test just checks if it doesn't extrapolate in the other Y region. */
     state.hit = extrapolated_occluder_y < 0.0;
   }
   else {
@@ -122,7 +121,7 @@ void shadow_map_trace_hit_check(inout ShadowMapTracingState state, ShadowTracing
     state.occluder_slope = max(min_slope, abs(delta.y / delta.x));
     state.occluder_history = samp.occluder;
     /* Intersection test. Intersect if above the ray time. */
-    state.hit = samp.occluder.x > state.ray_time;
+    state.hit = is_behind_occluder || (is_last_sample && (samp.occluder.x > state.ray_time));
   }
 }
 
@@ -266,12 +265,13 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
     direction = point_on_light_shape - lP;
     direction = shadow_ray_above_horizon_ensure(direction, lNg, shape_radius);
   }
+  vec3 shadow_position = light_local_data_get(light).shadow_position;
   /* Clip the ray to not cross the near plane.
    * Avoid traces that starts on tiles that have not been queried, creating noise. */
-  float clip_distance = clip_near + shape_radius * 0.5;
-  direction *= saturate(1.0 - clip_distance * inversesqrt(length_squared(direction)));
+  float clip_distance = length(lP - shadow_position) - clip_near;
+  /* Still clamp to a minimal size to avoid isssue with zero length vectors. */
+  direction *= saturate(1e-6 + clip_distance * inversesqrt(length_squared(direction)));
 
-  vec3 shadow_position = light_local_data_get(light).shadow_position;
   /* Compute the ray again. */
   ShadowRayPunctual ray;
   /* Transform to shadow local space. */
