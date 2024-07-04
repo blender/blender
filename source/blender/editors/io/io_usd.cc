@@ -482,19 +482,19 @@ static bool wm_usd_export_check(bContext * /*C*/, wmOperator *op)
 
 static void forward_axis_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  int forward = RNA_enum_get(ptr, "forward_axis");
-  int up = RNA_enum_get(ptr, "up_axis");
+  int forward = RNA_enum_get(ptr, "export_global_forward_selection");
+  int up = RNA_enum_get(ptr, "export_global_up_selection");
   if ((forward % 3) == (up % 3)) {
-    RNA_enum_set(ptr, "up_axis", (up + 1) % 6);
+    RNA_enum_set(ptr, "export_global_up_selection", (up + 1) % 6);
   }
 }
 
 static void up_axis_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  int forward = RNA_enum_get(ptr, "forward_axis");
-  int up = RNA_enum_get(ptr, "up_axis");
+  int forward = RNA_enum_get(ptr, "export_global_forward_selection");
+  int up = RNA_enum_get(ptr, "export_global_up_selection");
   if ((forward % 3) == (up % 3)) {
-    RNA_enum_set(ptr, "forward_axis", (forward + 1) % 6);
+    RNA_enum_set(ptr, "export_global_forward_selection", (forward + 1) % 6);
   }
 }
 
