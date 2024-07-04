@@ -1272,6 +1272,7 @@ static blender::Vector<RNAPath> get_affected_rna_paths_from_transform_mode(
     ToolSettings *toolsettings,
     const blender::StringRef rotation_path,
     const bool targetless_ik,
+    const bool is_connected,
     const bool transforming_more_than_one_bone)
 {
   blender::Vector<RNAPath> rna_paths;
@@ -1290,25 +1291,31 @@ static blender::Vector<RNAPath> get_affected_rna_paths_from_transform_mode(
   /* Handle the transform-mode-specific cases. */
   switch (tmode) {
     case TFM_TRANSLATION:
-      /* NOTE: this used to only add location if we weren't doing targetless IK.
+      /* NOTE: this used to *not* add location if we were doing targetless IK.
        * However, that was wrong because of the following situations:
        *
-       * - The user can grab the *base* of the bone chain, in which case that
-       *   bone's location does indeed get its location moved, and thus needs
-       *   its location keyed.
-       * - The user can also have bones outside of a bone chain selected, in
-       *   which case they get moved normally, and thus those outside-of-a-chain
-       *   bones need their location keyed.
+       * 1. The user can grab the *base* of the bone chain, in which case that
+       *    bone's location does indeed get its location moved, and thus needs
+       *    its location keyed.
+       * 2. The user can also have bones outside of a bone chain selected, in
+       *    which case they get moved normally, and thus those
+       *    outside-of-a-chain bones need their location keyed.
        *
-       * So for now we're just adding location unconditionally. This
+       * So for now we're just adding location regardless of targetless IK. This
        * unfortunately means that location gets keyed on a lot of bones that
        * don't need it when doing targetless ik, but that's better than
-       * *failing* to key bones that *do* need it. Being precise and only adding
-       * location for the bones that really need it will require more
-       * information to be passed to this function.
+       * *failing* to key bones that *do* need it. Additionally, case 2 above
+       * means that outside-of-a-chain bones also get their *rotation*
+       * unnecessarily keyed when doing targetless IK on another selected chain.
+       *
+       * Being precise and only adding location/rotation for the bones that
+       * really need it when doing targetless IK will require more information
+       * to be passed to this function.
        *
        * TODO: get the needed information and make this more precise. */
-      rna_paths.append_non_duplicates({"location"});
+      if (!is_connected) {
+        rna_paths.append_non_duplicates({"location"});
+      }
       if (targetless_ik) {
         rna_paths.append({rotation_path});
       }
@@ -1354,10 +1361,13 @@ static void autokeyframe_pose(bContext *C,
         eRotationModes(pchan->rotmode));
 
     if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+      const bool is_connected = pchan->bone->parent != nullptr &&
+                                (pchan->bone->flag & BONE_CONNECTED);
       rna_paths = get_affected_rna_paths_from_transform_mode(tmode,
                                                              scene->toolsettings,
                                                              rotation_path,
                                                              targetless_ik,
+                                                             is_connected,
                                                              transforming_more_than_one_bone);
     }
     else {
