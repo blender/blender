@@ -1698,19 +1698,6 @@ static int sequencer_delete_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return sequencer_delete_exec(C, op);
 }
 
-static bool sequencer_delete_poll_property(const bContext * /* C */,
-                                           wmOperator * /*op*/,
-                                           const PropertyRNA *prop)
-{
-  const char *prop_id = RNA_property_identifier(prop);
-
-  if (STREQ(prop_id, "delete_data")) {
-    return false;
-  }
-
-  return true;
-}
-
 void SEQUENCER_OT_delete(wmOperatorType *ot)
 {
 
@@ -1723,7 +1710,6 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
   ot->invoke = sequencer_delete_invoke;
   ot->exec = sequencer_delete_exec;
   ot->poll = sequencer_edit_poll;
-  ot->poll_property = sequencer_delete_poll_property;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
