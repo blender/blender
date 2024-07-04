@@ -853,6 +853,12 @@ typedef enum eDopeSheet_FilterFlag {
   /** for 'DopeSheet' Editors - include 'summary' line */
   ADS_FILTER_SUMMARY = (1 << 4),
 
+  /**
+   * Show all Action bindings; if not set, only show the Binding of the
+   * data-block that's being animated by the Action.
+   */
+  ADS_FILTER_ALL_BINDINGS = (1 << 5),
+
   /* datatype-based filtering */
   ADS_FILTER_NOSHAPEKEYS = (1 << 6),
   ADS_FILTER_NOMESH = (1 << 7),
@@ -940,8 +946,11 @@ typedef struct SpaceAction {
   /** Copied to region. */
   View2D v2d DNA_DEPRECATED;
 
-  /** The currently active action. */
+  /** The currently active action and its binding. */
   bAction *action;
+  int32_t action_binding_handle;
+  char _pad2[4];
+
   /** The currently active context (when not showing action). */
   bDopeSheet ads;
 
@@ -1142,8 +1151,11 @@ typedef struct ActionBinding {
    */
   int32_t handle;
 
+  /** \see #blender::animrig::Binding::flags() */
+  int8_t binding_flags;
+  uint8_t _pad1[3];
+
   /** Runtime data. Set to nullptr when writing to disk. */
-  uint8_t _pad1[4];
   ActionBindingRuntimeHandle *runtime;
 
 #ifdef __cplusplus
@@ -1222,4 +1234,6 @@ static_assert(
     std::is_same_v<decltype(ActionBinding::handle), decltype(bAction::last_binding_handle)>);
 static_assert(
     std::is_same_v<decltype(ActionBinding::handle), decltype(ActionChannelBag::binding_handle)>);
+static_assert(
+    std::is_same_v<decltype(ActionBinding::handle), decltype(SpaceAction::action_binding_handle)>);
 #endif

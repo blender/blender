@@ -28,7 +28,13 @@
 
 #include "ED_anim_api.hh"
 
+#include "ANIM_action.hh"
+
+#include "fmt/format.h"
+
 #include <cstring>
+
+struct StructRNA;
 
 /* ----------------------- Getter functions ----------------------- */
 
@@ -39,6 +45,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
   /* Handle some nullptr cases. */
   if (name == nullptr) {
+    /* A 'get name' function should be able to get the name, otherwise it's a bug. */
+    BLI_assert_unreachable();
     return 0;
   }
   if (fcu == nullptr) {
@@ -196,6 +204,79 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
   /* Use the property's owner struct icon. */
   return RNA_struct_ui_icon(ptr.type);
+}
+
+std::string getname_anim_fcurve_bound(Main &bmain,
+                                      const blender::animrig::Binding &binding,
+                                      FCurve &fcurve)
+{
+  /* TODO: Refactor to avoid this variable. */
+  constexpr size_t name_maxncpy = 256;
+  char name_buffer[name_maxncpy];
+  name_buffer[0] = '\0';
+
+  /* Check the Binding's users to see if we can find an ID* that can resolve the F-Curve. */
+  for (ID *user : binding.users(bmain)) {
+    const int icon = getname_anim_fcurve(name_buffer, user, &fcurve);
+    if (icon) {
+      /* Managed to find a name! */
+      return name_buffer;
+    }
+  }
+
+  if (!binding.users(bmain).is_empty()) {
+    /* This binding is assigned to at least one ID, and still the property it animates could not be
+     * found. There is no use in continuing. */
+    fcurve.flag |= FCURVE_DISABLED;
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+  }
+
+  /* If this part of the code is hit, the binding is not assigned to anything. The remainder of
+   * this function is all a best-effort attempt. Because of that, it will not set the
+   * FCURVE_DISABLED flag on the F-Curve, as having unassigned animation data is not an error (and
+   * that flag indicates an error). */
+
+  /* Fall back to the ID type of the binding for simple properties. */
+  if (!binding.has_idtype()) {
+    /* The Binding has never been assigned to any ID, so we don't even know what type of ID it is
+     * meant for. */
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+  }
+
+  if (blender::StringRef(fcurve.rna_path).find(".") != blender::StringRef::not_found) {
+    /* Not a simple property, so bail out. This needs path resolution, which needs an ID*. */
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+  }
+
+  /* Find the StructRNA for this Binding's ID type. */
+  StructRNA *srna = ID_code_to_RNA_type(binding.idtype);
+  if (!srna) {
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+  }
+
+  /* Find the property. */
+  PropertyRNA *prop = RNA_struct_type_find_property(srna, fcurve.rna_path);
+  if (!prop) {
+    return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
+  }
+
+  /* Property Name is straightforward */
+  const char *propname = RNA_property_ui_name(prop);
+
+  /* Array Index - only if applicable */
+  if (!RNA_property_array_check(prop)) {
+    return propname;
+  }
+
+  std::string arrayname = "";
+  char c = RNA_property_array_item_char(prop, fcurve.array_index);
+  if (c) {
+    arrayname = std::string(1, c);
+  }
+  else {
+    arrayname = fmt::format("[{}]", fcurve.array_index);
+  }
+  return arrayname + " " + propname;
 }
 
 /* ------------------------------- Color Codes for F-Curve Channels ---------------------------- */

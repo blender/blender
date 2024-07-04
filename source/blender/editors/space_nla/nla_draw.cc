@@ -917,6 +917,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
         case ANIMTYPE_NLACONTROLS:
         case ANIMTYPE_NLACURVE:
         case ANIMTYPE_FILLACT_LAYERED:
+        case ANIMTYPE_ACTION_BINDING:
         case ANIMTYPE_FILLACTD:
         case ANIMTYPE_FILLDRIVERS:
         case ANIMTYPE_DSMAT:

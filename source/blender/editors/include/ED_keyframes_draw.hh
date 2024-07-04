@@ -79,6 +79,14 @@ void ED_add_action_layered_channel(ChannelDrawList *channel_list,
                                    const float ypos,
                                    const float yscale_fac,
                                    int saction_flag);
+/* Action Binding summary. */
+void ED_add_action_binding_channel(ChannelDrawList *channel_list,
+                                   AnimData *adt,
+                                   blender::animrig::Action &action,
+                                   blender::animrig::Binding &binding,
+                                   float ypos,
+                                   float yscale_fac,
+                                   int saction_flag);
 /* Legacy Action Summary */
 void ED_add_action_channel(ChannelDrawList *draw_list,
                            AnimData *adt,

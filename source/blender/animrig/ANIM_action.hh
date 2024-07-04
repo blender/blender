@@ -131,6 +131,14 @@ class Action : public ::bAction {
   const Binding *binding(int64_t index) const;
   Binding *binding(int64_t index);
 
+  /**
+   * Return the Binding with the given handle.
+   *
+   * \param handle can be `Binding::unassigned`, in which case `nullptr` is returned.
+   *
+   * \return `nullptr` when the binding cannot be found, so either the handle was
+   * `Binding::unassigned` or some value that does not match any Binding in this Action.
+   */
   Binding *binding_for_handle(binding_handle_t handle);
   const Binding *binding_for_handle(binding_handle_t handle) const;
 
@@ -504,6 +512,21 @@ class Binding : public ::ActionBinding {
   /** Return whether this Binding has an `idtype` set. */
   bool has_idtype() const;
 
+  /* Flags access. */
+  enum class Flags : uint8_t {
+    /** Expanded/collapsed in animation editors. */
+    Expanded = (1 << 0),
+    /** Selected in animation editors. */
+    Selected = (1 << 1),
+    /* When adding/removing a flag, also update the ENUM_OPERATORS() invocation,
+     * all the way below the Binding class. */
+  };
+  Flags flags() const;
+  bool is_expanded() const;
+  void set_expanded(bool expanded);
+  bool is_selected() const;
+  void set_selected(bool selected);
+
   /** Return the set of IDs that are animated by this Binding. */
   Span<ID *> users(Main &bmain) const;
 
@@ -559,6 +582,7 @@ class Binding : public ::ActionBinding {
 };
 static_assert(sizeof(Binding) == sizeof(::ActionBinding),
               "DNA struct and its C++ wrapper must have the same size");
+ENUM_OPERATORS(Binding::Flags, Binding::Flags::Selected);
 
 /**
  * KeyframeStrips effectively contain a bag of F-Curves for each Binding.
@@ -701,6 +725,17 @@ void unassign_binding(ID &animated_id);
  * Return the Animation of this ID, or nullptr if it has none.
  */
 Action *get_animation(ID &animated_id);
+
+/**
+ * Get the Action and the Binding that animate this ID.
+ *
+ * \return One of two options:
+ *  - pair<Action, Binding> when an Action and a Binding are assigned. In other
+ *    words, when this ID is actually animated by this Action+Binding pair.
+ *  - nullopt: when this ID is not animated. This can have several causes: not
+ *    an animatable type, no Action assigned, or no Binding assigned.
+ */
+std::optional<std::pair<Action *, Binding *>> get_action_binding_pair(ID &animated_id);
 
 /**
  * Get the Action and the Binding that animate this ID.

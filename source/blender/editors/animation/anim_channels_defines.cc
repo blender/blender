@@ -232,20 +232,17 @@ static short acf_generic_indentation_2(bAnimContext *ac, bAnimListElem *ale)
 /* indentation which varies with the grouping status */
 static short acf_generic_indentation_flexible(bAnimContext * /*ac*/, bAnimListElem *ale)
 {
-  short indent = 0;
-
-  /* grouped F-Curves need extra level of indentation */
-  if (ale->type == ANIMTYPE_FCURVE) {
-    FCurve *fcu = (FCurve *)ale->data;
-
-    /* TODO: we need some way of specifying that the indentation color should be one less. */
-    if (fcu->grp) {
-      indent++;
-    }
+  if (ale->type != ANIMTYPE_FCURVE) {
+    return 0;
   }
 
-  /* no indentation */
-  return indent;
+  /* Grouped F-Curves need extra level of indentation. */
+  const FCurve *fcu = static_cast<const FCurve *>(ale->data);
+  if (fcu->grp) {
+    return 1;
+  }
+
+  return 0;
 }
 
 /* basic offset for channels derived from indentation */
@@ -297,10 +294,9 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
     /* materials and particles animdata */
     else if (ELEM(GS(ale->id->name), ID_MA, ID_PA)) {
       offset += short(0.7f * U.widget_unit);
-
-      /* If not in Action Editor mode, action-groups (and their children)
-       * must carry some offset too. */
     }
+    /* If not in Action Editor mode, action-groups (and their children)
+     * must carry some offset too. */
     else if (ac->datatype != ANIMCONT_ACTION) {
       offset += short(0.7f * U.widget_unit);
     }
@@ -975,7 +971,35 @@ static bAnimChannelType ACF_GROUP = {
 /* name for fcurve entries */
 static void acf_fcurve_name(bAnimListElem *ale, char *name)
 {
-  getname_anim_fcurve(name, ale->id, static_cast<FCurve *>(ale->data));
+  using namespace blender::animrig;
+
+  FCurve *fcurve = static_cast<FCurve *>(ale->data);
+
+  if (ale->fcurve_owner_id && GS(ale->fcurve_owner_id->name) == ID_AC &&
+      ale->binding_handle != Binding::unassigned)
+  {
+    /* F-Curve comes from a layered Action. This means that we cannot trust `ale->id` or
+     * `ale->adt`, because in the Action Editor those are set to whatever object has this Action
+     * assigned. This F-Curve may be for a different binding, though, and thus might be animating a
+     * entirely different ID type. */
+    const Action &action = reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+    const Binding *binding = action.binding_for_handle(ale->binding_handle);
+    if (!binding) {
+      /* Defer to the default F-Curve resolution, but without the animated ID
+       * pointer, as it's likely to be wrong anyway. */
+      getname_anim_fcurve(name, nullptr, fcurve);
+      return;
+    }
+
+    BLI_assert(ale->bmain);
+    const std::string fcurve_name = getname_anim_fcurve_bound(*ale->bmain, *binding, *fcurve);
+    const size_t num_chars_copied = fcurve_name.copy(name, std::string::npos);
+    name[num_chars_copied] = '\0';
+
+    return;
+  }
+
+  getname_anim_fcurve(name, ale->id, fcurve);
 }
 
 /* "name" property for fcurve entries */
@@ -1335,7 +1359,94 @@ static bAnimChannelType ACF_FILLANIM = {
     /*setting_ptr*/ acf_fillanim_setting_ptr,
 };
 
-#endif
+static void acf_action_binding_name(bAnimListElem *ale, char *r_name)
+{
+  const animrig::Binding *binding = static_cast<animrig::Binding *>(ale->data);
+  if (!binding) {
+    /* Trying to getting the binding's name without a binding is a bug. */
+    BLI_assert_unreachable();
+    BLI_strncpy(r_name, "-nil-", ANIM_CHAN_NAME_SIZE);
+    return;
+  }
+
+  BLI_strncpy(r_name, binding->name_without_prefix().c_str(), ANIM_CHAN_NAME_SIZE);
+}
+static bool acf_action_binding_name_prop(bAnimListElem *ale,
+                                         PointerRNA *r_ptr,
+                                         PropertyRNA **r_prop)
+{
+  animrig::Binding *binding = static_cast<animrig::Binding *>(ale->data);
+  BLI_assert(GS(ale->fcurve_owner_id->name) == ID_AC);
+
+  *r_ptr = RNA_pointer_create(ale->fcurve_owner_id, &RNA_ActionBinding, binding);
+  *r_prop = RNA_struct_find_property(r_ptr, "name_display");
+
+  return (*r_prop != nullptr);
+}
+
+static int acf_action_binding_icon(bAnimListElem *ale)
+{
+  animrig::Binding *binding = static_cast<animrig::Binding *>(ale->data);
+  return UI_icon_from_idcode(binding->idtype);
+}
+
+static bool acf_action_binding_setting_valid(bAnimContext * /*ac*/,
+                                             bAnimListElem * /*ale*/,
+                                             const eAnimChannel_Settings setting)
+{
+  switch (setting) {
+    case ACHANNEL_SETTING_SELECT:
+    case ACHANNEL_SETTING_EXPAND:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+static int acf_action_binding_setting_flag(bAnimContext * /*ac*/,
+                                           eAnimChannel_Settings setting,
+                                           bool *r_neg)
+{
+  *r_neg = false;
+
+  switch (setting) {
+    case ACHANNEL_SETTING_SELECT:
+      return int(animrig::Binding::Flags::Selected);
+    case ACHANNEL_SETTING_EXPAND:
+      return int(animrig::Binding::Flags::Expanded);
+    default:
+      return 0;
+  }
+}
+static void *acf_action_binding_setting_ptr(bAnimListElem *ale,
+                                            eAnimChannel_Settings /*setting*/,
+                                            short *r_type)
+{
+  animrig::Binding *binding = static_cast<animrig::Binding *>(ale->data);
+  return GET_ACF_FLAG_PTR(binding->binding_flags, r_type);
+}
+
+static bAnimChannelType ACF_ACTION_BINDING = {
+    /*channel_type_name*/ "Action Binding",
+    /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
+
+    /*get_backdrop_color*/ acf_generic_dataexpand_color,
+    /*get_channel_color*/ nullptr,
+    /*draw_backdrop*/ nullptr,
+    /*get_indent_level*/ acf_generic_indentation_0,
+    /*get_offset*/ acf_generic_group_offset,
+
+    /*name*/ acf_action_binding_name,
+    /*name_prop*/ acf_action_binding_name_prop,
+    /*icon*/ acf_action_binding_icon,
+
+    /*has_setting*/ acf_action_binding_setting_valid,
+    /*setting_flag*/ acf_action_binding_setting_flag,
+    /*setting_ptr*/ acf_action_binding_setting_ptr,
+};
+
+#endif  // WITH_ANIM_BAKLAVA
 
 /* Object Action Expander  ------------------------------------------- */
 
@@ -4379,8 +4490,10 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_NLACURVE;    /* NLA Control FCurve Channel */
 
 #ifdef WITH_ANIM_BAKLAVA
-    animchannelTypeInfo[type++] = &ACF_FILLANIM; /* Object's Layered Action Expander */
+    animchannelTypeInfo[type++] = &ACF_FILLANIM;       /* Object's Layered Action Expander */
+    animchannelTypeInfo[type++] = &ACF_ACTION_BINDING; /* Action Binding Expander */
 #else
+    animchannelTypeInfo[type++] = nullptr;
     animchannelTypeInfo[type++] = nullptr;
 #endif
     animchannelTypeInfo[type++] = &ACF_FILLACTD;    /* Object Action Expander */
@@ -4426,6 +4539,8 @@ static void ANIM_init_channel_typeinfo_data()
 #ifdef WITH_ANIM_BAKLAVA
     BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_FILLACT_LAYERED] == &ACF_FILLANIM,
                    "ANIMTYPE_FILLACT_LAYERED does not match ACF_FILLANIM");
+    BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_ACTION_BINDING] == &ACF_ACTION_BINDING,
+                   "ANIMTYPE_ACTION_BINDING does not match ACF_ACTION_BINDING");
 #endif
   }
 }

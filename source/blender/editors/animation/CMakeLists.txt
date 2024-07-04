@@ -66,6 +66,7 @@ add_dependencies(bf_editor_animation bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_SRC
+    anim_filter_test.cc
     keyframes_keylist_test.cc
   )
   set(TEST_INC

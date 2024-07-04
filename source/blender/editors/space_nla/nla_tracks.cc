@@ -264,7 +264,8 @@ static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, shor
       break;
     }
     case ANIMTYPE_FILLACT_LAYERED:
-      /* The NLA doesn't support Animation data-blocks. */
+    case ANIMTYPE_ACTION_BINDING:
+      /* The NLA doesn't support layered Actions. */
       break;
     default:
       if (G.debug & G_DEBUG) {
