@@ -1501,9 +1501,6 @@ static void grease_pencil_eraser_draw(PaintCursorContext *pcontext)
 static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
 {
   using namespace blender;
-  if ((pcontext->region) && (pcontext->region->regiontype != RGN_TYPE_WINDOW)) {
-    return;
-  }
   if (pcontext->region && !BLI_rcti_isect_pt(&pcontext->region->winrct, pcontext->x, pcontext->y))
   {
     return;
@@ -1518,10 +1515,6 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
   Paint *paint = pcontext->paint;
   Brush *brush = pcontext->brush;
   if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
-    return;
-  }
-
-  if ((paint->flags & PAINT_SHOW_BRUSH) == 0) {
     return;
   }
 

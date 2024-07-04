@@ -1997,6 +1997,7 @@ class _defs_grease_pencil_paint:
             label="Draw",
             icon="brush.gpencil_draw.draw",
             data_block='DRAW',
+            cursor='DOT',
         )
 
     @ToolDef.from_fn
