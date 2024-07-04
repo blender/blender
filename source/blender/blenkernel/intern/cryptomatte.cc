@@ -174,12 +174,6 @@ CryptomatteSession *BKE_cryptomatte_init()
   return session;
 }
 
-CryptomatteSession *BKE_cryptomatte_init_from_main(const Main *bmain)
-{
-  CryptomatteSession *session = new CryptomatteSession(bmain);
-  return session;
-}
-
 CryptomatteSession *BKE_cryptomatte_init_from_render_result(const RenderResult *render_result)
 {
   CryptomatteSession *session = new CryptomatteSession(render_result->stamp_data);
