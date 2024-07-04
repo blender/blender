@@ -738,17 +738,6 @@ Action *get_animation(ID &animated_id);
 std::optional<std::pair<Action *, Binding *>> get_action_binding_pair(ID &animated_id);
 
 /**
- * Get the Action and the Binding that animate this ID.
- *
- * \return One of two options:
- *  - pair<Action, Binding> when an Action and a Binding are assigned. In other
- *    words, when this ID is actually animated by this Action+Binding pair.
- *  - nullopt: when this ID is not animated. This can have several causes: not
- *    an animatable type, no Action assigned, or no Binding assigned.
- */
-std::optional<std::pair<Action *, Binding *>> get_action_binding_pair(ID &animated_id);
-
-/**
  * Return the F-Curves for this specific binding handle.
  *
  * This is just a utility function, that's intended to become obsolete when multi-layer animation
