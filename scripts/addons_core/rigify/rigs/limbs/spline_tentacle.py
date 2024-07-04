@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
+from bpy.app.translations import pgettext_iface as iface_
 
 import re
 import itertools
@@ -1120,9 +1121,14 @@ def add_spline_snap_ik_to_fk(panel: 'PanelLayout', *,
         'use_stretch': use_stretch,
     }
 
+    text = iface_("IK->FK ({:s})").format(rig_name)
     panel.operator(
-        'pose.rigify_spline_tentacle_ik2fk_{rig_id}',
-        text=f'IK->FK ({rig_name})', icon='SNAP_ON', properties=op_props)
+        f"pose.rigify_spline_tentacle_ik2fk_{rig_id}",
+        text=text,
+        translate=False,
+        icon='SNAP_ON',
+        properties=op_props
+    )
 
 
 SCRIPT_REGISTER_OP_TOGGLE_CONTROLS = ['POSE_OT_rigify_spline_tentacle_toggle_control']

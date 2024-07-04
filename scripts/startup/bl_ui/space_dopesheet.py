@@ -590,7 +590,7 @@ class DopesheetActionPanelBase:
 
     @classmethod
     def draw_generic_panel(cls, _context, layout, action):
-        layout.label(text=action.name, icon='ACTION')
+        layout.label(text=action.name, icon='ACTION', translate=False)
 
         layout.prop(action, "use_frame_range")
 

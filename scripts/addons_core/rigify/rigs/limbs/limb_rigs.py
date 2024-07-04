@@ -985,7 +985,7 @@ class BaseLimbRig(BaseRig):
         ControlLayersOption.TWEAK.add_parameters(params)
 
     @classmethod
-    def parameters_ui(cls, layout, params, end='End'):
+    def parameters_ui(cls, layout, params, end="End"):
         """ Create the ui for the rig parameters."""
 
         r = layout.row()
@@ -993,7 +993,12 @@ class BaseLimbRig(BaseRig):
 
         if 'auto' not in params.rotation_axis.lower():
             r = layout.row()
-            r.prop(params, "auto_align_extremity", text="Auto Align " + end)
+            # Not a great translation but other "end" types can be specified.
+            if end == "End":
+                text = iface_("Auto Align End")
+            else:
+                text = iface_("Auto Align {:s}").format(end)
+            r.prop(params, "auto_align_extremity", text=text, translate=False)
 
         r = layout.row()
         r.prop(params, "segments")

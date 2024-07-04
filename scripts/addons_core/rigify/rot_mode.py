@@ -200,7 +200,7 @@ class POSE_OT_convert_rotation(bpy.types.Operator):
         default='SELECT',
     )
     affected_actions: EnumProperty(
-        name="Affected Action",
+        name="Affected Actions",
         items=[
             ('SINGLE', 'Single', 'Single'),
             ('ALL', 'All', 'All'),

@@ -313,11 +313,11 @@ def check_feature_set_error(_feature_set: RigifyFeatureSets, info: dict, layout:
             split.label(text="Error:")
             sub = split.row()
             sub.alert = True
-            sub.label(
-                text=iface_("This feature set requires Blender %s or newer to work properly."
-                            ) % ".".join(str(x) for x in info['blender']),
-                icon='ERROR', translate=False
+            text = (
+                iface_("This feature set requires Blender {:s} or newer to work properly.")
+                .format(".".join(str(x) for x in info['blender']))
             )
+            sub.label(icon='ERROR', text=text, translate=False)
 
     for dep_link in info.get("dependencies", []):
         if not feature_set_list.get_module_by_link_safe(dep_link):
@@ -377,7 +377,7 @@ def draw_feature_set_prefs(layout: bpy.types.UILayout, _context: bpy.types.Conte
     if 'author' in info:
         split = col.row().split(factor=split_factor)
         split.label(text="Author:")
-        split.label(text=info["author"])
+        split.label(text=info["author"], translate=False)
 
     if 'version' in info:
         split = col.row().split(factor=split_factor)
@@ -425,21 +425,21 @@ class RigifyColorSet(bpy.types.PropertyGroup):
         subtype='COLOR',
         default=(1.0, 1.0, 1.0),
         min=0.0, max=1.0,
-        description="color picker"
+        description="Color picker"
     )
     normal: FloatVectorProperty(
         name="object_color",
         subtype='COLOR',
         default=(1.0, 1.0, 1.0),
         min=0.0, max=1.0,
-        description="color picker"
+        description="Color picker"
     )
     select: FloatVectorProperty(
         name="object_color",
         subtype='COLOR',
         default=(1.0, 1.0, 1.0),
         min=0.0, max=1.0,
-        description="color picker"
+        description="Color picker"
     )
     standard_colors_lock: BoolProperty(default=True)
 
