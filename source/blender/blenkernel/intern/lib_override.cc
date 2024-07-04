@@ -2273,23 +2273,8 @@ static bool lib_override_library_resync(Main *bmain,
           /* We have an override, but now it does not seem to be necessary to override that ID
            * anymore. Check if there are some actual overrides from the user, otherwise assume
            * that we can get rid of this local override. */
-          LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-            if (!ELEM(op->rna_prop_type, PROP_POINTER, PROP_COLLECTION)) {
-              id->override_library->reference->tag |= LIB_TAG_DOIT;
-              break;
-            }
-
-            bool do_break = false;
-            LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-              if ((opop->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
-                id->override_library->reference->tag |= LIB_TAG_DOIT;
-                do_break = true;
-                break;
-              }
-            }
-            if (do_break) {
-              break;
-            }
+          if (BKE_lib_override_library_is_user_edited(id)) {
+            id->override_library->reference->tag |= LIB_TAG_DOIT;
           }
         }
       }
