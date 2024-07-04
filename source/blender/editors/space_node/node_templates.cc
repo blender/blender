@@ -54,14 +54,23 @@ namespace blender::ed::space_node {
 
 /* describes an instance of a node type and a specific socket to link */
 struct NodeLinkItem {
-  int socket_index = -1;             /* index for linking */
-  int socket_type = SOCK_CUSTOM;     /* socket type for compatibility check */
-  const char *socket_name = nullptr; /* ui label of the socket */
-  const char *node_name = nullptr;   /* ui label of the node */
+  int socket_index;        /* index for linking */
+  int socket_type;         /* socket type for compatibility check */
+  const char *socket_name; /* ui label of the socket */
+  const char *node_name;   /* ui label of the node */
 
   /* extra settings */
-  bNodeTree *ngroup = nullptr; /* group node tree */
+  bNodeTree *ngroup; /* group node tree */
 };
+
+static void node_link_item_init(NodeLinkItem &item)
+{
+  item.socket_index = -1;
+  item.socket_type = SOCK_CUSTOM;
+  item.socket_name = nullptr;
+  item.node_name = nullptr;
+  item.ngroup = nullptr;
+}
 
 /* Compare an existing node to a link item to see if it can be reused.
  * item must be for the same node type!
@@ -348,6 +357,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       for (const int index : iosockets.index_range()) {
         bNodeTreeInterfaceSocket *iosock = iosockets[index];
         NodeLinkItem item;
+        node_link_item_init(item);
         item.socket_index = index;
         /* NOTE: int stemp->type is not fully reliable, not used for node group
          * interface sockets. use the typeinfo->type instead.
@@ -374,6 +384,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
     for (const SocketDeclaration *socket_decl_ptr : socket_decls) {
       const SocketDeclaration &socket_decl = *socket_decl_ptr;
       NodeLinkItem item;
+      node_link_item_init(item);
       item.socket_index = index++;
       item.socket_type = socket_decl.socket_type;
       item.socket_name = socket_decl.name.c_str();
@@ -390,6 +401,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
     i = 0;
     for (stemp = socket_templates; stemp && stemp->type != -1; stemp++, i++) {
       NodeLinkItem item;
+      node_link_item_init(item);
       item.socket_index = i;
       item.socket_type = stemp->type;
       item.socket_name = stemp->name;
@@ -677,10 +689,11 @@ void uiTemplateNodeLink(
   uiBut *but;
   float socket_col[4];
 
-  arg = MEM_new<NodeLinkArg>("NodeLinkArg");
+  arg = MEM_cnew<NodeLinkArg>("NodeLinkArg");
   arg->ntree = ntree;
   arg->node = node;
   arg->sock = input;
+  node_link_item_init(arg->item);
 
   PointerRNA node_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
   node_socket_color_get(*C, *ntree, node_ptr, *input, socket_col);

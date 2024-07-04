@@ -3752,7 +3752,7 @@ static void colorband_buttons_layout(uiLayout *layout,
     }
   });
 
-  RNAUpdateCb *tools_cb = MEM_new<RNAUpdateCb>(__func__, cb);
+  RNAUpdateCb *tools_cb = MEM_cnew<RNAUpdateCb>(__func__, cb);
   bt = uiDefIconBlockBut(block,
                          colorband_tools_fn,
                          tools_cb,
@@ -4730,7 +4730,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
     UI_but_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
   }
 
-  RNAUpdateCb *tools_cb = MEM_new<RNAUpdateCb>(__func__, cb);
+  RNAUpdateCb *tools_cb = MEM_cnew<RNAUpdateCb>(__func__, cb);
   if (brush && neg_slope) {
     bt = uiDefIconBlockBut(block,
                            curvemap_brush_tools_negslope_func,
@@ -5183,7 +5183,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
   /* There is probably potential to use simpler "uiItemR" functions here, but automatic updating
    * after a preset is selected would be more complicated. */
   uiLayout *row = uiLayoutRow(layout, true);
-  RNAUpdateCb *presets_cb = MEM_new<RNAUpdateCb>(__func__, cb);
+  RNAUpdateCb *presets_cb = MEM_cnew<RNAUpdateCb>(__func__, cb);
   bt = uiDefBlockBut(block,
                      curve_profile_presets_fn,
                      presets_cb,
@@ -5308,7 +5308,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
   });
 
   /* Reset view, reset curve */
-  RNAUpdateCb *tools_cb = MEM_new<RNAUpdateCb>(__func__, cb);
+  RNAUpdateCb *tools_cb = MEM_cnew<RNAUpdateCb>(__func__, cb);
   bt = uiDefIconBlockBut(block,
                          curve_profile_tools_fn,
                          tools_cb,
