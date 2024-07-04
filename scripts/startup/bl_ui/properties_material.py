@@ -57,7 +57,7 @@ class MaterialButtonsPanel:
 class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
     bl_label = "Preview"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
 
     def draw(self, context):
         self.layout.template_preview(context.material)
