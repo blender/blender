@@ -329,7 +329,7 @@ BLI_NOINLINE static void fill_factor_from_hide_and_mask(const BMesh &bm,
 
     const BMLoop *l_iter = f->l_first = BM_FACE_FIRST_LOOP(f);
     int total_verts = 0;
-    float sum;
+    float sum = 0.0f;
     do {
       BMVert *vert = l_iter->v;
       sum += BM_ELEM_CD_GET_FLOAT(vert, mask_offset);
