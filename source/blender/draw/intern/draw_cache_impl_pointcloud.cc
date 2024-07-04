@@ -183,7 +183,8 @@ void DRW_pointcloud_batch_cache_validate(PointCloud *pointcloud)
 void DRW_pointcloud_batch_cache_free(PointCloud *pointcloud)
 {
   pointcloud_batch_cache_clear(*pointcloud);
-  MEM_SAFE_FREE(pointcloud->batch_cache);
+  MEM_delete(static_cast<PointCloudBatchCache *>(pointcloud->batch_cache));
+  pointcloud->batch_cache = nullptr;
 }
 
 void DRW_pointcloud_batch_cache_free_old(PointCloud *pointcloud, int ctime)
