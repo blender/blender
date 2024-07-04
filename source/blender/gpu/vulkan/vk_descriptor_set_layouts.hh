@@ -68,6 +68,7 @@ namespace blender::gpu {
  * Registries of descriptor set layouts.
  */
 class VKDescriptorSetLayouts : NonCopyable {
+  friend class VKDevice;
 
  private:
   /**

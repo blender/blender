@@ -250,6 +250,7 @@ class VKDevice : public NonCopyable {
   void destroy_discarded_resources();
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
+  void debug_print();
 
   /** \} */
 
