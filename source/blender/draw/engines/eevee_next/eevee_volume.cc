@@ -77,6 +77,8 @@ void VolumeModule::world_sync(const WorldHandle &world_handle)
 
 void VolumeModule::object_sync(const ObjectHandle &ob_handle)
 {
+  current_objects_.add(ob_handle.object_key);
+
   if (!use_reprojection_) {
     return;
   }
@@ -84,12 +86,11 @@ void VolumeModule::object_sync(const ObjectHandle &ob_handle)
   if (ob_handle.recalc && !inst_.is_playback()) {
     valid_history_ = false;
   }
-  current_objects_.add(ob_handle.object_key);
 }
 
 void VolumeModule::end_sync()
 {
-  enabled_ = inst_.world.has_volume() || inst_.pipelines.volume.is_enabled();
+  enabled_ = inst_.world.has_volume() || !current_objects_.is_empty();
 
   const Scene *scene_eval = inst_.scene;
 
@@ -405,7 +406,7 @@ void VolumeModule::draw_prepass(View &main_view)
    * We need custom culling for these but that's not implemented yet. */
   volume_view.visibility_test(false);
 
-  if (inst_.pipelines.volume.is_enabled()) {
+  if (!current_objects_.is_empty()) {
     inst_.pipelines.volume.render(volume_view, occupancy_tx_);
   }
   DRW_stats_group_end();

@@ -1099,7 +1099,6 @@ void VolumeLayer::render(View &view, Texture &occupancy_tx)
 void VolumePipeline::sync()
 {
   object_integration_range_ = std::nullopt;
-  enabled_ = false;
   has_scatter_ = false;
   has_absorption_ = false;
   for (auto &layer : layers_) {
@@ -1109,8 +1108,6 @@ void VolumePipeline::sync()
 
 void VolumePipeline::render(View &view, Texture &occupancy_tx)
 {
-  BLI_assert_msg(enabled_, "Trying to run the volume object pipeline with no actual volume calls");
-
   for (auto &layer : layers_) {
     layer->render(view, occupancy_tx);
   }
@@ -1156,7 +1153,6 @@ VolumeLayer *VolumePipeline::register_and_get_layer(Object *ob)
   VolumeObjectBounds object_bounds(inst_.camera, ob);
   object_integration_range_ = bounds::merge(object_integration_range_, object_bounds.z_range);
 
-  enabled_ = true;
   /* Do linear search in all layers in order. This can be optimized. */
   for (auto &layer : layers_) {
     if (!layer->bounds_overlaps(object_bounds)) {
