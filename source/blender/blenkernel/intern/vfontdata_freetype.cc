@@ -93,7 +93,10 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
   }
 
   if (font_id == -1) {
-    return nullptr;
+    /* This could happen for a saved file with an unpacked local font that was
+     * later removed. Load the default UI font so we can still show _something_. */
+    font_id = BLF_load_mem(
+        vfont->data->name, static_cast<const uchar *>(builtin_font_data), builtin_font_size);
   }
 
   VChar *che = (VChar *)MEM_callocN(sizeof(VChar), "objfnt_char");
