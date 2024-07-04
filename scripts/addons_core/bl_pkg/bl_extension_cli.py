@@ -834,6 +834,12 @@ def cli_extension_args_extra(subparsers: "argparse._SubParsersAction[argparse.Ar
 
 def cli_extension_handler(args: List[str]) -> int:
     from .cli import blender_ext
+
+    # Override the default valid tags with a file which Blender includes.
+    blender_ext.ARG_DEFAULTS_OVERRIDE.build_valid_tags = os.path.join(
+        os.path.dirname(__file__), "..", "..", "modules", "_bpy_internal", "extensions", "tags.py",
+    )
+
     result = blender_ext.main(
         args,
         args_internal=False,
