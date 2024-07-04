@@ -28,7 +28,8 @@ class VKStateManager : public StateManager {
   uint texture_unpack_row_length_ = 0;
 
   VKBindSpace<shader::ShaderCreateInfo::Resource::BindType::SAMPLER> textures_;
-  VKBindSpace<shader::ShaderCreateInfo::Resource::BindType::IMAGE> images_;
+  VKBindSpace<shader::ShaderCreateInfo::Resource::BindType::IMAGE, BIND_SPACE_IMAGE_OFFSET>
+      images_;
   VKBindSpace<shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER> uniform_buffers_;
   VKBindSpace<shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER> storage_buffers_;
 

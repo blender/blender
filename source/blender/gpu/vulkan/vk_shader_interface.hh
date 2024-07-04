@@ -34,15 +34,6 @@ class VKShaderInterface : public ShaderInterface {
   shader::BuiltinBits shader_builtins_;
 
  public:
-  /**
-   * Offset when searching for a shader input based on a binding number.
-   *
-   * When shaders combine images and samplers, the images have to be offset to find the correct
-   * shader input. Both textures and images are stored in the uniform list and their ID can be
-   * overlapping.
-   */
-  static constexpr uint32_t image_offset = 512;
-
   VKShaderInterface() = default;
 
   void init(const shader::ShaderCreateInfo &info);

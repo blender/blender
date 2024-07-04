@@ -86,10 +86,21 @@ class VKBindableResource {
 };
 
 /**
+ * Offset when searching for bindings.
+ *
+ * When shaders combine images and samplers, the images have to be offset to find the correct
+ * shader input. Both textures and images are stored in the uniform list and their ID can be
+ * overlapping.
+ */
+static constexpr int BIND_SPACE_IMAGE_OFFSET = 512;
+
+/**
  * Blender binds resources at context level (VKStateManager). The bindings are organized in
  * namespaces.
  */
-template<shader::ShaderCreateInfo::Resource::BindType BindType> class VKBindSpace {
+template<shader::ShaderCreateInfo::Resource::BindType BindType, int BindOffset = 0>
+class VKBindSpace {
+  static constexpr int offset = BindOffset;
   class ResourceBinding {
    public:
     int binding;
@@ -103,10 +114,11 @@ template<shader::ShaderCreateInfo::Resource::BindType BindType> class VKBindSpac
   /**
    * Register a binding to this namespace.
    */
-  void bind(int binding,
+  void bind(int binding_,
             VKBindableResource &resource,
             const GPUSamplerState sampler_state = GPUSamplerState::default_sampler())
   {
+    int binding = binding_ >= offset ? binding_ : binding_ + offset;
     for (ResourceBinding &bind : bindings_) {
       if (bind.binding == binding) {
         bind.resource = &resource;
