@@ -39,7 +39,6 @@
 
 #include "BKE_anim_path.h"
 #include "BKE_bpath.hh"
-#include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
@@ -47,7 +46,6 @@
 #include "BKE_main.hh"
 #include "BKE_object_types.hh"
 #include "BKE_packedFile.h"
-#include "BKE_report.hh"
 #include "BKE_vfont.hh"
 #include "BKE_vfontdata.hh"
 
@@ -301,16 +299,6 @@ static VFontData *vfont_get_data(VFont *vfont)
       }
       if (!pf) {
         CLOG_WARN(&LOG, "Font file doesn't exist: %s", vfont->filepath);
-
-        if (!G.background) {
-          bContext *C_temp = CTX_create();
-          wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-          if (wm) {
-            CTX_wm_manager_set(C_temp, wm);
-            BKE_reportf(CTX_wm_reports(C_temp), RPT_ERROR, "Missing font: %s", vfont->filepath);
-          }
-          CTX_free(C_temp);
-        }
 
         /* DON'T DO THIS
          * missing file shouldn't modify path! - campbell */
