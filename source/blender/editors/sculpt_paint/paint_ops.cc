@@ -268,14 +268,16 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  const bool is_gpencil = (brush && brush->gpencil_settings != nullptr);
-  // Object *ob = CTX_data_active_object(C);
   float scalar = RNA_float_get(op->ptr, "scalar");
 
+  /* Grease Pencil brushes in Paint mode do not use unified size. */
+  const bool use_unified_size = !(brush && brush->gpencil_settings &&
+                                  brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY);
+
   if (brush) {
-    /* pixel radius */
+    /* Pixel radius. */
     {
-      const int old_size = (!is_gpencil) ? BKE_brush_size_get(scene, brush) : brush->size;
+      const int old_size = (use_unified_size) ? BKE_brush_size_get(scene, brush) : brush->size;
       int size = int(scalar * old_size);
 
       if (abs(old_size - size) < U.pixelsize) {
@@ -286,25 +288,31 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
           size -= U.pixelsize;
         }
       }
-      /* Grease Pencil does not use unified size. */
-      if (is_gpencil) {
-        brush->size = max_ii(size, 1);
-        WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
-        return OPERATOR_FINISHED;
-      }
 
-      BKE_brush_size_set(scene, brush, size);
+      if (use_unified_size) {
+        BKE_brush_size_set(scene, brush, size);
+      }
+      else {
+        brush->size = max_ii(size, 1);
+      }
     }
 
-    /* unprojected radius */
+    /* Unprojected radius. */
     {
-      float unprojected_radius = scalar * BKE_brush_unprojected_radius_get(scene, brush);
+      float unprojected_radius = scalar * (use_unified_size ?
+                                               BKE_brush_unprojected_radius_get(scene, brush) :
+                                               brush->unprojected_radius);
 
       if (unprojected_radius < 0.001f) { /* XXX magic number */
         unprojected_radius = 0.001f;
       }
 
-      BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius);
+      if (use_unified_size) {
+        BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius);
+      }
+      else {
+        brush->unprojected_radius = unprojected_radius;
+      }
     }
 
     WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
