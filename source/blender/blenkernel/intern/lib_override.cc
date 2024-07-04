@@ -2315,21 +2315,24 @@ static bool lib_override_library_resync(Main *bmain,
 
   ListBase *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
-    FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
-      if ((id->tag & LIB_TAG_DOIT) == 0 || id->newid == nullptr ||
-          id->lib != id_root_reference->lib)
+    ID *id_reference_iter;
+    FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_reference_iter) {
+      if ((id_reference_iter->tag & LIB_TAG_DOIT) == 0 || id_reference_iter->newid == nullptr ||
+          id_reference_iter->lib != id_root_reference->lib)
       {
         continue;
       }
-      ID *id_override_new = id->newid;
-      ID *id_override_old = static_cast<ID *>(BLI_ghash_lookup(linkedref_to_old_override, id));
+      ID *id_override_new = id_reference_iter->newid;
+      ID *id_override_old = static_cast<ID *>(
+          BLI_ghash_lookup(linkedref_to_old_override, id_reference_iter));
 
       BLI_assert((id_override_new->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) == 0);
 
       /* We need to 'move back' newly created override into its proper library (since it was
        * duplicated from the reference ID with 'no main' option, it should currently be the same
        * as the reference ID one). */
-      BLI_assert(/*!ID_IS_LINKED(id_override_new) || */ id_override_new->lib == id->lib);
+      BLI_assert(/*!ID_IS_LINKED(id_override_new) || */ id_override_new->lib ==
+                 id_reference_iter->lib);
       BLI_assert(id_override_old == nullptr || id_override_old->lib == id_root->lib);
       id_override_new->lib = id_root->lib;
 
@@ -2343,7 +2346,7 @@ static bool lib_override_library_resync(Main *bmain,
                                                                               id_override_new);
         BLI_assert(id_override_old == nullptr || id_override_old->lib == id_override_new->lib);
         if (id_override_old != nullptr) {
-          BLI_ghash_insert(linkedref_to_old_override, id, id_override_old);
+          BLI_ghash_insert(linkedref_to_old_override, id_reference_iter, id_override_old);
           CLOG_INFO(&LOG_RESYNC,
                     2,
                     "Found missing linked old override best-match %s for new linked override %s",
