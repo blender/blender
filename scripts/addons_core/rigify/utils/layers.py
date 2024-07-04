@@ -189,7 +189,9 @@ def validate_collection_references(obj: ArmatureObject):
                     refs[ref_coll.name].append(item)
                 else:
                     stem = prop_name[:-len(REFS_LIST_SUFFIX)].replace("_", " ").title()
-                    warnings.append(rpt_("Bone {:s} has a broken reference to {:s} collection '{:s}'").format(pose_bone.name, stem, name))
+                    warnings.append(
+                        rpt_("Bone {:s} has a broken reference to {:s} collection '{:s}'").format(
+                            pose_bone.name, stem, name))
                     print(f"RIGIFY: {warnings[-1]}")
 
     # Ensure uids are unique
