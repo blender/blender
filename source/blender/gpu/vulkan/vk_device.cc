@@ -420,4 +420,26 @@ void VKDevice::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) co
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Debugging/statistics
+ * \{ */
+
+void VKDevice::debug_print()
+{
+  std::ostream &os = std::cout;
+
+  os << "Pipelines\n";
+  os << " Graphics: " << pipelines.graphic_pipelines_.size() << "\n";
+  os << " Compute: " << pipelines.compute_pipelines_.size() << "\n";
+  os << "Descriptor sets\n";
+  os << " VkDescriptorSetLayouts: " << descriptor_set_layouts_.size() << "\n";
+  os << "Discarded resources\n";
+  os << " VkImageView: " << discarded_image_views_.size() << "\n";
+  os << " VkImage: " << discarded_images_.size() << "\n";
+  os << " VkBuffer: " << discarded_buffers_.size() << "\n";
+  os << "\n";
+}
+
+/** \} */
+
 }  // namespace blender::gpu

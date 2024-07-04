@@ -6,6 +6,7 @@
 
 #include "usd.hh"
 #include "usd_asset_utils.hh"
+#include "usd_private.hh"
 #include "usd_reader_prim.hh"
 #include "usd_writer_material.hh"
 
@@ -31,8 +32,6 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
-
-#include "../hydra/image.hh"
 
 #include <string>
 
@@ -308,7 +307,7 @@ void world_material_to_dome_light(const USDExportParams &params,
 
     float fill_color[4] = {res.world_color[0], res.world_color[1], res.world_color[2], 1.0f};
 
-    std::string source_path = blender::io::hydra::cache_image_color(fill_color);
+    std::string source_path = cache_image_color(fill_color);
     const std::string base_path = stage->GetRootLayer()->GetRealPath();
 
     /* It'll be short, coming from cache_image_color. */

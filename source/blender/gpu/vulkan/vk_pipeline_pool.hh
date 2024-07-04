@@ -230,6 +230,8 @@ class VKDevice;
  * lacking.
  */
 class VKPipelinePool : public NonCopyable {
+  friend class VKDevice;
+
  public:
  private:
   Map<VKComputeInfo, VkPipeline> compute_pipelines_;

@@ -401,6 +401,34 @@ static void rna_FloatColorAttributeValue_color_srgb_set(PointerRNA *ptr, const f
   srgb_to_linearrgb_v4(col->color, values);
 }
 
+/* String Attribute */
+
+static void rna_StringAttributeValue_s_get(PointerRNA *ptr, char *value)
+{
+  const MStringProperty *mstring = static_cast<const MStringProperty *>(ptr->data);
+  const int len = std::min<int>(mstring->s_len, sizeof(mstring->s) - 1);
+  memcpy(value, mstring->s, len);
+  /* RNA accessors require this. */
+  value[len] = '\0';
+}
+
+static int rna_StringAttributeValue_s_length(PointerRNA *ptr)
+{
+  const MStringProperty *mstring = static_cast<const MStringProperty *>(ptr->data);
+  const int len = std::min<int>(mstring->s_len, sizeof(mstring->s) - 1);
+  return len;
+}
+
+static void rna_StringAttributeValue_s_set(PointerRNA *ptr, const char *value)
+{
+  /* NOTE: RNA does not support byte-strings which contain null bytes.
+   * If `PROP_BYTESTRING` supported this then a value & length could be passed in
+   * and `MStringProperty` could be set with values to include null bytes. */
+  MStringProperty *mstring = static_cast<MStringProperty *>(ptr->data);
+  mstring->s_len = BLI_strnlen(value, sizeof(MStringProperty::s));
+  memcpy(mstring->s, value, mstring->s_len);
+}
+
 /* Attribute Group */
 
 static PointerRNA rna_AttributeGroup_new(
@@ -989,8 +1017,12 @@ static void rna_def_attribute_string(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "StringAttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "MStringProperty");
   RNA_def_struct_ui_text(srna, "String Attribute Value", "String value in geometry attribute");
-  prop = RNA_def_property(srna, "value", PROP_STRING, PROP_NONE);
+  prop = RNA_def_property(srna, "value", PROP_STRING, PROP_BYTESTRING);
   RNA_def_property_string_sdna(prop, nullptr, "s");
+  RNA_def_property_string_funcs(prop,
+                                "rna_StringAttributeValue_s_get",
+                                "rna_StringAttributeValue_s_length",
+                                "rna_StringAttributeValue_s_set");
   RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 }
 

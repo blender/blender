@@ -34,8 +34,11 @@ from rna_prop_ui import PropertyPanel
 def dopesheet_filter(layout, context):
     dopesheet = context.space_data.dopesheet
     is_nla = context.area.type == 'NLA_EDITOR'
+    is_action_editor = not is_nla and context.space_data.mode == 'ACTION'
 
     row = layout.row(align=True)
+    if is_action_editor and context.preferences.experimental.use_animation_baklava:
+        row.prop(dopesheet, "show_all_bindings", text="")
     row.prop(dopesheet, "show_only_selected", text="")
     row.prop(dopesheet, "show_hidden", text="")
 
@@ -531,6 +534,9 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator("anim.channels_fcurves_enable")
 
         layout.separator()
+        layout.operator("anim.channels_bake")
+
+        layout.separator()
         layout.operator("anim.channels_view_selected")
 
 
@@ -590,7 +596,7 @@ class DopesheetActionPanelBase:
 
     @classmethod
     def draw_generic_panel(cls, _context, layout, action):
-        layout.label(text=action.name, icon='ACTION')
+        layout.label(text=action.name, icon='ACTION', translate=False)
 
         layout.prop(action, "use_frame_range")
 

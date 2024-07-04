@@ -377,8 +377,8 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
     @classmethod
     def description(cls, _context: Context, properties: 'POSELIB_OT_pose_asset_select_bones') -> str:
         if properties.select:
-            return cls.bl_description
-        return cls.bl_description.replace("Select", "Deselect")
+            return tip_(cls.bl_description)
+        return tip_("Deselect those bones that are used in this pose")
 
 
 class POSELIB_OT_convert_old_poselib(Operator):

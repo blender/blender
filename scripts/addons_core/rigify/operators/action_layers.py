@@ -9,6 +9,10 @@ from typing import Tuple, Optional, Sequence, Any
 from bpy.types import PropertyGroup, Action, UIList, UILayout, Context, Panel, Operator, Armature
 from bpy.props import (EnumProperty, IntProperty, BoolProperty, StringProperty, FloatProperty,
                        PointerProperty, CollectionProperty)
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
+)
 
 from .generic_ui_list import draw_ui_list
 
@@ -183,7 +187,7 @@ def find_duplicate_slot(metarig_data: Armature, action_slot: ActionSlot) -> Opti
 
 # noinspection PyPep8Naming
 class RIGIFY_OT_action_create(Operator):
-    """Create new Action"""
+    """Create a new action"""
     # This is needed because bpy.ops.action.new() has a poll function that blocks
     # the operator unless it's drawn in an animation UI panel.
 
@@ -430,7 +434,8 @@ class DATA_PT_rigify_actions(Panel):
                 row = layout.split(factor=0.4)
                 row.column()
                 row.alert = True
-                row.label(text=f"Bone not found: {slot.subtarget}", icon='ERROR')
+                text = rpt_("Bone not found: {:s}").format(slot.subtarget)
+                row.label(text=text, translate=False, icon='ERROR')
         else:
             row.prop(slot, 'subtarget', icon=bone_icon)
 
@@ -441,7 +446,8 @@ class DATA_PT_rigify_actions(Panel):
 
             row = layout.row()
             row.use_property_split = True
-            row.prop(slot, 'symmetrical', text=f"Symmetrical ({flipped_subtarget})")
+            text = iface_("Symmetrical ({:s})").format(flipped_subtarget)
+            row.prop(slot, 'symmetrical', text=text, translate=False)
 
             if slot.symmetrical and not flipped_subtarget_exists:
                 row.alert = True
@@ -449,7 +455,8 @@ class DATA_PT_rigify_actions(Panel):
                 row = layout.split(factor=0.4)
                 row.column()
                 row.alert = True
-                row.label(text=f"Bone not found: {flipped_subtarget}", icon='ERROR')
+                text = rpt_("Bone not found: {:s}").format(flipped_subtarget)
+                row.label(text=text, icon='ERROR', translate=False)
 
         layout.prop(slot, 'frame_start', text="Frame Start")
         layout.prop(slot, 'frame_end', text="End")
@@ -475,23 +482,27 @@ class DATA_PT_rigify_actions(Panel):
         if slot.trans_min == slot.trans_max:
             col = split.column(align=True)
             col.alert = True
-            col.label(text="Min and max value are the same!")
-            col.label(text=f"Will be stuck reading frame {slot.frame_start}!")
+            text = rpt_("Min and max values are the same!")
+            col.label(text=text, translate=False)
+            text = rpt_("Will be stuck reading frame {:d}!").format(slot.frame_start)
+            col.label(text=text, translate=False)
             return
 
         if slot.frame_start == slot.frame_end:
             col = split.column(align=True)
             col.alert = True
-            col.label(text="Start and end frame cannot be the same!")
+            text = rpt_("Start and end frame cannot be the same!")
+            col.label(text=text, translate=False)
 
         default_frame = slot.get_default_frame()
 
         if slot.is_default_frame_integer():
-            split.label(text=f"Default Frame: {round(default_frame)}")
+            text = rpt_("Default Frame: {:.0f}").format(default_frame)
+            split.label(text=text, translate=False)
         else:
             split.alert = True
-            split.label(text=f"Default Frame: {round(default_frame, 2)} "
-                             "(Should be a whole number!)")
+            text = rpt_("Default Frame: {:.02f} (Should be a whole number!)").format(default_frame)
+            split.label(text=text, translate=False)
 
 
 # =============================================

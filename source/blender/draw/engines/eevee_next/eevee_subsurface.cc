@@ -21,13 +21,7 @@ namespace blender::eevee {
 
 void SubsurfaceModule::end_sync()
 {
-  data_.jitter_threshold = inst_.scene->eevee.sss_jitter_threshold;
-  if (data_.sample_len != inst_.scene->eevee.sss_samples) {
-    /* Convert sample count from old implementation which was using a separable filter. */
-    /* TODO(fclem) better remapping. */
-    // data_.sample_len = square_f(1 + 2 * inst_.scene->eevee.sss_samples);
-    data_.sample_len = 16;
-  }
+  data_.sample_len = 16;
 
   {
     PassSimple &pass = setup_ps_;
@@ -113,15 +107,21 @@ void SubsurfaceModule::precompute_samples_location()
   float rand_u = inst_.sampling.rng_get(SAMPLING_SSS_U);
   float rand_v = inst_.sampling.rng_get(SAMPLING_SSS_V);
 
+  /* Find minimum radius that we can represent because we are only sampling the largest radius. */
+  data_.min_radius = 1.0f;
+
   double golden_angle = M_PI * (3.0 - sqrt(5.0));
   for (auto i : IndexRange(data_.sample_len)) {
     float theta = golden_angle * i + M_PI * 2.0f * rand_u;
     float x = (rand_v + i) / data_.sample_len;
     float r = SubsurfaceModule::burley_sample(d, x);
+    data_.min_radius = min_ff(data_.min_radius, r);
     data_.samples[i].x = cosf(theta) * r;
     data_.samples[i].y = sinf(theta) * r;
     data_.samples[i].z = 1.0f / burley_pdf(d, r);
   }
+  /* Avoid float imprecision.*/
+  data_.min_radius = max_ff(data_.min_radius, 1e-4f);
 
   inst_.uniform_data.push_update();
 }

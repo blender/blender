@@ -1273,7 +1273,7 @@ static int filelist_geticon_ex(const FileList *filelist,
   }
 
   if (typeflag & FILE_TYPE_BLENDER) {
-    return (is_main || file->preview_icon_id) ? ICON_FILE_BLEND : ICON_BLENDER;
+    return (is_main || file->preview_icon_id) ? ICON_FILE_BLEND : ICON_BLENDER_LARGE;
   }
   if (typeflag & FILE_TYPE_BLENDER_BACKUP) {
     return ICON_FILE_BACKUP;

@@ -14,6 +14,7 @@ from bpy.types import bpy_prop_collection  # noqa
 from bpy.types import Bone, UILayout, Object, PoseBone, Armature, BoneCollection, EditBone
 from idprop.types import IDPropertyGroup
 from rna_prop_ui import rna_idprop_value_to_python
+from bpy.app.translations import pgettext_rpt as rpt_
 
 from .errors import MetarigError
 from .misc import ArmatureObject
@@ -188,7 +189,9 @@ def validate_collection_references(obj: ArmatureObject):
                     refs[ref_coll.name].append(item)
                 else:
                     stem = prop_name[:-len(REFS_LIST_SUFFIX)].replace("_", " ").title()
-                    warnings.append(f"bone {pose_bone.name} has a broken reference to {stem} collection '{name}'")
+                    warnings.append(
+                        rpt_("Bone {:s} has a broken reference to {:s} collection '{:s}'").format(
+                            pose_bone.name, stem, name))
                     print(f"RIGIFY: {warnings[-1]}")
 
     # Ensure uids are unique
@@ -202,7 +205,7 @@ def validate_collection_references(obj: ArmatureObject):
         prev_use = known_uids.get(uid)
 
         if prev_use is not None:
-            warnings.append(f"collection {bcoll.name} has the same uid {uid} as {prev_use}")
+            warnings.append(rpt_("Collection {:s} has the same uid {:d} as {:s}").format(bcoll.name, uid, prev_use))
             print(f"RIGIFY: {warnings[-1]}")
 
             # Replace the uid

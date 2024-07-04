@@ -1271,35 +1271,64 @@ static blender::Vector<RNAPath> get_affected_rna_paths_from_transform_mode(
     const eTfmMode tmode,
     ToolSettings *toolsettings,
     const blender::StringRef rotation_path,
-    const bool targetless_ik)
+    const bool targetless_ik,
+    const bool is_connected,
+    const bool transforming_more_than_one_bone)
 {
   blender::Vector<RNAPath> rna_paths;
+
+  /* Handle the cases where we always need to key location, regardless of
+   * transform mode. */
+  if (transforming_more_than_one_bone &&
+      toolsettings->transform_pivot_point != V3D_AROUND_LOCAL_ORIGINS)
+  {
+    rna_paths.append({"location"});
+  }
+  else if (toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) {
+    rna_paths.append({"location"});
+  }
+
+  /* Handle the transform-mode-specific cases. */
   switch (tmode) {
     case TFM_TRANSLATION:
+      /* NOTE: this used to *not* add location if we were doing targetless IK.
+       * However, that was wrong because of the following situations:
+       *
+       * 1. The user can grab the *base* of the bone chain, in which case that
+       *    bone's location does indeed get its location moved, and thus needs
+       *    its location keyed.
+       * 2. The user can also have bones outside of a bone chain selected, in
+       *    which case they get moved normally, and thus those
+       *    outside-of-a-chain bones need their location keyed.
+       *
+       * So for now we're just adding location regardless of targetless IK. This
+       * unfortunately means that location gets keyed on a lot of bones that
+       * don't need it when doing targetless ik, but that's better than
+       * *failing* to key bones that *do* need it. Additionally, case 2 above
+       * means that outside-of-a-chain bones also get their *rotation*
+       * unnecessarily keyed when doing targetless IK on another selected chain.
+       *
+       * Being precise and only adding location/rotation for the bones that
+       * really need it when doing targetless IK will require more information
+       * to be passed to this function.
+       *
+       * TODO: get the needed information and make this more precise. */
+      if (!is_connected) {
+        rna_paths.append_non_duplicates({"location"});
+      }
       if (targetless_ik) {
         rna_paths.append({rotation_path});
-      }
-      else {
-        rna_paths.append({"location"});
       }
       break;
 
     case TFM_ROTATION:
     case TFM_TRACKBALL:
-      if (ELEM(toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE)) {
-        rna_paths.append({"location"});
-      }
-
       if ((toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
         rna_paths.append({rotation_path});
       }
       break;
 
     case TFM_RESIZE:
-      if (ELEM(toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE)) {
-        rna_paths.append({"location"});
-      }
-
       if ((toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
         rna_paths.append({"scale"});
       }
@@ -1311,8 +1340,12 @@ static blender::Vector<RNAPath> get_affected_rna_paths_from_transform_mode(
   return rna_paths;
 }
 
-static void autokeyframe_pose(
-    bContext *C, Scene *scene, Object *ob, short targetless_ik, const eTfmMode tmode)
+static void autokeyframe_pose(bContext *C,
+                              Scene *scene,
+                              Object *ob,
+                              short targetless_ik,
+                              const eTfmMode tmode,
+                              const bool transforming_more_than_one_bone)
 {
 
   bPose *pose = ob->pose;
@@ -1328,8 +1361,14 @@ static void autokeyframe_pose(
         eRotationModes(pchan->rotmode));
 
     if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
-      rna_paths = get_affected_rna_paths_from_transform_mode(
-          tmode, scene->toolsettings, rotation_path, targetless_ik);
+      const bool is_connected = pchan->bone->parent != nullptr &&
+                                (pchan->bone->flag & BONE_CONNECTED);
+      rna_paths = get_affected_rna_paths_from_transform_mode(tmode,
+                                                             scene->toolsettings,
+                                                             rotation_path,
+                                                             targetless_ik,
+                                                             is_connected,
+                                                             transforming_more_than_one_bone);
     }
     else {
       rna_paths = {{"location"}, {rotation_path}, {"scale"}};
@@ -1400,7 +1439,7 @@ static void recalcData_pose(TransInfo *t)
         int targetless_ik = (t->flag & T_AUTOIK);
 
         animrecord_check_state(t, &ob->id);
-        autokeyframe_pose(t->context, t->scene, ob, targetless_ik, t->mode);
+        autokeyframe_pose(t->context, t->scene, ob, targetless_ik, t->mode, t->data_len_all > 1);
       }
 
       if (motionpath_need_update_pose(t->scene, ob)) {
@@ -1663,7 +1702,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
       /* Automatic inserting of keys and unkeyed tagging -
        * only if transform wasn't canceled (or #TFM_DUMMY). */
       if (!canceled && (t->mode != TFM_DUMMY)) {
-        autokeyframe_pose(C, t->scene, ob, targetless_ik, t->mode);
+        autokeyframe_pose(C, t->scene, ob, targetless_ik, t->mode, t->data_len_all > 1);
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
       else {

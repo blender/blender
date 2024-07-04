@@ -54,7 +54,7 @@
  * \{ */
 
 static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_node_render(
-    const bNode &node, const bool use_meta_data)
+    const bNode &node, const bool build_meta_data)
 {
   blender::bke::cryptomatte::CryptomatteSessionPtr session;
 
@@ -64,22 +64,8 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
   }
   BLI_assert(GS(scene->id.name) == ID_SCE);
 
-  if (use_meta_data) {
-    Render *render = RE_GetSceneRender(scene);
-    RenderResult *render_result = render ? RE_AcquireResultRead(render) : nullptr;
-    if (render_result) {
-      session = blender::bke::cryptomatte::CryptomatteSessionPtr(
-          BKE_cryptomatte_init_from_render_result(render_result));
-    }
-    if (render) {
-      RE_ReleaseResult(render);
-    }
-  }
-
-  if (session == nullptr) {
-    session = blender::bke::cryptomatte::CryptomatteSessionPtr(
-        BKE_cryptomatte_init_from_scene(scene));
-  }
+  session = blender::bke::cryptomatte::CryptomatteSessionPtr(
+      BKE_cryptomatte_init_from_scene(scene, build_meta_data));
   return session;
 }
 
@@ -107,7 +93,7 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
 }
 
 static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_node(
-    const Scene &scene, const bNode &node, const bool use_meta_data)
+    const Scene &scene, const bNode &node, const bool build_meta_data)
 {
   blender::bke::cryptomatte::CryptomatteSessionPtr session;
   if (node.type != CMP_NODE_CRYPTOMATTE) {
@@ -116,7 +102,7 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
 
   switch (node.custom1) {
     case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER: {
-      return cryptomatte_init_from_node_render(node, use_meta_data);
+      return cryptomatte_init_from_node_render(node, build_meta_data);
     }
 
     case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE: {

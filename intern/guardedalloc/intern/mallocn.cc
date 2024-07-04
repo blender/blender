@@ -15,7 +15,11 @@
 
 #include <cassert>
 
-#include "mallocn_intern.h"
+#include "mallocn_intern.hh"
+
+#include "mallocn_intern_function_pointers.hh"
+
+using namespace mem_guarded::internal;
 
 #ifdef WITH_JEMALLOC_CONF
 /**
@@ -30,7 +34,8 @@ const char *malloc_conf =
 /* NOTE: Keep in sync with MEM_use_lockfree_allocator(). */
 
 size_t (*MEM_allocN_len)(const void *vmemh) = MEM_lockfree_allocN_len;
-void (*MEM_freeN)(void *vmemh) = MEM_lockfree_freeN;
+void (*mem_guarded::internal::mem_freeN_ex)(void *vmemh,
+                                            AllocationType allocation_type) = MEM_lockfree_freeN;
 void *(*MEM_dupallocN)(const void *vmemh) = MEM_lockfree_dupallocN;
 void *(*MEM_reallocN_id)(void *vmemh, size_t len, const char *str) = MEM_lockfree_reallocN_id;
 void *(*MEM_recallocN_id)(void *vmemh, size_t len, const char *str) = MEM_lockfree_recallocN_id;
@@ -38,9 +43,11 @@ void *(*MEM_callocN)(size_t len, const char *str) = MEM_lockfree_callocN;
 void *(*MEM_calloc_arrayN)(size_t len, size_t size, const char *str) = MEM_lockfree_calloc_arrayN;
 void *(*MEM_mallocN)(size_t len, const char *str) = MEM_lockfree_mallocN;
 void *(*MEM_malloc_arrayN)(size_t len, size_t size, const char *str) = MEM_lockfree_malloc_arrayN;
-void *(*MEM_mallocN_aligned)(size_t len,
-                             size_t alignment,
-                             const char *str) = MEM_lockfree_mallocN_aligned;
+void *(*mem_guarded::internal::mem_mallocN_aligned_ex)(size_t len,
+                                                       size_t alignment,
+                                                       const char *str,
+                                                       AllocationType allocation_type) =
+    MEM_lockfree_mallocN_aligned;
 void *(*MEM_calloc_arrayN_aligned)(size_t len,
                                    size_t size,
                                    size_t alignment,
@@ -95,6 +102,16 @@ void aligned_free(void *ptr)
 #endif
 }
 
+void MEM_freeN(void *vmemh)
+{
+  mem_freeN_ex(vmemh, AllocationType::ALLOC_FREE);
+}
+
+void *MEM_mallocN_aligned(size_t len, size_t alignment, const char *str)
+{
+  return mem_mallocN_aligned_ex(len, alignment, str, AllocationType::ALLOC_FREE);
+}
+
 /**
  * Perform assert checks on allocator type change.
  *
@@ -120,7 +137,7 @@ void MEM_use_lockfree_allocator()
   assert_for_allocator_change();
 
   MEM_allocN_len = MEM_lockfree_allocN_len;
-  MEM_freeN = MEM_lockfree_freeN;
+  mem_freeN_ex = MEM_lockfree_freeN;
   MEM_dupallocN = MEM_lockfree_dupallocN;
   MEM_reallocN_id = MEM_lockfree_reallocN_id;
   MEM_recallocN_id = MEM_lockfree_recallocN_id;
@@ -128,7 +145,7 @@ void MEM_use_lockfree_allocator()
   MEM_calloc_arrayN = MEM_lockfree_calloc_arrayN;
   MEM_mallocN = MEM_lockfree_mallocN;
   MEM_malloc_arrayN = MEM_lockfree_malloc_arrayN;
-  MEM_mallocN_aligned = MEM_lockfree_mallocN_aligned;
+  mem_mallocN_aligned_ex = MEM_lockfree_mallocN_aligned;
   MEM_calloc_arrayN_aligned = MEM_lockfree_calloc_arrayN_aligned;
   MEM_printmemlist_pydict = MEM_lockfree_printmemlist_pydict;
   MEM_printmemlist = MEM_lockfree_printmemlist;
@@ -155,7 +172,7 @@ void MEM_use_guarded_allocator()
   assert_for_allocator_change();
 
   MEM_allocN_len = MEM_guarded_allocN_len;
-  MEM_freeN = MEM_guarded_freeN;
+  mem_freeN_ex = MEM_guarded_freeN;
   MEM_dupallocN = MEM_guarded_dupallocN;
   MEM_reallocN_id = MEM_guarded_reallocN_id;
   MEM_recallocN_id = MEM_guarded_recallocN_id;
@@ -163,7 +180,7 @@ void MEM_use_guarded_allocator()
   MEM_calloc_arrayN = MEM_guarded_calloc_arrayN;
   MEM_mallocN = MEM_guarded_mallocN;
   MEM_malloc_arrayN = MEM_guarded_malloc_arrayN;
-  MEM_mallocN_aligned = MEM_guarded_mallocN_aligned;
+  mem_mallocN_aligned_ex = MEM_guarded_mallocN_aligned;
   MEM_calloc_arrayN_aligned = MEM_guarded_calloc_arrayN_aligned;
   MEM_printmemlist_pydict = MEM_guarded_printmemlist_pydict;
   MEM_printmemlist = MEM_guarded_printmemlist;

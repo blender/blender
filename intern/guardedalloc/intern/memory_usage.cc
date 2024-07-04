@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "MEM_guardedalloc.h"
-#include "mallocn_intern.h"
+#include "mallocn_intern.hh"
 
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 

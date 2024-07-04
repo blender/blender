@@ -119,12 +119,16 @@ set(SRC
   paint_intern.hh
   sculpt_intern.hh
 
+  brushes/bmesh_topology_rake.cc
   brushes/clay.cc
   brushes/clay_strips.cc
   brushes/clay_thumb.cc
   brushes/crease.cc
+  brushes/draw_face_sets.cc
   brushes/draw_vector_displacement.cc
+  brushes/draw_sharp.cc
   brushes/draw.cc
+  brushes/elastic_deform.cc
   brushes/fill.cc
   brushes/flatten.cc
   brushes/grab.cc

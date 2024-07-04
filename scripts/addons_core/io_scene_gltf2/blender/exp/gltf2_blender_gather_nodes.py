@@ -9,7 +9,7 @@ from mathutils import Matrix, Quaternion, Vector
 from ...io.com import gltf2_io
 from ...io.com import gltf2_io_extensions
 from ...io.exp.gltf2_io_user_extensions import export_user_extensions
-from ..com.gltf2_blender_extras import generate_extras
+from ..com.gltf2_blender_extras import generate_extras, BLACK_LIST
 from ..com.gltf2_blender_default import LIGHTS
 from ..com import gltf2_blender_math
 from . import gltf2_blender_gather_tree
@@ -297,7 +297,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
                 depsgraph = bpy.context.evaluated_depsgraph_get()
                 blender_mesh_owner = blender_object.evaluated_get(depsgraph)
                 blender_mesh = blender_mesh_owner.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
-                for prop in blender_object.data.keys():
+                for prop in [p for p in blender_object.data.keys() if p not in BLACK_LIST]:
                     blender_mesh[prop] = blender_object.data[prop]
 
                 if export_settings['gltf_skins']:

@@ -339,6 +339,9 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   render_graph.submit_for_present(swap_chain_data.image);
 
   device.resources.remove_image(swap_chain_data.image);
+#if 0
+  device.debug_print();
+#endif
   device.destroy_discarded_resources();
 }
 

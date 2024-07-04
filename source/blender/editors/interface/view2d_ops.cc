@@ -1716,7 +1716,7 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator * /*op*/, const wmEv
   if (step >= 1.0f) {
     v2d->cur = sms->new_cur;
 
-    MEM_freeN(v2d->sms);
+    MEM_delete(v2d->sms);
     v2d->sms = nullptr;
 
     WM_event_timer_remove(CTX_wm_manager(C), win, v2d->smooth_timer);

@@ -10,7 +10,7 @@
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
-#include "mallocn_intern.h"
+#include "mallocn_intern.hh"
 
 bool leak_detector_has_run = false;
 char free_after_leak_detection_message[] =

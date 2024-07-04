@@ -794,7 +794,7 @@ Enable multi-threading. TBB is also required for features such as Cycles, OpenVD
 )
 
 # TBB malloc is only supported on for windows currently
-if(WIN32)
+if(WIN32 AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
   option(WITH_TBB_MALLOC_PROXY "Enable the TBB malloc replacement" ON)
 endif()
 

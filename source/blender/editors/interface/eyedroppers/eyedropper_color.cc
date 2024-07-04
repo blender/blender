@@ -13,16 +13,20 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_material_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_image.h"
+#include "BKE_material.h"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
@@ -174,6 +178,40 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
 
 /* *** eyedropper_color_ helper functions *** */
 
+static bool eyedropper_cryptomatte_sample_view3d_fl(bContext *C,
+                                                    const char *type_name,
+                                                    const int mval[2],
+                                                    float r_col[3])
+{
+  int material_slot = 0;
+  Object *object = ED_view3d_give_material_slot_under_cursor(C, mval, &material_slot);
+  if (!object) {
+    return false;
+  }
+
+  const ID *id = nullptr;
+  if (blender::StringRef(type_name).endswith(RE_PASSNAME_CRYPTOMATTE_OBJECT)) {
+    id = &object->id;
+  }
+  else if (blender::StringRef(type_name).endswith(RE_PASSNAME_CRYPTOMATTE_MATERIAL)) {
+    Material *material = BKE_object_material_get(object, material_slot);
+    if (!material) {
+      return false;
+    }
+    id = &material->id;
+  }
+
+  if (!id) {
+    return false;
+  }
+
+  const char *name = &id->name[2];
+  const int name_length = BLI_strnlen(name, MAX_NAME - 2);
+  uint32_t cryptomatte_hash = BKE_cryptomatte_hash(name, name_length);
+  r_col[0] = BKE_cryptomatte_hash_to_float(cryptomatte_hash);
+  return true;
+}
+
 static bool eyedropper_cryptomatte_sample_renderlayer_fl(RenderLayer *render_layer,
                                                          const char *prefix,
                                                          const float fpos[2],
@@ -214,6 +252,7 @@ static bool eyedropper_cryptomatte_sample_renderlayer_fl(RenderLayer *render_lay
 
   return false;
 }
+
 static bool eyedropper_cryptomatte_sample_render_fl(const bNode *node,
                                                     const char *prefix,
                                                     const float fpos[2],
@@ -297,7 +336,7 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
     ED_region_tag_redraw(CTX_wm_region(C));
   }
 
-  if (!area || !ELEM(area->spacetype, SPACE_IMAGE, SPACE_NODE, SPACE_CLIP)) {
+  if (!area || !ELEM(area->spacetype, SPACE_IMAGE, SPACE_NODE, SPACE_CLIP, SPACE_VIEW3D)) {
     return false;
   }
 
@@ -334,7 +373,9 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
     }
   }
 
-  if (fpos[0] < 0.0f || fpos[1] < 0.0f || fpos[0] >= 1.0f || fpos[1] >= 1.0f) {
+  if (area->spacetype != SPACE_VIEW3D &&
+      (fpos[0] < 0.0f || fpos[1] < 0.0f || fpos[0] >= 1.0f || fpos[1] >= 1.0f))
+  {
     return false;
   }
 
@@ -352,6 +393,23 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
   ntreeCompositCryptomatteLayerPrefix(scene, node, prefix, sizeof(prefix) - 1);
   prefix[MAX_NAME] = '\0';
 
+  if (area->spacetype == SPACE_VIEW3D) {
+    wmWindow *win_prev = CTX_wm_window(C);
+    ScrArea *area_prev = CTX_wm_area(C);
+    ARegion *region_prev = CTX_wm_region(C);
+
+    CTX_wm_window_set(C, win);
+    CTX_wm_area_set(C, area);
+    CTX_wm_region_set(C, region);
+
+    const bool success = eyedropper_cryptomatte_sample_view3d_fl(C, prefix, mval, r_col);
+
+    CTX_wm_window_set(C, win_prev);
+    CTX_wm_area_set(C, area_prev);
+    CTX_wm_region_set(C, region_prev);
+
+    return success;
+  }
   if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER) {
     return eyedropper_cryptomatte_sample_render_fl(node, prefix, fpos, r_col);
   }

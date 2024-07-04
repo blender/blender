@@ -104,6 +104,7 @@ typedef struct MFloatProperty {
 typedef struct MIntProperty {
   int i;
 } MIntProperty;
+/** Byte string, no encoding implied. May not be null terminated. */
 typedef struct MStringProperty {
   char s[255], s_len;
 } MStringProperty;

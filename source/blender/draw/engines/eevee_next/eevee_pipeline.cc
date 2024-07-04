@@ -1018,7 +1018,7 @@ PassMain::Sub *VolumeLayer::occupancy_add(const Object *ob,
                                           const ::Material *blender_mat,
                                           GPUMaterial *gpumat)
 {
-  BLI_assert_msg(GPU_material_has_volume_output(gpumat) == true,
+  BLI_assert_msg((ob->type == OB_VOLUME) || GPU_material_has_volume_output(gpumat),
                  "Only volume material should be added here");
   bool use_fast_occupancy = (ob->type == OB_VOLUME) ||
                             (blender_mat->volume_intersection_method == MA_VOLUME_ISECT_FAST);
@@ -1031,12 +1031,14 @@ PassMain::Sub *VolumeLayer::occupancy_add(const Object *ob,
   return pass;
 }
 
-PassMain::Sub *VolumeLayer::material_add(const Object * /*ob*/,
+PassMain::Sub *VolumeLayer::material_add(const Object *ob,
                                          const ::Material * /*blender_mat*/,
                                          GPUMaterial *gpumat)
 {
-  BLI_assert_msg(GPU_material_has_volume_output(gpumat) == true,
+  BLI_assert_msg((ob->type == OB_VOLUME) || GPU_material_has_volume_output(gpumat),
                  "Only volume material should be added here");
+  UNUSED_VARS_NDEBUG(ob);
+
   PassMain::Sub *pass = &material_ps_->sub(GPU_material_get_name(gpumat));
   pass->material_set(*inst_.manager, gpumat);
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_SCATTER)) {

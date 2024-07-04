@@ -8,7 +8,7 @@
 
 include(CheckSymbolExists)
 
-# Used for: `intern/guardedalloc/intern/mallocn_intern.h`.
+# Used for: `intern/guardedalloc/intern/mallocn_intern.hh`.
 # Function `malloc_stats` is only available on GLIBC,
 # so check that before defining `HAVE_MALLOC_STATS`.
 check_symbol_exists(malloc_stats "malloc.h" HAVE_MALLOC_STATS_H)

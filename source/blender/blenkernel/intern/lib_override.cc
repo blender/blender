@@ -1955,45 +1955,66 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
   BKE_main_relations_free(bmain);
 }
 
-static void lib_override_library_remap(Main *bmain,
-                                       const ID *id_root_reference,
-                                       GHash *linkedref_to_old_override)
+static void lib_override_library_remap(
+    Main *bmain,
+    const ID *id_root_reference,
+    blender::Vector<std::pair<ID *, ID *>> &references_and_new_overrides,
+    GHash *linkedref_to_old_override)
 {
-  ID *id;
-  id::IDRemapper remapper;
+  id::IDRemapper remapper_overrides_old_to_new;
   blender::Vector<ID *> nomain_ids;
+  blender::Vector<ID *> new_overrides;
 
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (id->tag & LIB_TAG_DOIT && id->newid != nullptr && id->lib == id_root_reference->lib) {
-      ID *id_override_new = id->newid;
-      ID *id_override_old = static_cast<ID *>(BLI_ghash_lookup(linkedref_to_old_override, id));
-      if (id_override_old == nullptr) {
-        continue;
-      }
-      remapper.add(id_override_old, id_override_new);
-    }
-  }
-  FOREACH_MAIN_ID_END;
+  /* Used to ensure that newly created overrides have all of their 'linked id' pointers remapped to
+   * the matching override if it exists. Necessary because in partial resync case, some existing
+   * liboverride may be used by the resynced ones, yet they would not be part of the resynced
+   * partial hierarchy, so #BKE_lib_override_library_create_from_tag cannot find them and handle
+   * their remapping. */
+  id::IDRemapper remapper_overrides_reference_to_old;
 
-  /* Remap no-main override IDs we just created too. */
-  GHashIterator linkedref_to_old_override_iter;
-  GHASH_ITER (linkedref_to_old_override_iter, linkedref_to_old_override) {
-    ID *id_override_old_iter = static_cast<ID *>(
-        BLI_ghashIterator_getValue(&linkedref_to_old_override_iter));
-    if ((id_override_old_iter->tag & LIB_TAG_NO_MAIN) == 0) {
+  /* Add remapping from old to new overrides. */
+  for (auto [id_reference, id_override_new] : references_and_new_overrides) {
+    new_overrides.append(id_override_new);
+    ID *id_override_old = static_cast<ID *>(
+        BLI_ghash_lookup(linkedref_to_old_override, id_reference));
+    if (id_override_old == nullptr) {
       continue;
     }
+    remapper_overrides_old_to_new.add(id_override_old, id_override_new);
+  }
 
-    nomain_ids.append(id_override_old_iter);
+  GHashIterator linkedref_to_old_override_iter;
+  GHASH_ITER (linkedref_to_old_override_iter, linkedref_to_old_override) {
+    /* Remap no-main override IDs we just created too. */
+    ID *id_override_old_iter = static_cast<ID *>(
+        BLI_ghashIterator_getValue(&linkedref_to_old_override_iter));
+    if ((id_override_old_iter->tag & LIB_TAG_NO_MAIN) != 0) {
+      nomain_ids.append(id_override_old_iter);
+    }
+    /* And remap linked data to old (existing, unchanged) overrides, when no new one was created.
+     */
+    ID *id_reference_iter = static_cast<ID *>(
+        BLI_ghashIterator_getKey(&linkedref_to_old_override_iter));
+    BLI_assert(id_reference_iter->lib == id_root_reference->lib);
+    UNUSED_VARS_NDEBUG(id_root_reference);
+    if (!id_reference_iter->newid) {
+      remapper_overrides_reference_to_old.add(id_reference_iter, id_override_old_iter);
+    }
   }
 
   /* Remap all IDs to use the new override. */
-  BKE_libblock_remap_multiple(bmain, remapper, 0);
+  BKE_libblock_remap_multiple(bmain, remapper_overrides_old_to_new, 0);
   BKE_libblock_relink_multiple(bmain,
                                nomain_ids,
                                ID_REMAP_TYPE_REMAP,
-                               remapper,
+                               remapper_overrides_old_to_new,
                                ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
+  /* In new overrides, remap linked ID to their matching already existing overrides. */
+  BKE_libblock_relink_multiple(bmain,
+                               new_overrides,
+                               ID_REMAP_TYPE_REMAP,
+                               remapper_overrides_reference_to_old,
+                               ID_REMAP_SKIP_OVERRIDE_LIBRARY);
 }
 
 /**
@@ -2252,23 +2273,8 @@ static bool lib_override_library_resync(Main *bmain,
           /* We have an override, but now it does not seem to be necessary to override that ID
            * anymore. Check if there are some actual overrides from the user, otherwise assume
            * that we can get rid of this local override. */
-          LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-            if (!ELEM(op->rna_prop_type, PROP_POINTER, PROP_COLLECTION)) {
-              id->override_library->reference->tag |= LIB_TAG_DOIT;
-              break;
-            }
-
-            bool do_break = false;
-            LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-              if ((opop->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
-                id->override_library->reference->tag |= LIB_TAG_DOIT;
-                do_break = true;
-                break;
-              }
-            }
-            if (do_break) {
-              break;
-            }
+          if (BKE_lib_override_library_is_user_edited(id)) {
+            id->override_library->reference->tag |= LIB_TAG_DOIT;
           }
         }
       }
@@ -2312,24 +2318,31 @@ static bool lib_override_library_resync(Main *bmain,
    * liboverrides' for newly created ones that do not already have one, in next step. */
   LibOverrideMissingIDsData missing_ids_data = lib_override_library_resync_build_missing_ids_data(
       bmain);
+  /* Vector of pairs of reference IDs, and their new override IDs. */
+  blender::Vector<std::pair<ID *, ID *>> references_and_new_overrides;
 
   ListBase *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
-    FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
-      if ((id->tag & LIB_TAG_DOIT) == 0 || id->newid == nullptr ||
-          id->lib != id_root_reference->lib)
+    ID *id_reference_iter;
+    FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_reference_iter) {
+      if ((id_reference_iter->tag & LIB_TAG_DOIT) == 0 || id_reference_iter->newid == nullptr ||
+          id_reference_iter->lib != id_root_reference->lib)
       {
         continue;
       }
-      ID *id_override_new = id->newid;
-      ID *id_override_old = static_cast<ID *>(BLI_ghash_lookup(linkedref_to_old_override, id));
+      ID *id_override_new = id_reference_iter->newid;
+      references_and_new_overrides.append(std::make_pair(id_reference_iter, id_override_new));
+
+      ID *id_override_old = static_cast<ID *>(
+          BLI_ghash_lookup(linkedref_to_old_override, id_reference_iter));
 
       BLI_assert((id_override_new->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) == 0);
 
       /* We need to 'move back' newly created override into its proper library (since it was
        * duplicated from the reference ID with 'no main' option, it should currently be the same
        * as the reference ID one). */
-      BLI_assert(/*!ID_IS_LINKED(id_override_new) || */ id_override_new->lib == id->lib);
+      BLI_assert(/*!ID_IS_LINKED(id_override_new) || */ id_override_new->lib ==
+                 id_reference_iter->lib);
       BLI_assert(id_override_old == nullptr || id_override_old->lib == id_root->lib);
       id_override_new->lib = id_root->lib;
 
@@ -2343,7 +2356,7 @@ static bool lib_override_library_resync(Main *bmain,
                                                                               id_override_new);
         BLI_assert(id_override_old == nullptr || id_override_old->lib == id_override_new->lib);
         if (id_override_old != nullptr) {
-          BLI_ghash_insert(linkedref_to_old_override, id, id_override_old);
+          BLI_ghash_insert(linkedref_to_old_override, id_reference_iter, id_override_old);
           CLOG_INFO(&LOG_RESYNC,
                     2,
                     "Found missing linked old override best-match %s for new linked override %s",
@@ -2409,9 +2422,16 @@ static bool lib_override_library_resync(Main *bmain,
   }
   FOREACH_MAIN_LISTBASE_END;
 
-  /* We remap old to new override usages in a separate loop, after all new overrides have
-   * been added to Main. */
-  lib_override_library_remap(bmain, id_root_reference, linkedref_to_old_override);
+  /* We remap old to new override usages in a separate step, after all new overrides have
+   * been added to Main.
+   *
+   * This function also ensures that newly created overrides get all their linked ID pointers
+   * remapped to a valid override one, whether new or already existing. In partial resync case,
+   * #BKE_lib_override_library_create_from_tag cannot reliably discover _all_ valid existing
+   * overrides used by the newly resynced ones, since the local resynced hierarchy may not contain
+   * them. */
+  lib_override_library_remap(
+      bmain, id_root_reference, references_and_new_overrides, linkedref_to_old_override);
 
   BKE_main_collection_sync(bmain);
 

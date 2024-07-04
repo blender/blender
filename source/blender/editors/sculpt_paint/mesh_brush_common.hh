@@ -15,6 +15,8 @@
 
 #include "DNA_brush_enums.h"
 
+#include "sculpt_intern.hh"
+
 /**
  * This file contains common operations useful for the implementation of various different brush
  * tools. The design goals of the API are to always operate on more than one data element at a
@@ -32,6 +34,7 @@
 
 struct BMesh;
 struct BMVert;
+struct BMFace;
 struct Brush;
 struct Mesh;
 struct Object;
@@ -113,6 +116,9 @@ void calc_front_face(const float3 &view_normal,
 void calc_front_face(const float3 &view_normal,
                      const Set<BMVert *, 0> &verts,
                      const MutableSpan<float> factors);
+void calc_front_face(const float3 &view_normal,
+                     const Set<BMFace *, 0> &faces,
+                     const MutableSpan<float> factors);
 
 /**
  * When the 3D view's clipping planes are enabled, brushes shouldn't have any effect on vertices
@@ -131,41 +137,47 @@ void filter_region_clip_factors(const SculptSession &ss,
  * Calculate distances based on the distance from the brush cursor and various other settings.
  * Also ignore vertices that are too far from the cursor.
  */
-void calc_distance_falloff(const SculptSession &ss,
-                           Span<float3> vert_positions,
-                           Span<int> vert_indices,
-                           eBrushFalloffShape falloff_shape,
-                           MutableSpan<float> r_distances,
-                           MutableSpan<float> factors);
-void calc_distance_falloff(const SculptSession &ss,
-                           Span<float3> positions,
-                           const eBrushFalloffShape falloff_shape,
-                           MutableSpan<float> r_distances,
-                           MutableSpan<float> factors);
+void calc_brush_distances(const SculptSession &ss,
+                          Span<float3> vert_positions,
+                          Span<int> vert_indices,
+                          eBrushFalloffShape falloff_shape,
+                          MutableSpan<float> r_distances);
+void calc_brush_distances(const SculptSession &ss,
+                          Span<float3> positions,
+                          const eBrushFalloffShape falloff_shape,
+                          MutableSpan<float> r_distances);
+
+/** Set the factor to zero for all distances greater than the radius. */
+void filter_distances_with_radius(float radius, Span<float> distances, MutableSpan<float> factors);
 
 /**
  * Calculate distances based on a "square" brush tip falloff and ignore vertices that are too far
  * away.
  */
-void calc_cube_distance_falloff(SculptSession &ss,
-                                const Brush &brush,
-                                const float4x4 &mat,
-                                Span<float3> positions,
-                                Span<int> verts,
-                                MutableSpan<float> r_distances,
-                                MutableSpan<float> factors);
-void calc_cube_distance_falloff(SculptSession &ss,
-                                const Brush &brush,
-                                const float4x4 &mat,
-                                const Span<float3> positions,
-                                const MutableSpan<float> r_distances,
-                                const MutableSpan<float> factors);
+void calc_brush_cube_distances(const SculptSession &ss,
+                               const Brush &brush,
+                               const float4x4 &mat,
+                               Span<float3> positions,
+                               Span<int> verts,
+                               MutableSpan<float> r_distances,
+                               MutableSpan<float> factors);
+void calc_brush_cube_distances(const SculptSession &ss,
+                               const Brush &brush,
+                               const float4x4 &mat,
+                               const Span<float3> positions,
+                               const MutableSpan<float> r_distances,
+                               const MutableSpan<float> factors);
 
 /**
  * Scale the distances based on the brush radius and the cached "hardness" setting, which increases
  * the strength of the effect for vertices torwards the outside of the radius.
  */
-void apply_hardness_to_distances(const StrokeCache &cache, MutableSpan<float> distances);
+void apply_hardness_to_distances(float radius, float hardness, MutableSpan<float> distances);
+inline void apply_hardness_to_distances(const StrokeCache &cache,
+                                        const MutableSpan<float> distances)
+{
+  apply_hardness_to_distances(cache.radius, cache.paint_brush.hardness, distances);
+}
 
 /**
  * Modify the factors based on distances to the brush cursor, using various brush settings.
@@ -178,12 +190,12 @@ void calc_brush_strength_factors(const StrokeCache &cache,
 /**
  * Modify brush influence factors to include sampled texture values.
  */
-void calc_brush_texture_factors(SculptSession &ss,
+void calc_brush_texture_factors(const SculptSession &ss,
                                 const Brush &brush,
                                 Span<float3> vert_positions,
                                 Span<int> vert_indices,
                                 MutableSpan<float> factors);
-void calc_brush_texture_factors(SculptSession &ss,
+void calc_brush_texture_factors(const SculptSession &ss,
                                 const Brush &brush,
                                 Span<float3> positions,
                                 MutableSpan<float> factors);
@@ -208,6 +220,17 @@ void calc_vert_factors(const Object &object,
                        const PBVHNode &node,
                        const Set<BMVert *, 0> &verts,
                        MutableSpan<float> factors);
+
+/**
+ * Calculate all auto-masking influence on each face.
+ */
+void calc_face_factors(const Object &object,
+                       const OffsetIndices<int> faces,
+                       const Span<int> corner_verts,
+                       const Cache &cache,
+                       const PBVHNode &node,
+                       const Span<int> face_indices,
+                       const MutableSpan<float> factors);
 
 }  // namespace auto_mask
 

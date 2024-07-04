@@ -515,7 +515,9 @@ int WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   op->customdata = WM_gesture_new(win, CTX_wm_region(C), event, WM_GESTURE_LINES);
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  gesture->use_smooth = RNA_boolean_get(op->ptr, "use_smooth_stroke");
+  if ((prop = RNA_struct_find_property(op->ptr, "use_smooth_stroke"))) {
+    gesture->use_smooth = RNA_property_boolean_get(op->ptr, prop);
+  }
 
   /* Add modal handler. */
   WM_event_add_modal_handler(C, op);
@@ -561,8 +563,8 @@ static int gesture_lasso_apply(bContext *C, wmOperator *op)
 int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  const float factor = RNA_float_get(op->ptr, "smooth_stroke_factor");
-  const int radius = RNA_int_get(op->ptr, "smooth_stroke_radius");
+  const float factor = gesture->use_smooth ? RNA_float_get(op->ptr, "smooth_stroke_factor") : 0.0f;
+  const int radius = gesture->use_smooth ? RNA_int_get(op->ptr, "smooth_stroke_radius") : 0;
 
   if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {

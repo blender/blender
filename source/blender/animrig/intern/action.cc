@@ -250,6 +250,10 @@ Binding *Action::binding_for_handle(const binding_handle_t handle)
 
 const Binding *Action::binding_for_handle(const binding_handle_t handle) const
 {
+  if (handle == Binding::unassigned) {
+    return nullptr;
+  }
+
   /* TODO: implement hash-map lookup. */
   for (const Binding *binding : bindings()) {
     if (binding->handle == handle) {
@@ -352,6 +356,11 @@ Binding &Action::binding_allocate()
   this->last_binding_handle++;
   BLI_assert_msg(this->last_binding_handle > 0, "Animation Binding handle overflow");
   binding.handle = this->last_binding_handle;
+
+  /* Set the default flags. These cannot be set via the 'DNA defaults' system,
+   * as that would require knowing which bit corresponds with which flag. That's
+   * only known to the C++ wrapper code. */
+  binding.set_expanded(true);
   return binding;
 }
 
@@ -666,6 +675,38 @@ bool Binding::is_suitable_for(const ID &animated_id) const
 bool Binding::has_idtype() const
 {
   return this->idtype != 0;
+}
+
+Binding::Flags Binding::flags() const
+{
+  return static_cast<Binding::Flags>(this->binding_flags);
+}
+bool Binding::is_expanded() const
+{
+  return this->binding_flags & uint8_t(Flags::Expanded);
+}
+void Binding::set_expanded(const bool expanded)
+{
+  if (expanded) {
+    this->binding_flags |= uint8_t(Flags::Expanded);
+  }
+  else {
+    this->binding_flags &= ~(uint8_t(Flags::Expanded));
+  }
+}
+
+bool Binding::is_selected() const
+{
+  return this->binding_flags & uint8_t(Flags::Selected);
+}
+void Binding::set_selected(const bool selected)
+{
+  if (selected) {
+    this->binding_flags |= uint8_t(Flags::Selected);
+  }
+  else {
+    this->binding_flags &= ~(uint8_t(Flags::Selected));
+  }
 }
 
 Span<ID *> Binding::users(Main &bmain) const

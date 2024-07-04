@@ -63,7 +63,7 @@ float3 neighbor_coords_average_interior(const SculptSession &ss, PBVHVertRef ver
   return avg / total;
 }
 
-void bmesh_four_neighbor_average(float avg[3], const float3 &direction, BMVert *v)
+void bmesh_four_neighbor_average(float avg[3], const float3 &direction, const BMVert *v)
 {
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
   float tot_co = 0.0f;
@@ -71,7 +71,7 @@ void bmesh_four_neighbor_average(float avg[3], const float3 &direction, BMVert *
   BMIter eiter;
   BMEdge *e;
 
-  BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+  BM_ITER_ELEM (e, &eiter, const_cast<BMVert *>(v), BM_EDGES_OF_VERT) {
     if (BM_edge_is_boundary(e)) {
       copy_v3_v3(avg, v->co);
       return;

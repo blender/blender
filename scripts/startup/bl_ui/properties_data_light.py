@@ -185,19 +185,19 @@ class DATA_PT_EEVEE_light_influence(DataButtonsPanel, Panel):
         col = layout.column(align=True)
 
         sub = col.column(align=True)
-        sub.active = ob.visible_diffuse
+        sub.active = ob is None or ob.visible_diffuse
         sub.prop(light, "diffuse_factor", text="Diffuse")
 
         sub = col.column(align=True)
-        sub.active = ob.visible_glossy
+        sub.active = ob is None or ob.visible_glossy
         sub.prop(light, "specular_factor", text="Glossy")
 
         sub = col.column(align=True)
-        sub.active = ob.visible_transmission
+        sub.active = ob is None or ob.visible_transmission
         sub.prop(light, "transmission_factor", text="Transmission")
 
         sub = col.column(align=True)
-        sub.active = ob.visible_volume_scatter
+        sub.active = ob is None or ob.visible_volume_scatter
         sub.prop(light, "volume_factor", text="Volume Scatter", text_ctxt=i18n_contexts.id_id)
 
 

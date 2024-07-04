@@ -37,13 +37,13 @@ void ED_object_sculptmode_exit(bContext *C, Depsgraph &depsgraph);
  */
 bool ED_sculpt_report_if_shape_key_is_locked(const Object &ob, ReportList *reports);
 
-void ED_operatortypes_sculpt();
+namespace blender::ed::sculpt_paint {
 
-void ED_keymap_sculpt(wmKeyConfig *keyconf);
+void operatortypes_sculpt();
+
+void keymap_sculpt(wmKeyConfig *keyconf);
 
 /* `sculpt_transform.cc` */
-
-namespace blender::ed::sculpt_paint {
 
 void update_modal_transform(bContext *C, Object &ob);
 void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char *undo_name);

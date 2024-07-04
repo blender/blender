@@ -131,6 +131,14 @@ class Action : public ::bAction {
   const Binding *binding(int64_t index) const;
   Binding *binding(int64_t index);
 
+  /**
+   * Return the Binding with the given handle.
+   *
+   * \param handle can be `Binding::unassigned`, in which case `nullptr` is returned.
+   *
+   * \return `nullptr` when the binding cannot be found, so either the handle was
+   * `Binding::unassigned` or some value that does not match any Binding in this Action.
+   */
   Binding *binding_for_handle(binding_handle_t handle);
   const Binding *binding_for_handle(binding_handle_t handle) const;
 
@@ -504,6 +512,21 @@ class Binding : public ::ActionBinding {
   /** Return whether this Binding has an `idtype` set. */
   bool has_idtype() const;
 
+  /* Flags access. */
+  enum class Flags : uint8_t {
+    /** Expanded/collapsed in animation editors. */
+    Expanded = (1 << 0),
+    /** Selected in animation editors. */
+    Selected = (1 << 1),
+    /* When adding/removing a flag, also update the ENUM_OPERATORS() invocation,
+     * all the way below the Binding class. */
+  };
+  Flags flags() const;
+  bool is_expanded() const;
+  void set_expanded(bool expanded);
+  bool is_selected() const;
+  void set_selected(bool selected);
+
   /** Return the set of IDs that are animated by this Binding. */
   Span<ID *> users(Main &bmain) const;
 
@@ -559,6 +582,7 @@ class Binding : public ::ActionBinding {
 };
 static_assert(sizeof(Binding) == sizeof(::ActionBinding),
               "DNA struct and its C++ wrapper must have the same size");
+ENUM_OPERATORS(Binding::Flags, Binding::Flags::Selected);
 
 /**
  * KeyframeStrips effectively contain a bag of F-Curves for each Binding.

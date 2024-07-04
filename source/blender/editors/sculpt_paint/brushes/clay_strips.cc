@@ -67,7 +67,7 @@ static void calc_faces(const Sculpt &sd,
 
   tls.distances.reinitialize(verts.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_cube_distance_falloff(ss, brush, mat, positions_eval, verts, distances, factors);
+  calc_brush_cube_distances(ss, brush, mat, positions_eval, verts, distances, factors);
   scale_factors(distances, cache.radius);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
@@ -128,7 +128,7 @@ static void calc_grids(const Sculpt &sd,
 
   tls.distances.reinitialize(grid_verts_num);
   const MutableSpan<float> distances = tls.distances;
-  calc_cube_distance_falloff(ss, brush, mat, positions, distances, factors);
+  calc_brush_cube_distances(ss, brush, mat, positions, distances, factors);
   scale_factors(distances, cache.radius);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
@@ -187,7 +187,7 @@ static void calc_bmesh(const Sculpt &sd,
 
   tls.distances.reinitialize(verts.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_cube_distance_falloff(ss, brush, mat, positions, distances, factors);
+  calc_brush_cube_distances(ss, brush, mat, positions, distances, factors);
   scale_factors(distances, cache.radius);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);

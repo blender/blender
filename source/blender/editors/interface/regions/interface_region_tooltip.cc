@@ -28,6 +28,7 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
@@ -1690,6 +1691,12 @@ static void ui_tooltip_from_vfont(VFont &font, uiTooltipData &data)
 {
   if (!font.filepath[0]) {
     /* Let's not bother with packed files _for now_.*/
+    return;
+  }
+
+  if (!BLI_exists(font.filepath)) {
+    UI_tooltip_text_field_add(
+        &data, TIP_("File not found"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
     return;
   }
 

@@ -1501,9 +1501,6 @@ static void grease_pencil_eraser_draw(PaintCursorContext *pcontext)
 static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
 {
   using namespace blender;
-  if ((pcontext->region) && (pcontext->region->regiontype != RGN_TYPE_WINDOW)) {
-    return;
-  }
   if (pcontext->region && !BLI_rcti_isect_pt(&pcontext->region->winrct, pcontext->x, pcontext->y))
   {
     return;
@@ -1518,10 +1515,6 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
   Paint *paint = pcontext->paint;
   Brush *brush = pcontext->brush;
   if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
-    return;
-  }
-
-  if ((paint->flags & PAINT_SHOW_BRUSH) == 0) {
     return;
   }
 
@@ -1545,7 +1538,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       return;
     }
 
-    if ((brush->flag & BRUSH_LOCK_SIZE) != 0) {
+    if (brush->gpencil_tool == GPAINT_TOOL_DRAW && (brush->flag & BRUSH_LOCK_SIZE) != 0) {
       const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
       const ed::greasepencil::DrawingPlacement placement(
           *pcontext->scene, *pcontext->region, *pcontext->vc.v3d, *object, layer);
@@ -1581,9 +1574,6 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       color = scale * float3(paint->paint_cursor_col);
     }
   }
-  else if (pcontext->mode == PaintMode::WeightGPencil) {
-    copy_v3_v3(color, brush->add_col);
-  }
 
   GPU_line_width(1.0f);
   /* Inner Ring: Color from UI panel */
@@ -1599,8 +1589,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
 static void paint_draw_2D_view_brush_cursor(PaintCursorContext *pcontext)
 {
   switch (pcontext->mode) {
-    case PaintMode::GPencil:
-    case PaintMode::WeightGPencil: {
+    case PaintMode::GPencil: {
       grease_pencil_brush_cursor_draw(pcontext);
       break;
     }
@@ -1849,7 +1838,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   if (is_brush_tool && brush.sculpt_tool == SCULPT_TOOL_GRAB &&
       (brush.flag & BRUSH_GRAB_ACTIVE_VERTEX))
   {
-    SCULPT_geometry_preview_lines_update(pcontext->C, *pcontext->ss, pcontext->radius);
+    geometry_preview_lines_update(pcontext->C, *pcontext->ss, pcontext->radius);
     sculpt_geometry_preview_lines_draw(
         pcontext->pos, *pcontext->brush, pcontext->is_multires, *pcontext->ss);
   }

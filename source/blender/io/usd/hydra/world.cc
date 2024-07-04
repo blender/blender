@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "world.hh"
+#include "usd_private.hh"
 
 #include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec2f.h>
@@ -112,7 +113,7 @@ void WorldData::init()
 
     if (texture_file.GetAssetPath().empty()) {
       float fill_color[4] = {color[0], color[1], color[2], 1.0f};
-      std::string image_path = cache_image_color(fill_color);
+      std::string image_path = blender::io::usd::cache_image_color(fill_color);
       texture_file = pxr::SdfAssetPath(image_path, image_path);
     }
   }

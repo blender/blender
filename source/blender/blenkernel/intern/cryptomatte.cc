@@ -9,7 +9,9 @@
 #include "BKE_cryptomatte.h"
 #include "BKE_cryptomatte.hh"
 #include "BKE_image.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
+#include "BKE_material.h"
 
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
@@ -43,8 +45,8 @@ struct CryptomatteSession {
   CryptomatteSession(const Main *bmain);
   CryptomatteSession(StampData *stamp_data);
   CryptomatteSession(const ViewLayer *view_layer);
-  CryptomatteSession(const Scene *scene);
-  void init(const ViewLayer *view_layer);
+  CryptomatteSession(const Scene *scene, bool build_meta_data = false);
+  void init(const ViewLayer *view_layer, bool build_meta_data = false);
 
   blender::bke::cryptomatte::CryptomatteLayer &add_layer(std::string layer_name);
   std::optional<std::string> operator[](float encoded_hash) const;
@@ -93,14 +95,19 @@ CryptomatteSession::CryptomatteSession(const ViewLayer *view_layer)
   init(view_layer);
 }
 
-CryptomatteSession::CryptomatteSession(const Scene *scene)
+CryptomatteSession::CryptomatteSession(const Scene *scene, bool build_meta_data)
 {
+
+  if (build_meta_data) {
+    BKE_scene_view_layers_synced_ensure(scene);
+  }
+
   LISTBASE_FOREACH (const ViewLayer *, view_layer, &scene->view_layers) {
-    init(view_layer);
+    init(view_layer, build_meta_data);
   }
 }
 
-void CryptomatteSession::init(const ViewLayer *view_layer)
+void CryptomatteSession::init(const ViewLayer *view_layer, bool build_meta_data)
 {
   eViewLayerCryptomatteFlags cryptoflags = static_cast<eViewLayerCryptomatteFlags>(
       view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_ALL);
@@ -108,14 +115,37 @@ void CryptomatteSession::init(const ViewLayer *view_layer)
     cryptoflags = static_cast<eViewLayerCryptomatteFlags>(VIEW_LAYER_CRYPTOMATTE_ALL);
   }
 
+  ListBase *object_bases = BKE_view_layer_object_bases_get(const_cast<ViewLayer *>(view_layer));
+
   if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_OBJECT) {
-    add_layer(blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_OBJECT);
+    blender::bke::cryptomatte::CryptomatteLayer &objects = add_layer(
+        blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_OBJECT);
+
+    if (build_meta_data) {
+      LISTBASE_FOREACH (Base *, base, object_bases) {
+        objects.add_ID(base->object->id);
+      }
+    }
   }
+
   if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_ASSET) {
     add_layer(blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_ASSET);
   }
+
   if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_MATERIAL) {
-    add_layer(blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_MATERIAL);
+    blender::bke::cryptomatte::CryptomatteLayer &materials = add_layer(
+        blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_MATERIAL);
+
+    if (build_meta_data) {
+      LISTBASE_FOREACH (Base *, base, object_bases) {
+        for (int i = 0; i < base->object->totcol; i++) {
+          Material *material = BKE_object_material_get(base->object, i + 1);
+          if (material) {
+            materials.add_ID(material->id);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -150,9 +180,9 @@ CryptomatteSession *BKE_cryptomatte_init_from_render_result(const RenderResult *
   return session;
 }
 
-CryptomatteSession *BKE_cryptomatte_init_from_scene(const Scene *scene)
+CryptomatteSession *BKE_cryptomatte_init_from_scene(const Scene *scene, bool build_meta_data)
 {
-  CryptomatteSession *session = new CryptomatteSession(scene);
+  CryptomatteSession *session = new CryptomatteSession(scene, build_meta_data);
   return session;
 }
 

@@ -929,7 +929,7 @@ static void menu_search_arg_free_fn(void *data_v)
 
   BLI_memarena_free(data->memarena);
 
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 static void menu_search_exec_fn(bContext *C, void * /*arg1*/, void *arg2)

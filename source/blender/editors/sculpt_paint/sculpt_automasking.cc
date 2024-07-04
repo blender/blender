@@ -11,6 +11,7 @@
 #include "BLI_array.hh"
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -610,6 +611,34 @@ void calc_vert_factors(const Object &object,
       mesh_orig_vert_data_update(*data.orig_data, i);
     }
     factors[i] *= factor_get(&cache, ss, BKE_pbvh_make_vref(verts[i]), &data);
+  }
+}
+
+void calc_face_factors(const Object &object,
+                       const OffsetIndices<int> faces,
+                       const Span<int> corner_verts,
+                       const Cache &cache,
+                       const PBVHNode &node,
+                       const Span<int> face_indices,
+                       const MutableSpan<float> factors)
+{
+  SculptSession &ss = *object.sculpt;
+
+  NodeData data = node_begin(object, &cache, node);
+  /* NOTE: We explicitly nullify data.orig_data here as we currently cannot go from mesh vert index
+   * to the undo node array index. The only brush this method is currently used for is the Draw
+   * Face Set brush, which never modifies the position of the vertices in a brush stroke. This
+   * needs to be implemented in the future if brushes that iterate over faces need original
+   * position and normal data. */
+  data.orig_data = std::nullopt;
+
+  for (const int i : face_indices.index_range()) {
+    const Span<int> face_verts = corner_verts.slice(faces[face_indices[i]]);
+    float sum = 0.0f;
+    for (const int vert : face_verts) {
+      sum += factor_get(&cache, ss, BKE_pbvh_make_vref(vert), &data);
+    }
+    factors[i] *= sum * math::rcp(float(face_verts.size()));
   }
 }
 

@@ -754,7 +754,12 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
                                         SculptCursorGeometryInfo *out,
                                         const float mouse[2],
                                         bool use_sampled_normal);
-void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius);
+
+namespace blender::ed::sculpt_paint {
+
+void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius);
+
+}
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object &ob, const Brush &brush);
 float SCULPT_raycast_init(ViewContext *vc,
@@ -1534,7 +1539,7 @@ namespace blender::ed::sculpt_paint::smooth {
  * For bmesh: Average surrounding verts based on an orthogonality measure.
  * Naturally converges to a quad-like structure.
  */
-void bmesh_four_neighbor_average(float avg[3], const float3 &direction, BMVert *v);
+void bmesh_four_neighbor_average(float avg[3], const float3 &direction, const BMVert *v);
 
 float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex);
 float neighbor_mask_average(SculptSession &ss, SculptMaskWriteInfo write_info, PBVHVertRef vertex);
@@ -1650,6 +1655,9 @@ void orig_position_data_gather_bmesh(const BMLog &bm_log,
                                      const Set<BMVert *, 0> &verts,
                                      MutableSpan<float3> positions,
                                      MutableSpan<float3> normals);
+
+Span<float4> orig_color_data_get_mesh(const Object &object, const PBVHNode &node);
+
 }
 
 /** \} */
@@ -1789,7 +1797,11 @@ struct Operation {
 };
 
 /* Determines whether or not a gesture action should be applied. */
-bool is_affected(GestureData &gesture_data, const float3 &co, const float3 &vertex_normal);
+bool is_affected(const GestureData &gesture_data, const float3 &position, const float3 &normal);
+void filter_factors(const GestureData &gesture_data,
+                    Span<float3> positions,
+                    Span<float3> normals,
+                    MutableSpan<float> factors);
 
 /* Initialization functions. */
 std::unique_ptr<GestureData> init_from_box(bContext *C, wmOperator *op);
@@ -1968,7 +1980,7 @@ void multiplane_scrape_preview_draw(uint gpuattr,
 
 namespace face_set {
 
-void do_draw_face_sets_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
+void do_relax_face_sets_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 
 }
 
@@ -2044,16 +2056,9 @@ float clay_thumb_get_stabilized_pressure(const blender::ed::sculpt_paint::Stroke
 
 void SCULPT_do_snake_hook_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_layer_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
-void SCULPT_do_elastic_deform_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
-void SCULPT_do_draw_sharp_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 void SCULPT_do_slide_relax_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
 
 /** \} */
-
-void SCULPT_bmesh_topology_rake(const Sculpt &sd,
-                                Object &ob,
-                                blender::Span<PBVHNode *> nodes,
-                                float bstrength);
 
 /* end sculpt_brush_types.cc */
 

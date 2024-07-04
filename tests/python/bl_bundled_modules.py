@@ -26,6 +26,9 @@ import urllib3
 import zlib
 import zstandard
 
+# Dynamically loaded modules, to ensure they have satisfactory dependencies.
+import _blake2
+
 # VFX platform modules.
 from pxr import Usd
 import MaterialX

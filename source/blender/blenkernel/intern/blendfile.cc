@@ -1904,6 +1904,7 @@ ID *PartialWriteContext::id_add(
     const bool duplicate_dependencies = (operations_final & DUPLICATE_DEPENDENCIES) != 0;
     BLI_assert(clear_dependencies || add_dependencies);
     BLI_assert(!clear_dependencies || !(add_dependencies || duplicate_dependencies));
+    UNUSED_VARS_NDEBUG(add_dependencies);
 
     if (clear_dependencies) {
       if (cb_data->cb_flag & IDWALK_CB_NEVER_NULL) {

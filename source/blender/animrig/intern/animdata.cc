@@ -14,6 +14,8 @@
 #include "BKE_fcurve.hh"
 #include "BKE_lib_id.hh"
 
+#include "BLT_translation.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
@@ -53,7 +55,7 @@ bAction *id_action_ensure(Main *bmain, ID *id)
   if (adt->action == nullptr) {
     /* init action name from name of ID block */
     char actname[sizeof(id->name) - 2];
-    SNPRINTF(actname, "%sAction", id->name + 2);
+    SNPRINTF(actname, DATA_("%sAction"), id->name + 2);
 
     /* create action */
     adt->action = BKE_action_add(bmain, actname);

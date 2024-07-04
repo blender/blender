@@ -5,6 +5,7 @@
 import bpy
 from bpy_extras.node_utils import connect_sockets
 from math import hypot, inf
+from bpy.app.translations import pgettext_tip as tip_
 
 
 def force_update(context):
@@ -214,12 +215,15 @@ def nw_check_selected(cls, context, min=1, max=inf):
     num_selected = len(context.selected_nodes)
     if num_selected < min:
         if min > 1:
-            cls.poll_message_set(f"At least {min} nodes must be selected.")
+            poll_message = tip_("At least {:s} nodes must be selected.").format(min)
         else:
-            cls.poll_message_set(f"At least {min} node must be selected.")
+            poll_message = tip_("At least one node must be selected.")
+        cls.poll_message_set(poll_message)
         return False
     if num_selected > max:
-        cls.poll_message_set(f"{num_selected} nodes are selected, but this operator can only work on {max}.")
+        poll_message = tip_("{:s} nodes are selected, but this operator can only work on {:s}.").format(
+            num_selected, max)
+        cls.poll_message_set(poll_message)
         return False
     return True
 
@@ -227,18 +231,21 @@ def nw_check_selected(cls, context, min=1, max=inf):
 def nw_check_space_type(cls, context, types):
     if context.space_data.tree_type not in types:
         tree_types_str = ", ".join(t.split('NodeTree')[0].lower() for t in sorted(types))
-        cls.poll_message_set("Current node tree type not supported.\n"
-                             "Should be one of " + tree_types_str + ".")
+        poll_message = tip_("Current node tree type not supported.\n"
+                            "Should be one of {:s}.").format(tree_types_str)
+        cls.poll_message_set(poll_message)
         return False
     return True
 
 
 def nw_check_node_type(cls, context, type, invert=False):
     if invert and context.active_node.type == type:
-        cls.poll_message_set(f"Active node should be not of type {type}.")
+        poll_message = tip_("Active node should not be of type {:s}.").format(type)
+        cls.poll_message_set(poll_message)
         return False
     elif not invert and context.active_node.type != type:
-        cls.poll_message_set(f"Active node should be of type {type}.")
+        poll_message = tip_("Active node should be of type {:s}.").format(type)
+        cls.poll_message_set(poll_message)
         return False
     return True
 

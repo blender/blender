@@ -10,16 +10,17 @@
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 
+#include "kernel/types.h"
+
 #include "kernel/camera/camera.h"
 #include "kernel/camera/projection.h"
-#include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
 
 /**
  * @brief Test #fisheye_lens_polynomial_to_direction and its inverse
  * #direction_to_fisheye_lens_polynomial by checking if sensor position equals
- * direction_to_fisheye_lens_polynomial(fisheye_lens_polynomial_to_direction/sensor position))
+ * direction_to_fisheye_lens_polynomial(fisheye_lens_polynomial_to_direction(sensor position))
  * for a couple of sensor positions and a couple of different sets of parameters.
  */
 TEST(KernelCamera, FisheyeLensPolynomialRoundtrip)
@@ -213,6 +214,205 @@ TEST(KernelCamera, FisheyeLensPolynomialToDirection)
 
       EXPECT_NEAR(sensor.x, reprojected.x, 1e-6) << "scale: " << scale;
       EXPECT_NEAR(sensor.y, reprojected.y, 1e-6) << "scale: " << scale;
+    }
+  }
+}
+
+/**
+ * @brief The CommonValues struct contains information about the tests
+ * which is common across the different tests.
+ * Derived classes may override functions to make tests less strict
+ * if necessary.
+ */
+struct CommonValues {
+  /**
+   * @brief Threshold for the reprojection error.
+   * @return
+   */
+  virtual double threshold() const
+  {
+    return 2e-6;
+  }
+
+  /**
+   * @brief If skip_invalid returns true, invalid unprojections are ignored in the test.
+   * @return
+   */
+  virtual bool skip_invalid() const
+  {
+    return false;
+  }
+};
+
+struct Spherical : public CommonValues {
+  static float2 direction_to_sensor(float3 const &dir,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return direction_to_spherical(dir);
+  }
+  static float3 sensor_to_direction(float2 const &sensor,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return spherical_to_direction(sensor.x, sensor.y);
+  }
+};
+
+struct Equirectangular : public CommonValues {
+  static float2 direction_to_sensor(float3 const &dir,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return direction_to_equirectangular(dir);
+  }
+  static float3 sensor_to_direction(float2 const &sensor,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return equirectangular_to_direction(sensor.x, sensor.y);
+  }
+};
+
+struct FisheyeEquidistant : public CommonValues {
+  static float2 direction_to_sensor(float3 const &dir,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return direction_to_fisheye(dir, fov);
+  }
+  static float3 sensor_to_direction(float2 const &sensor,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return fisheye_to_direction(sensor.x, sensor.y, fov);
+  }
+};
+
+struct FisheyeEquisolid : public CommonValues {
+  bool skip_invalid() const
+  {
+    return true;
+  }
+
+  static constexpr float lens = 15.0f;
+
+  static float2 direction_to_sensor(float3 const &dir,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return direction_to_fisheye_equisolid(dir, lens, width, height);
+  }
+  static float3 sensor_to_direction(float2 const &sensor,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return fisheye_equisolid_to_direction(sensor.x, sensor.y, lens, fov, width, height);
+  }
+};
+
+struct MirrorBall : public CommonValues {
+  static float2 direction_to_sensor(float3 const &dir,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return direction_to_mirrorball(dir);
+  }
+  static float3 sensor_to_direction(float2 const &sensor,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return mirrorball_to_direction(sensor.x, sensor.y);
+  }
+};
+
+struct EquiangularCubemapFace : public CommonValues {
+  static float2 direction_to_sensor(float3 const &dir,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return direction_to_equiangular_cubemap_face(dir);
+  }
+  static float3 sensor_to_direction(float2 const &sensor,
+                                    float const fov,
+                                    float const width,
+                                    float const height)
+  {
+    return equiangular_cubemap_face_to_direction(sensor.x, sensor.y);
+  }
+};
+
+template<typename T> class PanoramaProjection : public testing::Test {};
+using MyTypes = ::testing::Types<Spherical,
+                                 Equirectangular,
+                                 FisheyeEquidistant,
+                                 FisheyeEquisolid,
+                                 MirrorBall,
+                                 EquiangularCubemapFace>;
+TYPED_TEST_SUITE(PanoramaProjection, MyTypes);
+
+/**
+ * @brief Test <projection>_to_direction and its inverse
+ * direction_to_<projection> by checking if sensor position equals
+ * direction_to_<projection>(<projection>_to_direction(sensor position))
+ * for a couple of sensor positions and a couple of different sets of parameters.
+ */
+TYPED_TEST(PanoramaProjection, round_trip)
+{
+
+  TypeParam test;
+
+  const float2 sensors[]{{0.5f, 0.5f},
+                         {0.4f, 0.4f},
+                         {0.3f, 0.3f},
+                         {0.4f, 0.6f},
+                         {0.3f, 0.7f},
+                         {0.2f, 0.8f},
+                         {0.5f, 0.9f},
+                         {0.5f, 0.1f},
+                         {0.1f, 0.5f},
+                         {0.9f, 0.5f}};
+
+  for (float const size : {36.0f, 24.0f, 6.0f * M_PI_F}) {
+    float const width = size;
+    float const height = size;
+    for (const float fov : {2.0f * M_PI_F, M_PI_F, M_PI_2_F, M_PI_4_F, 1.0f, 2.0f}) {
+      size_t test_count = 0;
+      for (const float2 &sensor : sensors) {
+        const float3 direction = TypeParam::sensor_to_direction(sensor, fov, width, height);
+        if (test.skip_invalid() && len(direction) < 0.9f) {
+          continue;
+        }
+        test_count++;
+        EXPECT_NEAR(len(direction), 1.0, 1e-6)
+            << "dir: (" << direction.x << ", " << direction.y << ", " << direction.z << ")"
+            << std::endl
+            << "fov: " << fov << std::endl
+            << "sensor: (" << sensor.x << ", " << sensor.y << ")" << std::endl;
+        const float2 projection = TypeParam::direction_to_sensor(direction, fov, width, height);
+        EXPECT_NEAR(sensor.x, projection.x, test.threshold())
+            << "dir: (" << direction.x << ", " << direction.y << ", " << direction.z << ")"
+            << std::endl
+            << "fov: " << fov << std::endl
+            << "sensor: (" << sensor.x << ", " << sensor.y << ")" << std::endl;
+        EXPECT_NEAR(sensor.y, projection.y, test.threshold())
+            << "dir: (" << direction.x << ", " << direction.y << ", " << direction.z << ")"
+            << std::endl
+            << "fov: " << fov << std::endl
+            << "sensor: (" << sensor.x << ", " << sensor.y << ")" << std::endl;
+      }
+      EXPECT_GE(test_count, 2) << "fov: " << fov << std::endl << "size: " << size << std::endl;
     }
   }
 }

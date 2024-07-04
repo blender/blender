@@ -38,6 +38,8 @@
 
 #include "ANIM_action.hh"
 
+using namespace blender;
+
 /* *************************** Keyframe Processing *************************** */
 
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
@@ -1159,6 +1161,19 @@ void action_group_to_keylist(AnimData *adt,
   }
 }
 
+void action_binding_to_keylist(AnimData *adt,
+                               animrig::Action &action,
+                               const animrig::binding_handle_t binding_handle,
+                               AnimKeylist *keylist,
+                               const int saction_flag,
+                               blender::float2 range)
+{
+  BLI_assert(GS(action.id.name) == ID_AC);
+  for (FCurve *fcurve : fcurves_for_animation(action, binding_handle)) {
+    fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range);
+  }
+}
+
 void action_to_keylist(AnimData *adt,
                        bAction *dna_action,
                        AnimKeylist *keylist,
@@ -1183,9 +1198,7 @@ void action_to_keylist(AnimData *adt,
    * Assumption: the animation is bound to adt->binding_handle. This assumption will break when we
    * have things like reference strips, where the strip can reference another binding handle.
    */
-  for (FCurve *fcurve : fcurves_for_animation(action, adt->binding_handle)) {
-    fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range);
-  }
+  action_binding_to_keylist(adt, action, adt->binding_handle, keylist, saction_flag, range);
 }
 
 void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, const bool active)

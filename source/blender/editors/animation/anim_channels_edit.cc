@@ -43,6 +43,8 @@
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
 
+#include "ANIM_action.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
@@ -196,6 +198,7 @@ static bool get_channel_bounds(bAnimContext *ac,
     case ALE_ACT:
     case ALE_GROUP:
     case ALE_ACTION_LAYERED:
+    case ALE_ACTION_BINDING:
     case ALE_GREASE_PENCIL_DATA:
     case ALE_GREASE_PENCIL_GROUP:
       return false;
@@ -309,6 +312,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
       case ANIMTYPE_SUMMARY:
       case ANIMTYPE_SCENE:
       case ANIMTYPE_OBJECT:
+      case ANIMTYPE_ACTION_BINDING:
       case ANIMTYPE_NLACONTROLS:
       case ANIMTYPE_FILLDRIVERS:
       case ANIMTYPE_DSNTREE:
@@ -449,6 +453,7 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
     case ANIMTYPE_SUMMARY:
     case ANIMTYPE_SCENE:
     case ANIMTYPE_OBJECT:
+    case ANIMTYPE_ACTION_BINDING:
     case ANIMTYPE_NLACONTROLS:
     case ANIMTYPE_FILLDRIVERS:
     case ANIMTYPE_SHAPEKEY:
@@ -549,7 +554,13 @@ static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListB
           return ACHANNEL_SETFLAG_CLEAR;
         }
         break;
-
+      case ANIMTYPE_ACTION_BINDING: {
+        using namespace blender::animrig;
+        if (static_cast<Binding *>(ale->data)->is_selected()) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
+        break;
+      }
       case ANIMTYPE_FILLACTD:        /* Action Expander */
       case ANIMTYPE_FILLACT_LAYERED: /* Animation Expander */
       case ANIMTYPE_DSMAT:           /* Datablock AnimData Expanders */
@@ -609,10 +620,41 @@ static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListB
   return ACHANNEL_SETFLAG_ADD;
 }
 
+/**
+ * Update the selection state of `selectable_thing` based on `selectmode`.
+ *
+ * This is basically the C++ variant of the macro `ACHANNEL_SET_FLAG(thing, sel, selection_flag)`,
+ * except that this function doesn't require that the selectable thing has a member variable
+ * `flag`. Instead, it requires that it has two functions to query & set its selection state.
+ *
+ * \param selectable_thing: something with functions `set_selected(bool)` and `bool is_selected()`.
+ * \param selectmode the selection operation to perform.
+ */
+template<typename T>
+static void templated_selection_state_update(T &selectable_thing,
+                                             const eAnimChannels_SetFlag selectmode)
+{
+  switch (selectmode) {
+    case ACHANNEL_SETFLAG_CLEAR:
+      selectable_thing.set_selected(false);
+      break;
+    case ACHANNEL_SETFLAG_ADD:
+    case ACHANNEL_SETFLAG_EXTEND_RANGE:
+      selectable_thing.set_selected(true);
+      break;
+    case ACHANNEL_SETFLAG_INVERT:
+    case ACHANNEL_SETFLAG_TOGGLE:
+      selectable_thing.set_selected(!selectable_thing.is_selected());
+      break;
+  }
+}
+
 static void anim_channels_select_set(bAnimContext *ac,
                                      const ListBase anim_data,
                                      eAnimChannels_SetFlag sel)
 {
+  using namespace blender;
+
   /* Boolean to keep active channel status during range selection. */
   const bool change_active = (sel != ACHANNEL_SETFLAG_EXTEND_RANGE);
 
@@ -677,6 +719,11 @@ static void anim_channels_select_set(bAnimContext *ac,
 
         ACHANNEL_SET_FLAG(nlt, sel, NLATRACK_SELECTED);
         nlt->flag &= ~NLATRACK_ACTIVE;
+        break;
+      }
+      case ANIMTYPE_ACTION_BINDING: {
+        animrig::Binding *binding = static_cast<animrig::Binding *>(ale->data);
+        templated_selection_state_update(*binding, sel);
         break;
       }
       case ANIMTYPE_FILLACTD:        /* Action Expander */
@@ -2327,6 +2374,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
       case ANIMTYPE_GROUP:
       case ANIMTYPE_NLACONTROLS:
       case ANIMTYPE_FILLACT_LAYERED:
+      case ANIMTYPE_ACTION_BINDING:
       case ANIMTYPE_FILLACTD:
       case ANIMTYPE_FILLDRIVERS:
       case ANIMTYPE_DSMAT:
@@ -3090,10 +3138,6 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 
-  if (!ANIM_animdata_can_have_greasepencil(eAnimCont_Types(ac->datatype))) {
-    filter |= ANIMFILTER_FCURVESONLY;
-  }
-
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
@@ -3143,6 +3187,12 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
            * currently adds complications when doing other stuff
            */
           ACHANNEL_SET_FLAG(nlt, selectmode, NLATRACK_SELECTED);
+          break;
+        }
+        case ANIMTYPE_ACTION_BINDING: {
+          using namespace blender::animrig;
+          Binding *binding = static_cast<Binding *>(ale->data);
+          templated_selection_state_update(*binding, eAnimChannels_SetFlag(selectmode));
           break;
         }
         case ANIMTYPE_NONE:
