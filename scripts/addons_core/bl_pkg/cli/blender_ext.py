@@ -122,6 +122,20 @@ ${body}
 </html>
 '''
 
+
+class _ArgsDefaultOverride:
+    __slots__ = (
+        "build_valid_tags",
+    )
+
+    def __init__(self) -> None:
+        self.build_valid_tags = ""
+
+
+# Support overriding this value so Blender can default to a different tags file.
+ARG_DEFAULTS_OVERRIDE = _ArgsDefaultOverride()
+del _ArgsDefaultOverride
+
 # Standard out may be communicating with a parent process,
 # arbitrary prints are NOT acceptable.
 
@@ -207,6 +221,12 @@ def force_exit_ok_enable() -> None:
 
 # -----------------------------------------------------------------------------
 # Generic Functions
+
+def execfile(filepath: str) -> Dict[str, Any]:
+    global_namespace = {"__file__": filepath, "__name__": "__main__"}
+    with open(filepath, "rb") as fh:
+        exec(compile(fh.read(), filepath, 'exec'), global_namespace)
+    return global_namespace
 
 
 def size_as_fmt_string(num: float, *, precision: int = 1) -> str:
@@ -1318,6 +1338,84 @@ def pkg_manifest_validate_terse_description_or_error(value: str) -> Optional[str
 
 
 # -----------------------------------------------------------------------------
+# Manifest Validation (Tags)
+
+
+def pkg_manifest_tags_load_valid_map_from_python(
+        valid_tags_filepath: str,
+) -> Union[str, Dict[str, Set[str]]]:
+    try:
+        data = execfile(valid_tags_filepath)
+    except Exception as ex:
+        return "Python evaluation error ({:s})".format(str(ex))
+
+    result = {}
+    for key, key_extension_type in (("addons", "add-on"), ("themes", "theme")):
+        if (value := data.get(key)) is None:
+            return "missing key \"{:s}\"".format(key)
+        if not isinstance(value, set):
+            return "key \"{:s}\" must be a set, not a {:s}".format(key, str(type(value)))
+        for tag in value:
+            if not isinstance(tag, str):
+                return "key \"{:s}\" must contain strings, found a {:s}".format(key, str(type(tag)))
+
+        result[key_extension_type] = value
+
+    return result
+
+
+def pkg_manifest_tags_load_valid_map_from_json(
+        valid_tags_filepath: str,
+) -> Union[str, Dict[str, Set[str]]]:
+    try:
+        with open(valid_tags_filepath, "rb") as fh:
+            data = json.load(fh)
+    except Exception as ex:
+        return "JSON evaluation error ({:s})".format(str(ex))
+
+    if not isinstance(data, dict):
+        return "JSON must contain a dict not a {:s}".format(str(type(data)))
+
+    result = {}
+    for key in ("add-on", "theme"):
+        if (value := data.get(key)) is None:
+            return "missing key \"{:s}\"".format(key)
+        if not isinstance(value, list):
+            return "key \"{:s}\" must be a list, not a {:s}".format(key, str(type(value)))
+        for tag in value:
+            if not isinstance(tag, str):
+                return "key \"{:s}\" must contain strings, found a {:s}".format(key, str(type(tag)))
+
+        result[key] = set(value)
+
+    return result
+
+
+def pkg_manifest_tags_load_valid_map(
+        valid_tags_filepath: str,
+) -> Union[str, Dict[str, Set[str]]]:
+    # Allow Python data (Blender stores this internally).
+    if valid_tags_filepath.endswith(".py"):
+        return pkg_manifest_tags_load_valid_map_from_python(valid_tags_filepath)
+    return pkg_manifest_tags_load_valid_map_from_json(valid_tags_filepath)
+
+
+def pkg_manifest_tags_valid_or_error(
+        valid_tags_data: Dict[str, Any],
+        manifest_type: str,
+        manifest_tags: List[str],
+) -> Optional[str]:
+    valid_tags = valid_tags_data[manifest_type]
+    for tag in manifest_tags:
+        if tag not in valid_tags:
+            return (
+                "found invalid tag \"{:s}\" not found in:\n"
+                "({:s})"
+            ).format(tag, ", ".join(sorted(valid_tags)))
+    return None
+
+
+# -----------------------------------------------------------------------------
 # Manifest Validation (Generic Callbacks)
 #
 # NOTE: regarding the `strict` argument, this was added because we may want to tighten
@@ -2423,6 +2521,48 @@ def generic_arg_build_split_platforms(subparse: argparse.ArgumentParser) -> None
             "\n"
             "This can be useful to reduce the upload size of packages that bundle large\n"
             "platform-specific modules (``*.whl`` files)."
+        ),
+    )
+
+
+def generic_arg_package_valid_tags(subparse: argparse.ArgumentParser) -> None:
+    # NOTE(@ideasman42): when called from Blender tags for `extensions.blender.org` are enforced by default.
+    # For `extensions.blender.org` this is enforced on the server side, so it's better developers see the error
+    # on build/validate instead of uploading the package.
+    # It's worth noting not all extensions will be hosted on `extensions.blender.org`,
+    # 3rd party hosting should remain a first class citizen not some exceptional case.
+    #
+    # The rationale for applying these tags for all packages even accepting that not everyone is targeting
+    # Blender's official repository is to avoid every extension defining their own tags.
+    #
+    # This has two down sides:
+    # - Duplicate similar tags, e.g. `"render", "rendering"`, `"toon", "cartoon"` etc.
+    # - Tag proliferation (100's of tags), makes the UI unusable.
+    #   So even when all tags are valid and named well, having everyone defining
+    #   their own tags results the user having to filter between too many options.
+    #   Although a re-designed UI could account for this if it were important.
+    #
+    # Nevertheless, allow motivated developers to ignore the tags limitations as it's somewhat arbitrarily.
+    # The default to apply these limits is a "nudge" to avoid additional tags from typos as well as a hint
+    # that tags should be added to Blender's list if they're needed instead of being defined ad-hoc.
+
+    subparse.add_argument(
+        "--valid-tags",
+        dest="valid_tags_filepath",
+        default=ARG_DEFAULTS_OVERRIDE.build_valid_tags,
+        metavar="VALID_TAGS_JSON",
+        # NOTE(@ideasman42): Python input is also supported, intentionally undocumented for now,
+        # since this is only supported as Blender's tags happen to be stored as a Python script - which may change.
+        help=(
+            "Reference a file path containing valid tags lists.\n"
+            "\n"
+            "If you wish to reference custom tags a ``.json`` file can be used.\n"
+            "The contents must be a dictionary of lists where the ``key`` matches the extension type.\n"
+            "\n"
+            "For example:\n"
+            "   ``{\"add-ons\": [\"Example\", \"Another\"], \"theme\": [\"Other\", \"Tags\"]}``\n"
+            "\n"
+            "To disable validating tags, pass in an empty path ``--valid-tags=\"\"``."
         ),
     )
 
@@ -3548,6 +3688,7 @@ class subcmd_author:
             pkg_output_dir: str,
             pkg_output_filepath: str,
             split_platforms: bool,
+            valid_tags_filepath: str,
             verbose: bool,
     ) -> bool:
         if not os.path.isdir(pkg_source_dir):
@@ -3589,6 +3730,15 @@ class subcmd_author:
                     msg_fn,
                     "Error in arguments \"--split-platforms\" with a manifest that does not declare \"platforms\"",
                 )
+                return False
+
+        if valid_tags_filepath:
+            if subcmd_author._validate_tags(
+                    msg_fn,
+                    manifest=manifest,
+                    pkg_manifest_filepath=pkg_manifest_filepath,
+                    valid_tags_filepath=valid_tags_filepath,
+            ) is False:
                 return False
 
         if (manifest_build_data := manifest_data.get("build")) is not None:
@@ -3804,10 +3954,41 @@ class subcmd_author:
         return True
 
     @staticmethod
+    def _validate_tags(
+            msg_fn: MessageFn,
+            *,
+            manifest: PkgManifest,
+            # NOTE: This path is only for inclusion in the error message,
+            # the path may not exist on the file-system (it may refer to a path inside an archive for e.g.).
+            pkg_manifest_filepath: str,
+            valid_tags_filepath: str,
+    ) -> bool:
+        assert valid_tags_filepath
+        if manifest.tags is not None:
+            if isinstance(valid_tags_data := pkg_manifest_tags_load_valid_map(valid_tags_filepath), str):
+                message_error(
+                    msg_fn,
+                    "Error in TAGS \"{:s}\" loading tags: {:s}".format(valid_tags_filepath, valid_tags_data),
+                )
+                return False
+            if (error := pkg_manifest_tags_valid_or_error(valid_tags_data, manifest.type, manifest.tags)) is not None:
+                message_error(
+                    msg_fn,
+                    (
+                        "Error in TOML \"{:s}\" loading tags: {:s}\n"
+                        "Either correct the tag or disable validation using an empty tags argument --valid-tags=\"\", "
+                        "see --help text for details."
+                    ).format(pkg_manifest_filepath, error),
+                )
+                return False
+        return True
+
+    @staticmethod
     def _validate_directory(
             msg_fn: MessageFn,
             *,
             pkg_source_dir: str,
+            valid_tags_filepath: str,
     ) -> bool:
         pkg_manifest_filepath = os.path.join(pkg_source_dir, PKG_MANIFEST_FILENAME_TOML)
 
@@ -3837,6 +4018,15 @@ class subcmd_author:
         if not ok:
             return False
 
+        if valid_tags_filepath:
+            if subcmd_author._validate_tags(
+                    msg_fn,
+                    manifest=manifest,
+                    pkg_manifest_filepath=pkg_manifest_filepath,
+                    valid_tags_filepath=valid_tags_filepath,
+            ) is False:
+                return False
+
         message_status(msg_fn, "Success parsing TOML in \"{:s}\"".format(pkg_source_dir))
         return True
 
@@ -3845,6 +4035,7 @@ class subcmd_author:
             msg_fn: MessageFn,
             *,
             pkg_source_archive: str,
+            valid_tags_filepath: str,
     ) -> bool:
         # NOTE(@ideasman42): having `_validate_directory` & `_validate_archive`
         # use separate code-paths isn't ideal in some respects however currently the difference
@@ -3877,6 +4068,19 @@ class subcmd_author:
                     message_status(msg_fn, error_msg)
                 return False
 
+            if valid_tags_filepath:
+                if subcmd_author._validate_tags(
+                        msg_fn,
+                        manifest=manifest,
+                        # Only for the error message, use the ZIP relative path.
+                        pkg_manifest_filepath=(
+                            "{:s}/{:s}".format(archive_subdir, PKG_MANIFEST_FILENAME_TOML) if archive_subdir else
+                            PKG_MANIFEST_FILENAME_TOML
+                        ),
+                        valid_tags_filepath=valid_tags_filepath,
+                ) is False:
+                    return False
+
             # NOTE: this is arguably *not* manifest validation, the check could be refactored out.
             # Currently we always want to check both and it's useful to do that while the informatio
             expected_files = []
@@ -3905,11 +4109,20 @@ class subcmd_author:
             msg_fn: MessageFn,
             *,
             source_path: str,
+            valid_tags_filepath: str,
     ) -> bool:
         if os.path.isdir(source_path):
-            result = subcmd_author._validate_directory(msg_fn, pkg_source_dir=source_path)
+            result = subcmd_author._validate_directory(
+                msg_fn,
+                pkg_source_dir=source_path,
+                valid_tags_filepath=valid_tags_filepath,
+            )
         else:
-            result = subcmd_author._validate_archive(msg_fn, pkg_source_archive=source_path)
+            result = subcmd_author._validate_archive(
+                msg_fn,
+                pkg_source_archive=source_path,
+                valid_tags_filepath=valid_tags_filepath,
+            )
         return result
 
 
@@ -4002,6 +4215,7 @@ def unregister():
                     pkg_output_dir=repo_dir,
                     pkg_output_filepath="",
                     split_platforms=False,
+                    valid_tags_filepath="",
                     verbose=False,
                 ):
                     # Error running command.
@@ -4251,6 +4465,7 @@ def argparse_create_author_build(
     generic_arg_package_source_dir(subparse)
     generic_arg_package_output_dir(subparse)
     generic_arg_package_output_filepath(subparse)
+    generic_arg_package_valid_tags(subparse)
     generic_arg_build_split_platforms(subparse)
     generic_arg_verbose(subparse)
 
@@ -4264,6 +4479,7 @@ def argparse_create_author_build(
             pkg_output_dir=args.output_dir,
             pkg_output_filepath=args.output_filepath,
             split_platforms=args.split_platforms,
+            valid_tags_filepath=args.valid_tags_filepath,
             verbose=args.verbose,
         ),
     )
@@ -4280,6 +4496,7 @@ def argparse_create_author_validate(
         formatter_class=argparse.RawTextHelpFormatter,
     )
     generic_arg_package_source_path_positional(subparse)
+    generic_arg_package_valid_tags(subparse)
 
     if args_internal:
         generic_arg_output_type(subparse)
@@ -4288,6 +4505,7 @@ def argparse_create_author_validate(
         func=lambda args: subcmd_author.validate(
             msg_fn_from_args(args),
             source_path=args.source_path,
+            valid_tags_filepath=args.valid_tags_filepath,
         ),
     )
 
