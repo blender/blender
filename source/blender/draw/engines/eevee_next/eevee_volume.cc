@@ -77,6 +77,8 @@ void VolumeModule::world_sync(const WorldHandle &world_handle)
 
 void VolumeModule::object_sync(const ObjectHandle &ob_handle)
 {
+  current_objects_.add(ob_handle.object_key);
+
   if (!use_reprojection_) {
     return;
   }
@@ -84,7 +86,6 @@ void VolumeModule::object_sync(const ObjectHandle &ob_handle)
   if (ob_handle.recalc && !inst_.is_playback()) {
     valid_history_ = false;
   }
-  current_objects_.add(ob_handle.object_key);
 }
 
 void VolumeModule::end_sync()

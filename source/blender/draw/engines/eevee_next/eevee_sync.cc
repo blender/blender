@@ -380,19 +380,27 @@ void SyncModule::sync_volume(Object *ob,
 
   auto drawcall_add = [&](MaterialPass &matpass, gpu::Batch *geom, ResourceHandle res_handle) {
     if (matpass.sub_pass == nullptr) {
-      return;
+      return false;
     }
     PassMain::Sub *object_pass = volume_sub_pass(
         *matpass.sub_pass, inst_.scene, ob, matpass.gpumat);
     if (object_pass != nullptr) {
       object_pass->draw(geom, res_handle);
+      return true;
     }
+    return false;
   };
 
   /* Use bounding box tag empty spaces. */
   gpu::Batch *geom = DRW_cache_cube_get();
-  drawcall_add(material.volume_occupancy, geom, res_handle);
-  drawcall_add(material.volume_material, geom, res_handle);
+
+  bool is_rendered = false;
+  is_rendered |= drawcall_add(material.volume_occupancy, geom, res_handle);
+  is_rendered |= drawcall_add(material.volume_material, geom, res_handle);
+
+  if (!is_rendered) {
+    return;
+  }
 
   inst_.manager->extract_object_attributes(res_handle, ob_ref, material.volume_material.gpumat);
 
