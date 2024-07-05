@@ -85,11 +85,6 @@ const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
      ICON_EMPTY_AXIS,
      "Instances",
      "Instances of objects or collections"},
-    {int(blender::bke::GeometryComponent::Type::GreasePencil),
-     "GREASEPENCIL",
-     ICON_GREASEPENCIL,
-     "Grease Pencil",
-     "Grease Pencil component containing layers and curves data"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
