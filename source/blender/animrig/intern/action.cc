@@ -52,7 +52,7 @@ namespace blender::animrig {
 
 namespace {
 /**
- * Default name for animation slots. The first two characters in the name indicate the ID type
+ * Default name for action slots. The first two characters in the name indicate the ID type
  * of whatever is animated by it.
  *
  * Since the ID type may not be determined when the slot is created, the prefix starts out at
@@ -95,7 +95,7 @@ template<typename T> static void grow_array(T **array, int *num, const int add_n
   BLI_assert(add_num > 0);
   const int new_array_num = *num + add_num;
   T *new_array = reinterpret_cast<T *>(
-      MEM_cnew_array<T *>(new_array_num, "animrig::animation/grow_array"));
+      MEM_cnew_array<T *>(new_array_num, "animrig::action/grow_array"));
 
   blender::uninitialized_relocate_n(*array, *num, new_array);
   MEM_SAFE_FREE(*array);
@@ -123,7 +123,7 @@ template<typename T> static void shrink_array(T **array, int *num, const int shr
   *num = new_array_num;
 }
 
-/* ----- Animation implementation ----------- */
+/* ----- Action implementation ----------- */
 
 bool Action::is_empty() const
 {
@@ -262,19 +262,19 @@ const Slot *Action::slot_for_handle(const slot_handle_t handle) const
   return nullptr;
 }
 
-static void anim_slot_name_ensure_unique(Action &animation, Slot &slot)
+static void slot_name_ensure_unique(Action &action, Slot &slot)
 {
   /* Cannot capture parameters by reference in the lambda, as that would change its signature
    * and no longer be compatible with BLI_uniquename_cb(). That's why this struct is necessary. */
   struct DupNameCheckData {
-    Action &anim;
+    Action &action;
     Slot &slot;
   };
-  DupNameCheckData check_data = {animation, slot};
+  DupNameCheckData check_data = {action, slot};
 
   auto check_name_is_used = [](void *arg, const char *name) -> bool {
     DupNameCheckData *data = static_cast<DupNameCheckData *>(arg);
-    for (const Slot *slot : data->anim.slots()) {
+    for (const Slot *slot : data->action.slots()) {
       if (slot == &data->slot) {
         /* Don't compare against the slot that's being renamed. */
         continue;
@@ -302,9 +302,9 @@ void Action::slot_name_set(Main &bmain, Slot &slot, const StringRefNull new_name
 void Action::slot_name_define(Slot &slot, const StringRefNull new_name)
 {
   BLI_assert_msg(StringRef(new_name).size() >= Slot::name_length_min,
-                 "Animation Slots must be large enough for a 2-letter ID code + the display name");
+                 "Action Slots must be large enough for a 2-letter ID code + the display name");
   STRNCPY_UTF8(slot.name, new_name.c_str());
-  anim_slot_name_ensure_unique(*this, slot);
+  slot_name_ensure_unique(*this, slot);
 }
 
 void Action::slot_name_propagate(Main &bmain, const Slot &slot)
@@ -322,7 +322,7 @@ void Action::slot_name_propagate(Main &bmain, const Slot &slot)
 
       AnimData *adt = BKE_animdata_from_id(id);
       if (!adt || adt->action != this) {
-        /* Not animated by this Animation. */
+        /* Not animated by this Action. */
         continue;
       }
       if (adt->slot_handle != slot.handle) {
@@ -352,7 +352,7 @@ Slot &Action::slot_allocate()
 {
   Slot &slot = *MEM_new<Slot>(__func__);
   this->last_slot_handle++;
-  BLI_assert_msg(this->last_slot_handle > 0, "Animation Slot handle overflow");
+  BLI_assert_msg(this->last_slot_handle > 0, "Action Slot handle overflow");
   slot.handle = this->last_slot_handle;
 
   /* Set the default flags. These cannot be set via the 'DNA defaults' system,
@@ -373,7 +373,7 @@ Slot &Action::slot_add()
   /* Append the Slot to the Action. */
   grow_array_and_append<::ActionSlot *>(&this->slot_array, &this->slot_array_num, &slot);
 
-  anim_slot_name_ensure_unique(*this, slot);
+  slot_name_ensure_unique(*this, slot);
 
   /* If this is the first slot in this Action, it means that it could have
    * been used as a legacy Action before. As a result, this->idroot may be
@@ -444,7 +444,7 @@ bool Action::is_slot_animated(const slot_handle_t slot_handle) const
     return false;
   }
 
-  Span<const FCurve *> fcurves = fcurves_for_animation(*this, slot_handle);
+  Span<const FCurve *> fcurves = fcurves_for_action_slot(*this, slot_handle);
   return !fcurves.is_empty();
 }
 
@@ -468,7 +468,7 @@ bool Action::assign_id(Slot *slot, ID &animated_id)
 
   if (adt->action && adt->action != this) {
     /* The caller should unassign the ID from its existing animation first, or
-     * use the top-level function `assign_animation(anim, ID)`. */
+     * use the top-level function `assign_action(anim, ID)`. */
     return false;
   }
 
@@ -520,7 +520,7 @@ bool Action::assign_id(Slot *slot, ID &animated_id)
 void Action::slot_name_ensure_prefix(Slot &slot)
 {
   slot.name_ensure_prefix();
-  anim_slot_name_ensure_unique(*this, slot);
+  slot_name_ensure_unique(*this, slot);
 }
 
 void Action::slot_setup_for_id(Slot &slot, const ID &animated_id)
@@ -747,12 +747,12 @@ void Slot::users_invalidate(Main &bmain)
 
 /* ----- Functions  ----------- */
 
-bool assign_animation(Action &anim, ID &animated_id)
+bool assign_action(Action &action, ID &animated_id)
 {
-  unassign_animation(animated_id);
+  unassign_action(animated_id);
 
-  Slot *slot = anim.find_suitable_slot_for(animated_id);
-  return anim.assign_id(slot, animated_id);
+  Slot *slot = action.find_suitable_slot_for(animated_id);
+  return action.assign_id(slot, animated_id);
 }
 
 bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
@@ -779,13 +779,13 @@ bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
   return true;
 }
 
-void unassign_animation(ID &animated_id)
+void unassign_action(ID &animated_id)
 {
-  Action *anim = get_animation(animated_id);
-  if (!anim) {
+  Action *action = get_action(animated_id);
+  if (!action) {
     return;
   }
-  anim->unassign_id(animated_id);
+  action->unassign_id(animated_id);
 }
 
 void unassign_slot(ID &animated_id)
@@ -809,7 +809,7 @@ void unassign_slot(ID &animated_id)
 }
 
 /* TODO: rename to get_action(). */
-Action *get_animation(ID &animated_id)
+Action *get_action(ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
   if (!adt) {
@@ -1179,14 +1179,14 @@ const FCurve *ChannelBag::fcurve_find(const StringRefNull rna_path, const int ar
 
 /* Utility function implementations. */
 
-static const animrig::ChannelBag *channelbag_for_animation(const Action &anim,
-                                                           const slot_handle_t slot_handle)
+static const animrig::ChannelBag *channelbag_for_action_slot(const Action &action,
+                                                             const slot_handle_t slot_handle)
 {
   if (slot_handle == Slot::unassigned) {
     return nullptr;
   }
 
-  for (const animrig::Layer *layer : anim.layers()) {
+  for (const animrig::Layer *layer : action.layers()) {
     for (const animrig::Strip *strip : layer->strips()) {
       switch (strip->type()) {
         case animrig::Strip::Type::Keyframe: {
@@ -1203,25 +1203,26 @@ static const animrig::ChannelBag *channelbag_for_animation(const Action &anim,
   return nullptr;
 }
 
-static animrig::ChannelBag *channelbag_for_animation(Action &anim, const slot_handle_t slot_handle)
+static animrig::ChannelBag *channelbag_for_action_slot(Action &action,
+                                                       const slot_handle_t slot_handle)
 {
-  const animrig::ChannelBag *const_bag = channelbag_for_animation(const_cast<const Action &>(anim),
-                                                                  slot_handle);
+  const animrig::ChannelBag *const_bag = channelbag_for_action_slot(
+      const_cast<const Action &>(action), slot_handle);
   return const_cast<animrig::ChannelBag *>(const_bag);
 }
 
-Span<FCurve *> fcurves_for_animation(Action &anim, const slot_handle_t slot_handle)
+Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_handle)
 {
-  animrig::ChannelBag *bag = channelbag_for_animation(anim, slot_handle);
+  animrig::ChannelBag *bag = channelbag_for_action_slot(action, slot_handle);
   if (!bag) {
     return {};
   }
   return bag->fcurves();
 }
 
-Span<const FCurve *> fcurves_for_animation(const Action &anim, const slot_handle_t slot_handle)
+Span<const FCurve *> fcurves_for_action_slot(const Action &action, const slot_handle_t slot_handle)
 {
-  const animrig::ChannelBag *bag = channelbag_for_animation(anim, slot_handle);
+  const animrig::ChannelBag *bag = channelbag_for_action_slot(action, slot_handle);
   if (!bag) {
     return {};
   }

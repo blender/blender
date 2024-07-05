@@ -396,13 +396,13 @@ static void read_keyframe_strip(BlendDataReader *reader, animrig::KeyframeStrip 
   }
 }
 
-static void read_layers(BlendDataReader *reader, animrig::Action &anim)
+static void read_layers(BlendDataReader *reader, animrig::Action &action)
 {
-  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&anim.layer_array));
+  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&action.layer_array));
 
-  for (int layer_idx = 0; layer_idx < anim.layer_array_num; layer_idx++) {
-    BLO_read_struct(reader, ActionLayer, &anim.layer_array[layer_idx]);
-    ActionLayer *layer = anim.layer_array[layer_idx];
+  for (int layer_idx = 0; layer_idx < action.layer_array_num; layer_idx++) {
+    BLO_read_struct(reader, ActionLayer, &action.layer_array[layer_idx]);
+    ActionLayer *layer = action.layer_array[layer_idx];
 
     BLO_read_pointer_array(reader, reinterpret_cast<void **>(&layer->strip_array));
     for (int strip_idx = 0; strip_idx < layer->strip_array_num; strip_idx++) {
@@ -419,13 +419,13 @@ static void read_layers(BlendDataReader *reader, animrig::Action &anim)
   }
 }
 
-static void read_slots(BlendDataReader *reader, animrig::Action &anim)
+static void read_slots(BlendDataReader *reader, animrig::Action &action)
 {
-  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&anim.slot_array));
+  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&action.slot_array));
 
-  for (int i = 0; i < anim.slot_array_num; i++) {
-    BLO_read_struct(reader, ActionSlot, &anim.slot_array[i]);
-    anim.slot_array[i]->wrap().blend_read_post();
+  for (int i = 0; i < action.slot_array_num; i++) {
+    BLO_read_struct(reader, ActionSlot, &action.slot_array[i]);
+    action.slot_array[i]->wrap().blend_read_post();
   }
 }
 

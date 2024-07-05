@@ -1169,7 +1169,7 @@ void action_slot_to_keylist(AnimData *adt,
                             blender::float2 range)
 {
   BLI_assert(GS(action.id.name) == ID_AC);
-  for (FCurve *fcurve : fcurves_for_animation(action, slot_handle)) {
+  for (FCurve *fcurve : fcurves_for_action_slot(action, slot_handle)) {
     fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range);
   }
 }
@@ -1186,7 +1186,7 @@ void action_to_keylist(AnimData *adt,
 
   blender::animrig::Action &action = dna_action->wrap();
 
-  /* TODO: move this into fcurves_for_animation(). */
+  /* TODO: move this into fcurves_for_action_slot(). */
   if (action.is_action_legacy()) {
     LISTBASE_FOREACH (FCurve *, fcu, &action.curves) {
       fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);

@@ -481,8 +481,8 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
  * - nlaOk: line or block of code to execute for NLA tracks+strips case
  * - driversOk: line or block of code to execute for Drivers case
  * - nlaKeysOk: line or block of code for NLA Strip Keyframes case
- * - keysOk: line or block of code for Keyframes case
- * - animOk: line or block of code for Keyframes from Animation data blocks case
+ * - legacyActionOk: line or block of code for Keyframes from legacy Actions
+ * - layeredActionOk: line or block of code for Keyframes from layered Actions
  *
  * The checks for the various cases are as follows:
  * 0) top level: checks for animdata and also that all the F-Curves for the block will be visible
@@ -1516,7 +1516,7 @@ static size_t animfilter_action_slot(bAnimContext *ac,
 
   if (show_fcurves_only || expansion_is_ok) {
     /* Add list elements for the F-Curves for this Slot. */
-    Span<FCurve *> fcurves = animrig::fcurves_for_animation(action, slot.handle);
+    Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, slot.handle);
     items += animfilter_fcurves_span(
         ac, anim_data, fcurves, slot.handle, filter_mode, owner_id, &action.id);
   }

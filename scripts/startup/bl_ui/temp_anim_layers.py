@@ -113,7 +113,7 @@ def _wm_selected_action_update(wm, context):
 
 def register_props():
     # Due to this hackyness, the WindowManager will increase the user count of
-    # the pointed-to Animation data-block.
+    # the pointed-to Action.
     WindowManager.selected_action = PointerProperty(
         type=bpy.types.Action,
         name="Action",

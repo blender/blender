@@ -44,7 +44,7 @@ static bool mode_transfer_is_animation_running(const float anim_time)
   return anim_time >= 0.0f && anim_time <= MODE_TRANSFER_FLASH_LENGTH;
 }
 
-static float mode_transfer_alpha_for_animation_time_get(const float anim_time)
+static float mode_transfer_alpha_for_action_slot_time_get(const float anim_time)
 {
   if (anim_time > MODE_TRANSFER_FLASH_LENGTH) {
     return 0.0f;
@@ -103,7 +103,7 @@ void OVERLAY_mode_transfer_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
     float color[4];
     UI_GetThemeColor3fv(TH_VERTEX_SELECT, color);
-    color[3] = mode_transfer_alpha_for_animation_time_get(animation_time);
+    color[3] = mode_transfer_alpha_for_action_slot_time_get(animation_time);
     srgb_to_linearrgb_v4(color, color);
     /* Alpha pre-multiply. */
     mul_v3_fl(color, color[3]);

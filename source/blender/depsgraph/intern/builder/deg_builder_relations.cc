@@ -1574,7 +1574,7 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
   OperationKey animation_exit_key(id, NodeType::ANIMATION, OperationCode::ANIMATION_EXIT);
   add_relation(animation_entry_key, animation_eval_key, "Init -> Eval");
   add_relation(animation_eval_key, animation_exit_key, "Eval -> Exit");
-  /* Wire up dependency from action and Animation datablock. */
+  /* Wire up dependency from Actions. */
   ComponentKey adt_key(id, NodeType::ANIMATION);
   /* Relation from action itself. */
   if (adt->action != nullptr) {

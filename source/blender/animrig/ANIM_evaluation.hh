@@ -5,7 +5,7 @@
 /** \file
  * \ingroup animrig
  *
- * \brief Animation data-block evaluation.
+ * \brief Layered Action evaluation.
  */
 #pragma once
 
@@ -26,10 +26,10 @@ namespace blender::animrig {
  * \param flush_to_original: when true, look up the original data-block (assuming
  * the given one is an evaluated copy) and update that too.
  */
-void evaluate_and_apply_animation(PointerRNA &animated_id_ptr,
-                                  Action &animation,
-                                  slot_handle_t slot_handle,
-                                  const AnimationEvalContext &anim_eval_context,
-                                  bool flush_to_original);
+void evaluate_and_apply_action(PointerRNA &animated_id_ptr,
+                               Action &action,
+                               slot_handle_t slot_handle,
+                               const AnimationEvalContext &anim_eval_context,
+                               bool flush_to_original);
 
 }  // namespace blender::animrig

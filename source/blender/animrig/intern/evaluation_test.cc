@@ -33,7 +33,7 @@ using namespace blender::animrig::internal;
 class AnimationEvaluationTest : public testing::Test {
  protected:
   Main *bmain;
-  Action *anim;
+  Action *action;
   Object *cube;
   Slot *slot;
   Layer *layer;
@@ -60,13 +60,13 @@ class AnimationEvaluationTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
+    action = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
 
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
 
-    slot = &anim->slot_add();
-    anim->assign_id(slot, cube->id);
-    layer = &anim->layer_add("Kübus layer");
+    slot = &action->slot_add();
+    action->assign_id(slot, cube->id);
+    layer = &action->layer_add("Kübus layer");
 
     /* Make it easier to predict test values. */
     settings.interpolation = BEZT_IPO_LIN;

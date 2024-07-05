@@ -127,7 +127,7 @@ void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
       animdata_remove_empty_action(adt);
     }
     else {
-      /* TODO: support deleting FCurves from Animation data-blocks. */
+      /* TODO: support deleting FCurves from layered Actions. */
       return;
     }
   }
@@ -200,7 +200,7 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
 
   const Slot *slot = action.slot_for_handle(adt.slot_handle);
   if (!slot) {
-    /* No need to inspect anything if this ID does not have an animation Slot. */
+    /* No need to inspect anything if this ID does not have an Action Slot. */
     return nullptr;
   }
 

@@ -101,7 +101,7 @@ class Action : public ::bAction {
    */
   bool is_action_layered() const;
 
-  /* Animation Layers access. */
+  /* Action Layers access. */
   blender::Span<const Layer *> layers() const;
   blender::MutableSpan<Layer *> layers();
   const Layer *layer(int64_t index) const;
@@ -110,7 +110,7 @@ class Action : public ::bAction {
   Layer &layer_add(StringRefNull name);
 
   /**
-   * Remove the layer from this animation.
+   * Remove the layer from this Action.
    *
    * After this call, the passed reference is no longer valid, as the memory
    * will have been freed. Any strips on the layer will be freed too.
@@ -125,7 +125,7 @@ class Action : public ::bAction {
    */
   void layer_ensure_at_least_one();
 
-  /* Animation Slot access. */
+  /* Action Slot access. */
   blender::Span<const Slot *> slots() const;
   blender::MutableSpan<Slot *> slots();
   const Slot *slot(int64_t index) const;
@@ -146,8 +146,8 @@ class Action : public ::bAction {
    * Set the slot name, ensure it is unique, and propagate the new name to
    * all data-blocks that use it.
    *
-   * This has to be done on the Animation level to ensure each slot has a
-   * unique name within the Animation.
+   * This has to be done on the Action level to ensure each slot has a
+   * unique name within the Action.
    *
    * \note This does NOT ensure the first two characters match the ID type of
    * this slot. This is the caller's responsibility.
@@ -191,7 +191,7 @@ class Action : public ::bAction {
   /**
    * Create a new slot, named after the given ID, and limited to the ID's type.
    *
-   * Note that this assigns neither this Animation nor the new Slot to the ID. This function
+   * Note that this assigns neither this Action nor the new Slot to the ID. This function
    * merely initializes the Slot itself to suitable values to start animating this ID.
    */
   Slot &slot_add_for_id(const ID &animated_id);
@@ -216,21 +216,21 @@ class Action : public ::bAction {
    */
   Slot &slot_ensure_for_id(const ID &animated_id);
 
-  /** Assign this animation to the ID.
+  /** Assign this Action to the ID.
    *
    * \param slot: The slot this ID should be animated by, may be nullptr if it is to be
    * assigned later. In that case, the ID will not actually receive any animation.
-   * \param animated_id: The ID that should be animated by this Animation data-block.
+   * \param animated_id: The ID that should be animated by this Action.
    *
    * \return whether the assignment was successful.
    */
   bool assign_id(Slot *slot, ID &animated_id);
 
   /**
-   * Unassign this Animation from the animated ID.
+   * Unassign this Action from the animated ID.
    *
-   * \param animated_id: ID that is animated by this Animation. Calling this
-   * function when this ID is _not_ animated by this Animation is not allowed,
+   * \param animated_id: ID that is animated by this Action. Calling this
+   * function when this ID is _not_ animated by this Action is not allowed,
    * and considered a bug.
    */
   void unassign_id(ID &animated_id);
@@ -238,19 +238,19 @@ class Action : public ::bAction {
   /**
    * Find the slot that best matches the animated ID.
    *
-   * If the ID is already animated by this Animation, by matching this
-   * Animation's slots with (in order):
+   * If the ID is already animated by this Action, by matching this
+   * Action's slots with (in order):
    *
    * - `animated_id.adt->slot_handle`,
    * - `animated_id.adt->slot_name`,
    * - `animated_id.name`.
    *
    * Note that this is different from #slot_for_id, which does not use the
-   * slot name, and only works when this Animation is already assigned. */
+   * slot name, and only works when this Action is already assigned. */
   Slot *find_suitable_slot_for(const ID &animated_id);
 
   /**
-   * Return whether this Animation actually has any animation data for the given slot.
+   * Return whether this Action actually has any animation data for the given slot.
    */
   bool is_slot_animated(slot_handle_t slot_handle) const;
 
@@ -264,7 +264,7 @@ class Action : public ::bAction {
   Layer *get_layer_for_keyframing();
 
  protected:
-  /** Return the layer's index, or -1 if not found in this animation. */
+  /** Return the layer's index, or -1 if not found in this Action. */
   int64_t find_layer_index(const Layer &layer) const;
 
  private:
@@ -283,7 +283,7 @@ class Action : public ::bAction {
   /**
    * Set the slot's ID type to that of the animated ID, ensure the name
    * prefix is set accordingly, and that the name is unique within the
-   * Animation.
+   * Action.
    *
    * \note This assumes that the slot has no ID type set yet. If it does, it
    * is considered a bug to call this function.
@@ -575,7 +575,7 @@ class Slot : public ::ActionSlot {
   /**
    * Ensure the first two characters of the name match the ID type.
    *
-   * \note This does NOT ensure name uniqueness within the Animation. That is
+   * \note This does NOT ensure name uniqueness within the Action. That is
    * the responsibility of the caller.
    */
   void name_ensure_prefix();
@@ -677,7 +677,7 @@ static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
               "DNA struct and its C++ wrapper must have the same size");
 
 /**
- * Assign the animation to the ID.
+ * Assign the Action to the ID.
  *
  * This will will make a best-effort guess as to which slot to use, in this
  * order;
@@ -691,9 +691,9 @@ static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
  *
  * \return `false` if the assignment was not possible (for example the ID is of a type that cannot
  * be animated). If the above fall-through case of "no slot found" is reached, this function
- * will still return `true` as the Animation was successfully assigned.
+ * will still return `true` as the Action was successfully assigned.
  */
-bool assign_animation(Action &anim, ID &animated_id);
+bool assign_action(Action &action, ID &animated_id);
 
 /**
  * Return whether the given Action can be assigned to the ID.
@@ -706,10 +706,10 @@ bool is_action_assignable_to(const bAction *dna_action, ID_Type id_code);
 /**
  * Ensure that this ID is no longer animated.
  */
-void unassign_animation(ID &animated_id);
+void unassign_action(ID &animated_id);
 
 /**
- * Clear the animation slot of this ID.
+ * Clear the Action slot of this ID.
  *
  * `adt.slot_handle_name` is updated to reflect the current name of the
  * slot, before un-assigning. This is to ensure that the stored name reflects
@@ -717,14 +717,14 @@ void unassign_animation(ID &animated_id);
  *
  * \param animated_id: the animated ID.
  *
- * \note this does not clear the Animation pointer, just the slot handle.
+ * \note this does not clear the Action pointer, just the slot handle.
  */
 void unassign_slot(ID &animated_id);
 
 /**
- * Return the Animation of this ID, or nullptr if it has none.
+ * Return the Action of this ID, or nullptr if it has none.
  */
-Action *get_animation(ID &animated_id);
+Action *get_action(ID &animated_id);
 
 /**
  * Get the Action and the Slot that animate this ID.
@@ -740,33 +740,33 @@ std::optional<std::pair<Action *, Slot *>> get_action_slot_pair(ID &animated_id)
 /**
  * Return the F-Curves for this specific slot handle.
  *
- * This is just a utility function, that's intended to become obsolete when multi-layer animation
- * is introduced. However, since Blender currently only supports a single layer with a single
+ * This is just a utility function, that's intended to become obsolete when multi-layer Actions
+ * are introduced. However, since Blender currently only supports a single layer with a single
  * strip, of a single type, this function can be used.
  *
  * The use of this function is also an indicator for code that will have to be altered when
- * multi-layered animation is getting implemented.
+ * multi-layered Actions are getting implemented.
  */
-Span<FCurve *> fcurves_for_animation(Action &anim, slot_handle_t slot_handle);
-Span<const FCurve *> fcurves_for_animation(const Action &anim, slot_handle_t slot_handle);
+Span<FCurve *> fcurves_for_action_slot(Action &action, slot_handle_t slot_handle);
+Span<const FCurve *> fcurves_for_action_slot(const Action &action, slot_handle_t slot_handle);
 
 /**
  * Return all F-Curves in the Action.
  *
  * This works for both legacy and layered Actions.
  *
- * This is a utility function whose purpose is unclear after multi-layer animation is introduced.
+ * This is a utility function whose purpose is unclear after multi-layer Actions are introduced.
  * It might still be useful, it might not be.
 
  * The use of this function is an indicator for code that might have to be altered when
- * multi-layered animation is getting implemented.
+ * multi-layered Actions are getting implemented.
  */
 Vector<const FCurve *> fcurves_all(const Action &action);
 Vector<FCurve *> fcurves_all(Action &action);
 
 /**
- * Get (or add relevant data to be able to do so) F-Curve from the given Action,
- * for the given Animation Data block. This assumes that all the destinations are valid.
+ * Get (or add relevant data to be able to do so) an F-Curve from the given Action,
+ * for the given animated data-block. This assumes that all the destinations are valid.
  * \param ptr: can be a null pointer.
  */
 FCurve *action_fcurve_ensure(Main *bmain,

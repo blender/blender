@@ -170,7 +170,7 @@ static short agrp_keyframes_loop(KeyframeEditData *ked,
 
 /* Loop over all keyframes in the layered Action. */
 static short action_layered_keyframes_loop(KeyframeEditData *ked,
-                                           animrig::Action &anim,
+                                           animrig::Action &action,
                                            animrig::Slot *slot,
                                            KeyframeEditFunc key_ok,
                                            KeyframeEditFunc key_cb,
@@ -181,7 +181,7 @@ static short action_layered_keyframes_loop(KeyframeEditData *ked,
     return 0;
   }
 
-  Span<FCurve *> fcurves = animrig::fcurves_for_animation(anim, slot->handle);
+  Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, slot->handle);
   for (FCurve *fcurve : fcurves) {
     if (ANIM_fcurve_keyframes_loop(ked, fcurve, key_ok, key_cb, fcu_cb)) {
       return 1;
@@ -421,9 +421,9 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
       /* This assumes that the ALE_ACTION_LAYERED channel is shown in the dopesheet context,
        * underneath the data-block that owns `ale->adt`. So that means that the loop is limited to
        * the keys that belong to that slot. */
-      animrig::Action &anim = static_cast<bAction *>(ale->key_data)->wrap();
-      animrig::Slot *slot = anim.slot_for_handle(ale->adt->slot_handle);
-      return action_layered_keyframes_loop(ked, anim, slot, key_ok, key_cb, fcu_cb);
+      animrig::Action &action = static_cast<bAction *>(ale->key_data)->wrap();
+      animrig::Slot *slot = action.slot_for_handle(ale->adt->slot_handle);
+      return action_layered_keyframes_loop(ked, action, slot, key_ok, key_cb, fcu_cb);
 #else
       return 0;
 #endif

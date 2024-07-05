@@ -1182,7 +1182,7 @@ typedef struct ActionStrip {
    *
    * This offset determines the difference between "Animation time" (which would
    * typically be the same as the scene time, until the animation system
-   * supports strips referencing other Animation data-blocks).
+   * supports strips referencing other Actions).
    */
   float frame_offset;
 

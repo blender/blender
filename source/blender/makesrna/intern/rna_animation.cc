@@ -111,7 +111,7 @@ const EnumPropertyItem rna_enum_action_slot_item_new = {
     "NEW",
     ICON_ADD,
     "New",
-    "Create a new animation slot for this data-block"};
+    "Create a new action slot for this data-block"};
 const EnumPropertyItem rna_enum_action_slot_item_legacy = {
     int(blender::animrig::Slot::unassigned),
     "UNASSIGNED",
@@ -183,11 +183,11 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value, ReportLis
 
   bAction *action = static_cast<bAction *>(value.data);
   if (!action) {
-    blender::animrig::unassign_animation(animated_id);
+    blender::animrig::unassign_action(animated_id);
     return;
   }
 
-  blender::animrig::assign_animation(action->wrap(), animated_id);
+  blender::animrig::assign_action(action->wrap(), animated_id);
 #  else
   ID *ownerId = ptr->owner_id;
   BKE_animdata_set_action(nullptr, ownerId, static_cast<bAction *>(value.data));
@@ -262,23 +262,23 @@ static void rna_AnimData_action_slot_handle_set(
     return;
   }
 
-  blender::animrig::Action *anim = blender::animrig::get_animation(animated_id);
-  if (!anim) {
-    /* No animation to verify the slot handle is valid. As the slot handle
-     * will be completely ignored when re-assigning an Animation, better to
-     * refuse setting it altogether. This will make bugs in Python code more obvious. */
+  blender::animrig::Action *action = blender::animrig::get_action(animated_id);
+  if (!action) {
+    /* No Action to verify the slot handle is valid. As the slot handle will be
+     * completely ignored when re-assigning an Action, better to refuse setting
+     * it altogether. This will make bugs in Python code more obvious. */
     WM_reportf(RPT_ERROR,
-               "Data-block '%s' does not have an animation, cannot set slot handle",
+               "Data-block '%s' does not have an Action, cannot set slot handle",
                animated_id.name + 2);
     return;
   }
 
-  blender::animrig::Slot *slot = anim->slot_for_handle(new_slot_handle);
-  if (!anim->assign_id(slot, animated_id)) {
+  blender::animrig::Slot *slot = action->slot_for_handle(new_slot_handle);
+  if (!action->assign_id(slot, animated_id)) {
     if (slot) {
       WM_reportf(RPT_ERROR,
                  "Action '%s' slot '%s' (%d) could not be assigned to %s",
-                 anim->id.name + 2,
+                 action->id.name + 2,
                  slot->name,
                  slot->handle,
                  animated_id.name + 2);
@@ -288,7 +288,7 @@ static void rna_AnimData_action_slot_handle_set(
       BLI_assert_unreachable();
       WM_reportf(RPT_ERROR,
                  "Action '%s' slot could not be unassigned from %s",
-                 anim->id.name + 2,
+                 action->id.name + 2,
                  animated_id.name + 2);
     }
     return;
@@ -317,46 +317,46 @@ static void rna_AnimData_action_slot_set(PointerRNA *ptr, int value)
 
   const slot_handle_t new_slot_handle = slot_handle_t(value);
   if (new_slot_handle == Slot::unassigned) {
-    /* No need to check with the Animation, as 'no slot' is always valid. */
+    /* No need to check with the Action, as 'no slot' is always valid. */
     adt.slot_handle = Slot::unassigned;
     return;
   }
 
   if (!adt.action) {
-    /* No Action to verify the slot handle is valid. As the slot handle
-     * will be completely ignored when re-assigning an Animation, better to
-     * refuse setting it altogether. This will make bugs in Python code more obvious. */
+    /* No Action to verify the slot handle is valid. As the slot handle will be
+     * completely ignored when re-assigning an Action, better to refuse setting
+     * it altogether. This will make bugs in Python code more obvious. */
     WM_reportf(RPT_ERROR,
                "Data-block '%s' does not have an Action, cannot set slot handle",
                animated_id.name + 2);
     return;
   }
 
-  Action &anim = adt.action->wrap();
+  Action &action = adt.action->wrap();
   Slot *slot = nullptr;
 
   /* TODO: handle legacy Action. */
-  BLI_assert(anim.is_action_layered());
+  BLI_assert(action.is_action_layered());
 
   if (new_slot_handle == slot_items_value_create_new) {
     /* Special case for this enum item. */
-    slot = &anim.slot_add_for_id(animated_id);
+    slot = &action.slot_add_for_id(animated_id);
   }
   else {
-    slot = anim.slot_for_handle(new_slot_handle);
+    slot = action.slot_for_handle(new_slot_handle);
     if (!slot) {
       WM_reportf(RPT_ERROR,
-                 "Animation '%s' has no slot with handle %d",
-                 anim.id.name + 2,
+                 "Action '%s' has no slot with handle %d",
+                 action.id.name + 2,
                  new_slot_handle);
       return;
     }
   }
 
-  if (!anim.assign_id(slot, animated_id)) {
+  if (!action.assign_id(slot, animated_id)) {
     WM_reportf(RPT_ERROR,
-               "Animation '%s' slot '%s' (%d) could not be assigned to %s",
-               anim.id.name + 2,
+               "Action '%s' slot '%s' (%d) could not be assigned to %s",
+               action.id.name + 2,
                slot->name_without_prefix().c_str(),
                slot->handle,
                animated_id.name + 2);
@@ -384,10 +384,10 @@ static const EnumPropertyItem *rna_AnimData_action_slot_itemf(bContext * /*C*/,
   EnumPropertyItem *items = nullptr;
   int num_items = 0;
 
-  const Action &anim = adt.action->wrap();
+  const Action &action = adt.action->wrap();
 
   bool found_assigned_slot = false;
-  for (const Slot *slot : anim.slots()) {
+  for (const Slot *slot : action.slots()) {
     item.value = slot->handle;
     item.identifier = slot->name;
     item.name = slot->name_without_prefix().c_str();
@@ -403,7 +403,7 @@ static const EnumPropertyItem *rna_AnimData_action_slot_itemf(bContext * /*C*/,
   }
 
   /* Only add the 'New' option when this is a Layered Action. */
-  const bool is_layered = anim.is_action_layered();
+  const bool is_layered = action.is_action_layered();
   if (is_layered) {
     RNA_enum_item_add(&items, &num_items, &rna_enum_action_slot_item_new);
   }

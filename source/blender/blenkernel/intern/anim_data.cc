@@ -205,11 +205,11 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 
 #ifdef WITH_ANIM_BAKLAVA
   if (!act) {
-    animrig::unassign_animation(*id);
+    animrig::unassign_action(*id);
     return true;
   }
   animrig::Action &action = act->wrap();
-  return animrig::assign_animation(action, *id);
+  return animrig::assign_action(action, *id);
 #else
   return animdata_set_action(reports, id, &adt->action, act);
 #endif  // WITH_ANIM_BAKLAVA
@@ -259,7 +259,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
     /* unlink action (don't free, as it's in its own list) */
     if (adt->action) {
 #ifdef WITH_ANIM_BAKLAVA
-      blender::animrig::unassign_animation(*id);
+      blender::animrig::unassign_action(*id);
 #else
       id_us_min(&adt->action->id);
 #endif
@@ -270,7 +270,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
       /* TODO: Linked Actions do not support usage in the NLA yet, so work around this and cleanly
        * unassign the Action by moving it back to `adt->action`.  */
       adt->action = adt->tmpact;
-      blender::animrig::unassign_animation(*id);
+      blender::animrig::unassign_action(*id);
 #else
       id_us_min(&adt->tmpact->id);
 #endif

@@ -54,7 +54,7 @@ class AnimatedProperty {
   }
 };
 
-/* Evaluated FCurves for some animation slot.
+/* Evaluated FCurves for some action slot.
  * Mapping from property identifier to its float value.
  *
  * Can be fed to the evaluation of the next layer, mixed with another strip, or

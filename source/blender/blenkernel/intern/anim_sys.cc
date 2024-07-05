@@ -3949,7 +3949,7 @@ void BKE_animsys_evaluate_animdata(ID *id,
     else if (adt->action) {
       blender::animrig::Action &action = adt->action->wrap();
       if (action.is_action_layered()) {
-        blender::animrig::evaluate_and_apply_animation(
+        blender::animrig::evaluate_and_apply_action(
             id_ptr, action, adt->slot_handle, *anim_eval_context, flush_to_original);
       }
       else {

@@ -35,15 +35,15 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
                              PointerRNA &animated_id_ptr,
                              bool flush_to_original);
 
-static EvaluationResult evaluate_animation(PointerRNA &animated_id_ptr,
-                                           Action &animation,
-                                           const slot_handle_t slot_handle,
-                                           const AnimationEvalContext &anim_eval_context)
+static EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
+                                        Action &action,
+                                        const slot_handle_t slot_handle,
+                                        const AnimationEvalContext &anim_eval_context)
 {
   EvaluationResult last_result;
 
   /* Evaluate each layer in order. */
-  for (Layer *layer : animation.layers()) {
+  for (Layer *layer : action.layers()) {
     if (layer->influence <= 0.0f) {
       /* Don't bother evaluating layers without influence. */
       continue;
@@ -69,14 +69,14 @@ static EvaluationResult evaluate_animation(PointerRNA &animated_id_ptr,
   return last_result;
 }
 
-void evaluate_and_apply_animation(PointerRNA &animated_id_ptr,
-                                  Action &animation,
-                                  const slot_handle_t slot_handle,
-                                  const AnimationEvalContext &anim_eval_context,
-                                  const bool flush_to_original)
+void evaluate_and_apply_action(PointerRNA &animated_id_ptr,
+                               Action &action,
+                               const slot_handle_t slot_handle,
+                               const AnimationEvalContext &anim_eval_context,
+                               const bool flush_to_original)
 {
-  EvaluationResult evaluation_result = evaluate_animation(
-      animated_id_ptr, animation, slot_handle, anim_eval_context);
+  EvaluationResult evaluation_result = evaluate_action(
+      animated_id_ptr, action, slot_handle, anim_eval_context);
   if (!evaluation_result) {
     return;
   }

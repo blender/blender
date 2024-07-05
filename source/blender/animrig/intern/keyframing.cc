@@ -163,7 +163,7 @@ void CombinedKeyingResult::generate_reports(ReportList *reports, const eReportTy
   if (this->get_count(SingleKeyingResult::NO_VALID_SLOT) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::NO_VALID_SLOT);
     errors.append(fmt::format(RPT_("Inserting keys on {:d} data-block(s) has been skipped because "
-                                   "of missing animation slots."),
+                                   "of missing action slots."),
                               error_count));
   }
 
