@@ -3884,7 +3884,12 @@ static void do_brush_action(const Scene &scene,
       do_elastic_deform_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      SCULPT_do_slide_relax_brush(sd, ob, nodes);
+      if (ss.cache->alt_smooth) {
+        SCULPT_do_topology_relax_brush(sd, ob, nodes);
+      }
+      else {
+        do_topology_slide_brush(sd, ob, nodes);
+      }
       break;
     case SCULPT_TOOL_BOUNDARY:
       boundary::do_boundary_brush(sd, ob, nodes);
