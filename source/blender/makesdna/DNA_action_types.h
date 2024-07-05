@@ -44,8 +44,8 @@ typedef struct GPUVertBufHandle GPUVertBufHandle;
 
 /* Forward declarations so the actual declarations can happen top-down. */
 struct ActionLayer;
-struct ActionBinding;
-struct ActionBinding_runtime;
+struct ActionSlot;
+struct ActionSlot_runtime;
 struct ActionStrip;
 struct ActionChannelBag;
 
@@ -53,16 +53,16 @@ struct ActionChannelBag;
 #ifdef __cplusplus
 namespace blender::animrig {
 class Action;
-class Binding;
-class BindingRuntime;
+class Slot;
+class SlotRuntime;
 class ChannelBag;
 class KeyframeStrip;
 class Layer;
 class Strip;
 }  // namespace blender::animrig
-using ActionBindingRuntimeHandle = blender::animrig::BindingRuntime;
+using ActionSlotRuntimeHandle = blender::animrig::SlotRuntime;
 #else
-typedef struct ActionBindingRuntimeHandle ActionBindingRuntimeHandle;
+typedef struct ActionSlotRuntimeHandle ActionSlotRuntimeHandle;
 #endif
 
 /* ************************************************ */
@@ -741,9 +741,9 @@ typedef struct bAction {
   int layer_array_num;
   int layer_active_index; /* Index into layer_array, -1 means 'no active'. */
 
-  struct ActionBinding **binding_array; /* Array of 'binding_array_num` bindings. */
-  int binding_array_num;
-  int32_t last_binding_handle;
+  struct ActionSlot **slot_array; /* Array of 'slot_array_num` slots. */
+  int slot_array_num;
+  int32_t last_slot_handle;
 
   /* Note about legacy animation data:
    *
@@ -854,10 +854,10 @@ typedef enum eDopeSheet_FilterFlag {
   ADS_FILTER_SUMMARY = (1 << 4),
 
   /**
-   * Show all Action bindings; if not set, only show the Binding of the
+   * Show all Action slots; if not set, only show the Slot of the
    * data-block that's being animated by the Action.
    */
-  ADS_FILTER_ALL_BINDINGS = (1 << 5),
+  ADS_FILTER_ALL_SLOTS = (1 << 5),
 
   /* datatype-based filtering */
   ADS_FILTER_NOSHAPEKEYS = (1 << 6),
@@ -946,9 +946,9 @@ typedef struct SpaceAction {
   /** Copied to region. */
   View2D v2d DNA_DEPRECATED;
 
-  /** The currently active action and its binding. */
+  /** The currently active action and its slot. */
   bAction *action;
-  int32_t action_binding_handle;
+  int32_t action_slot_handle;
   char _pad2[4];
 
   /** The currently active context (when not showing action). */
@@ -1120,49 +1120,49 @@ typedef struct ActionLayer {
 } ActionLayer;
 
 /**
- * \see #blender::animrig::Binding
+ * \see #blender::animrig::Slot
  */
-typedef struct ActionBinding {
+typedef struct ActionSlot {
   /**
-   * Typically the ID name this binding was created for, including the two
+   * Typically the ID name this slot was created for, including the two
    * letters indicating the ID type.
    *
-   * \see #AnimData::binding_name
+   * \see #AnimData::slot_name
    */
   char name[66]; /* MAX_ID_NAME */
   uint8_t _pad0[2];
 
   /**
-   * Type of ID-blocks that this binding can be assigned to.
+   * Type of ID-blocks that this slot can be assigned to.
    * If 0, will be set to whatever ID is first assigned.
    */
   int idtype;
 
   /**
-   * Identifier of this Binding within the Animation data-block.
+   * Identifier of this Slot within the Action.
    *
-   * This number allows reorganization of the #bAction::binding_array without
+   * This number allows reorganization of the #bAction::slot_array without
    * invalidating references. Also these remain valid when copy-on-evaluate
    * copies are made.
    *
-   * Only valid within the Animation data-block that owns this Binding.
+   * Only valid within the Action that owns this Slot.
    *
-   * \see #blender::animrig::Action::binding_for_handle()
+   * \see #blender::animrig::Action::slot_for_handle()
    */
   int32_t handle;
 
-  /** \see #blender::animrig::Binding::flags() */
-  int8_t binding_flags;
+  /** \see #blender::animrig::Slot::flags() */
+  int8_t slot_flags;
   uint8_t _pad1[3];
 
   /** Runtime data. Set to nullptr when writing to disk. */
-  ActionBindingRuntimeHandle *runtime;
+  ActionSlotRuntimeHandle *runtime;
 
 #ifdef __cplusplus
-  blender::animrig::Binding &wrap();
-  const blender::animrig::Binding &wrap() const;
+  blender::animrig::Slot &wrap();
+  const blender::animrig::Slot &wrap() const;
 #endif
-} ActionBinding;
+} ActionSlot;
 
 /**
  * \see #blender::animrig::Strip
@@ -1215,13 +1215,13 @@ typedef struct KeyframeActionStrip {
  * \see #blender::animrig::ChannelBag
  */
 typedef struct ActionChannelBag {
-  int32_t binding_handle;
+  int32_t slot_handle;
 
   int fcurve_array_num;
   struct FCurve **fcurve_array; /* Array of 'fcurve_array_num' FCurves. */
 
   /* TODO: Design & implement a way to integrate other channel types as well,
-   * and still have them map to a certain binding */
+   * and still have them map to a certain slot */
 #ifdef __cplusplus
   blender::animrig::ChannelBag &wrap();
   const blender::animrig::ChannelBag &wrap() const;
@@ -1230,10 +1230,9 @@ typedef struct ActionChannelBag {
 
 #ifdef __cplusplus
 /* Some static assertions that things that should have the same type actually do. */
+static_assert(std::is_same_v<decltype(ActionSlot::handle), decltype(bAction::last_slot_handle)>);
 static_assert(
-    std::is_same_v<decltype(ActionBinding::handle), decltype(bAction::last_binding_handle)>);
+    std::is_same_v<decltype(ActionSlot::handle), decltype(ActionChannelBag::slot_handle)>);
 static_assert(
-    std::is_same_v<decltype(ActionBinding::handle), decltype(ActionChannelBag::binding_handle)>);
-static_assert(
-    std::is_same_v<decltype(ActionBinding::handle), decltype(SpaceAction::action_binding_handle)>);
+    std::is_same_v<decltype(ActionSlot::handle), decltype(SpaceAction::action_slot_handle)>);
 #endif

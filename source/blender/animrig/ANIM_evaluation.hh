@@ -21,14 +21,14 @@ namespace blender::animrig {
 /**
  * Top level animation evaluation function.
  *
- * Animate the given ID, using the animation data-block and the given binding.
+ * Animate the given ID, using the layered Action and the given slot.
  *
  * \param flush_to_original: when true, look up the original data-block (assuming
  * the given one is an evaluated copy) and update that too.
  */
 void evaluate_and_apply_animation(PointerRNA &animated_id_ptr,
                                   Action &animation,
-                                  binding_handle_t binding_handle,
+                                  slot_handle_t slot_handle,
                                   const AnimationEvalContext &anim_eval_context,
                                   bool flush_to_original);
 

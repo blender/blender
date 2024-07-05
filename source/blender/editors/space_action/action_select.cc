@@ -119,12 +119,12 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
         action_to_keylist(adt, action, keylist, 0, range);
         break;
       }
-      case ALE_ACTION_BINDING: {
+      case ALE_ACTION_SLOT: {
         animrig::Action *action = static_cast<animrig::Action *>(ale->key_data);
-        animrig::Binding *binding = static_cast<animrig::Binding *>(ale->data);
+        animrig::Slot *slot = static_cast<animrig::Slot *>(ale->data);
         BLI_assert(action);
-        BLI_assert(binding);
-        action_binding_to_keylist(adt, *action, binding->handle, keylist, 0, range);
+        BLI_assert(slot);
+        action_slot_to_keylist(adt, *action, slot->handle, keylist, 0, range);
         break;
       }
       case ALE_ACT: {

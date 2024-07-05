@@ -57,7 +57,7 @@ enum class SingleKeyingResult {
   ID_NOT_ANIMATABLE,
   NO_VALID_LAYER,
   NO_VALID_STRIP,
-  NO_VALID_BINDING,
+  NO_VALID_SLOT,
   CANNOT_RESOLVE_PATH,
   /* Make sure to always keep this at the end of the enum. */
   _KEYING_RESULT_MAX,

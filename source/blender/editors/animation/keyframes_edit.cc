@@ -171,17 +171,17 @@ static short agrp_keyframes_loop(KeyframeEditData *ked,
 /* Loop over all keyframes in the layered Action. */
 static short action_layered_keyframes_loop(KeyframeEditData *ked,
                                            animrig::Action &anim,
-                                           animrig::Binding *binding,
+                                           animrig::Slot *slot,
                                            KeyframeEditFunc key_ok,
                                            KeyframeEditFunc key_cb,
                                            FcuEditFunc fcu_cb)
 {
-  if (!binding) {
+  if (!slot) {
     /* Valid situation, and will not have any FCurves. */
     return 0;
   }
 
-  Span<FCurve *> fcurves = animrig::fcurves_for_animation(anim, binding->handle);
+  Span<FCurve *> fcurves = animrig::fcurves_for_animation(anim, slot->handle);
   for (FCurve *fcurve : fcurves) {
     if (ANIM_fcurve_keyframes_loop(ked, fcurve, key_ok, key_cb, fcu_cb)) {
       return 1;
@@ -420,20 +420,20 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
 #ifdef WITH_ANIM_BAKLAVA
       /* This assumes that the ALE_ACTION_LAYERED channel is shown in the dopesheet context,
        * underneath the data-block that owns `ale->adt`. So that means that the loop is limited to
-       * the keys that belong to that binding. */
+       * the keys that belong to that slot. */
       animrig::Action &anim = static_cast<bAction *>(ale->key_data)->wrap();
-      animrig::Binding *binding = anim.binding_for_handle(ale->adt->binding_handle);
-      return action_layered_keyframes_loop(ked, anim, binding, key_ok, key_cb, fcu_cb);
+      animrig::Slot *slot = anim.slot_for_handle(ale->adt->slot_handle);
+      return action_layered_keyframes_loop(ked, anim, slot, key_ok, key_cb, fcu_cb);
 #else
       return 0;
 #endif
     }
-    case ALE_ACTION_BINDING: {
+    case ALE_ACTION_SLOT: {
 #ifdef WITH_ANIM_BAKLAVA
       animrig::Action *action = static_cast<animrig::Action *>(ale->key_data);
       BLI_assert(action);
-      animrig::Binding *binding = static_cast<animrig::Binding *>(ale->data);
-      return action_layered_keyframes_loop(ked, *action, binding, key_ok, key_cb, fcu_cb);
+      animrig::Slot *slot = static_cast<animrig::Slot *>(ale->data);
+      return action_layered_keyframes_loop(ked, *action, slot, key_ok, key_cb, fcu_cb);
 #else
       return 0;
 #endif
@@ -486,7 +486,7 @@ short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
     case ALE_GROUP: /* action group */
       return agrp_keyframes_loop(ked, (bActionGroup *)data, key_ok, key_cb, fcu_cb);
     case ALE_ACTION_LAYERED:
-    case ALE_ACTION_BINDING:
+    case ALE_ACTION_SLOT:
       /* This function is only used in nlaedit_apply_scale_exec(). Since the NLA has no support for
        * layered Actions in strips, there is no need to implement this here. */
       return 0;

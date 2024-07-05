@@ -389,7 +389,7 @@ enum class ChannelType {
   OBJECT,
   FCURVE,
   ACTION_LAYERED,
-  ACTION_BINDING,
+  ACTION_SLOT,
   ACTION_LEGACY,
   ACTION_GROUP,
   GREASE_PENCIL_CELS,
@@ -417,7 +417,7 @@ struct ChannelListElement {
   AnimData *adt;
   FCurve *fcu;
   bAction *act;
-  animrig::Binding *action_binding;
+  animrig::Slot *action_slot;
   bActionGroup *agrp;
   bGPDlayer *gpl;
   const GreasePencilLayer *grease_pencil_layer;
@@ -449,15 +449,15 @@ static void build_channel_keylist(ChannelListElement *elem, blender::float2 rang
       action_to_keylist(elem->adt, elem->act, elem->keylist, elem->saction_flag, range);
       break;
     }
-    case ChannelType::ACTION_BINDING: {
+    case ChannelType::ACTION_SLOT: {
       BLI_assert(elem->act);
-      BLI_assert(elem->action_binding);
-      action_binding_to_keylist(elem->adt,
-                                elem->act->wrap(),
-                                elem->action_binding->handle,
-                                elem->keylist,
-                                elem->saction_flag,
-                                range);
+      BLI_assert(elem->action_slot);
+      action_slot_to_keylist(elem->adt,
+                             elem->act->wrap(),
+                             elem->action_slot->handle,
+                             elem->keylist,
+                             elem->saction_flag,
+                             range);
       break;
     }
     case ChannelType::ACTION_LEGACY: {
@@ -748,22 +748,22 @@ void ED_add_action_layered_channel(ChannelDrawList *channel_list,
   draw_elem->channel_locked = locked;
 }
 
-void ED_add_action_binding_channel(ChannelDrawList *channel_list,
-                                   AnimData *adt,
-                                   animrig::Action &action,
-                                   animrig::Binding &binding,
-                                   const float ypos,
-                                   const float yscale_fac,
-                                   int saction_flag)
+void ED_add_action_slot_channel(ChannelDrawList *channel_list,
+                                AnimData *adt,
+                                animrig::Action &action,
+                                animrig::Slot &slot,
+                                const float ypos,
+                                const float yscale_fac,
+                                int saction_flag)
 {
   const bool locked = (ID_IS_LINKED(&action) || ID_IS_OVERRIDE_LIBRARY(&action));
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
   ChannelListElement *draw_elem = channel_list_add_element(
-      channel_list, ChannelType::ACTION_BINDING, ypos, yscale_fac, eSAction_Flag(saction_flag));
+      channel_list, ChannelType::ACTION_SLOT, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->adt = adt;
   draw_elem->act = &action;
-  draw_elem->action_binding = &binding;
+  draw_elem->action_slot = &slot;
   draw_elem->channel_locked = locked;
 }
 

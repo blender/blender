@@ -156,8 +156,8 @@ static void action_copy_data(Main * /*bmain*/,
   /* Copy all simple properties. */
   action_dst.layer_array_num = action_src.layer_array_num;
   action_dst.layer_active_index = action_src.layer_active_index;
-  action_dst.binding_array_num = action_src.binding_array_num;
-  action_dst.last_binding_handle = action_src.last_binding_handle;
+  action_dst.slot_array_num = action_src.slot_array_num;
+  action_dst.last_slot_handle = action_src.last_slot_handle;
 
   /* Layers. */
   action_dst.layer_array = MEM_cnew_array<ActionLayer *>(action_src.layer_array_num, __func__);
@@ -165,11 +165,10 @@ static void action_copy_data(Main * /*bmain*/,
     action_dst.layer_array[i] = MEM_new<animrig::Layer>(__func__, *action_src.layer(i));
   }
 
-  /* Bindings. */
-  action_dst.binding_array = MEM_cnew_array<ActionBinding *>(action_src.binding_array_num,
-                                                             __func__);
-  for (int i : action_src.bindings().index_range()) {
-    action_dst.binding_array[i] = MEM_new<animrig::Binding>(__func__, *action_src.binding(i));
+  /* Slots. */
+  action_dst.slot_array = MEM_cnew_array<ActionSlot *>(action_src.slot_array_num, __func__);
+  for (int i : action_src.slots().index_range()) {
+    action_dst.slot_array[i] = MEM_new<animrig::Slot>(__func__, *action_src.slot(i));
   }
 
   if (flag & LIB_ID_COPY_NO_PREVIEW) {
@@ -192,12 +191,12 @@ static void action_free_data(ID *id)
   MEM_SAFE_FREE(action.layer_array);
   action.layer_array_num = 0;
 
-  /* Free bindings. */
-  for (animrig::Binding *binding : action.bindings()) {
-    MEM_delete(binding);
+  /* Free slots. */
+  for (animrig::Slot *slot : action.slots()) {
+    MEM_delete(slot);
   }
-  MEM_SAFE_FREE(action.binding_array);
-  action.binding_array_num = 0;
+  MEM_SAFE_FREE(action.slot_array);
+  action.slot_array_num = 0;
 
   /* Free legacy F-Curves & groups. */
   BKE_fcurves_free(&action.curves);
@@ -239,35 +238,35 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
      * it's possible to report invalid pointers, which should be avoided at all
      * time. */
     if (bmain) {
-      for (animrig::Binding *binding : action.bindings()) {
-        for (ID *binding_user : binding->users(*bmain)) {
-          BKE_LIB_FOREACHID_PROCESS_ID(data, binding_user, idwalk_flags);
+      for (animrig::Slot *slot : action.slots()) {
+        for (ID *slot_user : slot->users(*bmain)) {
+          BKE_LIB_FOREACHID_PROCESS_ID(data, slot_user, idwalk_flags);
         }
       }
     }
   }
-  else if (bmain && !bmain->is_action_binding_to_id_map_dirty) {
+  else if (bmain && !bmain->is_action_slot_to_id_map_dirty) {
     /* Because BKE_library_foreach_ID_link() can be called with bmain=nullptr,
      * there are cases where we do not know which `main` this is called for. An example is in
      * `deg_eval_copy_on_write.cc`, function `deg_expand_eval_copy_datablock`.
      *
      * Also if the cache is already dirty, we shouldn't loop over the pointers in there. If we
-     * were to call `binding->users(*bmain)` in that case, it would rebuild the cache. But then
+     * were to call `slot->users(*bmain)` in that case, it would rebuild the cache. But then
      * another ID using the same Action may also trigger a rebuild of the cache, because another
      * user pointer changed, forcing way too many rebuilds of the user map.  */
     bool should_invalidate = false;
 
-    for (animrig::Binding *binding : action.bindings()) {
-      for (ID *binding_user : binding->runtime_users()) {
-        ID *old_pointer = binding_user;
-        BKE_LIB_FOREACHID_PROCESS_ID(data, binding_user, idwalk_flags);
-        /* If binding_user changed, the cache should be invalidated. */
-        should_invalidate |= (binding_user != old_pointer);
+    for (animrig::Slot *slot : action.slots()) {
+      for (ID *slot_user : slot->runtime_users()) {
+        ID *old_pointer = slot_user;
+        BKE_LIB_FOREACHID_PROCESS_ID(data, slot_user, idwalk_flags);
+        /* If slot_user changed, the cache should be invalidated. */
+        should_invalidate |= (slot_user != old_pointer);
       }
     }
 
     if (should_invalidate) {
-      animrig::Binding::users_invalidate(*bmain);
+      animrig::Slot::users_invalidate(*bmain);
     }
   }
 
@@ -339,16 +338,16 @@ static void write_layers(BlendWriter *writer, Span<animrig::Layer *> layers)
   }
 }
 
-static void write_bindings(BlendWriter *writer, Span<animrig::Binding *> bindings)
+static void write_slots(BlendWriter *writer, Span<animrig::Slot *> slots)
 {
-  BLO_write_pointer_array(writer, bindings.size(), bindings.data());
-  for (animrig::Binding *binding : bindings) {
+  BLO_write_pointer_array(writer, slots.size(), slots.data());
+  for (animrig::Slot *slot : slots) {
     /* Make a shallow copy using the C type, so that no new runtime struct is
      * allocated for the copy. */
-    ActionBinding shallow_copy = *binding;
+    ActionSlot shallow_copy = *slot;
     shallow_copy.runtime = nullptr;
 
-    BLO_write_struct_at_address(writer, ActionBinding, binding, &shallow_copy);
+    BLO_write_struct_at_address(writer, ActionSlot, slot, &shallow_copy);
   }
 }
 
@@ -361,7 +360,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   /* Write layered Action data. */
   write_layers(writer, action.layers());
-  write_bindings(writer, action.bindings());
+  write_slots(writer, action.slots());
 
   /* Write legacy F-Curves & groups. */
   BKE_fcurve_blend_write_listbase(writer, &action.curves);
@@ -420,13 +419,13 @@ static void read_layers(BlendDataReader *reader, animrig::Action &anim)
   }
 }
 
-static void read_bindings(BlendDataReader *reader, animrig::Action &anim)
+static void read_slots(BlendDataReader *reader, animrig::Action &anim)
 {
-  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&anim.binding_array));
+  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&anim.slot_array));
 
-  for (int i = 0; i < anim.binding_array_num; i++) {
-    BLO_read_struct(reader, ActionBinding, &anim.binding_array[i]);
-    anim.binding_array[i]->wrap().blend_read_post();
+  for (int i = 0; i < anim.slot_array_num; i++) {
+    BLO_read_struct(reader, ActionSlot, &anim.slot_array[i]);
+    anim.slot_array[i]->wrap().blend_read_post();
   }
 }
 
@@ -435,7 +434,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
 
   read_layers(reader, action);
-  read_bindings(reader, action);
+  read_slots(reader, action);
 
   /* Read legacy data. */
   BLO_read_struct_list(reader, FCurve, &action.curves);

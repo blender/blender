@@ -175,7 +175,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                                              OperationNode *operation_from,
                                              ListBase *curves);
   virtual void build_animdata_action_targets(ID *id,
-                                             int32_t binding_handle,
+                                             int32_t slot_handle,
                                              ComponentKey &adt_key,
                                              OperationNode *operation_from,
                                              bAction *action);

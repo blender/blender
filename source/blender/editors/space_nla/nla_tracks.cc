@@ -264,7 +264,7 @@ static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, shor
       break;
     }
     case ANIMTYPE_FILLACT_LAYERED:
-    case ANIMTYPE_ACTION_BINDING:
+    case ANIMTYPE_ACTION_SLOT:
       /* The NLA doesn't support layered Actions. */
       break;
     default:

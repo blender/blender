@@ -5,7 +5,7 @@
 /** \file
  * \ingroup animrig
  *
- * \brief Internal C++ functions to deal with Actions, Bindings, and their runtime data.
+ * \brief Internal C++ functions to deal with Actions, Slots, and their runtime data.
  */
 
 #include "BKE_anim_data.hh"
@@ -21,28 +21,28 @@
 namespace blender::animrig::internal {
 
 /**
- * Rebuild the binding user cache for a specific bmain.
+ * Rebuild the slot user cache for a specific bmain.
  */
-void rebuild_binding_user_cache(Main &bmain)
+void rebuild_slot_user_cache(Main &bmain)
 {
-  /* Loop over all Actions and clear their bindings' user cache. */
+  /* Loop over all Actions and clear their slots' user cache. */
   LISTBASE_FOREACH (bAction *, dna_action, &bmain.actions) {
     Action &action = dna_action->wrap();
-    for (Binding *binding : action.bindings()) {
-      BLI_assert_msg(binding->runtime, "Binding::runtime should always be allocated");
-      binding->runtime->users.clear();
+    for (Slot *slot : action.slots()) {
+      BLI_assert_msg(slot->runtime, "Slot::runtime should always be allocated");
+      slot->runtime->users.clear();
     }
   }
 
-  /* Mark all Bindings as clear. This is a bit of a lie, because the code below still has to run.
-   * However, this is a necessity to make the `binding.users_add(*id)` call work without triggering
+  /* Mark all Slots as clear. This is a bit of a lie, because the code below still has to run.
+   * However, this is a necessity to make the `slot.users_add(*id)` call work without triggering
    * an infinite recursion.
    *
-   * The alternative would be to go around the `binding.users_add()` function and access the
+   * The alternative would be to go around the `slot.users_add()` function and access the
    * runtime directly, but this is IMO a bit cleaner. */
-  bmain.is_action_binding_to_id_map_dirty = false;
+  bmain.is_action_slot_to_id_map_dirty = false;
 
-  /* Loop over all IDs to cache their binding usage. */
+  /* Loop over all IDs to cache their slot usage. */
   ListBase *ids_of_idtype;
   ID *id;
   FOREACH_MAIN_LISTBASE_BEGIN (&bmain, ids_of_idtype) {
@@ -55,13 +55,13 @@ void rebuild_binding_user_cache(Main &bmain)
     FOREACH_MAIN_LISTBASE_ID_BEGIN (ids_of_idtype, id) {
       BLI_assert(id_can_have_animdata(id));
 
-      std::optional<std::pair<Action *, Binding *>> action_binding = get_action_binding_pair(*id);
-      if (!action_binding) {
+      std::optional<std::pair<Action *, Slot *>> action_slot = get_action_slot_pair(*id);
+      if (!action_slot) {
         continue;
       }
 
-      Binding &binding = *action_binding->second;
-      binding.users_add(*id);
+      Slot &slot = *action_slot->second;
+      slot.users_add(*id);
     }
     FOREACH_MAIN_LISTBASE_ID_END;
   }

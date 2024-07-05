@@ -50,27 +50,27 @@ class VIEW3D_PT_animation_layers(Panel):
         col = layout.column(align=False)
         anim = adt and adt.action
         if anim:
-            binding_sub = col.column(align=True)
+            slot_sub = col.column(align=True)
 
-            # Binding selector.
-            row = binding_sub.row(align=True)
-            row.prop(adt, "action_binding", text="Binding")
-            row.operator("anim.binding_unassign_object", text="", icon='X')
+            # Slot selector.
+            row = slot_sub.row(align=True)
+            row.prop(adt, "action_slot", text="Slot")
+            row.operator("anim.slot_unassign_object", text="", icon='X')
 
-            binding = anim.bindings.get(adt.action_binding, None)
-            if binding:
-                binding_sub.prop(binding, "name_display", text="Name")
+            slot = anim.slots.get(adt.action_slot, None)
+            if slot:
+                slot_sub.prop(slot, "name_display", text="Name")
 
-            internal_sub = binding_sub.box().column(align=True)
+            internal_sub = slot_sub.box().column(align=True)
             internal_sub.active = False
-            internal_sub.prop(adt, "action_binding_handle", text="handle")
-            if binding:
-                internal_sub.prop(binding, "name", text="Internal Name")
+            internal_sub.prop(adt, "action_slot_handle", text="handle")
+            if slot:
+                internal_sub.prop(slot, "name", text="Internal Name")
 
         if adt:
-            col.prop(adt, "action_binding_name", text="ADT Binding Name")
+            col.prop(adt, "action_slot_name", text="ADT Slot Name")
         else:
-            col.label(text="ADT Binding Name: -")
+            col.label(text="ADT Slot Name: -")
 
         layout.separator()
 

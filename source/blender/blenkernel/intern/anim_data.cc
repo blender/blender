@@ -307,7 +307,7 @@ bool BKE_animdata_id_is_animated(const ID *id)
 
   if (adt->action) {
     const blender::animrig::Action &action = adt->action->wrap();
-    if (action.is_action_layered() && action.is_binding_animated(adt->binding_handle)) {
+    if (action.is_action_layered() && action.is_slot_animated(adt->slot_handle)) {
       return true;
     }
     if (action.is_action_legacy() && !BLI_listbase_is_empty(&action.curves)) {
@@ -402,17 +402,17 @@ AnimData *BKE_animdata_copy_in_lib(Main *bmain,
 
   const bool is_main = (flag & LIB_ID_CREATE_NO_MAIN) == 0;
   if (is_main) {
-    /* Action references were changed, so the Binding-to-user map is incomplete now. Only necessary
+    /* Action references were changed, so the Slot-to-user map is incomplete now. Only necessary
      * when this happens in the main database though, as the user cache only tracks original IDs,
      * not evaluated copies.
      *
      * This function does not have access to the animated ID, so it cannot just add that ID to the
-     * binding's users, hence the invalidation of the users map.
+     * slot's users, hence the invalidation of the users map.
      *
-     * TODO: refactor to pass the owner ID to this function, and just add it to the Binding's
+     * TODO: refactor to pass the owner ID to this function, and just add it to the Slot's
      * users. */
     if (bmain) {
-      blender::animrig::Binding::users_invalidate(*bmain);
+      blender::animrig::Slot::users_invalidate(*bmain);
     }
   }
 

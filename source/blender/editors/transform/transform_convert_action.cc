@@ -680,7 +680,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
       case ANIMTYPE_GROUP:
       case ANIMTYPE_NLACONTROLS:
       case ANIMTYPE_FILLACT_LAYERED:
-      case ANIMTYPE_ACTION_BINDING:
+      case ANIMTYPE_ACTION_SLOT:
       case ANIMTYPE_FILLACTD:
       case ANIMTYPE_FILLDRIVERS:
       case ANIMTYPE_DSMAT:

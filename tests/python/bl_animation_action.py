@@ -12,7 +12,7 @@ blender -b --factory-startup --python tests/python/bl_animation_action.py
 """
 
 
-class ActionBindingAssignmentTest(unittest.TestCase):
+class ActionSlotAssignmentTest(unittest.TestCase):
     """Test assigning actions & check reference counts."""
 
     def setUp(self) -> None:
@@ -43,7 +43,7 @@ class ActionBindingAssignmentTest(unittest.TestCase):
         bpy.data.objects.remove(camera)
         self.assertEqual(0, anim.users)
 
-    def test_binding_assignment(self):
+    def test_slot_assignment(self):
         # Create new Action.
         anim = bpy.data.actions.new('TestAction')
         self.assertEqual(0, anim.users)
@@ -52,25 +52,25 @@ class ActionBindingAssignmentTest(unittest.TestCase):
         cube = bpy.data.objects['Cube']
         cube_adt = cube.animation_data_create()
         cube_adt.action = anim
-        bind_cube = anim.bindings.new(for_id=cube)
-        cube_adt.action_binding_handle = bind_cube.handle
-        self.assertEqual(cube_adt.action_binding_handle, bind_cube.handle)
+        bind_cube = anim.slots.new(for_id=cube)
+        cube_adt.action_slot_handle = bind_cube.handle
+        self.assertEqual(cube_adt.action_slot_handle, bind_cube.handle)
 
         # Assign the animation to the camera as well.
         camera = bpy.data.objects['Camera']
-        bind_camera = anim.bindings.new(for_id=camera)
+        bind_camera = anim.slots.new(for_id=camera)
         camera_adt = camera.animation_data_create()
         camera_adt.action = anim
-        self.assertEqual(camera_adt.action_binding_handle, bind_camera.handle)
+        self.assertEqual(camera_adt.action_slot_handle, bind_camera.handle)
 
-        # Unassigning should keep the binding name.
+        # Unassigning should keep the slot name.
         cube_adt.action = None
-        self.assertEqual(cube_adt.action_binding_name, bind_cube.name)
+        self.assertEqual(cube_adt.action_slot_name, bind_cube.name)
 
-        # It should not be possible to set the binding handle while the animation is unassigned.
-        bind_extra = anim.bindings.new()
-        cube_adt.action_binding_handle = bind_extra.handle
-        self.assertNotEqual(cube_adt.action_binding_handle, bind_extra.handle)
+        # It should not be possible to set the slot handle while the animation is unassigned.
+        bind_extra = anim.slots.new()
+        cube_adt.action_slot_handle = bind_extra.handle
+        self.assertNotEqual(cube_adt.action_slot_handle, bind_extra.handle)
 
 
 class LimitationsTest(unittest.TestCase):
@@ -139,10 +139,10 @@ class TestLegacyLayered(unittest.TestCase):
             act.layers.new("laagje")
         self.assertSequenceEqual([], act.layers)
 
-        # Adding a binding should be prevented.
+        # Adding a slot should be prevented.
         with self.assertRaises(RuntimeError):
-            act.bindings.new()
-        self.assertSequenceEqual([], act.bindings)
+            act.slots.new()
+        self.assertSequenceEqual([], act.slots)
 
     def test_layered_action(self) -> None:
         """Test legacy operations on a layered Action"""

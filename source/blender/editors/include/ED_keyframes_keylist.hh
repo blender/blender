@@ -34,7 +34,7 @@ struct bGPdata;
 
 namespace blender::animrig {
 class Action;
-class Binding;
+class Slot;
 }  // namespace blender::animrig
 
 /* ****************************** Base Structs ****************************** */
@@ -171,12 +171,12 @@ void action_group_to_keylist(AnimData *adt,
 /* Action */
 void action_to_keylist(
     AnimData *adt, bAction *act, AnimKeylist *keylist, int saction_flag, blender::float2 range);
-void action_binding_to_keylist(AnimData *adt,
-                               blender::animrig::Action &action,
-                               blender::animrig::binding_handle_t binding_handle,
-                               AnimKeylist *keylist,
-                               int saction_flag,
-                               blender::float2 range);
+void action_slot_to_keylist(AnimData *adt,
+                            blender::animrig::Action &action,
+                            blender::animrig::slot_handle_t slot_handle,
+                            AnimKeylist *keylist,
+                            int saction_flag,
+                            blender::float2 range);
 /* Object */
 void ob_to_keylist(
     bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int saction_flag, blender::float2 range);

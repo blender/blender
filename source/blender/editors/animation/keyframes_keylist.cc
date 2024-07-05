@@ -1161,15 +1161,15 @@ void action_group_to_keylist(AnimData *adt,
   }
 }
 
-void action_binding_to_keylist(AnimData *adt,
-                               animrig::Action &action,
-                               const animrig::binding_handle_t binding_handle,
-                               AnimKeylist *keylist,
-                               const int saction_flag,
-                               blender::float2 range)
+void action_slot_to_keylist(AnimData *adt,
+                            animrig::Action &action,
+                            const animrig::slot_handle_t slot_handle,
+                            AnimKeylist *keylist,
+                            const int saction_flag,
+                            blender::float2 range)
 {
   BLI_assert(GS(action.id.name) == ID_AC);
-  for (FCurve *fcurve : fcurves_for_animation(action, binding_handle)) {
+  for (FCurve *fcurve : fcurves_for_animation(action, slot_handle)) {
     fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range);
   }
 }
@@ -1195,10 +1195,10 @@ void action_to_keylist(AnimData *adt,
   }
 
   /**
-   * Assumption: the animation is bound to adt->binding_handle. This assumption will break when we
-   * have things like reference strips, where the strip can reference another binding handle.
+   * Assumption: the animation is bound to adt->slot_handle. This assumption will break when we
+   * have things like reference strips, where the strip can reference another slot handle.
    */
-  action_binding_to_keylist(adt, action, adt->binding_handle, keylist, saction_flag, range);
+  action_slot_to_keylist(adt, action, adt->slot_handle, keylist, saction_flag, range);
 }
 
 void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, const bool active)
