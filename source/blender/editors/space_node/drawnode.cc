@@ -1371,6 +1371,7 @@ static void std_node_socket_draw(
         else {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
           uiItemL(row, text, ICON_NONE);
+          uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
       }
       break;
