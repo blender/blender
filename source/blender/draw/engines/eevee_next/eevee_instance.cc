@@ -175,7 +175,6 @@ void Instance::update_eval_members()
 void Instance::view_update()
 {
   sampling.reset();
-  sync.view_update();
 }
 
 /** \} */

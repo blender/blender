@@ -13,6 +13,7 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
+#include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
 namespace blender::nodes {

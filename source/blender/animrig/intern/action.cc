@@ -127,8 +127,12 @@ template<typename T> static void shrink_array(T **array, int *num, const int shr
 
 bool Action::is_empty() const
 {
+  /* The check for emptyness has to include the check for an empty `groups` ListBase because of the
+   * animation filtering code. With the functions `rearrange_action_channels` and
+   * `join_groups_action_temp` the ownership of FCurves is temporarily transferred to the `groups`
+   * ListBase leaving `curves` potentially empty. */
   return this->layer_array_num == 0 && this->slot_array_num == 0 &&
-         BLI_listbase_is_empty(&this->curves);
+         BLI_listbase_is_empty(&this->curves) && BLI_listbase_is_empty(&this->groups);
 }
 bool Action::is_action_legacy() const
 {
@@ -140,7 +144,7 @@ bool Action::is_action_layered() const
   /* This is a valid layered Action if there is ANY layered info (because that
    * takes precedence) or when there is no legacy info. */
   return this->layer_array_num > 0 || this->slot_array_num > 0 ||
-         BLI_listbase_is_empty(&this->curves);
+         (BLI_listbase_is_empty(&this->curves) && BLI_listbase_is_empty(&this->groups));
 }
 
 blender::Span<const Layer *> Action::layers() const

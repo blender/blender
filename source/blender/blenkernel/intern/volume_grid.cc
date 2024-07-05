@@ -275,13 +275,16 @@ void VolumeGridData::ensure_grid_loaded() const
   });
   if (!loaded_grid) {
     if (grid_) {
-      /* Create a dummy grid of the expected type. */
-      loaded_grid = grid_->createGrid("");
+      const openvdb::Name &grid_type = grid_->type();
+      if (openvdb::GridBase::isRegistered(grid_type)) {
+        /* Create a dummy grid of the expected type. */
+        loaded_grid = openvdb::GridBase::createGrid(grid_type);
+      }
     }
-    else {
-      /* Create a dummy grid. We can't really know the expected data type here. */
-      loaded_grid = openvdb::FloatGrid::create();
-    }
+  }
+  if (!loaded_grid) {
+    /* Create a dummy grid. We can't really know the expected data type here. */
+    loaded_grid = openvdb::FloatGrid::create();
   }
   BLI_assert(loaded_grid);
   BLI_assert(loaded_grid.unique());
