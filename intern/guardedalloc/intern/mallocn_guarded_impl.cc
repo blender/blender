@@ -212,18 +212,10 @@ static bool malloc_debug_memset = false;
 /* implementation                                                        */
 /* --------------------------------------------------------------------- */
 
-#ifdef __GNUC__
-__attribute__((format(printf, 1, 2)))
-#endif
-static void
-print_error(const char *str, ...)
+static void print_error(const char *message, va_list str_format_args)
 {
-  char buf[1024];
-  va_list ap;
-
-  va_start(ap, str);
-  vsnprintf(buf, sizeof(buf), str, ap);
-  va_end(ap);
+  char buf[512];
+  vsnprintf(buf, sizeof(buf), message, str_format_args);
   buf[sizeof(buf) - 1] = '\0';
 
   if (error_callback) {
@@ -232,6 +224,50 @@ print_error(const char *str, ...)
   else {
     fputs(buf, stderr);
   }
+}
+
+#ifdef __GNUC__
+__attribute__((format(printf, 1, 2)))
+#endif
+static void
+print_error(const char *message, ...)
+{
+  va_list str_format_args;
+  va_start(str_format_args, message);
+  print_error(message, str_format_args);
+  va_end(str_format_args);
+}
+
+#ifdef __GNUC__
+__attribute__((format(printf, 2, 3)))
+#endif
+static void
+report_error_on_address(const void *vmemh, const char *message, ...)
+{
+  va_list str_format_args;
+
+  va_start(str_format_args, message);
+  print_error(message, str_format_args);
+  va_end(str_format_args);
+
+  if (vmemh == nullptr) {
+    MEM_trigger_error_on_memory_block(nullptr, 0);
+    return;
+  }
+
+  const MemHead *memh = static_cast<const MemHead *>(vmemh);
+  memh--;
+  size_t len = memh->len;
+
+  const void *address = memh;
+  size_t size = len + sizeof(*memh) + sizeof(MemTail);
+  if (UNLIKELY(memh->alignment > 0)) {
+    const MemHeadAligned *memh_aligned = memh;
+    address = MEMHEAD_REAL_PTR(memh_aligned);
+    size = len + sizeof(*memh_aligned) + MEMHEAD_ALIGN_PADDING(memh_aligned->alignment) +
+           sizeof(MemTail);
+  }
+  MEM_trigger_error_on_memory_block(address, size);
 }
 
 static pthread_mutex_t thread_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -290,12 +326,9 @@ void *MEM_guarded_dupallocN(const void *vmemh)
     memh--;
 
     if ((memh->flag & MEMHEAD_FLAG_FROM_CPP_NEW) != 0) {
-      print_error(
-          "Attempt to use C-style MEM_dupallocN on a pointer created with CPP-style MEM_new or "
-          "new\n");
-#ifdef WITH_ASSERT_ABORT
-      abort();
-#endif
+      report_error_on_address(vmemh,
+                              "Attempt to use C-style MEM_dupallocN on a pointer created with "
+                              "CPP-style MEM_new or new\n");
     }
 
 #ifndef DEBUG_MEMDUPLINAME
@@ -353,12 +386,9 @@ void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
     memh--;
 
     if ((memh->flag & MEMHEAD_FLAG_FROM_CPP_NEW) != 0) {
-      print_error(
-          "Attempt to use C-style MEM_reallocN on a pointer created with CPP-style MEM_new or "
-          "new\n");
-#ifdef WITH_ASSERT_ABORT
-      abort();
-#endif
+      report_error_on_address(vmemh,
+                              "Attempt to use C-style MEM_reallocN on a pointer created with "
+                              "CPP-style MEM_new or new\n");
     }
 
     if (LIKELY(memh->alignment == 0)) {
@@ -398,12 +428,9 @@ void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *str)
     memh--;
 
     if ((memh->flag & MEMHEAD_FLAG_FROM_CPP_NEW) != 0) {
-      print_error(
-          "Attempt to use C-style MEM_recallocN on a pointer created with CPP-style MEM_new or "
-          "new\n");
-#ifdef WITH_ASSERT_ABORT
-      abort();
-#endif
+      report_error_on_address(vmemh,
+                              "Attempt to use C-style MEM_recallocN on a pointer created with "
+                              "CPP-style MEM_new or new\n");
     }
 
     if (LIKELY(memh->alignment == 0)) {
@@ -1012,11 +1039,9 @@ void MEM_guarded_freeN(void *vmemh, const AllocationType allocation_type)
   if (allocation_type != AllocationType::NEW_DELETE &&
       (memh->flag & MEMHEAD_FLAG_FROM_CPP_NEW) != 0)
   {
-    print_error(
+    report_error_on_address(
+        vmemh,
         "Attempt to use C-style MEM_freeN on a pointer created with CPP-style MEM_new or new\n");
-#ifdef WITH_ASSERT_ABORT
-    abort();
-#endif
   }
 
   if (memh->tag1 == MEMFREE && memh->tag2 == MEMFREE) {

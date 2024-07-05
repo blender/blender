@@ -74,23 +74,57 @@ enum {
 #define MEMHEAD_IS_FROM_CPP_NEW(memhead) ((memhead)->len & size_t(MEMHEAD_FLAG_FROM_CPP_NEW))
 #define MEMHEAD_LEN(memhead) ((memhead)->len & ~size_t(MEMHEAD_FLAG_MASK))
 
-#ifdef __GNUC__
-__attribute__((format(printf, 1, 2)))
-#endif
-static void
-print_error(const char *str, ...)
+static void print_error(const char *message, va_list str_format_args)
 {
   char buf[512];
-  va_list ap;
-
-  va_start(ap, str);
-  vsnprintf(buf, sizeof(buf), str, ap);
-  va_end(ap);
+  vsnprintf(buf, sizeof(buf), message, str_format_args);
   buf[sizeof(buf) - 1] = '\0';
 
   if (error_callback) {
     error_callback(buf);
   }
+}
+
+#ifdef __GNUC__
+__attribute__((format(printf, 1, 2)))
+#endif
+static void
+print_error(const char *message, ...)
+{
+  va_list str_format_args;
+  va_start(str_format_args, message);
+  print_error(message, str_format_args);
+  va_end(str_format_args);
+}
+
+#ifdef __GNUC__
+__attribute__((format(printf, 2, 3)))
+#endif
+static void
+report_error_on_address(const void *vmemh, const char *message, ...)
+{
+  va_list str_format_args;
+
+  va_start(str_format_args, message);
+  print_error(message, str_format_args);
+  va_end(str_format_args);
+
+  if (vmemh == nullptr) {
+    MEM_trigger_error_on_memory_block(nullptr, 0);
+    return;
+  }
+
+  MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
+  size_t len = MEMHEAD_LEN(memh);
+
+  void *address = memh;
+  size_t size = len + sizeof(*memh);
+  if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
+    MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+    address = MEMHEAD_REAL_PTR(memh_aligned);
+    size = len + sizeof(*memh_aligned) + MEMHEAD_ALIGN_PADDING(memh_aligned->alignment);
+  }
+  MEM_trigger_error_on_memory_block(address, size);
 }
 
 size_t MEM_lockfree_allocN_len(const void *vmemh)
@@ -109,10 +143,7 @@ void MEM_lockfree_freeN(void *vmemh, AllocationType allocation_type)
   }
 
   if (UNLIKELY(vmemh == nullptr)) {
-    print_error("Attempt to free nullptr pointer\n");
-#ifdef WITH_ASSERT_ABORT
-    abort();
-#endif
+    report_error_on_address(vmemh, "Attempt to free nullptr pointer\n");
     return;
   }
 
@@ -120,11 +151,9 @@ void MEM_lockfree_freeN(void *vmemh, AllocationType allocation_type)
   size_t len = MEMHEAD_LEN(memh);
 
   if (allocation_type != AllocationType::NEW_DELETE && MEMHEAD_IS_FROM_CPP_NEW(memh)) {
-    print_error(
+    report_error_on_address(
+        vmemh,
         "Attempt to use C-style MEM_freeN on a pointer created with CPP-style MEM_new or new\n");
-#ifdef WITH_ASSERT_ABORT
-    abort();
-#endif
   }
 
   memory_usage_block_free(len);
@@ -149,12 +178,9 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
     const size_t prev_size = MEM_lockfree_allocN_len(vmemh);
 
     if (MEMHEAD_IS_FROM_CPP_NEW(memh)) {
-      print_error(
-          "Attempt to use C-style MEM_dupallocN on a pointer created with CPP-style MEM_new or "
-          "new\n");
-#ifdef WITH_ASSERT_ABORT
-      abort();
-#endif
+      report_error_on_address(vmemh,
+                              "Attempt to use C-style MEM_dupallocN on a pointer created with "
+                              "CPP-style MEM_new or new\n");
     }
 
     if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
@@ -179,12 +205,9 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
     const size_t old_len = MEM_lockfree_allocN_len(vmemh);
 
     if (MEMHEAD_IS_FROM_CPP_NEW(memh)) {
-      print_error(
-          "Attempt to use C-style MEM_reallocN on a pointer created with CPP-style MEM_new or "
-          "new\n");
-#ifdef WITH_ASSERT_ABORT
-      abort();
-#endif
+      report_error_on_address(vmemh,
+                              "Attempt to use C-style MEM_reallocN on a pointer created with "
+                              "CPP-style MEM_new or new\n");
     }
 
     if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
@@ -225,12 +248,9 @@ void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
     const size_t old_len = MEM_lockfree_allocN_len(vmemh);
 
     if (MEMHEAD_IS_FROM_CPP_NEW(memh)) {
-      print_error(
-          "Attempt to use C-style MEM_recallocN on a pointer created with CPP-style MEM_new or "
-          "new\n");
-#ifdef WITH_ASSERT_ABORT
-      abort();
-#endif
+      report_error_on_address(vmemh,
+                              "Attempt to use C-style MEM_recallocN on a pointer created with "
+                              "CPP-style MEM_new or new\n");
     }
 
     if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
