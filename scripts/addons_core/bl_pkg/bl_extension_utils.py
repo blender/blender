@@ -781,6 +781,7 @@ class CommandBatchItem:
         "fn_with_args",
         "fn_iter",
         "status",
+        "has_fatal_error",
         "has_error",
         "has_warning",
         "msg_log",
@@ -798,6 +799,7 @@ class CommandBatchItem:
         self.fn_with_args = fn_with_args
         self.fn_iter: Optional[Generator[InfoItemSeq, bool, None]] = None
         self.status = CommandBatchItem.STATUS_NOT_YET_STARTED
+        self.has_fatal_error = False
         self.has_error = False
         self.has_warning = False
         self.msg_log: List[Tuple[str, Any]] = []
@@ -967,7 +969,11 @@ class CommandBatch:
 
                     command_output[cmd_index].append((ty, msg))
                     if ty != 'PROGRESS':
-                        if ty == 'ERROR':
+                        if ty == 'FATAL_ERROR':
+                            if not cmd.has_fatal_error:
+                                cmd.has_fatal_error = True
+                                status_data_changed = True
+                        elif ty == 'ERROR':
                             if not cmd.has_error:
                                 cmd.has_error = True
                                 status_data_changed = True
@@ -1003,7 +1009,7 @@ class CommandBatch:
         failure_count = 0
         for cmd in self._batch:
             status_flag |= 1 << cmd.status
-            if cmd.has_error or cmd.has_warning:
+            if cmd.has_fatal_error or cmd.has_error or cmd.has_warning:
                 failure_count += 1
         return CommandBatch_StatusFlag(
             flag=status_flag,
