@@ -144,8 +144,9 @@ struct Main {
   bool has_forward_compatibility_issues;
 
   /**
-   * This .blend file is managed by the asset system (via API in `BKE_asset_edit()`), manual edits
-   * may be overridden.
+   * This file was written by the asset system with the #G_FILE_ASSET_EDIT_FILE flag (now cleared).
+   * It must not be overwritten, except by the asset system itself. Otherwise the file could end up
+   * with user created data that would be lost when the asset system regenerates the file.
    */
   bool is_asset_edit_file;
 

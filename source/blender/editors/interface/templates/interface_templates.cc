@@ -6433,9 +6433,7 @@ static std::string ui_template_status_tooltip(bContext *C, void * /*argN*/, cons
       tooltip_message += "\n\n";
     }
     tooltip_message += RPT_(
-        "This file is managed by the Blender asset system\n"
-        "and is expected to contain a single asset data-block.\n"
-        "Take care to avoid data loss when editing assets");
+        "This file is managed by the Blender asset system and cannot be overridden");
   }
 
   return tooltip_message;

@@ -356,6 +356,8 @@ void blo_join_main(ListBase *mainlist)
   BKE_main_namemap_clear(mainl);
 
   while ((tojoin = mainl->next)) {
+    BLI_assert(((tojoin->curlib->runtime.tag & LIBRARY_IS_ASSET_EDIT_FILE) != 0) ==
+               tojoin->is_asset_edit_file);
     add_main_to_main(mainl, tojoin);
     BLI_remlink(mainlist, tojoin);
     tojoin->next = tojoin->prev = nullptr;
@@ -418,6 +420,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
     libmain->subversionfile = lib->runtime.subversionfile;
     libmain->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
         libmain, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
+    libmain->is_asset_edit_file = (lib->runtime.tag & LIBRARY_IS_ASSET_EDIT_FILE) != 0;
     BLI_addtail(mainlist, libmain);
     lib->runtime.temp_index = i;
     lib_main_array[i] = libmain;
@@ -448,6 +451,7 @@ static void read_file_version(FileData *fd, Main *main)
         main->subversionfile = fg->subversion;
         main->minversionfile = fg->minversion;
         main->minsubversionfile = fg->minsubversion;
+        main->is_asset_edit_file = (fg->fileflags & G_FILE_ASSET_EDIT_FILE) != 0;
         MEM_freeN(fg);
       }
       else if (bhead->code == BLO_CODE_ENDB) {
@@ -458,6 +462,8 @@ static void read_file_version(FileData *fd, Main *main)
   if (main->curlib) {
     main->curlib->runtime.versionfile = main->versionfile;
     main->curlib->runtime.subversionfile = main->subversionfile;
+    SET_FLAG_FROM_TEST(
+        main->curlib->runtime.tag, main->is_asset_edit_file, LIBRARY_IS_ASSET_EDIT_FILE);
   }
 }
 
@@ -2957,6 +2963,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
   bfd->main->build_commit_timestamp = fg->build_commit_timestamp;
   STRNCPY(bfd->main->build_hash, fg->build_hash);
+  bfd->main->is_asset_edit_file = (fg->fileflags & G_FILE_ASSET_EDIT_FILE) != 0;
 
   bfd->fileflags = fg->fileflags;
   bfd->globalf = fg->globalf;

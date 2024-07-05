@@ -1921,6 +1921,13 @@ static bool wm_file_write_check_with_report_on_failure(Main *bmain,
     return false;
   }
 
+  if (bmain->is_asset_edit_file &&
+      blender::StringRef(filepath).endswith(BLENDER_ASSET_FILE_SUFFIX))
+  {
+    BKE_report(reports, RPT_ERROR, "Cannot overwrite files that are managed by the asset system");
+    return false;
+  }
+
   LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
     if (BLI_path_cmp(li->runtime.filepath_abs, filepath) == 0) {
       BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
@@ -3422,6 +3429,16 @@ static void save_set_filepath(bContext *C, wmOperator *op)
       STRNCPY(filepath, blendfile_path);
     }
 
+    /* For convencience when using "Save As" on asset system files: Replace .asset.blend extension
+     * with just .blend. Asset system files must not be overridden (except by the asset system),
+     * there are further checks to prevent this entirely. */
+    if (bmain->is_asset_edit_file &&
+        blender::StringRef(filepath).endswith(BLENDER_ASSET_FILE_SUFFIX))
+    {
+      filepath[strlen(filepath) - strlen(BLENDER_ASSET_FILE_SUFFIX)] = '\0';
+      BLI_path_extension_ensure(filepath, FILE_MAX, ".blend");
+    }
+
     wm_filepath_default(bmain, filepath);
     RNA_property_string_set(op->ptr, prop, filepath);
   }
@@ -4032,9 +4049,10 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
       uiItemS_ex(layout, 1.4f);
     }
 
-    uiItemL(layout, RPT_("This file is managed by the Blender asset system"), ICON_NONE);
-    uiItemL(layout, RPT_("and is expected to contain a single asset data-block."), ICON_NONE);
-    uiItemL(layout, RPT_("Take care to avoid data loss when editing assets."), ICON_NONE);
+    uiItemL(layout,
+            RPT_("This file is managed by the Blender asset system. It can only be"),
+            ICON_NONE);
+    uiItemL(layout, RPT_("saved as a new, regular file."), ICON_NONE);
   }
 }
 
@@ -4143,12 +4161,12 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
   /* Title. */
   if (bmain->has_forward_compatibility_issues) {
     if (bmain->is_asset_edit_file) {
-      uiItemL_ex(
-          layout,
-          RPT_("Convert asset blend file to regular blend file with an older Blender version?"),
-          ICON_NONE,
-          true,
-          false);
+      uiItemL_ex(layout,
+                 RPT_("Cannot overwrite asset system files. Save as new file"),
+                 ICON_NONE,
+                 true,
+                 false);
+      uiItemL_ex(layout, RPT_("with an older Blender version?"), ICON_NONE, true, false);
     }
     else {
       uiItemL_ex(
@@ -4156,8 +4174,11 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
     }
   }
   else if (bmain->is_asset_edit_file) {
-    uiItemL_ex(
-        layout, RPT_("Convert asset blend file to regular blend file?"), ICON_NONE, true, false);
+    uiItemL_ex(layout,
+               RPT_("Cannot overwrite asset system files. Save as new file?"),
+               ICON_NONE,
+               true,
+               false);
   }
   else {
     BLI_assert_unreachable();
@@ -4188,7 +4209,11 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
   uiLayoutSetScaleY(split, 1.2f);
 
   uiLayoutColumn(split, false);
-  save_file_overwrite_confirm_button(block, post_action);
+  /* Asset files don't actually allow overriding. */
+  const bool allow_overwrite = !bmain->is_asset_edit_file;
+  if (allow_overwrite) {
+    save_file_overwrite_confirm_button(block, post_action);
+  }
 
   uiLayout *split_right = uiLayoutSplit(split, 0.1f, true);
 

@@ -75,8 +75,8 @@ static ID *asset_link_id(Main &global_main,
   if (local_asset && local_asset->lib) {
     local_asset->lib->runtime.tag |= LIBRARY_ASSET_EDITABLE;
 
-    /* Simple check, based on being a writable .asset.blend file in a user asset library. */
-    if (StringRef(filepath).endswith(BLENDER_ASSET_FILE_SUFFIX) &&
+    if ((local_asset->lib->runtime.tag & LIBRARY_IS_ASSET_EDIT_FILE) &&
+        StringRef(filepath).endswith(BLENDER_ASSET_FILE_SUFFIX) &&
         BKE_preferences_asset_library_containing_path(&U, filepath) &&
         BLI_file_is_writable(filepath))
     {
@@ -169,6 +169,7 @@ static Main *asset_main_create_from_ID(Main &bmain_src, ID &id_asset, ID **id_as
   /* Create main and copy all tagged datablocks. */
   Main *bmain_dst = BKE_main_new();
   STRNCPY(bmain_dst->filepath, bmain_src.filepath);
+  bmain_dst->is_asset_edit_file = true;
 
   blender::bke::id::IDRemapper id_remapper;
 
@@ -229,7 +230,7 @@ static bool asset_write_in_library(Main &bmain,
 
   BKE_packedfile_pack_all(new_main, nullptr, false);
 
-  const int write_flags = G_FILE_COMPRESS;
+  const int write_flags = G_FILE_COMPRESS | G_FILE_ASSET_EDIT_FILE;
   const bool success = BLO_write_file(
       new_main, filepath.c_str(), write_flags, &blend_file_write_params, &reports);
 
