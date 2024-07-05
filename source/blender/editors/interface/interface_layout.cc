@@ -3033,6 +3033,8 @@ static uiBut *ui_item_menu(uiLayout *layout,
       but->poin = (char *)but;
     }
     but->func_argN = argN;
+    but->func_argN_free_fn = MEM_freeN;
+    but->func_argN_copy_fn = MEM_dupallocN;
   }
 
   if (ELEM(layout->root->type, UI_LAYOUT_PANEL, UI_LAYOUT_TOOLBAR) ||

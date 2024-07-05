@@ -211,6 +211,8 @@ struct uiBut {
 
   uiButHandleNFunc funcN = nullptr;
   void *func_argN = nullptr;
+  uiButArgNFree func_argN_free_fn;
+  uiButArgNCopy func_argN_copy_fn;
 
   const bContextStore *context = nullptr;
 
@@ -561,6 +563,8 @@ struct uiBlock {
 
   uiButHandleNFunc funcN;
   void *func_argN;
+  uiButArgNFree func_argN_free_fn;
+  uiButArgNCopy func_argN_copy_fn;
 
   uiBlockHandleFunc handle_func;
   void *handle_func_arg;

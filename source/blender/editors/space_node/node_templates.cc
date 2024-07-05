@@ -717,6 +717,8 @@ void uiTemplateNodeLink(
 
   but->poin = (char *)but;
   but->func_argN = arg;
+  but->func_argN_free_fn = MEM_freeN;
+  but->func_argN_copy_fn = MEM_dupallocN;
 
   if (input->link && input->link->fromnode) {
     if (input->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {
