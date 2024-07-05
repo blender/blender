@@ -97,7 +97,7 @@ static void calc_grids(const Sculpt &sd,
   const int grid_verts_num = grids.size() * key.grid_area;
 
   tls.positions.reinitialize(grid_verts_num);
-  MutableSpan<float3> positions = tls.positions;
+  const MutableSpan<float3> positions = tls.positions;
   gather_grids_positions(subdiv_ccg, grids, positions);
 
   tls.factors.reinitialize(grid_verts_num);
@@ -142,7 +142,7 @@ static void calc_bmesh(const Sculpt &sd,
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
   tls.positions.reinitialize(verts.size());
-  MutableSpan<float3> positions = tls.positions;
+  const MutableSpan<float3> positions = tls.positions;
   gather_bmesh_positions(verts, positions);
 
   tls.factors.reinitialize(verts.size());
