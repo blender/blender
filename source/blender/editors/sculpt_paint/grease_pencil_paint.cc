@@ -13,6 +13,7 @@
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
+#include "BLI_bounds.hh"
 #include "BLI_color.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_base.hh"
@@ -20,6 +21,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_noise.hh"
 #include "BLI_rand.hh"
+#include "BLI_rect.h"
 #include "BLI_time.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -1115,17 +1117,18 @@ static void smooth_stroke(bke::greasepencil::Drawing &drawing,
 }
 
 static void simplify_stroke(bke::greasepencil::Drawing &drawing,
-                            Span<float2> screen_space_positions,
                             const float epsilon,
                             const int active_curve)
 {
   const bke::CurvesGeometry &curves = drawing.strokes();
+  const bke::AttributeAccessor attributes = curves.attributes();
   const IndexRange points = curves.points_by_curve()[active_curve];
-  BLI_assert(screen_space_positions.size() == points.size());
+  const VArray<float2> screen_space_positions_attribute = *attributes.lookup<float2>(
+      ".draw_tool_screen_space_positions");
+  BLI_assert(screen_space_positions_attribute.is_span());
 
-  if (epsilon <= 0.0f) {
-    return;
-  }
+  const Span<float2> screen_space_positions =
+      screen_space_positions_attribute.get_internal_span().slice(points);
 
   Array<bool> points_to_delete_arr(drawing.strokes().points_num(), false);
   points_to_delete_arr.as_mutable_span().slice(points).fill(true);
@@ -1139,7 +1142,62 @@ static void simplify_stroke(bke::greasepencil::Drawing &drawing,
   const IndexMask points_to_delete = IndexMask::from_bools(points_to_delete_arr, memory);
   if (!points_to_delete.is_empty()) {
     drawing.strokes_for_write().remove_points(points_to_delete, {});
+    drawing.tag_topology_changed();
   }
+}
+
+static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
+                             const int active_curve,
+                             const bool on_back)
+{
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange points = curves.points_by_curve()[active_curve];
+  const bke::AttributeAccessor attributes = curves.attributes();
+  const VArray<float2> screen_space_positions_attribute = *attributes.lookup<float2>(
+      ".draw_tool_screen_space_positions");
+  BLI_assert(screen_space_positions_attribute.is_span());
+  const Span<float2> screen_space_positions =
+      screen_space_positions_attribute.get_internal_span().slice(points);
+  /* Extract the drawn stroke into a seperate geometry, so we can trim the ends for just this
+   * stroke. */
+  bke::CurvesGeometry stroke = bke::curves_copy_curve_selection(
+      drawing.strokes(), IndexRange::from_single(active_curve), {});
+  auto bounds = bounds::min_max(screen_space_positions);
+  rcti screen_space_bounds;
+  BLI_rcti_init(&screen_space_bounds,
+                int(bounds->min.x),
+                int(bounds->max.x),
+                int(bounds->min.y),
+                int(bounds->max.y));
+  /* Use the first and last point. */
+  const Vector<Vector<int>> point_selection = {{0, int(points.index_range().last())}};
+  /* Trim the stroke ends by finding self intersections using the screen space positions. */
+  bke::CurvesGeometry stroke_trimmed = ed::greasepencil::cutter::trim_curve_segments(
+      stroke,
+      screen_space_positions,
+      {screen_space_bounds},
+      IndexRange::from_single(0),
+      point_selection,
+      true);
+
+  /* Remove the original stroke. */
+  drawing.strokes_for_write().remove_curves(IndexRange::from_single(active_curve), {});
+
+  /* Join the trimmed stroke into the drawing. */
+  Curves *trimmed_curve = bke::curves_new_nomain(std::move(stroke_trimmed));
+  Curves *other_curves = bke::curves_new_nomain(std::move(drawing.strokes_for_write()));
+  std::array<bke::GeometrySet, 2> geometry_sets;
+  if (on_back) {
+    geometry_sets = {bke::GeometrySet::from_curves(trimmed_curve),
+                     bke::GeometrySet::from_curves(other_curves)};
+  }
+  else {
+    geometry_sets = {bke::GeometrySet::from_curves(other_curves),
+                     bke::GeometrySet::from_curves(trimmed_curve)};
+  }
+  drawing.strokes_for_write() = std::move(
+      geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
+  drawing.tag_topology_changed();
 }
 
 static void outline_stroke(bke::greasepencil::Drawing &drawing,
@@ -1180,6 +1238,7 @@ static void outline_stroke(bke::greasepencil::Drawing &drawing,
   }
   drawing.strokes_for_write() = std::move(
       geometry::join_geometries(geometry_sets, {}).get_curves_for_write()->geometry.wrap());
+  drawing.tag_topology_changed();
 }
 
 static int trim_end_points(bke::greasepencil::Drawing &drawing,
@@ -1295,19 +1354,33 @@ void PaintOperation::on_stroke_done(const bContext &C)
                                                                                scene->r.cfra);
   const int active_curve = on_back ? drawing.strokes().curves_range().first() :
                                      drawing.strokes().curves_range().last();
+  const offset_indices::OffsetIndices<int> points_by_curve = drawing.strokes().points_by_curve();
+  const IndexRange points = points_by_curve[active_curve];
+
+  /* Write the screen space positions of the new stroke as a temporary attribute, so all the
+   * changes in topology with the operations below get propagated correctly. */
+  bke::MutableAttributeAccessor attributes = drawing.strokes_for_write().attributes_for_write();
+  bke::SpanAttributeWriter<float2> screen_space_positions =
+      attributes.lookup_or_add_for_write_only_span<float2>(".draw_tool_screen_space_positions",
+                                                           bke::AttrDomain::Point);
+  screen_space_positions.span.slice(points).copy_from(this->screen_space_final_coords_);
+  screen_space_positions.finish();
+
   /* Remove trailing points with radii close to zero. */
-  const int num_points_removed = trim_end_points(drawing, 1e-5f, on_back, active_curve);
+  trim_end_points(drawing, 1e-5f, on_back, active_curve);
+
   /* Set the selection of the newly drawn stroke to false. */
   deselect_stroke(C, drawing, active_curve);
+
   if (do_post_processing) {
     if (settings->draw_smoothfac > 0.0f) {
       smooth_stroke(drawing, settings->draw_smoothfac, settings->draw_smoothlvl, active_curve);
     }
     if (settings->simplify_px > 0.0f) {
-      simplify_stroke(drawing,
-                      this->screen_space_final_coords_.as_span().drop_back(num_points_removed),
-                      settings->simplify_px,
-                      active_curve);
+      simplify_stroke(drawing, settings->simplify_px, active_curve);
+    }
+    if ((settings->flag & GP_BRUSH_TRIM_STROKE) != 0) {
+      trim_stroke_ends(drawing, active_curve, on_back);
     }
     if ((settings->flag & GP_BRUSH_OUTLINE_STROKE) != 0) {
       const float outline_radius = float(brush->unprojected_radius) * settings->outline_fac * 0.5f;
@@ -1330,6 +1403,9 @@ void PaintOperation::on_stroke_done(const bContext &C)
                      on_back);
     }
   }
+  /* Remove the temporary attribute. */
+  attributes.remove(".draw_tool_screen_space_positions");
+
   drawing.set_texture_matrices({texture_space_}, IndexRange::from_single(active_curve));
   drawing.tag_topology_changed();
 
