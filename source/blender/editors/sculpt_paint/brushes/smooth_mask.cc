@@ -16,6 +16,7 @@
 #include "BLI_task.h"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
+#include "editors/sculpt_paint/paint_intern.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint {
@@ -81,25 +82,6 @@ static void calc_smooth_masks_faces(const OffsetIndices<int> faces,
   }
 }
 
-static void calc_mask(const Span<float> mask_averages,
-                      const Span<float> factors,
-                      const MutableSpan<float> masks)
-{
-  BLI_assert(mask_averages.size() == factors.size());
-  BLI_assert(mask_averages.size() == masks.size());
-
-  for (const int i : masks.index_range()) {
-    masks[i] += (mask_averages[i] - masks[i]) * factors[i];
-  }
-}
-
-static void clamp_mask(const MutableSpan<float> masks)
-{
-  for (float &mask : masks) {
-    mask = std::clamp(mask, 0.0f, 1.0f);
-  }
-}
-
 static void apply_masks_faces(const Brush &brush,
                               const Span<float3> positions_eval,
                               const Span<float3> vert_normals,
@@ -144,8 +126,8 @@ static void apply_masks_faces(const Brush &brush,
   const MutableSpan<float> new_masks = tls.masks;
   array_utils::gather(mask.as_span(), verts, new_masks);
 
-  calc_mask(mask_averages, factors, new_masks);
-  clamp_mask(new_masks);
+  mask::mix_new_masks(mask_averages, factors, new_masks);
+  mask::clamp_mask(new_masks);
 
   array_utils::scatter(new_masks.as_span(), verts, mask);
 }
