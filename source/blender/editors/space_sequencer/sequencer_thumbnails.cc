@@ -539,7 +539,6 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   seq_get_thumb_image_dimensions(
       seq, pixelx, pixely, &thumb_width, thumb_height, &image_width, &image_height);
 
-  const float zoom_x = thumb_width / image_width;
   const float zoom_y = thumb_height / image_height;
   const float crop_x_multiplier = 1.0f / pixelx / (zoom_y / pixely);
 
@@ -554,8 +553,6 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   if (seq->type == SEQ_TYPE_IMAGE) {
     upper_thumb_bound = seq_right_handle;
   }
-  /* Exclude rightmost strip pixel column. */
-  upper_thumb_bound -= pixelx;
 
   float timeline_frame = SEQ_render_thumbnail_first_frame_get(scene, seq, thumb_width, &v2d->cur);
 
@@ -634,6 +631,9 @@ void draw_seq_strip_thumbnail(View2D *v2d,
      * while drawing, but since rendering is done through OCIO shaders that
      * is hard to do. */
     const float xpos = timeline_frame + cut_off;
+
+    const float zoom_x = (thumb_x_end - xpos) / ibuf->x;
+
     const float radius = ibuf->y * round_radius * pixely / (y2 - y1);
     if (radius > 0.9f) {
       if (xpos < seq_left_handle + round_radius * pixelx ||
