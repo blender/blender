@@ -135,7 +135,8 @@ static void node_rna(StructRNA *srna)
                     "Domain to evaluate the field on",
                     rna_enum_attribute_domain_with_auto_items,
                     NOD_storage_enum_accessors(domain),
-                    int(AttrDomain::Point));
+                    int(AttrDomain::Point),
+                    enums::domain_experimental_grease_pencil_version3_fn);
 }
 
 static void node_register()

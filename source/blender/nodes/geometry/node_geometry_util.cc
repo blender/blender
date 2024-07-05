@@ -13,6 +13,7 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
+#include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
 namespace blender::nodes {
@@ -71,18 +72,24 @@ bool generic_attribute_type_supported(const EnumPropertyItem &item)
               CD_PROP_FLOAT4X4);
 }
 
-const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext * /*C*/,
-                                                                      PointerRNA * /*ptr*/,
-                                                                      PropertyRNA * /*prop*/,
+const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext *C,
+                                                                      PointerRNA *ptr,
+                                                                      PropertyRNA *prop,
                                                                       bool *r_free)
 {
+  const EnumPropertyItem *static_items;
+  int static_items_num;
+  bool static_items_free;
+  RNA_property_enum_items_ex(
+      C, ptr, prop, true, &static_items, &static_items_num, &static_items_free);
+  BLI_assert(!static_items_free);
+
   *r_free = true;
-  return enum_items_filter(rna_enum_attribute_domain_items,
-                           [](const EnumPropertyItem &item) -> bool {
-                             return (bke::AttrDomain(item.value) == bke::AttrDomain::Layer) ?
-                                        U.experimental.use_grease_pencil_version3 :
-                                        true;
-                           });
+  return enum_items_filter(static_items, [](const EnumPropertyItem &item) -> bool {
+    return (bke::AttrDomain(item.value) == bke::AttrDomain::Layer) ?
+               U.experimental.use_grease_pencil_version3 :
+               true;
+  });
 }
 
 const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version3_fn(
