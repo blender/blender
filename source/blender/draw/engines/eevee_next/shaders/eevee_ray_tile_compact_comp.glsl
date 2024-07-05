@@ -17,11 +17,26 @@ void main()
   ivec2 tile = ivec2(gl_GlobalInvocationID.xy);
 
   if (all(equal(tile, ivec2(0)))) {
-    raytrace_tracing_dispatch_buf.num_groups_y = 1;
-    raytrace_denoise_dispatch_buf.num_groups_y = 1;
 
-    raytrace_tracing_dispatch_buf.num_groups_z = 1;
-    raytrace_denoise_dispatch_buf.num_groups_z = 1;
+    /* Workaround: Using atomics to initialize num groups on Windows/Intel GPUs. On Windows/Intel
+     * Arc assignments are ignored when shader later on accesses the variables using atomic
+     * operations.
+     *
+     * Ref #124060.
+     */
+#if defined(GPU_INTEL) && defined(OS_WIN)
+    atomicExchange(raytrace_tracing_dispatch_buf.num_groups_y, 1u);
+    atomicExchange(raytrace_denoise_dispatch_buf.num_groups_y, 1u);
+
+    atomicExchange(raytrace_tracing_dispatch_buf.num_groups_z, 1u);
+    atomicExchange(raytrace_denoise_dispatch_buf.num_groups_z, 1u);
+#else
+    raytrace_tracing_dispatch_buf.num_groups_y = 1u;
+    raytrace_denoise_dispatch_buf.num_groups_y = 1u;
+
+    raytrace_tracing_dispatch_buf.num_groups_z = 1u;
+    raytrace_denoise_dispatch_buf.num_groups_z = 1u;
+#endif
   }
 
   if (!in_image_range(tile, tile_raytrace_tracing_img)) {
