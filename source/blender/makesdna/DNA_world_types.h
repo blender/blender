@@ -91,8 +91,13 @@ typedef struct World {
   /** Light-group membership information. */
   struct LightgroupMembership *lightgroup;
 
+  void *_pad1;
+
   /** Runtime. */
   ListBase gpumaterial;
+  /* The Depsgraph::update_count when this World was last updated. */
+  uint64_t last_update;
+
 } World;
 
 /* **************** WORLD ********************* */

@@ -144,8 +144,10 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   World *wrld = (World *)id;
 
-  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  /* Clean up runtime data, important in undo case to reduce false detection of changed
+   * datablocks. */
   BLI_listbase_clear(&wrld->gpumaterial);
+  wrld->last_update = 0;
 
   /* write LibData */
   BLO_write_id_struct(writer, World, id_address, &wrld->id);
@@ -226,4 +228,5 @@ void BKE_world_eval(Depsgraph *depsgraph, World *world)
 {
   DEG_debug_print_eval(depsgraph, __func__, world->id.name, world);
   GPU_material_free(&world->gpumaterial);
+  world->last_update = DEG_get_update_count(depsgraph);
 }
