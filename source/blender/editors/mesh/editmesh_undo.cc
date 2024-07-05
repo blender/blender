@@ -360,8 +360,9 @@ static void um_arraystore_cd_free(BArrayCustomData *bcd, const int bs_index)
     BArrayStore *bs = BLI_array_store_at_size_get(&um_arraystore.bs_stride[bs_index], stride);
     for (int i = 0; i < bcd->states.size(); i++) {
       if (std::holds_alternative<BArrayState *>(bcd->states[i])) {
-        BArrayState *state = std::get<BArrayState *>(bcd->states[i]);
-        BLI_array_store_state_remove(bs, state);
+        if (BArrayState *state = std::get<BArrayState *>(bcd->states[i])) {
+          BLI_array_store_state_remove(bs, state);
+        }
       }
       else {
         ImplicitSharingInfoAndData state = std::get<ImplicitSharingInfoAndData>(bcd->states[i]);
