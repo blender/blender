@@ -719,6 +719,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
   BKE_modifier_remove_from_list(ob, (ModifierData *)hmd);
   BKE_modifier_free((ModifierData *)hmd);
 
+  DEG_relations_tag_update(CTX_data_main(C));
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 

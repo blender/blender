@@ -1099,7 +1099,9 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
     file_attribute_columns_init(params, layout);
 
     layout->rows = std::max(rowcount, numfiles);
-    BLI_assert(layout->rows != 0);
+
+    /* layout->rows can be zero if a very small area is changed to a File Browser. #124168. */
+
     layout->height = sfile->layout->rows * (layout->tile_h + 2 * layout->tile_border_y) +
                      layout->tile_border_y * 2 + layout->offset_top;
     layout->flag = FILE_LAYOUT_VER;
