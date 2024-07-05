@@ -478,6 +478,8 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
     BKE_workspace_layout_remove(bmain, workspace, layout);
     WM_event_add_notifier(C, NC_SCREEN | ND_LAYOUTDELETE, nullptr);
   }
+
+  WM_main_add_notifier(NC_WINDOW | NA_REMOVED, nullptr);
 }
 
 void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
