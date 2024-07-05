@@ -253,4 +253,14 @@ void do_nudge_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
   offset_positions(sd, object, offset * ss.cache->bstrength, nodes);
 }
 
+void do_gravity_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+{
+  const SculptSession &ss = *object.sculpt;
+
+  const float3 offset = ss.cache->gravity_direction * -ss.cache->radius_squared * ss.cache->scale *
+                        sd.gravity_factor;
+
+  offset_positions(sd, object, offset, nodes);
+}
+
 }  // namespace blender::ed::sculpt_paint
