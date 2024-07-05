@@ -1081,8 +1081,14 @@ class CommandHandle:
                         msg = "{:s} (process {:d} of {:d})".format(msg, i, len(msg_list_per_command))
                     if ty == 'STATUS':
                         op.report({'INFO'}, msg)
-                    else:
+                    elif ty == 'WARNING':
                         op.report({'WARNING'}, msg)
+                    elif ty in {'ERROR', 'FATAL_ERROR'}:
+                        op.report({'ERROR'}, msg)
+                    else:
+                        print("Internal error, type", ty, "not accounted for!")
+                        op.report({'INFO'}, "{:s}: {:s}".format(ty, msg))
+
         del msg_list_per_command
 
         # Avoid high CPU usage by only redrawing when there has been a change.

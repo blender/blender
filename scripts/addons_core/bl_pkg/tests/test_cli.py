@@ -571,7 +571,7 @@ class TestCLI_WithRepo(unittest.TestCase):
             )
             self.assertEqual(
                 output_json, [
-                    ("ERROR", "Package not found \"another_package_\"")
+                    ("FATAL_ERROR", "Package not found \"another_package_\"")
                 ]
             )
 
