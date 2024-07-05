@@ -1496,6 +1496,9 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
             /* if amount of material indices changed: */
             BKE_object_materials_test(bmain, ob_dst, static_cast<ID *>(ob_dst->data));
 
+            if (ob_dst->type == OB_ARMATURE) {
+              BKE_pose_rebuild(bmain, ob_dst, static_cast<bArmature *>(ob_dst->data), true);
+            }
             DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
             break;
           case MAKE_LINKS_MATERIALS:
