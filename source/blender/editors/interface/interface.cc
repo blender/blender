@@ -5637,7 +5637,7 @@ void UI_but_operator_set(uiBut *but,
 
   MEM_SAFE_FREE(but->opptr);
   if (op_props) {
-    but->opptr = MEM_new<PointerRNA>(__func__, *op_props);
+    but->opptr = MEM_cnew<PointerRNA>(__func__, *op_props);
   }
 }
 
