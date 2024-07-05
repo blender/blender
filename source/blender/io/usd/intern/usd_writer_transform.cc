@@ -98,8 +98,8 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, context.matrix_world);
   }
 
-  /* USD Xforms are by default set with an identity transform; only write if necessary. */
-  if (!compare_m4m4(parent_relative_matrix, UNIT_M4, 0.000000001f)) {
+  /* USD Xforms are by default the identity transform; only write if necessary when static. */
+  if (is_animated_ || !compare_m4m4(parent_relative_matrix, UNIT_M4, 0.000000001f)) {
     set_xform_ops(parent_relative_matrix, xform);
   }
 
