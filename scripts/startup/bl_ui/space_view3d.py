@@ -6077,6 +6077,7 @@ class VIEW3D_MT_edit_greasepencil_cleanup(Menu):
         layout = self.layout
 
         layout.operator("grease_pencil.clean_loose")
+        layout.operator("grease_pencil.frame_clean_duplicate")
 
         if ob.mode != 'PAINT_GREASE_PENCIL':
             layout.operator("grease_pencil.stroke_merge_by_distance", text="Merge by Distance")

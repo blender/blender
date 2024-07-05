@@ -191,9 +191,14 @@ void main()
       col = add_outline(d, 3.0, 4.0, col, vec4(0, 0, 0, 0.33));
     }
 
+    /* Active, but not selected strips get a thin inner line. */
+    bool active = (strip.flags & GPU_SEQ_FLAG_ACTIVE) != 0;
+    if (active && !selected) {
+      col = add_outline(sdf, 1.0, 2.0, col, col_outline);
+    }
+
     /* Outer 1px outline for all strips. */
-    col = add_outline(
-        sdf, 0.0, 1.0, col, selected ? unpackUnorm4x8(context_data.col_back) : col_outline);
+    col = add_outline(sdf, 0.0, 1.0, col, unpackUnorm4x8(context_data.col_back));
   }
 
   fragColor = col;

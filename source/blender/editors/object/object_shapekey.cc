@@ -484,7 +484,7 @@ static int shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
   }
 
   LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    kb->curval = 0.0f;
+    kb->curval = clamp_f(0.0f, kb->slidermin, kb->slidermax);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -497,7 +497,8 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Clear Shape Keys";
-  ot->description = "Clear weights for all shape keys";
+  ot->description =
+      "Reset the weights of all shape keys to 0 or to the closest value respecting the limits";
   ot->idname = "OBJECT_OT_shape_key_clear";
 
   /* api callbacks */

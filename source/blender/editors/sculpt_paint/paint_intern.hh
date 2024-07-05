@@ -12,6 +12,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -23,6 +24,8 @@ enum class PaintMode : int8_t;
 
 struct ARegion;
 struct bContext;
+struct BMesh;
+struct BMVert;
 struct Brush;
 struct ColorManagedDisplay;
 struct ColorSpace;
@@ -42,6 +45,7 @@ struct ReportList;
 struct Scene;
 struct SculptSession;
 struct SpaceImage;
+struct SubdivCCG;
 struct ToolSettings;
 struct VertProjHandle;
 struct ViewContext;
@@ -478,6 +482,14 @@ void PAINT_OT_visibility_filter(wmOperatorType *ot);
 namespace blender::ed::sculpt_paint::mask {
 
 Array<float> duplicate_mask(const Object &object);
+void mix_new_masks(Span<float> new_masks, Span<float> factors, MutableSpan<float> masks);
+void clamp_mask(MutableSpan<float> masks);
+
+void gather_mask_grids(const SubdivCCG &subdiv_ccg, Span<int> grids, MutableSpan<float> r_mask);
+void gather_mask_bmesh(const BMesh &bm, const Set<BMVert *, 0> &verts, MutableSpan<float> r_mask);
+
+void scatter_mask_grids(Span<float> mask, SubdivCCG &subdiv_ccg, Span<int> grids);
+void scatter_mask_bmesh(Span<float> mask, const BMesh &bm, const Set<BMVert *, 0> &verts);
 
 /** Write to the mask attribute for each node, storing undo data. */
 void write_mask_mesh(Object &object,

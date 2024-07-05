@@ -2356,7 +2356,8 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
             from .bl_extension_utils import pkg_manifest_dict_from_archive_or_error
 
-            if not self._repos_valid_for_install(context):
+            repos_valid = self._repos_valid_for_install(context)
+            if not repos_valid:
                 self.report({'ERROR'}, "No user repositories")
                 return {'CANCELLED'}
 
@@ -2366,9 +2367,14 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
 
             pkg_id = result["id"]
             pkg_type = result["type"]
-            del result
+
+            if not self.properties.is_property_set("repo"):
+                if (repo := self._repo_detect_from_manifest_dict(result, repos_valid)) is not None:
+                    self.repo = repo
+                del repo
 
             self._drop_variables = pkg_id, pkg_type
+            del result, pkg_id, pkg_type
         else:
             self._drop_variables = None
             self._legacy_drop = True
@@ -2407,6 +2413,50 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
     @staticmethod
     def _repos_valid_for_install(context):
         return list(repo_iter_valid_only(context, exclude_remote=False, exclude_system=True))
+
+    # Use to set the repository default when dropping a file.
+    # This is only used to set the default value.
+    # If it fails to find a match the user may still select the repository,
+    # this is just intended to handle the common case where a user may download an
+    # extension from a remote repository they use, dropping the file into Blender.
+    @staticmethod
+    def _repo_detect_from_manifest_dict(manifest_dict, repos_valid):
+        repos_valid = [
+            repo_item for repo_item in repos_valid
+            if repo_item.use_remote_url
+        ]
+        if not repos_valid:
+            return None
+
+        repo_cache_store = repo_cache_store_ensure()
+        repo_cache_store_refresh_from_prefs(repo_cache_store)
+
+        for repo_item in repos_valid:
+            pkg_manifest_remote = repo_cache_store.refresh_remote_from_directory(
+                directory=repo_item.directory,
+                error_fn=print,
+                force=False,
+            )
+            if pkg_manifest_remote is None:
+                continue
+
+            # NOTE: The exact method of matching extensions is a little arbitrary.
+            # Use (id, type, (name or tagline)) since this has a good change of finding a correct match.
+            # Since an extension might be renamed, check if the `name` or the `tagline` match.
+            item_remote = pkg_manifest_remote.get(manifest_dict["id"])
+            if item_remote is None:
+                continue
+            if item_remote.type != manifest_dict["type"]:
+                continue
+            if (
+                    (item_remote.name != manifest_dict["name"]) and
+                    (item_remote.tagline != manifest_dict["tagline"])
+            ):
+                continue
+
+            return repo_item.module
+
+        return None
 
 
 class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):

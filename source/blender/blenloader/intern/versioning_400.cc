@@ -70,7 +70,9 @@
 #include "IMB_imbuf_enums.h"
 
 #include "SEQ_iterator.hh"
+#include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
@@ -780,6 +782,29 @@ static void version_nla_tweakmode_incomplete(Main *bmain)
   }
 }
 
+static bool versioning_convert_strip_speed_factor(Sequence *seq, void *user_data)
+{
+  const Scene *scene = static_cast<Scene *>(user_data);
+  const float speed_factor = seq->speed_factor;
+
+  if (speed_factor == 1.0f || !SEQ_retiming_is_allowed(seq) || SEQ_retiming_keys_count(seq) > 0) {
+    return true;
+  }
+
+  SEQ_retiming_data_ensure(seq);
+  SeqRetimingKey *last_key = &SEQ_retiming_keys_get(seq)[1];
+
+  last_key->strip_frame_index = (seq->len) / speed_factor;
+
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    const int prev_length = seq->len - seq->startofs - seq->endofs;
+    const float left_handle = SEQ_time_left_handle_frame_get(scene, seq);
+    SEQ_time_right_handle_frame_set(scene, seq, left_handle + prev_length);
+  }
+
+  return true;
+}
+
 void do_versions_after_linking_400(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 9)) {
@@ -858,6 +883,15 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 27)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, versioning_convert_strip_speed_factor, scene);
+      }
+    }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 34)) {

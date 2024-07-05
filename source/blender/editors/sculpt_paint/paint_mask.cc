@@ -101,6 +101,90 @@ Array<float> duplicate_mask(const Object &object)
   return {};
 }
 
+void mix_new_masks(const Span<float> new_masks,
+                   const Span<float> factors,
+                   const MutableSpan<float> masks)
+{
+  BLI_assert(new_masks.size() == factors.size());
+  BLI_assert(new_masks.size() == masks.size());
+
+  for (const int i : masks.index_range()) {
+    masks[i] += (new_masks[i] - masks[i]) * factors[i];
+  }
+}
+
+void clamp_mask(const MutableSpan<float> masks)
+{
+  for (float &mask : masks) {
+    mask = std::clamp(mask, 0.0f, 1.0f);
+  }
+}
+
+void gather_mask_bmesh(const BMesh &bm,
+                       const Set<BMVert *, 0> &verts,
+                       const MutableSpan<float> r_mask)
+{
+  BLI_assert(verts.size() == r_mask.size());
+
+  /* TODO: Avoid overhead of accessing attributes for every PBVH node. */
+  const int mask_offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    r_mask[i] = (mask_offset == -1) ? 0.0f : BM_ELEM_CD_GET_FLOAT(vert, mask_offset);
+    i++;
+  }
+}
+
+void gather_mask_grids(const SubdivCCG &subdiv_ccg,
+                       const Span<int> grids,
+                       const MutableSpan<float> r_mask)
+{
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  BLI_assert(grids.size() * key.grid_area == r_mask.size());
+
+  if (key.has_mask) {
+    for (const int i : grids.index_range()) {
+      CCGElem *elem = elems[grids[i]];
+      const int start = i * key.grid_area;
+      for (const int offset : IndexRange(key.grid_area)) {
+        r_mask[start + offset] = CCG_elem_offset_mask(key, elem, offset);
+      }
+    }
+  }
+  else {
+    r_mask.fill(0.0f);
+  }
+}
+
+void scatter_mask_grids(const Span<float> mask, SubdivCCG &subdiv_ccg, const Span<int> grids)
+{
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  BLI_assert(key.has_mask);
+  BLI_assert(mask.size() == grids.size() * key.grid_area);
+  for (const int i : grids.index_range()) {
+    CCGElem *elem = elems[grids[i]];
+    const int start = i * key.grid_area;
+    for (const int offset : IndexRange(key.grid_area)) {
+      CCG_elem_offset_mask(key, elem, offset) = mask[start + offset];
+    }
+  }
+}
+
+void scatter_mask_bmesh(const Span<float> mask, const BMesh &bm, const Set<BMVert *, 0> &verts)
+{
+  BLI_assert(verts.size() == mask.size());
+
+  const int mask_offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  BLI_assert(mask_offset != -1);
+  int i = 0;
+  for (BMVert *vert : verts) {
+    BM_ELEM_CD_SET_FLOAT(vert, mask_offset, mask[i]);
+    i++;
+  }
+}
+
 void update_mask_mesh(Object &object,
                       const Span<PBVHNode *> nodes,
                       FunctionRef<void(MutableSpan<float>, Span<int>)> update_fn)
