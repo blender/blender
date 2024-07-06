@@ -156,6 +156,6 @@ TransModeInfo TransMode_seqslide = {
     /*transform_matrix_fn*/ nullptr,
     /*handle_event_fn*/ nullptr,
     /*snap_distance_fn*/ nullptr,
-    /*snap_apply_fn*/ transform_snap_sequencer_apply_translate,
+    /*snap_apply_fn*/ transform_snap_sequencer_apply_seqslide,
     /*draw_fn*/ nullptr,
 };

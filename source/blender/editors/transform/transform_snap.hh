@@ -67,7 +67,8 @@ float transform_snap_distance_len_squared_fn(TransInfo *t, const float p1[3], co
 TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t);
 void transform_snap_sequencer_data_free(TransSeqSnapData *data);
 bool transform_snap_sequencer_calc(TransInfo *t);
-void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec);
+void transform_snap_sequencer_apply_seqslide(TransInfo *t, float *vec);
+void transform_snap_sequencer_image_apply_translate(TransInfo *t, float *vec);
 
 /* `transform_snap_animation.cc` */
 void snapFrameTransform(
