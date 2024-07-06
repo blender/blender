@@ -20,7 +20,7 @@ bool id_type_is_non_experimental(const ID *id)
 {
   /* Remember to update #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING and
    * #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS() with this! */
-  return ELEM(GS(id->name), ID_MA, ID_GR, ID_OB, ID_AC, ID_WO, ID_NT);
+  return ELEM(GS(id->name), ID_BR, ID_MA, ID_GR, ID_OB, ID_AC, ID_WO, ID_NT);
 }
 
 bool id_type_is_supported(const ID *id)
