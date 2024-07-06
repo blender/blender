@@ -320,7 +320,7 @@ class Instance {
 
   int get_recalc_flags(const ::World &world)
   {
-    return world.last_update > depsgraph_last_update_ ? ID_RECALC_SHADING : 0;
+    return world.last_update > depsgraph_last_update_ ? int(ID_RECALC_SHADING) : 0;
   }
 
  private:
