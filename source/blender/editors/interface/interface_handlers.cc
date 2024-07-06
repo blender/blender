@@ -178,6 +178,12 @@ static void ui_mouse_motion_keynav_init(uiKeyNavLock *keynav, const wmEvent *eve
 static bool ui_mouse_motion_keynav_test(uiKeyNavLock *keynav, const wmEvent *event);
 #endif
 
+static void with_but_active_as_semi_modal(bContext *C,
+                                          ARegion *region,
+                                          uiBut *semi_modal_but,
+                                          blender::FunctionRef<void()> fn);
+static int ui_handle_region_semi_modal_buttons(bContext *C, const wmEvent *event, ARegion *region);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -414,6 +420,13 @@ struct uiHandleButtonData {
    * without them blocking interaction with nodes, see: #97386.
    */
   bool disable_force;
+
+  /**
+   * Semi-modal buttons: Instead of capturing all events, pass on events that aren't relevant to
+   * own handling. This way a text button (e.g. a search/filter field) can stay active while the
+   * remaining UI stays interactive. Only few button types support this well currently.
+   */
+  bool is_semi_modal;
 
   /* auto open */
   bool used_mouse;
@@ -3399,16 +3412,19 @@ static void ui_textedit_ime_end(wmWindow *win, uiBut * /*but*/)
 
 void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete)
 {
-  BLI_assert(but->active);
+  BLI_assert(but->active || but->semi_modal_state);
+  uiHandleButtonData *data = but->semi_modal_state ? but->semi_modal_state : but->active;
 
-  ui_region_to_window(but->active->region, &x, &y);
-  wm_window_IME_begin(but->active->window, x, y - 4, 0, 0, complete);
+  ui_region_to_window(data->region, &x, &y);
+  wm_window_IME_begin(data->window, x, y - 4, 0, 0, complete);
 }
 
 const wmIMEData *ui_but_ime_data_get(uiBut *but)
 {
-  if (but->active && but->active->window) {
-    return but->active->window->ime_data;
+  uiHandleButtonData *data = but->semi_modal_state ? but->semi_modal_state : but->active;
+
+  if (data && data->window) {
+    return data->window->ime_data;
   }
   else {
     return nullptr;
@@ -3699,7 +3715,7 @@ static eStrCursorJumpType ui_textedit_jump_type_from_event(const wmEvent *event)
   return STRCUR_JUMP_NONE;
 }
 
-static void ui_do_but_textedit(
+static int ui_do_but_textedit(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   uiTextEdit &text_edit = data->text_edit;
@@ -3736,6 +3752,10 @@ static void ui_do_but_textedit(
       break;
     case RIGHTMOUSE:
     case EVT_ESCKEY:
+      /* Don't consume cancel events (would usually end text editing), let menu code handle it. */
+      if (data->is_semi_modal) {
+        break;
+      }
       if (event->val == KM_PRESS) {
         /* Support search context menu. */
         if (event->type == RIGHTMOUSE) {
@@ -3795,7 +3815,7 @@ static void ui_do_but_textedit(
           button_activate_state(C, but, BUTTON_STATE_TEXT_SELECTING);
           retval = WM_UI_HANDLER_BREAK;
         }
-        else if (inbox == false) {
+        else if (inbox == false && !data->is_semi_modal) {
           /* if searchbox, click outside will cancel */
           if (data->searchbox) {
             data->cancel = data->escapecancel = true;
@@ -3825,7 +3845,7 @@ static void ui_do_but_textedit(
           changed = true;
         }
       }
-      else if (inbox) {
+      else if (inbox && !data->is_semi_modal) {
         /* if we allow activation on key press,
          * it gives problems launching operators #35713. */
         if (event->val == KM_RELEASE) {
@@ -4075,9 +4095,12 @@ static void ui_do_but_textedit(
       ED_region_tag_refresh_ui(data->region);
     }
   }
+
+  /* Swallow all events unless semi-modal handling is requested. */
+  return data->is_semi_modal ? retval : WM_UI_HANDLER_BREAK;
 }
 
-static void ui_do_but_textedit_select(
+static int ui_do_but_textedit_select(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   int retval = WM_UI_HANDLER_CONTINUE;
@@ -4104,6 +4127,8 @@ static void ui_do_but_textedit_select(
     ui_but_update(but);
     ED_region_tag_redraw(data->region);
   }
+
+  return retval;
 }
 
 /** \} */
@@ -4391,6 +4416,10 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
     }
   }
 #endif
+
+  /* Force new region handler to run, in case that needs to activate some state (e.g. to handle
+   * #UI_BUT2_FORCE_SEMI_MODAL_ACTIVE). */
+  WM_event_add_mousemove(data->window);
 
   /* this makes adjacent blocks auto open from now on */
   // if (but->block->auto_open == 0) {
@@ -4782,12 +4811,10 @@ static int ui_do_but_TEX(
     }
   }
   else if (data->state == BUTTON_STATE_TEXT_EDITING) {
-    ui_do_but_textedit(C, block, but, data, event);
-    return WM_UI_HANDLER_BREAK;
+    return ui_do_but_textedit(C, block, but, data, event);
   }
   else if (data->state == BUTTON_STATE_TEXT_SELECTING) {
-    ui_do_but_textedit_select(C, block, but, data, event);
-    return WM_UI_HANDLER_BREAK;
+    return ui_do_but_textedit_select(C, block, but, data, event);
   }
 
   return WM_UI_HANDLER_CONTINUE;
@@ -8626,6 +8653,10 @@ static void button_activate_init(bContext *C,
                                  uiBut *but,
                                  uiButtonActivateType type)
 {
+  /* Don't activate semi-modal buttons the normal way, they have special activation handling. */
+  if (but->semi_modal_state) {
+    return;
+  }
   /* Only ever one active button! */
   BLI_assert(ui_region_find_active_but(region) == nullptr);
 
@@ -8839,6 +8870,8 @@ static void button_activate_exit(
     }
   }
 
+  BLI_assert(!but->semi_modal_state || but->semi_modal_state == but->active);
+  but->semi_modal_state = nullptr;
   /* clean up button */
   MEM_SAFE_FREE(but->active);
 
@@ -8866,6 +8899,18 @@ void ui_but_active_free(const bContext *C, uiBut *but)
     data->cancel = true;
     button_activate_exit((bContext *)C, but, data, false, true);
   }
+}
+
+void ui_but_semi_modal_state_free(const bContext *C, uiBut *but)
+{
+  if (!but->semi_modal_state) {
+    return;
+  }
+  /* Activate the button (using the semi modal state) and use the normal active button freeing. */
+  with_but_active_as_semi_modal(const_cast<bContext *>(C),
+                                but->semi_modal_state->region,
+                                but,
+                                [&]() { ui_but_active_free(C, but); });
 }
 
 /* returns the active button with an optional checking function */
@@ -9254,6 +9299,68 @@ static bool ui_handle_button_activate_by_type(bContext *C, ARegion *region, uiBu
     return false;
   }
   return true;
+}
+
+/**
+ * Calls \a fn with \a but activated for semi-modal handling.
+ *
+ * Button handling code requires the button to be active, but at the same time only one active
+ * button per region is supported. So if there's a different active button already, it needs to be
+ * deactivated temporarily (by unsetting its #uiBut.active member and restoring it when done).
+ *
+ * During the \fn call, the passed \a but will appear to be the active button of the region, i.e.
+ * #ui_region_find_active_but() will return \a but.
+ */
+static void with_but_active_as_semi_modal(bContext *C,
+                                          ARegion *region,
+                                          uiBut *but,
+                                          blender::FunctionRef<void()> fn)
+{
+  BLI_assert(but->active == nullptr);
+
+  uiBut *prev_active_but = ui_region_find_active_but(region);
+  uiHandleButtonData *prev_active_data = prev_active_but ? prev_active_but->active : nullptr;
+  if (prev_active_but) {
+    prev_active_but->active = nullptr;
+  }
+
+  /* Enforce the button to actually be active, using #uiBut.semi_modal_state to store its handling
+   * state. */
+  if (!but->semi_modal_state) {
+    ui_but_activate_event(C, region, but);
+    but->semi_modal_state = but->active;
+    but->semi_modal_state->is_semi_modal = true;
+  }
+
+  /* Activate the button using the previously created/stored semi-modal state. */
+  but->active = but->semi_modal_state;
+  fn();
+  but->active = nullptr;
+
+  if (prev_active_but) {
+    prev_active_but->active = prev_active_data;
+  }
+}
+
+/**
+ * Calls \a fn for all buttons that are either already semi-modal active or should be made to be
+ * because the #UI_BUT2_FORCE_SEMI_MODAL_ACTIVE flag is set. During the \a fn call, the button will
+ * appear to be the active button, i.e. #ui_region_find_active_but() will return this button.
+ */
+static void foreach_semi_modal_but_as_active(bContext *C,
+                                             ARegion *region,
+                                             blender::FunctionRef<void(uiBut *semi_modal_but)> fn)
+{
+  /* Might want to have some way to define which order these should be handled in - if there's
+   * every actually a use-case for multiple semi-active buttons at the same time. */
+
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+      if ((but->flag2 & UI_BUT2_FORCE_SEMI_MODAL_ACTIVE) || but->semi_modal_state) {
+        with_but_active_as_semi_modal(C, region, but, [&]() { fn(but); });
+      }
+    }
+  }
 }
 
 /** \} */
@@ -11532,6 +11639,11 @@ static int ui_handle_menus_recursive(bContext *C,
   }
 
   /* now handle events for our own menu */
+
+  if (retval == WM_UI_HANDLER_CONTINUE) {
+    retval = ui_handle_region_semi_modal_buttons(C, event, menu->region);
+  }
+
   if (retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
     const bool do_but_search = (but && (but->type == UI_BTYPE_SEARCH_MENU));
     if (submenu && submenu->menuretval) {
@@ -11640,6 +11752,10 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void * /*userdat
   }
 
   if (retval == WM_UI_HANDLER_CONTINUE) {
+    retval = ui_handle_region_semi_modal_buttons(C, event, region);
+  }
+
+  if (retval == WM_UI_HANDLER_CONTINUE) {
     if (but) {
       retval = ui_handle_button_event(C, event, but);
     }
@@ -11687,6 +11803,27 @@ static void ui_region_handler_remove(bContext *C, void * /*userdata*/)
   if (BLI_findindex(&screen->regionbase, region) == -1) {
     ui_apply_but_funcs_after(C);
   }
+}
+
+static int ui_handle_region_semi_modal_buttons(bContext *C, const wmEvent *event, ARegion *region)
+{
+  /* If there's a fully modal button, it has priority. */
+  if (const uiBut *active_but = ui_region_find_active_but(region)) {
+    BLI_assert(active_but->semi_modal_state == nullptr);
+    if (button_modal_state(active_but->active->state)) {
+      return WM_UI_HANDLER_CONTINUE;
+    }
+  }
+
+  int retval = WM_UI_HANDLER_CONTINUE;
+
+  foreach_semi_modal_but_as_active(C, region, [&](uiBut *semi_modal_but) {
+    if (retval == WM_UI_HANDLER_CONTINUE) {
+      retval = ui_handle_button_event(C, event, semi_modal_but);
+    }
+  });
+
+  return retval;
 }
 
 /* handle buttons at the window level, modal, for example while

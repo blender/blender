@@ -287,6 +287,18 @@ struct uiBut {
    * #UI_SELECT state mostly).
    */
   uiHandleButtonData *active = nullptr;
+  /**
+   * Event handling only supports one active button at a time, but there are cases where that's not
+   * enough. A common one is to keep some filter button active to receive text input, while other
+   * buttons remain active for interaction.
+   *
+   * Buttons that have #semi_modal_state set will be temporarily activated for event handling. If
+   * they don't consume the event (for example text input events) the event will be forwarded to
+   * other buttons.
+   *
+   * Currently only text buttons support this well.
+   */
+  uiHandleButtonData *semi_modal_state = nullptr;
 
   /** Custom button data (borrowed, not owned). */
   void *custom_data = nullptr;
@@ -1155,6 +1167,7 @@ void ui_but_activate_over(bContext *C, ARegion *region, uiBut *but);
 void ui_but_execute_begin(bContext *C, ARegion *region, uiBut *but, void **active_back);
 void ui_but_execute_end(bContext *C, ARegion *region, uiBut *but, void *active_back);
 void ui_but_active_free(const bContext *C, uiBut *but);
+void ui_but_semi_modal_state_free(const bContext *C, uiBut *but);
 /**
  * In some cases we may want to update the view (#View2D) in-between layout definition and drawing.
  * E.g. to make sure a button is visible while editing.

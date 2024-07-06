@@ -266,6 +266,12 @@ enum {
    * However, sometimes this behavior is not desired, so it can be disabled with this flag.
    */
   UI_BUT2_ACTIVATE_ON_INIT_NO_SELECT = 1 << 0,
+  /**
+   * Force the button as active in a semi-modal state. For example, text buttons can continuously
+   * capture text input, while leaving the remaining UI interactive. Only supported well for text
+   * buttons currently.
+   */
+  UI_BUT2_FORCE_SEMI_MODAL_ACTIVE = 1 << 1,
 };
 
 /** #uiBut.dragflag */
@@ -2155,8 +2161,13 @@ enum eUI_Item_Flag {
   UI_ITEM_R_FORCE_BLANK_DECORATE = 1 << 13,
   /* Even create the property split layout if there's no name to show there. */
   UI_ITEM_R_SPLIT_EMPTY_NAME = 1 << 14,
+  /**
+   * Only for text buttons (for now): Force the button as active in a semi-modal state (capturing
+   * text input while leaving the remaining UI interactive).
+   */
+  UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE = 1 << 15,
 };
-ENUM_OPERATORS(eUI_Item_Flag, UI_ITEM_R_SPLIT_EMPTY_NAME)
+ENUM_OPERATORS(eUI_Item_Flag, UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE)
 #define UI_ITEM_NONE eUI_Item_Flag(0)
 
 #define UI_HEADER_OFFSET ((void)0, 0.4f * UI_UNIT_X)
