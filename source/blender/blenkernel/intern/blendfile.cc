@@ -1682,7 +1682,7 @@ PartialWriteContext::~PartialWriteContext()
   BKE_main_destroy(this->bmain);
 };
 
-void PartialWriteContext::preempt_session_uid(ID *ctx_id, unsigned int session_uid)
+void PartialWriteContext::preempt_session_uid(ID *ctx_id, uint session_uid)
 {
   /* If there is already an existing ID in the 'matching' set with that UID, it should be the same
    * as the given ctx_id. */
@@ -1763,7 +1763,7 @@ ID *PartialWriteContext::id_add_copy(const ID *id, const bool regenerate_session
 void PartialWriteContext::make_local(ID *ctx_id, const int make_local_flags)
 {
   /* Making an ID local typically resets its session UID, here we want to keep the same value. */
-  const unsigned int ctx_id_session_uid = ctx_id->session_uid;
+  const uint ctx_id_session_uid = ctx_id->session_uid;
   BKE_main_idmap_remove_id(this->bmain.id_map, ctx_id);
   BKE_main_idmap_insert_id(matching_uid_map_, ctx_id);
 

@@ -254,10 +254,10 @@ std::optional<bool> AssetViewItem::should_be_active() const
   return matches;
 }
 
-bool AssetViewItem::should_be_filtered_visible(const StringRefNull filter_str) const
+bool AssetViewItem::should_be_filtered_visible(const StringRefNull filter_string) const
 {
   const StringRefNull asset_name = handle_get_representation(&asset_)->get_name();
-  return fnmatch(filter_str.c_str(), asset_name.c_str(), FNM_CASEFOLD) == 0;
+  return fnmatch(filter_string.c_str(), asset_name.c_str(), FNM_CASEFOLD) == 0;
 }
 
 std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_controller() const

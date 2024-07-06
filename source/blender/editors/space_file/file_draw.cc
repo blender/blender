@@ -643,14 +643,15 @@ static void file_draw_preview(const FileList *files,
     /* Don't show outer document image if loading - too flashy. */
     if (is_icon) {
       /* Draw large folder or document icon. */
-      const int icon = (file->typeflag & FILE_TYPE_DIR) ? ICON_FILE_FOLDER_LARGE : ICON_FILE_LARGE;
+      const int icon_large = (file->typeflag & FILE_TYPE_DIR) ? ICON_FILE_FOLDER_LARGE :
+                                                                ICON_FILE_LARGE;
       uchar icon_col[4];
       rgba_float_to_uchar(icon_col, document_img_col);
       float icon_x = float(xco) + (file->typeflag & FILE_TYPE_DIR ? 0.0f : ex * -0.142f);
       float icon_y = float(yco) + (file->typeflag & FILE_TYPE_DIR ? ex * -0.11f : 0.0f);
       UI_icon_draw_ex(icon_x,
                       icon_y,
-                      icon,
+                      icon_large,
                       icon_aspect / 4.0f / UI_SCALE_FAC,
                       document_img_col[3],
                       0.0f,

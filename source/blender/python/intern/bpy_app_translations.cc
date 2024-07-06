@@ -634,7 +634,7 @@ static PyObject *app_translations_pgettext_n(BlenderAppTranslations * /*self*/,
                                              PyObject *args,
                                              PyObject *kw)
 {
-  static const char *kwlist[] = {"msgid", "msgctxt", NULL};
+  static const char *kwlist[] = {"msgid", "msgctxt", nullptr};
   PyObject *msgid, *msgctxt;
   // (void)_pgettext;
 

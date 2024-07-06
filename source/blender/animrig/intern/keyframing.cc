@@ -1095,7 +1095,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
      * be tagged for a depsgraph update regardless. This code is here because it
      * was part of the function this one was refactored from, but at some point
      * this should be investigated and either documented or removed. */
-    if (adt->action != nullptr && adt->action != action) {
+    if (!ELEM(adt->action, nullptr, action)) {
       DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
     }
   }

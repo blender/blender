@@ -1353,7 +1353,7 @@ static void widget_draw_icon(
 
     /* Get theme color. */
     uchar color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
-    bTheme *btheme = UI_GetTheme();
+    const bTheme *btheme = UI_GetTheme();
     const bool has_theme = UI_icon_get_theme_color(int(icon), color);
     const bool outline = btheme->tui.icon_border_intensity > 0.0f && has_theme;
 
@@ -1380,7 +1380,6 @@ static void widget_draw_icon(
                       but->drawflag & UI_BUT_ICON_INVERT);
     }
     else {
-      const bTheme *btheme = UI_GetTheme();
       const float desaturate = 1.0 - btheme->tui.icon_saturation;
       UI_icon_draw_ex(
           xs, ys, icon, aspect, alpha, desaturate, color, outline, &but->icon_overlay_text);

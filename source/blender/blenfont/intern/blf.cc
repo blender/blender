@@ -346,7 +346,7 @@ int BLF_default_weight(int fontid)
 
 bool BLF_has_variable_weight(int fontid)
 {
-  FontBLF *font = blf_get(fontid);
+  const FontBLF *font = blf_get(fontid);
   if (font && font->variations) {
     for (int i = 0; i < int(font->variations->num_axis); i++) {
       if (font->variations->axis[i].tag == BLF_VARIATION_AXIS_WEIGHT) {

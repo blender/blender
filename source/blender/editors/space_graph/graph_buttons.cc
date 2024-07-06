@@ -1244,6 +1244,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       uiItemL(row, valBuf, ICON_NONE);
     }
   }
+  /* Quiet warning about old value being unused before re-assigned. */
+  UNUSED_VARS(block);
 
   uiItemS(layout);
   uiItemS(layout);
