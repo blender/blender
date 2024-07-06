@@ -55,7 +55,7 @@ void main()
         dst_coord_buf[page_index] = page_packed;
         src_coord_buf[page_index] = packUvec4x8(
             uvec4(relative_tile_co.x, relative_tile_co.y, view_index, 0));
-        /* Tag tile as rendered. Should be safe since only one thread is reading and writting.  */
+        /* Tag tile as rendered. Should be safe since only one thread is reading and writing.  */
         tiles_buf[tile_index] |= SHADOW_IS_RENDERED;
         /* Statistics. */
         atomicAdd(statistics_buf.page_rendered_count, 1);

@@ -124,7 +124,7 @@ template<typename T> static void shrink_array(T **array, int *num, const int shr
 
 bool Action::is_empty() const
 {
-  /* The check for emptyness has to include the check for an empty `groups` ListBase because of the
+  /* The check for emptiness has to include the check for an empty `groups` ListBase because of the
    * animation filtering code. With the functions `rearrange_action_channels` and
    * `join_groups_action_temp` the ownership of FCurves is temporarily transferred to the `groups`
    * ListBase leaving `curves` potentially empty. */

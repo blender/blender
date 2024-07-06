@@ -349,6 +349,7 @@ dict_custom = {
     "reupload",
     "reusability",
     "rotationally",
+    "sanitization",
     "saveable",
     "schemas",
     "scrollable",
