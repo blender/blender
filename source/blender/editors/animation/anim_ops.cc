@@ -713,10 +713,10 @@ static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Bindings
+/** \name Slots
  * \{ */
 
-static bool binding_unassign_object_poll(bContext *C)
+static bool slot_unassign_object_poll(bContext *C)
 {
   Object *object = CTX_data_active_object(C);
   if (!object) {
@@ -728,31 +728,31 @@ static bool binding_unassign_object_poll(bContext *C)
     return false;
   }
 
-  return adt->binding_handle != blender::animrig::Binding::unassigned;
+  return adt->slot_handle != blender::animrig::Slot::unassigned;
 }
 
-static int binding_unassign_object_exec(bContext *C, wmOperator * /*op*/)
+static int slot_unassign_object_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender;
 
   Object *object = CTX_data_active_object(C);
-  animrig::unassign_binding(object->id);
+  animrig::unassign_slot(object->id);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
   return OPERATOR_FINISHED;
 }
 
-static void ANIM_OT_binding_unassign_object(wmOperatorType *ot)
+static void ANIM_OT_slot_unassign_object(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Unassign Binding";
-  ot->idname = "ANIM_OT_binding_unassign_object";
+  ot->name = "Unassign Slot";
+  ot->idname = "ANIM_OT_slot_unassign_object";
   ot->description =
-      "Clear the assigned action binding, effectively making this data-block non-animated";
+      "Clear the assigned action slot, effectively making this data-block non-animated";
 
   /* api callbacks */
-  ot->exec = binding_unassign_object_exec;
-  ot->poll = binding_unassign_object_poll;
+  ot->exec = slot_unassign_object_exec;
+  ot->poll = slot_unassign_object_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -805,7 +805,7 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_keying_set_active_set);
 
-  WM_operatortype_append(ANIM_OT_binding_unassign_object);
+  WM_operatortype_append(ANIM_OT_slot_unassign_object);
 }
 
 void ED_keymap_anim(wmKeyConfig *keyconf)

@@ -631,7 +631,7 @@ static void nla_draw_strip_text(AnimData *adt,
 
   /* just print the name and the range */
   if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
-    str_len = BLI_snprintf_rlen(str, sizeof(str), DATA_("Temp-Meta"));
+    str_len = STRNCPY_RLEN(str, DATA_("Temp-Meta"));
   }
   else {
     str_len = STRNCPY_RLEN(str, strip->name);
@@ -917,7 +917,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
         case ANIMTYPE_NLACONTROLS:
         case ANIMTYPE_NLACURVE:
         case ANIMTYPE_FILLACT_LAYERED:
-        case ANIMTYPE_ACTION_BINDING:
+        case ANIMTYPE_ACTION_SLOT:
         case ANIMTYPE_FILLACTD:
         case ANIMTYPE_FILLDRIVERS:
         case ANIMTYPE_DSMAT:

@@ -211,15 +211,17 @@ bool attribute_set_poll(bContext &C, const ID &object_data)
 
 static bool geometry_attributes_poll(bContext *C)
 {
+  using namespace blender::bke;
   const Object *ob = object::context_object(C);
   const Main *bmain = CTX_data_main(C);
-  ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
-  AttributeOwner owner = AttributeOwner::from_id(data);
-  if (!owner.is_valid()) {
+  if (!ob || !BKE_id_is_editable(bmain, &ob->id)) {
     return false;
   }
-  return (ob && BKE_id_is_editable(bmain, &ob->id) && data && BKE_id_is_editable(bmain, data)) &&
-         BKE_attributes_supported(owner);
+  const ID *data = (ob) ? static_cast<const ID *>(ob->data) : nullptr;
+  if (!data || !BKE_id_is_editable(bmain, data)) {
+    return false;
+  }
+  return AttributeAccessor::from_id(*data).has_value();
 }
 
 static bool geometry_attributes_remove_poll(bContext *C)

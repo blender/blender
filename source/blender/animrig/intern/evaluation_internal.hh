@@ -54,7 +54,7 @@ class AnimatedProperty {
   }
 };
 
-/* Evaluated FCurves for some animation binding.
+/* Evaluated FCurves for some action slot.
  * Mapping from property identifier to its float value.
  *
  * Can be fed to the evaluation of the next layer, mixed with another strip, or
@@ -116,13 +116,13 @@ class EvaluationResult {
 };
 
 /**
- * Evaluate the animation data on the given layer, for the given binding. This
+ * Evaluate the animation data on the given layer, for the given slot. This
  * just returns the evaluation result, without taking any other layers,
  * blending, influence, etc. into account.
  */
 EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
                                 Layer &layer,
-                                binding_handle_t binding_handle,
+                                slot_handle_t slot_handle,
                                 const AnimationEvalContext &anim_eval_context);
 
 }  // namespace blender::animrig::internal

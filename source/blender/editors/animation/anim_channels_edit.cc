@@ -198,7 +198,7 @@ static bool get_channel_bounds(bAnimContext *ac,
     case ALE_ACT:
     case ALE_GROUP:
     case ALE_ACTION_LAYERED:
-    case ALE_ACTION_BINDING:
+    case ALE_ACTION_SLOT:
     case ALE_GREASE_PENCIL_DATA:
     case ALE_GREASE_PENCIL_GROUP:
       return false;
@@ -312,7 +312,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
       case ANIMTYPE_SUMMARY:
       case ANIMTYPE_SCENE:
       case ANIMTYPE_OBJECT:
-      case ANIMTYPE_ACTION_BINDING:
+      case ANIMTYPE_ACTION_SLOT:
       case ANIMTYPE_NLACONTROLS:
       case ANIMTYPE_FILLDRIVERS:
       case ANIMTYPE_DSNTREE:
@@ -453,7 +453,7 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
     case ANIMTYPE_SUMMARY:
     case ANIMTYPE_SCENE:
     case ANIMTYPE_OBJECT:
-    case ANIMTYPE_ACTION_BINDING:
+    case ANIMTYPE_ACTION_SLOT:
     case ANIMTYPE_NLACONTROLS:
     case ANIMTYPE_FILLDRIVERS:
     case ANIMTYPE_SHAPEKEY:
@@ -554,9 +554,9 @@ static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListB
           return ACHANNEL_SETFLAG_CLEAR;
         }
         break;
-      case ANIMTYPE_ACTION_BINDING: {
+      case ANIMTYPE_ACTION_SLOT: {
         using namespace blender::animrig;
-        if (static_cast<Binding *>(ale->data)->is_selected()) {
+        if (static_cast<Slot *>(ale->data)->is_selected()) {
           return ACHANNEL_SETFLAG_CLEAR;
         }
         break;
@@ -721,9 +721,9 @@ static void anim_channels_select_set(bAnimContext *ac,
         nlt->flag &= ~NLATRACK_ACTIVE;
         break;
       }
-      case ANIMTYPE_ACTION_BINDING: {
-        animrig::Binding *binding = static_cast<animrig::Binding *>(ale->data);
-        templated_selection_state_update(*binding, sel);
+      case ANIMTYPE_ACTION_SLOT: {
+        animrig::Slot *slot = static_cast<animrig::Slot *>(ale->data);
+        templated_selection_state_update(*slot, sel);
         break;
       }
       case ANIMTYPE_FILLACTD:        /* Action Expander */
@@ -2374,7 +2374,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
       case ANIMTYPE_GROUP:
       case ANIMTYPE_NLACONTROLS:
       case ANIMTYPE_FILLACT_LAYERED:
-      case ANIMTYPE_ACTION_BINDING:
+      case ANIMTYPE_ACTION_SLOT:
       case ANIMTYPE_FILLACTD:
       case ANIMTYPE_FILLDRIVERS:
       case ANIMTYPE_DSMAT:
@@ -3189,10 +3189,10 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
           ACHANNEL_SET_FLAG(nlt, selectmode, NLATRACK_SELECTED);
           break;
         }
-        case ANIMTYPE_ACTION_BINDING: {
+        case ANIMTYPE_ACTION_SLOT: {
           using namespace blender::animrig;
-          Binding *binding = static_cast<Binding *>(ale->data);
-          templated_selection_state_update(*binding, eAnimChannels_SetFlag(selectmode));
+          Slot *slot = static_cast<Slot *>(ale->data);
+          templated_selection_state_update(*slot, eAnimChannels_SetFlag(selectmode));
           break;
         }
         case ANIMTYPE_NONE:

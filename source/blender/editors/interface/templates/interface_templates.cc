@@ -4759,7 +4759,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   UI_but_funcN_set(
       bt, [](bContext *, void *, void *) {}, tools_cb, nullptr);
 
-  UI_block_funcN_set(block, rna_update_cb, MEM_new<RNAUpdateCb>(__func__, cb), nullptr);
+  UI_block_funcN_set(block, rna_update_cb, MEM_cnew<RNAUpdateCb>(__func__, cb), nullptr);
 
   /* Curve itself. */
   const int size = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);

@@ -104,7 +104,7 @@ void World::sync()
   WorldHandle wo_handle = {0};
   if (inst_.scene->world != nullptr) {
     /* Detect world update before overriding it. */
-    wo_handle = inst_.sync.sync_world();
+    wo_handle = inst_.sync.sync_world(*inst_.scene->world);
     has_update = wo_handle.recalc != 0;
   }
 

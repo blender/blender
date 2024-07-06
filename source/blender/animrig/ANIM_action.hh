@@ -36,10 +36,10 @@ namespace blender::animrig {
 /* Forward declarations for the types defined later in this file. */
 class Layer;
 class Strip;
-class Binding;
+class Slot;
 
-/* Use an alias for the Binding handle type to help disambiguate function parameters. */
-using binding_handle_t = decltype(::ActionBinding::handle);
+/* Use an alias for the Slot handle type to help disambiguate function parameters. */
+using slot_handle_t = decltype(::ActionSlot::handle);
 
 /**
  * Container of animation data for one or more animated IDs.
@@ -50,7 +50,7 @@ using binding_handle_t = decltype(::ActionBinding::handle);
  * Temporary limitation: each Action can only contain one Layer.
  *
  * Which sub-set of that data drives the animation of which ID is determined by
- * which Binding is associated with that ID.
+ * which Slot is associated with that ID.
  *
  * \note This wrapper class for the `bAction` DNA struct only has functionality
  * for the layered animation data. The legacy F-Curves (in `bAction::curves`)
@@ -61,7 +61,7 @@ using binding_handle_t = decltype(::ActionBinding::handle);
  * for both.
  *
  * \see AnimData::action
- * \see AnimData::binding_handle
+ * \see AnimData::slot_handle
  */
 class Action : public ::bAction {
  public:
@@ -76,7 +76,7 @@ class Action : public ::bAction {
   /**
    * Return whether this Action has any data at all.
    *
-   * \return true when `bAction::layer_array` and `bAction::binding_array`, as well as
+   * \return true when `bAction::layer_array` and `bAction::slot_array`, as well as
    * the legacy `curves` list, are empty.
    */
   bool is_empty() const;
@@ -85,7 +85,7 @@ class Action : public ::bAction {
    *
    * - Animation data is stored in `bAction::curves`.
    * - Evaluated equally for all data-blocks that reference this Action.
-   * - Binding handle is ignored.
+   * - Slot handle is ignored.
    *
    * \note An empty Action is valid as both a legacy and layered Action. Code that only supports
    * layered Actions should assert on `is_action_layered()`.
@@ -95,13 +95,13 @@ class Action : public ::bAction {
    * Return whether this is a layered Action.
    *
    * - Animation data is stored in `bAction::layer_array`.
-   * - Evaluated for data-blocks based on their binding handle.
+   * - Evaluated for data-blocks based on their slot handle.
    *
    * \note An empty Action is valid as both a legacy and layered Action.
    */
   bool is_action_layered() const;
 
-  /* Animation Layers access. */
+  /* Action Layers access. */
   blender::Span<const Layer *> layers() const;
   blender::MutableSpan<Layer *> layers();
   const Layer *layer(int64_t index) const;
@@ -110,7 +110,7 @@ class Action : public ::bAction {
   Layer &layer_add(StringRefNull name);
 
   /**
-   * Remove the layer from this animation.
+   * Remove the layer from this Action.
    *
    * After this call, the passed reference is no longer valid, as the memory
    * will have been freed. Any strips on the layer will be freed too.
@@ -125,134 +125,134 @@ class Action : public ::bAction {
    */
   void layer_ensure_at_least_one();
 
-  /* Animation Binding access. */
-  blender::Span<const Binding *> bindings() const;
-  blender::MutableSpan<Binding *> bindings();
-  const Binding *binding(int64_t index) const;
-  Binding *binding(int64_t index);
+  /* Action Slot access. */
+  blender::Span<const Slot *> slots() const;
+  blender::MutableSpan<Slot *> slots();
+  const Slot *slot(int64_t index) const;
+  Slot *slot(int64_t index);
 
   /**
-   * Return the Binding with the given handle.
+   * Return the Slot with the given handle.
    *
-   * \param handle can be `Binding::unassigned`, in which case `nullptr` is returned.
+   * \param handle can be `Slot::unassigned`, in which case `nullptr` is returned.
    *
-   * \return `nullptr` when the binding cannot be found, so either the handle was
-   * `Binding::unassigned` or some value that does not match any Binding in this Action.
+   * \return `nullptr` when the slot cannot be found, so either the handle was
+   * `Slot::unassigned` or some value that does not match any Slot in this Action.
    */
-  Binding *binding_for_handle(binding_handle_t handle);
-  const Binding *binding_for_handle(binding_handle_t handle) const;
+  Slot *slot_for_handle(slot_handle_t handle);
+  const Slot *slot_for_handle(slot_handle_t handle) const;
 
   /**
-   * Set the binding name, ensure it is unique, and propagate the new name to
+   * Set the slot name, ensure it is unique, and propagate the new name to
    * all data-blocks that use it.
    *
-   * This has to be done on the Animation level to ensure each binding has a
-   * unique name within the Animation.
+   * This has to be done on the Action level to ensure each slot has a
+   * unique name within the Action.
    *
    * \note This does NOT ensure the first two characters match the ID type of
-   * this binding. This is the caller's responsibility.
+   * this slot. This is the caller's responsibility.
    *
-   * \see Action::binding_name_define
-   * \see Action::binding_name_propagate
+   * \see Action::slot_name_define
+   * \see Action::slot_name_propagate
    */
-  void binding_name_set(Main &bmain, Binding &binding, StringRefNull new_name);
+  void slot_name_set(Main &bmain, Slot &slot, StringRefNull new_name);
 
   /**
-   * Set the binding name, and ensure it is unique.
+   * Set the slot name, and ensure it is unique.
    *
    * \note This does NOT ensure the first two characters match the ID type of
-   * this binding. This is the caller's responsibility.
+   * this slot. This is the caller's responsibility.
    *
-   * \see Action::binding_name_set
-   * \see Action::binding_name_propagate
+   * \see Action::slot_name_set
+   * \see Action::slot_name_propagate
    */
-  void binding_name_define(Binding &binding, StringRefNull new_name);
+  void slot_name_define(Slot &slot, StringRefNull new_name);
 
   /**
-   * Update the `AnimData::action_binding_name` field of any ID that is animated by
-   * this Binding.
+   * Update the `AnimData::action_slot_name` field of any ID that is animated by
+   * this Slot.
    *
-   * Should be called after `binding_name_define(binding)`. This is implemented as a separate
+   * Should be called after `slot_name_define(slot)`. This is implemented as a separate
    * function due to the need to access `bmain`, which is available in the RNA on-property-update
    * handler, but not in the RNA property setter.
    */
-  void binding_name_propagate(Main &bmain, const Binding &binding);
+  void slot_name_propagate(Main &bmain, const Slot &slot);
 
-  Binding *binding_find_by_name(StringRefNull binding_name);
+  Slot *slot_find_by_name(StringRefNull slot_name);
 
   /**
-   * Create a new, unused Binding.
+   * Create a new, unused Slot.
    *
-   * The returned binding will be suitable for any ID type. After binding to an
+   * The returned slot will be suitable for any ID type. After slot to an
    * ID, it be limited to that ID's type.
    */
-  Binding &binding_add();
+  Slot &slot_add();
 
   /**
-   * Create a new binding, named after the given ID, and limited to the ID's type.
+   * Create a new slot, named after the given ID, and limited to the ID's type.
    *
-   * Note that this assigns neither this Animation nor the new Binding to the ID. This function
-   * merely initializes the Binding itself to suitable values to start animating this ID.
+   * Note that this assigns neither this Action nor the new Slot to the ID. This function
+   * merely initializes the Slot itself to suitable values to start animating this ID.
    */
-  Binding &binding_add_for_id(const ID &animated_id);
+  Slot &slot_add_for_id(const ID &animated_id);
 
   /**
-   * Ensure that an appropriate Binding exists for the given ID.
+   * Ensure that an appropriate Slot exists for the given ID.
    *
-   * If a suitable Binding can be found, that Binding is returned.  Otherwise,
+   * If a suitable Slot can be found, that Slot is returned.  Otherwise,
    * one is created.
    *
-   * This is essentially a wrapper for `find_suitable_binding_for()` and
-   * `binding_add_for_id()`, and follows their semantics. Notably, like both of
+   * This is essentially a wrapper for `find_suitable_slot_for()` and
+   * `slot_add_for_id()`, and follows their semantics. Notably, like both of
    * those methods, this Action does not need to already be assigned to the ID.
-   * And like `find_suitable_binding_for()`, if this Action *is* already
-   * assigned to the ID with a valid Binding, that Binding is returned.
+   * And like `find_suitable_slot_for()`, if this Action *is* already
+   * assigned to the ID with a valid Slot, that Slot is returned.
    *
-   * Note that this assigns neither this Action nor the Binding to the ID. This
-   * merely ensures that an appropriate Binding exists.
+   * Note that this assigns neither this Action nor the Slot to the ID. This
+   * merely ensures that an appropriate Slot exists.
    *
-   * \see `Action::find_suitable_binding_for()`
-   * \see `Action::binding_add_for_id()`
+   * \see `Action::find_suitable_slot_for()`
+   * \see `Action::slot_add_for_id()`
    */
-  Binding &binding_ensure_for_id(const ID &animated_id);
+  Slot &slot_ensure_for_id(const ID &animated_id);
 
-  /** Assign this animation to the ID.
+  /** Assign this Action to the ID.
    *
-   * \param binding: The binding this ID should be animated by, may be nullptr if it is to be
+   * \param slot: The slot this ID should be animated by, may be nullptr if it is to be
    * assigned later. In that case, the ID will not actually receive any animation.
-   * \param animated_id: The ID that should be animated by this Animation data-block.
+   * \param animated_id: The ID that should be animated by this Action.
    *
    * \return whether the assignment was successful.
    */
-  bool assign_id(Binding *binding, ID &animated_id);
+  bool assign_id(Slot *slot, ID &animated_id);
 
   /**
-   * Unassign this Animation from the animated ID.
+   * Unassign this Action from the animated ID.
    *
-   * \param animated_id: ID that is animated by this Animation. Calling this
-   * function when this ID is _not_ animated by this Animation is not allowed,
+   * \param animated_id: ID that is animated by this Action. Calling this
+   * function when this ID is _not_ animated by this Action is not allowed,
    * and considered a bug.
    */
   void unassign_id(ID &animated_id);
 
   /**
-   * Find the binding that best matches the animated ID.
+   * Find the slot that best matches the animated ID.
    *
-   * If the ID is already animated by this Animation, by matching this
-   * Animation's bindings with (in order):
+   * If the ID is already animated by this Action, by matching this
+   * Action's slots with (in order):
    *
-   * - `animated_id.adt->binding_handle`,
-   * - `animated_id.adt->binding_name`,
+   * - `animated_id.adt->slot_handle`,
+   * - `animated_id.adt->slot_name`,
    * - `animated_id.name`.
    *
-   * Note that this is different from #binding_for_id, which does not use the
-   * binding name, and only works when this Animation is already assigned. */
-  Binding *find_suitable_binding_for(const ID &animated_id);
+   * Note that this is different from #slot_for_id, which does not use the
+   * slot name, and only works when this Action is already assigned. */
+  Slot *find_suitable_slot_for(const ID &animated_id);
 
   /**
-   * Return whether this Animation actually has any animation data for the given binding.
+   * Return whether this Action actually has any animation data for the given slot.
    */
-  bool is_binding_animated(binding_handle_t binding_handle) const;
+  bool is_slot_animated(slot_handle_t slot_handle) const;
 
   /**
    * Get the layer that should be used for user-level keyframe insertion.
@@ -264,31 +264,31 @@ class Action : public ::bAction {
   Layer *get_layer_for_keyframing();
 
  protected:
-  /** Return the layer's index, or -1 if not found in this animation. */
+  /** Return the layer's index, or -1 if not found in this Action. */
   int64_t find_layer_index(const Layer &layer) const;
 
  private:
-  Binding &binding_allocate();
+  Slot &slot_allocate();
 
   /**
-   * Ensure the binding name prefix matches its ID type.
+   * Ensure the slot name prefix matches its ID type.
    *
    * This ensures that the first two characters match the ID type of
-   * this binding.
+   * this slot.
    *
-   * \see Action::binding_name_propagate
+   * \see Action::slot_name_propagate
    */
-  void binding_name_ensure_prefix(Binding &binding);
+  void slot_name_ensure_prefix(Slot &slot);
 
   /**
-   * Set the binding's ID type to that of the animated ID, ensure the name
+   * Set the slot's ID type to that of the animated ID, ensure the name
    * prefix is set accordingly, and that the name is unique within the
-   * Animation.
+   * Action.
    *
-   * \note This assumes that the binding has no ID type set yet. If it does, it
+   * \note This assumes that the slot has no ID type set yet. If it does, it
    * is considered a bug to call this function.
    */
-  void binding_setup_for_id(Binding &binding, const ID &animated_id);
+  void slot_setup_for_id(Slot &slot, const ID &animated_id);
 };
 static_assert(sizeof(Action) == sizeof(::bAction),
               "DNA struct and its C++ wrapper must have the same size");
@@ -456,44 +456,44 @@ static_assert(sizeof(Layer) == sizeof(::ActionLayer),
 ENUM_OPERATORS(Layer::Flags, Layer::Flags::Enabled);
 
 /**
- * Identifier for a sub-set of the animation data inside an Animation data-block.
+ * Identifier for a sub-set of the animation data inside an Action.
  *
- * An animatable ID specifies both an `Animation*` and an `ActionBinding::handle`
+ * An animatable ID specifies both an `Action*` and an `ActionSlot::handle`
  * to identify which F-Curves (and in the future other animation data) it will
  * be animated by.
  *
- * This is called a 'binding' because it binds the animatable ID to the sub-set
+ * This is called a 'slot' because it binds the animatable ID to the sub-set
  * of animation data that should animate it.
  *
- * \see AnimData::binding_handle
+ * \see AnimData::slot_handle
  */
-class Binding : public ::ActionBinding {
+class Slot : public ::ActionSlot {
  public:
-  Binding();
-  Binding(const Binding &other);
-  ~Binding();
+  Slot();
+  Slot(const Slot &other);
+  ~Slot();
 
   /**
-   * Update the Binding after reading it from a blend file.
+   * Update the Slot after reading it from a blend file.
    *
    * This is a low-level function and should not typically be used. It's only here to let
-   * blenkernel allocate the runtime struct when reading a Binding from disk, without having to
+   * blenkernel allocate the runtime struct when reading a Slot from disk, without having to
    * share the struct definition itself. */
   void blend_read_post();
 
   /**
-   * Binding handle value indicating that there is no binding assigned.
+   * Slot handle value indicating that there is no slot assigned.
    */
-  constexpr static binding_handle_t unassigned = 0;
+  constexpr static slot_handle_t unassigned = 0;
 
   /**
-   * Binding names consist of a two-character ID code, then the display name.
+   * Slot names consist of a two-character ID code, then the display name.
    * This means that the minimum length of a valid name is 3 characters.
    */
   constexpr static int name_length_min = 3;
 
   /**
-   * Return the name prefix for the Binding's type.
+   * Return the name prefix for the Slot's type.
    *
    * This is the ID name prefix, so "OB" for objects, "CA" for cameras, etc.
    */
@@ -506,10 +506,10 @@ class Binding : public ::ActionBinding {
    */
   StringRefNull name_without_prefix() const;
 
-  /** Return whether this Binding is usable by this ID type. */
+  /** Return whether this Slot is usable by this ID type. */
   bool is_suitable_for(const ID &animated_id) const;
 
-  /** Return whether this Binding has an `idtype` set. */
+  /** Return whether this Slot has an `idtype` set. */
   bool has_idtype() const;
 
   /* Flags access. */
@@ -519,7 +519,7 @@ class Binding : public ::ActionBinding {
     /** Selected in animation editors. */
     Selected = (1 << 1),
     /* When adding/removing a flag, also update the ENUM_OPERATORS() invocation,
-     * all the way below the Binding class. */
+     * all the way below the Slot class. */
   };
   Flags flags() const;
   bool is_expanded() const;
@@ -527,7 +527,7 @@ class Binding : public ::ActionBinding {
   bool is_selected() const;
   void set_selected(bool selected);
 
-  /** Return the set of IDs that are animated by this Binding. */
+  /** Return the set of IDs that are animated by this Slot. */
   Span<ID *> users(Main &bmain) const;
 
   /**
@@ -538,20 +538,20 @@ class Binding : public ::ActionBinding {
    * This is a low-level function, and should only be used when calling `users(bmain)` is not
    * appropriate.
    *
-   * \see Binding::users(Main &bmain)
+   * \see Slot::users(Main &bmain)
    */
   Vector<ID *> runtime_users();
 
   /**
-   * Register this ID as animated by this Binding.
+   * Register this ID as animated by this Slot.
    *
    * This is a low-level function and should not typically be used.
-   * Use #Action::assign_id(binding, animated_id) instead.
+   * Use #Action::assign_id(slot, animated_id) instead.
    */
   void users_add(ID &animated_id);
 
   /**
-   * Register this ID as no longer animated by this Binding.
+   * Register this ID as no longer animated by this Slot.
    *
    * This is a low-level function and should not typically be used.
    * Use #Action::assign_id(nullptr, animated_id) instead.
@@ -563,9 +563,9 @@ class Binding : public ::ActionBinding {
    *
    * This is typically not necessary, and only called from low-level code.
    *
-   * \note This static method invalidates all user caches of all Action Bindings.
+   * \note This static method invalidates all user caches of all Action Slots.
    *
-   * \see blender::animrig::internal::rebuild_binding_user_cache()
+   * \see blender::animrig::internal::rebuild_slot_user_cache()
    */
   static void users_invalidate(Main &bmain);
 
@@ -575,17 +575,17 @@ class Binding : public ::ActionBinding {
   /**
    * Ensure the first two characters of the name match the ID type.
    *
-   * \note This does NOT ensure name uniqueness within the Animation. That is
+   * \note This does NOT ensure name uniqueness within the Action. That is
    * the responsibility of the caller.
    */
   void name_ensure_prefix();
 };
-static_assert(sizeof(Binding) == sizeof(::ActionBinding),
+static_assert(sizeof(Slot) == sizeof(::ActionSlot),
               "DNA struct and its C++ wrapper must have the same size");
-ENUM_OPERATORS(Binding::Flags, Binding::Flags::Selected);
+ENUM_OPERATORS(Slot::Flags, Slot::Flags::Selected);
 
 /**
- * KeyframeStrips effectively contain a bag of F-Curves for each Binding.
+ * KeyframeStrips effectively contain a bag of F-Curves for each Slot.
  */
 class KeyframeStrip : public ::KeyframeActionStrip {
  public:
@@ -612,39 +612,39 @@ class KeyframeStrip : public ::KeyframeActionStrip {
   ChannelBag *channelbag(int64_t index);
 
   /**
-   * Find the animation channels for this binding.
+   * Find the animation channels for this slot.
    *
-   * \return nullptr if there is none yet for this binding.
+   * \return nullptr if there is none yet for this slot.
    */
-  const ChannelBag *channelbag_for_binding(const Binding &binding) const;
-  ChannelBag *channelbag_for_binding(const Binding &binding);
-  const ChannelBag *channelbag_for_binding(binding_handle_t binding_handle) const;
-  ChannelBag *channelbag_for_binding(binding_handle_t binding_handle);
+  const ChannelBag *channelbag_for_slot(const Slot &slot) const;
+  ChannelBag *channelbag_for_slot(const Slot &slot);
+  const ChannelBag *channelbag_for_slot(slot_handle_t slot_handle) const;
+  ChannelBag *channelbag_for_slot(slot_handle_t slot_handle);
 
   /**
-   * Add the animation channels for this binding.
+   * Add the animation channels for this slot.
    *
-   * Should only be called when there is no `ChannelBag` for this binding yet.
+   * Should only be called when there is no `ChannelBag` for this slot yet.
    */
-  ChannelBag &channelbag_for_binding_add(const Binding &binding);
+  ChannelBag &channelbag_for_slot_add(const Slot &slot);
   /**
-   * Find an FCurve for this binding + RNA path + array index combination.
+   * Find an FCurve for this slot + RNA path + array index combination.
    *
    * If it cannot be found, `nullptr` is returned.
    */
-  FCurve *fcurve_find(const Binding &binding, FCurveDescriptor fcurve_descriptor);
+  FCurve *fcurve_find(const Slot &slot, FCurveDescriptor fcurve_descriptor);
 
   /**
-   * Find an FCurve for this binding + RNA path + array index combination.
+   * Find an FCurve for this slot + RNA path + array index combination.
    *
    * If it cannot be found, a new one is created.
    *
    * \param `prop_subtype` The subtype of the property this fcurve is for, if
    * available.
    */
-  FCurve &fcurve_find_or_create(const Binding &binding, FCurveDescriptor fcurve_descriptor);
+  FCurve &fcurve_find_or_create(const Slot &slot, FCurveDescriptor fcurve_descriptor);
 
-  SingleKeyingResult keyframe_insert(const Binding &binding,
+  SingleKeyingResult keyframe_insert(const Slot &slot,
                                      FCurveDescriptor fcurve_descriptor,
                                      float2 time_value,
                                      const KeyframeSettings &settings,
@@ -657,7 +657,7 @@ template<> KeyframeStrip &Strip::as<KeyframeStrip>();
 template<> const KeyframeStrip &Strip::as<KeyframeStrip>() const;
 
 /**
- * Collection of F-Curves, intended for a specific Binding handle.
+ * Collection of F-Curves, intended for a specific Slot handle.
  */
 class ChannelBag : public ::ActionChannelBag {
  public:
@@ -677,23 +677,23 @@ static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
               "DNA struct and its C++ wrapper must have the same size");
 
 /**
- * Assign the animation to the ID.
+ * Assign the Action to the ID.
  *
- * This will will make a best-effort guess as to which binding to use, in this
+ * This will will make a best-effort guess as to which slot to use, in this
  * order;
  *
- * - By binding handle.
+ * - By slot handle.
  * - By fallback string.
- * - By the ID's name (matching against the binding name).
- * - If the above do not find a suitable binding, the animated ID will not
- *   receive any animation and the caller is responsible for creating a binding
+ * - By the ID's name (matching against the slot name).
+ * - If the above do not find a suitable slot, the animated ID will not
+ *   receive any animation and the caller is responsible for creating a slot
  *   and assigning it.
  *
  * \return `false` if the assignment was not possible (for example the ID is of a type that cannot
- * be animated). If the above fall-through case of "no binding found" is reached, this function
- * will still return `true` as the Animation was successfully assigned.
+ * be animated). If the above fall-through case of "no slot found" is reached, this function
+ * will still return `true` as the Action was successfully assigned.
  */
-bool assign_animation(Action &anim, ID &animated_id);
+bool assign_action(Action &action, ID &animated_id);
 
 /**
  * Return whether the given Action can be assigned to the ID.
@@ -706,67 +706,67 @@ bool is_action_assignable_to(const bAction *dna_action, ID_Type id_code);
 /**
  * Ensure that this ID is no longer animated.
  */
-void unassign_animation(ID &animated_id);
+void unassign_action(ID &animated_id);
 
 /**
- * Clear the animation binding of this ID.
+ * Clear the Action slot of this ID.
  *
- * `adt.binding_handle_name` is updated to reflect the current name of the
- * binding, before un-assigning. This is to ensure that the stored name reflects
- * the actual binding that was used, making re-binding trivial.
+ * `adt.slot_handle_name` is updated to reflect the current name of the
+ * slot, before un-assigning. This is to ensure that the stored name reflects
+ * the actual slot that was used, making re-slot trivial.
  *
  * \param animated_id: the animated ID.
  *
- * \note this does not clear the Animation pointer, just the binding handle.
+ * \note this does not clear the Action pointer, just the slot handle.
  */
-void unassign_binding(ID &animated_id);
+void unassign_slot(ID &animated_id);
 
 /**
- * Return the Animation of this ID, or nullptr if it has none.
+ * Return the Action of this ID, or nullptr if it has none.
  */
-Action *get_animation(ID &animated_id);
+Action *get_action(ID &animated_id);
 
 /**
- * Get the Action and the Binding that animate this ID.
+ * Get the Action and the Slot that animate this ID.
  *
  * \return One of two options:
- *  - pair<Action, Binding> when an Action and a Binding are assigned. In other
- *    words, when this ID is actually animated by this Action+Binding pair.
+ *  - pair<Action, Slot> when an Action and a Slot are assigned. In other
+ *    words, when this ID is actually animated by this Action+Slot pair.
  *  - nullopt: when this ID is not animated. This can have several causes: not
- *    an animatable type, no Action assigned, or no Binding assigned.
+ *    an animatable type, no Action assigned, or no Slot assigned.
  */
-std::optional<std::pair<Action *, Binding *>> get_action_binding_pair(ID &animated_id);
+std::optional<std::pair<Action *, Slot *>> get_action_slot_pair(ID &animated_id);
 
 /**
- * Return the F-Curves for this specific binding handle.
+ * Return the F-Curves for this specific slot handle.
  *
- * This is just a utility function, that's intended to become obsolete when multi-layer animation
- * is introduced. However, since Blender currently only supports a single layer with a single
+ * This is just a utility function, that's intended to become obsolete when multi-layer Actions
+ * are introduced. However, since Blender currently only supports a single layer with a single
  * strip, of a single type, this function can be used.
  *
  * The use of this function is also an indicator for code that will have to be altered when
- * multi-layered animation is getting implemented.
+ * multi-layered Actions are getting implemented.
  */
-Span<FCurve *> fcurves_for_animation(Action &anim, binding_handle_t binding_handle);
-Span<const FCurve *> fcurves_for_animation(const Action &anim, binding_handle_t binding_handle);
+Span<FCurve *> fcurves_for_action_slot(Action &action, slot_handle_t slot_handle);
+Span<const FCurve *> fcurves_for_action_slot(const Action &action, slot_handle_t slot_handle);
 
 /**
  * Return all F-Curves in the Action.
  *
  * This works for both legacy and layered Actions.
  *
- * This is a utility function whose purpose is unclear after multi-layer animation is introduced.
+ * This is a utility function whose purpose is unclear after multi-layer Actions are introduced.
  * It might still be useful, it might not be.
 
  * The use of this function is an indicator for code that might have to be altered when
- * multi-layered animation is getting implemented.
+ * multi-layered Actions are getting implemented.
  */
 Vector<const FCurve *> fcurves_all(const Action &action);
 Vector<FCurve *> fcurves_all(Action &action);
 
 /**
- * Get (or add relevant data to be able to do so) F-Curve from the given Action,
- * for the given Animation Data block. This assumes that all the destinations are valid.
+ * Get (or add relevant data to be able to do so) an F-Curve from the given Action,
+ * for the given animated data-block. This assumes that all the destinations are valid.
  * \param ptr: can be a null pointer.
  */
 FCurve *action_fcurve_ensure(Main *bmain,
@@ -833,13 +833,13 @@ inline const blender::animrig::Layer &ActionLayer::wrap() const
   return *reinterpret_cast<const blender::animrig::Layer *>(this);
 }
 
-inline blender::animrig::Binding &ActionBinding::wrap()
+inline blender::animrig::Slot &ActionSlot::wrap()
 {
-  return *reinterpret_cast<blender::animrig::Binding *>(this);
+  return *reinterpret_cast<blender::animrig::Slot *>(this);
 }
-inline const blender::animrig::Binding &ActionBinding::wrap() const
+inline const blender::animrig::Slot &ActionSlot::wrap() const
 {
-  return *reinterpret_cast<const blender::animrig::Binding *>(this);
+  return *reinterpret_cast<const blender::animrig::Slot *>(this);
 }
 
 inline blender::animrig::Strip &ActionStrip::wrap()

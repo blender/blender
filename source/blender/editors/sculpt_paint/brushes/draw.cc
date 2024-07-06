@@ -97,7 +97,7 @@ static void calc_grids(const Sculpt &sd,
   const int grid_verts_num = grids.size() * key.grid_area;
 
   tls.positions.reinitialize(grid_verts_num);
-  MutableSpan<float3> positions = tls.positions;
+  const MutableSpan<float3> positions = tls.positions;
   gather_grids_positions(subdiv_ccg, grids, positions);
 
   tls.factors.reinitialize(grid_verts_num);
@@ -142,7 +142,7 @@ static void calc_bmesh(const Sculpt &sd,
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
   tls.positions.reinitialize(verts.size());
-  MutableSpan<float3> positions = tls.positions;
+  const MutableSpan<float3> positions = tls.positions;
   gather_bmesh_positions(verts, positions);
 
   tls.factors.reinitialize(verts.size());
@@ -251,6 +251,16 @@ void do_nudge_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       ss.cache->sculpt_normal_symm);
 
   offset_positions(sd, object, offset * ss.cache->bstrength, nodes);
+}
+
+void do_gravity_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+{
+  const SculptSession &ss = *object.sculpt;
+
+  const float3 offset = ss.cache->gravity_direction * -ss.cache->radius_squared * ss.cache->scale *
+                        sd.gravity_factor;
+
+  offset_positions(sd, object, offset, nodes);
 }
 
 }  // namespace blender::ed::sculpt_paint

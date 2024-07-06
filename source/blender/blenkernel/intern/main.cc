@@ -56,10 +56,10 @@ void BKE_main_init(Main &bmain)
   BLI_spin_init(reinterpret_cast<SpinLock *>(bmain.lock));
   bmain.is_global_main = false;
 
-  /* Just rebuilding the Action Binding to ID* map once is likely cheaper than,
+  /* Just rebuilding the Action Slot to ID* map once is likely cheaper than,
    * for every ID, when it's loaded from disk, check whether it's animated or
    * not, and then figure out which Main it went into, and then set the flag. */
-  bmain.is_action_binding_to_id_map_dirty = true;
+  bmain.is_action_slot_to_id_map_dirty = true;
 }
 
 void BKE_main_clear(Main &bmain)

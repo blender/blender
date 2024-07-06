@@ -484,6 +484,10 @@ ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)
     return nullptr;
   }
 
+  if (sfile->files == nullptr) {
+    return nullptr;
+  }
+
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   const FileDirEntry *file = filelist_file(sfile->files, params->active_file);
   if (file == nullptr) {
@@ -1095,7 +1099,9 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
     file_attribute_columns_init(params, layout);
 
     layout->rows = std::max(rowcount, numfiles);
-    BLI_assert(layout->rows != 0);
+
+    /* layout->rows can be zero if a very small area is changed to a File Browser. #124168. */
+
     layout->height = sfile->layout->rows * (layout->tile_h + 2 * layout->tile_border_y) +
                      layout->tile_border_y * 2 + layout->offset_top;
     layout->flag = FILE_LAYOUT_VER;

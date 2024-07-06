@@ -202,7 +202,8 @@ def canonical_author_map() -> Dict[str, str]:
         "David Friedli <hlorus>": (
             "David <hlorus>",
         ),
-        "Demeter Dzadik <Mets>": (
+        "Demeter Dzadik <demeterdzadik@gmail.com>": (
+            "Demeter Dzadik <Mets>",
             "demeterdzadik@gmail.com <demeterdzadik@gmail.com>",
         ),
         "Diego Borghetti <bdiego@gmail.com>": (
@@ -370,6 +371,9 @@ def canonical_author_map() -> Dict[str, str]:
         ),
         "Johannes J <johannesj@noreply.localhost>": (
             "Johannes J <johannesj>",
+        ),
+        "John Kiril Swenson <kirilswenson@gmail.com>": (
+            "John Swenson <zeltuva@gmail.com>",
         ),
         "Johnny Matthews <johnny.matthews@gmail.com>": (
             "Johnny Matthews (guitargeek) <johnny.matthews@gmail.com>",
@@ -710,6 +714,9 @@ def canonical_author_map() -> Dict[str, str]:
         ),
         "Vasyl Pidhirskyi <vpidhirskyi@gmail.com>": (
             "Vasyl-Pidhirskyi <vpidhirskyi@gmail.com>",
+        ),
+        "Vitalijs Komasilovs <vitalijs.komasilovs@gmail.com>": (
+            "Vitaljok <11552222+Vitaljok@users.noreply.github.com>",
         ),
         "Vitor Boschi <vitorboschi@gmail.com>": (
             "Vitor Boschi <vitorboschi>",

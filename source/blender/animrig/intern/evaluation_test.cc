@@ -33,9 +33,9 @@ using namespace blender::animrig::internal;
 class AnimationEvaluationTest : public testing::Test {
  protected:
   Main *bmain;
-  Action *anim;
+  Action *action;
   Object *cube;
-  Binding *binding;
+  Slot *slot;
   Layer *layer;
 
   KeyframeSettings settings = get_keyframe_settings(false);
@@ -60,13 +60,13 @@ class AnimationEvaluationTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
+    action = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
 
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
 
-    binding = &anim->binding_add();
-    anim->assign_id(binding, cube->id);
-    layer = &anim->layer_add("Kübus layer");
+    slot = &action->slot_add();
+    action->assign_id(slot, cube->id);
+    layer = &action->layer_add("Kübus layer");
 
     /* Make it easier to predict test values. */
     settings.interpolation = BEZT_IPO_LIN;
@@ -86,7 +86,7 @@ class AnimationEvaluationTest : public testing::Test {
   {
     anim_eval_context.eval_time = eval_time;
     EvaluationResult result = evaluate_layer(
-        cube_rna_ptr, *layer, binding->handle, anim_eval_context);
+        cube_rna_ptr, *layer, slot->handle, anim_eval_context);
 
     const AnimatedProperty *loc0_result = result.lookup_ptr(PropIdentifier(rna_path, array_index));
     if (!loc0_result) {
@@ -149,10 +149,10 @@ TEST_F(AnimationEvaluationTest, evaluate_layer__keyframes)
   KeyframeStrip &key_strip = strip.as<KeyframeStrip>();
 
   /* Set some keys. */
-  key_strip.keyframe_insert(*binding, {"location", 0}, {1.0f, 47.1f}, settings);
-  key_strip.keyframe_insert(*binding, {"location", 0}, {5.0f, 47.5f}, settings);
-  key_strip.keyframe_insert(*binding, {"rotation_euler", 1}, {1.0f, 0.0f}, settings);
-  key_strip.keyframe_insert(*binding, {"rotation_euler", 1}, {5.0f, 3.14f}, settings);
+  key_strip.keyframe_insert(*slot, {"location", 0}, {1.0f, 47.1f}, settings);
+  key_strip.keyframe_insert(*slot, {"location", 0}, {5.0f, 47.5f}, settings);
+  key_strip.keyframe_insert(*slot, {"rotation_euler", 1}, {1.0f, 0.0f}, settings);
+  key_strip.keyframe_insert(*slot, {"rotation_euler", 1}, {5.0f, 3.14f}, settings);
 
   /* Set the animated properties to some values. These should not be overwritten
    * by the evaluation itself. */
@@ -165,8 +165,7 @@ TEST_F(AnimationEvaluationTest, evaluate_layer__keyframes)
 
   /* Evaluate. */
   anim_eval_context.eval_time = 3.0f;
-  EvaluationResult result = evaluate_layer(
-      cube_rna_ptr, *layer, binding->handle, anim_eval_context);
+  EvaluationResult result = evaluate_layer(cube_rna_ptr, *layer, slot->handle, anim_eval_context);
 
   /* Check the result. */
   ASSERT_FALSE(result.is_empty());
@@ -190,9 +189,9 @@ TEST_F(AnimationEvaluationTest, strip_boundaries__single_strip)
 
   /* Set some keys. */
   KeyframeStrip &key_strip = strip.as<KeyframeStrip>();
-  key_strip.keyframe_insert(*binding, {"location", 0}, {1.0f, 47.0f}, settings);
-  key_strip.keyframe_insert(*binding, {"location", 0}, {5.0f, 327.0f}, settings);
-  key_strip.keyframe_insert(*binding, {"location", 0}, {10.0f, 48.0f}, settings);
+  key_strip.keyframe_insert(*slot, {"location", 0}, {1.0f, 47.0f}, settings);
+  key_strip.keyframe_insert(*slot, {"location", 0}, {5.0f, 327.0f}, settings);
+  key_strip.keyframe_insert(*slot, {"location", 0}, {10.0f, 48.0f}, settings);
 
   /* Evaluate the layer to see how it handles the boundaries + something in between. */
   EXPECT_TRUE(test_evaluate_layer("location", 0, {1.0f, 47.0f}));
@@ -214,15 +213,15 @@ TEST_F(AnimationEvaluationTest, strip_boundaries__nonoverlapping)
   /* Set some keys. */
   {
     KeyframeStrip &key_strip1 = strip1.as<KeyframeStrip>();
-    key_strip1.keyframe_insert(*binding, {"location", 0}, {1.0f, 47.0f}, settings);
-    key_strip1.keyframe_insert(*binding, {"location", 0}, {5.0f, 327.0f}, settings);
-    key_strip1.keyframe_insert(*binding, {"location", 0}, {10.0f, 48.0f}, settings);
+    key_strip1.keyframe_insert(*slot, {"location", 0}, {1.0f, 47.0f}, settings);
+    key_strip1.keyframe_insert(*slot, {"location", 0}, {5.0f, 327.0f}, settings);
+    key_strip1.keyframe_insert(*slot, {"location", 0}, {10.0f, 48.0f}, settings);
   }
   {
     KeyframeStrip &key_strip2 = strip2.as<KeyframeStrip>();
-    key_strip2.keyframe_insert(*binding, {"location", 0}, {1.0f, 47.0f}, settings);
-    key_strip2.keyframe_insert(*binding, {"location", 0}, {5.0f, 327.0f}, settings);
-    key_strip2.keyframe_insert(*binding, {"location", 0}, {10.0f, 48.0f}, settings);
+    key_strip2.keyframe_insert(*slot, {"location", 0}, {1.0f, 47.0f}, settings);
+    key_strip2.keyframe_insert(*slot, {"location", 0}, {5.0f, 327.0f}, settings);
+    key_strip2.keyframe_insert(*slot, {"location", 0}, {10.0f, 48.0f}, settings);
   }
 
   /* Check Strip 1. */
@@ -254,15 +253,15 @@ TEST_F(AnimationEvaluationTest, strip_boundaries__overlapping_edge)
   /* Set some keys. */
   {
     KeyframeStrip &key_strip1 = strip1.as<KeyframeStrip>();
-    key_strip1.keyframe_insert(*binding, {"location", 0}, {1.0f, 47.0f}, settings);
-    key_strip1.keyframe_insert(*binding, {"location", 0}, {5.0f, 327.0f}, settings);
-    key_strip1.keyframe_insert(*binding, {"location", 0}, {10.0f, 48.0f}, settings);
+    key_strip1.keyframe_insert(*slot, {"location", 0}, {1.0f, 47.0f}, settings);
+    key_strip1.keyframe_insert(*slot, {"location", 0}, {5.0f, 327.0f}, settings);
+    key_strip1.keyframe_insert(*slot, {"location", 0}, {10.0f, 48.0f}, settings);
   }
   {
     KeyframeStrip &key_strip2 = strip2.as<KeyframeStrip>();
-    key_strip2.keyframe_insert(*binding, {"location", 0}, {1.0f, 47.0f}, settings);
-    key_strip2.keyframe_insert(*binding, {"location", 0}, {5.0f, 327.0f}, settings);
-    key_strip2.keyframe_insert(*binding, {"location", 0}, {10.0f, 48.0f}, settings);
+    key_strip2.keyframe_insert(*slot, {"location", 0}, {1.0f, 47.0f}, settings);
+    key_strip2.keyframe_insert(*slot, {"location", 0}, {5.0f, 327.0f}, settings);
+    key_strip2.keyframe_insert(*slot, {"location", 0}, {10.0f, 48.0f}, settings);
   }
 
   /* Check Strip 1. */

@@ -318,6 +318,11 @@ class Instance {
     return flags;
   }
 
+  int get_recalc_flags(const ::World &world)
+  {
+    return world.last_update > depsgraph_last_update_ ? int(ID_RECALC_SHADING) : 0;
+  }
+
  private:
   static void object_sync_render(void *instance_,
                                  Object *ob,

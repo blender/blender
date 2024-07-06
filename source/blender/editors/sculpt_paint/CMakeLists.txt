@@ -143,6 +143,7 @@ set(SRC
   brushes/smooth.cc
   brushes/smooth_mask.cc
   brushes/thumb.cc
+  brushes/topology_slide.cc
 
   brushes/types.hh
 )

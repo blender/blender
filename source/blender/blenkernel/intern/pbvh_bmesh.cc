@@ -790,6 +790,9 @@ static bool is_boundary_vert(const BMVert &vertex)
 {
   BMEdge *edge = vertex.e;
   BMEdge *first_edge = edge;
+  if (first_edge == nullptr) {
+    return false;
+  }
   do {
     if (is_boundary_edge(*edge)) {
       return true;

@@ -802,7 +802,7 @@ static void action_idcode_patch_check(ID *id, bAction *act)
 
 #ifdef WITH_ANIM_BAKLAVA
   if (act->wrap().is_action_layered()) {
-    /* Layered Actions can always be assigned to any ID. It's actually the Binding that is limited
+    /* Layered Actions can always be assigned to any ID. It's actually the Slot that is limited
      * to an ID type (similar to legacy Actions). Layered Actions are evaluated differently,
      * though, and their evaluation shouldn't end up here. At the moment of writing it can still
      * happen through NLA evaluation, though, so there's no assert here to prevent this. */
@@ -3949,8 +3949,8 @@ void BKE_animsys_evaluate_animdata(ID *id,
     else if (adt->action) {
       blender::animrig::Action &action = adt->action->wrap();
       if (action.is_action_layered()) {
-        blender::animrig::evaluate_and_apply_animation(
-            id_ptr, action, adt->binding_handle, *anim_eval_context, flush_to_original);
+        blender::animrig::evaluate_and_apply_action(
+            id_ptr, action, adt->slot_handle, *anim_eval_context, flush_to_original);
       }
       else {
         animsys_evaluate_action(&id_ptr, adt->action, anim_eval_context, flush_to_original);

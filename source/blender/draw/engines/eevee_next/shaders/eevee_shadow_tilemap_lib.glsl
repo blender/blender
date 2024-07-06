@@ -7,7 +7,7 @@
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 
 /**
- * Select the smallest viewport that can contain the given rect of tiles to render.
+ * Select the smallest viewport that can contain the given rectangle of tiles to render.
  * Returns the viewport size in tile.
  */
 ivec2 shadow_viewport_size_get(uint viewport_index)

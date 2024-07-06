@@ -478,6 +478,11 @@ class AttributeAccessor {
   }
 
   /**
+   * Construct an #AttributeAccessor from an ID.
+   */
+  static std::optional<AttributeAccessor> from_id(const ID &id);
+
+  /**
    * \return True, when the attribute is available.
    */
   bool contains(const AttributeIDRef &attribute_id) const

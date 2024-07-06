@@ -207,7 +207,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 }
 
 std::string getname_anim_fcurve_bound(Main &bmain,
-                                      const blender::animrig::Binding &binding,
+                                      const blender::animrig::Slot &slot,
                                       FCurve &fcurve)
 {
   /* TODO: Refactor to avoid this variable. */
@@ -215,8 +215,8 @@ std::string getname_anim_fcurve_bound(Main &bmain,
   char name_buffer[name_maxncpy];
   name_buffer[0] = '\0';
 
-  /* Check the Binding's users to see if we can find an ID* that can resolve the F-Curve. */
-  for (ID *user : binding.users(bmain)) {
+  /* Check the Slot's users to see if we can find an ID* that can resolve the F-Curve. */
+  for (ID *user : slot.users(bmain)) {
     const int icon = getname_anim_fcurve(name_buffer, user, &fcurve);
     if (icon) {
       /* Managed to find a name! */
@@ -224,21 +224,21 @@ std::string getname_anim_fcurve_bound(Main &bmain,
     }
   }
 
-  if (!binding.users(bmain).is_empty()) {
-    /* This binding is assigned to at least one ID, and still the property it animates could not be
+  if (!slot.users(bmain).is_empty()) {
+    /* This slot is assigned to at least one ID, and still the property it animates could not be
      * found. There is no use in continuing. */
     fcurve.flag |= FCURVE_DISABLED;
     return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
   }
 
-  /* If this part of the code is hit, the binding is not assigned to anything. The remainder of
+  /* If this part of the code is hit, the slot is not assigned to anything. The remainder of
    * this function is all a best-effort attempt. Because of that, it will not set the
    * FCURVE_DISABLED flag on the F-Curve, as having unassigned animation data is not an error (and
    * that flag indicates an error). */
 
-  /* Fall back to the ID type of the binding for simple properties. */
-  if (!binding.has_idtype()) {
-    /* The Binding has never been assigned to any ID, so we don't even know what type of ID it is
+  /* Fall back to the ID type of the slot for simple properties. */
+  if (!slot.has_idtype()) {
+    /* The Slot has never been assigned to any ID, so we don't even know what type of ID it is
      * meant for. */
     return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
   }
@@ -248,8 +248,8 @@ std::string getname_anim_fcurve_bound(Main &bmain,
     return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
   }
 
-  /* Find the StructRNA for this Binding's ID type. */
-  StructRNA *srna = ID_code_to_RNA_type(binding.idtype);
+  /* Find the StructRNA for this Slot's ID type. */
+  StructRNA *srna = ID_code_to_RNA_type(slot.idtype);
   if (!srna) {
     return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
   }

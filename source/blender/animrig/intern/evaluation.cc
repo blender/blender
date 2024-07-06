@@ -35,21 +35,21 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
                              PointerRNA &animated_id_ptr,
                              bool flush_to_original);
 
-static EvaluationResult evaluate_animation(PointerRNA &animated_id_ptr,
-                                           Action &animation,
-                                           const binding_handle_t binding_handle,
-                                           const AnimationEvalContext &anim_eval_context)
+static EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
+                                        Action &action,
+                                        const slot_handle_t slot_handle,
+                                        const AnimationEvalContext &anim_eval_context)
 {
   EvaluationResult last_result;
 
   /* Evaluate each layer in order. */
-  for (Layer *layer : animation.layers()) {
+  for (Layer *layer : action.layers()) {
     if (layer->influence <= 0.0f) {
       /* Don't bother evaluating layers without influence. */
       continue;
     }
 
-    auto layer_result = evaluate_layer(animated_id_ptr, *layer, binding_handle, anim_eval_context);
+    auto layer_result = evaluate_layer(animated_id_ptr, *layer, slot_handle, anim_eval_context);
     if (!layer_result) {
       continue;
     }
@@ -69,14 +69,14 @@ static EvaluationResult evaluate_animation(PointerRNA &animated_id_ptr,
   return last_result;
 }
 
-void evaluate_and_apply_animation(PointerRNA &animated_id_ptr,
-                                  Action &animation,
-                                  const binding_handle_t binding_handle,
-                                  const AnimationEvalContext &anim_eval_context,
-                                  const bool flush_to_original)
+void evaluate_and_apply_action(PointerRNA &animated_id_ptr,
+                               Action &action,
+                               const slot_handle_t slot_handle,
+                               const AnimationEvalContext &anim_eval_context,
+                               const bool flush_to_original)
 {
-  EvaluationResult evaluation_result = evaluate_animation(
-      animated_id_ptr, animation, binding_handle, anim_eval_context);
+  EvaluationResult evaluation_result = evaluate_action(
+      animated_id_ptr, action, slot_handle, anim_eval_context);
   if (!evaluation_result) {
     return;
   }
@@ -132,16 +132,16 @@ static void animsys_write_orig_anim_rna(PointerRNA *ptr,
 
 static EvaluationResult evaluate_keyframe_strip(PointerRNA &animated_id_ptr,
                                                 KeyframeStrip &key_strip,
-                                                const binding_handle_t binding_handle,
+                                                const slot_handle_t slot_handle,
                                                 const AnimationEvalContext &offset_eval_context)
 {
-  ChannelBag *channelbag_for_binding = key_strip.channelbag_for_binding(binding_handle);
-  if (!channelbag_for_binding) {
+  ChannelBag *channelbag_for_slot = key_strip.channelbag_for_slot(slot_handle);
+  if (!channelbag_for_slot) {
     return {};
   }
 
   EvaluationResult evaluation_result;
-  for (FCurve *fcu : channelbag_for_binding->fcurves()) {
+  for (FCurve *fcu : channelbag_for_slot->fcurves()) {
     /* Blatant copy of animsys_evaluate_fcurves(). */
 
     if (!is_fcurve_evaluatable(fcu)) {
@@ -191,7 +191,7 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
 
 static EvaluationResult evaluate_strip(PointerRNA &animated_id_ptr,
                                        Strip &strip,
-                                       const binding_handle_t binding_handle,
+                                       const slot_handle_t slot_handle,
                                        const AnimationEvalContext &anim_eval_context)
 {
   AnimationEvalContext offset_eval_context = anim_eval_context;
@@ -202,8 +202,7 @@ static EvaluationResult evaluate_strip(PointerRNA &animated_id_ptr,
   switch (strip.type()) {
     case Strip::Type::Keyframe: {
       KeyframeStrip &key_strip = strip.as<KeyframeStrip>();
-      return evaluate_keyframe_strip(
-          animated_id_ptr, key_strip, binding_handle, offset_eval_context);
+      return evaluate_keyframe_strip(animated_id_ptr, key_strip, slot_handle, offset_eval_context);
     }
   }
 
@@ -262,7 +261,7 @@ namespace internal {
 
 EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
                                 Layer &layer,
-                                const binding_handle_t binding_handle,
+                                const slot_handle_t slot_handle,
                                 const AnimationEvalContext &anim_eval_context)
 {
   /* TODO: implement cross-blending between overlapping strips. For now, this is not supported.
@@ -279,7 +278,7 @@ EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
     }
 
     const EvaluationResult strip_result = evaluate_strip(
-        animated_id_ptr, *strip, binding_handle, anim_eval_context);
+        animated_id_ptr, *strip, slot_handle, anim_eval_context);
     if (!strip_result) {
       continue;
     }

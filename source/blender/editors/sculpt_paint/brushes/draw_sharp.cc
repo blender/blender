@@ -31,20 +31,19 @@ namespace blender::ed::sculpt_paint {
 inline namespace draw_sharp_cc {
 
 struct LocalData {
-  Vector<float3> positions;
   Vector<float> factors;
   Vector<float> distances;
   Vector<float3> translations;
 };
 
-static void calc_faces_sharp(const Sculpt &sd,
-                             const Brush &brush,
-                             const float3 &offset,
-                             const Span<float3> positions_eval,
-                             const PBVHNode &node,
-                             Object &object,
-                             LocalData &tls,
-                             const MutableSpan<float3> positions_orig)
+static void calc_faces(const Sculpt &sd,
+                       const Brush &brush,
+                       const float3 &offset,
+                       const Span<float3> positions_eval,
+                       const PBVHNode &node,
+                       Object &object,
+                       LocalData &tls,
+                       const MutableSpan<float3> positions_orig)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -82,12 +81,12 @@ static void calc_faces_sharp(const Sculpt &sd,
   write_translations(sd, object, orig_data.positions, verts, translations, positions_orig);
 }
 
-static void calc_grids_sharp(const Sculpt &sd,
-                             Object &object,
-                             const Brush &brush,
-                             const float3 &offset,
-                             const PBVHNode &node,
-                             LocalData &tls)
+static void calc_grids(const Sculpt &sd,
+                       Object &object,
+                       const Brush &brush,
+                       const float3 &offset,
+                       const PBVHNode &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -128,12 +127,12 @@ static void calc_grids_sharp(const Sculpt &sd,
   apply_translations(translations, grids, subdiv_ccg);
 }
 
-static void calc_bmesh_sharp(const Sculpt &sd,
-                             Object &object,
-                             const Brush &brush,
-                             const float3 &offset,
-                             PBVHNode &node,
-                             LocalData &tls)
+static void calc_bmesh(const Sculpt &sd,
+                       Object &object,
+                       const Brush &brush,
+                       const float3 &offset,
+                       PBVHNode &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -148,7 +147,6 @@ static void calc_bmesh_sharp(const Sculpt &sd,
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, orig_positions, factors);
-
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, orig_normals, factors);
   }
@@ -194,8 +192,7 @@ static void offset_positions(const Sculpt &sd,
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces_sharp(
-              sd, brush, offset, positions_eval, *nodes[i], object, tls, positions_orig);
+          calc_faces(sd, brush, offset, positions_eval, *nodes[i], object, tls, positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });
@@ -205,7 +202,7 @@ static void offset_positions(const Sculpt &sd,
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids_sharp(sd, object, brush, offset, *nodes[i], tls);
+          calc_grids(sd, object, brush, offset, *nodes[i], tls);
         }
       });
       break;
@@ -213,7 +210,7 @@ static void offset_positions(const Sculpt &sd,
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh_sharp(sd, object, brush, offset, *nodes[i], tls);
+          calc_bmesh(sd, object, brush, offset, *nodes[i], tls);
         }
       });
       break;

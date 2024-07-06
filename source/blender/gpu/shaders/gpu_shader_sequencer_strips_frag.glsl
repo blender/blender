@@ -192,8 +192,8 @@ void main()
     }
 
     /* Active, but not selected strips get a thin inner line. */
-    bool active = (strip.flags & GPU_SEQ_FLAG_ACTIVE) != 0;
-    if (active && !selected) {
+    bool active_strip = (strip.flags & GPU_SEQ_FLAG_ACTIVE) != 0;
+    if (active_strip && !selected) {
       col = add_outline(sdf, 1.0, 2.0, col, col_outline);
     }
 

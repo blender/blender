@@ -3443,59 +3443,6 @@ float SCULPT_brush_plane_offset_get(const Sculpt &sd, const SculptSession &ss)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sculpt Gravity Brush
- * \{ */
-
-static void do_gravity_task(SculptSession &ss,
-                            const Brush &brush,
-                            const float *offset,
-                            PBVHNode *node)
-{
-  PBVHVertexIter vd;
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_brush_test_sq_fn(test, vd.co)) {
-      continue;
-    }
-    const float fade = SCULPT_brush_strength_factor(
-        ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, vd.mask, vd.vertex, thread_id, nullptr);
-
-    mul_v3_v3fl(proxy[vd.i], offset, fade);
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-static void do_gravity(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes, float bstrength)
-{
-  using namespace blender;
-  SculptSession &ss = *ob.sculpt;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-
-  float offset[3];
-  float gravity_vector[3];
-
-  mul_v3_v3fl(gravity_vector, ss.cache->gravity_direction, -ss.cache->radius_squared);
-
-  /* Offset with as much as possible factored in already. */
-  mul_v3_v3v3(offset, gravity_vector, ss.cache->scale);
-  mul_v3_fl(offset, bstrength);
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_gravity_task(ss, brush, offset, nodes[i]);
-    }
-  });
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Sculpt Brush Utilities
  * \{ */
 
@@ -3884,7 +3831,12 @@ static void do_brush_action(const Scene &scene,
       do_elastic_deform_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      SCULPT_do_slide_relax_brush(sd, ob, nodes);
+      if (ss.cache->alt_smooth) {
+        SCULPT_do_topology_relax_brush(sd, ob, nodes);
+      }
+      else {
+        do_topology_slide_brush(sd, ob, nodes);
+      }
       break;
     case SCULPT_TOOL_BOUNDARY:
       boundary::do_boundary_brush(sd, ob, nodes);
@@ -3941,7 +3893,7 @@ static void do_brush_action(const Scene &scene,
       !ELEM(
           brush.sculpt_tool, SCULPT_TOOL_CLOTH, SCULPT_TOOL_DRAW_FACE_SETS, SCULPT_TOOL_BOUNDARY))
   {
-    do_gravity(sd, ob, nodes, sd.gravity_factor);
+    do_gravity_brush(sd, ob, nodes);
   }
 
   if (brush.deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {

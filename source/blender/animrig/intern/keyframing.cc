@@ -160,10 +160,10 @@ void CombinedKeyingResult::generate_reports(ReportList *reports, const eReportTy
                               error_count));
   }
 
-  if (this->get_count(SingleKeyingResult::NO_VALID_BINDING) > 0) {
-    const int error_count = this->get_count(SingleKeyingResult::NO_VALID_BINDING);
+  if (this->get_count(SingleKeyingResult::NO_VALID_SLOT) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::NO_VALID_SLOT);
     errors.append(fmt::format(RPT_("Inserting keys on {:d} data-block(s) has been skipped because "
-                                   "of missing animation bindings."),
+                                   "of missing action slots."),
                               error_count));
   }
 
@@ -855,7 +855,7 @@ struct KeyInsertData {
 };
 
 static SingleKeyingResult insert_key_layer(Layer &layer,
-                                           const Binding &binding,
+                                           const Slot &slot,
                                            const std::string &rna_path,
                                            const std::optional<PropertySubType> prop_subtype,
                                            const KeyInsertData &key_data,
@@ -866,7 +866,7 @@ static SingleKeyingResult insert_key_layer(Layer &layer,
   BLI_assert(layer.strips().size() == 1);
 
   Strip *strip = layer.strip(0);
-  return strip->as<KeyframeStrip>().keyframe_insert(binding,
+  return strip->as<KeyframeStrip>().keyframe_insert(slot,
                                                     {rna_path, key_data.array_index, prop_subtype},
                                                     key_data.position,
                                                     key_settings,
@@ -882,12 +882,12 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
 {
   BLI_assert(action.is_action_layered());
 
-  Binding &binding = action.binding_ensure_for_id(*rna_pointer->owner_id);
-  const bool success = action.assign_id(&binding, *rna_pointer->owner_id);
+  Slot &slot = action.slot_ensure_for_id(*rna_pointer->owner_id);
+  const bool success = action.assign_id(&slot, *rna_pointer->owner_id);
   UNUSED_VARS_NDEBUG(success);
   BLI_assert_msg(
       success,
-      "The conditions that would cause this Binding assigment to fail (such as the ID not being "
+      "The conditions that would cause this Slot assigment to fail (such as the ID not being "
       "animatible) should have been caught and handled by higher-level functions.");
 
   /* Ensure that at least one layer exists. If not, create the default layer
@@ -912,8 +912,8 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
         rna_pointer, rna_path.path.c_str(), &ptr, &prop);
     if (!path_resolved) {
       std::fprintf(stderr,
-                   "Failed to insert key on binding %s due to unresolved RNA path: %s\n",
-                   binding.name,
+                   "Failed to insert key on slot %s due to unresolved RNA path: %s\n",
+                   slot.name,
                    rna_path.path.c_str());
       combined_result.add(SingleKeyingResult::CANNOT_RESOLVE_PATH);
       continue;
@@ -933,7 +933,7 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
 
       const KeyInsertData key_data = {{scene_frame, rna_values[property_index]}, property_index};
       const SingleKeyingResult result = insert_key_layer(*layer,
-                                                         binding,
+                                                         slot,
                                                          *rna_path_id_to_prop,
                                                          prop_subtype,
                                                          key_data,

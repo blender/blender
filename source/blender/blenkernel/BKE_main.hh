@@ -191,18 +191,18 @@ struct Main {
   bool is_global_main;
 
   /**
-   * True if the Action Binding-to-ID mapping is dirty.
+   * True if the Action Slot-to-ID mapping is dirty.
    *
-   * If this flag is set, the next call to `animrig::Binding::users(bmain)` and related functions
-   * will trigger a rebuild of the Binding-to-ID mapping. Since constructing this mapping requires
+   * If this flag is set, the next call to `animrig::Slot::users(bmain)` and related functions
+   * will trigger a rebuild of the Slot-to-ID mapping. Since constructing this mapping requires
    * a full scan of the animatable IDs in this `Main` anyway, it is kept as a flag here.
    *
-   * \note This flag should not be set directly. Use animrig::Binding::users_invalidate() instead.
-   * That way the handling of this flag is limited to the code in animrig::Binding.
+   * \note This flag should not be set directly. Use animrig::Slot::users_invalidate() instead.
+   * That way the handling of this flag is limited to the code in animrig::Slot.
    *
-   * \see blender::animrig::Binding::users_invalidate(Main &bmain)
+   * \see blender::animrig::Slot::users_invalidate(Main &bmain)
    */
-  bool is_action_binding_to_id_map_dirty;
+  bool is_action_slot_to_id_map_dirty;
 
   BlendThumbnail *blen_thumb;
 

@@ -5,12 +5,17 @@
 #include <utility>
 
 #include "BKE_attribute_math.hh"
+#include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_type_conversions.hh"
 
+#include "DNA_ID.h"
+#include "DNA_grease_pencil_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_array_utils.hh"
 #include "BLI_color.hh"
@@ -580,6 +585,23 @@ static GVArray try_adapt_data_type(GVArray varray, const CPPType &to_type)
 {
   const DataTypeConversions &conversions = get_implicit_type_conversions();
   return conversions.try_convert(std::move(varray), to_type);
+}
+
+std::optional<AttributeAccessor> AttributeAccessor::from_id(const ID &id)
+{
+  switch (GS(id.name)) {
+    case ID_ME:
+      return reinterpret_cast<const Mesh &>(id).attributes();
+    case ID_PT:
+      return reinterpret_cast<const PointCloud &>(id).attributes();
+    case ID_CV:
+      return reinterpret_cast<const Curves &>(id).geometry.wrap().attributes();
+    case ID_GP:
+      return reinterpret_cast<const GreasePencil &>(id).attributes();
+    default:
+      return {};
+  }
+  return {};
 }
 
 GAttributeReader AttributeAccessor::lookup(const AttributeIDRef &attribute_id,

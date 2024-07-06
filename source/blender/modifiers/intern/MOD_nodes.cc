@@ -1925,7 +1925,7 @@ static void add_attribute_search_button(const bContext &C,
     return;
   }
 
-  AttributeSearchData *data = MEM_new<AttributeSearchData>(__func__);
+  AttributeSearchData *data = MEM_cnew<AttributeSearchData>(__func__);
   data->object_session_uid = object->id.session_uid;
   STRNCPY(data->modifier_name, nmd.modifier.name);
   STRNCPY(data->socket_identifier, socket.identifier);

@@ -1574,7 +1574,7 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
   OperationKey animation_exit_key(id, NodeType::ANIMATION, OperationCode::ANIMATION_EXIT);
   add_relation(animation_entry_key, animation_eval_key, "Init -> Eval");
   add_relation(animation_eval_key, animation_exit_key, "Eval -> Exit");
-  /* Wire up dependency from action and Animation datablock. */
+  /* Wire up dependency from Actions. */
   ComponentKey adt_key(id, NodeType::ANIMATION);
   /* Relation from action itself. */
   if (adt->action != nullptr) {
@@ -1591,7 +1591,7 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
   BLI_assert(operation_from != nullptr);
   /* Build relations from animation operation to properties it changes. */
   if (adt->action != nullptr) {
-    build_animdata_action_targets(id, adt->binding_handle, adt_key, operation_from, adt->action);
+    build_animdata_action_targets(id, adt->slot_handle, adt_key, operation_from, adt->action);
   }
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     build_animdata_nlastrip_targets(id, adt_key, operation_from, &nlt->strips);
@@ -1648,7 +1648,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id,
 }
 
 void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
-                                                             const int32_t binding_handle,
+                                                             const int32_t slot_handle,
                                                              ComponentKey &adt_key,
                                                              OperationNode *operation_from,
                                                              bAction *dna_action)
@@ -1667,9 +1667,9 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
   }
 
 #ifdef WITH_ANIM_BAKLAVA
-  const animrig::Binding *binding = action.binding_for_handle(binding_handle);
-  if (binding == nullptr) {
-    /* If there's no matching binding, there's no Action dependency. */
+  const animrig::Slot *slot = action.slot_for_handle(slot_handle);
+  if (slot == nullptr) {
+    /* If there's no matching slot, there's no Action dependency. */
     return;
   }
 
@@ -1680,7 +1680,7 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
       switch (strip->type()) {
         case animrig::Strip::Type::Keyframe: {
           animrig::KeyframeStrip &keyframe_strip = strip->as<animrig::KeyframeStrip>();
-          animrig::ChannelBag *channels = keyframe_strip.channelbag_for_binding(*binding);
+          animrig::ChannelBag *channels = keyframe_strip.channelbag_for_slot(*slot);
           if (channels == nullptr) {
             /* Go to next strip. */
             break;
@@ -1694,7 +1694,7 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
     }
   }
 #else
-  UNUSED_VARS(binding_handle);
+  UNUSED_VARS(slot_handle);
 #endif
 }
 
@@ -1714,9 +1714,9 @@ void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(ID *id,
         /* TODO: add NLA support for layered actions. */
         continue;
       }
-      /* TODO: get binding handle from the owning ID. */
-      const animrig::binding_handle_t binding_handle = animrig::Binding::unassigned;
-      build_animdata_action_targets(id, binding_handle, adt_key, operation_from, strip->act);
+      /* TODO: get slot handle from the owning ID. */
+      const animrig::slot_handle_t slot_handle = animrig::Slot::unassigned;
+      build_animdata_action_targets(id, slot_handle, adt_key, operation_from, strip->act);
     }
     else if (strip->strips.first != nullptr) {
       build_animdata_nlastrip_targets(id, adt_key, operation_from, &strip->strips);

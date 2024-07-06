@@ -307,7 +307,7 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
  * \note Return pointer parameters (`r_action`, `r_driven` and `r_special`) are all optional and
  * may be NULL.
  *
- * \note since Animation data-blocks may have multiple layers all containing an F-Curve for this
+ * \note since Actions may have multiple layers all containing an F-Curve for this
  * property, what is returned is a best-effort guess. The topmost layer has priority, and it is
  * assumed that when it has a strip, it's infinite.
  */

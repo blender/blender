@@ -34,6 +34,7 @@ void do_elastic_deform_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> 
 void do_fill_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_flatten_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_grab_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
+void do_gravity_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 void do_inflate_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 /** A brush that modifies mask values instead of position. */
 void do_mask_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
@@ -53,5 +54,6 @@ void do_smooth_mask_brush(const Sculpt &sd,
                           Span<PBVHNode *> nodes,
                           float brush_strength);
 void do_thumb_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
+void do_topology_slide_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 
 }  // namespace blender::ed::sculpt_paint

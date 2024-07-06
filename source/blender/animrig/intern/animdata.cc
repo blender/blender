@@ -127,7 +127,7 @@ void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
       animdata_remove_empty_action(adt);
     }
     else {
-      /* TODO: support deleting FCurves from Animation data-blocks. */
+      /* TODO: support deleting FCurves from layered Actions. */
       return;
     }
   }
@@ -198,14 +198,14 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
   const Action &action = adt.action->wrap();
   BLI_assert(action.is_action_layered());
 
-  const Binding *binding = action.binding_for_handle(adt.binding_handle);
-  if (!binding) {
-    /* No need to inspect anything if this ID does not have an animation Binding. */
+  const Slot *slot = action.slot_for_handle(adt.slot_handle);
+  if (!slot) {
+    /* No need to inspect anything if this ID does not have an Action Slot. */
     return nullptr;
   }
 
-  /* No check for the binding's ID type. Not only do we not have the actual ID
-   * to do this check, but also, since the Action and the binding have been
+  /* No check for the slot's ID type. Not only do we not have the actual ID
+   * to do this check, but also, since the Action and the slot have been
    * assigned, just trust that it's valid. */
 
   /* Iterate the layers top-down, as higher-up animation overrides (or at least can override)
@@ -218,11 +218,11 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
       switch (strip->type()) {
         case Strip::Type::Keyframe: {
           const KeyframeStrip &key_strip = strip->as<KeyframeStrip>();
-          const ChannelBag *channelbag_for_binding = key_strip.channelbag_for_binding(*binding);
-          if (!channelbag_for_binding) {
+          const ChannelBag *channelbag_for_slot = key_strip.channelbag_for_slot(*slot);
+          if (!channelbag_for_slot) {
             continue;
           }
-          const FCurve *fcu = channelbag_for_binding->fcurve_find(rna_path, array_index);
+          const FCurve *fcu = channelbag_for_slot->fcurve_find(rna_path, array_index);
           if (!fcu) {
             continue;
           }

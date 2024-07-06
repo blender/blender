@@ -386,77 +386,6 @@ void SCULPT_do_layer_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
 /** \name Sculpt Topology Brush
  * \{ */
 
-static void do_topology_slide_task(Object &ob, const Brush &brush, PBVHNode *node)
-{
-  using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
-
-  PBVHVertexIter vd;
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
-
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-    if (!sculpt_brush_test_sq_fn(test, orig_data.co)) {
-      continue;
-    }
-    auto_mask::node_update(automask_data, vd);
-
-    const float fade = SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    orig_data.co,
-                                                    sqrtf(test.dist),
-                                                    orig_data.no,
-                                                    nullptr,
-                                                    vd.mask,
-                                                    vd.vertex,
-                                                    thread_id,
-                                                    &automask_data);
-    float current_disp[3];
-    float current_disp_norm[3];
-    float final_disp[3] = {0.0f, 0.0f, 0.0f};
-
-    switch (brush.slide_deform_type) {
-      case BRUSH_SLIDE_DEFORM_DRAG:
-        sub_v3_v3v3(current_disp, ss.cache->location, ss.cache->last_location);
-        break;
-      case BRUSH_SLIDE_DEFORM_PINCH:
-        sub_v3_v3v3(current_disp, ss.cache->location, vd.co);
-        break;
-      case BRUSH_SLIDE_DEFORM_EXPAND:
-        sub_v3_v3v3(current_disp, vd.co, ss.cache->location);
-        break;
-    }
-
-    normalize_v3_v3(current_disp_norm, current_disp);
-    mul_v3_v3fl(current_disp, current_disp_norm, ss.cache->bstrength);
-
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-      float vertex_disp[3];
-      float vertex_disp_norm[3];
-      sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.vertex), vd.co);
-      normalize_v3_v3(vertex_disp_norm, vertex_disp);
-      if (dot_v3v3(current_disp_norm, vertex_disp_norm) > 0.0f) {
-        madd_v3_v3fl(final_disp, vertex_disp_norm, dot_v3v3(current_disp, vertex_disp));
-      }
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-    mul_v3_v3fl(proxy[vd.i], final_disp, fade);
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
 namespace blender::ed::sculpt_paint::smooth {
 
 static void relax_vertex_interior(SculptSession &ss,
@@ -654,7 +583,7 @@ static void do_topology_relax_task(Object &ob, const Brush &brush, PBVHNode *nod
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_slide_relax_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+void SCULPT_do_topology_relax_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -665,21 +594,11 @@ void SCULPT_do_slide_relax_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> 
   }
 
   BKE_curvemapping_init(brush.curve);
-
-  if (ss.cache->alt_smooth) {
-    SCULPT_boundary_info_ensure(ob);
-    for (int i = 0; i < 4; i++) {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (const int i : range) {
-          do_topology_relax_task(ob, brush, nodes[i]);
-        }
-      });
-    }
-  }
-  else {
+  SCULPT_boundary_info_ensure(ob);
+  for (int i = 0; i < 4; i++) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_topology_slide_task(ob, brush, nodes[i]);
+        do_topology_relax_task(ob, brush, nodes[i]);
       }
     });
   }
