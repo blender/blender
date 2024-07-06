@@ -143,6 +143,13 @@ struct Main {
    * could try to use more refined detection on load. */
   bool has_forward_compatibility_issues;
 
+  /**
+   * This file was written by the asset system with the #G_FILE_ASSET_EDIT_FILE flag (now cleared).
+   * It must not be overwritten, except by the asset system itself. Otherwise the file could end up
+   * with user created data that would be lost when the asset system regenerates the file.
+   */
+  bool is_asset_edit_file;
+
   /** Commit timestamp from `buildinfo`. */
   uint64_t build_commit_timestamp;
   /** Commit Hash from `buildinfo`. */
@@ -343,6 +350,17 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
  * Check whether given `bmain` is empty or contains some IDs.
  */
 bool BKE_main_is_empty(Main *bmain);
+
+/**
+ * Check whether the bmain has issues, e.g. for reporting in the status bar.
+ */
+bool BKE_main_has_issues(const Main *bmain);
+
+/**
+ * Check whether user confirmation should be required when overwriting this `bmain` into its source
+ * blendfile.
+ */
+bool BKE_main_needs_overwrite_confirm(const Main *bmain);
 
 void BKE_main_lock(Main *bmain);
 void BKE_main_unlock(Main *bmain);

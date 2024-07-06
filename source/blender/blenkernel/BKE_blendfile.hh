@@ -30,6 +30,11 @@ struct UserDef;
 struct WorkspaceConfigFileData;
 
 /**
+ * The suffix used for blendfiles managed by the asset system.
+ */
+#define BLENDER_ASSET_FILE_SUFFIX ".asset.blend"
+
+/**
  * Check whether given path ends with a blend file compatible extension
  * (`.blend`, `.ble` or `.blend.gz`).
  *

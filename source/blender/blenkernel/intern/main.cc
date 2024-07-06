@@ -466,6 +466,16 @@ bool BKE_main_is_empty(Main *bmain)
   return result;
 }
 
+bool BKE_main_has_issues(const Main *bmain)
+{
+  return bmain->has_forward_compatibility_issues || bmain->is_asset_edit_file;
+}
+
+bool BKE_main_needs_overwrite_confirm(const Main *bmain)
+{
+  return bmain->has_forward_compatibility_issues || bmain->is_asset_edit_file;
+}
+
 void BKE_main_lock(Main *bmain)
 {
   BLI_spin_lock((SpinLock *)bmain->lock);
