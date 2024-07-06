@@ -88,27 +88,27 @@ def add_parameters(params):
     super_head.Rig.add_parameters(params)
 
     params.neck_pos = bpy.props.IntProperty(
-        name='neck_position',
+        name="Neck Position",
         default=6,
         min=0,
         description='Neck start position'
     )
 
     params.tail_pos = bpy.props.IntProperty(
-        name='tail_position',
+        name="Tail Position",
         default=2,
         min=2,
         description='Where the tail starts'
     )
 
     params.use_tail = bpy.props.BoolProperty(
-        name='use_tail',
+        name="Use Tail",
         default=False,
         description='Create tail bones'
     )
 
     params.use_head = bpy.props.BoolProperty(
-        name='use_head',
+        name="Use Head",
         default=True,
         description='Create head and neck bones'
     )

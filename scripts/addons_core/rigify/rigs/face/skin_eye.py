@@ -9,6 +9,7 @@ import mathutils
 from typing import Optional
 
 from bpy.types import PoseBone
+from bpy.app.translations import pgettext_iface as iface_
 from mathutils import Vector, Matrix
 
 from ...rig_ui_template import PanelLayout
@@ -262,18 +263,18 @@ class Rig(BaseSkinRig):
         target = self.bones.ctrl.target
 
         name_tail = f' ({target})' if add_name else ''
-        follow_text = f'Eyelids Follow{name_tail}'
+        follow_text = iface_("Eyelids Follow{}").format(name_tail)
 
         if self.params.eyelid_follow_split:
             row = panel.split(factor=0.66, align=True)
-            row.custom_prop(target, 'lid_follow', index=0, text=follow_text, slider=True)
+            row.custom_prop(target, 'lid_follow', index=0, text=follow_text, translate=False, slider=True)
             row.custom_prop(target, 'lid_follow', index=1, text='', slider=True)
         else:
-            panel.custom_prop(target, 'lid_follow', text=follow_text, slider=True)
+            panel.custom_prop(target, 'lid_follow', text=follow_text, translate=False, slider=True)
 
         if self.params.eyelid_detach_option:
-            panel.custom_prop(
-                target, 'lid_attach', text=f'Eyelids Attached{name_tail}', slider=True)
+            text = iface_("Eyelids Attached{}").format(name_tail)
+            panel.custom_prop(target, 'lid_attach', text=text, translate=False, slider=True)
 
     ####################################################
     # Master control

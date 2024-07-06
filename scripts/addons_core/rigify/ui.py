@@ -11,8 +11,10 @@ from bpy.props import (
     StringProperty
 )
 from bpy.app.translations import (
+    pgettext_n as n_,
     pgettext_iface as iface_,
     pgettext_rpt as rpt_,
+    contexts as i18n_contexts,
 )
 
 from collections import defaultdict
@@ -102,7 +104,7 @@ class DATA_PT_rigify(bpy.types.Panel):
             layout.operator("armature.rigify_upgrade_layers", text="Upgrade Metarig")
             return
 
-        WARNING = "Warning: Some features may change after generation"
+        WARNING = n_("Warning: Some features may change after generation")
         show_warning = False
         show_update_metarig = False
         show_not_updatable = False
@@ -163,7 +165,10 @@ class DATA_PT_rigify(bpy.types.Panel):
 
         col.separator()
         row = col.row()
-        text = "Re-Generate Rig" if get_rigify_target_rig(obj.data) else "Generate Rig"
+        text = (
+            n_("Re-Generate Rig", i18n_contexts.operator_default) if get_rigify_target_rig(obj.data)
+            else n_("Generate Rig", i18n_contexts.operator_default)
+        )
         row.operator("pose.rigify_generate", text=text, icon='POSE_HLT')
         row.enabled = enable_generate
 
@@ -898,7 +903,8 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
             except (ImportError, AttributeError, KeyError):
                 row = layout.row()
                 box = row.box()
-                box.label(text="ERROR: type \"%s\" does not exist!" % rig_name, icon='ERROR')
+                text = iface_("ERROR: type \"{:s}\" does not exist!").format(rig_name)
+                box.label(text=text, icon='ERROR', translate=False)
             else:
                 if hasattr(rig.Rig, 'parameters_ui'):
                     rig = rig.Rig
@@ -1256,7 +1262,10 @@ class VIEW3D_MT_rigify(bpy.types.Menu):
         obj = verify_armature_obj(context.object)
         target_rig = get_rigify_target_rig(obj.data)
 
-        text = "Re-Generate Rig" if target_rig else "Generate Rig"
+        text = (
+            n_("Re-Generate Rig", i18n_contexts.operator_default) if target_rig
+            else n_("Generate Rig", i18n_contexts.operator_default)
+        )
         layout.operator(Generate.bl_idname, text=text)
 
         if context.mode == 'EDIT_ARMATURE':
