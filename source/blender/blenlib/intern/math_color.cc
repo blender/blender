@@ -934,7 +934,7 @@ float3 whitepoint_from_temp_tint(const float temperature, const float tint)
   const float2 isotherm = normalize(interpolate(isotherm0, isotherm1, f));
 
   /* Offset away from the Planckian locus according to the tint.
-   * Tint is parametrized such that +-3000 tint corresponds to +-1 delta UV. */
+   * Tint is parameterized such that +-3000 tint corresponds to +-1 delta UV. */
   uv -= isotherm * tint / 3000.0f;
 
   /* Convert CIE 1960 uv -> xyY. */

@@ -579,7 +579,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const int flags)
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
 
   /* Skip indirectly linked IDs, unless the whole library is made local, or handling them is
-   * explicitely requested. */
+   * explicitly requested. */
   if (!(lib_local || (flags & LIB_ID_MAKELOCAL_INDIRECT) != 0) && (id->tag & LIB_TAG_INDIRECT)) {
     return false;
   }

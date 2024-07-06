@@ -46,7 +46,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     }
   }
 
-  /* Subpass inputs are read as samplers.
+  /* Sub-pass inputs are read as samplers.
    * In future this can change depending on extensions that will be supported. */
   uniform_len_ += info.subpass_inputs_.size();
 

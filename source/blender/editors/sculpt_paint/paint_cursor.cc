@@ -1533,7 +1533,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       return;
     }
 
-    /* Hide the cursor while drwaing. */
+    /* Hide the cursor while drawing. */
     if (grease_pencil->runtime->is_drawing_stroke) {
       return;
     }

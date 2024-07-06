@@ -35,7 +35,7 @@ class ActionFilterTest : public testing::Test {
 
   static void SetUpTestSuite()
   {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialised properly. */
+    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
     CLG_init();
 
     /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */

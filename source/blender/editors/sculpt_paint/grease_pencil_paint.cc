@@ -759,7 +759,7 @@ struct PaintOperationExecutor {
     const bool is_first_sample = (curve_points.size() == 1);
 
     /* Use the vector from the previous to the next point. Set the direction based on the first two
-     * samples. For subsuquent samples, interpolate with the previous direction to get a smoothed
+     * samples. For subsequent samples, interpolate with the previous direction to get a smoothed
      * value over time. */
     if (is_first_sample) {
       self.smoothed_pen_direction_ = self.screen_space_coords_orig_.last() - coords;
@@ -842,7 +842,7 @@ struct PaintOperationExecutor {
     MutableSpan<float> new_radii = drawing_->radii_for_write().slice(new_points);
     MutableSpan<float> new_opacities = drawing_->opacities_for_write().slice(new_points);
 
-    /* Interploate the screen space positions. */
+    /* Interpolate the screen space positions. */
     linear_interpolation<float2>(prev_coords, coords, new_screen_space_coords, is_first_sample);
     point_attributes_to_skip.add_multiple({"position", "radius", "opacity"});
 
@@ -1158,7 +1158,7 @@ static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
   BLI_assert(screen_space_positions_attribute.is_span());
   const Span<float2> screen_space_positions =
       screen_space_positions_attribute.get_internal_span().slice(points);
-  /* Extract the drawn stroke into a seperate geometry, so we can trim the ends for just this
+  /* Extract the drawn stroke into a separate geometry, so we can trim the ends for just this
    * stroke. */
   bke::CurvesGeometry stroke = bke::curves_copy_curve_selection(
       drawing.strokes(), IndexRange::from_single(active_curve), {});

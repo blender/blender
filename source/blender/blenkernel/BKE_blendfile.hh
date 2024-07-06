@@ -201,7 +201,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
   blender::Map<std::string, Library *> libraries_map_;
 
   /**
-   * In case an explicitely added ID has the same session_uid as an existing one in current
+   * In case an explicitly added ID has the same session_uid as an existing one in current
    * context, the added one should be able to 'steal' that session_uid in the context, and
    * re-assign a new one to the other ID.
    */
@@ -241,17 +241,17 @@ class PartialWriteContext : NonCopyable, NonMovable {
    * Control how to handle IDs and their dependencies when they are added to this context.
    *
    * \note For linked IDs, if #MAKE_LOCAL is not used, the library ID pointer is _not_ considered
-   * nor hanlded as a regular dependency. Instead, the library is _always_ added to the context
+   * nor handled as a regular dependency. Instead, the library is _always_ added to the context
    * data, and never duplicated. Also, library matching always happens based on absolute filepath.
    *
    * \warning Heterogenous usages of these operations flags during a same PartialWriteContext
    * session may not generate expected results. Typically, once an ID has been added to the context
    * as 'matching' counterpart of the source Main (i.e. sharing the same session UID), it will not
-   * be re-processed further if found again as dependency of another ID, or added explicitely as
+   * be re-processed further if found again as dependency of another ID, or added explicitly as
    * root ID.
-   * So e.g. if an ID is added (explicitely or implicitely) but none of its dependencies are (using
-   * `CLEAR_DEPENDENCIES`), re-adding the same ID (explicitely or implicitely) with e.g.
-   * `ADD_DEPENDENCIES` set wil __not__ add its dependencies.
+   * So e.g. if an ID is added (explicitly or implicitly) but none of its dependencies are (using
+   * `CLEAR_DEPENDENCIES`), re-adding the same ID (explicitly or implicitly) with e.g.
+   * `ADD_DEPENDENCIES` set will __not__ add its dependencies.
    * This is not expected to be an issue in current use-cases.
    */
   enum IDAddOperations {
@@ -272,7 +272,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
      * Clear all dependency IDs that are not in the partial write context. Mutually exclusive with
      * #ADD_DEPENDENCIES.
      *
-     * WARNING: This also means that dependencies like obdata, shapekeys or actions are not
+     * WARNING: This also means that dependencies like obdata, shape-keys or actions are not
      * duplicated either.
      */
     CLEAR_DEPENDENCIES = 1 << 8,
@@ -282,8 +282,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
      */
     ADD_DEPENDENCIES = 1 << 9,
     /**
-     * For each explicitely added IDs (i.e. these with a fake user), ensure all of their
-     * dependencies are independant copies, instead of being shared with other explicitely added
+     * For each explicitly added IDs (i.e. these with a fake user), ensure all of their
+     * dependencies are independent copies, instead of being shared with other explicitly added
      * IDs. Only relevant with #ADD_DEPENDENCIES.
      *
      * \warning Implies that the `session_uid` of these duplicated dependencies will be different
@@ -335,7 +335,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
    * Delete the copy of the given ID from the partial write context.
    *
    * \note The search is based on the #ID.session_uid of the given ID. This means that if
-   * `duplicate_depencies` option was used when adding the ID, these independant dependencies
+   * `duplicate_depencies` option was used when adding the ID, these independent dependencies
    * duplicates cannot be removed directly from the context. Use #remove_unused for this.
    *
    * \note No dependencies will be removed. Use #remove_unused to remove all unused IDs from the
@@ -383,8 +383,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
    *   - API to replace the matching context IDs by a 'new version' (similar to 'add_id', but
    *     ensuring that the context ID, if it already exists, is a pristine copy of the given source
    *     one).
-   *   - Rework the remapping of relative filepaths, since data already exisitng in the
-   *     loaded-from-disk temp context wil have different rootpath than the data from current
+   *   - Rework the remapping of relative filepaths, since data already existing in the
+   *     loaded-from-disk temp context will have different root-path than the data from current
    *     G_MAIN.
    */
 };
