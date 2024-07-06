@@ -464,7 +464,7 @@ void data_transfer_layersmapping_add_item(ListBase *r_map,
                                           cd_datatransfer_interp interp,
                                           void *interp_data)
 {
-  CustomDataTransferLayerMap *item = MEM_new<CustomDataTransferLayerMap>(__func__);
+  CustomDataTransferLayerMap *item = MEM_cnew<CustomDataTransferLayerMap>(__func__);
 
   BLI_assert(data_dst != nullptr);
 
