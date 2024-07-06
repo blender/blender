@@ -976,6 +976,46 @@ void rna_uiTemplateAssetShelfPopover(uiLayout *layout,
   blender::ui::template_asset_shelf_popover(*layout, *C, asset_shelf_id, name, icon);
 }
 
+PointerRNA rna_uiTemplatePopupConfirm(uiLayout *layout,
+                                      ReportList *reports,
+                                      const char *opname,
+                                      const char *text,
+                                      const char *text_ctxt,
+                                      bool translate,
+                                      int icon,
+                                      const char *cancel_text,
+                                      bool cancel_default)
+{
+  PointerRNA opptr = PointerRNA_NULL;
+
+  /* This allows overriding buttons in `WM_operator_props_dialog_popup` and other popups. */
+  wmOperatorType *ot = nullptr;
+  if (opname[0]) {
+    /* Confirming is optional. */
+    ot = WM_operatortype_find(opname, false); /* print error next */
+  }
+  else {
+    text = "";
+  }
+
+  if (opname[0] ? (!ot || !ot->srna) : false) {
+    RNA_warning("%s '%s'", ot ? "operator missing srna" : "unknown operator", opname);
+  }
+  else if (!UI_popup_block_template_confirm_is_supported(uiLayoutGetBlock(layout))) {
+    BKE_reportf(reports, RPT_ERROR, "template_popup_confirm used outside of a popup");
+  }
+  else {
+    text = rna_translate_ui_text(text, text_ctxt, nullptr, nullptr, translate);
+    if (cancel_text && cancel_text[0]) {
+      cancel_text = rna_translate_ui_text(cancel_text, text_ctxt, nullptr, nullptr, translate);
+    }
+
+    UI_popup_block_template_confirm_op(
+        layout, ot, text, cancel_text, icon, cancel_default, &opptr);
+  }
+  return opptr;
+}
+
 #else
 
 static void api_ui_item_common_heading(FunctionRNA *func)
@@ -2322,6 +2362,25 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_property_ui_text(parm, "Icon", "Override automatic icon of the item");
   parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
+
+  /* A version of `operator` that defines a [Cancel, Confirm] pair of buttons. */
+  func = RNA_def_function(srna, "template_popup_confirm", "rna_uiTemplatePopupConfirm");
+  api_ui_item_op_common(func);
+  parm = RNA_def_string(func,
+                        "cancel_text",
+                        nullptr,
+                        0,
+                        "",
+                        "Optional text to use for the cancel, not shown when an empty string");
+  RNA_def_boolean(func, "cancel_default", false, "", "Cancel button by default");
+  RNA_def_function_ui_description(
+      func, "Add confirm & cancel buttons into a popup which will close the popup when pressed");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+
+  parm = RNA_def_pointer(
+      func, "properties", "OperatorProperties", "", "Operator properties to fill in");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_function_return(func, parm);
 }
 
 #endif
