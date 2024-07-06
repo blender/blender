@@ -694,6 +694,16 @@ bool UI_block_can_add_separator(const uiBlock *block)
   return true;
 }
 
+bool UI_block_has_active_default_button(const uiBlock *block)
+{
+  LISTBASE_FOREACH (const uiBut *, but, &block->buttons) {
+    if ((but->flag & UI_BUT_ACTIVE_DEFAULT) && ((but->flag & UI_HIDDEN) == 0)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
