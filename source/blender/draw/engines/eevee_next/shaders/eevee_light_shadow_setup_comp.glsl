@@ -253,7 +253,7 @@ void main()
 {
   uint l_idx = gl_GlobalInvocationID.x;
   /* We are dispatching (with padding) over the culled light array.
-   * This array is not contiguous. Visible local lights are packed at the begining
+   * This array is not contiguous. Visible local lights are packed at the beginning
    * and directional lights at the end. There is a range of uninitialized value in between that
    * needs to be avoided. */
   bool valid_local = (l_idx < light_cull_buf.visible_count);
