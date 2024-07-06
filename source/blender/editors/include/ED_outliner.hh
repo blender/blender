@@ -12,6 +12,7 @@ struct Base;
 struct ListBase;
 struct SpaceOutliner;
 struct bContext;
+struct ID;
 
 bool ED_outliner_collections_editor_poll(bContext *C);
 
@@ -47,3 +48,5 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_out
  * Copy sync select dirty flag from window manager to all outliners to be synced lazily on draw.
  */
 void ED_outliner_select_sync_flag_outliners(const bContext *C);
+
+int ED_outliner_icon_from_id(const ID &id);

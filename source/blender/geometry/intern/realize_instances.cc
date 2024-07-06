@@ -320,25 +320,6 @@ static int64_t get_final_points_num(const GatherTasks &tasks)
   return points_num;
 }
 
-static void realize_collections(Collection &collection, bke::Instances &instances)
-{
-  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection.children) {
-    float4x4 transform = float4x4::identity();
-    transform.location() += float3(collection_child->collection->instance_offset);
-    transform.location() -= float3(collection.instance_offset);
-    const int handle = instances.add_reference(*collection_child->collection);
-    instances.add_instance(handle, transform);
-  }
-
-  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection.gobject) {
-    float4x4 transform = float4x4::identity();
-    transform.location() -= float3(collection.instance_offset);
-    transform *= (collection_object->ob)->object_to_world();
-    const int handle = instances.add_reference(*collection_object->ob);
-    instances.add_instance(handle, transform);
-  }
-}
-
 static void copy_transformed_positions(const Span<float3> src,
                                        const float4x4 &transform,
                                        MutableSpan<float3> dst)
@@ -500,33 +481,6 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
   return attributes_to_override;
 }
 
-static bke::GeometrySet geometry_set_from_reference(const InstanceReference &reference)
-{
-  switch (reference.type()) {
-    case InstanceReference::Type::Object: {
-      const Object &object = reference.object();
-      const bke::GeometrySet geometry_set = bke::object_get_evaluated_geometry_set(object);
-      return geometry_set;
-    }
-    case InstanceReference::Type::Collection: {
-      std::unique_ptr<bke::Instances> instances_ptr = std::make_unique<bke::Instances>();
-      realize_collections(reference.collection(), *instances_ptr);
-      bke::GeometrySet geometry_set;
-      geometry_set.replace_instances(instances_ptr.release());
-      return geometry_set;
-    }
-    case InstanceReference::Type::GeometrySet: {
-      const bke::GeometrySet geometry_set = reference.geometry_set();
-      return geometry_set;
-    }
-    case InstanceReference::Type::None: {
-      /* Return an empty GeometrySet for None type. */
-      return {};
-    }
-  }
-  return {};
-}
-
 /**
  * Calls #fn for every geometry in the given #InstanceReference. Also passes on the transformation
  * that is applied to every instance.
@@ -538,7 +492,8 @@ static void foreach_geometry_in_reference(
     FunctionRef<void(const bke::GeometrySet &geometry_set, const float4x4 &transform, uint32_t id)>
         fn)
 {
-  bke::GeometrySet geometry_set = geometry_set_from_reference(reference);
+  bke::GeometrySet geometry_set;
+  reference.to_geometry_set(geometry_set);
   fn(geometry_set, base_transform, id);
 }
 
@@ -770,8 +725,10 @@ static bool attribute_foreach(const bke::GeometrySet &geometry_set,
                                   IndexMask(IndexRange(instances.instances_num()));
     indices.foreach_index([&](const int i) {
       const int child_depth_target = (0 == current_depth) ? instance_depth[i] : depth_target;
-      bke::GeometrySet instance_geometry_set = geometry_set_from_reference(
-          instances.references()[instances.reference_handles()[i]]);
+      const bke::InstanceReference &reference =
+          instances.references()[instances.reference_handles()[i]];
+      bke::GeometrySet instance_geometry_set;
+      reference.to_geometry_set(instance_geometry_set);
       /* Process child instances with a recursive call. */
       if (current_depth != child_depth_target) {
         child_has_component = child_has_component | attribute_foreach(instance_geometry_set,
