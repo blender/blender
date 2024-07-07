@@ -3534,7 +3534,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_snap_sequencer", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag_seq", SCE_SNAP);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_ui_text(prop, "Use Snapping", "Snap to strip edges or current frame");
+  RNA_def_property_ui_text(prop, "Use Snapping", "Snap strips during transform");
   RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* Publish message-bus. */
@@ -4216,6 +4216,22 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "snap_to_markers", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "snap_mode", SEQ_SNAP_TO_MARKERS);
   RNA_def_property_ui_text(prop, "Markers", "Snap to markers");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
+  prop = RNA_def_property(srna, "snap_to_borders", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "snap_mode", SEQ_SNAP_TO_PREVIEW_BORDERS);
+  RNA_def_property_ui_text(prop, "Borders", "Snap to preview borders");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
+  prop = RNA_def_property(srna, "snap_to_center", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "snap_mode", SEQ_SNAP_TO_PREVIEW_CENTER);
+  RNA_def_property_ui_text(prop, "Center", "Snap to preview center");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
+  prop = RNA_def_property(srna, "snap_to_strips_preview", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "snap_mode", SEQ_SNAP_TO_STRIPS_PREVIEW);
+  RNA_def_property_ui_text(
+      prop, "Other Strips", "Snap to borders and origins of deselected, visible strips");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "snap_ignore_muted", PROP_BOOLEAN, PROP_NONE);

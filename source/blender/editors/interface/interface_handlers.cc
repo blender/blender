@@ -11013,13 +11013,13 @@ static int ui_handle_menu_event(bContext *C,
             }
 
             /* Accelerator keys that allow "pressing" a menu entry by pressing a single key. */
-            LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-              if (!(but->flag & UI_BUT_DISABLED) && but->menu_key == event->type) {
-                if (but->type == UI_BTYPE_BUT) {
-                  UI_but_execute(C, region, but);
+            LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+              if (!(but_iter->flag & UI_BUT_DISABLED) && but_iter->menu_key == event->type) {
+                if (but_iter->type == UI_BTYPE_BUT) {
+                  UI_but_execute(C, region, but_iter);
                 }
                 else {
-                  ui_handle_button_activate_by_type(C, region, but);
+                  ui_handle_button_activate_by_type(C, region, but_iter);
                 }
                 return WM_UI_HANDLER_BREAK;
               }

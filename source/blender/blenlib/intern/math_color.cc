@@ -892,7 +892,7 @@ bool whitepoint_to_temp_tint(const float3 &white, float &temperature, float &tin
   if (entry == planck_locus.begin() || entry == planck_locus.end()) {
     return false;
   }
-  const size_t i = (size_t)(entry - planck_locus.begin());
+  const size_t i = size_t(entry - planck_locus.begin());
   const locus_entry_t &low = planck_locus[i - 1], high = planck_locus[i];
 
   /* Find closest point on locus. */
@@ -919,7 +919,7 @@ float3 whitepoint_from_temp_tint(const float temperature, const float tint)
       1e6f / temperature, planck_locus[0].mired, planck_locus[planck_locus.size() - 1].mired);
   auto check = [](const locus_entry_t &entry, const float val) { return entry.mired < val; };
   const auto entry = std::lower_bound(planck_locus.begin(), planck_locus.end(), mired, check);
-  const size_t i = (size_t)(entry - planck_locus.begin());
+  const size_t i = size_t(entry - planck_locus.begin());
   const locus_entry_t &low = planck_locus[i - 1], high = planck_locus[i];
 
   /* Find interpolation factor. */
@@ -934,7 +934,7 @@ float3 whitepoint_from_temp_tint(const float temperature, const float tint)
   const float2 isotherm = normalize(interpolate(isotherm0, isotherm1, f));
 
   /* Offset away from the Planckian locus according to the tint.
-   * Tint is parametrized such that +-3000 tint corresponds to +-1 delta UV. */
+   * Tint is parameterized such that +-3000 tint corresponds to +-1 delta UV. */
   uv -= isotherm * tint / 3000.0f;
 
   /* Convert CIE 1960 uv -> xyY. */

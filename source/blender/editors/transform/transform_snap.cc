@@ -167,6 +167,10 @@ bool transformModeUseSnap(const TransInfo *t)
   }
   ToolSettings *ts = t->settings;
   if (t->mode == TFM_TRANSLATION) {
+    /* VSE preview snapping should also not depend on the 3D viewport. */
+    if (t->spacetype == SPACE_SEQ) {
+      return true;
+    }
     return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_TRANSLATE) != 0;
   }
   if (t->mode == TFM_ROTATION) {
@@ -357,11 +361,31 @@ void drawSnapping(TransInfo *t)
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4ubv(col);
     float pixelx = BLI_rctf_size_x(&region->v2d.cur) / BLI_rcti_size_x(&region->v2d.mask);
-    immRectf(pos,
-             t->tsnap.snap_target[0] - pixelx,
-             region->v2d.cur.ymax,
-             t->tsnap.snap_target[0] + pixelx,
-             region->v2d.cur.ymin);
+
+    if (region->regiontype == RGN_TYPE_PREVIEW) {
+      if (t->tsnap.direction & DIR_GLOBAL_X) {
+        immRectf(pos,
+                 t->tsnap.snap_target[0] - pixelx,
+                 region->v2d.cur.ymax,
+                 t->tsnap.snap_target[0] + pixelx,
+                 region->v2d.cur.ymin);
+      }
+      if (t->tsnap.direction & DIR_GLOBAL_Y) {
+        immRectf(pos,
+                 region->v2d.cur.xmin,
+                 t->tsnap.snap_target[1] - pixelx,
+                 region->v2d.cur.xmax,
+                 t->tsnap.snap_target[1] + pixelx);
+      }
+    }
+    else {
+      immRectf(pos,
+               t->tsnap.snap_target[0] - pixelx,
+               region->v2d.cur.ymax,
+               t->tsnap.snap_target[0] + pixelx,
+               region->v2d.cur.ymin);
+    }
+
     immUnbindProgram();
     GPU_blend(GPU_BLEND_NONE);
   }

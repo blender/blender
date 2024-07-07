@@ -358,7 +358,12 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
     }
   }
   else if (t->spacetype == SPACE_SEQ) {
-    transform_snap_sequencer_apply_translate(t, vec);
+    if (t->region->regiontype == RGN_TYPE_PREVIEW) {
+      transform_snap_sequencer_image_apply_translate(t, vec);
+    }
+    else {
+      transform_snap_sequencer_apply_seqslide(t, vec);
+    }
   }
   else {
     if (t->spacetype == SPACE_VIEW3D) {

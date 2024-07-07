@@ -4130,3 +4130,8 @@ void draw_outliner(const bContext *C)
 /** \} */
 
 }  // namespace blender::ed::outliner
+
+int ED_outliner_icon_from_id(const ID &id)
+{
+  return blender::ed::outliner::tree_element_get_icon_from_id(&id);
+}

@@ -1988,7 +1988,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
   for (int i = channel_min; i <= channel_max; i++) {
     SeqTimelineChannel *channel_cur = SEQ_channel_get_by_index(channels_cur, i);
     SeqTimelineChannel *channel_meta = SEQ_channel_get_by_index(channels_meta, i);
-    BLI_strncpy(channel_meta->name, channel_cur->name, sizeof(channel_meta->name));
+    STRNCPY(channel_meta->name, channel_cur->name);
     channel_meta->flag = channel_cur->flag;
   }
 

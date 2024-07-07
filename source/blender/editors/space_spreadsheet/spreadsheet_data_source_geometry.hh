@@ -9,6 +9,7 @@
 #include "BLI_resource_scope.hh"
 
 #include "BKE_geometry_set.hh"
+#include "BKE_instances.hh"
 
 #include "spreadsheet_data_source.hh"
 
@@ -108,6 +109,8 @@ class VolumeDataSource : public DataSource {
 
   int tot_rows() const override;
 };
+
+int get_instance_reference_icon(const bke::InstanceReference &reference);
 
 std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval);
 

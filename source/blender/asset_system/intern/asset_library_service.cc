@@ -469,7 +469,7 @@ void AssetLibraryService::allocate_service_instance()
   }
 }
 
-static void on_blendfile_load(Main * /*bMain*/,
+static void on_blendfile_load(Main * /*bmain*/,
                               PointerRNA ** /*pointers*/,
                               const int /*num_pointers*/,
                               void * /*arg*/)

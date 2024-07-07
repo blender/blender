@@ -137,7 +137,7 @@ ccl_device float2 compute_2d_gabor_noise_cell(
 }
 
 /* Computes the Gabor noise value by dividing the space into a grid and evaluating the Gabor noise
- * in the space of each cell of the 3x3 cell neighbourhood. */
+ * in the space of each cell of the 3x3 cell neighborhood. */
 ccl_device float2 compute_2d_gabor_noise(float2 coordinates,
                                          float frequency,
                                          float isotropy,
@@ -248,7 +248,7 @@ ccl_device float2 compute_3d_gabor_noise_cell(
   return noise;
 }
 
-/* Identical to compute_2d_gabor_noise but works in the 3D neighbourhood of the noise. */
+/* Identical to compute_2d_gabor_noise but works in the 3D neighborhood of the noise. */
 ccl_device float2 compute_3d_gabor_noise(float3 coordinates,
                                          float frequency,
                                          float isotropy,

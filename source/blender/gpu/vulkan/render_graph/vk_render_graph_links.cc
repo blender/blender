@@ -24,7 +24,7 @@ void VKRenderGraphLink::debug_print(std::ostream &ss,
   switch (tracked_resource.type) {
     case VKResourceType::BUFFER: {
       ss << "BUFFER";
-      ss << ", vk_handle=" << (uint64_t)tracked_resource.buffer.vk_buffer;
+      ss << ", vk_handle=" << uint64_t(tracked_resource.buffer.vk_buffer);
 #ifndef NDEBUG
       if (tracked_resource.name) {
         ss << ", name=" << tracked_resource.name;
@@ -35,7 +35,7 @@ void VKRenderGraphLink::debug_print(std::ostream &ss,
     }
     case VKResourceType::IMAGE: {
       ss << "IMAGE";
-      ss << ", vk_handle=" << (uint64_t)tracked_resource.image.vk_image;
+      ss << ", vk_handle=" << uint64_t(tracked_resource.image.vk_image);
 #ifndef NDEBUG
       if (tracked_resource.name) {
         ss << ", name=" << tracked_resource.name;

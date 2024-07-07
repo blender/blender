@@ -730,9 +730,9 @@ Action *get_action(ID &animated_id);
  * Get the Action and the Slot that animate this ID.
  *
  * \return One of two options:
- *  - pair<Action, Slot> when an Action and a Slot are assigned. In other
+ *  - `pair<Action, Slot>` when an Action and a Slot are assigned. In other
  *    words, when this ID is actually animated by this Action+Slot pair.
- *  - nullopt: when this ID is not animated. This can have several causes: not
+ *  - `nullopt`: when this ID is not animated. This can have several causes: not
  *    an animatable type, no Action assigned, or no Slot assigned.
  */
 std::optional<std::pair<Action *, Slot *>> get_action_slot_pair(ID &animated_id);

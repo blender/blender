@@ -53,7 +53,7 @@ PyC_StringEnumItems bpygpu_dataformat_items[] = {
 /** \name Utilities
  * \{ */
 
-bool bpygpu_is_init_or_error(void)
+bool bpygpu_is_init_or_error()
 {
   if (!GPU_is_init()) {
     PyErr_SetString(PyExc_SystemError,

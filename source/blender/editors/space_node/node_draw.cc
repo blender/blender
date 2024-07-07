@@ -4396,16 +4396,14 @@ static void node_draw_zones_and_frames(const bContext &C,
                                        Span<uiBlock *> blocks)
 {
   const bNodeTreeZones *zones = ntree.zones();
-  if (zones == nullptr) {
-    return;
-  }
+  const int zones_num = zones ? zones->zones.size() : 0;
 
-  Array<Vector<float2>> bounds_by_zone(zones->zones.size());
-  Array<bke::CurvesGeometry> fillet_curve_by_zone(zones->zones.size());
+  Array<Vector<float2>> bounds_by_zone(zones_num);
+  Array<bke::CurvesGeometry> fillet_curve_by_zone(zones_num);
   /* Bounding box area of zones is used to determine draw order. */
-  Array<float> bounding_box_width_by_zone(zones->zones.size());
+  Array<float> bounding_box_width_by_zone(zones_num);
 
-  for (const int zone_i : zones->zones.index_range()) {
+  for (const int zone_i : IndexRange(zones_num)) {
     const bNodeTreeZone &zone = *zones->zones[zone_i];
 
     find_bounds_by_zone_recursive(snode, zone, zones->zones, bounds_by_zone);
@@ -4451,8 +4449,8 @@ static void node_draw_zones_and_frames(const bContext &C,
 
   using ZoneOrNode = std::variant<const bNodeTreeZone *, const bNode *>;
   Vector<ZoneOrNode> draw_order;
-  for (const std::unique_ptr<bNodeTreeZone> &zone : zones->zones) {
-    draw_order.append(zone.get());
+  for (const int zone_i : IndexRange(zones_num)) {
+    draw_order.append(zones->zones[zone_i].get());
   }
   for (const bNode *node : ntree.all_nodes()) {
     if (node->flag & NODE_BACKGROUND) {
