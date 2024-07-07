@@ -3195,6 +3195,10 @@ void uiItemPopoverPanel_ptr(
     icon = ICON_BLANK1;
   }
 
+  const bContextStore *previous_ctx = CTX_store_get(C);
+  /* Set context for polling (and panel header drawing). */
+  CTX_store_set(const_cast<bContext *>(C), layout->context);
+
   const bool ok = (pt->poll == nullptr) || pt->poll(C, pt);
   if (ok && (pt->draw_header != nullptr)) {
     layout = uiLayoutRow(layout, true);
@@ -3206,6 +3210,9 @@ void uiItemPopoverPanel_ptr(
     panel.flag = PNL_POPOVER;
     pt->draw_header(C, &panel);
   }
+
+  CTX_store_set(const_cast<bContext *>(C), previous_ctx);
+
   uiBut *but = ui_item_menu(
       layout, name, icon, ui_item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
   but->type = UI_BTYPE_POPOVER;
@@ -6107,6 +6114,11 @@ PanelType *UI_but_paneltype_get(const uiBut *but)
     return (PanelType *)but->poin;
   }
   return nullptr;
+}
+
+std::optional<blender::StringRefNull> UI_but_asset_shelf_type_idname_get(const uiBut *but)
+{
+  return UI_asset_shelf_idname_from_button_context(but);
 }
 
 void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout)

@@ -61,8 +61,8 @@ struct uiPopover {
   wmKeyMap *keymap;
   wmEventHandler_Keymap *keymap_handler;
 
-  uiMenuCreateFunc menu_func;
-  const PanelType *menu_arg;
+  uiPopoverCreateFunc popover_func;
+  const PanelType *panel_type;
 
   /* Size in pixels (ui scale applied). */
   int ui_size_x;
@@ -114,9 +114,9 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
   if (!pup->layout) {
     ui_popover_create_block(C, handle->region, pup, WM_OP_INVOKE_REGION_WIN);
 
-    if (pup->menu_func) {
+    if (pup->popover_func) {
       pup->block->handle = handle;
-      pup->menu_func(C, pup->layout, const_cast<PanelType *>(pup->menu_arg));
+      pup->popover_func(C, pup->layout, const_cast<PanelType *>(pup->panel_type));
       pup->block->handle = nullptr;
     }
 
@@ -185,6 +185,20 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
      * areas near the bottom of the window on refreshes. */
     handle->max_size_y = UI_UNIT_Y * 16.0f;
   }
+  else if (pup->panel_type &&
+           (pup->panel_type->offset_units_xy.x || pup->panel_type->offset_units_xy.y))
+  {
+    UI_block_flag_enable(block, UI_BLOCK_LOOP);
+    UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+    UI_block_direction_set(block, block->direction);
+    block->minbounds = UI_MENU_WIDTH_MIN;
+
+    const int bounds_offset[2] = {
+        int(pup->panel_type->offset_units_xy.x * UI_UNIT_X),
+        int(pup->panel_type->offset_units_xy.y * UI_UNIT_Y),
+    };
+    UI_block_bounds_set_popup(block, block_margin, bounds_offset);
+  }
   else {
     /* Not attached to a button. */
     int bounds_offset[2] = {0, 0};
@@ -233,20 +247,20 @@ static void ui_block_free_func_POPOVER(void *arg_pup)
     wmWindow *window = pup->window;
     WM_event_remove_keymap_handler(&window->modalhandlers, pup->keymap);
   }
-  MEM_freeN(pup);
+  MEM_delete(pup);
 }
 
 uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
                                             ARegion *butregion,
                                             uiBut *but,
-                                            uiMenuCreateFunc menu_func,
+                                            uiPopoverCreateFunc popover_func,
                                             const PanelType *panel_type)
 {
   wmWindow *window = CTX_wm_window(C);
   const uiStyle *style = UI_style_get_dpi();
 
   /* Create popover, buttons are created from callback. */
-  uiPopover *pup = MEM_cnew<uiPopover>(__func__);
+  uiPopover *pup = MEM_new<uiPopover>(__func__);
   pup->but = but;
 
   /* FIXME: maybe one day we want non panel popovers? */
@@ -259,8 +273,8 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
                      (text_points_max / float(UI_DEFAULT_TEXT_POINTS));
   }
 
-  pup->menu_func = menu_func;
-  pup->menu_arg = panel_type;
+  pup->popover_func = popover_func;
+  pup->panel_type = panel_type;
 
 #ifdef USE_UI_POPOVER_ONCE
   {
@@ -335,7 +349,7 @@ int UI_popover_panel_invoke(bContext *C, const char *idname, bool keep_open, Rep
 
 uiPopover *UI_popover_begin(bContext *C, int ui_menu_width, bool from_active_button)
 {
-  uiPopover *pup = MEM_cnew<uiPopover>(__func__);
+  uiPopover *pup = MEM_new<uiPopover>(__func__);
   if (ui_menu_width == 0) {
     ui_menu_width = U.widget_unit * UI_POPOVER_WIDTH_UNITS;
   }

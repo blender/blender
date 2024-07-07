@@ -65,7 +65,7 @@ void header_region_init(wmWindowManager *wm, ARegion *region);
 void header_region(const bContext *C, ARegion *region);
 void header_region_listen(const wmRegionListenerParams *params);
 int header_region_size();
-void header_regiontype_register(ARegionType *region_type, const int space_type);
+void types_register(ARegionType *region_type, const int space_type);
 
 /** \} */
 
@@ -90,7 +90,6 @@ AssetShelfType *type_find_from_idname(const StringRef idname);
 /** \name Asset Shelf Popup
  * \{ */
 
-uiBlock *popup_block_create(const bContext *C, ARegion *region, AssetShelfType *shelf_type);
 void type_popup_unlink(const AssetShelfType &shelf_type);
 
 /** \} */
