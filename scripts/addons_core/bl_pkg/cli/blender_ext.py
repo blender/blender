@@ -436,16 +436,29 @@ def random_acii_lines(*, seed: Union[int, str], width: int) -> Generator[str, No
         yield "".join(chars_list[:width])
 
 
-def sha256_from_file(filepath: str, block_size: int = 1 << 20, hash_prefix: bool = False) -> Tuple[int, str]:
+def sha256_from_file_or_error(
+        filepath: str,
+        block_size: int = 1 << 20,
+        hash_prefix: bool = False,
+) -> Union[Tuple[int, str], str]:
     """
     Returns an arbitrary sized unique ASCII string based on the file contents.
     (exact hashing method may change).
     """
-    with open(filepath, 'rb') as fh:
+    try:
+        fh_context = open(filepath, 'rb')
+    except Exception as ex:
+        return "error opening file: {:s}".format(str(ex))
+
+    with contextlib.closing(fh_context) as fh:
         size = 0
         sha256 = hashlib.new('sha256')
         while True:
-            data = fh.read(block_size)
+            try:
+                data = fh.read(block_size)
+            except Exception as ex:
+                return "error reading file: {:s}".format(str(ex))
+
             if not data:
                 break
             sha256.update(data)
@@ -759,14 +772,12 @@ def pkg_manifest_from_zipfile_and_validate_impl(
     if file_content is None:
         return ["Archive does not contain a manifest"]
 
-    manifest_dict = toml_from_bytes(file_content)
-    assert isinstance(manifest_dict, dict)
+    if isinstance((manifest_dict := toml_from_bytes_or_error(file_content)), str):
+        return ["Archive contains a manifest that could not be parsed {:s}".format(manifest_dict)]
 
+    assert isinstance(manifest_dict, dict)
     pkg_manifest_dict_apply_build_generated_table(manifest_dict)
 
-    # TODO: forward actual error.
-    if manifest_dict is None:
-        return ["Archive does not contain a manifest"]
     return pkg_manifest_from_dict_and_validate_impl(
         manifest_dict,
         from_repo=False,
@@ -2311,17 +2322,23 @@ def pkg_manifest_detect_duplicates(pkg_idname: str, pkg_items: List[PkgManifest]
     return None
 
 
-def toml_from_bytes(data: bytes) -> Optional[Dict[str, Any]]:
-    result = tomllib.loads(data.decode('utf-8'))
-    assert isinstance(result, dict)
-    return result
+def toml_from_bytes_or_error(data: bytes) -> Union[Dict[str, Any], str]:
+    try:
+        result = tomllib.loads(data.decode('utf-8'))
+        assert isinstance(result, dict)
+        return result
+    except Exception as ex:
+        return str(ex)
 
 
-def toml_from_filepath(filepath: str) -> Optional[Dict[str, Any]]:
-    with open(filepath, "rb") as fh:
-        data = fh.read()
-    result = toml_from_bytes(data)
-    return result
+def toml_from_filepath_or_error(filepath: str) -> Union[Dict[str, Any], str]:
+    try:
+        with open(filepath, "rb") as fh:
+            data = fh.read()
+        result = toml_from_bytes_or_error(data)
+        return result
+    except Exception as ex:
+        return str(ex)
 
 
 def repo_local_private_dir(*, local_dir: str) -> str:
@@ -2331,25 +2348,48 @@ def repo_local_private_dir(*, local_dir: str) -> str:
     return os.path.join(local_dir, REPO_LOCAL_PRIVATE_DIR)
 
 
-def repo_local_private_dir_ensure(*, local_dir: str) -> str:
+def repo_local_private_dir_ensure(
+        *,
+        local_dir: str,
+        error_fn: Callable[[Exception], None],
+) -> Optional[str]:
     """
     Ensure the repos hidden directory exists.
     """
     local_private_dir = repo_local_private_dir(local_dir=local_dir)
     if not os.path.isdir(local_private_dir):
         # Unlikely but possible `local_dir` is missing.
-        os.makedirs(local_private_dir)
+        try:
+            os.makedirs(local_private_dir)
+        except Exception as ex:
+            error_fn(ex)
+            return None
     return local_private_dir
 
 
-def repo_local_private_dir_ensure_with_subdir(*, local_dir: str, subdir: str) -> str:
+def repo_local_private_dir_ensure_with_subdir(
+        *,
+        local_dir: str,
+        subdir: str,
+        error_fn: Callable[[Exception], None],
+) -> Optional[str]:
     """
     Return a local directory used to cache package downloads.
     """
-    local_private_subdir = os.path.join(repo_local_private_dir_ensure(local_dir=local_dir), subdir)
+    if (local_private_dir := repo_local_private_dir_ensure(
+            local_dir=local_dir,
+            error_fn=error_fn,
+    )) is None:
+        return None
+
+    local_private_subdir = os.path.join(local_private_dir, subdir)
     if not os.path.isdir(local_private_subdir):
         # Unlikely but possible `local_dir` is missing.
-        os.makedirs(local_private_subdir)
+        try:
+            os.makedirs(local_private_subdir)
+        except Exception as ex:
+            error_fn(ex)
+            return None
     return local_private_subdir
 
 
@@ -2379,9 +2419,16 @@ def repo_sync_from_remote(
     if request_exit:
         return False
 
+    if (local_private_dir := repo_local_private_dir_ensure(
+            local_dir=local_dir,
+            error_fn=lambda ex: any_as_none(
+                msglog.fatal_error("Error creating private directory: {:s}".format(str(ex)))
+            ),
+    )) is None:
+        return False
+
     remote_json_url = remote_url_get(remote_url)
 
-    local_private_dir = repo_local_private_dir_ensure(local_dir=local_dir)
     local_json_path = os.path.join(local_private_dir, PKG_REPO_LIST_FILENAME)
     local_json_path_temp = local_json_path + "@"
 
@@ -2451,36 +2498,48 @@ def repo_sync_from_remote(
     return True
 
 
-def repo_pkginfo_from_local_as_dict(*, local_dir: str) -> Optional[Dict[str, Any]]:
+def repo_pkginfo_from_local_as_dict_or_error(*, local_dir: str) -> Union[Dict[str, Any], str]:
     """
     Load package cache.
     """
     local_private_dir = repo_local_private_dir(local_dir=local_dir)
     local_json_path = os.path.join(local_private_dir, PKG_REPO_LIST_FILENAME)
-    if not os.path.exists(local_json_path):
-        return None
 
-    with open(local_json_path, "r", encoding="utf-8") as fh:
-        result = json.load(fh)
-        assert isinstance(result, dict)
+    # Don't check if the path exists, allow this to raise an exception.
+    try:
+        with open(local_json_path, "r", encoding="utf-8") as fh:
+            result = json.load(fh)
+    except Exception as ex:
+        return str(ex)
+
+    if not isinstance(result, dict):
+        return "expected a dict, not a {:s}".format(str(type(result)))
 
     return result
 
 
-def pkg_repo_dat_from_json(json_data: Dict[str, Any]) -> PkgRepoData:
+def pkg_repo_data_from_json_or_error(json_data: Dict[str, Any]) -> Union[PkgRepoData, str]:
+    if not isinstance((version := json_data.get("version", "v1")), str):
+        return "expected \"version\" to be a string"
+
+    if not isinstance((blocklist := json_data.get("blocklist", [])), list):
+        return "expected \"blocklist\" to be a list"
+
+    if not isinstance((data := json_data.get("data", [])), list):
+        return "expected \"data\" to be a list"
+
     result_new = PkgRepoData(
-        version=json_data.get("version", "v1"),
-        blocklist=json_data.get("blocklist", []),
-        data=json_data.get("data", []),
+        version=version,
+        blocklist=blocklist,
+        data=data,
     )
     return result_new
 
 
-def repo_pkginfo_from_local(*, local_dir: str) -> Optional[PkgRepoData]:
-    result = repo_pkginfo_from_local_as_dict(local_dir=local_dir)
-    if result is None:
-        return None
-    return pkg_repo_dat_from_json(result)
+def repo_pkginfo_from_local_or_none(*, local_dir: str) -> Union[PkgRepoData, str]:
+    if isinstance((result := repo_pkginfo_from_local_as_dict_or_error(local_dir=local_dir)), str):
+        return result
+    return pkg_repo_data_from_json_or_error(result)
 
 
 def url_has_known_prefix(path: str) -> bool:
@@ -3028,8 +3087,13 @@ class subcmd_server:
             return False
         del template
 
-        with open(filepath_repo_html, "w", encoding="utf-8") as fh_html:
-            fh_html.write(result)
+        try:
+            with open(filepath_repo_html, "w", encoding="utf-8") as fh_html:
+                fh_html.write(result)
+        except Exception as ex:
+            msglog.fatal_error("HTML failed to write: {:s}".format(str(ex)))
+            return False
+
         return True
 
     @staticmethod
@@ -3100,10 +3164,11 @@ class subcmd_server:
             manifest_dict["archive_url"] = "./" + urllib.request.pathname2url(filename)
 
             # Add archive variables, see: `PkgManifest_Archive`.
-            (
-                manifest_dict["archive_size"],
-                manifest_dict["archive_hash"],
-            ) = sha256_from_file(filepath, hash_prefix=True)
+            if isinstance((result := sha256_from_file_or_error(filepath, hash_prefix=True)), str):
+                msglog.error("unable to calculate hash ({:s}): {:s}".format(result, filepath))
+                continue
+            manifest_dict["archive_size"], manifest_dict["archive_hash"] = result
+            del result
 
             repo_data.append(manifest_dict)
 
@@ -3128,8 +3193,13 @@ class subcmd_server:
 
         filepath_repo_json = os.path.join(repo_dir, PKG_REPO_LIST_FILENAME)
 
-        with open(filepath_repo_json, "w", encoding="utf-8") as fh:
-            json.dump(repo_gen_dict, fh, indent=2)
+        try:
+            with open(filepath_repo_json, "w", encoding="utf-8") as fh:
+                json.dump(repo_gen_dict, fh, indent=2)
+        except Exception as ex:
+            msglog.fatal_error("failed to write repository: {:s}".format(str(ex)))
+            return False
+
         msglog.status("found {:d} packages.".format(len(repo_data)))
 
         return True
@@ -3180,10 +3250,19 @@ class subcmd_client:
                 msglog.fatal_error(msg)
             return False
 
-        result_str = result.getvalue().decode("utf-8")
+        result_bytes = result.getvalue()
         del result
 
-        repo_gen_dict = pkg_repo_dat_from_json(json.loads(result_str))
+        try:
+            result_dict = json.loads(result_bytes)
+        except Exception as ex:
+            msglog.fatal_error("error loading JSON {:s}".format(str(ex)))
+            return False
+
+        if isinstance((repo_gen_dict := pkg_repo_data_from_json_or_error(result_dict)), str):
+            msglog.fatal_error("unexpected contants in JSON {:s}".format(repo_gen_dict))
+            return False
+        del result_dict
 
         items: List[Dict[str, Any]] = repo_gen_dict.data
         items.sort(key=lambda elem: elem.get("id", ""))
@@ -3289,10 +3368,12 @@ class subcmd_client:
                     manifest._asdict(),
                     filter_blender_version=blender_version_tuple,
                     filter_platform=platform_from_this_system(),
-                    skip_message_fn=lambda message:
-                        any_as_none(msglog.error("{:s}: {:s}".format(manifest.id, message))),
-                    error_fn=lambda ex:
-                        any_as_none(msglog.error("{:s}: {:s}".format(manifest.id, str(ex)))),
+                    skip_message_fn=lambda message: any_as_none(
+                        msglog.error("{:s}: {:s}".format(manifest.id, message))
+                    ),
+                    error_fn=lambda ex: any_as_none(
+                        msglog.error("{:s}: {:s}".format(manifest.id, str(ex)))
+                    ),
                 ):
                     return False
 
@@ -3402,9 +3483,18 @@ class subcmd_client:
         assert isinstance(blender_version_tuple, tuple)
 
         # Extract...
-        pkg_repo_data = repo_pkginfo_from_local(local_dir=local_dir)
-        if pkg_repo_data is None:
-            # TODO: raise warning.
+        if isinstance((pkg_repo_data := repo_pkginfo_from_local_or_none(local_dir=local_dir)), str):
+            msglog.fatal_error("Error loading package repository: {:s}".format(pkg_repo_data))
+            return False
+
+        # Ensure a private directory so a local cache can be created.
+        if (local_cache_dir := repo_local_private_dir_ensure_with_subdir(
+                local_dir=local_dir,
+                subdir="cache",
+                error_fn=lambda ex: any_as_none(
+                    msglog.fatal_error("Error creating cache directory: {:s}".format(str(ex)))
+                ),
+        )) is None:
             return False
 
         # Most likely this doesn't have duplicates,but any errors procured by duplicates
@@ -3412,16 +3502,14 @@ class subcmd_client:
         packages_as_set = set(packages)
         packages = tuple(sorted(packages_as_set))
 
-        # Ensure a private directory so a local cache can be created.
-        local_cache_dir = repo_local_private_dir_ensure_with_subdir(local_dir=local_dir, subdir="cache")
-
         # Needed so relative paths can be properly calculated.
         remote_url_strip = remote_url_params_strip(remote_url)
 
         # TODO: filter by version and platform.
         json_data_pkg_info = [
             pkg_info for pkg_info in pkg_repo_data.data
-            if pkg_info["id"] in packages_as_set
+            # The `id` key should always exist, avoid raising an unhandled exception here if it's not.
+            if pkg_info.get("id", "") in packages_as_set
         ]
 
         # Narrow down:
@@ -3508,14 +3596,16 @@ class subcmd_client:
                 # Check if the cache should be used.
                 found = False
                 if os.path.exists(filepath_local_cache_archive):
-                    if (
-                            local_cache and (
-                                archive_size_expected,
-                                archive_hash_expected,
-                            ) == sha256_from_file(filepath_local_cache_archive, hash_prefix=True)
-                    ):
-                        found = True
-                    else:
+                    if local_cache:
+                        if isinstance((result := sha256_from_file_or_error(
+                                filepath_local_cache_archive,
+                                hash_prefix=True,
+                        )), str):
+                            # Only a warning because it's not a problem to re-download the file.
+                            msglog.warn("unable to calculate hash for cache: {:s}".format(result))
+                        elif result == (archive_size_expected, archive_hash_expected):
+                            found = True
+                    if not found:
                         os.unlink(filepath_local_cache_archive)
 
                 if not found:
@@ -3610,6 +3700,17 @@ class subcmd_client:
             msglog.fatal_error("Missing local \"{:s}\"".format(local_dir))
             return False
 
+        # Ensure a private directory so a local cache can be created.
+        # TODO: don't create (it's only accessed for file removal).
+        if (local_cache_dir := repo_local_private_dir_ensure_with_subdir(
+                local_dir=local_dir,
+                subdir="cache",
+                error_fn=lambda ex: any_as_none(
+                    msglog.fatal_error("Error creating cache directory: {:s}".format(str(ex)))
+                ),
+        )) is None:
+            return False
+
         # Most likely this doesn't have duplicates,but any errors procured by duplicates
         # are likely to be obtuse enough that it's better to guarantee there are none.
         packages = tuple(sorted(set(packages)))
@@ -3638,10 +3739,6 @@ class subcmd_client:
 
         if has_fatal_error:
             return False
-
-        # Ensure a private directory so a local cache can be created.
-        # TODO: don't create (it's only accessed for file removal).
-        local_cache_dir = repo_local_private_dir_ensure_with_subdir(local_dir=local_dir, subdir="cache")
 
         files_to_clean: List[str] = []
         with CleanupPathsContext(files=files_to_clean, directories=()):
@@ -3907,17 +4004,21 @@ class subcmd_author:
 
                         zip_data_override: Optional[bytes] = None
                         if platform and (filepath_rel == PKG_MANIFEST_FILENAME_TOML):
-                            with open(filepath_abs, "rb") as temp_fh:
-                                zip_data_override = temp_fh.read()
-                                zip_data_override = zip_data_override + b"".join((
-                                    b"\n",
-                                    b"\n",
-                                    b"# BEGIN GENERATED CONTENT.\n",
-                                    b"# This must not be included in source manifests.\n",
-                                    b"[build.generated]\n",
-                                    "platforms = [\"{:s}\"]\n".format(platform).encode("utf-8"),
-                                    b"# END GENERATED CONTENT.\n",
-                                ))
+                            zip_data_override = b"".join((
+                                b"\n",
+                                b"\n",
+                                b"# BEGIN GENERATED CONTENT.\n",
+                                b"# This must not be included in source manifests.\n",
+                                b"[build.generated]\n",
+                                "platforms = [\"{:s}\"]\n".format(platform).encode("utf-8"),
+                                b"# END GENERATED CONTENT.\n",
+                            ))
+                            try:
+                                with open(filepath_abs, "rb") as temp_fh:
+                                    zip_data_override = temp_fh.read() + zip_data_override
+                            except Exception as ex:
+                                msglog.status("Error overriding manifest \"{:s}\"".format(str(ex)))
+                                return False
 
                         # Handy for testing that sub-directories:
                         # zip_fh.write(filepath_abs, manifest.id + "/" + filepath_rel)
