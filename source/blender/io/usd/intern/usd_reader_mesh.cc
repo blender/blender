@@ -25,6 +25,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
+#include "BLI_task.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -268,6 +269,14 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
     mesh_prim_.GetNormalsAttr().Get(&normals_, motionSampleTime);
     normal_interpolation_ = mesh_prim_.GetNormalsInterpolation();
   }
+
+  /* Blender expects mesh normals to actually be normalized. */
+  MutableSpan<pxr::GfVec3f> usd_data(normals_.data(), normals_.size());
+  threading::parallel_for(usd_data.index_range(), 4096, [&](const IndexRange range) {
+    for (const int normal_i : range) {
+      usd_data[normal_i].Normalize();
+    }
+  });
 
   return positions_.size() != existing_mesh->verts_num ||
          face_counts_.size() != existing_mesh->faces_num ||
