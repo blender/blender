@@ -272,6 +272,7 @@ void AssetList::clear(const bContext *C)
   filelist_readjob_stop(files, CTX_wm_manager(C));
   filelist_freelib(files);
   filelist_clear(files);
+  filelist_tag_force_reset(files);
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
 }
