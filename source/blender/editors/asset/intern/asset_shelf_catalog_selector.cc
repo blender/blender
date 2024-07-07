@@ -75,10 +75,15 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
   {
     Item &view_item = parent_view_item.add_tree_item<Item>(catalog_item, shelf_);
 
-    catalog_item.foreach_child(
-        [&view_item, this](const asset_system::AssetCatalogTreeItem &child) {
-          build_catalog_items_recursive(view_item, child);
-        });
+    const int parent_count = view_item.count_parents() + 1;
+    catalog_item.foreach_child([&, this](const asset_system::AssetCatalogTreeItem &child) {
+      Item &child_item = build_catalog_items_recursive(view_item, child);
+
+      /* Uncollapse to some level (gives quick acces, but don't let the tree get too big). */
+      if (parent_count < 2) {
+        child_item.uncollapse_by_default();
+      }
+    });
 
     return view_item;
   }

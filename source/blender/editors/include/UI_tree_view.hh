@@ -230,6 +230,8 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   bool is_collapsed() const;
   bool is_collapsible() const;
 
+  int count_parents() const;
+
   /**
    * Called when the view changes an item's state from expanded to collapsed, or vice versa. Will
    * only be called if the state change is triggered through the view, not through external
@@ -306,7 +308,6 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   void add_rename_button(uiLayout &row);
 
   bool has_active_child() const;
-  int count_parents() const;
 };
 
 /** \} */
