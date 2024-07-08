@@ -242,7 +242,6 @@ set(LIB
   bf_nodes
   PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
-  PRIVATE bf_io_wavefront_obj
 )
 
 if(WITH_IO_STL)
