@@ -3682,7 +3682,7 @@ class subcmd_client:
 
                     # Validate:
                     if filename_archive_size_test != archive_size_expected:
-                        msglog.error("Archive size mismatch \"{:s}\", expected {:d}, was {:d}".format(
+                        msglog.fatal_error("Archive size mismatch \"{:s}\", expected {:d}, was {:d}".format(
                             pkg_idname,
                             archive_size_expected,
                             filename_archive_size_test,
@@ -3690,7 +3690,7 @@ class subcmd_client:
                         return False
                     filename_archive_hash_test = "sha256:" + sha256.hexdigest()
                     if filename_archive_hash_test != archive_hash_expected:
-                        msglog.error("Archive checksum mismatch \"{:s}\", expected {:s}, was {:s}".format(
+                        msglog.fatal_error("Archive checksum mismatch \"{:s}\", expected {:s}, was {:s}".format(
                             pkg_idname,
                             archive_hash_expected,
                             filename_archive_hash_test,
@@ -3776,9 +3776,8 @@ class subcmd_client:
 
                 if (error := rmtree_with_fallback_or_error(filepath_local_pkg)) is not None:
                     msglog.error("Failure to remove \"{:s}\" with error ({:s})".format(pkg_idname, error))
-                    continue
-
-                msglog.status("Removed \"{:s}\"".format(pkg_idname))
+                else:
+                    msglog.status("Removed \"{:s}\"".format(pkg_idname))
 
                 filepath_local_cache_archive = os.path.join(local_cache_dir, pkg_idname + PKG_EXT)
                 if os.path.exists(filepath_local_cache_archive):
@@ -3786,12 +3785,13 @@ class subcmd_client:
 
                 if user_dir:
                     filepath_user_pkg = os.path.join(user_dir, pkg_idname)
-                    if os.path.isdir(filepath_user_pkg):
+                    if os.path.exists(filepath_user_pkg):
                         if (error := rmtree_with_fallback_or_error(filepath_user_pkg)) is not None:
                             msglog.error(
                                 "Failure to remove \"{:s}\" user files with error ({:s})".format(pkg_idname, error),
                             )
-                            continue
+                        else:
+                            msglog.status("Removed cache \"{:s}\"".format(pkg_idname))
 
         return True
 
@@ -3971,7 +3971,7 @@ class subcmd_author:
                 del build_paths_extra_canonical
 
             except Exception as ex:
-                msglog.status("Error building path list \"{:s}\"".format(str(ex)))
+                msglog.fatal_error("Error building path list \"{:s}\"".format(str(ex)))
                 return False
 
         request_exit = False
@@ -4025,7 +4025,7 @@ class subcmd_author:
                 try:
                     zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_DEFLATED, compresslevel=9)
                 except Exception as ex:
-                    msglog.status("Error creating archive \"{:s}\"".format(str(ex)))
+                    msglog.fatal_error("Error creating archive \"{:s}\"".format(str(ex)))
                     return False
 
                 with contextlib.closing(zip_fh_context) as zip_fh:
@@ -4058,7 +4058,7 @@ class subcmd_author:
                                 with open(filepath_abs, "rb") as temp_fh:
                                     zip_data_override = temp_fh.read() + zip_data_override
                             except Exception as ex:
-                                msglog.status("Error overriding manifest \"{:s}\"".format(str(ex)))
+                                msglog.fatal_error("Error overriding manifest \"{:s}\"".format(str(ex)))
                                 return False
 
                         # Handy for testing that sub-directories:
@@ -4070,7 +4070,7 @@ class subcmd_author:
                             else:
                                 zip_fh.write(filepath_abs, filepath_rel, compress_type=compress_type)
                         except Exception as ex:
-                            msglog.status("Error adding to archive \"{:s}\"".format(str(ex)))
+                            msglog.fatal_error("Error adding to archive \"{:s}\"".format(str(ex)))
                             return False
 
                         if verbose:
@@ -4188,14 +4188,14 @@ class subcmd_author:
 
         with contextlib.closing(zip_fh_context) as zip_fh:
             if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
-                msglog.status("Error, archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
+                msglog.fatal_error("Error, archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
                 return False
             # Demote errors to status as the function of this action is to check the manifest is stable.
             manifest = pkg_manifest_from_zipfile_and_validate_all_errors(zip_fh, archive_subdir, strict=True)
             if isinstance(manifest, list):
-                msglog.status("Error parsing TOML in \"{:s}\"".format(pkg_source_archive))
+                msglog.fatal_error("Error parsing TOML in \"{:s}\"".format(pkg_source_archive))
                 for error_msg in manifest:
-                    msglog.status(error_msg)
+                    msglog.fatal_error(error_msg)
                 return False
 
             if valid_tags_filepath:
@@ -4223,7 +4223,7 @@ class subcmd_author:
             ok = True
             for filepath in expected_files:
                 if zip_fh.NameToInfo.get(filepath) is None:
-                    msglog.status("Error, file missing from {:s}: \"{:s}\"".format(
+                    msglog.fatal_error("Error, file missing from {:s}: \"{:s}\"".format(
                         manifest.type,
                         filepath,
                     ))
