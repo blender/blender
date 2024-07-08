@@ -2617,7 +2617,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         if filter in {"All", "Enabled"}:
             # Append missing scripts
             # First collect scripts that are used but have no script file.
-            module_names = {mod.__name__ for mod in addon_modules}
             missing_modules = {
                 addon_module_name for addon_module_name in used_addon_module_name_map
                 if addon_module_name not in module_names
