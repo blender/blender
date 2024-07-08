@@ -34,9 +34,9 @@ Curve *blender::io::obj::CurveFromGeometry::create_curve()
   /* Only one NURBS spline will be created in the curve object. */
   curve->actnu = 0;
 
-  Nurb *nurb = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), "OBJ import NURBS curve"));
+  Nurb *nurb = MEM_cnew<Nurb>(__func__);
   BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
-  create_nurbs(curve);
+  this->create_nurbs(curve);
 
   return curve;
 }
@@ -61,9 +61,9 @@ Object *CurveFromGeometry::create_curve_object(Main *bmain, const OBJImportParam
   /* Only one NURBS spline will be created in the curve object. */
   curve->actnu = 0;
 
-  Nurb *nurb = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), "OBJ import NURBS curve"));
+  Nurb *nurb = MEM_cnew<Nurb>(__func__);
   BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
-  create_nurbs(curve);
+  this->create_nurbs(curve);
 
   obj->data = curve;
   transform_object(obj, import_params);
@@ -79,7 +79,7 @@ void CurveFromGeometry::create_nurbs(Curve *curve)
   nurb->type = CU_NURBS;
   nurb->flag = CU_3D;
   nurb->next = nurb->prev = nullptr;
-  /* BKE_nurb_points_add later on will update pntsu. If this were set to total curv points,
+  /* BKE_nurb_points_add later on will update pntsu. If this were set to total curve points,
    * we get double the total points in viewport. */
   nurb->pntsu = 0;
   /* Total points = pntsu * pntsv. */

@@ -29,14 +29,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_IO_STL
   const std::string path = params.extract_input<std::string>("Path");
-
   if (path.empty()) {
     params.set_default_remaining_outputs();
     return;
   }
 
   STLImportParams import_params;
-
   STRNCPY(import_params.filepath, path.c_str());
 
   import_params.forward_axis = IO_AXIS_NEGATIVE_Z;
@@ -48,13 +46,13 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
+  BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); })
   import_params.reports = &reports;
 
   Mesh *mesh = STL_import_mesh(&import_params);
 
   LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
     NodeWarningType type;
-
     switch (report->type) {
       case RPT_ERROR:
         type = NodeWarningType::Error;
@@ -63,18 +61,11 @@ static void node_geo_exec(GeoNodeExecParams params)
         type = NodeWarningType::Info;
         break;
     }
-
     params.error_message_add(type, TIP_(report->message));
   }
 
-  BKE_reports_free(&reports);
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 
-  if (mesh != nullptr) {
-    params.set_output("Mesh", GeometrySet::from_mesh(mesh));
-  }
-  else {
-    params.set_default_remaining_outputs();
-  }
 #else
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without STL I/O"));

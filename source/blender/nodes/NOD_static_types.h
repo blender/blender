@@ -355,7 +355,7 @@ DefNode(GeometryNode, GEO_NODE_IMAGE_INFO, 0, "IMAGE_INFO", ImageInfo, "Image In
 DefNode(GeometryNode, GEO_NODE_IMAGE_TEXTURE, def_geo_image_texture, "IMAGE_TEXTURE", ImageTexture, "Image Texture", "Sample values from an image texture")
 DefNode(GeometryNode, GEO_NODE_IMAGE, def_geo_image, "IMAGE", InputImage, "Image", "Input image")
 DefNode(GeometryNode, GEO_NODE_IMPORT_STL, 0, "IMPORT_STL", ImportSTL, "Import STL", "Import a mesh from an STL file")
-DefNode(GeometryNode, GEO_NODE_IMPORT_OBJ, 0, "IMPORT_OBJ", ImportOBJ, "Import OBJ", "Import a mesh from an OBJ file")
+DefNode(GeometryNode, GEO_NODE_IMPORT_OBJ, 0, "IMPORT_OBJ", ImportOBJ, "Import OBJ", "Import geometry from an OBJ file")
 DefNode(GeometryNode, GEO_NODE_INDEX_OF_NEAREST, 0, "INDEX_OF_NEAREST", IndexOfNearest, "Index of Nearest", "Find the nearest element in a group. Similar to the \"Sample Nearest\" node")
 DefNode(GeometryNode, GEO_NODE_INDEX_SWITCH, def_geo_index_switch, "INDEX_SWITCH", IndexSwitch, "Index Switch", "Choose between an arbitrary number of values with an index")
 DefNode(GeometryNode, GEO_NODE_INPUT_ACTIVE_CAMERA, 0, "INPUT_ACTIVE_CAMERA", InputActiveCamera, "Active Camera", "Retrieve the scene's active camera")

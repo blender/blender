@@ -29,8 +29,6 @@
 #include "BLI_vector.hh"
 #include "BLI_virtual_array_fwd.hh"
 
-#include "BKE_geometry_set.hh"
-
 #include "DNA_customdata_types.h"
 
 struct Object;
@@ -42,6 +40,8 @@ class MutableAttributeAccessor;
 }  // namespace blender::bke
 
 namespace blender::bke {
+
+struct GeometrySet;
 
 /**
  * Holds a reference to conceptually unique geometry or a pointer to object/collection data
@@ -222,14 +222,6 @@ inline InstanceReference::InstanceReference(Object &object) : type_(Type::Object
 inline InstanceReference::InstanceReference(Collection &collection)
     : type_(Type::Collection), data_(&collection)
 {
-}
-
-inline InstanceReference::InstanceReference(const InstanceReference &other)
-    : type_(other.type_), data_(other.data_)
-{
-  if (other.geometry_set_) {
-    geometry_set_ = std::make_unique<GeometrySet>(*other.geometry_set_);
-  }
 }
 
 inline InstanceReference::InstanceReference(InstanceReference &&other)

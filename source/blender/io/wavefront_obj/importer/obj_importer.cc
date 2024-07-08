@@ -76,7 +76,7 @@ static Collection *find_or_create_collection(Main *bmain,
 }
 
 static void geometry_to_blender_geometry_set(const OBJImportParams &import_params,
-                                             const Span<std::unique_ptr<Geometry>> &all_geometries,
+                                             const Span<std::unique_ptr<Geometry>> all_geometries,
                                              const GlobalVertices &global_vertices,
                                              Vector<bke::GeometrySet> &geometries)
 {
@@ -106,7 +106,7 @@ static void geometry_to_blender_objects(Main *bmain,
                                         Scene *scene,
                                         ViewLayer *view_layer,
                                         const OBJImportParams &import_params,
-                                        Vector<std::unique_ptr<Geometry>> &all_geometries,
+                                        MutableSpan<std::unique_ptr<Geometry>> all_geometries,
                                         const GlobalVertices &global_vertices,
                                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                                         Map<std::string, Material *> &created_materials)
@@ -169,7 +169,7 @@ void importer_geometry(const OBJImportParams &import_params,
                        Vector<bke::GeometrySet> &geometries,
                        size_t read_buffer_size)
 {
-  /* List of Geometry instances to be parsed from OBJ file. */
+  /* List of geometries to be parsed from OBJ file. */
   Vector<std::unique_ptr<Geometry>> all_geometries;
   /* Container for vertex and UV vertex coordinates. */
   GlobalVertices global_vertices;
@@ -194,7 +194,7 @@ void importer_main(Main *bmain,
                    const OBJImportParams &import_params,
                    size_t read_buffer_size)
 {
-  /* List of Geometry instances to be parsed from OBJ file. */
+  /* List of geometries to be parsed from OBJ file. */
   Vector<std::unique_ptr<Geometry>> all_geometries;
   /* Container for vertex and UV vertex coordinates. */
   GlobalVertices global_vertices;

@@ -39,7 +39,7 @@ Mesh *MeshFromGeometry::create_mesh(const OBJImportParams &import_params)
     return nullptr;
   }
 
-  fixup_invalid_faces();
+  this->fixup_invalid_faces();
 
   /* Includes explicitly imported edges, not the ones belonging the faces to be created. */
   Mesh *mesh = BKE_mesh_new_nomain(tot_verts_object,
@@ -47,12 +47,12 @@ Mesh *MeshFromGeometry::create_mesh(const OBJImportParams &import_params)
                                    mesh_geometry_.face_elements_.size(),
                                    mesh_geometry_.total_corner_);
 
-  create_vertices(mesh);
-  create_faces(mesh, import_params.import_vertex_groups && !import_params.use_split_groups);
-  create_edges(mesh);
-  create_uv_verts(mesh);
-  create_normals(mesh);
-  create_colors(mesh);
+  this->create_vertices(mesh);
+  this->create_faces(mesh, import_params.import_vertex_groups && !import_params.use_split_groups);
+  this->create_edges(mesh);
+  this->create_uv_verts(mesh);
+  this->create_normals(mesh);
+  this->create_colors(mesh);
 
   if (import_params.validate_meshes || mesh_geometry_.has_invalid_faces_) {
     bool verbose_validate = false;
@@ -71,7 +71,7 @@ Object *MeshFromGeometry::create_mesh_object(
     Map<std::string, Material *> &created_materials,
     const OBJImportParams &import_params)
 {
-  Mesh *mesh = create_mesh(import_params);
+  Mesh *mesh = this->create_mesh(import_params);
 
   if (mesh == nullptr) {
     return nullptr;
@@ -86,14 +86,14 @@ Object *MeshFromGeometry::create_mesh_object(
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name.c_str());
   obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
 
-  create_materials(bmain, materials, created_materials, obj, import_params.relative_paths);
+  this->create_materials(bmain, materials, created_materials, obj, import_params.relative_paths);
 
   transform_object(obj, import_params);
 
   BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obj->data), obj);
 
   /* NOTE: vertex groups have to be created after final mesh is assigned to the object. */
-  create_vertex_groups(obj);
+  this->create_vertex_groups(obj);
 
   return obj;
 }

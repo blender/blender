@@ -25,6 +25,14 @@ InstanceReference::InstanceReference(GeometrySet geometry_set)
 {
 }
 
+InstanceReference::InstanceReference(const InstanceReference &other)
+    : type_(other.type_), data_(other.data_)
+{
+  if (other.geometry_set_) {
+    geometry_set_ = std::make_unique<GeometrySet>(*other.geometry_set_);
+  }
+}
+
 void InstanceReference::ensure_owns_direct_data()
 {
   if (type_ != Type::GeometrySet) {

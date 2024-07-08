@@ -29,27 +29,24 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const std::string path = params.extract_input<std::string>("Path");
-
   if (path.empty()) {
     params.set_default_remaining_outputs();
     return;
   }
 
   OBJImportParams import_params;
-
   STRNCPY(import_params.filepath, path.c_str());
 
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
+  BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); });
   import_params.reports = &reports;
 
   Vector<bke::GeometrySet> geometries;
-
   OBJ_import_geometries(&import_params, geometries);
 
   LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
     NodeWarningType type;
-
     switch (report->type) {
       case RPT_ERROR:
         type = NodeWarningType::Error;
@@ -58,21 +55,17 @@ static void node_geo_exec(GeoNodeExecParams params)
         type = NodeWarningType::Info;
         break;
     }
-
     params.error_message_add(type, TIP_(report->message));
   }
 
-  BKE_reports_free(&reports);
-
-  if (geometries.size() == 0) {
+  if (geometries.is_empty()) {
     params.set_default_remaining_outputs();
     return;
   }
 
   bke::Instances *instances = new bke::Instances();
-
   for (GeometrySet geometry : geometries) {
-    const int handle = instances->add_reference(bke::InstanceReference{geometry});
+    const int handle = instances->add_reference(bke::InstanceReference{std::move(geometry)});
     instances->add_instance(handle, float4x4::identity());
   }
 
