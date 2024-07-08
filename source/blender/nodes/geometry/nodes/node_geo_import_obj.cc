@@ -28,6 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
+#ifdef WITH_IO_WAVEFRONT_OBJ
   const std::string path = params.extract_input<std::string>("Path");
   if (path.empty()) {
     params.set_default_remaining_outputs();
@@ -70,6 +71,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Instances", GeometrySet::from_instances(instances));
+#else
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OBJ I/O"));
+  params.set_default_remaining_outputs();
+#endif
 }
 
 static void node_register()

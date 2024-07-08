@@ -253,6 +253,14 @@ if(WITH_IO_STL)
   add_definitions(-DWITH_IO_STL)
 endif()
 
+if(WITH_IO_WAVEFRONT_OBJ)
+  list(APPEND LIB
+    PRIVATE bf_io_common
+    PRIVATE bf_io_wavefront_obj
+  )
+  add_definitions(-DWITH_IO_WAVEFRONT_OBJ)
+endif()
+
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}
