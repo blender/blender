@@ -34,7 +34,7 @@ Curve *blender::io::obj::CurveFromGeometry::create_curve()
   /* Only one NURBS spline will be created in the curve object. */
   curve->actnu = 0;
 
-  Nurb *nurb = MEM_cnew<Nurb>(__func__);
+  Nurb *nurb = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), __func__));
   BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
   this->create_nurbs(curve);
 
@@ -61,7 +61,7 @@ Object *CurveFromGeometry::create_curve_object(Main *bmain, const OBJImportParam
   /* Only one NURBS spline will be created in the curve object. */
   curve->actnu = 0;
 
-  Nurb *nurb = MEM_cnew<Nurb>(__func__);
+  Nurb *nurb = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), __func__));
   BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
   this->create_nurbs(curve);
 
