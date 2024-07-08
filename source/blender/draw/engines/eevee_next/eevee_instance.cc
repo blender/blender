@@ -560,6 +560,13 @@ void Instance::draw_viewport()
   if (materials.queued_shaders_count > 0) {
     std::stringstream ss;
     ss << "Compiling Shaders (" << materials.queued_shaders_count << " remaining)";
+    if (!GPU_use_parallel_compilation() &&
+        GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL))
+    {
+      ss << "\n"
+         << "Increasing Preferences > System > Max Shader Compilation Subprocesses "
+         << "may improve compilation time.";
+    }
     info = ss.str();
     DRW_viewport_request_redraw();
   }
