@@ -1016,6 +1016,11 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->statusbar_flag |= STATUSBAR_SHOW_EXTENSIONS_UPDATES;
   }
 
+  if (!USER_VERSION_ATLEAST(402, 65)) {
+    /* Bone Selection Sets is no longer an add-on, but core functionality. */
+    BKE_addon_remove_safe(&userdef->addons, "bone_selection_sets");
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
