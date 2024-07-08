@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -8978,6 +8978,10 @@ msgstr "Слот материјала у објекту"
 
 msgid "Material slot name"
 msgstr "Назив слота материјала"
+
+
+msgid "Basic"
+msgstr "Основно"
 
 
 msgctxt "MovieClip"
@@ -25522,10 +25526,6 @@ msgid "Could not connect vertices"
 msgstr "Не могу да спојим темена"
 
 
-msgid "Basic"
-msgstr "Основно"
-
-
 msgid "Scene not found"
 msgstr "Брзина звука"
 
@@ -25694,6 +25694,14 @@ msgstr "%d ставки"
 
 msgid "Lightness"
 msgstr "Светлина"
+
+
+msgid "OK"
+msgstr "У реду"
+
+
+msgid "Cancel"
+msgstr "Одустани"
 
 
 msgid "Menu \"%s\" not found"
@@ -25992,10 +26000,6 @@ msgid "Icosphere"
 msgstr "Икосфера"
 
 
-msgid "Cancel"
-msgstr "Одустани"
-
-
 msgid "Outer"
 msgstr "Спољашње"
 
@@ -26284,10 +26288,6 @@ msgstr "Обрни ка дну"
 
 msgid "No active camera set"
 msgstr "Није постављена активна камера"
-
-
-msgid "OK"
-msgstr "У реду"
 
 
 msgid "Compiled without sound support"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -3921,6 +3921,15 @@ msgstr "แอนิเมชัน"
 
 
 msgctxt "Operator"
+msgid "None"
+msgstr "ไม่มี"
+
+
+msgid ":"
+msgstr ":"
+
+
+msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "รายงานข้อผิดพลาด"
 
@@ -4059,11 +4068,6 @@ msgstr "การปรับเปลี่ยน:"
 
 msgid "Animation:"
 msgstr "แอนิเมชัน:"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "ไม่มี"
 
 
 msgid "Date"
@@ -4515,10 +4519,6 @@ msgid "Error (see console)"
 msgstr "ข้อผิดพลาด (ดูที่คอนโซล)"
 
 
-msgid ":"
-msgstr ":"
-
-
 msgid "Missing script files"
 msgstr "ขาดไฟล์สคริปต์"
 
@@ -4887,6 +4887,14 @@ msgid "Redo"
 msgstr "ทำอีกครั้ง"
 
 
+msgid "OK"
+msgstr "ตกลง"
+
+
+msgid "Cancel"
+msgstr "ยกเลิก"
+
+
 msgctxt "Operator"
 msgid "Click"
 msgstr "คลิก"
@@ -5079,10 +5087,6 @@ msgid "Icosphere"
 msgstr "ทรงกลม Ico"
 
 
-msgid "Cancel"
-msgstr "ยกเลิก"
-
-
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
 msgstr "เลือกจุดยอด"
 
@@ -5101,10 +5105,6 @@ msgstr "ตัวเรนเดอร์ของ Blender"
 
 msgid "Blender Preferences"
 msgstr "การตั้งค่า Blender"
-
-
-msgid "OK"
-msgstr "ตกลง"
 
 
 msgid "%d x %d"

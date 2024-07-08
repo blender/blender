@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4715,6 +4715,10 @@ msgid "Mirror Object"
 msgstr "Peilaa objekti"
 
 
+msgid "Basic"
+msgstr "Tavallinen"
+
+
 msgid "Track"
 msgstr "Raide"
 
@@ -8675,10 +8679,6 @@ msgid "VFX"
 msgstr "VFX"
 
 
-msgid "Basic"
-msgstr "Tavallinen"
-
-
 msgid "UV/Image"
 msgstr "UV/kuva"
 
@@ -8892,6 +8892,14 @@ msgstr "Valoisuus:"
 
 msgid "Alpha:"
 msgstr "Alfa:"
+
+
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "Peruuta"
 
 
 msgid "Internal error!"
@@ -9180,10 +9188,6 @@ msgstr "Pallo"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Icopallo"
-
-
-msgid "Cancel"
-msgstr "Peruuta"
 
 
 msgid "No face selected"
@@ -9534,10 +9538,6 @@ msgstr "Ei aktiivista kamerasarjaa"
 
 msgid "Warning!"
 msgstr "Varoitus!"
-
-
-msgid "OK"
-msgstr "OK"
 
 
 msgid "vertex data"
@@ -11384,16 +11384,12 @@ msgid "Video Editing"
 msgstr "Videoeditointi"
 
 
+msgid "Cycles Render Engine"
+msgstr "Cycles-renderöintimoottori"
+
+
 msgid "FBX format"
 msgstr "FBX-formaatti"
-
-
-msgid "Import SVG as curves"
-msgstr "Tuo SVG käyrinä"
-
-
-msgid "UV Layout"
-msgstr "UV-asetelma"
 
 
 msgid "glTF 2.0 format"
@@ -11404,16 +11400,20 @@ msgid "Import-Export as glTF 2.0"
 msgstr "Tuo-Vie glTF 2.0 -tiedostomuodossa"
 
 
-msgid "Cycles Render Engine"
-msgstr "Cycles-renderöintimoottori"
-
-
 msgid "Manage UI translations"
 msgstr "Hallitse käyttöliittymän käännöksiä"
 
 
 msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"
 msgstr "Mahdollistaa käyttöliittymäkäännösten hallinnan suoraan Blenderistä (päivittää .po-päätiedostot, päivittää skriptien käännökset jne.)"
+
+
+msgid "Import SVG as curves"
+msgstr "Tuo SVG käyrinä"
+
+
+msgid "UV Layout"
+msgstr "UV-asetelma"
 
 
 msgid "All Add-ons"

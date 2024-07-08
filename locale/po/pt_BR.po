@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -22300,6 +22300,10 @@ msgstr "Blocos de dados de materiais usados por este compartimento de material."
 
 msgid "Material slot name"
 msgstr "Nome do compartimento do material."
+
+
+msgid "Basic"
+msgstr "Básico"
 
 
 msgctxt "MovieClip"
@@ -63314,8 +63318,21 @@ msgid "Eyedropper Modal Map"
 msgstr "Mapa modal para conta-gotas"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "Múltiplos complementos com o mesmo nome encontrados !"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "Nenhum"
+
+
 msgid "Warning"
 msgstr "Alertas:"
+
+
+msgid ":"
+msgstr ":"
 
 
 msgctxt "Operator"
@@ -64097,11 +64114,6 @@ msgstr "Escalonar pluma"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Ocultar não selecionados"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Nenhum"
 
 
 msgctxt "Operator"
@@ -65767,16 +65779,8 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Inverter ampliação pela roda do mouse"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "Múltiplos complementos com o mesmo nome encontrados !"
-
-
 msgid "Error (see console)"
 msgstr "Erro (veja o console)"
-
-
-msgid ":"
-msgstr ":"
 
 
 msgid "Missing script files"
@@ -67465,10 +67469,6 @@ msgid "Edge-rings are not connected"
 msgstr "Anéis de arestas não estão conectados."
 
 
-msgid "Basic"
-msgstr "Básico"
-
-
 msgid "UV/Image"
 msgstr "UV/Imagem"
 
@@ -68181,6 +68181,14 @@ msgid "Hex triplet for color (#RRGGBB)"
 msgstr "Trio hexadecimal para cores (#RRGGBB)"
 
 
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "Menu \"%s\" não encontrado"
 
@@ -68615,10 +68623,6 @@ msgstr "Esfera UV"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Esfera icosaédrica"
-
-
-msgid "Cancel"
-msgstr "Cancelar"
 
 
 msgid "Outer"
@@ -69823,10 +69827,6 @@ msgstr "O grupo de múltipla pintura está bloqueado, abortando."
 
 msgid "Warning!"
 msgstr "Aviso !"
-
-
-msgid "OK"
-msgstr "OK"
 
 
 msgid "Attribute Data Detected"

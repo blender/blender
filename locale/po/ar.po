@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-04-29 13:28+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -37512,6 +37512,14 @@ msgid "Hex triplet for color (#RRGGBB)"
 msgstr "(RRGGBB#) ﻥﻮﻠﻟ ﺔﻴﻧﺎﻤﺛ ﺔﻴﺛﻼ﻿ﺛ"
 
 
+msgid "OK"
+msgstr "ﺎﻨﺴﺣ"
+
+
+msgid "Cancel"
+msgstr "ﻎﻟﺃ"
+
+
 msgid "ID-Block:"
 msgstr "ﻑﺮﻌﻤﻟﺍ-ﺔﻠﺘﻛ"
 
@@ -37828,10 +37836,6 @@ msgstr "ﺓﺮﻛ"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "(ﺕﺎﺜﻠﺜﻣ)ﺓﺮﻛ"
-
-
-msgid "Cancel"
-msgstr "ﻎﻟﺃ"
 
 
 msgid "Outer"
@@ -38170,10 +38174,6 @@ msgstr "ﻂﻘﻨﻟﺍ ﺖﻴﺒﺜﺘﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
 msgid "Warning!"
 msgstr "!ﺮﻳﺬﺤﺗ"
-
-
-msgid "OK"
-msgstr "ﺎﻨﺴﺣ"
 
 
 msgid "Active F-Curve"

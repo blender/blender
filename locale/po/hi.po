@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -2743,6 +2743,10 @@ msgstr "संरेखण"
 
 msgid "Flip"
 msgstr "पलटें"
+
+
+msgid "Basic"
+msgstr "बुनियादी"
 
 
 msgctxt "MovieClip"
@@ -6113,10 +6117,6 @@ msgid "Could not connect vertices"
 msgstr "शिरोबिन्दु से कनेक्ट नहीं कर सकता"
 
 
-msgid "Basic"
-msgstr "बुनियादी"
-
-
 msgid "Make channels grouped under this channel visible"
 msgstr "सरणि दिखाई इस सरणि के तहत समूहीकृत करें"
 
@@ -6233,6 +6233,14 @@ msgstr "%d वस्तु"
 
 msgid "Hex"
 msgstr "हेक्स"
+
+
+msgid "OK"
+msgstr "ठीक है"
+
+
+msgid "Cancel"
+msgstr "रद्द करें"
 
 
 msgid "Pos"
@@ -6383,10 +6391,6 @@ msgstr "जालक"
 msgctxt "Mesh"
 msgid "Sphere"
 msgstr "गोला"
-
-
-msgid "Cancel"
-msgstr "रद्द करें"
 
 
 msgid "Outer"
@@ -6567,10 +6571,6 @@ msgstr "ब्लेंडर  प्रतिपादन"
 
 msgid "No active camera set"
 msgstr "कोई सक्रिय प्रतिबिंबक नहीं"
-
-
-msgid "OK"
-msgstr "ठीक है"
 
 
 msgid "File Path:"

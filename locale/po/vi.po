@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34757,6 +34757,10 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
+msgid "Basic"
+msgstr "Cơ Bản"
+
+
 msgid "Bone Collection Specials"
 msgstr "Bộ Sưu Tập Xương Đặc Biệt"
 
@@ -44808,10 +44812,6 @@ msgid "Instances of objects or collections"
 msgstr "Thực thể của đối tượng hoặc của bộ sưu tập"
 
 
-msgid "Grease Pencil component containing layers and curves data"
-msgstr "Thành phần Bút Chì Dầu có chứa dữ liệu của các tầng lớp và các đường cong"
-
-
 msgid "Attribute Statistic"
 msgstr "Thống Kê Thuộc Tính"
 
@@ -46932,10 +46932,6 @@ msgstr "Chọn màu cấu hình của bạn, và bộ tô bóng sẽ ước tín
 
 msgid "Principled BSDF"
 msgstr "BSDF Nguyên Tắc"
-
-
-msgid "Physically-based, easy-to-use shader for rendering surface materials, based on the Disney principled model also known as the \"PBR\" shader"
-msgstr "Bộ đổ bóng dựa trên vật lý, dễ sử dụng để kết xuất nguyên vật liệu bề mặt, dựa trên mô hình nguyên tắc của Disney, còn được gọi là bộ tô bóng \"PBR\""
 
 
 msgid "Subsurface Method"
@@ -107279,8 +107275,25 @@ msgid "Mesh Filter Modal Map"
 msgstr "Ánh Xạ Mô Thái Bộ Lọc Khung Lưới"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "Phát hiện thấy có nhiều trình bổ sung có tên giống nhau!"
+
+
+msgid "Delete one of each pair to resolve:"
+msgstr "Xóa một cái trong mỗi bộ đôi để giải quyết vấn đề:"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "Không Có"
+
+
 msgid "Warning"
 msgstr "Cảnh Báo"
+
+
+msgid ":"
+msgstr ":"
 
 
 msgctxt "Operator"
@@ -109707,11 +109720,6 @@ msgstr "Đổi Tỷ Lệ Mép Nhòe"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Ẩn Giấu cái Không được Chọn"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Không Có"
 
 
 msgctxt "Operator"
@@ -113438,14 +113446,6 @@ msgid "Fly/Walk"
 msgstr "Bay Lượn/Đi Bộ"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "Phát hiện thấy có nhiều trình bổ sung có tên giống nhau!"
-
-
-msgid "Delete one of each pair to resolve:"
-msgstr "Xóa một cái trong mỗi bộ đôi để giải quyết vấn đề:"
-
-
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Bật trình bổ sung Động Cơ Kết Xuất Cycles để sử dụng Cycles"
 
@@ -113460,10 +113460,6 @@ msgstr "Sử dụng 'Ứng Dụng Mặc Định' của Windows để liên kết
 
 msgid "Error (see console)"
 msgstr "Lỗi xảy ra (xem bàn giao tiếp)"
-
-
-msgid ":"
-msgstr ":"
 
 
 msgid "Missing script files"
@@ -116939,10 +116935,6 @@ msgid "Compositor node tree has undefined nodes or sockets!"
 msgstr "Cây nút trình tổng hợp có các nút hoặc ổ cắm chưa xác định!"
 
 
-msgid "Basic"
-msgstr "Cơ Bản"
-
-
 msgid "GpencilMode"
 msgstr "Chế Độ Bút Chì Dầu"
 
@@ -118746,6 +118738,14 @@ msgid "Redo"
 msgstr "Tái Tác"
 
 
+msgid "OK"
+msgstr "Chấp Nhận"
+
+
+msgid "Cancel"
+msgstr "Hủy"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "Không tìm thấy trình đơn \"%s\""
 
@@ -119569,10 +119569,6 @@ msgstr "Hình Cầu"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Nhị Thập Diện Cầu Tam Giác Đều"
-
-
-msgid "Cancel"
-msgstr "Hủy"
 
 
 msgid "Outer"
@@ -121803,10 +121799,6 @@ msgstr "Di chuyển chuột để thay đổi kích thước chi tiết cấu tr
 
 msgid "Warning!"
 msgstr "Cảnh Báo!"
-
-
-msgid "OK"
-msgstr "Chấp Nhận"
 
 
 msgid "Attribute Data Detected"
@@ -130978,22 +130970,6 @@ msgid "Video Editing"
 msgstr "Biên Soạn Video"
 
 
-msgid "VR Scene Inspection"
-msgstr "Kiểm Tra Cảnh Thực Tế Ảo"
-
-
-msgid "View the viewport with virtual reality glasses (head-mounted displays)"
-msgstr "Quan sát cổng nhìn với kính thực tế ảo (các hiển thị đeo ở đầu)"
-
-
-msgid "Copy Global Transform"
-msgstr "Sao Chép Biến Hóa Toàn Cầu"
-
-
-msgid "Pose Library based on the asset system."
-msgstr "Thư Viện Tư Thế dựa trên hệ thống tài sản."
-
-
 msgid "BioVision Motion Capture (BVH) format"
 msgstr "Định dạng Nắm Bắt Chuyển Động (BVH) của BioVision"
 
@@ -131002,12 +130978,52 @@ msgid "Import-Export BVH from armature objects"
 msgstr "Nhập-Xuất Khẩu BVH từ các đối tượng khung rối"
 
 
+msgid "Copy Global Transform"
+msgstr "Sao Chép Biến Hóa Toàn Cầu"
+
+
+msgid "Cycles Render Engine"
+msgstr "Máy Kết Xuất Cycles"
+
+
+msgid "Cycles renderer integration"
+msgstr "Tích hợp máy kết xuất Cycles"
+
+
 msgid "FBX format"
 msgstr "Định dạng FBX"
 
 
 msgid "FBX IO meshes, UVs, vertex colors, materials, textures, cameras, lamps and actions"
 msgstr "Khung lưới, UV, màu điểm đỉnh, nguyên vật liệu, chất liệu, máy quay phim, đèn và hành động của FBX IO"
+
+
+msgid "glTF 2.0 format"
+msgstr "định dạng glTF 2.0"
+
+
+msgid "Import-Export as glTF 2.0"
+msgstr "Xuất-Nhập khẩu dưới dạng glTF 2.0"
+
+
+msgid "Hydra Storm render engine"
+msgstr "Động cơ kết xuất Hydra Storm"
+
+
+msgid "USD's high performance rasterizing renderer"
+msgstr "Trình kết xuất điểm ảnh hóa hiệu suất cao của USD"
+
+
+msgid "Manage UI translations"
+msgstr "Quản Lý các Bản Phiên Dịch Giao Diện Người Dùng"
+
+
+msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"
+msgstr "Cho phép quản lý bản dịch Giao Diện Người Dùng trực tiếp từ Blender (cập nhật các tập tin .po chính, cập nhật các bản dịch của các tập lệnh, v.v.)"
+
+
+msgid "Pose Library based on the asset system."
+msgstr "Thư Viện Tư Thế dựa trên hệ thống tài sản."
 
 
 msgid "Scalable Vector Graphics (SVG) 1.1 format"
@@ -131026,36 +131042,12 @@ msgid "Export the UV layout as a 2D graphic"
 msgstr "Xuất Khẩu Bố Trí UV thành đồ họa 2D"
 
 
-msgid "glTF 2.0 format"
-msgstr "định dạng glTF 2.0"
+msgid "VR Scene Inspection"
+msgstr "Kiểm Tra Cảnh Thực Tế Ảo"
 
 
-msgid "Import-Export as glTF 2.0"
-msgstr "Xuất-Nhập khẩu dưới dạng glTF 2.0"
-
-
-msgid "Cycles Render Engine"
-msgstr "Máy Kết Xuất Cycles"
-
-
-msgid "Cycles renderer integration"
-msgstr "Tích hợp máy kết xuất Cycles"
-
-
-msgid "Hydra Storm render engine"
-msgstr "Động cơ kết xuất Hydra Storm"
-
-
-msgid "USD's high performance rasterizing renderer"
-msgstr "Trình kết xuất điểm ảnh hóa hiệu suất cao của USD"
-
-
-msgid "Manage UI translations"
-msgstr "Quản Lý các Bản Phiên Dịch Giao Diện Người Dùng"
-
-
-msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"
-msgstr "Cho phép quản lý bản dịch Giao Diện Người Dùng trực tiếp từ Blender (cập nhật các tập tin .po chính, cập nhật các bản dịch của các tập lệnh, v.v.)"
+msgid "View the viewport with virtual reality glasses (head-mounted displays)"
+msgstr "Quan sát cổng nhìn với kính thực tế ảo (các hiển thị đeo ở đầu)"
 
 
 msgid "All Add-ons"

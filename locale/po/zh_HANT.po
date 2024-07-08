@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -21657,6 +21657,10 @@ msgstr "連結材質至物體或物體的資料"
 
 msgid "Material slot name"
 msgstr "材質槽名稱"
+
+
+msgid "Basic"
+msgstr "基本"
 
 
 msgctxt "MovieClip"
@@ -55556,6 +55560,10 @@ msgid "Resize"
 msgstr "調整大小"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "找到多個同名的附加元件！"
+
+
 msgid "Warning"
 msgstr "警告"
 
@@ -57169,10 +57177,6 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "反轉滾輪遠近調焦方向"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "找到多個同名的附加元件！"
-
-
 msgid "Error (see console)"
 msgstr "錯誤 (查看主控臺)"
 
@@ -58501,10 +58505,6 @@ msgid "Edge-rings are not connected"
 msgstr "線環並未連接"
 
 
-msgid "Basic"
-msgstr "基本"
-
-
 msgid "Editability of keyframes for this channel"
 msgstr "此通道鍵幀的可編輯性"
 
@@ -59004,6 +59004,14 @@ msgid "Hex triplet for color (#RRGGBB)"
 msgstr "十六進位色彩三連子 (#RRGGBB)"
 
 
+msgid "OK"
+msgstr "確定"
+
+
+msgid "Cancel"
+msgstr "取消"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "找不到「%s」選單"
 
@@ -59401,10 +59409,6 @@ msgstr "球體"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Ico 球體"
-
-
-msgid "Cancel"
-msgstr "取消"
 
 
 msgid "Outer"
@@ -60131,10 +60135,6 @@ msgstr "偵測到遺失%s%s%s%s！"
 
 msgid "Warning!"
 msgstr "警告！"
-
-
-msgid "OK"
-msgstr "確定"
 
 
 msgid "non-triangle face"

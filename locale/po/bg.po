@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-04-29 13:31+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1820,16 +1820,16 @@ msgid "%d items"
 msgstr "%d артикули"
 
 
-msgid "Stop this job"
-msgstr "Спри тази задача"
+msgid "OK"
+msgstr "ОК"
 
 
 msgid "Cancel"
 msgstr "Отказ"
 
 
-msgid "OK"
-msgstr "ОК"
+msgid "Stop this job"
+msgstr "Спри тази задача"
 
 
 msgid "Fields"

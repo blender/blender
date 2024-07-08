@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-05-03 12:13+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -5037,6 +5037,14 @@ msgid "Value:"
 msgstr ":ﺭﺍﺪﻘﻣ"
 
 
+msgid "OK"
+msgstr "ﺪﯿﯾﺄﺗ"
+
+
+msgid "Cancel"
+msgstr "ﻑﺍﺮﺼﻧﺍ"
+
+
 msgid "No Properties"
 msgstr "ﯽﮔﮋﯾﻭ ﻥﻭﺪﺑ"
 
@@ -5177,10 +5185,6 @@ msgid "Browse ID data to be linked"
 msgstr "ﻥﺩﺮﮐ‌ﮏﻨﯿﻟ ﯼﺍﺮﺑ ﯼﺩ−ﯼﺁ ﻩٔﺩﺍﺩ ﺶﻨﯾﺰﮔ"
 
 
-msgid "Cancel"
-msgstr "ﻑﺍﺮﺼﻧﺍ"
-
-
 msgid "3D View "
 msgstr " .ﯼﺪﻌﺑ ﻪﺳ ﺪﯾﺩ"
 
@@ -5203,10 +5207,6 @@ msgstr "ﮒﺮﺑﺮﺳ ﺶﯾﺎﻤﻧ"
 
 msgid " Materials,"
 msgstr "ﻩﺩﺎﻣ "
-
-
-msgid "OK"
-msgstr "ﺪﯿﯾﺄﺗ"
 
 
 msgid "Compiled without sound support"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -28920,6 +28920,10 @@ msgstr "Блок даних матеріалу, що використовуєт�
 
 msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
+
+
+msgid "Basic"
+msgstr "Основний"
 
 
 msgid "Asset"
@@ -83239,8 +83243,25 @@ msgid "Eyedropper ColorRamp PointSampling Map"
 msgstr "Розкладка Відбору Точок Градієнта Кольорів Піпетки"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "Виявлено кілька додатків з однаковими іменами!"
+
+
+msgid "Delete one of each pair to resolve:"
+msgstr "Видалити один з кожної пари для вирішення:"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "Нема"
+
+
 msgid "Warning"
 msgstr "Попередження"
+
+
+msgid ":"
+msgstr ":"
 
 
 msgctxt "Operator"
@@ -84682,11 +84703,6 @@ msgstr "Масштаб Розтушовки"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Сховати Невибране"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Нема"
 
 
 msgctxt "Operator"
@@ -87717,20 +87733,8 @@ msgid "Fly/Walk"
 msgstr "Політ/Ходьба"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "Виявлено кілька додатків з однаковими іменами!"
-
-
-msgid "Delete one of each pair to resolve:"
-msgstr "Видалити один з кожної пари для вирішення:"
-
-
 msgid "Error (see console)"
 msgstr "Помилка (дивіться консоль)"
-
-
-msgid ":"
-msgstr ":"
 
 
 msgid "Missing script files"
@@ -90054,10 +90058,6 @@ msgid "Edge-rings are not connected"
 msgstr "Кільця ребер не з'єднані"
 
 
-msgid "Basic"
-msgstr "Основний"
-
-
 msgid "GpencilMode"
 msgstr "Режим Нарисного Олівця"
 
@@ -91167,6 +91167,14 @@ msgid "Redo"
 msgstr "Відновлення"
 
 
+msgid "OK"
+msgstr "Гаразд"
+
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "Меню \"%s\" не знайдено"
 
@@ -91784,10 +91792,6 @@ msgstr "Сфера"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Iкосфера"
-
-
-msgid "Cancel"
-msgstr "Скасувати"
 
 
 msgid "Outer"
@@ -93392,10 +93396,6 @@ msgstr "Клацнути на сіті для задання детальнос�
 
 msgid "Warning!"
 msgstr "Обережно!"
-
-
-msgid "OK"
-msgstr "Гаразд"
 
 
 msgid "Generative Modifiers Detected!"

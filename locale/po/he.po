@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -961,6 +961,10 @@ msgid "Saturation:"
 msgstr ":היוור"
 
 
+msgid "Cancel"
+msgstr "לוטיב"
+
+
 msgid "No Properties"
 msgstr "םינייפאמ אלל"
 
@@ -975,10 +979,6 @@ msgstr "תודוקנ קחמ"
 
 msgid "Stop this job"
 msgstr "וז הדובע רוצע"
-
-
-msgid "Cancel"
-msgstr "לוטיב"
 
 
 msgid "vertex data"

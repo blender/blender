@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
-"PO-Revision-Date: 2024-07-01 04:36+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
+"PO-Revision-Date: 2024-07-08 06:56+0000\n"
 "Last-Translator: Fatih Alexandr <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -5698,7 +5698,7 @@ msgstr "Модель ткани с линейными пружинами изг�
 
 
 msgid "Bending Stiffness"
-msgstr "Жёсткость на изгиб"
+msgstr "Жёсткость сгиба"
 
 
 msgid "How much the material resists bending"
@@ -5706,11 +5706,11 @@ msgstr "Сила сопротивления материала изгибу"
 
 
 msgid "Bending Stiffness Maximum"
-msgstr "Максимум жёсткости на изгиб"
+msgstr "Жёсткость сгиба Максимум"
 
 
 msgid "Maximum bending stiffness value"
-msgstr "Значение максимальной жёсткости на изгиб"
+msgstr "Значение максимальной жёсткости сгиба"
 
 
 msgid "Collider Friction"
@@ -6014,11 +6014,11 @@ msgstr "Притягивать свободные края друг к друг�
 
 
 msgid "Bending Stiffness Vertex Group"
-msgstr "Группа вершин жёсткости на изгиб"
+msgstr "Группа вершин жёсткости сгиба"
 
 
 msgid "Vertex group for fine control over bending stiffness"
-msgstr "Группа вершин для тонкого контроля над изгибной жёсткостью"
+msgstr "Группа вершин для тонкого контроля над жёсткостью сгиба"
 
 
 msgid "Internal Springs Vertex Group"
@@ -24165,7 +24165,7 @@ msgstr "Применять эффекторы на потомков"
 
 
 msgid "Random Bending Stiffness"
-msgstr "Случайная жёсткость на изгиб"
+msgstr "Случайная жёсткость сгиба"
 
 
 msgid "Random stiffness of hairs"
@@ -30948,6 +30948,10 @@ msgstr "Датаблок материала, используемый этим �
 
 msgid "Material slot name"
 msgstr "Имя слота материала"
+
+
+msgid "Basic"
+msgstr "Базовый"
 
 
 msgid "Asset"
@@ -39411,10 +39415,6 @@ msgstr "Выберите цвет, а шейдер подберёт наибол
 
 msgid "Principled BSDF"
 msgstr "Принципиальный BSDF"
-
-
-msgid "Physically-based, easy-to-use shader for rendering surface materials, based on the Disney principled model also known as the \"PBR\" shader"
-msgstr "Физически точный, простой в использовании шейдер для рендеринга поверхностных материалов, основанный на принципиальной модели Disney, также известной как PBR-шейдер"
 
 
 msgid "Subsurface Method"
@@ -65597,7 +65597,7 @@ msgstr "Шероховатость"
 
 
 msgid "Field Weights"
-msgstr "Силы влияния"
+msgstr "Влияния сил"
 
 
 msgid "Force Field Settings"
@@ -74225,7 +74225,7 @@ msgstr "Рёбра получают подъёмную силу при прох�
 
 
 msgid "Dampening"
-msgstr "Затухание"
+msgstr "Сдерживание"
 
 
 msgid "Blending to inelastic collision"
@@ -81146,8 +81146,25 @@ msgid "Eyedropper ColorRamp PointSampling Map"
 msgstr "Набор цветов пипетки карты семплов"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "Найдено несколько аддонов с одинаковым именем!"
+
+
+msgid "Delete one of each pair to resolve:"
+msgstr "Удалите одну из этих пар чтобы решить проблему:"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "Ничего"
+
+
 msgid "Warning"
 msgstr "Предупреждение"
+
+
+msgid ":"
+msgstr ":"
 
 
 msgctxt "Operator"
@@ -82281,11 +82298,6 @@ msgstr "Скрыть невыделенное"
 
 
 msgctxt "Operator"
-msgid "None"
-msgstr "Ничего"
-
-
-msgctxt "Operator"
 msgid "Invert"
 msgstr "Инвертировать"
 
@@ -83004,7 +83016,7 @@ msgstr "Тип вычислений"
 
 
 msgid "Step Size Min"
-msgstr "Мин. размер шага"
+msgstr "Размер шага Мин."
 
 
 msgid "Auto-Step"
@@ -85128,20 +85140,8 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Инв. масштабирование колёсиком"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "Найдено несколько аддонов с одинаковым именем!"
-
-
-msgid "Delete one of each pair to resolve:"
-msgstr "Удалите одну из этих пар чтобы решить проблему:"
-
-
 msgid "Error (see console)"
 msgstr "Ошибка (см. консоль)"
-
-
-msgid ":"
-msgstr ":"
 
 
 msgid "Missing script files"
@@ -87322,10 +87322,6 @@ msgid "Edge-rings are not connected"
 msgstr "Кольца рёбер не соединены"
 
 
-msgid "Basic"
-msgstr "Базовый"
-
-
 msgid "GpencilMode"
 msgstr "Режим Gpencil"
 
@@ -88326,6 +88322,14 @@ msgid "Redo"
 msgstr "Повторить"
 
 
+msgid "OK"
+msgstr "ДА"
+
+
+msgid "Cancel"
+msgstr "Отмена"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "Меню «%s» не найдено"
 
@@ -88868,10 +88872,6 @@ msgstr "Сфера"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Икосфера"
-
-
-msgid "Cancel"
-msgstr "Отмена"
 
 
 msgid "Outer"
@@ -90338,10 +90338,6 @@ msgstr "Кликните на меш, чтобы установить урове
 
 msgid "Warning!"
 msgstr "Предупреждение!"
-
-
-msgid "OK"
-msgstr "ДА"
 
 
 msgid "Generative Modifiers Detected!"
@@ -94187,20 +94183,20 @@ msgid "Video Editing"
 msgstr "Редактирование видео"
 
 
-msgid "UV Layout"
-msgstr "UV-развёртка"
-
-
-msgid "Export the UV layout as a 2D graphic"
-msgstr "Экспортировать UV-развёртку в 2D-графику"
+msgid "Manage UI translations"
+msgstr "Управление переводами ПИ"
 
 
 msgid "Various tools to enhance and speed up node-based workflow"
 msgstr "Различные инструменты для улучшения и ускорения рабочего процесса на основе нод"
 
 
-msgid "Manage UI translations"
-msgstr "Управление переводами ПИ"
+msgid "UV Layout"
+msgstr "UV-развёртка"
+
+
+msgid "Export the UV layout as a 2D graphic"
+msgstr "Экспортировать UV-развёртку в 2D-графику"
 
 
 msgid "All Add-ons"

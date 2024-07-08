@@ -1,0 +1,2420 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
+"PO-Revision-Date: 2024-07-08 18:26+0000\n"
+"Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
+"Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3;\n"
+"X-Generator: Weblate 5.5.2"
+
+
+msgid "Name"
+msgstr "Naziv"
+
+
+msgid "Type"
+msgstr "Tip"
+
+
+msgid "Color"
+msgstr "Barva"
+
+
+msgid "Value"
+msgstr "Vrednost"
+
+
+msgid "Action F-Curves"
+msgstr "Akcijske F-krivulje"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Zbirka akcijskih F-krivulj"
+
+
+msgid "Action Group"
+msgstr "skupina akcij"
+
+
+msgid "Groups of F-Curves"
+msgstr "Skupine F-krivulj"
+
+
+msgid "Channels"
+msgstr "Kanali"
+
+
+msgid "F-Curves in this group"
+msgstr "F-krivulje v tej skupini"
+
+
+msgid "Color Set"
+msgstr "barvni nabor"
+
+
+msgid "Custom color set to use"
+msgstr "Barvni nabor, ki ga določite sami"
+
+
+msgid "Default Colors"
+msgstr "Privzete barve"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - Barvni nabor"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Barvni nabor"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Barvni nabor"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Barvni nabor"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Barvni nabor"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Barvni nabor"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Barvni nabor"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Bavni nabor"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Barvni nabor"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Barvni nabor"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Barvni nabor"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Barvni nabor"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Barvni nabor"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Barvni nabor"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Barvni nabor"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Barvni nabor"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Barvni nabor"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Barvni nabor"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Barvni nabor"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Barvni nabor"
+
+
+msgid "Custom Color Set"
+msgstr "Barvni nabor po meri"
+
+
+msgid "Colors"
+msgstr "Barve"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Kopija barv iz barvnega nabora te skupine"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "Barvni nabor ni določen vnaprej, temveč ga definira uporabnik"
+
+
+msgid "Lock"
+msgstr "Zaklep"
+
+
+msgid "Action group is locked"
+msgstr "Skupina akcij je zaklenjena"
+
+
+msgid "Select"
+msgstr "V izboru"
+
+
+msgid "Action group is selected"
+msgstr "Skupina akcij je izbrana"
+
+
+msgid "Expanded"
+msgstr "Razprto"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "Skupina akcij je razprta, razen v urejevalniku grafov"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Razprta v urejevalniku grafov"
+
+
+msgid "Action group is expanded in graph editor"
+msgstr "Skupina akcij je razprta v urejevalniku grafov"
+
+
+msgid "Pin in Graph Editor"
+msgstr "Pripni v urejevalniku grafov"
+
+
+msgid "Action Groups"
+msgstr "Skupine akcij"
+
+
+msgid "Collection of action groups"
+msgstr "Zbirka skupin akcij"
+
+
+msgid "Collection of timeline markers"
+msgstr "Zbirka oznak na časovnici"
+
+
+msgid "Add-on"
+msgstr "Dodatek"
+
+
+msgid "Python add-ons to be loaded automatically"
+msgstr "Dodatki v Pythonu, ki se naložijo samodejno"
+
+
+msgid "Module"
+msgstr "Modul"
+
+
+msgid "Module name"
+msgstr "Naziv modula"
+
+
+msgid "Add-on Preferences"
+msgstr "Nastavitve dodatkov"
+
+
+msgid "Compute Device Type"
+msgstr "Vrsta računske naprave"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "Katera naprava naj se uporabi za računanje (upodabljanje s Cycles)"
+
+
+msgid "Kernel Optimization"
+msgstr "Optimizacija jeder"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Jedra je mogoče optimizirati glede na vsebino prizorišča. Zahteva po optimiziranih jedrih se pošlje ob začetku upodabljanja. Če optimizirana jedra niso na voljo, se bo upodabljanje vršilo s splošnimi jedri, dokler se v predpomnilniku ne pojavi niz optimiziranih jeder. To pomeni, da bo za krajši čas (nekaj deset sekund) CPE dodatno obremenjena"
+
+
+msgid "Off"
+msgstr "Brez"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Izklopi optimizacijo jeder. Upodabljanje je najpočasnejše, vendar CPE ni dodatno obremenjena"
+
+
+msgid "Intersection only"
+msgstr "Le presek"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Optimizira samo presečna jedra. Upodabljanje je hitrejše, CPE pa je zanemarljivo dodatno obremenjena"
+
+
+msgid "Full"
+msgstr "Polno"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Optimizira vsa jedra. Upodabljanje je najhitrejše, vendar je CPE lahko bolj obremenjena"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT za sledenje žarkom porabi manj pomnilnika pri prizoriščih, na katerih je veliko krivulj. V določenih primerih je lahko tudi učinkovitejši"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Onemogoči MetalRT (za iskanje presekov uporablja ureditev BVH2)"
+
+
+msgid "On"
+msgstr "Omogočeno"
+
+
+msgid "Enable MetalRT for intersection queries"
+msgstr "Omogoči MetalRT za iskanje presekov"
+
+
+msgid "Auto"
+msgstr "Samodejno"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Samodejno izbere najhitrejšo metodo iskanja presekov"
+
+
+msgid "Distribute memory across devices"
+msgstr "Razporedi podatke med naprave"
+
+
+msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
+msgstr "Prihrani prostor pri večjih prizoriščih tako, da pomnilniške podatke porazdeli med povezane naprave (npr. prek NVLinka), namesto da jih podvaja"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT omogoča AMD-jevo strojno sledenje žarkom na arhitekturi RDNA 2 in novejših arhitekturah, na starejših karticah pa izvaja sledenje žarkom s senčilniki. Ta funkcionalnost je poskusna in lahko nekatere prizore upodobi nepravilno"
+
+
+msgid "Embree on GPU"
+msgstr "Embree na GPE"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree omogoča strojno sledenje žarkom, ki je načeloma hitrejše, na Intelovih grafičnih karticah"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Prikaže uporabniški vmesnik glTF za upravljanje različic materialov"
+
+
+msgid "Allow glTF Embedded format"
+msgstr "Dovoli format glTF Embedded"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "Prikaže uporabniški vmesnik glTF za upravljanje animacij"
+
+
+msgid "glTFpack file path"
+msgstr "Datotečna pot za gltfpack"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Pot do izvršljive datoteke gltfpack"
+
+
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "Prikaže glTF-jevo izhodno vozlišče (glTF Material Output) v urejevalniku senčilnikov (meni Dodaj > Izhod)"
+
+
+msgid "        Filter by Name"
+msgstr "        Filtriraj po nazivu"
+
+
+msgid "Show only hotkeys that have this text in their name"
+msgstr "Pokaže le tiste bližnjice, ki imajo to besedilo v nazivu"
+
+
+msgid "Hide Mix nodes"
+msgstr "Skrij mešalna vozlišča"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
+msgstr "Določite, ali se nova vozlišča skrčijo ali prikažejo z vsemi razširjenimi možnostmi, kadar združujete vozlišča z bližnjico Ctrl + Num0 (ali podobnimi)"
+
+
+msgid "Always"
+msgstr "Vedno"
+
+
+msgid "Always collapse the new merge nodes"
+msgstr "Vedno skrči združitvena vozlišča"
+
+
+msgid "Non-Shader"
+msgstr "Ne senčilnikov"
+
+
+msgid "Collapse in all cases except for shaders"
+msgstr "Skrči vse razen senčilnikov"
+
+
+msgid "Never"
+msgstr "Nikoli"
+
+
+msgid "Never collapse the new merge nodes"
+msgstr "Nikoli ne skrči združitvenih vozlišč"
+
+
+msgid "Mix Node Position"
+msgstr "Položaj mešalnega vozlišča"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes"
+msgstr "Določite, kakšen naj bo položaj novonastalih vozlišč, kadar združujete vozlišča z bližnjico Ctrl + Num0 (ali podobnimi)"
+
+
+msgid "Center"
+msgstr "Na sredo"
+
+
+msgid "Place the Mix node between the two nodes"
+msgstr "Postavi mešalno vozlišče med vozlišči"
+
+
+msgid "Bottom"
+msgstr "Na dno"
+
+
+msgid "Place the Mix node at the same height as the lowest node"
+msgstr "Postavi mešalno vozlišče na višino najnižjega vozlišča"
+
+
+msgid "Show Hotkey List"
+msgstr "Pokaži seznam bližnjic"
+
+
+msgid "Fribidi Library"
+msgstr "Knjižnica FriBidi"
+
+
+msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
+msgstr "Prevedena C-jevska knjižnica FriBidi (končnica .so na Linuxu, .dll na Windowsih ...). Če ste na Windowsih, jo boste najbrž morali prilagoditi, lahko pa npr. uporabite tisto iz Blenderjevega repozitorija knjižnic"
+
+
+msgid "Translation Root"
+msgstr "Korenski imenik prevoda"
+
+
+msgid "The bf-translation repository"
+msgstr "Repozitorij bf-translation"
+
+
+msgid "Import Paths"
+msgstr "Uvozne poti"
+
+
+msgid "Additional paths to add to sys.path (';' separated)"
+msgstr "Dodatne poti, ki bodo pripete k sys.path (ločene s ';')"
+
+
+msgid "Source Root"
+msgstr "Korenski imenik izvora"
+
+
+msgid "The Blender source root path"
+msgstr "Pot do korenskega imenika Blenderjeve izvorne kode"
+
+
+msgid "Spell Cache"
+msgstr "Črkovalni predpomnilnik"
+
+
+msgid "A cache storing validated msgids, to avoid re-spellchecking them"
+msgstr "Predpomnilnik, ki hrani preverjene msgidje, da kasneje ni treba ponovno preverjati črkovanja"
+
+
+msgid "Warn Msgid Not Capitalized"
+msgstr "Opozori na malo začetnico"
+
+
+msgid "Warn about messages not starting by a capitalized letter (with a few allowed exceptions!)"
+msgstr "Opozori na msgidje, ki se začnejo z malo začetnico (razen nekaj izjem!)"
+
+
+msgid "Persistent Data Path"
+msgstr "Pot do trajnih podatkov"
+
+
+msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
+msgstr "Ime datoteke JSON, ki hrani te nastavitve (žal Blenderjev sistem tukaj ne deluje)"
+
+
+msgid "User Add-ons"
+msgstr "Uporabniški dodatki"
+
+
+msgid "Collection of add-ons"
+msgstr "Zbirka dodatkov"
+
+
+msgid "Animation Data"
+msgstr "Animacijski podatki"
+
+
+msgid "Animation data for data-block"
+msgstr "Animacijski podatki za podatkovni blok"
+
+
+msgid "Action"
+msgstr "Akcija"
+
+
+msgid "Active Action for this data-block"
+msgstr "Aktivna akcija za ta podatkovni blok"
+
+
+msgid "Action Blending"
+msgstr "Prelivanje akcij"
+
+
+msgid "Method used for combining Active Action's result with result of NLA stack"
+msgstr "Metoda, po kateri naj se rezultat aktivne akcije združi z rezultatom sklada NLA"
+
+
+msgid "Replace"
+msgstr "Zamenjaj"
+
+
+msgid "The strip values replace the accumulated results by amount specified by influence"
+msgstr "Vrednost traku zamenja dozdajšnji skupni rezultat v tolikšni meri, kot to določa faktor vpliva"
+
+
+msgid "Combine"
+msgstr "Združi"
+
+
+msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
+msgstr "Vrednosti traku se združijo z dozdajšnjimi rezultati. Glede na vrsto kanala se uporabi seštevanje, množenje ali računanje s kvaternioni"
+
+
+msgid "Add"
+msgstr "Prištej"
+
+
+msgid "Weighted result of strip is added to the accumulated results"
+msgstr "Utežen rezultat traku se prišteje dozdajšnjemu skupnemu rezultatu"
+
+
+msgid "Subtract"
+msgstr "Odštej"
+
+
+msgid "Weighted result of strip is removed from the accumulated results"
+msgstr "Utežen rezultat traku se odšteje od dozdajšnjega skupnega rezultata"
+
+
+msgid "Multiply"
+msgstr "Zmnoži"
+
+
+msgid "Weighted result of strip is multiplied with the accumulated results"
+msgstr "Utežen rezultat traku se zmnoži z dozdajšnjim skupnim rezultatom"
+
+
+msgid "Action Extrapolation"
+msgstr "Ekstrapoliranje akcije"
+
+
+msgid "Action to take for gaps past the Active Action's range (when evaluating with NLA)"
+msgstr "Kaj naj se zgodi v območjih zunaj obsega aktivne akcije (pri vrednotenju z NLA)"
+
+
+msgid "Nothing"
+msgstr "Brez"
+
+
+msgid "Strip has no influence past its extents"
+msgstr "Trak ne vpliva na območja zunaj svojih meja"
+
+
+msgid "Hold"
+msgstr "Zadrži"
+
+
+msgid "Hold the first frame if no previous strips in track, and always hold last frame"
+msgstr "Zadrži prvi okvir, če na stezi pred trenutnim trakom ni drugih trakov, in vedno zadrži zadnji okvir"
+
+
+msgid "Hold Forward"
+msgstr "Zadrži naprej"
+
+
+msgid "Only hold last frame"
+msgstr "Zadrži samo zadnji okvir"
+
+
+msgid "Action Influence"
+msgstr "Vpliv akcije"
+
+
+msgid "Amount the Active Action contributes to the result of the NLA stack"
+msgstr "Koliko aktivna akcija prispeva h končnemu rezultatu sklada NLA"
+
+
+msgid "Drivers"
+msgstr "Krmila"
+
+
+msgid "The Drivers/Expressions for this data-block"
+msgstr "Krmila/izrazi za ta podatkovni blok"
+
+
+msgid "NLA Tracks"
+msgstr "Steze NLA"
+
+
+msgid "NLA Tracks (i.e. Animation Layers)"
+msgstr "Steze za NLA (tj. animacijske plasti)"
+
+
+msgid "NLA Evaluation Enabled"
+msgstr "Omogočen izračun NLA"
+
+
+msgid "NLA stack is evaluated when evaluating this block"
+msgstr "Ko se izračunava ta blok, se poračuna tudi sklad NLA"
+
+
+msgid "Collection of Driver F-Curves"
+msgstr "Zbirka krmilnih F-krivulj"
+
+
+msgid "Animation Visualization"
+msgstr "Prikaz animacije"
+
+
+msgid "Settings for the visualization of motion"
+msgstr "Nastavitve za prikazovanje gibanja"
+
+
+msgid "Motion Paths"
+msgstr "Gibalne poti"
+
+
+msgid "Motion Path settings for visualization"
+msgstr "Nastavitve gibalnih poti za prikaz"
+
+
+msgid "Motion Path Settings"
+msgstr "Nastavitve gibalnih poti"
+
+
+msgid "Motion Path settings for animation visualization"
+msgstr "Nastavitve gibalnih poti za prikazovanje animacije"
+
+
+msgid "When calculating Bone Paths, use Head or Tips"
+msgstr "Pri računanju poti uporabi prednji ali zadnji konec"
+
+
+msgid "Heads"
+msgstr "Prednji konci"
+
+
+msgid "Calculate bone paths from heads"
+msgstr "Izračuna poti prednjih koncev kosti"
+
+
+msgid "Tails"
+msgstr "Zadnji konci"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Izračuna poti prednjih zadnjih koncev kosti"
+
+
+msgid "After Current"
+msgstr "Po trenutnem"
+
+
+msgid "Before Current"
+msgstr "Pred trenutnim"
+
+
+msgid "End Frame"
+msgstr "Končni okvir"
+
+
+msgid "Start Frame"
+msgstr "Začetni okvir"
+
+
+msgid "Frame Step"
+msgstr "Korak okvirjev"
+
+
+msgid "Has Motion Paths"
+msgstr "Ima gibalne poti"
+
+
+msgid "Are there any bone paths that will need updating (read-only)"
+msgstr "Ali obstajajo neažurne poti kosti (samo za branje)"
+
+
+msgid "Paths Range"
+msgstr "Interval poti"
+
+
+msgid "Type of range to calculate for Motion Paths"
+msgstr "Vrsta računanega intervala za gibalne poti"
+
+
+msgid "All Keys"
+msgstr "Vsi ključi"
+
+
+msgid "From the first keyframe to the last"
+msgstr "Od prvega do zadnjega ključnega okvirja"
+
+
+msgid "Selected Keys"
+msgstr "Izbrani ključi"
+
+
+msgid "From the first selected keyframe to the last"
+msgstr "Od prvega izbranega do zadnjega izbranega ključnega okvirja"
+
+
+msgid "Scene Frame Range"
+msgstr "Interval okvirjev prizora"
+
+
+msgid "The entire Scene / Preview range"
+msgstr "Interval celega prizora/predogleda"
+
+
+msgid "Manual Range"
+msgstr "Interval po meri"
+
+
+msgid "Manually determined frame range"
+msgstr "Ročno določen interval okvirjev"
+
+
+msgid "Show Frame Numbers"
+msgstr "Pokaži oštevilčenje okvirjev"
+
+
+msgid "Show frame numbers on Motion Paths"
+msgstr "Pokaži številke okvirjev na gibalnih poteh"
+
+
+msgid "All Action Keyframes"
+msgstr "Vsi ključni okvirji akcij"
+
+
+msgid "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)"
+msgstr "Pri gibalnih poteh kosti naj išče ključne okvirje po celi akciji, ne le v skupini z ujemajočim nazivom (to je počasneje)"
+
+
+msgid "Highlight Keyframes"
+msgstr "Poudari ključne okvirje"
+
+
+msgid "Emphasize position of keyframes on Motion Paths"
+msgstr "Poudari položaje ključnih okvirjev na gibalnih poteh"
+
+
+msgid "Show Keyframe Numbers"
+msgstr "Pokaži oštevilčenje ključnih okvirjev"
+
+
+msgid "Show frame numbers of Keyframes on Motion Paths"
+msgstr "Prikaže številke ključnih okvirjev na gibalnih poteh"
+
+
+msgid "Paths Type"
+msgstr "Vrsta poti"
+
+
+msgid "Type of range to show for Motion Paths"
+msgstr "Kakšen naj bo vidni obseg gibalnih poti"
+
+
+msgid "Around Frame"
+msgstr "Okoli okvirja"
+
+
+msgid "Display Paths of poses within a fixed number of frames around the current frame"
+msgstr "Prikaže gibanje po določenem številu okvirjev pred in za trenutnim okvirjem"
+
+
+msgid "In Range"
+msgstr "Na intervalu"
+
+
+msgid "Display Paths of poses within specified range"
+msgstr "Prikaže gibanje na podanem intervalu"
+
+
+msgid "Bake to active Camera"
+msgstr "Poračunaj za aktivno kamero"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
+msgstr "Točke gibalne poti bodo vpete v prostor aktivne kamere. To pomeni, da se bodo pravilno prikazovale le, če jih boste gledali skozi to kamero. Preklapljanje kamer z oznakami ni podprto"
+
+
+msgid "Any Type"
+msgstr "Poljuben tip"
+
+
+msgid "Area in a subdivided screen, containing an editor"
+msgstr "Območje na razdeljenem zaslonu, ki vsebuje urejevalnik"
+
+
+msgid "Height"
+msgstr "Višina"
+
+
+msgid "Area height"
+msgstr "Višina območja"
+
+
+msgid "Regions"
+msgstr "Področja"
+
+
+msgid "Regions this area is subdivided in"
+msgstr "Področja, na katera se deli to območje"
+
+
+msgid "Show Menus"
+msgstr "Pokaži menije"
+
+
+msgid "Show menus in the header"
+msgstr "Pokaže menije v glavi"
+
+
+msgid "Spaces"
+msgstr "Prostori"
+
+
+msgid "Spaces contained in this area, the first being the active space (NOTE: Useful for example to restore a previously used 3D view space in a certain area to get the old view orientation)"
+msgstr "Prostori v tem območju. Prvi je aktivni prostor (POZOR: To je uporabno npr. za obnavljanje prej uporabljenega prostora 3D pogleda v novem območju – tako dobimo prejšnjo orientacijo pogleda)"
+
+
+msgid "Editor Type"
+msgstr "Vrsta urejevalnika"
+
+
+msgid "Current editor type for this area"
+msgstr "Vrsta trenutnega urejevalnika v tem območju"
+
+
+msgid "Empty"
+msgstr "Prazno"
+
+
+msgid "3D Viewport"
+msgstr "3D pogled"
+
+
+msgid "Manipulate objects in a 3D environment"
+msgstr "Za manipuliranje objektov v 3D prostoru"
+
+
+msgid "UV/Image Editor"
+msgstr "Urejevalnik UV/slik"
+
+
+msgid "View and edit images and UV Maps"
+msgstr "Za pregledovanje in urejanje slik in preslikav UV"
+
+
+msgid "Node Editor"
+msgstr "Urejevalnik vozlišč"
+
+
+msgid "Editor for node-based shading and compositing tools"
+msgstr "Urejevalnik za senčenje z vozlišči in grafično sestavljanje"
+
+
+msgid "Video Sequencer"
+msgstr "Video razporejevalnik"
+
+
+msgid "Video editing tools"
+msgstr "Orodja za montažo videoposnetkov"
+
+
+msgid "Movie Clip Editor"
+msgstr "Urejevalnik filma"
+
+
+msgid "Motion tracking tools"
+msgstr "Orodja za sledenje gibanja"
+
+
+msgid "Adjust timing of keyframes"
+msgstr "Za prilagajanje časovne razporeditve ključnih okvirjev"
+
+
+msgid "Graph Editor"
+msgstr "Urejevalnik grafov"
+
+
+msgid "Edit drivers and keyframe interpolation"
+msgstr "Za urejanje krmil in interpolacije med ključnimi okvirji"
+
+
+msgid "Nonlinear Animation"
+msgstr "Nelinearna animacija"
+
+
+msgid "Combine and layer Actions"
+msgstr "Za kombiniranje akcij po plasteh"
+
+
+msgid "Text Editor"
+msgstr "Urejevalnik besedila"
+
+
+msgid "Edit scripts and in-file documentation"
+msgstr "Namenjen urejanju skriptov in dokumentacije v datoteki .blend"
+
+
+msgid "Python Console"
+msgstr "Python konzola"
+
+
+msgid "Interactive programmatic console for advanced editing and script development"
+msgstr "Interaktivna programska konzola, namenjena naprednemu urejanju in razvijanju skriptov"
+
+
+msgid "Info"
+msgstr "Informacije"
+
+
+msgid "Log of operations, warnings and error messages"
+msgstr "Beleženje operacij, opozoril in sporočil o napakah programa"
+
+
+msgid "Top Bar"
+msgstr "Zgornja vrstica"
+
+
+msgid "Global bar at the top of the screen for global per-window settings"
+msgstr "Glavna vrstica na vrhu zaslona, ki hrani splošne nastavitve za okno"
+
+
+msgid "Status Bar"
+msgstr "Vrstica stanja"
+
+
+msgid "Global bar at the bottom of the screen for general status information"
+msgstr "Glavna vrstica na dnu zaslona, kjer se nahajajo splošni podatki o stanju programa"
+
+
+msgid "Overview of scene graph and all available data-blocks"
+msgstr "Pregled sestave prizorišča in vseh razpoložljivih podatkovnih blokov"
+
+
+msgid "Properties"
+msgstr "Lastnosti"
+
+
+msgid "Edit properties of active object and related data-blocks"
+msgstr "Za urejanje lastnosti aktivnega objekta in povezanih podatkovnih blokov"
+
+
+msgid "File Browser"
+msgstr "Datotečni brskalnik"
+
+
+msgid "Browse for files and assets"
+msgstr "Omogoča iskanje po datotekah in sredstvih"
+
+
+msgid "Spreadsheet"
+msgstr "Preglednica"
+
+
+msgid "Explore geometry data in a table"
+msgstr "Omogoča raziskovanje geometrijskih podatkov v obliki razpredelnice"
+
+
+msgid "Preferences"
+msgstr "Nastavitve"
+
+
+msgid "Edit persistent configuration settings"
+msgstr "Za urejanje trajne konfiguracije programa"
+
+
+msgid "Width"
+msgstr "Širina"
+
+
+msgid "Area width"
+msgstr "Širina območja"
+
+
+msgid "X Position"
+msgstr "Položaj po X"
+
+
+msgid "The window relative vertical location of the area"
+msgstr "Navpična lokacija območja glede na okno"
+
+
+msgid "Y Position"
+msgstr "Položaj po Y"
+
+
+msgid "The window relative horizontal location of the area"
+msgstr "Vodoravna lokacija območja glede na okno"
+
+
+msgid "Area Spaces"
+msgstr "Območni prostori"
+
+
+msgid "Collection of spaces"
+msgstr "Zbirka prostorov"
+
+
+msgid "Active Space"
+msgstr "Aktiven prostor"
+
+
+msgid "Space currently being displayed in this area"
+msgstr "Prostor, ki je trenutno prikazan na tem območju"
+
+
+msgid "Active Bone"
+msgstr "Aktivna kost"
+
+
+msgid "Collection of target bones and weights"
+msgstr "Zbirka ciljnih kosti in uteži"
+
+
+msgid "Catalog Path"
+msgstr "Pot do kataloga"
+
+
+msgid "User Asset Libraries"
+msgstr "Knjižnice uporabniških sredstev"
+
+
+msgid "Collection of user asset libraries"
+msgstr "Zbirka knjižnic uporabniških sredstev"
+
+
+msgid "Asset Library Reference"
+msgstr "Sklic na knjižnico sredstev"
+
+
+msgid "Identifier to refer to the asset library"
+msgstr "Identifikator, s katerim se sklicujemo na knjižnico sredstev"
+
+
+msgid "Asset Data"
+msgstr "Podatki sredstva"
+
+
+msgid "Additional data stored for an asset data-block"
+msgstr "Dodatni podatki za podatkovni blok sredstva"
+
+
+msgid "Active Tag"
+msgstr "Aktivna etiketa"
+
+
+msgid "Index of the tag set for editing"
+msgstr "Indeks etikete, ki jo urejamo"
+
+
+msgid "Author"
+msgstr "Avtor"
+
+
+msgid "Name of the creator of the asset"
+msgstr "Ime ustvarjalca sredstva"
+
+
+msgid "Catalog UUID"
+msgstr "UUID kataloga"
+
+
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
+msgstr "Identifikator kataloga, ki mu sredstvo pripada. Z njegovo pomočjo Blender poišče pot do kataloga sredstva. Identifikator mora biti UUID, definiran po RFC4122"
+
+
+msgid "Catalog Simple Name"
+msgstr "Preprost naziv kataloga"
+
+
+msgid "Simple name of the asset's catalog, for debugging and data recovery purposes"
+msgstr "Preprost naziv kataloga, ki mu sredstvo pripada. Namenjen je razhroščevanju in obnovitvi podatkov"
+
+
+msgid "Copyright"
+msgstr "Avtorske pravice"
+
+
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
+msgstr "Obvestilo o avtorskih pravicah za to sredstvo. Prazno polje ne pomeni nujno, da sredstvo ni zaščiteno z avtorskimi pravicami. Če kaj ni jasno, stopite v stik z avtorjem"
+
+
+msgid "Description"
+msgstr "Opis"
+
+
+msgid "A description of the asset to be displayed for the user"
+msgstr "Opis sredstva, ki bo viden uporabniku"
+
+
+msgid "License"
+msgstr "Licenca"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
+msgstr "Vrsta licence, po kateri naj se sredstvo deli naprej. Prazno polje ne pomeni nujno, da sredstvo ni zaščiteno z licenco. Če kaj ni jasno, stopite v stik z avtorjem"
+
+
+msgid "Tags"
+msgstr "Etikete"
+
+
+msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
+msgstr "Prilagojene etikete (imenski žetoni) za sredstvo. Uporabljajo se za filtriranje in splošno upravljanje s sredstvi"
+
+
+msgid "Asset Representation"
+msgstr "Vloga sredstva"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Informacije o entiteti, s pomočjo katerih lahko sistem sredstev entiteto obravnava kot sredstvo"
+
+
+msgid "Full Library Path"
+msgstr "Polna pot do knjižnice"
+
+
+msgid "Absolute path to the .blend file containing this asset"
+msgstr "Celotna pot do datoteke .blend, ki vsebuje to sredstvo"
+
+
+msgid "Full Path"
+msgstr "Polna pot"
+
+
+msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
+msgstr "Celotna pot do datoteke .blend, ki vsebuje to sredstvo, razširjena s potjo do sredstva znotraj datoteke"
+
+
+msgctxt "ID"
+msgid "Data-block Type"
+msgstr "Vrsta podatkovnega bloka"
+
+
+msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
+msgstr "Vrsta podatkovnega bloka, če ga sredstvo zastopa (sicer pa 'NONE')"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Akcija"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Čopič"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Predpomnilniška datoteka"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Zbirka"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Krivulja"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Krivulje"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Pisava"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Slika"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Ključ"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Mrežna ovojnica"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Knjižnica"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Luč"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Slog poteze"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maska"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Material"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Mrežna geometrija"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metažoga"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Video izrezek"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Vozliščno drevo"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekt"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Risalna krivulja"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Delec"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Točkovni oblak"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Prizorišče"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Zaslon"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Zvok"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Zvočnik"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Besedilo"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Tekstura"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volumen"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Upravitelj oken"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Delovni prostor"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Svet"
+
+
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "Lokalni podatkovni blok, ki ga to sredstvo zastopa. Veljaven je le, če je podatkovni blok v tej datoteki"
+
+
+msgid "Asset Metadata"
+msgstr "Metapodatki sredstva"
+
+
+msgid "Additional information about the asset"
+msgstr "Dodatne informacije o sredstvu"
+
+
+msgid "Asset Shelf"
+msgstr "Polica s sredstvi"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Področja za hitri dostop do sredstev"
+
+
+msgid "Asset Library"
+msgstr "Knjižnica sredstev"
+
+
+msgid "Choose the asset library to display assets from"
+msgstr "Izberite knjižnico, katere sredstva naj se pokažejo"
+
+
+msgid "All"
+msgstr "Vse"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Pokaže sredstva iz vseh navedenih knjižnic"
+
+
+msgid "Current File"
+msgstr "Trenutna datoteka"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Pokaže sredstva, ki so na voljo v trenutni seji programa"
+
+
+msgid "Essentials"
+msgstr "Osnove"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Pokaže osnovne gradnike in pripomočke, ki so privzeto v Blenderju"
+
+
+msgid "Custom"
+msgstr "Po meri"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Pokaže sredstva iz knjižnic, ki so nastavljene v nastavitvah programa"
+
+
+msgid "Activate Operator"
+msgstr "Aktivirni operator"
+
+
+msgid "Operator to call when activating an item with asset reference properties"
+msgstr "Operator, ki se pokliče, ko aktiviramo element s sklicnimi lastnostmi sredstva"
+
+
+msgid "Default Preview Size"
+msgstr "Privzeta velikost predogleda"
+
+
+msgid "Default size of the asset preview thumbnails in pixels"
+msgstr "Privzeta velikost predoglednih sličic sredstev, merjena v pikslih"
+
+
+msgid "ID Name"
+msgstr "Naziv ID"
+
+
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Če je to nastavljeno, sredstvo prejme prilagojen identifikator, sicer pa je identifikator naziv razreda, s katerim je sredstvo definirano (primer: če je naziv razreda \"OBJECT_AST_ojla\" in skript ne nastavi bl_idname, bo na koncu bl_idname = \"OBJECT_AST_ojla\")"
+
+
+msgid "Options"
+msgstr "Možnosti"
+
+
+msgid "Options for this asset shelf type"
+msgstr "Možnosti za to vrsto police s sredstvi"
+
+
+msgid "No Asset Dragging"
+msgstr "Brez vlečenja sredstev"
+
+
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
+msgstr "Onemogoči privzeto vlečenje sredstev z miško. To je uporabno, če želimo implementirati prilagojeno vlečenje preko preslikav tipk"
+
+
+msgid "Visible by Default"
+msgstr "Privzeto vidna"
+
+
+msgid "Unhide the asset shelf when it's available for the first time, otherwise it will be hidden"
+msgstr "Odkrije to polico s sredstvi, ko je prvič na voljo, drugače ostane skrita"
+
+
+msgid "Store Enabled Catalogs in Preferences"
+msgstr "Shrani omogočene kataloge v nastavitve"
+
+
+msgid "Store the shelf's enabled catalogs in the preferences rather than the local asset shelf settings"
+msgstr "Shrani omogočene kataloge na polici v nastavitve programa namesto v lokalne nastavitve police"
+
+
+msgid "Space Type"
+msgstr "Vrsta prostora"
+
+
+msgid "The space where the asset shelf is going to be used in"
+msgstr "Prostor, v katerem bo polica sredstev uporabljena"
+
+
+msgid "Preview Size"
+msgstr "Velikost predogleda"
+
+
+msgid "Size of the asset preview thumbnails in pixels"
+msgstr "Velikost predogledne sličice sredstva, merjena v pikslih"
+
+
+msgid "Display Filter"
+msgstr "Filter prikaza"
+
+
+msgid "Filter assets by name"
+msgstr "Filtrira sredstva po nazivu"
+
+
+msgid "Show Names"
+msgstr "Pokaži nazive"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible"
+msgstr "Pokaže naziv sredstva skupaj s predogledom. V nasprotnem primeru bo viden le predogled"
+
+
+msgid "Asset Tag"
+msgstr "Etiketa sredstva"
+
+
+msgid "User defined tag (name token)"
+msgstr "Etiketa (imenski žeton), ki jo določi uporabnik"
+
+
+msgid "The identifier that makes up this tag"
+msgstr "Identifikator, ki tvori to etiketo"
+
+
+msgid "Asset Tags"
+msgstr "Etikete sredstev"
+
+
+msgid "Collection of custom asset tags"
+msgstr "Zbirka etiket po meri"
+
+
+msgid "Asset Weak Reference"
+msgstr "Šibki sklic na sredstvo"
+
+
+msgid "Weak reference to some asset"
+msgstr "Šibki sklic na neko sredstvo"
+
+
+msgid "Geometry attribute"
+msgstr "Geometrijski atribut"
+
+
+msgid "Data Type"
+msgstr "Tip podatka"
+
+
+msgid "Type of data stored in attribute"
+msgstr "Tip podatka, ki je shranjen v atributu"
+
+
+msgid "Float"
+msgstr "Realno število"
+
+
+msgid "Floating-point value"
+msgstr "Vrednost s plavajočo vejico"
+
+
+msgid "Integer"
+msgstr "Celo število"
+
+
+msgid "32-bit integer"
+msgstr "32-bitno celo število"
+
+
+msgid "Vector"
+msgstr "Vektor"
+
+
+msgid "3D vector with floating-point values"
+msgstr "Trirazsežni vektor, kjer so komponente realna števila"
+
+
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "Barva RGBA, kjer so komponente 32-bitna realna števila"
+
+
+msgid "Byte Color"
+msgstr "8-bitna barva"
+
+
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "Barva RGBA, kjer so komponente 8-bitna pozitivna cela števila"
+
+
+msgid "String"
+msgstr "Niz"
+
+
+msgid "Text string"
+msgstr "Niz besedila"
+
+
+msgid "Boolean"
+msgstr "Logični tip"
+
+
+msgid "True or false"
+msgstr "Drži ali ne drži"
+
+
+msgid "2D Vector"
+msgstr "2D vektor"
+
+
+msgid "2D vector with floating-point values"
+msgstr "Dvorazsežni vektor, kjer sta komponenti realni števili"
+
+
+msgid "8-Bit Integer"
+msgstr "8-bitno celo število"
+
+
+msgid "Smaller integer with a range from -128 to 127"
+msgstr "Manjše celo število na intervalu od -128 do 127"
+
+
+msgid "2D Integer Vector"
+msgstr "2D celoštevilski vektor"
+
+
+msgid "32-bit signed integer vector"
+msgstr "Dvorazsežni vektor, kjer sta komponenti 32-bitni predznačeni celi števili"
+
+
+msgid "Quaternion"
+msgstr "Kvaternion"
+
+
+msgid "Floating point quaternion rotation"
+msgstr "Rotacija v obliki kvaterniona, kjer so komponente realna števila"
+
+
+msgid "4x4 Matrix"
+msgstr "Matrika 4x4"
+
+
+msgid "Floating point matrix"
+msgstr "Matrika realnih števil"
+
+
+msgid "Domain"
+msgstr "Domena"
+
+
+msgid "Domain of the Attribute"
+msgstr "Domena atributa"
+
+
+msgid "Point"
+msgstr "Točka"
+
+
+msgid "Attribute on point"
+msgstr "Atribut na točki"
+
+
+msgid "Edge"
+msgstr "Rob"
+
+
+msgid "Attribute on mesh edge"
+msgstr "Atribut na robu v mrežni geometriji"
+
+
+msgid "Face"
+msgstr "Lice"
+
+
+msgid "Attribute on mesh faces"
+msgstr "Atribut na licih v mrežni geometriji"
+
+
+msgid "Face Corner"
+msgstr "Vogal lica"
+
+
+msgid "Attribute on mesh face corner"
+msgstr "Atribut na vogalu lica v mrežni geometriji"
+
+
+msgid "Spline"
+msgstr "Zlepek"
+
+
+msgid "Attribute on spline"
+msgstr "Atribut na zlepku"
+
+
+msgid "Instance"
+msgstr "Primerek"
+
+
+msgid "Attribute on instance"
+msgstr "Atribut na primerku"
+
+
+msgid "Layer"
+msgstr "Plast"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "Atribut na plasti Grease Pencil"
+
+
+msgid "Is Internal"
+msgstr "Je notranji"
+
+
+msgid "The attribute is meant for internal use by Blender"
+msgstr "Mišljeno je, da atribut interno uporablja Blender"
+
+
+msgid "Is Required"
+msgstr "Je zahtevan"
+
+
+msgid "Whether the attribute can be removed or renamed"
+msgstr "Določa, ali je mogoče atribut odstraniti ali preimenovati"
+
+
+msgid "Name of the Attribute"
+msgstr "Naziv atributa"
+
+
+msgid "Bool Attribute"
+msgstr "Logični atribut"
+
+
+msgid "Geometry attribute that stores booleans"
+msgstr "Geometrijski atribut, ki hrani logične vrednosti"
+
+
+msgid "Byte Color Attribute"
+msgstr "8-bitni barvni atribut"
+
+
+msgid "Geometry attribute that stores RGBA colors as positive integer values using 8-bits per channel"
+msgstr "Geometrijski atribut, ki hrani barve RGBA kot pozitivna cela števila, kjer je vsak kanal velik 8 bitov"
+
+
+msgid "8-bit Integer Attribute"
+msgstr "8-bitni celoštevilski atribut"
+
+
+msgid "Geometry attribute that stores 8-bit integers"
+msgstr "Geometrijski atribut, ki hrani 8-bitna cela števila"
+
+
+msgid "Float2 Attribute"
+msgstr "2D realnoštevilski atribut"
+
+
+msgid "Geometry attribute that stores floating-point 2D vectors"
+msgstr "Geometrijski atribut, ki hrani 2D realnoštevilske vektorje"
+
+
+msgid "4x4 Matrix Attribute"
+msgstr "4x4-matrični atribut"
+
+
+msgid "Geometry attribute that stores a 4 by 4 float matrix"
+msgstr "Geometrijski atribut, ki hrani realnoštevilsko matriko velikosti 4x4"
+
+
+msgid "Float Attribute"
+msgstr "Realnoštevilski atribut"
+
+
+msgid "Geometry attribute that stores floating-point values"
+msgstr "Geometrijski atribut, ki hrani realna števila s plavajočo vejico"
+
+
+msgid "Float Color Attribute"
+msgstr "Realnoštevilski barvni atribut"
+
+
+msgid "Geometry attribute that stores RGBA colors as floating-point values using 32-bits per channel"
+msgstr "Geometrijski atribut, ki hrani barve RGBA kot realnoštevilske vrednosti s plavajočo vejico, pri čemer ima vsak kanal 32 bitov"
+
+
+msgid "Float Vector Attribute"
+msgstr "Realnoštevilski vektorski atribut"
+
+
+msgid "Geometry attribute that stores floating-point 3D vectors"
+msgstr "Geometrijski atribut, ki hrani realnoštevilske trirazsežne vektorje"
+
+
+msgid "2D Integer Vector Attribute"
+msgstr "2D celoštevilski vektorski atribut"
+
+
+msgid "Geometry attribute that stores 2D integer vectors"
+msgstr "Geometrijski vektor, ki hrani dvorazsežne celoštevilske vektorje"
+
+
+msgid "Integer Attribute"
+msgstr "Celoštevilski atribut"
+
+
+msgid "Geometry attribute that stores integer values"
+msgstr "Geometrijski atribut, ki hrani cela števila"
+
+
+msgid "Quaternion Attribute"
+msgstr "Kvaternionski atribut"
+
+
+msgid "Geometry attribute that stores rotation"
+msgstr "Geometrijski atribut, ki hrani rotacijo"
+
+
+msgid "String Attribute"
+msgstr "Atribut z nizom"
+
+
+msgid "Geometry attribute that stores strings"
+msgstr "Geometrijski atribut, ki hrani nize"
+
+
+msgid "Attribute Group"
+msgstr "Skupina atributov"
+
+
+msgid "Group of geometry attributes"
+msgstr "Skupina geometrijskih atributov"
+
+
+msgid "Active Attribute"
+msgstr "Aktivni atribut"
+
+
+msgid "Active attribute"
+msgstr "Aktivni atribut"
+
+
+msgid "Active Color"
+msgstr "Aktivna barva"
+
+
+msgid "Active color attribute for display and editing"
+msgstr "Aktivni barvni atribut za prikaz in urejanje"
+
+
+msgid "Active Color Index"
+msgstr "Indeks aktivne barve"
+
+
+msgid "Active color attribute index"
+msgstr "Indeks aktivnega barvnega atributa"
+
+
+msgid "Active Color Attribute"
+msgstr "Aktivni barvni atribut"
+
+
+msgid "The name of the active color attribute for display and editing"
+msgstr "Naziv aktivnega barvnega atributa za prikaz in urejanje"
+
+
+msgid "Active Attribute Index"
+msgstr "Indeks aktivnega atributa"
+
+
+msgid "Active attribute index"
+msgstr "Indeks aktivnega atributa"
+
+
+msgid "Default Color Attribute"
+msgstr "Privzeti barvni atribut"
+
+
+msgid "The name of the default color attribute used as a fallback for rendering"
+msgstr "Naziv privzetega barvnega atributa, ki naj bo za rezervo pri upodabljanju"
+
+
+msgid "Active Render Color Index"
+msgstr "Indeks aktivne barve pri upodabljanju"
+
+
+msgid "The index of the color attribute used as a fallback for rendering"
+msgstr "Indeks barvnega atributa, ki naj bo za rezervo pri upodabljanju"
+
+
+msgid "File Path"
+msgstr "Datotečna pot"
+
+
+msgid "Image filepath to use when saving externally"
+msgstr "Datotečna pot za zunanje shranjevanje slike"
+
+
+msgid "Image Format"
+msgstr "Slikovni format"
+
+
+msgid "Margin"
+msgstr "Odmik"
+
+
+msgid "Margin Type"
+msgstr "Vrsta odmika"
+
+
+msgid "Adjacent Faces"
+msgstr "Sosednja lica"
+
+
+msgid "Use pixels from adjacent faces across UV seams"
+msgstr "Uporabi piksle s sosednjih lic preko šivov UV"
+
+
+msgid "Extend"
+msgstr "Razširi"
+
+
+msgid "Extend border pixels outwards"
+msgstr "Razširi robne piksle navzven"
+
+
+msgid "Max Ray Distance"
+msgstr "Skrajna razdalja žarka"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
+msgstr "Največja možna razdalja žarka za iskanje ujemanj med točkami aktivnega in izbranega objekta. Če je nič, ni omejitev"
+
+
+msgid "Normal Space"
+msgstr "Prostor normal"
+
+
+msgid "+X"
+msgstr "+X"
+
+
+msgid "+Y"
+msgstr "+Y"
+
+
+msgid "+Z"
+msgstr "+Z"
+
+
+msgid "-X"
+msgstr "-X"
+
+
+msgid "-Y"
+msgstr "-Y"
+
+
+msgid "-Z"
+msgstr "-Z"
+
+
+msgid "Object"
+msgstr "Objekt"
+
+
+msgid "Tangent"
+msgstr "Dotikalnica"
+
+
+msgid "None"
+msgstr "Brez"
+
+
+msgid "Direct"
+msgstr "Neposredna"
+
+
+msgid "Indirect"
+msgstr "Posredna"
+
+
+msgid "Diffuse"
+msgstr "Razpršitev"
+
+
+msgid "Save Mode"
+msgstr "Način shranjevanja"
+
+
+msgid "Internal"
+msgstr "Notranji"
+
+
+msgid "External"
+msgstr "Zunanji"
+
+
+msgid "Target"
+msgstr "Tarča"
+
+
+msgid "Image Textures"
+msgstr "Slikovne teksture"
+
+
+msgid "Automatic Name"
+msgstr "Samodejno poimenovanje"
+
+
+msgid "Cage"
+msgstr "Ovojnica"
+
+
+msgid "Cast rays to active object from a cage"
+msgstr "Pošilja žarke iz ovojnice proti aktivnemu objektu"
+
+
+msgid "Clear"
+msgstr "Počisti"
+
+
+msgid "Add diffuse contribution"
+msgstr "Upošteva razpršilni prispevek"
+
+
+msgid "Add direct lighting contribution"
+msgstr "Upošteva prispevek neposredne osvetlitve"
+
+
+msgid "Add indirect lighting contribution"
+msgstr "Upošteva prispevek posredne osvetlitve"
+
+
+msgid "Selected to Active"
+msgstr "Izbrane na aktivnega"
+
+
+msgid "Split Materials"
+msgstr "Loči materiale"
+
+
+msgid "View From"
+msgstr "Pogled"
+
+
+msgid "Source of reflection ray directions"
+msgstr "Od kod izvirajo smeri odbojnih žarkov"
+
+
+msgid "Above Surface"
+msgstr "Nad površino"
+
+
+msgid "Cast rays from above the surface"
+msgstr "Pošilja žarke nad površino"
+
+
+msgid "Active Camera"
+msgstr "Aktivna kamera"
+
+
+msgid "Use the active camera's position to cast rays"
+msgstr "Za pošiljanje žarkov uporabi položaj aktivne kamere"
+
+
+msgid "Bézier Curve Point"
+msgstr "Točka Bézierove krivulje"
+
+
+msgid "Bézier curve point with two handles"
+msgstr "Točka na Bézierovi krivulji z dvema ročicama"
+
+
+msgid "Control Point"
+msgstr "Kontrolna točka"
+
+
+msgid "Coordinates of the control point"
+msgstr "Koordinate kontrolne točke"
+
+
+msgid "Handle 1"
+msgstr "1. ročica"
+
+
+msgid "Coordinates of the first handle"
+msgstr "Koordinate prve ročice"
+
+
+msgid "Handle 1 Type"
+msgstr "Vrsta 1. ročice"
+
+
+msgid "Handle types"
+msgstr "Vrste ročic"
+
+
+msgid "Free"
+msgstr "Prosta"
+
+
+msgid "Aligned"
+msgstr "Poravnana"
+
+
+msgid "Handle 2"
+msgstr "2. ročica"
+
+
+msgid "Coordinates of the second handle"
+msgstr "Koordinate druge ročice"
+
+
+msgid "Handle 2 Type"
+msgstr "Vrsta 2. ročice"
+
+
+msgid "Hide"
+msgstr "Skrij"
+
+
+msgid "Visibility status"
+msgstr "Vidnost"
+
+
+msgid "Bevel Radius"
+msgstr "Polmer poševnine"
+
+
+msgid "Radius for beveling"
+msgstr "Polmer za tvorjenje poševnine"
+
+
+msgid "Control Point selected"
+msgstr "Kontrolna točka izbrana"
+
+
+msgid "Control point selection status"
+msgstr "Stanje izbire kontrolne točke"
+
+
+msgid "Handle 1 selected"
+msgstr "1. ročica izbrana"
+
+
+msgid "Handle 1 selection status"
+msgstr "Stanje izbire 1. ročice"
+
+
+msgid "Handle 2 selected"
+msgstr "2. ročica izbrana"
+
+
+msgid "Handle 2 selection status"
+msgstr "Stanje izbire 2. ročice"
+
+
+msgid "Tilt"
+msgstr "Naklon"
+
+
+msgid "Tilt in 3D View"
+msgstr "Naklon v 3D pogledu"
+
+
+msgid "Weight"
+msgstr "Teža"
+
+
+msgid "Softbody goal weight"
+msgstr "Ciljna teža mehkega telesa"
+
+
+msgid "Blend-File Data"
+msgstr "Podatki datoteke Blend"
+
+
+msgid "Main data structure representing a .blend file and all its data-blocks"
+msgstr "Glavna podatkovna struktura, ki predstavlja datoteko .blend in vse njene podatkovne bloke"
+
+
+msgid "Actions"
+msgstr "Akcije"
+
+
+msgid "Action data-blocks"
+msgstr "Akcijski podatkovni bloki"
+
+
+msgid "Brushes"
+msgstr "Čopiči"
+
+
+msgid "Brush data-blocks"
+msgstr "Podatkovni bloki čopičev"
+
+
+msgid "Cache Files"
+msgstr "Predpomnilniške datoteke"
+
+
+msgid "Cache Files data-blocks"
+msgstr "Podatkovni bloki predpomnilniških datotek"
+
+
+msgid "Cameras"
+msgstr "Kamere"
+
+
+msgid "Camera data-blocks"
+msgstr "Podatkovni bloki kamer"
+
+
+msgid "Collections"
+msgstr "Zbirke"
+
+
+msgid "Collection data-blocks"
+msgstr "Podatkovni bloki zbirk"
+
+
+msgid "Curves"
+msgstr "Krivulje"
+
+
+msgid "Curve data-blocks"
+msgstr "Podatkovni bloki krivulj"
+
+
+msgid "Filename"
+msgstr "Ime datoteke"
+
+
+msgid "Path to the .blend file"
+msgstr "Pot do datoteke .blend"
+
+
+msgid "Vector Fonts"
+msgstr "Vektorske pisave"
+
+
+msgid "Vector font data-blocks"
+msgstr "Podatkovni bloki vektorskih pisav"
+
+
+msgid "Grease Pencil data-blocks"
+msgstr "Podatkovni bloki za Grease Pencil"
+
+
+msgid "Hair Curves"
+msgstr "Lasne krivulje"
+
+
+msgid "Hair curve data-blocks"
+msgstr "Podatkovni bloki lasnih krivulj"
+
+
+msgid "Images"
+msgstr "Slike"
+
+
+msgid "Image data-blocks"
+msgstr "Podatkovni bloki slik"
+
+
+msgid "File Has Unsaved Changes"
+msgstr "Datoteka ima neshranjene spremembe"
+
+
+msgid "Have recent edits been saved to disk"
+msgstr "Ali so bile nedavne spremembe shranjene na disk"
+
+
+msgid "File is Saved"
+msgstr "Datoteka je shranjena"
+
+
+msgid "Has the current session been saved to disk as a .blend file"
+msgstr "Ali je bila trenutna seja shranjena na disk kot datoteka .blend"
+
+
+msgid "Lattices"
+msgstr "Mrežne ovojnice"
+
+
+msgid "Lattice data-blocks"
+msgstr "Podatkovni bloki mrežnih ovojnic"
+
+
+msgid "Libraries"
+msgstr "Knjižnice"
+
+
+msgid "Library data-blocks"
+msgstr "Podatkovni bloki knjižnic"
+
+
+msgid "Lights"
+msgstr "Luči"
+
+
+msgid "Light data-blocks"
+msgstr "Podatkovni bloki luči"
+
+
+msgid "Line Styles"
+msgstr "Slogi poteze"
+
+
+msgid "Line Style data-blocks"
+msgstr "Podatkovni bloki slogov poteze"
+
+
+msgid "Masks"
+msgstr "Maske"
+
+
+msgid "Masks data-blocks"
+msgstr "Podatkovni bloki mask"
+
+
+msgid "Materials"
+msgstr "Materiali"
+
+
+msgid "Material data-blocks"
+msgstr "Podatkovni bloki materialov"
+
+
+msgid "Meshes"
+msgstr "Mrežna geometrija"
+
+
+msgid "Mesh data-blocks"
+msgstr "Podatkovni bloki mrežne geometrije"
+
+
+msgid "Metaballs"
+msgstr "Metažoge"
+
+
+msgid "Metaball data-blocks"
+msgstr "Podatkovni bloki metažog"
+
+
+msgid "Movie Clips"
+msgstr "Video izrezki"
+
+
+msgid "Movie Clip data-blocks"
+msgstr "Podatkovni bloki video izrezkov"
+
+
+msgid "Node Groups"
+msgstr "Skupine vozlišč"
+
+
+msgid "Node group data-blocks"
+msgstr "Podatkovni bloki skupin vozlišč"
+
+
+msgid "Objects"
+msgstr "Objekti"
+
+
+msgid "Object data-blocks"
+msgstr "Podatkovni bloki objektov"
+
+
+msgid "Paint Curves"
+msgstr "Risalne krivulje"
+
+
+msgid "Paint Curves data-blocks"
+msgstr "Podatkovni bloki risalnih krivulj"
+
+
+msgid "Palettes"
+msgstr "Palete"
+
+
+msgid "Palette data-blocks"
+msgstr "Podatkovni bloki palet"
+
+
+msgid "Particles"
+msgstr "Delci"
+
+
+msgid "Particle data-blocks"
+msgstr "Podatkovni bloki delcev"
+
+
+msgid "Point Clouds"
+msgstr "Točkovni oblaki"
+
+
+msgid "Point cloud data-blocks"
+msgstr "Podatkovni bloki točkovnih oblakov"
+
+
+msgid "Scenes"
+msgstr "Prizorišča"
+
+
+msgid "Scene data-blocks"
+msgstr "Podatkovni bloki prizorišč"
+
+
+msgid "Screens"
+msgstr "Zasloni"
+
+
+msgid "Screen data-blocks"
+msgstr "Podatkovni bloki zaslonov"
+
+
+msgid "Shape Keys"
+msgstr "Oblikovni ključi"
+
+
+msgid "Shape Key data-blocks"
+msgstr "Podatkovni bloki oblikovnih ključev"
+
+
+msgid "Sounds"
+msgstr "Zvoki"
+
+
+msgid "Sound data-blocks"
+msgstr "Zvočni podatkovni bloki"
+
+
+msgid "Speakers"
+msgstr "Zvočniki"
+
+
+msgid "Speaker data-blocks"
+msgstr "Podatkovni bloki zvočnikov"
+
+
+msgid "Texts"
+msgstr "Besedila"
+
+
+msgid "Text data-blocks"
+msgstr "Besedilni podatkovni bloki"
+
+
+msgid "Textures"
+msgstr "Teksture"
+
+
+msgid "Texture data-blocks"
+msgstr "Teksturni podatkovni bloki"
+
+
+msgid "F-Curves"
+msgstr "F-krivulje"
+
+
+msgid "Attribute"
+msgstr "atribut"
+
+
+msgid "Handles"
+msgstr "ročice"
+
