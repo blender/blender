@@ -48,47 +48,13 @@ static Vector<float> iteration_strengths(const float strength)
 }
 
 struct LocalData {
+  Vector<float3> positions;
   Vector<float> factors;
   Vector<float> distances;
   Vector<Vector<int>> vert_neighbors;
+  Vector<float3> new_positions;
   Vector<float3> translations;
 };
-
-static float3 average_positions(const Span<float3> positions, const Span<int> indices)
-{
-  const float factor = math::rcp(float(indices.size()));
-  float3 result(0);
-  for (const int i : indices) {
-    result += positions[i] * factor;
-  }
-  return result;
-}
-
-BLI_NOINLINE static void calc_smooth_positions_faces(const OffsetIndices<int> faces,
-                                                     const Span<int> corner_verts,
-                                                     const GroupedSpan<int> vert_to_face_map,
-                                                     const BitSpan boundary_verts,
-                                                     const Span<bool> hide_poly,
-                                                     const Span<int> verts,
-                                                     const Span<float3> positions,
-                                                     LocalData &tls,
-                                                     const MutableSpan<float3> new_positions)
-{
-  tls.vert_neighbors.reinitialize(verts.size());
-  calc_vert_neighbors_interior(
-      faces, corner_verts, vert_to_face_map, boundary_verts, hide_poly, verts, tls.vert_neighbors);
-  const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
-
-  for (const int i : verts.index_range()) {
-    const Span<int> neighbors = vert_neighbors[i];
-    if (neighbors.is_empty()) {
-      new_positions[i] = positions[verts[i]];
-    }
-    else {
-      new_positions[i] = average_positions(positions, neighbors);
-    }
-  }
-}
 
 BLI_NOINLINE static void apply_positions_faces(const Sculpt &sd,
                                                const Brush &brush,
@@ -163,19 +129,25 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Sculpt &sd,
   Array<float3> new_positions(node_vert_offsets.total_size());
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
+
+  /* Calculate the new positions into a separate array in a separate loop because multiple loops
+   * are updated in parallel. Without this there would be non-threadsafe access to changing
+   * positions in other PBVH nodes. */
   for (const float strength : iteration_strengths(brush_strength)) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       LocalData &tls = all_tls.local();
       for (const int i : range) {
-        calc_smooth_positions_faces(faces,
-                                    corner_verts,
-                                    ss.vert_to_face_map,
-                                    ss.vertex_info.boundary,
-                                    hide_poly,
-                                    bke::pbvh::node_unique_verts(*nodes[i]),
-                                    positions_eval,
-                                    tls,
-                                    new_positions.as_mutable_span().slice(node_vert_offsets[i]));
+        const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+        tls.vert_neighbors.reinitialize(verts.size());
+        calc_vert_neighbors_interior(faces,
+                                     corner_verts,
+                                     ss.vert_to_face_map,
+                                     ss.vertex_info.boundary,
+                                     hide_poly,
+                                     verts,
+                                     tls.vert_neighbors);
+        smooth::neighbor_position_average_mesh(
+            positions_eval, verts, tls.vert_neighbors, new_positions);
       }
     });
 
@@ -198,95 +170,114 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Sculpt &sd,
 }
 
 static void calc_grids(const Sculpt &sd,
+                       const OffsetIndices<int> faces,
+                       const Span<int> corner_verts,
+                       const BitSpan boundary_verts,
                        Object &object,
                        const Brush &brush,
                        const float strength,
-                       const PBVHNode &node)
+                       const PBVHNode &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      object, ss.cache->automasking.get(), node);
-
+  const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = *BKE_pbvh_get_grid_key(*ss.pbvh);
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
-  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  for (const int grid : bke::pbvh::node_grid_indices(node)) {
-    const int grid_verts_start = grid * key.grid_area;
-    CCGElem *elem = grids[grid];
-    for (const int j : IndexRange(key.grid_area)) {
-      if (!grid_hidden.is_empty() && grid_hidden[grid][j]) {
-        continue;
-      }
-      float3 &co = CCG_elem_offset_co(key, elem, j);
-      if (!sculpt_brush_test_sq_fn(test, co)) {
-        continue;
-      }
-      const float fade = strength * SCULPT_brush_strength_factor(
-                                        ss,
-                                        brush,
-                                        co,
-                                        sqrtf(test.dist),
-                                        CCG_elem_offset_no(key, elem, j),
-                                        nullptr,
-                                        key.has_mask ? CCG_elem_offset_mask(key, elem, j) : 0.0f,
-                                        BKE_pbvh_make_vref(grid_verts_start + j),
-                                        thread_id,
-                                        &automask_data);
+  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const int grid_verts_num = grids.size() * key.grid_area;
 
-      float3 avg = smooth::neighbor_coords_average_interior(
-          ss, BKE_pbvh_make_vref(grid_verts_start + j));
-      float3 final_co = co + (avg - co) * fade;
-      SCULPT_clip(sd, ss, co, final_co);
-    }
+  tls.positions.reinitialize(grid_verts_num);
+  const MutableSpan<float3> positions = tls.positions;
+  gather_grids_positions(subdiv_ccg, grids, positions);
+
+  tls.factors.reinitialize(grid_verts_num);
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
+
+  tls.distances.reinitialize(grid_verts_num);
+  const MutableSpan<float> distances = tls.distances;
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  if (cache.automasking) {
+    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
+  }
+
+  scale_factors(factors, strength);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+
+  tls.new_positions.reinitialize(grid_verts_num);
+  const MutableSpan<float3> new_positions = tls.new_positions;
+  smooth::neighbor_position_average_interior_grids(
+      faces, corner_verts, boundary_verts, subdiv_ccg, grids, new_positions);
+
+  tls.translations.reinitialize(grid_verts_num);
+  const MutableSpan<float3> translations = tls.translations;
+  translations_from_new_positions(new_positions, positions, translations);
+  scale_translations(translations, factors);
+
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, grids, subdiv_ccg);
 }
 
-static void calc_bmesh(
-    const Sculpt &sd, Object &object, const Brush &brush, const float strength, PBVHNode &node)
+static void calc_bmesh(const Sculpt &sd,
+                       Object &object,
+                       const Brush &brush,
+                       const float strength,
+                       PBVHNode &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
 
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test, brush.falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      object, ss.cache->automasking.get(), node);
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
-  const int mask_offset = CustomData_get_offset_named(
-      &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  tls.positions.reinitialize(verts.size());
+  const MutableSpan<float3> positions = tls.positions;
+  gather_bmesh_positions(verts, positions);
 
-  for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&node)) {
-    if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
-      continue;
-    }
-    if (!sculpt_brush_test_sq_fn(test, vert->co)) {
-      continue;
-    }
-    auto_mask::node_update(automask_data, *vert);
-    const float mask = mask_offset == -1 ? 0.0f : BM_ELEM_CD_GET_FLOAT(vert, mask_offset);
-    const float fade = strength * SCULPT_brush_strength_factor(ss,
-                                                               brush,
-                                                               vert->co,
-                                                               sqrtf(test.dist),
-                                                               vert->no,
-                                                               nullptr,
-                                                               mask,
-                                                               BKE_pbvh_make_vref(intptr_t(vert)),
-                                                               thread_id,
-                                                               &automask_data);
-
-    float3 avg = smooth::neighbor_coords_average_interior(ss, BKE_pbvh_make_vref(intptr_t(vert)));
-    float3 final_co = float3(vert->co) + (avg - float3(vert->co)) * fade;
-    SCULPT_clip(sd, ss, vert->co, final_co);
+  tls.factors.reinitialize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal, verts, factors);
   }
+
+  tls.distances.reinitialize(verts.size());
+  const MutableSpan<float> distances = tls.distances;
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
+  filter_distances_with_radius(cache.radius, distances, factors);
+  apply_hardness_to_distances(cache, distances);
+  calc_brush_strength_factors(cache, brush, distances, factors);
+
+  if (cache.automasking) {
+    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
+  }
+
+  scale_factors(factors, strength);
+
+  calc_brush_texture_factors(ss, brush, positions, factors);
+
+  tls.new_positions.reinitialize(verts.size());
+  const MutableSpan<float3> new_positions = tls.new_positions;
+  smooth::neighbor_position_average_interior_bmesh(verts, new_positions);
+
+  tls.translations.reinitialize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  translations_from_new_positions(new_positions, positions, translations);
+  scale_translations(translations, factors);
+
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, verts);
 }
 
 }  // namespace smooth_cc
@@ -305,26 +296,44 @@ void do_smooth_brush(const Sculpt &sd,
     case PBVH_FACES:
       do_smooth_brush_mesh(sd, brush, object, nodes, brush_strength);
       break;
-    case PBVH_GRIDS:
+    case PBVH_GRIDS: {
+      const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+      const OffsetIndices faces = base_mesh.faces();
+      const Span<int> corner_verts = base_mesh.corner_verts();
+
+      threading::EnumerableThreadSpecific<LocalData> all_tls;
       for (const float strength : iteration_strengths(brush_strength)) {
         threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          LocalData &tls = all_tls.local();
           for (const int i : range) {
-            calc_grids(sd, object, brush, strength, *nodes[i]);
+            calc_grids(sd,
+                       faces,
+                       corner_verts,
+                       ss.vertex_info.boundary,
+                       object,
+                       brush,
+                       strength,
+                       *nodes[i],
+                       tls);
           }
         });
       }
       break;
-    case PBVH_BMESH:
+    }
+    case PBVH_BMESH: {
       BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
       BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
+      threading::EnumerableThreadSpecific<LocalData> all_tls;
       for (const float strength : iteration_strengths(brush_strength)) {
         threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          LocalData &tls = all_tls.local();
           for (const int i : range) {
-            calc_bmesh(sd, object, brush, strength, *nodes[i]);
+            calc_bmesh(sd, object, brush, strength, *nodes[i], tls);
           }
         });
       }
       break;
+    }
   }
 }
 

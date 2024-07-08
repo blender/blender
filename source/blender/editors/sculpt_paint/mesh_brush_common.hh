@@ -66,6 +66,9 @@ void translations_from_new_positions(Span<float3> new_positions,
                                      Span<int> verts,
                                      Span<float3> old_positions,
                                      MutableSpan<float3> translations);
+void translations_from_new_positions(Span<float3> new_positions,
+                                     Span<float3> old_positions,
+                                     MutableSpan<float3> translations);
 
 void transform_positions(Span<float3> src, const float4x4 &transform, MutableSpan<float3> dst);
 

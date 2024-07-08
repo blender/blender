@@ -678,6 +678,32 @@ Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &neig
   return neighbors;
 }
 
+Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 64> &neighbors)
+{
+  BMIter liter;
+  BMLoop *l;
+  BM_ITER_ELEM (l, &liter, &vert, BM_LOOPS_OF_VERT) {
+    for (BMVert *other_vert : {l->prev->v, l->next->v}) {
+      if (other_vert != &vert) {
+        neighbors.append(other_vert);
+      }
+    }
+  }
+
+  if (BM_vert_is_boundary(&vert)) {
+    if (neighbors.size() == 2) {
+      /* Do not include neighbors of corner vertices. */
+      neighbors.clear();
+    }
+    else {
+      /* Only include other boundary vertices as neighbors of boundary vertices. */
+      neighbors.remove_if([&](const BMVert *vert) { return !BM_vert_is_boundary(vert); });
+    }
+  }
+
+  return neighbors;
+}
+
 static void sculpt_vertex_neighbors_get_faces(const SculptSession &ss,
                                               PBVHVertRef vertex,
                                               SculptVertexNeighborIter *iter)
@@ -7352,6 +7378,16 @@ void translations_from_new_positions(const Span<float3> new_positions,
   BLI_assert(new_positions.size() == verts.size());
   for (const int i : verts.index_range()) {
     translations[i] = new_positions[i] - old_positions[verts[i]];
+  }
+}
+
+void translations_from_new_positions(const Span<float3> new_positions,
+                                     const Span<float3> old_positions,
+                                     const MutableSpan<float3> translations)
+{
+  BLI_assert(new_positions.size() == old_positions.size());
+  for (const int i : new_positions.index_range()) {
+    translations[i] = new_positions[i] - old_positions[i];
   }
 }
 

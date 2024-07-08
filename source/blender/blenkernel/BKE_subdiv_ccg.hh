@@ -16,6 +16,7 @@
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
+#include "BLI_vector.hh"
 
 #include "BKE_ccg.hh"
 
@@ -221,7 +222,7 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG &subdiv_ccg,
                                       int &r_num_loops);
 
 struct SubdivCCGNeighbors {
-  blender::Array<SubdivCCGCoord, 256> coords;
+  blender::Vector<SubdivCCGCoord, 256> coords;
   int num_duplicates;
 };
 
