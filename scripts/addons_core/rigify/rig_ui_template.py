@@ -922,7 +922,7 @@ class RigLayers(bpy.types.Panel):
                     title = coll.get('rigify_ui_title') or coll.name
                     row2 = row.row()
                     row2.active = coll.is_visible_ancestors
-                    row2.prop(coll, 'is_visible', toggle=True, text=title)
+                    row2.prop(coll, 'is_visible', toggle=True, text=title, translate=False)
             else:
                 row.separator()
 '''
