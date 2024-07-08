@@ -7344,6 +7344,17 @@ void translations_from_offset_and_factors(const float3 &offset,
   }
 }
 
+void translations_from_new_positions(const Span<float3> new_positions,
+                                     const Span<int> verts,
+                                     const Span<float3> old_positions,
+                                     const MutableSpan<float3> translations)
+{
+  BLI_assert(new_positions.size() == verts.size());
+  for (const int i : verts.index_range()) {
+    translations[i] = new_positions[i] - old_positions[verts[i]];
+  }
+}
+
 void transform_positions(const Span<float3> src,
                          const float4x4 &transform,
                          const MutableSpan<float3> dst)

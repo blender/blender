@@ -90,17 +90,6 @@ BLI_NOINLINE static void calc_smooth_positions_faces(const OffsetIndices<int> fa
   }
 }
 
-BLI_NOINLINE static void translations_from_new_positions(const Span<float3> new_positions,
-                                                         const Span<int> verts,
-                                                         const Span<float3> old_positions,
-                                                         const MutableSpan<float3> translations)
-{
-  BLI_assert(new_positions.size() == verts.size());
-  for (const int i : verts.index_range()) {
-    translations[i] = new_positions[i] - old_positions[verts[i]];
-  }
-}
-
 BLI_NOINLINE static void apply_positions_faces(const Sculpt &sd,
                                                const Brush &brush,
                                                const Span<float3> positions_eval,

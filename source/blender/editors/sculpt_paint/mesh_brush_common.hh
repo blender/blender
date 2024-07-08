@@ -57,6 +57,16 @@ void scale_factors(MutableSpan<float> factors, float strength);
 void translations_from_offset_and_factors(const float3 &offset,
                                           Span<float> factors,
                                           MutableSpan<float3> r_translations);
+
+/**
+ * For brushes that calculate an averaged new position instead of generating a new translation
+ * vector.
+ */
+void translations_from_new_positions(Span<float3> new_positions,
+                                     Span<int> verts,
+                                     Span<float3> old_positions,
+                                     MutableSpan<float3> translations);
+
 void transform_positions(Span<float3> src, const float4x4 &transform, MutableSpan<float3> dst);
 
 /**
