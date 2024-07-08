@@ -320,7 +320,7 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
 
     BLI_listbase_clear(&new_panel->layout_panel_states);
     LISTBASE_FOREACH (LayoutPanelState *, src_state, &old_panel->layout_panel_states) {
-      LayoutPanelState *new_state = MEM_new<LayoutPanelState>(__func__, *src_state);
+      LayoutPanelState *new_state = MEM_cnew<LayoutPanelState>(__func__, *src_state);
       new_state->idname = BLI_strdup(src_state->idname);
       BLI_addtail(&new_panel->layout_panel_states, new_state);
     }
