@@ -92,20 +92,13 @@ enum class ResourceOwner {
 
 /**
  * State being tracked for a resource.
- *
- * NOTE: write_access and read_access are mutual exclusive.
- * NOTE: write_stages and read_stages are mutual exclusive.
  */
 struct VKResourceBarrierState {
-  /* How was the resource accessed when last written to. */
-  VkAccessFlags write_access = VK_ACCESS_NONE;
-  /* How is the resource currently been read from. */
-  VkAccessFlags read_access = VK_ACCESS_NONE;
-  /* Pipeline stage that created wrote last to the resource. */
-  VkPipelineStageFlags write_stages = VK_PIPELINE_STAGE_NONE;
-  /* Pipeline stage that is currently reading from the resource. */
-  VkPipelineStageFlags read_stages = VK_PIPELINE_STAGE_NONE;
-  /* Current image layout of the image resource. */
+  /** Last used access flags. Will be reset by the last write. Reads will accumulate flags. */
+  VkAccessFlags vk_access = VK_ACCESS_NONE;
+  /* Last known pipeline stage. Will be reset by the last write. Reads will accumulate flags. */
+  VkPipelineStageFlags vk_pipeline_stages = VK_PIPELINE_STAGE_NONE;
+  /** Last known image layout of an image resource. */
   VkImageLayout image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 };
 
