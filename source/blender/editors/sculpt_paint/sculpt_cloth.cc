@@ -1226,7 +1226,7 @@ void simulation_free(SimulationData *cloth_sim)
   if (cloth_sim->collider_list) {
     BKE_collider_cache_free(&cloth_sim->collider_list);
   }
-  MEM_SAFE_FREE(cloth_sim);
+  MEM_delete(cloth_sim);
 }
 
 void simulation_limits_draw(const uint gpuattr,
