@@ -232,6 +232,7 @@ def force_exit_ok_enable() -> None:
 def execfile(filepath: str) -> Dict[str, Any]:
     global_namespace = {"__file__": filepath, "__name__": "__main__"}
     with open(filepath, "rb") as fh:
+        # pylint: disable-next=exec-used
         exec(compile(fh.read(), filepath, 'exec'), global_namespace)
     return global_namespace
 
@@ -446,6 +447,7 @@ def sha256_from_file_or_error(
     (exact hashing method may change).
     """
     try:
+        # pylint: disable-next=consider-using-with
         fh_context = open(filepath, 'rb')
     except Exception as ex:
         return "error opening file: {:s}".format(str(ex))
@@ -531,6 +533,8 @@ def rmtree_with_fallback_or_error(
     if sys.version_info >= (3, 12):
         shutil.rmtree(path, onexc=lambda *args: errors.append(args))
     else:
+        # Ignore as the deprecated logic is only used for older Python versions.
+        # pylint: disable-next=deprecated-argument
         shutil.rmtree(path, onerror=lambda *args: errors.append((args[0], args[1], args[2][1])))
 
     # Happy path (for practically all cases).
@@ -642,7 +646,7 @@ def pkg_manifest_from_dict_and_validate_impl(
     for key in PkgManifest._fields:
         val = data.get(key, ...)
         if val is ...:
-            # pylint: disable-next=no-member
+            # pylint: disable-next=no-member,protected-access
             val = PkgManifest._field_defaults.get(key, ...)
         # `pkg_manifest_is_valid_or_error{_all}` will have caught this, assert all the same.
         assert val is not ...
@@ -820,6 +824,7 @@ def pkg_manifest_from_archive_and_validate(
         strict: bool,
 ) -> Union[PkgManifest, str]:
     try:
+        # pylint: disable-next=consider-using-with
         zip_fh_context = zipfile.ZipFile(filepath, mode="r")
     except Exception as ex:
         return "Error extracting archive \"{:s}\"".format(str(ex))
@@ -836,6 +841,7 @@ def pkg_is_legacy_addon(filepath: str) -> bool:
         return True
 
     try:
+        # pylint: disable-next=consider-using-with
         zip_fh_context = zipfile.ZipFile(filepath, mode="r")
     except Exception:
         return False
@@ -1450,12 +1456,12 @@ def pkg_manifest_tags_valid_or_error(
 #
 # However manifests from severs that don't adhere to strict rules are not prevented from loading.
 
+# pylint: disable-next=useless-return
 def pkg_manifest_validate_field_nop(
         value: Any,
         strict: bool,
 ) -> Optional[str]:
     _ = strict, value
-    # pylint: disable-next=useless-return
     return None
 
 
@@ -1698,8 +1704,15 @@ def pkg_manifest_validate_field_wheels(
     filename_spec = "{distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl"
 
     for wheel in value:
+        if "\"" in wheel:
+            return "wheel paths most not contain quotes, found {!r}".format(wheel)
         if "\\" in wheel:
             return "wheel paths must use forward slashes, found {!r}".format(wheel)
+
+        if (error := pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(
+                wheel, True,
+        )) is not None:
+            return "wheel paths detected: {:s}, found {!r}".format(error, wheel)
 
         wheel_filename = os.path.basename(wheel)
         if not wheel_filename.lower().endswith(".whl"):
@@ -1809,11 +1822,11 @@ def pkg_manifest_is_valid_or_error_impl(
             is_default_value = False
             x_val = data.get(x_key, ...)
             if x_val is ...:
-                # pylint: disable-next=no-member
+                # pylint: disable-next=no-member, protected-access
                 x_val = PkgManifest._field_defaults.get(x_key, ...)
                 if from_repo:
                     if x_val is ...:
-                        # pylint: disable-next=no-member
+                        # pylint: disable-next=no-member, protected-access
                         x_val = PkgManifest_Archive._field_defaults.get(x_key, ...)
                 if x_val is ...:
                     error_list.append("missing \"{:s}\"".format(x_key))
@@ -1897,6 +1910,9 @@ def pkg_manifest_dict_apply_build_generated_table(manifest_dict: Dict[str, Any])
 
     if (platforms := build_generated.get("platforms")) is not None:
         manifest_dict["platforms"] = platforms
+
+    if (wheels := build_generated.get("wheels")) is not None:
+        manifest_dict["wheels"] = wheels
 
 
 # -----------------------------------------------------------------------------
@@ -1986,6 +2002,35 @@ def blender_platform_compatible_with_wheel_platform(platform: str, wheel_platfor
     return platform == platform_blender
 
 
+def blender_platform_compatible_with_wheel_platform_from_filepath(platform: str, wheel_filepath: str) -> bool:
+    wheel_filename = os.path.splitext(os.path.basename(wheel_filepath))[0]
+
+    wheel_filename_split = wheel_filename.split("-")
+    # This should be unreachable because the manifest has been validated, add assert.
+    assert len(wheel_filename_split) >= 5, "Internal error, manifest validation disallows this"
+
+    wheel_platform = wheel_filename_split[-1]
+
+    return blender_platform_compatible_with_wheel_platform(platform, wheel_platform)
+
+
+def paths_filter_wheels_by_platform(
+        wheels: List[str],
+        platform: str,
+) -> List[str]:
+    """
+    All paths are wheels with filenames that follow the wheel spec.
+    Return wheels which are compatible with the ``platform``.
+    """
+    wheels_result: List[str] = []
+
+    for wheel_filepath in wheels:
+        if blender_platform_compatible_with_wheel_platform_from_filepath(platform, wheel_filepath):
+            wheels_result.append(wheel_filepath)
+
+    return wheels_result
+
+
 def build_paths_filter_wheels_by_platform(
         build_paths: List[Tuple[str, str]],
         platform: str,
@@ -1997,17 +2042,7 @@ def build_paths_filter_wheels_by_platform(
     build_paths_for_platform: List[Tuple[str, str]] = []
 
     for item in build_paths:
-        # Both the absolute/relative path can be used to get the filename.
-        # Use the relative since it's likely to be shorter.
-        wheel_filename = os.path.splitext(os.path.basename(item[1]))[0]
-
-        wheel_filename_split = wheel_filename.split("-")
-        # This should be unreachable because the manifest has been validated, add assert.
-        assert len(wheel_filename_split) >= 5, "Internal error, manifest validation disallows this"
-
-        wheel_platform = wheel_filename_split[-1]
-
-        if blender_platform_compatible_with_wheel_platform(platform, wheel_platform):
+        if blender_platform_compatible_with_wheel_platform_from_filepath(platform, item[1]):
             build_paths_for_platform.append(item)
 
     return build_paths_for_platform
@@ -2221,7 +2256,7 @@ def pkg_manifest_toml_is_valid_or_error(filepath: str, strict: bool) -> Tuple[Op
     return None, result
 
 
-def pkg_manifest_detect_duplicates(pkg_idname: str, pkg_items: List[PkgManifest]) -> Optional[str]:
+def pkg_manifest_detect_duplicates(pkg_items: List[PkgManifest]) -> Optional[str]:
     """
     When a repository includes multiple packages with the same ID, ensure they don't conflict.
 
@@ -3177,7 +3212,7 @@ class subcmd_server:
         for pkg_idname, pkg_items in repo_data_idname_map.items():
             if len(pkg_items) == 1:
                 continue
-            if (error := pkg_manifest_detect_duplicates(pkg_idname, pkg_items)) is not None:
+            if (error := pkg_manifest_detect_duplicates(pkg_items)) is not None:
                 msglog.warn("archive found with duplicates for id {:s}: {:s}".format(pkg_idname, error))
 
         if html:
@@ -3325,6 +3360,7 @@ class subcmd_client:
         directories_to_clean: List[str] = []
         with CleanupPathsContext(files=(), directories=directories_to_clean):
             try:
+                # pylint: disable-next=consider-using-with
                 zip_fh_context = zipfile.ZipFile(filepath_archive, mode="r")
             except Exception as ex:
                 msglog.error("Error extracting archive: {:s}".format(str(ex)))
@@ -3527,9 +3563,6 @@ class subcmd_client:
                 has_fatal_error = True
                 continue
 
-            def error_handle(ex: Exception) -> None:
-                msglog.error("{:s}: {:s}".format(pkg_idname, str(ex)))
-
             pkg_info_list = [
                 pkg_info for pkg_info in pkg_info_list
                 if not repository_filter_skip(
@@ -3537,7 +3570,10 @@ class subcmd_client:
                     filter_blender_version=blender_version_tuple,
                     filter_platform=platform_this,
                     skip_message_fn=None,
-                    error_fn=error_handle,
+                    error_fn=lambda ex: any_as_none(
+                        # pylint: disable-next=cell-var-from-loop
+                        msglog.error("{:s}: {:s}".format(pkg_idname, str(ex))),
+                    ),
                 )
             ]
 
@@ -3653,7 +3689,7 @@ class subcmd_client:
 
                     # Validate:
                     if filename_archive_size_test != archive_size_expected:
-                        msglog.error("Archive size mismatch \"{:s}\", expected {:d}, was {:d}".format(
+                        msglog.fatal_error("Archive size mismatch \"{:s}\", expected {:d}, was {:d}".format(
                             pkg_idname,
                             archive_size_expected,
                             filename_archive_size_test,
@@ -3661,7 +3697,7 @@ class subcmd_client:
                         return False
                     filename_archive_hash_test = "sha256:" + sha256.hexdigest()
                     if filename_archive_hash_test != archive_hash_expected:
-                        msglog.error("Archive checksum mismatch \"{:s}\", expected {:s}, was {:s}".format(
+                        msglog.fatal_error("Archive checksum mismatch \"{:s}\", expected {:s}, was {:s}".format(
                             pkg_idname,
                             archive_hash_expected,
                             filename_archive_hash_test,
@@ -3747,9 +3783,8 @@ class subcmd_client:
 
                 if (error := rmtree_with_fallback_or_error(filepath_local_pkg)) is not None:
                     msglog.error("Failure to remove \"{:s}\" with error ({:s})".format(pkg_idname, error))
-                    continue
-
-                msglog.status("Removed \"{:s}\"".format(pkg_idname))
+                else:
+                    msglog.status("Removed \"{:s}\"".format(pkg_idname))
 
                 filepath_local_cache_archive = os.path.join(local_cache_dir, pkg_idname + PKG_EXT)
                 if os.path.exists(filepath_local_cache_archive):
@@ -3757,12 +3792,13 @@ class subcmd_client:
 
                 if user_dir:
                     filepath_user_pkg = os.path.join(user_dir, pkg_idname)
-                    if os.path.isdir(filepath_user_pkg):
+                    if os.path.exists(filepath_user_pkg):
                         if (error := rmtree_with_fallback_or_error(filepath_user_pkg)) is not None:
                             msglog.error(
                                 "Failure to remove \"{:s}\" user files with error ({:s})".format(pkg_idname, error),
                             )
-                            continue
+                        else:
+                            msglog.status("Removed cache \"{:s}\"".format(pkg_idname))
 
         return True
 
@@ -3942,7 +3978,7 @@ class subcmd_author:
                 del build_paths_extra_canonical
 
             except Exception as ex:
-                msglog.status("Error building path list \"{:s}\"".format(str(ex)))
+                msglog.fatal_error("Error building path list \"{:s}\"".format(str(ex)))
                 return False
 
         request_exit = False
@@ -3994,9 +4030,10 @@ class subcmd_author:
 
             with CleanupPathsContext(files=(outfile_temp,), directories=()):
                 try:
+                    # pylint: disable-next=consider-using-with
                     zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_DEFLATED, compresslevel=9)
                 except Exception as ex:
-                    msglog.status("Error creating archive \"{:s}\"".format(str(ex)))
+                    msglog.fatal_error("Error creating archive \"{:s}\"".format(str(ex)))
                     return False
 
                 with contextlib.closing(zip_fh_context) as zip_fh:
@@ -4011,13 +4048,25 @@ class subcmd_author:
                                 b"# This must not be included in source manifests.\n",
                                 b"[build.generated]\n",
                                 "platforms = [\"{:s}\"]\n".format(platform).encode("utf-8"),
+                                # Including wheels simplifies server side check as this list can be tested
+                                # without the server having to filter by platform too.
+                                b"wheels = [",
+                                ", ".join([
+                                    # NOTE: accept no string escaping as the rules for wheel paths
+                                    # are already strict so strings don't require quoting.
+                                    "\"{:s}\"".format(wheel) for wheel in paths_filter_wheels_by_platform(
+                                        manifest.wheels or [],
+                                        platform,
+                                    )
+                                ]).encode("utf-8"),
+                                b"]\n"
                                 b"# END GENERATED CONTENT.\n",
                             ))
                             try:
                                 with open(filepath_abs, "rb") as temp_fh:
                                     zip_data_override = temp_fh.read() + zip_data_override
                             except Exception as ex:
-                                msglog.status("Error overriding manifest \"{:s}\"".format(str(ex)))
+                                msglog.fatal_error("Error overriding manifest \"{:s}\"".format(str(ex)))
                                 return False
 
                         # Handy for testing that sub-directories:
@@ -4029,7 +4078,7 @@ class subcmd_author:
                             else:
                                 zip_fh.write(filepath_abs, filepath_rel, compress_type=compress_type)
                         except Exception as ex:
-                            msglog.status("Error adding to archive \"{:s}\"".format(str(ex)))
+                            msglog.fatal_error("Error adding to archive \"{:s}\"".format(str(ex)))
                             return False
 
                         if verbose:
@@ -4140,6 +4189,7 @@ class subcmd_author:
         # extract the archive into a temporary directory and run validation there.
 
         try:
+            # pylint: disable-next=consider-using-with
             zip_fh_context = zipfile.ZipFile(pkg_source_archive, mode="r")
         except Exception as ex:
             msglog.status("Error extracting archive \"{:s}\"".format(str(ex)))
@@ -4147,14 +4197,14 @@ class subcmd_author:
 
         with contextlib.closing(zip_fh_context) as zip_fh:
             if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
-                msglog.status("Error, archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
+                msglog.fatal_error("Error, archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
                 return False
             # Demote errors to status as the function of this action is to check the manifest is stable.
             manifest = pkg_manifest_from_zipfile_and_validate_all_errors(zip_fh, archive_subdir, strict=True)
             if isinstance(manifest, list):
-                msglog.status("Error parsing TOML in \"{:s}\"".format(pkg_source_archive))
+                msglog.fatal_error("Error parsing TOML in \"{:s}\"".format(pkg_source_archive))
                 for error_msg in manifest:
-                    msglog.status(error_msg)
+                    msglog.fatal_error(error_msg)
                 return False
 
             if valid_tags_filepath:
@@ -4182,7 +4232,7 @@ class subcmd_author:
             ok = True
             for filepath in expected_files:
                 if zip_fh.NameToInfo.get(filepath) is None:
-                    msglog.status("Error, file missing from {:s}: \"{:s}\"".format(
+                    msglog.fatal_error("Error, file missing from {:s}: \"{:s}\"".format(
                         manifest.type,
                         filepath,
                     ))
@@ -4785,6 +4835,7 @@ def main(
         # While this is typically the case, is only guaranteed to be `TextIO` so check `reconfigure` is available.
         if not isinstance(fh, io.TextIOWrapper):
             continue
+        # pylint: disable-next=no-member; False positive.
         if fh.encoding.lower().partition(":")[0] == "utf-8":
             continue
         fh.reconfigure(encoding="utf-8")
