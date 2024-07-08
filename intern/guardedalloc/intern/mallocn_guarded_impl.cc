@@ -215,7 +215,8 @@ static bool malloc_debug_memset = false;
 #ifdef __GNUC__
 __attribute__((format(printf, 1, 0)))
 #endif
-static void print_error(const char *message, va_list str_format_args)
+static void
+print_error(const char *message, va_list str_format_args)
 {
   char buf[512];
   vsnprintf(buf, sizeof(buf), message, str_format_args);
