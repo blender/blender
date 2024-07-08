@@ -595,6 +595,7 @@ struct PaintOperationExecutor {
     init_times.finish();
 
     curves.curve_types_for_write()[active_curve] = CURVE_TYPE_POLY;
+    curve_attributes_to_skip.add("curve_type");
     curves.update_curve_types();
 
     /* Initialize the rest of the attributes with default values. */
