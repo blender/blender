@@ -232,6 +232,7 @@ def force_exit_ok_enable() -> None:
 def execfile(filepath: str) -> Dict[str, Any]:
     global_namespace = {"__file__": filepath, "__name__": "__main__"}
     with open(filepath, "rb") as fh:
+        # pylint: disable-next=exec-used
         exec(compile(fh.read(), filepath, 'exec'), global_namespace)
     return global_namespace
 
@@ -446,6 +447,7 @@ def sha256_from_file_or_error(
     (exact hashing method may change).
     """
     try:
+        # pylint: disable-next=consider-using-with
         fh_context = open(filepath, 'rb')
     except Exception as ex:
         return "error opening file: {:s}".format(str(ex))
@@ -531,6 +533,8 @@ def rmtree_with_fallback_or_error(
     if sys.version_info >= (3, 12):
         shutil.rmtree(path, onexc=lambda *args: errors.append(args))
     else:
+        # Ignore as the deprecated logic is only used for older Python versions.
+        # pylint: disable-next=deprecated-argument
         shutil.rmtree(path, onerror=lambda *args: errors.append((args[0], args[1], args[2][1])))
 
     # Happy path (for practically all cases).
@@ -642,7 +646,7 @@ def pkg_manifest_from_dict_and_validate_impl(
     for key in PkgManifest._fields:
         val = data.get(key, ...)
         if val is ...:
-            # pylint: disable-next=no-member
+            # pylint: disable-next=no-member,protected-access
             val = PkgManifest._field_defaults.get(key, ...)
         # `pkg_manifest_is_valid_or_error{_all}` will have caught this, assert all the same.
         assert val is not ...
@@ -820,6 +824,7 @@ def pkg_manifest_from_archive_and_validate(
         strict: bool,
 ) -> Union[PkgManifest, str]:
     try:
+        # pylint: disable-next=consider-using-with
         zip_fh_context = zipfile.ZipFile(filepath, mode="r")
     except Exception as ex:
         return "Error extracting archive \"{:s}\"".format(str(ex))
@@ -836,6 +841,7 @@ def pkg_is_legacy_addon(filepath: str) -> bool:
         return True
 
     try:
+        # pylint: disable-next=consider-using-with
         zip_fh_context = zipfile.ZipFile(filepath, mode="r")
     except Exception:
         return False
@@ -1450,12 +1456,12 @@ def pkg_manifest_tags_valid_or_error(
 #
 # However manifests from severs that don't adhere to strict rules are not prevented from loading.
 
+# pylint: disable-next=useless-return
 def pkg_manifest_validate_field_nop(
         value: Any,
         strict: bool,
 ) -> Optional[str]:
     _ = strict, value
-    # pylint: disable-next=useless-return
     return None
 
 
@@ -1816,11 +1822,11 @@ def pkg_manifest_is_valid_or_error_impl(
             is_default_value = False
             x_val = data.get(x_key, ...)
             if x_val is ...:
-                # pylint: disable-next=no-member
+                # pylint: disable-next=no-member, protected-access
                 x_val = PkgManifest._field_defaults.get(x_key, ...)
                 if from_repo:
                     if x_val is ...:
-                        # pylint: disable-next=no-member
+                        # pylint: disable-next=no-member, protected-access
                         x_val = PkgManifest_Archive._field_defaults.get(x_key, ...)
                 if x_val is ...:
                     error_list.append("missing \"{:s}\"".format(x_key))
@@ -2250,7 +2256,7 @@ def pkg_manifest_toml_is_valid_or_error(filepath: str, strict: bool) -> Tuple[Op
     return None, result
 
 
-def pkg_manifest_detect_duplicates(pkg_idname: str, pkg_items: List[PkgManifest]) -> Optional[str]:
+def pkg_manifest_detect_duplicates(pkg_items: List[PkgManifest]) -> Optional[str]:
     """
     When a repository includes multiple packages with the same ID, ensure they don't conflict.
 
@@ -3206,7 +3212,7 @@ class subcmd_server:
         for pkg_idname, pkg_items in repo_data_idname_map.items():
             if len(pkg_items) == 1:
                 continue
-            if (error := pkg_manifest_detect_duplicates(pkg_idname, pkg_items)) is not None:
+            if (error := pkg_manifest_detect_duplicates(pkg_items)) is not None:
                 msglog.warn("archive found with duplicates for id {:s}: {:s}".format(pkg_idname, error))
 
         if html:
@@ -3354,6 +3360,7 @@ class subcmd_client:
         directories_to_clean: List[str] = []
         with CleanupPathsContext(files=(), directories=directories_to_clean):
             try:
+                # pylint: disable-next=consider-using-with
                 zip_fh_context = zipfile.ZipFile(filepath_archive, mode="r")
             except Exception as ex:
                 msglog.error("Error extracting archive: {:s}".format(str(ex)))
@@ -3556,9 +3563,6 @@ class subcmd_client:
                 has_fatal_error = True
                 continue
 
-            def error_handle(ex: Exception) -> None:
-                msglog.error("{:s}: {:s}".format(pkg_idname, str(ex)))
-
             pkg_info_list = [
                 pkg_info for pkg_info in pkg_info_list
                 if not repository_filter_skip(
@@ -3566,7 +3570,10 @@ class subcmd_client:
                     filter_blender_version=blender_version_tuple,
                     filter_platform=platform_this,
                     skip_message_fn=None,
-                    error_fn=error_handle,
+                    error_fn=lambda ex: any_as_none(
+                        # pylint: disable-next=cell-var-from-loop
+                        msglog.error("{:s}: {:s}".format(pkg_idname, str(ex))),
+                    ),
                 )
             ]
 
@@ -4023,6 +4030,7 @@ class subcmd_author:
 
             with CleanupPathsContext(files=(outfile_temp,), directories=()):
                 try:
+                    # pylint: disable-next=consider-using-with
                     zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_DEFLATED, compresslevel=9)
                 except Exception as ex:
                     msglog.fatal_error("Error creating archive \"{:s}\"".format(str(ex)))
@@ -4181,6 +4189,7 @@ class subcmd_author:
         # extract the archive into a temporary directory and run validation there.
 
         try:
+            # pylint: disable-next=consider-using-with
             zip_fh_context = zipfile.ZipFile(pkg_source_archive, mode="r")
         except Exception as ex:
             msglog.status("Error extracting archive \"{:s}\"".format(str(ex)))
@@ -4826,6 +4835,7 @@ def main(
         # While this is typically the case, is only guaranteed to be `TextIO` so check `reconfigure` is available.
         if not isinstance(fh, io.TextIOWrapper):
             continue
+        # pylint: disable-next=no-member; False positive.
         if fh.encoding.lower().partition(":")[0] == "utf-8":
             continue
         fh.reconfigure(encoding="utf-8")

@@ -15,9 +15,8 @@ import sys
 import tempfile
 import tomllib
 import unittest
-import zipfile
-
 import unittest.util
+import zipfile
 
 from typing import (
     Any,

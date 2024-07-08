@@ -91,7 +91,9 @@ class HTTPServerContext:
         http_thread.daemon = True
         http_thread.start()
 
+        # pylint: disable-next=attribute-defined-outside-init
         self._http_thread = http_thread
+        # pylint: disable-next=attribute-defined-outside-init
         self._http_server = http_server
 
     def __exit__(self, _type: Any, _value: Any, traceback: Any) -> None:
