@@ -696,7 +696,7 @@ def create_selection_set_for_rig_layer(rig: ArmatureObject, set_name: str, coll:
     sel_set.name = set_name
 
     for b in rig.pose.bones:
-        if coll not in b.bone.collections or b.name in sel_set.bone_ids:
+        if coll.name not in b.bone.collections or b.name in sel_set.bone_ids:
             continue
 
         bone_id = sel_set.bone_ids.add()
