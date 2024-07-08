@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
-"PO-Revision-Date: 2024-05-27 11:42+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
+"PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
 "Language: sw\n"
@@ -401,6 +401,14 @@ msgstr "Njia ya gltfpack binary"
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Inaonyesha nodi ya Pato la Nyenzo ya glTF katika Kihariri cha Shader (Menyu Ongeza > Pato)"
+
+
+msgid "Hide Mix nodes"
+msgstr "Ficha nodi za Mchanganyiko"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
+msgstr "Wakati wa kuunganisha nodi kwa kufinya Ctrl+Numpad0 (na sawa) taja kama kuzikunja au kuonyesha nodi kamili na chaguzi zilizopanuliwa"
 
 
 msgid "Always"
@@ -32265,6 +32273,10 @@ msgid "Keyframe Insert Pie"
 msgstr "Ingiza Pai ya Fremu Muhimu"
 
 
+msgid "Basic"
+msgstr "Msingi"
+
+
 msgid "Bone Collection Specials"
 msgstr "Maalum ya Kukusanya Mifupa"
 
@@ -41671,10 +41683,6 @@ msgid "Instances of objects or collections"
 msgstr "Matukio ya vitu au makusanyo"
 
 
-msgid "Grease Pencil component containing layers and curves data"
-msgstr "Kipengee cha Penseli ya mafuta kilicho na safu na data ya curves"
-
-
 msgid "Attribute Statistic"
 msgstr "Takwimu ya Sifa"
 
@@ -43715,10 +43723,6 @@ msgstr "Chagua rangi ya mapendeleo yako, na kivuli kitakadiria mgawo wa kunyonya
 
 msgid "Principled BSDF"
 msgstr "Kanuni za BSDF"
-
-
-msgid "Physically-based, easy-to-use shader for rendering surface materials, based on the Disney principled model also known as the \"PBR\" shader"
-msgstr "Kivuli cha Kimwili, kilicho rahisi kutumia kwa kutoa nyenzo za uso, kwa kuzingatia muundo wa kanuni wa Disney unaojulikana pia kama shader ya \"PBR\""
 
 
 msgid "Subsurface Method"
@@ -100585,6 +100589,19 @@ msgid "Mesh Filter Modal Map"
 msgstr "Ramani ya Njia ya Kichujio cha Mesh"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "Nyongeza nyingi zilizo na jina sawa zimepatikana!"
+
+
+msgid "Delete one of each pair to resolve:"
+msgstr "Futa moja ya kila jozi ili kutatua:"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "Hapana"
+
+
 msgid "Warning"
 msgstr "Onyo"
 
@@ -102981,11 +102998,6 @@ msgstr "Unyoya wa Mizani"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Ficha Isiyochaguliwa"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Hapana"
 
 
 msgctxt "Operator"
@@ -106396,14 +106408,6 @@ msgid "Fly/Walk"
 msgstr "Kuruka/Tembea"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "Nyongeza nyingi zilizo na jina sawa zimepatikana!"
-
-
-msgid "Delete one of each pair to resolve:"
-msgstr "Futa moja ya kila jozi ili kutatua:"
-
-
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Washa programu jalizi ya Mzunguko wa Render Engine ili kutumia Mizunguko"
 
@@ -109659,10 +109663,6 @@ msgid "Compositor node tree has undefined nodes or sockets!"
 msgstr "Mti wa nodi za watunzi una vifundo au soketi zisizobainishwa!"
 
 
-msgid "Basic"
-msgstr "Msingi"
-
-
 msgid "UV/Image"
 msgstr "UV/Picha"
 
@@ -111465,6 +111465,14 @@ msgid "Value:"
 msgstr "Thamani:"
 
 
+msgid "OK"
+msgstr "sawa"
+
+
+msgid "Cancel"
+msgstr "Ghairi"
+
+
 msgctxt "Operator"
 msgid "Drag"
 msgstr "Buruta"
@@ -112182,10 +112190,6 @@ msgstr "Tufe"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Ikosphere"
-
-
-msgid "Cancel"
-msgstr "Ghairi"
 
 
 msgid "Outer"
@@ -114366,10 +114370,6 @@ msgstr "Sogeza kipanya ili kubadilisha ukubwa wa maelezo ya dyntopo."
 
 msgid "Warning!"
 msgstr "Tahadhari!"
-
-
-msgid "OK"
-msgstr "sawa"
 
 
 msgid "Attribute Data Detected"
@@ -123228,28 +123228,16 @@ msgid "Video Editing"
 msgstr "Uhariri wa Video"
 
 
-msgid "VR Scene Inspection"
-msgstr "Ukaguzi wa Scene ya VR"
-
-
-msgid "View the viewport with virtual reality glasses (head-mounted displays)"
-msgstr "Ona kituo cha kutazama na glasi za uhalisia pepe (maonyesho yaliyowekwa kichwani)"
-
-
-msgid "Copy Global Transform"
-msgstr "Nakili Mabadiliko ya Ulimwenguni"
-
-
-msgid "Pose Library based on the asset system."
-msgstr "Weka Maktaba kulingana na mfumo wa mali."
-
-
 msgid "BioVision Motion Capture (BVH) format"
 msgstr "umbizo la BioVision Motion Capture (BVH)."
 
 
 msgid "Import-Export BVH from armature objects"
 msgstr "Ingiza-Hamisha BVH kutoka kwa vifaa vya silaha"
+
+
+msgid "Copy Global Transform"
+msgstr "Nakili Mabadiliko ya Ulimwenguni"
 
 
 msgid "USD's high performance rasterizing renderer"
@@ -123262,6 +123250,18 @@ msgstr "Dhibiti tafsiri za UI"
 
 msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"
 msgstr "Inaruhusu kudhibiti tafsiri za UI moja kwa moja kutoka kwa Blender (sasisha faili kuu za .po, sasisha tafsiri za hati, n.k.)"
+
+
+msgid "Pose Library based on the asset system."
+msgstr "Weka Maktaba kulingana na mfumo wa mali."
+
+
+msgid "VR Scene Inspection"
+msgstr "Ukaguzi wa Scene ya VR"
+
+
+msgid "View the viewport with virtual reality glasses (head-mounted displays)"
+msgstr "Ona kituo cha kutazama na glasi za uhalisia pepe (maonyesho yaliyowekwa kichwani)"
 
 
 msgid "All Add-ons"

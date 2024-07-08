@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -14278,6 +14278,10 @@ msgstr "Odstranit označené Objekt(y)"
 
 msgid "Material slot name"
 msgstr "Název okénka materiálu"
+
+
+msgid "Basic"
+msgstr "Základní"
 
 
 msgctxt "MovieClip"
@@ -39283,6 +39287,11 @@ msgid "Animation Channels"
 msgstr "Animační kanály"
 
 
+msgctxt "Operator"
+msgid "None"
+msgstr "Žádný"
+
+
 msgid "Warning"
 msgstr "Varování"
 
@@ -39951,11 +39960,6 @@ msgstr "Odstranit značku"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Skrýt nevybrané"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Žádný"
 
 
 msgctxt "Operator"
@@ -42877,10 +42881,6 @@ msgid "Closed loops unsupported"
 msgstr "Uzavřené smyčky nepodporované"
 
 
-msgid "Basic"
-msgstr "Základní"
-
-
 msgid "UV/Image"
 msgstr "UV/Obrázek"
 
@@ -43294,6 +43294,14 @@ msgstr "Aktivní tlačítko nebylo nalezeno"
 
 msgid "%d items"
 msgstr "%d předměty"
+
+
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "Zrušit"
 
 
 msgid "Menu \"%s\" not found"
@@ -43809,10 +43817,6 @@ msgstr "Koule"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "IcoKoule"
-
-
-msgid "Cancel"
-msgstr "Zrušit"
 
 
 msgid "Outer"
@@ -44483,10 +44487,6 @@ msgstr "Odstranit skupinu vertexů"
 
 msgid "Warning!"
 msgstr "Upozornění!"
-
-
-msgid "OK"
-msgstr "OK"
 
 
 msgid "edge data"

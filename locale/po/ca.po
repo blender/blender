@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
-"PO-Revision-Date: 2024-06-30 21:56+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
+"PO-Revision-Date: 2024-07-07 15:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -4135,6 +4135,46 @@ msgstr "Únic dins l'esquelet"
 
 msgid "Parent bone collection. Note that accessing this requires a scan of all the bone collections to find the parent"
 msgstr "Col·lecció d'osssos pare. Tingueu en compte que per accedir-hi cal un escorcoll de totes les col·leccions d'ossos fins a trobar el pare"
+
+
+msgid "Color Set ID"
+msgstr "ID de joc de colors"
+
+
+msgid "Color set specifying bone colors for this group"
+msgstr "Joc de colors que especifica el colors dels ossos del grup"
+
+
+msgid "Add Selection Set"
+msgstr "Afegir conjunt de selecció"
+
+
+msgid "Add Selection Set for this collection"
+msgstr "[Add Selection Set]: Afegeix un conjunt de selecció per a aquesta col·lecció"
+
+
+msgid "UI Row"
+msgstr "Filera d'IU"
+
+
+msgid "If not zero, row of the UI panel where the button for this collection is shown"
+msgstr "[UI Row]: Si no és a zero, la filera del plafó de la IU on es mostra el botó d'aquesta col·lecció"
+
+
+msgid "UI Title"
+msgstr "Títol d'IU"
+
+
+msgid "Text to use on the UI panel button instead of the collection name"
+msgstr "Text per al botó del plafó d'IU que va enlloc del nom de col·lecció"
+
+
+msgid "Text to use on the UI panel button (does not edit the collection name)"
+msgstr "Text per emprar al botó del plafó d'IU (no edita pas el nom de la col·lecció)"
+
+
+msgid "Unique ID"
+msgstr "ID única"
 
 
 msgid "Bone Collection Memberships"
@@ -9683,7 +9723,7 @@ msgstr "[Split]: Divideix la corba-fins que s'assoleix la tolerància (ràpid)"
 
 
 msgid "Radius Max"
-msgstr "Radi màxim"
+msgstr "Radi màx"
 
 
 msgid "Radius to use when the maximum pressure is applied (or when a tablet isn't used)"
@@ -11135,7 +11175,7 @@ msgstr "[Influence Scale]: Modula la influència que tenen els objectes pinzell 
 
 
 msgid "Radius Scale"
-msgstr "Escalat de radi"
+msgstr "Escala del radi"
 
 
 msgid "Adjust radius of proximity brushes or particles for this surface"
@@ -15526,12 +15566,27 @@ msgid "Temperature difference to ambient temperature"
 msgstr "[Temp. Diff.]: Diferència de temperatura respecte de la temperatura ambient"
 
 
+msgctxt "Texture"
+msgid "Mapping"
+msgstr "Mapejat"
+
+
 msgid "Texture mapping type"
 msgstr "[Mapping]: Tipus de mapejat de textura"
 
 
+msgctxt "Texture"
+msgid "Generated"
+msgstr "Generades"
+
+
 msgid "Generated coordinates centered to flow object"
 msgstr "[Generated]: Coordenades generades centrades en l'objecte de flux"
+
+
+msgctxt "Texture"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Use UV layer for texture coordinates"
@@ -20105,6 +20160,10 @@ msgid "Feature Set"
 msgstr "Joc de funcionalitats"
 
 
+msgid "Restrict the rig list to a specific custom feature set"
+msgstr "Restringeix la llista d'aparells a un conjunt de funcionalitats personalitzades concretes"
+
+
 msgid "Animation data for this data-block"
 msgstr "Dades d'animació per al bloc de dades"
 
@@ -20213,8 +20272,144 @@ msgid "Draw the relationship line from the parent head to the child head"
 msgstr "Traçar la línia relacional des del cap el para al cap del fill"
 
 
+msgid "Finalize Script"
+msgstr "Finalitzar protocol"
+
+
+msgid "Run this script after generation to apply user-specific changes"
+msgstr "[Finalize Script]: Executa el protocol després de la generació per a aplicar canvis específics de la usuària"
+
+
+msgid "Overwrite Widget Meshes"
+msgstr "Sobreescriure malles giny"
+
+
+msgid "Forces Rigify to delete and rebuild all of the rig widget objects. By default, already existing widgets are reused as-is to facilitate manual editing"
+msgstr "[Overwrite Widget Meshes]: Força Aparellar a eliminar i reconstruir tots els objects ginys d'aparells. Per defecte, els ginys existents es reutilitzen tal-qual per facilitar l'edició manual"
+
+
+msgid "Mirror Widgets"
+msgstr "Emmirallar ginys"
+
+
+msgid "Make widgets for left and right side bones linked duplicates with negative X scale for the right side, based on bone name symmetry"
+msgstr "[Mirror Widgets] Confegeix ginys duplicats enllaçats per als ossos a dreta i esquerra amb una escala X negativa per al costat dret, en base a simetria de noms d'ossos"
+
+
+msgid "Rigify Rig Name"
+msgstr "Nom d'engranatge d'engranador"
+
+
+msgid "Optional. If specified, this name will be used for the newly generated rig, widget collection and script. Otherwise, a name is generated based on the name of the metarig object by replacing 'metarig' with 'rig', 'META' with 'RIG', or prefixing with 'RIG-'. When updating an already generated rig its name is never changed"
+msgstr "Opcional. Si s'especifica, aquest nom s'emprarà per un protocol, col·lecció de ginys i aparell generats de nou. En cas contrari, es genera un nom basat en el nom de l'objecte metaaparell tot substituint 'metaaparell' per 'aparell, 'META' per 'APAR' o prefixant amb 'APAR-'. Quan s'actualitza un aparell ja generat, el nom no es canvia mai"
+
+
+msgid "Rigify Target Rig UI"
+msgstr "IU d'engranatge referent d'engranador"
+
+
+msgid "Defines the UI to overwrite. If unset, a new one will be created and named based on the name of the rig"
+msgstr "[Rigify Target Rig UI]: Defineix la IU a sobreescriure. Si no està definida, se'n crearà i anomenarà una altra en base al nom de l'aparell"
+
+
+msgid "Rigify Target Rig"
+msgstr "Engranatge referent de l'engranador"
+
+
+msgid "Defines which rig to overwrite. If unset, a new one will be created with name based on the Rig Name option or the name of the metarig"
+msgstr "[Rigify Target Rig]: Defineix quin aparell sobreescriure. Si no està definit, se'n crearà un de nou en base al Nom d'aparell o el nom del metaaparell"
+
+
 msgid "Theme"
 msgstr "Tema"
+
+
+msgid "THEME01"
+msgstr "TEMA01"
+
+
+msgid "THEME02"
+msgstr "TEMA02"
+
+
+msgid "THEME03"
+msgstr "TEMA03"
+
+
+msgid "THEME04"
+msgstr "TEMA04"
+
+
+msgid "THEME05"
+msgstr "TEMA05"
+
+
+msgid "THEME06"
+msgstr "TEMA06"
+
+
+msgid "THEME07"
+msgstr "TEMA07"
+
+
+msgid "THEME08"
+msgstr "TEMA08"
+
+
+msgid "THEME09"
+msgstr "TEMA09"
+
+
+msgid "THEME10"
+msgstr "TEMA10"
+
+
+msgid "THEME11"
+msgstr "TEMA11"
+
+
+msgid "THEME12"
+msgstr "TEMA12"
+
+
+msgid "THEME13"
+msgstr "TEMA13"
+
+
+msgid "THEME14"
+msgstr "TEMA14"
+
+
+msgid "THEME15"
+msgstr "TEMA15"
+
+
+msgid "THEME16"
+msgstr "TEMA16"
+
+
+msgid "THEME17"
+msgstr "TEMA17"
+
+
+msgid "THEME18"
+msgstr "TEMA18"
+
+
+msgid "THEME19"
+msgstr "TEMA19"
+
+
+msgid "THEME20"
+msgstr "TEMA20"
+
+
+msgid "Widgets Collection"
+msgstr "Col·lecció de ginys"
+
+
+msgid "Defines which collection to place widget objects in. If unset, a new one will be created based on the name of the rig"
+msgstr "[TEMA17]: Defineix en quina col·lecció cal col·locar els objectes giny. Si no està definida, se'n crearà una de nova en base al nom de l'aparell"
 
 
 msgid "Display Axes"
@@ -24875,28 +25070,63 @@ msgid "Width and height of the image buffer in pixels, zero when image data can'
 msgstr "[X/Y pixels per meter, for the image buffer]: Amplada i alçada del regulador de memòria intermèdia de la imatge en píxels, zero quan no es poden carregar les dades de la imatge"
 
 
+msgctxt "Image"
+msgid "Source"
+msgstr "Font"
+
+
 msgid "Where the image comes from"
 msgstr "D'on ve la imatge"
+
+
+msgctxt "Image"
+msgid "Single Image"
+msgstr "Imatge única"
 
 
 msgid "Single image file"
 msgstr "[Single image]: Document únic de la imatge"
 
 
+msgctxt "Image"
+msgid "Image Sequence"
+msgstr "Seqüència d'imatges"
+
+
 msgid "Multiple image files, as a sequence"
 msgstr "Múltiples documents d'imatge, com a seqüència"
+
+
+msgctxt "Image"
+msgid "Movie"
+msgstr "Vídeo"
 
 
 msgid "Movie file"
 msgstr "[Movie]: Document de pel·lícula"
 
 
+msgctxt "Image"
+msgid "Generated"
+msgstr "Generades"
+
+
 msgid "Generated image"
 msgstr "Imatge generada"
 
 
+msgctxt "Image"
+msgid "Viewer"
+msgstr "Visor"
+
+
 msgid "Compositing node viewer"
 msgstr "Visor de nodes de compositar"
+
+
+msgctxt "Image"
+msgid "UDIM Tiles"
+msgstr "Mosaics UDIM"
 
 
 msgid "Tiled UDIM image texture"
@@ -25279,7 +25509,7 @@ msgstr "[Power]: Energia lumínica emesa sobre tota l'àrea de llum en totes les
 
 
 msgid "Shadow Buffer Bias"
-msgstr "Biaix de regulador d'ombra"
+msgstr "Biaix de dosificador d'ombra"
 
 
 msgid "Bias for reducing self shadowing"
@@ -25287,7 +25517,7 @@ msgstr "[Shadow Buffer Bias]: Biaix derivat de la reducció de l'autoombra"
 
 
 msgid "Shadow Buffer Clip Start"
-msgstr "Inici de segat d'ombra"
+msgstr "Inici de segat de dosificador d'ombra"
 
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
@@ -27537,6 +27767,14 @@ msgstr "Restricció de cos rígid"
 
 msgid "Constraint constraining rigid bodies"
 msgstr "[Rigid Body Constraint]: Restricció de cossos rígids"
+
+
+msgid "Rigify Owner Rig"
+msgstr "Engranar d'engranatge de propietari"
+
+
+msgid "Rig that owns this object and may delete or overwrite it upon re-generation"
+msgstr "[Rigify Owner Rig]: Engranatge a què pertany aquest objecte i que pot eliminar-lo o sobre-escriure'l amb la regeneració"
 
 
 msgid "Axis-Angle Rotation"
@@ -31116,6 +31354,54 @@ msgid "Name for new preset"
 msgstr "[Preset Name]: Nom per al nou element predefinit"
 
 
+msgid "Rigify Active Type"
+msgstr "Tipus actiu d'engranador"
+
+
+msgid "The selected rig type"
+msgstr "[Rigify Active Rig]: El tipus d'aparell seleccionat"
+
+
+msgid "Rigify Active Collection"
+msgstr "Aparellar - Col·lecció activa"
+
+
+msgid "The selected rig collection"
+msgstr "La col·lecció d'aparells seleccionada"
+
+
+msgid "Last frame to transfer"
+msgstr "Últim fotograma a transferir"
+
+
+msgid "Transfer Only Selected"
+msgstr "Transferir sols selecció"
+
+
+msgid "Transfer selected bones only"
+msgstr "Transfereix només el ossos seleccionats"
+
+
+msgid "First frame to transfer"
+msgstr "Primer fotograma a transferir"
+
+
+msgid "Bake All Keyed Frames"
+msgstr "Precuinar tots els fotogrames fitats"
+
+
+msgid "Bake on every frame that has a key for any of the bones, as opposed to just the relevant ones"
+msgstr "[Bake All Keyed Frames]: Precuina cada fotograma que té una fita per a qualsevol dels ossos, a diferència de quan només són els pertinents"
+
+
+msgid "Limit Frame Range"
+msgstr "Limitar interval de fotogrames"
+
+
+msgid "Only bake keyframes in a certain frame range"
+msgstr "[Limit Frame Range]: Precuina només les fotofites dins un interval de fotogrames donat"
+
+
 msgid "Action assigned to the active Object"
 msgstr "Acció assignada a l'objecte actiu"
 
@@ -34157,7 +34443,7 @@ msgstr "Insereix una fotofita per a cada canal d'escala"
 
 
 msgid "Insert a keyframe for all properties that are likely to get animated in a character rig (useful when blocking out a shot)"
-msgstr "Insereix una fotofita per a cada propietat que probablement s'animarà amb l'engranatge d'algun personatge (útil quan es bloqueja un pla o captura)"
+msgstr "Insereix una fotofita per a cada propietat que probablement s'animarà amb l'aparell d'algun personatge (útil quan es bloqueja un pla o captura)"
 
 
 msgid "Whole Character"
@@ -34165,7 +34451,7 @@ msgstr "Personatge sencer"
 
 
 msgid "Insert a keyframe for all properties that are likely to get animated in a character rig (only selected bones)"
-msgstr "[Whole Character]: Insereix una fotofita per a totes les propietats que probablement s'animaran amb l'engranatge d'un personatge (només els ossos seleccionats)"
+msgstr "[Whole Character]: Insereix una fotofita per a totes les propietats que probablement s'animaran amb l'aparell d'un personatge (només els ossos seleccionats)"
 
 
 msgid "Whole Character (Selected Bones Only)"
@@ -35771,12 +36057,24 @@ msgid "Keyframe Insert Pie"
 msgstr "Circummenú d’inserció de fotofites"
 
 
+msgid "Basic"
+msgstr "Bàsic"
+
+
 msgid "Bone Collection Specials"
 msgstr "Especials de col·lecció d'os"
 
 
 msgid "Bone Collections"
 msgstr "Col·leccions d'ossos"
+
+
+msgid "Add -> Armature -> Rigify Meta-Rigs."
+msgstr "Afegir -> Esquelet -> Aparellar metaaparells."
+
+
+msgid "Rigify Meta-Rigs"
+msgstr "Aparellar metaaparells"
 
 
 msgid "Asset"
@@ -35887,6 +36185,10 @@ msgstr "Endoil·luminació especial"
 
 msgid "Shadow Linking Specials"
 msgstr "Endoombratge especial"
+
+
+msgid "Rigify Color Sets Specials"
+msgstr "Aparellar - Especials de jocs de colors"
 
 
 msgid "Channel"
@@ -36074,6 +36376,14 @@ msgstr "Canviar seqüencialment els nodes seleccionats"
 
 msgid "Batch Change Math Operation"
 msgstr "Canviar seqüencialment l'operació de càlcul"
+
+
+msgid "To Socket"
+msgstr "Al born"
+
+
+msgid "From Socket"
+msgstr "Des del born"
 
 
 msgid "Copy Label"
@@ -36494,6 +36804,10 @@ msgstr "Decaïment a l'edició proporcional"
 
 msgid "Random Mask"
 msgstr "Màscara aleatòria"
+
+
+msgid "Rigify"
+msgstr "Aparellar"
 
 
 msgid "Automasking"
@@ -46842,10 +47156,6 @@ msgid "Instances of objects or collections"
 msgstr "Instàncies d'objectes o col·leccions"
 
 
-msgid "Grease Pencil component containing layers and curves data"
-msgstr "Llapis de greix - Component que conté dades de capes i corbes"
-
-
 msgid "Attribute Statistic"
 msgstr "Estadística d'atribut"
 
@@ -49198,10 +49508,6 @@ msgstr "[Direct Coloring]: Tria el color que prefereixis, i l'aspector s'aproxim
 
 msgid "Principled BSDF"
 msgstr "FDDB postulada"
-
-
-msgid "Physically-based, easy-to-use shader for rendering surface materials, based on the Disney principled model also known as the \"PBR\" shader"
-msgstr "[Principled BSDF]: Aspector d'ús senzill basat en la física per revelar materials de superfícies, basat en el model de postulats de Disney també conegut com a aspector «PBR»"
 
 
 msgid "Subsurface Method"
@@ -53702,6 +54008,19 @@ msgstr "Amaga els no seleccionats preferiblement als seleccionats"
 
 
 msgctxt "Operator"
+msgid "Add Metarig Sample"
+msgstr "Afegir mostra d'Aparellar"
+
+
+msgid "Create a sample metarig to be modified before generating the final rig"
+msgstr "[Add Metarig Sample]: Crea una mostra de metaaparell per modificar-lo abans de generar l'aparell final"
+
+
+msgid "Name of the rig type to generate a sample of"
+msgstr "Nom del tipus d'aparell a partir del qual generar la mostra"
+
+
+msgctxt "Operator"
 msgid "Move to Collection"
 msgstr "Moure a col·lecció"
 
@@ -53769,8 +54088,86 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "[Reveal Hidde]: Evidencia tots els ossos ocults en el mode d'edició"
 
 
+msgctxt "Operator"
+msgid "Rigify Add Standard Color Sets"
+msgstr "Aparellar - Afegir jocs de color stàndard"
+
+
 msgid "(undocumented operator)"
 msgstr "(operador no documentat)"
+
+
+msgctxt "Operator"
+msgid "Rigify Apply user defined active/select colors"
+msgstr "Aparellar - Aplicar colors actius/seleccionats per la usuària"
+
+
+msgctxt "Operator"
+msgid "Add/Remove UI Rows"
+msgstr "Afegir/suprimir files d'IU"
+
+
+msgid "Row"
+msgstr "Fila"
+
+
+msgctxt "Operator"
+msgid "Make Collection Active"
+msgstr "Fer col·lecció activa"
+
+
+msgid "Make this collection active"
+msgstr "Fa que la col·lecció estigui activa"
+
+
+msgctxt "Operator"
+msgid "Move Between UI Rows"
+msgstr "Moure entre files d'IU"
+
+
+msgctxt "Operator"
+msgid "Rigify Add Color Set"
+msgstr "Aparellar - Afegir joc de colors"
+
+
+msgctxt "Operator"
+msgid "Rigify Add Color Set from Theme"
+msgstr "[Rigify Add Color Set]: Aparellar - Afegeix un joc de colors del Tema"
+
+
+msgctxt "Operator"
+msgid "Rigify Remove Color Set"
+msgstr "Aparellar - Suprimir joc de colors"
+
+
+msgctxt "Operator"
+msgid "Rigify Remove All Color Sets"
+msgstr "Aparellar - Suprimir tots els jocs de colors"
+
+
+msgctxt "Operator"
+msgid "Rigify Encode Metarig"
+msgstr "Aparellar - Cofificar metaaparell"
+
+
+msgctxt "Operator"
+msgid "Rigify Encode Metarig Sample"
+msgstr "Aparellar - Codificar mostra de metaaparellat"
+
+
+msgctxt "Operator"
+msgid "Rigify Upgrade Metarig Layers"
+msgstr "Aparellar - Actualitzar capes de metaaparell"
+
+
+msgctxt "Operator"
+msgid "Rigify Get active/select colors from current theme"
+msgstr "Aparellar - Agafar colors actius/seleccionats des del tema actual"
+
+
+msgctxt "Operator"
+msgid "Validate Collection References"
+msgstr "Validar referències de col·leccions"
 
 
 msgctxt "Operator"
@@ -58629,7 +59026,7 @@ msgstr "Forçar mantenir canal per a ossos"
 
 
 msgid "If all keyframes are identical in a rig, force keeping the minimal animation. When off, all possible channels for the bones will be exported, even if empty (minimal animation, 2 keyframes)"
-msgstr "Si totes les fotofites són idèntiques en un engranatge, obliga a què l'animació resti mínima. Quan està desactivat, s'exportaran tots els canals possibles per als ossos, inclús si estan buits (animació mínima, 2 fotofites)"
+msgstr "Si totes les fotofites són idèntiques en un aparell, obliga a què l'animació resti mínima. Quan està desactivat, s'exportaran tots els canals possibles per als ossos, inclús si estan buits (animació mínima, 2 fotofites)"
 
 
 msgid "Force keeping channel for objects"
@@ -67734,6 +68131,11 @@ msgstr "Evidencia tots els vèrtexs, arestes i cares ocults"
 
 
 msgctxt "Operator"
+msgid "Rigify Encode Widget"
+msgstr "Aparellar - Codificar giny"
+
+
+msgctxt "Operator"
 msgid "Rip"
 msgstr "Arrencar"
 
@@ -69890,16 +70292,32 @@ msgid "Add Reroutes"
 msgstr "Afegir redireccionaments"
 
 
+msgid "Add Reroutes to outputs"
+msgstr "Afegir redireccionaments a sortides"
+
+
 msgid "Option"
 msgstr "Opció"
+
+
+msgid "To All"
+msgstr "A totes"
 
 
 msgid "Add to all outputs"
 msgstr "Afegeix a totes les sortides"
 
 
+msgid "To Loose"
+msgstr "A aïllades"
+
+
 msgid "Add only to loose outputs"
 msgstr "Afegir només a sortides soltes"
+
+
+msgid "To Linked"
+msgstr "A enllaçades"
 
 
 msgid "Add only to linked outputs"
@@ -69924,6 +70342,10 @@ msgid "Texture Setup"
 msgstr "Configuració de textura"
 
 
+msgid "Add texture node setup to selected shaders"
+msgstr "Afegir una configuració de nodes de textura als aspectors seleccionats"
+
+
 msgid "Add Mapping Nodes"
 msgstr "Afegir nodes de mapejat"
 
@@ -69935,6 +70357,10 @@ msgstr "[Add Mapping Nodes]: Crea nodes de mapejat i de coordenades per a la tex
 msgctxt "Operator"
 msgid "Principled Texture Setup"
 msgstr "Configuració textura postulada"
+
+
+msgid "Add texture node setup for Principled BSDF"
+msgstr "Agegeir una configuració de nodes de textura per als FDDB postulats"
 
 
 msgid "Folder to search in for image files"
@@ -69957,6 +70383,10 @@ msgstr "La quantitat d'espai d'entre nodes"
 msgctxt "Operator"
 msgid "Batch Change"
 msgstr "Canviar en seqüència"
+
+
+msgid "Batch change blend type and math operation"
+msgstr "Canviar seqüencialment el tipus de fusió i l'operació de càlcul"
 
 
 msgid "Add Mode"
@@ -70307,9 +70737,33 @@ msgid "Source of name of label"
 msgstr "Origen de nom d'etiqueta"
 
 
+msgid "From Active"
+msgstr "Des d'actiu"
+
+
+msgid "From active node"
+msgstr "Des del node actiu"
+
+
+msgid "From Node"
+msgstr "Des de node"
+
+
+msgid "From node linked to selected node"
+msgstr "Des de node enllaçat a seleccionat"
+
+
+msgid "From socket linked to selected node"
+msgstr "Des de born enllaçat a seleccionat"
+
+
 msgctxt "Operator"
 msgid "Copy Settings"
 msgstr "Copiar paràmetres"
+
+
+msgid "Copy settings from active to selected nodes"
+msgstr "Copiar configuració des dels nodes actius als seleccionats"
 
 
 msgctxt "Operator"
@@ -70349,6 +70803,15 @@ msgstr "[Detach Outputs]: Desconnecta les sortides del node seleccionat deixant-
 msgctxt "Operator"
 msgid "Change Factor"
 msgstr "Factor de canvi"
+
+
+msgid "Change factors of Mix nodes and Mix Shader nodes"
+msgstr "Factors de canvi dels Nodes mescla i Nodes aspector mescla"
+
+
+msgctxt "NodeTree"
+msgid "Frame Selected"
+msgstr "Enquadrar seleccionats"
 
 
 msgid "Add a frame node and parent the selected nodes to it"
@@ -70407,28 +70870,60 @@ msgid "Merge Nodes"
 msgstr "Fusionar nodes"
 
 
+msgid "Merge selected nodes"
+msgstr "Fusiona els nodes seleccionats"
+
+
+msgid "Merge Type"
+msgstr "Tipus de fusió"
+
+
 msgid "Type of Merge to be used"
 msgstr "Mena de fusió que es fa"
+
+
+msgid "Automatic output type detection"
+msgstr "Detecció automàtica de tipus de sortida"
 
 
 msgid "Merge using ADD or MIX Shader"
 msgstr "Fusionar amb Aspector mesclar o Sumar"
 
 
+msgid "Merge using Mesh Boolean or Join Geometry nodes"
+msgstr "Fusionar amb node Malla booleana o Unir geometria"
+
+
 msgid "Mix Node"
 msgstr "Node Mesclar"
+
+
+msgid "Merge using Mix nodes"
+msgstr "Fusionar amb nodes Mesclar"
 
 
 msgid "Math Node"
 msgstr "Node calcular"
 
 
+msgid "Merge using Math nodes"
+msgstr "Fusionar amb nodes Calcular"
+
+
 msgid "Z-Combine Node"
 msgstr "Node Combinar-Z"
 
 
+msgid "Merge using Z-Combine nodes"
+msgstr "Fusionar amb nodes Combinar-Z"
+
+
 msgid "Alpha Over Node"
 msgstr "Node Alfa per sobre"
+
+
+msgid "Merge using Alpha Over nodes"
+msgstr "Fusionar amb nodes Alfa per sobre"
 
 
 msgid "All possible blend types, boolean operations and math operations"
@@ -70922,6 +71417,46 @@ msgstr "Afegir esquelet"
 
 msgid "Add an armature object to the scene"
 msgstr "[Add Armature]: Afegir un objecte esquelet a l'escena"
+
+
+msgctxt "Operator"
+msgid "Add Basic human (metarig)"
+msgstr "Afegir humà bàsic (metaaparell)"
+
+
+msgctxt "Operator"
+msgid "Add Basic quadruped (metarig)"
+msgstr "Afegir quadrúped bàsic (metaaparell)"
+
+
+msgctxt "Operator"
+msgid "Add Bird (metarig)"
+msgstr "Afegir ocell (metaaparell)"
+
+
+msgctxt "Operator"
+msgid "Add Cat (metarig)"
+msgstr "Afegir gat (metaaparell)"
+
+
+msgctxt "Operator"
+msgid "Add Horse (metarig)"
+msgstr "Afegir cavall (metaaparell)"
+
+
+msgctxt "Operator"
+msgid "Add Human (metarig)"
+msgstr "Afegir humà (metaaparell)"
+
+
+msgctxt "Operator"
+msgid "Add Shark (metarig)"
+msgstr "Afegir tauró (metaaparell)"
+
+
+msgctxt "Operator"
+msgid "Add Wolf (metarig)"
+msgstr "Afegir llop (metaaparell)"
 
 
 msgctxt "Operator"
@@ -73205,6 +73740,15 @@ msgstr "[Reset Library Override]: Restableix els sobreseïments locals seleccion
 msgctxt "Operator"
 msgid "New"
 msgstr "Nova"
+
+
+msgctxt "Operator"
+msgid "Jump to Action Slot"
+msgstr "Saltar a posella d'acció"
+
+
+msgid "Set Active Action Slot Index"
+msgstr "[Jump to Action Slot]: Defineix l'índex de la posella de l'acció activa"
 
 
 msgctxt "Operator"
@@ -76424,7 +76968,7 @@ msgstr "Aplicar recurs de posa"
 
 
 msgid "Apply the given Pose Action to the rig"
-msgstr "[Apply Pose Asset]: Aplica l'Acció Posa indicada a l'engranatge"
+msgstr "[Apply Pose Asset]: Aplica l'Acció Posa indicada a l'aparell"
 
 
 msgid "Amount that the pose is applied on top of the existing poses. A negative value will subtract the pose instead of adding it"
@@ -76445,7 +76989,7 @@ msgstr "Fusionar recurs de posa"
 
 
 msgid "Blend the given Pose Action to the rig"
-msgstr "[Blend Pose Asset]: Fusiona l'Acció Posa pertinent a l'engranatge"
+msgstr "[Blend Pose Asset]: Fusiona l'Acció Posa pertinent a l'aparell"
 
 
 msgctxt "Operator"
@@ -76649,6 +77193,31 @@ msgstr "Copiar restriccions als ossos seleccionats"
 
 msgid "Copy constraints to other selected bones"
 msgstr "Copia les restriccions a altres ossos seleccionats"
+
+
+msgctxt "Operator"
+msgid "Convert Rotation Modes"
+msgstr "Convertir modes de rotació"
+
+
+msgid "Convert animation from any rotation mode to any other"
+msgstr "[Convert Rotation Modes]: Converteix una animació des de qualsevol mode de retació a qualsevol altre"
+
+
+msgid "Which Actions to affect"
+msgstr "Les accions que es vol afectar"
+
+
+msgid "Affected Bones"
+msgstr "Afectació d'ossos"
+
+
+msgid "Which bones to affect"
+msgstr "Els ossos que es vol afectar"
+
+
+msgid "The target rotation mode"
+msgstr "El mode de rotació volgut"
 
 
 msgctxt "Operator"
@@ -76861,8 +77430,96 @@ msgid "Reveal all bones hidden in Pose Mode"
 msgstr "Evidenciar tots els ossos ocults en el mode de Poses"
 
 
+msgctxt "Operator"
+msgid "Add Bone Collection Reference"
+msgstr "Afegir referència de col·lecció d'ossos"
+
+
+msgid "Add a new row to the bone collection reference list"
+msgstr "Afegeix una nova fila a la llista de referències de col·leccions d'ossos"
+
+
 msgid "Property Name"
 msgstr "Nom de propietat"
+
+
+msgctxt "Operator"
+msgid "Remove Bone Collection Reference"
+msgstr "Suprimir referència de col·lecció d'ossos"
+
+
+msgid "Remove this row from the bone collection reference list"
+msgstr "Suprimeix la fila de la llist de referències de col·leccions d'ossos"
+
+
+msgid "Entry Index"
+msgstr "Índex d'entrada"
+
+
+msgctxt "Operator"
+msgid "Copy Rigify Parameters to Selected"
+msgstr "Copiar paràmetres d'Aparellar a selecció"
+
+
+msgid "Copy Rigify type and parameters from active to selected bones"
+msgstr "[Copy Rigify Parameters to Selected]: Copia els paràmetres de tipus Aparellar des dels ossos actius als seleccionats"
+
+
+msgid "Match Type"
+msgstr "Tipus coincident"
+
+
+msgid "Only mirror rigify parameters to selected bones which have the same rigify type as the active bone"
+msgstr "[Match Type]: Només emmiralla els paràmetres d'aparellar als ossos seleccionats que tenen el mateix tipus d'aparellat que l'os actiu"
+
+
+msgctxt "Operator"
+msgid "Copy Option To Selected Rigs"
+msgstr "Copiar opció a Aparells seleccionats"
+
+
+msgid "Copy this property value to all selected rigs of the appropriate type"
+msgstr "[Copy Option To Selected Rigs]: Copia aquest valor de propietat a tots els aparells seleccionats del tipus adequat"
+
+
+msgid "Class Name"
+msgstr "Nom de classe"
+
+
+msgid "Mirror As Bone Name"
+msgstr "Emmirallar com a nom d'os"
+
+
+msgid "Module Name"
+msgstr "Nom del mòdul"
+
+
+msgctxt "Operator"
+msgid "Rigify Generate Rig"
+msgstr "Aparellar - Generar aparell"
+
+
+msgctxt "Operator"
+msgid "Mirror Rigify Parameters"
+msgstr "Emmirallar paràmetres d'Aparellar"
+
+
+msgid "Mirror Rigify type and parameters of selected bones to the opposite side. Names should end in L/R"
+msgstr "[Copy Option To Selected Rigs]: Emmiralla en el costat oposat el tipus i els paràmetra d'Aparellar dels ossos seleccionats. Cal que els noms acabin en L/R"
+
+
+msgctxt "Operator"
+msgid "Upgrade Face Rig"
+msgstr "Actualitzar aparell de cara"
+
+
+msgid "Upgrades the legacy super_face rig type to the new modular face. This preserves compatibility with existing weight painting, but not animation"
+msgstr "[Copy Option To Selected Rigs]: Actualitza l'aparell antiquat de super_face a la nova cara modular. Així es conserva la compatibilitast amb el pinta de pesos actual, però no amb l'animació"
+
+
+msgctxt "Operator"
+msgid "Rigify Upgrade Metarig Types"
+msgstr "Aparellar - Actualitzar tipus de metaaparellat"
 
 
 msgctxt "Operator"
@@ -77899,6 +78556,65 @@ msgstr "Suprimeix el món de simulació de cos rígid de l'escena actual"
 
 
 msgctxt "Operator"
+msgid "Clear Animation"
+msgstr "Retirar animació"
+
+
+msgctxt "Operator"
+msgid "FK2IK"
+msgstr "COaCI"
+
+
+msgid "Snaps FK limb on IK"
+msgstr "[FK2IK]: Acobla extremitat de CO a CI"
+
+
+msgctxt "Operator"
+msgid "Get Frame Range"
+msgstr "Extreure interval de fotogrames"
+
+
+msgid "Set start and end frame from scene"
+msgstr "[Copy Option To Selected Rigs]: Defineix els fotogrames inicial i final de l'escena"
+
+
+msgctxt "Operator"
+msgid "IK2FK"
+msgstr "CIaCO"
+
+
+msgid "Snaps IK limb on FK"
+msgstr "[IK2FK]: Acobla extremitat de CI a CO"
+
+
+msgctxt "Operator"
+msgid "Rotation - Pole toggle"
+msgstr "Rotació - Permuta de pol"
+
+
+msgid "Toggles IK chain between rotation and pole target"
+msgstr "[Rotation - Pole toggle]: Permuta la cadena de CI entre rotació i referent de pol"
+
+
+msgctxt "Operator"
+msgid "Transfer FK anim to IK"
+msgstr "Transferir anim CO a CI"
+
+
+msgid "Transfer FK animation to IK bones"
+msgstr "Transfereix animacions CO a ossos CI"
+
+
+msgctxt "Operator"
+msgid "Transfer IK anim to FK"
+msgstr "Transferir anim CI a CO"
+
+
+msgid "Transfer IK animation to FK bones"
+msgstr "Transfereix animacions CI a ossos CO"
+
+
+msgctxt "Operator"
 msgid "Delete Scene"
 msgstr "Eliminar escena"
 
@@ -78720,6 +79436,22 @@ msgstr "Secció a activar en les preferències"
 
 msgid "Editing"
 msgstr "Edició"
+
+
+msgid "Get Extensions"
+msgstr "Obtenir extensions"
+
+
+msgid "Browse, install and manage extensions from remote and local repositories"
+msgstr "[Get Extensions]: Instal·la, gestiona i navega per les extensions des de repositoris remots i locals"
+
+
+msgid "Manage add-ons installed via Extensions"
+msgstr "Gestionar complements instal·lats via Extensions"
+
+
+msgid "Edit and save themes installed via Extensions"
+msgstr "Editar i desar temes instal·lats via Extensions"
 
 
 msgid "Keymap"
@@ -82989,6 +83721,10 @@ msgid "Reset this property's value to its default value"
 msgstr "Restableix el valor d'aquesta propietat al seu valor predeterminat"
 
 
+msgid "Add an entry to the list"
+msgstr "Afegir una entrada a la llista"
+
+
 msgctxt "Operator"
 msgid "Unset Property"
 msgstr "Rectificar propietat"
@@ -87221,6 +87957,24 @@ msgid "Reload the saved file"
 msgstr "[Revert]: Torna a carregar el document desat"
 
 
+msgctxt "Operator"
+msgid "Add External Feature Set"
+msgstr "Afegir joc de funcionalitats externes"
+
+
+msgid "Add external feature set (rigs, metarigs, ui templates)"
+msgstr "[Add External Feature Set]: Afegeix un joc de funcionalitats externes (aparells, metaaparells, plantilles d'IU)"
+
+
+msgctxt "Operator"
+msgid "Remove External Feature Set"
+msgstr "Suprimir joc de funcionalitats externes"
+
+
+msgid "Remove external feature set (rigs, metarigs, ui templates)"
+msgstr "[Remove External Feature Set]: Suprimeix un joc de funcionalitats externes (aparells, metaaparells, plantilles d'IU)"
+
+
 msgid "Save the current file in the desired location"
 msgstr "Desa el document actual a la ubicació desitjada"
 
@@ -87646,10 +88400,6 @@ msgstr "Exportar totes les càmeres"
 
 msgid "Export all curves"
 msgstr "Exportar totes les corbes"
-
-
-msgid "Export custom properties as USD attributes in the 'userProperties' namespace"
-msgstr "Exporta propietats personalitzades com a atributs USD a l'espai de noms \"userProperties\""
 
 
 msgid "Export hair particle systems as USD curves"
@@ -89047,6 +89797,10 @@ msgid "Custom Shape"
 msgstr "Forma personalitzada"
 
 
+msgid "Rigify Type"
+msgstr "Tipus d'Aparellar"
+
+
 msgid "Camera Presets"
 msgstr "Predefinits de càmera"
 
@@ -89332,6 +90086,18 @@ msgid "Path Animation"
 msgstr "Animació de trajectes"
 
 
+msgid "Bone Collection UI"
+msgstr "IU de col·lecció d'ossos"
+
+
+msgid "UI Layout"
+msgstr "Disposició d'IU"
+
+
+msgid "Color Sets"
+msgstr "Jocs de colors"
+
+
 msgid "Effects"
 msgstr "Efectes"
 
@@ -89354,6 +90120,11 @@ msgstr "Filtres"
 
 msgid "Snapping"
 msgstr "Acoblament"
+
+
+msgctxt "Material"
+msgid "Thickness"
+msgstr "Gruix"
 
 
 msgid "Sun"
@@ -90350,6 +91121,10 @@ msgid "Quad View"
 msgstr "Visionat de quads"
 
 
+msgid "Rigify Animation Tools"
+msgstr "Aparellar - Eines d'animació"
+
+
 msgid "Auto-Masking"
 msgstr "Auto-màscara"
 
@@ -90864,6 +91639,10 @@ msgstr "Retallar partícules a la forma"
 
 msgid "Pose Options"
 msgstr "Opcions de posat"
+
+
+msgid "Rigify Dev Tools"
+msgstr "Aparellar - Eines de desenvolupament"
 
 
 msgid "Transform Orientations"
@@ -92024,6 +92803,10 @@ msgstr "Matriu 4x4 dels canals d'ubicació/rotació/escala de l'os (incloent-hi 
 
 msgid "Parent of this pose bone"
 msgstr "Pare d'aquest os posa"
+
+
+msgid "Rig type for this bone"
+msgstr "Tipus d'aparell d'aquest os"
 
 
 msgid "Pose Tail Position"
@@ -95077,6 +95860,74 @@ msgid "Group of ID properties"
 msgstr "Grup de propietats de l'ID"
 
 
+msgid "Action to apply to the rig via constraints"
+msgstr "Acció a aplicar a l'aparell via restriccions"
+
+
+msgid "Create constraints for this action on the generated rig"
+msgstr "[Action to apply to the rig via constraints]: Crea restriccions a l'acció en l'aparell generat"
+
+
+msgid "Last frame of the action's timeline"
+msgstr "Últim fotograma del cronograma de l'acció"
+
+
+msgid "First frame of the action's timeline"
+msgstr "Primer fotograma del cronograma de l'acció"
+
+
+msgid "Corrective"
+msgstr "Correctiu"
+
+
+msgid "Indicate that this is a corrective action. Corrective actions will activate based on the activation of two other actions (using End Frame if both inputs are at their End Frame, and Start Frame if either is at Start Frame)"
+msgstr "[Corrective]: Indica que es tracta d'una acció correctiva. Les accions correctives s'activaran en funció de l'activació de dues altres accions (Emprant Fotograma final si ambdues entrades es troben al seu Fotograma final, i Fotograma inicial si alguna es troba a Fotograma inicial)"
+
+
+msgid "Show Settings"
+msgstr "Mostrar paràmetres"
+
+
+msgid "Control Bone"
+msgstr "Os de control"
+
+
+msgid "Select a bone on the generated rig which will drive this action"
+msgstr "[Control Bone]: Selecciona un os de l'aparell generat i que impulsarà l'acció"
+
+
+msgid "Symmetrical"
+msgstr "Simètrica"
+
+
+msgid "Apply the same setup but mirrored to the opposite side control, shown in parentheses. Bones will only be affected by the control with the same side (eg., .L bones will only be affected by the .L control). Bones without a side in their name (so no .L or .R) will be affected by both controls with 0.5 influence each"
+msgstr "[Symmetrical]: Aplica el mateix muntatge però emmirallat al control del costat oposat, que es mostra entre parèntesis. Els ossos només es veuran afectats pel control del mateix costat (p. ex., els ossos .L només es veuran afectats pel control .L). Els ossos sense costat al seu nom (per tant, sense .L ni .R) es veuran afectats per tots dos controls amb 0,5 d'influència cadascun"
+
+
+msgid "Value that the transformation value must reach to put the action's timeline to the last frame. Rotations are in degrees"
+msgstr "Valor que ha d'assolir el valor de transformació per posar el cronograma de l'acció a l'últim fotograma. Les rotacions són en graus"
+
+
+msgid "Value that the transformation value must reach to put the action's timeline to the first frame. Rotations are in degrees"
+msgstr "Valor que ha d'assolir el valor de transformació per posar el cronograma de l'acció al primer fotograma. Les rotacions són en graus"
+
+
+msgid "Transform channel"
+msgstr "Canal de la transformació"
+
+
+msgid "Trigger A"
+msgstr "Detonant A"
+
+
+msgid "Action whose activation will trigger the corrective action"
+msgstr "Acció que, en activar-se, desencadenarà l'acció correctiva"
+
+
+msgid "Trigger B"
+msgstr "Detonant B"
+
+
 msgid "Asset Handle"
 msgstr "Ansa de recurs"
 
@@ -96859,8 +97710,764 @@ msgid "Step size when raymarching volume for lighting computation"
 msgstr "Mida dels passos en radiodistanciar volum per a calcular il·luminació"
 
 
+msgid "Reference from a RigifyParameters field to a bone collection."
+msgstr "Referència des d'un camp de ParametresAparellar a una col·lecció d'ossos."
+
+
+msgid "Collection Name"
+msgstr "Nom de col·lecció"
+
+
+msgid "Name of the referenced bone collection"
+msgstr "Nom de la col·lecció d'ossos referenciada"
+
+
+msgid "object_color"
+msgstr "object_color"
+
+
+msgid "Whether this feature-set is registered or not"
+msgstr "Si aquest joc de funcionalitats està o no registrat"
+
+
+msgid "Auto Align Extremity Bone"
+msgstr "Autoalinear os d'extremitat"
+
+
+msgid "Number of B-Bone segments"
+msgstr "Nombre de segment d'Os-D"
+
+
+msgid "Cluster controls"
+msgstr "Aplegar controls"
+
+
+msgid "Clusterize controls in the same position"
+msgstr "[Cluster controls]: Aplega controls en la mateix posició"
+
+
+msgid "Connect chain"
+msgstr "Connectar cadena"
+
+
+msgid "Connect the B-Bone chain to the parent rig"
+msgstr "[Connect chain]: Connectar la cadena d'ossos-D a l'aparell pare"
+
+
+msgid "Convergence bone"
+msgstr "Os de convergència"
+
+
+msgid "Add DEF on convergence"
+msgstr "Afegir DEF de convergència"
+
+
+msgid "Automation axes"
+msgstr "Eixos d'automatització"
+
+
+msgid "Prefer DEF parenting"
+msgstr "Preferir paternitat de DEF"
+
+
+msgid "Layers for the optional IK controls to be on"
+msgstr "Capes on han d'estar els controls CI opcionals"
+
+
+msgid "Extra IK Layers"
+msgstr "Capes CI extra"
+
+
+msgid "Separate IK Toe"
+msgstr "Dit CI separat"
+
+
+msgid "Generate a separate IK toe control for better IK/FK snapping"
+msgstr "[Orteil IK séparé]: Genera un control CI de dit per millorar l'acoblament de CI/CO"
+
+
+msgid "Toe Tip Roll"
+msgstr "Gir de punta de dit"
+
+
+msgid "Generate a slider to pivot forward heel roll on the tip rather than the base of the toe"
+msgstr "[Toe Tip Roll] Genera un lliscador per pivotar endavant el gir del taló sobre la punta preferiblament a sobre la base del dit"
+
+
+msgid "Eyelid Detach Option"
+msgstr "Opció desprendre parpella"
+
+
+msgid "Create an option to detach eyelids from the eye surface"
+msgstr "[Eyelid Detach Option]: Crea una opció perquè les parpelles quedin separades de la superfície de l'ull"
+
+
+msgid "Eyelids Follow Default"
+msgstr "Parpelles segueixen predefinit"
+
+
+msgid "Default setting for the Eyelids Follow sliders (X and Z)"
+msgstr "COnfiguració per defecte perquè les parpelles segueixin els lliscadors (X i Z)"
+
+
+msgid "Split Eyelid Follow Slider"
+msgstr "Separar parpella seguint lliscador"
+
+
+msgid "Create separate eyelid follow influence sliders for X and Z"
+msgstr "[Split Eyelid Follow Slider] Crea lliscadors d'influència en X i Z per a les parpelles separades"
+
+
+msgid "Layers for the FK controls to be on"
+msgstr "Capes sobre els que projectar el controls CI"
+
+
+msgid "Assign Fk Collections"
+msgstr "Assignar a col·lecció CI"
+
+
+msgid "Foot Pivot"
+msgstr "Pivot de peu"
+
+
+msgid "Ankle"
+msgstr "Turmell"
+
+
+msgid "The foots pivots at the ankle"
+msgstr "Els pivots de peus al turmell"
+
+
+msgid "Toe"
+msgstr "Dit"
+
+
+msgid "The foot pivots around the base of the toe"
+msgstr "El peu pivota al voltant de la base del dit"
+
+
+msgid "Ankle and Toe"
+msgstr "Turmell i dit"
+
+
+msgid "The foots pivots at the ankle, with extra toe pivot"
+msgstr "Els pivots dels peus al turmell, amb un pivot extra al dit"
+
+
+msgid "Heel IK Influence"
+msgstr "Influència CI de taló"
+
+
+msgid "Influence of the secondary IK on the heel control rotation"
+msgstr "[Heel IK Influence]: Influència del CI secundari al control de rotació del taló"
+
+
+msgid "IK Local Location"
+msgstr "Ubicació local CI"
+
+
+msgid "Specifies the value of the Local Location option for IK controls, which decides if the location channels are aligned to the local control orientation or world"
+msgstr "[IK Local Location]: Especifica el valor de l'opció d'Ubicació local per als controls CI, cosa que decideix si els canals d'ubicació queden alineats a l'orientació de control local o al món"
+
+
+msgid "Locked Influence"
+msgstr "Influència blocada"
+
+
+msgid "Influence of the jaw on the locked mouth"
+msgstr "[Locked Influence]: Influència de la mandíbula sobre la boca blocada"
+
+
+msgid "Bottom Lip Influence"
+msgstr "Influència de llavi inferior"
+
+
+msgid "Influence of the jaw on the bottom lip chains"
+msgstr "[Bottom Lip Influence]: Influència de la mandíbula en les cadenes de llavi inferior"
+
+
+msgid "Secondary Influence Falloff"
+msgstr "Decaïmen d'influència secundària"
+
+
+msgid "Reduction factor for each level of secondary mouth loops"
+msgstr "[Secondary Influence Falloff]: Factor de reducció per a cada nivell de bucle bucal secundari"
+
+
+msgid "Limb Type"
+msgstr "Tipus d'extremitat"
+
+
+msgid "Leg"
+msgstr "Cama"
+
+
+msgid "Paw"
+msgstr "Pota"
+
+
+msgid "Support Uniform Scaling"
+msgstr "Admetre escalat uniforme"
+
+
+msgid "Support uniformly scaling the limb via the gear control at the base"
+msgstr "Admet l'escalat uniforme de l'activitat en base al controlador d'engranatge de la base"
+
+
+msgid "Control"
+msgstr "Control"
+
+
+msgid "Create a control bone for the copy"
+msgstr "[Control]: Crea un os de control per a la còpia"
+
+
+msgid "Controls"
+msgstr "Controls"
+
+
+msgid "Create control bones for the copy"
+msgstr "[Controls]: Crea ossos de control per a la còpia"
+
+
+msgid "Custom Pivot Control"
+msgstr "Control de pivot personalitzat"
+
+
+msgid "Create a rotation pivot control that can be repositioned arbitrarily"
+msgstr "Crea un control de pivot de rotació que es pot reposicionar arbitràriament"
+
+
+msgid "Create a deform bone for the copy"
+msgstr "Crear os deformable per a la còpia"
+
+
+msgid "Create deform bones for the copy"
+msgstr "[Create a deform bone for the copy]: Crea ossos deformables per a la còpia"
+
+
+msgid "Extra Control"
+msgstr "Control extra"
+
+
+msgid "Create an optional control"
+msgstr "Crea un control opcional"
+
+
+msgid "Extra Deform"
+msgstr "Deformació extra"
+
+
+msgid "Create an optional deform bone"
+msgstr "[Extra Deform]: Crea un ós deformable especial"
+
+
+msgid "Extra IK Control"
+msgstr "Control CI extra"
+
+
+msgid "Create an optional IK control"
+msgstr "[Extra IK Control]: Crea un control extra de CI"
+
+
+msgid "FK Controls"
+msgstr "Controls CO"
+
+
+msgid "Generate an FK control chain"
+msgstr "[FK Controls]: Genera una cadena de controls de CO"
+
+
+msgid "IK Wrist Pivot"
+msgstr "Pivot de canell CI"
+
+
+msgid "Make an extra IK hand control pivoting around the tip of the hand"
+msgstr "[IK Wrist Pivot]: Confegeix un control de mà de CI que pivota al voltant de la punta de la mà"
+
+
+msgid "Switchable Parent"
+msgstr "Pare intercanviable"
+
+
+msgid "Allow switching the parent of the master control"
+msgstr "[Switchable Parent]: Permet d'intercanviar el pare del control manaia"
+
+
 msgid "Widget"
 msgstr "Giny"
+
+
+msgid "Choose a widget for the bone control"
+msgstr "Escollir gins per a control d'os"
+
+
+msgid "Neck start position"
+msgstr "Posició inicial del coll"
+
+
+msgid "Widget Type"
+msgstr "Tipus de giny"
+
+
+msgid "Choose the type of the widget to create"
+msgstr "Permet d'escollir el tipus de giny que es vulgui crear"
+
+
+msgid "Both Sides"
+msgstr "Ambdós costats"
+
+
+msgid "Create controls for both sides of the palm"
+msgstr "Crea controls per tots dos costats de la palma"
+
+
+msgid "Palm Rotation Axis"
+msgstr "Eix de rotació de la palma"
+
+
+msgid "Replace the parent with a different bone after all bones are created. Using simply CTRL, DEF or MCH will replace the prefix instead"
+msgstr "Substitueix el pare per un os diferent després de crear tots els ossos. Usant simplement CTRL, DEF o MCH se substituirà el prefix"
+
+
+msgid "pivot_position"
+msgstr "pivot_position"
+
+
+msgid "Position of the torso control and pivot point"
+msgstr "Posició del control del tors i del punt de pivot"
+
+
+msgid "Layers for the primary controls to be on"
+msgstr "Capes sobre els que han d'actuar els controls primaris"
+
+
+msgid "Assign Primary Collections"
+msgstr "Assignar col·leccions primàries"
+
+
+msgid "Primary Rotation Axis"
+msgstr "Eix de rotació primari"
+
+
+msgid "X manual"
+msgstr "Manual X"
+
+
+msgid "Y manual"
+msgstr "Manual Y"
+
+
+msgid "Z manual"
+msgstr "Manual Z"
+
+
+msgid "-X manual"
+msgstr "Manual -X"
+
+
+msgid "-Y manual"
+msgstr "Manual -Y"
+
+
+msgid "-Z manual"
+msgstr "Manual -Z"
+
+
+msgid "Register Parent"
+msgstr "Registrar pare"
+
+
+msgid "Register the control as a switchable parent candidate"
+msgstr "[Register Parent]: Registra el control com a candidat a pare intercamviable"
+
+
+msgid "Parent Tags"
+msgstr "Etiquetes de pares"
+
+
+msgid "Comma-separated tags to use for the registered parent"
+msgstr "Etiquetes separades per comes per als pares registrats"
+
+
+msgid "Relink Constraints"
+msgstr "Revincular restriccions"
+
+
+msgid "For constraints with names formed like 'base@bonename', use the part after '@' as the new subtarget after all bones are created. Use '@CTRL', '@DEF' or '@MCH' to simply replace the prefix"
+msgstr "[Relink Constraints]: Per a les restriccions amb noms formats com \"base@nomdeos\", utilitzeu la part després de \"@\" com a subreferent nou després de crear tots els ossos. Empreu '@CTRL', '@DEF' o '@MCH' per substituir simplement el prefix"
+
+
+msgid "Bone roll alignment"
+msgstr "Alineació de gir d'os"
+
+
+msgid "Layers for the secondary controls to be on"
+msgstr "Capes sobre els que han d'actuar els controls secundaris"
+
+
+msgid "Assign Secondary Collections"
+msgstr "Assignar col·leccions secundàries"
+
+
+msgid "Limb Segments"
+msgstr "Segments d'extremitat"
+
+
+msgid "Number of limb segments"
+msgstr "Nombre de segments d'extremitat"
+
+
+msgid "Extra End Controls"
+msgstr "Extra controls de final"
+
+
+msgid "Number of extra spline control points attached to the end control"
+msgstr "[Extra controls de final]: Nombre de punts de control de spline extra associats al control final"
+
+
+msgid "Generate an FK control chain for the tentacle"
+msgstr "Generar una cadena de control CO per al tentacle"
+
+
+msgid "Maximum Radius"
+msgstr "Radi màxim"
+
+
+msgid "Maximum supported scale factor for the spline control bones"
+msgstr "Màxim factor d'escala admès per als ossos control de spline"
+
+
+msgid "Middle Controls"
+msgstr "Controls mitjans"
+
+
+msgid "Number of spline control points in the middle"
+msgstr "Nombre de punts de control spline a al punt mig"
+
+
+msgid "Radius Scaling"
+msgstr "Escalat de radi"
+
+
+msgid "Allow scaling the spline control bones to affect the thickness via curve radius"
+msgstr "Permet escalar els ossos control de spline per afectar el gruix per via del radi de la corba"
+
+
+msgid "Extra Start Controls"
+msgstr "Extra controls d'inici"
+
+
+msgid "Number of extra spline control points attached to the start control"
+msgstr "Nombre de punts extra de control de spline associats al control d'inici"
+
+
+msgid "Tip Control"
+msgstr "Control d'extrem"
+
+
+msgid "How the stretching of the tentacle is controlled"
+msgstr "[Tip Control]: Com es controla l'estirament del tentacle"
+
+
+msgid "Stretch To Fit"
+msgstr "Estirar fins encaixar"
+
+
+msgid "The tentacle stretches to fit the curve"
+msgstr "[Stretch To Fit]: El tentacle s'estira per encaixar amb la corba"
+
+
+msgid "Direct Tip Control"
+msgstr "Control directe d'extrem"
+
+
+msgid "The last bone of the chain is directly controlled, like the hand in an IK arm, and the middle stretches to reach it"
+msgstr "[Direct Tip Control]: L'últim os de la cadena està sota control directe, com la mà en un braç CI, i el punt mig s'estira per arribar-hi"
+
+
+msgid "Manual Squash & Stretch"
+msgstr "Xafar i estirar manuals"
+
+
+msgid "The tentacle scaling is manually controlled via twist controls."
+msgstr "[Manual Squash & Stretch]: L'escalat del tentacle es controla manualment mitjançant controls de rosca."
+
+
+msgid "Suppress Control"
+msgstr "Amagar control"
+
+
+msgid "Make the control bone a mechanism bone invisible to the user and only affected by constraints"
+msgstr "[Suppress Control]: Fa que l'os control d'un os mecanisme sigui invisible per a l'usuari i només resti afectat per restriccions"
+
+
+msgid "Connect Matching Ends"
+msgstr "Connectar extrems coincidents"
+
+
+msgid "Create a smooth B-Bone transition if an end of the chain meets another chain going in the same direction"
+msgstr "[Connect Matching Ends]: Crea una transició sua d'os-D si un extrem de la cadena es troba amb una altra cadena que va en la mateixa direcció"
+
+
+msgid "Connect With Mirror"
+msgstr "Connectar amb emmirallat"
+
+
+msgid "Create a smooth B-Bone transition if an end of the chain meets its mirror"
+msgstr "[Connect With Mirror]: Crea una transició sua d'os-D si un extrem de la cadena es troba amb el seu reflex"
+
+
+msgid "Sharpen Corner"
+msgstr "Tancar cantell"
+
+
+msgid "Create a mechanism to sharpen a connected corner when the angle is below this value"
+msgstr "[Sharpen Corner]: Crea un mecanisme que fa més agut el cantell connectat quan l'angle és menor que aquest valor"
+
+
+msgid "Control Falloff"
+msgstr "Decaïment de control"
+
+
+msgid "Falloff curve coefficient: 0 is linear, and higher value is wider influence. Set to -10 to disable influence completely"
+msgstr "[Control Falloff]: Coeficient de corba de decaïment: 0 és lineal i un valor més alt és una influència més àmplia. Poseu-ho a -10 per desactivar completament la influència"
+
+
+msgid "Falloff Along Chain Curve"
+msgstr "Decaïment seguint la corba de cadena"
+
+
+msgid "Falloff is computed along the curve of the chain, instead of projecting on the axis connecting the start and end points"
+msgstr "[Falloff Along Chain Curve]: Es calcula el decaïment al llarg de la corba de la cadena, en lloc de projectar-se sobre l'eix que connecta els punts inicial i final"
+
+
+msgid "Propagate Scale"
+msgstr "Propagar escala"
+
+
+msgid "Propagate scale from main controls throughout the chain"
+msgstr "Propaga l'escala dels controls principals a tota la cadena"
+
+
+msgid "Spherical Falloff"
+msgstr "Decaïment esfèric"
+
+
+msgid "Falloff curve tries to form a circle at +1 instead of a parabola"
+msgstr "[Spherical Falloff]: La corba de decaïment intenta de formar un cercle a +1 en lloc d'una paràbola"
+
+
+msgid "Propagate To Controls"
+msgstr "Propagar a controls"
+
+
+msgid "Expose scale and/or twist propagated to tweak controls to be seen as parent motion by glue or other chains using Merge Parent Rotation And Scale. Otherwise it is only propagated internally within this chain"
+msgstr "[Propagate To Controls]: Exposa l'escala i/o el gir propagats per ajustar els controls perquè es vegi com a moviment per adhesió o altres cadenes mitjançant Fusionar rotació i escala de pares. En cas contrari, només es propaga internament dins d'aquesta cadena"
+
+
+msgid "Propagate Twist"
+msgstr "Propagar gir"
+
+
+msgid "Propagate twist from main controls throughout the chain"
+msgstr "[Propagate Twist]: Propaga el gir dels controls principals a tota la cadena"
+
+
+msgid "Middle Control Position"
+msgstr "Posició de control del punt mig"
+
+
+msgid "Position of the middle control, disabled if zero"
+msgstr "[Middle Control Position]: Posició del punt de control del mig, desactivat si és zero"
+
+
+msgid "Chain Priority"
+msgstr "Prioritat de cadena"
+
+
+msgid "When merging controls, chains with higher priority always win"
+msgstr "[Chain Priority]: En fusionar controls, les cadenes amb més prioritat sempre guanyen"
+
+
+msgid "Merge Parent Rotation And Scale"
+msgstr "Fusionar rotació i escala pares"
+
+
+msgid "When controls are merged into ones owned by other chains, include parent-induced rotation/scale difference into handle motion. Otherwise only local motion of the control bone is used"
+msgstr "[Merge Parent Rotation And Scale]: Quan els controls es fusionen amb altres propietat d'altres cadenes, cal incloura la diferència de rotació/escala induïda pels pares en el moviment de la nansa. Altrament s'empra només el moviment local de l'os control"
+
+
+msgid "Use Handle Scale"
+msgstr "Emprar escala de Nansa"
+
+
+msgid "Use control scaling to scale the B-Bone"
+msgstr "[Use Handle Scale]: fa ús de l'escalat del control per escalar l'os-D"
+
+
+msgid "Orientation Bone"
+msgstr "Os d'orientació"
+
+
+msgid "If set, control orientation is taken from the specified bone"
+msgstr "Si està definit, l'orientació de control es treu de l'os especificat"
+
+
+msgid "Add Constraint"
+msgstr "Afegir restricció"
+
+
+msgid "Add one of the common constraints linking the control to the tail target"
+msgstr "Afegeix una de les restriccions habituals que connecten el control amb el referent de la cua"
+
+
+msgid "No New Constraint"
+msgstr "No a noves restriccions"
+
+
+msgid "Don't add new constraints"
+msgstr "No afegiu noves restriccions"
+
+
+msgid "Copy Location (Local)"
+msgstr "Copiar ubicació (local)"
+
+
+msgid "Add a constraint to copy Local Location with Offset. If the owner and target control rest orientations are different, the global movement direction will change accordingly"
+msgstr "Afegeix una restricció per a copiar Ubicació local amb Desplaçament. Si les orientacions del propietari i del control de referent són diferents, la direcció del moviment global canviarà en coherència"
+
+
+msgid "Copy Location (Local, Owner Orientation)"
+msgstr "Copiar ubicació (local, orientació de propietari)"
+
+
+msgid "Add a constraint to copy Local Location (Owner Orientation) with Offset. Even if the owner and target controls have different rest orientations, the global movement direction would be the same"
+msgstr "Afegeix una restricció per a copiar Ubicació local (Orientació de propietari) amb Desplaçament. Fins i tot si el propietari i el control de referent són diferents, la direcció del moviment global serà la mateixa"
+
+
+msgid "Influence of the added constraint"
+msgstr "Influència de la restricció afegida"
+
+
+msgid "Glue Mode"
+msgstr "Mode adherir"
+
+
+msgid "Specifies how the glue bone is rigged to the control at the bone head location"
+msgstr "[Glue Mode]: Especifica com s'aparella l'os adjerent al control en la ubicació del cap de l'os"
+
+
+msgid "Child Of Control"
+msgstr "Control Fill-de"
+
+
+msgid "The glue bone becomes a child of the control bone"
+msgstr "[Child Of Control]: L'os adherent esdevé fill de l'os control"
+
+
+msgid "Mirror Of Control"
+msgstr "Emmirallat de control"
+
+
+msgid "The glue bone becomes a sibling of the control bone with Copy Transforms"
+msgstr "[Mirror Of Control]: L'os adherent es convertexi en germà de l'os control amb Copiar transformacions"
+
+
+msgid "Mirror With Parents"
+msgstr "Emmirallar amb pares"
+
+
+msgid "The glue bone keeps its parent, but uses Copy Transforms to group both local and parent induced motion of the control into local space"
+msgstr "[Mirror With Parents]: L'os adherent manté a son pare, però fa ús de Copiar tranformacions per agrupar tant el moviment local com l'induït pel pare del controls en l'espai local"
+
+
+msgid "Deformation Bridge"
+msgstr "Pont de deformació"
+
+
+msgid "Other than adding glue constraints to the control, the rig acts as a one segment basic deform chain"
+msgstr "[Deformation Bridge]: A banda d'afegir les restriccions d'adhesió al control, l'aparellat actua com una cadena de deformació bàsica de segment"
+
+
+msgid "Target Local With Parents"
+msgstr "Referent local amb pares"
+
+
+msgid "Include transformations induced by target parents into target local space"
+msgstr "[Deformation Bridge]: Inclou transformacions induïdes per pares referent en l'espai local referent"
+
+
+msgid "Use Tail Target"
+msgstr "Usar referent de cua"
+
+
+msgid "Find the control at the bone tail location and use it to relink TARGET or any constraints without an assigned subtarget or relink spec"
+msgstr "[Deformation Bridge]: Troba el control ubicat a la cua de l'os i el fa servir per reconnectar el REFERENT o qualsevol restricció sense cap subreferent o especificació de reconnexió assignats"
+
+
+msgid "Primary Control Layers"
+msgstr "Capes de control primàries"
+
+
+msgid "Secondary Control Layers"
+msgstr "Capes de control secundàries"
+
+
+msgid "Where the tail starts"
+msgstr "On comença la cua"
+
+
+msgid "Orient y-axis to"
+msgstr "Orientar eix Y envers"
+
+
+msgid "Targets all ctrls y-axis to defined axis (global space)"
+msgstr "[Capes de control primàries]: Apunta a tots els eixos Y dels constrols envers un eix definit (espai global)"
+
+
+msgid "X-Global"
+msgstr "Global X"
+
+
+msgid "Y-Global"
+msgstr "Global Y"
+
+
+msgid "Z-Global"
+msgstr "Global Z"
+
+
+msgid "Layers for the tweak controls to be on"
+msgstr "Capes sobre les que actuen els controls d'ajustament"
+
+
+msgid "Assign Tweak Collections"
+msgstr "Assignar col·leccions d'ajustament"
+
+
+msgid "Create head and neck bones"
+msgstr "Crear ossos de cap i coll"
+
+
+msgid "Create tail bones"
+msgstr "Crear ossos de cua"
+
+
+msgid "Custom Widget orient"
+msgstr "Orientar giny personalitzat"
+
+
+msgid "Targets custom WGTs to defined axis (global space)"
+msgstr "[Custom Widget orient]: Apunta gins personalitzats a un eix definit (espai global)"
+
+
+msgid "Widget Offset"
+msgstr "Desplaçament del giny"
+
+
+msgid "color picker"
+msgstr "selector de color"
 
 
 msgid "Selected UV Element"
@@ -98872,7 +100479,7 @@ msgstr "Factor de repulsió"
 
 
 msgid "How strongly the fluid tries to keep from clustering (factor of stiffness)"
-msgstr "[Repulsion Factor]: Amb quina força intenta el fluid evitar l'agrumollament (factor de rigidesa)"
+msgstr "[Repulsion Factor]: Amb quina força intenta el fluid evita l'agrumollament (factor de rigidesa)"
 
 
 msgid "Rest Density"
@@ -99553,6 +101160,10 @@ msgstr "Mostreja tots els píxels en regions quasi-enfocades per eliminar soroll
 
 msgid "Jitter Camera"
 msgstr "Càmera de trontoll"
+
+
+msgid "Jitter camera position to create accurate blurring using render samples (only for final render)"
+msgstr "[Jitter Camera]: Posició de la càmera de trontoll per a crear un difuminat precís usant mostres de revelat (sols per al revelat final)"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -105394,16 +107005,36 @@ msgid "Amount texture affects diffuse color"
 msgstr "Quant afecta la textura el color difusiu"
 
 
+msgctxt "Texture"
+msgid "Texture Coordinates"
+msgstr "Coordenades de textura"
+
+
 msgid "Texture coordinates used to map the texture onto the background"
 msgstr "Coordenades de textura per a mapejar la textura al rerefons"
+
+
+msgctxt "Texture"
+msgid "Window"
+msgstr "Finestra"
 
 
 msgid "Use screen coordinates as texture coordinates"
 msgstr "Usar les coordenades de pantalla com a coordenades de textura"
 
 
+msgctxt "Texture"
+msgid "Global"
+msgstr "Global"
+
+
 msgid "Use global coordinates for the texture coordinates"
 msgstr "Usar coordenades globals per a les coordenades de textura"
+
+
+msgctxt "Texture"
+msgid "Along stroke"
+msgstr "Segueix el traç"
 
 
 msgid "Use stroke length for texture coordinates"
@@ -105522,12 +107153,22 @@ msgid "Amount texture affects physical particle size"
 msgstr "Quant afecta la textura la mida física de les partícules"
 
 
+msgctxt "Texture"
+msgid "Object"
+msgstr "Objecte"
+
+
 msgid "Use linked object's coordinates for texture coordinates"
 msgstr "Usar coordenades de l'objecte vinculat per a les coordenades de textura"
 
 
 msgid "Use UV coordinates for texture coordinates"
 msgstr "Usar coordenades UV per a les coordenades de textura"
+
+
+msgctxt "Texture"
+msgid "Strand / Particle"
+msgstr "Filament / Partícula"
 
 
 msgid "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"
@@ -113941,10 +115582,6 @@ msgid "No installed packages to update"
 msgstr "No hi ha paquets instal·lats per actualitzar"
 
 
-msgid "No un-installed packages marked"
-msgstr "No hi ha paquets desinstal·lats marcats"
-
-
 msgid "No installed packages marked"
 msgstr "No hi ha paquets instal·lats marcats"
 
@@ -113971,10 +115608,6 @@ msgid ""
 msgstr ""
 "L'extensió és incompatible amb aquest sistema:\n"
 "{:s}"
-
-
-msgid "Alternatively download the extension to Install from Disk."
-msgstr "Alternativament descarregueu l'extensió per instal·lar-la des del disc."
 
 
 msgid "Lock not held!"
@@ -114009,12 +115642,16 @@ msgid "Online access required to install or update. Enable online access in Syst
 msgstr "Es requereix accés en línia per instal·lar o actualitzar. Activeu l'accés en línia a les preferències del sistema"
 
 
-msgid "Blender was launched in offline-mode which cannot be changed at runtime"
-msgstr "Blender s'ha llançat en mode fora de línia, i no es pot canviar a mitja execució"
-
-
 msgid "Launch Blender without --offline-mode"
 msgstr "Inicieu Blender sense --mode-foradelinia"
+
+
+msgid "Online access required to check for updates."
+msgstr "Cal accés a internet per buscar actualitzacions."
+
+
+msgid "Online access required to install updates."
+msgstr "Cal accés a internet per instal·lar actualitzacions."
 
 
 msgid "Enable online access in System preferences"
@@ -114037,10 +115674,6 @@ msgid "Unable to install a directory"
 msgstr "No s'ha pogut instal·lar un directori"
 
 
-msgid "{:s} \"{:s}\" already installed!"
-msgstr "{:s} \"{:s}\" ja instal·lada!"
-
-
 msgid "Missing Built-in Add-ons"
 msgstr "Falten complements de fàbrica"
 
@@ -114051,6 +115684,18 @@ msgstr "Els complements enviats anteriorment amb Blender ara estan disponibles a
 
 msgid "Missing Add-ons"
 msgstr "Falten complements"
+
+
+msgid "Multiple add-ons with the same name found!"
+msgstr "S'han trobat múltiples complements amb el mateix nom!"
+
+
+msgid "Delete one of each pair to resolve:"
+msgstr "Eliminar-ne un de cada parell per a resoldre:"
+
+
+msgid "Search Add-ons"
+msgstr "Cercar complements"
 
 
 msgid "Enabled Only"
@@ -114075,8 +115720,17 @@ msgid "Allow Online Access"
 msgstr "Autoritzar accés en línea"
 
 
+msgid "Search Extensions"
+msgstr "Cercar extensions"
+
+
 msgid "Show Tags"
 msgstr "Mostrar etiquetes"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "No-cap"
 
 
 msgid "Built-in"
@@ -114097,6 +115751,10 @@ msgstr "Avís"
 
 msgid "Blender's extension repository not found!"
 msgstr "No s'ha trobat el repositori d'extensions de Blender!"
+
+
+msgid ":"
+msgstr ":"
 
 
 msgid "Repository Access Errors:"
@@ -114131,6 +115789,11 @@ msgstr "Permisos"
 
 
 msgctxt "Operator"
+msgid "Visit Extensions Platform"
+msgstr "Visitar plataforma d'extensions"
+
+
+msgctxt "Operator"
 msgid "Mark All"
 msgstr "Marcar tots"
 
@@ -114162,6 +115825,10 @@ msgstr "Instal·lar marcades"
 msgctxt "Operator"
 msgid "Visit Website"
 msgstr "Visitar lloc web"
+
+
+msgid "Installed"
+msgstr "Instal·lades"
 
 
 msgctxt "Operator"
@@ -114861,6 +116528,11 @@ msgstr "Paràmetres des d'actiu"
 
 
 msgctxt "Operator"
+msgid "Do Not Replace Links"
+msgstr "No substituir connexions"
+
+
+msgctxt "Operator"
 msgid "Replace Links"
 msgstr "Substituir connexions"
 
@@ -114919,12 +116591,50 @@ msgid "Use Alpha Over Nodes"
 msgstr "Usar nodes Alfa a sobre"
 
 
+msgctxt "Operator"
+msgid "From Active Node's Label"
+msgstr "Des d'etiqueta de Node actiu"
+
+
+msgctxt "Operator"
+msgid "From Linked Node's Label"
+msgstr "Des d'etiqueta de node connectat"
+
+
+msgctxt "Operator"
+msgid "From Linked Output's Name"
+msgstr "Des de nom de Sortida connectada"
+
+
+msgctxt "Operator"
+msgid "To All Outputs"
+msgstr "A totes les sortides"
+
+
+msgctxt "Operator"
+msgid "To Loose Outputs"
+msgstr "A les sortides soltes"
+
+
+msgctxt "Operator"
+msgid "To Linked Outputs"
+msgstr "A les sortides connectades"
+
+
 msgid "No attributes on objects with this material"
 msgstr "No hi ha atributs als objectes d'aquest material"
 
 
 msgid "View3D not found, cannot run operator"
 msgstr "No és troba la vista 3D, no es pot executar l'operador"
+
+
+msgid "Node {} deleted"
+msgstr "Node {} eliminat"
+
+
+msgid "Nothing to delete"
+msgstr "Res a eliminar"
 
 
 msgid "Reloaded images"
@@ -114959,8 +116669,36 @@ msgid "No file chosen"
 msgstr "No s'ha escollit cap document"
 
 
+msgid "{} does not exist"
+msgstr "{} no existeix"
+
+
+msgid "{} does not seem to be part of a sequence"
+msgstr "{} no sembla formar part d'una seqüència"
+
+
 msgid "Ignored {}, "
 msgstr "Ignorat {}, "
+
+
+msgid "Deleted {} nodes"
+msgstr "S'ha esborrat {} nodes"
+
+
+msgid "Deleted 1 node"
+msgstr "1 node esborrat"
+
+
+msgid "Successfully copied attributes from {} to {}"
+msgstr "S'han copiat amb èxit atributs des de {} fins a {}"
+
+
+msgid "No free inputs for node {}"
+msgstr "El node {} no té entrades lliures"
+
+
+msgid "Unsupported node tree type"
+msgstr "Tipus d'arbre de nodes no admès"
 
 
 msgid "Please select only 1 frame to reset"
@@ -114969,6 +116707,38 @@ msgstr "Sisplau seleccioneu un sol marc per redisposar"
 
 msgid "No valid node(s) in selection"
 msgstr "La selecció no conté nodes vàlids"
+
+
+msgid "Successfully reset {}"
+msgstr "Restabliment de {} exitós"
+
+
+msgid "One of the nodes has no outputs"
+msgstr "Un dels nodes no té sortides"
+
+
+msgid "Neither of the nodes have outputs"
+msgstr "Cap dels nodes no té sortides"
+
+
+msgid "Cannot swap inputs of a multi-input socket"
+msgstr "No es poden intercanviar les entrades d'un born multientrada"
+
+
+msgid "This node has no inputs to swap"
+msgstr "Aquest node no té entrades per intercanviar"
+
+
+msgid "This node has no input connections to swap"
+msgstr "Aquest node no consta de connexions d'entrada per intercanviar-les"
+
+
+msgid "Ignored {} (not of the same type as {})"
+msgstr "S'ha ignorat {} (no es del mateix tipus que {})"
+
+
+msgid "Ignored {}"
+msgstr "Ignorat {}"
 
 
 msgid "Some connections have been lost due to differing numbers of output sockets"
@@ -115003,36 +116773,16 @@ msgid "No active node."
 msgstr "Cap node actiu."
 
 
-msgid " nodes are selected, but this operator can only work on ."
-msgstr " els nodes estan seleccionats, però aquest operador només funciona amb ."
-
-
-msgid ""
-"Current node tree type not supported.\n"
-"Should be one of ."
-msgstr ""
-"El tipus d'arbre de nodes actual no és compatible.\n"
-"Hauria de ser un de ."
-
-
-msgid "Active node should be not of type ."
-msgstr "El node actiu no hauria de ser de tipus ."
-
-
 msgid "Current node has no visible outputs."
 msgstr "El node no té sortides visibles."
 
 
-msgid "At least  nodes must be selected."
-msgstr "Almenys  nodes han d'estar seleccionats."
-
-
-msgid "At least  node must be selected."
-msgstr "Almenys  node ha d'estar seleccionat."
-
-
-msgid "Active node should be of type ."
-msgstr "El node actiu hauria de ser de tipus ."
+msgid ""
+"Current node tree type not supported.\n"
+"Should be one of {:s}."
+msgstr ""
+"El tipus d'arbre de nodes actual no és compatible.\n"
+"Hauria de ser un de {:s}."
 
 
 msgctxt "Operator"
@@ -115174,6 +116924,23 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
+msgid "Feature Sets:"
+msgstr "Joc de funcionalitats:"
+
+
+msgctxt "Operator"
+msgid "Install Feature Set from File..."
+msgstr "Instal·lar joc de funcionalitats des del document..."
+
+
+msgid "Error:"
+msgstr "Error:"
+
+
+msgid "This feature set failed to load correctly."
+msgstr "Aquest joc de funcionalitats no s'ha carregat correctament."
+
+
 msgid "Author:"
 msgstr "Autor:"
 
@@ -115187,6 +116954,11 @@ msgstr "Avís:"
 
 
 msgctxt "Operator"
+msgid "Repository"
+msgstr "Repositori"
+
+
+msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentació"
 
@@ -115195,18 +116967,326 @@ msgid "File:"
 msgstr "Document:"
 
 
+msgid " (not installed)"
+msgstr " (no instal·lat)"
+
+
+msgid "This feature set depends on the following feature set to work properly:"
+msgstr "Aquest joc de funcionalitats depèn d'aquest joc de funcionalitats per rutllar com cal:"
+
+
+msgid "Status:"
+msgstr "Estat:"
+
+
+msgid "Action not in list"
+msgstr "L'acció no és a la llista"
+
+
+msgid "Cannot verify bone name without a generated rig"
+msgstr "No es pot verificar el nom de l'os si no hi ha cap aparell generat"
+
+
+msgid "Start and end frame cannot be the same!"
+msgstr "Els fotogrames inicial i final no poden ser el mateix!"
+
+
+msgctxt "Operator"
+msgid "Copy Only Parameters"
+msgstr "Copiar només paràmetres"
+
+
+msgctxt "Operator"
+msgid "Copy Type & Parameters"
+msgstr "Copiar tipus i Paràmetres"
+
+
+msgctxt "Operator"
+msgid "Mirror Type & Parameters"
+msgstr "Emmirallar tipus i paràmetres"
+
+
+msgid "Master Control"
+msgstr "Control manaia"
+
+
+msgid "Deform Bone"
+msgstr "Os deformable"
+
+
+msgid "Pivot Control"
+msgstr "Control de pivot"
+
+
+msgid "This rig type does not add the ORG prefix."
+msgstr "Aquesta mena d'aparell no afegeix el prefix ORG."
+
+
+msgid "Manually add ORG, MCH or DEF as needed."
+msgstr "Afegir manualment ORG, MCH o DEF segons convingui."
+
+
+msgid "Constraint names have special meanings."
+msgstr "Els noms de restriccions tenen significats especials."
+
+
+msgid "'CTRL:...' constraints are moved to the control bone."
+msgstr "'CTRL:...' les restriccions són traslladades a l'os control."
+
+
+msgid "'DEF:...' constraints are moved to the deform bone."
+msgstr "'DEF:...' Les restriccions són traslladades a l'os deformable."
+
+
+msgid "Convergence Bone"
+msgstr "Os de convergència"
+
+
+msgid "Eyeball And Iris Deforms"
+msgstr "Deformacions d'ull i iris"
+
+
+msgid "Follow X"
+msgstr "Seguir X"
+
+
+msgid "Follow Z"
+msgstr "Seguir Z"
+
+
+msgid "This monolithic face rig is deprecated."
+msgstr "Aquest aparell de cara monolític està obsolet."
+
+
+msgid "Custom IK Pivot"
+msgstr "Pivot de CI personalitzat"
+
+
+msgid "A straight line rest shape works best."
+msgstr "Una forma de repòs en línia recta funciona millor."
+
+
+msgid "Bend rotation axis:"
+msgstr "Eix de rotació de doblec:"
+
+
+msgid "IK Control"
+msgstr "Control CI"
+
+
+msgid "Primary rotation axis:"
+msgstr "Eix primari de rotació:"
+
+
+msgid "Extra FK Controls"
+msgstr "Controsl CO extra"
+
+
+msgid "Generate Deform Bone"
+msgstr "Generar os deformable"
+
+
+msgid "All constraints are moved to the control bone."
+msgstr "Tots les restriccions es traslladen a l'os control."
+
+
+msgid "Use Scale:"
+msgstr "Usar escala:"
+
+
+msgid "Connect Mirror:"
+msgstr "Connectar emmirallat:"
+
+
+msgid "Connect Next:"
+msgstr "Connectar següent:"
+
+
+msgid "Sharpen:"
+msgstr "Fer agudes:"
+
+
+msgid "Falloff:"
+msgstr "Decaïment:"
+
+
+msgid "Propagate:"
+msgstr "Propagar:"
+
+
+msgid "To Controls"
+msgstr "Envers controls"
+
+
+msgid "Generate Control"
+msgstr "Generar control"
+
+
+msgid "Note: this combined rig is deprecated."
+msgstr "Nota: aquest aparell combinat és obsolet."
+
+
+msgid "Rig Name"
+msgstr "Nom d'aparell"
+
+
+msgid "Overwrite Existing:"
+msgstr "Sobreescriure existents:"
+
+
+msgid "Target Rig"
+msgstr "Aparell referent"
+
+
+msgid "Rig UI Script"
+msgstr "Protocol d'IU d'aparell"
+
+
+msgid "Run Script"
+msgstr "Executar protocol"
+
+
+msgctxt "Operator"
+msgid "Add sample"
+msgstr "Afegir mostra"
+
+
+msgid "Unified select/active colors"
+msgstr "Colors de selecció/actius unificats"
+
+
 msgctxt "Operator"
 msgid "Apply"
 msgstr "Aplicar"
+
+
+msgctxt "Operator"
+msgid "Add From Theme"
+msgstr "Afegir des de tema"
+
+
+msgctxt "Operator"
+msgid "Add Standard"
+msgstr "Afegir estàndard"
+
+
+msgid "Rig type"
+msgstr "Tipus d'aparell"
+
+
+msgid "This metarig requires upgrading to Bone Collections"
+msgstr "Aquet metaaparell requereix l'actualització a col·leccions d'ossos"
+
+
+msgctxt "Operator"
+msgid "Upgrade Metarig"
+msgstr "Actualitzar metaaparell"
+
+
+msgid "Click a button to select a collection:"
+msgstr "Cliqueu un botó per seleccionar una col·lecció:"
+
+
+msgid "Permanently hidden collections:"
+msgstr "Col·leccions ocultades permanentment:"
+
+
+msgctxt "Operator"
+msgid "IK2FK Pose"
+msgstr "Posa CI-a-CO"
+
+
+msgctxt "Operator"
+msgid "FK2IK Pose"
+msgstr "Posa CO-a-CI"
+
+
+msgctxt "Operator"
+msgid "IK2FK Action"
+msgstr "Acció CI-a-CO"
+
+
+msgctxt "Operator"
+msgid "FK2IK Action"
+msgstr "Acció CO-a-CI"
+
+
+msgctxt "Operator"
+msgid "Switch to pole"
+msgstr "Canviar a pol"
+
+
+msgctxt "Operator"
+msgid "Switch to rotation"
+msgstr "Canviar a rotació"
+
+
+msgctxt "Operator"
+msgid "Encode Metarig"
+msgstr "Codificar metaaparell"
+
+
+msgctxt "Operator"
+msgid "Encode Metarig Sample"
+msgstr "Codificar mostra de metaaparell"
+
+
+msgid "This metarig contains old rig-types that can be automatically upgraded to benefit from new rigify features."
+msgstr "Aquest metaaparell conté aparells antiquats que es poden actualitzar automàticament per accedir a noves funcionalitats d'Aparellar."
+
+
+msgid "Click to assign the button here:"
+msgstr "Cliqueu per assignar el botó aquí:"
+
+
+msgctxt "Operator"
+msgid "Encode Metarig to Python"
+msgstr "Codificar metaaparell amb python"
+
+
+msgctxt "Operator"
+msgid "Encode Sample to Python"
+msgstr "Codificar mostra a python"
+
+
+msgctxt "Operator"
+msgid "Encode Mesh Widget to Python"
+msgstr "Codificar giny de malla a python"
+
+
+msgctxt "Operator"
+msgid "Clear IK Action"
+msgstr "Retirar acció CI"
+
+
+msgctxt "Operator"
+msgid "Clear FK Action"
+msgstr "Retirar acció CO"
+
+
+msgid "This metarig uses the old face rig."
+msgstr "Aquest metaaparell fa ús de l'aparell de cara antic."
+
+
+msgid "No options"
+msgstr "No hi ha opcions"
 
 
 msgid "Options:"
 msgstr "Opcions:"
 
 
+msgid "Generation has thrown an exception: "
+msgstr "La generació s'ha topat amb una excepció: "
+
+
 msgctxt "Operator"
 msgid "Action"
 msgstr "Acció"
+
+
+msgid "Use the plus button to add list entries"
+msgstr "Empreu el botó més per afegir llista d'entrades"
 
 
 msgid "Save to PO File"
@@ -115746,14 +117826,6 @@ msgstr "L'arbre de nodes actiu està enllaçat des d'un altre document .blend."
 
 msgid "Active node tree does not contain any nodes."
 msgstr "L'arbre de nodes actiu no conté cap node."
-
-
-msgid ""
-"Current node tree type not supported.\n"
-"Should be one of {:s}."
-msgstr ""
-"El tipus d'arbre de nodes actual no és compatible.\n"
-"Hauria de ser un de {:s}."
 
 
 msgid "No camera found"
@@ -116301,6 +118373,14 @@ msgstr "Crèdits"
 
 msgid "Lists committers to Blender's source code"
 msgstr "Llista els que aporten al codi font del Blender"
+
+
+msgid "Extensions Platform"
+msgstr "Plataforma d'extensions"
+
+
+msgid "Online directory of free and open source extensions"
+msgstr "Directori en línia de complements de codi obert gratuïts"
 
 
 msgid "Fallback Tool"
@@ -117410,11 +119490,6 @@ msgstr "Escalar vora difusa"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Ocultar no seleccionats"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "No-cap"
 
 
 msgctxt "Operator"
@@ -121441,14 +123516,6 @@ msgid "Repository URL"
 msgstr "URL del repositori"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "S'han trobat múltiples complements amb el mateix nom!"
-
-
-msgid "Delete one of each pair to resolve:"
-msgstr "Eliminar-ne un de cada parell per a resoldre:"
-
-
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Habilitar el complement del motor de recelat Cycles per a fer servir aquest motor"
 
@@ -121487,10 +123554,6 @@ msgstr "Autenticació"
 
 msgid "Error (see console)"
 msgstr "Error (consultar consola)"
-
-
-msgid ":"
-msgstr ":"
 
 
 msgid "Missing script files"
@@ -125477,10 +127540,6 @@ msgid "Compositor node tree has undefined nodes or sockets!"
 msgstr "L'arbre de nodes compositador té nodes o borns no definits!"
 
 
-msgid "Basic"
-msgstr "Bàsic"
-
-
 msgid "GpencilMode"
 msgstr "ModeLlapisdG"
 
@@ -126470,6 +128529,10 @@ msgstr "El punt de control pertany a un altre spline"
 
 msgid "Unicode codepoint hex value"
 msgstr "Valor hexadecimal del punt de codi Unicode"
+
+
+msgid "Enter a Unicode codepoint hex value"
+msgstr "Entreu un valor hexadecimal del punt de codi Unicode"
 
 
 msgid "Text too long"
@@ -127551,6 +129614,14 @@ msgid "Redo"
 msgstr "Refer"
 
 
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "Cancel·lar"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "No s'ha trobat el menú \"%s\""
 
@@ -128232,6 +130303,11 @@ msgid "New"
 msgstr "Nova"
 
 
+msgctxt "Palette"
+msgid "New"
+msgstr "Nova"
+
+
 msgctxt "ParticleSettings"
 msgid "New"
 msgstr "Nous"
@@ -128500,10 +130576,6 @@ msgstr "Esfera"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Polisfera"
-
-
-msgid "Cancel"
-msgstr "Cancel·lar"
 
 
 msgid "Harden"
@@ -130936,10 +133008,6 @@ msgid "Warning!"
 msgstr "Avís!"
 
 
-msgid "OK"
-msgstr "OK"
-
-
 msgid "Attribute Data Detected"
 msgstr "S'han detectat dades d'atribut"
 
@@ -132325,6 +134393,10 @@ msgid "Undefined Socket Type"
 msgstr "Tipus de born no definit"
 
 
+msgid "No Items"
+msgstr "No hi ha elements"
+
+
 msgid "Menu Error"
 msgstr "Error de menú"
 
@@ -133557,6 +135629,10 @@ msgid "Add New Extension Repository"
 msgstr "Afegir nova extensió de respositori"
 
 
+msgid "Remove all files in:"
+msgstr "Suprimir tots els documents dins:"
+
+
 msgid "Remove, local files not found."
 msgstr "Suprimir, no s'han trobat els documents locals."
 
@@ -134693,6 +136769,10 @@ msgstr "Desviació de profunditat"
 
 msgid "Towards Custom Camera"
 msgstr "Versa la càmera personalitzada"
+
+
+msgid "Cached from the first Line Art modifier."
+msgstr "Emmagatzemat en cau des del primer modificador de dibuix lineal."
 
 
 msgid "Cached from the first Line Art modifier"
@@ -136665,6 +138745,251 @@ msgid "Could not find grid with name %s"
 msgstr "No s'ha pogut trobar la graella amb el nom %s"
 
 
+msgctxt "UI_Events_KeyMaps"
+msgid "Left"
+msgstr "Esquerra"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Middle"
+msgstr "Central"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Right"
+msgstr "Dreta"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button4"
+msgstr "Botó4"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button5"
+msgstr "Botó5"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button6"
+msgstr "Botó6"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button7"
+msgstr "Botó7"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Move"
+msgstr "Moure"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Motion"
+msgstr "Moviment"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Menu"
+msgstr "Menú"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Fit"
+msgstr "Enquadrar"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Top"
+msgstr "Superior (T)"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Bottom"
+msgstr "Inferior (B)"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Front"
+msgstr "Frontal"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Back"
+msgstr "Dorsal (BK)"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Isometric 1"
+msgstr "Isomètric 1"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Isometric 2"
+msgstr "Isomètric 2"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Roll CW"
+msgstr "Girar SH"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Roll CCW"
+msgstr "Girar SAH"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Spin CW"
+msgstr "Giravoltar SH"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Spin CCW"
+msgstr "Giravoltar SAH"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Tilt CW"
+msgstr "Inclinar SH"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Tilt CCW"
+msgstr "Inclinar SAH"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Rotate"
+msgstr "Rotar"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Pan/Zoom"
+msgstr "Escombratge/zoom"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Dominant"
+msgstr "Dominant"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Plus"
+msgstr "Més"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Minus"
+msgstr "Menys"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "View 1"
+msgstr "Vista 1"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "View 2"
+msgstr "Vista 2"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "View 3"
+msgstr "Vista 3"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 1"
+msgstr "Botó 1"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 2"
+msgstr "Botó 2"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 3"
+msgstr "Botó 3"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 4"
+msgstr "Botó 4"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 5"
+msgstr "Botó 5"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 6"
+msgstr "Botó 6"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 7"
+msgstr "Botó 7"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 8"
+msgstr "Botó 8"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 9"
+msgstr "Botó 9"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button 10"
+msgstr "Botó 10"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button A"
+msgstr "Botó A"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button B"
+msgstr "Botó B"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Button C"
+msgstr "Botó 1 C"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Enter"
+msgstr "Intro"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Space"
+msgstr "Espaiat"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Alt"
+msgstr "Alt"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Shift"
+msgstr "Majús"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Ctrl"
+msgstr "Ctrl"
+
+
 msgid "No active window in context!"
 msgstr "No hi ha finestra activa en el context!"
 
@@ -136955,6 +139280,10 @@ msgstr "El sistema no ha trobat una solució"
 
 msgid "LaplacianSmooth"
 msgstr "Suavitzat laplacià (LaplacianSmooth)"
+
+
+msgid "Cached from the first line art modifier."
+msgstr "Emmagatzemat en memòria cau des del primer modificador de dibuix lineal."
 
 
 msgid "Lineart"
@@ -137293,6 +139622,14 @@ msgid "Final Scale: Render %.2f px, Viewport %.2f px"
 msgstr "Escala final: revela %.2f px, Mirador %.2f px"
 
 
+msgid "Sharp edges or custom normals detected, disabling GPU subdivision"
+msgstr "S'han detectat cantells aguts o normals personalitzades, desactivant la subdivisió de GPU"
+
+
+msgid "Using both CPU and GPU subdivision"
+msgstr "S'està emprant subdivisió tant de CPU com de GPU"
+
+
 msgid "SurfaceDeform"
 msgstr "Deformació de superfície (SurfaceDeform)"
 
@@ -137369,6 +139706,14 @@ msgstr "Eix U"
 
 msgid "UVWarp"
 msgstr "Aberrar UV (UVWarp)"
+
+
+msgid "Sample Radius"
+msgstr "Radi de mostreig"
+
+
+msgid "Mid Level"
+msgstr "Nivell mitjà"
 
 
 msgid "Cannot find '%s' grid"
@@ -138548,6 +140893,10 @@ msgstr "Té veí"
 
 msgid "Index of nearest element"
 msgstr "Índex d'element més pròxim"
+
+
+msgid "Add Item"
+msgstr "Afegir element"
 
 
 msgid "The camera used for rendering the scene"
@@ -141502,7 +143851,7 @@ msgstr "dades compatibles amb la indústria"
 
 
 msgid "sl+open sim rigged"
-msgstr "sl+open sim amb engranatge"
+msgstr "sl+open sim amb aparell"
 
 
 msgid "sl+open sim static"
@@ -141677,12 +144026,20 @@ msgid "Video Editing"
 msgstr "Edició de vídeo"
 
 
-msgid "VR Scene Inspection"
-msgstr "Inspecció de l'escena d'RV"
+msgid "BioVision Motion Capture (BVH) format"
+msgstr "Format (BVH) de captura de moviment BioVision"
 
 
-msgid "View the viewport with virtual reality glasses (head-mounted displays)"
-msgstr "Visualitza el mirador amb ulleres de realitat virtual (dispositius per al cap)"
+msgid "Import-Export BVH from armature objects"
+msgstr "Importar-exportar BVH des d'objectes esquelet"
+
+
+msgid "Blender Extensions"
+msgstr "Extensions del Blender"
+
+
+msgid "Extension repository support for remote repositories"
+msgstr "Suport per a repositoris remots en repositori d'extensions"
 
 
 msgid "Copy Global Transform"
@@ -141693,16 +144050,12 @@ msgid "Copy and paste object and bone transforms with ease"
 msgstr "Copiar i enganxar amb comoditat transformacions d'objecte i os"
 
 
-msgid "Pose Library based on the asset system."
-msgstr "Biblioteca de poses basada en el sistema de recursos."
+msgid "Cycles Render Engine"
+msgstr "Motor de revelat Cycles"
 
 
-msgid "BioVision Motion Capture (BVH) format"
-msgstr "Format (BVH) de captura de moviment BioVision"
-
-
-msgid "Import-Export BVH from armature objects"
-msgstr "Importar-exportar BVH des d'objectes esquelet"
+msgid "Cycles renderer integration"
+msgstr "Integració del revelador Cycles"
 
 
 msgid "FBX format"
@@ -141711,6 +144064,42 @@ msgstr "Format FBX"
 
 msgid "FBX IO meshes, UVs, vertex colors, materials, textures, cameras, lamps and actions"
 msgstr "Malles IE FBX, UV's, colors de vèrtex, materials, textures, càmeres, llums i accions"
+
+
+msgid "glTF 2.0 format"
+msgstr "Format glTF 2.0"
+
+
+msgid "Import-Export as glTF 2.0"
+msgstr "Importar-exportar com a glTF 2.0"
+
+
+msgid "Hydra Storm render engine"
+msgstr "Motor de revelat Hydra Storm"
+
+
+msgid "USD's high performance rasterizing renderer"
+msgstr "Revelador tramador d'alt rendiment d'USD"
+
+
+msgid "Manage UI translations"
+msgstr "Gestionar traduccions de la IU"
+
+
+msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"
+msgstr "Permet gestionar les traduccions de la IU directament des del Blender (actualitza els documents .PO principals, actualitza les traduccions dels protocols, etc.)"
+
+
+msgid "Various tools to enhance and speed up node-based workflow"
+msgstr "Eines diverses per a millorar i accelerar la procedimentació en base a nodes"
+
+
+msgid "Pose Library based on the asset system."
+msgstr "Biblioteca de poses basada en el sistema de recursos."
+
+
+msgid "Automatic rigging from building-block components"
+msgstr "Aparellat atuomàtic des de components de blocs de muntatge"
 
 
 msgid "Scalable Vector Graphics (SVG) 1.1 format"
@@ -141729,48 +144118,12 @@ msgid "Export the UV layout as a 2D graphic"
 msgstr "Exportar disposició UV com un gràfic en 2D"
 
 
-msgid "glTF 2.0 format"
-msgstr "Format glTF 2.0"
+msgid "VR Scene Inspection"
+msgstr "Inspecció de l'escena d'RV"
 
 
-msgid "Import-Export as glTF 2.0"
-msgstr "Importar-exportar com a glTF 2.0"
-
-
-msgid "Various tools to enhance and speed up node-based workflow"
-msgstr "Eines diverses per a millorar i accelerar la procedimentació en base a nodes"
-
-
-msgid "Cycles Render Engine"
-msgstr "Motor de revelat Cycles"
-
-
-msgid "Cycles renderer integration"
-msgstr "Integració del revelador Cycles"
-
-
-msgid "Hydra Storm render engine"
-msgstr "Motor de revelat Hydra Storm"
-
-
-msgid "USD's high performance rasterizing renderer"
-msgstr "Revelador tramador d'alt rendiment d'USD"
-
-
-msgid "Blender Extensions"
-msgstr "Extensions del Blender"
-
-
-msgid "Extension repository support for remote repositories"
-msgstr "Suport per a repositoris remots en repositori d'extensions"
-
-
-msgid "Manage UI translations"
-msgstr "Gestionar traduccions de la IU"
-
-
-msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"
-msgstr "Permet gestionar les traduccions de la IU directament des del Blender (actualitza els documents .PO principals, actualitza les traduccions dels protocols, etc.)"
+msgid "View the viewport with virtual reality glasses (head-mounted displays)"
+msgstr "Visualitza el mirador amb ulleres de realitat virtual (dispositius per al cap)"
 
 
 msgid "All Add-ons"

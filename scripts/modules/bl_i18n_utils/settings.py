@@ -90,6 +90,7 @@ LANGUAGES = (
     (51, "Swahili (Kiswahili)", "sw"),
     (52, "Belarusian (беларуску)", "be"),
     (53, "Danish (Dansk)", "da"),
+    (54, "Slovenian (Slovenščina)", "sl"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-06-13 16:56+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -17759,6 +17759,11 @@ msgid "Rotate Normals"
 msgstr "Obróć wektory normalne"
 
 
+msgctxt "Operator"
+msgid "None"
+msgstr "Brak"
+
+
 msgid "Warning"
 msgstr "Uwaga"
 
@@ -18280,11 +18285,6 @@ msgstr "Animacja:"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Ukryj niezaznaczone"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Brak"
 
 
 msgctxt "Operator"
@@ -20840,6 +20840,14 @@ msgid "Redo"
 msgstr "Ponów"
 
 
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "Nie odnaleziono menu \"%s\""
 
@@ -21371,10 +21379,6 @@ msgstr "Kula"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Kula ico"
-
-
-msgid "Cancel"
-msgstr "Anuluj"
 
 
 msgid "Intersection Type"
@@ -22540,10 +22544,6 @@ msgstr "Brak aktywnej grupy wierzchołków do malowania, rezygnuję"
 
 msgid "Warning!"
 msgstr "Uwaga!"
-
-
-msgid "OK"
-msgstr "OK"
 
 
 msgid "Attribute Data Detected"

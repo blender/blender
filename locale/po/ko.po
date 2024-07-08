@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -25586,6 +25586,10 @@ msgstr "이 매테리얼 슬롯으로 사용된 매테리얼 데이터 블록"
 
 msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
+
+
+msgid "Basic"
+msgstr "기본"
 
 
 msgid "Asset"
@@ -72269,8 +72273,25 @@ msgid "Eyedropper ColorRamp PointSampling Map"
 msgstr "아이드라퍼 컬러램프 포인트샘플링 맵"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "동일한 이름을 가진 복수의 애드온이 있습니다!"
+
+
+msgid "Delete one of each pair to resolve:"
+msgstr "리솔브에 각 쌍 중 하나를 삭제:"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "없음"
+
+
 msgid "Warning"
 msgstr "경고"
+
+
+msgid ":"
+msgstr ":"
 
 
 msgctxt "Operator"
@@ -73231,11 +73252,6 @@ msgstr "페더 축적"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "비 선택된 항목을 숨기기"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "없음"
 
 
 msgctxt "Operator"
@@ -75720,20 +75736,8 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "휠 줌 방향을 반전"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "동일한 이름을 가진 복수의 애드온이 있습니다!"
-
-
-msgid "Delete one of each pair to resolve:"
-msgstr "리솔브에 각 쌍 중 하나를 삭제:"
-
-
 msgid "Error (see console)"
 msgstr "오류 (콘솔 참조)"
-
-
-msgid ":"
-msgstr ":"
 
 
 msgid "Missing script files"
@@ -77642,10 +77646,6 @@ msgid "Edge-rings are not connected"
 msgstr "연속되는 에지 링이 존재하지 않음"
 
 
-msgid "Basic"
-msgstr "기본"
-
-
 msgid "GpencilMode"
 msgstr "그리스모드"
 
@@ -78595,6 +78595,14 @@ msgid "Redo"
 msgstr "다시 실행"
 
 
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "취소"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "메뉴 \"%s\"를 찾을 수 없습니다"
 
@@ -79086,10 +79094,6 @@ msgstr "구체"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "아이코스피어"
-
-
-msgid "Cancel"
-msgstr "취소"
 
 
 msgid "Outer"
@@ -80462,10 +80466,6 @@ msgstr "디테일을 설정하려면 메쉬를 클릭하십시오"
 
 msgid "Warning!"
 msgstr "경고!"
-
-
-msgid "OK"
-msgstr "OK"
 
 
 msgid "Generative Modifiers Detected!"

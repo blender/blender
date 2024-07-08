@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -8978,6 +8978,10 @@ msgstr "Slot materijala u objektu"
 
 msgid "Material slot name"
 msgstr "Naziv slota materijala"
+
+
+msgid "Basic"
+msgstr "Osnovno"
 
 
 msgctxt "MovieClip"
@@ -25522,10 +25526,6 @@ msgid "Could not connect vertices"
 msgstr "Ne mogu da spojim temena"
 
 
-msgid "Basic"
-msgstr "Osnovno"
-
-
 msgid "Scene not found"
 msgstr "Brzina zvuka"
 
@@ -25694,6 +25694,14 @@ msgstr "%d stavki"
 
 msgid "Lightness"
 msgstr "Svetlina"
+
+
+msgid "OK"
+msgstr "U redu"
+
+
+msgid "Cancel"
+msgstr "Odustani"
 
 
 msgid "Menu \"%s\" not found"
@@ -25992,10 +26000,6 @@ msgid "Icosphere"
 msgstr "Ikosfera"
 
 
-msgid "Cancel"
-msgstr "Odustani"
-
-
 msgid "Outer"
 msgstr "Spoljašnje"
 
@@ -26284,10 +26288,6 @@ msgstr "Obrni ka dnu"
 
 msgid "No active camera set"
 msgstr "Nije postavljena aktivna kamera"
-
-
-msgid "OK"
-msgstr "U redu"
 
 
 msgid "Compiled without sound support"

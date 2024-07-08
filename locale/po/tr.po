@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -12454,6 +12454,14 @@ msgid "Redo"
 msgstr "Yinele"
 
 
+msgid "OK"
+msgstr "TAMAM"
+
+
+msgid "Cancel"
+msgstr "İptal"
+
+
 msgid "Menu \"%s\" not found"
 msgstr "\"%s\" menüsü bulunamadı"
 
@@ -12741,10 +12749,6 @@ msgid "Cube"
 msgstr "Küp"
 
 
-msgid "Cancel"
-msgstr "İptal"
-
-
 msgctxt "Object"
 msgid "Boid"
 msgstr "Kuş Benzeri Nesne"
@@ -12785,10 +12789,6 @@ msgstr "Boya Eğrisi"
 
 msgid " Materials,"
 msgstr " Malzemeler,"
-
-
-msgid "OK"
-msgstr "TAMAM"
 
 
 msgid "File Path:"
@@ -13212,12 +13212,12 @@ msgid "Video Editing"
 msgstr "Video Düzenleme"
 
 
-msgid "UV Layout"
-msgstr "UV Yerleşimi"
-
-
 msgid "Cycles Render Engine"
 msgstr "Çevrimler Sunum İşletkesi"
+
+
+msgid "UV Layout"
+msgstr "UV Yerleşimi"
 
 
 msgid "All Add-ons Installed by User"

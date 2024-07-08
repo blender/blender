@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-06-21 13:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -25347,8 +25347,21 @@ msgid "Gesture Box"
 msgstr "Kotak Gestur"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "Ditemukan banyak add-on dengan nama yang sama!"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "Kosong"
+
+
 msgid "Warning"
 msgstr "Peringatan"
+
+
+msgid ":"
+msgstr ":"
 
 
 msgid "Start Sample"
@@ -26141,11 +26154,6 @@ msgstr "Induk"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Modus Sunting"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Kosong"
 
 
 msgctxt "Operator"
@@ -27552,16 +27560,8 @@ msgid "Fly/Walk"
 msgstr "Terbang/Jalan"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "Ditemukan banyak add-on dengan nama yang sama!"
-
-
 msgid "Error (see console)"
 msgstr "Error (lihat konsol)"
-
-
-msgid ":"
-msgstr ":"
 
 
 msgid "Missing script files"
@@ -28252,6 +28252,14 @@ msgid "Alpha:"
 msgstr "Alpha:"
 
 
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "Batal"
+
+
 msgid "Value: {}"
 msgstr "Nilai: {}"
 
@@ -28571,10 +28579,6 @@ msgstr "Bola"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Icosphere"
-
-
-msgid "Cancel"
-msgstr "Batal"
 
 
 msgid "Outer"
@@ -28916,10 +28920,6 @@ msgstr "Hapus"
 
 msgid "Warning!"
 msgstr "Bahaya!"
-
-
-msgid "OK"
-msgstr "OK"
 
 
 msgid "vertex data"

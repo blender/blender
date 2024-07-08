@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -13716,6 +13716,15 @@ msgid "Navigate"
 msgstr "Navigera"
 
 
+msgid "Multiple add-ons with the same name found!"
+msgstr "Flera tillägg med samma namn hittades!"
+
+
+msgctxt "Operator"
+msgid "None"
+msgstr "Inget"
+
+
 msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Rapportera en bugg"
@@ -14253,11 +14262,6 @@ msgstr "Nollställ"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Dölj omarkerade"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Inget"
 
 
 msgctxt "Operator"
@@ -15577,10 +15581,6 @@ msgid "Auto-Save"
 msgstr "Auto-spara"
 
 
-msgid "Multiple add-ons with the same name found!"
-msgstr "Flera tillägg med samma namn hittades!"
-
-
 msgid "Error (see console)"
 msgstr "Fel (se konsol)"
 
@@ -16321,6 +16321,10 @@ msgid "Value"
 msgstr "Värde"
 
 
+msgid "Cancel"
+msgstr "Avbryt"
+
+
 msgid ""
 "File saved by newer Blender\n"
 "(%s), expect loss of data"
@@ -16340,10 +16344,6 @@ msgstr "Igår"
 msgctxt "PaintCurve"
 msgid "New"
 msgstr "Ny"
-
-
-msgid "Cancel"
-msgstr "Avbryt"
 
 
 msgid "Outer"

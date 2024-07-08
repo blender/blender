@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -3445,6 +3445,14 @@ msgid "Hex"
 msgstr "Hex"
 
 
+msgid "OK"
+msgstr "ООБА"
+
+
+msgid "Cancel"
+msgstr "Жокко чыгаруу"
+
+
 msgid "Zoom in"
 msgstr "Чоңойтуу"
 
@@ -3597,10 +3605,6 @@ msgid "Icosphere"
 msgstr "Икосаэдр"
 
 
-msgid "Cancel"
-msgstr "Жокко чыгаруу"
-
-
 msgid "Brass"
 msgstr "Латунь"
 
@@ -3659,10 +3663,6 @@ msgstr "Болот"
 
 msgid "Stone"
 msgstr "Таш"
-
-
-msgid "OK"
-msgstr "ООБА"
 
 
 msgid "X:"

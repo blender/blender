@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -9529,10 +9529,6 @@ msgid "Menu"
 msgstr "Menü"
 
 
-msgid "Grease Pencil component containing layers and curves data"
-msgstr "Réteg és görbe adatokat tartalmazó zsírkréta komponens"
-
-
 msgid "Bake"
 msgstr "Sütés"
 
@@ -16961,6 +16957,10 @@ msgid "Hex triplet for color (#RRGGBB)"
 msgstr "Szín hexa kódja (#RRGGBB)"
 
 
+msgid "Cancel"
+msgstr "Mégsem"
+
+
 msgid "ID-Block:"
 msgstr "ID-Blokk:"
 
@@ -17306,10 +17306,6 @@ msgstr "Gömb"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Iko Gömb"
-
-
-msgid "Cancel"
-msgstr "Mégsem"
 
 
 msgid "Outer"

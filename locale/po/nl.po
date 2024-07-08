@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'78330522d2ae')\n"
+"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-01 09:24+0000\n"
+"POT-Creation-Date: 2024-07-08 18:33+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -7255,8 +7255,17 @@ msgid "Animation Channels"
 msgstr "Animatie Kanalen"
 
 
+msgctxt "Operator"
+msgid "None"
+msgstr "Niets"
+
+
 msgid "Warning"
 msgstr "Waarschuwing"
+
+
+msgid ":"
+msgstr ":"
 
 
 msgctxt "Operator"
@@ -7552,11 +7561,6 @@ msgstr "Schaal Veer"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Verberg niet Geselecteerd"
-
-
-msgctxt "Operator"
-msgid "None"
-msgstr "Niets"
 
 
 msgctxt "Operator"
@@ -8181,10 +8185,6 @@ msgid "Use Light"
 msgstr "Gebruik Licht"
 
 
-msgid ":"
-msgstr ":"
-
-
 msgid "Location:"
 msgstr "Locatie:"
 
@@ -8788,6 +8788,14 @@ msgid "Copy All to Selected"
 msgstr "Kopieer Alles naar Geselecteerd"
 
 
+msgid "OK"
+msgstr "OK"
+
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+
 msgid "Double click to rename"
 msgstr "Dubbelklik om te hernoemen"
 
@@ -8993,10 +9001,6 @@ msgid "Icosphere"
 msgstr "Icosphere"
 
 
-msgid "Cancel"
-msgstr "Annuleren"
-
-
 msgid "No face selected"
 msgstr "Geen vlakken geselecteerd"
 
@@ -9102,10 +9106,6 @@ msgstr "Snelle Favorieten"
 
 msgid "Warning!"
 msgstr "Waarschuwing!"
-
-
-msgid "OK"
-msgstr "OK"
 
 
 msgid "Active Keyframe"
