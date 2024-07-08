@@ -3253,6 +3253,7 @@ def km_pose(params):
         ("anim.keyframe_delete_v3d", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         ("anim.keying_set_active_set", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         *_template_items_context_menu("VIEW3D_MT_pose_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        op_menu("POSE_MT_selection_sets_select", {"type": 'W', "value": 'PRESS', "shift": True, "alt": True}),
         # Tools
         op_tool_cycle("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
         op_tool_cycle("builtin.move", {"type": 'W', "value": 'PRESS'}),

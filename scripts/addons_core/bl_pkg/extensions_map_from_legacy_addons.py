@@ -23,7 +23,6 @@
         "ant_landscape": ("antlandscape", "A.N.T.Landscape"),
         "archimesh": ("archimesh", "Archimesh"),
         "blender_id": ("blender_id_authentication", "Blender ID authentication"),
-        "bone_selection_sets": ("bone_selection_sets", "Bone Selection Sets"),
         "btrace": ("btracer", "BTracer"),
         "camera_turnaround": ("turnaround_camera", "Turnaround Camera"),
         "curve_assign_shapekey": ("assign_shape_keys", "Assign Shape Keys"),

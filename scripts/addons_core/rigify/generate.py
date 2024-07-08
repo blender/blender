@@ -696,7 +696,7 @@ def create_selection_set_for_rig_layer(rig: ArmatureObject, set_name: str, coll:
     sel_set.name = set_name
 
     for b in rig.pose.bones:
-        if coll not in b.bone.collections or b.name in sel_set.bone_ids:
+        if coll.name not in b.bone.collections or b.name in sel_set.bone_ids:
             continue
 
         bone_id = sel_set.bone_ids.add()
@@ -704,17 +704,13 @@ def create_selection_set_for_rig_layer(rig: ArmatureObject, set_name: str, coll:
 
 
 def create_selection_sets(obj: ArmatureObject, _metarig: ArmatureObject):
-    """Create selection sets if the Selection Sets addon is enabled.
+    """Create selection sets on the armature.
 
     Whether a selection set for a rig layer is created is controlled in the
     Rigify Layer Names panel.
     """
-    # Check if selection sets addon is installed
-    if 'bone_selection_groups' not in bpy.context.preferences.addons \
-            and 'bone_selection_sets' not in bpy.context.preferences.addons:
-        return
 
-    obj.selection_sets.clear()  # noqa
+    obj.selection_sets.clear()
 
     for coll in obj.data.collections_all:
         if not coll.rigify_sel_set:

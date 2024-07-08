@@ -78,7 +78,7 @@ def setup():
         # Does not work in edit mode
         if bpy.context.mode == 'OBJECT':
             # Simple probe setup
-            bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.0, 0.0, 1.0))
+            bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.0, 0.1, 1.0))
             cubemap = bpy.context.selected_objects[0]
             cubemap.scale = (5.0, 5.0, 2.0)
             cubemap.data.falloff = 0.0

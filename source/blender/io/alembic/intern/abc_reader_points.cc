@@ -117,8 +117,8 @@ static N3fArraySamplePtr read_points_sample(const IPointsSchema &schema,
 void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
                                     const Alembic::Abc::ISampleSelector &sample_sel,
                                     int /*read_flag*/,
-                                    const char * /*velocity_name*/,
-                                    const float /*velocity_scale*/,
+                                    const char *velocity_name,
+                                    const float velocity_scale,
                                     const char **err_str)
 {
   BLI_assert(geometry_set.has_pointcloud());
@@ -185,6 +185,22 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
       copy_zup_from_yup(point_normals[i], nor_in.getValue());
     }
     normals_writer.finish();
+  }
+
+  if (velocity_name != nullptr && velocity_scale != 0.0f) {
+    V3fArraySamplePtr velocities = get_velocity_prop(m_schema, sample_sel, velocity_name);
+    if (velocities && point_cloud->totpoint == int(velocities->size())) {
+      bke::SpanAttributeWriter<float3> velocity_writer =
+          attribute_accessor.lookup_or_add_for_write_span<float3>("velocity",
+                                                                  bke::AttrDomain::Point);
+      MutableSpan<float3> point_velocity = velocity_writer.span;
+      for (size_t i = 0; i < velocities->size(); i++) {
+        const Imath::V3f &vel_in = (*velocities)[i];
+        copy_zup_from_yup(point_velocity[i], vel_in.getValue());
+        point_velocity[i] *= velocity_scale;
+      }
+      velocity_writer.finish();
+    }
   }
 
   geometry_set.replace_pointcloud(point_cloud);

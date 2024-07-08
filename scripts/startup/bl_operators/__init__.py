@@ -14,6 +14,7 @@ _modules = [
     "add_mesh_torus",
     "anim",
     "assets",
+    "bone_selection_sets",
     "clip",
     "connect_to_output",
     "console",
@@ -56,13 +57,21 @@ del _namespace
 
 def register():
     from bpy.utils import register_class
+    from . import bone_selection_sets
+
     for mod in _modules_loaded:
         for cls in mod.classes:
             register_class(cls)
 
+    bone_selection_sets.register()
+
 
 def unregister():
     from bpy.utils import unregister_class
+    from . import bone_selection_sets
+
+    bone_selection_sets.unregister()
+
     for mod in reversed(_modules_loaded):
         for cls in reversed(mod.classes):
             if cls.is_registered:
