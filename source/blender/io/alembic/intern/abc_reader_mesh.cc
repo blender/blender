@@ -281,6 +281,7 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
     for (int j = face.size() - 1; j >= 0; j--, abc_index++) {
       int blender_index = face[j];
       copy_zup_from_yup(lnors[blender_index], loop_normals[abc_index].getValue());
+      normalize_v3(lnors[blender_index]);
     }
   }
 
