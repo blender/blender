@@ -1654,6 +1654,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
       DEG_id_tag_update(data, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, data);
+      WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, nullptr);
     }
   }
 
