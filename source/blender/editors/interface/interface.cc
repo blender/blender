@@ -4121,6 +4121,7 @@ static uiBut *ui_def_but(uiBlock *block,
   but->funcN = block->funcN;
   if (block->func_argN) {
     but->func_argN = block->func_argN_copy_fn(block->func_argN);
+    but->func_argN_free_fn = block->func_argN_free_fn;
   }
 
   but->pos = -1; /* cursor invisible */
