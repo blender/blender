@@ -66,6 +66,7 @@ class MetalDeviceQueue : public DeviceQueue {
   id<MTLSharedEvent> shared_event_ = nil;
   API_AVAILABLE(macos(10.14), ios(14.0))
   MTLSharedEventListener *shared_event_listener_ = nil;
+  MetalDispatchPipeline active_pipelines_[DEVICE_KERNEL_NUM];
 
   dispatch_queue_t event_queue_;
   dispatch_semaphore_t wait_semaphore_;
