@@ -1855,6 +1855,12 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
 
   if (ss && ss->building_vp_handle == false) {
     if (!ss->cache && !ss->filter_cache && !ss->expand_cache) {
+      if (ss->pbvh) {
+        /* PBVH nodes may contain dirty normal tags. To avoid losing that information when the PBVH
+         * is deleted, make sure all tagged geometry normals are up to date.
+         * See #122947 for more information. */
+        blender::bke::pbvh::update_normals(*ss->pbvh, ss->subdiv_ccg);
+      }
       /* We free pbvh on changes, except in the middle of drawing a stroke
        * since it can't deal with changing PVBH node organization, we hope
        * topology does not change in the meantime .. weak. */
