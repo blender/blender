@@ -248,7 +248,7 @@ class VKResourceStateTracker {
    * This function is called when adding a node to the render graph, during building resource
    * dependencies. See `VKNodeInfo.build_links`
    */
-  ResourceWithStamp get_buffer_and_increase_version(VkBuffer vk_buffer);
+  ResourceWithStamp get_buffer_and_increase_stamp(VkBuffer vk_buffer);
 
   /**
    * Return the current stamp of the resource.

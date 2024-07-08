@@ -66,7 +66,7 @@ void VKResourceAccessInfo::build_links(VKResourceStateTracker &resources,
   for (const VKBufferAccess &buffer_access : buffers) {
     const bool writes_to_resource = bool(buffer_access.vk_access_flags & VK_ACCESS_WRITE_MASK);
     ResourceWithStamp versioned_resource = writes_to_resource ?
-                                               resources.get_buffer_and_increase_version(
+                                               resources.get_buffer_and_increase_stamp(
                                                    buffer_access.vk_buffer) :
                                                resources.get_buffer(buffer_access.vk_buffer);
     if (writes_to_resource) {

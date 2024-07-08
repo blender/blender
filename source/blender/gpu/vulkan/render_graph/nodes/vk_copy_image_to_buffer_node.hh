@@ -50,7 +50,7 @@ class VKCopyImageToBufferNode : public VKNodeInfo<VKNodeType::COPY_IMAGE_TO_BUFF
                    const CreateInfo &create_info) override
   {
     ResourceWithStamp src_resource = resources.get_image(create_info.src_image);
-    ResourceWithStamp dst_resource = resources.get_buffer_and_increase_version(
+    ResourceWithStamp dst_resource = resources.get_buffer_and_increase_stamp(
         create_info.dst_buffer);
     node_links.inputs.append({src_resource,
                               VK_ACCESS_TRANSFER_READ_BIT,

@@ -136,7 +136,7 @@ ResourceWithStamp VKResourceStateTracker::get_image_and_increase_stamp(VkImage v
   return get_and_increase_stamp(handle, resource);
 }
 
-ResourceWithStamp VKResourceStateTracker::get_buffer_and_increase_version(VkBuffer vk_buffer)
+ResourceWithStamp VKResourceStateTracker::get_buffer_and_increase_stamp(VkBuffer vk_buffer)
 {
   ResourceHandle handle = buffer_resources_.lookup(vk_buffer);
   Resource &resource = resources_.lookup(handle);
