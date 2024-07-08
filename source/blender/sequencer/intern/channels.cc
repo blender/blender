@@ -15,6 +15,8 @@
 
 #include "BLI_blenlib.h"
 
+#include "BLT_translation.hh"
+
 #include "SEQ_channels.hh"
 
 ListBase *SEQ_channels_displayed_get(Editing *ed)
@@ -33,7 +35,7 @@ void SEQ_channels_ensure(ListBase *channels)
   for (int i = 0; i < MAXSEQ + 1; i++) {
     SeqTimelineChannel *channel = static_cast<SeqTimelineChannel *>(
         MEM_callocN(sizeof(SeqTimelineChannel), "seq timeline channel"));
-    SNPRINTF(channel->name, "Channel %d", i);
+    SNPRINTF(channel->name, DATA_("Channel %d"), i);
     channel->index = i;
     BLI_addtail(channels, channel);
   }
