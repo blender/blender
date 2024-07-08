@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include "BLI_function_ref.hh"
+
 #include "DNA_boid_types.h"       /* for #BoidData */
 #include "DNA_pointcache_types.h" /* for #BPHYS_TOT_DATA */
 
@@ -68,6 +70,7 @@ struct DynamicPaintSurface;
 struct FluidModifierData;
 struct ListBase;
 struct Main;
+struct ModifierData;
 struct Object;
 struct ParticleKey;
 struct ParticleSystem;
@@ -286,6 +289,12 @@ void BKE_ptcache_ids_from_object(struct ListBase *lb,
                                  struct Object *ob,
                                  struct Scene *scene,
                                  int duplis);
+
+using PointCacheIdFn = blender::FunctionRef<bool(PTCacheID &pid, ModifierData *md)>;
+void BKE_ptcache_foreach_object_cache(struct Object &ob,
+                                      struct Scene &scene,
+                                      bool duplis,
+                                      PointCacheIdFn fn);
 
 /****************** Query functions ****************************/
 
