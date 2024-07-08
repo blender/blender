@@ -461,8 +461,8 @@ if(WITH_PYTHON)
     PATTERN "__pycache__" EXCLUDE
     PATTERN "site" EXCLUDE
     # Legacy sub-module which is no longer used.
-    PATTERN "addons/*" EXCLUDE
-    PATTERN "addons_contrib/*" EXCLUDE
+    REGEX "^${CMAKE_SOURCE_DIR}/scripts/addons$" EXCLUDE
+    REGEX "^${CMAKE_SOURCE_DIR}/scripts/addons_contrib$" EXCLUDE
     PATTERN "${FREESTYLE_EXCLUDE_CONDITIONAL}" EXCLUDE
   )
 
