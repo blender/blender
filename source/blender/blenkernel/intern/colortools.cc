@@ -738,7 +738,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   /* Process middle elements */
   for (int a = 0; a < bezt_totpoint; a++) {
     bezt_next = (a != bezt_totpoint - 1) ? &bezt[a + 1] : bezt_post_ptr;
-    calchandle_curvemap(&bezt[a], (bezt_prev) ? bezt_prev : &bezt[0], bezt_next);
+    calchandle_curvemap(&bezt[a], bezt_prev, bezt_next);
     bezt_prev = &bezt[a];
   }
 
