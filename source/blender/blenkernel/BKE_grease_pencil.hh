@@ -526,6 +526,13 @@ class Layer : public ::GreasePencilLayer {
   float4x4 local_transform() const;
 
   /**
+   * Updates the local transform of the layer based on the matrix.
+   *
+   * \note The matrix is decomposed into location, rotation and scale, so any skew is lost.
+   */
+  void set_local_transform(const float4x4 &transform);
+
+  /**
    * Returns the transformation from layer space to object space.
    */
   float4x4 to_object_space(const Object &object) const;

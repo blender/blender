@@ -1346,6 +1346,14 @@ float4x4 Layer::local_transform() const
       float3(this->translation), float3(this->rotation), float3(this->scale));
 }
 
+void Layer::set_local_transform(const float4x4 &transform)
+{
+  math::to_loc_rot_scale_safe<true>(transform,
+                                    *reinterpret_cast<float3 *>(this->translation),
+                                    *reinterpret_cast<math::EulerXYZ *>(this->rotation),
+                                    *reinterpret_cast<float3 *>(this->scale));
+}
+
 StringRefNull Layer::view_layer_name() const
 {
   return (this->viewlayername != nullptr) ? StringRefNull(this->viewlayername) : StringRefNull();
