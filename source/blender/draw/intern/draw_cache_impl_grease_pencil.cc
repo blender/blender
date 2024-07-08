@@ -640,7 +640,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
     int num_points = 0;
     visible_strokes.foreach_index([&](const int curve_i, const int pos) {
       IndexRange points = points_by_curve[curve_i];
-      const bool is_cyclic = cyclic[curve_i];
+      const bool is_cyclic = cyclic[curve_i] && (points.size() > 2);
 
       if (is_cyclic) {
         num_cyclic++;
@@ -765,7 +765,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
 
     visible_strokes.foreach_index([&](const int curve_i, const int pos) {
       const IndexRange points = points_by_curve[curve_i];
-      const bool is_cyclic = cyclic[curve_i];
+      const bool is_cyclic = cyclic[curve_i] && (points.size() > 2);
       const int verts_start_offset = verts_start_offsets[pos];
       const int tris_start_offset = tris_start_offsets[pos];
       const int num_verts = 1 + points.size() + (is_cyclic ? 1 : 0) + 1;
@@ -774,7 +774,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
       MutableSpan<GreasePencilColorVert> cols_slice = cols.slice(verts_range);
       const float4x2 texture_matrix = texture_matrices[curve_i] * object_space_to_layer_space;
 
-      const Span<float> lengths = curves.evaluated_lengths_for_curve(curve_i, is_cyclic);
+      const Span<float> lengths = curves.evaluated_lengths_for_curve(curve_i, cyclic[curve_i]);
 
       /* First vertex is not drawn. */
       verts_slice.first().mat = -1;
