@@ -561,7 +561,7 @@ def addons_panel_draw_items(
     return module_names
 
 
-def addons_panel_draw_error_duplicates(layout, error_duplicates):
+def addons_panel_draw_error_duplicates(layout):
     import addon_utils
     box = layout.box()
     row = box.row()
@@ -609,7 +609,7 @@ def addons_panel_draw_impl(
     # First show any errors, this should be an exceptional situation that should be resolved,
     # otherwise add-ons may not behave correctly.
     if addon_utils.error_duplicates:
-        addons_panel_draw_error_duplicates(layout, addon_utils.error_duplicates)
+        addons_panel_draw_error_duplicates(layout)
     if addon_utils.error_encoding:
         addons_panel_draw_error_generic(
             layout, (
@@ -752,6 +752,7 @@ def addons_panel_draw(panel, context):
 # Light weight wrapper for extension local and remote extension manifest data.
 # Used for display purposes. Includes some information for filtering.
 
+# pylint: disable-next=wrong-import-order
 from collections import namedtuple
 
 ExtensionUI = namedtuple(
@@ -899,15 +900,14 @@ class ExtensionUI_FilterParams:
             if is_addon:
                 if is_installed:
                     # Currently we only need to know the module name once installed.
-                    addon_module_name = repo_module_prefix + pkg_id
                     # pylint: disable-next=possibly-used-before-assignment
+                    addon_module_name = repo_module_prefix + pkg_id
                     is_enabled = addon_module_name in self.addons_enabled
 
                 else:
                     is_enabled = False
                     addon_module_name = None
             elif is_theme:
-                # pylint: disable-next=possibly-used-before-assignment
                 is_enabled = (repo_index, pkg_id) == self.active_theme_info
                 addon_module_name = None
             else:

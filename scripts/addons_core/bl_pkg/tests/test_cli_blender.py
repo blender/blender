@@ -291,6 +291,8 @@ def run_blender(
         },
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
+        # Allow the caller to read a non-zero return-code.
+        check=False,
     )
     stdout = output.stdout.decode("utf-8")
     stderr = output.stderr.decode("utf-8")
@@ -754,11 +756,8 @@ class TestPlatform(TestWithTempBlenderUser_MixIn, unittest.TestCase):
 
 
 def main() -> None:
-    global TEMP_DIR_BLENDER_USER
-    global TEMP_DIR_REMOTE
-    global TEMP_DIR_LOCAL
-    global TEMP_DIR_TMPDIR
-    global TEMP_DIR_REMOTE_AS_URL
+    # pylint: disable-next=global-statement
+    global TEMP_DIR_BLENDER_USER, TEMP_DIR_REMOTE, TEMP_DIR_LOCAL, TEMP_DIR_TMPDIR, TEMP_DIR_REMOTE_AS_URL
 
     with tempfile.TemporaryDirectory() as temp_prefix:
         TEMP_DIR_BLENDER_USER = os.path.join(temp_prefix, "bl_ext_blender")

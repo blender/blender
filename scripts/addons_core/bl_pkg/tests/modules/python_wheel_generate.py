@@ -111,6 +111,7 @@ classifiers = [
             cwd=temp_dir,
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE,
+            check=True,
         )
 
         result = search(temp_dir, lambda entry: entry.name.endswith(".whl"))
