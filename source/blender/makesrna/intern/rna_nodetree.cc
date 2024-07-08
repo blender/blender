@@ -9788,6 +9788,7 @@ static void def_geo_menu_switch(StructRNA *srna)
   RNA_def_property_struct_type(prop, "Node");
   RNA_def_property_pointer_funcs(
       prop, "rna_NodeMenuSwitch_enum_definition_get", nullptr, nullptr, nullptr);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop,
                            "Enum Definition (deprecated)",
                            "The enum definition can now be accessed directly on the node. This "
