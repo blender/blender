@@ -400,7 +400,7 @@ void MeshData::write_submeshes(const Mesh *mesh)
   IndexMask::from_groups<int>(
       corner_tris.index_range(),
       memory,
-      [&](const int i) { return std::min(material_indices[tri_faces[i]], max_index); },
+      [&](const int i) { return std::clamp(material_indices[tri_faces[i]], 0, max_index); },
       triangles_by_material);
 
   threading::parallel_for(submeshes_.index_range(), 1, [&](const IndexRange range) {
