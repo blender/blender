@@ -297,7 +297,7 @@ float neighbor_mask_average(SculptSession &ss,
     case PBVH_GRIDS: {
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         avg += SCULPT_mask_get_at_grids_vert_index(
-            *ss.subdiv_ccg, *BKE_pbvh_get_grid_key(*ss.pbvh), ni.vertex.i);
+            *ss.subdiv_ccg, BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg), ni.vertex.i);
         total++;
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);

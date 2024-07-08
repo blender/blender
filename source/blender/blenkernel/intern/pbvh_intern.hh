@@ -145,7 +145,6 @@ struct PBVH {
   blender::Span<blender::float3> face_normals;
 
   /* Grid Data */
-  CCGKey gridkey;
   SubdivCCG *subdiv_ccg;
 
 #ifdef PERFCNTRS

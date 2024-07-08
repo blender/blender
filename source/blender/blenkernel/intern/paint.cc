@@ -2309,11 +2309,10 @@ static std::unique_ptr<PBVH> build_pbvh_from_regular_mesh(Object *ob, const Mesh
 
 static std::unique_ptr<PBVH> build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
 {
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
   Mesh *base_mesh = BKE_mesh_from_object(ob);
   BKE_sculpt_sync_face_visibility_to_grids(base_mesh, subdiv_ccg);
 
-  return pbvh::build_grids(&key, base_mesh, subdiv_ccg);
+  return pbvh::build_grids(base_mesh, subdiv_ccg);
 }
 
 }  // namespace blender::bke
@@ -2330,21 +2329,12 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
      * those pointers. */
     const PBVHType pbvh_type = BKE_pbvh_type(*ob->sculpt->pbvh);
     switch (pbvh_type) {
-      case PBVH_FACES: {
+      case PBVH_FACES:
         pbvh::update_mesh_pointers(*ob->sculpt->pbvh, BKE_object_get_original_mesh(ob));
         break;
-      }
-      case PBVH_GRIDS: {
-        Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
-        Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
-        if (SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get()) {
-          BKE_sculpt_bvh_update_from_ccg(*ob->sculpt->pbvh, subdiv_ccg);
-        }
+      case PBVH_GRIDS:
+      case PBVH_BMESH:
         break;
-      }
-      case PBVH_BMESH: {
-        break;
-      }
     }
 
     return ob->sculpt->pbvh.get();
@@ -2383,12 +2373,6 @@ PBVH *BKE_object_sculpt_pbvh_get(Object *object)
 bool BKE_object_sculpt_use_dyntopo(const Object *object)
 {
   return object->sculpt && object->sculpt->bm;
-}
-
-void BKE_sculpt_bvh_update_from_ccg(PBVH &pbvh, SubdivCCG *subdiv_ccg)
-{
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
-  BKE_pbvh_grids_update(pbvh, &key);
 }
 
 bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)

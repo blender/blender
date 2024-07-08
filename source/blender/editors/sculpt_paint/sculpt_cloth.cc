@@ -32,6 +32,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
+#include "BKE_subdiv_ccg.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -1067,7 +1068,7 @@ SimulationData *brush_simulation_create(Object &ob,
           &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       break;
     case PBVH_GRIDS:
-      cloth_sim->grid_key = *BKE_pbvh_get_grid_key(*ss.pbvh);
+      cloth_sim->grid_key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       break;
   }
 

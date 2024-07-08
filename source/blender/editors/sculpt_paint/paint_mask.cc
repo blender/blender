@@ -767,7 +767,7 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
       SubdivCCG &subdiv_ccg = *gesture_data.ss->subdiv_ccg;
       const Span<CCGElem *> grids = subdiv_ccg.grids;
       const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
-      const CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
           bool any_changed = false;

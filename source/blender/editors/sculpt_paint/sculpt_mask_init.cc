@@ -160,7 +160,8 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     case PBVH_GRIDS: {
       Main &bmain = *CTX_data_main(C);
       Scene &scene = *CTX_data_scene(C);
-      const CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       switch (mode) {
         case InitMode::Random: {
           init_mask_grids(
@@ -183,7 +184,6 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
           const bke::AttributeAccessor attributes = mesh.attributes();
           const VArraySpan face_sets = *attributes.lookup_or_default<int>(
               ".sculpt_face_set", bke::AttrDomain::Face, 1);
-          const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
           const Span<int> grid_to_face = subdiv_ccg.grid_to_face_map;
           init_mask_grids(
               bmain,

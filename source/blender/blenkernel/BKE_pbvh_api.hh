@@ -129,7 +129,7 @@ void update_mesh_pointers(PBVH &pbvh, Mesh *mesh);
 /**
  * Do a full rebuild with on Grids data structure.
  */
-std::unique_ptr<PBVH> build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg);
+std::unique_ptr<PBVH> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
@@ -248,11 +248,6 @@ int count_grid_quads(const BitGroupVector<> &grid_visibility,
                      int display_gridsize);
 
 }  // namespace blender::bke::pbvh
-
-/**
- * Multi-res level, only valid for type == #PBVH_GRIDS.
- */
-const CCGKey *BKE_pbvh_get_grid_key(const PBVH &pbvh);
 
 int BKE_pbvh_get_grid_num_verts(const PBVH &pbvh);
 int BKE_pbvh_get_grid_num_faces(const PBVH &pbvh);
@@ -382,7 +377,6 @@ IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
                                         Span<const PBVHNode *> nodes,
                                         IndexMaskMemory &memory);
 }
-void BKE_pbvh_grids_update(PBVH &pbvh, const CCGKey *key);
 void BKE_pbvh_subdiv_cgg_set(PBVH &pbvh, SubdivCCG *subdiv_ccg);
 
 void BKE_pbvh_vert_coords_apply(PBVH &pbvh, blender::Span<blender::float3> vert_positions);
