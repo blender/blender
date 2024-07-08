@@ -185,11 +185,6 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
     else {
       VKTexture *depth_texture = unwrap(unwrap(depth_tex()));
       if (depth_texture != nullptr) {
-        if (G.debug & G_DEBUG_GPU) {
-          std::cout
-              << "PERFORMANCE: impact clearing depth texture in render pass that doesn't allow "
-                 "depth writes.\n";
-        }
         depth_texture->clear_depth_stencil(buffers, clear_depth, clear_stencil);
       }
     }
