@@ -372,6 +372,7 @@ Span<uint3> Drawing::triangles() const
   this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
     const CurvesGeometry &curves = this->strokes();
     const Span<float3> positions = curves.positions();
+    const Span<float3> normals = this->curve_plane_normals();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
 
     int total_triangles = 0;
@@ -402,7 +403,7 @@ Span<uint3> Drawing::triangles() const
             BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
 
         float3x3 axis_mat;
-        axis_dominant_v3_to_m3(axis_mat.ptr(), float3(0.0f, -1.0f, 0.0f));
+        axis_dominant_v3_to_m3(axis_mat.ptr(), normals[curve_i]);
 
         for (const int i : IndexRange(points.size())) {
           mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
