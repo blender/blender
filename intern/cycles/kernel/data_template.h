@@ -182,6 +182,7 @@ KERNEL_STRUCT_MEMBER(integrator, int, caustics_reflective)
 KERNEL_STRUCT_MEMBER(integrator, int, caustics_refractive)
 KERNEL_STRUCT_MEMBER(integrator, float, filter_glossy)
 /* Seed. */
+KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 KERNEL_STRUCT_MEMBER(integrator, int, seed)
 /* Clamp. */
 KERNEL_STRUCT_MEMBER(integrator, float, sample_clamp_direct)
