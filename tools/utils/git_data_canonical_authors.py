@@ -195,7 +195,6 @@ def canonical_author_map() -> Dict[str, str]:
         "Daniel Salazar <zanqdo@gmail.com>": (
             "Daniel Salazar <zanqdo>",
             "Daniel Salazar <zanqdo@noreply.localhost>",
-            "Daniel Santana <dgsantana>",
             "ZanQdo <zanqdo@gmail.com>",
             "zanqdo <zanqdo@gmail.com>",
         ),
