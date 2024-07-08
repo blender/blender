@@ -149,79 +149,71 @@ const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
     {0, nullptr, 0, nullptr, nullptr}};
 
 const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
-    {SCULPT_TOOL_DRAW, "DRAW", ICON_BRUSH_SCULPT_DRAW, "Draw", ""},
-    {SCULPT_TOOL_DRAW_SHARP, "DRAW_SHARP", ICON_BRUSH_SCULPT_DRAW, "Draw Sharp", ""},
-    {SCULPT_TOOL_CLAY, "CLAY", ICON_BRUSH_CLAY, "Clay", ""},
-    {SCULPT_TOOL_CLAY_STRIPS, "CLAY_STRIPS", ICON_BRUSH_CLAY_STRIPS, "Clay Strips", ""},
-    {SCULPT_TOOL_CLAY_THUMB, "CLAY_THUMB", ICON_BRUSH_CLAY_STRIPS, "Clay Thumb", ""},
-    {SCULPT_TOOL_LAYER, "LAYER", ICON_BRUSH_LAYER, "Layer", ""},
-    {SCULPT_TOOL_INFLATE, "INFLATE", ICON_BRUSH_INFLATE, "Inflate", ""},
-    {SCULPT_TOOL_BLOB, "BLOB", ICON_BRUSH_BLOB, "Blob", ""},
-    {SCULPT_TOOL_CREASE, "CREASE", ICON_BRUSH_CREASE, "Crease", ""},
+    {SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
+    {SCULPT_TOOL_DRAW_SHARP, "DRAW_SHARP", 0, "Draw Sharp", ""},
+    {SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
+    {SCULPT_TOOL_CLAY_STRIPS, "CLAY_STRIPS", 0, "Clay Strips", ""},
+    {SCULPT_TOOL_CLAY_THUMB, "CLAY_THUMB", 0, "Clay Thumb", ""},
+    {SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
+    {SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
+    {SCULPT_TOOL_BLOB, "BLOB", 0, "Blob", ""},
+    {SCULPT_TOOL_CREASE, "CREASE", 0, "Crease", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_SMOOTH, "Smooth", ""},
-    {SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
-    {SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
-    {SCULPT_TOOL_SCRAPE, "SCRAPE", ICON_BRUSH_SCRAPE, "Scrape", ""},
-    {SCULPT_TOOL_MULTIPLANE_SCRAPE,
-     "MULTIPLANE_SCRAPE",
-     ICON_BRUSH_SCRAPE,
-     "Multi-plane Scrape",
-     ""},
-    {SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_PINCH, "Pinch", ""},
+    {SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+    {SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+    {SCULPT_TOOL_FILL, "FILL", 0, "Fill", ""},
+    {SCULPT_TOOL_SCRAPE, "SCRAPE", 0, "Scrape", ""},
+    {SCULPT_TOOL_MULTIPLANE_SCRAPE, "MULTIPLANE_SCRAPE", 0, "Multi-plane Scrape", ""},
+    {SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SCULPT_TOOL_GRAB, "GRAB", ICON_BRUSH_GRAB, "Grab", ""},
-    {SCULPT_TOOL_ELASTIC_DEFORM, "ELASTIC_DEFORM", ICON_BRUSH_GRAB, "Elastic Deform", ""},
-    {SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_SNAKE_HOOK, "Snake Hook", ""},
-    {SCULPT_TOOL_THUMB, "THUMB", ICON_BRUSH_THUMB, "Thumb", ""},
-    {SCULPT_TOOL_POSE, "POSE", ICON_BRUSH_GRAB, "Pose", ""},
-    {SCULPT_TOOL_NUDGE, "NUDGE", ICON_BRUSH_NUDGE, "Nudge", ""},
-    {SCULPT_TOOL_ROTATE, "ROTATE", ICON_BRUSH_ROTATE, "Rotate", ""},
-    {SCULPT_TOOL_SLIDE_RELAX, "TOPOLOGY", ICON_BRUSH_GRAB, "Slide Relax", ""},
-    {SCULPT_TOOL_BOUNDARY, "BOUNDARY", ICON_BRUSH_GRAB, "Boundary", ""},
+    {SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
+    {SCULPT_TOOL_ELASTIC_DEFORM, "ELASTIC_DEFORM", 0, "Elastic Deform", ""},
+    {SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
+    {SCULPT_TOOL_THUMB, "THUMB", 0, "Thumb", ""},
+    {SCULPT_TOOL_POSE, "POSE", 0, "Pose", ""},
+    {SCULPT_TOOL_NUDGE, "NUDGE", 0, "Nudge", ""},
+    {SCULPT_TOOL_ROTATE, "ROTATE", 0, "Rotate", ""},
+    {SCULPT_TOOL_SLIDE_RELAX, "TOPOLOGY", 0, "Slide Relax", ""},
+    {SCULPT_TOOL_BOUNDARY, "BOUNDARY", 0, "Boundary", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SCULPT_TOOL_CLOTH, "CLOTH", ICON_BRUSH_SCULPT_DRAW, "Cloth", ""},
-    {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", ICON_BRUSH_DATA, "Simplify", ""},
-    {SCULPT_TOOL_MASK, "MASK", ICON_BRUSH_MASK, "Mask", ""},
-    {SCULPT_TOOL_DRAW_FACE_SETS, "DRAW_FACE_SETS", ICON_BRUSH_MASK, "Draw Face Sets", ""},
+    {SCULPT_TOOL_CLOTH, "CLOTH", 0, "Cloth", ""},
+    {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", 0, "Simplify", ""},
+    {SCULPT_TOOL_MASK, "MASK", 0, "Mask", ""},
+    {SCULPT_TOOL_DRAW_FACE_SETS, "DRAW_FACE_SETS", 0, "Draw Face Sets", ""},
     {SCULPT_TOOL_DISPLACEMENT_ERASER,
      "DISPLACEMENT_ERASER",
-     ICON_BRUSH_SCULPT_DRAW,
+     0,
      "Multires Displacement Eraser",
      ""},
-    {SCULPT_TOOL_DISPLACEMENT_SMEAR,
-     "DISPLACEMENT_SMEAR",
-     ICON_BRUSH_SCULPT_DRAW,
-     "Multires Displacement Smear",
-     ""},
-    {SCULPT_TOOL_PAINT, "PAINT", ICON_BRUSH_SCULPT_DRAW, "Paint", ""},
-    {SCULPT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SCULPT_DRAW, "Smear", ""},
+    {SCULPT_TOOL_DISPLACEMENT_SMEAR, "DISPLACEMENT_SMEAR", 0, "Multires Displacement Smear", ""},
+    {SCULPT_TOOL_PAINT, "PAINT", 0, "Paint", ""},
+    {SCULPT_TOOL_SMEAR, "SMEAR", 0, "Smear", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_brush_vertex_tool_items[] = {
-    {VPAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", ""},
-    {VPAINT_TOOL_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
-    {VPAINT_TOOL_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
-    {VPAINT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
+    {VPAINT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
+    {VPAINT_TOOL_BLUR, "BLUR", 0, "Blur", ""},
+    {VPAINT_TOOL_AVERAGE, "AVERAGE", 0, "Average", ""},
+    {VPAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_brush_weight_tool_items[] = {
-    {WPAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", ""},
-    {WPAINT_TOOL_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
-    {WPAINT_TOOL_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
-    {WPAINT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
+    {WPAINT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
+    {WPAINT_TOOL_BLUR, "BLUR", 0, "Blur", ""},
+    {WPAINT_TOOL_AVERAGE, "AVERAGE", 0, "Average", ""},
+    {WPAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_brush_image_tool_items[] = {
-    {PAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_TEXDRAW, "Draw", ""},
-    {PAINT_TOOL_SOFTEN, "SOFTEN", ICON_BRUSH_SOFTEN, "Soften", ""},
-    {PAINT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SMEAR, "Smear", ""},
-    {PAINT_TOOL_CLONE, "CLONE", ICON_BRUSH_CLONE, "Clone", ""},
-    {PAINT_TOOL_FILL, "FILL", ICON_BRUSH_TEXFILL, "Fill", ""},
-    {PAINT_TOOL_MASK, "MASK", ICON_BRUSH_TEXMASK, "Mask", ""},
+    {PAINT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
+    {PAINT_TOOL_SOFTEN, "SOFTEN", 0, "Soften", ""},
+    {PAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", ""},
+    {PAINT_TOOL_CLONE, "CLONE", 0, "Clone", ""},
+    {PAINT_TOOL_FILL, "FILL", 0, "Fill", ""},
+    {PAINT_TOOL_MASK, "MASK", 0, "Mask", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -237,100 +229,56 @@ const EnumPropertyItem rna_enum_brush_gpencil_types_items[] = {
      ICON_PANEL_CLOSE,
      "Erase",
      "The brush is used for erasing strokes"},
-    {GPAINT_TOOL_TINT,
-     "TINT",
-     ICON_BRUSH_TEXDRAW,
-     "Tint",
-     "The brush is of type used for tinting strokes"},
+    {GPAINT_TOOL_TINT, "TINT", 0, "Tint", "The brush is of type used for tinting strokes"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_brush_gpencil_vertex_types_items[] = {
-    {GPVERTEX_TOOL_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", "Paint a color on stroke points"},
-    {GPVERTEX_TOOL_BLUR,
-     "BLUR",
-     ICON_BRUSH_BLUR,
-     "Blur",
-     "Smooth out the colors of adjacent stroke points"},
+    {GPVERTEX_TOOL_DRAW, "DRAW", 0, "Draw", "Paint a color on stroke points"},
+    {GPVERTEX_TOOL_BLUR, "BLUR", 0, "Blur", "Smooth out the colors of adjacent stroke points"},
     {GPVERTEX_TOOL_AVERAGE,
      "AVERAGE",
-     ICON_BRUSH_BLUR,
+     0,
      "Average",
      "Smooth out colors with the average color under the brush"},
-    {GPVERTEX_TOOL_SMEAR,
-     "SMEAR",
-     ICON_BRUSH_BLUR,
-     "Smear",
-     "Smudge colors by grabbing and dragging them"},
+    {GPVERTEX_TOOL_SMEAR, "SMEAR", 0, "Smear", "Smudge colors by grabbing and dragging them"},
     {GPVERTEX_TOOL_REPLACE,
      "REPLACE",
-     ICON_BRUSH_BLUR,
+     0,
      "Replace",
      "Replace the color of stroke points that already have a color applied"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_brush_gpencil_sculpt_types_items[] = {
-    {GPSCULPT_TOOL_SMOOTH, "SMOOTH", ICON_GPBRUSH_SMOOTH, "Smooth", "Smooth stroke points"},
-    {GPSCULPT_TOOL_THICKNESS,
-     "THICKNESS",
-     ICON_GPBRUSH_THICKNESS,
-     "Thickness",
-     "Adjust thickness of strokes"},
-    {GPSCULPT_TOOL_STRENGTH,
-     "STRENGTH",
-     ICON_GPBRUSH_STRENGTH,
-     "Strength",
-     "Adjust color strength of strokes"},
+    {GPSCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth stroke points"},
+    {GPSCULPT_TOOL_THICKNESS, "THICKNESS", 0, "Thickness", "Adjust thickness of strokes"},
+    {GPSCULPT_TOOL_STRENGTH, "STRENGTH", 0, "Strength", "Adjust color strength of strokes"},
     {GPSCULPT_TOOL_RANDOMIZE,
      "RANDOMIZE",
-     ICON_GPBRUSH_RANDOMIZE,
+     0,
      "Randomize",
      "Introduce jitter/randomness into strokes"},
     {GPSCULPT_TOOL_GRAB,
      "GRAB",
-     ICON_GPBRUSH_GRAB,
+     0,
      "Grab",
      "Translate the set of points initially within the brush circle"},
-    {GPSCULPT_TOOL_PUSH,
-     "PUSH",
-     ICON_GPBRUSH_PUSH,
-     "Push",
-     "Move points out of the way, as if combing them"},
-    {GPSCULPT_TOOL_TWIST,
-     "TWIST",
-     ICON_GPBRUSH_TWIST,
-     "Twist",
-     "Rotate points around the midpoint of the brush"},
-    {GPSCULPT_TOOL_PINCH,
-     "PINCH",
-     ICON_GPBRUSH_PINCH,
-     "Pinch",
-     "Pull points towards the midpoint of the brush"},
+    {GPSCULPT_TOOL_PUSH, "PUSH", 0, "Push", "Move points out of the way, as if combing them"},
+    {GPSCULPT_TOOL_TWIST, "TWIST", 0, "Twist", "Rotate points around the midpoint of the brush"},
+    {GPSCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", "Pull points towards the midpoint of the brush"},
     {GPSCULPT_TOOL_CLONE,
      "CLONE",
-     ICON_GPBRUSH_CLONE,
+     0,
      "Clone",
      "Paste copies of the strokes stored on the internal clipboard"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
-    {GPWEIGHT_TOOL_DRAW,
-     "WEIGHT",
-     ICON_GPBRUSH_WEIGHT,
-     "Weight",
-     "Paint weight in active vertex group"},
-    {GPWEIGHT_TOOL_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", "Blur weight in active vertex group"},
-    {GPWEIGHT_TOOL_AVERAGE,
-     "AVERAGE",
-     ICON_BRUSH_BLUR,
-     "Average",
-     "Average weight in active vertex group"},
-    {GPWEIGHT_TOOL_SMEAR,
-     "SMEAR",
-     ICON_BRUSH_SMEAR,
-     "Smear",
-     "Smear weight in active vertex group"},
+    {GPWEIGHT_TOOL_DRAW, "WEIGHT", 0, "Weight", "Paint weight in active vertex group"},
+    {GPWEIGHT_TOOL_BLUR, "BLUR", 0, "Blur", "Blur weight in active vertex group"},
+    {GPWEIGHT_TOOL_AVERAGE, "AVERAGE", 0, "Average", "Average weight in active vertex group"},
+    {GPWEIGHT_TOOL_SMEAR, "SMEAR", 0, "Smear", "Smear weight in active vertex group"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -399,50 +347,6 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
     {GP_BRUSH_MODE_VERTEXCOLOR, "VERTEXCOLOR", 0, "Vertex Color", "Use always Vertex Color mode"},
     {0, nullptr, 0, nullptr, nullptr}};
 
-static EnumPropertyItem rna_enum_gpencil_brush_paint_icons_items[] = {
-    {GP_BRUSH_ICON_PENCIL, "PENCIL", ICON_GPBRUSH_PENCIL, "Pencil", ""},
-    {GP_BRUSH_ICON_PEN, "PEN", ICON_GPBRUSH_PEN, "Pen", ""},
-    {GP_BRUSH_ICON_INK, "INK", ICON_GPBRUSH_INK, "Ink", ""},
-    {GP_BRUSH_ICON_INKNOISE, "INKNOISE", ICON_GPBRUSH_INKNOISE, "Ink Noise", ""},
-    {GP_BRUSH_ICON_BLOCK, "BLOCK", ICON_GPBRUSH_BLOCK, "Block", ""},
-    {GP_BRUSH_ICON_MARKER, "MARKER", ICON_GPBRUSH_MARKER, "Marker", ""},
-    {GP_BRUSH_ICON_AIRBRUSH, "AIRBRUSH", ICON_GPBRUSH_AIRBRUSH, "Airbrush", ""},
-    {GP_BRUSH_ICON_CHISEL, "CHISEL", ICON_GPBRUSH_CHISEL, "Chisel", ""},
-    {GP_BRUSH_ICON_FILL, "FILL", ICON_GPBRUSH_FILL, "Fill", ""},
-    {GP_BRUSH_ICON_ERASE_SOFT, "SOFT", ICON_GPBRUSH_ERASE_SOFT, "Eraser Soft", ""},
-    {GP_BRUSH_ICON_ERASE_HARD, "HARD", ICON_GPBRUSH_ERASE_HARD, "Eraser Hard", ""},
-    {GP_BRUSH_ICON_ERASE_STROKE, "STROKE", ICON_GPBRUSH_ERASE_STROKE, "Eraser Stroke", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static EnumPropertyItem rna_enum_gpencil_brush_sculpt_icons_items[] = {
-    {GP_BRUSH_ICON_GPBRUSH_SMOOTH, "SMOOTH", ICON_GPBRUSH_SMOOTH, "Smooth", ""},
-    {GP_BRUSH_ICON_GPBRUSH_THICKNESS, "THICKNESS", ICON_GPBRUSH_THICKNESS, "Thickness", ""},
-    {GP_BRUSH_ICON_GPBRUSH_STRENGTH, "STRENGTH", ICON_GPBRUSH_STRENGTH, "Strength", ""},
-    {GP_BRUSH_ICON_GPBRUSH_RANDOMIZE, "RANDOMIZE", ICON_GPBRUSH_RANDOMIZE, "Randomize", ""},
-    {GP_BRUSH_ICON_GPBRUSH_GRAB, "GRAB", ICON_GPBRUSH_GRAB, "Grab", ""},
-    {GP_BRUSH_ICON_GPBRUSH_PUSH, "PUSH", ICON_GPBRUSH_PUSH, "Push", ""},
-    {GP_BRUSH_ICON_GPBRUSH_TWIST, "TWIST", ICON_GPBRUSH_TWIST, "Twist", ""},
-    {GP_BRUSH_ICON_GPBRUSH_PINCH, "PINCH", ICON_GPBRUSH_PINCH, "Pinch", ""},
-    {GP_BRUSH_ICON_GPBRUSH_CLONE, "CLONE", ICON_GPBRUSH_CLONE, "Clone", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static EnumPropertyItem rna_enum_gpencil_brush_weight_icons_items[] = {
-    {GP_BRUSH_ICON_GPBRUSH_WEIGHT, "DRAW", ICON_GPBRUSH_WEIGHT, "Draw", ""},
-    {GP_BRUSH_ICON_GPBRUSH_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
-    {GP_BRUSH_ICON_GPBRUSH_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
-    {GP_BRUSH_ICON_GPBRUSH_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
-    {GP_BRUSH_ICON_VERTEX_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", ""},
-    {GP_BRUSH_ICON_VERTEX_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
-    {GP_BRUSH_ICON_VERTEX_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
-    {GP_BRUSH_ICON_VERTEX_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
-    {GP_BRUSH_ICON_VERTEX_REPLACE, "REPLACE", ICON_BRUSH_MIX, "Replace", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
 #endif
 
 #ifdef RNA_RUNTIME
@@ -1081,26 +985,6 @@ static std::optional<std::string> rna_BrushGpencilSettings_path(const PointerRNA
   return "gpencil_settings";
 }
 
-static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
-                                                           Scene *scene,
-                                                           PointerRNA * /*ptr*/)
-{
-  ToolSettings *ts = scene->toolsettings;
-  Paint *paint = &ts->gp_paint->paint;
-  Brush *brush_cur = BKE_paint_brush(paint);
-
-  /* disable default eraser in all brushes */
-  for (Brush *brush = static_cast<Brush *>(bmain->brushes.first); brush;
-       brush = static_cast<Brush *>(brush->id.next))
-  {
-    if ((brush != brush_cur) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY) &&
-        (brush->gpencil_tool == GPAINT_TOOL_ERASE))
-    {
-      brush->gpencil_settings->flag &= ~GP_BRUSH_DEFAULT_ERASER;
-    }
-  }
-}
-
 static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, PointerRNA *ptr)
 {
   const Scene *scene = CTX_data_scene(C);
@@ -1119,33 +1003,6 @@ static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, Pointe
 
   /* number of material users changed */
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
-}
-
-static void rna_BrushGpencilSettings_eraser_mode_update(Main * /*bmain*/,
-                                                        Scene *scene,
-                                                        PointerRNA * /*ptr*/)
-{
-  ToolSettings *ts = scene->toolsettings;
-  Paint *paint = &ts->gp_paint->paint;
-  Brush *brush = BKE_paint_brush(paint);
-
-  /* set eraser icon */
-  if ((brush) && (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
-    switch (brush->gpencil_settings->eraser_mode) {
-      case GP_BRUSH_ERASER_SOFT:
-        brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
-        break;
-      case GP_BRUSH_ERASER_HARD:
-        brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
-        break;
-      case GP_BRUSH_ERASER_STROKE:
-        brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_STROKE;
-        break;
-      default:
-        brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
-        break;
-    }
-  }
 }
 
 static bool rna_BrushGpencilSettings_material_poll(PointerRNA * /*ptr*/, PointerRNA value)
@@ -1742,32 +1599,6 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
-  /* brush standard icon */
-  prop = RNA_def_property(srna, "gpencil_paint_icon", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "icon_id");
-  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_paint_icons_items);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
-
-  prop = RNA_def_property(srna, "gpencil_sculpt_icon", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "icon_id");
-  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_sculpt_icons_items);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
-  RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
-
-  prop = RNA_def_property(srna, "gpencil_weight_icon", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "icon_id");
-  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_weight_icons_items);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
-
-  prop = RNA_def_property(srna, "gpencil_vertex_icon", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "icon_id");
-  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_vertex_icons_items);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
-
   /* Mode type. */
   prop = RNA_def_property(srna, "vertex_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "vertex_mode");
@@ -1964,8 +1795,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Mode", "Eraser Mode");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(
-      prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_eraser_mode_update");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
   prop = RNA_def_property(srna, "caps_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "caps_type");
@@ -2099,16 +1929,6 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Limit to Viewport", "Fill only visible areas in viewport");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
-  prop = RNA_def_property(srna, "use_default_eraser", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_BRUSH_DEFAULT_ERASER);
-  RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
-  RNA_def_property_ui_text(
-      prop, "Default Eraser", "Use this brush when enable eraser with fast switch key");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(
-      prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_default_eraser_update");
 
   prop = RNA_def_property(srna, "use_settings_postprocess", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_BRUSH_GROUP_SETTINGS);

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import (
+    AssetShelf,
     Header,
     Menu,
     Panel,
@@ -23,6 +24,7 @@ from bl_ui.properties_paint_common import (
     SmoothStrokePanel,
     FalloffPanel,
     DisplayPanel,
+    BrushAssetShelf,
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -764,9 +766,10 @@ class _draw_tool_settings_context_mode:
             return
 
         paint = context.tool_settings.image_paint
-        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
-
         brush = paint.brush
+
+        BrushAssetShelf.draw_popup_selector(layout, context, brush)
+
         if brush is None:
             return
 
@@ -1187,7 +1190,7 @@ class IMAGE_PT_udim_tiles(Panel):
 
 
 class IMAGE_PT_paint_select(Panel, ImagePaintPanel, BrushSelectPanel):
-    bl_label = "Brushes"
+    bl_label = "Brush Asset"
     bl_context = ".paint_common_2d"
     bl_category = "Tool"
 
@@ -1225,8 +1228,8 @@ class IMAGE_PT_paint_settings_advanced(Panel, ImagePaintPanel):
 
         settings = context.tool_settings.image_paint
         brush = settings.brush
-
-        brush_settings_advanced(layout.column(), context, brush, self.is_popover)
+        if brush:
+            brush_settings_advanced(layout.column(), context, brush, self.is_popover)
 
 
 class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
@@ -1239,16 +1242,17 @@ class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
     def poll(cls, context):
         settings = context.tool_settings.image_paint
         brush = settings.brush
+        if not brush:
+            return False
         capabilities = brush.image_paint_capabilities
-
         return capabilities.has_color
 
     def draw(self, context):
         layout = self.layout
         settings = context.tool_settings.image_paint
         brush = settings.brush
-
-        draw_color_settings(context, layout, brush, color_type=True)
+        if brush:
+            draw_color_settings(context, layout, brush, color_type=True)
 
 
 class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel, ColorPalettePanel):
@@ -1693,6 +1697,18 @@ class IMAGE_PT_annotation(AnnotationDataPanel, Panel):
 # Grease Pencil drawing tools.
 
 
+class ImageAssetShelf(BrushAssetShelf):
+    bl_space_type = "IMAGE_EDITOR"
+
+
+class IMAGE_AST_brush_paint(ImageAssetShelf, AssetShelf):
+    mode_prop = "use_paint_image"
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data and context.space_data.ui_mode == 'PAINT'
+
+
 classes = (
     IMAGE_MT_view,
     IMAGE_MT_view_zoom,
@@ -1762,6 +1778,7 @@ classes = (
     IMAGE_PT_overlay_uv_edit_geometry,
     IMAGE_PT_overlay_texture_paint,
     IMAGE_PT_overlay_image,
+    IMAGE_AST_brush_paint,
 )
 
 

@@ -619,9 +619,6 @@ void GPENCIL_OT_extract_palette_vertex(wmOperatorType *ot);
 void GPENCIL_OT_transform_fill(wmOperatorType *ot);
 void GPENCIL_OT_reset_transform_fill(wmOperatorType *ot);
 
-void GPENCIL_OT_brush_reset(wmOperatorType *ot);
-void GPENCIL_OT_brush_reset_all(wmOperatorType *ot);
-
 /* undo stack ---------- */
 
 void gpencil_undo_init(bGPdata *gpd);

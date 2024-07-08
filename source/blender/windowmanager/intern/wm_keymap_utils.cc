@@ -210,7 +210,6 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
 wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 {
   /* Op types purposely skipped for now:
-   *     BRUSH_OT
    *     BOID_OT
    *     BUTTONS_OT
    *     CONSTRAINT_OT
@@ -226,7 +225,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 
   /* Window. */
   if (STRPREFIX(opname, "WM_OT") || STRPREFIX(opname, "ED_OT_undo")) {
-    if (STREQ(opname, "WM_OT_tool_set_by_id")) {
+    if (STREQ(opname, "WM_OT_tool_set_by_id") || STREQ(opname, "WM_OT_call_asset_shelf_popover")) {
       km = WM_keymap_guess_from_context(C);
     }
 
@@ -336,7 +335,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
     km = WM_keymap_find_all(
         wm, "Paint Face Mask (Weight, Vertex, Texture)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   }
-  else if (STRPREFIX(opname, "PAINT_OT")) {
+  else if (STRPREFIX(opname, "PAINT_OT") || STRPREFIX(opname, "BRUSH_OT")) {
     /* Check for relevant mode. */
     switch (CTX_data_mode_enum(C)) {
       case CTX_MODE_PAINT_WEIGHT:

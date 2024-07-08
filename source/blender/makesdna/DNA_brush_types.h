@@ -59,7 +59,7 @@ typedef struct BrushGpencilSettings {
   char _pad2[2];
   /* Type of caps: eGPDstroke_Caps. */
   int8_t caps_type;
-  char _pad[5];
+  char _pad[1];
 
   int flag2;
 
@@ -69,8 +69,6 @@ typedef struct BrushGpencilSettings {
   int fill_draw_mode;
   /** Type of gap filling extension to use. */
   int fill_extend_mode;
-  /** Icon identifier. */
-  int icon_id;
 
   /** Maximum distance before generate new point for very fast mouse movements. */
   int input_samples;

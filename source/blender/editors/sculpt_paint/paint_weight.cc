@@ -1569,7 +1569,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
       depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     }
     ED_object_wpaintmode_enter_ex(bmain, *depsgraph, scene, ob);
-    BKE_paint_brush_validate(&bmain, &ts.wpaint->paint);
+    BKE_paint_brushes_validate(&bmain, &ts.wpaint->paint);
   }
 
   blender::ed::object::posemode_set_for_weight_paint(C, &bmain, &ob, is_mode_set);

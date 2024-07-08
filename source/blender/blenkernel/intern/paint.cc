@@ -13,6 +13,7 @@
 #include "DNA_object_enums.h"
 #include "MEM_guardedalloc.h"
 
+#include "DNA_asset_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -33,12 +34,15 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
 
+#include "BKE_asset.hh"
+#include "BKE_asset_edit.hh"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.hh"
@@ -444,61 +448,6 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const PaintMode m
   return nullptr;
 }
 
-const char *BKE_paint_get_tool_prop_id_from_paintmode(const PaintMode mode)
-{
-  switch (mode) {
-    case PaintMode::Sculpt:
-      return "sculpt_tool";
-    case PaintMode::Vertex:
-      return "vertex_tool";
-    case PaintMode::Weight:
-      return "weight_tool";
-    case PaintMode::Texture2D:
-    case PaintMode::Texture3D:
-      return "image_tool";
-    case PaintMode::GPencil:
-      return "gpencil_tool";
-    case PaintMode::VertexGPencil:
-      return "gpencil_vertex_tool";
-    case PaintMode::SculptGPencil:
-      return "gpencil_sculpt_tool";
-    case PaintMode::WeightGPencil:
-      return "gpencil_weight_tool";
-    case PaintMode::SculptCurves:
-      return "curves_sculpt_tool";
-    case PaintMode::SculptGreasePencil:
-      return "gpencil_sculpt_tool";
-    case PaintMode::Invalid:
-      break;
-  }
-
-  /* Invalid paint mode. */
-  return nullptr;
-}
-
-const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(const PaintMode mode)
-{
-  switch (mode) {
-    case PaintMode::Sculpt:
-    case PaintMode::GPencil:
-    case PaintMode::Texture2D:
-    case PaintMode::Texture3D:
-      return BLT_I18NCONTEXT_ID_BRUSH;
-    case PaintMode::Vertex:
-    case PaintMode::Weight:
-    case PaintMode::VertexGPencil:
-    case PaintMode::SculptGPencil:
-    case PaintMode::WeightGPencil:
-    case PaintMode::SculptCurves:
-    case PaintMode::SculptGreasePencil:
-    case PaintMode::Invalid:
-      break;
-  }
-
-  /* Invalid paint mode. */
-  return BLT_I18NCONTEXT_DEFAULT;
-}
-
 Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
 {
   if (sce && view_layer) {
@@ -663,6 +612,36 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
   return PaintMode::Invalid;
 }
 
+static bool paint_brush_set_from_asset_reference(Main *bmain, Paint *paint)
+{
+  /* Don't resolve this during file read, it will be done after. */
+  if (bmain->is_locked_for_linking) {
+    return false;
+  }
+  /* Attempt to restore a valid active brush from brush asset information. */
+  if (paint->brush != nullptr) {
+    return false;
+  }
+  if (paint->brush_asset_reference == nullptr) {
+    return false;
+  }
+
+  Brush *brush = reinterpret_cast<Brush *>(blender::bke::asset_edit_id_from_weak_reference(
+      *bmain, ID_BR, *paint->brush_asset_reference));
+  BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is_editable(brush->id));
+
+  /* Ensure we have a brush with appropriate mode to assign.
+   * Could happen if contents of asset blend was manually changed. */
+  if (brush == nullptr || (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+    MEM_delete(paint->brush_asset_reference);
+    paint->brush_asset_reference = nullptr;
+    return false;
+  }
+
+  paint->brush = brush;
+  return true;
+}
+
 Brush *BKE_paint_brush(Paint *paint)
 {
   return (Brush *)BKE_paint_brush_for_read((const Paint *)paint);
@@ -673,58 +652,297 @@ const Brush *BKE_paint_brush_for_read(const Paint *paint)
   return paint ? paint->brush : nullptr;
 }
 
-void BKE_paint_brush_set(Paint *paint, Brush *brush)
+bool BKE_paint_brush_set(Paint *paint, Brush *brush)
 {
-  if (paint) {
-    id_us_min((ID *)paint->brush);
-    id_us_plus((ID *)brush);
-    paint->brush = brush;
+  if (paint == nullptr) {
+    return false;
+  }
+  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+    return false;
+  }
 
-    BKE_paint_toolslots_brush_update(paint);
+  paint->brush = brush;
+
+  MEM_delete(paint->brush_asset_reference);
+  paint->brush_asset_reference = nullptr;
+
+  if (brush != nullptr) {
+    std::optional<AssetWeakReference> weak_ref = blender::bke::asset_edit_weak_reference_from_id(
+        brush->id);
+    if (weak_ref.has_value()) {
+      paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, *weak_ref);
+    }
+  }
+
+  return true;
+}
+
+Brush *BKE_paint_brush_from_essentials(Main *bmain, const char *name)
+{
+  AssetWeakReference weak_ref;
+  weak_ref.asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
+  weak_ref.relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
+                                                    name);
+
+  return reinterpret_cast<Brush *>(
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, weak_ref));
+}
+
+static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
+{
+  /* Set brush asset reference to a named brush in the essentials asset library. */
+  MEM_delete(paint->brush_asset_reference);
+
+  AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
+  weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
+  weak_ref->relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
+                                                     name);
+  paint->brush_asset_reference = weak_ref;
+  paint->brush = nullptr;
+}
+
+static void paint_eraser_brush_set_essentials_reference(Paint *paint, const char *name)
+{
+  /* Set brush asset reference to a named brush in the essentials asset library. */
+  MEM_delete(paint->eraser_brush_asset_reference);
+
+  AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
+  weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
+  weak_ref->relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
+                                                     name);
+  paint->eraser_brush_asset_reference = weak_ref;
+  paint->eraser_brush = nullptr;
+}
+
+static void paint_brush_set_default_reference(Paint *paint,
+                                              const bool do_regular = true,
+                                              const bool do_eraser = true)
+{
+  const char *name = nullptr;
+  const char *eraser_name = nullptr;
+
+  switch (paint->runtime.ob_mode) {
+    case OB_MODE_SCULPT:
+      name = "Draw";
+      break;
+    case OB_MODE_VERTEX_PAINT:
+      name = "Paint Vertex";
+      break;
+    case OB_MODE_WEIGHT_PAINT:
+      name = "Paint Weight";
+      break;
+    case OB_MODE_TEXTURE_PAINT:
+      name = "Paint Texture";
+      break;
+    case OB_MODE_SCULPT_CURVES:
+      name = "Comb Curves";
+      break;
+    case OB_MODE_PAINT_GPENCIL_LEGACY:
+      name = "Pencil";
+      eraser_name = "Eraser Soft";
+      break;
+    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+      name = "Paint Point Color";
+      break;
+    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+      name = "Smooth Stroke";
+      break;
+    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+      name = "Paint Point Weight";
+      break;
+    default:
+      BLI_assert_unreachable();
+      return;
+  }
+
+  if (do_regular && name) {
+    paint_brush_set_essentials_reference(paint, name);
+  }
+  if (do_eraser && eraser_name) {
+    paint_eraser_brush_set_essentials_reference(paint, eraser_name);
   }
 }
 
-void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
+void BKE_paint_brushes_set_default_references(ToolSettings *ts)
+{
+  if (ts->sculpt) {
+    paint_brush_set_default_reference(&ts->sculpt->paint);
+  }
+  if (ts->curves_sculpt) {
+    paint_brush_set_default_reference(&ts->curves_sculpt->paint);
+  }
+  if (ts->wpaint) {
+    paint_brush_set_default_reference(&ts->wpaint->paint);
+  }
+  if (ts->vpaint) {
+    paint_brush_set_default_reference(&ts->vpaint->paint);
+  }
+  if (ts->gp_paint) {
+    paint_brush_set_default_reference(&ts->gp_paint->paint);
+  }
+  if (ts->gp_vertexpaint) {
+    paint_brush_set_default_reference(&ts->gp_vertexpaint->paint);
+  }
+  if (ts->gp_sculptpaint) {
+    paint_brush_set_default_reference(&ts->gp_sculptpaint->paint);
+  }
+  if (ts->gp_weightpaint) {
+    paint_brush_set_default_reference(&ts->gp_weightpaint->paint);
+  }
+  paint_brush_set_default_reference(&ts->imapaint.paint);
+}
+
+bool BKE_paint_brush_set_default(Main *bmain, Paint *paint)
+{
+  paint_brush_set_default_reference(paint, true, false);
+  return paint_brush_set_from_asset_reference(bmain, paint);
+}
+
+bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
+{
+  paint_brush_set_essentials_reference(paint, name);
+  return paint_brush_set_from_asset_reference(bmain, paint);
+}
+
+void BKE_paint_brushes_validate(Main *bmain, Paint *paint)
+{
+  /* Clear brush with invalid mode. Unclear if this can still happen,
+   * but kept from old paint toolslots code. */
+  Brush *brush = BKE_paint_brush(paint);
+  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+    BKE_paint_brush_set(paint, nullptr);
+    BKE_paint_brush_set_default(bmain, paint);
+  }
+
+  Brush *eraser_brush = BKE_paint_eraser_brush(paint);
+  if (eraser_brush && (paint->runtime.ob_mode & eraser_brush->ob_mode) == 0) {
+    BKE_paint_eraser_brush_set(paint, nullptr);
+    BKE_paint_eraser_brush_set_default(bmain, paint);
+  }
+}
+
+static bool paint_eraser_brush_set_from_asset_reference(Main *bmain, Paint *paint)
+{
+  /* Don't resolve this during file read, it will be done after. */
+  if (bmain->is_locked_for_linking) {
+    return false;
+  }
+  /* Attempt to restore a valid active brush from brush asset information. */
+  if (paint->eraser_brush != nullptr) {
+    return false;
+  }
+  if (paint->eraser_brush_asset_reference == nullptr) {
+    return false;
+  }
+
+  Brush *brush = reinterpret_cast<Brush *>(blender::bke::asset_edit_id_from_weak_reference(
+      *bmain, ID_BR, *paint->eraser_brush_asset_reference));
+  BLI_assert(brush == nullptr || blender::bke::asset_edit_id_is_editable(brush->id));
+
+  /* Ensure we have a brush with appropriate mode to assign.
+   * Could happen if contents of asset blend was manually changed. */
+  if (brush == nullptr || (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+    MEM_delete(paint->eraser_brush_asset_reference);
+    paint->eraser_brush_asset_reference = nullptr;
+    return false;
+  }
+
+  paint->eraser_brush = brush;
+  return true;
+}
+
+Brush *BKE_paint_eraser_brush(Paint *paint)
+{
+  return (Brush *)BKE_paint_eraser_brush_for_read((const Paint *)paint);
+}
+
+const Brush *BKE_paint_eraser_brush_for_read(const Paint *paint)
+{
+  return paint ? paint->eraser_brush : nullptr;
+}
+
+bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush)
+{
+  if (paint == nullptr || paint->eraser_brush == brush) {
+    return false;
+  }
+  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+    return false;
+  }
+
+  paint->eraser_brush = brush;
+
+  MEM_delete(paint->eraser_brush_asset_reference);
+  paint->eraser_brush_asset_reference = nullptr;
+
+  if (brush != nullptr) {
+    std::optional<AssetWeakReference> weak_ref = blender::bke::asset_edit_weak_reference_from_id(
+        brush->id);
+    if (weak_ref.has_value()) {
+      paint->eraser_brush_asset_reference = MEM_new<AssetWeakReference>(__func__, *weak_ref);
+    }
+  }
+
+  return true;
+}
+
+Brush *BKE_paint_eraser_brush_from_essentials(Main *bmain, const char *name)
+{
+  AssetWeakReference weak_ref;
+  weak_ref.asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
+  weak_ref.relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
+                                                    name);
+
+  return reinterpret_cast<Brush *>(
+      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, weak_ref));
+}
+
+bool BKE_paint_eraser_brush_set_default(Main *bmain, Paint *paint)
+{
+  paint_brush_set_default_reference(paint, false, true);
+  return paint_eraser_brush_set_from_asset_reference(bmain, paint);
+}
+
+bool BKE_paint_eraser_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
+{
+  paint_eraser_brush_set_essentials_reference(paint, name);
+  return paint_eraser_brush_set_from_asset_reference(bmain, paint);
+}
+
+static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
 {
   if (paint == &ts->imapaint.paint) {
-    paint->runtime.tool_offset = offsetof(Brush, imagepaint_tool);
     paint->runtime.ob_mode = OB_MODE_TEXTURE_PAINT;
   }
   else if (ts->sculpt && paint == &ts->sculpt->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, sculpt_tool);
     paint->runtime.ob_mode = OB_MODE_SCULPT;
   }
   else if (ts->vpaint && paint == &ts->vpaint->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, vertexpaint_tool);
     paint->runtime.ob_mode = OB_MODE_VERTEX_PAINT;
   }
   else if (ts->wpaint && paint == &ts->wpaint->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, weightpaint_tool);
     paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
   }
   else if (ts->gp_paint && paint == &ts->gp_paint->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, gpencil_tool);
     paint->runtime.ob_mode = OB_MODE_PAINT_GPENCIL_LEGACY;
   }
   else if (ts->gp_vertexpaint && paint == &ts->gp_vertexpaint->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, gpencil_vertex_tool);
     paint->runtime.ob_mode = OB_MODE_VERTEX_GPENCIL_LEGACY;
   }
   else if (ts->gp_sculptpaint && paint == &ts->gp_sculptpaint->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, gpencil_sculpt_tool);
     paint->runtime.ob_mode = OB_MODE_SCULPT_GPENCIL_LEGACY;
   }
   else if (ts->gp_weightpaint && paint == &ts->gp_weightpaint->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, gpencil_weight_tool);
     paint->runtime.ob_mode = OB_MODE_WEIGHT_GPENCIL_LEGACY;
   }
   else if (ts->curves_sculpt && paint == &ts->curves_sculpt->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, curves_sculpt_tool);
     paint->runtime.ob_mode = OB_MODE_SCULPT_CURVES;
   }
   else {
     BLI_assert_unreachable();
   }
+
+  paint->runtime.initialized = true;
 }
 
 uint BKE_paint_get_brush_tool_offset_from_paintmode(const PaintMode mode)
@@ -1091,17 +1309,15 @@ eObjectMode BKE_paint_object_mode_from_paintmode(const PaintMode mode)
   }
 }
 
-bool BKE_paint_ensure(Main * /*bmain*/, ToolSettings *ts, Paint **r_paint)
+bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
 {
   Paint *paint = nullptr;
   if (*r_paint) {
-    /* Tool offset should never be 0 for initialized paint settings, so it's a reliable way to
-     * check if already initialized. */
-    if ((*r_paint)->runtime.tool_offset == 0) {
+    if (!(*r_paint)->runtime.initialized) {
       /* Currently only image painting is initialized this way, others have to be allocated. */
       BLI_assert(ELEM(*r_paint, (Paint *)&ts->imapaint));
 
-      BKE_paint_runtime_init(ts, *r_paint);
+      paint_runtime_init(ts, *r_paint);
     }
     else {
       BLI_assert(ELEM(*r_paint,
@@ -1117,13 +1333,14 @@ bool BKE_paint_ensure(Main * /*bmain*/, ToolSettings *ts, Paint **r_paint)
                       (Paint *)&ts->imapaint));
 #ifndef NDEBUG
       Paint paint_test = **r_paint;
-      BKE_paint_runtime_init(ts, *r_paint);
+      paint_runtime_init(ts, *r_paint);
       /* Swap so debug doesn't hide errors when release fails. */
       std::swap(**r_paint, paint_test);
       BLI_assert(paint_test.runtime.ob_mode == (*r_paint)->runtime.ob_mode);
-      BLI_assert(paint_test.runtime.tool_offset == (*r_paint)->runtime.tool_offset);
 #endif
     }
+    paint_brush_set_from_asset_reference(bmain, *r_paint);
+    paint_eraser_brush_set_from_asset_reference(bmain, *r_paint);
     return true;
   }
 
@@ -1166,7 +1383,9 @@ bool BKE_paint_ensure(Main * /*bmain*/, ToolSettings *ts, Paint **r_paint)
 
   *r_paint = paint;
 
-  BKE_paint_runtime_init(ts, paint);
+  paint_runtime_init(ts, paint);
+  BKE_paint_brush_set_default(bmain, paint);
+  BKE_paint_eraser_brush_set_default(bmain, paint);
 
   return false;
 }
@@ -1177,18 +1396,6 @@ void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3])
 
   BKE_paint_ensure_from_paintmode(bmain, sce, mode);
   Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
-
-  /* If there's no brush, create one */
-  Brush *brush = BKE_paint_brush(paint);
-  if (brush == nullptr) {
-    eObjectMode ob_mode = BKE_paint_object_mode_from_paintmode(mode);
-    brush = BKE_brush_first_search(bmain, ob_mode);
-    if (!brush) {
-      brush = BKE_brush_add(bmain, "Brush", ob_mode);
-      id_us_min(&brush->id); /* Fake user only. */
-    }
-    BKE_paint_brush_set(paint, brush);
-  }
 
   copy_v3_v3_uchar(paint->paint_cursor_col, col);
   paint->paint_cursor_col[3] = 128;
@@ -1203,23 +1410,26 @@ void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3])
 void BKE_paint_free(Paint *paint)
 {
   BKE_curvemapping_free(paint->cavity_curve);
-  MEM_SAFE_FREE(paint->tool_slots);
+  MEM_delete(paint->brush_asset_reference);
+  MEM_delete(paint->eraser_brush_asset_reference);
 }
 
 void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
 {
   dst->brush = src->brush;
   dst->cavity_curve = BKE_curvemapping_copy(src->cavity_curve);
-  dst->tool_slots = static_cast<PaintToolSlot *>(MEM_dupallocN(src->tool_slots));
+
+  if (src->brush_asset_reference) {
+    dst->brush_asset_reference = MEM_new<AssetWeakReference>(__func__,
+                                                             *src->brush_asset_reference);
+  }
+  if (src->eraser_brush_asset_reference) {
+    dst->eraser_brush_asset_reference = MEM_new<AssetWeakReference>(
+        __func__, *src->eraser_brush_asset_reference);
+  }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus((ID *)dst->brush);
     id_us_plus((ID *)dst->palette);
-    if (src->tool_slots != nullptr) {
-      for (int i = 0; i < dst->tool_slots_len; i++) {
-        id_us_plus((ID *)dst->tool_slots[i].brush);
-      }
-    }
   }
 }
 
@@ -1240,7 +1450,12 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *paint)
   if (paint->cavity_curve) {
     BKE_curvemapping_blend_write(writer, paint->cavity_curve);
   }
-  BLO_write_struct_array(writer, PaintToolSlot, paint->tool_slots_len, paint->tool_slots);
+  if (paint->brush_asset_reference) {
+    BKE_asset_weak_reference_write(writer, paint->brush_asset_reference);
+  }
+  if (paint->eraser_brush_asset_reference) {
+    BKE_asset_weak_reference_write(writer, paint->eraser_brush_asset_reference);
+  }
 }
 
 void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *paint)
@@ -1253,17 +1468,18 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
     BKE_paint_cavity_curve_preset(paint, CURVE_PRESET_LINE);
   }
 
-  BLO_read_struct_array(reader, PaintToolSlot, paint->tool_slots_len, &paint->tool_slots);
+  BLO_read_struct(reader, AssetWeakReference, &paint->brush_asset_reference);
+  if (paint->brush_asset_reference) {
+    BKE_asset_weak_reference_read(reader, paint->brush_asset_reference);
+  }
 
-  /* Workaround for invalid data written in older versions. */
-  const size_t expected_size = sizeof(PaintToolSlot) * paint->tool_slots_len;
-  if (paint->tool_slots && MEM_allocN_len(paint->tool_slots) < expected_size) {
-    MEM_freeN(paint->tool_slots);
-    paint->tool_slots = static_cast<PaintToolSlot *>(MEM_callocN(expected_size, "PaintToolSlot"));
+  BLO_read_struct(reader, AssetWeakReference, &paint->eraser_brush_asset_reference);
+  if (paint->eraser_brush_asset_reference) {
+    BKE_asset_weak_reference_read(reader, paint->eraser_brush_asset_reference);
   }
 
   paint->paint_cursor = nullptr;
-  BKE_paint_runtime_init(scene->toolsettings, paint);
+  paint_runtime_init(scene->toolsettings, paint);
 }
 
 bool paint_is_grid_face_hidden(const blender::BoundedBitSpan grid_hidden,

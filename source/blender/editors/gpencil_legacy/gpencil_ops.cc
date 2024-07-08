@@ -715,9 +715,6 @@ void ED_operatortypes_gpencil_legacy()
   WM_operatortype_append(GPENCIL_OT_transform_fill);
   WM_operatortype_append(GPENCIL_OT_reset_transform_fill);
 
-  WM_operatortype_append(GPENCIL_OT_brush_reset);
-  WM_operatortype_append(GPENCIL_OT_brush_reset_all);
-
   /* vertex groups */
   WM_operatortype_append(GPENCIL_OT_vertex_group_assign);
   WM_operatortype_append(GPENCIL_OT_vertex_group_remove_from);

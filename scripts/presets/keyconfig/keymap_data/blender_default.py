@@ -267,6 +267,10 @@ def op_panel(menu, kmi_args, kmi_data=()):
     return ("wm.call_panel", kmi_args, {"properties": [("name", menu), *kmi_data]})
 
 
+def op_asset_shelf_popup(asset_shelf, kmi_args):
+    return ("wm.call_asset_shelf_popover", kmi_args, {"properties": [("name", asset_shelf)]})
+
+
 def op_tool(tool, kmi_args):
     return ("wm.tool_set_by_id", kmi_args, {"properties": [("name", tool)]})
 
@@ -3906,6 +3910,10 @@ def km_gpencil_legacy_stroke_paint_mode(params):
         ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
         # Lasso erase
         ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_gpencil_paint",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     return keymap
@@ -4071,6 +4079,10 @@ def km_gpencil_legacy_stroke_sculpt_mode(params):
         op_menu_pie(
             "VIEW3D_MT_sculpt_gpencil_automasking_pie",
             {"type": 'A', "shift": True, "alt": True, "value": 'PRESS'},
+        ),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_gpencil_sculpt",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
         ),
     ])
 
@@ -4299,6 +4311,10 @@ def km_gpencil_legacy_stroke_weight_mode(params):
         ("gpencil.weight_toggle_direction", {"type": 'D', "value": 'PRESS'}, None),
         # Weight sample
         ("gpencil.weight_sample", {"type": 'X', "value": 'PRESS', "shift": True}, None),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_gpencil_weight",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     if params.select_mouse == 'LEFTMOUSE':
@@ -4428,6 +4444,10 @@ def km_gpencil_legacy_stroke_vertex_mode(params):
 
         # Vertex Paint context menu
         op_panel("VIEW3D_PT_gpencil_vertex_context_menu", params.context_menu_event),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_gpencil_vertex",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     return keymap
@@ -4579,6 +4599,11 @@ def km_grease_pencil_paint_mode(_params):
 
         # Isolate Layer
         ("grease_pencil.layer_isolate", {"type": 'NUMPAD_ASTERIX', "value": 'PRESS'}, None),
+
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_gpencil_paint",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     return keymap
@@ -4730,6 +4755,10 @@ def km_grease_pencil_sculpt_mode(params):
         ("grease_pencil.sculpt_paint", {"type": 'LEFTMOUSE', "value": 'PRESS',
          "shift": True}, {"properties": [("mode", 'SMOOTH')]}),
         *_template_paint_radial_control("gpencil_sculpt_paint"),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_gpencil_sculpt",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     return keymap
@@ -4769,6 +4798,11 @@ def km_grease_pencil_weight_paint(params):
 
         # Show/hide layer
         *_template_items_hide_reveal_actions("grease_pencil.layer_hide", "grease_pencil.layer_reveal"),
+
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_gpencil_weight",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     if params.select_mouse == 'LEFTMOUSE':
@@ -5096,6 +5130,10 @@ def km_paint_curve(params):
         ("transform.translate", {"type": params.select_mouse, "value": 'CLICK_DRAG'}, None),
         ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_sculpt_curves",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     return keymap
@@ -5373,6 +5411,14 @@ def km_image_paint(params):
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS', "alt": True},
          {"properties": [("data_path", 'tool_settings.image_paint.brush.stroke_method')]}),
         *_template_items_context_panel("VIEW3D_PT_paint_texture_context_menu", params.context_menu_event),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_texture_paint",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
+        op_asset_shelf_popup(
+            "IMAGE_AST_brush_paint",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     if params.legacy:
@@ -5423,6 +5469,10 @@ def km_vertex_paint(params):
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.stroke_method')]}),
         ("paint.face_vert_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         *_template_items_context_panel("VIEW3D_PT_paint_vertex_context_menu", params.context_menu_event),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_vertex_paint",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     if params.legacy:
@@ -5480,6 +5530,10 @@ def km_weight_paint(params):
         op_menu_pie("VIEW3D_MT_wpaint_vgroup_lock_pie", {"type": 'K', "value": 'PRESS'}),
         ("paint.face_vert_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         *_template_items_context_panel("VIEW3D_PT_paint_weight_context_menu", params.context_menu_event),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_weight_paint",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     if params.select_mouse == 'LEFTMOUSE':
@@ -5679,27 +5733,41 @@ def km_sculpt(params):
         op_menu_pie("VIEW3D_MT_sculpt_automasking_pie", {"type": 'A', "alt": True, "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_sculpt_face_sets_edit_pie", {"type": 'W', "value": 'PRESS', "alt": True}),
         *_template_items_context_panel("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),
-        # Tools
-        ("paint.brush_select", {"type": 'V', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'DRAW')]}),
-        ("paint.brush_select", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'SMOOTH')]}),
-        ("paint.brush_select", {"type": 'P', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'PINCH')]}),
-        ("paint.brush_select", {"type": 'I', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'INFLATE')]}),
-        ("paint.brush_select", {"type": 'G', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'GRAB')]}),
-        ("paint.brush_select", {"type": 'T', "value": 'PRESS', "shift": True},
-         {"properties": [("sculpt_tool", 'SCRAPE')]}),
-        ("paint.brush_select", {"type": 'C', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'CLAY_STRIPS')]}),
-        ("paint.brush_select", {"type": 'C', "value": 'PRESS', "shift": True},
-         {"properties": [("sculpt_tool", 'CREASE')]}),
-        ("paint.brush_select", {"type": 'K', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'SNAKE_HOOK')]}),
-        ("paint.brush_select", {"type": 'M', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'MASK'), ("toggle", True), ("create_missing", True)]}),
+        # Brushes
+        ("brush.asset_activate", {"type": 'V', "value": 'PRESS'},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Draw")]}),
+        ("brush.asset_activate", {"type": 'S', "value": 'PRESS'},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Smooth")]}),
+        ("brush.asset_activate", {"type": 'P', "value": 'PRESS'},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Pinch/Magnify")]}),
+        ("brush.asset_activate", {"type": 'I', "value": 'PRESS'},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Inflate/Deflate")]}),
+        ("brush.asset_activate", {"type": 'G', "value": 'PRESS'},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Grab")]}),
+        ("brush.asset_activate", {"type": 'T', "value": 'PRESS', "shift": True},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Scrape/Fill")]}),
+        ("brush.asset_activate", {"type": 'C', "value": 'PRESS'},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Clay Strips")]}),
+        ("brush.asset_activate", {"type": 'C', "value": 'PRESS', "shift": True},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Crease")]}),
+        ("brush.asset_activate", {"type": 'K', "value": 'PRESS'},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Snake Hook")]}),
+        ("brush.asset_activate", {"type": 'M', "value": 'PRESS'},
+         {"properties": [("asset_library_type", 'ESSENTIALS'),
+                         ("relative_asset_identifier", "brushes/essentials_brushes.blend/Brush/Mask")]}),
+        op_asset_shelf_popup(
+            "VIEW3D_AST_brush_sculpt",
+            {"type": 'SPACE', "value": 'PRESS', "shift": True}
+        ),
     ])
 
     # Lasso Masking.

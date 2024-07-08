@@ -1204,6 +1204,9 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
 
   Paint *paint = &ts->gp_sculptpaint->paint;
   Brush *brush = BKE_paint_brush(paint);
+  if (brush && !brush->gpencil_settings) {
+    BKE_brush_init_gpencil_settings(brush);
+  }
   gso->brush = brush;
   BKE_curvemapping_init(gso->brush->curve);
 
@@ -2177,9 +2180,10 @@ static void gpencil_sculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *
 static Brush *gpencil_sculpt_get_smooth_brush(tGP_BrushEditData *gso)
 {
   Main *bmain = gso->bmain;
-  Brush *brush = static_cast<Brush *>(
-      BLI_findstring(&bmain->brushes, "Smooth Stroke", offsetof(ID, name) + 2));
-
+  Brush *brush = BKE_paint_brush_from_essentials(bmain, "Smooth Stroke");
+  if (brush && !brush->gpencil_settings) {
+    BKE_brush_init_gpencil_settings(brush);
+  }
   return brush;
 }
 
